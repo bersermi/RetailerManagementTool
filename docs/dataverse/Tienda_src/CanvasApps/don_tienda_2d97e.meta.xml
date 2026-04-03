@@ -1,0 +1,34 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<CanvasApp xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>don_tienda_2d97e</Name>
+  <AppVersion>2026-01-27T08:56:37Z</AppVersion>
+  <Status>Ready</Status>
+  <CreatedByClientVersion>3.26012.17.0</CreatedByClientVersion>
+  <MinClientVersion>3.26012.17.0</MinClientVersion>
+  <Tags>{"primaryDeviceWidth":"640","primaryDeviceHeight":"1136","supportsPortrait":"true","supportsLandscape":"true","primaryFormFactor":"Phone","showStatusBar":"false","publisherVersion":"3.26012.17","minimumRequiredApiVersion":"2.2.0","hasComponent":"false","hasUnlockedComponent":"false","isUnifiedRootApp":"false","sienaVersion":"20260127T082533Z-3.26012.17.0"}</Tags>
+  <IsCdsUpgraded>0</IsCdsUpgraded>
+  <GalleryItemId xsi:nil="true"></GalleryItemId>
+  <BackgroundColor>RGBA(0,176,240,1)</BackgroundColor>
+  <DisplayName>Tienda</DisplayName>
+  <Description xsi:nil="true"></Description>
+  <CommitMessage xsi:nil="true"></CommitMessage>
+  <Publisher xsi:nil="true"></Publisher>
+  <AuthorizationReferences>[]</AuthorizationReferences>
+  <ConnectionReferences>{}</ConnectionReferences>
+  <DatabaseReferences>{"default.cds":{"databaseDetails":{"referenceType":"Environmental","environmentName":"default.cds","overrideValues":{"status":"NotSpecified","environmentVariableName":""}},"dataSources":{"Providers":{"entitySetName":"crbc0_providers","logicalName":"crbc0_provider"},"InventoryEvents":{"entitySetName":"crbc0_inventoryevents","logicalName":"crbc0_inventoryevent"},"ProductAvailabilityOverrides":{"entitySetName":"crbc0_productavailabilityoverrides","logicalName":"crbc0_productavailabilityoverride"},"ProductFamilies":{"entitySetName":"crbc0_productfamilies","logicalName":"crbc0_productfamily"},"ProductVariantAttributes":{"entitySetName":"crbc0_productvariantattributes","logicalName":"crbc0_productvariantattribute"},"ProductVariants":{"entitySetName":"crbc0_productvariants","logicalName":"crbc0_productvariant"},"ProviderCatalogItems":{"entitySetName":"crbc0_providercatalogitems","logicalName":"crbc0_providercatalogitem"},"PurchaseLines":{"entitySetName":"crbc0_purchaselines","logicalName":"crbc0_purchaseline"},"Purchases":{"entitySetName":"crbc0_purchases","logicalName":"crbc0_purchase"},"SaleLines":{"entitySetName":"crbc0_salelines","logicalName":"crbc0_saleline"},"Sales":{"entitySetName":"crbc0_sales","logicalName":"crbc0_sale"},"StockBatches":{"entitySetName":"crbc0_stockbatchs","logicalName":"crbc0_stockbatch"},"Suggestions":{"entitySetName":"crbc0_suggestions","logicalName":"crbc0_suggestion"},"Units":{"entitySetName":"crbc0_units","logicalName":"crbc0_unit"},"UserUnitPreferences":{"entitySetName":"crbc0_userunitpreferences","logicalName":"crbc0_userunitpreference"},"WasteLines":{"entitySetName":"crbc0_wastelines","logicalName":"crbc0_wasteline"},"Wastes":{"entitySetName":"crbc0_wastes","logicalName":"crbc0_waste"},"Workspaces":{"entitySetName":"crbc0_workspaces","logicalName":"crbc0_workspace"},"WorkspaceMembers":{"entitySetName":"crbc0_workspacemembers","logicalName":"crbc0_workspacemember"},"Modules":{"entitySetName":"don_moduleses","logicalName":"don_modules"}}}}</DatabaseReferences>
+  <AppComponents>[]</AppComponents>
+  <AppComponentDependencies>[]</AppComponentDependencies>
+  <CanConsumeAppPass>1</CanConsumeAppPass>
+  <CanvasAppType>0</CanvasAppType>
+  <BypassConsent>0</BypassConsent>
+  <AdminControlBypassConsent>0</AdminControlBypassConsent>
+  <EmbeddedApp xsi:nil="true"></EmbeddedApp>
+  <IntroducedVersion>1.0</IntroducedVersion>
+  <CdsDependencies>{"cdsdependencies":[{"logicalname":"crbc0_provider","componenttype":1},{"logicalname":"crbc0_inventoryevent","componenttype":1},{"logicalname":"crbc0_productavailabilityoverride","componenttype":1},{"logicalname":"crbc0_productfamily","componenttype":1},{"logicalname":"crbc0_productvariantattribute","componenttype":1},{"logicalname":"crbc0_productvariant","componenttype":1},{"logicalname":"crbc0_providercatalogitem","componenttype":1},{"logicalname":"crbc0_purchaseline","componenttype":1},{"logicalname":"crbc0_purchase","componenttype":1},{"logicalname":"crbc0_saleline","componenttype":1},{"logicalname":"crbc0_sale","componenttype":1},{"logicalname":"crbc0_stockbatch","componenttype":1},{"logicalname":"crbc0_suggestion","componenttype":1},{"logicalname":"crbc0_unit","componenttype":1},{"logicalname":"crbc0_userunitpreference","componenttype":1},{"logicalname":"crbc0_wasteline","componenttype":1},{"logicalname":"crbc0_waste","componenttype":1},{"logicalname":"crbc0_workspace","componenttype":1},{"logicalname":"crbc0_workspacemember","componenttype":1},{"logicalname":"don_modules","componenttype":1}]}</CdsDependencies>
+  <IsCustomizable>1</IsCustomizable>
+  <BackgroundImageUri>/CanvasApps/don_tienda_2d97e_BackgroundImageUri</BackgroundImageUri>
+  <DocumentUri>/CanvasApps/don_tienda_2d97e_DocumentUri.msapp</DocumentUri>
+  <AdditionalUris>
+    <AdditionalUri>/CanvasApps/don_tienda_2d97e_AdditionalUris0_identity.json</AdditionalUri>
+  </AdditionalUris>
+</CanvasApp>

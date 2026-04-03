@@ -1,0 +1,27 @@
+# ADR-001: Multi-tenant model using Workspace partition key
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - The app must support many independent businesses/users in a single Dataverse environment (Option B) while keeping their data separated.
+  - The solution must be replicable and later consolidated in a single repository with consistent rules.
+- **Decision**
+  - Introduce a `Workspace` table representing one business/store instance.
+  - Add a required `Workspace` lookup to all business tables to partition all records by tenant.
+- **Rationale**
+  - Workspace is a simple and reliable partition key for Canvas app filtering, security, and future consolidation.
+  - It enables copying/deploying the same solution once and onboarding new businesses as data rows (Workspace + membership + seeds), not schema copies.
+- **Consequences**
+  - **Positive:**
+    - Clear tenant separation inside one environment.
+    - Straightforward scoping in the app (`Filter(Table, Workspace = gblWorkspaceId)`).
+    - Enables later consolidation and analytics across workspaces.
+  - **Negative / tradeoffs:**
+    - Every query and create must consistently apply Workspace filtering/defaulting.
+    - Requires onboarding logic to create Workspace and seed baseline records.
+- **Alternatives considered**
+  - One environment per customer (Option A): simpler schema but harder centralized consolidation and more operational overhead.
+- **Follow-ups**
+  - Make `Workspace` lookup **Business required** across all tables.
+  - Create onboarding process (app screen or flow) to create Workspace and seed defaults.

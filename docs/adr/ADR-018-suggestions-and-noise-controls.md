@@ -1,0 +1,23 @@
+# ADR-018: Suggestions with noise controls (Suggestion + SuggestionSetting)
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Backend intelligence can improve configuration (e.g., inferred lifespan), but too many suggestions create noise.
+- **Decision**
+  - Create `Suggestion` table to store proposed improvements with status (New/Accepted/Dismissed).
+  - Create `SuggestionSetting` per user/workspace to enable/disable suggestion categories.
+- **Rationale**
+  - Enables intelligent assistance while giving users control over notifications and recommendation types.
+- **Consequences**
+  - **Positive:**
+    - Controlled UX; suggestions are actionable and trackable.
+    - Easy to expand with new suggestion types later.
+  - **Negative / tradeoffs:**
+    - Requires UI to review/apply/dismiss suggestions and manage settings.
+- **Alternatives considered**
+  - No suggestions: loses automation and learning opportunities.
+  - Always-on suggestions: risks overwhelming users.
+- **Follow-ups**
+  - Create suggestion generation hook on Expired finalization (see ADR-014/ADR-017).

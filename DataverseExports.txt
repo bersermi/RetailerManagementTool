@@ -1,0 +1,9 @@
+Powershell
+
+pac canvas list
+
+pac org select --environment 52852372-0d04-eaba-9994-15784911480d
+
+pac solution export --name Tienda --path "C:/Users/berse/Kabe Imports/1st Version/docs/dataverse"
+
+pac solution unpack --zipfile "C:\Users\berse\Kabe Imports\1st Version\docs\dataverse\Tienda.zip" --folder "C:\Users\berse\Kabe Imports\1st Version\docs\dataverse\Tienda_src"

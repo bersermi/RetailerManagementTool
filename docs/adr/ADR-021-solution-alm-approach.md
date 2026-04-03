@@ -1,0 +1,23 @@
+# ADR-021: Solution-first ALM approach for scalable replication
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - The project must scale, replicate properly, and support controlled deployments/updates.
+- **Decision**
+  - Manage schema, flows, and apps inside Solutions.
+  - Build in DEV using unmanaged solutions; deploy to TEST/PROD as managed solutions.
+  - Use environment variables + connection references for environment-specific configuration.
+- **Rationale**
+  - Solutions provide repeatable packaging and deployment of Dataverse customizations and Power Platform assets.
+- **Consequences**
+  - **Positive:**
+    - Clean upgrades and versioning.
+    - Repeatable deployments across environments.
+  - **Negative / tradeoffs:**
+    - Requires initial discipline and environment setup.
+- **Alternatives considered**
+  - Building outside solutions: harder replication, brittle deployments.
+- **Follow-ups**
+  - Consider splitting into `Retail.Core`, `Retail.Automation`, `Retail.App` solutions.

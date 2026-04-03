@@ -1,0 +1,86 @@
+ComponentDefinitions:
+  cmpHeader:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      OnBack:
+        PropertyKind: Event
+        DisplayName: OnBack
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnMenu:
+        PropertyKind: Event
+        DisplayName: OnMenu
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      RightIconMode:
+        PropertyKind: Input
+        DisplayName: RightIconMode
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      ShowBack:
+        PropertyKind: Input
+        DisplayName: ShowBack
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      ShowMenu:
+        PropertyKind: Input
+        DisplayName: ShowMenu
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      TitleText:
+        PropertyKind: Input
+        DisplayName: TitleText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      UserInitials:
+        PropertyKind: Input
+        DisplayName: UserInitials
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+    Properties:
+      Height: =If(Self.Width < 480, 52, 60)
+      Width: =360
+    Children:
+      - icoBack:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: = If(cmpHeader.Width < 480, 36, 40)
+            Icon: =Icon.BackArrow
+            OnSelect: =cmpHeader.OnBack()
+            Visible: =cmpHeader.ShowBack
+            Width: =If(cmpHeader.Width < 480, 36, 40)
+            X: =If(cmpHeader.Width < 480, 12, 16)
+            Y: =RoundDown((cmpHeader.Height - Self.Height)/2, 0)
+      - icoMenu:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =If(cmpHeader.Width < 480, 36, 40)
+            Icon: =If(cmpHeader.RightIconMode="Menu", Icon.Hamburger, Icon.Person)
+            OnSelect: =cmpHeader.OnMenu()
+            Visible: =cmpHeader.ShowMenu && cmpHeader.RightIconMode <> "None"
+            Width: =If(cmpHeader.Width < 480, 36, 40)
+            X: =cmpHeader.Width - Self.Width - If(cmpHeader.Width < 480, 12, 16)
+            Y: =RoundDown((cmpHeader.Height - Self.Height)/2, 0)
+      - lblTitle:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =cmpHeader.Height
+            Size: =If(cmpHeader.Width < 480, 16, 18)
+            Text: =cmpHeader.TitleText
+            Width: =cmpHeader.Width - 2 * If(cmpHeader.Width < 480, 60, 72)
+            Wrap: =false
+            X: =If(cmpHeader.Width < 480, 60, 72)

@@ -1,0 +1,297 @@
+ComponentDefinitions:
+  cmpCartBottomBar:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      BarHeight:
+        PropertyKind: Input
+        DisplayName: BarHeight
+        Description: A custom property
+        DataType: Number
+        Default: =72
+      BorderColorBar:
+        PropertyKind: Input
+        DisplayName: BorderColorBar
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(230,230,230,1)
+      Busy:
+        PropertyKind: Input
+        DisplayName: Busy
+        Description: A custom property
+        DataType: Boolean
+        Default: =false
+      CornerRadius:
+        PropertyKind: Input
+        DisplayName: CornerRadius
+        Description: A custom property
+        DataType: Number
+        Default: =20
+      CurrencySymbol:
+        PropertyKind: Input
+        DisplayName: CurrencySymbol
+        Description: A custom property
+        DataType: Text
+        Default: ="$"
+      FillBar:
+        PropertyKind: Input
+        DisplayName: FillBar
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(255,255,255,1)
+      FillThumb:
+        PropertyKind: Input
+        DisplayName: FillThumb
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0,0,0,1)
+      FillTrack:
+        PropertyKind: Input
+        DisplayName: FillTrack
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(255,255,255,1)
+      HorizontalPadding:
+        PropertyKind: Input
+        DisplayName: HorizontalPadding
+        Description: A custom property
+        DataType: Number
+        Default: =12
+      OnOpenCart:
+        PropertyKind: Event
+        DisplayName: OnOpenCart
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnPayComplete:
+        PropertyKind: Event
+        DisplayName: OnPayComplete
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      PayEnabled:
+        PropertyKind: Input
+        DisplayName: PayEnabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      PayLabel:
+        PropertyKind: Input
+        DisplayName: PayLabel
+        Description: A custom property
+        DataType: Text
+        Default: ="Pagar"
+      ResetNonce:
+        PropertyKind: Input
+        DisplayName: ResetNonce
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      SliderThreshold:
+        PropertyKind: Input
+        DisplayName: SliderThreshold
+        Description: A custom property
+        DataType: Number
+        Default: =10091
+      TextColorPrimary:
+        PropertyKind: Input
+        DisplayName: TextColorPrimary
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(20,20,20,1)
+      TextColorSecondary:
+        PropertyKind: Input
+        DisplayName: TextColorSecondary
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(110,110,110,1)
+      TotalAmount:
+        PropertyKind: Input
+        DisplayName: TotalAmount
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      TotalPaneWidth:
+        PropertyKind: Input
+        DisplayName: TotalPaneWidth
+        Description: A custom property
+        DataType: Number
+        Default: =132
+      VisibleBar:
+        PropertyKind: Input
+        DisplayName: VisibleBar
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+    Properties:
+      Height: =72
+      Width: =360
+    Children:
+      - bgBar:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =cmpCartBottomBar.BorderColorBar
+            BorderThickness: =1
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =Parent.FillBar
+            DisplayMode: =DisplayMode.Disabled
+            Fill: =Parent.FillBar
+            Font: =Font.'Open Sans'
+            Height: =Parent.BarHeight
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =cmpCartBottomBar.CornerRadius
+            RadiusBottomRight: =cmpCartBottomBar.CornerRadius
+            RadiusTopLeft: =cmpCartBottomBar.CornerRadius
+            RadiusTopRight: =cmpCartBottomBar.CornerRadius
+            Text: =""
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =Parent.Width
+      - bgTrack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =cmpCartBottomBar.BorderColorBar
+            BorderThickness: =1
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisabledFill: =Parent.FillTrack
+            DisplayMode: =DisplayMode.Disabled
+            Fill: =Parent.FillTrack
+            Font: =Font.'Open Sans'
+            Height: =Parent.BarHeight - 20
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =18
+            RadiusBottomRight: =18
+            RadiusTopLeft: =18
+            RadiusTopRight: =18
+            Text: =""
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =Parent.Width - Self.X - cmpCartBottomBar.HorizontalPadding
+            X: =cmpCartBottomBar.HorizontalPadding + cmpCartBottomBar.TotalPaneWidth + 8
+            Y: =10
+      - lblTotalCaption:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =cmpCartBottomBar.TextColorSecondary
+            Font: =Font.'Open Sans'
+            Height: =16
+            Size: =12
+            Text: ="Total"
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =cmpCartBottomBar.TotalPaneWidth
+            X: =cmpCartBottomBar.HorizontalPadding
+            Y: =12
+      - lblTotalAmount:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =cmpCartBottomBar.TextColorPrimary
+            Font: =Font.'Open Sans'
+            Height: =24
+            Text: =Coalesce(cmpCartBottomBar.CurrencySymbol, "$") & Text(Coalesce(cmpCartBottomBar.TotalAmount, 0), "[$-en-US]#,##0.00")
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =cmpCartBottomBar.TotalPaneWidth
+            X: =cmpCartBottomBar.HorizontalPadding
+            Y: =28
+      - lblPayBackground:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =cmpCartBottomBar.TextColorSecondary
+            Font: =Font.'Open Sans'
+            Height: =bgTrack.Height
+            Text: =cmpCartBottomBar.PayLabel
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =bgTrack.Width
+            X: =bgTrack.X
+            Y: =bgTrack.Y
+      - sldPay:
+          Control: Classic/Slider@2.1.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: =0
+            DisplayMode: =If(cmpCartBottomBar.Busy || !cmpCartBottomBar.PayEnabled, DisplayMode.Disabled, DisplayMode.Edit)
+            FocusedBorderColor: =Color.Transparent
+            HandleSize: =30
+            Height: =bgTrack.Height
+            HoverBorderColor: =Color.Transparent
+            OnChange: |-
+              =If(
+                  cmpCartBottomBar.Busy || !cmpCartBottomBar.PayEnabled,
+                  Select(btnResetInternal),
+                  If(
+                      Self.Value >= cmpCartBottomBar.SliderThreshold,
+                      cmpCartBottomBar.OnPayComplete(),
+                      Select(btnResetInternal)
+                  )
+              )
+            PressedBorderColor: =Color.Transparent
+            RailFill: =Color.Transparent
+            RailThickness: =0
+            ShowValue: =false
+            ValueFill: =RGBA(0, 18, 107, 1)
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =bgTrack.Width -10
+            X: =bgTrack.X + 10
+            Y: =bgTrack.Y
+      - hitOpenCart:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =If(cmpCartBottomBar.Busy, DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(0,0,0,0)
+            Font: =Font.'Open Sans'
+            Height: =cmpCartBottomBar.BarHeight
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpCartBottomBar.OnOpenCart()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =""
+            Visible: =cmpCartBottomBar.VisibleBar
+            Width: =cmpCartBottomBar.HorizontalPadding + cmpCartBottomBar.TotalPaneWidth + 8
+      - thumbVisual:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =If(cmpCartBottomBar.Busy || !cmpCartBottomBar.PayEnabled, RGBA(160,160,160,1), cmpCartBottomBar.FillThumb)
+            Height: =bgTrack.Height - 8
+            Visible: =false
+            Width: =60
+            X: =bgTrack.X + ((sldPay.Value / 100) * (bgTrack.Width - Self.Width))
+            Y: =bgTrack.Y + 4
+      - btnResetInternal:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =Reset(sldPay)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: ="reset"
+            Visible: =false
+            X: =200
+            Y: =76

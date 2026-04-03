@@ -1,0 +1,230 @@
+ComponentDefinitions:
+  cmpQtyStepper:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      AllowDecimal:
+        PropertyKind: Input
+        DisplayName: AllowDecimal
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Disabled:
+        PropertyKind: Input
+        DisplayName: Disabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Editable:
+        PropertyKind: Input
+        DisplayName: Editable
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      IsManualValidOut:
+        PropertyKind: Output
+        DisplayName: IsManualValidOut
+        Description: A custom property
+        DataType: Boolean
+      ManualQtyOut:
+        PropertyKind: Output
+        DisplayName: ManualQtyOut
+        Description: A custom property
+        DataType: Number
+      MaxQty:
+        PropertyKind: Input
+        DisplayName: MaxQty
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      MaxQtyEnabled:
+        PropertyKind: Input
+        DisplayName: MaxQtyEnabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      MinQty:
+        PropertyKind: Input
+        DisplayName: MinQty
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      OnManualSet:
+        PropertyKind: Event
+        DisplayName: OnManualSet
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnMinus:
+        PropertyKind: Event
+        DisplayName: OnMinus
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnPlus:
+        PropertyKind: Event
+        DisplayName: OnPlus
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      Qty:
+        PropertyKind: Input
+        DisplayName: Qty
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      Step:
+        PropertyKind: Input
+        DisplayName: Step
+        Description: A custom property
+        RaiseOnReset: true
+        DataType: Number
+        Default: =1
+    Properties:
+      Height: =If(Self.Width < 140, 36, 40)
+      IsManualValidOut: |-
+        =If(
+            !cmpQtyStepper.Editable,
+            true,
+            With(
+                { v: IfError(Value(txtQtyStepper.Text), Blank()) },
+                !IsBlank(v) &&
+                If(cmpQtyStepper.AllowDecimal, v, Round(v, 0)) >= cmpQtyStepper.MinQty &&
+                !(cmpQtyStepper.MaxQtyEnabled && If(cmpQtyStepper.AllowDecimal, v, Round(v, 0)) > cmpQtyStepper.MaxQty)
+            )
+        )
+      ManualQtyOut: |-
+        =If(
+            !cmpQtyStepper.Editable,
+            cmpQtyStepper.Qty,
+            With(
+                { v: IfError(Value(txtQtyStepper.Text), Blank()) },
+                If(
+                    IsBlank(v),
+                    Blank(),
+                    If(cmpQtyStepper.AllowDecimal, v, Round(v, 0))
+                )
+            )
+        )
+      Width: =140
+    Children:
+      - btnQtyStepperMinus:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  cmpQtyStepper.Disabled || cmpQtyStepper.Qty <= cmpQtyStepper.MinQty,
+                  DisplayMode.Disabled,
+                  DisplayMode.Edit
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpQtyStepper.OnMinus()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: ="-"
+            Width: =Parent.Height
+      - btnQtyStepperPlus:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: |-
+              =If(
+                  cmpQtyStepper.Disabled ||
+                  (cmpQtyStepper.MaxQtyEnabled && cmpQtyStepper.Qty >= cmpQtyStepper.MaxQty),
+                  DisplayMode.Disabled,
+                  DisplayMode.Edit
+              )
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpQtyStepper.OnPlus()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: ="+"
+            Width: =Parent.Height
+            X: =Parent.Width - Self.Width
+      - lblQtyStepper:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            Size: |-
+              =With(
+                  {
+                      n: Len(Self.Text),
+                      base: If(Parent.Width < 140, 14, 16)
+                  },
+                  If(
+                      n <= 3, base,
+                      If(
+                          n <= 5, base - 2,
+                          If(
+                              n <= 7, base - 4,
+                              base - 6
+                          )
+                      )
+                  )
+              )
+            Text: |-
+              =If(
+                  cmpQtyStepper.AllowDecimal,
+                  Text(cmpQtyStepper.Qty, "0.###"),
+                  Text(cmpQtyStepper.Qty, "0.0")
+              )
+            Visible: =!cmpQtyStepper.Editable
+            Width: =Parent.Width - btnQtyStepperMinus.Width - btnQtyStepperPlus.Width
+            X: =btnQtyStepperMinus.Width
+      - txtQtyStepper:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: |-
+              =Text(
+                  cmpQtyStepper.Qty,
+                  If(cmpQtyStepper.AllowDecimal, "0.###", "0")
+              )
+            DisplayMode: =If(cmpQtyStepper.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            Format: =TextFormat.Number
+            Height: =Parent.Height
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            OnChange: =cmpQtyStepper.OnManualSet()
+            Size: |-
+              =With(
+                  {
+                      n: Len(Self.Text),
+                      base: If(Parent.Width < 140, 14, 16)
+                  },
+                  If(
+                      n <= 3, base,
+                      If(
+                          n <= 5, base - 2,
+                          If(
+                              n <= 7, base - 4,
+                              base - 6
+                          )
+                      )
+                  )
+              )
+            Visible: =cmpQtyStepper.Editable
+            Width: =Parent.Width - btnQtyStepperMinus.Width - btnQtyStepperPlus.Width
+            X: =btnQtyStepperMinus.Width

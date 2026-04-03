@@ -1,0 +1,22 @@
+# ADR-024: Dataverse as system of record; screen collections as working state
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Need clear separation between persistent data and UI interaction state.
+- **Decision**
+  - Dataverse is the system of record.
+  - Screen-level collections are working models for UX only.
+- **Rationale**
+  - Ensures consistency, scalability, and auditability.
+- **Consequences**
+  - **Positive:**
+    - Clean separation of concerns.
+    - Easier backend integration and reporting.
+  - **Negative / tradeoffs:**
+    - Requires explicit synchronization logic.
+- **Alternatives considered**
+  - Components owning state → rejected (leads to fragmentation).
+- **Follow-ups**
+  - Enforce screen-level patch patterns.

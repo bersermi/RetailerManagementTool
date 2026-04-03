@@ -1,0 +1,24 @@
+# ADR-013: Availability overrides separate from stock quantities
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Users need to quickly make a product not sellable (out of stock “for the day”, temporary stop selling) without immediately determining quantities or reasons.
+- **Decision**
+  - Implement `ProductAvailabilityOverride`:
+    - AvailabilityStatus (Sellable/NotSellable)
+    - Start/End date-time
+  - UI uses this to hide/dim items in Sell tab and Inventory tab.
+- **Rationale**
+  - Keeps “availability” (what can be sold now) separate from “inventory quantity” (what exists physically).
+- **Consequences**
+  - **Positive:**
+    - Immediate operational control with minimal input.
+    - Avoids incorrect stock edits when user doesn’t know quantity/reason yet.
+  - **Negative / tradeoffs:**
+    - Requires the sell picker to respect availability overrides.
+- **Alternatives considered**
+  - Reducing stock to zero as an availability action: mixes concerns and generates correction churn.
+- **Follow-ups**
+  - Add quick action in app to create/update overrides.

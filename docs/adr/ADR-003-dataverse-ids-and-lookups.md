@@ -1,0 +1,23 @@
+# ADR-003: Dataverse IDs and relationships
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Need stable relationships between entities (Provider, ProductVariant, Purchase, etc.) without manually managing ID columns.
+- **Decision**
+  - Rely on Dataverse implicit GUID primary keys for all tables.
+  - Establish relationships using Lookup columns (e.g., `Purchase.Provider`, `PurchaseLine.ProductVariant`).
+  - Add `DisplayName` columns where helpful for UI; do not add explicit “Id” columns unless required by an integration.
+- **Rationale**
+  - Dataverse already manages GUID primary keys and referential integrity via lookups; duplicating ID columns increases confusion and risk.
+- **Consequences**
+  - **Positive:**
+    - Cleaner schema aligned with Dataverse conventions.
+    - Simplifies app and flow logic (lookups handle relationships).
+  - **Negative / tradeoffs:**
+    - Must understand Dataverse’s implicit PK behavior and avoid “manual IDs” anti-patterns.
+- **Alternatives considered**
+  - Explicit ID columns on every table: redundant in Dataverse and adds maintenance burden.
+- **Follow-ups**
+  - Standardize naming for lookup columns (e.g., `Workspace`, `Provider`, `ProductVariant`) and required-ness.

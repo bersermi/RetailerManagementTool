@@ -1,0 +1,24 @@
+# ADR-002: Workspace membership via WorkspaceMember table
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Multiple users may operate within the same Workspace with different permissions.
+  - App needs a reliable way to determine which Workspaces a user can access.
+- **Decision**
+  - Create `WorkspaceMember` table linking `Workspace` to `System User` with a `Role` choice (Owner/Manager/Staff/Viewer) and `IsActive`.
+  - Use an alternate key `(Workspace, User)` to prevent duplicate memberships.
+- **Rationale**
+  - Dataverse-native membership mapping supports workspace selection on app start and future role-based behavior.
+- **Consequences**
+  - **Positive:**
+    - Clean multi-user access model per Workspace.
+    - Enables workspace selector and future authorization checks.
+  - **Negative / tradeoffs:**
+    - Primary Name column for `WorkspaceMember` must be Text (Dataverse limitation); lookups added after creation.
+- **Alternatives considered**
+  - Using Dataverse Teams as the only membership mechanism: possible later, but `WorkspaceMember` is simpler for v1 and app logic.
+- **Follow-ups**
+  - Add `Workspace` lookup and `User` lookup to `System User` after table creation.
+  - Add `WorkspaceRole` global choice.

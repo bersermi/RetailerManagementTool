@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<forms xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <systemform>
+    <formid>{027b151f-d8b6-463c-81bf-70b5fc47c7a3}</formid>
+    <IntroducedVersion>1.0</IntroducedVersion>
+    <FormPresentation>1</FormPresentation>
+    <FormActivationState>1</FormActivationState>
+    <form>
+      <tabs>
+        <tab verticallayout="true" id="{e7dbad0c-c3e2-4b25-9857-7b7551d6c345}" IsUserDefined="1">
+          <labels>
+            <label description="General" languagecode="1033" />
+          </labels>
+          <columns>
+            <column width="100%">
+              <sections>
+                <section showlabel="false" showbar="false" IsUserDefined="0" id="{46fac9f7-6cc5-4825-bc74-edc510a00d69}">
+                  <labels>
+                    <label description="General" languagecode="1033" />
+                  </labels>
+                  <rows>
+                    <row>
+                      <cell id="{b32d8782-31a5-4bb6-a61c-57eb420bd2a1}">
+                        <labels>
+                          <label description="WorkspaceMember" languagecode="1033" />
+                        </labels>
+                        <control id="crbc0_workspacemember" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="crbc0_workspacemember" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{23e1cba2-19f2-4a27-96a4-eb2536aac170}">
+                        <labels>
+                          <label description="Owner" languagecode="1033" />
+                        </labels>
+                        <control id="ownerid" classid="{270BD3DB-D9AF-4782-9025-509E298DEC0A}" datafieldname="ownerid" />
+                      </cell>
+                    </row>
+                    <row>
+                      <cell id="{564877ba-66f5-46ae-9cc4-9c9302d69a78}">
+                        <labels>
+                          <label description="Workspace" languagecode="1033" />
+                        </labels>
+                        <control id="crbc0_workspace" classid="{270bd3db-d9af-4782-9025-509e298dec0a}" datafieldname="crbc0_workspace" />
+                      </cell>
+                    </row>
+                  </rows>
+                </section>
+              </sections>
+            </column>
+          </columns>
+        </tab>
+      </tabs>
+    </form>
+    <IsCustomizable>1</IsCustomizable>
+    <CanBeDeleted>1</CanBeDeleted>
+    <LocalizedNames>
+      <LocalizedName description="Information" languagecode="1033" />
+    </LocalizedNames>
+    <Descriptions>
+      <Description description="A form for this entity." languagecode="1033" />
+    </Descriptions>
+  </systemform>
+</forms>

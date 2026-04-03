@@ -1,0 +1,356 @@
+ComponentDefinitions:
+  cmpDockedCart:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      Disabled:
+        PropertyKind: Input
+        DisplayName: Disabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =false
+      IsOpen:
+        PropertyKind: Input
+        DisplayName: IsOpen
+        Description: A custom property
+        DataType: Boolean
+        Default: =false
+      ItemLines:
+        PropertyKind: Input
+        DisplayName: ItemLines
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      ItemQtyTotal:
+        PropertyKind: Input
+        DisplayName: ItemQtyTotal
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      Lines:
+        PropertyKind: Input
+        DisplayName: Lines
+        Description: A custom property
+        DataType: Table
+        Default: |-
+          =Table(
+              { LineId: "1", Title: "Sample item", Qty: 1, UnitText: "kg", UnitPrice: 10, LineTotal: 10, IsEnabled: true }
+          )
+      Mode:
+        PropertyKind: Input
+        DisplayName: Mode
+        Description: A custom property
+        DataType: Text
+        Default: ="Sell"
+      OnClose:
+        PropertyKind: Event
+        DisplayName: OnClose
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnEditPrice:
+        PropertyKind: Event
+        DisplayName: OnEditPrice
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - LineID:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+          - NewPrice:
+              Description: A parameter
+              DataType: Number
+              Default: =100
+      OnMinus:
+        PropertyKind: Event
+        DisplayName: OnMinus
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - LineId:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      OnOpen:
+        PropertyKind: Event
+        DisplayName: OnOpen
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnPlus:
+        PropertyKind: Event
+        DisplayName: OnPlus
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - LineId:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      OnPrimary:
+        PropertyKind: Event
+        DisplayName: OnPrimary
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnRemove:
+        PropertyKind: Event
+        DisplayName: OnRemove
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - LineId:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      PhoneBreakPoint:
+        PropertyKind: Input
+        DisplayName: PhoneBreakPoint
+        Description: A custom property
+        DataType: Number
+        Default: =600
+      PrimaryText:
+        PropertyKind: Input
+        DisplayName: PrimaryText
+        Description: A custom property
+        DataType: Text
+        Default: ="Complete"
+      ShowQty:
+        PropertyKind: Input
+        DisplayName: ShowQty
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      TotalAmount:
+        PropertyKind: Input
+        DisplayName: TotalAmount
+        Description: A custom property
+        DataType: Number
+        Default: =0
+    Properties:
+      Width: =360
+    Children:
+      - galLines:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =recPanel.Height - 120
+            Items: =cmpDockedCart.Lines
+            TemplateSize: =72
+            Width: =recPanel.Width
+            X: =recPanel.X
+            Y: =recPanel.Y + 48
+          Children:
+            - lblLineTitle:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =22
+                  OnSelect: =Select(Parent)
+                  Size: =10
+                  Text: =ThisItem.Title
+                  Width: =icoMinus.X - 12 - 16
+                  Wrap: =false
+                  X: =16
+                  Y: =8
+            - lblLineSub:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =18
+                  OnSelect: =Select(Parent)
+                  Size: =8
+                  Text: =Text(ThisItem.Qty) & " " & ThisItem.UnitText
+                  Width: =lblLineTitle.Width
+                  X: =16
+                  Y: =lblLineTitle.Y + lblLineTitle.Height + 2
+            - icoPlus:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisplayMode: =If(ThisItem.IsEnabled, DisplayMode.Edit, DisplayMode.Disabled)
+                  Height: =28
+                  Icon: =Icon.Add
+                  OnSelect: =cmpDockedCart.OnPlus(ThisItem.LineId)
+                  PaddingLeft: =
+                  PaddingRight: =
+                  Width: =28
+                  X: =icoRemove.X - 10 - Self.Width
+                  Y: =RoundDown((Parent.TemplateHeight - Self.Height)/2, 0)
+            - icoMinus:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisplayMode: =If(ThisItem.IsEnabled, DisplayMode.Edit, DisplayMode.Disabled)
+                  Height: =28
+                  Icon: =Icon.HorizontalLine
+                  OnSelect: =cmpDockedCart.OnMinus(ThisItem.LineId)
+                  PaddingLeft: =
+                  PaddingRight: =
+                  Width: =28
+                  X: =icoPlus.X - 40 - Self.Width
+                  Y: =RoundDown((Parent.TemplateHeight - Self.Height)/2, 0)
+            - icoRemove:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisplayMode: =If(ThisItem.IsEnabled, DisplayMode.Edit, DisplayMode.Disabled)
+                  Height: =20
+                  Icon: =Icon.Trash
+                  OnSelect: =cmpDockedCart.OnRemove(ThisItem.LineId)
+                  Width: =20
+                  X: =Parent.TemplateWidth - 12 - Self.Width
+                  Y: =RoundDown((Parent.TemplateHeight - Self.Height)/2, 0)
+      - recBar:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =Color.LightGray
+            Fill: =Color.White
+            Height: =72
+            OnSelect: =cmpDockedCart.OnOpen()
+            Visible: =cmpDockedCart.ItemLines > 0 && !cmpDockedCart.IsOpen
+            Width: =cmpDockedCart.Width
+            Y: =cmpDockedCart.Height - Self.Height
+      - lblSummary:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            OnSelect: =Select(recBar)
+            Text: |-
+              =If(
+                  cmpDockedCart.ShowQty,
+                  "Items: " & Text(cmpDockedCart.ItemLines) & "  Qty: " & Text(cmpDockedCart.ItemQtyTotal),
+                  "Items: " & Text(cmpDockedCart.ItemLines)
+              )
+            Visible: =recBar.Visible
+            Width: =recBar.Width
+            X: =recBar.X
+            Y: =recBar.Y
+      - lblTotal:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =40
+            OnSelect: =Select(recBar)
+            Text: ="$" & Text(cmpDockedCart.TotalAmount, "0.00")
+            Width: =recPanel.Width - 16 - 120 - 16
+            X: =recPanel.X + 16
+            Y: =recPanel.Y + recPanel.Height - 16 - 40
+      - btnPrimary:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =If(cmpDockedCart.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            Height: =40
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpDockedCart.OnPrimary()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =10
+            Text: =cmpDockedCart.PrimaryText
+            Width: =120
+            X: =recPanel.X + recPanel.Width - Self.Width - 16
+            Y: '=recPanel.Y + recPanel.Height - 16 - Self.Height '
+      - recPanel:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(226,232,240,1)
+            BorderThickness: =1
+            Fill: =RGBA(255,255,255,1)
+            Height: |-
+              =If(
+                  Min(cmpDockedCart.Width, cmpDockedCart.Height) < cmpDockedCart.PhoneBreakPoint,
+                  Min(0.70 * cmpDockedCart.Height, cmpDockedCart.Height - 32),
+                  Min(0.75 * cmpDockedCart.Height, cmpDockedCart.Height - 96)
+              )
+            Visible: =cmpDockedCart.IsOpen
+            Width: |-
+              =If(
+                  Min(cmpDockedCart.Width, cmpDockedCart.Height) < cmpDockedCart.PhoneBreakPoint,
+                  cmpDockedCart.Width - 32,
+                  Min(420, cmpDockedCart.Width - 32)
+              )
+            X: |-
+              =If(
+                  Min(cmpDockedCart.Width, cmpDockedCart.Height) < cmpDockedCart.PhoneBreakPoint,
+                  16,
+                  cmpDockedCart.Width - recPanel.Width - 16
+              )
+            Y: |-
+              =If(
+                  Min(cmpDockedCart.Width, cmpDockedCart.Height) < cmpDockedCart.PhoneBreakPoint,
+                  cmpDockedCart.Height - recPanel.Height - 16,
+                  80
+              )
+      - lblPanelTitle:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =24
+            Text: =If(cmpDockedCart.Mode="Buy", "Purchase", If(cmpDockedCart.Mode="Waste", "Waste", "Sale"))
+            Width: =recPanel.Width - 56
+            X: '=recPanel.X + 16 '
+            Y: =recPanel.Y + 12
+      - icoDockedCartClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =20
+            Icon: =Icon.Cancel
+            OnSelect: =cmpDockedCart.OnClose()
+            Width: =20
+            X: =recPanel.X + recPanel.Width - Self.Width - 12
+            Y: =recPanel.Y + 12
+      - btnPanelPrimary:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            DisplayMode: =If(cmpDockedCart.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            Height: =40
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpDockedCart.OnPrimary()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =cmpDockedCart.PrimaryText
+            Visible: =recBar.Visible
+            Width: =120
+            X: =recPanel.X + recPanel.Width - Self.Width - 16
+            Y: =recPanel.Y + recPanel.Height - 16 - Self.Height
+      - recScrim:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0,0,0,0.25)
+            Height: =cmpDockedCart.Height
+            OnSelect: =cmpDockedCart.OnClose()
+            Visible: =cmpDockedCart.IsOpen
+            Width: =cmpDockedCart.Width

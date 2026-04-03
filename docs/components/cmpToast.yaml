@@ -1,0 +1,110 @@
+ComponentDefinitions:
+  cmpToast:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      IsVisible:
+        PropertyKind: Input
+        DisplayName: IsVisible
+        Description: A custom property
+        DataType: Boolean
+        Default: =false
+      MaxWidth:
+        PropertyKind: Input
+        DisplayName: MaxWidth
+        Description: A custom property
+        DataType: Number
+        Default: =520
+      Message:
+        PropertyKind: Input
+        DisplayName: Message
+        Description: A custom property
+        DataType: Text
+        Default: =""
+      OnDismiss:
+        PropertyKind: Event
+        DisplayName: OnDismiss
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      ShowClose:
+        PropertyKind: Input
+        DisplayName: ShowClose
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      TopOffset:
+        PropertyKind: Input
+        DisplayName: TopOffset
+        Description: A custom property
+        DataType: Number
+        Default: =0
+      Variant:
+        PropertyKind: Input
+        DisplayName: Variant
+        Description: A custom property
+        DataType: Text
+        Default: ="Info"
+    Properties:
+      Width: =360
+    Children:
+      - recToast:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: |-
+              =Switch(
+                  cmpToast.Variant,
+                  "Success", RGBA(34, 197, 94, 1),
+                  "Warning", RGBA(245, 158, 11, 1),
+                  "Error",   RGBA(239, 68, 68, 1),
+                  RGBA(59, 130, 246, 1) /* Info */
+              )
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: =Max(44, (lblMsg.Y - recToast.Y) + lblMsg.Height + 10)
+            Visible: =cmpToast.IsVisible && !IsBlank(cmpToast.Message)
+            Width: =Min(cmpToast.MaxWidth, Parent.Width - 32)
+            X: =RoundDown((Parent.Width - Self.Width) / 2, 0)
+            Y: =cmpToast.TopOffset + 8
+      - icoType:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =recToast.BorderColor
+            Height: =20
+            Icon: |-
+              =Switch(
+                  cmpToast.Variant,
+                  "Success", Icon.Check,
+                  "Warning", Icon.Warning,
+                  "Error",   Icon.Error,
+                  Icon.Information
+              )
+            Visible: =cmpToast.IsVisible && !IsBlank(cmpToast.Message)
+            Width: =20
+            X: =recToast.X + 12
+            Y: =RoundDown(recToast.Y + (recToast.Height - Self.Height) / 2, 0)
+      - lblMsg:
+          Control: Label@2.5.1
+          Properties:
+            AutoHeight: =true
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Size: =If(Len(Self.Text) <= 40, 14, If(Len(Self.Text) <= 80, 13, 12))
+            Text: =cmpToast.Message
+            Visible: =cmpToast.IsVisible && !IsBlank(cmpToast.Message)
+            Width: =recToast.Width - (lblMsg.X - recToast.X) - If(cmpToast.ShowClose, (icoClose.Width + 12), 12)
+            X: =icoType.X + icoType.Width + 10
+            Y: =recToast.Y + 10
+      - icoClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(100, 116, 139, 1)
+            Height: =18
+            Icon: =Icon.Cancel
+            OnSelect: =cmpToast.OnDismiss()
+            Visible: =cmpToast.ShowClose && cmpToast.IsVisible && !IsBlank(cmpToast.Message)
+            Width: =18
+            X: =recToast.X + recToast.Width - Self.Width - 12
+            Y: =RoundDown(recToast.Y + (recToast.Height - Self.Height) / 2, 0)

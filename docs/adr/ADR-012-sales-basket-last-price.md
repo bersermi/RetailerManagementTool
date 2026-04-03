@@ -1,0 +1,25 @@
+# ADR-012: Sales basket with last sell price persistence
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Sales must be fast: user adds multiple items/quantities, sees basket total, completes the sale.
+  - User can override price per sale line; the last used sell price should persist.
+- **Decision**
+  - Use `Sale` + `SaleLine` (basket model).
+  - On Sale completion:
+    - Decrement StockBatch FIFO per product
+    - Update `ProductVariant.LastSellUnitPrice` = sale line unit price
+- **Rationale**
+  - Aligns with intended UX and makes future sales faster via defaults.
+- **Consequences**
+  - **Positive:**
+    - Efficient basket workflow.
+    - Continuous learning of typical selling prices per item.
+  - **Negative / tradeoffs:**
+    - Need a completion flow to apply stock decrement and price update.
+- **Alternatives considered**
+  - Stateless per-sale pricing only: user re-enters prices more often.
+- **Follow-ups**
+  - Implement “Sale Completed” flow with FIFO decrement and shortage handling.

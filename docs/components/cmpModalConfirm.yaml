@@ -1,0 +1,203 @@
+ComponentDefinitions:
+  cmpModalConfirm:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      BodyText:
+        PropertyKind: Input
+        DisplayName: BodyText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      CancelText:
+        PropertyKind: Input
+        DisplayName: CancelText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      ConfirmText:
+        PropertyKind: Input
+        DisplayName: ConfirmText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      IsDestructive:
+        PropertyKind: Input
+        DisplayName: IsDestructive
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      IsOpen:
+        PropertyKind: Input
+        DisplayName: IsOpen
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Mode:
+        PropertyKind: Input
+        DisplayName: Mode
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      OnCancel:
+        PropertyKind: Event
+        DisplayName: OnCancel
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnConfirm:
+        PropertyKind: Event
+        DisplayName: OnConfirm
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnDismiss:
+        PropertyKind: Event
+        DisplayName: OnDismiss
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      ShowCancel:
+        PropertyKind: Input
+        DisplayName: ShowCancel
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      TitleText:
+        PropertyKind: Input
+        DisplayName: TitleText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      WidthMode:
+        PropertyKind: Input
+        DisplayName: WidthMode
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+    Properties:
+      Width: =360
+    Children:
+      - recModalScrim:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 0, 0, 0.35)
+            Height: =Parent.Height
+            OnSelect: =cmpModalConfirm.OnDismiss()
+            Visible: =cmpModalConfirm.IsOpen
+            Width: =Parent.Width
+      - recModalDialog:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(226, 232, 240, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: |-
+              =With(
+                  { w: Parent.Width, h: Parent.Height },
+                  If(
+                      w < 480,
+                      Min(0.85*h, 420),
+                      Min(0.70*h, 420)
+                  )
+              )
+            Width: |-
+              =With(
+                  { w: Parent.Width },
+                  Switch(
+                      cmpModalConfirm.WidthMode,
+                      "Small",  Min(320, w - 32),
+                      "Medium", Min(420, w - 32),
+                      "Large",  Min(520, w - 32),
+                      /* Auto */ Min(480, w - 32)
+                  )
+              )
+            X: =RoundDown((Parent.Width - Self.Width)/2, 0)
+            Y: =RoundDown((Parent.Height - Self.Height)/2, 0)
+      - lblModalTitle:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(15, 23, 42, 1)
+            Font: =Font.'Open Sans'
+            Height: =20
+            Size: =If(Parent.Width < 480, 16, 18)
+            Text: =cmpModalConfirm.TitleText
+            Visible: =cmpModalConfirm.IsOpen && !IsBlank(cmpModalConfirm.TitleText)
+            Width: =recModalDialog.Width - 32
+            Wrap: =false
+            X: =recModalDialog.X + 16
+            Y: =recModalDialog.Y + 16
+      - lblModalBody:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(71, 85, 105, 1)
+            Font: =Font.'Open Sans'
+            Height: =(btnModalCancel.Y - 12) - Self.Y
+            Size: =If(Parent.Width < 480, 13, 14)
+            Text: =cmpModalConfirm.BodyText
+            Visible: =cmpModalConfirm.IsOpen && !IsBlank(cmpModalConfirm.BodyText)
+            Width: =recModalDialog.Width - 32
+            X: =recModalDialog.X + 16
+            Y: =lblModalTitle.Y + lblModalTitle.Height + 8
+      - btnModalCancel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(226, 232, 240, 1)
+            Color: =RGBA(15, 23, 42, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(255, 255, 255, 1)
+            Font: =Font.'Open Sans'
+            Height: =40
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpModalConfirm.OnCancel()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =cmpModalConfirm.CancelText
+            Visible: =cmpModalConfirm.IsOpen && cmpModalConfirm.ShowCancel
+            Width: =(recModalDialog.Width - 40)/2
+            X: =recModalDialog.X + 16
+            Y: =recModalDialog.Y + recModalDialog.Height - 16 - Self.Height
+      - btnModalConfirm:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =ColorFade(Self.Fill, -15%)
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =RGBA(56, 96, 178, 1)
+            Font: =Font.'Open Sans'
+            Height: =40
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =cmpModalConfirm.OnConfirm()
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Text: =cmpModalConfirm.ConfirmText
+            Visible: =cmpModalConfirm.IsOpen
+            Width: =If(cmpModalConfirm.ShowCancel, (recModalDialog.Width - 40)/2, recModalDialog.Width - 32)
+            X: |-
+              =If(
+                  cmpModalConfirm.ShowCancel,
+                  recModalDialog.X + 16 + (recModalDialog.Width - 40)/2 + 8,
+                  recModalDialog.X + 16
+              )
+            Y: =recModalDialog.Y + recModalDialog.Height - 16 - Self.Height
+      - icoModalClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =If(Parent.Width < 480, 28, 32)
+            Icon: =Icon.Cancel
+            OnSelect: =cmpModalConfirm.OnCancel()
+            Visible: =cmpModalConfirm.IsOpen
+            Width: =If(Parent.Width < 480, 28, 32)
+            X: =recModalDialog.X + recModalDialog.Width - Self.Width - 8
+            Y: =recModalDialog.Y + 8

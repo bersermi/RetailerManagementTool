@@ -1,0 +1,27 @@
+# ADR-004: Naming strategy using Primary Name + DisplayName + NormalizedName
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Dataverse tables require a Primary Name column (Text). Creating another “Name” column causes collisions (e.g., `crbc0_Name already exists`).
+  - Need consistent search-first UX and duplicate warnings.
+- **Decision**
+  - Treat the Primary Name column as the canonical `Name` for each table.
+  - Add:
+    - `DisplayName` (Text, optional) for UI-friendly labels.
+    - `NormalizedName` (Text, required) for search/duplicate prevention.
+- **Rationale**
+  - Avoid schema-name collisions and enforce a predictable naming pattern across tables.
+  - Supports search-first UX and alternate keys based on normalized values.
+- **Consequences**
+  - **Positive:**
+    - Prevents duplicate “Name” column errors.
+    - Enables fast and consistent searching and duplicate detection.
+  - **Negative / tradeoffs:**
+    - Requires normalization logic (flow or app) to populate `NormalizedName`.
+- **Alternatives considered**
+  - Using only free-text Name without normalization: increases duplicates and reduces import consistency.
+- **Follow-ups**
+  - Create a “Normalize Names” flow for Provider/Unit/ProductFamily/ProductVariant.
+  - Create alternate keys using `(Workspace, NormalizedName)` where applicable.

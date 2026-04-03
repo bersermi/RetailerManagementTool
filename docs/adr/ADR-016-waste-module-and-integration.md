@@ -1,0 +1,24 @@
+# ADR-016: Waste module as documents (Waste/WasteLine) integrated through InventoryEvent
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Waste is critical and needs a dedicated UX (Waste tab) and clean reporting.
+  - Waste must reduce stock and support expiry-driven workflows.
+- **Decision**
+  - Add `Waste` (header) and `WasteLine` (lines).
+  - On Waste completion, create finalized `InventoryEvent` records for each line.
+  - InventoryEvent finalization applies stock decrements (batch-specific or FIFO).
+- **Rationale**
+  - Waste sessions are a natural user workflow and reporting unit, while InventoryEvent remains the unified adjustment engine.
+- **Consequences**
+  - **Positive:**
+    - Better UX: multi-item waste entry, session notes, quick batch selection.
+    - Better analytics: waste per day/reason/provider/family.
+  - **Negative / tradeoffs:**
+    - Two additional tables and one additional completion flow.
+- **Alternatives considered**
+  - Waste only as direct InventoryEvents: workable but weaker UX/reporting.
+- **Follow-ups**
+  - Create Waste Reason choice and mapping to InventoryEvent classification.

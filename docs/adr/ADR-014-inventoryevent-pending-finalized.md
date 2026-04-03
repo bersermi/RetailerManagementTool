@@ -1,0 +1,27 @@
+# ADR-014: InventoryEvent as unified action/correction system (Pending → Finalized)
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Users must take actions immediately (stop selling, mark problem) and later decide rationale (expired/lost/miscount/etc.).
+  - Completed purchases/sales should not be directly edited in v1.
+- **Decision**
+  - Use `InventoryEvent` with:
+    - Status: Pending / Finalized
+    - Classification: Expired/Waste/Lost/Miscount/TookHome/Other
+    - Optional Qty, optional StockBatch link
+    - Optional RelatedPurchase / RelatedSale
+  - When finalized and stock-impacting, apply decrements (batch-specific or FIFO).
+- **Rationale**
+  - Enables “act now, classify later” and supports correction accounting without rewriting transactions.
+- **Consequences**
+  - **Positive:**
+    - Clear Pending workflow.
+    - Centralized adjustment engine used by many modules (shortages, waste, corrections).
+  - **Negative / tradeoffs:**
+    - Requires “Finalize event” UI and a flow to apply impacts.
+- **Alternatives considered**
+  - Editing purchases/sales after completion: increases complexity and audit ambiguity.
+- **Follow-ups**
+  - Implement “InventoryEvent Finalized” flow to apply stock changes.

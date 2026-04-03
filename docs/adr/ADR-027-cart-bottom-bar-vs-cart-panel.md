@@ -1,0 +1,22 @@
+# ADR-027: Cart architecture split: cmpCartBottomBar vs cmpCartPanel
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Need clear separation of collapsed vs expanded cart UX.
+- **Decision**
+  - cmpCartBottomBar handles collapsed cart + pay gesture.
+  - cmpCartPanel handles expanded cart review/edit.
+- **Rationale**
+  - Prevents duplication and keeps components focused.
+- **Consequences**
+  - **Positive:**
+    - Clear UX roles.
+    - Easier maintenance.
+  - **Negative / tradeoffs:**
+    - Requires coordination between components.
+- **Alternatives considered**
+  - Single unified cart component → rejected (too complex).
+- **Follow-ups**
+  - Ensure no footer duplication inside panel.

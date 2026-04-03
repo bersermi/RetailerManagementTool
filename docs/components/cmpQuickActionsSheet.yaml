@@ -1,0 +1,194 @@
+ComponentDefinitions:
+  cmpQuickActionsSheet:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      DesktopPanelHeight:
+        PropertyKind: Input
+        DisplayName: DesktopPanelHeight
+        Description: A custom property
+        DataType: Number
+        Default: =200
+      DesktopPanelWidth:
+        PropertyKind: Input
+        DisplayName: DesktopPanelWidth
+        Description: A custom property
+        DataType: Number
+        Default: =320
+      IsOpen:
+        PropertyKind: Input
+        DisplayName: IsOpen
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        Description: A custom property
+        DataType: Table
+        Default: |-
+          =Table(
+              { ActionKey: "favorite", Label: "Favorite", IconName: "star", IsEnabled: true, IsActive: false }
+          )
+      OnAction:
+        PropertyKind: Event
+        DisplayName: OnAction
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - ActionKey:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      OnClose:
+        PropertyKind: Event
+        DisplayName: OnClose
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      PhoneBreakpoint:
+        PropertyKind: Input
+        DisplayName: PhoneBreakpoint
+        Description: A custom property
+        DataType: Number
+        Default: =480
+      PhonePanelHeight:
+        PropertyKind: Input
+        DisplayName: PhonePanelHeight
+        Description: A custom property
+        DataType: Number
+        Default: =320
+      TitleText:
+        PropertyKind: Input
+        DisplayName: TitleText
+        Description: A custom property
+        DataType: Text
+        Default: =""
+    Properties:
+      Fill: =RGBA(0, 0, 0, 0.25)
+      Width: =320
+    Children:
+      - recQuickActionScrim:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =RGBA(0, 0, 0, 0.25)
+            Height: =cmpQuickActionsSheet.Height
+            OnSelect: =cmpQuickActionsSheet.OnClose()
+            Visible: =cmpQuickActionsSheet.IsOpen
+            Width: =cmpQuickActionsSheet.Width
+      - recQuickActionPanel:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(226, 232, 240, 1)
+            BorderThickness: =1
+            Fill: =RGBA(255, 255, 255, 1)
+            Height: |-
+              =If(
+                  Min(cmpQuickActionsSheet.Width, cmpQuickActionsSheet.Height) < cmpQuickActionsSheet.PhoneBreakpoint,
+                  Min(cmpQuickActionsSheet.PhonePanelHeight, cmpQuickActionsSheet.Height - 32),
+                  Min(cmpQuickActionsSheet.DesktopPanelHeight, cmpQuickActionsSheet.Height - 96)
+              )
+            Visible: =cmpQuickActionsSheet.IsOpen
+            Width: |-
+              =If(
+                  Min(cmpQuickActionsSheet.Width, cmpQuickActionsSheet.Height) < cmpQuickActionsSheet.PhoneBreakpoint,
+                  cmpQuickActionsSheet.Width - 32,
+                  Min(cmpQuickActionsSheet.DesktopPanelWidth, cmpQuickActionsSheet.Width - 32)
+              )
+            X: |-
+              =If(
+                  Min(cmpQuickActionsSheet.Width, cmpQuickActionsSheet.Height) < cmpQuickActionsSheet.PhoneBreakpoint,
+                  16,
+                  cmpQuickActionsSheet.Width - recQuickActionPanel.Width - 16
+              )
+            Y: |-
+              =If(
+                  Min(cmpQuickActionsSheet.Width, cmpQuickActionsSheet.Height) < cmpQuickActionsSheet.PhoneBreakpoint,
+                  cmpQuickActionsSheet.Height - recQuickActionPanel.Height - 16,
+                  80
+              )
+      - lblQuickActionTitle:
+          Control: Label@2.5.1
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Font: =Font.'Open Sans'
+            Height: =24
+            Text: =cmpQuickActionsSheet.TitleText
+            Visible: =cmpQuickActionsSheet.IsOpen && !IsBlank(cmpQuickActionsSheet.TitleText)
+            Width: =recQuickActionPanel.Width - 56
+            Wrap: =false
+            X: =recQuickActionPanel.X + 16
+            Y: =recQuickActionPanel.Y + 12
+      - icoQuickActionClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =20
+            Icon: =Icon.Cancel
+            OnSelect: =cmpQuickActionsSheet.OnClose()
+            Visible: =cmpQuickActionsSheet.IsOpen
+            Width: =20
+            X: =recQuickActionPanel.X + recQuickActionPanel.Width - Self.Width - 12
+            Y: =recQuickActionPanel.Y + 12
+      - galQuickActionsSheet:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =recQuickActionPanel.Height - 56
+            Items: =cmpQuickActionsSheet.Items
+            OnSelect: =If(ThisItem.IsEnabled, cmpQuickActionsSheet.OnAction(ThisItem.ActionKey))
+            TemplateSize: =48
+            Width: =recQuickActionPanel.Width
+            X: =recQuickActionPanel.X
+            Y: =recQuickActionPanel.Y + 48
+          Children:
+            - recQuickActionSeparator:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(15, 23, 42, 1)
+                  Height: =1
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+            - icoQucikAction:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =If(ThisItem.IsEnabled, RGBA(15, 23, 42, 1), RGBA(148, 163, 184, 1))
+                  Height: =20
+                  Icon: |-
+                    =Switch(
+                        ThisItem.IconName,
+                        "star", Icon.Diamond,
+                        "cart", Icon.ShoppingCart,
+                        "ban", Icon.Blocked,
+                        "trash", Icon.Trash,
+                        "check", Icon.Check,
+                        "tag", Icon.Tag,
+                        "duplicate", Icon.Copy,
+                        "money", Icon.Money,
+                        "history", Icon.History,
+                        "disable", Icon.Blocked,
+                        "edit", Icon.More
+                    )
+                  OnSelect: =Select(Parent)
+                  Width: =20
+                  X: =16
+                  Y: =RoundDown((Parent.TemplateHeight - Self.Height) / 2, 0)
+            - lblQuickAction:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =If(ThisItem.IsEnabled, RGBA(15, 23, 42, 1), RGBA(148, 163, 184, 1))
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Select(Parent)
+                  Size: =15
+                  Text: =ThisItem.Label
+                  Width: =Parent.TemplateWidth - lblQuickAction.X - 28
+                  Wrap: =false
+                  X: =icoQucikAction.X + icoQucikAction.Width + 10

@@ -1,0 +1,28 @@
+# ADR-023: Alternate keys for uniqueness and safe imports
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Duplicate providers/products/units break search-first UX, imports, and analytics.
+  - Provider catalog join rows must not duplicate.
+- **Decision**
+  - Add alternate keys:
+    - WorkspaceMember: (Workspace, User)
+    - ProviderCatalogItem: (Workspace, Provider, ProductVariant)
+    - Unit: (Workspace, NormalizedName)
+    - Provider: (Workspace, NormalizedName)
+    - ProductFamily: (Workspace, NormalizedName)
+    - ProductVariant: (Workspace, ProductFamily, NormalizedName) *(or Workspace+NormalizedName if preferred)*
+- **Rationale**
+  - Enforces uniqueness constraints at the data layer and makes catalog import operations safe and idempotent.
+- **Consequences**
+  - **Positive:**
+    - Strong data integrity with low app complexity.
+    - Prevents subtle duplication that degrades UX and reporting.
+  - **Negative / tradeoffs:**
+    - Requires good NormalizedName computation and occasional conflict resolution UX.
+- **Alternatives considered**
+  - No keys; rely only on user behavior: leads to inevitable duplicates.
+- **Follow-ups**
+  - Implement Normalize Names flow and duplicate warning UI in product/provider creation.

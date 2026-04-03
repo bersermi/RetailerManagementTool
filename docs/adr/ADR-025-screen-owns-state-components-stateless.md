@@ -1,0 +1,22 @@
+# ADR-025: Screen owns mutable state; components are stateless renderers/events
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Need predictable state management in Canvas apps.
+- **Decision**
+  - Screens own all mutable state.
+  - Components only render data and emit events.
+- **Rationale**
+  - Prevents hidden logic and improves debuggability.
+- **Consequences**
+  - **Positive:**
+    - Clear data flow.
+    - Easier testing and reuse.
+  - **Negative / tradeoffs:**
+    - More wiring at screen level.
+- **Alternatives considered**
+  - Stateful components → rejected (hard to control and debug).
+- **Follow-ups**
+  - Standardize event-driven component contracts.

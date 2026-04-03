@@ -1,0 +1,24 @@
+# ADR-011: StockBatch records created on Purchase completion
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Stock must reflect purchases and support expiry and waste tracking.
+- **Decision**
+  - On Purchase completion, create one `StockBatch` per PurchaseLine:
+    - QtyReceived = QtyRemaining = line qty
+    - ReceivedDateTime = purchase date
+    - ExpiryDate computed per policy (see ADR-017)
+- **Rationale**
+  - Batch-level stock supports expiry workflows and FIFO consumption.
+- **Consequences**
+  - **Positive:**
+    - Enables waste/expiry handling and “expiring soon” views.
+    - Supports consistent decrements on sales and adjustments.
+  - **Negative / tradeoffs:**
+    - Slightly more records than a single stock number per product.
+- **Alternatives considered**
+  - Single current stock per product: loses expiry detail and auditability.
+- **Follow-ups**
+  - Implement “Purchase Completed → create batches” flow.

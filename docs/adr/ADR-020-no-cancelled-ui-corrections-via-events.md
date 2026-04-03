@@ -1,0 +1,23 @@
+# ADR-020: No cancelled/edit UI in v1; corrections via InventoryEvents
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Editing completed purchases/sales is complex and can break auditability.
+  - v1 scope prioritizes operational ease; cancellation can be added later.
+- **Decision**
+  - Do not implement a “Cancel purchase/sale” feature in v1 UI.
+  - Use InventoryEvents for corrections (miscounts, late entries, adjustments).
+  - Keep Status choices future-ready for `Cancelled`.
+- **Rationale**
+  - Centralizes correction logic and avoids rewriting historical documents.
+- **Consequences**
+  - **Positive:**
+    - Stable operational behavior and simpler implementation.
+  - **Negative / tradeoffs:**
+    - Users may want a direct cancel; they will use correction events instead until v2.
+- **Alternatives considered**
+  - Full cancellation with reversal automation in v1: deferred.
+- **Follow-ups**
+  - Add later ADR if/when cancellation is implemented (reversal policy).

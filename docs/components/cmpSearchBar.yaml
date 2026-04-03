@@ -1,0 +1,91 @@
+ComponentDefinitions:
+  cmpSearchbar:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      AutoFocus:
+        PropertyKind: Input
+        DisplayName: AutoFocus
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      DefaultText:
+        PropertyKind: Input
+        DisplayName: DefaultText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      IsDisabled:
+        PropertyKind: Input
+        DisplayName: IsDisabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      OnChange:
+        PropertyKind: Event
+        DisplayName: OnChange
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      OnClear:
+        PropertyKind: Event
+        DisplayName: OnClear
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      Placeholder:
+        PropertyKind: Input
+        DisplayName: Placeholder
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      SearchTextOut:
+        PropertyKind: Output
+        DisplayName: SearchTextOut
+        Description: A custom property
+        DataType: Text
+    Properties:
+      Height: =If(Self.Width < 480, 44, 48)
+      SearchTextOut: =txtSearchBar.Text
+      Width: =360
+    Children:
+      - txtSearchBar:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Default: =cmpSearchbar.DefaultText
+            DisplayMode: =If(cmpSearchbar.IsDisabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            HintText: =cmpSearchbar.Placeholder
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            OnChange: =cmpSearchbar.OnChange()
+            PaddingLeft: =If(Parent.Width < 480, 36, 40)
+            PaddingRight: =If(Parent.Width < 480, 36, 40)
+            Width: =Parent.Width
+      - icoSearch:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            DisplayMode: =DisplayMode.Disabled
+            Height: =If(Parent.Width < 480, 18, 20)
+            Icon: =Icon.Search
+            Width: =If(Parent.Width < 480, 18, 20)
+            X: =12
+            Y: =RoundDown((Parent.Height - Self.Height)/2, 0)
+      - icoClear:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(0, 18, 107, 1)
+            Height: =If(Parent.Width < 480, 18, 20)
+            Icon: =Icon.Cancel
+            OnSelect: |-
+              =Reset(txtSearchBar);
+              cmpSearchbar.OnClear()
+            Visible: =!IsBlank(txtSearchBar.Text) && !cmpSearchbar.IsDisabled
+            Width: =If(Parent.Width < 480, 18, 20)
+            X: =Parent.Width - Self.Width - 12
+            Y: =RoundDown((Parent.Height - Self.Height)/2, 0)

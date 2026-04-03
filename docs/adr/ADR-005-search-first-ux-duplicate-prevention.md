@@ -1,0 +1,28 @@
+# ADR-005: Search-first UX and duplicate prevention
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Users may create duplicate products/providers if creation is “free-form”.
+  - Catalog population must reuse existing products across providers and allow importing full catalogs or selected variants.
+- **Decision**
+  - Implement Search-first UX:
+    - When creating products or populating provider catalogs, users search existing `ProductVariant`/`ProductFamily` first.
+    - Users inspect features and import to provider catalog rather than recreating.
+  - Back this UX with:
+    - `NormalizedName` fields
+    - Alternate keys to prevent duplicates
+- **Rationale**
+  - Reduces duplication, maintains consistency across operations, and simplifies analytics.
+- **Consequences**
+  - **Positive:**
+    - Higher reuse of product definitions.
+    - Consistent units/attributes/lifespan across providers in a workspace.
+  - **Negative / tradeoffs:**
+    - Requires good search views and careful normalization.
+- **Alternatives considered**
+  - Allowing unrestricted product creation: easier short-term but produces long-term inconsistency.
+- **Follow-ups**
+  - Create Product search views (variants + family) optimized for Canvas filtering.
+  - Add “Import to Provider Catalog” actions.

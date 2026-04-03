@@ -1,0 +1,26 @@
+# ADR-006: ProductFamily + ProductVariant product model
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Products have “multiple levels of specification” (e.g., Beans → Black beans → Premium) and must be easily managed.
+  - Variants should be created in bulk and share common settings (unit, lifespan defaults).
+- **Decision**
+  - Model products using:
+    - `ProductFamily` (e.g., “Beans”) for shared defaults (unit, lifespan, notes).
+    - `ProductVariant` (e.g., “Black”) as the operational sellable/buyable record.
+  - Optionally extend with `ProductVariantAttribute` for flexible attributes (quality/type/brand/etc.).
+- **Rationale**
+  - Matches the intended UX while keeping schema simple and scalable.
+- **Consequences**
+  - **Positive:**
+    - Bulk creation of variants under a family.
+    - Shared settings and easy “apply to family” operations.
+  - **Negative / tradeoffs:**
+    - Requires a small amount of UI work to present family/variant hierarchy clearly.
+- **Alternatives considered**
+  - Single flat Product table with embedded text spec: less structured and harder to apply consistent defaults.
+- **Follow-ups**
+  - Implement UI for creating multiple variants at once.
+  - Add “apply to family” actions for unit/lifespan defaults.

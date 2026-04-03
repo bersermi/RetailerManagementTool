@@ -1,0 +1,23 @@
+# ADR-019: Provider location/contact fields included in v1 schema
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Provider location/contact info is useful immediately and enables future features (delivery zones, distance, multi-branch providers).
+- **Decision**
+  - Add basic location and contact fields directly on `Provider`:
+    - AddressLine1, Neighborhood, City, State, Country
+    - Phone/WhatsApp/ContactName
+    - Optional Lat/Long and Google Maps link
+- **Rationale**
+  - Low-cost now and avoids painful migrations later.
+- **Consequences**
+  - **Positive:**
+    - Supports richer provider UX and future location-aware logic.
+  - **Negative / tradeoffs:**
+    - If provider has multiple branches later, may need `ProviderLocation` table (future enhancement).
+- **Alternatives considered**
+  - No location fields in v1: blocks location-based features.
+- **Follow-ups**
+  - Consider `ProviderLocation` only when multi-branch requirement appears.

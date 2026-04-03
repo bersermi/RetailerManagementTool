@@ -1,0 +1,112 @@
+ComponentDefinitions:
+  cmpQuickActions:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      IsVisible:
+        PropertyKind: Input
+        DisplayName: IsVisible
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        Description: A custom property
+        DataType: Table
+        Default: |-
+          =Table(
+              { ActionKey: "favorite", Label: "Fav", IconName: "star", IsEnabled: true, IsActive: false }
+          )
+      MaxItems:
+        PropertyKind: Input
+        DisplayName: MaxItems
+        Description: A custom property
+        DataType: Number
+        Default: =4
+      OnAction:
+        PropertyKind: Event
+        DisplayName: OnAction
+        Description: A custom property
+        ReturnType: None
+        Default: =
+        Parameters:
+          - ActionKey:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      SelectedActionKey:
+        PropertyKind: Input
+        DisplayName: SelectedActionKey
+        Description: A custom property
+        DataType: Text
+        Default: =""
+    Properties:
+      Height: =240
+      Width: =320
+    Children:
+      - galAction:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =cmpQuickActions.Height
+            Items: |-
+              =FirstN(
+                  Filter(cmpQuickActions.Items, IsEnabled),
+                  cmpQuickActions.MaxItems
+              )
+            OnSelect: |-
+              =If(
+                  ThisItem.IsEnabled,
+                  cmpQuickActions.OnAction(ThisItem.ActionKey)
+              )
+            TemplateSize: =48
+            Width: =cmpQuickActions.Width
+          Children:
+            - rowDivider:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(226, 232, 240, 1)
+                  Height: =1
+                  OnSelect: =Select(Parent)
+                  Width: =Parent.TemplateWidth
+                  Y: =Parent.TemplateHeight - Self.Height
+            - lblAction:
+                Control: Label@2.5.1
+                Properties:
+                  Align: =Align.Center
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =If(ThisItem.IsEnabled, RGBA(15, 23, 42, 1), RGBA(148, 163, 184, 1))
+                  Font: =Font.'Open Sans'
+                  Height: =Parent.TemplateHeight
+                  OnSelect: =Select(Parent)
+                  Text: =ThisItem.Label
+                  Width: =Parent.TemplateWidth - lblAction.X - 28
+                  X: =icoAction.X + icoAction.Width + 10
+            - icoAction:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Color: =If(ThisItem.IsEnabled, RGBA(15, 23, 42, 1), RGBA(148, 163, 184, 1))
+                  Height: =20
+                  Icon: |-
+                    =Switch(
+                        ThisItem.IconName,
+                        "star", Icon.Diamond,
+                        "cart", Icon.ShoppingCart,
+                        "ban", Icon.Blocked,
+                        "trash", Icon.Trash,
+                        "check", Icon.Check,
+                        "tag", Icon.Tag,
+                        "duplicate", Icon.Copy,
+                        "money", Icon.Money,
+                        "history", Icon.History,
+                        "disable", Icon.Blocked,
+                        "edit", Icon.More
+                    )
+                  OnSelect: =Select(Parent)
+                  Width: =20
+                  X: =12
+                  Y: =RoundDown((Parent.TemplateHeight - Self.Height) / 2, 0)

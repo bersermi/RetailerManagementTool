@@ -1,0 +1,617 @@
+ComponentDefinitions:
+  cmpCartPanel:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      BodyTextColorPrimary:
+        PropertyKind: Input
+        DisplayName: BodyTextColorPrimary
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(35, 35, 35, 1)
+      BodyTextColorSecondary:
+        PropertyKind: Input
+        DisplayName: BodyTextColorSecondary
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(110, 110, 110, 1)
+      Busy:
+        PropertyKind: Input
+        DisplayName: Busy
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      CornerRadius:
+        PropertyKind: Input
+        DisplayName: CornerRadius
+        Description: A custom property
+        DataType: Number
+        Default: =15
+      CurrentSymbol:
+        PropertyKind: Input
+        DisplayName: CurrentSymbol
+        Description: A custom property
+        DataType: Text
+        Default: ="$"
+      DangerColor:
+        PropertyKind: Input
+        DisplayName: DangerColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(200, 55, 55, 1)
+      DisabledFill:
+        PropertyKind: Input
+        DisplayName: DisabledFill
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(245, 245, 245, 1)
+      EmptyText:
+        PropertyKind: Input
+        DisplayName: EmptyText
+        Description: A custom property
+        DataType: Text
+        Default: ="No hay productos en el carrito"
+      FillThumb:
+        PropertyKind: Input
+        DisplayName: FillThumb
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      FillTrack:
+        PropertyKind: Input
+        DisplayName: FillTrack
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      FooterBorderColor:
+        PropertyKind: Input
+        DisplayName: FooterBorderColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      HeaderHeight:
+        PropertyKind: Input
+        DisplayName: HeaderHeight
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      HeaderTextColor:
+        PropertyKind: Input
+        DisplayName: HeaderTextColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(35, 35, 35, 1)
+      HorizontalPadding:
+        PropertyKind: Input
+        DisplayName: HorizontalPadding
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      Items:
+        PropertyKind: Input
+        DisplayName: Items
+        Description: A custom property
+        DataType: Table
+        Default: |-
+          =Table(
+              {
+                  Key: "LINE-001",
+                  PrimaryText: "Coca-Cola 355ml",
+                  SecondaryText: "Lata individual",
+                  UnitText: "pz",
+                  Qty: 2,
+                  AllowStepper: true,
+                  Step: 1,
+                  MinQty: 0,
+                  MaxQtyEnabled: false,
+                  MaxQty: Blank(),
+                  Disabled: false,
+                  Photo: Blank(),
+                  DisplayUnitPrice: 18,
+                  DisplayLineTotal: 36
+              },
+              {
+                  Key: "LINE-002",
+                  PrimaryText: "Frijol negro",
+                  SecondaryText: "Bolsa 1kg",
+                  UnitText: "kg",
+                  Qty: 1,
+                  AllowStepper: true,
+                  Step: 1,
+                  MinQty: 0,
+                  MaxQtyEnabled: false,
+                  MaxQty: Blank(),
+                  Disabled: false,
+                  Photo: Blank(),
+                  DisplayUnitPrice: 42,
+                  DisplayLineTotal: 42
+              }
+          )
+      LineTotalCaption:
+        PropertyKind: Input
+        DisplayName: LineTotalCaption
+        Description: A custom property
+        DataType: Text
+        Default: ="Total"
+      MutedTextColor:
+        PropertyKind: Input
+        DisplayName: MutedTextColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(140, 140, 140, 1)
+      OnClosePanel:
+        PropertyKind: Event
+        DisplayName: OnClosePanel
+        Description: A custom property
+        ReturnType: None
+        Default: =false
+      OnQtyChange:
+        PropertyKind: Event
+        DisplayName: OnQtyChange
+        Description: A custom property
+        ReturnType: None
+        Default: =false
+        Parameters:
+          - Key:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+          - NewQty:
+              Description: A parameter
+              DataType: Number
+              Default: =100
+      OnRemoveLine:
+        PropertyKind: Event
+        DisplayName: OnRemoveLine
+        Description: A custom property
+        ReturnType: None
+        Default: =false
+        Parameters:
+          - Key:
+              Description: A parameter
+              DataType: Text
+              Default: ="Text"
+      OnRequestEmptyCart:
+        PropertyKind: Event
+        DisplayName: OnRequestEmptyCart
+        Description: A custom property
+        ReturnType: None
+        Default: =false
+      PanelBorderColor:
+        PropertyKind: Input
+        DisplayName: PanelBorderColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(230, 230, 230, 1)
+      PanelFill:
+        PropertyKind: Input
+        DisplayName: PanelFill
+        Description: A custom property
+        DataType: Color
+        Default: =Color.White
+      PanelMaxHeight:
+        PropertyKind: Input
+        DisplayName: PanelMaxHeight
+        Description: A custom property
+        DataType: Number
+        Default: =450
+      PanelWidth:
+        PropertyKind: Input
+        DisplayName: PanelWidth
+        Description: A custom property
+        DataType: Number
+        Default: =640
+      ResetNonce:
+        PropertyKind: Input
+        DisplayName: ResetNonce
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      RowHeight:
+        PropertyKind: Input
+        DisplayName: RowHeight
+        Description: A custom property
+        DataType: Number
+        Default: =160
+      ScrimFill:
+        PropertyKind: Input
+        DisplayName: ScrimFill
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 0.35)
+      SeparatorColor:
+        PropertyKind: Input
+        DisplayName: SeparatorColor
+        Description: A custom property
+        DataType: Color
+        Default: =RGBA(0, 0, 0, 1)
+      TitleText:
+        PropertyKind: Input
+        DisplayName: TitleText
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      UnitPriceCaption:
+        PropertyKind: Input
+        DisplayName: UnitPriceCaption
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      VaciarText:
+        PropertyKind: Input
+        DisplayName: VaciarText
+        Description: A custom property
+        DataType: Text
+        Default: ="Vaciar"
+      VerticalPadding:
+        PropertyKind: Input
+        DisplayName: VerticalPadding
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      VisiblePanel:
+        PropertyKind: Input
+        DisplayName: VisiblePanel
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+    Children:
+      - recCartPanelScrim:
+          Control: Rectangle@2.3.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Fill: =cmpCartPanel.ScrimFill
+            Height: =cmpCartPanel.Height
+            OnSelect: =If(!cmpCartPanel.Busy, cmpCartPanel.OnClosePanel())
+            Visible: =cmpCartPanel.VisiblePanel
+            Width: =cmpCartPanel.Width
+      - bgPanel:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =cmpCartPanel.PanelBorderColor
+            BorderThickness: =1
+            Color: =RGBA(255, 255, 255, 1)
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =cmpCartPanel.PanelFill
+            Font: =Font.'Open Sans'
+            Height: =Min(cmpCartPanel.PanelMaxHeight + 200, Parent.Height - 12)
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =cmpCartPanel.CornerRadius
+            RadiusTopRight: =cmpCartPanel.CornerRadius
+            Text: =""
+            Visible: =cmpCartPanel.VisiblePanel
+            Width: =Min(cmpCartPanel.PanelWidth, Parent.Width)
+            Y: =Parent.Height - Self.Height
+      - btnVaciar:
+          Control: Classic/Button@2.2.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            BorderThickness: =1
+            Color: =cmpCartPanel.DangerColor
+            DisabledBorderColor: =RGBA(166, 166, 166, 1)
+            Fill: =cmpCartPanel.PanelFill
+            Font: =Font.'Open Sans'
+            Height: =32
+            HoverBorderColor: =ColorFade(Self.BorderColor, 20%)
+            HoverColor: =RGBA(255, 255, 255, 1)
+            HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+            OnSelect: =If(!cmpCartPanel.Busy && CountRows(cmpCartPanel.Items) > 0, cmpCartPanel.OnRequestEmptyCart())
+            PressedBorderColor: =Self.Fill
+            PressedColor: =Self.Fill
+            PressedFill: =Self.Color
+            Size: =15
+            Text: =cmpCartPanel.VaciarText
+            Visible: =cmpCartPanel.VisiblePanel
+            Width: =80
+            Y: =Parent.Height-bgPanel.Height-Self.Height
+      - icoCartClose:
+          Control: Classic/Icon@2.5.0
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =cmpCartPanel.HeaderTextColor
+            Fill: =Color.White
+            Height: =35
+            Icon: =Icon.Cancel
+            OnSelect: =If(!cmpCartPanel.Busy, cmpCartPanel.OnClosePanel())
+            Visible: =cmpCartPanel.VisiblePanel
+            Width: =35
+            X: =Parent.Width - Self.Width
+            Y: =Parent.Height-bgPanel.Height-Self.Height
+      - galCartLines:
+          Control: Gallery@2.15.0
+          Variant: Vertical
+          Properties:
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Height: =bgPanel.Height -5
+            Items: =cmpCartPanel.Items
+            TemplateSize: =cmpCartPanel.RowHeight
+            Visible: =cmpCartPanel.VisiblePanel && CountRows(cmpCartPanel.Items) > 0
+            Width: =bgPanel.Width
+            X: =bgPanel.X
+            Y: =bgPanel.Y + 5
+          Children:
+            - lblUnit_1:
+                Control: Label@2.5.1
+                Group: Group2_1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =39
+                  OnSelect: =Select(Parent)
+                  Size: |-
+                    =With(
+                        {
+                            n: Len(Coalesce(Self.Text, "")),
+                            base: 15
+                        },
+                        If(
+                            n <= 3, base,
+                            If(
+                                n <= 5, base - 1,
+                                If(
+                                    n <= 6, base - 2,
+                                    If(
+                                        n <= 7, base - 3,
+                                        base - 4
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  Text: =ThisItem.UnitText
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =53
+                  X: =407
+                  Y: =100
+            - txtQty_1:
+                Control: Classic/TextInput@2.3.2
+                Group: Group2_1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Default: =Text(Coalesce(ThisItem.Qty, 0))
+                  DisplayMode: =If(ThisItem.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+                  Font: =Font.'Open Sans'
+                  Format: =TextFormat.Number
+                  Height: =56
+                  HoverBorderColor: =RGBA(0, 18, 107, 1)
+                  HoverFill: =RGBA(186, 202, 226, 1)
+                  OnChange: =If(!cmpCartPanel.Busy, cmpCartPanel.OnQtyChange(ThisItem.Key, Max(0, Value(Self.Text))))
+                  OnSelect: =Select(Parent)
+                  Size: =13
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =115
+                  X: =292
+                  Y: =100
+            - icoGalPlus_1:
+                Control: Classic/Icon@2.5.0
+                Group: Group2_1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  BorderThickness: =2
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisabledBorderColor: =RGBA(0, 18, 107, 1)
+                  DisplayMode: |-
+                    =If(
+                        ThisItem.Disabled || !ThisItem.AllowStepper,
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =60
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  Icon: =Icon.Add
+                  OnSelect: =If(!cmpCartPanel.Busy, cmpCartPanel.OnQtyChange(ThisItem.Key, ThisItem.Qty + ThisItem.Step))
+                  PaddingBottom: =5
+                  PaddingLeft: =5
+                  PaddingRight: =5
+                  PaddingTop: =5
+                  PressedFill: =Self.Color
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =60
+                  X: =520
+                  Y: =100
+            - icoGalMinus_1:
+                Control: Classic/Icon@2.5.0
+                Group: Group2_1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  BorderThickness: =2
+                  Color: =RGBA(0, 18, 107, 1)
+                  DisabledBorderColor: =RGBA(0, 18, 107, 1)
+                  DisplayMode: |-
+                    =If(
+                        ThisItem.Disabled || !ThisItem.AllowStepper || ThisItem.Qty <= ThisItem.MinQty,
+                        DisplayMode.Disabled,
+                        DisplayMode.Edit
+                    )
+                  Height: =60
+                  HoverColor: =RGBA(255, 255, 255, 1)
+                  HoverFill: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                  Icon: =Icon.HorizontalLine
+                  OnSelect: =If(!cmpCartPanel.Busy, cmpCartPanel.OnQtyChange(ThisItem.Key, Max(0, ThisItem.Qty - ThisItem.Step)))
+                  PaddingBottom: =5
+                  PaddingLeft: =5
+                  PaddingRight: =5
+                  PaddingTop: =5
+                  PressedFill: =Self.Color
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =60
+                  X: =460
+                  Y: =100
+            - lblPrimary_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =43
+                  OnSelect: =Select(Parent)
+                  Size: |-
+                    =With(
+                        {
+                            n: Len(Coalesce(Self.Text, "")),
+                            base: 20
+                        },
+                        If(
+                            n <= 18, base,
+                            If(
+                                n <= 26, base - 2,
+                                If(
+                                    n <= 34, base - 4,
+                                    If(
+                                        n <= 42, base - 6,
+                                        base - 7
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  Text: =ThisItem.PrimaryText
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =391
+                  X: =16
+                  Y: =17
+            - lblSecondary_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =24
+                  OnSelect: =Select(Parent)
+                  Size: |-
+                    =With(
+                        {
+                            n: Len(Coalesce(Self.Text, "")),
+                            base: 15
+                        },
+                        If(
+                            n <= 22, base,
+                            If(
+                                n <= 32, base - 1,
+                                If(
+                                    n <= 42, base - 2,
+                                    If(
+                                        n <= 52, base - 3,
+                                        base - 4
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  Text: =ThisItem.SecondaryText
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =289
+                  X: =16
+                  Y: =60
+            - Icon2_1:
+                Control: Classic/Icon@2.5.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  BorderThickness: =2
+                  Color: =RGBA(0, 18, 107, 1)
+                  Height: =60
+                  Icon: =Icon.Trash
+                  OnSelect: =If(!cmpCartPanel.Busy, cmpCartPanel.OnRemoveLine(ThisItem.Key))
+                  PaddingLeft: =5
+                  PaddingRight: =5
+                  PressedFill: =Self.Color
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =60
+                  X: =553
+                  Y: =7
+            - recGalCatalogSeparator_1:
+                Control: Rectangle@2.3.0
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Fill: =RGBA(56, 96, 178, 1)
+                  Height: =1
+                  OnSelect: =Select(Parent)
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =Parent.Width
+            - lblGalUnitPrice_1:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  FontWeight: =FontWeight.Semibold
+                  Height: =18
+                  OnSelect: =Select(Parent)
+                  Size: |-
+                    =With(
+                        {
+                            n: Len(Coalesce(Self.Text, "")),
+                            base: 19
+                        },
+                        If(
+                            n <= 3, base,
+                            If(
+                                n <= 5, base - 1,
+                                If(
+                                    n <= 6, base - 2,
+                                    If(
+                                        n <= 7, base - 3,
+                                        base - 4
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  Text: |-
+                    ="Total: " & Coalesce( "$") & Text(Coalesce(ThisItem.DisplayLineTotal, 0), "[$-en-US]#,##0.00")
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =172
+                  X: =16
+                  Y: =121
+            - lblGalUnitPrice_2:
+                Control: Label@2.5.1
+                Properties:
+                  BorderColor: =RGBA(0, 18, 107, 1)
+                  Font: =Font.'Open Sans'
+                  Height: =18
+                  OnSelect: =Select(Parent)
+                  Size: |-
+                    =With(
+                        {
+                            n: Len(Coalesce(Self.Text, "")),
+                            base: 17
+                        },
+                        If(
+                            n <= 3, base,
+                            If(
+                                n <= 5, base - 1,
+                                If(
+                                    n <= 6, base - 2,
+                                    If(
+                                        n <= 7, base - 3,
+                                        base - 4
+                                    )
+                                )
+                            )
+                        )
+                    )
+                  Text: |-
+                    ="Precio: " & Coalesce("$") & Text(Coalesce(ThisItem.DisplayUnitPrice, 0), "[$-en-US]#,##0.00")
+                  Visible: =cmpCartPanel.VisiblePanel
+                  Width: =172
+                  X: =16
+                  Y: =97
+      - lblEmptyText:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =cmpCartPanel.MutedTextColor
+            Font: =Font.'Open Sans'
+            Height: =40
+            Text: =cmpCartPanel.EmptyText
+            Visible: =cmpCartPanel.VisiblePanel && CountRows(cmpCartPanel.Items) = 0
+            Width: =bgPanel.Width - cmpCartPanel.HorizontalPadding * 2
+            X: =bgPanel.X + cmpCartPanel.HorizontalPadding
+            Y: =bgPanel.Y + 24

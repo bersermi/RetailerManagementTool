@@ -1,0 +1,22 @@
+# ADR-026: colCatalogLines authoritative; colCartLines projection only
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Need a consistent model for catalog vs cart state.
+- **Decision**
+  - colCatalogLines is the authoritative working collection.
+  - colCartLines is derived (projection) from it.
+- **Rationale**
+  - Avoids duplication and conflicting state.
+- **Consequences**
+  - **Positive:**
+    - Single source of truth in UI layer.
+    - Simpler updates.
+  - **Negative / tradeoffs:**
+    - Requires rebuild logic after mutations.
+- **Alternatives considered**
+  - Independent cart state → rejected (sync issues).
+- **Follow-ups**
+  - Implement standard rebuild pattern after changes.

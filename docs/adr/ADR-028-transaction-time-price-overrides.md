@@ -1,0 +1,22 @@
+# ADR-028: Transaction-time price override policy for cart lines
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Need flexible pricing during transactions without corrupting base data.
+- **Decision**
+  - Price overrides allowed only while item is in cart.
+  - Removing item or completing transaction resets price to base.
+- **Rationale**
+  - Preserves catalog integrity while enabling flexibility.
+- **Consequences**
+  - **Positive:**
+    - Accurate pricing history.
+    - Clean separation of base vs transactional data.
+  - **Negative / tradeoffs:**
+    - Requires reset logic.
+- **Alternatives considered**
+  - Persist override in product → rejected (data pollution).
+- **Follow-ups**
+  - Consider future LastUsedPrice feature.

@@ -1,0 +1,24 @@
+# ADR-008: One unit per product variant (v1 constraint)
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Users want simplicity and consistency; each product subtype shares the same unit in v1.
+  - Supporting buying in one measure and selling in another adds conversion complexity.
+- **Decision**
+  - Enforce “one operational unit per `ProductVariant`” in v1.
+  - Purchases and sales for a variant must use that unit.
+- **Rationale**
+  - Keeps data entry and inventory arithmetic straightforward and aligns with the described UX.
+- **Consequences**
+  - **Positive:**
+    - Simplifies purchase/sale screens and stock management.
+    - Reduces edge cases and user confusion.
+  - **Negative / tradeoffs:**
+    - Does not support unit conversions (e.g., buy kg sell cups) until a later version.
+- **Alternatives considered**
+  - Multi-unit per product with conversions: deferred to later.
+- **Follow-ups**
+  - Add validation in app/flows that line Unit matches variant Unit.
+  - Leave room for a future UoM conversion table if needed.

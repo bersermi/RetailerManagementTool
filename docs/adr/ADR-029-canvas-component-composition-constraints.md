@@ -1,0 +1,22 @@
+# ADR-029: Component composition policy under Canvas constraints
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio + ChatGPT
+- **Context / Problem**
+  - Canvas limitations affect component design patterns.
+- **Decision**
+  - Avoid deep nested custom components.
+  - Prefer flatter structures and inline composition where needed.
+- **Rationale**
+  - Prevents runtime issues and unsupported behaviors.
+- **Consequences**
+  - **Positive:**
+    - More stable implementation.
+    - Fewer platform-related bugs.
+  - **Negative / tradeoffs:**
+    - Less modular than ideal architecture.
+- **Alternatives considered**
+  - Deep component nesting → rejected (platform limitations).
+- **Follow-ups**
+  - Document exceptions where combined components are required.

@@ -1,0 +1,22 @@
+# ADR-010: Purchase entry supports total price or unit price (compute the other)
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Purchase entry must be fast and flexible: user may know total price or unit price.
+- **Decision**
+  - Purchase model uses `Purchase` + `PurchaseLine`.
+  - On `PurchaseLine`, allow entering either `UnitPrice` or `LineTotal` (with Qty); compute the missing value.
+- **Rationale**
+  - Minimizes taps and matches how small retailers record purchases.
+- **Consequences**
+  - **Positive:**
+    - Faster data entry; fewer errors.
+    - Consistent stored pricing for analytics.
+  - **Negative / tradeoffs:**
+    - Requires a small calculation step in app or flow on save/complete.
+- **Alternatives considered**
+  - Forcing unit price only: slower and less aligned with real purchase receipts.
+- **Follow-ups**
+  - Implement compute logic in “Purchase Completed” flow.

@@ -1,0 +1,24 @@
+# ADR-007: Units as workspace-defined table + usual unit preferences
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Users need to define and manage their own units (kg, g, can, piece, bag, cup, etc.).
+  - App should minimize taps by prioritizing “usual units”.
+- **Decision**
+  - Create `Unit` table scoped to `Workspace`.
+  - Create `UserUnitPreference` mapping user↔unit with `IsUsual` and optional `SortOrder`.
+- **Rationale**
+  - Table-based units are editable and expandable; supports UX needs better than static Choice fields.
+- **Consequences**
+  - **Positive:**
+    - Customizable unit lists per workspace.
+    - Faster unit selection in purchases/sales/product creation.
+  - **Negative / tradeoffs:**
+    - Requires seeding baseline units on workspace onboarding.
+- **Alternatives considered**
+  - Units as a global choice list: rigid and not user-configurable.
+- **Follow-ups**
+  - Add alternate key on Unit `(Workspace, NormalizedName)`.
+  - Add onboarding step to seed common units.

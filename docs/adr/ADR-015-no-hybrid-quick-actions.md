@@ -1,0 +1,24 @@
+# ADR-015: No hybrid quick-action stock impact in v1
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - A hybrid approach (quick action prompting immediate stock decrement) was discussed.
+  - Requirement is to keep quick actions non-stock-impacting by default.
+- **Decision**
+  - Keep the pure approach:
+    - Quick actions affect availability (override) and/or create Pending InventoryEvents
+    - Stock is only changed when events are finalized with qty/reason or via completed sales/purchases
+- **Rationale**
+  - Maintains consistent workflow and avoids forcing premature quantity decisions.
+- **Consequences**
+  - **Positive:**
+    - Less risk of wrong inventory deductions.
+    - Cleaner separation of availability vs stock.
+  - **Negative / tradeoffs:**
+    - Some users may expect immediate stock impact; they must finalize events for quantity changes.
+- **Alternatives considered**
+  - Hybrid “set remaining to 0 now?” prompt: deferred to a later iteration if needed.
+- **Follow-ups**
+  - Ensure Pending tab is easy and low-friction to keep inventory accurate.

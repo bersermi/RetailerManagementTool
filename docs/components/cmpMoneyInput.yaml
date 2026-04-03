@@ -1,0 +1,157 @@
+ComponentDefinitions:
+  cmpMoneyInput:
+    DefinitionType: CanvasComponent
+    AllowCustomization: true
+    CustomProperties:
+      AllowBlank:
+        PropertyKind: Input
+        DisplayName: AllowBlank
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      CurrencyText:
+        PropertyKind: Input
+        DisplayName: CurrencyText
+        Description: A custom property
+        DataType: Text
+        Default: ="$"
+      Decimals:
+        PropertyKind: Input
+        DisplayName: Decimals
+        Description: A custom property
+        DataType: Number
+        Default: =2
+      Disabled:
+        PropertyKind: Input
+        DisplayName: Disabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      IsBlankOut:
+        PropertyKind: Output
+        DisplayName: IsBlankOut
+        Description: A custom property
+        DataType: Number
+      IsValidOut:
+        PropertyKind: Output
+        DisplayName: IsValidOut
+        Description: A custom property
+        DataType: Boolean
+      MaxValue:
+        PropertyKind: Input
+        DisplayName: MaxValue
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      MaxValueEnabled:
+        PropertyKind: Input
+        DisplayName: MaxValueEnabled
+        Description: A custom property
+        DataType: Boolean
+        Default: =true
+      MinValue:
+        PropertyKind: Input
+        DisplayName: MinValue
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      OnChange:
+        PropertyKind: Event
+        DisplayName: OnChange
+        Description: A custom property
+        ReturnType: None
+        Default: =
+      PlaceHolder:
+        PropertyKind: Input
+        DisplayName: PlaceHolder
+        Description: A custom property
+        DataType: Text
+        Default: ="Text"
+      Value:
+        PropertyKind: Input
+        DisplayName: Value
+        Description: A custom property
+        DataType: Number
+        Default: =100
+      ValueOut:
+        PropertyKind: Output
+        DisplayName: ValueOut
+        Description: A custom property
+        DataType: Number
+    Properties:
+      Height: =If(Self.Width < 480, 44, 48)
+      IsBlankOut: =100
+      IsValidOut: =true
+      ValueOut: =100
+      Width: =100
+    Children:
+      - txtMoney:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Align: =Align.Right
+            BorderColor: =RGBA(226,232,240,1)
+            BorderThickness: =1
+            Color: =RGBA(15,23,42,1)
+            Default: |-
+              =If(
+                  IsBlank(cmpMoneyInput.Value),
+                  "",
+                  If(
+                      cmpMoneyInput.Decimals = 0,
+                      Text(cmpMoneyInput.Value, "0"),
+                      If(
+                          cmpMoneyInput.Decimals = 1,
+                          Text(cmpMoneyInput.Value, "0.0"),
+                          Text(cmpMoneyInput.Value, "0.00")
+                      )
+                  )
+              )
+            DisplayMode: =If(cmpMoneyInput.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =RGBA(255,255,255,1)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            HintText: =cmpMoneyInput.PlaceHolder
+            HoverBorderColor: =RGBA(0, 18, 107, 1)
+            HoverFill: =RGBA(186, 202, 226, 1)
+            OnChange: =cmpMoneyInput.OnChange()
+            PaddingLeft: =lblCurrency.X + lblCurrency.Width + 8
+            PaddingRight: =12
+            RadiusBottomLeft: =10
+            RadiusBottomRight: =10
+            RadiusTopLeft: =10
+            RadiusTopRight: =10
+            Size: |-
+              =If(
+                  Len(txtMoney.Text) <= 6, 16,
+                  If(
+                      Len(txtMoney.Text) <= 9, 14,
+                      If(
+                          Len(txtMoney.Text) <= 12, 12,
+                          10
+                      )
+                  )
+              )
+            Width: =Parent.Width
+      - lblCurrency:
+          Control: Label@2.5.1
+          Properties:
+            Align: =Align.Center
+            BorderColor: =RGBA(0, 18, 107, 1)
+            Color: =RGBA(15,23,42,1)
+            DisplayMode: =If(cmpMoneyInput.Disabled, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            Height: =Parent.Height
+            Size: |-
+              =If(
+                  Len(txtMoney.Text) <= 6, 16,
+                  If(
+                      Len(txtMoney.Text) <= 9, 14,
+                      If(
+                          Len(txtMoney.Text) <= 12, 12,
+                          10
+                      )
+                  )
+              )
+            Text: =cmpMoneyInput.CurrencyText
+            Width: =If(Len(cmpMoneyInput.CurrencyText) > 1, 28, 20)
+            X: =10

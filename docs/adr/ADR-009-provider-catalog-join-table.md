@@ -1,0 +1,24 @@
+# ADR-009: Provider catalog via ProviderCatalogItem join table
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Each provider has its own catalog, but products should be reused across providers to avoid duplication.
+  - Users need to import a full catalog or selected items from another provider.
+- **Decision**
+  - Represent provider catalog membership using `ProviderCatalogItem` (Provider ↔ ProductVariant).
+  - Provider-specific metadata (SKU, default/last purchase price, preferred) belongs on ProviderCatalogItem.
+- **Rationale**
+  - Separates global product definition from provider-specific availability and metadata.
+- **Consequences**
+  - **Positive:**
+    - Easy catalog import/copy between providers.
+    - Avoids duplicating products across providers.
+  - **Negative / tradeoffs:**
+    - Requires UI to manage provider catalog as a join list.
+- **Alternatives considered**
+  - Duplicating products per provider: leads to inconsistency and duplicate analytics.
+- **Follow-ups**
+  - Add alternate key `(Workspace, Provider, ProductVariant)`.
+  - Build “Import from provider” functionality in app.

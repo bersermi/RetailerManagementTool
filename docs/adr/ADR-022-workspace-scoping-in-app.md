@@ -1,0 +1,23 @@
+# ADR-022: Workspace scoping rule in Canvas app
+
+- **Status:** Accepted
+- **Date:** 2026-04-03
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - In Option B, tenant isolation depends on consistent query and create scoping by Workspace.
+- **Decision**
+  - All screens and data operations in the Canvas app must:
+    - Filter reads by the current Workspace (`gblWorkspaceId`)
+    - Default writes by setting the Workspace lookup on new records
+- **Rationale**
+  - Prevents cross-tenant data leakage and ensures correct operational behavior.
+- **Consequences**
+  - **Positive:**
+    - Predictable behavior and isolation.
+    - Simplifies troubleshooting and analytics per workspace.
+  - **Negative / tradeoffs:**
+    - Any missed filter/default is a correctness/security risk.
+- **Alternatives considered**
+  - Rely only on security roles without Workspace filtering: error-prone for app logic.
+- **Follow-ups**
+  - Establish a code review checklist: every query and patch must include Workspace.
