@@ -1,0 +1,799 @@
+================================================================================
+VERTICAL 1 - SCREEN SPECIFICATION
+V1-02: BUY / PURCHASE ENTRY
+================================================================================
+
+Status: Draft (Ready for detailed design conversation)
+Date: 2026-04-03
+Vertical: 1 - Purchase & Stock Foundation
+Phase: D (Screens & App Logic)
+
+--------------------------------------------------------------------------------
+1. SCREEN PURPOSE
+--------------------------------------------------------------------------------
+
+Allow user to register a new purchase (received goods from supplier).
+
+Responsibilities:
+  • Select provider (supplier) from workspace catalog
+  • Select product variant and quantity from provider's catalog
+  • Enter pricing (unit price OR line total; compute the other)
+  • Optionally override expiry date
+  • Validate all required fields
+  • On completion:
+    - Create Purchase + PurchaseLine records in Dataverse
+    - Trigger Power Automate flow: "Purchase Completed → StockBatch creation"
+    - Confirm to user; navigate to Inventory view
+
+This screen is the primary entry point for stock inflow into the system.
+
+--------------------------------------------------------------------------------
+2. SCREEN ROUTES & FLOWS
+================================================================================
+
+Entry Point:
+  MainMenu.btnBuy → Navigate(PurchaseEntry)
+
+Exit Routes:
+  [Success path]  PurchaseEntry.btnCompletePurchase → Dataverse patch → Flow trigger → Notify → Navigate(StockBatchList)
+  [Cancel path]   PurchaseEntry.btnBack → Navigate(MainMenu) [no data saved]
+  [Draft path]    (Optional v2) PurchaseEntry.btnSaveDraft → Patch with Status="Draft" → Navigate(BuyList)
+
+Associated Flows:
+  • "Purchase Completed → StockBatch Creation" (Power Automate)
+    Trigger: PurchaseLine created with parent Purchase.Status = "Completed"
+    Actions:
+      1. Compute ExpiryDate (manual > lifespan > null)
+      2. Create StockBatch record
+      3. Return success to canvas app
+
+  • "Normalize Names" (Power Automate)
+    Trigger: Provider/Unit/ProductVariant create/update
+    Actions: Populate NormalizedName field (lowercase, trim, remove accents)
+
+Screen Display Flow:
+  1. User lands on PurchaseEntry with empty form
+  2. Selects Provider → provider's catalog loads
+  3. Selects ProductVariant → product details populate (unit, last price, etc.)
+  4. Enters Qty + UnitPrice → LineTotal auto-computes
+  5. Optional: override ExpiryDate
+  6. Clicks "Complete Purchase" → validation → patch → flow → success
+
+Error Flow:
+  • Missing field → validation toast; no patch sent
+  • Dataverse timeout → error toast; button remains active for retry
+  • Duplicate purchase (same product+qty) → warning message; allow proceed (no unique constraint)
+
+--------------------------------------------------------------------------------
+3. SCREEN STATE & COLLECTIONS
+================================================================================
+
+Global Variables (Inherited from gblWorkspaceId):
+  gblWorkspaceId: Text (Set by Home screen; REQUIRED)
+
+Screen-Local Variables:
+  varSelectedProvider: Record (LookUp result)
+    • Current provider selected in dropdown
+    • Shape: {ProviderId, Name, NormalizedName}
+    • Used to filter ProviderCatalogItem dropdown
+    • Blank() if no selection
+
+  varSelectedProduct: Record (LookUp result)
+    • Current product/variant selected in dropdown
+    • Shape: {ProductVariantId, Name, DisplayName, Unit, LastSellUnitPrice}
+    • Used to show product details
+    • Blank() if no selection
+
+  varQty: Number
+    • Current quantity entered (via cmpQtyStepper)
+    • Default: 1
+    • Range: >= 0.01 (allow partial units like 0.5 kg)
+    • Used to compute total price
+
+  varUnitPrice: Number (Decimal)
+    • Price per unit (e.g., 25.50 for $25.50/kg)
+    • Optional; if blank, LineTotal must be filled
+    • Computed: If varQty and varLineTotal filled, = varLineTotal / varQty
+    • On user edit: clears varLineTotal
+
+  varLineTotal: Number (Decimal)
+    • Total price for line (e.g., 51.00 for 2 kg × $25.50)
+    • Optional; if blank, UnitPrice must be filled
+    • Computed: If varQty and varUnitPrice filled, = varQty * varUnitPrice
+    • On user edit: clears varUnitPrice
+
+  varExpiryDateManual: DateTime (or blank)
+    • Optional override for expiry date
+    • If set, overrides ProductFamily.DefaultLifespanDays on flow execution
+    • Blank by default
+
+  varBusy: Boolean
+    • true while Dataverse patch + flow are executing
+    • Disables all buttons; shows spinner
+    • Managed by: btnCompletePurchase.OnSelect
+
+  varErrorMessage: Text
+    • Displays validation/system errors
+    • Cleared on form reset
+
+Collections:
+  colProviders: Table
+    • Filter(Provider, Workspace = gblWorkspaceId)
+    • Items: {ProviderId, Name, NormalizedName, DisplayName}
+    • Populated on screen init
+    • Sorted: Name ascending
+
+  colProductsInCatalog: Table
+    • Filter(ProviderCatalogItem, Provider = varSelectedProvider.ProviderId)
+    • Items: {ProductVariantId, ProductVariant.{Name, DisplayName, Unit, LastSellUnitPrice}}
+    • Re-populated when varSelectedProvider changes
+    • Sorted: ProductVariant.Name ascending
+
+  colUnits: Table
+    • Filter(Unit, Workspace = gblWorkspaceId)
+    • Items: {UnitId, Name, NormalizedName}
+    • Populated on screen init
+    • Used for reference/display (not editable in v1)
+
+--------------------------------------------------------------------------------
+4. LAYOUT & COMPONENTS
+================================================================================
+
+Header:
+  cmpHeader:
+    BackButton: Navigate(MainMenu)
+    Title: "Register Purchase"
+    MenuButton: Opens cmpFlyoutMenu [design in MainMenu screen]
+
+Main Content (Form):
+  
+  All fields within a scrollable container (for mobile)
+  
+  [Section 1: Provider Selection]
+  
+  Label: "Supplier *"
+  Dropdown: drpProvider
+    Items: colProviders
+    Display Field: Name
+    Default: (empty / "Select supplier")
+    OnChange: [see Logic section]
+    Validation: Empty → red border; tooltip "Required"
+  
+  (Optional) Text: "Contact: " & drpProvider.Selected.PhoneNumber [if available in v2]
+  
+  ---
+  
+  [Section 2: Product Selection]
+  
+  Label: "Product *"
+  Dropdown: drpProduct
+    Items: colProductsInCatalog
+    Display Field: Name + Unit (e.g., "Black Beans – kg")
+    Default: (empty / "Select product")
+    Enabled: If varSelectedProvider is not blank; else disabled
+    OnChange: [see Logic section]
+    Validation: Empty → red border; tooltip "Select supplier first"
+  
+  (Info) Text (gray):
+    "Stock unit: " & varSelectedProduct.Unit.Name
+    "Last sell price: " & (If(IsBlank(varSelectedProduct.LastSellUnitPrice), "(not set)", Text(varSelectedProduct.LastSellUnitPrice, "$#,##0.00")))
+  
+  ---
+  
+  [Section 3: Quantity]
+  
+  Label: "Quantity *"
+  cmpQtyStepper:
+    Value: varQty
+    Min: 0.01
+    Max: 10000
+    StepSize: 1
+    AllowDecimals: true
+    Label: (blank; label above)
+    ReadOnly: false
+    OnChange: (event) varQty = event.value
+  
+  (Info) Text (gray):
+    "Unit: " & varSelectedProduct.Unit.Name
+  
+  ---
+  
+  [Section 4: Pricing]
+  
+  RadioGroup or TabControl: "Pricing Method"
+    Option A: "Unit Price" (selected by default)
+    Option B: "Total Price"
+  
+  [If Pricing Method = "Unit Price"]
+  
+  Label: "Unit Price *"
+  cmpMoneyInput:
+    Value: varUnitPrice
+    CurrencySymbol: "$"
+    AllowFocus: true
+    ReadOnly: false
+    Label: (blank; label above)
+    OnChange: (event) [see Logic: varUnitPrice change]
+    OnBlur: (event) Validate and compute LineTotal if needed
+  
+  Label: "Line Total" (read-only, informational)
+  Text: (computed on-the-fly)
+    = If(varQty > 0 And Not IsBlank(varUnitPrice),
+         Text(varQty * varUnitPrice, "$#,##0.00"),
+         "(auto-calculated)")
+  
+  [If Pricing Method = "Total Price"]
+  
+  Label: "Total Price *"
+  cmpMoneyInput:
+    Value: varLineTotal
+    CurrencySymbol: "$"
+    AllowFocus: true
+    ReadOnly: false
+    Label: (blank; label above)
+    OnChange: (event) [see Logic: varLineTotal change]
+    OnBlur: (event) Validate and compute UnitPrice if needed
+  
+  Label: "Unit Price" (read-only, informational)
+  Text: (computed on-the-fly)
+    = If(varQty > 0 And Not IsBlank(varLineTotal),
+         Text(varLineTotal / varQty, "$#,##0.00"),
+         "(auto-calculated)")
+  
+  Validation Note:
+    At least one of varUnitPrice or varLineTotal must be filled.
+    Show red border on empty input field if form submitted empty.
+  
+  ---
+  
+  [Section 5: Expiry Date (Optional)]
+  
+  Label: "Expiry Date (Manual Override)"
+  DatePicker: dtpExpiryManual
+    Value: varExpiryDateManual
+    Default: Blank() [no expiry required]
+    Enabled: true
+    OnChange: varExpiryDateManual = Self.Value
+  
+  (Info) Text (gray, small):
+    "If not set, system will compute from product lifespan (if configured)."
+  
+  ---
+  
+  [Section 6: Validation & Summary]
+  
+  Error Message Container (conditional):
+    IF varErrorMessage <> "":
+      Fill: Light red (#ffe8e8)
+      Text: varErrorMessage (bold, red)
+  
+  Summary Box (informational, light gray):
+    "Summary:"
+    "  Supplier: " & drpProvider.Selected.Name
+    "  Product: " & varSelectedProduct.DisplayName
+    "  Qty: " & varQty & " " & varSelectedProduct.Unit.Name
+    "  Total: $" & Text(varQty * varUnitPrice, "#,##0.00")
+    "  Expiry: " & (If(IsBlank(varExpiryDateManual), "(Auto)", Text(varExpiryDateManual, "mm/dd/yyyy")))
+
+Footer:
+  Button: "Complete Purchase" (Primary, blue)
+    OnSelect: [see Logic: btnCompletePurchase.OnSelect]
+    Disabled: varBusy = true OR varSelectedProvider is blank OR varSelectedProduct is blank
+    Icon: (none)
+    Label: "Complete Purchase"
+  
+  Button: "Clear Form" (Secondary, gray)
+    OnSelect: [see Logic: btnClearForm.OnSelect]
+    Disabled: varBusy = true
+    Label: "Clear"
+
+================================================================================
+5. INTERACTION LOGIC (Detailed)
+================================================================================
+
+PurchaseEntry.OnVisible:
+  // Initialize collections on screen load
+  ClearCollect(colProviders,
+    Filter(Provider, Workspace = {Value: gblWorkspaceId})
+  );
+  
+  ClearCollect(colUnits,
+    Filter(Unit, Workspace = {Value: gblWorkspaceId})
+  );
+  
+  // Reset form fields
+  Set(varSelectedProvider, Blank());
+  Set(varSelectedProduct, Blank());
+  Set(varQty, 1);
+  Set(varUnitPrice, Blank());
+  Set(varLineTotal, Blank());
+  Set(varExpiryDateManual, Blank());
+  Set(varBusy, false);
+  Set(varErrorMessage, "")
+
+drpProvider.OnChange:
+  // User selected a provider
+  Set(varSelectedProvider, drpProvider.Selected);
+  
+  // Clear product selection (not valid for new provider)
+  Set(varSelectedProduct, Blank());
+  Set(varQty, 1);
+  
+  // Load provider's catalog
+  ClearCollect(colProductsInCatalog,
+    Filter(
+      ProviderCatalogItem,
+      Provider = varSelectedProvider.ProviderId
+    )
+  );
+  
+  If(colProductsInCatalog.IsEmpty(),
+    Set(varErrorMessage, "No products in this supplier's catalog. Add products first.")
+  );
+  
+  Set(varErrorMessage, "")
+
+drpProduct.OnChange:
+  // User selected a product variant
+  Set(varSelectedProduct, drpProduct.Selected);
+  
+  // Suggest last sell price if available
+  If(Not IsBlank(drpProduct.Selected.LastSellUnitPrice),
+    Set(varUnitPrice, drpProduct.Selected.LastSellUnitPrice);
+    Set(varLineTotal, varQty * varUnitPrice)
+  );
+  
+  // If on "Total Price" mode, clear suggested prices (user might prefer total)
+  // (Optional: keep last price; let user decide)
+
+cmpQtyStepper.OnChange (from component):
+  // Qty changed via stepper
+  Set(varQty, event.value);
+  
+  // Recompute line total if both qty and unit price present
+  If(Not IsBlank(varUnitPrice),
+    Set(varLineTotal, varQty * varUnitPrice)
+  )
+
+cmpMoneyInput.OnChange (UnitPrice input):
+  // User entered unit price
+  Set(varUnitPrice, event.value);
+  
+  // Clear line total (user editing unit price)
+  Set(varLineTotal, Blank());
+  
+  // If qty present, compute and show line total
+  If(Not IsBlank(varQty) And varQty > 0,
+    Set(varLineTotal, varQty * varUnitPrice)
+  )
+
+cmpMoneyInput.OnChange (LineTotal input):
+  // User entered total price
+  Set(varLineTotal, event.value);
+  
+  // Clear unit price (user editing line total)
+  Set(varUnitPrice, Blank());
+  
+  // If qty present, compute and show unit price
+  If(Not IsBlank(varQty) And varQty > 0,
+    Set(varUnitPrice, varLineTotal / varQty)
+  )
+
+dtpExpiryManual.OnChange:
+  // User selected an expiry date
+  Set(varExpiryDateManual, dtpExpiryManual.Value)
+
+btnCompletePurchase.OnSelect:
+  // Validate all required fields
+  Set(varErrorMessage, "");
+  
+  If(IsBlank(varSelectedProvider),
+    Set(varErrorMessage, "Select a supplier.");
+    Exit
+  );
+  
+  If(IsBlank(varSelectedProduct),
+    Set(varErrorMessage, "Select a product.");
+    Exit
+  );
+  
+  If(varQty <= 0,
+    Set(varErrorMessage, "Quantity must be greater than 0.");
+    Exit
+  );
+  
+  If(IsBlank(varUnitPrice) And IsBlank(varLineTotal),
+    Set(varErrorMessage, "Enter unit price or total price.");
+    Exit
+  );
+  
+  // Ensure both prices are computed
+  If(IsBlank(varUnitPrice),
+    Set(varUnitPrice, varLineTotal / varQty)
+  );
+  
+  If(IsBlank(varLineTotal),
+    Set(varLineTotal, varQty * varUnitPrice)
+  );
+  
+  // All validation passed; proceed with Dataverse update
+  Set(varBusy, true);
+  Set(varErrorMessage, "");
+  
+  // Create Purchase header
+  Patch(Purchase,
+    Defaults(Purchase),
+    {
+      Name: "PUR-" & Text(Now(), "yyyymm-dd-hhmmss-" & Rand()),
+      Provider: varSelectedProvider,
+      Workspace: {Value: gblWorkspaceId},
+      PurchaseDate: Now(),
+      Status: "Completed"
+    }
+  ) As newPurchase;
+  
+  // Create PurchaseLine (this will trigger the flow)
+  Patch(PurchaseLine,
+    Defaults(PurchaseLine),
+    {
+      Name: "PLN-" & Text(Now(), "yyyymm-dd-hhmmss-" & Rand()),
+      Purchase: newPurchase,
+      ProductVariant: varSelectedProduct,
+      Qty: varQty,
+      UnitPrice: varUnitPrice,
+      LineTotal: varLineTotal,
+      ExpiryDateManual: varExpiryDateManual,
+      Workspace: {Value: gblWorkspaceId}
+    }
+  );
+  
+  Set(varBusy, false);
+  
+  // Success notification
+  Notify("Purchase registered. Stock batch will be created in a moment.", NotificationType.Success);
+  
+  // Clear form for next entry (optional; or navigate away)
+  Set(varSelectedProvider, Blank());
+  Set(varSelectedProduct, Blank());
+  Set(varQty, 1);
+  Set(varUnitPrice, Blank());
+  Set(varLineTotal, Blank());
+  Set(varExpiryDateManual, Blank());
+  
+  // Navigate to Inventory to see the new batch
+  Navigate(StockBatchList)
+
+btnClearForm.OnSelect:
+  // Reset all form fields
+  Set(varSelectedProvider, Blank());
+  Set(varSelectedProduct, Blank());
+  Set(varQty, 1);
+  Set(varUnitPrice, Blank());
+  Set(varLineTotal, Blank());
+  Set(varExpiryDateManual, Blank());
+  Set(varErrorMessage, "")
+
+================================================================================
+6. DATA DEPENDENCIES (Vertical 1 Phase A - Must Exist)
+================================================================================
+
+Required Tables:
+  • Workspace (by gblWorkspaceId)
+  • Provider (filtered by Workspace)
+  • ProductVariant (filtered by workspace)
+  • ProductFamily (supports ProductVariant)
+  • Unit (filtered by Workspace)
+  • ProviderCatalogItem (join table: Provider ↔ ProductVariant)
+  • Purchase (will be created; must have Workspace lookup, Status choice field)
+  • PurchaseLine (will be created; must have lookups to Purchase, ProductVariant, Workspace)
+
+Required Fields:
+  Provider:
+    • Name (PrimaryName), Workspace (Lookup, Required)
+
+  ProductVariant:
+    • Name, Unit (Lookup), ProductFamily (Lookup), LastSellUnitPrice (optional), Workspace (Lookup)
+
+  Unit:
+    • Name, Workspace (Lookup)
+
+  ProviderCatalogItem:
+    • Provider (Lookup), ProductVariant (Lookup), Workspace (Lookup)
+
+  Purchase:
+    • Name, Provider (Lookup), Workspace (Lookup, Required), PurchaseDate (DateTime), Status (Choice: Draft/Completed)
+
+  PurchaseLine:
+    • Name, Purchase (Lookup), ProductVariant (Lookup), Qty (Decimal), UnitPrice (Decimal), LineTotal (Decimal),
+      ExpiryDateManual (DateTime, optional), Workspace (Lookup, Required)
+
+Required Relationships:
+  • ProviderCatalogItem.ProductVariant → ProductVariant (1:N)
+  • Purchase.Provider → Provider (N:1)
+  • PurchaseLine.Purchase → Purchase (1:N)
+  • PurchaseLine.ProductVariant → ProductVariant (N:1)
+
+Pre-populated Test Data (Phase A):
+  Provider: "Supplier A" (Workspace: Kabe Downtown)
+  ProductVariant: "Black Beans – Premium" (Unit: kg, LastSellUnitPrice: $2.50)
+  ProviderCatalogItem: Link Supplier A to Black Beans – Premium
+
+Issue Blockers:
+  • ISS-009: cmpQtyStepper component spec (finalized in Phase C)
+  • ISS-010: cmpMoneyInput component spec (finalized in Phase C)
+  • ISS-028: Name normalization flow triggers (must normalize on create)
+
+================================================================================
+7. ERROR HANDLING & EDGE CASES
+================================================================================
+
+Scenario: Provider has no catalog items
+  Detected In: drpProvider.OnChange
+  Response: Show error message "No products in this supplier's catalog."
+  Recovery: User goes to (future) Catalog Management screen to add products to supplier
+  Recommendation: In v2, show workflow hint "Add products to this supplier"
+
+Scenario: Qty entered as 0 or negative
+  Detected In: cmpQtyStepper or validation on submit
+  Response: Show error "Quantity must be > 0" on Submit
+  Recovery: User corrects qty in stepper; retry submit
+  Note: Stepper should prevent negative values (Min: 0.01)
+
+Scenario: User enters decimal qty (e.g., 0.5 kg)
+  Allowed: Yes (AllowDecimals: true on cmpQtyStepper)
+  Computation: 0.5 kg × $25/kg = $12.50 (correct)
+  Recommendation: Clearly show unit ("0.5 kg") in summary
+
+Scenario: Dataverse patch times out (ISS-021: Error Handling)
+  Detected In: Patch() fails; exception thrown
+  Response: Show error toast "Failed to save purchase. Retry?"
+  Recovery: Button remains active for retry; user clicks again
+  Recommendation: Implement exponential backoff (ISS-021 decision pending)
+
+Scenario: User enters Unit Price; then changes Qty
+  Expected: Line Total re-computes; Qty × Unit Price = new total
+  Actual: cmpQtyStepper.OnChange updates varLineTotal
+  Verification: Summary shows updated total
+
+Scenario: User enters Line Total; then changes Qty
+  Expected: Unit Price re-computes; Line Total ÷ Qty = new unit price
+  Actual: cmpQtyStepper.OnChange updates varUnitPrice
+  Verification: Summary shows updated unit price
+
+Scenario: User manually overrides expiry, but ProductFamily has DefaultLifespanDays
+  Expected: Flow uses manual override (priority: manual > lifespan > null)
+  Actual: PurchaseLine.ExpiryDateManual is passed to flow; flow checks if not null first
+  Verification: StockBatch.ExpiryDate = chosen manual date (flow confirms)
+
+Scenario: User selects product; app shows last sell price pre-filled
+  Expected: UnitPrice field is pre-populated; LineTotal auto-computes
+  Actual: drpProduct.OnChange sets varUnitPrice (if LastSellUnitPrice not null)
+  Verification: Qty × LastSellUnitPrice = LineTotal (user can override)
+
+Scenario: Network goes offline mid-form
+  Detected In: colProviders or colProductsInCatalog load fails
+  Response: Dropdowns show empty or cached data; button submit likely fails with timeout
+  Recommendation: Add offline mode or "Retry Load" button (future feature ISS-021)
+
+Scenario: User navigates away (back button) during form entry
+  Expected: Form data is lost; no confirmation dialog in v1
+  Actual: OnVisible clears all form vars on return
+  Recommendation: In v2, implement "Save as Draft" to preserve partial data
+
+================================================================================
+8. PERFORMANCE & SCALABILITY
+================================================================================
+
+Optimization Notes:
+  • colProviders: Filter by Workspace; early in OnVisible (parallel load if possible)
+  • colProductsInCatalog: Loaded on drpProvider selection (lazy load; not all at once)
+  • No large galleries here; dropdowns are efficient
+  • Computations (Qty × Price) are client-side; instant
+
+Load Time Estimate:
+  • Screen OnVisible: ~500ms (colProviders load from Dataverse)
+  • drpProvider.OnChange: ~300–500ms (colProductsInCatalog load)
+  • Patch (Purchase + PurchaseLine): ~1–2s (Dataverse + flow trigger)
+  • Flow execution (StockBatch creation): ~5–10s (async; user notified with toast)
+
+Mobile Considerations:
+  • Form is vertical (no horizontal scroll)
+  • Stepper and money inputs are touch-friendly (min 44px)
+  • Dropdown opens full-screen or modal (power apps default)
+  • Keyboard appears for numeric inputs; consider numeric keypad for price
+
+Accessibility:
+  • All labels associated with inputs
+  • Error messages color + text (not just red)
+  • All buttons keyboard accessible
+  • Stepper buttons have clear +/− icons or text
+
+Scaling:
+  • If provider has 1000+ catalog items, dropdown may be slow
+    → Recommend: Search filter in dropdown (future v2 feature)
+  • If user makes many purchases in one session, no memory leak expected (collections cleared on OnVisible)
+
+================================================================================
+9. COMPONENT USAGE (Vertical 1 Scope)
+================================================================================
+
+Components Used:
+  • cmpQtyStepper (qty selection)
+    Props: Value, Min, Max, StepSize, AllowDecimals, Label, ReadOnly
+    Events: OnChange (value)
+    Usage: Qty input in Section 3
+
+  • cmpMoneyInput (price input)
+    Props: Value, CurrencySymbol, AllowFocus, ReadOnly, Label
+    Events: OnChange (value), OnBlur
+    Usage: Unit Price input (Section 4, option A) and Line Total input (option B)
+
+  • cmpHeader (screen header)
+    Props: Title, with back button
+    Events: OnBack (back button press)
+    Usage: Page title + navigation
+
+  • cmpToast (notifications)
+    Props: Message type, content
+    Events: N/A (controlled by Notify() function)
+    Usage: Success/error feedback (completion or validation error)
+
+Component Props Configuration:
+  cmpQtyStepper for "Quantity" field:
+    Value: varQty
+    Min: 0.01
+    Max: 10000
+    StepSize: 1
+    AllowDecimals: true
+    Label: (none; label in header)
+    ReadOnly: false
+  
+  cmpMoneyInput for "Unit Price" field:
+    Value: varUnitPrice
+    CurrencySymbol: "$"
+    AllowFocus: true
+    ReadOnly: false
+    Label: (none; label in header)
+  
+  cmpMoneyInput for "Line Total" field:
+    Value: varLineTotal
+    CurrencySymbol: "$"
+    AllowFocus: true
+    ReadOnly: false
+    Label: (none; label in header)
+
+================================================================================
+10. TESTING & ACCEPTANCE CRITERIA (Phase E)
+================================================================================
+
+Functional Tests (Manual, Phase E):
+
+  [ ] Provider dropdown loads with all workspace providers
+  [ ] Select provider → product dropdown loads with that provider's catalog
+  [ ] Select product → last sell price appears (if set)
+  [ ] Qty stepper: increment/decrement works; accepts decimals (0.5)
+  [ ] Enter Unit Price → Line Total auto-computes (Qty × Price)
+  [ ] Enter Line Total → Unit Price auto-computes (Total ÷ Qty)
+  [ ] Changing Qty while Unit Price set → Line Total updates
+  [ ] Changing Qty while Line Total set → Unit Price updates
+  [ ] Submit without Qty → error "Quantity must be > 0"
+  [ ] Submit without Price → error "Enter unit or total price"
+  [ ] Submit with all fields → Purchase + PurchaseLine created in Dataverse
+  [ ] On successful submit → toast "Purchase registered"
+  [ ] On successful submit → form clears/resets
+  [ ] On successful submit → navigates to StockBatchList
+  [ ] Set manual expiry date → saved to PurchaseLine.ExpiryDateManual
+  [ ] Leave expiry blank → null in Dataverse; flow computes from lifespan
+
+  Workspace Isolation Tests (Phase E):
+  [ ] Create purchase in Workspace A → only visible to Workspace A user
+  [ ] Create purchase in Workspace B → not visible to Workspace A user
+  [ ] All patches include Workspace = {Value: gblWorkspaceId}
+  [ ] Verify no cross-workspace data leak
+
+  Integration Tests (Phase E):
+  [ ] Complete purchase → Flow triggers within 10s
+  [ ] Flow executes → StockBatch created with QtyReceived = purchase line qty
+  [ ] ExpiryDate computed: manual override > lifespan > null
+  [ ] StockBatch appears in Inventory/StockBatchList after refresh
+
+  Performance Tests (Phase E):
+  [ ] OnVisible load time: < 1s
+  [ ] Dropdown open: < 500ms
+  [ ] Patch + flow: < 15s (flow runs async; show progress indicator)
+  [ ] Mobile (landscape): form scrolls; no cutoff
+
+  Edge Case Tests (Phase E):
+  [ ] Zero qty submitted → validation error
+  [ ] Negative qty from stepper → prevented by Min=0.01
+  [ ] Provider with no catalog → error message shown
+  [ ] Decimal qty (0.5) × price → correct computation
+  [ ] Dataverse timeout → error toast; retry button works
+  [ ] Navigate away mid-form → form clears; no data saved
+
+Acceptance Criteria:
+  ✓ User can register a purchase with all required fields
+  ✓ Prices auto-compute based on either unit price or total
+  ✓ Purchase + PurchaseLine created in Dataverse with Workspace scoping
+  ✓ Flow triggers and creates StockBatch within 10s
+  ✓ User receives confirmation toast
+  ✓ No cross-workspace data leakage
+  ✓ Error messages guide user to fix validation errors
+  ✓ Mobile layout is responsive and usable
+
+Known Limitations (v1):
+  • No search filter in dropdowns (can't search 1000+ products quickly)
+    → Recommend: Add search field in v2 (ISS-006)
+  • No "Save as Draft" (partial data lost if user navigates away)
+    → Recommend: Add draft saving in v2
+  • No price history or comparison
+    → Show last sell price only; no full history
+  • Provider catalog only for this purchase; no persistent "My Usual Suppliers"
+    → Recommend: Favorites feature in v2
+
+================================================================================
+11. DESIGN NOTES & OPEN QUESTIONS
+================================================================================
+
+Design Approach:
+  • Linear form flow (no tabs, step-by-step)
+  • Form sections grouped with dividers (visual hierarchy)
+  • Two pricing modes (Unit Price or Total) via radio/tab (avoids confusion)
+  • Summary box shows data at a glance before submit
+  • All buttons at the bottom (standard mobile pattern)
+
+Color & Typography:
+  • Labels: Bold, dark gray
+  • Info text: Smaller, light gray
+  • Error messages: Red background + text
+  • Summary: Light gray background (informational)
+  • Button colors: Primary (blue for "Complete"); Secondary (gray for "Clear")
+
+Validation UX:
+  • Red border on empty required fields (on focus or submit)
+  • Tooltip/label shows requirement (e.g., "Qty *")
+  • Live validation: Price auto-compute shows user intent understood
+  • Error toast on submit failure (not modal; non-blocking)
+
+Open Questions for Next Conversation:
+  1. Should pricing mode (Unit Price vs Total Price) be a permanent user preference or per-purchase choice?
+  2. Should we show supplier contact info (phone, email) on this screen for reference?
+  3. If product is not in provider's catalog, should user be able to add it from here, or must they go to Catalog Management screen first?
+  4. Should we auto-suggest qty based on reorder level (future feature)?
+  5. Should "Clear Form" button exist, or just use back button to cancel?
+  6. Mobile: Should price entry use a dedicated numeric keyboard or text input with validation?
+
+Linked Issues:
+  • ISS-009: cmpQtyStepper spec (component contract)
+  • ISS-010: cmpMoneyInput spec (component contract)
+  • ISS-028: Name normalization flow (must populate NormalizedName)
+  • ISS-014: Sale shortage handling (contextual; doesn't affect purchase)
+
+Deferred to v2:
+  • ISS-006: Search-first UX (search filter in product dropdown)
+  • ISS-008: Price override reset (sales flow; not purchases)
+  • Draft purchasing (btnSaveDraft)
+
+================================================================================
+12. VERTICAL 1 PHASE TIMELINE
+================================================================================
+
+Est. Effort: 4 hours
+  Design (layout mockup): 1h
+  Implementation (form logic + validation + flow integration): 2.5h
+  Testing & fixes: 0.5h
+
+Dependencies:
+  • Phase A: Dataverse tables (Purchase, PurchaseLine, Provider, ProviderCatalogItem)
+  • Phase B: "Purchase Completed → StockBatch" flow (must be deployed)
+  • Phase C: cmpQtyStepper, cmpMoneyInput component finalization
+
+Blockers:
+  • ISS-009, ISS-010 (component specs must be finalized by Phase C)
+  • ISS-028 (name normalization flow for provider/product integrity)
+
+Next Screen: V1-03-StockBatchList (Inventory view to see purchased stock)
+
+================================================================================
+END OF V1-02 SPECIFICATION
+================================================================================

@@ -1,0 +1,357 @@
+================================================================================
+VERTICAL 1 - SCREEN SPECIFICATION
+V1-01: HOME / WORKSPACE SELECTOR
+================================================================================
+
+Status: Draft (Ready for detailed design conversation)
+Date: 2026-04-03
+Vertical: 1 - Purchase & Stock Foundation
+Phase: D (Screens & App Logic)
+
+--------------------------------------------------------------------------------
+1. SCREEN PURPOSE
+--------------------------------------------------------------------------------
+
+On app startup, determine the current workspace (tenant context).
+
+Responsibilities:
+  • Identify current user via User() function
+  • Load user's workspace memberships (WorkspaceMember table)
+  • Route based on membership count:
+    - 0 workspaces → Error state: "No workspace access"
+    - 1 workspace → Auto-select and navigate to MainMenu
+    - 2+ workspaces → Show selector; user picks workspace
+  • Set global gblWorkspaceId after selection
+
+This screen ensures all downstream operations are scoped to a single workspace.
+
+--------------------------------------------------------------------------------
+2. SCREEN ROUTES & FLOWS
+--------------------------------------------------------------------------------
+
+Entry Point:
+  App.OnStart → Navigate(Home)
+
+Exit Routes:
+  [Auto-select path]  Home → MainMenu (with gblWorkspaceId set)
+  [Selection path]    Home.drpWorkspace.OnChange → MainMenu (after selection)
+  [Error path]        Home → ErrorNoWorkspace (zero memberships)
+
+Visibility:
+  • Home screen shows workspace selector only if user has 2+ memberships
+  • If 1 membership, home screen is invisible; auto-route to MainMenu
+  • If 0 memberships, show error; prompt to contact admin
+
+Associated Flow:
+  (Optional for v1) "User onboarding" flow to create first workspace
+  → Deferred to separate decision ISS-007
+
+--------------------------------------------------------------------------------
+3. SCREEN STATE & COLLECTIONS
+--------------------------------------------------------------------------------
+
+Global Variables (App Level, persisted during app session):
+  gblWorkspaceId: Text
+    • GUID of selected workspace
+    • Set once on Home; used by all downstream screens
+    • Cleared if user logs out (future feature)
+    • REQUIRED before navigating to any module screen
+
+  gblUserEmail: Text
+    • Current user email (from User().Email)
+    • Optional; used for welcome message or debugging
+
+Screen-Local Variables:
+  varLoadingWorkspaces: Boolean
+    • true while fetching WorkspaceMember records
+    • Used to show loading spinner
+
+Collections:
+  colMyWorkspaces: Table of WorkspaceMember records
+    • Filter(WorkspaceMember, IsActive = true AND Workspace.related(System User) = User().Email)
+    • Shape: {WorkspaceId, WorkspaceName, Role, IsActive}
+    • Populated in App.OnStart or on Home.OnVisible
+
+  colWorkspacesDropdown: Table (derivative)
+    • Distinct list of WorkspaceName from colMyWorkspaces
+    • Used as Items for drpWorkspace (picker)
+
+--------------------------------------------------------------------------------
+4. LAYOUT & COMPONENTS
+================================================================================
+
+Header:
+  (None for home screen)
+
+Main Content:
+  
+  [Loading State]
+  IF varLoadingWorkspaces:
+    cmpToast: "Loading workspaces..."
+    (Show spinner/loader)
+
+  [No Access State]
+  IF colMyWorkspaces.IsEmpty AND NOT varLoadingWorkspaces:
+    Container (centered):
+      Text: "No Workspace Access"
+      Text: "Contact admin to add you to a workspace."
+      Button: "Retry" → Refresh(colMyWorkspaces); Set(varLoadingWorkspaces, true)
+
+  [Single Workspace State (Auto-selected)]
+  IF colMyWorkspaces.CountRows() = 1 AND NOT varLoadingWorkspaces:
+    (Invisible; navigation happens in logic)
+    Background task: Set(gblWorkspaceId, colMyWorkspaces.First().WorkspaceId)
+
+  [Multiple Workspaces State (Selection Required)]
+  IF colMyWorkspaces.CountRows() > 1:
+    Container:
+      Text (header): "Select Your Workspace"
+      Text (subtext): "You have access to multiple locations"
+      
+      Dropdown: drpWorkspace
+        Items: colWorkspacesDropdown
+        Default: First(colWorkspacesDropdown)
+        OnChange: [see Logic section]
+      
+      Text (role): "Role: " & LookUp(colMyWorkspaces, WorkspaceName = drpWorkspace.Selected).Role
+      
+      Button: "Continue"
+        OnSelect: [see Logic section]
+
+Footer:
+  (None for v1)
+
+================================================================================
+5. INTERACTION LOGIC (Detailed)
+================================================================================
+
+App.OnStart:
+  // Initialize global workspace and user context
+  Set(varLoadingWorkspaces, true);
+  Set(gblUserEmail, User().Email);
+  
+  // Load user's active workspace memberships
+  ClearCollect(colMyWorkspaces,
+    Filter(
+      WorkspaceMember,
+      IsActive = true
+      AND 'System User' = User()
+    )
+  );
+  
+  Set(varLoadingWorkspaces, false);
+  
+  // Route based on membership count
+  Switch(colMyWorkspaces.CountRows(),
+    0, Navigate(ErrorNoWorkspace),
+    1, (
+      Set(gblWorkspaceId, First(colMyWorkspaces).Workspace.Value);
+      Navigate(MainMenu)
+    ),
+    // else (2+): stay on Home, show selector
+    Navigate(Home)
+  )
+
+Home.OnVisible:
+  // Guard: if gblWorkspaceId already set, go to MainMenu
+  If(Not IsBlank(gblWorkspaceId),
+    Navigate(MainMenu)
+  )
+
+drpWorkspace.OnChange:
+  // User selected a different workspace
+  // (No action until button pressed)
+
+btnContinue.OnSelect:
+  If(IsBlank(drpWorkspace.Selected),
+    Notify("Select a workspace", NotificationType.Error)
+  );
+  
+  // Find the selected workspace record
+  Set(gblWorkspaceId, LookUp(colMyWorkspaces, WorkspaceName = drpWorkspace.Selected).Workspace.Value);
+  
+  Notify("Workspace set to: " & drpWorkspace.Selected, NotificationType.Success);
+  
+  Navigate(MainMenu)
+
+ErrorNoWorkspace screen:
+  (Companion screen; shows error state)
+  Content:
+    Icon: Error / No Access
+    Text: "No Workspace Access"
+    Text: "You are not a member of any workspace. Contact your admin."
+    Button: "Exit" → Exit() or Navigate(Home) [to retry]
+    Button: "Contact Support" → Launch(mailto:admin@kabe.com)
+
+--------------------------------------------------------------------------------
+6. DATA DEPENDENCIES (Vertical 1 Phase A - Must Exist)
+================================================================================
+
+Required Tables:
+  • Workspace (with Name, DisplayName, CreatedDate)
+  • WorkspaceMember (with Workspace lookup, System User lookup, Role choice, IsActive boolean)
+  • System User (implicit; User() function)
+
+Required Relationships:
+  • WorkspaceMember.Workspace → Workspace (1:N)
+  • WorkspaceMember.'System User' → System User (N:1)
+
+Alternate Key Recommended:
+  • WorkspaceMember: (Workspace, 'System User')
+    → Prevents duplicate memberships
+
+Pre-populated Test Data (Phase A):
+  Test Workspace 1: "Kabe Downtown"
+  Test Workspace 2: "Kabe Uptown"
+  
+  Test User (you@kabe.com):
+    - Member of both workspaces (role: Owner)
+
+Issue Blockers:
+  • ISS-007: Workspace onboarding (how new workspace created)
+  • ISS-020: Startup initialization (error handling if no workspaces)
+  • ISS-027: WorkspaceMember Primary Name limitation (schema design)
+
+--------------------------------------------------------------------------------
+7. ERROR HANDLING & EDGE CASES
+================================================================================
+
+Scenario: User has WorkspaceMember records but IsActive = false
+  → Filtered out; not shown in selector
+  → If ALL are inactive, shows "No Access"
+  → Recommendation: Add admin screen to reactivate memberships (future)
+
+Scenario: Dataverse query times out during colMyWorkspaces load
+  → varLoadingWorkspaces remains true (appears as infinite loading)
+  → Recovery: "Retry" button manually triggers Refresh(colMyWorkspaces)
+  → Recommendation: Add timeout + error message after 10s (error handling flow ISS-021)
+
+Scenario: User deletes own workspace membership between sessions
+  → colMyWorkspaces becomes empty
+  → Shows "No Access" state
+  → Cannot proceed; must contact admin to re-add
+
+Scenario: User clicks "Continue" without selecting a workspace
+  → Show validation error toast
+  → Button disabled until selection made (recommended UX)
+
+Scenario: Browser/app goes offline during load
+  → colMyWorkspaces load fails silently
+  → varLoadingWorkspaces stays true or shows error after timeout
+  → Recommendation: Offline detection + clear messaging (future feature)
+
+Scenario: gblWorkspaceId already set; user navigates back to Home
+  → OnVisible logic detects gblWorkspaceId not blank
+  → Auto-navigates to MainMenu (avoids re-selection)
+  → Desired behavior: no ping-pong navigation
+
+--------------------------------------------------------------------------------
+8. PERFORMANCE & SCALABILITY
+================================================================================
+
+Optimization Notes:
+  • Filter WorkspaceMember by IsActive = true to avoid loading inactive records
+  • Use Defaults() + Patch() for new WorkspaceMember (not direct LookUp if creating)
+  • SortByColumns(colMyWorkspaces, WorkspaceName) if workspace list is large
+
+Load Time Estimate:
+  • colMyWorkspaces load: ~500ms (typical Dataverse query + network)
+  • If >3 memberships, consider pagination/grouping (future)
+
+Mobile Considerations:
+  • Dropdown on small screens: ensure readability
+  • Button size: min 44px touch target
+  • No horizontal scroll needed
+
+Accessibility:
+  • drpWorkspace has clear label
+  • Error messages screen-reader announced
+  • All buttons keyboard accessible
+
+--------------------------------------------------------------------------------
+9. COMPONENT USAGE (Vertical 1 Scope)
+================================================================================
+
+Components Used:
+  • cmpToast (notifications; feedback on load/errors)
+  • (Optional) cmpHeader if Home screen needs back/menu (unlikely for onboarding)
+
+Component References:
+  cmpToast.Trigger: Notify() calls
+  cmpToast.Message: User-facing feedback (e.g., "Workspace set to Kabe Downtown")
+
+No use of cmpQtyStepper, cmpMoneyInput on this screen.
+
+--------------------------------------------------------------------------------
+10. TESTING & ACCEPTANCE CRITERIA (Phase E)
+================================================================================
+
+Unit Tests (Manual, Phase E):
+  [ ] Load Home; verify colMyWorkspaces populates with test user's memberships
+  [ ] Single workspace member → auto-routes to MainMenu; gblWorkspaceId set
+  [ ] Multiple workspace members → shows selector; user picks one → gblWorkspaceId set
+  [ ] No workspace members → ErrorNoWorkspace state shows
+  [ ] Back from MainMenu → OnVisible detects gblWorkspaceId; does not re-show selector
+  [ ] Dropdown default = first workspace; user can change
+  [ ] "Continue" disabled until workspace selected (or enabled but validates)
+  [ ] Roles display correctly (Owner/Manager/Staff)
+
+Integration Tests (Phase E):
+  [ ] After selecting workspace, navigate to Inventory; verify colStockBatches filtered by gblWorkspaceId
+  [ ] Create test user with 2 workspaces; verify only 2 in selector (not showing removed/inactive)
+  [ ] Test Dataverse timeout (simulate slow network); verify error handling
+
+Acceptance Criteria:
+  ✓ User is routed to MainMenu with gblWorkspaceId set on first navigation
+  ✓ No cross-workspace data visible in any module screen
+  ✓ User can switch workspaces by logging out/in (or future "Switch Workspace" menu item)
+  ✓ Error states handled gracefully; user knows why access denied
+
+Known Limitations (v1):
+  • No "Switch Workspace" button (requires going back through Home)
+  • No onboarding flow to create first workspace (ISS-007)
+  • No role-based feature flags (all users see all menus; backend enforces)
+
+--------------------------------------------------------------------------------
+11. DESIGN NOTES & OPEN QUESTIONS
+================================================================================
+
+Design Approach:
+  • Minimal branding (just logo + select element)
+  • Focus on clarity: "Pick your location/workspace"
+  • Avoid complexity; no animations needed for v1
+
+Open Questions for Next Conversation:
+  1. Should we show workspace description or just name?
+  2. If user has 10+ workspaces, paginate or search? (Defer to v2)
+  3. Should "Switch Workspace" be a menu item later, or always re-auth?
+  4. Is workspace selection stored in cookie/local storage, or re-prompt each session?
+     → Recommend: re-prompt each session for security (multi-user device)
+
+Linked Issues:
+  • ISS-007: Workspace onboarding (decided before phase A)
+  • ISS-020: Startup initialization (this spec addresses it)
+  • ISS-027: WorkspaceMember schema limitation (noted; needs DV review)
+
+--------------------------------------------------------------------------------
+12. VERTICAL 1 PHASE TIMELINE
+================================================================================
+
+Est. Effort: 3–4 hours
+  Design (UI mockup): 1h
+  Implementation (app logic + error handling): 2h
+  Testing & fixes: 1h
+
+Dependencies:
+  • Phase A: Dataverse tables + test data ready
+  • Phase C: cmpToast component available (for notifications)
+
+Blockers:
+  • ISS-007 decision (workspace onboarding)
+  • ISS-020 decision (error handling strategy)
+
+Next Screen: V1-02-MainMenu (navigation hub; links to Buy, Inventory, etc.)
+
+================================================================================
+END OF V1-01 SPECIFICATION
+================================================================================

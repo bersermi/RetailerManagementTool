@@ -1,0 +1,661 @@
+================================================================================
+VERTICAL 1 - SCREEN SPECIFICATION
+V1-03: INVENTORY / STOCK BATCH LIST
+================================================================================
+
+Status: Draft (Ready for detailed design conversation)
+Date: 2026-04-03
+Vertical: 1 - Purchase & Stock Foundation
+Phase: D (Screens & App Logic)
+
+--------------------------------------------------------------------------------
+1. SCREEN PURPOSE
+--------------------------------------------------------------------------------
+
+Display all current stock batches (inventory) for the workspace.
+
+Responsibilities:
+  • Load stock batches created from purchases
+  • Show key info per batch: Product, Qty, Unit, ReceivedDate, ExpiryDate
+  • Filter/sort options (by product, expiry status, received date)
+  • Tap a batch to see detailed view (read-only in v1)
+  • Show counts: Total products, Total qty, Expiring soon warnings
+
+This screen is the primary inventory status dashboard and entry point for inventory actions (future: quick actions, adjustments).
+
+--------------------------------------------------------------------------------
+2. SCREEN ROUTES & FLOWS
+================================================================================
+
+Entry Points:
+  MainMenu.btnInventory → Navigate(StockBatchList)
+  PurchaseEntry.btnCompletePurchase (after purchase) → Navigate(StockBatchList)
+  (Future) QuickActions result → Navigate(StockBatchList)
+
+Exit Routes:
+  [Tap batch]       StockBatchList.galBatches.OnSelect → Navigate(StockBatchDetail, {drvBatchId: ThisItem})
+  [Navigation]      StockBatchList.cmpHeader.btnBack → Navigate(MainMenu)
+  [Menu]            StockBatchList.cmpHeader.btnMenu → Open cmpFlyoutMenu
+
+Associated Flows:
+  (No flows triggered by this screen; read-only)
+
+Background Data Activities (Asynchronous):
+  • Periodic refresh: Every 30s (or on screen focus), refresh colStockBatches to show latest quantities
+    Handles: Stock decrements from sales (Vertical 2), event finalization (future)
+
+Screen Display Flow:
+  1. User navigates to Inventory
+  2. Screen OnVisible loads colStockBatches (active batches with Qty > 0)
+  3. Gallery renders by product; shows batch summary
+  4. Optional: Filter by expiry status or product
+  5. User taps a batch → DetailView with read-only batch info
+
+Error Flow:
+  • Zero stock batches → Show empty state with helpful message
+  • Dataverse query timeout → Show error with retry button
+  • Old app session → Cache may be stale; refresh button available
+
+--------------------------------------------------------------------------------
+3. SCREEN STATE & COLLECTIONS
+================================================================================
+
+Global Variables (Inherited):
+  gblWorkspaceId: Text (Set by Home screen; REQUIRED)
+
+Screen-Local Variables:
+  varLoadingBatches: Boolean
+    • true while colStockBatches is loading
+    • Used to show loading spinner / hide gallery
+
+  varSelectedFilter: Text
+    • "All" | "ExpiringIn7Days" | "Expired" | "NoExpiry"
+    • Controls which batches are displayed in gallery
+    • Default: "All"
+
+  varSelectedProduct: Text (optional filter)
+    • GUID of selected ProductVariant (if user filters by product)
+    • Blank() for no filter
+    • Used to show batches of only one product
+
+  varAutoRefreshEnabled: Boolean
+    • true to enable periodic refresh (every 30s)
+    • false during manual filter operations (avoid interruption)
+    • Default: true
+
+Collections:
+  colStockBatches: Table (raw from Dataverse)
+    • Filter(StockBatch, Workspace = gblWorkspaceId AND QtyRemaining > 0)
+    • Shape: {StockBatchId, ProductVariant.{Name, Unit, LastSellPrice}, QtyReceived, QtyRemaining, ReceivedDateTime, ExpiryDate}
+    • Sorted: ExpiryDate ascending (expires first on top)
+    • Populated on OnVisible + periodic refresh + filter changes
+    • Note: QtyRemaining > 0 hides fully-consumed batches (future: option to show all)
+
+  colStockBatchesFiltered: Table (derived from colStockBatches)
+    • Applied filters: Expiry status, product selection
+    • Items shown in gallery
+    • Recomputed when varSelectedFilter or varSelectedProduct change
+
+  colExpiryStatuses: Table (reference data for filter chips)
+    • Hardcoded: {StatusKey: "All", Label: "All"}, {StatusKey: "ExpiringIn7Days", Label: "Expiring in 7 days"}, etc.
+    • Used to populate filter chip gallery
+
+  colProductsInBatches: Table (derived)
+    • Distinct ProductVariant names from colStockBatches
+    • Used for optional product filter dropdown (future; skip in v1)
+
+  colSummaryStats: Table (single row, computed)
+    • TotalProducts: CountRows(Distinct(colStockBatches, ProductVariant.ProductVariantId))
+    • TotalQty: Sum(colStockBatches, QtyRemaining)
+    • ExpiringCount: CountRows(Filter(colStockBatches, ExpiryDate < AddDays(Today(), 7) AND ExpiryDate > Today()))
+    • ExpiredCount: CountRows(Filter(colStockBatches, ExpiryDate < Today()))
+
+================================================================================
+4. LAYOUT & COMPONENTS
+================================================================================
+
+Header:
+  cmpHeader:
+    BackButton: Navigate(MainMenu)
+    Title: "Inventory"
+    MenuButton: Opens cmpFlyoutMenu
+
+Summary Row (below header):
+  Container (light gray background):
+    Grid layout (3 columns):
+      Column 1: "Total Products"
+              Value: colSummaryStats.TotalProducts [large bold number]
+      Column 2: "Total Qty"
+              Value: colSummaryStats.TotalQty [large bold number]
+      Column 3: "Expiring Soon"
+              Value: colSummaryStats.ExpiringCount [large bold number, red if > 0]
+
+Main Content (Scrollable):
+
+  [Filter Section - Expiry Status (v1 only)]
+  
+  Label: "Filter by Status"
+  HorizontalGallery: galExpiryFilter
+    Items: colExpiryStatuses
+    Layout: Horizontal chips/buttons
+    Display: Label (e.g., "All", "Expiring in 7 days")
+    Selected: CurrentFilter = varSelectedFilter
+    OnSelect: Set(varSelectedFilter, ThisItem.StatusKey); Refresh(colStockBatches)
+  
+  Chips color coding:
+    "ExpiringIn7Days" → Orange/amber
+    "Expired" → Red
+    "NoExpiry" → Gray
+    "All" → Blue (when selected)
+  
+  ---
+  
+  [Loading State]
+  
+  IF varLoadingBatches:
+    Spinner or loading indicator
+    Text: "Loading inventory..."
+  
+  ---
+  
+  [Empty State]
+  
+  IF colStockBatchesFiltered.IsEmpty() AND NOT varLoadingBatches:
+    Container (centered, light background):
+      Icon: (empty box or cart icon)
+      Text: "No stock batches"
+      Text (small): (If varSelectedFilter <> "All", "No batches match your filter.", "Register a purchase to add inventory.")
+      Button: "Register Purchase" → Navigate(PurchaseEntry) [optional]
+      Button: "Clear Filter" → Set(varSelectedFilter, "All") [conditional; only if filtered]
+  
+  ---
+  
+  [Stock Batch Gallery]
+  
+  Gallery: galStockBatches
+    Items: colStockBatchesFiltered
+    Layout: Vertical; repeating cards
+    
+    Card Template (per batch):
+      Container (white, rounded corners, bottom border):
+        
+        [Left side: Product Info]
+        Text (bold, large): ProductVariant.Name
+                          e.g., "Black Beans – Premium"
+        Text (gray, small): Unit.Name
+                          e.g., "kg"
+        
+        [Right side: Qty]
+        Text (bold, large, right-aligned): QtyRemaining
+        Text (gray, small, right-aligned): "in stock"
+        
+        [Bottom row: Received and Expiry]
+        Grid (2 columns):
+          Left: "Received: " & Text(ReceivedDateTime, "mm/dd/yyyy")
+          Right: (
+            If(IsBlank(ExpiryDate),
+              "No expiry",
+              If(ExpiryDate < Today(),
+                "EXPIRED: " & Text(ExpiryDate, "mm/dd/yyyy"),
+                If(ExpiryDate < AddDays(Today(), 7),
+                  "Expires: " & Text(ExpiryDate, "mm/dd/yyyy") [RED color],
+                  "Expires: " & Text(ExpiryDate, "mm/dd/yyyy")
+                )
+              )
+            )
+          )
+        
+        [Visual indicator]
+        Left border (thick): Colored per expiry status
+          • Expired → Red
+          • Expiring in 7d → Orange
+          • No expiry → Gray
+          • Normal → Green
+        
+        OnSelect: Navigate(StockBatchDetail, {drvBatchId: ThisItem.StockBatchId})
+
+Footer (Sticky):
+  Button: "Register Purchase" (Primary)
+    OnSelect: Navigate(PurchaseEntry)
+  
+  Button: "Refresh" (Secondary)
+    OnSelect: Refresh(colStockBatches); Refresh(colStockBatchesFiltered)
+    Icon: Refresh icon
+
+================================================================================
+5. INTERACTION LOGIC (Detailed)
+================================================================================
+
+StockBatchList.OnVisible:
+  // Initialize on screen load
+  Set(varLoadingBatches, true);
+  Set(varSelectedFilter, "All");
+  Set(varSelectedProduct, Blank());
+  Set(varAutoRefreshEnabled, true);
+  
+  // Load raw stock batches
+  ClearCollect(colStockBatches,
+    Sort(
+      Filter(
+        StockBatch,
+        Workspace = {Value: gblWorkspaceId},
+        QtyRemaining > 0  // Hide fully-consumed batches
+      ),
+      ExpiryDate,  // Expires first on top
+      Ascending
+    )
+  );
+  
+  // Load filter reference data
+  ClearCollect(colExpiryStatuses,
+    Table(
+      {StatusKey: "All", Label: "All"},
+      {StatusKey: "ExpiringIn7Days", Label: "Expiring in 7 days"},
+      {StatusKey: "Expired", Label: "Expired"},
+      {StatusKey: "NoExpiry", Label: "No expiry"}
+    )
+  );
+  
+  // Apply initial filters (none) and compute filtered collection
+  Set(varLoadingBatches, false);
+  UpdateFilteredBatches()
+
+UpdateFilteredBatches():
+  // Helper function; apply varSelectedFilter and varSelectedProduct to colStockBatches
+  
+  ClearCollect(colStockBatchesFiltered,
+    Filter(
+      colStockBatches,
+      (
+        If(varSelectedFilter = "All",
+          true,
+          If(varSelectedFilter = "ExpiringIn7Days",
+            ExpiryDate >= Today() AND ExpiryDate <= AddDays(Today(), 7),
+            If(varSelectedFilter = "Expired",
+              ExpiryDate < Today(),
+              If(varSelectedFilter = "NoExpiry",
+                IsBlank(ExpiryDate),
+                true  // fallback
+              )
+            )
+          )
+        )
+      )
+      AND
+      (
+        If(IsBlank(varSelectedProduct),
+          true,
+          ProductVariant.ProductVariantId = varSelectedProduct
+        )
+      )
+    )
+  );
+  
+  // Compute summary stats
+  ClearCollect(colSummaryStats,
+    Table({
+      TotalProducts: CountRows(Distinct(colStockBatches, ProductVariant.ProductVariantId)),
+      TotalQty: Sum(colStockBatches, QtyRemaining),
+      ExpiringCount: CountRows(Filter(colStockBatches, ExpiryDate < AddDays(Today(), 7) AND ExpiryDate > Today())),
+      ExpiredCount: CountRows(Filter(colStockBatches, ExpiryDate < Today()))
+    })
+  )
+
+galExpiryFilter.OnSelect (filter chip):
+  Set(varSelectedFilter, ThisItem.StatusKey);
+  UpdateFilteredBatches()
+
+galStockBatches.OnSelect (batch card):
+  Navigate(StockBatchDetail, {drvBatchId: ThisItem.StockBatchId})
+
+btnRefresh.OnSelect:
+  Set(varLoadingBatches, true);
+  Refresh(colStockBatches);
+  Refresh(colStockBatchesFiltered);
+  Set(varLoadingBatches, false);
+  Notify("Inventory refreshed", NotificationType.Success)
+
+btnRegisterPurchase.OnSelect:
+  Navigate(PurchaseEntry)
+
+// [OPTIONAL v1] Periodic auto-refresh (every 30s)
+// Deferred; implement in v1.1 if needed
+// Timer.OnTimerEnd (every 30000ms):
+//   If(varAutoRefreshEnabled,
+//     Refresh(colStockBatches);
+//     UpdateFilteredBatches()
+//   )
+
+----------------================================================================
+6. DATA DEPENDENCIES (Vertical 1 Phase B - Must Exist)
+================================================================================
+
+Required Tables:
+  • StockBatch (created by "Purchase Completed" flow)
+  • ProductVariant (referenced by StockBatch)
+  • Unit (referenced by ProductVariant)
+
+Required Fields:
+  StockBatch:
+    • StockBatchId (GUID PK)
+    • ProductVariant (Lookup, Required)
+    • Workspace (Lookup, Required)
+    • QtyReceived (Decimal, Required)
+    • QtyRemaining (Decimal, Required)
+    • ReceivedDateTime (DateTime, Required)
+    • ExpiryDate (DateTime, optional)
+
+  ProductVariant:
+    • ProductVariantId (GUID PK)
+    • Name (PrimaryName)
+    • Unit (Lookup, Required)
+    • LastSellUnitPrice (Decimal, optional)
+
+  Unit:
+    • UnitId (GUID PK)
+    • Name (PrimaryName)
+
+Required Relationships:
+  • StockBatch.ProductVariant → ProductVariant (N:1)
+  • ProductVariant.Unit → Unit (N:1)
+
+Recommended Indexes (Performance):
+  • StockBatch: (Workspace, QtyRemaining) — for filtering active batches
+  • StockBatch: (Workspace, ProductVariant, ExpiryDate) — for FIFO queries (future sales)
+  • StockBatch: (ExpiryDate) — for "expiring soon" filtering
+
+Pre-populated Test Data (From Phase A/B):
+  Purchase 1: 2 kg Black Beans → StockBatch #1 (QtyRemaining: 2, Expires in 30 days)
+  Purchase 2: 1 kg Black Beans → StockBatch #2 (QtyRemaining: 1, Expires in 60 days)
+  Purchase 3: 5 cans Tomato → StockBatch #3 (QtyRemaining: 5, No expiry)
+
+Expected Gallery Display:
+  Row 1: Black Beans – Premium | 2 kg | Received: 04/01/2026 | Expires: 05/01/2026
+  Row 2: Black Beans – Premium | 1 kg | Received: 04/02/2026 | Expires: 06/01/2026
+  Row 3: Tomato Sauce | 5 cans | Received: 04/02/2026 | No expiry
+
+Issue Blockers:
+  • ISS-029: FIFO logic & indexes (DB design for future decrements)
+  • ISS-001: Flow diagram (visual reference for data flow)
+
+================================================================================
+7. ERROR HANDLING & EDGE CASES
+================================================================================
+
+Scenario: StockBatch query times out
+  Detected In: colStockBatches load fails; varLoadingBatches remains true
+  Response: Show loading spinner indefinitely; user clicks "Refresh" button
+  Recovery: Manual refresh button triggers Refresh(colStockBatches)
+  Recommendation: Implement timeout + error message after 10s (ISS-021)
+
+Scenario: No stock batches exist (newly onboarded workspace)
+  Detected In: colStockBatches.IsEmpty() = true
+  Response: Show empty state with "Register a Purchase" button
+  Recovery: User navigates to PurchaseEntry; creates purchase; navigates back
+  Verification: Gallery populates with new batch
+
+Scenario: All batches filtered out (user selects filter with zero matches)
+  Detected In: colStockBatchesFiltered.IsEmpty() = true ; varSelectedFilter <> "All"
+  Response: Show empty state with "Clear Filter" button
+  Recovery: User clicks filter chip to return to "All"
+
+Scenario: Batch QtyRemaining becomes 0 after a sale (future Vertical 2)
+  Current Behavior (v1): Batch remains visible (QtyRemaining > 0 filter excludes fully-consumed)
+  Future Behavior (Vertical 2): Decrement on sale → batch hidden automatically
+  Design: Gallery auto-refresh on sale completion (async notification from sales screen)
+
+Scenario: ExpiryDate is in the past (batch expired)
+  Detected In: ExpiryDate < Today()
+  Response: Red "EXPIRED: mm/dd/yyyy" text + red left border on card
+  Recovery: Future action to create InventoryEvent (Waste module, v2)
+  User Action: Tap card → StockBatchDetail → "Mark as Waste" (future button)
+
+Scenario: ExpiryDate is within 7 days
+  Detected In: ExpiryDate < AddDays(Today(), 7)
+  Response: Orange/amber "Expires: mm/dd/yyyy" text + orange left border
+  Recommendation: Show icon (⚠) to draw attention
+
+Scenario: ExpiryDate is null (no lifespan configured)
+  Detected In: IsBlank(ExpiryDate)
+  Response: "No expiry" text in gray + gray left border
+  Design: No visual urgency; treat as indefinite shelf-life
+
+Scenario: User has multiple workspaces; views Workspace A inventory, then switches to B
+  Expected: Gallery immediately shows Workspace B batches (not Workspace A)
+  Actual: On Home (workspace change) → gblWorkspaceId updated → Navigate(StockBatchList) → OnVisible loads correct workspace
+  Verification: Filter(colStockBatches, Workspace = {Value: gblWorkspaceId}) filters correctly
+
+Scenario: Batch creation takes 10+ seconds (flow latency)
+  Expected: User completes purchase → navigates to Inventory → new batch not yet visible → refreshes → appears
+  Design: Toast message on purchase completion: "Stock batch will appear in a moment."
+  Recovery: "Refresh" button available; user can manually refresh
+  Recommendation: Show loading state or "Syncing..." indicator
+
+Scenario: QtyRemaining is a decimal (e.g., 0.75 kg)
+  Display: "0.75 in stock" (formatted number)
+  Acceptance: Supported; no truncation
+
+Scenario: Very large numbers (10,000+ units)
+  Display: "10,000+" (formatted with thousands separator)
+  Acceptance: No special handling; Power Apps handles large numbers
+
+Scenario: Product name is very long (e.g., "Premium Black Beans – Extra Large – Organic – Fair Trade")
+  Display: Text wraps to multiple lines in gallery cell
+  Recommendation: Truncate on design or set fixed height; avoid overflow
+  Future: Add tooltip with full name on hover
+
+================================================================================
+8. PERFORMANCE & SCALABILITY
+================================================================================
+
+Optimization Notes:
+  • Filter by Workspace + QtyRemaining > 0 early (reduces dataset size)
+  • Sort by ExpiryDate (prioritizes expiring batches on top)
+  • Avoid nested galleries (single galStockBatches for all batches)
+  • colStockBatchesFiltered is derived; O(n) filter operation on each change
+
+Load Time Estimate:
+  • Screen OnVisible: ~500ms (colStockBatches load from Dataverse)
+  • Gallery render (< 50 batches): ~100ms (light; simple cards)
+  • Filter change (galExpiryFilter chip tap): ~200ms (UpdateFilteredBatches logic)
+  • Refresh button: ~1–2s (Refresh = data re-fetch from server)
+
+Scalability (future):
+  • Expected: 100–1000 batches per workspace (multi-store chains)
+  • If > 500 batches: Consider pagination
+  • If > 1000 batches: Add search/advanced filter (future v2 feature)
+  • Current design: No paging; loads all active batches at once
+
+Mobile Considerations:
+  • Vertical gallery: scrollable (no horizontal scroll)
+  • Card layout: responsive; text wraps
+  • Filter chips: scrollable horizontally if many filters
+  • Summary row: stacks on small screens (3 cols → 2 cols or 1 col)
+
+Accessibility:
+  • Gallery items focusable (keyboard navigation)
+  • Card OnSelect understandable without color alone (text + border)
+  • All text has sufficient contrast
+  • Loading state announced ("Loading inventory...")
+
+Caching Strategy (Optional v1.1):
+  • Store colStockBatches in localStorage to speed up repeated navigation
+  • Refresh on OnVisible after 1 minute (stale data risk)
+  • Not recommended for initial v1 (keep simple; always fresh)
+
+================================================================================
+9. COMPONENT USAGE (Vertical 1 Scope)
+================================================================================
+
+Components Used:
+  • cmpHeader (screen header)
+    Props: Title = "Inventory", back button
+    Events: OnBack → Navigate(MainMenu)
+    Usage: Standard header with navigation
+
+  • cmpToast (notifications)
+    Props: Message type, content
+    Events: N/A (controlled by Notify() function)
+    Usage: Success feedback on "Refresh" button; "Purchase registered" from PurchaseEntry
+
+No use of cmpQtyStepper, cmpMoneyInput, cmpCartBottomBar on this screen.
+
+Note: Optional future component for "Expiry Status Legend" (showing color coding)
+  → Can be added in v1.1 if UX testing shows users need it
+
+================================================================================
+10. TESTING & ACCEPTANCE CRITERIA (Phase E)
+================================================================================
+
+Functional Tests (Manual, Phase E):
+
+  [ ] Screen OnVisible loads colStockBatches with workspace filter applied
+  [ ] Gallery displays all batches with correct product name, qty, dates
+  [ ] ExpiryDate null → shows "No expiry" (gray)
+  [ ] ExpiryDate in future (> 7 days) → shows "Expires: mm/dd/yyyy" (black)
+  [ ] ExpiryDate within 7 days (>= today, <= today+7) → shows "Expires: mm/dd/yyyy" (orange)
+  [ ] ExpiryDate in past → shows "EXPIRED: mm/dd/yyyy" (red)
+  [ ] Summary: Total Products count correct (distinct ProductVariants)
+  [ ] Summary: Total Qty sum correct (sum of QtyRemaining)
+  [ ] Summary: Expiring Count correct (count within 7 days)
+  [ ] Filter chip "Expiring in 7 days" → gallery shows only those batches
+  [ ] Filter chip "Expired" → gallery shows only expired batches
+  [ ] Filter chip "No expiry" → gallery shows only null-expiry batches
+  [ ] Filter chip "All" → gallery shows all batches
+  [ ] Clear filter by tapping "All" → gallery updates
+  [ ] Tap batch card → navigates to StockBatchDetail with correct batch ID
+  [ ] Empty state shows when no batches match filter
+  [ ] Empty state "Clear Filter" button clears active filter
+  [ ] "Register Purchase" button (footer) → Navigate(PurchaseEntry)
+  [ ] "Refresh" button → Refresh(colStockBatches); update gallery
+  [ ] Refresh success → toast "Inventory refreshed"
+  [ ] Refresh with new batch (added by another user) → appears in gallery
+
+  Workspace Isolation Tests (Phase E):
+  [ ] Create batch in Workspace A → visible only in Workspace A
+  [ ] Create batch in Workspace B → not visible in Workspace A
+  [ ] Switch to Workspace B → colStockBatches filters correctly; shows Workspace B batches only
+
+  Integration Tests (Phase E):
+  [ ] Complete purchase on PurchaseEntry → navigate to StockBatchList → new batch visible
+  [ ] Purchase flow latency (10+ sec) → user refreshes after delay → batch appears
+  [ ] Multiple products in catalog → gallery shows all with correct units
+  [ ] Product with long name → text wraps; no overflow
+
+  Performance Tests (Phase E):
+  [ ] OnVisible load time: < 1s
+  [ ] Gallery render (< 50 batches): < 500ms
+  [ ] Filter change: < 300ms
+  [ ] Refresh from server: < 3s
+
+  Edge Case Tests (Phase E):
+  [ ] Zero batches → empty state with helpful message
+  [ ] Very large QtyRemaining (10,000+) → formatted and displayed correctly
+  [ ] Decimal QtyRemaining (0.5 kg) → displayed with correct precision
+  [ ] Very long product name → wrapped or truncated without overflow
+  [ ] All batches expired → "Expired" filter shows; summary shows expired count
+  [ ] Dataverse timeout → loading spinner; retry button works
+  [ ] Filter with zero matches → empty state with "Clear Filter" button
+
+Acceptance Criteria:
+  ✓ All stock batches from completed purchases are visible
+  ✓ Batches are filtered by workspace (no cross-workspace leakage)
+  ✓ Expiry status is clearly indicated with color + text
+  ✓ Summary statistics are accurate
+  ✓ Filter controls work and update gallery in real-time
+  ✓ User can tap a batch to see details
+  ✓ User can refresh to see latest quantities (future: from sales decrements)
+  ✓ Empty state is informative
+  ✓ Mobile layout is responsive and readable
+
+Known Limitations (v1):
+  • No search by product name (all batches shown; can filter by chip only)
+    → Recommend: Add search filter in v2 if > 100 batches typical
+  • No product filter dropdown (only expiry status chips)
+    → Recommend: Add in v2 or v1.1 if UX testing shows need
+  • No sorting options (always: expiryDate ascending, then by product)
+    → Recommend: Add sort toggle in v2
+  • No batch detail drill-down (minimal detail in card)
+    → Recommend: Implement StockBatchDetail screen in v1 (read-only)
+  • No quick actions on gallery (future: swipe to "Mark as Waste")
+    → Recommend: Defer to v2 after InventoryEvent UX design
+
+Future v2 Features:
+  • Sale decrement: QtyRemaining updated after each sale (auto-refresh)
+  • Waste creation: "Mark as Waste" button on detail view → InventoryEvent → adjust qty
+  • Reorder suggestions: Show "Consider purchasing" for low-stock items
+  • Batch history: View all historical consumption (FIFO decrement details)
+  • Analytics: Chart of stock over time; expiry trends
+
+================================================================================
+11. DESIGN NOTES & OPEN QUESTIONS
+================================================================================
+
+Design Approach:
+  • Clean list-based gallery (cards, not table rows)
+  • Color-coded borders/text for expiry status (intuitive at a glance)
+  • Summary statistics box (quick overview without scrolling gallery)
+  • Filter chips (easy toggle; discoverable)
+  • Call-to-action button for "Register Purchase" (primary flow)
+
+Color & Typography:
+  • Card background: White with subtle shadow
+  • Card border (left): 4px thick; color per expiry status
+  • Header text: Bold, large (product name)
+  • Subtext: Gray, smaller (unit, dates)
+  • Expired text: Red; bold; all caps "EXPIRED"
+  • Expiring text: Orange/amber; normal weight
+  • Summary: Light gray background; large bold numbers
+
+Expiry Status Color Scheme:
+  • Expired: Red (#D9534F)
+  • Expiring in 7 days: Orange (#F0AD4E)
+  • Normal (future): Green (#5CB85C)
+  • No expiry: Gray (#777)
+
+Open Questions for Next Conversation:
+  1. Should "Fully consumed" batches (QtyRemaining = 0) be shown or hidden by default?
+     → Recommend: Hidden (cleaner view); "Show All" toggle in v1.1
+  2. Should we show ProductFamily name or just ProductVariant?
+     → Recommend: Just variant (less text; cleaner display)
+  3. Should expiry filter include "No expiry" as separate chip, or assume users know?
+     → Recommend: Include as chip (explicit is better; users see all options)
+  4. Should summary statsignore filtered batches or always show total?
+     → Recommend: Always show total (context; "total available even if filtered")
+  5. Should we auto-refresh gallery every 30s, or only manual refresh?
+     → Recommend: Manual refresh v1; auto-refresh v1.1 if network stable
+
+Linked Issues:
+  • ISS-001: Flow diagram (visual reference for data journey)
+  • ISS-029: FIFO logic (needed for future sales decrements; DB indexes)
+  • ISS-021: Error handling (timeout + retry strategy)
+
+Deferred to v2:
+  • Product name search (ISS-006)
+  • Batch detail view with action buttons (future: "Waste", "Quick Adjustments")
+  • Sorting toggle (by date, product, qty, expiry status)
+  • Fully-consumed batch visibility toggle
+  • Auto-refresh on sale completion (depends on Vertical 2: Sales)
+
+================================================================================
+12. VERTICAL 1 PHASE TIMELINE
+================================================================================
+
+Est. Effort: 2 hours
+  Design (gallery cards, filter chips, summary box): 0.5h
+  Implementation (collections, filtering logic, gallery binding): 1h
+  Testing & fixes: 0.5h
+
+Dependencies:
+  • Phase A: Dataverse schema (StockBatch, ProductVariant, Unit)
+  • Phase B: "Purchase Completed → StockBatch" flow (must create batches to display)
+  • Phase D: PurchaseEntry screen (generates test data for gallery)
+
+Blockers:
+  • ISS-029 (FIFO indexes) — nice-to-have; not blocking v1 display
+
+Next Screen: V1-04-StockBatchDetail (read-only detail view; optional for v1.0)
+
+================================================================================
+END OF V1-03 SPECIFICATION
+================================================================================
