@@ -1,0 +1,85 @@
+# ADR-032: Quick Actions & Availability Overrides (v1)
+
+- **Status:** Accepted
+- **Date:** 2026-04-04
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Vertical 1 must allow store owners/managers to quickly mark products as "unavailable" during sales without complex backend logic.
+  - Original designs considered backend-driven availability cascades (flows, events, complex state machine); this added unnecessary complexity for v1 scope.
+  - Quick actions must be simple, optional, and not block the core purchase/sales workflows.
+- **Decision**
+  - **Quick Actions Feature (Optional in v1):**
+    - Implement as front-end toggle only (no backend event-driven logic).
+    - Store owner (role advisory in v1) can toggle product "Mark as Unavailable" during sale/inventory views.
+    - When toggled: ProductAvailabilityOverride record created; product hidden from product picker in sale/purchase entry screens.
+    - When toggled back: Override deleted; product visible again.
+    - Zero impact on SaleLine, StockBatch, or any transaction record.
+  - **Role Control (Advisory in v1):**
+    - Component-level role check: "Mark Unavailable" button only visible if CurrentUser.Role = Owner or Manager (advisory; not enforced by backend).
+    - All other users see button disabled/hidden; Staff/Viewer cannot override.
+    - Enforcement deferred to v2 (full role-based UI & flow permissions).
+  - **Data Model:**
+    - ProductAvailabilityOverride table (exists in schema; unused in v1 until this feature):
+      - ProductVariant (FK), Workspace (FK), OverrideStartTime, OverrideEndTime (optional; if null = indefinite)
+      - Optional future: Reason field (maintenance, out-of-stock, manual hold, etc.)
+  - **Canvas App Behavior:**
+    - Sale/Purchase screens: Filter product picker to exclude items with active ProductAvailabilityOverride.
+    - Inventory view: Show small "Unavailable (Override)" label on hidden products (admin visibility; store owner confirmation).
+    - Settings or product context menu: Toggle "Mark Unavailable" with optional expiry time (future; v1 = indefinite toggle).
+- **Rationale**
+  - **Front-End Only:**
+    - No flow complexity; no event-driven side effects in v1.
+    - Fast to implement; low risk; easy to test.
+    - UX is immediate (product disappears from picker; no waiting for async flow).
+  - **Optional Feature:**
+    - Pilot does not require this; can be added mid-sprint if staff feedback demands it.
+    - Zero impact on purchase/sales if disabled.
+  - **Role-Based Visibility (Advisory, Not Enforced):**
+    - Respects organizational hierarchy; store owner controls what workers can override.
+    - Deferred enforcement keeps v1 simple (no backend role validation in flows).
+  - **ProductAvailabilityOverride Table:**
+    - Already exists in schema (ADR-013); reuses existing table; no new schema.
+    - Scope: Workspace-scoped (OverrideStartTime/EndTime optional; deferred time-based expiry to v1.1).
+- **Consequences**
+  - **Positive:**
+    - Quick, simple implementation (~3-5 hours dev; gallery filtering + toggle UI).
+    - Immediate feedback (product hidden right away; no waiting).
+    - Optional; can be enabled/disabled without affecting core pilot.
+    - Scales to multiple quick actions later (defer, hold for customer, etc.).
+  - **Negative / tradeoffs:**
+    - No backend recording of WHY override happened (reason field deferred).
+    - No time-based expiry (manual toggle required to re-enable; auto-expiry deferred to v1.1).
+    - Role enforcement is advisory (staff CAN see the button; honor system).
+    - No notifications to other staff if product is overridden (deferred).
+- **Alternatives considered**
+  - **Backend-Driven Flow (ISS-003 Option C):** Create InventoryEvent on override; trigger notifications; auto-reset after time.
+    - Pros: Full audit trail; automatic cleanup; time-scoped.
+    - Cons: 8+ hours dev; event handler complexity; v1 doesn't need this sophistication.
+    - Verdict: Defer to v2+ when pilot feedback shows need.
+  - **Per-Product Settings UI (Inventory tab):** Dedicated admin screen for managing availability.
+    - Pros: Centralized; clear audit trail.
+    - Cons: Extra screen; v1 already has 4 screens; can add in v1.1.
+    - Verdict: Quick action (in-context toggle) is better for v1; dedicated settings deferred.
+  - **Skip v1; Add in v2:** No quick actions until v2.
+    - Cons: If pilot feedback shows staff wants to hide products, feature is missing.
+    - Verdict: Implement as optional toggle; easy to defer if not needed.
+- **Follow-ups**
+  - **Phase C/D (Optional; If Included):**
+    - Add component-level role check to cmpQuickActionsSheet or new quick actions button.
+    - Update product pickers (purchase/sale screens) to filter by ProductAvailabilityOverride.Workspace = gblWorkspaceId AND OverrideEndTime > Now() (or null).
+  - **Phase E (Testing; If Included):**
+    - Verify product hidden immediately after toggle.
+    - Verify other users in workspace see same visibility.
+    - Verify Staff role sees button disabled (advisory; no enforcement).
+  - **Pilot (Weeks 1-3):**
+    - Gather feedback: Do store owners use this? Do they want expiry timers? Auto-notifications?
+  - **v1.1 Planning:**
+    - Add reason field (maintenance, out-of-stock, etc.).
+    - Add time-based expiry (auto-hidden for 2 hours, then auto-re-enabled).
+    - Add notification to other staff: "Product marked unavailable by [Owner Name]."
+    - Enforce role-based visibility from backend (Dataverse flows).
+- **Notes**
+  - See ISS-003-DECISION-RESOLUTION.md in DECISIONS_SUMMARY.md for context.
+  - Aligns with ADR-013 (Availability Overrides): Reuses existing table; no schema changes.
+  - Optional feature; Phase D can include or exclude based on scope pressure.
+  - Staff training (v1 or v1.1): "Only owners can mark products unavailable" (advisory; trust-based in v1).

@@ -1,0 +1,86 @@
+# ADR-031: Sales Flow & Price Management (v1)
+
+- **Status:** Accepted
+- **Date:** 2026-04-04
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Vertical 1 pilot must support basic sales entry with pragmatic constraints: 15-20 users, single DEV environment, no complex inventory reconciliation.
+  - Sales must be recorded accurately with timestamps to enable post-hoc analysis; notifications/alerts are designed after pilot data informs patterns.
+  - Price overrides must be allowed per transaction, with optional workspace-level persistence to pre-fill future sales.
+  - Original design considered validation (check inventory before sale) and automated flagging (create Pending events for oversales); these added complexity without pilot benefit.
+- **Decision**
+  - **Strictly Open Sales Approach:**
+    - Sale entry does NOT validate inventory availability.
+    - Sale entry does NOT flag oversales (no warning if qty > stock).
+    - Sale entry does NOT create InventoryEvent "Pending" records in v1.
+    - User selects product + quantity → app records SaleLine with exact timestamp.
+    - Result: Pure transaction record; no event-driven side effects in v1.
+  - **Timestamp-Based Post-Hoc Analysis:**
+    - Timestamps on SaleLine (CreatedOn auto-field) + Purchase timestamps enable weekly analysis.
+    - Owner/manager queries: "Which products sold more than purchased this week? When did stock end?"
+    - Notifications designed AFTER analyzing real pilot patterns (v1.1+).
+  - **Workspace Settings Toggle for LastSellUnitPrice:**
+    - New WorkspaceSetting table stores one toggle per workspace: `UseLastSellUnitPrice` (true/false).
+    - When enabled: After each sale, ProductVariant.LastSellUnitPrice is updated; next sale pre-fills with that price.
+    - When disabled: No price persistence; every sale starts with empty/zero price.
+    - Toggle applies uniformly to ALL products in that workspace (no per-product logic in v1).
+    - All users in workspace see same behavior (not per-user).
+- **Rationale**
+  - **Strictly Open:**
+    - 15-20 person pilot with trusted staff; validation overhead not justified.
+    - Speed: No validation latency; sale entry is fast (< 100ms).
+    - Data-driven: Timestamps capture real constraints; notifications designed from observed patterns, not speculation.
+    - Philosophy: Record transactions; analyze later; refine based on data.
+  - **Timestamp Analysis:**
+    - Enables owner to understand inventory flow without real-time validation blocking sales.
+    - Flexible: Can surface shortages, waste, reorder triggers post-hoc without forcing hard rules.
+    - Audit trail: Every transaction has exact CreatedOn + SaleLine.Qty; no guessing about when oversales occurred.
+  - **LastSellUnitPrice Toggle:**
+    - Workspace-level toggle avoids per-product complexity; uniform behavior simplifies training.
+    - Optional feature; no friction if disabled.
+    - Safe default: Toggle OFF (prices don't stick unless explicitly enabled).
+    - Future enhancements (delta display, reset timer) deferred to v1.1 based on pilot feedback.
+- **Consequences**
+  - **Positive:**
+    - Sales flow is ultra-simple; dev effort ~85 minutes (no validation logic).
+    - No framework/event-driven complexity in v1 core.
+    - Timestamps give owner full visibility for analysis; no loss of data.
+    - Workspace Settings toggle is lightweight (1.5 hours); scales to multi-workspace easily.
+    - Safe for trusted pilot group; zero risk of system blocking legitimate sales.
+  - **Negative / tradeoffs:**
+    - Owner must review timestamp analysis weekly (disciplined oversight required).
+    - Stock can temporally go negative in system (by design; doc must explain this clearly).
+    - No real-time inventory warnings in v1 (future v1.1+ feature).
+    - Oversales discovered post-hoc, not prevented (requires operational discipline + reorder process).
+- **Alternatives considered**
+  - **Tight Validation in v1:** Check inventory; block sale if insufficient; create Pending event for approval.
+    - Pros: Real-time accuracy; prevents oversales.
+    - Cons: 5-8 hours dev; validation latency; staff frustration if blocked during pilot; prevents discovering real operational constraints.
+    - Verdict: Over-engineered for pilot; refactor vs. data-driven design is backward.
+  - **Hybrid Mode (Per-Product Control):** Some products validated, others open.
+    - Verdict: Complexity; deferred to v2.1+ after pilot feedback on "are oversales a real problem?"
+  - **Notifications in v1:** Pre-design alerts for reorder, oversale, etc.
+    - Verdict: Guessing; better to collect week-1 data, then design notifications from patterns you see.
+- **Follow-ups**
+  - **Phase D (Sale Entry Screen V1-02):**
+    - Implement simple form: Select Product → Enter Qty → Enter/Confirm Price → Create SaleLine.
+    - No inventory lookup; no validation; no event creation.
+    - Integrate WorkspaceSetting toggle for LastSellUnitPrice pre-fill.
+  - **Phase D (Settings Screen V1-04):**
+    - Add toggle: "Use Last Sell Unit Price?"
+    - Toggle ON/OFF; save to WorkspaceSetting.
+  - **Phase E (Testing):**
+    - Verify sale entry succeeds even if qty exceeds stock (no blocking).
+    - Verify LastSellUnitPrice updates/doesn't-update based on toggle state.
+    - Verify timestamps are accurate (CreatedOn field).
+  - **Pilot Phase (Weeks 1-3):**
+    - Owner runs weekly query: Compare SaleLine.CreatedOn + Qty vs Purchase.CreatedOn + Qty per ProductVariant.
+    - Log observations: Which products oversold? When did stock end? Any waste/shrinkage signals?
+  - **v1.1 Planning (Post-Pilot):**
+    - Analyze oversale frequency/magnitude from week-1 data.
+    - Decision: Add stock validation? Keep open? Design automated reorder?
+    - Refine: Do users want delta display for LastSellUnitPrice? Reset timer? Per-product control?
+- **Notes**
+  - See ISS-014-CLARIFICATION-StrictlyOpenApproach.md for detailed rationale and post-hoc analysis examples.
+  - Aligns with "Workspace Scoping in App" (ADR-022): Every SaleLine filtered by Workspace = gblWorkspaceId.
+  - Related to ADR-012 (Sales Basket Last Price): LastSellUnitPrice is transaction-side, not basket/checkout-side; no shopping-cart complexity in v1.

@@ -1,0 +1,53 @@
+# ADR-030: Workspace Onboarding & Environment Configuration (v1)
+
+- **Status:** Accepted
+- **Date:** 2026-04-04
+- **Decision makers:** Sergio
+- **Context / Problem**
+  - Vertical 1 pilot runs in single DEV environment with 15-20 users; no TEST/PROD available yet due to Dataverse capacity constraints.
+  - Workspace creation and environment configuration must be simple and pragmatic for pilot, with a clear migration path to multi-environment governance (TEST/PROD) when capacity increases.
+  - Users must be onboarded to workspaces before they can use the app; setup must be repeatable and documented.
+- **Decision**
+  - **Workspace Onboarding (v1):** Admin-created workspaces; self-service deferred to v2.
+    - Admin manually creates Workspace record in Dataverse.
+    - Admin adds users via WorkspaceMember (Owner/Manager/Staff/Viewer roles; app advisory only in v1).
+    - Users see workspace in Home screen (V1-01); no "Create Workspace" button.
+    - No self-service registration; controlled pilot.
+  - **Environment Configuration (v1→v2):**
+    - **Phase 1 (NOW; Single DEV):** Use environment variable `DataverseURL` stored in DEV Dataverse.
+      - Canvas app references `'DataverseURL'.Value` (not hardcoded).
+      - Effort: 20 minutes setup (Phase A Day 1).
+    - **Phase 2 (LATER; When TEST/PROD Available):** Upgrade to connection references in solution.
+      - Move to standard ALM: Solution → Connection Reference → Auto-maps per environment.
+      - Effort: 30-minute migration (Phase A equivalent after TEST/PROD capacity).
+      - No code changes; same app code works everywhere.
+- **Rationale**
+  - **Workspace Onboarding:**
+    - Admin-created ensures data quality; trust boundary is clear.
+    - Repeatable process (documented playbook); no UX complexity for pilot.
+    - Deferred self-service avoids feature scope bloat in v1.
+  - **Environment Configuration:**
+    - Environment variables are Dataverse best-practice for config; minimal setup for single environment.
+    - Two-phase approach balances simplicity NOW (no ALM overhead) with scalability path LATER (standard governance).
+    - Zero technical debt: env vars are stepping stone to connection refs; migration is straightforward, not a refactor.
+- **Consequences**
+  - **Positive:**
+    - Pilot launches unencumbered by multi-environment infrastructure.
+    - Admin has full control; no accidental workspace creation.
+    - Clear documented path to TEST/PROD infrastructure.
+    - Environment variable approach is Dataverse standard; easy to explain/train.
+  - **Negative / tradeoffs:**
+    - Admin must manually seed workspace and members (not self-service).
+    - Scaling to TEST/PROD requires 30-min migration (documented; not a blocker).
+    - Workspace governance enforcement deferred to v2 (roles exist in DB; not enforced in app UI now).
+- **Alternatives considered**
+  - **Full self-service in v1:** Complex UX; deferred until admin controls are solid.
+  - **Connection References from Day 1:** Over-engineered for single DEV; adds 30-min setup for pilot with no multi-env use case yet.
+  - **Hardcoded URLs:** Simpler initially; refactoring to multi-env is friction late (not worth it).
+- **Follow-ups**
+  - **Phase A Day 1:** Create environment variable `DataverseURL` in DEV; update app formula.
+  - **Phase A (Admin Prep):** Document workspace/member creation procedure in admin playbook (how to seed test workspace before pilot).
+  - **Phase E (Testing):** Verify app initializes correctly when user has single/multiple/zero workspace access.
+  - **Phase E (Documentation):** Create admin playbook: "How to Onboard a New User to a Workspace."
+  - **Post-pilot (Trigger: TEST/PROD capacity available):** Plan 30-min migration to connection references + solution export/import testing.
+  - **v2 Planning:** Evaluate self-service workspace creation if pilot feedback demands it.
