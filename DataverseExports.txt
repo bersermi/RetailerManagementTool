@@ -6,4 +6,7 @@ pac org select --environment 52852372-0d04-eaba-9994-15784911480d
 
 pac solution export --name Tienda --path "C:/Users/berse/Kabe Imports/1st Version/docs/dataverse"
 
-pac solution unpack --zipfile "C:\Users\berse\Kabe Imports\1st Version\docs\dataverse\Tienda.zip" --folder "C:\Users\berse\Kabe Imports\1st Version\docs\dataverse\Tienda_src"
+pac solution unpack --zipfile "C:\Users\berse\Kabe Imports\1st Version\docs\dataverse\Tienda.zip" --folder "C:\Users\berse\Kabe Imports\RetailerManagementTool\docs\dataverse\Tienda_src"
+
+# 1. Remove the old unpacked folder
+Remove-Item "C:\Users\berse\Kabe Imports\RetailerManagementTool\docs\dataverse\Tienda_src" -Recurse -Force

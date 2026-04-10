@@ -65,6 +65,7 @@
   <EntityRelationship Name="crbc0_wasteline_Workspace_crbc0_workspace" />
   <EntityRelationship Name="crbc0_workspacemember_User_systemuser" />
   <EntityRelationship Name="crbc0_workspacemember_Workspace_crbc0_workspace" />
+  <EntityRelationship Name="don_crbc0_Workspace_crbc0_Workspace_crbc0_WorkspaceSettings" />
   <EntityRelationship Name="lk_crbc0_inventoryevent_createdby" />
   <EntityRelationship Name="lk_crbc0_inventoryevent_modifiedby" />
   <EntityRelationship Name="lk_crbc0_productavailabilityoverride_createdby" />

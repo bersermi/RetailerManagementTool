@@ -1,0 +1,15 @@
+<aiskillconfig uniquename="ais_FormFillFieldOptOut_crbc0_workspacesettings_don_setting">
+  <aiskill>FormFillFieldOptOut</aiskill>
+  <attribute>
+    <entityid.logicalname>crbc0_workspacesettings</entityid.logicalname>
+    <logicalname>don_setting</logicalname>
+  </attribute>
+  <description>crbc0_workspacesettings - Setting Form fill opt out</description>
+  <entity>
+    <logicalname>crbc0_workspacesettings</logicalname>
+  </entity>
+  <iscustomizable>1</iscustomizable>
+  <scope>1</scope>
+  <statecode>0</statecode>
+  <statuscode>1</statuscode>
+</aiskillconfig>

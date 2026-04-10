@@ -67,23 +67,31 @@ Note: LastSellUnitPrice is NOT scoped to a workspace column
 
 **NEW: WorkspaceSetting table (for workspace-level configuration):**
 
-```
-WorkspaceSetting
-├─ Name (text, e.g., "Tienda_UseLastSellUnitPrice_[WorkspaceId]")
-├─ Workspace (FK to Workspace)
-├─ SettingKey (text, e.g., "UseLastSellUnitPrice")
-├─ SettingValue (text, e.g., "true" or "false")
-├─ Description (optional)
-└─ CreatedOn, ModifiedOn (auto)
+**REVISED APPROACH (Typed Columns):**
 
-Alternate key: (Workspace, SettingKey)
+Instead of a key-value store pattern, use normalized typed columns for better type safety, SQL migration readiness, and cleaner app logic.
+
+```
+WorkspaceSetting (Typed Columns)
+├─ WorkspaceSettingId (GUID, PK)
+├─ Workspace (FK to Workspace, NOT NULL)
+├─ UseLastSellUnitPrice (Boolean, default: true)
+├─ NotificationLevel (Integer, default: 2, for future use)
+├─ PriceRoundingDecimals (Integer, default: 2, for future use)
+├─ CreatedOn (DateTime, auto)
+└─ ModifiedOn (DateTime, auto)
+
+Unique Constraint: (Workspace)
 ```
 
-**Why WorkspaceSetting table?**
-- Avoids adding 10+ columns to Workspace table
-- Scales for future settings (notifications, price rounding, etc.)
-- Clear separation: Workspace = identity; WorkspaceSetting = behavior
-- Query pattern is simple: `WorkspaceSetting.SettingValue = "true"`
+**Why Typed Columns (NOT Key-Value Store)?**
+- ✅ Type safety: Boolean fields vs. string parsing ("true"/"false")
+- ✅ SQL migration ready: Direct 1:1 column mapping to Phase B (no denormalization needed)
+- ✅ Simpler app logic: `if (setting.UseLastSellUnitPrice)` vs. `if (settingValue = "true")`
+- ✅ Performance: Single row lookup by Workspace FK, then direct column read (no key comparison)
+- ✅ Self-documenting: Schema immediately shows which workspace settings exist
+- ✅ Database constraints: Can enforce NOT NULL, CHECK constraints at DB level
+- ⚠️ Trade-off: Requires ALTER TABLE to add new settings (acceptable; not changing weekly)
 
 ---
 
@@ -97,14 +105,16 @@ App.OnStart:
   // Initialize workspace from home screen
   Set(gblWorkspaceId, 'Home screen'.gblWorkspaceId);
   
-  // Load workspace setting
+  // Load workspace setting (typed column approach)
   Set(
     gblUseLastSellUnitPrice,
     LookUp(
       'WorkspaceSetting',
-      Workspace = gblWorkspaceId && SettingKey = "UseLastSellUnitPrice"
-    ).SettingValue = "true"
+      Workspace = gblWorkspaceId
+    ).UseLastSellUnitPrice
   );
+  
+  // Simpler than key-value: Direct boolean property instead of string parsing
 ```
 
 ### **2. In Sale Entry Screen (BUY / V1-02)**
@@ -217,39 +227,37 @@ Rationale: Toggle logic is app-side (conditional update to LastSellUnitPrice)
 varUseLastSellUnitPrice_Toggle: Boolean (user's current choice)
 
 OnVisible:
-  // Load current setting from Dataverse
+  // Load current setting from Dataverse (typed column)
   Set(
     varUseLastSellUnitPrice_Toggle,
     LookUp(
       'WorkspaceSetting',
-      Workspace = gblWorkspaceId && SettingKey = "UseLastSellUnitPrice"
-    ).SettingValue = "true"
+      Workspace = gblWorkspaceId
+    ).UseLastSellUnitPrice
   );
 
 BtnSave.OnSelect:
-  // Update or create WorkspaceSetting
+  // Update or create WorkspaceSetting (typed column approach)
   If(
     IsBlank(
       LookUp(
         'WorkspaceSetting',
-        Workspace = gblWorkspaceId && SettingKey = "UseLastSellUnitPrice"
+        Workspace = gblWorkspaceId
       )
     ),
     // CREATE if doesn't exist
     Patch('WorkspaceSetting', Defaults('WorkspaceSetting'), {
-      Name: "UseLastSellUnitPrice_" & gblWorkspaceId,
       Workspace: gblWorkspaceId,
-      SettingKey: "UseLastSellUnitPrice",
-      SettingValue: If(varUseLastSellUnitPrice_Toggle, "true", "false")
+      UseLastSellUnitPrice: varUseLastSellUnitPrice_Toggle
     }),
     // UPDATE if exists
     Patch(
       'WorkspaceSetting',
       LookUp(
         'WorkspaceSetting',
-        Workspace = gblWorkspaceId && SettingKey = "UseLastSellUnitPrice"
+        Workspace = gblWorkspaceId
       ),
-      { SettingValue: If(varUseLastSellUnitPrice_Toggle, "true", "false") }
+      { UseLastSellUnitPrice: varUseLastSellUnitPrice_Toggle }
     )
   );
   

@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26024.173" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26024.173" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26031.00180">
+<ImportExportXml version="9.2.26031.182" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26031.182" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26032.00183">
   <SolutionManifest>
     <UniqueName>Tienda</UniqueName>
     <LocalizedNames>
@@ -96,6 +96,7 @@
       <RootComponent type="1" schemaName="crbc0_wasteline" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_workspace" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_workspacemember" behavior="0" />
+      <RootComponent type="1" schemaName="crbc0_workspacesettings" behavior="1" />
       <RootComponent type="1" schemaName="don_modules" behavior="0" />
       <RootComponent type="1" schemaName="systemuser" behavior="0" />
       <RootComponent type="300" schemaName="don_tienda_2d97e" behavior="0" />
@@ -104,7 +105,7 @@
     <MissingDependencies>
       <MissingDependency>
         <Required type="1" schemaName="adx_webformsession" displayName="Multistep Form Session" solution="PowerPages_RuntimeCore (1.0.2509.1)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
@@ -115,8 +116,8 @@
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="bot" displayName="Agent" solution="PowerVirtualAgents (2026.2.2.19373185)">
-          <package appName="CCI Bots" version="2026.2.2.19373185">msdynce_CustomerCareIntelligenceBots_Anchor (2026.2.2.19373185)</package>
+        <Required type="1" schemaName="bot" displayName="Agent" solution="PowerVirtualAgents (2026.2.3.19372848)">
+          <package appName="CCI Bots" version="2026.2.3.19372848">msdynce_CustomerCareIntelligenceBots_Anchor (2026.2.3.19372848)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
@@ -139,176 +140,180 @@
         <Dependent type="300" schemaName="don_tienda_2d97e" displayName="Tienda" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_adplacement" displayName="Ad Placement" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="crbc0_workspacesettings" displayName="WorkspaceSettings" solution="Active" />
+        <Dependent type="1" schemaName="crbc0_workspacesettings" displayName="WorkspaceSettings" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="mspp_adplacement" displayName="Ad Placement" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_columnpermission" displayName="Column Permission" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_columnpermission" displayName="Column Permission" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_columnpermissionprofile" displayName="Column Permission Profile" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_columnpermissionprofile" displayName="Column Permission Profile" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_contentsnippet" displayName="Content Snippet" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_contentsnippet" displayName="Content Snippet" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_entityform" displayName="Basic Form" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_entityform" displayName="Basic Form" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_entityformmetadata" displayName="Basic Form Metadata" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_entityformmetadata" displayName="Basic Form Metadata" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_entitylist" displayName="List" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_entitylist" displayName="List" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_entitypermission" displayName="Table Permission" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_entitypermission" displayName="Table Permission" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_pagetemplate" displayName="Page Template" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_pagetemplate" displayName="Page Template" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_pollplacement" displayName="Poll Placement" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_pollplacement" displayName="Poll Placement" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_publishingstate" displayName="Publishing State" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_publishingstate" displayName="Publishing State" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_publishingstatetransitionrule" displayName="Publishing State Transition Rule" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_publishingstatetransitionrule" displayName="Publishing State Transition Rule" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_redirect" displayName="Redirect" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_redirect" displayName="Redirect" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_shortcut" displayName="Shortcut" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_shortcut" displayName="Shortcut" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_sitemarker" displayName="Site Marker" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_sitemarker" displayName="Site Marker" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_sitesetting" displayName="Site Setting" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_sitesetting" displayName="Site Setting" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webfile" displayName="Web File" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webfile" displayName="Web File" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webform" displayName="Multistep Form" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webform" displayName="Multistep Form" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webformmetadata" displayName="Multistep Form Metadata" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webformmetadata" displayName="Multistep Form Metadata" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webformstep" displayName="Form Step" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webformstep" displayName="Form Step" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_weblink" displayName="Web Link" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_weblink" displayName="Web Link" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_weblinkset" displayName="Web Link Set" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_weblinkset" displayName="Web Link Set" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webpage" displayName="Web Page" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webpage" displayName="Web Page" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webpageaccesscontrolrule" displayName="Web Page Access Control Rule" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webpageaccesscontrolrule" displayName="Web Page Access Control Rule" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webrole" displayName="Web Role" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webrole" displayName="Web Role" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_website" displayName="Website" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_website" displayName="Website" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_websiteaccess" displayName="Website Access" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_websiteaccess" displayName="Website Access" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_websitelanguage" displayName="Website Language" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_websitelanguage" displayName="Website Language" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="mspp_webtemplate" displayName="Web Template" solution="PowerPages_Apps (1.0.2510.2)">
-          <package appName="Power Pages Core Package" version="1.1.2510.212">PowerPages_Core (1.1.2510.212)</package>
+        <Required type="1" schemaName="mspp_webtemplate" displayName="Web Template" solution="PowerPages_Apps (1.0.2603.1)">
+          <package appName="Power Pages Core Package" version="1.1.2602.237">PowerPages_Core (1.1.2602.237)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
@@ -319,13 +324,13 @@
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="sourcecontroloperationstatus" displayName="Source Control Operation Status" solution="msdyn_SourceControlIntegration (9.1.0.633)">
-          <package appName="Source Control Integration Package" version="9.1.0.633">SourceControlIntegration_Anchor (9.1.0.633)</package>
+        <Required type="1" schemaName="sourcecontroloperationstatus" displayName="Source Control Operation Status" solution="msdyn_SourceControlIntegration (9.1.3370.2)">
+          <package appName="Source Control Integration Package" version="9.1.3370.2">SourceControlIntegration_Anchor (9.1.3370.2)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="systemuser" displayName="SystemUser" parentSchemaName="" solution="msdyn_PowerAdminSettingsEmail (1.1.1.3052)" />
+        <Required type="1" schemaName="systemuser" displayName="SystemUser" parentSchemaName="" solution="msdyn_PowerAdminSettingsEmail (1.1.1.3079)" />
         <Dependent type="1" schemaName="systemuser" displayName="SystemUser" />
       </MissingDependency>
       <MissingDependency>
