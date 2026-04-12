@@ -447,9 +447,17 @@ AFTERNOON (1 PM - 5 PM): App Development
 
 ---
 
-## ✅ **6. Test Data Planning: PowerShell vs. Queries**
+## ✅ **6. Test Data Planning: Manual UI + Power Automate (Recommended)**
 
-### **How to Handle Test Data**
+### **Why NOT PowerShell Direct Scripts**
+
+PowerShell OData API has fundamental limitations with Dataverse lookup field binding that make it unreliable for complex record creation. For details on what was tried and why it failed, see **[ISS-026-ANALYSIS-DataverseODataLookupBinding.md](../issues/ISS-026-ANALYSIS-DataverseODataLookupBinding.md)**.
+
+**Takeaway:** Use manual UI or Power Automate flows instead — much more reliable, zero API quirks, and faster for Phase A pilot data.
+
+---
+
+### **How to Handle Test Data (4 Scenarios)**
 
 You have **4 scenarios**. Here's how to approach each:
 
@@ -458,39 +466,69 @@ You have **4 scenarios**. Here's how to approach each:
 ### **Scenario 1: Initial Seeding (Create Pilot Products + Stock)**
 
 **Frequency:** Once at setup (today)  
-**Method:** **Manual UI + Power Automate (NO PowerShell needed)**
+**Method:** **Manual Dataverse UI (Recommended) or Power Automate Cloud Flow**
+
+#### **Option A: Manual Dataverse UI (Fastest for Small Datasets)**
 
 **Steps:**
 
 1. **Create ProductFamily records** (manual):
-   - Dataverse → Tables → ProductFamily
-   - Add 3 records: Fresh Produce, Dairy, Beverages
+   - Go to Dataverse → Tables → ProductFamily → + New
+   - Create 3 records: Fresh Produce, Dairy, Beverages
+   - Time: 2 min
 
 2. **Create ProductVariant records** (manual):
-   - Dataverse → Tables → ProductVariant
+   - Dataverse → Tables → ProductVariant → + New
    - Add 10-15 products (Bananas, Milk, Juice, Eggs, etc.)
-   - Set initial stock = 0 (will be set by purchases)
+   - Set initial stock = 0 (will be populated by purchases)
+   - Time: 10 min
 
-3. **Create Purchase records** (manual):
-   - Dataverse → Tables → Purchase
+3. **Create Provider records** (manual):
+   - Dataverse → Tables → crbc0_Provider → + New
+   - Add 2-3 providers (distributors, suppliers)
+   - **Set Workspace relationship** via the lookup picker in the form (no API needed)
+   - Time: 5 min
+
+4. **Create Purchase records** (manual or flow):
+   - Dataverse → Tables → Purchase → + New
    - Create 3 purchases (Fresh delivery; Dairy delivery; Beverage delivery)
-   - Add line items (PurchaseLine = product + qty)
+   - Add line items (PurchaseLine table)
    - This auto-creates StockBatch records (if you have flow set up)
+   - Time: 10 min
 
-**OR (if you want to automate):**
+**Total Manual Time: ~30 min for full pilot dataset**
 
-Use a **Power Automate flow** triggered manually:
-```
-Trigger: Button click or Manual trigger
-Actions:
-  1. Create ProductFamily: Fresh Produce
-  2. Create ProductFamily: Dairy
-  3. Create ProductVariant: Bananas
-  4. Create Purchase: Fresh delivery
-  ...
-```
+---
 
-**NO PowerShell sandbox needed** — just manual UI or Power Automate cloud flow.
+#### **Option B: Power Automate Cloud Flow (For Bulk/Repeated Seeding)**
+
+**Use this if you need to re-create test data often or seed large batches.**
+
+1. **Create a flow triggered manually:**
+   ```
+   Trigger: Manual trigger (button in Power Apps)
+   
+   Actions:
+     1. Create a record (ProductFamily): Fresh Produce
+     2. Create a record (ProductFamily): Dairy
+     3. Create a record (ProductVariant): Bananas
+        - Product Family: [select from step 1]
+        - Workspace: [select workspace]
+     4. Create a record (crbc0_Provider): Provider 1
+        - Workspace: [select workspace]  ← Lookup binding works here!
+     5. Create a record (Purchase): Fresh delivery
+        - Workspace: [select workspace]
+     ...
+   ```
+
+2. **Benefits:**
+   - Lookup binding is automatic in Power Automate "Add record" action
+   - Repeatable: Run flow 5x to create 5 test datasets
+   - No API quirks; UI-based actions
+
+3. **Effort:** 10 min to build flow once; then 30 sec to run
+
+**Recommendation for Phase A:** Use **Option A (manual UI)** for initial setup. Build **Option B (flow)** if you need to reset data weekly.
 
 ---
 
@@ -653,11 +691,12 @@ START Vertical 1 Building Tomorrow (2026-04-08)
 
 | Topic | Answer |
 |-------|--------|
-| Workspace seeding | Manual UI (easiest); Power Automate if you want automation; skip PowerShell |
+| Workspace seeding | Manual Dataverse UI (recommended, 2 min); Power Automate flow if bulk needed |
+| Provider creation with workspace | Manual UI lookup picker (5 min); Power Automate for automation (10 min to build) |
+| Lookup field binding via PowerShell | ❌ Not viable (OData API limitations — see ISS-026 analysis); use manual UI or Power Automate |
 | WorkspaceMember email vs. lookup | Use email in lookup field; Power Apps finds the user automatically |
 | Environment variable "where it lives" | In Dataverse (your database); stored as a record you can edit |
 | Inter-table communication | Use Canvas App Patch operations (v1); Power Automate flows (later, if needed) |
-| PowerShell sandboxes | = Power Automate cloud flows (safer alternative) |
 | Test data handling | Manual UI for seeding; Power Automate flows for bulk cleanup/resets |
 
 ---

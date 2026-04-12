@@ -10,7 +10,14 @@ PowerShell scripts for writing records to Dataverse tables via Web API. Use thes
 ```
 Returns: `Workspace ID` (use in subsequent calls)
 
-### 2. Create a Purchase (incoming stock)
+### 2. Create Providers (Suppliers)
+```powershell
+.\write-providers-mexico.ps1
+```
+Returns: `Provider IDs` → use in purchase creation
+**Note:** Script creates 2 Mexico City providers as sample data
+4
+### 3. Create a Purchase (incoming stock)
 ```powershell
 .\write-purchase.ps1
 ```
@@ -19,7 +26,7 @@ Returns: `Purchase ID` → use to add line items
 ### 3. Add items to Purchase
 ```powershell
 .\write-purchaseline.ps1 `
-  -PurchaseId "550e8400-e29b-41d4-a716-446655440000" `
+  -P5rchaseId "550e8400-e29b-41d4-a716-446655440000" `
   -ProductVariantId "12345678-1234-1234-1234-123456789012" `
   -Quantity 10 `
   -LineTotal 150 `
@@ -32,7 +39,7 @@ Returns: `Purchase ID` → use to add line items
 ```
 Returns: `Sale ID` → use to add line items
 
-### 5. Add items to Sale
+### 6. Add items to Sale
 ```powershell
 .\write-saleline.ps1 `
   -SaleId "550e8400-e29b-41d4-a716-446655440000" `
@@ -41,13 +48,13 @@ Returns: `Sale ID` → use to add line items
   -LineTotal 75
 ```
 
-### 6. Create Waste Session
+### 7. Create Waste Session
 ```powershell
 .\write-waste.ps1
 ```
 Returns: `Waste ID` → use to add waste lines
 
-### 7. Add waste items
+### 8. Add waste items
 ```powershell
 .\write-wasteline.ps1 `
   -WasteId "550e8400-e29b-41d4-a716-446655440000" `
@@ -61,6 +68,7 @@ Returns: `Waste ID` → use to add waste lines
 |------|---------|
 | `0-template-base.ps1` | Reference template showing auth + write pattern |
 | `write-workspace.ps1` | Create workspace (multi-tenant partition) |
+| `write-providers-mexico.ps1` | Create 2 sample Mexico City providers (Distribuidora Central, Mayorista Del Valle) |
 | `write-purchase.ps1` | Create purchase header |
 | `write-purchaseline.ps1` | Add line items to purchase (parameterized) |
 | `write-sale.ps1` | Create sale header |

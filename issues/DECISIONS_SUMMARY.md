@@ -411,6 +411,47 @@ Not:
 
 ---
 
+### **7. ISS-026: Dataverse OData Lookup Binding Limitations** ✅ **RESOLVED**
+
+**Your Decision:** Abandon PowerShell direct OData for multi-step record creation; use manual Dataverse UI + Power Automate flows
+
+**What this means:**
+- Provider workspace relationship binding fails via OData API despite metadata support
+- Root cause: Empty `<LookupTypes />` in Entity.xml prevents lookup exposure
+- 5+ troubleshooting attempts exhausted (PATCH workaround, X-HTTP-Method header, ConvertTo-Json variations, etc.)
+- **Recommended Alternative:** Manual Dataverse UI (2 min per record) or Power Automate cloud flow (5 min to build; 30 sec to run)
+
+**Why This Decision:**
+- Unblocks Phase A immediately (no more API debugging)
+- Establishes pattern: Use UI/Power Automate for data; PowerShell only for simple reads or basic writes
+- Aligns with Phase B migration strategy (direct SQL for relationships avoids OData entirely)
+- Cost-benefit: 2 hours debugging OData ≠ 3 minutes using UI
+
+**Implementation:**
+- Delete PowerShell scripts attempting OData lookup binding (already completed)
+- Use Dataverse UI to manually create 2 Providers + set workspace relationship via form picker
+- Build Power Automate flow for future bulk operations (reusable template)
+
+**Phase A Impact:**
+- Providers created manually: 2 min
+- Delay: None (manual UI faster than troubleshooting)
+- Risk: None (UI is straightforward)
+
+**Action Items:**
+- [x] Delete PowerShell scripts (completed 2026-04-10)
+- [ ] Create 2 Providers manually in Dataverse UI
+- [ ] Document Power Automate flow pattern for bulk data seeding (reference for later)
+
+**Lessons Learned:**
+- Empty LookupTypes = relationship not exposed for creation binding in OData
+- Power Automate "Add record" action handles relationships properly (use instead of direct API)
+- `ConvertTo-Json` unreliable for `@odata.bind` syntax
+- Confirmed: Phase A → UI/Power Automate; Phase B → SQL (no OData)
+
+**ADR Status:** Document in ADR-031 (reference section on data seeding approach)
+
+---
+
 ## Summary: Issues Closed vs. Deferred vs. In-Progress
 
 | ID | Issue | Status | ADR | Next Step |
@@ -440,7 +481,7 @@ Not:
 | ISS-023 | Scoping checklist | HIGH | ADR-022 Update | Add to code review checklist |
 | ISS-024 | New ADRs | HIGH | Multiple | Create ADR-030, 031, 032 |
 | ISS-025 | Dataverse connection | ✅ ANALYSIS | ADR-030 | Phase A (setup connection ref) |
-| ISS-026 | No Expiry UX | ✅ RESOLVED | None | V1-03 (Spanish labels) |
+| ISS-026 | PowerShell OData limits | ✅ RESOLVED | ADR-031 | Use manual UI + Power Automate |
 | ISS-027 | WorkspaceMember schema | MEDIUM | ADR-002 Update | DV review; document limitation |
 | ISS-028 | Name normalization | MEDIUM | Flow Spec | Phase B (normalize flow) |
 | ISS-029 | FIFO logic | HIGH | ADR-011 Update | DB index design; test V2 |
