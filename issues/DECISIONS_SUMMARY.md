@@ -452,6 +452,128 @@ Not:
 
 ---
 
+### **9. ARCHITECTURE-034: Hybrid Provider-Centric + Global Catalog + Pricing Layer** ✅ **IMPLEMENTED**
+
+**Your Decision:** Shift from provider-centric filtering to hybrid model with pricing cache
+
+**Status:** Tables created + ProviderCatalogItem deprecated
+
+**What this means:**
+- **ProductVariant**: Global workspace catalog (all products always available)
+- **Provider**: Required on Purchase (user selects provider first)
+- **ProviderProductPrice** (NEW): Caches last price per (Provider, ProductVariant, Workspace)
+- **ProviderCatalogItem**: Deprecated; removed from transaction filtering
+
+**Workflow Impact:**
+```
+1. User selects Provider (required; central to workflow)
+2. System shows ALL ProductVariants (not filtered by provider catalog)
+3. User selects product
+4. System looks up ProviderProductPrice → Auto-populate last price from this provider
+5. User can override price if new quote
+6. On confirm:
+   → Create PurchaseLine (actual price paid; transaction record)
+   → Update ProviderProductPrice (cache new last price)
+   → Create StockBatch (FIFO inventory)
+```
+
+**Data Model (Finalized):**
+
+ProductVariant (Added):
+```
+  - IsActive (Choice: Yes/No, default: Yes) ← Soft-delete flag
+  - BasePrice (optional Currency) ← Reference price
+```
+
+ProviderProductPrice (NEW):
+```
+  Columns:
+    - ProviderProductPriceId (PK, GUID)
+    - Provider (FK to crbc0_Provider, required)
+    - ProductVariant (FK to ProductVariant, required)
+    - Workspace (FK to Workspace, required)
+    - LastPurchasePrice (Currency, optional) ← Cached from last purchase
+    - LastUpdatedDate (DateTime) ← When this price was last set
+    - IsActive (Choice: Yes/No, default: Yes) ← Mark as "no longer carry"
+
+Unique Alternate Key: (Workspace, Provider, ProductVariant)
+```
+
+Purchase (Verified):
+```
+  - Provider field: Required (Lookup to crbc0_Provider)
+  - Workspace (FK): Present (multi-tenant scoping)
+```
+
+ProviderCatalogItem (Deprecated):
+```
+  Status: Archive; no longer used for filtering
+  Action: Do not delete; keep for referential integrity
+```
+
+**Implementation Details:**
+
+Canvas App (V1-02 Buy Screen):
+```
+// Provider dropdown (required)
+ddlProvider.Items: Filter(Provider, Workspace = gblWorkspaceId)
+
+// Product gallery (global catalog; all workspace products)
+galProduct.Items: Filter(ProductVariant, 
+                         Workspace = gblWorkspaceId && 
+                         IsActive = true)
+
+// Price auto-populate (ProviderProductPrice lookup)
+On product select:
+  Set(lastPrice, 
+    LookUp(ProviderProductPrice,
+      Workspace.Value = gblWorkspaceId &&
+      Provider.Value = selectedProvider.ID &&
+      ProductVariant.Value = selectedProduct.ID
+    ).LastPurchasePrice)
+  Set(priceDisplay, If(IsBlank(lastPrice), 0, lastPrice))
+
+// On confirm (update both transaction + cache)
+Patch(PurchaseLine, ..., {actual price paid})
+Patch(ProviderProductPrice, ..., {
+  LastPurchasePrice: actualPricePaid,
+  LastUpdatedDate: Now()
+})
+```
+
+**Benefits:**
+- ✅ Provider-centric workflow (matches user mental model: "buying from Provider X")
+- ✅ Global catalog (no per-provider duplication)
+- ✅ Price auto-populate (reduces data entry; shows purchase history)
+- ✅ Audit trail (PurchaseLine stores all prices; ProviderProductPrice stores latest)
+- ✅ Future-proof (supports Provider Catalog UI in v2)
+
+**Risks & Mitigations:**
+- ⚠️ Price cache sync: Use Patch + LookUp with ?? Defaults() pattern; optional Cloud Flow for redundancy
+- ⚠️ Provider required: By design; all purchases must specify supplier
+
+**Action Items:**
+- [x] Create ProviderProductPrice table (completed 2026-04-11)
+- [x] Add ProductVariant.IsActive column (completed 2026-04-11)
+- [x] Remove ProviderCatalogItem from transaction filtering (completed 2026-04-11)
+- [ ] Update V1-02 Buy screen with price lookup + auto-fill formula
+- [ ] Test: Auto-populate scenario (different prices per provider)
+- [ ] Test: Workspace isolation (prices per workspace)
+- [ ] Test: Price override (user changes auto-filled price)
+
+**Test Scenarios:**
+- [ ] First purchase from provider → Price field blank → User enters $1.00 → ProviderProductPrice created
+- [ ] Repeat purchase from same provider → Price auto-fills with $1.00
+- [ ] Override auto-filled price → $1.00 → $1.05 → ProviderProductPrice updated
+- [ ] Switch provider → Different provider shows blank (no history with new provider)
+- [ ] Workspace isolation → Workspace-A and Workspace-B have separate prices
+
+**ADR Status:** ADR-034 created (Hybrid Provider Pricing Model)
+
+**Recommendation:** Ready to update V1-02 screen formulas; then test all scenarios before code submission.
+
+---
+
 ## Summary: Issues Closed vs. Deferred vs. In-Progress
 
 | ID | Issue | Status | ADR | Next Step |
@@ -486,6 +608,7 @@ Not:
 | ISS-028 | Name normalization | MEDIUM | Flow Spec | Phase B (normalize flow) |
 | ISS-029 | FIFO logic | HIGH | ADR-011 Update | DB index design; test V2 |
 | ISS-030 | Happy path doc | MEDIUM | None | Append to initContext.md |
+| **ADR-034** | **Hybrid Provider Pricing Model** | **✅ IMPLEMENTED** | **ADR-034** | **Update V1-02 screen; test** |
 
 ---
 
