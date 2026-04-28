@@ -1,0 +1,458 @@
+## scrComprar — Purchase Entry Screen
+## Status: Pipeline designed, ready for implementation
+## Last updated: 2026-04-19
+##
+## BLOCKER NOTES:
+##   B-01: 'Provider Product Prices' must be added manually to Canvas Data panel
+##   B-02: Status enum — verify 'Status (Purchases)'.Completed in formula bar
+##   B-03: Confirm all column display names in formula bar before wiring controls
+
+---
+## ── SCREEN: scrComprar ────────────────────────────────────────────────────────
+
+OnVisible: |+
+    =// ── UI STATE RESET ───────────────────────────────────────────────
+    Set(varMenuOpen,     false);
+    Set(varActiveMenuKey,"scrComprar");
+    Set(varOcupado,      false);
+    Set(varErrorMsg,     "");
+
+    // ── TRANSACTION STATE RESET ────────────────────────────────────────
+    // NOTE: Do NOT Set(varProveedorSel, Blank()) here — type inference error.
+    // Instead reset record-type vars by setting to a known-shape empty record.
+    // These will be set properly on first dropdown change event.
+    Set(varPrecioAnterior, 0);
+    Set(varCantidad,       1);
+    Set(varPrecioUnit,     0);
+    Set(varTotalLinea,     0);
+    Set(varModoTotal,      false);
+
+    // ── COLLECTION LOADS ─────────────────────────────────────────────────
+    // Load once on entry; filter in-memory for all per-interaction lookups.
+    // Only colPrecios is refreshed after each successful purchase.
+
+    ClearCollect(
+        colProveedores,
+        SortByColumns(
+            Filter(
+                Providers,
+                Workspace.'Workspace (crbc0_workspaceid)' = gblWorkspaceId
+            ),
+            "crbc0_name", SortOrder.Ascending
+        )
+    );
+
+    ClearCollect(
+        colProductos,
+        SortByColumns(
+            Filter(
+                'Product Variants',
+                Workspace.'Workspace (crbc0_workspaceid)' = gblWorkspaceId
+                    && 'Is Active' = true
+            ),
+            "crbc0_name", SortOrder.Ascending
+        )
+    );
+
+    // B-01: 'Provider Product Prices' must be present in Data panel first
+    ClearCollect(
+        colPrecios,
+        Filter(
+            'Provider Product Prices',
+            Workspace.'Workspace (crbc0_workspaceid)' = gblWorkspaceId
+        )
+    );
+
+---
+## ── CONFIRMED SHELL (already built in app) ───────────────────────────────────
+
+# cmpHeader_2
+#   TitleText:  ="Comprar"
+#   ShowBack:   =true
+#   ShowMenu:   =true
+#   OnBack:     =Back(ScreenTransition.Cover)
+#   OnMenu:     =Set(varMenuOpen, true)
+
+# hdrSeparator_1
+#   Y: =cmpHeader_2.Height
+
+# cmpFlyoutMenu_1
+#   Items:          =colNavMenu
+#   ActiveKey:      =varActiveMenuKey
+#   Visible:        =varMenuOpen
+#   OnNavigate:     (Switch below)
+#     Switch(
+#       cmpFlyoutMenu_1.SelectedKey,
+#       "scrHome",        Navigate(scrHome,        ScreenTransition.Cover),
+#       "scrVender",      Navigate(scrVender,       ScreenTransition.Cover),
+#       "scrProductos",   Navigate(scrProductos,    ScreenTransition.Cover),
+#       "scrProveedores", Navigate(scrProveedores,  ScreenTransition.Cover)
+#     );
+#     Set(varMenuOpen, false)
+
+---
+## ── SECTION 1: PROVIDER DROPDOWN ────────────────────────────────────────────
+## Add below hdrSeparator_1 (Y ≈ cmpHeader_2.Height + 16)
+
+# lblProveedorLabel
+#   Text:   ="Proveedor *"
+#   Y:      =cmpHeader_2.Height + 16
+#   X:      =20
+#   Width:  =Parent.Width - 40
+
+# ddlProveedor  (Dropdown)
+#   Items:          =colProveedores
+#   DisplayField:   ="crbc0_name"  // VERIFY display name in formula bar
+#   Y:              =lblProveedorLabel.Y + lblProveedorLabel.Height + 4
+#   X:              =20
+#   Width:          =Parent.Width - 40
+#   DisplayMode:    =If(varOcupado, DisplayMode.Disabled, DisplayMode.Edit)
+#
+#   OnChange: |+
+#       =Set(varProveedorSel, ddlProveedor.Selected);
+#       // Reset downstream state when provider changes
+#       Set(varPrecioAnterior, 0);
+#       Set(varPrecioUnit,     0);
+#       Set(varTotalLinea,     0);
+#       Reset(cmpMoneyInput_1);
+#       Set(varErrorMsg, "")
+
+---
+## ── SECTION 2: PRODUCT DROPDOWN ──────────────────────────────────────────────
+## Provider must be selected first; product is NOT filtered by provider (ADR-034)
+
+# lblProductoLabel
+#   Text:   ="Producto *"
+#   Y:      =ddlProveedor.Y + ddlProveedor.Height + 16
+#   X:      =20
+
+# ddlProducto  (Dropdown)
+#   Items:          =colProductos
+#   DisplayField:   ="crbc0_name"  // VERIFY display name in formula bar
+#   Y:              =lblProductoLabel.Y + lblProductoLabel.Height + 4
+#   X:              =20
+#   Width:          =Parent.Width - 40
+#   DisplayMode:    =If(
+#                       IsBlank(varProveedorSel) || varOcupado,
+#                       DisplayMode.Disabled,
+#                       DisplayMode.Edit
+#                   )
+#
+#   OnChange: |+
+#       =Set(varProductoSel, ddlProducto.Selected);
+#
+#       // Local LookUp — zero Dataverse call (reads colPrecios in memory)
+#       Set(
+#           varPrecioAnterior,
+#           LookUp(
+#               colPrecios,
+#               // VERIFY these column display names in formula bar:
+#               Provider.'crbc0_providerid' = varProveedorSel.'crbc0_providerid'
+#                   && 'Product Variant'.'crbc0_productvariantid' = varProductoSel.'crbc0_productvariantid',
+#               'Last Purchase Price'  // VERIFY column display name
+#           )
+#       );
+#
+#       // Auto-fill price field from cache; user can override
+#       Set(varPrecioUnit, If(IsBlank(varPrecioAnterior) || varPrecioAnterior = 0,
+#               0,
+#               varPrecioAnterior
+#           )
+#       );
+#       Set(varTotalLinea, varPrecioUnit * varCantidad);
+#
+#       // Force cmpMoneyInput to re-read its Default (Value input)
+#       Reset(cmpMoneyInput_1);
+#       Set(varErrorMsg, "")
+
+---
+## ── SECTION 3: LAST PRICE INFO LABEL ────────────────────────────────────────
+
+# lblPrecioAnterior
+#   Y:      =ddlProducto.Y + ddlProducto.Height + 8
+#   X:      =20
+#   Width:  =Parent.Width - 40
+#   Text:   =If(
+#               IsBlank(varProductoSel),
+#               "",
+#               If(
+#                   IsBlank(varPrecioAnterior) || varPrecioAnterior = 0,
+#                   "Primera compra — sin precio previo",
+#                   "Último precio: $" & Text(varPrecioAnterior, "[$-es]#,##0.00")
+#                       & " (con " & ddlProveedor.Selected.crbc0_name & ")"
+#               )
+#           )
+#   Color:  =If(IsBlank(varPrecioAnterior) || varPrecioAnterior = 0,
+#               RGBA(200, 100, 0, 1),   // orange — no history
+#               RGBA(0, 128, 0, 1)      // green — history found
+#           )
+
+---
+## ── SECTION 4: QUANTITY (cmpQtyStepper) ─────────────────────────────────────
+## Component input/output interface (confirmed from cmpQtyStepper.yaml):
+##   Inputs:  Qty, Step, MinQty, MaxQty, MaxQtyEnabled, AllowDecimal, Editable, Disabled
+##   Events:  OnPlus, OnMinus, OnManualSet
+##   Outputs: ManualQtyOut, IsManualValidOut
+
+# lblCantidadLabel
+#   Text: ="Cantidad *"
+#   Y:    =lblPrecioAnterior.Y + lblPrecioAnterior.Height + 16
+#   X:    =20
+
+# cmpQtyStepper_1
+#   Y:              =lblCantidadLabel.Y + lblCantidadLabel.Height + 4
+#   X:              =20
+#   Qty:            =varCantidad
+#   Step:           =1
+#   MinQty:         =0.001
+#   MaxQtyEnabled:  =false
+#   AllowDecimal:   =true
+#   Editable:       =true
+#   Disabled:       =varOcupado
+#
+#   OnPlus: |+
+#       =Set(varCantidad, varCantidad + 1);
+#       Set(varTotalLinea, varCantidad * varPrecioUnit)
+#
+#   OnMinus: |+
+#       =Set(varCantidad, Max(0.001, varCantidad - 1));
+#       Set(varTotalLinea, varCantidad * varPrecioUnit)
+#
+#   OnManualSet: |+
+#       =If(
+#           cmpQtyStepper_1.IsManualValidOut,
+#           Set(varCantidad, cmpQtyStepper_1.ManualQtyOut);
+#           Set(varTotalLinea, varCantidad * varPrecioUnit)
+#       )
+
+---
+## ── SECTION 5: PRICE MODE TOGGLE + cmpMoneyInput ────────────────────────────
+## varModoTotal = false → user edits Unit Price, Total auto-computes
+## varModoTotal = true  → user edits Line Total, Unit Price auto-computes
+## Component input/output interface (confirmed from cmpMoneyInput.yaml):
+##   Inputs:  Value, CurrencyText, Decimals, Disabled, AllowBlank,
+##            MinValue, MaxValue, MaxValueEnabled, PlaceHolder
+##   Event:   OnChange
+##   Outputs: ValueOut, IsValidOut, IsBlankOut
+
+# lblPrecioLabel
+#   Text:   =If(varModoTotal, "Total línea *", "Precio unitario *")
+#   Y:      =cmpQtyStepper_1.Y + cmpQtyStepper_1.Height + 16
+#   X:      =20
+
+# btnModoToggle
+#   Text:   =If(varModoTotal, "↔ Cambiar a precio unitario", "↔ Cambiar a total")
+#   Y:      =lblPrecioLabel.Y
+#   X:      =Parent.Width - 220
+#   Width:  =200
+#   OnSelect: =Set(varModoTotal, !varModoTotal); Reset(cmpMoneyInput_1)
+
+# cmpMoneyInput_1
+#   Y:              =lblPrecioLabel.Y + lblPrecioLabel.Height + 4
+#   X:              =20
+#   Width:          =Parent.Width - 40
+#   Value:          =If(varModoTotal, varTotalLinea, varPrecioUnit)
+#   CurrencyText:   ="$"
+#   Decimals:       =2
+#   AllowBlank:     =false
+#   MinValue:       =0
+#   MaxValueEnabled:=false
+#   Disabled:       =varOcupado
+#   PlaceHolder:    =If(varModoTotal, "Ingresa total...", "Ingresa precio...")
+#
+#   OnChange: |+
+#       =If(
+#           cmpMoneyInput_1.IsValidOut,
+#           If(
+#               varModoTotal,
+#               // Editing Total → derive Unit Price
+#               Set(varTotalLinea,  cmpMoneyInput_1.ValueOut);
+#               Set(varPrecioUnit,  If(varCantidad > 0,
+#                                       cmpMoneyInput_1.ValueOut / varCantidad,
+#                                       0
+#                                   )),
+#               // Editing Unit Price → derive Total
+#               Set(varPrecioUnit,  cmpMoneyInput_1.ValueOut);
+#               Set(varTotalLinea,  cmpMoneyInput_1.ValueOut * varCantidad)
+#           )
+#       )
+
+---
+## ── SECTION 6: EXPIRY DATE (optional) ───────────────────────────────────────
+
+# lblVencimientoLabel
+#   Text:   ="Vencimiento (opcional)"
+#   Y:      =cmpMoneyInput_1.Y + cmpMoneyInput_1.Height + 16
+#   X:      =20
+
+# dtpVencimiento  (DatePicker)
+#   Y:          =lblVencimientoLabel.Y + lblVencimientoLabel.Height + 4
+#   X:          =20
+#   Width:      =Parent.Width - 40
+#   Format:     =DateTimeFormat.ShortDate
+#   DisplayMode:=If(varOcupado, DisplayMode.Disabled, DisplayMode.Edit)
+#   OnChange:   =Set(varVencimiento, dtpVencimiento.SelectedDate)
+
+---
+## ── SECTION 7: ERROR MESSAGE ─────────────────────────────────────────────────
+
+# lblErrorMsg
+#   Text:       =varErrorMsg
+#   Y:          =dtpVencimiento.Y + dtpVencimiento.Height + 8
+#   X:          =20
+#   Width:      =Parent.Width - 40
+#   Color:      =RGBA(200, 0, 0, 1)
+#   Visible:    =varErrorMsg <> ""
+#   AutoHeight: =true
+
+---
+## ── SECTION 8: CONFIRM BUTTON ────────────────────────────────────────────────
+## Atomicity: 4 Patch calls in sequence; if any fails varErrorMsg is set.
+## varNuevaCompra holds the returned Purchase record — used as FK in PurchaseLine.
+
+# btnConfirmar
+#   Text:   ="Confirmar compra"
+#   Y:      =lblErrorMsg.Y + lblErrorMsg.Height + 20
+#   X:      =Parent.Width - 220
+#   Width:  =200
+#   Height: =50
+#   DisplayMode: =If(varOcupado, DisplayMode.Disabled, DisplayMode.Edit)
+#
+#   OnSelect: |+
+#       =// ── VALIDATION ─────────────────────────────────────────────
+#       If(IsBlank(varProveedorSel),
+#           Set(varErrorMsg, "Selecciona un proveedor"); false,
+#       IsBlank(varProductoSel),
+#           Set(varErrorMsg, "Selecciona un producto"); false,
+#       varCantidad <= 0,
+#           Set(varErrorMsg, "La cantidad debe ser mayor a 0"); false,
+#       varPrecioUnit <= 0,
+#           Set(varErrorMsg, "El precio debe ser mayor a 0"); false,
+#       // Validation passed:
+#       true
+#       );
+#       If(varErrorMsg <> "", false,
+#
+#       // ── LOCK FORM ────────────────────────────────────────────────
+#       Set(varOcupado, true);
+#       Set(varErrorMsg, "");
+#
+#       // ── STEP 1: Create Purchase header ────────────────────────────
+#       // Patch() returns the created record — no secondary LookUp needed
+#       Set(
+#           varNuevaCompra,
+#           Patch(
+#               Purchases,
+#               Defaults(Purchases),
+#               {
+#                   'Purchase (crbc0_name)': "CMP-" & Text(Now(), "yyyymmddhhmmss"),
+#                   Provider:   varProveedorSel,         // VERIFY lookup column name
+#                   Workspace:  {Value: gblWorkspaceId}, // VERIFY lookup column name
+#                   'Purchase Date Time': Now(),          // VERIFY column display name
+#                   // B-02: verify enum name below in formula bar
+#                   Status: 'Status (Purchases)'.Completed
+#               }
+#           )
+#       );
+#       If(IsError(varNuevaCompra) || IsBlank(varNuevaCompra),
+#           Set(varOcupado, false);
+#           Set(varErrorMsg, "Error al crear la compra — intenta de nuevo");
+#           false,
+#
+#       // ── STEP 2: Create PurchaseLine ───────────────────────────────
+#       Patch(
+#           'Purchase Lines',
+#           Defaults('Purchase Lines'),
+#           {
+#               'Purchase Line (crbc0_name)': varNuevaCompra.'Purchase (crbc0_name)' & "-L1",
+#               Purchase:           varNuevaCompra,       // VERIFY lookup column name
+#               'Product Variant':  varProductoSel,       // VERIFY lookup column name
+#               Workspace:          {Value: gblWorkspaceId},
+#               Quantity:           varCantidad,          // VERIFY column display name
+#               'Unit Price':       varPrecioUnit,        // VERIFY column display name
+#               'Line Total':       varTotalLinea,        // VERIFY column display name
+#               'Expiry Date Manual': If(IsBlank(varVencimiento),
+#                                           Blank(),
+#                                           varVencimiento
+#                                   )
+#           }
+#       );
+#
+#       // ── STEP 3: Upsert ProviderProductPrice ──────────────────────
+#       // B-01: Requires 'Provider Product Prices' in Canvas Data panel
+#       Patch(
+#           'Provider Product Prices',
+#           LookUp(colPrecios,
+#               Provider.'crbc0_providerid'        = varProveedorSel.'crbc0_providerid'
+#                   && 'Product Variant'.'crbc0_productvariantid' = varProductoSel.'crbc0_productvariantid'
+#           ) ?? Defaults('Provider Product Prices'),
+#           {
+#               Provider:             varProveedorSel,
+#               'Product Variant':    varProductoSel,
+#               Workspace:            {Value: gblWorkspaceId},
+#               'Last Purchase Price': varPrecioUnit,    // VERIFY column display name
+#               'Last Updated Date':   Now(),            // VERIFY column display name
+#               'Is Active':           true              // VERIFY column display name
+#           }
+#       );
+#
+#       // ── STEP 4: Create StockBatch ─────────────────────────────────
+#       Patch(
+#           'Stock Batches',
+#           Defaults('Stock Batches'),
+#           {
+#               'Stock Batch (crbc0_name)': varNuevaCompra.'Purchase (crbc0_name)' & "-SB",
+#               'Product Variant': varProductoSel,       // VERIFY lookup column name
+#               Workspace:         {Value: gblWorkspaceId},
+#               Quantity:          varCantidad,          // VERIFY column display name
+#               'Purchase Line':   LookUp(              // VERIFY — links SB to line
+#                                      'Purchase Lines',
+#                                      Purchase.'crbc0_purchaseid' = varNuevaCompra.'crbc0_purchaseid'
+#                                  ),
+#               'Expiry Date':     If(IsBlank(varVencimiento), Blank(), varVencimiento),
+#               'Unit Cost':       varPrecioUnit         // VERIFY column display name
+#           }
+#       );
+#
+#       // ── SUCCESS: Notify + refresh colPrecios + reset form ─────────
+#       Notify("Compra registrada", NotificationType.Success);
+#
+#       // Only colPrecios needs refresh (providers/products stable per session)
+#       ClearCollect(
+#           colPrecios,
+#           Filter(
+#               'Provider Product Prices',
+#               Workspace.'Workspace (crbc0_workspaceid)' = gblWorkspaceId
+#           )
+#       );
+#
+#       Set(varOcupado,  false);
+#       Set(varErrorMsg, "");
+#       // Trigger full form reset via btnLimpiar logic
+#       Select(btnLimpiar)
+#       ));
+
+---
+## ── SECTION 9: CLEAR BUTTON ──────────────────────────────────────────────────
+
+# btnLimpiar
+#   Text:   ="Limpiar"
+#   Y:      =btnConfirmar.Y
+#   X:      =20
+#   Width:  =120
+#   Height: =50
+#   DisplayMode: =If(varOcupado, DisplayMode.Disabled, DisplayMode.Edit)
+#
+#   OnSelect: |+
+#       =Set(varPrecioAnterior, 0);
+#       Set(varCantidad,   1);
+#       Set(varPrecioUnit, 0);
+#       Set(varTotalLinea, 0);
+#       Set(varModoTotal,  false);
+#       Set(varVencimiento, Blank());
+#       Set(varErrorMsg,   "");
+#       Reset(ddlProveedor);
+#       Reset(ddlProducto);
+#       Reset(cmpQtyStepper_1);
+#       Reset(cmpMoneyInput_1);
+#       Reset(dtpVencimiento)
