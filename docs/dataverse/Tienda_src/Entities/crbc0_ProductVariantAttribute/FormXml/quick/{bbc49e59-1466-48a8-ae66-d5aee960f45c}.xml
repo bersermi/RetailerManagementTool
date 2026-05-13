@@ -22,7 +22,7 @@
                     <row>
                       <cell id="{5ceb9aa0-f1af-4699-9728-caac8d695546}">
                         <labels>
-                          <label description="AttibuteName" languagecode="1033" />
+                          <label description="AttributeName" languagecode="1033" />
                         </labels>
                         <control id="crbc0_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="crbc0_name" />
                       </cell>

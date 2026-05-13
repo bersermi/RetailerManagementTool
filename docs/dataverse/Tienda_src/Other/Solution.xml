@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26031.182" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26031.182" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26032.00183">
+<ImportExportXml version="9.2.26035.200" SolutionPackageVersion="9.2" languagecode="1033" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26035.200" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26035.00200">
   <SolutionManifest>
     <UniqueName>Tienda</UniqueName>
     <LocalizedNames>
@@ -84,7 +84,6 @@
       <RootComponent type="1" schemaName="crbc0_productvariant" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_productvariantattribute" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_provider" behavior="0" />
-      <RootComponent type="1" schemaName="crbc0_providercatalogitem" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_purchase" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_purchaseline" behavior="0" />
       <RootComponent type="1" schemaName="crbc0_sale" behavior="0" />
@@ -99,7 +98,7 @@
       <RootComponent type="1" schemaName="crbc0_workspacesettings" behavior="1" />
       <RootComponent type="1" schemaName="don_modules" behavior="0" />
       <RootComponent type="1" schemaName="systemuser" behavior="0" />
-      <RootComponent type="300" schemaName="don_tienda_2d97e" behavior="0" />
+      <RootComponent type="300" schemaName="don_tests2_0e1e9" behavior="0" />
       <RootComponent type="300" schemaName="don_tiendacomponents_a7ac9" behavior="0" />
     </RootComponents>
     <MissingDependencies>
@@ -110,22 +109,38 @@
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="appusersetting" displayName="Model-Driven App User Setting" solution="AppModule (9.2.2601.2601231)">
-          <package appName="AppModule" version="9.2.2601.2601231">AppModuleSolutionAnchor (9.2.2601.2601231)</package>
+        <Required type="1" schemaName="appusersetting" displayName="Model-Driven App User Setting" solution="AppModule (9.2.2603.2603182)">
+          <package appName="AppModule" version="9.2.2603.2603182">AppModuleSolutionAnchor (9.2.2603.2603182)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="bot" displayName="Agent" solution="PowerVirtualAgents (2026.2.3.19372848)">
-          <package appName="CCI Bots" version="2026.2.3.19372848">msdynce_CustomerCareIntelligenceBots_Anchor (2026.2.3.19372848)</package>
+        <Required type="1" schemaName="bot" displayName="Agent" solution="PowerVirtualAgents (2026.3.2.19372844)">
+          <package appName="CCI Bots" version="2026.3.2.19372844">msdynce_CustomerCareIntelligenceBots_Anchor (2026.3.2.19372844)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="componentversion" displayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.712)">
-          <package appName="Component Versioning Package" version="9.1.0.712">ComponentVersioning_Anchor (9.1.0.712)</package>
+        <Required type="1" schemaName="componentversion" displayName="Component Version" solution="msdyn_ComponentVersioning (9.1.0.766)">
+          <package appName="Component Versioning Package" version="9.1.0.766">ComponentVersioning_Anchor (9.1.0.766)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="crbc0_providerproductprice" displayName="ProviderProductPrice" solution="Active" />
+        <Dependent type="1" schemaName="crbc0_productvariant" displayName="ProductVariant" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="crbc0_providerproductprice" displayName="ProviderProductPrice" solution="Active" />
+        <Dependent type="1" schemaName="crbc0_provider" displayName="Provider" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="crbc0_providerproductprice" displayName="ProviderProductPrice" solution="Active" />
+        <Dependent type="1" schemaName="crbc0_workspace" displayName="Workspace" />
+      </MissingDependency>
+      <MissingDependency>
+        <Required type="1" schemaName="crbc0_providerproductprice" displayName="ProviderProductPrice" solution="Active" />
+        <Dependent type="300" schemaName="don_tests2_0e1e9" displayName="Tests2" />
       </MissingDependency>
       <MissingDependency>
         <Required type="1" schemaName="crbc0_userunitpreference" displayName="UserUnitPreference" solution="Active" />
@@ -134,10 +149,6 @@
       <MissingDependency>
         <Required type="1" schemaName="crbc0_userunitpreference" displayName="UserUnitPreference" solution="Active" />
         <Dependent type="1" schemaName="systemuser" displayName="User" />
-      </MissingDependency>
-      <MissingDependency>
-        <Required type="1" schemaName="crbc0_userunitpreference" displayName="UserUnitPreference" solution="Active" />
-        <Dependent type="300" schemaName="don_tienda_2d97e" displayName="Tienda" />
       </MissingDependency>
       <MissingDependency>
         <Required type="1" schemaName="crbc0_workspacesettings" displayName="WorkspaceSettings" solution="Active" />
@@ -319,7 +330,7 @@
       </MissingDependency>
       <MissingDependency>
         <Required type="1" schemaName="sa_suggestedaction" displayName="Suggested Action" solution="msdyn_SuggestedAction (1.0.0.2)">
-          <package appName="PowerAppsAppCopilotApp Package" version="9.2.0.2">msdyn_M365CopilotAppInfraSettings (9.2.0.2)</package>
+          <package appName="PowerAppsAppCopilotApp Package" version="9.2.0.4">msdyn_M365CopilotAppInfraSettings (9.2.0.4)</package>
         </Required>
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
@@ -330,7 +341,7 @@
         <Dependent type="1" schemaName="systemuser" displayName="User" />
       </MissingDependency>
       <MissingDependency>
-        <Required type="1" schemaName="systemuser" displayName="SystemUser" parentSchemaName="" solution="msdyn_PowerAdminSettingsEmail (1.1.1.3079)" />
+        <Required type="1" schemaName="systemuser" displayName="SystemUser" parentSchemaName="" solution="msdyn_PowerAdminSettingsEmail (1.1.1.3109)" />
         <Dependent type="1" schemaName="systemuser" displayName="SystemUser" />
       </MissingDependency>
       <MissingDependency>

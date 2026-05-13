@@ -56,7 +56,7 @@
                     <row>
                       <cell id="{e2cdc1a1-2c01-4877-9ac2-379e932834a2}" showlabel="true" locklevel="0">
                         <labels>
-                          <label description="AttibuteName" languagecode="1033" />
+                          <label description="AttributeName" languagecode="1033" />
                         </labels>
                         <control id="crbc0_name" classid="{4273EDBD-AC1D-40d3-9FB2-095C621B552D}" datafieldname="crbc0_name" disabled="false" />
                       </cell>

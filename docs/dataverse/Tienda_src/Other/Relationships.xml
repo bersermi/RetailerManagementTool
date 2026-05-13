@@ -6,7 +6,6 @@
   <EntityRelationship Name="business_unit_crbc0_productvariant" />
   <EntityRelationship Name="business_unit_crbc0_productvariantattribute" />
   <EntityRelationship Name="business_unit_crbc0_provider" />
-  <EntityRelationship Name="business_unit_crbc0_providercatalogitem" />
   <EntityRelationship Name="business_unit_crbc0_purchase" />
   <EntityRelationship Name="business_unit_crbc0_purchaseline" />
   <EntityRelationship Name="business_unit_crbc0_sale" />
@@ -34,9 +33,6 @@
   <EntityRelationship Name="crbc0_productvariantattribute_ProductVariant_crbc0_productvariant" />
   <EntityRelationship Name="crbc0_productvariantattribute_Workspace_crbc0_workspace" />
   <EntityRelationship Name="crbc0_provider_Workspace_crbc0_workspace" />
-  <EntityRelationship Name="crbc0_providercatalogitem_ProductVariant_crbc0_productvariant" />
-  <EntityRelationship Name="crbc0_providercatalogitem_Provider_crbc0_provider" />
-  <EntityRelationship Name="crbc0_providercatalogitem_Workspace_crbc0_workspace" />
   <EntityRelationship Name="crbc0_purchase_Provider_crbc0_provider" />
   <EntityRelationship Name="crbc0_purchase_Workspace_crbc0_workspace" />
   <EntityRelationship Name="crbc0_purchaseline_ProductVariant_crbc0_productvariant" />
@@ -78,8 +74,6 @@
   <EntityRelationship Name="lk_crbc0_productvariantattribute_modifiedby" />
   <EntityRelationship Name="lk_crbc0_provider_createdby" />
   <EntityRelationship Name="lk_crbc0_provider_modifiedby" />
-  <EntityRelationship Name="lk_crbc0_providercatalogitem_createdby" />
-  <EntityRelationship Name="lk_crbc0_providercatalogitem_modifiedby" />
   <EntityRelationship Name="lk_crbc0_purchase_createdby" />
   <EntityRelationship Name="lk_crbc0_purchase_modifiedby" />
   <EntityRelationship Name="lk_crbc0_purchaseline_createdby" />
@@ -114,7 +108,6 @@
   <EntityRelationship Name="owner_crbc0_productvariant" />
   <EntityRelationship Name="owner_crbc0_productvariantattribute" />
   <EntityRelationship Name="owner_crbc0_provider" />
-  <EntityRelationship Name="owner_crbc0_providercatalogitem" />
   <EntityRelationship Name="owner_crbc0_purchase" />
   <EntityRelationship Name="owner_crbc0_purchaseline" />
   <EntityRelationship Name="owner_crbc0_sale" />
@@ -134,7 +127,6 @@
   <EntityRelationship Name="team_crbc0_productvariant" />
   <EntityRelationship Name="team_crbc0_productvariantattribute" />
   <EntityRelationship Name="team_crbc0_provider" />
-  <EntityRelationship Name="team_crbc0_providercatalogitem" />
   <EntityRelationship Name="team_crbc0_purchase" />
   <EntityRelationship Name="team_crbc0_purchaseline" />
   <EntityRelationship Name="team_crbc0_sale" />
@@ -148,7 +140,6 @@
   <EntityRelationship Name="team_crbc0_workspacemember" />
   <EntityRelationship Name="team_don_modules" />
   <EntityRelationship Name="TransactionCurrency_crbc0_ProductVariant" />
-  <EntityRelationship Name="TransactionCurrency_crbc0_ProviderCatalogItem" />
   <EntityRelationship Name="TransactionCurrency_crbc0_Purchase" />
   <EntityRelationship Name="TransactionCurrency_crbc0_PurchaseLine" />
   <EntityRelationship Name="TransactionCurrency_crbc0_Sale" />
@@ -159,7 +150,6 @@
   <EntityRelationship Name="user_crbc0_productvariant" />
   <EntityRelationship Name="user_crbc0_productvariantattribute" />
   <EntityRelationship Name="user_crbc0_provider" />
-  <EntityRelationship Name="user_crbc0_providercatalogitem" />
   <EntityRelationship Name="user_crbc0_purchase" />
   <EntityRelationship Name="user_crbc0_purchaseline" />
   <EntityRelationship Name="user_crbc0_sale" />
