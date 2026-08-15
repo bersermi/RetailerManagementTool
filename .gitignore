@@ -1,0 +1,3 @@
+# Personal Claude Code settings — the auto-draft-PR Stop hook lives here.
+# The script it calls (.claude/hooks/) is committed; enabling it is per-developer.
+.claude/settings.local.json
