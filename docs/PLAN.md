@@ -6,6 +6,9 @@ place that answers "where are we?" after a context clear.
 **Architecture:** [`docs/adr/ADR-035`](adr/ADR-035-target-architecture-postgres-react-native.md).
 Where this file and the ADR disagree, the ADR wins and this file is the bug.
 
+**New here, or not a developer?** [`docs/HANDBOOK.md`](HANDBOOK.md) explains the
+tooling, the working loop, and where Claude is likely to be wrong.
+
 **Stack:** Postgres (Supabase) + React Native (Expo). Mexico-based small retailers,
 MXN, IVA. Spanish module names are the domain vocabulary: Comprar (buy), Vender
 (sell), Productos (catalog), Proveedores (providers), Desperdicio (waste),
