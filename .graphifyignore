@@ -1,0 +1,10 @@
+# Keep the knowledge graph scoped to the system being built.
+#
+# The Power Platform era is kept for its reasoning (see archive/power-platform/README.md)
+# but it is ~3.9MB of superseded documentation. Indexing it means every
+# `graphify query` competes against decisions that are no longer true — including
+# four ADRs that ADR-035 §1 proves were never true.
+archive/
+
+# Generated output.
+graphify-out/
