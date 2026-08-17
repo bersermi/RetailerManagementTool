@@ -270,10 +270,13 @@ purpose. **Merging touches no database and deploys nothing** — it only changes
 which version of the files `main` points at. The work goes onto a branch first so
 that `main` only ever contains what CI has already passed.
 
-Merging a migration is the one step deliberately left to a person. `supabase/README.md`
-says no migration merges without the schema owner reading it; the merge button is
-where that happens, and it is the reason Claude will push and open the PR but stop
-short of pressing it.
+Merging a migration needs the schema owner's approval — which is a decision, not a
+keystroke. Claude opens the pull request, reports CI's verdict, and asks; you answer;
+Claude merges. Settled 2026-08-17.
+
+Saying *no*, or *not yet, I want to read it first*, is always available and costs
+nothing: the branch sits there until you say otherwise, and nothing is deployed
+either way.
 
 **Context / clearing context** — everything Claude can currently see. It fills up,
 costs money, and degrades. Clearing starts fresh, which is safe here because the

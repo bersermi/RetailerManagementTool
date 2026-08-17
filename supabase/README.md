@@ -24,7 +24,14 @@ keys, the `WorkspaceMember.Role` column, the ADR-011 batch invariant. Documentat
 that reads as ground truth and isn't is worse than no documentation.
 
 Nothing reaches the database by hand. No migration merges without the schema owner
-reading it.
+**approving** it.
+
+Approving, not pressing the button. Claude opens the pull request, reports what CI
+said, and asks; the owner answers; Claude merges. Settled by the schema owner on
+2026-08-17, and it changes nothing about the checkpoint — the review is still a
+person's judgement on a real diff with a real CI verdict attached. Who types
+`gh pr merge` was never the part that mattered. What is still not allowed is merging
+unasked.
 
 ## Migrations
 

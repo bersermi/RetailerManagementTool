@@ -44,6 +44,11 @@ One task per session, taken from `docs/PLAN.md`. Estimate difficulty first; if t
 task is large, split it in the plan before writing code, so the work survives a
 context clear or a usage limit. Update `docs/PLAN.md` when a task closes.
 
+**Merging is the owner's to approve and yours to execute** (settled 2026-08-17).
+Push the branch, open the PR, report what CI actually said, and ask. On a yes, run
+`gh pr merge`. Never merge unasked, and never ask before CI is green — an approval
+given without a verdict is not the checkpoint `supabase/README.md` describes.
+
 Local database: `supabase start` then `supabase db reset`. Add
 `-x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`
 to bring up only what a migration reset needs.
