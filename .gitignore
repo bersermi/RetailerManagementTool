@@ -3,3 +3,6 @@
 
 # graphify knowledge graph (derived artifact; rebuild with `graphify extract .`)
 graphify-out/
+
+# per-machine Claude Code settings (holds graphify's absolute-path hooks)
+.claude/settings.local.json
