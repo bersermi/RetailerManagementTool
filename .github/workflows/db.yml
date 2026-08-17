@@ -5,9 +5,13 @@ name: db
 # Postgres is."
 #
 # This workflow is that evidence. It applies every migration in supabase/migrations/
-# from scratch against a real Postgres. It does not yet assert behaviour — the six
-# confirmations in supabase/README.md "Verification status" and the pgTAP suites of
-# ADR-035 §3 step 3 land on top of this.
+# from scratch against a real Postgres, then runs the behavioural checks in
+# supabase/tests/ against the result.
+#
+# The reset alone proves only that the DDL parses. The checks are what prove the
+# constraints do their job — and, crucially, they run the isolation assertions
+# under `set role authenticated`, because the postgres superuser bypasses RLS and
+# would pass them vacuously. ADR-035 §3 step 3 replaces supabase/tests/ with pgTAP.
 
 on:
   push:
@@ -48,6 +52,19 @@ jobs:
       # step means the schema is real. Print it so a reviewer can read what landed.
       - name: Show applied schema
         run: supabase migration list --local
+
+      # Every file in supabase/tests/, in name order, against the database the
+      # reset just built. Each one assumes a freshly reset database and leaves
+      # its fixture rows behind, so the reset is repeated between files.
+      - name: Behavioural checks
+        run: |
+          eval "$(supabase status -o env | grep '^DB_URL=')"
+          for f in supabase/tests/*.sql; do
+            echo "::group::$f"
+            supabase db reset >/dev/null
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            echo "::endgroup::"
+          done
 
       - name: Stop
         if: always()

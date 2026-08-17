@@ -260,6 +260,24 @@ every push. The independent referee.
 **Branch** — a parallel copy of the project for work in progress. `main` is the
 real one.
 
+**Pull request (PR)** — a request to fold a branch back into `main`, with the
+changes laid out for reading and CI's verdict attached. It is where the work is
+reviewed, not where it takes effect.
+
+**Merge** — accepting that request: the branch's commits are copied into `main`,
+which becomes the version that includes them. The branch has then served its
+purpose. **Merging touches no database and deploys nothing** — it only changes
+which version of the files `main` points at. The work goes onto a branch first so
+that `main` only ever contains what CI has already passed.
+
+Merging a migration needs the schema owner's approval — which is a decision, not a
+keystroke. Claude opens the pull request, reports CI's verdict, and asks; you answer;
+Claude merges. Settled 2026-08-17.
+
+Saying *no*, or *not yet, I want to read it first*, is always available and costs
+nothing: the branch sits there until you say otherwise, and nothing is deployed
+either way.
+
 **Context / clearing context** — everything Claude can currently see. It fills up,
 costs money, and degrades. Clearing starts fresh, which is safe here because the
 plan lives in files.
