@@ -1,0 +1,54 @@
+name: db
+
+# ADR-035 §9: "Every schema claim in an ADR must be traceable to a migration that
+# CI has applied and tested. A file is not evidence. A green CI run against a real
+# Postgres is."
+#
+# This workflow is that evidence. It applies every migration in supabase/migrations/
+# from scratch against a real Postgres. It does not yet assert behaviour — the six
+# confirmations in supabase/README.md "Verification status" and the pgTAP suites of
+# ADR-035 §3 step 3 land on top of this.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "supabase/**"
+      - ".github/workflows/db.yml"
+
+# A later push to the same branch makes an in-flight run irrelevant.
+concurrency:
+  group: db-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  reset:
+    name: supabase db reset
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned to the version 0001 was first verified against, so a CLI
+          # release cannot turn a green schema red without a commit saying why.
+          version: 2.114.0
+
+      - name: Start local Postgres
+        run: supabase start
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      # `db reset` exits non-zero if any migration fails to apply, so reaching this
+      # step means the schema is real. Print it so a reviewer can read what landed.
+      - name: Show applied schema
+        run: supabase migration list --local
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup

@@ -168,9 +168,14 @@ Daily totals and the 15-minute void window read `occurred_at`. Audit reads
 
 ## Verification status
 
-`0001` has **not been executed**. There is no local Postgres, Docker or Supabase CLI
-in this environment. Until CI has applied it, nothing in this directory is evidence
-of anything.
+`0001` was **applied locally** for the first time on 2026-08-16, against Postgres 17
+via OrbStack, Supabase CLI 2.114.0. `supabase db reset` completed with no errors and
+all six confirmations below pass.
+
+CI has **not yet run**. Per ADR-035 §9 a local pass is not the bar — the gate is
+`.github/workflows/db.yml`, which applies every migration from scratch on any PR
+touching `supabase/**`. Until that is green on a PR, this section records a developer
+machine, not evidence.
 
 ```bash
 brew install orbstack                    # lighter than Docker Desktop
@@ -179,7 +184,12 @@ supabase init && supabase start
 supabase db reset                        # applies migrations from scratch
 ```
 
-Then confirm:
+`supabase start -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`
+brings up only what a migration reset needs.
+
+Confirmed 2026-08-16 (all six pass; the RLS check was run under `set role
+authenticated`, since the `postgres` superuser bypasses RLS and would pass
+vacuously):
 
 - the 10 seeded units are present;
 - `onboard_workspace('Tienda X')` creates exactly four rows — workspace, owner
