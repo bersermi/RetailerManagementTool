@@ -22,7 +22,7 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is closed. Step 1 is underway — tasks 1.1 and 1.2 done, 1.3a next.
+Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2 and 1.3a done, 1.3b next.
 Both open decisions in this file were resolved 2026-08-17; none is outstanding.
 
 | Step | What | Status |
@@ -73,8 +73,8 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 |---|------|------|-----------|
 | ~~1.1~~ | ~~`0002` catalog~~ — **done** 2026-08-16. `db reset` green; zero cross-workspace leakage on all five tables under `set role authenticated`; generic provider undeletable and undemotable; price overlap, cross-dimension units and normalized-name duplicates all rejected | M | ✅ |
 | ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17, [CI green on PR #1](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624). 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
-| 1.3a | `0004` inventory — `stock_batch`, `stock_movement` (append-only), `batch_balance` + projection trigger, partial index per location, RLS, grants | M | `db reset` green; the §2.4 invariant holds on a hand-built fixture including a reversal; `batch_balance` rebuilt from `stock_movement` alone reproduces every row exactly |
-| 1.3b | `0005` allocation — `allocate_fefo()` and the transfer movement shape | M | FEFO order proven (expiry asc, `received_at` as tiebreak, NULL expiry last); allocation is location-scoped; two concurrent allocations cannot oversell one batch; a transfer carries cost and expiry forward and never updates `stock_batch.location_id` |
+| ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17. 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
+| 1.3b | `0005` allocation — `allocate_fefo()` and the paired transfer write | M | FEFO order proven (expiry asc, `received_at` as tiebreak, NULL expiry last); allocation is location-scoped; two concurrent allocations cannot oversell one batch; a transfer carries cost and expiry forward and never updates `stock_batch.location_id` |
 | 1.4 | `0008` purchase-price view — last `purchase_line` per `(provider, variant)` | S | A voided delivery stops prefilling its price; `explain` confirms the two-index plan (see below) |
 | 1.5 | Seed skeleton — two locations, ~300 products, mixed units, mixed tax, packs and weighed items | M | `db reset` runs `seed.sql` clean |
 | 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
@@ -93,8 +93,15 @@ narrowing its own scope.
 
 - **1.3a and 1.3b are the biggest piece.** `stock_movement` is the system of record;
   `batch_balance` is a disposable projection rebuildable from it. The transfer
-  movement shape is fixed in 1.3b even though the screen ships at step 6 — getting it
-  wrong is the same class of error as omitting `location_id` (ADR-035 §2.4).
+  movement shape is fixed before the screen ships at step 6 — getting it wrong is the
+  same class of error as omitting `location_id` (ADR-035 §2.4). **Settled while
+  building 1.3a:** the *shape* went into `0004` and the *mechanics* stay in `0005`.
+  ADR-035 §2.4 fixes the shape "in migration `0004`", meaning the ledger migration,
+  which after the renumbering is the inventory one; the alternative was an `ALTER` in
+  `0005` adding columns to a table `0004` had just defined, leaving `0004` unable to
+  represent one of the four things the ledger does. So `transfer_in`/`transfer_out`,
+  `transfer_group_id` and `stock_batch.source_batch_id` exist and are constrained
+  now; `allocate_fefo()` and the paired write are still 1.3b's.
 - **1.4 is small and easy to get wrong.** The view must exclude **both** reversal
   documents **and** the documents they reverse, or a voided delivery keeps
   prefilling forever.
@@ -122,6 +129,35 @@ narrowing its own scope.
   `0003` ships the two-index equivalent instead; **1.4 must confirm it against a real
   `explain`** rather than assume it. Denormalising the header columns onto the line
   was rejected: it buys an index and sells the guarantee that they agree.
+
+### Settled in 1.3a, and binding on what comes after
+
+- **A batch never changes, and neither does a movement.** Both carry the same
+  append-only trigger the documents carry, so `0005`–`0007` cannot "correct" a lot
+  from inside a `security definer` function. `stock_batch` has no
+  remaining-quantity column at all — what is left lives only in `batch_balance`.
+- **`batch_balance` is opened at zero when the batch is created,** and the receipt
+  itself is a movement. `record_purchase` must therefore write both the batch and a
+  positive movement; writing only the batch leaves stock at zero, and seeding the
+  balance with `qty_received_base` would double the delivery.
+- **A reversal movement keeps the reason it cancels** and sets
+  `reversal_of_movement_id`; there is no `'reversal'` value in `movement_reason`.
+  Otherwise every report that asks "how much did we sell" has to remember to union
+  two reasons. The compensating movement is scoped to the **same batch** by the FK,
+  and a movement can be reversed at most once — the movement-level analogue of the
+  document rule from 1.2, and needed separately because `adjust_stock_delta` and
+  `replay_failed_write` write movements without writing documents.
+- **A negative `remaining_base` is legal and must stay legal.** v1 records stock and
+  does not enforce it (ADR-035 §2.6). A `>= 0` constraint would turn a permitted
+  oversale into an exception at the counter, in front of a customer.
+- **`batch_balance_violations()` and `rebuild_batch_balance()` are the §2.4 invariant
+  in executable form.** No role holds execute; they are for CI, for the nightly
+  production check, and for an operator who has decided to throw the projection away.
+  1.7 wires the first over seed data.
+- **The FEFO ordering is servable from one index.** `batch_balance` copies
+  `expiry_date` and `received_at` from the batch, and
+  `(location_id, variant_id, expiry_date, received_at) where remaining_base > 0` is
+  partial on the open lots. 1.3b's allocator should not need to join `stock_batch`.
 
 ### Decided 2026-08-17 — the waste vocabulary
 
