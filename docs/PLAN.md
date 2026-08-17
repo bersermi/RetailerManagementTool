@@ -19,7 +19,7 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is complete locally. Step 1 has not started.
+Step 0 is complete locally. Step 1 is underway — task 1.1 done, 1.2 next.
 
 | Step | What | Status |
 |------|------|--------|
@@ -57,7 +57,7 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 
 | # | Task | Size | Done when |
 |---|------|------|-----------|
-| 1.1 | `0002` catalog — `product_family`, `product_variant`, `provider` (incl. non-deletable `is_generic`), `price_list` (sell prices only, `btree_gist` exclusion constraint), `workspace_invite` | M | `db reset` green; RLS blocks cross-workspace reads on all five |
+| ~~1.1~~ | ~~`0002` catalog~~ — **done** 2026-08-16. `db reset` green; zero cross-workspace leakage on all five tables under `set role authenticated`; generic provider undeletable and undemotable; price overlap, cross-dimension units and normalized-name duplicates all rejected | M | ✅ |
 | 1.2 | `0003` transactions — `purchase`/`sale`/`waste` + line tables, all carrying `location_id` and `payload_hash` | M | `db reset` green; reversal self-FK and client-id idempotency hold |
 | 1.3 | `0004` inventory — `stock_batch`, `stock_movement` (append-only), `batch_balance` + projection trigger, partial index per location | **L** | The §2.4 invariant holds on a hand-built fixture |
 | 1.4 | Purchase-price view — last `purchase_line` per `(provider, variant)` | S | A voided delivery stops prefilling its price |

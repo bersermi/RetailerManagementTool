@@ -31,12 +31,10 @@ reading it.
 | File | Contents |
 |------|----------|
 | `0001_foundation_tenancy_and_units.sql` | Roles enum, `unit` reference table + seed, `workspace` / `location` / `workspace_member` / `member_location` / `workspace_setting`, RLS helper functions incl. `my_locations()`, `onboard_workspace()`, RLS policies, grants |
+| `0002_catalog.sql` | `btree_gist` + `citext`, `normalize_name()`, `product_family`, `product_variant` (+ dimension-consistency trigger), `provider` (+ non-deletable generic), `price_list` (sell prices only, no-overlap exclusion constraint), `workspace_invite`, `onboard_workspace()` replaced to seed the generic provider, RLS policies, grants |
 
 Planned next, in order (ADR-035 §3):
 
-- `0002` — catalog: `product_family`, `product_variant`, `provider` (incl. the
-  non-deletable `is_generic` row), `price_list` (**sell prices only**),
-  `workspace_invite`
 - `0003` — transactions: `purchase`, `sale`, `waste` and their line tables (all
   `location_id`, all carrying `payload_hash` on the header)
 - `0004` — inventory: `stock_batch`, `stock_movement`, `batch_balance` + projection trigger, per location
