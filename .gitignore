@@ -4,5 +4,8 @@
 # graphify knowledge graph (derived artifact; rebuild with `graphify extract .`)
 graphify-out/
 
-# per-machine Claude Code settings (holds graphify's absolute-path hooks)
+# Per-machine Claude Code settings. Holds two things that are per-developer:
+# graphify's PreToolUse hooks (absolute path to the graphify executable) and
+# the auto-draft-PR Stop hook. The script it calls (.claude/hooks/) is
+# committed; enabling it is per-developer.
 .claude/settings.local.json
