@@ -332,5 +332,9 @@ A negative `remaining_base` is asserted to be **representable**, not rejected. v
 records stock and does not enforce it (§2.6); a `>= 0` constraint would turn a
 permitted oversale into a raised exception at the counter.
 
-**CI verdict: pending** — this section is filled in from the Actions tab, not from a
-local terminal, and per ADR-035 §9 the local pass above is not the bar.
+**CI applied `0001`–`0004` from scratch and ran both suites green on 2026-08-17**,
+run [32043051234](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234)
+on PR [#2](https://github.com/bersermi/RetailerManagementTool/pull/2) — *all 39 checks
+passed* for `0003` and *all 54 checks passed* for `0004`, read from the job log rather
+than from the green tick, since a green tick alone would also be what a silently
+skipped test step looks like.
