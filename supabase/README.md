@@ -32,22 +32,36 @@ reading it.
 |------|----------|
 | `0001_foundation_tenancy_and_units.sql` | Roles enum, `unit` reference table + seed, `workspace` / `location` / `workspace_member` / `member_location` / `workspace_setting`, RLS helper functions incl. `my_locations()`, `onboard_workspace()`, RLS policies, grants |
 | `0002_catalog.sql` | `btree_gist` + `citext`, `normalize_name()`, `product_family`, `product_variant` (+ dimension-consistency trigger), `provider` (+ non-deletable generic), `price_list` (sell prices only, no-overlap exclusion constraint), `workspace_invite`, `onboard_workspace()` replaced to seed the generic provider, RLS policies, grants |
+| `0003_transactions.sql` | `waste_reason` enum, `purchase`/`purchase_line`, `sale`/`sale_line`, `waste`/`waste_line` — all `location_id`, all carrying `payload_hash` and `reversal_of` on the header; composite header↔line FKs; one-reversal-per-document index; an append-only trigger on all six; select-only RLS and grants |
 
 Planned next, in order (ADR-035 §3):
 
-- `0003` — transactions: `purchase`, `sale`, `waste` and their line tables (all
-  `location_id`, all carrying `payload_hash` on the header)
 - `0004` — inventory: `stock_batch`, `stock_movement`, `batch_balance` + projection trigger, per location
-- `0005` — RPCs: `record_sale`, `record_purchase`, `record_waste`, `record_transfer`,
+- `0005` — allocation: `allocate_fefo()` and the transfer movement shape
+- `0006` — RPCs: `record_sale`, `record_purchase`, `record_waste`, `record_transfer`,
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
-- `0006` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
+- `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
   (ADR-035 §3 step 4.5 — before any screen exists)
-- `0007` — provider price memory view over `purchase_line`; analytics views and
+- `0008` — provider price memory view over `purchase_line`; analytics views and
   nightly rollups, per location and consolidated
+
+**`0005` is new, and everything after it shifted by one** (2026-08-17). FEFO
+allocation is a ledger primitive, not a detail of `record_sale`: the seed writes the
+ledger three steps before the RPCs exist, and a seed that allocates differently from
+`record_sale` would let step 2 — the design gate, which turns on margin-by-product —
+pass on data the real system never produces. One `security definer` allocator, called
+by the seed and later by the RPCs. This is the same reasoning ADR-035 §2.4 already
+applies to the transfer movement shape, which it fixes in the ledger migration even
+though the screen ships at step 6. The decision and its alternatives are in
+[`docs/PLAN.md`](../docs/PLAN.md).
+
+`0002` predates the shift and its comments still call the RPC migration `0005`. It
+has been applied, so it is not edited — this table is the authority on numbering and
+that comment is stale by one. `0001` and `0003` carry no stale reference.
 
 `price_list` carries no `provider_id`. Sell prices are curated and per location;
 purchase prices are *remembered* per provider-product pair and derived from
-`purchase_line`, so they are a view in `0007` and not a table anywhere. Putting both
+`purchase_line`, so they are a view in `0008` and not a table anywhere. Putting both
 kinds in one table is what created the NULL that made the overlap constraint inert
 (ADR-035 §2.3).
 
@@ -85,6 +99,23 @@ the shape safe to copy without thinking. Both are written `in (select fn())` rat
 than as a bare call so the planner evaluates them once per query, not once per row.
 
 There is no administrative exception and no cross-workspace read policy.
+
+**One qualifier, added in `0003`.** Three tables carry cost — `purchase`,
+`purchase_line`, `waste_line` — and their policies append
+`and public.has_role(workspace_id, 'manager')` to the location-level shape. That is
+still one of the two shapes; the role predicate is a filter on top of it, never a
+replacement for either tenancy predicate, and the ADR-035 §2.7 rule it implements is
+that staff hold no `select` on a base table carrying cost. The staff-facing
+`security_invoker` views that expose the non-cost columns ship with the screens that
+need them. `waste` (the header) is deliberately *not* gated: it carries retail value,
+not cost, and a cashier must be able to see that the document exists.
+
+**Transaction tables are `select`-only.** Clients never insert (ADR-035 §2.6), so
+`0003` grants `select` and nothing else on all six and writes no insert/update/delete
+policy. The absence is the design. Documents additionally carry a `before update or
+delete` trigger that raises `restrict_violation` — aimed not at `authenticated`,
+which has no grant anyway, but at the `security definer` RPCs of `0006`, where RLS
+and grants are not running and a well-meaning `UPDATE` would look ordinary in review.
 
 `my_workspaces()` and `my_locations()` are `security definer` so they can read
 `workspace_member` without tripping that table's own policy — without it the policies
@@ -198,3 +229,31 @@ vacuously):
 - a manager gets every location without any `member_location` row;
 - `member_location` refuses a member and a location drawn from two different
   workspaces (the composite FKs should reject it).
+
+### `0003` — transactions
+
+Applied locally 2026-08-17, same toolchain. `supabase db reset` applies `0001`–`0003`
+with no errors, and **39 behavioural checks pass**, all of them run from
+`supabase/tests/0003_transactions.sql`:
+
+```bash
+supabase db reset
+psql "$(supabase status -o env | grep '^DB_URL=' | cut -d'"' -f2)" \
+  -v ON_ERROR_STOP=1 -f supabase/tests/0003_transactions.sql
+```
+
+The checks cover: the reversal self-FK (a void cannot cross a store or a tenant, a
+document cannot reverse itself, and a document cannot be voided twice); client-id
+idempotency (`on conflict (id) do nothing` inserts no second row and leaves the
+committed totals alone, while a bare re-insert still raises); the composite
+header↔line FKs; the sign and rate CHECKs; the append-only trigger, exercised **as
+superuser**; and RLS from four callers — a staff member at one store, a staff member
+at the other, a manager, and the owner of a second tenant — all under `set role
+authenticated`.
+
+**That file is now part of the CI gate**, running after the reset in
+`.github/workflows/db.yml`. ADR-035 §3 step 3 replaces it with pgTAP.
+
+**CI has still not run — on any migration.** The gate exists and now asserts
+behaviour, but nothing in this section is evidence under ADR-035 §9 until it is
+green on a pull request. Everything above records a developer machine.
