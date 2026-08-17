@@ -201,10 +201,17 @@ Daily totals and the 15-minute void window read `occurred_at`. Audit reads
 via OrbStack, Supabase CLI 2.114.0. `supabase db reset` completed with no errors and
 all six confirmations below pass.
 
-CI has **not yet run**. Per ADR-035 §9 a local pass is not the bar — the gate is
-`.github/workflows/db.yml`, which applies every migration from scratch on any PR
-touching `supabase/**`. Until that is green on a PR, this section records a developer
-machine, not evidence.
+**CI applied it green on 2026-08-17**, run
+[31992129685](https://github.com/bersermi/RetailerManagementTool/actions/runs/31992129685),
+and again under `0002` in
+[31996346725](https://github.com/bersermi/RetailerManagementTool/actions/runs/31996346725).
+
+*This paragraph said "CI has not yet run" until 2026-08-17. It was false from the
+moment `.github/workflows/db.yml` was merged — the workflow runs on push to `main`,
+so it had already gone green three times before anyone corrected the sentence. A
+verification section that understates is the same defect as one that overstates:
+either way the file is not the thing it claims to be. Check the Actions tab, not this
+file, and then fix this file.*
 
 ```bash
 brew install orbstack                    # lighter than Docker Desktop
@@ -251,9 +258,14 @@ superuser**; and RLS from four callers — a staff member at one store, a staff 
 at the other, a manager, and the owner of a second tenant — all under `set role
 authenticated`.
 
-**That file is now part of the CI gate**, running after the reset in
+**That file is part of the CI gate**, running after the reset in
 `.github/workflows/db.yml`. ADR-035 §3 step 3 replaces it with pgTAP.
 
-**CI has still not run — on any migration.** The gate exists and now asserts
-behaviour, but nothing in this section is evidence under ADR-035 §9 until it is
-green on a pull request. Everything above records a developer machine.
+**CI applied `0001`–`0003` from scratch and ran all 39 checks green on 2026-08-17**,
+run [32002904624](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624)
+on PR [#1](https://github.com/bersermi/RetailerManagementTool/pull/1). That is the
+first run in which the gate asserted **behaviour** rather than only that the DDL
+parses, and it is the first schema claim in this repo that meets ADR-035 §9 in full.
+
+The harness fails loudly: a deliberately falsified check was confirmed to exit
+non-zero before the file was committed, so green is not the only colour it can be.

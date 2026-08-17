@@ -22,12 +22,12 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is complete locally. Step 1 is underway — tasks 1.1 and 1.2 done, 1.3a next.
+Step 0 is closed. Step 1 is underway — tasks 1.1 and 1.2 done, 1.3a next.
 Both open decisions in this file were resolved 2026-08-17; none is outstanding.
 
 | Step | What | Status |
 |------|------|--------|
-| 0 | A Postgres you can actually run | **Done** — CI unverified |
+| 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Next** |
 | 2 | The three Insight queries — *the design gate* | Not started |
 | 3 | Test suites (pgTAP, Vitest) | Not started |
@@ -50,11 +50,17 @@ including RLS isolation run under `set role authenticated` — the `postgres`
 superuser bypasses RLS and would pass vacuously.
 
 CI gate: [`.github/workflows/db.yml`](../.github/workflows/db.yml). **Per ADR-035
-§9 the local pass is not the bar — the green CI run is.** Not yet confirmed: the
-workflow has never run, on any migration. As of 1.2 it also runs every file in
-`supabase/tests/` after the reset, so it asserts behaviour and not just that the DDL
-parses — but an unrun gate is not evidence, and step 0 stays open until it is green
-on a pull request.
+§9 the local pass is not the bar — the green CI run is.** Confirmed: the workflow has
+been green on every migration since it merged, and as of 1.2 it also runs every file
+in `supabase/tests/` after the reset, so it asserts behaviour and not just that the
+DDL parses.
+
+*Corrected 2026-08-17.* This paragraph, and the matching one in
+[`supabase/README.md`](../supabase/README.md), claimed CI had never run. It had —
+three times, green, starting the moment the workflow merged, because it triggers on
+push to `main` and not only on pull requests. Nobody had looked at the Actions tab.
+The lesson is the one ADR-035 §9 is about and it cuts both ways: a status line is
+never evidence, and that includes a pessimistic one.
 
 ---
 
@@ -66,7 +72,7 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | # | Task | Size | Done when |
 |---|------|------|-----------|
 | ~~1.1~~ | ~~`0002` catalog~~ — **done** 2026-08-16. `db reset` green; zero cross-workspace leakage on all five tables under `set role authenticated`; generic provider undeletable and undemotable; price overlap, cross-dimension units and normalized-name duplicates all rejected | M | ✅ |
-| ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17. `db reset` green; 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
+| ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17, [CI green on PR #1](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624). 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
 | 1.3a | `0004` inventory — `stock_batch`, `stock_movement` (append-only), `batch_balance` + projection trigger, partial index per location, RLS, grants | M | `db reset` green; the §2.4 invariant holds on a hand-built fixture including a reversal; `batch_balance` rebuilt from `stock_movement` alone reproduces every row exactly |
 | 1.3b | `0005` allocation — `allocate_fefo()` and the transfer movement shape | M | FEFO order proven (expiry asc, `received_at` as tiebreak, NULL expiry last); allocation is location-scoped; two concurrent allocations cannot oversell one batch; a transfer carries cost and expiry forward and never updates `stock_batch.location_id` |
 | 1.4 | `0008` purchase-price view — last `purchase_line` per `(provider, variant)` | S | A voided delivery stops prefilling its price; `explain` confirms the two-index plan (see below) |
