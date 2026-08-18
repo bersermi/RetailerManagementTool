@@ -107,7 +107,20 @@ Without it a batch in one tenant could name a purchase line in another.
 `price_list` carries no `provider_id`. Sell prices are curated and per location;
 purchase prices are *remembered* per provider-product pair and derived from
 `purchase_line`, so they are a view in `0008` — shipped 2026-08-18 — and not a
-table anywhere. Putting both
+table anywhere.
+
+**The catalog carries no `provider_id` either, and that is the same decision seen
+from the other side.** A product belongs to the merchant, not to a supplier: once a
+variant exists it can be bought from anyone, and only the providers it has actually
+been bought from have a price to offer. `provider_id` appears on `purchase`, on
+`stock_batch` and on the derived view — nowhere in `product_family` or
+`product_variant`. Confirmed against the schema and by the owner, 2026-08-18.
+
+`0009` owes the merchant a **price history**, globally and per provider, which
+`provider_price_memory` does not answer — it is the last price, not a series. The data
+is all in `purchase_line` already. When writing it, keep the reporting question and
+the prefill question apart: "no fallback across providers" governs the **prefill**, not
+the report, and a cross-provider comparison is the whole point of the history. Putting both
 kinds in one table is what created the NULL that made the overlap constraint inert
 (ADR-035 §2.3).
 
