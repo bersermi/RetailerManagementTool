@@ -96,21 +96,139 @@ project map so it never goes stale. They are switched off on other branches
 deliberately, because rebuilding on every experiment would be noise.
 
 One of them opens a draft pull request on GitHub when a session ends on a side
-branch. It is currently inactive because GitHub is not logged in.
+branch, and pushes to an existing one. **This is live** — GitHub is logged in, and
+it is what prints `Stop says: Pushed N commit(s) to existing PR…` at the end of a
+session. That N is the branch's total lead over `main`, not what the session just
+did, so it repeats unchanged every turn until the branch is merged.
 
 ### GitHub Actions — an independent referee
 
-Every push makes GitHub build a fresh database from scratch and apply all our
-database changes to it. If they are broken, it goes red.
+Every push makes GitHub build a fresh database from scratch, apply all our database
+changes to it, and then run every test suite against the result. If anything is
+broken, it goes red.
 
-This is the most important safety net in the project, and it is **not yet working
-for you** — see "Where Claude is likely to be wrong" below.
+This is the most important safety net in the project and it **is working** — it has
+been green on every migration since it merged. A run takes about three minutes.
 
 ### Auto mode — fewer interruptions
 
 Instead of asking permission for each command, a safety classifier approves
 routine ones automatically. It is now the default in every project. If it is ever
 unavailable, Claude Code quietly falls back to asking — it cannot lock you out.
+
+---
+
+## Looking at things yourself
+
+Two things you can open without asking Claude: the project map, and the database.
+
+### Opening the project map
+
+```bash
+open graphify-out/graph.html
+```
+
+That is the interactive map — boxes you can drag, click and search. It refreshes
+itself when you commit or switch branches on `main`; to force it, run
+`graphify update .`.
+
+**Set your expectations before you open it.** Right now the map holds 92 boxes and
+**84 of them are headings out of the Markdown documents** — this handbook, the ADR,
+the plan, the two READMEs. There is **no database schema in it at all**, because
+graphify has no SQL parser and this project is currently all SQL. So today it is a
+map of *what has been written down*, not of *what has been built*. It becomes a map
+of the app itself when React Native code arrives at step 5a.
+
+That is worth knowing so you do not go looking for `stock_movement` in there and
+conclude something is broken.
+
+Two other views of the same thing:
+
+| What | Command |
+|------|---------|
+| The same map as plain text | `open graphify-out/GRAPH_REPORT.md` |
+| Ask it a question | `graphify query "how does allocation work"` |
+| Explain one heading | `graphify explain "Traps in step 1"` |
+| How are two things connected | `graphify path "Build plan" "Traps in step 1"` |
+
+Those names have to be headings that exist in the documents. Asking
+`graphify explain "batch_balance"` returns *"No node matching found"* — not a fault,
+just the same point again: the tables are not in the map.
+
+Ignore `GRAPH_TREE.html` — it is left over from an earlier build and is not being
+regenerated.
+
+### Opening the database
+
+Three ways. Pick the first one unless you are in a hurry.
+
+**1. Supabase Studio — a web page, and by far the easiest.**
+
+Studio is **not running right now**: the database was last started with a reduced
+set of services to make migration work faster. Bring the full set back:
+
+```bash
+supabase stop
+supabase start
+```
+
+Then open **http://127.0.0.1:54323**. *Table Editor* on the left browses rows;
+*SQL Editor* runs queries. Nothing you do there can affect anyone else — this
+database lives only on your Mac.
+
+**2. The terminal, with nothing to install.**
+
+`psql` is not installed on your Mac, but there is one inside the database
+container, so you can borrow it:
+
+```bash
+docker exec -it supabase_db_RetailerManagementTool psql -U postgres
+```
+
+| Type this | To see |
+|-----------|--------|
+| `\dt` | every table |
+| `\d stock_movement` | one table's columns, constraints and indexes |
+| `\dv` | views |
+| `\df` | functions |
+| `\du` | roles |
+| `\q` | quit |
+
+**3. A desktop app** — TablePlus, Postico, DBeaver, pgAdmin. Connect with:
+
+| Field | Value |
+|-------|-------|
+| Host | `127.0.0.1` |
+| Port | `54322` |
+| Database | `postgres` |
+| User | `postgres` |
+| Password | `postgres` |
+
+### What you will find in there
+
+Twenty-one tables and **no views yet** — the first view arrives with task 1.4. Of
+those twenty-one, `_verify` is test scaffolding and `unit` is the reference list of
+grams and kilos; the other nineteen are the real model.
+
+The tables are usually **empty**. Data only appears while a test suite is running,
+and the cleanup wipes it before the next one. Real sample data arrives at task 1.6.
+
+### The one warning that matters
+
+**Connecting as `postgres` bypasses row-level security.** You will see every
+workspace's rows at once, and every cost column, because that account is exempt
+from the rules that protect one shop's data from another's.
+
+**That is not what a cashier sees.** So if you ever open Studio, see both stores'
+takings, and conclude the isolation is broken — it isn't; you are simply looking
+through the one account the rules do not apply to. The reverse is the real danger,
+and it is why `supabase/README.md` insists isolation is only ever tested under
+`set role authenticated`: checked as `postgres`, an isolation test passes without
+testing anything.
+
+If you want to see what a real staff member sees, that is exactly what the RLS
+sections of the test suites do — `supabase/tests/0004_inventory.sql` is the clearest
+example.
 
 ---
 
