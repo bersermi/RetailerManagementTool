@@ -40,11 +40,11 @@ unasked.
 | `0001_foundation_tenancy_and_units.sql` | Roles enum, `unit` reference table + seed, `workspace` / `location` / `workspace_member` / `member_location` / `workspace_setting`, RLS helper functions incl. `my_locations()`, `onboard_workspace()`, RLS policies, grants |
 | `0002_catalog.sql` | `btree_gist` + `citext`, `normalize_name()`, `product_family`, `product_variant` (+ dimension-consistency trigger), `provider` (+ non-deletable generic), `price_list` (sell prices only, no-overlap exclusion constraint), `workspace_invite`, `onboard_workspace()` replaced to seed the generic provider, RLS policies, grants |
 | `0003_transactions.sql` | `waste_reason` enum, `purchase`/`purchase_line`, `sale`/`sale_line`, `waste`/`waste_line` — all `location_id`, all carrying `payload_hash` and `reversal_of` on the header; composite header↔line FKs; one-reversal-per-document index; an append-only trigger on all six; select-only RLS and grants |
+| `0004_inventory.sql` | `batch_origin` + `movement_reason` enums, `stock_batch`, `stock_movement`, `batch_balance` + the two projection triggers, `batch_balance_violations()`, `rebuild_batch_balance()`; append-only triggers on batch and movement; cost-gated RLS on batch and movement, member-level on the balance; a `unique (id, workspace_id, location_id)` added to `purchase_line` |
 
 Planned next, in order (ADR-035 §3):
 
-- `0004` — inventory: `stock_batch`, `stock_movement`, `batch_balance` + projection trigger, per location
-- `0005` — allocation: `allocate_fefo()` and the transfer movement shape
+- `0005` — allocation: `allocate_fefo()` and the paired transfer write
 - `0006` — RPCs: `record_sale`, `record_purchase`, `record_waste`, `record_transfer`,
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
@@ -65,6 +65,20 @@ though the screen ships at step 6. The decision and its alternatives are in
 `0002` predates the shift and its comments still call the RPC migration `0005`. It
 has been applied, so it is not edited — this table is the authority on numbering and
 that comment is stale by one. `0001` and `0003` carry no stale reference.
+
+**The transfer movement shape lives in `0004`, its mechanics in `0005`.** ADR-035
+§2.4 fixes the shape "in migration `0004`" — that is, in the ledger migration, which
+after the renumbering above is the inventory one. So `0004` defines the columns and
+constraints a transfer needs (`transfer_in` / `transfer_out`, `transfer_group_id`,
+`stock_batch.source_batch_id`) and `0005` supplies the paired write that fills them.
+The alternative was an `ALTER` in `0005` adding columns to a table `0004` had just
+defined, which reviews worse and leaves `0004` with a ledger that cannot represent
+one of the four things the ledger does.
+
+**`0004` alters `purchase_line`,** adding `unique (id, workspace_id, location_id)` so
+`stock_batch.source_purchase_line_id` can carry a composite FK. `0003` is applied and
+therefore closed; this is the fix-forward the numbering rule prescribes, not an edit.
+Without it a batch in one tenant could name a purchase line in another.
 
 `price_list` carries no `provider_id`. Sell prices are curated and per location;
 purchase prices are *remembered* per provider-product pair and derived from
@@ -107,8 +121,9 @@ than as a bare call so the planner evaluates them once per query, not once per r
 
 There is no administrative exception and no cross-workspace read policy.
 
-**One qualifier, added in `0003`.** Three tables carry cost — `purchase`,
-`purchase_line`, `waste_line` — and their policies append
+**One qualifier, added in `0003` and extended in `0004`.** Five tables carry cost —
+`purchase`, `purchase_line`, `waste_line`, and now `stock_batch` and
+`stock_movement` — and their policies append
 `and public.has_role(workspace_id, 'manager')` to the location-level shape. That is
 still one of the two shapes; the role predicate is a filter on top of it, never a
 replacement for either tenancy predicate, and the ADR-035 §2.7 rule it implements is
@@ -117,12 +132,21 @@ that staff hold no `select` on a base table carrying cost. The staff-facing
 need them. `waste` (the header) is deliberately *not* gated: it carries retail value,
 not cost, and a cashier must be able to see that the document exists.
 
-**Transaction tables are `select`-only.** Clients never insert (ADR-035 §2.6), so
-`0003` grants `select` and nothing else on all six and writes no insert/update/delete
-policy. The absence is the design. Documents additionally carry a `before update or
-delete` trigger that raises `restrict_violation` — aimed not at `authenticated`,
-which has no grant anyway, but at the `security definer` RPCs of `0006`, where RLS
-and grants are not running and a well-meaning `UPDATE` would look ordinary in review.
+`batch_balance` is on the other side of that line, and the reason is worth stating
+because it is what makes the gate free: **the projection carries no cost column at
+all**, so "how much is on the shelf" — the one inventory question a cashier has to be
+able to answer — is served entirely by the member-level table. Only the two tables
+that carry `unit_cost_net_per_base` are manager-and-above.
+
+**Transaction and ledger tables are `select`-only.** Clients never insert (ADR-035
+§2.6), so `0003` and `0004` grant `select` and nothing else and write no
+insert/update/delete policy. The absence is the design. Documents, batches and
+movements additionally carry a `before update or delete` trigger that raises
+`restrict_violation` — aimed not at `authenticated`, which has no grant anyway, but at
+the `security definer` functions of `0005`–`0007`, where RLS and grants are not
+running and a well-meaning `UPDATE` would look ordinary in review. `batch_balance` is
+deliberately not guarded: it is the one table that is supposed to change, and
+`rebuild_batch_balance()` deletes from it.
 
 `my_workspaces()` and `my_locations()` are `security definer` so they can read
 `workspace_member` without tripping that table's own policy — without it the policies
@@ -276,3 +300,41 @@ parses, and it is the first schema claim in this repo that meets ADR-035 §9 in 
 
 The harness fails loudly: a deliberately falsified check was confirmed to exit
 non-zero before the file was committed, so green is not the only colour it can be.
+
+### `0004` — inventory
+
+Applied locally 2026-08-17, same toolchain. `supabase db reset` applies `0001`–`0004`
+with no errors, and **54 behavioural checks pass** from
+`supabase/tests/0004_inventory.sql`, which joins the same CI gate. The `0003` suite
+still passes unchanged at 39 — worth stating, because `0004` alters `purchase_line`.
+
+The checks cover: the `batch_origin` provenance constraint (a purchase batch with no
+purchase line, an adjustment batch carrying one, a transfer batch with no source are
+all refused); one batch per purchase line; cross-tenant and cross-store rejection on
+every composite FK; the movement sign rule per reason and its deliberate exemption
+for a compensating movement; the source-document rule (a sale carrying a purchase
+document, a sale carrying none, a transfer leg with no `transfer_group_id`, an
+adjustment pretending to be a transfer); a reversal filed against a different batch;
+a movement reversed twice; the append-only guard on both tables **as superuser**,
+including the attempt to relocate a batch; the transfer shape carrying cost and
+expiry forward while the origin batch stays put; and RLS from four callers under
+`set role authenticated` — a cashier at each store, a manager, and a second tenant.
+
+**The §2.4 invariant is asserted, not described.** `batch_balance_violations()` is
+empty across a fixture that includes a reversal and a deliberate oversale;
+`rebuild_batch_balance()` reproduces every projection row exactly from
+`stock_movement` alone, `updated_at` excepted; and the check is shown to be capable
+of failing — the projection is corrupted two ways, a wrong number and a deleted row,
+both are detected, and the rebuild repairs both. Plan task 1.7 wires the same
+function over seed data.
+
+A negative `remaining_base` is asserted to be **representable**, not rejected. v1
+records stock and does not enforce it (§2.6); a `>= 0` constraint would turn a
+permitted oversale into a raised exception at the counter.
+
+**CI applied `0001`–`0004` from scratch and ran both suites green on 2026-08-17**,
+run [32043051234](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234)
+on PR [#2](https://github.com/bersermi/RetailerManagementTool/pull/2) — *all 39 checks
+passed* for `0003` and *all 54 checks passed* for `0004`, read from the job log rather
+than from the green tick, since a green tick alone would also be what a silently
+skipped test step looks like.
