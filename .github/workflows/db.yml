@@ -56,13 +56,30 @@ jobs:
       # Every file in supabase/tests/, in name order, against the database the
       # reset just built. Each one assumes a freshly reset database and leaves
       # its fixture rows behind, so the reset is repeated between files.
+      #
+      # TWO KINDS OF FILE, ADDED FOR 0005. A .sql file is one psql session, which
+      # is all a schema check needs and is what every file here was until now. A
+      # .sh file drives SEVERAL sessions, and exists because one claim cannot be
+      # made from a single connection: "two concurrent allocations cannot oversell
+      # one batch" (docs/PLAN.md task 1.3b). A session cannot block on its own
+      # lock, so a one-session test of allocate_fefo()'s `for update` would pass
+      # just as green with the locking clause deleted — a vacuous pass of exactly
+      # the kind supabase/README.md warns about for RLS run as superuser.
+      #
+      # Both kinds fail the job by exiting non-zero. The `ls | sort` keeps them in
+      # one name order instead of running all .sql before all .sh.
       - name: Behavioural checks
         run: |
           eval "$(supabase status -o env | grep '^DB_URL=')"
-          for f in supabase/tests/*.sql; do
+          export DB_URL
+          for f in $(ls supabase/tests/* | sort); do
             echo "::group::$f"
             supabase db reset >/dev/null
-            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            case "$f" in
+              *.sql) psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f" ;;
+              *.sh)  bash "$f" ;;
+              *)     echo "unrecognised test file: $f" >&2; exit 1 ;;
+            esac
             echo "::endgroup::"
           done
 

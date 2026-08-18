@@ -41,10 +41,10 @@ unasked.
 | `0002_catalog.sql` | `btree_gist` + `citext`, `normalize_name()`, `product_family`, `product_variant` (+ dimension-consistency trigger), `provider` (+ non-deletable generic), `price_list` (sell prices only, no-overlap exclusion constraint), `workspace_invite`, `onboard_workspace()` replaced to seed the generic provider, RLS policies, grants |
 | `0003_transactions.sql` | `waste_reason` enum, `purchase`/`purchase_line`, `sale`/`sale_line`, `waste`/`waste_line` — all `location_id`, all carrying `payload_hash` and `reversal_of` on the header; composite header↔line FKs; one-reversal-per-document index; an append-only trigger on all six; select-only RLS and grants |
 | `0004_inventory.sql` | `batch_origin` + `movement_reason` enums, `stock_batch`, `stock_movement`, `batch_balance` + the two projection triggers, `batch_balance_violations()`, `rebuild_batch_balance()`; append-only triggers on batch and movement; cost-gated RLS on batch and movement, member-level on the balance; a `unique (id, workspace_id, location_id)` added to `purchase_line` |
+| `0005_allocation.sql` | `fefo_allocation` + `transfer_allocation` composite types, `allocate_fefo()`, `allocate_transfer()`. No table, no policy, no execute grant for any role |
 
 Planned next, in order (ADR-035 §3):
 
-- `0005` — allocation: `allocate_fefo()` and the paired transfer write
 - `0006` — RPCs: `record_sale`, `record_purchase`, `record_waste`, `record_transfer`,
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
@@ -338,3 +338,42 @@ on PR [#2](https://github.com/bersermi/RetailerManagementTool/pull/2) — *all 3
 passed* for `0003` and *all 54 checks passed* for `0004`, read from the job log rather
 than from the green tick, since a green tick alone would also be what a silently
 skipped test step looks like.
+
+### `0005` — allocation
+
+Applied locally 2026-08-17, same toolchain. `supabase db reset` applies `0001`–`0005`
+with no errors, and **52 behavioural checks pass** from `supabase/tests/0005_allocation.sql`
+plus **9 more** from `supabase/tests/0005_allocation_concurrency.sh`. `0003`'s 39 and
+`0004`'s 54 still pass unchanged.
+
+The 52 cover: the FEFO order on all three keys — expiry ascending, `received_at` as
+the tiebreak, and `batch_id` as a deterministic third key — with nulls sorted last
+and a closed lot skipped although it expires first; the candidate set never leaving
+the location, proven against a larger, sooner-expiring lot at the other store that
+would win every allocation if the scope leaked; all three shortfall branches; the
+argument guards; and the whole transfer shape — cost and expiry carried forward,
+`received_at` and `provider_id` not, one destination lot per origin lot, four paired
+movements netting to zero, the origin batch still at the origin, and the destination
+afterwards rotating on the carried expiry. The §2.4 invariant is empty across all of
+it and `rebuild_batch_balance()` still reproduces every row.
+
+**Two kinds of test file, from `0005` onward.** A `.sql` file is one psql session.
+A `.sh` file drives several, and exists because one claim cannot be made from a
+single connection: a session cannot block on its own lock, so a one-session test of
+`allocate_fefo()`'s `for update of bb` asserts nothing. `.github/workflows/db.yml`
+runs both kinds in one name order.
+
+**The concurrency file is the reason to read this paragraph.** Its first draft
+asserted that the second session *blocks* — and it passed with the locking clause
+deleted, because the projection trigger's `on conflict (batch_id) do update` blocks
+the second writer on its own. Blocking is true in both worlds. What separates them is
+**what session two allocated after it waited**: with the lock it re-reads and takes
+the next lot, without it it writes the stale decision it made before it blocked, and
+the emptied lot goes to −100 while a full lot sits untouched. Confirmed by deleting
+the clause and watching three checks go red — and note that
+`batch_balance_violations()` stays *empty* in the broken build, which is exactly why
+this needed a test and not an argument.
+
+**CI status: pending.** This section records the local run only; per the rule at the
+top of this file the green CI run is the evidence, and this paragraph is a promissory
+note until it is replaced with a run id.
