@@ -82,7 +82,7 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17, [CI green on PR #2](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234). 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
 | ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
 | ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18, [CI green on PR #7](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904). 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
-| 1.5 | Seed skeleton — two locations, ~300 products, mixed units, mixed tax, packs and weighed items | M | `db reset` runs `seed.sql` clean |
+| 1.5 | Seed skeleton — **two merchants**, three locations, ~300 products, mixed units, mixed tax, packs and weighed items. Shape fixed by the owner 2026-08-18, spec below | M | `db reset` runs `seed.sql` clean |
 | 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
@@ -95,6 +95,42 @@ step 1, and it grew a second time when the allocator moved into it (decision bel
 The split is by migration file, so each half is separately reviewable and separately
 verified — which is the same reason every migration header in this repo starts by
 narrowing its own scope.
+
+### The 1.5 seed shape, fixed by the owner 2026-08-18
+
+Asked whether the seed needed a realistic provider spread, the owner's answer was no:
+the minimum that exercises the rules, not a simulation of a real shop.
+
+- **Two merchants — two workspaces.** Merchant A has **two locations**, merchant B has
+  one. This is the owner's call and it is the right one for a reason worth writing
+  down: *a single-tenant seed makes every isolation check vacuous.* A query that
+  forgot its `workspace_id` predicate returns the correct answer when there is only
+  one workspace, and step 2's queries are exactly where that would hide. 1.4 hit the
+  smaller version of the same problem — its performance fixture was single-tenant, so
+  `workspace_id` selected every row and the planner's choices could not be trusted as
+  evidence.
+- **Three or four named providers per merchant, plus the generic one** that
+  `onboard_workspace()` already creates. **No long tail.** The generic provider is not
+  a dumping ground; it is there because "I bought this at the market this morning" has
+  to be a two-tap purchase (§2.3), and the seed should show it being used that way a
+  few times, not hundreds.
+- **~300 products in merchant A**, which is the catalog the design gate at step 2 is
+  judged against. **Merchant B stays small** — enough catalog and ledger to prove
+  isolation is real, not a second full dataset. B is a control, not a customer.
+- **Mixed on purpose**, because these are what break: units across dimensions
+  (`pza`, `kg`/`g`, `l`/`ml`), tax at both 0 and 0.16, `pack_size > 1` for packs, and
+  weighed items whose base unit is `g` or `ml` while they are bought by `kg` or `l`.
+- **The seed inserts its own `auth.users` rows.** Every document carries
+  `created_by uuid not null references auth.users (id)`, so the seed cannot write a
+  purchase without a user to attribute it to.
+- **Workspaces are created through `onboard_workspace()`**, not by hand — it is the
+  tested path and it is what seeds the settings row and the generic provider. The
+  second location of merchant A is a plain insert.
+
+**An input to 1.6, recorded here so it is not rediscovered:** if merchant B holds only
+a token amount of the ledger, `workspace_id` is still effectively non-selective on
+`purchase_line` and plan evidence stays weak. B should carry a real minority share of
+the transactions — not a matching half, but not ten rows either.
 
 ### Traps in step 1
 
@@ -232,6 +268,42 @@ Neither applies to a function body. Real pilot data arrives when Vender ships at
   removed, because the projection trigger's `on conflict do update` blocks the
   second writer by itself. What discriminates is **what session two allocated after
   it waited**, and that is what the file asserts now.
+
+### Confirmed by the owner, 2026-08-18 — the catalog is the merchant's
+
+Stated at the 1.4 merge and checked against the schema the same day:
+
+> The catalog is centralized to the merchant, not to each provider. If a merchant
+> ever buys a *lata de frijoles*, that family + variant is enabled in the merchant's
+> catalog, and he can then purchase it from any provider — but only the provider he
+> has actually bought it from has a price history, and therefore a price to display.
+
+**This is what is built**, verified rather than assumed: `product_family` and
+`product_variant` carry no `provider_id` and no provider FK of any kind. The column
+exists only on `purchase` (which provider the delivery came from), on `stock_batch`
+(which provider that lot came from, null on a transfer lot) and on the derived
+`provider_price_memory`. Nothing in the catalog is scoped to a provider, and nothing
+has to be "enabled per provider" before it can be bought.
+
+**One part of the same sentence is NOT built, and it is not a defect.** The merchant
+also wants to see *"the price history at which he has purchased the product, globally
+or per provider"*. `provider_price_memory` answers neither: it is the **last** price,
+not a series, and it is strictly per provider with no global roll-up. That is correct
+for what it is for — prefilling a delivery — and the missing piece is **reporting**,
+which lands in `0009` and Números (step 7).
+
+Nothing needs to change in the schema for it. Every historical price is already in
+`purchase_line`, immutably, with `tax_rate` snapshotted per line — which is precisely
+why ADR-035 §2.3 made this derived instead of cached. A cache would hold only the
+latest and the history would have been thrown away.
+
+**Do not conflate the two when `0009` is written.** "No fallback across providers" is
+a rule about the **prefill**: a price learned from one provider must never prefill
+another's, because a supplier price is a fact about a relationship. It is *not* a rule
+about reporting — "you paid $18 at Proveedor A and $21 at Proveedor B" is exactly the
+comparison the merchant asked for and is the point of having the history. The failure
+mode to guard against is a reporting view being wired into Comprar's prefill because
+it happened to be convenient.
 
 ### Settled in 1.4, and binding on what comes after
 
