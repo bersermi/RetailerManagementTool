@@ -130,6 +130,19 @@ narrowing its own scope.
   `explain`** rather than assume it. Denormalising the header columns onto the line
   was rejected: it buys an index and sells the guarantee that they agree.
 
+### Confirmed by the owner, 2026-08-17, at the 1.3a merge
+
+Three modelling choices were put to the owner in plain language alongside the merge,
+because CI can prove the schema is internally consistent and cannot prove it matches
+the shop. No objection or change was requested on any of them. They are cheap to
+revise until 1.6 writes seed data against them, and expensive afterwards.
+
+- **The waste vocabulary** — the five `waste_reason` values below. Adequate as shipped.
+- **Stock may go negative.** A sale the system thinks it cannot cover is *recorded*,
+  not blocked. v1 records stock and does not enforce it (ADR-035 §2.6).
+- **Cost is manager-and-above; quantity is everyone.** A cashier sees what is on the
+  shelf and never what it cost.
+
 ### Settled in 1.3a, and binding on what comes after
 
 - **A batch never changes, and neither does a movement.** Both carry the same
