@@ -52,6 +52,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0003_transactions.sql` | `waste_reason` enum, `purchase`/`purchase_line`, `sale`/`sale_line`, `waste`/`waste_line` — all `location_id`, all carrying `payload_hash` and `reversal_of` on the header; composite header↔line FKs; one-reversal-per-document index; an append-only trigger on all six; select-only RLS and grants |
 | `0004_inventory.sql` | `batch_origin` + `movement_reason` enums, `stock_batch`, `stock_movement`, `batch_balance` + the two projection triggers, `batch_balance_violations()`, `rebuild_batch_balance()`; append-only triggers on batch and movement; cost-gated RLS on batch and movement, member-level on the balance; a `unique (id, workspace_id, location_id)` added to `purchase_line` |
 | `0005_allocation.sql` | `fefo_allocation` + `transfer_allocation` composite types, `allocate_fefo()`, `allocate_transfer()`. No table, no policy, no execute grant for any role |
+| `0008_provider_price_memory.sql` | `provider_price_memory` — one `security_invoker` view over `purchase_line`, the last price paid per `(workspace, provider, variant)`. No table, no policy, no function |
 
 Planned next, in order (ADR-035 §3):
 
@@ -59,8 +60,21 @@ Planned next, in order (ADR-035 §3):
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
   (ADR-035 §3 step 4.5 — before any screen exists)
-- `0008` — provider price memory view over `purchase_line`; analytics views and
-  nightly rollups, per location and consolidated
+- `0009` — analytics views and nightly rollups, per location and consolidated
+
+`0008` is **already applied** — it is the provider price memory view and nothing
+else. It was listed here as one line with the analytics views and has been split
+from them, for the reason every migration in this repo is narrow: they answer
+different questions, and bundling them would have put a view Comprar depends on
+behind a review three times its size. The analytics half keeps its place in the
+order and becomes `0009`.
+
+**`0008` also landed before `0006` and `0007` exist.** `docs/PLAN.md` task 1.4
+depends only on `0003`, and the seed wants the prefill in place. Files apply in
+name order, so a later `0006` and `0007` slot in ahead of it on the next
+`supabase db reset` with no ambiguity. The one real cost is that a hosted database
+which had already applied `0008` would need `supabase db push --include-all` to
+accept them — and no hosted database exists yet.
 
 **`0005` is new, and everything after it shifted by one** (2026-08-17). FEFO
 allocation is a ledger primitive, not a detail of `record_sale`: the seed writes the
@@ -92,7 +106,8 @@ Without it a batch in one tenant could name a purchase line in another.
 
 `price_list` carries no `provider_id`. Sell prices are curated and per location;
 purchase prices are *remembered* per provider-product pair and derived from
-`purchase_line`, so they are a view in `0008` and not a table anywhere. Putting both
+`purchase_line`, so they are a view in `0008` — shipped 2026-08-18 — and not a
+table anywhere. Putting both
 kinds in one table is what created the NULL that made the overlap constraint inert
 (ADR-035 §2.3).
 
@@ -409,3 +424,83 @@ run [32097844689](https://github.com/bersermi/RetailerManagementTool/actions/run
 than from the green tick, since a green tick alone would also be what a silently
 skipped test step looks like. It is also what a `.sh` file the loop never reached
 would look like, which is new in this run and worth having checked by name.
+
+### `0008` — provider price memory
+
+Applied locally 2026-08-18, same toolchain. `supabase db reset` applies `0001`–`0005`
+and `0008` with no errors, and **44 behavioural checks pass** from
+`supabase/tests/0008_provider_price_memory.sql`, which joins the same CI gate.
+`0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 all still pass
+unchanged — 198 checks in five suites.
+
+The 44 cover: the derivation itself (one row per pair and not one per delivery, the
+later delivery winning, the denomination and the snapshotted `tax_rate` riding
+along, a back-dated document recorded later *not* winning); provider scope, which is
+the point of the table it replaces — a second provider's price is its own row, and a
+variant bought only from one provider gives the other **nothing**, because there is
+no fallback across providers (§2.3); location scope, where a delivery at the other
+store *does* count, since the memory is workspace-wide; both exclusions; the four
+sort keys; tenant isolation; and access from four callers under `set role
+authenticated`.
+
+**Both exclusions are separately load-bearing, and this had to be forced.** A void
+writes a second document and never touches the first, so a naive "last purchase
+line" is wrong twice: the reversal is itself the most recent row, and once that is
+filtered the *voided* document becomes the most recent row again and prefills
+forever. The first draft of this suite could not tell those apart. Deleting
+`p.reversal_of is null` from the view left **all 41 checks green**, because every
+reversal in the fixture carried a negative line and the `qty_base > 0` filter was
+quietly doing that exclusion's work. The fixture now contains a voided *return* — a
+reversal whose compensating line is **positive**, which 0003 permits and which is
+the one shape where the predicate is the only thing standing between the shop and a
+cancelled price. Same story for `recorded_at`: the key could be deleted with the
+suite still green until a pair of same-instant deliveries was added, and the
+document-id key was passing on a coin toss until the tie pair's line ids were pinned
+to rank the *opposite* way to its document ids.
+
+Every clause of the view has since been deleted or inverted in turn and watched go
+red, which is the only evidence that any of them is doing something:
+
+| Falsification | Checks that fail |
+|---|---|
+| `p.reversal_of is null` removed | 3 |
+| `not exists (… r.reversal_of = p.id)` removed | 9 |
+| `pl.qty_base > 0` neutered to `<> 0` | 2 |
+| `p.occurred_at desc` → `asc` | 5 |
+| `p.recorded_at desc` removed | 1 |
+| `p.id desc` removed | 1 |
+| `pl.id desc` → `asc` | 1 |
+| `security_invoker = true` → `false` | 6 |
+
+The last row is worth reading twice. With the view switched to definer rights a
+**staff member sees every cost row in the workspace and a second tenant sees the
+first tenant's prices** — the exact commercial exposure §2.7 exists to prevent, from
+a one-word change, caught here by checks 34 and 39.
+
+**The two-index plan is confirmed against a real `explain`,** which is what
+`docs/PLAN.md` task 1.4 asked for and what `0003` deferred to it. ADR-035 §2.3 asks
+for one index, `(workspace_id, provider_id, variant_id, occurred_at desc)`; it is not
+creatable, because `provider_id` and `occurred_at` are on the header and `variant_id`
+is on the line. `0003` shipped `purchase_by_provider_idx` and
+`purchase_line_by_variant_idx` instead. On a 1 000-document, 4 000-line fixture the
+planner uses **both**, plus `purchase_one_reversal_idx` for the voided-document
+exclusion, with **no sequential scan** — 17 buffers, 0.17 ms. Checks 40–43 assert
+that from the plan JSON, in CI, so a later migration that drops an index fails here
+rather than in Comprar. Measured again by hand at 12 000 documents and 60 000 lines:
+same three indexes, 180 buffers, 1.2 ms.
+
+One thing the plan does **not** show, recorded because it is the honest limit of the
+claim: a lookup qualified by provider *without* a variant — "prefill every line of
+this delivery at once" — cannot use `purchase_line_by_variant_idx`, and the planner
+chose a sequential scan of `purchase_line` for it (18 ms at 60 000 lines, against
+3 ms for the nested loop over `purchase_line_by_header_idx` it declined). That is a
+cost estimate on a single-tenant fixture where `workspace_id` selects every row, so
+it is not evidence of a production problem; it is a shape to re-measure when Comprar
+exists and there is more than one tenant in the table. No index was added for it
+here, deliberately — speculative indexes on a guess are how the last model got its
+`ProviderProductPrice`.
+
+**CI applied `0001`–`0005` and `0008` from scratch and ran all five suites green on
+2026-08-18** — see `docs/PLAN.md` task 1.4 for the run and PR, read from the job log
+rather than from the green tick, since a green tick alone would also be what a
+silently skipped test step looks like.

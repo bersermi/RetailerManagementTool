@@ -22,10 +22,11 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a and 1.3b done, 1.4 next.
+Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b and 1.4 done,
+1.5 next. **1.4 closed the schema half of step 1: what remains is the seed.**
 Every open decision in this file has been resolved; none is outstanding. Two
-modelling choices made while building 1.3b are listed below and are the owner's to
-confirm or overturn. Both are function bodies, so revising either is a
+modelling choices made while building 1.3b, and four more from 1.4, are listed below
+and are the owner's to confirm or overturn. Both are function bodies, so revising either is a
 `create or replace` in a new migration with no data to migrate — see the corrected
 deadline under *Confirmed by the owner* below.
 
@@ -79,13 +80,14 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17, [CI green on PR #1](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624). 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
 | ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17, [CI green on PR #2](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234). 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
 | ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
-| 1.4 | `0008` purchase-price view — last `purchase_line` per `(provider, variant)` | S | A voided delivery stops prefilling its price; `explain` confirms the two-index plan (see below) |
+| ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18. 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
 | 1.5 | Seed skeleton — two locations, ~300 products, mixed units, mixed tax, packs and weighed items | M | `db reset` runs `seed.sql` clean |
 | 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
-1.3b + 1.5. **1.4 is next**, and it is the last schema task before the seed.
+1.3b + 1.5. **1.5 is next.** No schema task remains before the seed — 1.7 is a CI
+wiring task, not a migration.
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -106,9 +108,10 @@ narrowing its own scope.
   represent one of the four things the ledger does. So `transfer_in`/`transfer_out`,
   `transfer_group_id` and `stock_batch.source_batch_id` exist and are constrained
   now; `allocate_fefo()` and the paired write are still 1.3b's.
-- **1.4 is small and easy to get wrong.** The view must exclude **both** reversal
-  documents **and** the documents they reverse, or a voided delivery keeps
-  prefilling forever.
+- **1.4 was small and easy to get wrong, and it was got wrong once.** The view must
+  exclude **both** reversal documents **and** the documents they reverse. It does —
+  but the first draft of the *test* could not tell those two apart, and deleting one
+  of them from the view left the whole suite green. See *Settled in 1.4* below.
 - **No price fallback across providers.** A price learned from one provider never
   prefills another's. That is a fact about a relationship, not about a product.
 
@@ -228,6 +231,63 @@ Neither applies to a function body. Real pilot data arrives when Vender ships at
   removed, because the projection trigger's `on conflict do update` blocks the
   second writer by itself. What discriminates is **what session two allocated after
   it waited**, and that is what the file asserts now.
+
+### Settled in 1.4, and binding on what comes after
+
+- **The memory is manager-and-above, and that is inherited rather than restated.**
+  The view is `security_invoker = true`, so `purchase` and `purchase_line` apply
+  their own policies — and both already gate on `has_role(workspace_id, 'manager')`
+  because both carry cost. **A staff member recording a delivery therefore gets no
+  prefill**, and sees the same blank required field Comprar shows for a provider
+  never bought from. §2.7 lets staff record purchases and denies them cost, and
+  those two are in tension the moment a cashier accepts a delivery; this resolves it
+  the way §2.7 does. **If that is wrong it is wrong at the screen (step 6)**, and the
+  fix is a second, narrower view without the cost column — not a hole in this one.
+  Cheap to revise: a view is a `create or replace` with no data to migrate.
+- **A fourth sort key, and the last three are about determinism, not time.** §2.3
+  names `occurred_at` alone and it does not pick a single row: `occurred_at` is
+  server `now()` for a whole transaction, so two deliveries recorded together share
+  it, and one delivery can carry two lines for the same variant. The view orders by
+  `occurred_at desc, recorded_at desc, purchase.id desc, line.id desc`. Same argument
+  that put `batch_id` third in `allocate_fefo()`. **Owner's call to confirm**, and
+  the same one already confirmed there.
+- **A negative line is never a remembered price**, even on a live document. 0003
+  permits one — a return to the supplier is exactly that — and it is a correction,
+  not what the shop pays for the goods.
+- **`0008` shipped before `0006` and `0007` exist**, because 1.4 depends only on
+  `0003` and the seed wants the prefill. Files apply in name order so a reset is
+  unambiguous; the cost is that a hosted database would need
+  `supabase db push --include-all` to accept `0006`/`0007` later, and none exists yet.
+- **The analytics views and nightly rollups became `0009`.** `supabase/README.md`
+  had them sharing a line with this view. Bundling them would have put something
+  Comprar depends on behind a review three times its size, which is the same reason
+  every migration here is narrow. Numbering authority is `supabase/README.md`.
+- **No index was added for the provider-wide prefill.** A lookup by provider without
+  a variant cannot use `purchase_line_by_variant_idx`, and on the test fixture the
+  planner takes a sequential scan for it. That fixture is single-tenant, so
+  `workspace_id` selects every row and the estimate is not evidence of a production
+  problem — it is a shape to re-measure when Comprar exists. Speculative indexes on
+  a guess are how the last model got `ProviderProductPrice`.
+
+### The test was wrong before the view was, and that is the lesson of 1.4
+
+The migration was right on the first draft. **The suite was not**, and it was green
+the whole time. Three separate clauses of the view could be deleted with all checks
+still passing:
+
+- `p.reversal_of is null` — every reversal in the fixture carried a negative line,
+  so `qty_base > 0` was quietly doing that exclusion's job. Fixed by adding a voided
+  **return**, whose compensating line is *positive*.
+- `recorded_at desc` — nothing in the fixture had two deliveries at the same instant.
+- `purchase.id desc` — the tie pair's line ids were random, so the check passed on a
+  coin toss and would have failed on some future run for no reason anyone could find.
+
+Each was found by deleting the clause and watching for red, not by reading the file.
+Every clause has now been deleted or inverted in turn, and the count of checks each
+one breaks is recorded in `supabase/README.md`. **Do this for `0009` and for every
+RPC in `0006`.** A suite that has never been shown to fail is a suite with no
+demonstrated relationship to the code, and this repo already has a folder full of
+those.
 
 ### Decided 2026-08-17 — the waste vocabulary
 
