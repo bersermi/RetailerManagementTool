@@ -22,8 +22,10 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2 and 1.3a done, 1.3b next.
-Both open decisions in this file were resolved 2026-08-17; none is outstanding.
+Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a and 1.3b done, 1.4 next.
+Every open decision in this file has been resolved; none is outstanding. Two
+modelling choices made while building 1.3b are listed below and are the owner's to
+confirm or overturn — they are cheap to revise until 1.6 writes seed data.
 
 | Step | What | Status |
 |------|------|--------|
@@ -74,14 +76,14 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.1~~ | ~~`0002` catalog~~ — **done** 2026-08-16. `db reset` green; zero cross-workspace leakage on all five tables under `set role authenticated`; generic provider undeletable and undemotable; price overlap, cross-dimension units and normalized-name duplicates all rejected | M | ✅ |
 | ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17, [CI green on PR #1](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624). 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
 | ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17, [CI green on PR #2](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234). 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
-| 1.3b | `0005` allocation — `allocate_fefo()` and the paired transfer write | M | FEFO order proven (expiry asc, `received_at` as tiebreak, NULL expiry last); allocation is location-scoped; two concurrent allocations cannot oversell one batch; a transfer carries cost and expiry forward and never updates `stock_batch.location_id` |
+| ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
 | 1.4 | `0008` purchase-price view — last `purchase_line` per `(provider, variant)` | S | A voided delivery stops prefilling its price; `explain` confirms the two-index plan (see below) |
 | 1.5 | Seed skeleton — two locations, ~300 products, mixed units, mixed tax, packs and weighed items | M | `db reset` runs `seed.sql` clean |
 | 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
-1.3b + 1.5.
+1.3b + 1.5. **1.4 is next**, and it is the last schema task before the seed.
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -171,6 +173,48 @@ revise until 1.6 writes seed data against them, and expensive afterwards.
   `expiry_date` and `received_at` from the batch, and
   `(location_id, variant_id, expiry_date, received_at) where remaining_base > 0` is
   partial on the open lots. 1.3b's allocator should not need to join `stock_batch`.
+
+### Settled in 1.3b, and binding on what comes after
+
+- **The shortfall has to name a batch, so the allocator decides which one.**
+  `stock_movement.batch_id` is not nullable and v1 records an oversale rather than
+  raising at the counter (§2.6), so `allocate_fefo()` answers in three branches: the
+  lot FEFO ran out on; failing that the most recently received lot at that store,
+  open or not, at the cost the shop actually paid; failing that — a product never
+  stocked there — **a new adjustment lot at zero cost**. Zero rather than a borrowed
+  estimate, because 100% margin on those units is visibly wrong and gets asked
+  about, where a plausible invented cost is invisibly wrong and is what §2.9 would
+  then be built on. `adjust_stock` is how an operator resolves it. **Owner's call to
+  confirm.**
+- **`batch_id` is a third FEFO sort key**, after `expiry_date` and `received_at`.
+  §2.4 names only the first two, and they are not enough to be deterministic: two
+  lines of one delivery share a `received_at` because `now()` is fixed for the whole
+  transaction, and they can share an expiry. Without a final key the seed and
+  `record_sale` could allocate the same request differently, which is the one
+  divergence `0005` exists to prevent. It costs an incremental sort within ties.
+  **Owner's call to confirm.**
+- **`allocate_fefo()` takes the locks and the caller holds them.** The row locks on
+  `batch_balance` last until the *caller's* transaction ends, so calling the
+  allocator, committing, and writing the movements afterwards is the one way to use
+  it wrongly. Branch three also *writes* a lot, so a speculative call is not free.
+- **Neither function validates `my_locations()`, deliberately.** They are ledger
+  primitives with no execute grant for any role; the wall is `0006`'s, as §2.6
+  requires, and a reviewer looking for the location check in `0005` is looking in
+  the right place for the wrong file. What `0005` does guarantee is structural: a
+  location outside the named workspace and a transfer to its own origin are refused.
+- **A transfer carries cost and expiry forward but not `received_at`.** §2.4 names
+  cost and expiry only; expiry is the FEFO sort key and store B genuinely received
+  the goods today. `provider_id` is null on a transfer lot, which is the documented
+  meaning of that column.
+- **The CI gate now runs `.sh` test files as well as `.sql`.** "Two concurrent
+  allocations cannot oversell one batch" cannot be asserted from one connection, and
+  a single-session test of the locking clause would pass just as green with it
+  deleted — the same vacuous pass `supabase/README.md` warns about for RLS run as
+  superuser. This was confirmed the hard way: the first draft of the concurrency
+  test asserted that the second session *blocks*, and it passed with the lock
+  removed, because the projection trigger's `on conflict do update` blocks the
+  second writer by itself. What discriminates is **what session two allocated after
+  it waited**, and that is what the file asserts now.
 
 ### Decided 2026-08-17 — the waste vocabulary
 
