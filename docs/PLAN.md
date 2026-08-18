@@ -25,7 +25,9 @@ from the knowledge graph. Nothing there describes the system being built.
 Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a and 1.3b done, 1.4 next.
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b are listed below and are the owner's to
-confirm or overturn — they are cheap to revise until 1.6 writes seed data.
+confirm or overturn. Both are function bodies, so revising either is a
+`create or replace` in a new migration with no data to migrate — see the corrected
+deadline under *Confirmed by the owner* below.
 
 | Step | What | Status |
 |------|------|--------|
@@ -136,8 +138,18 @@ narrowing its own scope.
 
 Three modelling choices were put to the owner in plain language alongside the merge,
 because CI can prove the schema is internally consistent and cannot prove it matches
-the shop. No objection or change was requested on any of them. They are cheap to
-revise until 1.6 writes seed data against them, and expensive afterwards.
+the shop. No objection or change was requested on any of them.
+
+*Deadline corrected 2026-08-18.* This paragraph said they were cheap to revise "until
+1.6 writes seed data against them, and expensive afterwards". That is wrong, and it
+was repeated into the 1.3b notes before anyone checked it. **Seed data is regenerated
+by `supabase db reset` and is never precious.** What is actually expensive is fixed by
+two other things: a change to **schema shape** — a column, a constraint, an enum value
+already in use — because migrations are append-only; and **real pilot data**, because
+`stock_movement` is immutable by trigger, so a movement written under a wrong rule can
+be compensated but never restated. The first applies to the waste vocabulary below.
+Neither applies to a function body. Real pilot data arrives when Vender ships at step
+5b, not at 1.6.
 
 - **The waste vocabulary** — the five `waste_reason` values below. Adequate as shipped.
 - **Stock may go negative.** A sale the system thinks it cannot cover is *recorded*,
@@ -184,8 +196,9 @@ revise until 1.6 writes seed data against them, and expensive afterwards.
   stocked there — **a new adjustment lot at zero cost**. Zero rather than a borrowed
   estimate, because 100% margin on those units is visibly wrong and gets asked
   about, where a plausible invented cost is invisibly wrong and is what §2.9 would
-  then be built on. `adjust_stock` is how an operator resolves it. **Owner's call to
-  confirm.**
+  then be built on. `adjust_stock` is how an operator resolves it. Raised with the
+  owner 2026-08-18; not critical, and revisable by `create or replace` until real
+  pilot data exists at 5b, since movements are immutable once written.
 - **`batch_id` is a third FEFO sort key**, after `expiry_date` and `received_at`.
   §2.4 names only the first two, and they are not enough to be deterministic: two
   lines of one delivery share a `received_at` because `now()` is fixed for the whole

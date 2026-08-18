@@ -373,6 +373,25 @@ single connection: a session cannot block on its own lock, so a one-session test
 `allocate_fefo()`'s `for update of bb` asserts nothing. `.github/workflows/db.yml`
 runs both kinds in one name order.
 
+**Files beginning with `_` are harness, not suites,** and the loop skips them. There
+is one: `supabase/tests/_cleanup.sql`, which runs before each suite. Suites assume a
+database holding nothing but their own fixture — they share hardcoded user uuids and
+assert absolute counts — and none can tidy up after itself, because the ledger is
+append-only. That used to be satisfied by repeating `supabase db reset` per file, at
+**20.5s** each; the cleanup does it in **0.56s** by dropping the `_`-prefixed scratch
+tables and `TRUNCATE ... CASCADE`-ing everything but `unit`. TRUNCATE is what makes
+it possible: it does not fire row triggers, so the append-only guards that correctly
+refuse a DELETE do not stand in the way, and no row is ever deleted — tables are
+emptied wholesale between suites and never during one.
+
+The full reset still runs **once**, before any suite. That is the run proving the
+migrations apply from scratch, and it is not traded for anything. The cleanup's table
+sweep reads `pg_tables` rather than naming tables, so a table added by a later
+migration is covered the day it lands, and it ends by asserting it emptied what it
+claims — verified by leaving one table out of the sweep and watching it raise
+`cleanup left 3 row(s) in public.workspace`, because a cleanup that quietly did half
+its job would leave the next suite counting another fixture's rows and passing.
+
 **The concurrency file is the reason to read this paragraph.** Its first draft
 asserted that the second session *blocks* — and it passed with the locking clause
 deleted, because the projection trigger's `on conflict (batch_id) do update` blocks
