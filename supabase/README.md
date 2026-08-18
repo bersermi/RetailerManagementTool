@@ -23,15 +23,25 @@ constraints that were never deployed — `ProviderProductPrice`, the ADR-023 alt
 keys, the `WorkspaceMember.Role` column, the ADR-011 batch invariant. Documentation
 that reads as ground truth and isn't is worse than no documentation.
 
-Nothing reaches the database by hand. No migration merges without the schema owner
-**approving** it.
+Nothing reaches the database by hand. Every migration goes through a pull request
+and a green CI run, and **merges automatically once that run is green**.
 
-Approving, not pressing the button. Claude opens the pull request, reports what CI
-said, and asks; the owner answers; Claude merges. Settled by the schema owner on
-2026-08-17, and it changes nothing about the checkpoint — the review is still a
-person's judgement on a real diff with a real CI verdict attached. Who types
-`gh pr merge` was never the part that mattered. What is still not allowed is merging
-unasked.
+**Changed 2026-08-17, by the schema owner, replacing the approval gate agreed
+earlier the same day.** Until then a migration needed the owner's yes at the merge.
+The gate was removed deliberately and the trade was stated when it was: CI can prove
+the schema is internally consistent, and it cannot prove the schema matches the
+shop. Nothing replaces that judgement — it now happens *after* the merge instead of
+before it, and because migrations are append-only, acting on it means a fix-forward
+migration rather than an edit to an unmerged file.
+
+So the obligation moved rather than disappeared. Claude opens the PR, reports what
+CI actually said — **read from the job log by name**, since a green tick is also
+what a silently skipped test step looks like — merges on green, and names every
+modelling choice it made on the owner's behalf, in the PR body and in its closing
+report, so that choice can still be overturned while it is cheap. The ones that stop
+being cheap are the ones the seed writes data against.
+
+What is still not allowed is merging red, or merging on the strength of the tick.
 
 ## Migrations
 

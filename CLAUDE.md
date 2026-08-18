@@ -44,10 +44,21 @@ One task per session, taken from `docs/PLAN.md`. Estimate difficulty first; if t
 task is large, split it in the plan before writing code, so the work survives a
 context clear or a usage limit. Update `docs/PLAN.md` when a task closes.
 
-**Merging is the owner's to approve and yours to execute** (settled 2026-08-17).
-Push the branch, open the PR, report what CI actually said, and ask. On a yes, run
-`gh pr merge`. Never merge unasked, and never ask before CI is green — an approval
-given without a verdict is not the checkpoint `supabase/README.md` describes.
+**Merging is automated** (settled 2026-08-17, replacing the approval gate agreed
+earlier the same day). Push the branch, open the PR, wait for CI, **read the job
+log** — not the tick — and on green run `gh pr merge` without asking. This covers
+migrations too; the owner took that trade knowing what it costs.
+
+Two things did not change, and they are what the gate was really for:
+
+- **Never merge red, and never merge on a green tick alone.** A tick is also what a
+  silently skipped test step looks like. Confirm the checks by name in the log.
+- **Report every decision made on the owner's behalf**, in the closing message of
+  the session that made it and in the PR body. Removing the checkpoint removed the
+  approval, not the obligation to say what was decided. It also made reversal
+  dearer: a modelling choice questioned after the merge is a fix-forward migration,
+  not an edit to an unmerged file. So flag the ones that are cheap now and expensive
+  later — anything the seed will bake in — loudly and by name.
 
 Local database: `supabase start` then `supabase db reset`. Add
 `-x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`
