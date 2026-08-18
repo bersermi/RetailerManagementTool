@@ -501,6 +501,9 @@ here, deliberately — speculative indexes on a guess are how the last model got
 `ProviderProductPrice`.
 
 **CI applied `0001`–`0005` and `0008` from scratch and ran all five suites green on
-2026-08-18** — see `docs/PLAN.md` task 1.4 for the run and PR, read from the job log
-rather than from the green tick, since a green tick alone would also be what a
-silently skipped test step looks like.
+2026-08-18**, run
+[32191899904](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904)
+on PR [#7](https://github.com/bersermi/RetailerManagementTool/pull/7) — *all 39*,
+*all 54*, *all 52*, *all 9* and *all 44 checks passed*, read from the job log rather
+than from the green tick, since a green tick alone would also be what a silently
+skipped test step looks like.
