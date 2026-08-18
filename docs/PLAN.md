@@ -25,8 +25,9 @@ from the knowledge graph. Nothing there describes the system being built.
 Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b and 1.4 done,
 1.5 next. **1.4 closed the schema half of step 1: what remains is the seed.**
 Every open decision in this file has been resolved; none is outstanding. Two
-modelling choices made while building 1.3b, and four more from 1.4, are listed below
-and are the owner's to confirm or overturn. Both are function bodies, so revising either is a
+modelling choices made while building 1.3b, and three from 1.4, are listed below and
+are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
+price prefill — was **confirmed on 2026-08-18** and is closed. Both are function bodies, so revising either is a
 `create or replace` in a new migration with no data to migrate — see the corrected
 deadline under *Confirmed by the owner* below.
 
@@ -239,11 +240,20 @@ Neither applies to a function body. Real pilot data arrives when Vender ships at
   their own policies — and both already gate on `has_role(workspace_id, 'manager')`
   because both carry cost. **A staff member recording a delivery therefore gets no
   prefill**, and sees the same blank required field Comprar shows for a provider
-  never bought from. §2.7 lets staff record purchases and denies them cost, and
-  those two are in tension the moment a cashier accepts a delivery; this resolves it
-  the way §2.7 does. **If that is wrong it is wrong at the screen (step 6)**, and the
-  fix is a second, narrower view without the cost column — not a hole in this one.
-  Cheap to revise: a view is a `create or replace` with no data to migrate.
+  never bought from. §2.7 lets staff record purchases and denies them cost, and those
+  two looked to be in tension the moment a cashier accepts a delivery.
+
+  **Confirmed by the owner, 2026-08-18: the cashier is not who accepts deliveries.**
+  The tension does not exist in the shop. Receiving is a manager-or-owner job, and
+  they get the prefill. Nothing to change, and the alternative that was on the table —
+  a second, narrower view exposing the remembered *unit* but not the price — is not
+  owed to anyone and should not be built.
+
+  Two things follow for step 6. **Comprar's receiving flow does not need to be
+  reachable by a staff session at all**, so do not spend the step building one. And
+  §2.7's grant of "record purchase" to staff at their assigned locations is broader
+  than the shop uses — that is the ADR's grant and unused breadth costs nothing, so
+  leave it alone, but do not design *for* it.
 - **A fourth sort key, and the last three are about determinism, not time.** §2.3
   names `occurred_at` alone and it does not pick a single row: `occurred_at` is
   server `now()` for a whole transaction, so two deliveries recorded together share
