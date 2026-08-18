@@ -374,6 +374,9 @@ the clause and watching three checks go red — and note that
 `batch_balance_violations()` stays *empty* in the broken build, which is exactly why
 this needed a test and not an argument.
 
-**CI status: pending.** This section records the local run only; per the rule at the
-top of this file the green CI run is the evidence, and this paragraph is a promissory
-note until it is replaced with a run id.
+**CI applied `0001`–`0005` from scratch and ran all four suites green on 2026-08-17**,
+run [32097844689](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689) on PR [#3](https://github.com/bersermi/RetailerManagementTool/pull/3)
+— *all 39*, *all 54*, *all 52* and *all 9 checks passed*, read from the job log rather
+than from the green tick, since a green tick alone would also be what a silently
+skipped test step looks like. It is also what a `.sh` file the loop never reached
+would look like, which is new in this run and worth having checked by name.
