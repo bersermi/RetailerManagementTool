@@ -26,9 +26,11 @@ Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. **1.6a, 1.6b and 1.6c
 are all done; the seed is complete and 1.7 is next** — the last task in step 1.
-**Two findings are the owner's to weigh**, neither of them patched and both bounded by
-an assertion: *⚠️ `allocate_transfer()` stamps `received_at` with `now()`* (1.6b) and
-*⚠️ the price-memory tiebreak is a uuid* (1.6c), both below.
+**Both findings the seed turned up are now fixed.** The owner's instruction on
+2026-08-19 was to fix them immediately rather than fold them into the RPC migration, and
+`0010` (task 1.8, below) is that fix: the allocators take the moment an event happened
+instead of the moment it was written, and purchase-price memory decides its prefill from
+the data instead of from a uuid. **No finding is outstanding.**
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
@@ -91,7 +93,8 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
 | ~~1.6a~~ | ~~Seed the deliveries~~ — **done** 2026-08-18. `supabase/seeds/10_deliveries.sql`: **110 deliveries, 1 025 lines, 1 025 batches, 1 025 receipt movements** over 88 days; 330 remembered prices; merchant B holds 16.7% of lines. 24 assertions, six of them falsified to prove they discriminate. The seed is **byte-identical across resets**, verified over three | M | ✅ |
 | ~~1.6b~~ | ~~Seed the consumption~~ — **done** 2026-08-18. `supabase/seeds/20_consumption.sql`: **904 sales / 2 251 lines, 65 waste documents / 134 lines, 5 transfer shipments, 3 473 movements.** Invariant clean; FEFO obeyed, asserted and falsified; two deliberate oversales exercise shortfall branches one and three. Reproducible to the peso over three resets | M | ✅ |
-| ~~1.6c~~ | ~~Seed the reversals~~ — **done** 2026-08-19, [CI green on PR #14](https://github.com/bersermi/RetailerManagementTool/actions/runs/32298215918). `supabase/seeds/30_reversals.sql`: **3 voided deliveries / 23 lines, 3 voided tickets / 12 lines, 1 voided write-off / 3 lines, 41 compensating movements.** Invariant clean across every void; 15 (provider, variant) pairs fall back to an older delivery and 1 disappears entirely. 33 assertions, seven of them falsified. Reproducible over three resets in every seeded table — the one thing that varies is `provider_price_memory`, and that is the finding below. `0003`'s 39, `0004`'s 54, `0005`'s 52, the concurrency file's 9 and `0008`'s 44 all still pass, read from the job log | S | ✅ |
+| ~~1.6c~~ | ~~Seed the reversals~~ — **done** 2026-08-19, [CI green on PR #14](https://github.com/bersermi/RetailerManagementTool/actions/runs/32298215918). `supabase/seeds/30_reversals.sql`: **3 voided deliveries / 23 lines, 3 voided tickets / 12 lines, 1 voided write-off / 3 lines, 41 compensating movements.** Invariant clean across every void; 16 (provider, variant) pairs fall back to an older delivery and 1 disappears entirely. 33 assertions, seven of them falsified. Reproducible over three resets in every seeded table, and — after `0010`, task 1.8 — in `provider_price_memory` too. `0003`'s 39, `0004`'s 54, `0005`'s 52, the concurrency file's 9 and `0008`'s 44 all still pass, read from the job log | S | ✅ |
+| ~~1.8~~ | ~~`0010` — the two defects the seed found~~ — **done** 2026-08-19, taken out of order at the owner's instruction because both were `create or replace` fixes with no data to migrate and both get dearer once a pilot exists. `allocate_fefo()` takes a **required** `p_occurred_at`; `allocate_transfer()` stamps its destination lot with the moment it already had; `provider_price_memory` breaks its tie on price, tax rate and display unit. Four falsifications. Suites now 39 / 54 / **55** / 9 / **46** | S | ✅ |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
@@ -165,7 +168,69 @@ sections appended to one file would have made a 1 700-line seed that no one revi
 the same instinct that keeps migrations narrow applies here, and unlike a migration a
 seed file is not append-only, so this costs nothing to undo.
 
-### ⚠️ Found in 1.6c — `provider_price_memory` breaks its tie on a uuid
+### Fixed 2026-08-19 in `0010` — both of the seed's findings, on the owner's instruction
+
+Asked whether the two defects should be fixed now or wait for the RPC migration, the
+owner said fix them now. Both were a `create or replace` with no data to migrate today
+and a fix-forward against live data later, so this is the cheap end of that trade.
+
+**It takes the next free number, not `0006`.** `0006`, `0007` and `0009` are reserved
+and unwritten; renumbering planned work to make a correction look tidy is the more
+confusing choice. ⚠️ **`0006` will therefore apply BEFORE `0010` on a fresh reset and
+must still be written against the six-argument `allocate_fefo`** — plpgsql resolves the
+functions a body calls at call time, so `record_sale` written against the old signature
+applies clean and fails at the first till.
+
+- **`allocate_fefo()` takes a REQUIRED `p_occurred_at`, and required is the decision.**
+  A default of `now()` would have kept every existing call site compiling and would have
+  reproduced the defect the first time a caller held a real `occurred_at` and did not
+  think to pass it — and that caller is `record_sale`, which is the next thing written.
+  The cost is that all twenty call sites moved in one commit, which is the point rather
+  than the price. Adding an argument is a drop and a create, not a replace; no role held
+  execute, and the revoke is re-issued.
+- **Of two prices paid the same morning, the view now offers the HIGHER.** That is the
+  one key in `0010` expressing a preference rather than an order. A prefill is a number
+  an operator accepts without reading; quoting high overstates cost and understates
+  margin, which is the direction someone notices. Quoting low flatters the margin report.
+  Tax rate and display unit follow, and express nothing — they are there so that
+  everything the view hands back is a function of the data.
+- **The id keys stay.** `distinct on` needs a total order, and two deliveries can agree
+  on every column above. What is left arbitrary is which *document* an identical price is
+  attributed to, and those columns are informational.
+
+**⚠️ THE FIX MADE TWO DISHONEST DATES IN `20_consumption.sql` VISIBLE, AND BOTH ARE
+CORRECTED.** While the allocators stamped `now()`, any lot they opened sorted after every
+movement in the seed, so the arrival test skipped it and the question never arose. Given
+real dates, the seed's FEFO and running-balance assertions both failed — correctly:
+
+- the **transfers** were dated fortnightly across the window but *written* after every
+  sale, so a destination lot dated 10 June sat in front of lots the Mercado had sold in
+  June. That was a FEFO violation in the data and it had been there since 1.6b. They are
+  now dated the five days after the last sale, which is when they were actually written;
+- the **oversales** were dated 14 August but written after the transfers, so the overdraw
+  they exist to cause landed on a *transfer* instead — replayed in date order the
+  oversale left the lot at 1 and the transfer took it to −2, on a movement nobody had
+  marked as designed.
+
+The rule underneath both is worth stating once: **every section of `20_consumption.sql`
+picks its quantities from the balances as they stand when it runs, so date order must
+agree with write order.** The headline counts are unchanged — 904 sales / 2 251 lines,
+65 waste / 134 lines, 5 shipments, 3 473 movements — because only dates moved.
+
+**Falsified, four ways, each caught by the check written for it:** reverting the
+destination lot to `now()` (*"12 lot(s) of any origin were received after a movement
+against them"*), reverting the shortfall lot (*"the lot is received AT THE MOMENT GIVEN"*
+in the `0005` suite), and deleting the price key from the view — which trips `0008`'s
+check 23 (*"the higher PRICE, not the higher document id"*) and the seed's own
+*"6 pair(s) where the view's prefill is not the one the data keys imply"*.
+
+That last one is worth reading closely. **The seed's first version of that assertion was
+green with the fix reverted**, because it asked whether the *data* settled every tie and
+deleting a sort key does not change the data. It now also compares the view's answer
+against one derived from the data keys alone. An assertion about a view that never reads
+the view is the shape this repo keeps finding.
+
+### ⚠️ Found in 1.6c — `provider_price_memory` breaks its tie on a uuid — FIXED in `0010`
 
 `0008` orders by `occurred_at desc, recorded_at desc, p.id desc, pl.id desc`. The two
 tail keys were added for determinism and they do not deliver it, because **ids are not
@@ -232,7 +297,7 @@ be arbitrary in when the number is a prefill an operator will accept without rea
   md5 over a name-derived key — the one stable identifier a document has once ids are
   off the table. No date and no id appears in any selection in the file.
 
-### ⚠️ Found in 1.6b — `allocate_transfer()` stamps `received_at` with `now()`
+### ⚠️ Found in 1.6b — `allocate_transfer()` stamps `received_at` with `now()` — FIXED in `0010`
 
 **Neither allocator sets `received_at` on a lot it opens**, so the column default
 `now()` applies:
@@ -255,10 +320,14 @@ exactly two places:
    precisely the perishable case FEFO exists for.
 
 **Not patched in 1.6b, deliberately**: the seed must not work around a function it
-exists to exercise, and `0005` is applied and therefore closed. The fix is a
-`create or replace` in a later migration — cheap now, since no pilot data exists. The
-seed instead **bounds** the exception: only allocator-opened lots may be affected, and
-never more than forty. **Owner's call.**
+exists to exercise, and `0005` is applied and therefore closed. The seed instead
+**bounded** the exception: only allocator-opened lots could be affected, and never more
+than forty.
+
+**Fixed 2026-08-19 in `0010`**, on the owner's instruction — see *Fixed 2026-08-19*
+above. The bound is now an absolute check: no lot of any origin may be received after a
+movement against it. Fixing it is also what exposed the two dishonest dates in
+`20_consumption.sql`, which the bound had been hiding along with the defect.
 
 ### Settled in 1.6b, and binding on 1.6c
 

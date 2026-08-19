@@ -134,7 +134,7 @@ insert into public._conc (phase, pid) values ('s1', pg_backend_pid());
 begin;
 
 create temp table s1_alloc as
-  select * from public.allocate_fefo('$WS', '$LOC', '$VAR', 100, '$OWNER');
+  select * from public.allocate_fefo('$WS', '$LOC', '$VAR', 100, '$OWNER', now());
 
 insert into public.stock_movement (workspace_id, location_id, batch_id, variant_id,
        reason, qty_base, unit_cost_net_per_base, occurred_at, created_by)
@@ -212,7 +212,7 @@ insert into public._conc (phase, pid) values ('s2', pg_backend_pid());
 begin;
 
 create temp table s2_alloc as
-  select * from public.allocate_fefo('$WS', '$LOC', '$VAR', 100, '$OWNER');
+  select * from public.allocate_fefo('$WS', '$LOC', '$VAR', 100, '$OWNER', now());
 
 insert into public.stock_movement (workspace_id, location_id, batch_id, variant_id,
        reason, qty_base, unit_cost_net_per_base, occurred_at, created_by)

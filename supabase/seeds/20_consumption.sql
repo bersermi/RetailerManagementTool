@@ -56,6 +56,13 @@
 --
 -- The one deliberate exception is the oversale in section 6, which is meant to
 -- drive a balance negative and is documented where it happens.
+--
+-- THE ALLOCATORS TAKE THE MOMENT NOW, AND THIS FILE IS WHY. `allocate_fefo()`
+-- gained a required `p_occurred_at` in `0010` and `allocate_transfer()` finally
+-- passes down the one it always took, because both used to stamp a lot they opened
+-- with `now()`. Writing three months backwards is what made that visible; the same
+-- defect is silent and live on the `recorded_offline` path, which accepts the
+-- client's clock up to 72 hours old (§2.6).
 -- ============================================================================
 
 
@@ -313,7 +320,7 @@ begin
           -- each carries its own cost.
           for v_alloc in
             select * from public.allocate_fefo(v_store.ws, v_store.loc, v_line.variant_id,
-                                               v_line.qty_base, v_store.cashier)
+                                               v_line.qty_base, v_store.cashier, v_at)
           loop
             insert into public.stock_movement
               (workspace_id, location_id, batch_id, variant_id, reason, qty_base,
@@ -439,7 +446,7 @@ begin
         v_cost_num := 0; v_cost_qty := 0;
         for v_alloc in
           select * from public.allocate_fefo(v_store.ws, v_store.loc, v_variant.variant_id,
-                                             v_variant.qty, v_store.author)
+                                             v_variant.qty, v_store.author, v_at)
         loop
           insert into _c_wa values (v_variant.variant_id, v_alloc.batch_id,
                                     v_alloc.qty_base, v_alloc.unit_cost_net_per_base);
@@ -505,6 +512,27 @@ $$;
 -- `received_at` is NOT carried forward — store B genuinely received the goods on
 -- the day of the transfer — but the expiry IS, because a tomato does not get
 -- younger by changing shelves, and expiry is the FEFO sort key.
+--
+-- ⚠️ THE TRANSFERS ARE DATED AFTER EVERYTHING THIS FILE CONSUMES, AND THAT IS A
+-- CONSTRAINT, NOT A PREFERENCE. This file writes transfers LAST, so the
+-- destination lots do not exist while the sales above are being allocated. Until
+-- `0010` that was invisible: the destination lot was stamped `now()`, which sorts
+-- after every movement in the seed, so the FEFO assertion's arrival test excluded
+-- it and the question never came up. `0010` gives the lot its real date — and a
+-- lot dated 10 June that the Mercado never touched, sitting in front of the lots
+-- the Mercado did sell in June, IS A FEFO VIOLATION IN THE DATA. It was one
+-- before, too; nothing could see it.
+--
+-- So the shipments moved from fortnightly Wednesdays across the window to the five
+-- days after the last sale. The seed still writes five shipments, still carries
+-- cost and expiry forward, and still leaves the destination lots untouched — what
+-- changes is that the dates now agree with the order things were written in.
+--
+-- The realistic alternative is to interleave: run the transfers in date order
+-- alongside the sales, so the Mercado can actually sell what arrived from Centro.
+-- That is a restructure of this file rather than a date, it moves every number in
+-- 1.6b, and it is the right shape if a later step needs a store to sell
+-- transferred stock. It is not needed to exercise `allocate_transfer()`.
 
 do $$
 declare
@@ -519,8 +547,7 @@ declare
   v_variant  record;
 begin
   for v_day in
-    select d::date from generate_series(date '2026-06-10', date '2026-08-12', interval '1 day') d
-     where extract(dow from d) = 3 and (extract(week from d)::integer % 2) = 0
+    select d::date from generate_series(date '2026-08-16', date '2026-08-20', interval '1 day') d
   loop
     v_key   := 'xfer|' || v_day::text;
     v_at    := v_day + interval '7 hours';
@@ -575,6 +602,16 @@ $$;
 -- are marked so the running-balance assertion below can tell a designed negative
 -- from an accidental one — which is the difference between recording a fact about
 -- the shop and hiding a bug in the seed.
+--
+-- ⚠️ DATED AFTER THE TRANSFERS, BECAUSE THEY ARE WRITTEN AFTER THE TRANSFERS.
+-- Every section of this file picks its quantities from the balances as they stand
+-- when it runs, so a section dated EARLIER than one written before it describes a
+-- shop that never existed. This block chooses "the smallest positive balance" —
+-- and when it was dated 14 August while the transfers were dated later, the
+-- overdraw it was aiming at landed on the TRANSFER instead: replayed in date
+-- order the oversale left the lot at 1 and the transfer took it to -2, so the
+-- designed negative appeared on a movement nobody had marked as designed. The
+-- assertion below caught it. Write order and date order must agree in this file.
 
 create table public._c_oversale (sale_id uuid primary key, kind text not null);
 
@@ -583,7 +620,7 @@ declare
   v_ws      uuid := (select v from public._c_ref where k = 'ws_a');
   v_loc     uuid := (select v from public._c_ref where k = 'loc_a_centro');
   v_cashier uuid := (select v from public._c_ref where k = 'user_caja_centro');
-  v_at      timestamptz := timestamptz '2026-08-14 18:20:00+00';
+  v_at      timestamptz := timestamptz '2026-08-21 18:20:00+00';
   v_sale    uuid;
   v_variant uuid;
   v_have    numeric(14,3);
@@ -633,7 +670,7 @@ begin
   values (v_ws, v_loc, v_sale, v_variant, v_qty, round(v_qty / v_factor, 3), v_unit,
           round(v_net / v_qty, 6), v_net, v_gross - v_net, v_rate);
 
-  for v_alloc in select * from public.allocate_fefo(v_ws, v_loc, v_variant, v_qty, v_cashier)
+  for v_alloc in select * from public.allocate_fefo(v_ws, v_loc, v_variant, v_qty, v_cashier, v_at)
   loop
     insert into public.stock_movement
       (workspace_id, location_id, batch_id, variant_id, reason, qty_base,
@@ -657,7 +694,7 @@ begin
    limit 1;
 
   v_qty   := case when v_unit in ('g','ml') then 500 else 2 end;
-  v_at    := timestamptz '2026-08-14 19:05:00+00';
+  v_at    := timestamptz '2026-08-21 19:05:00+00';
   v_gross := round(coalesce(public._c_price(v_ws, v_loc, v_variant, v_at::date), 10) * v_qty, 2);
   v_net   := round(v_gross / (1 + v_rate), 2);
   v_sale  := gen_random_uuid();
@@ -673,7 +710,7 @@ begin
   values (v_ws, v_loc, v_sale, v_variant, v_qty, round(v_qty / v_factor, 3), v_unit,
           round(v_net / v_qty, 6), v_net, v_gross - v_net, v_rate);
 
-  for v_alloc in select * from public.allocate_fefo(v_ws, v_loc, v_variant, v_qty, v_cashier)
+  for v_alloc in select * from public.allocate_fefo(v_ws, v_loc, v_variant, v_qty, v_cashier, v_at)
   loop
     insert into public.stock_movement
       (workspace_id, location_id, batch_id, variant_id, reason, qty_base,
@@ -720,32 +757,26 @@ begin
     raise exception '20_consumption: % movement(s) consume a DELIVERED lot received after them', v_n;
   end if;
 
-  -- ⚠️ THE ONE EXCEPTION, BOUNDED AND NAMED. `allocate_fefo()` (shortfall branch
-  -- three) and `allocate_transfer()` both open new lots WITHOUT setting
-  -- `received_at`, so it defaults to `now()` — the moment the seed runs, not the
-  -- moment the event is dated. At a real till those coincide and the behaviour is
-  -- correct. Backdated history is the case where they do not, and the transfer
-  -- destination lots and the one adjustment lot are stamped today while their own
-  -- movements are dated weeks earlier.
+  -- NO LOT OF ANY ORIGIN, and this assertion used to carry an exception.
+  -- `allocate_fefo()` (shortfall branch three) and `allocate_transfer()` both
+  -- opened new lots WITHOUT setting `received_at`, so it defaulted to `now()` —
+  -- the moment the seed ran, not the moment the event is dated. At a real till
+  -- those coincide; backdated history is where they do not, and this file is what
+  -- found it. Up to forty transfer destination lots and one adjustment lot were
+  -- stamped the day of the reset while their own movements were dated weeks
+  -- earlier, and this check was written to BOUND that rather than to forbid it.
   --
-  -- This is recorded as a finding against 0006, not patched here: the seed must not
-  -- work around a function it exists to exercise. What this assertion does is stop
-  -- the exception from widening — only lots the allocators opened may be affected,
-  -- and only ever a handful.
-  select count(*) into v_n
-    from public.stock_movement m
-    join public.stock_batch b on b.id = m.batch_id
-   where b.received_at > m.occurred_at
-     and b.origin not in ('transfer', 'adjustment');
-  if v_n > 0 then
-    raise exception '20_consumption: % lot(s) received after their movement are not allocator-opened', v_n;
-  end if;
+  -- **`0010` fixed it** — both allocators now stamp the lots they open with the
+  -- moment they were given — so the exception is gone and the check is absolute.
+  -- The bound is kept as a check on all origins rather than deleted, because it is
+  -- the only thing standing between `recorded_offline` and a lot that sorts as
+  -- received up to 72 hours after the truth on the second FEFO key.
   select count(*) into v_n
     from public.stock_movement m
     join public.stock_batch b on b.id = m.batch_id
    where b.received_at > m.occurred_at;
-  if v_n > 40 then
-    raise exception '20_consumption: % allocator-stamped lots predate their movements — that exception is widening', v_n;
+  if v_n > 0 then
+    raise exception '20_consumption: % lot(s) of any origin were received after a movement against them', v_n;
   end if;
 
   -- --- no balance went negative except where it was meant to -------------------

@@ -210,7 +210,7 @@ select chk('fixture: the ladder is open and b_zero is closed',
 -- only a tiebreak." (§2.4)
 
 create table public._a1 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 150, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 150, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('FEFO: earliest expiry first, and the next lot takes the remainder',
@@ -231,7 +231,7 @@ select chk('FEFO: the amounts sum to exactly what was asked for',
            (select sum(qty_base) from public._a1) = 150);
 
 create table public._a2 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 250, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 250, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('FEFO: a null expiry sorts LAST — it means "does not track expiry", not "never expires"',
@@ -240,7 +240,7 @@ select chk('FEFO: a null expiry sorts LAST — it means "does not track expiry",
 
 -- received_at as the tiebreak.
 create table public._a3 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_rcv', 10, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_rcv', 10, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('FEFO: on equal expiry the older receipt goes first',
@@ -248,10 +248,10 @@ select chk('FEFO: on equal expiry the older receipt goes first',
 
 -- batch_id as the final tiebreak: identical expiry, identical received_at.
 create table public._a4 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_tie', 150, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_tie', 150, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 create table public._a5 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_tie', 150, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_tie', 150, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('FEFO: expiry and receipt tied — batch_id breaks it, ascending',
@@ -275,7 +275,7 @@ select chk('scope: store 1 never allocates store 2''s lot, however well it sorts
        and not exists (select 1 from public._a2 where batch_id = :b_other));
 
 create table public._a6 as
-  select * from allocate_fefo(:'ws_a', :'loc_a2', :'var_a', 20, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a2', :'var_a', 20, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('scope: store 2 allocates its own lot and only its own',
@@ -286,11 +286,11 @@ select chk('scope: store 2 allocates its own lot and only its own',
 -- workspace has no lots, falls through to the shortfall branch, and is refused by
 -- the composite FK rather than quietly opening a lot in the wrong tenant.
 select chk_raises('scope: a location outside the named workspace is refused by the schema',
-  format($q$select * from allocate_fefo(%L, %L, %L, 10, %L)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, 10, %L, now())$q$,
          :'ws_b', :'loc_a1', :'var_b', :owner_b), '23503');
 
 select chk_raises('scope: a variant from another tenant is refused by the schema',
-  format($q$select * from allocate_fefo(%L, %L, %L, 10, %L)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, 10, %L, now())$q$,
          :'ws_a', :'loc_a1', :'var_b', :owner_a), '23503');
 
 
@@ -300,7 +300,7 @@ select chk_raises('scope: a variant from another tenant is refused by the schema
 
 -- (1) 300 open, 400 asked: the lot FEFO ran out on absorbs the difference.
 create table public._s1 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 400, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_a', 400, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('shortfall: not enough stock allocates anyway — it does not raise',
@@ -315,7 +315,7 @@ select chk('shortfall: the amounts still sum to exactly what was asked for',
 -- (2) nothing open at all: the most recently received lot is blamed, at the cost
 -- the shop actually paid for it.
 create table public._s2 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_dry', 30, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_dry', 30, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('shortfall: with every lot closed, the most recent one is blamed',
@@ -326,10 +326,16 @@ select chk('shortfall: and it carries a real cost, not an invented one',
            (select unit_cost_net_per_base from public._s2 where ord = 1) = 0.080000);
 
 -- (3) never stocked here: a new lot, at zero cost, with no expiry.
+--
+-- ALLOCATED WITH A BACKDATED MOMENT, deliberately. `now()` here would make the
+-- last check in this block pass against the column default and prove nothing —
+-- which is exactly the state 0005 shipped in and 0010 corrects.
+\set adj_at '''2026-02-01 08:30:00+00'''
+
 select count(*) as batches_before from stock_batch \gset
 
 create table public._s3 as
-  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_new', 7, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a1', :'var_new', 7, :owner_a, :adj_at)
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('shortfall: a product never stocked here opens exactly one lot to hold the debt',
@@ -348,6 +354,17 @@ select chk('shortfall: it opens at zero, so the debt only appears once the calle
            (select bb.remaining_base from batch_balance bb
              join public._s3 s on s.batch_id = bb.batch_id) = 0);
 
+-- 0010. The lot is received WHEN THE WITHDRAWAL HAPPENED, not when the row was
+-- written. `received_at` defaults to now(), which is right at a till and wrong on
+-- every write whose event time is not the write time — and `recorded_offline`
+-- accepts a client clock up to 72 hours old (§2.6). received_at is the second FEFO
+-- key, so the old behaviour reordered lots received within days of each other.
+select chk('shortfall: the lot is received AT THE MOMENT GIVEN, not at now() (0010)',
+           (select sb.received_at from stock_batch sb
+             join public._s3 s on s.batch_id = sb.id) = timestamptz :adj_at,
+           (select sb.received_at::text from stock_batch sb
+             join public._s3 s on s.batch_id = sb.id));
+
 -- The shortfall written through, so the invariant is exercised against a negative
 -- balance produced by the allocator rather than by hand.
 insert into stock_movement (workspace_id, location_id, batch_id, variant_id,
@@ -362,20 +379,25 @@ select chk('shortfall: writing it drives the lot negative, which v1 permits',
 
 -- ============================================================== the guards ===
 select chk_raises('guard: a zero-quantity withdrawal is a caller bug, not a no-op',
-  format($q$select * from allocate_fefo(%L, %L, %L, 0, %L)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, 0, %L, now())$q$,
          :'ws_a', :'loc_a1', :'var_a', :owner_a), '22023');
 select chk_raises('guard: a negative quantity is refused — the caller writes the sign',
-  format($q$select * from allocate_fefo(%L, %L, %L, -5, %L)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, -5, %L, now())$q$,
          :'ws_a', :'loc_a1', :'var_a', :owner_a), '22023');
 select chk_raises('guard: a null quantity is refused',
-  format($q$select * from allocate_fefo(%L, %L, %L, null, %L)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, null, %L, now())$q$,
          :'ws_a', :'loc_a1', :'var_a', :owner_a), '22023');
 select chk_raises('guard: a null location is refused',
-  format($q$select * from allocate_fefo(%L, null, %L, 5, %L)$q$,
+  format($q$select * from allocate_fefo(%L, null, %L, 5, %L, now())$q$,
          :'ws_a', :'var_a', :owner_a), '22023');
 select chk_raises('guard: a null author is refused — every row carries created_by',
-  format($q$select * from allocate_fefo(%L, %L, %L, 5, null)$q$,
+  format($q$select * from allocate_fefo(%L, %L, %L, 5, null, now())$q$,
          :'ws_a', :'loc_a1', :'var_a'), '22023');
+-- 0010 made the moment REQUIRED rather than defaulted, so that a caller holding a
+-- real occurred_at cannot silently fall back to now(). This is that requirement.
+select chk_raises('guard: a null moment is refused — a lot must know when it arrived',
+  format($q$select * from allocate_fefo(%L, %L, %L, 5, %L, null)$q$,
+         :'ws_a', :'loc_a1', :'var_a', :owner_a), '22023');
 
 
 -- ========================================================== the transfer =====
@@ -384,10 +406,13 @@ select chk_raises('guard: a null author is refused — every row carries created
 -- expiry_date forward... stock_batch.location_id is NEVER UPDATED." (§2.4)
 
 \set xfer_1 '''eeee0005-0000-0000-0000-000000000001'''
+-- Backdated, for the reason branch three above is: with now() the received_at
+-- check below would pass against the column default.
+\set xfer_at '''2026-02-14 09:15:00+00'''
 
 create table public._t1 as
   select * from allocate_transfer(:'ws_a', :'loc_a1', :'loc_a2', :'var_xfer',
-                                  100, :xfer_1, now(), :owner_a)
+                                  100, :xfer_1, :xfer_at, :owner_a)
     with ordinality as t(source_batch_id, destination_batch_id, qty_base,
                          unit_cost_net_per_base, expiry_date, ord);
 
@@ -410,6 +435,29 @@ select chk('transfer: the destination lot carries cost forward, so store B''s ma
        and (select d.unit_cost_net_per_base from stock_batch d
              join public._t1 t on t.destination_batch_id = d.id where t.ord = 2) = 0.022000);
 
+-- 0010. The function took the moment, used it for all four movements, and did not
+-- give it to the lot it opened — so a transfer recorded three days late opened a
+-- destination lot that sorted as received today. received_at is still the
+-- DESTINATION's own and the origin's is still not carried forward (§2.4); what
+-- changed is that "the destination's own" is when the transfer happened.
+select chk('transfer: the destination lot is received when the TRANSFER happened, not at now() (0010)',
+           not exists (
+             select 1 from public._t1 t join stock_batch d on d.id = t.destination_batch_id
+              where d.received_at <> timestamptz :xfer_at),
+           (select string_agg(d.received_at::text, ', ') from public._t1 t
+             join stock_batch d on d.id = t.destination_batch_id));
+
+-- The other half of §2.4's reading, and the half that has NOT changed: the
+-- origin's receipt date is not carried forward. Only expiry and cost are. The
+-- fixture receives the origin lots a day ago and transfers them in February, so
+-- the two dates are genuinely different numbers and this can fail.
+select chk('transfer: and it is not the ORIGIN''s received_at — only cost and expiry carry forward',
+           not exists (
+             select 1 from public._t1 t
+               join stock_batch d on d.id = t.destination_batch_id
+               join stock_batch o on o.id = t.source_batch_id
+              where d.received_at = o.received_at));
+
 select chk('transfer: and expiry forward, so store B''s FEFO ordering stays meaningful',
            not exists (
              select 1 from public._t1 t
@@ -417,12 +465,12 @@ select chk('transfer: and expiry forward, so store B''s FEFO ordering stays mean
                join stock_batch o on o.id = t.source_batch_id
               where d.expiry_date is distinct from o.expiry_date));
 
-select chk('transfer: received_at is the DESTINATION''s own — store B received it today',
-           not exists (
-             select 1 from public._t1 t
-               join stock_batch d on d.id = t.destination_batch_id
-               join stock_batch o on o.id = t.source_batch_id
-              where d.received_at <= o.received_at));
+-- The check that used to live here read `d.received_at > o.received_at` — "store
+-- B received it today". It was true of a fixture written today and transferred
+-- today, and it is what let 0005's defect through: "today" was the day of the
+-- WRITE, not the day of the transfer. It is replaced by the pair of checks in the
+-- transfer section above, which name the moment instead of comparing it to the
+-- origin's, and which the fixture backdates so that they can fail.
 
 select chk('transfer: provider_id is null — nothing was bought, it walked in from the other store',
            not exists (
@@ -465,7 +513,7 @@ select chk('transfer: the balances moved by exactly the allocation',
 -- The point of carrying expiry forward, made as an assertion: the destination now
 -- rotates on the ORIGIN's dates.
 create table public._t2 as
-  select * from allocate_fefo(:'ws_a', :'loc_a2', :'var_xfer', 70, :owner_a)
+  select * from allocate_fefo(:'ws_a', :'loc_a2', :'var_xfer', 70, :owner_a, now())
     with ordinality as a(batch_id, qty_base, unit_cost_net_per_base, expiry_date, ord);
 
 select chk('transfer: the destination rotates on the carried expiry, not on arrival order',
@@ -535,13 +583,13 @@ select chk('invariant: the projection is still disposable — rebuilt from the m
 
 select chk('access: authenticated holds no execute on allocate_fefo',
            not has_function_privilege('authenticated',
-             'public.allocate_fefo(uuid,uuid,uuid,numeric,uuid)', 'execute'));
+             'public.allocate_fefo(uuid,uuid,uuid,numeric,uuid,timestamptz)', 'execute'));
 select chk('access: authenticated holds no execute on allocate_transfer',
            not has_function_privilege('authenticated',
              'public.allocate_transfer(uuid,uuid,uuid,uuid,numeric,uuid,timestamptz,uuid)', 'execute'));
 select chk('access: anon holds no execute on either',
            not has_function_privilege('anon',
-             'public.allocate_fefo(uuid,uuid,uuid,numeric,uuid)', 'execute')
+             'public.allocate_fefo(uuid,uuid,uuid,numeric,uuid,timestamptz)', 'execute')
        and not has_function_privilege('anon',
              'public.allocate_transfer(uuid,uuid,uuid,uuid,numeric,uuid,timestamptz,uuid)', 'execute'));
 
@@ -553,7 +601,7 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 
 select chk_raises('access: a MANAGER cannot call the allocator directly',
-  format($q$select * from public.allocate_fefo(%L, %L, %L, 5, %L)$q$,
+  format($q$select * from public.allocate_fefo(%L, %L, %L, 5, %L, now())$q$,
          :'ws_a', :'loc_a1', :'var_a', :owner_a), '42501');
 select chk_raises('access: a manager cannot call the transfer write directly',
   format($q$select * from public.allocate_transfer(%L, %L, %L, %L, 5, %L, now(), %L)$q$,
