@@ -23,11 +23,14 @@ from the knowledge graph. Nothing there describes the system being built.
 ## Position
 
 Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5 done,
-**1.6 next — the one L task left in step 1.**
+**1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
+before any of it was written — it was the last **L** in step 1. **1.6a is done;
+1.6b is next.**
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
-price prefill — was **confirmed on 2026-08-18** and is closed. Both are function bodies, so revising either is a
+price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
+open are function bodies or a view definition, so revising any of them is a
 `create or replace` in a new migration with no data to migrate — see the corrected
 deadline under *Confirmed by the owner* below.
 
@@ -83,12 +86,14 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
 | ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18, [CI green on PR #7](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904). 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
 | ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
-| 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
+| ~~1.6a~~ | ~~Seed the deliveries~~ — **done** 2026-08-18. `supabase/seeds/10_deliveries.sql`: **110 deliveries, 1 025 lines, 1 025 batches, 1 025 receipt movements** over 88 days; 330 remembered prices; merchant B holds 16.7% of lines. 24 assertions, six of them falsified to prove they discriminate. The seed is **byte-identical across resets**, verified over three | M | ✅ |
+| 1.6b | Seed the consumption — sales, waste and an inter-store transfer, every unit through `allocate_fefo()` / `allocate_transfer()` | M | Invariant holds; no movement written by hand; an oversale is representable |
+| 1.6c | Seed the reversals — a voided delivery, a voided sale, a voided waste | S | Invariant holds across every reversal; the voided delivery stops prefilling |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
-1.3b + 1.5. **1.6 is next**, and it is the last **L** in step 1 — consider splitting
-it before writing code, the way 1.3 was split.
+1.3b + 1.5, and within it 1.6a → 1.6b → 1.6c, because you cannot sell stock that was
+never delivered or void a document that does not exist. **1.6b is next.**
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -131,6 +136,73 @@ the minimum that exercises the rules, not a simulation of a real shop.
 a token amount of the ledger, `workspace_id` is still effectively non-selective on
 `purchase_line` and plan evidence stays weak. B should carry a real minority share of
 the transactions — not a matching half, but not ten rows either.
+
+### 1.6 was split on 2026-08-18, before it was written
+
+It was the one **L** left in step 1, and 1.3 had already shown what an L costs when it
+is discovered mid-flight. The split is by *what writes what*, so each piece is
+separately reviewable and separately verifiable against the §2.4 invariant:
+
+| | Writes | Cannot be checked until it exists |
+|---|---|---|
+| **1.6a** | `purchase`, `purchase_line`, `stock_batch`, positive movements | Nothing consumes stock yet, so the invariant is trivially true — the real check is provenance: every batch traces to a line, every line to a document |
+| **1.6b** | `sale`, `waste`, transfers, and the negative movements | The invariant becomes load-bearing here, and FEFO order becomes observable |
+| **1.6c** | Reversal documents and compensating movements | The invariant across a void, and `provider_price_memory` falling back |
+
+**Merchant B carries roughly 20% of the ledger.** Proposed and approved 2026-08-18.
+Enough that `workspace_id` is a genuinely selective predicate on `purchase_line` —
+which is exactly what 1.4's performance evidence lacked, its fixture being
+single-tenant — without doubling how long a reset takes.
+
+**Each piece gets its own seed file.** `supabase/seed.sql` became
+`supabase/seeds/00_skeleton.sql` in 1.6a, and `config.toml` now lists the files
+explicitly rather than globbing, so the order is stated and not inferred. Three more
+sections appended to one file would have made a 1 700-line seed that no one reviews;
+the same instinct that keeps migrations narrow applies here, and unlike a migration a
+seed file is not append-only, so this costs nothing to undo.
+
+### Settled in 1.6a, and binding on 1.6b and 1.6c
+
+- **⚠️ THE SEED MUST BE DETERMINISTIC, AND IT WAS NOT AT FIRST.** The line generator
+  originally hashed `purchase_id` and `variant_id` to decide what each truck carried.
+  Those are `gen_random_uuid()`, so **two consecutive resets produced 1 071 and 1 064
+  batches** — caught only because a falsification run printed both numbers side by
+  side. Every hash now keys off a `doc_key` built from provider name, location name
+  and week, plus the product *name*. Three resets now produce identical counts,
+  totals and quantities to the peso. **1.6b and 1.6c must do the same**: never hash a
+  uuid. A seed that differs between runs makes "it failed in CI but not locally"
+  unanswerable and lets an assertion threshold flicker into a false red.
+- **A green `batch_balance_violations()` means almost nothing in 1.6a**, and the file
+  says so. Nothing has been withdrawn, so every balance is just its own receipt and
+  the check would pass with the allocator absent. **It becomes load-bearing in 1.6b**,
+  which is the first point where the invariant can actually be violated.
+- **The receipt is a movement, not the batch row.** One positive `purchase` movement
+  per lot, asserted one-for-one against `stock_batch`. Falsified both ways — omitting
+  it (*"1025 batches but 0 receipt movements"*) and writing it twice (*"1025 batches
+  but 2050"*). `record_purchase` in 0006 must do exactly this.
+- **Headers cannot be patched after the fact**, so totals must be right in the
+  INSERT. `purchase` carries the append-only trigger — there is no "insert the header,
+  add the lines, then update the totals". The lines are staged first and the header is
+  built from their sums. **0006's `record_purchase` faces the identical constraint**,
+  and this is the shape it needs.
+- **A lineless delivery never becomes a document**, because the header insert
+  inner-joins to the line totals. No DELETE is needed and none is written; an explicit
+  one would be dead code dressed as a safeguard.
+- **Providers do not carry the whole catalog, on purpose.** Each named provider is
+  assigned whole families, one of merchant B's three providers **never delivers at
+  all**, and the generic provider takes a thin slice of produce that overlaps another
+  provider. Without those gaps every `(provider, variant)` pair would have a price and
+  "no fallback across providers" — the rule 1.4 exists for — would never be exercised
+  by the seed. Asserted: some provider has no history, and some variant is bought from
+  two providers at different prices.
+- **Merchant B's line density is higher than A's, and that is deliberate.** B's
+  catalog is 25 products against A's 316, so matching A's density left B at **3.5%**
+  of the ledger rather than the ~20% the owner fixed. It is also the more honest
+  shape: a corner shop restocks most of its range weekly. B now holds 16.7%.
+- **Cost is derived from the sell price**, per family margin, with a ±5% drift per
+  delivery. The drift is what gives the price memory something to remember other than
+  one constant — without it "what did we last pay" and "what do we always pay" are the
+  same question, and step 7 exists to separate them.
 
 ### Settled in 1.5, and binding on 1.6
 
