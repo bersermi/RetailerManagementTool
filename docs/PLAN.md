@@ -24,9 +24,11 @@ from the knowledge graph. Nothing there describes the system being built.
 
 Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5 done,
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
-before any of it was written — it was the last **L** in step 1. **1.6a and 1.6b are
-done; 1.6c is next.** One finding from 1.6b is the owner's to weigh — see
-*⚠️ `allocate_transfer()` stamps `received_at` with `now()`* below.
+before any of it was written — it was the last **L** in step 1. **1.6a, 1.6b and 1.6c
+are all done; the seed is complete and 1.7 is next** — the last task in step 1.
+**Two findings are the owner's to weigh**, neither of them patched and both bounded by
+an assertion: *⚠️ `allocate_transfer()` stamps `received_at` with `now()`* (1.6b) and
+*⚠️ the price-memory tiebreak is a uuid* (1.6c), both below.
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
@@ -89,12 +91,13 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
 | ~~1.6a~~ | ~~Seed the deliveries~~ — **done** 2026-08-18. `supabase/seeds/10_deliveries.sql`: **110 deliveries, 1 025 lines, 1 025 batches, 1 025 receipt movements** over 88 days; 330 remembered prices; merchant B holds 16.7% of lines. 24 assertions, six of them falsified to prove they discriminate. The seed is **byte-identical across resets**, verified over three | M | ✅ |
 | ~~1.6b~~ | ~~Seed the consumption~~ — **done** 2026-08-18. `supabase/seeds/20_consumption.sql`: **904 sales / 2 251 lines, 65 waste documents / 134 lines, 5 transfer shipments, 3 473 movements.** Invariant clean; FEFO obeyed, asserted and falsified; two deliberate oversales exercise shortfall branches one and three. Reproducible to the peso over three resets | M | ✅ |
-| 1.6c | Seed the reversals — a voided delivery, a voided sale, a voided waste | S | Invariant holds across every reversal; the voided delivery stops prefilling |
+| ~~1.6c~~ | ~~Seed the reversals~~ — **done** 2026-08-19. `supabase/seeds/30_reversals.sql`: **3 voided deliveries / 23 lines, 3 voided tickets / 12 lines, 1 voided write-off / 3 lines, 41 compensating movements.** Invariant clean across every void; 15 (provider, variant) pairs fall back to an older delivery and 1 disappears entirely. 33 assertions, seven of them falsified. Reproducible over three resets in every seeded table — the one thing that varies is `provider_price_memory`, and that is the finding below | S | ✅ |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
 1.3b + 1.5, and within it 1.6a → 1.6b → 1.6c, because you cannot sell stock that was
-never delivered or void a document that does not exist. **1.6c is next.**
+never delivered or void a document that does not exist. **1.7 is next, and it is the
+last task in step 1.**
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -161,6 +164,73 @@ explicitly rather than globbing, so the order is stated and not inferred. Three 
 sections appended to one file would have made a 1 700-line seed that no one reviews;
 the same instinct that keeps migrations narrow applies here, and unlike a migration a
 seed file is not append-only, so this costs nothing to undo.
+
+### ⚠️ Found in 1.6c — `provider_price_memory` breaks its tie on a uuid
+
+`0008` orders by `occurred_at desc, recorded_at desc, p.id desc, pl.id desc`. The two
+tail keys were added for determinism and they do not deliver it, because **ids are not
+stable data**:
+
+- purchase price memory is **workspace-wide**, and 1.6a delivers to both of merchant A's
+  stores from one provider on the same morning at the same hour, with `recorded_at`
+  equal to `occurred_at`;
+- so two documents tie on every key that is not an id, and `gen_random_uuid()` picks the
+  winner. **14 (provider, variant) pairs are decided this way.**
+
+Three resets agree on every count and every total in all four seed files and **disagree
+on the sum of the prefills**. That is how it was found; nothing before 1.6c had measured
+the view across resets, and 1.4's fixture was single-tenant and single-store.
+
+**It is not a correctness bug.** Both tied rows are prices the shop genuinely paid that
+morning, so no prefill is ever *wrong*. It is arbitrary — and arbitrary in production
+too, where the ids come from the client at cart open, and where a chain with two branches
+on one delivery round produces this tie every week.
+
+**Not patched, for the reason 1.6b did not patch `received_at`**: the seed must not work
+around the object it exists to exercise, and `0008` is applied and therefore closed. The
+seed **bounds** it instead — every tie must be between two *stores* of one workspace, and
+there must be no more than thirty. A tie inside one store would be a worse fact: one
+delivery recorded twice, with the view choosing between the copies by uuid.
+
+**The cheap fix, if the owner wants one:** put `pl.unit_price_net_per_base desc` ahead of
+the id keys in a `create or replace`. It makes the view a pure function of the data, and
+it offers the higher of two prices paid the same morning, which is the safe direction to
+be arbitrary in when the number is a prefill an operator will accept without reading.
+**Owner's call**, and cheap now — a view with no data to migrate.
+
+### Settled in 1.6c, and binding on 1.7 and on `0006`
+
+- **The compensating movement belongs to the REVERSAL document, not the original.**
+  `sale_id` on it is the void's id; `reversal_of_movement_id` points at the movement it
+  cancels. This was not 1.6c's decision — `0004`'s suite fixed it before any of it was
+  seeded — but 1.6c is the first thing that depends on it at scale, and
+  `void_transaction` in `0006` must do the same. Falsifying it in the seed was caught,
+  though **by a neighbouring assertion** rather than the one written for it: a
+  compensator carrying the original's id becomes itself a movement of a voided document
+  with nothing compensating it.
+- **One voided delivery had already been sold through, deliberately.** A reversal against
+  an intact lot can only return a balance to where it started, which exercises the
+  projection at its easiest point. This one takes back units that are gone and drives
+  **five lots negative** — legal, recorded and not enforced (§2.6). The delivery is named
+  in the seed's own scaffolding so the running-balance assertion can tell that designed
+  deficit from an accidental one, exactly as 1.6b named its oversales.
+- **⚠️ SEVEN LOTS IN THE SEED ARE LEGITIMATELY NEGATIVE — two from 1.6b's oversales and
+  five from the voided delivery above. 1.7 must not assert that no balance is below
+  zero.** The invariant is `batch_balance_violations()`, which asks whether the
+  projection agrees with the movements, and it is clean. "No lot is negative" is a
+  different claim, it is false, and it is false on purpose.
+- **Below zero, not merely lower.** The first draft of the running-balance check compared
+  each lot's low-water mark before and after the voids and raised on all eighteen lots of
+  the two intact deliveries. Voiding an intact delivery *does* lower a lot's minimum,
+  from everything it received down to nothing, and that is the correct outcome. The claim
+  worth asserting is about the sign.
+- **The void is filed by whoever filed the original.** Cashiers void their own tickets
+  minutes later, inside `void_window_minutes`, which is asserted; deliveries and
+  write-offs stay with the manager or owner who recorded them, because `purchase_line`
+  and `waste_line` carry cost and are manager-and-above.
+- **Every pick is a rule over the data, and `payload_hash` is the tiebreak.** It is an
+  md5 over a name-derived key — the one stable identifier a document has once ids are
+  off the table. No date and no id appears in any selection in the file.
 
 ### ⚠️ Found in 1.6b — `allocate_transfer()` stamps `received_at` with `now()`
 

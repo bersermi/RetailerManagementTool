@@ -75,6 +75,7 @@ sql_paths = [
   "./seeds/00_skeleton.sql",
   "./seeds/10_deliveries.sql",
   "./seeds/20_consumption.sql",
+  "./seeds/30_reversals.sql",
 ]
 
 [db.network_restrictions]
