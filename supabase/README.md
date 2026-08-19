@@ -532,6 +532,7 @@ and a glob would leave it to filename luck.
 | `00_skeleton.sql` | 1.5 | Catalog, providers, locations, people, sell prices |
 | `10_deliveries.sql` | 1.6a | `purchase`, `purchase_line`, `stock_batch`, receipt movements |
 | `20_consumption.sql` | 1.6b | `sale`, `waste`, transfers, and every negative movement |
+| `30_reversals.sql` | 1.6c | The voided documents, and their compensating movements |
 
 Each file owns one question, asserts its own answer at the end, and refuses to run out
 of order. `00_skeleton.sql` still asserts that **no ledger exists when it finishes** —
@@ -746,3 +747,91 @@ Two resets produced identical row counts and **different revenue**: the oversale
 "the smallest balance" and ties resolved arbitrarily. Every pick ending in `LIMIT` now
 carries a total order, and the tiebreak is the product **name** — ids are regenerated
 on every reset and can never be one. Three resets now agree to the peso.
+
+
+### `30_reversals.sql` — the documents the shop took back (task 1.6c)
+
+**3 voided deliveries (23 lines), 3 voided tickets (12 lines), 1 voided write-off
+(3 lines), and 41 compensating movements.** Voids are 0.40% of takings — rare, which
+is what they are. A full reset with all four seed files still takes ~33s.
+
+**Nothing is mutated, and the schema is what makes that true.** `purchase`, `sale`,
+`waste`, `stock_batch` and `stock_movement` all carry an append-only trigger that
+refuses an UPDATE even to the `postgres` superuser. A void is an INSERT of a mirror
+document with `reversal_of` set and its totals negated; **a lot whose delivery was
+voided is left standing and empty**, never deleted and never restated.
+
+**The compensating movement belongs to the reversal document, not to the original** —
+`sale_id` on it is the void's id, with `reversal_of_movement_id` pointing at the
+movement it cancels. That convention was fixed by `0004`'s suite before any of it was
+seeded, and it is what keeps "what did this document move" a question with one answer.
+`record_sale`'s void path in `0006` must do the same.
+
+#### Which documents get voided, and why it is not a coin flip
+
+Every pick is a rule evaluated against the data — never a date, never a uuid. Where a
+rule needs a pseudo-random but stable choice it sorts by `payload_hash`, an md5 over a
+name-derived key and the one stable identifier a document has.
+
+| | Chosen by | Proves |
+|---|---|---|
+| A delivery at merchant A, stock intact | owns the most price memory **and** at least one pair it is the only delivery for | both halves of `0008` — pairs that fall back, and a pair that disappears |
+| The same at merchant B | owns the most price memory | a void in one tenant only is a workspace predicate never tested |
+| A delivery at merchant A, **already sold through** | the fewest lines among deliveries with no lot left intact | the projection where it is hard: the void takes back units that are gone and the lots go **negative** |
+| One ticket per store | touched the most lots | a void that credits several lots back, not one |
+| One write-off | the same | `waste_line`'s reason and cost snapshot are copied, not recomputed |
+
+The person who filed the original files the void. Cashiers void their own tickets
+minutes later, inside `void_window_minutes`; deliveries and write-offs stay with the
+manager or owner who recorded them, because both carry cost.
+
+#### ⚠️ Found here: the price-memory tiebreak is a uuid, so the prefill is not reproducible
+
+`provider_price_memory` orders by `occurred_at`, then `recorded_at`, then **`p.id desc,
+pl.id desc`** (`0008`). Purchase price memory is workspace-wide, and `10_deliveries.sql`
+delivers to both of merchant A's stores from one provider on the same morning at the
+same hour, with `recorded_at` equal to `occurred_at`. Two documents therefore tie on
+every key that is not an id — and ids are regenerated on every reset.
+
+**Three resets agree on every count and every total in the seed's own tables and
+disagree on the sum of the prefills.** 14 (provider, variant) pairs are decided by the
+uuid tiebreak.
+
+It is not a correctness bug: both tied rows are prices the shop genuinely paid that
+morning, so no prefill is ever *wrong* — it is arbitrary, and it is arbitrary in
+production too, where the ids come from the client at cart open. **Not patched here**,
+for the reason `20_consumption.sql` left `received_at` alone: the seed must not work
+around the object it exists to exercise, and `0008` is applied and therefore closed. The
+seed **bounds** it instead — every tie must be between two *stores* of one workspace,
+and there must be no more than 30 of them. A tie inside a single store would be a worse
+fact: one delivery recorded twice, and the view picking between them by uuid.
+
+#### The assertions, and what breaks them
+
+Thirty-three checks, seven of them shown able to fail. `supabase db reset` exited **1**
+on every falsification:
+
+| Falsification | Caught by |
+|---|---|
+| Compensating movement filed against the original document | *"15 movement(s) of a voided document were never compensated"* |
+| The write-off void writes no compensating movements | *"3 movement(s) of a voided document were never compensated"* |
+| A void re-costs the units it takes back | *"23 compensating movement(s) are not a mirror of what they cancel"* |
+| The delivery rule drops its sole-source requirement | *"no pair lost its only delivery — the disappearing case is unproven"* |
+| The sold-through delivery is not declared | *"5 lot(s) were driven lower by a void outside the one delivery designed to do it"* |
+| A cashier voids their own ticket an hour later | *"a cashier voided their own ticket after the window closed"* |
+| The void keeps the original's positive totals | *"a voided ticket is not the negative of what it cancels"* |
+
+The first row is worth reading closely: it was aimed at *"compensating movement(s) are
+filed against the original document"* and tripped a **neighbour** instead, because a
+compensator carrying the original's id becomes itself a movement of a voided document
+with nothing compensating it. Caught, but not by the check written for it — the same
+shape 1.6a's fifth falsification had.
+
+#### Below zero, not merely lower
+
+The first draft of the running-balance check compared each lot's low-water mark before
+and after and raised on all 18 lots of the two intact deliveries. It was measuring the
+wrong thing: voiding an intact delivery *does* lower a lot's minimum, from everything it
+received down to nothing, and that is the correct outcome. The claim worth asserting is
+about the **sign** — no reversal may put a lot into deficit unless it was in deficit
+already, or unless it is the one delivery voided knowing that it would.
