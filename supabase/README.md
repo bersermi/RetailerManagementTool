@@ -520,3 +520,71 @@ on PR [#7](https://github.com/bersermi/RetailerManagementTool/pull/7) — *all 3
 *all 54*, *all 52*, *all 9* and *all 44 checks passed*, read from the job log rather
 than from the green tick, since a green tick alone would also be what a silently
 skipped test step looks like.
+
+## The seed
+
+`supabase/seed.sql`, run automatically by `supabase db reset` (`config.toml`
+`[db.seed] sql_paths`). Task 1.5, added 2026-08-18.
+
+**It is the static half of a shop**: catalog, providers, locations, people, sell
+prices. It writes **no ledger** — no purchase, sale, waste, batch or movement. Those
+are 1.6, and every unit of them is allocated through `allocate_fefo()` so the seed and
+`record_sale` cannot diverge. An assertion in the seed enforces that split, because
+the moment this file writes a movement by hand, the design gate at step 2 is judged on
+data the real system never produces.
+
+| | Merchant A — *Tienda Doña Lupe* | Merchant B — *Abarrotes El Roble* |
+|---|---|---|
+| Locations | 2 (Doña Lupe Centro, Sucursal Mercado) | 1 |
+| Families | 9 | 3 |
+| Variants | **316** | 25 |
+| Providers | 3 named + `Compra directa` | 3 named + `Compra directa` |
+| People | owner, manager, a cashier per store | owner, one cashier |
+
+**Two merchants, because a single-tenant seed makes every isolation check vacuous.** A
+query that forgot its `workspace_id` predicate returns exactly the right answer when
+there is only one workspace, and step 2 is where that would hide. B is a control, not a
+second customer — and its product names **deliberately collide** with A's, so a lost
+tenancy predicate finds a plausible twin rather than nothing. Sucursal Mercado plays
+the same role for `location_id`, and charges 8% more for produce so that "the price at
+this store" and "the workspace price" are genuinely different numbers somewhere.
+
+**The catalog is a real tienda's**, because the shapes are what break arithmetic
+(§2.5): `canasta básica` at 0% IVA against 16% on everything processed; 73 weighed
+variants with base `g` bought by the `kg`; packs with `pack_size > 1` bought as a case
+and sold as singles; three families that track expiry, so `allocate_fefo()` has a
+decision to make when 1.6 arrives. Provider spread is deliberately *not* realistic —
+three named plus the generic one, no long tail (owner, 2026-08-18).
+
+### The seed checks itself, and the reset fails when it doesn't
+
+Twelve assertions run at the end of the file. **`supabase db reset` exits non-zero when
+one raises** — confirmed by falsifying three of them rather than assumed:
+
+| Falsification | Result |
+|---|---|
+| Variant-count floor raised above what the seed produces | `EXIT 1` — *"merchant A has only 316 variants, expected ~300"* |
+| A family name misspelled in one section | `EXIT 1` — *"staged 341 catalog rows but 330 variants exist — an inner join dropped rows"* |
+| A `purchase` row written into 1.5 | `EXIT 1` — *"task 1.5 writes no ledger"* |
+
+The middle one is the reason that assertion exists: the catalog insert is an inner join
+on `product_family.name`, so a typo **drops products silently** and every count
+downstream is quietly short.
+
+⚠️ **Seed data does not survive into any test suite, and task 1.7 must plan around it.**
+`supabase/tests/_cleanup.sql` runs before *every* suite and `TRUNCATE`s every table but
+`unit`, so the seed is gone before the first suite starts. That is correct — suites
+assert absolute counts and must own the database — but it means **1.7 cannot be a file
+in `supabase/tests/`**. The invariant check over seed data has to be its own step in
+`.github/workflows/db.yml`, between `supabase db reset` and the suite loop. Written
+as a test file it would assert over an empty database, and pass.
+
+### Reading it
+
+`seed.sql` is plain SQL with no psql meta-commands — the CLI executes it directly, so
+`\gset` is unavailable. Workspaces are created through `onboard_workspace()` rather than
+by hand, because that is the tested path and it is what writes the `workspace_setting`
+row and the generic provider; it generates the workspace id itself, so ids cross
+statements through two scaffolding tables that the file **drops before it finishes**.
+Nothing named `_seed_*` survives a reset, and 1.6 should look ids up by name rather than
+depend on a table no migration created.

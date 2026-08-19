@@ -22,8 +22,8 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b and 1.4 done,
-1.5 next. **1.4 closed the schema half of step 1: what remains is the seed.**
+Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5 done,
+**1.6 next — the one L task left in step 1.**
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
@@ -82,13 +82,13 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17, [CI green on PR #2](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234). 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
 | ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
 | ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18, [CI green on PR #7](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904). 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
-| 1.5 | Seed skeleton — **two merchants**, three locations, ~300 products, mixed units, mixed tax, packs and weighed items. Shape fixed by the owner 2026-08-18, spec below | M | `db reset` runs `seed.sql` clean |
+| ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
 | 1.6 | Seed the ledger — three months of purchases, sales, waste, transfers, reversals, all allocated through `allocate_fefo()` | **L** | Invariant holds across every batch |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
-1.3b + 1.5. **1.5 is next.** No schema task remains before the seed — 1.7 is a CI
-wiring task, not a migration.
+1.3b + 1.5. **1.6 is next**, and it is the last **L** in step 1 — consider splitting
+it before writing code, the way 1.3 was split.
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -131,6 +131,48 @@ the minimum that exercises the rules, not a simulation of a real shop.
 a token amount of the ledger, `workspace_id` is still effectively non-selective on
 `purchase_line` and plan evidence stays weak. B should carry a real minority share of
 the transactions — not a matching half, but not ten rows either.
+
+### Settled in 1.5, and binding on 1.6
+
+- **The seed asserts itself, and `supabase db reset` fails when it raises.** Confirmed
+  the hard way rather than assumed: an assertion was deliberately falsified and the
+  reset exited **1** with the assertion's own message, `LegacyMigrationSeedError`. So
+  the twelve checks at the end of `seed.sql` are a CI gate on every push, with no
+  workflow wiring at all. Two more were falsified to be sure they discriminate — a
+  family-name typo (caught: *"staged 341 catalog rows but 330 variants exist"*, because
+  the insert is an inner join and a mismatch drops products silently) and a ledger row
+  written into 1.5 (caught).
+- **⚠️ SEED DATA DOES NOT SURVIVE INTO ANY TEST FILE, and 1.7 has to plan around it.**
+  `supabase/tests/_cleanup.sql` runs before *every* suite and `TRUNCATE`s each table
+  but `unit` — so by the time the first suite starts, the seed is gone. That is correct
+  and deliberate (suites assert absolute counts and must own the database), but it
+  means **1.7 cannot be a file in `supabase/tests/`**. The invariant check over seed
+  data has to run in `.github/workflows/db.yml` in its own step, between
+  `supabase db reset` and the suite loop. Discovered while building 1.5; it would
+  otherwise have been found by writing 1.7 and watching it assert over an empty
+  database — which passes.
+- **The seed writes no ledger, and an assertion enforces it.** Purchases, sales, waste,
+  batches and movements are 1.6's, allocated through `allocate_fefo()`. The guard is
+  there because the moment the seed writes a movement by hand, step 2 is judged on data
+  the real system never produces — which is the whole reason the allocator moved into
+  `0005`.
+- **Ids are looked up by name, not fixed.** `onboard_workspace()` generates the
+  workspace id and the seed uses the function rather than hand-inserting, because it is
+  the tested path and it is what writes the settings row and the generic provider.
+  `seed.sql` is plain SQL with no psql meta-commands — the CLI executes it directly and
+  `\gset` is not available — so ids cross statements through a scaffolding table that
+  is **dropped at the end**. 1.6 should look them up by name the same way rather than
+  depend on a table no migration created.
+- **Merchant B's names deliberately collide with merchant A's.** `Arroz superextra
+  1 kg` exists in both. `product_variant_name_unique` is per workspace, so this is
+  legal — and it means a query that lost its `workspace_id` predicate finds a plausible
+  twin instead of nothing, which is the failure that actually needs catching.
+- **Sucursal Mercado charges 8% more for produce.** 46 location price overrides exist
+  so that "the price at this store" and "the workspace price" are *different numbers*
+  somewhere. If they agreed everywhere, a query that ignored `location_id` would return
+  the right answer and step 2 would certify it.
+- **Three prices are superseded**, with `effective_to` set, so the `[)` range and the
+  overlap exclusion constraint have something to be right about.
 
 ### Traps in step 1
 
