@@ -523,15 +523,23 @@ skipped test step looks like.
 
 ## The seed
 
-`supabase/seed.sql`, run automatically by `supabase db reset` (`config.toml`
-`[db.seed] sql_paths`). Task 1.5, added 2026-08-18.
+`supabase/seeds/`, run automatically by `supabase db reset`. `config.toml` lists the
+files **explicitly rather than globbing**, because the order is the dependency order
+and a glob would leave it to filename luck.
 
-**It is the static half of a shop**: catalog, providers, locations, people, sell
-prices. It writes **no ledger** — no purchase, sale, waste, batch or movement. Those
-are 1.6, and every unit of them is allocated through `allocate_fefo()` so the seed and
-`record_sale` cannot diverge. An assertion in the seed enforces that split, because
-the moment this file writes a movement by hand, the design gate at step 2 is judged on
-data the real system never produces.
+| File | Task | Writes |
+|------|------|--------|
+| `00_skeleton.sql` | 1.5 | Catalog, providers, locations, people, sell prices |
+| `10_deliveries.sql` | 1.6a | `purchase`, `purchase_line`, `stock_batch`, receipt movements |
+
+Each file owns one question, asserts its own answer at the end, and refuses to run out
+of order. `00_skeleton.sql` still asserts that **no ledger exists when it finishes** —
+that check survived the arrival of `10_deliveries.sql` unchanged, because it is scoped
+to the moment its own file ends rather than to task 1.5 as a whole.
+
+**The skeleton is the static half of a shop**: catalog, providers, locations, people,
+sell prices. Every unit of stock that moves is allocated through `allocate_fefo()`, so
+the seed and `record_sale` cannot diverge.
 
 | | Merchant A — *Tienda Doña Lupe* | Merchant B — *Abarrotes El Roble* |
 |---|---|---|
@@ -588,3 +596,62 @@ row and the generic provider; it generates the workspace id itself, so ids cross
 statements through two scaffolding tables that the file **drops before it finishes**.
 Nothing named `_seed_*` survives a reset, and 1.6 should look ids up by name rather than
 depend on a table no migration created.
+
+
+### `10_deliveries.sql` — three months of stock arriving (task 1.6a)
+
+110 deliveries, **1 025 lines, 1 025 batches, 1 025 receipt movements**, spanning 88
+days from 2026-05-19. 330 remembered `(provider, variant)` prices. Merchant B holds
+**16.7%** of purchase lines.
+
+**The receipt is a movement, not the batch row.** `stock_batch` has no
+remaining-quantity column; `batch_balance` is opened at zero by a trigger and the
+delivery itself is a positive `purchase` movement. Writing only the batch leaves a shop
+that believes it has nothing; seeding the balance directly counts every delivery twice.
+`record_purchase` in `0006` must do exactly what this file does.
+
+**Headers cannot be patched after the fact.** `purchase` carries the append-only
+trigger, so `total_net` and `total_tax` must be correct in the INSERT — there is no
+"insert the header, add the lines, update the totals". Lines are staged first and
+headers built from their sums. `0006` faces the identical constraint.
+
+**Providers do not carry the whole catalog.** Each named provider is assigned whole
+families; one of merchant B's three providers **never delivers at all**; the generic
+`Compra directa` takes a thin slice of produce overlapping another provider. Without
+those gaps every pair would have a remembered price and "no fallback across providers"
+— the rule `0008` exists to enforce — would never be exercised by the seed.
+
+**A green `batch_balance_violations()` means almost nothing here**, and the file says
+so in its own header. Nothing has been withdrawn yet, so every balance is just its own
+receipt; the check would pass with the allocator absent. It becomes load-bearing in
+1.6b.
+
+#### The seed is reproducible, and the first draft was not
+
+Hashes decide what each truck carries. The first draft hashed `purchase_id` and
+`variant_id` — both `gen_random_uuid()` — so **two consecutive resets produced 1 071
+and 1 064 batches.** It was caught only because a falsification run happened to print
+both numbers side by side.
+
+Every hash now keys off a `doc_key` built from provider name, location name and week
+number, plus the product *name*. Three consecutive resets now produce identical counts,
+totals and quantities **to the peso**. Never hash a uuid in a seed: a shop that differs
+between runs makes "it failed in CI but not locally" unanswerable, and lets an
+assertion threshold flicker into a false red.
+
+#### Twenty-four assertions, six of them shown able to fail
+
+| Falsification | Caught by |
+|---|---|
+| Batch written, receipt movement omitted | *"1025 batches but 0 receipt movements"* |
+| Receipt movement written twice | *"1025 batches but 2050 receipt movements"* |
+| An adjustment lot smuggled into a delivery file | *"every batch here is a purchase lot"* |
+| Header total rounded independently of its lines | *"a document total is not the sum of its rounded lines"* |
+| Merchant B dropped to merchant A's line density | *"too few deliveries — A 84 / B 18"* |
+| No variant bought from two providers | *"no variant is bought from two providers at different prices"* |
+| Expiry never recorded | *"batches must carry both real and null expiry dates"* |
+
+The fifth row is worth reading closely: it tripped the **delivery-count** assertion
+rather than the percentage one it was aimed at, because thinner trucks came up empty
+and were excluded. Caught, but by a neighbour — which is why the count check earns its
+place alongside the ratio.

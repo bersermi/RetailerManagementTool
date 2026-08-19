@@ -1,9 +1,14 @@
 -- ============================================================================
--- seed.sql — the skeleton a shop is recognisable from
+-- 00_skeleton.sql — the skeleton a shop is recognisable from
 -- ============================================================================
 -- docs/PLAN.md task 1.5. Run automatically by `supabase db reset` (config.toml
 -- [db.seed] sql_paths), which means CI runs it on every push: if this file
 -- raises, the reset step fails and the job is red before a single suite runs.
+--
+-- FIRST OF SEVERAL. The seed files run in the order config.toml lists them, which
+-- is the dependency order: this one builds the catalog, `10_deliveries.sql` fills
+-- it (1.6a), and the consumption and reversals follow (1.6b, 1.6c). Each file owns
+-- one question and asserts its own answer at the end.
 --
 -- WHAT THIS FILE IS: catalog, providers, locations, people, sell prices. The
 -- static half of a shop — the part someone curates once and then edits rarely.
@@ -65,7 +70,7 @@ do $$
 begin
   if exists (select 1 from public.workspace) then
     raise exception
-      'seed.sql expects an empty database (found % workspace row(s)) — run `supabase db reset`',
+      '00_skeleton.sql expects an empty database (found % workspace row(s)) — run `supabase db reset`',
       (select count(*) from public.workspace)
       using errcode = 'object_not_in_prerequisite_state';
   end if;
@@ -764,15 +769,17 @@ begin
     raise exception 'seed: only staff should hold member_location rows — managers get every store by role';
   end if;
 
-  -- THE LEDGER IS NOT THIS FILE'S JOB. If this ever fails, someone has started
-  -- writing 1.6 into 1.5, and the FEFO-allocation decision that keeps the seed
-  -- and record_sale from diverging is being bypassed.
+  -- THE LEDGER IS NOT THIS FILE'S JOB, and it still is not, now that later seed
+  -- files write one. This assertion runs BEFORE they do — it is scoped to the moment
+  -- the skeleton finishes, which is exactly what makes it survive the split. If it
+  -- fails, a delivery has been written into the catalog file, and the FEFO-allocation
+  -- decision that keeps the seed and `record_sale` from diverging is being bypassed.
   if exists (select 1 from public.stock_movement)
   or exists (select 1 from public.stock_batch)
   or exists (select 1 from public.purchase)
   or exists (select 1 from public.sale)
   or exists (select 1 from public.waste) then
-    raise exception 'seed: task 1.5 writes no ledger — purchases, sales and movements belong to 1.6';
+    raise exception '00_skeleton: the catalog file writes no ledger — deliveries belong to 10_deliveries.sql (1.6a)';
   end if;
 
   raise notice 'seed: % variants for %, % for % — % locations, % providers, % price rows',
@@ -795,8 +802,9 @@ $$;
 -- exactly the drift between "what a file says" and "what the database holds" that
 -- ADR-035 §9 exists to prevent.
 --
--- 1.6 needs the same ids and should look them up by name, the way section 3 does,
--- rather than depending on a table that is not part of the schema.
+-- The later seed files need the same ids and look them up by name, the way section 3
+-- does, rather than depending on a table that is not part of the schema. That is why
+-- these are dropped here rather than at the end of the last file.
 
 drop table public._seed_catalog;
 drop table public._seed_ref;
