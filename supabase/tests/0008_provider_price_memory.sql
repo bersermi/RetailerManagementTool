@@ -108,7 +108,8 @@ values (:'ws_a', :'fam_a', 'Arroz 1kg',    'pza','pza','pza','pza', 0.16),  -- l
        (:'ws_a', :'fam_a', 'Pan blanco',   'pza','pza','pza','pza', 0.16),  -- recorded_at tiebreak
        (:'ws_a', :'fam_a', 'Harina 1kg',   'pza','pza','pza','pza', 0.16),  -- line-id tiebreak
        (:'ws_a', :'fam_a', 'Cafe 250g',    'pza','pza','pza','pza', 0.16),  -- bought at the OTHER store
-       (:'ws_a', :'fam_a', 'Chiles secos', 'pza','pza','pza','pza', 0.16);  -- one provider only
+       (:'ws_a', :'fam_a', 'Chiles secos', 'pza','pza','pza','pza', 0.16),  -- one provider only
+       (:'ws_a', :'fam_a', 'Galletas 200g','pza','pza','pza','pza', 0.16);  -- identical in every prefilled column
 insert into product_variant (workspace_id, family_id, name,
        base_unit_code, purchase_unit_code, sell_unit_code, price_unit_code, tax_rate)
 values (:'ws_b', :'fam_b', 'Arroz 1kg',    'pza','pza','pza','pza', 0.16);
@@ -124,6 +125,7 @@ select id as var_rec    from product_variant where workspace_id = :'ws_a' and na
 select id as var_2line  from product_variant where workspace_id = :'ws_a' and name = 'Harina 1kg'   \gset
 select id as var_loc    from product_variant where workspace_id = :'ws_a' and name = 'Cafe 250g'    \gset
 select id as var_p1only from product_variant where workspace_id = :'ws_a' and name = 'Chiles secos' \gset
+select id as var_dup    from product_variant where workspace_id = :'ws_a' and name = 'Galletas 200g'\gset
 select id as var_b      from product_variant where workspace_id = :'ws_b' \gset
 
 
@@ -150,6 +152,10 @@ select id as var_b      from product_variant where workspace_id = :'ws_b' \gset
 -- the LOWER id, so recorded_at is the only key that can produce the right answer.
 \set d_rec_late  '''aaaa0008-0000-0000-0000-000000000055'''
 \set d_rec_early '''aaaa0008-0000-0000-0000-000000000056'''
+-- Two deliveries identical in every column the view hands back. Nothing but an id
+-- can separate them, which after 0010 is the only thing an id is still for.
+\set d_dup_1     '''aaaa0008-0000-0000-0000-000000000057'''
+\set d_dup_2     '''aaaa0008-0000-0000-0000-000000000058'''
 \set d_2line     '''aaaa0008-0000-0000-0000-000000000061'''
 \set d_loc       '''aaaa0008-0000-0000-0000-000000000071'''
 \set d_p1only    '''aaaa0008-0000-0000-0000-000000000081'''
@@ -200,14 +206,19 @@ values
   (:d_ret_buy,   :'ws_a', :'loc_a1', :'prov1', now() - interval '5 days', now(), 1000, 160, null, null, :owner_a, 'h-ret-buy'),
   (:d_ret_ret,   :'ws_a', :'loc_a1', :'prov1', now() - interval '3 days', now(), -1000, -160, null, null, :owner_a, 'h-ret-ret'),
 
-  (:d_tie_lo,    :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 600, 96, null, null, :owner_a, 'h-tie-lo'),
-  (:d_tie_hi,    :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 610, 98, null, null, :owner_a, 'h-tie-hi'),
+  (:d_tie_lo,    :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 610, 98, null, null, :owner_a, 'h-tie-lo'),
+  (:d_tie_hi,    :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 600, 96, null, null, :owner_a, 'h-tie-hi'),
 
   -- Same instant on the shop floor, an hour apart in the system. Two deliveries
   -- can share occurred_at — it is server now() for a whole transaction — and the
   -- one entered later is the later knowledge.
-  (:d_rec_early, :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 400, 64, null, null, :owner_a, 'h-rec-early'),
-  (:d_rec_late,  :'ws_a', :'loc_a1', :'prov1', :tie_at, timestamptz '2026-03-01 13:00:00+00', 410, 66, null, null, :owner_a, 'h-rec-late'),
+  (:d_rec_early, :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 410, 66, null, null, :owner_a, 'h-rec-early'),
+  (:d_rec_late,  :'ws_a', :'loc_a1', :'prov1', :tie_at, timestamptz '2026-03-01 13:00:00+00', 400, 64, null, null, :owner_a, 'h-rec-late'),
+
+  -- Identical on every key that is not an id: same instant, same recorded_at, and
+  -- lines that agree on price, tax rate and denomination.
+  (:d_dup_1,     :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 550, 88, null, null, :owner_a, 'h-dup-1'),
+  (:d_dup_2,     :'ws_a', :'loc_a1', :'prov1', :tie_at, :tie_at, 550, 88, null, null, :owner_a, 'h-dup-2'),
 
   (:d_2line,     :'ws_a', :'loc_a1', :'prov1', now() - interval '3 days', now(), 700, 112, null, null, :owner_a, 'h-2line'),
 
@@ -267,8 +278,13 @@ values
   -- Positive line, on a reversal document, at a price that appears nowhere else.
   (:'ws_a', :'loc_a1', :d_ret_rev,   :'var_ret',   10, 10, 'pza', 111.000000, 1110, 177.60, 0.16),
 
-  (:'ws_a', :'loc_a1', :d_rec_early, :'var_rec',   10, 10, 'pza', 40.000000, 400, 64.00, 0.16),
-  (:'ws_a', :'loc_a1', :d_rec_late,  :'var_rec',   10, 10, 'pza', 41.000000, 410, 65.60, 0.16),
+  -- INVERTED FOR 0010: the later-RECORDED document now carries the LOWER price, so
+  -- the price key added in 0010 would answer 41 and only recorded_at can answer 40.
+  (:'ws_a', :'loc_a1', :d_rec_early, :'var_rec',   10, 10, 'pza', 41.000000, 410, 65.60, 0.16),
+  (:'ws_a', :'loc_a1', :d_rec_late,  :'var_rec',   10, 10, 'pza', 40.000000, 400, 64.00, 0.16),
+
+  (:'ws_a', :'loc_a1', :d_dup_1,     :'var_dup',   10, 10, 'pza', 55.000000, 550, 88.00, 0.16),
+  (:'ws_a', :'loc_a1', :d_dup_2,     :'var_dup',   10, 10, 'pza', 55.000000, 550, 88.00, 0.16),
 
   (:'ws_a', :'loc_a2', :d_loc,       :'var_loc',   10, 10, 'pza', 80.000000, 800, 128.00, 0.16),
   (:'ws_a', :'loc_a1', :d_p1only,    :'var_p1only',10, 10, 'pza', 90.000000, 900, 144.00, 0.16),
@@ -281,16 +297,16 @@ values
 insert into purchase_line (id, workspace_id, location_id, purchase_id, variant_id, qty_base, qty_display,
                            qty_display_unit, unit_price_net_per_base, line_net, tax_amount, tax_rate)
 values
-  (:l_2line_lo, :'ws_a', :'loc_a1', :d_2line, :'var_2line', 10, 10, 'pza', 70.000000, 700, 112.00, 0.16),
-  (:l_2line_hi, :'ws_a', :'loc_a1', :d_2line, :'var_2line', 10, 10, 'pza', 71.000000, 710, 113.60, 0.16);
+  (:l_2line_lo, :'ws_a', :'loc_a1', :d_2line, :'var_2line', 10, 10, 'pza', 71.000000, 710, 113.60, 0.16),
+  (:l_2line_hi, :'ws_a', :'loc_a1', :d_2line, :'var_2line', 10, 10, 'pza', 70.000000, 700, 112.00, 0.16);
 
 -- The tie pair. Identical occurred_at and recorded_at, and line ids that rank the
 -- opposite way to the document ids.
 insert into purchase_line (id, workspace_id, location_id, purchase_id, variant_id, qty_base, qty_display,
                            qty_display_unit, unit_price_net_per_base, line_net, tax_amount, tax_rate)
 values
-  (:l_tie_on_lo, :'ws_a', :'loc_a1', :d_tie_lo, :'var_tie', 10, 10, 'pza', 60.000000, 600, 96.00, 0.16),
-  (:l_tie_on_hi, :'ws_a', :'loc_a1', :d_tie_hi, :'var_tie', 10, 10, 'pza', 61.000000, 610, 97.60, 0.16);
+  (:l_tie_on_lo, :'ws_a', :'loc_a1', :d_tie_lo, :'var_tie', 10, 10, 'pza', 61.000000, 610, 97.60, 0.16),
+  (:l_tie_on_hi, :'ws_a', :'loc_a1', :d_tie_hi, :'var_tie', 10, 10, 'pza', 60.000000, 600, 96.00, 0.16);
 
 
 -- ============================================================ derivation =====
@@ -434,19 +450,30 @@ select chk('22. identical occurred_at AND recorded_at still yields ONE row',
   (select count(*) from provider_price_memory
     where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_tie') = 1);
 
-select chk('23. and it is the higher document id, deterministically',
-  (select last_purchase_id from provider_price_memory
-    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_tie') = :d_tie_hi,
-  (select coalesce(last_purchase_id::text,'no row') from provider_price_memory
+-- 0010 REPLACED THE KEY THAT DECIDES THIS. It used to be the higher document id,
+-- which is a uuid and therefore not data: a merchant with two stores on one
+-- delivery round produces this tie every week, and the prefill was a coin flip
+-- between two prices really paid. The price now decides, and the fixture is
+-- inverted so the two keys DISAGREE — the higher price sits on the LOWER document
+-- id, so an id tiebreak would answer 60 and only the price key can answer 61.
+select chk('23. and it is the higher PRICE, not the higher document id (0010)',
+  (select unit_price_net_per_base from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_tie') = 61.000000
+  and (select last_purchase_id from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_tie') = :d_tie_lo,
+  (select coalesce(unit_price_net_per_base::text,'no row') from provider_price_memory
     where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_tie'));
 
 -- THE THIRD KEY. Two documents that happened at the same instant are separated by
 -- when they were recorded, and here the later-recorded one carries the LOWER
 -- document id, so the id key alone would answer 40. Added after deleting
 -- recorded_at from the view left all 43 checks green.
+-- Inverted for 0010 as well, and for the same reason: the later-recorded document
+-- now carries the LOWER price, so the price key would answer 41 and recorded_at is
+-- the only key that can answer 40.
 select chk('24. of two deliveries at the same instant, the later-RECORDED wins',
   (select unit_price_net_per_base from provider_price_memory
-    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_rec') = 41.000000,
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_rec') = 40.000000,
   (select coalesce(unit_price_net_per_base::text,'no row') from provider_price_memory
     where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_rec'));
 
@@ -454,9 +481,30 @@ select chk('25. two lines for one variant on ONE document yield one row',
   (select count(*) from provider_price_memory
     where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_2line') = 1);
 
-select chk('26. and it is the higher line id, deterministically',
-  (select last_purchase_line_id from provider_price_memory
-    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_2line') = :l_2line_hi);
+-- Inverted too: the higher price is on the LOWER line id, so the line-id key would
+-- answer 70 and only the price key can answer 71.
+select chk('26. and it is the higher PRICE, not the higher line id (0010)',
+  (select unit_price_net_per_base from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_2line') = 71.000000
+  and (select last_purchase_line_id from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_2line') = :l_2line_lo);
+
+-- AND THE ID KEYS ARE STILL DOING A JOB. Two deliveries identical in every column
+-- the view hands back — same instant, same recorded_at, same price, same tax rate,
+-- same denomination — can only be separated by an id, and `distinct on` returns an
+-- arbitrary row without a total order. Which document wins is genuinely arbitrary
+-- and both answers are true; that there is exactly ONE is not.
+select chk('26b. two deliveries identical in every prefilled column still yield ONE row (0010)',
+  (select count(*) from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_dup') = 1,
+  (select count(*)::text from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_dup'));
+
+select chk('26c. and the prefill it hands back is the same either way',
+  (select unit_price_net_per_base from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_dup') = 55.000000
+  and (select last_qty_display_unit from provider_price_memory
+    where workspace_id = :'ws_a' and provider_id = :'prov1' and variant_id = :'var_dup') = 'pza');
 
 -- The whole answer, twice, compared as a set. A tiebreak bug that only shows on
 -- one pair in a hundred is exactly the kind this catches and a spot check does not.
@@ -467,11 +515,12 @@ select chk('27. the view returns the identical answer when asked twice',
   and not exists (select * from public._snap2 except select * from public._snap1)
   and (select count(*) from public._snap1) = (select count(*) from public._snap2));
 
--- Eleven standing pairs in A: prov1 × {basic, back, void, neg, ret, tie, rec,
--- 2line, loc, p1only} = 10, plus prov2 × basic. var_only is absent because its only delivery
--- was voided. An off-by-one here means an exclusion fired too widely or not at all.
-select chk('28. workspace A holds exactly the eleven pairs that still stand',
-  (select count(*) from provider_price_memory where workspace_id = :'ws_a') = 11,
+-- Twelve standing pairs in A: prov1 × {basic, back, void, neg, ret, tie, rec, dup,
+-- 2line, loc, p1only} = 11, plus prov2 × basic. var_only is absent because its only
+-- delivery was voided. An off-by-one here means an exclusion fired too widely or
+-- not at all.
+select chk('28. workspace A holds exactly the twelve pairs that still stand',
+  (select count(*) from provider_price_memory where workspace_id = :'ws_a') = 12,
   (select count(*)::text from provider_price_memory where workspace_id = :'ws_a'));
 
 
@@ -481,8 +530,8 @@ select chk('29. workspace B''s delivery is in B''s memory and nowhere else',
   and (select count(*) from provider_price_memory
         where workspace_id = :'ws_a' and unit_price_net_per_base = 99.000000) = 0);
 
-select chk('30. the whole view is exactly A''s eleven plus B''s one',
-  (select count(*) from provider_price_memory) = 12,
+select chk('30. the whole view is exactly A''s twelve plus B''s one',
+  (select count(*) from provider_price_memory) = 13,
   (select count(*)::text from provider_price_memory));
 
 
@@ -519,8 +568,8 @@ begin;
 select set_config('request.jwt.claims',
   '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}', true);
 set local role authenticated;
-select chk('35. a MANAGER sees all eleven of their workspace''s pairs',
-  (select count(*) from public.provider_price_memory) = 11,
+select chk('35. a MANAGER sees all twelve of their workspace''s pairs',
+  (select count(*) from public.provider_price_memory) = 12,
   (select count(*)::text from public.provider_price_memory));
 select chk('36. including the pair bought at a store they hold by role, not by assignment',
   (select count(*) from public.provider_price_memory where variant_id = :'var_loc') = 1);
@@ -532,8 +581,8 @@ begin;
 select set_config('request.jwt.claims',
   '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}', true);
 set local role authenticated;
-select chk('38. the OWNER of A sees the same eleven',
-  (select count(*) from public.provider_price_memory) = 11);
+select chk('38. the OWNER of A sees the same twelve',
+  (select count(*) from public.provider_price_memory) = 12);
 commit;
 
 begin;

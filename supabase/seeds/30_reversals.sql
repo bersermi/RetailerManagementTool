@@ -782,56 +782,36 @@ begin
     raise exception '30_reversals: % pair(s) appeared out of a void — a negative line reached memory', v_n;
   end if;
 
-  -- ⚠️ FOUND HERE: THE VIEW'S LAST TIEBREAK IS A UUID, SO THE PREFILL IS NOT
-  -- REPRODUCIBLE ACROSS RESETS. `provider_price_memory` orders by occurred_at,
-  -- then recorded_at, then `p.id desc, pl.id desc` (0008). Purchase-price memory
-  -- is workspace-wide, and 1.6a delivers to both of merchant A's stores from one
-  -- provider on the same morning at the same hour, with recorded_at equal to
-  -- occurred_at. Two documents therefore tie on every key that is not an id — and
-  -- ids are regenerated on every reset, so the view answers with Centro's price on
-  -- one reset and the Mercado's on the next, off byte-identical seed data. Three
-  -- resets agree on every count and every total in this seed's own tables and
-  -- disagree on the sum of the prefills, which is how it was found.
+  -- --- THE PREFILL IS DECIDED BY THE DATA, NOT BY AN ID -------------------------
+  -- FOUND HERE, IN 1.6C, AND FIXED IN `0010`. `0008` ordered by occurred_at, then
+  -- recorded_at, then `p.id desc, pl.id desc`. Purchase price memory is
+  -- workspace-wide, and 1.6a delivers to both of merchant A's stores from one
+  -- provider on the same morning at the same hour with recorded_at equal to
+  -- occurred_at — so 14 (provider, variant) pairs tied on every key that was not
+  -- an id, and `gen_random_uuid()` picked the winner. Three resets agreed on every
+  -- count and every total in all four seed files and disagreed on the sum of the
+  -- prefills. That is how it was found, and nothing before 1.6c had measured the
+  -- view across resets.
   --
-  -- IT IS NOT A CORRECTNESS BUG AND IT IS NOT NOTHING. Both tied rows are prices
-  -- the shop genuinely paid that morning, so no prefill is ever wrong; it is
-  -- arbitrary, and it is arbitrary in production too, where the ids are generated
-  -- by the client at cart open. The same tie is what a shop with two branches on
-  -- one delivery round produces every week.
+  -- `0010` put price, tax rate and display unit ahead of the ids. This asserts the
+  -- property that buys: FOR EVERY PAIR, EVERY CANDIDATE STILL TIED AFTER THE DATA
+  -- KEYS AGREES ON EVERYTHING THE VIEW HANDS BACK. Where that holds, which
+  -- candidate wins cannot change the answer, so the prefill is reproducible across
+  -- resets even though the ids are not.
   --
-  -- NOT PATCHED HERE, for the reason 1.6b left `received_at` alone: the seed must
-  -- not work around the object it exists to exercise, and 0008 is applied and
-  -- therefore closed. What this assertion does is bound it — every tie must be
-  -- BETWEEN TWO STORES of one workspace, which is the mechanism named above. A tie
-  -- inside a single store would be a different and worse fact: one delivery
-  -- recorded twice, or two lines for the same variant on one document, and the
-  -- view would be picking between them by uuid as well.
-  select count(*) into v_n from (
-    select c.workspace_id, c.provider_id, c.variant_id
-      from (
-        select pl.workspace_id, p.provider_id, pl.variant_id, p.location_id,
-               rank() over (partition by pl.workspace_id, p.provider_id, pl.variant_id
-                            order by p.occurred_at desc, p.recorded_at desc) as rnk
-          from public.purchase_line pl
-          join public.purchase p
-            on  p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
-            and p.location_id = pl.location_id
-         where p.reversal_of is null
-           and not exists (select 1 from public.purchase r where r.reversal_of = p.id)
-           and pl.qty_base > 0
-      ) c
-     where c.rnk = 1
-     group by 1, 2, 3
-    having count(*) > count(distinct c.location_id)) t;
-  if v_n > 0 then
-    raise exception '30_reversals: % (provider, variant) pair(s) tie on the price-memory sort within ONE store', v_n;
-  end if;
+  -- It is deliberately NOT a check that no tie remains. Ties remain — two stores on
+  -- one delivery round produce them every week — and the fix was never to abolish
+  -- them, only to stop them deciding anything.
   select count(*) into v_tied from (
     select c.workspace_id, c.provider_id, c.variant_id
       from (
         select pl.workspace_id, p.provider_id, pl.variant_id,
+               pl.unit_price_net_per_base, pl.tax_rate, pl.qty_display_unit,
                rank() over (partition by pl.workspace_id, p.provider_id, pl.variant_id
-                            order by p.occurred_at desc, p.recorded_at desc) as rnk
+                            order by p.occurred_at desc, p.recorded_at desc,
+                                     pl.unit_price_net_per_base desc,
+                                     pl.tax_rate desc,
+                                     pl.qty_display_unit asc) as rnk
           from public.purchase_line pl
           join public.purchase p
             on  p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
@@ -843,8 +823,72 @@ begin
      where c.rnk = 1
      group by 1, 2, 3
     having count(*) > 1) t;
-  if v_tied > 30 then
-    raise exception '30_reversals: % pairs are decided by a uuid tiebreak — that exception is widening', v_tied;
+  select count(*) into v_n from (
+    select c.workspace_id, c.provider_id, c.variant_id
+      from (
+        select pl.workspace_id, p.provider_id, pl.variant_id,
+               pl.unit_price_net_per_base, pl.tax_rate, pl.qty_display_unit,
+               rank() over (partition by pl.workspace_id, p.provider_id, pl.variant_id
+                            order by p.occurred_at desc, p.recorded_at desc,
+                                     pl.unit_price_net_per_base desc,
+                                     pl.tax_rate desc,
+                                     pl.qty_display_unit asc) as rnk
+          from public.purchase_line pl
+          join public.purchase p
+            on  p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
+            and p.location_id = pl.location_id
+         where p.reversal_of is null
+           and not exists (select 1 from public.purchase r where r.reversal_of = p.id)
+           and pl.qty_base > 0
+      ) c
+     where c.rnk = 1
+     group by 1, 2, 3
+    having count(distinct c.unit_price_net_per_base) > 1
+        or count(distinct c.tax_rate) > 1
+        or count(distinct c.qty_display_unit) > 1) t;
+  if v_n > 0 then
+    raise exception '30_reversals: % pair(s) have their prefill decided by a uuid — 0010''s data keys did not settle them', v_n;
+  end if;
+
+  -- AND THE VIEW ACTUALLY USES THEM. The check above is about the DATA: it says
+  -- that whichever candidate wins, the prefill is the same. That is only half the
+  -- claim, and on its own it is green with `0010` reverted — deleting the price key
+  -- from the view leaves the data exactly as it was. So the answer the view gives
+  -- is compared against one derived here from the data keys alone.
+  select count(*) into v_n
+    from public.provider_price_memory m
+    join (
+      select c.workspace_id, c.provider_id, c.variant_id,
+             min(c.unit_price_net_per_base) as price,
+             min(c.tax_rate)                as tax_rate,
+             min(c.qty_display_unit)        as qty_display_unit
+        from (
+          select pl.workspace_id, p.provider_id, pl.variant_id,
+                 pl.unit_price_net_per_base, pl.tax_rate, pl.qty_display_unit,
+                 rank() over (partition by pl.workspace_id, p.provider_id, pl.variant_id
+                              order by p.occurred_at desc, p.recorded_at desc,
+                                       pl.unit_price_net_per_base desc,
+                                       pl.tax_rate desc,
+                                       pl.qty_display_unit asc) as rnk
+            from public.purchase_line pl
+            join public.purchase p
+              on  p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
+              and p.location_id = pl.location_id
+           where p.reversal_of is null
+             and not exists (select 1 from public.purchase r where r.reversal_of = p.id)
+             and pl.qty_base > 0
+        ) c
+       where c.rnk = 1
+       group by 1, 2, 3
+    ) e
+      on  e.workspace_id = m.workspace_id
+      and e.provider_id  = m.provider_id
+      and e.variant_id   = m.variant_id
+   where m.unit_price_net_per_base <> e.price
+      or m.tax_rate                <> e.tax_rate
+      or m.last_qty_display_unit   <> e.qty_display_unit;
+  if v_n > 0 then
+    raise exception '30_reversals: % pair(s) where the view''s prefill is not the one the data keys imply', v_n;
   end if;
 
   -- --- a plain sum is already net of voids -----------------------------------------
@@ -925,7 +969,7 @@ begin
     (select count(*) from public._r_void where kind = 'waste'),
     (select count(*) from public.stock_movement where reversal_of_movement_id is not null),
     v_fell, v_gone;
-  raise notice '30_reversals: % (provider, variant) pair(s) are decided by the uuid tiebreak in 0008 and vary between resets',
+  raise notice '30_reversals: % (provider, variant) pair(s) still tie after 0010''s data keys, and every one of them hands back the same prefill either way',
     v_tied;
 end;
 $$;

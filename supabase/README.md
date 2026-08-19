@@ -53,6 +53,20 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0004_inventory.sql` | `batch_origin` + `movement_reason` enums, `stock_batch`, `stock_movement`, `batch_balance` + the two projection triggers, `batch_balance_violations()`, `rebuild_batch_balance()`; append-only triggers on batch and movement; cost-gated RLS on batch and movement, member-level on the balance; a `unique (id, workspace_id, location_id)` added to `purchase_line` |
 | `0005_allocation.sql` | `fefo_allocation` + `transfer_allocation` composite types, `allocate_fefo()`, `allocate_transfer()`. No table, no policy, no execute grant for any role |
 | `0008_provider_price_memory.sql` | `provider_price_memory` — one `security_invoker` view over `purchase_line`, the last price paid per `(workspace, provider, variant)`. No table, no policy, no function |
+| `0010_allocator_time_and_price_tiebreak.sql` | Two corrections the 1.6 seed found: `allocate_fefo()` gains a **required** `p_occurred_at` and stamps its shortfall lot with it, `allocate_transfer()` stamps its destination lot with the one it already took, and `provider_price_memory` breaks its tie on price / tax rate / display unit instead of on a uuid. No table, no policy, no new grant |
+
+**`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
+Both defects were found by the seed, three tasks after the migrations carrying
+them, and neither was patched where it was found — the seed must not work around
+the objects it exists to exercise, and `0005` and `0008` are applied and therefore
+closed. `0006`, `0007` and `0009` are reserved and unwritten; renumbering planned
+work to make a correction look tidy would be the more confusing choice.
+
+⚠️ **`0006` will apply BEFORE `0010` on a fresh reset and must still be written
+against the six-argument `allocate_fefo`.** plpgsql does not resolve the functions
+a body calls until the body runs, so `record_sale` written against the
+five-argument version applies clean and then fails at the first till. There is no
+five-argument version after `0010`, and there is no compiler that will say so.
 
 Planned next, in order (ADR-035 §3):
 
@@ -513,6 +527,12 @@ exists and there is more than one tenant in the table. No index was added for it
 here, deliberately — speculative indexes on a guess are how the last model got its
 `ProviderProductPrice`.
 
+**`0010` and the five suites it moves are verified on 2026-08-19** — see the `0010`
+row in the migrations table and the seed sections below. Locally: `supabase db reset`
+green, three consecutive resets byte-identical *including* the price prefills, and
+**39 / 54 / 55 / 9 / 46** checks passing. Four falsifications, each caught by the check
+written for it.
+
 **CI applied `0001`–`0005` and `0008` from scratch and ran all five suites green on
 2026-08-18**, run
 [32191899904](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904)
@@ -691,7 +711,7 @@ at the first future lot rather than skipping past it.** Stopping rather than ski
 is the important half — skipping would let the allocator reach a lot the shop could not
 have touched, because FEFO order is not receipt order.
 
-#### ⚠️ Both allocators stamp new lots with `now()`, and that is a real defect
+#### ⚠️ Both allocators stamped new lots with `now()` — fixed in `0010`
 
 Neither `allocate_transfer()` nor `allocate_fefo()`'s shortfall branch three sets
 `received_at` on a lot it opens, so the column default applies. `allocate_transfer()`
@@ -706,9 +726,30 @@ recorded three days late opens a destination lot that sorts as *received today*.
 each other, exactly the perishable case.
 
 Not patched here — the seed must not work around a function it exists to exercise, and
-`0005` is applied and closed. Fix forward in a later migration. The seed **bounds** the
-exception instead: only allocator-opened lots may be affected, and never more than
-forty. See `docs/PLAN.md`.
+`0005` is applied and closed. **Fixed forward in [`0010`](migrations/0010_allocator_time_and_price_tiebreak.sql)
+on 2026-08-19**, at the owner's instruction: `allocate_fefo()` gained a **required**
+`p_occurred_at` — required, not defaulted, so that `record_sale` cannot inherit the
+defect by forgetting to pass it — and `allocate_transfer()` now gives the destination
+lot the moment it was already using for all four movements. The bound this file used to
+place on the exception is now an absolute check: **no lot of any origin may be received
+after a movement against it.**
+
+**The fix made two dishonest dates in this file visible, and both are corrected.**
+While the allocators stamped `now()`, any lot they opened sorted after every movement in
+the seed and the arrival test simply skipped it. Given real dates:
+
+- the **transfers** were dated fortnightly across the window but *written* after all the
+  sales, so a destination lot dated 10 June sat in front of lots the Mercado had sold in
+  June — a FEFO violation in the data, and one that had been there all along. They are
+  now dated the five days after the last sale, which is when they were actually written;
+- the **oversales** were dated 14 August but written after the transfers, so the overdraw
+  they were designed to cause landed on a *transfer* instead: replayed in date order the
+  oversale left the lot at 1 and the transfer took it to −2, on a movement nobody had
+  marked as designed. They are now dated after the transfers.
+
+The rule both corrections come from is worth stating once: **every section of
+`20_consumption.sql` picks its quantities from the balances as they stand when it runs,
+so date order must agree with write order.**
 
 #### The assertions, and what breaks them
 
@@ -785,7 +826,7 @@ The person who filed the original files the void. Cashiers void their own ticket
 minutes later, inside `void_window_minutes`; deliveries and write-offs stay with the
 manager or owner who recorded them, because both carry cost.
 
-#### ⚠️ Found here: the price-memory tiebreak is a uuid, so the prefill is not reproducible
+#### ⚠️ Found here: the price-memory tiebreak was a uuid — fixed in `0010`
 
 `provider_price_memory` orders by `occurred_at`, then `recorded_at`, then **`p.id desc,
 pl.id desc`** (`0008`). Purchase price memory is workspace-wide, and `10_deliveries.sql`
@@ -793,18 +834,28 @@ delivers to both of merchant A's stores from one provider on the same morning at
 same hour, with `recorded_at` equal to `occurred_at`. Two documents therefore tie on
 every key that is not an id — and ids are regenerated on every reset.
 
-**Three resets agree on every count and every total in the seed's own tables and
-disagree on the sum of the prefills.** 14 (provider, variant) pairs are decided by the
+**Three resets agreed on every count and every total in the seed's own tables and
+disagreed on the sum of the prefills.** 14 (provider, variant) pairs were decided by the
 uuid tiebreak.
 
-It is not a correctness bug: both tied rows are prices the shop genuinely paid that
-morning, so no prefill is ever *wrong* — it is arbitrary, and it is arbitrary in
-production too, where the ids come from the client at cart open. **Not patched here**,
-for the reason `20_consumption.sql` left `received_at` alone: the seed must not work
-around the object it exists to exercise, and `0008` is applied and therefore closed. The
-seed **bounds** it instead — every tie must be between two *stores* of one workspace,
-and there must be no more than 30 of them. A tie inside a single store would be a worse
-fact: one delivery recorded twice, and the view picking between them by uuid.
+It was never a correctness bug: both tied rows are prices the shop genuinely paid that
+morning, so no prefill was ever *wrong* — it was arbitrary, and arbitrary in production
+too, where the ids come from the client at cart open. Not patched here, for the reason
+`20_consumption.sql` left `received_at` alone: the seed must not work around the object
+it exists to exercise, and `0008` is applied and therefore closed.
+
+**Fixed forward in [`0010`](migrations/0010_allocator_time_and_price_tiebreak.sql) on
+2026-08-19**, at the owner's instruction. Price, tax rate and display unit now sort ahead
+of the ids, so everything the view hands back is decided by the data; of two deliveries
+at the same instant it offers the **higher** price, because a prefill is accepted without
+being read and overstating cost is the safe direction to be wrong in. **Three resets are
+now byte-identical including the prefills**, and one pair still ties — which is fine, and
+is the point: the fix was never to abolish ties, only to stop them deciding anything.
+
+The seed asserts both halves, because either alone is green with the fix reverted: that
+every candidate surviving the data keys agrees on the whole prefill, **and** that the
+view's answer is the one those keys imply. Deleting the price key from the view leaves
+the first check untouched and trips the second on 6 pairs.
 
 #### The assertions, and what breaks them
 
