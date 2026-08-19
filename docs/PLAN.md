@@ -24,8 +24,9 @@ from the knowledge graph. Nothing there describes the system being built.
 
 Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5 done,
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
-before any of it was written — it was the last **L** in step 1. **1.6a is done;
-1.6b is next.**
+before any of it was written — it was the last **L** in step 1. **1.6a and 1.6b are
+done; 1.6c is next.** One finding from 1.6b is the owner's to weigh — see
+*⚠️ `allocate_transfer()` stamps `received_at` with `now()`* below.
 Every open decision in this file has been resolved; none is outstanding. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
@@ -87,13 +88,13 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18, [CI green on PR #7](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904). 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
 | ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
 | ~~1.6a~~ | ~~Seed the deliveries~~ — **done** 2026-08-18. `supabase/seeds/10_deliveries.sql`: **110 deliveries, 1 025 lines, 1 025 batches, 1 025 receipt movements** over 88 days; 330 remembered prices; merchant B holds 16.7% of lines. 24 assertions, six of them falsified to prove they discriminate. The seed is **byte-identical across resets**, verified over three | M | ✅ |
-| 1.6b | Seed the consumption — sales, waste and an inter-store transfer, every unit through `allocate_fefo()` / `allocate_transfer()` | M | Invariant holds; no movement written by hand; an oversale is representable |
+| ~~1.6b~~ | ~~Seed the consumption~~ — **done** 2026-08-18. `supabase/seeds/20_consumption.sql`: **904 sales / 2 251 lines, 65 waste documents / 134 lines, 5 transfer shipments, 3 473 movements.** Invariant clean; FEFO obeyed, asserted and falsified; two deliberate oversales exercise shortfall branches one and three. Reproducible to the peso over three resets | M | ✅ |
 | 1.6c | Seed the reversals — a voided delivery, a voided sale, a voided waste | S | Invariant holds across every reversal; the voided delivery stops prefilling |
 | 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
 1.3b + 1.5, and within it 1.6a → 1.6b → 1.6c, because you cannot sell stock that was
-never delivered or void a document that does not exist. **1.6b is next.**
+never delivered or void a document that does not exist. **1.6c is next.**
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -160,6 +161,70 @@ explicitly rather than globbing, so the order is stated and not inferred. Three 
 sections appended to one file would have made a 1 700-line seed that no one reviews;
 the same instinct that keeps migrations narrow applies here, and unlike a migration a
 seed file is not append-only, so this costs nothing to undo.
+
+### ⚠️ Found in 1.6b — `allocate_transfer()` stamps `received_at` with `now()`
+
+**Neither allocator sets `received_at` on a lot it opens**, so the column default
+`now()` applies:
+
+- `allocate_transfer()` takes `p_occurred_at`, uses it for all four movements, and
+  **does not pass it to the destination lot**;
+- `allocate_fefo()` shortfall branch three opens its adjustment lot the same way.
+
+At a till this is invisible and correct — `occurred_at` *is* `now()`. It is wrong in
+exactly two places:
+
+1. **Backdated history**, which is why the seed found it. The transfer destination
+   lots and the one adjustment lot are stamped the day of the reset while their own
+   movements are dated weeks earlier.
+2. **`recorded_offline`, which is a real production path.** `occurred_at` is accepted
+   from the client and clamped to `[now() − 72h, now()]` (`supabase/README.md`). So a
+   transfer recorded up to three days late opens a destination lot that sorts as
+   *received today* — up to 72 hours later than the truth. `received_at` is the second
+   FEFO key, so this reorders lots received within days of each other, which is
+   precisely the perishable case FEFO exists for.
+
+**Not patched in 1.6b, deliberately**: the seed must not work around a function it
+exists to exercise, and `0005` is applied and therefore closed. The fix is a
+`create or replace` in a later migration — cheap now, since no pilot data exists. The
+seed instead **bounds** the exception: only allocator-opened lots may be affected, and
+never more than forty. **Owner's call.**
+
+### Settled in 1.6b, and binding on 1.6c
+
+- **Backdated history cannot spend stock that had not arrived, and nothing enforces
+  that but the seed.** `batch_balance` has no notion of time, so by the time
+  consumption runs every lot from all thirteen weeks is on the shelf and a May sale
+  could eat an August lot — `allocate_fefo()` would hand it over, correctly, because
+  it allocates from what is open. Each withdrawal is therefore capped at the FEFO
+  prefix that had actually arrived, **stopping at the first future lot rather than
+  skipping past it** — skipping would reach a lot the shop could not have touched,
+  because FEFO order is not receipt order. Asserted, and falsified: removing the cap
+  produced 635 movements consuming lots received after them.
+- **FEFO obedience is asserted, and that assertion is what makes the
+  one-allocator decision enforceable.** For every withdrawal, no earlier-sorting lot
+  that had already arrived is still open at the end. Replacing `allocate_fefo()` with
+  a hand-written newest-lot-first pick trips it **908 times**. Without this check,
+  "the seed and `record_sale` must not diverge" is a comment rather than a rule.
+- **A running-balance replay catches what the invariant cannot.** A lot that dips
+  negative mid-history and recovers is invisible to `batch_balance_violations()`,
+  which only sees the end state. The seed replays every batch's movements in order.
+- **Every pick that ends in `LIMIT` needs a total order, and the tiebreak must be a
+  NAME.** Two resets produced identical row counts and different revenue, because the
+  oversale chose "the smallest balance" and ties resolved arbitrarily. Ids are
+  regenerated each reset, so they can never be the tiebreak. Three resets now agree to
+  the peso.
+- **Cashiers sell; managers and owners receive deliveries and write off waste.**
+  `waste_line` carries cost and is manager-and-above, so a cashier authoring one
+  describes a person who cannot read back what they wrote. Asserted both ways.
+- **The two allocators divide the work differently, and 1.6c must not confuse them.**
+  `allocate_fefo()` decides and returns the split — *the caller writes the movements*.
+  `allocate_transfer()` does the entire paired write — *the caller writes nothing*.
+- **Foreign keys force document → lines → movements.** `stock_movement.waste_id`
+  points at a document that must already exist, but the header's totals come from the
+  lines and the lines' cost comes from the allocation. So the allocation is staged and
+  replayed as movements after the header lands. `record_waste` in 0006 needs the same
+  shape.
 
 ### Settled in 1.6a, and binding on 1.6b and 1.6c
 

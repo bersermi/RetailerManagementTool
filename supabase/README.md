@@ -531,6 +531,7 @@ and a glob would leave it to filename luck.
 |------|------|--------|
 | `00_skeleton.sql` | 1.5 | Catalog, providers, locations, people, sell prices |
 | `10_deliveries.sql` | 1.6a | `purchase`, `purchase_line`, `stock_batch`, receipt movements |
+| `20_consumption.sql` | 1.6b | `sale`, `waste`, transfers, and every negative movement |
 
 Each file owns one question, asserts its own answer at the end, and refuses to run out
 of order. `00_skeleton.sql` still asserts that **no ledger exists when it finishes** —
@@ -655,3 +656,93 @@ The fifth row is worth reading closely: it tripped the **delivery-count** assert
 rather than the percentage one it was aimed at, because thinner trucks came up empty
 and were excluded. Caught, but by a neighbour — which is why the count check earns its
 place alongside the ratio.
+
+
+### `20_consumption.sql` — stock leaving the shop (task 1.6b)
+
+**904 sales / 2 251 lines, 65 waste documents / 134 lines, 5 transfer shipments,
+3 473 movements in total.** A full reset with all three seed files takes ~32s.
+
+**Nothing here chooses a batch.** Every unit that leaves goes through
+`allocate_fefo()` or `allocate_transfer()` — the same functions `record_sale`,
+`record_waste` and `record_transfer` will call in `0006`. Hand-picking lots would be
+faster, would look right, and would have the design gate measuring margin the real
+system never produces.
+
+**The two allocators divide the work differently, and confusing them is the easiest
+mistake in the file.** `allocate_fefo()` decides, locks and *returns* the split — the
+caller writes the movements; it writes only one thing itself, the new lot in shortfall
+branch three. `allocate_transfer()` does the entire paired write — the caller writes
+nothing.
+
+#### Backdated history cannot spend stock that had not arrived
+
+`batch_balance` has no notion of time. By the time this file runs, every lot from all
+thirteen weeks is already on the shelf, so a sale dated in May is free to consume a lot
+received in August — and `allocate_fefo()` will hand it over, correctly, because it
+allocates from what is open. The result still satisfies the §2.4 invariant and is still
+internally consistent; "stock on hand at the end of May" is simply a number no sequence
+of real events could produce.
+
+Each withdrawal is therefore capped at the FEFO prefix that had genuinely arrived:
+walk the lots in FEFO order, accumulate while `received_at <= occurred_at`, and **stop
+at the first future lot rather than skipping past it.** Stopping rather than skipping
+is the important half — skipping would let the allocator reach a lot the shop could not
+have touched, because FEFO order is not receipt order.
+
+#### ⚠️ Both allocators stamp new lots with `now()`, and that is a real defect
+
+Neither `allocate_transfer()` nor `allocate_fefo()`'s shortfall branch three sets
+`received_at` on a lot it opens, so the column default applies. `allocate_transfer()`
+even *takes* `p_occurred_at`, uses it for all four movements, and does not pass it to
+the destination lot.
+
+At a till this is invisible: `occurred_at` **is** `now()`. It is wrong in two places —
+backdated history, which is how the seed found it, and **`recorded_offline`, which is a
+production path**: `occurred_at` is clamped to `[now() − 72h, now()]`, so a transfer
+recorded three days late opens a destination lot that sorts as *received today*.
+`received_at` is the second FEFO key, so this reorders lots received within days of
+each other, exactly the perishable case.
+
+Not patched here — the seed must not work around a function it exists to exercise, and
+`0005` is applied and closed. Fix forward in a later migration. The seed **bounds** the
+exception instead: only allocator-opened lots may be affected, and never more than
+forty. See `docs/PLAN.md`.
+
+#### The assertions, and what breaks them
+
+The strongest is **FEFO obedience**: for every withdrawal, no earlier-sorting lot that
+had already arrived is still open at the end. It is what turns "the seed and
+`record_sale` must not diverge" from a comment into a rule.
+
+| Falsification | Caught by |
+|---|---|
+| Newest-lot-first by hand instead of `allocate_fefo()` | *"908 withdrawal(s) skipped an older lot that was still open"* |
+| Temporal cap removed | *"635 movement(s) consume a DELIVERED lot received after them"* |
+| Sale movements summing to half the line quantity | *"18 withdrawal(s) skipped an older lot…"* |
+| The deliberate oversales removed | *"no lot went negative — the overdraw oversale did not happen"* |
+| A cashier writes off waste | *"a cashier wrote off waste — that is a manager's document"* |
+
+A **running-balance replay** catches what the invariant cannot: a lot that dips
+negative mid-history and recovers is invisible to `batch_balance_violations()`, which
+only sees the end state.
+
+#### Two deliberate oversales
+
+v1 records stock and does not enforce it (§2.6). Both shortfall branches are exercised
+on purpose, and marked so the running-balance assertion can tell a designed negative
+from an accidental one:
+
+- **Overdraw an existing lot** — more sold than remains; the rest is charged to the lot
+  FEFO ran out on, at the cost actually paid, and `remaining_base` goes negative, which
+  is legal and must stay legal.
+- **Sell something never stocked here** — a new adjustment lot at **zero cost**, because
+  100% margin is visibly wrong and gets asked about, where a plausible invented cost is
+  invisibly wrong.
+
+#### Reproducibility, again
+
+Two resets produced identical row counts and **different revenue**: the oversale picked
+"the smallest balance" and ties resolved arbitrarily. Every pick ending in `LIMIT` now
+carries a total order, and the tiebreak is the product **name** — ids are regenerated
+on every reset and can never be one. Three resets now agree to the peso.
