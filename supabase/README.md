@@ -872,6 +872,15 @@ constant is hardcoded and name a future `location.timezone` as the fix. Neither 
 edited — both are applied and therefore closed, the same rule that leaves `0002`'s
 stale reference to the RPC migration alone. This table is the authority.
 
+**CI applied `0001`–`0012` from scratch and ran everything green on 2026-08-20**, run
+[32418028025](https://github.com/bersermi/RetailerManagementTool/actions/runs/32418028025)
+on PR [#19](https://github.com/bersermi/RetailerManagementTool/pull/19) — *all 35
+location timezone checks passed*, *all 36 product margin checks passed*, *all 56 waste
+share checks passed*, *all 18 seed invariant checks passed*, *4 seed check file(s)
+ran*, then *all 39*, *all 54*, *all 55*, *all 9* and *all 46 checks passed*, read from
+the job log rather than from the green tick, since a green tick alone would also be
+what a silently skipped test step looks like.
+
 **⚠️ WHAT `0012` DOES NOT FIX: the seed still trades in UTC office hours.** Fixing
 that means rewriting every timestamp in `20_consumption.sql` and therefore every
 hash-derived quantity in the seed — 1.6b's territory, and a task of its own. What
