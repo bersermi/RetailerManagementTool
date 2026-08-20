@@ -22,10 +22,13 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-Step 0 is closed. Step 1 is underway — tasks 1.1, 1.2, 1.3a, 1.3b, 1.4 and 1.5 done,
+**STEP 1 IS CLOSED. Step 2 — the three Insight queries, the design gate — is next.**
+Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
-before any of it was written — it was the last **L** in step 1. **1.6a, 1.6b and 1.6c
-are all done; the seed is complete and 1.7 is next** — the last task in step 1.
+before any of it was written — it was the last **L** in step 1. The nineteen tables
+of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
+shops through the real allocator, and **the §2.4 invariant is asserted in CI over
+that seed** rather than only over a fixture.
 **Both findings the seed turned up are now fixed.** The owner's instruction on
 2026-08-19 was to fix them immediately rather than fold them into the RPC migration, and
 `0010` (task 1.8, below) is that fix: the allocators take the moment an event happened
@@ -42,7 +45,7 @@ deadline under *Confirmed by the owner* below.
 | Step | What | Status |
 |------|------|--------|
 | 0 | A Postgres you can actually run | **Done** — CI green |
-| 1 | Migrations and seed script | **Next** |
+| 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | Not started |
 | 3 | Test suites (pgTAP, Vitest) | Not started |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
@@ -78,7 +81,7 @@ never evidence, and that includes a pessimistic one.
 
 ---
 
-## Step 1 — migrations and seed script ⬅ next
+## Step 1 — migrations and seed script ✅
 
 Nineteen tables total (ADR-035 §2.3). `0001` delivered six; thirteen remain, plus
 a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/README.md).
@@ -95,12 +98,12 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.6b~~ | ~~Seed the consumption~~ — **done** 2026-08-18. `supabase/seeds/20_consumption.sql`: **904 sales / 2 251 lines, 65 waste documents / 134 lines, 5 transfer shipments, 3 473 movements.** Invariant clean; FEFO obeyed, asserted and falsified; two deliberate oversales exercise shortfall branches one and three. Reproducible to the peso over three resets | M | ✅ |
 | ~~1.6c~~ | ~~Seed the reversals~~ — **done** 2026-08-19, [CI green on PR #14](https://github.com/bersermi/RetailerManagementTool/actions/runs/32298215918). `supabase/seeds/30_reversals.sql`: **3 voided deliveries / 23 lines, 3 voided tickets / 12 lines, 1 voided write-off / 3 lines, 41 compensating movements.** Invariant clean across every void; 16 (provider, variant) pairs fall back to an older delivery and 1 disappears entirely. 33 assertions, seven of them falsified. Reproducible over three resets in every seeded table, and — after `0010`, task 1.8 — in `provider_price_memory` too. `0003`'s 39, `0004`'s 54, `0005`'s 52, the concurrency file's 9 and `0008`'s 44 all still pass, read from the job log | S | ✅ |
 | ~~1.8~~ | ~~`0010` — the two defects the seed found~~ — **done** 2026-08-19, [CI green on PR #15](https://github.com/bersermi/RetailerManagementTool/actions/runs/32314886842), taken out of order at the owner's instruction because both were `create or replace` fixes with no data to migrate and both get dearer once a pilot exists. `allocate_fefo()` takes a **required** `p_occurred_at`; `allocate_transfer()` stamps its destination lot with the moment it already had; `provider_price_memory` breaks its tie on price, tax rate and display unit. Four falsifications. Suites now 39 / 54 / **55** / 9 / **46** | S | ✅ |
-| 1.7 | Assert the invariant in CI | S | CI green with seed + invariant check |
+| ~~1.7~~ | ~~Assert the invariant in CI~~ — **done** 2026-08-19. `supabase/checks/seed_invariant.sql`, run from its own step in `db.yml` **between the reset and the suite loop**, because `_cleanup.sql` would otherwise have emptied the seed first. **18 checks**: eight are a pre-flight that refuses to run the other ten until it can see a populated two-tenant ledger; then the invariant over 1 041 batches and 3 514 movements, the rebuild reproducing every row from `stock_movement` alone at that scale, and `rebuild_batch_balance(workspace)` shown to respect its argument — a claim no single-tenant fixture could make. It corrupts the projection and repairs it on **every run**, so green is never green from a check that cannot go red. Four falsifications | S | ✅ |
 
 Order is forced by foreign keys: 1.1 → 1.2 → 1.3a → 1.3b; 1.4 after 1.2; 1.6 after
 1.3b + 1.5, and within it 1.6a → 1.6b → 1.6c, because you cannot sell stock that was
-never delivered or void a document that does not exist. **1.7 is next, and it is the
-last task in step 1.**
+never delivered or void a document that does not exist. **Nothing in step 1 is
+outstanding.**
 
 **1.3 was split on 2026-08-17.** It was the one **L** task in the schema half of
 step 1, and it grew a second time when the allocator moved into it (decision below).
@@ -262,6 +265,57 @@ the id keys in a `create or replace`. It makes the view a pure function of the d
 it offers the higher of two prices paid the same morning, which is the safe direction to
 be arbitrary in when the number is a prefill an operator will accept without reading.
 **Owner's call**, and cheap now — a view with no data to migrate.
+
+### Settled in 1.7, and binding on step 2 and on the nightly production check
+
+- **The seed's own assertions and this check are different questions, and both are
+  kept.** Each seed file asks *did I write what I meant to*, raises inside the reset
+  and needs no workflow wiring at all (settled in 1.5). `supabase/checks/` asks *does
+  the projection agree with the ledger across all four files at once* — after the last
+  one has run, from outside the seed, where it also notices a seed file that stopped
+  being listed in `config.toml` and took its assertions with it.
+- **A NEW DIRECTORY, `supabase/checks/`, AND ITS CONTRACT IS THE ORDER IT RUNS IN.**
+  Files here run against the **seeded** database, in their own `db.yml` step between
+  `supabase db reset` and the suite loop. `supabase/tests/` is the opposite: every
+  suite there is preceded by `_cleanup.sql`, owns an empty database and writes its own
+  fixture. The two could not share a directory, and `tests/_seed_invariant.sql` was
+  rejected because `_` already means *harness, not a suite* and this is neither.
+- **⚠️ THE PRE-FLIGHT IS THE LOAD-BEARING HALF, AND IT IS FATAL ON ITS OWN.** Eight of
+  the eighteen checks assert only that there is a ledger worth checking — both tenants,
+  three stores, over a thousand batches, negative movements as well as positive, every
+  reason the invariant leans on, paired transfers, compensating movements. If any fails
+  the file **raises and the remaining ten never run**. `batch_balance_violations()` over
+  an empty database returns zero rows and passes, which is what 1.5 warned this task
+  would walk into; without the pre-flight the day someone moves this file into `tests/`
+  is a day CI goes green while checking nothing.
+- **The falsification runs on every CI run, not once by hand.** The file corrupts the
+  projection two ways — a wrong number and a deleted row — confirms both are named,
+  then rebuilds and confirms the repair. A check that has never been seen to fail is a
+  claim; this one demonstrates its own teeth every time, and it costs about a second.
+- **`rebuild_batch_balance(p_workspace_id)` is verified to respect its argument, and
+  that was previously unverifiable.** `0004`'s fixture holds one workspace, so an
+  implementation that ignored the parameter passed it. Over the seed the check rebuilds
+  the smaller tenant and asserts every row of the larger is untouched **including
+  `updated_at`**. This matters because the ADR's nightly production re-check is
+  per-tenant: a rebuild that ignored its argument would delete every other tenant's
+  projection nightly and rebuild only one. Falsified with exactly that implementation —
+  two checks went red.
+- **Floors and shapes, not the seed's row counts.** The pre-flight asserts *at least*
+  500 batches and 2 000 movements, not 1 041 and 3 514. The seed files already pin their
+  exact totals; restating them here would mean editing a CI-adjacent file every time a
+  truck changes, and the question this file asks is "is there enough here to falsify the
+  invariant", not "is the seed unchanged".
+- **Containment, not equality, on the movement reasons — and the first draft got this
+  wrong.** It asserted `count(distinct reason) = 5` and went red during falsification
+  the moment an `adjustment` movement appeared. `adjustment` is a legal sixth reason
+  that `adjust_stock` writes in `0006` and that the seed will one day carry. The claim
+  worth making is that the five the invariant leans on are all present.
+- **⚠️ THIS FILE STILL DOES NOT ASSERT THAT NO LOT IS NEGATIVE**, per 1.6c. It asserts
+  the opposite — that the seven designed negatives **survive**. Falsified by topping
+  every negative lot back up with a legitimate `adjustment` movement: the ledger stayed
+  perfectly consistent, `batch_balance_violations()` stayed at **0**, and only that one
+  check went red. Which is the point — the invariant cannot see the seed losing the
+  cases that make its shortfall branches real, and something has to.
 
 ### Settled in 1.6c, and binding on 1.7 and on `0006`
 

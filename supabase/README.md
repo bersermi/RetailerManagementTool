@@ -601,13 +601,13 @@ The middle one is the reason that assertion exists: the catalog insert is an inn
 on `product_family.name`, so a typo **drops products silently** and every count
 downstream is quietly short.
 
-⚠️ **Seed data does not survive into any test suite, and task 1.7 must plan around it.**
+⚠️ **Seed data does not survive into any test suite, and task 1.7 planned around it.**
 `supabase/tests/_cleanup.sql` runs before *every* suite and `TRUNCATE`s every table but
 `unit`, so the seed is gone before the first suite starts. That is correct — suites
-assert absolute counts and must own the database — but it means **1.7 cannot be a file
-in `supabase/tests/`**. The invariant check over seed data has to be its own step in
-`.github/workflows/db.yml`, between `supabase db reset` and the suite loop. Written
-as a test file it would assert over an empty database, and pass.
+assert absolute counts and must own the database — but it meant **1.7 could not be a
+file in `supabase/tests/`**. Written as a test file it would assert over an empty
+database, and pass. It is [`supabase/checks/seed_invariant.sql`](#supabasechecks--the-24-invariant-over-seed-data-task-17)
+instead, in its own `db.yml` step between the reset and the suite loop.
 
 ### Reading it
 
@@ -886,3 +886,74 @@ wrong thing: voiding an intact delivery *does* lower a lot's minimum, from every
 received down to nothing, and that is the correct outcome. The claim worth asserting is
 about the **sign** — no reversal may put a lot into deficit unless it was in deficit
 already, or unless it is the one delivery voided knowing that it would.
+
+
+---
+
+## `supabase/checks/` — the §2.4 invariant over seed data (task 1.7)
+
+**One directory, one contract: these files run against the SEEDED database.** They
+have their own step in `.github/workflows/db.yml`, and **it must stay between
+`supabase db reset` and the suite loop.**
+
+That ordering is the whole reason the directory exists. `supabase/tests/_cleanup.sql`
+runs before *every* suite and truncates every table but `unit`, so by the time the
+first suite starts the seed is gone — and **`batch_balance_violations()` over an empty
+database returns zero rows and passes.** An invariant check placed in `tests/` would
+be green forever while checking nothing, which is the exact vacuous pass ADR-035 §9
+exists to refuse. It is the same trap as running an RLS assertion as `postgres`.
+
+`tests/_seed_invariant.sql` was rejected as the alternative: `_` already means
+*harness, not a suite*, and this is neither.
+
+### `seed_invariant.sql` — 18 checks
+
+| | What it establishes |
+|---|---|
+| **1–8, pre-flight** | There is a ledger worth checking: 1 041 batches, 3 514 movements, **both** tenants with real volume, three stores, negative movements as well as positive, every reason the invariant leans on, transfers paired out-for-in, compensating movements present, and the designed negative lots still negative |
+| **9–10** | The §2.4 invariant: the projection agrees with the ledger for every batch, and every batch **has** a projection row |
+| **11–12** | `rebuild_batch_balance(workspace)` rebuilds exactly that tenant and leaves every other tenant's row untouched, `updated_at` included |
+| **13–15** | `rebuild_batch_balance()` reproduces all 1 041 rows from `stock_movement` alone, one per batch, and the invariant is still clean afterwards |
+| **16–18** | The projection is corrupted two ways, both are detected and named, and the rebuild repairs both |
+
+**⚠️ THE PRE-FLIGHT IS FATAL ON ITS OWN.** If any of the first eight fails, the file
+raises and checks 9–18 never run. Without that, an empty database reaches a `\gset`
+that found no rows and dies with a psql meta-command error a hundred lines from the
+cause — or worse, passes. The message it raises instead names the problem: *"THE SEED
+IS NOT IN THIS DATABASE, or it no longer exercises the ledger."*
+
+**⚠️ IT DOES NOT ASSERT THAT NO LOT IS NEGATIVE.** Seven are, legitimately — two from
+1.6b's oversales and five from the delivery 1.6c voided after it had been sold through.
+v1 records stock and does not enforce it (§2.6). The invariant asks whether the
+projection agrees with the movements; *"no lot is negative"* is a different claim, it
+is false, and it is false on purpose. Check 8 asserts the opposite: that those
+negatives **survive**, because a seed that quietly lost them would make every
+shortfall claim downstream vacuous.
+
+**Floors and shapes, not row counts.** The pre-flight asks for *at least* 500 batches
+and 2 000 movements. The seed files pin their own exact totals; restating them here
+would mean editing a CI-adjacent file every time a truck changes.
+
+### The check demonstrates its own teeth, every run
+
+Checks 16–18 corrupt the projection on purpose and confirm the corruption is caught.
+That is deliberately not a one-off someone did locally and wrote down — it costs about
+a second and it means a green here is never a green from a check that cannot go red.
+
+### Four falsifications, run by hand on top of that
+
+| Falsification | Caught by |
+|---|---|
+| **Run the whole file over an empty database** — the trap `docs/PLAN.md` named for this task | *"THE SEED IS NOT IN THIS DATABASE… (8 of 8 pre-flight check(s) failed)"*, and nothing below it ran |
+| A real projection drift, present before the file started | *"019f3645…: movements=34.000 projected=31.000"*, and the rebuild comparison independently |
+| `rebuild_batch_balance()` reimplemented to **ignore its workspace argument** | *"rebuilt 1041 rows"* against the 177 that tenant owns, plus the other tenant's rows no longer matching |
+| Every negative lot topped back up with a legitimate `adjustment` movement | *"0 lot(s) below zero"* — **and only that check**, with `batch_balance_violations()` still at 0 |
+
+The last row is the one worth reading. The ledger stayed perfectly consistent, so the
+invariant itself could not see the loss. Something has to.
+
+**And the falsification found a defect in the check.** The first draft asserted
+`count(distinct reason) = 5` and went red the moment an `adjustment` movement appeared
+— a legal sixth reason that `adjust_stock` writes in `0006`. It now asserts
+**containment**: the five reasons the invariant leans on are all present, not that
+nothing else ever is.
