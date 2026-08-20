@@ -22,8 +22,11 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-**STEP 1 IS CLOSED. Step 2 — the three Insight queries, the design gate — is next.**
+**STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS OPEN.**
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
+**Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
+one task per question, because the three read three different corners of the ledger.
+**2.1 — margin by product — is done**; 2.2 and 2.3 are open. See *Step 2* below.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. The nineteen tables
 of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
@@ -46,7 +49,7 @@ deadline under *Confirmed by the owner* below.
 |------|------|--------|
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
-| 2 | The three Insight queries — *the design gate* | Not started |
+| 2 | The three Insight queries — *the design gate* | **In progress** — 1 of 3 |
 | 3 | Test suites (pgTAP, Vitest) | Not started |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
@@ -794,6 +797,182 @@ availability check.
 **Cost, recorded honestly:** `0005`–`0007` shift down by one, and `0002` — already
 applied, therefore not edited — still calls the RPC migration `0005` in two comments.
 [`supabase/README.md`](../supabase/README.md) is the authority on numbering.
+
+## Step 2 — the three Insight queries, the design gate 🚧
+
+ADR-035 §3 step 2: *"Write §2.9's queries against seeded data, **per location and
+consolidated across locations**. If margin-by-product needs a five-way join and a CTE
+to survive reversals, unit conversion and a location rollup, the schema is wrong —
+known in week two, before any screen."*
+
+This is the gate the whole build order exists to reach early. It is not a reporting
+feature; it is the moment the schema is judged, and the only artefact that can judge
+it is a query written against the seed and read by a person.
+
+**Split into 2.1 / 2.2 / 2.3 on 2026-08-20, before any of it was written.** Step 2 is
+three independent questions over three different corners of the ledger — margin reads
+`sale_line` against `stock_movement`, waste reads `waste_line` against `purchase_line`,
+velocity reads `sale_line` against itself over time. One session that tried all three
+would produce a migration nobody reviews and a verdict nobody can attribute to a
+query. 1.3 and 1.6 both taught this the expensive way; this one is split before it is
+written, as 1.6 was.
+
+| # | Task | Size | Done when |
+|---|------|------|-----------|
+| ~~2.1~~ | ~~`0009` — **what made me money**: gross margin by product, net of tax~~ — **done** 2026-08-20. `product_margin_daily`, plus **34 checks** in `supabase/checks/0009_product_margin.sql`, now in the CI gate. **The gate's answer is two aggregates over one grain, joined once** — no five-way join and no CTE. Reversals cancel themselves, unit conversion never appears, and the location rollup is a `group by` the caller drops. Five falsifications, **two of which the seed cannot discriminate and which say so**. `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9, `0008`'s 46 and 1.7's 18 all still pass | M | ✅ |
+| 2.2 | `0011` — **what am I throwing away**: waste cost as % of purchases, by product | M | Same bar. The denominator is purchases in the same window, so the check must pin what happens when a product was wasted in a period it was not bought in — a division by zero the report has to render as something other than a crash or a 0% |
+| 2.3 | `0012` — **what stopped selling**: velocity vs trailing average | M | Same bar, plus the one thing the other two do not have: a product that never sold in the current window has no row to compare, and the whole question is about absence. The check must prove the view reports the silence rather than omitting it |
+
+Order is not forced by foreign keys — all three read applied tables — but it is forced
+by cost attribution. **2.1 is first because margin is the hard one**: it is the only
+one of the three whose answer comes from `stock_movement` rather than from a document
+table, and it is the one the ADR names when it says "if margin-by-product needs a
+five-way join, the schema is wrong". If the schema is wrong, 2.1 is where it shows.
+
+### Numbering, and what step 2 does NOT ship
+
+`0006`, `0007` and `0009` are reserved and unwritten ([`supabase/README.md`](../supabase/README.md)
+is the authority). **2.1 takes `0009`; 2.2 and 2.3 take `0011` and `0012`**, the next
+free numbers, because migrations are append-only once applied and three tasks that
+merge separately cannot share one file. This is the same rule `0010` followed.
+
+Two things `supabase/README.md` currently files under `0009` are **not** in step 2,
+and both are named here so they are not silently dropped:
+
+- **The nightly materialised rollups and the live partial-day union** (§2.9). They are
+  a latency answer, not a correctness answer, and they need a scheduler this project
+  has not chosen yet. The gate asks whether the questions are *answerable and legible*,
+  not whether they are fast. Every view in step 2 is written at a grain that
+  materialises as `select * from` it — day × location × variant — so adding the rollup
+  later is additive rather than a rewrite. **Owner's call to pull it forward.**
+- **The price history** — global and per provider — that the README says `0009` owes
+  the merchant. It is not one of §2.9's three questions and it answers a different
+  person's question; it belongs with Números (step 7) or with a task of its own.
+  **Owner's call.**
+
+### The gate's verdict, from 2.1 — **the schema passes**
+
+ADR-035 §3 step 2 set the test: *"If margin-by-product needs a five-way join and a CTE
+to survive reversals, unit conversion and a location rollup, the schema is wrong."*
+It needs neither. The whole query is:
+
+    revenue   sale_line  →  sale                    (what the customer paid)
+    cost      stock_movement where reason = 'sale'  (what those units cost us)
+    -----------------------------------------------------------------------
+    margin    full outer join on (workspace, location, variant, day)
+
+And the reason each of the ADR's three fears did not materialise was decided in an
+earlier migration, not in this one — which is the outcome the gate was placed early to
+find out about:
+
+- **Reversals need no exclusion at all**, because a void is a negated document
+  (`0003`) and margin is a **sum**. This is the exact opposite of `0008`, which must
+  exclude both the void and the document it voids — because "the last price paid"
+  *picks a row*, and a picked row cannot cancel. Two views, two correct answers, from
+  the same ledger shape.
+- **Unit conversion never appears in the query**, because §2.5 already did it at write
+  time. A product bought by the kilo and sold by the gram is grams on both sides of
+  the join, and money is money. The ADR's worry was real and the answer was paid for
+  three migrations ago.
+- **The location rollup is a `group by` the caller drops.** Consolidated and per-store
+  are the same statement, and they agree to the centavo — asserted, not assumed.
+
+**Verdict: the schema answers §2.9's first question in one statement, and no change is
+owed to it.** 2.2 and 2.3 remain to be written, and either could still find something —
+this verdict covers what 2.1 could see.
+
+### Settled in 2.1, and binding on 2.2 and 2.3
+
+- **⚠️ A VIEW THAT JOINS MEMBER-LEVEL DATA TO MANAGER-ONLY DATA MUST STATE ITS OWN
+  ROLE PREDICATE, AND `0008`'S RULE IS THE WRONG ONE TO COPY.** `0008` deliberately
+  does not restate §2.7's predicate and is right not to: both tables it reads are
+  manager-gated, so `security_invoker` inheritance fails **closed**. `0009` reads a
+  mix — `sale` and `sale_line` are member-level, `stock_movement` is manager-and-above
+  — so inheritance fails **OPEN**: a cashier would read every revenue row, no cost
+  rows, and be told the shop's margin equals its revenue. Demonstrated in the check
+  rather than described: the ungated copy of the query returns **216 rows to the
+  seeded cashier at Centro, every one reporting zero cost**. 2.2 joins `waste_line`
+  (manager) to `purchase_line` (manager) and inherits safely; **2.3 joins `sale_line`
+  to nothing costed and does not need the gate at all** — which is worth checking
+  rather than assuming, because the answer differs per view.
+- **The gate must not lock out the callers RLS never filtered.** Written as
+  `has_role(...) or not row_security_active('public.stock_movement')`. `auth.uid()` is
+  null for the superuser and for `service_role`, so a bare `has_role` returns **zero
+  rows** to the two callers that need them most: §2.9's nightly rollup is a scheduled
+  `service_role` job, and every file in `supabase/checks/` runs as the superuser. A
+  property of the caller, not a list of role names.
+- **A void CANCELS its original; it does not ERASE it — and only a COUNT can tell.**
+  Excluding voided documents and their voids left all 32 of the first draft's checks
+  green, because the pair sums to zero either way. The two implementations differ only
+  in **which day** the cancellation lands on, and every void in the seed happens
+  minutes after its original. Two checks were added that count instead of summing:
+  every `sale_line` and every sale movement appears in exactly one bucket. 2.2 and 2.3
+  need the same pair — a sum-only reconciliation cannot see a dropped document.
+- **Report figures are not rounded, and §2.5 does not govern them.** §2.5's half-up
+  per-line rule decides what a customer is **charged**. COGS is derived from
+  `qty_base × unit_cost_net_per_base` and rounding it at every grain would make two
+  correct rollups disagree by centavos. Round once, at the edge.
+- **Names are joined from the catalog, money is snapshotted on the line.** A renamed
+  product is renamed in last month's ranking too, which is what a person asking "what
+  made me money" means. Money never moves.
+- **The grain is day × location × variant**, chosen so §2.9's deferred materialised
+  rollup is `select * from` the view rather than a rewrite.
+
+### ⚠️ Found in 2.1 — nothing records a shop's timezone, and the seed trades in UTC
+
+Two findings, one cause, and **neither is patched** — for the reason 1.6b and 1.6c did
+not patch what they found.
+
+**1. The day boundary is a hardcoded `America/Mexico_City` in `0009`.** `occurred_at`
+is `timestamptz` and a trading day is local; bucketing in UTC pushes an evening's
+takings onto tomorrow — silently, and consistently enough to look plausible. Neither
+`location` nor `workspace_setting` has a timezone column. `0009` does not add one
+**on purpose**: a column is append-only and a view is `create or replace`, so the
+constant is the reversible half and the schema change is not. The day a customer signs
+in Sonora or Baja California (UTC−7 and UTC−8, no DST, against this constant's UTC−6)
+the fix is `location.timezone` defaulted to this value. ⚠️ **It stays cheap only until
+a materialised rollup is keyed on `day`** — after that, moving the boundary restates
+history. **Owner's call, and it is cheaper now than at any later point.**
+
+**2. The seed cannot test it, because the seed's shop trades 03:00–14:40.**
+`20_consumption.sql` builds every timestamp as `v_day + interval '9 hours'` in a UTC
+session, so the seeded trading day is 09:00–20:40 **UTC** — which is 03:00–14:40 in
+Mexico City. Nothing crosses midnight in either zone, so local and UTC bucketing
+produce identical rows and the constant in `0009` is inert over the seed. The check
+says so in the two places it matters: one check proves the expression is local by
+construction, and check 33 pins the bound at **zero** documents whose local day
+differs from their UTC day — so the day the seed grows a realistic evening trade, it
+goes red and someone reads this. **The fix would be a change to `20_consumption.sql`
+that moves every timestamp and therefore every hash-derived quantity in the seed** —
+which is 1.6b's territory and a task of its own, not a line in a step 2 session.
+**Owner's call.**
+
+### Two falsifications the seed cannot make, recorded rather than papered over
+
+Both of these are `create or replace` mutations of the shipped view that **no check
+caught**, and both are recorded because a falsification table with only successes in it
+is the more misleading artefact:
+
+- **the day taken from `stock_movement` instead of from `sale`.** Every sale movement
+  in the seed carries exactly its document's `occurred_at`, so the two agree on every
+  row. Taking it from the document is still right — it *guarantees* a sale's revenue
+  and its cost land in one bucket rather than leaving that to a convention every future
+  writer must honour — but the seed cannot prove it;
+- **`full outer join` weakened to `join`.** Every bucket in the seed has both sides. The
+  outer join is there for two failures that must never be silent: revenue with no cost,
+  which reads as 100% margin, and cost with no revenue, which is stock that left the
+  shelf against a ticket that never charged for it. `cost_attributed` exists so the
+  first cannot hide inside a `sum()`.
+
+### ⚠️ Margin per ticket LINE is not derivable, and 2.2 and 2.3 do not change that
+
+`stock_movement` carries `sale_id` and `variant_id` but no `sale_line_id`, deliberately:
+one line can be satisfied from three lots, so the movement grain is (line × lot) and no
+column pairs them. Per **product** margin is exact, and per **ticket** margin is exact.
+Per **line** would need the allocation split persisted with a line reference — a column
+on `stock_movement` and a migration, not a query. §2.9 asks for by-product, so nothing
+is owed today. It is written down here because the screen that will want it is Vender
+(step 5b), and by then the migration is against live data.
 
 ---
 

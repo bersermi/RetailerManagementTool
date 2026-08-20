@@ -252,8 +252,8 @@ to stop and ask rather than pick a side.
 | Step | What | State |
 |------|------|-------|
 | 0 | A database you can actually run | **Done** |
-| 1 | The database tables and realistic fake data | **In progress** — 1 of 7 tasks |
-| 2 | Three business questions — *the design gate* | Next milestone |
+| 1 | The database tables and realistic fake data | **Done** |
+| 2 | Three business questions — *the design gate* | **In progress** — 1 of 3. *What made me money* is answered and the schema passed |
 | 3 | Automated tests | Later |
 | 4 | The write operations (sell, buy, waste, void) | Later |
 | 4.5 | What happens when a write fails | Later |

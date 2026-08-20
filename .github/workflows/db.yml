@@ -54,7 +54,12 @@ jobs:
         run: supabase migration list --local
 
       # ---------------------------------------------------------------------
-      # THE §2.4 INVARIANT, OVER SEED DATA (plan task 1.7)
+      # EVERY CHECK IN supabase/checks/, OVER SEED DATA (plan tasks 1.7 and 2.1)
+      #
+      # This step was the §2.4 invariant alone until 2.1 added the margin view's
+      # reconciliation beside it. Both belong here for the same reason and neither
+      # could live in supabase/tests/, so the step runs the directory rather than a
+      # file, in name order.
       #
       # THIS STEP MUST STAY BETWEEN THE RESET AND THE SUITE LOOP, and the order is
       # the whole reason it is a step of its own rather than a file in
@@ -79,7 +84,7 @@ jobs:
       # The file counter is the same concern as reading the suite counts by name:
       # a loop that matched nothing would print nothing and exit 0, which is what
       # a deleted check directory looks like.
-      - name: Seed invariant (ADR-035 §2.4)
+      - name: Checks over the seed (ADR-035 §2.4, §2.9)
         run: |
           eval "$(supabase status -o env | grep '^DB_URL=')"
           export DB_URL
@@ -91,10 +96,10 @@ jobs:
             ran=$((ran + 1))
           done
           if [ "$ran" -eq 0 ]; then
-            echo "no files in supabase/checks/ — the invariant was never checked" >&2
+            echo "no files in supabase/checks/ — nothing was checked over the seed" >&2
             exit 1
           fi
-          echo "$ran seed invariant file(s) ran"
+          echo "$ran seed check file(s) ran"
 
       # Every suite in supabase/tests/, in name order, against the database the
       # reset just built. Each one assumes a database holding nothing but its own

@@ -53,14 +53,16 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0004_inventory.sql` | `batch_origin` + `movement_reason` enums, `stock_batch`, `stock_movement`, `batch_balance` + the two projection triggers, `batch_balance_violations()`, `rebuild_batch_balance()`; append-only triggers on batch and movement; cost-gated RLS on batch and movement, member-level on the balance; a `unique (id, workspace_id, location_id)` added to `purchase_line` |
 | `0005_allocation.sql` | `fefo_allocation` + `transfer_allocation` composite types, `allocate_fefo()`, `allocate_transfer()`. No table, no policy, no execute grant for any role |
 | `0008_provider_price_memory.sql` | `provider_price_memory` — one `security_invoker` view over `purchase_line`, the last price paid per `(workspace, provider, variant)`. No table, no policy, no function |
+| `0009_product_margin.sql` | `product_margin_daily` — one `security_invoker` view, gross margin by product per store per day, net of tax. Revenue from `sale_line`, cost from the `sale` movements that consumed the lots FEFO picked. No table, no policy, no function. The one view in the repo that states a `has_role` predicate of its own, because it joins member-level revenue to manager-only cost |
 | `0010_allocator_time_and_price_tiebreak.sql` | Two corrections the 1.6 seed found: `allocate_fefo()` gains a **required** `p_occurred_at` and stamps its shortfall lot with it, `allocate_transfer()` stamps its destination lot with the one it already took, and `provider_price_memory` breaks its tie on price / tax rate / display unit instead of on a uuid. No table, no policy, no new grant |
 
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
 them, and neither was patched where it was found — the seed must not work around
 the objects it exists to exercise, and `0005` and `0008` are applied and therefore
-closed. `0006`, `0007` and `0009` are reserved and unwritten; renumbering planned
-work to make a correction look tidy would be the more confusing choice.
+closed. `0006` and `0007` are reserved and unwritten (`0009` was, and is now the margin
+view); renumbering planned work to make a correction look tidy would be the more
+confusing choice.
 
 ⚠️ **`0006` will apply BEFORE `0010` on a fresh reset and must still be written
 against the six-argument `allocate_fefo`.** plpgsql does not resolve the functions
@@ -74,7 +76,18 @@ Planned next, in order (ADR-035 §3):
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
   (ADR-035 §3 step 4.5 — before any screen exists)
-- `0009` — analytics views and nightly rollups, per location and consolidated
+- `0011` — what am I throwing away: waste cost as a share of purchases, by product
+  (plan task 2.2)
+- `0012` — what stopped selling: velocity against a trailing average (plan task 2.3)
+
+**The analytics half of the old `0009` line is now three files, not one.** `0009`
+ships the first of §2.9's three questions and is applied; the other two take the
+next free numbers as they are written, because a migration is append-only once
+applied and three tasks that merge separately cannot share a file. **The nightly
+materialised rollups and the live partial-day union are in none of them** — they are
+a latency answer, they need a scheduler this project has not chosen, and the design
+gate asks whether the questions are answerable, not whether they are fast. Each view
+is written at a grain that materialises as `select * from` it.
 
 `0008` is **already applied** — it is the provider price memory view and nothing
 else. It was listed here as one line with the analytics views and has been split
@@ -130,8 +143,11 @@ been bought from have a price to offer. `provider_id` appears on `purchase`, on
 `stock_batch` and on the derived view — nowhere in `product_family` or
 `product_variant`. Confirmed against the schema and by the owner, 2026-08-18.
 
-`0009` owes the merchant a **price history**, globally and per provider, which
-`provider_price_memory` does not answer — it is the last price, not a series. The data
+**Somebody still owes the merchant a price history**, globally and per provider,
+which `provider_price_memory` does not answer — it is the last price, not a series.
+It was filed under `0009` when `0009` meant "the analytics migration"; `0009` is now
+the margin view, and a price history is not one of §2.9's three questions, so it has
+no number yet and belongs with Números (step 7) or a task of its own. The data
 is all in `purchase_line` already. When writing it, keep the reporting question and
 the prefill question apart: "no fallback across providers" governs the **prefill**, not
 the report, and a cross-provider comparison is the whole point of the history. Putting both
@@ -541,6 +557,104 @@ on PR [#7](https://github.com/bersermi/RetailerManagementTool/pull/7) — *all 3
 than from the green tick, since a green tick alone would also be what a silently
 skipped test step looks like.
 
+### `0009` — product margin, and the design gate (plan task 2.1)
+
+Applied locally 2026-08-20, same toolchain. `supabase db reset` applies `0001`–`0005`,
+`0008`, `0009` and `0010` with no errors, and **34 checks pass** from
+`supabase/checks/0009_product_margin.sql` — a *checks* file and not a *tests* file,
+because it must read the seed and `_cleanup.sql` would have truncated it (see
+`supabase/checks/` below). `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency
+file's 9 and `0008`'s 46 all still pass unchanged.
+
+**The gate's answer: two aggregates over one grain, joined once.** Revenue from
+`sale_line`; cost from `stock_movement where reason = 'sale'`; a full outer join on
+`(workspace, location, variant, day)`. ADR-035 §3 step 2 said that if margin by
+product needed a five-way join and a CTE to survive reversals, unit conversion and a
+location rollup, the schema was wrong. It needs neither, and the reason in each case
+was decided by an earlier migration rather than by this one:
+
+- **reversals** cancel themselves, because a void is a negated document (`0003`) and
+  margin is a sum. This is the exact opposite of `0008`, which had to exclude both
+  sides — because "the last price paid" *picks a row*, and a picked row cannot cancel;
+- **unit conversion** never appears, because §2.5 normalised every quantity to the
+  base unit and every price to per-base-unit at write time. A product bought by the
+  kilo and sold by the gram is grams on both sides of the join;
+- **the location rollup** is a `group by` the caller drops. Consolidated and per
+  store are the same query, and they agree exactly — asserted, not assumed.
+
+**What the check would not have caught, and now does.** Excluding voided documents
+*and the documents they void* — the `0008` reflex, applied where it does not belong —
+left all 32 of the first draft's checks green. It has to: a void and its original
+cancel, so dropping both and keeping both give the same revenue, the same per-product
+total and the same per-store total. They differ only in **which day** the
+cancellation lands on, and every void in the seed happens minutes after its original
+on the same day. Two checks were added that count rather than sum — every
+`sale_line` and every sale movement must appear in exactly one bucket — and they
+catch it (2 239 lines against 2 263). A void **cancels** its original; it does not
+**erase** it.
+
+Falsified, and each row is a `create or replace` of the shipped view watched go red:
+
+| Falsification | Checks that fail |
+|---|---|
+| COGS sign inverted (`qty × cost`, not `-qty × cost`) | 6, incl. *"178.3% margin"* |
+| Voided documents and their voids excluded from revenue | 1 — the line count |
+| The `has_role` gate deleted from the view body | 1 — *a cashier reads ZERO rows* |
+| The day taken from `stock_movement` instead of from `sale` | **0 — see below** |
+| `full outer join` weakened to `join` | **0 — see below** |
+
+**⚠️ THE LAST TWO ROWS ARE THE HONEST PART.** Neither is caught, and neither is
+caught for a reason worth writing down rather than fixing with a cleverer check:
+
+- every sale movement in the seed carries **exactly** its document's `occurred_at`,
+  so the two ways of dating a bucket agree on every row. Taking the day from the
+  document is still the right choice — it is what *guarantees* a sale's revenue and
+  its cost land in one bucket instead of leaving that to a convention every future
+  writer has to honour — but the seed cannot prove it, and no check here pretends to;
+- every bucket in the seed has both a revenue side and a cost side, so the outer join
+  never fires. It is there for the two failures that must never be silent: revenue
+  with no cost (which reads as 100% margin) and cost with no revenue (stock that left
+  the shelf against a ticket that never charged for it). `cost_attributed` exists so
+  the first of those cannot hide in a rollup.
+
+**A cashier reads zero rows, and this is the one view that says so in its own body.**
+`0008` deliberately does *not* restate §2.7's predicate, and is right not to: both
+tables it reads are manager-gated, so inheritance fails closed. This view reads a
+**mix** — `sale` and `sale_line` are member-level, `stock_movement` is
+manager-and-above — so `security_invoker` alone would hand a staff session every
+revenue row, no cost rows, and the answer *margin = revenue*. The check demonstrates
+that rather than describing it: the same query without the gate is created, granted,
+and read by the seeded cashier at Centro, who sees **216 rows, every one of them
+reporting zero cost**.
+
+The gate's second half, `or not row_security_active('public.stock_movement')`, is not
+a hole. It is true exactly for the callers RLS does not filter — the superuser and
+`service_role`, which carries `BYPASSRLS` — both of which already read every cost row
+in the database. Without it `auth.uid()` is null for both, `has_role` is false, and
+the view returns **zero rows to the two callers that need it most**: §2.9's nightly
+materialised rollup is a scheduled `service_role` job, and every file in
+`supabase/checks/` runs as the superuser.
+
+**⚠️ THE DAY BOUNDARY IS HARDCODED TO `America/Mexico_City`, AND NOTHING RECORDS A
+SHOP'S TIMEZONE.** `occurred_at` is `timestamptz` and a trading day is local;
+bucketing in UTC would push an evening's takings onto tomorrow. Neither `location`
+nor `workspace_setting` has a timezone column, and `0009` deliberately does not add
+one: a column is append-only and a view is `create or replace`, so the reversible
+half is the constant. The day a customer signs in Sonora or Baja California (UTC−7
+and UTC−8, no DST, against this constant's UTC−6) the fix is `location.timezone`
+defaulted to this value — cheap for exactly as long as no materialised rollup is
+keyed on `day`.
+
+**⚠️ AND THE SEED CANNOT TEST IT.** `20_consumption.sql` builds every timestamp as
+`v_day + interval '9 hours'` in a UTC session, so the seeded shop trades 09:00–20:40
+**UTC** — 03:00–14:40 in Mexico City. Nothing crosses midnight in either zone, so
+local and UTC bucketing produce identical rows and the constant is inert over the
+seed. The check states this rather than hiding it: one check proves the expression is
+local by construction, and a second pins the bound at zero documents whose local day
+differs from their UTC day, so the day a seed is written with a realistic evening
+trade it goes red and someone reads this paragraph.
+
+
 ## The seed
 
 `supabase/seeds/`, run automatically by `supabase db reset`. `config.toml` lists the
@@ -890,11 +1004,15 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/checks/` — the §2.4 invariant over seed data (task 1.7)
+## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1)
 
 **One directory, one contract: these files run against the SEEDED database.** They
 have their own step in `.github/workflows/db.yml`, and **it must stay between
-`supabase db reset` and the suite loop.**
+`supabase db reset` and the suite loop.** Two files live here now — the §2.4
+invariant (1.7) and the margin view's reconciliation (2.1) — and the step runs the
+directory in name order rather than naming files, so a third costs no workflow edit.
+Each file creates its own `_verify` scratch table and drops any previous one, so they
+do not share state and their order does not matter.
 
 That ordering is the whole reason the directory exists. `supabase/tests/_cleanup.sql`
 runs before *every* suite and truncates every table but `unit`, so by the time the
@@ -905,6 +1023,20 @@ exists to refuse. It is the same trap as running an RLS assertion as `postgres`.
 
 `tests/_seed_invariant.sql` was rejected as the alternative: `_` already means
 *harness, not a suite*, and this is neither.
+
+### `0009_product_margin.sql` — 34 checks (task 2.1)
+
+Covered in full under [`0009` — product margin](#0009--product-margin-and-the-design-gate-plan-task-21)
+above. In outline:
+
+| | What it establishes |
+|---|---|
+| **1–6, pre-flight** | The seed still holds what makes the rest discriminating: 1 000+ sale lines and sale movements, both tenants selling, three selling stores, tickets that were voided, weighed goods bought by the kilo, and both tax rates. **Fatal on its own** — if any fails, nothing below runs |
+| **7–18** | Reconciliation against an arithmetic derived **without** the view's document join: revenue three ways, tax, COGS, quantity, every line and every movement in exactly one bucket, every `(store, product)` bucket, and the shop making a plausible amount of money |
+| **19–23** | The ADR's three gate questions: consolidated equals the sum of the stores exactly, the top-ten query is one statement, the totals equal a ledger in which the voided pairs never happened, and a weighed product reconciles in grams |
+| **24–25** | Two wrong implementations written out in full and asserted to **disagree**: skipping voids instead of letting them cancel, and costing at the latest purchase price instead of at the lot consumed |
+| **26–31** | Access, under `set role authenticated`: the cashier who reads zero rows, the ungated copy of the same query that tells them their margin is 100%, the manager confined to their own tenant and reading the ledger's own numbers, and the other tenant's owner seeing none of it |
+| **32–34** | The day boundary is local by construction — and the seed, which trades in UTC office hours, cannot tell. Check 33 pins that bound at zero |
 
 ### `seed_invariant.sql` — 18 checks
 
