@@ -27,9 +27,12 @@ Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
 **2.1 — margin by product — and 2.2 — waste as a share of purchases — are done**;
-2.3 is open. See *Step 2* below. **2.2 found that the division at the end of a waste
-report fails three ways and not one**, and that a second view now hardcodes the shop
-timezone 2.1 already flagged — neither is patched here, both are the owner's call.
+**2.4 — the shop timezone — is done, taken before 2.3 at the owner's instruction on
+2026-08-20**; 2.3 is open and is now `0013`. See *Step 2* below. **2.2 found that the
+division at the end of a waste report fails three ways and not one** — recorded, not
+patched, because it is a property of the ledger rather than a defect. **The timezone
+finding 2.1 raised and 2.2 doubled is FIXED**: `location.timezone` is a column, both
+views read it, and the day boundary is testable for the first time.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. The nineteen tables
 of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
@@ -52,7 +55,7 @@ deadline under *Confirmed by the owner* below.
 |------|------|--------|
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
-| 2 | The three Insight queries — *the design gate* | **In progress** — 2 of 3 |
+| 2 | The three Insight queries — *the design gate* | **In progress** — 2 of 3, plus the timezone column 2.1 and 2.2 asked for |
 | 3 | Test suites (pgTAP, Vitest) | Not started |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
@@ -729,6 +732,23 @@ it happened to be convenient.
   problem — it is a shape to re-measure when Comprar exists. Speculative indexes on
   a guess are how the last model got `ProviderProductPrice`.
 
+### A check that rolls back deletes its own results — the lesson of 2.4
+
+`chk()` records a verdict by INSERTING into `_verify`. A section wrapped in
+`begin … rollback` therefore throws its results away, and the file still prints *all N
+checks passed* with a quietly smaller N. `0012`'s check file shipped with exactly that
+for one draft: four access checks vanished between 23 and 28, and the summary said 28
+rather than 32. Nothing failed. Nothing looked wrong.
+
+It was caught by **reading the printed table instead of the summary line** — the same
+discipline the working agreement demands of a green CI tick, one level down, and the
+same failure mode: an assertion that never ran looks exactly like an assertion that
+passed.
+
+The fix is structural. `_verify.n` is a serial and a sequence is non-transactional, so
+a rolled-back `chk()` burns its number and leaves a gap; `max(n) = count(*)` catches
+it. All three analytics check files now carry that assertion as their last check.
+
 ### The test was wrong before the view was, and that is the lesson of 1.4
 
 The migration was right on the first draft. **The suite was not**, and it was green
@@ -824,7 +844,8 @@ written, as 1.6 was.
 |---|------|------|-----------|
 | ~~2.1~~ | ~~`0009` — **what made me money**: gross margin by product, net of tax~~ — **done** 2026-08-20, [CI green on PR #17](https://github.com/bersermi/RetailerManagementTool/actions/runs/32375602999). `product_margin_daily`, plus **34 checks** in `supabase/checks/0009_product_margin.sql`, now in the CI gate. **The gate's answer is two aggregates over one grain, joined once** — no five-way join and no CTE. Reversals cancel themselves, unit conversion never appears, and the location rollup is a `group by` the caller drops. Five falsifications, **two of which the seed cannot discriminate and which say so**. `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9, `0008`'s 46 and 1.7's 18 all still pass, read from the job log | M | ✅ |
 | ~~2.2~~ | ~~`0011` — **what am I throwing away**: waste cost as % of purchases, by product~~ — **done** 2026-08-20, [CI green on PR #18](https://github.com/bersermi/RetailerManagementTool/actions/runs/32409705126). `product_waste_daily`, plus **55 checks** in `supabase/checks/0011_waste_share_of_purchases.sql`, now in the CI gate. **Same shape as 2.1 — two aggregates over one grain, joined once** — and the same three fears fall the same way. ⚠️ **The view does not divide**, because waste and the delivery it is measured against are different documents days apart: 136 of 137 day-grain waste buckets have no delivery that day, so a row-level rate would be null 99.3% of the time. ⚠️ **The division fails three ways and not one**, and only the first is a zero — the guard is `> 0`, not `nullif`. Seven falsifications, **two of which the seed cannot discriminate and which say so**. `0009`'s 34, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass, read from the job log | M | ✅ |
-| 2.3 | `0012` — **what stopped selling**: velocity vs trailing average | M | Same bar, plus the one thing the other two do not have: a product that never sold in the current window has no row to compare, and the whole question is about absence. The check must prove the view reports the silence rather than omitting it |
+| ~~2.4~~ | ~~`0012` — **a trading day is local**: `location.timezone`~~ — **done** 2026-08-20, **taken before 2.3 at the owner's instruction**, because 2.3 would have been a third view hardcoding the constant and a third chance to move only two of them. One column on `location` (NOT NULL, defaulted to the literal 2.1 and 2.2 hardcoded, so **applying it moves no bucket** — asserted), one trigger refusing a name `pg_timezone_names` does not carry, and `create or replace` on both views. **35 checks** in `supabase/checks/0012_location_timezone.sql`. ⚠️ **The day boundary is testable for the first time**: moving Centro to `America/Hermosillo` moves 6 delivery buckets, moves nothing at the other stores, and conserves every centavo. Five falsifications | M | ✅ |
+| 2.3 | `0013` — **what stopped selling**: velocity vs trailing average | M | Same bar, plus the one thing the other two do not have: a product that never sold in the current window has no row to compare, and the whole question is about absence. The check must prove the view reports the silence rather than omitting it |
 
 Order is not forced by foreign keys — all three read applied tables — but it is forced
 by cost attribution. **2.1 is first because margin is the hard one**: it is the only
@@ -834,10 +855,12 @@ five-way join, the schema is wrong". If the schema is wrong, 2.1 is where it sho
 
 ### Numbering, and what step 2 does NOT ship
 
-`0006`, `0007` and `0009` are reserved and unwritten ([`supabase/README.md`](../supabase/README.md)
-is the authority). **2.1 takes `0009`; 2.2 and 2.3 take `0011` and `0012`**, the next
-free numbers, because migrations are append-only once applied and three tasks that
-merge separately cannot share one file. This is the same rule `0010` followed.
+`0006` and `0007` are reserved and unwritten ([`supabase/README.md`](../supabase/README.md)
+is the authority). **2.1 took `0009`, 2.2 took `0011`, 2.4 took `0012` and 2.3 will
+take `0013`** — the next free number each time, because migrations are append-only
+once applied and tasks that merge separately cannot share one file. This is the same
+rule `0010` followed. ⚠️ **2.3 moved from `0012` to `0013` on 2026-08-20** when the
+owner took the timezone column ahead of it.
 
 Two things `supabase/README.md` currently files under `0009` are **not** in step 2,
 and both are named here so they are not silently dropped:
@@ -969,7 +992,84 @@ overturn at the ordinary price, and none of them gets dearer with a pilot.
   recoverable and never was the cost of the goods; a gross denominator is flattering
   by up to 16% and never the other way. Falsified.
 
+### Settled in 2.4, and binding on 2.3
+
+**2.3 must not hardcode a timezone.** It joins `location` and reads
+`location.timezone`, exactly as `0009` and `0011` now do. The check that used to
+compare two literals now asserts that **no** analytics view carries one, and 2.3's
+view will be added to it.
+
+- **The column is on `location`, not on `workspace_setting`.** The store is the thing
+  that has a trading day, and ADR-035 §2.3 makes confusing the two a one-way door. The
+  case the column exists for *is* the case that separates them: one merchant with a
+  shop in Hermosillo (UTC−7) and one in Guadalajara (UTC−6). `workspace_setting` gets
+  no default-for-new-locations companion — the column default covers a new store
+  without a second row anyone can edit, and two places to write one fact is how a NULL
+  got into the overlap constraint.
+
+- **The default is the literal the two views hardcoded, so applying it moves nothing.**
+  Asserted twice rather than claimed: both views' buckets are recomputed with the old
+  constant and shown identical. That is the property that made this safe to do now
+  rather than at the first pilot. It also meant `onboard_workspace()`, both seeds and
+  every fixture in `supabase/tests/` needed no change — all of them insert a location
+  naming only `(workspace_id, name)`.
+
+- **A trigger, not a `CHECK`, and it demands the canonical name.** No honest timezone
+  validation is `IMMUTABLE` — the tz database ships with the server. The trigger
+  refuses `america/mexico_city` as well as `Mars/Olympus_Mons`, and refuses the fixed
+  offset `-06:00`, which cannot follow daylight saving. Scoped `update of timezone`, so
+  renaming a store pays nothing.
+
+- **Moving a boundary is an owner act**, inherited from `location_update` (§2.7) with
+  no new grant. A manager reads it; an owner moves it. The boundary decides what every
+  report in the shop means, and it changes when the shop moves.
+
+- **⚠️ IT COSTS THE GATE ONE JOIN, AND THAT IS SAID RATHER THAN GLOSSED.** Each
+  aggregate in both views now reads three tables instead of two. ADR-035 §3 step 2's
+  bar was about surviving *reversals, unit conversion and a location rollup*, and none
+  of those is why the join is there — it is a primary-key lookup of one text column. It
+  cannot drop a row (`location_id` is NOT NULL with a composite FK) or narrow one under
+  RLS (`location_select` is the same `my_locations()` predicate the ledger tables
+  already apply). Both asserted. **The verdict is unchanged; the sentence describing
+  the query is longer by one join.**
+
+### ⚠️ FIXED in 2.4 — the day boundary is a column, and it is testable at last
+
+This closes the finding 2.1 raised and 2.2 doubled. The two entries below are left in
+place because the reasoning that deferred the fix twice was correct both times, and
+what changed was the price rather than the argument.
+
+**What the column buys that the constant could not.** 2.1 and 2.2 both recorded the
+day boundary as **untestable over this seed** and pinned a bound at zero instead. It
+was untestable because it was a constant in a view body — nothing in the repo could
+move it. It is a column now, so a check can:
+
+- **`America/Hermosillo`, the real Sonora case, is visible in this seed.** Not through
+  sales or write-offs — they sit at 09:00–20:40 UTC and cannot straddle a midnight one
+  hour away — but through the **early-morning deliveries** at 06:00–07:00 UTC, which
+  cross back over midnight at UTC−7. Moving Centro alone moves **6 delivery documents**
+  into different buckets, moves **nothing** at the other two stores, and changes not
+  one centavo of any total. Then it is put back and asserted identical to a baseline.
+- **⚠️ The limitation that remains is now itself a check.** No Mexican zone moves a
+  *sale* in this seed, because sales sit in a window no such zone can straddle. That is
+  check 19 of `0012`, pinned — so the day the seed grows an evening trade, it goes red.
+  Proving `product_margin_daily` reads the column therefore needs an absurd zone
+  (UTC+14, where 380 of Centro's 413 sales move). It proves the view reads the column;
+  it does not pretend to be a customer.
+
+**And the drift 2.2 could only guard against is now caught by numbers.** Reverting one
+view to the constant and leaving the other — the exact failure 2.2 named — was
+invisible to every arithmetic check in the repo and caught only by comparing view
+*text*. It now fails three behavioural checks.
+
+⚠️ **Still not fixed, and still the owner's call: the seed trades in UTC office
+hours.** Fixing it means rewriting every timestamp in `20_consumption.sql` and
+therefore every hash-derived quantity — 1.6b's territory, a task of its own. It is **no
+longer urgent**: the boundary no longer has to come from the seed's clock.
+
 ### ⚠️ Found in 2.2 — two views now hardcode the shop timezone, and nothing arithmetic can see them drift
+
+*(FIXED in 2.4 — see above. Kept because the reasoning was right at the time.)*
 
 2.1 recorded that the day boundary is a hardcoded `America/Mexico_City` and that no
 table records a shop's timezone. **`0011` carries the same constant, and that makes
@@ -1069,6 +1169,10 @@ a real, correct, negative purchases figure in June.
   rollup is `select * from` the view rather than a rewrite.
 
 ### ⚠️ Found in 2.1 — nothing records a shop's timezone, and the seed trades in UTC
+
+*(Finding 1 FIXED in 2.4 — `location.timezone`. Finding 2, the seed's UTC office
+hours, is still open and is still the owner's call. Kept because the reasoning that
+deferred the column twice was right both times.)*
 
 Two findings, one cause, and **neither is patched** — for the reason 1.6b and 1.6c did
 not patch what they found.
