@@ -767,6 +767,15 @@ buckets differ, and both are asserted. One product — *Papas fritas con jalape�
 with the pairs deleted has nothing at all. That is `2.1`'s "a void cancels its
 original, it does not erase it" visible as a row rather than only as a count.
 
+**CI applied `0001`–`0011` from scratch and ran everything green on 2026-08-20**, run
+[32409705126](https://github.com/bersermi/RetailerManagementTool/actions/runs/32409705126)
+on PR [#18](https://github.com/bersermi/RetailerManagementTool/pull/18) — *all 55
+waste share checks passed*, *all 34 product margin checks passed*, *all 18 seed
+invariant checks passed*, *3 seed check file(s) ran*, then *all 39*, *all 54*, *all
+55*, *all 9* and *all 46 checks passed*, read from the job log rather than from the
+green tick, since a green tick alone would also be what a silently skipped test step
+looks like.
+
 
 ## The seed
 
