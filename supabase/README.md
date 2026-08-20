@@ -645,6 +645,14 @@ and UTC−8, no DST, against this constant's UTC−6) the fix is `location.timez
 defaulted to this value — cheap for exactly as long as no materialised rollup is
 keyed on `day`.
 
+**CI applied `0001`–`0010` from scratch and ran everything green on 2026-08-20**, run
+[32375602999](https://github.com/bersermi/RetailerManagementTool/actions/runs/32375602999)
+on PR [#17](https://github.com/bersermi/RetailerManagementTool/pull/17) — *all 34
+product margin checks passed*, *all 18 seed invariant checks passed*, *2 seed check
+file(s) ran*, then *all 39*, *all 54*, *all 55*, *all 9* and *all 46 checks passed*,
+read from the job log rather than from the green tick, since a green tick alone would
+also be what a silently skipped test step looks like.
+
 **⚠️ AND THE SEED CANNOT TEST IT.** `20_consumption.sql` builds every timestamp as
 `v_day + interval '9 hours'` in a UTC session, so the seeded shop trades 09:00–20:40
 **UTC** — 03:00–14:40 in Mexico City. Nothing crosses midnight in either zone, so
