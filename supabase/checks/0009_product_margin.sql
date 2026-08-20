@@ -452,10 +452,13 @@ commit;
 -- bucketing in UTC and bucketing locally produce the SAME rows here.
 --
 -- That is worth stating rather than hiding: this file cannot falsify the timezone
--- constant in 0009, and no check below pretends to. What it can do is prove the
--- expression means what it says, and pin the bound — so the day a seed is written
--- with a realistic evening trade, the second check goes red and someone reads this
--- comment.
+-- ⚠️ UPDATED BY 0012. The boundary is no longer a constant in this view — it is
+-- `location.timezone`, per store, and this file reads the same column rather than
+-- a literal of its own. What has NOT changed is what the seed can discriminate:
+-- every store still carries the default, and the seed still trades in UTC office
+-- hours, so local and UTC bucketing agree over it. The bound below is still zero
+-- and still worth pinning. `supabase/checks/0012_location_timezone.sql` is where
+-- the column is proven to reach these buckets, by moving one store's zone.
 
 select chk('day: the boundary expression is local, not UTC',
            ('2026-08-21 03:00+00'::timestamptz at time zone 'America/Mexico_City')::date
@@ -464,19 +467,46 @@ select chk('day: the boundary expression is local, not UTC',
              = date '2026-08-21');
 
 select chk('day: ⚠️ the seed trades in UTC office hours, so it cannot discriminate here',
-           (select count(*) from sale
-             where (occurred_at at time zone 'America/Mexico_City')::date
-                <> (occurred_at at time zone 'UTC')::date) = 0,
-           'documents whose local day differs from their UTC day — when this stops '
-        || 'being 0 the constant in 0009 becomes testable, and worth testing');
+           (select count(*) from sale s
+              join location lz on lz.id = s.location_id
+                              and lz.workspace_id = s.workspace_id
+             where (s.occurred_at at time zone lz.timezone)::date
+                <> (s.occurred_at at time zone 'UTC')::date) = 0,
+           'documents whose local day differs from their UTC day, in their own '
+        || 'store''s zone — when this stops being 0 the seed can discriminate a '
+        || 'boundary on its own, without 0012 having to move a store');
 
-select chk('day: every bucket is a day the shop actually traded',
+select chk('day: every bucket is a day the shop actually traded, in THAT store''s zone',
            (select count(*) from product_margin_daily d
              where not exists (select 1 from sale s
+                                 join location lz on lz.id = s.location_id
+                                                 and lz.workspace_id = s.workspace_id
                                 where s.workspace_id = d.workspace_id
                                   and s.location_id  = d.location_id
-                                  and (s.occurred_at at time zone 'America/Mexico_City')::date = d.day)) = 0);
+                                  and (s.occurred_at at time zone lz.timezone)::date = d.day)) = 0);
 
+-- ⚠️ ADDED BY 0012. The view must carry no timezone of its own any more. Before
+-- 0012 this file's sibling asserted that 0009 and 0011 hardcoded the SAME literal;
+-- the stronger claim now available is that neither hardcodes one at all, so there
+-- is nothing left for a fix to move in one place and not the other.
+select chk('day: the view hardcodes no timezone — it reads location.timezone',
+           pg_get_viewdef('public.product_margin_daily'::regclass) !~* 'AT TIME ZONE ''[A-Za-z]+/'
+       and pg_get_viewdef('public.product_margin_daily'::regclass) ~* 'timezone',
+           'the boundary is a column, not a constant (0012)');
+
+
+
+-- ⚠️ ADDED BY 0012'S SESSION, AFTER IT SHIPPED WITH THIS BUG FOR ONE DRAFT.
+-- `_verify.n` is a serial and a sequence is non-transactional, so a `chk()`
+-- recorded inside a block that later ROLLED BACK burns its number and leaves a
+-- gap. Every access section in this file uses `begin ... commit` for exactly that
+-- reason; this makes the requirement structural instead of remembered. Without it,
+-- such a section deletes its own results and the file still reports "all N passed"
+-- with a quietly smaller N — the same failure as a silently skipped CI step, one
+-- level down.
+select chk('this file did not throw away any of its own results',
+           (select max(n) from public._verify) = (select count(*) from public._verify),
+           (select 'highest number ' || max(n) || ', rows ' || count(*) from public._verify));
 
 -- ------------------------------------------------------------------ tidy -----
 set client_min_messages = warning;

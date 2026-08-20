@@ -57,6 +57,8 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0010_allocator_time_and_price_tiebreak.sql` | Two corrections the 1.6 seed found: `allocate_fefo()` gains a **required** `p_occurred_at` and stamps its shortfall lot with it, `allocate_transfer()` stamps its destination lot with the one it already took, and `provider_price_memory` breaks its tie on price / tax rate / display unit instead of on a uuid. No table, no policy, no new grant |
 | `0011_waste_share_of_purchases.sql` | `product_waste_daily` — one `security_invoker` view, waste cost against purchases by product per store per day. Numerator from the `waste` movements that consumed the lots, denominator from `purchase_line`, net of tax. **It does not divide** — the ratio belongs to the caller's window, not to a row. No table, no policy, no function, and deliberately no `has_role` predicate: both its base tables are manager-gated, so inheritance fails closed |
 
+| `0012_location_timezone.sql` | `location.timezone` — one column, NOT NULL, defaulted to `America/Mexico_City`, plus a trigger refusing a name `pg_timezone_names` does not carry. `product_margin_daily` and `product_waste_daily` replaced to read it instead of a hardcoded literal. The default is exactly what they hardcoded, so applying it moves no bucket — asserted, not assumed |
+
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
 them, and neither was patched where it was found — the seed must not work around
@@ -77,11 +79,12 @@ Planned next, in order (ADR-035 §3):
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
   (ADR-035 §3 step 4.5 — before any screen exists)
-- `0012` — what stopped selling: velocity against a trailing average (plan task 2.3)
+- `0013` — what stopped selling: velocity against a trailing average (plan task 2.3)
 
 **The analytics half of the old `0009` line is now three files, not one.** `0009`
 and `0011` ship the first two of §2.9's three questions and are applied; the third
-takes the next free number as it is written, because a migration is append-only once
+takes the next free number as it is written — **`0013`, because `0012` went to the
+shop timezone** (below), because a migration is append-only once
 applied and three tasks that merge separately cannot share a file. **The nightly
 materialised rollups and the live partial-day union are in none of them** — they are
 a latency answer, they need a scheduler this project has not chosen, and the design
@@ -776,6 +779,105 @@ invariant checks passed*, *3 seed check file(s) ran*, then *all 39*, *all 54*, *
 green tick, since a green tick alone would also be what a silently skipped test step
 looks like.
 
+### `0012` — the shop timezone, and the boundary becoming reachable (plan task 2.4)
+
+Applied locally 2026-08-20, same toolchain. `supabase db reset` applies `0001`–`0005`
+and `0008`–`0012` with no errors, and **35 checks pass** from
+`supabase/checks/0012_location_timezone.sql`. `0009`'s **36**, `0011`'s **56** and
+1.7's 18 all pass, as do `0003`'s 39, `0004`'s 54, `0005`'s 55 and `0008`'s 46.
+
+**⚠️ `0012` TOOK THE NUMBER 2.3 WAS PLANNED FOR.** The velocity view becomes `0013`.
+The owner chose on 2026-08-20 to take the column *before* 2.3 was written, which was
+the last moment it cost nothing extra: a third view hardcoding the constant would
+have meant a third `create or replace` and a third chance to move two of them.
+
+**The problem, restated.** `occurred_at` is `timestamptz` and a trading day is local,
+so both analytics views had to bucket in *some* zone and no table recorded one. Each
+hardcoded `America/Mexico_City`, correctly — a column is append-only and a view is
+`create or replace`, so the constant was the reversible half. What changed is the
+arithmetic of waiting: after 2.2 there were **two** constants, and 2.2 could only
+defend them with a guard that reads the timezone literal out of both shipped view
+definitions and asserts they still match. ⚠️ **No arithmetic check could see the
+drift** — the seed trades in UTC office hours, so moving one view to UTC and leaving
+the other left every reconciliation in `supabase/checks/` green.
+
+**The column is on `location`, not on `workspace_setting`.** The store is the thing
+that has a trading day, and ADR-035 §2.3 makes confusing the two a one-way door. The
+case the column exists for is *exactly* the case that separates them: Sonora and Baja
+California are UTC−7 and UTC−8 all year against the rest of the country's UTC−6, so
+one merchant with a shop in Hermosillo and a shop in Guadalajara is not exotic — they
+are the first customer a workspace-level setting gets wrong. `workspace_setting`
+deliberately gets no default-for-new-locations companion: the column default covers a
+new store without a second row anyone can edit.
+
+**Applying it moves nothing, and that is checked rather than claimed.** The default is
+exactly the literal both views hardcoded, so every bucket in a database that existed
+before this migration is where it was. Two checks recompute both views' buckets with
+the old literal and assert they are identical. `onboard_workspace()`, both seeds and
+every fixture in `supabase/tests/` insert a location naming only
+`(workspace_id, name)`, so none of them needed touching.
+
+**A trigger, not a `CHECK`.** No honest timezone validation is `IMMUTABLE` — the tz
+database ships with the server — and declaring a wrapper immutable to get past the
+parser is a lie the planner may act on. The trigger demands the **canonical** name, so
+`america/mexico_city` is refused along with `Mars/Olympus_Mons` and the fixed offset
+`-06:00`, which cannot follow daylight saving. It is scoped `update of timezone`, so
+renaming a store pays nothing. Writing is owner-only, inherited from `location_update`
+(§2.7): a manager reads the boundary, an owner moves it.
+
+**⚠️ THE BOUNDARY IS NOW REACHABLE, AND THAT IS THE REAL PRIZE.** 2.1 and 2.2 both
+recorded the day boundary as untestable over this seed and pinned a bound at zero
+instead. It was untestable because it was a constant in a view body. It is a column
+now, so a check can move it — and `supabase/checks/0012_location_timezone.sql` does:
+
+- **`America/Hermosillo` — the real case, and the seed can see it.** Not through
+  sales or write-offs, which sit at 09:00–20:40 UTC and cannot straddle a midnight one
+  hour away, but through the **early-morning deliveries** at 06:00–07:00 UTC, which
+  cross back over midnight in Sonora. Moving Centro alone moves **6 delivery documents**
+  into different buckets, moves **nothing** at the other two stores, and changes not one
+  centavo of the totals. Then it is put back and the view is asserted identical to a
+  baseline captured before anything moved.
+- **`Pacific/Kiritimati` — an absurd zone, for margin.** ⚠️ No Mexican zone moves a
+  *sale* in this seed, because sales sit in a window no such zone can straddle — that
+  limitation is now **pinned as its own check** rather than described. So proving
+  `product_margin_daily` reads the column needs UTC+14, where 380 of Centro's 413 sales
+  move. It proves the view reads the column; it does not pretend to be a customer.
+
+Falsified, each mutation watched go red:
+
+| Falsification | Caught by |
+|---|---|
+| `product_margin_daily` reverted to the hardcoded constant | `0009` (1), `0011` (1), `0012` (2) |
+| `product_waste_daily` reverted to the constant, margin left alone — *the exact drift* | `0011` (1), `0012` (2) |
+| The zone read from the workspace's first store instead of the row's own | `0012` (3) |
+| The guard trigger dropped | `0012` (6) |
+| The column default changed, so applying `0012` *would* move buckets | `0012` — pre-flight, fatal |
+
+⚠️ **The second row is the one that matters.** Before `0012` that drift was invisible
+to every arithmetic check in the repo and caught only by comparing view *text*. It is
+now caught by numbers.
+
+**⚠️ WHAT THIS COSTS THE DESIGN GATE, STATED RATHER THAN GLOSSED.** Each aggregate in
+both views now reads **three** tables instead of two — the measure, its document, and
+`location`. ADR-035 §3 step 2's bar was that margin by product must not need a
+five-way join *to survive reversals, unit conversion and a location rollup*, and none
+of those three is why this join is here: it is a primary-key lookup of one text column.
+It cannot drop a row (`location_id` is NOT NULL with a composite FK) or narrow one
+under RLS (`location_select` is the same `my_locations()` predicate the ledger tables
+already apply). Both claims are asserted. **The gate's verdict is unchanged; the
+sentence describing the query is longer by one join.**
+
+**⚠️ THE HEADERS OF `0009` AND `0011` ARE NOW STALE ON THIS POINT.** Both say the
+constant is hardcoded and name a future `location.timezone` as the fix. Neither is
+edited — both are applied and therefore closed, the same rule that leaves `0002`'s
+stale reference to the RPC migration alone. This table is the authority.
+
+**⚠️ WHAT `0012` DOES NOT FIX: the seed still trades in UTC office hours.** Fixing
+that means rewriting every timestamp in `20_consumption.sql` and therefore every
+hash-derived quantity in the seed — 1.6b's territory, and a task of its own. What
+changed is that the boundary no longer has to come from the seed's clock. **Owner's
+call**, and no longer urgent: the column is what the checks move now.
+
 
 ## The seed
 
@@ -1126,14 +1228,14 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2)
+## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2, 2.4)
 
 **One directory, one contract: these files run against the SEEDED database.** They
 have their own step in `.github/workflows/db.yml`, and **it must stay between
-`supabase db reset` and the suite loop.** Three files live here now — the §2.4
-invariant (1.7), the margin view's reconciliation (2.1) and the waste view's (2.2) —
-and the step runs the
-directory in name order rather than naming files, so a fourth costs no workflow edit.
+`supabase db reset` and the suite loop.** Four files live here now — the §2.4
+invariant (1.7), the margin view's reconciliation (2.1), the waste view's (2.2) and
+the timezone column's (2.4) — and the step runs the
+directory in name order rather than naming files, so a fifth costs no workflow edit.
 Each file creates its own `_verify` scratch table and drops any previous one, so they
 do not share state and their order does not matter.
 
@@ -1147,7 +1249,7 @@ exists to refuse. It is the same trap as running an RLS assertion as `postgres`.
 `tests/_seed_invariant.sql` was rejected as the alternative: `_` already means
 *harness, not a suite*, and this is neither.
 
-### `0009_product_margin.sql` — 34 checks (task 2.1)
+### `0009_product_margin.sql` — 36 checks (task 2.1, extended by 2.4)
 
 Covered in full under [`0009` — product margin](#0009--product-margin-and-the-design-gate-plan-task-21)
 above. In outline:
@@ -1159,9 +1261,9 @@ above. In outline:
 | **19–23** | The ADR's three gate questions: consolidated equals the sum of the stores exactly, the top-ten query is one statement, the totals equal a ledger in which the voided pairs never happened, and a weighed product reconciles in grams |
 | **24–25** | Two wrong implementations written out in full and asserted to **disagree**: skipping voids instead of letting them cancel, and costing at the latest purchase price instead of at the lot consumed |
 | **26–31** | Access, under `set role authenticated`: the cashier who reads zero rows, the ungated copy of the same query that tells them their margin is 100%, the manager confined to their own tenant and reading the ledger's own numbers, and the other tenant's owner seeing none of it |
-| **32–34** | The day boundary is local by construction — and the seed, which trades in UTC office hours, cannot tell. Check 33 pins that bound at zero |
+| **32–36** | The day boundary. ⚠️ **Rewritten by 2.4**: the bound the seed cannot cross is still pinned, but the view now hardcodes **no** zone — check 35 asserts it reads `location.timezone` — and check 36 is the counts-the-checks guard |
 
-### `0011_waste_share_of_purchases.sql` — 55 checks (task 2.2)
+### `0011_waste_share_of_purchases.sql` — 56 checks (task 2.2, extended by 2.4)
 
 Covered in full under [`0011` — waste against purchases](#0011--waste-against-purchases-and-the-ratio-that-is-not-a-column-plan-task-22)
 above. In outline:
@@ -1174,7 +1276,36 @@ above. In outline:
 | **30–36** | The ADR's three gate questions, plus two bounds the seed cannot yet falsify (the transfer distortion, the location join key), plus the reversal claims — money equal to a pairs-never-happened ledger over the window, buckets differing at day grain, and the row that survives at zero |
 | **37–43** | Seven wrong implementations written out and asserted to **disagree**: inner join, `nullif` instead of `> 0`, a gross denominator, costing at the latest purchase price, skipping voids, averaging the ratios, and an unscoped denominator |
 | **44–50** | Access, under `set role authenticated`: the cashier who reads zero rows, **the reason** read out of both base tables as that cashier, the half-gated copy that lies to them, the manager confined to their own tenant, and the other tenant's owner seeing none of it |
-| **51–55** | The day boundary is local by construction; the seed, trading in UTC office hours, cannot tell; **`0009` and `0011` are asserted to carry the same constant**; and every bucket is a day the shop traded or took a delivery |
+| **51–56** | The day boundary. ⚠️ **Rewritten by 2.4**: what was a drift guard — *`0009` and `0011` carry the same literal* — is now the stronger claim that **neither hardcodes one at all**, so there is nothing left to drift. Plus the seed's pinned bound, every bucket being a day the store traded in **its own** zone, and the counts-the-checks guard |
+
+### `0012_location_timezone.sql` — 35 checks (task 2.4)
+
+Covered in full under [`0012` — the shop timezone](#0012--the-shop-timezone-and-the-boundary-becoming-reachable-plan-task-24)
+above. In outline:
+
+| | What it establishes |
+|---|---|
+| **1–5, pre-flight** | A multi-store shop whose locations **all still carry the column's default**, every stored zone a canonical name, and the default still the literal `0009` and `0011` hardcoded. **Fatal on its own** — without it, a bucket that moves below could be somebody else's and the restoration would write back the wrong value |
+| **6–7** | ⚠️ **Applying `0012` moved nothing.** Both views' buckets recomputed with the old hardcoded literal and asserted identical — the property that makes this safe to apply to a live shop |
+| **8–14** | The guard: an unknown zone, a non-canonical spelling of a real one, a fixed offset and an empty string are all refused **on write**; the trigger is scoped `update of timezone`; nothing above left a mark; and a new store gets the default without naming the column |
+| **15–18** | ⚠️ **The falsification 2.1 and 2.2 could not perform.** Centro moved to `America/Hermosillo` — the real Sonora case — moves 6 delivery documents into different buckets, moves **nothing** at the other two stores, creates and destroys **no money**, and restores exactly |
+| **19–23** | Margin reads the column too. ⚠️ Check 19 **pins the limitation**: no Mexican zone moves a sale in this seed. So an extreme zone (UTC+14) is used, 380 sales move, the other stores do not, revenue and cost are conserved, and both views are shown to bucket the moved store from the **one** column |
+| **24–30** | Access: a manager reads the boundary and cannot move it; an owner can; the guard still refuses the owner an unknown zone; and the owner's committed change is undone and asserted undone |
+| **31–35** | Everything restored, asserted against the baseline **both ways**, plus ⚠️ **the check that counts the checks** — see below |
+
+**⚠️ THE CHECK THAT COUNTS THE CHECKS, AND WHY ALL THREE ANALYTICS FILES NOW CARRY
+IT.** `chk()` records its verdict by INSERTING into `_verify`, so a section wrapped in
+`begin … rollback` throws its own results away — and the file still prints *all N
+checks passed* with a quietly smaller N. **This file shipped with exactly that bug for
+one draft**: four access checks vanished between 23 and 28 and the summary line said
+28 rather than 32. It was caught by reading the printed table rather than the summary,
+which is the same discipline the working agreement demands of a CI tick.
+
+`_verify.n` is a serial and a sequence is non-transactional, so a rolled-back `chk()`
+burns its number and leaves a gap. `max(n) = count(*)` detects it. It was added to
+`0009_product_margin.sql` and `0011_waste_share_of_purchases.sql` at the same time —
+both use `begin … commit` for their access sections and are correct today, and this
+makes the requirement structural instead of remembered.
 
 ### `seed_invariant.sql` — 18 checks
 

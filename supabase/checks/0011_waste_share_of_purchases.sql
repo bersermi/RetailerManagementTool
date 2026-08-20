@@ -115,12 +115,14 @@ select chk('seed present: BOTH a delivery and a write-off were voided',
 -- day-grain reversal checks below stop discriminating and this goes red first.
 select chk('seed present: every void lands on a LATER local day than what it cancels',
            (select count(*) from purchase r join purchase o on o.id = r.reversal_of
-             where (r.occurred_at at time zone 'America/Mexico_City')::date
-                 > (o.occurred_at at time zone 'America/Mexico_City')::date)
+              join location lz on lz.id = r.location_id and lz.workspace_id = r.workspace_id
+             where (r.occurred_at at time zone lz.timezone)::date
+                 > (o.occurred_at at time zone lz.timezone)::date)
          = (select count(*) from purchase where reversal_of is not null)
        and (select count(*) from waste r join waste o on o.id = r.reversal_of
-             where (r.occurred_at at time zone 'America/Mexico_City')::date
-                 > (o.occurred_at at time zone 'America/Mexico_City')::date)
+              join location lz on lz.id = r.location_id and lz.workspace_id = r.workspace_id
+             where (r.occurred_at at time zone lz.timezone)::date
+                 > (o.occurred_at at time zone lz.timezone)::date)
          = (select count(*) from waste where reversal_of is not null),
            'a same-day void would make the day-grain reversal checks vacuous');
 
@@ -154,15 +156,17 @@ select coalesce(a.ws, c.ws)   as ws,
        coalesce(c.p, 0)       as p,
        coalesce(c.pn, 0)      as pn
   from (select m.workspace_id ws, m.location_id loc, m.variant_id var,
-               date_trunc('month', (x.occurred_at at time zone 'America/Mexico_City'))::date mo,
+               date_trunc('month', (x.occurred_at at time zone lz.timezone))::date mo,
                sum(-m.qty_base * m.unit_cost_net_per_base) w
           from stock_movement m join waste x on x.id = m.waste_id
+          join location lz on lz.id = m.location_id and lz.workspace_id = m.workspace_id
          where m.reason = 'waste' group by 1,2,3,4) a
   full outer join
        (select pl.workspace_id ws, pl.location_id loc, pl.variant_id var,
-               date_trunc('month', (p2.occurred_at at time zone 'America/Mexico_City'))::date mo,
+               date_trunc('month', (p2.occurred_at at time zone lz.timezone))::date mo,
                sum(pl.line_net) p, count(*) pn
           from purchase_line pl join purchase p2 on p2.id = pl.purchase_id
+          join location lz on lz.id = pl.location_id and lz.workspace_id = pl.workspace_id
          group by 1,2,3,4) c
     on c.ws = a.ws and c.loc = a.loc and c.var = a.var and c.mo = a.mo;
 
@@ -461,15 +465,18 @@ select chk('rollup: ⚠️ no (product, day) pair is delivered at one store and 
            'another — the seed cannot falsify the location key',
            (select count(*) from (
               select distinct m.workspace_id ws, m.variant_id var,
-                     (x.occurred_at at time zone 'America/Mexico_City')::date d,
+                     (x.occurred_at at time zone lz.timezone)::date d,
                      m.location_id wloc
                 from stock_movement m join waste x on x.id = m.waste_id
+                join location lz on lz.id = m.location_id and lz.workspace_id = m.workspace_id
                where m.reason = 'waste') w
              where exists (select 1 from purchase_line pl
                              join purchase p on p.id = pl.purchase_id
+                             join location lz2 on lz2.id = pl.location_id
+                                              and lz2.workspace_id = pl.workspace_id
                             where pl.workspace_id = w.ws
                               and pl.variant_id   = w.var
-                              and (p.occurred_at at time zone 'America/Mexico_City')::date = w.d
+                              and (p.occurred_at at time zone lz2.timezone)::date = w.d
                               and pl.location_id <> w.wloc)) = 0,
            'when this stops being 0, dropping location_id from the join key becomes '
         || 'a mistake the checks above can see');
@@ -544,18 +551,22 @@ select chk('reversals: at DAY grain the buckets differ, because a void lands on 
                      select coalesce(a.ws,c.ws) ws, coalesce(a.var,c.var) var,
                             coalesce(a.d,c.d) d, coalesce(a.w,0) w, coalesce(c.p,0) p
                        from (select m.workspace_id ws, m.variant_id var,
-                                    (x2.occurred_at at time zone 'America/Mexico_City')::date d,
+                                    (x2.occurred_at at time zone lz.timezone)::date d,
                                     sum(-m.qty_base*m.unit_cost_net_per_base) w
                                from stock_movement m join waste x2 on x2.id = m.waste_id
+                               join location lz on lz.id = m.location_id
+                                               and lz.workspace_id = m.workspace_id
                               where m.reason='waste'
                                 and m.waste_id not in (select id from waste where reversal_of is not null)
                                 and m.waste_id not in (select reversal_of from waste where reversal_of is not null)
                               group by 1,2,3) a
                        full outer join (
                             select pl.workspace_id ws, pl.variant_id var,
-                                   (p2.occurred_at at time zone 'America/Mexico_City')::date d,
+                                   (p2.occurred_at at time zone lz.timezone)::date d,
                                    sum(pl.line_net) p
                               from purchase_line pl join purchase p2 on p2.id = pl.purchase_id
+                              join location lz on lz.id = pl.location_id
+                                              and lz.workspace_id = pl.workspace_id
                              where pl.purchase_id not in (select id from purchase where reversal_of is not null)
                                and pl.purchase_id not in (select reversal_of from purchase where reversal_of is not null)
                              group by 1,2,3) c
@@ -605,13 +616,17 @@ select chk('units: both sides are reported in the BASE unit, so the share is mon
 create view public._waste_inner as
 select w.workspace_id, w.location_id, w.variant_id, w.day, w.waste_cost_net
   from (select m.workspace_id, m.location_id, m.variant_id,
-               (x.occurred_at at time zone 'America/Mexico_City')::date as day,
+               (x.occurred_at at time zone lz.timezone)::date as day,
                sum(-m.qty_base*m.unit_cost_net_per_base) waste_cost_net
           from stock_movement m join waste x on x.id = m.waste_id
+          join public.location lz on lz.id = m.location_id
+                                 and lz.workspace_id = m.workspace_id
          where m.reason='waste' group by 1,2,3,4) w
   join (select pl.workspace_id, pl.location_id, pl.variant_id,
-               (p.occurred_at at time zone 'America/Mexico_City')::date as day
+               (p.occurred_at at time zone lz.timezone)::date as day
           from purchase_line pl join purchase p on p.id = pl.purchase_id
+          join public.location lz on lz.id = pl.location_id
+                                 and lz.workspace_id = pl.workspace_id
          group by 1,2,3,4) b
     on b.workspace_id = w.workspace_id and b.location_id = w.location_id
    and b.variant_id   = w.variant_id   and b.day        = w.day;
@@ -780,12 +795,14 @@ commit;
 
 
 -- ========================================== 7. the day boundary is local ==
--- ⚠️ AND THE SEED STILL CANNOT TELL, for 0009's reason: every seeded document is a
--- naive local time written into a timestamptz column by a session running in UTC,
--- so the shop trades in UTC office hours and nothing crosses midnight in either
--- zone. This file cannot falsify the constant either, and no check below pretends
--- to. What it can do is prove the expression means what it says, pin the bound,
--- and refuse to let 0009 and 0011 drift apart.
+-- ⚠️ REWRITTEN BY 0012. There is no constant here any more: the boundary is
+-- `location.timezone`, per store, and this file reads the same column. What has
+-- NOT changed is the seed — every seeded document is a naive local time written
+-- into a timestamptz column by a session running in UTC, so the shop trades in UTC
+-- office hours and nothing crosses midnight in either zone. So this file still
+-- cannot make a bucket move by itself; what it can now do is prove the boundary is
+-- a COLUMN rather than a literal, which is a claim no arithmetic here could make
+-- before. `supabase/checks/0012_location_timezone.sql` does the moving.
 
 select chk('day: the boundary expression is local, not UTC',
            ('2026-08-21 03:00+00'::timestamptz at time zone 'America/Mexico_City')::date
@@ -794,45 +811,69 @@ select chk('day: the boundary expression is local, not UTC',
              = date '2026-08-21');
 
 select chk('day: ⚠️ the seed trades in UTC office hours, so it cannot discriminate here',
-           (select count(*) from waste
-             where (occurred_at at time zone 'America/Mexico_City')::date
-                <> (occurred_at at time zone 'UTC')::date) = 0
-       and (select count(*) from purchase
-             where (occurred_at at time zone 'America/Mexico_City')::date
-                <> (occurred_at at time zone 'UTC')::date) = 0,
-           'waste and delivery documents whose local day differs from their UTC day — '
-        || 'when this stops being 0 the constant becomes testable, and worth testing');
+           (select count(*) from waste w
+              join location lz on lz.id = w.location_id and lz.workspace_id = w.workspace_id
+             where (w.occurred_at at time zone lz.timezone)::date
+                <> (w.occurred_at at time zone 'UTC')::date) = 0
+       and (select count(*) from purchase p
+              join location lz on lz.id = p.location_id and lz.workspace_id = p.workspace_id
+             where (p.occurred_at at time zone lz.timezone)::date
+                <> (p.occurred_at at time zone 'UTC')::date) = 0,
+           'waste and delivery documents whose local day differs from their UTC day, '
+        || 'in their own store''s zone — when this stops being 0 the seed can move a '
+        || 'bucket without 0012 having to move a store');
 
--- ⚠️ TWO VIEWS NOW CARRY THE SAME HARDCODED TIMEZONE. If one moves and the other
--- does not, the margin report and the waste report bucket the same shop's days
--- differently and no arithmetic check anywhere would notice.
--- Read out of the shipped definitions rather than out of the source files, so it
--- is a claim about what the database is doing. Every `at time zone '...'` literal
--- in either view must be the same one, and there must be at least one in each.
+-- ⚠️ THIS CHECK USED TO BE A DRIFT GUARD AND IS NOW A STRONGER CLAIM. Before 0012
+-- both views hardcoded a zone, and the most that could be asserted was that the two
+-- literals still MATCHED — because if one moved and the other did not, no
+-- arithmetic check anywhere would notice, the seed agreeing with itself in both
+-- zones. 0012 removed the literals, so the claim becomes: there is nothing left to
+-- drift. Read out of the shipped definitions rather than the source files, so it is
+-- a claim about what the database is doing.
 create temp view _tz as
-select v.relname::text as view_name, m[1] as tz
+select v.relname::text as view_name,
+       pg_get_viewdef(v.oid)                                     as def,
+       (pg_get_viewdef(v.oid) ~* 'AT TIME ZONE ''[A-Za-z]+/')     as has_literal_zone,
+       (pg_get_viewdef(v.oid) ~* 'timezone')                      as reads_column
   from (values ('product_margin_daily'::text), ('product_waste_daily'::text)) x(n)
-  join pg_class v on v.relname = x.n and v.relnamespace = 'public'::regnamespace
- cross join lateral regexp_matches(
-        pg_get_viewdef(v.oid), 'AT TIME ZONE ''([^'']+)''', 'gi') m;
+  join pg_class v on v.relname = x.n and v.relnamespace = 'public'::regnamespace;
 
-select chk('day: 0009 and 0011 carry the SAME constant, so a fix cannot move only one',
-           (select count(distinct tz) from _tz) = 1
-       and (select distinct tz from _tz) = 'America/Mexico_City'
-       and (select count(distinct view_name) from _tz) = 2,
-           (select string_agg(distinct view_name || ' => ' || tz, ', ') from _tz));
+select chk('day: NEITHER view hardcodes a zone any more — both read location.timezone',
+           (select count(*) from _tz) = 2
+       and (select bool_and(not has_literal_zone) from _tz)
+       and (select bool_and(reads_column) from _tz),
+           (select string_agg(view_name || ' => '
+                   || case when has_literal_zone then 'STILL HARDCODED' else 'reads the column' end,
+                   ', ' order by view_name) from _tz));
 
-select chk('day: every bucket is a day the shop actually traded or took a delivery',
+select chk('day: every bucket is a day the shop traded or took a delivery, in THAT store''s zone',
            (select count(*) from product_waste_daily d
              where not exists (select 1 from waste w
+                                 join location lz on lz.id = w.location_id
+                                                 and lz.workspace_id = w.workspace_id
                                 where w.workspace_id = d.workspace_id
                                   and w.location_id  = d.location_id
-                                  and (w.occurred_at at time zone 'America/Mexico_City')::date = d.day)
+                                  and (w.occurred_at at time zone lz.timezone)::date = d.day)
                and not exists (select 1 from purchase p
+                                 join location lz on lz.id = p.location_id
+                                                 and lz.workspace_id = p.workspace_id
                                 where p.workspace_id = d.workspace_id
                                   and p.location_id  = d.location_id
-                                  and (p.occurred_at at time zone 'America/Mexico_City')::date = d.day)) = 0);
+                                  and (p.occurred_at at time zone lz.timezone)::date = d.day)) = 0);
 
+
+
+-- ⚠️ ADDED BY 0012'S SESSION, AFTER IT SHIPPED WITH THIS BUG FOR ONE DRAFT.
+-- `_verify.n` is a serial and a sequence is non-transactional, so a `chk()`
+-- recorded inside a block that later ROLLED BACK burns its number and leaves a
+-- gap. Every access section in this file uses `begin ... commit` for exactly that
+-- reason; this makes the requirement structural instead of remembered. Without it,
+-- such a section deletes its own results and the file still reports "all N passed"
+-- with a quietly smaller N — the same failure as a silently skipped CI step, one
+-- level down.
+select chk('this file did not throw away any of its own results',
+           (select max(n) from public._verify) = (select count(*) from public._verify),
+           (select 'highest number ' || max(n) || ', rows ' || count(*) from public._verify));
 
 -- ------------------------------------------------------------------ tidy -----
 set client_min_messages = warning;
