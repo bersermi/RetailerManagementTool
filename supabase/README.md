@@ -940,6 +940,15 @@ Checks 16–18 corrupt the projection on purpose and confirm the corruption is c
 That is deliberately not a one-off someone did locally and wrote down — it costs about
 a second and it means a green here is never a green from a check that cannot go red.
 
+**CI applied `0001`–`0010` from scratch, ran all 18 seed invariant checks and all
+five suites green on 2026-08-19**, run [32316689915](https://github.com/bersermi/RetailerManagementTool/actions/runs/32316689915) on PR
+[#16](https://github.com/bersermi/RetailerManagementTool/pull/16) — *all 18 seed
+invariant checks passed*, *1 seed invariant file(s) ran*, then *all 39*, *all 54*,
+*all 55*, *all 9* and *all 46 checks passed*. Read from the job log rather than from
+the green tick, and the **step order was read there too** — `Seed invariant (ADR-035
+§2.4)` sits between `Show applied schema` and `Behavioural checks`, which is the one
+thing about this file that cannot be checked from its own output.
+
 ### Four falsifications, run by hand on top of that
 
 | Falsification | Caught by |
