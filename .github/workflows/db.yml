@@ -53,6 +53,49 @@ jobs:
       - name: Show applied schema
         run: supabase migration list --local
 
+      # ---------------------------------------------------------------------
+      # THE §2.4 INVARIANT, OVER SEED DATA (plan task 1.7)
+      #
+      # THIS STEP MUST STAY BETWEEN THE RESET AND THE SUITE LOOP, and the order is
+      # the whole reason it is a step of its own rather than a file in
+      # supabase/tests/. `_cleanup.sql` runs before every suite and truncates
+      # every table but `unit`, so by the time the first suite starts the seed is
+      # gone — and an invariant check over an empty database PASSES. That vacuous
+      # green is the failure ADR-035 §9 exists to refuse, so the checks below
+      # refuse to run at all until they can see a populated ledger.
+      #
+      # The reset above already ran the seed's own assertions, which raise and
+      # exit non-zero. This is not those. Those ask whether each seed file wrote
+      # what it meant to; this asks whether the projection agrees with the ledger
+      # across all four of them at once, whether the projection can be thrown away
+      # and rebuilt from stock_movement alone at seed scale, and whether
+      # rebuild_batch_balance(workspace) respects its argument — which is a claim
+      # no single-tenant fixture can make.
+      #
+      # It ends by corrupting the projection on purpose and confirming the check
+      # catches it, so a green here is never a green from a check that cannot go
+      # red.
+      #
+      # The file counter is the same concern as reading the suite counts by name:
+      # a loop that matched nothing would print nothing and exit 0, which is what
+      # a deleted check directory looks like.
+      - name: Seed invariant (ADR-035 §2.4)
+        run: |
+          eval "$(supabase status -o env | grep '^DB_URL=')"
+          export DB_URL
+          ran=0
+          for f in $(ls supabase/checks/*.sql | sort); do
+            echo "::group::$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            echo "::endgroup::"
+            ran=$((ran + 1))
+          done
+          if [ "$ran" -eq 0 ]; then
+            echo "no files in supabase/checks/ — the invariant was never checked" >&2
+            exit 1
+          fi
+          echo "$ran seed invariant file(s) ran"
+
       # Every suite in supabase/tests/, in name order, against the database the
       # reset just built. Each one assumes a database holding nothing but its own
       # fixture — they share hardcoded user uuids and assert absolute counts — and
