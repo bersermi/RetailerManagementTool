@@ -26,7 +26,10 @@ from the knowledge graph. Nothing there describes the system being built.
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
-**2.1 — margin by product — is done**; 2.2 and 2.3 are open. See *Step 2* below.
+**2.1 — margin by product — and 2.2 — waste as a share of purchases — are done**;
+2.3 is open. See *Step 2* below. **2.2 found that the division at the end of a waste
+report fails three ways and not one**, and that a second view now hardcodes the shop
+timezone 2.1 already flagged — neither is patched here, both are the owner's call.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. The nineteen tables
 of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
@@ -49,7 +52,7 @@ deadline under *Confirmed by the owner* below.
 |------|------|--------|
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
-| 2 | The three Insight queries — *the design gate* | **In progress** — 1 of 3 |
+| 2 | The three Insight queries — *the design gate* | **In progress** — 2 of 3 |
 | 3 | Test suites (pgTAP, Vitest) | Not started |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
@@ -820,7 +823,7 @@ written, as 1.6 was.
 | # | Task | Size | Done when |
 |---|------|------|-----------|
 | ~~2.1~~ | ~~`0009` — **what made me money**: gross margin by product, net of tax~~ — **done** 2026-08-20, [CI green on PR #17](https://github.com/bersermi/RetailerManagementTool/actions/runs/32375602999). `product_margin_daily`, plus **34 checks** in `supabase/checks/0009_product_margin.sql`, now in the CI gate. **The gate's answer is two aggregates over one grain, joined once** — no five-way join and no CTE. Reversals cancel themselves, unit conversion never appears, and the location rollup is a `group by` the caller drops. Five falsifications, **two of which the seed cannot discriminate and which say so**. `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9, `0008`'s 46 and 1.7's 18 all still pass, read from the job log | M | ✅ |
-| 2.2 | `0011` — **what am I throwing away**: waste cost as % of purchases, by product | M | Same bar. The denominator is purchases in the same window, so the check must pin what happens when a product was wasted in a period it was not bought in — a division by zero the report has to render as something other than a crash or a 0% |
+| ~~2.2~~ | ~~`0011` — **what am I throwing away**: waste cost as % of purchases, by product~~ — **done** 2026-08-20. `product_waste_daily`, plus **55 checks** in `supabase/checks/0011_waste_share_of_purchases.sql`, now in the CI gate. **Same shape as 2.1 — two aggregates over one grain, joined once** — and the same three fears fall the same way. ⚠️ **The view does not divide**, because waste and the delivery it is measured against are different documents days apart: 136 of 137 day-grain waste buckets have no delivery that day, so a row-level rate would be null 99.3% of the time. ⚠️ **The division fails three ways and not one**, and only the first is a zero — the guard is `> 0`, not `nullif`. Seven falsifications, **two of which the seed cannot discriminate and which say so**. `0009`'s 34, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass | M | ✅ |
 | 2.3 | `0012` — **what stopped selling**: velocity vs trailing average | M | Same bar, plus the one thing the other two do not have: a product that never sold in the current window has no row to compare, and the whole question is about absence. The check must prove the view reports the silence rather than omitting it |
 
 Order is not forced by foreign keys — all three read applied tables — but it is forced
@@ -849,6 +852,20 @@ and both are named here so they are not silently dropped:
   the merchant. It is not one of §2.9's three questions and it answers a different
   person's question; it belongs with Números (step 7) or with a task of its own.
   **Owner's call.**
+
+### The gate's verdict, from 2.1 and 2.2 — **the schema passes, twice**
+
+2.2 asked §2.9's second question of the same schema and got the same answer: two
+aggregates over one grain, joined once, with the ADR's three fears falling for the
+three reasons 2.1 gives below. Nothing in `0011` is owed a schema change either.
+**The gate is 2 of 3.**
+
+⚠️ **2.2's finding is about the REPORT, not about the schema.** The ledger answers
+"what am I throwing away" exactly; what it cannot do is make the *ratio* a property
+of a row, because waste and the delivery it is measured against are different
+documents days apart. That is a fact about retail, not a defect in the model — and
+it is the reason `0011` ships a numerator and a denominator and lets the caller
+divide. See *Settled in 2.2* below.
 
 ### The gate's verdict, from 2.1 — **the schema passes**
 
@@ -881,6 +898,135 @@ find out about:
 owed to it.** 2.2 and 2.3 remain to be written, and either could still find something —
 this verdict covers what 2.1 could see.
 
+### Settled in 2.2, and binding on 2.3
+
+Every one of these is a **view body** — a `create or replace` in a new migration,
+with no data to migrate and nothing the seed bakes in. They are the owner's to
+overturn at the ordinary price, and none of them gets dearer with a pilot.
+
+- **⚠️ THE VIEW DOES NOT DIVIDE, AND THAT IS THE TASK'S REAL FINDING.** `0009` puts
+  `margin_rate` on the row because a sale's revenue and that sale's cost are the same
+  event — one document, one day, always. Waste and the delivery it should be measured
+  against are **different documents on different days**, usually weeks apart: **136 of
+  137 day-grain waste buckets in the seed have no delivery of that product at that
+  store on that day.** A row-level rate would therefore be null in 99.3% of the rows
+  that have any waste in them, and the rest would be a coincidence of the delivery
+  schedule. `0011` carries an additive numerator and an additive denominator and the
+  caller divides once, at the window they asked about. **Ratios do not add; pesos do**
+  — asserted, not assumed: `avg()` of the per-bucket shares is 0.415% where the shop's
+  actual share is 0.306%.
+
+- **⚠️ THE DIVISION FAILS THREE WAYS AND NOT ONE, AND `nullif` SURVIVES ONLY TWO.**
+  This task's "done when" anticipated a single division by zero. The seed has three
+  distinct failures at month grain, and only the first is a zero:
+
+  | | `purchases_net` | `purchase_line_count` | In the seed |
+  |---|---|---|---|
+  | Never bought in the window | 0, coalesced from null | **0** | 40 buckets |
+  | Bought and cancelled inside the window | **exactly 0** | 2 | 11 buckets |
+  | Bought before the window, voided inside it | **negative** | 2 | 1 — *Cebolla blanca*, Centro, June, −270.43 |
+
+  So the guard is **`sum(purchases_net) > 0`**, not `nullif(..., 0)`: `nullif` passes
+  the negative through and the report prints a negative waste percentage, which reads
+  as un-wasting onions. The first two are both zero and are **not the same fact** —
+  one shop never ordered the goods, the other ordered them and cancelled — which is
+  why `purchase_line_count` is a column. **2.3 will meet the same shape**: its whole
+  question is about absence, and "no row" and "a row that nets to nothing" will need
+  telling apart there too.
+
+- **COST COMES FROM THE LEDGER, NOT FROM THE DOCUMENT'S OWN SNAPSHOT.** Unlike
+  `sale_line`, `waste_line` *does* carry `unit_cost_net_per_base`, so 2.2 had a choice
+  2.1 did not. It takes `stock_movement`, because **the two analytics views must agree
+  on what a peso of cost is** — COGS and waste cost are the two halves of "what did
+  the stock that left this shelf cost us", somebody will add them, and they must
+  reconcile against the ledger. The line's cost is also a quantity-weighted mean
+  rounded to six decimals where the movement's is per lot: over the seed they agree to
+  **0.00011 pesos** and are **not identical**, and both facts are checked.
+
+- **THE GRAIN CARRIES NO `waste_reason`, AND THAT IS A FAN-OUT AND NOT AN OVERSIGHT.**
+  §2.8 makes "what are we losing, and why" the asset Desperdicio feeds. It is not
+  answerable in this view: putting `reason` in the grain fans the **denominator** out
+  across five reasons, so every peso of purchases would be counted five times. A
+  reason breakdown is a second view over `waste_line` alone, with no denominator, and
+  it belongs with the Desperdicio screen at step 6. Nothing in the schema is missing
+  for it.
+
+- **NO `has_role` PREDICATE, AND THE ANSWER GENUINELY DIFFERED FROM 2.1's.** 2.1 said
+  this was worth checking rather than assuming, and it was: both of `0011`'s
+  aggregates read manager-gated tables, so a cashier reads zero rows from both sides
+  and inheritance fails **closed** — `0008`'s situation and `0008`'s answer. The check
+  asserts the outcome *and the reason*, reading both base tables as that cashier, so a
+  future migration that relaxes either policy turns it red.
+
+- **COUNTS, NOT A BOOLEAN.** 2.1's `cost_attributed` is right there because a bucket
+  with revenue and no cost is a **defect** and `bool_and` must hold everywhere. Here a
+  bucket with no delivery is **ordinary** — it is 136 of 137 — so a boolean carries no
+  signal and does not survive a rollup. `waste_movement_count` and
+  `purchase_line_count` answer both the honesty question and 2.1's "a sum-only
+  reconciliation cannot see a dropped document", and they add up.
+
+- **The denominator is net of tax, same store, same window.** IVA on a delivery is
+  recoverable and never was the cost of the goods; a gross denominator is flattering
+  by up to 16% and never the other way. Falsified.
+
+### ⚠️ Found in 2.2 — two views now hardcode the shop timezone, and nothing arithmetic can see them drift
+
+2.1 recorded that the day boundary is a hardcoded `America/Mexico_City` and that no
+table records a shop's timezone. **`0011` carries the same constant, and that makes
+the finding worse rather than merely repeated.** If a fix moves one view and not the
+other, the margin report and the waste report bucket the same shop's days
+differently — and **no arithmetic check anywhere would notice**, because the seed
+trades in UTC office hours so both bucketings agree over it.
+
+What 2.2 did about it, and what it did not: one check reads the timezone literal out
+of **both shipped view definitions** and asserts there is exactly one distinct value
+across the two. It is the only thing that caught the UTC falsification — every
+arithmetic check stayed green. It is a drift guard, not a fix.
+
+⚠️ **The fix is still `location.timezone`, and it is still cheaper now than at any
+later point** — and now there are two `create or replace`s to do rather than one, plus
+a third for 2.3. **Owner's call**, unchanged from 2.1, and the price has gone up.
+
+### Two falsifications 2.2's seed cannot make, recorded rather than papered over
+
+Both are `create or replace` mutations of the shipped view that **no check caught**,
+in the same spirit as 2.1's pair:
+
+- **the waste day taken from `stock_movement` instead of from `waste`.** Every waste
+  movement in the seed carries exactly its document's `occurred_at`. Taking it from
+  the document is still right — it *guarantees* a loss and its cost land in one bucket
+  rather than leaving that to a convention every future writer must honour — but the
+  seed cannot prove it. This is the same mutation 2.1 could not falsify;
+
+- **`location_id` dropped from the join key.** It should fan a write-off at one store
+  out across another store's deliveries. Over this seed it changes nothing: no
+  `(product, day)` pair has a delivery at one store and a write-off at another. A
+  check pins that precondition at **zero**, so the day the seed can tell them apart it
+  goes red and someone reads this.
+
+A third bound is pinned for the same reason: **transferred stock is bought at one
+store and can be wasted at another**, which inflates the destination's share and
+deflates the origin's while leaving the consolidated number exact. Every variant
+wasted at the Mercado stall was also delivered there, so the seed cannot show it.
+
+### ⚠️ Found in 2.2 — a void lands on its own day, and here that is visible
+
+Every void in the sale data lands minutes after its original on the same local day, so
+2.1's day buckets never see half a cancellation and 2.1 could only tell "cancels" from
+"erases" with a **count**. Not here: all four voids that touch `0011` land on a
+**later** local day than the document they cancel — up to nine days later.
+
+Over the whole window the money is exactly what it would be if the voided pairs had
+never been written. **At day grain the buckets differ**, and both are asserted. And
+one product — *Papas fritas con jalapeño caja 24 bolsas*, whose only delivery was
+voided — keeps a **row at zero** where a ledger with the pairs deleted has nothing at
+all. That is 2.1's rule visible as a row rather than as a count, and it is why a
+report that windows tightly must expect a negative denominator.
+
+This is not a defect and nothing is owed. It is written down because **step 7's
+screens will meet it**: a month view of a shop that voided a May delivery in June has
+a real, correct, negative purchases figure in June.
+
 ### Settled in 2.1, and binding on 2.2 and 2.3
 
 - **⚠️ A VIEW THAT JOINS MEMBER-LEVEL DATA TO MANAGER-ONLY DATA MUST STATE ITS OWN
@@ -895,6 +1041,10 @@ this verdict covers what 2.1 could see.
   (manager) to `purchase_line` (manager) and inherits safely; **2.3 joins `sale_line`
   to nothing costed and does not need the gate at all** — which is worth checking
   rather than assuming, because the answer differs per view.
+  *Confirmed by 2.2, with one correction to the prediction:* `0011` inherits safely
+  as expected, but it reads `stock_movement` rather than `waste_line`, because cost
+  comes from the ledger (see *Settled in 2.2*). Both are manager-gated, so the
+  conclusion holds and the reason is one table over.
 - **The gate must not lock out the callers RLS never filtered.** Written as
   `has_role(...) or not row_security_active('public.stock_movement')`. `auth.uid()` is
   null for the superuser and for `service_role`, so a bare `has_role` returns **zero
@@ -947,7 +1097,7 @@ that moves every timestamp and therefore every hash-derived quantity in the seed
 which is 1.6b's territory and a task of its own, not a line in a step 2 session.
 **Owner's call.**
 
-### Two falsifications the seed cannot make, recorded rather than papered over
+### Two falsifications 2.1's seed cannot make, recorded rather than papered over
 
 Both of these are `create or replace` mutations of the shipped view that **no check
 caught**, and both are recorded because a falsification table with only successes in it

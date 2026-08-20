@@ -55,6 +55,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0008_provider_price_memory.sql` | `provider_price_memory` — one `security_invoker` view over `purchase_line`, the last price paid per `(workspace, provider, variant)`. No table, no policy, no function |
 | `0009_product_margin.sql` | `product_margin_daily` — one `security_invoker` view, gross margin by product per store per day, net of tax. Revenue from `sale_line`, cost from the `sale` movements that consumed the lots FEFO picked. No table, no policy, no function. The one view in the repo that states a `has_role` predicate of its own, because it joins member-level revenue to manager-only cost |
 | `0010_allocator_time_and_price_tiebreak.sql` | Two corrections the 1.6 seed found: `allocate_fefo()` gains a **required** `p_occurred_at` and stamps its shortfall lot with it, `allocate_transfer()` stamps its destination lot with the one it already took, and `provider_price_memory` breaks its tie on price / tax rate / display unit instead of on a uuid. No table, no policy, no new grant |
+| `0011_waste_share_of_purchases.sql` | `product_waste_daily` — one `security_invoker` view, waste cost against purchases by product per store per day. Numerator from the `waste` movements that consumed the lots, denominator from `purchase_line`, net of tax. **It does not divide** — the ratio belongs to the caller's window, not to a row. No table, no policy, no function, and deliberately no `has_role` predicate: both its base tables are manager-gated, so inheritance fails closed |
 
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
@@ -76,13 +77,11 @@ Planned next, in order (ADR-035 §3):
   `void_transaction`, `adjust_stock`, `adjust_stock_delta`
 - `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
   (ADR-035 §3 step 4.5 — before any screen exists)
-- `0011` — what am I throwing away: waste cost as a share of purchases, by product
-  (plan task 2.2)
 - `0012` — what stopped selling: velocity against a trailing average (plan task 2.3)
 
 **The analytics half of the old `0009` line is now three files, not one.** `0009`
-ships the first of §2.9's three questions and is applied; the other two take the
-next free numbers as they are written, because a migration is append-only once
+and `0011` ship the first two of §2.9's three questions and are applied; the third
+takes the next free number as it is written, because a migration is append-only once
 applied and three tasks that merge separately cannot share a file. **The nightly
 materialised rollups and the live partial-day union are in none of them** — they are
 a latency answer, they need a scheduler this project has not chosen, and the design
@@ -662,6 +661,112 @@ local by construction, and a second pins the bound at zero documents whose local
 differs from their UTC day, so the day a seed is written with a realistic evening
 trade it goes red and someone reads this paragraph.
 
+### `0011` — waste against purchases, and the ratio that is not a column (plan task 2.2)
+
+Applied locally 2026-08-20, same toolchain. `supabase db reset` applies `0001`–`0005`
+and `0008`–`0011` with no errors, and **55 checks pass** from
+`supabase/checks/0011_waste_share_of_purchases.sql`. `0009`'s 34, `1.7`'s 18,
+`0003`'s 39, `0004`'s 54, `0005`'s 55 and `0008`'s 46 all still pass unchanged.
+
+**The same shape as `0009`: two aggregates over one grain, joined once.** Numerator
+from `stock_movement where reason = 'waste'` joined to `waste`; denominator from
+`purchase_line` joined to `purchase`; a full outer join on
+`(workspace, location, variant, day)`. The ADR's three fears fall the same way they
+did for margin, and for the same reasons — a void is a negated document, §2.5
+normalised the units at write time, and the location rollup is a `group by` the
+caller drops.
+
+**⚠️ THE VIEW DOES NOT DIVIDE, AND THAT IS THE FINDING.** `0009` ships `margin_rate`
+on the row because a sale's revenue and that sale's cost are the *same event*: one
+document, one day, always. Waste and the delivery it should be measured against are
+**different documents on different days**, usually weeks apart. Over the seed, **136
+of 137 day-grain waste buckets have no delivery of that product at that store on that
+day** — so a row-level rate would be null in 99.3% of the rows that have any waste in
+them, and the remainder would be a coincidence of scheduling rather than a
+measurement. The view carries an additive numerator and an additive denominator and
+the caller divides once, at the window they actually asked about. Ratios do not add;
+pesos do.
+
+**⚠️ AND THE DIVISION FAILS THREE WAYS, NOT ONE.** `docs/PLAN.md` task 2.2
+anticipated a single division by zero — a product wasted in a window it was not
+bought in. The seed contains three distinct failures, and **only the first is a
+zero**:
+
+| | `purchases_net` | `purchase_line_count` | Seed, at month grain |
+|---|---|---|---|
+| Never bought in the window | 0 (coalesced from null) | **0** | 40 buckets |
+| Bought, then cancelled inside the window | **exactly 0** | 2 | 11 buckets |
+| Bought before the window, voided inside it | **negative** | 2 | 1 bucket — *Cebolla blanca* at Centro, June 2026, −270.43 |
+
+So the guard is **`sum(purchases_net) > 0`, not `nullif(..., 0)`**: `nullif` passes a
+negative denominator straight through and the report prints a negative waste
+percentage, which reads as un-wasting onions. The first two rows are both zero and
+they are **not the same fact** — one shop never ordered the goods, the other ordered
+them and cancelled — which is why `purchase_line_count` is a column and not a
+debugging aid.
+
+**Cost comes from the ledger, not from `waste_line`'s own snapshot.** Unlike
+`sale_line`, `waste_line` *does* carry `unit_cost_net_per_base`, so this view had a
+choice `0009` did not. It takes the movements, because the line's cost is a
+quantity-weighted mean over the lots rounded to `numeric(14,6)` while the ledger's is
+per lot, and because **the two analytics views must agree on what a peso of cost is** —
+somebody will add COGS and waste cost, and they must reconcile against
+`stock_movement`. Two checks pin this: the two agree to **under a centavo** (0.00011
+pesos over the whole seed, which proves the snapshot is honestly derived) and are
+**not identical** (which proves the choice is a real one).
+
+**No `has_role` predicate, and that was checked rather than assumed.** `0009` states
+one because it joins member-level revenue to manager-only cost, so inheritance fails
+*open*. Both of this view's aggregates read manager-gated tables — `stock_movement`
+(`0004`) and `purchase_line` (`0003`) — so a cashier reads zero rows from both sides
+and the full outer join of two empty sets is empty. Inheritance fails **closed**,
+which is `0008`'s situation and `0008`'s answer. The check asserts the outcome *and
+the reason*, reading both base tables as that cashier, so a future migration that
+relaxes either policy turns it red. It also demonstrates the failure this view would
+have if only one side were gated: a numerator read from the member-level `waste`
+header tells a cashier the shop threw away stock it never bought.
+
+Falsified, and each row is a `create or replace` of the shipped view watched go red:
+
+| Falsification | Checks that fail |
+|---|---|
+| `full outer join` weakened to `join` | **20** — it deletes 136 of 137 waste buckets |
+| Voided documents excluded on both sides (the `0008` reflex) | 16 |
+| Denominator taken gross, IVA included | 7 |
+| Cost taken from `waste_line`'s snapshot instead of the ledger | 5 |
+| Bucketing moved to UTC | 1 — *and only the cross-view drift check catches it* |
+| The waste day taken from `stock_movement` instead of from `waste` | **0 — see below** |
+| `location_id` dropped from the join key | **0 — see below** |
+
+**⚠️ THE LAST TWO ROWS ARE THE HONEST PART**, recorded rather than fixed with a
+cleverer check:
+
+- every waste movement in the seed carries **exactly** its document's `occurred_at`,
+  so the two ways of dating a bucket agree on every row. This is the same mutation
+  `0009` could not falsify, for the same reason;
+- dropping `location_id` should fan a write-off at one store out across another
+  store's deliveries, and over this seed it changes nothing: **no `(product, day)`
+  pair has a delivery at one store and a write-off at another.** A check pins that
+  precondition at zero, so the day the seed can tell them apart it goes red.
+
+**⚠️ TWO VIEWS NOW HARDCODE `America/Mexico_City`, AND THEY MUST NOT DRIFT.** If one
+moves and the other does not, the margin report and the waste report bucket the same
+shop's days differently and **no arithmetic check anywhere would notice** — the seed
+trades in UTC office hours, so both bucketings agree over it. One check reads the
+timezone literal out of both shipped view definitions and asserts there is exactly
+one distinct value across the two. It is the only thing that caught the UTC
+falsification above.
+
+**⚠️ AND UNLIKE `0009`, THE DAY GRAIN IS LOAD-BEARING FOR VOIDS HERE.** Every void in
+the sale data lands minutes after its original on the same local day, so `0009`'s
+buckets never see half a cancellation. All four voids that touch this view land on a
+**later** local day — up to nine days later. Over the whole window the money is
+exactly what it would be if the voided pairs had never been written; at day grain the
+buckets differ, and both are asserted. One product — *Papas fritas con jalapeño caja
+24 bolsas*, whose only delivery was voided — keeps a **row at zero** where a ledger
+with the pairs deleted has nothing at all. That is `2.1`'s "a void cancels its
+original, it does not erase it" visible as a row rather than only as a count.
+
 
 ## The seed
 
@@ -1012,13 +1117,14 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1)
+## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2)
 
 **One directory, one contract: these files run against the SEEDED database.** They
 have their own step in `.github/workflows/db.yml`, and **it must stay between
-`supabase db reset` and the suite loop.** Two files live here now — the §2.4
-invariant (1.7) and the margin view's reconciliation (2.1) — and the step runs the
-directory in name order rather than naming files, so a third costs no workflow edit.
+`supabase db reset` and the suite loop.** Three files live here now — the §2.4
+invariant (1.7), the margin view's reconciliation (2.1) and the waste view's (2.2) —
+and the step runs the
+directory in name order rather than naming files, so a fourth costs no workflow edit.
 Each file creates its own `_verify` scratch table and drops any previous one, so they
 do not share state and their order does not matter.
 
@@ -1045,6 +1151,21 @@ above. In outline:
 | **24–25** | Two wrong implementations written out in full and asserted to **disagree**: skipping voids instead of letting them cancel, and costing at the latest purchase price instead of at the lot consumed |
 | **26–31** | Access, under `set role authenticated`: the cashier who reads zero rows, the ungated copy of the same query that tells them their margin is 100%, the manager confined to their own tenant and reading the ledger's own numbers, and the other tenant's owner seeing none of it |
 | **32–34** | The day boundary is local by construction — and the seed, which trades in UTC office hours, cannot tell. Check 33 pins that bound at zero |
+
+### `0011_waste_share_of_purchases.sql` — 55 checks (task 2.2)
+
+Covered in full under [`0011` — waste against purchases](#0011--waste-against-purchases-and-the-ratio-that-is-not-a-column-plan-task-22)
+above. In outline:
+
+| | What it establishes |
+|---|---|
+| **1–9, pre-flight** | The seed still holds what makes the rest discriminating: 100+ waste movements and lines, 500+ delivery lines, both tenants wasting, three wasting stores, a voided document on **both** sides, every void landing on a *later* local day than what it cancels, weighed goods, both tax rates, and **all three denominator failures present in the ledger**. **Fatal on its own.** ⚠️ It is computed from the base tables, never from the view — a pre-flight that reads the object under test goes red with a message blaming the seed |
+| **10–21** | Reconciliation against an arithmetic derived **without** the view's document join: waste cost and quantity, purchases three ways, every movement and every delivery line in exactly one bucket, every `(store, product)` bucket, the document snapshot reconciled against the ledger and shown to differ, every waste line shown to have moved stock, and the shop wasting a plausible fraction of what it buys |
+| **22–29** | The division: the view reproduces the ledger's month-grain buckets, then each of the three denominator failures pinned to a **named product in a named month**, the `> 0` guard shown to yield null for all three and never a negative, and the report query run for real |
+| **30–36** | The ADR's three gate questions, plus two bounds the seed cannot yet falsify (the transfer distortion, the location join key), plus the reversal claims — money equal to a pairs-never-happened ledger over the window, buckets differing at day grain, and the row that survives at zero |
+| **37–43** | Seven wrong implementations written out and asserted to **disagree**: inner join, `nullif` instead of `> 0`, a gross denominator, costing at the latest purchase price, skipping voids, averaging the ratios, and an unscoped denominator |
+| **44–50** | Access, under `set role authenticated`: the cashier who reads zero rows, **the reason** read out of both base tables as that cashier, the half-gated copy that lies to them, the manager confined to their own tenant, and the other tenant's owner seeing none of it |
+| **51–55** | The day boundary is local by construction; the seed, trading in UTC office hours, cannot tell; **`0009` and `0011` are asserted to carry the same constant**; and every bucket is a day the shop traded or took a delivery |
 
 ### `seed_invariant.sql` — 18 checks
 
