@@ -36,6 +36,14 @@ make the tenant claim by reading rows rather than catalogs: 106 tests, both dire
 every tenant table, under `set role authenticated`. ⚠️ **It writes a fixture and rolls
 it back**, because `workspace_invite` is the one tenant table the seed leaves empty and
 an isolation claim over zero rows is a claim about nothing. Decision below.
+**3.2b was split into 3.2b-i / 3.2b-ii on 2026-08-22 and 3.2b-i is done** — 151 tests,
+twelve falsifications. ⚠️ **Two falsifications found holes in the suite rather than in
+the schema**, and the finding is that **the tenant wall on writes is held by the
+`_select` policies**: Postgres reads a row before it updates it, so a leak in a write
+policy is invisible from across the wall. The write policies are only observable from a
+staff user inside its own workspace. Findings below. ⚠️ **§2.10's `tenant_isolation`
+naming disagreement, open since 3.1, is CLOSED** — the owner took the cheap side and
+ADR-035 §2.7 and §2.10 are the files that moved. No schema change.
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
@@ -1509,7 +1517,8 @@ isolation, invariants and money; Vitest for concurrency and paired arithmetic.
 rows of ADR-035 §2.10.
 
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
-any of it was written.** Step 3 is nine suites over two languages and it is the
+any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
+also before it was written — see below.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1524,7 +1533,8 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 |---|------|------|-----------|
 | ~~3.1~~ | ~~**The pgTAP harness, and RLS coverage**~~ — **done** 2026-08-22, [CI green on PR #22](https://github.com/bersermi/RetailerManagementTool/actions/runs/32586859359). `supabase/pgtap/` with `_setup.sql`, `_teardown.sql` and `01_rls_coverage.sql`, plus a CI step of its own **between the reset and the seed checks**. **91 tests**: 11 fixed, 2 per table, 1 per policy, on a **computed plan** so a future table is covered the day it lands. **Seven falsifications**, each confirmed to exit non-zero. ⚠️ **pgTAP is not a migration and does not replace `supabase/tests/`** — both decisions are below. ⚠️ **Two findings**: ADR-035 §2.10 names a policy that does not exist, and `public`'s default privileges hand `authenticated` a TRUNCATE that bypasses RLS on every new table | M | ✅ |
 | ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, [CI green on PR #23](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747). `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
-| 3.2b | **RLS isolation — writes.** For all 20 tenant tables: a user in workspace A writing into workspace B is rejected. Most tables carry no insert/update policy at all, and "rejected because no policy exists" is a different claim from "rejected by a predicate" — the suite must say which | L | Both rejection modes asserted and distinguished; append-only triggers exercised as superuser stay covered |
+| ~~3.2b-i~~ | ~~**RLS isolation — writes, the three refusals that need no fabricated row**~~ — **done** 2026-08-22, [CI green on PR #24](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265). `supabase/pgtap/03_rls_isolation_writes.sql`, picked up by the existing loop with no workflow edit. **151 tests**: 19 fixed, one per grant-wall pair, per cross-tenant measurement, per positive control, per move, per staff probe and per append-only probe, on a **computed plan**. **Twelve falsifications**, each confirmed non-zero. ⚠️ **Two of them found holes in the SUITE, not the schema** — and the finding below is the important one: the tenant wall on writes is held by the `_select` policies, and the write policies are a second layer that crossing the wall cannot see | M | ✅ |
+| 3.2b-ii | **RLS isolation — writes, inserting a NEW row into workspace B.** The eight tables `authenticated` may insert into, each needing a payload valid enough to reach the WITH CHECK — and the proof that it is, by the same payload being accepted into the caller's OWN workspace | M | Eight cross-wall inserts refused by the policy and not by a constraint, each paired with an accepted same-payload insert |
 | 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
@@ -1538,6 +1548,132 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ⚠️ Found in 3.2b-i — THE TENANT WALL ON WRITES IS HELD BY THE `_select` POLICIES
+
+This is the most useful thing the write suite found, and it was found by falsification
+after the suite was already green.
+
+**Postgres must READ a row before it can update or delete it.** So on every
+update/delete path the SELECT policy filters the statement *before* the update policy
+is consulted. Confirmed: opening `provider_update`'s USING clause to
+`has_role(workspace_id,'manager') or true` — a leak in the write policy — left **every
+tenant assertion in the file green**, because the cross-tenant rows were never visible
+to the read that the update depends on.
+
+⚠️ **So the `_update` and `_delete` policies are a second layer, and crossing the
+tenant wall cannot see them at all.** A suite that only ever wrote across the wall
+would be unable to say those forty policies do anything.
+
+**The fix is a staff user writing inside its OWN workspace.** Staff is a member, so the
+SELECT policy admits it and the rows are genuinely visible — F19 asserts that, naming
+`workspace_invite` as the one known-vacuous exception — while every write policy on
+these tables gates on `has_role(…, 'manager')` or `'owner'`, which staff is not. The
+refusal is then attributable to the write policy and nothing else. That is `T-role`,
+and it catches the leak above.
+
+⚠️ **This is a role claim living in a tenancy task, and that was a decision made on the
+owner's behalf.** It is here because without it the suite's central mode is
+unattributed, not because 3.2b-i grew an appetite for role testing. **Which locations a
+staff user may write is a different wall and is still 3.3.** Cheap to overturn — it is
+one loop and twelve tests in a file that ships no migration.
+
+### ⚠️ Found in 3.2b-i — THE `with check` CLAUSES ARE SHADOWED, AND NOTHING BEHAVIOURAL CAN OBSERVE THEM
+
+All eight update policies are written with USING and WITH CHECK as the **same
+expression**. That makes the WITH CHECK unreachable as a first cause of refusal:
+
+- if USING fails, no row is selected, so there is nothing to check — the result is
+  `filtered`, and a staff user updating its own workspace was confirmed to land there;
+- if USING passes, the caller holds the role on that workspace, so the only new row
+  image the WITH CHECK would reject is one that has **moved** to another workspace —
+  and that image is also invisible to the SELECT policy, which Postgres applies to the
+  post-update row and which refuses it **first**.
+
+Confirmed both ways: `alter policy provider_update … with check (true)` leaves the whole
+suite green and the move still refused; open the SELECT policy as well and the refusal
+that finally arrives is a **unique violation**, not a policy one.
+
+⚠️ **Nothing is owed here — the schema is correct, and defence in depth is the right
+shape.** What changed is that the ADR's "gets zero rows and a rejection" is now known to
+be delivered by a *different predicate* than the obvious reading suggests, and the suite
+says so rather than taking the credit. **F18 asserts the two conditions that make the
+shadowing true**, so a migration that makes USING and WITH CHECK differ turns the suite
+red and whoever is there re-derives what `T-move` is entitled to claim.
+
+### Settled in 3.2b-i, and binding on 3.2b-ii and 3.3
+
+**1. A write suite undoes each write as it measures it, not just at the end.**
+`pg_temp.attempt()` runs the statement, records mode / row count / sqlstate, then raises
+a private sqlstate `TU001` to roll back its own subtransaction — plpgsql variables
+survive, database changes do not. The file is still one transaction ending in
+`rollback`, but that alone was not enough: the positive controls really do delete 365
+price-list rows, and a suite whose later measurements read a ledger its earlier ones
+changed is a suite whose results depend on their own order. **F15 proves the ledger came
+back**, per table, from counts taken before anything ran.
+
+**2. `attempt()` is SECURITY INVOKER and must stay that way.** `security definer` would
+run every statement as the function owner — `postgres`, which bypasses RLS — and the
+whole file would pass while measuring nothing. Falsified: it turns F3 red, because
+`role_seen` is recorded from *inside* the function rather than from what the caller
+believed it had set.
+
+**3. The grant wall is measured once, the tenant walls twice.** A table privilege is
+held by the ROLE: `authenticated` either has `insert on public.sale` or it does not, and
+both owners meet the identical ACL, so measuring it from both would be duplication
+rather than a second claim. F14 asserts the two actors really do share one role.
+`filtered` and `denied-check` depend on which workspace the caller belongs to, so those
+are measured in both directions.
+
+**4. The three modes are told apart by MESSAGE TEXT, because two share sqlstate 42501.**
+That is fragile on purpose rather than by accident: anything matching neither pattern is
+recorded as `unclassified` and F11 fails on it, so a Postgres rewording turns the suite
+red instead of silently collapsing two different facts into one.
+
+### 3.2b was split on 2026-08-22, before it was written
+
+3.2b was sized L for one reason and it turned out to be the wrong one. The estimate
+assumed the expense was breadth — 20 tables × 3 verbs is 60 write attempts. It is not:
+58 of those 60 need no knowledge of the domain at all, because **Postgres checks the
+GRANT before it forms the row**, so `insert into public.sale default values` under
+`set role authenticated` returns `42501 permission denied for table sale` and never
+reaches a NOT NULL, a foreign key, or a policy. Confirmed by probe before the split
+was written.
+
+The expense is the other two: **an insert that must be valid enough to reach the WITH
+CHECK.** For the eight tables `authenticated` may insert into, a rejected insert
+proves nothing unless the same payload is accepted into the caller's own workspace —
+otherwise "rejected" may mean a missing `provider_id`, and the suite is green about
+the wrong wall. Eight hand-built payloads, each with a positive control, is the whole
+of the remaining work, and it is unrelated to everything else in the task.
+
+So the split is along that seam, and the first piece is the one that needs no
+fixtures:
+
+- **3.2b-i** — the grant wall, the filter, the WITH CHECK reached by *moving* a row,
+  and the append-only triggers. Payload-free from end to end.
+- **3.2b-ii** — the eight insert payloads and their positive controls.
+
+⚠️ **The probe found a THIRD rejection mode, and the plan's done-when named two.**
+The row said "rejected because no policy exists" versus "rejected by a predicate".
+The schema actually rejects a cross-tenant write in three distinguishable ways:
+
+| Mode | What happened | Looks like |
+|---|---|---|
+| `denied-grant` | `authenticated` holds no privilege; **RLS is never consulted** | `42501 permission denied for table <t>` |
+| `filtered` | The USING predicate made B's rows invisible; the statement **succeeds** | no error, `row_count = 0` |
+| `denied-check` | The WITH CHECK predicate refused the new row image | `42501 new row violates row-level security policy for table <t>` |
+
+⚠️ **Two of the three share sqlstate 42501**, so the mechanism can only be told apart
+by the message text. 3.2b-i classifies on the message, and records `unclassified` for
+anything that matches neither — which is what a future Postgres rewording turns red,
+rather than silently collapsing two different facts into one.
+
+⚠️ **`filtered` is the mode with no error at all, and it is the dangerous one.** A
+cross-tenant `update` on `provider` is *accepted* and changes nothing. That is correct
+behaviour and it is indistinguishable from a statement that did nothing for any other
+reason — which is why every filtered pair carries a positive control: the identical
+statement aimed at the caller's own workspace must affect more than zero rows.
 
 ### ⚠️ Found in 3.2a — THE SEED LEAVES ONE TENANT TABLE EMPTY, AND `workspace_invite` IS IT
 
@@ -1621,7 +1757,7 @@ the schema, and both are invisible to any test that trusts its own setup: the se
 the vacuous green `supabase/README.md` warns about, and the eighth is the same green
 arriving through an empty table instead of a superuser.
 
-### ⚠️ Found in 3.1, and the owner's call — §2.10 NAMES A POLICY THAT DOES NOT EXIST
+### ✅ Found in 3.1, CLOSED 2026-08-22 by the owner — §2.10 NAMED A POLICY THAT DOES NOT EXIST
 
 ADR-035 §2.10's first row asks for *"at least one `tenant_isolation` policy"*. **No
 policy in this schema is called that.** The applied migrations name policies
@@ -1648,6 +1784,27 @@ file's call.** Two ways to close it, and they cost differently:
 **The recommendation is the first**, and it is the cheaper one, which is why it is
 flagged now rather than after 3.2a and 3.2b have written assertions against forty
 policy names.
+
+**✅ CLOSED 2026-08-22: the owner took the first, and ADR-035 is the file that moved.**
+§2.10's coverage row now states the structural requirement — a policy whose predicate
+is scoped by a tenancy helper — instead of a policy name, which is what
+`01_rls_coverage.sql` was already asserting. **No schema change; no migration.**
+
+⚠️ **The fix was extended to §2.7, and that was a decision made on the owner's behalf.**
+The instruction named §2.10, but §2.10 was downstream: §2.7's worked example is where
+the name `tenant_isolation` actually originates, and amending only §2.10 would have left
+the ADR still showing a name the database does not use — and a future reader copying the
+example would recreate the disagreement. §2.7 now names its two example policies
+`price_list_select` and `sale_line_select`, and carries a short note recording why the
+convention won.
+
+⚠️ **Two words were added to that example beyond the rename — `for select` and `to
+authenticated` — and they are a substantive correction, not tidying.** The example
+created its policies with neither. A policy with no verb defaults to `ALL`; a policy with
+no `TO` targets `PUBLIC`, which on this schema would hand the predicate to `anon`. The
+applied migrations do both correctly and `01_rls_coverage.sql`'s F11 asserts the second,
+so the ADR's own example would have failed the ADR's own suite. **Cheap to overturn — it
+is prose, and no policy in the database changed.**
 
 ### ⚠️ Found in 3.1 — A NEW TABLE IN `public` IS BORN WITH `TRUNCATE` GRANTED TO `authenticated`
 
