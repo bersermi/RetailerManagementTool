@@ -381,7 +381,11 @@ at the other, a manager, and the owner of a second tenant — all under `set rol
 authenticated`.
 
 **That file is part of the CI gate**, running after the reset in
-`.github/workflows/db.yml`. ADR-035 §3 step 3 replaces it with pgTAP.
+`.github/workflows/db.yml`. ⚠️ **Corrected 2026-08-22 at plan task 3.1: step 3 does
+NOT replace it with pgTAP.** ADR-035 §3 step 3 names the five suites pgTAP is the
+home of and says nothing about the behavioural files already standing; "replaces"
+was this file's reading, not the ADR's. pgTAP is added alongside, in
+`supabase/pgtap/`, and this file stays.
 
 **CI applied `0001`–`0003` from scratch and ran all 39 checks green on 2026-08-17**,
 run [32002904624](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624)
@@ -1257,6 +1261,87 @@ already, or unless it is the one delivery voided knowing that it would.
 
 
 ---
+
+## `supabase/pgtap/` — the structural suites (plan task 3.1)
+
+ADR-035 §2.10 names pgTAP as the home of five suites. This directory is where they
+live, and `01_rls_coverage.sql` is the first of them.
+
+**It runs between the reset and the seed checks, and that position is asserted, not
+assumed.** Every file in `supabase/checks/` creates `public._verify` and leaves it
+standing so its results can be read, and `supabase/tests/_cleanup.sql` truncates
+rather than drops. Run a suite that says *"every table in `public` has RLS"* after
+either of them and it reports three to five failures that are not defects. Test F2
+fails if any scaffolding is present, so moving the step turns the job red.
+
+**pgTAP is not a migration and never will be.** It is roughly a thousand functions
+plus the views `tap_funky` and `pg_all_foreign_keys`; migrations are append-only, so
+shipping it as `0015` would install a test framework into every production database
+with no way back. `_setup.sql` installs it into its own schema `tap` for the length
+of the CI step and `_teardown.sql` drops it — its own schema, because the default is
+`public` and `public` is exactly what the coverage suite is making claims about.
+Files beginning with `_` are harness, not suites, the same convention
+`supabase/tests/` uses.
+
+**A pgTAP file under plain `psql` exits 0 when its tests fail.** It prints `not ok`
+to stdout and stops there; nothing in the process status distinguishes it from a
+clean run. Every suite therefore ends with `finish(exception_on_failure := true)`,
+which raises so `ON_ERROR_STOP` can do its job. ⚠️ The parameter is spelled
+`exception_on_failure` in pgTAP 1.3.3 — `finish(exception := true)`, which the
+upstream documentation shows, does not exist and errors out.
+
+### `01_rls_coverage.sql` — 91 tests (task 3.1)
+
+The plan is computed — `11 + 2 × tables + 1 × policies` — so a table added by a
+future migration is covered the day it lands without anyone remembering this file
+exists. Non-vacuity is bought separately by F1 (at least twenty base tables) and F2
+(no scaffolding), because a computed plan over an empty schema would otherwise be
+eleven passing tests and a green.
+
+Eleven fixed tests, then two per table and one per policy:
+
+| | Asserts |
+|---|---|
+| F1 | `public` holds at least the twenty base tables `0001`–`0004` applied |
+| F2 | No check or seed scaffolding is standing when the suite runs |
+| F3 | The set of tables exempt from tenant scoping is **exactly** `{unit}` |
+| F4 | `unit` carries no workspace, location or tenant column — it is vocabulary |
+| F5 | The set of policies reaching for no tenancy helper is **exactly** `{unit.unit_read_all}` |
+| F6 | No base table in `public` is owned by an app role — an owner bypasses RLS |
+| F7 / F8 | `authenticated` and `anon` are neither superuser nor `BYPASSRLS` |
+| F9 | `anon` holds no privilege on any base table in `public` |
+| F10 | `authenticated` holds `TRUNCATE` on nothing |
+| F11 | Every policy targets `authenticated` and not `PUBLIC` |
+| per table | RLS is enabled; at least one policy exists |
+| per policy | The predicate names `my_workspaces()`, `my_locations()` or `has_role()` |
+
+⚠️ **No policy in this schema is named `tenant_isolation`**, which is the name
+ADR-035 §2.10 uses. The applied convention is `<table>_<verb>` — forty of them. The
+suite asserts the structure the ADR describes rather than the name it used; the
+naming literal is the owner's to settle, and it is flagged in `docs/PLAN.md` task 3.1.
+
+⚠️ **F9 and F10 are not decorative.** `alter default privileges … in schema public`
+grants `Dxtm` — TRUNCATE, REFERENCES, TRIGGER, MAINTAIN — to `anon`, `authenticated`
+and `service_role` on every table created there. **TRUNCATE ignores row-level
+security entirely.** The twenty applied tables are clean only because every migration
+opens with `revoke all on <table> from anon, authenticated;` before it grants. The
+first migration that forgets that line ships a table any signed-in cashier can empty
+across the tenant wall, and nothing in the migration file would show it. F9 and F10
+are what notice.
+
+**What the suite does not claim.** It never reads a row. It says the walls are
+standing and load-bearing; it does not say a user in workspace A gets zero rows from
+workspace B — that is plan tasks 3.2a and 3.2b, under `set role authenticated`,
+because the `postgres` superuser bypasses RLS and would pass it vacuously. It checks
+every policy, but "scoped" means *"names a helper"*, not *"names the right one"*, so
+a SELECT policy scoped correctly beside an INSERT policy scoped to the wrong column
+would pass here. 3.2b is where writes get tested.
+
+**Seven falsifications**, each confirmed to fail the step with a non-zero exit before
+the file was committed: a table with no RLS; a table with RLS and no policy; a
+`using (true)` policy on `sale_line`; a policy left targeting `PUBLIC`; a single
+`grant truncate on sale to authenticated`; `disable row level security` on
+`stock_movement`; and the suite run after `seed_invariant.sql` instead of before it.
 
 ## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2, 2.4)
 

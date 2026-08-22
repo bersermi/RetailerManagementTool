@@ -11,7 +11,15 @@ name: db
 # The reset alone proves only that the DDL parses. The checks are what prove the
 # constraints do their job — and, crucially, they run the isolation assertions
 # under `set role authenticated`, because the postgres superuser bypasses RLS and
-# would pass them vacuously. ADR-035 §3 step 3 replaces supabase/tests/ with pgTAP.
+# would pass them vacuously.
+#
+# As of plan task 3.1 it also runs pgTAP suites (ADR-035 §2.10) between the two.
+# THE pgTAP SUITES ADD TO supabase/tests/, THEY DO NOT REPLACE IT — this comment
+# and supabase/README.md both used to say "replaces", which is a reading of
+# ADR-035 §3 step 3 that the ADR does not actually make. §3 step 3 says which
+# suites pgTAP is the home of; it says nothing about the 203 behavioural checks
+# already standing, and rewriting working, falsified assertions into a second
+# framework would risk a great deal to buy tidiness. See docs/PLAN.md task 3.1.
 
 on:
   push:
@@ -52,6 +60,59 @@ jobs:
       # step means the schema is real. Print it so a reviewer can read what landed.
       - name: Show applied schema
         run: supabase migration list --local
+
+      # ---------------------------------------------------------------------
+      # pgTAP SUITES (ADR-035 §2.10, plan task 3.1)
+      #
+      # THIS STEP MUST STAY BETWEEN THE RESET AND THE SEED CHECKS, and unlike the
+      # step below it the reason is not the seed — it is `public` itself. Every
+      # file in supabase/checks/ creates `public._verify` and leaves it standing
+      # on purpose so its results survive to be read, and _cleanup.sql truncates
+      # rather than drops. Run the structural suite after either of them and it
+      # sees three to five scaffolding tables with no RLS and no policies, and
+      # reports failures that are not defects. Here it sees exactly what
+      # `supabase db reset` produced, which is the thing the suite is about.
+      #
+      # The suite asserts that position rather than trusting it (test F2), so
+      # moving this step down the file turns the job red instead of quiet.
+      #
+      # pgTAP IS NOT A MIGRATION. It is ~1000 functions and two views, and
+      # migrations are append-only — shipping it as 0015 would put a test
+      # framework in every production database with no way back. _setup.sql
+      # installs it into its own schema `tap` for the length of this step and
+      # _teardown.sql drops it, so the database the next step reads is the one
+      # the reset built.
+      #
+      # A pgTAP file under plain psql prints "not ok" to stdout and EXITS 0 — a
+      # failing suite that looks identical to a passing one from a workflow's
+      # point of view. Each suite therefore ends with
+      # `finish(exception_on_failure := true)`, which raises, so ON_ERROR_STOP
+      # makes psql exit non-zero. Seven deliberate falsifications were confirmed
+      # to fail this step before it was committed (docs/PLAN.md task 3.1).
+      #
+      # FILES BEGINNING WITH `_` ARE HARNESS, NOT SUITES — the same convention
+      # supabase/tests/ already uses. The counter is the same concern as the one
+      # below: a loop that matched nothing would print nothing and exit 0, which
+      # is what a deleted suite directory looks like.
+      - name: pgTAP suites (ADR-035 §2.10)
+        run: |
+          eval "$(supabase status -o env | grep '^DB_URL=')"
+          export DB_URL
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f supabase/pgtap/_setup.sql
+          ran=0
+          for f in $(ls supabase/pgtap/*.sql | sort); do
+            case "$(basename "$f")" in _*) continue ;; esac
+            echo "::group::$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            echo "::endgroup::"
+            ran=$((ran + 1))
+          done
+          if [ "$ran" -eq 0 ]; then
+            echo "no suites in supabase/pgtap/ — nothing was asserted" >&2
+            exit 1
+          fi
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f supabase/pgtap/_teardown.sql
+          echo "$ran pgTAP suite(s) ran"
 
       # ---------------------------------------------------------------------
       # EVERY CHECK IN supabase/checks/, OVER SEED DATA (plan tasks 1.7 and 2.1)

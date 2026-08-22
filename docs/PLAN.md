@@ -23,7 +23,14 @@ from the knowledge graph. Nothing there describes the system being built.
 ## Position
 
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
-STEP 3 IS NEXT.**
+STEP 3 — the test suites — IS OPEN, AND IT IS SPLIT.**
+**Step 3 was split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22**,
+before any of it was written — nine suites over two languages is the largest thing left
+before the RPCs. See *Step 3* below. **3.1 — the pgTAP harness and the structural
+RLS-coverage suite — is done.** ⚠️ **Three of ADR-035 §2.10's nine suites cannot be
+written in step 3 at all** — failure path, replay, and the `record_sale` half of
+location isolation all need tables and functions that steps 4 and 4.5 create, and §3
+already files them there. Named in *What step 3 does NOT ship* so they are not lost.
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
@@ -71,8 +78,8 @@ deadline under *Confirmed by the owner* below.
 |------|------|--------|
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
-| 2 | The three Insight queries — *the design gate* | **In progress** — 2 of 3, plus the timezone column 2.1 and 2.2 asked for |
-| 3 | Test suites (pgTAP, Vitest) | Not started |
+| 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
+| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22; 3.1 is the harness |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
 | 5a | Client foundation — **hiring gate** | Not started |
@@ -1486,6 +1493,185 @@ Per **line** would need the allocation split persisted with a line reference —
 on `stock_movement` and a migration, not a query. §2.9 asks for by-product, so nothing
 is owed today. It is written down here because the screen that will want it is Vender
 (step 5b), and by then the migration is against live data.
+
+---
+
+## Step 3 — test suites (pgTAP, Vitest)
+
+ADR-035 §3 step 3: *"Test suites — pgTAP for RLS coverage, RLS isolation, location
+isolation, invariants and money; Vitest for concurrency and paired arithmetic.
+**Do not build screens before this passes.**"* The suites themselves are the nine
+rows of ADR-035 §2.10.
+
+**Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
+any of it was written.** Step 3 is nine suites over two languages and it is the
+largest thing between here and the RPCs. One session that tried it whole would
+produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
+1.6 and step 2 each split for that reason; this one splits before it is written, as
+1.6 and step 2 did.
+
+**Step 3 ships no migration.** Every task below writes tests and CI wiring only, so
+migration numbering is untouched and `0006` / `0007` stay reserved for the RPCs and
+the failure path. If a suite finds a schema defect, that defect gets its own
+fix-forward number the way `0010` and `0014` did — it is not patched into step 3.
+
+| # | Task | Size | Done when |
+|---|------|------|-----------|
+| ~~3.1~~ | ~~**The pgTAP harness, and RLS coverage**~~ — **done** 2026-08-22, CI_RUN_LINK. `supabase/pgtap/` with `_setup.sql`, `_teardown.sql` and `01_rls_coverage.sql`, plus a CI step of its own **between the reset and the seed checks**. **91 tests**: 11 fixed, 2 per table, 1 per policy, on a **computed plan** so a future table is covered the day it lands. **Seven falsifications**, each confirmed to exit non-zero. ⚠️ **pgTAP is not a migration and does not replace `supabase/tests/`** — both decisions are below. ⚠️ **Two findings**: ADR-035 §2.10 names a policy that does not exist, and `public`'s default privileges hand `authenticated` a TRUNCATE that bypasses RLS on every new table | M | ✅ |
+| 3.2a | **RLS isolation — reads.** For all 20 tenant tables: a user in workspace A selecting workspace B's rows gets zero rows, under `set role authenticated` | L | Every table asserted in both directions; a policy deleted from any one table fails the suite |
+| 3.2b | **RLS isolation — writes.** For all 20 tenant tables: a user in workspace A writing into workspace B is rejected. Most tables carry no insert/update policy at all, and "rejected because no policy exists" is a different claim from "rejected by a predicate" — the suite must say which | L | Both rejection modes asserted and distinguished; append-only triggers exercised as superuser stay covered |
+| 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
+| 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
+| 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
+| 3.6 | **`packages/money` and `cases.json`** — the first TypeScript in the repo. One data file read by both the pgTAP suite and Vitest | L | `cases.json` seeded per ADR-035 §2.5; Vitest green in CI; **3.5's pgTAP suite re-pointed at the same file**, so drift is structurally impossible rather than merely tested for |
+| 3.7 | **Concurrency under Vitest.** §2.10's last row, and the one suite that already half-exists as `supabase/tests/0005_allocation_concurrency.sh` | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
+
+Order is forced by the harness, not by foreign keys. **3.1 is first because nothing
+else in step 3 can be evidence until a failing pgTAP assertion is proven to fail the
+build** — a suite that cannot go red is the vacuous green ADR-035 §9 exists to
+refuse, and it is exactly what a `select ok(false)` printed to stdout under plain
+`psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
+SQL assertions second would let the data file be shaped to whatever the SQL already
+does, which is the drift the file exists to prevent.
+
+### ⚠️ Found in 3.1, and the owner's call — §2.10 NAMES A POLICY THAT DOES NOT EXIST
+
+ADR-035 §2.10's first row asks for *"at least one `tenant_isolation` policy"*. **No
+policy in this schema is called that.** The applied migrations name policies
+`<table>_<verb>` — `sale_line_select`, `provider_update`, `workspace_member_delete` —
+forty of them, and the ADR's name appears on none.
+
+Read literally, the ADR's own suite fails on all twenty tables while the schema is
+entirely correct. So `01_rls_coverage.sql` asserts the **structure** §2.10 describes
+and not the **name** it happened to use, and says so in its header.
+
+⚠️ **This is a real disagreement between the ADR and the applied schema, and the ADR
+wins by the rule in `CLAUDE.md` — so one of the two should move, and it is not this
+file's call.** Two ways to close it, and they cost differently:
+
+- **The migrations' convention wins**, and §2.10's sentence is amended to describe the
+  structure rather than a name. Costs one edit to the ADR. Nothing in the database
+  moves.
+- **The ADR's name wins**, and every policy is renamed. That is `drop policy` /
+  `create policy` × 40 in a new migration — no data moves, but it touches every RLS
+  object in the repo at once, and the four-verb convention (`_select`, `_insert`,
+  `_update`, `_delete`) is genuinely more useful in an error message than forty
+  policies all called `tenant_isolation`.
+
+**The recommendation is the first**, and it is the cheaper one, which is why it is
+flagged now rather than after 3.2a and 3.2b have written assertions against forty
+policy names.
+
+### ⚠️ Found in 3.1 — A NEW TABLE IN `public` IS BORN WITH `TRUNCATE` GRANTED TO `authenticated`
+
+This one is not a naming quibble, and it is the reason F9 and F10 are in the suite.
+
+`alter default privileges … in schema public` on this project grants `Dxtm` —
+**TRUNCATE**, REFERENCES, TRIGGER, MAINTAIN — to `anon`, `authenticated` and
+`service_role` on every table created there. It is Supabase's default and no
+migration in this repo set it. **TRUNCATE ignores row-level security entirely**: it
+is not a `delete` with a policy applied to it, it is a relation-level operation that
+RLS does not see.
+
+The twenty applied tables are clean, and they are clean **only** because every
+migration opens with `revoke all on <table> from anon, authenticated;` before it
+grants. That line is easy to read as boilerplate. It is not: the first migration
+that omits it ships a table any signed-in cashier can empty across the tenant
+wall — and nothing in the migration file would show it, because the grant does not
+appear there.
+
+Confirmed by falsification: `create table public.leaky (...)` with nothing else at
+all turns F9 and F10 red on the next run, naming the table.
+
+⚠️ **Nothing is owed here — the schema is correct today.** What changed is that it is
+now *asserted* rather than *conventional*, and the assertion arrived before `0006`,
+which is the next migration to create tables.
+
+### Settled in 3.1, and binding on 3.2a through 3.7
+
+Four harness decisions, all made on the owner's behalf. None of them is expensive to
+overturn — no migration, no data — but each shapes every suite that comes after, so
+they are named rather than left in a file header.
+
+**1. pgTAP is installed per CI run, not by a migration.** It is roughly a thousand
+functions plus two views. Migrations are append-only, so a `0015_pgtap.sql` would put
+a test framework in every production database with no way back. `_setup.sql` installs
+it, `_teardown.sql` drops it, and the database the next CI step reads is byte for
+byte what the reset built — asserted, not assumed.
+
+**2. It goes in its own schema `tap`, not `public`.** The default is `public`, and
+`public` is precisely what the coverage suite makes claims about — `create extension
+pgtap` there adds `tap_funky` and `pg_all_foreign_keys` beside the twenty tables. A
+coverage suite that has to special-case its own framework is a coverage suite with a
+hole in it.
+
+**3. pgTAP ADDS TO `supabase/tests/`; it does not replace it.** ⚠️ Both
+`.github/workflows/db.yml` and `supabase/README.md` said *"ADR-035 §3 step 3 replaces
+supabase/tests/ with pgTAP"* — **that is a reading the ADR does not make**, and both
+files are corrected. §3 step 3 names the suites pgTAP is the home of and says nothing
+about the 203 behavioural checks already standing, every one of which has been
+falsified at least once. Rewriting working, falsified assertions into a second
+framework would risk a great deal to buy tidiness. **Owner's call to overturn, and
+it stays cheap** — it is a directory, not a schema.
+
+**4. Every suite ends with `finish(exception_on_failure := true)`.** ⚠️ **A pgTAP file
+under plain `psql` exits 0 when its tests fail.** It prints `not ok` to stdout and
+stops; nothing in the process status distinguishes it from a clean run, which is the
+silently-skipped-step failure `CLAUDE.md` warns about, arriving through a different
+door. `finish(exception_on_failure := true)` raises so `ON_ERROR_STOP` can work. Note
+the spelling: pgTAP 1.3.3 has no `finish(exception := …)` — the form upstream
+documentation shows errors out, which at least fails in the safe direction.
+
+### Seven falsifications, run by hand before 3.1 was committed
+
+A structural suite is the easiest kind to write so that it cannot go red — it reads
+catalogs, and catalogs are almost always in the state you expect. Each of these was
+introduced, the suite run, the failure read by name, and the change reverted:
+
+| Falsified | Caught by |
+|---|---|
+| `create table public.leaky (workspace_id uuid, note text)` — no RLS, no policy | F3, F9, F10, `T-rls leaky`, `T-pol leaky` |
+| The same table with RLS enabled and no policy written | F3, F9, F10, `T-pol silent` |
+| `create policy sale_line_open … using (true)` on a real ledger table | F5, `T-scope sale_line.sale_line_open` |
+| A correctly-scoped policy created without `to authenticated`, so it targets `PUBLIC` | F11 |
+| `grant truncate on public.sale to authenticated` | F10 |
+| `alter table public.stock_movement disable row level security` | `T-rls stock_movement` |
+| The suite run **after** `seed_invariant.sql` instead of before it | F2, plus one `T-rls` per scaffolding table |
+
+Every one exited non-zero. The last is the one worth keeping: it means the CI step's
+position is a claim the suite makes about itself, so moving it turns the job red
+rather than quiet.
+
+### ⚠️ The concurrency suite could not be run locally for 3.1, and CI is the evidence
+
+`supabase/tests/0005_allocation_concurrency.sh` shells out to `psql`, and `psql` is
+not installed on the schema owner's machine — everything else in this repo reaches
+the database through the container. Its 9 checks failed locally with
+`psql: command not found` on every one, which is an environment fact and not a
+regression: the file is untouched since `0010`, and the CI runner has `psql`.
+The other five suites and all six seed-check files were run locally and passed.
+**The green CI run linked in the 3.1 row is what makes the claim**, per ADR-035 §9,
+and that is the point of the rule.
+
+### What step 3 does NOT ship, and where those rows went
+
+Three of ADR-035 §2.10's nine rows cannot be written yet, and they are named here so
+they are not silently dropped:
+
+- **Failure path** (*"a rejected sale yields exactly one `failed_write` row, one
+  linked compensating movement, and a balance matching the shelf"*) — `failed_write`
+  and `record_failed_write` are `0007`, which is **step 4.5**. The ADR already files
+  the suite there: §3 step 4.5 says *"and the pgTAP suites that cover them"*.
+- **Replay** (dead-letter → downgrade → replay, keeping the original `occurred_at`) —
+  same table, same step, same sentence in §3.
+- **The `record_sale` clause of location isolation** — *"a staff `record_sale`
+  against an unassigned location is rejected"*. `record_sale` is `0006`, **step 4**.
+  3.3 asserts the read half now, over the predicate the RPC will inherit, and the
+  write half is owed by step 4.
+
+⚠️ **So "do not build screens before this passes" is satisfied by 3.1–3.7 plus the
+step 4.5 suites, not by 3.1–3.7 alone.** Reading §3 step 3 as the whole of §2.10
+would have this step blocked on a table that step 4.5 creates.
 
 ---
 
