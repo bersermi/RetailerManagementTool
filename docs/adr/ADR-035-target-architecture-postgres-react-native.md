@@ -12,6 +12,15 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-08-22 — §2.7 and §2.10 amended, on the decision maker's
+  instruction, to close a disagreement between this document and the applied
+  schema that plan task 3.1 found. The ADR named a policy `tenant_isolation`;
+  no policy in the database is called that, and forty are named `<table>_<verb>`.
+  The convention wins and the ADR is the file that moved — the alternative was a
+  `drop policy` / `create policy` migration touching every RLS object in the repo
+  to buy a word. No schema change. The §2.7 example is also corrected to carry
+  `for select` and `to authenticated`, which the applied policies do and the
+  example did not.
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -569,13 +578,31 @@ create function my_workspaces() returns setof uuid
      where user_id = auth.uid() and is_active
   $$;
 
-create policy tenant_isolation on price_list          -- workspace-level shape
+create policy price_list_select on price_list         -- workspace-level shape
+  for select to authenticated
   using (workspace_id in (select my_workspaces()));
 
-create policy tenant_isolation on sale_line           -- ledger shape
+create policy sale_line_select on sale_line           -- ledger shape
+  for select to authenticated
   using (workspace_id in (select my_workspaces())
      and location_id  in (select my_locations()));
 ```
+
+**Policies are named `<table>_<verb>`, not `tenant_isolation`** (settled
+2026-08-22). The first draft of this section called both example policies
+`tenant_isolation`, and §2.10's coverage row then asked a test suite to look for
+that name. `0001`–`0004` had already applied forty policies under the four-verb
+convention — `sale_line_select`, `provider_update`, `workspace_member_delete` — so
+read literally the ADR's own suite failed on all twenty tables while the schema was
+entirely correct. Plan task 3.1 found it; the convention wins because a verb in the
+policy name is what makes a Postgres error message say which operation was refused,
+and forty policies sharing one name cannot. §2.10 now states the structural
+requirement instead, which is what the suite actually asserts.
+
+⚠️ **`for select` and `to authenticated` are part of the shape, not decoration.** A
+policy created without a verb defaults to `ALL`, and one created without `TO`
+targets `PUBLIC` — which on this schema would hand the predicate to `anon` as well.
+`01_rls_coverage.sql` asserts both.
 
 Two shapes, and every business table uses exactly one of them. The workspace
 predicate in the second is redundant — `my_locations()` already implies
@@ -762,7 +789,7 @@ done now is the one-paragraph data-use clause in the terms.
 
 | Suite | Asserts | Where |
 |-------|---------|-------|
-| **RLS coverage** | Structural: every table in `public` has RLS enabled and at least one `tenant_isolation` policy. Fails the build on a table shipped without one | pgTAP |
+| **RLS coverage** | Structural: every table in `public` has RLS enabled and at least one policy whose predicate is scoped by a tenancy helper (§2.7). Fails the build on a table shipped without one. **The requirement is the structure, not a policy name** — see the naming note in §2.7 | pgTAP |
 | RLS isolation | For every table: a user in workspace A reading or writing workspace B gets zero rows and a rejection | pgTAP |
 | **Location isolation** | Staff assigned to location A see zero rows from location B; a staff `record_sale` against an unassigned location is rejected; a manager sees both | pgTAP |
 | Ledger invariant | `sum(movements) = batch_balance` across randomised purchase/sale/waste/transfer/reversal sequences, per location | pgTAP + nightly prod |

@@ -1668,7 +1668,7 @@ the schema, and both are invisible to any test that trusts its own setup: the se
 the vacuous green `supabase/README.md` warns about, and the eighth is the same green
 arriving through an empty table instead of a superuser.
 
-### ⚠️ Found in 3.1, and the owner's call — §2.10 NAMES A POLICY THAT DOES NOT EXIST
+### ✅ Found in 3.1, CLOSED 2026-08-22 by the owner — §2.10 NAMED A POLICY THAT DOES NOT EXIST
 
 ADR-035 §2.10's first row asks for *"at least one `tenant_isolation` policy"*. **No
 policy in this schema is called that.** The applied migrations name policies
@@ -1695,6 +1695,27 @@ file's call.** Two ways to close it, and they cost differently:
 **The recommendation is the first**, and it is the cheaper one, which is why it is
 flagged now rather than after 3.2a and 3.2b have written assertions against forty
 policy names.
+
+**✅ CLOSED 2026-08-22: the owner took the first, and ADR-035 is the file that moved.**
+§2.10's coverage row now states the structural requirement — a policy whose predicate
+is scoped by a tenancy helper — instead of a policy name, which is what
+`01_rls_coverage.sql` was already asserting. **No schema change; no migration.**
+
+⚠️ **The fix was extended to §2.7, and that was a decision made on the owner's behalf.**
+The instruction named §2.10, but §2.10 was downstream: §2.7's worked example is where
+the name `tenant_isolation` actually originates, and amending only §2.10 would have left
+the ADR still showing a name the database does not use — and a future reader copying the
+example would recreate the disagreement. §2.7 now names its two example policies
+`price_list_select` and `sale_line_select`, and carries a short note recording why the
+convention won.
+
+⚠️ **Two words were added to that example beyond the rename — `for select` and `to
+authenticated` — and they are a substantive correction, not tidying.** The example
+created its policies with neither. A policy with no verb defaults to `ALL`; a policy with
+no `TO` targets `PUBLIC`, which on this schema would hand the predicate to `anon`. The
+applied migrations do both correctly and `01_rls_coverage.sql`'s F11 asserts the second,
+so the ADR's own example would have failed the ADR's own suite. **Cheap to overturn — it
+is prose, and no policy in the database changed.**
 
 ### ⚠️ Found in 3.1 — A NEW TABLE IN `public` IS BORN WITH `TRUNCATE` GRANTED TO `authenticated`
 
