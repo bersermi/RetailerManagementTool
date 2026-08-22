@@ -1349,7 +1349,7 @@ the file was committed: a table with no RLS; a table with RLS and no policy; a
 `grant truncate on sale to authenticated`; `disable row level security` on
 `stock_movement`; and the suite run after `seed_invariant.sql` instead of before it.
 
-### `02_rls_isolation_reads.sql` — 106 tests (task 3.2a)
+### [`02_rls_isolation_reads.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747) — 106 tests (task 3.2a)
 
 The behavioural half. `01` reads catalogs; this one signs in as each of the seed's two
 owners — the fixed uuids `5eed0001-…-0001` and `5eed0001-…-0005` — and counts rows.
