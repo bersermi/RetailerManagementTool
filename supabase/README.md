@@ -1262,10 +1262,15 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/pgtap/` — the structural suites (plan task 3.1)
+## `supabase/pgtap/` — the RLS suites (plan tasks 3.1, 3.2a)
 
 ADR-035 §2.10 names pgTAP as the home of five suites. This directory is where they
-live, and `01_rls_coverage.sql` is the first of them.
+live: `01_rls_coverage.sql` says the walls are standing, and
+`02_rls_isolation_reads.sql` reads rows as a signed-in user and says they hold.
+
+**The CI step runs the directory, not a list of files** — `ls supabase/pgtap/*.sql |
+sort`, skipping `_` — so a third suite costs no workflow edit, and a loop that matched
+nothing exits non-zero rather than printing nothing.
 
 **It runs between the reset and the seed checks, and that position is asserted, not
 assumed.** Every file in `supabase/checks/` creates `public._verify` and leaves it
@@ -1331,8 +1336,9 @@ are what notice.
 
 **What the suite does not claim.** It never reads a row. It says the walls are
 standing and load-bearing; it does not say a user in workspace A gets zero rows from
-workspace B — that is plan tasks 3.2a and 3.2b, under `set role authenticated`,
-because the `postgres` superuser bypasses RLS and would pass it vacuously. It checks
+workspace B — that is `02` below (reads, done) and plan task 3.2b (writes, open),
+under `set role authenticated`, because the session user bypasses RLS and would pass
+it vacuously. It checks
 every policy, but "scoped" means *"names a helper"*, not *"names the right one"*, so
 a SELECT policy scoped correctly beside an INSERT policy scoped to the wrong column
 would pass here. 3.2b is where writes get tested.
@@ -1342,6 +1348,64 @@ the file was committed: a table with no RLS; a table with RLS and no policy; a
 `using (true)` policy on `sale_line`; a policy left targeting `PUBLIC`; a single
 `grant truncate on sale to authenticated`; `disable row level security` on
 `stock_movement`; and the suite run after `seed_invariant.sql` instead of before it.
+
+### [`02_rls_isolation_reads.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747) — 106 tests (task 3.2a)
+
+The behavioural half. `01` reads catalogs; this one signs in as each of the seed's two
+owners — the fixed uuids `5eed0001-…-0001` and `5eed0001-…-0005` — and counts rows.
+
+**Why both files exist.** `create policy p on t using (workspace_id in (select
+public.my_workspaces()) or true)` gets past every structural test `01` has: RLS is on,
+a policy exists, the predicate names a tenancy helper. It also returns the other
+merchant's whole ledger. Nothing short of selecting rows as a user who should not see
+them can tell the difference, and that falsification is one of the eight below.
+
+The plan is computed — `10 + 4 × tenant tables + 1 × tables` — so a tenant table added
+by a future migration is measured the day it lands. Ten fixed tests, then four per
+tenant table and one per table:
+
+| | Asserts |
+|---|---|
+| F1 | At least the nineteen tenant tables `0001`–`0004` applied were **measured** — the floor that stops a computed plan from being satisfied by measuring nothing |
+| F2 | `authenticated` is neither superuser nor `BYPASSRLS`, **and the session user is** — the asymmetry the whole suite rests on |
+| F3 | Every measurement ran under `set role authenticated`, from what the pass **recorded**, not from what the file says |
+| F4 / F5 | Two owners of two distinct workspaces, and **neither is a member of the other's** |
+| F6 | Every table in `public` is tenant-scoped by a known column or named exempt — an unclassifiable table is one this suite is not testing |
+| F7 | Every tenant table held rows in **both** workspaces when it was measured |
+| F8 | `unit` is the single deliberate hole, and it is still the only one |
+| F9 | `workspace_invite` was empty in the seed; the suite supplied its own rows |
+| F10 | The session came back to its own role after ~40 `set role`s |
+| per table ×2 | `T-read` — A sees none of B's rows, and B none of A's |
+| per table ×2 | `T-all` — each sees **all** of its own rows: the test a **deleted policy** turns red, since RLS with no policy denies everything and the count collapses to zero |
+| per table | `T-anon` — the signed-out caller is refused, and the refusal is recorded as a missing `GRANT` rather than a policy denial |
+
+⚠️ **Nineteen tenant tables, not twenty.** `public` holds twenty base tables and `unit`
+is the exempt one — `01`'s F3 and F5 already name it, and this file's F8 keeps naming it.
+
+⚠️ **This suite opens a transaction and rolls it back, and `01` does not.**
+`workspace_invite` is the one tenant table the seed leaves empty in **both** workspaces,
+and *"A sees none of B's invites"* over zero invites is an assertion about nothing that
+would stay green with the policy deleted. So the file writes one invite per workspace and
+rolls back, which keeps `_teardown.sql`'s promise — the database the seed checks read
+next is byte for byte what the reset produced. A failing suite never reaches the
+`rollback`: psql stops on the exception `finish` raises and drops the connection, which
+rolls it back anyway. Fixing the seed instead is the owner's to overturn and is recorded
+in `docs/PLAN.md` task 3.2a; it is the more invasive option, because the seed checks and
+the behavioural suites assert absolute counts over it.
+
+**What this suite does not claim.** Nothing about writes — that a user in A is *rejected*
+writing into B, and by which of the two mechanisms, is 3.2b. Nothing about locations:
+owners were chosen precisely because they see every store of their own workspace, so the
+tenant wall is tested with the store wall held open. `my_locations()` is 3.3's predicate.
+
+**Eight falsifications**, each confirmed to fail the step with a non-zero exit before the
+file was committed: a dropped `sale_line_select`; the `or true` leak above; `disable row
+level security` on `provider`; `grant select on sale to anon`; an untenanted
+`public.leaky`; owner A given a membership in workspace B; **the `set role authenticated`
+removed**, so every count was measured as the session user; and **the fixture written for
+one workspace only**. The last two are failures of the harness rather than of the schema,
+and both are the vacuous green this file exists to refuse — one arriving through the
+role, the other through an empty table.
 
 ## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2, 2.4)
 

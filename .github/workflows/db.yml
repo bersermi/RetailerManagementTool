@@ -13,7 +13,10 @@ name: db
 # under `set role authenticated`, because the postgres superuser bypasses RLS and
 # would pass them vacuously.
 #
-# As of plan task 3.1 it also runs pgTAP suites (ADR-035 §2.10) between the two.
+# As of plan task 3.1 it also runs pgTAP suites (ADR-035 §2.10) between the two —
+# 01 structural (3.1) and 02 behavioural RLS isolation on reads (3.2a). The step
+# runs the DIRECTORY in name order, so a third suite costs no edit here.
+#
 # THE pgTAP SUITES ADD TO supabase/tests/, THEY DO NOT REPLACE IT — this comment
 # and supabase/README.md both used to say "replaces", which is a reading of
 # ADR-035 §3 step 3 that the ADR does not actually make. §3 step 3 says which
@@ -62,7 +65,7 @@ jobs:
         run: supabase migration list --local
 
       # ---------------------------------------------------------------------
-      # pgTAP SUITES (ADR-035 §2.10, plan task 3.1)
+      # pgTAP SUITES (ADR-035 §2.10, plan tasks 3.1 and 3.2a)
       #
       # THIS STEP MUST STAY BETWEEN THE RESET AND THE SEED CHECKS, and unlike the
       # step below it the reason is not the seed — it is `public` itself. Every
@@ -88,7 +91,14 @@ jobs:
       # point of view. Each suite therefore ends with
       # `finish(exception_on_failure := true)`, which raises, so ON_ERROR_STOP
       # makes psql exit non-zero. Seven deliberate falsifications were confirmed
-      # to fail this step before it was committed (docs/PLAN.md task 3.1).
+      # to fail this step before it was committed (docs/PLAN.md task 3.1), and
+      # eight more before 02 was (task 3.2a).
+      #
+      # 02 WRITES A FIXTURE AND ROLLS IT BACK. `workspace_invite` is the one
+      # tenant table the seed leaves empty in both workspaces, and an isolation
+      # claim over zero rows is a claim about nothing. The file is one
+      # transaction, so the database the steps below read is still the one the
+      # reset built — which is also why this step stays above them.
       #
       # FILES BEGINNING WITH `_` ARE HARNESS, NOT SUITES — the same convention
       # supabase/tests/ already uses. The counter is the same concern as the one
