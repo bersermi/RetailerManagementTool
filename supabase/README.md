@@ -58,6 +58,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | `0011_waste_share_of_purchases.sql` | `product_waste_daily` — one `security_invoker` view, waste cost against purchases by product per store per day. Numerator from the `waste` movements that consumed the lots, denominator from `purchase_line`, net of tax. **It does not divide** — the ratio belongs to the caller's window, not to a row. No table, no policy, no function, and deliberately no `has_role` predicate: both its base tables are manager-gated, so inheritance fails closed |
 
 | `0012_location_timezone.sql` | `location.timezone` — one column, NOT NULL, defaulted to `America/Mexico_City`, plus a trigger refusing a name `pg_timezone_names` does not carry. `product_margin_daily` and `product_waste_daily` replaced to read it instead of a hardcoded literal. The default is exactly what they hardcoded, so applying it moves no bucket — asserted, not assumed |
+| `0013_velocity_vs_trailing_average.sql` | `product_velocity_daily` — one `security_invoker` view, units and takings per store per product per day **on a generated day spine**, beside the same measures over the trailing 28 days. No table, no policy, no function, and no `has_role` predicate: every base table is member-level, so a cashier reads their own store's velocity and there is no cost column for inheritance to fail open on. ⚠️ **It does not divide** — `trailing_days` and `trailing_traded_days` are both honest denominators and they disagree by 17.9% at a store that shut for five days. ⚠️ **91% of its rows exist to say nothing happened**, which is the answer rather than waste: no ledger holds a row for a sale that did not occur |
 
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
@@ -72,6 +73,15 @@ against the six-argument `allocate_fefo`.** plpgsql does not resolve the functio
 a body calls until the body runs, so `record_sale` written against the
 five-argument version applies clean and then fails at the first till. There is no
 five-argument version after `0010`, and there is no compiler that will say so.
+
+⚠️ **`0013` ships the one finding of step 2 that asks for a SCHEMA change rather than
+a report change, and it is unresolved.** Its day spine starts at the first day a
+store put a product on a ticket, because nothing in this schema records when a store
+started **carrying** one. So a product delivered and never once sold is invisible to
+"what stopped selling" — 71 (store, product) pairs in the seed, asserted in
+`supabase/checks/0013_velocity_vs_trailing_average.sql`. `price_list` is the
+near-miss and does not do it: its `location_id` is nullable and its RLS is
+workspace-scoped. **Owner's call**, and it is a column, which is the append-only half.
 
 Planned next, in order (ADR-035 §3):
 
