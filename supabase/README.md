@@ -1290,7 +1290,7 @@ which raises so `ON_ERROR_STOP` can do its job. ⚠️ The parameter is spelled
 `exception_on_failure` in pgTAP 1.3.3 — `finish(exception := true)`, which the
 upstream documentation shows, does not exist and errors out.
 
-### `01_rls_coverage.sql` — 91 tests (task 3.1)
+### [`01_rls_coverage.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32586859359) — 91 tests (task 3.1)
 
 The plan is computed — `11 + 2 × tables + 1 × policies` — so a table added by a
 future migration is covered the day it lands without anyone remembering this file
