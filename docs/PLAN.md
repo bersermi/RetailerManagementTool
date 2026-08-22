@@ -31,6 +31,11 @@ RLS-coverage suite — is done.** ⚠️ **Three of ADR-035 §2.10's nine suites
 written in step 3 at all** — failure path, replay, and the `record_sale` half of
 location isolation all need tables and functions that steps 4 and 4.5 create, and §3
 already files them there. Named in *What step 3 does NOT ship* so they are not lost.
+**3.2a — RLS isolation on reads — is done**, and it is the first suite in this repo to
+make the tenant claim by reading rows rather than catalogs: 106 tests, both directions,
+every tenant table, under `set role authenticated`. ⚠️ **It writes a fixture and rolls
+it back**, because `workspace_invite` is the one tenant table the seed leaves empty and
+an isolation claim over zero rows is a claim about nothing. Decision below.
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
@@ -1518,7 +1523,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | # | Task | Size | Done when |
 |---|------|------|-----------|
 | ~~3.1~~ | ~~**The pgTAP harness, and RLS coverage**~~ — **done** 2026-08-22, [CI green on PR #22](https://github.com/bersermi/RetailerManagementTool/actions/runs/32586859359). `supabase/pgtap/` with `_setup.sql`, `_teardown.sql` and `01_rls_coverage.sql`, plus a CI step of its own **between the reset and the seed checks**. **91 tests**: 11 fixed, 2 per table, 1 per policy, on a **computed plan** so a future table is covered the day it lands. **Seven falsifications**, each confirmed to exit non-zero. ⚠️ **pgTAP is not a migration and does not replace `supabase/tests/`** — both decisions are below. ⚠️ **Two findings**: ADR-035 §2.10 names a policy that does not exist, and `public`'s default privileges hand `authenticated` a TRUNCATE that bypasses RLS on every new table | M | ✅ |
-| 3.2a | **RLS isolation — reads.** For all 20 tenant tables: a user in workspace A selecting workspace B's rows gets zero rows, under `set role authenticated` | L | Every table asserted in both directions; a policy deleted from any one table fails the suite |
+| ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, CI green on PR #23 *(link recorded below)*. `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
 | 3.2b | **RLS isolation — writes.** For all 20 tenant tables: a user in workspace A writing into workspace B is rejected. Most tables carry no insert/update policy at all, and "rejected because no policy exists" is a different claim from "rejected by a predicate" — the suite must say which | L | Both rejection modes asserted and distinguished; append-only triggers exercised as superuser stay covered |
 | 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
@@ -1533,6 +1538,88 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ⚠️ Found in 3.2a — THE SEED LEAVES ONE TENANT TABLE EMPTY, AND `workspace_invite` IS IT
+
+Eighteen of the nineteen tenant tables hold rows in **both** workspaces in the seed —
+2 649 stock movements for merchant A against 865 for merchant B, and so on down. The
+nineteenth does not. **`workspace_invite` is empty in both.** Nobody has ever been
+invited to either shop.
+
+That matters more than it sounds. "A user in workspace A sees none of workspace B's
+invites" is trivially true when B has no invites, and it stays true if the policy is
+deleted, if RLS is switched off, and if the table is granted to `anon`. It is a green
+test that measures nothing — the vacuous pass ADR-035 §9 exists to refuse, arriving
+through the fixture rather than through the role.
+
+**So the suite writes one invite per workspace and rolls the whole file back**, and F7
+asserts per table that both workspaces held rows *at the moment they were measured*, so
+this can never happen again quietly to a different table.
+
+⚠️ **The alternative was to fix the seed, and it is the owner's to overturn.** It would
+be the better home for the row — `workspace_invite` is a real part of onboarding and the
+seed models everything else about it — but the seed is read by 203 behavioural checks and
+six seed-check files that assert **absolute counts** over it, and this is a test-suite
+task that ships no migration. Adding two rows there is cheap to do and not cheap to be
+wrong about. **If the seed grows invites later, F9 goes red on purpose** and whoever is
+there decides whether the fixture is still wanted, rather than the suite silently
+measuring somebody else's rows.
+
+### Settled in 3.2a, and binding on 3.2b and 3.3
+
+**1. A behavioural suite may write, if it rolls back — and 3.2a is the first to.**
+`01_rls_coverage.sql` reads catalogs and needs no transaction. This one needs the
+`workspace_invite` fixture above, so the file is `begin` … `rollback`, and
+`_teardown.sql`'s promise still holds: the database the seed checks read next is byte
+for byte what `supabase db reset` produced, asserted by running the full CI sequence
+locally afterwards. A failing suite never reaches the `rollback` — psql stops on the
+exception `finish(exception_on_failure := true)` raises and drops the connection, which
+rolls it back anyway. **3.2b will need this more than 3.2a did**, since a write suite is
+mostly rejected writes and a few accepted ones.
+
+**2. Two owners, not two cashiers.** The seed's fixed uuids `…0001` (Tienda Doña Lupe)
+and `…0005` (Abarrotes El Roble). An owner sees every location of their own workspace,
+so "sees exactly its own rows and nothing else" is a claim about the **tenant** wall with
+the store wall deliberately held open. The store wall is 3.3, and `my_locations()` is the
+predicate under test there — 3.3 should use the cashiers `…0003`, `…0004` and `…0006`,
+each of whom the seed assigns to exactly one store.
+
+**3. "Sees all of its own" is asserted beside "sees none of theirs", and both are
+load-bearing.** The first alone passes on a table nobody can read at all — which is what
+a *deleted* policy produces, since RLS with no policy denies everything. The second alone
+passes on a table everybody can read. **The plan's done-when for 3.2a — "a policy deleted
+from any one table fails the suite" — is satisfied by the first of the pair**, and
+falsification F-a confirmed it by dropping `sale_line_select`.
+
+**4. The signed-out caller is asserted too, and the refusal is named.** Every table in
+`public`, `unit` included, is refused to `anon` — and the suite records *which* refusal:
+a missing `GRANT`, not a policy. On this schema anon never reaches RLS at all, because
+every migration opens with `revoke all … from anon, authenticated`. 01's F9 and F11 make
+both halves of that claim from the catalog; this makes it by asking. **The distinction is
+3.2b's whole subject** arriving early: *rejected because no policy exists* and *rejected
+by a predicate* are different facts about a schema.
+
+### Eight falsifications, run by hand before 3.2a was committed
+
+A suite that reads rows is harder to fool than a structural one, and easier to write so
+that it passes for the wrong reason. Each of these was introduced, the suite run, the
+failure read by name, and the change reverted. **All eight exited non-zero.**
+
+| Falsified | Caught by |
+|---|---|
+| `drop policy sale_line_select on public.sale_line` | `T-all sale_line`, both directions — the count collapsed to 0 |
+| `using (workspace_id in (select public.my_workspaces()) or true)` on `provider` — **a leak that mentions a tenancy helper, so `01` passes it** | `T-read provider` and `T-all provider`, both directions |
+| `alter table public.provider disable row level security` | the same four |
+| `grant select on public.sale to anon` | `T-anon sale` — mode became `read`, not `denied` |
+| `create table public.leaky (note text)` — untenanted, unclassifiable | F6, naming it |
+| Owner A given a membership in workspace B | F5, plus 19 `T-read` failures that were correct |
+| **The `set role authenticated` removed** — every count measured as the session user | F3, plus every `T-read` in the file |
+| **The fixture written for one workspace only** | F7, naming `workspace_invite` |
+
+The last two are the ones worth keeping. They are failures of the harness rather than of
+the schema, and both are invisible to any test that trusts its own setup: the seventh is
+the vacuous green `supabase/README.md` warns about, and the eighth is the same green
+arriving through an empty table instead of a superuser.
 
 ### ⚠️ Found in 3.1, and the owner's call — §2.10 NAMES A POLICY THAT DOES NOT EXIST
 
