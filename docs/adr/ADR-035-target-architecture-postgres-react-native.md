@@ -588,6 +588,13 @@ create policy sale_line_select on sale_line           -- ledger shape
      and location_id  in (select my_locations()));
 ```
 
+Two shapes, and every business table uses exactly one of them. The workspace
+predicate in the second is redundant — `my_locations()` already implies
+membership — and is kept anyway: it is indexed, it is cheap, and one uniform prefix
+is what makes the shape safe to copy without thinking about it. Both are written as
+`in (select fn())` rather than a bare call so the planner evaluates them once per
+query rather than once per row.
+
 **Policies are named `<table>_<verb>`, not `tenant_isolation`** (settled
 2026-08-22). The first draft of this section called both example policies
 `tenant_isolation`, and §2.10's coverage row then asked a test suite to look for
@@ -603,13 +610,6 @@ requirement instead, which is what the suite actually asserts.
 policy created without a verb defaults to `ALL`, and one created without `TO`
 targets `PUBLIC` — which on this schema would hand the predicate to `anon` as well.
 `01_rls_coverage.sql` asserts both.
-
-Two shapes, and every business table uses exactly one of them. The workspace
-predicate in the second is redundant — `my_locations()` already implies
-membership — and is kept anyway: it is indexed, it is cheap, and one uniform prefix
-is what makes the shape safe to copy without thinking about it. Both are written as
-`in (select fn())` rather than a bare call so the planner evaluates them once per
-query rather than once per row.
 
 **Staff belong to a location, not to a workspace** (decided 2026-08-14).
 
