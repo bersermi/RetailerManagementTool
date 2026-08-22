@@ -1509,7 +1509,8 @@ isolation, invariants and money; Vitest for concurrency and paired arithmetic.
 rows of ADR-035 §2.10.
 
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
-any of it was written.** Step 3 is nine suites over two languages and it is the
+any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
+also before it was written — see below.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1524,7 +1525,8 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 |---|------|------|-----------|
 | ~~3.1~~ | ~~**The pgTAP harness, and RLS coverage**~~ — **done** 2026-08-22, [CI green on PR #22](https://github.com/bersermi/RetailerManagementTool/actions/runs/32586859359). `supabase/pgtap/` with `_setup.sql`, `_teardown.sql` and `01_rls_coverage.sql`, plus a CI step of its own **between the reset and the seed checks**. **91 tests**: 11 fixed, 2 per table, 1 per policy, on a **computed plan** so a future table is covered the day it lands. **Seven falsifications**, each confirmed to exit non-zero. ⚠️ **pgTAP is not a migration and does not replace `supabase/tests/`** — both decisions are below. ⚠️ **Two findings**: ADR-035 §2.10 names a policy that does not exist, and `public`'s default privileges hand `authenticated` a TRUNCATE that bypasses RLS on every new table | M | ✅ |
 | ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, [CI green on PR #23](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747). `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
-| 3.2b | **RLS isolation — writes.** For all 20 tenant tables: a user in workspace A writing into workspace B is rejected. Most tables carry no insert/update policy at all, and "rejected because no policy exists" is a different claim from "rejected by a predicate" — the suite must say which | L | Both rejection modes asserted and distinguished; append-only triggers exercised as superuser stay covered |
+| 3.2b-i | **RLS isolation — writes, the three refusals that need no fabricated row.** Every (table, verb) pair `authenticated` holds no privilege on is refused at the GRANT, before RLS is consulted; a cross-tenant `update` / `delete` on a granted table is FILTERED to zero rows; and moving one's own row across the wall with `set workspace_id = <B>` is refused by the WITH CHECK. Plus the append-only triggers, exercised as the bypassing role | M | All three modes asserted, distinguished by mechanism and not merely by sqlstate, with a positive control per filtered pair |
+| 3.2b-ii | **RLS isolation — writes, inserting a NEW row into workspace B.** The eight tables `authenticated` may insert into, each needing a payload valid enough to reach the WITH CHECK — and the proof that it is, by the same payload being accepted into the caller's OWN workspace | M | Eight cross-wall inserts refused by the policy and not by a constraint, each paired with an accepted same-payload insert |
 | 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
@@ -1538,6 +1540,51 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### 3.2b was split on 2026-08-22, before it was written
+
+3.2b was sized L for one reason and it turned out to be the wrong one. The estimate
+assumed the expense was breadth — 20 tables × 3 verbs is 60 write attempts. It is not:
+58 of those 60 need no knowledge of the domain at all, because **Postgres checks the
+GRANT before it forms the row**, so `insert into public.sale default values` under
+`set role authenticated` returns `42501 permission denied for table sale` and never
+reaches a NOT NULL, a foreign key, or a policy. Confirmed by probe before the split
+was written.
+
+The expense is the other two: **an insert that must be valid enough to reach the WITH
+CHECK.** For the eight tables `authenticated` may insert into, a rejected insert
+proves nothing unless the same payload is accepted into the caller's own workspace —
+otherwise "rejected" may mean a missing `provider_id`, and the suite is green about
+the wrong wall. Eight hand-built payloads, each with a positive control, is the whole
+of the remaining work, and it is unrelated to everything else in the task.
+
+So the split is along that seam, and the first piece is the one that needs no
+fixtures:
+
+- **3.2b-i** — the grant wall, the filter, the WITH CHECK reached by *moving* a row,
+  and the append-only triggers. Payload-free from end to end.
+- **3.2b-ii** — the eight insert payloads and their positive controls.
+
+⚠️ **The probe found a THIRD rejection mode, and the plan's done-when named two.**
+The row said "rejected because no policy exists" versus "rejected by a predicate".
+The schema actually rejects a cross-tenant write in three distinguishable ways:
+
+| Mode | What happened | Looks like |
+|---|---|---|
+| `denied-grant` | `authenticated` holds no privilege; **RLS is never consulted** | `42501 permission denied for table <t>` |
+| `filtered` | The USING predicate made B's rows invisible; the statement **succeeds** | no error, `row_count = 0` |
+| `denied-check` | The WITH CHECK predicate refused the new row image | `42501 new row violates row-level security policy for table <t>` |
+
+⚠️ **Two of the three share sqlstate 42501**, so the mechanism can only be told apart
+by the message text. 3.2b-i classifies on the message, and records `unclassified` for
+anything that matches neither — which is what a future Postgres rewording turns red,
+rather than silently collapsing two different facts into one.
+
+⚠️ **`filtered` is the mode with no error at all, and it is the dangerous one.** A
+cross-tenant `update` on `provider` is *accepted* and changes nothing. That is correct
+behaviour and it is indistinguishable from a statement that did nothing for any other
+reason — which is why every filtered pair carries a positive control: the identical
+statement aimed at the caller's own workspace must affect more than zero rows.
 
 ### ⚠️ Found in 3.2a — THE SEED LEAVES ONE TENANT TABLE EMPTY, AND `workspace_invite` IS IT
 
