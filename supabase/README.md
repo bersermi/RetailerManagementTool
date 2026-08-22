@@ -1350,7 +1350,7 @@ the file was committed: a table with no RLS; a table with RLS and no policy; a
 `grant truncate on sale to authenticated`; `disable row level security` on
 `stock_movement`; and the suite run after `seed_invariant.sql` instead of before it.
 
-### `03_rls_isolation_writes.sql` — 151 tests (task 3.2b-i)
+### [`03_rls_isolation_writes.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265) — 151 tests (task 3.2b-i)
 
 The writing half of ADR-035 §2.10's second row. 02 asks what a signed-in user can
 READ across the tenant wall; this one tries to write through it, and its subject is
