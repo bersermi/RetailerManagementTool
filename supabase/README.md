@@ -59,6 +59,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 
 | `0012_location_timezone.sql` | `location.timezone` — one column, NOT NULL, defaulted to `America/Mexico_City`, plus a trigger refusing a name `pg_timezone_names` does not carry. `product_margin_daily` and `product_waste_daily` replaced to read it instead of a hardcoded literal. The default is exactly what they hardcoded, so applying it moves no bucket — asserted, not assumed |
 | [`0013_velocity_vs_trailing_average.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32582552739) | `product_velocity_daily` — one `security_invoker` view, units and takings per store per product per day **on a generated day spine**, beside the same measures over the trailing 28 days. No table, no policy, no function, and no `has_role` predicate: every base table is member-level, so a cashier reads their own store's velocity and there is no cost column for inheritance to fail open on. ⚠️ **It does not divide** — `trailing_days` and `trailing_traded_days` are both honest denominators and they disagree by 17.9% at a store that shut for five days. ⚠️ **91% of its rows exist to say nothing happened**, which is the answer rather than waste: no ledger holds a row for a sale that did not occur |
+| `0014_velocity_spine_reads_stock.sql` | `product_velocity_daily` — `create or replace`, one new CTE and one new column. The day spine starts at the earlier of a pair's first sale and its first **stock receipt**, read from `batch_balance`; plus `days_carried`. No table, no policy, no function, no new grant. ⚠️ **This is 2.3's finding fixed, and it needed no new table** — ADR-035 §2.9's "stock is already per location" was right. All 71 delivered-and-never-sold pairs become visible, and the spine start can only ever move EARLIER (`least`, not "instead of"), so no report can lose a row it printed yesterday. `batch_balance` and not `stock_batch` because the projection carries no cost and its RLS predicate is `sale_line`'s character for character: **a cashier reads 454 rows of the first and 0 of the second** |
 
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
@@ -74,14 +75,24 @@ a body calls until the body runs, so `record_sale` written against the
 five-argument version applies clean and then fails at the first till. There is no
 five-argument version after `0010`, and there is no compiler that will say so.
 
-⚠️ **`0013` ships the one finding of step 2 that asks for a SCHEMA change rather than
-a report change, and it is unresolved.** Its day spine starts at the first day a
-store put a product on a ticket, because nothing in this schema records when a store
-started **carrying** one. So a product delivered and never once sold is invisible to
-"what stopped selling" — 71 (store, product) pairs in the seed, asserted in
-`supabase/checks/0013_velocity_vs_trailing_average.sql`. `price_list` is the
-near-miss and does not do it: its `location_id` is nullable and its RLS is
-workspace-scoped. **Owner's call**, and it is a column, which is the append-only half.
+⚠️ **`0013` raised the one finding of step 2 that looked like a SCHEMA change, and
+`0014` closed it without one.** `0013`'s day spine started at the first day a store
+put a product on a ticket, so a product delivered and never once sold was invisible —
+71 (store, product) pairs. `0013`'s header concluded the fix was a new
+per-(location, variant) "carried from" table. **That conclusion was wrong.**
+ADR-035 §2.9 settled on 2026-08-14 that *"stock is already per location, which covers
+'we don't carry that here' without splitting anything"*, and it was right:
+`stock_batch` carries `(location_id, variant_id, received_at)` and its `origin` spans
+purchase, transfer and adjustment. `0014` starts the spine at the earlier of the first
+sale and the first stock receipt and the gap closes to **zero**, with no new table.
+**No schema change is owed to any of §2.9's three questions.**
+
+⚠️ **One adjacent fact is still genuinely unrecorded and is the owner's call:
+delisting.** "When did we start carrying this" is answerable from the ledger, as
+`0014` shows; "when did we decide to stop" is an intention, and the ledger records
+events. A product stocked once and deliberately dropped keeps generating silence rows
+until the store stops trading. That was equally true before `0014`, so nothing
+regressed — but it is a new fact and nothing in the schema holds it.
 
 Planned next, in order (ADR-035 §3):
 

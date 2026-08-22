@@ -19,10 +19,13 @@
 --      on this task — section 6. Here moving the zone moves something the other two
 --      views do not have: THE SIZE OF THE SPINE.
 --
--- ⚠️ AND ONE CLAIM IT DOES NOT MAKE. A product delivered to a store and never once
--- sold there has no spine and no row. That is 71 (store, product) pairs in this
--- seed, it is pinned in section 7, and it is the one finding of step 2 that asks
--- for a schema change rather than a report change. See the header of 0013.
+-- ⚠️ UPDATED BY 0014. `0013` shipped with a spine that started at a pair's first
+-- TICKET, so a product delivered and never once sold had no row — 71 (store,
+-- product) pairs. `0014` starts the spine at the earlier of the first sale and the
+-- first stock receipt, which closed that gap WITHOUT the new table `0013`'s header
+-- asked for. Every absolute count in this file was re-measured against the view as
+-- it now is; the claims that `0013` could only pin as limitations are asserted
+-- INVERTED in supabase/checks/0014_velocity_spine_reads_stock.sql.
 --
 -- WHY THIS IS NOT A FILE IN supabase/tests/
 -- -----------------------------------------
@@ -61,7 +64,7 @@ create temp table _base as
 select workspace_id, location_id, variant_id, day,
        qty_base_sold, revenue_net, line_count, store_traded,
        trailing_qty_base, trailing_days, trailing_traded_days, trailing_sold_days,
-       days_since_last_sale
+       days_since_last_sale, days_carried
   from public.product_velocity_daily;
 
 select id from location where name = 'Doña Lupe Centro'   \gset centro_
@@ -155,10 +158,10 @@ select chk('the spine is gapless: each (store, product) has one row per calendar
                 from product_velocity_daily group by 1,2,3) x
              where x.n <> x.span) = 0);
 
-select chk('and it is mostly silence — 22 129 of 24 268 rows say nothing happened',
-           (select count(*) from product_velocity_daily) = 24268
+select chk('and it is mostly silence — 28 333 of 30 472 rows say nothing happened',
+           (select count(*) from product_velocity_daily) = 30472
        and (select count(*) from product_velocity_daily
-                where qty_base_sold = 0 and line_count = 0) = 22129,
+                where qty_base_sold = 0 and line_count = 0) = 28333,
            (select count(*) filter (where qty_base_sold = 0 and line_count = 0)
                 || ' silent of ' || count(*) || ' rows' from product_velocity_daily));
 
@@ -180,8 +183,8 @@ carried as (select workspace_id, location_id, variant_id,
 select c.workspace_id, c.location_id, c.variant_id, g::date as day
   from carried c cross join lateral generate_series(c.first_day, c.last_day, interval '1 day') g;
 
-select chk('falsified: ending the spine at the product deletes 8 496 rows of silence',
-           (select count(*) from product_velocity_daily) - (select count(*) from _ends_at_product) = 8496,
+select chk('falsified: ending the spine at the product deletes 14 700 rows of silence',
+           (select count(*) from product_velocity_daily) - (select count(*) from _ends_at_product) = 14700,
            (select ((select count(*) from product_velocity_daily)
                   - (select count(*) from _ends_at_product))::text || ' rows lost'));
 
@@ -210,9 +213,9 @@ select chk('and it comes back on 2026-08-21 against a trailing baseline of exact
              where v.location_id = :'centro_id' and pv.name = 'Requesón 250 g'
                and v.day = date '2026-08-21'));
 
-select chk('2 421 rows are a product with a FULL window that sold in none of it',
+select chk('3 215 rows are a product with a FULL window that sold in none of it',
            (select count(*) from product_velocity_daily
-             where trailing_days = 28 and trailing_sold_days = 0 and qty_base_sold = 0) = 2421,
+             where trailing_days = 28 and trailing_sold_days = 0 and qty_base_sold = 0) = 3215,
            'the population the report exists to rank');
 
 select chk('the longest silence in the shop is 79 days, and it is Tostadas at Centro',
@@ -233,18 +236,23 @@ select chk('a sale cancelled the same day is line_count 2 and qty 0 — not an a
              where v.location_id = :'mercado_id' and pv.name = 'Jugo de naranja 1 l'
                and v.day = date '2026-06-07'));
 
-select chk('NULL days_since_last_sale means "has never moved here", and it is 8 rows',
-           (select count(*) from product_velocity_daily where days_since_last_sale is null) = 8
+-- ⚠️ 6 212 SINCE 0014, AND THE JUMP IS THE FIX ITSELF. Before 0014 this was 8 rows,
+-- all of them Jugo de naranja's. Now it also covers every day of every pair that has
+-- stock and has never sold at all — which is precisely the population 0013 could not
+-- see. 25 of the rows are still Jugo's, whose spine now starts at its first receipt
+-- (2026-05-21) rather than at its voided first ticket (2026-06-07).
+select chk('NULL days_since_last_sale means "has never moved here", and it is 6 212 rows',
+           (select count(*) from product_velocity_daily where days_since_last_sale is null) = 6212
        and (select bool_and(qty_base_sold <= 0) from product_velocity_daily
              where days_since_last_sale is null),
-           'all 8 belong to Jugo de naranja 1 l at Mercado, between its voided '
-        || 'first appearance and its first real sale');
+           (select count(*) || ' rows have never seen this product move at this store'
+              from product_velocity_daily where days_since_last_sale is null));
 
 select chk('every pair''s first spine day has trailing_days = 0 — nothing to compare yet',
-           (select count(*) from product_velocity_daily where trailing_days = 0) = 439
+           (select count(*) from product_velocity_daily where trailing_days = 0) = 510
        and (select count(*) from (
               select workspace_id, location_id, variant_id from product_velocity_daily
-               group by 1,2,3) p) = 439);
+               group by 1,2,3) p) = 510);
 
 
 -- ============================ 4. ⚠️ IT DOES NOT DIVIDE, AND HERE IS WHY ==
@@ -278,19 +286,20 @@ select chk('ratios do not add: avg() of the per-product rates is not the shop''s
            (select round(avg(trailing_qty_base / trailing_traded_days), 6)
               from product_velocity_daily
              where location_id = :'centro_id' and day = date '2026-08-21'
-               and trailing_traded_days > 0) = 21.548254
+               and trailing_traded_days > 0) = 15.651352
        and (select round(sum(trailing_qty_base) / sum(trailing_traded_days), 6)
               from product_velocity_daily
              where location_id = :'centro_id' and day = date '2026-08-21'
-               and trailing_traded_days > 0) = 16.508404,
-           'avg of rates 21.548254, rate of sums 16.508404 — 30.5% apart');
+               and trailing_traded_days > 0) = 14.554465,
+           'avg of rates 15.651352, rate of sums 14.554465 — the two disagree, and '
+        || 'only the second is the shop''s actual rate');
 
 select chk('and the two denominators give two different, both-honest answers',
            (select round(sum(trailing_qty_base) / sum(trailing_days), 6)
               from product_velocity_daily
              where location_id = :'centro_id' and day = date '2026-08-21'
-               and trailing_days > 0) = 13.370757,
-           'per calendar day 13.370757 vs per traded day 16.508404 — the view '
+               and trailing_days > 0) = 11.786939,
+           'per calendar day 11.786939 vs per traded day 14.554465 — the view '
         || 'ships both denominators and divides neither');
 
 select chk('the view ships no rate column at all',
@@ -376,7 +385,7 @@ select chk('an extreme zone moves that store''s buckets, so the view reads the c
                where location_id = :'centro_id'
               except
               select variant_id, day, qty_base_sold from _base
-               where location_id = :'centro_id') d) = 1777,
+               where location_id = :'centro_id') d) = 1999,
            (select count(*) || ' Centro rows differ at UTC+14' from (
               select variant_id, day, qty_base_sold from product_velocity_daily
                where location_id = :'centro_id'
@@ -385,10 +394,10 @@ select chk('an extreme zone moves that store''s buckets, so the view reads the c
                where location_id = :'centro_id') d));
 
 select chk('⚠️ and the SPINE changes size, which only this view can show',
-           (select count(*) from product_velocity_daily where location_id = :'centro_id') = 12624
-       and (select count(*) from _base where location_id = :'centro_id') = 12602,
+           (select count(*) from product_velocity_daily where location_id = :'centro_id') = 15343
+       and (select count(*) from _base where location_id = :'centro_id') = 15099,
            'the store''s first and last trading day both move, so the generated '
-        || 'range is 22 days longer');
+        || 'range is 244 rows longer');
 
 select chk('and nothing at all moves at the other two stores',
            (select count(*) from (
@@ -396,7 +405,7 @@ select chk('and nothing at all moves at the other two stores',
               except
               select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
                      line_count, store_traded, trailing_qty_base, trailing_days,
-                     trailing_traded_days, trailing_sold_days, days_since_last_sale
+                     trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
                 from product_velocity_daily where location_id <> :'centro_id') d) = 0);
 
 select chk('and not one unit, peso or line is created or destroyed by the move',
@@ -427,42 +436,25 @@ update location set timezone = 'America/Mexico_City' where id = :'centro_id';
 -- seed grows the case, the check goes red and somebody reads the paragraph in
 -- 0013's header instead of trusting a report that cannot answer.
 
--- ⚠️ THE HEADLINE FINDING, AND THE ONLY ONE IN STEP 2 THAT ASKS FOR A SCHEMA CHANGE.
--- The spine starts at a pair's first SALE, because nothing records when a store
--- started carrying a product. A product delivered and never sold is therefore
--- invisible to "what stopped selling" — which is arguably the case the owner most
--- wants named.
-select chk('⚠️ 71 (store, product) pairs were delivered and NEVER sold — and are absent',
+-- ⚠️ FIXED IN 0014, AND THESE THREE CHECKS ARE NOW ASSERTED INVERTED. `0013`
+-- shipped a spine that started at a pair's first TICKET, so a product delivered and
+-- never once sold had no row — 71 (store, product) pairs — and `0013`'s header
+-- concluded the fix was a new per-(location, variant) "carried from" table.
+--
+-- That conclusion was wrong: ADR-035 §2.9 settled on 2026-08-14 that "stock is
+-- already per location, which covers 'we don't carry that here' without splitting
+-- anything", and it was right. `0014` starts the spine at the earlier of the first
+-- sale and the first stock receipt, read from `batch_balance`, and the gap closes to
+-- zero with no new table. The full claim is made in
+-- supabase/checks/0014_velocity_spine_reads_stock.sql; what stays here is the
+-- one-line statement that the gap this file was written to pin is gone.
+
+select chk('the gap 0013 pinned at 71 pairs is CLOSED — 0014, no new table needed',
            (select count(*) from (
               select distinct workspace_id, location_id, variant_id from purchase_line
               except
-              select distinct workspace_id, location_id, variant_id from product_velocity_daily) x) = 71,
-           'nothing in the schema records when a store started carrying a product; '
-        || 'price_list is per location and dated but its location_id is NULLABLE '
-        || 'and its RLS is workspace-scoped. See 0013''s header — owner''s call');
-
-select chk('⚠️ and it is not that they arrived late: 397 pairs were delivered before their first sale',
-           (select count(*) from (
-              select pl.location_id, pl.variant_id,
-                     min((p.occurred_at at time zone l.timezone)::date) as first_delivery
-                from purchase_line pl
-                join purchase p on p.id = pl.purchase_id
-                join location l on l.id = pl.location_id
-               group by 1,2) fp
-             join (select location_id, variant_id, min(day) as first_sale
-                     from product_velocity_daily group by 1,2) fs using (location_id, variant_id)
-            where fp.first_delivery < fs.first_sale) = 397,
-           'so the spine start is systematically LATER than the shop''s truth, not '
-        || 'occasionally');
-
-select chk('⚠️ 1 pair sold goods it was never delivered — so purchases would not fix it either',
-           (select count(*) from (
-              select distinct location_id, variant_id from product_velocity_daily
-              except
-              select distinct location_id, variant_id from purchase_line) x) = 1,
-           'it arrived by transfer; widening the spine with purchase_line would '
-        || 'still miss this one, and would drag two manager-gated tables into a '
-        || 'member-level view');
+              select distinct workspace_id, location_id, variant_id from product_velocity_daily) x) = 0,
+           'delivered-and-never-sold pairs invisible to the view: was 71, now 0');
 
 -- The store-wide blind spot, stated in 0013's header and pinned here.
 select chk('⚠️ no store has a delivery or a write-off AFTER its last selling day — the bound',
@@ -538,7 +530,7 @@ select id from auth.users where email = 'roble.owner@tienda.mx'  \gset ownerb_
 create temp table _mgr_centro as
 select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
        line_count, store_traded, trailing_qty_base, trailing_days,
-       trailing_traded_days, trailing_sold_days, days_since_last_sale
+       trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
   from public.product_velocity_daily where location_id = :'centro_id';
 grant select on _mgr_centro to authenticated;
 
@@ -548,7 +540,7 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 
 select chk('access: a cashier READS this view — no manager gate, and none is owed',
-           (select count(*) from product_velocity_daily) = 12602,
+           (select count(*) from product_velocity_daily) = 15099,
            (select count(*) || ' rows' from product_velocity_daily));
 
 select chk('access: and only their own store, by RLS rather than by a predicate',
@@ -560,7 +552,7 @@ select chk('access: and the rows are EXACTLY the manager''s Centro rows — narr
            (select count(*) from (
               (select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
                       line_count, store_traded, trailing_qty_base, trailing_days,
-                      trailing_traded_days, trailing_sold_days, days_since_last_sale
+                      trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
                  from product_velocity_daily
                except select * from _mgr_centro)
               union all
@@ -568,7 +560,7 @@ select chk('access: and the rows are EXACTLY the manager''s Centro rows — narr
                except
                select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
                       line_count, store_traded, trailing_qty_base, trailing_days,
-                      trailing_traded_days, trailing_sold_days, days_since_last_sale
+                      trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
                  from product_velocity_daily)) d) = 0);
 
 select chk('access: nothing costed is reachable through it — the reason no gate is owed',
@@ -585,7 +577,7 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 
 select chk('access: a manager sees both of their stores, so the rollup is theirs to make',
-           (select count(*) from product_velocity_daily) = 22342
+           (select count(*) from product_velocity_daily) = 28433
        and (select count(distinct location_id) from product_velocity_daily) = 2
        and (select count(*) from product_velocity_daily where workspace_id <> :'wsa_id') = 0);
 commit;
@@ -596,7 +588,7 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 
 select chk('access: the other tenant''s owner sees none of the first tenant''s velocity',
-           (select count(*) from product_velocity_daily) = 1926
+           (select count(*) from product_velocity_daily) = 2039
        and (select count(*) from product_velocity_daily where workspace_id = :'wsa_id') = 0);
 commit;
 
@@ -611,7 +603,7 @@ select chk('restored: the view is identical to the baseline, both ways',
            (select count(*) from (
               (select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
                       line_count, store_traded, trailing_qty_base, trailing_days,
-                      trailing_traded_days, trailing_sold_days, days_since_last_sale
+                      trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
                  from product_velocity_daily
                except select * from _base)
               union all
@@ -619,7 +611,7 @@ select chk('restored: the view is identical to the baseline, both ways',
                except
                select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net,
                       line_count, store_traded, trailing_qty_base, trailing_days,
-                      trailing_traded_days, trailing_sold_days, days_since_last_sale
+                      trailing_traded_days, trailing_sold_days, days_since_last_sale, days_carried
                  from product_velocity_daily)) d) = 0);
 
 -- ⚠️ THE CHECK THAT COUNTS THE CHECKS. `_verify.n` is a serial and a sequence is
