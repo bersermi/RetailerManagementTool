@@ -37,13 +37,17 @@ property of the ledger rather than a defect. **The timezone finding 2.1 raised a
 doubled is FIXED**: `location.timezone` is a column, all three views read it, and the
 day boundary is testable for the first time.
 
-⚠️ **ONE FINDING IS OUTSTANDING AND IT IS THE OWNER'S CALL — 2.3's, and it is the only
-one in step 2 that asks for a SCHEMA change rather than a report change.** Nothing
-records when a store started **carrying** a product, so `product_velocity_daily` infers
-it from the first sale and a product delivered and never once sold has no row at all —
-71 (store, product) pairs in the seed. "What never started" is arguably the more
-valuable question to a small retailer, and answering it needs a column, which is the
-append-only half. See *Found in 2.3* below.
+✅ **2.3's finding is FIXED, and it needed no schema change** — `0014`, task 2.5, done
+2026-08-22. The velocity spine now starts at the earlier of a pair's first sale and its
+first **stock receipt**, so all 71 delivered-and-never-sold pairs are reported and the
+shop can be told "*Pepino* has been on your shelf 63 days and has never once sold".
+⚠️ **2.3 prescribed a new table and was wrong to**: ADR-035 §2.9 settled on 2026-08-14
+that *"stock is already per location, which covers 'we don't carry that here'"*, and it
+was right. **No schema change is owed anywhere in step 2.** See *Fixed in 2.5* below.
+
+⚠️ **One adjacent fact is genuinely unrecorded and is the owner's call: DELISTING.**
+"When did we start carrying this" is answerable from the ledger; "when did we decide to
+stop" is an intention, and the ledger records events.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. The nineteen tables
 of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
@@ -53,9 +57,9 @@ that seed** rather than only over a fixture.
 2026-08-19 was to fix them immediately rather than fold them into the RPC migration, and
 `0010` (task 1.8, below) is that fix: the allocators take the moment an event happened
 instead of the moment it was written, and purchase-price memory decides its prefill from
-the data instead of from a uuid. **Both of step 1's findings are closed; the one that
-is open is 2.3's, above.**
-Every open decision in this file has been resolved except 2.3's. Two
+the data instead of from a uuid. **Every finding in this file is now closed**, step 1's
+and step 2's alike.
+Every open decision in this file has been resolved. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
 price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
@@ -858,6 +862,7 @@ written, as 1.6 was.
 | ~~2.2~~ | ~~`0011` — **what am I throwing away**: waste cost as % of purchases, by product~~ — **done** 2026-08-20, [CI green on PR #18](https://github.com/bersermi/RetailerManagementTool/actions/runs/32409705126). `product_waste_daily`, plus **55 checks** in `supabase/checks/0011_waste_share_of_purchases.sql`, now in the CI gate. **Same shape as 2.1 — two aggregates over one grain, joined once** — and the same three fears fall the same way. ⚠️ **The view does not divide**, because waste and the delivery it is measured against are different documents days apart: 136 of 137 day-grain waste buckets have no delivery that day, so a row-level rate would be null 99.3% of the time. ⚠️ **The division fails three ways and not one**, and only the first is a zero — the guard is `> 0`, not `nullif`. Seven falsifications, **two of which the seed cannot discriminate and which say so**. `0009`'s 34, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass, read from the job log | M | ✅ |
 | ~~2.4~~ | ~~`0012` — **a trading day is local**: `location.timezone`~~ — **done** 2026-08-20, [CI green on PR #19](https://github.com/bersermi/RetailerManagementTool/actions/runs/32418028025), **taken before 2.3 at the owner's instruction**, because 2.3 would have been a third view hardcoding the constant and a third chance to move only two of them. One column on `location` (NOT NULL, defaulted to the literal 2.1 and 2.2 hardcoded, so **applying it moves no bucket** — asserted), one trigger refusing a name `pg_timezone_names` does not carry, and `create or replace` on both views. **35 checks** in `supabase/checks/0012_location_timezone.sql`. ⚠️ **The day boundary is testable for the first time**: moving Centro to `America/Hermosillo` moves 6 delivery buckets, moves nothing at the other stores, and conserves every centavo. Five falsifications, read from the job log | M | ✅ |
 | ~~2.3~~ | ~~`0013` — **what stopped selling**: velocity vs trailing average~~ — **done** 2026-08-22, [CI green on PR #20](https://github.com/bersermi/RetailerManagementTool/actions/runs/32582552739). `product_velocity_daily`, plus **51 checks** in `supabase/checks/0013_velocity_vs_trailing_average.sql`, now in the CI gate. ⚠️ **The silence IS the answer, and it is a generated day spine**: 22 129 of the view's 24 268 rows exist to say nothing happened. ⚠️ **It does not divide, for a different reason from 2.2's** — there are TWO honest denominators and they disagree by 17.9% at a store that shut for five days. ⚠️ **The one schema finding of step 2**: 71 (store, product) pairs were delivered and never sold, and the view cannot see them. Six falsifications attempted, **five caught and one that the seed cannot make and which says so**. `0009`'s 36, `0011`'s 56, `0012`'s 35, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass, read from the job log | M | ✅ |
+| ~~2.5~~ | ~~`0014` — **what NEVER started selling**: the spine reads the stock ledger~~ — **done** 2026-08-22, taken at the owner's instruction to fix 2.3's finding before moving on. `create or replace` of `product_velocity_daily`, plus **30 checks** in `supabase/checks/0014_velocity_spine_reads_stock.sql`. ⚠️ **2.3's finding needed NO schema change** — ADR-035 §2.9's "stock is already per location" had already decided it. Invisible pairs 71 → **0**; 510 pairs, 30 472 rows. `batch_balance` not `stock_batch`, because **a cashier reads 454 rows of one and 0 of the other**. `0013`'s file re-measured to 49 checks | S | ✅ |
 
 Order is not forced by foreign keys — all three read applied tables — but it is forced
 by cost attribution. **2.1 is first because margin is the hard one**: it is the only
@@ -872,7 +877,8 @@ is the authority). **2.1 took `0009`, 2.2 took `0011`, 2.4 took `0012` and 2.3 t
 `0013`** — the next free number each time, because migrations are append-only
 once applied and tasks that merge separately cannot share one file. This is the same
 rule `0010` followed. ⚠️ **2.3 moved from `0012` to `0013` on 2026-08-20** when the
-owner took the timezone column ahead of it.
+owner took the timezone column ahead of it, **and 2.5 took `0014`** on 2026-08-22 to
+fix what 2.3 found.
 
 Two things `supabase/README.md` currently files under `0009` are **not** in step 2,
 and both are named here so they are not silently dropped:
@@ -911,12 +917,12 @@ the spine is not a property of this schema — no ledger holds a row for a sale 
 not occur. The verdict is a pass; the sentence describing the query is longer, and for
 a reason that belongs to the question.
 
-### ⚠️ Found in 2.3 — nothing records when a store started CARRYING a product
+### ⚠️ Found in 2.3, FIXED in 2.5 — and the fix was not the one 2.3 prescribed
 
-**This is the only finding of step 2 that asks for a schema change rather than a
-report change, and it is unresolved and the owner's.** It is **not** patched, for the
-reason 1.6b, 1.6c, 2.1 and 2.2 did not patch what they found: a column is append-only
-and this session's job was to ask the question, not to answer it in passing.
+**FIXED 2026-08-22 in `0014` (task 2.5), on the owner's instruction, and it turned out
+to need no schema change at all.** The finding below is left standing because the
+observation was correct and worth keeping; ⚠️ **what was wrong was the prescription**,
+and that is recorded in *Fixed in 2.5* immediately after it.
 
 `product_velocity_daily`'s day spine starts on the first day a store put a product on
 a ticket, because that is the earliest date the **sale** ledger can prove the store
@@ -931,7 +937,8 @@ written IS answered.** "What never started" is the adjacent question, and for a 
 retailer it is arguably the more valuable of the two: a case of something nobody wants
 is money on a shelf, and it is exactly what no report currently names.
 
-**Three things about the fix, so the cheap option is not mistaken for the right one:**
+**Three things 2.3 said about the fix. The first two were right; ⚠️ the third was
+wrong, and `0014` is what it should have said:**
 
 - **Widening the spine with `purchase_line` is the tempting move and it is wrong.** It
   drags two **manager-gated** tables into a view that is otherwise entirely
@@ -942,10 +949,80 @@ is money on a shelf, and it is exactly what no report currently names.
   which looks right, but its `location_id` is **nullable** for a workspace-wide price
   and its RLS is workspace-scoped rather than `my_locations()`-scoped. It answers
   "what may this be sold for", not "does this store stock it".
-- **The honest fix is a fact nobody records**: a per-(location, variant) "carried
-  from" date. That is a column or a small table, append-only, and **it gets dearer
-  once the seed writes data against it** — which is the class of decision the working
-  agreement says to flag loudly and by name.
+- ~~**The honest fix is a fact nobody records**: a per-(location, variant) "carried
+  from" date.~~ ⚠️ **WRONG, and ADR-035 §2.9 said so on 2026-08-14.** The fact is
+  already in the ledger: `stock_batch` (`0004`) carries `location_id`, `variant_id`
+  and `received_at`, and its `origin` spans purchase, **transfer** and adjustment — so
+  it answers the transfer objection above for free. 2.3 reached for a new table
+  because it was reasoning about `purchase_line` and `price_list`, and never asked
+  what the stock ledger already knew.
+
+### ✅ Fixed in 2.5 — `0014`, and the lesson is that the ADR knew
+
+Task **2.5**, taken 2026-08-22 on the owner's instruction to fix 2.3's finding before
+moving on. One migration, `0014_velocity_spine_reads_stock.sql`: a `create or replace`
+of `product_velocity_daily` adding one CTE and one column. **No table, no policy, no
+function, no new grant** — the whole thing is the reversible half.
+
+**What changed.** The day spine used to start at a pair's first **ticket**. It now
+starts at `least(first sale day, first stock receipt day)`, the receipt read from
+`batch_balance`. The gap closes completely: **delivered-and-never-sold pairs invisible
+to the view goes from 71 to 0**, the spine grows from 439 pairs to 510 and from 24 268
+rows to 30 472, and the one pair that sold goods it was never *delivered* — the
+transfer case 2.3 named as the reason `purchase_line` alone would not have sufficed —
+is visible too, because `stock_batch.origin` spans purchase, transfer and adjustment.
+
+⚠️ **THE LESSON: THE ADR HAD ALREADY DECIDED THIS AND 2.3 DID NOT LOOK.** ADR-035 §2.9,
+settled 2026-08-14: *"One catalog per workspace, shared across locations… stock is
+already per location, which covers 'we don't carry that here' without splitting
+anything."* A per-location assortment table was considered and rejected there, on
+exactly the grounds that made it unnecessary. 2.3 reasoned from `purchase_line` and
+`price_list`, concluded a new table was owed, and flagged it as the expensive
+append-only decision — when the cheap answer was one CTE away. **The finding was real;
+the prescription was not checked against the ADR.** That is the failure mode CLAUDE.md
+names — *if anything disagrees with the ADR, the ADR wins* — arriving from the
+direction nobody watches, a plan proposing to *add* what the ADR already refused.
+
+**`batch_balance`, not `stock_batch`, and the difference is measured rather than
+argued.** 2.3's objection to widening the spine was that it would drag manager-gated
+tables into a member-level view. Right about `stock_batch`, whose policy adds
+`has_role(manager)`. `batch_balance` is the same evidence with **`sale_line`'s own
+predicate, character for character**, and no cost column at all. ⚠️ **A cashier reads
+454 rows of `batch_balance` and 0 of `stock_batch`** — so the gated table would have
+built the till's spine out of nothing, and their never-sold products would have
+vanished while a manager saw them. Asserted, not described.
+
+**`least`, not "the stock day instead".** The spine start can only ever move *earlier*.
+No pair's history shortened, no pair starts later than its first sale or its first
+delivery, and not one unit, peso or line moved — all asserted. A report quietly losing
+rows is the failure that would be hardest to notice, and `least` makes it impossible
+rather than unlikely.
+
+**`days_carried` is what makes the new rows a sentence.** Beside a NULL
+`days_since_last_sale` it says *Pepino at Sucursal Mercado has been on the shelf 63
+days and has never once sold*. It is an age, so it rolls up as a **max** — and that,
+like `days_since_last_sale`'s min, is on the column comment because step 7 will be
+tempted to sum it.
+
+**30 checks** in `supabase/checks/0014_velocity_spine_reads_stock.sql`; `0013`'s file
+re-measured against the view as it now is and down to **49**, its three "cannot see"
+checks replaced by one asserting the gap is closed. Three mutations run: reverting to
+the sale-only spine goes red on 21 checks across the two files, reading `stock_batch`
+on 5 — **and one the seed cannot catch, recorded rather than papered over**.
+
+### ⚠️ Still open after 2.5, and the owner's call — DELISTING
+
+`0014` fixed "when did this store start carrying it", which the ledger knew. It did
+**not** fix "when did the store decide to stop", because that is an intention and the
+ledger records events. A product stocked once and deliberately dropped keeps generating
+silence rows until the store stops trading.
+
+Nothing regressed — the spine has always ended at the store's last trading day — but
+this is a genuinely new fact and no table holds it. A check asserts that no column
+anywhere carries it, so the day one is added this stops being true loudly. ⚠️ Unlike
+2.3's mistaken prescription, **this one really would be a schema change**, and the ADR
+does not already answer it: §2.9's "stock is already per location" covers *carrying*,
+not *ceasing to carry*. **Owner's call, and it is cheaper before a pilot than after.**
 
 ### Settled in 2.3, and binding on step 7's Números screens
 
