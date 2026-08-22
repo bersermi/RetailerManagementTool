@@ -62,7 +62,25 @@
 -- RLS, which on this project is `postgres` and `service_role` (F12). So they are
 -- exercised from exactly there.
 --
--- ⚠️ THE WITH CHECK IS SHADOWED, ON EVERY UPDATE POLICY IN THIS SCHEMA — found
+-- ⚠️ THE TENANT WALL ON WRITES IS HELD BY THE *SELECT* POLICIES, AND THE WRITE
+-- POLICIES STAND BEHIND IT — found by falsification while this suite was being
+-- written, and the single most useful thing it has to report.
+--
+-- Postgres must READ a row before it can update or delete it, so the SELECT
+-- policy filters the statement before the update policy is ever consulted. On
+-- this schema that means a cross-tenant UPDATE is stopped by `provider_select`,
+-- not by `provider_update` — and opening `provider_update`'s USING clause to
+-- `has_role(...) or true` was confirmed to leave every tenant assertion in this
+-- file green. The write policies are a second layer that the tenant wall alone
+-- cannot see.
+--
+-- ⚠️ SO A SUITE THAT ONLY CROSSED THE WALL WOULD BE UNABLE TO SAY THE WRITE
+-- POLICIES DO ANYTHING AT ALL. Section 4b is the answer: a STAFF user, inside
+-- its OWN workspace, is admitted by the SELECT policy — the rows are genuinely
+-- visible, F19 asserts it — and refused by the write policy's role gate. That
+-- brings the second layer into view, and T-role catches the leak above.
+--
+-- ⚠️ THE WITH CHECK IS SHADOWED TWICE OVER, ON EVERY UPDATE POLICY — found
 -- by falsification while this suite was being written, and the reason T-move is
 -- worded the way it is. All eight update policies are written with USING and
 -- WITH CHECK as the SAME expression (F18), and that makes the WITH CHECK half
@@ -334,6 +352,11 @@ create temp table iso_move (         -- one's own row, pushed across the wall
   primary key (tbl, actor)
 );
 
+create temp table iso_role (         -- a STAFF user, inside its OWN workspace
+  tbl name, verb text, n_visible int, mode text, n_rows int, role_seen name,
+  primary key (tbl, verb)
+);
+
 create temp table iso_append (       -- the immutability triggers, as the
   tbl name, verb text, mode text,    -- BYPASSING role — see the header
   state text, msg text, role_seen name,
@@ -475,6 +498,54 @@ begin
     end loop;
   end loop;
 
+  -- -------------------------------------------------------------------------
+  -- 4b. THE WRITE POLICIES, MADE OBSERVABLE — a STAFF user, inside its OWN
+  --     workspace, where the SELECT policy cannot be what refuses it.
+  --
+  -- ⚠️ WITHOUT THIS SECTION EVERY `filtered` ABOVE IS UNATTRIBUTED, and that is
+  -- not a theory — it was falsified. Opening `provider_update`'s USING clause to
+  -- `has_role(...) or true` leaves this entire suite green, because a
+  -- cross-tenant UPDATE never reaches that predicate: Postgres must read the
+  -- rows to update them, the SELECT policy hides the other workspace's rows from
+  -- that read, and the statement matches nothing. The tenant wall on writes is
+  -- held by the SELECT policies. The `_update` and `_delete` policies are a
+  -- second layer behind it, and across the tenant wall nothing can see them.
+  --
+  -- A staff user is what brings them into view. Staff is a MEMBER of workspace A,
+  -- so `provider_select` admits them and the rows are genuinely visible
+  -- (`n_visible`, asserted by F19) — but every write policy on these tables gates
+  -- on `has_role(workspace_id, 'manager')` or `'owner'`, which staff is not. So a
+  -- staff write inside their own workspace is refused BY THE WRITE POLICY, with
+  -- the SELECT policy standing aside, and the row count is the proof.
+  --
+  -- This is a role claim rather than a tenant claim, and it is here for one
+  -- reason: without it the suite cannot say the write policies do anything.
+  -- Which locations a staff user may write is a different wall, and it is 3.3.
+  -- -------------------------------------------------------------------------
+  perform set_config('request.jwt.claims',
+    json_build_object('sub', '5eed0001-0000-0000-0000-000000000003',
+                      'role', 'authenticated')::text, true);
+  v_ws := (select ws_id from iso_actor where tag = 'a');
+
+  for r in select p.tbl, p.verb, t.ws_col
+             from iso_pair p join iso_table t on t.tbl = p.tbl
+            where p.disposition = 'cross-tenant'
+            order by p.tbl, p.verb
+  loop
+    execute 'set role authenticated';
+    execute format('select count(*)::int from public.%I where %I = %L',
+                   r.tbl, r.ws_col, v_ws) into v_n;
+    v_stmt := case r.verb
+      when 'update' then format('update public.%I set %I = %I where %I = %L',
+                                r.tbl, r.ws_col, r.ws_col, r.ws_col, v_ws)
+      when 'delete' then format('delete from public.%I where %I = %L',
+                                r.tbl, r.ws_col, v_ws)
+    end;
+    select * into res from pg_temp.attempt(v_stmt);
+    execute 'reset role';
+    insert into iso_role values (r.tbl, r.verb, v_n, res.mode, res.n_rows, res.role_seen);
+  end loop;
+
   perform set_config('request.jwt.claims', null, true);
 
   -- -------------------------------------------------------------------------
@@ -540,16 +611,17 @@ $$;
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  18
+  19
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
   + (select count(*)::int from iso_move)
+  + (select count(*)::int from iso_role)
   + (select count(*)::int from iso_append)
 );
 
 -- ---------------------------------------------------------------------------
--- Fixed tests F1–F18
+-- Fixed tests F1–F19
 -- ---------------------------------------------------------------------------
 
 -- F1. EVERY (TABLE, VERB) PAIR IS ACCOUNTED FOR. 20 tables × 3 write verbs. A
@@ -578,7 +650,8 @@ select is(
      select role_seen from iso_grant
      union select role_seen from iso_cross
      union select role_seen from iso_own
-     union select role_seen from iso_move) s),
+     union select role_seen from iso_move
+     union select role_seen from iso_role) s),
   array['authenticated']::name[],
   'F3 every signed-in measurement ran under set role authenticated'
 );
@@ -599,6 +672,7 @@ select ok(
   and (select count(*)::int from iso_cross) >= 24
   and (select count(*)::int from iso_own)   >= 24
   and (select count(*)::int from iso_move)  >= 16
+  and (select count(*)::int from iso_role)  >= 12
   and (select count(*)::int from iso_append) >= 16,
   'F5 the grant wall, both tenant walls and the triggers were all actually measured'
 );
@@ -733,6 +807,31 @@ select is_empty(
                         where c2.relname = t.tbl and p2.polcmd = 'r') $$,
   'F18 every moved table repeats USING as WITH CHECK and carries a SELECT policy'
 );
+
+-- F19. THE STAFF PROBE SAW THE ROWS IT WAS REFUSED. T-role is worth nothing on a
+-- table staff cannot read: "the write matched no rows" and "there were no rows"
+-- are the same green, and the SELECT policy would be doing the work again. So
+-- the visible count is asserted, and the exceptions are NAMED rather than
+-- excluded. ⚠️ `workspace_invite` is the expected one — its SELECT policy is
+-- `has_role(workspace_id,'manager')`, so staff cannot see invites at all and its
+-- two T-role rows are carried as known-vacuous. A THIRD name appearing here is a
+-- table that quietly stopped being observable.
+select is(
+  (select coalesce(array_agg(distinct tbl order by tbl), '{}')
+     from iso_role where coalesce(n_visible, 0) = 0),
+  array['workspace_invite']::name[],
+  'F19 staff could see the rows it was refused, everywhere but workspace_invite'
+);
+
+-- ---------------------------------------------------------------------------
+-- The write policies, seen at last — a staff user, refused inside its OWN
+-- workspace, with the SELECT policy standing aside. See section 4b: without
+-- these the tenant assertions above cannot be attributed to a write policy.
+-- ---------------------------------------------------------------------------
+select is(mode, 'filtered',
+  'T-role ' || tbl || '.' || verb || ' staff is refused by the write policy inside its own workspace ('
+    || coalesce(n_visible, 0) || ' rows visible to it)')
+from iso_role order by tbl, verb;
 
 -- ---------------------------------------------------------------------------
 -- The grant wall — the ACL refusal, before RLS is consulted at all

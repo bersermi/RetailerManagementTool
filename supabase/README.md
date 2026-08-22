@@ -1262,11 +1262,12 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/pgtap/` — the RLS suites (plan tasks 3.1, 3.2a)
+## `supabase/pgtap/` — the RLS suites (plan tasks 3.1, 3.2a, 3.2b-i)
 
 ADR-035 §2.10 names pgTAP as the home of five suites. This directory is where they
-live: `01_rls_coverage.sql` says the walls are standing, and
-`02_rls_isolation_reads.sql` reads rows as a signed-in user and says they hold.
+live: `01_rls_coverage.sql` says the walls are standing,
+`02_rls_isolation_reads.sql` reads rows as a signed-in user and says they hold, and
+`03_rls_isolation_writes.sql` tries to write through them and says which wall it hit.
 
 **The CI step runs the directory, not a list of files** — `ls supabase/pgtap/*.sql |
 sort`, skipping `_` — so a third suite costs no workflow edit, and a loop that matched
@@ -1348,6 +1349,83 @@ the file was committed: a table with no RLS; a table with RLS and no policy; a
 `using (true)` policy on `sale_line`; a policy left targeting `PUBLIC`; a single
 `grant truncate on sale to authenticated`; `disable row level security` on
 `stock_movement`; and the suite run after `seed_invariant.sql` instead of before it.
+
+### `03_rls_isolation_writes.sql` — 151 tests (task 3.2b-i)
+
+The writing half of ADR-035 §2.10's second row. 02 asks what a signed-in user can
+READ across the tenant wall; this one tries to write through it, and its subject is
+**which wall did the stopping** — because "the write was rejected" is three different
+facts on this schema and they are not interchangeable:
+
+| Mode | What stopped it | Looks like |
+|---|---|---|
+| `denied-grant` | `authenticated` holds no privilege — **RLS is never consulted** | `42501 permission denied for table <t>` |
+| `filtered` | The row was invisible, so the statement matched nothing. ⚠️ **No error at all** | no error, `row_count = 0` |
+| `denied-check` | A policy refused the **new row image** | `42501 new row violates row-level security policy` |
+
+⚠️ **Two of the three share sqlstate 42501**, so the mechanism is classified on the
+message text and F11 fails on anything matching neither — a Postgres rewording turns
+the suite red instead of quietly collapsing two facts into one.
+
+⚠️ **`filtered` is the dangerous one, and it is why every one of them carries a
+positive control.** A cross-tenant `update` is *accepted* and changes nothing, which
+is indistinguishable from a statement that did nothing for any other reason. So the
+identical statement is also aimed at the caller's own workspace and must affect more
+than zero rows (`T-own`, and F8 over all of them).
+
+⚠️ **THE TENANT WALL ON WRITES IS HELD BY THE `_select` POLICIES.** Postgres must
+read a row before it can update or delete it, so the SELECT policy filters the
+statement before the update policy is ever consulted. Opening `provider_update`'s
+USING clause to `has_role(...) or true` was confirmed to leave every tenant assertion
+in the file green. **The `_update` and `_delete` policies are a second layer that
+crossing the wall cannot see** — so the suite also signs in as a **staff** user and
+writes inside its OWN workspace, where the SELECT policy admits it (F19 asserts the
+rows really are visible) and the write policy's role gate is what refuses it. That is
+`T-role`, and it is what makes the write policies observable at all.
+
+⚠️ **The `with check` clauses are shadowed twice over and nothing behavioural can
+observe them.** All eight update policies repeat their USING expression as their
+WITH CHECK, so it can never fire first: if USING fails there is no row to check, and
+if USING passes, the only rejectable new image is one that moved workspace — which
+the SELECT policy refuses first. `alter policy provider_update with check (true)`
+leaves the suite green. **F18 asserts the two conditions that make that true**, so a
+migration which makes them differ turns the suite red and the attribution gets
+re-derived rather than silently inherited.
+
+**The append-only triggers are exercised as the bypassing role, on purpose.** The
+eight transaction-document tables grant `authenticated` nothing but `select`, so a
+signed-in user never reaches their triggers — the grant stops them first, which is
+F13. The roles that do hold the privilege (`postgres`, `service_role`) also bypass
+RLS (F12), leaving the trigger as the only wall in front of them, so that is where
+`T-append` measures from.
+
+**Every write is undone the instant it is measured.** `pg_temp.attempt()` runs the
+statement, records the outcome, then raises a private sqlstate to roll its own
+subtransaction back — the positive controls genuinely delete 365 price-list rows
+before that happens. The whole file is also one transaction ending in `rollback`, and
+**F15 proves the ledger came back**, per table, from counts taken before the suite
+ran. It is why the seed checks in the next CI step still read what the reset produced.
+
+**Twelve falsifications**, each confirmed non-zero before the file was committed:
+write grants on an append-only table; `drop policy provider_update`; an opened
+`with check`; `disable row level security`; an untenanted table in `public`; a dropped
+immutability trigger; a leak in a write policy's USING; `drop policy
+price_list_delete`; the `set role authenticated` removed; `attempt()` made `security
+definer`; the undo removed; and the fixture written for one workspace only.
+
+⚠️ **Two of those found holes in the suite rather than in the schema, and both are
+worth keeping.** The opened `with check` and the write-policy leak *passed* the first
+version of this file — which is how the shadowing above was discovered, and why F18
+and `T-role` exist. A suite whose falsifications all pass first time is a suite whose
+falsifications were chosen to.
+
+⚠️ **A leak in a `_select` policy exits 0 here, by design** — that is 02's claim, and
+02 was confirmed to catch it. Neither file covers the other.
+
+**What it does NOT claim.** It never inserts a NEW row into workspace B. The eight
+tables `authenticated` may insert into each need a payload valid enough to reach the
+policy, plus proof the payload was valid — that is task **3.2b-ii**, and F16/F17 hold
+the deferral open so a ninth insert-granted table cannot join it quietly.
 
 ### [`02_rls_isolation_reads.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747) — 106 tests (task 3.2a)
 
