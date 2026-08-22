@@ -830,16 +830,22 @@ select chk('day: ⚠️ the seed trades in UTC office hours, so it cannot discri
 -- zones. 0012 removed the literals, so the claim becomes: there is nothing left to
 -- drift. Read out of the shipped definitions rather than the source files, so it is
 -- a claim about what the database is doing.
+--
+-- ⚠️ WIDENED BY 2.3 TO ALL THREE ANALYTICS VIEWS, as docs/PLAN.md's "Settled in 2.4"
+-- requires. The list is spelled out rather than discovered, so that ADDING a fourth
+-- analytics view without adding it here fails the count instead of passing silently
+-- — which is exactly the failure mode this check exists for.
 create temp view _tz as
 select v.relname::text as view_name,
        pg_get_viewdef(v.oid)                                     as def,
        (pg_get_viewdef(v.oid) ~* 'AT TIME ZONE ''[A-Za-z]+/')     as has_literal_zone,
        (pg_get_viewdef(v.oid) ~* 'timezone')                      as reads_column
-  from (values ('product_margin_daily'::text), ('product_waste_daily'::text)) x(n)
+  from (values ('product_margin_daily'::text), ('product_waste_daily'::text),
+               ('product_velocity_daily'::text)) x(n)
   join pg_class v on v.relname = x.n and v.relnamespace = 'public'::regnamespace;
 
-select chk('day: NEITHER view hardcodes a zone any more — both read location.timezone',
-           (select count(*) from _tz) = 2
+select chk('day: NO analytics view hardcodes a zone — all three read location.timezone',
+           (select count(*) from _tz) = 3
        and (select bool_and(not has_literal_zone) from _tz)
        and (select bool_and(reads_column) from _tz),
            (select string_agg(view_name || ' => '

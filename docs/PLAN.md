@@ -22,17 +22,28 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-**STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS OPEN.**
+**STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
+STEP 3 IS NEXT.**
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
 **Step 2 was split into 2.1 / 2.2 / 2.3 on 2026-08-20**, before any of it was written —
 one task per question, because the three read three different corners of the ledger.
-**2.1 — margin by product — and 2.2 — waste as a share of purchases — are done**;
-**2.4 — the shop timezone — is done, taken before 2.3 at the owner's instruction on
-2026-08-20**; 2.3 is open and is now `0013`. See *Step 2* below. **2.2 found that the
-division at the end of a waste report fails three ways and not one** — recorded, not
-patched, because it is a property of the ledger rather than a defect. **The timezone
-finding 2.1 raised and 2.2 doubled is FIXED**: `location.timezone` is a column, both
-views read it, and the day boundary is testable for the first time.
+**2.1 — margin by product — 2.2 — waste as a share of purchases — 2.4 — the shop
+timezone — and 2.3 — velocity against a trailing average — are all done.**
+**⚠️ THE GATE'S VERDICT IS A PASS, THREE OF THREE**: ADR-035 §2.9's three questions
+are each answerable in one statement over the applied schema, and no schema change is
+owed to any of them. See *Step 2* below. **2.2 found that the division at the end of a
+waste report fails three ways and not one** — recorded, not patched, because it is a
+property of the ledger rather than a defect. **The timezone finding 2.1 raised and 2.2
+doubled is FIXED**: `location.timezone` is a column, all three views read it, and the
+day boundary is testable for the first time.
+
+⚠️ **ONE FINDING IS OUTSTANDING AND IT IS THE OWNER'S CALL — 2.3's, and it is the only
+one in step 2 that asks for a SCHEMA change rather than a report change.** Nothing
+records when a store started **carrying** a product, so `product_velocity_daily` infers
+it from the first sale and a product delivered and never once sold has no row at all —
+71 (store, product) pairs in the seed. "What never started" is arguably the more
+valuable question to a small retailer, and answering it needs a column, which is the
+append-only half. See *Found in 2.3* below.
 **1.6 was split into 1.6a / 1.6b / 1.6c on 2026-08-18** with the owner's approval,
 before any of it was written — it was the last **L** in step 1. The nineteen tables
 of ADR-035 §2.3 that step 1 owed are applied, the seed writes three months of two
@@ -42,8 +53,9 @@ that seed** rather than only over a fixture.
 2026-08-19 was to fix them immediately rather than fold them into the RPC migration, and
 `0010` (task 1.8, below) is that fix: the allocators take the moment an event happened
 instead of the moment it was written, and purchase-price memory decides its prefill from
-the data instead of from a uuid. **No finding is outstanding.**
-Every open decision in this file has been resolved; none is outstanding. Two
+the data instead of from a uuid. **Both of step 1's findings are closed; the one that
+is open is 2.3's, above.**
+Every open decision in this file has been resolved except 2.3's. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
 price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
@@ -821,7 +833,7 @@ availability check.
 applied, therefore not edited — still calls the RPC migration `0005` in two comments.
 [`supabase/README.md`](../supabase/README.md) is the authority on numbering.
 
-## Step 2 — the three Insight queries, the design gate 🚧
+## Step 2 — the three Insight queries, the design gate ✅
 
 ADR-035 §3 step 2: *"Write §2.9's queries against seeded data, **per location and
 consolidated across locations**. If margin-by-product needs a five-way join and a CTE
@@ -845,7 +857,7 @@ written, as 1.6 was.
 | ~~2.1~~ | ~~`0009` — **what made me money**: gross margin by product, net of tax~~ — **done** 2026-08-20, [CI green on PR #17](https://github.com/bersermi/RetailerManagementTool/actions/runs/32375602999). `product_margin_daily`, plus **34 checks** in `supabase/checks/0009_product_margin.sql`, now in the CI gate. **The gate's answer is two aggregates over one grain, joined once** — no five-way join and no CTE. Reversals cancel themselves, unit conversion never appears, and the location rollup is a `group by` the caller drops. Five falsifications, **two of which the seed cannot discriminate and which say so**. `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9, `0008`'s 46 and 1.7's 18 all still pass, read from the job log | M | ✅ |
 | ~~2.2~~ | ~~`0011` — **what am I throwing away**: waste cost as % of purchases, by product~~ — **done** 2026-08-20, [CI green on PR #18](https://github.com/bersermi/RetailerManagementTool/actions/runs/32409705126). `product_waste_daily`, plus **55 checks** in `supabase/checks/0011_waste_share_of_purchases.sql`, now in the CI gate. **Same shape as 2.1 — two aggregates over one grain, joined once** — and the same three fears fall the same way. ⚠️ **The view does not divide**, because waste and the delivery it is measured against are different documents days apart: 136 of 137 day-grain waste buckets have no delivery that day, so a row-level rate would be null 99.3% of the time. ⚠️ **The division fails three ways and not one**, and only the first is a zero — the guard is `> 0`, not `nullif`. Seven falsifications, **two of which the seed cannot discriminate and which say so**. `0009`'s 34, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass, read from the job log | M | ✅ |
 | ~~2.4~~ | ~~`0012` — **a trading day is local**: `location.timezone`~~ — **done** 2026-08-20, [CI green on PR #19](https://github.com/bersermi/RetailerManagementTool/actions/runs/32418028025), **taken before 2.3 at the owner's instruction**, because 2.3 would have been a third view hardcoding the constant and a third chance to move only two of them. One column on `location` (NOT NULL, defaulted to the literal 2.1 and 2.2 hardcoded, so **applying it moves no bucket** — asserted), one trigger refusing a name `pg_timezone_names` does not carry, and `create or replace` on both views. **35 checks** in `supabase/checks/0012_location_timezone.sql`. ⚠️ **The day boundary is testable for the first time**: moving Centro to `America/Hermosillo` moves 6 delivery buckets, moves nothing at the other stores, and conserves every centavo. Five falsifications, read from the job log | M | ✅ |
-| 2.3 | `0013` — **what stopped selling**: velocity vs trailing average | M | Same bar, plus the one thing the other two do not have: a product that never sold in the current window has no row to compare, and the whole question is about absence. The check must prove the view reports the silence rather than omitting it |
+| ~~2.3~~ | ~~`0013` — **what stopped selling**: velocity vs trailing average~~ — **done** 2026-08-22, CI green on PR #20. `product_velocity_daily`, plus **51 checks** in `supabase/checks/0013_velocity_vs_trailing_average.sql`, now in the CI gate. ⚠️ **The silence IS the answer, and it is a generated day spine**: 22 129 of the view's 24 268 rows exist to say nothing happened. ⚠️ **It does not divide, for a different reason from 2.2's** — there are TWO honest denominators and they disagree by 17.9% at a store that shut for five days. ⚠️ **The one schema finding of step 2**: 71 (store, product) pairs were delivered and never sold, and the view cannot see them. Six falsifications attempted, **five caught and one that the seed cannot make and which says so**. `0009`'s 36, `0011`'s 56, `0012`'s 35, 1.7's 18, `0003`'s 39, `0004`'s 54, `0005`'s 55, the concurrency file's 9 and `0008`'s 46 all still pass, read from the job log | M | ✅ |
 
 Order is not forced by foreign keys — all three read applied tables — but it is forced
 by cost attribution. **2.1 is first because margin is the hard one**: it is the only
@@ -856,8 +868,8 @@ five-way join, the schema is wrong". If the schema is wrong, 2.1 is where it sho
 ### Numbering, and what step 2 does NOT ship
 
 `0006` and `0007` are reserved and unwritten ([`supabase/README.md`](../supabase/README.md)
-is the authority). **2.1 took `0009`, 2.2 took `0011`, 2.4 took `0012` and 2.3 will
-take `0013`** — the next free number each time, because migrations are append-only
+is the authority). **2.1 took `0009`, 2.2 took `0011`, 2.4 took `0012` and 2.3 took
+`0013`** — the next free number each time, because migrations are append-only
 once applied and tasks that merge separately cannot share one file. This is the same
 rule `0010` followed. ⚠️ **2.3 moved from `0012` to `0013` on 2026-08-20** when the
 owner took the timezone column ahead of it.
@@ -875,6 +887,169 @@ and both are named here so they are not silently dropped:
   the merchant. It is not one of §2.9's three questions and it answers a different
   person's question; it belongs with Números (step 7) or with a task of its own.
   **Owner's call.**
+
+### The gate's verdict, from 2.3 — **the schema passes, three of three, and step 2 is closed**
+
+2.3 asked §2.9's third question and the schema answered it. The measure leg is
+`sale_line → sale`, which is **bit for bit `product_margin_daily`'s revenue leg** —
+asserted both directions, so neither view holds a bucket the other lacks. Reversals
+still cancel by being summed, unit conversion still never appears, and the location
+rollup is still a `group by` the caller drops.
+
+**ADR-035 §3 step 2's bar is met for all three questions, and no schema change is owed
+to any of them.** Step 2 is closed.
+
+⚠️ **AND THIS VIEW IS LITERALLY "A FIVE-WAY JOIN AND A CTE", WHICH IS THE SHAPE THE
+ADR NAMES AS FAILURE — SO THE DECOMPOSITION IS ON THE RECORD RATHER THAN GLOSSED.**
+The gate's words are *"if margin-by-product needs a five-way join and a CTE to survive
+**reversals, unit conversion and a location rollup**, the schema is wrong"*. Not one
+of those three is why anything in `0013` is complicated. Of its five tables,
+`product_variant` and `product_family` are the name lookup `0009` and `0011` also
+carry and `location` is the timezone lookup `0012` gave all three; strip those and the
+measure is two tables and one join. Everything above that is **the day spine**, and
+the spine is not a property of this schema — no ledger holds a row for a sale that did
+not occur. The verdict is a pass; the sentence describing the query is longer, and for
+a reason that belongs to the question.
+
+### ⚠️ Found in 2.3 — nothing records when a store started CARRYING a product
+
+**This is the only finding of step 2 that asks for a schema change rather than a
+report change, and it is unresolved and the owner's.** It is **not** patched, for the
+reason 1.6b, 1.6c, 2.1 and 2.2 did not patch what they found: a column is append-only
+and this session's job was to ask the question, not to answer it in passing.
+
+`product_velocity_daily`'s day spine starts on the first day a store put a product on
+a ticket, because that is the earliest date the **sale** ledger can prove the store
+carried it. So a product that was delivered and never once sold has no spine, no row,
+and is invisible to a report called "what stopped selling". In the seed that is **71
+(store, product) pairs** — asserted, not estimated — and it is not a matter of late
+arrivals: **397 pairs were delivered before their first sale**, so the inferred start
+is systematically later than the shop's truth rather than occasionally.
+
+⚠️ **§2.9 asks what STOPPED selling, which presupposes it started, so the question as
+written IS answered.** "What never started" is the adjacent question, and for a small
+retailer it is arguably the more valuable of the two: a case of something nobody wants
+is money on a shelf, and it is exactly what no report currently names.
+
+**Three things about the fix, so the cheap option is not mistaken for the right one:**
+
+- **Widening the spine with `purchase_line` is the tempting move and it is wrong.** It
+  drags two **manager-gated** tables into a view that is otherwise entirely
+  member-level, which would make a cashier and a manager see different numbers of rows
+  for the same store; and it still misses stock that arrived by **transfer** — 1 pair
+  in this seed sold goods it was never delivered. Both pinned as checks.
+- **`price_list` is the near-miss and does not do it.** It is per location and dated,
+  which looks right, but its `location_id` is **nullable** for a workspace-wide price
+  and its RLS is workspace-scoped rather than `my_locations()`-scoped. It answers
+  "what may this be sold for", not "does this store stock it".
+- **The honest fix is a fact nobody records**: a per-(location, variant) "carried
+  from" date. That is a column or a small table, append-only, and **it gets dearer
+  once the seed writes data against it** — which is the class of decision the working
+  agreement says to flag loudly and by name.
+
+### Settled in 2.3, and binding on step 7's Números screens
+
+Every one of these is a **view body** — no data to migrate, nothing the seed bakes
+in — so all are the owner's to overturn at the ordinary price.
+
+- **⚠️ THE ANSWER IS AN ABSENCE, SO THE VIEW GENERATES ITS OWN DAYS.** `0009` and
+  `0011` aggregate rows that exist, and a day on which nothing happened is simply not
+  in either view. That costs them nothing, because "what made me money" and "what am I
+  throwing away" are questions about events. **"What stopped selling" is not**: the
+  product the owner needs naming is precisely the one with no `sale_line` today. So
+  `0013` cannot be an aggregate over `sale_line` alone — it builds a day spine and
+  reports what did or did not land on it. **22 129 of its 24 268 rows exist to say
+  nothing happened**, and that density is the answer rather than waste. The
+  falsification is unambiguous: ending the spine at the product's last sale instead of
+  the store's last trading day **deletes 8 496 rows** — the view would fall silent
+  about a product exactly when the product fell silent.
+
+- **⚠️ THE SPINE ENDS AT THE STORE'S LAST TRADING DAY AND NOT AT `current_date`.** A
+  view whose row set moves with the calendar cannot be checked reproducibly, grows
+  rows on a database nobody has written to, and makes CI's answer depend on the day it
+  ran. **The price is stated: if a whole STORE stops selling, its spine stops with it**
+  and the silence that matters most becomes invisible. A check pins the seed's
+  precondition — no store has a delivery or a write-off after its last selling day — so
+  the day that stops being true it goes red.
+
+- **⚠️ THE VIEW DOES NOT DIVIDE — 0011's CONCLUSION, REACHED BY A DIFFERENT ROAD.**
+  `0011` withheld its rate because numerator and denominator are different documents
+  days apart. Here both numbers are on every row, and the reason is instead that
+  **there are two defensible denominators and the view must not pick one**:
+  `trailing_days` (calendar) and `trailing_traded_days` (days the till rang). They are
+  not a rounding apart. Doña Lupe Centro records no sale at all for five consecutive
+  days (2026-08-16…08-20); on 08-21 every product there with a full window shows
+  `trailing_days = 28` and `trailing_traded_days = 23`, so a calendar-denominator
+  average is **17.9% lower for every line in the shop on a day no product changed**. A
+  report using it would announce that the whole catalogue slowed down over a long
+  weekend. Measured at that store on that day: `avg()` of the per-product rates is
+  **21.548254**, the shop's actual rate per traded day is **16.508404**, and per
+  calendar day **13.370757**. Two of the three are honest and the first is not.
+
+- **⚠️ EVERY MEASURE ADDS ACROSS A ROLLUP; THE TWO NON-MEASURES DO NOT, AND THAT IS
+  WRITTEN ON THE COLUMNS.** `store_traded` rolls up as a `bool_or` and
+  `days_since_last_sale` as a `min` — a product last sold 3 days ago at one store and
+  40 at another has not been silent for 43 days anywhere. Summing either is
+  meaningless, and step 7 will be tempted to.
+
+- **`days_since_last_sale` IS THE COLUMN THE QUESTION IS ACTUALLY ASKING FOR.** The
+  trailing window alone cannot tell a product silent for 29 days from one silent for
+  79: both have a trailing sum of zero and only one is news. It counts calendar days,
+  including days the store was shut, which is why `store_traded` is on the row beside
+  it. **NULL is a third answer and not a missing one** — this pair has never had a day
+  of positive net movement here.
+
+- **⚠️ 0011's "NO ROW" VS "A ROW THAT NETS TO NOTHING", AT SALE GRAIN — the shape 2.1
+  predicted this task would meet, and it did.** *Jugo de naranja 1 l* at Sucursal
+  Mercado appeared once, on 2026-06-07, as a sale and its own same-day void:
+  `line_count` 2, `qty_base_sold` 0, `days_since_last_sale` NULL for the eight days
+  until it first really sold. `line_count` is on the row because it is the only column
+  that separates the two.
+
+- **THE 28-DAY WINDOW IS A CONSTANT AND DELIBERATELY NOT A COLUMN.** Four whole weeks,
+  so a weekday rhythm cancels; a 7-day window makes one public holiday look like a
+  collapse. `0012` made the timezone a column because a trading day is a fact **about a
+  shop**; a trailing window is a parameter of a **report** and belongs to the caller.
+  A caller wanting a different one needs no migration: every row carries
+  `qty_base_sold` on a gapless spine, so any window is a window function away over
+  this very view. **Owner's call, cheap in both directions.**
+
+- **`store_traded` IS DEFINED FROM SALES ALONE — THE TILL, NOT THE DOOR.** Nine days
+  in the seed took a delivery or a write-off without a sale and are counted as not
+  traded. Reading `purchase` and `waste` to answer "was someone there" would add two
+  base tables for a judgement the ledger does not actually make, so the column is
+  named for what it measures and the nine are pinned.
+
+- **NO `has_role` PREDICATE, AND THE PREDICTION IN *Settled in 2.1* HELD EXACTLY.**
+  Every base table is member-level and nothing costed is reachable, so inheritance is
+  simply **right** here rather than open (`0009`) or closed (`0011`) — the third of
+  the three cases. Asserted with the strong form rather than "the cashier sees
+  something": **the cashier's 12 602 rows are byte-identical to the manager's Centro
+  rows**, so inheritance narrows the view without distorting it. A gate would only
+  take a number away from the person standing at the till.
+
+### Two falsifications 2.3's seed cannot make, recorded rather than papered over
+
+Six mutations of the shipped view were run against the checks. **Five went red** —
+ending the spine at the product (11 checks), hardcoding the timezone (4), including
+today in the trailing window (5), dropping `location_id` from the window partition
+(8), and replacing the outer join with an inner one, which is the naive
+aggregate-over-`sale_line` view (19). The two that no check caught are here, in the
+same spirit as 2.1's and 2.2's pairs:
+
+- **`RANGE` weakened to `ROWS`.** Identical over this seed, because the spine is
+  **gapless by construction** — asserted — so "the previous 28 days" and "the previous
+  28 rows" are the same set on every row. `RANGE` is still right: it states the frame
+  in days, so it survives a spine that ever acquires a gap. The precondition is pinned
+  at 0 instead;
+
+- **`trailing_sold_days` counting `<> 0` instead of `> 0`.** `0011` found that a
+  window can net **negative** when a void lands later than its original. At day grain
+  over **sales** that never happens here, because 2.1 established that every sale void
+  in this seed lands minutes after its original on the same local day — so no day
+  bucket and no trailing sum is negative, and the two spellings agree. Both bounds are
+  pinned at 0, so the day the seed grows an evening trade or a late void, the `> 0`
+  guard starts earning its keep and this goes red.
 
 ### The gate's verdict, from 2.1 and 2.2 — **the schema passes, twice**
 
@@ -997,7 +1172,14 @@ overturn at the ordinary price, and none of them gets dearer with a pilot.
 **2.3 must not hardcode a timezone.** It joins `location` and reads
 `location.timezone`, exactly as `0009` and `0011` now do. The check that used to
 compare two literals now asserts that **no** analytics view carries one, and 2.3's
-view will be added to it.
+view will be added to it. ✅ **Discharged 2026-08-22**: `product_velocity_daily` reads
+the column, and the guard in
+[`supabase/checks/0011_waste_share_of_purchases.sql`](../supabase/checks/0011_waste_share_of_purchases.sql)
+now names all three views and asserts a count of 3, so a fourth analytics view added
+without registering it fails the count rather than passing silently. ⚠️ And 2.3 made
+the boundary visible in a way `0009` and `0011` cannot: moving a store's zone moves
+its first and last **trading day**, so the generated spine changes size — 12 602 rows
+at Centro become 12 624 at UTC+14.
 
 - **The column is on `location`, not on `workspace_setting`.** The store is the thing
   that has a trading day, and ADR-035 §2.3 makes confusing the two a one-way door. The
