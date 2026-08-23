@@ -66,7 +66,15 @@ to bring up only what a migration reset needs.
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ with god nodes, community structure, and cross-file relationships.
+This project has a knowledge graph at graphify-out/ — 437 nodes over Markdown, SQL and
+shell, with community structure and cross-file relationships.
+
+⚠️ **There are no god nodes and no semantic layer** (checked 2026-08-23). Every node is
+`_origin: ast`; the LLM extraction pass has never run because no `GEMINI_API_KEY` /
+`GOOGLE_API_KEY` is set, and `graphify-out/wiki/` does not exist. Community *names* come
+from each cluster's hub node, not from a model — `graphify label` would need a key. So
+treat the graph as a structural index, not a summarised one: it reliably tells you
+**where** something is, and never tells you what it means.
 
 Rules:
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
@@ -74,4 +82,13 @@ Rules:
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost). Commits, merges and branch switches do this automatically on main/master via the git hooks; run it by hand for uncommitted work or on other branches.
 - Every subagent prompt that involves code exploration must repeat these rules — subagents do not inherit them.
-- The graph does not index SQL — graphify has no SQL parser. For `supabase/migrations/**`, read the files directly.
+- **SQL IS indexed** (corrected 2026-08-23). This line used to read "graphify has no SQL
+  parser", which was never true — the parser is an optional extra, `tree_sitter_sql`,
+  and it simply was not installed. It is now, and all 32 `.sql` files contribute:
+  tables, functions, triggers, views and CTEs, each with a file and line. The graph
+  went from 177 nodes to 437, and code nodes from 8 to 268.
+- ⚠️ **`CREATE POLICY` is still NOT indexed**, and on this project that is the gap that
+  matters — forty policies are the subject of most current work. Policy names
+  (`sale_line_select`, `provider_update`) resolve to nothing in the graph. **For RLS
+  policy questions, read `supabase/migrations/**` directly, or ask the database.**
+  Everything else in SQL, query first.
