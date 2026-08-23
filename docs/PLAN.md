@@ -36,12 +36,18 @@ make the tenant claim by reading rows rather than catalogs: 106 tests, both dire
 every tenant table, under `set role authenticated`. ⚠️ **It writes a fixture and rolls
 it back**, because `workspace_invite` is the one tenant table the seed leaves empty and
 an isolation claim over zero rows is a claim about nothing. Decision below.
-**3.2b was split into 3.2b-i / 3.2b-ii on 2026-08-22 and 3.2b-i is done** — 151 tests,
-twelve falsifications. ⚠️ **Two falsifications found holes in the suite rather than in
+**3.2b was split into 3.2b-i / 3.2b-ii on 2026-08-22, and BOTH ARE NOW DONE** — 151
+tests and twelve falsifications for the first, 43 tests and twelve falsifications for
+the second. ⚠️ **Two of 3.2b-i's falsifications found holes in the suite rather than in
 the schema**, and the finding is that **the tenant wall on writes is held by the
 `_select` policies**: Postgres reads a row before it updates it, so a leak in a write
 policy is invisible from across the wall. The write policies are only observable from a
-staff user inside its own workspace. Findings below. ⚠️ **§2.10's `tenant_isolation`
+staff user inside its own workspace. ⚠️ **3.2b-ii is the exception to that, and it is
+the good news**: an INSERT reads no existing row, so nothing shadows the eight
+`_insert` policies and a cross-tenant insert is refused *by them* — opening
+`provider_insert` to `with check (true)` turns the new suite red where the same
+experiment on `provider_update` left the whole of 3.2b-i green. **The writing half of
+ADR-035 §2.10's second row is now complete.** Findings below. ⚠️ **§2.10's `tenant_isolation`
 naming disagreement, open since 3.1, is CLOSED** — the owner took the cheap side and
 ADR-035 §2.7 and §2.10 are the files that moved. No schema change.
 Tasks 1.1, 1.2, 1.3a, 1.3b, 1.4, 1.5, 1.6a, 1.6b, 1.6c, 1.7 and 1.8 are all done.
@@ -1518,7 +1524,8 @@ rows of ADR-035 §2.10.
 
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
 any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
-also before it was written — see below.** Step 3 is nine suites over two languages and it is the
+also before it was written — see below. **Both halves of 3.2b are now closed, and 3.3
+is next.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1534,7 +1541,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.1~~ | ~~**The pgTAP harness, and RLS coverage**~~ — **done** 2026-08-22, [CI green on PR #22](https://github.com/bersermi/RetailerManagementTool/actions/runs/32586859359). `supabase/pgtap/` with `_setup.sql`, `_teardown.sql` and `01_rls_coverage.sql`, plus a CI step of its own **between the reset and the seed checks**. **91 tests**: 11 fixed, 2 per table, 1 per policy, on a **computed plan** so a future table is covered the day it lands. **Seven falsifications**, each confirmed to exit non-zero. ⚠️ **pgTAP is not a migration and does not replace `supabase/tests/`** — both decisions are below. ⚠️ **Two findings**: ADR-035 §2.10 names a policy that does not exist, and `public`'s default privileges hand `authenticated` a TRUNCATE that bypasses RLS on every new table | M | ✅ |
 | ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, [CI green on PR #23](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747). `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
 | ~~3.2b-i~~ | ~~**RLS isolation — writes, the three refusals that need no fabricated row**~~ — **done** 2026-08-22, [CI green on PR #24](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265). `supabase/pgtap/03_rls_isolation_writes.sql`, picked up by the existing loop with no workflow edit. **151 tests**: 19 fixed, one per grant-wall pair, per cross-tenant measurement, per positive control, per move, per staff probe and per append-only probe, on a **computed plan**. **Twelve falsifications**, each confirmed non-zero. ⚠️ **Two of them found holes in the SUITE, not the schema** — and the finding below is the important one: the tenant wall on writes is held by the `_select` policies, and the write policies are a second layer that crossing the wall cannot see | M | ✅ |
-| 3.2b-ii | **RLS isolation — writes, inserting a NEW row into workspace B.** The eight tables `authenticated` may insert into, each needing a payload valid enough to reach the WITH CHECK — and the proof that it is, by the same payload being accepted into the caller's OWN workspace | M | Eight cross-wall inserts refused by the policy and not by a constraint, each paired with an accepted same-payload insert |
+| ~~3.2b-ii~~ | ~~**RLS isolation — writes, inserting a NEW row into workspace B**~~ — **done** 2026-08-23, CI green on PR #26. `supabase/pgtap/04_rls_isolation_writes_inserts.sql`, picked up by the existing loop with no workflow edit. **43 tests**: 11 fixed, one per measurement, on a **computed plan** — eight tables × two target workspaces × two callers. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The pairing is stronger than the done-when asked for**: not the same payload but the SAME STATEMENT TEXT, accepted for the owner of the workspace it names and refused for the other, so the two runs differ in nothing but who is asking (F7). ⚠️ **The finding is the good one** — the `_insert` policies are the one write-policy family a cross-tenant caller can observe directly. ⚠️ **It writes an `auth.users` fixture and rolls it back**; both decisions are below | M | ✅ |
 | 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
@@ -1548,6 +1555,132 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ✅ Found in 3.2b-ii — THE `_insert` POLICIES ARE THE ONE WRITE FAMILY THE TENANT WALL CAN SEE
+
+3.2b-i's central finding was that a cross-tenant `update` or `delete` never reaches its
+write policy: Postgres must read a row before it writes it, the SELECT policy hides the
+other workspace's rows from that read, and the statement matches nothing. Forty policies
+stand behind a wall that nothing crossing it can observe.
+
+**An INSERT is the exception, and it is the only one.** There is no existing row for a
+SELECT policy to hide, and with no `returning` clause Postgres does not apply the SELECT
+policy to the new row either. So the refusal comes from `<table>_insert`'s `with check`
+and from nowhere else.
+
+⚠️ **Falsified in both directions, and this is the contrast worth keeping.** Opening
+`provider_insert` to `with check (true)` turns `T-cross provider` red in both
+directions. The identical experiment on `provider_update` left **all 151 tests of
+3.2b-i green**. Same table, same suite family, opposite result — because one verb reads
+first and the other does not.
+
+**F6 is what keeps the attribution honest**: exactly one *permissive* insert policy per
+table, granted to `authenticated`, carrying a `with check` and no `using`. Permissive
+policies are OR-ed, so a second one arriving on any of these eight tables would make the
+refusal unattributable — and it turns F6 red on purpose. Confirmed by adding one.
+
+### ⚠️ Found in 3.2b-ii — A PAYLOAD IS REFUSED BY THE FIRST WALL IT MEETS, AND THAT IS NOT ALWAYS THE POLICY
+
+The reason 3.2b split at all was that an insert `authenticated` *is* granted has to
+survive long enough to reach the policy. What the suite had to be built around is the
+order Postgres checks things in, which is not the order anyone reads a table definition
+in:
+
+| Fires | What |
+|---|---|
+| **Before the policy** | `not null`, `check` constraints, and **BEFORE ROW triggers** — `product_variant_units_same_dimension_trg` is one |
+| **The policy** | the `with check` predicate of the INSERT policy |
+| **After the policy** | unique indexes, exclusion constraints, and foreign keys (they are AFTER triggers) |
+
+⚠️ **So a malformed payload is refused by arithmetic and the suite would be green about
+the wrong wall.** Falsified: giving the `product_variant` payload a `price_unit_code` of
+`kg` against three `pza` columns makes the dimension trigger refuse it — the policy is
+never consulted, and both directions come back identical. F5 catches it, because a
+constraint refusal is not sqlstate 42501 with an RLS message and lands `unclassified`.
+
+⚠️ **And the constraints that fire AFTER the policy cannot preempt it, but they can
+still fail the control** — which is the same failure wearing the other hat. Falsified by
+building `member_location`'s payload from the *other* workspace's member: the cross-wall
+attempt is still refused by the policy and looks perfect, while the positive control
+dies on the composite foreign key. `T-own` is what says so.
+
+**Neither of these is a schema defect.** They are the reason the pairing exists, and the
+reason the payloads resolve every id from the workspace they are aimed at rather than
+being written out as literals.
+
+### Settled in 3.2b-ii, and binding on 3.3
+
+**1. The control is not a matching payload — it is the SAME STATEMENT.** The plan's
+done-when asked for "an accepted same-payload insert". What the suite runs is one string
+per (table, workspace), executed twice: once by the owner of that workspace, once by the
+owner of the other. One inserts exactly one row, the other is refused. **The two runs
+differ in nothing whatsoever except who is asking**, and F7 asserts that from the text
+recorded in the measurements rather than from the file's promise. F8 covers the other
+axis — the payload aimed at A and the payload aimed at B are identical once their uuids
+are masked out, so neither direction is being asked an easier question than the other.
+
+**2. Payloads are RESOLVED from the target workspace, and built before any role switch.**
+Every id a payload names — family, variant, location, member — is looked up in the
+workspace the row is aimed at, as `postgres`. Resolving workspace B's family id while
+acting as owner A would return null, because 3.2a proved B's rows are invisible to A,
+and the suite would then measure a `not null` violation and call it isolation. The
+lookups also refuse to build a payload at all if any of them comes back null, rather
+than emitting a statement that cannot mean what it says.
+
+**3. The eight tables are computed from `has_table_privilege`, and a ninth fails NAMING
+itself.** This is what discharges 3.2b-i's F17, which could only count the deferral. F1
+asks the catalog which tables `authenticated` may insert into and fails if any has no
+payload here — or if a payload exists for a table it may *not* insert into, which would
+be measuring the grant wall, and that is 3.2b-i's claim rather than this one. ⚠️ **Both
+files must be visited when a ninth arrives**: 04 needs a payload written by hand, and
+03's F17 needs its number moved to nine. 03 says so at F17.
+
+**4. The suite inserts one `auth.users` row as a fixture.** `workspace_member`'s payload
+needs a `user_id` that is not already a member of the workspace being written to, and
+all six seed users belong to one workspace or the other. The alternative was to fabricate
+a cross-tenant membership from an existing user, which is a confusing thing to leave in a
+suite about tenancy. F9 asserts the id was absent, exactly as 3.2a's `workspace_invite`
+fixture does, so a future seed that adds it turns the suite red instead of quietly
+borrowing somebody else's row.
+
+**5. Both directions, per 3.2b-i's rule.** `denied-check` depends on which workspace the
+caller belongs to, so a policy accidentally written against a hardcoded workspace passes
+one direction and fails the other. Sixteen refusals, sixteen controls.
+
+**6. ⚠️ The role wall on inserts is NOT asserted, and that is deliberate.** An owner is
+used throughout, because five of the eight policies gate on `manager` and three on
+`owner`, and only an owner can supply the accepted half of all eight pairs. "Staff may
+not insert a provider" is a role claim, 3.2b-i's `T-role` is the only one step 3 makes
+so far, and the staff-versus-location question is 3.3. Cheap to add later — it is one
+more actor in a file that ships no migration.
+
+### Twelve falsifications, run by hand before 3.2b-ii was committed
+
+Every one confirmed to exit non-zero, and each named test confirmed to be the one that
+went red. Five mutate the applied schema and are undone; seven mutate a copy of the
+suite.
+
+| # | Mutation | Turns red |
+|---|---|---|
+| M1 | `provider_insert` opened to `with check (true)` | `T-cross provider`, both directions — **the one 3.2b-i could not get** |
+| M2 | `location_insert` dropped | `T-own location` both directions, and F6 |
+| M3 | RLS disabled on `provider` | `T-cross provider`, both directions |
+| M4 | `insert on workspace_setting` granted to `authenticated` — a ninth table | F1, naming it, and F6 |
+| M5 | A second permissive insert policy added to `provider` | F6, and `T-cross provider` |
+| S1 | `product_variant`'s four unit codes made to span two dimensions | F5 (`unclassified`), plus that table's four measurements |
+| S2 | `member_location`'s payload built from the other workspace's member | F5 and `T-own member_location` |
+| S3 | `pg_temp.attempt()` made `security definer` | F3, and every `T-cross` — the whole suite measures nothing |
+| S4 | The two workspaces given different payloads | F8 |
+| S5 | The stranger made to run a slightly different statement | F7 |
+| S6 | The per-write undo removed from `attempt()` | F11 |
+| S7 | The `provider` payload deleted | F1 and F4 |
+
+⚠️ **S6 corrected something the file claimed about itself.** The first draft of the
+header argued that without the per-write undo the stranger's insert would collide with
+the owner's on a unique index. It would not — the stranger is refused by the policy long
+before it reaches an index. What the undo actually buys is that the sixteen accepted rows
+do not survive their own measurement into the next one and into the next CI step. The
+header now says that, because it is what the falsification showed.
 
 ### ⚠️ Found in 3.2b-i — THE TENANT WALL ON WRITES IS HELD BY THE `_select` POLICIES
 

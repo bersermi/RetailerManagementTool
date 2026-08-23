@@ -146,8 +146,13 @@
 -- workspace. Without that pairing "the insert was rejected" may mean a missing
 -- `provider_id`, and the suite is green about the wrong wall. That is task
 -- 3.2b-ii, it is the whole of why 3.2b split, and F16/F17 hold the deferral open
--- so a ninth insert-granted table cannot join it quietly. Nothing about
--- locations — 3.3. Nothing about the RPCs, which do not exist yet.
+-- so a ninth insert-granted table cannot join it quietly. ⚠️ IT IS NO LONGER
+-- OPEN: `04_rls_isolation_writes_inserts.sql` holds the eight payloads and
+-- makes the claim, and it found that the INSERT policies are the one write-policy
+-- family a cross-tenant caller CAN observe — an insert reads no existing row, so
+-- the SELECT policy that shadows every `_update` and `_delete` below is not in
+-- front of it. Nothing about locations — 3.3. Nothing about the RPCs, which do
+-- not exist yet.
 -- ============================================================================
 \set ON_ERROR_STOP on
 \timing off
@@ -780,10 +785,15 @@ select is_empty(
 -- F17. AND THERE ARE STILL EIGHT OF THEM. ⚠️ THIS TEST IS MEANT TO GO RED. A
 -- ninth insert-granted table is a ninth cross-wall insert nobody has written a
 -- payload for, and it would otherwise join the deferral register in silence.
--- 3.2b-ii replaces this count with the assertions themselves.
+-- ⚠️ THE DEFERRAL WAS DISCHARGED BY 3.2b-ii — the eight payloads now live in
+-- `04_rls_isolation_writes_inserts.sql`, whose F1 asks the catalog the same
+-- question this test asks and fails NAMING the table that has no payload. This
+-- count is kept rather than deleted because it is the cheaper of the two to
+-- read, and because both files must be visited when a ninth arrives: 04 needs a
+-- payload written by hand, and this number needs moving to nine.
 select is(
   (select count(*)::int from iso_pair where disposition = 'deferred-3.2b-ii'), 8,
-  'F17 eight insert-granted tables are deferred to 3.2b-ii, and a ninth turns this red');
+  'F17 eight insert-granted tables, whose payloads are in 04 — a ninth turns this and 04 red');
 
 -- F18. THE ATTRIBUTION BEHIND T-move, ASSERTED RATHER THAN ASSUMED. T-move says
 -- "refused by a policy" and not "refused by the WITH CHECK" because on this
