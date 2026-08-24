@@ -1574,6 +1574,11 @@ All ten are `cmd = SELECT`. `authenticated` holds `SELECT` and nothing else on a
 ledger tables (`information_schema.role_table_grants`), and `pg_proc` holds **zero** of
 `record_sale`, `record_purchase`, `record_waste`, `record_transfer`, `adjust_stock`.
 
+Re-run against a **fresh `supabase db reset`** on 2026-08-24 (all migrations applied,
+`0005` → `0008` in the log, all four seeds): `total_policies 40`, `using_loc 10`,
+`withcheck_loc 0`, `nonselect 0`, six ledger tables `SELECT`-only with `0` write grants,
+and `0` of the five RPCs present.
+
 ⚠️ **No CI run covers this PR** — `.github/workflows/db.yml` filters on `supabase/**`,
 and this change is docs-only, so no check will ever report. That is the workflow working
 as designed, but it means the evidence here is the database queries above, run against a
