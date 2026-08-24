@@ -1559,9 +1559,25 @@ does, which is the drift the file exists to prevent.
 ### ⚠️ Found before 3.3 was written — THE LOCATION WALL IS A READ WALL, AND THE LEDGER HAS NO WRITE SURFACE YET
 
 Established by reading `supabase/migrations/**` directly — `CREATE POLICY` is not in the
-knowledge graph, so the graph cannot answer this and was not asked to. **Not yet
-confirmed by a CI-green suite**; it is a reading of the applied migrations, and 3.3 is
-what will turn it into evidence.
+knowledge graph, so the graph cannot answer this and was not asked to — **and then
+confirmed by asking the applied database**, which is the check that makes it evidence
+rather than a grep:
+
+```
+select count(*) from pg_policies where schemaname='public';                        -- 40
+select count(*) filter (where qual       like '%my_locations%'),                   -- 10
+       count(*) filter (where with_check like '%my_locations%')                    --  0
+  from pg_policies where schemaname='public';
+```
+
+All ten are `cmd = SELECT`. `authenticated` holds `SELECT` and nothing else on all six
+ledger tables (`information_schema.role_table_grants`), and `pg_proc` holds **zero** of
+`record_sale`, `record_purchase`, `record_waste`, `record_transfer`, `adjust_stock`.
+
+⚠️ **No CI run covers this PR** — `.github/workflows/db.yml` filters on `supabase/**`,
+and this change is docs-only, so no check will ever report. That is the workflow working
+as designed, but it means the evidence here is the database queries above, run against a
+local reset, not a green tick.
 
 **1. `my_locations()` is a `using` predicate and never a `with check` one.** Across the
 repo's **40 policies** it appears in exactly **ten** places, all of them the `USING`
