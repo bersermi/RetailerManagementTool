@@ -1542,7 +1542,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, [CI green on PR #23](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747). `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
 | ~~3.2b-i~~ | ~~**RLS isolation — writes, the three refusals that need no fabricated row**~~ — **done** 2026-08-22, [CI green on PR #24](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265). `supabase/pgtap/03_rls_isolation_writes.sql`, picked up by the existing loop with no workflow edit. **151 tests**: 19 fixed, one per grant-wall pair, per cross-tenant measurement, per positive control, per move, per staff probe and per append-only probe, on a **computed plan**. **Twelve falsifications**, each confirmed non-zero. ⚠️ **Two of them found holes in the SUITE, not the schema** — and the finding below is the important one: the tenant wall on writes is held by the `_select` policies, and the write policies are a second layer that crossing the wall cannot see | M | ✅ |
 | ~~3.2b-ii~~ | ~~**RLS isolation — writes, inserting a NEW row into workspace B**~~ — **done** 2026-08-23, CI green on PR #26. `supabase/pgtap/04_rls_isolation_writes_inserts.sql`, picked up by the existing loop with no workflow edit. **43 tests**: 11 fixed, one per measurement, on a **computed plan** — eight tables × two target workspaces × two callers. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The pairing is stronger than the done-when asked for**: not the same payload but the SAME STATEMENT TEXT, accepted for the owner of the workspace it names and refused for the other, so the two runs differ in nothing but who is asking (F7). ⚠️ **The finding is the good one** — the `_insert` policies are the one write-policy family a cross-tenant caller can observe directly. ⚠️ **It writes an `auth.users` fixture and rolls it back**; both decisions are below | M | ✅ |
-| 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below |
+| 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below. ⚠️ **Reads are the whole of 3.3, and NOT as a scope compromise**: the location predicate appears in ten `using` clauses and zero `with check`, and the ledger's write surface is `0006`, which is reserved and unwritten — see the finding below |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
 | 3.6 | **`packages/money` and `cases.json`** — the first TypeScript in the repo. One data file read by both the pgTAP suite and Vitest | L | `cases.json` seeded per ADR-035 §2.5; Vitest green in CI; **3.5's pgTAP suite re-pointed at the same file**, so drift is structurally impossible rather than merely tested for |
@@ -1555,6 +1555,76 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ⚠️ Found before 3.3 was written — THE LOCATION WALL IS A READ WALL, AND THE LEDGER HAS NO WRITE SURFACE YET
+
+Established by reading `supabase/migrations/**` directly — `CREATE POLICY` is not in the
+knowledge graph, so the graph cannot answer this and was not asked to — **and then
+confirmed by asking the applied database**, which is the check that makes it evidence
+rather than a grep:
+
+```
+select count(*) from pg_policies where schemaname='public';                        -- 40
+select count(*) filter (where qual       like '%my_locations%'),                   -- 10
+       count(*) filter (where with_check like '%my_locations%')                    --  0
+  from pg_policies where schemaname='public';
+```
+
+All ten are `cmd = SELECT`. `authenticated` holds `SELECT` and nothing else on all six
+ledger tables (`information_schema.role_table_grants`), and `pg_proc` holds **zero** of
+`record_sale`, `record_purchase`, `record_waste`, `record_transfer`, `adjust_stock`.
+
+Re-run against a **fresh `supabase db reset`** on 2026-08-24 (all migrations applied,
+`0005` → `0008` in the log, all four seeds): `total_policies 40`, `using_loc 10`,
+`withcheck_loc 0`, `nonselect 0`, six ledger tables `SELECT`-only with `0` write grants,
+and `0` of the five RPCs present.
+
+⚠️ **No CI run covers this PR** — `.github/workflows/db.yml` filters on `supabase/**`,
+and this change is docs-only, so no check will ever report. That is the workflow working
+as designed, but it means the evidence here is the database queries above, run against a
+local reset, not a green tick.
+
+**1. `my_locations()` is a `using` predicate and never a `with check` one.** Across the
+repo's **40 policies** it appears in exactly **ten** places, all of them the `USING`
+clause of a `for select` policy:
+
+| Migration | Policies |
+|---|---|
+| `0001` | `location_select` |
+| `0003` | `purchase_select`, `purchase_line_select`, `sale_select`, `sale_line_select`, `waste_select`, `waste_line_select` |
+| `0004` | `stock_batch_select`, `stock_movement_select`, `batch_balance_select` |
+
+Zero `with check` clauses anywhere in the schema mention location.
+
+**2. The reason is not an oversight — the six ledger tables have no write policies at
+all.** `0003` grants `authenticated` **`select` and nothing else** on `purchase`,
+`purchase_line`, `sale`, `sale_line`, `waste` and `waste_line`, and defines only
+`_select` policies. This is `0003:25` stating ADR-035 §2.6 outright: *"CLIENTS NEVER
+INSERT. Ten `security definer` functions are the entire write surface."*
+
+**3. Those ten functions do not exist yet.** `0006` and `0007` are **reserved and
+unwritten** (`supabase/README.md:68`). The migration sequence runs `0001`–`0005`, then
+`0008`–`0014`.
+
+**So the location wall on writes cannot be tested, and the reason is stronger than
+3.2b-i's.** For tenancy, the write policies exist and are merely unobservable from the
+far side of the wall — shadowed by `_select`. For location there is nothing to shadow:
+no write grant, no write policy, and no RPC. A cross-location write is refused today by
+the **grant wall**, which is 3.2b-i's subject and already tested, not by
+`my_locations()`.
+
+### ⚠️ BINDING ON `0006` — THE RPCs MUST CHECK `my_locations()` THEMSELVES
+
+This is the part that is cheap now and expensive later, so it is flagged by name. When
+`0006` lands, `record_sale`, `record_purchase`, `record_waste`, `record_transfer` and
+`adjust_stock` will be `security definer`, and **`0003:60` already says what that
+means: grants and RLS do not constrain them.** Every location guarantee the ten
+`_select` policies make on reads will be enforced on writes only if each RPC body
+checks `location_id in (select public.my_locations())` itself.
+
+Nothing in the schema will catch its absence. A `0006` that omits the check compiles,
+applies, and passes every suite step 3 currently plans — including 3.3, which asserts
+reads. **The test for it belongs with `0006`, over the RPC, and is not an RLS test.**
 
 ### ✅ Found in 3.2b-ii — THE `_insert` POLICIES ARE THE ONE WRITE FAMILY THE TENANT WALL CAN SEE
 
