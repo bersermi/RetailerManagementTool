@@ -1626,6 +1626,29 @@ Nothing in the schema will catch its absence. A `0006` that omits the check comp
 applies, and passes every suite step 3 currently plans — including 3.3, which asserts
 reads. **The test for it belongs with `0006`, over the RPC, and is not an RLS test.**
 
+#### ✅ SETTLED BY THE OWNER, 2026-08-24 — HARD REFUSE, NO OVERRIDE
+
+Asked directly, because this is shop fit and not schema consistency: *reassigning a
+cashier between stores to cover a shift — is it fast enough in practice that an RPC can
+refuse an unassigned location outright?* **The owner's answer was yes.**
+
+So `0006` is bound to the strict form:
+
+- Every ledger RPC — `record_sale`, `record_purchase`, `record_waste`,
+  `record_transfer`, `adjust_stock` — **checks `location_id in (select
+  public.my_locations())` in its own body and raises on failure.**
+- **No override path, no manager bypass, no "ring it up at the other store and fix the
+  paperwork later" flag.** The mechanism for covering a shift is already
+  `member_location` (`0001:221-223` — the owner moves a cashier between stores, and that
+  must not be a role change). Shift cover is a reassignment, not an exception.
+- The RPC's refusal must be **its own**, not a side effect of RLS or grants, which as
+  `0003:60` records do not constrain a `security definer` function.
+
+This closes the question 3.3 could not answer. It does not change 3.3's scope — 3.3
+still asserts reads — but it means the write half is a **specified, testable
+requirement waiting on `0006`**, not an open modelling question. The suite that proves
+it belongs with `0006` and is behavioural over the RPC.
+
 ### ✅ Found in 3.2b-ii — THE `_insert` POLICIES ARE THE ONE WRITE FAMILY THE TENANT WALL CAN SEE
 
 3.2b-i's central finding was that a cross-tenant `update` or `delete` never reaches its
