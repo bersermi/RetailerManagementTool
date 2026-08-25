@@ -655,16 +655,26 @@ select * from finish(exception_on_failure := true);
 -- step on the diagnostic itself; this block is the per-file half, so the file
 -- also defends itself when it is run by hand, which is how it was written.
 -- ---------------------------------------------------------------------------
+-- ⚠️ CORRECTED IN 3.4. This block first read the file's OWN `loc_plan.planned`
+-- and compared it to `curr_test`, which asks only whether the loops emitted what
+-- the arithmetic said. It misses the other half: `plan()` being CALLED with a
+-- different number. Falsified — `plan(planned + 1)` leaves curr_test equal to
+-- `planned`, so the guard passed while pgTAP printed "Looks like you planned"
+-- and psql exited 0, which is the exact failure this block exists to catch.
+-- `tap._get('plan')` is the number pgTAP was actually given; the third
+-- comparison keeps this file's arithmetic honest as well.
 do $$
 declare
-  v_planned int := (select planned from loc_plan);
-  v_ran     int := tap._get('curr_test');
+  v_planned  int := tap._get('plan');
+  v_ran      int := tap._get('curr_test');
+  v_computed int := (select planned from loc_plan);
 begin
-  if v_ran is distinct from v_planned then
+  if v_ran is distinct from v_planned or v_planned is distinct from v_computed then
     raise exception
-      'plan/actual mismatch: planned %, ran % — finish() reports this as a '
-      'diagnostic and does NOT raise, so exception_on_failure was disarmed and '
-      'any failing test above exited 0', v_planned, v_ran;
+      'plan/actual mismatch: plan() was given %, the file computed %, % tests ran '
+      '— finish() reports this as a diagnostic and does NOT raise, so '
+      'exception_on_failure was disarmed and any failing test above exited 0',
+      v_planned, v_computed, v_ran;
   end if;
 end;
 $$;

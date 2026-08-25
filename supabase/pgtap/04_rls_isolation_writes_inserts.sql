@@ -625,4 +625,43 @@ from ins_result where actor = target order by tbl, actor;
 -- ---------------------------------------------------------------------------
 select * from finish(exception_on_failure := true);
 
+-- ---------------------------------------------------------------------------
+-- THE GUARD `finish()` DOES NOT PROVIDE  (plan task 3.3, corrected in 3.4)
+--
+-- `exception_on_failure := true` above is the single mechanism turning a red
+-- assertion into a non-zero exit. pgTAP DISARMS it when the plan does not match
+-- the number of tests run. From its own `_finish`:
+--
+--     IF curr_test <> exp_tests THEN
+--         RETURN NEXT diag('Looks like you planned ... but ran ...');
+--     ELSIF num_faild > 0 THEN
+--         IF raise_ex THEN RAISE EXCEPTION ...
+--
+-- An ELSIF. A miscounted plan takes the first branch, the exception in the
+-- second is never reached, and psql exits 0 with `not ok` lines in its output —
+-- the vacuous green ADR-035 Sec 9 exists to refuse. .github/workflows/db.yml is
+-- the backstop for every suite here; this is the per-file half, so the file
+-- also defends itself when it is run by hand.
+--
+-- ⚠️ IT COMPARES pgTAP'S OWN TWO NUMBERS AND NOTHING OF THIS FILE'S. 3.3 wrote
+-- this guard against the suite's own computed `planned` column, which asks only
+-- "did the loop emit what the arithmetic said" and misses `plan()` being CALLED
+-- with something else — `plan(planned + 1)` leaves curr_test equal to `planned`
+-- and sails through. `tap._get('plan')` is the number pgTAP was actually given.
+-- Falsified in 3.4 both ways round.
+-- ---------------------------------------------------------------------------
+do $$
+declare
+  v_planned int := tap._get('plan');
+  v_ran     int := tap._get('curr_test');
+begin
+  if v_ran is distinct from v_planned then
+    raise exception
+      'plan/actual mismatch: plan() was given %, % tests ran — finish() reports '
+      'this as a diagnostic and does NOT raise, so exception_on_failure was '
+      'disarmed and any failing test above exited 0', v_planned, v_ran;
+  end if;
+end;
+$$;
+
 rollback;
