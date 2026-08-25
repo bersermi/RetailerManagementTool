@@ -53,6 +53,17 @@ fail-closed rule too — the stranded cashier sees nothing rather than everythin
 number of tests run, so a suite can print `not ok` and exit 0. That is the vacuous green
 ADR-035 §9 refuses, it applies to 01, 02, 03 and 04 exactly as much as to 05, and it is
 now closed in CI for all five. Findings below.
+**3.4 — THE LEDGER INVARIANT OVER RANDOMISED SEQUENCES — IS DONE**: 99 tests and thirteen
+falsifications, and it is the first suite whose subject is arithmetic rather than access —
+400 generated writes on top of the seed, through the real allocators, measured after every
+run and per location. ⚠️ **Its finding is a LIMIT OF §2.4 ITSELF, not of the suite**:
+deleting the receipt movement from a purchase — a real defect — leaves every §2.4
+assertion GREEN, because an empty lot agrees with its empty movement set. The invariant
+sees a movement that was never *projected*, never one that was never *made*. **That is the
+owner's open decision below.** ⚠️ **3.4 also found that the per-file plan guard 3.3
+shipped in 05 was itself wrong** — it compared the file's own arithmetic instead of
+pgTAP's number, so `plan(planned + 1)` sailed through it. Corrected, and now carried by
+all six suites, which discharges 3.3's instruction about 01–04. Findings below.
 **3.2b was split into 3.2b-i / 3.2b-ii on 2026-08-22, and BOTH ARE NOW DONE** — 151
 tests and twelve falsifications for the first, 43 tests and twelve falsifications for
 the second. ⚠️ **Two of 3.2b-i's falsifications found holes in the suite rather than in
@@ -115,7 +126,7 @@ deadline under *Confirmed by the owner* below.
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
-| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22; 3.1 is the harness |
+| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22; 3.1–3.4 done, 3.5 next |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
 | 5a | Client foundation — **hiring gate** | Not started |
@@ -1541,7 +1552,7 @@ rows of ADR-035 §2.10.
 
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
 any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
-also before it was written — see below. **Both halves of 3.2b are closed, 3.3 is closed, and 3.4
+also before it was written — see below. **Both halves of 3.2b are closed, 3.3 and 3.4 are closed, and 3.5
 is next.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
@@ -1562,7 +1573,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.2b-i~~ | ~~**RLS isolation — writes, the three refusals that need no fabricated row**~~ — **done** 2026-08-22, [CI green on PR #24](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265). `supabase/pgtap/03_rls_isolation_writes.sql`, picked up by the existing loop with no workflow edit. **151 tests**: 19 fixed, one per grant-wall pair, per cross-tenant measurement, per positive control, per move, per staff probe and per append-only probe, on a **computed plan**. **Twelve falsifications**, each confirmed non-zero. ⚠️ **Two of them found holes in the SUITE, not the schema** — and the finding below is the important one: the tenant wall on writes is held by the `_select` policies, and the write policies are a second layer that crossing the wall cannot see | M | ✅ |
 | ~~3.2b-ii~~ | ~~**RLS isolation — writes, inserting a NEW row into workspace B**~~ — **done** 2026-08-23, CI green on PR #26. `supabase/pgtap/04_rls_isolation_writes_inserts.sql`, picked up by the existing loop with no workflow edit. **43 tests**: 11 fixed, one per measurement, on a **computed plan** — eight tables × two target workspaces × two callers. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The pairing is stronger than the done-when asked for**: not the same payload but the SAME STATEMENT TEXT, accepted for the owner of the workspace it names and refused for the other, so the two runs differ in nothing but who is asking (F7). ⚠️ **The finding is the good one** — the `_insert` policies are the one write-policy family a cross-tenant caller can observe directly. ⚠️ **It writes an `auth.users` fixture and rolls it back**; both decisions are below | M | ✅ |
 | ~~3.3~~ | ~~**Location isolation**~~ — **done** 2026-08-24, CI green on PR #29. `supabase/pgtap/05_location_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **84 tests**: 14 fixed, on a **computed plan** — 4 per cashier-observable table, 2 per role-gated table, 2 per table for the manager, 2 per table for the closed-store block. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The ten policies split 5/5 and the halves need different actors** — a cashier reads five of them and is refused the other five BY ROLE, so pointing a cashier at a `purchase` proves the role wall twice and the store wall not at all. ⚠️ **The other five are observable only by CLOSING A STORE**, which is the finding this suite was built around. ⚠️⚠️ **AND IT FOUND A HOLE IN THE HARNESS ITSELF, affecting 01–04 as much as 05**: a computed plan that misses turns `exception_on_failure` OFF, silently. Fixed in `.github/workflows/db.yml`. Findings below | M | ✅ |
-| 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
+| ~~3.4~~ | ~~**Ledger invariant over randomised sequences**~~ — **done** 2026-08-25. `supabase/pgtap/06_ledger_invariant_randomised.sql`, picked up by the existing loop with no workflow edit. **99 tests**: 14 fixed, 5 for the C-block, and per run one whole-database measurement, one per location and one anti-vacuity guard, on a **computed plan** — 16 runs x 25 operations = 400 writes on top of the seed. **Recorded seed `0.20260824`**, printed as a diagnostic and overridable with `-v gen_seed=`. **Thirteen falsifications**, each confirmed to fail CI. ⚠️ **The finding is a LIMIT OF THE INVARIANT ITSELF**: deleting the receipt movement from a purchase — a real defect — left all 64 §2.4 assertions GREEN. Sec 2.4 sees a movement that was never *projected*, never one that was never *made*. ⚠️ **It also found the per-file plan guard 3.3 shipped in 05 was itself wrong**, and fixed it in all six files. Findings below | M | ✅ |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
 | 3.6 | **`packages/money` and `cases.json`** — the first TypeScript in the repo. One data file read by both the pgTAP suite and Vitest | L | `cases.json` seeded per ADR-035 §2.5; Vitest green in CI; **3.5's pgTAP suite re-pointed at the same file**, so drift is structurally impossible rather than merely tested for |
 | 3.7 | **Concurrency under Vitest.** §2.10's last row, and the one suite that already half-exists as `supabase/tests/0005_allocation_concurrency.sh` | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
@@ -1574,6 +1585,134 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ⚠️⚠️ Found in 3.4 — THE INVARIANT CANNOT SEE A MOVEMENT THAT WAS NEVER WRITTEN
+
+**This is 3.4's finding and it is about ADR-035 §2.4 itself, not about the suite.** It is
+the reason the suite ships an anti-vacuity floor beside every green.
+
+Falsification S2 deleted the receipt movement from the generator's purchase branch — the
+`insert into stock_movement` that fills a lot after a delivery opens it. That is a real
+defect, the exact shape of a `record_purchase` RPC that forgot half its job. **All 64
+§2.4 assertions stayed GREEN.**
+
+They have to. The lot opens at zero (`stock_batch_open_balance`), no movement is ever
+written, so `sum(qty_base)` is 0 and `remaining_base` is 0 and the two agree perfectly.
+The ledger says the shop received nothing; the shelf disagrees; **the invariant is
+silent**, because it compares the projection against the movements and both are empty.
+
+⚠️ **So §2.4 detects a movement that was never PROJECTED, and never one that was never
+MADE.** Those are different defects. The first is a broken trigger and this suite finds
+it in every run (falsifications S1 and S3, the latter a 0.01% drift caught at
+`worst disagreement 0.002`). The second is a broken *caller*, and nothing in
+`batch_balance_violations()` can reach it — it is not a weakness in the function, it is
+what the function means.
+
+What caught S2 was **F2**, the floor asserting the 400 generated operations wrote more
+than 400 movements. That is the whole defence, and it is a suite-level one.
+
+⚠️ **THE OWNER'S CALL, AND IT IS CHEAP NOW.** "Every purchase line has a receipt
+movement against a batch cut from it" is a claim **no suite in this repo makes**, and it
+belongs to `record_purchase` in `0006`, which is reserved and unwritten. Recording it
+here against step 4 rather than inventing a step-3 suite for a function that does not
+exist. **Say if it should instead be its own task** — the plan is the cheap place to
+move it, a merged suite is not.
+
+### ⚠️ Found in 3.4 — THE PER-FILE PLAN GUARD 3.3 SHIPPED WAS ITSELF WRONG
+
+3.3 closed the disarmed-`finish()` hole in two places: a backstop in
+`.github/workflows/db.yml`, and a per-file guard in `05`. **The per-file half did not
+work**, and 3.4 found it by falsifying the guard rather than the suite.
+
+05's guard compared `tap._get('curr_test')` against the file's **own** `loc_plan.planned`
+column. That asks only *"did the loops emit what the arithmetic said"*. It misses the
+other half — **`plan()` being CALLED with a different number**:
+
+```sql
+select plan((select planned from loc_plan) + 1);   -- pgTAP is told 85; 84 run
+```
+
+`curr_test` is still 84 and `planned` is still 84, so **the guard passes**, pgTAP prints
+`Looks like you planned 85 but ran 84`, and psql **exits 0** — which is precisely the
+failure the guard was written to catch. Confirmed against `06`: with 3.3's spelling,
+exit 0; with the corrected one, exit 3.
+
+**The fix is to compare pgTAP's own two numbers and nothing of the file's:**
+`tap._get('plan')` is what `plan()` was actually given, `tap._get('curr_test')` is what
+ran. `05` and `06` additionally compare that against the file's computed number, so the
+arithmetic stays honest too.
+
+✅ **All six suites now carry it**, which also discharges 3.3's instruction that whoever
+wrote 3.4 should take the guards for 01–04. For 01–04 the guard needs nothing from the
+file it sits in — that is what the correction bought — so it is the same block in each.
+
+⚠️ **CI was never blind to this**, and that is worth saying plainly: the workflow greps
+for `Looks like you planned` and would have failed the job. The per-file guard is for the
+file run by hand, which is how every suite here is written and falsified.
+
+### ✅ Found in 3.4 — WHAT A RANDOMISED LEDGER REACHES THAT THE SEED DOES NOT
+
+The seed is large but **fixed**: the same deliveries in the same order every reset.
+`supabase/checks/seed_invariant.sql` calls itself *"the closest thing this repo has to
+the randomised sequences the ADR asks for"*, and 3.4 is what closes that gap. What the
+generator reaches that three months of seed does not:
+
+- **Oversales in volume.** The variant is drawn uniformly from the whole catalog, so most
+  generated sales sell something the store does not stock. Shortfall branches two and
+  three of `0005` §2 fire hundreds of times per run; **the seed has exactly two**. F8
+  asserts the branch was reached, so the greens are over a hard ledger — 74 lots driven
+  negative in a representative run, against the seed's seven.
+- **Voids interleaved with everything.** Reversals are weighted to ~12%, against a real
+  rate nearer 1%, because a void is the only write that carries a sign its `reason`
+  forbids and is therefore the branch most likely to break the invariant.
+- **A voided delivery whose lots have since moved**, which drives a lot negative through
+  a *purchase* movement. 1.6c produced one of these on purpose; the generator produces
+  them by accident, which is the point.
+
+⚠️ **The runs are CUMULATIVE and that is deliberate.** Each run appends to the ledger the
+last one left. Resetting between runs would make sixteen independent trials of one thing
+instead of one deepening ledger, and could never test a sale against a lot a transfer
+created three runs earlier.
+
+⚠️ **The recorded seed reproduces the OP SEQUENCE, not the ALLOCATION.** `setseed()`
+governs `random()`; it does not govern `gen_random_uuid()`, and FEFO's third sort key is
+`batch_id` (`0005` §2). Two lots tying on expiry *and* `received_at` — which the seed
+produces, because `now()` is fixed for a transaction — can be consumed in a different
+order on a replay. That is honest rather than convenient: **the invariant must hold
+whichever lot it was**, and a property that depended on the tiebreak would be a property
+of the tiebreak.
+
+### Settled in 3.4, and binding on 3.5
+
+**1. The suite builds on the SEED, not on a synthetic fixture.** A generator that also
+created its own workspace, units, products and lots would prove the invariant over a
+ledger written by the same code that asserts it. Running on top of the seed means a
+generated sale can consume a batch the seed opened in June.
+
+**2. It writes through the REAL allocators.** Every withdrawal goes through
+`allocate_fefo()` and every transfer through `allocate_transfer()` — the same functions
+the seed calls and the 0006 RPCs will call. A generator writing its own movements would
+be balancing the books it then audits.
+
+**3. Every location is measured, including the tenant nothing touched.** §2.10's word is
+"per location". A transfer that credited the destination against the *origin's* batch
+would net to zero across the workspace and be invisible to a total, which is why the
+per-location form is asserted and not only the whole-database one. F5 asserts the
+out-of-scope stores did not move, so their zeros mean something.
+
+**4. It voids only its OWN documents.** Voiding a seed sale would leave
+`supabase/checks/seed_invariant.sql` describing a ledger that no longer matches it, two
+CI steps later.
+
+**5. F5 is a backstop, not the primary wall — and one falsification says so.** S10 pointed
+the generator at another tenant's store and the run died on
+`purchase_location_fk`, not on F5: the composite FKs refuse a cross-tenant write
+structurally, before any assertion is reached. F5 earns its place on the other half — an
+in-scope store that stopped growing.
+
+⚠️ **S13 did NOT go red, and it should not have.** Forcing the generator to pick a single
+store left both stores growing anyway, because `allocate_transfer()` writes to the other
+one. Recorded because it looks like a hole in F5 and is not.
 
 ### ⚠️⚠️ Found in 3.3 — `finish(exception_on_failure := true)` IS DISARMED BY A MISCOUNTED PLAN
 
@@ -1619,10 +1758,10 @@ the arithmetic is exactly what a future edit is most likely to get wrong.
   a temp table and compared against `tap._get('curr_test')` after `finish()`. So the file
   defends itself when run by hand, which is how it was written and falsified.
 
-⚠️ **01–04 did NOT get the per-file guard, and that was a decision.** CI covers them; a
-task about location isolation editing four merged suites is a worse trade than saying so
-here. **Cheap to add later** — it is six lines per file and no migration. Whoever writes
-3.4 should take them, and 3.4's own suite should carry the guard from the start.
+⚠️ ~~**01–04 did NOT get the per-file guard, and that was a decision.**~~ **TAKEN IN 3.4**,
+as this line asked. All six suites now carry it — and 3.4 found that the guard as 3.3
+wrote it was itself wrong, so 05's was corrected rather than copied. See *Found in 3.4*
+below. 3.4's own suite carried the guard from the start.
 
 ⚠️ **What this does NOT retract.** The falsifications recorded for 3.1, 3.2a, 3.2b-i and
 3.2b-ii were each *confirmed* to exit non-zero at the time, so those claims stand as
