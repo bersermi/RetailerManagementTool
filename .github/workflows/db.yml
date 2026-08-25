@@ -104,17 +104,59 @@ jobs:
       # supabase/tests/ already uses. The counter is the same concern as the one
       # below: a loop that matched nothing would print nothing and exit 0, which
       # is what a deleted suite directory looks like.
+      #
+      # ⚠️ AND THE THIRD WAY A FAILING SUITE EXITS 0, found in task 3.3 and the
+      # reason each suite's output is now scanned rather than only its exit
+      # code. `finish(exception_on_failure := true)` is what every file here
+      # relies on to turn a red assertion into a non-zero exit, and pgTAP
+      # DISARMS it when the plan does not match the number of tests run:
+      #
+      #     IF curr_test <> exp_tests THEN
+      #         RETURN NEXT diag('Looks like you planned … but ran …');
+      #     ELSIF num_faild > 0 THEN
+      #         IF raise_ex THEN RAISE EXCEPTION …
+      #
+      # An ELSIF. A miscounted plan takes the first branch and the exception in
+      # the second is never reached — so `not ok` lines print, psql exits 0, and
+      # this step goes green. Every suite here computes its plan from what it
+      # measured, so every suite can land in that branch. Reproduced in four
+      # lines: plan(3), one passing test, one failing test, finish(true) → exit
+      # 0; change the plan to 2 and the identical file raises.
+      #
+      # The grep below is the backstop for ALL FIVE suites, including the four
+      # that merged before this was known. 05 carries a per-file guard as well,
+      # so it also defends itself when run by hand outside CI.
       - name: pgTAP suites (ADR-035 §2.10)
         run: |
           eval "$(supabase status -o env | grep '^DB_URL=')"
           export DB_URL
           psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f supabase/pgtap/_setup.sql
           ran=0
+          out="$(mktemp -d)"
           for f in $(ls supabase/pgtap/*.sql | sort); do
             case "$(basename "$f")" in _*) continue ;; esac
             echo "::group::$f"
-            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f"
+            psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f" 2>&1 | tee "$out/$(basename "$f").log"
+            rc=${PIPESTATUS[0]}
             echo "::endgroup::"
+            if [ "$rc" -ne 0 ]; then
+              echo "$f failed (psql exit $rc)" >&2
+              exit 1
+            fi
+            # The disarmed-exception check. A suite whose plan disagrees with
+            # what it ran has NOT proved anything, whatever its exit code said.
+            if grep -q 'Looks like you planned' "$out/$(basename "$f").log"; then
+              echo "$f: plan/actual mismatch — pgTAP suppressed the failure exception" >&2
+              grep 'Looks like you planned' "$out/$(basename "$f").log" >&2
+              exit 1
+            fi
+            # Belt and braces: a `not ok` that reached this point reached it
+            # because the exception did not fire.
+            if grep -qE '^ *not ok [0-9]' "$out/$(basename "$f").log"; then
+              echo "$f: failing assertions present despite a zero exit" >&2
+              grep -E '^ *not ok [0-9]' "$out/$(basename "$f").log" >&2
+              exit 1
+            fi
             ran=$((ran + 1))
           done
           if [ "$ran" -eq 0 ]; then

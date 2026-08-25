@@ -36,6 +36,23 @@ make the tenant claim by reading rows rather than catalogs: 106 tests, both dire
 every tenant table, under `set role authenticated`. ⚠️ **It writes a fixture and rolls
 it back**, because `workspace_invite` is the one tenant table the seed leaves empty and
 an isolation claim over zero rows is a claim about nothing. Decision below.
+**3.3 — LOCATION ISOLATION ON READS — IS DONE**: 84 tests and twelve falsifications,
+and it is the first suite to measure the STORE wall rather than the tenant one — both
+actors inside one workspace, so the tenant wall is held open and every refusal it
+measures is the store wall or it is nothing. ⚠️ **Its central finding is that the ten
+location policies split 5/5, and the halves need different actors** — five are also
+gated on `has_role(…, 'manager')`, so a cashier's zero there is a ROLE refusal and
+proves nothing about locations, while nobody who clears that gate is location-restricted
+at all. ⚠️ **The second five are observable only by CLOSING A STORE**: `my_locations()`
+excludes inactive locations and the workspace predicate beside it does not, so
+`is_active` is the one lever the location clause answers to and the tenant clause
+ignores. Closing one store is what makes those five policies testable, and it proves the
+fail-closed rule too — the stranded cashier sees nothing rather than everything.
+⚠️⚠️ **3.3 ALSO FOUND A HOLE IN THE pgTAP HARNESS, AND IT WAS NEVER 3.3'S ALONE** —
+`finish(exception_on_failure := true)` is DISARMED by a plan that does not match the
+number of tests run, so a suite can print `not ok` and exit 0. That is the vacuous green
+ADR-035 §9 refuses, it applies to 01, 02, 03 and 04 exactly as much as to 05, and it is
+now closed in CI for all five. Findings below.
 **3.2b was split into 3.2b-i / 3.2b-ii on 2026-08-22, and BOTH ARE NOW DONE** — 151
 tests and twelve falsifications for the first, 43 tests and twelve falsifications for
 the second. ⚠️ **Two of 3.2b-i's falsifications found holes in the suite rather than in
@@ -1524,7 +1541,7 @@ rows of ADR-035 §2.10.
 
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
 any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
-also before it was written — see below. **Both halves of 3.2b are now closed, and 3.3
+also before it was written — see below. **Both halves of 3.2b are closed, 3.3 is closed, and 3.4
 is next.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
@@ -1533,7 +1550,9 @@ produce a harness nobody reviews and a green nobody can attribute to a claim. 1.
 
 **Step 3 ships no migration.** Every task below writes tests and CI wiring only, so
 migration numbering is untouched and `0006` / `0007` stay reserved for the RPCs and
-the failure path. If a suite finds a schema defect, that defect gets its own
+the failure path. ⚠️ **3.3 is the first task to use the "CI wiring" half of that
+sentence** — it changed `.github/workflows/db.yml`, and not for its own sake: the
+harness fix it carries is what makes 01–04's greens mean what they say. Decision below. If a suite finds a schema defect, that defect gets its own
 fix-forward number the way `0010` and `0014` did — it is not patched into step 3.
 
 | # | Task | Size | Done when |
@@ -1542,7 +1561,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.2a~~ | ~~**RLS isolation — reads**~~ — **done** 2026-08-22, [CI green on PR #23](https://github.com/bersermi/RetailerManagementTool/actions/runs/32590909747). `supabase/pgtap/02_rls_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **106 tests**: 10 fixed, **4 per tenant table** (each direction, plus "sees all of its own" — which is what a deleted policy turns red), 1 per table for the signed-out caller, on a **computed plan**. **Eight falsifications**, each confirmed to exit non-zero. ⚠️ **Nineteen tenant tables, not twenty** — the count below included `unit`, which is the exempt one. ⚠️ **The suite opens a transaction and rolls it back**; both decisions are below | L | ✅ |
 | ~~3.2b-i~~ | ~~**RLS isolation — writes, the three refusals that need no fabricated row**~~ — **done** 2026-08-22, [CI green on PR #24](https://github.com/bersermi/RetailerManagementTool/actions/runs/32597616265). `supabase/pgtap/03_rls_isolation_writes.sql`, picked up by the existing loop with no workflow edit. **151 tests**: 19 fixed, one per grant-wall pair, per cross-tenant measurement, per positive control, per move, per staff probe and per append-only probe, on a **computed plan**. **Twelve falsifications**, each confirmed non-zero. ⚠️ **Two of them found holes in the SUITE, not the schema** — and the finding below is the important one: the tenant wall on writes is held by the `_select` policies, and the write policies are a second layer that crossing the wall cannot see | M | ✅ |
 | ~~3.2b-ii~~ | ~~**RLS isolation — writes, inserting a NEW row into workspace B**~~ — **done** 2026-08-23, CI green on PR #26. `supabase/pgtap/04_rls_isolation_writes_inserts.sql`, picked up by the existing loop with no workflow edit. **43 tests**: 11 fixed, one per measurement, on a **computed plan** — eight tables × two target workspaces × two callers. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The pairing is stronger than the done-when asked for**: not the same payload but the SAME STATEMENT TEXT, accepted for the owner of the workspace it names and refused for the other, so the two runs differ in nothing but who is asking (F7). ⚠️ **The finding is the good one** — the `_insert` policies are the one write-policy family a cross-tenant caller can observe directly. ⚠️ **It writes an `auth.users` fixture and rolls it back**; both decisions are below | M | ✅ |
-| 3.3 | **Location isolation.** Staff assigned to location A see zero rows from location B; a manager sees both. `my_locations()` is the predicate under test | M | Asserted over the seed's three stores; the `record_sale` clause of §2.10 is explicitly deferred — see below. ⚠️ **Reads are the whole of 3.3, and NOT as a scope compromise**: the location predicate appears in ten `using` clauses and zero `with check`, and the ledger's write surface is `0006`, which is reserved and unwritten — see the finding below |
+| ~~3.3~~ | ~~**Location isolation**~~ — **done** 2026-08-24, CI green on PR #29. `supabase/pgtap/05_location_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **84 tests**: 14 fixed, on a **computed plan** — 4 per cashier-observable table, 2 per role-gated table, 2 per table for the manager, 2 per table for the closed-store block. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The ten policies split 5/5 and the halves need different actors** — a cashier reads five of them and is refused the other five BY ROLE, so pointing a cashier at a `purchase` proves the role wall twice and the store wall not at all. ⚠️ **The other five are observable only by CLOSING A STORE**, which is the finding this suite was built around. ⚠️⚠️ **AND IT FOUND A HOLE IN THE HARNESS ITSELF, affecting 01–04 as much as 05**: a computed plan that misses turns `exception_on_failure` OFF, silently. Fixed in `.github/workflows/db.yml`. Findings below | M | ✅ |
 | 3.4 | **Ledger invariant over randomised sequences.** §2.4 across randomised purchase / sale / waste / transfer / reversal orderings, per location — not the fixed seed 1.7 already asserts | M | A generator with a recorded seed value; the invariant holds across N randomised runs and is shown able to go red |
 | 3.5 | **Money and units, in pgTAP.** 1 kg in, 100 g × 10 out → exactly 0. Case of 24 at $12 → $0.50/can. 16% inclusive → net to the centavo | M | The three §2.10 cases plus the boundary cases §2.5 names, asserted against the applied unit table and the SQL rounding rule |
 | 3.6 | **`packages/money` and `cases.json`** — the first TypeScript in the repo. One data file read by both the pgTAP suite and Vitest | L | `cases.json` seeded per ADR-035 §2.5; Vitest green in CI; **3.5's pgTAP suite re-pointed at the same file**, so drift is structurally impossible rather than merely tested for |
@@ -1555,6 +1574,187 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### ⚠️⚠️ Found in 3.3 — `finish(exception_on_failure := true)` IS DISARMED BY A MISCOUNTED PLAN
+
+**This is the most serious thing step 3 has found, and it is not about locations.** It
+is about whether any of the five suites' greens mean anything, and it applies to 01, 02,
+03 and 04 exactly as much as to 05.
+
+Every suite in `supabase/pgtap/` ends with `finish(exception_on_failure := true)`. That
+call is the *single* mechanism converting a red assertion into a non-zero exit — task
+3.1 exists because a pgTAP file under plain `psql` prints `not ok` and exits 0, and this
+is the fix 3.1 adopted. From pgTAP's own `_finish`:
+
+```
+IF curr_test <> exp_tests THEN
+    RETURN NEXT diag('Looks like you planned … but ran …');
+ELSIF num_faild > 0 THEN
+    IF raise_ex THEN RAISE EXCEPTION …
+```
+
+**The two branches are an `ELSIF`.** A plan that disagrees with the number of tests
+actually emitted takes the first, the exception in the second is never reached, and psql
+exits **0** with failing assertions in its output.
+
+⚠️ **Found by falsification, not by reading.** S5 below restricted 05's measurement loop
+to five of the ten tables. Three tests went red — F1, F8 and F14, exactly as designed —
+and **the file exited 0**. Reproduced outside any suite in four lines: `plan(3)`, one
+passing test, one failing test, `finish(true)` → no exception, exit 0. Change the plan
+to `2` and the identical file raises.
+
+⚠️ **Every suite here computes its plan from what it measured, and that is the right
+shape — it is not the bug.** A computed plan is why a table added by a future migration
+is asserted the day it lands. The bug is that the arithmetic going wrong is *quiet*, and
+the arithmetic is exactly what a future edit is most likely to get wrong.
+
+**Fixed in two places, and the split is deliberate:**
+
+- **`.github/workflows/db.yml` — the backstop for all five.** The step now captures each
+  suite's output and fails on `Looks like you planned`, and separately on any `not ok`
+  that survived to be printed. One edit, covering the four suites that merged before
+  this was known, needing no change to them. It also now checks each `psql` exit code
+  explicitly rather than relying on the pipeline's.
+- **`05_location_isolation_reads.sql` — a per-file guard.** The planned number is kept in
+  a temp table and compared against `tap._get('curr_test')` after `finish()`. So the file
+  defends itself when run by hand, which is how it was written and falsified.
+
+⚠️ **01–04 did NOT get the per-file guard, and that was a decision.** CI covers them; a
+task about location isolation editing four merged suites is a worse trade than saying so
+here. **Cheap to add later** — it is six lines per file and no migration. Whoever writes
+3.4 should take them, and 3.4's own suite should carry the guard from the start.
+
+⚠️ **What this does NOT retract.** The falsifications recorded for 3.1, 3.2a, 3.2b-i and
+3.2b-ii were each *confirmed* to exit non-zero at the time, so those claims stand as
+made. What was not true is the implicit claim that they could not have been quiet — and
+from now on they cannot be.
+
+### ⚠️ Found in 3.3 — THE TEN LOCATION POLICIES SPLIT 5/5, AND THE HALVES NEED DIFFERENT ACTORS
+
+The plan's done-when reads *"staff assigned to location A see zero rows from location B;
+a manager sees both"*. Pointed at all ten policies that is half wrong, and the half that
+is wrong is green.
+
+| | Policies | Who can observe the store wall |
+|---|---|---|
+| **Not role-gated** | `location_select`, `sale_select`, `sale_line_select`, `waste_select`, `batch_balance_select` | a cashier — this is the plan's sentence, and it works |
+| **Also role-gated** | `purchase_select`, `purchase_line_select`, `waste_line_select`, `stock_batch_select`, `stock_movement_select` | **nobody, directly** |
+
+The second five carry `and public.has_role(workspace_id, 'manager')` beside the location
+clause — `0003` §6 and `0004` §9, *"cost is hidden by ROLE, not by column grants"*. So a
+cashier reads **zero** rows there, and the zero has nothing to do with locations. Banking
+it as location isolation would be a suite green about the wrong wall, which is the same
+error 3.2b-ii's F5 was built to catch on inserts.
+
+⚠️ **And the obvious repair does not exist.** Anyone who clears `has_role(…, 'manager')`
+is handed **every** location by `my_locations()`, which grants managers and owners all
+locations in their workspaces by role. There is no actor in this schema who is
+simultaneously manager-enough to read a purchase and location-restricted enough to be
+refused one. The two predicates cannot both bite on the same caller.
+
+**The suite records the zero under its own name, `R-zero`, and says what it is.** The
+attribution is structural rather than asserted: the *same* cashier, in the *same*
+session, reads their own store's rows in full from the other five tables — that is what
+`L-own` proves — so the refusal on these five is the role clause and can be nothing else.
+
+⚠️ **That makes `R-zero` a ROLE claim living in a location task, and it is a decision
+made on the owner's behalf** — the same shape as 3.2b-i's `T-role`, and made for the same
+reason. It is there because leaving the zero unnamed would let a reader take it for the
+store wall. **Cheap to overturn: it is ten tests in a file that ships no migration.**
+
+### ✅ Found in 3.3 — CLOSING A STORE IS THE ONLY WAY TO OBSERVE THE OTHER FIVE
+
+`my_locations()` excludes **inactive** locations. `workspace_id in (select
+my_workspaces())`, sitting beside it in all ten policies, does not. So `is_active` is the
+one lever the location clause answers to and the tenant clause ignores — and it is the
+only observation of `purchase_select`, `purchase_line_select`, `waste_line_select`,
+`stock_batch_select` and `stock_movement_select` available to anything behavioural.
+
+This is not a technicality. It is a real rule the reporting layer already works around:
+`0008`, `0009`, `0011` and `0013` each record that their views read **wider** than RLS
+precisely because `my_locations()` is fail-closed on closed stores.
+
+So the suite closes one store, re-measures all ten tables, and reopens it:
+
+- **`D-mgr`** — with Mercado closed, the manager's whole-table count is Centro's rows
+  exactly. On `sale` that repeats a wall the cashier tests already reach; on `purchase`
+  and `stock_movement` it is **the only evidence in the repo that the location clause on
+  those policies does anything at all**.
+- **`D-staff`** — the cashier stranded at the closed store sees **zero**, not everything.
+  That is `my_locations()`'s fail-closed rule, and the direction its own comment argues
+  the mistake must fall in: *"one forgotten insert silently shows a cashier the other
+  store's takings, and nobody reports it… under this rule the same mistake locks them out
+  of their own store, which is a support ticket within five minutes."*
+
+⚠️ **Falsified, and this is the one that matters**: removing `and l.is_active` from
+`my_locations()` — a change nothing else in the repo would notice — turns **all ten**
+`D-mgr` tests red plus F10. Without the closed-store block, that edit ships green.
+
+⚠️ **The suite writes to the applied schema and undoes it**, which is the third time
+(02's invite fixture, 04's `auth.users` row). One `is_active = false`, reopened
+explicitly so F11 can assert the restore rather than trusting the rollback, and the whole
+file is still one transaction ending in `rollback`. Confirmed after a full run: zero
+inactive locations, and every `supabase/checks/` step still green.
+
+### Settled in 3.3, and binding on 3.4
+
+**1. The measured table set is discovered from the catalog, with a NAMED floor.** The ten
+tables come from `pg_policies` — a policy added by a future migration is measured and
+asserted the day it lands, and nothing is edited for that to happen. But a suite that
+discovers its subjects from the very predicate it is testing has a blind spot: a policy
+that **loses** its location clause does not fail, it *leaves*, and the tests that would
+have caught it are never generated. F1 counts, which is enough only while the total is
+ten. **F14 lists the ten by name** and is the one hardcoded list in the file —
+deliberately, as a floor and never as the plan. ⚠️ Falsified: stripping the location
+clause from `sale_select` turns F14 red **naming `sale`**, where F1 alone said only that
+a number moved.
+
+**2. The stores are resolved from the CASHIERS' ASSIGNMENTS, never by display name.** The
+claim under test is about a user's reach, so the user is what the fixture is keyed on —
+02's rule, and it means renaming a store cannot silently re-point the suite. F5 refuses
+to proceed unless each cashier holds exactly one assignment and the two differ.
+
+**3. Both actors are inside ONE workspace, which is what holds the tenant wall open.** 02
+used two owners and held the *store* wall open to make a claim about tenancy alone; this
+file does the exact opposite. A cashier in workspace B seeing none of A's rows is the
+tenant wall and 02 owns it — repeating it here would blur which wall a failure names.
+
+**4. F13 does not catch the mutation it looks like it catches, and says so.** `alter
+function public.my_locations() security invoker` never reaches F13: the function reads
+`public.location`, whose `location_select` policy calls the function, and the two recurse
+until Postgres raises `stack depth limit exceeded`. The build goes red — which is what
+matters — but on stack depth, not on F13. F13's real subject is the quieter half: a
+`security definer` lost where the recursion happens not to close, and a `search_path`
+left unpinned.
+
+⚠️ **F13 also failed on its first run against a completely correct schema**, because
+`set search_path = ''` is stored in `proconfig` as `search_path=""` — the empty string
+keeps its quotes. The value is now unquoted before comparison. Recorded because the
+obvious spelling of that test is wrong and someone will write it again.
+
+### Twelve falsifications, run by hand before 3.3 was committed
+
+Every one confirmed to exit non-zero, and each named test confirmed to be the one that
+went red. Seven mutate the applied schema and are undone; five mutate a copy of the suite.
+
+| # | Mutation | Turns red |
+|---|---|---|
+| M1 | `sale_select` loses its location clause | F1 and **F14, naming `sale`** — the table leaves the measurement rather than failing in it |
+| M2 | `location_select` dropped | F1 and F14, naming `location` |
+| M3 | `batch_balance_select` opened to `… or true` — mentions the helper, admits everything | six tests: `L-cross` ×2, `L-own` ×2, `D-mgr`, `D-staff`. **This is the leak 01's catalog test cannot see** |
+| M4 | a `with check` clause added that mentions `my_locations()` | F7 — the 3.3 scope guard |
+| M5 | `and l.is_active` removed from `my_locations()` | F10 and **all ten `D-mgr`** — the closed-store block's whole subject |
+| M6 | `my_locations()` made `security invoker` | the build, via `stack depth limit exceeded` — **not F13**; see decision 4 |
+| M7 | the manager given `member_location` rows | F6 — `M-both` would still pass, for the wrong reason |
+| S1 | the `set role authenticated` dropped from the cashier's pass | F3, plus sixteen measurements |
+| S2 | the explicit reopen removed from the D-block | F11 |
+| S3 | the closure never applied | F10, F11 and every `D-mgr` |
+| S4 | both cashiers pointed at the same store | F5, plus twenty-four measurements |
+| S5 | the measurement loop restricted to the five cashier-observable tables | F1, F8, F14 — ⚠️ **and it exited 0**, which is how the harness hole above was found. With the guard, it exits non-zero |
+
+⚠️ **S5 is the falsification that changed something outside its own file.** It was written
+to check that the role-gated half could not be quietly dropped. It found instead that a
+suite could fail three tests and pass the build.
 
 ### ⚠️ Found before 3.3 was written — THE LOCATION WALL IS A READ WALL, AND THE LEDGER HAS NO WRITE SURFACE YET
 
