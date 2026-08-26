@@ -59,8 +59,10 @@ falsifications, and it is the first suite whose subject is arithmetic rather tha
 run and per location. ⚠️ **Its finding is a LIMIT OF §2.4 ITSELF, not of the suite**:
 deleting the receipt movement from a purchase — a real defect — leaves every §2.4
 assertion GREEN, because an empty lot agrees with its empty movement set. The invariant
-sees a movement that was never *projected*, never one that was never *made*. **That is the
-owner's open decision below.** ⚠️ **3.4 also found that the per-file plan guard 3.3
+sees a movement that was never *projected*, never one that was never *made*. ✅ **SETTLED
+2026-08-26 — it becomes a deferred constraint in `0006`**, not a step-3 suite and not a
+task of its own; the predicate is specified and verified under *What step 3 does NOT
+ship*. **Every open decision in this file is closed again.** ⚠️ **3.4 also found that the per-file plan guard 3.3
 shipped in 05 was itself wrong** — it compared the file's own arithmetic instead of
 pgTAP's number, so `plan(planned + 1)` sailed through it. Corrected, and now carried by
 all six suites, which discharges 3.3's instruction about 01–04. Findings below.
@@ -658,6 +660,14 @@ Neither applies to a function body. Real pilot data arrives when Vender ships at
   itself is a movement. `record_purchase` must therefore write both the batch and a
   positive movement; writing only the batch leaves stock at zero, and seeding the
   balance with `qty_received_base` would double the delivery.
+  ⚠️ **3.4 PROVED THIS RULE IS UNGUARDED, and that §2.4 CANNOT GUARD IT** (2026-08-25).
+  Deleting the receipt movement leaves the lot at zero and its movement sum at zero, so
+  the ledger invariant agrees with itself and stays green over all 64 assertions — the
+  shop received nothing and nothing says so. §2.4 sees a movement that was never
+  *projected*, never one that was never *made*. **The enforcement is owed by `0006`**
+  and is specified under *What step 3 does NOT ship* below. Settled by the owner
+  2026-08-26: it is a constraint in `0006`, not a step-3 suite and not a task of its
+  own.
 - **A reversal movement keeps the reason it cancels** and sets
   `reversal_of_movement_id`; there is no `'reversal'` value in `movement_reason`.
   Otherwise every report that asks "how much did we sell" has to remember to union
@@ -1611,12 +1621,25 @@ what the function means.
 What caught S2 was **F2**, the floor asserting the 400 generated operations wrote more
 than 400 movements. That is the whole defence, and it is a suite-level one.
 
-⚠️ **THE OWNER'S CALL, AND IT IS CHEAP NOW.** "Every purchase line has a receipt
-movement against a batch cut from it" is a claim **no suite in this repo makes**, and it
-belongs to `record_purchase` in `0006`, which is reserved and unwritten. Recording it
-here against step 4 rather than inventing a step-3 suite for a function that does not
-exist. **Say if it should instead be its own task** — the plan is the cheap place to
-move it, a merged suite is not.
+✅ **SETTLED BY THE OWNER, 2026-08-26: a CONSTRAINT in `0006`, not a suite and not a
+task of its own.** Three reasons, and the first is the one that decided it:
+
+1. **The rule was already recorded**, under *Settled in 1.3a, and binding on what comes
+   after* — *"`record_purchase` must therefore write both the batch and a positive
+   movement"*. 3.4 did not find a missing requirement; it found an **unenforced** one. A
+   second record of it in this section would be two half-accounts of one rule, so the
+   1.3a bullet carries the finding and this section points at it.
+2. **A step-3 suite could not go red for the reason that matters.** The only purchases
+   that exist are the seed's, they are correct, and `10_deliveries.sql` §9 already
+   asserts its own writes. A suite written now would assert a true thing about data that
+   cannot break, aimed at a function nobody has written — the vacuous green §9 refuses,
+   wearing a new name.
+3. **A constraint beats a test here**, and it is this repo's established move: the
+   composite FKs, `stock_movement_sign_follows_reason` and the one-reversal partial
+   indexes all make a bad state unrepresentable rather than merely detected.
+
+The predicate is specified and **verified against the applied seed** under *What step 3
+does NOT ship* below.
 
 ### ⚠️ Found in 3.4 — THE PER-FILE PLAN GUARD 3.3 SHIPPED WAS ITSELF WRONG
 
@@ -2477,6 +2500,36 @@ they are not silently dropped:
   against an unassigned location is rejected"*. `record_sale` is `0006`, **step 4**.
   3.3 asserts the read half now, over the predicate the RPC will inherit, and the
   write half is owed by step 4.
+
+And one row §2.10 does **not** name, which 3.4 found and the owner settled on 2026-08-26:
+
+- ⚠️ **RECEIPT COMPLETENESS — a deferred constraint trigger, owed by `0006`.** A lot that
+  opens and never receives is invisible to §2.4 (see *Found in 3.4* above and the 1.3a
+  bullet). `0006` must make it unrepresentable rather than merely tested, **deferred to
+  commit** because the batch and its movement are necessarily separate statements:
+
+  > for every `stock_batch` with `origin in ('purchase', 'transfer')`, the sum of its
+  > **live receipt movements** — `reason = 'purchase'` or `'transfer_in'`, with
+  > `reversal_of_movement_id is null` — equals `qty_received_base`.
+
+  ⚠️ **`reversal_of_movement_id is null` IS LOAD-BEARING.** Without it a voided delivery
+  breaks the constraint, and a voided delivery is legitimate — `30_reversals.sql` writes
+  one on purpose and 1.6c's is still in the seed. The filter is what lets the rule
+  survive a void.
+
+  ⚠️ **`origin = 'adjustment'` MUST BE EXCLUDED, and the reason is not tidiness.** An
+  adjustment lot from `allocate_fefo()`'s shortfall branch three never received anything
+  — it is opened so that an oversale of a never-stocked variant has a `batch_id` to land
+  on. The seed's single one carries `qty_received_base = 2.000` against one `sale:
+  -2.000` movement and nothing else, so **its `qty_received_base` is a fiction that
+  `stock_batch_qty_positive` forces it to invent**. A constraint written over all three
+  origins fires on it the day it ships.
+
+  ✅ **Verified against a fresh `supabase db reset` on 2026-08-26**: zero violations
+  across all 1 041 seeded lots for `purchase` and `transfer`, and exactly the one
+  expected `adjustment` lot outside the rule. That is the evidence the predicate is
+  right, not a green tick — no CI check covers a docs-only change (`db.yml` filters on
+  `supabase/**`).
 
 ⚠️ **So "do not build screens before this passes" is satisfied by 3.1–3.7 plus the
 step 4.5 suites, not by 3.1–3.7 alone.** Reading §3 step 3 as the whole of §2.10
