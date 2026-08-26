@@ -301,10 +301,44 @@ Document total is the **sum of rounded lines**; the document is never rounded
 independently. Rounding is **half-up, away from zero** — banker's rounding surprises
 the person checking the arithmetic by hand, who in a shop is the person who matters.
 
+⚠️ **"No floating point" is what MAKES the half-up rule true, and it is not hygiene**
+(measured in task 3.5, asserted by `07_money_and_units.sql` F3 and F4):
+
+```
+round(2.5::numeric)   = 3     round(2.5::float8)   = 2
+round(646.5::numeric) = 647   round(646.5::float8) = 646
+```
+
+`round(numeric)` is half-up away from zero; `round(double precision)` is
+half-to-**even**. One cast anywhere in the money path changes what a customer is
+charged by a centavo, on the tie — the case nobody checks. F5 counts float columns in
+`public` and fails the build at one, so this is enforced rather than believed.
+
+⚠️ **The half-centavo tie lives in `round(unit_gross × qty)`, never in the tax
+division.** For integer-centavo gross, `gross / 1.16` cannot land on a half-centavo —
+`50G = 29(2m+1)` has no solution — and at rate 0 there is no division at all. Task 3.5
+proved it by exhaustion as well. Boundary cases belong on the multiplication.
+
+⚠️ **UNSETTLED — WHICH DIRECTION A PURCHASE LINE ROUNDS.** The rule above is written
+for the sell side, where the shelf price includes IVA. A supplier invoice breaks tax
+out, and `10_deliveries.sql` accordingly computes a delivery line **net-first** with
+`tax = round(net × rate)` — which the residual rule forbids — while
+`20_consumption.sql` computes a sale line gross-first. Every seeded line satisfies
+`net + tax = gross` either way, so nothing is broken today. **`0006` must pick one and
+a delivery written the wrong way is append-only.** See `docs/PLAN.md`, *Open, and the
+owner's call*.
+
 This logic exists twice, here and in `packages/money` (ADR-035 §2.6). The pgTAP money
 suite and Vitest both read **one** file, `packages/money/cases.json`. Do not fork it
 into a SQL fixture: two sets of expectations that happen to agree are how drift
 starts, and each copy looks correct on its own.
+
+⚠️ **`07_money_and_units.sql` holds its cases inline TODAY, and that is task 3.6's
+job to end.** 3.5 ships before 3.6 on purpose: writing `cases.json` first would let the
+data file be shaped to whatever the SQL already does, which is the drift it exists to
+prevent. The cases carry ids — `M1`–`M9`, `D1`–`D3`, `P1`–`P3` — so 3.6 lifts them by
+name. ⚠️ **`M8`, the reversal, is the only case that catches JavaScript's `Math.round`**
+(half-up toward +∞, not away from zero); it must survive the move.
 
 ## Timestamps
 
@@ -1262,12 +1296,26 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/pgtap/` — the RLS suites (plan tasks 3.1, 3.2a, 3.2b-i)
+## `supabase/pgtap/` — the §2.10 suites (plan tasks 3.1 – 3.5)
 
-ADR-035 §2.10 names pgTAP as the home of five suites. This directory is where they
-live: `01_rls_coverage.sql` says the walls are standing,
-`02_rls_isolation_reads.sql` reads rows as a signed-in user and says they hold, and
-`03_rls_isolation_writes.sql` tries to write through them and says which wall it hit.
+ADR-035 §2.10 names pgTAP as the home of six of its nine suites. This directory is
+where they live: `01_rls_coverage.sql` says the walls are standing,
+`02_rls_isolation_reads.sql` reads rows as a signed-in user and says they hold,
+`03_rls_isolation_writes.sql` and `04_rls_isolation_writes_inserts.sql` try to write
+through them and say which wall they hit, `05_location_isolation_reads.sql` measures
+the store wall rather than the tenant one, `06_ledger_invariant_randomised.sql` runs
+§2.4 over randomised sequences, and `07_money_and_units.sql` is the arithmetic —
+729 tests between them.
+
+⚠️ **Only the subsections for 01, 02 and 03 below are written out.** 04 – 07 are
+documented in `docs/PLAN.md` under their tasks, with their findings; this file is not
+the second copy.
+
+⚠️ **`07` is the one suite here that is partly SPECIFICATION rather than
+verification**, and its own header says so at length: ADR-035 §2.5's rules 2 – 4 have
+no SQL implementation in this repo, because the tax split is `0006`. Rules 1, 5 and 6
+are asserted against the applied schema and the seed; the rest pins the arithmetic
+`record_sale` must inherit.
 
 **The CI step runs the directory, not a list of files** — `ls supabase/pgtap/*.sql |
 sort`, skipping `_` — so a third suite costs no workflow edit, and a loop that matched
