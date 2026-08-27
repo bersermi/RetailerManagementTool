@@ -74,14 +74,19 @@ migration. What IS real: rule 1 as a build failure (**no float column anywhere i
 documents, the residual identity over all 3 448 seeded lines, and §2.10's kilogram
 sentence run as ten tickets through the real `allocate_fefo()` to a balance of exactly
 zero.
-⚠️⚠️ **AND IT OPENS THE FIRST DECISION THIS FILE HAS CARRIED SINCE 3.4 — THE PURCHASE
-SIDE IS NET-FIRST AND §2.5 READS GROSS-FIRST.** The seed computes a delivery line
-net-first with `tax = round(net × rate)`, which §2.5 rule 4 forbids, and a sale line
+✅ **THE ONE DECISION IT OPENED IS ALREADY CLOSED — SETTLED BY THE OWNER 2026-08-26,
+SHIPPED 2026-08-27.** 3.5 found that the seed computes a delivery line net-first with
+`tax = round(net × rate)`, which §2.5 rule 4 appears to forbid, while a sale line is
 gross-first with tax as the residual — and the sentence above rule 2 says supplier
-invoices break tax out, so the seed is defensible. Nothing is broken today; all 3 448
-lines satisfy the residual identity either way. **But `0006` has to pick one, and a
-delivery written the wrong way is append-only.** Three readings and the owner's call,
-below.
+invoices break tax out, so the seed was defensible. **The owner took reading 3:
+direction follows the document, tax stays the residual on both.** ADR-035 §2.5 rules
+2–4 are the files that moved. ⚠️ **And the wording this plan first gave that reading
+was CIRCULAR** — it re-derived the forbidden `round(net × rate)` and called it a
+residual; corrected below, and recorded rather than quietly fixed. ✅ **It cost
+nothing: on a net-first line the two spellings are provably the same number, so all
+1 048 seeded delivery lines already satisfy it** (F17). No migration, no seed change.
+Six buy-side cases and two fixed tests now assert it — 07 stands at **181 tests and
+twenty-five falsifications**.
 ⚠️⚠️ **3.5 ALSO FOUND THAT §2.5 ASKS `cases.json` FOR A HALF-CENTAVO BOUNDARY THAT
 CANNOT EXIST** — `gross/1.16` never lands on one, provably and by exhaustion, so the
 rule-6 tie-break is reachable only at `round(unit_gross × qty)`. That is a correction to
@@ -139,7 +144,7 @@ that seed** rather than only over a fixture.
 instead of the moment it was written, and purchase-price memory decides its prefill from
 the data instead of from a uuid. **Every finding in this file is now closed**, step 1's
 and step 2's alike.
-⚠️ **One open decision stands: the purchase-side rounding direction 3.5 found, above.** Two
+**Every open decision in this file is closed again** — the purchase-side rounding direction 3.5 found was settled by the owner on 2026-08-26 and shipped the next day. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
 price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
@@ -1608,7 +1613,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.2b-ii~~ | ~~**RLS isolation — writes, inserting a NEW row into workspace B**~~ — **done** 2026-08-23, CI green on PR #26. `supabase/pgtap/04_rls_isolation_writes_inserts.sql`, picked up by the existing loop with no workflow edit. **43 tests**: 11 fixed, one per measurement, on a **computed plan** — eight tables × two target workspaces × two callers. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The pairing is stronger than the done-when asked for**: not the same payload but the SAME STATEMENT TEXT, accepted for the owner of the workspace it names and refused for the other, so the two runs differ in nothing but who is asking (F7). ⚠️ **The finding is the good one** — the `_insert` policies are the one write-policy family a cross-tenant caller can observe directly. ⚠️ **It writes an `auth.users` fixture and rolls it back**; both decisions are below | M | ✅ |
 | ~~3.3~~ | ~~**Location isolation**~~ — **done** 2026-08-24, CI green on PR #29. `supabase/pgtap/05_location_isolation_reads.sql`, picked up by the existing loop with no workflow edit. **84 tests**: 14 fixed, on a **computed plan** — 4 per cashier-observable table, 2 per role-gated table, 2 per table for the manager, 2 per table for the closed-store block. **Twelve falsifications**, each confirmed to exit non-zero. ⚠️ **The ten policies split 5/5 and the halves need different actors** — a cashier reads five of them and is refused the other five BY ROLE, so pointing a cashier at a `purchase` proves the role wall twice and the store wall not at all. ⚠️ **The other five are observable only by CLOSING A STORE**, which is the finding this suite was built around. ⚠️⚠️ **AND IT FOUND A HOLE IN THE HARNESS ITSELF, affecting 01–04 as much as 05**: a computed plan that misses turns `exception_on_failure` OFF, silently. Fixed in `.github/workflows/db.yml`. Findings below | M | ✅ |
 | ~~3.4~~ | ~~**Ledger invariant over randomised sequences**~~ — **done** 2026-08-25. `supabase/pgtap/06_ledger_invariant_randomised.sql`, picked up by the existing loop with no workflow edit. **99 tests**: 14 fixed, 5 for the C-block, and per run one whole-database measurement, one per location and one anti-vacuity guard, on a **computed plan** — 16 runs x 25 operations = 400 writes on top of the seed. **Recorded seed `0.20260824`**, printed as a diagnostic and overridable with `-v gen_seed=`. **Thirteen falsifications**, each confirmed to fail CI. ⚠️ **The finding is a LIMIT OF THE INVARIANT ITSELF**: deleting the receipt movement from a purchase — a real defect — left all 64 §2.4 assertions GREEN. Sec 2.4 sees a movement that was never *projected*, never one that was never *made*. ⚠️ **It also found the per-file plan guard 3.3 shipped in 05 was itself wrong**, and fixed it in all six files. Findings below | M | ✅ |
-| ~~3.5~~ | ~~**Money and units, in pgTAP**~~ — **done** 2026-08-26. `supabase/pgtap/07_money_and_units.sql`, picked up by the existing loop with no workflow edit. **155 tests**: 16 fixed, 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document case, 2 per pack case and 2 per money column, on a **computed plan**. **Eighteen falsifications**, each confirmed to fail the CI step. ⚠️ **The suite is half verification and half specification, and the header says which is which** — rules 1, 5 and 6 are asserted over the applied schema and all 3 448 seeded lines; rules 2–4 have no SQL implementation to test, because that is `0006`. ⚠️ **§2.5 asks `cases.json` for a half-centavo boundary per tax rate and the tax division has none — provably.** ⚠️ **`round(float8)` is banker's**, so rule 1 is the precondition for rule 6 rather than a style preference. ⚠️ **And the purchase side is net-first where §2.5 reads gross-first — the owner's call, and cheap only until `0006`.** Findings below |
+| ~~3.5~~ | ~~**Money and units, in pgTAP**~~ — **done** 2026-08-26. `supabase/pgtap/07_money_and_units.sql`, picked up by the existing loop with no workflow edit. **155 tests**: 16 fixed, 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document case, 2 per pack case and 2 per money column, on a **computed plan**. **Eighteen falsifications**, each confirmed to fail the CI step. ⚠️ **The suite is half verification and half specification, and the header says which is which** — rules 1, 5 and 6 are asserted over the applied schema and all 3 448 seeded lines; rules 2–4 have no SQL implementation to test, because that is `0006`. ⚠️ **§2.5 asks `cases.json` for a half-centavo boundary per tax rate and the tax division has none — provably.** ⚠️ **`round(float8)` is banker's**, so rule 1 is the precondition for rule 6 rather than a style preference. ✅ **The purchase side is net-first where §2.5 read gross-first — put to the owner and SETTLED 2026-08-26: direction follows the document, tax stays the residual on both.** ADR-035 §2.5 rules 2–4 amended; no migration and no seed change, because on a net-first line the two spellings are provably the same number. Follow-up shipped 2026-08-27 — **181 tests, twenty-five falsifications**, six buy-side cases, F17 and F18. Findings below |
 | 3.6 | **`packages/money` and `cases.json`** — the first TypeScript in the repo. One data file read by both the pgTAP suite and Vitest | L | `cases.json` seeded per ADR-035 §2.5; Vitest green in CI; **3.5's pgTAP suite re-pointed at the same file**, so drift is structurally impossible rather than merely tested for |
 | 3.7 | **Concurrency under Vitest.** §2.10's last row, and the one suite that already half-exists as `supabase/tests/0005_allocation_concurrency.sh` | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
 
@@ -1620,11 +1625,11 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
 
-### ⚠️⚠️ OPEN, AND THE OWNER'S CALL — THE PURCHASE SIDE IS NET-FIRST AND §2.5 READS GROSS-FIRST
+### ✅ SETTLED BY THE OWNER, 2026-08-26 — DIRECTION FOLLOWS THE DOCUMENT, TAX STAYS THE RESIDUAL
 
-**This is the one decision 3.5 could not make for itself, and it is cheap now and a
-fix-forward migration later.** It is named here rather than settled because it changes
-what `record_purchase` writes into an append-only ledger.
+**This was the one decision 3.5 could not make for itself.** It was put to the owner
+at the 3.5 merge and answered the same day: **reading 3 of the three below.** The
+history is kept because the reasoning is what binds `0006`, not the verdict alone.
 
 §2.5 rule 2 says: *"With `prices_include_tax = true` the **gross unit price is
 authoritative**."* `prices_include_tax` is a column on `workspace`, and both seeded
@@ -1669,17 +1674,83 @@ readings, all defensible:
    the sentence above rule 2 implies: sales gross-first, purchases net-first,
    `tax = round(net × rate)` on the purchase side and residual on the sell side.
    Matches the paper the shop is holding. Costs `0006` two code paths.
-3. **Direction follows the document, but tax stays the residual on both** — net-first
-   on a purchase, then `gross = net + round(net × rate)` once and `tax = gross − net`.
-   Keeps rule 4 universal at the cost of one more line of arithmetic.
+3. **Direction follows the document, but tax stays the residual on both.** Keeps
+   rule 4 universal at the cost of one more line of arithmetic.
 
 **3.5 assumed nothing and asserted nothing about which is right.** F8 is written to
-pass under all three, deliberately, so this file does not quietly ratify one of them.
-`0006` cannot be.
+pass under all three, deliberately, so it did not quietly ratify one of them.
 
-⚠️ **The deadline is `0006`, not 3.6.** `cases.json` will need purchase cases and
-cannot have them until this is answered, but 3.6 can ship the sell-side cases alone
-and say so. The point of no return is the first `record_purchase` a pilot runs.
+#### ✅ THE OWNER TOOK READING 3, 2026-08-26
+
+**Tax is always `gross − net`. What varies by document kind is which of the two is the
+INPUT.** ADR-035 §2.5 rules 2, 3 and 4 are amended to say so; rule 2 gains a scope and
+rule 4 keeps its universal form.
+
+| | anchor | derived | tax |
+|---|---|---|---|
+| **sale** | `line_gross = round(unit_gross × qty)` | `line_net = round(line_gross / (1 + rate))` | `line_gross − line_net` |
+| **purchase** | `line_net = round(unit_net × qty)` | `line_gross = round(line_net × (1 + rate))` | `line_gross − line_net` |
+
+⚠️ **AND THE WORDING THIS FILE FIRST GAVE READING 3 WAS CIRCULAR — corrected above.**
+It read *"net-first on a purchase, then `gross = net + round(net × rate)` once and
+`tax = gross − net`"*. Substitute the first into the second and the tax is
+`round(net × rate)` — the spelling rule 4 forbids, re-derived and called a residual.
+The honest form anchors the rounding on the **gross**: `gross = round(net × (1 + rate))`.
+Recorded rather than quietly fixed, because it is the sort of error that reads as
+settled and is not.
+
+✅ **AND THE TWO FORMS ARE THE SAME NUMBER ANYWAY, WHICH IS WHY THIS COST NOTHING.**
+`line_net` is already an exact multiple of a centavo, so adding it cannot shift the
+fractional part the rounding is deciding:
+
+> `round(net × (1 + rate)) − net` **=** `round(net × rate)`, for every net and every
+> rate. Verified by exhaustion over all 400 001 centavo nets from −$2 000 to $2 000 at
+> both applied rates, and over the 1 048 delivery lines the seed wrote. **F17.**
+
+So **rule 4 has no teeth on the buy side at all** — it bites exactly where the
+authoritative figure is the gross and the net is reached by **division**, which is the
+sell side and is what F8 measures. **No migration, no seed change, and the seed was
+never wrong — only under-specified.**
+
+⚠️ **The decision is still expensive to reverse, and F17 is why it is cheap to hold.**
+Nothing written so far has to move. The point of no return is unchanged: the first
+`record_purchase` a pilot runs.
+
+#### ⚠️ BINDING ON `0006` — THE TWO LINES `record_purchase` AND `record_sale` MUST CARRY
+
+```sql
+-- record_sale        the shelf price is the anchor
+line_gross := round(p_unit_gross * v_qty_base, 2);
+line_net   := round(line_gross / (1 + v_rate), 2);
+line_tax   := line_gross - line_net;
+
+-- record_purchase    the invoice net is the anchor
+line_net   := round(p_unit_net * v_qty_base, 2);
+line_gross := round(line_net * (1 + v_rate), 2);
+line_tax   := line_gross - line_net;
+```
+
+`waste` follows the **sale** shape: `waste_line` carries `line_net` as the retail value
+of the loss (`0011`'s header says so), and a retail value is a shelf price.
+
+#### ✅ Asserted now, in `07_money_and_units.sql`
+
+Six buy-side cases, `B1`–`B6`, beside the nine sell-side ones, all on the same
+`kind`-tagged table so 3.6 lifts them together. Plus two fixed tests the decision
+created:
+
+- **F17** — the two spellings coincide, by exhaustion and over the seed's 1 048
+  delivery lines
+- **F18** — the rule-6 tie is unreachable on the **buy** side too, at both applied
+  rates, so the tie lives in `round(unit_price × qty)` on **both** sides of the ledger
+
+⚠️ **`B6` is the buy side's `M8`, and `B4` is not.** `B4` is a reversal, but its anchor
+(−13.13) is not a tie, so away-from-zero and toward-+∞ agree on it and it discriminates
+nothing. `B6` — the void of `B5`, anchor −0.365 — is the only buy-side shape that can
+catch `Math.round`. Falsification S23 confirms it: pointed at toward-+∞ rounding, **M8
+and B6 are the only two of twenty cases that go red.** S24 confirms the converse —
+dropping `B6` leaves F13 green with `B4` still present, which is exactly the hole F13's
+new clause now closes. **3.6 must carry both across.**
 
 ### ⚠️⚠️ Found in 3.5 — §2.5 ASKS `cases.json` FOR A HALF-CENTAVO BOUNDARY THE TAX DIVISION CANNOT PRODUCE
 
@@ -1837,7 +1908,7 @@ and `line_net` is the authority — §2.5 rule 3's *per line*, again.
 per-document totals disagree. A rule that *always* disagreed would satisfy both and be
 a different defect wearing the same green, so D3 asserts a document where the two agree.
 
-### Eighteen falsifications, run by hand before 3.5 was committed
+### Twenty-five falsifications — eighteen before 3.5 was committed, seven more for the owner's decision
 
 Each was applied to `07_money_and_units.sql`, run through the same three gates CI uses
 — psql exit code, `Looks like you planned`, `^ *not ok` — and reverted. **All eighteen
@@ -1864,6 +1935,13 @@ their own right.
 | S16 | `plan()` called with `planned + 1` — 3.3's disarmed exception | the per-file guard |
 | S17 | Both zero-rated cases dropped — the second tax rate goes unmeasured | F13 |
 | S18 | Rule 5 broken in the spec — the document rounds independently of its lines | D1, D2 |
+| S19 | Reading **1** instead — the buy side treats the invoice net as a shelf price | B1, B2, B4, B5 |
+| S20 | B2's hand-computed gross is off by one centavo | B2 gross |
+| S21 | One seeded delivery line stops satisfying the owner's rule | F7, F8, **F17** |
+| S22 | F18 aimed at 10%, a rate where the buy-side ties DO exist | F18 |
+| S23 | Half-up toward +∞ — `Math.round` — applied to every case | F13, **M8 and B6 only** |
+| S24 | B6 dropped, leaving B4 as the buy side's only reversal | F13 |
+| S25 | Buy-side tax kept at three decimals — `net + tax` stops being the gross | B2, B4, B5, B6 |
 
 ⚠️ **S2 was re-aimed once.** The first version deleted the batch as well as its
 movement and died on `stock_batch_purchase_line_fk` — the build failed, but on a
@@ -1873,6 +1951,14 @@ and here all ten draws go red because the balance starts at zero rather than a k
 
 ⚠️ **S14 was re-aimed once, and that is the M8 finding above.** Dropping M4, M5 and M6
 left F13 green.
+
+⚠️ **S23 is the one that earns B6 its place, and S24 is the one that proves B4 could
+not have.** Pointed at JavaScript's rounding, exactly two of the twenty money cases go
+red — `M8` and `B6`, one per side, both negative, both with an anchor on a half
+centavo. Every positive case agrees under both roundings, and F18 says the tax steps
+can never tie, so that shape is the only one that discriminates. S24 removes `B6` and
+F13 goes red **with `B4` still in the table** — which is what the new `kind`-scoped
+clauses in F13 exist to catch.
 
 ⚠️ **S15 is the one that keeps F9 honest.** A test asserting "this search finds
 nothing" passes just as well when the search is broken. Pointed at 60% — where

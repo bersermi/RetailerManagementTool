@@ -287,14 +287,32 @@ committed sale.
 
 Integer centavos everywhere. No floating point in the money path, at any layer.
 
-With `prices_include_tax = true` the gross unit price is authoritative, and the RPC
-splits **per line**:
+**Direction follows the document** (settled by the owner 2026-08-26, ADR-035 §2.5
+rules 2–4). A shelf price includes IVA, so a **sale** is anchored on the gross; a
+supplier invoice breaks it out, so a **purchase** is anchored on the net. The tax is
+the same expression on both:
 
 ```
+-- sale        the shelf price is the anchor
 line_gross = round(unit_gross × qty)
 line_net   = round(line_gross / (1 + rate))
 line_tax   = line_gross − line_net          -- residual, never rounded on its own
+
+-- purchase    the invoice net is the anchor
+line_net   = round(unit_net × qty)
+line_gross = round(line_net × (1 + rate))
+line_tax   = line_gross − line_net          -- the same sentence
 ```
+
+`waste` follows the **sale** shape: `waste_line.line_net` is the retail value of the
+loss, and a retail value is a shelf price.
+
+⚠️ **On a purchase the residual rule costs nothing and forbids nothing.** `line_net`
+is already an exact multiple of a centavo, so `round(net × (1 + rate)) − net` and
+`round(net × rate)` are the same number — for every net and every rate. The rule has
+teeth exactly where the gross is authoritative and the net is reached by **division**,
+which is the sell side. So the seed's 1 048 delivery lines, written net-first since
+1.6a, already satisfy the settled rule and needed no change (`07` F17).
 
 The residual is what makes `net + tax = gross` hold exactly on every line, forever.
 Document total is the **sum of rounded lines**; the document is never rounded
@@ -319,14 +337,10 @@ division.** For integer-centavo gross, `gross / 1.16` cannot land on a half-cent
 `50G = 29(2m+1)` has no solution — and at rate 0 there is no division at all. Task 3.5
 proved it by exhaustion as well. Boundary cases belong on the multiplication.
 
-⚠️ **UNSETTLED — WHICH DIRECTION A PURCHASE LINE ROUNDS.** The rule above is written
-for the sell side, where the shelf price includes IVA. A supplier invoice breaks tax
-out, and `10_deliveries.sql` accordingly computes a delivery line **net-first** with
-`tax = round(net × rate)` — which the residual rule forbids — while
-`20_consumption.sql` computes a sale line gross-first. Every seeded line satisfies
-`net + tax = gross` either way, so nothing is broken today. **`0006` must pick one and
-a delivery written the wrong way is append-only.** See `docs/PLAN.md`, *Open, and the
-owner's call*.
+⚠️ **The half-centavo tie is unreachable in EITHER tax step**, at the two rates this
+schema carries — `50G = 29(2m+1)` and `8N = 25(2m+1)` both have no solution, and at
+rate 0 there is no rounding at all. F9 and F18 prove both by exhaustion. So the
+tie-break lives in `round(unit_price × qty)` on **both** sides of the ledger.
 
 This logic exists twice, here and in `packages/money` (ADR-035 §2.6). The pgTAP money
 suite and Vitest both read **one** file, `packages/money/cases.json`. Do not fork it
@@ -337,8 +351,12 @@ starts, and each copy looks correct on its own.
 job to end.** 3.5 ships before 3.6 on purpose: writing `cases.json` first would let the
 data file be shaped to whatever the SQL already does, which is the drift it exists to
 prevent. The cases carry ids — `M1`–`M9`, `D1`–`D3`, `P1`–`P3` — so 3.6 lifts them by
-name. ⚠️ **`M8`, the reversal, is the only case that catches JavaScript's `Math.round`**
-(half-up toward +∞, not away from zero); it must survive the move.
+name — nine sell-side (`M`), six buy-side (`B`). ⚠️ **`M8` and `B6` are the only two
+of the twenty that catch JavaScript's `Math.round`** (half-up toward +∞, not away from
+zero): both are reversals whose `unit_price × qty` lands on a half centavo, which — the
+tax steps being unable to tie — is the only shape that can tell the two roundings
+apart. Both must survive the move. `B4` is a reversal that discriminates nothing, and
+is kept as the case that shows why the other two are not interchangeable with it.
 
 ## Timestamps
 
@@ -1305,7 +1323,7 @@ where they live: `01_rls_coverage.sql` says the walls are standing,
 through them and say which wall they hit, `05_location_isolation_reads.sql` measures
 the store wall rather than the tenant one, `06_ledger_invariant_randomised.sql` runs
 §2.4 over randomised sequences, and `07_money_and_units.sql` is the arithmetic —
-729 tests between them.
+755 tests between them.
 
 ⚠️ **Only the subsections for 01, 02 and 03 below are written out.** 04 – 07 are
 documented in `docs/PLAN.md` under their tasks, with their findings; this file is not

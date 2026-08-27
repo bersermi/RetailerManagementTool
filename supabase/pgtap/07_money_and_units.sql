@@ -153,13 +153,23 @@ insert into mu_ref (k, v) select 'mu_p3', id from ins;
 -- first, then the header as the SUM OF THE ROUNDED LINES (§2.5 rule 5), then
 -- the lots.
 --
--- ⚠️ THE PURCHASE SIDE IS NET-FIRST AND THAT IS NOT AN OVERSIGHT — see the
--- finding recorded in docs/PLAN.md. §2.5's gross-authoritative rule is stated
--- under `prices_include_tax`, which is a property of the WORKSPACE, but the
--- sentence above it says supplier invoices BREAK TAX OUT. The seed reads it the
--- second way on purchases and the first way on sales, and F8 shows both
--- spellings land on lines that satisfy the residual identity. Which one `0006`
--- must use is the owner's call and is flagged in the plan.
+-- ⚠️ THE PURCHASE SIDE IS NET-FIRST, AND THE OWNER SETTLED THAT ON 2026-08-26.
+-- §2.5's gross-authoritative rule is stated under `prices_include_tax`, which is
+-- a property of the WORKSPACE, but the sentence above it says supplier invoices
+-- BREAK TAX OUT. The seed reads it the second way on purchases and the first way
+-- on sales, and the owner took that side:
+--
+--     TAX IS ALWAYS `gross - net`. What varies by document kind is which of the
+--     two is the INPUT.
+--
+--       sale     gross = round(unit_gross * qty)      <- the shelf price
+--                net   = round(gross / (1 + rate))
+--       purchase net   = round(unit_net * qty)        <- the invoice
+--                gross = round(net * (1 + rate))
+--       both     tax   = gross - net
+--
+-- So rule 4 stays universal and rule 2 gets a scope. The B-cases below assert
+-- the buy side; F17 is why it cost nothing to adopt.
 -- ---------------------------------------------------------------------------
 insert into mu_ref (k, v) values ('purchase', gen_random_uuid());
 
@@ -374,8 +384,12 @@ select u.code,
 --     net   = round(gross / (1 + rate), 2)
 --     tax   = gross - net                      -- residual, never rounded alone
 --
--- `unit_gross` is per BASE unit, because that is what the ledger stores.
+-- `unit_price` is per BASE unit, because that is what the ledger stores.
 -- $2.00 the 100 g is 0.02 the gram; $46.40 the kilo is 0.0464 the gram.
+--
+-- ⚠️ `unit_price` IS GROSS ON A SALE AND NET ON A PURCHASE, and `kind` is which.
+-- That is the owner's 2026-08-26 decision, and naming the column `unit_gross`
+-- would have been a lie on five of the fourteen rows.
 --
 -- ⚠️ M4, M5, M6 AND M8 ARE THE HALF-CENTAVO BOUNDARIES, AND THEY ALL SIT IN
 -- THE MULTIPLICATION, NOT IN THE TAX DIVISION. §2.5 asks cases.json to carry
@@ -392,8 +406,9 @@ select u.code,
 -- ---------------------------------------------------------------------------
 create temp table mu_case (
   id         text primary key,
+  kind       text not null check (kind in ('sell', 'buy')),
   label      text not null,
-  unit_gross numeric(14,6) not null,
+  unit_price numeric(14,6) not null,   -- gross per base on a sale, NET on a purchase
   qty        numeric(14,3) not null,
   rate       numeric(5,4)  not null,
   exp_gross  numeric(12,2) not null,
@@ -402,37 +417,65 @@ create temp table mu_case (
 );
 
 insert into mu_case values
-  ('M1', '§2.10 — 16% inclusive, one item at $11.60',
+  ('M1', 'sell', '§2.10 — 16% inclusive, one item at $11.60',
                                     11.600000,    1.000, 0.1600,  11.60,  10.00,  1.60),
-  ('M2', '§2.5  — the shelf: $2.00 the 100 g, IVA in',
+  ('M2', 'sell', '§2.5  — the shelf: $2.00 the 100 g, IVA in',
                                      0.020000,  100.000, 0.1600,   2.00,   1.72,  0.28),
-  ('M3', '§2.5  — zero-rated line, net is the gross',
+  ('M3', 'sell', '§2.5  — zero-rated line, net is the gross',
                                     13.500000,    1.000, 0.0000,  13.50,  13.50,  0.00),
-  ('M4', '§2.5  — half-centavo tie, counted: 5 x $0.073 = $0.365',
+  ('M4', 'sell', '§2.5  — half-centavo tie, counted: 5 x $0.073 = $0.365',
                                      0.073000,    5.000, 0.1600,   0.37,   0.32,  0.05),
-  ('M5', '§2.5  — half-centavo tie, weighed: 250 g at $25.86 the kilo',
+  ('M5', 'sell', '§2.5  — half-centavo tie, weighed: 250 g at $25.86 the kilo',
                                      0.025860,  250.000, 0.1600,   6.47,   5.58,  0.89),
-  ('M6', '§2.5  — half-centavo tie at rate 0, the other tax rate',
+  ('M6', 'sell', '§2.5  — half-centavo tie at rate 0, the other tax rate',
                                      0.073000,    5.000, 0.0000,   0.37,   0.37,  0.00),
-  ('M7', '§2.5  — weighed decimal quantity: a quarter kilo at $12.35',
+  ('M7', 'sell', '§2.5  — weighed decimal quantity: a quarter kilo at $12.35',
                                      0.012350,  250.000, 0.1600,   3.09,   2.66,  0.43),
-  ('M8', '§2.5  — the reversal of M4: half-up is AWAY FROM ZERO',
+  ('M8', 'sell', '§2.5  — the reversal of M4: half-up is AWAY FROM ZERO',
                                      0.073000,   -5.000, 0.1600,  -0.37,  -0.32, -0.05),
-  ('M9', '§2.10 — the case of 24 at $12.00, as a money line',
-                                     0.500000,   24.000, 0.1600,  12.00,  10.34,  1.66);
+  ('M9', 'sell', '§2.10 — the case of 24 at $12.00, as a money line',
+                                     0.500000,   24.000, 0.1600,  12.00,  10.34,  1.66),
+  -- ---- THE BUY SIDE, settled by the owner 2026-08-26 ----------------------
+  -- The invoice hands over a NET unit price. `net` is the anchor, `gross` is
+  -- round(net x (1 + rate)), and tax is the residual of THAT — so rule 4 reads
+  -- the same sentence on both sides of the ledger.
+  ('B1', 'buy',  'the fixture''s own kilo: $40.00 net the kilo, 16% broken out',
+                                     0.040000, 1000.000, 0.1600,  46.40,  40.00,  6.40),
+  ('B2', 'buy',  'an invoice line at $13.13 net — the tax has four decimals before it rounds',
+                                    13.130000,    1.000, 0.1600,  15.23,  13.13,  2.10),
+  ('B3', 'buy',  'a zero-rated delivery: gross is the net, tax is nothing',
+                                    27.500000,    1.000, 0.0000,  27.50,  27.50,  0.00),
+  ('B4', 'buy',  'the VOID of B2 — a returned delivery must mirror it to the centavo',
+                                    13.130000,   -1.000, 0.1600, -15.23, -13.13, -2.10),
+  ('B5', 'buy',  'the tie is in the MULTIPLICATION here too: 5 x $0.073 net = $0.365',
+                                     0.073000,    5.000, 0.1600,   0.43,   0.37,  0.06),
+  -- ⚠️ B6 IS THE BUY SIDE'S M8, AND B4 IS NOT. B4 is a reversal but its anchor
+  -- (-13.13) is not a tie, so away-from-zero and toward-+infinity agree on it
+  -- and it catches nothing. Only a NEGATIVE case whose anchor lands on a half
+  -- centavo can tell the two roundings apart, and F18 says the tax step never
+  -- provides one — so on the buy side this is the ONLY shape that can. It is
+  -- also a real document: `30_reversals.sql` voids three deliveries.
+  ('B6', 'buy',  'the VOID of B5 — the only buy case that can catch Math.round',
+                                     0.073000,   -5.000, 0.1600,  -0.43,  -0.37, -0.06);
+
+create temp table mu_anchor as
+select c.*, round(c.unit_price * c.qty, 2) as anchor from mu_case c;
 
 create temp table mu_money as
-select c.*,
-       round(c.unit_gross * c.qty, 2)                                    as got_gross,
-       round(round(c.unit_gross * c.qty, 2) / (1 + c.rate), 2)           as got_net,
-       round(c.unit_gross * c.qty, 2)
-         - round(round(c.unit_gross * c.qty, 2) / (1 + c.rate), 2)       as got_tax,
-       -- the two spellings §2.5 rule 4 forbids and rule 6 forbids, kept beside
-       -- the right one so the C-block can show the table can tell them apart
-       round(round(round(c.unit_gross * c.qty, 2) / (1 + c.rate), 2) * c.rate, 2)
-                                                                         as tax_if_rounded_alone,
-       round((round(c.unit_gross * c.qty, 3) * 100)::float8) / 100        as gross_if_bankers
-  from mu_case c;
+select a.*,
+       -- THE RULE. One line per side, and `tax` is the same sentence on both.
+       case a.kind when 'sell' then a.anchor
+                   else round(a.anchor * (1 + a.rate), 2) end            as got_gross,
+       case a.kind when 'sell' then round(a.anchor / (1 + a.rate), 2)
+                   else a.anchor end                                     as got_net,
+       case a.kind when 'sell' then a.anchor - round(a.anchor / (1 + a.rate), 2)
+                   else round(a.anchor * (1 + a.rate), 2) - a.anchor end as got_tax,
+       -- the two spellings §2.5 rules 4 and 6 forbid, kept beside the right one
+       -- so F13 can show the table is able to tell them apart
+       round((case a.kind when 'sell' then round(a.anchor / (1 + a.rate), 2)
+                          else a.anchor end) * a.rate, 2)                as tax_if_rounded_alone,
+       round((round(a.unit_price * a.qty, 3) * 100)::float8) / 100       as anchor_if_bankers
+  from mu_anchor a;
 
 
 -- ---------------------------------------------------------------------------
@@ -567,7 +610,7 @@ select m.*,
 
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 16 fixed tests,
+-- The plan is COMPUTED from what was measured, never hardcoded: 18 fixed tests,
 -- 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document
 -- case, 2 per pack case and 2 per money column. A denomination or a money
 -- column added by a future migration is measured the day it lands.
@@ -584,7 +627,7 @@ select m.*,
 -- ---------------------------------------------------------------------------
 create temp table mu_plan as
 select (
-  16
+  18
   + 1 * (select count(*)::int from mu_unit)
   + 1 * (select count(*)::int from mu_draw)
   + 4 * (select count(*)::int from mu_money)
@@ -712,9 +755,11 @@ select is(
 -- unless it happens to fall off this identity. 118 sale lines and 4 waste lines
 -- in this seed DO differ from round(net * rate) — the residual and the
 -- forbidden spelling disagree on them — and all 3 448 satisfy the identity
--- below. The purchase lines take the other spelling and still satisfy it. See
--- the finding in docs/PLAN.md: which direction `0006` must take on a PURCHASE
--- is not settled by §2.5 and is the owner's call.
+-- below. The purchase lines take the other spelling and still satisfy it.
+--
+-- ✅ SETTLED BY THE OWNER 2026-08-26: direction follows the document, tax stays
+-- the residual on both. F17 asserts the buy half of that over the same applied
+-- data, and F8 keeps the sell half. Neither needed the seed to change.
 select is(
   (select count(*) from (
      select 1 from public.sale_line
@@ -794,14 +839,29 @@ select ok(
 -- makes the M-block's greens mean something, and what 3.6 must preserve when it
 -- lifts these cases into cases.json.
 select ok(
-      (select count(*) > 0 from mu_money where got_gross <> gross_if_bankers)
-  and (select count(*) > 0 from mu_money where got_tax <> tax_if_rounded_alone)
+      (select count(*) > 0 from mu_money where anchor <> anchor_if_bankers)
+  -- ⚠️ SCOPED TO THE SELL SIDE ON PURPOSE. F17 proves the residual and the
+  -- rounded-alone spelling COINCIDE on a net-first line, so a buy case can
+  -- never satisfy this clause and an unscoped version would drift into
+  -- passing for the wrong reason the day the sell cases were reshuffled.
+  and (select count(*) > 0 from mu_money where kind = 'sell' and got_tax <> tax_if_rounded_alone)
   and (select count(*) > 0 from mu_money where rate = 0)
   and (select count(*) > 0 from mu_money where qty < 0)
+  and (select count(*) > 0 from mu_money where kind = 'sell')
+  and (select count(*) > 0 from mu_money where kind = 'buy')
+  and (select count(*) > 0 from mu_money where kind = 'buy' and qty < 0)
+  -- and a reversal ON EACH SIDE whose anchor is a TIE, which is the only shape
+  -- that can tell away-from-zero from toward-+infinity. M8 and B6 are those two,
+  -- and B4 is deliberately not counted: it is a reversal that discriminates
+  -- nothing, which is exactly the case this clause exists to stop being enough.
+  and (select count(*) > 0 from mu_money
+        where kind = 'sell' and qty < 0 and anchor <> anchor_if_bankers)
+  and (select count(*) > 0 from mu_money
+        where kind = 'buy'  and qty < 0 and anchor <> anchor_if_bankers)
   and (select count(*) > 0 from mu_docr  where not exp_agree)
   and (select count(*) > 0 from mu_docr  where exp_agree)
   and (select count(*) > 0 from mu_packr where not exp_round_trips),
-  'F13 the case tables discriminate: half-up vs banker''s, residual vs rounded-alone, both tax rates, a reversal, and both document verdicts'
+  'F13 the case tables discriminate: half-up vs banker''s, residual vs rounded-alone, both tax rates, both document kinds, a reversal of each, and both document verdicts'
 );
 
 -- F14. THE §2.4 INVARIANT STILL HOLDS OVER WHAT THIS FILE WROTE. Not this
@@ -812,6 +872,68 @@ select is(
   (select count(*) from public.batch_balance_violations()),
   0::bigint,
   'F14 §2.4 still holds across the delivery and the ten tickets this file wrote'
+);
+
+
+-- F17. ⚠️ THE OWNER'S DECISION COST NOTHING, AND THIS IS WHY — ON A NET-FIRST
+-- LINE THE TWO SPELLINGS OF THE TAX ARE THE SAME NUMBER.
+--
+--     round(net * (1 + rate))  -  net   ==   round(net * rate)
+--
+-- `net` is already an exact multiple of a centavo, so adding it cannot shift the
+-- fractional part that the rounding is deciding: rounding the sum equals the sum
+-- with only the addend rounded. §2.5 rule 4's distinction — "the residual, never
+-- rounded on its own" — therefore has NO TEETH on a purchase line. It has teeth
+-- exactly when the authoritative figure is the GROSS and the net is reached by
+-- DIVISION, which is the sell side, and F8 is where that bites.
+--
+-- Two claims, because either alone is weak: by exhaustion over every centavo net
+-- from -$500 to $500 at both applied rates, AND over the 1 048 delivery lines
+-- the seed actually wrote. The second is what makes it a fact about this ledger
+-- rather than about arithmetic in general.
+--
+-- ⚠️ SO ADOPTING OPTION 3 CHANGED NO SEEDED ROW. That is a finding, not a
+-- convenience: it means the decision is reversible right up until `0006` ships,
+-- and it means the seed was never wrong — only under-specified.
+select ok(
+      (select count(*) = 0
+         from generate_series(-50000, 50000) g,
+              (values (0.1600::numeric), (0.0000::numeric)) r(rate)
+        where round((g::numeric / 100) * (1 + r.rate), 2) - (g::numeric / 100)
+           <> round((g::numeric / 100) * r.rate, 2))
+  and (select count(*) = 0 from public.purchase_line
+        where line_net + tax_amount <> round(line_net * (1 + tax_rate), 2))
+  and (select count(*) > 1000 from public.purchase_line),
+  'F17 on a net-first line the residual and round(net x rate) are the same number — so rule 4 is free on the buy side, and all 1 048 seeded delivery lines already satisfy it'
+);
+
+-- F18. ⚠️ AND THE RULE-6 TIE IS UNREACHABLE ON THE BUY SIDE TOO — the mirror of
+-- F9, and the same shape of proof.
+--
+-- > The buy-side rounding is `round(net * rate)`. At 16% with `net = N/100` that
+-- > is `N/625`. An exact half-centavo `(2m+1)/200` needs `8N = 25(2m+1)`, so
+-- > `25 | N`; put `N = 25k` and it reduces to `8k = 2m+1` — even equals odd.
+-- > At rate 0 the tax is identically zero. **Neither can tie.**
+--
+-- So on BOTH sides of the ledger, with the two tax rates this schema actually
+-- carries, the half-up tie-break lives in `round(unit_price * qty)` and nowhere
+-- else. That is the general form of the finding 3.5 opened with, and B5 is the
+-- buy-side boundary case that follows from it.
+--
+-- ⚠️ THIS IS A FACT ABOUT 0% AND 16%, NOT ABOUT TAX. At 10% the ties are dense —
+-- 20 000 of them in the same range — so a future rate would reopen this. The
+-- second clause asserts the search can find ties when they exist, which is what
+-- stops the first clause from being a zero nobody measured.
+select ok(
+      (select count(*) = 0 from generate_series(1, 20000) n
+        where (n::numeric / 100) * 0.16 * 1000 = trunc((n::numeric / 100) * 0.16 * 1000)
+          and (trunc((n::numeric / 100) * 0.16 * 1000)::bigint % 10) = 5)
+  and (select count(*) > 0 from generate_series(1, 20000) n
+        where (n::numeric / 100) * 0.10 * 1000 = trunc((n::numeric / 100) * 0.10 * 1000)
+          and (trunc((n::numeric / 100) * 0.10 * 1000)::bigint % 10) = 5)
+  and (select count(distinct tax_rate) = 2 from public.product_variant)
+  and (select bool_and(tax_rate in (0.0000, 0.1600)) from public.product_variant),
+  'F18 no centavo net times 16% lands on a half-centavo either — the tie lives in round(unit_price x qty) on BOTH sides, for the two rates this schema carries'
 );
 
 
@@ -847,11 +969,11 @@ from mu_draw order by n;
 -- out by hand — which is what pins the arithmetic `record_sale` must inherit.
 -- ===========================================================================
 select is(got_gross, exp_gross,
-  'M ' || id || ' gross — round(' || unit_gross::text || ' x ' || qty::text || ')  [' || label || ']')
+  'M ' || id || ' gross — ' || kind || ', anchor round(' || unit_price::text || ' x ' || qty::text || ')  [' || label || ']')
 from mu_money order by id;
 
 select is(got_net, exp_net,
-  'M ' || id || ' net — round(gross / ' || (1 + rate)::text || ')  [' || label || ']')
+  'M ' || id || ' net — ' || kind || ', ' || case kind when 'sell' then 'round(gross / ' || (1 + rate)::text || ')' else 'the anchor itself' end || '  [' || label || ']')
 from mu_money order by id;
 
 select is(got_tax, exp_tax,
