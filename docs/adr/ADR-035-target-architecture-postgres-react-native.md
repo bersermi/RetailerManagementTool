@@ -21,6 +21,18 @@
   to buy a word. No schema change. The §2.7 example is also corrected to carry
   `for select` and `to authenticated`, which the applied policies do and the
   example did not.
+- **Revised:** 2026-08-26 — §2.5 amended, on the decision maker's instruction, to
+  close an ambiguity that plan task 3.5 found and could not settle for itself.
+  Rule 2 said the gross unit price is authoritative when `prices_include_tax`,
+  which is a property of the WORKSPACE, so read literally it governed deliveries
+  as well as sales — while the sentence above it says supplier invoices break tax
+  out, and the seed had accordingly been computing purchase lines net-first since
+  1.6a. **The decision maker took the third of three readings: direction follows
+  the document, and tax stays the residual on both.** Rule 4 therefore keeps its
+  universal form and rule 2 gains a scope. No schema change and no seed change —
+  all 1 048 seeded delivery lines already satisfy it, because on a net-first line
+  the residual and `round(net × rate)` are provably the same number (§2.5, and
+  `07_money_and_units.sql` F17).
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -360,11 +372,31 @@ The fix costs nothing at the counter: **one question at workspace setup**
 **Rounding** (settled 2026-08-14 — this is the content of `cases.json`, §2.10):
 
 1. Integer centavos at every layer. No floating point anywhere in the money path.
-2. With `prices_include_tax = true` the **gross unit price is authoritative**.
-3. **Per line:** `line_gross = round(unit_gross × qty)`, then
-   `line_net = round(line_gross / (1 + rate))`, then `line_tax = line_gross − line_net`.
+2. **Direction follows the document.** With `prices_include_tax = true` the
+   **gross unit price is authoritative on a SALE** — that is the shelf price, and
+   the shelf price is what the customer agreed to. On a **PURCHASE the net is
+   authoritative**, because a supplier invoice breaks the tax out and the net is
+   the figure printed on it. (Settled 2026-08-26. `prices_include_tax` is a
+   workspace flag, so the earlier wording read as though it governed deliveries
+   too; it does not.)
+3. **Per line**, and which of net or gross is the input is what rule 2 decides:
+
+   | | anchor | derived | tax |
+   |---|---|---|---|
+   | **sale** | `line_gross = round(unit_gross × qty)` | `line_net = round(line_gross / (1 + rate))` | `line_gross − line_net` |
+   | **purchase** | `line_net = round(unit_net × qty)` | `line_gross = round(line_net × (1 + rate))` | `line_gross − line_net` |
+
+   The tax column is the same expression on both rows. That is rule 4, and it is
+   what rule 2's scope is arranged to preserve.
 4. **Tax is always the residual**, never rounded on its own. That is what makes
    `net + tax = gross` hold exactly, on every line, permanently.
+
+   ⚠️ On a **purchase** this rule costs nothing and forbids nothing: `line_net` is
+   already an exact multiple of a centavo, so `round(net × (1 + rate)) − net` and
+   `round(net × rate)` are the same number for every net and every rate. The rule
+   has teeth exactly where the authoritative figure is the gross and the net is
+   reached by **division** — the sell side. Asserted by exhaustion and over the
+   seed in `07_money_and_units.sql` F17.
 5. **Document total = sum of rounded lines.** The document is never rounded
    independently of its lines.
 6. **Half-up, away from zero.** Banker's rounding is defensible statistically and
@@ -380,6 +412,23 @@ rounding just performed.
 `cases.json` seeds with: the three cases named in §2.10, a half-centavo boundary per
 tax rate, one multi-line document where per-line and per-document disagree, one
 zero-rated line, and one weighed line with a decimal quantity.
+
+⚠️ **The half-centavo boundary goes on `round(unit_price × qty)`, and it cannot go
+anywhere else** (found in plan task 3.5, 2026-08-26). Neither tax step can produce a
+tie at the two rates this schema carries: no integer-centavo gross divides by 1.16
+onto a half-centavo — `50G = 29(2m+1)` has no solution — and no integer-centavo net
+multiplied by 0.16 lands on one either, since `8N = 25(2m+1)` has none. At rate 0
+there is no rounding at all. Both proved by exhaustion in `07_money_and_units.sql`
+F9 and F18. A `cases.json` that puts its boundary in the tax split will contain a
+case that discriminates nothing and looks correct.
+
+⚠️ **And it needs a REVERSAL of a boundary case on each side.** Half-up *away from
+zero* and half-up *toward positive infinity* — which is what `Math.round` does, and
+`packages/money` is JavaScript — agree on every positive number. The sign is the only
+place they can be told apart, and the tax steps cannot tie, so the discriminating
+shape is a negative line whose `unit_price × qty` lands on a half-centavo. `M8` and
+`B6` in the pgTAP suite are those two cases; falsification S23 confirms they are the
+only two of twenty that catch it.
 
 ### 2.6 The write path
 
