@@ -9,3 +9,7 @@ graphify-out/
 # the auto-draft-PR Stop hook. The script it calls (.claude/hooks/) is
 # committed; enabling it is per-developer.
 .claude/settings.local.json
+
+# Node. `packages/money` is the only JavaScript in the repo (ADR-035 §2.10).
+node_modules/
+vitest-report.json

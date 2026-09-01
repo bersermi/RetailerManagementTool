@@ -1,0 +1,21 @@
+{
+  "name": "@tienda/money",
+  "private": true,
+  "version": "0.0.0",
+  "description": "The TypeScript half of the money path (ADR-035 §2.5, §2.6) and the case table both suites read (§2.10).",
+  "type": "module",
+  "main": "src/money.ts",
+  "files": [
+    "src",
+    "cases.json"
+  ],
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

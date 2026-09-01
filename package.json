@@ -1,0 +1,17 @@
+{
+  "name": "tienda",
+  "private": true,
+  "version": "0.0.0",
+  "description": "Tienda — retail management tool. Root manifest for the workspaces in packages/.",
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

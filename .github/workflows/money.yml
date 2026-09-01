@@ -1,0 +1,110 @@
+name: money
+
+# ADR-035 §2.10, row six: "packages/money/cases.json — ONE DATA FILE, read by
+# both the pgTAP suite and Vitest, asserting equality to the centavo. Not two
+# copies of the same expectations."
+#
+# This workflow is the Vitest half. Plan task 3.6a.
+#
+# ⚠️ IT IS HALF OF THE §2.10 CLAIM, NOT THE CLAIM. As of 3.6a,
+# supabase/pgtap/07_money_and_units.sql still carries the hand-written fork the
+# expectations were lifted from — by id, which is what makes lifting them
+# possible. Re-pointing 07 at packages/money/cases.json is task 3.6b. Until it
+# lands there are two readers of two files that agree; after it, one file.
+#
+# WHY THIS IS A SECOND WORKFLOW AND NOT A JOB IN db.yml. db.yml boots Postgres,
+# applies fourteen migrations and runs seven pgTAP suites — about ten minutes,
+# and it is filtered to `supabase/**`. Nothing here needs a database, and a
+# TypeScript change should not wait on a schema reset to find out it does not
+# compile. ⚠️ WHEN 3.6b LANDS THIS STOPS BEING TRUE FOR cases.json ALONE: that
+# file will then be an input to db.yml too, and db.yml's `paths:` filter must
+# grow `packages/money/cases.json` on the same commit — otherwise a change to
+# the case table would not run the SQL side that reads it, which is the exact
+# drift §2.10 asks for one file to prevent.
+#
+# TWO NODE VERSIONS ON PURPOSE. The money path is integer arithmetic, so it
+# should not depend on the engine — but "should not" is the class of statement
+# ADR-035 §1 exists to distrust. Running it on the LTS and the current release
+# turns that into a measurement. Local development is on 26.x, which makes a
+# third.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "packages/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/money.yml"
+
+concurrency:
+  group: money-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    name: packages/money (node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["22", "24"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+
+      # `npm ci` and not `npm install`: the lockfile is the pinned input, the
+      # same argument that pins the Supabase CLI version in db.yml.
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck --workspace @tienda/money
+
+      # ⚠️ THE COUNTER, AND WHY IT IS HERE. 3.3 found that a pgTAP suite can
+      # print `not ok` and exit 0, and the lesson generalised: a green tick is
+      # also what a step that asserted NOTHING looks like. Four ways this step
+      # could assert nothing were checked by hand before it merged (plan task
+      # 3.6a, falsifications V6, V11, V12, V13) and Vitest exits non-zero on all
+      # four — including "No test files found", which is the one that would
+      # otherwise be silent.
+      #
+      # The count is still read and asserted, because `--workspace` protects
+      # against a deleted script but nothing protects against a suite that
+      # quietly shrank. A number that goes DOWN is something a reviewer can see
+      # in the log; a tick is not.
+      #
+      # ⚠️ THE COUNT IS READ FROM THE JSON REPORTER, NOT SCRAPED FROM THE
+      # TERMINAL OUTPUT. The first spelling of this step grepped the summary
+      # line, and it failed its own first CI run on a suite that was GREEN:
+      # Vitest wraps that line in ANSI colour codes, so `^ *Tests` never
+      # matched, the count came back empty and the guard fired on itself. Loud,
+      # and in the right direction — but a guard that can only be trusted while
+      # a reporter's formatting holds still is not one. The JSON reporter is a
+      # contract.
+      - name: Vitest — the paired-arithmetic suite (ADR-035 §2.10)
+        run: |
+          set -o pipefail
+          npm run test --workspace @tienda/money -- \
+            --reporter=default --reporter=json --outputFile="$PWD/vitest-report.json"
+          node -e '
+            const r = require("./vitest-report.json");
+            if (!r.success) { console.error("suite reported failure"); process.exit(1); }
+            if (!r.numTotalTests || r.numTotalTests < 1) {
+              console.error("no tests ran — a green here would assert nothing");
+              process.exit(1);
+            }
+            if (r.numFailedTests > 0) {
+              console.error(`${r.numFailedTests} failing assertions`);
+              process.exit(1);
+            }
+            console.log(`${r.numPassedTests} assertions ran over packages/money/cases.json`);
+          '
