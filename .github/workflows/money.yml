@@ -77,19 +77,34 @@ jobs:
       # four — including "No test files found", which is the one that would
       # otherwise be silent.
       #
-      # The count is still read out of the output and asserted, because
-      # `--workspace` protects against a deleted script but nothing protects
-      # against a suite that quietly shrank. A number that goes DOWN is
-      # something a reviewer can see in the log; a tick is not.
+      # The count is still read and asserted, because `--workspace` protects
+      # against a deleted script but nothing protects against a suite that
+      # quietly shrank. A number that goes DOWN is something a reviewer can see
+      # in the log; a tick is not.
+      #
+      # ⚠️ THE COUNT IS READ FROM THE JSON REPORTER, NOT SCRAPED FROM THE
+      # TERMINAL OUTPUT. The first spelling of this step grepped the summary
+      # line, and it failed its own first CI run on a suite that was GREEN:
+      # Vitest wraps that line in ANSI colour codes, so `^ *Tests` never
+      # matched, the count came back empty and the guard fired on itself. Loud,
+      # and in the right direction — but a guard that can only be trusted while
+      # a reporter's formatting holds still is not one. The JSON reporter is a
+      # contract.
       - name: Vitest — the paired-arithmetic suite (ADR-035 §2.10)
         run: |
           set -o pipefail
-          npm run test --workspace @tienda/money 2>&1 | tee /tmp/vitest.log
-          line="$(grep -E '^ *Tests +' /tmp/vitest.log | tail -1)"
-          echo "$line"
-          ran="$(printf '%s' "$line" | grep -oE '[0-9]+ passed' | grep -oE '[0-9]+' || true)"
-          if [ -z "$ran" ] || [ "$ran" -eq 0 ]; then
-            echo "no tests ran — a green here would assert nothing" >&2
-            exit 1
-          fi
-          echo "$ran assertions ran over packages/money/cases.json"
+          npm run test --workspace @tienda/money -- \
+            --reporter=default --reporter=json --outputFile="$PWD/vitest-report.json"
+          node -e '
+            const r = require("./vitest-report.json");
+            if (!r.success) { console.error("suite reported failure"); process.exit(1); }
+            if (!r.numTotalTests || r.numTotalTests < 1) {
+              console.error("no tests ran — a green here would assert nothing");
+              process.exit(1);
+            }
+            if (r.numFailedTests > 0) {
+              console.error(`${r.numFailedTests} failing assertions`);
+              process.exit(1);
+            }
+            console.log(`${r.numPassedTests} assertions ran over packages/money/cases.json`);
+          '

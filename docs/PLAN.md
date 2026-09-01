@@ -1735,9 +1735,20 @@ exit 0. **Vitest cannot**, and all four ways were checked by hand:
 ⚠️ **But the workspace loop above it can.** `npm run test --workspaces --if-present`
 exits 0 with a straight face if the package is gone or its `test` script renamed —
 which is the "loop that matched nothing" hazard `db.yml` already guards for suites
-and checks. So `money.yml` names the workspace explicitly and reads the test count
-out of the output, failing if it is absent or zero. A count that goes *down* is
-something a reviewer can see in the log; a tick is not.
+and checks. So `money.yml` names the workspace explicitly and asserts the test count,
+failing if it is absent or zero. A count that goes *down* is something a reviewer can
+see in the log; a tick is not.
+
+⚠️⚠️ **And the first spelling of that guard failed its own first CI run, on a suite
+that was GREEN.** It grepped Vitest's `Tests  105 passed` summary line; Vitest wraps
+that line in ANSI colour codes, so `^ *Tests` never matched, the count came back empty
+and the guard fired on itself. The direction was right — it refused rather than
+assumed — but **a guard that can only be trusted while a reporter's formatting holds
+still is not a guard**, and this one would have gone quiet the moment somebody piped
+it somewhere that stripped the escapes. It now reads `--reporter=json`, which is a
+contract, and asserts `success`, `numTotalTests > 0` and `numFailedTests === 0`
+separately. Re-falsified against V11, V12 and V13 after the change: all three are
+caught by the report itself, not only by npm's exit code.
 
 ### ✅ Found in 3.6a — THE LIFT IS EXACT, AND POSTGRES AGREES WITH ALL TWENTY-ONE
 

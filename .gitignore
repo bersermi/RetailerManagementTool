@@ -12,3 +12,4 @@ graphify-out/
 
 # Node. `packages/money` is the only JavaScript in the repo (ADR-035 §2.10).
 node_modules/
+vitest-report.json
