@@ -1,0 +1,156 @@
+{
+  "_": [
+    "THE case table. ADR-035 §2.10: 'one data file, read by both the pgTAP suite and",
+    "Vitest, asserting equality to the centavo. Not two copies of the same expectations.'",
+    "",
+    "The expectations here were NOT derived from this package. They were worked out by",
+    "hand in supabase/pgtap/07_money_and_units.sql (plan task 3.5) BEFORE any TypeScript",
+    "existed, and lifted across by `id` — that ordering is deliberate and is recorded in",
+    "docs/PLAN.md step 3: writing this file first would let it be shaped to whatever an",
+    "implementation already does, which is the drift it exists to prevent.",
+    "",
+    "⚠️ EVERY NUMBER IN THIS FILE IS A DECIMAL STRING, NOT A JSON NUMBER. A JSON number",
+    "is an IEEE754 double in JavaScript, and 0.073 is not 0.073 in one. §2.5 rule 1 says",
+    "no floating point anywhere in the money path; a bare `0.073` here would put one in",
+    "the money path at the moment the file is parsed, before any code runs. Both readers",
+    "take these as text and scale them to integers themselves.",
+    "",
+    "⚠️ THE HALF-CENTAVO BOUNDARIES ALL SIT IN `round(unit_price × qty)`, NEVER IN THE",
+    "TAX STEP. §2.5 asked for 'a half-centavo boundary per tax rate', which reads as",
+    "though the tax division has one. It does not and cannot — proved by exhaustion in",
+    "07 F9 and F18, and §2.5 now carries the correction. A boundary case placed in the",
+    "tax split discriminates nothing and looks correct."
+  ],
+  "version": 1,
+  "source": "ADR-035 §2.5 (rounding) and §2.10 (paired arithmetic)",
+  "scales": {
+    "money": 2,
+    "unit_price": 6,
+    "quantity": 3,
+    "rate": 4,
+    "_": "Decimal places each field carries, matching the applied schema: numeric(12,2) money, numeric(14,6) per-base price, numeric(14,3) base quantity, numeric(5,4) rate."
+  },
+  "discriminators": {
+    "away_from_zero": ["M8", "B6"],
+    "_": [
+      "The only two cases that can tell §2.5 rule 6 (half-up AWAY FROM ZERO) from",
+      "JavaScript's Math.round (half-up toward +∞). The two agree on every positive",
+      "number, so the sign is the only place they differ, and the tax steps cannot",
+      "produce a tie — so a discriminating case must be a NEGATIVE line whose",
+      "unit_price × qty lands on a half centavo. M8 is the sell side, B6 the buy side.",
+      "07 falsifications S6, S14, S23 and S24 are the evidence. Delete either id and",
+      "the Vitest guard turns red rather than the suite quietly losing its teeth."
+    ]
+  },
+  "lines": [
+    {
+      "id": "M1", "kind": "sell", "label": "§2.10 — 16% inclusive, one item at $11.60",
+      "unit_price": "11.600000", "qty": "1.000", "rate": "0.1600",
+      "expect": { "gross": "11.60", "net": "10.00", "tax": "1.60" }
+    },
+    {
+      "id": "M2", "kind": "sell", "label": "§2.5 — the shelf: $2.00 the 100 g, IVA in",
+      "unit_price": "0.020000", "qty": "100.000", "rate": "0.1600",
+      "expect": { "gross": "2.00", "net": "1.72", "tax": "0.28" }
+    },
+    {
+      "id": "M3", "kind": "sell", "label": "§2.5 — zero-rated line, net is the gross",
+      "unit_price": "13.500000", "qty": "1.000", "rate": "0.0000",
+      "expect": { "gross": "13.50", "net": "13.50", "tax": "0.00" }
+    },
+    {
+      "id": "M4", "kind": "sell", "label": "§2.5 — half-centavo tie, counted: 5 x $0.073 = $0.365",
+      "unit_price": "0.073000", "qty": "5.000", "rate": "0.1600",
+      "expect": { "gross": "0.37", "net": "0.32", "tax": "0.05" }
+    },
+    {
+      "id": "M5", "kind": "sell", "label": "§2.5 — half-centavo tie, weighed: 250 g at $25.86 the kilo",
+      "unit_price": "0.025860", "qty": "250.000", "rate": "0.1600",
+      "expect": { "gross": "6.47", "net": "5.58", "tax": "0.89" }
+    },
+    {
+      "id": "M6", "kind": "sell", "label": "§2.5 — half-centavo tie at rate 0, the other tax rate",
+      "unit_price": "0.073000", "qty": "5.000", "rate": "0.0000",
+      "expect": { "gross": "0.37", "net": "0.37", "tax": "0.00" }
+    },
+    {
+      "id": "M7", "kind": "sell", "label": "§2.5 — weighed decimal quantity: a quarter kilo at $12.35",
+      "unit_price": "0.012350", "qty": "250.000", "rate": "0.1600",
+      "expect": { "gross": "3.09", "net": "2.66", "tax": "0.43" }
+    },
+    {
+      "id": "M8", "kind": "sell", "label": "§2.5 — the reversal of M4: half-up is AWAY FROM ZERO",
+      "unit_price": "0.073000", "qty": "-5.000", "rate": "0.1600",
+      "expect": { "gross": "-0.37", "net": "-0.32", "tax": "-0.05" }
+    },
+    {
+      "id": "M9", "kind": "sell", "label": "§2.10 — the case of 24 at $12.00, as a money line",
+      "unit_price": "0.500000", "qty": "24.000", "rate": "0.1600",
+      "expect": { "gross": "12.00", "net": "10.34", "tax": "1.66" }
+    },
+    {
+      "id": "B1", "kind": "buy", "label": "the fixture's own kilo: $40.00 net the kilo, 16% broken out",
+      "unit_price": "0.040000", "qty": "1000.000", "rate": "0.1600",
+      "expect": { "gross": "46.40", "net": "40.00", "tax": "6.40" }
+    },
+    {
+      "id": "B2", "kind": "buy", "label": "an invoice line at $13.13 net — the tax has four decimals before it rounds",
+      "unit_price": "13.130000", "qty": "1.000", "rate": "0.1600",
+      "expect": { "gross": "15.23", "net": "13.13", "tax": "2.10" }
+    },
+    {
+      "id": "B3", "kind": "buy", "label": "a zero-rated delivery: gross is the net, tax is nothing",
+      "unit_price": "27.500000", "qty": "1.000", "rate": "0.0000",
+      "expect": { "gross": "27.50", "net": "27.50", "tax": "0.00" }
+    },
+    {
+      "id": "B4", "kind": "buy", "label": "the VOID of B2 — a returned delivery must mirror it to the centavo",
+      "unit_price": "13.130000", "qty": "-1.000", "rate": "0.1600",
+      "expect": { "gross": "-15.23", "net": "-13.13", "tax": "-2.10" }
+    },
+    {
+      "id": "B5", "kind": "buy", "label": "the tie is in the MULTIPLICATION here too: 5 x $0.073 net = $0.365",
+      "unit_price": "0.073000", "qty": "5.000", "rate": "0.1600",
+      "expect": { "gross": "0.43", "net": "0.37", "tax": "0.06" }
+    },
+    {
+      "id": "B6", "kind": "buy", "label": "the VOID of B5 — the only buy case that can catch Math.round",
+      "unit_price": "0.073000", "qty": "-5.000", "rate": "0.1600",
+      "expect": { "gross": "-0.43", "net": "-0.37", "tax": "-0.06" }
+    }
+  ],
+  "documents": [
+    {
+      "id": "D1", "label": "§2.5 — three items at $1.00, 16%: the lines say 2.58, the document 2.59",
+      "n_lines": 3, "line_gross": "1.00", "rate": "0.1600",
+      "expect": { "per_line": "2.58", "per_document": "2.59", "agree": false }
+    },
+    {
+      "id": "D2", "label": "§2.10 — the ten 100 g tickets: $17.20 by line, $17.24 by document",
+      "n_lines": 10, "line_gross": "2.00", "rate": "0.1600",
+      "expect": { "per_line": "17.20", "per_document": "17.24", "agree": false }
+    },
+    {
+      "id": "D3", "label": "control — one line at $11.60: the two agree, so the rule is not just noise",
+      "n_lines": 1, "line_gross": "11.60", "rate": "0.1600",
+      "expect": { "per_line": "10.00", "per_document": "10.00", "agree": true }
+    }
+  ],
+  "packs": [
+    {
+      "id": "P1", "label": "§2.10 — a case of 24 at $12.00 is $0.50 the can, exactly",
+      "pack_size": "24.000", "case_net": "12.00",
+      "expect": { "per_unit": "0.500000", "round_trips": true }
+    },
+    {
+      "id": "P2", "label": "a pack of 3 at $10.00 is $3.333333 and does NOT multiply back",
+      "pack_size": "3.000", "case_net": "10.00",
+      "expect": { "per_unit": "3.333333", "round_trips": false }
+    },
+    {
+      "id": "P3", "label": "a case of 24 at $12.01 is $0.500417 and does NOT multiply back",
+      "pack_size": "24.000", "case_net": "12.01",
+      "expect": { "per_unit": "0.500417", "round_trips": false }
+    }
+  ]
+}
