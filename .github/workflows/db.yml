@@ -45,6 +45,13 @@ on:
       # paired-arithmetic claim would silently not run on the one commit most
       # likely to break it.
       - "packages/money/cases.json"
+      # ⚠️ AND THE WORKSPACE MANIFESTS, as of plan task 3.7a. This workflow now
+      # runs `npm ci` and a Vitest suite (supabase/vitest/), so the lockfile and
+      # the root manifest decide what it installs. Without these two lines a
+      # dependency bump could turn the concurrency suite red on main having
+      # passed no PR — the same argument that put cases.json above.
+      - "package.json"
+      - "package-lock.json"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -269,6 +276,71 @@ jobs:
             esac
             echo "::endgroup::"
           done
+
+
+      # ---------------------------------------------------------------------
+      # THE §2.10 CONCURRENCY SUITE — TypeScript, two connections (task 3.7a)
+      #
+      # THIS STEP MUST STAY LAST, below every psql step above it, and the reason
+      # is the same one that fixes the order of all the others. The suite runs
+      # supabase/tests/_cleanup.sql itself — the same file, not a copy — so by
+      # the time it has built its fixture the seed is gone. Run it higher up and
+      # the seed checks and pgTAP suites 02–07 would be measuring an empty
+      # database.
+      #
+      # They would go RED, not quiet: every file in supabase/checks/ has a
+      # pre-flight block that refuses to run unless the seed still holds what it
+      # is about, and 02–07 assert absolute counts. That is deliberate on their
+      # part and it is what makes this step's position safe to state rather than
+      # merely hope for. It is still stated.
+      #
+      # WHY NODE IS HERE AND NOT IN money.yml. money.yml boots no database, which
+      # is the whole reason it is a separate workflow — and §2.10's concurrency
+      # row cannot be asserted without one. A single session cannot block on its
+      # own lock, so this suite needs two real connections against the Postgres
+      # the reset above built. It is the first thing in this workflow that
+      # reaches the database through something other than psql, and that is the
+      # point: node-postgres speaks the wire protocol, so the suite runs on a
+      # machine with no Postgres client installed. The schema owner's machine is
+      # such a machine (docs/PLAN.md, task 3.1), which is why the .sh below it
+      # has never once been run outside CI.
+      #
+      # ⚠️ THE COUNTER, AND WHY IT IS NOT OPTIONAL. 3.3 found that a suite can
+      # print failures and exit 0; 3.6a found that a green tick is also what a
+      # step that ran NOTHING looks like. Vitest exits non-zero on "No test files
+      # found" — falsified by hand as V6 — but a suite that quietly SHRANK still
+      # exits 0. The count is read from the JSON reporter, not scraped from the
+      # terminal: money.yml's first spelling grepped the summary line and failed
+      # its own first run on a green suite, because Vitest wraps that line in
+      # ANSI colour codes.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install (npm workspaces)
+        run: npm ci
+
+      - name: Vitest — concurrency, two connections (ADR-035 §2.10)
+        run: |
+          set -o pipefail
+          eval "$(supabase status -o env | grep '^DB_URL=')"
+          export DB_URL
+          npm run test:db --workspace @tienda/db-concurrency -- \
+            --reporter=default --reporter=json --outputFile="$PWD/vitest-db-report.json"
+          node -e '
+            const r = require("./vitest-db-report.json");
+            if (!r.success) { console.error("suite reported failure"); process.exit(1); }
+            if (!r.numTotalTests || r.numTotalTests < 1) {
+              console.error("no tests ran — a green here would assert nothing");
+              process.exit(1);
+            }
+            if (r.numFailedTests > 0) {
+              console.error(`${r.numFailedTests} failing assertions`);
+              process.exit(1);
+            }
+            console.log(`${r.numPassedTests} concurrency assertions ran against the reset database`);
+          '
 
       - name: Stop
         if: always()

@@ -1589,6 +1589,64 @@ one workspace only**. The last two are failures of the harness rather than of th
 and both are the vacuous green this file exists to refuse — one arriving through the
 role, the other through an empty table.
 
+## `supabase/vitest/` — the §2.10 concurrency suite (plan task 3.7a)
+
+**One npm workspace, `@tienda/db-concurrency`, driving two real connections through
+`pg`.** §2.10's last row is the only one whose *Where* column says **"TypeScript, two
+connections"**, and this is it — the second JavaScript workspace in the repository
+after `packages/money`, and the first thing in `db.yml` that reaches the database
+through something other than `psql`.
+
+**Why it cannot be pgTAP.** A single session cannot block on its own lock. Every
+claim here is about two calls *in flight at once*, so a one-connection version passes
+green with the mechanism deleted — the same trap that made
+`supabase/tests/0005_allocation_concurrency.sh` a `.sh` rather than a `.sql`.
+
+**Nine tests: three races over each of the three document headers** (`sale`,
+`purchase`, `waste`), asserting §2.10's *"two identical calls, same id → exactly one
+row"*:
+
+| | What it establishes |
+|---|---|
+| **1** | The retry **blocks on the first call and then inserts nothing** — `on conflict (id) do nothing`, ADR-035 §2.6 decision 7 |
+| **2** | Without `on conflict`, the retry is **rejected with `23505`**. ADR-035 §2.3: *"a duplicate primary key is an error, not a no-op"* — the sentence that made §2.6 specify semantics instead of assuming them |
+| **3** | When the first call **aborts**, the waiter **inserts**, and the surviving row is the second one's. §2.6's clause is *"until the first commits **or aborts**"*, and only this branch tells an idempotent retry apart from one refused outright |
+
+**The anti-vacuity guard is the point of the file.** All three are also true of two
+calls that never overlapped — the second would find the row committed, insert
+nothing, and the counts would come out identical. So each test first asserts
+`pg_blocking_pids(b) = [a]`: not that *a* lock wait exists, but that the second
+session is waiting on **the first**. Falsified by committing before the race starts,
+and the suite goes red on all three headers.
+
+⚠️ **It makes no RLS claim and does not try to.** Every connection is the `postgres`
+superuser, which bypasses RLS — an isolation check run that way passes vacuously.
+Isolation is `supabase/pgtap/02`–`05`, under `set role authenticated`.
+
+⚠️ **The other half of §2.10's concurrency row is owed by step 4.** *"Two sessions,
+last unit, **enforcement on** → exactly one succeeds"* needs the availability check
+inside `record_sale`, which is `0006`; `workspace_setting.enforce_stock_default`
+exists in `0001` and defaults `false`, and there is nothing yet for it to switch on.
+Two more of §2.6's four idempotency behaviours are `0006`/`0007` for the same reason:
+`already_recorded: true` is a return value, and the `payload_hash` discriminator
+dead-letters into `failed_write`. See `docs/PLAN.md` task 3.7a.
+
+**It runs LAST in `db.yml`, and unlike every step above it that is a hard
+requirement rather than a convention.** The suite executes
+`supabase/tests/_cleanup.sql` itself — the same file, not a copy — so the seed is gone
+by the time its fixture exists. Moving it higher turns the job red rather than quiet
+(every file in `supabase/checks/` has a pre-flight that refuses an empty database, and
+pgTAP 02–07 assert absolute counts), but it turns it red for a reason that reads like
+a schema defect, so the position is stated on the step.
+
+**It needs no `psql`.** node-postgres speaks the wire protocol, so this suite runs on
+a machine that has never installed a Postgres client — which the schema owner's
+machine is. The `.sh` beside it has never once been run outside CI; this one has.
+
+⚠️ **Its script is `test:db`, not `test`.** The root manifest runs
+`npm run test --workspaces --if-present`; a script named `test` here would make
+`npm test` at the repository root fail on every machine without a database running.
+
 ## `supabase/checks/` — what is asserted over seed data (tasks 1.7, 2.1, 2.2, 2.4)
 
 **One directory, one contract: these files run against the SEEDED database.** They

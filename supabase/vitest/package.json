@@ -1,0 +1,20 @@
+{
+  "name": "@tienda/db-concurrency",
+  "private": true,
+  "version": "0.0.0",
+  "description": "ADR-035 §2.10's concurrency row: two real connections against the reset database. Plan task 3.7a.",
+  "type": "module",
+  "scripts": {
+    "test:db": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "@types/pg": "^8.15.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

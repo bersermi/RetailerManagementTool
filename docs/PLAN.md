@@ -189,7 +189,7 @@ deadline under *Confirmed by the owner* below.
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
-| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22, 3.6 split again on 2026-09-01; 3.1–3.5, 3.6a and 3.6b done, **3.7 next and last** |
+| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; 3.1–3.5, 3.6a, 3.6b and 3.7a done, **3.7b next and last** |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
 | 5a | Client foundation — **hiring gate** | Not started |
@@ -1624,8 +1624,10 @@ rows of ADR-035 §2.10.
 **Split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22, before
 any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
 also before it was written — see below. **3.6 split again into 3.6a / 3.6b on
-2026-09-01**, on the same rule and for the same reason. **Both halves of 3.2b are
-closed, 3.3, 3.4, 3.5, 3.6a and 3.6b are closed, and **3.7 — the last task in step 3 — is next.** Step 3 is nine suites over two languages and it is the
+2026-09-01**, on the same rule and for the same reason, and **3.7 into 3.7a / 3.7b
+the same day**, where reading the ADR against the file it was meant to move showed
+the `S` was wrong and the two were never the same claim. **Both halves of 3.2b are
+closed, 3.3, 3.4, 3.5, 3.6a, 3.6b and 3.7a are closed, and **3.7b — the last task in step 3 — is next.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1649,7 +1651,8 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.5~~ | ~~**Money and units, in pgTAP**~~ — **done** 2026-08-26. `supabase/pgtap/07_money_and_units.sql`, picked up by the existing loop with no workflow edit. **155 tests**: 16 fixed, 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document case, 2 per pack case and 2 per money column, on a **computed plan**. **Eighteen falsifications**, each confirmed to fail the CI step. ⚠️ **The suite is half verification and half specification, and the header says which is which** — rules 1, 5 and 6 are asserted over the applied schema and all 3 448 seeded lines; rules 2–4 have no SQL implementation to test, because that is `0006`. ⚠️ **§2.5 asks `cases.json` for a half-centavo boundary per tax rate and the tax division has none — provably.** ⚠️ **`round(float8)` is banker's**, so rule 1 is the precondition for rule 6 rather than a style preference. ✅ **The purchase side is net-first where §2.5 read gross-first — put to the owner and SETTLED 2026-08-26: direction follows the document, tax stays the residual on both.** ADR-035 §2.5 rules 2–4 amended; no migration and no seed change, because on a net-first line the two spellings are provably the same number. Follow-up shipped 2026-08-27 — **181 tests, twenty-five falsifications**, six buy-side cases, F17 and F18. Findings below |
 | ~~3.6a~~ | ~~**`packages/money` and `cases.json`, and the Vitest half**~~ — **done** 2026-09-01. The first TypeScript in the repo: a root npm workspace, `packages/money/{cases.json,src/money.ts,src/cases.ts,test/cases.test.ts}` and `.github/workflows/money.yml`, the first CI workflow that is not `db.yml`. **105 tests** over all twenty-one cases, lifted from `07` **by id** with every literal verified identical and every expectation re-derived in Postgres `numeric` on a fresh reset. **Thirteen falsifications**, each confirmed to exit non-zero. ⚠️⚠️ **The finding is a LIMIT OF THE CASE TABLE**: no case in it can fail for a float — its boundaries are ties IEEE754 happens to hold exactly, and 436 shop-sized lines that would catch one are all outside the table. ⚠️ **Rule 4 on the sell side is carried by exactly one case (M9).** ✅ **Vitest has no vacuous green**, but the workspace loop above it does, and the workflow guards it. Findings below | M | ✅ |
 | ~~3.6b~~ | ~~**Re-pointing `07_money_and_units.sql` at `cases.json`**~~ — **done** 2026-09-01. 07's M, B, D and P blocks are built with `jsonb_array_elements` from `packages/money/cases.json`; the hand-written fork is deleted, not duplicated. **192 tests** (from 181), on the same computed plan, with **F19–F21** added as the discriminator guards. **Ten falsifications**, each confirmed to fail. ✅ **§2.10's sentence is now true**: one file, two readers — proved by editing one value three times and watching BOTH suites go red. ✅ **M10 and M11 added on the owner's decision** (2026-09-01), closing 3.6a's two findings: the table can now fail for a float, and rule 4 no longer rests on M9 alone. ⚠️ **`pg_read_file()` is unusable** — it runs in the server, which is a container that cannot see this repo — so psql reads the file client-side, and `db.yml`'s `paths:` filter had to grow the path. Findings below | M | ✅ |
-| 3.7 | **Concurrency under Vitest.** §2.10's last row, and the one suite that already half-exists as `supabase/tests/0005_allocation_concurrency.sh` | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
+| ~~3.7a~~ | ~~**The two-connection TypeScript harness, and the idempotency half of §2.10's concurrency row**~~ — **done** 2026-09-02. `supabase/vitest/` as a second npm workspace (`@tienda/db-concurrency`), driving real connections through `pg`, plus the `setup-node` / `npm ci` wiring `db.yml` has never had. **9 tests**: three races over each of `sale`, `purchase` and `waste` — the retry that blocks then inserts nothing, the one rejected with `23505` without `on conflict`, and the abort branch where the waiter inserts. **Seven falsifications**, each confirmed to exit non-zero, **all seven run locally** — the first DB suite in this repo the schema owner's machine can run, because node-postgres needs no `psql`. ✅ **The guard names the blocker**: `pg_blocking_pids(b) = [a]`, where the `.sh` could only count that some lock wait existed. ⚠️ **Half of §2.10's concurrency row is owed by step 4** — the enforcement clause lives in `record_sale`. ⚠️ **This is the first `db.yml` step that empties the database**, so its position at the end is load-bearing. Findings below | M | ✅ |
+| 3.7b | **The `.sh`, and what §2.10's concurrency row still owes.** Port `supabase/tests/0005_allocation_concurrency.sh` into the 3.7a harness and retire it, or keep it and record why — decided once the harness exists and the cost is known, not before | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
 
 Order is forced by the harness, not by foreign keys. **3.1 is first because nothing
 else in step 3 can be evidence until a failing pgTAP assertion is proven to fail the
@@ -1658,6 +1661,216 @@ refuse, and it is exactly what a `select ok(false)` printed to stdout under plai
 `psql` looks like. 3.6 comes after 3.5 because writing `cases.json` first and the
 SQL assertions second would let the data file be shaped to whatever the SQL already
 does, which is the drift the file exists to prevent.
+
+### 3.7 was split on 2026-09-01, before it was written — and it was NOT an `S`
+
+**3.7 was sized `S` on the assumption that the concurrency suite already exists in
+bash and the task is to move it.** Reading ADR-035 §2.10 against
+`supabase/tests/0005_allocation_concurrency.sh` before writing anything shows that
+assumption is false in both directions, so the row is re-sized and split.
+
+⚠️ **THE `.sh` IS NOT §2.10's CONCURRENCY SUITE. IT NEVER WAS.** The two files make
+different claims about different code, and the `.sh` says so in its own header — it
+cites **`docs/PLAN.md` task 1.3b**, not §2.10:
+
+| | Claim | Outcome asserted |
+|---|---|---|
+| `0005_allocation_concurrency.sh` | *"two concurrent allocations cannot oversell one batch"* | **BOTH sessions succeed.** S1 takes lot P, S2 waits, re-reads, takes lot Q. 200 asked, 200 delivered |
+| ADR-035 §2.10, concurrency | *"two sessions, last unit, enforcement on → exactly one succeeds"* | **ONE session succeeds and one is refused** |
+
+They are not the same test with a different runner. The `.sh` proves
+`allocate_fefo()`'s `for update of bb` re-reads after it unblocks; §2.10's first
+clause proves the **availability check refuses the loser**, and that check is
+`record_sale`'s, in `0006`. "Port and retire" would therefore delete a falsified,
+working assertion that §2.10 never asked for and that nothing else in this repository
+makes — which is why 3.7b is a decision taken *after* the harness exists, and not a
+foregone conclusion in a done-when.
+
+⚠️ **AND ADR-035 AND THIS PLAN DISAGREED ABOUT THE RUNNER — THE ADR WINS.** §2.10's
+`Where` column for concurrency reads **"TypeScript, two connections"**. 3.7's
+done-when as written offered *"or it stays"* as an equal option, which is permission
+to leave §2.10's row in bash forever. Per `CLAUDE.md`, when the plan and the ADR
+disagree the ADR wins and the plan is the bug, so **the §2.10 concurrency suite is
+TypeScript** and 3.7a builds it. What 3.7b still genuinely gets to decide is the
+fate of the **1.3b allocator suite**, which §2.10 does not govern.
+
+**So the seam is the same one 3.6 split on: 3.7a bootstraps a harness and ships one
+standalone claim; 3.7b changes an already-green, already-falsified suite.**
+
+- **3.7a bootstraps a second language *into `db.yml`*.** 3.6a introduced TypeScript,
+  but into a workflow with no database — `money.yml` boots nothing. Nothing in this
+  repository has ever run Node against the reset Postgres: `db.yml` has no
+  `setup-node`, no `npm ci`, and every one of its four steps reaches the database
+  through `psql`. 3.7a adds that path and proves it can go red.
+- **3.7b changes a load-bearing file.** The `.sh` is 203 lines of two-session
+  synchronisation with no sleeps, and its own header spells out an earlier draft that
+  **passed green with the locking clause deleted**. Rewriting it is not a
+  transliteration; it is re-deriving why each wait is observed rather than assumed.
+
+Written as one task, a context clear in the middle leaves a half-built harness and a
+half-ported race, and the second is worse than either.
+
+### ⚠️ Found before 3.7a was written — MOST OF §2.10's CONCURRENCY ROW IS OWED BY STEP 4, NOT BY STEP 3
+
+§2.10's last row is two sentences, and they are not both writable against the applied
+schema. This is the same shape as the failure-path and replay rows already recorded
+under *What step 3 does NOT ship* — named here so 3.7a's green is not read as the
+whole row.
+
+| Clause | Writable now? | Why |
+|---|---|---|
+| *"Two identical calls, same id → exactly one row"* | ✅ **Yes** — this is 3.7a | The mechanism is `id uuid primary key` with no default plus `on conflict (id) do nothing`, and both halves are in `0003`. All three document headers carry it |
+| *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ❌ **No** | The enforcement path is inside `record_sale` — ADR-035 §2.6, *"the RPC contains the enforcement path: lock the open batches for the variant, evaluate availability, then insert or raise"* — and `record_sale` is `0006`, **step 4**. `workspace_setting.enforce_stock_default` exists in `0001` and defaults `false`; there is nothing today for it to switch on |
+
+⚠️ **Two further idempotency behaviours are `0006`/`0007`, not `0003`.** §2.6's table
+has four rows; the schema can carry two of them. *Same id + same payload →
+`already_recorded: true`* is a return value, and a table has no return value. *Same
+id + different lines → raise and dead-letter* needs `failed_write`, which is `0007`
+(**step 4.5**). `payload_hash` is on all three headers already, so the column the
+discriminator reads exists — the discriminator does not.
+
+**So 3.7a asserts the platform behaviour §2.6 decision 7 bet on, and step 4 owes the
+rest.** The bet is worth measuring on its own: §2.3 records that *"a duplicate primary
+key is an error, not a no-op"* was the reason the semantics had to be specified at
+all, and §2.6 asserts that a second call arriving mid-flight *"blocks on the row lock
+until the first commits or aborts"*. Both are claims about Postgres under a real race
+that no single-connection suite can make.
+
+### ✅ Found in 3.7a — `pg_blocking_pids()` NAMES THE BLOCKER, AND THE `.sh` COULD ONLY COUNT WAITS
+
+The `.sh` observes its race with
+
+```sql
+select count(*) from pg_stat_activity where pid = $S2 and wait_event_type = 'Lock'
+```
+
+which is true of *any* lock wait by that backend — an autovacuum truncate, a
+concurrent index build, the observer's own transaction. `pg_blocking_pids($waiter)`
+returns the pids actually blocking it, so the guard here is an equality:
+
+```ts
+expect(await blockedBy(observer, b.pid)).toEqual([a.pid]);
+```
+
+**This is the assertion the whole suite rests on**, because every other line in it is
+*also* true of two calls that never overlapped: the second would find the row already
+committed, insert nothing under `on conflict do nothing`, and "exactly one row" would
+come out identical. Falsification **V2** is exactly that — commit the first call
+before the second starts — and it goes red on all three headers with `[] ≠ [a.pid]`.
+Falsification **V5** points the same assertion at the wrong backend and all nine go
+red, which is what makes the *identity* of the blocker part of the claim rather than
+decoration.
+
+### ✅ Found in 3.7a — THE ABORT BRANCH IS THE ONLY THING THAT TELLS A RETRY FROM A REFUSAL
+
+ADR-035 §2.6's third row reads *"blocks on the row lock until the first commits **or
+aborts**, then either sees the row or **inserts**"*. Both halves matter and only the
+second is discriminating. An implementation that returned "0 rows inserted"
+unconditionally — a table with a `before insert … return null` trigger, say — passes
+race 1 and race 2 on every header. Race 3 rolls the first call back and asserts the
+waiter **inserts**, and that the surviving row carries the **second** call's
+`payload_hash`. Falsification **V4** commits where race 3 expects a rollback; three
+tests go red and the other six stay green, which is the shape a discriminator should
+have.
+
+### ⚠️ Found in 3.7a — THIS IS THE FIRST STEP IN `db.yml` THAT EMPTIES THE DATABASE, AND ITS POSITION IS NOW LOAD-BEARING
+
+Every suite in `supabase/tests/` is preceded by `_cleanup.sql` **by the workflow**.
+This one runs the same file **itself**, from inside the suite, because it has no
+`psql` to run it with — and that moves the truncate from the workflow's control into
+the suite's. So the step must be **last**, below the seed checks and below the
+behavioural checks, or those steps measure an empty database.
+
+⚠️ **They would go red, not quiet — checked, not assumed.** Every file in
+`supabase/checks/` opens with a pre-flight block that raises unless the seed still
+holds what the file is about, and pgTAP 02–07 assert absolute counts over the seed.
+That is a property those files already had for their own reasons, and it is what makes
+this step's position safe to state rather than merely hope for. **It is still stated**,
+on the step, because the redness it produces reads like a schema defect rather than a
+misordered workflow, and the next person to reorder these steps should not have to
+work that out from a failing margin reconciliation.
+
+### ✅ Found in 3.7a — THE SCHEMA OWNER CAN RUN THIS ONE, AND THAT WAS NOT TRUE OF THE `.sh`
+
+`docs/PLAN.md` records under 3.1 that `supabase/tests/0005_allocation_concurrency.sh`
+**has never been run outside CI**: it shells out to `psql`, `psql` is not installed on
+the schema owner's machine, and its 9 checks fail with `command not found` on every
+one. node-postgres speaks the wire protocol directly, so this suite needs no Postgres
+client at all — it was run locally against a fresh `supabase db reset`, green, and
+every one of the seven falsifications below was run locally too.
+
+⚠️ **That is a fact about 3.7b, not just a nicety.** "Port the `.sh` and retire it"
+would turn a suite nobody can run locally into one anybody can — which is an argument
+*for* porting that did not exist when 3.7 was written, and it should be weighed
+against the argument below for leaving it alone.
+
+### Settled in 3.7a, and binding on 3.7b
+
+Seven decisions made on the owner's behalf. None needs a migration and none is
+expensive to overturn, but each shapes 3.7b and the step-4 suites that inherit this
+harness.
+
+**1. 3.7 was re-sized from `S` and split into 3.7a / 3.7b.** The `S` assumed the suite
+already existed in bash and the task was to move it. It did not: the `.sh` and §2.10's
+concurrency row are different claims about different code, and neither half of §2.10's
+row was written anywhere. Reasoning in full above.
+
+**2. ⚠️ THE ADR WON A DISAGREEMENT WITH THIS PLAN. §2.10's concurrency suite is
+TypeScript.** 3.7's done-when offered *"or it stays"* as an equal option, which is
+standing permission to leave that row in bash. §2.10's `Where` column says *"TypeScript,
+two connections"*, and `CLAUDE.md` says the ADR wins and the plan is the bug. **What
+3.7b still decides is the fate of the 1.3b ALLOCATOR suite**, which §2.10 does not
+govern — a genuinely open question, not a formality.
+
+**3. It lives in `supabase/vitest/`, not under `packages/`.** ADR-035 §2.10's team-shape
+table splits ownership by path: `supabase/**` is the schema owner's, `app/**` is the
+juniors'. A suite about row locks and primary keys is schema-owner work, so putting it
+under `supabase/` routes review correctly with the CODEOWNERS lines the ADR already
+specifies, instead of needing a fourth. It also lands inside `db.yml`'s existing
+`supabase/**` paths filter, so a change to it runs the workflow that owns its database.
+
+**4. Its npm script is `test:db`, not `test`.** The root manifest runs
+`npm run test --workspaces --if-present`, so a script named `test` here would make a
+bare `npm test` fail on every machine with no database up — which is every machine that
+has only ever touched `packages/money`. `typecheck` keeps its ordinary name, because it
+needs nothing. ⚠️ **The cost is that `npm test` at the root is no longer "run
+everything"**, and the README says so in both places.
+
+**5. Every connection is the `postgres` superuser, and the suite makes NO RLS claim.**
+Row locking and primary-key conflict resolution are neither created nor removed by a
+policy, and an isolation claim made as superuser passes vacuously — the trap
+`supabase/README.md` opens with. Isolation belongs to pgTAP 02–05 under
+`set role authenticated`, and this file says so in its header rather than leaving a
+reader to wonder whether it was an oversight.
+
+**6. `db.yml` installs Node 22 only, where `money.yml` runs a 22/24 matrix.** The matrix
+exists in `money.yml` because integer arithmetic *should* be engine-independent and
+"should" is the class of claim ADR-035 §1 distrusts. Nothing here is arithmetic: the
+property under test is Postgres-side, the client only observes it, and `db.yml` is
+already a ten-minute job that boots a database. Doubling it to re-measure a wire
+protocol buys nothing.
+
+**7. `db.yml`'s `paths:` filter grew `package.json` and `package-lock.json`.** The
+workflow now runs `npm ci`, so the lockfile decides what it installs — and without
+these lines a dependency bump could turn the concurrency suite red on `main` having
+passed no PR. Same argument that put `packages/money/cases.json` in this filter at 3.6b.
+
+### Seven falsifications, run by hand before 3.7a was committed
+
+A race that does not race is the easiest kind of green to write, and it looks exactly
+like a real one. Each of these was introduced, the suite run, the failure read by name,
+and the change reverted. **All seven ran locally**, which is itself new — see the
+finding above.
+
+| Falsified | Result |
+|---|---|
+| **V1** `alter table public.sale drop constraint sale_pkey cascade` | 9 red — *"there is no unique or exclusion constraint matching the ON CONFLICT specification"* |
+| **V2** the first call **commits before the second starts**, so there is no race | 3 red on the guard alone: `[] ≠ [a.pid]`. The other six untouched, which is the point — every count assertion still passed |
+| **V3** `on conflict (id) do nothing` → `do update set payload_hash = excluded.payload_hash` | 9 red. §2.6 decision 7's verb is load-bearing |
+| **V4** race 3's `rollback` → `commit` | 3 red, 6 green. The abort branch is the discriminator |
+| **V5** the guard asserts `[observer.pid]` instead of `[a.pid]` | 9 red. The blocker's identity is part of the claim |
+| **V6** the suite file removed | `No test files found, exiting with code 1` — the failure mode that is otherwise silent |
+| **V7** `DB_URL` unset | exit 1, *"DB_URL must be set"*. The harness refuses rather than reaching for a default |
 
 ### 3.6 was split on 2026-09-01, before it was written
 
@@ -3116,8 +3329,8 @@ and that is the point of the rule.
 
 ### What step 3 does NOT ship, and where those rows went
 
-Three of ADR-035 §2.10's nine rows cannot be written yet, and they are named here so
-they are not silently dropped:
+Three of ADR-035 §2.10's nine rows cannot be written yet, **and half of a fourth**,
+and they are named here so they are not silently dropped:
 
 - **Failure path** (*"a rejected sale yields exactly one `failed_write` row, one
   linked compensating movement, and a balance matching the shelf"*) — `failed_write`
@@ -3129,6 +3342,18 @@ they are not silently dropped:
   against an unassigned location is rejected"*. `record_sale` is `0006`, **step 4**.
   3.3 asserts the read half now, over the predicate the RPC will inherit, and the
   write half is owed by step 4.
+
+- ⚠️ **HALF OF THE CONCURRENCY ROW, found in 3.7a.** *"Two sessions, last unit,
+  **enforcement on** → exactly one succeeds"* is the availability check inside
+  `record_sale` — §2.6, *"the RPC contains the enforcement path: lock the open batches
+  for the variant, evaluate availability, then insert or raise"* — so it is `0006`,
+  **step 4**. `workspace_setting.enforce_stock_default` has existed since `0001` and
+  defaults `false`; there is nothing today for it to switch on. 3.7a ships the row's
+  other clause, *"two identical calls, same id → exactly one row"*, which the applied
+  schema does carry. ⚠️ **And two of §2.6's four idempotency behaviours go with it**:
+  `already_recorded: true` is a return value and a table has no return value, and the
+  `payload_hash` discriminator dead-letters into `failed_write`, which is `0007`,
+  **step 4.5**. The column is on all three headers already — the discriminator is not.
 
 And one row §2.10 does **not** name, which 3.4 found and the owner settled on 2026-08-26:
 

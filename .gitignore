@@ -10,6 +10,8 @@ graphify-out/
 # committed; enabling it is per-developer.
 .claude/settings.local.json
 
-# Node. `packages/money` is the only JavaScript in the repo (ADR-035 §2.10).
+# Node. Two workspaces, both of them ADR-035 §2.10 suites: `packages/money` (the
+# paired-arithmetic half) and `supabase/vitest` (concurrency, two connections).
 node_modules/
 vitest-report.json
+vitest-db-report.json
