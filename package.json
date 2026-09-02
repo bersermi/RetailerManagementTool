@@ -5,7 +5,8 @@
   "description": "Tienda — retail management tool. Root manifest for the workspaces in packages/.",
   "type": "module",
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "supabase/vitest"
   ],
   "scripts": {
     "test": "npm run test --workspaces --if-present",
