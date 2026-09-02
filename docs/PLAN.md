@@ -23,7 +23,11 @@ from the knowledge graph. Nothing there describes the system being built.
 ## Position
 
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
-STEP 3 — the test suites — IS OPEN, AND IT IS SPLIT.**
+STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE TEN RPCs OF §2.6,
+IS NEXT AND NOTHING IN STEP 3 BLOCKS IT.** ⚠️ **"Do not build screens before this
+passes" is NOT satisfied by step 3 alone** — three of ADR-035 §2.10's nine rows need
+tables steps 4 and 4.5 create, and they are named under *What step 3 does NOT ship*
+rather than quietly counted as done.
 **Step 3 was split into 3.1 / 3.2a / 3.2b / 3.3 / 3.4 / 3.5 / 3.6 / 3.7 on 2026-08-22**,
 **and 3.6 split again into 3.6a / 3.6b on 2026-09-01**, also before it was written,
 before any of it was written — nine suites over two languages is the largest thing left
@@ -96,6 +100,26 @@ rule-6 tie-break is reachable only at `round(unit_gross × qty)`. That is a corr
 rule 1 the precondition for rule 6 rather than hygiene — with a JavaScript corollary for
 3.6: `Math.round` is half-up toward +∞, and **M8, the reversal case, is the only one of
 the fifteen that catches it.**
+**3.7b — THE `.sh`, AND THE LAST TASK IN STEP 3 — IS DONE, AND THE DECISION WAS TO
+PORT AND RETIRE**: `supabase/tests/0005_allocation_concurrency.sh` is deleted, its
+claim is 7 Vitest tests in `supabase/vitest/test/allocation-race.test.ts`, and the
+workspace stands at 16. **Five falsifications, all five run LOCALLY** — which is the
+argument that decided it: the `.sh` needed `psql`, the schema owner's machine has
+none, and a suite about `allocate_fefo()` that only CI can run is a suite nobody
+consults while changing `allocate_fefo()`. **Step 4 changes it next.** ✅ **The port
+made one assertion STRONGER, and that was not foreseen when 3.7 was written**: the
+`.sh` could see only that its second backend sat in *some* lock wait — true whether or
+not the locking clause was there, which its own header admits and which let an early
+draft pass green with the clause deleted. Two separate round trips let the wait be
+observed **while only the allocation `select` is outstanding**, so deleting
+`for update of bb` now returns an EMPTY `pg_blocking_pids()` and turns three of the
+seven red (W1). ⚠️ **The `.sh`'s own discriminator is kept** — which lot session 2
+ends up with — because a block observed in the right place is still not the property;
+re-reading after it is. ⚠️ **It is NOT §2.10's concurrency row**, it is task 1.3b's,
+and the two assert OPPOSITE outcomes: §2.10's enforcement clause refuses the loser,
+the allocator makes the loser wait and take the next lot. Three files say so. ⚠️ **A
+cost was taken, not avoided: 3.7a's V6 is weaker.** With two files in the workspace,
+deleting one no longer trips "No test files found". Findings below.
 **3.6b — THE ONE DATA FILE — IS DONE, AND §2.10's PAIRED-ARITHMETIC ROW IS NOW
 TRUE**: 07 builds its case tables from `packages/money/cases.json` with
 `jsonb_array_elements`, the hand-written fork 3.5 declared is deleted, and the suite
@@ -189,7 +213,7 @@ deadline under *Confirmed by the owner* below.
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
-| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; 3.1–3.5, 3.6a, 3.6b and 3.7a done, **3.7b next and last** |
+| 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
 | 5a | Client foundation — **hiring gate** | Not started |
@@ -233,7 +257,7 @@ a seed. Migration numbering is fixed in [`supabase/README.md`](../supabase/READM
 | ~~1.1~~ | ~~`0002` catalog~~ — **done** 2026-08-16. `db reset` green; zero cross-workspace leakage on all five tables under `set role authenticated`; generic provider undeletable and undemotable; price overlap, cross-dimension units and normalized-name duplicates all rejected | M | ✅ |
 | ~~1.2~~ | ~~`0003` transactions~~ — **done** 2026-08-17, [CI green on PR #1](https://github.com/bersermi/RetailerManagementTool/actions/runs/32002904624). 39 behavioural checks pass in `supabase/tests/0003_transactions.sql`, now wired into the CI gate. Reversal self-FK rejects a void across a store or a tenant, a self-reversal and a second void of the same document; `on conflict (id) do nothing` leaves the committed totals alone; documents are append-only even to the superuser; staff read no cost; `waste_reason` is a closed vocabulary | M | ✅ |
 | ~~1.3a~~ | ~~`0004` inventory~~ — **done** 2026-08-17, [CI green on PR #2](https://github.com/bersermi/RetailerManagementTool/actions/runs/32043051234). 54 behavioural checks pass in `supabase/tests/0004_inventory.sql`, now in the CI gate; `0003`'s 39 still pass. The §2.4 invariant holds across a reversal and a deliberate oversale; `rebuild_batch_balance()` reproduces every row exactly from `stock_movement` alone, and the check is shown able to fail. Batches and movements are append-only to the superuser; a batch cannot be relocated; cost is manager-only on both while `batch_balance` — which carries none — is member-level | M | ✅ |
-| ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh`, both in the CI gate; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
+| ~~1.3b~~ | ~~`0005` allocation~~ — **done** 2026-08-17, [CI green on PR #3](https://github.com/bersermi/RetailerManagementTool/actions/runs/32097844689). 52 behavioural checks in `supabase/tests/0005_allocation.sql` and 9 more in `supabase/tests/0005_allocation_concurrency.sh` (⚠️ **retired 2026-09-02 by task 3.7b** — the same claim is now 7 tests in `supabase/vitest/test/allocation-race.test.ts`), both in the CI gate at the time; `0003`'s 39 and `0004`'s 54 still pass. FEFO order proven on all three keys; the candidate set never leaves the location; two concurrent allocations do not oversell one batch, shown against two real connections; a transfer carries cost and expiry forward, opens one destination lot per origin lot, and never moves a batch | M | ✅ |
 | ~~1.4~~ | ~~`0008` purchase-price view~~ — **done** 2026-08-18, [CI green on PR #7](https://github.com/bersermi/RetailerManagementTool/actions/runs/32191899904). 44 behavioural checks in `supabase/tests/0008_provider_price_memory.sql`, now in the CI gate; `0003`'s 39, `0004`'s 54, `0005`'s 52 and the concurrency file's 9 still pass. A voided delivery stops prefilling and falls back to the delivery that still stands; a pair whose only delivery was voided has no row rather than a zero; no fallback across providers; `explain` confirms both indexes and `purchase_one_reversal_idx`, with no sequential scan | S | ✅ |
 | ~~1.5~~ | ~~Seed skeleton~~ — **done** 2026-08-18. `supabase/seed.sql`: two merchants, three stores, **316 variants** for A and 25 for B, 390 sell prices, six people, eight providers. 12 assertions run inside the seed at reset time, and `supabase db reset` **exits non-zero** when one raises — confirmed by falsifying three of them | M | ✅ |
 | ~~1.6a~~ | ~~Seed the deliveries~~ — **done** 2026-08-18. `supabase/seeds/10_deliveries.sql`: **110 deliveries, 1 025 lines, 1 025 batches, 1 025 receipt movements** over 88 days; 330 remembered prices; merchant B holds 16.7% of lines. 24 assertions, six of them falsified to prove they discriminate. The seed is **byte-identical across resets**, verified over three | M | ✅ |
@@ -1626,8 +1650,9 @@ any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same d
 also before it was written — see below. **3.6 split again into 3.6a / 3.6b on
 2026-09-01**, on the same rule and for the same reason, and **3.7 into 3.7a / 3.7b
 the same day**, where reading the ADR against the file it was meant to move showed
-the `S` was wrong and the two were never the same claim. **Both halves of 3.2b are
-closed, 3.3, 3.4, 3.5, 3.6a, 3.6b and 3.7a are closed, and **3.7b — the last task in step 3 — is next.** Step 3 is nine suites over two languages and it is the
+the `S` was wrong and the two were never the same claim. **Every piece is now closed** — both
+halves of 3.2b, then 3.3, 3.4, 3.5, 3.6a, 3.6b, 3.7a and, on 2026-09-02, **3.7b, the
+last task in step 3**. Step 3 was nine suites over two languages and it was the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1652,7 +1677,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.6a~~ | ~~**`packages/money` and `cases.json`, and the Vitest half**~~ — **done** 2026-09-01. The first TypeScript in the repo: a root npm workspace, `packages/money/{cases.json,src/money.ts,src/cases.ts,test/cases.test.ts}` and `.github/workflows/money.yml`, the first CI workflow that is not `db.yml`. **105 tests** over all twenty-one cases, lifted from `07` **by id** with every literal verified identical and every expectation re-derived in Postgres `numeric` on a fresh reset. **Thirteen falsifications**, each confirmed to exit non-zero. ⚠️⚠️ **The finding is a LIMIT OF THE CASE TABLE**: no case in it can fail for a float — its boundaries are ties IEEE754 happens to hold exactly, and 436 shop-sized lines that would catch one are all outside the table. ⚠️ **Rule 4 on the sell side is carried by exactly one case (M9).** ✅ **Vitest has no vacuous green**, but the workspace loop above it does, and the workflow guards it. Findings below | M | ✅ |
 | ~~3.6b~~ | ~~**Re-pointing `07_money_and_units.sql` at `cases.json`**~~ — **done** 2026-09-01. 07's M, B, D and P blocks are built with `jsonb_array_elements` from `packages/money/cases.json`; the hand-written fork is deleted, not duplicated. **192 tests** (from 181), on the same computed plan, with **F19–F21** added as the discriminator guards. **Ten falsifications**, each confirmed to fail. ✅ **§2.10's sentence is now true**: one file, two readers — proved by editing one value three times and watching BOTH suites go red. ✅ **M10 and M11 added on the owner's decision** (2026-09-01), closing 3.6a's two findings: the table can now fail for a float, and rule 4 no longer rests on M9 alone. ⚠️ **`pg_read_file()` is unusable** — it runs in the server, which is a container that cannot see this repo — so psql reads the file client-side, and `db.yml`'s `paths:` filter had to grow the path. Findings below | M | ✅ |
 | ~~3.7a~~ | ~~**The two-connection TypeScript harness, and the idempotency half of §2.10's concurrency row**~~ — **done** 2026-09-02, [CI green on PR #36](https://github.com/bersermi/RetailerManagementTool/actions/runs/33597446943). `supabase/vitest/` as a second npm workspace (`@tienda/db-concurrency`), driving real connections through `pg`, plus the `setup-node` / `npm ci` wiring `db.yml` has never had. **9 tests**: three races over each of `sale`, `purchase` and `waste` — the retry that blocks then inserts nothing, the one rejected with `23505` without `on conflict`, and the abort branch where the waiter inserts. **Seven falsifications**, each confirmed to exit non-zero, **all seven run locally** — the first DB suite in this repo the schema owner's machine can run, because node-postgres needs no `psql`. ✅ **The guard names the blocker**: `pg_blocking_pids(b) = [a]`, where the `.sh` could only count that some lock wait existed. ⚠️ **Half of §2.10's concurrency row is owed by step 4** — the enforcement clause lives in `record_sale`. ⚠️ **This is the first `db.yml` step that empties the database**, so its position at the end is load-bearing. Findings below | M | ✅ |
-| 3.7b | **The `.sh`, and what §2.10's concurrency row still owes.** Port `supabase/tests/0005_allocation_concurrency.sh` into the 3.7a harness and retire it, or keep it and record why — decided once the harness exists and the cost is known, not before | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
+| ~~3.7b~~ | ~~**The `.sh`, and what §2.10's concurrency row still owes**~~ — **done** 2026-09-02. **PORTED AND RETIRED**: `supabase/tests/0005_allocation_concurrency.sh` is deleted and its claim is `supabase/vitest/test/allocation-race.test.ts`, **7 tests** on the 3.7a harness — the workspace now stands at **16**. **Five falsifications**, each confirmed to fail, **all five run locally**, which the `.sh` never was. ✅ **The port is not a transliteration — one assertion got stronger.** The `.sh` could only see that its second backend sat in *some* lock wait, which its own header admits discriminates nothing; separate round trips let the wait be observed **while only the allocation `select` is outstanding**, so deleting `for update of bb` now empties `pg_blocking_pids()` (W1). ⚠️ **The `.sh`'s own discriminator is kept** — WHICH LOT session 2 ends up with — because a block in the right place is still not the property. ⚠️ **This is NOT §2.10's concurrency row and the files say so in three places**: it is task 1.3b's claim, and it asserts the OPPOSITE outcome to §2.10's enforcement clause. ⚠️ **`db.yml`'s behavioural loop lost its `.sh` branch and gained a counter**; 3.7a's V6 is weaker as a result. Findings below | S | ✅ |
 
 Order is forced by the harness, not by foreign keys. **3.1 is first because nothing
 else in step 3 can be evidence until a failing pgTAP assertion is proven to fail the
@@ -1871,6 +1896,125 @@ finding above.
 | **V5** the guard asserts `[observer.pid]` instead of `[a.pid]` | 9 red. The blocker's identity is part of the claim |
 | **V6** the suite file removed | `No test files found, exiting with code 1` — the failure mode that is otherwise silent |
 | **V7** `DB_URL` unset | exit 1, *"DB_URL must be set"*. The harness refuses rather than reaching for a default |
+
+### ✅ Found in 3.7b — THE PORT WAS NOT A TRANSLITERATION: ONE ASSERTION BECAME A DISCRIMINATOR
+
+The `.sh` observed its race with two statements queued into a single psql script, so
+the only thing it could ask was whether backend S2 sat in *some* lock wait at some
+point. **Its own header admits that discriminates nothing** — without
+`for update of bb` the second session still blocks, just later, inside the projection
+trigger whose `on conflict (batch_id) do update` collides with the first session's
+uncommitted row — and it records that an early draft *passed green with the locking
+clause deleted*.
+
+Two connections in TypeScript are two separate round trips, so the wait is observed
+**while only the allocation `select` is outstanding and before session 2 has written
+anything**. That changes the question from *did it wait* to *did it wait HERE*:
+
+| | With `for update of bb` | Without it |
+|---|---|---|
+| `pg_blocking_pids(b)` while the `select` is in flight | `[a.pid]` | **`[]`** — the select returns at once, the wait moves to the movement insert |
+
+So the assertion the `.sh` could only make as decoration is a discriminator here.
+**Measured, not argued: W1 deletes the clause and three of the seven tests go red**,
+and the oversell prints as `-100/100` — a lot 100 units in debt while a whole lot sat
+untouched. ⚠️ **The `.sh`'s own discriminator is kept beside it** — WHICH LOT session
+2 ends up with — because a block in the right place is still not the property, and
+W5 below is what proves that sentence rather than asserting it.
+
+### ⚠️ Found in 3.7b — THE §2.4 INVARIANT IS GREEN IN THE OVERSOLD WORLD, WHICH IS THE THIRD TIME THIS SHAPE HAS APPEARED
+
+Under W1 both sessions allocate lot P, the shop sells 200 units of a lot that held
+100, and `batch_balance_violations()` **reports nothing**: the movements and the
+projection agree perfectly about a number that should never have been written. The
+suite asserts the invariant anyway — a race that broke the projection would be a
+second and worse defect — but the plan should not read that green as evidence about
+overselling.
+
+This is the same limit 3.4 found (§2.4 sees a movement that was never *projected*,
+never one that was never *made*) and the same shape as 3.6a's limit of `cases.json`.
+**It is why this claim is a race and not a check.**
+
+### ⚠️ Found in 3.7b — WAITING IS NOT THE PROPERTY, AND ONE FALSIFICATION SEPARATES THEM CLEANLY
+
+W5 leaves `for update of bb` intact and simply has session 1 **allocate without
+writing its withdrawal**. Session 2 still blocks, and the blocker is still session 1 —
+that test stays green — but session 2 re-reads a ledger in which nothing was taken,
+takes P again, and the lots end `0/100`. Two tests red, and neither of them is the
+wait.
+
+That is the `.sh`'s design argument reproduced as a measurement: the mechanism under
+test is the **re-read after the unblock**, and a suite that asserted only the wait
+would be measuring the one thing both worlds share.
+
+### ⚠️ Decided in 3.7b — 3.7a's V6 IS WEAKER NOW, AND THE COUNT IS DELIBERATELY NOT PINNED
+
+3.7a's V6 was *"the suite file removed → `No test files found`, exit 1"*. With two
+files in the workspace, deleting one leaves the other and the step goes green on 9
+tests. **The shrink gap named in `db.yml`'s comment is now reachable by deleting a
+file, not only by deleting tests.**
+
+It is recorded rather than closed, and the reason is the precedent `money.yml` set:
+the count is printed from the JSON reporter for a reviewer to read (**16** as of
+3.7b), and pinning a minimum would make every added test an edit to a workflow. That
+trade was made once already and this task does not re-open it — but the loss is real
+and it belongs in this file rather than in nobody's head.
+
+⚠️ **The other half of the same concern went the other way.** `db.yml`'s behavioural
+loop had **no counter at all**, and this task takes a file out of the directory it
+scans. A glob that matched nothing there would print nothing and exit 0 — the vacuous
+green ADR-035 §9 refuses — so the loop now counts what it ran and fails at zero, the
+same guard the pgTAP and seed-check loops have had since 3.1 and 1.7.
+
+### Settled in 3.7b
+
+Four decisions made on the owner's behalf. The first is the task's whole subject.
+
+**1. THE `.sh` IS PORTED AND RETIRED.** 3.7's done-when left this genuinely open and
+3.7a sharpened both sides of it. It went this way on the argument 3.7a turned up:
+`supabase/tests/0005_allocation_concurrency.sh` needs `psql`, the schema owner's
+machine has none, and **it has never once been run outside CI**. A suite that only CI
+can run is a suite nobody consults while changing the function it is about — and
+`allocate_fefo()` is what **step 4's `record_sale` calls**, so that is about to matter
+more than it ever has. Against that: rewriting 203 lines of falsified two-session
+synchronisation risks a subtly weaker test. **That risk was paid down rather than
+argued away** — five falsifications, including the one the `.sh` was built around
+(delete `for update of bb`), all run locally.
+
+**2. The claim keeps its own file and its own name — `allocation-race.test.ts`, not a
+third block inside `idempotency.test.ts`.** It is a different claim about a different
+mechanism, owed to task 1.3b and not to §2.10, and it asserts the OPPOSITE outcome:
+both sessions succeed. Filing it under §2.10's file would have made the suite's own
+name a lie about half its contents. Three files say which is which — the suite header,
+`supabase/vitest/README.md`, and the step comment in `db.yml`.
+
+**3. The race runs ONCE, in `beforeAll`, and each claim is a test over what it
+recorded.** The idempotency suite beside it runs a fresh race per test, which is right
+for three independent two-statement races and wrong for one seven-observation
+sequence: re-racing seven times to assert seven things about it would make a
+mid-sequence failure take every later test with it. The cost is that a failure in the
+race itself surfaces as a hook error, which is loud and names the line.
+
+**4. `db.yml`'s behavioural loop lost its `.sh` branch.** A `.sh` added to
+`supabase/tests/` now fails on the `unrecognised test file` branch instead of running.
+That is deliberate: the two-connection home in this repository is the Vitest
+workspace, and a second one would split the harness. Reversing it is three lines.
+
+### Five falsifications, run by hand before 3.7b was committed
+
+A ported race that quietly stopped racing would look exactly like the original.
+Each of these was introduced, the suite run against a fresh `supabase db reset`, the
+failure read by name, and the change reverted. **All five ran locally, on a machine
+with no `psql`** — which is the whole argument for the port, exercised on the day it
+landed.
+
+| Falsified | Result |
+|---|---|
+| **W1** `for update of bb` deleted from `allocate_fefo()` (`create or replace` over the live function) | **3 red.** `pg_blocking_pids()` returns `[]`, session 2 takes P, and the lots print `-100/100` — the oversell, with the §2.4 invariant still green beside it |
+| **W2** session 1 **commits before session 2 begins**, so there is no race | **2 red**, and the other five green — `[] ≠ [a.pid]`, and the movement count reads 3 where a live race reads 2. Every lot assertion still passes, which is exactly why the guard exists |
+| **W3** the guard asserts `[observer.pid]` instead of `[a.pid]` | **1 red.** The blocker's identity is part of the claim |
+| **W4** the fixture's expiry dates inverted, so **Q** expires first | **3 red**, including the fixture test itself — added in response to this falsification, which the first draft's `100/100` check sailed through. The premise is now asserted on the allocator's own three keys |
+| **W5** session 1 allocates but **never writes its withdrawal** | **2 red**, and the wait is not one of them: session 2 blocks, re-reads a ledger nothing was taken from, takes P again, and the lots end `0/100`. The re-read is the mechanism, not the wait |
 
 ### 3.6 was split on 2026-09-01, before it was written
 
@@ -3317,6 +3461,12 @@ position is a claim the suite makes about itself, so moving it turns the job red
 rather than quiet.
 
 ### ⚠️ The concurrency suite could not be run locally for 3.1, and CI is the evidence
+
+✅ **CLOSED BY 3.7b on 2026-09-02 — this is the paragraph that decided that task.**
+The file below is retired and its claim is `supabase/vitest/test/allocation-race.test.ts`,
+which needs no `psql` and was run locally, green, with all five of its falsifications.
+The rest of this section is left as written, because it records what was true of the
+run it cites and because it is the evidence the port was worth making.
 
 `supabase/tests/0005_allocation_concurrency.sh` shells out to `psql`, and `psql` is
 not installed on the schema owner's machine — everything else in this repo reaches

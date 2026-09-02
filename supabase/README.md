@@ -529,7 +529,11 @@ skipped test step looks like.
 Applied locally 2026-08-17, same toolchain. `supabase db reset` applies `0001`–`0005`
 with no errors, and **52 behavioural checks pass** from `supabase/tests/0005_allocation.sql`
 plus **9 more** from `supabase/tests/0005_allocation_concurrency.sh`. `0003`'s 39 and
-`0004`'s 54 still pass unchanged.
+`0004`'s 54 still pass unchanged. ⚠️ **That `.sh` was retired on 2026-09-02** (plan
+task 3.7b): its claim is now seven Vitest tests in
+`supabase/vitest/test/allocation-race.test.ts`, same fixture and same discriminator.
+The paragraph above is left as it was written, because it records what was true of
+the run it cites.
 
 The 52 cover: the FEFO order on all three keys — expiry ascending, `received_at` as
 the tiebreak, and `batch_id` as a deterministic third key — with nulls sorted last
@@ -1589,22 +1593,50 @@ one workspace only**. The last two are failures of the harness rather than of th
 and both are the vacuous green this file exists to refuse — one arriving through the
 role, the other through an empty table.
 
-## `supabase/vitest/` — the §2.10 concurrency suite (plan task 3.7a)
+## `supabase/vitest/` — the two-connection suites (plan tasks 3.7a, 3.7b)
 
 **One npm workspace, `@tienda/db-concurrency`, driving two real connections through
 `pg`.** §2.10's last row is the only one whose *Where* column says **"TypeScript, two
-connections"**, and this is it — the second JavaScript workspace in the repository
-after `packages/money`, and the first thing in `db.yml` that reaches the database
-through something other than `psql`.
+connections"**, and this is where it lives — the second JavaScript workspace in the
+repository after `packages/money`, and the first thing in `db.yml` that reaches the
+database through something other than `psql`.
 
 **Why it cannot be pgTAP.** A single session cannot block on its own lock. Every
 claim here is about two calls *in flight at once*, so a one-connection version passes
 green with the mechanism deleted — the same trap that made
 `supabase/tests/0005_allocation_concurrency.sh` a `.sh` rather than a `.sql`.
 
-**Nine tests: three races over each of the three document headers** (`sale`,
-`purchase`, `waste`), asserting §2.10's *"two identical calls, same id → exactly one
-row"*:
+**TWO SUITES, AND ONLY ONE OF THEM IS §2.10's.** `idempotency.test.ts` is §2.10's
+concurrency row (task 3.7a, below). `allocation-race.test.ts` is task **1.3b**'s claim
+about `allocate_fefo()` — *"two concurrent allocations cannot oversell one batch"* —
+which ran as the `.sh` named above until **3.7b** ported it here and retired the file.
+⚠️ **They assert opposite outcomes on purpose.** §2.10's enforcement clause refuses
+the loser; the allocator makes the loser **wait, re-read, and take the next lot**, so
+both sessions succeed and 200 asked is 200 delivered. Neither claim implies the other.
+
+**`allocation-race.test.ts` — seven tests over one race.** Two lots of 100 for one
+variant at one store, P expiring first, and both sessions ask for exactly 100:
+
+| | What it establishes |
+|---|---|
+| **1** | The fixture is two open lots of 100 and **FEFO offers P first** — asserted on the allocator's own three keys, not assumed |
+| **2** | The second session is made to **wait, and the blocker is the first** — `pg_blocking_pids(b) = [a]`, observed while only the allocation `select` is outstanding |
+| **3** | It is blocked **before it has written anything**: two movements exist, both receipts, and session 1's withdrawal is still uncommitted |
+| **4** | Session 1 took **all of P**, the lot that expires first |
+| **5** | Having waited, session 2 allocates **Q — not the lot session 1 emptied**. THE DISCRIMINATOR: waiting is not the property, re-reading after it is |
+| **6** | **Neither lot was oversold** — both at zero, 200 asked and 200 delivered |
+| **7** | And the §2.4 invariant survived the race — which proves less than it looks, because it holds in the oversold world too |
+
+⚠️ **The invariant is blind to this defect, which is why the race is tested rather
+than reasoned about.** Without `for update of bb` both sessions read P at 100 and both
+allocate P: `P = -100, Q = 100`, every total still balances, and
+`batch_balance_violations()` reports nothing. Confirmed by deleting the clause
+(falsification W1, `docs/PLAN.md` task 3.7b) — three tests red, the shape printed as
+`-100/100`.
+
+**`idempotency.test.ts` — nine tests: three races over each of the three document
+headers** (`sale`, `purchase`, `waste`), asserting §2.10's *"two identical calls, same
+id → exactly one row"*:
 
 | | What it establishes |
 |---|---|
@@ -1639,9 +1671,11 @@ by the time its fixture exists. Moving it higher turns the job red rather than q
 pgTAP 02–07 assert absolute counts), but it turns it red for a reason that reads like
 a schema defect, so the position is stated on the step.
 
-**It needs no `psql`.** node-postgres speaks the wire protocol, so this suite runs on
+**It needs no `psql`.** node-postgres speaks the wire protocol, so these suites run on
 a machine that has never installed a Postgres client — which the schema owner's
-machine is. The `.sh` beside it has never once been run outside CI; this one has.
+machine is. The retired `.sh` was never once run outside CI, and that was the argument
+that decided 3.7b: a suite about `allocate_fefo()` that only CI can run is a suite
+nobody consults while changing `allocate_fefo()`, which is what step 4 does next.
 
 ⚠️ **Its script is `test:db`, not `test`.** The root manifest runs
 `npm run test --workspaces --if-present`; a script named `test` here would make

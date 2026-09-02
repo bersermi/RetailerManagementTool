@@ -1,11 +1,15 @@
 // ============================================================================
-// Two real connections against the reset database — ADR-035 §2.10
+// Two real connections against the reset database — ADR-035 §2.10, task 1.3b
 // ============================================================================
-// Plan task 3.7a. §2.10's concurrency row is the only one whose `Where` column
-// says "TypeScript, two connections", and the reason is the same one that made
+// Plan tasks 3.7a and 3.7b. §2.10's concurrency row is the only one whose
+// `Where` column says "TypeScript, two connections", and the reason is the same
+// one that made
 // supabase/tests/0005_allocation_concurrency.sh a `.sh` rather than a `.sql`: a
 // single session cannot block on its own lock, so a one-connection test of a
 // race asserts nothing and passes just as green with the mechanism deleted.
+// ⚠️ That `.sh` is gone as of task 3.7b: its claim is now
+// test/allocation-race.test.ts, on this harness. Two suites share these helpers,
+// so a change here is a change to both.
 //
 // WHAT THIS FILE IS NOT. It makes no RLS claim and does not try to. Every
 // connection here is the `postgres` superuser, which bypasses RLS — as
@@ -15,15 +19,15 @@
 // resolution — are neither created nor removed by a policy.
 //
 // It needs DB_URL and A DATABASE THAT WAS JUST RESET, like every suite beside
-// it. Unlike the `.sh`, it needs NO psql: node-postgres speaks the wire protocol
-// directly, so this suite runs on a machine that has never installed a Postgres
-// client. That is not a convenience — the schema owner's machine is such a
-// machine, which is why the `.sh` has never once been run outside CI (see the
-// 3.1 note in docs/PLAN.md).
+// it. It needs NO psql: node-postgres speaks the wire protocol directly, so
+// these suites run on a machine that has never installed a Postgres client. That
+// is not a convenience — the schema owner's machine is such a machine, which is
+// why the retired `.sh` was never once run outside CI (see the 3.1 note in
+// docs/PLAN.md), and why 3.7b moved its claim here rather than leaving it.
 //
 //   supabase db reset
 //   DB_URL="$(supabase status -o env | grep '^DB_URL=' | cut -d'"' -f2)" \
-//     npm run test --workspace @tienda/db-concurrency
+//     npm run test:db --workspace @tienda/db-concurrency
 // ============================================================================
 
 import { readFileSync } from 'node:fs';
