@@ -347,16 +347,54 @@ suite and Vitest both read **one** file, `packages/money/cases.json`. Do not for
 into a SQL fixture: two sets of expectations that happen to agree are how drift
 starts, and each copy looks correct on its own.
 
-⚠️ **`07_money_and_units.sql` holds its cases inline TODAY, and that is task 3.6's
-job to end.** 3.5 ships before 3.6 on purpose: writing `cases.json` first would let the
-data file be shaped to whatever the SQL already does, which is the drift it exists to
-prevent. The cases carry ids — `M1`–`M9`, `D1`–`D3`, `P1`–`P3` — so 3.6 lifts them by
-name — nine sell-side (`M`), six buy-side (`B`). ⚠️ **`M8` and `B6` are the only two
-of the twenty that catch JavaScript's `Math.round`** (half-up toward +∞, not away from
-zero): both are reversals whose `unit_price × qty` lands on a half centavo, which — the
-tax steps being unable to tie — is the only shape that can tell the two roundings
-apart. Both must survive the move. `B4` is a reversal that discriminates nothing, and
-is kept as the case that shows why the other two are not interchangeable with it.
+✅ **`07_money_and_units.sql` READS THAT FILE as of task 3.6b** (2026-09-01). Its M,
+B, D and P blocks are built with `jsonb_array_elements` from
+`packages/money/cases.json` — the same bytes `packages/money/test/cases.test.ts`
+reads. There is no second copy of the expectations anywhere, and an edit to one value
+turns **both** suites red; that was falsified three times before the change merged.
+
+**How the file reaches `psql`.** Client-side, always — `pg_read_file()` runs in the
+*server*, and the server is a container with no view of this repository.
+
+```bash
+# from the repository root, which is what CI does and what these docs assume
+psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/pgtap/07_money_and_units.sql
+
+# from anywhere else
+psql "$DB_URL" -v cases_path=/path/to/cases.json -f supabase/pgtap/07_money_and_units.sql
+
+# no client-side filesystem — e.g. no host psql, driving the container directly
+docker exec -i supabase_db_<project> psql -U postgres \
+  -v cases_json="$(cat packages/money/cases.json)" -f - < supabase/pgtap/07_money_and_units.sql
+```
+
+A file that cannot be read prints the three lines above and raises before a single
+test is planned; a file that parses but has lost a block raises too, because an empty
+case table makes every per-case assertion vacuous. ⚠️ **`packages/money/cases.json` is
+therefore in `db.yml`'s `paths:` filter** — without it, a change to the case table
+would not run the SQL half of the claim.
+
+**The cases, and which of them carry a rule alone.** Eleven sell-side (`M`), six
+buy-side (`B`), three documents (`D`), three packs (`P`) — twenty-three. The file
+names three groups under `discriminators`, and F19–F21 assert each id still exists
+*and* still has the property it is named for:
+
+| Group | Ids | Catches |
+|-------|-----|---------|
+| `away_from_zero` | `M8`, `B6` | JavaScript's `Math.round` — half-up toward +∞ rather than away from zero. Both are reversals whose `unit_price × qty` lands on a half centavo, which, the tax steps being unable to tie, is the only shape that can tell the two apart |
+| `float_representation` | `M10` | IEEE754. Added in 3.6b: the four boundaries inherited from 3.5 are ties a double holds *exactly*, so nothing here could fail for a float before it. `0.0139 × 250 × 100` is `347.49999999999994` |
+| `residual_tax` | `M9`, `M11` | §2.5 rule 4's residual against the `round(net × rate)` it forbids. **Sell only** — on the buy side the two are provably the same number (F17). Two of them, erring in opposite directions, because a split off by a consistent sign would pass a table of same-direction cases |
+
+⚠️ **All three groups sit in `round(unit_price × qty)`, and that is a result rather
+than a convention.** Neither tax step can tie, and both failures bite only *at* a tie
+— measured in 3.6b over every value from one centavo to $20 000, in both tax steps,
+on both sides: zero disagreements. `B4` is a reversal that discriminates nothing, and
+is kept as the case that shows why `M8` and `B6` are not interchangeable with it.
+
+⚠️ **`M10` discriminates on the TypeScript side only.** Postgres computes the anchor
+in `numeric` and answers `3.48` either way, so in this suite it is an ordinary
+boundary. It is in the shared file because it is the only thing standing between
+`packages/money` and a float rewrite.
 
 ## Timestamps
 
@@ -1314,7 +1352,7 @@ already, or unless it is the one delivery voided knowing that it would.
 
 ---
 
-## `supabase/pgtap/` — the §2.10 suites (plan tasks 3.1 – 3.5)
+## `supabase/pgtap/` — the §2.10 suites (plan tasks 3.1 – 3.6b)
 
 ADR-035 §2.10 names pgTAP as the home of six of its nine suites. This directory is
 where they live: `01_rls_coverage.sql` says the walls are standing,
