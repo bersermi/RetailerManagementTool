@@ -6,21 +6,23 @@ name: money
 #
 # This workflow is the Vitest half. Plan task 3.6a.
 #
-# ⚠️ IT IS HALF OF THE §2.10 CLAIM, NOT THE CLAIM. As of 3.6a,
-# supabase/pgtap/07_money_and_units.sql still carries the hand-written fork the
-# expectations were lifted from — by id, which is what makes lifting them
-# possible. Re-pointing 07 at packages/money/cases.json is task 3.6b. Until it
-# lands there are two readers of two files that agree; after it, one file.
+# ✅ THE CLAIM IS WHOLE AS OF 3.6b. supabase/pgtap/07_money_and_units.sql builds
+# its case tables from packages/money/cases.json — the same bytes this suite
+# reads — so there is one file and two readers, which is what §2.10 asked for.
+# An edit to one value turns both suites red; falsified three times before 3.6b
+# merged.
 #
 # WHY THIS IS A SECOND WORKFLOW AND NOT A JOB IN db.yml. db.yml boots Postgres,
 # applies fourteen migrations and runs seven pgTAP suites — about ten minutes,
 # and it is filtered to `supabase/**`. Nothing here needs a database, and a
 # TypeScript change should not wait on a schema reset to find out it does not
-# compile. ⚠️ WHEN 3.6b LANDS THIS STOPS BEING TRUE FOR cases.json ALONE: that
-# file will then be an input to db.yml too, and db.yml's `paths:` filter must
-# grow `packages/money/cases.json` on the same commit — otherwise a change to
-# the case table would not run the SQL side that reads it, which is the exact
-# drift §2.10 asks for one file to prevent.
+# compile.
+#
+# ⚠️ cases.json IS THE ONE FILE BOTH WORKFLOWS CARE ABOUT. It is an input to
+# db.yml as well as this one, and db.yml's `paths:` filter names it explicitly —
+# added on the same commit that made 07 read it (3.6b). A change to the case
+# table therefore runs BOTH halves of §2.10's paired-arithmetic row. Removing it
+# from either filter would leave a green that only measured one side.
 #
 # TWO NODE VERSIONS ON PURPOSE. The money path is integer arithmetic, so it
 # should not depend on the engine — but "should not" is the class of statement

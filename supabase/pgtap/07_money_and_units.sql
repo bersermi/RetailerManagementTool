@@ -60,6 +60,63 @@
 -- ============================================================================
 \set ON_ERROR_STOP on
 \timing off
+
+-- ---------------------------------------------------------------------------
+-- `cases.json` — THE ONE DATA FILE (ADR-035 §2.10, plan task 3.6b)
+--
+-- Until 3.6b this file carried its own `insert into mu_case values (...)`, a
+-- deliberate and temporary fork that 3.5 declared in writing. The expectations
+-- were worked out HERE first, by hand, on purpose — writing the data file first
+-- would have let it be shaped to whatever this SQL already did, which is the
+-- drift the file exists to prevent. 3.6a lifted them into
+-- packages/money/cases.json by id and gave them a second reader; this is the
+-- commit where there stops being a second copy.
+--
+-- HOW THE FILE GETS IN. psql reads it CLIENT-SIDE, which is the only mechanism
+-- that works here: `pg_read_file()` runs in the SERVER, and the server is a
+-- container with no view of this repository.
+--
+--   default    psql -f supabase/pgtap/07_money_and_units.sql      (from the repo root)
+--   elsewhere  psql -v cases_path=/some/where/cases.json -f ...
+--   no client-side filesystem, e.g. docker exec:
+--              docker exec -i supabase_db_<project> psql -U postgres \
+--                -v cases_json="$(cat packages/money/cases.json)" -f - < <this file>
+--
+-- ⚠️ THE DEFAULT PATH IS RELATIVE TO THE CALLER'S WORKING DIRECTORY, which is
+-- the repo root in CI and in every invocation supabase/README.md documents. A
+-- run from anywhere else must pass `cases_path`. It cannot fail quietly: an
+-- unreadable file leaves the variable empty, the `::jsonb` cast raises, and
+-- ON_ERROR_STOP exits non-zero before a single test is planned.
+-- ---------------------------------------------------------------------------
+\if :{?cases_json}
+  \echo '# the case table was supplied by the caller as -v cases_json='
+\else
+  \if :{?cases_path}
+  \else
+    \set cases_path 'packages/money/cases.json'
+  \endif
+  \echo '# reading the case table from' :'cases_path'
+  \set cases_json `cat :cases_path`
+\endif
+
+-- ⚠️ AND IT SAYS SO IN WORDS. Without this the failure mode is `ERROR: invalid
+-- input syntax for type json` four hundred lines below, which is true, non-zero,
+-- and tells a reader nothing about which file was not found. The `\echo` names
+-- the path; the `do` block is what actually raises, because psql does not
+-- interpolate a variable inside a dollar-quoted body and there is no other way
+-- to fail a plain SQL statement on purpose.
+select length(:'cases_json') = 0 as cases_missing \gset
+\if :cases_missing
+  \warn ''
+  \warn 'The case table is empty or could not be read.'
+  \warn 'ADR-035 §2.10 asks for ONE data file read by both this suite and Vitest;'
+  \warn 'this suite could not read it. Either run from the repository root, or:'
+  \warn '  psql -v cases_path=/path/to/cases.json -f supabase/pgtap/07_money_and_units.sql'
+  \warn '  psql -v cases_json="$(cat packages/money/cases.json)" -f ...   (no client-side fs)'
+  \warn ''
+  do $$ begin raise exception 'cases.json could not be read — see the guidance above'; end $$;
+\endif
+
 set search_path = tap, public, pg_catalog;
 set client_min_messages = warning;
 
@@ -396,67 +453,39 @@ select u.code,
 -- "a half-centavo boundary per tax rate", which reads as though the division
 -- has one. It does not, and cannot — see the F9 finding. The tie-break is only
 -- ever reachable at `round(unit_gross * qty, 2)`, so that is where these four
--- put it. 3.6 must carry them across unchanged.
+-- put them. The file names them under `discriminators`, and F19-F21 check that
+-- each one still has the property it is named for.
 --
 -- ⚠️ M8 IS THE REVERSAL, AND IT IS THE ONE THAT PINS "AWAY FROM ZERO". Half-up
 -- toward positive infinity — which is what JavaScript's Math.round does, and
 -- packages/money is JavaScript — sends -0.365 to -0.36. §2.5 rule 6 sends it to
 -- -0.37. A void of M4 must be M4's mirror to the centavo or `void_transaction`
--- leaves a peso behind, so this case is 3.6's tripwire as much as this file's.
+-- leaves a peso behind, so M8 is packages/money's tripwire as much as this
+-- file's — and M10, added in 3.6b, is the one case a double gets wrong even
+-- with the rounding direction right (0.0139 x 250 x 100 is 347.49999999999994).
+-- On THIS side M10 is an ordinary boundary: Postgres computes the anchor in
+-- `numeric` and answers 3.48 either way. It earns its place in the shared file
+-- on the TypeScript side.
 -- ---------------------------------------------------------------------------
-create temp table mu_case (
-  id         text primary key,
-  kind       text not null check (kind in ('sell', 'buy')),
-  label      text not null,
-  unit_price numeric(14,6) not null,   -- gross per base on a sale, NET on a purchase
-  qty        numeric(14,3) not null,
-  rate       numeric(5,4)  not null,
-  exp_gross  numeric(12,2) not null,
-  exp_net    numeric(12,2) not null,
-  exp_tax    numeric(12,2) not null
-);
+create temp table mu_case as
+select (r->>'id')                              as id,
+       (r->>'kind')                            as kind,
+       (r->>'label')                           as label,
+       -- ⚠️ EVERY NUMBER ARRIVES AS TEXT AND IS CAST HERE, never read as a JSON
+       -- number. `(r->>'qty')::numeric` is exact; `(r->'qty')::float8` would not
+       -- be, and §2.5 rule 1 puts no float anywhere in the money path. The scales
+       -- are the applied schema's, so a value carrying more decimals than its
+       -- column holds is rounded HERE, loudly, rather than silently later.
+       (r->>'unit_price')::numeric(14,6)       as unit_price,
+       (r->>'qty')::numeric(14,3)              as qty,
+       (r->>'rate')::numeric(5,4)              as rate,
+       (r->'expect'->>'gross')::numeric(12,2)  as exp_gross,
+       (r->'expect'->>'net')::numeric(12,2)    as exp_net,
+       (r->'expect'->>'tax')::numeric(12,2)    as exp_tax
+  from jsonb_array_elements(:'cases_json'::jsonb -> 'lines') as r;
 
-insert into mu_case values
-  ('M1', 'sell', '§2.10 — 16% inclusive, one item at $11.60',
-                                    11.600000,    1.000, 0.1600,  11.60,  10.00,  1.60),
-  ('M2', 'sell', '§2.5  — the shelf: $2.00 the 100 g, IVA in',
-                                     0.020000,  100.000, 0.1600,   2.00,   1.72,  0.28),
-  ('M3', 'sell', '§2.5  — zero-rated line, net is the gross',
-                                    13.500000,    1.000, 0.0000,  13.50,  13.50,  0.00),
-  ('M4', 'sell', '§2.5  — half-centavo tie, counted: 5 x $0.073 = $0.365',
-                                     0.073000,    5.000, 0.1600,   0.37,   0.32,  0.05),
-  ('M5', 'sell', '§2.5  — half-centavo tie, weighed: 250 g at $25.86 the kilo',
-                                     0.025860,  250.000, 0.1600,   6.47,   5.58,  0.89),
-  ('M6', 'sell', '§2.5  — half-centavo tie at rate 0, the other tax rate',
-                                     0.073000,    5.000, 0.0000,   0.37,   0.37,  0.00),
-  ('M7', 'sell', '§2.5  — weighed decimal quantity: a quarter kilo at $12.35',
-                                     0.012350,  250.000, 0.1600,   3.09,   2.66,  0.43),
-  ('M8', 'sell', '§2.5  — the reversal of M4: half-up is AWAY FROM ZERO',
-                                     0.073000,   -5.000, 0.1600,  -0.37,  -0.32, -0.05),
-  ('M9', 'sell', '§2.10 — the case of 24 at $12.00, as a money line',
-                                     0.500000,   24.000, 0.1600,  12.00,  10.34,  1.66),
-  -- ---- THE BUY SIDE, settled by the owner 2026-08-26 ----------------------
-  -- The invoice hands over a NET unit price. `net` is the anchor, `gross` is
-  -- round(net x (1 + rate)), and tax is the residual of THAT — so rule 4 reads
-  -- the same sentence on both sides of the ledger.
-  ('B1', 'buy',  'the fixture''s own kilo: $40.00 net the kilo, 16% broken out',
-                                     0.040000, 1000.000, 0.1600,  46.40,  40.00,  6.40),
-  ('B2', 'buy',  'an invoice line at $13.13 net — the tax has four decimals before it rounds',
-                                    13.130000,    1.000, 0.1600,  15.23,  13.13,  2.10),
-  ('B3', 'buy',  'a zero-rated delivery: gross is the net, tax is nothing',
-                                    27.500000,    1.000, 0.0000,  27.50,  27.50,  0.00),
-  ('B4', 'buy',  'the VOID of B2 — a returned delivery must mirror it to the centavo',
-                                    13.130000,   -1.000, 0.1600, -15.23, -13.13, -2.10),
-  ('B5', 'buy',  'the tie is in the MULTIPLICATION here too: 5 x $0.073 net = $0.365',
-                                     0.073000,    5.000, 0.1600,   0.43,   0.37,  0.06),
-  -- ⚠️ B6 IS THE BUY SIDE'S M8, AND B4 IS NOT. B4 is a reversal but its anchor
-  -- (-13.13) is not a tie, so away-from-zero and toward-+infinity agree on it
-  -- and it catches nothing. Only a NEGATIVE case whose anchor lands on a half
-  -- centavo can tell the two roundings apart, and F18 says the tax step never
-  -- provides one — so on the buy side this is the ONLY shape that can. It is
-  -- also a real document: `30_reversals.sql` voids three deliveries.
-  ('B6', 'buy',  'the VOID of B5 — the only buy case that can catch Math.round',
-                                     0.073000,   -5.000, 0.1600,  -0.43,  -0.37, -0.06);
+alter table mu_case add primary key (id);
+alter table mu_case add check (kind in ('sell', 'buy'));
 
 create temp table mu_anchor as
 select c.*, round(c.unit_price * c.qty, 2) as anchor from mu_case c;
@@ -489,24 +518,18 @@ select a.*,
 -- per-document disagree" could be satisfied by a rule that always disagrees,
 -- which would be a different defect wearing the same green.
 -- ---------------------------------------------------------------------------
-create temp table mu_doc (
-  id         text primary key,
-  label      text not null,
-  n_lines    int           not null,
-  line_gross numeric(12,2) not null,
-  rate       numeric(5,4)  not null,
-  exp_perline numeric(12,2) not null,
-  exp_perdoc  numeric(12,2) not null,
-  exp_agree   boolean       not null
-);
+create temp table mu_doc as
+select (r->>'id')                                   as id,
+       (r->>'label')                                as label,
+       (r->>'n_lines')::int                         as n_lines,
+       (r->>'line_gross')::numeric(12,2)            as line_gross,
+       (r->>'rate')::numeric(5,4)                   as rate,
+       (r->'expect'->>'per_line')::numeric(12,2)    as exp_perline,
+       (r->'expect'->>'per_document')::numeric(12,2) as exp_perdoc,
+       (r->'expect'->>'agree')::boolean             as exp_agree
+  from jsonb_array_elements(:'cases_json'::jsonb -> 'documents') as r;
 
-insert into mu_doc values
-  ('D1', '§2.5 — three items at $1.00, 16%: the lines say 2.58, the document 2.59',
-         3,  1.00, 0.1600,  2.58,  2.59, false),
-  ('D2', '§2.10 — the ten 100 g tickets: $17.20 by line, $17.24 by document',
-        10,  2.00, 0.1600, 17.20, 17.24, false),
-  ('D3', 'control — one line at $11.60: the two agree, so the rule is not just noise',
-         1, 11.60, 0.1600, 10.00, 10.00, true);
+alter table mu_doc add primary key (id);
 
 create temp table mu_docr as
 select d.*,
@@ -528,22 +551,36 @@ select d.*,
 -- the fixture above delivered one case of 24 and one pack of 3, and U/P tests
 -- below read what the applied schema stored.
 -- ---------------------------------------------------------------------------
-create temp table mu_pack (
-  id          text primary key,
-  label       text not null,
-  pack_size   numeric(14,3) not null,
-  case_net    numeric(12,2) not null,
-  exp_per_unit numeric(14,6) not null,
-  exp_round_trips boolean    not null
-);
+create temp table mu_pack as
+select (r->>'id')                                     as id,
+       (r->>'label')                                  as label,
+       (r->>'pack_size')::numeric(14,3)               as pack_size,
+       (r->>'case_net')::numeric(12,2)                as case_net,
+       (r->'expect'->>'per_unit')::numeric(14,6)      as exp_per_unit,
+       (r->'expect'->>'round_trips')::boolean         as exp_round_trips
+  from jsonb_array_elements(:'cases_json'::jsonb -> 'packs') as r;
 
-insert into mu_pack values
-  ('P1', '§2.10 — a case of 24 at $12.00 is $0.50 the can, exactly',
-         24.000, 12.00, 0.500000, true),
-  ('P2', 'a pack of 3 at $10.00 is $3.333333 and does NOT multiply back',
-          3.000, 10.00, 3.333333, false),
-  ('P3', 'a case of 24 at $12.01 is $0.500417 and does NOT multiply back',
-         24.000, 12.01, 0.500417, false);
+alter table mu_pack add primary key (id);
+
+-- ⚠️ THE FILE LOADED, AND IT BROUGHT CASES WITH IT. A `cases.json` that parses
+-- but has lost a block would give an empty table, a smaller computed plan, and
+-- a green run that asserted nothing — the vacuous pass ADR-035 §9 refuses and
+-- the exact shape 3.3 found in the harness. An unreadable file cannot reach
+-- here (the ::jsonb cast raises first); this catches the file that CAN be read
+-- and says nothing.
+do $$
+begin
+  if (select count(*) from mu_case) = 0
+     or (select count(*) from mu_doc)  = 0
+     or (select count(*) from mu_pack) = 0 then
+    raise exception
+      'cases.json parsed but produced % line, % document and % pack cases. '
+      'An empty block makes every per-case assertion below vacuous.',
+      (select count(*) from mu_case),
+      (select count(*) from mu_doc),
+      (select count(*) from mu_pack);
+  end if;
+end $$;
 
 create temp table mu_packr as
 select p.*,
@@ -610,7 +647,21 @@ select m.*,
 
 
 -- ---------------------------------------------------------------------------
--- The plan is COMPUTED from what was measured, never hardcoded: 18 fixed tests,
+-- WHICH CASES CARRY WHICH RULE, read from the file rather than assumed
+--
+-- `cases.json` names three groups under `discriminators`, and F19-F21 check
+-- that each id still exists AND still has the property it is named for. The
+-- point is 3.5's S14 generalised: a table can lose its teeth without losing a
+-- test, because the cases that discriminate look exactly like the ones that do
+-- not. Delete M8 and every remaining assertion still passes; delete it with
+-- F19 standing and the build goes red.
+-- ---------------------------------------------------------------------------
+create temp table mu_disc as
+select k as grp, jsonb_array_elements_text(:'cases_json'::jsonb -> 'discriminators' -> k) as id
+  from unnest(array['away_from_zero', 'float_representation', 'residual_tax']) as k;
+
+-- ---------------------------------------------------------------------------
+-- The plan is COMPUTED from what was measured, never hardcoded: 21 fixed tests,
 -- 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document
 -- case, 2 per pack case and 2 per money column. A denomination or a money
 -- column added by a future migration is measured the day it lands.
@@ -622,12 +673,16 @@ select m.*,
 -- is the third way a failing suite exits 0 and the reason 3.3 and 3.4 put that
 -- guard here at all. It has now paid for itself on its first new file.
 --
+-- ⚠️ TWENTY-ONE AND NOT EIGHTEEN as of 3.6b: F19, F20 and F21 are the
+-- discriminator guards, and they are fixed because they measure the FILE's
+-- claims about itself, not one case at a time.
+--
 -- ⚠️ THE NUMBER IS KEPT, and the guard after `finish()` checks it against
 -- pgTAP's own — 3.3's finding as 3.4 corrected it.
 -- ---------------------------------------------------------------------------
 create temp table mu_plan as
 select (
-  18
+  21
   + 1 * (select count(*)::int from mu_unit)
   + 1 * (select count(*)::int from mu_draw)
   + 4 * (select count(*)::int from mu_money)
@@ -934,6 +989,55 @@ select ok(
   and (select count(distinct tax_rate) = 2 from public.product_variant)
   and (select bool_and(tax_rate in (0.0000, 0.1600)) from public.product_variant),
   'F18 no centavo net times 16% lands on a half-centavo either — the tie lives in round(unit_price x qty) on BOTH sides, for the two rates this schema carries'
+);
+
+
+-- F19. EVERY DISCRIMINATOR THE FILE NAMES IS STILL IN THE FILE. Three groups,
+-- all non-empty, every id resolving to a real line case. A `cases.json` that
+-- quietly lost M8 would otherwise stay green everywhere.
+select is(
+  (select count(*)::int from mu_disc d
+    where not exists (select 1 from mu_case c where c.id = d.id)),
+  0,
+  'F19 every id under discriminators resolves to a line case: '
+    || (select string_agg(grp || '=' || id, ', ' order by grp, id) from mu_disc)
+);
+
+-- F20. AND THE ROUNDING DISCRIMINATORS STILL DISCRIMINATE. Both groups sit in
+-- `round(unit_price x qty)` and both bite only AT a half-centavo tie — F9 and
+-- F18 are why there is nowhere else for them to sit. `away_from_zero` needs the
+-- sign as well, because half-up toward +infinity agrees on every positive
+-- number (S23), and that is the whole of M8's and B6's job.
+select ok(
+      (select count(*) from mu_disc where grp = 'away_from_zero') > 0
+  and (select count(*) from mu_disc where grp = 'float_representation') > 0
+  and (select bool_and(mod(abs(c.unit_price * c.qty) * 1000, 10) = 5)
+         from mu_disc d join mu_case c on c.id = d.id
+        where d.grp in ('away_from_zero', 'float_representation'))
+  and (select bool_and(c.qty * c.unit_price < 0)
+         from mu_disc d join mu_case c on c.id = d.id
+        where d.grp = 'away_from_zero'),
+  'F20 every rounding discriminator sits on a half-centavo tie, and every away_from_zero one is negative'
+);
+
+-- F21. RULE 4's DISCRIMINATORS REALLY DISAGREE WITH THE FORBIDDEN SPELLING,
+-- AND THEY DISAGREE IN BOTH DIRECTIONS. Found in plan task 3.6a: breaking rule
+-- 4 turned exactly two tests red and both were M9's, so one case was carrying
+-- the rule alone and a split that erred by a consistent sign would have passed.
+--
+-- ⚠️ SELL ONLY, and that is not an oversight. On the purchase side
+-- `round(net x (1 + rate)) - net` and `round(net x rate)` are the same number
+-- for every net and every rate (§2.5 rule 4's own warning, asserted in F17), so
+-- a buy-side member of this group is unwritable.
+select ok(
+      (select count(*) from mu_disc where grp = 'residual_tax') >= 2
+  and (select bool_and(m.kind = 'sell' and m.got_tax <> m.tax_if_rounded_alone)
+         from mu_disc d join mu_money m on m.id = d.id
+        where d.grp = 'residual_tax')
+  and (select count(distinct sign(m.got_tax - m.tax_if_rounded_alone)) = 2
+         from mu_disc d join mu_money m on m.id = d.id
+        where d.grp = 'residual_tax'),
+  'F21 the residual_tax cases are sell lines that disagree with round(net x rate), in BOTH directions'
 );
 
 

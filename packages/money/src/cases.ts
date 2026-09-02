@@ -46,11 +46,27 @@ export interface PackCase {
   expect: { perUnit: number; roundTrips: boolean };
 }
 
+/**
+ * Which cases carry which rule. Named in the data file so that deleting one
+ * turns a guard red instead of letting the table quietly lose its teeth.
+ *
+ * ⚠️ All three groups live in `round(unit_price × qty)`, which is a result and
+ * not a coincidence: neither tax step can produce a half-centavo tie at the two
+ * rates this schema carries, and both failures happen only AT a tie.
+ */
+export interface Discriminators {
+  /** Tell §2.5 rule 6 (away from zero) from `Math.round` (toward +∞). */
+  awayFromZero: string[];
+  /** Tell exact integer arithmetic from IEEE754. TypeScript side only. */
+  floatRepresentation: string[];
+  /** Tell rule 4's residual from the `round(net × rate)` it forbids. */
+  residualTax: string[];
+}
+
 export interface CaseTable {
   version: number;
   source: string;
-  /** Ids that alone can tell half-up-away-from-zero from `Math.round`. */
-  discriminators: string[];
+  discriminators: Discriminators;
   lines: LineCase[];
   documents: DocumentCase[];
   packs: PackCase[];
@@ -148,14 +164,23 @@ export function parseCaseTable(text: string): CaseTable {
     };
   });
 
-  const disc = (root.discriminators as Record<string, unknown> | undefined)?.away_from_zero;
-  if (!Array.isArray(disc) || disc.length === 0) {
-    throw new Error(
-      'cases.json must name its away_from_zero discriminators. They are the only ' +
-        'cases that can catch Math.round, and a table that has quietly lost them ' +
-        'looks exactly like one that never had them.',
-    );
-  }
+  const discRoot = root.discriminators as Record<string, unknown> | undefined;
+  const group = (key: string): string[] => {
+    const value = discRoot?.[key];
+    if (!Array.isArray(value) || value.length === 0) {
+      throw new Error(
+        `cases.json must name its "${key}" discriminators. They are the cases that ` +
+          `can catch a specific defect, and a table that has quietly lost them looks ` +
+          `exactly like one that never had them.`,
+      );
+    }
+    return value.map(String);
+  };
+  const discriminators: Discriminators = {
+    awayFromZero: group('away_from_zero'),
+    floatRepresentation: group('float_representation'),
+    residualTax: group('residual_tax'),
+  };
 
   const ids = new Set<string>();
   for (const row of [...lines, ...documents, ...packs]) {
@@ -166,7 +191,7 @@ export function parseCaseTable(text: string): CaseTable {
   return {
     version: Number(field(root, 'version', 'root')),
     source: String(field(root, 'source', 'root')),
-    discriminators: disc.map(String),
+    discriminators,
     lines,
     documents,
     packs,

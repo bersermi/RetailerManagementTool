@@ -17,6 +17,13 @@ name: db
 # 01 structural (3.1) and 02 behavioural RLS isolation on reads (3.2a). The step
 # runs the DIRECTORY in name order, so a third suite costs no edit here.
 #
+# ⚠️ AS OF PLAN TASK 3.6b ONE SUITE READS A FILE FROM OUTSIDE supabase/. 07 builds
+# its case tables from packages/money/cases.json — the same bytes Vitest reads —
+# which is §2.10's "one data file, read by both". psql reads it CLIENT-SIDE
+# (pg_read_file runs in the server, and the server is a container that cannot see
+# this repo), relative to the working directory. That is why the loop below runs
+# from the repo root, and why that path is in this workflow's `paths:` filter.
+#
 # THE pgTAP SUITES ADD TO supabase/tests/, THEY DO NOT REPLACE IT — this comment
 # and supabase/README.md both used to say "replaces", which is a reading of
 # ADR-035 §3 step 3 that the ADR does not actually make. §3 step 3 says which
@@ -31,6 +38,13 @@ on:
     paths:
       - "supabase/**"
       - ".github/workflows/db.yml"
+      # ⚠️ THE CASE TABLE IS AN INPUT TO THIS WORKFLOW as of plan task 3.6b.
+      # 07_money_and_units.sql reads packages/money/cases.json rather than its
+      # own copy (ADR-035 §2.10, "one data file"), so a change to that file must
+      # run the SQL side that reads it. Without this line the pgTAP half of the
+      # paired-arithmetic claim would silently not run on the one commit most
+      # likely to break it.
+      - "packages/money/cases.json"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:

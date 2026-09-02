@@ -96,6 +96,21 @@ rule-6 tie-break is reachable only at `round(unit_gross × qty)`. That is a corr
 rule 1 the precondition for rule 6 rather than hygiene — with a JavaScript corollary for
 3.6: `Math.round` is half-up toward +∞, and **M8, the reversal case, is the only one of
 the fifteen that catches it.**
+**3.6b — THE ONE DATA FILE — IS DONE, AND §2.10's PAIRED-ARITHMETIC ROW IS NOW
+TRUE**: 07 builds its case tables from `packages/money/cases.json` with
+`jsonb_array_elements`, the hand-written fork 3.5 declared is deleted, and the suite
+stands at **192 tests** with F19–F21 added. ✅ **The claim was proved rather than
+asserted**: one value edited in the data file turns BOTH suites red, three times over.
+✅ **M10 and M11 shipped on the owner's decision** (2026-09-01) and close 3.6a's two
+findings — the table can now fail for a float, and rule 4 no longer rests on M9 alone.
+⚠️ **`pg_read_file()` could not be used and this is the constraint to remember**: it
+runs in the SERVER, and the server is a container with no view of the repository. psql
+reads the file CLIENT-SIDE, relative to the working directory — which made
+`packages/money/cases.json` an input to `db.yml` and its `paths:` filter a correctness
+concern rather than a speed one. ⚠️ **One measurement is worth carrying forward**:
+neither tax step can disagree with float arithmetic, on either side, over every value
+from one centavo to $20 000 — so the multiplication is the only place ANY of the three
+discriminator groups can live. Findings below.
 **3.6a — `packages/money`, `cases.json` AND THE VITEST HALF — IS DONE**: 105 tests and
 thirteen falsifications, and it is the first TypeScript, the first `package.json` and
 the first CI workflow that is not `db.yml`. All twenty-one cases were lifted from 07
@@ -174,7 +189,7 @@ deadline under *Confirmed by the owner* below.
 | 0 | A Postgres you can actually run | **Done** — CI green |
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
-| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22, 3.6 split again on 2026-09-01; 3.1–3.5 and 3.6a done, **3.6b next** |
+| 3 | Test suites (pgTAP, Vitest) | **In progress** — split into 3.1–3.7 on 2026-08-22, 3.6 split again on 2026-09-01; 3.1–3.5, 3.6a and 3.6b done, **3.7 next and last** |
 | 4 | RPCs — the ten functions of §2.6 | Not started |
 | 4.5 | The failure path | Not started |
 | 5a | Client foundation — **hiring gate** | Not started |
@@ -1610,7 +1625,7 @@ rows of ADR-035 §2.10.
 any of it was written**, and **3.2b split again into 3.2b-i / 3.2b-ii the same day**,
 also before it was written — see below. **3.6 split again into 3.6a / 3.6b on
 2026-09-01**, on the same rule and for the same reason. **Both halves of 3.2b are
-closed, 3.3, 3.4, 3.5 and 3.6a are closed, and 3.6b is next.** Step 3 is nine suites over two languages and it is the
+closed, 3.3, 3.4, 3.5, 3.6a and 3.6b are closed, and **3.7 — the last task in step 3 — is next.** Step 3 is nine suites over two languages and it is the
 largest thing between here and the RPCs. One session that tried it whole would
 produce a harness nobody reviews and a green nobody can attribute to a claim. 1.3,
 1.6 and step 2 each split for that reason; this one splits before it is written, as
@@ -1633,7 +1648,7 @@ fix-forward number the way `0010` and `0014` did — it is not patched into step
 | ~~3.4~~ | ~~**Ledger invariant over randomised sequences**~~ — **done** 2026-08-25. `supabase/pgtap/06_ledger_invariant_randomised.sql`, picked up by the existing loop with no workflow edit. **99 tests**: 14 fixed, 5 for the C-block, and per run one whole-database measurement, one per location and one anti-vacuity guard, on a **computed plan** — 16 runs x 25 operations = 400 writes on top of the seed. **Recorded seed `0.20260824`**, printed as a diagnostic and overridable with `-v gen_seed=`. **Thirteen falsifications**, each confirmed to fail CI. ⚠️ **The finding is a LIMIT OF THE INVARIANT ITSELF**: deleting the receipt movement from a purchase — a real defect — left all 64 §2.4 assertions GREEN. Sec 2.4 sees a movement that was never *projected*, never one that was never *made*. ⚠️ **It also found the per-file plan guard 3.3 shipped in 05 was itself wrong**, and fixed it in all six files. Findings below | M | ✅ |
 | ~~3.5~~ | ~~**Money and units, in pgTAP**~~ — **done** 2026-08-26. `supabase/pgtap/07_money_and_units.sql`, picked up by the existing loop with no workflow edit. **155 tests**: 16 fixed, 1 per unit denomination, 1 per withdrawal, 4 per money case, 3 per document case, 2 per pack case and 2 per money column, on a **computed plan**. **Eighteen falsifications**, each confirmed to fail the CI step. ⚠️ **The suite is half verification and half specification, and the header says which is which** — rules 1, 5 and 6 are asserted over the applied schema and all 3 448 seeded lines; rules 2–4 have no SQL implementation to test, because that is `0006`. ⚠️ **§2.5 asks `cases.json` for a half-centavo boundary per tax rate and the tax division has none — provably.** ⚠️ **`round(float8)` is banker's**, so rule 1 is the precondition for rule 6 rather than a style preference. ✅ **The purchase side is net-first where §2.5 read gross-first — put to the owner and SETTLED 2026-08-26: direction follows the document, tax stays the residual on both.** ADR-035 §2.5 rules 2–4 amended; no migration and no seed change, because on a net-first line the two spellings are provably the same number. Follow-up shipped 2026-08-27 — **181 tests, twenty-five falsifications**, six buy-side cases, F17 and F18. Findings below |
 | ~~3.6a~~ | ~~**`packages/money` and `cases.json`, and the Vitest half**~~ — **done** 2026-09-01. The first TypeScript in the repo: a root npm workspace, `packages/money/{cases.json,src/money.ts,src/cases.ts,test/cases.test.ts}` and `.github/workflows/money.yml`, the first CI workflow that is not `db.yml`. **105 tests** over all twenty-one cases, lifted from `07` **by id** with every literal verified identical and every expectation re-derived in Postgres `numeric` on a fresh reset. **Thirteen falsifications**, each confirmed to exit non-zero. ⚠️⚠️ **The finding is a LIMIT OF THE CASE TABLE**: no case in it can fail for a float — its boundaries are ties IEEE754 happens to hold exactly, and 436 shop-sized lines that would catch one are all outside the table. ⚠️ **Rule 4 on the sell side is carried by exactly one case (M9).** ✅ **Vitest has no vacuous green**, but the workspace loop above it does, and the workflow guards it. Findings below | M | ✅ |
-| 3.6b | **Re-pointing `07_money_and_units.sql` at `cases.json`** — the fork ends, and the one data file becomes one | M | 07 reads the SAME FILE rather than its own `insert into mu_case`; the M/B/D/P blocks are deleted, not duplicated; the plan count still computes from what was measured; every falsification 3.5 recorded is re-run against the re-pointed suite |
+| ~~3.6b~~ | ~~**Re-pointing `07_money_and_units.sql` at `cases.json`**~~ — **done** 2026-09-01. 07's M, B, D and P blocks are built with `jsonb_array_elements` from `packages/money/cases.json`; the hand-written fork is deleted, not duplicated. **192 tests** (from 181), on the same computed plan, with **F19–F21** added as the discriminator guards. **Ten falsifications**, each confirmed to fail. ✅ **§2.10's sentence is now true**: one file, two readers — proved by editing one value three times and watching BOTH suites go red. ✅ **M10 and M11 added on the owner's decision** (2026-09-01), closing 3.6a's two findings: the table can now fail for a float, and rule 4 no longer rests on M9 alone. ⚠️ **`pg_read_file()` is unusable** — it runs in the server, which is a container that cannot see this repo — so psql reads the file client-side, and `db.yml`'s `paths:` filter had to grow the path. Findings below | M | ✅ |
 | 3.7 | **Concurrency under Vitest.** §2.10's last row, and the one suite that already half-exists as `supabase/tests/0005_allocation_concurrency.sh` | S | Either the `.sh` is ported and retired, or it stays and the plan records why — but not both silently |
 
 Order is forced by the harness, not by foreign keys. **3.1 is first because nothing
@@ -1669,6 +1684,111 @@ then a single-purpose change to one SQL file. The done-when of the pair is still
 reader; 3.6b moves the second reader onto it. ⚠️ **Until 3.6b lands, the fork 3.5
 declared is still a fork** — 3.6a shrinks the drift window, it does not close it, and
 this plan says so rather than letting the Vitest green read as the whole claim.
+
+### ✅ SETTLED BY THE OWNER, 2026-09-01 — TWO CASES ADDED, AND WHY NOT FOUR
+
+3.6a found two ways the case table was thinner than it looked. Both were put to the
+owner at the 3.6a merge and answered the same day: **add exactly two cases, in 3.6b,
+on the one commit where both readers are edited together.** Shipped.
+
+| Id | What | Catches |
+|----|------|---------|
+| **M10** | 250 g at $13.90 the kilo, 16% — `gross 3.48 / net 3.00 / tax 0.48` | IEEE754. `0.0139 × 250 × 100` is `347.49999999999994`, so a double says **3.47** |
+| **M11** | a $2.50 shelf line, 16% — `gross 2.50 / net 2.16 / tax 0.34` | §2.5 rule 4. The forbidden `round(net × rate)` says **0.35** |
+
+**M10 is not a new kind of case — it is M5 chosen for a second property.** A weighed
+quarter kilo landing on a half centavo is a shape the table already had; M5's tie
+(6.465) simply happens to be one a double holds exactly. ⚠️ **And it discriminates on
+the TypeScript side only** — Postgres computes the anchor in `numeric` and answers
+3.48 either way, so in `07` it is an ordinary boundary. It earns its place in the
+shared file because it is the only thing standing between `packages/money` and a float
+rewrite.
+
+**M11 errs in the OPPOSITE direction from M9**, and that is the point of a second one:
+M9's forbidden spelling is a centavo low (1.65 against a residual of 1.66), M11's is a
+centavo high (0.35 against 0.34). A broken split off by a consistent sign would pass a
+table of same-direction cases. Rule 4 disagrees on **2 759 of 20 000** sell grosses, so
+this is common rather than exotic.
+
+**Two and not four, for two separate reasons.** No buy-side `residual_tax` case is
+*writable* — on the purchase side `round(net × (1 + rate)) − net` and
+`round(net × rate)` are the same number for every net and rate (§2.5 rule 4's own
+warning, asserted in F17). And a buy-side float case would exercise the same shared
+`round(unit_price × qty)` expression M10 already covers. The table is **23 cases**, not
+25.
+
+### ✅ Found in 3.6b — NEITHER TAX STEP CAN DISAGREE WITH A FLOAT EITHER, WHICH IS WHY ONE CASE IS ENOUGH
+
+The reason M10 alone closes the float gap, measured rather than argued. Every value
+from one centavo to **$20 000** was run through both tax steps twice, once in exact
+integer arithmetic and once in doubles:
+
+```
+sell tax DIVISION,       exact vs float, over 2M centavo grosses :  0 disagreements
+buy  tax MULTIPLICATION, exact vs float, over 2M net values      :  0 disagreements
+```
+
+**Zero, on both sides.** It follows from 3.5's F9 and F18: the tax steps cannot produce
+a half-centavo tie at the two rates this schema carries, and float only ever differs
+*at* a tie — every one of the 436 float disagreements found in 3.6a's sweep sits on an
+exact tie.
+
+✅ **So all three discriminator groups live in `round(unit_price × qty)`, and that is a
+result rather than a convention.** §2.5 already says this of the rounding direction
+(the ⚠️ added after 3.5). It is equally true of the float, for the same reason, and
+`cases.json` now says so where both readers can see it. **F20 asserts it** — every
+rounding discriminator's anchor is on a half centavo, or the build goes red.
+
+### ⚠️ Found in 3.6b — `pg_read_file()` IS UNUSABLE HERE, AND THE `paths:` FILTER BECAME A CORRECTNESS CONCERN
+
+The obvious way to get a JSON file into a pgTAP suite is `pg_read_file()`. It cannot
+work: **it runs in the server, and the server is a Docker container with no view of
+this repository** — `docker inspect` shows one mount, the data volume. So psql reads
+the file **client-side**, with `\set cases_json `cat …``, relative to the caller's
+working directory.
+
+Three consequences, all recorded in the suite header and `supabase/README.md`:
+
+1. **The default path assumes the repo root**, which is what CI does and what every
+   invocation the README documents does. A run from elsewhere passes `cases_path`.
+2. **A machine with no host `psql` needs the third form** — `-v cases_json="$(cat …)"`
+   through `docker exec`. This machine is one, which is how the constraint was found.
+3. ⚠️⚠️ **`packages/money/cases.json` had to enter `db.yml`'s `paths:` filter**, and
+   that line is not a convenience. Without it, editing the case table would not run the
+   SQL half of §2.10's claim — the one commit most likely to break it would test only
+   one side. The same file is now an input to both workflows, named explicitly in both.
+
+⚠️ **A file that cannot be read used to fail with `ERROR: invalid input syntax for
+type json` four hundred lines later** — true, non-zero, and useless to a reader. The
+suite now checks `length(:'cases_json') = 0` up front and prints the three invocations
+before raising. The raise is a `do $$ … $$` block that mentions no variable, because
+**psql does not interpolate inside a dollar-quoted body** and there is no other way to
+fail a plain SQL statement on purpose.
+
+### ✅ Found in 3.6b — THE ONE-FILE CLAIM IS TESTABLE, AND WAS TESTED
+
+§2.10 asks for *"one data file, read by both … asserting equality to the centavo. Not
+two copies of the same expectations."* That is a claim about what happens when the file
+changes, so it was falsified that way rather than by inspection — one value edited,
+both readers run:
+
+| Edit to `cases.json` | pgTAP | Vitest |
+|---|---|---|
+| `M5` net `5.58` → `5.59` | exit 3, 1 `not ok` | exit 1, 3 failed |
+| `M9` tax `1.66` → `1.65` | exit 3, 1 `not ok` | exit 1, 2 failed |
+| `B6` gross `-0.43` → `-0.42` | exit 3, 1 `not ok` | exit 1, 2 failed |
+
+Under the fork this table was impossible to write: an edit to `cases.json` moved
+nothing in `07`, and an edit to `07` moved nothing in Vitest. **That is the whole
+difference between drift being structurally impossible and merely tested for**, and it
+is now a measurement.
+
+⚠️ **The other five falsifications are the vacuity ones**, and they matter because a
+data file is a new way for a suite to assert nothing: `M8` deleted (F19 red, exit 3),
+`M11` deleted (F21 red, exit 3), `M10`'s expectation drifted (1 `not ok`), the `lines`
+block emptied (**zero tests run**, exit 3, caught by the load guard rather than by a
+failing assertion), and the whole `discriminators` block deleted (F19/F20 red). Ten in
+all, counting the three above and the two file-access ones.
 
 ### ⚠️⚠️ Found in 3.6a — NOTHING IN `cases.json` CAN FAIL FOR A FLOAT, AND THAT IS NOT A GAP SOMEBODY FORGOT
 

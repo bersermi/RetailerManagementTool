@@ -30,6 +30,7 @@ import {
   documentNetPerLine,
   formatDecimal,
   lineAnchorCentavos,
+  grossFromNet,
   netFromGross,
   packRoundTrips,
   packUnitPrice,
@@ -47,20 +48,29 @@ const pesos = (centavos: number) => formatDecimal(centavos, SCALE.money);
 // ---------------------------------------------------------------------------
 // 1. THE DISCRIMINATORS — the two cases JavaScript gets wrong
 // ---------------------------------------------------------------------------
-describe('the discriminators — the only cases that can catch Math.round', () => {
-  it('names them in cases.json, and both are present', () => {
-    expect(table.discriminators.length).toBeGreaterThan(0);
-    for (const id of table.discriminators) {
+describe('the discriminators — the cases that carry a rule on their own', () => {
+  const allNamed = [
+    ...table.discriminators.awayFromZero,
+    ...table.discriminators.floatRepresentation,
+    ...table.discriminators.residualTax,
+  ];
+
+  it('names them in cases.json, and every one of them is present', () => {
+    expect(allNamed.length).toBeGreaterThan(0);
+    for (const id of allNamed) {
       expect(byId.get(id), `cases.json names ${id} as a discriminator but has no such line`)
         .toBeDefined();
     }
   });
 
-  it('every named discriminator is a NEGATIVE line whose anchor lands on a half centavo', () => {
-    for (const id of table.discriminators) {
+  // ⚠️ ALL THREE GROUPS SIT IN THE MULTIPLICATION, AND THAT IS A RESULT. Neither
+  // tax step can tie at the two applied rates (07 F9, F18), and both the wrong
+  // rounding and the float bite only AT a tie — measured in 3.6b over every
+  // value from one centavo to $20 000: zero disagreements in either tax step.
+  it('every case that carries a ROUNDING rule has its anchor on a half centavo', () => {
+    for (const id of [...table.discriminators.awayFromZero,
+                      ...table.discriminators.floatRepresentation]) {
       const line = byId.get(id)!;
-      expect(line.qty * line.unitPrice, `${id} must be negative to discriminate anything`)
-        .toBeLessThan(0);
       // scale 6 × scale 3 = scale 9; a half centavo is 5_000_000 at that scale.
       const remainder = Math.abs(line.unitPrice * line.qty) % 10_000_000;
       expect(remainder, `${id}'s anchor is not a tie, so it discriminates nothing`)
@@ -68,14 +78,49 @@ describe('the discriminators — the only cases that can catch Math.round', () =
     }
   });
 
-  it('rounds them AWAY FROM ZERO, where Math.round rounds toward +infinity', () => {
-    for (const id of table.discriminators) {
+  it('every away_from_zero case is NEGATIVE, and rounds away where Math.round rounds up', () => {
+    for (const id of table.discriminators.awayFromZero) {
       const line = byId.get(id)!;
+      expect(line.qty * line.unitPrice, `${id} must be negative to discriminate anything`)
+        .toBeLessThan(0);
       const ours = lineAnchorCentavos(line.unitPrice, line.qty);
       const javascripts = Math.round((line.unitPrice * line.qty) / 10_000_000);
       expect(ours).toBe(javascripts - 1);
-      expect(ours).toBeLessThan(javascripts);
     }
+  });
+
+  // The gap 3.6a found and the owner closed on 2026-09-01. Before M10 the table
+  // could not fail for a float at all: its four boundaries are ties IEEE754
+  // happens to hold exactly.
+  it('every float_representation case is one a double gets WRONG', () => {
+    for (const id of table.discriminators.floatRepresentation) {
+      const line = byId.get(id)!;
+      const exact = lineAnchorCentavos(line.unitPrice, line.qty);
+      const inDoubles = Math.round(
+        (line.unitPrice / 1_000_000) * (line.qty / 1_000) * 100,
+      );
+      expect(exact, `${id} must differ in doubles or it discriminates nothing`)
+        .not.toBe(inDoubles);
+      expect(exact).toBe(line.expect.gross);
+    }
+  });
+
+  // ⚠️ Two of them, erring in OPPOSITE directions — a broken split that is off by
+  // a consistent sign would pass a table of same-direction cases. M9 carried
+  // this rule alone until 3.6b (falsification V3, task 3.6a).
+  it('every residual_tax case really does disagree with round(net × rate)', () => {
+    const directions = new Set<number>();
+    for (const id of table.discriminators.residualTax) {
+      const line = byId.get(id)!;
+      expect(line.kind, `${id}: rule 4 has no teeth on the buy side (§2.5, 07 F17)`)
+        .toBe('sell');
+      const priced = priceLine(line.kind, line.unitPrice, line.qty, line.rate);
+      const forbidden = divRoundHalfUpAwayFromZero(priced.net * line.rate, 10_000);
+      expect(priced.tax, `${id} agrees with the forbidden spelling and proves nothing`)
+        .not.toBe(forbidden);
+      directions.add(Math.sign(priced.tax - forbidden));
+    }
+    expect(directions.size, 'the residual_tax cases all err the same way').toBe(2);
   });
 
   // The JavaScript-side twin of 07 falsification S23: pointed at the language's
@@ -106,7 +151,13 @@ describe('the discriminators — the only cases that can catch Math.round', () =
         wrong.push(row.id);
       }
     }
-    expect(wrong.sort()).toEqual([...table.discriminators].sort());
+    // A naive implementation is wrong in BOTH ways at once — it uses doubles and
+    // it uses Math.round — so it fails exactly the union of those two groups.
+    const expected = [
+      ...table.discriminators.awayFromZero,
+      ...table.discriminators.floatRepresentation,
+    ];
+    expect(wrong.sort()).toEqual(expected.sort());
   });
 
   it('M8 mirrors M4 to the centavo, so a void leaves nothing behind', () => {
@@ -227,26 +278,37 @@ describe('§2.5 rule 1 — the money path never holds a float', () => {
       .toBe('0.025860');
   });
 
-  // ⚠️ THE MEASUREMENT THAT SAYS WHAT `cases.json` CANNOT DO. Rule 1 has real
-  // teeth — but not one of them bites on this table, and a green here would
-  // otherwise read as though it did.
-  it('breaks in doubles at a shop-sized magnitude the case table does not reach', () => {
-    // 250 g at $0.26 the kilo. The exact product is 6.5 centavos; the double is
-    // 6.499999999999999, so half-up sends the two answers a centavo apart.
-    const exact = lineAnchorCentavos(parseDecimal('0.000260', SCALE.unitPrice),
-                                     parseDecimal('250.000', SCALE.quantity));
-    const inDoubles = Math.round(0.00026 * 250 * 100);
-    expect(exact).toBe(7);
-    expect(inDoubles).toBe(6);
-    expect(0.00026 * 250 * 100).not.toBe(6.5);
+  // ⚠️ WHY M10 HAD TO BE ADDED, kept as a measurement rather than a comment.
+  // Rule 1 has real teeth at ordinary shop magnitudes — but every boundary the
+  // table inherited from 07 is a tie IEEE754 happens to hold EXACTLY, so before
+  // M10 nothing here could go red for a float. Found in 3.6a, closed in 3.6b on
+  // the owner's decision.
+  it('the four boundaries inherited from 07 are ties a double holds exactly', () => {
+    expect(0.073 * 5 * 100).toBe(36.5); // M4, M6, M8
+    expect(0.02586 * 250 * 100).toBe(646.5); // M5
   });
 
-  it('but every boundary IN the table is a tie a double happens to hold exactly', () => {
-    // Which is why no case here can go red for a float, and why this is a
-    // finding rather than a gap someone forgot. Named candidates for 3.6b are
-    // in docs/PLAN.md.
-    expect(0.073 * 5 * 100).toBe(36.5);
-    expect(0.02586 * 250 * 100).toBe(646.5);
+  it('M10 is the one that is not, which is the whole reason it exists', () => {
+    // 250 g at $13.90 the kilo. The exact product is 347.5 centavos; the double
+    // is 347.49999999999994, so half-up sends the two answers a centavo apart.
+    const exact = lineAnchorCentavos(parseDecimal('0.013900', SCALE.unitPrice),
+                                     parseDecimal('250.000', SCALE.quantity));
+    expect(exact).toBe(348);
+    expect(Math.round(0.0139 * 250 * 100)).toBe(347);
+    expect(0.0139 * 250 * 100).not.toBe(347.5);
+  });
+
+  it('and neither TAX step can be caught this way, on either side', () => {
+    // Measured in 3.6b over every value from one centavo to $20 000: zero
+    // disagreements between exact and float in either tax step. It follows from
+    // 07 F9 and F18 — the tax steps cannot tie, and the float only differs AT a
+    // tie — and it is why one float case in the multiplication is enough.
+    for (const centavos of [1, 250, 348, 1160, 12_345, 199_999]) {
+      expect(netFromGross(centavos, 1600))
+        .toBe(Math.round((centavos / 100 / 1.16) * 100));
+      expect(grossFromNet(centavos, 1600))
+        .toBe(Math.round((centavos / 100) * 1.16 * 100));
+    }
   });
 
   it('refuses a value carrying more decimals than its column holds', () => {
@@ -363,16 +425,16 @@ describe('the table itself', () => {
     expect(table.packs.length).toBeGreaterThan(0);
   });
 
-  it('carries the twenty-one cases 07 worked out, and every id is unique', () => {
+  it('carries all twenty-three cases, and every id is unique', () => {
     const total = table.lines.length + table.documents.length + table.packs.length;
-    expect(total).toBe(21);
+    expect(total).toBe(23);
     const ids = [...table.lines, ...table.documents, ...table.packs].map((row) => row.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
-  it('still carries every id 07 named, so 3.6b can lift them by name', () => {
+  it('carries every id 07 reads, which is now the same file', () => {
     const expected = [
-      'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9',
+      'M1', 'M2', 'M3', 'M4', 'M5', 'M6', 'M7', 'M8', 'M9', 'M10', 'M11',
       'B1', 'B2', 'B3', 'B4', 'B5', 'B6',
       'D1', 'D2', 'D3',
       'P1', 'P2', 'P3',
