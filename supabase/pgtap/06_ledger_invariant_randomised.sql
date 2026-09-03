@@ -671,6 +671,21 @@ update lg_loc l
 -- assertion nobody ever sees fail.
 -- ---------------------------------------------------------------------------
 
+-- ⚠️ THE CONSTRAINT FLUSH BELOW IS REQUIRED AS OF MIGRATION 0015, AND WITHOUT IT
+-- THIS FILE DOES NOT RUN. `alter table` is refused outright — "cannot ALTER TABLE
+-- "stock_movement" because it has pending trigger events" — when the table has
+-- deferred trigger events queued in the current transaction, and 0015 put two
+-- DEFERRABLE INITIALLY DEFERRED constraint triggers on `stock_movement`. Every
+-- movement the generator wrote above queued one.
+--
+-- `immediate` fires the queue and empties it; the ledger is complete at this
+-- point, so they all pass, and a failure here would be a real finding rather
+-- than noise. `deferred` puts the mode back, because the operation on the next
+-- line opens lots of its own and the rule has to reach the END of this
+-- transaction, not the middle of it.
+set constraints all immediate;
+set constraints all deferred;
+
 alter table public.stock_movement disable trigger stock_movement_project_balance_trg;
 select pg_temp.lg_step(99, 1);
 
@@ -678,6 +693,10 @@ insert into lg_red (probe, violations, detail)
 select 'C1', count(*),
        'unprojected movements after the trigger was disabled for one operation'
   from public.batch_balance_violations();
+
+-- Same reason as above: lg_step(99, 1) queued its own events.
+set constraints all immediate;
+set constraints all deferred;
 
 alter table public.stock_movement enable trigger stock_movement_project_balance_trg;
 select public.rebuild_batch_balance();
