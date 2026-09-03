@@ -250,36 +250,53 @@ jobs:
       #
       # FILES BEGINNING WITH `_` ARE HARNESS, NOT SUITES, and are skipped here.
       #
-      # TWO KINDS OF SUITE, ADDED FOR 0005. A .sql file is one psql session, which
-      # is all a schema check needs and is what every file here was until now. A
-      # .sh file drives SEVERAL sessions, and exists because one claim cannot be
-      # made from a single connection: "two concurrent allocations cannot oversell
-      # one batch" (docs/PLAN.md task 1.3b). A session cannot block on its own
-      # lock, so a one-session test of allocate_fefo()'s `for update` would pass
-      # just as green with the locking clause deleted — a vacuous pass of exactly
-      # the kind supabase/README.md warns about for RLS run as superuser.
+      # ⚠️ THIS DIRECTORY IS ALL .sql AGAIN, AS OF PLAN TASK 3.7b. It held one .sh
+      # — 0005_allocation_concurrency.sh, two real connections proving that two
+      # concurrent allocations cannot oversell one batch (docs/PLAN.md task 1.3b) —
+      # because that claim cannot be made from a single psql session. It is now
+      # supabase/vitest/test/allocation-race.test.ts, in the step at the bottom of
+      # this file, and the reasoning for moving rather than keeping it is recorded
+      # under 3.7b. A .sh here would now fail loudly on the `unrecognised` branch
+      # below rather than run, which is the right outcome: the two-connection home
+      # in this repository is the Vitest workspace, not this loop.
       #
-      # Both kinds fail the job by exiting non-zero. The `ls | sort` keeps them in
-      # one name order instead of running all .sql before all .sh.
+      # THE COUNTER IS THE SAME CONCERN AS THE OTHER TWO LOOPS. A glob that matched
+      # nothing would print nothing and exit 0 — which is what this directory looks
+      # like after a bad rebase, and it is one file emptier than it was.
       - name: Behavioural checks
         run: |
           eval "$(supabase status -o env | grep '^DB_URL=')"
           export DB_URL
+          ran=0
           for f in $(ls supabase/tests/* | sort); do
             case "$(basename "$f")" in _*) continue ;; esac
             echo "::group::$f"
             psql "$DB_URL" -v ON_ERROR_STOP=1 -q -f supabase/tests/_cleanup.sql
             case "$f" in
               *.sql) psql "$DB_URL" -v ON_ERROR_STOP=1 -f "$f" ;;
-              *.sh)  bash "$f" ;;
               *)     echo "unrecognised test file: $f" >&2; exit 1 ;;
             esac
             echo "::endgroup::"
+            ran=$((ran + 1))
           done
+          if [ "$ran" -eq 0 ]; then
+            echo "no suites in supabase/tests/ — nothing was asserted" >&2
+            exit 1
+          fi
+          echo "$ran behavioural suite(s) ran"
 
 
       # ---------------------------------------------------------------------
-      # THE §2.10 CONCURRENCY SUITE — TypeScript, two connections (task 3.7a)
+      # THE TWO-CONNECTION SUITES — TypeScript (tasks 3.7a and 3.7b)
+      #
+      # TWO CLAIMS, NOT ONE, AND ONLY THE FIRST IS §2.10's. idempotency.test.ts
+      # is §2.10's concurrency row ("two identical calls, same id → exactly one
+      # row", task 3.7a). allocation-race.test.ts is docs/PLAN.md task 1.3b's
+      # claim about allocate_fefo() — "two concurrent allocations cannot oversell
+      # one batch" — which §2.10 never asked for and which ran as a .sh in
+      # supabase/tests/ until 3.7b ported it here. They assert OPPOSITE outcomes
+      # on purpose: §2.10's enforcement clause refuses the loser, the allocator
+      # makes it re-read and take the next lot. See docs/PLAN.md task 3.7b.
       #
       # THIS STEP MUST STAY LAST, below every psql step above it, and the reason
       # is the same one that fixes the order of all the others. The suite runs
@@ -302,8 +319,9 @@ jobs:
       # reaches the database through something other than psql, and that is the
       # point: node-postgres speaks the wire protocol, so the suite runs on a
       # machine with no Postgres client installed. The schema owner's machine is
-      # such a machine (docs/PLAN.md, task 3.1), which is why the .sh below it
-      # has never once been run outside CI.
+      # such a machine (docs/PLAN.md, task 3.1), which is why the .sh this step
+      # absorbed in 3.7b had never once been run outside CI — the argument that
+      # decided 3.7b.
       #
       # ⚠️ THE COUNTER, AND WHY IT IS NOT OPTIONAL. 3.3 found that a suite can
       # print failures and exit 0; 3.6a found that a green tick is also what a
@@ -313,6 +331,12 @@ jobs:
       # terminal: money.yml's first spelling grepped the summary line and failed
       # its own first run on a green suite, because Vitest wraps that line in
       # ANSI colour codes.
+      #
+      # ⚠️ V6 IS WEAKER SINCE 3.7b, AND THE GAP IS THE SHRINK ONE ABOVE. With two
+      # files here, deleting ONE no longer trips "No test files found" — the step
+      # goes green on the other. The number in the log is what a reviewer reads
+      # (16 as of 3.7b); it is deliberately not pinned here, the same call
+      # money.yml makes and for the same reason. Recorded in docs/PLAN.md.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -321,7 +345,7 @@ jobs:
       - name: Install (npm workspaces)
         run: npm ci
 
-      - name: Vitest — concurrency, two connections (ADR-035 §2.10)
+      - name: Vitest — two connections (ADR-035 §2.10, and task 1.3b's allocator race)
         run: |
           set -o pipefail
           eval "$(supabase status -o env | grep '^DB_URL=')"
@@ -339,7 +363,7 @@ jobs:
               console.error(`${r.numFailedTests} failing assertions`);
               process.exit(1);
             }
-            console.log(`${r.numPassedTests} concurrency assertions ran against the reset database`);
+            console.log(`${r.numPassedTests} two-connection assertions ran against the reset database`);
           '
 
       - name: Stop

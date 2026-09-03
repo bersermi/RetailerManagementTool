@@ -11,9 +11,12 @@
 --
 -- THE CONCURRENCY CLAIM IS NOT IN THIS FILE. "Two concurrent allocations cannot
 -- oversell one batch" cannot be shown from one session, because one session
--- cannot block on its own lock. It is proven in 0005_allocation_concurrency.sh,
--- which drives two real connections; this file asserts everything that a single
--- session can honestly assert.
+-- cannot block on its own lock. It is proven in
+-- supabase/vitest/test/allocation-race.test.ts, which drives two real
+-- connections; this file asserts everything that a single session can honestly
+-- assert. ⚠️ That claim lived in 0005_allocation_concurrency.sh beside this file
+-- until plan task 3.7b moved it — same fixture, same discriminator, one more
+-- assertion, and no psql required. The reasoning is under 3.7b in docs/PLAN.md.
 --
 -- Provisional by design. ADR-035 §3 step 3 replaces it with pgTAP suites.
 --
