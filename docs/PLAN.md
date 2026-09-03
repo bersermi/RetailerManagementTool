@@ -31,7 +31,22 @@ this file named in advance — the function is WHOLE in `0016` and 4b-ii is evid
 schema. ⚠️ **The tidier seam — document in one migration, ledger in the next — was
 REFUSED**, because it puts a `record_sale` on `main` that sells goods and moves no
 stock, and §2.4's invariant cannot see that. Reasoning under *Settled in sizing 4b*.
-**4b-i IS THE TASK IN FLIGHT.**
+✅ **4b-i — `record_sale`, `0016` — IS DONE AS OF 2026-09-03, AND `4b-ii` IS THE NEXT
+TASK.** 63 behavioural checks, eleven falsifications, and §2.10's location-isolation
+WRITE half is closed — the first row of §2.10 that step 3 could not write and step 4
+now has. ⚠️⚠️ **TWO OF THE ELEVEN FALSIFICATIONS FOUND DEFECTS IN THE SUITE RATHER
+THAN IN THE FUNCTION**, and the second is the more serious: `where not passed` in the
+report block of EVERY behavioural suite does not count a check whose condition was
+NULL, so a file could print a `FAIL` row and exit 0 on *"all N checks passed"*. That is
+the THIRD way a failing suite exits 0 in this repository, after 3.3's disarmed pgTAP
+exception and 3.6a's empty Vitest workspace. Closed in all six suites on the same
+commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** —
+`stock_movement_select` is gated on manager — so two checks written inside
+`set local role authenticated` were claims about visibility, not about writes.
+⚠️⚠️ **ONE DECISION IS CHEAP NOW AND DEAR LATER AND NEEDS THE OWNER: `TD001`**, a new
+application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
+the moment a client branches on it, changing it costs a coordinated release. Findings
+below.
 ✅ **4a shipped the rule before the functions that have to satisfy it**, which is what
 the ordering argument was for: three `deferrable initially deferred` constraint
 triggers, 30 behavioural checks, 10 over the seed and six falsifications run by hand.
@@ -3610,7 +3625,7 @@ recorded there rather than quietly overwritten.
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
 | 4a ✅ | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | **DONE 2026-09-03.** Three `deferrable initially deferred` constraint triggers; 30 behavioural checks, 10 over the seed, six falsifications. The seed's 1 041 lots pass, the one `adjustment` lot is outside the rule, and a deleted receipt is refused at commit with the immutability guard lifted by name |
-| 4b-i | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | CI green; a behavioural suite over the RPC; the `my_locations()` refusal is the RPC's own, not RLS's — **including §2.10's write half**, a cashier's sale against an unassigned location; all four idempotency rows of §2.6; `occurred_at` overridden online AND clamped to `[now() − 72h, now()]` when `recorded_offline`; one single-lot, single-rate sale end to end; falsifications confirmed to fail |
+| 4b-i ✅ | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | **DONE 2026-09-03.** 63 behavioural checks and ELEVEN falsifications. §2.10's location-isolation WRITE half is closed. Two of the eleven found defects in the SUITE rather than the function — a vacuously green check and a vacuously green report block, the latter present in all six suites and fixed in all six |
 | 4b-ii | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | Multi-lot FEFO within one line; the shortfall branch; mixed tax rates in one sale; a zero-rated line; a weighed decimal quantity; the residual identity over the RPC's own output; falsifications confirmed to fail |
 | 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
@@ -3637,6 +3652,201 @@ Order is forced, and not by foreign keys this time:
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Found in 4b-i — A CASHIER WRITES A LEDGER THEY CANNOT READ, AND TWO CHECKS WERE VACUOUS BECAUSE OF IT
+
+`stock_movement_select` and `stock_batch_select` (`0004`) are both gated on
+`has_role(workspace_id, 'manager')`. `batch_balance_select` is not. So **the actor
+who empties the shelf cannot see the movements that emptied it** — which is §2.3's
+*"a sale carries price, not cost"* working exactly as designed, and which nothing in
+this plan had noticed is a hazard for TESTS.
+
+Two checks in the first draft of `supabase/tests/0016` were written inside
+`set local role authenticated` and were therefore claims about VISIBILITY rather than
+about writes:
+
+- *"every movement carries the header's `occurred_at`"* — a `not exists` join over
+  `stock_movement`. The cashier's join returned nothing, and `not exists` over nothing
+  is **true**.
+- *"none of the wall's five refusals wrote a document"* — the refused writes were all
+  at stores the cashier cannot read, so the answer is the same whether the write was
+  refused or committed.
+
+✅ **THE FIRST ONE WAS CAUGHT BY A FALSIFICATION, NOT BY REVIEW.** F10 stamped every
+movement with `now()` instead of the document's moment and **the suite stayed green**.
+Both checks now run outside the role block, and the movement one counts its subjects
+before asserting the absence.
+
+⚠️ **THE GENERAL FORM IS BINDING ON 4b-ii AND ON EVERY RPC SUITE AFTER IT: a NEGATIVE
+EXISTENCE CHECK UNDER A RESTRICTED ROLE PROVES NOTHING.** The role that writes and the
+role that can verify the write are different roles in this schema, and for the ledger
+tables they are different by design. Assert the refusal as the restricted actor;
+assert what is on disk as somebody who can see the disk.
+
+### ⚠️⚠️ Found in 4b-i — A THIRD WAY A FAILING SUITE EXITS 0, AND IT WAS IN ALL SIX
+
+Every file in `supabase/tests/` ends with the same block:
+
+```sql
+select count(*) into v_failed from public._verify where not passed;
+if v_failed > 0 then raise exception '% behavioural check(s) FAILED' …
+```
+
+**`not passed` does not count a check whose condition was NULL.** `not null` is null,
+a null `where` keeps no rows — while the report table above it renders the same row as
+`FAIL`, because `case when passed then 'PASS' else 'FAIL' end` sends null to the else.
+So a suite can print a FAIL line and then print *"all N checks passed"* directly under
+it, and exit 0.
+
+A NULL condition is not exotic: it is a subquery that matched no rows, an aggregate
+over nothing, or a comparison against a nullable column — and the vacuous check the
+finding above describes produced one on its first run, which is how this was found.
+
+✅ **MEASURED — falsification F11.** One probe check reading a row that does not exist,
+run twice against the same suite: with `passed is not true` the file exits 3 on *"1
+behavioural check(s) FAILED"*; with `not passed` the identical file prints the FAIL row
+and exits **0** on *"all 64 checks passed"*.
+
+⚠️ **It is the same shape as 3.3's disarmed `finish(exception_on_failure := true)` and
+3.6a's empty Vitest workspace, and it is the third of them.** Corrected in ALL SIX
+suites on this commit — `0003`, `0004`, `0005`, `0008`, `0015` and `0016` — following
+the precedent 3.4 set when it found the plan guard 3.3 shipped was itself wrong. The
+five older files are unchanged in every other respect and their counts are unchanged:
+39 / 54 / 55 / 46 / 30.
+
+### ⚠️ Decided in 4b-i — `record_sale` TAKES A FIFTH ARGUMENT, AND ADR-035 §2.6 IS THE FILE THAT MOVED
+
+§2.6's table wrote the function as `record_sale(id, location_id, lines, occurred_at)`.
+It now reads `(…, recorded_offline)`, with a revision line saying so.
+
+`sale.recorded_offline` is `not null`, has existed since `0003`, and §2.6 is the only
+thing that writes it. **The server cannot infer it**: the same section says an ONLINE
+call may pass an `occurred_at` and have it overridden, so *"the client sent a time"*
+is not evidence of anything — inferring the flag that way would make every online
+client that fills the field in silently backdate its own sales. The flag also decides
+more than the clamp: §2.6's offline paragraph says such writes SKIP ENFORCEMENT, which
+is **4c's dormant availability check reading this same parameter**.
+
+⚠️ **This is an under-specification closed, not a contradiction overruled**, and the
+parameter defaults to `false` so the four-argument call §2.6 used to show still works
+verbatim. Recorded here and in the ADR because it was decided on the owner's behalf.
+
+### ⚠️ Decided in 4b-i — THE PRICE COMES FROM THE CLIENT, AND `price_list` IS NOT CONSULTED
+
+`record_sale` receives `unit_price_gross_per_base` on every line and does not look the
+price up. The table is right there and using it would be wrong twice:
+
+- §2.5 rule 2 makes the gross unit price authoritative on a sale *"because that is the
+  shelf price, and the shelf price is what the customer agreed to"*. The customer
+  agreed to the number the till displayed.
+- §2.6's offline queue flushes on reconnect, possibly days later. A re-priced replay
+  restates a sale that has already been paid for, and `price_list` is exactly the kind
+  of row a shopkeeper edits on a Monday.
+
+**PER BASE UNIT**, because that is the only price denomination the ledger has:
+`price_list.price_per_base` and `sale_line.unit_price_net_per_base` are both per base
+and `sale_line` has no price-display columns at all. ⚠️ **`tax_rate` is the opposite
+call and for the opposite reason** — it is read from the variant at write time and the
+client's value is ignored, because the catalog is the authority on what a product is
+taxed at and a till that can send its own rate is a till that can understate IVA.
+Asserted, check 4.6.
+
+⚠️ **BINDING ON 4d.** `record_purchase` takes the invoice NET per base by the same
+argument reversed, and its rate comes from the same place.
+
+### ⚠️⚠️ Decided in 4b-i — `TD001`, A NEW SQLSTATE, AND IT IS A CLIENT CONTRACT
+
+§2.6's fourth idempotency row — same id, different lines — must be told apart from
+every other failure, because it is the one the client DEAD-LETTERS rather than
+retries. `0016` raises SQLSTATE **`TD001`** for it. Classes beginning `5`–`9` or
+`I`–`Z` are reserved for application use, so `TD` is ours.
+
+The two alternatives lose: `23505` is what Postgres itself raises for an ordinary
+duplicate key, so a client branching on it would dead-letter unrelated conflicts, and
+`P0001` is what every bare `raise` in this schema already produces.
+
+⚠️⚠️ **THIS IS THE ONE THING IN 4b-i THAT IS CHEAP TODAY AND DEAR LATER**, and it is
+flagged by name for that reason. Nothing consumes it yet. The moment a client ships a
+branch on it, or step 4.5's `record_failed_write` keys off it, changing it costs a
+coordinated release. **If the owner wants a different code — a PostgREST `PT409`, which
+maps to an HTTP status, or plain `23505` — the edit is one line in `0016`'s successor
+and it should happen before step 5.**
+
+### ✅ Found in 4b-i — TWO OF THE ELEVEN FALSIFICATIONS FAIL MESSILY, AND IT IS WORTH KNOWING WHICH
+
+F3 and F4 break idempotency itself, and the checks that catch them are ordinary
+`select record_sale(…)` calls rather than `chk_raises` — because on a healthy schema
+they are meant to SUCCEED. So the suite does not print a FAIL row: psql dies on the
+raise, exits 3, and the report table never renders.
+
+It is red either way and no attempt was made to smooth it over — the same call `0015`
+made about its own F1. It is recorded so a reviewer who breaks the hash and sees
+`ERROR: duplicate key value violates unique constraint "sale_pkey"` knows they are
+looking at F3 and not at a broken fixture.
+
+### Settled in 4b-i, and binding on 4c through 4f
+
+- **The location wall is four lines and it is the RPC's, verbatim from §2.6.** Nothing
+  in the schema catches its absence: F1 deleted it and every suite steps 1–3 shipped
+  stayed green, **including 05, which asserts the location wall on reads**. Check 1.7
+  is the shape of evidence that separates the two — the caller BYPASSES RLS (a
+  superuser-equivalent, so no policy is running) while `auth.uid()` still names an
+  unassigned cashier, and the refusal survives. Every RPC after this needs its own
+  1.7, not a copy of 1.2.
+- **The workspace is DERIVED from the location, never a parameter.** §2.6 permits an
+  explicit `workspace_id` validated the same way; deriving it from a location the
+  caller has already been proved to hold is strictly stronger, because there is no
+  second value that can disagree with the first. ⚠️ **`record_transfer` (4e) cannot
+  do this** — it has two locations and §2.6 requires both to resolve to ONE workspace,
+  which is a comparison and not a derivation.
+- **The idempotency comparison is `payload_hash` AND `workspace_id` AND `location_id`.**
+  `sale.id` is a global primary key: without the last two, the same id sent to a second
+  store returns `already_recorded` together with a summary describing a document at a
+  store the caller did not name. Asserted, check 2.8.
+- **The hash is over NORMALISED lines and nothing else** — canonical base-unit
+  quantities, ordered by content, taken after unit conversion. `2` and `2.00` agree,
+  `750 g` and `0.750 kg` agree, and a retry whose `occurred_at` was clamped to a
+  different second still reads as the same sale. Checks 2.3 and 2.4.
+- **Validate every line BEFORE pricing any of it.** The pricing query joins
+  `product_variant` and `unit`; an inner join with nothing in front of it DROPS a line
+  that resolves to neither and records a shorter ticket than the customer paid for.
+  F9 removed the pre-flight and the count guard behind it and the suite recorded a
+  one-line sale from a two-line ticket. This is the same shape as 3.2b-ii's *"a payload
+  is refused by the first wall it meets"*, except that here there is no wall unless the
+  RPC is it.
+- **A negative line is not a sale.** `record_sale` refuses a non-positive quantity with
+  `22023` and names `void_transaction` in the message. `allocate_fefo()` would refuse
+  it anyway (`0010`), with a message about allocation rather than about what the caller
+  did wrong.
+- **`recorded_at` is never backdated, on either table.** It is left to its `now()`
+  default. `occurred_at` is the one that moves.
+- ⚠️ **§2.6's third idempotency row is still not this file's.** *"First attempt still
+  in flight → the second call blocks on the row lock"* cannot be made from one
+  connection; it is `supabase/vitest/test/idempotency.test.ts` (task 3.7a), which names
+  the blocking pid on all three document tables and is what makes `0016`'s
+  `on conflict (id) do nothing` safe to rely on. Said out loud in the suite as well, at
+  check 2.9.
+
+### Eleven falsifications, run by hand before 4b-i was committed
+
+Each one was applied to the APPLIED schema — `create or replace` over the real
+`0016` — the suite was run, and the schema was restored and re-verified green. A
+function that has never been seen to refuse anything is the vacuous green ADR-035 §9
+exists to reject.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | the location wall deleted | checks 1.2–1.7, and 6 on the closing count — **every other suite in the repository stayed green** |
+| F2 | the wall checks `my_workspaces()` instead of `my_locations()` | 1.2, 1.4 and 1.7 — and **1.3 stayed GREEN**, which is the whole difference between the tenant wall and the store wall |
+| F3 | `on conflict (id) do nothing` removed | 2.1, messily — the file dies on `23505` |
+| F4 | the hash taken over the raw client json | 2.3, messily — the file dies on `TD001` for a legitimate retry |
+| F5 | the `payload_hash` comparison dropped | 2.5, 2.6, 2.7, 2.8 |
+| F6 | online no longer overrides the client `occurred_at` | 3.1 |
+| F7 | the offline clamp made one-sided (lower bound only) | 3.4 — **and 3.3 stayed green**, which is why both ends are asserted |
+| F8 | `allocate_fefo()` passed `now()` instead of the document's moment | 3.7, the shortfall lot's `received_at` — the second FEFO key |
+| F9 | the line pre-flight AND the count guard behind it both removed | 5.4–5.14, twelve checks, including *"the good first line was not recorded on its own"* |
+| F10 | the movement stamped `now()` instead of the header's `occurred_at` | **NOTHING, on the first run** — the check was vacuous. 3.6 after it was moved out of the cashier's role. See the finding above |
+| F11 | the report guard reverted to `where not passed`, with one NULL check | **NOTHING — the file printed a FAIL row and exited 0.** See the finding above |
 
 ### ✅ Settled in sizing 4b, 2026-09-03 — THE SPLIT IS BY TEST BREADTH, AND THE OTHER SEAM WAS REFUSED
 
@@ -3890,7 +4100,7 @@ this is where they land.
 | §2.10 row | Owed by |
 |---|---|
 | Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c** |
-| Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"* | **4b-i** |
+| ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
 

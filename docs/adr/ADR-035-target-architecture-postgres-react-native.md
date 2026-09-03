@@ -33,6 +33,17 @@
   all 1 048 seeded delivery lines already satisfy it, because on a net-first line
   the residual and `round(net × rate)` are provably the same number (§2.5, and
   `07_money_and_units.sql` F17).
+- **Revised:** 2026-09-03 — §2.6's `record_sale` row gains its FIFTH ARGUMENT,
+  `recorded_offline`, written while implementing it as `0016` (plan task 4b-i).
+  ⚠️ **This closes an under-specification, not a contradiction**: `sale.recorded_
+  offline` is `not null` and this section is the only thing that writes it, the
+  offline paragraph below already requires the flag to reach the function, and it
+  is what 4c's dormant enforcement path will read to skip a check. The server
+  cannot infer it — the same paragraph says an ONLINE call may pass an
+  `occurred_at` and have it overridden, so "the client sent a time" means nothing.
+  The parameter defaults to false, so the four-argument call this row used to show
+  still works verbatim. No schema change: the column has existed since `0003`.
+
 - **Revised:** 2026-09-03 — §2.6 amended, on the decision maker's instruction, to
   close a disagreement THIS DOCUMENT HAD WITH ITSELF, found while splitting build
   step 4 in `docs/PLAN.md` and before any of that step was written. §2.6 counts
@@ -453,7 +464,7 @@ is the write surface, not the build order: of its ten rows, three are step 4.5's
 
 | Function | Does |
 |----------|------|
-| `record_sale(id, location_id, lines, occurred_at)` | Header, lines, FEFO allocation within the location, movements, tax split, balance update — one transaction |
+| `record_sale(id, location_id, lines, occurred_at, recorded_offline)` | Header, lines, FEFO allocation within the location, movements, tax split, balance update — one transaction |
 | `record_purchase(id, location_id, provider_id, lines)` | Header, lines, batches with expiry per ADR-017 policy, positive movements |
 | `record_waste(id, location_id, lines)` | Header, lines with reason and cost snapshot, negative movements |
 | `record_transfer(id, from_location, to_location, lines)` | Negative movements at origin, new batches at destination carrying cost and expiry (§2.4). Screen deferred; shape fixed in `0004` |
