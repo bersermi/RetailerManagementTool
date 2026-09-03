@@ -33,6 +33,15 @@
   all 1 048 seeded delivery lines already satisfy it, because on a net-first line
   the residual and `round(net × rate)` are provably the same number (§2.5, and
   `07_money_and_units.sql` F17).
+- **Revised:** 2026-09-03 — §2.6 amended, on the decision maker's instruction, to
+  close a disagreement THIS DOCUMENT HAD WITH ITSELF, found while splitting build
+  step 4 in `docs/PLAN.md` and before any of that step was written. §2.6 counts
+  `adjust_stock_delta` among the ten functions of the write surface, which reads as a
+  step-4 deliverable; §3 step 4.5 names it, by name, as one of the failure path's.
+  **The build-order section wins a build-order question** — it ships in 4.5 — and
+  §2.6 is the file that moved, because §2.6 is where the counting happens and a
+  reader of its table would otherwise count ten functions in step 4 and find nine.
+  No schema change, no renumbering: nothing here has been written yet.
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -436,6 +445,12 @@ Clients never insert. Ten functions are the entire write surface — seven for t
 happy path, one for physical counts in delta form, and two for the failure path
 added in the 2026-08-14 client review.
 
+⚠️ **Three of the ten ship in build step 4.5, not step 4** (settled 2026-09-03, and
+§3 is the section that says so): `record_failed_write`, `replay_failed_write`, and
+**`adjust_stock_delta`**, which exists for `record_failed_write` to call. This table
+is the write surface, not the build order: of its ten rows, three are step 4.5's and
+`onboard_workspace` has been applied since `0001`, which leaves **six for step 4**.
+
 | Function | Does |
 |----------|------|
 | `record_sale(id, location_id, lines, occurred_at)` | Header, lines, FEFO allocation within the location, movements, tax split, balance update — one transaction |
@@ -444,7 +459,7 @@ added in the 2026-08-14 client review.
 | `record_transfer(id, from_location, to_location, lines)` | Negative movements at origin, new batches at destination carrying cost and expiry (§2.4). Screen deferred; shape fixed in `0004` |
 | `void_transaction(kind, id, reason)` | Compensating document with `reversal_of` set; never mutates the original |
 | `adjust_stock(location_id, variant_id, counted_base, note)` | Opening balances and physical counts. **Absolute** — the counted figure wins |
-| `adjust_stock_delta(location_id, variant_id, delta_base, reason, note)` | **Relative.** Moves the balance by a signed amount without reading it first. Required by the failure path below; an absolute count would race any concurrent sale and write a number that was already wrong |
+| `adjust_stock_delta(location_id, variant_id, delta_base, reason, note)` | **Relative.** Moves the balance by a signed amount without reading it first. Required by the failure path below; an absolute count would race any concurrent sale and write a number that was already wrong. ⚠️ **Ships in build step 4.5 with the failure path it serves**, not with `adjust_stock` in step 4 — §3, and the note above this table |
 | `onboard_workspace(name, prices_include_tax, location_name)` | `security definer`; workspace, owner membership, settings and first location, atomically |
 | `record_failed_write(id, kind, payload, error_code, error_detail)` | Dead-letters a permanently rejected client write and downgrades it, atomically. See **Rejected writes** below |
 | `replay_failed_write(failed_write_id)` | Compensates the downgrade and re-runs the original call under its original id, in one transaction |

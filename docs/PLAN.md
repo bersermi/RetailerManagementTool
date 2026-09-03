@@ -3621,7 +3621,7 @@ Order is forced, and not by foreign keys this time:
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
 
-### ⚠️ THE ADR PLACES `adjust_stock_delta` IN STEP 4.5, AND IT DISAGREES WITH ITSELF — the ADR wins
+### ✅ CLOSED 2026-09-03 — `adjust_stock_delta` IS STEP 4.5's, AND §2.6 IS THE FILE THAT MOVED
 
 Caught while checking this split against ADR-035 §3, before any of it was written.
 **§2.6 counts `adjust_stock_delta` among the ten functions that are the write
@@ -3639,10 +3639,16 @@ build-order question**: `adjust_stock_delta` ships in **`0021`, step 4.5**, and 
 gloss on the function is *"Required by the failure path below"* — it exists for
 `record_failed_write` to call, and shipping it a migration earlier buys nothing.
 
-⚠️ **This is the owner's to overturn and it is cheap either way** — a function with no
-data behind it, in a migration nobody has written. It is flagged because the two
-sections will keep disagreeing until one of them is amended, and the next person to
-read §2.6's table will count ten functions and find nine.
+✅ **PUT TO THE OWNER AND SETTLED THE SAME DAY: amend §2.6.** ADR-035 now carries a
+2026-09-03 revision line and §2.6 says, above its own table, that three of the ten
+ship in 4.5 — with the row for `adjust_stock_delta` saying it too. The table is the
+write surface, not the build order; of its ten rows three are 4.5's and
+`onboard_workspace` has been applied since `0001`, **which leaves six for step 4**.
+
+⚠️ **§3 was NOT touched.** It was already right, and the disagreement was never about
+what should happen — only about which section a reader counts from. Amending the
+section that does the counting is the smaller edit and the one that stops the next
+reader making the same mistake this split nearly did.
 
 ⚠️ **4b IS AN `L` AND MAY SPLIT AGAIN — the decision is taken when it is read against
 §2.6, not now.** That is exactly what happened to 3.7, where reading the ADR against
