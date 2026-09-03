@@ -25,9 +25,13 @@ from the knowledge graph. Nothing there describes the system being built.
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
 STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE WRITE SURFACE OF
 §2.6, IS UNDER WAY — SPLIT INTO 4a–4f ON 2026-09-03, BEFORE ANY OF IT WAS WRITTEN.
-**4a — RECEIPT COMPLETENESS, `0015` — IS DONE AS OF 2026-09-03, AND `4b`,
-`record_sale`, IS THE NEXT TASK.** It is the `L` of the six and the plan already names
-its candidate seam; sizing it against §2.6 is the next session's first job.
+**4a — RECEIPT COMPLETENESS, `0015` — IS DONE AS OF 2026-09-03. `4b`, `record_sale`,
+WAS SIZED AGAINST §2.6 THE SAME DAY AND SPLIT INTO 4b-i / 4b-ii**, on nearly the seam
+this file named in advance — the function is WHOLE in `0016` and 4b-ii is evidence, not
+schema. ⚠️ **The tidier seam — document in one migration, ledger in the next — was
+REFUSED**, because it puts a `record_sale` on `main` that sells goods and moves no
+stock, and §2.4's invariant cannot see that. Reasoning under *Settled in sizing 4b*.
+**4b-i IS THE TASK IN FLIGHT.**
 ✅ **4a shipped the rule before the functions that have to satisfy it**, which is what
 the ordering argument was for: three `deferrable initially deferred` constraint
 triggers, 30 behavioural checks, 10 over the seed and six falsifications run by hand.
@@ -3606,7 +3610,8 @@ recorded there rather than quietly overwritten.
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
 | 4a ✅ | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | **DONE 2026-09-03.** Three `deferrable initially deferred` constraint triggers; 30 behavioural checks, 10 over the seed, six falsifications. The seed's 1 041 lots pass, the one `adjustment` lot is outside the rule, and a deleted receipt is refused at commit with the immutability guard lifted by name |
-| 4b | **`record_sale`** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction. Plus the location wall, idempotency and the timestamp rules | `0016` | **L** | CI green; a behavioural suite over the RPC; the `my_locations()` refusal is the RPC's own, not RLS's; `already_recorded: true` on a repeated id; `occurred_at` overridden online and clamped to `[now() − 72h, now()]` when `recorded_offline`; falsifications confirmed to fail |
+| 4b-i | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | CI green; a behavioural suite over the RPC; the `my_locations()` refusal is the RPC's own, not RLS's — **including §2.10's write half**, a cashier's sale against an unassigned location; all four idempotency rows of §2.6; `occurred_at` overridden online AND clamped to `[now() − 72h, now()]` when `recorded_offline`; one single-lot, single-rate sale end to end; falsifications confirmed to fail |
+| 4b-ii | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | Multi-lot FEFO within one line; the shortfall branch; mixed tax rates in one sale; a zero-rated line; a weighed decimal quantity; the residual identity over the RPC's own output; falsifications confirmed to fail |
 | 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
 | 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
@@ -3619,7 +3624,11 @@ Order is forced, and not by foreign keys this time:
   than the rule arriving later and having to be true retroactively of code already
   merged. It also closes the one finding this plan has left open since 3.4 — receipt
   completeness is **unguarded on `main` today**.
-- **4c after 4b** — there is nothing to make dormant inside a function that does not
+- **4b-ii after 4b-i, and it moves no schema.** The function is whole when `0016`
+  merges; 4b-ii is the evidence for the paths 4b-i's suite does not walk. The seam is
+  test breadth, NOT function completeness — see the sizing section below for why the
+  other candidate seam was refused.
+- **4c after 4b-ii** — there is nothing to make dormant inside a function that does not
   exist. It is a separate migration rather than 4b's last twenty lines because §2.6
   calls the enforcement path *"the irreversible half"*, and the review it deserves is
   not the review a 400-line function's first version gets.
@@ -3628,6 +3637,56 @@ Order is forced, and not by foreign keys this time:
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ✅ Settled in sizing 4b, 2026-09-03 — THE SPLIT IS BY TEST BREADTH, AND THE OTHER SEAM WAS REFUSED
+
+4b was read against ADR-035 §2.6 before a line of it was written, which is the job the
+split left for this session. **It is an `L` and it splits.** The measurement: the
+function is the seed's `20_consumption.sql` sale loop — header, lines, per-line FEFO,
+one movement per lot — plus four things the seed does not do at all (the location wall,
+the four idempotency rows, the two timestamp rules, and a returned summary). Against
+`0015`'s 334-line migration and 593-line suite, and `0005`'s 402 and 629, that is two
+sessions of work and one of them is the suite.
+
+⚠️ **THE OBVIOUS SEAM WAS REFUSED, AND REFUSING IT IS THE DECISION WORTH READING.**
+Splitting a 400-line function by *what it does* — 4b-i the document (header, lines,
+money, wall, idempotency, timestamps), 4b-ii the ledger (FEFO and the movements) —
+gives two complete migrations and looks tidier than splitting by test breadth. It is
+the wrong seam twice over:
+
+- It puts a `record_sale` on `main` that **sells goods and moves no stock**. §2.4's
+  invariant cannot see that — a sale with no movements leaves `sum(movements) =
+  batch_balance` perfectly true — so the defect would be *internally consistent and
+  externally wrong*, which is the shape §2.6 names as "the most dangerous a defect can
+  take in this system". Shipping it on purpose for one PR is not a smaller risk for
+  being deliberate.
+- It costs a migration number, and `0017` is 4c's. Renumbering 4c–4f and step 4.5 to
+  buy a half-function is the expensive half of a trade whose cheap half is bad.
+
+**So the seam is the one this file named in advance: the function is WHOLE in `0016`,
+and 4b-ii is evidence rather than schema.**
+
+⚠️ **ONE RULE MOVED ACROSS THE SEAM: `recorded_offline` IS 4b-i's, not 4b-ii's.** The
+candidate seam filed the offline clamp with the multi-lot and mixed-rate cases. The
+clamp is five lines of function that ship in `0016` whichever task tests them, and
+`occurred_at` is the column daily totals and the 15-minute void window read (§2.6). A
+migration that merges with an untested clamp is a rule that only *looks* enforced —
+the vacuous green §9 refuses. The three timestamp checks cost 4b-i almost nothing and
+they belong beside the wall and the idempotency block, because those three are the
+RPC's own contract and the rest of the function is arithmetic the seed already proves
+elsewhere.
+
+⚠️ **§2.10's location-isolation write half is 4b-i's, for the same reason.** *"A staff
+`record_sale` against an unassigned location is rejected"* is a test of the wall, and
+the wall is in 4b-i. The §2.10 table above says so.
+
+⚠️ **4b-ii SHIPS NO MIGRATION, AND WHAT HAPPENS IF IT FINDS A DEFECT IS DECIDED NOW
+RATHER THAN LATER.** A correction to `0016` cannot take `0017` without renumbering
+4c–4f. It does not need to: **4c IS a `create or replace record_sale` in `0017`**, so
+anything 4b-ii finds is folded into the replace 4c already writes, and 4c is the very
+next task. If 4c should somehow merge first, the fix takes the next free number above
+step 4.5's `0021`. This is recorded because the alternative — discovering it while
+holding a red suite — is how a numbering decision gets made badly.
 
 ### ⚠️⚠️ Found in 4a — THE RULE REFUSED A FIXTURE THIS REPOSITORY HAS SHIPPED SINCE `0004`
 
@@ -3788,12 +3847,11 @@ what should happen — only about which section a reader counts from. Amending t
 section that does the counting is the smaller edit and the one that stops the next
 reader making the same mistake this split nearly did.
 
-⚠️ **4b IS AN `L` AND MAY SPLIT AGAIN — the decision is taken when it is read against
-§2.6, not now.** That is exactly what happened to 3.7, where reading the ADR against
-the file it was meant to move showed the `S` was wrong. The candidate seam is named so
-it is not invented under pressure: **4b-i the function and its suite over one location
-and one tax rate; 4b-ii the multi-lot, mixed-rate and `recorded_offline` cases.**
-Nothing in this file commits to that split; the next session's first job is to size it.
+✅ **4b WAS READ AGAINST §2.6 ON 2026-09-03 AND IT DID SPLIT** — into 4b-i and 4b-ii,
+on very nearly the candidate seam this file named in advance. One rule moved across it
+and one candidate seam was refused outright; both are recorded in *Settled in sizing
+4b* below, because a seam chosen under pressure is the thing naming it early was meant
+to prevent.
 
 ⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
@@ -3832,7 +3890,7 @@ this is where they land.
 | §2.10 row | Owed by |
 |---|---|
 | Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c** |
-| Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"* | **4b** |
+| Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"* | **4b-i** |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
 
