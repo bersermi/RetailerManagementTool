@@ -434,7 +434,16 @@ select n, case when passed then 'PASS' else 'FAIL' end as result, label, detail
 do $$
 declare v_failed integer;
 begin
-  select count(*) into v_failed from public._verify where not passed;
+  -- ⚠️ `is not true`, NOT `not passed`, and the difference is a whole class of
+  -- silent pass. A check whose condition evaluates to NULL — a subquery that
+  -- matched no rows, an aggregate over nothing, a comparison against a NULL
+  -- column — prints FAIL in the table above and is invisible to `not passed`,
+  -- because `not null` is null and a null WHERE clause keeps no rows. The file
+  -- then reports "all N checks passed" with a FAIL line printed directly above
+  -- it. Found in task 4b-i, on a real check reading a table its role could not
+  -- see; corrected in all six suites on the same commit, which is the same
+  -- decision 3.4 took when it found the plan guard 3.3 shipped was wrong.
+  select count(*) into v_failed from public._verify where passed is not true;
   if v_failed > 0 then
     raise exception '% behavioural check(s) FAILED — see the table above', v_failed;
   end if;

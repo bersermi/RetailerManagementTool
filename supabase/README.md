@@ -62,6 +62,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | [`0014_velocity_spine_reads_stock.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32584197118) | `product_velocity_daily` — `create or replace`, one new CTE and one new column. The day spine starts at the earlier of a pair's first sale and its first **stock receipt**, read from `batch_balance`; plus `days_carried`. No table, no policy, no function, no new grant. ⚠️ **This is 2.3's finding fixed, and it needed no new table** — ADR-035 §2.9's "stock is already per location" was right. All 71 delivered-and-never-sold pairs become visible, and the spine start can only ever move EARLIER (`least`, not "instead of"), so no report can lose a row it printed yesterday. `batch_balance` and not `stock_batch` because the projection carries no cost and its RLS predicate is `sale_line`'s character for character: **a cashier reads 454 rows of the first and 0 of the second** |
 
 | `0015_receipt_completeness.sql` | `receipt_completeness_violations(uuid)` and three **`deferrable initially deferred` constraint triggers**: a `stock_batch` with `origin in ('purchase','transfer')` must equal the sum of its live receipt movements — `reason in ('purchase','transfer_in')`, `reversal_of_movement_id is null` — **at COMMIT**. No table, no column, no policy, no client grant. ⚠️ **This is the first rule in the schema that a caller can break without any single statement being wrong**, and it is the one docs/PLAN.md task 3.4 found unenforced: a lot that opens and never receives is invisible to the §2.4 invariant, because zero equals zero. ⚠️ **A lot and its receipt must now be written in ONE transaction** — by an RPC, a seed file or a fixture; `supabase/tests/0004_inventory.sql` was corrected on the day this applied because it was not. `origin = 'adjustment'` is excluded and the reversal filter is load-bearing: without them the rule refuses 1 and 23 of the seed's own lots respectively, measured |
+| `0016_record_sale.sql` | `record_sale(uuid, uuid, jsonb, timestamptz, boolean)` — **the first RPC a till will call**, and the first of build step 4's six. Header, lines, FEFO within the location, one movement per lot, the tax split gross-first with tax as the residual, the balance update, ONE transaction. No table, no column, no policy. ⚠️ **`security definer`, so RLS IS NOT RUNNING** — the location check in its own body is the whole of the store wall on writes, and nothing in the schema catches its absence (falsification F1 deleted it and every suite steps 1–3 shipped stayed green, including `05`, which asserts the same wall on READS). ⚠️ **It introduces SQLSTATE `TD001`** for §2.6's *same id, different lines*, which is a client contract and is cheap to change only until a client branches on it. ⚠️ **The signature carries a fifth argument §2.6's table did not name**, `recorded_offline`; the ADR was amended rather than the code. Granted to `authenticated` and to nobody else; `0003` revoked every table privilege on `sale`, which is what makes *clients never insert* a fact rather than a convention |
 
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
@@ -131,7 +132,10 @@ it:**
 
 - ~~`0015` — receipt completeness (plan task **4a**)~~ — **APPLIED 2026-09-03**, see
   the table above
-- `0016` — `record_sale` (**4b**)
+- ~~`0016` — `record_sale` (plan task **4b-i**)~~ — **APPLIED 2026-09-03**, see the
+  table above. ⚠️ **`4b` split into `4b-i` / `4b-ii` on the day it was sized**;
+  4b-ii is evidence, not schema, and ships NO migration, so the numbering below is
+  unchanged
 - `0017` — the availability check, built and dormant (**4c**)
 - `0018` — `record_purchase`, `record_waste` (**4d**)
 - `0019` — `record_transfer`, `void_transaction` (**4e**)
