@@ -65,15 +65,44 @@ What is still not allowed is merging red, or merging on the strength of the tick
 Both defects were found by the seed, three tasks after the migrations carrying
 them, and neither was patched where it was found — the seed must not work around
 the objects it exists to exercise, and `0005` and `0008` are applied and therefore
-closed. `0006` and `0007` are reserved and unwritten (`0009` was, and is now the margin
-view); renumbering planned work to make a correction look tidy would be the more
-confusing choice.
+closed. `0009` was reserved too, and is now the margin view; renumbering planned work
+to make a correction look tidy would be the more confusing choice.
 
-⚠️ **`0006` will apply BEFORE `0010` on a fresh reset and must still be written
-against the six-argument `allocate_fefo`.** plpgsql does not resolve the functions
-a body calls until the body runs, so `record_sale` written against the
-five-argument version applies clean and then fails at the first till. There is no
-five-argument version after `0010`, and there is no compiler that will say so.
+### ⚠️ `0006` AND `0007` ARE PERMANENT HOLES — the reservation was retired 2026-09-03
+
+**Settled by the owner, on the session that split build step 4.** `0006` was held for
+the RPCs and `0007` for the failure path. Neither was ever written, **both numbers are
+now skipped for good**, and step 4 takes `0015`–`0020` with the failure path at
+`0021`. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
+
+Two reasons, and the first is the one that mattered:
+
+1. ⚠️ **It deletes a trap this file used to merely document.** A migration numbered
+   `0006` applies BEFORE `0010` on a fresh reset, when only the **five-argument**
+   `allocate_fefo` exists. plpgsql does not resolve the functions a body calls until
+   the body runs, so a `record_sale` written against either signature applies clean —
+   and the wrong one fails **at the first till**, with no compiler to say so. Every
+   number above `0014` sees only the six-argument version, because that is the only
+   one that exists by then.
+2. **Append-only forces the split, and the split wants contiguous numbers.** A
+   migration is closed once CI has applied it and merging is automated, so seven
+   functions merging in six PRs cannot share one file. Six pieces at `0015`–`0020` sit
+   together in the order a reviewer reads them; one piece at `0006` and five at
+   `0015`+ do not.
+
+⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
+applied migrations and eight suites say things like *"the wall is `0006`'s"* or
+*"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
+correct about the obligation and wrong about the number**: read `0006` as *the RPC
+migration* — now `0015`–`0020` — and `0007` as *the failure path*, now `0021`. Those
+files are NOT being edited to say so. Applied migrations are append-only, and
+rewriting sixteen files to renumber a forward reference would touch far more than it
+clarifies. This note is the mapping.
+
+**Nothing depended on the RPCs applying early.** No view in `0008`–`0014` calls one,
+and the seed calls `allocate_fefo()` and `allocate_transfer()` directly rather than
+through the RPCs. The cost is two holes in the sequence, which is cheaper than a
+runtime failure that only a till can find.
 
 ⚠️ **`0013` raised the one finding of step 2 that looked like a SCHEMA change, and
 `0014` closed it without one.** `0013`'s day spine started at the first day a store
@@ -94,13 +123,26 @@ events. A product stocked once and deliberately dropped keeps generating silence
 until the store stops trading. That was equally true before `0014`, so nothing
 regressed — but it is a new fact and nothing in the schema holds it.
 
-Planned next, in order (ADR-035 §3):
+Planned next, in order (ADR-035 §3, and `docs/PLAN.md` *Step 4*). **One migration per
+task, because each merges separately and a migration is closed once CI has applied
+it:**
 
-- `0006` — RPCs: `record_sale`, `record_purchase`, `record_waste`, `record_transfer`,
-  `void_transaction`, `adjust_stock`, `adjust_stock_delta`
-- `0007` — failure path: `failed_write`, `record_failed_write`, `replay_failed_write`
-  (ADR-035 §3 step 4.5 — before any screen exists)
-- `0013` — what stopped selling: velocity against a trailing average (plan task 2.3)
+- `0015` — receipt completeness: the deferred constraint task 3.4 found unguarded
+  (plan task **4a**)
+- `0016` — `record_sale` (**4b**)
+- `0017` — the availability check, built and dormant (**4c**)
+- `0018` — `record_purchase`, `record_waste` (**4d**)
+- `0019` — `record_transfer`, `void_transaction` (**4e**)
+- `0020` — `adjust_stock`, absolute (**4f**)
+- `0021` — failure path: `failed_write`, **`adjust_stock_delta`**,
+  `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
+  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0020` because §3 puts
+  it here**, though §2.6 counts it among the ten write-surface functions; see
+  `docs/PLAN.md`, *Step 4*
+
+⚠️ **Every one of them must check `location_id in (select public.my_locations())` in
+its own body.** They are `security definer`, so grants and RLS do not constrain them
+(see the `0003` note below), and nothing in the schema catches the check's absence.
 
 **The analytics half of the old `0009` line is now three files, not one.** `0009`
 and `0011` ship the first two of §2.9's three questions and are applied; the third
@@ -121,10 +163,12 @@ order and becomes `0009`.
 
 **`0008` also landed before `0006` and `0007` exist.** `docs/PLAN.md` task 1.4
 depends only on `0003`, and the seed wants the prefill in place. Files apply in
-name order, so a later `0006` and `0007` slot in ahead of it on the next
+name order, so a later `0006` and `0007` would have slotted in ahead of it on the next
 `supabase db reset` with no ambiguity. The one real cost is that a hosted database
 which had already applied `0008` would need `supabase db push --include-all` to
-accept them — and no hosted database exists yet.
+accept them — and no hosted database exists yet. ✅ **That cost is now zero and this
+paragraph is history**: `0006` and `0007` are permanent holes as of 2026-09-03 and
+nothing will ever apply ahead of `0008`.
 
 **`0005` is new, and everything after it shifted by one** (2026-08-17). FEFO
 allocation is a ledger primitive, not a detail of `record_sale`: the seed writes the
