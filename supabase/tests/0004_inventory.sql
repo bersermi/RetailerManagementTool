@@ -162,6 +162,20 @@ values (:was_1, :'ws_a', :'loc_a1', now(), 1.20, 0.19, :owner_a, 'hash-was-1');
 \set batch_a2   '''dddd0004-0000-0000-0000-000000000003'''
 \set batch_xfer '''dddd0004-0000-0000-0000-000000000004'''
 
+-- ⚠️ FROM HERE TO THE `commit` BELOW IS ONE TRANSACTION, AND AS OF 0015 IT HAS TO
+-- BE. Receipt completeness is a DEFERRED constraint: a lot whose origin is
+-- 'purchase' or 'transfer' must equal the sum of its live receipt movements when
+-- the transaction ENDS. Under psql's autocommit each statement is its own
+-- transaction, so the `batch_1` insert below used to commit a purchase lot with
+-- no receipt against it — which is exactly the state 0015 exists to refuse, and
+-- exactly what a `record_purchase` that forgot half its job would leave behind
+-- (docs/PLAN.md task 3.4, falsification S2).
+--
+-- The fixture is not being worked around here, it is being corrected: a delivery
+-- IS one transaction, and `record_purchase` (0018) will write it as one. The two
+-- adjustment lots need no receipt and are inside only because they sit between.
+begin;
+
 -- The delivered lot at store 1.
 insert into stock_batch (id, workspace_id, location_id, variant_id, origin,
        provider_id, source_purchase_line_id, qty_received_base,
@@ -331,6 +345,13 @@ select chk('transfer: the pair is findable by transfer_group_id, one leg per sto
              where transfer_group_id = :xfer_1) = 2);
 select chk('transfer: the paired movements net to zero across the tenant',
            (select sum(qty_base) from stock_movement where transfer_group_id = :xfer_1) = 0);
+
+-- 0015's check runs HERE, on both lots that opened above: batch_1 against its
+-- +1000 receipt and batch_xfer against its +200. A commit that reached this line
+-- with either of them unfilled would abort, and the file would stop rather than
+-- report a failure — which is the right outcome for a fixture that no longer
+-- describes anything the write surface can produce.
+commit;
 
 
 -- --- stock_movement constraints ----------------------------------------------

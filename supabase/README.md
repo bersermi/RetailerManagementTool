@@ -61,6 +61,8 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | [`0013_velocity_vs_trailing_average.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32582552739) | `product_velocity_daily` — one `security_invoker` view, units and takings per store per product per day **on a generated day spine**, beside the same measures over the trailing 28 days. No table, no policy, no function, and no `has_role` predicate: every base table is member-level, so a cashier reads their own store's velocity and there is no cost column for inheritance to fail open on. ⚠️ **It does not divide** — `trailing_days` and `trailing_traded_days` are both honest denominators and they disagree by 17.9% at a store that shut for five days. ⚠️ **91% of its rows exist to say nothing happened**, which is the answer rather than waste: no ledger holds a row for a sale that did not occur |
 | [`0014_velocity_spine_reads_stock.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32584197118) | `product_velocity_daily` — `create or replace`, one new CTE and one new column. The day spine starts at the earlier of a pair's first sale and its first **stock receipt**, read from `batch_balance`; plus `days_carried`. No table, no policy, no function, no new grant. ⚠️ **This is 2.3's finding fixed, and it needed no new table** — ADR-035 §2.9's "stock is already per location" was right. All 71 delivered-and-never-sold pairs become visible, and the spine start can only ever move EARLIER (`least`, not "instead of"), so no report can lose a row it printed yesterday. `batch_balance` and not `stock_batch` because the projection carries no cost and its RLS predicate is `sale_line`'s character for character: **a cashier reads 454 rows of the first and 0 of the second** |
 
+| `0015_receipt_completeness.sql` | `receipt_completeness_violations(uuid)` and three **`deferrable initially deferred` constraint triggers**: a `stock_batch` with `origin in ('purchase','transfer')` must equal the sum of its live receipt movements — `reason in ('purchase','transfer_in')`, `reversal_of_movement_id is null` — **at COMMIT**. No table, no column, no policy, no client grant. ⚠️ **This is the first rule in the schema that a caller can break without any single statement being wrong**, and it is the one docs/PLAN.md task 3.4 found unenforced: a lot that opens and never receives is invisible to the §2.4 invariant, because zero equals zero. ⚠️ **A lot and its receipt must now be written in ONE transaction** — by an RPC, a seed file or a fixture; `supabase/tests/0004_inventory.sql` was corrected on the day this applied because it was not. `origin = 'adjustment'` is excluded and the reversal filter is load-bearing: without them the rule refuses 1 and 23 of the seed's own lots respectively, measured |
+
 **`0010` is a fix-forward, and it takes the next free number rather than `0006`.**
 Both defects were found by the seed, three tasks after the migrations carrying
 them, and neither was patched where it was found — the seed must not work around
@@ -127,8 +129,8 @@ Planned next, in order (ADR-035 §3, and `docs/PLAN.md` *Step 4*). **One migrati
 task, because each merges separately and a migration is closed once CI has applied
 it:**
 
-- `0015` — receipt completeness: the deferred constraint task 3.4 found unguarded
-  (plan task **4a**)
+- ~~`0015` — receipt completeness (plan task **4a**)~~ — **APPLIED 2026-09-03**, see
+  the table above
 - `0016` — `record_sale` (**4b**)
 - `0017` — the availability check, built and dormant (**4c**)
 - `0018` — `record_purchase`, `record_waste` (**4d**)
@@ -1434,8 +1436,10 @@ fails if any scaffolding is present, so moving the step turns the job red.
 
 **pgTAP is not a migration and never will be.** It is roughly a thousand functions
 plus the views `tap_funky` and `pg_all_foreign_keys`; migrations are append-only, so
-shipping it as `0015` would install a test framework into every production database
-with no way back. `_setup.sql` installs it into its own schema `tap` for the length
+shipping it as a migration would install a test framework into every production
+database with no way back. (That sentence read "as `0015`" until 2026-09-03, when
+`0015` became the receipt-completeness constraint — the number was only ever standing
+in for "the next free one".) `_setup.sql` installs it into its own schema `tap` for the length
 of the CI step and `_teardown.sql` drops it — its own schema, because the default is
 `public` and `public` is exactly what the coverage suite is making claims about.
 Files beginning with `_` are harness, not suites, the same convention

@@ -24,8 +24,16 @@ from the knowledge graph. Nothing there describes the system being built.
 
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
 STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE WRITE SURFACE OF
-§2.6, IS NEXT AND NOTHING IN STEP 3 BLOCKS IT — SPLIT INTO 4a–4f ON 2026-09-03, BEFORE
-ANY OF IT WAS WRITTEN, AND `4a` IS THE NEXT TASK.** ✅ **The numbering is settled: the
+§2.6, IS UNDER WAY — SPLIT INTO 4a–4f ON 2026-09-03, BEFORE ANY OF IT WAS WRITTEN.
+**4a — RECEIPT COMPLETENESS, `0015` — IS DONE AS OF 2026-09-03, AND `4b`,
+`record_sale`, IS THE NEXT TASK.** It is the `L` of the six and the plan already names
+its candidate seam; sizing it against §2.6 is the next session's first job.
+✅ **4a shipped the rule before the functions that have to satisfy it**, which is what
+the ordering argument was for: three `deferrable initially deferred` constraint
+triggers, 30 behavioural checks, 10 over the seed and six falsifications run by hand.
+⚠️ **AND IT IS THE FIRST TASK IN THIS BUILD THAT CHANGED FILES OUTSIDE ITS OWN** — a
+fixture in `supabase/tests/0004_inventory.sql` and two lines in
+`supabase/pgtap/06`, both because the new rule is real. Findings below. ✅ **The numbering is settled: the
 pieces take `0015`–`0020` and the `0006` / `0007` reservation is retired** (owner,
 2026-09-03), which DELETES the five-versus-six-argument `allocate_fefo` trap
 `supabase/README.md` has carried since `0010` rather than documenting it a second
@@ -3597,7 +3605,7 @@ recorded there rather than quietly overwritten.
 
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
-| 4a | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | The predicate specified under *What step 3 does NOT ship* is a deferred constraint trigger; CI green from scratch; the seed's 1 041 lots still pass and the one `adjustment` lot is outside the rule; a purchase whose receipt movement is deleted is REFUSED at commit, shown able to fail |
+| 4a ✅ | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | **DONE 2026-09-03.** Three `deferrable initially deferred` constraint triggers; 30 behavioural checks, 10 over the seed, six falsifications. The seed's 1 041 lots pass, the one `adjustment` lot is outside the rule, and a deleted receipt is refused at commit with the immutability guard lifted by name |
 | 4b | **`record_sale`** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction. Plus the location wall, idempotency and the timestamp rules | `0016` | **L** | CI green; a behavioural suite over the RPC; the `my_locations()` refusal is the RPC's own, not RLS's; `already_recorded: true` on a repeated id; `occurred_at` overridden online and clamped to `[now() − 72h, now()]` when `recorded_offline`; falsifications confirmed to fail |
 | 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
@@ -3620,6 +3628,136 @@ Order is forced, and not by foreign keys this time:
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Found in 4a — THE RULE REFUSED A FIXTURE THIS REPOSITORY HAS SHIPPED SINCE `0004`
+
+**`supabase/tests/0004_inventory.sql` went red the moment `0015` applied**, and it was
+right to. Its fixture opens `batch_1` — a lot with `origin = 'purchase'` — as one
+top-level statement and writes the receipt movement ninety lines later as another.
+Under psql's autocommit those are two transactions, so the first one **commits a
+purchase lot with no receipt against it**: precisely the state 3.4's falsification S2
+produced and precisely what `0015` exists to refuse.
+
+The file was corrected rather than exempted, and the correction is one `begin` and one
+`commit` around the batches and their receipts. ⚠️ **That is not a workaround, it is the
+fixture learning the rule**: a delivery IS one transaction, and `record_purchase` in
+`0018` will write it as one. 54 checks before, 54 after.
+
+⚠️ **THE GENERAL FORM IS BINDING ON EVERYTHING AFTER THIS, and it is the thing to
+carry out of 4a**: a `purchase` or `transfer` lot and the movement that fills it must
+now be written in ONE transaction, by anything — an RPC, a seed file, a fixture, a
+hand-typed `psql` session. Nothing catches the omission at review time; it applies,
+it passes every other suite, and it fails at the commit.
+
+### ⚠️ Found in 4a — `06` COULD NOT `ALTER TABLE` ANY MORE, AND NOTHING ABOUT THAT IS OBVIOUS
+
+`06_ledger_invariant_randomised.sql` disables `stock_movement_project_balance_trg`
+mid-transaction — probe C1, which is how it proves the oracle catches an unprojected
+movement. With `0015` applied it stopped running at all:
+
+> `ERROR: cannot ALTER TABLE "stock_movement" because it has pending trigger events`
+
+**Postgres refuses `ALTER TABLE` on a table with DEFERRED trigger events queued in the
+current transaction**, and every movement the generator writes queues one. The suite
+had written four hundred of them by that line.
+
+The fix is two statements before each `alter`: `set constraints all immediate` fires the
+queue and empties it, `set constraints all deferred` puts the mode back so the rule
+still reaches the END of the transaction. 99 tests before, 99 after. ⚠️ **The flush is
+not a silencing** — the ledger is complete at that point, so those checks pass, and one
+failing there would be a real finding.
+
+⚠️ **This is a cost of deferral that nothing in the design discussion predicted**, and
+it will be paid again by any future suite that disables a trigger on `stock_movement`
+after writing to it. It is recorded here rather than only in `06`, because the next
+person to hit it will be reading a stack trace, not that file's comments.
+
+### ⚠️ Found in 4a — THE SEED SURVIVES ONLY BECAUSE ONE SEED FILE IS ONE TRANSACTION
+
+`10_deliveries.sql` opens all 1 025 purchase lots in its section 7 and writes all 1 025
+receipts in section 8 — **two separate top-level statements**. Under autocommit that is
+two transactions and `0015` refuses the first. It does not fire, because
+`supabase db reset` sends each seed file to the server as ONE batch, so the file is a
+single implicit transaction and the rule is checked once, at the end of it.
+
+✅ **MEASURED, NOT ASSUMED — this is falsification F6.** Making the three triggers
+`not deferrable` and re-running the reset fails inside `10_deliveries.sql` with
+`lot e736d2b7… opened as purchase for 29000.000 but its live receipt movements sum to
+0 (SQLSTATE 23514)`, on the same file that is green one line above. The boundary is
+real and it is where this says it is.
+
+**The seed was NOT wrapped in an explicit `begin`/`commit` to harden it**, and that is a
+decision rather than an omission. The CLI version is pinned in `db.yml` — "so a CLI
+release cannot turn a green schema red without a commit saying why" — and if the
+behaviour ever did change, `0015` makes the reset fail **loudly on the first delivery**
+rather than quietly seeding a shop whose lots are all empty. An explicit `begin` inside
+a file the client already wraps would also warn on every run and commit the outer
+transaction early, which is worse than the dependency it removes.
+
+### ✅ Found in 4a — A TRIGGER NOTHING CAN FALSIFY IS NOT EVIDENCE, AND ONE OF THE THREE WAS THAT
+
+`0015` ships three constraint triggers: one on `stock_batch` for the lot that opens and
+never fills, one on `stock_movement` inserts, one on `stock_movement` delete-or-update.
+**The first draft of the suite could not tell the second one from nothing.**
+
+Every falsification it had — no receipt, a short receipt, a doubled receipt, a receipt
+against the wrong lot — happens INSIDE the transaction that opens the lot, and the
+`stock_batch` trigger sees all four of them at that commit whether the movement trigger
+exists or not. Dropping `stock_movement_receipt_complete_ins_trg` left the suite green.
+
+The defect only that trigger can see is a receipt arriving in a **LATER** transaction,
+against a lot that was already complete — the shape a retry leaves when it gets past the
+header's idempotency key and reaches the ledger a second time. Check 4b is that, and
+dropping the trigger now turns exactly it red.
+
+⚠️ **The same question was then asked of the other two and both answered**: dropping the
+batch trigger kills checks 2 and 10, dropping the delete-or-update trigger kills check
+11. Each of the three is named by the check that dies without it.
+
+### Settled in 4a, and binding on 4b through 4f
+
+- **A lot and its receipt are ONE transaction.** Every RPC that opens a `purchase` or
+  `transfer` lot writes the movement that fills it before it returns. `record_purchase`
+  (`0018`) and `record_transfer` (`0019`) are the two that do this directly;
+  `void_transaction` (`0019`) must keep it true, which it does by writing a
+  compensating movement rather than removing the receipt.
+- **A reversal is not a receipt, and a receipt is not a reversal.** The predicate counts
+  `reason in ('purchase','transfer_in') and reversal_of_movement_id is null`. A void
+  that "corrected" a delivery by deleting the original movement instead of compensating
+  it is refused at the commit — which is the behaviour `0019` should want anyway.
+- **`origin = 'adjustment'` is outside the rule, and `adjust_stock` (`0020`) is the
+  reason the exclusion has to survive.** An opening balance or a physical count opens a
+  lot whose quantity is asserted by a human. It receives nothing from anybody, and a
+  rule spanning all three origins refuses it — measured on the seed's single one, which
+  is `allocate_fefo()`'s shortfall lot.
+- **`receipt_completeness_violations()` is granted to nobody**, following
+  `batch_balance_violations()`: `security definer`, sees every tenant, so an operator
+  and CI tool only. A cashier calling it gets `42501`, asserted.
+- ⚠️ **The rule cannot be observed from a transaction that rolls back.** `06` and `07`
+  build their fixtures inside `begin … rollback`, so deferred triggers never fire there
+  and never will. The evidence for 4a is therefore `supabase/tests/0015`, which commits
+  on purpose, and `supabase/checks/0015` over the seed — not the pgTAP suites.
+
+### Six falsifications, run by hand before 4a was committed
+
+Each one was applied to the applied schema, the affected suite was run, and the schema
+was restored. A constraint that has never been seen to refuse anything is the vacuous
+green ADR-035 §9 exists to reject.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | `stock_batch_receipt_complete_trg` dropped | `tests/0015` — check 2, the lot with no receipt at all, now commits; the file then dies at check 10 on the missing constraint name |
+| F2 | `stock_movement_receipt_complete_ins_trg` dropped | `tests/0015` — check 4b, and only 4b: a receipt added to an already-complete lot |
+| F3 | `stock_movement_receipt_complete_chg_trg` dropped | `tests/0015` — check 11, the receipt deleted with the immutability guard lifted by name |
+| F4 | `reversal_of_movement_id is null` removed from the predicate | `checks/0015` — **23 of the seed's own lots** become violations, which is the number the filter exists for |
+| F5 | `origin = 'adjustment'` folded back into the rule | `checks/0015` — **exactly 1** violation, the seed's shortfall lot |
+| F6 | the three triggers made `not deferrable` | **`supabase db reset` itself**, inside `10_deliveries.sql`, on the first lot of 1 025 |
+
+⚠️ **F1 is the only one that fails messily**, and it is worth knowing why: with the
+constraint gone by name, check 10's `set constraints … immediate` raises
+`undefined_object` rather than the `check_violation` its handler catches, so the file
+stops before printing its table. It is red either way; it is not red in the shape a
+reviewer expects, and no attempt was made to smooth that over.
 
 ### ✅ CLOSED 2026-09-03 — `adjust_stock_delta` IS STEP 4.5's, AND §2.6 IS THE FILE THAT MOVED
 
