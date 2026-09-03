@@ -23,8 +23,13 @@ from the knowledge graph. Nothing there describes the system being built.
 ## Position
 
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
-STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE TEN RPCs OF §2.6,
-IS NEXT AND NOTHING IN STEP 3 BLOCKS IT.** ⚠️ **"Do not build screens before this
+STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE WRITE SURFACE OF
+§2.6, IS NEXT AND NOTHING IN STEP 3 BLOCKS IT — SPLIT INTO 4a–4f ON 2026-09-03, BEFORE
+ANY OF IT WAS WRITTEN, AND `4a` IS THE NEXT TASK.** ✅ **The numbering is settled: the
+pieces take `0015`–`0020` and the `0006` / `0007` reservation is retired** (owner,
+2026-09-03), which DELETES the five-versus-six-argument `allocate_fefo` trap
+`supabase/README.md` has carried since `0010` rather than documenting it a second
+time. ⚠️ **"Do not build screens before this
 passes" is NOT satisfied by step 3 alone** — three of ADR-035 §2.10's nine rows need
 tables steps 4 and 4.5 create, and they are named under *What step 3 does NOT ship*
 rather than quietly counted as done.
@@ -216,8 +221,8 @@ deadline under *Confirmed by the owner* below.
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
-| 4 | RPCs — the ten functions of §2.6 | Not started |
-| 4.5 | The failure path | Not started |
+| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0020`**. `4a` — the receipt-completeness constraint — is first |
+| 4.5 | The failure path | Not started — **`0021`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -2335,7 +2340,10 @@ never wrong — only under-specified.**
 Nothing written so far has to move. The point of no return is unchanged: the first
 `record_purchase` a pilot runs.
 
-#### ⚠️ BINDING ON `0006` — THE TWO LINES `record_purchase` AND `record_sale` MUST CARRY
+#### ⚠️ BINDING ON THE RPC MIGRATIONS — THE TWO LINES `record_purchase` AND `record_sale` MUST CARRY
+
+*(Written when the RPCs were `0006`. That number is retired — this binds `0016` and
+`0018`, plan tasks 4b and 4d.)*
 
 ```sql
 -- record_sale        the shelf price is the anchor
@@ -2963,7 +2971,10 @@ no write grant, no write policy, and no RPC. A cross-location write is refused t
 the **grant wall**, which is 3.2b-i's subject and already tested, not by
 `my_locations()`.
 
-### ⚠️ BINDING ON `0006` — THE RPCs MUST CHECK `my_locations()` THEMSELVES
+### ⚠️ BINDING ON THE RPC MIGRATIONS — THE RPCs MUST CHECK `my_locations()` THEMSELVES
+
+*(Written when the RPCs were `0006`. That number is retired — this binds `0016`–`0020`,
+plan tasks 4b through 4f.)*
 
 This is the part that is cheap now and expensive later, so it is flagged by name. When
 `0006` lands, `record_sale`, `record_purchase`, `record_waste`, `record_transfer` and
@@ -3540,6 +3551,150 @@ And one row §2.10 does **not** name, which 3.4 found and the owner settled on 2
 ⚠️ **So "do not build screens before this passes" is satisfied by 3.1–3.7 plus the
 step 4.5 suites, not by 3.1–3.7 alone.** Reading §3 step 3 as the whole of §2.10
 would have this step blocked on a table that step 4.5 creates.
+
+---
+
+## Step 4 — the write surface (§2.6)
+
+*"Clients never insert. Ten functions are the entire write surface"* (ADR-035 §2.6).
+`onboard_workspace` is applied already, in `0001`. **Three** belong to build step 4.5
+— `record_failed_write`, `replay_failed_write` and, per ADR-035 §3 rather than §2.6,
+`adjust_stock_delta` (see the note below). **Six remain, and they are step 4.**
+
+**Split into 4a / 4b / 4c / 4d / 4e / 4f on 2026-09-03, before any of it was
+written** — six functions, six migrations, on the same rule 1.3, 1.6, step 2, 3.2b,
+3.6 and 3.7 split under. ⚠️ **The
+tasks are LETTERED, not numbered, because ADR-035 §3 already owns "step 4.5"** — a
+task numbered 4.5 would collide with the build step that ships `failed_write`, and the
+two are referenced side by side throughout this file.
+
+⚠️ **THE SPLIT IS FORCED BY APPEND-ONLY, not merely advised by it.** A migration is
+closed once CI has applied it, merging is automated, and every task here merges
+separately — so six functions cannot share one unapplied file across six sessions.
+Each task is therefore its own numbered migration, and the numbering below is the one
+decision in this section that is expensive to revise.
+
+### ✅ Settled by the owner 2026-09-03 — the pieces take `0015`+, and the `0006` / `0007` hold is retired
+
+`supabase/README.md` reserved `0006` for the RPCs and `0007` for the failure path.
+**Both reservations are now retired and those two numbers are permanent holes.** The
+owner was asked because the choice is fixed the moment the first step-4 PR merges.
+
+The reason is the trap `supabase/README.md` has flagged by name since `0010`: a
+migration numbered `0006` **applies before `0010` on a fresh reset**, when only the
+five-argument `allocate_fefo` exists. plpgsql resolves the functions a body calls at
+call time, so a `record_sale` written against either signature applies clean — and the
+wrong one fails **at the first till**, with no compiler to say so. Numbering every
+piece above `0014` deletes that trap instead of documenting it: each function is
+written against the final applied schema, and the six-argument allocator is the only
+one that has ever existed at that point in the order.
+
+**Nothing depended on the RPCs applying early.** No view in `0008`–`0014` calls one,
+the seed calls the allocators directly rather than the RPCs, and `supabase/seeds/`
+runs after every migration. The cost is cosmetic — two holes in the sequence, and a
+reservation table in `supabase/README.md` that becomes a historical note. Both are
+recorded there rather than quietly overwritten.
+
+| # | Task | Migration | Size | Done when |
+|---|------|-----------|------|-----------|
+| 4a | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | The predicate specified under *What step 3 does NOT ship* is a deferred constraint trigger; CI green from scratch; the seed's 1 041 lots still pass and the one `adjustment` lot is outside the rule; a purchase whose receipt movement is deleted is REFUSED at commit, shown able to fail |
+| 4b | **`record_sale`** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction. Plus the location wall, idempotency and the timestamp rules | `0016` | **L** | CI green; a behavioural suite over the RPC; the `my_locations()` refusal is the RPC's own, not RLS's; `already_recorded: true` on a repeated id; `occurred_at` overridden online and clamped to `[now() − 72h, now()]` when `recorded_offline`; falsifications confirmed to fail |
+| 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
+| 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
+| 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
+| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0020` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
+
+Order is forced, and not by foreign keys this time:
+
+- **4a is first because a constraint is cheaper to satisfy than to retrofit.** Every
+  function after it that opens a lot is written under a rule already in force, rather
+  than the rule arriving later and having to be true retroactively of code already
+  merged. It also closes the one finding this plan has left open since 3.4 — receipt
+  completeness is **unguarded on `main` today**.
+- **4c after 4b** — there is nothing to make dormant inside a function that does not
+  exist. It is a separate migration rather than 4b's last twenty lines because §2.6
+  calls the enforcement path *"the irreversible half"*, and the review it deserves is
+  not the review a 400-line function's first version gets.
+- **4d after 4b** — `record_purchase` inherits the location wall, the idempotency
+  block and the timestamp rules 4b establishes. Writing them twice in parallel is how
+  two spellings of one rule get merged.
+- **4e after 4d**, because `void_transaction` covers all three document kinds and two
+  of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️ THE ADR PLACES `adjust_stock_delta` IN STEP 4.5, AND IT DISAGREES WITH ITSELF — the ADR wins
+
+Caught while checking this split against ADR-035 §3, before any of it was written.
+**§2.6 counts `adjust_stock_delta` among the ten functions that are the write
+surface**, which is what put it in step 4 in the first draft of this section. **§3
+step 4.5 names it as a deliverable of the failure path**, alongside `failed_write`,
+`record_failed_write` and `replay_failed_write`:
+
+> 4.5 **The failure path** — `failed_write`, **`adjust_stock_delta`**,
+> `record_failed_write`, `replay_failed_write`, and the pgTAP suites that cover them.
+
+`CLAUDE.md` is unambiguous about what to do when a file disagrees with the ADR, and
+here it is the ADR disagreeing with itself — so the **build-order section wins on a
+build-order question**: `adjust_stock_delta` ships in **`0021`, step 4.5**, and 4f is
+`adjust_stock` alone. That is also the reading that costs least, because §2.6's own
+gloss on the function is *"Required by the failure path below"* — it exists for
+`record_failed_write` to call, and shipping it a migration earlier buys nothing.
+
+⚠️ **This is the owner's to overturn and it is cheap either way** — a function with no
+data behind it, in a migration nobody has written. It is flagged because the two
+sections will keep disagreeing until one of them is amended, and the next person to
+read §2.6's table will count ten functions and find nine.
+
+⚠️ **4b IS AN `L` AND MAY SPLIT AGAIN — the decision is taken when it is read against
+§2.6, not now.** That is exactly what happened to 3.7, where reading the ADR against
+the file it was meant to move showed the `S` was wrong. The candidate seam is named so
+it is not invented under pressure: **4b-i the function and its suite over one location
+and one tax rate; 4b-ii the multi-lot, mixed-rate and `recorded_offline` cases.**
+Nothing in this file commits to that split; the next session's first job is to size it.
+
+⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
+applied migrations and eight suites say things like *"the wall is `0006`'s"* or
+*"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
+correct about the obligation and wrong about the number**: read `0006` as *the RPC
+migration* — now `0015`–`0020` — and `0007` as *the failure path*, now `0021`. Those
+files are NOT being edited to say so. Applied migrations are append-only, and
+rewriting sixteen files to renumber a forward reference would touch far more than it
+clarifies. This note is the mapping.
+
+### What step 4 inherits — five obligations already settled, and none of them optional
+
+These were decided in step 1, 2 or 3 and recorded in the sections above. They are
+collected here because the sessions that wrote them will not be the sessions that
+implement them.
+
+| Obligation | Settled | Where the reasoning is |
+|---|---|---|
+| **Every ledger RPC checks `location_id in (select public.my_locations())` in its OWN body, and hard-refuses.** No override, no manager bypass — shift cover is a reassignment | Owner, 2026-08-24 | *⚠️ BINDING ON `0006` — THE RPCs MUST CHECK `my_locations()` THEMSELVES* |
+| **The tax split: `record_sale` gross-first, `record_purchase` net-first, tax the residual on both.** `record_waste` follows the sale shape | Owner, 2026-08-26 | *⚠️ BINDING ON `0006` — THE TWO LINES `record_purchase` AND `record_sale` MUST CARRY* |
+| **Receipt completeness as a deferred constraint**, excluding `origin = 'adjustment'`, with `reversal_of_movement_id is null` load-bearing | Owner, 2026-08-26 | *What step 3 does NOT ship* — predicate verified against a fresh reset |
+| **`allocate_fefo()` must be called inside the caller's transaction** and takes a required `p_occurred_at`; its locks last until that transaction ends | `0010`, task 1.8 | Step 1, the `0005` / `0010` notes |
+| **Idempotency: `on conflict (id) do nothing`, then check whether the insert happened.** Same id + same payload → `already_recorded: true`; same id + different lines → raise and dead-letter, which needs step 4.5 | ADR-035 §2.6, 2026-08-14 | *Found before 3.7a was written*, and 3.7a's suite asserts the platform half |
+
+⚠️ **Nothing in the schema catches the first one's absence.** A migration that omits
+the location check compiles, applies, and passes every suite steps 1–3 shipped —
+including 3.3, which asserts reads. **The test for it belongs with the RPC and is not
+an RLS test.**
+
+### The §2.10 rows step 3 could not write, and which task now owes each
+
+Step 3 closed with three of §2.10's nine rows unwritten, because they need tables and
+functions steps 4 and 4.5 create. They are named under *What step 3 does NOT ship*;
+this is where they land.
+
+| §2.10 row | Owed by |
+|---|---|
+| Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c** |
+| Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"* | **4b** |
+| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
+
+**So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
+of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
+in earlier drafts of this file, and it never was.
 
 ---
 
