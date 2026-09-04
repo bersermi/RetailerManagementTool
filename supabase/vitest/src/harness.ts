@@ -8,8 +8,8 @@
 // single session cannot block on its own lock, so a one-connection test of a
 // race asserts nothing and passes just as green with the mechanism deleted.
 // ⚠️ That `.sh` is gone as of task 3.7b: its claim is now
-// test/allocation-race.test.ts, on this harness. Two suites share these helpers,
-// so a change here is a change to both.
+// test/allocation-race.test.ts, on this harness. THREE suites share these
+// helpers as of task 4c-ii, so a change here is a change to all three.
 //
 // WHAT THIS FILE IS NOT. It makes no RLS claim and does not try to. Every
 // connection here is the `postgres` superuser, which bypasses RLS — as
@@ -182,4 +182,32 @@ export async function errcode(p: Promise<unknown>): Promise<string | null> {
     const code = (e as { code?: unknown }).code;
     return typeof code === 'string' ? code : `non-pg error: ${String(e)}`;
   }
+}
+
+// ---------------------------------------------------------------------------
+// A claim on a session, for the suites that call an RPC
+// ---------------------------------------------------------------------------
+// The two 3.7 suites INSERT, so they need no caller: they run as the `postgres`
+// superuser and the rows carry `created_by` explicitly. Every `record_*`
+// function does not have that option — `record_sale` reads `auth.uid()` for
+// `sale.created_by` and validates `p_location_id` against `my_locations()`, both
+// of which resolve through `request.jwt.claims`. A superuser with no claim is
+// refused by the location wall, which is the correct behaviour and useless as a
+// fixture.
+//
+// ⚠️ `is_local` IS FALSE AND THAT IS DELIBERATE. A session-level setting
+// survives the `commit`/`rollback` at the end of each race; a transaction-local
+// one would silently vanish and the NEXT call on that connection would be
+// refused by the location wall — a red that reads as a defect in the wall.
+//
+// ⚠️ THIS BUYS NO RLS CLAIM. The connection is still the superuser and RLS is
+// still bypassed (supabase/README.md). It supplies an identity to functions that
+// ASK for one; it does not put a policy between this suite and a row. Isolation
+// is supabase/pgtap/02–05, under `set role authenticated`.
+export async function authenticate(s: Session, userId: string): Promise<void> {
+  await s.client.query(
+    `select set_config('request.jwt.claims',
+       json_build_object('sub', $1::text, 'role', 'authenticated')::text, false)`,
+    [userId],
+  );
 }

@@ -47,8 +47,26 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
-✅ **4c-i — THE AVAILABILITY CHECK, `0017` — IS DONE AS OF 2026-09-03, AND `4c-ii`
-IS THE NEXT TASK.** 4c was sized against §2.6 and §2.10 the same day and **split into
+✅ **4c-ii — §2.10's CONCURRENCY CLAUSE ON TWO REAL CONNECTIONS — IS DONE AS OF
+2026-09-04, AND `4d` IS THE NEXT TASK.** No migration, by the split:
+`supabase/vitest/` goes from two suites to three and from 16 tests to 29, and
+**ADR-035 §2.10's concurrency row is CLOSED** — both clauses, after 3.7a carried the
+idempotency half alone since 2026-09-01. ⚠️⚠️ **ITS HEADLINE FINDING IS THAT §2.10's
+CLAUSE, WORDED LITERALLY, IS NOT THE WHOLE PROPERTY.** *"Two sessions, last unit,
+enforcement on → exactly one succeeds"* is ALSO satisfied by a path that refuses every
+concurrent second sale whether or not the shelf could serve it — which is what `for
+update **skip locked**` produces, one word from what `0017` ships and the idiom a
+reviewer reaches for around a contended row. **Falsification W-F5 applies it and all
+four of the last-unit race's outcome assertions stay GREEN**; what catches it is a
+SECOND race with two units on the shelf, where both tills must be served. A one-race
+suite would have merged it, and `0017`'s 35 single-connection checks are green under it
+too. ⚠️⚠️ **AND A FIFTH SHAPE OF VACUOUS GREEN: a Vitest suite that dies in `beforeAll`
+reports `numFailedTests: 0`** with the full `numTotalTests` — so two of `db.yml`'s
+three guards on that step wave it through and only `if (!r.success)` catches it. Said
+at that line in the workflow now. ✅ **The anti-vacuity guard was itself falsified**:
+W-F4 makes the race not race and NINE of the thirteen tests stay green. **No defect was
+found in `0017`** — it stands exactly as it merged, and no migration was written.
+✅ **4c-i — THE AVAILABILITY CHECK, `0017` — IS DONE AS OF 2026-09-03.** 4c was sized against §2.6 and §2.10 the same day and **split into
 4c-i / 4c-ii** — it is an `L`, not the `M` the step-4 table estimated, and the seam is
 4b-ii's: the function is whole in `0017` and 4c-ii is §2.10's concurrency clause in a
 second language. 35 behavioural checks, 9 over the seed, **eight falsifications on the
@@ -3666,7 +3684,7 @@ recorded there rather than quietly overwritten.
 | 4b-i ✅ | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | **DONE 2026-09-03.** 63 behavioural checks and ELEVEN falsifications. §2.10's location-isolation WRITE half is closed. Two of the eleven found defects in the SUITE rather than the function — a vacuously green check and a vacuously green report block, the latter present in all six suites and fixed in all six |
 | 4b-ii ✅ | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | **DONE 2026-09-03.** `supabase/tests/0016` goes 63 → 89 checks, seven falsifications. Multi-lot FEFO within one line; BOTH shortfall branches reachable with stock on the shelf (the third is check 3.7's); mixed rates in one document; a weighed decimal at a half-centavo boundary; the residual identity over every line in the database, anchored to the price the till sent. **No defect found in `0016`** |
 | 4c-i ✅ | **The availability check — built, dormant**, and the psql evidence for it | `0017` | M | **DONE 2026-09-03.** 35 behavioural checks, 9 more over the seed, eight falsifications on the function and three on the seed check. ⚠️ **Check 6.2 did NOT need to move and did NOT go red** — see the finding below. ⚠️ **F6 — the lock deleted — turned NOTHING red**, which is the measured case for 4c-ii |
-| 4c-ii | **§2.10's first concurrency clause** — no migration | *(none)* | M | `supabase/vitest/`, two real connections: **two sessions racing the last unit with enforcement ON → exactly one succeeds**, the loser REFUSED rather than made to wait — the opposite outcome to `allocation-race.test.ts`, on the same 3.7a harness, with `pg_blocking_pids` naming the first session |
+| 4c-ii ✅ | **§2.10's first concurrency clause** — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/vitest/test/availability-race.test.ts`: THREE races, 13 tests, six falsifications. The suite goes 16 → 29 and **§2.10's concurrency row is CLOSED**. ⚠️⚠️ **W-F5 — `for update skip locked` — leaves ALL FOUR of the last-unit race's outcome assertions GREEN**, and only the second race catches it. The clause as §2.10 words it is not the whole property |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
 | 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0020` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
@@ -3696,6 +3714,118 @@ Order is forced, and not by foreign keys this time:
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Found in 4c-ii — §2.10's CLAUSE IS NOT THE WHOLE PROPERTY, AND `skip locked` IS THE PROOF
+
+ADR-035 §2.10 words the row *"two sessions, last unit, enforcement ON → exactly one
+succeeds"*. Written literally, as one race, that sentence is **also satisfied by an
+enforcement path that refuses every concurrent second sale whether or not the shelf
+could serve it.**
+
+That is not a hypothetical wrong implementation. It is `for update **skip locked**` —
+the idiom a reviewer reaches for the moment they see a contended row, and one word
+away from what `0017` ships. Falsification **W-F5 applies it and the last-unit race
+stays green in all four of its outcome assertions**: exactly one sale, the loser
+refused with `TD002`, the shelf at zero, no orphan header. Every one of them.
+
+**The suite therefore races THREE times, and the two extra races are not padding:**
+
+| | Enforcement | On the shelf | Outcome | What it is for |
+|---|---|---|---|---|
+| R1 | on | 1 | one sale; loser refused `TD002`; shelf 0 | §2.10's clause, verbatim |
+| R2 | off — the shipped default | 1 | **both** record; shelf **−1** | the PAIR: `enforce_stock` is the only difference |
+| R3 | on | 2 | **both** record; shelf 0 | the loser WAITED and was SERVED |
+
+R3 is what `skip locked` fails. ⚠️ **A one-race version of this file would have merged
+it**, and `supabase/tests/0017`'s 35 single-connection checks are green under it too —
+so nothing else in the repository would have objected either. Recorded in
+`supabase/tests/0017` section 7 as well, because the wrong answer lives in that file's
+`for update` and not in the suite that found it.
+
+R2 is the answer to *"is the refusal `0017`, or is it just what racing looks like?"*:
+same fixture, same quantities, same two connections, same lock, same blocking pid, and
+the opposite outcome. It is `supabase/tests/0016` check 6.2 raced — ADR-035 §1's
+*"stock is recorded, not enforced"*, with the debt landing on the shelf as −1 on the
+lot that was already there (`allocate_fefo()` branch 2, asserted, so branch 3 wearing
+the same negative number cannot pass for it).
+
+### ⚠️⚠️ Found in 4c-ii — A SUITE THAT DIES IN `beforeAll` REPORTS **ZERO** FAILING TESTS
+
+`db.yml`'s node block guards the Vitest step three ways: `!r.success`, a floor on
+`numTotalTests`, and `numFailedTests > 0`. **Only the first of the three catches this
+suite failing.**
+
+The three races run in `beforeAll`, so a schema defect that makes the FIRST session's
+own call raise takes the file down before one assertion executes. Measured under
+W-F3 (the boundary widened `<` → `<=`, which refuses the exact fit that opens every
+race): the reporter returns `success: false`, `numTotalTests: 29` and
+**`numFailedTests: 0`**. The count guard passes — 29, the full number, because the
+skipped tests are still counted — and the failure guard passes on zero. A step that
+had only those two would have gone GREEN on a database where §2.10's clause was
+broken.
+
+This is the **fifth** shape of vacuous green this build has found, after 3.3's
+disarmed pgTAP exception, 3.6a's empty Vitest workspace, 4b-i's `where not passed`
+over a NULL, and 4c-i's seven `supabase/checks/` files carrying the same. `db.yml`
+now says at that line that it is load-bearing rather than belt-and-braces. ⚠️ **It is
+also the fourth appearance of badly-shaped red in a task that calls a function BARE
+because the call is meant to SUCCEED** — `0016`'s F3/F4, 4b-ii's `21000`, 4c-i's
+F2–F5, and now this. No attempt was made to smooth it over: the suite must be red, and
+it is, but a reader should know which of CI's guards is the one doing the work.
+
+### ✅ Found in 4c-ii — THE ANTI-VACUITY GUARD IS EARNING ITS PLACE, MEASURED
+
+W-F4 breaks the race in the SUITE rather than the schema: session A commits before
+session B is fired, so the two calls never overlap. **Nine of the thirteen tests stay
+green.** The shelf still empties, the loser is still refused with `TD002`, R2 still
+oversells, R3 still serves both, the counts still come out exactly right — because a
+second call that finds an empty shelf already committed refuses for the same reason.
+
+The four that go red are the three `blockedBy()` assertions and the *"blocked before
+either call committed"* guard beside them. Without those four this file would be a slow
+re-statement of `supabase/tests/0017`, and 3.7a's `pg_blocking_pids` decision is what
+makes them evidence: they name session A's pid, not merely that some wait occurred.
+
+### Settled in 4c-ii, and binding on 4d through 4f
+
+- **`authenticate()` is now harness, not fixture.** `record_sale` reads `auth.uid()`
+  and validates against `my_locations()`, so a session that calls an RPC needs a claim
+  — which the two 3.7 suites never did, because they INSERT as the superuser with
+  `created_by` supplied. It lives in `supabase/vitest/src/harness.ts` because 4d, 4e
+  and 4f all call RPCs on two connections and a second spelling of it would drift.
+  ⚠️ **`is_local` is FALSE and that is load-bearing** — a transaction-local claim
+  vanishes at the `commit` ending each race, and the next call on that connection is
+  then refused by the location wall, which reads as a defect in the wall.
+- ⚠️ **IT BUYS NO RLS CLAIM, and the header says so.** The connection is still the
+  `postgres` superuser and RLS is still bypassed. It supplies an identity to functions
+  that ASK for one; it does not put a policy between the suite and a row.
+- **A race belongs in `beforeAll` and the assertions belong in `test`s** — 3.7b's
+  shape, for 3.7b's reason, and now with the cost named above. Re-racing per assertion
+  would race nine times to ask nine things about three sequences.
+- ⚠️ **A REFUSED SESSION MUST BE `rollback`ed, NOT `commit`ted.** Postgres treats
+  `commit` on an aborted transaction as a silent rollback, so both spellings pass —
+  which is exactly why the suite says which it means rather than relying on that.
+
+### Six falsifications, run by hand before 4c-ii was committed
+
+Five against the APPLIED schema — `create or replace` over `0017`'s function, the
+suite re-run, the function restored — and one against the suite itself. `0017` is
+append-only and was not edited; nothing below is a migration.
+
+| # | The change | What went red |
+|---|---|---|
+| W-F1 | **the `for update` deleted from the enforcement CTE** — 4c-i's F6, which turned NOTHING red on one connection | **5 of 13.** R1 sells twice and the shelf goes to −1. This is the whole reason the task exists |
+| W-F2 | the enforcement block made unreachable | 5 of 13 — the same five. Identical to W-F1 from the outside, which is the point: on one connection the lock was invisible, here the *lock* and the *block* fail alike |
+| W-F3 | the boundary widened `<` → `<=` | ⚠️ **the FILE dies in `beforeAll`** — session A's own opening sale is refused. Red, but `numFailedTests: 0`. See the finding above |
+| W-F4 | **the race, unraced** — A commits before B is fired (a change to the SUITE, not the schema) | ⚠️ **only 4 of 13.** The three `blockedBy` assertions and the guard beside them. Nine stay green |
+| W-F5 | **`for update` → `for update skip locked`** | ⚠️⚠️ **5 of 13, and NOT the four that state §2.10's clause.** R3 is what catches it — see the finding above |
+| W-F6 | the resolution reads the WORKSPACE only, ignoring the variant (4c-i's F2, raced) | 5 of 13 — R1's variant never opts in, so enforcement resolves false and the last unit sells twice |
+
+⚠️ **W-F1 and W-F2 leave R1's two anti-vacuity assertions GREEN**, and that is correct
+rather than a gap: without the enforcement lock session B still blocks, one statement
+later, on `allocate_fefo()`'s own `for update of bb`. The wait is real in both worlds.
+**What discriminates is the ANSWER, not the block** — which is the same lesson 3.7b
+recorded when it found that waiting is not the property and re-reading after it is.
 
 ### ✅ Settled in sizing 4c, 2026-09-03 — IT IS AN `L`, AND THE SEAM IS 4b-ii's AGAIN
 
@@ -4449,7 +4579,7 @@ this is where they land.
 
 | §2.10 row | Owed by |
 |---|---|
-| Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c-ii** |
+| ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
