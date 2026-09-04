@@ -44,6 +44,17 @@
   The parameter defaults to false, so the four-argument call this row used to show
   still works verbatim. No schema change: the column has existed since `0003`.
 
+- **Revised:** 2026-09-03 — §2.6's availability paragraph gains the two columns it
+  resolves through and the SQLSTATE it raises, written while implementing it as
+  `0017` (plan task 4c-i). ⚠️ **`TD002` IS A CLIENT CONTRACT AND IT IS CHEAP TO
+  CHANGE ONLY UNTIL A TILL BRANCHES ON IT** — recorded here for the same reason
+  `TD001` was. The paragraph already said "built, dormant" and "v1 ships with no
+  toggle and open mode always on"; what it did not say is *which* switch, and the
+  schema has carried two of them since `0001` and `0002`
+  (`workspace_setting.enforce_stock_default`, `product_variant.enforce_stock`).
+  **No behaviour change and no schema change**: both resolve to open, so `0017` is
+  invisible to every caller — proved over the seed in
+  `supabase/checks/0017_enforcement_is_dormant.sql`.
 - **Revised:** 2026-09-03 — §2.6 amended, on the decision maker's instruction, to
   close a disagreement THIS DOCUMENT HAD WITH ITSELF, found while splitting build
   step 4 in `docs/PLAN.md` and before any of that step was written. §2.6 counts
@@ -515,6 +526,22 @@ always on.** The pilot decides whether oversales are a real problem before payin
 the UI, the override role and the offline degradation path. Because the check locks
 only rows `where remaining_base > 0` — typically one to three batches — its cost is
 constant regardless of history size.
+
+It resolves **per line and per variant**, `product_variant.enforce_stock` over
+`workspace_setting.enforce_stock_default`, coalescing to **false**: the variant's
+explicit `false` is an opinion that beats an enforcing workspace, and a workspace
+with no settings row fails OPEN. Both ship open, which is what "dormant" means here
+— shipping the path changes nothing a caller can observe. A refusal raises
+**`TD002`**, which is neither `22023` (the code every bad *payload* raises — the
+payload is fine, the shelf is empty) nor `23514` (Postgres's own, which a client
+branching on it would catch from anywhere in the schema). ⚠️ Like `TD001`, it is a
+**client contract**, cheap to change until a till branches on it and a coordinated
+release afterwards.
+
+⚠️ **Enforcement makes two of `allocate_fefo()`'s three shortfall branches
+unreachable** — there is no shortfall left to absorb — so a store that opts in never
+re-opens a closed lot and never invents an `adjustment` one. The offline path keeps
+all three, which is the point of the sentence below.
 
 **Idempotency semantics** (settled 2026-08-14). Every `record_*` function inserts its
 header with `on conflict (id) do nothing`, then checks whether the insert happened.

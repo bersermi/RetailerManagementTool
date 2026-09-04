@@ -82,11 +82,8 @@ Rules:
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.
 - After modifying code, run `graphify update .` to keep the graph current (AST-only, no API cost). Commits, merges and branch switches do this automatically on main/master via the git hooks; run it by hand for uncommitted work or on other branches.
 - Every subagent prompt that involves code exploration must repeat these rules — subagents do not inherit them.
-- **SQL IS indexed** (corrected 2026-08-23). This line used to read "graphify has no SQL
-  parser", which was never true — the parser is an optional extra, `tree_sitter_sql`,
-  and it simply was not installed. It is now, and all 32 `.sql` files contribute:
-  tables, functions, triggers, views and CTEs, each with a file and line. The graph
-  went from 177 nodes to 437, and code nodes from 8 to 268.
+- **SQL IS indexed**: tables, functions, triggers, views and CTEs, each with a file
+  and line.
 - ⚠️ **`CREATE POLICY` is still NOT indexed**, and on this project that is the gap that
   matters — forty policies are the subject of most current work. Policy names
   (`sale_line_select`, `provider_update`) resolve to nothing in the graph. **For RLS

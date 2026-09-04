@@ -47,8 +47,30 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
+✅ **4c-i — THE AVAILABILITY CHECK, `0017` — IS DONE AS OF 2026-09-03, AND `4c-ii`
+IS THE NEXT TASK.** 4c was sized against §2.6 and §2.10 the same day and **split into
+4c-i / 4c-ii** — it is an `L`, not the `M` the step-4 table estimated, and the seam is
+4b-ii's: the function is whole in `0017` and 4c-ii is §2.10's concurrency clause in a
+second language. 35 behavioural checks, 9 over the seed, **eight falsifications on the
+function and three on the seed check**. ⚠️⚠️ **ITS HEADLINE FINDING IS A PREDICTION
+THIS FILE GOT WRONG: `0016` CHECK 6.2 DID NOT GO RED.** *Decided in 4b-ii* said that
+when 4c landed "an oversale is refused and check 6.2 goes red — that is the correct
+outcome and 4c-i owns the edit". It does not, and nothing was edited: 6.2 sells a
+variant that never opts in, and §2.6 ships v1 with open mode always on, so `0017`
+resolves enforcement to false for it and the oversale records exactly as before.
+`supabase/tests/0016` is UNCHANGED by this task and still reports all 89. The
+prediction assumed 4c would switch enforcement on; "built, dormant" means it does not.
+⚠️⚠️ **F6 IS THE FALSIFICATION THAT MATTERS AND IT WENT NOWHERE: deleting the
+enforcement `for update` turns NOT ONE of the 35 checks red.** That is the measured
+case for 4c-ii rather than an argument for it — a single connection cannot see a lock,
+and §2.10's concurrency row stays owed. ⚠️⚠️ **A SECOND APPLICATION SQLSTATE NEEDS THE
+OWNER ALONGSIDE `TD001`: `TD002`**, *not enough stock*. Nothing consumes it yet; the
+moment a till branches on it, changing it costs a coordinated release. ⚠️ **AND 4b-i's
+VACUOUS-GREEN FIX HAD STOPPED AT `supabase/tests/`** — all SEVEN files in
+`supabase/checks/` still carried `where not passed`, at two guard sites each. Closed in
+all seven on this commit; no counts changed. Findings below.
 ✅ **4b-ii — THE ARITHMETIC AND ALLOCATION BREADTH OF THE SAME FUNCTION — IS DONE AS
-OF 2026-09-03, AND `4c` IS THE NEXT TASK.** No migration, by the split: the suite goes
+OF 2026-09-03.** No migration, by the split: the suite goes
 from 63 checks to **89**, and seven falsifications were run by hand. ✅ **IT FOUND NO
 DEFECT IN `record_sale`** — `0016` stands exactly as it merged, and nothing is folded
 into 4c's `create or replace`. What it found is in the SUITE and in what the suite
@@ -3643,7 +3665,8 @@ recorded there rather than quietly overwritten.
 | 4a ✅ | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | **DONE 2026-09-03.** Three `deferrable initially deferred` constraint triggers; 30 behavioural checks, 10 over the seed, six falsifications. The seed's 1 041 lots pass, the one `adjustment` lot is outside the rule, and a deleted receipt is refused at commit with the immutability guard lifted by name |
 | 4b-i ✅ | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | **DONE 2026-09-03.** 63 behavioural checks and ELEVEN falsifications. §2.10's location-isolation WRITE half is closed. Two of the eleven found defects in the SUITE rather than the function — a vacuously green check and a vacuously green report block, the latter present in all six suites and fixed in all six |
 | 4b-ii ✅ | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | **DONE 2026-09-03.** `supabase/tests/0016` goes 63 → 89 checks, seven falsifications. Multi-lot FEFO within one line; BOTH shortfall branches reachable with stock on the shelf (the third is check 3.7's); mixed rates in one document; a weighed decimal at a half-centavo boundary; the residual identity over every line in the database, anchored to the price the till sent. **No defect found in `0016`** |
-| 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
+| 4c-i ✅ | **The availability check — built, dormant**, and the psql evidence for it | `0017` | M | **DONE 2026-09-03.** 35 behavioural checks, 9 more over the seed, eight falsifications on the function and three on the seed check. ⚠️ **Check 6.2 did NOT need to move and did NOT go red** — see the finding below. ⚠️ **F6 — the lock deleted — turned NOTHING red**, which is the measured case for 4c-ii |
+| 4c-ii | **§2.10's first concurrency clause** — no migration | *(none)* | M | `supabase/vitest/`, two real connections: **two sessions racing the last unit with enforcement ON → exactly one succeeds**, the loser REFUSED rather than made to wait — the opposite outcome to `allocation-race.test.ts`, on the same 3.7a harness, with `pg_blocking_pids` naming the first session |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
 | 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0020` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
@@ -3662,12 +3685,165 @@ Order is forced, and not by foreign keys this time:
 - **4c after 4b-ii** — there is nothing to make dormant inside a function that does not
   exist. It is a separate migration rather than 4b's last twenty lines because §2.6
   calls the enforcement path *"the irreversible half"*, and the review it deserves is
-  not the review a 400-line function's first version gets.
+  not the review a 400-line function's first version gets. ⚠️ **4c was itself sized
+  and split into 4c-i / 4c-ii on 2026-09-03, before any of it was written** — it is an
+  `L`, not the `M` this table first estimated. Reasoning under *Settled in sizing 4c*.
+- **4c-ii after 4c-i, and it moves no schema.** The enforcement path is whole when
+  `0017` merges; 4c-ii is §2.10's concurrency clause in a second language. Same seam
+  as 4b-ii, and expressly NOT the document/ledger seam 4b refused.
 - **4d after 4b** — `record_purchase` inherits the location wall, the idempotency
   block and the timestamp rules 4b establishes. Writing them twice in parallel is how
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ✅ Settled in sizing 4c, 2026-09-03 — IT IS AN `L`, AND THE SEAM IS 4b-ii's AGAIN
+
+4c was read against ADR-035 §2.6 and §2.10 before a line of it was written, which is
+the job the step-4 split leaves to the session that takes the task. **The table above
+called it an `M`, and that was measured against the enforcement path alone — twenty
+lines. It is wrong about the task, because the task is not the twenty lines.**
+
+Three pieces, in two languages:
+
+- **`0017` re-emits the WHOLE function.** plpgsql has no partial replace, so a
+  twenty-line addition is a ~500-line migration and every line of `0016` is back on
+  the review surface.
+- **The psql evidence is a MATRIX, not a check.** Enforcement resolves through two
+  columns — `product_variant.enforce_stock` over `workspace_setting.enforce_stock_default`
+  — and §2.6's offline paragraph skips it entirely, so the grid is off/on ×
+  null/true/false × online/offline, each against an exact fit and a shortfall.
+  ⚠️ **And check 6.2 is a REWRITE, not an addition** — see the finding below.
+- **§2.10's concurrency clause is TypeScript on two live connections**, which is the
+  weight 3.7b carried as a whole task of its own.
+
+**So it splits: `0017` and its psql evidence are 4c-i, §2.10's concurrency clause is
+4c-ii.** The function is whole when `0017` merges and 4c-ii moves no schema — 4b-ii's
+shape exactly.
+
+⚠️ **THE ONE OBJECTION IS THAT 4c-i MERGES AN UNRACED LOCK**, and it is answered by
+the default rather than waved off. A refusal proved from ONE connection is not proof
+that two sessions cannot both clear it — that is precisely the gap
+`allocation-race.test.ts` exists to close for the allocator. Two things make the
+window narrow enough to take:
+
+- **The lock discipline is not new, and it is already raced on `main`.** §2.6's *"lock
+  the open batches for the variant"* IS `allocate_fefo()`'s `for update of bb`
+  (`0010`), and `allocation-race.test.ts` proves it under two connections today. 4c-i
+  evaluates availability inside that same transaction and the same lock scope rather
+  than inventing a second one. What 4c-ii adds is that the REFUSAL rides on that lock
+  — not that the lock is there.
+- **The path merges DORMANT on every workspace that exists.** `enforce_stock_default`
+  is `false` in `0001` and `product_variant.enforce_stock` is null throughout the
+  seed, so no caller behaves differently between the two merges. That is what "built,
+  dormant" means, and it is why this seam is cheap where 4b's was not: **4b's refused
+  seam would have shipped a function whose DEFAULT behaviour was wrong.**
+
+### Settled in 4c-i, and binding on 4d through 4f
+
+- **Enforcement resolves PER LINE and PER VARIANT, variant over workspace, coalescing
+  to false.** `coalesce(product_variant.enforce_stock, ws.enforce_stock_default, false)`.
+  ⚠️ **A variant's explicit `false` is an OPINION, not an absence** — it beats an
+  enforcing workspace, which is check 2.3 and the one cell the whole coalesce exists
+  for. A resolution reading only one of the two columns passes half the grid:
+  falsifications F2 and F3 each break exactly one direction.
+- **A workspace with no settings row fails OPEN, and it is the only deliberate
+  fail-open in the system.** Refusing a sale because a settings row is missing shuts a
+  till for a reason the cashier cannot act on, and the shelf is recorded either way.
+  Said in the migration in those words so it is not copied as a pattern.
+- **The boundary is `<`, not `<=`.** Selling the shelf empty is the commonest correct
+  sale a shop makes. Check 3.2, and F5 widens it by one character and turns the exact
+  fit into a refusal.
+- **The check is PER LINE, and a ticket for the same variant twice still adds up.**
+  `batch_balance` is projected by an `after insert` trigger on `stock_movement`
+  (`0004`), so line 2 reads a shelf line 1 has already emptied — 6 + 6 against ten is
+  refused on the SECOND line, and the good first line is not recorded on its own
+  (checks 5.2, 5.3). ⚠️ **An up-front pass aggregating the whole ticket by variant was
+  REFUSED**: it names every short variant at once, which is a nicer error, at the cost
+  of a lock ordering no other statement in this system uses.
+- ⚠️ **THE LOCK IS `allocate_fefo()`'s PREDICATE AND ORDER, VERBATIM (`0010`).** The
+  enforcement statement takes exactly the rows the next statement was already going to
+  take, in the same order, one statement earlier. **`0017` therefore introduces no new
+  lock and no new lock ordering** — which is the argument that made 4c-i safe to merge
+  ahead of the race, and it is stated in the migration where a reviewer will meet it.
+- **Enforcement makes `allocate_fefo()`'s shortfall branches 2 and 3 UNREACHABLE**, and
+  that is asserted rather than assumed (checks 6.2, 6.3). There is no shortfall left to
+  absorb, so an enforced store never re-opens a closed lot and never invents an
+  `adjustment` one. ⚠️ **The same sale OFFLINE still reaches branch 3** (check 6.4),
+  which is the pair that shows enforcement is the only difference between them.
+- **Offline SKIPS enforcement, and this is the part 4d–4f must not quietly drop.**
+  §2.6 is explicit and the reason is not squeamishness: the sale already happened at a
+  till that could not ask this database anything, and refusing it on reconnect discards
+  a transaction the customer has paid for. The overdraw stays VISIBLE as a negative
+  balance. F4 removes the exemption and the offline write is refused.
+- ⚠️ **`record_purchase` (4d) DOES NOT GET THIS CHECK.** Availability is a constraint on
+  taking stock OUT. `record_waste` (4d) is the open question — it removes stock and is
+  not a sale — and it is 4d's to answer, not something 4c-i should have settled by
+  writing the code first.
+
+### ⚠️⚠️ Found in 4c-i — F6: THE LOCK IS INVISIBLE TO A SINGLE CONNECTION, MEASURED
+
+Eight falsifications were applied to the APPLIED schema and the suite re-run. Seven
+turned it red. **F6 deleted the `for update` from the enforcement CTE and NOT ONE of
+the 35 checks moved.**
+
+That is not a hole in the suite — it is the property the suite cannot have. One session
+cannot block on its own lock, so every single-connection spelling of *"two sessions,
+last unit → exactly one succeeds"* is green with the locking gone. It is the same trap
+`supabase/tests/0005_allocation_concurrency.sh` was written for and the reason 3.7b
+moved that claim into `supabase/vitest/`.
+
+✅ **So the seam sized before the work was written is the seam the evidence confirms**,
+and 4c-ii is not a tidiness exercise: §2.10's concurrency row is the ONLY thing standing
+between `0017` and a locked path nobody has ever raced. `supabase/tests/0017` section 7
+says this at the point a reader might take its green for the whole claim, and
+`supabase/vitest/README.md` now says it in the cell that used to read `0006`.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | the whole enforcement block deleted | 22 of 35 |
+| F2 | the resolution reads the WORKSPACE only, ignoring the variant | red, messily — the opt-out variant is refused and psql dies on the raise |
+| F3 | the precedence reversed, workspace before variant | red, messily — same shape as F2 |
+| F4 | the offline exemption removed | red, messily — the offline write of check 4.1 is refused |
+| F5 | the boundary widened from `<` to `<=` | red, messily — the exact fit of check 3.2 is refused |
+| F6 | **the `for update` deleted from the enforcement CTE** | ⚠️⚠️ **NOTHING.** See above |
+| F7 | the check made unreachable inside the line loop | 21 of 35 |
+| F8 | `TD002` replaced by `22023` | 7 — exactly the seven sqlstate assertions |
+
+Three more were run against `supabase/checks/0017_enforcement_is_dormant.sql`: one
+variant opting in (checks 4 and 5 red), the workspace default flipped (3 and 5 red), and
+**`0016`'s `record_sale` re-applied over `0017`'s** (check 8 red, *TD002 ABSENT*) — which
+is the one that stops the dormancy file being equally green on a database where `0017`
+never applied.
+
+⚠️ **F2–F5 die on the raise rather than printing a FAIL row**, because sections 3, 4 and
+6 call `record_sale` BARE — those calls are meant to SUCCEED, so wrapping them in
+`chk_raises` would assert the opposite of the claim. Same shape `0016` records for its
+own F3 and F4, and no attempt was made to smooth it over. ⚠️ **It did cost two
+falsification runs**: every function a suite invents must be `create or replace`, because
+a file that dies mid-run never reaches its own `drop` statements and the NEXT run then
+dies on *"function already exists"* — a second, meaningless red on top of the real one.
+`chk_message` was plain `create` until F5 found it; fixed, and the reasoning is in the
+file beside the helper.
+
+### ⚠️⚠️ Found in 4c-i — 4b-i's VACUOUS-GREEN FIX HAD STOPPED AT `supabase/tests/`
+
+4b-i found that `where not passed` in a suite's report block does not count a check
+whose condition was NULL, so a file can print a `FAIL` row and exit 0 on *"all N checks
+passed"*. It recorded the fix as *"closed in all six suites"*. **Those six were the six
+in `supabase/tests/`. Every one of the seven files in `supabase/checks/` still carried
+the defective guard, at TWO sites each** — a mid-file pre-flight guard and the final
+report — and they are the files that run over the seed, where an aggregate over nothing
+is the likeliest way to produce a NULL in the first place.
+
+Closed in all seven on this commit — `0009`, `0011`, `0012`, `0013`, `0014`, `0015`,
+`seed_invariant` — following the precedent 3.4 set when it found 3.3's plan guard was
+itself wrong, and 4b-i set when it found this. The files are unchanged in every other
+respect and **their counts are unchanged**: 36 / 56 / 35 / 49 / 30 / 10 / 18.
+
+⚠️ **The lesson is about the SHAPE of the earlier note, not about the miss.** "Closed in
+all six suites" named a count, not a directory, and a count cannot be checked against
+the repository. The `supabase/checks/` files were never in scope and nothing said so.
 
 ### ⚠️⚠️ Decided in 4b-ii — CHECK 6.2 PINS AN OVERSALE AS CORRECT, AND 4c IS MEANT TO BREAK IT
 
@@ -3681,14 +3857,26 @@ Check 6.2 asserts it — the two movements, the negative balance, and that **no
 
 ⚠️ **THIS IS TODAY'S BEHAVIOUR, NOT A RULE.** §2.6's availability check is 4c's and is
 dormant until then; when it lands, *"with `enforce_stock_default` on, an oversale is
-refused"* and check 6.2 goes red. **That is the correct outcome and 4c owns the edit.**
+refused"* and check 6.2 goes red. **That is the correct outcome and 4c-i owns the edit.**
 It is recorded here rather than left to be discovered, because a suite that goes red on
 the task that was supposed to change it reads like a regression for as long as it takes
 somebody to open this file.
 
+⚠️⚠️ **CORRECTED 2026-09-03, IN 4c-i — THE PARAGRAPH ABOVE WAS WRONG AND IS KEPT SO THE
+CORRECTION IS READABLE. `0017` APPLIED AND CHECK 6.2 IS STILL GREEN.** Nothing was
+edited and `supabase/tests/0016` still reports all 89. The error was in the conditional:
+6.2's variant NEVER OPTS IN, and 4c-i does not switch enforcement on for anybody,
+because §2.6 says *"v1 ships with no toggle and open mode always on."* Enforcement
+resolves `coalesce(product_variant.enforce_stock, workspace_setting.enforce_stock_default,
+false)` and both ship open, so 6.2's oversale takes the identical path it took under
+`0016`. **The prediction was right about the mechanism and wrong about the default** —
+it read "4c builds the check" as "4c turns it on". The lesson is the narrower one: a
+plan may predict a red, but it must name the CONFIGURATION that produces it, and this
+one did not.
+
 ⚠️ **The offline path is the part that does NOT change.** §2.6 says an offline write
 SKIPS enforcement, so an overdraw stays reachable after 4c through `recorded_offline`,
-and 6.2 has an obvious home there. 4c decides; 4b-ii only insists the case not be
+and 6.2 has an obvious home there. 4c-i decides; 4b-ii only insists the case not be
 deleted.
 
 ### ⚠️ Found in 4b-ii — A FOURTH SHAPE OF BAD RED: A SCALAR SUBQUERY CHECK *DIES* WHERE IT SHOULD FAIL
@@ -3887,7 +4075,7 @@ call may pass an `occurred_at` and have it overridden, so *"the client sent a ti
 is not evidence of anything — inferring the flag that way would make every online
 client that fills the field in silently backdate its own sales. The flag also decides
 more than the clamp: §2.6's offline paragraph says such writes SKIP ENFORCEMENT, which
-is **4c's dormant availability check reading this same parameter**.
+is **4c-i's dormant availability check reading this same parameter**.
 
 ⚠️ **This is an under-specification closed, not a contradiction overruled**, and the
 parameter defaults to `false` so the four-argument call §2.6 used to show still works
@@ -4032,7 +4220,7 @@ the wrong seam twice over:
   externally wrong*, which is the shape §2.6 names as "the most dangerous a defect can
   take in this system". Shipping it on purpose for one PR is not a smaller risk for
   being deliberate.
-- It costs a migration number, and `0017` is 4c's. Renumbering 4c–4f and step 4.5 to
+- It costs a migration number, and `0017` is 4c-i's. Renumbering 4c–4f and step 4.5 to
   buy a half-function is the expensive half of a trade whose cheap half is bad.
 
 **So the seam is the one this file named in advance: the function is WHOLE in `0016`,
@@ -4054,9 +4242,9 @@ the wall is in 4b-i. The §2.10 table above says so.
 
 ⚠️ **4b-ii SHIPS NO MIGRATION, AND WHAT HAPPENS IF IT FINDS A DEFECT IS DECIDED NOW
 RATHER THAN LATER.** A correction to `0016` cannot take `0017` without renumbering
-4c–4f. It does not need to: **4c IS a `create or replace record_sale` in `0017`**, so
-anything 4b-ii finds is folded into the replace 4c already writes, and 4c is the very
-next task. If 4c should somehow merge first, the fix takes the next free number above
+4c–4f. It does not need to: **4c-i IS a `create or replace record_sale` in `0017`**, so
+anything 4b-ii finds is folded into the replace 4c-i already writes, and 4c-i is the
+very next task. If 4c-i should somehow merge first, the fix takes the next free number above
 step 4.5's `0021`. This is recorded because the alternative — discovering it while
 holding a red suite — is how a numbering decision gets made badly.
 
@@ -4261,7 +4449,7 @@ this is where they land.
 
 | §2.10 row | Owed by |
 |---|---|
-| Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c** |
+| Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"* | **4c-ii** |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
