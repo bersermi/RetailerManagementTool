@@ -62,6 +62,7 @@ What is still not allowed is merging red, or merging on the strength of the tick
 | [`0014_velocity_spine_reads_stock.sql`](https://github.com/bersermi/RetailerManagementTool/actions/runs/32584197118) | `product_velocity_daily` — `create or replace`, one new CTE and one new column. The day spine starts at the earlier of a pair's first sale and its first **stock receipt**, read from `batch_balance`; plus `days_carried`. No table, no policy, no function, no new grant. ⚠️ **This is 2.3's finding fixed, and it needed no new table** — ADR-035 §2.9's "stock is already per location" was right. All 71 delivered-and-never-sold pairs become visible, and the spine start can only ever move EARLIER (`least`, not "instead of"), so no report can lose a row it printed yesterday. `batch_balance` and not `stock_batch` because the projection carries no cost and its RLS predicate is `sale_line`'s character for character: **a cashier reads 454 rows of the first and 0 of the second** |
 
 | `0015_receipt_completeness.sql` | `receipt_completeness_violations(uuid)` and three **`deferrable initially deferred` constraint triggers**: a `stock_batch` with `origin in ('purchase','transfer')` must equal the sum of its live receipt movements — `reason in ('purchase','transfer_in')`, `reversal_of_movement_id is null` — **at COMMIT**. No table, no column, no policy, no client grant. ⚠️ **This is the first rule in the schema that a caller can break without any single statement being wrong**, and it is the one docs/PLAN.md task 3.4 found unenforced: a lot that opens and never receives is invisible to the §2.4 invariant, because zero equals zero. ⚠️ **A lot and its receipt must now be written in ONE transaction** — by an RPC, a seed file or a fixture; `supabase/tests/0004_inventory.sql` was corrected on the day this applied because it was not. `origin = 'adjustment'` is excluded and the reversal filter is load-bearing: without them the rule refuses 1 and 23 of the seed's own lots respectively, measured |
+| `0018_record_purchase.sql` | `record_purchase(uuid, uuid, uuid, jsonb, timestamptz, boolean)` — **the function that puts stock on the shelf**, and the second of build step 4's six. Header, lines, ONE `stock_batch` per line, and the positive movement that is the lot's receipt — in one transaction, because `0015` refuses a lot whose receipts do not fill it. No table, no column, no policy. ⚠️ **`4d` WAS RE-SIZED `L` AND SPLIT BY FUNCTION on 2026-09-04**: `record_waste` is `0019` and everything after it moved up one, so 4e is `0020`, 4f is `0021` and the failure path is `0022`. ⚠️ **The tax split is NET-first with tax the residual** — the mirror of `0016`, because a supplier invoice is quoted net where a shelf price is agreed gross (owner, 2026-08-26). ⚠️ **The default denomination is `purchase_unit_code`, NOT `sell_unit_code`** — the one structural error here that applies clean, prices correctly and books a tenth of the stock; falsification F3b turns six checks red. ⚠️ **Expiry follows ADR-017's three tiers** (manual, else the family lifespan, else null) and tier 2 resolves **in the store's local day**, not UTC — the seed hardcodes UTC and is a fixture, not a rule. ⚠️ **No availability check**: `0017`'s constrains taking stock OUT, and a delivery adds. It reuses `0016`'s `TD001` rather than inventing a second sqlstate, and compares the **provider** as well as the hash, because the same basket filed against the wrong supplier corrupts the cost memory `0008` derives. Granted to `authenticated` and to nobody else |
 | `0017_record_sale_availability_check.sql` | `create or replace record_sale` — §2.6's **availability check, built and dormant**. No table, no column, no policy, no grant change; `create or replace` preserves `0016`'s ACL and the signature is unchanged. ⚠️ **IT CHANGES NOTHING FOR ANY CALLER TODAY, AND THAT IS THE DESIGN** — §2.6: *"v1 ships with no toggle and open mode always on."* Enforcement resolves per line as `coalesce(product_variant.enforce_stock, workspace_setting.enforce_stock_default, false)`, and both ship open (`0001`, `0002`), so an oversale still records and still shows as a negative `batch_balance`. ⚠️ **It introduces SQLSTATE `TD002`** for *not enough stock* — a client contract, cheap to change only until a till branches on it, and deliberately not `22023` (which every bad *payload* raises; here the payload is fine and the shelf is empty). §2.6's offline paragraph **skips** the check, so an overdraw stays reachable through `recorded_offline`. ⚠️ **The lock is `allocate_fefo()`'s own predicate and order, verbatim** — the same rows one statement earlier — so no new lock ordering is introduced; that the REFUSAL rides on that lock is not provable from one connection and is plan task **4c-ii** in `supabase/vitest/` (falsification F6: deleting `for update` turns NOTHING red in `supabase/tests/0017`) |
 | `0016_record_sale.sql` | `record_sale(uuid, uuid, jsonb, timestamptz, boolean)` — **the first RPC a till will call**, and the first of build step 4's six. Header, lines, FEFO within the location, one movement per lot, the tax split gross-first with tax as the residual, the balance update, ONE transaction. No table, no column, no policy. ⚠️ **`security definer`, so RLS IS NOT RUNNING** — the location check in its own body is the whole of the store wall on writes, and nothing in the schema catches its absence (falsification F1 deleted it and every suite steps 1–3 shipped stayed green, including `05`, which asserts the same wall on READS). ⚠️ **It introduces SQLSTATE `TD001`** for §2.6's *same id, different lines*, which is a client contract and is cheap to change only until a client branches on it. ⚠️ **The signature carries a fifth argument §2.6's table did not name**, `recorded_offline`; the ADR was amended rather than the code. Granted to `authenticated` and to nobody else; `0003` revoked every table privilege on `sale`, which is what makes *clients never insert* a fact rather than a convention |
 
@@ -76,8 +77,11 @@ to make a correction look tidy would be the more confusing choice.
 
 **Settled by the owner, on the session that split build step 4.** `0006` was held for
 the RPCs and `0007` for the failure path. Neither was ever written, **both numbers are
-now skipped for good**, and step 4 takes `0015`–`0020` with the failure path at
-`0021`. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
+now skipped for good**, and step 4 takes `0015`–`0021` with the failure path at
+`0022`. ⚠️ **The upper bound moved on 2026-09-04**: 4d was re-sized `L` and split by
+FUNCTION rather than by test breadth, which cost one migration number and pushed
+everything after it up one — see the list below and *Settled in sizing 4d* in the
+plan. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
 
 Two reasons, and the first is the one that mattered:
 
@@ -90,15 +94,19 @@ Two reasons, and the first is the one that mattered:
    one that exists by then.
 2. **Append-only forces the split, and the split wants contiguous numbers.** A
    migration is closed once CI has applied it and merging is automated, so seven
-   functions merging in six PRs cannot share one file. Six pieces at `0015`–`0020` sit
+   functions merging in six PRs cannot share one file. The pieces at `0015`+ sit
    together in the order a reviewer reads them; one piece at `0006` and five at
-   `0015`+ do not.
+   `0015`+ do not. ⚠️ **It was six pieces at `0015`–`0020` when this was written on
+   2026-09-03; the 4d re-split made it seven at `0015`–`0021`.** The argument is
+   unchanged — it is the argument that produced the re-split.
 
 ⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
 *"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
 correct about the obligation and wrong about the number**: read `0006` as *the RPC
-migration* — now `0015`–`0020` — and `0007` as *the failure path*, now `0021`. Those
+migration* — now `0015`–`0021` — and `0007` as *the failure path*, now `0022`.
+⚠️ **Those two ranges each moved up one on 2026-09-04 with the 4d re-split**, which is
+why this note gives the range and not a per-function number. Those
 files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
@@ -141,12 +149,18 @@ it:**
   2026-09-03**, see the table above. ⚠️ **`4c` split into `4c-i` / `4c-ii` on the day
   it was sized**; 4c-ii is §2.10's concurrency clause in `supabase/vitest/` and ships
   NO migration, so the numbering below is unchanged
-- `0018` — `record_purchase`, `record_waste` (**4d**)
-- `0019` — `record_transfer`, `void_transaction` (**4e**)
-- `0020` — `adjust_stock`, absolute (**4f**)
-- `0021` — failure path: `failed_write`, **`adjust_stock_delta`**,
+- `0018` — `record_purchase` (**4d-i**). ⚠️ **`4d` split into `4d-i` / `4d-ii` on
+  2026-09-04, the day it was sized, and UNLIKE the 4b and 4c splits this one MOVED
+  NUMBERS** — two whole functions in two sessions cannot share one unapplied file,
+  which is the same append-only argument that forced the six-way split. Everything
+  below is one higher than it was before that date
+- `0019` — `record_waste` (**4d-ii**). ⚠️ It must answer whether waste gets §2.6's
+  availability check; 4c-i left that open by name and `0018` does not settle it
+- `0020` — `record_transfer`, `void_transaction` (**4e**)
+- `0021` — `adjust_stock`, absolute (**4f**)
+- `0022` — failure path: `failed_write`, **`adjust_stock_delta`**,
   `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
-  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0020` because §3 puts
+  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0021` because §3 puts
   it here**, though §2.6 counts it among the ten write-surface functions; see
   `docs/PLAN.md`, *Step 4*
 
