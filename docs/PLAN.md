@@ -47,14 +47,25 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
-✅ **4d-i — `record_purchase` IN `0018` — IS DONE AS OF 2026-09-04, AND `4d-ii`
-(`record_waste`, `0019`) IS THE NEXT TASK.** 82 behavioural checks, ten
-falsifications, one defect found in the function and one whole class of defect
-found in the SUITE — see *Found in 4d-i* below, and read the vacuous-green one
-before writing another suite. ⚠️⚠️ **`4d-ii` INHERITS AN OPEN QUESTION THAT IS THE
-OWNER'S, NOT THE CODE'S: does `record_waste` get the availability check?** 4c-i
-declined to settle it by writing the code first and `0018` does not settle it
-either. 4c-ii is DONE AND MERGED (#44). ⚠️⚠️ **`4d` WAS RE-SIZED
+✅ **4d IS DONE — BOTH HALVES — AS OF 2026-09-04, AND `4e` (`record_transfer` +
+`void_transaction`, `0020`) IS THE NEXT TASK.** `0018` `record_purchase` (82
+checks, ten falsifications) and `0019` `record_waste` (67 checks, ten
+falsifications). **Four of step 4's six functions are now applied.**
+
+⚠️⚠️ **THE QUESTION 4c-i LEFT OPEN IS CLOSED. THE OWNER SETTLED IT 2026-09-04:
+`record_waste` GETS NO AVAILABILITY CHECK AND RECORDS UNCONDITIONALLY** — the
+loss already happened, and refusing a write-off because the shelf already reads
+zero discards the only record that the stock ever existed. `supabase/tests/0019`
+section 6 is that decision made falsifiable, and its PAIR is the argument: same
+variant, same store, same quantity, enforcement ON — the SALE is refused with
+`TD002` and the WRITE-OFF is recorded, so nothing but the document kind can
+explain the difference.
+
+⚠️ **READ *Found in 4d-i* BEFORE WRITING ANOTHER SUITE.** A verdict recorded
+inside a transaction that ends in `rollback` VANISHES from the report rather than
+failing, and 4d-i lost eighteen checks to it while reporting a clean pass. Both
+4d suites now end their refusal blocks in `commit` and assert their own check
+count against a literal. ⚠️⚠️ **`4d` WAS RE-SIZED
 `L` AND SPLIT INTO `4d-i` (`record_purchase`, `0018`) AND `4d-ii` (`record_waste`,
 `0019`) ON 2026-09-04, BEFORE ANY OF IT WAS WRITTEN** — and unlike the 4b and 4c
 splits **this one moved migration numbers**: 4e to `0020`, 4f to `0021`, the failure
@@ -3698,7 +3709,7 @@ recorded there rather than quietly overwritten.
 | 4c-i ✅ | **The availability check — built, dormant**, and the psql evidence for it | `0017` | M | **DONE 2026-09-03.** 35 behavioural checks, 9 more over the seed, eight falsifications on the function and three on the seed check. ⚠️ **Check 6.2 did NOT need to move and did NOT go red** — see the finding below. ⚠️ **F6 — the lock deleted — turned NOTHING red**, which is the measured case for 4c-ii |
 | 4c-ii ✅ | **§2.10's first concurrency clause** — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/vitest/test/availability-race.test.ts`: THREE races, 13 tests, six falsifications. The suite goes 16 → 29 and **§2.10's concurrency row is CLOSED**. ⚠️⚠️ **W-F5 — `for update skip locked` — leaves ALL FOUR of the last-unit race's outcome assertions GREEN**, and only the second race catches it. The clause as §2.10 words it is not the whole property |
 | 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
-| 4d-ii | **`record_waste`** — header, lines with reason and cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | CI green; under 4a's constraint; the location wall, idempotency and timestamps its own; ⚠️⚠️ **it must ANSWER whether waste gets the availability check** — 4c-i left it open by name, and it is a decision, not a lookup |
+| 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
 | 4e | **`record_transfer` and `void_transaction`** | `0020` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0021` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
@@ -3734,6 +3745,131 @@ Order is forced, and not by foreign keys this time:
   level down.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ✅⚠️⚠️ CLOSED BY THE OWNER 2026-09-04 — WASTE RECORDS UNCONDITIONALLY, AND `0019` HAS NO AVAILABILITY CHECK
+
+4c-i left this open BY NAME rather than settling it by writing the code first,
+and `0018` could not settle it either — a delivery adds stock, so the question
+never arose there. **The owner answered it before 4d-ii was written.**
+
+> The loss already happened. Refusing to record spoilage because the shelf
+> already reads zero does not put the carton back — it discards the only record
+> that the stock ever existed, and *"what am I losing, and why"* (§2.8) is the one
+> question Desperdicio is for. A shop whose books already disagree with its shelf
+> is precisely the shop that most needs the write-off recorded.
+
+`record_waste` therefore performs **no availability check and no enforcement
+lookup at all** — not a check that resolves to false, an ABSENT one. The debt
+stays visible as a negative `batch_balance` (§1, *stock is recorded, not
+enforced*), which is the same answer §2.6 already gives for an offline sale and
+for the same reason: the event is in the past and the database is being told
+about it, not asked permission for it.
+
+⚠️ **THE PAIR IS THE ARGUMENT, and section 6 of `supabase/tests/0019` is it:**
+
+| | Document | Variant | On the shelf | Quantity | Enforcement | Outcome |
+|---|---|---|---|---|---|---|
+| 6.2 | `record_sale` | `var_enf` | 1 | 3 | **on** | **refused, `TD002`** |
+| 6.3 | `record_waste` | `var_enf` | 1 | 3 | **on** | **recorded** |
+
+Same variant, same store, same quantity, same enforcement, one statement apart.
+**Nothing but the document kind differs, so nothing else can explain the
+difference** — which is the shape 4c-ii's R2 established for enforcement on/off
+and 4b-ii's mixed-rate ticket established for the tax split.
+
+Three consequences, all asserted rather than assumed:
+
+- **Both of `allocate_fefo()`'s shortfall branches are reachable here, always.**
+  Branch 1 overdraws the existing lot (6.4, 6.5 — the shelf goes to −2 and NO
+  adjustment lot is invented); branch 3 opens an `adjustment` lot for a variant
+  the store never held (6.6), at **zero cost**, which 6.7 asserts as an honest
+  *"we do not know what this cost"*.
+- **An adjustment lot is outside `0015`'s rule** (6.8), which is why a write-off
+  may open one with no receipt to fill it. That exclusion was settled in 4a and
+  this is the first function that depends on it.
+- **Turning the WORKSPACE default on changes nothing** (6.9). 6.2 vs 6.3 shows the
+  outcome differs; 6.9 shows the mechanism is absent, because switching on the
+  cheapest thing that would make a check fire does not make one fire.
+
+### ⚠️⚠️ Found in 4d-ii — F10 TURNED NOTHING RED, AND THE CLAMPED TIME IS WHY
+
+Nine of ten falsifications turned `supabase/tests/0019` red or killed it. **F10
+changed `allocate_fefo(…, v_at)` to `allocate_fefo(…, now())` and not one of the
+file's 65 checks moved.**
+
+It matters on exactly one path, and nothing in the file reached it.
+`p_occurred_at` is what STAMPS the `received_at` of a lot the allocator OPENS on a
+shortfall, and `received_at` is FEFO's tiebreak (§2.4). **A backdated write-off
+that opens a lot stamped `now()` puts a lot dated today at the back of the queue
+when it belongs at the front**, and every later sale of that variant then consumes
+the wrong one. `0016` states this reasoning at its own call site; nothing asserted
+it anywhere until now.
+
+Section 6 could not catch it — 6.6 opens a lot too, but ONLINE, where `v_at` and
+`now()` are the same instant. Section 8 backdated three write-offs but all on a
+variant WITH stock, so no lot was opened. **The gap needed both properties at
+once**, and the suite grew checks 8.6 and 8.7 to have them. F10 re-run against the
+closed gap turns 2 red.
+
+⚠️ **BINDING ON 4e AND 4f.** `record_transfer` opens lots at the destination and
+`adjust_stock` opens them outright. Both take an `occurred_at`, and neither is
+covered by anything that exists today.
+
+### ⚠️ Found in 4d-ii — THE RESIDUAL IDENTITY IS NOT THE SAME IDENTITY ON BOTH SIDES
+
+`supabase/tests/0019` check 3.7 was first written by copying `0018`'s identity —
+`net + tax = round(net × (1 + rate), 2)` — and it went **red on the 16% line**.
+
+That is correct, and it is worth recording because the two files look alike. On
+the BUY side the net is the anchor and that identity holds. On the SELL side the
+GROSS is the anchor and the net is reached by DIVISION, so the algebra runs the
+other way: `net = round((net + tax) / (1 + rate), 2)`. On the fixture's numbers
+`round(20.09 × 1.16, 2)` is **23.30** and the document's gross is **23.31** —
+§2.5 rule 4 doing its job, and it only has teeth on the side where the net is
+divided out. 3.5 in `supabase/tests/0016` says the same thing about the sale.
+
+### Settled in 4d-ii, and binding on 4e and 4f
+
+- **The default denomination follows the DIRECTION of the document, not the table.**
+  `record_waste` reads `sell_unit_code` — stock is leaving — where `record_purchase`
+  reads `purchase_unit_code`. Check 4.4 is `0018`'s check 4.1 read backwards, on the
+  same variant, so the pair is legible across the two files.
+- **`reason` is in the payload hash**, because Desperdicio's whole output is grouped
+  by it: the same stock written off as `robo o faltante` rather than `caducado` is a
+  different document (7.4). Same argument as `0018`'s `expiry_date`.
+- **A cost that spans lots is the QUANTITY-WEIGHTED MEAN**, rounded to
+  `numeric(14,6)`. This was already `0011`'s documented shape and
+  `supabase/checks/0011` already reconciles it against the movements' exact per-lot
+  costs — 4d-ii is the first function that had to obey it. F5 (first lot's cost) and
+  F6 (unweighted mean) each turn three checks red.
+- ⚠️ **THE ALLOCATION IS TAKEN ONCE, INTO AN ARRAY.** The line cannot be written until
+  the lots are known, and the document tables are immutable (0003), so there is no
+  second pass — `record_waste` allocates FIRST, which is the reverse of `0016`.
+  Calling `allocate_fefo()` twice would not re-read the same lots: the first call has
+  already moved the balances it locked.
+- **A cashier writes a ledger they cannot read, and it is asserted (9.1–9.4).** §2.7
+  makes `waste` readable by every member and `waste_line` manager-and-above, because
+  the header carries value and the line carries cost. ⚠️ **Check 9.4 is the half that
+  matters**: without it, "the cashier sees no line" and "no line was written" are
+  indistinguishable. 4b-i found the same shape on the sell side.
+
+### Ten falsifications, run by hand before 4d-ii was committed
+
+Against the APPLIED schema — `create or replace` over `0019`, the suite re-run, the
+function restored.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | the location wall deleted | **7 of 67** |
+| F2 | the *reason is required* arm deleted | 1 — 2.3. The enum still refuses an UNKNOWN cause; what this arm buys is the ABSENT one |
+| F3 | the default unit read as `purchase_unit_code` — `0018`'s | 2 — 4.1 and 4.4 |
+| F4 | the tax split done NET-first — `0018`'s shape on a waste document | **5**, including the gross-first identity |
+| F5 | the cost taken from the FIRST lot instead of the weighted mean | 3 — 5.3, 5.4, 5.6 |
+| F6 | the cost taken as the UNWEIGHTED mean of the lots | 3 — the same three. ⚠️ 5.4 names 2.00, 5.00 and 3.50 as wrong answers precisely so both of these are caught |
+| F7 | `reason` dropped from the payload hash | 1 — 7.4 |
+| F8 | **an availability check ADDED — the owner's decision reversed** | ⚠️⚠️ **THE SUITE DIES.** Section 6's write-offs are meant to SUCCEED, so under `ON_ERROR_STOP=1` psql stops where it stands. Red by exit code, and the same shape as 4c-ii's W-F3 |
+| F9 | the movements written POSITIVE | ⚠️ **THE SUITE DIES** — `stock_movement_sign_follows_reason` raises inside the first successful call |
+| F10 | the allocator called with `now()` instead of the clamped time | ⚠️⚠️ **NOTHING.** See the finding above; the suite grew 8.6 and 8.7, and F10 re-run turns 2 red |
 
 ### ⚠️⚠️ Found in 4d-i — A FIFTH SHAPE OF VACUOUS GREEN: A CHECK THAT NEVER APPEARS AT ALL
 
