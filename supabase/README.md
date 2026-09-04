@@ -76,8 +76,11 @@ to make a correction look tidy would be the more confusing choice.
 
 **Settled by the owner, on the session that split build step 4.** `0006` was held for
 the RPCs and `0007` for the failure path. Neither was ever written, **both numbers are
-now skipped for good**, and step 4 takes `0015`–`0020` with the failure path at
-`0021`. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
+now skipped for good**, and step 4 takes `0015`–`0021` with the failure path at
+`0022`. ⚠️ **The upper bound moved on 2026-09-04**: 4d was re-sized `L` and split by
+FUNCTION rather than by test breadth, which cost one migration number and pushed
+everything after it up one — see the list below and *Settled in sizing 4d* in the
+plan. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
 
 Two reasons, and the first is the one that mattered:
 
@@ -90,15 +93,19 @@ Two reasons, and the first is the one that mattered:
    one that exists by then.
 2. **Append-only forces the split, and the split wants contiguous numbers.** A
    migration is closed once CI has applied it and merging is automated, so seven
-   functions merging in six PRs cannot share one file. Six pieces at `0015`–`0020` sit
+   functions merging in six PRs cannot share one file. The pieces at `0015`+ sit
    together in the order a reviewer reads them; one piece at `0006` and five at
-   `0015`+ do not.
+   `0015`+ do not. ⚠️ **It was six pieces at `0015`–`0020` when this was written on
+   2026-09-03; the 4d re-split made it seven at `0015`–`0021`.** The argument is
+   unchanged — it is the argument that produced the re-split.
 
 ⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
 *"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
 correct about the obligation and wrong about the number**: read `0006` as *the RPC
-migration* — now `0015`–`0020` — and `0007` as *the failure path*, now `0021`. Those
+migration* — now `0015`–`0021` — and `0007` as *the failure path*, now `0022`.
+⚠️ **Those two ranges each moved up one on 2026-09-04 with the 4d re-split**, which is
+why this note gives the range and not a per-function number. Those
 files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
@@ -141,12 +148,18 @@ it:**
   2026-09-03**, see the table above. ⚠️ **`4c` split into `4c-i` / `4c-ii` on the day
   it was sized**; 4c-ii is §2.10's concurrency clause in `supabase/vitest/` and ships
   NO migration, so the numbering below is unchanged
-- `0018` — `record_purchase`, `record_waste` (**4d**)
-- `0019` — `record_transfer`, `void_transaction` (**4e**)
-- `0020` — `adjust_stock`, absolute (**4f**)
-- `0021` — failure path: `failed_write`, **`adjust_stock_delta`**,
+- `0018` — `record_purchase` (**4d-i**). ⚠️ **`4d` split into `4d-i` / `4d-ii` on
+  2026-09-04, the day it was sized, and UNLIKE the 4b and 4c splits this one MOVED
+  NUMBERS** — two whole functions in two sessions cannot share one unapplied file,
+  which is the same append-only argument that forced the six-way split. Everything
+  below is one higher than it was before that date
+- `0019` — `record_waste` (**4d-ii**). ⚠️ It must answer whether waste gets §2.6's
+  availability check; 4c-i left that open by name and `0018` does not settle it
+- `0020` — `record_transfer`, `void_transaction` (**4e**)
+- `0021` — `adjust_stock`, absolute (**4f**)
+- `0022` — failure path: `failed_write`, **`adjust_stock_delta`**,
   `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
-  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0020` because §3 puts
+  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0021` because §3 puts
   it here**, though §2.6 counts it among the ten write-surface functions; see
   `docs/PLAN.md`, *Step 4*
 

@@ -48,7 +48,13 @@ application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes 
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
 ✅ **4c-ii — §2.10's CONCURRENCY CLAUSE ON TWO REAL CONNECTIONS — IS DONE AS OF
-2026-09-04, AND `4d` IS THE NEXT TASK.** No migration, by the split:
+2026-09-04 AND MERGED (#44), AND `4d-i` IS THE NEXT TASK.** ⚠️⚠️ **`4d` WAS RE-SIZED
+`L` AND SPLIT INTO `4d-i` (`record_purchase`, `0018`) AND `4d-ii` (`record_waste`,
+`0019`) ON 2026-09-04, BEFORE ANY OF IT WAS WRITTEN** — and unlike the 4b and 4c
+splits **this one moved migration numbers**: 4e to `0020`, 4f to `0021`, the failure
+path to `0022`. That is free today and fixed the moment `0019` is green. Reasoning and
+the full before/after table under *Settled in sizing 4d*. 4c-ii shipped no migration,
+by the split:
 `supabase/vitest/` goes from two suites to three and from 16 tests to 29, and
 **ADR-035 §2.10's concurrency row is CLOSED** — both clauses, after 3.7a carried the
 idempotency half alone since 2026-09-01. ⚠️⚠️ **ITS HEADLINE FINDING IS THAT §2.10's
@@ -109,7 +115,7 @@ triggers, 30 behavioural checks, 10 over the seed and six falsifications run by 
 ⚠️ **AND IT IS THE FIRST TASK IN THIS BUILD THAT CHANGED FILES OUTSIDE ITS OWN** — a
 fixture in `supabase/tests/0004_inventory.sql` and two lines in
 `supabase/pgtap/06`, both because the new rule is real. Findings below. ✅ **The numbering is settled: the
-pieces take `0015`–`0020` and the `0006` / `0007` reservation is retired** (owner,
+pieces take `0015`–`0021` and the `0006` / `0007` reservation is retired** (owner,
 2026-09-03), which DELETES the five-versus-six-argument `allocate_fefo` trap
 `supabase/README.md` has carried since `0010` rather than documenting it a second
 time. ⚠️ **"Do not build screens before this
@@ -304,8 +310,8 @@ deadline under *Confirmed by the owner* below.
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
-| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0020`**. `4a` — the receipt-completeness constraint — is first |
-| 4.5 | The failure path | Not started — **`0021`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
+| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0021`** (4d was re-split 2026-09-04). `4a` — the receipt-completeness constraint — is first |
+| 4.5 | The failure path | Not started — **`0022`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -2426,7 +2432,7 @@ Nothing written so far has to move. The point of no return is unchanged: the fir
 #### ⚠️ BINDING ON THE RPC MIGRATIONS — THE TWO LINES `record_purchase` AND `record_sale` MUST CARRY
 
 *(Written when the RPCs were `0006`. That number is retired — this binds `0016` and
-`0018`, plan tasks 4b and 4d.)*
+`0018`, plan tasks 4b and 4d-i.)*
 
 ```sql
 -- record_sale        the shelf price is the anchor
@@ -3056,7 +3062,7 @@ the **grant wall**, which is 3.2b-i's subject and already tested, not by
 
 ### ⚠️ BINDING ON THE RPC MIGRATIONS — THE RPCs MUST CHECK `my_locations()` THEMSELVES
 
-*(Written when the RPCs were `0006`. That number is retired — this binds `0016`–`0020`,
+*(Written when the RPCs were `0006`. That number is retired — this binds `0016`–`0021`,
 plan tasks 4b through 4f.)*
 
 This is the part that is cheap now and expensive later, so it is flagged by name. When
@@ -3685,9 +3691,10 @@ recorded there rather than quietly overwritten.
 | 4b-ii ✅ | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | **DONE 2026-09-03.** `supabase/tests/0016` goes 63 → 89 checks, seven falsifications. Multi-lot FEFO within one line; BOTH shortfall branches reachable with stock on the shelf (the third is check 3.7's); mixed rates in one document; a weighed decimal at a half-centavo boundary; the residual identity over every line in the database, anchored to the price the till sent. **No defect found in `0016`** |
 | 4c-i ✅ | **The availability check — built, dormant**, and the psql evidence for it | `0017` | M | **DONE 2026-09-03.** 35 behavioural checks, 9 more over the seed, eight falsifications on the function and three on the seed check. ⚠️ **Check 6.2 did NOT need to move and did NOT go red** — see the finding below. ⚠️ **F6 — the lock deleted — turned NOTHING red**, which is the measured case for 4c-ii |
 | 4c-ii ✅ | **§2.10's first concurrency clause** — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/vitest/test/availability-race.test.ts`: THREE races, 13 tests, six falsifications. The suite goes 16 → 29 and **§2.10's concurrency row is CLOSED**. ⚠️⚠️ **W-F5 — `for update skip locked` — leaves ALL FOUR of the last-unit race's outcome assertions GREEN**, and only the second race catches it. The clause as §2.10 words it is not the whole property |
-| 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
-| 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
-| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0020` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
+| 4d-i | **`record_purchase`, the whole function, and its contract** — header, lines, batches with expiry per ADR-017 policy, positive movements; the tax split NET-first with tax the residual and the rate read from the variant; plus the three inherited rules: the location wall, idempotency, the timestamps. The provider is validated too, and to ONE workspace | `0018` | M | CI green; under 4a's constraint; a mixed-rate document, per 4b-ii's discriminator; ⚠️ **no availability check — §2.6's is a constraint on taking stock OUT** (4c-i) |
+| 4d-ii | **`record_waste`** — header, lines with reason and cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | CI green; under 4a's constraint; the location wall, idempotency and timestamps its own; ⚠️⚠️ **it must ANSWER whether waste gets the availability check** — 4c-i left it open by name, and it is a decision, not a lookup |
+| 4e | **`record_transfer` and `void_transaction`** | `0020` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
+| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0021` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
 Order is forced, and not by foreign keys this time:
 
@@ -3711,9 +3718,78 @@ Order is forced, and not by foreign keys this time:
   as 4b-ii, and expressly NOT the document/ledger seam 4b refused.
 - **4d after 4b** — `record_purchase` inherits the location wall, the idempotency
   block and the timestamp rules 4b establishes. Writing them twice in parallel is how
-  two spellings of one rule get merged.
+  two spellings of one rule get merged. ⚠️ **4d was itself sized and split into 4d-i /
+  4d-ii on 2026-09-04, before any of it was written** — it is an `L`, not the `M` this
+  table first estimated, and unlike 4b and 4c **the seam is the FUNCTION, which cost a
+  renumbering**. Reasoning under *Settled in sizing 4d*.
+- **4d-ii after 4d-i, and it is not the test-breadth seam 4b and 4c used.** Two whole
+  functions cannot share one unapplied `0018` across two sessions — the same
+  append-only argument that forced the six-way split in the first place, applied one
+  level down.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Settled in sizing 4d, 2026-09-04 — IT IS AN `L`, AND THE SEAM COST A RENUMBERING
+
+4d was estimated `M` on 2026-09-03 as *"`record_purchase` and `record_waste`"*, one
+migration. **That estimate was made before 4b and 4c were written, and both of those
+were re-sized upward once they were.** 4b was ONE function and took two `M` sessions;
+4c was ONE function's enforcement path, estimated `M`, re-sized `L`, and took two.
+**4d is TWO functions, each carrying the whole inherited contract.** It is an `L`.
+
+⚠️⚠️ **THE SEAM IS THE FUNCTION, AND THAT IS A DEPARTURE.** 4b and 4c both split by
+TEST BREADTH — the migration lands whole in the first session and the second adds
+evidence. 4b expressly REFUSED a seam that would split a function's internals across
+two migrations. **Neither precedent fits here, and applying 4b's would buy nothing**:
+a 4d-i that ships `0018` with both functions complete has done all of the expensive
+work already, and a 4d-ii that only adds tests would have split the cheap half. The
+seam has to fall where the work does.
+
+The two functions are independent in every way that costs effort:
+
+| | `record_purchase` (4d-i) | `record_waste` (4d-ii) |
+|---|---|---|
+| Stock | **opens** batches, positive movements | **consumes** them, FEFO, negative movements |
+| Tax | **net-first**, tax the residual | the **sale** shape — gross-first (owner, 2026-08-26) |
+| Extra argument | `provider_id`, validated to ONE workspace | none |
+| Availability check | ⚠️ **NO** — settled by 4c-i, it constrains taking stock OUT | ⚠️⚠️ **OPEN — 4d-ii must decide it** |
+| 4a's constraint | satisfies it directly — it opens lots | inherits it; opens none |
+
+They share only the boilerplate 4b-i already settled: the location wall, idempotency,
+the timestamps. **That is the cheap half, and it is the half a shared session would
+have shared.**
+
+⚠️⚠️ **THE COST IS A RENUMBERING, AND IT IS THE ONE THING HERE THAT IS EXPENSIVE
+LATER.** Two functions in two sessions need two migrations, so `record_waste` takes
+`0019` and **everything after it moves up one**:
+
+| Task | Was | Now |
+|---|---|---|
+| 4d-i — `record_purchase` | `0018` | `0018` — unchanged |
+| 4d-ii — `record_waste` | *(shared `0018`)* | **`0019`** |
+| 4e — `record_transfer`, `void_transaction` | `0019` | **`0020`** |
+| 4f — `adjust_stock` | `0020` | **`0021`** |
+| Step 4.5 — failure path, `adjust_stock_delta` | `0021` | **`0022`** |
+
+⚠️ **This is free TODAY and unrepeatable after `0019` merges.** None of those numbers
+has been applied by CI, so today the renumbering is an edit to two Markdown files.
+The moment 4d-ii's `0019` is green, `0020`–`0022` are fixed the way `0015`–`0018` now
+are, and a later objection to this split is a hole in the sequence, not a rename.
+**`supabase/README.md` carries the same table** — it is the file the numbering rule
+says is authoritative, and it was updated in the same commit.
+
+**ADR-035 does not object, and was checked.** §2.6 lists the ten functions and §3
+names *"step 4.5"* as a BUILD STEP; **neither pins a migration number**, so nothing in
+the renumbering contradicts the authority. `0006` and `0007` stay permanent holes —
+reusing them would re-open the five-argument `allocate_fefo` trap that retired them.
+
+### ⚠️ Left open BY 4d-i, and it is 4d-ii's to answer — DOES WASTE GET THE AVAILABILITY CHECK?
+
+4c-i left this by name rather than settling it by writing the code first, and 4d-i does
+not settle it either: `record_purchase` puts stock IN, so §2.6's check does not apply to
+it under any reading. **`record_waste` takes stock out and is not a sale**, which is the
+whole of the question. It is a shop-truth decision, not a lookup — see the note the
+owner has already made on this file's kind of question — and 4d-ii is where it lands.
 
 ### ⚠️⚠️ Found in 4c-ii — §2.10's CLAUSE IS NOT THE WHOLE PROPERTY, AND `skip locked` IS THE PROOF
 
@@ -4375,7 +4451,7 @@ RATHER THAN LATER.** A correction to `0016` cannot take `0017` without renumberi
 4c–4f. It does not need to: **4c-i IS a `create or replace record_sale` in `0017`**, so
 anything 4b-ii finds is folded into the replace 4c-i already writes, and 4c-i is the
 very next task. If 4c-i should somehow merge first, the fix takes the next free number above
-step 4.5's `0021`. This is recorded because the alternative — discovering it while
+step 4.5's `0022`. This is recorded because the alternative — discovering it while
 holding a red suite — is how a numbering decision gets made badly.
 
 ### ⚠️⚠️ Found in 4a — THE RULE REFUSED A FIXTURE THIS REPOSITORY HAS SHIPPED SINCE `0004`
@@ -4467,14 +4543,14 @@ batch trigger kills checks 2 and 10, dropping the delete-or-update trigger kills
 
 - **A lot and its receipt are ONE transaction.** Every RPC that opens a `purchase` or
   `transfer` lot writes the movement that fills it before it returns. `record_purchase`
-  (`0018`) and `record_transfer` (`0019`) are the two that do this directly;
-  `void_transaction` (`0019`) must keep it true, which it does by writing a
+  (`0018`) and `record_transfer` (`0020`) are the two that do this directly;
+  `void_transaction` (`0020`) must keep it true, which it does by writing a
   compensating movement rather than removing the receipt.
 - **A reversal is not a receipt, and a receipt is not a reversal.** The predicate counts
   `reason in ('purchase','transfer_in') and reversal_of_movement_id is null`. A void
   that "corrected" a delivery by deleting the original movement instead of compensating
-  it is refused at the commit — which is the behaviour `0019` should want anyway.
-- **`origin = 'adjustment'` is outside the rule, and `adjust_stock` (`0020`) is the
+  it is refused at the commit — which is the behaviour `0020` should want anyway.
+- **`origin = 'adjustment'` is outside the rule, and `adjust_stock` (`0021`) is the
   reason the exclusion has to survive.** An opening balance or a physical count opens a
   lot whose quantity is asserted by a human. It receives nothing from anybody, and a
   rule spanning all three origins refuses it — measured on the seed's single one, which
@@ -4521,7 +4597,7 @@ step 4.5 names it as a deliverable of the failure path**, alongside `failed_writ
 
 `CLAUDE.md` is unambiguous about what to do when a file disagrees with the ADR, and
 here it is the ADR disagreeing with itself — so the **build-order section wins on a
-build-order question**: `adjust_stock_delta` ships in **`0021`, step 4.5**, and 4f is
+build-order question**: `adjust_stock_delta` ships in **`0022`, step 4.5**, and 4f is
 `adjust_stock` alone. That is also the reading that costs least, because §2.6's own
 gloss on the function is *"Required by the failure path below"* — it exists for
 `record_failed_write` to call, and shipping it a migration earlier buys nothing.
@@ -4547,7 +4623,7 @@ to prevent.
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
 *"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
 correct about the obligation and wrong about the number**: read `0006` as *the RPC
-migration* — now `0015`–`0020` — and `0007` as *the failure path*, now `0021`. Those
+migration* — now `0015`–`0021` — and `0007` as *the failure path*, now `0022`. Those
 files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
@@ -4581,8 +4657,8 @@ this is where they land.
 |---|---|
 | ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
-| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0021`) |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0021`) |
+| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0022`) |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0022`) |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
