@@ -111,7 +111,20 @@ select chk('seed present: both tax rates are sold, so net-of-tax means something
 do $$
 declare v_failed integer;
 begin
-  select count(*) into v_failed from public._verify where not passed;
+  -- ⚠️ `is not true`, NOT `not passed`. A check whose condition evaluates to
+  -- NULL — a subquery that matched no rows, an aggregate over nothing, a
+  -- comparison against a nullable column — prints FAIL in the table above and
+  -- is INVISIBLE to `not passed`, because `not null` is null and a null WHERE
+  -- clause keeps no rows. The file then reports "all N checks passed" with a
+  -- FAIL line printed directly above it, and exits 0.
+  --
+  -- Found in plan task 4b-i and closed there in all six supabase/tests/ suites.
+  -- ⚠️ IT WAS NOT CLOSED HERE: every file in supabase/checks/ carried the same
+  -- guard until task 4c-i, which found it while adding the seventh. Fixed in
+  -- all seven on that commit, none of them changed in any other respect and
+  -- none of their counts changed — the same precedent 3.4 set when it found the
+  -- plan guard 3.3 shipped was itself wrong.
+  select count(*) into v_failed from public._verify where passed is not true;
   if v_failed > 0 then
     raise exception
       'PRE-FLIGHT FAILED (% check(s)): there is no shop in this database to check a '
@@ -522,7 +535,20 @@ select n, case when passed then 'PASS' else 'FAIL' end as result, label, detail
 do $$
 declare v_failed integer;
 begin
-  select count(*) into v_failed from public._verify where not passed;
+  -- ⚠️ `is not true`, NOT `not passed`. A check whose condition evaluates to
+  -- NULL — a subquery that matched no rows, an aggregate over nothing, a
+  -- comparison against a nullable column — prints FAIL in the table above and
+  -- is INVISIBLE to `not passed`, because `not null` is null and a null WHERE
+  -- clause keeps no rows. The file then reports "all N checks passed" with a
+  -- FAIL line printed directly above it, and exits 0.
+  --
+  -- Found in plan task 4b-i and closed there in all six supabase/tests/ suites.
+  -- ⚠️ IT WAS NOT CLOSED HERE: every file in supabase/checks/ carried the same
+  -- guard until task 4c-i, which found it while adding the seventh. Fixed in
+  -- all seven on that commit, none of them changed in any other respect and
+  -- none of their counts changed — the same precedent 3.4 set when it found the
+  -- plan guard 3.3 shipped was itself wrong.
+  select count(*) into v_failed from public._verify where passed is not true;
   if v_failed > 0 then
     raise exception '% margin check(s) FAILED — see the table above', v_failed;
   end if;

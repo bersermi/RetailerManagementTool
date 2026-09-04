@@ -36,7 +36,7 @@ run outside CI — which is the argument that decided 3.7b: a suite about
 | §2.10 clause | Here? |
 |---|---|
 | *"Two identical calls, same id → exactly one row"* | ✅ over all three document headers |
-| *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ❌ the enforcement path is inside `record_sale` — `0006`, build step 4 |
+| *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ❌ **still owed, by plan task 4c-ii.** The enforcement path itself is applied — `0017`, task 4c-i, 2026-09-03 (this cell read `0006` until then). What is missing is the RACE: `supabase/tests/0017` proves the refusal from one connection, and its falsification **F6 deletes the `for update` and turns none of its 35 checks red**, which is precisely the gap a suite in this directory exists to close |
 
 ### `idempotency.test.ts` — three races per header (`sale`, `purchase`, `waste`), nine tests
 
