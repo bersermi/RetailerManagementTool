@@ -31,8 +31,8 @@ this file named in advance — the function is WHOLE in `0016` and 4b-ii is evid
 schema. ⚠️ **The tidier seam — document in one migration, ledger in the next — was
 REFUSED**, because it puts a `record_sale` on `main` that sells goods and moves no
 stock, and §2.4's invariant cannot see that. Reasoning under *Settled in sizing 4b*.
-✅ **4b-i — `record_sale`, `0016` — IS DONE AS OF 2026-09-03, AND `4b-ii` IS THE NEXT
-TASK.** 63 behavioural checks, eleven falsifications, and §2.10's location-isolation
+✅ **4b-i — `record_sale`, `0016` — IS DONE AS OF 2026-09-03.** 63 behavioural
+checks, eleven falsifications, and §2.10's location-isolation
 WRITE half is closed — the first row of §2.10 that step 3 could not write and step 4
 now has. ⚠️⚠️ **TWO OF THE ELEVEN FALSIFICATIONS FOUND DEFECTS IN THE SUITE RATHER
 THAN IN THE FUNCTION**, and the second is the more serious: `where not passed` in the
@@ -47,6 +47,22 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
+✅ **4b-ii — THE ARITHMETIC AND ALLOCATION BREADTH OF THE SAME FUNCTION — IS DONE AS
+OF 2026-09-03, AND `4c` IS THE NEXT TASK.** No migration, by the split: the suite goes
+from 63 checks to **89**, and seven falsifications were run by hand. ✅ **IT FOUND NO
+DEFECT IN `record_sale`** — `0016` stands exactly as it merged, and nothing is folded
+into 4c's `create or replace`. What it found is in the SUITE and in what the suite
+could not previously see: a line that spans two lots, both shortfall branches that
+leave the adjustment lot alone, mixed rates in one document, and the residual identity
+asserted over every line in the database rather than over one hand-checked sale.
+⚠️⚠️ **CHECK 6.2 PINS BEHAVIOUR 4c IS GOING TO CHANGE ON PURPOSE, AND IT IS THE ONE
+THING TO CARRY OUT OF THIS TASK**: today an oversale RECORDS and the debt shows as a
+negative `batch_balance`, because §2.6's availability check is dormant until 4c. The
+check asserts that, so 4c will turn it red — which is the point, and is why it is
+named here rather than discovered as a broken test. ⚠️ **A fourth shape of
+badly-shaped red was found too**: a bare scalar subquery check DIES on `21000` instead
+of printing a FAIL row when a defect splits one line into two. Section 6 is counted
+rather than read; sections 1–5 are not, and the reason is stated. Findings below.
 ✅ **4a shipped the rule before the functions that have to satisfy it**, which is what
 the ordering argument was for: three `deferrable initially deferred` constraint
 triggers, 30 behavioural checks, 10 over the seed and six falsifications run by hand.
@@ -3626,7 +3642,7 @@ recorded there rather than quietly overwritten.
 |---|------|-----------|------|-----------|
 | 4a ✅ | **Receipt completeness — the deferred constraint 3.4 found.** The rule before the functions that must satisfy it | `0015` | S | **DONE 2026-09-03.** Three `deferrable initially deferred` constraint triggers; 30 behavioural checks, 10 over the seed, six falsifications. The seed's 1 041 lots pass, the one `adjustment` lot is outside the rule, and a deleted receipt is refused at commit with the immutability guard lifted by name |
 | 4b-i ✅ | **`record_sale`, the whole function, and its contract** — header, lines, FEFO within the location, movements, the tax split, balance update, one transaction; plus the three rules that are the RPC's OWN rather than the schema's: the location wall, idempotency, and the timestamps | `0016` | M | **DONE 2026-09-03.** 63 behavioural checks and ELEVEN falsifications. §2.10's location-isolation WRITE half is closed. Two of the eleven found defects in the SUITE rather than the function — a vacuously green check and a vacuously green report block, the latter present in all six suites and fixed in all six |
-| 4b-ii | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | Multi-lot FEFO within one line; the shortfall branch; mixed tax rates in one sale; a zero-rated line; a weighed decimal quantity; the residual identity over the RPC's own output; falsifications confirmed to fail |
+| 4b-ii ✅ | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | **DONE 2026-09-03.** `supabase/tests/0016` goes 63 → 89 checks, seven falsifications. Multi-lot FEFO within one line; BOTH shortfall branches reachable with stock on the shelf (the third is check 3.7's); mixed rates in one document; a weighed decimal at a half-centavo boundary; the residual identity over every line in the database, anchored to the price the till sent. **No defect found in `0016`** |
 | 4c | **The availability check — built, dormant** — and §2.10's first concurrency clause | `0017` | M | `create or replace record_sale` carrying the ~20-line enforcement path; with `enforce_stock_default` off, an oversale still records; with it on, **two sessions racing the last unit → exactly one succeeds**, asserted in `supabase/vitest/` on two real connections |
 | 4d | **`record_purchase` and `record_waste`** | `0018` | M | CI green; both under 4a's constraint; `record_purchase` net-first and `record_waste` on the sale shape, per the two lines below; batches with expiry per ADR-017 policy; the location wall on both |
 | 4e | **`record_transfer` and `void_transaction`** | `0019` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
@@ -3652,6 +3668,152 @@ Order is forced, and not by foreign keys this time:
   two spellings of one rule get merged.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Decided in 4b-ii — CHECK 6.2 PINS AN OVERSALE AS CORRECT, AND 4c IS MEANT TO BREAK IT
+
+`allocate_fefo()` does not refuse a shortfall. With 1 kg across two lots and a 1.2 kg
+sale, it takes both and **overdraws the lot it ran out on** (`0010` branch 1), so the
+document records, the ledger balances, and `batch_balance` goes to **−200 g**. §2.4 is
+perfectly green over that state, which is exactly why it needs saying out loud.
+
+Check 6.2 asserts it — the two movements, the negative balance, and that **no
+`adjustment` lot was opened**, which is the one count separating branch 1 from branch 3.
+
+⚠️ **THIS IS TODAY'S BEHAVIOUR, NOT A RULE.** §2.6's availability check is 4c's and is
+dormant until then; when it lands, *"with `enforce_stock_default` on, an oversale is
+refused"* and check 6.2 goes red. **That is the correct outcome and 4c owns the edit.**
+It is recorded here rather than left to be discovered, because a suite that goes red on
+the task that was supposed to change it reads like a regression for as long as it takes
+somebody to open this file.
+
+⚠️ **The offline path is the part that does NOT change.** §2.6 says an offline write
+SKIPS enforcement, so an overdraw stays reachable after 4c through `recorded_offline`,
+and 6.2 has an obvious home there. 4c decides; 4b-ii only insists the case not be
+deleted.
+
+### ⚠️ Found in 4b-ii — A FOURTH SHAPE OF BAD RED: A SCALAR SUBQUERY CHECK *DIES* WHERE IT SHOULD FAIL
+
+`select chk('…', (select line_net = 64.66 from sale_line where sale_id = X))` is exactly
+right while that sale has one line. The moment a defect gives it two, the bare scalar
+subquery raises **`21000` — "more than one row returned by a subquery used as an
+expression"** — and psql dies on the spot. The file never prints its table, and the
+reviewer sees a stack trace where a FAIL row belongs.
+
+✅ **MEASURED — falsification G5**, which moves the `sale_line` insert inside the
+allocation loop so a two-lot line becomes two lines. Before: the file died at check 6.1
+with `21000` and printed nothing. After: **six FAIL rows and an orderly exit 3**,
+including *"a line spanning two lots is still ONE line on the ticket"*, which is the
+sentence that names the defect.
+
+⚠️ **It is NOT the vacuous-green family — it is red either way**, and that is why it is
+a smaller finding than 3.3's disarmed exception, 3.6a's empty workspace or 4b-i's
+`not passed`. It is recorded because the fix is cheap and the shape recurs: **count the
+rows, do not read one.** `(select count(*) from sale_line where sale_id = X and
+line_net = 64.66 …) = 1` asserts the value AND the cardinality, and cannot die.
+
+⚠️ **ONLY SECTION 6 WAS CHANGED, AND THAT IS DELIBERATE.** Every sale in sections 1–5 is
+single-lot by construction — section 7's closing count is what makes that a fact rather
+than an assumption — so their scalar subqueries cannot be handed a second row by any
+defect this suite can express. Rewriting forty working, falsified assertions to buy
+uniformity is the trade 3.1 refused when it declined to port `supabase/tests/` into
+pgTAP, and the same answer applies at this scale. **Binding on 4d through 4f: a check
+over a document that CAN have several lines is counted, not read.**
+
+### ✅ Found in 4b-ii — MIXED RATES ARE THE ONLY PLACE A DOCUMENT-LEVEL SPLIT IS VISIBLE
+
+§2.5 rule 5 says the header is the sum of the ROUNDED lines. The tempting alternative —
+split the document total once — is not merely wrong, it is **undetectable on a
+single-rate ticket**: for one line at 16%, `round(gross / 1.16, 2)` and the sum of the
+lines are the same number, and every check in 4b-i's section 4 stays green.
+
+Falsification G4 replaced the header aggregate with a document-level split. It went red
+on **exactly two checks, both of them 4b-ii's**: 6.4's *"the header is 64.60 + 2.90"*
+(the split gives 58.19 + 9.31, a 6.41 error on a 67.50 ticket) and 6.6's *"every header
+is the sum of its own rounded lines"*. **Nothing in the 63 checks 4b-i shipped moved.**
+
+⚠️ **So the mixed-rate ticket is not one more case, it is the discriminator**, and the
+zero-rated line is what makes it one: 16% beside 0% is an ordinary Mexican basket
+(§2.5 — most unprocessed food is zero-rated, general goods are 16%), and it is the
+cheapest fixture that can tell the two implementations apart. **Binding on 4d**:
+`record_purchase` needs a mixed-rate document for the same reason, net-first.
+
+### ✅ Found in 4b-ii — THE RESIDUAL IDENTITY CANNOT SEE WHICH DIRECTION THE SPLIT WENT
+
+Check 6.6 asserts, over every line in the database, that `line_net =
+round((line_net + tax_amount) / (1 + tax_rate), 2)`. It looks like the whole of §2.5
+rules 2–4 and it is not: **a net-first implementation satisfies it too.**
+`round(net × (1 + rate))` and `round(gross / (1 + rate))` are mutually consistent, so
+the stored row is self-describing whichever end it was computed from.
+
+The direction is only visible against **the price the till sent**, and `sale_line`
+does not store it — the table keeps `unit_price_net_per_base` and has no gross column
+at all (§2.5: the gross unit price is authoritative on a sale, and 0016 takes it from
+the client). So the suite records the sent prices in a scratch table beside the sales
+that used them, and check 6.6 asserts `line_net + tax_amount = round(unit_gross ×
+qty_base, 2)` over all fourteen lines, with a join-coverage guard in front of it
+because a `not exists` over a join that matched nothing is true.
+
+✅ **MEASURED — falsification G1**, a genuine net-first pricing block: 13 checks red,
+including 6.6's anchored one. ⚠️ **And the unanchored one, 6.6's quotient check, stayed
+GREEN under it** — which is the finding, and it is why both are in the file with the
+limit written above the second one.
+
+### ✅ Found in 4b-ii — THE SHORTFALL HAS THREE BRANCHES, AND THE SUITE NOW WALKS ALL THREE
+
+`allocate_fefo()` (`0010`) does three different things when it cannot fill a line, and
+until this task the suite reached one of them:
+
+| Branch | Reached when | Where it is asserted |
+|---|---|---|
+| 1 — overdraw the lot it ran out on | some stock is open, not enough | **6.2**, new |
+| 2 — blame the most recent lot this store held | nothing open, but it HAS held this variant | **6.3**, new |
+| 3 — open an `adjustment` lot | never stocked here at all | 3.7 (4b-i), because it is a *timestamp* claim |
+
+⚠️ **BRANCH 1 AND BRANCH 3 ARE TOLD APART BY ONE COUNT AND NOTHING ELSE.** Both move
+the same quantity and leave the same total on the shelf; only *"no new `adjustment` lot
+exists"* separates them, and getting it wrong puts a fictional zero-cost lot with no
+expiry into the FEFO order of every later sale. Falsification G7 made branch 1 open a
+lot and check 6.2 caught it.
+
+⚠️ **BRANCH 2 ORDERS ON `received_at desc`, WHICH IS THE OPPOSITE END OF THE FEFO
+ORDER**, so the fixture's three lots have expiry and receipt dates that ascend together:
+the lot the loop would reach LAST is the lot the fallback blames FIRST. A fixture where
+the two orderings agreed would call branch 2 green on an allocator that had simply
+re-run FEFO.
+
+### ✅ Found in 4b-ii — THE PER-LOT COST IS THE ONE THING ONLY A MULTI-LOT LINE CAN CHECK
+
+§2.4 snapshots onto every movement *"what the units consumed by THIS movement cost"*,
+and §2.9 divides revenue against it. On a single-lot sale that is one number and any
+implementation gets it right by accident.
+
+Falsification G3 stamps the FIRST allocated lot's cost on every movement of the line —
+correct on every sale 4b-i wrote, wrong on a line that spans two lots at 0.008 and
+0.012. It went red on **exactly one check in the repository**, 6.1's *"TWO movements,
+one per lot, each with that lot's own cost"*, and every other suite stayed green.
+
+⚠️ **That is the clearest single measurement of what 4b-ii buys**, and it is the same
+argument the split was made on: the function was whole, the evidence was not.
+
+### Seven falsifications, run by hand before 4b-ii was committed
+
+Each was applied to the APPLIED schema — `create or replace` over the real `0016`, or
+over `0010`'s `allocate_fefo()` for G7 — the suite was run, and the schema was restored
+and re-verified green at 89. Five of the seven are invisible to every check that
+existed before this task.
+
+| # | The change | What went red |
+|---|---|---|
+| G1 | pricing NET-FIRST: `net = round(unit × qty)`, tax on top | 13 checks, incl. 6.6's price-anchored one — **and 6.6's quotient check stayed green**, which is why both exist |
+| G2 | one movement per line, the whole quantity on the first lot | 6.1, 6.2, 6.3 and section 7's movement count (14, not 16) |
+| G3 | the FIRST lot's cost stamped on every movement of the line | **6.1 alone — one check in the whole repository** |
+| G4 | the header split at the DOCUMENT level | **6.4 and 6.6 alone** — nothing 4b-i shipped moved |
+| G5 | one `sale_line` per LOT instead of per line | 6 checks, incl. *"a line spanning two lots is still ONE line"*. ⚠️ Before section 6's checks were counted rather than read, this one **died on `21000`** and printed no table — see the finding above |
+| G6 | the gross computed in `float8` | 6.5's half-up boundary (15.42, not 15.43) and 6.6's anchor — §2.5 rule 6 observed from the arithmetic end rather than the column end |
+| G7 | shortfall branch 1 OPENS a lot instead of overdrawing | 6.2's three checks, 6.3's two, and section 7's movement count |
+
+⚠️ **NONE OF THE SEVEN IS A DEFECT IN `0016`.** They are deliberate breakages of a
+function that passed all seven; the task found nothing to fix, and `0016` is unchanged.
 
 ### ⚠️⚠️ Found in 4b-i — A CASHIER WRITES A LEDGER THEY CANNOT READ, AND TWO CHECKS WERE VACUOUS BECAUSE OF IT
 
