@@ -47,10 +47,24 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
-✅ **4d IS DONE — BOTH HALVES — AS OF 2026-09-04, AND `4e` (`record_transfer` +
-`void_transaction`, `0020`) IS THE NEXT TASK.** `0018` `record_purchase` (82
+✅ **4d IS DONE — BOTH HALVES — AS OF 2026-09-04.** `0018` `record_purchase` (82
 checks, ten falsifications) and `0019` `record_waste` (67 checks, ten
 falsifications). **Four of step 4's six functions are now applied.**
+⚠️⚠️ **`4e` WAS SIZED AGAINST §2.6 ON 2026-09-04 AND SPLIT INTO `4e-i`
+(`record_transfer`, `0020`) AND `4e-ii` (`void_transaction`, `0021`), BEFORE ANY OF IT
+WAS WRITTEN.** It is an `L`, not the `M` the step-4 table estimated, and the seam is
+4d's — two whole functions cannot share one unapplied migration across two sessions.
+**That cost a SECOND renumbering: 4f to `0022`, the failure path to `0023`**, free
+today and fixed the moment `0020` is green. ⚠️ **4e reserves exactly two numbers and no
+more**: if `void_transaction` overflows one session the overflow takes 4b-ii's
+test-breadth seam and ships no migration, decided now so a third renumbering never
+arises. Reasoning and the before/after table under *Settled in sizing 4e*.
+⚠️⚠️ **ONE DECISION WAS MADE ON THE OWNER'S BEHALF IN THE SIZING: the transfer's
+idempotency hash is RECOMPUTED from the movements, not stored.** A transfer has no
+document table (§2.4, deliberately), so there is no header to carry `payload_hash` —
+and the cheap answer, matching on `transfer_group_id` alone, cannot raise `TD001` and
+would make the transfer the one RPC whose idempotency contract is weaker than the other
+three's. Reasoning under *Decided in sizing 4e*. **`4e-i` IS THE CURRENT TASK.**
 
 ⚠️⚠️ **THE QUESTION 4c-i LEFT OPEN IS CLOSED. THE OWNER SETTLED IT 2026-09-04:
 `record_waste` GETS NO AVAILABILITY CHECK AND RECORDS UNCONDITIONALLY** — the
@@ -327,8 +341,8 @@ deadline under *Confirmed by the owner* below.
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
-| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0021`** (4d was re-split 2026-09-04). `4a` — the receipt-completeness constraint — is first |
-| 4.5 | The failure path | Not started — **`0022`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
+| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day). `4a` — the receipt-completeness constraint — is first |
+| 4.5 | The failure path | Not started — **`0023`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -3710,8 +3724,9 @@ recorded there rather than quietly overwritten.
 | 4c-ii ✅ | **§2.10's first concurrency clause** — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/vitest/test/availability-race.test.ts`: THREE races, 13 tests, six falsifications. The suite goes 16 → 29 and **§2.10's concurrency row is CLOSED**. ⚠️⚠️ **W-F5 — `for update skip locked` — leaves ALL FOUR of the last-unit race's outcome assertions GREEN**, and only the second race catches it. The clause as §2.10 words it is not the whole property |
 | 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
 | 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
-| 4e | **`record_transfer` and `void_transaction`** | `0020` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
-| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0021` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
+| 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | CI green; both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
+| 4e-ii | **`void_transaction`** — a compensating document with `reversal_of` set, over all three kinds | `0021` | M | CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; §2.7's void window is enforced in the body, because a `security definer` RPC is on the far side of every policy that could carry it; `0008` ignores what a void reverses |
+| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
 Order is forced, and not by foreign keys this time:
 
@@ -3744,7 +3759,14 @@ Order is forced, and not by foreign keys this time:
   append-only argument that forced the six-way split in the first place, applied one
   level down.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
-  of them do not exist until then. **4f last**, and it is the smallest.
+  of them do not exist until then. ⚠️ **4e was itself sized and split into 4e-i /
+  4e-ii on 2026-09-04, before any of it was written** — it is an `L`, not the `M`
+  this table first estimated, and the seam is 4d's rather than 4b's: two whole
+  functions, so **a second renumbering**. Reasoning under *Settled in sizing 4e*.
+- **4e-ii after 4e-i, and it is not the test-breadth seam 4b and 4c used** — same
+  append-only argument as 4d-ii. ⚠️ **If `void_transaction` overflows one session
+  the overflow takes 4b-ii's seam and ships NO migration**, decided in sizing so
+  that a third renumbering never arises. **4f last**, and it is the smallest.
 
 ### ✅⚠️⚠️ CLOSED BY THE OWNER 2026-09-04 — WASTE RECORDS UNCONDITIONALLY, AND `0019` HAS NO AVAILABILITY CHECK
 
@@ -4014,6 +4036,101 @@ the suite rather than by a falsification) was fixed in the file itself.
 found a real defect in `0018`** — the `qty_display` rounding gate above. Nine of the ten
 below confirm checks that were already right; F0 is the one that changed the function.
 
+### ⚠️⚠️ Settled in sizing 4e, 2026-09-04 — IT IS AN `L`, AND THE SEAM IS 4d's, WHICH COSTS A SECOND RENUMBERING
+
+4e was estimated `M` on 2026-09-03 as *"`record_transfer` and `void_transaction`"*, one
+migration. **That estimate is wrong in the same way 4d's was and for the same reason:
+every size in the step-4 table was written before any of step 4 existed.** Each task
+re-sized against the APPLIED schema since has come back larger — 4b was one `M` that
+took two sessions, 4c was `M` re-sized `L`, 4d was `M` re-sized `L`. **4e is TWO whole
+functions and one of them is the widest row in §2.6's table.** It is an `L`.
+
+⚠️⚠️ **THE SEAM IS THE FUNCTION AGAIN, NOT TEST BREADTH.** 4b and 4c both split by
+evidence — the migration lands whole in the first session, the second adds checks and
+ships no migration. That seam cannot be used here for exactly the reason 4d could not
+use it: **two whole functions cannot share one unapplied `0020` across two sessions**,
+which is the append-only argument that forced the six-way split in the first place,
+applied one level down. 4b's refused seam — a function's internals across two
+migrations — stays refused.
+
+The two functions share the boilerplate and nothing else:
+
+| | `record_transfer` (4e-i) | `void_transaction` (4e-ii) |
+|---|---|---|
+| Document | ⚠️ **NONE.** A transfer is a pair of movements (§2.4, shape fixed in `0004`) | one NEW document per kind, `reversal_of` set, original never mutated |
+| Kinds | one | ⚠️ **THREE** — `purchase`, `sale`, `waste`, each with its own line table, its own tax anchor and its own movement shape |
+| Location wall | ⚠️ **TWO**, plus *both must resolve to ONE workspace* (§2.6) — the case 4b-i named as the one it cannot derive | one, read off the document being voided |
+| Stock | `allocate_transfer()`, applied since `0005` and already exercised by the seed | compensating movements against **the same batch** (`stock_movement.reversal_of_movement_id`, `0004`) |
+| Idempotency | ⚠️ **has no `payload_hash` column to live in** — see below | the compensating document's own client id, on the ordinary header |
+| Role | none of its own | ⚠️ **§2.7's void window** — `workspace_setting.void_window_minutes`, and a `security definer` RPC is on the far side of every policy that might have carried it |
+| Reporting | none | ⚠️ **`0008` must ignore what a void reverses** (§2.3) or a voided delivery prefills its price forever |
+
+**That table is the argument.** A 4e-i that shipped `0020` with both functions complete
+would have done all of the expensive work already, and a 4e-ii that only added tests
+would have split the cheap half — 4d's finding, and it holds harder here.
+
+⚠️⚠️ **THE COST IS A SECOND RENUMBERING, AND IT IS THE ONE THING IN THIS SECTION THAT
+IS EXPENSIVE LATER.**
+
+| Task | Was | Now |
+|---|---|---|
+| 4e-i — `record_transfer` | `0020` | `0020` — unchanged |
+| 4e-ii — `void_transaction` | *(shared `0020`)* | **`0021`** |
+| 4f — `adjust_stock` | `0021` | **`0022`** |
+| Step 4.5 — failure path, `adjust_stock_delta` | `0022` | **`0023`** |
+
+⚠️ **This is free TODAY and unrepeatable after `0020` merges** — the same trade 4d took
+on the same reasoning. None of those numbers has been applied by CI, so today it is an
+edit to two Markdown files; the moment `0020` is green they are fixed the way
+`0015`–`0019` now are. **`supabase/README.md` carries the same table** and was updated
+in the same commit — it is the file the numbering rule says is authoritative.
+
+⚠️⚠️ **4e RESERVES EXACTLY TWO NUMBERS AND NO MORE, AND THAT IS DECIDED HERE RATHER
+THAN DISCOVERED LATER.** `void_transaction` may well not fit in one session either —
+three document kinds is three of everything in the table above. **If it does not, the
+overflow takes 4b-ii's seam and NOT 4d's**: the function lands whole in `0021` and the
+second half is a test-breadth task that ships no migration. A third renumbering is
+ruled out now, while ruling it out still costs nothing.
+
+**ADR-035 does not object, and was checked.** §2.6 lists `record_transfer` and
+`void_transaction` as two separate rows of the write-surface table and **pins no
+migration number to either**. §2.4 fixes the transfer's movement shape in `0004` and
+§2.7 fixes the void window; neither says when the RPC that uses them ships. `0006` and
+`0007` stay permanent holes.
+
+### ⚠️⚠️ Decided in sizing 4e, on the owner's behalf — the transfer's idempotency is RECOMPUTED, not stored
+
+**A transfer has no document table, so §2.6's idempotency contract has nowhere to
+live.** `record_sale`, `record_purchase` and `record_waste` each store a `payload_hash`
+on the header and compare it, and that comparison is what makes *"same id, different
+lines"* a `TD001` rather than a duplicate-key error. `stock_movement` has no such
+column — it has `transfer_group_id`, which pairs the legs of one shipment and carries
+nothing about what was on the van (`0004`).
+
+Three answers were available. **4e-i takes the second.**
+
+1. **Add a column** — a `transfer` header, or a hash on the movement. ⚠️ **Refused.**
+   §2.4 says a transfer has no document table *deliberately*, and `0004`'s comment on
+   `transfer_group_id` says so at the column. Changing that is an ADR question, not a
+   migration, and this task has no mandate to ask it.
+2. ✅ **Recompute the hash from the movements already written** under that
+   `transfer_group_id` and compare it to the incoming payload's. **No schema change,
+   and it is the only answer that keeps the contract.** The `transfer_out` legs at the
+   origin sum, per variant, to exactly the normalised line 4b-i defined — canonical
+   base-unit quantities, ordered by content, taken after unit conversion — because the
+   allocator wrote them from it.
+3. **Detect the id alone** — any movement with this `transfer_group_id` means
+   `already_recorded`, lines uncompared. Cheapest. ⚠️ **Refused: it cannot raise
+   `TD001`**, which would make the transfer the one RPC in the write surface whose
+   idempotency contract is weaker than the other three's, discoverable only by a client
+   that sends a corrected retry and gets a success for the first version.
+
+⚠️ **4d-i's rule is what forces this:** *"`TD001` is REUSED, not re-invented — one
+sqlstate for §2.6's same id, different payload across the whole write surface, and
+4d-ii, 4e and 4f inherit that."* A function that cannot raise it has not inherited it.
+**This is cheap to reverse only until a client branches on it**, which is the same
+warning `TD001` and `TD002` already carry.
+
 ### ⚠️⚠️ Settled in sizing 4d, 2026-09-04 — IT IS AN `L`, AND THE SEAM COST A RENUMBERING
 
 4d was estimated `M` on 2026-09-03 as *"`record_purchase` and `record_waste`"*, one
@@ -4054,7 +4171,7 @@ LATER.** Two functions in two sessions need two migrations, so `record_waste` ta
 | 4d-ii — `record_waste` | *(shared `0018`)* | **`0019`** |
 | 4e — `record_transfer`, `void_transaction` | `0019` | **`0020`** |
 | 4f — `adjust_stock` | `0020` | **`0021`** |
-| Step 4.5 — failure path, `adjust_stock_delta` | `0021` | **`0022`** |
+| Step 4.5 — failure path, `adjust_stock_delta` | `0021` | **`0022`** | *(moved again by 4e — now `0023`)*
 
 ⚠️ **This is free TODAY and unrepeatable after `0019` merges.** None of those numbers
 has been applied by CI, so today the renumbering is an edit to two Markdown files.
@@ -4882,7 +4999,7 @@ step 4.5 names it as a deliverable of the failure path**, alongside `failed_writ
 
 `CLAUDE.md` is unambiguous about what to do when a file disagrees with the ADR, and
 here it is the ADR disagreeing with itself — so the **build-order section wins on a
-build-order question**: `adjust_stock_delta` ships in **`0022`, step 4.5**, and 4f is
+build-order question**: `adjust_stock_delta` ships in **`0023`, step 4.5**, and 4f is
 `adjust_stock` alone. That is also the reading that costs least, because §2.6's own
 gloss on the function is *"Required by the failure path below"* — it exists for
 `record_failed_write` to call, and shipping it a migration earlier buys nothing.
@@ -4908,7 +5025,7 @@ to prevent.
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
 *"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
 correct about the obligation and wrong about the number**: read `0006` as *the RPC
-migration* — now `0015`–`0021` — and `0007` as *the failure path*, now `0022`. Those
+migration* — now `0015`–`0022` — and `0007` as *the failure path*, now `0023`. Those
 files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
@@ -4942,8 +5059,8 @@ this is where they land.
 |---|---|
 | ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
-| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0022`) |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0022`) |
+| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0023`) |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0023`) |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone

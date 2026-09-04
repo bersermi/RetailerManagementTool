@@ -78,11 +78,13 @@ to make a correction look tidy would be the more confusing choice.
 
 **Settled by the owner, on the session that split build step 4.** `0006` was held for
 the RPCs and `0007` for the failure path. Neither was ever written, **both numbers are
-now skipped for good**, and step 4 takes `0015`–`0021` with the failure path at
-`0022`. ⚠️ **The upper bound moved on 2026-09-04**: 4d was re-sized `L` and split by
-FUNCTION rather than by test breadth, which cost one migration number and pushed
-everything after it up one — see the list below and *Settled in sizing 4d* in the
-plan. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
+now skipped for good**, and step 4 takes `0015`–`0022` with the failure path at
+`0023`. ⚠️⚠️ **The upper bound has moved TWICE, both on 2026-09-04**: 4d and then 4e
+were each re-sized `L` and split by FUNCTION rather than by test breadth, and each cost
+one migration number and pushed everything after it up one — see the list below and
+*Settled in sizing 4d* / *Settled in sizing 4e* in the plan. ⚠️ **4e reserves no third
+number**: an overflow of `void_transaction` takes the test-breadth seam and ships no
+migration. `docs/PLAN.md`, *Step 4 — the write surface (§2.6)*, carries the split.
 
 Two reasons, and the first is the one that mattered:
 
@@ -98,16 +100,17 @@ Two reasons, and the first is the one that mattered:
    functions merging in six PRs cannot share one file. The pieces at `0015`+ sit
    together in the order a reviewer reads them; one piece at `0006` and five at
    `0015`+ do not. ⚠️ **It was six pieces at `0015`–`0020` when this was written on
-   2026-09-03; the 4d re-split made it seven at `0015`–`0021`.** The argument is
+   2026-09-03; the 4d re-split made it seven at `0015`–`0021` and the 4e re-split made
+   it eight at `0015`–`0022`.** The argument is
    unchanged — it is the argument that produced the re-split.
 
 ⚠️ **`0006` IS WRITTEN ALL OVER THIS REPOSITORY AND IT WILL NEVER EXIST.** Eight
 applied migrations and eight suites say things like *"the wall is `0006`'s"* or
 *"`record_purchase` in `0006` must do exactly what this file does"*. **They are still
 correct about the obligation and wrong about the number**: read `0006` as *the RPC
-migration* — now `0015`–`0021` — and `0007` as *the failure path*, now `0022`.
-⚠️ **Those two ranges each moved up one on 2026-09-04 with the 4d re-split**, which is
-why this note gives the range and not a per-function number. Those
+migration* — now `0015`–`0022` — and `0007` as *the failure path*, now `0023`.
+⚠️ **Those two ranges each moved up TWICE on 2026-09-04, with the 4d and then the 4e
+re-split**, which is why this note gives the range and not a per-function number. Those
 files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
@@ -159,11 +162,21 @@ it:**
   above. ✅ **The open question is CLOSED: it gets NO availability check.** The
   owner settled it 2026-09-04 — waste records unconditionally, because the loss
   already happened
-- `0020` — `record_transfer`, `void_transaction` (**4e**)
-- `0021` — `adjust_stock`, absolute (**4f**)
-- `0022` — failure path: `failed_write`, **`adjust_stock_delta`**,
+- `0020` — `record_transfer` (**4e-i**). ⚠️ **`4e` split into `4e-i` / `4e-ii` on
+  2026-09-04, the day it was sized, and like the 4d split it MOVED NUMBERS** — two
+  whole functions, the same append-only argument. Everything below is one higher than
+  it was before that date. ⚠️ **A transfer writes NO document**, so its idempotency
+  hash is recomputed from the `transfer_out` movements under the
+  `transfer_group_id` rather than stored on a header — a decision made in sizing, on
+  the owner's behalf, so that `TD001` still reaches a caller who retries a changed
+  payload under the same id
+- `0021` — `void_transaction`, all three document kinds (**4e-ii**). ⚠️ **If it
+  overflows one session the second half ships NO migration** — the test-breadth seam,
+  4b-ii's, so this number is the last one 4e takes
+- `0022` — `adjust_stock`, absolute (**4f**)
+- `0023` — failure path: `failed_write`, **`adjust_stock_delta`**,
   `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
-  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0021` because §3 puts
+  screen exists). ⚠️ **`adjust_stock_delta` is here and not in `0022` because §3 puts
   it here**, though §2.6 counts it among the ten write-surface functions; see
   `docs/PLAN.md`, *Step 4*
 
