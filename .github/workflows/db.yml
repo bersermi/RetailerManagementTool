@@ -287,15 +287,19 @@ jobs:
 
 
       # ---------------------------------------------------------------------
-      # THE TWO-CONNECTION SUITES — TypeScript (tasks 3.7a and 3.7b)
+      # THE TWO-CONNECTION SUITES — TypeScript (tasks 3.7a, 3.7b and 4c-ii)
       #
-      # TWO CLAIMS, NOT ONE, AND ONLY THE FIRST IS §2.10's. idempotency.test.ts
-      # is §2.10's concurrency row ("two identical calls, same id → exactly one
-      # row", task 3.7a). allocation-race.test.ts is docs/PLAN.md task 1.3b's
-      # claim about allocate_fefo() — "two concurrent allocations cannot oversell
-      # one batch" — which §2.10 never asked for and which ran as a .sh in
-      # supabase/tests/ until 3.7b ported it here. They assert OPPOSITE outcomes
-      # on purpose: §2.10's enforcement clause refuses the loser, the allocator
+      # THREE CLAIMS, AND TWO OF THEM ARE §2.10's. idempotency.test.ts is that
+      # row's second clause ("two identical calls, same id → exactly one row",
+      # task 3.7a); availability-race.test.ts is its FIRST ("two sessions, last
+      # unit, enforcement on → exactly one succeeds", task 4c-ii), which could
+      # not be written until 0017 applied because there was no enforcement path
+      # to switch on. §2.10's concurrency row is CLOSED as of that suite.
+      # allocation-race.test.ts is docs/PLAN.md task 1.3b's claim about
+      # allocate_fefo() — "two concurrent allocations cannot oversell one batch"
+      # — which §2.10 never asked for and which ran as a .sh in supabase/tests/
+      # until 3.7b ported it here. The last two assert OPPOSITE outcomes on
+      # purpose: §2.10's enforcement clause refuses the loser, the allocator
       # makes it re-read and take the next lot. See docs/PLAN.md task 3.7b.
       #
       # THIS STEP MUST STAY LAST, below every psql step above it, and the reason
@@ -335,8 +339,17 @@ jobs:
       # ⚠️ V6 IS WEAKER SINCE 3.7b, AND THE GAP IS THE SHRINK ONE ABOVE. With two
       # files here, deleting ONE no longer trips "No test files found" — the step
       # goes green on the other. The number in the log is what a reviewer reads
-      # (16 as of 3.7b); it is deliberately not pinned here, the same call
-      # money.yml makes and for the same reason. Recorded in docs/PLAN.md.
+      # (29 as of 4c-ii, was 16); it is deliberately not pinned here, the same
+      # call money.yml makes and for the same reason. Recorded in docs/PLAN.md.
+      #
+      # ⚠️⚠️ AND `if (!r.success)` IS THE ONLY GUARD BELOW THAT CATCHES A SUITE
+      # WHICH DIED IN `beforeAll`, measured in 4c-ii. availability-race.test.ts
+      # runs its three races there, so a schema defect that makes the FIRST
+      # session's own call raise kills the file before one assertion executes.
+      # The JSON reporter then says success:false, numTotalTests:29 and
+      # numFailedTests:0 — the count guard and the failure guard BOTH pass, and
+      # a green step would have asserted nothing about §2.10's concurrency row.
+      # Observed under falsification W-F3. Do not simplify that first line away.
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

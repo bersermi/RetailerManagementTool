@@ -1,19 +1,23 @@
 # `supabase/vitest/` — the two-connection suites
 
 ADR-035 §2.10's last row is the only one whose **Where** column reads *"TypeScript,
-two connections"*. This package is where it lives. Plan tasks **3.7a** and **3.7b**.
+two connections"*. This package is where it lives. Plan tasks **3.7a**, **3.7b** and
+**4c-ii**.
 
-**Two suites, and only one of them is §2.10's.**
+**Three suites, and §2.10's concurrency row is CLOSED as of 4c-ii.**
 
 | File | Claim | Owed to |
 |---|---|---|
 | `idempotency.test.ts` | *"Two identical calls, same id → exactly one row"* | ADR-035 §2.10 (task 3.7a) |
+| `availability-race.test.ts` | *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ADR-035 §2.10 (task 4c-ii) |
 | `allocation-race.test.ts` | *"Two concurrent allocations cannot oversell one batch"* | `docs/PLAN.md` task 1.3b (ported in 3.7b) |
 
-⚠️ **They assert opposite outcomes, on purpose.** §2.10's other clause refuses the
-loser; `allocate_fefo()` makes the loser **wait, re-read and take the next lot**, so
-both sessions succeed. Neither claim implies the other, and the second one is here
-because it needs two connections — not because §2.10 asked for it.
+⚠️ **Rows two and three assert opposite outcomes, on purpose.** §2.10's enforcement
+clause **refuses** the loser; `allocate_fefo()` makes the loser **wait, re-read and
+take the next lot**, so both sessions succeed. Neither claim implies the other, both
+are true of the applied schema, and the difference between them is the twenty lines
+`0017` added. The third suite is here because it needs two connections — not because
+§2.10 asked for it.
 
 ## Why it is not pgTAP, and not a `.sh`
 
@@ -36,7 +40,7 @@ run outside CI — which is the argument that decided 3.7b: a suite about
 | §2.10 clause | Here? |
 |---|---|
 | *"Two identical calls, same id → exactly one row"* | ✅ over all three document headers |
-| *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ❌ **still owed, by plan task 4c-ii.** The enforcement path itself is applied — `0017`, task 4c-i, 2026-09-03 (this cell read `0006` until then). What is missing is the RACE: `supabase/tests/0017` proves the refusal from one connection, and its falsification **F6 deletes the `for update` and turns none of its 35 checks red**, which is precisely the gap a suite in this directory exists to close |
+| *"Two sessions, last unit, **enforcement on** → exactly one succeeds"* | ✅ **`availability-race.test.ts`, task 4c-ii, 2026-09-04.** Three races, thirteen tests. The path itself is `0017` (task 4c-i), whose falsification **F6 deleted the `for update` and turned none of its 35 single-connection checks red** — the gap this suite exists to close, and W-F1 below is the same deletion run against it |
 
 ### `idempotency.test.ts` — three races per header (`sale`, `purchase`, `waste`), nine tests
 
@@ -48,6 +52,34 @@ run outside CI — which is the argument that decided 3.7b: a suite about
 3. **When the first call aborts, the waiter inserts.** §2.6's clause is *"until the
    first commits **or aborts**, then either sees the row or **inserts**"*, and only
    this branch tells an idempotent retry apart from one that was refused outright.
+
+### `availability-race.test.ts` — three races, thirteen tests
+
+§2.10's clause one, and the last cell of that row. One store, one variant per race,
+one line of one unit; A sells and holds its transaction open, B fires the same ticket
+while A is uncommitted, the observer names who B is waiting on, and only then does A
+commit.
+
+| | Enforcement | On the shelf | Outcome |
+|---|---|---|---|
+| **R1** | on | **1** | exactly one sale, the loser refused with `TD002`, shelf at **0** |
+| **R2** | off — the shipped default | 1 | **both** sales record, shelf at **−1** |
+| **R3** | on | 2 | **both** sales record, shelf at 0 |
+
+**R2 and R3 are not padding; they are what stop R1 being green for the wrong reason.**
+
+- **R2 is the pair.** Same fixture, same quantities, same two connections, same lock,
+  same blocking pid — and the opposite answer. `enforce_stock` is the only thing that
+  differs, so R1's refusal is `0017`'s twenty lines and not an artefact of racing. It
+  is `supabase/tests/0016` check 6.2 raced: ADR-035 §1's *"stock is recorded, not
+  enforced"*, with the debt visible as a negative balance rather than lost.
+- ⚠️ **R3 IS THE ONE THE LITERAL CLAUSE DOES NOT COVER, AND IT CAUGHT A REAL WRONG
+  ANSWER.** *"Two sessions, last unit → exactly one succeeds"* is also satisfied by an
+  implementation that refuses **every** concurrent second sale, stock or no stock —
+  which is what `for update skip locked` produces, and `skip locked` is the idiom a
+  reviewer reaches for around a contended row. **Falsification W-F5 applies it and all
+  four of R1's outcome assertions stay green.** R3 — two units, both served — is what
+  goes red. A one-race version of this file would have merged it.
 
 ### `allocation-race.test.ts` — one race, seven tests
 
@@ -101,6 +133,13 @@ expect(await blockedBy(observer, b.pid)).toEqual([a.pid]);
 `pg_blocking_pids()` and not `wait_event_type = 'Lock'`, because it names *who* is
 blocking. The `.sh` could only assert that some lock wait existed.
 
+⚠️ **It is measured, not decorative.** Falsification W-F4 makes the race not race — A
+commits before B is fired — and **nine of `availability-race.test.ts`'s thirteen tests
+stay green**: the shelf still empties, the loser is still refused with `TD002`, the
+counts still come out exactly right. The four that go red are the three `blockedBy`
+assertions and the "blocked before either call committed" guard beside them. Without
+them this suite would be a slow re-statement of `supabase/tests/0017`.
+
 ## Running it
 
 ```sh
@@ -118,3 +157,12 @@ its ordinary name, because it needs nothing.
 It **truncates the database** (via `supabase/tests/_cleanup.sql` — the same file the
 psql suites run, not a copy) and builds its own fixture, so in CI it is the **last**
 step. See the comment on that step in `.github/workflows/db.yml`.
+
+⚠️ **A SUITE THAT DIES IN `beforeAll` REPORTS ZERO FAILING TESTS**, and 4c-ii measured
+it. `availability-race.test.ts` races inside `beforeAll`, so a schema defect that makes
+session A's own call raise takes the whole file down before one assertion runs. Vitest's
+JSON reporter then says `success: false`, `numTotalTests: 29` and **`numFailedTests: 0`**
+— so two of the three guards in `db.yml`'s node block wave it through and only
+`if (!r.success)` catches it. That line is load-bearing, not belt-and-braces. Observed
+under falsification W-F3, and the same badly-shaped red `supabase/tests/0016` and `0017`
+both record for their own bare calls.

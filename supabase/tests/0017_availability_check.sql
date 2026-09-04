@@ -617,11 +617,23 @@ select chk('6.4 …but the SAME sale offline reaches branch 3 and opens one — 
 -- `supabase/tests/0005_allocation_concurrency.sh` was written to avoid for the
 -- allocator and the reason it became a Vitest suite in 3.7b.
 --
--- It is docs/PLAN.md task 4c-ii, in `supabase/vitest/`, on two real
--- connections, and it names the blocking pid rather than merely observing that
--- some wait occurred. Said out loud here, as check 2.9 of `supabase/tests/0016`
--- says the same thing about §2.6's third idempotency row, so this file's green
--- is not read as the whole of §2.10.
+-- ✅ IT IS NOW ASSERTED NEXT DOOR, as of docs/PLAN.md task 4c-ii, 2026-09-04:
+-- `supabase/vitest/test/availability-race.test.ts`, three races and thirteen
+-- tests on two real connections, naming the blocking pid rather than merely
+-- observing that some wait occurred. This file's green is still not the whole of
+-- §2.10 — it is the half a single connection can see — and it is said out loud
+-- here for the same reason check 2.9 of `supabase/tests/0016` says it about
+-- §2.6's third idempotency row.
+--
+-- ⚠️⚠️ AND THAT SUITE FOUND SOMETHING NEITHER FILE'S PROSE HAD ANTICIPATED. The
+-- clause as §2.10 words it — "exactly one succeeds" — is ALSO satisfied by an
+-- enforcement path that refuses every concurrent second sale whether or not the
+-- shelf could serve it. `for update skip locked` is exactly that, and it is the
+-- idiom a reviewer reaches for around a contended row. Its falsification W-F5
+-- leaves all four of the last-unit race's outcome assertions GREEN; what catches
+-- it is a SECOND race with two units on the shelf, where both tills must be
+-- served. Recorded here because the wrong answer lives in THIS file's `for
+-- update`, not in the suite that found it.
 --
 -- What IS asserted here is the half a single connection CAN see: that the lock
 -- is taken over the right rows in the right order, by reading the source. The
