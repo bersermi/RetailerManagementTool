@@ -38,9 +38,16 @@
 --      void window read (§2.6).
 --
 -- Section 4 is one sale end to end, single lot and single rate, which is the
--- floor everything above stands on. THE MULTI-LOT, MIXED-RATE AND SHORTFALL
--- ARITHMETIC IS 4b-ii's — deliberately, and named in the plan — with one
--- exception noted at check 3.6.
+-- floor everything above stands on.
+--
+-- SECTION 6 IS TASK 4b-ii, AND IT SHIPS NO MIGRATION. `record_sale` was whole
+-- when 0016 merged; 4b-ii is the evidence for the paths 4b-i's fixture does not
+-- walk — a line spanning several lots, both shortfall branches that leave the
+-- adjustment lot alone, mixed rates in one document, a weighed decimal
+-- quantity, and the residual identity asserted over every line in the database
+-- rather than over one hand-checked sale. The seam is test breadth, and the
+-- reasoning for refusing the tidier one is in docs/PLAN.md under *Settled in
+-- sizing 4b*.
 -- ============================================================================
 \set ON_ERROR_STOP on
 \timing off
@@ -835,25 +842,504 @@ select chk('5.14 …and the good first line was not recorded on its own',
 commit;
 
 
--- ==================================================== 6. the closing state ==
+
+-- =========================== 6. arithmetic and allocation breadth (4b-ii) ===
+-- docs/PLAN.md task 4b-ii, and it ships NO MIGRATION. `record_sale` was whole
+-- when 0016 merged — the seam 4b was split on is test breadth, not function
+-- completeness, and the reasoning for refusing the tidier seam is recorded in
+-- the plan under *Settled in sizing 4b*.
+--
+-- Section 4 is the floor: ONE lot, ONE rate, one sale end to end. Every sale
+-- above this line is single-lot by construction, which is what makes section 7's
+-- closing count readable and what leaves these five paths unwalked:
+--
+--   * a line that spans SEVERAL LOTS, each with its own cost (§2.4, §2.9)
+--   * the SHORTFALL, both branches the RPC can reach with stock on the shelf —
+--     0010's overdraw and its closed-lot fallback. The third, "never stocked
+--     here", is check 3.7's, because it is a timestamp claim
+--   * MIXED RATES in one document, where a document-level tax split stops being
+--     merely wrong and starts being visibly wrong
+--   * a WEIGHED DECIMAL quantity, which is where unit conversion and §2.5
+--     rule 6's half-up rounding meet
+--   * the residual identity asserted over the RPC's OWN output rather than over
+--     one hand-checked sale
+--
+-- ⚠️ EVERY LEDGER READ BELOW IS OUTSIDE THE ROLE BLOCK, and that is 4b-i's
+-- finding rather than a style choice: `stock_movement_select` and
+-- `stock_batch_select` (0004) are gated on manager, so a cashier writes lots and
+-- movements they cannot then read. A negative existence check under a restricted
+-- role proves nothing (F10). Assert the refusal as the restricted actor; assert
+-- what is on disk as somebody who can see the disk.
+
+
+-- ------------------------------------------------------- the second delivery --
+-- A THIRD LOT SET, AT STORE 1, WITH THREE DISTINCT EXPIRY DATES — which is the
+-- smallest fixture FEFO can be observed on at all. `b_mass_1` has no expiry, so
+-- it sorts `nulls last` and could never demonstrate an ordering.
+--
+-- The three costs differ on purpose (0.008 / 0.012 / 0.020): §2.9 attributes
+-- revenue to the lot actually consumed, so a multi-lot line whose movements all
+-- carried one cost would be indistinguishable from a correct one on quantity
+-- alone.
+--
+-- ⚠️ ONE TRANSACTION, and it is 4a's rule rather than tidiness: 0015 refuses at
+-- COMMIT a `purchase` lot whose live receipt movements do not sum to what it
+-- opened. `record_purchase` (0018) writes exactly this shape.
+
+insert into product_variant (workspace_id, family_id, name, base_unit_code,
+       purchase_unit_code, sell_unit_code, price_unit_code, tax_rate) values
+  (:'ws_a', :'fam_mass', 'Jitomate saladette', 'g', 'kg', 'kg', 'kg', 0.16);
+select id as var_multi from product_variant
+ where workspace_id = :'ws_a' and name = 'Jitomate saladette' \gset
+
+\set pur_3 '''aaaa0016-0000-0000-0000-000000000003'''
+\set b_ml_a '''eeee0016-0000-0000-0000-000000000001'''
+\set b_ml_b '''eeee0016-0000-0000-0000-000000000002'''
+\set b_ml_c '''eeee0016-0000-0000-0000-000000000003'''
+
+begin;
+insert into purchase (id, workspace_id, location_id, provider_id, occurred_at,
+                      total_net, total_tax, created_by, payload_hash) values
+  (:pur_3, :'ws_a', :'loc_1', :'prov_a', now() - interval '9 days',
+   42.00, 6.72, :owner_a, 'hash-0016-pur-3');
+
+insert into purchase_line (id, workspace_id, location_id, purchase_id, variant_id,
+       qty_base, qty_display, qty_display_unit, unit_price_net_per_base,
+       line_net, tax_amount, tax_rate, expiry_date) values
+  ('cccc0016-0000-0000-0000-000000000001', :'ws_a', :'loc_1', :pur_3, :'var_multi',
+   1000, 1,   'kg', 0.008000,  8.00, 1.28, 0.16, current_date + 2),
+  ('cccc0016-0000-0000-0000-000000000002', :'ws_a', :'loc_1', :pur_3, :'var_multi',
+   2000, 2,   'kg', 0.012000, 24.00, 3.84, 0.16, current_date + 5),
+  ('cccc0016-0000-0000-0000-000000000003', :'ws_a', :'loc_1', :pur_3, :'var_multi',
+    500, 0.5, 'kg', 0.020000, 10.00, 1.60, 0.16, current_date + 9);
+
+-- `received_at` ascends with expiry here, which is deliberate and is what makes
+-- check 6.3 a claim about the FALLBACK's ordering key rather than an accident:
+-- the closed-lot branch orders on `received_at desc`, so the lot it blames is
+-- the one with the LATEST expiry — the opposite end of the FEFO order the loop
+-- above it walks.
+insert into stock_batch (id, workspace_id, location_id, variant_id, origin,
+       provider_id, source_purchase_line_id, qty_received_base,
+       unit_cost_net_per_base, received_at, expiry_date, created_by) values
+  (:b_ml_a, :'ws_a', :'loc_1', :'var_multi', 'purchase', :'prov_a',
+   'cccc0016-0000-0000-0000-000000000001', 1000, 0.008000,
+   now() - interval '9 days', current_date + 2, :owner_a),
+  (:b_ml_b, :'ws_a', :'loc_1', :'var_multi', 'purchase', :'prov_a',
+   'cccc0016-0000-0000-0000-000000000002', 2000, 0.012000,
+   now() - interval '8 days', current_date + 5, :owner_a),
+  (:b_ml_c, :'ws_a', :'loc_1', :'var_multi', 'purchase', :'prov_a',
+   'cccc0016-0000-0000-0000-000000000003',  500, 0.020000,
+   now() - interval '7 days', current_date + 9, :owner_a);
+
+insert into stock_movement (workspace_id, location_id, batch_id, variant_id, reason,
+       qty_base, unit_cost_net_per_base, purchase_id, occurred_at, created_by) values
+  (:'ws_a', :'loc_1', :b_ml_a, :'var_multi', 'purchase',
+   1000, 0.008000, :pur_3, now() - interval '9 days', :owner_a),
+  (:'ws_a', :'loc_1', :b_ml_b, :'var_multi', 'purchase',
+   2000, 0.012000, :pur_3, now() - interval '8 days', :owner_a),
+  (:'ws_a', :'loc_1', :b_ml_c, :'var_multi', 'purchase',
+    500, 0.020000, :pur_3, now() - interval '7 days', :owner_a);
+commit;
+
+select chk('6.0 the fixture delivered three lots with three expiry dates',
+           (select count(*) from batch_balance
+             where variant_id = :'var_multi'::uuid and remaining_base > 0) = 3
+       and (select count(distinct expiry_date) from batch_balance
+             where variant_id = :'var_multi'::uuid) = 3,
+           format('lots=%s',
+                  (select count(*) from batch_balance
+                    where variant_id = :'var_multi'::uuid)));
+
+\set sale_ml  '''99990016-0000-0000-0000-000000000020'''
+\set sale_ovr '''99990016-0000-0000-0000-000000000021'''
+\set sale_cls '''99990016-0000-0000-0000-000000000022'''
+\set sale_mix '''99990016-0000-0000-0000-000000000023'''
+\set sale_wgh '''99990016-0000-0000-0000-000000000024'''
+
+
+-- 6.1 — MULTI-LOT FEFO WITHIN ONE LINE. 2.5 kg against lots of 1 kg, 2 kg and
+-- 0.5 kg: FEFO takes all of the earliest-expiring lot and 1.5 kg of the next,
+-- and never reaches the third. ONE line, TWO movements — the shape §2.4 needs,
+-- because "what the units consumed by THIS movement cost" has two answers here
+-- and a single merged movement could carry only one of them.
+begin;
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+set local role authenticated;
+
+select record_sale(:sale_ml::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object(
+           'variant_id', :'var_multi', 'qty_display', 2.5,
+           'qty_display_unit', 'kg',
+           'unit_price_gross_per_base', 0.030))) as r_ml \gset
+commit;
+
+select chk('6.1 a line spanning two lots is still ONE line on the ticket',
+           (:'r_ml'::jsonb ->> 'line_count')::integer = 1
+       and (select count(*) from sale_line where sale_id = :sale_ml::uuid) = 1);
+
+select chk('6.1 …and TWO movements, one per lot, each with that lot''s own cost',
+           (select count(*) from stock_movement where sale_id = :sale_ml::uuid) = 2
+       and exists (select 1 from stock_movement
+                    where sale_id = :sale_ml::uuid and batch_id = :b_ml_a::uuid
+                      and qty_base = -1000.000 and unit_cost_net_per_base = 0.008000)
+       and exists (select 1 from stock_movement
+                    where sale_id = :sale_ml::uuid and batch_id = :b_ml_b::uuid
+                      and qty_base = -1500.000 and unit_cost_net_per_base = 0.012000),
+           format('movements=%s costs=%s',
+                  (select count(*) from stock_movement where sale_id = :sale_ml::uuid),
+                  (select count(distinct unit_cost_net_per_base)
+                     from stock_movement where sale_id = :sale_ml::uuid)));
+
+-- ⚠️ THE ORDER IS THE CLAIM, NOT THE ARITHMETIC. An allocator that took the lots
+-- newest-first would move the same 2 500 g and leave the same total on the
+-- shelf; only WHICH lots it emptied tells the two apart, and the answer is
+-- visible on three balances and nowhere else.
+select chk('6.1 FEFO emptied the EARLIEST expiry and never touched the latest',
+           (select remaining_base from batch_balance where batch_id = :b_ml_a::uuid) = 0
+       and (select remaining_base from batch_balance where batch_id = :b_ml_b::uuid) = 500
+       and (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid) = 500,
+           format('a=%s b=%s c=%s',
+                  (select remaining_base from batch_balance where batch_id = :b_ml_a::uuid),
+                  (select remaining_base from batch_balance where batch_id = :b_ml_b::uuid),
+                  (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid)));
+
+-- The money is the LINE's, not the lot's: one price, one rate, one split.
+-- 0.030 × 2 500 = 75.00 gross; 75.00 / 1.16 = 64.65517… → 64.66 net; 10.34 tax.
+--
+-- ⚠️ COUNTED, NOT READ AS A SCALAR, AND FALSIFICATION G5 IS WHY. `(select
+-- line_net = … from sale_line where sale_id = X)` is a bare scalar subquery: it
+-- is exactly right while the line is one row and it RAISES `21000` — "more than
+-- one row returned by a subquery used as an expression" — the moment a defect
+-- splits it. The file then dies instead of printing a FAIL row, which is red
+-- either way but not red in the shape a reviewer reads. Section 6 is where
+-- multi-lot lines exist, so section 6 is where the count is not optional; the
+-- sales in sections 1–5 are single-lot by construction and their checks are
+-- unchanged.
+select chk('6.1 the line is priced once, whatever the ledger had to do to fill it',
+           (select count(*) from sale_line
+             where sale_id = :sale_ml::uuid
+               and line_net = 64.66 and tax_amount = 10.34
+               and qty_base = 2500.000) = 1,
+           format('lines=%s net=%s tax=%s',
+                  (select count(*) from sale_line where sale_id = :sale_ml::uuid),
+                  (select max(line_net) from sale_line where sale_id = :sale_ml::uuid),
+                  (select max(tax_amount) from sale_line where sale_id = :sale_ml::uuid)));
+
+
+-- 6.2 — THE SHORTFALL, BRANCH 1: stock on the shelf, but not enough. 0010
+-- OVERDRAWS THE LOT FEFO RAN OUT ON rather than refusing — §2.6's availability
+-- check is 4c's and is DORMANT until then, so today an oversale records and the
+-- debt is visible as a negative balance. That is the behaviour this check pins,
+-- and 4c is what changes it.
+--
+-- 1 kg remains across two lots. Selling 1.2 kg takes both and is 200 g short.
+begin;
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+set local role authenticated;
+
+select record_sale(:sale_ovr::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object(
+           'variant_id', :'var_multi', 'qty_display', 1.2,
+           'qty_display_unit', 'kg',
+           'unit_price_gross_per_base', 0.030))) as r_ovr \gset
+commit;
+
+select chk('6.2 a shortfall overdraws the lot FEFO ran out on — no third movement',
+           (select count(*) from stock_movement where sale_id = :sale_ovr::uuid) = 2
+       and exists (select 1 from stock_movement
+                    where sale_id = :sale_ovr::uuid and batch_id = :b_ml_b::uuid
+                      and qty_base = -500.000)
+       and exists (select 1 from stock_movement
+                    where sale_id = :sale_ovr::uuid and batch_id = :b_ml_c::uuid
+                      and qty_base = -700.000),
+           format('movements=%s',
+                  (select count(*) from stock_movement where sale_id = :sale_ovr::uuid)));
+
+select chk('6.2 …and the debt is on the shelf as a NEGATIVE balance, not hidden',
+           (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid) = -200,
+           format('c=%s',
+                  (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid)));
+
+-- ⚠️ BRANCH 1 IS NOT BRANCH 3, and one count separates them. `allocate_fefo()`
+-- opens an `adjustment` lot only when the store has NEVER held the variant
+-- (check 3.7). An overdraw that opened one instead would look identical on
+-- quantity and would put a fictional zero-cost lot into the FEFO order.
+select chk('6.2 …and it opened NO new lot — that is branch 3, and this is not it',
+           (select count(*) from stock_batch
+             where origin = 'adjustment' and location_id = :'loc_1'::uuid) = 1);
+
+select chk('6.2 the money ignores the shortfall entirely: gross 36.00 → 31.03 + 4.97',
+           (select count(*) from sale_line
+             where sale_id = :sale_ovr::uuid
+               and line_net = 31.03 and tax_amount = 4.97
+               and qty_base = 1200.000) = 1,
+           format('lines=%s net=%s tax=%s',
+                  (select count(*) from sale_line where sale_id = :sale_ovr::uuid),
+                  (select max(line_net) from sale_line where sale_id = :sale_ovr::uuid),
+                  (select max(tax_amount) from sale_line where sale_id = :sale_ovr::uuid)));
+
+
+-- 6.3 — THE SHORTFALL, BRANCH 2: nothing open, but this store HAS held the
+-- variant. 0010 blames the most recent lot it ever had — "most recent" by
+-- `received_at desc`, which here is the lot with the LATEST expiry, i.e. the
+-- opposite end of the order the FEFO loop walks. That is the whole distinction
+-- between the two branches and it is why the fixture's dates ascend together.
+select chk('6.3 the shelf is empty of this variant, which is what forces branch 2',
+           (select count(*) from batch_balance
+             where variant_id = :'var_multi'::uuid
+               and location_id = :'loc_1'::uuid
+               and remaining_base > 0) = 0);
+
+begin;
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+set local role authenticated;
+
+select record_sale(:sale_cls::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object(
+           'variant_id', :'var_multi', 'qty_display', 0.3,
+           'qty_display_unit', 'kg',
+           'unit_price_gross_per_base', 0.030))) as r_cls \gset
+commit;
+
+select chk('6.3 with nothing open, the whole line lands on the most RECENT lot',
+           (select count(*) from stock_movement where sale_id = :sale_cls::uuid) = 1
+       and exists (select 1 from stock_movement
+                    where sale_id = :sale_cls::uuid and batch_id = :b_ml_c::uuid
+                      and qty_base = -300.000
+                      and unit_cost_net_per_base = 0.020000),
+           format('movements=%s batch=%s',
+                  (select count(*) from stock_movement where sale_id = :sale_cls::uuid),
+                  (select min(batch_id::text) from stock_movement
+                    where sale_id = :sale_cls::uuid)));
+
+select chk('6.3 …and still NO adjustment lot — branch 2 reuses, it does not invent',
+           (select count(*) from stock_batch
+             where origin = 'adjustment' and location_id = :'loc_1'::uuid) = 1
+       and (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid) = -500,
+           format('c=%s',
+                  (select remaining_base from batch_balance where batch_id = :b_ml_c::uuid)));
+
+
+-- 6.4 — MIXED RATES IN ONE DOCUMENT. 0.750 kg of the 16% weighed variant beside
+-- 3 pieces of the ZERO-RATED counted one, which is an ordinary Mexican basket:
+-- §2.5 puts most unprocessed food at 0% and general goods at 16%.
+--
+-- ⚠️ THIS IS THE CASE WHERE A DOCUMENT-LEVEL SPLIT STOPS BEING SUBTLE. Rule 5
+-- says the header is the sum of the ROUNDED lines. Splitting the document total
+-- instead — round(67.50 / 1.16, 2) — gives 58.19 net and 9.31 tax against the
+-- true 64.60 and 2.90: a 6.41 error, on a document whose printed lines then fail
+-- to sum to its printed total. A single-rate ticket hides that completely.
+begin;
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+set local role authenticated;
+
+select record_sale(:sale_mix::uuid, :'loc_1'::uuid,
+         jsonb_build_array(
+           jsonb_build_object('variant_id', :'var_mass', 'qty_display', 0.750,
+                              'qty_display_unit', 'kg',
+                              'unit_price_gross_per_base', 0.028),
+           jsonb_build_object('variant_id', :'var_count', 'qty_display', 3,
+                              'unit_price_gross_per_base', 15.50))) as r_mix \gset
+commit;
+
+select chk('6.4 each line keeps its OWN rate and its own split',
+           (select count(*) from sale_line
+             where sale_id = :sale_mix::uuid and tax_rate = 0.1600
+               and line_net = 18.10 and tax_amount = 2.90) = 1
+       and (select count(*) from sale_line
+             where sale_id = :sale_mix::uuid and tax_rate = 0.0000
+               and line_net = 46.50 and tax_amount = 0.00) = 1,
+           format('lines=%s rates=%s',
+                  (select count(*) from sale_line where sale_id = :sale_mix::uuid),
+                  (select count(distinct tax_rate) from sale_line
+                    where sale_id = :sale_mix::uuid)));
+
+select chk('6.4 §2.5 rule 5: the header is 64.60 + 2.90, the SUM of the two lines',
+           (select total_net = 64.60 and total_tax = 2.90
+              from sale where id = :sale_mix::uuid),
+           format('net=%s tax=%s (a document-level split would give 58.19 + 9.31)',
+                  (select total_net from sale where id = :sale_mix::uuid),
+                  (select total_tax from sale where id = :sale_mix::uuid)));
+
+select chk('6.4 …and the summary the till gets back agrees with what was written',
+           (:'r_mix'::jsonb ->> 'line_count')::integer = 2
+       and (:'r_mix'::jsonb ->> 'total_gross')::numeric = 67.50
+       and (:'r_mix'::jsonb ->> 'total_net')::numeric
+             = (select total_net from sale where id = :sale_mix::uuid));
+
+select chk('6.4 two lines, two variants, two movements — the ledger followed both',
+           (select count(*) from stock_movement where sale_id = :sale_mix::uuid) = 2
+       and (select count(distinct variant_id) from stock_movement
+             where sale_id = :sale_mix::uuid) = 2);
+
+
+-- 6.5 — A WEIGHED DECIMAL QUANTITY, where unit conversion and §2.5 rule 6 meet.
+-- 1.234 kg at 0.0125 per gram: the ledger holds 1 234.000 g, the ticket still
+-- says 1.234 kg, and the gross is 15.425 EXACTLY — a half-centavo boundary.
+--
+-- ⚠️ RULE 6 IS HALF-UP, so 15.425 → 15.43. It is reachable only because rule 1
+-- keeps floats out of the money path: `round(float8)` is banker's and would
+-- return 15.42, the even neighbour. 07 asserts the absence of float columns as a
+-- build failure (task 3.5); this is the same rule observed from the other end,
+-- on a value the function computes rather than one a column stores.
+begin;
+select set_config('request.jwt.claims',
+  '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
+set local role authenticated;
+
+select record_sale(:sale_wgh::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object(
+           'variant_id', :'var_mass', 'qty_display', 1.234,
+           'qty_display_unit', 'kg',
+           'unit_price_gross_per_base', 0.0125))) as r_wgh \gset
+commit;
+
+select chk('6.5 the display quantity survives the conversion — 1.234 kg is 1234 g',
+           (select count(*) from sale_line
+             where sale_id = :sale_wgh::uuid
+               and qty_base = 1234.000 and qty_display = 1.234
+               and qty_display_unit = 'kg') = 1);
+
+select chk('6.5 §2.5 rule 6: 15.425 rounds HALF-UP to 15.43, not to the even 15.42',
+           (select coalesce(sum(line_net + tax_amount), 0) from sale_line
+             where sale_id = :sale_wgh::uuid) = 15.43,
+           format('gross=%s',
+                  (select coalesce(sum(line_net + tax_amount), 0) from sale_line
+                    where sale_id = :sale_wgh::uuid)));
+
+select chk('6.5 …and the split of it is 13.30 + 2.13, tax as the residual',
+           (select count(*) from sale_line
+             where sale_id = :sale_wgh::uuid
+               and line_net = 13.30 and tax_amount = 2.13) = 1,
+           format('lines=%s net=%s tax=%s',
+                  (select count(*) from sale_line where sale_id = :sale_wgh::uuid),
+                  (select max(line_net) from sale_line where sale_id = :sale_wgh::uuid),
+                  (select max(tax_amount) from sale_line where sale_id = :sale_wgh::uuid)));
+
+
+-- 6.6 — THE RESIDUAL IDENTITY OVER THE RPC'S OWN OUTPUT. Every check above names
+-- one document and one expected number. These four name none: they run over
+-- EVERY line and EVERY header this file wrote, so a defect that only shows on
+-- some arithmetic the fixture did not think to try still has to survive them.
+--
+-- ⚠️ 6.6a IS THE ONE THAT KNOWS WHICH DIRECTION THE SPLIT WENT, and it needs the
+-- price the till sent, which the ledger does not store: `sale_line` keeps
+-- `unit_price_net_per_base` and no gross column at all. So the sent prices are
+-- recorded here beside the sales that used them. Without that anchor a net-first
+-- implementation is INVISIBLE — round(net × (1+rate)) and round(gross / (1+rate))
+-- are mutually consistent, and 6.6b would be green on both.
+create table public._sent (sale_id uuid, variant_id uuid, unit_gross numeric);
+
+insert into public._sent (sale_id, variant_id, unit_gross) values
+  (:sale_ok::uuid,  :'var_mass'::uuid,  0.028),
+  (:sale_mgr::uuid, :'var_mass'::uuid,  0.028),
+  (:sale_cnt::uuid, :'var_mass'::uuid,  0.028),
+  (:sale_t2::uuid,  :'var_count'::uuid, 15.50),
+  (:sale_t3::uuid,  :'var_count'::uuid, 15.50),
+  (:sale_t4::uuid,  :'var_count'::uuid, 15.50),
+  (:sale_t5::uuid,  :'var_count'::uuid, 15.50),
+  ('99990016-0000-0000-0000-000000000012'::uuid, :'var_new'::uuid, 0.028),
+  (:sale_ml::uuid,  :'var_multi'::uuid, 0.030),
+  (:sale_ovr::uuid, :'var_multi'::uuid, 0.030),
+  (:sale_cls::uuid, :'var_multi'::uuid, 0.030),
+  (:sale_mix::uuid, :'var_mass'::uuid,  0.028),
+  (:sale_mix::uuid, :'var_count'::uuid, 15.50),
+  (:sale_wgh::uuid, :'var_mass'::uuid,  0.0125);
+
+-- The anti-vacuity guard, and it is the same concern section 7 has about the
+-- file as a whole: `not exists` over a join that matched nothing is true, so the
+-- join is required to reach every line before its absence means anything.
+select chk('6.6 the price anchor covers every line in the database, one for one',
+           (select count(*) from public.sale_line l
+              join public._sent s on s.sale_id = l.sale_id
+                                 and s.variant_id = l.variant_id)
+             = (select count(*) from public.sale_line),
+           format('joined=%s lines=%s',
+                  (select count(*) from public.sale_line l
+                     join public._sent s on s.sale_id = l.sale_id
+                                        and s.variant_id = l.variant_id),
+                  (select count(*) from public.sale_line)));
+
+select chk('6.6 §2.5 rules 2–4: net + tax is EXACTLY the gross the till sent, every line',
+           not exists (
+             select 1 from public.sale_line l
+               join public._sent s on s.sale_id = l.sale_id
+                                  and s.variant_id = l.variant_id
+              where l.line_net + l.tax_amount
+                    is distinct from round(s.unit_gross * l.qty_base, 2)));
+
+-- ⚠️ AND WHAT THIS ONE CANNOT SEE, said out loud: it is green under a net-first
+-- implementation too. It pins that the net was reached by DIVISION and the tax
+-- is whatever was left — never a second rounding of its own — and the check
+-- above is what pins the direction.
+select chk('6.6 the net is the rounded quotient, and the tax is only ever the residual',
+           not exists (
+             select 1 from public.sale_line
+              where line_net is distinct from
+                    round((line_net + tax_amount) / (1 + tax_rate), 2)));
+
+select chk('6.6 §2.5 rule 5: every header is the sum of its own rounded lines',
+           not exists (
+             select 1 from public.sale s
+              where s.total_net is distinct from
+                    (select coalesce(sum(l.line_net), 0) from public.sale_line l
+                      where l.sale_id = s.id)
+                 or s.total_tax is distinct from
+                    (select coalesce(sum(l.tax_amount), 0) from public.sale_line l
+                      where l.sale_id = s.id)));
+
+-- Derived from the ROUNDED line net at 6 dp (0016), not from the gross unit
+-- price — which is what stops the column and the line disagreeing by a centavo
+-- on a weighed quantity. 6.5's line is the one where the two spellings differ.
+select chk('6.6 unit_price_net_per_base is the rounded line net over the base qty',
+           not exists (
+             select 1 from public.sale_line
+              where unit_price_net_per_base is distinct from
+                    round(line_net / qty_base, 6)));
+
+-- 6.7 — and the two invariants again, AFTER the multi-lot, the two shortfalls
+-- and a delivery this section wrote itself. Check 4.9 made the same claim over a
+-- ledger where every sale took exactly one lot from exactly one movement; eight
+-- movements, three lots and two negative balances later it is a different claim.
+select chk('6.7 §2.4 still holds over the multi-lot and overdrawn ledger',
+           not exists (select 1 from public.batch_balance_violations()));
+
+select chk('6.7 …and 0015 does too — the second delivery received what it opened',
+           not exists (select 1 from public.receipt_completeness_violations()));
+
+drop table public._sent;
+
+
+-- ================================================== 7. the closing state ===
 -- ⚠️ EVERY GREEN ABOVE IS A CLAIM ABOUT SALES THAT EXIST. A fixture whose stock
 -- never arrived would leave section 4's arithmetic checks failing loudly, but
 -- section 1's and section 5's refusals would ALL be green over an empty
 -- database — the vacuous shape 3.4's floor and 3.1's counter both exist to
 -- refuse. So the subjects are counted.
--- EIGHT: 1.1, 1.8, 3.1, 3.2, 3.3, 3.4, 3.7 and 4.6. One line and one movement
--- each — every sale in this file is single-lot by construction, which is the
--- half of `record_sale` 4b-i claims and the reason 4b-ii exists.
-select chk('6. the file really recorded the sales it then made claims about',
-           (select count(*) from sale) = 8
-       and (select count(*) from sale_line) = 8
-       and (select count(*) from stock_movement where reason = 'sale') = 8,
+-- THIRTEEN SALES, FOURTEEN LINES, SIXTEEN MOVEMENTS, and the three numbers stop
+-- agreeing with each other at section 6, which is the point of it. Sections 1–5
+-- record eight sales — 1.1, 1.8, 3.1, 3.2, 3.3, 3.4, 3.7 and 4.6 — every one of
+-- them a single line filled from a single lot, which is the half of
+-- `record_sale` 4b-i claims. Section 6 adds five more: 6.4 is the only one with
+-- two LINES, and 6.1 and 6.2 are the only ones whose one line took two LOTS.
+--
+-- ⚠️ THE THREE COUNTS ARE NOT ONE CLAIM RESTATED. A merged multi-lot movement
+-- leaves sales and lines untouched and takes 16 to 14; a line silently dropped
+-- from 6.4's ticket leaves sales and movements untouched and takes 14 to 13.
+select chk('7. the file really recorded the sales it then made claims about',
+           (select count(*) from sale) = 13
+       and (select count(*) from sale_line) = 14
+       and (select count(*) from stock_movement where reason = 'sale') = 16,
            format('sales=%s lines=%s movements=%s',
                   (select count(*) from sale),
                   (select count(*) from sale_line),
                   (select count(*) from stock_movement where reason = 'sale')));
 
-select chk('6. and every one of them went through the RPC — none has a null hash',
+select chk('7. and every one of them went through the RPC — none has a null hash',
            not exists (select 1 from sale where btrim(payload_hash) = ''));
 
 -- The helper this file invented, removed by the file that invented it.
