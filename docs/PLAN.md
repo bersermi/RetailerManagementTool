@@ -47,8 +47,14 @@ commit. ⚠️ **The first is why: a cashier writes a ledger they CANNOT READ** 
 application SQLSTATE for §2.6's *"same id, different lines"*. Nothing consumes it yet;
 the moment a client branches on it, changing it costs a coordinated release. Findings
 below.
-✅ **4c-ii — §2.10's CONCURRENCY CLAUSE ON TWO REAL CONNECTIONS — IS DONE AS OF
-2026-09-04 AND MERGED (#44), AND `4d-i` IS THE NEXT TASK.** ⚠️⚠️ **`4d` WAS RE-SIZED
+✅ **4d-i — `record_purchase` IN `0018` — IS DONE AS OF 2026-09-04, AND `4d-ii`
+(`record_waste`, `0019`) IS THE NEXT TASK.** 82 behavioural checks, ten
+falsifications, one defect found in the function and one whole class of defect
+found in the SUITE — see *Found in 4d-i* below, and read the vacuous-green one
+before writing another suite. ⚠️⚠️ **`4d-ii` INHERITS AN OPEN QUESTION THAT IS THE
+OWNER'S, NOT THE CODE'S: does `record_waste` get the availability check?** 4c-i
+declined to settle it by writing the code first and `0018` does not settle it
+either. 4c-ii is DONE AND MERGED (#44). ⚠️⚠️ **`4d` WAS RE-SIZED
 `L` AND SPLIT INTO `4d-i` (`record_purchase`, `0018`) AND `4d-ii` (`record_waste`,
 `0019`) ON 2026-09-04, BEFORE ANY OF IT WAS WRITTEN** — and unlike the 4b and 4c
 splits **this one moved migration numbers**: 4e to `0020`, 4f to `0021`, the failure
@@ -3691,7 +3697,7 @@ recorded there rather than quietly overwritten.
 | 4b-ii ✅ | **The arithmetic and allocation breadth of the same function** — no migration | *(none)* | M | **DONE 2026-09-03.** `supabase/tests/0016` goes 63 → 89 checks, seven falsifications. Multi-lot FEFO within one line; BOTH shortfall branches reachable with stock on the shelf (the third is check 3.7's); mixed rates in one document; a weighed decimal at a half-centavo boundary; the residual identity over every line in the database, anchored to the price the till sent. **No defect found in `0016`** |
 | 4c-i ✅ | **The availability check — built, dormant**, and the psql evidence for it | `0017` | M | **DONE 2026-09-03.** 35 behavioural checks, 9 more over the seed, eight falsifications on the function and three on the seed check. ⚠️ **Check 6.2 did NOT need to move and did NOT go red** — see the finding below. ⚠️ **F6 — the lock deleted — turned NOTHING red**, which is the measured case for 4c-ii |
 | 4c-ii ✅ | **§2.10's first concurrency clause** — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/vitest/test/availability-race.test.ts`: THREE races, 13 tests, six falsifications. The suite goes 16 → 29 and **§2.10's concurrency row is CLOSED**. ⚠️⚠️ **W-F5 — `for update skip locked` — leaves ALL FOUR of the last-unit race's outcome assertions GREEN**, and only the second race catches it. The clause as §2.10 words it is not the whole property |
-| 4d-i | **`record_purchase`, the whole function, and its contract** — header, lines, batches with expiry per ADR-017 policy, positive movements; the tax split NET-first with tax the residual and the rate read from the variant; plus the three inherited rules: the location wall, idempotency, the timestamps. The provider is validated too, and to ONE workspace | `0018` | M | CI green; under 4a's constraint; a mixed-rate document, per 4b-ii's discriminator; ⚠️ **no availability check — §2.6's is a constraint on taking stock OUT** (4c-i) |
+| 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
 | 4d-ii | **`record_waste`** — header, lines with reason and cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | CI green; under 4a's constraint; the location wall, idempotency and timestamps its own; ⚠️⚠️ **it must ANSWER whether waste gets the availability check** — 4c-i left it open by name, and it is a decision, not a lookup |
 | 4e | **`record_transfer` and `void_transaction`** | `0020` | M | CI green; `record_transfer` validates BOTH locations and that they resolve to one workspace; `void_transaction` writes a compensating document with `reversal_of` set and never mutates the original, over all three document kinds |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0021` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
@@ -3728,6 +3734,149 @@ Order is forced, and not by foreign keys this time:
   level down.
 - **4e after 4d**, because `void_transaction` covers all three document kinds and two
   of them do not exist until then. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Found in 4d-i — A FIFTH SHAPE OF VACUOUS GREEN: A CHECK THAT NEVER APPEARS AT ALL
+
+**The first run of `supabase/tests/0018` reported *"all 62 checks passed"*. The file
+contained 80 checks.** Eighteen of them — **every check in sections 1, 2 and 3, which
+is the entire location wall, the entire provider wall and the whole payload ladder,
+plus the three `TD001` rows** — had been silently discarded, and nothing said so.
+
+`chk` records its verdict by INSERTING into `public._verify`. The refusal blocks
+wrapped their calls in `begin … rollback`, copying a shape from 0016 and 0017 where
+the enclosing transaction exists to scope `set local role authenticated`. **The
+rollback threw the verdicts away with everything else.** The `serial` gaps in the
+report were the only trace: n jumped 5 → 8, 11 → 22, 61 → 65.
+
+⚠️ **THIS IS A DIFFERENT ANIMAL FROM THE FOUR ALREADY RECORDED, AND THE EXISTING
+GUARDS CANNOT SEE IT.** Every one of those catches a check that RAN and asserted
+nothing:
+
+| | The shape | What catches it |
+|---|---|---|
+| 4b-i | a condition that is always true | reading the check, and falsification |
+| 4b-i | `not passed` misses a NULL verdict | `passed is not true` in the report block |
+| 4b-ii | a scalar-subquery check DIES where it should fail | `21000` surfaces as red |
+| 4c-ii | a Vitest file dies in `beforeAll` — `numFailedTests: 0` | `!r.success` in `db.yml` |
+| **4d-i** | **the verdict is rolled back — the row never exists** | **nothing. A report cannot miss what was never inserted** |
+
+The fix is two lines of policy and one check:
+
+- **The refusal blocks end in `commit`, not `rollback`, and the file says why at the
+  first one.** Nothing in them writes anything — that is exactly what checks 1.4, 2.6,
+  3.12 and 10.3 assert — so the commit keeps the verdicts and nothing else.
+- **Check 10.7 asserts the file's own check count against a LITERAL.** Deliberately a
+  literal and not anything derived: a count computed from the file would agree with the
+  file whatever the file did. Adding a check means changing the number, which is the
+  point — two places have to know, and a check that silently stops running cannot keep
+  both happy.
+
+⚠️ **BINDING ON 4d-ii THROUGH 4f, AND WORTH A LOOK BACKWARDS.** Every suite in
+`supabase/tests/` that wraps a `chk_raises` in a rolled-back transaction has this bug.
+0016 and 0017 were read for it during this task and are clean — their refusal blocks
+either commit or never open a transaction — but **that was luck rather than a rule, and
+the count guard is now the rule.**
+
+### ⚠️ Found in 4d-i — `qty_display` IS `numeric(14,3)` TOO, AND ONE ARM DID NOT COVER IT
+
+The one defect the suite found in `0018` itself. The validation ladder refused a
+quantity that rounds to zero **in the base unit**, which is the gate 0016 needs. It is
+not the only gate here: `purchase_line.qty_display` is `numeric(14,3)` as well, and on
+any unit COARSER than the base the two disagree. **0.0004 kg is 0.4 g — comfortable in
+the base unit, and zero in the denomination it was keyed in.**
+
+The line therefore priced, reached `purchase_line`, and was refused there by
+`purchase_line_qty_display_agrees` with **`23514` and a constraint name** — where the
+ladder exists precisely so an operator is told which number they keyed is too small.
+Check 3.11 caught it by asserting the SQLSTATE; a check that only demanded *"it
+raises"* would have been green against the broken version. Fixed in `0018` with a
+second arm, before it was ever applied.
+
+⚠️ This is the same family as 3.2b-ii's *a payload is refused by the first wall it
+meets, and that is not always the policy* — one level down, and on the buy side.
+
+### ⚠️ Decided in 4d-i — EXPIRY RESOLVES IN THE STORE'S LOCAL DAY, AND THE SEED DISAGREES
+
+ADR-017's tier 2 adds `product_family.default_lifespan_days` to the received date.
+**`0018` computes that date in `location.timezone`, not in UTC.** A delivery signed for
+at 21:00 in Mexico City is already tomorrow in UTC, so a UTC spelling is off by one for
+every evening delivery a shop takes — and every one of them lands on the FEFO ordering.
+
+⚠️ **`supabase/seeds/10_deliveries.sql` HARDCODES UTC** (`(occurred_at at time zone
+'UTC')::date + lifespan`). It predates `0012`, which put the column on the table, and
+`0013`, which established the `at time zone l.timezone` spelling the views now use. The
+seed is a FIXTURE and is not the rule; it was left alone rather than corrected, because
+changing seeded expiry dates would move the FEFO order every other suite asserts
+against. **If the two ever need to agree, correcting the seed is the change, not
+correcting `0018`.**
+
+Checks 6.5–6.7 are the evidence, and 6.6 is what makes them worth having: the fixture
+is built at 03:00 UTC precisely so the two spellings CANNOT agree. For most of the day
+they do, and the check would pass under either.
+
+### ⚠️ Decided in 4d-i — FOUR CALLS MADE ON THE OWNER'S BEHALF, AND ALL FOUR ARE CHEAP TODAY
+
+None of these is settled by ADR-035 or by an earlier task. All four are recorded here
+because merging is automated and the checkpoint that used to catch them is gone.
+
+- **An INACTIVE provider is ACCEPTED** (check 2.5). A supplier is retired the day after
+  a delivery arrives from them at least as often as the day before, and a shop cannot
+  refuse to file paperwork for stock already on the shelf. ⚠️ **This is a shop-truth
+  question and the owner may want the opposite** — it is one `if` either way, today.
+- **The provider is compared in the idempotency guard** (check 8.6), which `record_sale`
+  has no counterpart for. The same basket filed against a different supplier returns
+  `TD001`, not `already_recorded`: §2.3 derives purchase-price MEMORY from these lines
+  in `0008`, so accepting it would attribute the cost to whichever provider the client
+  sent first and no report would ever disagree with itself.
+- **`expiry_date` is IN the payload hash** (check 8.7). Two deliveries identical but for
+  a use-by date are two different deliveries — the lots they open sort differently under
+  FEFO. A corrected retry must not return `already_recorded` while the shelf keeps the
+  first date.
+- **The grant does NOT encode who may receive a delivery.** The owner settled that a
+  cashier never accepts one, but that is a ROLE rule and this wall is a LOCATION wall.
+  Putting a role test in the body would be a second spelling of an authorisation the RPC
+  does not own. ⚠️ **If receiving is to be role-gated it is a policy question**, and it
+  belongs where the other forty policies are.
+
+### Settled in 4d-i, and binding on 4d-ii through 4f
+
+- **The three contract rules are RE-SPELLED per function, not shared.** plpgsql has no
+  mixin, and a helper holding the location check would put it back on the far side of
+  the wall §2.6 names. `0018` repeats `0016`'s four lines verbatim.
+- **`TD001` is REUSED, not re-invented.** One sqlstate for §2.6's *same id, different
+  payload* across the whole write surface — a client branches on it once. 4d-ii, 4e and
+  4f inherit that, and a second code would make the contract per-function.
+- **The default denomination is the variant's own for the DIRECTION of the document.**
+  `record_purchase` reads `purchase_unit_code`; `record_sale` reads `sell_unit_code`.
+  ⚠️ **This is the error here that applies clean, prices correctly, and books a tenth of
+  the stock** — F3b turns six checks red, and F3 (the label alone) turns only one.
+- **No allocator runs in a function that CREATES lots**, so `record_purchase` takes no
+  `batch_balance` lock at all. Check 7.10 asserts the absence rather than assuming it.
+  ⚠️ **4d-ii is the opposite case** — `record_waste` removes stock and MUST call
+  `allocate_fefo()` inside its own transaction (task 1.8).
+
+### Ten falsifications, run by hand before 4d-i was committed
+
+Against the APPLIED schema — `create or replace` over `0018`, the suite re-run, the
+function restored. `0018` was not yet merged, so the one real defect (F0 below, found by
+the suite rather than by a falsification) was fixed in the file itself.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | the location wall deleted | **7 of 82.** 1.1–1.5, and 10.1/10.3 — the refused documents recorded instead |
+| F2 | the provider workspace check deleted | 1 — 2.2. ⚠️ Only one, and correctly: `purchase_provider_fk` still refuses the row, so what the RPC's check buys is the SQLSTATE (`22023`, not `23503`), which is what 2.2 asserts |
+| F3 | the stored `qty_display_unit` label read from `sell_unit_code` | ⚠️ **1 — 4.2 alone.** The label moved; the conversion did not. This is the narrow case, and 4.2 is the only check that can see it |
+| F3b | **the whole conversion** read from `sell_unit_code` | **6** — 4.1, 4.2, 4.4, 4.5 and two in section 5. ⚠️ F3 was written first and its single red was mistaken for weak coverage; F3b is the falsification that was meant, and section 4 has teeth |
+| F4 | the tax split done GROSS-first, the sale's shape | 3 — 5.1, 5.2, 5.4. The mixed-rate document is what makes 5.2 discriminate |
+| F5 | expiry tier 1 gated behind `track_expiry` | 2 — 6.4 and 8.7. ADR-017 orders manual FIRST and unconditionally |
+| F6 | expiry tier 2 resolved in UTC | 2 — 6.5 and 6.7, and only because the fixture is built at 03:00 UTC |
+| F7 | `expiry_date` dropped from the payload hash | 1 — 8.7 |
+| F8 | the provider dropped from the idempotency comparison | 1 — 8.6 |
+| F9 | the receipt movement never written | ⚠️⚠️ **THE SUITE DIES AND REPORTS ZERO FAILURES.** `0015` is DEFERRED, so it raises at COMMIT — under `ON_ERROR_STOP=1` psql dies at the first successful call, the report never renders and the DROPs never run. Red by exit code alone, which is 4c-ii's W-F3 in a second language and why `create or replace` on the suite's own helpers is load-bearing |
+
+⚠️ **F0, and it is not in the table because no falsification produced it: the SUITE
+found a real defect in `0018`** — the `qty_display` rounding gate above. Nine of the ten
+below confirm checks that were already right; F0 is the one that changed the function.
 
 ### ⚠️⚠️ Settled in sizing 4d, 2026-09-04 — IT IS AN `L`, AND THE SEAM COST A RENUMBERING
 
