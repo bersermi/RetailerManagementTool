@@ -119,6 +119,45 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅ **4.5c-i — THE REPLAY MARKER AND THE VOID EXEMPTION, `0025` — IS DONE AS OF
+2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) IS THE LAST TASK IN THE
+DATABASE BUILD.** 84 behavioural checks and TWENTY-ONE falsifications, twenty of
+which turn something red; the gate now runs **fifteen suites and 994 checks**, 7
+pgTAP files, 8 seed-check files and 29 two-connection assertions. **§2.10's
+`occurred_at` half of the REPLAY row is closed, and so is the window-basis check
+`0021` has owed since 4e-ii-a** — half of its `case` was unfalsifiable because
+nothing distinguished a replayed document, and F11 (the exemption removed) now
+turns three red.
+⚠️⚠️ **THE HEADLINE FINDING IS ABOUT READING THE SCHEMA, NOT ABOUT THE FEATURE:
+THE LIVE BODY OF A FUNCTION IS NOT IN THE MIGRATION THAT NAMED IT.** `0025`
+carries four applied functions forward, and the first draft took `record_sale`
+from `0016` — the file named after it. **Its live body is `0017`'s**, which added
+the availability check, so shipping `0016`'s text would have **silently reverted
+4c-i while `supabase db reset` stayed green**. Caught before it applied; the rule
+is to grep every migration for a later `create or replace` before carrying a
+function forward, and `record_sale` was the only one of the five that had one.
+✅ **The four bodies were then patched PROGRAMMATICALLY from the applied source
+and diffed** — every removed line is one of the intended edit sites and nothing
+else, which is what makes a 2,700-line migration reviewable.
+⚠️⚠️ **AND THE EXEMPTION IS REACHABLE ONLY AFTER A DEMOTION**, which is §2.6's own
+argument arriving as a fact rather than a defect: `void_transaction` fences staff
+on OWN DOCUMENT before the window, and only a manager may record a replay, so the
+author of every replayed document is someone who skips the window entirely. The
+suite records the replays as a manager, **demotes them to staff, and then voids**
+— without which section 8 would have been a check about the wrong branch wearing
+the exemption's label.
+⚠️ **SIX DECISIONS WERE TAKEN ON THE OWNER'S BEHALF and the FIRST is the one most
+worth overturning early: the marker is `replay_of_failed_write_id`, a FOREIGN KEY
+to `failed_write`, NOT a boolean.** It is a column on three **append-only**
+tables, so it is a fix-forward migration today and a coordinated release once a
+client reads it. F16 is the argument: drop the FK and **six** checks go red, only
+two about the constraint — the forged marker in 1.9 then LANDS and both
+population checks fail behind it. **A boolean would have turned two red and never
+noticed the forgery.** The other five, and the two shortcuts refused, are under
+*Settled in sizing 4.5c* and in `0025`'s header.
+⚠️ **F15 IS CAUGHT ONLY BY ABORT**, and it names something true of every suite in
+this repository: **a suite's FIXTURE is unasserted code**. Owed row, written up.
+
 ⚠️⚠️ **4.5c WAS RE-SIZED ON 2026-09-05, BEFORE ANY OF IT WAS WRITTEN, AND IT IS AN
 `L` RATHER THAN THE `M/L` THE SPLIT TABLE ESTIMATED: IT SPLITS INTO `4.5c-i` (THE
 REPLAY MARKER AND THE EXEMPTION, `0025`) AND `4.5c-ii` (`replay_failed_write`,
@@ -623,7 +662,7 @@ deadline under *Confirmed by the owner* below.
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
 | 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
-| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**. ⚠️ **`4.5c` WAS RE-SIZED 2026-09-05 FROM `M/L` TO `L` AND SPLIT INTO `4.5c-i` (the replay marker and the exemption, `0025`) / `4.5c-ii` (`replay_failed_write`, `0026`)**, before any of it was written; the second is the LAST task in the database build. ⚠️ The split cost no renumbering either — `0026` is handed out at the end — but it DID rename the pre-committed overflow seam to `4.5c-i-b` / `4.5c-ii-b`. It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
+| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**. ⚠️ **`4.5c` WAS RE-SIZED 2026-09-05 FROM `M/L` TO `L` AND SPLIT INTO `4.5c-i` (the replay marker and the exemption, `0025`) / `4.5c-ii` (`replay_failed_write`, `0026`)**, before any of it was written. ✅ **`4.5c-i` IS DONE 2026-09-05** — 84 checks, 21 falsifications, and 4e-ii-a's owed window-basis check closed; **`4.5c-ii` is the LAST task in the database build**. ⚠️ The split cost no renumbering either — `0026` is handed out at the end — but it DID rename the pre-committed overflow seam to `4.5c-i-b` / `4.5c-ii-b`. It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -6026,7 +6065,7 @@ this is where they land.
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
 | ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
 | ~~**Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"*~~ | ✅ **4.5b — DONE 2026-09-05**, `supabase/tests/0024` section 4, clause by clause. ⚠️ *"one linked compensating movement"* is the clause the ADR amendment touched: a downgrade writes ONE PER LINE AND PER LOT, and 4.5–4.6 dead-letter a single line spanning two lots to say so |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c-ii** (`0026`) — the LAST of §2.10's nine, and the last task in the database build. ⚠️ The `occurred_at` half of this row is **4.5c-i**'s (`0025`), because no recorder can keep one today |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c-ii** (`0026`) — the LAST of §2.10's nine, and the last task in the database build. ✅ The `occurred_at` half of this row is **CLOSED by 4.5c-i** (`0025`, 2026-09-05) — the four recorders keep a stored one verbatim, and `void_transaction` enforces §2.6's exemption over it |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
@@ -6053,6 +6092,168 @@ nothing in the seed writes them, and no screen shows them (§2.8 — dead letter
 with the vendor). The suites are therefore not evidence *about* the functions; for
 this step they are the **only** exercise the functions will ever get before a real
 `42501` arrives in a real shop.
+
+### ⚠️⚠️ Found in 4.5c-i — THE LIVE BODY OF A FUNCTION IS NOT IN THE MIGRATION THAT NAMED IT
+
+`0025` carries four applied functions forward, because a signature cannot be
+`create or replace`d and a seventh argument therefore needs a DROP and a CREATE.
+The first draft took `record_sale` from **`0016`**, which is the migration named
+after it and the one every index in this repository points at.
+
+⚠️ **`record_sale`'s live body is `0017`'s.** `0017` replaced it to add the
+availability check — 4c-i's entire deliverable, 35 checks of its own — and
+shipping `0016`'s text would have **silently reverted an applied feature** while
+`supabase db reset` stayed green, because reverting a check breaks nothing that
+the schema can see. `0017`'s own suite would have caught it; the point is that
+nothing in the *writing* of the migration would have.
+
+The general rule, and it is cheap: **before carrying a function forward, grep
+every migration for a later `create or replace` of it.** Four of this file's five
+were defined once; `record_sale` was not, and it is the one the ADR discusses
+most. ✅ **The four bodies were then patched PROGRAMMATICALLY from the applied
+source and diffed line by line** — every removed line is one of the intended edit
+sites and nothing else — which is what makes a 2,700-line migration reviewable at
+all.
+
+### ⚠️⚠️ Found in 4.5c-i — THE EXEMPTION IS REACHABLE ONLY AFTER A DEMOTION, AND §2.6 SAYS SO WITHOUT NOTICING
+
+Section 8 is the check owed since 4e-ii-a, and writing it turned up something the
+ADR states and does not draw the consequence of.
+
+`void_transaction` fences staff **twice**: they may only void their OWN document,
+and only inside the window. Passing the replay marker requires manager (decision
+3), and §2.6 makes replay manager-triggered in any case — so `created_by` on
+every replayed document is a manager or an owner, **and those two skip the window
+entirely**. The window basis on a replayed document is therefore never consulted
+on any ordinary path.
+
+⚠️ **That is not a defect and it is not vacuity — it is §2.6's own argument
+arriving as a fact.** The ADR justifies the exemption by saying it costs nobody
+anything: *"the only person realistically standing over a freshly replayed sale
+is already someone who can void it unfenced."* The exemption is a **safety
+property**: if a staff member ever does face a replayed document, they get no
+window. The one way to be that person is to have recorded the replay and to be
+staff by the time you try to void it — **a demotion**, which is an ordinary thing
+in a shop.
+
+So the suite records the replays as a manager, **demotes them to staff**, and
+then voids. 8.1 refuses, and 8.2 — the identical sale differing in ONE COLUMN —
+succeeds. ⚠️ **Without the demotion the whole section would have been a check
+about the "own document" branch wearing the exemption's label**, which is 4.5b's
+finding again: a check that watches only the outcome cannot see which guard
+produced it.
+
+### Settled in 4.5c-i, and binding on 4.5c-ii
+
+- ⚠️⚠️ **`0026` MUST COMPENSATE BEFORE IT RE-RUNS, AND `0017` IS WHY.** A rejected
+  sale was downgraded, so the shelf is already short by the sale's quantity. The
+  availability check refuses a sale it cannot cover when enforcement is on — so a
+  replay that re-ran the call *before* restoring the units would be refused by
+  `0017` in exactly the case it is meant to recover. §2.6's order — *"compensate
+  `adjustment_movement_id`, then re-run the original call"* — is load-bearing, not
+  narrative.
+- **THE MARKER IS AN ARGUMENT AND `0026` PASSES IT.** `record_sale`,
+  `record_purchase` and `record_waste` take `p_replay_of_failed_write_id`;
+  `record_transfer` takes it and stores nothing. All four require a non-null
+  `p_occurred_at` alongside it, and all four require **manager**.
+- **THE DEAD LETTER'S KIND IS CHECKED BY THE RECORDER**, so `0026`'s dispatch
+  cannot silently record the wrong kind — but it also means `0026` must dispatch
+  on `failed_write.kind` and not on anything in the payload, or it will meet a
+  `22023` it caused itself.
+- ⚠️ **A `transfer` REPLAY LEAVES NO REFERENCE.** Check 9.8 deletes the transfer
+  dead letter cleanly after replaying it, because no document names it. If §2.10
+  is to report which transfers were recovered, the marker for that kind has to
+  live on `failed_write` — and that is `0026`'s to decide, not `0025`'s.
+- **`0025` WRITES NO MARKER.** Every marked document in the suite was marked by
+  the suite, by hand, through the recorders. That is the exercise the argument
+  needs and it is NOT an end-to-end replay; §2.10's **replay** row stays open.
+
+### Twenty-one falsifications, run by hand before 4.5c-i was committed
+
+Each is a single deliberate defect loaded over `0025` with `create or replace`
+(or, for F16–F21, a DDL change), the suite re-run against it, and the schema
+restored by a full `supabase db reset`. ⚠️ **The harness reports `ABORTED`
+separately from `RED=0`** — 4f built that distinction and F15 is the second live
+task to need it.
+
+| F | mutation | verdict | checks red |
+|---|---|---|---|
+| F1 | the replay branch deleted from `record_sale` — it falls through to the clamp | **RED** | 13 |
+| F2 | ⚠️ the replay branch CLAMPS anyway — the "tidy-up" a reviewer would make | **RED** | 6 |
+| F3 | the manager fence deleted | **RED** | 2 |
+| F4 | the dead letter's workspace check deleted | **RED** | 1 |
+| F5 | the dead letter's kind check deleted | **RED** | 2 |
+| F6 | `occurred_at` no longer required on a replay | **RED** | 1 |
+| F7 | ⚠️ the marker not stored in the header INSERT — the write succeeds and says nothing | **RED** | 10 |
+| F8 | `record_transfer`'s replay branch deleted | **RED** | 4 |
+| F9 | `record_purchase`'s replay branch deleted | **RED** | 6 |
+| F10 | `record_waste`'s replay branch deleted | **RED** | 5 |
+| F11 | ⚠️⚠️ THE HEADLINE — the void exemption removed, `v_basis` back to `0021`'s | **RED** | 3 |
+| F12 | the basis written `v_offline or v_replayed` instead of `and not` | **RED** | 3 |
+| F13 | the basis always `occurred_at` — the exemption applied to everything | **RED** | 3 |
+| F14 | the fence widened from manager to staff | **RED** | 2 |
+| F15 | ⚠️ the kind check reversed — `record_sale` demands a `purchase` dead letter | **ABORTED** | — |
+| F16 | ⚠️ the marker's foreign key dropped | **RED** | 6 |
+| F17 | `on delete restrict` changed to `on delete cascade` | **RED** | 2 |
+| F18 | the marker column added to `stock_movement` as well | **RED** | 1 |
+| F19 | ⚠️ EXECUTE left with PUBLIC after the drop — 3.1's finding in a fourth place | **RED** | 1 |
+| F20 | the old six-argument `record_sale` left standing as an overload | **RED** | 1 |
+| F21 | the partial index made total | **RED** | 1 |
+
+⚠️ **F11 IS THE HEADLINE AND IT IS THE OWED CHECK DEFENDING ITSELF.** Putting
+`v_basis` back to exactly what `0021` shipped turns **three** red — 8.1, and the
+two that read what 8.1's refusal should have prevented. Before this migration
+that mutation was **unfalsifiable**, which is what 4e-ii-a recorded and why the
+row has been owed since.
+
+⚠️ **F16 IS DECISION 1 DEFENDING ITSELF, AND IT CASCADES.** Drop the foreign key
+and **six** checks go red, only two of them about the constraint: 1.9's insert of
+a marker naming nothing now SUCCEEDS, so a fifth marked document appears and both
+population checks (4.6 and 9.5) fail behind it. **A boolean marker would have
+turned exactly two red** — the two that read the catalog — and nothing would have
+noticed the forged row, because there would have been nothing to forge.
+
+⚠️ **F7 IS THE ONE A HAPPY-PATH SUITE WOULD MISS.** The marker is simply not
+written to the header. Every call still succeeds, every `occurred_at` is still
+preserved, and the function returns exactly what it returned before — ten checks
+go red only because sections 4 and 8 ask what the row SAYS rather than whether
+the call worked. This is 4.5b's shape stated positively: **a check that watches
+the outcome cannot see a guard whose removal leaves the outcome alone.**
+
+⚠️ **F20 RAN ONLY 59 OF 84 AND STILL TURNED ITS CHECK RED FIRST.** Leaving the
+six-argument overload standing makes every unqualified five-argument call in the
+file **ambiguous**, so the suite dies in section 3's fixture — but 2.9 is in
+section 2 and had already fired. That is the right order by luck rather than by
+design, and it is worth saying so: had the catalog check been placed after the
+fixture it would have reported `ABORTED` and looked exactly like a mutation that
+turned nothing red.
+
+### ⚠️ Found in 4.5c-i — F15 IS CAUGHT ONLY BY ABORT, AND THE FIX IS AVAILABLE TO EVERY SUITE HERE
+
+**F15 reverses the kind check** so `record_sale` demands a `purchase` dead
+letter. The suite reports **`ABORTED` at 19 of 84 checks**: section 3's *fixture*
+writes the first replayed sale with a bare `select`, that call now raises, and
+`ON_ERROR_STOP` kills psql before any check about the kind rule runs.
+
+⚠️ **CI still goes red** — the step exits non-zero and the log shows 19 checks
+rather than 84 — so the mutation IS caught. But it is caught the way 4f's F11 was
+caught, and the general shape is worth naming: **a suite's FIXTURE is unasserted
+code.** Every `select record_sale(...)` outside a `chk` is a claim the file makes
+and never checks, and a mutation that breaks one of them can only ever abort.
+
+**Closing it is a fixture change and it is not free**: the marked writes in
+section 3 would have to run through `chk_succeeds`, which costs the `\gset` that
+check 3.11 reads the return value from — so 3.11 would have to be re-founded on
+something else. Recorded as an owed row rather than done in a hurry, and it is
+the same trade 4.5a made at its 8.3.
+
+✅ **No defect was found in `0025` itself.** Two were found in the SUITE and both
+were fixed before the commit: check 1.9 was written without `payload_hash` and
+reported the wrong SQLSTATE, and check 3.11 was first written as *"the returned
+`occurred_at` is not null"* — **4e-ii-b's rule 4 exactly**, a check over a null
+that asserts nothing, since a bare `is not null` passes against any
+implementation that returns a timestamp at all. It now compares the return value
+to the row AND to the value passed in.
 
 ### ⚠️⚠️ Settled in sizing 4.5c, 2026-09-05 — IT IS AN `L`, IT SPLITS TWO WAYS, AND THE SEAM IS FORCED BY `occurred_at` RATHER THAN CHOSEN
 
@@ -6125,7 +6326,7 @@ mid-migration:**
 
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
-| 4.5c-i | **THE REPLAY MARKER AND THE EXEMPTION** — the marker column on `sale`, `purchase` and `waste`; `record_sale`, `record_purchase` and `record_waste` re-signed to accept it and to preserve `occurred_at` verbatim when it is set; `void_transaction` replaced to measure its window from `occurred_at` on a replayed document whatever `recorded_offline` says. Closes 4e-ii-a's owed window-basis check | `0025` | M/L | A document recorded with the marker keeps the `occurred_at` it was handed — no override, no clamp, at any age — and a staff member cannot self-service void it, while the same document without the marker behaves exactly as it does today |
+| 4.5c-i ✅ | **THE REPLAY MARKER AND THE EXEMPTION** — the marker column on `sale`, `purchase` and `waste`; `record_sale`, `record_purchase`, `record_waste` and `record_transfer` re-signed to accept it and to preserve `occurred_at` verbatim; `void_transaction` replaced to read it. Closes 4e-ii-a's owed window-basis check | `0025` | M/L | **DONE 2026-09-05.** 84 behavioural checks and TWENTY-ONE falsifications, twenty of them RED. ⚠️⚠️ **The marker is an FK to `failed_write`, not a boolean** — F16 turns six red and two of the six are forgeries a boolean could not have caught. ⚠️⚠️ **`record_sale`'s live body is `0017`'s, not `0016`'s** — carrying the named migration forward would have silently reverted 4c-i on a green reset. ⚠️ **The exemption is reachable only after a demotion**, which is §2.6's own argument as a fact. ⚠️ **F15 is caught only by ABORT** — a suite's fixture is unasserted code, owed. ✅ No defect found in `0025` itself; two were found in the suite |
 | 4.5c-ii | **`replay_failed_write`** — compensate the downgrade movements the dead-letter link names, dispatch on kind, re-run the original call under its original id through the path 4.5c-i built, and stamp the `failed_write` row replayed. §2.10's **replay** row | `0026` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and a `purchase` or `transfer` dead letter — which has no downgrade — replays without compensating anything |
 
 **Order is forced, again.** 4.5c-i before 4.5c-ii: replay's `occurred_at` guarantee
