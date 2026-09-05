@@ -67,6 +67,20 @@ begin
   -- of the suite is what makes that impossible.
   drop function if exists public.chk_succeeds(text, text, text);
 
+  -- ⚠️ ADDED 2026-09-05 (task 4f). The known gap arriving a SECOND time, and it
+  -- cost the same hour: `0022` defines `chk_json`, the same catch-and-record
+  -- mirror of chk_raises that 4e-ii-a added `chk_succeeds` for, and five
+  -- falsifications in a row reported "function chk_json already exists" instead
+  -- of the defect they injected — a mutation that turns NOTHING red and a
+  -- mutation whose suite never ran look identical from the outside. The lesson
+  -- is not "remember to drop"; it is that EVERY helper a suite creates belongs
+  -- in this block on the day the suite lands, because the suite's own drop is
+  -- unreachable in exactly the case that matters.
+  drop function if exists public.chk_json(text, text, text, text);
+  drop function if exists public._adj(uuid, uuid, numeric, text, timestamptz, boolean);
+  drop function if exists public._bal(uuid, uuid);
+  drop function if exists public._pl(uuid, numeric, numeric, date);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
