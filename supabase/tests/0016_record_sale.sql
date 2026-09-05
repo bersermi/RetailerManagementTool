@@ -370,13 +370,21 @@ commit;
 -- be refused by the wall anyway — and that would leave the GRANT untested, with
 -- the two indistinguishable from the outside. The privilege is therefore read
 -- from the catalog, where it is the whole of the fact.
+--
+-- ⚠️ THE SIGNATURE GAINED A SEVENTH ARGUMENT IN `0025` (the replay marker), so
+-- these two lines name `…,boolean,uuid)`. They are the ONLY place in any suite
+-- that spells a write-surface signature out, which is why `0025`'s drop-and-
+-- recreate turned exactly one file red — and it turned it red by RAISING rather
+-- than by returning false, because `has_function_privilege` errors on a
+-- function that does not exist. That is the right failure mode and worth
+-- keeping: a renamed signature cannot make this check quietly pass.
 select chk('1.10 anon holds no execute privilege on record_sale',
            not has_function_privilege('anon',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean)', 'execute'));
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
 
 select chk('1.10 …and authenticated does, which is what makes the line above a claim',
            has_function_privilege('authenticated',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean)', 'execute'));
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
 
 
 -- ===================================================== 2. idempotency =======
