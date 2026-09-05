@@ -163,12 +163,21 @@ describe.each(DOCS)('$table — the same id from two connections at once', (doc)
     await a.client.query(doc.sql(false), doc.params(fixture, id, 'h1'));
 
     await b.client.query('begin');
-    const second = b.client.query(doc.sql(false), doc.params(fixture, id, 'h1'));
+    // ⚠️ `errcode()` WRAPS THE CALL AT CREATION, AND THAT IS NOT A STYLE CHOICE.
+    // This is the one deferred query in this file that REJECTS — the other two
+    // use `on conflict` and resolve — and until something is attached to it, a
+    // rejection delivered before the `await errcode(...)` below is an UNHANDLED
+    // REJECTION. Vitest counts that as an error and fails the run with every
+    // assertion green: 29 passed, 1 error, exit 1. Seen on CI 2026-09-05 (run
+    // 33972448395), on a commit that touched no TypeScript at all — the window
+    // between the two `await`s below is only ever a scheduling accident wide.
+    // `availability-race.test.ts` already wraps at creation for this reason.
+    const second = errcode(b.client.query(doc.sql(false), doc.params(fixture, id, 'h1')));
 
     expect(await blockedBy(observer, b.pid)).toEqual([a.pid]);
 
     await a.client.query('commit');
-    expect(await errcode(second)).toBe('23505');
+    expect(await second).toBe('23505');
     await b.client.query('rollback');
 
     expect(await rowsWithId(doc.table, id)).toBe(1);

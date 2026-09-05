@@ -81,6 +81,17 @@ begin
   drop function if exists public._bal(uuid, uuid);
   drop function if exists public._pl(uuid, numeric, numeric, date);
 
+  -- ⚠️ ADDED 2026-09-05 (task 4.5a), and this time BEFORE the falsifications
+  -- rather than after five of them reported a harness error. 4f wrote the rule
+  -- above and this is it being followed: every helper `0023` creates is listed
+  -- here on the day the suite lands. `_sl` was ALREADY a gap — `0022` creates it
+  -- and drops it at its own end, which is unreachable in exactly the case that
+  -- matters — so it is closed here too rather than left for the next abort.
+  drop function if exists
+    public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean);
+  drop function if exists public._sl(uuid, numeric, numeric);
+  drop function if exists public._lot(uuid);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
