@@ -64,6 +64,26 @@
   §2.6 is the file that moved, because §2.6 is where the counting happens and a
   reader of its table would otherwise count ten functions in step 4 and find nine.
   No schema change, no renumbering: nothing here has been written yet.
+- **Revised:** 2026-09-04 — §2.6 and §2.7 amended, on the decision maker's
+  instruction, to settle **what the 15-minute void window measures from on an
+  OFFLINE write**, asked while sizing `void_transaction` as `0021` (plan task
+  4e-ii) and before any of it was written. §2.6 said the window reads
+  `occurred_at`, full stop. On a queued offline sale `occurred_at` is the client's
+  time, clamped to `[now() − 72h, now()]`, so **a sale rung up at 09:00 with no
+  signal and flushed at 14:00 arrives five hours past its own window** — the
+  cashier's fifteen minutes expire before the server ever hears about it, and
+  fixing their own slip needs a manager. ⚠️ **The decision maker reports the pilot
+  store is offline A LOT**, which turns that from an edge case into the normal
+  path and reinstates exactly the friction §2.7 spends a paragraph refusing:
+  *"friction here converts into staff quietly not recording things."*
+  **The window therefore reads `recorded_at` when `recorded_offline`, and
+  `occurred_at` otherwise.** ⚠️ **This changes NOTHING for an online write** —
+  §2.6 already overrides `occurred_at` with `now()` there, so the two columns are
+  set in the same statement and carry the same instant. **No schema change**: both
+  columns have existed since `0003`. ⚠️ **Daily totals are NOT touched and still
+  read `occurred_at`** — the amendment splits one sentence that had bound them
+  together, and a sale must count on the day it was made whatever the clock did.
+  The 15-minute window remains listed **Reversible** in §4.
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -574,7 +594,28 @@ audit needs the second.
   every recovered sale is silently re-dated to the moment of recovery, which is the
   precise harm manual replay was chosen to avoid.
 
-Daily totals and the 15-minute void window read `occurred_at`.
+Daily totals read `occurred_at`, always — a sale counts on the day it was made.
+
+**The 15-minute void window reads `occurred_at`, EXCEPT on a write flagged
+`recorded_offline`, where it reads `recorded_at`** (settled 2026-09-04, on the
+decision maker's instruction; §2.7 is where the window's purpose is stated). The
+two are the same instant on an online write, because `occurred_at` is overridden
+with `now()` there. They are not the same on a queued one: `occurred_at` is the
+client's clamped time, so a sale rung up at 09:00 without signal and flushed at
+14:00 would otherwise land five hours past a fifteen-minute window and be
+un-correctable by the person who made the error. **The window measures the chance
+to notice, not the moment of the sale**, and nobody can notice a write the server
+has not yet received. The pilot store is offline often enough that this is the
+normal path rather than an edge case.
+
+⚠️ **`replay_failed_write` is the one case this leaves open**, and it ships in step
+4.5 with the failure path, not here. A replayed write preserves its original
+`occurred_at` (above) while taking a fresh `recorded_at` at the moment of recovery,
+so the rule as written would hand a replayed offline sale a brand-new fifteen
+minutes. Whether that is right is a step-4.5 question — replay is manual and
+operator-triggered, so a staff member is not normally the one holding the result —
+and it is recorded here rather than answered, because `replay_failed_write` does
+not exist yet and `void_transaction` does not depend on the answer.
 
 **Offline.** Queued writes, not offline-first. The client generates the id, writes to
 a local queue, renders optimistically, flushes on reconnect; retries are free because
@@ -787,6 +828,11 @@ the `workspace_member` and `member_location` rows, and marks the invite accepted
 **Delivery is out of band for v1:** the owner sends the code over WhatsApp. That is
 one fewer piece of infrastructure standing between here and the pilot, and it is how
 a shop with three staff would do it anyway.
+
+⚠️ **On an offline write the window is measured from `recorded_at`, not
+`occurred_at`** (settled 2026-09-04 — §2.6 carries the rule and the reasoning).
+Without that, a shop with poor connectivity has a self-service void that is expired
+on arrival, and the row above this one grants a capability nobody can ever exercise.
 
 Corrections are self-service inside the window because the person who made the error
 is the only one who reliably knows the right number, and knows it now. Voiding must

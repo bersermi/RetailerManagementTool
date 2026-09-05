@@ -197,14 +197,18 @@ it:**
   overflow one session — sized `L` on 2026-09-04 — and the second half (`4e-ii-b`,
   test breadth) SHIPS NO MIGRATION**, on 4b-ii's seam exactly as pre-committed. **This
   number is the last one 4e takes, and `0022`/`0023` did not move.**
-  ⚠️⚠️ **BLOCKED ON THE OWNER BEFORE IT IS WRITTEN:** `docs/PLAN.md`'s *done when* said
-  *"§2.7's void window is enforced in the body"*, and **ADR-035 §2.7 says the window is a
-  ROLE boundary, not a deadline** — staff void their own inside 15 minutes, a manager or
-  owner voids **anything, any time**. Enforced as a bare window, `0021` would refuse a
-  manager and would make §2.6's replayed sale permanently uncorrectable. **`0001:272` has
-  had it right since the foundation migration** — *"self-service void window. Beyond it,
-  manager role required."* The ADR wins; the plan is the bug; the fence is the owner's
-  call. ⚠️ `void_transaction` would be **the only step-4 RPC that reads a role**
+  ✅⚠️⚠️ **UNBLOCKED BY THE OWNER 2026-09-04, AND CLOSING IT AMENDED ADR-035.**
+  `docs/PLAN.md` had said *"§2.7's void window is enforced in the body"*; **§2.7 says
+  the window is a ROLE boundary, not a deadline** — staff void their OWN inside 15
+  minutes, a manager or owner voids **anything, any time**. The owner confirmed §2.7.
+  ⚠️⚠️ **The window reads `recorded_at` when `recorded_offline`, `occurred_at`
+  otherwise** — the owner's store is offline a lot, and on a queued sale `occurred_at`
+  is the client's clamped time, so a 09:00 sale flushed at 14:00 landed already past
+  its window. **ADR-035 §2.6 and §2.7 were AMENDED on the decision maker's instruction**
+  rather than built around. ⚠️ **Daily totals still read `occurred_at`** — untouched.
+  **No schema change: both columns have existed since `0003`.** ⚠️ **`TD003` for a
+  refused void was taken ON THE OWNER'S BEHALF.** ⚠️ `void_transaction` is **the only
+  step-4 RPC that reads a role**
 - `0022` — `adjust_stock`, absolute (**4f**)
 - `0023` — failure path: `failed_write`, **`adjust_stock_delta`**,
   `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
