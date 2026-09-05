@@ -111,6 +111,34 @@ select a.ws_id,
        'pgtap-3.2a-' || a.tag
 from iso_actor a;
 
+-- ⚠️ AND `failed_write`, ADDED 2026-09-05 WITH `0024`. It is the SECOND tenant
+-- table the seed leaves empty, and F7 is what said so — it went red naming the
+-- table on the first run after the migration applied. That is 3.2a's finding
+-- arriving exactly as written: "an isolation claim over zero rows is a claim
+-- about nothing", and the answer is the same one — this suite supplies its own
+-- rows and F11 asserts the seed still holds none.
+--
+-- ⚠️ NOTE WHAT DID *NOT* CATCH IT. `01_rls_coverage` computes its plan from
+-- pg_class, so it covered the new table's policy the day it landed and passed.
+-- Structural coverage arrives free; NON-VACUITY does not, and a new tenant table
+-- is born invisible to the isolation suite until someone gives it rows.
+--
+-- Owner-gated (`failed_write_select` is has_role(...,'owner')), which the two
+-- actors are. `location_id` is deliberately left null — it has no foreign key
+-- (0024), and the isolation claim is about `workspace_id`.
+create temp table iso_failed_write_before as
+select count(*)::int as n from public.failed_write;
+
+insert into public.failed_write
+  (id, workspace_id, kind, payload, error_code, reported_by)
+select gen_random_uuid(),
+       a.ws_id,
+       'sale',
+       jsonb_build_object('lines', '[]'::jsonb, 'note', 'pgtap-3.2a-' || a.tag),
+       '42501',
+       a.user_id
+from iso_actor a;
+
 -- ---------------------------------------------------------------------------
 -- Classification, stated so that a new table cannot slip through unmeasured
 --
@@ -259,7 +287,7 @@ $$;
 -- what stops that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  10
+  11
   + 4 * (select count(*)::int from iso_read)
   + (select count(*)::int from iso_anon)
 );
@@ -344,6 +372,14 @@ select is((select n from iso_invite_before), 0,
 -- could leave the session somewhere quieter than that.
 select is(current_user::name, session_user::name,
   'F10 the session is back to its own role after the measurement');
+
+-- F11. THE SECOND EMPTY TENANT TABLE, and the same argument as F9. `0024` added
+-- `failed_write` and nothing seeds it — F7 went red naming it on the first run
+-- after that migration, which is the check doing its job. If a future seed
+-- populates it, this turns red and someone decides whether the fixture is still
+-- wanted, rather than the suite silently measuring somebody else's rows.
+select is((select n from iso_failed_write_before), 0,
+  'F11 failed_write was empty in the seed; this suite supplied its own rows');
 
 -- ---------------------------------------------------------------------------
 -- Per tenant table, both directions

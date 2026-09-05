@@ -261,6 +261,25 @@ select a.ws_id,
        'pgtap-3.2b-' || a.tag
 from iso_actor a;
 
+-- ⚠️ AND `failed_write`, ADDED 2026-09-05 WITH `0024` — the SECOND tenant table
+-- the seed leaves empty, and 02's F7 and this file's went red naming it on the
+-- first run after that migration. 3.2a's finding a second time: an isolation
+-- claim over zero rows is a claim about nothing. ⚠️ `01_rls_coverage` covered the
+-- new table's POLICY the day it landed, because its plan is computed from
+-- pg_class — structural coverage arrives free, NON-VACUITY does not.
+create temp table iso_failed_write_before as
+select count(*)::int as n from public.failed_write;
+
+insert into public.failed_write
+  (id, workspace_id, kind, payload, error_code, reported_by)
+select gen_random_uuid(),
+       a.ws_id,
+       'sale',
+       jsonb_build_object('lines', '[]'::jsonb, 'note', 'pgtap-3.2b-' || a.tag),
+       '42501',
+       a.user_id
+from iso_actor a;
+
 -- ---------------------------------------------------------------------------
 -- Classification — 02's, plus the two columns a WRITE suite needs
 --
@@ -616,7 +635,7 @@ $$;
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  19
+  20
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
@@ -718,6 +737,11 @@ select ok(
 -- fixture is still wanted, rather than the suite measuring somebody else's rows.
 select is((select n from iso_invite_before), 0,
   'F10 workspace_invite was empty in the seed; this suite supplied its own rows');
+
+-- F10b. THE SAME, FOR THE TABLE `0024` ADDED. Kept as its own test rather than
+-- folded into F10 so the failure names which table the seed started populating.
+select is((select n from iso_failed_write_before), 0,
+  'F10b failed_write was empty in the seed; this suite supplied its own rows');
 
 -- F11. NO MEASUREMENT ANYWHERE CAME BACK `unclassified`. THIS IS THE ONE THAT
 -- GUARDS THE OTHER SIXTEEN. Two of the three refusals share sqlstate 42501 and

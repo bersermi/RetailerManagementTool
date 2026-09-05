@@ -119,6 +119,37 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅ **4.5b — `failed_write` AND `record_failed_write`, `0024` — IS DONE AS OF
+2026-09-05, AND `4.5c` (`replay_failed_write` + THE REPLAY MARKER, `0025`) IS THE
+LAST TASK IN THE DATABASE BUILD.** 79 behavioural checks and TWENTY-TWO
+falsifications, **every one of which turns something red**; the gate now runs
+**fourteen suites and 910 checks**, 7 pgTAP files, 8 seed-check files and 29
+two-connection assertions. **§2.10's FAILURE-PATH ROW IS CLOSED** — owed since step
+3, and the eighth of its nine rows to land.
+⚠️⚠️ **ADR-035 §2.6 WAS AMENDED TWICE, BOTH ON THE OWNER'S EXPLICIT INSTRUCTION.**
+**(1) The downgrade link is REVERSED**: `stock_movement.failed_write_id`, a real
+foreign key, rather than `failed_write.adjustment_movement_id`. Singular could not
+describe a downgrade — one line spanning two lots writes two movements by itself —
+and the FK is the only shape that makes §2.6's *"the link is not optional"* a
+CONSTRAINT rather than a sentence. **F11 (the link not passed) turns 28 checks red.**
+⚠️ `0004:320`'s comment now asserts the opposite and cannot be edited; the column
+comment says so. **(2) Only `sale` and `waste` are DOWNGRADED**; a rejected
+`purchase` or `transfer` dead-letters and the ledger is not touched. A rejected
+purchase leaves stock ON the shelf with a manager holding the delivery note, and an
+auto-upgrade would open a zero-cost lot and then DOUBLE the shelf when Comprar
+records it properly. Section 5 is the PAIR that proves it: same variant, same
+quantity, same store — the sale downgrades and the purchase does not.
+⚠️⚠️ **THREE FALSIFICATIONS WERE GREEN ON THE FIRST PASS AND ALL THREE WERE HOLES IN
+THE SUITE, NOT IN THE FUNCTION** — including one where the suite's own label claimed
+a guard was reachable that nothing had tested. The common shape: **a check that
+watches only the OUTCOME cannot see a guard whose removal produces the same outcome
+by a slower path.**
+⚠️⚠️ **AND THE ISOLATION SUITES CAUGHT SOMETHING NOTHING ELSE COULD: a new tenant
+table is born INVISIBLE to them.** `02` and `03` both went red naming
+`failed_write` — *"every tenant table held rows in BOTH workspaces when it was
+measured"* — because nothing seeds it. `01_rls_coverage` had already passed, since
+its plan is computed and structural coverage arrives free. **Non-vacuity does not.**
+
 ✅✅✅ **4f MERGED (#53) 2026-09-05 AND BUILD STEP 4 IS CLOSED. STEP 4.5 — THE FAILURE
 PATH — WAS SIZED AGAINST §2.6 AND §3 THE SAME DAY AND SPLIT INTO `4.5a` / `4.5b` /
 `4.5c`, BEFORE ANY OF IT WAS WRITTEN.** It is an `XL`: three functions plus the first
@@ -565,7 +596,7 @@ deadline under *Confirmed by the owner* below.
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
 | 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
-| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`adjust_stock_delta`, `0023`) is DONE 2026-09-05**; **`4.5b` (`failed_write` + `record_failed_write`, `0024`) is NEXT**. ⚠️ It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
+| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**; **`4.5c` (`replay_failed_write` + the replay marker, `0025`) is the LAST task in the database build**. ⚠️ It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -5967,8 +5998,8 @@ this is where they land.
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
 | ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
-| **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0023`) |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0023`) |
+| ~~**Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"*~~ | ✅ **4.5b — DONE 2026-09-05**, `supabase/tests/0024` section 4, clause by clause. ⚠️ *"one linked compensating movement"* is the clause the ADR amendment touched: a downgrade writes ONE PER LINE AND PER LOT, and 4.5–4.6 dead-letter a single line spanning two lots to say so |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c** (`0025`) — the LAST of §2.10's nine, and the last task in the database build |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
@@ -6038,6 +6069,127 @@ recorded as defence in depth rather than counted as coverage. Both are argued ab
 ✅ **No defect was found in `0023` itself.** Three were found in the SUITE — 6.11
 vacuous, 6.13's fixture trivial, and 8.3 unable to report its own failure — and all
 three are written up above.
+
+### ⚠️⚠️ Found in 4.5b — THREE FALSIFICATIONS WERE GREEN, AND ALL THREE WERE HOLES IN THE SUITE
+
+The first pass over `0024` left F3, F10 and F15 turning nothing red. None of them
+was a property of the function; each was a claim the file had not made.
+
+- **F3 — the authenticated-caller guard deleted — was green because
+  `insufficient_privilege` IS SQLSTATE 42501.** The condition name and the state
+  are one thing, so an unauthenticated caller fails the workspace wall in the same
+  breath and a `chk_raises` on the state alone passes whichever fired. ⚠️ **The
+  suite's own label claimed the opposite** — *"unlike `0023`, this guard is
+  REACHABLE"* — and the mutation is what proved the claim untested. Closed with a
+  new helper, `chk_raises_like`, that reads `sqlerrm` as well as `sqlstate`.
+- **F10 — the per-line subtransaction deleted — was green because nothing in the
+  file ever entered it.** Every bad line section 7 had was a line that resolves to
+  NO ROWS — a deleted variant, a cross-dimension unit — and those are counted by an
+  `if`, never by an exception. Closed by a line whose `qty_display` is `'abc'`,
+  which actually throws inside the loop. ⚠️ **The mechanism decision 6 rests on was
+  unfalsified**, and the suite looked thorough while it was.
+- **F15 — the location check deleted from the downgrade branch — was green because
+  the outcome is the same either way.** `adjust_stock_delta` refuses each line, the
+  per-line handler counts it, and every balance assertion still passes. Only the
+  REPORTED REASON differs, and nothing read it. Closed by asserting
+  `downgrade_skipped = 'location_not_accessible'`.
+
+⚠️ **The common shape is worth naming: a check that watches only the OUTCOME cannot
+see a guard whose removal produces the same outcome by a slower path.** Two of the
+three are that exactly.
+
+### ⚠️⚠️ Found in 4.5b — THE ISOLATION SUITES REFUSE A TENANT TABLE WITH NO ROWS, AND THAT IS THE SECOND TIME
+
+`0024` applied clean, `01_rls_coverage` passed, and **`02` and `03` both went red
+naming `failed_write`** on the first full gate:
+
+> `not ok 7 - F7 every tenant table held rows in BOTH workspaces when it was
+> measured` — `Unexpected records: (failed_write)`
+
+That is 3.2a's finding arriving a second time — *"an isolation claim over zero rows
+is a claim about nothing"* — and `workspace_invite` was the first. Both suites now
+supply their own two rows and assert the seed still holds none (`02`'s F11, `03`'s
+F10b).
+
+⚠️ **WHAT DID NOT CATCH IT IS THE POINT.** `01_rls_coverage` computes its plan from
+`pg_class`, so it covered the new table's RLS and its policy predicate **the day the
+migration landed, for free**. Non-vacuity is not free: **a new tenant table is born
+invisible to the isolation suites until somebody gives it rows**, and nothing but
+those two F7s would have said so. Binding on any future migration that adds a table.
+
+### ⚠️ Found in 4.5b — A CHECK INSIDE `set local role authenticated` WENT VACUOUSLY GREEN, FOR THE THIRD TIME
+
+Two checks about what `record_failed_write` had WRITTEN were placed inside the
+cashier's role block. `failed_write_select` is owner-only and
+`stock_movement_select` is manager-gated, so the cashier reads zero of both: **2.5
+went red and 2.6 went GREEN — `0 = 0`** — which is the more dangerous half. Both now
+run as the schema owner, outside the block.
+
+This is 4b-i's finding for the third time — *"a cashier writes a ledger they cannot
+read"* — and it keeps recurring because the fix is per-check rather than structural.
+**The rule, stated plainly: a check that reads back what a fenced-out role wrote
+must not be that role.**
+
+### Settled in 4.5b, and binding on 4.5c
+
+- **`0025` INHERITS A COMPLETE LINK AND SHOULD TRUST NOTHING ELSE.** Check 9.3 is
+  the population claim `replay_failed_write` rests on: every downgrade movement
+  names a dead letter that exists, and every linked movement is a downgrade. The
+  compensation is `select … where failed_write_id = $1`, and the constraint is what
+  makes that exhaustive.
+- ⚠️ **THE PAYLOAD SHAPE IS NOW FIXED AND `0025` IS THE REASON IT WAS.** It is the
+  original call's ARGUMENTS keyed by argument name, because replay has to re-run the
+  call from it. `0024` only reads `payload->'lines'` and `payload->>'occurred_at'`;
+  `0025` will read the rest, and anything a client omitted today is unreplayable
+  tomorrow.
+- ⚠️ **A `purchase` OR `transfer` DEAD LETTER HAS NO MOVEMENTS TO COMPENSATE.**
+  `replay_failed_write` must not assume there is a downgrade to reverse — for two of
+  the four kinds there never was one, and check 9.5 asserts that as a population.
+- **The replay MARKER still is not written**, and it has been owed since 4e-ii-a.
+  `failed_write` is deliberately NOT immutable so that `0025` can stamp it.
+
+### Twenty-two falsifications, run by hand before 4.5b was committed
+
+Each is a single deliberate defect loaded over `0024` with `create or replace`
+(or, for F18–F22, a one-line DDL change), the suite re-run against it, and the
+schema restored. ⚠️ **EVERY ONE OF THE TWENTY-TWO TURNS SOMETHING RED** — the
+first task in step 4 or 4.5 where that is true, and it is true only because
+three mutations that were green on the first pass are what found the three
+holes written up above.
+
+| F | mutation | verdict | checks red |
+|---|---|---|---|
+| F1 | the workspace check deleted entirely | **RED** | 1 |
+| F2 | ⚠️ THE HEADLINE — a LOCATION wall added, the "tidy-up" a reviewer would make | **RED** | 8 |
+| F3 | the authenticated-caller guard deleted | **RED** | 1 |
+| F4 | `on conflict do nothing` removed, so a re-report raises | **RED** | 3 |
+| F5 | ⚠️ the already_recorded early return removed — it falls through to the downgrade | **RED** | 5 |
+| F6 | the kind rule widened — purchase and transfer downgrade too | **RED** | 6 |
+| F7 | the kind rule narrowed — waste is no longer downgraded | **RED** | 2 |
+| F8 | the unit conversion dropped — qty_display used as if it were base | **RED** | 1 |
+| F9 | the cross-dimension guard removed | **RED** | 3 |
+| F10 | the per-line subtransaction removed — one bad line loses the whole report | **RED** | 2 |
+| F11 | the dead-letter link is not passed to adjust_stock_delta | **RED** | 28 |
+| F12 | the payload occurred_at ignored — every downgrade is stamped now() | **RED** | 1 |
+| F13 | the offline basis turned off, so the payload time is overridden by now() | **RED** | 1 |
+| F14 | the safe uuid cast replaced by a hard one | **RED** | 2 |
+| F15 | the location accessibility check dropped from the downgrade branch | **RED** | 1 |
+| F16 | the payload-is-an-object gate removed | **RED** | 1 |
+| F17 | the kind whitelist removed | **RED** | 1 |
+| F18 | ⚠️ a FOREIGN KEY added to failed_write.location_id | **RED** | 3 |
+| F19 | the dead-letter link constraint dropped | **RED** | 5 |
+| F20 | ⚠️ the link constraint written with `=` instead of `is not distinct from` | **RED** | 3 |
+| F21 | the policy widened from owner to manager | **RED** | 1 |
+| F22 | ⚠️ the table granted INSERT as well as SELECT — 3.1s finding in a new place | **RED** | 1 |
+
+⚠️ **F11 IS THE LOUDEST AND IT IS THE AMENDMENT DEFENDING ITSELF**: drop the
+dead-letter link on the way into `adjust_stock_delta` and **28 checks go red**,
+because `stock_movement_downgrade_names_its_dead_letter` refuses the movement and
+every downgrade in the file fails at once. A design where the link was a nullable
+bare uuid would have turned exactly nothing red.
+
+✅ **No defect was found in `0024` itself.** Three were found in the SUITE, and
+all three are written up above.
 
 ### ⚠️⚠️ Found in 4.5a — A CHECK THAT COULD NOT REPORT ITS OWN FAILURE, AND THE FIX WAS THE FIXTURE
 
@@ -6159,7 +6311,7 @@ the first split in the project with no numbering cost at all.
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
 | 4.5a ✅ | **`adjust_stock_delta`** — the RELATIVE ledger primitive, and the `reason` column §2.6's signature assumes | `0023` | M | **DONE 2026-09-05.** 81 behavioural checks and TWENTY falsifications. ⚠️⚠️ **NOT GRANTED TO `authenticated`** — the one function of §2.6's ten that no client can call, and F3 (the grant added) turns five red. ⚠️⚠️ **`reason` had no column**, exactly as `note` had none in 4f: `0023` adds the `adjustment_reason` enum and column fix-forward. ⚠️ **F20 reported ABORTED rather than RED** until check 8.3's phantom row changed document kind — a refusal check whose granted side breaks a DEFERRED constraint cannot report its own failure. ⚠️ **F17 (the lock) turns nothing red and cannot today** — 4f's owed row, not a new one. ✅ No defect found in `0023` itself; three were found in the suite |
-| 4.5b | **`failed_write`** — the table, RLS, policies, grants — **and `record_failed_write`**: the dead-letter row, the auto-downgrade through 4.5a, and the link that makes it reversible. §2.10's **failure-path** row | `0024` | M | One rejected sale yields exactly one `failed_write` row, the linked compensating movement(s), and a balance matching the shelf. The workspace-not-location exception is asserted, not assumed |
+| 4.5b ✅ | **`failed_write`** — the table, RLS, policies, grants — **and `record_failed_write`**: the dead-letter row, the auto-downgrade through 4.5a, and the link that makes it reversible. §2.10's **failure-path** row | `0024` | M | **DONE 2026-09-05.** 79 behavioural checks and TWENTY-TWO falsifications, every one of which turns something red. ⚠️⚠️ **§2.6 AMENDED TWICE ON THE OWNER'S INSTRUCTION** — the link reversed onto `stock_movement.failed_write_id` (F11 turns 28 red), and only `sale`/`waste` downgraded. ⚠️ **`location_id` has NO foreign key**, deliberately: an FK would refuse the very report the table exists to keep, and F18 turns three red. ⚠️ **Three falsifications were green on the first pass and all three were suite holes.** ⚠️ **`02` and `03` went red naming the new table** — a tenant table with no rows is invisible to the isolation suites. ✅ No defect found in `0024` itself |
 | 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | `0025` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and the replayed document carries a marker `void_transaction` can read |
 
 ⚠️ **THE OVERFLOW SEAM IS PRE-COMMITTED, exactly as 4e did it**, so that a fourth
