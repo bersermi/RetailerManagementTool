@@ -84,21 +84,25 @@ not decide it — a transfer moves stock BOTH ways, so the rule is silent for th
 time. F5 is what getting it wrong looks like: ten times the stock, applying clean.
 Findings below.
 
-⚠️⚠️⚠️ **4e-ii IS SIZED AND BLOCKED, 2026-09-04 — AND THE BLOCKER IS THE FIRST
-PLAN/ADR DISAGREEMENT OF STEP 4 THAT IS ABOUT BEHAVIOUR, NOT A MIGRATION NUMBER.**
-This file's *done when* for 4e-ii says *"§2.7's void window is enforced in the body"*.
-**ADR-035 §2.7's roles table says the window is a ROLE BOUNDARY, NOT A DEADLINE** —
-*"void own transaction < 15 min"* for staff, *"void ANY transaction, ANY TIME"* for
-manager and owner. Written as this file states it, `0021` would refuse a manager's void
-of a 21-minute-old sale, and **§2.6's replay note would become unsatisfiable**: a
-replayed sale lands already outside the window, and §2.6 reaches for
-`void_transaction`'s compensating path *because* it has. `0001:272` has carried the
-correct reading since the foundation migration — *"self-service void window. Beyond it,
-manager role required."* **The ADR wins and this file is the bug** (`CLAUDE.md`); the
-owner's call is the exact fence, and it is cheap today and a fix-forward migration once
-`0021` merges. ⚠️ **4e-ii is ALSO an `L` and was split into 4e-ii-a / 4e-ii-b on the
-seam 4e pre-committed — `0022` and `0023` DO NOT MOVE.** Both under
-*BLOCKED ON THE OWNER* and *Settled in sizing 4e-ii* below.
+✅⚠️⚠️ **4e-ii IS SIZED AND UNBLOCKED, 2026-09-04, AND CLOSING IT AMENDED THE ADR.**
+Sizing turned up the first plan/ADR disagreement of step 4 that was about BEHAVIOUR
+rather than a migration number: this file's *done when* said *"§2.7's void window is
+enforced in the body"*, and **§2.7's roles table says the window is a ROLE BOUNDARY, NOT
+A DEADLINE** — staff void their OWN inside 15 minutes, **manager and owner void ANY
+transaction, ANY TIME**. Written as this file had it, `0021` would have refused a
+manager's void of a 21-minute-old sale and made §2.6's replayed sale permanently
+uncorrectable. **The owner confirmed §2.7's reading.**
+⚠️⚠️ **AND THE SECOND ANSWER CHANGED ADR-035 ITSELF, WHICH IS A FIRST FOR STEP 4.** §2.6
+said the void window reads `occurred_at`; on a queued OFFLINE sale that is the client's
+clamped time, so a 09:00 sale flushed at 14:00 lands five hours past its own window and
+the cashier cannot fix their own slip. **The owner: *"the store is offline a lot, use
+`recorded_at` for offline writes."*** §2.6 and §2.7 were **amended on the decision
+maker's instruction** rather than implemented around. ⚠️ **Daily totals still read
+`occurred_at`** and were deliberately left alone. ⚠️ **`TD003` for a refused void was
+taken ON THE OWNER'S BEHALF** — cheap now, a coordinated release later.
+⚠️ **4e-ii is ALSO an `L`** and was split into 4e-ii-a / 4e-ii-b on the seam 4e
+pre-committed — **`0022` and `0023` DO NOT MOVE.** All of it under *CLOSED BY THE OWNER —
+the void fence* and *Settled in sizing 4e-ii* below.
 
 ⚠️⚠️ **THE QUESTION 4c-i LEFT OPEN IS CLOSED. THE OWNER SETTLED IT 2026-09-04:
 `record_waste` GETS NO AVAILABILITY CHECK AND RECORDS UNCONDITIONALLY** — the
@@ -3759,7 +3763,7 @@ recorded there rather than quietly overwritten.
 | 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
 | 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
 | 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | **DONE 2026-09-04.** 76 behavioural checks and TWELVE falsifications. ⚠️⚠️ **F8 — the enforcement block reading the DESTINATION's shelf — turned NOTHING red on 74 checks**, and closing it took the only variant shape the two readings disagree about (6.7/6.8). ⚠️⚠️ **F9 — the advisory lock deleted — turned nothing red either**, and that one is still open: it is a NEW owed row, not one of §2.10's nine. ✅ No defect found in `0020` itself. Original criteria: both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
-| 4e-ii-a | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | ⚠️⚠️ **BLOCKED ON THE OWNER — the *done when* below contains a clause that CONTRADICTS ADR-035 §2.7 and cannot be written as stated.** See *BLOCKED ON THE OWNER — the plan's void-window clause* below. The rest stands: CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; `0008` ignores what a void reverses (✅ it already does — `0008:96–111`, both exclusions, applied since 2026-08). ⚠️ **The void does NOT check availability** — voiding a sold-on purchase may drive `remaining_base` negative, which `0004:429` permits deliberately |
+| 4e-ii-a | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | ✅ **UNBLOCKED 2026-09-04 — the owner answered.** The fence is §2.7's TWO-TIER rule: staff void their OWN inside the window, **manager/owner void anything, any time**. ⚠️⚠️ **The window reads `recorded_at` when `recorded_offline`** — the owner's store is offline a lot, and **ADR-035 §2.6/§2.7 WERE AMENDED** for it. ⚠️ **`TD003` taken on the owner's behalf** for a refused void. CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; `0008` ignores what a void reverses (✅ already does — `0008:96–111`). ⚠️ **No availability check** — voiding a sold-on purchase may drive `remaining_base` negative, which `0004:429` permits deliberately
 | 4e-ii-b | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | ⚠️ **Split 2026-09-04 in sizing, on the seam 4e PRE-COMMITTED**, so `0022` and `0023` do NOT move. Reasoning under *Settled in sizing 4e-ii* |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
@@ -4074,7 +4078,41 @@ the suite rather than by a falsification) was fixed in the file itself.
 found a real defect in `0018`** — the `qty_display` rounding gate above. Nine of the ten
 below confirm checks that were already right; F0 is the one that changed the function.
 
-### ⚠️⚠️ BLOCKED ON THE OWNER, 2026-09-04 — THE PLAN'S VOID-WINDOW CLAUSE CONTRADICTS ADR-035 §2.7, AND THE ADR WINS
+### ✅⚠️⚠️ CLOSED BY THE OWNER 2026-09-04 — THE VOID FENCE, AND AN ADR AMENDMENT THE OFFLINE STORE FORCED
+
+**All three questions below were put to the owner before a line of `0021` was written.
+Two were answered; the third was delegated and is recorded as taken on their behalf.**
+
+✅ **1. THE FENCE IS §2.7's TWO-TIER RULE.** The owner confirmed the reading this file
+had wrong. Staff void their OWN document inside the window; **manager and owner void
+anything, at any time, unfenced.**
+
+✅⚠️⚠️ **2. THE WINDOW READS `recorded_at` ON AN OFFLINE WRITE — AND THIS ONE AMENDED
+ADR-035.** The owner's words: *"the store is offline a lot, use `recorded_at` for
+offline writes."* §2.6 previously said the window reads `occurred_at`, full stop, and
+that is a rule this task could NOT simply implement around — so **ADR-035 §2.6 and §2.7
+were amended on the decision maker's instruction** (revision entry dated 2026-09-04),
+rather than `0021` being written against an authority that contradicted it. ⚠️ **This is
+the first time in step 4 that a task has changed the ADR rather than obeyed it**, and the
+route matters: the owner is the decision maker the ADR names, and §4 already lists the
+15-minute window as **Reversible**. ⚠️ **Daily totals were explicitly NOT touched** — the
+amendment splits one sentence that had bound them to the window; a sale still counts on
+the day it was made.
+
+⚠️⚠️ **3. `TD003` — TAKEN ON THE OWNER'S BEHALF, AND IT IS THE CHEAP-NOW-DEAR-LATER ONE.**
+The owner did not answer the sqlstate question and it was offered as delegable. **A void
+refused by the fence raises a NEW `TD003`, not `42501`.** The reasoning: `42501` already
+means *"this is not your store"*, which is a bug to report; *"you are past your window,
+ask your manager"* is a WORKFLOW, and a till that cannot tell them apart either shows a
+wrong message or pattern-matches on error text. It costs nothing today and a coordinated
+release once a client branches on it — the same warning `TD001` and `TD002` carry.
+**Reverse it now if it is wrong.**
+
+---
+
+**The original finding, kept because it is the reasoning the answers rest on:**
+
+### ⚠️⚠️ FOUND WHILE SIZING 4e-ii, 2026-09-04 — THE PLAN'S VOID-WINDOW CLAUSE CONTRADICTED ADR-035 §2.7, AND THE ADR WON
 
 **Found while sizing 4e-ii, before a line of `0021` was written.** This is the first
 time in step 4 that this file and the ADR have disagreed about *behaviour* rather than
