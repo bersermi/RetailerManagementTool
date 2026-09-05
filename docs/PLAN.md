@@ -119,6 +119,56 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅✅ **4f MERGED (#53) 2026-09-05 AND BUILD STEP 4 IS CLOSED. STEP 4.5 — THE FAILURE
+PATH — WAS SIZED AGAINST §2.6 AND §3 THE SAME DAY AND SPLIT INTO `4.5a` / `4.5b` /
+`4.5c`, BEFORE ANY OF IT WAS WRITTEN.** It is an `XL`: three functions plus the first
+new table in `public` since `0004`, where every one of step 4's six functions was a
+one-session `M`. ✅ **AND THE SPLIT COST NO RENUMBERING — THE FIRST ONE THAT DID
+NOT.** 4d and 4e each moved reserved numbers; nothing is downstream of step 4.5,
+because steps 5–7 are the client and ship no migration at all. `0023`, `0024`, `0025`
+were handed out at the end of the sequence and no later task moved.
+✅ **4.5a — `adjust_stock_delta`, `0023` — IS DONE AS OF 2026-09-05, AND `4.5b`
+(`failed_write` + `record_failed_write`, `0024`) IS THE NEXT TASK.** 81 behavioural
+checks and TWENTY falsifications; the gate now runs **thirteen suites and 831
+checks**, 7 pgTAP files, 8 seed-check files and 29 two-connection assertions.
+⚠️⚠️ **THE HEADLINE IS AN ACCESS DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE
+ONE MOST WORTH OVERTURNING EARLY IF IT IS WRONG: `adjust_stock_delta` IS GRANTED TO
+NOBODY.** It is the only one of §2.6's ten write-surface functions that `authenticated`
+cannot call. The two readings collide and there is no third — §2.7 fences stock
+adjustment at **manager** and `0022` enforces that with `TD003`, so granting this
+function unfenced would hand every cashier the same capability with a different sign;
+but `record_failed_write` **must** work for the cashier whose sale was just rejected
+(§2.6's *one deliberate exception*) and its downgrade **must** run through this
+function (§2.10's review checklist names it), so a manager fence inside the body would
+refuse the failure path in its ordinary case. Granting nothing satisfies both, and it
+is deliberately **the cheap direction to reverse**: adding a grant later is one line,
+removing one after a client ships against it is a coordinated release. **F3 — the
+grant added — turns five checks red.**
+⚠️⚠️ **AND 4f's `note` FINDING HAPPENED AGAIN, IN THE VERY NEXT MIGRATION: `reason`
+WAS IN §2.6's SIGNATURE AND IN NO TABLE.** It cannot be `stock_movement.reason`, which
+is the `movement_reason` enum and is `'adjustment'` for every row this function writes.
+`0023` adds an `adjustment_reason` enum and a nullable `stock_movement.adjustment_reason`
+column, fix-forward. ⚠️ **The enum ships two values and this migration writes one** —
+`physical_count` exists for the day `adjust_stock` is replaced to stamp it, which
+`0023` does NOT do, so `adjust_stock`'s movements carry NULL and **check 10.4 asserts
+that gap rather than hiding it**.
+⚠️⚠️ **ONE QUESTION IS OPEN AND IT BLOCKS NOTHING YET, BUT IT IS 4.5b's FIRST
+DECISION: §2.6's `adjustment_movement_id` IS SINGULAR AND A DOWNGRADE IS NOT.**
+`adjust_stock_delta` takes one `variant_id`; a rejected sale has lines, and one line
+spanning two lots writes two movements on its own. The ADR's own next sentence says
+the link *"is not optional… without it the downgrade and any later replay would each
+remove the same units"*, so it must be complete rather than representative.
+**Recommendation, cheap to overturn now: `failed_write` carries an
+`adjustment_group_id`, exactly as `record_transfer` carries `transfer_group_id` for
+the identical reason.** ⚠️ **That amends §2.6**, which is why it is flagged before
+4.5b rather than inside it. Reasoning under *Found while sizing step 4.5*.
+⚠️ **F20 REPORTED `ABORTED` RATHER THAN `RED` UNTIL A FIXTURE CHANGED**, and it is the
+first live use of the distinction 4f built: a `chk_raises` whose granted side would
+violate a **deferred** constraint cannot report its own failure, because the
+constraint fires after the block that catches. ⚠️ **F17 — the lock deleted — turns
+nothing red and cannot today**, and it is 4f's owed row rather than a new one, though
+the race here is a different one: two concurrent credits repaying one debt.
+
 ✅✅✅ **4f — `adjust_stock`, `0022` — IS DONE AS OF 2026-09-05, AND WITH IT
 **BUILD STEP 4 IS CLOSED**: all six functions of ADR-035 §2.6's step-4 write surface
 are applied, with `0015`'s constraint under them. 82 behavioural checks and SEVENTEEN
@@ -515,7 +565,7 @@ deadline under *Confirmed by the owner* below.
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
 | 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
-| 4.5 | The failure path | **NEXT** — **`0023`**, and per ADR-035 §3 it carries `adjust_stock_delta` too. ⚠️ It also owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
+| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`adjust_stock_delta`, `0023`) is DONE 2026-09-05**; **`4.5b` (`failed_write` + `record_failed_write`, `0024`) is NEXT**. ⚠️ It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -5923,6 +5973,323 @@ this is where they land.
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
 in earlier drafts of this file, and it never was.
+
+---
+
+## Step 4.5 — the failure path (§2.6, §3)
+
+ADR-035 §3, verbatim:
+
+> 4.5 **The failure path** — `failed_write`, `adjust_stock_delta`,
+> `record_failed_write`, `replay_failed_write`, and the pgTAP suites that cover
+> them
+
+This is the last database step. Steps 5–7 are the client, and **they ship no
+migration at all** — which is the one thing that makes the split below cheaper than
+every split before it, and it is said here rather than discovered later.
+
+⚠️ **IT IS THE LEAST-EXERCISED CODE IN THE SYSTEM AND THE ADR SAYS SO** (§2.10's
+review notes): *"`record_failed_write` and `replay_failed_write` run only when
+something else has already gone wrong."* Nothing on the happy path calls them,
+nothing in the seed writes them, and no screen shows them (§2.8 — dead letters land
+with the vendor). The suites are therefore not evidence *about* the functions; for
+this step they are the **only** exercise the functions will ever get before a real
+`42501` arrives in a real shop.
+
+### ⚠️ Found in 4.5a — A FLAKY RED IN THE VITEST SUITE, ON A COMMIT THAT TOUCHED NO TYPESCRIPT
+
+`0023`'s first CI run went red on the **Vitest** step with **29 of 29 assertions
+passing**: *"Test Files 3 passed, Tests 29 passed, Errors 1 error"*, exit 1. The
+error is an **unhandled promise rejection** in `idempotency.test.ts`, in *"without
+`on conflict` the retry is REJECTED, not silently absorbed"*.
+
+That test issues the second, blocking `insert` and holds the promise, then does two
+`await`s before wrapping it in `errcode()`. It is the **one deferred query in the
+file that rejects** — the other two use `on conflict` and resolve — so between the
+commit that unblocks it and the line that attaches a handler there is a window in
+which Node sees a rejection nobody is listening to. The window is only ever a
+scheduling accident wide, which is why it had never fired before; a loaded runner
+widened it. `PromiseRejectionHandledWarning` in the same log is the confirmation.
+
+⚠️ **Nothing in `0023` can have caused it** — the commit adds SQL and Markdown and
+touches no TypeScript — and the fix is to wrap at creation, which
+`availability-race.test.ts` already does for the same reason. **A flaky red is not a
+harmless failure**: it is what teaches a reviewer to re-run a job instead of reading
+it, and this repository's merge rule depends on the opposite habit.
+
+### Twenty falsifications, run by hand before 4.5a was committed
+
+Each is a single deliberate defect loaded over `0023` with `create or replace` (or,
+for F3 and F20, a one-line DDL change), the suite re-run against it, and the
+function restored. ⚠️ **The harness reports `ABORTED` separately from `RED=0`** —
+4f built that distinction and F20 is the first live task to need it.
+
+| F | mutation | verdict | checks red |
+|---|---|---|---|
+| F16 | a lot opened by a backdated credit is received at `now()` | **RED** | 1 |
+| F18 | the lot opened for the remainder costs 1.00 rather than zero | **RED** | 2 |
+| F20 | the `adjustment_reason` constraint dropped | **RED** | 2 |
+
+⚠️ **F17 and F19 are the two greens, and they are not the same kind of green.** F17
+is the lock, unfalsifiable from one connection and already an owed row (4f's F14).
+F19 is the allocator's internal add-up assertion, redundant by construction and
+recorded as defence in depth rather than counted as coverage. Both are argued above.
+
+✅ **No defect was found in `0023` itself.** Three were found in the SUITE — 6.11
+vacuous, 6.13's fixture trivial, and 8.3 unable to report its own failure — and all
+three are written up above.
+
+### ⚠️⚠️ Found in 4.5a — A CHECK THAT COULD NOT REPORT ITS OWN FAILURE, AND THE FIX WAS THE FIXTURE
+
+**F20 dropped `stock_movement_adjustment_reason_agrees` and the suite reported
+`ABORTED`, not `RED`** — which is the state 4f's harness fix exists to tell apart,
+arriving in a live task within a day of being built.
+
+Check 8.3 proves the constraint by inserting a movement that answers to a document
+AND carries an `adjustment_reason`. Written first as a `purchase` movement, it is
+refused by the constraint and all is well — but the day the constraint is *gone*, the
+insert SUCCEEDS, and a phantom purchase movement breaks `0015`'s
+**deferred** receipt-completeness constraint at **COMMIT**. `chk_raises` has already
+returned by then, so the exception escapes it, `ON_ERROR_STOP` kills psql, and the
+file dies with **no report at all** — 13 checks that never ran, and a mutation that
+looks from the outside exactly like one that turned nothing red.
+
+⚠️ **The fix is in the FIXTURE, not in the harness**: the phantom row is now a
+`sale`, whose success breaks no deferred constraint, so the failure prints a `FAIL`
+row and 10.5 catches it a second time. F20 turns **two** red. ⚠️ **This is 4f's F11
+in a new place** — *"red only by abort"* — and the general shape is worth naming: **a
+`chk_raises` whose granted side would violate a DEFERRED constraint cannot report its
+own failure**, because the constraint fires outside the block that catches.
+
+### ⚠️ Found in 4.5a — 6.11 WAS VACUOUS WHEN FIRST WRITTEN, AND IT IS RULE 4 EXACTLY
+
+*"No lot was opened, because the credit was smaller than the debt"* was first written
+as a second call with a delta of **zero**, reading `batch_opened` from the return.
+**A no-op opens no lot whatever the function does**, so the check passed against every
+possible implementation. It now counts `stock_batch` rows with
+`origin = 'adjustment'` for the subject. 4e-ii-b's rule 4 — *"a check over a zero, a
+null or an unset flag asserts nothing"* — caught in review this time rather than by
+falsification, which is the first time that has happened in step 4.
+
+⚠️ **The same review pass caught a fixture that would have made 6.13 vacuous**: *"a
+credit against a shelf with NO debt"* was written against a variant with no stock at
+all, where phase one has nothing to iterate rather than nothing to *repay*. The
+subject now carries 30 units, so a repayment loop that read `remaining_base <> 0`
+instead of `< 0` is visible — and F10, which makes exactly that change, turns two red.
+
+### ⚠️⚠️ Found in 4.5a — TWO FALSIFICATIONS TURN NOTHING RED, AND ONLY ONE OF THEM IS OWED
+
+- **F17 — the `for update` deleted — turns nothing red, and cannot today.** 4c-i's
+  F6, 4e-i's F9 and 4f's F14 in a **fifth** language: one connection cannot block on
+  its own lock. ⚠️ **This is NOT a new owed row.** It is 4f's, still open, and the
+  reason is sharper here than there: in `0022` the lock protects a balance the
+  function *reads*, and §2.6's whole argument for a relative operation is that this
+  one does not read a balance to compute its quantity. The lock is here for the
+  **repayment loop**, which does read which lots are negative and by how much — so
+  two concurrent credits against one debt would repay it twice. That is a different
+  race from 4f's, in the same unwatched place.
+- **F19 — the allocator's add-up assertion deleted — turns nothing red, and is
+  honestly redundant by construction.** `allocate_fefo()` returns exactly what it
+  was asked for on every branch (`0010`), so no fixture in this file can make the
+  guard fire. It is defence in depth against a future change to the allocator, and
+  it is recorded as such rather than counted as coverage. 4e-ii-a's F11, same shape.
+
+### ⚠️ Found in 4.5a — THE AUTHENTICATED-CALLER GUARD IS UNREACHABLE, AND 3.11 SAYS SO
+
+`adjust_stock_delta` raises `insufficient_privilege` when `auth.uid()` is null. **It
+cannot**: the location wall runs first, and with no claim `my_locations()` returns
+nothing, so `42501` fires every time. Check 3.11 asserts the `42501` and its label
+records why — the guard is defence in depth against a future caller that validates
+the location some other way, not a live path. ⚠️ **The same is true of `0022`, and
+was not noticed there.**
+
+### Settled in 4.5a, and binding on 4.5b and 4.5c
+
+- **The `note` column and the `adjustment_reason` column are both §2.6 signatures
+  that had no home.** Two migrations in a row have now added a column to
+  `stock_movement` because a function argument the ADR names had nowhere to go.
+  ⚠️ **4.5b should grep before it writes**: `record_failed_write(id, kind, payload,
+  error_code, error_detail)` and `replay_failed_write(failed_write_id)` are the last
+  two signatures nobody has checked against the schema, and `failed_write` is a table
+  4.5b creates, so the answer there is "design it", not "add a column".
+- **A new function is granted to PUBLIC unless a migration says otherwise.** `0023`'s
+  `revoke all ... from public` is what makes decision 1 true, and F3 — which grants
+  execute to `authenticated` — turns **five** red. This is 3.1's table finding with a
+  function in place of a table: the grant does not appear in the file that creates
+  the object, so nothing in review would show it.
+- ⚠️ **A `chk_raises` whose granted side would violate a DEFERRED constraint cannot
+  report its own failure.** See the 8.3 finding above. Ask, of every refusal check:
+  *what does the database look like the day this stops refusing?*
+- **`adjustment_reason` is NULL on every movement `adjust_stock` writes**, and check
+  10.4 asserts that gap rather than hiding it — so the day `0022` is replaced to
+  stamp `physical_count`, that check goes red and points at the assumption.
+
+### ⚠️⚠️ Settled in sizing step 4.5, 2026-09-05 — IT IS AN `XL`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS NO RENUMBERING
+
+Sized against §2.6 and §3 **before any of it was written**, on the rule 1.3, 1.6,
+step 2, 3.2b, 3.6, 3.7, 4, 4c, 4d, 4e and 4e-ii split under. The step-4 table
+carried step 4.5 as a single `0023`; that number was never an estimate of the work,
+it was a reservation.
+
+**The measurement is step 4's own.** Every one of its six functions came in at one
+session — `M`, 63–95 behavioural checks, 10–20 falsifications, 400–600 migration
+lines against a 900–1200 line suite. Step 4.5 is **three functions plus a table with
+its own RLS, policies and grant surface**, and the table is the first new one in
+`public` since `0004`. Three functions is what 4e was before it was split twice.
+
+| Deliverable | Comparable | Why it is not free |
+|---|---|---|
+| `adjust_stock_delta` | `adjust_stock` (`0022`, `M`) | The signed sibling. FEFO down, repay-then-open up, and a `reason` argument `0022` did not have |
+| `failed_write` + RLS + policies + grants | no comparable in step 4 — the last new table was `0004` | `01_rls_coverage.sql`'s plan is **computed**, so the day it lands it must already have RLS on, `for select`, `to authenticated`, and a predicate reaching a tenancy helper — or the structural suite goes red on arrival |
+| `record_failed_write` | `record_waste` (`0019`, `M`) | Plus §2.6's *one deliberate exception* — workspace validated, location NOT — which is on the §2.10 review checklist by name |
+| `replay_failed_write` | `void_transaction` (`0021`, `M`, and itself an `L` when sized) | Compensate, then **re-run the original call under its original id, dispatching on kind** — the only function on the write surface that calls other RPCs |
+| The **replay marker** | — | Owed since 4e-ii-a. Nothing distinguishes a replayed document today, and §2.6's void-window exemption cannot be enforced or falsified until something does |
+| §2.10's **failure path** and **replay** rows | 3.1–3.7's pgTAP | The two rows step 3 could not write, named under *What step 3 does NOT ship* |
+
+**One function was one session, six times running. Three functions and a table is
+not one session, and pretending otherwise is how half a migration meets a context
+clear.**
+
+✅ **AND THE SPLIT IS FREE, WHICH IS NEW.** 4d and 4e each cost a renumbering because
+tasks downstream of them held reserved numbers. **Nothing is downstream of step
+4.5.** `0023`, `0024` and `0025` are being handed out at the end of the sequence, so
+no later task moves and no table in this file needs a before/after column. This is
+the first split in the project with no numbering cost at all.
+
+| # | Task | Migration | Size | Done when |
+|---|------|-----------|------|-----------|
+| 4.5a ✅ | **`adjust_stock_delta`** — the RELATIVE ledger primitive, and the `reason` column §2.6's signature assumes | `0023` | M | **DONE 2026-09-05.** 81 behavioural checks and TWENTY falsifications. ⚠️⚠️ **NOT GRANTED TO `authenticated`** — the one function of §2.6's ten that no client can call, and F3 (the grant added) turns five red. ⚠️⚠️ **`reason` had no column**, exactly as `note` had none in 4f: `0023` adds the `adjustment_reason` enum and column fix-forward. ⚠️ **F20 reported ABORTED rather than RED** until check 8.3's phantom row changed document kind — a refusal check whose granted side breaks a DEFERRED constraint cannot report its own failure. ⚠️ **F17 (the lock) turns nothing red and cannot today** — 4f's owed row, not a new one. ✅ No defect found in `0023` itself; three were found in the suite |
+| 4.5b | **`failed_write`** — the table, RLS, policies, grants — **and `record_failed_write`**: the dead-letter row, the auto-downgrade through 4.5a, and the link that makes it reversible. §2.10's **failure-path** row | `0024` | M | One rejected sale yields exactly one `failed_write` row, the linked compensating movement(s), and a balance matching the shelf. The workspace-not-location exception is asserted, not assumed |
+| 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | `0025` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and the replayed document carries a marker `void_transaction` can read |
+
+⚠️ **THE OVERFLOW SEAM IS PRE-COMMITTED, exactly as 4e did it**, so that a fourth
+task never has to renumber anything: **if 4.5b or 4.5c overflows one session, the
+overflow takes 4b-ii's seam — test breadth, NO migration** — and is named `4.5b-ii`
+or `4.5c-ii`. The function lands whole in its own number or it does not land.
+
+Order is forced:
+
+- **4.5a first.** §2.6 does not merely permit `record_failed_write` to use
+  `adjust_stock_delta`, it puts the choice on the review checklist: *"anyone
+  reviewing this function checks that it writes to `failed_write` and to the ledger
+  via `adjust_stock_delta` and to nothing else."* The primitive is a named contract,
+  not an implementation detail of 4.5b, and it cannot be reviewed as one if it is
+  written inside the same 600 lines as its only caller.
+- **4.5b before 4.5c.** There is nothing to replay until a dead letter exists, and
+  `replay_failed_write`'s first argument is a `failed_write_id`.
+- **The marker travels with 4.5c**, not with the table in 4.5b, because the thing
+  that must be marked is the **replayed document** — a `sale`, `purchase` or `waste`
+  header — and only `replay_failed_write` knows it is replaying one.
+
+### ⚠️⚠️ Found while sizing step 4.5 — §2.6's `adjustment_movement_id` IS SINGULAR AND A DOWNGRADE IS NOT
+
+**This is 4.5b's to settle, it is named here so it is not discovered mid-migration,
+and it is a genuine gap in the ADR rather than a disagreement between two files.**
+
+§2.6's failure path, verbatim:
+
+> 2. **auto-downgrades** via `adjust_stock_delta`, so the stock balance matches the
+>    shelf within seconds rather than at the next physical count;
+> 3. stores the resulting `adjustment_movement_id` on the `failed_write` row.
+
+`adjust_stock_delta` takes **one** `variant_id`. A rejected *sale* has **lines** —
+three variants is an ordinary basket — so the downgrade of one `failed_write` is
+three calls and **at least** three movements. More than three, in fact: 4.5a's
+negative branch allocates FEFO, and one line spanning two lots writes two movements
+on its own. `0004:320` already anticipates the link and states its direction —
+
+> An adjustment answers to nothing but its own note. The failure path's downgrade
+> lands here too, and the link back to its `failed_write` row is stored on that row,
+> not on this one (§2.6).
+
+— so the column named in §2.6 is a **`uuid` that has to describe a set**, and the
+constraint `stock_movement_source_agrees` is what stops the obvious fix of putting
+`failed_write_id` on the movement instead: it requires all four document ids NULL for
+reason `adjustment`, and 4f already refused an adjustment *document table* on exactly
+that ground.
+
+⚠️ **Step 3 of §2.6 is not decoration — the ADR says so in the next sentence**:
+*"Step 3 is what makes step 2 recoverable, and it is not optional. Without the link,
+the downgrade and any later replay would each remove the same units and the ledger
+would be short by exactly one sale."* So the link must be complete, not
+representative: a `failed_write` that records only the FIRST of its downgrade
+movements is a row `replay_failed_write` will silently under-compensate.
+
+**The recommendation, for the owner to overturn cheaply now:** `failed_write` carries
+an **`adjustment_group_id uuid`** and `adjust_stock_delta` accepts one, exactly as
+`record_transfer` carries `transfer_group_id` for the identical reason — a set of
+movements with no single document to hang off. It is the shape this schema already
+has a precedent for (`0005`), it survives a multi-line multi-lot downgrade unchanged,
+and §2.6's sentence is then satisfied in substance with one word moved. ⚠️ **It is
+NOT what §2.6 currently says**, so taking it amends the ADR, which is why it is
+flagged before 4.5b rather than inside it.
+
+### ⚠️ Settled in sizing 4.5a, 2026-09-05 — THREE CALLS TAKEN ON THE OWNER'S BEHALF, AND THE FIRST IS AN ACCESS DECISION
+
+1. ⚠️⚠️ **`adjust_stock_delta` IS NOT GRANTED TO `authenticated`. No client can call
+   it.** This is the one worth reading, because §2.6 lists it among *"ten functions
+   [that] are the entire write surface"* and every other one of the ten is granted.
+
+   The two readings collide and there is no third:
+
+   - §2.7's capability table fences stock adjustment at **manager** — *"Stock counts
+     and adjustments — staff —, manager ●, owner ●"* — and `0022` enforces exactly
+     that with `TD003`. A `adjust_stock_delta` granted to `authenticated` with no
+     fence hands every cashier, in one call, the capability `adjust_stock` spends
+     twelve lines denying them. That is not a loophole, it is the same capability
+     with a different sign.
+   - But **`record_failed_write` must be callable by the staff member whose sale was
+     just rejected** — that is the entire point of §2.6's *one deliberate exception*,
+     which loosens the location check because *"the commonest reason a write is
+     permanently rejected is that the caller's location access was wrong"*. A cashier
+     is who is standing there. And the downgrade **must** go through
+     `adjust_stock_delta`, because §2.10's review checklist says so by name. So a
+     manager fence inside `adjust_stock_delta` would refuse the failure path in the
+     ordinary case and leave the shelf wrong.
+
+   Granting nothing resolves both: the fence lives on the **callers**, which is where
+   §2.7 writes it (§2.7 is a table of *capabilities*, and "downgrade a write that
+   already failed" is not one of its rows). 4f's own note anticipated the shape —
+   *"4.5 must supply a key of its own or accept that `record_failed_write` is the
+   only caller"* — and this accepts it, out loud.
+
+   ⚠️ **It is deliberately the CHEAP direction to reverse.** Adding a grant later is
+   one line and breaks nothing. Removing one after a client has shipped against it is
+   a coordinated release. If the owner wants an operator-facing relative adjustment,
+   it costs a `grant` and a fence, in that order.
+
+2. **`reason` HAS NOWHERE TO LIVE, AND THIS IS 4f's `note` FINDING A SECOND TIME.**
+   §2.6's signature is `adjust_stock_delta(location_id, variant_id, delta_base,
+   reason, note)`. `note` arrived in `0022`. **`reason` is in no table in this
+   database** — and it cannot be `stock_movement.reason`, which is the
+   `movement_reason` enum and is `'adjustment'` for every row this function writes,
+   fixed by `stock_movement_source_agrees`. So `0023` adds a **`adjustment_reason`
+   enum and a nullable `stock_movement.adjustment_reason` column**, fix-forward,
+   beside the function that needs it. Same argument, same table, same reason 4f gave
+   for `note`: the ADR wins and the other file is the bug (`CLAUDE.md`).
+
+   ⚠️ **The enum ships TWO values and writes ONE.** `failed_write_downgrade` is
+   4.5b's, and `physical_count` exists so that the column means something the day
+   `adjust_stock` is replaced to stamp it — which `0023` does **not** do, because a
+   `create or replace` would copy 250 applied lines into this migration to change one
+   INSERT. **Movements written by `adjust_stock` therefore carry NULL**, and that is
+   recorded as a known incompleteness rather than hidden: `adjustment_reason is null`
+   currently means *"a physical count, or a movement older than `0023`"*.
+   `replay_compensation` is deliberately **not** in the enum — §2.6 says replay
+   *compensates* `adjustment_movement_id`, which is a reversal carrying
+   `reversal_of_movement_id`, and 4.5c decides whether that goes through this
+   function at all.
+
+3. **THE REPAY-THEN-OPEN RULE CARRIES OVER FROM 4f UNCHANGED, and the argument is
+   `0004:429`'s, not consistency for its own sake.** A positive delta repays every
+   lot this location has driven negative first, at that lot's own cost, and opens ONE
+   zero-cost lot for the remainder. Without it `allocate_fefo()`'s `remaining_base >
+   0` predicate leaves the overdrawn lot immortal — the totals right, the lot
+   untouchable forever. ⚠️ **A ZERO DELTA IS A NO-OP AND IS NOT `adjust_stock`'s
+   "zero is legal" case.** 4f settled that counting a shelf empty is a real count;
+   a delta of zero describes no shelf at all and moves nothing, and
+   `stock_movement_sign_follows_reason` (`qty_base <> 0`) would refuse the movement
+   anyway.
 
 ---
 
