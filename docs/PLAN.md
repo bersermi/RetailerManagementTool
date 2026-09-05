@@ -119,6 +119,71 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅✅ **4f — `adjust_stock`, `0022` — IS DONE AS OF 2026-09-05, AND WITH IT
+**BUILD STEP 4 IS CLOSED**: all six functions of ADR-035 §2.6's step-4 write surface
+are applied, with `0015`'s constraint under them. 82 behavioural checks and SEVENTEEN
+falsifications; the gate now runs **twelve suites and 750 checks**, 7 pgTAP files, 8
+seed-check files and 29 two-connection assertions. **The next task is step 4.5 —
+`0023`, the failure path.**
+⚠️⚠️ **THE HEADLINE IS A SCHEMA CHANGE THE ADR FORCED, AND IT IS THE ONLY STEP-4
+MIGRATION THAT TOUCHES A TABLE: `note` WAS IN §2.6's SIGNATURE AND IN NO TABLE IN THIS
+DATABASE.** Grepped, not assumed — four occurrences of the word across all applied
+migrations, every one a comment, including `0004:332` asserting it as fact (*"An
+adjustment answers to nothing but its own note"*) while writing the constraint that
+depends on it. `0022` adds `stock_movement.note text` fix-forward. **A document table
+was considered and REFUSED**: `stock_movement_source_agrees` requires all four document
+ids NULL for reason `adjustment`, so a table would mean altering an applied constraint
+to admit a fifth id, plus a table, RLS, policies and grants — where the ADR's own
+constraint says an adjustment has no document.
+⚠️⚠️ **A COUNT UP REPAYS NEGATIVE LOTS BEFORE IT OPENS A NEW ONE, at each lot's own
+cost, and this is the decision most worth reversing early if it is wrong.** `0004:429`
+names this function as how a negative balance gets RESOLVED. Without the repayment the
+totals are still right and the overdrawn lot sits at -5 **forever** — `allocate_fefo()`
+reads only `remaining_base > 0`, so no sale, waste or transfer ever touches it again.
+F5 (repay loop deleted) turns **nine** checks red; F6 (repay at zero cost rather than
+the lot's) turns **two**, and 6.3 is the only check in the file that can tell a
+zero-cost repayment from a correct one.
+⚠️⚠️ **TWO FALSIFICATIONS TURNED NOTHING RED ON THE FIRST 78 CHECKS AND BOTH WERE
+CLOSED BY WRITING MORE FIXTURE, NOT MORE ASSERTIONS.** F17 reversed the repayment
+loop's FEFO ordering: green, because every variant in the file carried exactly ONE
+overdrawn lot and an order over one row is not an order. ⚠️ **Making it observable took
+arranging**: whenever the balance is negative, `counted_base >= 0` forces the delta to
+cover the WHOLE debt and both lots reach zero however the loop is written. The new
+subject therefore holds a POSITIVE lot beside two debts, so a small count is a PARTIAL
+repayment and only the first lot in the order moves. Sections 6.9–6.11, and F17 now
+turns two red. 4e-ii-b's rule 5 arriving again: a per-lot claim needs a multi-lot
+subject.
+⚠️⚠️ **A SEVENTH SHAPE OF MISLEADING GREEN, AND IT IS THE SIXTH ONE REPEATING BECAUSE
+THE FIX WAS NEVER GENERALISED.** `0022` defines `chk_json` — the same catch-and-record
+mirror of `chk_raises` that 4e-ii-a added `chk_succeeds` for — and `_cleanup.sql` did
+not know about it, so five falsifications in a row reported *"function chk_json already
+exists"* rather than the defect they injected. **A mutation that turns nothing red and
+a mutation whose suite never ran are indistinguishable from the outside**, which is why
+this cost the same hour twice. Fixed in `_cleanup.sql` for `chk_json`, `_adj`, `_bal`
+and the four-argument `_pl`, and the rule is now written there: **every helper a suite
+creates belongs in that block on the day the suite lands**, because the suite's own
+`drop` is unreachable in exactly the case that matters. ⚠️ **The falsification harness
+was also fixed to report ABORTED separately from RED=0** — it had been reporting the
+first as the second.
+⚠️⚠️ **4b-ii's "COUNTED, NOT READ" RULE WAS BINDING ON THIS TASK AND THE FIRST DRAFT
+BROKE IT IN EIGHT PLACES.** F2 (the role fence deleted) let the cashier's calls succeed,
+which gave a second row to a scalar subquery reading `(select qty_base from
+stock_movement where …)`, and the file died with *"more than one row returned by a
+subquery"* — **RED=0, reported as "the defect turned nothing red"**. Every such read is
+now `count(*) … = 1` asserting the value AND the cardinality together, and F2 turns
+eight red.
+⚠️ **F11 WAS RED ONLY BY ABORT, AND THAT WAS FIXED RATHER THAN RECORDED.** Copying
+`0018`'s "rounds to zero" gate in makes a count of zero raise — and 6.7 was a bare
+`\gset` call, so the exception escaped and the file died with no report. 6.7 now goes
+through `chk_json` and asserts against the database instead of the returned jsonb; F11
+turns five red. ⚠️ **The other bare `\gset` calls remain and the trade is deliberate**:
+they are what lets sections 4, 5, 6 and 8 assert the RETURN SHAPE, and a defect that
+makes one of them raise is still red, just not in the shape a reviewer expects.
+⚠️⚠️ **F14 — THE `for update` DELETED — TURNS NOTHING RED, AND CANNOT TODAY.** 4c-i's
+F6 and 4e-i's F9 in a fourth language: one connection cannot block on its own lock.
+**A count racing a sale, and two managers counting one shelf, are unproved on `main`.**
+This is a NEW OWED ROW and it is NOT one of §2.10's nine — see the owed-rows note.
+
 ✅✅ **4e-ii-b — TEST BREADTH OVER `void_transaction` — IS DONE AS OF 2026-09-04,
 AND `4f` (`adjust_stock`, `0022`) IS THE LAST TASK IN STEP 4.** `supabase/tests/0021`
 goes 64 → 95 checks and TWENTY falsifications; the gate now runs **eleven suites and
@@ -449,8 +514,8 @@ deadline under *Confirmed by the owner* below.
 | 1 | Migrations and seed script | **Done** |
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
-| 4 | RPCs — the write surface of §2.6 | **NEXT** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day). `4a` — the receipt-completeness constraint — is first |
-| 4.5 | The failure path | Not started — **`0023`**, and per ADR-035 §3 it carries `adjust_stock_delta` too |
+| 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
+| 4.5 | The failure path | **NEXT** — **`0023`**, and per ADR-035 §3 it carries `adjust_stock_delta` too. ⚠️ It also owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -3835,7 +3900,7 @@ recorded there rather than quietly overwritten.
 | 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | **DONE 2026-09-04.** 76 behavioural checks and TWELVE falsifications. ⚠️⚠️ **F8 — the enforcement block reading the DESTINATION's shelf — turned NOTHING red on 74 checks**, and closing it took the only variant shape the two readings disagree about (6.7/6.8). ⚠️⚠️ **F9 — the advisory lock deleted — turned nothing red either**, and that one is still open: it is a NEW owed row, not one of §2.10's nine. ✅ No defect found in `0020` itself. Original criteria: both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
 | 4e-ii-a ✅ | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | **DONE 2026-09-04.** 64 behavioural checks and SIXTEEN falsifications. ⚠️⚠️ **F2 — the basis forced back to `occurred_at`, the exact rule the amendment replaced — turns check 7.2 RED AND NOTHING ELSE**, so the owner's decision is not merely implemented, it is the only reading the suite admits. ⚠️⚠️ **F12 FOUND A HOLE: the wall is written out THREE times, once per kind, and only the `purchase` copy was watched** — deleting it from the `sale` or `waste` lookup turned nothing red until 2.4b/2.4c existed. ⚠️⚠️ **F6 TURNED NOTHING RED AND CANNOT TODAY** — a NEW owed row, see below. ⚠️ **F11 turned nothing red and is honestly recorded as redundant by construction.** ⚠️⚠️ **A SIXTH SHAPE OF MISLEADING GREEN, and it is fixed in `_cleanup.sql`**: a suite that ABORTS never reaches its own `drop function`, so a helper leaks into the next suite of the same CI job. ✅ No defect found in `0021` itself
 | 4e-ii-b ✅ | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/tests/0021` goes 64 → 95 checks, TWENTY falsifications. ⚠️⚠️ **ELEVEN DEFECTS APPLY CLEANLY AND TURNED NOTHING RED ON 4e-ii-a's 64 CHECKS** — the measurement this task existed to take. ⚠️⚠️ **3.12 COULD NOT FAIL: it read `a > b or a >= b`, which is `a >= b`**, so a void back-dated to the original's own `occurred_at` passed the check whose label forbids exactly that. Fixed in place, and the claim proved by re-running the mutation against 4e-ii-a's form of the file. ⚠️⚠️ **A REFUSAL CANNOT WATCH THE COLUMN IT REFUSES ON** — the fence's `created_by` read is dropped from a branch, `v_creator` is null, and 6.2 still passes. ⚠️⚠️ **THE MULTI-LOT VOID WAS UNWATCHED**: returning every unit to ONE lot per variant leaves 3.9, 3.11, 4.3 and 5.4 green. ⚠️ **THREE of this task's OWN checks were vacuous when written** and were caught by falsification, not review. ✅ **No defect found in `0021` itself, and no migration was written** |
-| 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
+| 4f ✅ | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | M | **DONE 2026-09-05, and step 4 CLOSES with it.** 82 behavioural checks and SEVENTEEN falsifications. ⚠️⚠️ **`note` WAS IN §2.6's SIGNATURE AND IN NO TABLE** — `0022` adds `stock_movement.note text` fix-forward, the only step-4 migration that changes a table, which is why the size moved `S` → `M`. ⚠️⚠️ **A COUNT UP REPAYS NEGATIVE LOTS BEFORE OPENING ONE**, at each lot's own cost — `0004:429` names this function as how a negative balance is RESOLVED, and without it the overdrawn lot is immortal. ⚠️ **A count DOWN never opens a lot**, asserted as an absence. ⚠️ **F17 and F11 turned nothing red until fixture and harness were fixed**; ⚠️⚠️ **F14 — the lock deleted — turns nothing red and CANNOT today**, a new owed row. ✅ No defect found in `0022` itself. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5** |
 
 Order is forced, and not by foreign keys this time:
 
@@ -3879,6 +3944,165 @@ Order is forced, and not by foreign keys this time:
   2026-09-04**: 4e-ii is an `L`, split into **4e-ii-a** (`0021`, the whole function)
   and **4e-ii-b** (test breadth, no migration). **`0022` and `0023` do not move** —
   pre-committing the seam is what bought that. **4f last**, and it is the smallest.
+
+### ⚠️⚠️ Settled in sizing 4f, 2026-09-04 — IT IS AN `M`, NOT THE TABLE'S `S`, AND IT IS **NOT** SPLIT — BUT `note` HAS NOWHERE TO LIVE
+
+Sized against ADR-035 §2.4, §2.6 and §2.7 before a line was written, on the same rule
+every other step-4 task was sized under. **The verdict is one session and no split**,
+and the estimate moves `S` → `M` for one reason the table could not have known.
+
+**Why it is genuinely smaller than every other function on this surface.** It is the
+only one with no document table behind it — no header, no lines array, no
+`payload_hash`, no tax split, no provider wall, no `occurred_at` / `recorded_offline`
+pair. §2.6 gives it **four scalar arguments and one variant**, where `record_waste`
+takes a jsonb array and writes two tables. The whole of sections 3–6 of `0019` — the
+line ladder, the money, the weighted cost snapshot — has no counterpart here.
+
+**Why it is nevertheless not an `S`.** `0015` was this step's only other `S` and it was
+three constraint triggers. 4f is a function with **two branches that share almost no
+code** (a count down FEFO-allocates, a count up opens a lot), **a role fence no RPC on
+this surface has yet had**, and a **schema change to an applied ledger table**:
+
+⚠️⚠️ **`note` IS IN THE ADR's SIGNATURE AND IN NO TABLE IN THIS DATABASE.** §2.6 names
+it twice — `adjust_stock(location_id, variant_id, counted_base, note)` and
+`adjust_stock_delta(..., reason, note)` — and `0004:332` asserts it as an existing fact
+while writing the constraint that depends on it:
+
+> *"An adjustment answers to nothing but its own note."*
+
+**There is no `note` column on `stock_movement`, on `stock_batch`, or anywhere else in
+`public`.** Grepped, not assumed. Nothing in this plan, in `supabase/README.md` or in
+any of the eleven suites has ever noticed, because **until 4f nothing on the write
+surface had a note to write** — the other five functions all hang their free text off a
+document table (`reversal_reason` on `purchase`, `sale` and `waste`), and an adjustment
+has no document.
+
+`CLAUDE.md` settles what to do and it is not a judgement call: **the ADR wins and the
+other file is the bug.** `0022` therefore ships a fix-forward `alter table
+public.stock_movement add column note text` alongside the function. ⚠️ **This is the
+first step-4 migration that changes a table rather than only adding a function**, and
+it is why the size moved. Recorded as a decision below rather than buried in the
+migration, because a column on the ledger is the definition of cheap now and dear later.
+
+**Why it is not split.** The comparison is 4d-ii, which was one session: `0019` at 516
+lines, a 982-line suite, 67 checks and ten falsifications. 4f is smaller than that on
+every axis except the `alter`. Splitting it would strand `0022` half-written across a
+context clear for no gain, and **the test-breadth seam 4b-ii and 4e-ii-b used needs a
+function big enough to have unwatched branches** — this one has two, and both are in
+scope. ✅ **`0023` DOES NOT MOVE**, and step 4 closes when this merges.
+
+### ⚠️⚠️ Settled in 4f, 2026-09-05 — FOUR DECISIONS TAKEN ON THE OWNER'S BEHALF, AND THE FIRST IS A COLUMN ON THE LEDGER
+
+Merging is automated, so these are recorded here and in the PR body rather than being
+asked first. **They are listed loudest-first, by what it costs to reverse them.**
+
+1. ⚠️⚠️ **`note text` ON `stock_movement`.** ADR-035 §2.6 has named `note` in this
+   function's signature since the ADR was written; **no table in this database carried
+   it**, and `0004:332` asserts it in a comment while writing the constraint that
+   depends on it. `CLAUDE.md` settles what to do — the ADR wins and the other file is
+   the bug — so `0022` adds the column fix-forward, nullable, with `0003`'s not-blank
+   check. **A DOCUMENT TABLE WAS CONSIDERED AND REFUSED**: an `adjustment` table would
+   need `stock_movement_source_agrees` altered to admit a fifth document id, on an
+   applied table, where that constraint's own comment says an adjustment answers to
+   nothing but its note. ⚠️ **This is the expensive one**: a column on the ledger, and
+   the seed will carry adjustment movements the day it grows one.
+
+2. ⚠️⚠️ **A COUNT UP REPAYS NEGATIVE LOTS BEFORE IT OPENS A NEW ONE**, FEFO order, at
+   each lot's own cost. Not stated in §2.6, and **forced by `0004:429`**, which names
+   this function as how a negative balance gets *resolved*. The alternative — always
+   open a fresh lot — reaches the same total and leaves the overdrawn lot at -5
+   permanently, because `allocate_fefo()` reads only `remaining_base > 0` and nothing
+   else in the system reads a closed lot at all. ⚠️ **The cost is the lot's own, not
+   zero**: the overdraw took units at 6.25 that were never there, so the money that
+   comes back must be the same money, or §2.9 is left with a lot whose costs do not net
+   out. Reversible by `create or replace` **only until a shop has counted over a debt**.
+
+3. **`TD003` IS REUSED, NOT RE-INVENTED.** 4d-i's rule, applied to `0021`'s newest
+   code rather than to `TD001`. `0021` minted `TD003` for a void refused by the fence
+   and argued it against `42501` on the grounds that `42501` means *"this is not your
+   store"* — a bug to report — while a role refusal means *"ask your manager"*, a
+   workflow. A cashier calling `adjust_stock` is the second of those exactly.
+   ⚠️ **The fence sits AFTER the location wall**, and 2.4 is the check that fixes the
+   order: an OWNER of another workspace must be told "not your store", because TD003
+   would send them looking for a permission they already hold.
+
+4. **THE OPENED LOT COSTS ZERO AND CARRIES NO EXPIRY** — 1.3b and `0010` inherited
+   rather than re-decided. Zero because *"100% margin on those units is visibly wrong
+   and gets asked about, where a plausible invented cost is invisibly wrong and is what
+   §2.9 would then be built on"*; no expiry because an invented date puts a fictional
+   lot at the HEAD of the FEFO order.
+
+⚠️ **One judgement is NOT a decision and is recorded as a limit instead.** §2.6's
+signature has four arguments; `0022` appends `p_occurred_at` and `p_recorded_offline`
+with defaults, exactly as `0018`, `0019` and `0020` append them to theirs. The ADR's
+table is what a function is FOR, not its full arity — three merged migrations already
+read it that way, and the pilot store writes offline as its normal path.
+
+### Settled in 4f, and binding on step 4.5
+
+- **A count of ZERO is legal and the "rounds to zero" gate must NOT be copied.**
+  `0018` and `0019` refuse a quantity that rounds to nothing because a line of nothing
+  is a keying error; counting a shelf EMPTY is the commonest correct count a shop
+  takes. F11 copies the gate in and turns five red. ⚠️ **`adjust_stock_delta` is the
+  opposite case** — a delta of zero IS a no-op and has no shelf to describe.
+- **A figure with more precision than `numeric(14,3)` is REFUSED, not rounded.** The
+  count is asserted by a human, and 1.3b's argument about invented costs applies in the
+  other currency: invisibly wrong is worse than refused.
+- **An ABSOLUTE write needs no idempotency key, and §2.6 gives it none.** The second
+  identical call computes a delta of zero and writes nothing — convergence is the
+  guarantee, and it is stronger than `TD001`. ⚠️ **`adjust_stock_delta` CANNOT inherit
+  this**: a relative write applied twice moves the balance twice, so 4.5 must supply a
+  key of its own or accept that `record_failed_write` is the only caller.
+- **The lock is `allocate_fefo()`'s ORDER verbatim, over a WIDER predicate.** 4c-i's
+  argument reused: a statement taking the rows the next statement was going to take, in
+  the same order, introduces no new lock ordering. The predicate drops
+  `remaining_base > 0` because a count must see the negative lots too, and a superset
+  acquired in the same order still cannot deadlock against the allocator.
+- ⚠️ **EVERY HELPER A SUITE CREATES BELONGS IN `_cleanup.sql` ON THE DAY THE SUITE
+  LANDS.** 4e-ii-a fixed this for `chk_succeeds` and did not generalise it; 4f paid the
+  same hour again for `chk_json`. The suite's own `drop` is unreachable in exactly the
+  case that matters.
+
+### Seventeen falsifications, run by hand before 4f was committed
+
+Each is a single deliberate defect loaded over `0022` with `create or replace`, the
+suite re-run against the applied schema, and the function restored and re-verified.
+
+| # | The change | What went red |
+|---|---|---|
+| F1 | the location wall deleted | **5** — 1.2, 1.3, 1.4, 2.4, 2.6 |
+| F2 | the role fence deleted | **8** — 2.1, 2.2, 2.5, 2.7, 4.2, 4.3, 4.4, 4.6. ⚠️ It was **RED=0 until the scalar reads were counted** — see below |
+| F3 | the fence checked BEFORE the wall | 5 — the same set. ⚠️ 2.4 is the one written for it |
+| F4 | `TD003` replaced by `42501` on the fence | 2 — 2.1, 2.5, and only those: the code is the whole claim |
+| F5 | **the repayment loop deleted — "a count up always opens a lot"** | **9** — 6.2, 6.3, 6.4, 6.5, 6.6, 6.8, 6.9, 6.10, 6.11 |
+| F6 | the repayment credited at ZERO cost rather than the lot's | 2 — 6.3, 6.10. ⚠️ **6.1, 6.2 and every total stay green**: this is the defect that is right about the shelf and wrong about the money |
+| F7 | the opened lot received at `now()` rather than `occurred_at` | 1 — 8.2, which is the check 4d-ii named 4f as inheriting |
+| F8 | the offline clamp removed, the server clock always wins | 4 — 8.1, 8.2, 8.3, 8.4 |
+| F9 | a negative count accepted | 2 — 3.4, 3.6 |
+| F10 | the precision arm removed, so an asserted figure is silently rounded | 2 — 3.5, 3.6 |
+| F11 | `0018`'s "rounds to zero" gate copied in | 5 — 3.6, 4.13, 4.14, 6.7, 6.8. ⚠️ **Red only by ABORT until 6.7 stopped using a bare `\gset`** |
+| F12 | the note never written to the movements | 4 — 4.5, 4.11, 6.5, 9.5 |
+| F13 | the balance read restricted to `remaining_base > 0`, so a debt is invisible | 7 — 6.1, 6.4, 6.7, 6.8, 6.9, 6.10, 6.11 |
+| F14 | **the `for update` deleted** | ⚠️⚠️ **NOTHING, and nothing can today** — 4c-i's F6 in a fourth language |
+| F15 | the variant/workspace check deleted | 1 — 3.2 |
+| F16 | the no-op branch reports `changed: true` | 3 — 3.6, 7.1, 7.5 |
+| F17 | **the repayment loop walks lots NEWEST-first rather than FEFO** | ⚠️ **NOTHING until 6.9–6.11 existed**, then 2 — 6.9, 6.10 |
+
+⚠️ **THREE of the seventeen were green against the file as first written, and none of
+the three was a defect in `0022`.** F2 was masked by a scalar subquery that DIED rather
+than failed; F11 was masked by a bare `\gset` that aborted the run; F17 was genuinely
+unwatched for want of a second overdrawn lot. Two were harness faults and one was a
+fixture gap, and all three are closed. **F14 is the only one still green, and it is the
+one this file cannot make red.**
+
+⚠️⚠️ **A NEW OWED ROW, AND IT IS NOT ONE OF §2.10's NINE.** `adjust_stock` reads the
+balance and then writes against it, so **a count racing a sale, and two managers
+counting one shelf at once, are unproved on `main` today.** F14 measures that the suite
+cannot see the lock at all. The home for it is `supabase/vitest/`, which already opens
+two connections and already has `authenticate()`. It is NOT in 4f's *done when* — the
+owner's call is whether it goes there, into step 4.5, or into a task of its own,
+**alongside 4e-i's identical owed row for the transfer's advisory lock**, which is
+still open and which this one should probably be bundled with.
 
 ### ✅⚠️⚠️ CLOSED BY THE OWNER 2026-09-04 — WASTE RECORDS UNCONDITIONALLY, AND `0019` HAS NO AVAILABILITY CHECK
 
@@ -5583,7 +5807,8 @@ batch trigger kills checks 2 and 10, dropping the delete-or-update trigger kills
   `reason in ('purchase','transfer_in') and reversal_of_movement_id is null`. A void
   that "corrected" a delivery by deleting the original movement instead of compensating
   it is refused at the commit — which is the behaviour `0020` should want anyway.
-- **`origin = 'adjustment'` is outside the rule, and `adjust_stock` (`0021`) is the
+- **`origin = 'adjustment'` is outside the rule, and `adjust_stock` (`0022`, applied
+  2026-09-05) is the
   reason the exclusion has to survive.** An opening balance or a physical count opens a
   lot whose quantity is asserted by a human. It receives nothing from anybody, and a
   rule spanning all three origins refuses it — measured on the seed's single one, which
