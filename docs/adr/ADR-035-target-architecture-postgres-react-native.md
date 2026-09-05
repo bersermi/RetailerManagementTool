@@ -84,6 +84,18 @@
   read `occurred_at`** — the amendment splits one sentence that had bound them
   together, and a sale must count on the day it was made whatever the clock did.
   The 15-minute window remains listed **Reversible** in §4.
+- **Revised:** 2026-09-04 — §2.6's replay caveat CLOSED, on the decision maker's
+  instruction, in the same session that opened it. **A replayed write is exempt from
+  the offline basis**: its void window is measured from `occurred_at`, so a replayed
+  sale never carries a fresh staff self-service window. ⚠️ **Decided on the principle
+  the decision maker gave — "whatever implies less responsibility to the owner or
+  personnel, if it can be addressed purely on our side"** — and the exemption is the
+  side of it that adds no step for anybody: the only person realistically standing
+  over a freshly replayed sale is the manager or owner who just replayed it, and they
+  are unfenced anyway. The alternative would let a cashier reverse a reconciliation
+  unreviewed and move a historical daily total. **No schema change here, but step 4.5
+  OWES A MARKER** — nothing distinguishes a replayed document today, so
+  `void_transaction` cannot enforce this yet and does not pretend to.
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -608,14 +620,32 @@ to notice, not the moment of the sale**, and nobody can notice a write the serve
 has not yet received. The pilot store is offline often enough that this is the
 normal path rather than an edge case.
 
-⚠️ **`replay_failed_write` is the one case this leaves open**, and it ships in step
-4.5 with the failure path, not here. A replayed write preserves its original
-`occurred_at` (above) while taking a fresh `recorded_at` at the moment of recovery,
-so the rule as written would hand a replayed offline sale a brand-new fifteen
-minutes. Whether that is right is a step-4.5 question — replay is manual and
-operator-triggered, so a staff member is not normally the one holding the result —
-and it is recorded here rather than answered, because `replay_failed_write` does
-not exist yet and `void_transaction` does not depend on the answer.
+✅ **`replay_failed_write` IS EXEMPT FROM THE OFFLINE BASIS** (settled 2026-09-04, on
+the decision maker's instruction). A replayed write preserves its original
+`occurred_at` while taking a fresh `recorded_at` at the moment of recovery, so the
+rule above, applied blindly, would hand a two-day-old replayed sale a brand-new
+fifteen minutes of staff self-service void. **It does not get one: a replayed write's
+window is measured from `occurred_at`, exactly as if the amendment did not exist**,
+which puts it outside any sane window and therefore in manager territory.
+
+**The reason is that this costs nobody anything, and the alternative costs the owner
+attention.** The 15-minute window exists for THE COUNTER — someone scanned twice and
+the customer is standing there. A replayed sale is never that: it is two days old,
+nobody is waiting, and a manager or owner has already reviewed the dead-letter row and
+decided deliberately that it should go back in the books. Replay is manual and
+operator-triggered (below), and the dead-letter pile is denominated in unrecorded
+REVENUE, which §2.7 puts behind the manager role — **so the only person realistically
+standing over a freshly replayed sale is already someone who can void it unfenced.**
+The exemption therefore adds no step for anyone, while the alternative would let a
+cashier silently reverse a reconciliation nobody asked them to review, and quietly
+move a historical daily total — the precise harm manual replay exists to prevent.
+
+⚠️ **THIS IS BINDING ON STEP 4.5 AND IT OWES A MARKER.** Nothing in the schema
+currently distinguishes a replayed document from an ordinary offline one — the replay
+re-runs the original call under the original id — so `void_transaction` CANNOT enforce
+this today and does not try. **`replay_failed_write` must carry that marker when it
+ships**, and step 4.5 must enforce the exemption at the same time. Until then no
+replayed document exists, so nothing is unenforced in practice.
 
 **Offline.** Queued writes, not offline-first. The client generates the id, writes to
 a local queue, renders optimistically, flushes on reconnect; retries are free because

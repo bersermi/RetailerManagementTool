@@ -117,6 +117,30 @@ files are NOT being edited to say so. Applied migrations are append-only, and
 rewriting sixteen files to renumber a forward reference would touch far more than it
 clarifies. This note is the mapping.
 
+### ⚠️ `0021` DOES NOT MENTION THE REPLAY EXEMPTION, AND IT IS NOT BEING EDITED TO
+
+Added 2026-09-04, hours after `0021` merged, and it is the THIRD note of this class in
+this file — a forward reference that a later decision moved.
+
+`0021`'s header explains the void window's basis at length and says the
+`replay_failed_write` interaction is **open**. **It is no longer open**: the owner
+closed it the same day, and **a replayed write is EXEMPT from the offline basis** — its
+window reads `occurred_at`, so a replayed sale never carries a fresh fifteen minutes of
+staff self-service void. **ADR-035 §2.6 carries the rule and the reasoning**, and
+`docs/PLAN.md`'s owed table carries the work.
+
+⚠️ **The file is not being edited, and the precedent is the two notes below.** Applied
+migrations are append-only once CI has applied them, and `0021` merged green. Rewriting a
+merged file to update a comment touches more than it clarifies — the same argument the
+`0006` note makes, and the one the `void_transaction`-in-`0020` note makes after it.
+**This note is the correction.**
+
+⚠️ **NOTHING IS UNENFORCED IN PRACTICE.** `0021` could not enforce the exemption even if
+its header described it: **nothing in the schema marks a replayed document**, because
+`replay_failed_write` re-runs the original call under the original id. **Step 4.5 owes
+the MARKER as well as the check** — and no replayed document exists until it ships, so
+there is no window today for the rule to be wrong about.
+
 ### ⚠️ `void_transaction` IS NOT IN `0020`, AND TWO APPLIED MIGRATIONS SAY IT IS
 
 Added 2026-09-04, with the 4e re-split, and it is the same class of note as the `0006`

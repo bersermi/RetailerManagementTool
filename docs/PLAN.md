@@ -96,7 +96,17 @@ AND NOTHING ELSE.** The amendment is the only reading the suite admits.
 TIMES, once per document kind, and section 2 watched only the `purchase` copy** —
 deleting the scoping from the `sale` or `waste` lookup turned NOTHING red until
 2.4b and 2.4c were written. The same shape as 4e-i's F8: a branch nobody looked at.
-⚠️⚠️ **AND A NEW OWED ROW: F6 — the basis forced to `recorded_at` for EVERY write —
+✅⚠️ **THE QUESTION F6 RAISED IS ALREADY CLOSED — THE OWNER SETTLED IT THE SAME DAY:
+A REPLAYED WRITE IS EXEMPT FROM THE OFFLINE BASIS**, so a replayed sale never carries a
+fresh fifteen minutes of staff self-service void; its window reads `occurred_at`.
+⚠️ **Decided on a PRINCIPLE the owner gave rather than case by case** — *"whatever
+implies less responsibility to the owner or personnel, if it can be addressed purely on
+our side"* — and the exemption is the side that adds NO step for anyone: the only person
+realistically standing over a freshly replayed sale is the manager or owner who just
+replayed it, and they are unfenced anyway. **ADR-035 §2.6 was amended a second time** to
+carry it. ⚠️⚠️ **STEP 4.5 OWES A MARKER, NOT JUST A CHECK** — nothing distinguishes a
+replayed document today, so `0021` cannot enforce this and does not pretend to.
+⚠️⚠️ **F6 — the basis forced to `recorded_at` for EVERY write —
 turned nothing red, AND NOTHING IN THE DATABASE CAN TURN RED FOR IT TODAY.** §2.6
 overrides `occurred_at` with now() online, so no online document exists where the two
 differ; **the first that will is a REPLAYED one**, and `replay_failed_write` ships in
@@ -5437,7 +5447,7 @@ this is where they land.
 | ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
-| ⚠️⚠️ **The void window on a REPLAYED write** — *"a replayed sale keeps its original `occurred_at` and takes a fresh `recorded_at`, so the amended basis hands it a NEW fifteen minutes — is that right?"*. **NOT a §2.10 row** — found by falsification F6 in 4e-ii-a and owed since 2026-09-04. ⚠️ **It cannot be written today**: no online document exists where `occurred_at` and `recorded_at` differ, so F6 turns nothing red and nothing can make it. `replay_failed_write` is the first thing that creates one | **STEP 4.5**, with the failure path it belongs to — recorded in ADR-035 §2.6's amendment as explicitly open |
+| ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0023`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0023`) |
 
