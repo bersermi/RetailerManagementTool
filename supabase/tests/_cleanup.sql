@@ -114,6 +114,21 @@ begin
   drop function if exists public._recd(text, uuid);
   drop function if exists public._mark(text, uuid);
 
+  -- ⚠️ ADDED 2026-09-05 (task 4.5c-ii), on the day the suite lands, which is the
+  -- rule 4f wrote and 4.5a started following. `0026` reuses `_rs`, `_pl`, `_sl`,
+  -- `_wl`, `_tl`, `_bal`, `_fwq`, `_fwn`, `_occ` and `_mark` at the EXACT
+  -- signatures the suites above gave them, so none of those needs a second drop.
+  -- The seven below are new shapes and do. ⚠️ `_pload*` are deliberately NOT a
+  -- new arity of `_pay`: a different arity would sit BESIDE 0024's helper and
+  -- make a short call ambiguous rather than wrong.
+  drop function if exists public._rep(uuid);
+  drop function if exists public._pload(uuid, jsonb, timestamptz, boolean);
+  drop function if exists public._pload_p(uuid, uuid, jsonb, timestamptz, boolean);
+  drop function if exists public._pload_t(uuid, uuid, jsonb, timestamptz, boolean);
+  drop function if exists public._lots(uuid, uuid);
+  drop function if exists public._adjlots(uuid, uuid);
+  drop function if exists public._drift();
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
