@@ -119,9 +119,36 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+⚠️⚠️ **4.5c WAS RE-SIZED ON 2026-09-05, BEFORE ANY OF IT WAS WRITTEN, AND IT IS AN
+`L` RATHER THAN THE `M/L` THE SPLIT TABLE ESTIMATED: IT SPLITS INTO `4.5c-i` (THE
+REPLAY MARKER AND THE EXEMPTION, `0025`) AND `4.5c-ii` (`replay_failed_write`,
+`0026`).** The seam is **forced, not chosen**, and it took two facts read out of
+applied migrations rather than assumed. **(1) `transaction_document_is_immutable()`
+(`0003:45`) raises on EVERY update with no column exemption**, so a replayed
+document cannot be stamped after the fact — the marker has to be written by the
+INSERT, and the only things that insert a header are the three recorders.
+**(2) `record_sale` (`0016:168`), `record_purchase` and `record_waste` compute
+`occurred_at` in exactly two branches and NEITHER preserves a stored one** — online
+overrides to `now()`, offline clamps to `[now() − 72h, now()]`. §2.6's replay
+exemption requires preservation *verbatim*, so the online branch is the re-dating
+harm exactly and the offline branch is the same harm with a 72-hour fuse, firing on
+precisely the old dead letters nobody re-reads. ⚠️ **So the marker is not a column,
+it is a third timestamp branch in three applied functions**, and
+`replay_failed_write` cannot be written until they offer it. Same forced order as
+4.5a → 4.5b, found the same way. ✅ **No renumbering** — `0026` is handed out at the
+end and nothing is downstream — but it **renamed the pre-committed overflow seam** to
+`4.5c-i-b` / `4.5c-ii-b`. ⚠️⚠️ **ONE DECISION IS CHEAP NOW AND DEAR LATER AND IT IS
+THE OWNER'S: the marker's SHAPE.** Recommendation, taken so `0025` could be written:
+**`replay_of_failed_write_id uuid references failed_write (id)`, not a boolean** — the
+audit link §2.10 wants, unforgeable by construction, and it is a column on three
+**append-only** tables, so adding the link beside a boolean later is the dear
+direction. ⚠️ **Two shortcuts were considered and REFUSED** — `recorded_offline =>
+true` on the replay call, and a `set local` GUC read by a `before insert` trigger —
+and both are written up so they are not re-proposed. Reasoning under *Settled in
+sizing 4.5c*.
+
 ✅✅ **4.5b — `failed_write` AND `record_failed_write`, `0024` — IS DONE AS OF
-2026-09-05, AND `4.5c` (`replay_failed_write` + THE REPLAY MARKER, `0025`) IS THE
-LAST TASK IN THE DATABASE BUILD.** 79 behavioural checks and TWENTY-TWO
+2026-09-05.** 79 behavioural checks and TWENTY-TWO
 falsifications, **every one of which turns something red**; the gate now runs
 **fourteen suites and 910 checks**, 7 pgTAP files, 8 seed-check files and 29
 two-connection assertions. **§2.10's FAILURE-PATH ROW IS CLOSED** — owed since step
@@ -596,7 +623,7 @@ deadline under *Confirmed by the owner* below.
 | 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
 | 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
 | 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
-| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**; **`4.5c` (`replay_failed_write` + the replay marker, `0025`) is the LAST task in the database build**. ⚠️ It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
+| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**. ⚠️ **`4.5c` WAS RE-SIZED 2026-09-05 FROM `M/L` TO `L` AND SPLIT INTO `4.5c-i` (the replay marker and the exemption, `0025`) / `4.5c-ii` (`replay_failed_write`, `0026`)**, before any of it was written; the second is the LAST task in the database build. ⚠️ The split cost no renumbering either — `0026` is handed out at the end — but it DID rename the pre-committed overflow seam to `4.5c-i-b` / `4.5c-ii-b`. It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
 | 5a | Client foundation — **hiring gate** | Not started |
 | 5b | Vender and Home | Not started |
 | 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
@@ -5999,7 +6026,7 @@ this is where they land.
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
 | ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
 | ~~**Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"*~~ | ✅ **4.5b — DONE 2026-09-05**, `supabase/tests/0024` section 4, clause by clause. ⚠️ *"one linked compensating movement"* is the clause the ADR amendment touched: a downgrade writes ONE PER LINE AND PER LOT, and 4.5–4.6 dead-letter a single line spanning two lots to say so |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c** (`0025`) — the LAST of §2.10's nine, and the last task in the database build |
+| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c-ii** (`0026`) — the LAST of §2.10's nine, and the last task in the database build. ⚠️ The `occurred_at` half of this row is **4.5c-i**'s (`0025`), because no recorder can keep one today |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
@@ -6026,6 +6053,111 @@ nothing in the seed writes them, and no screen shows them (§2.8 — dead letter
 with the vendor). The suites are therefore not evidence *about* the functions; for
 this step they are the **only** exercise the functions will ever get before a real
 `42501` arrives in a real shop.
+
+### ⚠️⚠️ Settled in sizing 4.5c, 2026-09-05 — IT IS AN `L`, IT SPLITS TWO WAYS, AND THE SEAM IS FORCED BY `occurred_at` RATHER THAN CHOSEN
+
+Sized against §2.6, §2.7 and §2.10 **before any of it was written**, on the rule
+every split since 1.3 has used. The step-4.5 table below carries 4.5c as one `M/L`
+`0025`. **That was an estimate of one function; it is not what the task contains**,
+and the reason is not size — it is a dependency that only shows up when you read
+what is already applied.
+
+**Two mechanical facts, read out of applied migrations rather than assumed:**
+
+1. **`transaction_document_is_immutable()` (`0003:45`) raises on EVERY update, with
+   no column exemption and no branch.** It is `before update or delete` on all six
+   transaction tables, it is `security definer`-proof by design, and its whole
+   argument is that a corrected UPDATE inside an RPC *"would look perfectly ordinary
+   in review"*. So **the replay marker cannot be stamped after the fact.** Whatever
+   marks a replayed document has to be written by the INSERT that creates it, and
+   the only things that insert a `sale`, `purchase` or `waste` header are
+   `record_sale`, `record_purchase` and `record_waste`.
+
+2. **Those three functions compute `occurred_at` in exactly two branches, and
+   NEITHER of them preserves a stored one** (`0016:168`, and the same block in
+   `0018` and `0019`):
+
+   ```
+   if v_offline then
+     v_at := greatest(least(coalesce(p_occurred_at, v_now), v_now),
+                      v_now - interval '72 hours');
+   else
+     v_at := v_now;
+   end if;
+   ```
+
+   §2.6 says `replay_failed_write` *"preserves the `occurred_at` already stored on
+   the `failed_write` row"* and that without the exemption *"every recovered sale is
+   silently re-dated to the moment of recovery, which is the precise harm manual
+   replay was chosen to avoid."* The online branch **is** that harm, exactly. And
+   the offline branch is the same harm with a 72-hour fuse: a dead letter older than
+   three days — which is an ordinary age for one, since §2.8 says they land with the
+   vendor and §2.6 says replay waits for a root-cause fix — is clamped forward to
+   `now() - 72h` and re-dated just as silently, in the one case nobody would check.
+
+⚠️ **So the marker is not a column. It is a third timestamp branch in three applied
+functions, plus the column, plus `void_transaction` reading it** — and
+`replay_failed_write` cannot be written at all until that exists, because its own
+`occurred_at` guarantee is the thing those functions do not currently offer.
+**That is the same forced order as 4.5a → 4.5b**, discovered the same way: by
+grepping the schema for a signature the ADR assumes.
+
+**Two shortcuts were considered and are refused here so they are not re-proposed
+mid-migration:**
+
+- ⚠️ **`p_recorded_offline => true` on the replay call. REFUSED.** It re-dates every
+  dead letter older than 72 hours (fact 2), and it writes `recorded_offline = true`
+  on a document that was never queued on a device — which `void_transaction` then
+  reads as the window basis (`0021:291`), so the lie propagates into the fence the
+  marker exists to fix.
+- ⚠️ **A `set local` GUC read by a `before insert` trigger, so the three recorders
+  need no edit. REFUSED**, and it is worth naming because it is genuinely cheaper —
+  it would collapse this migration to a column, a trigger and `void_transaction`.
+  Three reasons: the recorder's own return value reports `v_at`, so the JSON handed
+  back to the caller would disagree with the row just written; `sale_line`,
+  `waste_line` and `stock_movement` all carry `occurred_at` from the same `v_at`, so
+  the trigger would have to be installed on those too and the "one document cannot
+  disagree with itself about when it happened" comment at `0016:166` would become
+  four triggers' problem instead of one variable's; and it is the **invisible
+  channel** shape — a capability that does not appear in the signature — which is
+  3.1's finding about grants in a third place. §2.6 is a table of signatures. The
+  replay path belongs in one.
+
+| # | Task | Migration | Size | Done when |
+|---|------|-----------|------|-----------|
+| 4.5c-i | **THE REPLAY MARKER AND THE EXEMPTION** — the marker column on `sale`, `purchase` and `waste`; `record_sale`, `record_purchase` and `record_waste` re-signed to accept it and to preserve `occurred_at` verbatim when it is set; `void_transaction` replaced to measure its window from `occurred_at` on a replayed document whatever `recorded_offline` says. Closes 4e-ii-a's owed window-basis check | `0025` | M/L | A document recorded with the marker keeps the `occurred_at` it was handed — no override, no clamp, at any age — and a staff member cannot self-service void it, while the same document without the marker behaves exactly as it does today |
+| 4.5c-ii | **`replay_failed_write`** — compensate the downgrade movements the dead-letter link names, dispatch on kind, re-run the original call under its original id through the path 4.5c-i built, and stamp the `failed_write` row replayed. §2.10's **replay** row | `0026` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and a `purchase` or `transfer` dead letter — which has no downgrade — replays without compensating anything |
+
+**Order is forced, again.** 4.5c-i before 4.5c-ii: replay's `occurred_at` guarantee
+and its marker are both things the recorders have to offer before the orchestrator
+can ask for them, and a `replay_failed_write` written first would have to invent one
+of the two refused shortcuts above to compile.
+
+✅ **AND THE SPLIT COSTS NO RENUMBERING, for the second time and the same reason.**
+`0026` is handed out at the END of the sequence. Steps 5–7 are the client and ship
+no migration, so nothing is downstream of step 4.5 and no applied number moves.
+
+⚠️ **THE PRE-COMMITTED OVERFLOW SEAM IS RENAMED, and this is the one bookkeeping
+cost.** The split table below reserved the name `4.5c-ii` for *test breadth, no
+migration*, if 4.5c overflowed. That name is now a migration, so the overflow seam
+becomes **`4.5c-i-b` and `4.5c-ii-b`** — test breadth, NO migration — exactly the
+`4e-ii-a` / `4e-ii-b` shape this file already uses. The rule underneath is unchanged
+and is the point of it: **the function lands whole in its own number or it does not
+land.**
+
+⚠️⚠️ **ONE DECISION IS CHEAP NOW AND DEAR LATER AND IT IS THE OWNER'S: THE MARKER'S
+SHAPE.** It is a column on three **append-only** document tables, so it is a
+fix-forward migration the moment `0025` is green, and a client that reads it is a
+coordinated release after that.
+**Recommendation: `replay_of_failed_write_id uuid references public.failed_write (id)`,
+not a boolean.** The FK is the same information a boolean carries plus the audit
+link §2.10's dead-letter row wants — *which* dead letter this document recovers —
+and it makes the marker unforgeable by construction: you cannot claim replay status
+without naming a real dead letter. A boolean would need the link added beside it
+later, on a table that cannot be updated, which is the more expensive direction.
+⚠️ **`transfer` is deliberately out of scope**: §2.4 gives it no document to mark,
+and `void_transaction` does not accept it as a kind. A replayed transfer's marker,
+if it ever needs one, lives on `failed_write` and is 4.5c-ii's.
 
 ### ⚠️ Found in 4.5a — A FLAKY RED IN THE VITEST SUITE, ON A COMMIT THAT TOUCHED NO TYPESCRIPT
 
@@ -6312,12 +6444,15 @@ the first split in the project with no numbering cost at all.
 |---|------|-----------|------|-----------|
 | 4.5a ✅ | **`adjust_stock_delta`** — the RELATIVE ledger primitive, and the `reason` column §2.6's signature assumes | `0023` | M | **DONE 2026-09-05.** 81 behavioural checks and TWENTY falsifications. ⚠️⚠️ **NOT GRANTED TO `authenticated`** — the one function of §2.6's ten that no client can call, and F3 (the grant added) turns five red. ⚠️⚠️ **`reason` had no column**, exactly as `note` had none in 4f: `0023` adds the `adjustment_reason` enum and column fix-forward. ⚠️ **F20 reported ABORTED rather than RED** until check 8.3's phantom row changed document kind — a refusal check whose granted side breaks a DEFERRED constraint cannot report its own failure. ⚠️ **F17 (the lock) turns nothing red and cannot today** — 4f's owed row, not a new one. ✅ No defect found in `0023` itself; three were found in the suite |
 | 4.5b ✅ | **`failed_write`** — the table, RLS, policies, grants — **and `record_failed_write`**: the dead-letter row, the auto-downgrade through 4.5a, and the link that makes it reversible. §2.10's **failure-path** row | `0024` | M | **DONE 2026-09-05.** 79 behavioural checks and TWENTY-TWO falsifications, every one of which turns something red. ⚠️⚠️ **§2.6 AMENDED TWICE ON THE OWNER'S INSTRUCTION** — the link reversed onto `stock_movement.failed_write_id` (F11 turns 28 red), and only `sale`/`waste` downgraded. ⚠️ **`location_id` has NO foreign key**, deliberately: an FK would refuse the very report the table exists to keep, and F18 turns three red. ⚠️ **Three falsifications were green on the first pass and all three were suite holes.** ⚠️ **`02` and `03` went red naming the new table** — a tenant table with no rows is invisible to the isolation suites. ✅ No defect found in `0024` itself |
-| 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | `0025` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and the replayed document carries a marker `void_transaction` can read |
+| 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | ~~`0025`~~ | ~~M/L~~ **`L`** | ⚠️ **RE-SIZED 2026-09-05 AND SPLIT INTO `4.5c-i` (`0025`) / `4.5c-ii` (`0026`) BEFORE ANY OF IT WAS WRITTEN** — the marker cannot be stamped by an UPDATE (`0003:45` refuses every one) and no recorder can preserve a stored `occurred_at` (`0016:168` has two branches and neither does), so the marker is a change to THREE APPLIED FUNCTIONS that `replay_failed_write` then depends on. Reasoning and the two refused shortcuts under *Settled in sizing 4.5c* |
 
 ⚠️ **THE OVERFLOW SEAM IS PRE-COMMITTED, exactly as 4e did it**, so that a fourth
 task never has to renumber anything: **if 4.5b or 4.5c overflows one session, the
 overflow takes 4b-ii's seam — test breadth, NO migration** — and is named `4.5b-ii`
 or `4.5c-ii`. The function lands whole in its own number or it does not land.
+⚠️ **`4.5c-ii` IS NO LONGER THAT NAME.** Re-sizing 4.5c on 2026-09-05 made it a
+migration, so the overflow seam moved to `4.5c-i-b` / `4.5c-ii-b` — the `4e-ii-a` /
+`4e-ii-b` shape. The rule underneath did not move.
 
 Order is forced:
 
@@ -6329,7 +6464,7 @@ Order is forced:
   written inside the same 600 lines as its only caller.
 - **4.5b before 4.5c.** There is nothing to replay until a dead letter exists, and
   `replay_failed_write`'s first argument is a `failed_write_id`.
-- **The marker travels with 4.5c**, not with the table in 4.5b, because the thing
+- **The marker travels with 4.5c** (⚠️ with **`4.5c-i`** as of the re-sizing above), not with the table in 4.5b, because the thing
   that must be marked is the **replayed document** — a `sale`, `purchase` or `waste`
   header — and only `replay_failed_write` knows it is replaying one.
 
