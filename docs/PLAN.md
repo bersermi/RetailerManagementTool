@@ -119,8 +119,50 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅✅ **4.5c-ii — `replay_failed_write`, `0026` — IS DONE AS OF 2026-09-05, AND
+WITH IT STEP 4.5 IS CLOSED, THE DATABASE BUILD IS COMPLETE, AND ALL NINE OF
+§2.10's ROWS ARE WRITTEN.** 86 behavioural checks and TWENTY-FOUR falsifications;
+the gate now runs **sixteen suites and 1,080 checks**, 7 pgTAP files, 8 seed-check
+files and 29 two-connection assertions. **ADR-035 §3's *"do not build screens
+before this passes"* is satisfied as of this commit — step 5 is the client, and
+steps 5–7 ship no migration at all.**
+⚠️⚠️ **THE HEADLINE IS THAT §2.6 NAMES THE WRONG INSTRUMENT AND `0004` NAMES THE
+RIGHT ONE.** §2.6 routes the downgrade through `adjust_stock_delta`, so undoing it
+reads as the same call with the sign flipped — and that call's positive branch
+**opens a ZERO-COST LOT** for anything it cannot repay to a negative lot. A
+downgrade that took a lot from 10 to 7 drove nothing negative, so the "obvious"
+compensation invents a phantom lot at 100% margin and leaves it standing: the
+shelf right, the cost history fiction, which is §2.6's complaint about the
+downgrade reintroduced by the cure. The compensation is instead a **reversal
+movement per downgrade movement** — `0004`'s `reversal_of_movement_id`, whose own
+comment names `replay_failed_write` while explaining why it exists. **F2 turns
+eight red and every balance check in the file still passes.**
+⚠️⚠️ **AND §2.6's "CLAMPED AT CAPTURE" IS NOT TRUE OF THE APPLIED TABLE.**
+`failed_write` has no `occurred_at` column — it stores the client's raw payload,
+which `record_failed_write` never validates — so a till whose clock says **2099**
+would have replayed a sale dated 2099, a figure no ordinary path in this database
+can write. `0026` recomputes the timestamp the original call WOULD have written,
+evaluated at `failed_at` rather than `now()`: online → `failed_at`, offline →
+clamped to `[failed_at − 72h, failed_at]`. Still the exemption — nothing moves to
+the moment of recovery — but no longer a hole.
+⚠️⚠️ **ONE DECISION NEEDS THE OWNER AND IT IS AN ACCESS ONE: REPLAY IS FENCED AT
+`owner`, TIGHTER THAN THE MARKER'S `manager`.** §2.6's replayer *"has already
+reviewed the dead-letter row"* and `0024` decision 8 makes that review owner-only,
+so a manager-fenced replay is a decision taken on a row the decider cannot read.
+Loosening it later is a `create or replace`; **if managers should replay, the
+matching change is `failed_write`'s SELECT policy too, not only the fence.**
+⚠️⚠️ **AND A GAP THAT IS NOT SCHEMA AND CANNOT BE CLOSED HERE: §2.8 LANDS DEAD
+LETTERS WITH THE VENDOR AND NO VENDOR CAN REACH THEM.** Every function on this
+surface reads `auth.uid()`, and a `service_role` process has none, so the failure
+path as built is **merchant-triggered end to end**. Named before step 5 assumes a
+vendor console that cannot exist yet.
+⚠️ **THREE FALSIFICATIONS WERE GREEN AND TWO WERE HOLES THIS SUITE COULD CLOSE** —
+including `recorded_offline => true`, `0025`'s explicitly refused shortcut, which
+silently disables the availability check that is the only thing able to see the
+compensate-then-re-run order at all.
+
 ✅✅ **4.5c-i — THE REPLAY MARKER AND THE VOID EXEMPTION, `0025` — IS DONE AS OF
-2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) IS THE LAST TASK IN THE
+2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) WAS THE LAST TASK IN THE
 DATABASE BUILD.** 84 behavioural checks and TWENTY-ONE falsifications, twenty of
 which turn something red; the gate now runs **fifteen suites and 994 checks**, 7
 pgTAP files, 8 seed-check files and 29 two-connection assertions. **§2.10's
@@ -6065,7 +6107,7 @@ this is where they land.
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
 | ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
 | ~~**Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"*~~ | ✅ **4.5b — DONE 2026-09-05**, `supabase/tests/0024` section 4, clause by clause. ⚠️ *"one linked compensating movement"* is the clause the ADR amendment touched: a downgrade writes ONE PER LINE AND PER LOT, and 4.5–4.6 dead-letter a single line spanning two lots to say so |
-| **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **4.5c-ii** (`0026`) — the LAST of §2.10's nine, and the last task in the database build. ✅ The `occurred_at` half of this row is **CLOSED by 4.5c-i** (`0025`, 2026-09-05) — the four recorders keep a stored one verbatim, and `void_transaction` enforces §2.6's exemption over it |
+| ~~**Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at`~~ | ✅ **4.5c-ii — DONE 2026-09-05**, `supabase/tests/0026` sections 3, 6, 7 and 11. **THE LAST OF §2.10's NINE.** The sale comes back with its revenue, its tax split and its FEFO batch attribution; the downgrade and its compensation are a closed pair netting zero; `sum(movements) = batch_balance` holds across nine replays of four kinds. ⚠️ The `occurred_at` half is not merely preserved but RECOMPUTED at `failed_at` — see *§2.6's "clamped at capture" is not true of the applied table* |
 
 **So ADR-035 §3's *"do not build screens before this passes"* is satisfied at the end
 of step 4.5, not at the end of step 3.** That sentence has been read as step 3's alone
@@ -6092,6 +6134,208 @@ nothing in the seed writes them, and no screen shows them (§2.8 — dead letter
 with the vendor). The suites are therefore not evidence *about* the functions; for
 this step they are the **only** exercise the functions will ever get before a real
 `42501` arrives in a real shop.
+
+### ⚠️⚠️ Found in 4.5c-ii — §2.6 SAYS `adjust_stock_delta` AND THE SCHEMA SAYS `reversal_of_movement_id`, AND THE SCHEMA IS RIGHT
+
+**This is `0026`'s first decision and the one most worth overturning early if it is
+wrong**, because it is the shape of every compensating movement the failure path
+will ever write.
+
+§2.6 routes the downgrade through `adjust_stock_delta` and the obvious reading is
+that undoing it is the same call with the sign flipped. It is not, and the reason
+is the one thing §2.6 says replay exists to recover:
+
+> `adjust_stock_delta`'s positive branch repays lots that are **negative** and then
+> opens **one zero-cost lot** for the remainder (`0024`, phase two).
+
+A downgrade that took a lot from 10 to 7 drove nothing negative. A `+3` delta would
+therefore repay nothing, **invent a zero-cost lot of 3**, and leave it standing
+after the replayed sale allocated FEFO out of the original lot. The balance would be
+identical. The cost history would be fiction — *"stock stays true; margin goes
+quiet"*, which is §2.6's complaint about the **downgrade**, reintroduced by the
+thing meant to remove it.
+
+✅ **`0004` already carries the right instrument and names this function while doing
+it.** `reversal_of_movement_id` is an FK pinned to the same batch, and
+`stock_movement_one_reversal_idx`'s comment reads: *"this stops anything writing two
+compensating MOVEMENTS … `adjust_stock_delta` and `replay_failed_write` are not
+documents at all."* So the compensation is `void_transaction`'s idiom (`0021` §7)
+applied to a set of movements with no document: one inverse row per downgrade
+movement, same batch, same cost, naming the movement it cancels.
+
+⚠️ **AND IT MAKES "COMPENSATE EXACTLY ONCE" A CONSTRAINT RATHER THAN A FLAG.** The
+unique index refuses a second reversal of the same movement, so a caller past the
+`replayed_at` guard still cannot double the credit — which is what F5 measured: the
+guard removed, the suite **aborts on a `23505`** rather than quietly paying twice.
+
+⚠️⚠️ **F2 IS THIS DECISION DEFENDING ITSELF AND IT TURNS EIGHT RED.** The mutation
+is not a mistake — it is §2.6's own words implemented literally. Every balance check
+in the file still passes; what goes red is the lot count, the invented-lot count,
+the per-lot cost of the multi-lot replay, and the whole-tenant version of the same
+claim. **A suite that checked only quantities would have shipped it.**
+
+### ⚠️⚠️ Found in 4.5c-ii — §2.6's "CLAMPED AT CAPTURE" IS NOT TRUE OF THE APPLIED TABLE, AND A TILL DATED 2099 IS THE PROOF
+
+§2.6 grants replay one exemption: *"it preserves the `occurred_at` already stored on
+the `failed_write` row, **which was clamped at capture**."*
+
+⚠️ **`failed_write` has no `occurred_at` column** (`0024`). What it stores is the
+`payload`, and the payload is the client's own arguments — unclamped and
+unvalidated, because `record_failed_write` deliberately never raises for a bad one.
+Nothing was clamped at capture.
+
+So a till with a broken clock queues a sale dated **2099**, the write is rejected,
+the payload keeps 2099, and a replay that preserved it *verbatim* writes a sale
+dated 2099 — **a figure no ordinary path in this database can produce**, since both
+branches of every recorder would have overridden or clamped it. The exemption would
+have been the one hole in the clamp, in the one place nobody re-reads.
+
+✅ **`0026` therefore RECOMPUTES the timestamp the original call would have written,
+evaluated at `failed_at` instead of at `now()`** — `0017:168`'s two branches, one
+instant moved:
+
+| The original was | The replay writes |
+|---|---|
+| online (payload `recorded_offline` absent or false) | **`failed_at`.** §2.6: the server overrides online, a till's clock is not worth trusting, and the moment of the attempt is when the failure was reported |
+| offline | the payload's `occurred_at` **clamped to `[failed_at − 72h, failed_at]`** — identical to what `record_sale` would have written, and identical to what the downgrade movements already carry |
+
+⚠️ **THIS IS STILL THE EXEMPTION AND NOT A RE-DATING.** Nothing moves to the moment
+of *recovery*, which is the harm §2.6 names; a dead letter three months old replays
+three months old. `now()` appears nowhere in the branch. **Section 11 walks all four
+cases** and only two of them can tell a correct implementation from a naive
+`v_at := payload occurred_at` — F14, which is §2.6's sentence taken literally, turns
+three red including the 2099 one.
+
+### ⚠️⚠️ Decided in 4.5c-ii, on the owner's behalf — REPLAY IS FENCED AT `owner`, WHICH IS TIGHTER THAN THE MARKER'S `manager`
+
+`0025` decision 3 fences the replay **argument** at manager. `0026` fences the
+**orchestrator** at owner, and the two are not in conflict — the argument fence is
+unchanged and still does its own job, because a client can pass it without this
+function.
+
+The reason is `0024` decision 8: **`failed_write` is owner-only to read**, because
+`payload` can carry cost for any kind. §2.6's replayer is someone who *"has already
+reviewed the dead-letter row and decided deliberately that it should go back in the
+books"* — so a manager-fenced replay would be **a decision taken, by design, on a
+row the decider cannot see.**
+
+⚠️ **It is the cheap direction and `0025`'s own argument says so**: *"removing a
+fence later breaks nothing and adding one after a client ships is a coordinated
+release."* Loosening this to manager is a `create or replace` in a new migration.
+**Flagged because it is a live call: if managers should be able to replay, the
+matching change is to `failed_write`'s SELECT policy, not only to this fence** —
+otherwise they replay blind.
+
+### ⚠️⚠️ Found in 4.5c-ii — §2.8 LANDS DEAD LETTERS WITH THE VENDOR AND NO VENDOR CAN REACH THEM
+
+Recorded rather than fixed, because nothing in `0026` can fix it.
+
+§2.8: *"Dead letters go to the operator of this system"*, and §2.6's whole account of
+replay is a vendor who diagnosed the `42501` the merchant could not. But **every
+function on this surface opens with `auth.uid()`**, and a vendor-side process
+running as `service_role` or `postgres` has none — so it fails the
+authenticated-caller guard before it ever reaches the fence, and `has_role` would
+refuse it in any case because a vendor holds no `workspace_member` row.
+
+**So the failure path as built is merchant-triggered end to end.** The nightly §2.10
+check can still *see* the pile (it bypasses RLS); nothing vendor-side can *act* on
+it. That is a client-and-operations question, not a schema one — it is named here so
+step 5's client work does not assume a vendor console that cannot exist yet.
+
+### ⚠️ Found in 4.5c-ii — THREE FALSIFICATIONS WERE GREEN AND TWO OF THEM WERE HOLES THIS SUITE COULD CLOSE
+
+The pattern 4.5b recorded, arriving again, and it is the reason the falsification
+pass is run before the commit rather than after.
+
+- ⚠️⚠️ **F11 — `recorded_offline => true` on the replay call, which is `0025`'s
+  explicitly REFUSED shortcut, turned NOTHING red.** It writes a device-queued flag
+  on a server-side write and — the part that matters — **silently disables `0017`**,
+  which is the only thing in this database that can see the compensate-then-re-run
+  order at all. Check 3.16 now reads the column. F11 turns one red.
+- ⚠️ **F16 (dispatch on `payload->>'kind'`) and F20 (location read from the payload)
+  were both green for the same reason**: every dead letter in the fixture had a
+  payload that AGREED with its row. A nineteenth was added whose row says `sale` and
+  `loc_1` and whose payload says `waste` and `loc_2` — the lie a malformed payload
+  actually looks like. F16 now aborts and F20 turns three red. **Section 13 exists
+  because of a green falsification, and it is the whole argument for running them.**
+- ✅ **F4 and F15 stay green and are not holes.** F4 removes the
+  `reversal_of_movement_id is null` filter, which is unreachable behind the
+  `replayed_at` guard and the unique index — both of which ARE falsifiable (F5
+  aborts). F15 removes the net-to-zero post-condition, which nothing in a correct
+  fixture can trip — and which is precisely what catches **F9**. Two guards that can
+  only be falsified through each other, recorded as such rather than deleted.
+
+### Settled in 4.5c-ii, and binding on step 5
+
+- **THE COMPENSATION REUSES `adjustment_reason = 'failed_write_downgrade'`**, because
+  `stock_movement_downgrade_names_its_dead_letter` is an **IFF**: only that reason
+  may name a dead letter, and it must. A new enum value for the undoing was weighed
+  and refused — it could not carry the link, and the pair is already distinguishable
+  by `reversal_of_movement_id` being null on the downgrade and set on its
+  compensation.
+- **THE STAMP IS `replayed_at` / `replayed_by` / `replay_result`, whole or absent**,
+  held by a check constraint. ⚠️ **It is also the transfer's ONLY marker** — §2.4
+  gives a transfer no header, so `0025`'s column has nowhere to live, and
+  `replay_result` carries the `transfer_id` §2.4 names nowhere else. That is the
+  question `0025` left open for `0026`, answered with no fifth column.
+- **A SECOND REPLAY RETURNS, IT DOES NOT RAISE** — `already_replayed: true`, which is
+  `0024` decision 7's shape. The row is taken `for update` first, so two operators
+  clicking replay serialise instead of racing.
+- ⚠️ **THE ROW IS NEVER DELETED ONCE REPLAYED.** §2.10 must be able to say a dead
+  letter was RECOVERED, not merely that it is gone — and `stock_movement.failed_write_id`
+  is `on delete restrict`, so the compensation would refuse the delete anyway, at a
+  confusing distance from the cause.
+- **`replay_failed_write` IS THE ONLY FUNCTION ON THE WRITE SURFACE THAT CALLS OTHER
+  RPCs**, and it passes `recorded_offline => false` to all four. A replay is a
+  server-side write made now; the original's offline-ness stays auditable in the
+  payload of the dead letter the document names.
+
+### Twenty-four falsifications, run by hand before 4.5c-ii was committed
+
+Each is a single deliberate defect loaded over `0026` with `create or replace` (or,
+for F21–F24, a DDL change), the suite re-run against it, and the schema restored.
+⚠️ **`ABORTED` is reported separately from `RED=0`** — four of these abort, and every
+one of the four aborts because a `select … \gset` in a FIXTURE raises. That is
+4.5c-i's F15 finding holding at scale: **a suite's fixture is unasserted code**, CI
+still goes red (non-zero exit, a short check count in the log), and it is caught the
+noisy way rather than the precise one.
+
+| F | mutation | verdict | checks red |
+|---|---|---|---|
+| F1 | the compensation deleted — the replay just re-runs the call | **ABORTED** | — |
+| F2 | ⚠️⚠️ **THE HEADLINE** — compensation by a positive `adjust_stock_delta`, which is what §2.6's words point at | **RED** | 8 |
+| F3 | the compensation dated `now()` instead of the movement it cancels | **RED** | 1 |
+| F4 | ✅ the `reversal_of_movement_id is null` filter dropped | **GREEN** | 0 — unreachable behind F5's guard and the unique index |
+| F5 | the already-replayed guard removed — a second replay compensates again | **ABORTED** (`23505`) | — |
+| F6 | ⚠️ the fence loosened from `owner` to `manager` | **RED** | 2 |
+| F7 | the role fence deleted outright | **RED** | 3 |
+| F8 | the workspace predicate dropped from the row read | **RED** | 1 |
+| F9 | re-run BEFORE compensate | **ABORTED** — by decision 10's post-condition | — |
+| F9b | ⚠️ …the same, with the post-condition moved along with it: the version a reviewer tidying up would write | **RED** | 3 |
+| F10 | the marker not passed to the recorders | **RED** | 12 |
+| F11 | ⚠️⚠️ `recorded_offline => true` — `0025`'s refused shortcut | GREEN → **RED** after 3.16 | 1 |
+| F12 | the online branch takes `now()` instead of `failed_at` | **RED** | 2 |
+| F13 | the offline clamp anchored to `now()` instead of `failed_at` | **RED** | 8 |
+| F14 | ⚠️ no clamp — the payload preserved verbatim, which is §2.6's sentence taken literally | **RED** | 3 |
+| F15 | ✅ the net-to-zero post-condition removed | **GREEN** | 0 — it is what catches F9 |
+| F16 | ⚠️ the dispatch reads `payload->>'kind'` | GREEN → **ABORTED** after the lying payload | — |
+| F17 | the stamp never written | **ABORTED** | — |
+| F18 | the malformed-timestamp guard removed — a bare `22P02` from the cast | **RED** | 3 |
+| F19 | the empty-lines refusal removed | **RED** | 1 |
+| F20 | ⚠️ the location read from the payload instead of the row | GREEN → **RED** after the lying payload | 3 |
+| F21 | EXECUTE granted back to PUBLIC — 3.1's finding in a FIFTH place | **RED** | 1 |
+| F22 | the whole-stamp check constraint dropped | **RED** | 5 |
+| F23 | the unreplayed index made total | **RED** | 1 |
+| F24 | `replayed_by`'s foreign key dropped | **RED** | 1 |
+
+⚠️⚠️ **F10 TURNS TWELVE RED AND IT IS THE CHEAPEST MISTAKE ON THE LIST.** Dropping
+the marker argument from one recorder call is a one-word edit that leaves every
+balance, every total and every return value correct — and re-dates the document,
+because without the marker the recorder falls through to the clamp. Twelve checks
+see it, and eleven of them are about the timestamp rather than the marker.
+
+✅ **No defect was found in `0026` itself.** Three were found in the SUITE (F11, F16,
+F20) and all three were closed before the commit.
 
 ### ⚠️⚠️ Found in 4.5c-i — THE LIVE BODY OF A FUNCTION IS NOT IN THE MIGRATION THAT NAMED IT
 
@@ -6327,7 +6571,7 @@ mid-migration:**
 | # | Task | Migration | Size | Done when |
 |---|------|-----------|------|-----------|
 | 4.5c-i ✅ | **THE REPLAY MARKER AND THE EXEMPTION** — the marker column on `sale`, `purchase` and `waste`; `record_sale`, `record_purchase`, `record_waste` and `record_transfer` re-signed to accept it and to preserve `occurred_at` verbatim; `void_transaction` replaced to read it. Closes 4e-ii-a's owed window-basis check | `0025` | M/L | **DONE 2026-09-05.** 84 behavioural checks and TWENTY-ONE falsifications, twenty of them RED. ⚠️⚠️ **The marker is an FK to `failed_write`, not a boolean** — F16 turns six red and two of the six are forgeries a boolean could not have caught. ⚠️⚠️ **`record_sale`'s live body is `0017`'s, not `0016`'s** — carrying the named migration forward would have silently reverted 4c-i on a green reset. ⚠️ **The exemption is reachable only after a demotion**, which is §2.6's own argument as a fact. ⚠️ **F15 is caught only by ABORT** — a suite's fixture is unasserted code, owed. ✅ No defect found in `0025` itself; two were found in the suite |
-| 4.5c-ii | **`replay_failed_write`** — compensate the downgrade movements the dead-letter link names, dispatch on kind, re-run the original call under its original id through the path 4.5c-i built, and stamp the `failed_write` row replayed. §2.10's **replay** row | `0026` | M/L | Dead-letter → downgrade → replay nets exactly the original sale, with revenue and batch attribution, `sum(movements) = batch_balance` still holding, and a `purchase` or `transfer` dead letter — which has no downgrade — replays without compensating anything |
+| 4.5c-ii ✅ | **`replay_failed_write`** — compensate the downgrade movements the dead-letter link names, dispatch on kind, re-run the original call under its original id through the path 4.5c-i built, and stamp the `failed_write` row replayed. §2.10's **replay** row | `0026` | M/L | **DONE 2026-09-05.** 86 behavioural checks and TWENTY-FOUR falsifications. ⚠️⚠️ **The compensation is a REVERSAL MOVEMENT per downgrade movement, not a positive `adjust_stock_delta`** — F2, which is §2.6's own words implemented literally, turns eight red and every balance check still passes. ⚠️⚠️ **§2.6's "clamped at capture" is not true of the applied table**, so `0026` recomputes the original call's timestamp at `failed_at`; without it a till dated 2099 replays a sale dated 2099. ⚠️⚠️ **Fenced at `owner`, tighter than the marker's `manager`**, because §2.6's replayer reviews a row only an owner may read. ⚠️ **Three falsifications were green and two were suite holes** — the refused `recorded_offline` shortcut and a payload that disagrees with its row. ✅ No defect found in `0026` itself |
 
 **Order is forced, again.** 4.5c-i before 4.5c-ii: replay's `occurred_at` guarantee
 and its marker are both things the recorders have to offer before the orchestrator
@@ -6645,7 +6889,7 @@ the first split in the project with no numbering cost at all.
 |---|------|-----------|------|-----------|
 | 4.5a ✅ | **`adjust_stock_delta`** — the RELATIVE ledger primitive, and the `reason` column §2.6's signature assumes | `0023` | M | **DONE 2026-09-05.** 81 behavioural checks and TWENTY falsifications. ⚠️⚠️ **NOT GRANTED TO `authenticated`** — the one function of §2.6's ten that no client can call, and F3 (the grant added) turns five red. ⚠️⚠️ **`reason` had no column**, exactly as `note` had none in 4f: `0023` adds the `adjustment_reason` enum and column fix-forward. ⚠️ **F20 reported ABORTED rather than RED** until check 8.3's phantom row changed document kind — a refusal check whose granted side breaks a DEFERRED constraint cannot report its own failure. ⚠️ **F17 (the lock) turns nothing red and cannot today** — 4f's owed row, not a new one. ✅ No defect found in `0023` itself; three were found in the suite |
 | 4.5b ✅ | **`failed_write`** — the table, RLS, policies, grants — **and `record_failed_write`**: the dead-letter row, the auto-downgrade through 4.5a, and the link that makes it reversible. §2.10's **failure-path** row | `0024` | M | **DONE 2026-09-05.** 79 behavioural checks and TWENTY-TWO falsifications, every one of which turns something red. ⚠️⚠️ **§2.6 AMENDED TWICE ON THE OWNER'S INSTRUCTION** — the link reversed onto `stock_movement.failed_write_id` (F11 turns 28 red), and only `sale`/`waste` downgraded. ⚠️ **`location_id` has NO foreign key**, deliberately: an FK would refuse the very report the table exists to keep, and F18 turns three red. ⚠️ **Three falsifications were green on the first pass and all three were suite holes.** ⚠️ **`02` and `03` went red naming the new table** — a tenant table with no rows is invisible to the isolation suites. ✅ No defect found in `0024` itself |
-| 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | ~~`0025`~~ | ~~M/L~~ **`L`** | ⚠️ **RE-SIZED 2026-09-05 AND SPLIT INTO `4.5c-i` (`0025`) / `4.5c-ii` (`0026`) BEFORE ANY OF IT WAS WRITTEN** — the marker cannot be stamped by an UPDATE (`0003:45` refuses every one) and no recorder can preserve a stored `occurred_at` (`0016:168` has two branches and neither does), so the marker is a change to THREE APPLIED FUNCTIONS that `replay_failed_write` then depends on. Reasoning and the two refused shortcuts under *Settled in sizing 4.5c* |
+| 4.5c | **`replay_failed_write`** — compensate the downgrade, re-run the original call under its original id, preserve `occurred_at` — **and the REPLAY MARKER**. §2.10's **replay** row, plus 4e-ii-a's owed window-basis check | ~~`0025`~~ | ~~M/L~~ **`L`** | ✅ **BOTH HALVES DONE 2026-09-05.** ⚠️ **RE-SIZED 2026-09-05 AND SPLIT INTO `4.5c-i` (`0025`) / `4.5c-ii` (`0026`) BEFORE ANY OF IT WAS WRITTEN** — the marker cannot be stamped by an UPDATE (`0003:45` refuses every one) and no recorder can preserve a stored `occurred_at` (`0016:168` has two branches and neither does), so the marker is a change to THREE APPLIED FUNCTIONS that `replay_failed_write` then depends on. Reasoning and the two refused shortcuts under *Settled in sizing 4.5c* |
 
 ⚠️ **THE OVERFLOW SEAM IS PRE-COMMITTED, exactly as 4e did it**, so that a fourth
 task never has to renumber anything: **if 4.5b or 4.5c overflows one session, the
