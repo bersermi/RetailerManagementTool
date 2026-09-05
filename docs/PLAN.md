@@ -119,6 +119,41 @@ survives into the NEXT suite of the same CI job and every one after it dies on
 reported the harness error rather than the defect they injected before this was found.
 `_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
 
+✅✅ **4e-ii-b — TEST BREADTH OVER `void_transaction` — IS DONE AS OF 2026-09-04,
+AND `4f` (`adjust_stock`, `0022`) IS THE LAST TASK IN STEP 4.** `supabase/tests/0021`
+goes 64 → 95 checks and TWENTY falsifications; the gate now runs **eleven suites and
+668 checks** plus 29 two-connection assertions. **No migration was written and no
+defect was found in `0021`.**
+⚠️⚠️ **THE HEADLINE IS A NUMBER: ELEVEN OF THE TWENTY MUTATIONS TURNED NOTHING RED
+ON THE 64 CHECKS THAT STOOD BEFORE THIS TASK.** Every one of them applies cleanly,
+and each is a thing `0021` does correctly that nothing was watching. The shape is
+the one F12 named and did not finish — **the lookup and the inserts are written
+THREE TIMES, once per document kind** — and sections 3, 4 and 5 divided the
+properties BETWEEN the kinds rather than asserting each on all three.
+⚠️⚠️ **AND ONE OF THE 64 COULD NOT FAIL AT ALL. 3.12 read `a > b or a >= b`, which
+is `a >= b`**, so a void back-dated to the original's `occurred_at` — the exact
+defect its label names — PASSED IT. That is not argued, it is measured: the mutation
+was re-run against a copy of the file carrying 4e-ii-a's 3.12 and no 11.6, and all
+64 checks passed. **A seventh shape of misleading green, and the first that is a
+tautology rather than a harness fault.**
+⚠️⚠️ **A REFUSAL CANNOT WATCH THE COLUMN IT REFUSES ON**, which is why section 12
+is made entirely of GRANTS. Drop `created_by` from the waste lookup and `v_creator`
+is null, `null is distinct from v_user` is still true, and 6.2 — the ownership
+refusal — still passes.
+⚠️⚠️ **THE MULTI-LOT VOID WAS UNWATCHED.** Every document sections 3 to 5 void drew
+from exactly ONE lot, so "back to the lots it came from" and "back to A lot" are the
+same sentence there: a void that returned every unit to one lot per variant leaves
+3.9, 3.11, 4.3 and 5.4 green.
+⚠️ **THREE OF THIS TASK'S OWN CHECKS WERE VACUOUS WHEN FIRST WRITTEN** — a tax arm
+over zero-rated write-offs, an expiry arm over null dates, and an offline-flag check
+whose two originals were both recorded ONLINE. All three were caught by falsification
+rather than by review, and each now asserts its subject is non-trivial first.
+⚠️ **ONE FIXTURE ASSUMPTION IS WORTH THE OWNER'S EYE AND IS NOT A CONTRADICTION:
+the cashier records a delivery.** §2.7's capability table grants it — *"Record sale,
+purchase, waste — staff ● assigned locations"* — and it is the only witness for the
+purchase branch's ownership read. What the shop would do is a Comprar workflow
+question, not this function's.
+
 ✅⚠️⚠️ **4e-ii IS SIZED AND UNBLOCKED, 2026-09-04, AND CLOSING IT AMENDED THE ADR.**
 Sizing turned up the first plan/ADR disagreement of step 4 that was about BEHAVIOUR
 rather than a migration number: this file's *done when* said *"§2.7's void window is
@@ -3799,7 +3834,7 @@ recorded there rather than quietly overwritten.
 | 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
 | 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | **DONE 2026-09-04.** 76 behavioural checks and TWELVE falsifications. ⚠️⚠️ **F8 — the enforcement block reading the DESTINATION's shelf — turned NOTHING red on 74 checks**, and closing it took the only variant shape the two readings disagree about (6.7/6.8). ⚠️⚠️ **F9 — the advisory lock deleted — turned nothing red either**, and that one is still open: it is a NEW owed row, not one of §2.10's nine. ✅ No defect found in `0020` itself. Original criteria: both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
 | 4e-ii-a ✅ | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | **DONE 2026-09-04.** 64 behavioural checks and SIXTEEN falsifications. ⚠️⚠️ **F2 — the basis forced back to `occurred_at`, the exact rule the amendment replaced — turns check 7.2 RED AND NOTHING ELSE**, so the owner's decision is not merely implemented, it is the only reading the suite admits. ⚠️⚠️ **F12 FOUND A HOLE: the wall is written out THREE times, once per kind, and only the `purchase` copy was watched** — deleting it from the `sale` or `waste` lookup turned nothing red until 2.4b/2.4c existed. ⚠️⚠️ **F6 TURNED NOTHING RED AND CANNOT TODAY** — a NEW owed row, see below. ⚠️ **F11 turned nothing red and is honestly recorded as redundant by construction.** ⚠️⚠️ **A SIXTH SHAPE OF MISLEADING GREEN, and it is fixed in `_cleanup.sql`**: a suite that ABORTS never reaches its own `drop function`, so a helper leaks into the next suite of the same CI job. ✅ No defect found in `0021` itself
-| 4e-ii-b | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | ⚠️ **Split 2026-09-04 in sizing, on the seam 4e PRE-COMMITTED**, so `0022` and `0023` do NOT move. Reasoning under *Settled in sizing 4e-ii* |
+| 4e-ii-b ✅ | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | **DONE 2026-09-04.** `supabase/tests/0021` goes 64 → 95 checks, TWENTY falsifications. ⚠️⚠️ **ELEVEN DEFECTS APPLY CLEANLY AND TURNED NOTHING RED ON 4e-ii-a's 64 CHECKS** — the measurement this task existed to take. ⚠️⚠️ **3.12 COULD NOT FAIL: it read `a > b or a >= b`, which is `a >= b`**, so a void back-dated to the original's own `occurred_at` passed the check whose label forbids exactly that. Fixed in place, and the claim proved by re-running the mutation against 4e-ii-a's form of the file. ⚠️⚠️ **A REFUSAL CANNOT WATCH THE COLUMN IT REFUSES ON** — the fence's `created_by` read is dropped from a branch, `v_creator` is null, and 6.2 still passes. ⚠️⚠️ **THE MULTI-LOT VOID WAS UNWATCHED**: returning every unit to ONE lot per variant leaves 3.9, 3.11, 4.3 and 5.4 green. ⚠️ **THREE of this task's OWN checks were vacuous when written** and were caught by falsification, not review. ✅ **No defect found in `0021` itself, and no migration was written** |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
 Order is forced, and not by foreign keys this time:
@@ -4257,6 +4292,215 @@ moment would not produce a third renumbering:
 
 ⚠️ **`0022` (4f) and `0023` (step 4.5) DO NOT MOVE.** That is the whole point of having
 pre-committed the seam, and it is why the second renumbering was the last one.
+
+
+### ⚠️⚠️ Found in 4e-ii-b — ELEVEN DEFECTS APPLY CLEANLY AND TURN NOTHING RED
+
+This is the measurement 4e-ii-b existed to take, and it is the answer to the question
+4e-ii-a's *"no defect found in `0021` itself"* leaves open: **a suite that finds no
+defect has either verified a correct function or failed to look.** Twenty mutations
+were loaded over `0021` with `create or replace`, the suite re-run, and the function
+restored. **Eleven of them turned NOTHING red on the 64 checks that stood before this
+task**, and every one of them applies cleanly to a database that would then be wrong:
+
+| Mutation | Red on 95 | Red on 4e-ii-a's 64 |
+|---|---|---|
+| the void filed under the ORIGINAL's author | 11.1 | ⚠️ nothing |
+| the compensating movements filed under the original mover | 11.2 | ⚠️ nothing |
+| `payload_hash` randomised | 11.3 | ⚠️ nothing |
+| `payload_hash` a constant | 11.3, 11.4 | ⚠️ nothing |
+| ⚠️⚠️ the compensating header BACK-DATED to the original's day | 3.12, 11.6 | ⚠️⚠️ nothing |
+| the movement cost recomputed rather than carried | 10.9 | ⚠️ nothing |
+| the movement back-dated to the movement it cancels | 10.11 | ⚠️ nothing |
+| the PURCHASE totals not negated | 10.1 | ⚠️ nothing |
+| the WASTE `total_tax` not negated | 10.2 | ⚠️ nothing |
+| the expiry date dropped from the compensating line | 10.3 | ⚠️ nothing |
+| the WASTE lookup stops reading `created_by` | 12.1, 12.3 | ⚠️ nothing |
+| the PURCHASE lookup stops reading `recorded_offline` | 12.4 | ⚠️ nothing |
+| the PURCHASE lookup stops reading `created_by` | 12.2, 12.4 | ⚠️ nothing |
+| the PURCHASE lookup stops reading `reversal_of` | 13.1 | ⚠️ nothing |
+| ⚠️⚠️ every unit returned to ONE lot per variant | 14.2, 14.3, 14.4 | ⚠️⚠️ nothing |
+| the void inherits `recorded_offline` | 10.6, 12.5 | ⚠️ nothing |
+
+✅ **NONE OF THEM IS A DEFECT IN `0021`.** Every one is something the function does
+correctly that nothing was watching, and 4e-ii-a's verdict stands: the function was
+right. What was not right was the claim the file was entitled to make about it.
+
+⚠️ **THE SHAPE IS THE ONE F12 NAMED AND DID NOT FINISH.** F12 found the location wall
+written out three times and closed all three copies. It did not generalise, and the
+generalisation is the whole of this task: **the lookup is written three times and so
+is every insert after it** — ten columns per lookup, twelve per header, and sections
+3, 4 and 5 divide the properties BETWEEN the kinds. The totals were proved on the
+sale, the provider on the purchase, the cost snapshot on the waste. Each was a claim
+about one third of the function. Sections 10 to 14 fill the matrix.
+
+**Binding on 4f and on step 4.5:** a rule written once per branch needs a check once
+per branch, and *"the rule is tested"* is a claim a single check cannot carry. `0022`
+has one branch and is safe from this; **`replay_failed_write` will not be.**
+
+
+### ⚠️⚠️ Found in 4e-ii-b — A SEVENTH SHAPE OF MISLEADING GREEN, AND IT IS A TAUTOLOGY
+
+The six shapes this repository has found so far were all harness faults: a verdict
+rolled back, a verdict never inserted, a `not passed` that cannot see NULL, a scalar
+subquery that dies where it should fail, an exception that escapes `chk`, a helper
+leaked into the next suite. **This one is a check that is simply always true.**
+
+4e-ii-a wrote 3.12 as:
+
+```sql
+select chk('3.12 the void lands on its OWN day, not the original''s …',
+           (select v.occurred_at >  o.occurred_at …)
+        or (select v.occurred_at >= o.occurred_at …));
+```
+
+`a > b or a >= b` **is** `a >= b`. A void that copied the original's `occurred_at`
+onto the compensating header — which is precisely the defect the label forbids, and
+which would silently move a daily total someone has already read in Números —
+satisfies the second disjunct and the check passes.
+
+✅ **MEASURED, NOT REASONED. Falsification G6** back-dates all three compensating
+headers. Against the file as it stands it turns 3.12 and 11.6 red. Against a copy of
+the file carrying 4e-ii-a's 3.12 and no 11.6, **all 64 checks pass.**
+
+⚠️ **The lesson is narrow and worth stating narrowly:** a disjunction in a check is
+worth a second look, because the cheap way to make a flaky assertion pass is to `or`
+it with a weaker one, and the result reads like a stronger claim than either. 3.12 is
+now the strict form alone, and 11.6 is the same claim once per document kind.
+
+
+### ⚠️⚠️ Found in 4e-ii-b — A REFUSAL CANNOT WATCH THE COLUMN IT REFUSES ON
+
+Sections 6 and 7 are the fence and the amended offline basis, and **every document
+they use is a SALE**. `v_creator`, `v_offline` and `v_recorded` are read in the same
+three-way lookup the location wall lives in, so the purchase and waste copies were as
+unwatched as the wall was before F12 — and the reason it stayed invisible is sharper
+than "nobody wrote the check":
+
+⚠️⚠️ **A CHECK THAT EXPECTS A REFUSAL PASSES WHEN THE COLUMN IS NOT READ AT ALL.**
+6.2 refuses a cashier voiding someone else's purchase. Drop `p.created_by` from the
+purchase lookup and `v_creator` is null; `null is distinct from v_user` is still true;
+the refusal still fires; **6.2 is still green, for the wrong reason.** The same holds
+for the waste branch and for the whole ownership half of §2.7's first row.
+
+✅ **Only a GRANT can distinguish a column that is read from a column that is
+missing**, so every check in section 12 is a success rather than a refusal: the
+cashier voids their OWN write-off, their OWN delivery, and the offline pair of both.
+
+⚠️ **AND IT WIDENS F2's BLAST RADIUS, WHICH MATTERS FOR THE AMENDMENT.** Before this
+task the amended basis had exactly one witness — 7.2, on the sale branch — so forcing
+the basis back to `occurred_at` turned one check red out of sixty-four. It now turns
+7.2, 12.3 and 12.4 red. The owner's decision is watched on all three kinds of
+document rather than on one.
+
+
+### ⚠️⚠️ Found in 4e-ii-b — THE MULTI-LOT VOID WAS UNWATCHED, AND IT IS 4b-ii's LESSON AGAIN
+
+4b-ii closed with *"the per-lot cost is the one thing only a multi-lot line can
+check"*. `0021`'s suite inherited the gap: **every document sections 3 to 5 void drew
+from exactly ONE lot**, so *"the stock goes back to the lots it came from"* and *"the
+stock goes back to A lot"* are the same sentence there.
+
+✅ **MEASURED — falsification G15**, which rewrites the compensating-movement select
+to aggregate per variant: one movement carrying the whole quantity, pointed at the
+first lot the original touched. **3.9, 3.11, 4.3 and 5.4 all stay green.** The schema
+does not catch it either — `stock_movement_reversal_fk` pins the movement to the same
+batch as the one it names, and the one it names is a real movement on a real batch.
+
+Section 14 is a variant with THREE lots and one sale across all of them. 14.1 is the
+fixture check that makes the rest non-vacuous, 14.2 counts the movements and the
+distinct batches, 14.3 pairs each lot to what it gave, and 14.4 compares the shelf
+**lot by lot** against rows captured before the sale. G15 turns 14.2, 14.3 and 14.4
+red.
+
+⚠️ **14.1 EARNED ITS PLACE BEFORE ANY DEFECT DID.** The first draft of the section
+put a fourth `var_m` lot of six on the shelf, so six plus four is ten and the sale
+sometimes spanned two lots instead of three — and 14.1 went red on runs falsifying
+something else entirely. The fixture check found its own fixture, which is the job it
+was written for.
+
+
+### ⚠️ Found in 4e-ii-b — THREE OF THIS TASK'S OWN CHECKS WERE VACUOUS, AND FALSIFICATION IS WHAT SAID SO
+
+Not a finding about `0021`. A finding about how far *writing the check* is from
+*having the evidence*, and it is the third task in a row to produce one:
+
+| Check as first written | Why it asserted nothing | What it reads now |
+|---|---|---|
+| 10.2 — the waste totals negated | **every write-off in the file is zero-rated**, so the tax arm is `0 = -0` | a TAXED write-off, and it asserts `total_tax <> 0` first |
+| 10.3 — the expiry carried forward | `_pl` sends no `expiry_date` and no family here tracks expiry, so **every purchase line carries NULL** and `null is not distinct from null` is true | a delivery with a real date, and it asserts the date is not null first |
+| 10.6 — the void is not flagged `recorded_offline` | **both originals it read were recorded ONLINE**, so `false` and the inherited flag held the same value | the void of an OFFLINE original, and 12.5 is the same claim on the other two branches |
+
+✅ **All three were caught by falsification, not by review** — the mutations that
+should have turned them red turned nothing red, which is the only signal a vacuous
+check gives. **Every check added in this task that reads a value now asserts that the
+value is non-trivial before asserting what the function did with it**, and that is
+the practice worth carrying into 4f and 4.5.
+
+
+### ⚠️ Found in 4e-ii-b — FOUR CHECKS THE SCHEMA HOLDS, RECORDED RATHER THAN CLAIMED
+
+F11's precedent: a check that nothing can falsify is not evidence, and the honest
+thing is to say so rather than to delete it or to count it. Four checks in
+`supabase/tests/0021` are true, are worth reading, and are **not this file's
+evidence** — measured, one mutation each:
+
+| Check | What actually refuses the defect |
+|---|---|
+| 10.7 — the void stays at the original's store | `sale_reversal_fk` — the location is pinned by the schema |
+| 3.10 and 10.8 — the movement keeps the original's reason | `stock_movement_source_agrees` |
+| 10.10 — the movement's scope columns are the original's | `stock_movement_batch_fk` refuses a wrong variant |
+| 11.5 — the original's authorship is untouched | `0003`'s append-only trigger; nothing here updates an original |
+
+⚠️ **Two more mutations were refused by the schema rather than by the suite**, and
+both are the same good news: `qty_display` copied instead of negated is refused by
+`sale_line_qty_display_agrees`, and the already-voided short-circuit removed on the
+purchase branch is refused by `purchase_one_reversal_idx` — **which is F8's answer
+arriving on a second branch.** The structural guarantee is real on all three kinds.
+
+
+### Settled in 4e-ii-b, and binding on 4f and step 4.5
+
+1. **A rule written once per branch needs a check once per branch.** F12 said this
+   about the location wall. It is true of every column a branching lookup reads, and
+   eleven cleanly-applying defects is what the un-generalised version costs.
+2. **A check that expects a REFUSAL cannot watch the column the refusal reads.** Pair
+   every fenced-out case with a granted one, on the same branch.
+3. **A disjunction inside `chk` is a smell.** `a > b or a >= b` reads like a careful
+   claim and is a tautology.
+4. **A check over a zero, a null or an unset flag asserts nothing.** Assert the
+   subject is non-trivial in the same check, so the day the fixture changes the check
+   goes red instead of quiet.
+5. **A per-lot claim needs a multi-lot document**, and a per-kind claim needs one
+   document of each kind. This is 4b-ii's rule and 4d-i's rule, and `0021` needed both.
+
+⚠️ **NO DECISION WAS MADE ON THE OWNER'S BEHALF IN THIS TASK, and there was nothing
+to bake in:** no migration was written, no schema moved, no ADR clause was read
+differently. The one judgement worth naming is a FIXTURE choice — **the cashier
+records a delivery in section 12** — and §2.7's capability table grants exactly that
+(*"Record sale, purchase, waste — staff ● assigned locations"*). It is the only
+witness available for the purchase branch's ownership read. What the shop would
+actually do at the door is a Comprar workflow question and not this function's.
+
+
+### Twenty falsifications, run by hand before 4e-ii-b was committed
+
+Each is a single deliberate defect loaded over `0021` with `create or replace`, the
+suite re-run, and the function restored. The full table with the red sets is in the
+header of `supabase/tests/0021_void_transaction.sql`; the summary is:
+
+- **Sixteen turned checks red**, eleven of them checks that did not exist before this
+  task — the table at the top of this section.
+- **Four were refused by the SCHEMA rather than by the suite**, and each is recorded
+  in the file as the schema's evidence rather than the file's.
+- ⚠️ **G6 is the one this task existed to run**, and it is the only mutation in either
+  half of 4e-ii that turns an EXISTING check red — because that check could not fail
+  until this task fixed it.
+
+⚠️ **F6 IS STILL UNFALSIFIABLE AND THIS TASK DID NOT CHANGE THAT.** The online arm of
+the amended window basis has no witness in this database, `replay_failed_write` is the
+first document that will provide one, and **step 4.5 still owes both the marker and
+the check.** The owed row above is unchanged.
 
 
 ### ⚠️⚠️ Found in 4e-ii-a — THE LOCATION WALL IS WRITTEN THREE TIMES AND TWO COPIES WERE UNWATCHED
