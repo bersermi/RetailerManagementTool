@@ -193,9 +193,18 @@ it:**
   `transfer_group_id` rather than stored on a header — a decision made in sizing, on
   the owner's behalf, so that `TD001` still reaches a caller who retries a changed
   payload under the same id
-- `0021` — `void_transaction`, all three document kinds (**4e-ii**). ⚠️ **If it
-  overflows one session the second half ships NO migration** — the test-breadth seam,
-  4b-ii's, so this number is the last one 4e takes
+- `0021` — `void_transaction`, all three document kinds (**4e-ii-a**). ⚠️ **It DID
+  overflow one session — sized `L` on 2026-09-04 — and the second half (`4e-ii-b`,
+  test breadth) SHIPS NO MIGRATION**, on 4b-ii's seam exactly as pre-committed. **This
+  number is the last one 4e takes, and `0022`/`0023` did not move.**
+  ⚠️⚠️ **BLOCKED ON THE OWNER BEFORE IT IS WRITTEN:** `docs/PLAN.md`'s *done when* said
+  *"§2.7's void window is enforced in the body"*, and **ADR-035 §2.7 says the window is a
+  ROLE boundary, not a deadline** — staff void their own inside 15 minutes, a manager or
+  owner voids **anything, any time**. Enforced as a bare window, `0021` would refuse a
+  manager and would make §2.6's replayed sale permanently uncorrectable. **`0001:272` has
+  had it right since the foundation migration** — *"self-service void window. Beyond it,
+  manager role required."* The ADR wins; the plan is the bug; the fence is the owner's
+  call. ⚠️ `void_transaction` would be **the only step-4 RPC that reads a role**
 - `0022` — `adjust_stock`, absolute (**4f**)
 - `0023` — failure path: `failed_write`, **`adjust_stock_delta`**,
   `record_failed_write`, `replay_failed_write` (ADR-035 §3 step 4.5 — before any
