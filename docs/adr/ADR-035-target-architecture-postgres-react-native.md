@@ -84,6 +84,36 @@
   read `occurred_at`** — the amendment splits one sentence that had bound them
   together, and a sale must count on the day it was made whatever the clock did.
   The 15-minute window remains listed **Reversible** in §4.
+- **Revised:** 2026-09-05 — §2.6's *Rejected writes* amended **TWICE**, on the
+  decision maker's instruction, while build step 4.5b was being sized.
+  **(1) THE DOWNGRADE LINK IS REVERSED.** Step 3 said the `failed_write` row stores
+  `adjustment_movement_id`, singular. **A downgrade is not singular and cannot be
+  made so**: `adjust_stock_delta` takes one `variant_id`, a rejected sale has lines,
+  and one line spanning two lots writes two movements by itself. Since this
+  document's own next sentence says the link *"is not optional… without it the
+  downgrade and any later replay would each remove the same units"*, the link has to
+  be COMPLETE rather than representative — a row naming only the first movement is
+  one `replay_failed_write` will silently under-compensate. **`stock_movement`
+  therefore carries `failed_write_id`**, a real foreign key, and the group is the
+  dead letter itself. An `adjustment_group_id` on both tables was weighed and
+  refused: it is two columns instead of one, and only the FK can make *"not
+  optional"* a CONSTRAINT —
+  `check ((adjustment_reason is not distinct from 'failed_write_downgrade') =
+  (failed_write_id is not null))`. ⚠️ **Schema change, applied in `0024`**, and
+  `0004:320`'s comment asserting the other direction is now wrong and cannot be
+  edited (append-only); the column comment says so.
+  **(2) ONLY `sale` AND `waste` ARE DOWNGRADED.** This section described the failure
+  path entirely through the rejected sale and never said what the other three kinds
+  do. They are not the same case. A rejected sale or write-off leaves stock GONE and
+  **nobody will re-enter it**, so the downgrade is the only thing that will ever fix
+  the ledger. A rejected purchase leaves stock **PRESENT**, with a manager holding
+  the delivery note (§2.7 — receiving is not a staff capability) who will re-enter it
+  through Comprar: an auto-upgrade would open a **zero-cost lot** and then **double
+  the shelf**. A rejected transfer spans two stores, has no document (§2.4), and its
+  idempotency already rests on an advisory lock rather than a key. The rule is
+  therefore one sentence — **downgrade the kinds where the stock is gone and nobody
+  will re-enter it** — and both other kinds still dead-letter in full. ⚠️ **No schema
+  change; a function body, so §4's "Reversible" deadline applies unchanged.**
 - **Revised:** 2026-09-04 — §2.6's replay caveat CLOSED, on the decision maker's
   instruction, in the same session that opened it. **A replayed write is exempt from
   the offline basis**: its void window is measured from `occurred_at`, so a replayed
@@ -682,11 +712,53 @@ The client therefore calls `record_failed_write`, which in one transaction:
    payload as `jsonb`, error code and detail, `failed_at`;
 2. **auto-downgrades** via `adjust_stock_delta`, so the stock balance matches the
    shelf within seconds rather than at the next physical count;
-3. stores the resulting `adjustment_movement_id` on the `failed_write` row.
+3. links every movement it wrote back to that row.
 
 Step 3 is what makes step 2 recoverable, and it is not optional. Without the link,
 the downgrade and any later replay would each remove the same units and the ledger
 would be short by exactly one sale.
+
+⚠️ **AMENDED 2026-09-05 — THE LINK LIVES ON THE MOVEMENT, NOT ON THE ROW.** This
+step read *"stores the resulting `adjustment_movement_id` on the `failed_write`
+row"*, and **singular was wrong**: `adjust_stock_delta` takes one `variant_id`, a
+rejected sale has lines, and a single line spanning two lots writes two movements
+on its own. A row naming only the first is one `replay_failed_write` will
+under-compensate — the exact arithmetic the paragraph above forbids. So
+**`stock_movement.failed_write_id`** (`0024`), a foreign key, with the group being
+the dead letter itself. An `adjustment_group_id` on both tables was weighed and
+refused: two columns instead of one, and no constraint could hold it up. The FK
+can, and does:
+
+```sql
+check ((adjustment_reason is not distinct from 'failed_write_downgrade')
+       = (failed_write_id is not null))
+```
+
+A downgrade movement must name its dead letter and nothing else may carry one.
+⚠️ `is not distinct from` and not `=`: a plain `=` against a NULL
+`adjustment_reason` yields NULL, and **a NULL check constraint passes**.
+
+⚠️ **AMENDED 2026-09-05 — STEP 2 RUNS FOR `sale` AND `waste` ONLY.** This section
+describes the failure path entirely through the rejected sale, and the other three
+kinds are not the same case:
+
+| Rejected | The stock is | Who is standing there | So |
+|---|---|---|---|
+| `sale`, `waste` | **gone** — in the drawer or the bin | nobody who will ever re-enter it | **downgrade** |
+| `purchase` | **on the shelf** | a manager with the delivery note (§2.7) | **dead-letter only** — Comprar records it properly, and an auto-upgrade would open a zero-cost lot and then DOUBLE the shelf |
+| `transfer` | moved between two stores | — | **dead-letter only** — no document (§2.4), and its idempotency rests on an advisory lock rather than a key |
+
+The rule is one sentence: **downgrade the kinds where the stock is gone and nobody
+will re-enter it.** Both other kinds still dead-letter in full, so §2.10's nightly
+check still sees them and `replay_failed_write` can still replay them.
+
+⚠️ **AND `record_failed_write` NEVER RAISES FOR A BAD PAYLOAD** (`0024`). A
+malformed payload, a deleted variant, a line whose unit no longer resolves — every
+one of those IS a permanent failure, which is to say it is what this table exists
+to capture. Raising would lose the event for the same reason the write was lost,
+which is the location exception above applied one level in. The row lands, the
+downgrade is best-effort per line, and the return value reports how much of it
+happened. The workspace check is the only refusal in the body.
 
 **A downgrade is lossy in the dimension §2.9 cares about.** It reconciles quantity.
 It carries no revenue, no tax split and no FEFO batch attribution, therefore no cost
@@ -1157,7 +1229,7 @@ expensive enough after trading starts to belong here:
 | Decision | Why it hardens |
 |----------|----------------|
 | `adjust_stock_delta` as a relative operation | Its callers assume they never read a balance first. Converting to absolute later means auditing every call site for a race |
-| `failed_write` carrying `adjustment_movement_id` | The link is what makes a downgrade reversible. Rows written without it can never be replayed, because nothing records what to compensate |
+| **`stock_movement.failed_write_id`** — the downgrade link (amended 2026-09-05; was `failed_write.adjustment_movement_id`) | The link is what makes a downgrade reversible. Movements written without it can never be replayed, because nothing records what to compensate — and a movement is append-only, so a link omitted at insert can never be added |
 | `record_failed_write` validating workspace but not location | The exception is the point (§2.6). Tightening it later silently drops the failures it exists to catch |
 
 **Reversible:** FEFO vs FIFO ordering, enforcement default, the 15-minute void

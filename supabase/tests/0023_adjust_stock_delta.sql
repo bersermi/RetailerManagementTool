@@ -101,19 +101,29 @@ $$;
 grant execute on function public.chk_json(text, text, text, text) to authenticated;
 
 -- The call under test, as text, so chk_raises and chk_json can execute it.
+-- ⚠️ THE EIGHTH ARGUMENT ARRIVED IN `0024`, and with it a constraint this file
+-- has to satisfy: `stock_movement_downgrade_names_its_dead_letter` says a
+-- movement whose reason is 'failed_write_downgrade' MUST name the dead letter it
+-- answers to. Every call below passes the one stand-in row the fixture creates.
+-- The constraint is `0024`'s to prove; this file only has to stop being a
+-- counter-example to it.
 create or replace function public._asd(p_loc uuid, p_var uuid, p_delta numeric,
                              p_reason text default 'failed_write_downgrade',
                              p_note text default null,
                              p_at timestamptz default null,
-                             p_offline boolean default false)
+                             p_offline boolean default false,
+                             p_fw uuid default null)
 returns text language sql as $$
   select format('select public.adjust_stock_delta(%L::uuid, %L::uuid, '
                 '%L::numeric, %L::public.adjustment_reason, %L::text, '
-                '%L::timestamptz, %L::boolean)',
-                p_loc, p_var, p_delta, p_reason, p_note, p_at, p_offline)
+                '%L::timestamptz, %L::boolean, %L::uuid)',
+                p_loc, p_var, p_delta, p_reason, p_note, p_at, p_offline,
+                coalesce(p_fw, (select fw.id from public.failed_write fw
+                                 where fw.error_code = 'TD-STANDIN')))
 $$;
 grant execute on function
-  public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean) to authenticated;
+  public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean, uuid)
+  to authenticated;
 
 -- The ABSOLUTE sibling, for the pairs that need it (1.2, 9.3).
 create or replace function public._adj(p_loc uuid, p_var uuid, p_counted numeric,
@@ -248,6 +258,18 @@ select id as var_b from product_variant where workspace_id=:'ws_b' \gset
 
 select id as prov_a from provider where workspace_id = :'ws_a' and is_generic \gset
 
+-- ⚠️ THE STAND-IN DEAD LETTER, and it is a fixture rather than a subject. `0024`
+-- added `stock_movement.failed_write_id` and a constraint pairing it with
+-- `adjustment_reason = 'failed_write_downgrade'`, so every movement this file
+-- writes needs one to point at. Inserted directly rather than through
+-- `record_failed_write`, because that function would DOWNGRADE — and this file's
+-- subject is the primitive underneath it, not the failure path.
+insert into public.failed_write
+  (id, workspace_id, location_id, kind, payload, error_code, reported_by)
+values
+  ('fa11ed23-0000-0000-0000-000000000001', :'ws_a', :'loc_1', 'sale',
+   '{"lines": []}'::jsonb, 'TD-STANDIN', :owner_a);
+
 -- Stock, put on the shelf by `record_purchase` rather than by hand — 4d-ii's
 -- practice, so `0015`'s receipt-completeness rule is satisfied by the path a shop
 -- uses rather than by a fixture that sidesteps it.
@@ -376,14 +398,14 @@ select chk('1.3 adjust_stock_delta is `security definer` — which is what lets 
            'security-definer caller reach it while `authenticated` cannot',
            (select p.prosecdef from pg_proc p
              where p.oid = 'public.adjust_stock_delta(uuid,uuid,numeric,'
-                           'public.adjustment_reason,text,timestamptz,boolean)'
-                           ::regprocedure));
+                           'public.adjustment_reason,text,timestamptz,boolean,'
+                           'uuid)'::regprocedure));
 
 select chk('1.4 `authenticated` holds NO execute privilege on it, read from the '
            'catalog rather than inferred from a refusal',
            not has_function_privilege('authenticated',
              'public.adjust_stock_delta(uuid,uuid,numeric,'
-             'public.adjustment_reason,text,timestamptz,boolean)'::regprocedure,
+             'public.adjustment_reason,text,timestamptz,boolean,uuid)'::regprocedure,
              'execute'));
 
 select chk('1.5 nor does `anon` or `service_role` — the `revoke ... from public` '
@@ -392,11 +414,11 @@ select chk('1.5 nor does `anon` or `service_role` — the `revoke ... from publi
            'opposite of what 0023 decided',
            not has_function_privilege('anon',
              'public.adjust_stock_delta(uuid,uuid,numeric,'
-             'public.adjustment_reason,text,timestamptz,boolean)'::regprocedure,
+             'public.adjustment_reason,text,timestamptz,boolean,uuid)'::regprocedure,
              'execute')
        and not has_function_privilege('service_role',
              'public.adjust_stock_delta(uuid,uuid,numeric,'
-             'public.adjustment_reason,text,timestamptz,boolean)'::regprocedure,
+             'public.adjustment_reason,text,timestamptz,boolean,uuid)'::regprocedure,
              'execute'));
 
 select chk('1.6 PAIR — `authenticated` DOES hold execute on adjust_stock, the '
@@ -406,13 +428,14 @@ select chk('1.6 PAIR — `authenticated` DOES hold execute on adjust_stock, the 
              'public.adjust_stock(uuid,uuid,numeric,text,timestamptz,boolean)'
              ::regprocedure, 'execute'));
 
-select chk('1.7 the signature is §2.6''s five arguments plus the offline pair '
-           '0018–0022 all append — seven, and a drift in either direction would '
-           'make every check in this file address a different function',
+select chk('1.7 the signature is §2.6''s five arguments, the offline pair '
+           '0018–0022 all append, and 0024''s dead-letter link — EIGHT. A drift '
+           'in either direction would make every check in this file address a '
+           'different function',
            (select p.pronargs from pg_proc p
              where p.oid = 'public.adjust_stock_delta(uuid,uuid,numeric,'
-                           'public.adjustment_reason,text,timestamptz,boolean)'
-                           ::regprocedure) = 7);
+                           'public.adjustment_reason,text,timestamptz,boolean,'
+                           'uuid)'::regprocedure) = 8);
 
 
 -- ============================================================================
@@ -804,7 +827,8 @@ select chk('6.14 that lot is the zero-cost, no-expiry shape, and the shelf grew 
 -- function says it did; the movement is what it did.
 
 select public.adjust_stock_delta(:'loc_1'::uuid, :'var_time'::uuid, -1,
-         'failed_write_downgrade', 'T1', now() - interval '24 hours', false) as r \gset
+         'failed_write_downgrade', 'T1', now() - interval '24 hours', false,
+         'fa11ed23-0000-0000-0000-000000000001'::uuid) as r \gset
 
 select chk('7.1 ONLINE — the server''s clock wins and the client''s value is '
            'ignored entirely (§2.6). The call passed a time 24 hours old',
@@ -814,7 +838,8 @@ select chk('7.1 ONLINE — the server''s clock wins and the client''s value is '
                   (select occurred_at from stock_movement where note = 'T1')));
 
 select public.adjust_stock_delta(:'loc_1'::uuid, :'var_time'::uuid, -1,
-         'failed_write_downgrade', 'T2', now() - interval '24 hours', true) as r \gset
+         'failed_write_downgrade', 'T2', now() - interval '24 hours', true,
+         'fa11ed23-0000-0000-0000-000000000001'::uuid) as r \gset
 
 select chk('7.2 OFFLINE — the client''s value is TRUSTED inside the 72-hour '
            'window. The pilot store writes offline as its normal path, so this is '
@@ -827,7 +852,8 @@ select chk('7.2 OFFLINE — the client''s value is TRUSTED inside the 72-hour '
                   (select occurred_at from stock_movement where note = 'T2')));
 
 select public.adjust_stock_delta(:'loc_1'::uuid, :'var_time'::uuid, -1,
-         'failed_write_downgrade', 'T3', now() + interval '10 days', true) as r \gset
+         'failed_write_downgrade', 'T3', now() + interval '10 days', true,
+         'fa11ed23-0000-0000-0000-000000000001'::uuid) as r \gset
 
 select chk('7.3 OFFLINE, a FUTURE claim is clamped to now — a device clock ahead '
            'of the server cannot book stock movement into next week',
@@ -838,7 +864,8 @@ select chk('7.3 OFFLINE, a FUTURE claim is clamped to now — a device clock ahe
                   (select occurred_at from stock_movement where note = 'T3')));
 
 select public.adjust_stock_delta(:'loc_1'::uuid, :'var_time'::uuid, -1,
-         'failed_write_downgrade', 'T4', now() - interval '10 days', true) as r \gset
+         'failed_write_downgrade', 'T4', now() - interval '10 days', true,
+         'fa11ed23-0000-0000-0000-000000000001'::uuid) as r \gset
 
 select chk('7.4 OFFLINE, a claim older than 72 hours is clamped to the window''s '
            'floor and not to now — the write is old, and pretending otherwise '
@@ -862,7 +889,8 @@ select chk('7.5 `recorded_at` is server-set on every one of them, INCLUDING the 
                       and recorded_at > now() - interval '5 minutes')));
 
 select public.adjust_stock_delta(:'loc_1'::uuid, :'var_lad'::uuid, 5,
-         'failed_write_downgrade', 'T5', now() - interval '48 hours', true) as r \gset
+         'failed_write_downgrade', 'T5', now() - interval '48 hours', true,
+         'fa11ed23-0000-0000-0000-000000000001'::uuid) as r \gset
 
 select chk('7.6 ⚠️ A LOT OPENED BY A BACKDATED CREDIT IS RECEIVED AT THE EVENT '
            'TIME, NOT AT now(). received_at is FEFO''s SECOND SORT KEY (§2.4), so '
@@ -1053,7 +1081,7 @@ select chk('10.6 ALL 81 CHECKS IN THIS FILE ACTUALLY RAN — a verdict rolled ba
                   (select count(*) from public._verify)));
 
 drop function public.chk_json(text, text, text, text);
-drop function public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean);
+drop function public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean, uuid);
 drop function public._adj(uuid, uuid, numeric, text, timestamptz, boolean);
 drop function public._pl(uuid, numeric, numeric, date);
 drop function public._sl(uuid, numeric, numeric);

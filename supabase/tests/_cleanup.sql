@@ -88,9 +88,16 @@ begin
   -- and drops it at its own end, which is unreachable in exactly the case that
   -- matters — so it is closed here too rather than left for the next abort.
   drop function if exists
-    public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean);
+    public._asd(uuid, uuid, numeric, text, text, timestamptz, boolean, uuid);
   drop function if exists public._sl(uuid, numeric, numeric);
   drop function if exists public._lot(uuid);
+
+  -- ⚠️ ADDED 2026-09-05 (task 4.5b). Same rule, same day the suite lands.
+  drop function if exists public._rfw(uuid, text, uuid, jsonb, text, text, uuid);
+  drop function if exists public._pay(uuid, jsonb, timestamptz);
+  drop function if exists public._fwq(uuid);
+  drop function if exists public._fwn(uuid);
+  drop function if exists public.chk_raises_like(text, text, text, text);
 
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
