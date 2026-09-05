@@ -58,6 +58,14 @@ begin
   --    no naming convention that separates them from schema functions.
   drop function if exists public.chk(text, boolean, text);
   drop function if exists public.chk_raises(text, text, text);
+  -- ⚠️ ADDED 2026-09-04 (task 4e-ii-a). This is the "known gap" the header
+  -- above names, arriving: a suite that ABORTS partway never reaches its own
+  -- drop, so a helper it created survives into the NEXT suite of the same CI
+  -- job and every one after it dies on "function already exists". Found while
+  -- falsifying 0021 — five mutations in a row reported a harness error rather
+  -- than the defect they injected. Dropping it HERE rather than only at the end
+  -- of the suite is what makes that impossible.
+  drop function if exists public.chk_succeeds(text, text, text);
 
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every

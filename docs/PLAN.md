@@ -84,6 +84,31 @@ not decide it — a transfer moves stock BOTH ways, so the rule is silent for th
 time. F5 is what getting it wrong looks like: ten times the stock, applying clean.
 Findings below.
 
+✅✅ **4e-ii-a — `void_transaction`, `0021` — IS DONE AS OF 2026-09-04, AND WITH IT
+ALL SIX OF STEP 4's FUNCTIONS ARE APPLIED.** 64 behavioural checks and SIXTEEN
+falsifications; the gate now runs **eleven suites and 637 checks** plus 29
+two-connection assertions. **`4e-ii-b` (test breadth, NO migration) IS THE NEXT
+TASK**, and after it only `4f` (`adjust_stock`, `0022`) remains in step 4.
+⚠️⚠️ **F2 IS THE HEADLINE AND IT IS A CLEAN ONE: forcing the window basis back to
+`occurred_at` — the exact rule the owner's amendment replaced — turns check 7.2 RED
+AND NOTHING ELSE.** The amendment is the only reading the suite admits.
+⚠️⚠️ **F12 FOUND A REAL HOLE IN THE SUITE: the location wall is written out THREE
+TIMES, once per document kind, and section 2 watched only the `purchase` copy** —
+deleting the scoping from the `sale` or `waste` lookup turned NOTHING red until
+2.4b and 2.4c were written. The same shape as 4e-i's F8: a branch nobody looked at.
+⚠️⚠️ **AND A NEW OWED ROW: F6 — the basis forced to `recorded_at` for EVERY write —
+turned nothing red, AND NOTHING IN THE DATABASE CAN TURN RED FOR IT TODAY.** §2.6
+overrides `occurred_at` with now() online, so no online document exists where the two
+differ; **the first that will is a REPLAYED one**, and `replay_failed_write` ships in
+step 4.5. Half of `0021`'s `case` is unfalsifiable until then, and **4.5 is where the
+check belongs** — it is NOT one of §2.10's nine.
+⚠️⚠️ **A SIXTH SHAPE OF MISLEADING GREEN, FIXED IN `_cleanup.sql` RATHER THAN IN ONE
+SUITE**: a suite that ABORTS never reaches its own `drop function`, so its helper
+survives into the NEXT suite of the same CI job and every one after it dies on
+"function already exists" instead of on its own defect. Five falsifications in a row
+reported the harness error rather than the defect they injected before this was found.
+`_cleanup.sql`'s own header had predicted exactly this gap and asked for the fix.
+
 ✅⚠️⚠️ **4e-ii IS SIZED AND UNBLOCKED, 2026-09-04, AND CLOSING IT AMENDED THE ADR.**
 Sizing turned up the first plan/ADR disagreement of step 4 that was about BEHAVIOUR
 rather than a migration number: this file's *done when* said *"§2.7's void window is
@@ -3763,7 +3788,7 @@ recorded there rather than quietly overwritten.
 | 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
 | 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
 | 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | **DONE 2026-09-04.** 76 behavioural checks and TWELVE falsifications. ⚠️⚠️ **F8 — the enforcement block reading the DESTINATION's shelf — turned NOTHING red on 74 checks**, and closing it took the only variant shape the two readings disagree about (6.7/6.8). ⚠️⚠️ **F9 — the advisory lock deleted — turned nothing red either**, and that one is still open: it is a NEW owed row, not one of §2.10's nine. ✅ No defect found in `0020` itself. Original criteria: both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
-| 4e-ii-a | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | ✅ **UNBLOCKED 2026-09-04 — the owner answered.** The fence is §2.7's TWO-TIER rule: staff void their OWN inside the window, **manager/owner void anything, any time**. ⚠️⚠️ **The window reads `recorded_at` when `recorded_offline`** — the owner's store is offline a lot, and **ADR-035 §2.6/§2.7 WERE AMENDED** for it. ⚠️ **`TD003` taken on the owner's behalf** for a refused void. CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; `0008` ignores what a void reverses (✅ already does — `0008:96–111`). ⚠️ **No availability check** — voiding a sold-on purchase may drive `remaining_base` negative, which `0004:429` permits deliberately
+| 4e-ii-a ✅ | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | **DONE 2026-09-04.** 64 behavioural checks and SIXTEEN falsifications. ⚠️⚠️ **F2 — the basis forced back to `occurred_at`, the exact rule the amendment replaced — turns check 7.2 RED AND NOTHING ELSE**, so the owner's decision is not merely implemented, it is the only reading the suite admits. ⚠️⚠️ **F12 FOUND A HOLE: the wall is written out THREE times, once per kind, and only the `purchase` copy was watched** — deleting it from the `sale` or `waste` lookup turned nothing red until 2.4b/2.4c existed. ⚠️⚠️ **F6 TURNED NOTHING RED AND CANNOT TODAY** — a NEW owed row, see below. ⚠️ **F11 turned nothing red and is honestly recorded as redundant by construction.** ⚠️⚠️ **A SIXTH SHAPE OF MISLEADING GREEN, and it is fixed in `_cleanup.sql`**: a suite that ABORTS never reaches its own `drop function`, so a helper leaks into the next suite of the same CI job. ✅ No defect found in `0021` itself
 | 4e-ii-b | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | ⚠️ **Split 2026-09-04 in sizing, on the seam 4e PRE-COMMITTED**, so `0022` and `0023` do NOT move. Reasoning under *Settled in sizing 4e-ii* |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
@@ -4223,6 +4248,84 @@ moment would not produce a third renumbering:
 ⚠️ **`0022` (4f) and `0023` (step 4.5) DO NOT MOVE.** That is the whole point of having
 pre-committed the seam, and it is why the second renumbering was the last one.
 
+
+### ⚠️⚠️ Found in 4e-ii-a — THE LOCATION WALL IS WRITTEN THREE TIMES AND TWO COPIES WERE UNWATCHED
+
+**F12, and it is 4e-i's F8 wearing different clothes.** `void_transaction` takes no
+location: the location is a property of the DOCUMENT, so the wall is folded into the
+lookup — and there are THREE lookups, one per kind, each carrying its own copy of
+`and <alias>.location_id in (select public.my_locations())`.
+
+Section 2 as first written tested **only the `purchase` copy**. Deleting the scoping
+from the `sale` lookup turned **nothing** red. Deleting it from `waste` turned nothing
+red. Both are total tenant-isolation failures on their branch, and the suite said
+*all 62 checks passed*.
+
+Checks **2.4b** and **2.4c** close it, and they needed a fixture that did not exist: a
+sale and a write-off **at `loc_2`**, which the cashier is not assigned to. With those in
+place each of the three walls is now independently falsifiable:
+
+| Falsification | Red |
+|---|---|
+| wall dropped, `purchase` branch | 2.1, 2.3, 2.4 |
+| wall dropped, `sale` branch | **2.4b** |
+| wall dropped, `waste` branch | **2.4c** |
+
+⚠️ **The lesson generalises past this file.** A rule copied once per branch needs a check
+once per branch, and *"the wall is tested"* is not a claim a single check can carry when
+the wall has three implementations. **`0021` is the only RPC on the write surface with
+this shape** — the other five take a `location_id` parameter and validate it once.
+
+### ⚠️⚠️ Found in 4e-ii-a — A SIXTH SHAPE OF MISLEADING GREEN, AND IT IS IN THE SHARED HARNESS
+
+**Not a vacuous pass this time — a MASKED one, and it spans suites.**
+
+A suite that ABORTS mid-file never reaches its own `drop function` at the bottom. The
+helper it created survives the psql session, `_cleanup.sql` does not know about it, and
+**the NEXT suite in the same CI job dies on `function "…" already exists`** — as does
+every suite after it. What a reviewer reads is a cascade of identical harness errors
+with the real defect nowhere in the log.
+
+It was found the hard way: five falsifications in a row reported *"function already
+exists"* instead of the defect they had injected, and the first of them had genuinely
+been caught. **The falsification pass was measuring itself.**
+
+⚠️ **The fix belongs in `_cleanup.sql`, not in the suite**, and that file's own header had
+already predicted it: *"The known gap is non-table objects: a suite that creates a TYPE
+or a standalone SEQUENCE would leak it, so add it to the explicit drops below if that day
+comes."* That day came. `chk_succeeds` is dropped there now, alongside `chk` and
+`chk_raises`.
+
+⚠️ **`0019` has the same latent bug with `chk_message`** — dropped at the end of its own
+file and absent from `_cleanup.sql`, so an abort in `0019` would poison `0020` and `0021`
+in the same job. It has never fired because `0019` has never aborted. **Left alone rather
+than fixed silently**, and named here so the next person who touches that file knows.
+
+### ⚠️⚠️ Found in 4e-ii-a — HALF OF THE AMENDED WINDOW BASIS IS UNFALSIFIABLE UNTIL STEP 4.5
+
+**F6: force the basis to `recorded_at` for EVERY write, online or offline. Nothing goes
+red — and nothing in this database CAN.**
+
+The amended rule is `case when recorded_offline then recorded_at else occurred_at end`.
+F2 proves the OFFLINE arm: forcing it to `occurred_at` turns 7.2 red alone. The ONLINE
+arm has no witness, because §2.6 **overrides `occurred_at` with `now()`** on an online
+write — the two columns are set in the same statement and hold the same instant, so no
+document exists that can tell the readings apart.
+
+⚠️ **The first document that will is a REPLAYED one.** `replay_failed_write` preserves
+the `occurred_at` stored on the `failed_write` row and takes a fresh `recorded_at` at the
+moment of recovery — the one case where an online write has two different timestamps. It
+ships in **step 4.5**.
+
+So three things are true at once and all three are recorded rather than reconciled:
+
+- `0021`'s `case` is **correct** — it implements what the owner decided;
+- **half of it is untested**, and no check written today could change that;
+- **step 4.5 owes the check**, because 4.5 is what creates the document that needs it —
+  and it also owes the DECISION, which ADR-035 §2.6's amendment already flags as open:
+  a replayed offline sale would be handed a brand-new fifteen minutes.
+
+**This is a new owed row, not one of §2.10's nine**, and it is in the owed table above.
 
 ### ⚠️⚠️ Found in 4e-i — A FALSIFICATION FOUND THE ENFORCEMENT BLOCK READING THE WRONG SHELF
 
@@ -5334,6 +5437,7 @@ this is where they land.
 | ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
 | ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
+| ⚠️⚠️ **The void window on a REPLAYED write** — *"a replayed sale keeps its original `occurred_at` and takes a fresh `recorded_at`, so the amended basis hands it a NEW fifteen minutes — is that right?"*. **NOT a §2.10 row** — found by falsification F6 in 4e-ii-a and owed since 2026-09-04. ⚠️ **It cannot be written today**: no online document exists where `occurred_at` and `recorded_at` differ, so F6 turns nothing red and nothing can make it. `replay_failed_write` is the first thing that creates one | **STEP 4.5**, with the failure path it belongs to — recorded in ADR-035 §2.6's amendment as explicitly open |
 | **Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"* | **Step 4.5** (`0023`) |
 | **Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at` | **Step 4.5** (`0023`) |
 
