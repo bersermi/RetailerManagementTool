@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Behavioural verification for 0021 — void_transaction()
 -- ============================================================================
--- ADR-035 §1, §2.3, §2.4, §2.6, §2.7, §9. docs/PLAN.md task 4e-ii-a.
+-- ADR-035 §1, §2.3, §2.4, §2.6, §2.7, §9. docs/PLAN.md tasks 4e-ii-a and 4e-ii-b.
 --
 --   supabase db reset
 --   psql "$DB_URL" -v ON_ERROR_STOP=1 -f supabase/tests/_cleanup.sql
@@ -29,7 +29,7 @@
 --   the whole amendment is untested, because every other document in this file
 --   has the two timestamps within a second of each other.
 --
---   NOTHING IS MUTATED (§2.4). Section 10.3 re-reads every original this file
+--   NOTHING IS MUTATED (§2.4). Section 15.3 re-reads every original this file
 --   voided and asserts its totals, its timestamps and its own `reversal_of` are
 --   exactly what they were — which is the claim `0003`'s append-only trigger
 --   makes structurally and this file makes behaviourally.
@@ -49,7 +49,54 @@
 -- ADR-035 §2.6.
 --
 -- ----------------------------------------------------------------------------
--- SIXTEEN FALSIFICATIONS, RUN BY HAND BEFORE THIS FILE WAS COMMITTED
+-- ⚠️⚠️ WHAT 4e-ii-b ADDED, AND WHY THE FILE NEEDED IT
+-- ----------------------------------------------------------------------------
+-- 4e-ii-a shipped `0021` whole with 64 checks and sixteen falsifications, and
+-- found no defect in the function. 4e-ii-b is test breadth over the SAME
+-- function, and it found ELEVEN distinct defects that apply cleanly and turned
+-- NOTHING red on those 64 checks. None of them is a defect in `0021`; all eleven
+-- are things `0021` does correctly that nothing was watching.
+--
+-- The shape is one F12 named and did not finish: THE LOOKUP IS WRITTEN THREE
+-- TIMES, once per document kind, and so is every insert after it. F12 closed the
+-- location wall on all three copies. Sections 3, 4 and 5 still divided every
+-- OTHER property between the kinds — the totals on the sale, the provider on the
+-- purchase, the cost snapshot on the waste — so each was proved of one third of
+-- the function. Sections 10 to 14 fill the matrix instead of the diagonal:
+--
+--   10  the per-kind matrix — totals, lines, qty_display, the offline flag,
+--       workspace and location, and the four movement columns nothing had read
+--   11  authorship and the derived header — created_by, payload_hash, and the
+--       strictness of occurred_at
+--   12  ⚠️ THE FENCE ON THE OTHER TWO BRANCHES. `created_by`, `recorded_offline`
+--       and `recorded_at` are read in the same three-way lookup, and sections 6
+--       and 7 use a SALE for every one of their checks. ⚠️ A REFUSAL CANNOT WATCH
+--       A COLUMN: with `created_by` dropped from a branch, `v_creator` is null,
+--       `null is distinct from v_user` is still true, and 6.2 still passes. Every
+--       check in section 12 is a GRANT, which is the only thing that can tell a
+--       column that is read from a column that is missing
+--   13  the chain guard and the retry, on all three branches (section 8's are
+--       all sales)
+--   14  ⚠️ MULTI-LOT. Every document sections 3 to 5 void drew from exactly ONE
+--       lot, so "back to the lots it came from" and "back to A lot" are the same
+--       sentence there. var_m gets three lots and one sale across all three
+--
+-- ⚠️⚠️ AND ONE CHECK THAT COULD NOT FAIL. 3.12 read `a > b or a >= b`, which is
+-- `a >= b` — so a void that copied the original's `occurred_at` PASSED THE CHECK
+-- WHOSE LABEL SAYS IT LANDS ON ITS OWN DAY. Falsification G6 back-dated every
+-- compensating header and, against the file as 4e-ii-a shipped it, turned NOTHING
+-- red across 64 checks. 3.12 is fixed in place and 11.6 is the per-kind form.
+--
+-- ⚠️ THREE OF THIS TASK'S OWN CHECKS WERE VACUOUS WHEN FIRST WRITTEN and were
+-- caught the same way, by falsification rather than by review: 10.2's tax arm
+-- (every write-off here was zero-rated), 10.3's expiry arm (every purchase line
+-- carried null), and 10.6 (both originals it read were recorded ONLINE, so the
+-- flag it says is not inherited held the same value either way). Each now builds
+-- or reads a document that has a value which can be got wrong, and each asserts
+-- that it does before asserting anything else.
+--
+-- ----------------------------------------------------------------------------
+-- SIXTEEN FALSIFICATIONS FROM 4e-ii-a, RUN BY HAND BEFORE THAT FILE WAS COMMITTED
 -- ----------------------------------------------------------------------------
 -- Each one is a single deliberate defect loaded over `0021` with
 -- `create or replace`, the suite re-run, and the function restored.
@@ -57,6 +104,8 @@
 --   F1  the fence removed entirely ................. 6.2 6.3 6.4 7.4 red
 --   F2  ⚠️ the basis forced to `occurred_at` —
 --       THE EXACT RULE THE AMENDMENT REPLACED ...... 7.2 red, AND NOTHING ELSE
+--                                                    ⚠️ 12.3 12.4 now too — see
+--                                                    the note on section 12
 --   F3  the ownership test dropped ................. 6.2 red
 --   F4  the window test dropped .................... 6.3 6.4 7.4 red
 --   F5  the threshold raised to `owner` ............ 2.5 6.4 6.6 9.3 red
@@ -72,11 +121,11 @@
 --   F12b the wall dropped, WASTE branch ............ 2.4c red
 --   F12c the wall dropped, PURCHASE branch ......... 2.1 2.3 2.4 red
 --
--- ⚠️⚠️ F2 IS THE ONE THIS TASK EXISTED TO RUN, and it lands on 7.2 ALONE. The
+-- ⚠️⚠️ F2 IS THE ONE 4e-ii-a EXISTED TO RUN, and it lands on 7.2 ALONE. The
 -- amendment is therefore not merely implemented, it is the only reading this
 -- file admits.
 --
--- ⚠️⚠️ TWO FALSIFICATIONS TURNED NOTHING RED, AND BOTH ARE RECORDED RATHER THAN
+-- ⚠️⚠️ TWO OF THE SIXTEEN TURNED NOTHING RED, AND BOTH ARE RECORDED RATHER THAN
 -- QUIETLY DROPPED:
 --
 --   F6 — the basis forced to `recorded_at` for EVERY write, offline or not.
@@ -101,6 +150,74 @@
 -- mutations in a row reported "function already exists" instead of the defect
 -- they injected. `_cleanup.sql` now drops it, which is the file the header of
 -- `_cleanup.sql` itself says should.
+--
+-- ----------------------------------------------------------------------------
+-- TWENTY MORE FALSIFICATIONS, RUN BY HAND BEFORE 4e-ii-b WAS COMMITTED
+-- ----------------------------------------------------------------------------
+-- ⚠️⚠️ ELEVEN OF THE TWENTY TURNED NOTHING RED ON THE FILE AS 4e-ii-a SHIPPED IT,
+-- and each is marked. That column is the measurement this task existed to take.
+--
+--                                                   red      | 4e-ii-a's 64
+--   G1  the void filed under the ORIGINAL's author  11.1      | ⚠️ nothing
+--   G2  the movements filed under the original mover 11.2     | ⚠️ nothing
+--   G3  payload_hash randomised ................... 11.3      | ⚠️ nothing
+--   G4  payload_hash a constant ................... 11.3 11.4 | ⚠️ nothing
+--   G5  qty_display copied, not negated ........... `sale_line_qty_display_
+--                                                   agrees` refuses it — the
+--                                                   SCHEMA holds this one
+--   G6  ⚠️⚠️ THE COMPENSATING HEADER BACK-DATED
+--       to the original's occurred_at ............. 3.12 11.6 | ⚠️⚠️ NOTHING —
+--                                                   3.12 as written could not
+--                                                   fail. Measured, not argued:
+--                                                   the mutation was re-run
+--                                                   against a copy of the file
+--                                                   carrying 4e-ii-a's 3.12 and
+--                                                   no 11.6, and all 64 passed
+--   G7  the movement cost recomputed .............. 10.9      | ⚠️ nothing
+--   G8  the movement back-dated to the original ... 10.11     | ⚠️ nothing
+--   G9  the void filed at another store ........... `sale_reversal_fk` refuses
+--                                                   it — the location is pinned
+--                                                   by the schema, so 10.7 is
+--                                                   redundant by construction
+--   G10 the PURCHASE totals not negated ........... 10.1      | ⚠️ nothing
+--   G11 the WASTE total_tax not negated ........... 10.2      | ⚠️ nothing —
+--                                                   AND nothing in 4e-ii-b's
+--                                                   first draft either, until
+--                                                   section 10 grew a TAXED
+--                                                   write-off to read
+--   G12 the expiry dropped from the void's line ... 10.3      | ⚠️ nothing —
+--                                                   same story, a DATED delivery
+--   G13 the WASTE lookup stops reading created_by . 12.1 12.3 | ⚠️ nothing
+--   G14 the PURCHASE lookup stops reading
+--       recorded_offline .......................... 12.4      | ⚠️ nothing
+--   G15 ⚠️⚠️ EVERY LOT'S STOCK RETURNED TO ONE LOT
+--       per variant, one movement instead of n .... 14.2 14.3 | ⚠️⚠️ NOTHING.
+--                                                   14.4        3.9, 3.11, 4.3
+--                                                   and 5.4 all pass: every
+--                                                   document they read drew
+--                                                   from a single lot
+--   G16 the void inherits recorded_offline ........ 10.6 12.5 | ⚠️ nothing
+--   G17 the movement given a reason of its own .... `stock_movement_source_
+--                                                   agrees` refuses it, so 3.10
+--                                                   and 10.8 are both redundant
+--                                                   by construction
+--   G18 the PURCHASE lookup stops reading
+--       reversal_of ............................... 13.1      | ⚠️ nothing
+--   G19 the PURCHASE lookup stops reading
+--       created_by ................................ 12.2 12.4 | ⚠️ nothing
+--   G20 the already-voided short-circuit removed,
+--       PURCHASE branch ........................... `purchase_one_reversal_idx`
+--                                                   refuses it — F8's answer,
+--                                                   on the second branch
+--
+-- ⚠️ FOUR CHECKS IN THIS FILE CANNOT BE FALSIFIED AND ARE RECORDED AS SUCH,
+-- following F11's precedent rather than being deleted or claimed as evidence:
+-- 10.7 (the location is pinned by `sale_reversal_fk` — G9), 10.8 and 3.10 (the
+-- reason is pinned by `stock_movement_source_agrees` — G17), 10.10 (a wrong
+-- variant is refused by `stock_movement_batch_fk`, measured), and 11.5 (nothing
+-- here updates an original — `0003`'s append-only trigger is the guarantee).
+-- They state true things about a function whose correctness the SCHEMA holds,
+-- which is worth reading and is not this file's evidence.
 -- ============================================================================
 \set ON_ERROR_STOP on
 \timing off
@@ -232,12 +349,22 @@ insert into product_variant (workspace_id, family_id, name, base_unit_code,
   (:'ws_a', :'fam', 'Yogurt',   'pza','pza','pza','pza', 0.0000),
   (:'ws_a', :'fam', 'Jabon 16', 'pza','pza','pza','pza', 0.1600),
   (:'ws_a', :'fam', 'Leche',    'pza','pza','pza','pza', 0.0000),
-  (:'ws_a', :'fam', 'Atun',     'pza','pza','pza','pza', 0.0000);
+  (:'ws_a', :'fam', 'Atun',     'pza','pza','pza','pza', 0.0000),
+  -- ⚠️ ADDED IN 4e-ii-b, and both are deliberately UNTOUCHED by sections 1-9 so
+  -- that the breadth sections cannot disturb a check that already stands.
+  --   Arroz  — section 14's multi-lot variant: three lots, one sale across all
+  --            three, so the per-LOT claim has a document that can fail it
+  --   Frijol — section 12's, and it is the CASHIER's stock: the fence needs a
+  --            purchase and a write-off the cashier actually authored
+  (:'ws_a', :'fam', 'Arroz',    'pza','pza','pza','pza', 0.0000),
+  (:'ws_a', :'fam', 'Frijol',   'pza','pza','pza','pza', 0.0000);
 
 select id as var_a   from product_variant where workspace_id=:'ws_a' and name='Yogurt'   \gset
 select id as var_iva from product_variant where workspace_id=:'ws_a' and name='Jabon 16' \gset
 select id as var_p   from product_variant where workspace_id=:'ws_a' and name='Leche'    \gset
 select id as var_s   from product_variant where workspace_id=:'ws_a' and name='Atun'     \gset
+select id as var_m   from product_variant where workspace_id=:'ws_a' and name='Arroz'    \gset
+select id as var_c   from product_variant where workspace_id=:'ws_a' and name='Frijol'   \gset
 
 insert into product_family (workspace_id, name) values (:'ws_b', 'Ajena');
 select id as fam_b from product_family where workspace_id=:'ws_b' \gset
@@ -543,12 +670,14 @@ select chk('3.11 the shelf is back where it started for var_a''s sold units',
               join stock_movement o on o.id = v.reversal_of_movement_id
              where v.sale_id = :'void_1'::uuid) = 0);
 
+-- ⚠️⚠️ 3.12 WAS WRITTEN IN 4e-ii-a AS `a > b OR a >= b`, WHICH IS `a >= b`, AND
+-- A VOID THAT COPIED THE ORIGINAL'S occurred_at PASSED IT. Found in 4e-ii-b by
+-- falsification G6 — back-dating the compensating header turned NOTHING red on
+-- 64 checks. The disjunction is gone; the claim this check's own label makes is
+-- STRICTLY LATER, and that is now what it asserts. 11.6 is the per-kind form.
 select chk('3.12 the void lands on its OWN day, not the original''s — '
            'back-dating it would move a total someone has already read',
            (select v.occurred_at > o.occurred_at
-              from sale v, sale o
-             where v.id = :'void_1'::uuid and o.id = :sale_1::uuid)
-        or (select v.occurred_at >= o.occurred_at
               from sale v, sale o
              where v.id = :'void_1'::uuid and o.id = :sale_1::uuid));
 
@@ -871,32 +1000,584 @@ select chk('9.3 …and it does not fall back to the OTHER voided delivery either
              where provider_id = :'prov_2'::uuid and variant_id = :'var_p') = 0);
 
 
--- ================================================ 10. the invariants, over the lot
-select chk('10.1 §2.4''s balance invariant holds over every document this file '
+-- ================ 10. ⚠️⚠️ THE PER-KIND MATRIX — F12'S LESSON, GENERALISED
+-- F12 found the LOCATION WALL written out three times, once per document kind,
+-- with only the `purchase` copy watched. The wall was the finding. It was not the
+-- SHAPE: the whole lookup is written three times, ten columns each, and sections
+-- 3, 4 and 5 divide the properties BETWEEN the kinds rather than asserting each
+-- one on all three. What stood before this section is a diagonal, not a matrix:
+--
+--   property                            | purchase | sale | waste |
+--   ------------------------------------|----------|------|-------|
+--   totals negated                      |    —     | 3.5  |   —   |
+--   lines negated in qty and money      |    —     | 3.7  |   —   |
+--   qty_display negated, its unit kept  |    —     |  —   |   —   |  ⚠️ NOWHERE
+--   the void is not recorded_offline    |    —     | 3.13 |   —   |
+--   workspace and location carried      |    —     |  —   |   —   |  ⚠️ NOWHERE
+--   movement reason carried             |    —     | 3.10 |   —   |
+--   movement cost carried               |    —     |  —   |   —   |  ⚠️ NOWHERE
+--   movement scope columns carried      |    —     |  —   |   —   |  ⚠️ NOWHERE
+--
+-- ⚠️ A property proved on ONE branch of a three-way `if` is a property proved
+-- about one third of this function. Every check below fills a row of that table.
+-- They read documents sections 3, 4 and 5 already voided — no new fixture, and
+-- nothing here can move a verdict those sections recorded.
+
+-- ⚠️⚠️ TWO DOCUMENTS THIS SECTION HAD TO BUILD, AND FALSIFICATION IS WHY. The
+-- first drafts of 10.2 and 10.3 read `wst_1` and `pur_i` — the documents sections
+-- 4 and 5 had already voided — and BOTH ARMS WERE VACUOUS ON THEM:
+--
+--   * every write-off in this file is ZERO-RATED, so `total_tax = -total_tax` is
+--     `0 = -0`. Falsification G11 dropped the negation from the waste header's
+--     tax and turned NOTHING red;
+--   * `_pl` sends no `expiry_date` and ADR-017's tier 2 needs a family that
+--     tracks expiry, so every purchase line here carries NULL. G12 replaced the
+--     carried expiry with null and turned NOTHING red — `null is not distinct
+--     from null` is true.
+--
+-- A check whose subject is zero or null asserts nothing about a function that
+-- negates or carries. Both documents below are built to have a value that can be
+-- got wrong, and 10.2 and 10.3 assert that they do before asserting anything else.
+\set pur_e '''dddd0021-0000-0000-0000-0000000000d1'''
+\set wst_t '''ffff0021-0000-0000-0000-0000000000d2'''
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select record_purchase(:pur_e::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         jsonb_build_array(jsonb_build_object('variant_id', :'var_iva'::uuid,
+           'qty_display', 12, 'unit_price_net_per_base', 5.00,
+           'expiry_date', '2027-06-30'))) as r \gset
+select record_waste(:wst_t::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object('variant_id', :'var_iva'::uuid,
+           'qty_display', 3, 'unit_price_gross_per_base', 11.60,
+           'reason', 'caducado'))) as r \gset
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select public.void_transaction('purchase', :pur_e::uuid, 'caja rota') as ve \gset
+select public.void_transaction('waste', :wst_t::uuid, 'no estaba caducado') as vt \gset
+commit;
+select (:'ve'::jsonb ->> 'void_id') as void_e \gset
+select (:'vt'::jsonb ->> 'void_id') as void_t \gset
+
+select chk('10.1 the totals are negated on the PURCHASE branch too — 3.5 proved '
+           'it of the sale, and the three inserts are three separate statements '
+           'that could disagree',
+           (select v.total_net = -o.total_net and v.total_tax = -o.total_tax
+              from purchase v, purchase o
+             where v.id = :'void_2'::uuid and o.id = :pur_i::uuid));
+
+select chk('10.2 …and on the WASTE branch, the third copy — over a write-off '
+           'that actually carries tax, so the tax arm is a claim and not `0 = -0`',
+           (select o.total_tax <> 0
+               and v.total_net = -o.total_net and v.total_tax = -o.total_tax
+              from waste v, waste o
+             where v.id = :'void_t'::uuid and o.id = :wst_t::uuid),
+           format('tax=%s', (select total_tax from waste where id = :wst_t::uuid)));
+
+select chk('10.3 the PURCHASE lines are negated in quantity and money, and the '
+           'expiry date is carried FORWARD unchanged — it is a property of the '
+           'goods, not of the document, and negating or dropping it would put the '
+           'compensating line on a different lot rule than the original. The date '
+           'is asserted NOT NULL first — G12 found this arm vacuous without that',
+           (select count(*) = 1 and bool_and(
+                     o.expiry_date is not null
+                 and v.qty_base   = -o.qty_base
+                 and v.line_net   = -o.line_net
+                 and v.tax_amount = -o.tax_amount
+                 and v.tax_rate   =  o.tax_rate
+                 and v.unit_price_net_per_base = o.unit_price_net_per_base
+                 and v.expiry_date = o.expiry_date)
+              from purchase_line v
+              join purchase_line o on o.purchase_id = :pur_e::uuid
+                                  and o.variant_id  = v.variant_id
+             where v.purchase_id = :'void_e'::uuid));
+
+select chk('10.4 …and the WASTE lines are negated the same way, with the rate and '
+           'the unit price carried rather than recomputed — over the taxed '
+           'write-off, so `tax_amount` is a number rather than zero',
+           (select count(*) = 1 and bool_and(
+                     o.tax_amount <> 0
+                 and v.qty_base   = -o.qty_base
+                 and v.line_net   = -o.line_net
+                 and v.tax_amount = -o.tax_amount
+                 and v.tax_rate   =  o.tax_rate
+                 and v.unit_price_net_per_base = o.unit_price_net_per_base)
+              from waste_line v
+              join waste_line o on o.waste_id   = :wst_t::uuid
+                               and o.variant_id = v.variant_id
+             where v.waste_id = :'void_t'::uuid));
+
+-- ⚠️ 10.5 IS 4d-i's FINDING ARRIVING HERE. `qty_display` is a numeric(14,3) of
+-- its own — not a view of `qty_base` — so a void that negated the base quantity
+-- and copied the display quantity would write a line saying "minus four units,
+-- four pieces". `0003`'s money_follows_qty check reads line_net against qty_base
+-- and would not notice. NOTHING in this file had looked at the column.
+-- ⚠️ AND THE SCHEMA, IT TURNS OUT, IS WHAT HOLDS IT: falsification G5 copied the
+-- display quantity on all three branches and `sale_line_qty_display_agrees`
+-- refused the insert. The check is kept because it says what the reader needs to
+-- know, and it is honestly the schema's evidence rather than this file's.
+select chk('10.5 ⚠️ qty_display IS NEGATED ON ALL THREE BRANCHES, and its UNIT is '
+           'carried — the display quantity is stored, not derived (4d-i), so it '
+           'is a second arm that has to be negated on purpose',
+           (select bool_and(v.qty_display = -o.qty_display
+                        and v.qty_display_unit = o.qty_display_unit)
+              from sale_line v
+              join sale_line o on o.sale_id = :sale_1::uuid
+                              and o.variant_id = v.variant_id
+             where v.sale_id = :'void_1'::uuid)
+       and (select bool_and(v.qty_display = -o.qty_display
+                        and v.qty_display_unit = o.qty_display_unit)
+              from purchase_line v
+              join purchase_line o on o.purchase_id = :pur_i::uuid
+                                  and o.variant_id = v.variant_id
+             where v.purchase_id = :'void_2'::uuid)
+       and (select bool_and(v.qty_display = -o.qty_display
+                        and v.qty_display_unit = o.qty_display_unit)
+              from waste_line v
+              join waste_line o on o.waste_id = :wst_1::uuid
+                               and o.variant_id = v.variant_id
+             where v.waste_id = :'void_4'::uuid));
+
+-- ⚠️ 10.6 READS THE VOID OF AN *OFFLINE* ORIGINAL, and falsification G16 is why.
+-- Its first draft read `void_2` and `void_4`, whose originals were both recorded
+-- ONLINE — so `false` and `recorded_offline` held the same value and inheriting
+-- the flag was invisible. The claim is that the flag is NOT inherited, and only a
+-- document whose original carried `true` can say so. 12.5 is the purchase and
+-- waste half; sale_off, voided at 7.2, is the one this file has by here.
+select chk('10.6 ⚠️ THE VOID IS NEVER FLAGGED recorded_offline, EVEN WHEN THE '
+           'DOCUMENT IT CANCELS WAS. Nothing queued the void: it was written by '
+           'the server, now — and the flag is what §2.6''s amended window branches '
+           'on, so a void that inherited it would put the NEXT void of the same '
+           'kind on the wrong basis',
+           (select recorded_offline from sale where id = :sale_off::uuid)
+       and (select not recorded_offline from sale
+             where reversal_of = :sale_off::uuid)
+       and (select not recorded_offline from purchase where id = :'void_2'::uuid)
+       and (select not recorded_offline from waste    where id = :'void_4'::uuid));
+
+select chk('10.7 ⚠️ THE VOID STAYS IN THE ORIGINAL''S WORKSPACE AND ITS STORE, on '
+           'all three branches. Nothing in this file had asserted it: a void '
+           'filed at the wrong location would be invisible to the shop it '
+           'belongs to and would still satisfy every other check here',
+           (select v.workspace_id = o.workspace_id and v.location_id = o.location_id
+              from sale v, sale o
+             where v.id = :'void_1'::uuid and o.id = :sale_1::uuid)
+       and (select v.workspace_id = o.workspace_id and v.location_id = o.location_id
+              from purchase v, purchase o
+             where v.id = :'void_2'::uuid and o.id = :pur_i::uuid)
+       and (select v.workspace_id = o.workspace_id and v.location_id = o.location_id
+              from waste v, waste o
+             where v.id = :'void_4'::uuid and o.id = :wst_1::uuid));
+
+select chk('10.8 the compensating movements keep the ORIGINAL''s reason on the '
+           'purchase and waste branches too — 3.10 said it of the sale. There is '
+           'deliberately no `reversal` reason in the enum (0004), so a cancelled '
+           'delivery is still purchase activity',
+           (select bool_and(reason = 'purchase') from stock_movement
+             where purchase_id = :'void_2'::uuid)
+       and (select bool_and(reason = 'waste') from stock_movement
+             where waste_id = :'void_4'::uuid));
+
+select chk('10.9 ⚠️ EVERY COMPENSATING MOVEMENT CARRIES THE COST THE ORIGINAL '
+           'CARRIED, on all three branches — unit_cost_net_per_base is a '
+           'not-null snapshot, so a void that recomputed it would still apply '
+           'cleanly and would silently misstate what the cancelled stock cost',
+           (select bool_and(v.unit_cost_net_per_base = o.unit_cost_net_per_base)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.sale_id = :'void_1'::uuid)
+       and (select bool_and(v.unit_cost_net_per_base = o.unit_cost_net_per_base)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.purchase_id = :'void_2'::uuid)
+       and (select bool_and(v.unit_cost_net_per_base = o.unit_cost_net_per_base)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.waste_id = :'void_4'::uuid));
+
+select chk('10.10 …and the scope columns as well — workspace, location and '
+           'variant come off the movement being cancelled, not off the caller',
+           (select bool_and(v.workspace_id = o.workspace_id
+                        and v.location_id  = o.location_id
+                        and v.variant_id   = o.variant_id)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.sale_id = :'void_1'::uuid
+                or v.purchase_id = :'void_2'::uuid
+                or v.waste_id = :'void_4'::uuid));
+
+select chk('10.11 the compensating movement lands on the void''s own instant, '
+           'not the cancelled movement''s — the same argument 3.12 makes about '
+           'the header, and Números reads movements by occurred_at',
+           (select bool_and(v.occurred_at > o.occurred_at)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.sale_id = :'void_1'::uuid
+                or v.purchase_id = :'void_2'::uuid
+                or v.waste_id = :'void_4'::uuid));
+
+
+-- ================== 11. AUTHORSHIP, AND THE HEADER COLUMNS NOBODY HAD READ
+-- Four columns on the compensating document are DERIVED rather than copied, and
+-- before this section not one of them was asserted anywhere: created_by,
+-- payload_hash, and the strictness of occurred_at. They are the columns an audit
+-- reads, and a wrong value in any of them applies perfectly cleanly.
+
+select id as void_own from sale where reversal_of = :sale_own::uuid \gset
+
+select chk('11.1 ⚠️ THE VOID IS FILED UNDER WHOEVER VOIDED IT, NOT WHOEVER WROTE '
+           'THE ORIGINAL. 6.4''s manager voided the CASHIER''s sale; the '
+           'compensating document names the manager and the original still names '
+           'the cashier. A void that copied created_by would put a cancellation '
+           'the cashier is not allowed to make under the cashier''s name',
+           (select v.created_by = :manager_a::uuid
+                                  and o.created_by = :cashier_a::uuid
+              from sale v, sale o
+             where v.id = :'void_own'::uuid and o.id = :sale_own::uuid));
+
+select chk('11.2 …and so do the compensating MOVEMENTS — the ledger and the '
+           'document agree about who acted',
+           (select bool_and(created_by = :manager_a::uuid) from stock_movement
+             where sale_id = :'void_own'::uuid));
+
+select chk('11.3 the payload_hash is DERIVED and deterministic — md5 over the '
+           'kind and the id of what was voided. There is no client payload here '
+           '(decision 2 in 0021), so this is the only thing it could hash, and a '
+           'random one would make the column a lie rather than a fingerprint',
+           (select payload_hash from sale where id = :'void_1'::uuid)
+             = md5('void:sale:' || :sale_1),
+           format('stored=%s wanted=%s',
+                  (select payload_hash from sale where id = :'void_1'::uuid),
+                  md5('void:sale:' || :sale_1)));
+
+select chk('11.4 …and it is a function of WHICH document was voided: every '
+           'compensating sale in this file carries a hash of its own. A constant '
+           'would satisfy 15.4''s not-blank check and fingerprint nothing',
+           (select count(distinct payload_hash) from sale where reversal_of is not null)
+             = (select count(*) from sale where reversal_of is not null)
+       and (select count(*) from sale where reversal_of is not null) > 1);
+
+select chk('11.5 ⚠️ NOTHING WAS MUTATED, AND THAT INCLUDES AUTHORSHIP — every '
+           'sale this file voided still names the cashier who rang it up. 15.3 '
+           'makes the same claim about reversal_of and the totals',
+           (select count(*) from sale
+             where id in (:sale_1::uuid, :sale_2::uuid, :sale_3::uuid,
+                          :sale_own::uuid, :sale_off::uuid, :sale_on::uuid)
+               and created_by <> :cashier_a::uuid) = 0);
+
+-- ⚠️⚠️ 11.6 IS THE PER-KIND FORM OF 3.12, AND 3.12 IS WHY IT EXISTS. As 4e-ii-a
+-- wrote it, 3.12 read `a > b or a >= b` — which is `a >= b` — so a void that
+-- copied the original's occurred_at PASSED IT. Falsification G6 in 4e-ii-b did
+-- exactly that and turned nothing red on 64 checks. 3.12 is fixed in place; this
+-- is the claim made once per document kind, over every void the file has written.
+select chk('11.6 ⚠️ THE VOID LANDS ON ITS OWN DAY, STRICTLY, ON ALL THREE KINDS '
+           '— back-dating a cancellation moves a daily total someone has already '
+           'read in Números, and 0021 fixes occurred_at to now() for that reason',
+           (select bool_and(v.occurred_at > o.occurred_at)
+              from sale v join sale o on o.id = v.reversal_of)
+       and (select bool_and(v.occurred_at > o.occurred_at)
+              from purchase v join purchase o on o.id = v.reversal_of)
+       and (select bool_and(v.occurred_at > o.occurred_at)
+              from waste v join waste o on o.id = v.reversal_of));
+
+
+-- ============ 12. ⚠️⚠️ THE FENCE ON THE OTHER TWO BRANCHES — created_by AND
+--                    recorded_offline ARE ALSO WRITTEN THREE TIMES
+-- Sections 6 and 7 are the fence and the amended basis, and every document they
+-- use is a SALE. But `v_creator`, `v_offline` and `v_recorded` are read in the
+-- same three-way lookup the location wall lives in, so the purchase and waste
+-- copies are as unwatched as the wall was before F12.
+--
+-- ⚠️ AND A REFUSAL CANNOT WATCH THEM. 6.2 refuses a cashier voiding someone
+-- else's purchase — but if the purchase branch stopped selecting created_by at
+-- all, `v_creator` would be null, `null is distinct from v_user` would still be
+-- true, and 6.2 would still pass. Only a GRANT can tell a column that is read
+-- from a column that is missing. Every check in this section is a grant.
+--
+-- ⚠️ THE CASHIER RECORDS A DELIVERY HERE, AND §2.7 GRANTS IT: the first row of
+-- the capability table is "Record sale, purchase, waste — staff ● assigned
+-- locations". `0018` having a location wall and no role fence is that row
+-- implemented, not a gap in it. What the shop would actually do — the manager or
+-- the owner receives — is a Comprar workflow question about who is standing at
+-- the door, and it is not what this function reads. The purchase branch's
+-- ownership read has no other witness, and this one is authorised.
+\set pur_c    '''dddd0021-0000-0000-0000-0000000000e1'''
+\set pur_coff '''dddd0021-0000-0000-0000-0000000000e2'''
+\set wst_c    '''ffff0021-0000-0000-0000-0000000000e3'''
+\set wst_coff '''ffff0021-0000-0000-0000-0000000000e4'''
+
+update workspace_setting set void_window_minutes = 60 where workspace_id = :'ws_a';
+
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+select record_purchase(:pur_c::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         public._pl(:'var_c'::uuid, 30, 2.00)) as r \gset
+-- The offline pair, in the shape section 7 established: occurred_at FIVE HOURS
+-- old, recorded_at now, under a SIXTY MINUTE window.
+select record_purchase(:pur_coff::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         public._pl(:'var_c'::uuid, 5, 2.00),
+         now() - interval '5 hours', true) as r \gset
+select record_waste(:wst_c::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object('variant_id', :'var_c'::uuid,
+           'qty_display', 2, 'unit_price_gross_per_base', 6.00,
+           'reason', 'caducado'))) as r \gset
+select record_waste(:wst_coff::uuid, :'loc_1'::uuid,
+         jsonb_build_array(jsonb_build_object('variant_id', :'var_c'::uuid,
+           'qty_display', 1, 'unit_price_gross_per_base', 6.00,
+           'reason', 'caducado')),
+         now() - interval '5 hours', true) as r \gset
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+select chk_succeeds('12.1 ⚠️ a STAFF member voids their OWN WRITE-OFF — the waste '
+           'branch''s `created_by` read, and the first check in this file that can '
+           'tell it apart from a column that is never selected',
+           public._void('waste', :wst_c::uuid, 'no estaba caducado'), 'false');
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+select chk_succeeds('12.2 …and their OWN DELIVERY — the purchase branch''s copy. '
+           '6.2 refuses a cashier someone else''s purchase and would pass with the '
+           'column dropped; this is the grant that would not',
+           public._void('purchase', :pur_c::uuid, 'me equivoque de proveedor'), 'false');
+commit;
+
+-- ⚠️⚠️ 12.3 / 12.4 BROADEN F2's BLAST RADIUS ON PURPOSE. Before this section the
+-- amended basis had exactly ONE witness — 7.2, on the sale branch — so forcing
+-- the basis back to `occurred_at` turned one check red out of sixty-four. The
+-- `case` is one statement, but the columns it reads are selected three times.
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+select chk_succeeds('12.3 ⚠️⚠️ THE OFFLINE BASIS ON THE WASTE BRANCH: the cashier '
+           'voids their own write-off whose occurred_at is FIVE HOURS past a '
+           'SIXTY MINUTE window, because the window reads recorded_at (§2.6, '
+           'amended 2026-09-04). The pre-amendment rule refuses this',
+           public._void('waste', :wst_coff::uuid, 'error de captura'), 'false');
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+select chk_succeeds('12.4 …and on the PURCHASE branch, the third copy of the two '
+           'timestamp columns and the flag that chooses between them',
+           public._void('purchase', :pur_coff::uuid, 'error de captura'), 'false');
+commit;
+
+-- ⚠️ 12.5 IS 10.6's OTHER TWO BRANCHES, and it can only be asked here: the
+-- offline PURCHASE and the offline WASTE are voided four checks above. G16 made
+-- both compensating documents inherit `recorded_offline` from their originals and
+-- turned NOTHING red until this check existed.
+select chk('12.5 …and neither compensating document is flagged recorded_offline, '
+           'though BOTH originals were — the third and second copies of the claim '
+           '10.6 makes about the sale',
+           (select recorded_offline from purchase where id = :pur_coff::uuid)
+       and (select recorded_offline from waste    where id = :wst_coff::uuid)
+       and (select not recorded_offline from purchase
+             where reversal_of = :pur_coff::uuid)
+       and (select not recorded_offline from waste
+             where reversal_of = :wst_coff::uuid));
+
+update workspace_setting set void_window_minutes = 15 where workspace_id = :'ws_a';
+
+
+-- ================ 13. THE CHAIN GUARD AND THE RETRY, ON ALL THREE BRANCHES
+-- `v_is_rev` and the already-voided lookup are, like everything else here,
+-- written once per kind. Section 8 exercises both on the SALE alone.
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select chk_raises('13.1 a PURCHASE reversal cannot itself be voided — 8.6 said it '
+                  'of the sale, and 0008''s price memory excludes reversals '
+                  'exactly ONE level deep, which is what a chain walks past',
+                  public._void('purchase', :'void_2'::uuid), 'TD003');
+
+select chk_raises('13.2 …and neither can a WASTE reversal, the third copy',
+                  public._void('waste', :'void_4'::uuid), 'TD003');
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select public.void_transaction('purchase', :pur_i::uuid, 'otro motivo') as v7 \gset
+select public.void_transaction('waste', :wst_1::uuid, 'otro motivo') as v8 \gset
+commit;
+
+select chk('13.3 a RE-SENT void of a PURCHASE returns already_recorded and the '
+           'SAME void id — the short-circuit is written once per kind and 8.1 '
+           'watched one of the three',
+           (:'v7'::jsonb ->> 'already_recorded') = 'true'
+       and (:'v7'::jsonb ->> 'void_id') = :'void_2'
+       and (select count(*) from purchase where reversal_of = :pur_i::uuid) = 1);
+
+select chk('13.4 …and of a WASTE',
+           (:'v8'::jsonb ->> 'already_recorded') = 'true'
+       and (:'v8'::jsonb ->> 'void_id') = :'void_4'
+       and (select count(*) from waste where reversal_of = :wst_1::uuid) = 1);
+
+
+-- ================== 14. ⚠️ MULTI-LOT AND MULTI-LINE — THE PER-LOT CLAIM
+-- 4b-ii's lesson: "the per-lot cost is the one thing only a multi-lot line can
+-- check". Every document sections 3 to 5 voided drew from exactly ONE lot, so
+-- "the stock goes back to the lots it came from" and "the stock goes back to A
+-- lot" are the same sentence there. A void that returned the whole quantity to
+-- one batch passes 3.9, 3.11, 4.3 and 5.4 unchanged.
+--
+-- var_m gets THREE deliveries of four, and one sale of ten across all three.
+\set pur_m1 '''dddd0021-0000-0000-0000-0000000000f1'''
+\set pur_m2 '''dddd0021-0000-0000-0000-0000000000f2'''
+\set pur_m3 '''dddd0021-0000-0000-0000-0000000000f3'''
+\set pur_mm '''dddd0021-0000-0000-0000-0000000000f4'''
+\set sale_m '''eeee0021-0000-0000-0000-0000000000f5'''
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select record_purchase(:pur_m1::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         public._pl(:'var_m'::uuid, 4, 1.00)) as r \gset
+select record_purchase(:pur_m2::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         public._pl(:'var_m'::uuid, 4, 2.00)) as r \gset
+select record_purchase(:pur_m3::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         public._pl(:'var_m'::uuid, 4, 3.00)) as r \gset
+-- ⚠️ A TWO-LINE DELIVERY, for 14.5: one document, two variants, two lots opened.
+-- ⚠️ NEITHER LINE IS var_m, AND 14.1 IS WHY. A fourth var_m lot of six made the
+-- allocation ambiguous — six plus four is ten, so the sale sometimes spanned two
+-- lots instead of three and 14.1 went red on runs that had nothing to do with the
+-- defect being injected. The fixture check found its own fixture, which is the
+-- job it was written for.
+select record_purchase(:pur_mm::uuid, :'loc_1'::uuid, :'prov_a'::uuid,
+         jsonb_build_array(
+           jsonb_build_object('variant_id', :'var_a'::uuid,
+             'qty_display', 6, 'unit_price_net_per_base', 1.50),
+           jsonb_build_object('variant_id', :'var_c'::uuid,
+             'qty_display', 7, 'unit_price_net_per_base', 2.50))) as r \gset
+commit;
+
+-- The per-lot shelf, read BEFORE the sale. 14.4 compares against these rows
+-- rather than against a total, which is the whole point of the section.
+create table public._m0 as
+  select bb.batch_id, bb.remaining_base
+    from batch_balance bb join stock_batch sb on sb.id = bb.batch_id
+   where sb.variant_id = :'var_m'::uuid and sb.location_id = :'loc_1'::uuid;
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select record_sale(:sale_m::uuid, :'loc_1'::uuid,
+         public._sl(:'var_m'::uuid, 10, 8.00)) as r \gset
+commit;
+
+-- 14.1 is the fixture check that makes the rest non-vacuous. Without it a
+-- one-lot allocation would make 14.2 and 14.3 true and empty.
+select chk('14.1 the fixture is what this section needs: the sale really did draw '
+           'from MORE THAN ONE lot, so "back to the lots it came from" is a claim '
+           'that can fail here and cannot in sections 3 to 5',
+           (select count(distinct batch_id) from stock_movement
+             where sale_id = :sale_m::uuid) >= 3,
+           format('lots=%s', (select count(distinct batch_id) from stock_movement
+             where sale_id = :sale_m::uuid)));
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select public.void_transaction('sale', :sale_m::uuid, 'cliente devolvio todo') as v9 \gset
+commit;
+select (:'v9'::jsonb ->> 'void_id') as void_m \gset
+
+select chk('14.2 ⚠️ ONE COMPENSATING MOVEMENT PER LOT, over as many DISTINCT '
+           'batches as the sale touched — a void that returned the whole quantity '
+           'to a single batch would satisfy 3.9, 3.11 and 5.4 exactly as they are '
+           'written',
+           (select count(*) from stock_movement where sale_id = :'void_m'::uuid)
+             = (select count(*) from stock_movement where sale_id = :sale_m::uuid)
+       and (select count(distinct batch_id) from stock_movement
+             where sale_id = :'void_m'::uuid)
+             = (select count(distinct batch_id) from stock_movement
+                 where sale_id = :sale_m::uuid));
+
+select chk('14.3 …and each lot gets back EXACTLY what it gave, lot by lot rather '
+           'than in total — the sum over the document nets to zero even when the '
+           'per-lot split is wrong',
+           (select bool_and(net = 0) from (
+              select o.batch_id, sum(o.qty_base + v.qty_base) as net
+                from stock_movement v
+                join stock_movement o on o.id = v.reversal_of_movement_id
+               where v.sale_id = :'void_m'::uuid
+               group by o.batch_id) t));
+
+select chk('14.4 ⚠️ THE SHELF IS BACK LOT BY LOT — every batch of var_m reads '
+           'exactly the remaining_base it read before the sale, compared against '
+           'the rows captured beforehand rather than against a number this file '
+           'asserts twice',
+           (select count(*) from public._m0 m
+              join batch_balance bb on bb.batch_id = m.batch_id
+             where bb.remaining_base is distinct from m.remaining_base) = 0
+       and (select count(*) from public._m0) >= 3,
+           format('lots=%s mismatched=%s',
+             (select count(*) from public._m0),
+             (select count(*) from public._m0 m
+                join batch_balance bb on bb.batch_id = m.batch_id
+               where bb.remaining_base is distinct from m.remaining_base)));
+
+begin;
+select set_config('request.jwt.claims', :jwt_owner, true);
+set local role authenticated;
+select public.void_transaction('purchase', :pur_mm::uuid, 'entrega equivocada') as v10 \gset
+commit;
+select (:'v10'::jsonb ->> 'void_id') as void_mm \gset
+
+select chk('14.5 a MULTI-LINE delivery is undone on EVERY lot it opened — two '
+           'lines, two lots, two compensating movements, and the reported counts '
+           'agree with the ledger. Every purchase this file had voided until now '
+           'had a single line',
+           (:'v10'::jsonb ->> 'lines') = '2'
+       and (:'v10'::jsonb ->> 'movements') = '2'
+       and (select count(distinct batch_id) from stock_movement
+             where purchase_id = :'void_mm'::uuid) = 2
+       and (select bool_and(v.qty_base = -o.qty_base and v.batch_id = o.batch_id)
+              from stock_movement v
+              join stock_movement o on o.id = v.reversal_of_movement_id
+             where v.purchase_id = :'void_mm'::uuid));
+
+-- ============================================= 15. the invariants, over the lot
+select chk('15.1 §2.4''s balance invariant holds over every document this file '
            'wrote, including the deliberate overdraw of 4.7',
            (select count(*) from batch_balance_violations()) = 0,
            format('violations=%s', (select count(*) from batch_balance_violations())));
 
-select chk('10.2 …and 0015''s does too — no lot was opened without its receipt, '
+select chk('15.2 …and 0015''s does too — no lot was opened without its receipt, '
            'and no VOID counted as one',
            (select count(*) from receipt_completeness_violations()) = 0);
 
-select chk('10.3 ⚠️ NOTHING WAS MUTATED. Every original this file voided is '
+select chk('15.3 ⚠️ NOTHING WAS MUTATED. Every original this file voided is '
            'still not a reversal, and every compensating document points at '
            'exactly one of them',
            (select count(*) from sale where id in (:sale_1::uuid, :sale_2::uuid,
-                     :sale_3::uuid, :sale_own::uuid, :sale_off::uuid, :sale_on::uuid)
+                     :sale_3::uuid, :sale_own::uuid, :sale_off::uuid,
+                     :sale_on::uuid, :sale_m::uuid)
                 and reversal_of is not null) = 0);
 
-select chk('10.4 every compensating document carries a reason-scoped reversal '
+select chk('15.4 every compensating document carries a reason-scoped reversal '
            'and a non-blank payload hash — 0003''s check constraints, satisfied '
            'by this function rather than by luck',
            (select count(*) from sale
              where reversal_of is not null and btrim(payload_hash) = '') = 0
        and (select count(*) from purchase
+             where reversal_of is not null and btrim(payload_hash) = '') = 0
+       and (select count(*) from waste
              where reversal_of is not null and btrim(payload_hash) = '') = 0);
 
-select chk('10.5 every compensating movement is tied to the movement it cancels '
+select chk('15.5 every compensating movement is tied to the movement it cancels '
            '— none was written loose',
            (select count(*) from stock_movement sm
              where sm.reversal_of_movement_id is null
@@ -907,11 +1588,12 @@ select chk('10.5 every compensating movement is tied to the movement it cancels 
 -- than failing, and a report cannot miss a row that was never inserted. The
 -- literal below is deliberately a literal: a count derived from the file would
 -- agree with the file whatever the file did.
-select chk('10.6 ALL 64 CHECKS IN THIS FILE ACTUALLY RAN — a verdict rolled back '
+select chk('15.6 ALL 95 CHECKS IN THIS FILE ACTUALLY RAN — a verdict rolled back '
            'with its transaction leaves no trace at all',
-           (select count(*) from public._verify) = 63,
-           format('recorded=%s of 63 before this one', (select count(*) from public._verify)));
+           (select count(*) from public._verify) = 94,
+           format('recorded=%s of 94 before this one', (select count(*) from public._verify)));
 
+drop table public._m0;
 drop function public.chk_succeeds(text, text, text);
 drop function public._void(text, uuid, text);
 drop function public._sl(uuid, numeric, numeric);
