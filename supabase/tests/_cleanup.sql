@@ -99,6 +99,21 @@ begin
   drop function if exists public._fwn(uuid);
   drop function if exists public.chk_raises_like(text, text, text, text);
 
+  -- ⚠️ ADDED 2026-09-05 (task 4.5c-i). `0025` reuses `_pay` and `_wl` at the
+  -- EXACT signatures 0024 and 0019 gave them, adding only defaults, so neither
+  -- needs a new drop — a different arity would not replace the older helper, it
+  -- would sit beside it and make a short call ambiguous rather than wrong. The
+  -- five below are new shapes and do.
+  drop function if exists public._rs(uuid, uuid, jsonb, timestamptz, boolean, uuid);
+  drop function if exists public._rp(uuid, uuid, uuid, jsonb, timestamptz, boolean, uuid);
+  drop function if exists public._rw(uuid, uuid, jsonb, timestamptz, boolean, uuid);
+  drop function if exists public._rt(uuid, uuid, uuid, jsonb, timestamptz, boolean, uuid);
+  drop function if exists public._vt(text, uuid);
+  drop function if exists public._tl(uuid, numeric);
+  drop function if exists public._occ(text, uuid);
+  drop function if exists public._recd(text, uuid);
+  drop function if exists public._mark(text, uuid);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
