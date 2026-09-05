@@ -65,7 +65,7 @@ document table (§2.4, deliberately), so there is no header to carry `payload_ha
 and the cheap answer, matching on `transfer_group_id` alone, cannot raise `TD001` and
 would make the transfer the one RPC whose idempotency contract is weaker than the other
 three's. Reasoning under *Decided in sizing 4e*.
-✅ **4e-i — `record_transfer`, `0020` — IS DONE AS OF 2026-09-04, AND `4e-ii`
+✅ **4e-i — `record_transfer`, `0020` — IS DONE AS OF 2026-09-04 AND MERGED (#47) 2026-09-05, AND `4e-ii`
 (`void_transaction`, `0021`) IS THE NEXT TASK.** 76 behavioural checks and TWELVE
 falsifications; **five of step 4's six functions are now applied.**
 ⚠️⚠️ **ITS HEADLINE FINDING IS A HOLE IN THE SUITE, NOT IN THE FUNCTION: F8 pointed the
@@ -83,6 +83,22 @@ OWNER: the default denomination is `sell_unit_code`**, and 4d-ii's direction rul
 not decide it — a transfer moves stock BOTH ways, so the rule is silent for the first
 time. F5 is what getting it wrong looks like: ten times the stock, applying clean.
 Findings below.
+
+⚠️⚠️⚠️ **4e-ii IS SIZED AND BLOCKED, 2026-09-04 — AND THE BLOCKER IS THE FIRST
+PLAN/ADR DISAGREEMENT OF STEP 4 THAT IS ABOUT BEHAVIOUR, NOT A MIGRATION NUMBER.**
+This file's *done when* for 4e-ii says *"§2.7's void window is enforced in the body"*.
+**ADR-035 §2.7's roles table says the window is a ROLE BOUNDARY, NOT A DEADLINE** —
+*"void own transaction < 15 min"* for staff, *"void ANY transaction, ANY TIME"* for
+manager and owner. Written as this file states it, `0021` would refuse a manager's void
+of a 21-minute-old sale, and **§2.6's replay note would become unsatisfiable**: a
+replayed sale lands already outside the window, and §2.6 reaches for
+`void_transaction`'s compensating path *because* it has. `0001:272` has carried the
+correct reading since the foundation migration — *"self-service void window. Beyond it,
+manager role required."* **The ADR wins and this file is the bug** (`CLAUDE.md`); the
+owner's call is the exact fence, and it is cheap today and a fix-forward migration once
+`0021` merges. ⚠️ **4e-ii is ALSO an `L` and was split into 4e-ii-a / 4e-ii-b on the
+seam 4e pre-committed — `0022` and `0023` DO NOT MOVE.** Both under
+*BLOCKED ON THE OWNER* and *Settled in sizing 4e-ii* below.
 
 ⚠️⚠️ **THE QUESTION 4c-i LEFT OPEN IS CLOSED. THE OWNER SETTLED IT 2026-09-04:
 `record_waste` GETS NO AVAILABILITY CHECK AND RECORDS UNCONDITIONALLY** — the
@@ -3743,7 +3759,8 @@ recorded there rather than quietly overwritten.
 | 4d-i ✅ | **`record_purchase`, the whole function, and its contract** — header, lines, one lot per line with expiry by ADR-017, the positive receipt movement; the tax split NET-first; the location wall, the provider wall, idempotency, the timestamps | `0018` | M | **DONE 2026-09-04.** 82 behavioural checks and TEN falsifications. ⚠️⚠️ **A FIFTH SHAPE OF VACUOUS GREEN, and it cost 18 checks**: a verdict recorded inside a transaction that ends in `rollback` VANISHES from the report, and the file said *all 62 checks passed* while the whole location wall, the provider wall and the entire payload ladder asserted nothing. ⚠️ **One defect found IN `0018`** by the suite — `qty_display` is `numeric(14,3)` too, so the ladder needed a second arm |
 | 4d-ii ✅ | **`record_waste`** — header, lines with reason and a quantity-weighted cost snapshot, FEFO within the location, negative movements, the tax split on the SALE shape | `0019` | M | **DONE 2026-09-04.** 67 behavioural checks, ten falsifications. ⚠️⚠️ **THE OPEN QUESTION IS CLOSED BY THE OWNER: waste records UNCONDITIONALLY**, no availability check — the loss already happened, and refusing it discards the only record of it. Section 6 is the PAIR that proves it: same variant, same quantity, enforcement ON, the SALE refused `TD002` and the write-off recorded. ⚠️ **F10 turned NOTHING red** and the suite grew two checks because of it |
 | 4e-i | **`record_transfer`, the whole function, and its contract** — TWO location walls and the one-workspace comparison §2.6 requires, the line ladder, `allocate_transfer()` per line, idempotency with no header to store it on, the timestamps | `0020` | M | **DONE 2026-09-04.** 76 behavioural checks and TWELVE falsifications. ⚠️⚠️ **F8 — the enforcement block reading the DESTINATION's shelf — turned NOTHING red on 74 checks**, and closing it took the only variant shape the two readings disagree about (6.7/6.8). ⚠️⚠️ **F9 — the advisory lock deleted — turned nothing red either**, and that one is still open: it is a NEW owed row, not one of §2.10's nine. ✅ No defect found in `0020` itself. Original criteria: both locations validated and both resolving to ONE workspace; one `transfer_group_id` over every leg; the destination lots carry cost and expiry forward and NOT `received_at` or `provider_id` (`0005`); a re-sent id returns `already_recorded` and a changed payload under the same id returns `TD001` |
-| 4e-ii | **`void_transaction`** — a compensating document with `reversal_of` set, over all three kinds | `0021` | M | CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; §2.7's void window is enforced in the body, because a `security definer` RPC is on the far side of every policy that could carry it; `0008` ignores what a void reverses |
+| 4e-ii-a | **`void_transaction`, the whole function** — a compensating document with `reversal_of` set, over all three kinds, and the §2.7 fence | `0021` | M | ⚠️⚠️ **BLOCKED ON THE OWNER — the *done when* below contains a clause that CONTRADICTS ADR-035 §2.7 and cannot be written as stated.** See *BLOCKED ON THE OWNER — the plan's void-window clause* below. The rest stands: CI green; the original is never mutated, over `purchase`, `sale` and `waste`; compensating movements land on **the same batch**; `0008` ignores what a void reverses (✅ it already does — `0008:96–111`, both exclusions, applied since 2026-08). ⚠️ **The void does NOT check availability** — voiding a sold-on purchase may drive `remaining_base` negative, which `0004:429` permits deliberately |
+| 4e-ii-b | **Test breadth over the same function** — the per-kind matrix and the falsifications — no migration | *(none)* | M | ⚠️ **Split 2026-09-04 in sizing, on the seam 4e PRE-COMMITTED**, so `0022` and `0023` do NOT move. Reasoning under *Settled in sizing 4e-ii* |
 | 4f | **`adjust_stock`** — opening balances and physical counts, absolute | `0022` | S | CI green; the counted figure wins; the location wall is the RPC's own. ⚠️ **`adjust_stock_delta` is NOT here — ADR-035 §3 ships it in step 4.5**, see below |
 
 Order is forced, and not by foreign keys this time:
@@ -3784,7 +3801,10 @@ Order is forced, and not by foreign keys this time:
 - **4e-ii after 4e-i, and it is not the test-breadth seam 4b and 4c used** — same
   append-only argument as 4d-ii. ⚠️ **If `void_transaction` overflows one session
   the overflow takes 4b-ii's seam and ships NO migration**, decided in sizing so
-  that a third renumbering never arises. **4f last**, and it is the smallest.
+  that a third renumbering never arises. ✅ **IT DID, AND THAT SEAM WAS TAKEN ON
+  2026-09-04**: 4e-ii is an `L`, split into **4e-ii-a** (`0021`, the whole function)
+  and **4e-ii-b** (test breadth, no migration). **`0022` and `0023` do not move** —
+  pre-committing the seam is what bought that. **4f last**, and it is the smallest.
 
 ### ✅⚠️⚠️ CLOSED BY THE OWNER 2026-09-04 — WASTE RECORDS UNCONDITIONALLY, AND `0019` HAS NO AVAILABILITY CHECK
 
@@ -4053,6 +4073,118 @@ the suite rather than by a falsification) was fixed in the file itself.
 ⚠️ **F0, and it is not in the table because no falsification produced it: the SUITE
 found a real defect in `0018`** — the `qty_display` rounding gate above. Nine of the ten
 below confirm checks that were already right; F0 is the one that changed the function.
+
+### ⚠️⚠️ BLOCKED ON THE OWNER, 2026-09-04 — THE PLAN'S VOID-WINDOW CLAUSE CONTRADICTS ADR-035 §2.7, AND THE ADR WINS
+
+**Found while sizing 4e-ii, before a line of `0021` was written.** This is the first
+time in step 4 that this file and the ADR have disagreed about *behaviour* rather than
+about a migration number, and `CLAUDE.md` settles who wins: the ADR is authoritative and
+**this file is the bug**. It is recorded here rather than fixed silently because the
+contract is cheap to change today and a fix-forward migration the moment `0021` merges.
+
+**What this file said** (4e-ii's *done when*, written 2026-09-04 in the 4e sizing):
+
+> *"§2.7's void window is enforced in the body, because a `security definer` RPC is on
+> the far side of every policy that could carry it"*
+
+**What ADR-035 §2.7 actually says** — the roles table, and it is not a deadline:
+
+| Capability | Staff | Manager | Owner |
+|------------|:-----:|:-------:|:-----:|
+| Void **own** transaction **< 15 min** | ● | ● | ● |
+| Void **any** transaction, **any time** | — | ● | ● |
+
+⚠️⚠️ **The window is a ROLE ESCALATION BOUNDARY, NOT A TIME LIMIT ON VOIDING.** A
+manager or an owner voids anything, at any time, and no window applies to them. Only a
+staff member is fenced, and by *two* conditions at once — the document must be **theirs**
+(`created_by = auth.uid()`) **and** inside `void_window_minutes`.
+
+**Read literally, this file's clause is a function that refuses a manager's void of a
+21-minute-old sale** — which §2.7 grants in as many words.
+
+⚠️ **§2.6 does not merely permit the ADR reading, it DEPENDS on it.** The replay note:
+
+> *"A replayed sale can land already outside the 15-minute void window, since that window
+> is measured from `occurred_at`. Correcting a replayed sale therefore means
+> `void_transaction`'s compensating-document path, not the fast void — which is the
+> correct outcome for a transaction that has already been reconciled once."*
+
+A bare window in the body makes **every replayed sale permanently uncorrectable**, which
+inverts the sentence: §2.6 reaches for `void_transaction` *because* the window has already
+passed. A path that refuses on exactly that condition cannot be the path §2.6 names.
+
+✅ **`0001` HAS HAD THE RIGHT READING SINCE THE FOUNDATION MIGRATION**, and it is applied:
+
+> `-- ADR-035 §2.7 — self-service void window. Beyond it, manager role required.`
+> — `0001_foundation_tenancy_and_units.sql:272`
+
+and the settings policy says why the client can read it at all — *"the client needs
+`use_last_sell_price` and `void_window_minutes` **to render correctly**"* (`0001:561`).
+The setting exists so the **UI** can decide whether to offer the fast, blameless
+self-service void. That is the *"fast void"* §2.6 names and never specifies: **an
+affordance over this same RPC, not an eleventh function.** §2.6's ten-row write surface
+has no other candidate.
+
+⚠️ **THE RULE THIS IMPLIES IS A FIRST FOR THE WRITE SURFACE.** `void_transaction` would
+be the **only RPC in step 4 that reads a role at all** — the other five validate a
+location and stop. `has_role(workspace_id, 'manager')` (`0001:381`) and `created_by`
+(`0003:98`, `:258`, `:375`) both exist, so nothing is owed schema-side:
+
+```
+if not has_role(workspace_id, 'manager') then      -- staff
+    require original.created_by = auth.uid()
+    and    now() - original.occurred_at <= void_window_minutes
+end if                                              -- manager/owner: unfenced
+```
+
+⚠️⚠️ **THE OWNER'S CALL, AND IT IS CHEAP NOW AND DEAR LATER.** Three things ride on it and
+all three bake into `0021`: whether the fence is the two-tier role rule above; whether a
+refusal gets its own sqlstate (`TD003`?) or reuses `42501` like the location wall; and
+whether *"own"* really means `created_by`, which is the only column that can carry it.
+
+✅ **ONE ADJACENT QUESTION NEEDS NO DECISION — the ADR already answered it.** Voiding a
+**purchase** whose stock has since been sold drives `batch_balance.remaining_base`
+negative. `0004:429` permits that deliberately, in the same breath as the permitted
+oversale: *"a negative balance is a true statement about a disagreement between the ledger
+and the shelf, and `adjust_stock` is how it gets resolved."* So the void records
+unconditionally and does **not** check availability — the same shape the owner chose for
+`record_waste`, and for the same reason.
+
+### ⚠️⚠️ Settled in sizing 4e-ii, 2026-09-04 — IT IS AN `L`, AND THE SEAM WAS PRE-DECIDED, SO NO RENUMBERING
+
+4e-ii was estimated `M` in the 4e sizing. **That estimate was made before `0020` was
+written**, and every step-4 function so far has cost more than its first estimate: 4b was
+one function and took two `M` sessions, 4c was one function's enforcement path and took
+two, 4d was re-sized `L`, 4e was re-sized `L`. **4e-ii is THREE document kinds in one
+function**, and it is an `L`.
+
+The three kinds share the fence and nothing else:
+
+| | void a `purchase` | void a `sale` | void a `waste` |
+|---|---|---|---|
+| Line table | `purchase_line` — cost, expiry, provider | `sale_line` — the gross-first tax anchor | `waste_line` — reason + cost snapshot |
+| Stock direction | the original **opened** lots → the void **consumes** them | the original **consumed** lots → the void **returns** to them | as `sale` |
+| Can go negative | ⚠️ **yes** — stock already sold on; permitted by `0004:429` | no | no |
+| Tax shape | net-first (`0018`) | gross-first (`0016`) | gross-first (`0019`) |
+
+**One kind cost `0018` 614 migration lines and a 1206-line suite.** Three kinds plus a
+role fence that no other RPC has is not one session.
+
+✅ **THE SEAM WAS ALREADY DECIDED AND COSTS NOTHING**, in the 4e sizing, precisely so this
+moment would not produce a third renumbering:
+
+> *"If `void_transaction` overflows one session the overflow takes 4b-ii's seam and NOT
+> 4d's: the function lands whole in `0021` and the second half is a test-breadth task that
+> ships no migration."*
+
+| Task | Ships | Migration |
+|---|---|---|
+| **4e-ii-a** | `void_transaction` **whole** — all three kinds, the fence, the core suite | **`0021`** |
+| **4e-ii-b** | test breadth over the same function — falsifications, the per-kind matrix | ⚠️ **none** |
+
+⚠️ **`0022` (4f) and `0023` (step 4.5) DO NOT MOVE.** That is the whole point of having
+pre-committed the seam, and it is why the second renumbering was the last one.
+
 
 ### ⚠️⚠️ Found in 4e-i — A FALSIFICATION FOUND THE ENFORCEMENT BLOCK READING THE WRONG SHELF
 
