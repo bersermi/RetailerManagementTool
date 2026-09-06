@@ -172,6 +172,32 @@ including `recorded_offline => true`, `0025`'s explicitly refused shortcut, whic
 silently disables the availability check that is the only thing able to see the
 compensate-then-re-run order at all.
 
+✅✅ **AND THE LAST UNWATCHED GUARD IN THE BACK END IS CLOSED, 2026-09-05:
+`supabase/vitest/test/transfer-resend-race.test.ts`.** Owed since 4e-i and
+unassigned until the owner said to decide it and build it. `record_transfer` is the
+one function on the write surface with **no primary key to collide on** — §2.4
+gives a transfer no document — so its idempotency rests entirely on an advisory
+lock, and 4e-i's F9 deleted that lock and turned **none** of `0020`'s 76 checks
+red. Three races, twelve assertions, on the two-connection harness. ⚠️⚠️ **F9 NOW
+TURNS SIX RED**, and the numbers say the harm plainly: four movements instead of
+two, **eight units gone instead of four**, `already_recorded: false`, and a second
+DIFFERENT van accepted with no `TD001`. ⚠️ **The anti-vacuity guard stays GREEN
+under that mutation and the file says so** — without the advisory lock the second
+session still blocks, one statement later, on the allocator's row lock, so
+`pg_blocking_pids` proves the race and only the COUNTS prove the lock. ⚠️⚠️ **And
+§2.4's invariant stays green too, deliberately asserted and labelled**: a van that
+shipped twice is an internally consistent ledger, which is why the nightly check
+can never see this and why it needed two connections.
+
+**The gate now runs 16 psql suites and 1,080 checks, 7 pgTAP files, 8 seed-check
+files and 41 two-connection assertions.**
+
+🗓️ **NEXT SESSION IS THE UI/UX GRILL-ME AND NOTHING ELSE**, set up by the owner
+2026-09-05 and prepared under *Step 5 — the client*: twelve question areas, asked
+rather than proposed, before one line of app code. **Areas 3 (where the price on
+screen comes from) and 8 (how a catalog gets in) are the two that can sink the
+pilot.**
+
 ✅✅ **4.5c-i — THE REPLAY MARKER AND THE VOID EXEMPTION, `0025` — IS DONE AS OF
 2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) WAS THE LAST TASK IN THE
 DATABASE BUILD.** 84 behavioural checks and TWENTY-ONE falsifications, twenty of
@@ -6115,7 +6141,7 @@ this is where they land.
 |---|---|
 | ~~Concurrency, clause 1 — *"two sessions, last unit, enforcement on → exactly one succeeds"*~~ | **4c-ii — DONE 2026-09-04**, `supabase/vitest/test/availability-race.test.ts` |
 | ~~Location isolation, the write half — *"a staff `record_sale` against an unassigned location is rejected"*~~ | **4b-i — DONE 2026-09-03**, `supabase/tests/0016` check 1.2 |
-| ⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*. **NOT a §2.10 row** — found in 4e-i and owed since 2026-09-04, because `record_transfer` has no primary key to collide on and rests on an advisory lock F9 proved nothing watches | **UNASSIGNED** — `supabase/vitest/test/idempotency.test.ts` is the home; the owner's call is whose task |
+| ~~⚠️ **Transfer re-send, concurrent** — *"two sessions, one `transfer_group_id`, both in flight → the van ships ONCE"*~~ | ✅ **DONE 2026-09-05**, and it is `supabase/vitest/test/transfer-resend-race.test.ts` — **a file of its own rather than `idempotency.test.ts`**, because that suite is about a PRIMARY KEY and this is the one function on the write surface that has none. Three races, twelve assertions. ⚠️⚠️ **F9 RE-RUN AGAINST IT TURNS SIX RED**: four movements instead of two, EIGHT units gone instead of four, `already_recorded: false`, and a second DIFFERENT van accepted with no `TD001`. Owed since 4e-i, 2026-09-04 |
 | ✅ **The void window on a REPLAYED write** — **CLOSED BY THE OWNER 2026-09-04**, in the session that opened it. A replayed write is **EXEMPT from the offline basis**: its window is measured from `occurred_at`, so it never carries a fresh staff window. ⚠️ **Found by falsification F6 in 4e-ii-a, and it CANNOT be checked today** — nothing marks a replayed document, and no online document exists where the two timestamps differ | **STEP 4.5 — and it owes a MARKER**, not just a check. `replay_failed_write` must record that a document was replayed before the exemption can be enforced. ADR-035 §2.6 carries the rule |
 | ~~**Failure path** — *"a rejected sale yields exactly one `failed_write` row, one linked compensating movement, and a balance matching the shelf"*~~ | ✅ **4.5b — DONE 2026-09-05**, `supabase/tests/0024` section 4, clause by clause. ⚠️ *"one linked compensating movement"* is the clause the ADR amendment touched: a downgrade writes ONE PER LINE AND PER LOT, and 4.5–4.6 dead-letter a single line spanning two lots to say so |
 | ~~**Replay** — dead-letter → downgrade → replay, keeping the original `occurred_at`~~ | ✅ **4.5c-ii — DONE 2026-09-05**, `supabase/tests/0026` sections 3, 6, 7 and 11. **THE LAST OF §2.10's NINE.** The sale comes back with its revenue, its tax split and its FEFO batch attribution; the downgrade and its compensation are a closed pair netting zero; `sum(movements) = batch_balance` holds across nine replays of four kinds. ⚠️ The `occurred_at` half is not merely preserved but RECOMPUTED at `failed_at` — see *§2.6's "clamped at capture" is not true of the applied table* |
@@ -7083,6 +7109,73 @@ flagged before 4.5b rather than inside it.
    a delta of zero describes no shelf at all and moves nothing, and
    `stock_movement_sign_follows_reason` (`qty_base <> 0`) would refuse the movement
    anyway.
+
+---
+
+## Step 5 — the client (§2.8), and the session that has to come first
+
+**THE DATABASE IS COMPLETE AS OF 2026-09-05.** Steps 5–7 ship **no migration at
+all**, which is the one thing that makes everything below cheap to get wrong and
+cheap to change: a screen is a rewrite, not a fix-forward.
+
+### 🗓️ NEXT SESSION — THE UI/UX GRILL-ME, AND NOTHING ELSE
+
+⚠️ **NO APP CODE IS WRITTEN UNTIL THIS SESSION HAS HAPPENED** (owner, 2026-09-05).
+The back end was built deliberately loose — multi-location, roles, transfers,
+enforcement, margin, a failure path — so that a **narrow pilot app can sit on it
+without foreclosing a much richer one later.** Which narrow app it is is a
+question about the shopkeeper and the counter, and **it is not the model's to
+assume.** That is what this session is for.
+
+**The shape, in the owner's words:** *"a new grill-me round with a new set of
+questions and constraints set up to start developing for the pilot of the app,
+while leaving open the gates for a much more complex implementation of the app for
+which we've already developed the back end. Questions related to the UI/UX with the
+assumptions of the audience/customers, and not to assume but to have clear specific
+things about the controls and display of the app itself."*
+
+**So the rules for that session are:**
+
+1. **Ask, do not propose.** The failure mode to avoid is a plausible screen
+   described so confidently that answering it feels like agreeing. Questions
+   first; mockups only once the answers are in.
+2. **Every question must be about a CONTROL or a DISPLAY**, not about a concept.
+   *"Does the cashier type the price or tap it?"* is the question. *"How should
+   pricing work?"* is not.
+3. **Pilot scope, richer gates.** Every answer is checked against one thing: does
+   this choice make the richer version impossible later, or only unbuilt? Only the
+   first kind needs arguing about.
+4. **Assume nothing about literacy, numeracy or patience.** See
+   *the vendor cannot reach the pile* — the users do not do book-keeping and do
+   not want to.
+
+**The question areas, prepared in advance so the session spends its time on
+answers.** Written as areas, not as a script — the session should follow the
+owner's answers where they lead:
+
+| # | Area | The kind of thing that has to come out of it |
+|---|---|---|
+| 1 | **The counter itself** | One shared phone or one each? Whose phone — theirs or ours? Does anyone log out? Is there a queue of customers waiting while this happens? |
+| 2 | **Vender — finding the product** | Search, a grid of favourites, a barcode scan, a number? How many products does the pilot shop actually sell? Do they have barcodes at all? ⚠️ This is the single highest-traffic control in the app |
+| 3 | **Vender — the price** | ⚠️ `record_sale` takes the price FROM THE CLIENT and `price_list` is not consulted (`0016`, decided 4b-i). So where does the number on screen come from — remembered, typed, or a list we have not built? **This is the biggest open question in the app and the back end deliberately did not answer it** |
+| 4 | **Vender — quantity and units** | Pieces are a tap. Kilos are not. How does someone sell 1.5 kg with no scale integration? Is a decimal keypad acceptable at a counter? |
+| 5 | **Finishing a sale** | Receipt or nothing? Change calculation? Does the customer see the screen? |
+| 6 | **Mistakes** | The 15-minute self-service void (`0021`) exists and is fenced at staff. What does undoing a mis-scan look like, and is it discoverable by someone who is embarrassed and hurrying? |
+| 7 | **Comprar — receiving** | Expiry dates drive FEFO and the ADR-017 policy. Typing a date per line is a lot of typing. What will a manager actually do with a delivery note in one hand? |
+| 8 | **Productos — getting the catalog in** | 200 products typed by hand is a non-starter and is the likeliest reason a pilot dies in week one. Photo? Spreadsheet? We do it for them? |
+| 9 | **Números** | Three numbers, not thirty. Which three does a shopkeeper look at daily, in their words? The back end can serve margin, velocity, waste share and dead stock |
+| 10 | **Offline** | The pilot store loses signal often ([[pilot-store-is-offline-a-lot]]). How much does the app admit it? ⚠️ Default answer per *the vendor cannot reach the pile*: as little as possible — but "the sale is safe" may still need saying |
+| 11 | **Roles** | The schema has owner/manager/staff and a location fence. Does the pilot shop even have staff, or is it one person? A role system nobody uses is a login screen for nothing |
+| 12 | **The device and the language** | Which Android phones, which versions, what screen size? Spanish reading level, icons versus words, number formatting |
+
+⚠️ **AREAS 3 AND 8 ARE THE TWO THAT CAN SINK THE PILOT** and should be asked
+first if the session is short. Everything else is a screen; those two are whether
+the shop can start using it at all.
+
+**What comes out:** the answers, written into this file as constraints, then step 5
+sized and split — the same rule every step since 1.3 has used, and it matters more
+here than anywhere because there is no migration to make a mistake expensive
+enough to notice.
 
 ---
 
