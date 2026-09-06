@@ -145,17 +145,28 @@ can write. `0026` recomputes the timestamp the original call WOULD have written,
 evaluated at `failed_at` rather than `now()`: online → `failed_at`, offline →
 clamped to `[failed_at − 72h, failed_at]`. Still the exemption — nothing moves to
 the moment of recovery — but no longer a hole.
-⚠️⚠️ **ONE DECISION NEEDS THE OWNER AND IT IS AN ACCESS ONE: REPLAY IS FENCED AT
-`owner`, TIGHTER THAN THE MARKER'S `manager`.** §2.6's replayer *"has already
-reviewed the dead-letter row"* and `0024` decision 8 makes that review owner-only,
-so a manager-fenced replay is a decision taken on a row the decider cannot read.
-Loosening it later is a `create or replace`; **if managers should replay, the
-matching change is `failed_write`'s SELECT policy too, not only the fence.**
-⚠️⚠️ **AND A GAP THAT IS NOT SCHEMA AND CANNOT BE CLOSED HERE: §2.8 LANDS DEAD
-LETTERS WITH THE VENDOR AND NO VENDOR CAN REACH THEM.** Every function on this
-surface reads `auth.uid()`, and a `service_role` process has none, so the failure
-path as built is **merchant-triggered end to end**. Named before step 5 assumes a
-vendor console that cannot exist yet.
+✅ **THE ACCESS DECISION IS CLOSED BY THE OWNER, 2026-09-05, IN THE SESSION THAT
+RAISED IT: REPLAY IS FENCED AT `owner`, AND IT STAYS THERE.** Tighter than the
+marker's `manager` (`0025`), and the reason is `0024` decision 8: §2.6's replayer
+*"has already reviewed the dead-letter row"*, and only an owner may read one. The
+loosening path is recorded rather than taken — **it would be TWO changes, the
+fence AND `failed_write`'s SELECT policy**, because a manager who can replay but
+not read is pressing a button on a row they cannot see.
+⚠️✅ **AND A GAP THAT IS NOT SCHEMA — §2.8 LANDS DEAD LETTERS WITH THE VENDOR AND
+NO VENDOR CAN REACH THEM — CLOSED BY THE OWNER THE SAME DAY, BY BUILDING NOTHING.**
+Every function on this surface reads `auth.uid()` and a `service_role` process has
+none, so the failure path as built is triggerable only from inside the shop. **The
+fix proposed was an owner-only recovery screen; the owner REFUSED it and the reason
+is who the users are** — small shopkeepers who do not do book-keeping and should
+never be handed a list of failed writes to reason about. **A dead letter is
+recovered BY US, BY HAND, in one call, and the shop never learns it happened.**
+§2.10's nightly check prices the pile for free, so the volume decides whether this
+ever reopens — and if it turns out to be routine, that is a bug upstream rather
+than a case for tooling. ⚠️⚠️ **THE FRAMING BINDS STEPS 5–7 AND MATTERS MORE THERE
+THAN HERE**: do not surface internal state to a shopkeeper, prefer a default over a
+setting, and when something rare goes wrong the answer is usually that we handle it
+rather than that we build them a control for it. Written out under *the vendor
+cannot reach the pile*.
 ⚠️ **THREE FALSIFICATIONS WERE GREEN AND TWO WERE HOLES THIS SUITE COULD CLOSE** —
 including `recorded_offline => true`, `0025`'s explicitly refused shortcut, which
 silently disables the availability check that is the only thing able to see the
@@ -6206,7 +6217,12 @@ cases** and only two of them can tell a correct implementation from a naive
 `v_at := payload occurred_at` — F14, which is §2.6's sentence taken literally, turns
 three red including the 2099 one.
 
-### ⚠️⚠️ Decided in 4.5c-ii, on the owner's behalf — REPLAY IS FENCED AT `owner`, WHICH IS TIGHTER THAN THE MARKER'S `manager`
+### ✅ CONFIRMED BY THE OWNER 2026-09-05 — REPLAY IS FENCED AT `owner`, WHICH IS TIGHTER THAN THE MARKER'S `manager`
+
+**Taken on the owner's behalf while writing `0026`, and confirmed by the owner the
+same day, in the session that raised it.** The reasoning below stands as written;
+what changes is that it is no longer a call awaiting review, and the loosening path
+at the end of this section is recorded rather than pending.
 
 `0025` decision 3 fences the replay **argument** at manager. `0026` fences the
 **orchestrator** at owner, and the two are not in conflict — the argument fence is
@@ -6221,14 +6237,59 @@ row the decider cannot see.**
 
 ⚠️ **It is the cheap direction and `0025`'s own argument says so**: *"removing a
 fence later breaks nothing and adding one after a client ships is a coordinated
-release."* Loosening this to manager is a `create or replace` in a new migration.
-**Flagged because it is a live call: if managers should be able to replay, the
-matching change is to `failed_write`'s SELECT policy, not only to this fence** —
-otherwise they replay blind.
+release."* Loosening this to manager is a `create or replace` in a new migration —
+✅ **and the owner has confirmed it is not wanted.** Recorded for whoever proposes
+it later: **it is TWO changes, the fence AND `failed_write`'s SELECT policy**, or
+the manager replays blind.
 
-### ⚠️⚠️ Found in 4.5c-ii — §2.8 LANDS DEAD LETTERS WITH THE VENDOR AND NO VENDOR CAN REACH THEM
+### ✅ CLOSED BY THE OWNER 2026-09-05 — THE VENDOR CANNOT REACH THE PILE, AND NOTHING WILL BE BUILT UNTIL THE VOLUME SAYS OTHERWISE
 
-Recorded rather than fixed, because nothing in `0026` can fix it.
+**The gap below is real and stands. The decision is to leave it**, taken by the
+owner in the session that found it, on a framing that is binding well beyond this
+task and is written out at the end of this section.
+
+⚠️⚠️ **A RECOVERY SCREEN FOR THE MERCHANT WAS PROPOSED AND REFUSED.** The proposal
+was an owner-only view of the pile with a recover button, on the reasoning that
+replay moves a historical total and the person whose total moves should be the one
+to press it. **The owner refused it, and the reason is the users:** these are small
+shopkeepers who do not do book-keeping and do not want to. A screen listing failed
+writes hands a chore, in vocabulary they do not have, for a cause they cannot
+diagnose, about an event they would rather never learn about. **§2.8 was right and
+the proposal was drift** — dead letters are a vendor surface and no screen shows
+them.
+
+**So the answer is HAND RECOVERY, BY US, AND NO NEW CODE.** A dead letter that
+appears at the pilot is one SQL call from our side: minutes of our time, none of
+theirs, and they never find out. §2.10's nightly check already prices the pile for
+free, so the volume question answers itself within weeks of the pilot starting:
+
+- **a trickle** — hand recovery is permanently the answer and this section never
+  reopens;
+- **routine** — that is a signal something upstream is broken and worth fixing at
+  the source, NOT a signal to build recovery tooling.
+
+⚠️ **ONE KNOWN INACCURACY, ACCEPTED DELIBERATELY.** Hand recovery runs by setting
+the session's claims to the owner's uid, so `failed_write.replayed_by` names the
+OWNER for a recovery the owner did not perform. It is a small untruth in a column
+nobody but us reads, and the fix — a real support identity to stamp instead — is a
+one-column migration available any day it starts to matter. **A vendor connection
+impersonating an owner as the DESIGNED path was refused outright**: it would make
+the stamp a forgery by construction, and that column exists so someone can be asked
+about it.
+
+⚠️⚠️ **AND THE FRAMING IS BINDING ON STEPS 5–7, WHERE IT WILL MATTER FAR MORE THAN
+HERE** (owner, 2026-09-05): *"the users are very unprofessional, small business
+owners — they don't know or care a lot about account keeping. We're focusing on
+ease of use and side-services enhancement, not building a hyper-robust tool with
+edge-case control."* Read as a default rather than a one-off: **do not surface
+internal state to a shopkeeper; prefer a sensible default over a setting; and when
+something rare goes wrong, the answer is usually that WE handle it, not that we
+build them a control for it.** This is the same instinct as the `prefer the option
+that adds no human step` rule the void exemption was settled on — and it is the
+first time it has been applied by DELETING a proposed screen rather than by
+choosing between two mechanisms.
+
+The gap itself, as found:
 
 §2.8: *"Dead letters go to the operator of this system"*, and §2.6's whole account of
 replay is a vendor who diagnosed the `42501` the merchant could not. But **every
