@@ -7650,6 +7650,33 @@ free today and stay free until the first task merges.
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 
+#### ✅ Tooling settled 2026-09-07, before `5a` — one installed, one deferred, two unidentified
+
+Reviewed because `5a` is the first task in this repository to write client code, and
+the owner had four candidates carried over from setup. **Nothing was installed at the
+time of the review — no MCP servers configured, no plugins enabled.**
+
+- ✅ **`context7` INSTALLED** (HTTP, `https://mcp.context7.com/mcp`, keyless, verified
+  connected). ⚠️ It is the only one with a clear case, and the case is this project's
+  own named failure mode: **Expo's interfaces move faster than the model's knowledge
+  cutoff**, and confidently-wrong code against a library that changed last month is
+  indistinguishable, in tone, from code that is right. The endpoint was **read from
+  the vendor's own repository rather than recalled** — which is the same discipline.
+- ⏸️ **`superpowers` DEFERRED TO `5f`, not rejected.** A real MIT-licensed skills
+  framework (Jesse Vincent / Prime Radiant) adding TDD, systematic debugging, planning
+  and worktrees, auto-activating via hooks. ⚠️ **The reason to wait is that this
+  repository's method is stricter than the one it brings**: falsification — break the
+  guard, confirm something turns red — is what found **six separate shapes of
+  misleading green**, several of them holes in the suites rather than in the code.
+  Generic TDD finds none of those. ⚠️ **And two auto-activating workflow authorities
+  compete**: `CLAUDE.md`'s *one task per session, sized and split in the plan first* is
+  the rule that makes this build survive a context clear, and a planning skill that
+  fires on its own is what erodes it. **`5f` is where it would earn its place** — the
+  first task whose own structure is a risk. Telemetry is on by default
+  (`SUPERPOWERS_DISABLE_TELEMETRY`).
+- ❓ **`Headroom` and `ECC` remain unidentified**, as `docs/HANDBOOK.md` has said since
+  setup. **They stay unidentified rather than guessed at.**
+
 #### ⚠️⚠️ STEP 5 SHIPS CODE THAT NO CI COVERS, AND THAT IS A HOLE IN THE PROJECT'S FOUNDING RULE
 
 Found while reconciling `docs/HANDBOOK.md` on 2026-09-07, not during either grill
