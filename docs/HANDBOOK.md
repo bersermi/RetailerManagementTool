@@ -51,18 +51,26 @@ half-finished work to a context clear or a usage limit.
 Use graphify to orient before reading files. ADR-035 is authoritative: if the
 plan and the ADR disagree, stop and tell me rather than guessing.
 
-When done, verify it properly — `supabase db reset` and CI, not "the file
-exists" — then update the status in docs/PLAN.md and commit.
+Respect the gates in the plan — some tasks are blocked on questions I have
+not answered yet, and one is blocked on an ADR amendment I owe you.
+
+When done, verify it properly and name the check that looked at it — not
+"the file exists", and not a green tick on a run that had nothing to do.
 
 Finish by telling me what's next and what decision you need from me.
 ```
 
-⚠️ **One line of that prompt is about to stop meaning what it says.** *"`supabase db
-reset` and CI"* is the right test for a database task and the wrong one for a screen:
-an app task runs no migration, and until step 5a adds a third check, no automated
-check watches app files at all. From 5a onward the question to ask is not *"was CI
-green?"* but **"which check looked at the code you just wrote?"** — and a session that
-cannot name one has not verified anything.
+⚠️ **The verification line changed on 2026-09-07, and it is worth knowing why.** It
+used to say *"`supabase db reset` and CI"*. That is the right test for a database task
+and the wrong one for a screen: an app task runs no migration, and until step 5a adds a
+third automated check, **no check watches app files at all**. So the question is no
+longer *"was CI green?"* but **"which check looked at the code you just wrote?"** — and
+a session that cannot name one has not verified anything.
+
+⚠️ **The gates line is new too.** The plan now contains tasks that are deliberately
+blocked: some on questions the interview never reached, and one on an amendment to
+ADR-035 that only you can make. Without that line a session will cheerfully take a
+blocked task and build it on a guess.
 
 The last line keeps you in charge: every session ends with Claude asking rather
 than assuming. If a session ever ends without telling you what was decided on your

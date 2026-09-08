@@ -7169,6 +7169,32 @@ flagged before 4.5b rather than inside it.
 
 ---
 
+## ⚠️⚠️ READ FIRST — THE PLAN NOW DISAGREES WITH ADR-035, AND `CLAUDE.md` SAYS THE ADR WINS
+
+**Do not start `4.6a` until the owner has amended the ADR.** `CLAUDE.md` instructs a
+fresh session that *"if anything disagrees with the ADR, the ADR wins and the other
+file is the bug."* After the grill-me of 2026-09-07 **that rule now points the wrong
+way in two places**, and a session obeying it literally would undo the interview.
+
+| ADR-035 | Says | The owner said, 2026-09-07 |
+|---|---|---|
+| **Decision register #9** (§1424) — *Staff invitation flow* | `workspace_invite` + `redeem_invite`, **token by WhatsApp**. Owner-initiated push | **C11.5 / C11.6** — the joiner enters a **workspace code**, **requests** access, and is **approved**; an owner's invite counts as *a request that arrives pre-approved*. **Both paths, not one** |
+| **Decision register #13** (§1424) — *Android* | *"Defer the release path, keep the code honest. Emulator smoke test at the end of 5a"* | **C1.1** — the pilot is **iPhone 11, iPhone 15, Oppo and Samsung**. **iOS is not optional**, and the 5a smoke test has two platforms |
+
+⚠️ **§1400's checklist is NOT the problem and was never wrong**: it carries
+`workspace_invite` + `create_invite` + `redeem_invite` as an **unticked box**, which is
+exactly right — they were never built. The conflict is in the **decision register**,
+which records *how* the flow should work, and that is the half the owner changed.
+
+✅ **Neither conflict blocks `5a`**, which is why `5a` goes first. Decision #13 only
+widens the smoke test; decision #9 is `4.6a`'s subject matter.
+
+**What is owed: an amendment to ADR-035, by the owner, before `4.6a` is written.**
+The ADR is amended only by deliberate decision (`docs/HANDBOOK.md`), and this file
+does not get to overrule it by describing something else loudly.
+
+---
+
 ## Step 4.6 — what the grill reopened (§2.7, §2.5, §3)
 
 ⚠️⚠️ **THIS STEP DID NOT EXIST BEFORE 2026-09-07, AND ITS EXISTENCE IS THE MAIN
