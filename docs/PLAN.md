@@ -22,11 +22,13 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
-**STEPS 1, 2, 3, 4 AND 4.5 ARE ALL CLOSED, AND THE DATABASE IS COMPLETE AS OF
-2026-09-05. THE BUILD IS NOW IN STEP 5 — THE CLIENT — WHICH SHIPS NO MIGRATION;
-`5a` IS THE NEXT TASK.** The log below is newest-first; what follows this paragraph
-is the history that got here, kept because every entry names a decision someone may
-need to overturn.
+**STEPS 1, 2, 3, 4 AND 4.5 ARE ALL CLOSED. ⚠️⚠️ THE DATABASE IS *NOT* COMPLETE — THE
+UI/UX GRILL-ME OF 2026-09-07 REOPENED IT, AND THE THREE OWED MIGRATIONS ARE THE NEW
+STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`;
+**`5a` (the Expo shell, OAuth, session, density scale, formatting) IS THE NEXT TASK**
+and is the one task with no gate above it and nothing owed beneath it. The log below
+is newest-first; what follows this paragraph is the history that got here, kept
+because every entry names a decision someone may need to overturn.
 
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
 STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE WRITE SURFACE OF
@@ -225,6 +227,33 @@ none** respectively.
 ⚠️ **ONE DECISION WAS TAKEN ON THE OWNER'S BEHALF — the missing/zero-price
 highlight** (amber on the row, count badge on the sticky `Total`, slide blocked, no
 modal). Client-side only; it costs one screen to reverse.
+
+⚠️⚠️ **ROUND TWO RAN THE SAME DAY, BEFORE `5a` WAS WRITTEN, AND IT REOPENED THE
+SCHEMA — WHICH IS THE MAIN RESULT OF THE WHOLE GRILL-ME.** Areas **1, 10, 11 and
+12**, taken because `5a` is the task **most** exposed to the unasked areas, not the
+least: auth rests on 1 and 11, the offline client stub rests entirely on 10, the
+density scale on 12. **Round one's sizing had claimed the opposite in as many words,
+and was wrong.** ⚠️⚠️ **THREE OWED MIGRATIONS CAME OUT OF IT — the new STEP 4.6 —
+and the largest is that THE MEMBERSHIP FLOW HAS NO FUNCTIONS AT ALL.**
+`create_invite` and `redeem_invite` were assigned to `0005` (`0002:362`), **`0005` is
+the allocation migration, and they were never written**; ADR-035 §1400 still carries
+them as an unticked box while §1424 lists the flow as shipped. **The row shipped; the
+flow never did**, and nothing caught it because a table with no callers breaks no
+test. ⚠️ **And the owner wants the INVERSE of the flow that table models**: a joiner
+enters a workspace **code** — a column `workspace` does not have — and **requests**
+access, with an owner's invite counting as *a request that arrives pre-approved*.
+⚠️ **The second migration is one notch and `0026` predicted it**:
+`replay_failed_write` loosens from `owner` to `manager`, because the person standing
+alone in the shop must be able to fix a failed write and the family member is a
+manager. **The third is F2's family margin view, and it is GATED on area 9.**
+⚠️ **The 50-CENTAVO CEILING was the scare and it came to nothing**: had it been a
+ledger rule it would have changed ADR-035's decision register #3, `packages/money`,
+the SQL half and `cases.json`. **It is DISPLAY-ONLY, on the Vender basket total
+alone** — decision #3 stands untouched, and the accepted cost is that the drawer and
+the ledger disagree by up to 49 centavos a sale.
+⚠️ **The pilot is TWO WORKSPACES, TWO OWNERS, TWO PEOPLE EACH, ON THEIR OWN iOS *AND*
+ANDROID PHONES** — so `5a` needs **no location picker**, and the Android-only
+assumption is dead. **Four areas remain unasked; only 5, 6 and 9 gate anything.**
 
 ✅✅ **4.5c-i — THE REPLAY MARKER AND THE VOID EXEMPTION, `0025` — IS DONE AS OF
 2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) WAS THE LAST TASK IN THE
@@ -7140,19 +7169,102 @@ flagged before 4.5b rather than inside it.
 
 ---
 
+## Step 4.6 — what the grill reopened (§2.7, §2.5, §3)
+
+⚠️⚠️ **THIS STEP DID NOT EXIST BEFORE 2026-09-07, AND ITS EXISTENCE IS THE MAIN
+RESULT OF THE UI/UX GRILL-ME.** This file said *"the database is complete as of
+2026-09-05"* and *"steps 5–7 ship no migration at all."* **Both sentences were
+false**, and asking the owner about controls is what proved it — not a test, not CI,
+and not a review of the schema against itself.
+
+⚠️ **It is numbered 4.6 rather than folded into step 5 deliberately.** Step 5 ships
+no migration; that property is worth keeping, because it is what makes a screen cheap
+to get wrong. Three migrations in the middle of the client build would quietly delete
+it.
+
+| Task | Migration | What it is | Size | Blocks |
+|---|---|---|---|---|
+| **4.6a** | `0027` | **Membership.** `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path and its approval | `L` — expect a split | **half of `5b`** |
+| **4.6b** | `0028` | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
+| **4.6c** | `0029` | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — area 9 unasked** |
+
+### ⚠️⚠️ 4.6a — the membership flow has no functions, and the owner wants the inverse of the one it was designed for
+
+**Two separate facts, and the second is worse than the first.**
+
+**(1) `create_invite` and `redeem_invite` do not exist.** `workspace_invite` is a
+table only — `0002:362` says in terms *"create_invite() and redeem_invite() are 0005,
+because redeem_invite is `security definer` and belongs with the other RPCs"* — and
+`0005` is the **allocation** migration. ADR-035's own checklist (§1400) still carries
+`workspace_invite` + `create_invite` + `redeem_invite` as an **unticked box**, and
+§1424 lists the staff invitation flow as a shipped decision. **The row shipped; the
+flow never did.** Nothing caught it because a table with no callers breaks no test:
+`01_rls_coverage` computes its plan structurally and passes on the policies alone.
+
+**(2) The owner's flow is the inverse of the table's.** (C11.5)
+
+| | Built for | Asked for |
+|---|---|---|
+| Who starts it | **The owner.** `create_invite(email, role, location_ids)` → token → WhatsApp | **The joiner.** He signs up, enters a code, requests a role |
+| What the other party does | Redeems a token | **Approves** — the owner, or us as admins |
+| `invited_by` | `not null` | has no value at request time |
+
+⚠️ **Both are wanted, not one instead of the other**: *"if our owner sends an invite
+that counts as a pre-approval for the request, but the user should also be able to
+request access to a workspace on his own."* So an invite is **a request that arrives
+pre-approved**, which is the framing that lets one table serve both — and it is the
+one modelling decision in 4.6a worth arguing about before it is written, because
+`workspace_invite.invited_by` is `not null` today and a self-request has nobody to put
+there.
+
+**And it needs a column that does not exist: `workspace` has no code** (`0001:110` —
+`id`, `display_name`, `currency`, `prices_include_tax`, `is_active`). The `id` cannot
+serve; nobody reads a uuid over WhatsApp. Unique, short, transcribable, and **never
+listed** — C11.6 is explicit that workspaces are not browsable.
+
+### ✅ 4.6b — one notch, and `0026` predicted it
+
+`replay_failed_write` is fenced at **owner** (`0026:317`), and its header already
+named the exit: *"Loosening this to `manager` is a `create or replace` in a new
+migration."* C11.4 asks for exactly that, and **C11.2 is what makes one notch
+enough** — the family member is a manager, not staff, so §2.6's argument for the
+fence (the replayer has reviewed the dead-letter and can carry cost for any kind)
+survives intact rather than being overridden. ⚠️ **The recorders' own `manager` fence
+is untouched.**
+
+### ⚠️ 4.6c — GATED, and it is the one that needs an interview first
+
+F2 under step 5: `product_margin_daily` (`0009`) is COGS-from-the-lot-consumed, so
+under C8.6 the pieces sell against a zero-cost shortfall lot at **100 % margin** while
+the whole bird's cost never enters COGS at all. What the owner described is
+**purchases-in against sales-out, per family, per period**. ⚠️ **Do not write this
+until area 9 has been asked** — *"three numbers, not thirty"* is unanswered, and a
+view built against a guess is a migration built against a guess.
+
+---
+
 ## Step 5 — the client (§2.8)
 
-**THE DATABASE IS COMPLETE AS OF 2026-09-05.** Steps 5–7 ship **no migration at
-all**, which is the one thing that makes everything below cheap to get wrong and
-cheap to change: a screen is a rewrite, not a fix-forward.
+⚠️⚠️ **THIS SECTION OPENED WITH *"THE DATABASE IS COMPLETE AS OF 2026-09-05, AND
+STEPS 5–7 SHIP NO MIGRATION AT ALL."* BOTH HALVES WERE FALSE AND THE GRILL-ME IS WHAT
+PROVED IT** — see **step 4.6**, three owed migrations, one of which blocks `5b`. The
+sentence is kept here, struck, because it is the assumption every plan makes at the
+end of a database build and the reason this file requires the interview to happen
+before the code.
 
-### ✅✅ THE UI/UX GRILL-ME HAPPENED 2026-09-07. AREAS 3 AND 8 ARE ANSWERED; TEN AREAS ARE NOT
+**Step 5 itself still ships no migration** — that is why 4.6 is its own step — and
+that remains the thing that makes everything below cheap to get wrong: a screen is a
+rewrite, not a fix-forward.
+
+### ✅✅ THE UI/UX GRILL-ME HAPPENED 2026-09-07, IN TWO ROUNDS. EIGHT AREAS ARE ANSWERED; FOUR ARE NOT
 
 The session the owner called for on 2026-09-05 ran on 2026-09-07 under his rules —
 **ask, do not propose; every question about a control or a display; assume nothing
-about literacy or numeracy.** It covered **areas 3 (the price) and 8 (the catalog)**,
-the two named as able to sink the pilot, and stopped there. **Ten areas remain
-unasked and are listed at the end of this section as the second round.**
+about literacy or numeracy.** **Round one** took **areas 3 (the price) and 8 (the
+catalog)**, the two named as able to sink the pilot. **Round two**, run the same day
+rather than starting `5a`, took **areas 1, 10, 11 and 12** — the four the foundation
+rests on. **Four areas remain unasked and are listed with the sizing at the end of
+this section.**
 
 The owner also supplied **five screenshots of the Power Apps era's Comprar and
 Productos screens** as the starting shape. They are the only place that era is
@@ -7330,6 +7442,142 @@ him hunt for which line it meant. The badge exists so the amber is discoverable 
 the offending row has scrolled off. ⚠️ **Client-side only; reversing it costs one
 screen.**
 
+### ✅✅ ROUND TWO, 2026-09-07 — AREAS 1, 10, 11 AND 12, AND IT REOPENED THE SCHEMA
+
+Run the same day, on the model's recommendation and the owner's instruction, **before
+`5a` was written.** The argument for asking rather than building was that `5a` is the
+task **most** exposed to the unasked areas, not the least — auth rests on areas 1 and
+11, the offline client stub rests entirely on area 10, and the density scale rests on
+area 12. ⚠️ **The round-one sizing said `5a` "rests on nothing that was asked and
+nothing that was not." That was wrong and backwards**, and the correction is why this
+round happened first.
+
+⚠️⚠️ **IT WAS THE RIGHT CALL AND THE PROOF IS THAT IT PRODUCED THREE OWED MIGRATIONS,
+ONE OF WHICH BLOCKS HALF OF `5a`.** They are step 4.6, above. Building `5a` first
+would have built a sign-in screen on top of a membership flow that does not exist.
+
+#### The counter and the devices (area 1)
+
+- **C1.1 — TWO pilot shops, TWO phones each, and BOTH platforms.** iPhone 11 and
+  iPhone 15; Oppo and Samsung on Android. ⚠️ **These are the users' OWN devices** and
+  they install the app themselves — *"not me to take their devices anywhere."* The
+  round-one assumption of an Android-only pilot is dead. (1.1)
+- **C1.2 — build for anything released after 2020.** (12.1)
+- **C1.3 — the app opens on the LAST SCREEN THEY WERE ON.** Not a dashboard, not a
+  menu. (1.2)
+- **C1.4 — sign-in is OAUTH: Google, Facebook, or email. NO phone-number auth.** The
+  session persists indefinitely; **only an explicit log-out requires logging back
+  in.** Nobody logs out at 9 p.m.; the phone is simply put down. (1.2)
+- **C1.5 — the two pilot shops are TWO WORKSPACES, two different owners** — not one
+  owner with two locations. ⚠️ **So `5a` needs no location picker**: the shop is the
+  one thing the phone knows. The multi-location back end stays unused and unforeclosed,
+  which is exactly what ADR-035 §2.3 built it for. (1.3)
+- **C1.6 — DISTRIBUTION IS DEFERRED AND DEVELOPMENT IS LOCAL.** The paid tier is
+  bought *"only when the complete pilot is in place"*; until then it is built and run
+  on the owner's own iPhone from his own Mac. ⚠️ **This is a schedule dependency, not
+  a screen**: Apple Developer Program is **$99/yr** and is unavoidable for the two
+  iPhones, Google Play Console is **$25 one-time**, EAS Build has a usable free tier,
+  and local builds are free. **~$124 the first year.** Expo Go was considered and
+  rejected — four non-technical users on their own devices would generate more than
+  $124 of the owner's time in support calls, and *"I can't find the app"* is a
+  week-one pilot death. (1.4)
+
+#### Roles, and the membership flow that does not exist (area 11)
+
+- **C11.1 — each shop is TWO PEOPLE: the owner and a family member or friend**, and
+  **either can be alone in the shop** while the other runs errands. **The lone
+  employee is the design case, not the exception.** (11.1)
+- **C11.2 — the employee is a MANAGER**, and the owner explicitly wants the role
+  system kept for businesses with a real hierarchy later. (11.4)
+- **C11.3 — the employee CAN record deliveries**, and the app adds no fence of its
+  own. The database already permits it — every recorder is fenced by the **location
+  wall alone**, with no role check at all — so this is a decision **not** to write a
+  client-side fence that the schema never asked for. ⚠️ **This does NOT contradict
+  [[who-accepts-deliveries]]**, which says receiving is manager-or-owner and Comprar
+  needs no staff path: **C11.2 makes the employee a manager**, so both hold at once.
+  What it does mean is that **the fence lives in the role assignment, not in the
+  screen** — give someone `staff` in a later shop and Comprar is still open to them,
+  because nothing in the database or the client will stop it. (11.2)
+- **C11.4 — ⚠️⚠️ THE PERSON STANDING THERE MUST BE ABLE TO FIX A FAILED WRITE**, and
+  `replay_failed_write` is fenced at **owner** (`0026:317`). **This is migration
+  4.6b.** It loosens one notch to `manager`, which is the fence `0026`'s own header
+  named as the cheap direction, and C11.2 is what makes one notch enough. (11.3)
+- **C11.5 — ⚠️⚠️ TWO MEMBERSHIP PATHS, AND NEITHER EXISTS.** *"Every person goes
+  through the auth process to begin with. If our owner sends an invite that counts as
+  a pre-approval for the request, but the user should also be able to request access
+  to a workspace on his own."* So: **an invite is a pre-approved request**, and a
+  self-request waits for approval by **the owner or by us as admins**. **This is
+  migration 4.6a.** (11.4)
+- **C11.6 — the workspace has a CODE, and workspaces are NEVER LISTED.** The owner
+  shares a code; the joiner types it. ⚠️ `workspace` has no such column (`0001:110`)
+  and the `id` cannot serve — no shopkeeper reads a uuid over WhatsApp. **Part of
+  4.6a.** (11.7)
+- **C11.7 — a SHARE button that hands the code to WhatsApp**, living in
+  **Configuración → members**, alongside a member-management list. *"Not a
+  protagonist at all in our UI."* (11.8)
+- **C11.8 — a NOTIFICATIONS ICON ON HOME with a badge**, and membership requests
+  surface there. The owner sees the requester's **name, email and the role asked
+  for** — enough not to approve the wrong Juan. (11.6)
+- **C11.9 — the dead-letter control is the LEAST INVASIVE THING THAT WORKS**, and it
+  is *"not a priority for the owner at this point."* A banner, not a screen. (11.5)
+
+#### Offline (area 10)
+
+- **C10.1 — the app admits it QUIETLY.** A small icon, intermittent, somewhere
+  non-invasive, with *"Sin conexión a internet"* — surfacing on screen changes and
+  **easily dismissed**. It never blocks and never interrupts. (10.1)
+- **C10.2 — ON RECONNECT, ONE FADING TOAST: *"Tus últimas operaciones ya se
+  guardaron."*** It fades on its own, needs no acknowledgement, and **does not say how
+  many.** (10.1, 10.5)
+- **C10.3 — ⚠️ THE SLIDE LOOKS IDENTICAL OFFLINE.** Same confirmation as online, no
+  "pending" state, no second wording. *The vendor cannot reach the pile*, applied
+  exactly. The sale is safe; saying so would be the app talking about itself. (10.2)
+- **C10.4 — the 72-hour clamp is ACCEPTED AND NOT DESIGNED FOR.** A write recorded
+  offline has `occurred_at` clamped to `[now() − 72h, now()]`, so a queue older than
+  three days is silently re-dated. The owner does not expect either shop to go 72
+  hours without signal and has deferred the edge. ⚠️ **Recorded because
+  [[pilot-store-is-offline-a-lot]] says the opposite is worth watching for**, and this
+  is the one accepted risk in the offline design. (10.3)
+- **C10.5 — ⚠️⚠️ A REJECTED QUEUED WRITE IS NEVER SHOWN TO THE SHOPKEEPER.**
+  `0024` downgrades a rejected `sale` or `waste` to a stock adjustment — the goods
+  still leave the shelf, but the sale is not a sale. *"It must stay in our side for
+  analytics."* This is [[users-dont-do-bookkeeping]] taken to its conclusion, and it
+  means **the ledger can differ from what the shopkeeper typed, silently, by design.**
+  (10.4)
+
+#### Reading it (area 12)
+
+- **C12.1 — ICONS PLUS THE SPANISH WORD**, always, everywhere. Never icons alone.
+  (12.2)
+- **C12.2 — `$1,234.50`** — comma thousands, point decimals. **Centavos are hidden
+  when zero**; when there are decimals at all, **exactly two** are shown. (12.3)
+- **C12.3 — ⚠️ THE 50-CENTAVO CEILING IS A DISPLAY RULE ON ONE NUMBER, AND THAT IS
+  THE WHOLE OF IT.** The basket total on **Vender** is rounded **up to the next
+  multiple of 50 centavos** (`10.20 → 10.50`, `88.72 → 89.00`). **Unit prices and
+  individual line totals are shown exactly, to two decimals**, and **Comprar is not
+  rounded at all** — *"here the user can look at the things as the ledger will record
+  them."* (12.3, 12.4, 12.5, 12.6)
+  - ✅ **This is why it costs nothing.** ADR-035's decision register #3 — *"Integer
+    centavos; gross authoritative; per line; tax as residual; document = sum of
+    rounded lines; half-up"* — is implemented **twice**, in `packages/money/src/
+    money.ts` and in SQL, cross-proved by `packages/money/cases.json`, which `db.yml`
+    names as a workflow input precisely so a change to it re-runs the pgTAP half. A
+    **ledger** rule would have changed rules 3–6, both implementations and the case
+    table. **A display rule changes one label. Decision #3 stands untouched.**
+  - ⚠️ **The accepted consequence, recorded so nobody "fixes" it later: the drawer and
+    the ledger will permanently disagree by up to 49 centavos per sale.** He collects
+    `$23.00`; the ledger records `$22.75`. The owner's ruling: *"due to the size of
+    each business, this won't affect the economics."*
+
+#### One screen the ADR had already written and nobody had scheduled
+
+- **C1.7 — the IVA question SHIPS IN ONBOARDING.** `workspace.prices_include_tax`
+  (`0001:117`) is commented *"asked once at onboarding (**¿Tus precios ya incluyen
+  IVA?**), never surfaced at the counter"* — the ADR wrote the wording. It decides how
+  every recorder splits net from tax, so **getting it wrong at onboarding is wrong
+  forever**, and it is one question asked of someone who does not do book-keeping.
+  (1.5)
+
 ### 🔍 FIVE THINGS THE GRILL FOUND IN APPLIED SQL, NOT IN THE INTERVIEW
 
 Read out of migrations during the session, because three of the owner's answers
@@ -7376,69 +7624,64 @@ turned on facts the database had already settled.
 - **F7 — `product_variant`'s four unit codes are all `not null` with no defaults**,
   which is what forces C8.10.
 
-### ⚠️⚠️ Settled in sizing 5, 2026-09-07 — IT IS AN `XL`, AND IT SPLITS INTO SIX TASKS BEHIND TWO GATES
+### ⚠️⚠️ Re-sized after round two, 2026-09-07 — STILL `XL`, NOW EIGHT TASKS, AND THE LETTERS MOVED
 
-Sized immediately after the grill, before a line of app code, on the same rule every
-step since 1.3 has used. **There is no React Native project at all** — no manifest, no
-Expo app, no auth wiring — so the estimate is not "screens" but "screens plus
-everything under them".
+⚠️ **This supersedes the sizing written earlier the same day, after areas 3 and 8 and
+before areas 1, 10, 11 and 12.** That version had six tasks and claimed `5a` *"rests
+on nothing that was asked and nothing that was not."* **It was wrong in the one
+direction that mattered** — `5a` is the foundation (auth model, offline architecture,
+theme scale), and those are the three things in a client that are cheapest to decide
+now and dearest to change later. Round two moved four areas out of "unasked" and
+produced step 4.6.
 
-⚠️ **The seam is DIFFERENT from every seam in steps 1–4.5, and the difference is the
-point.** Those splits were forced by append-only migrations: two functions could not
-share one unapplied file. **Step 5 ships no migration**, so nothing here is forced by
-the database. What forces this split is **what has been answered.** 5a–5d rest
-entirely on areas 3 and 8, which are closed. 5e and 5f do not, and are gated.
+✅ **Re-lettering costs NOTHING here, and that is worth saying once.** Steps 1–4.5 could
+not renumber a migration after CI applied it — 4e cost two renumberings and
+pre-committed a seam to avoid a third. **No app code exists.** The letters below are
+free today and stay free until the first task merges.
 
-| Task | What it is | Size | Rests on |
-|------|-----------|------|----------|
-| **5a** | The Expo project, auth, and tenancy bootstrap. No shop screens: sign-in, `my_locations()`, workspace/location selection, the two density modes wired as a theme scale from the first commit (C3.18), and the offline-capable client stub. | `L` | nothing — infrastructure |
-| **5b** | **Productos, read.** Family grid, initials tiles (C8.14), family sheet with variants at sight and their prices (C8.13). | `M` | C8.13, C8.14 |
-| **5c** | **Productos, write.** `Agregar` — the four-field form (C8.9), one unit into all four columns (C8.10), family suggestion with gesture override (C8.11), the three entry points (C8.12), and `Editar`. | `M/L` | C8.9–C8.12 |
-| **5d** | **The transaction screen, shared.** The flat variant list and search (C3.1), the row (C3.2, C3.10), the `price_unit_code` stepper and keypad (C3.7, C3.8), quantity-is-the-line (C3.3), sticky `Total` (C3.4), basket sheet (C3.5), slide-to-commit (C3.6), the amber/badge rule (3.17 above), and the `...` price change with its persistence setting and Home banner (C3.15, C3.16). **The single highest-traffic surface in the app.** | `XL` | C3.1–C3.18 |
-| **5e** | **Comprar.** Provider selector in the header, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change (C3.11), the dash empty state (C3.12), block-on-missing-price (C3.13), and `record_purchase`. | `M` | C3.11–C3.13 — ⚠️ but see the gate |
-| **5f** | **Vender.** `price_list` prefill, the `$0.00` amber path (C3.14), and `record_sale`. | `M` | ⚠️ **GATED** |
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **5a** | **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). | `L` | — |
+| **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
+| **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
+| **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
+| **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
+| **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
+| **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
+| **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 
-**Total: `XL`, and 5d is itself an `XL` inside it** — the largest single task in this
-plan since `0025`. ⚠️ **If 5d overflows one session the seam is pre-committed here so
-a third look is never needed: `5d-i` is the list, the row and the quantity control;
-`5d-ii` is the basket, the slide, the amber rule and the price-change menu.** Decided
-now, at zero cost, for the same reason 4e reserved exactly two numbers.
+⚠️ **`5f` is still an `XL` inside an `XL`, and its seam stays pre-committed**:
+`5f-i` is the list, the row and the quantity control; `5f-ii` is the basket, the
+slide, the amber rule and the price-change menu.
 
-#### ⚠️⚠️ THE TWO GATES — WHAT CANNOT BE WRITTEN WITHOUT A SECOND GRILL ROUND
+#### ⚠️ What changed in the sizing, and why
 
-- **GATE 1 — `5f` (Vender) STOPS AT THE SLIDE.** What happens *after* a sale commits
-  is **area 5 (finishing a sale), and it was not asked**: receipt or nothing, change
-  calculation, whether the customer sees the screen. 5f can be written up to the
-  commit and no further. ⚠️ **Area 6 (mistakes) is behind the same gate** — the
-  15-minute self-service void of `0021` exists, is fenced at staff, and **no screen
-  for it has been designed or asked about.**
-- **GATE 2 — OFFLINE IS NOT IN THIS SPLIT AT ALL.** The pilot store loses signal
-  often ([[pilot-store-is-offline-a-lot]]), the failure path (`0024`–`0026`) is built
-  and unused, and **area 10 was not asked.** No task above queues, retries or admits
-  a lost connection beyond 5a's client stub. **This is the largest single omission in
-  the sizing and it is deliberate** — designing the offline surface from an
-  assumption is exactly what the grill-me exists to prevent.
+- **`5a` shed the offline stub and gained a platform.** Offline is now its own task
+  (`5c`) because C10.1–C10.5 describe a **write queue with idempotent replay**, not a
+  retry wrapper — and the failure path it drives is `0024`–`0026`, built and unused.
+  ✅ **`5a` also LOST the location picker**: C1.5 makes the two shops two workspaces,
+  so the phone knows one store and never asks.
+- **`5b` is new and it is the blocked one.** Round one had no membership task at all,
+  because the plan assumed `create_invite`/`redeem_invite` existed. **They do not.**
+- **`5h` is the only task behind the screen-level gate now.** Areas 5 (finishing a
+  sale) and 6 (mistakes, and `0021`'s void has no screen) are still unasked.
 
-#### ⚠️ THE SECOND ROUND — TEN AREAS STILL UNASKED
+#### ⚠️ THE THIRD ROUND — FOUR AREAS STILL UNASKED
 
-Areas 3 and 8 are struck. The remaining ten stand as written on 2026-09-05, with what
-this session added to three of them:
+Areas 1, 3, 8, 10, 11 and 12 are struck. **Four remain, and only two of them gate
+anything:**
 
-| # | Area | Added by the 2026-09-07 session |
-|---|------|--------------------------------|
-| 1 | The counter itself | — |
-| 2 | Vender — finding the product | ✅ **Partly answered**: flat variant list + search (C3.1). Still open: favourites, ordering, whether 100 rows at elder density is navigable |
-| 4 | Vender — quantity and units | ✅ **Answered as a control** (C3.8, C3.9). Kept open only for the scale question |
-| 5 | Finishing a sale | ⚠️ **GATE 1** — blocks the back half of 5f |
-| 6 | Mistakes | ⚠️ **GATE 1** — `0021`'s void has no screen |
-| 7 | Comprar — receiving | ⚠️ Expiry per line is untouched, and `track_expiry` + ADR-017's FEFO policy depend on it. A pollería's chicken is the case that needs it |
-| 9 | Números | ⚠️ **Now carries F2** — the margin the owner described is not the margin `0009` computes, and closing it means a **migration**, which reopens the schema |
-| 10 | Offline | ⚠️ **GATE 2** — the largest omission in the sizing |
-| 11 | Roles | ⚠️ **Now carries C3.17** — "anyone may change a price" is the pilot's only role decision so far, and it was explicitly deferred, not settled |
-| 12 | The device and the language | ✅ **Partly answered**: two density modes (C3.18). Still open: Android versions, screen sizes, icons vs words, number formatting |
+| # | Area | Status |
+|---|------|--------|
+| 2 | Vender — finding the product | ✅ **Effectively answered** by C3.1 and C8.11 — flat variant list, search, same list both screens. Open only as a refinement: favourites, ordering, whether 100 rows at elder density is navigable |
+| 4 | Vender — quantity and units | ✅ **Answered** by C3.8 and C3.9. Closed |
+| 5 | **Finishing a sale** | ⚠️ **GATES `5h`** — receipt or nothing, change calculation, whether the customer sees the screen |
+| 6 | **Mistakes** | ⚠️ **GATES `5h`** — `0021`'s 15-minute self-service void exists, is fenced at staff, and has no screen |
+| 7 | Comprar — receiving | ⚠️ Expiry per line, `track_expiry`, ADR-017's FEFO policy. Does not gate `5g`, but a pollería's chicken is the case that needs it |
+| 9 | **Números** | ⚠️ **GATES `4.6c`** — *"three numbers, not thirty"*, and F2 means the answer decides a migration |
 
-**Where step 5 starts: `5a`.** It rests on nothing that was asked and nothing that was
-not, and every other task needs it underneath.
+**Where the build starts: `5a`.** It is the only task with no gate above it and
+nothing owed beneath it, and every other task needs it underneath.
 
 ---
 
