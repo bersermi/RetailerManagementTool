@@ -18,6 +18,7 @@
 
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { TABS } from '../src/navigation/tabs';
@@ -63,12 +64,14 @@ describe('C12.1 — never an icon without its word', () => {
     it(`${tab.route} has a Spanish word from the strings file`, () => {
       expect(tab.label, `${tab.route} has no label — C12.1 forbids an icon alone`).toBeTruthy();
       expect(tab.label.trim()).toBe(tab.label);
-      // ⚠️ NOT just "non-empty". The label must come from `src/strings.ts` —
-      // §2.11's one file — because a literal typed into the tab table is the
-      // first of the four dialects this project keeps saying it will not have.
+      // ⚠️ NOT just "non-empty" — the word has to be one of the four in
+      // `src/strings.ts`. This does NOT prove it was READ from there: a literal
+      // `'Vender'` typed into the table is the same string at runtime, and
+      // falsification F9 confirmed this assertion stays green on one. The
+      // source-text check further down is what closes that half.
       expect(
         VOCABULARY.has(tab.label),
-        `"${tab.label}" is not in ES.tabs — a tab label typed in place, not centralised`,
+        `"${tab.label}" is not one of the words in ES.tabs`,
       ).toBe(true);
     });
 
@@ -95,6 +98,34 @@ describe('C12.1 — never an icon without its word', () => {
     // between by position, which is the failure C12.1's words exist to prevent.
     expect(new Set(TABS.map((t) => t.label)).size).toBe(TABS.length);
     expect(new Set(TABS.map((t) => t.icon)).size).toBe(TABS.length);
+  });
+
+  it('reads its labels from the strings file rather than repeating them', () => {
+    // ⚠️ THIS ONE READS SOURCE TEXT, AND IT IS HERE BECAUSE FALSIFICATION F9
+    // SHOWED THE VALUE CHECK ABOVE CANNOT SEE THE DEFECT. `label: 'Vender'` and
+    // `label: ES.tabs.vender` are the same string once the module has loaded,
+    // so no assertion over TABS can tell them apart — and the one that matters
+    // to §2.11 ("hardcoded Spanish, centralised in ONE file") is exactly that
+    // difference. A second copy drifts silently; the first one always looks
+    // harmless. Same shape as docs/checks/5a-split-coverage.sh, which reads
+    // Markdown for the same reason: some claims are about the text.
+    const source = readFileSync(
+      fileURLToPath(new URL('../src/navigation/tabs.ts', import.meta.url)),
+      'utf8',
+    );
+    const literals = source
+      .split('\n')
+      .filter((line) => /^\s*label:\s*['"`]/.test(line));
+    expect(
+      literals,
+      'a tab label is typed in place instead of coming from ES.tabs (§2.11: one strings file)',
+    ).toEqual([]);
+    // The guard on the guard: if the shape of the file ever changes so that no
+    // line reads `label: ...` at all, the check above passes vacuously.
+    expect(
+      source.split('\n').filter((line) => /^\s*label:\s*ES\.tabs\./.test(line)),
+      'no `label: ES.tabs.…` lines found — this check is reading the wrong file',
+    ).toHaveLength(TABS.length);
   });
 
   it('records why each glyph was chosen, next to the choice', () => {
