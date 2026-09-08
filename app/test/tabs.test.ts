@@ -81,6 +81,15 @@ describe('C12.1 — never an icon without its word', () => {
     });
   }
 
+  it('names the modules in the domain vocabulary, not in English', () => {
+    // ⚠️ PINNED LITERALLY, AND THE REASON IS IN CLAUDE.md: "Spanish module names
+    // are the domain language, not a translation layer." Checking only that a
+    // label comes from `ES.tabs` would pass an anglicised strings file — the
+    // set would still agree with itself. An English build of this app would
+    // still have a `Vender` screen, so these four words are load-bearing.
+    expect(TABS.map((t) => t.label)).toEqual(['Inicio', 'Vender', 'Comprar', 'Desperdicio']);
+  });
+
   it('gives every tab a distinct word and a distinct icon', () => {
     // Two tabs that look the same are two tabs a hurrying shopkeeper picks
     // between by position, which is the failure C12.1's words exist to prevent.
