@@ -337,10 +337,43 @@ plugins enabled.**
 
 | | Verdict |
 |---|---|
-| **context7** | ✅ **Worth installing now, and it is the only one with a clear case.** It feeds Claude current documentation for outside libraries. The app uses Expo, whose interfaces change fast, and Claude's own knowledge has a cutoff date. Confidently-wrong code against a library that changed last month is precisely the failure this handbook warns about, and this is the cheapest guard against it |
-| **`/using-superpowers`** | ❓ Not installed, and **Claude could not say what it does** beyond recognising the name as a Claude Code plugin. It declined to describe it rather than guess — which is the behaviour you want. Worth telling it where you saw it recommended |
-| **Headroom** | ❓ **Still unidentified**, exactly as this section said weeks ago. Cannot be folded in until someone says what it is |
+| **context7** | ✅ **Installed 2026-09-07, and it was the only one with a clear case.** It feeds Claude current documentation for outside libraries. The app uses Expo, whose interfaces change fast, and Claude's own knowledge has a cutoff date. Confidently-wrong code against a library that changed last month is precisely the failure this handbook warns about, and this is the cheapest guard against it. Connected keyless; a free key at context7.com raises the rate limits if it ever matters |
+| **superpowers** | ⏸️ **Identified, and deliberately NOT installed yet — revisit at 5f.** See below |
+| **Headroom** | ❓ **Still unidentified.** Cannot be folded in until someone says what it is |
 | **ECC** | ❓ **Still unidentified.** Same |
+
+#### Why superpowers is on hold rather than installed
+
+It is real and well-made — an MIT-licensed skills framework by Jesse Vincent and Prime
+Radiant, adding test-driven development, systematic debugging, planning, code review
+and git-branch workflows that switch themselves on during a session. Installed with
+`/plugin install superpowers@claude-plugins-official`.
+
+Three reasons it is not being added today:
+
+1. **This project's method is already stricter and more specific.** Superpowers brings
+   ordinary test-driven development. This repository does something harder:
+   **falsification** — write the check, then deliberately break the thing it guards and
+   confirm something turns red. That practice has found **six separate ways a test file
+   could report success while failing**, and on several tasks the damage it found was in
+   the *tests* rather than in the code. A general framework does not do that, and
+   layering one on top risks diluting the thing that is working.
+2. **Two sets of instructions competing is a real cost.** Its skills activate on their
+   own. `CLAUDE.md` says *one task per session, taken from the plan, sized and split
+   before any code is written* — and that rule is the reason this build survives being
+   interrupted. A planning skill that fires by itself is exactly what pulls a session
+   off it.
+3. **Context is money**, which is the same reason the project map exists. A resident
+   skills library costs tokens in every session. That cost could not be measured
+   without installing it first.
+
+**Where it would earn its place: task 5f**, the biggest screen in the plan — the first
+piece of work large enough that its own shape is a risk. Worth asking again there.
+
+⚠️ If you do install it: **it reports telemetry by default.** Setting
+`SUPERPOWERS_DISABLE_TELEMETRY` turns that off. The honest way to judge it is to
+install it, run `claude plugin details superpowers@claude-plugins-official` to see what
+it costs per session, and `claude plugin disable` it if that is more than it is worth.
 
 **What step 5a actually needs** is short and unexciting: Expo (already reachable, no
 install), the Supabase client library, and the app added to the project's existing
