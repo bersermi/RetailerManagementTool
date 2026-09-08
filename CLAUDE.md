@@ -12,8 +12,16 @@ React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope.
 
 ## What this is not
 
-There is no React Native code yet — do not assume `.tsx`, hooks, or a package
-manifest. The build is at the database layer (see `docs/PLAN.md`).
+There is no React Native code yet — do not assume `.tsx`, hooks, screens or an Expo
+app. ⚠️ **There IS a root `package.json`**: an npm workspaces manifest declaring
+`packages/*` and `supabase/vitest`, with a `money` package and a Vitest suite under
+it. The app becomes a fourth workspace at step 5a; until then, TypeScript in this
+repo is test and money code, never client code.
+
+⚠️ **Neither CI workflow watches an app directory** — `db.yml` fires on
+`supabase/**`, `money.yml` on `packages/**`. Adding `app.yml` is part of 5a's
+definition of done (`docs/PLAN.md`), because until it exists *"a file is not evidence,
+a green CI run is"* does not apply to a single line of the client.
 
 `archive/power-platform/` holds a Power Apps Canvas + Dataverse era that stopped on
 2026-08-14. **Nothing there describes the system being built**, four of its ADRs are
@@ -66,10 +74,10 @@ to bring up only what a migration reset needs.
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ — 437 nodes over Markdown, SQL and
+This project has a knowledge graph at graphify-out/ — 1,084 nodes over Markdown, SQL and
 shell, with community structure and cross-file relationships.
 
-⚠️ **There are no god nodes and no semantic layer** (checked 2026-08-23). Every node is
+⚠️ **There are no god nodes and no semantic layer** (checked 2026-09-07 — `graphify-out/wiki/` still does not exist). Every node is
 `_origin: ast`; the LLM extraction pass has never run because no `GEMINI_API_KEY` /
 `GOOGLE_API_KEY` is set, and `graphify-out/wiki/` does not exist. Community *names* come
 from each cluster's hub node, not from a model — `graphify label` would need a key. So
@@ -85,7 +93,7 @@ Rules:
 - **SQL IS indexed**: tables, functions, triggers, views and CTEs, each with a file
   and line.
 - ⚠️ **`CREATE POLICY` is still NOT indexed**, and on this project that is the gap that
-  matters — forty policies are the subject of most current work. Policy names
+  matters — forty-one policies are the subject of most current work. Policy names
   (`sale_line_select`, `provider_update`) resolve to nothing in the graph. **For RLS
   policy questions, read `supabase/migrations/**` directly, or ask the database.**
   Everything else in SQL, query first.

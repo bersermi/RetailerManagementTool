@@ -26,6 +26,11 @@ yet. That is deliberate and it is the plan working, not the plan stalling —
 ADR-035 is emphatic that screens built on an unproven schema is exactly how the
 previous attempt failed.
 
+**That changes next.** The database build finished on 2026-09-05, a long interview
+about screens ran on 2026-09-07, and the first app code is the very next task. The
+interview is worth knowing about, because it is the reason three more database
+changes appeared after the database was declared finished — see *Where we are*.
+
 ---
 
 ## How a working session goes
@@ -51,6 +56,13 @@ exists" — then update the status in docs/PLAN.md and commit.
 
 Finish by telling me what's next and what decision you need from me.
 ```
+
+⚠️ **One line of that prompt is about to stop meaning what it says.** *"`supabase db
+reset` and CI"* is the right test for a database task and the wrong one for a screen:
+an app task runs no migration, and until step 5a adds a third check, no automated
+check watches app files at all. From 5a onward the question to ask is not *"was CI
+green?"* but **"which check looked at the code you just wrote?"** — and a session that
+cannot name one has not verified anything.
 
 The last line keeps you in charge: every session ends with Claude asking rather
 than assuming. If a session ever ends without telling you what was decided on your
@@ -132,15 +144,21 @@ That is the interactive map — boxes you can drag, click and search. It refresh
 itself when you commit or switch branches on `main`; to force it, run
 `graphify update .`.
 
-**Set your expectations before you open it.** Right now the map holds 92 boxes and
-**84 of them are headings out of the Markdown documents** — this handbook, the ADR,
-the plan, the two READMEs. There is **no database schema in it at all**, because
-graphify has no SQL parser and this project is currently all SQL. So today it is a
-map of *what has been written down*, not of *what has been built*. It becomes a map
-of the app itself when React Native code arrives at step 5a.
+**Set your expectations before you open it.** The map now holds **1,084 boxes**, and
+unlike when this section was first written, **the database is in it**: tables,
+functions, triggers, views and the CTEs inside queries, each with a file and a line
+number. `graphify explain "batch_balance"` works today. *(Both this file and
+`CLAUDE.md` carried much smaller counts — 92 and 437 — for weeks after they stopped
+being true. Counts in prose go stale; that is what they do.)*
 
-That is worth knowing so you do not go looking for `stock_movement` in there and
-conclude something is broken.
+⚠️ **One thing is still missing and it is the one that matters most on this
+project: `CREATE POLICY` is not indexed.** The forty-one row-level-security policies —
+`sale_line_select`, `provider_update` and the rest — resolve to nothing in the map.
+For anything about who can see what, the migrations have to be read directly, or the
+database asked. Everything else in SQL, the map answers first.
+
+It is still a map of **where** things are, never of what they mean: there is no
+summary layer, because that needs an API key nobody has set.
 
 Two other views of the same thing:
 
@@ -206,9 +224,17 @@ docker exec -it supabase_db_RetailerManagementTool psql -U postgres
 
 ### What you will find in there
 
-Twenty-one tables and **no views yet** — the first view arrives with task 1.4. Of
-those twenty-one, `_verify` is test scaffolding and `unit` is the reference list of
-grams and kilos; the other nineteen are the real model.
+**Twenty-one tables, four views, twenty-eight functions and forty-one security
+policies.** `unit` is the reference list of grams and kilos; the rest are the real
+model. The four views are the reports — `product_margin_daily`,
+`product_velocity_daily`, `product_waste_daily` and `provider_price_memory` — and the
+functions are the write operations plus their helpers.
+
+⚠️ **One of those views is known to be wrong for a butcher or a chicken shop**, and it
+was the interview on 2026-09-07 that found it, not a test. `product_margin_daily`
+works out profit from the cost of the exact goods that left the shelf — which is
+correct for a can of beans and nonsense for a shop that buys whole chickens and sells
+breasts. It is being replaced. See *Where we are*.
 
 The tables are usually **empty**. Data only appears while a test suite is running,
 and the cleanup wipes it before the next one. Real sample data arrives at task 1.6.
@@ -253,26 +279,67 @@ to stop and ask rather than pick a side.
 |------|------|-------|
 | 0 | A database you can actually run | **Done** |
 | 1 | The database tables and realistic fake data | **Done** |
-| 2 | Three business questions — *the design gate* | **In progress** — 1 of 3. *What made me money* is answered and the schema passed |
-| 3 | Automated tests | Later |
-| 4 | The write operations (sell, buy, waste, void) | Later |
-| 4.5 | What happens when a write fails | Later |
-| 5a | App foundations — *the hiring gate* | Later |
-| 5b–7 | The actual screens | Later |
+| 2 | Three business questions — *the design gate* | **Done** |
+| 3 | Automated tests | **Done** — 16 suites, 1,080 checks |
+| 4 | The write operations (sell, buy, waste, void) | **Done** — all six |
+| 4.5 | What happens when a write fails | **Done** |
+| — | **The screens interview** — two rounds, 2026-09-07 | **Done** — eight of twelve subjects |
+| **4.6** | **Three database changes the interview uncovered** | **Open** — one of them blocks a screen |
+| **5a** | **App foundations** — the first app code in the project | ⬅️ **NEXT** |
+| 5b–5h | The actual screens | After 5a |
+| 6–7 | Beyond the pilot | Later |
 
-### Step 2 is the one to care about
+### The thing to understand about step 4.6
 
-It asks three questions of the fake data: what made me money, what am I throwing
-away, what stopped selling. If answering them turns out to be tortuous, the
-database design is wrong — and you find that out in week two, with nothing built
-on top of it. It is the cheapest moment in the whole project to discover a
-mistake. Do not let it get rushed.
+Between 4.5 finishing and 5a starting, this plan said in as many words that *the
+database is complete* and that *the screens ship no database changes at all*.
 
-### Tooling deliberately not installed
+**Both sentences were wrong, and what proved it was asking you questions about
+buttons.** Not a test, not the automated referee, not Claude re-reading the schema.
+Three examples of what came out of an interview that was nominally about screens:
 
-context7, `/using-superpowers`, Headroom and ECC help write *app* code, and there
-is no app yet. They become genuinely useful around step 5a. Headroom and ECC are
-still unidentified — they need explaining before they can be folded in.
+- **There is no way for a second person to join a shop.** The table that holds
+  invitations exists. The two functions that would create and accept an invitation
+  were assigned to a numbered file back in the early days, that file ended up
+  containing something else, and **they were never written.** Nothing caught it,
+  because a table nobody calls breaks no test. Your employee cannot get into the app.
+- **Only the owner can recover a failed sale.** You said the person standing in the
+  shop must be able to fix it, and in both pilot shops that is often not you.
+- **The profit report is wrong for two of the four shop types** — the chicken-shop
+  problem described above.
+
+⚠️ **This is the single most useful thing to take from this handbook.** The tests
+prove the database is consistent with itself. They cannot prove it matches a real
+shop, and no amount of green ticks will ever start doing so. **That gap closes only
+when someone asks you, and you answer from the shop rather than from the plan.**
+
+### What was decided in that interview
+
+Roughly thirty constraints, all in [`docs/PLAN.md`](PLAN.md) under *Step 5*, each
+one traceable to the question that produced it. The ones that changed the shape of
+the work: the two pilot shops are **two separate businesses, two people each, either
+often alone**; they are on **their own iPhones and Android phones**, so the app must
+be built for both; **you are building the first catalog yourself** but leaving it
+deliberately incomplete; **stock is never shown while selling or buying**; and the
+app **admits it is offline quietly and never blocks a sale.**
+
+### Tooling — reviewed 2026-09-07, now that 5a is next
+
+None of the four is installed. Checked directly: **no MCP servers configured, no
+plugins enabled.**
+
+| | Verdict |
+|---|---|
+| **context7** | ✅ **Worth installing now, and it is the only one with a clear case.** It feeds Claude current documentation for outside libraries. The app uses Expo, whose interfaces change fast, and Claude's own knowledge has a cutoff date. Confidently-wrong code against a library that changed last month is precisely the failure this handbook warns about, and this is the cheapest guard against it |
+| **`/using-superpowers`** | ❓ Not installed, and **Claude could not say what it does** beyond recognising the name as a Claude Code plugin. It declined to describe it rather than guess — which is the behaviour you want. Worth telling it where you saw it recommended |
+| **Headroom** | ❓ **Still unidentified**, exactly as this section said weeks ago. Cannot be folded in until someone says what it is |
+| **ECC** | ❓ **Still unidentified.** Same |
+
+**What step 5a actually needs** is short and unexciting: Expo (already reachable, no
+install), the Supabase client library, and the app added to the project's existing
+workspace list. **The build tool for putting an app on the app stores is deliberately
+not installed** — you deferred paying for store accounts until the pilot is ready, and
+until then it builds straight onto your own iPhone from your own Mac.
 
 ---
 
@@ -309,15 +376,25 @@ that were never created, discovered only after a module shipped on top of them.
 The protection is mechanical, not human. When Claude says something works, the
 question that costs you nothing is: *did a machine other than you confirm that?*
 
-### Right now, the answer is no
+### That gap is now closed — and a different one has opened
 
-Two database migrations are committed and pushed on the strength of local testing
-only. GitHub's independent check has run three times and **nobody has seen a
-single result**, because `gh auth login` was never completed.
+**This section used to say the opposite**, and it stayed wrong for weeks: it told you
+GitHub's login had never been completed and that nobody had ever seen a check result.
+That was true when written. It is not true now — the login is done, and both checks
+have been read by name in the job log on every merge since. **A handbook that tells
+you your safety net is switched off, when it is on, is worse than one that says
+nothing.**
 
-That is the one loose end in the setup, and it is the exact gap this repo was
-restructured to close. Finishing that login is the highest-value five minutes
-available.
+⚠️ **The new gap is that the safety net does not reach the app.** The two automated
+checks are wired to fire only when the database files or the money package change.
+**Neither one watches an app directory, because there has never been one.** So from
+the first screen onward, *"a green run confirmed it"* would quietly mean *"both checks
+correctly decided they had nothing to do."*
+
+This is written into the plan as part of step 5a rather than left as a good
+intention: **5a is not finished until a third check exists that watches the app.**
+If a session ever tells you 5a is done and cannot name that check, that is the thing
+to push back on.
 
 ### Other things to watch
 
@@ -349,14 +426,24 @@ Not technical questions, which is exactly why they are yours.
 - **Whether to trust a piece of work.** Ask how it was verified. "It applied
   cleanly locally" and "the independent check passed" are very different answers.
 
-### One open decision right now
+### The open decisions right now
 
-Recorded in [`docs/PLAN.md`](PLAN.md). Generating three months of realistic fake
-sales needs a rule for which stock gets sold first — oldest expiry date first.
-That rule will later be written properly for the real app. The recommendation is
-to write it **once**, now, and have both use it, so the fake data behaves like the
-real system will. The alternative is faster and risks testing the design against
-data the real app would never produce.
+All recorded in [`docs/PLAN.md`](PLAN.md); these are the ones that are yours.
+
+1. **How a second person joins a shop.** An invitation you send, or a code they type
+   and you approve? You asked for **both** — an invitation counting as an approval
+   granted in advance. That is the one piece of modelling worth arguing about
+   **before** it is built rather than after, because it is a database change and
+   those are dear to reverse once merged.
+2. **Whether anyone may change a price.** Today's answer is yes, anyone — and prices
+   changed at the counter **stick**. So an employee giving one customer a discount
+   quietly rewrites the shop's price for everyone after. You took that knowingly and
+   for now; it is a screen, so it costs nothing to change your mind.
+3. **Four subjects the interview never reached**, two of which block a screen:
+   what happens **after** a sale is finished (receipt? change?), what **undoing a
+   mistake** looks like, expiry dates when a delivery arrives, and **which three
+   numbers** you want to see daily. That last one decides the shape of the
+   replacement profit report, so it is worth doing before that gets written.
 
 ---
 
@@ -388,13 +475,24 @@ purpose. **Merging touches no database and deploys nothing** — it only changes
 which version of the files `main` points at. The work goes onto a branch first so
 that `main` only ever contains what CI has already passed.
 
-Merging a migration needs the schema owner's approval — which is a decision, not a
-keystroke. Claude opens the pull request, reports CI's verdict, and asks; you answer;
-Claude merges. Settled 2026-08-17.
+⚠️ **This paragraph used to describe an approval step that no longer exists, and it
+contradicted `CLAUDE.md` for weeks.** Two things were settled on 2026-08-17, hours
+apart, and this file kept the first one: an approval gate was agreed in the morning
+and **replaced by automated merging** the same day. The rule now is that Claude
+pushes, opens the pull request, waits, **reads the job log rather than the green
+tick**, and merges without asking — migrations included.
 
-Saying *no*, or *not yet, I want to read it first*, is always available and costs
-nothing: the branch sits there until you say otherwise, and nothing is deployed
-either way.
+Two things did **not** change, and they are what the gate was really for:
+
+- **Never merge red, and never merge on a green tick alone.** A tick is also what a
+  silently skipped check looks like. The checks get confirmed by name.
+- **Every decision made on your behalf gets reported** — in the closing message and
+  in the pull request. Removing the checkpoint removed the approval, not the
+  obligation to tell you.
+
+Saying *no*, or *not yet, I want to read it first*, is still always available and
+still costs nothing. It is just no longer the default, and after a merge a modelling
+choice you want back costs a new migration rather than an edit.
 
 **Context / clearing context** — everything Claude can currently see. It fills up,
 costs money, and degrades. Clearing starts fresh, which is safe here because the

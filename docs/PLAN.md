@@ -7641,7 +7641,7 @@ free today and stay free until the first task merges.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5a** | **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). | `L` | — |
+| **5a** | **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
@@ -7649,6 +7649,31 @@ free today and stay free until the first task merges.
 | **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
+
+#### ⚠️⚠️ STEP 5 SHIPS CODE THAT NO CI COVERS, AND THAT IS A HOLE IN THE PROJECT'S FOUNDING RULE
+
+Found while reconciling `docs/HANDBOOK.md` on 2026-09-07, not during either grill
+round. **`db.yml` fires on `supabase/**`; `money.yml` fires on `packages/**`. Neither
+matches an app directory.** So *"a file is not evidence; a green CI run is"* — the rule
+this repository exists to enforce, and the rule the previous era died for want of —
+**stops applying at exactly the point the codebase starts growing fastest.**
+
+⚠️ The HANDBOOK's main prompt tells the owner to verify with *"`supabase db reset` and
+CI"*. For every task in step 5 **that verifies nothing**: no migration runs, and no
+workflow watches the files that changed. A green tick on `5a` would mean the two
+existing workflows correctly decided they had nothing to do.
+
+**Therefore, part of `5a`'s definition of done:**
+
+- **`.github/workflows/app.yml`** — typecheck and unit tests over the app workspace,
+  on a `paths:` filter that names it. Same shape as `money.yml`.
+- **The app registered as a workspace** in the root manifest, which already declares
+  `packages/*` and `supabase/vitest`. A fourth entry fits the existing shape rather
+  than inventing one.
+
+⚠️ **This is deliberately NOT its own task.** A separate "add CI" task can slip, and
+the one commit it must exist for is the first app commit. `5a` is not done until a
+machine other than the author has looked at its code.
 
 ⚠️ **`5f` is still an `XL` inside an `XL`, and its seam stays pre-committed**:
 `5f-i` is the list, the row and the quantity control; `5f-ii` is the basket, the
