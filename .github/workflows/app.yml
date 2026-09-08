@@ -1,0 +1,110 @@
+name: app
+
+# THE THIRD WORKFLOW, AND THE HOLE IT CLOSES IS IN THE PROJECT'S FOUNDING RULE.
+#
+# `db.yml` fires on `supabase/**`; `money.yml` fires on `packages/**`. Until this
+# file existed, NEITHER MATCHED AN APP DIRECTORY — so "a file is not evidence; a
+# green CI run is" (ADR-035 §9), the rule this repository exists to enforce and
+# the rule the previous era died for want of, stopped applying at exactly the
+# point the codebase starts growing fastest. A green tick on the first app
+# commit would have meant the two existing workflows correctly decided they had
+# nothing to do.
+#
+# It ships on the FIRST app commit rather than the first interesting one,
+# deliberately (plan task 5a-i). A `paths:` filter added later is a filter that
+# was wrong for every commit that merged before it.
+#
+# ⚠️ THE TEST STEP EXISTS BECAUSE THE ADR WAS AMENDED TO ALLOW IT, 2026-09-07.
+# §2.11's stack table used to say client tests were "skipped, except
+# packages/money", which would have made this workflow a typecheck and nothing
+# more — and A TYPECHECK CANNOT FAIL ON AN APP THAT CHARGES THE WRONG AMOUNT. It
+# asks whether the code makes sense to the compiler, not whether it is right.
+# The amendment draws the line where §2.10's prose always drew it: a unit test
+# is in scope where it pins a VALUE a customer sees or the ledger stores, and
+# out of scope over rendering, navigation and layout. `app/vitest.config.ts`
+# collects `test/**` only, so that boundary is structural here rather than
+# remembered.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "app/**"
+      # ⚠️ `packages/money/**` IS HERE ON PURPOSE AND IT IS NOT A DUPLICATE OF
+      # money.yml. The app imports `@tienda/money`, so a change there can break
+      # THIS workspace's typecheck while money.yml stays green on its own suite.
+      # The two workflows assert different things about the same edit.
+      - "packages/money/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/app.yml"
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  vitest:
+    name: app (node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ONE NODE VERSION, AND THE ASYMMETRY WITH money.yml IS DELIBERATE.
+      # money.yml runs 22 and 24 because its subject is integer arithmetic that
+      # "should not" depend on the engine — and "should not" is the class of
+      # statement §1 exists to distrust, so it is measured. That measurement
+      # already exists and this workflow would not add to it: the app's suite
+      # calls the same functions across a workspace edge. 22 is the floor the
+      # root manifest's `engines` declares.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      # `npm ci` and not `npm install`: the lockfile is the pinned input, the
+      # same argument that pins the Supabase CLI version in db.yml.
+      - name: Install
+        run: npm ci
+
+      # ⚠️ THIS STEP IS THE ONE THAT CAN FAIL ON A MISSING WORKSPACE ENTRY.
+      # `--workspace @tienda/app` exits non-zero if the root manifest does not
+      # declare it, so "the fourth workspace is registered" is asserted by the
+      # run rather than by reading package.json.
+      - name: Typecheck
+        run: npm run typecheck --workspace @tienda/app
+
+      # ⚠️ THE COUNTER, AND WHY IT IS HERE — the same guard money.yml carries,
+      # for the same reason. 3.3 found that a suite can print `not ok` and exit
+      # 0, and the lesson generalised: A GREEN TICK IS ALSO WHAT A STEP THAT
+      # ASSERTED NOTHING LOOKS LIKE. This repository has now hit four shapes of
+      # that (3.3's disarmed pgTAP exception, 3.6a's empty Vitest workspace,
+      # 4b-i's `where not passed`, and 5a-i's own falsification fixture that
+      # edited nothing). "No test files found" is the one that would otherwise
+      # be silent here, and Vitest exits non-zero on it.
+      #
+      # The count is READ FROM THE JSON REPORTER, not scraped from the terminal:
+      # money.yml's first spelling grepped the summary line and failed its own
+      # first CI run on a GREEN suite, because Vitest wraps that line in ANSI
+      # colour codes. The reporter is a contract; the formatting is not.
+      - name: Vitest — the workspace-boundary suite (plan 5a-i)
+        run: |
+          set -o pipefail
+          npm run test --workspace @tienda/app -- \
+            --reporter=default --reporter=json --outputFile="$PWD/vitest-report.json"
+          node -e '
+            const r = require("./vitest-report.json");
+            if (!r.success) { console.error("suite reported failure"); process.exit(1); }
+            if (!r.numTotalTests || r.numTotalTests < 1) {
+              console.error("no tests ran — a green here would assert nothing");
+              process.exit(1);
+            }
+            if (r.numFailedTests > 0) {
+              console.error(`${r.numFailedTests} failing assertions`);
+              process.exit(1);
+            }
+            console.log(`${r.numPassedTests} assertions ran over the app workspace boundary`);
+          '

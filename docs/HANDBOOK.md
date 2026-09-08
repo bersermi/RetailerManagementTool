@@ -301,12 +301,16 @@ to stop and ask rather than pick a side.
 | — | **The screens interview** — two rounds, 2026-09-07 | **Done** — eight of twelve subjects |
 | **4.6** | **Three database changes the interview uncovered** | **Open** — one of them blocks a screen |
 | **5a** | **App foundations** — the first app code in the project | **Split into four on 2026-09-07**, before any of it was written |
-| **5a-i** | The empty app, and the automated check that watches it | ⬅️ **NEXT — and now waiting on you.** See below |
-| 5a-ii–iv | Text size and money formatting; sign-in; running it on your phone | After 5a-i |
+| **5a-i** | The empty app, and the automated check that watches it | **Done 2026-09-07** — and it is the first app code in the project |
+| **5a-ii** | Text size and money formatting | ⬅️ **NEXT** |
+| 5a-iii–iv | Sign-in; running it on your own phone | After 5a-ii |
 | 5b–5h | The actual screens | After 5a |
 | 6–7 | Beyond the pilot | Later |
 
-### ⚠️ The second thing that needs a decision from you, and it is new
+### ✅ The decision you made on 2026-09-07, and what it bought
+
+*(Kept because the reasoning is the useful part, and because this is the first time an
+architecture document was amended to let a check do more rather than less.)*
 
 Step 4.6 needs an amendment to ADR-035 before it can start — you already knew that.
 **Sizing `5a` on 2026-09-07 found a second one, and this one blocks the very next
@@ -330,16 +334,35 @@ charges the wrong amount. A *unit test* can. The one piece of app code where tha
 distinction is real is the money formatter and the two text-size modes, which is the
 task right after this one.
 
-**My recommendation: run both, and read the architecture document's reasoning rather
+**You ruled: amend it, run both.** The architecture document now says a unit test is
+allowed where it pins a **value** — a price, a conversion, a saved record — and is still
+refused over how things look and where they sit on screen. What follows is the argument
+you accepted, left in place.
+
+**The recommendation was: run both, and read the architecture document's reasoning rather
 than its one-word summary.** It rejects *broad* testing over a thin UI — and it is
 right to. It does not reject four assertions over a pure function that decides what a
 customer sees as the price. Those are the only tests I would write in step 5, they cost
 minutes, and without them the new check's green tick means only *"it compiled"* — which
 is the exact class of reassurance this project was rebuilt to stop trusting.
 
-⚠️ **Either answer is fine and neither is expensive. What is expensive is guessing**,
-because the check is filtered to the folders it watches, and a filter added after the
-fact was wrong for every commit that merged before it.
+⚠️ **Either answer was fine and neither was expensive. What would have been expensive is
+guessing**, because the check is filtered to the folders it watches, and a filter added
+after the fact was wrong for every commit that merged before it.
+
+#### ⚠️ And the first thing that check caught was not in the app
+
+The new check's first job was to prove the app can reach the money code — the part of
+the project that decides what a customer is charged. **On the development machine that
+test passed even when the connection was deliberately broken.** The reason is dull and
+worth knowing: once the packages have been linked on disk once, they stay linked, and
+nothing rechecks the paperwork. The build server starts from nothing every time, so it
+caught it immediately.
+
+**The lesson, in one line: a test passing on the developer's laptop is evidence about
+the code and not about the plumbing.** This is the fifth distinct way this project has
+found a test reporting success while checking nothing, and four of the five were found
+by deliberately breaking something to watch it fail.
 
 ### The thing to understand about step 4.6
 
