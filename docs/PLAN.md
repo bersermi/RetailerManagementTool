@@ -22,9 +22,16 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+**STEPS 1, 2, 3, 4 AND 4.5 ARE ALL CLOSED, AND THE DATABASE IS COMPLETE AS OF
+2026-09-05. THE BUILD IS NOW IN STEP 5 — THE CLIENT — WHICH SHIPS NO MIGRATION;
+`5a` IS THE NEXT TASK.** The log below is newest-first; what follows this paragraph
+is the history that got here, kept because every entry names a decision someone may
+need to overturn.
+
 **STEP 1 IS CLOSED. STEP 2 — the three Insight queries, the design gate — IS CLOSED.
 STEP 3 — THE TEST SUITES — IS CLOSED AS OF 2026-09-02. STEP 4, THE WRITE SURFACE OF
-§2.6, IS UNDER WAY — SPLIT INTO 4a–4f ON 2026-09-03, BEFORE ANY OF IT WAS WRITTEN.
+§2.6, WAS SPLIT INTO 4a–4f ON 2026-09-03, BEFORE ANY OF IT WAS WRITTEN, AND CLOSED
+2026-09-05.
 **4a — RECEIPT COMPLETENESS, `0015` — IS DONE AS OF 2026-09-03. `4b`, `record_sale`,
 WAS SIZED AGAINST §2.6 THE SAME DAY AND SPLIT INTO 4b-i / 4b-ii**, on nearly the seam
 this file named in advance — the function is WHOLE in `0016` and 4b-ii is evidence, not
@@ -192,11 +199,32 @@ can never see this and why it needed two connections.
 **The gate now runs 16 psql suites and 1,080 checks, 7 pgTAP files, 8 seed-check
 files and 41 two-connection assertions.**
 
-🗓️ **NEXT SESSION IS THE UI/UX GRILL-ME AND NOTHING ELSE**, set up by the owner
-2026-09-05 and prepared under *Step 5 — the client*: twelve question areas, asked
-rather than proposed, before one line of app code. **Areas 3 (where the price on
-screen comes from) and 8 (how a catalog gets in) are the two that can sink the
-pilot.**
+✅✅ **THE UI/UX GRILL-ME HAPPENED 2026-09-07 AND AREAS 3 AND 8 — THE TWO THAT COULD
+SINK THE PILOT — ARE ANSWERED. STEP 5 IS SIZED AT `XL` AND SPLIT INTO `5a`–`5f`
+BEHIND TWO GATES; `5a` (the Expo project, auth, tenancy, and the two density modes)
+IS THE NEXT TASK.** Thirty-two constraints written up under *Step 5 — the client*,
+each traced to the question it came from. ⚠️ **TEN OF THE TWELVE AREAS WERE NOT
+ASKED**, and two of them are load-bearing: **area 5 (finishing a sale) blocks the
+back half of `5f`**, and **area 10 (offline) is not in the split at all** — the
+failure path `0024`–`0026` is built and nothing consumes it.
+⚠️⚠️ **THE HEADLINE FINDING IS NOT A SCREEN, IT IS A REPORT THAT DOES NOT EXIST:
+`product_margin_daily` (`0009`) DOES NOT COMPUTE THE MARGIN THE OWNER DESCRIBED.**
+A pollería buys `Pollo entero` and sells `Pechuga`, and `0009` is COGS-from-the-lot
+-consumed — so the pieces sell against a zero-cost shortfall lot at **100 % margin**
+while the whole bird's cost **never enters COGS at all**, and rolling up by family
+does not rescue it. What was asked for is purchases-in against sales-out per family.
+**That is a view, so it is a migration** — the first thing since 2026-09-05 that
+would reopen a schema this file has been calling complete.
+✅ **AND THE THING THAT MADE THE POLLERÍA REPRESENTABLE AT ALL WAS ALREADY BUILT:
+`allocate_fefo` allocates a shortfall rather than raising (`0005:220`)**, so selling
+a piece that was never purchased opens a cost-0 lot instead of failing at the
+counter. **The despiece needs no new operation.** ⚠️ Its price is that enforcement
+must stay off forever in the pilot (C8.8), and `price_unit_code`,
+`purchase_unit_code` and `pack_size` are now settled as **one consumer, none and
+none** respectively.
+⚠️ **ONE DECISION WAS TAKEN ON THE OWNER'S BEHALF — the missing/zero-price
+highlight** (amber on the row, count badge on the sticky `Total`, slide blocked, no
+modal). Client-side only; it costs one screen to reverse.
 
 ✅✅ **4.5c-i — THE REPLAY MARKER AND THE VOID EXEMPTION, `0025` — IS DONE AS OF
 2026-09-05, AND `4.5c-ii` (`replay_failed_write`, `0026`) WAS THE LAST TASK IN THE
@@ -7112,70 +7140,305 @@ flagged before 4.5b rather than inside it.
 
 ---
 
-## Step 5 — the client (§2.8), and the session that has to come first
+## Step 5 — the client (§2.8)
 
 **THE DATABASE IS COMPLETE AS OF 2026-09-05.** Steps 5–7 ship **no migration at
 all**, which is the one thing that makes everything below cheap to get wrong and
 cheap to change: a screen is a rewrite, not a fix-forward.
 
-### 🗓️ NEXT SESSION — THE UI/UX GRILL-ME, AND NOTHING ELSE
+### ✅✅ THE UI/UX GRILL-ME HAPPENED 2026-09-07. AREAS 3 AND 8 ARE ANSWERED; TEN AREAS ARE NOT
 
-⚠️ **NO APP CODE IS WRITTEN UNTIL THIS SESSION HAS HAPPENED** (owner, 2026-09-05).
-The back end was built deliberately loose — multi-location, roles, transfers,
-enforcement, margin, a failure path — so that a **narrow pilot app can sit on it
-without foreclosing a much richer one later.** Which narrow app it is is a
-question about the shopkeeper and the counter, and **it is not the model's to
-assume.** That is what this session is for.
+The session the owner called for on 2026-09-05 ran on 2026-09-07 under his rules —
+**ask, do not propose; every question about a control or a display; assume nothing
+about literacy or numeracy.** It covered **areas 3 (the price) and 8 (the catalog)**,
+the two named as able to sink the pilot, and stopped there. **Ten areas remain
+unasked and are listed at the end of this section as the second round.**
 
-**The shape, in the owner's words:** *"a new grill-me round with a new set of
-questions and constraints set up to start developing for the pilot of the app,
-while leaving open the gates for a much more complex implementation of the app for
-which we've already developed the back end. Questions related to the UI/UX with the
-assumptions of the audience/customers, and not to assume but to have clear specific
-things about the controls and display of the app itself."*
+The owner also supplied **five screenshots of the Power Apps era's Comprar and
+Productos screens** as the starting shape. They are the only place that era is
+current: it is being read for its *controls*, not for its architecture, and nothing
+in `archive/power-platform/` is otherwise cited.
 
-**So the rules for that session are:**
+⚠️ **These are CONSTRAINTS, not suggestions.** Each traces to the question number it
+came from, so a later disagreement can be taken back to the answer rather than
+re-litigated from scratch.
 
-1. **Ask, do not propose.** The failure mode to avoid is a plausible screen
-   described so confidently that answering it feels like agreeing. Questions
-   first; mockups only once the answers are in.
-2. **Every question must be about a CONTROL or a DISPLAY**, not about a concept.
-   *"Does the cashier type the price or tap it?"* is the question. *"How should
-   pricing work?"* is not.
-3. **Pilot scope, richer gates.** Every answer is checked against one thing: does
-   this choice make the richer version impossible later, or only unbuilt? Only the
-   first kind needs arguing about.
-4. **Assume nothing about literacy, numeracy or patience.** See
-   *the vendor cannot reach the pile* — the users do not do book-keeping and do
-   not want to.
+#### The transaction screens — Comprar and Vender (area 3)
 
-**The question areas, prepared in advance so the session spends its time on
-answers.** Written as areas, not as a script — the session should follow the
-owner's answers where they lead:
+- **C3.1 — one flat list of VARIANTS, and the same list for both screens.** Not
+  families, not tiles: a scrolling list where every row is a variant (`Pollo entero`,
+  `Pechuga`, `Pechuga sin hueso`), with a search box above it. Comprar and Vender
+  show the **same catalog**; there are no buy-only or sell-only subsets. *"Vender and
+  Comprar are much simpler to prioritise the user agility at transaction moment."*
+  (8.8, 8.11)
+- **C3.2 — the row is the whole control.** Each row carries: the variant name, the
+  family beneath it, `Precio` **with its unit**, a numeric quantity field, a `−`/`+`
+  stepper, and a `...` quick-actions menu. (3.1, screenshots)
+- **C3.3 — quantity > 0 IS the basket line.** There is no "add to basket" step and no
+  product-detail screen between the list and the line. (3.1, screenshots)
+- **C3.4 — a sticky bar shows `Total` and the commit control**; the line total is
+  **not** shown on the row. It appears only in the basket sheet and in the sticky
+  `Total`. (3.16)
+- **C3.5 — the basket sheet** lists only rows with a quantity, each with the same
+  qty field and stepper plus a per-line delete, and a `Vaciar` for the lot. (3.1)
+- **C3.6 — commit is a SLIDE, not a tap.** The button becomes a slider and the
+  gesture commits. (3.1)
+- **C3.7 — tapping the quantity field opens a numeric keypad** for direct entry.
+  (3.1)
 
-| # | Area | The kind of thing that has to come out of it |
-|---|---|---|
-| 1 | **The counter itself** | One shared phone or one each? Whose phone — theirs or ours? Does anyone log out? Is there a queue of customers waiting while this happens? |
-| 2 | **Vender — finding the product** | Search, a grid of favourites, a barcode scan, a number? How many products does the pilot shop actually sell? Do they have barcodes at all? ⚠️ This is the single highest-traffic control in the app |
-| 3 | **Vender — the price** | ⚠️ `record_sale` takes the price FROM THE CLIENT and `price_list` is not consulted (`0016`, decided 4b-i). So where does the number on screen come from — remembered, typed, or a list we have not built? **This is the biggest open question in the app and the back end deliberately did not answer it** |
-| 4 | **Vender — quantity and units** | Pieces are a tap. Kilos are not. How does someone sell 1.5 kg with no scale integration? Is a decimal keypad acceptable at a counter? |
-| 5 | **Finishing a sale** | Receipt or nothing? Change calculation? Does the customer see the screen? |
-| 6 | **Mistakes** | The 15-minute self-service void (`0021`) exists and is fenced at staff. What does undoing a mis-scan look like, and is it discoverable by someone who is embarrassed and hurrying? |
-| 7 | **Comprar — receiving** | Expiry dates drive FEFO and the ADR-017 policy. Typing a date per line is a lot of typing. What will a manager actually do with a delivery note in one hand? |
-| 8 | **Productos — getting the catalog in** | 200 products typed by hand is a non-starter and is the likeliest reason a pilot dies in week one. Photo? Spreadsheet? We do it for them? |
-| 9 | **Números** | Three numbers, not thirty. Which three does a shopkeeper look at daily, in their words? The back end can serve margin, velocity, waste share and dead stock |
-| 10 | **Offline** | The pilot store loses signal often ([[pilot-store-is-offline-a-lot]]). How much does the app admit it? ⚠️ Default answer per *the vendor cannot reach the pile*: as little as possible — but "the sale is safe" may still need saying |
-| 11 | **Roles** | The schema has owner/manager/staff and a location fence. Does the pilot shop even have staff, or is it one person? A role system nobody uses is a login screen for nothing |
-| 12 | **The device and the language** | Which Android phones, which versions, what screen size? Spanish reading level, icons versus words, number formatting |
+#### The quantity control, and the unit it speaks in
 
-⚠️ **AREAS 3 AND 8 ARE THE TWO THAT CAN SINK THE PILOT** and should be asked
-first if the session is short. Everything else is a screen; those two are whether
-the shop can start using it at all.
+- **C3.8 — ⚠️ THE STEPPER'S STEP IS `price_unit_code`, AND THE FIELD DISPLAYS THE
+  PRICE UNIT'S DIMENSION.** Priced *por cuarto*, three taps of `+` read
+  **`250`, `500`, `750`** with `gr` beside the field — grams, not "cuartos". Priced
+  *por kilo*, the same product is entered as `0.250 kg`. (3.12, 3.14)
+- **C3.9 — precision is the shop's, not ours.** A dispatcher marking 2 kg when the
+  scale says 2.050 is **correct behaviour, not an error to catch**. Nothing rounds,
+  warns or reconciles against a scale. (3.8)
+- **C3.10 — the price is never shown without its unit**: `$35.00 / kg`,
+  `$9.00 / 250 gr`, `$2.00 / pza`. `Precio: $2.00` alone is meaningless once the
+  price unit and the sell unit differ, and the Power Apps screen showed exactly that.
+  (3.16)
 
-**What comes out:** the answers, written into this file as constraints, then step 5
-sized and split — the same rule every step since 1.3 has used, and it matters more
-here than anywhere because there is no migration to make a mistake expensive
-enough to notice.
+#### Where the number on screen comes from — the question step 4 refused to answer
+
+- **C3.11 — Comprar prefills the LAST PRICE PAID TO THAT PROVIDER.** The provider is
+  chosen first, in the header (`Comprando a:`); **changing the provider re-prices
+  every row already on screen.** (3.5)
+- **C3.12 — no memory renders as a DASH, never as `$0.00`.** (3.9) ✅ This is
+  `0008`'s own instruction obeyed — see F5 below — and it overrides the Power Apps
+  screenshot, which showed `Precio: $0.00` on never-bought rows.
+- **C3.13 — a purchase CANNOT be committed while any row has no price.** A banner
+  says so, the slide is blocked, and setting the missing price must be fast from
+  where the shopkeeper already is. (3.9)
+- **C3.14 — a SALE at `$0.00` IS allowed, and is highlighted rather than blocked.**
+  A missing price still blocks; an explicit zero goes through, loudly. *"Impossible
+  to concrete a transaction without a price, nevertheless it is possible to complete
+  a sale at price 0, we need to highlight it."* (3.10)
+- **C3.15 — prices are changed from the `...` quick actions, in two taps, at the
+  counter**, on both screens. (3.2)
+- **C3.16 — ⚠️ A PRICE CHANGE PERSISTS BY DEFAULT.** The change made at the counter
+  becomes the shop's price. A setting flips it to reset-after-each-transaction, and
+  when it is off **the Home screen carries a discreet banner** saying so, because a
+  shopkeeper who changed a price on Monday will otherwise be surprised on Tuesday.
+  (3.2, 3.6)
+- **C3.17 — ⚠️ ANY ROLE MAY CHANGE A PRICE, INCLUDING A CASHIER**, and with C3.16 that
+  means **a cashier's counter discount permanently rewrites the shop's price list.**
+  The owner was shown that consequence by name and took it: *"We'll perfectionate on
+  the role capabilities, for now let's allow anyone to change the price."* (3.11,
+  3.15) **This is the cheapest thing in this section to reverse and the likeliest to
+  need reversing** — it is client-side only; no schema depends on it.
+
+#### The catalog (area 8)
+
+- **C8.1 — ⚠️ AREA 8 IS DE-RISKED: THE OWNER BUILDS THE PILOT'S CATALOG HIMSELF.**
+  No import, no spreadsheet, no photo-OCR, no bulk tool in the pilot. *"For the first
+  pilot I'll make the catalog myself."* The likeliest week-one death is bought off
+  with the owner's own time. (8.5)
+- **C8.2 — but he seeds it DELIBERATELY INCOMPLETE**, *"to encourage him to create
+  some on his own"*. So **`Agregar` is pilot-critical after all**, and the create
+  flow is not deferrable. (8.6)
+- **C8.3 — the pilot is ~100 products** across four store types — **pollería,
+  carnicería, cremería/salchichonería, recaudería** — with overlap between them.
+  (8.1)
+- **C8.4 — later, catalogs are SHARED to onboard new merchants**, maintained by us.
+  Not pilot scope; it is why C8.1 is affordable. (8.5)
+
+#### The despiece — how a pollería is representable at all
+
+- **C8.5 — one family, many variants, ONE dimension.** `Pollo` is a family; `Pollo
+  entero`, `Pechuga`, `Pechuga sin hueso`, `Muslo` are variants of it, and **they all
+  share kg/gr**. The jaba is discarded as a unit *"since it can weigh differently"*,
+  and the pieza is discarded because the merchant thinks in average weight anyway.
+  **Constraining every variant of a family to one dimension is what keeps the
+  arithmetic honest.** (8.8)
+- **C8.6 — ⚠️ THE APP DOES NOT MODEL THE DESPIECE AND DOES NOT NEED TO.** He touches
+  the phone twice: at purchase, and at sale. Twelve jabas of 10 kg is **`120` typed
+  into `Pollo entero`** — the arithmetic happens in his head, as it does today in the
+  notebook. *"He's anyhow doing the calculations now."* (8.2, 8.9)
+- **C8.7 — ⚠️⚠️ STOCK IS NEVER SHOWN ON A TRANSACTION SCREEN.** Not at purchase, not
+  at sale. *"He's only concerned on the operations."* Stock is indicative and exists
+  for analytics; a number is earned in Números later, never asserted at the counter.
+  (8.3)
+- **C8.8 — ⚠️⚠️ ENFORCEMENT MUST STAY OFF, AND THIS IS NOW A HARD PILOT
+  CONSTRAINT.** C8.6 guarantees permanent drift in both directions — `Pollo entero`
+  accumulates forever, `Pechuga` goes negative forever. `workspace_setting
+  .enforce_stock_default` is `false` in `0001` and `product_variant.enforce_stock` is
+  null everywhere, so **nothing needs changing — but turning either on breaks the
+  pollería at the counter, in front of a customer.** No pilot screen may expose that
+  switch.
+
+#### Creating a product, which the merchant will actually do
+
+- **C8.9 — the shortest form that produces a usable product: a NAME, a FAMILY, ONE
+  UNIT, ONE PRICE.** Nothing else. Everything else lives behind `Editar`. (8.12)
+- **C8.10 — ⚠️ THE CLIENT WRITES THAT ONE UNIT INTO ALL FOUR UNIT COLUMNS.**
+  `product_variant` demands `base_unit_code`, `purchase_unit_code`, `sell_unit_code`
+  and `price_unit_code` all `not null` with no defaults (F7). **A shopkeeper is never
+  asked four unit questions.** (8.12)
+- **C8.11 — the family is SUGGESTED from the typed name, and overridable by a
+  gesture.** He types `Queso Oaxaca`; the app proposes a family from what already
+  exists; he can override and create his own family in place. Creating a variant is
+  **always** through a family. (8.13)
+- **C8.12 — three entry points, and the family behaves differently in one of them.**
+  From `Productos` or from a Comprar/Vender `...` quick action → type the name, get a
+  family suggestion. From **inside an opened family** → the new variant belongs to
+  that family, no question asked. (8.13)
+
+#### Productos, and the photos
+
+- **C8.13 — `Productos` is family-first and photo-first**: a grid of family tiles;
+  tapping one opens the **family with its variants at sight**, each variant showing
+  its price, plus `Agregar Variante` / `Costos` / `Editar`. This is the one screen
+  where the family/variant structure is visible — the transaction screens flatten it
+  (C3.1). (8.11, screenshots)
+- **C8.14 — ⚠️ PHOTOS ARE AN ADMIN CHORE, NOT A USER TASK, AND NOT PILOT-BLOCKING.**
+  A merchant-created product shows **initials** and is transactable immediately. We
+  assign the picture afterwards as maintenance. The merchant is **not** shown a
+  "pending photo" state — an un-pictured product must not look unfinished. (8.7,
+  8.10)
+- **C8.15 — ⚠️⚠️ OWED, AND IT IS NOT A SCREEN: there is no image column, no storage
+  bucket** (the local stack excludes `storage-api` outright) **and no channel that
+  tells us a merchant created a product.** C8.14 is an operational loop with no
+  infrastructure behind it. It blocks nothing in the pilot because initials ship
+  first, and it is written up here so it is not discovered later as a surprise.
+
+#### Reading the screen at all
+
+- **C3.18 — ⚠️ TWO DENSITY MODES, and the owner chose both rather than a compromise.**
+  *"Many users are old; we want to prioritise the visibility of essential things big
+  and at a glance."* A normal mode and an elder mode with taller rows, *"compromising
+  a bit more on the aesthetics"* — fewer rows on screen, leaning harder on search.
+  (3.18) ⚠️ This is a **theming/scale decision taken before the first screen is
+  written**, which is the cheap moment; retrofitting a second density onto finished
+  screens is not.
+
+### ⚠️ ONE DECISION WAS MADE ON THE OWNER'S BEHALF IN THIS SESSION
+
+**3.17 — what the "highlight" for a missing or zero price actually is.** The owner
+offered the choice (*"let's consider them and make your choice"*). Taken:
+
+- A row with **no price** turns **amber in place**, and the sticky `Total` carries a
+  **count badge** of how many rows are unpriced. **The slide is blocked** while the
+  count is above zero. **No modal at commit.**
+- A row priced **`$0.00`** turns amber the same way but **does not block**; the slide
+  goes through.
+
+**Why:** the row is where the fix is made, so the warning belongs on the row. A modal
+fired at commit tells a hurrying shopkeeper that *something* is wrong and then makes
+him hunt for which line it meant. The badge exists so the amber is discoverable when
+the offending row has scrolled off. ⚠️ **Client-side only; reversing it costs one
+screen.**
+
+### 🔍 FIVE THINGS THE GRILL FOUND IN APPLIED SQL, NOT IN THE INTERVIEW
+
+Read out of migrations during the session, because three of the owner's answers
+turned on facts the database had already settled.
+
+- **F1 — ✅ `allocate_fefo` ALLOCATES A SHORTFALL RATHER THAN RAISING (`0005:220`),
+  AND THAT IS THE ONLY REASON THE POLLERÍA WORKS.** Selling `Pechuga` that was never
+  purchased as `Pechuga` does not fail: it finds the last lot ever received for that
+  variant and overdraws it, or, if the variant was never stocked at that location,
+  **opens a lot at cost 0** to hold the discrepancy. **C8.6 needs no new operation.**
+  Had the allocator raised, the despiece would have been a step-4 shaped hole
+  discovered in the pilot's first week.
+- **F2 — ⚠️⚠️ `product_margin_daily` (`0009`) DOES NOT COMPUTE THE MARGIN THE OWNER
+  DESCRIBED, AND NOTHING YET DOES.** `0009` is COGS-**from-the-lot-consumed**, per
+  variant. Under C8.6 that gives: `Pechuga` sells against a zero-cost shortfall lot →
+  **100 % margin**; `Pollo entero` is purchased and never sold → **its cost never
+  enters COGS at all**. Rolling up by family does not rescue it — the family's COGS
+  is still zero. What the owner asked for in 8.4 is **purchases-in against sales-out
+  per family over a period**, which is a different query that **does not exist**.
+  ⚠️ **This is Números' problem (area 9, unasked) and it is OWED.** It is a view, so
+  it is a migration — the first thing since 2026-09-05 that would reopen the schema.
+- **F3 — ✅ `price_unit_code` HAD NO CONSUMER ANYWHERE AND THE CLIENT IS ITS FIRST.**
+  Declared `not null` at `0002:132`, dimension-checked at `0002:191`, and read by no
+  RPC, no view and no other line of the ADR. C3.8 is the column finally doing the job
+  its own comment describes (*"how it is quoted (per 100g)"*). ⚠️ The model's first
+  instinct was to derive the step from the unit's **dimension** instead — which would
+  have invented a second rule beside a column already built for it.
+- **F4 — ⚠️ `purchase_unit_code` AND `pack_size` NOW HAVE NO CONSUMER, BY DECISION.**
+  They exist for exactly the case C8.6 rejects: *"a case of 24 pieces is `pack_size`
+  24 with both units `pza`"*, so that he taps `1 jaba` and the app records 10 kg. The
+  owner was shown this and chose the merchant's own arithmetic (8.9), on the ground
+  that a jaba's weight varies and a fixed `pack_size` would be a lie. **The columns
+  stay; the pilot writes the same unit into all four (C8.10) and never reads these
+  two.**
+- **F5 — ✅ `provider_price_memory` (`0008`) ALREADY SPECIFIED C3.12, IN PROSE.** Its
+  header requires an absent (provider, variant) memory be rendered *"as a distinct
+  empty state, not as a zero"*. The Power Apps screen violated it. The owner
+  independently chose the dash.
+- **F6 — ⚠️ A PROVIDER NAMED `Genérico` MUST BE SEEDED IN EVERY WORKSPACE.**
+  `purchase.provider_id` is `not null` (`0003:80`) and `record_purchase` raises
+  *"a delivery has a provider"* if it is missing (`0018:200`). The screenshot's
+  `Comprando a: Genérico` is therefore **not a blank default — it is a row**, and
+  onboarding has to create it or Comprar cannot commit at all.
+- **F7 — `product_variant`'s four unit codes are all `not null` with no defaults**,
+  which is what forces C8.10.
+
+### ⚠️⚠️ Settled in sizing 5, 2026-09-07 — IT IS AN `XL`, AND IT SPLITS INTO SIX TASKS BEHIND TWO GATES
+
+Sized immediately after the grill, before a line of app code, on the same rule every
+step since 1.3 has used. **There is no React Native project at all** — no manifest, no
+Expo app, no auth wiring — so the estimate is not "screens" but "screens plus
+everything under them".
+
+⚠️ **The seam is DIFFERENT from every seam in steps 1–4.5, and the difference is the
+point.** Those splits were forced by append-only migrations: two functions could not
+share one unapplied file. **Step 5 ships no migration**, so nothing here is forced by
+the database. What forces this split is **what has been answered.** 5a–5d rest
+entirely on areas 3 and 8, which are closed. 5e and 5f do not, and are gated.
+
+| Task | What it is | Size | Rests on |
+|------|-----------|------|----------|
+| **5a** | The Expo project, auth, and tenancy bootstrap. No shop screens: sign-in, `my_locations()`, workspace/location selection, the two density modes wired as a theme scale from the first commit (C3.18), and the offline-capable client stub. | `L` | nothing — infrastructure |
+| **5b** | **Productos, read.** Family grid, initials tiles (C8.14), family sheet with variants at sight and their prices (C8.13). | `M` | C8.13, C8.14 |
+| **5c** | **Productos, write.** `Agregar` — the four-field form (C8.9), one unit into all four columns (C8.10), family suggestion with gesture override (C8.11), the three entry points (C8.12), and `Editar`. | `M/L` | C8.9–C8.12 |
+| **5d** | **The transaction screen, shared.** The flat variant list and search (C3.1), the row (C3.2, C3.10), the `price_unit_code` stepper and keypad (C3.7, C3.8), quantity-is-the-line (C3.3), sticky `Total` (C3.4), basket sheet (C3.5), slide-to-commit (C3.6), the amber/badge rule (3.17 above), and the `...` price change with its persistence setting and Home banner (C3.15, C3.16). **The single highest-traffic surface in the app.** | `XL` | C3.1–C3.18 |
+| **5e** | **Comprar.** Provider selector in the header, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change (C3.11), the dash empty state (C3.12), block-on-missing-price (C3.13), and `record_purchase`. | `M` | C3.11–C3.13 — ⚠️ but see the gate |
+| **5f** | **Vender.** `price_list` prefill, the `$0.00` amber path (C3.14), and `record_sale`. | `M` | ⚠️ **GATED** |
+
+**Total: `XL`, and 5d is itself an `XL` inside it** — the largest single task in this
+plan since `0025`. ⚠️ **If 5d overflows one session the seam is pre-committed here so
+a third look is never needed: `5d-i` is the list, the row and the quantity control;
+`5d-ii` is the basket, the slide, the amber rule and the price-change menu.** Decided
+now, at zero cost, for the same reason 4e reserved exactly two numbers.
+
+#### ⚠️⚠️ THE TWO GATES — WHAT CANNOT BE WRITTEN WITHOUT A SECOND GRILL ROUND
+
+- **GATE 1 — `5f` (Vender) STOPS AT THE SLIDE.** What happens *after* a sale commits
+  is **area 5 (finishing a sale), and it was not asked**: receipt or nothing, change
+  calculation, whether the customer sees the screen. 5f can be written up to the
+  commit and no further. ⚠️ **Area 6 (mistakes) is behind the same gate** — the
+  15-minute self-service void of `0021` exists, is fenced at staff, and **no screen
+  for it has been designed or asked about.**
+- **GATE 2 — OFFLINE IS NOT IN THIS SPLIT AT ALL.** The pilot store loses signal
+  often ([[pilot-store-is-offline-a-lot]]), the failure path (`0024`–`0026`) is built
+  and unused, and **area 10 was not asked.** No task above queues, retries or admits
+  a lost connection beyond 5a's client stub. **This is the largest single omission in
+  the sizing and it is deliberate** — designing the offline surface from an
+  assumption is exactly what the grill-me exists to prevent.
+
+#### ⚠️ THE SECOND ROUND — TEN AREAS STILL UNASKED
+
+Areas 3 and 8 are struck. The remaining ten stand as written on 2026-09-05, with what
+this session added to three of them:
+
+| # | Area | Added by the 2026-09-07 session |
+|---|------|--------------------------------|
+| 1 | The counter itself | — |
+| 2 | Vender — finding the product | ✅ **Partly answered**: flat variant list + search (C3.1). Still open: favourites, ordering, whether 100 rows at elder density is navigable |
+| 4 | Vender — quantity and units | ✅ **Answered as a control** (C3.8, C3.9). Kept open only for the scale question |
+| 5 | Finishing a sale | ⚠️ **GATE 1** — blocks the back half of 5f |
+| 6 | Mistakes | ⚠️ **GATE 1** — `0021`'s void has no screen |
+| 7 | Comprar — receiving | ⚠️ Expiry per line is untouched, and `track_expiry` + ADR-017's FEFO policy depend on it. A pollería's chicken is the case that needs it |
+| 9 | Números | ⚠️ **Now carries F2** — the margin the owner described is not the margin `0009` computes, and closing it means a **migration**, which reopens the schema |
+| 10 | Offline | ⚠️ **GATE 2** — the largest omission in the sizing |
+| 11 | Roles | ⚠️ **Now carries C3.17** — "anyone may change a price" is the pilot's only role decision so far, and it was explicitly deferred, not settled |
+| 12 | The device and the language | ✅ **Partly answered**: two density modes (C3.18). Still open: Android versions, screen sizes, icons vs words, number formatting |
+
+**Where step 5 starts: `5a`.** It rests on nothing that was asked and nothing that was
+not, and every other task needs it underneath.
 
 ---
 
