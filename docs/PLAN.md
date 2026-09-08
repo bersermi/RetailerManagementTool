@@ -26,15 +26,19 @@ from the knowledge graph. Nothing there describes the system being built.
 UI/UX GRILL-ME OF 2026-09-07 REOPENED IT, AND THE THREE OWED MIGRATIONS ARE THE NEW
 STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`, and
 **`5a` WAS ITSELF SIZED `L` AND SPLIT FOUR WAYS ON 2026-09-07, BEFORE A LINE OF APP CODE
-WAS WRITTEN.** ⚠️⚠️ **`5a-i` — the Expo project at `app/`, the fourth workspace entry and
-`.github/workflows/app.yml` — IS THE NEXT TASK, AND IT IS NOW GATED ON AN ADR AMENDMENT
-THE SIZING FOUND.** ADR-035 §2.11 says client tests are *"skipped, except
-`packages/money`"*; this file's own definition of done for `5a` requires `app.yml` to run
-**unit tests** over the app workspace, and **the section that wrote that requirement
-never cites §2.11.** `CLAUDE.md` says the ADR wins, so the workflow cannot be written
-until the owner rules. **Two more ADR conflicts are now recorded** — four in total, of
-which the two found while sizing are the two that block. Read *THE PLAN NOW DISAGREES
-WITH ADR-035* under step 4.6 first. The log below
+WAS WRITTEN.** ⚠️⚠️ ✅✅ **`5a-i` IS DONE AS OF 2026-09-07 — THE FIRST APP CODE IN THIS REPOSITORY AND THE
+FIRST CI RUN THAT EVER LOOKED AT IT.** `app/` is an Expo SDK 57 project registered as
+`@tienda/app`, the fourth workspace entry, and `.github/workflows/app.yml` is the third
+workflow. ⚠️ **It was gated on an ADR amendment the sizing found, and the owner closed
+it the same day**: ADR-035 §2.10/§2.11 now allow a unit test that **pins a value a
+customer sees or the ledger stores** and still refuse suites over rendering, navigation
+and layout — so `app.yml` runs typecheck **and** tests, and its green means something
+other than *"it compiled"*. ⚠️⚠️ **The finding of the task is that a stale
+`node_modules` makes the workspace-wiring assertion vacuous** — the fifth shape of
+misleading green here, and the first one that only `npm ci` can see.
+**`5a-ii` — the density scale and the money formatter — IS THE NEXT TASK**, and it has
+no gate. **Four ADR conflicts are recorded in total; two remain open**, both `4.6a`'s.
+Read *THE PLAN NOW DISAGREES WITH ADR-035* under step 4.6 first. The log below
 is newest-first; what follows this paragraph is the history that got here, kept
 because every entry names a decision someone may need to overturn.
 
@@ -7192,7 +7196,7 @@ anyone deciding to.
 |---|---|---|
 | **Decision register #9** (§1424) — *Staff invitation flow* | `workspace_invite` + `redeem_invite`, **token by WhatsApp**. Owner-initiated push | **C11.5 / C11.6** — the joiner enters a **workspace code**, **requests** access, and is **approved**; an owner's invite counts as *a request that arrives pre-approved*. **Both paths, not one** |
 | **Decision register #13** (§1424) — *Android* | *"Defer the release path, keep the code honest. Emulator smoke test at the end of 5a"* | **C1.1** — the pilot is **iPhone 11, iPhone 15, Oppo and Samsung**. **iOS is not optional**, and the 5a smoke test has two platforms |
-| ⚠️⚠️ **§2.11's stack table** — *Client tests* | *"**Skipped, except `packages/money`**. Per §2.10"* | **This file's own `5a` definition of done** (below) requires `app.yml` to run *"typecheck and **unit tests** over the app workspace."* **Nobody decided this; the section arguing for `app.yml` never cites §2.11** |
+| ✅ **§2.11's stack table** — *Client tests* | ~~*"Skipped, except `packages/money`"*~~ → **CLOSED BY THE OWNER 2026-09-07.** ADR amended: a unit test is allowed where it **pins a value a customer sees or the ledger stores**, refused over rendering, navigation and layout | This file's `5a` definition of done stands. `app.yml` runs typecheck **and** tests, and `5a-i` shipped it |
 | ⚠️ **§3's build-order step `5a`** — *Foundation* | The `expo-sqlite` **outbox**, **`src/api/`** wrapping every RPC, the **`src/ui/` primitives**, **`CONVENTIONS.md`**, session persistence **on a shared till device**, and **how the client resolves its `location_id`** | This file's `5a` has **none of the first four**, moved the outbox to `5c`, and C1.5/C1.1 already answered the last two (two workspaces, **personal phones — there is no shared till**) |
 
 ⚠️ **§1400's checklist is NOT the problem and was never wrong**: it carries
@@ -7203,8 +7207,13 @@ which records *how* the flow should work, and that is the half the owner changed
 ✅ **The first two do not block `5a`.** Decision #13 only widens the smoke test;
 decision #9 is `4.6a`'s subject matter.
 
-⚠️⚠️ **THE THIRD ONE BLOCKS `5a-i`, AND IT BLOCKS IT ON ITS DEFINITION OF DONE RATHER
-THAN ON A DETAIL.** `5a-i` ships two things: an Expo project and the workflow that
+✅✅ **THE THIRD ONE IS CLOSED. The owner ruled on 2026-09-07 — *"amend §2.11 to allow
+unit tests"* — and ADR-035 now carries the amendment** (§2.10 and §2.11, revision entry
+dated 2026-09-07). The paragraphs below are kept as written, struck only here, because
+they are the argument the ruling accepted and a later session may need to see it.
+
+~~**THE THIRD ONE BLOCKS `5a-i`, AND IT BLOCKS IT ON ITS DEFINITION OF DONE RATHER
+THAN ON A DETAIL.**~~ `5a-i` ships two things: an Expo project and the workflow that
 watches it. **§2.11 says the second one should not run tests.** So the disagreement is
 not about how to build the task — it is about what the task is for, and it cannot be
 deferred to a later letter, because a `paths:` filter is retroactively wrong for every
@@ -7716,6 +7725,97 @@ free today and stay free until the first task merges.
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 
+#### ✅ `5a-i` IS DONE AS OF 2026-09-07 — the fourth workspace, and the third workflow
+
+**The first app code in this repository, and the first CI run that ever looked at it.**
+`app/` is an Expo **SDK 57** project (`expo@57.0.20`, `expo-router@57.0.19`, React Native
+0.86, React 19.2), registered as `@tienda/app`, the fourth entry in the root manifest
+beside `packages/*` and `supabase/vitest`.
+
+⚠️ **The SDK version was read from the registry, not recalled.** `context7` was
+installed before `5a` for precisely this and it earned its place on the first task: the
+model's knowledge cutoff predates SDK 57, the current template flag is
+`--template default@sdk-57`, and SDK 52+ **auto-detects a monorepo** — the manual
+`metro.config.js` with `watchFolders` and `nodeModulesPaths` that every older guide
+shows is documented as *pre-SDK 52* and is **not** in this project. A recalled answer
+would have added a config file that does nothing, and it would have looked right.
+
+**What is in `app/`, and it is deliberately almost nothing:** a `Stack` layout, one
+placeholder route, and `src/wiring.ts`. The template's twenty-odd demo files — `explore`,
+the themed components, the animated icons, the tab bar, the parallax header — were
+**deleted rather than kept for reference**, along with nine unused image assets and the
+`web` config block. `platforms` is `["ios","android"]` (C1.1), and the template's own
+`CLAUDE.md`/`AGENTS.md` generation was suppressed (`--no-agents-md`): a second
+instruction file inside `app/` would quietly become a second authority in a repository
+whose working agreement lives in the root one.
+
+##### The suite, and why `5a-i` has one at all
+
+⚠️ **A workspace entry is a CLAIM, and `app/test/wiring.test.ts` is the measurement.**
+It resolves `@tienda/money/cases.json` through `require.resolve` — **not** a relative
+path, which would read the file through the filesystem and pass whether or not npm ever
+linked anything — and asserts case `M1` (*16 % inclusive, one item at $11.60*) prices to
+`11.60 / 10.00 / 1.60` across the workspace edge, plus `net + tax === gross`. **Three
+assertions, no component rendered**, which is the boundary §2.11 was amended to draw.
+
+⚠️ **The expectations are read from `cases.json`, never typed in.** §2.10 requires one
+data file with two readers; a hardcoded `'11.60'` here would have made the app a third
+copy of the expectations, which is the exact drift that section exists to prevent.
+
+##### Eight falsifications, run by hand before `5a-i` was committed
+
+| | Break | Result |
+|---|---|---|
+| **F1** | Case `M1` renamed in `cases.json` | 🔴 *"case M1 is missing from packages/money/cases.json"* — the vacuity guard fires **before** the value assertions, which would otherwise have run against `undefined?.expect` |
+| **F2a** | `@tienda/money` renamed in `app/package.json`, `node_modules` left alone | ⚠️⚠️ **🟢 GREEN — see below** |
+| **F2b** | The workspace genuinely unlinked (symlink removed) | 🔴 typecheck `TS2307`, suite *"Cannot find package '@tienda/money'"* |
+| **F3** | `placeholderTotal` returns the literal `'11.61'` | 🔴 *"expected '11.61' to be '11.60'"* |
+| **F4** | The whole suite deleted | 🔴 *"No test files found, exiting with code 1"* — the shape that would otherwise be silent |
+| **F5** | The fourth workspace entry removed from the root manifest | 🔴 `npm error No workspaces found: --workspace=@tienda/app` — the **typecheck step** catches it, so the entry is asserted by the run |
+| **F6** | Unit price scaled at `SCALE.money` instead of `SCALE.unitPrice` | 🔴 assertion failure — a real client bug shape, not a synthetic one |
+| **F7** | `npm ci --dry-run` with F2a's renamed dependency | 🔴 `E404 @tienda/money-typo` — **what CI does, on the fixture that was green locally** |
+
+##### ⚠️⚠️ Found in 5a-i — A STALE `node_modules` MAKES THE WIRING ASSERTION VACUOUS, AND IT IS THE FIFTH SHAPE OF MISLEADING GREEN
+
+**F2a is the finding of this task.** Rename `@tienda/money` to a package that does not
+exist in `app/package.json`, change nothing else, and **both the typecheck and the suite
+stay green** — because the `node_modules/@tienda/money` symlink from the previous install
+is still on disk and resolution never consults the manifest. The one thing `5a-i` exists
+to prove is the thing a local green cannot see.
+
+✅ **CI is not fooled, and F7 is the proof rather than the assurance**: `npm ci` reads the
+manifest against the lockfile and dies with `E404` before a test runs. The workflow uses
+`npm ci` and not `npm install` — the lockfile-is-the-pinned-input argument `money.yml`
+inherited from `db.yml` — and that choice is now load-bearing for a second reason nobody
+had written down.
+
+⚠️ **The rule this leaves behind: a green `npm run test` on a developer's machine is not
+evidence about wiring, only about code.** It joins 3.3's disarmed pgTAP exception,
+3.6a's empty Vitest workspace, 4b-i's `where not passed`, and the sizing session's own
+no-op fixture. **Four of the five were found by falsification and the fifth was found by
+falsifying a falsification.**
+
+##### ⚠️ Found in 5a-i — `git checkout` CANNOT RESTORE AN UNTRACKED FILE, AND THE HARNESS ATE THE WORK IT WAS CHECKING
+
+The first falsification run reverted each fixture with `git checkout -- <path>`. `app/`
+was **untracked at the time**, so every restore silently failed — and on
+`package.json`, which *is* tracked, the restore succeeded all the way back to `HEAD`
+and **removed the fourth workspace entry this task had just added**. The control run at
+the end of the batch was red for that reason and not for any reason about the code.
+✅ **Fixed by committing the working state before falsifying**, which is what the batch
+should have done from the start and what the later runs did.
+
+##### Decisions taken on the owner's behalf in `5a-i`, all cheap to reverse
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | **`app/` at the repository root**, not `apps/app` | ADR-035 §2.10's ownership table names `app/**` by name. Expo's own monorepo guide says `apps/*`; **the ADR wins a layout question about this repository.** Reversing is a `git mv` and one `paths:` filter |
+| **2** | **The template's demo content deleted, not kept** | `5a-ii` would have opened by deleting it, and a reference implementation nobody chose is how four screens end up in four dialects (§2.10). Reversing costs one `create-expo-app` |
+| **3** | **One Node version in `app.yml`, against `money.yml`'s two** | `money.yml` matrixes 22 and 24 because its subject is arithmetic that *"should not"* depend on the engine. That measurement exists; this workflow calls the same functions and would not add to it. Reversing is two lines |
+| **4** | **`packages/money/**` is in `app.yml`'s `paths:` filter** | The app imports it, so a money change can break **this** workspace's typecheck while `money.yml` stays green on its own suite. Two workflows, different assertions, same edit |
+| **5** | **The Expo template's `CLAUDE.md`/`AGENTS.md` suppressed** | `--no-agents-md`. A generated instruction file inside `app/` becomes a second authority next to the root `CLAUDE.md`, and nobody would have decided that |
+| **6** | **TypeScript 6.0 in `app/`, 5.9 in `packages/money`** | Two majors in one tree, which npm resolves per workspace (verified: `app` gets 6.0.3 nested, `money` and root get 5.9.3). Taken because `expo/tsconfig.base` targets the template's own version and pinning it back to 5.9 to buy tidiness is the kind of fight §2.11 refuses with UI kits. ⚠️ **Worth a look if money's typecheck ever behaves oddly** |
+
 #### ⚠️⚠️ Sized 2026-09-07 — `5a` IS AN `L`, IT SPLITS FOUR WAYS, AND THE SEAM IS THE CI HOLE BELOW
 
 Sized before a line of it was written, under the working agreement — the same
@@ -7731,7 +7831,7 @@ are cheap today and dear once a screen rests on them.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ⚠⚠ **THE ADR — §2.11's client-tests row. See the conflict table at the top of this step** |
+| **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ✅ **CLEARED 2026-09-07** — the ADR was amended. **DONE 2026-09-07** |
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | — |
 | **5a-iii** | **Auth and session.** The Supabase client, OAuth — Google, Facebook, email, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ⚠️ **Three provider consoles. Credentials are the owner's, and none of it is a code change** |
 | **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |

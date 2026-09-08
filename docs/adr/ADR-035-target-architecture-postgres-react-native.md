@@ -126,6 +126,26 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-07 — §2.10 and §2.11 amended, on the decision maker's
+  instruction, to close a disagreement between this document and `docs/PLAN.md` found
+  while sizing build step `5a` and **before a line of app code was written**. §2.11's
+  stack table said client tests are *"Skipped, except `packages/money`"*; the plan's
+  definition of done for `5a` requires `.github/workflows/app.yml` to run **typecheck
+  and unit tests** over the app workspace, and the section that wrote that requirement
+  never cited §2.11. ⚠️ **The plan noticed the real problem and this document is the
+  file that moved.** §2.10's prose already said *"**broad** client-side testing is
+  skipped"* and gave the reason — *"a suite over a thin UI is a poor use of a small
+  team's attention when correctness sits one layer below it"* — which is an argument
+  against breadth, not against arithmetic. §2.11's one-word summary of that prose lost
+  the qualifier, and a table row that contradicts the paragraph it cites is the kind of
+  drift §9 exists to catch. **The exception is now stated as a rule with a boundary
+  rather than as a single named package**: a unit test is allowed where it asserts a
+  value a customer sees or the ledger stores, and is still refused over rendering,
+  navigation and layout. ⚠️ **`packages/money` remains not negotiable** and is untouched.
+  **No schema change, no test deleted, and nothing already shipped becomes
+  non-conforming** — there is no client code yet, which is exactly why it was cheap to
+  settle today. The alternative was an `app.yml` whose green meant only *"it compiled"*,
+  on the one workspace where §9's *"a file is not evidence"* had never yet applied.
 - **Revised:** 2026-08-14 — open-questions review. All thirteen §8 open questions
   answered and moved to settled. Region taken without measurement; provider pricing
   clarified by the decision maker, which removed `price_list.provider_id` rather than
@@ -1059,6 +1079,22 @@ a small team's attention when correctness sits one layer below it. **`packages/m
 is the exception and is not negotiable** — it is not UI, it decides what a customer
 is charged, and it is half of the only duplicated logic in the system.
 
+⚠️ **The word doing the work in that sentence is *broad*, and §2.11's table lost it
+until 2026-09-07.** The line is not between `packages/money` and everything else; it is
+between **a test that pins a value** and **a test that pins a layout**. A unit test is
+in scope where it asserts something a customer sees or the ledger stores — the money
+formatter and its centavo-hiding rule, unit conversion, the offline outbox's three
+states. It stays out of scope over rendering, navigation and appearance, which is where
+a UI suite spends the most and earns the least.
+
+**Why the boundary is drawn there rather than at a package name.** `app/**` is the one
+workspace §9's rule — *a file is not evidence; a green CI run is* — has never reached,
+because neither existing workflow watches it. The workflow that closes that gap ships in
+build step `5a`, and **a typecheck alone cannot fail on an app that charges the wrong
+amount**: it asks whether the code makes sense to the compiler, not whether it is right.
+A green that can only ever mean *"it compiled"* is the shape of reassurance this
+architecture was written to distrust.
+
 The case table is a *data file* rather than two test suites that happen to agree.
 Duplicated expectations drift silently and each copy looks correct on its own; a
 single `cases.json` read by both sides makes drift structurally impossible instead of
@@ -1136,7 +1172,7 @@ four dialects and a junior inventing a cache. Settled 2026-08-14:
 | Components | **~10 hand-rolled primitives in `src/ui/`** | No Tamagui, no gluestack. The unit-aware input and the tap budget in §2.8 are idiosyncratic requirements; a general kit is fought, then worked around, then partially abandoned |
 | Strings | **Hardcoded Spanish, centralised in one file** | No i18n runtime in v1. Centralising costs nothing now and makes a second language a refactor instead of an excavation |
 | Money on screen | `Intl.NumberFormat('es-MX')` for **rendering only** | Arithmetic is integer centavos in `packages/money`, always. A formatter never touches a value that will be compared against Postgres |
-| Client tests | Skipped, except `packages/money` | Per §2.10 |
+| Client tests | **Narrow, and bounded by what they assert.** Allowed where a test pins a value a customer sees or the ledger stores — the money formatter, unit conversion, the outbox state machine. Refused over rendering, navigation and layout. `packages/money` is not negotiable | Per §2.10, amended 2026-09-07. A suite over a thin UI is still a poor use of a small team; four assertions over a pure function that decides a displayed price are not that suite, and they are what makes `app.yml`'s green mean something other than *"it compiled"* |
 
 The primitives, roughly: `Screen`, `Field`, `QtyInput` (the stepper/keypad switch
 from §2.8), `Money`, `LineList`, `PrimaryAction`, `Sheet`, `ListRow`, `Empty`,
