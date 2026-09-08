@@ -300,9 +300,46 @@ to stop and ask rather than pick a side.
 | 4.5 | What happens when a write fails | **Done** |
 | — | **The screens interview** — two rounds, 2026-09-07 | **Done** — eight of twelve subjects |
 | **4.6** | **Three database changes the interview uncovered** | **Open** — one of them blocks a screen |
-| **5a** | **App foundations** — the first app code in the project | ⬅️ **NEXT** |
+| **5a** | **App foundations** — the first app code in the project | **Split into four on 2026-09-07**, before any of it was written |
+| **5a-i** | The empty app, and the automated check that watches it | ⬅️ **NEXT — and now waiting on you.** See below |
+| 5a-ii–iv | Text size and money formatting; sign-in; running it on your phone | After 5a-i |
 | 5b–5h | The actual screens | After 5a |
 | 6–7 | Beyond the pilot | Later |
+
+### ⚠️ The second thing that needs a decision from you, and it is new
+
+Step 4.6 needs an amendment to ADR-035 before it can start — you already knew that.
+**Sizing `5a` on 2026-09-07 found a second one, and this one blocks the very next
+task.**
+
+The rule this whole project rests on is *a file is not evidence; a green automated run
+is.* Right now **no automated check looks at app code**, because neither of the two
+existing ones is pointed at an app folder — there has never been one. So the first app
+task has to add a third check. That was already written down as part of the job.
+
+**The problem is what that check should do.** The architecture document, in the table
+that fixes the client stack, says client-side tests are *skipped* — the reasoning being
+that a test suite over buttons and layouts is a poor use of a small team when the
+correctness that matters lives in the database. The build plan, written later, says the
+new check should run **typecheck and unit tests**. Neither document mentions the other,
+so nobody chose between them.
+
+**It matters because of what the check is being asked to prove.** A *typecheck* only
+asks "does this code make sense to the compiler" — it will never notice that the app
+charges the wrong amount. A *unit test* can. The one piece of app code where that
+distinction is real is the money formatter and the two text-size modes, which is the
+task right after this one.
+
+**My recommendation: run both, and read the architecture document's reasoning rather
+than its one-word summary.** It rejects *broad* testing over a thin UI — and it is
+right to. It does not reject four assertions over a pure function that decides what a
+customer sees as the price. Those are the only tests I would write in step 5, they cost
+minutes, and without them the new check's green tick means only *"it compiled"* — which
+is the exact class of reassurance this project was rebuilt to stop trusting.
+
+⚠️ **Either answer is fine and neither is expensive. What is expensive is guessing**,
+because the check is filtered to the folders it watches, and a filter added after the
+fact was wrong for every commit that merged before it.
 
 ### The thing to understand about step 4.6
 
@@ -340,8 +377,10 @@ app **admits it is offline quietly and never blocks a sale.**
 
 ### Tooling — reviewed 2026-09-07, now that 5a is next
 
-None of the four is installed. Checked directly: **no MCP servers configured, no
-plugins enabled.**
+**One of the four is now installed.** At the time of the review none were — checked
+directly, no MCP servers configured and no plugins enabled — and `context7` was added
+on the strength of it. *(This paragraph still said "none of the four" on 2026-09-07,
+two lines above a table saying otherwise; corrected while sizing `5a`.)*
 
 | | Verdict |
 |---|---|

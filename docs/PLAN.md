@@ -24,9 +24,17 @@ from the knowledge graph. Nothing there describes the system being built.
 
 **STEPS 1, 2, 3, 4 AND 4.5 ARE ALL CLOSED. ⚠️⚠️ THE DATABASE IS *NOT* COMPLETE — THE
 UI/UX GRILL-ME OF 2026-09-07 REOPENED IT, AND THE THREE OWED MIGRATIONS ARE THE NEW
-STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`;
-**`5a` (the Expo shell, OAuth, session, density scale, formatting) IS THE NEXT TASK**
-and is the one task with no gate above it and nothing owed beneath it. The log below
+STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`, and
+**`5a` WAS ITSELF SIZED `L` AND SPLIT FOUR WAYS ON 2026-09-07, BEFORE A LINE OF APP CODE
+WAS WRITTEN.** ⚠️⚠️ **`5a-i` — the Expo project at `app/`, the fourth workspace entry and
+`.github/workflows/app.yml` — IS THE NEXT TASK, AND IT IS NOW GATED ON AN ADR AMENDMENT
+THE SIZING FOUND.** ADR-035 §2.11 says client tests are *"skipped, except
+`packages/money`"*; this file's own definition of done for `5a` requires `app.yml` to run
+**unit tests** over the app workspace, and **the section that wrote that requirement
+never cites §2.11.** `CLAUDE.md` says the ADR wins, so the workflow cannot be written
+until the owner rules. **Two more ADR conflicts are now recorded** — four in total, of
+which the two found while sizing are the two that block. Read *THE PLAN NOW DISAGREES
+WITH ADR-035* under step 4.6 first. The log below
 is newest-first; what follows this paragraph is the history that got here, kept
 because every entry names a decision someone may need to overturn.
 
@@ -7174,24 +7182,56 @@ flagged before 4.5b rather than inside it.
 **Do not start `4.6a` until the owner has amended the ADR.** `CLAUDE.md` instructs a
 fresh session that *"if anything disagrees with the ADR, the ADR wins and the other
 file is the bug."* After the grill-me of 2026-09-07 **that rule now points the wrong
-way in two places**, and a session obeying it literally would undo the interview.
+way in four places**, and a session obeying it literally would undo the interview.
+⚠️⚠️ **TWO OF THE FOUR WERE FOUND ON 2026-09-07 WHILE SIZING `5a`, NOT DURING EITHER
+GRILL ROUND, AND THEY ARE THE TWO THAT BLOCK IT.** The first two below are the owner's
+own changes of mind; the last two are places this file drifted from the ADR without
+anyone deciding to.
 
 | ADR-035 | Says | The owner said, 2026-09-07 |
 |---|---|---|
 | **Decision register #9** (§1424) — *Staff invitation flow* | `workspace_invite` + `redeem_invite`, **token by WhatsApp**. Owner-initiated push | **C11.5 / C11.6** — the joiner enters a **workspace code**, **requests** access, and is **approved**; an owner's invite counts as *a request that arrives pre-approved*. **Both paths, not one** |
 | **Decision register #13** (§1424) — *Android* | *"Defer the release path, keep the code honest. Emulator smoke test at the end of 5a"* | **C1.1** — the pilot is **iPhone 11, iPhone 15, Oppo and Samsung**. **iOS is not optional**, and the 5a smoke test has two platforms |
+| ⚠️⚠️ **§2.11's stack table** — *Client tests* | *"**Skipped, except `packages/money`**. Per §2.10"* | **This file's own `5a` definition of done** (below) requires `app.yml` to run *"typecheck and **unit tests** over the app workspace."* **Nobody decided this; the section arguing for `app.yml` never cites §2.11** |
+| ⚠️ **§3's build-order step `5a`** — *Foundation* | The `expo-sqlite` **outbox**, **`src/api/`** wrapping every RPC, the **`src/ui/` primitives**, **`CONVENTIONS.md`**, session persistence **on a shared till device**, and **how the client resolves its `location_id`** | This file's `5a` has **none of the first four**, moved the outbox to `5c`, and C1.5/C1.1 already answered the last two (two workspaces, **personal phones — there is no shared till**) |
 
 ⚠️ **§1400's checklist is NOT the problem and was never wrong**: it carries
 `workspace_invite` + `create_invite` + `redeem_invite` as an **unticked box**, which is
 exactly right — they were never built. The conflict is in the **decision register**,
 which records *how* the flow should work, and that is the half the owner changed.
 
-✅ **Neither conflict blocks `5a`**, which is why `5a` goes first. Decision #13 only
-widens the smoke test; decision #9 is `4.6a`'s subject matter.
+✅ **The first two do not block `5a`.** Decision #13 only widens the smoke test;
+decision #9 is `4.6a`'s subject matter.
 
-**What is owed: an amendment to ADR-035, by the owner, before `4.6a` is written.**
-The ADR is amended only by deliberate decision (`docs/HANDBOOK.md`), and this file
-does not get to overrule it by describing something else loudly.
+⚠️⚠️ **THE THIRD ONE BLOCKS `5a-i`, AND IT BLOCKS IT ON ITS DEFINITION OF DONE RATHER
+THAN ON A DETAIL.** `5a-i` ships two things: an Expo project and the workflow that
+watches it. **§2.11 says the second one should not run tests.** So the disagreement is
+not about how to build the task — it is about what the task is for, and it cannot be
+deferred to a later letter, because a `paths:` filter is retroactively wrong for every
+commit that merged before it existed.
+
+⚠️ **The reading that would dissolve it, offered rather than assumed.** §2.10's *prose*
+says *"**broad** client-side testing is skipped for v1: a suite over a thin UI is a poor
+use of a small team's attention when correctness sits one layer below it."* §2.11's
+table row compresses that to one word — *"Skipped"* — and cites §2.10 as its authority.
+A four-case suite over `formatMXN` and the density scale is **not a suite over a thin
+UI**: it is pure functions, it is what `5a-ii` produces first, and it is the only thing
+that would make `app.yml`'s green mean anything. **But the prose governing the table is
+an argument, not a ruling, and the ADR is amended by decision** — so it is put to the
+owner instead of taken.
+
+⚠️ **The fourth is smaller but is a real omission, not a drift to be ratified**:
+`CONVENTIONS.md` is named by §3 as part of `5a` and *"hiring gates on that file
+existing"*. It is now scheduled at the close of `5a-iv` (below). `src/api/` and
+`src/ui/` are genuinely spread across `5d`–`5h` by this file's split, which is a
+defensible re-sequencing — but §3 wrote them into `5a` because **step 6's four screens
+are supposed to arrive to a pattern**, and that argument survives the re-sequencing
+intact. It needs the owner's eye, not a silent fix here.
+
+**What is owed: an amendment to ADR-035, by the owner — before `4.6a` is written (#9),
+and before `5a-i` is written (§2.11).** The ADR is amended only by deliberate decision
+(`docs/HANDBOOK.md`), and this file does not get to overrule it by describing something
+else loudly.
 
 ---
 
@@ -7667,7 +7707,7 @@ free today and stay free until the first task merges.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5a** | **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
+| **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
@@ -7675,6 +7715,81 @@ free today and stay free until the first task merges.
 | **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
+
+#### ⚠️⚠️ Sized 2026-09-07 — `5a` IS AN `L`, IT SPLITS FOUR WAYS, AND THE SEAM IS THE CI HOLE BELOW
+
+Sized before a line of it was written, under the working agreement — the same
+discipline that split `4.5` three ways and `4b` two. ✅ **The letters are still free**
+(no app code has merged), so these are `5a-i`–`5a-iv` in the `4b-i` / `4.5c-ii` shape
+rather than a re-lettering of `5b`–`5h`.
+
+**Why an `L` is too big for one session here, in one line:** the shell touches an app
+framework, a workspace manifest, a CI workflow, three OAuth providers, a session store,
+a theme scale and a money formatter — **seven surfaces, no two of which fail the same
+way** — and three of them (the `paths:` filter, the OAuth redirect, the density scale)
+are cheap today and dear once a screen rests on them.
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ⚠⚠ **THE ADR — §2.11's client-tests row. See the conflict table at the top of this step** |
+| **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | — |
+| **5a-iii** | **Auth and session.** The Supabase client, OAuth — Google, Facebook, email, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ⚠️ **Three provider consoles. Credentials are the owner's, and none of it is a code change** |
+| **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
+
+✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
+project, both platforms, OAuth, the persistent session, last-screen restore, the density
+scale, the money formatting, icons-plus-words navigation, the local device run, and
+`.github/workflows/app.yml` plus the workspace entry — land in **exactly one** sub-task
+each. ⚠️ **That is checked rather than asserted** (`docs/checks/5a-split-coverage.sh`),
+and the check earned its keep on the commit that introduced it: it caught **three
+defects in this split** before anyone read it — `iOS and Android` promised by `5a` and
+carried by no sub-task, `app.yml` claimed by two, and a **miscount that made the
+coverage read eleven-of-eleven when the parent names ten**. ⚠️ **"Exactly one" is the
+point, not "at least one":** a deliverable that appears in two rows is owned by neither,
+which is the shape a dropped line takes when two tasks each assume the other has it.
+
+⚠️ **`5a-i` is deliberately the smallest thing a machine can review, and folding it
+into `5a-ii` is the mistake to avoid.** The pull is real — a scaffold gives a reviewer
+nothing to look at, so it feels like a commit worth combining. That is the trade the
+section below already refused once: the workflow has to exist on **the first app
+commit**, not the first interesting one, because **a `paths:` filter added later was
+wrong for every commit that merged before it** — and this repository exists because the
+last one recorded decisions no machine had checked.
+
+⚠️ **`CONVENTIONS.md` is owed, was in no version of this file's `5a`, and is now in
+`5a-iv`.** §3 names it in terms — *"Plus `CONVENTIONS.md` — one page. Hiring gates on
+that file existing, because a junior arriving before it does will write the conventions
+themselves, by accident, in four places."* It is **not** put in `5a-i`: a conventions
+page written before `src/ui` and `src/api` exist is a guess at what the conventions will
+be. The close of `5a-iv` is the first moment there is a pattern to describe. ⚠️ **It is
+listed in the conflict table above rather than quietly inserted**, because §3 also
+assigns `src/api/` and the `src/ui/` primitives to `5a`, and this file put them in
+`5d`–`5h` without saying so.
+
+#### Six falsifications, run by hand before the `5a` split was committed
+
+`docs/checks/5a-split-coverage.sh` is the first check in this repository that reads a
+Markdown file rather than a database, and the rule does not change: **a guard nothing
+can turn red is not evidence.** Each fixture is a copy of `docs/PLAN.md` with one thing
+broken; all six turn it red, with the failure naming the deliverable.
+
+| | Break | Result |
+|---|---|---|
+| **F1** | `C3.18` deleted from the `5a-ii` row, parent untouched | 🔴 *"is in 5a and in NO sub-task — dropped by the split"* |
+| **F2** | `C1.3` moved from `5a-iii` to `5a-iv` | 🔴 *"landed in 5a-iv, this split assigned it to 5a-iii"* |
+| **F3** | The whole `5a-iii` row removed | 🔴 *"no table row for 5a-iii"* |
+| **F4** | The **parent** `5a` row quietly shrunk | 🔴 *"no longer named in the parent 5a row"* — the coverage claim cannot be made true by deleting the promise |
+| **F5** | Pointed at `docs/HANDBOOK.md`, which has no sizing table | 🔴 *"no table row for 5a-i"* — it does not pass vacuously on a file with nothing to check |
+| **F6** | One deliverable claimed by two sub-tasks | 🔴 *"appears in 5a-ii 5a-iv — owned by neither"* |
+
+⚠️⚠️ **F1'S FIRST FIXTURE WAS GREEN, AND THE FIXTURE WAS THE BUG.** A `sed` expression
+with one escape wrong edited nothing, the check read an unmodified file and correctly
+reported `10/10` — **a green that measured nothing, which is the fourth shape of it this
+repository has hit**, after 3.3's disarmed pgTAP exception, 3.6a's empty Vitest
+workspace and 4b-i's `where not passed`. It is recorded because the first three were in
+suites and this one was in the *falsification of a suite*: the step that exists to
+prove a guard works can itself assert nothing, and it looks exactly like success. **The
+fixture is now diffed against the original before the check runs on it.**
 
 #### ✅ Tooling settled 2026-09-07, before `5a` — one installed, one deferred, two unidentified
 
