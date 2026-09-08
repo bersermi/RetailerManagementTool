@@ -1,5 +1,6 @@
 // ============================================================================
-// THE SEAM, AND IT IS THE WHOLE OF 5a-i's APP CODE.
+// THE SEAM. It was the whole of 5a-i's app code; 5a-ii kept it and replaced the
+// route that displayed it.
 //
 // `5a-i` delivers a workspace and the workflow that watches it. Neither of
 // those is provable by a file existing: a fourth entry in the root manifest is
@@ -28,13 +29,26 @@ import { SCALE, formatDecimal, priceSellLine } from '@tienda/money';
  * at $11.60"* — priced through the shared money path and formatted for display.
  *
  * ⚠️ NOT A PRODUCT OF THIS APP AND NOT A FIXTURE FOR ONE. It exists so the
- * placeholder route renders a value that came across the workspace boundary
- * rather than a string literal. `5a-ii` replaces both this and the route, and
- * the real formatter it writes — `$1,234.50`, centavos hidden at zero (C12.2) —
- * is a different function with a different rule.
+ * shell renders a value that came across the workspace boundary rather than a
+ * string literal.
+ *
+ * ⚠️ THIS IS THE LEDGER'S SPELLING, NOT THE SHOPKEEPER'S — `11.60`, the string
+ * a `numeric(12,2)` column round-trips to, which is why `app/test/
+ * wiring.test.ts` can assert it against `cases.json` directly. What a person
+ * sees is `formatMXN()` (C12.2) over the centavos below, and the two are
+ * deliberately different functions: one is the boundary measurement, the other
+ * is the display rule.
  */
 export function placeholderTotal(): string {
+  return formatDecimal(placeholderGrossCentavos(), SCALE.money);
+}
+
+/**
+ * The same case as an integer number of centavos — 1160 — which is the form
+ * every value in this app travels in (ADR-035 §2.11) and the only form
+ * `formatMXN()` accepts.
+ */
+export function placeholderGrossCentavos(): number {
   // unit_price scale 6, qty scale 3, rate scale 4 — see SCALE in @tienda/money.
-  const line = priceSellLine(11_600_000, 1_000, 1_600);
-  return formatDecimal(line.gross, SCALE.money);
+  return priceSellLine(11_600_000, 1_000, 1_600).gross;
 }
