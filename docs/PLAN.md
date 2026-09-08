@@ -26,18 +26,28 @@ from the knowledge graph. Nothing there describes the system being built.
 UI/UX GRILL-ME OF 2026-09-07 REOPENED IT, AND THE THREE OWED MIGRATIONS ARE THE NEW
 STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`, and
 **`5a` WAS ITSELF SIZED `L` AND SPLIT FOUR WAYS ON 2026-09-07, BEFORE A LINE OF APP CODE
-WAS WRITTEN.** ⚠️⚠️ ✅✅ **`5a-i` IS DONE AS OF 2026-09-07 — THE FIRST APP CODE IN THIS REPOSITORY AND THE
-FIRST CI RUN THAT EVER LOOKED AT IT.** `app/` is an Expo SDK 57 project registered as
-`@tienda/app`, the fourth workspace entry, and `.github/workflows/app.yml` is the third
-workflow. ⚠️ **It was gated on an ADR amendment the sizing found, and the owner closed
-it the same day**: ADR-035 §2.10/§2.11 now allow a unit test that **pins a value a
-customer sees or the ledger stores** and still refuse suites over rendering, navigation
-and layout — so `app.yml` runs typecheck **and** tests, and its green means something
-other than *"it compiled"*. ⚠️⚠️ **The finding of the task is that a stale
-`node_modules` makes the workspace-wiring assertion vacuous** — the fifth shape of
-misleading green here, and the first one that only `npm ci` can see.
-**`5a-ii` — the density scale and the money formatter — IS THE NEXT TASK**, and it has
-no gate. **Four ADR conflicts are recorded in total; two remain open**, both `4.6a`'s.
+WAS WRITTEN.** ⚠️⚠️ ✅✅ **`5a-i` AND `5a-ii` ARE BOTH DONE AS OF 2026-09-07.** `5a-i` was
+the first app code in this repository and the first CI run that ever looked at it —
+`app/` is an Expo SDK 57 project registered as `@tienda/app`, the fourth workspace
+entry, and `.github/workflows/app.yml` is the third workflow; its finding was that a
+stale `node_modules` makes the workspace-wiring assertion vacuous, the fifth shape of
+misleading green here and the first one that only `npm ci` can see.
+✅✅ **`5a-ii` SHIPPED THE DENSITY SCALE (C3.18), THE MONEY FORMATTER (C12.2) AND THE
+ICONS-PLUS-WORDS TAB SHELL (C12.1)** — 48 assertions over four suites, up from three,
+so `app.yml`'s test half has now earned its place.
+⚠️⚠️ **ITS FINDING IS THAT C12.1's OTHER HALF IS THE FIRST DELIVERABLE HERE THAT NO
+CHECK CAN SEE**: falsification F14 set `tabBarShowLabel: false` — icons alone, the one
+thing C12.1 forbids — and nothing turned red, because §2.10/§2.11 (amended by the owner
+on 2026-09-07 to allow a test that **pins a value a customer sees or the ledger
+stores**) still refuse suites over rendering and navigation, and *"the label is drawn"*
+is a rendering claim. **That makes `5a-iv`, the device run, the only instrument that
+will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
+green: an assertion that ran, passed, and could not distinguish the defect its own
+comment named. Both are written up under `5a-ii` below.
+**`5a-iii` — auth and session — IS THE NEXT TASK, AND IT IS GATED ON THE OWNER**: three
+provider consoles (Google, Facebook, email), whose credentials are his and none of
+which is a code change. **Four ADR conflicts are recorded in total; two remain open**,
+both `4.6a`'s.
 Read *THE PLAN NOW DISAGREES WITH ADR-035* under step 4.6 first. The log below
 is newest-first; what follows this paragraph is the history that got here, kept
 because every entry names a decision someone may need to overturn.
@@ -7725,6 +7735,137 @@ free today and stay free until the first task merges.
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 
+#### ✅✅ `5a-ii` IS DONE AS OF 2026-09-07 — the scale, the formatter, and the first client rule a machine can read
+
+**The first app code with anything to assert, and `app.yml`'s test half earned its
+place: 48 assertions over four files, up from 5a-i's three.** What shipped:
+
+- **`app/src/theme/density.ts`** — C3.18's two modes as ten sized tokens, both typed
+  `DensityScale`, so a token added to one mode and forgotten in the other **fails the
+  typecheck** (falsification F13). Elder rows are 76pt against normal's 56.
+- **`app/src/theme/DensityProvider.tsx`** — one context, `useDensity()`. The rule for
+  every screen from `5d` on: *a size a person looks at comes from the scale, never
+  from a literal.*
+- **`app/src/format/mxn.ts`** — C12.2. `$1,234.50`, `$1,234`, `-$0.05`.
+- **`app/src/navigation/tabs.ts` + `app/src/app/(tabs)/`** — C12.1's shell: four tabs,
+  each an icon **and** a Spanish word, sized from the scale.
+- **`app/src/strings.ts`** — §2.11's *"hardcoded Spanish, centralised in one file"*,
+  which was owed by the stack table and named by no task.
+
+##### ⚠️⚠️ THE FINDING: C12.1's OTHER HALF IS THE FIRST DELIVERABLE IN THIS REPOSITORY THAT NO CHECK CAN SEE, AND THE ADR IS WHY
+
+**Falsification F14 set `tabBarShowLabel: false` — the one line that turns *icons plus
+words* into *icons alone*, the thing C12.1 forbids in terms — and NOTHING TURNED RED.**
+Typecheck green, 48 assertions green, `app.yml` would have merged it.
+
+⚠️ **It is not a hole in the suite. It is the boundary the owner drew on 2026-09-07
+working as specified**: §2.11 allows a test that pins a value and **refuses suites over
+rendering, navigation and layout**, and *"the label is on the screen"* is a rendering
+claim. Closing F14 needs a mounted component, which is the thing the amendment refuses.
+
+✅ **What was done instead: move as much of C12.1 as possible out of JSX and into
+data.** The tabs are a table in `src/navigation/tabs.ts`, and `app/test/tabs.test.ts`
+asserts over its values — every tab has a word, the word is one of the four in the
+strings file, the word is **Spanish** (F10), the glyph name exists in the shipped
+MaterialCommunityIcons map (F11), no two tabs look alike. Thirteen assertions, no
+component mounted, no rendering asserted. **A tab with no word is now red; a tab bar
+told not to draw the words is still green.**
+
+⚠️ **SO `5a-iv` IS LOAD-BEARING IN A WAY THE SIZING DID NOT KNOW.** It was written up as
+*"the only task in this step no CI can verify"* — a device build, a nice-to-have before
+juniors arrive. It is now **the only check that will ever look at C12.1**, and the
+owner holding the phone is the instrument. If `5a-iv` slips, that deliverable ships
+unverified.
+
+##### ⚠️ Found in `5a-ii` — F9 WAS GREEN, AND THE ASSERTION THAT MISSED IT WAS THE ONE WHOSE COMMENT CLAIMED IT
+
+`label: 'Vender'` typed straight into the tab table and `label: ES.tabs.vender` are
+**the same string once the module has loaded**, so the value assertion — *"the label is
+one of the words in `ES.tabs`"* — passes on both. Its comment claimed it caught *"a tab
+label typed in place, not centralised"*. It could not. And centralisation is precisely
+what §2.11's one-strings-file row is for: a second copy drifts silently, and the first
+copy always looks harmless.
+
+✅ **Closed with a check that reads the source text** — the same shape as
+`docs/checks/5a-split-coverage.sh` reading Markdown, and for the same reason: some
+claims are about the text, not about the values. ✅ **And it carries a guard on the
+guard** — F16 pointed it at a file with no `label:` lines and it went red rather than
+passing vacuously, which is the lesson of the split's own F1.
+
+⚠️ **This is a new shape of misleading green, and it is the sixth**: not a suite that
+ran nothing (3.3, 3.6a, the split's F1), not a report block that miscounted (4b-i), not
+a stale symlink (5a-i) — **an assertion that ran, passed, and could not distinguish the
+defect its own comment named.** The others are caught by counting; this one is only
+caught by falsifying the specific sentence in the comment.
+
+##### Sixteen falsifications, run by hand before `5a-ii` was pushed
+
+Fifteen red, one green, no broken fixtures. **Every fixture was diffed against the
+original before the check ran on it** (the split's F1), and **the working tree was
+committed first** (5a-i's `git checkout` finding).
+
+| | Break | Result |
+|---|---|---|
+| **F1** | `mxn.ts` hardcodes a comma decimal separator | 🔴 *"renders the decision register entry verbatim: $1,234.50"* |
+| **F2** | Centavos are never hidden at zero | 🔴 *"hides the centavos when they are zero"* |
+| **F3** | The centavo pair is not zero-padded — `$0.5` | 🔴 *"shows exactly two centavos when there are any"* |
+| **F4** | The integer guard removed, so a peso renders as a centavo | 🔴 *"throws on a fractional argument rather than rendering a tenth of it"* |
+| **F5** | The peso count is formatted without grouping | 🔴 *"$1,234.50"* |
+| **F6** | One elder token left equal to normal's | 🔴 *"elder.rowGap (8) is not larger than normal.rowGap (8)"* |
+| **F7** | Normal mode drops below the platform touch floor | 🔴 *"normal tap target is below the floor"* |
+| **F8** | A tab ships with an icon and no word | 🔴 *"comprar has a Spanish word from the strings file"* |
+| **F9** | A label typed in place instead of centralised | ⚠️🟢 **GREEN — see above.** 🔴 after the source-text check |
+| **F10** | The strings file is anglicised (`Sell`) | 🔴 *"names the modules in the domain vocabulary, not in English"* |
+| **F11** | A glyph name mistyped, at runtime | 🔴 *"'cash-registerr' is not a MaterialCommunityIcons glyph"* |
+| **F12** | A glyph name mistyped, at the typecheck | 🔴 `TS2820` |
+| **F13** | A density token defined in one mode only | 🔴 `TS2741: Property 'tabBarHeight' is missing` |
+| **F14** | **`tabBarShowLabel: false` — C12.1 broken outright** | ⚠️🟢 **GREEN. The finding of this task** |
+| **F15** | The tab table emptied | 🔴 `TS1005` |
+| **F16** | The new source-text guard pointed at a file with no labels | 🔴 — it does not pass vacuously |
+
+##### ✅ Measured, not assumed — the float path and the case table
+
+⚠️ **The obvious spelling of this formatter is `format(centavos / 100)`, and it is not
+wrong at shop scale.** Said plainly because the measurement was made rather than the
+argument assumed: **600 000 probes** — 400 000 across the whole safe-integer range plus
+200 000 at shop size — found **zero** values where the naive float path disagrees with
+`mxn.ts`'s integer path. The integer arithmetic is discipline, and the one place the
+two genuinely part company is past 2^53, where `formatMXN` throws (F4's sibling
+assertion). ⚠️ **`packages/money`'s header makes the same kind of admission about
+`cases.json` and rule 1**, and for the same reason: a green that reads as evidence for
+something it never tested is how this repository loses.
+
+✅ **The formatter is checked against `cases.json`, not against itself.** All seventeen
+line cases, three fields each: strip the locale's decoration and what is left must be
+the `numeric(12,2)` string `packages/money` computed. A formatter that dropped a
+thousands group, rounded to pesos or lost a trailing zero survives none of it — and the
+expectations are the **one data file** §2.10 requires, not a second copy.
+
+##### Decisions taken on the owner's behalf in `5a-ii`
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | ⚠️ **FOUR TABS, not §2.8's eight: Inicio, Vender, Comprar, Desperdicio** | These four **need no role**. Catálogo, Proveedores and Números are manager+, and **there is no session yet that knows who is holding the phone** (`5a-iii`) — a tab shown to a cashier who may not open it is worse than a tab not yet placed. Ajustes is a sheet, §2.8 said so. Reversing is one row in `src/navigation/tabs.ts` and one route file |
+| **2** | ⚠️ **`formatMXN` lives in `app/`, not `packages/money`** | §2.11's *"money on screen"* row is client architecture, and `packages/money` is deliberately locale-free and exports no peso-valued anything. §2.10's argument for the third ownership line is about **the rounding rule**, which this does not touch: it takes integer centavos in and returns a string nothing parses back. ⚠️ **It does mean a junior owns the file that decides what a price looks like.** Reversing is a file move and one import |
+| **3** | **The scale's actual numbers** — 56→76pt rows, 16→20pt body, 20→30pt money | C3.18 fixed the *shape* (*"big and at a glance"*, *"fewer rows on screen"*), never the values. Elder is 25–50% larger on every token, floor-checked at 48 (Apple's 44, Android's 48 — the larger wins, for **both** modes). ⚠️ **These are a guess until someone old looks at them**, which is `5a-iv`. Reversing is one file, no migration, no screens |
+| **4** | ⚠️ **The density mode will be a DEVICE setting, not a workspace one** | Not yet persisted — storage is `5a-iii` — but the seam is written down now because it is the cheap moment. An elder shopkeeper and their twenty-year-old nephew share a workspace and do not share a pair of eyes (C1.5: personal phones, no shared till). ⚠️ **If it were a workspace column it would be a migration, and `5a-iii` would inherit one** |
+| **5** | **`@expo/vector-icons` (MaterialCommunityIcons) added as the icon set** | SDK 57 no longer ships it inside `expo`, and the alternatives fail C1.1: `expo-symbols` is SF Symbols, iOS only. Glyph choices carry their reasoning in `tabs.ts` — `cash-register` for Vender, `truck-delivery` for Comprar because **receiving is a manager's job, not a shopper's cart** |
+| **6** | ⚠️ **A temporary density switch sits on Inicio** | It belongs in Ajustes (`5b`) and in storage (`5a-iii`), and it is on the placeholder Home so that `5a-iv` can **look at elder mode on the actual phone**. An elder mode the owner cannot switch to is an elder mode he cannot judge. **Whoever builds Ajustes deletes the block** |
+| **7** | **A zero total renders `$0`, not `$0.00`** | C12.2 read literally — centavos hidden when zero, and zero is a zero. ⚠️ **`5f`'s sticky basket total starts at `$0`**; if that reads wrong in the shop it is one line here, not a rule change |
+| **8** | **Vitest needs the `@/` alias spelled a second time** (`app/vitest.config.ts`) | Metro reads the mapping from `tsconfig.json`; Vitest does not, so the first non-relative source module imported by a suite failed to **load**, not to compile. The two spellings can drift — but a wrong alias resolves to nothing and fails loudly |
+
+##### What `5a-ii` did NOT do, deliberately
+
+- ⚠️ **No `src/ui/` primitives.** §2.11's ten (`Money`, `ListRow`, `Field`…) are the
+  live ADR conflict recorded above and are not this task's to grab. The placeholder
+  three tabs share `src/scaffolding/Pendiente.tsx`, named so nobody mistakes it for a
+  pattern, and each screen task deletes its own use of it.
+- ⚠️ **No C12.3.** The 50-centavo ceiling is a display rule on **one number on one
+  screen** — `5h`'s basket total — and `formatMXN` must not know about it. Unit prices
+  and line totals are exact everywhere, and Comprar is not rounded at all.
+- **No colours, no fonts.** Density is size. A palette would make "elder" a second
+  theme and force every screen to choose between them.
+
 #### ✅ `5a-i` IS DONE AS OF 2026-09-07 — the fourth workspace, and the third workflow
 
 **The first app code in this repository, and the first CI run that ever looked at it.**
@@ -7832,7 +7973,7 @@ are cheap today and dear once a screen rests on them.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ✅ **CLEARED 2026-09-07** — the ADR was amended. **DONE 2026-09-07** |
-| **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | — |
+| **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
 | **5a-iii** | **Auth and session.** The Supabase client, OAuth — Google, Facebook, email, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ⚠️ **Three provider consoles. Credentials are the owner's, and none of it is a code change** |
 | **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 
