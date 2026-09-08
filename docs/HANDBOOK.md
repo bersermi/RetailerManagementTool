@@ -144,12 +144,16 @@ That is the interactive map — boxes you can drag, click and search. It refresh
 itself when you commit or switch branches on `main`; to force it, run
 `graphify update .`.
 
-**Set your expectations before you open it.** The map now holds **1,084 boxes**, and
-unlike when this section was first written, **the database is in it**: tables,
-functions, triggers, views and the CTEs inside queries, each with a file and a line
-number. `graphify explain "batch_balance"` works today. *(Both this file and
-`CLAUDE.md` carried much smaller counts — 92 and 437 — for weeks after they stopped
-being true. Counts in prose go stale; that is what they do.)*
+**Set your expectations before you open it.** The map now holds **over a thousand
+boxes**, and unlike when this section was first written, **the database is in it**:
+tables, functions, triggers, views and the CTEs inside queries, each with a file and
+a line number. `graphify explain "batch_balance"` works today.
+
+⚠️ **Do not trust a count written in any document, including this sentence.** This
+file said 92 for weeks and `CLAUDE.md` said 437; both were replaced with 1,084 on
+2026-09-07 and **that number was wrong within the hour**, because merging the very
+commit that wrote it added twenty-five boxes. The map rebuilds itself on every commit
+to `main`. If you want the real figure, ask the map, not the prose.
 
 ⚠️ **One thing is still missing and it is the one that matters most on this
 project: `CREATE POLICY` is not indexed.** The forty-one row-level-security policies —

@@ -74,8 +74,10 @@ to bring up only what a migration reset needs.
 
 ## graphify
 
-This project has a knowledge graph at graphify-out/ — 1,084 nodes over Markdown, SQL and
-shell, with community structure and cross-file relationships.
+This project has a knowledge graph at graphify-out/ — a thousand-odd nodes over Markdown, SQL and
+shell, with community structure and cross-file relationships. ⚠️ **Do not quote a node
+count from this file** — it moves on every commit to `main` and has been stale twice
+already. Read it from `graphify-out/graph.json` if it matters.
 
 ⚠️ **There are no god nodes and no semantic layer** (checked 2026-09-07 — `graphify-out/wiki/` still does not exist). Every node is
 `_origin: ast`; the LLM extraction pass has never run because no `GEMINI_API_KEY` /
