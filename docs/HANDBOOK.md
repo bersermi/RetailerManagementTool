@@ -236,8 +236,11 @@ works out profit from the cost of the exact goods that left the shelf — which 
 correct for a can of beans and nonsense for a shop that buys whole chickens and sells
 breasts. It is being replaced. See *Where we are*.
 
-The tables are usually **empty**. Data only appears while a test suite is running,
-and the cleanup wipes it before the next one. Real sample data arrives at task 1.6.
+**The tables are no longer empty.** `supabase db reset` loads invented shop data
+afterwards, from three files listed in order in `supabase/config.toml` — a skeleton,
+then deliveries, then consumption — because you cannot deliver stock into a catalog
+that does not exist. What a test suite creates on top of that is still wiped before
+the next suite runs.
 
 ### The one warning that matters
 
@@ -263,7 +266,7 @@ example.
 | File | What it is | Who maintains it |
 |------|-----------|------------------|
 | `docs/PLAN.md` | Where the build is. Next task, what "done" means, what is unresolved | Claude updates it as tasks close |
-| `docs/adr/ADR-035` | The architecture. 1,177 lines deciding how everything works | Changes only by deliberate decision — yours |
+| `docs/adr/ADR-035` | The architecture. 1,454 lines deciding how everything works — amended since it was written, always on your instruction | Changes only by deliberate decision — yours |
 | `CLAUDE.md` | Rules a fresh session reads automatically. Written for Claude, not you | Claude maintains it |
 | `archive/power-platform/` | The abandoned first attempt. Kept for its reasoning only | Frozen — never cite it as current |
 
