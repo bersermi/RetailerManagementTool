@@ -44,14 +44,20 @@ is a rendering claim. **That makes `5a-iv`, the device run, the only instrument 
 will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
-**`5a-iii` — auth and session — IS THE NEXT TASK.** ⚠️⚠️ **ITS GATE IS NOW MOSTLY
-CLEARED, AND THE SHAPE OF IT CHANGED ON 2026-09-11: FACEBOOK IS DEFERRED TO THE NEW
-`5i`, AND THE v1 PILOT SIGNS IN WITH GOOGLE OR EMAIL.** ✅ The Google console is done —
-the consent screen sits in *Testing* with the pilot accounts as test users, which is
-**sufficient to sign in** and is not what publishing gates. ⚠️ **The owner still owes
-two things and one of them is a one-way door**: `app/.env.local` (the hosted project's
-URL and anon key) and **the bundle identifier**, which cannot be changed after first
-submission. ⚠️ **`5i`'s real cost is not code — it is ONE PUBLIC `aviso de privacidad`
+✅✅ **`5a-iii`'s GATE IS FULLY CLEARED AS OF 2026-09-11, AND `5a-iii` WAS THEN SIZED AN
+`L` AND SPLIT IN TWO — `5a-iii-a` IS THE NEXT TASK.** ⚠️⚠️ **The shape of the step
+changed the same day: FACEBOOK IS DEFERRED TO THE NEW `5i`, and the v1 pilot signs in
+with Google or email.** ✅ **The gate was closed by MEASUREMENT, not by report** — a live
+`GET /auth/v1/settings` against the project, which found two things a file could not:
+Google was **not** enabled on the Supabase side after the Google console was built, and
+email confirmation was still **on**. Both now verified from the endpoint. ✅ The consent
+screen stays in *Testing* with the pilot accounts as test users, which is sufficient to
+sign in and is **not** what publishing gates. ✅ **The app is named `Wera`** (the repo and
+the `@tienda/*` packages deliberately stay `tienda` — internal names no user sees), and
+the bundle id is **`mx.bserafin.wera`**. ⚠️ **The bundle id is provisional and its real
+deadline is earlier than submission**: changing it makes the app a *different app* to the
+OS, so a phone holding `5c`'s outbox or a session loses them. Free today; not free once a
+pilot shop is using it. ⚠️ **`5i`'s real cost is not code — it is ONE PUBLIC `aviso de privacidad`
 PAGE**, which Facebook Live mode, Google publishing and LFPDPPP all require, is owed to
 two consoles and one law, and until 2026-09-11 was written down in none of them. It
 blocks **pilot day**, not `5a-iii`. ⚠️ **The finding of that session is that
@@ -7747,6 +7753,101 @@ free today and stay free until the first task merges.
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio |
 
+#### ⚠️⚠️ Sized 2026-09-11 — `5a-iii` IS AN `L`, NOT THE `M/L` THIS FILE CARRIED, AND IT SPLITS IN TWO
+
+Sized before a line of it was written, under the working agreement — the same
+discipline that split `5a` four ways, `4b` two and `4.5` three. ✅ **The gate cleared
+the same day**, so the split is the only thing standing between here and auth code.
+
+**Why the `M/L` was wrong, in one line:** the row reads as one subject — *"auth and
+session"* — and is actually **eleven deliverables across four surfaces that fail in four
+unrelated ways**: an app-identity block that is permanent at submission, a storage
+choice that decides where a session lives, a redirect round trip with a half in somebody
+else's dashboard, and navigation state. ⚠️ **Two of those are one-way doors and two are
+not**, which is the tell that a row is really two tasks.
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **`5a-iii-a`** | **The client, the session, and the way in that needs no deep link.** `app.json`'s identity (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and where the session is **stored**, `AppState` refresh, the signed-in/signed-out route guard, **email sign-in, sign-up and explicit log-out** (C1.4). | `M` | ✅ none |
+| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ⚠️ one dashboard edit, taken **during** the task |
+
+**Where the seam is, and why it is there rather than at "auth" / "session":** everything
+in `a` works with the network off and the browser closed. Everything in `b` leaves the
+app and has to be let back in. ⚠️ **That is also the failure-mode boundary**: `a` fails
+visibly on the screen in front of you, and `b`'s characteristic failure is *the browser
+opens and never comes back*, which looks identical to a hang.
+
+##### ⚠️ DECIDED IN THE SIZING — THE SESSION LIVES IN `expo-sqlite`, NOT IN ASYNCSTORAGE
+
+Supabase's React Native quickstart shows **two different storage adapters** and the one
+most tutorials show is `@react-native-async-storage/async-storage`. **Expo's own current
+quickstart uses `expo-sqlite/localStorage/install` instead**, and that is the one taken.
+
+⚠️ **The reason is ADR-035 §2.11, which already chose `expo-sqlite`** — *"Local state:
+Zustand, cart only, persisted to `expo-sqlite`"* — and `5c`'s offline outbox is built on
+it. Adding AsyncStorage would put **two storage engines in one app** before the second
+screen exists: two things to reason about when a session or a queued sale goes missing,
+two things to clear, and a junior arriving in step 6 with no way to know which is which.
+**The ADR picked a local store; a session is local state.**
+
+⚠️ **What it costs, said plainly:** AsyncStorage is the better-documented path and the
+one every blog post shows, so a future search will return advice that does not match
+this repository. Reversing is one import and one option in a single file, and the
+session is re-created by signing in again — **cheap today, and cheap in a year.**
+
+##### ⚠️ Found in the sizing — THE ENV VAR IS NAMED FOR A KEY THAT NO LONGER EXISTS
+
+`app/.env.local` carries `EXPO_PUBLIC_SUPABASE_ANON_KEY`, and **the value in it is a
+`sb_publishable_…` key** — Supabase replaced the legacy `anon` JWT with publishable keys,
+and the project was created after the change. The name is ours, nothing consumes it yet,
+and it is wrong in the direction that matters: **`anon` is also half the name of
+`service_role`'s counterpart**, so a future reader reconciling *"the anon key"* against a
+dashboard that has no anon key is one plausible step from reaching for the secret one.
+✅ **Renamed to `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `5a-iii-a`**, in both
+`.env.local` and the committed `.env.example`, while exactly zero lines of code read it.
+
+##### ⚠️⚠️ WHAT `5a-iii-b` CAN AND CANNOT PROVE, WRITTEN BEFORE IT IS BUILT
+
+C1.3 — *"the app opens on the LAST SCREEN THEY WERE ON"* — is **navigation state**, which
+is the category §2.11 refuses suites over. This is the **third** deliverable in `5a` to
+hit that wall, after C12.1's tab labels and C1.4's *"session persists until an explicit
+log-out"*, and it is written down **before** the task rather than discovered in its
+falsification batch.
+
+✅ **The half that is testable is the one that decides:** *which route should we restore
+to, given a stored value and a session?* — a pure function over `(storedRoute, session)`
+returning a route, with the rules that a route the user may no longer reach is refused,
+an unknown route falls back, and a signed-out user restores to nothing. **That is a value
+the app acts on**, and §2.11 admits it.
+
+⚠️ **The half that is not: that the router actually lands there on a cold start.** No
+unit test in this repository's rules can see it, and `5a-iv` — the owner's own phone —
+is the instrument, exactly as it now is for C12.1. ⚠️ **`5a-iv` is accumulating
+deliverables that rest on it alone**, which the four-way sizing did not know when it
+called that task *"the only one no CI can verify"* as though that were a footnote.
+
+##### Five falsifications over the sub-split, run by hand before it was committed
+
+The unmodified file is confirmed green first, so a red is known to come from the break;
+every fixture is diffed against the original before the check runs on it.
+
+| | Break | Result |
+|---|---|---|
+| **H1** | The `5a-iii-b` row deleted | 🔴 *"no table row for 5a-iii-b"* |
+| **H2** | C1.3 moved out of `5a-iii-b`, **parent untouched** | 🔴 *"the parent 5a-iii row still naming it is NOT the same claim"* |
+| **H3** | C1.4 claimed by both halves | 🔴 *"owned by neither half"* |
+| **H4** | Email sign-in silently leaves `5a-iii-a` | 🔴 *"C1.4 is not in 5a-iii-a"* |
+| **H5** | Pointed at `docs/HANDBOOK.md`, which has no sizing table | 🔴 — it does not pass vacuously |
+
+⚠️⚠️ **H2 IS THE ONE THE GUARD WAS WRITTEN FOR, AND IT WAS GREEN BEFORE THE GUARD
+EXISTED.** The ten-deliverable loop scans `5a-i`..`5a-iv` only, so C1.3 was matched
+against the **parent** `5a-iii` row and nothing looked at which half carried it — moving
+last-screen restore into `5a-iv` would have left this file reading `10/10`. **That is the
+same defect found hours earlier with C1.4 and Facebook, one level further down**, and it
+is recorded because writing *"a deliverable is only as visible as the coarsest row that
+names it"* and then not applying it to the next split would be the same bug with better
+documentation.
+
 #### ⚠️⚠️ Decided by the owner 2026-09-11 — FACEBOOK IS DEFERRED TO `5i`, AND THE v1 PILOT SIGNS IN WITH GOOGLE OR EMAIL
 
 **The owner's call, taken while configuring the consoles**: *"How about if we only do
@@ -8110,7 +8211,9 @@ are cheap today and dear once a screen rests on them.
 |---|---|---|---|
 | **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ✅ **CLEARED 2026-09-07** — the ADR was amended. **DONE 2026-09-07** |
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
-| **5a-iii** | **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i` 2026-09-11**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ✅ **Google console DONE 2026-09-11** (client created, consent screen left in *Testing* with the pilot accounts as test users — publishing is **not** required to sign in). ⚠️ **Owed: `app/.env.local`, and the bundle id — a one-way door** |
+| **5a-iii** | ⚠️ **SPLIT IN TWO 2026-09-11 — see the sizing below; `5a-iii-a` is what gets taken.** **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i`**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `L` — **not the `M/L` this table carried** | ✅✅ **CLEARED 2026-09-11.** Google live-checked on, email on, Facebook and phone off, confirmations off; `app/.env.local` valid against the project; the app is named **Wera** and the bundle id is `mx.bserafin.wera` |
+| **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ — |
+| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — `expo-auth-session` out, the scheme back in — and **C1.3's last-screen restore**. ⚠️ **The deep link is the whole risk**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and it has a half in the Supabase dashboard that no file in this repository can see. | `M` | ⚠️ **One dashboard edit, taken DURING the task** — Redirect URLs must gain `mx.bserafin.wera://**` |
 | **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo

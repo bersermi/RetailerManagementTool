@@ -179,6 +179,54 @@ if ! grep -Eq "Facebook" <<< "$(row 5a)"; then
   fb_fails=$((fb_fails+1))
 fi
 
+# ---------------------------------------------------------------------------
+# THE `5a-iii` SUB-SPLIT — added 2026-09-11, the SAME DAY the Facebook finding
+# showed why it is needed.
+#
+# ⚠️ `5a-iii` was split into `5a-iii-a` / `5a-iii-b`, and the ten-deliverable
+# loop above scans only `5a-i`..`5a-iv`. So C1.3 and C1.4 are matched against
+# the PARENT `5a-iii` row and nothing looks at which half actually carries
+# them — which means moving last-screen restore into `5a-iv`, or email sign-in
+# out of `5a-iii-a`, leaves this file GREEN.
+#
+# That is precisely the shape found hours earlier with C1.4 and Facebook: A
+# DELIVERABLE IS ONLY AS VISIBLE AS THE COARSEST ROW THAT NAMES IT. Writing
+# that down and then not applying it one level down would be the same defect
+# with better documentation. Fixture F2 already pins C1.3 to `5a-iii` rather
+# than `5a-iv`; these pin it to the half of `5a-iii` that owns it.
+
+sub_fails=0
+
+for t in 5a-iii-a 5a-iii-b; do
+  if [[ -z "$(row "$t")" ]]; then
+    echo "FAIL: no table row for $t — 5a-iii was split in two on 2026-09-11"
+    sub_fails=$((sub_fails+1))
+  fi
+done
+
+if (( sub_fails == 0 )); then
+  # C1.4's sign-in belongs to the half with no deep link; C1.3's restore to the
+  # half that owns navigation. Each in exactly one, for rule 2's reason.
+  for pair in "C1\.4:5a-iii-a:5a-iii-b" "C1\.3:5a-iii-b:5a-iii-a"; do
+    rx="${pair%%:*}"; rest="${pair#*:}"; owner="${rest%%:*}"; other="${rest#*:}"
+    if ! grep -Eq "$rx" <<< "$(row "$owner")"; then
+      echo "FAIL: ${rx//\\/} is not in $owner, which this split assigned it to."
+      echo "      The parent 5a-iii row still naming it is NOT the same claim."
+      sub_fails=$((sub_fails+1))
+    fi
+    if grep -Eq "$rx" <<< "$(row "$other")"; then
+      echo "FAIL: ${rx//\\/} appears in $other as well — owned by neither half"
+      sub_fails=$((sub_fails+1))
+    fi
+  done
+fi
+
+if (( sub_fails > 0 )); then
+  echo
+  echo "The 5a-iii sub-split does not hold. Re-size deliberately rather than editing a row."
+  exit 1
+fi
+
 if (( fb_fails > 0 )); then
   echo
   echo "$covered/$total deliverables covered, but the Facebook deferral is not recorded correctly."
@@ -187,3 +235,4 @@ fi
 
 echo "$covered/$total of 5a's deliverables covered by exactly one sub-task each, as assigned."
 echo "Facebook's deferral to 5i is recorded, gated, and claimed by no 5a sub-task."
+echo "5a-iii's two halves exist, and C1.4 and C1.3 each sit in exactly one of them."
