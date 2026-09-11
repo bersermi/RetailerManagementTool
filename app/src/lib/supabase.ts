@@ -53,8 +53,24 @@ export const supabase = createClient(env.url, env.publishableKey, {
     // LINK. This option is for a web page whose URL carries the tokens; on a
     // phone there is no page and no URL bar, and leaving it on makes the client
     // parse whatever `window.location` a polyfill invented. The OAuth return
-    // trip is handled explicitly by the task that adds it.
+    // trip is handled explicitly, in `AuthProvider.signInWithGoogle`.
     detectSessionInUrl: false,
+    // ⚠️⚠️ PKCE, AND THE DEFAULT IS `implicit` — THIS LINE IS THE WHOLE
+    // DIFFERENCE. Added in 5a-iii-b. Under the implicit flow GoTrue sends the
+    // ACCESS AND REFRESH TOKENS THEMSELVES back in the callback URL, and the
+    // callback here is a custom scheme — `mx.bserafin.wera://` — which any app
+    // on the phone may also register. A refresh token does not expire; handing
+    // one to the OS's URL router is the same class of mistake as the secret key
+    // `env.ts` refuses, and it has the same property: it WORKS. PKCE sends a
+    // one-time `code` instead, worthless without the verifier this client kept
+    // in its own storage. RFC 8252 is not ambiguous about which one a native
+    // app uses.
+    //
+    // ⚠️ IT CHANGES NOTHING FOR EMAIL. `signInWithPassword` does not consult
+    // the flow type, and confirmations are off on this project, so no magic
+    // link exists to be affected. `oauth.ts` reports tokens-in-the-callback as
+    // a named failure, which is what notices if this line is ever removed.
+    flowType: 'pkce',
   },
 });
 
