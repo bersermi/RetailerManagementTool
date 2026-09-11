@@ -15,6 +15,9 @@
 #   3. That one row is the one this split assigned it to.
 #   4. The parent `5a` row still names all ten, so an edit that quietly shrinks the
 #      parent turns this red rather than making the coverage claim trivially true.
+#   5.-8. That Facebook's deferral to `5i` (2026-09-11) is recorded, gated, and
+#      claimed by no `5a` sub-task. See the block at the foot of this file for
+#      why the ten-deliverable loop above cannot see that on its own.
 #
 # ⚠️ `app.yml` is recognised by its FULL PATH, not by the bare filename. `5a-ii`
 # refers to *"app.yml's test half"* without owning the file, and the bare name made
@@ -112,4 +115,75 @@ if (( fails > 0 )); then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# THE FACEBOOK DEFERRAL — added 2026-09-11, and it exists because the loop above
+# CANNOT SEE IT.
+#
+# ⚠️⚠️ `C1.4` NAMES THREE PROVIDERS AND THE CHECK COUNTED IT AS ONE ATOM. When
+# Facebook was deferred out of `5a-iii` to `5i`, the regex `C1\.4` still matched
+# the parent row and still matched exactly one sub-task — so this file printed
+# 10/10 while a third of a deliverable had changed tasks. That is the precise
+# failure it was written to catch, in the one form its own granularity hid:
+# A DELIVERABLE THAT IS A LIST IS ONLY AS VISIBLE AS ITS COARSEST NAME.
+#
+# So the deferral itself is now the thing asserted. Not "Facebook is mentioned
+# somewhere" — four separate claims, each of which is how this goes wrong:
+#   5. `5i` exists as a table row and names Facebook.
+#   6. `5i` carries a real gate, not an em-dash. A deferred task with no gate is
+#      a task nobody is waiting on, which is how "later" becomes "never".
+#   7. NO `5a-*` sub-task names Facebook — otherwise it has been quietly folded
+#      back in and two tasks each think the other has it.
+#   8. The parent `5a` row still RECORDS the move. `5a` promised Facebook; an
+#      edit that deletes the promise instead of recording where it went makes
+#      the coverage claim true by forgetting, which is fixture F4's lesson.
+
+fb_fails=0
+
+# ⚠️ THE DELIVERABLE CELL, NOT THE WHOLE ROW — falsification G5. `5i`'s GATE
+# legitimately says "Facebook Live mode", so grepping the row for "Facebook"
+# stayed green on a fixture that renamed the task itself away from Facebook:
+# the word survived in a cell that is about what BLOCKS the task, not what it
+# IS. A row is not one string, and asserting over the wrong cell is how a check
+# passes while measuring something adjacent to its claim.
+fb_what="$(row 5i | awk -F'|' '{print $3}')"
+if ! grep -Eq "Facebook" <<< "$fb_what"; then
+  echo "FAIL: no table row for 5i whose DELIVERABLE is Facebook — the deferral"
+  echo "      has no home (its gate mentioning Facebook is not the same claim)"
+  fb_fails=$((fb_fails+1))
+else
+  # The gate is the LAST pipe-delimited cell of the row.
+  gate="$(row 5i | awk -F'|' '{print $(NF-1)}' | sed 's/^ *//; s/ *$//')"
+  if [[ -z "$gate" || "$gate" == "—" || "$gate" == "-" ]]; then
+    echo "FAIL: 5i has no gate. A deferred task nobody is waiting on is how"
+    echo "      'later' becomes 'never' — name what unblocks it."
+    fb_fails=$((fb_fails+1))
+  fi
+fi
+
+for t in 5a-i 5a-ii 5a-iii 5a-iv; do
+  if grep -Eq "Facebook" <<< "$(row "$t")"; then
+    # Being named as EXPLICITLY deferred is the one allowed mention.
+    if ! grep -Eq "FACEBOOK DEFERRED|Facebook deferred" <<< "$(row "$t")"; then
+      echo "FAIL: $t names Facebook, which was deferred to 5i on 2026-09-11."
+      echo "      Either it has been folded back in without re-sizing, or two"
+      echo "      tasks now each assume the other owns it."
+      fb_fails=$((fb_fails+1))
+    fi
+  fi
+done
+
+if ! grep -Eq "Facebook" <<< "$(row 5a)"; then
+  echo "FAIL: the parent 5a row no longer mentions Facebook at all. 5a PROMISED"
+  echo "      it; record where it went (5i) rather than deleting the promise —"
+  echo "      a coverage claim made true by forgetting is fixture F4's lesson."
+  fb_fails=$((fb_fails+1))
+fi
+
+if (( fb_fails > 0 )); then
+  echo
+  echo "$covered/$total deliverables covered, but the Facebook deferral is not recorded correctly."
+  exit 1
+fi
+
 echo "$covered/$total of 5a's deliverables covered by exactly one sub-task each, as assigned."
+echo "Facebook's deferral to 5i is recorded, gated, and claimed by no 5a sub-task."
