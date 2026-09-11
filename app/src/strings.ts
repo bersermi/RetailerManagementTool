@@ -48,6 +48,9 @@ export const ES = {
     passwordLabel: 'Contraseña',
     signIn: 'Entrar',
     signUp: 'Crear cuenta',
+    /** C1.4's other way in (5a-iii-b). The provider is named because the
+     *  person has to recognise which account they are about to use. */
+    google: 'Entrar con Google',
     toSignUp: '¿No tienes cuenta? Crear una',
     toSignIn: '¿Ya tienes cuenta? Entrar',
     signOut: 'Cerrar sesión',
@@ -66,6 +69,13 @@ export const ES = {
       notConfirmed: 'Todavía falta confirmar tu correo.',
       tooMany: 'Demasiados intentos. Espera un minuto y vuelve a intentar.',
       offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      /** ⚠️ THE ROUND TRIP CAME BACK WRONG, AND IT NAMES THE BUTTON ON
+       *  PURPOSE. A shopkeeper who tapped Google and is told "algo salió mal"
+       *  does not know that the other way in still works; this sentence points
+       *  at the one that does. ⚠️ IT IS NEVER SHOWN FOR A CANCELLATION —
+       *  closing the browser or backing out of Google's chooser produces no
+       *  message at all, because the person already knows what they did. */
+      googleFailed: 'No se pudo entrar con Google. Intenta de nuevo, o entra con tu correo.',
       /** ⚠️ THE CATCH-ALL, AND IT SAYS NOTHING ABOUT THE CAUSE ON PURPOSE. An
        *  unmapped error is one we have not seen; guessing at it in Spanish is
        *  worse than admitting it, and the developer reads the real one in the

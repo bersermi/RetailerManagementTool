@@ -1,9 +1,13 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import * as WebBrowser from 'expo-web-browser';
 
 import { authErrorMessage } from '@/auth/errors';
 import { checkCredentials } from '@/auth/credentials';
+import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
+import { forgetLastScreen, routeMemory } from '@/navigation/lastScreen';
+import { ES } from '@/strings';
 import { supabase } from '@/lib/supabase';
 
 // ============================================================================
@@ -34,6 +38,12 @@ interface Auth {
   /** `null` on success, otherwise the Spanish sentence to show. */
   readonly signIn: (email: string, password: string) => Promise<string | null>;
   readonly signUp: (email: string, password: string) => Promise<string | null>;
+  /**
+   * C1.4's other provider (5a-iii-b). ⚠️ `null` ALSO MEANS "THEY CHANGED THEIR
+   * MIND" — a cancelled round trip is not a failure and must show no message.
+   * See `@/auth/oauth`.
+   */
+  readonly signInWithGoogle: () => Promise<string | null>;
   readonly signOut: () => Promise<void>;
 }
 
@@ -45,6 +55,7 @@ const AuthContext = createContext<Auth>({
   ready: false,
   signIn: async () => null,
   signUp: async () => null,
+  signInWithGoogle: async () => null,
   signOut: async () => {},
 });
 
@@ -100,22 +111,76 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? authErrorMessage(error) : null;
   }, []);
 
+  // ==========================================================================
+  // ⚠️ THE ROUND TRIP, AND EVERY DECISION IN IT IS IN `@/auth/oauth`. What is
+  // left here is the three impure steps: ask supabase-js for the URL, open the
+  // browser, hand the code back. Plan task 5a-iii-b.
+  //
+  // ⚠️ `skipBrowserRedirect` IS `true` BECAUSE THERE IS NO BROWSER TO REDIRECT.
+  // supabase-js would otherwise assign `window.location`, which on a phone is
+  // whatever a polyfill invented — the sign-in would simply not happen, with no
+  // error. We want the URL as a value and we open it ourselves.
+  //
+  // ⚠️ `openAuthSessionAsync` AND NOT `openBrowserAsync`. The first uses
+  // ASWebAuthenticationSession / Custom Tabs, which RESOLVE WITH THE CALLBACK
+  // URL and hand control straight back to this app; the second opens a browser
+  // and returns immediately, leaving the deep link to find its own way home
+  // through the OS. That difference is the whole of "the browser opens and
+  // never comes back".
+  // ==========================================================================
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: OAUTH_REDIRECT_URI, skipBrowserRedirect: true },
+      });
+      if (error) return authErrorMessage(error);
+      if (!data.url) return ES.auth.errors.googleFailed;
+
+      const outcome = oauthOutcome(await WebBrowser.openAuthSessionAsync(data.url, OAUTH_REDIRECT_URI));
+      // They closed it, or backed out of Google's chooser. They know.
+      if (outcome.kind === 'cancelled') return null;
+      if (outcome.kind === 'failed') {
+        // ⚠️ THE DETAIL GOES TO THE CONSOLE AND NEVER TO THE SCREEN — it names
+        // a misconfiguration (a missing Redirect URL, the flow type changed),
+        // which is a developer's sentence, and the developer is the only person
+        // who can act on it.
+        console.warn(`[auth] google sign-in failed: ${outcome.detail}`);
+        return ES.auth.errors.googleFailed;
+      }
+
+      const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(outcome.code);
+      return exchangeError ? authErrorMessage(exchangeError) : null;
+    } catch (thrown) {
+      // ⚠️ THE BROWSER CAN THROW, AND THE COMMON CASE IS THE COMMON ONE HERE
+      // TOO: no signal. `authErrorMessage` recognises a dead connection from
+      // both shapes it arrives in, and says so in Spanish.
+      return authErrorMessage(thrown);
+    }
+  }, []);
+
   // ⚠️ THE ONLY THING THAT ENDS A SESSION (C1.4). Nothing else in this app may
   // call `supabase.auth.signOut()`, and no failure path may: "nobody logs out
   // at 9 p.m., the phone is simply put down."
+  //
+  // ⚠️ AND IT FORGETS THE LAST SCREEN (C1.3, 5a-iii-b). Logging out is the one
+  // deliberate "I am done" act in this app, and the realistic next person to
+  // hold this phone is a different one. A session that merely expired is not
+  // this and does not clear it.
   const signOut = useCallback(async () => {
+    forgetLastScreen(routeMemory());
     await supabase.auth.signOut();
   }, []);
 
   const value = useMemo<Auth>(
-    () => ({ session, ready, signIn, signUp, signOut }),
-    [session, ready, signIn, signUp, signOut],
+    () => ({ session, ready, signIn, signUp, signInWithGoogle, signOut }),
+    [session, ready, signIn, signUp, signInWithGoogle, signOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/** The session in force, and the three things that change it. */
+/** The session in force, and the four things that change it. */
 export function useAuth(): Auth {
   return useContext(AuthContext);
 }

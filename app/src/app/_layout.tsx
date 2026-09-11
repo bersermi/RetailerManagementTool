@@ -1,8 +1,14 @@
-import { Stack, router, useSegments } from 'expo-router';
-import { useEffect } from 'react';
+import { Stack, router, usePathname, useSegments } from 'expo-router';
+import { useEffect, useRef } from 'react';
 
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
+import {
+  readLastScreen,
+  rememberLastScreen,
+  restoreTarget,
+  routeMemory,
+} from '@/navigation/lastScreen';
 import { DensityProvider } from '@/theme/DensityProvider';
 
 // The root, and it now does three things: it puts C3.18's density scale in
@@ -38,19 +44,51 @@ export default function RootLayout() {
 //
 // ⚠️ AND NO CHECK IN THIS REPOSITORY CAN SEE THAT IT WORKS — that is written
 // down in `@/auth/guard`'s header and it belongs to `5a-iv`, the phone.
+//
+// ⚠️ IT NOW DOES C1.3 AS WELL (5a-iii-b), AND THE ORDER OF THE THREE STEPS IS
+// THE DESIGN: the guard first, because a signed-out person must not be restored
+// anywhere; the restore second, once and only once per launch; the recording
+// last, so what is written is where the person actually ended up.
 // ============================================================================
 function Gate() {
   const { session, ready } = useAuth();
   const segments = useSegments();
+  const pathname = usePathname();
+
+  // ⚠️ A REF AND NOT STATE, ON PURPOSE. Setting state here would re-render the
+  // tree to record a fact nothing draws; the ref is read and written inside the
+  // effect only, and it resets when the app is killed — which is exactly the
+  // lifetime "once per launch" means.
+  const restored = useRef(false);
 
   useEffect(() => {
-    const to = redirectFor({
-      ready,
-      hasSession: session !== null,
-      group: groupOf(segments),
-    });
-    if (to !== null) router.replace(to);
-  }, [ready, session, segments]);
+    const hasSession = session !== null;
+
+    const to = redirectFor({ ready, hasSession, group: groupOf(segments) });
+    if (to !== null) {
+      router.replace(to);
+      return;
+    }
+
+    if (!ready || !hasSession) return;
+
+    if (!restored.current) {
+      restored.current = true;
+      const target = restoreTarget({
+        ready,
+        hasSession,
+        alreadyRestored: false,
+        stored: readLastScreen(routeMemory()),
+        at: pathname,
+      });
+      if (target !== null) {
+        router.replace(target);
+        return;
+      }
+    }
+
+    rememberLastScreen(routeMemory(), pathname);
+  }, [ready, session, segments, pathname]);
 
   return null;
 }

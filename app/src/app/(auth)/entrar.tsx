@@ -16,13 +16,24 @@ import { useDensity } from '@/theme/DensityProvider';
 // one density that does not say so — and this is the first screen an elder
 // shopkeeper ever sees.
 //
-// ⚠️ GOOGLE IS NOT HERE YET, AND ITS BUTTON IS 5a-iii-b's. The seam is
-// deliberate: everything on this screen works with the browser closed, and the
-// network's only job is the final request.
+// ⚠️ GOOGLE ARRIVED IN 5a-iii-b, AND IT IS THE ONE CONTROL ON THIS SCREEN THAT
+// LEAVES THE APP. Its whole failure mode — the browser opens and never comes
+// back — is handled in `@/auth/oauth`; what this screen owes it is the same
+// `busy` discipline as the other two buttons, so a second tap cannot start a
+// second round trip while the first is still out.
+//
+// ⚠️ AND A CANCELLED ROUND TRIP SHOWS NOTHING. `signInWithGoogle` returns
+// `null` when the person closed the browser, which this screen already treats
+// as "no message" — the same code path as success, deliberately, because from
+// the screen's point of view nothing went wrong.
+//
+// ⚠️ FACEBOOK IS NOT HERE AND IS NOT AN OVERSIGHT — deferred to `5i` by the
+// owner on 2026-09-11. It is one more button on this screen and a `linkIdentity`
+// path that is not.
 // ============================================================================
 export default function Entrar() {
   const { scale } = useDensity();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -41,6 +52,11 @@ export default function Entrar() {
     } finally {
       setBusy(false);
     }
+  }
+
+  // The same discipline, for the button that takes the fields with it.
+  async function attemptGoogle() {
+    await attempt(() => signInWithGoogle());
   }
 
   const field = {
@@ -125,6 +141,26 @@ export default function Entrar() {
         }}
       >
         <Text style={{ fontSize: scale.bodySize }}>{ES.auth.signUp}</Text>
+      </Pressable>
+
+      {/* C1.4's second provider. Below the email path because the email path is
+          the one that works with no signal worth the name, and the pilot store
+          loses its connection routinely. */}
+      <Pressable
+        accessibilityRole="button"
+        disabled={busy}
+        onPress={() => void attemptGoogle()}
+        style={{
+          minHeight: scale.tapTarget,
+          alignItems: 'center',
+          justifyContent: 'center',
+          borderRadius: scale.space / 2,
+          borderWidth: 1,
+          marginTop: scale.space,
+          opacity: busy ? 0.5 : 1,
+        }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{ES.auth.google}</Text>
       </Pressable>
     </View>
   );

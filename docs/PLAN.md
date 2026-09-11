@@ -44,17 +44,29 @@ is a rendering claim. **That makes `5a-iv`, the device run, the only instrument 
 will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
-✅✅ **`5a-iii-a` IS DONE AS OF 2026-09-11 — the app now has a session, and `5a-iii-b`
-(Google, and C1.3's last screen) IS THE NEXT TASK.** 90 assertions, 15 falsifications,
+✅✅ **`5a-iii-b` IS DONE AS OF 2026-09-11 — Google and C1.3's last screen, and `5a-iv`
+IS THE NEXT TASK, AFTER IT IS RE-SIZED.** 132 assertions, 15 falsifications, all red,
+plus three over the gate. ⚠️⚠️ **THE ONE DECISION OWED BACK: the Supabase dashboard's
+Redirect URLs must gain `mx.bserafin.wera://**`, it has NOT been done, and NO CHECK IN
+THIS REPOSITORY CAN TELL** — an assertion over it was written, measured and deleted,
+because `/auth/v1/authorize` returns the same 302 for the right redirect and for
+`evil.example.com`. Until that row exists, Google sign-in ends with the browser being
+sent to the project's Site URL and never coming back. ⚠️⚠️ **The other one that matters
+is `flowType: 'pkce'`** — supabase-js defaults to `implicit`, which would have sent a
+non-expiring refresh token back through a custom URL scheme any app on the phone may
+claim. ✅ **The gate now also watches the GOOGLE CLOUD console**, the half it was never
+looking at.
+✅✅ **`5a-iii-a` IS DONE AS OF 2026-09-11 — the app now has a session.** 90 assertions, 15 falsifications,
 all red. ⚠️⚠️ **The one that matters is `app/src/lib/env.ts`: a `service_role` key in the
 client BYPASSES RLS, and the wrong key does not fail — it works, unfiltered.** Both
 spellings are refused, including the legacy JWT whose text contains no such word and
 which a grep therefore cannot see. ✅ **F9's defect is now impossible rather than
 caught**: `errors.ts` maps codes to KEYS of `ES`, so a sentence typed in place is
 `TS2322`. ⚠️⚠️ **AND `5a-iv` NEEDS RE-SIZING BEFORE IT IS TAKEN** — written up as a
-`S/M` device build, it is now the **sole instrument for four deliverables across three
-tasks**, C12.1 and C3.18's numbers from `5a-ii` plus the guard's redirect and C1.4's
-persistence from this one.
+`S/M` device build, it is now the **sole instrument for SIX deliverables across four
+tasks** — C12.1 and C3.18's numbers from `5a-ii`, the guard's redirect and C1.4's
+persistence from `5a-iii-a`, and the Supabase redirect allow-list plus Google's
+*"unverified app"* interstitial from `5a-iii-b`.
 ✅✅ **`5a-iii`'s GATE IS FULLY CLEARED AS OF 2026-09-11, AND `5a-iii` WAS THEN SIZED AN
 `L` AND SPLIT IN TWO — ~~`5a-iii-a` IS THE NEXT TASK~~ (taken and closed the same
 day; see the entry above).** ⚠️⚠️ **The shape of the step
@@ -7781,7 +7793,7 @@ not**, which is the tell that a row is really two tasks.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **`5a-iii-a`** | **The client, the session, and the way in that needs no deep link.** `app.json`'s identity (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and where the session is **stored**, `AppState` refresh, the signed-in/signed-out route guard, **email sign-in, sign-up and explicit log-out** (C1.4). | `M` | ✅ **DONE 2026-09-11** — 90 assertions, 15 falsifications, and the key that bypasses RLS now refused in both spellings |
-| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ⚠️ **NEXT.** One dashboard edit, taken **during** the task |
+| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ✅ **DONE 2026-09-11** — 132 assertions, 15 falsifications, PKCE instead of the library default, and one gate assertion written, measured and deleted. ⚠️ **THE DASHBOARD EDIT IS STILL OWED** — see the write-up |
 
 **Where the seam is, and why it is there rather than at "auth" / "session":** everything
 in `a` works with the network off and the browser closed. Everything in `b` leaves the
@@ -8015,6 +8027,209 @@ owed to two consoles and one law and was recorded in none of them.
   token and never consults Google again. ⚠️ **That is an assumption about somebody
   else's system.** Sign in, put the phone down for eight days, open it.
 
+#### ✅✅ `5a-iii-b` IS DONE AS OF 2026-09-11 — Google, the last screen, and a check that was written and then deleted
+
+**The suite grew from 90 assertions to 132, and the gate from 13 to 15.** What shipped:
+
+- **`app/src/auth/oauth.ts`** — the round trip as the half that decides. The redirect
+  URI as a constant, and the callback URL read into exactly three outcomes: a code, a
+  cancellation, a named failure. Imports nothing from `expo-*` or supabase-js, which is
+  what makes it loadable by a node suite at all.
+- **`app/src/lib/supabase.ts`** — ⚠️ **`flowType: 'pkce'`, one line, and the default is
+  `implicit`.** See below; it is the security decision of this task.
+- **`app/src/auth/AuthProvider.tsx`** — `signInWithGoogle`, three impure steps over
+  `oauth.ts`'s rules, and a log-out that now also forgets the last screen.
+- **`app/src/navigation/lastScreen.ts`** — C1.3, as an allow-list plus a pure
+  `restoreTarget()` plus three total storage functions.
+- **`app/src/app/_layout.tsx`** — the `Gate` now does three things in a fixed order:
+  guard, restore once, record.
+- **`app/src/app/(auth)/entrar.tsx`** + **`app/src/strings.ts`** — the button and its
+  two Spanish sentences.
+- **`docs/checks/5a-iii-gate.sh`** — two new live assertions, and one **deliberately
+  absent** one with the measurement that settled it written where it would have gone.
+
+##### ⚠️⚠️ THE ONE THAT MATTERS: `flowType` DEFAULTS TO `implicit`, AND IMPLICIT PUTS A NON-EXPIRING REFRESH TOKEN IN A URL
+
+supabase-js defaults to the **implicit** flow (`GoTrueClient.js`, `flowType: 'implicit'`).
+Under it, GoTrue completes the round trip by redirecting to the callback with **the
+access and refresh tokens themselves in the URL** — and this app's callback is a custom
+scheme, `mx.bserafin.wera://`, which **any app on the phone may also register**. A
+refresh token does not expire. Handing one to the operating system's URL router is the
+same class of mistake as the `service_role` key `env.ts` refuses, and it has the same
+property that would let it ship: **it works.** Sign-in succeeds. Nothing errors.
+
+✅ **PKCE instead** — the callback carries a one-time `code`, worthless without the
+verifier this client kept in its own storage. RFC 8252 is not ambiguous about which one
+a native app uses, and Supabase's own guidance for React Native agrees.
+
+⚠️ **It changes nothing for email.** `signInWithPassword` does not consult the flow
+type, and confirmations are off on this project, so there is no magic link to affect.
+The email suite from `5a-iii-a` is green unchanged.
+
+⚠️ **AND IT IS GUARDED TWICE, ON PURPOSE.** `parseOAuthReturn` reports tokens in the
+callback as a named failure — that catches the line being removed, but only at runtime,
+on a phone, after a real sign-in. `app/test/oauth.test.ts` reads the line out of the
+source, which catches it **in CI, on the pull request that removes it**. L1 and L2 are
+the two falsifications.
+
+##### ⚠️⚠️ A CHECK FOR THE DASHBOARD REDIRECT LIST WAS WRITTEN, MEASURED, AND DELETED
+
+This task's gate was *"one dashboard edit, taken DURING the task — Redirect URLs must
+gain `mx.bserafin.wera://**`"*, and the obvious move was to assert it the way `5a-iii`'s
+gate asserts the provider matrix: ask the live project. **It does not work, and finding
+out took one command:**
+
+| `GET /auth/v1/authorize?provider=google&redirect_to=…` | Answer |
+|---|---|
+| `mx.bserafin.wera://auth/callback` | `302` → `accounts.google.com/...` |
+| `https://evil.example.com/steal` | ⚠️ **`302` → `accounts.google.com/...`, byte-for-byte the same shape** |
+
+⚠️ **GoTrue does not validate `redirect_to` at the authorize step.** It validates at the
+**callback**, after the provider returns — and a disallowed redirect is **not an error**
+there either: the browser is quietly sent to the project's Site URL instead. Which is
+precisely 5a-iii-b's named failure mode, *the browser opens and never comes back*,
+arriving with no signal any machine outside that browser can read.
+
+✅ **So the assertion was deleted and the measurement written into the gate where it
+would have stood.** A check that returns the same 302 for the right answer and for
+`evil.example.com` is this repository's most-repeated defect — **it runs, it passes, and
+it has looked at nothing** — and shipping it would have been worse than shipping
+nothing, because the next reader would have believed the allow-list was covered.
+
+##### ✅ WHAT *IS* MEASURABLE IS THE OTHER CONSOLE, AND IT WAS NOT BEING WATCHED
+
+The gate's founding finding was **Google built in the Google Cloud console but not
+enabled on the Supabase side** — two halves, one done. The inverse half had no check at
+all: the Cloud console's *Authorized redirect URIs* must contain
+`https://<ref>.supabase.co/auth/v1/callback`, and if it does not, Google answers the
+authorize request with **`Error 400: redirect_uri_mismatch`**. That is observable from a
+terminal, so the gate now follows the redirect to Google and reads the answer.
+
+| New gate assertion | What it catches |
+|---|---|
+| `/auth/v1/authorize` hands the phone to `accounts.google.com` | Google disabled or misconfigured on the Supabase side |
+| Google accepts the client and its `redirect_uri` | ⚠️ The **Cloud console** half — a wrong or missing redirect URI, a bad client id/secret, a changed project ref |
+
+**Three falsifications over the gate, all red**, the original confirmed green before and
+after: **M1** the followed URL's `redirect_uri` mangled → *"Google refused the authorize
+request"*; **M2** the provider changed to one that does not exist → *"did not redirect to
+Google"*; **M3** every assertion silently skipped → the anti-vacuity guard at *"only 1
+assertions ran, expected at least 14"*, which is the sixth suite in this repository to
+carry one.
+
+##### ⚠️ Found while measuring — THE SCOPE LIST IN THIS FILE WAS WRONG, AND IN THE HARMLESS DIRECTION
+
+The Facebook-deferral note says the app *"requests only `email`, `profile`, `openid`"*
+while reasoning about Google's *"unverified app"* interstitial. **The live authorize URL
+requests `scope=email profile`** — no `openid`. The conclusion is unchanged and slightly
+strengthened (fewer scopes, all of them non-sensitive), but it was a claim about a value
+nobody had read, in a paragraph whose whole point was that *most likely is not a result*.
+⚠️ **The interstitial is still `5a-iv`'s to measure on the phone.**
+
+##### C1.3, and the rule that matters more than restoring
+
+The plan wrote down before the task that C1.3's testable half is *"a pure function over
+`(storedRoute, session)` returning a route"*. It is `restoreTarget()`, and it took **six**
+refusals rather than the three the plan predicted:
+
+| Rule | Why, in one line |
+|---|---|
+| Not until `ready` | `guard.ts`'s K5, verbatim: on a cold start `hasSession: false` only means nobody has asked |
+| Nothing for a signed-out person | The plan's own wording, and it stops a restore racing the guard |
+| ⚠️ **Once per launch, and this one is the important one** | Without it the effect re-decides on every navigation and drags a shopkeeper who just tapped Comprar back to Vender. **The app fighting the person holding it is a worse bug than never restoring at all** |
+| Nothing stored → nothing | First launch |
+| Not restorable → nothing | Junk, `/entrar`, or a route deleted between versions |
+| Already there → nothing | A `replace` to the screen already showing is a wasted frame and a flicker |
+
+⚠️ **`RESTORABLE_ROUTES` IS AN ALLOW-LIST AND NOT `anything except /entrar`.** Whatever
+is in storage was written by an **earlier version of this app**; `5d` and `5e` add
+routes and will eventually remove one. A deny-list restores a shopkeeper in October to a
+screen deleted in September. **The list is tied to `TABS` by a test, not derived from it
+at runtime** — so a fifth tab nobody can be returned to is a red test (L9) rather than a
+silent, partial C1.3, which is the shape of a bug nobody ever reports.
+
+##### ⚠️ AND `5a-iv` NOW CARRIES SIX, NOT FOUR — but two of the four got smaller
+
+The table in `5a-iii-a` said four. This task adds two and **shrinks two others**, which
+is worth separating because the second half is the only good news in this section.
+
+| | Deliverable no CI can verify | Since |
+|---|---|---|
+| 1 | **C12.1** — the tab bar actually draws its words | `5a-ii` |
+| 2 | **C3.18's numbers** — whether 76pt reads as "big" to someone old | `5a-ii` |
+| 3 | The guard actually redirects, and the app is not stuck on a splash | `5a-iii-a` |
+| 4 | **C1.4's persistence** — sign in, put the phone down for eight days, open it | `5a-iii-a` |
+| 5 | ⚠️⚠️ **THE SUPABASE REDIRECT ALLOW-LIST** — and it is the highest-risk item in step 5a. See above: *unmeasurable from outside the browser*, and its failure looks exactly like a hang | `5a-iii-b` |
+| 6 | **Google's *"unverified app"* interstitial**, if it appears at all | `5a-iii-b` |
+
+✅ **What got smaller:** items 3 and 5's *"the effect was simply dropped"* half is now
+readable in CI. `app/test/last-screen.test.ts` asserts that `_layout.tsx` still calls
+`restoreTarget` and `rememberLastScreen`, and that `signOut` forgets before it signs out
+(L13, L14). ⚠️ **That does not prove the router lands anywhere** — it cannot, and
+`5a-iv` is still the instrument. It proves the call has not disappeared, which is the
+specific regression the plan named as staying green.
+
+##### Decisions taken on the owner's behalf in `5a-iii-b`
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **PKCE, NOT THE LIBRARY DEFAULT** | See above. One line. ⚠️ **Reversing is cheap in code and expensive in what it means** — a non-expiring refresh token through a scheme any app may claim. `oauth.ts` refuses tokens in the callback and `oauth.test.ts` reads the line, so it cannot go quietly |
+| **2** | ⚠️ **`expo-auth-session` NOT ADDED, AND THE SIZING ROW NAMED IT** | Its one contribution would have been `makeRedirectUri()`, which returns **a different string depending on how the app was started** — and the other copy of that string was typed into a web page once. A constant is what a test can hold against `app.json`. `expo-web-browser` was already a dependency; no dependency was added by this task. Reversing is one import |
+| **3** | **The redirect is `mx.bserafin.wera://auth/callback`**, a path and not a bare scheme | A bare `mx.bserafin.wera://` gives a later reader nowhere to hang a second callback (`5i`'s Facebook, a password reset in `5b`). ⚠️ **The dashboard entry `mx.bserafin.wera://**` covers both, so this costs nothing today and is a rename plus a dashboard edit later |
+| **4** | ⚠️ **An explicit log-out FORGETS the last screen; an expired session does not** | Logging out is the one deliberate *"I am done"* act in this app, and the realistic next person to hold the phone is a different one. A session that merely expired is not that, and they reopen where they were. Reversing is one line in `AuthProvider.signOut` |
+| **5** | **A cancelled round trip shows NO message at all** | Closing the browser, and Google's `access_denied`, are the same act by different routes. The person knows what they did; a sentence about it is the bookkeeping the owner's rule refuses to hand over |
+| **6** | **A failed round trip names the button — *"…o entra con tu correo"*** | `algo salió mal` does not tell a shopkeeper that the other way in still works. ⚠️ **The technical detail goes to `console.warn` and never to the screen**: a missing Redirect URL is a developer's sentence and a developer is the only person who can act on it |
+| **7** | ⚠️ **An error in the callback BEATS a code when both are present** | Exchanging a code that arrived beside an error report is acting on half a message. ⚠️ **Found by this suite asserting the opposite** — the fixture was what was wrong, and the rule is now written down rather than being whatever the order of two `if`s produced |
+| **8** | **The last screen lives in the same `expo-sqlite` store as the session** | §2.11's local-state row is about the **cart** (*"Zustand, cart only"*), and a route is neither server state nor an uncommitted sale — it is a device setting, the same category `5a-ii` put the density mode in. ⚠️ **This is the second non-cart value in that store**, and `5c` brings the third plus Zustand. Worth a look then; not worth a second storage engine now |
+
+##### Fifteen falsifications, all red, run by hand before this was pushed
+
+The working tree was committed first, **every fixture was diffed against the original
+before the suite ran on it, and a fixture that edited nothing is reported as proving
+nothing** rather than counted as a pass. The unmodified tree was green before and after.
+
+| | Break | Result |
+|---|---|---|
+| **L1** | ⚠️ `flowType: 'pkce'` removed — tokens through a custom scheme | 🔴 *"keeps the client in PKCE mode"* |
+| **L2** | Tokens in the callback silently accepted | 🔴 *"refuses tokens in the callback"* |
+| **L3** | A decline reported to the shopkeeper as a failure | 🔴 *"treats Google's access_denied as a cancellation"* |
+| **L4** | The deep-link scheme "tidied" to `wera` | 🔴 *"builds the callback from app.json's own scheme"* |
+| **L5** | The fragment no longer parsed — a real error becomes *"no code"* | 🔴 *"reads a failure reported after the hash"* |
+| **L6** | ⚠️ The restore re-decides on every render | 🔴 *"restores once per launch and then leaves them alone"* |
+| **L7** | The restore acts before the session has been looked for | 🔴 *"moves nobody until the stored session has been looked for"* |
+| **L8** | The allow-list swapped for *"anything but `/entrar`"* | 🔴 *"covers exactly the tab bar"* |
+| **L9** | ⚠️ A fifth tab added, `RESTORABLE_ROUTES` not updated | 🔴 *"covers exactly the tab bar, in the same order"* — and four of `5a-ii`'s C12.1 assertions besides |
+| **L10** | A full disk on a phone becomes an exception | 🔴 *"survives a store that throws on every call"* |
+| **L11** | `openAuthSessionAsync` swapped for a plain browser | 🔴 *"returns through an auth session and not a plain browser"* |
+| **L12** | `/entrar` written into storage | 🔴 *"does not store what it would refuse to restore"* |
+| **L13** | The log-out stops forgetting the last screen | 🔴 *"forgets the last screen when the session is ended on purpose"* |
+| **L14** | The restore effect dropped from the root layout | 🔴 *"decides the restore in the root layout"* |
+| **L15** | An error beside a code no longer wins | 🔴 *"lets an error beat a code when a malformed callback carries both"* |
+
+⚠️ **L11'S FIRST SPELLING WAS `not.toContain('openBrowserAsync')`, AND IT WENT RED
+AGAINST A COMMENT** — the one in `AuthProvider` explaining why that function is *not*
+used. **This is the third time in four sessions that a guard asserted over the wrong
+unit**, after `5i`'s G5 (a row grepped whole when the claim was about one cell) and
+`5a-ii`'s F9. The tell is identical every time: **a claim phrased about a specific thing
+while the code looks at a container holding that thing among others.** Fixed by matching
+a call — `/WebBrowser\.openBrowserAsync\s*\(/` — rather than a word.
+
+##### What `5a-iii-b` did NOT do, deliberately
+
+- ⚠️ **The Supabase dashboard edit is NOT done and is NOT mine to do.** Redirect URLs
+  must gain `mx.bserafin.wera://**`. It is the gate this task was given, it is the one
+  thing between here and a working Google sign-in, and **no check in this repository can
+  tell whether it has happened** — see the deleted assertion above. **It is the decision
+  owed at the end of this session.**
+- **No Facebook.** `5i`'s, and the deferral's four coverage claims still hold.
+- **No `linkIdentity()`**, and `enable_manual_linking` is still `false` at
+  `supabase/config.toml:188`. `5i`'s.
+- **The density mode is still not persisted** — the store now holds two things and could
+  hold a third, but the surface that sets the mode is still the temporary block on Inicio
+  that `5b`'s Ajustes deletes. Writing from a file that gets deleted is how a setting
+  loses its owner.
+- **No `expo-auth-session`, and no new dependency of any kind.**
+
 #### ✅✅ `5a-iii-a` IS DONE AS OF 2026-09-11 — the client, the session, and the way in that needs no deep link
 
 **The first task in this repository whose subject is a value the app HOLDS rather than
@@ -8099,6 +8314,10 @@ the session store** — a whole afternoon's debugging of the wrong component.
 
 ##### ⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `5a-iv` NOW CARRIES FOUR
 
+⚠️ **SUPERSEDED BY `5a-iii-b`, WHICH TOOK IT TO SIX AND SHRANK TWO OF THESE FOUR.** The
+table below is the state as `5a-iii-a` closed; the current list is in `5a-iii-b`'s
+write-up above.
+
 The plan wrote this up **before** the task, for `5a-iii-b`, and it applies verbatim here:
 the testable half is the one that **decides** — a pure function returning a route — and
 the half no suite can see is **whether the router actually lands there**. `_layout.tsx`
@@ -8112,7 +8331,7 @@ could drop the effect or hand it the wrong segments and all 90 assertions stay g
 | 4 | ⚠️ **C1.4's persistence** — sign in, put the phone down for eight days, open it | `5a-iii-a` |
 
 ⚠️⚠️ **`5a-iv` WAS SIZED `S/M` AS "A DEVICE BUILD, A NICE-TO-HAVE BEFORE JUNIORS
-ARRIVE".** It is now the sole instrument for four deliverables across three tasks, and
+ARRIVE".** It is now the sole instrument for six deliverables across four tasks, and
 **it should be re-sized before it is taken**, not during. That is a call for the owner:
 it is the only task in step 5 that needs his Mac and his hardware in the room.
 
@@ -8432,8 +8651,8 @@ are cheap today and dear once a screen rests on them.
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
 | **5a-iii** | ⚠️ **SPLIT IN TWO 2026-09-11 — see the sizing below; `5a-iii-a` is what gets taken.** **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i`**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `L` — **not the `M/L` this table carried** | ✅✅ **CLEARED 2026-09-11.** Google live-checked on, email on, Facebook and phone off, confirmations off; `app/.env.local` valid against the project; the app is named **Wera** and the bundle id is `mx.bserafin.wera` |
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
-| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — `expo-auth-session` out, the scheme back in — and **C1.3's last-screen restore**. ⚠️ **The deep link is the whole risk**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and it has a half in the Supabase dashboard that no file in this repository can see. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** One dashboard edit, taken DURING the task — Redirect URLs must gain `mx.bserafin.wera://**` |
-| **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **RE-SIZE BEFORE TAKING IT — it is now the sole instrument for FOUR deliverables across three tasks** (see `5a-iii-a` below). | `S/M`, **and that is the sizing being questioned** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
+| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ⚠️⚠️ **THE DASHBOARD EDIT IS NOT DONE**: Redirect URLs must gain `mx.bserafin.wera://**`, it is the owner's, and no check here can see it |
+| **5a-iv** | ⚠️⚠️ **NOW CARRIES SIX DELIVERABLES NO CI CAN SEE, NOT FOUR — see `5a-iii-b`'s write-up.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **RE-SIZE BEFORE TAKING IT — it is now the sole instrument for FOUR deliverables across three tasks** (see `5a-iii-a` below). | `S/M`, **and that is the sizing being questioned** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density
