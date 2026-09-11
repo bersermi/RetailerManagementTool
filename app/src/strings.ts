@@ -32,6 +32,49 @@ export const ES = {
   },
 
   /**
+   * The way in (C1.4), and everything it can say when it goes wrong.
+   *
+   * ⚠️ NOTHING SUPABASE RETURNS IS EVER SHOWN. Its messages are English, they
+   * name internal states (`invalid_credentials`, `over_request_rate_limit`),
+   * and a shopkeeper being handed one is the failure ADR-035 §2.8 and the
+   * owner's own rule both refuse: WE DO THE BOOKKEEPING, NOT THEM.
+   * `app/src/auth/errors.ts` maps a code to a KEY of `errors` below — a key,
+   * not a string, so a sentence typed in place at the call site is a
+   * typecheck failure rather than a second copy nobody notices.
+   */
+  auth: {
+    title: 'Wera',
+    emailLabel: 'Correo',
+    passwordLabel: 'Contraseña',
+    signIn: 'Entrar',
+    signUp: 'Crear cuenta',
+    toSignUp: '¿No tienes cuenta? Crear una',
+    toSignIn: '¿Ya tienes cuenta? Entrar',
+    signOut: 'Cerrar sesión',
+    working: 'Un momento…',
+    /** After a sign-up when the project has confirmations on. Off today. */
+    checkEmail: 'Te enviamos un correo para confirmar tu cuenta.',
+    errors: {
+      /** Wrong password, or no such account. Deliberately one message: which
+       *  of the two it is tells a stranger whether the address has an account. */
+      badCredentials: 'El correo o la contraseña no son correctos.',
+      emailTaken: 'Ese correo ya tiene una cuenta. Entra con tu contraseña.',
+      emailInvalid: 'Ese correo no se ve bien. Revísalo.',
+      emailMissing: 'Escribe tu correo.',
+      passwordMissing: 'Escribe tu contraseña.',
+      passwordShort: 'La contraseña necesita al menos 6 letras o números.',
+      notConfirmed: 'Todavía falta confirmar tu correo.',
+      tooMany: 'Demasiados intentos. Espera un minuto y vuelve a intentar.',
+      offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      /** ⚠️ THE CATCH-ALL, AND IT SAYS NOTHING ABOUT THE CAUSE ON PURPOSE. An
+       *  unmapped error is one we have not seen; guessing at it in Spanish is
+       *  worse than admitting it, and the developer reads the real one in the
+       *  console. */
+      unknown: 'Algo salió mal. Intenta de nuevo.',
+    },
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

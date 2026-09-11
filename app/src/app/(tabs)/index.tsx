@@ -1,5 +1,6 @@
 import { Pressable, Text, View } from 'react-native';
 
+import { useAuth } from '@/auth/AuthProvider';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 import { DENSITY_MODES } from '@/theme/density';
@@ -25,10 +26,18 @@ import { placeholderGrossCentavos } from '@/wiring';
 // here because `5a-iv` puts this app on the owner's own iPhone and an elder
 // mode he cannot switch to is an elder mode he cannot judge. WHOEVER BUILDS
 // AJUSTES DELETES THIS BLOCK.
+//
+// ⚠️⚠️ AND SO IS THE LOG-OUT, FOR THE SAME REASON AND ONE MORE. `Cerrar sesión`
+// belongs in Ajustes too (§2.8, 5b). It is here because C1.4's session "persists
+// until an EXPLICIT log-out" — and an app with no explicit log-out cannot be
+// SHOWN to persist: the only way to tell a session that survives from a session
+// that was never asked for is to end one deliberately and be asked again.
+// 5a-iv is the instrument, and it needs the control to exist.
 // ============================================================================
 
 export default function Inicio() {
   const { mode, scale, setMode } = useDensity();
+  const { signOut } = useAuth();
 
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: scale.space * 2 }}>
@@ -54,6 +63,20 @@ export default function Inicio() {
           </Pressable>
         ))}
       </View>
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => void signOut()}
+        style={{
+          minHeight: scale.tapTarget,
+          justifyContent: 'center',
+          paddingHorizontal: scale.space * 1.5,
+          borderRadius: scale.space / 2,
+          borderWidth: 1,
+        }}
+      >
+        <Text style={{ fontSize: scale.bodySize }}>{ES.auth.signOut}</Text>
+      </Pressable>
     </View>
   );
 }
