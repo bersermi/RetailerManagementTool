@@ -44,10 +44,21 @@ is a rendering claim. **That makes `5a-iv`, the device run, the only instrument 
 will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
-**`5a-iii` — auth and session — IS THE NEXT TASK, AND IT IS GATED ON THE OWNER**: three
-provider consoles (Google, Facebook, email), whose credentials are his and none of
-which is a code change. **Four ADR conflicts are recorded in total; two remain open**,
-both `4.6a`'s.
+**`5a-iii` — auth and session — IS THE NEXT TASK.** ⚠️⚠️ **ITS GATE IS NOW MOSTLY
+CLEARED, AND THE SHAPE OF IT CHANGED ON 2026-09-11: FACEBOOK IS DEFERRED TO THE NEW
+`5i`, AND THE v1 PILOT SIGNS IN WITH GOOGLE OR EMAIL.** ✅ The Google console is done —
+the consent screen sits in *Testing* with the pilot accounts as test users, which is
+**sufficient to sign in** and is not what publishing gates. ⚠️ **The owner still owes
+two things and one of them is a one-way door**: `app/.env.local` (the hosted project's
+URL and anon key) and **the bundle identifier**, which cannot be changed after first
+submission. ⚠️ **`5i`'s real cost is not code — it is ONE PUBLIC `aviso de privacidad`
+PAGE**, which Facebook Live mode, Google publishing and LFPDPPP all require, is owed to
+two consoles and one law, and until 2026-09-11 was written down in none of them. It
+blocks **pilot day**, not `5a-iii`. ⚠️ **The finding of that session is that
+`docs/checks/5a-split-coverage.sh` stayed GREEN across the edit** — `C1.4` names three
+providers and the check counted it as one atom, so a deliverable one third of which had
+changed tasks still read 10/10. **Four ADR conflicts are recorded in total; two remain
+open**, both `4.6a`'s.
 Read *THE PLAN NOW DISAGREES WITH ADR-035* under step 4.6 first. The log below
 is newest-first; what follows this paragraph is the history that got here, kept
 because every entry names a decision someone may need to overturn.
@@ -7726,7 +7737,7 @@ free today and stay free until the first task merges.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / Facebook / email, **no phone auth** (C1.4) — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
+| **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
@@ -7734,6 +7745,131 @@ free today and stay free until the first task merges.
 | **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
+| **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio |
+
+#### ⚠️⚠️ Decided by the owner 2026-09-11 — FACEBOOK IS DEFERRED TO `5i`, AND THE v1 PILOT SIGNS IN WITH GOOGLE OR EMAIL
+
+**The owner's call, taken while configuring the consoles**: *"How about if we only do
+the auth for Google and leave Facebook for later?"* and then *"is there a way to defer
+this to a v2 Pilot, having a fully developed one with only google and then enable it for
+Facebook?"* ✅ **Both answers are yes**, and the reasoning is recorded here because the
+thing that makes it safe is **not** the deferral itself.
+
+**Why it is cheap, unlike the email-only version of the same trade that was refused two
+days earlier.** Facebook's gate is heavier than Google's — Development mode needs each
+tester to *accept an invitation on Facebook*, plus a Business portfolio, plus the
+privacy-policy URL to go Live — while the marginal **code** is one call on a shell
+`5a-iii` builds anyway. The deep link, the session, the storage adapter and the redirect
+handling are the risky half, they are written once, and Facebook inherits all of them.
+⚠️ **Cutting email instead would have removed a provider and kept every obligation**:
+the `aviso de privacidad` page is owed to LFPDPPP whether or not Facebook ships.
+
+**Who signs in with what, in the v1 pilot.** C1.5's two shops are two workspaces and two
+different owners. **Merchant A's two phones are Google** (the owner's own count) and
+never touch this. **Merchant B's two are the exposure, and they are the whole of it:**
+two accounts, one shop.
+
+##### ⚠️ THE RISK IS EMAIL ADDRESSES, NOT TIMING — and `linkIdentity()` is why the answer is still yes
+
+Supabase Auth **automatically links** a new OAuth identity to an existing user when the
+email matches and is **verified**, which is what makes "enable Facebook in v2" sound
+free. It is free in exactly one case and not in two:
+
+| | What happens in v2 |
+|---|---|
+| Facebook carries the **same** email as the v1 account | ✅ Linked automatically. Same user, same workspace, nothing to do |
+| Facebook carries a **different** email | ⚠️ **A SECOND ACCOUNT.** Their workspace stays on the first one |
+| ⚠️⚠️ **Facebook returns NO email** | ⚠️ **A SECOND ACCOUNT.** Phone-registered Facebook accounts are ordinary, and the user can decline the email permission — Supabase ships a provider-specific *"allow users without an email"* switch for Facebook precisely because of this |
+
+✅ **SO `5i` SHIPS FACEBOOK AS TWO THINGS WEARING ONE NAME**, and the second is the one
+that matters:
+
+- **A new user** gets a sign-in button. Automatic linking, ordinary path.
+- **An account that already exists** gets **`conectar Facebook`** — an action taken
+  *while already signed in*, which calls **`linkIdentity()`** and attaches the identity
+  to **the account the user is currently in, regardless of what email Facebook
+  returns.** The email question does not arise.
+
+⚠️ **This is [[prefer-the-option-that-adds-no-human-step]] applied to a trap that would
+otherwise be sprung months later.** The obvious alternative — *"tell merchant B to sign
+up in v1 using the email their Facebook account uses"* — is a human step, asked once, of
+someone who will not remember it, and it fails silently a quarter later in a way that
+looks like the app losing their shop. **It requires `enable_manual_linking`**, which is
+`false` at `supabase/config.toml:188` today; flipping it is `5i`'s, not `5a-iii`'s.
+
+##### ⚠️⚠️ Found in this decision — `C1.4` NAMES THREE PROVIDERS AND THE COVERAGE CHECK COUNTED IT AS ONE ATOM
+
+**`docs/checks/5a-split-coverage.sh` stayed GREEN — 10/10 — across the edit that moved
+Facebook out of `5a-iii`.** The regex `C1\.4` still matched the parent row and still
+matched exactly one sub-task, so *"covered by exactly one sub-task each"* remained true
+of a deliverable **one third of which had changed tasks.**
+
+⚠️ **This is the failure the check was written to catch, in the one form its own
+granularity hid.** The list of ten deliverables was assembled from the parent row's
+wording, and the parent row compresses three providers into one decision reference — so
+**a deliverable that is a list is only as visible as its coarsest name.** Nothing about
+the check was wrong; its resolution was, and the split's F6 fixture (*one deliverable
+claimed by two sub-tasks*) cannot see a third of one leaving.
+
+✅ **Closed by asserting the deferral itself**, four claims rather than one mention: `5i`
+exists and its **deliverable cell** is Facebook; `5i` carries a **real gate**, not an
+em-dash; **no `5a-*` sub-task** names Facebook unless it says *deferred*; and the parent
+`5a` row still **records the move** rather than deleting the promise.
+
+⚠️ **The third of those is the load-bearing one.** A later session re-reading C1.4 and
+"tidying" Facebook back into `5a-iii` is the realistic failure here — it looks like
+fixing an inconsistency, and it would put an ungated task back on the critical path.
+
+##### Six falsifications, run by hand before this was committed
+
+Fixtures are copies of `docs/PLAN.md` with one thing broken, each diffed against the
+original before the check runs on it, and the unmodified file is confirmed green first
+so a red is known to come from the break.
+
+| | Break | Result |
+|---|---|---|
+| **G1** | The `5i` row deleted entirely | 🔴 *"no table row for 5i whose deliverable is Facebook"* |
+| **G2** | `5i` keeps its row but loses its gate | 🔴 *"a deferred task nobody is waiting on is how 'later' becomes 'never'"* |
+| **G3** | Facebook quietly folded back into `5a-iii` | 🔴 *"either it has been folded back in without re-sizing, or two tasks now each assume the other owns it"* |
+| **G4** | The parent `5a` row drops the promise instead of recording the move | 🔴 *"a coverage claim made true by forgetting"* — F4's lesson, held |
+| **G5** | `5i` renamed away from Facebook, gate untouched | ⚠️🟢 **GREEN, then closed** — see below |
+| **G6** | `5i`'s deliverable cell emptied, gate untouched | 🔴 after G5's fix |
+
+⚠️ **G5 IS THE SECOND TIME IN THREE SESSIONS THAT A GUARD ASSERTED OVER THE WRONG UNIT.**
+The first spelling grepped the **whole row** for *"Facebook"* — and `5i`'s **gate** cell
+legitimately says *"Facebook Live mode"*, because that is what blocks the task. So a
+fixture that renamed the task itself stayed green on a word surviving in a cell about
+something else. **A row is not one string.** Fixed by reading the deliverable cell
+(`awk -F'|' '{print $3}'`) and nothing else.
+
+✅ It is the same shape as `5a-ii`'s F9 — *an assertion that ran, passed, and could not
+distinguish the defect its own comment named* — which is now **twice**, and both times
+the tell was a claim phrased about a specific thing while the code looked at a container
+holding that thing among others.
+
+##### ⚠️ What this does NOT defer, and it is the only real cost
+
+**One public `aviso de privacidad` page, hosted on a domain the owner controls.**
+Facebook needs it to leave Development mode. **Google needs the same page to publish**,
+and Google's *Publish* button is disabled without it — which is what the owner hit on
+2026-09-11 and what started this decision. LFPDPPP owes it regardless of both.
+
+✅ **It does not block `5a-iii`, `5a-iv`, or any code**: Google's consent screen works in
+*Testing* status for accounts listed as test users, up to 100 of them, and the pilot is
+four. ⚠️ **It blocks PILOT DAY**, and it is written down here because it is currently
+owed to two consoles and one law and was recorded in none of them.
+
+⚠️ **Two things to measure on the owner's own phone in `5a-iv`, not to assume:**
+
+- **Google's *"unverified app"* interstitial.** It is documented as tied to *sensitive
+  or restricted* scopes, and this app requests only `email`, `profile`, `openid` — so it
+  most likely never appears. **Most likely is not a result.** A shopkeeper asked to tap
+  *"Advanced → go to Tienda (unsafe)"* is a week-one pilot death.
+- **C1.4's *"session persists until an explicit log-out"* against Google's 7-day
+  test-user token expiry.** The reading is that the expiry applies to Google's token and
+  not to the Supabase session, which after first sign-in is its own JWT plus refresh
+  token and never consults Google again. ⚠️ **That is an assumption about somebody
+  else's system.** Sign in, put the phone down for eight days, open it.
 
 #### ✅✅ `5a-ii` IS DONE AS OF 2026-09-07 — the scale, the formatter, and the first client rule a machine can read
 
@@ -7974,7 +8110,7 @@ are cheap today and dear once a screen rests on them.
 |---|---|---|---|
 | **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ✅ **CLEARED 2026-09-07** — the ADR was amended. **DONE 2026-09-07** |
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
-| **5a-iii** | **Auth and session.** The Supabase client, OAuth — Google, Facebook, email, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ⚠️ **Three provider consoles. Credentials are the owner's, and none of it is a code change** |
+| **5a-iii** | **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i` 2026-09-11**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `M/L` | ✅ **Google console DONE 2026-09-11** (client created, consent screen left in *Testing* with the pilot accounts as test users — publishing is **not** required to sign in). ⚠️ **Owed: `app/.env.local`, and the bundle id — a one-way door** |
 | **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
