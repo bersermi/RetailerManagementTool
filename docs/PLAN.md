@@ -44,8 +44,14 @@ is a rendering claim. **That makes `5a-iv`, the device run, the only instrument 
 will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
-✅✅ **`5a-iii-b` IS DONE AS OF 2026-09-11 — Google and C1.3's last screen, and `5a-iv`
-IS THE NEXT TASK, AFTER IT IS RE-SIZED.** 132 assertions, 15 falsifications, all red,
+✅ **`5a-iv` WAS RE-SIZED 2026-09-11 — it is an `L`, not the `S/M` this file carried,
+and it splits four ways. `5a-iv-a` (iOS, and the round trip) IS THE NEXT TASK.**
+⚠️⚠️ **The finding: TWO INDEPENDENT SEVEN-DAY CLOCKS** — Google's test-user token expiry
+and a free Apple ID's 7-day provisioning profile — **and C1.4's reading is at day eight**,
+so a failure on a free-signed iPhone cannot be attributed. ✅ **The eight-day reading
+therefore moves to Android**, which has no provisioning expiry and runs the same
+JavaScript.
+✅✅ **`5a-iii-b` IS DONE AS OF 2026-09-11 — Google and C1.3's last screen.** 132 assertions, 15 falsifications, all red,
 plus three over the gate. ⚠️⚠️ **THE ONE DECISION OWED BACK: the Supabase dashboard's
 Redirect URLs must gain `mx.bserafin.wera://**`, it has NOT been done, and NO CHECK IN
 THIS REPOSITORY CAN TELL** — an assertion over it was written, measured and deleted,
@@ -64,7 +70,8 @@ which a grep therefore cannot see. ✅ **F9's defect is now impossible rather th
 caught**: `errors.ts` maps codes to KEYS of `ES`, so a sentence typed in place is
 `TS2322`. ⚠️⚠️ **AND `5a-iv` NEEDS RE-SIZING BEFORE IT IS TAKEN** — written up as a
 `S/M` device build, it is now the **sole instrument for SIX deliverables across four
-tasks** — C12.1 and C3.18's numbers from `5a-ii`, the guard's redirect and C1.4's
+tasks** (✅ **re-sized to an `L` and split four ways on 2026-09-11 — see the section
+above**) — C12.1 and C3.18's numbers from `5a-ii`, the guard's redirect and C1.4's
 persistence from `5a-iii-a`, and the Supabase redirect allow-list plus Google's
 *"unverified app"* interstitial from `5a-iii-b`.
 ✅✅ **`5a-iii`'s GATE IS FULLY CLEARED AS OF 2026-09-11, AND `5a-iii` WAS THEN SIZED AN
@@ -8027,6 +8034,145 @@ owed to two consoles and one law and was recorded in none of them.
   token and never consults Google again. ⚠️ **That is an assumption about somebody
   else's system.** Sign in, put the phone down for eight days, open it.
 
+#### ⚠️⚠️ Re-sized 2026-09-11 — `5a-iv` IS AN `L`, NOT THE `S/M` THIS FILE CARRIED, AND IT SPLITS FOUR WAYS
+
+Sized before a line of it was attempted, under the working agreement — the same
+discipline that split `5a` four ways, `5a-iii` two, `4b` two and `4.5` three. ⚠️ **This
+is the first re-size in this project prompted by the task GROWING rather than by reading
+it more carefully.** `5a-iv` was written on 2026-09-07 as *"a device build, a
+nice-to-have before juniors arrive"* and carried one deliverable it alone could verify.
+It now carries **eleven**, and nine of them arrived from three other tasks that each
+discovered, separately, that what they had built could not be checked by a machine.
+
+**Why the `S/M` was wrong, in one line:** it was sized as *an errand* — plug in a phone,
+watch it launch — and it is **the only instrument this project has for an entire
+category of claim**, which is a different kind of work with a different way of failing.
+
+##### ⚠️⚠️ FOUND IN THE SIZING, AND IT IS THE FINDING: TWO INDEPENDENT SEVEN-DAY CLOCKS, AND THE READING IS AT DAY EIGHT
+
+C1.4's persistence check is *"sign in, put the phone down for eight days, open it"*, and
+eight was chosen to clear **Google's 7-day refresh-token expiry for test users** — the
+open question being whether that expiry touches the Supabase session at all, which is an
+assumption about somebody else's system and is therefore measured rather than believed.
+
+⚠️ **There is a SECOND seven-day clock, and the sizing found it: a free Apple ID signs
+an app with a 7-DAY PROVISIONING PROFILE.** The Developer Program gives a year. C1.6
+defers the paid tier until *"the complete pilot is in place"* and says local builds are
+free — **which is true, and the free build expires on day 7.**
+
+⚠️⚠️ **SO A FAILED READING ON A FREE-SIGNED IPHONE IS UNINTERPRETABLE.** On day 8 the app
+does not open, or opens signed out, and there are three candidate causes — Google's
+token, Apple's profile, and the thing actually being tested — with **no way to tell them
+apart.** The instrument would invalidate the measurement. That is worse than not
+measuring: it produces a result that looks like an answer.
+
+⚠️ **NOT MEASURED HERE.** Apple's 7-day free-provisioning limit is widely documented and
+is a claim about somebody else's system, which this repository does not assume — see
+`credentials.ts`'s note on email normalisation for the same refusal. **It is a question
+for `5a-iv-a`, answered on the Mac, before the clock is started.**
+
+✅ **THE RECOMMENDED WAY OUT COSTS NOTHING AND IS WHY `5a-iv-d` HANGS OFF ANDROID:** take
+the eight-day reading on the **Android** device instead. An Android development build
+has no expiry, so **one clock is live instead of two**, and the code under test —
+supabase-js's refresh loop over the `expo-sqlite` store — is the same JavaScript on both
+platforms. ⚠️ **This is a decision for the owner** (below), and the alternative is
+bringing the $99 forward to buy an iPhone build that outlives the measurement.
+
+##### The split, and where the seams are
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own iPhone (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️ **Answers the provisioning question above**, and **starts no clock** — see `5a-iv-d`. | `M` | ⚠️ **The owner's Mac and his own iPhone.** Nothing else blocks it |
+| **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | — |
+| **`5a-iv-c`** | **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ⚠️ **The pilot devices are the USERS' OWN** — *"not me to take their devices anywhere"* — so this needs the owner's own Android or a borrowed one, which is a scheduling unknown the `S/M` never named. **Produces the build `5a-iv-d` reads.** | `S/M` | ⚠️ **An Android device in the room** |
+| **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task.** Eight days after a build from `5a-iv-c` is signed into and put down |
+
+**Why `a` is one task and not three.** The build, the round trip and the four
+look-at-it deliverables all happen **with the phone in your hand, in one sitting**.
+Splitting them means building twice, and the second build is the expensive part.
+
+**Why `d` is its own task despite being the smallest thing in this file.** It is the
+only task in this project gated on a **calendar** rather than on another task. Folded
+into anything else, it makes that thing an eight-day task — and a task that cannot close
+for eight days is a task whose other deliverables sit unmerged behind it. ⚠️ **`XS` and
+`longest lead time` are not in tension; they are the reason it is separate.**
+
+**Why `b` is placed where it is.** §3 says a conventions page written before `src/ui`
+and `src/api` exist is a guess at what the conventions will be, and the close of
+`5a-iv-a` is the first moment there is a pattern to describe. It needs no hardware, so
+it is the thing to do **during** the wait rather than after it.
+
+##### ⚠️ C1.4 IS THE THIRD DELIVERABLE IN THIS FILE THAT IS A LIST, AND THE FIRST TWO BOTH DREW BLOOD
+
+`C1.4` is **built** in `5a-iii-a` (email sign-in, sign-up, log-out), **extended** in
+`5a-iii-b` (Google), **deferred in part** to `5i` (Facebook), and **read** in
+`5a-iv-d` (persistence). ⚠️ **Four tasks, one identifier**, and the coverage check
+matches it as one atom.
+
+This is the same shape that has now cost this repository twice: `C1.4`-and-Facebook,
+where the check printed `10/10` across an edit that moved a third of a deliverable to
+another task; and `C1.3` in the `5a-iii` sub-split, where the parent row's mention
+satisfied a claim about the halves. **A deliverable that is a list is only as visible as
+its coarsest name**, and writing that down a third time without acting on it would be
+the defect with better documentation.
+
+✅ **So the sub-split guard below asserts over the READINGS BY NAME** — *the allow-list*,
+*the interstitial*, *the eight-day reading* — and not over `C1\.4`. The identifier is
+not the unit; the thing someone will move is.
+
+##### The six things no CI can see, each now owned by exactly one sub-task
+
+| | Reading | Owner |
+|---|---|---|
+| 1 | **C12.1** — the tab bar actually draws its words | `5a-iv-a` |
+| 2 | **C3.18's numbers** — whether 76pt reads as "big" to someone old | `5a-iv-a` |
+| 3 | The guard redirects, and the app is not stuck on a splash | `5a-iv-a` |
+| 4 | ⚠️ **The Supabase redirect allow-list** — unmeasurable from outside a browser | `5a-iv-a` |
+| 5 | Google's *"unverified app"* interstitial, if it appears at all | `5a-iv-a` |
+| 6 | ⚠️ **C1.4's persistence** — the eight-day reading | `5a-iv-d` |
+
+⚠️ **Five of six land in `5a-iv-a`, and that is not a failure of the split** — it is the
+measurement that the device sitting in front of a person is one instrument, used once.
+What the split buys is that the **sixth** cannot hide inside it, because the sixth is
+the one with a calendar attached and the one that would quietly never happen.
+
+##### Decisions taken on the owner's behalf in this sizing
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE EIGHT-DAY READING MOVES TO ANDROID** (`5a-iv-d` gates on `5a-iv-c`, not `5a-iv-a`) | Two independent 7-day clocks make a failed reading uninterpretable. Android has no provisioning expiry, and the code under test is the same JavaScript. ⚠️ **Reversing means buying the Developer Program early** — it is the $99 line of C1.6, brought forward for one measurement |
+| **2** | **`5a-iv` splits four ways rather than two** | Six failure modes — build-time, sign-in, by-eye, a second toolchain, a calendar, and a document nobody writes. The `S/M` assumed one |
+| **3** | **`CONVENTIONS.md` stays in the split rather than moving to `5b`** | §3 gates hiring on it and the close of `5a-iv-a` is the first moment there is a pattern to describe. ⚠️ Moving it to `5b` puts it behind onboarding, membership and the IVA question — **which is how a page that blocks hiring waits a month** |
+| **4** | **Register #13's emulator smoke test stays retired** | C1.1 already widened it to real hardware and this file recorded that; the sizing did not reopen it. ⚠️ **An emulator cannot answer any of the six readings above** — not the interstitial, not the deep link, and certainly not whether 76pt reads as big |
+
+##### Six falsifications over the sub-split, run by hand before it was committed
+
+`docs/checks/5a-split-coverage.sh` gained a `5a-iv` section. The unmodified file is
+confirmed green first, every fixture is diffed against the original before the check runs
+on it, and **a fixture that edits nothing is reported as proving nothing** rather than
+counted as a pass.
+
+| | Break | Result |
+|---|---|---|
+| **N1** | The `5a-iv-d` row deleted entirely | 🔴 *"no table row for 5a-iv-d"* |
+| **N2** | ⚠️⚠️ **The eight-day reading tidied back onto the iPhone build** | 🔴 *"5a-iv-d's gate does not name 5a-iv-c"* |
+| **N3** | `5a-iv-d` keeps its row but loses its gate | 🔴 *"the only task in this project gated on a DATE — unnamed, it is the one that never happens"* |
+| **N4** | The allow-list reading silently drops out of `5a-iv-a` | 🔴 *"owned by no half of 5a-iv"* |
+| **N5** | `CONVENTIONS.md` claimed by two halves | 🔴 *"appears in 5a-iv-b 5a-iv-c — owned by neither"* |
+| **N6** | Pointed at `docs/HANDBOOK.md`, which has no sizing table | 🔴 — it does not pass vacuously |
+
+⚠️⚠️ **N2 IS THE ONE THIS GUARD EXISTS FOR, AND IT IS THE THIRD TIME THIS SHAPE HAS BEEN
+WRITTEN DOWN.** Moving `5a-iv-d` back onto the iPhone build **looks like fixing an
+inconsistency** — the device task is `5a-iv-a`, so why would the reading hang off `-c`? —
+and it silently restores a confound that makes the measurement worthless. The reason
+lives in a paragraph; the guard makes it live in a check. Same role as `5i`'s G5 and the
+`5a-iii` split's H2.
+
+⚠️ **What this sizing did NOT do:** it took no hardware decision. Whether the $99 comes
+forward is the owner's, it is decision 1 above, and **Android was chosen precisely so
+that it does not have to be answered today.**
+
+
 #### ✅✅ `5a-iii-b` IS DONE AS OF 2026-09-11 — Google, the last screen, and a check that was written and then deleted
 
 **The suite grew from 90 assertions to 132, and the gate from 13 to 15.** What shipped:
@@ -8652,7 +8798,11 @@ are cheap today and dear once a screen rests on them.
 | **5a-iii** | ⚠️ **SPLIT IN TWO 2026-09-11 — see the sizing below; `5a-iii-a` is what gets taken.** **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i`**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `L` — **not the `M/L` this table carried** | ✅✅ **CLEARED 2026-09-11.** Google live-checked on, email on, Facebook and phone off, confirmations off; `app/.env.local` valid against the project; the app is named **Wera** and the bundle id is `mx.bserafin.wera` |
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
 | **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ⚠️⚠️ **THE DASHBOARD EDIT IS NOT DONE**: Redirect URLs must gain `mx.bserafin.wera://**`, it is the owner's, and no check here can see it |
-| **5a-iv** | ⚠️⚠️ **NOW CARRIES SIX DELIVERABLES NO CI CAN SEE, NOT FOUR — see `5a-iii-b`'s write-up.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **RE-SIZE BEFORE TAKING IT — it is now the sole instrument for FOUR deliverables across three tasks** (see `5a-iii-a` below). | `S/M`, **and that is the sizing being questioned** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
+| **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
+| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️ **Answers the free-provisioning question before any clock is started.** | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone |
+| **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | — |
+| **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. **Produces the build `5a-iv-d` reads.** | `S/M` | ⚠️ An Android device in the room |
+| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On Android, so that one 7-day clock is live instead of two** (see the sizing). | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **A DATE.** Eight days after a `5a-iv-c` build is signed into and put down |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density

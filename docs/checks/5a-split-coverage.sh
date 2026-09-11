@@ -227,6 +227,85 @@ if (( sub_fails > 0 )); then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# THE `5a-iv` SUB-SPLIT — added 2026-09-11, when `5a-iv` was re-sized from `S/M`
+# to `L` and split four ways.
+#
+# ⚠️ IT ASSERTS OVER THE READINGS BY NAME, NOT OVER `C1\.4`, AND THAT IS THE
+# WHOLE DESIGN. C1.4 is BUILT in 5a-iii-a, EXTENDED in 5a-iii-b, DEFERRED IN
+# PART to 5i, and READ in 5a-iv-d — four tasks, one identifier. This repository
+# has already been bitten twice by exactly that: C1.4-and-Facebook, where the
+# loop above printed 10/10 across an edit that moved a third of a deliverable;
+# and C1.3 in the 5a-iii sub-split, where the PARENT row's mention satisfied a
+# claim about the halves. A DELIVERABLE THAT IS A LIST IS ONLY AS VISIBLE AS ITS
+# COARSEST NAME. So the unit here is the thing someone would actually move —
+# "the allow-list", "the interstitial", "the eight-day reading".
+
+iv_fails=0
+
+for t in 5a-iv-a 5a-iv-b 5a-iv-c 5a-iv-d; do
+  if [[ -z "$(row "$t")" ]]; then
+    echo "FAIL: no table row for $t — 5a-iv was split four ways on 2026-09-11"
+    iv_fails=$((iv_fails+1))
+  fi
+done
+
+if (( iv_fails == 0 )); then
+  # reading | regex | the sub-task that owns it
+  READINGS=(
+    "C12.1's words drawn|C12\.1|5a-iv-a"
+    "C3.18's numbers judged|C3\.18|5a-iv-a"
+    "the guard actually redirects|guard|5a-iv-a"
+    "the Supabase redirect allow-list|allow-list|5a-iv-a"
+    "Google's unverified-app interstitial|interstitial|5a-iv-a"
+    "C1.4's eight-day reading|eight-day reading|5a-iv-d"
+    "the local device build (C1.6)|C1\.6|5a-iv-a"
+    "CONVENTIONS.md|CONVENTIONS\.md|5a-iv-b"
+  )
+  for r in "${READINGS[@]}"; do
+    IFS='|' read -r rname rrx rowner <<< "$r"
+    rhits=()
+    for t in 5a-iv-a 5a-iv-b 5a-iv-c 5a-iv-d; do
+      grep -Eq "$rrx" <<< "$(row "$t")" && rhits+=("$t")
+    done
+    case "${#rhits[@]}" in
+      0) echo "FAIL: '$rname' is owned by no half of 5a-iv — the one category of"
+         echo "      claim this project has no machine for, and nobody is holding it"
+         iv_fails=$((iv_fails+1)) ;;
+      1) [[ "${rhits[0]}" == "$rowner" ]] || {
+           echo "FAIL: '$rname' landed in ${rhits[0]}, this split assigned it to $rowner"
+           iv_fails=$((iv_fails+1)); } ;;
+      *) echo "FAIL: '$rname' appears in ${rhits[*]} — owned by neither"
+         iv_fails=$((iv_fails+1)) ;;
+    esac
+  done
+
+  # ⚠️⚠️ THE LOAD-BEARING ONE, AND IT IS THE REASON THE SPLIT EXISTS.
+  # `5a-iv-d` is gated on a CALENDAR, and the sizing moved it onto ANDROID
+  # (5a-iv-c) on purpose: a free Apple ID signs an iPhone build with a 7-day
+  # provisioning profile, Google expires test-user tokens at 7 days, and the
+  # reading is at day 8 — so on iOS a failure has three candidate causes and no
+  # way to tell them apart. A later session "tidying" this back onto 5a-iv-a
+  # looks like fixing an inconsistency and silently restores the confound.
+  iv_gate="$(row 5a-iv-d | awk -F'|' '{print $(NF-1)}')"
+  if [[ -z "${iv_gate//[[:space:]]/}" || "${iv_gate//[[:space:]]/}" == "—" ]]; then
+    echo "FAIL: 5a-iv-d has no gate. It is the only task in this project gated on a"
+    echo "      DATE rather than a task — unnamed, it is the one that never happens."
+    iv_fails=$((iv_fails+1))
+  elif ! grep -Eq "5a-iv-c" <<< "$iv_gate"; then
+    echo "FAIL: 5a-iv-d's gate does not name 5a-iv-c. The eight-day reading was moved"
+    echo "      onto ANDROID so that ONE 7-day clock is live instead of two; putting it"
+    echo "      back on the iPhone build makes a failed reading uninterpretable."
+    iv_fails=$((iv_fails+1))
+  fi
+fi
+
+if (( iv_fails > 0 )); then
+  echo
+  echo "The 5a-iv sub-split does not hold. Re-size deliberately rather than editing a row."
+  exit 1
+fi
+
 if (( fb_fails > 0 )); then
   echo
   echo "$covered/$total deliverables covered, but the Facebook deferral is not recorded correctly."
@@ -236,3 +315,5 @@ fi
 echo "$covered/$total of 5a's deliverables covered by exactly one sub-task each, as assigned."
 echo "Facebook's deferral to 5i is recorded, gated, and claimed by no 5a sub-task."
 echo "5a-iii's two halves exist, and C1.4 and C1.3 each sit in exactly one of them."
+echo "5a-iv's four parts exist; six readings each have one owner, and the eight-day one"
+echo "  is gated on 5a-iv-c so that only one 7-day clock is live."
