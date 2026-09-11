@@ -28,10 +28,15 @@ export type CredentialCheck =
 /**
  * ⚠️ TRIMMED AND LOWERCASED, AND THE CASE IS THE HALF THAT BITES. A phone
  * keyboard capitalises the first letter of a field by default, so the address
- * typed at sign-up and the one typed a week later differ by one character —
- * and Supabase treats them as two accounts, which is a shopkeeper locked out of
- * their own shop by a keyboard. The trailing space comes free with the
- * autocomplete bar.
+ * typed at sign-up and the one typed a week later differ by one character. The
+ * trailing space comes free with the autocomplete bar.
+ *
+ * ⚠️ WHETHER SUPABASE WOULD ALSO NORMALISE IT IS NOT KNOWN AND IS NOT ASSUMED.
+ * It is widely said to treat addresses case-insensitively; that is a claim
+ * about somebody else's system and nobody here has measured it. Normalising on
+ * this side costs one line and makes the answer not matter — and if the answer
+ * is "no", the defect it prevents is two accounts for one shopkeeper, showing
+ * up a week later as the app having lost their shop.
  */
 export function normalizeEmail(raw: string): string {
   return raw.trim().toLowerCase();

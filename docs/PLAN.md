@@ -44,8 +44,20 @@ is a rendering claim. **That makes `5a-iv`, the device run, the only instrument 
 will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of misleading
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
+✅✅ **`5a-iii-a` IS DONE AS OF 2026-09-11 — the app now has a session, and `5a-iii-b`
+(Google, and C1.3's last screen) IS THE NEXT TASK.** 90 assertions, 15 falsifications,
+all red. ⚠️⚠️ **The one that matters is `app/src/lib/env.ts`: a `service_role` key in the
+client BYPASSES RLS, and the wrong key does not fail — it works, unfiltered.** Both
+spellings are refused, including the legacy JWT whose text contains no such word and
+which a grep therefore cannot see. ✅ **F9's defect is now impossible rather than
+caught**: `errors.ts` maps codes to KEYS of `ES`, so a sentence typed in place is
+`TS2322`. ⚠️⚠️ **AND `5a-iv` NEEDS RE-SIZING BEFORE IT IS TAKEN** — written up as a
+`S/M` device build, it is now the **sole instrument for four deliverables across three
+tasks**, C12.1 and C3.18's numbers from `5a-ii` plus the guard's redirect and C1.4's
+persistence from this one.
 ✅✅ **`5a-iii`'s GATE IS FULLY CLEARED AS OF 2026-09-11, AND `5a-iii` WAS THEN SIZED AN
-`L` AND SPLIT IN TWO — `5a-iii-a` IS THE NEXT TASK.** ⚠️⚠️ **The shape of the step
+`L` AND SPLIT IN TWO — ~~`5a-iii-a` IS THE NEXT TASK~~ (taken and closed the same
+day; see the entry above).** ⚠️⚠️ **The shape of the step
 changed the same day: FACEBOOK IS DEFERRED TO THE NEW `5i`, and the v1 pilot signs in
 with Google or email.** ✅ **The gate was closed by MEASUREMENT, not by report** — a live
 `GET /auth/v1/settings` against the project, which found two things a file could not:
@@ -7768,8 +7780,8 @@ not**, which is the tell that a row is really two tasks.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **`5a-iii-a`** | **The client, the session, and the way in that needs no deep link.** `app.json`'s identity (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and where the session is **stored**, `AppState` refresh, the signed-in/signed-out route guard, **email sign-in, sign-up and explicit log-out** (C1.4). | `M` | ✅ none |
-| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ⚠️ one dashboard edit, taken **during** the task |
+| **`5a-iii-a`** | **The client, the session, and the way in that needs no deep link.** `app.json`'s identity (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and where the session is **stored**, `AppState` refresh, the signed-in/signed-out route guard, **email sign-in, sign-up and explicit log-out** (C1.4). | `M` | ✅ **DONE 2026-09-11** — 90 assertions, 15 falsifications, and the key that bypasses RLS now refused in both spellings |
+| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ⚠️ **NEXT.** One dashboard edit, taken **during** the task |
 
 **Where the seam is, and why it is there rather than at "auth" / "session":** everything
 in `a` works with the network off and the browser closed. Everything in `b` leaves the
@@ -8002,6 +8014,182 @@ owed to two consoles and one law and was recorded in none of them.
   not to the Supabase session, which after first sign-in is its own JWT plus refresh
   token and never consults Google again. ⚠️ **That is an assumption about somebody
   else's system.** Sign in, put the phone down for eight days, open it.
+
+#### ✅✅ `5a-iii-a` IS DONE AS OF 2026-09-11 — the client, the session, and the way in that needs no deep link
+
+**The first task in this repository whose subject is a value the app HOLDS rather than
+computes, and the suite grew from 48 assertions to 90.** What shipped:
+
+- **`app/app.json`** — the identity. **Wera**, `mx.bserafin.wera` on both platforms, and
+  the scheme. ⚠️ **The scheme is set to the bundle id itself** — see the decisions below.
+- **`app/.env.example`** — committed, the names and no values, carrying the
+  `EXPO_PUBLIC_` / `NEXT_PUBLIC_` warning and the secret-key one.
+- **`app/src/lib/env.ts`** — the two values `createClient` is built from, **as a pure
+  function over a record**, and the refusal that is the point of the file.
+- **`app/src/lib/supabase.ts`** — the one client, on `expo-sqlite` storage, with the
+  `AppState` refresh loop registered once at module scope.
+- **`app/src/auth/guard.ts`** — C1.4's route rule as a pure function; the effect that
+  acts on it is four lines in `_layout.tsx`.
+- **`app/src/auth/errors.ts`** — every failure as a Spanish sentence, and **nothing
+  supabase-js said ever reaches a screen**.
+- **`app/src/auth/credentials.ts`** — what is checked before the network is asked.
+- **`app/src/auth/AuthProvider.tsx`** + **`app/src/app/(auth)/entrar.tsx`** — the
+  session in context, and email sign-in / sign-up / log-out over it.
+
+##### ⚠️⚠️ THE ONE THAT MATTERS: A `service_role` KEY IN THE CLIENT IS NOT A BUG THAT FAILS, IT IS ONE THAT WORKS
+
+Every isolation guarantee this repository has proved since step 3 — forty-one policies,
+the RLS and location-isolation pgTAP suites, every green `db.yml` run since — is enforced
+by Postgres **against the key the request arrives with**. Hand the phone the secret key
+and the whole of it evaluates to nothing, silently, on a device in somebody else's shop.
+⚠️ **And the wrong key does not error. It works better** — nothing is filtered — which is
+exactly the property that would let it ship.
+
+✅ **So `readSupabaseEnv()` refuses to build a client with one**, and it refuses **both
+spellings**: the current `sb_secret_…` prefix and the **legacy `service_role` JWT** that
+projects created before the key change still carry. ⚠️ **The second is the one a grep
+cannot see.** A JWT's claims are base64url, so the words `service_role` appear nowhere in
+the token text — a guard that searched the string would run, pass, and have looked at
+nothing, which is this repository's sixth shape of misleading green wearing a new hat.
+The payload is therefore **decoded and read**, with a hand-rolled twelve-line base64url
+decoder rather than `atob`, because the same code runs under Hermes on the phone and node
+in CI and a guard that silently stops guarding on the runtime nobody tested is the defect
+it exists to prevent. **K1 proves it: the fixture's token contains no such word, and
+removing the decode turns the suite red.**
+
+⚠️ **`docs/checks/5a-iii-gate.sh` ASSERTS THE SAME THING AND THIS IS NOT A DUPLICATE.**
+The gate reads `app/.env.local` — gitignored, network-dependent, **cannot run in CI**. It
+answers *"is the owner's laptop configured correctly today"*. `app/test/env.test.ts` runs
+on every pull request and answers *"does the app still refuse the wrong key"*. The first
+is an instrument; the second is evidence in §9's sense.
+
+##### ✅ F9's DEFECT IS NOW IMPOSSIBLE BY CONSTRUCTION, NOT CAUGHT BY A TEST
+
+`5a-ii` found an assertion that ran, passed, and could not distinguish the defect its own
+comment named: `label: 'Vender'` typed in place and `label: ES.tabs.vender` are **the same
+string** once the module has loaded, so a value assertion cannot tell centralised from
+decentralised. It was closed there with a check that reads the source text.
+
+✅ **`errors.ts` closes it a level earlier: the map's values are KEYS of `ES.auth.errors`,
+not sentences.** A Spanish sentence typed in place is not a key, and the compiler says so
+— **K8 is `error TS2322`, not a failing assertion.** ⚠️ **This is worth generalising, and
+it is the finding of this task:** where a table points at centralised text, point at it
+**by key**. The type system then enforces what `5a-ii` needed a source-text guard for.
+
+⚠️ **The source-text guard is still here, because there is a defect no type can see:** a
+second component importing the client and handling its own failures in English.
+`app/test/auth-errors.test.ts` asserts that **`supabase.auth` is touched in exactly two
+files** and the client imported in exactly one — §2.11's *"juniors never call
+`supabase.rpc` directly"* asserted one step early, for auth. **K11 adds a second caller
+and it goes red; K12 points the same check at a tree with no client in it and it goes red
+rather than passing vacuously** (the split's F1, held).
+
+##### ⚠️⚠️ C1.4's REAL FAILURE MODE IS NOT "THE SESSION IS LOST" — IT IS "THE SESSION IS NOT LOOKED FOR YET"
+
+Reading the stored session out of `expo-sqlite` is **asynchronous**, so for the first
+frames of **every** cold start — including a signed-in one — *"no session"* and *"nobody
+has asked"* are the same value. A guard that acts on it sends a shopkeeper who never
+logged out back to the sign-in screen **every morning**, and the symptom is identical to
+C1.4 being broken outright.
+
+✅ **So `redirectFor()` takes `ready` as well as `hasSession`, and moves nobody until the
+question has been asked.** K5 removes that early return and the suite goes red. ⚠️ **This
+is the kind of defect that would have been found on the phone in `5a-iv` and blamed on
+the session store** — a whole afternoon's debugging of the wrong component.
+
+##### ⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `5a-iv` NOW CARRIES FOUR
+
+The plan wrote this up **before** the task, for `5a-iii-b`, and it applies verbatim here:
+the testable half is the one that **decides** — a pure function returning a route — and
+the half no suite can see is **whether the router actually lands there**. `_layout.tsx`
+could drop the effect or hand it the wrong segments and all 90 assertions stay green.
+
+| | Deliverable no CI can verify | Since |
+|---|---|---|
+| 1 | **C12.1** — the tab bar actually draws its words | `5a-ii` |
+| 2 | **C3.18's numbers** — whether 76pt reads as "big" to someone old | `5a-ii` |
+| 3 | ⚠️ **The guard actually redirects** — and that the app is not stuck on a splash | `5a-iii-a` |
+| 4 | ⚠️ **C1.4's persistence** — sign in, put the phone down for eight days, open it | `5a-iii-a` |
+
+⚠️⚠️ **`5a-iv` WAS SIZED `S/M` AS "A DEVICE BUILD, A NICE-TO-HAVE BEFORE JUNIORS
+ARRIVE".** It is now the sole instrument for four deliverables across three tasks, and
+**it should be re-sized before it is taken**, not during. That is a call for the owner:
+it is the only task in step 5 that needs his Mac and his hardware in the room.
+
+##### Decisions taken on the owner's behalf in `5a-iii-a`
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE DEEP-LINK SCHEME IS THE BUNDLE ID ITSELF — `mx.bserafin.wera://`**, not `wera://` | ⚠️ **CHEAP TODAY, DEAR THE MOMENT `5a-iii-b` PASTES IT INTO THE SUPABASE DASHBOARD**, because the other copy of this string lives in an allow-list no file here can read. One value to keep in step instead of two, and a reverse-DNS scheme cannot collide with another app's `wera://`. `app/test/identity.test.ts` ties the two together (K13). Reversing today is one line and one dashboard row; after `5a-iii-b` it is a sign-in where the browser opens and never comes back |
+| **2** | **`slug` moved from `tienda` to `wera`** | The slug is what EAS names the project. ⚠️ **Free only until an EAS project exists** — C1.6 defers that until the pilot is in place, so the window is open now and closes at the first build. Reversing after that re-points a project |
+| **3** | ⚠️ **The route is `/entrar`, and the groups are `(auth)` and `(tabs)`** | Spanish for the route a person could conceivably see; English for the groups, which are structure and appear in no URL a shopkeeper reads. `groupOf()` is the one place the strings are matched. Reversing is a directory rename |
+| **4** | **`react-native-url-polyfill` added, a third new dependency** | Supabase's own current Expo quickstart ships it. ⚠️ **Not measured on this RN version** — Hermes' `URL` may well be sufficient at 0.86, and the honest statement is that following the vendor's quickstart was preferred to discovering the answer on a phone in a shop. Removing it is one import |
+| **5** | **The log-out sits temporarily on Inicio**, beside 5a-ii's density switch | It belongs in Ajustes (`5b`, §2.8). It is here because **C1.4's persistence cannot be demonstrated without it**: the only way to tell a session that survived from one that was never asked for is to end one deliberately and be asked again. ⚠️ **WHOEVER BUILDS AJUSTES DELETES BOTH BLOCKS** |
+| **6** | **A six-character password minimum, mirrored from Supabase's default** | ⚠️ **Mirrored, not owned.** The server stays the authority and `errors.ts` carries `passwordShort` for the case where it refuses something this let through. The value of checking early is a Spanish sentence instead of a round trip from a shop with no signal |
+| **7** | **Wrong password and unknown account are ONE message** | Telling them apart tells a stranger holding the phone whether an address has an account here. Reversing is one line in `errors.ts` |
+| **8** | **The address is lowercased and trimmed; the password is not touched** | ⚠️ **Whether Supabase would also normalise the address is UNMEASURED and is not assumed** — it is widely said to, that is a claim about somebody else's system, and normalising here costs one line and makes the answer not matter. The password is deliberately the opposite call: a space may have been chosen, and stripping it means the password that was set is not the password that is sent |
+| **9** | **The env misconfiguration messages are English and not in `ES`** | Every one is a build-time fault in a build the owner made on his own Mac; it fails identically on the first launch of every device and the reader is always a developer. §2.11's one-strings-file rule is about what the app SAYS TO A SHOPKEEPER, and a shopkeeper cannot reach these |
+
+##### ⚠️ Found in this task — `process.env` CANNOT BE PASSED AS AN OBJECT, AND IT TYPECHECKS
+
+Expo's babel plugin **inlines `process.env.EXPO_PUBLIC_FOO` as a literal where it is
+written**. It does not build a populated `process.env` for the bundle. So
+`readSupabaseEnv(process.env)` compiles, passes every test in node, and hands the app **an
+empty object on a device** — a client built from `undefined`, failing later as a network
+error reported by whichever screen asked first. ⚠️ **No check in this repository can see
+it**, which is why the two member expressions are written out in full in `supabase.ts`
+with the reason beside them.
+
+⚠️ **The same shape as the `NEXT_PUBLIC_` trap, and it is worth saying once: the
+bundler's view of this file is not node's.** `app.yml` runs node. Both traps are invisible
+to it, and both are caught only by the gate script or by the phone.
+
+##### Fifteen falsifications, all red, run by hand before this was pushed
+
+**The working tree was committed first** (5a-i's `git checkout` finding) and **every
+fixture was diffed against the original before the check ran on it** (the split's F1 — a
+`sed` that edited nothing, a check that read an unmodified file, and a green that measured
+nothing). The unmodified tree was confirmed green first and green again after.
+
+| | Break | Result |
+|---|---|---|
+| **K1** | A legacy `service_role` **JWT** accepted — the token text contains no such word | 🔴 *"refuses a legacy service_role JWT"* |
+| **K2** | The `sb_secret_` prefix no longer refused | 🔴 *"refuses an sb_secret_ key"* |
+| **K3** | A trailing slash on the URL allowed | 🔴 — supabase-js would append `/auth/v1` to it |
+| **K4** | `http://` allowed | 🔴 *"refuses http://, which would carry the session in clear"* |
+| **K5** | The guard acts **before** the stored session has been looked for | 🔴 *"stays put on a cold start, signed in or not"* |
+| **K6** | A signed-out person redirected while already at the way in | 🔴 *"no redirect loop"* |
+| **K7** | supabase-js's **English** message put on the screen | 🔴 *"answers every known code with one of the Spanish sentences"* |
+| **K8** | A Spanish sentence typed in place instead of a key | 🔴 **`error TS2322`** — F9's defect, now a compile failure |
+| **K9** | The address no longer lowercased | 🔴 *"lowercases and trims"* |
+| **K10** | The password trimmed | 🔴 *"leaves the password exactly as typed"* |
+| **K11** | A second component calls `supabase.auth` directly | 🔴 *"touches supabase.auth in AuthProvider and nowhere else"* |
+| **K12** | That source-text check pointed at a tree with no client in it | 🔴 — it does not pass vacuously |
+| **K13** | ⚠️ The deep-link scheme quietly "tidied" to `wera` | 🔴 *"uses the bundle identifier as the deep-link scheme"* |
+| **K14** | The iOS bundle identifier dropped | 🔴 *"carries the same bundle identifier on both platforms"* |
+| **K15** | The app renamed away from `Wera` | 🔴 *"is named Wera where a person can read it"* |
+
+##### What `5a-iii-a` did NOT do, deliberately
+
+- ⚠️ **No Google button.** `5a-iii-b`'s, and the seam held: **everything shipped here
+  works with the network down and the browser closed.**
+- ⚠️ **No last-screen restore (C1.3).** `5a-iii-b`'s, and the guard is written so it has
+  nothing to fight — a signed-in person on any route inside the app is left where they are.
+- ⚠️ **The density mode is still not persisted.** The sizing note said storage arrives with
+  `5a-iii`, and the storage engine now exists — but the mode is a **device** setting (5a-ii's
+  decision 4) and the surface that sets it is `5b`'s Ajustes. Persisting it behind a
+  placeholder switch would put the write in the file that gets deleted.
+- **No `onboard_workspace`, no membership, no location.** `5b`'s, and C1.5 already removed
+  the location picker.
+
+##### ⚠️ Untouched and worth a line: the Expo SDK has drifted since `5a-i`
+
+`npx expo install --check` reports **thirteen packages** a patch or two behind what SDK 57
+now expects (`expo@57.0.20` against `~57.0.22`, and so on), all of it accumulated since
+`5a-i` on 2026-09-07. ⚠️ **Not bundled into this task**: a thirteen-package bump is its own
+change with its own verification, and hiding it inside an auth commit is how a regression
+arrives attributed to the wrong thing. **`expo-sqlite@57.0.3` — the one dependency this
+task added from the SDK — is already the expected version**, so nothing here is behind.
 
 #### ✅✅ `5a-ii` IS DONE AS OF 2026-09-07 — the scale, the formatter, and the first client rule a machine can read
 
@@ -8243,9 +8431,9 @@ are cheap today and dear once a screen rests on them.
 | **5a-i** | **The workspace, and the machine that watches it.** The Expo project at **`app/`** — §2.10's ownership table names `app/**`, so it is **not** `packages/app` — configured for **iOS and Android from creation** (C1.1; a platform added later is a config change nobody reviews), Expo Router (§2.11), TypeScript, the **fourth entry** in the root manifest beside `packages/*` and `supabase/vitest`, and **`.github/workflows/app.yml`** on a `paths:` filter naming it. Nothing user-facing. | `M` | ✅ **CLEARED 2026-09-07** — the ADR was amended. **DONE 2026-09-07** |
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
 | **5a-iii** | ⚠️ **SPLIT IN TWO 2026-09-11 — see the sizing below; `5a-iii-a` is what gets taken.** **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i`**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `L` — **not the `M/L` this table carried** | ✅✅ **CLEARED 2026-09-11.** Google live-checked on, email on, Facebook and phone off, confirmations off; `app/.env.local` valid against the project; the app is named **Wera** and the bundle id is `mx.bserafin.wera` |
-| **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ — |
-| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — `expo-auth-session` out, the scheme back in — and **C1.3's last-screen restore**. ⚠️ **The deep link is the whole risk**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and it has a half in the Supabase dashboard that no file in this repository can see. | `M` | ⚠️ **One dashboard edit, taken DURING the task** — Redirect URLs must gain `mx.bserafin.wera://**` |
-| **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. | `S/M` | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
+| **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
+| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — `expo-auth-session` out, the scheme back in — and **C1.3's last-screen restore**. ⚠️ **The deep link is the whole risk**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and it has a half in the Supabase dashboard that no file in this repository can see. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** One dashboard edit, taken DURING the task — Redirect URLs must gain `mx.bserafin.wera://**` |
+| **5a-iv** | **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **RE-SIZE BEFORE TAKING IT — it is now the sole instrument for FOUR deliverables across three tasks** (see `5a-iii-a` below). | `S/M`, **and that is the sizing being questioned** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density

@@ -15,8 +15,8 @@ describe('the address is normalised before it becomes an account', () => {
   // ⚠️ THE CASE IS THE HALF THAT BITES, AND IT BITES A WEEK LATER. A phone
   // keyboard capitalises the first letter of a field by default, so the address
   // typed at sign-up and the one typed the following Monday differ by one
-  // character — and Supabase treats those as two accounts. The shopkeeper's
-  // symptom is "the app lost my shop".
+  // character. Whether the server would forgive that is UNMEASURED (see the
+  // module header); this makes it not matter.
   it('lowercases and trims', () => {
     expect(normalizeEmail('  Tienda@Ejemplo.MX ')).toBe('tienda@ejemplo.mx');
     expect(normalizeEmail('\tDON@ejemplo.mx\n')).toBe('don@ejemplo.mx');
