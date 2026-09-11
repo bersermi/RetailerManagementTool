@@ -7803,8 +7803,39 @@ and the project was created after the change. The name is ours, nothing consumes
 and it is wrong in the direction that matters: **`anon` is also half the name of
 `service_role`'s counterpart**, so a future reader reconciling *"the anon key"* against a
 dashboard that has no anon key is one plausible step from reaching for the secret one.
-✅ **Renamed to `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `5a-iii-a`**, in both
-`.env.local` and the committed `.env.example`, while exactly zero lines of code read it.
+✅ **Renamed to `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`** while exactly zero lines of code
+read it — `.env.local` on 2026-09-11, and the committed `.env.example` in `5a-iii-a`.
+⚠️ **`docs/checks/5a-iii-gate.sh` caught the mismatch on its first run**, which is a
+small thing that says something: the rename was already decided, written into this file,
+and not yet done — and the plan cannot tell the difference between the two.
+
+##### ✅ `docs/checks/5a-iii-gate.sh` — the instrument that cleared the gate, kept
+
+⚠️ **The assertions that closed `5a-iii`'s gate existed only in a chat transcript**, and
+they are the ones that found Google unwired on the Supabase side and confirmations still
+on. A check that catches two real defects and is then thrown away is the shape of a
+lesson this repository keeps re-learning, so it is committed.
+
+⚠️⚠️ **IT CANNOT RUN IN CI, AND THAT IS STATED IN ITS OWN HEADER RATHER THAN LEFT TO BE
+DISCOVERED.** It needs `app/.env.local`, which is gitignored, and it needs the network.
+So it is **not** evidence in the sense §9 means. It is the local instrument for a surface
+that lives in **someone else's dashboard and has no file to read** — and the rule it
+obeys is the one underneath §9: *do not believe a report when you can measure.*
+
+It asserts thirteen things and prints no value: the variable names (including **the
+`NEXT_PUBLIC_` trap the owner actually hit** — Supabase's Connect dialog defaults to the
+Next.js spelling, which Expo does not inline, so it is not a wrong value but **no**
+value), the URL's shape, that **the key is not a `service_role`/`sb_secret_` one** —
+which would hand every phone a key that bypasses RLS — and then the live provider matrix
+against **the plan's** expectations, not the project's. ⚠️ **Facebook is asserted
+`false`**, so enabling it in the dashboard without doing `5i` turns this red.
+
+**Seven falsifications, all red**, the working tree committed first: J1 missing file · J2
+the `NEXT_PUBLIC_` prefix · J3 a secret key in the client file · J4 a project that does
+not exist · J5 a trailing slash · **J6 the expectation flipped to `facebook: true`**,
+which proves the matrix is genuinely read rather than hardcoded to agree · **J7 every
+assertion silently skipped**, which the anti-vacuity guard catches at *"only 7 ran,
+expected at least 12"* — rule 4, and the fifth suite in this repository to carry one.
 
 ##### ⚠️⚠️ WHAT `5a-iii-b` CAN AND CANNOT PROVE, WRITTEN BEFORE IT IS BUILT
 
