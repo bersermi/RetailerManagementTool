@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "Tienda",
-    "slug": "tienda",
+    "name": "Wera",
+    "slug": "wera",
     "platforms": [
       "ios",
       "android"
@@ -9,12 +9,14 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "tienda",
+    "scheme": "mx.bserafin.wera",
     "userInterfaceStyle": "automatic",
     "ios": {
+      "bundleIdentifier": "mx.bserafin.wera",
       "icon": "./assets/expo.icon"
     },
     "android": {
+      "package": "mx.bserafin.wera",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
