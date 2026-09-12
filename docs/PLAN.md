@@ -56,12 +56,18 @@ five-minute pre-check** — sign in, re-deploy, open, *still signed in?* — bec
 expired profile stops the app launching and does not touch the SQLite file the session
 lives in. **That one answer decides whether the $99 is needed at all.**
 ✅✅ **`5a-iii-b` IS DONE AS OF 2026-09-11 — Google and C1.3's last screen.** 132 assertions, 15 falsifications, all red,
-plus three over the gate. ⚠️⚠️ **THE ONE DECISION OWED BACK: the Supabase dashboard's
-Redirect URLs must gain `mx.bserafin.wera://**`, it has NOT been done, and NO CHECK IN
-THIS REPOSITORY CAN TELL** — an assertion over it was written, measured and deleted,
-because `/auth/v1/authorize` returns the same 302 for the right redirect and for
-`evil.example.com`. Until that row exists, Google sign-in ends with the browser being
-sent to the project's Site URL and never coming back. ⚠️⚠️ **The other one that matters
+plus three over the gate. ✅ **THE GATE IS CLOSED AS OF 2026-09-12 — the owner added
+`mx.bserafin.wera://**` to the Supabase dashboard's Redirect URLs.** ⚠️⚠️ **AND NO CHECK
+IN THIS REPOSITORY CAN CONFIRM IT, WHICH IS WHY IT IS WRITTEN HERE** — an assertion over
+it was written, measured and deleted, because `/auth/v1/authorize` returns the same 302
+for the right redirect and for `evil.example.com`, and `/auth/v1/settings` exposes
+thirty-two fields of which none is the allow-list. ✅ **The gate script was re-run after
+the change and still read 15/15 — it did not notice, which is the proof the deleted
+assertion deserved deleting.** ⚠️ **So this row is a REPORT, not a measurement**, and
+`5a-iv-a` is the first thing that can actually tell. ⚠️ **Site URL is `http://localhost:3000`
+and stays there** — the owner has no domain yet, nothing in this flow reads it, and a
+failed allow-list match therefore lands on a visible "cannot connect" page in the
+sign-in sheet rather than a plausible one. ⚠️⚠️ **The other one that matters
 is `flowType: 'pkce'`** — supabase-js defaults to `implicit`, which would have sent a
 non-expiring refresh token back through a custom URL scheme any app on the phone may
 claim. ✅ **The gate now also watches the GOOGLE CLOUD console**, the half it was never
@@ -7804,7 +7810,7 @@ not**, which is the tell that a row is really two tasks.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **`5a-iii-a`** | **The client, the session, and the way in that needs no deep link.** `app.json`'s identity (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and where the session is **stored**, `AppState` refresh, the signed-in/signed-out route guard, **email sign-in, sign-up and explicit log-out** (C1.4). | `M` | ✅ **DONE 2026-09-11** — 90 assertions, 15 falsifications, and the key that bypasses RLS now refused in both spellings |
-| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ✅ **DONE 2026-09-11** — 132 assertions, 15 falsifications, PKCE instead of the library default, and one gate assertion written, measured and deleted. ⚠️ **THE DASHBOARD EDIT IS STILL OWED** — see the write-up |
+| **`5a-iii-b`** | **Google, and the last screen.** The OAuth round trip and **C1.3's last-screen restore**. | `M` | ✅ **DONE 2026-09-11** — 132 assertions, 15 falsifications, PKCE instead of the library default, and one gate assertion written, measured and deleted. ✅ **The dashboard edit was closed by the owner 2026-09-12** — reported, not measurable; `5a-iv-a` is the first instrument |
 
 **Where the seam is, and why it is there rather than at "auth" / "session":** everything
 in `a` works with the network off and the browser closed. Everything in `b` leaves the
@@ -8161,6 +8167,43 @@ before the check runs, and one that edits nothing is reported as proving nothing
 
 ⚠️ **P2 IS THE ONE THAT MATTERS AND IT IS THE ONE THAT WOULD HAVE BEEN GREEN THIS MORNING.**
 
+##### ✅ `docs/checks/plan-handover.sh` — added 2026-09-12, after the SAME DEFECT APPEARED A THIRD TIME
+
+`5a-iii-b`'s gate — *"Redirect URLs must gain `mx.bserafin.wera://**`"* — **was closed by
+the owner on 2026-09-12, and this file still recorded it as OWED in FOUR places**: the
+status-log block, the *"what it did NOT do"* bullet, and the gate cell of **both** sizing
+tables. A cleared session reading any one of them would have re-raised a closed gate as
+a blocker.
+
+⚠️ **THAT IS THREE INSTANCES IN TWO DAYS**, and they are one rule:
+
+| | The duplicate was | Copies |
+|---|---|---|
+| Facebook inside `C1.4` (2026-09-11) | a **phrase** inside a row | 1 read, 1 not |
+| The `5a-iv` sub-split (2026-09-12) | a whole **row**, in a second table | 2 |
+| This one (2026-09-12) | a **status claim**, in prose and in two tables | 4 |
+
+✅ **`5a-split-coverage.sh` now enforces "every copy agrees" for `5a`'s deliverables.
+What it does not look at is the two things a HANDOVER depends on**, so those are their
+own file: **the next task is named exactly once**, and **the header's claim and the
+table's claim agree**. Plus the one that fired for real — *a row marked DONE may not also
+carry an open obligation* — and a dirty-tree check, because **a cleared session inherits
+the filesystem and not the conversation.**
+
+⚠️ **Five falsifications, all red** (below). ⚠️ **AND IT HIT A TRAP THIS REPOSITORY HAD
+ALREADY WRITTEN DOWN:** the first spelling used `mapfile`, which is bash 4, and died on
+the owner's Mac — **the same bash-3.2 trap `5a-split-coverage.sh` records for
+`declare -A`, hit again by the very next script written.** A note in a file's header is
+not a guard; it is a note.
+
+| | Break | Result |
+|---|---|---|
+| **Q1** | Two rows both claim to be the next task | 🔴 *"2 table rows claim to be the next task"* |
+| **Q2** | No row claims to be the next task | 🔴 *"a cleared session has nothing to take"* |
+| **Q3** | ⚠️ The header names a different task from the table | 🔴 *"two copies of one claim, disagreeing"* — **the cross-check** |
+| **Q4** | A `DONE` row carries *"STILL OWED"* — *the defect that prompted the file* | 🔴 *"a row marked DONE also carries an open obligation"* |
+| **Q5** | Pointed at `docs/HANDBOOK.md`, which has no sizing table | 🔴 — it does not pass vacuously |
+
 ##### ⚠️ SUPERSEDED — the original sizing note, kept for the reasoning it got wrong
 
 C1.4's persistence check is *"sign in, put the phone down for eight days, open it"*, and
@@ -8475,11 +8518,15 @@ a call — `/WebBrowser\.openBrowserAsync\s*\(/` — rather than a word.
 
 ##### What `5a-iii-b` did NOT do, deliberately
 
-- ⚠️ **The Supabase dashboard edit is NOT done and is NOT mine to do.** Redirect URLs
-  must gain `mx.bserafin.wera://**`. It is the gate this task was given, it is the one
-  thing between here and a working Google sign-in, and **no check in this repository can
-  tell whether it has happened** — see the deleted assertion above. **It is the decision
-  owed at the end of this session.**
+- ✅ **The Supabase dashboard edit — CLOSED BY THE OWNER 2026-09-12**, the day after
+  this task shipped. Redirect URLs now carry `mx.bserafin.wera://**`. ⚠️⚠️ **IT IS A
+  REPORT AND NOT A MEASUREMENT, AND THAT DISTINCTION IS THE WHOLE POINT OF THIS
+  PARAGRAPH** — no check in this repository can confirm it (see the deleted assertion
+  above), and the gate script was re-run afterwards and still read 15/15 without
+  noticing. **This repository exists because the last one recorded decisions no machine
+  had checked**, so: the first instrument that can tell is `5a-iv-a`, on the phone. If
+  Google sign-in there opens a browser that never comes back, THIS ROW IS THE FIRST
+  THING TO DOUBT.
 - **No Facebook.** `5i`'s, and the deferral's four coverage claims still hold.
 - **No `linkIdentity()`**, and `enable_manual_linking` is still `false` at
   `supabase/config.toml:188`. `5i`'s.
@@ -8910,7 +8957,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-ii** | **The scale and the formatter.** The two density modes as a theme scale (C3.18), `$1,234.50` with centavos hidden at zero and exactly two when present (C12.2) over `Intl.NumberFormat('es-MX')` **for rendering only** (§2.11), the icons-plus-words tab shell (C12.1). ⚠️ **The first app code with anything to assert**, so it is where `app.yml`'s test half either earns its place or is admitted to be absent. | `M` | ✅ **DONE 2026-09-07** — 48 assertions, and one deliverable no check can see |
 | **5a-iii** | ⚠️ **SPLIT IN TWO 2026-09-11 — see the sizing below; `5a-iii-a` is what gets taken.** **Auth and session.** The Supabase client, OAuth — **Google and email, ⚠️ FACEBOOK DEFERRED TO `5i`**, **no phone auth** (C1.4) — a session that persists until an explicit log-out, and last-screen restore (C1.3). ✅ **No location picker** (C1.5). | `L` — **not the `M/L` this table carried** | ✅✅ **CLEARED 2026-09-11.** Google live-checked on, email on, Facebook and phone off, confirmations off; `app/.env.local` valid against the project; the app is named **Wera** and the bundle id is `mx.bserafin.wera` |
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
-| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ⚠️⚠️ **THE DASHBOARD EDIT IS NOT DONE**: Redirect URLs must gain `mx.bserafin.wera://**`, it is the owner's, and no check here can see it |
+| **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ✅ **The dashboard edit was closed by the owner 2026-09-12**: Redirect URLs carry `mx.bserafin.wera://**`. ⚠️ **Reported, not measurable** — no check here can see it, and `5a-iv-a` is the first thing that can |
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 | **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone 15 |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | — |
