@@ -41,6 +41,25 @@ PLAN="${1:-docs/PLAN.md}"
 # only runs on one of the two machines that matter is not one.
 row() { grep -m1 -F "| **$1** |" "$PLAN"; }
 
+# ⚠️⚠️ EVERY COPY, NOT THE FIRST — added 2026-09-12, and it was added because the
+# single-row reader above HID A STALE CLAIM for the length of one session.
+#
+# `docs/PLAN.md` states the `5a-iv` sub-split TWICE: once in the sizing section
+# (names in backticks) and once in the build-order table (names bare). `row()`
+# matches the bare form and stops at the first hit, so a correction applied to
+# the sizing table was invisible here — the guard read the OTHER copy, which
+# still said the opposite, and printed success.
+#
+# THE INVARIANT IS NOT "THE CLAIM APPEARS SOMEWHERE", IT IS "EVERY COPY OF THE
+# CLAIM AGREES." This is the same family as C1.4-and-Facebook and C1.3-in-the-
+# sub-split — a claim is only as true as the copy the check happens to read —
+# and it is the first time the duplicate was a whole ROW rather than a phrase.
+rows_all() { grep -F -e "| **$1** |" -e "| **\`$1\`** |" "$PLAN"; }
+
+# Does ANY copy of task $1's row match regex $2? Duplicate-safe, so a task
+# stated in two tables counts once for ownership.
+names() { grep -Eq "$2" <<< "$(rows_all "$1")"; }
+
 for t in 5a 5a-i 5a-ii 5a-iii 5a-iv; do
   if [[ -z "$(row "$t")" ]]; then
     echo "FAIL: no table row for $t in $PLAN"
@@ -266,7 +285,7 @@ if (( iv_fails == 0 )); then
     IFS='|' read -r rname rrx rowner <<< "$r"
     rhits=()
     for t in 5a-iv-a 5a-iv-b 5a-iv-c 5a-iv-d; do
-      grep -Eq "$rrx" <<< "$(row "$t")" && rhits+=("$t")
+      names "$t" "$rrx" && rhits+=("$t")
     done
     case "${#rhits[@]}" in
       0) echo "FAIL: '$rname' is owned by no half of 5a-iv — the one category of"
@@ -280,22 +299,82 @@ if (( iv_fails == 0 )); then
     esac
   done
 
-  # ⚠️⚠️ THE LOAD-BEARING ONE, AND IT IS THE REASON THE SPLIT EXISTS.
-  # `5a-iv-d` is gated on a CALENDAR, and the sizing moved it onto ANDROID
-  # (5a-iv-c) on purpose: a free Apple ID signs an iPhone build with a 7-day
-  # provisioning profile, Google expires test-user tokens at 7 days, and the
-  # reading is at day 8 — so on iOS a failure has three candidate causes and no
-  # way to tell them apart. A later session "tidying" this back onto 5a-iv-a
-  # looks like fixing an inconsistency and silently restores the confound.
-  iv_gate="$(row 5a-iv-d | awk -F'|' '{print $(NF-1)}')"
-  if [[ -z "${iv_gate//[[:space:]]/}" || "${iv_gate//[[:space:]]/}" == "—" ]]; then
-    echo "FAIL: 5a-iv-d has no gate. It is the only task in this project gated on a"
-    echo "      DATE rather than a task — unnamed, it is the one that never happens."
+  # ⚠️⚠️ THE LOAD-BEARING ONE, AND IT IS ALSO THE ONE THAT WAS WRONG FIRST.
+  #
+  # `5a-iv-d` is gated on a CALENDAR, which is why it is its own row at all. The
+  # first spelling of this assertion (2026-09-11, merged in #72) pinned its gate
+  # to `5a-iv-c` — ANDROID — on the reasoning that a free Apple ID's 7-day
+  # provisioning profile plus Google's 7-day test-user expiry make a day-8
+  # reading on iOS uninterpretable.
+  #
+  # ⚠️ IT WAS GREEN ON A WRONG PLAN, AND THAT IS THE LESSON WORTH KEEPING. The
+  # routing it pinned gated the project's longest-lead-time reading on hardware
+  # the plan never records the owner owning, and it treated a ceiling as fatal
+  # without measuring it — an expired profile stops the app LAUNCHING and does
+  # not touch the SQLite file the session lives in. A CHECK DOES NOT MAKE A
+  # DECISION RIGHT, IT MAKES IT STICKY.
+  #
+  # Corrected 2026-09-12: the reading runs on the owner's own iPhone 15, behind
+  # a five-minute day-0 pre-check. Both halves are asserted — the gate must NAME
+  # `5a-iv-a`, and must NOT route through `5a-iv-c`, because the Android detour
+  # reads like a considered decision and would come back looking like one.
+  # Every copy of 5a-iv-d's gate, checked independently. A stale duplicate is
+  # exactly what this loop exists to catch.
+  iv_copies=0
+  while IFS= read -r iv_row; do
+    [[ -n "$iv_row" ]] || continue
+    iv_copies=$((iv_copies+1))
+    iv_gate="$(awk -F'|' '{print $(NF-1)}' <<< "$iv_row")"
+    if [[ -z "${iv_gate//[[:space:]]/}" || "${iv_gate//[[:space:]]/}" == "—" ]]; then
+      echo "FAIL: a 5a-iv-d row has no gate. It is the only task in this project gated"
+      echo "      on a DATE rather than a task — unnamed, it is the one that never happens."
+      iv_fails=$((iv_fails+1))
+    elif ! grep -Eq "5a-iv-a" <<< "$iv_gate"; then
+      echo "FAIL: a 5a-iv-d gate does not name 5a-iv-a. The eight-day reading runs on"
+      echo "      the owner's own iPhone 15 (corrected 2026-09-12) — name the build it"
+      echo "      reads, or the longest-lead-time task in step 5 has no start date."
+      iv_fails=$((iv_fails+1))
+    elif grep -Eq "5a-iv-c" <<< "$iv_gate"; then
+      echo "FAIL: a 5a-iv-d gate routes through 5a-iv-c (Android). That was the original"
+      echo "      call and it was WITHDRAWN on 2026-09-12: it gated the reading on"
+      echo "      hardware the owner does not own, and the ceiling it dodged is testable"
+      echo "      in five minutes. Do not restore it without re-measuring."
+      iv_fails=$((iv_fails+1))
+    fi
+  done < <(rows_all 5a-iv-d)
+
+  if (( iv_copies == 0 )); then
+    echo "FAIL: no 5a-iv-d row found by the all-copies reader — this check would have"
+    echo "      asserted nothing about the eight-day reading."
     iv_fails=$((iv_fails+1))
-  elif ! grep -Eq "5a-iv-c" <<< "$iv_gate"; then
-    echo "FAIL: 5a-iv-d's gate does not name 5a-iv-c. The eight-day reading was moved"
-    echo "      onto ANDROID so that ONE 7-day clock is live instead of two; putting it"
-    echo "      back on the iPhone build makes a failed reading uninterpretable."
+  fi
+
+  # ⚠️ THE PRE-CHECK, IN EVERY COPY. It is the one measurement that makes an
+  # 8-day reading possible on a 7-day profile; a copy that loses it is a copy
+  # that reads as though the $99 question were still a guess. `-i` because this
+  # file uses caps for emphasis and a guard whose verdict turns on
+  # capitalisation is asserting over the wrong unit — the FOURTH instance of
+  # that shape here, after 5i's G5, 5a-ii's F9 and 5a-iii-b's L11.
+  iv_a_copies=0
+  while IFS= read -r a_row; do
+    [[ -n "$a_row" ]] || continue
+    iv_a_copies=$((iv_a_copies+1))
+    if ! grep -Eqi "pre-check" <<< "$a_row"; then
+      echo "FAIL: a 5a-iv-a row does not name the day-0 re-deploy pre-check. Without it"
+      echo "      the plan asserts a day-8 reading on a 7-day profile with nothing"
+      echo "      having measured whether that works."
+      iv_fails=$((iv_fails+1))
+    fi
+  done < <(rows_all 5a-iv-a)
+
+  # ⚠️ BOTH TABLES, AND THE COUNT IS ASSERTED. The stale-duplicate defect was
+  # only possible because one copy existed and was never read; a check that
+  # tolerated one copy would tolerate the next silent divergence too.
+  if (( iv_a_copies < 2 || iv_copies < 2 )); then
+    echo "FAIL: 5a-iv-a has $iv_a_copies row(s) and 5a-iv-d has $iv_copies — the plan"
+    echo "      states this split in BOTH the sizing section and the build-order table,"
+    echo "      and both are read. If a table was deliberately removed, remove it from"
+    echo "      this assertion too rather than leaving one copy unchecked."
     iv_fails=$((iv_fails+1))
   fi
 fi
@@ -315,5 +394,5 @@ fi
 echo "$covered/$total of 5a's deliverables covered by exactly one sub-task each, as assigned."
 echo "Facebook's deferral to 5i is recorded, gated, and claimed by no 5a sub-task."
 echo "5a-iii's two halves exist, and C1.4 and C1.3 each sit in exactly one of them."
-echo "5a-iv's four parts exist; six readings each have one owner, and the eight-day one"
-echo "  is gated on 5a-iv-c so that only one 7-day clock is live."
+echo "5a-iv's four parts exist in both tables; six readings each have one owner, and"
+echo "  every copy of the eight-day reading is gated on 5a-iv-a behind the pre-check."
