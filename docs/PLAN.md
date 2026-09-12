@@ -8204,6 +8204,12 @@ not a guard; it is a note.
 | **Q4** | A `DONE` row carries *"STILL OWED"* — *the defect that prompted the file* | 🔴 *"a row marked DONE also carries an open obligation"* |
 | **Q5** | Pointed at `docs/HANDBOOK.md`, which has no sizing table | 🔴 — it does not pass vacuously |
 
+⚠️ **Q5 IS RED FOR THE RIGHT REASON BUT NOT A PRECISE ONE** — it fails at *"no table row
+is marked the next task"*, which is also what Q2 says. That is honest rather than ideal:
+the file is a plan-shaped-document check, and *"this is not a plan"* and *"this plan has
+no next task"* are genuinely the same failure to it. Recorded so nobody later reads Q5 as
+proving more than it does.
+
 ##### ⚠️ SUPERSEDED — the original sizing note, kept for the reasoning it got wrong
 
 C1.4's persistence check is *"sign in, put the phone down for eight days, open it"*, and
