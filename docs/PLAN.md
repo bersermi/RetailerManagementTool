@@ -22,6 +22,25 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+✅✅ **TWO RULINGS FROM THE OWNER, 2026-09-13 — *"keep it in docs/, and do the second
+pass after 5b."*** Both close questions `5a-iv-b` raised the day before.
+✅ **`docs/CONVENTIONS.md` stays where it is** — the path is settled and may be cited.
+✅✅ **AND THE FOURTH ROW OF THE PLAN-VS-ADR TABLE IS CLOSED.** `src/api/` and
+`src/ui/` **stay spread across `5d`–`5h`**; §3's reason for wanting them in `5a` —
+*"step 6's four screens are supposed to arrive to a pattern"* — is honoured by a new
+**`5b.5`**, the second pass of `CONVENTIONS.md`, run once `5b` has produced a real
+pattern rather than ten primitives guessed at against undrawn screens. ⚠️ **`5b.5` is
+load-bearing, not a tidy-up: skip it and §3's argument is what was dropped.**
+⚠️ **The page now says so itself, and `conventions-gate.sh` grew a tenth assertion
+group that fails if the page and the `5b.5` row stop agreeing** — a deferral is the
+most perishable kind of claim there is, and this repository has five stale copies in
+its history to prove it. `docs/PLAN.md` joined `app.yml`'s `paths:` filter for the
+same reason.
+⚠️ **ONE ADR EDIT IS NOW OWED AND IT IS SMALL**: ADR-035 §3 still lists `src/api/` and
+`src/ui/` under step `5a` in its own words. **The ruling above supersedes it**, but a
+session obeying *"the ADR wins"* literally would re-open it — see the READ FIRST
+section. ⚠️⚠️ **Decision register #9 is still unamended and still blocks `4.6a`.**
+
 ✅✅ **`5a-iv-b` IS DONE AS OF 2026-09-12 — `docs/CONVENTIONS.md`, the page §3 gates
 hiring on.** Nine rules read out of `app/src` rather than proposed for it; seven of
 them enforced by `docs/checks/conventions-gate.sh`, now a fourth step in `app.yml`,
@@ -7309,7 +7328,7 @@ anyone deciding to.
 | **Decision register #9** (§1424) — *Staff invitation flow* | `workspace_invite` + `redeem_invite`, **token by WhatsApp**. Owner-initiated push | **C11.5 / C11.6** — the joiner enters a **workspace code**, **requests** access, and is **approved**; an owner's invite counts as *a request that arrives pre-approved*. **Both paths, not one** |
 | **Decision register #13** (§1424) — *Android* | *"Defer the release path, keep the code honest. Emulator smoke test at the end of 5a"* | **C1.1** — the pilot is **iPhone 11, iPhone 15, Oppo and Samsung**. **iOS is not optional**, and the 5a smoke test has two platforms |
 | ✅ **§2.11's stack table** — *Client tests* | ~~*"Skipped, except `packages/money`"*~~ → **CLOSED BY THE OWNER 2026-09-07.** ADR amended: a unit test is allowed where it **pins a value a customer sees or the ledger stores**, refused over rendering, navigation and layout | This file's `5a` definition of done stands. `app.yml` runs typecheck **and** tests, and `5a-i` shipped it |
-| ⚠️ **§3's build-order step `5a`** — *Foundation* | The `expo-sqlite` **outbox**, **`src/api/`** wrapping every RPC, the **`src/ui/` primitives**, **`CONVENTIONS.md`**, session persistence **on a shared till device**, and **how the client resolves its `location_id`** | This file's `5a` has **none of the first four**, moved the outbox to `5c`, and C1.5/C1.1 already answered the last two (two workspaces, **personal phones — there is no shared till**) |
+| ✅ **§3's build-order step `5a`** — *Foundation* | The `expo-sqlite` **outbox**, **`src/api/`** wrapping every RPC, the **`src/ui/` primitives**, **`CONVENTIONS.md`**, session persistence **on a shared till device**, and **how the client resolves its `location_id`** | **CLOSED BY THE OWNER 2026-09-13.** `CONVENTIONS.md` shipped at `5a-iv-b`, inside `5a` as §3 asked. The outbox stays in `5c`; C1.5/C1.1 already answered the last two (two workspaces, **personal phones — there is no shared till**). ✅ **`src/api/` and `src/ui/` stay spread across `5d`–`5h`** — *"do the second pass after 5b"* — and §3's *"arrive to a pattern"* argument is honoured by **`5b.5`** rather than by building ten primitives against undrawn screens |
 
 ⚠️ **§1400's checklist is NOT the problem and was never wrong**: it carries
 `workspace_invite` + `create_invite` + `redeem_invite` as an **unticked box**, which is
@@ -7341,18 +7360,35 @@ that would make `app.yml`'s green mean anything. **But the prose governing the t
 an argument, not a ruling, and the ADR is amended by decision** — so it is put to the
 owner instead of taken.
 
-⚠️ **The fourth is smaller but is a real omission, not a drift to be ratified**:
-`CONVENTIONS.md` is named by §3 as part of `5a` and *"hiring gates on that file
-existing"*. It is now scheduled at the close of `5a-iv` (below). `src/api/` and
-`src/ui/` are genuinely spread across `5d`–`5h` by this file's split, which is a
-defensible re-sequencing — but §3 wrote them into `5a` because **step 6's four screens
-are supposed to arrive to a pattern**, and that argument survives the re-sequencing
-intact. It needs the owner's eye, not a silent fix here.
+✅✅ **THE FOURTH IS CLOSED. The owner ruled on 2026-09-13 — *"keep it in docs/, and do
+the second pass after 5b."*** Both halves, in one sentence:
 
-**What is owed: an amendment to ADR-035, by the owner — before `4.6a` is written (#9),
-and before `5a-i` is written (§2.11).** The ADR is amended only by deliberate decision
-(`docs/HANDBOOK.md`), and this file does not get to overrule it by describing something
-else loudly.
+- **`CONVENTIONS.md` shipped at `5a-iv-b`**, inside `5a` as §3 asked, at
+  `docs/CONVENTIONS.md` — **the path is now settled and may be cited.**
+- **`src/api/` and `src/ui/` stay spread across `5d`–`5h`.** §3's reason for putting
+  them in `5a` — *"step 6's four screens are supposed to arrive to a pattern"* —
+  **survives, and is honoured by `5b.5`** rather than by inventing ten primitives
+  against screens nobody has drawn. ⚠️ **`5b.5` is therefore load-bearing, not a
+  tidy-up**: if it is skipped, §3's argument is the thing that was dropped.
+
+~~It needs the owner's eye, not a silent fix here.~~ It got it.
+
+**What is owed, as of 2026-09-13 — ONE amendment, and one line of ADR text that lags a
+ruling:**
+
+- ⚠️⚠️ **STILL OWED AND STILL BLOCKING: decision register #9**, the membership flow.
+  `4.6a` must not be written until the ADR carries C11.5/C11.6. **This is the only
+  unanswered one of the four.**
+- ✅ **§2.11 is amended** (2026-09-07) and `5a-i` shipped under it.
+- ⚠️ **§3's build-order row is RULED but not yet REWRITTEN.** The owner closed it on
+  2026-09-13; ADR-035 §3 still lists `src/api/` and `src/ui/` under step `5a` in its
+  own words. **A session obeying *"the ADR wins"* literally would re-open a settled
+  question** — so it is said here, loudly: **the ruling is above, `5b.5` carries it,
+  and the ADR edit is a one-line tidy the owner owes, not a live disagreement.**
+
+The ADR is amended only by deliberate decision (`docs/HANDBOOK.md`), and this file does
+not get to overrule it by describing something else loudly — which is exactly why the
+third bullet names the lag instead of quietly acting on it.
 
 ---
 
@@ -7830,6 +7866,7 @@ free today and stay free until the first task merges.
 |---|---|---|---|
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
+| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️ **`5b` closing.** `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
@@ -8540,12 +8577,13 @@ rather than stopping. **No part of `5a-iv-a` was attempted or consumed.**
   boundary, the decides/acts seam, one strings file, integer centavos, no hardcoded
   sizes, two `EXPO_PUBLIC_` variables, a header on every module, and *"a deliverable
   no check can see is written down as such."*
-- **`docs/checks/conventions-gate.sh`** — 9 assertion groups, **7 of the 9 rules
-  enforced** over 22 source and 11 test files. 13 falsifications, 12 red and one that
-  had to stay green.
-- **`.github/workflows/app.yml`** — the gate as a fourth step, and `docs/CONVENTIONS.md`
-  plus the script itself **added to the `paths:` filter**, so an edit to the page alone
-  re-runs the check that reads it.
+- **`docs/checks/conventions-gate.sh`** — 10 assertion groups, **7 of the 9 rules
+  enforced** over 22 source and 11 test files. 15 falsifications, 14 red and one that
+  had to stay green. ⚠️ **The tenth group was added 2026-09-13** and is a cross-check
+  against `docs/PLAN.md` — see `5b.5`.
+- **`.github/workflows/app.yml`** — the gate as a fourth step, and `docs/CONVENTIONS.md`,
+  the script itself and (from 2026-09-13) **`docs/PLAN.md`** added to the `paths:`
+  filter, so an edit to any one of the three re-runs the check that reads them.
 
 ##### ⚠️⚠️ THE FINDING — README.md HAS SAID *"THE CLIENT DOES NOT EXIST YET"* SINCE KICK-OFF, AND IT IS THE FIFTH INSTANCE IN THREE DAYS
 
@@ -8603,14 +8641,14 @@ comment naming *every* banned token at once, which must stay **green**.
 
 | | Call | Why, and what reversing costs |
 |---|---|---|
-| **1** | **The page is at `docs/CONVENTIONS.md`**, not the repository root | §3 names the file and no directory. `docs/` is where this project's prose already lives — `PLAN.md`, `HANDBOOK.md`, `adr/`. ⚠️ **Reversing is a `git mv` and four links**, and it gets dearer once anything cites the path |
+| **1** | **The page is at `docs/CONVENTIONS.md`**, not the repository root | §3 names the file and no directory. `docs/` is where this project's prose already lives — `PLAN.md`, `HANDBOOK.md`, `adr/`. ✅✅ **CONFIRMED BY THE OWNER 2026-09-13 — *"keep it in docs/"*. Closed; do not re-open it.** The path may now be cited freely |
 | **2** | **It ships with a check, which §3 did not ask for** | *"A file is not evidence; a green CI run is"* is non-negotiable in `CLAUDE.md`, and this is a file made entirely of claims about other files. A page of rules nothing can falsify is the artifact this repository exists to prevent. Reversing is deleting one script and one step |
 | **3** | **Scoped to `app/` only.** It does not restate the migration rules, the RLS rule or the evidence rule | Those live in `CLAUDE.md` and `supabase/README.md` and are **correct there**. Copying them here would create the sixth instance of the defect this very page is guarding against. The page links instead |
 | **4** | **Seven rules enforced, two declared unenforceable — and the split is itself asserted** | `R3` (the decides/acts seam) and `R9` (name what no check can see) are about judgement. ⚠️ **A rule quietly moving from "checked" to "stated" is the same stale-copy defect**, so assertion 0 reads each rule's own `**Checked by:**` line and fails if it disagrees with the script |
 | **5** | **Five test imports rewritten to `@/`** | See above. ⚠️ It is app code changed by a documentation task, which is why it is named here — but the alternative was publishing `R1` already false |
 | **6** | **The gate runs LAST in `app.yml`, after typecheck and the suite** | Those assert correctness; this asserts form. A red form check ahead of a red correctness check hides it and costs a round trip. Reversing is moving four lines |
 
-##### Thirteen falsifications, run by hand before `5a-iv-b` was committed
+##### Fifteen falsifications, run by hand — thirteen before `5a-iv-b` merged, two with the `5b.5` cross-check the next day
 
 Every fixture is a copy of the tree with one thing broken, **diffed against the original
 before the check runs** — the trap `5a-i` recorded, where a fixture that edited nothing
@@ -8631,6 +8669,8 @@ reported success. The original copy is confirmed green first.
 | **F11** | ⚠️⚠️ `R3`'s page claim flipped to *"enforced"*, script untouched | 🔴 *"R3: the page says it is enforced, this script stated it"* |
 | **F12** | Twenty source files removed, so every loop goes quiet | 🔴 *"only 2 source and 11 test files were read"* — the anti-vacuity guard |
 | **F13** | ⚠️⚠️ **THE REVERSE ONE.** A comment naming `NEXT_PUBLIC_`, `process.env`, `toFixed(2)`, `/ 100`, `fontSize: 16` and a Spanish sentence, all at once | ✅ **GREEN** — and it was RED before the comment stripping |
+| **F14** | ⚠️ **Added 2026-09-13 with the `5b.5` cross-check.** The `5b.5` row marked `DONE` in the plan, the page still deferring to it | 🔴 *"the page says the second pass is owed at 5b.5, but docs/PLAN.md has no open 5b.5 row"* |
+| **F15** | The page's deferral section deleted while `5b.5` is still open | 🔴 *"the page now reads as complete when it is not"* |
 
 ⚠️ **F11 AND F13 ARE THE TWO THAT MATTER.** F11 is the stale-copy family caught in its
 newest form — not a duplicated row, but a page and a script disagreeing about *whether a
@@ -8641,11 +8681,13 @@ result is green, and it is the one that keeps the guard from eating the comments
 
 - **It took no reading.** All six of `5a-iv-a`'s readings and the day-0 pre-check are
   still owed, and `5a-iv-a` is still the next task.
-- **It did not settle §3's `src/api/` and `src/ui/` question**, which is the fourth row
-  of the plan-vs-ADR table above and is the owner's to rule on. ⚠️ **`CONVENTIONS.md`
-  therefore describes no API-wrapper or primitive conventions at all**, because there
-  are none to describe yet — and that is the half of §3's argument (*"step 6's four
-  screens are supposed to arrive to a pattern"*) that the re-sequencing left open.
+- ~~**It did not settle §3's `src/api/` and `src/ui/` question**~~ ✅✅ **RULED BY THE
+  OWNER 2026-09-13, the day after this merged — *"do the second pass after 5b."*** The
+  re-sequencing stands; `CONVENTIONS.md` describes no API-wrapper or primitive
+  conventions because there are none, and it gets a second pass at **`5b.5`**, once
+  `5b` has produced a pattern rather than a guess at one. ⚠️ **The page says so itself,
+  and `conventions-gate.sh` asserts that the page and the `5b.5` row agree** — a
+  deferral that goes stale is the defect this whole task was about.
 - **It added no rule the code did not already keep.** Every one of `R1`–`R9` was read
   out of `app/src`; the only edit to app code was the five imports in `F1`'s family.
 

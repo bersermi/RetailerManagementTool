@@ -255,6 +255,28 @@ named task ends up.
 
 ---
 
+## ⚠️ What this page does not cover yet — a second pass is owed at `5b.5`
+
+**There are no `src/api/` and no `src/ui/` conventions here, because neither
+directory exists.** ADR-035 §3 put both in step `5a` so that *"step 6's four
+screens arrive to a pattern"*; this build spread them across `5d`–`5h` instead,
+and **the owner ruled on 2026-09-13 that the re-sequencing stands and the
+pattern gets described once `5b` has produced a real one** — rather than ten
+primitives guessed at against screens nobody has drawn.
+
+So if you are about to write the first RPC wrapper or the first shared
+component: **that is the second pass, and it is plan task `5b.5`.** Read
+[`docs/PLAN.md`](PLAN.md) for what it owes, and add the conventions here as you
+establish them — do not invent them in four screens, which is the exact accident
+§3 wrote this page to prevent.
+
+⚠️ **This section is checked, not merely written.**
+`docs/checks/conventions-gate.sh` fails if this page and `docs/PLAN.md`'s `5b.5`
+row stop agreeing about whether the second pass is still owed. A deferral that
+goes quietly stale is the defect that produced this page in the first place.
+
+---
+
 *Written at `5a-iv-b`. Every rule here was read out of `app/src` rather than
 proposed for it — if one of them surprises you, the code is what it describes,
 and `docs/checks/conventions-gate.sh` is what keeps that true.*

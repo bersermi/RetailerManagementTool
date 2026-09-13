@@ -121,6 +121,44 @@ for r in $BOTH; do
 done
 (( mismatch == 0 )) && ok "every rule's '**Checked by:**' line matches what this script does"
 
+# --- 0b. the deferred second pass has not gone stale ----------------------
+# ⚠️⚠️ THE OWNER RULED ON 2026-09-13 — *"keep it in docs/, and do the second
+# pass after 5b"* — and a DEFERRAL IS THE MOST PERISHABLE KIND OF CLAIM THERE
+# IS. The page tells a junior "there are no src/api or src/ui conventions here
+# yet, that is `5b.5`"; the plan carries `5b.5` as an open row. When `5b.5` is
+# eventually done, BOTH have to move, and the one that gets forgotten is the
+# page — which would then be telling a new hire to go read a task that closed.
+#
+# This is the same shape as assertion 0 and the same shape as the five stale
+# copies in this repository's history: two files, one claim, no instrument.
+note
+PLAN="$ROOT/docs/PLAN.md"
+if [[ ! -r "$PLAN" ]]; then
+  fail "cannot read $PLAN — the second-pass cross-check needs it"
+else
+  PAGE_DEFERS=no; grep -qF 'a second pass is owed at `5b.5`' "$PAGE" && PAGE_DEFERS=yes
+  PLAN_ROW="$(grep -m1 -F '| **5b.5** |' "$PLAN")"
+  PLAN_OPEN=no
+  if [[ -n "$PLAN_ROW" ]] && ! grep -Eq '✅ \*\*DONE|IS DONE AS OF' <<< "$PLAN_ROW"; then
+    PLAN_OPEN=yes
+  fi
+  if [[ "$PAGE_DEFERS" == "$PLAN_OPEN" ]]; then
+    if [[ "$PAGE_DEFERS" == yes ]]; then
+      ok "the page defers src/api and src/ui to 5b.5, and 5b.5 is open in the plan"
+    else
+      ok "the second pass is done in the plan and the page no longer defers to it"
+    fi
+  elif [[ "$PAGE_DEFERS" == yes ]]; then
+    fail "the page says the second pass is owed at 5b.5, but docs/PLAN.md has no"
+    echo "      open 5b.5 row. Either the task closed and this page was not updated,"
+    echo "      or the row was renamed — a junior is being sent to a task that is gone."
+  else
+    fail "docs/PLAN.md carries 5b.5 as open, but docs/CONVENTIONS.md no longer says"
+    echo "      the second pass is owed. The page now reads as complete when it is not,"
+    echo "      and src/api / src/ui conventions are what is missing from it."
+  fi
+fi
+
 # --- R1. imports are written `@/…`, never a climb out of the directory -----
 # The alias is declared TWICE — `app/tsconfig.json` for Metro and the
 # typecheck, `app/vitest.config.ts` for the suite — and a relative path that
@@ -285,7 +323,7 @@ fi
 # is conditional, so "0 failures" is also what a run that found no files looks
 # like. The eighth check here to carry one, and the first where the thing that
 # could empty it is a `find` over a directory that moved.
-note_expected=9
+note_expected=10
 if (( ran < note_expected )); then
   echo "FAIL: only $ran assertion groups ran, expected $note_expected — this check"
   echo "      asserted almost nothing and was about to report success."
