@@ -46,6 +46,13 @@ on:
       # itself the one edit CI never looks at.
       - "docs/CONVENTIONS.md"
       - "docs/checks/conventions-gate.sh"
+      # ⚠️ AND `docs/PLAN.md`, ADDED 2026-09-13 WITH THE `5b.5` CROSS-CHECK. The
+      # gate now asserts that the page's deferral of `src/api`/`src/ui` and the
+      # plan's `5b.5` row agree about whether that second pass is still owed.
+      # Two files, one claim — so an edit to EITHER has to re-run the check, and
+      # closing `5b.5` in the plan alone is exactly the edit that would
+      # otherwise leave the page sending juniors to a task that no longer exists.
+      - "docs/PLAN.md"
 
 concurrency:
   group: app-${{ github.ref }}
