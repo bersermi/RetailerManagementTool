@@ -73,10 +73,16 @@ restores Vender **and** Comprar, and **the Supabase redirect allow-list PASSES �
 came back on its own.** That last one is the only measurement this project will ever have
 of it; the gate script read 15/15 across the dashboard change because it cannot see it.
 ⚠️ **Google's *"unverified app"* interstitial did not appear**, and the owner judged it a
-non-issue for the pilot. ⚠️⚠️ **C3.18's OPINION HALF IS STILL OWED** — `$11.60` renders,
-but *"does 76pt read as big behind a counter"* and the over-fifty question were not
-answered on the night, and a reading not written down at the time is one this project did
-not take.
+non-issue for the pilot. ✅✅ **C3.18's OPINION HALF IS ANSWERED AS OF 2026-09-13 — *"the letter sizes are big
+enough."*** The owner's own words, and they close the **sixth and last** of the readings
+`5a-iv` was the sole instrument for. ✅ **The density scale shipped at `5a-ii` stands as
+built; no re-scaling is owed, and `5d`'s screens may size against it.** ⚠️ **It is a
+judgement, not a measurement, and it is written down as one** — one person, on one phone,
+in one room, answering *"does 76pt read as big behind a counter"* without a counter.
+⚠️ **The over-fifty question was not separately put**, and the honest reading of the
+answer is that the owner did not think it worth putting. ✅ **If a pilot cashier ever says
+otherwise, that is new evidence and not a contradiction** — the scale is a constant in one
+file, which is why this was cheap to settle and stays cheap to revisit.
 ⚠️⚠️ **AND THREE SEPARATE INSTRUMENT DEFECTS COST THE FIRST HOUR**, all now fixed in
 `5a-iv-a-preflight.sh` (15 assertions, up from 14) and the run sheet: the preflight printed
 `devicectl`'s CoreDevice UUID where the build command wants a device UDID; `expo run:ios`
@@ -85,6 +91,34 @@ cannot create a free team's first provisioning profile because it never passes
 where `devicectl install` goes straight through. ⚠️ **`14/14 — this Mac can build, sign and
 install` was not a supported claim**: it rested on a Release-on-SIMULATOR build, which needs
 no provisioning at all. The same shape `#75` recorded, in the file `#75` wrote.
+✅✅ **FOUR RULINGS FROM THE OWNER, 2026-09-13 (SECOND SITTING) — AND THREE OF THEM CLOSE
+THINGS THAT HAVE BEEN OPEN SINCE THE GRILL-ME OF 2026-09-07.**
+✅✅ **1. ADR-035 IS AMENDED — §3's build-order step `5a` and §2.10's closing paragraph**,
+revision entry dated 2026-09-13. **The last of the four plan-vs-ADR disagreements is
+closed, and there is no longer any gap for a literal reading of *"the ADR wins"* to fall
+into.** ⚠️ **It was not the one-line tidy it was billed as.** `src/api/` and `src/ui/`
+moved to `5d`–`5h` with **`5b.5`** carrying their obligation, the outbox moved to `5c`, and
+⚠️⚠️ **TWO DELIVERABLES WERE STRUCK RATHER THAN MOVED** — *"session persistence on a shared
+till device"* and *"how the client resolves its `location_id"`* both rest on a shared till,
+and **C1.5/C1.1 established the pilot has none; the staff use personal phones.** A
+deliverable whose premise is false is withdrawn, not deferred, and neither file had ever
+said so.
+✅✅ **2. C3.18's OPINION HALF IS ANSWERED — *"the letter sizes are big enough."*** That is
+the **sixth and last** of the readings `5a-iv` was the sole instrument for, and it means
+**`5a-iv-a` is now fully closed rather than closed-but-one.** The density scale from
+`5a-ii` stands as built.
+⚠️ **3. Decision register #9 was re-described at the owner's request and remains OPEN** —
+it is now the **single open decision in this file**. One sentence: *the ADR says the owner
+pushes an invite; the owner said the joiner pulls with a code; he wants both.* It still
+blocks `4.6a`, and the write-up is in the READ FIRST section.
+⚠️⚠️ **4. `5a-iv-c-3` IS BOOKED FOR THE EVENING OF 2026-09-14, AND THAT PUTS `5a-iv-c-2` ON
+A DEADLINE IT DID NOT HAVE THIS MORNING.** The rehearsal was sized as ungated and *"on no
+critical path"* — true when the evening was unbooked, **false now.** ⚠️ **The split's whole
+argument was that a borrowed evening is a sitting and not a setup**, and the rehearsal is
+the only thing standing between the two. ⚠️ **A human step is owed on hardware that is not
+the owner's**: USB debugging via Developer Options, arranged **before** the evening rather
+than discovered during it — `docs/checks/5a-iv-c-3-runsheet.md`.
+
 ✅✅ **`5a-iv-c-1` IS DONE AS OF 2026-09-13 — this Mac can build for Android and run what
 it builds, and `5a-iv-c-2` IS THE NEXT TASK.** JDK 17, the SDK, `adb`, build-tools 36.1.0,
 platform 36, and an **`arm64-v8a`** AVD. `docs/checks/5a-iv-c-toolchain.sh` reads **14/14**,
@@ -1051,7 +1085,7 @@ because `0010` is still the fix it describes.** Its claim was *"every finding in
 file is now closed"*, true when written on 2026-08-27 and **not a standing claim** —
 findings since then are recorded per task, and the open ones are in the status log at
 the top of this section.
-~~**Every open decision in this file is closed again**~~ — **true on 2026-08-27, false now**: register #9 and C3.18's opinion half are both open. The sentence is kept only for what follows it, which is still accurate: the purchase-side rounding direction 3.5 found was settled by the owner on 2026-08-26 and shipped the next day. Two
+~~**Every open decision in this file is closed again**~~ — **true on 2026-08-27, false on 2026-09-07, and ALMOST true again on 2026-09-13**: C3.18's opinion half closed that day (*"the letter sizes are big enough"*), leaving **register #9 as the single open decision in this file.** The sentence is kept only for what follows it, which is still accurate: the purchase-side rounding direction 3.5 found was settled by the owner on 2026-08-26 and shipped the next day. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
 price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
@@ -7518,14 +7552,57 @@ the second pass after 5b."*** Both halves, in one sentence:
 ruling:**
 
 - ⚠️⚠️ **STILL OWED AND STILL BLOCKING: decision register #9**, the membership flow.
-  `4.6a` must not be written until the ADR carries C11.5/C11.6. **This is the only
-  unanswered one of the four.**
+  `4.6a` must not be written until the ADR carries C11.5/C11.6. **It is now the ONLY
+  open item of the four**, the other three having closed on 2026-09-07 and 2026-09-13.
+  ⚠️ **Re-described for the owner on 2026-09-13, who asked what it was.** In one
+  sentence: **the ADR says the owner pushes an invite, and the owner said the joiner
+  pulls with a code — and he wants both.** The register records `create_invite(email,
+  role, location_ids)` → token → WhatsApp → `redeem_invite`; C11.5 asks for a joiner who
+  signs up, **types a workspace code, requests a role, and is approved**, with an
+  owner's invite counting as *a request that arrives pre-approved*. ⚠️ **The modelling
+  consequence is one column**: `workspace_invite.invited_by` is `not null` today and a
+  self-request has nobody to put there. ⚠️ **And `workspace` has no code column at all**
+  (`0001:110`) — the `id` cannot serve, because nobody reads a uuid over WhatsApp, and
+  C11.6 is explicit that workspaces are **never listed**. The full write-up is `4.6a`'s
+  section below.
 - ✅ **§2.11 is amended** (2026-09-07) and `5a-i` shipped under it.
-- ⚠️ **§3's build-order row is RULED but not yet REWRITTEN.** The owner closed it on
-  2026-09-13; ADR-035 §3 still lists `src/api/` and `src/ui/` under step `5a` in its
-  own words. **A session obeying *"the ADR wins"* literally would re-open a settled
-  question** — so it is said here, loudly: **the ruling is above, `5b.5` carries it,
-  and the ADR edit is a one-line tidy the owner owes, not a live disagreement.**
+- ✅✅ **§3's build-order row IS NOW REWRITTEN — the owner instructed the amendment on
+  2026-09-13 and ADR-035 carries it** (revision entry dated 2026-09-13; §3's step `5a`
+  and §2.10's closing paragraph). **There is no longer any gap between the two files
+  for a literal reading of *"the ADR wins"* to fall into.** ⚠️ **It was not a one-line
+  tidy in the end**: `src/api/` and `src/ui/` moved to `5d`–`5h` with `5b.5` carrying
+  their obligation, the outbox moved to `5c`, and **two deliverables were STRUCK rather
+  than moved** — *"session persistence on a shared till device"* and *"how the client
+  resolves its `location_id`"* both rest on a shared till, and C1.5/C1.1 established the
+  pilot has none. **A deliverable whose premise is false is withdrawn, not deferred.**
+
+✅✅ **AND THE AMENDMENT CREATED A THIRD COPY OF THE `5b.5` DEFERRAL, SO IT IS GUARDED.**
+`conventions-gate.sh` already cross-checked `docs/CONVENTIONS.md` against the plan's
+`5b.5` row; ADR-035 §3 now states the same deferral in its own words, and **the copy
+nobody checks is the copy that goes stale** — six times in this repository's history.
+A tenth assertion group asserts the ADR carries `5b.5` **and** that §3's step `5a`
+deliverable list no longer claims `src/api` or `src/ui`.
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **U1** | The amendment note deleted and `5a`'s list reverted to naming `src/api` | 🔴 *"step 5a claims src/api or src/ui again"* |
+| **U2** | `5b.5` renamed out of the ADR entirely | 🔴 *"ADR-035 does not mention 5b.5 … the ADR reads as though step 5a still owes them"* |
+| **U3** | ⚠️ **Only the amendment marker removed, the list left clean** — the anti-vacuity case | 🔴 — otherwise deleting the amendment wholesale would make the first assertion pass by having nothing to read |
+| **U0** | ✅ Control | 🟢 |
+
+⚠️⚠️ **The assertion's FIRST spelling fired on the amendment note itself** — it grepped
+step `5a`'s whole block for `src/api`, and the sentence recording that `src/api` **moved
+out** contains those words. **That is the fourth time in one day** a guard in this
+repository reported a defect by reading the prose that explains the fix, after
+`conventions-gate.sh`'s own comment-stripping trap and the two row-pattern traps in the
+plan scripts. ✅ **The claim was narrowed to the deliverable list — everything above the
+amendment marker — rather than the guard being loosened.**
+⚠️ **And two of the four fixtures were briefly red for the WRONG REASON**, which is worth
+as much as the check: the throwaway mutation helper opened each file for writing before
+reading it, so it silently emptied the file instead of editing it. **A fixture that is red
+for the wrong reason is not a falsification, it is a coincidence** — the results above are
+from the corrected helper, and the count of `5b.5` in each fixture was printed and read
+rather than assumed.
 
 The ADR is amended only by deliberate decision (`docs/HANDBOOK.md`), and this file does
 not get to overrule it by describing something else loudly — which is exactly why the
@@ -8513,7 +8590,7 @@ a **cold Gradle build**, which on a first run resolves a dependency cache of its
 |---|---|---|---|
 | **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` reads 14/14, three of them over a *booted* `arm64-v8a` emulator. ⚠️ **Its own first spelling was misleading green** — see the log |
 | **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, and `5a-iv-c-1` is finished — 14/14 on 2026-09-13 |
-| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ⚠️⚠️ **THE SCHEDULING GATE, AND IT BINDS ONLY THIS ROW.** One evening, unbooked. ⚠️ **It is on no critical path** — nothing else in `5a` waits for it |
+| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅✅ **BOOKED BY THE OWNER 2026-09-13 FOR THE EVENING OF 2026-09-14.** The gate is no longer open-ended, and ⚠️⚠️ **THAT INVERTS THIS ROW'S RELATIONSHIP TO `5a-iv-c-2`** — the rehearsal was ungated and on no critical path, and is now the only thing standing between a booked evening and a wasted one. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. See `docs/checks/5a-iv-c-3-runsheet.md` |
 
 **Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
 whole because its pieces all needed *the phone in your hand at the same moment*. These two
@@ -9570,12 +9647,12 @@ are cheap today and dear once a screen rests on them.
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
 | **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ✅ **The dashboard edit was closed by the owner 2026-09-12**: Redirect URLs carry `mx.bserafin.wera://**`. ⚠️ **Reported, not measurable** — no check here can see it, and `5a-iv-a` is the first thing that can |
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
-| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ✅✅ **DONE 2026-09-13.** Five of six readings taken on the owner's iPhone 15; ⚠️ **C3.18's opinion half is still owed** (see below). ✅✅ **THE PRE-CHECK PASSED — `5a-iv-d` IS FREE, NO $99.** ⚠️⚠️ **It found a CRASH: `formatToParts` is absent on Hermes and took the app down on launch, with 26 green assertions over it.** |
+| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ✅✅ **DONE 2026-09-13, AND FULLY CLOSED — ALL SIX READINGS TAKEN.** ✅ **C3.18's opinion half was answered by the owner later the same day** — *"the letter sizes are big enough"* — so the density scale stands as built. ✅✅ **THE PRE-CHECK PASSED — `5a-iv-d` IS FREE, NO $99.** ⚠️⚠️ **It found a CRASH: `formatToParts` is absent on Hermes and took the app down on launch, with 26 green assertions over it.** |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
 | **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
 | **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated**, and its machine is ready — `5a-iv-c-1` closed 2026-09-13 at 14/14 |
-| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ⚠️⚠️ **The scheduling gate: one evening with a relative's Android** (confirmed by the owner 2026-09-12), unbooked. ⚠️ **On no critical path** — nothing else in `5a` waits for it |
+| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅✅ **BOOKED: the evening of 2026-09-14**, with a relative's Android (owner, 2026-09-13). ⚠️⚠️ **`5a-iv-c-2` IS NOW ON A DEADLINE BECAUSE OF IT** — it was ungated and on no critical path until this was booked. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo

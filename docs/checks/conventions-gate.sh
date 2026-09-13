@@ -166,6 +166,59 @@ else
   fi
 fi
 
+# --- 0c. ⚠️⚠️ AND THE ADR IS THE THIRD COPY OF THAT DEFERRAL, AS OF 2026-09-13
+#
+# The amendment that closed the last plan-vs-ADR disagreement put `5b.5` into
+# ADR-035 §3 in its own words. Assertion 0b above watches TWO files; the
+# amendment silently made it three, and **the copy nobody checks is the copy
+# that goes stale** — six times in this repository's history, five of them
+# found by a person reading rather than by a check.
+#
+# ⚠️ IT ASSERTS THE ADR STILL CARRIES THE DEFERRAL, NOT THAT IT AGREES ABOUT
+# OPEN/CLOSED. The ADR records a DECISION — where the obligation lives — and
+# decisions are not status; `5b.5` closing does not make `5b.5` stop being
+# where §3's "arrive to a pattern" requirement is discharged. What would be a
+# defect is the ADR going back to naming `5a`, which is precisely the edit a
+# session obeying "the ADR wins" would make if the amendment were ever lost.
+note
+ADR="$ROOT/docs/adr/ADR-035-target-architecture-postgres-react-native.md"
+if [[ ! -r "$ADR" ]]; then
+  fail "cannot read $ADR — the third copy of the 5b.5 deferral is unchecked"
+else
+  ADR_5B5=no;   grep -qF '5b.5' "$ADR" && ADR_5B5=yes
+  # §3's step `5a` paragraph must no longer claim src/api and src/ui for itself.
+  #
+  # ⚠️⚠️ THE FIRST SPELLING OF THIS FIRED ON THE AMENDMENT NOTE. It grepped the
+  # whole `5a.` block for `src/api`, and the note explaining that src/api MOVED
+  # OUT contains the words `src/api` — so the guard reported the defect by
+  # reading the sentence that records the fix. FOURTH TIME IN THIS REPOSITORY,
+  # after conventions-gate's own comment-stripping trap and the two row-pattern
+  # traps in the plan scripts, all on 2026-09-13. PROSE ABOUT A CHANGE IS INPUT
+  # TO THE CHECK THAT WATCHES IT.
+  #
+  # The real claim is narrower and is the one asserted: step 5a's own
+  # DELIVERABLE LIST — everything before the amendment marker — must not name
+  # them. The note after the marker may say whatever it needs to.
+  ADR_5A_CLAIMS=no
+  BLOCK="$(awk '/^5a\. \*\*Foundation\*\*/,/^5b\./' "$ADR")"
+  HEAD="$(awk '/Amended 2026-09-13/{exit} {print}' <<< "$BLOCK")"
+  if grep -qE 'src/(api|ui)' <<< "$HEAD"; then ADR_5A_CLAIMS=yes; fi
+  # And the marker must be there at all, or HEAD is the whole block and the
+  # assertion above would pass only because the amendment was deleted wholesale.
+  if ! grep -qF 'Amended 2026-09-13' <<< "$BLOCK"; then ADR_5A_CLAIMS=yes; fi
+  if [[ "$ADR_5B5" == no ]]; then
+    fail "ADR-035 does not mention 5b.5. The 2026-09-13 amendment moved §3's"
+    echo "      src/api and src/ui obligation there; without it the ADR reads as"
+    echo "      though step 5a still owes them, and CLAUDE.md says the ADR wins."
+  elif [[ "$ADR_5A_CLAIMS" == yes ]]; then
+    fail "ADR-035 §3's step 5a claims src/api or src/ui again, outside the"
+    echo "      amendment note. That is the exact reversion the amendment exists to"
+    echo "      prevent — re-opening a question the owner closed on 2026-09-13."
+  else
+    ok "ADR-035 carries the 5b.5 deferral and step 5a no longer claims src/api or src/ui"
+  fi
+fi
+
 # --- R1. imports are written `@/…`, never a climb out of the directory -----
 # The alias is declared TWICE — `app/tsconfig.json` for Metro and the
 # typecheck, `app/vitest.config.ts` for the suite — and a relative path that

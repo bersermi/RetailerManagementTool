@@ -63,6 +63,15 @@ on:
       # defects survived — every one of them was found by a person reading.
       - "docs/checks/plan-handover.sh"
       - "docs/checks/5a-split-coverage.sh"
+      # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
+      # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
+      # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
+      # `5a` — which is exactly the edit a session obeying "the ADR wins" would
+      # make if the amendment were lost — would otherwise never re-run the check
+      # that watches for it. Same argument as `docs/CONVENTIONS.md` above: the
+      # one file whose job is to stop a stale claim must not be the one edit CI
+      # never looks at.
+      - "docs/adr/ADR-035-target-architecture-postgres-react-native.md"
 
 concurrency:
   group: app-${{ github.ref }}
