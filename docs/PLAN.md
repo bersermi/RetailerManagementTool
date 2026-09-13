@@ -80,6 +80,61 @@ different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS TH
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
 
+✅✅ **`5a-iv-c-2` IS DONE AS OF 2026-09-13 — THE APP RUNS ON ANDROID, AND `5a-iv-c-3` IS THE NEXT TASK.**
+A `Release` APK from `expo prebuild -p android` + `./gradlew assembleRelease` (cold build,
+**10m51s**, 107 MB universal, four ABIs), installed on the API-36 emulator, launched, and
+**the sign-in screen read back out of the running app's view hierarchy.**
+`docs/checks/5a-iv-c-2-rehearsal.sh` reads **15/15**, six falsifications.
+✅ **Decision register #13's emulator smoke test is discharged, literally**, and the APK is
+copied to `~/wera-release-2026-09-13.apk` so the borrowed evening does not begin with an
+eleven-minute rebuild.
+
+⚠️⚠️ **THE FINDING INVERTS WHAT THIS FILE PREDICTED, AND IT IS THE MORE USEFUL ANSWER:
+`Intl.NumberFormat.prototype.formatToParts` IS A FUNCTION ON ANDROID HERMES.** The name
+that terminated the app on the owner's iPhone hours earlier is simply *there* on the other
+platform. This row expected Android to be the stricter runtime; it is the looser one.
+✅ **Hermes takes ECMA-402 from the HOST — Foundation on iOS, ICU on Android — so the
+surface is a property of the PLATFORM, not of the engine, and two devices both running
+"Hermes" do not agree about what exists.**
+⚠️⚠️ **SO `R10` IS NOW WRITTEN AS AN INTERSECTION OF THE PLATFORMS THE PILOT SHIPS TO, AND
+THAT IS THE DURABLE CHANGE THIS TASK BOUGHT.** ⚠️⚠️ **Had Android been measured FIRST,
+`formatToParts` would have read as present and correct and the crash would have shipped to
+the iPhone half of the pilot** — C1.1 puts an iPhone 11 and an iPhone 15 among the four
+devices. *One green device is one of two, not a measurement.* Recorded in
+`docs/CONVENTIONS.md` R10 with the code points and in `conventions-gate.sh`'s own prose,
+which said *"`formatToParts` is simply not there"* and was true of one platform.
+✅ **`format` and `resolvedOptions` now have evidence on BOTH runtimes**, and **C12.2 holds
+byte-for-byte on each**: `$1.00`, `-$1.00`, `$1,234.50`, `formatMXN(0)` → `$0`,
+`formatMXN(-99)` → `-$0.99`. No `MX$`, no `U+00A0`, no comma decimal — read as code points
+off the device, because a non-breaking space and a space are the same pixel.
+⚠️ **`Intl.PluralRules` IS `undefined` on Android** (`new Intl.PluralRules(…)` → *"undefined
+cannot be used as a constructor"*), which is what falsification `C1` below is built from —
+**the check was falsified with the defect the runtime under test actually has**, not with
+the iOS one.
+
+⚠️⚠️ **AND HOW THAT READING WAS TAKEN IS ITSELF A LIMIT WORTH WRITING DOWN: THE ONLY SCREEN
+THAT RENDERS MONEY IS INICIO, AND IT IS BEHIND THE AUTH GUARD.** `readShape()` no longer
+throws on a thin ICU — it falls back — so a wrong es-MX shape on Android would have been
+**silent**: app launches, sign-in screen draws, 15/15 green. The figures above came from a
+**throwaway probe build** that put the code points on the sign-in screen, read with
+`uiautomator dump`, then reverted; **nothing of it is committed.** ⚠️ **The check says so in
+its own header rather than leaving it to be discovered**, and the repeatable version of this
+assertion arrives the moment `5b` puts a peso amount on a screen a signed-out device
+reaches. **Until then it is a dated measurement, not a guard.**
+
+⚠️ **A second, smaller finding, and it is about the check rather than the app.** Its Hermes
+assertion first expected the magic bytes `c6 1f bc 03 c1 03 bc 1f`, transcribed from
+memory. **The real header is `c6 1f bc 03 c1 03 19 1f`**, and the first spelling was
+therefore **red against a perfectly good bytecode bundle** — the one kind of red that gets
+"fixed" by deleting the assertion. Read off the artefact instead, and the constant carries
+the note.
+
+⚠️ **Nothing in `app/` changed, and `android/` is generated and untracked** (asserted, not
+assumed: `git ls-files app/android` is empty). ⚠️ **The Release build signs with the DEBUG
+KEYSTORE** — Expo's template default, fine for a rehearsal and for a sideloaded evening, and
+**not** what a Play listing takes; that belongs with `5i`'s pilot-day work and is written
+down here because nothing else in this repository says it yet.
+
 ✅✅ **`5a-iv-a` IS DONE AS OF 2026-09-13 — THE APP RAN ON A PHONE FOR THE FIRST TIME, AND IT CRASHED.**
 ⚠️⚠️ **THE FINDING IS THE BIGGEST ONE THIS PROJECT HAS HAD: `Intl.NumberFormat.prototype.formatToParts`
 DOES NOT EXIST ON HERMES, AND `formatMXN` USED IT.** `TypeError: undefined is not a function`,
@@ -153,11 +208,13 @@ section below — written so the owner rules rather than designs. **All of it fr
 it is now the **single open decision in this file**. One sentence: *the ADR says the owner
 pushes an invite; the owner said the joiner pulls with a code; he wants both.* It still
 blocks `4.6a`, and the write-up is in the READ FIRST section.
-⚠️⚠️ **4. `5a-iv-c-3` IS ARRANGED, AND THAT PUTS `5a-iv-c-2` ON A DEADLINE IT DID NOT HAVE
-THIS MORNING.** ⚠️⚠️ **The date is a REFERENCE, NOT A GATE — the evening may happen TODAY**,
-and 2026-09-14 is only the expectation; **treat `5a-iv-c-2` as due now rather than due
-tomorrow.** The rehearsal was sized as ungated and *"on no critical path"* — true when the
-evening was unbooked, **false now.** ⚠️ **If the evening arrives first, defer it**: an
+⚠️⚠️ **4. `5a-iv-c-3` IS ARRANGED, AND THAT PUT `5a-iv-c-2` ON A DEADLINE IT DID NOT HAVE
+THIS MORNING.** ✅✅ **MET THE SAME DAY — `5a-iv-c-2` CLOSED 2026-09-13, so the deadline
+below is DISCHARGED and is kept only as the argument that made it urgent.** ⚠️⚠️ **The date
+is a REFERENCE, NOT A GATE — the evening may happen TODAY**, and 2026-09-14 is only the
+expectation; it was therefore right to ~~treat `5a-iv-c-2` as due now rather than due
+tomorrow~~ and it is now built. The rehearsal was sized as ungated and *"on no critical
+path"* — true when the evening was unbooked, **false once it was booked.** ⚠️ **If the evening arrives first, defer it**: an
 evening spent on setup is the one resource this task cannot re-book. ⚠️ **The split's whole
 argument was that a borrowed evening is a sitting and not a setup**, and the rehearsal is
 the only thing standing between the two. ⚠️ **A human step is owed on hardware that is not
@@ -8664,7 +8721,7 @@ a **cold Gradle build**, which on a first run resolves a dependency cache of its
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` reads 14/14, three of them over a *booted* `arm64-v8a` emulator. ⚠️ **Its own first spelling was misleading green** — see the log |
-| **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, and `5a-iv-c-1` is finished — 14/14 on 2026-09-13 |
+| **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-2-rehearsal.sh` reads 15/15, six falsifications, and the app rendered. ⚠️⚠️ **Its finding inverts the prediction in this row: `formatToParts` EXISTS on Android** — see the log |
 | **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅ **Arranged with a relative (owner, 2026-09-13).** ⚠️⚠️ **THE DATE IS A REFERENCE, NOT A GATE — it may happen TODAY, and 2026-09-14 is only the expectation.** ⚠️⚠️ **THE REAL GATE IS `5a-iv-c-2`, AND IT IS A HARD ONE: if the evening arrives before the Release APK exists, the evening is a setup and should be SPENT LATER RATHER THAN SPENT BADLY.** That is the whole argument the three-way split was built on. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. ✅ **Run sheet: `docs/checks/5a-iv-c-3-runsheet.md`** |
 
 **Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
@@ -8699,6 +8756,56 @@ check that asserts nothing, which is this repository's rule 4.
 caught by the check's first run.** `register #13`'s smoke test was claimed by both the
 rehearsal and the borrowed evening, which is the *"owned by neither"* shape three levels
 of this split have now produced. **The row was corrected, not the check.**
+
+##### ✅✅ `5a-iv-c-2` closed 2026-09-13 — the APK, the check, and the finding that went the other way
+
+| | |
+|---|---|
+| Native project | `expo prebuild -p android`, Expo SDK 57 / RN 0.86.3, `newArchEnabled=true`, `hermesEnabled=true`. ⚠️ **Generated and untracked** — `git ls-files app/android` is empty, asserted |
+| Build | `./gradlew assembleRelease`, **cold: 10m51s**, 571 tasks. 107 MB universal APK, four ABIs |
+| Bundle | `assets/index.android.bundle`, **Hermes bytecode**, HBC version 98, 3.0 MB |
+| Signing | ⚠️ **the DEBUG keystore** — Expo's template default for `release`. Fine sideloaded; not what a Play listing takes. Belongs with `5i` |
+| Installed | API-36 emulator, `pm path` resolved on the device rather than trusting `adb install`'s *Success* |
+| Copy for the evening | `~/wera-release-2026-09-13.apk` — outside the build tree, so regenerating `android/` cannot eat it |
+
+**What the check asserts, and why those two lines are the load-bearing ones.**
+`docs/checks/5a-iv-c-2-rehearsal.sh`, 15 assertions. ⚠️⚠️ **`am start` PRINTS
+`Status: ok` FOR AN APP THAT DIES ON ITS FIRST FRAME** — it reports that
+ActivityManager started an activity, which is a claim about Android and not about
+the app, and `5a-iv-a`'s crash happened *after* a successful start. So the two
+that carry the weight are **the process still being alive eight seconds later**
+and **a string `src/strings.ts` owns coming back out of `uiautomator dump`**.
+⚠️ The expected string is `ES.auth.google` — *"Entrar con Google"* — and **not**
+`ES.auth.title`, which is `Wera`: the title is also the application label, so a
+node the SYSTEM drew could satisfy it and the assertion would pass on an app that
+rendered nothing. ⚠️ It is **read out of `src/strings.ts`** rather than typed into
+the script, so a reworded screen cannot leave the check measuring its own memory.
+✅ **`R10`'s premise is measured too**: the eight magic bytes of Hermes bytecode
+are read off the bundle inside the APK, because `hermesEnabled=true` is a file and
+a bytecode header is an engine.
+
+**Six falsifications.**
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **C1** | ⚠️⚠️ **A module-load use of a name that is ABSENT ON ANDROID** — `new Intl.PluralRules('es-MX')` in `mxn.ts`, the Android twin of what `formatToParts` was on iOS | 🔴 three red at once: *still running*, *no JS exception* (`JavascriptException: TypeError: undefined cannot be used as a constructor`), *React rendered*. ⚠️ **`am start` still said `Status: ok`** |
+| **C2** | A source file touched after the build | 🔴 *"no app source is newer than the APK"* — every other assertion describes a binary nobody has |
+| **C3** | An APK with `assets/index.android.bundle` removed — **what a Debug APK is** in the one respect that matters | 🔴 *"a Debug APK has none, it asks Metro"* |
+| **C4** | The bundle replaced with plain JavaScript — `hermesEnabled=false`'s shape | 🔴 magic reads `76 61 72 20…` (`var __r=`) |
+| **C5** | ⚠️ **HOME pressed five seconds after launch** — a live pid with nothing on screen | 🔴 *React rendered* alone, while *still running* stayed 🟢. **Proof the two are independent**, which is the whole reason the second one exists |
+| **C6** | ✅ Nothing edited | 🟢 15/15 |
+
+⚠️ **C7 was run and is not in the table as a fixture, because it needed a real
+build**: `debuggable true` in the `release` block → 🔴 *"the APK is NOT
+debuggable"*. Worth naming — a debuggable Release APK is the shape that still
+needs a Mac in the room, which is `#75`'s defect wearing Android clothes.
+
+⚠️⚠️ **AND ONE DEFECT IN THE CHECK ITSELF, FOUND BY RUNNING IT.** The Hermes
+assertion first expected `c6 1f bc 03 c1 03 bc 1f`, written from memory; the real
+header is **`c6 1f bc 03 c1 03 19 1f`**. It was **red against a correct bundle** —
+an assertion wrong about its own expected value, which is the kind of red that
+gets resolved by deleting the check. The constant is now read off the artefact and
+carries a note saying so.
 
 ##### ✅✅ `5a-iv-c-1` closed 2026-09-13 — what was installed, and the check that looked at it
 
@@ -9726,8 +9833,8 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
 | **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
-| **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated**, and its machine is ready — `5a-iv-c-1` closed 2026-09-13 at 14/14 |
-| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅ **An evening with a relative's Android, arranged (owner, 2026-09-13).** ⚠️⚠️ **The date is a REFERENCE — it may be today; 2026-09-14 is only the expectation.** ⚠️⚠️ **`5a-iv-c-2` IS THE HARD PREREQUISITE**: no Release APK, no sitting — defer the evening rather than spend it on setup. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
+| **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13** — `docs/checks/5a-iv-c-2-rehearsal.sh` 15/15, six falsifications. ⚠️⚠️ **`formatToParts` IS PRESENT on Android Hermes**, so `R10` is now an INTERSECTION of platforms |
+| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS THE ONE PIECE OF `5a` A SESSION CANNOT START ALONE.** ✅ **An evening with a relative's Android, arranged (owner, 2026-09-13).** ⚠️⚠️ **The date is a REFERENCE — it may be today; 2026-09-14 is only the expectation.** ✅ **`5a-iv-c-2`'s HARD PREREQUISITE IS DISCHARGED: a Release APK exists, launches and renders**, and it is copied to `~/wera-release-2026-09-13.apk` so the sitting does not depend on an eleven-minute rebuild. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
