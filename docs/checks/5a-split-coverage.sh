@@ -399,6 +399,114 @@ if (( iv_fails > 0 )); then
   exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# THE `5a-iv-c` SUB-SPLIT — added 2026-09-13, when `5a-iv-c` was re-sized from
+# `S/M` to `L` and split three ways BEFORE it was taken.
+#
+# ⚠️ THE `S/M` WAS WRITTEN WITHOUT LOOKING AT THE MACHINE. Measured on the day
+# it came up: no Android Studio, no SDK, no `adb`, and — the one nobody had
+# counted — NO JDK AT ALL, against a gradle plugin pinning AGP 8.12 / Kotlin
+# 2.1.20, whose floor is JDK 17. Four installers and a system image is not an
+# `S/M`. Same shape as `5a-iv-a`'s gate cell, which claimed "nothing else
+# blocks it" about a Mac holding zero code-signing identities.
+#
+# ⚠️⚠️ THE LOAD-BEARING ASSERTION IS THE GATE, AND IT IS ASSERTION 3 BELOW.
+# The ENTIRE reason this row was split is that its scheduling gate — one
+# borrowed evening — binds ONE of the three pieces and the plan was letting it
+# block all three. Re-attach that evening to `5a-iv-c-1` and the toolchain work
+# is blocked on a resource it does not need; the row would still read as a
+# considered plan, exactly as the withdrawn Android routing for `5a-iv-d` did.
+# A CHECK DOES NOT MAKE A DECISION RIGHT, IT MAKES IT STICKY.
+
+c_fails=0
+
+for t in 5a-iv-c-1 5a-iv-c-2 5a-iv-c-3; do
+  if [[ -z "$(row "$t")" ]]; then
+    echo "FAIL: no table row for $t — 5a-iv-c was split three ways on 2026-09-13"
+    c_fails=$((c_fails+1))
+  fi
+done
+
+if (( c_fails == 0 )); then
+  # (1) Both tables state this split, and the count is asserted — the same
+  # invariant the 5a-iv block enforces, and for the same reason: the stale
+  # duplicate of 2026-09-12 was only possible because one copy was never read.
+  for t in 5a-iv-c-1 5a-iv-c-2 5a-iv-c-3; do
+    n="$(rows_all "$t" | grep -c .)"
+    if (( n < 2 )); then
+      echo "FAIL: $t has $n row(s). This split is stated in BOTH the sizing section"
+      echo "      and the build-order table, and both are read."
+      c_fails=$((c_fails+1))
+    fi
+  done
+
+  # (2) The three pieces are distinguishable by what each can be WRONG about.
+  #     Register #13's emulator smoke test is the deliverable that moved; it
+  #     belongs to the rehearsal, not the toolchain and not the evening.
+  for pair in "register #13:5a-iv-c-2" "arm64-v8a:5a-iv-c-1" "Oppo:5a-iv-c-3"; do
+    rx="${pair%%:*}"; owner="${pair##*:}"
+    hits=()
+    for t in 5a-iv-c-1 5a-iv-c-2 5a-iv-c-3; do
+      names "$t" "$rx" && hits+=("$t")
+    done
+    case "${#hits[@]}" in
+      0) echo "FAIL: '$rx' is owned by no piece of 5a-iv-c"
+         c_fails=$((c_fails+1)) ;;
+      1) [[ "${hits[0]}" == "$owner" ]] || {
+           echo "FAIL: '$rx' landed in ${hits[0]}, this split assigned it to $owner"
+           c_fails=$((c_fails+1)); } ;;
+      *) echo "FAIL: '$rx' appears in ${hits[*]} — owned by neither"
+         c_fails=$((c_fails+1)) ;;
+    esac
+  done
+
+  # (3) ⚠️⚠️ THE SCHEDULING GATE BINDS `5a-iv-c-3` ALONE. Every copy checked.
+  #     `5a-iv-c-3`'s gate must name the evening; `5a-iv-c-1`'s must NOT — a
+  #     piece that needs no hardware must not inherit a hardware booking.
+  while IFS= read -r c3; do
+    [[ -n "$c3" ]] || continue
+    g="$(awk -F'|' '{print $(NF-1)}' <<< "$c3")"
+    if ! grep -Eqi "evening" <<< "$g"; then
+      echo "FAIL: a 5a-iv-c-3 gate does not name the borrowed evening. It is the only"
+      echo "      piece the scheduling dependency binds — unnamed, nothing is waiting"
+      echo "      on it and 'later' becomes 'never'."
+      c_fails=$((c_fails+1))
+    fi
+  done < <(rows_all 5a-iv-c-3)
+
+  while IFS= read -r c1; do
+    [[ -n "$c1" ]] || continue
+    g="$(awk -F'|' '{print $(NF-1)}' <<< "$c1")"
+    if grep -Eqi "evening|borrowed" <<< "$g"; then
+      echo "FAIL: a 5a-iv-c-1 gate names the borrowed evening. That re-attaches a"
+      echo "      scheduling dependency to the piece that needs NO hardware, which is"
+      echo "      the whole defect the three-way split exists to fix. Do not restore"
+      echo "      it without re-measuring what the toolchain actually needs."
+      c_fails=$((c_fails+1))
+    elif ! grep -Eqi "ungated" <<< "$g"; then
+      echo "FAIL: a 5a-iv-c-1 gate does not say it is ungated. The sizing turned on"
+      echo "      that claim; state it where a cleared session reads it."
+      c_fails=$((c_fails+1))
+    fi
+  done < <(rows_all 5a-iv-c-1)
+
+  # (4) ⚠️ THE JDK, BY NAME. It is the item the `S/M` missed entirely, and it is
+  #     invisible in a way the other four are not: a developer who has ever
+  #     opened Android Studio has a JDK and would never think to list it. If an
+  #     edit drops it from `5a-iv-c-1`, the sizing silently reverts to the guess.
+  if ! names 5a-iv-c-1 "JDK"; then
+    echo "FAIL: 5a-iv-c-1 no longer names the JDK. It is the install the original"
+    echo "      S/M sizing missed, and the reason this row is an L."
+    c_fails=$((c_fails+1))
+  fi
+fi
+
+if (( c_fails > 0 )); then
+  echo
+  echo "The 5a-iv-c sub-split does not hold. Re-size deliberately rather than editing a row."
+  exit 1
+fi
+
 if (( fb_fails > 0 )); then
   echo
   echo "$covered/$total deliverables covered, but the Facebook deferral is not recorded correctly."
@@ -410,3 +518,5 @@ echo "Facebook's deferral to 5i is recorded, gated, and claimed by no 5a sub-tas
 echo "5a-iii's two halves exist, and C1.4 and C1.3 each sit in exactly one of them."
 echo "5a-iv's four parts exist in both tables; six readings each have one owner, and"
 echo "  every copy of the eight-day reading is gated on 5a-iv-a behind the pre-check."
+echo "5a-iv-c's three pieces exist in both tables, and every copy of the scheduling"
+echo "  gate binds 5a-iv-c-3 alone — 5a-iv-c-1 is ungated and still names the JDK."
