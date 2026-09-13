@@ -10,7 +10,7 @@
 # ever been generated, and — the one that cannot be automated — the machine held
 # ZERO code-signing identities and no Apple ID. Three were fixed in the session
 # that found them. The fourth is the owner's to do, and it is the moment the
-# seven-day free-provisioning clock starts.
+# seven-day free-provisioning story begins.
 #
 # ⚠️ THE POINT IS *WHEN* IT FAILS, NOT THAT IT FAILS. Every assertion here is
 # something that would otherwise be discovered with the phone already in hand,
@@ -158,8 +158,11 @@ fi
 # This is the assertion no session can satisfy on the owner's behalf: signing
 # needs an Apple ID typed into Xcode, with 2FA. It is also the moment a free
 # Apple ID's 7-day provisioning profile begins, which is the clock the whole of
-# `5a-iv-d`'s design is arranged around — so the day-0 pre-check should follow
-# it closely rather than a week later.
+# `5a-iv-d`'s design is arranged around. ⚠️ WHETHER THE SEVEN DAYS RUN FROM THE
+# CERTIFICATE (added with the Apple ID) OR FROM THE PROFILE (created when Xcode
+# signs a build) IS NOT MEASURED HERE — this machine holds neither. It does not
+# change the advice: both happen minutes apart, so the day-0 pre-check belongs in
+# the same sitting as the sign-in rather than a week later.
 identities="$(security find-identity -v -p codesigning 2>/dev/null | grep -c 'valid identities found' || true)"
 count="$(security find-identity -v -p codesigning 2>/dev/null | sed -n 's/^ *\([0-9][0-9]*\) valid identities found.*/\1/p' | head -1)"
 count="${count:-0}"
@@ -171,7 +174,8 @@ if [[ "$count" -eq 0 ]]; then
   note "    Xcode → Settings → Accounts → + → Apple ID → sign in"
   note "    target Wera → Signing & Capabilities → Automatically manage signing"
   note "    Team → the Personal Team that appears after signing in"
-  note "A free Apple ID signs for SEVEN DAYS. Day 0 of 5a-iv-d starts here."
+  note "A free Apple ID signs for SEVEN DAYS, and the sitting that follows this" 
+  note "is where 5a-iv-d's day 0 is set. Do the pre-check in the SAME sitting."
 fi
 
 # --- the phone ------------------------------------------------------------

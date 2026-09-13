@@ -62,8 +62,11 @@ sat unused in `/Applications`, CocoaPods was absent, no native project had ever 
 generated, and the keychain held **zero code-signing identities**. Three were cleared the
 same day, and the app's native side compiled for the first time — `** BUILD SUCCEEDED **`,
 with a 3.4 MB embedded bundle. ⚠️ **The fourth is the owner's and cannot be delegated: an
-Apple ID typed into Xcode** — which is also where the seven-day profile clock really
-starts, earlier than the sizing implied.
+Apple ID typed into Xcode.** ⚠️ **Where exactly the seven-day clock starts was NOT
+measured** — a free personal team's provisioning profile is created when Xcode signs a
+build, and its certificate when the Apple ID is added, and this session held neither. It
+does not change the instruction, because both happen minutes apart in one sitting, which
+is where the run sheet puts the pre-check.
 ⚠️⚠️ **AND THE PREPARATION FOUND THE ONE THAT WOULD HAVE VOIDED THE EIGHT-DAY READING
 WITHOUT SAYING SO: `npx expo run:ios` DEFAULTS TO `Debug`, AND A DEBUG BUILD CONTAINS NO
 JAVASCRIPT** — `AppDelegate.swift` asks Metro for it, so the app **cannot launch with the
@@ -8372,11 +8375,17 @@ commands that settle it.
 `iPhone de Bernie`, model `iPhone15,4` — it reports `unavailable`, which means *not
 plugged in right now* and not *unknown*. **C1.6's hardware is real and paired.**
 
-⚠️⚠️ **AND ROW 4 MOVES A DATE THIS SIZING GOT SLIGHTLY WRONG.** The seven-day free
-profile does not start at the build — it starts **when the Apple ID is added and the
-Personal Team signs**. Everything after that is inside the clock. So the day-0 pre-check
-belongs in the *same sitting* as the sign-in, not the following evening, and the run
-sheet puts it there.
+⚠️ **ROW 4 RAISES A DATE QUESTION AND DOES NOT ANSWER IT.** A free personal team's
+**provisioning profile** expires seven days after it is created, and it is created when
+Xcode signs a build — while the **certificate** is created earlier, when the Apple ID is
+added. ⚠️⚠️ **WHICH OF THE TWO IS THE SEVEN-DAY CLOCK WAS NOT MEASURED HERE**, because
+this machine held neither, and this file does not assume claims about Apple's system —
+see `credentials.ts` on email normalisation for the same refusal. ✅ **It does not change
+the instruction either way**: sign-in and first build are minutes apart in one sitting, so
+the day-0 pre-check belongs in that same sitting rather than the following evening, and
+the run sheet puts it there. ⚠️ **An earlier draft of this section asserted the Apple ID
+was the start. That was reasoning, not measurement, and it is the error this plan spends
+most of its pages on** — it is corrected here rather than deleted.
 
 ##### ⚠️⚠️ AND THE PREPARATION FOUND THE ONE THAT WOULD HAVE VOIDED `5a-iv-d` WITHOUT SAYING SO
 

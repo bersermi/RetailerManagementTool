@@ -29,9 +29,12 @@ target Wera → Signing & Capabilities → ✓ Automatically manage signing
 Team → the Personal Team that appears once you are signed in
 ```
 
-⚠️⚠️ **THE SEVEN-DAY CLOCK STARTS HERE, NOT AT THE BUILD.** A free Apple ID signs
-for seven days. `5a-iv-d`'s reading is at day **eight**, and the plan's answer to
-that is the pre-check in §5 below — not a shorter wait.
+⚠️⚠️ **EVERYTHING FROM HERE IS INSIDE THE SEVEN DAYS.** A free personal team signs
+for seven days; `5a-iv-d`'s reading is at day **eight**, and the plan's answer to
+that is the pre-check in §5 below, not a shorter wait. ⚠️ **Whether the seven run
+from this sign-in (the certificate) or from the first device build (the profile)
+is not measured** — they are minutes apart, which is why §5 is in this sitting and
+not the next one.
 
 ---
 
