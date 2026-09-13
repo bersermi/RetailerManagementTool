@@ -21,14 +21,24 @@ you add a correcting entry, the way a bank posts a refund rather than pretending
 the charge never happened. That is why the database is built the way it is, and it
 is the single idea worth carrying in your head.
 
-Right now the project is **all database, no app**. There is no screen to look at
-yet. That is deliberate and it is the plan working, not the plan stalling —
-ADR-035 is emphatic that screens built on an unproven schema is exactly how the
-previous attempt failed.
+For most of this project there was **no app at all** — only a database. That was
+deliberate and it was the plan working, not the plan stalling: ADR-035 is emphatic
+that screens built on an unproven schema is exactly how the previous attempt failed.
 
-**That changes next.** The database build finished on 2026-09-05, a long interview
-about screens ran on 2026-09-07, and the first app code is the very next task. The
-interview is worth knowing about, because it is the reason three more database
+**That changed on 2026-09-07.** The database build finished on 2026-09-05, a long
+interview about screens ran two days later, and the first app code landed the same
+day. There is now an app, and it has a way in: sign-in by email address or with
+Google, a session meant to survive until you log out, and a rule that reopens it on
+the screen you were last on.
+
+⚠️ **"Meant to" is doing real work in that sentence, and it is the honest word.**
+Those parts are written and checked by machine as far as a machine can reach — but
+**nobody has yet watched the app do any of it on a phone.** That is the next task,
+and it is yours rather than Claude's. ⚠️ **Everything behind the door is still a
+placeholder**: the four tabs are real tabs with nothing in them yet, and the screens
+themselves are `5b` onwards.
+
+The interview is worth knowing about, because it is the reason three more database
 changes appeared after the database was declared finished — see *Where we are*.
 
 ---
@@ -302,8 +312,9 @@ to stop and ask rather than pick a side.
 | **4.6** | **Three database changes the interview uncovered** | **Open** — one of them blocks a screen |
 | **5a** | **App foundations** — the first app code in the project | **Split into four on 2026-09-07**, before any of it was written |
 | **5a-i** | The empty app, and the automated check that watches it | **Done 2026-09-07** — and it is the first app code in the project |
-| **5a-ii** | Text size and money formatting | ⬅️ **NEXT** |
-| 5a-iii–iv | Sign-in; running it on your own phone | After 5a-ii |
+| **5a-ii** | Text size and money formatting | **Done 2026-09-07** |
+| **5a-iii** | Sign-in — email, then Google, and reopening on the last screen | **Done 2026-09-11** — split in two on the day it was taken, both halves closed |
+| **5a-iv** | **Running it on your own phone** | **Split into four on 2026-09-11** — ⬅️ **this is where the build is, and the next piece needs YOU rather than Claude.** The Mac was prepared on 2026-09-12, but signing needs your Apple ID, and five of the six readings are things only a person holding the phone can see. ⚠️ **Which piece is next is `docs/PLAN.md`'s to say, not this file's** — it is named there once, and `docs/checks/plan-handover.sh` is what keeps it named once |
 | 5b–5h | The actual screens | After 5a |
 | 6–7 | Beyond the pilot | Later |
 
