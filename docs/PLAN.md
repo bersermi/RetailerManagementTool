@@ -22,6 +22,39 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+### ⛔ DECISIONS OWED BY THE OWNER
+
+⚠️ **THIS BLOCK EXISTS SO NOBODY HAS TO REMEMBER ANYTHING.** Every session reads
+`## Position` first, and the working prompt ends by asking what decision is needed — so a
+decision parked here is re-offered **every session, automatically**, until it is ruled on.
+⚠️ **It is the ONE home for open owner decisions**, and `docs/checks/plan-handover.sh`
+refuses a second one, refuses a row that does not say what it blocks, and ⚠️⚠️ **refuses to
+let a blocked task be marked as the next task.**
+
+| Decision | Blocks | The brief, already written |
+|---|---|---|
+| **Register #9 — the membership flow.** *The ADR says the owner pushes an invite; the owner said the joiner pulls with a code; he wants both.* ⚠️ **Six sub-decisions, `D1`–`D6`, each with a recommendation and its reasoning — the intended answer is yes or no, not a design.** ⚠️ `D4` is the only genuinely arguable one: `accepted_by` means the **invitee** on one path and the **owner** on the other | `4.6a`, and `5b` behind it | `4.6a`'s section below — *"Decision register #9 — THE BRIEF"* |
+| **Area 9 — Números.** *"Three numbers, not thirty."* ⚠️ **No brief written yet**; the answer decides a migration's shape | `4.6c` | Not yet written — ask for it and it will be prepared the same way |
+
+**Four falsifications over the block itself** (`plan-handover.sh`, assertions 7a–7c):
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **V1** | The block deleted | 🔴 *"it is the one place an open owner decision is guaranteed to be re-offered"* |
+| **V2** | A second block added elsewhere | 🔴 *"a second home is how one of them goes stale"* |
+| **V3** | A row stops naming what it blocks | 🔴 — a decision nobody is waiting on is how *"later"* becomes *"never"* |
+| **V4** | ⚠️⚠️ **`4.6a` marked as the next task while register #9 is open** | 🔴 *"taking it writes code against a guess — and if it is a migration, an automated merge deploys that guess"* |
+
+⚠️⚠️ **V4 IS THE ONE THAT CAN STOP WORK RATHER THAN DESCRIBE IT.** This file has said
+*"do not start `4.6a`"* in prose since 2026-09-07. **Prose is not a gate**, and `4.6a` is
+a migration: append-only, merged automatically, so a session that starts it early does
+not produce a reviewable mistake — it produces a deployed one.
+
+⚠️ **A decision here is not a task and is not sized.** It costs the owner minutes and it
+freezes when the migration behind it merges — which is the whole reason it is parked in
+front of the work instead of inside it.
+
+
 ⚠️⚠️ **A SIXTH STALE COPY, FOUND BY THE OWNER ON 2026-09-13 BY READING — AND FIXING IT
 PRODUCED A SEVENTH, INSIDE THE FIX.** `## Position` carried a second status table 960
 lines below its own header: `5a … Not started` with **six of eight sub-tasks done**,
@@ -120,9 +153,12 @@ section below — written so the owner rules rather than designs. **All of it fr
 it is now the **single open decision in this file**. One sentence: *the ADR says the owner
 pushes an invite; the owner said the joiner pulls with a code; he wants both.* It still
 blocks `4.6a`, and the write-up is in the READ FIRST section.
-⚠️⚠️ **4. `5a-iv-c-3` IS BOOKED FOR THE EVENING OF 2026-09-14, AND THAT PUTS `5a-iv-c-2` ON
-A DEADLINE IT DID NOT HAVE THIS MORNING.** The rehearsal was sized as ungated and *"on no
-critical path"* — true when the evening was unbooked, **false now.** ⚠️ **The split's whole
+⚠️⚠️ **4. `5a-iv-c-3` IS ARRANGED, AND THAT PUTS `5a-iv-c-2` ON A DEADLINE IT DID NOT HAVE
+THIS MORNING.** ⚠️⚠️ **The date is a REFERENCE, NOT A GATE — the evening may happen TODAY**,
+and 2026-09-14 is only the expectation; **treat `5a-iv-c-2` as due now rather than due
+tomorrow.** The rehearsal was sized as ungated and *"on no critical path"* — true when the
+evening was unbooked, **false now.** ⚠️ **If the evening arrives first, defer it**: an
+evening spent on setup is the one resource this task cannot re-book. ⚠️ **The split's whole
 argument was that a borrowed evening is a sitting and not a setup**, and the rehearsal is
 the only thing standing between the two. ⚠️ **A human step is owed on hardware that is not
 the owner's**: USB debugging via Developer Options, arranged **before** the evening rather
@@ -8629,7 +8665,7 @@ a **cold Gradle build**, which on a first run resolves a dependency cache of its
 |---|---|---|---|
 | **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` reads 14/14, three of them over a *booted* `arm64-v8a` emulator. ⚠️ **Its own first spelling was misleading green** — see the log |
 | **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, and `5a-iv-c-1` is finished — 14/14 on 2026-09-13 |
-| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅✅ **BOOKED BY THE OWNER 2026-09-13 FOR THE EVENING OF 2026-09-14.** The gate is no longer open-ended, and ⚠️⚠️ **THAT INVERTS THIS ROW'S RELATIONSHIP TO `5a-iv-c-2`** — the rehearsal was ungated and on no critical path, and is now the only thing standing between a booked evening and a wasted one. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. See `docs/checks/5a-iv-c-3-runsheet.md` |
+| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅ **Arranged with a relative (owner, 2026-09-13).** ⚠️⚠️ **THE DATE IS A REFERENCE, NOT A GATE — it may happen TODAY, and 2026-09-14 is only the expectation.** ⚠️⚠️ **THE REAL GATE IS `5a-iv-c-2`, AND IT IS A HARD ONE: if the evening arrives before the Release APK exists, the evening is a setup and should be SPENT LATER RATHER THAN SPENT BADLY.** That is the whole argument the three-way split was built on. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. ✅ **Run sheet: `docs/checks/5a-iv-c-3-runsheet.md`** |
 
 **Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
 whole because its pieces all needed *the phone in your hand at the same moment*. These two
@@ -9691,7 +9727,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
 | **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated**, and its machine is ready — `5a-iv-c-1` closed 2026-09-13 at 14/14 |
-| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅✅ **BOOKED: the evening of 2026-09-14**, with a relative's Android (owner, 2026-09-13). ⚠️⚠️ **`5a-iv-c-2` IS NOW ON A DEADLINE BECAUSE OF IT** — it was ungated and on no critical path until this was booked. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
+| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅ **An evening with a relative's Android, arranged (owner, 2026-09-13).** ⚠️⚠️ **The date is a REFERENCE — it may be today; 2026-09-14 is only the expectation.** ⚠️⚠️ **`5a-iv-c-2` IS THE HARD PREREQUISITE**: no Release APK, no sitting — defer the evening rather than spend it on setup. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo

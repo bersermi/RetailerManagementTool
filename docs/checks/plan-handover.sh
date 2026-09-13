@@ -162,6 +162,91 @@ else
   echo "      Put the status in the status log, not in a second table."
 fi
 
+# --- 7. the decisions the OWNER owes are parked where every session reads --
+# ⚠️⚠️ ADDED 2026-09-13, AND IT EXISTS TO REPLACE A HUMAN MEMORY. Until this
+# block, an open owner decision lived in prose in the middle of an 9,700-line
+# file, and being re-offered depended on whichever session happened to read far
+# enough. The owner's instruction was explicit: he does not want to memorise
+# which questions are outstanding, and he wants to drive the project from the
+# standing prompt alone. A decision parked in the Position section is read by
+# every session before it does anything, and the prompt's closing question
+# surfaces it automatically.
+#
+# ⚠️ THE THIRD ASSERTION IS THE LOAD-BEARING ONE, and it is the only one here
+# that can stop work rather than describe it: A TASK NAMED AS BLOCKED BY AN OPEN
+# DECISION MAY NOT BE THE NEXT TASK. `4.6a` is a migration, migrations are
+# append-only, and merging is automated — so a session that starts it before
+# register #9 is ruled on does not produce a reviewable mistake, it produces a
+# deployed one. The plan has said "do not start 4.6a" in prose since 2026-09-07;
+# prose is not a gate.
+#
+# ⚠️ It is deliberately NOT an assertion that the list is non-empty. Zero open
+# decisions is a legitimate and desirable state; what is illegitimate is a
+# decision that exists and is invisible, or one that exists and is being walked
+# past.
+note
+DEC_HEAD="$(grep -n '^### ⛔ DECISIONS OWED BY THE OWNER' "$PLAN")"
+if [[ -z "$DEC_HEAD" ]]; then DEC_COUNT=0; else DEC_COUNT="$(grep -c . <<< "$DEC_HEAD")"; fi
+
+if (( DEC_COUNT == 0 )); then
+  fail "the decisions-owed block is gone. It is the one place an open owner decision"
+  echo "      is guaranteed to be re-offered, and removing it puts the project back on"
+  echo "      somebody remembering. If every decision is closed, keep the empty block."
+elif (( DEC_COUNT > 1 )); then
+  fail "$DEC_COUNT decisions-owed blocks. A second home is how one of them goes stale —"
+  cut -d: -f1 <<< "$DEC_HEAD" | sed 's/^/        line /'
+else
+  ok "exactly one decisions-owed block, where every session reads it"
+
+  # The block's table runs from its heading to the first blank line after the
+  # rows begin. Rows are read at column 0, the rule three scripts learned the
+  # hard way on 2026-09-13.
+  DEC_START="$(cut -d: -f1 <<< "$DEC_HEAD")"
+  DEC_ROWS="$(awk -v s="$DEC_START" 'NR>s && /^\|/ {print} NR>s && /^## / {exit}' "$PLAN")"
+  DEC_BODY="$(grep -v '^|[-: |]*|$' <<< "$DEC_ROWS" | tail -n +2)"
+
+  # --- 7b. every row says what it blocks ---------------------------------
+  note
+  BAD=0
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    blocks="$(awk -F'|' '{print $3}' <<< "$r" | tr -d '[:space:]')"
+    if [[ -z "$blocks" || "$blocks" == "—" ]]; then
+      echo "FAIL: a decisions-owed row does not say what it blocks:"
+      echo "      ${r:0:100}…"
+      BAD=$((BAD+1))
+    fi
+  done <<< "$DEC_BODY"
+  if (( BAD == 0 )); then
+    ok "every open decision names the task it blocks"
+  else
+    fails=$((fails+1))
+  fi
+
+  # --- 7c. ⚠️⚠️ a blocked task may not be the next task -------------------
+  note
+  if [[ -n "${ROW_TASK:-}" ]]; then
+    CLASH=""
+    while IFS= read -r r; do
+      [[ -n "$r" ]] || continue
+      blocks="$(awk -F'|' '{print $3}' <<< "$r")"
+      for t in $(grep -oE '`[0-9][0-9a-z.-]*`' <<< "$blocks" | tr -d '`'); do
+        [[ "$t" == "$ROW_TASK" ]] && CLASH="$t"
+      done
+    done <<< "$DEC_BODY"
+    if [[ -n "$CLASH" ]]; then
+      fail "$CLASH is marked as the next task, and the decisions-owed block says it is"
+      echo "      BLOCKED on a decision the owner has not made. Taking it writes code"
+      echo "      against a guess — and if it is a migration, an automated merge deploys"
+      echo "      that guess. Rule the decision first, or move the next-task marker."
+    else
+      ok "the next task ($ROW_TASK) is not blocked by any open decision"
+    fi
+  else
+    ok "no next task to cross-check against the decisions-owed block"
+  fi
+fi
+
 # --- 6. the working tree is not mid-task ----------------------------------
 # A cleared session inherits the filesystem, not the conversation. Uncommitted
 # edits are work it cannot see the reason for.
@@ -182,8 +267,8 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like. The seventh suite here to carry one.
-if (( ran < 6 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 6 — this check asserted almost"
+if (( ran < 9 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 9 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
