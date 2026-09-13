@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
@@ -54,6 +54,29 @@ describe('the redirect URI is the string the dashboard also holds', () => {
     expect(OAUTH_REDIRECT_URI).not.toMatch(/^exp(o)?(\+|:)/);
     expect(OAUTH_REDIRECT_URI).not.toMatch(/^https?:/);
     expect(OAUTH_REDIRECT_URI).not.toMatch(/localhost|127\.0\.0\.1|\d+\.\d+\.\d+\.\d+/);
+  });
+
+  // ⚠️⚠️ AND THE PATH HAS A ROUTE BEHIND IT, WHICH COST A BORROWED EVENING TO
+  // LEARN. Plan task `5a-iv-c-3`, on a Samsung Galaxy Z Flip 8, 2026-09-13:
+  // Google sign-in SUCCEEDED and the shopkeeper was left looking at Expo
+  // Router's `Unmatched Route — Page could not be found`, in English, quoting
+  // the PKCE code. On Android the redirect is delivered a SECOND time, as an
+  // ordinary VIEW intent, so the router navigates to this path as well as
+  // `openAuthSessionAsync` consuming it. iOS never does — `ASWebAuthentication
+  // Session` eats the redirect — which is why five months of iOS testing could
+  // not have found it.
+  //
+  // ⚠️ THIS PINS THE STRING, NOT THE BEHAVIOUR. §2.10/§2.11 refuse suites over
+  // navigation, and a route that only redirects is nothing but navigation. What
+  // a machine CAN hold is that the constant and the file agree: change
+  // `OAUTH_REDIRECT_URI`'s path without moving the route and the shopkeeper is
+  // back on the not-found page, on Android only, after a sign-in that worked.
+  it('has a route file at the path the callback URL names', () => {
+    const path = OAUTH_REDIRECT_URI.slice(`${DEEP_LINK_SCHEME}://`.length);
+    expect(path).toBe('auth/callback');
+
+    const route = fileURLToPath(new URL(`../src/app/${path}.tsx`, import.meta.url));
+    expect(existsSync(route)).toBe(true);
   });
 });
 

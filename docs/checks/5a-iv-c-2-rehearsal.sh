@@ -47,6 +47,28 @@
 # points — and it becomes assertable here the moment `5b` puts a peso amount
 # on a screen a signed-out device can reach.
 #
+# ⚠️⚠️ AND THE FIRST TIME IT MET REAL HARDWARE IT PRODUCED A MISLEADING RED,
+# WHICH IS WHY THE SCREEN-STATE ASSERTION BELOW EXISTS. Plan task `5a-iv-c-3`,
+# on a borrowed Samsung, 2026-09-13: twice in four minutes this check reported
+# *"the process lives and the sign-in screen is not on it"* — its crash
+# message — when the app was perfectly healthy. Once the phone had gone into
+# its screen saver (`mWakefulness=Dreaming`); once the secure keyguard was up
+# (`mCurrentFocus=Window{Bouncer}`), and `uiautomator dump` returned SystemUI's
+# lock screen instead of the app. AN EMULATOR NEVER DREAMS AND NEVER LOCKS, so
+# neither state existed until the check left the emulator.
+#
+# ⚠️⚠️ THIS REPOSITORY HAS SEVEN RECORDED SHAPES OF MISLEADING GREEN AND THIS
+# IS ITS FIRST MISLEADING RED — and on a borrowed evening a false red is the
+# more expensive of the two: it spends a resource that cannot be re-booked
+# chasing a defect that is not there, and the rational response to it is to
+# stop believing the check. So the rule the fix encodes is:
+# DISTINGUISH "THE INSTRUMENT COULD NOT LOOK" FROM "IT LOOKED, AND IT IS WRONG."
+#
+# ⚠️ Also learned there: on a FOLDABLE, `adb exec-out screencap -p` prepends a
+# multi-line warning about multiple displays to its own stdout, which corrupts
+# the PNG. Strip everything before the `\x89PNG` magic, or pass `-d` the
+# PHYSICAL display id — `-d 0` is rejected as *"not valid"*.
+#
 # ⚠️ THIS CHECK CANNOT RUN IN CI, AND THAT IS NOT A DEFECT. It needs the SDK,
 # an emulator, and virtualisation a runner does not offer. Same standing as
 # `5a-iv-c-toolchain.sh`, `5a-iv-a-preflight.sh` and `5a-iii-gate.sh`: not
@@ -274,13 +296,60 @@ if [[ -n "$pid" ]]; then
   dump="$("$ADB" -s "$serial" shell cat /sdcard/wera-dump.xml 2>/dev/null | tr -d '\r')"
   "$ADB" -s "$serial" shell rm -f /sdcard/wera-dump.xml >/dev/null 2>&1
 fi
+
+# --- 9a. CAN THE INSTRUMENT LOOK AT ALL? Asked BEFORE the verdict -----------
+# ⚠️⚠️ THE ASSERTION THAT STOPS A FALSE RED. `uiautomator dump` returns the
+# FOREGROUND window, which on a real phone is very often not the app: a screen
+# saver, a lock screen, a notification shade, the other half of a foldable.
+# On an emulator it is always the app, which is why the first version of this
+# file had no such line and reported a crash message about a healthy build.
+wake="$("$ADB" -s "$serial" shell dumpsys power 2>/dev/null | grep -m1 'mWakefulness=' | tr -d '\r' | sed 's/.*mWakefulness=//')"
+dumped_pkg="$(printf '%s\n' "$dump" | grep -o 'package="[^"]*"' | sed 's/package="//; s/"//' | sort -u | grep -c -x "$PKG")"
+#
+# ⚠️⚠️ AND A DEAD PROCESS IS NOT AN INSTRUMENT PROBLEM — IT IS THE VERDICT.
+# The first spelling of this guard did not say so, and it SOFTENED A REAL
+# CRASH: when the app dies there is no dump to take, `can_look` went false, and
+# the render line printed "not a verdict" over exactly the defect this file
+# exists to catch. Caught by re-running the crash fixture after writing the
+# fix, which is the only reason it is not in the committed version.
+can_look=false
+if [[ -z "$pid" ]]; then
+  can_look=dead
+elif [[ "$wake" == "Awake" && "$dumped_pkg" -gt 0 ]]; then
+  can_look=true
+fi
+assert "$([[ "$can_look" == "true" || "$can_look" == "dead" ]] && echo true || echo false)" \
+  "THE INSTRUMENT CAN LOOK: device awake ($wake) and the dump is $PKG's own window"
+if [[ "$can_look" == "dead" ]]; then
+  note "the process is gone, so there is nothing to dump — that is the CRASH"
+  note "reported above, not a device-state problem. This line is not the story."
+fi
+if [[ "$can_look" == "false" ]]; then
+  note "⚠️ NOTHING BELOW IS A VERDICT ABOUT THE APP."
+  [[ "$wake" != "Awake" ]] && note "the screen is '$wake' — wake it: adb -s $serial shell input keyevent KEYCODE_WAKEUP"
+  focus="$("$ADB" -s "$serial" shell dumpsys window 2>/dev/null | grep -m2 'mCurrentFocus' | tail -1 | tr -d '\r')"
+  note "foreground: ${focus:-unknown}"
+  note "if that says Bouncer or Keyguard, UNLOCK THE PHONE — a secure keyguard"
+  note "cannot be dismissed by adb, and the dump is SystemUI's, not the app's."
+fi
+
 drawn="$(printf '%s\n' "$dump" | grep -c -F "$TITLE_TEXT")"
 assert "$([[ -n "$TITLE_TEXT" && "$drawn" -gt 0 ]] && echo true || echo false)" \
   "REACT RENDERED: '$TITLE_TEXT' is in the running app's view hierarchy"
 if [[ "$drawn" -eq 0 ]]; then
-  note "the process lives and the sign-in screen is not on it."
-  note "a black screen behind a live pid is what a module-load crash looks like"
-  note "when the crash is caught. Look: adb -s $serial exec-out screencap -p > /tmp/w.png"
+  if [[ "$can_look" == "dead" ]]; then
+    note "the process is gone. This is exactly what formatToParts did on iOS."
+  elif [[ "$can_look" == "false" ]]; then
+    note "⚠️ NOT A VERDICT — see above. The instrument could not look at the app,"
+    note "so this red says nothing about the build. Fix the device state and re-run."
+  else
+    note "the process lives and the sign-in screen is not on it."
+    note "a black screen behind a live pid is what a module-load crash looks like"
+    note "when the crash is caught. Look with:"
+    note "  adb -s $serial exec-out screencap -p > /tmp/w.png"
+    note "⚠️ on a FOLDABLE that file is not a PNG — screencap prepends a warning"
+    note "  about multiple displays. Strip everything before the \\x89PNG magic."
+  fi
 fi
 
 echo
