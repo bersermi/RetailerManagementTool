@@ -192,6 +192,70 @@ if [[ "$known" -gt 0 ]]; then
   done
   note "'unavailable' here means 'not plugged in right now', which is fine"
   note "until the sitting itself."
+
+  # ⚠️⚠️ THE OTHER IDENTIFIER, AND THIS CHECK USED TO PRINT ONLY THE WRONG ONE.
+  # Found in the 2026-09-13 sitting, on the first command of the evening:
+  # `devicectl` speaks CoreDevice UUIDs (D15192C1-…) and `xcodebuild -destination`
+  # / `expo run:ios --device` speak device UDIDs (00008120-…). They are different
+  # strings for the same phone. Copying the one printed here into the documented
+  # build command returns "No device UDID or name matching …", which reads like
+  # the phone is unplugged when it is sitting right there.
+  # ⚠️ EVERYTHING ABOVE "== Simulators ==" ONLY. xctrace lists simulators in the
+  # same format, and a simulator UDID in this list is exactly the wrong value to
+  # copy into a device build — it would build, install nowhere, and read nothing.
+  udids="$(xcrun xctrace list devices 2>/dev/null \
+    | sed -n '1,/== Simulators ==/p' \
+    | sed -n 's/^\(.*iPhone[^(]*\)(\([0-9.]*\)) (\([0-9A-Fa-f-]\{12,\}\))$/\1\3/p' || true)"
+  if [[ -n "$udids" ]]; then
+    printf '%s\n' "$udids" | while IFS= read -r line; do
+      note "build UDID (xcodebuild/expo): $line"
+    done
+  else
+    note "⚠️ could not read a build UDID from xctrace — run 'xcrun xctrace list devices'"
+  fi
+fi
+
+# --- can this Mac actually sign FOR A DEVICE? ------------------------------
+# ⚠️⚠️ THIS CHECK ONCE PRINTED "this Mac can build, sign and install" ON THE
+# STRENGTH OF A SIMULATOR BUILD, AND THAT CLAIM WAS NOT SUPPORTED. A
+# Release-on-simulator build needs NO provisioning at all, so it proves nothing
+# about signing. The first real device build of the 2026-09-13 sitting failed:
+#
+#   No profiles for 'mx.bserafin.wera' were found: Xcode couldn't find any iOS
+#   App Development provisioning profiles matching 'mx.bserafin.wera'.
+#   Automatic signing is disabled and unable to generate a profile.
+#
+# A free personal team has no profile until something asks for one, and
+# `expo run:ios` never asks: it does not pass -allowProvisioningUpdates. So the
+# preflight now looks for a profile that actually matches this app, and says
+# the one command that creates one.
+profiles_dir="$HOME/Library/Developer/Xcode/UserData/Provisioning Profiles"
+matching=0
+if [[ -d "$profiles_dir" ]]; then
+  while IFS= read -r prof; do
+    [[ -z "$prof" ]] && continue
+    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.bserafin\.wera'; then
+      matching=$((matching+1))
+    fi
+  done < <(find "$profiles_dir" -name '*.mobileprovision' 2>/dev/null)
+fi
+assert "$([[ "$matching" -gt 0 ]] && echo true || echo false)" \
+  "a provisioning profile exists for mx.bserafin.wera ($matching found)"
+if [[ "$matching" -eq 0 ]]; then
+  note "⚠️ expo run:ios CANNOT create the first one. Run this once:"
+  note "    cd app/ios && xcodebuild -workspace Wera.xcworkspace -scheme Wera \\"
+  note "      -configuration Release -destination 'id=<BUILD-UDID>' \\"
+  note "      -allowProvisioningUpdates build"
+else
+  # A free personal team signs for SEVEN DAYS. 5a-iv-d's reading is at day 8,
+  # so the expiry is not a detail — it is the measurement's deadline.
+  while IFS= read -r prof; do
+    [[ -z "$prof" ]] && continue
+    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.bserafin\.wera'; then
+      exp="$(security cms -D -i "$prof" 2>/dev/null | plutil -extract ExpirationDate raw -o - - 2>/dev/null)"
+      [[ -n "$exp" ]] && note "profile expires: $exp  ⚠️ re-deploy before reading after this"
+    fi
+  done < <(find "$profiles_dir" -name '*.mobileprovision' 2>/dev/null)
 fi
 
 # --- the values the build bakes in ----------------------------------------

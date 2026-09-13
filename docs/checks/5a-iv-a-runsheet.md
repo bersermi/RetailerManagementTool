@@ -51,10 +51,35 @@ not the next one.
 ## 2. The build
 
 ```bash
-cd app
-export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # unless xcode-select is set
-npx expo run:ios --device --configuration Release
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # required: xcode-select points at the CLT
+
+# 1. FIRST BUILD ONLY — creates the provisioning profile. `expo run:ios`
+#    cannot do this: it does not pass -allowProvisioningUpdates, and a free
+#    personal team has no profile until something asks for one.
+cd app/ios
+xcodebuild -workspace Wera.xcworkspace -scheme Wera -configuration Release \
+  -destination 'id=<DEVICE-UDID>' -allowProvisioningUpdates build
+
+# 2. INSTALL. ⚠️ NOT `npx expo run:ios` — its installer uses the old lockdown
+#    pairing path and fails `CommandError: InvalidHostID` on this Mac+phone.
+xcrun devicectl device install app --device <CORE-DEVICE-UUID> \
+  ~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app
+
+# 3. LAUNCH. Add --console to see JS exceptions; without it a crash is silent.
+xcrun devicectl device process launch --console --terminate-existing \
+  --device <CORE-DEVICE-UUID> mx.bserafin.wera
 ```
+
+⚠️⚠️ **THERE ARE TWO DIFFERENT IDENTIFIERS AND THEY ARE NOT INTERCHANGEABLE.**
+This cost the first attempt of the 2026-09-13 sitting:
+
+| Needed by | Which | How to get it |
+|---|---|---|
+| `xcodebuild -destination`, `expo run:ios --device` | **device UDID** — `00008120-…` | `xcrun xctrace list devices` |
+| every `xcrun devicectl` command | **CoreDevice UUID** — `D15192C1-…` | `xcrun devicectl list devices` |
+
+⚠️ **`5a-iv-a-preflight.sh` prints the CoreDevice one**, which is the wrong one
+for the build. It now prints both.
 
 ⚠️⚠️ **`--configuration Release` IS NOT OPTIONAL AND IT IS NOT A PREFERENCE.**
 `npx expo run:ios` defaults to **Debug**, and a Debug build does not contain its
@@ -178,10 +203,15 @@ that looks like it worked.
 
 1. You are signed in. Leave it that way.
 2. Kill the app from the app switcher.
-3. Plug the phone back in and **re-deploy**:
+3. Plug the phone back in and **re-deploy**. ⚠️ **This is an `install`, not a
+   rebuild** — the point is an upgrade install over the same bundle id:
    ```bash
-   npx expo run:ios --device --configuration Release
+   xcrun devicectl device install app --device <CORE-DEVICE-UUID> \
+     ~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app
+   xcrun devicectl device process launch --device <CORE-DEVICE-UUID> mx.bserafin.wera
    ```
+   ⚠️ **If the profile has expired, step 1's `xcodebuild … -allowProvisioningUpdates`
+   has to run first** — that is the whole mechanism `5a-iv-d` depends on.
 4. Open it.
 
 > **Still signed in?** ☐ yes ☐ no

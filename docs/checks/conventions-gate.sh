@@ -59,7 +59,7 @@ TESTS="$ROOT/app/test"
 
 # ⚠️ THE TWO LISTS THE PAGE IS CHECKED AGAINST. Adding a rule to the page
 # without adding it here is a FAILURE, not an omission — see assertion 0.
-ENFORCED="R1 R2 R4 R5 R6 R7 R8"
+ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10"
 STATED="R3 R9"
 
 fails=0
@@ -297,6 +297,44 @@ done
 if (( r7 == 0 )); then ok "R7  process.env is read in src/lib/supabase.ts and nowhere else"
 else fail "R7  $r7 place(s) reading the environment outside the one module that may"; fi
 
+# --- R10. Intl is limited to what has been measured on a phone ------------
+# ⚠️⚠️ ADDED 2026-09-13, AFTER `formatToParts` CRASHED THE APP ON LAUNCH. Plan
+# task `5a-iv-a`, on the owner's own iPhone 15, the first time this app was ever
+# run on a device: `TypeError: undefined is not a function` at `formatMXN`, an
+# uncaught JS exception that terminates the process on the splash screen.
+#
+# `Intl.NumberFormat` CONSTRUCTS on Hermes and `.format()` returns `$1,234.50`
+# correctly — the device was asked directly, with a probe build, rather than
+# reasoned about. `.formatToParts()` is simply not there.
+#
+# ⚠️ THE TWENTY-SIX ASSERTIONS OVER `formatMXN` WERE GREEN THROUGHOUT, AND THEY
+# STILL ARE. They run under node, which ships full ICU. This repository's
+# founding rule is "a file is not evidence; a green CI run is" — and this is the
+# footnote that rule needed: A GREEN CI RUN IS EVIDENCE ABOUT THE RUNTIME CI
+# USED. Node is not the runtime the shopkeeper holds, and no suite that runs
+# here ever will be.
+#
+# ⚠️ IT IS AN ALLOW-LIST. The names below are not "known missing" — they are
+# UNMEASURED, which is the same thing until someone puts one on a phone. Adding
+# one is not a code change, it is a measurement plus a code change.
+note
+INTL_ALLOWED='format|resolvedOptions'
+INTL_BANNED='formatToParts|formatRangeToParts|formatRange|selectRange|supportedLocalesOf|Segmenter|RelativeTimeFormat|ListFormat|DisplayNames|PluralRules|Collator'
+r10=0
+for f in $(src_files); do
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    r10=$((r10+1)); offend "$f" "$line"
+  done < <(code "$f" | grep -E "($INTL_BANNED)")
+done
+if (( r10 == 0 )); then
+  ok "R10 Intl use stays inside the measured surface ($INTL_ALLOWED)"
+else
+  fail "R10 $r10 use(s) of an ECMA-402 API nobody has run on a phone"
+  echo "      Hermes is not node. Put it on a device, look, then widen the"
+  echo "      allow-list in this script and in docs/CONVENTIONS.md with the date."
+fi
+
 # --- R8. every module outside src/app/ opens with a header saying why -----
 # ⚠️ ROUTES ARE EXEMPT AND THE EXEMPTION IS THE RULE'S POINT. A file under
 # `src/app/` that mounts a component has nothing to explain; a module that
@@ -323,7 +361,7 @@ fi
 # is conditional, so "0 failures" is also what a run that found no files looks
 # like. The eighth check here to carry one, and the first where the thing that
 # could empty it is a `find` over a directory that moved.
-note_expected=10
+note_expected=11
 if (( ran < note_expected )); then
   echo "FAIL: only $ran assertion groups ran, expected $note_expected — this check"
   echo "      asserted almost nothing and was about to report success."

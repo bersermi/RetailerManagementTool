@@ -22,6 +22,50 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+✅✅ **`5a-iv-a` IS DONE AS OF 2026-09-13 — THE APP RAN ON A PHONE FOR THE FIRST TIME, AND IT CRASHED.**
+⚠️⚠️ **THE FINDING IS THE BIGGEST ONE THIS PROJECT HAS HAD: `Intl.NumberFormat.prototype.formatToParts`
+DOES NOT EXIST ON HERMES, AND `formatMXN` USED IT.** `TypeError: undefined is not a function`,
+an uncaught JS exception, process terminated on the splash — the very first time any
+build of this app was run on a device. ⚠️⚠️ **The twenty-six assertions over `formatMXN`
+were green throughout, and still are: they run under node, which ships full ICU.**
+✅ **The footnote this repository's founding rule needed: *a green CI run is evidence about
+the runtime CI used*, and node is not the runtime the shopkeeper holds.** ⚠️ `env.ts` had
+already written that warning down — *"HAND-ROLLED, AND THE REASON IS THE TWO RUNTIMES"*,
+about `atob` — and `formatToParts` was written in the same step. **Writing the warning is
+not the same as taking it.** ✅ **Fixed, measured on the device, and now guarded by a new
+`R10`** in `docs/CONVENTIONS.md` + `conventions-gate.sh`: `Intl` in the client is an
+ALLOW-LIST of what has been run on a phone (`format`, `resolvedOptions`), because the
+banned names are *unmeasured*, not *known missing*.
+✅✅ **THE DAY-0 PRE-CHECK PASSED — `5a-iv-d` IS FREE. NO $99.** Signed in, killed,
+re-deployed (bundle container UUID changed, so a genuine fresh install of the binary),
+reopened: **still signed in.** The data container survives an upgrade install, which was
+a claim about Apple's system and is now a measurement.
+⚠️⚠️ **DAY 0 IS 2026-09-13; THE EIGHT-DAY READING IS DUE 2026-09-21; THE PROFILE EXPIRES
+`2026-09-20T06:19:32Z`, WHICH IS BEFORE IT.** Re-deploy first, then open and look.
+✅ **Five of six readings taken** — C12.1's four words are drawn (*Inicio, Vender,
+Comprar, Desperdicio*), the guard lands on the sign-in screen with no splash hang, C1.3
+restores Vender **and** Comprar, and **the Supabase redirect allow-list PASSES — the app
+came back on its own.** That last one is the only measurement this project will ever have
+of it; the gate script read 15/15 across the dashboard change because it cannot see it.
+⚠️ **Google's *"unverified app"* interstitial did not appear**, and the owner judged it a
+non-issue for the pilot. ⚠️⚠️ **C3.18's OPINION HALF IS STILL OWED** — `$11.60` renders,
+but *"does 76pt read as big behind a counter"* and the over-fifty question were not
+answered on the night, and a reading not written down at the time is one this project did
+not take.
+⚠️⚠️ **AND THREE SEPARATE INSTRUMENT DEFECTS COST THE FIRST HOUR**, all now fixed in
+`5a-iv-a-preflight.sh` (15 assertions, up from 14) and the run sheet: the preflight printed
+`devicectl`'s CoreDevice UUID where the build command wants a device UDID; `expo run:ios`
+cannot create a free team's first provisioning profile because it never passes
+`-allowProvisioningUpdates`; and its installer fails `InvalidHostID` on this Mac+phone pair
+where `devicectl install` goes straight through. ⚠️ **`14/14 — this Mac can build, sign and
+install` was not a supported claim**: it rested on a Release-on-SIMULATOR build, which needs
+no provisioning at all. The same shape `#75` recorded, in the file `#75` wrote.
+✅ **`5a-iv-c` (Android, on real hardware) IS THE NEXT TASK.** ⚠️ **What gets taken is the
+TOOLCHAIN half, which is ungated** — Android Studio, the SDK, `adb`, and a Release build on
+the emulator — so that the one borrowed evening is a sitting and not a setup. `5a-iv-a` is
+the argument for doing it that way: its Mac half *was* prepared in advance and the evening
+still lost an hour to three things nobody had measured.
+
 ✅✅ **TWO RULINGS FROM THE OWNER, 2026-09-13 — *"keep it in docs/, and do the second
 pass after 5b."*** Both close questions `5a-iv-b` raised the day before.
 ✅ **`docs/CONVENTIONS.md` stays where it is** — the path is settled and may be cited.
@@ -87,7 +131,8 @@ will ever look at it.** ⚠️ A second finding, F9, is a **sixth** shape of mis
 green: an assertion that ran, passed, and could not distinguish the defect its own
 comment named. Both are written up under `5a-ii` below.
 ✅ **`5a-iv` WAS RE-SIZED 2026-09-11 — it is an `L`, not the `S/M` this file carried,
-and it splits four ways. `5a-iv-a` (iOS, and the round trip) IS THE NEXT TASK.**
+and it splits four ways.** ~~`5a-iv-a` is the next task~~ — **taken and closed 2026-09-13;
+see the entry at the top of this section.**
 ⚠️⚠️ **The finding: TWO INDEPENDENT SEVEN-DAY CLOCKS** — Google's test-user token expiry
 and a free Apple ID's 7-day provisioning profile — **and C1.4's reading is at day eight.**
 ⚠️ **CORRECTED 2026-09-12: the clocks are real and the conclusion drawn from them was
@@ -8328,7 +8373,7 @@ bringing the $99 forward to buy an iPhone build that outlives the measurement.
 | **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️⚠️ **ONE THING BLOCKS IT AND IT IS NOT THE HARDWARE: THE MAC HOLDS NO CODE-SIGNING IDENTITY AND NO APPLE ID** — measured 2026-09-12, along with three other things *"nothing else blocks it"* had not looked at. The other three were cleared the same day. ✅ **Run `docs/checks/5a-iv-a-preflight.sh` first** |
 | **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md`, nine rules, seven of them read by `docs/checks/conventions-gate.sh` in `app.yml`. ⚠️ **Taken OUT OF ORDER, ahead of `5a-iv-a`**, because `5a-iv-a` needs an Apple ID only the owner can type and this needs nothing. See the write-up below |
 | **`5a-iv-c`** | **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
-| **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
+| **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task, AND IT IS NOW FIXED.** ✅ The `5a-iv-a` day-0 pre-check PASSED on 2026-09-13, so this is free — no $99. **Day 0 is 2026-09-13; the reading is due 2026-09-21.** ⚠️⚠️ **The free profile expires `2026-09-20T06:19:32Z`, which is BEFORE the reading** — re-deploy (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`) and only THEN open and look. **Do not open Wera in between; launching it restarts the measurement.** |
 
 **Why `a` is one task and not three.** The build, the round trip and the four
 look-at-it deliverables all happen **with the phone in your hand, in one sitting**.
@@ -9323,10 +9368,10 @@ are cheap today and dear once a screen rests on them.
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
 | **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ✅ **The dashboard edit was closed by the owner 2026-09-12**: Redirect URLs carry `mx.bserafin.wera://**`. ⚠️ **Reported, not measurable** — no check here can see it, and `5a-iv-a` is the first thing that can |
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
-| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone 15 — ✅ **the Mac's half was prepared 2026-09-12** (Xcode selected, CocoaPods, the native project, a rehearsal build that compiled). ⚠️ **What remains is an APPLE ID typed into Xcode**, which nothing but the owner can do and which starts the seven-day clock. `docs/checks/5a-iv-a-preflight.sh` |
+| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ✅✅ **DONE 2026-09-13.** Five of six readings taken on the owner's iPhone 15; ⚠️ **C3.18's opinion half is still owed** (see below). ✅✅ **THE PRE-CHECK PASSED — `5a-iv-d` IS FREE, NO $99.** ⚠️⚠️ **It found a CRASH: `formatToParts` is absent on Hermes and took the app down on launch, with 26 green assertions over it.** |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
-| **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
-| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **A DATE.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
+| **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `S/M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ⚠️ The borrowed evening is a SCHEDULING gate, not a code one — **the toolchain half is ungated and is what gets taken**: Android Studio, the SDK, `adb`, and a Release build produced on the emulator, so the borrowed evening is a sitting rather than a setup. That is exactly what `5a-iv-a` proved the value of — its Mac half was prepared in `#75` and the evening still lost an hour to three things nobody had measured. |
+| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density
