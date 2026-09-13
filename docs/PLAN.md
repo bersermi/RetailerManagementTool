@@ -107,6 +107,15 @@ said so.
 the **sixth and last** of the readings `5a-iv` was the sole instrument for, and it means
 **`5a-iv-a` is now fully closed rather than closed-but-one.** The density scale from
 `5a-ii` stands as built.
+⚠️⚠️ **3b. AND THE BRIEF FOR #9 IS WRITTEN, WITH A FINDING: THE COLLISION COUNT WAS ONE AND
+IT IS FOUR.** `0002_catalog.sql:370` was opened rather than trusted, and **`token_hash`,
+`expires_at` and `accepted_by` all collide with a self-request too** — none of the three
+appeared anywhere in this file before 2026-09-13. ⚠️ **The worst is `accepted_by`, which
+means the INVITEE on one path and the OWNER on the other**: not a missing column, a
+**semantic overload that reads as correct** until someone asks who approved a membership.
+✅ **Six decisions, `D1`–`D6`, each with a recommendation and its reasoning**, in `4.6a`'s
+section below — written so the owner rules rather than designs. **All of it freezes when
+`0027` merges.**
 ⚠️ **3. Decision register #9 was re-described at the owner's request and remains OPEN** —
 it is now the **single open decision in this file**. One sentence: *the ADR says the owner
 pushes an invite; the owner said the joiner pulls with a code; he wants both.* It still
@@ -7662,6 +7671,36 @@ there.
 `id`, `display_name`, `currency`, `prices_include_tax`, `is_active`). The `id` cannot
 serve; nobody reads a uuid over WhatsApp. Unique, short, transcribable, and **never
 listed** — C11.6 is explicit that workspaces are not browsable.
+
+### ⚠️⚠️ Decision register #9 — THE BRIEF. Four collisions, not one, and three were found by reading the table
+
+**Prepared 2026-09-13 so the owner is RULING, NOT DESIGNING.** Each row below has a
+recommendation and its reasoning; the intended answer is *yes* or *no*, not a design.
+
+⚠️⚠️ **THE WRITE-UP ABOVE NAMED ONE COLLISION. `0002_catalog.sql:370` HAS FOUR.** The
+other three were found by opening the migration instead of trusting the summary of it —
+the same move that found `5a-iv-a`'s four blockers and this session's missing JDK.
+**`token_hash`, `expires_at` and `accepted_by` appeared nowhere in this file before now.**
+
+| # | The collision | Recommendation | Why |
+|---|---|---|---|
+| **D1** | `invited_by uuid **not null** references auth.users` — a self-request has nobody to put there | ✅ **Add `source` (`'invite'` / `'request'`), make the column nullable, and CHECK that it is present exactly when `source = 'invite'`** | Keeps one table, which is what *"an invite is a request that arrives pre-approved"* asks for, and makes the invariant the **database's** job rather than a rule the app remembers |
+| **D2** | `token_hash text **not null** unique` — ⚠️ **named nowhere before today** | ✅ **Nullable, under the same CHECK as D1** | A self-request has no token **as a matter of concept, not of timing**. A dummy token to satisfy `not null` would be a unique, never-redeemable secret stored for no reason |
+| **D3** | `expires_at not null default (now() + 7 days)` — does an unanswered *request* expire? | ✅ **Keep it, unchanged, for both paths** | A request that goes stale after a week keeps the owner's approval queue short and costs the joiner one tap to re-ask. ⚠️ **It is a real choice and nobody had made it** — the default was written for invites and would have been inherited silently |
+| **D4** | ⚠️⚠️ **`accepted_by` MEANS TWO DIFFERENT PEOPLE.** For an invite it is the **invitee**, accepting. For a request it is the **owner**, approving | ⚠️ **THE ONE WORTH ARGUING ABOUT.** Rename `invited_by` → **`decided_by`** (nullable; set at creation for an invite, set at approval for a request), and keep `accepted_by` for **who actually joined** | The two facts are *who approved this* and *who joined*. One column carrying both **reads as fine** until someone asks who approved a membership — and then the answer is not in the schema. This is the one that is cheap today and a fix-forward migration after `0027` |
+
+**And the column that does not exist at all.** `workspace` has `id`, `display_name`,
+`currency`, `prices_include_tax`, `is_active`, `created_at`, `updated_at` — **no code**,
+and ✅ **no later migration adds one** (checked across `supabase/migrations/**`, 2026-09-13).
+
+| # | | Recommendation | Why |
+|---|---|---|---|
+| **D5** | The join code's shape | ✅ **8 characters, Crockford base32 (no `I`, `L`, `O`, `U`), normalised case-insensitively on input, `unique`, generated with retry-on-collision** | It is read aloud over WhatsApp and typed by someone standing up. The excluded letters are the ones misread as `1` and `0`; 8 characters is ~10¹² codes, so collisions are a retry and not a design |
+| **D6** | How a code is looked up, given C11.6's *"workspaces are NEVER listed"* | ✅ **A `security definer` RPC taking the WHOLE code. No policy that permits a scan** | ⚠️ **Such an RPC is an enumeration oracle by construction** — it answers *does this code exist*. 8 Crockford characters make guessing impractical; **a 4- or 5-character code would not**, which is the real reason for the length |
+
+⚠️ **D1 and D2 share one CHECK; D4 is a rename plus a nullable column; D5/D6 are one column
+and one function.** None of it is large. **All of it is frozen the moment `0027` merges**,
+which is why it is a brief and not a task.
 
 ### ✅ 4.6b — one notch, and `0026` predicted it
 
