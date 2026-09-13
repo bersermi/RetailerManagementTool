@@ -152,6 +152,26 @@ in the one place a shopkeeper trusts absolutely.
 separates pesos from centavos by **integer** arithmetic, with its reasons
 written above it.
 
+⚠️⚠️ **THE `no Intl outside mxn.ts` HALF NOW HAS A MEASUREMENT BEHIND IT AND NOT
+JUST AN ARGUMENT, AND IT IS NOT THE ONE ANYONE EXPECTED.** Plan task
+`5a-iv-c-3`, on a Samsung Galaxy Z Flip 8 bought and used in Mexico
+(`ro.csc.country_code=MEXICO`), 2026-09-13:
+
+    new Intl.NumberFormat().resolvedOptions().locale   →   "es-US"
+
+**The device's default locale is Spanish (United States), not `es-MX`** —
+`persist.sys.locale=es-US`, and Hermes agrees. So **any `Intl` call that omits
+the locale renders US conventions on a Mexican shopkeeper's phone**, silently,
+and would pass every test in this repository because node's default locale is
+whatever CI's is.
+
+`formatMXN` was unaffected **only because it names `'es-MX'` explicitly** — and
+the reason no other module could have got that wrong is this rule. ⚠️ **A rule
+whose whole value is that it forbids a call nobody has made yet is the hardest
+kind to keep**; this is the evidence that it is worth keeping. Asked for
+`es-MX`, that device's ICU returned `es-MX` and formatted C12.2 correctly, so
+the data is there — **the default is simply not the country the phone is in.**
+
 **Checked by:** `docs/checks/conventions-gate.sh`, R5.
 
 ### R6 — A size a person looks at comes from `useDensity()`, never from a literal

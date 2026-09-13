@@ -80,6 +80,81 @@ different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS TH
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
 
+✅✅ **`5a-iv-c-3` IS DONE AS OF 2026-09-13 — THE EVENING WAS HELD A DAY EARLY, ALL SIX
+READINGS WERE TAKEN, AND `5a-iv-d` IS THE NEXT TASK.** A **Samsung Galaxy Z Flip 8**
+(SM-F776B, **Android 17 / One UI 9.0**, `arm64-v8a`) arrived in the owner's hands, so the
+sitting was held immediately rather than booked — **`5a-iv-c-2` had closed hours earlier,
+which is the only reason this was a sitting and not a setup.** That was the entire argument
+of the three-way split, and it is the first time this repository has been able to check it.
+`docs/checks/5a-iv-c-3-runsheet.md` is now a **filled-in record**, not a plan.
+
+⚠️⚠️ **THE FINDING IS `A5`, AND IT IS A DEFECT NO iOS TESTING COULD EVER HAVE FOUND:
+GOOGLE SIGN-IN SUCCEEDED AND LEFT THE SHOPKEEPER ON A NOT-FOUND PAGE.** *"Unmatched Route —
+Page could not be found"*, **in English, quoting the PKCE code**, after an authentication
+that had worked: tapping *Go back* landed on Inicio, signed in. ✅ **On Android the redirect
+is delivered TWICE** — `openAuthSessionAsync` consumes it *and* Chrome dispatches an
+ordinary `VIEW` intent into `MainActivity`, so Expo Router navigated to `/auth/callback`,
+which did not exist. **iOS never does this**: `ASWebAuthenticationSession` eats the
+redirect. ⚠️ **THIRD PLATFORM-ASYMMETRY FINDING IN ONE DAY** — after `formatToParts` and the
+device locale — and the first one in a subsystem that is not `Intl`. ⚠️ **And the guard
+could not have rescued it**: `groupOf` returns `null` outside `(auth)`/`(tabs)` and
+`redirectFor` returns `null` for a signed-in person on a `null` group, so *stranded* is the
+correct reading of those two pure functions.
+✅✅ **FIXED AND RE-VERIFIED ON THE SAME PHONE BEFORE IT WENT BACK** — `app/src/app/auth/
+callback.tsx`, a route at the path `OAUTH_REDIRECT_URI` already names, redirecting from an
+effect (`_layout.tsx`'s deliberate idiom, because redirecting during a render is a
+navigation during a render). The second round trip landed **straight on Inicio**;
+`grep "Unmatched Route"` over the evening's 15.6 MB log reads **0**, as does every JS
+exception. ⚠️ **The widened-guard fix was REFUSED**: it would make every unknown deep link
+bounce a signed-in person home — a change to the rule governing every screen, to fix one URL.
+⚠️ **§2.10/§2.11 refuse suites over navigation, so the new test pins the STRING, not the
+behaviour** — move the route out from under the constant and it goes red (falsified). The
+behaviour was measured on a phone, once. **That is `R9`'s shape and the file says so.**
+
+⚠️⚠️ **AND THE EVENING FOUND THIS REPOSITORY'S FIRST MISLEADING *RED*.** Seven shapes of
+misleading green are recorded above; `5a-iv-c-2`'s check produced the opposite twice in four
+minutes, and **on a borrowed evening a false red is the dearer of the two** — it spends a
+resource that cannot be re-booked chasing a defect that is not there, and the rational
+response to it is to stop believing the check. Once the phone was **dreaming**
+(`mWakefulness=Dreaming`), once the **secure keyguard** was up (`mCurrentFocus=Window{Bouncer}`)
+— and `uiautomator dump` returned SystemUI's lock screen while the check printed its crash
+message about a healthy build. ⚠️ **An emulator never dreams and never locks**, so neither
+state could exist before the check left the emulator. ✅ **A sixteenth assertion now asks
+whether the instrument CAN LOOK before it is allowed a verdict**, falsified both ways.
+⚠️⚠️ **AND THE FIRST SPELLING OF THAT FIX SOFTENED A REAL CRASH** — a dead process has no
+dump either, so `can_look` went false and the not-a-verdict message printed over exactly the
+defect the file exists to catch. **Caught by re-running the crash fixture after writing the
+fix**, which is the only reason it is not in the committed version. A dead process is now
+its own case.
+
+✅✅ **THE OTHER FIVE READINGS, ALL GREEN.** **A1** — 15/15 on the phone itself.
+**A2** — ⚠️ **`R10` and C12.2 hold BYTE FOR BYTE on real silicon**: `$1,234.50` =
+`24 31 2c 32 33 34 2e 35 30`, `$1,000,000` with two separators and centavos hidden at zero,
+`$0.99`; asked `es-MX`, **got `es-MX`**. **A3** — all four words drawn under their icons,
+read out of the view hierarchy rather than off a photograph. **A6** — force-stopped to a
+dead pid, relaunched, **came back on Vender**, which proves **C1.3** and **C1.4** at once.
+✅ **A4 — the owner's words, written down on the night: *"letters look big enough."***
+⚠️ **It is a SECOND judgement by the SAME person, not a second person's judgement**, and the
+honest reading is that C3.18 now has two data points from one pair of eyes.
+
+⚠️⚠️ **A PILOT-DAY FINDING THAT IS NOT ABOUT CODE, AND NOTHING HERE KNEW IT: SAMSUNG'S
+AUTO BLOCKER HOLDS THE USB-DEBUGGING TOGGLE SHUT, AND CAN REFUSE `adb install`.** The switch
+reads ***"Bloqueado por Bloqueador Automático"*** — a message that names the blocker and not
+the fix. ⚠️ **C1.1 puts a Samsung among the four pilot devices and there is no Play listing
+until `5i`, so the pilot is installed by SIDELOADING** — which means this setting can block
+the install itself, in a shop, with a queue. It belongs with `5i`'s pilot-day work beside the
+debug-keystore note. ⚠️ **The run sheet's `P2` path was also wrong for a Samsung** — One UI
+nests Build number under *Información de software* — and that cost the first ten minutes.
+Both corrected **from the device**, not from memory.
+
+⚠️⚠️ **AND THE HANDOVER FACT THAT MATTERS MOST: `5a` IS NOW DONE EXCEPT FOR A CALENDAR, AND
+THE BUILD IS DECISION-BLOCKED RATHER THAN WORK-BLOCKED.** `5a-iv-d` is a **date**
+(2026-09-21), not work. **`5b` is gated on `4.6a`, and `4.6a` is gated on decision register
+#9, which is still open.** So a session that clears its context tomorrow has no code to
+write until the owner rules. ⚠️ **That is not a scheduling accident — it is the decisions-owed
+block doing its job**, and it is why `plan-handover.sh` refuses to let a blocked task be
+marked as next.
+
 ✅✅ **`5a-iv-c-2` IS DONE AS OF 2026-09-13 — THE APP RUNS ON ANDROID, AND `5a-iv-c-3` IS THE NEXT TASK.**
 A `Release` APK from `expo prebuild -p android` + `./gradlew assembleRelease` (cold build,
 **10m51s**, 107 MB universal, four ABIs), installed on the API-36 emulator, launched, and
@@ -8722,7 +8797,7 @@ a **cold Gradle build**, which on a first run resolves a dependency cache of its
 |---|---|---|---|
 | **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` reads 14/14, three of them over a *booted* `arm64-v8a` emulator. ⚠️ **Its own first spelling was misleading green** — see the log |
 | **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-2-rehearsal.sh` reads 15/15, six falsifications, and the app rendered. ⚠️⚠️ **Its finding inverts the prediction in this row: `formatToParts` EXISTS on Android** — see the log |
-| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅ **Arranged with a relative (owner, 2026-09-13).** ⚠️⚠️ **THE DATE IS A REFERENCE, NOT A GATE — it may happen TODAY, and 2026-09-14 is only the expectation.** ⚠️⚠️ **THE REAL GATE IS `5a-iv-c-2`, AND IT IS A HARD ONE: if the evening arrives before the Release APK exists, the evening is a setup and should be SPENT LATER RATHER THAN SPENT BADLY.** That is the whole argument the three-way split was built on. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. ✅ **Run sheet: `docs/checks/5a-iv-c-3-runsheet.md`** |
+| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ✅✅ **DONE 2026-09-13 — the evening was HELD A DAY EARLY, on a Galaxy Z Flip 8. All six readings taken; one defect found, fixed and re-verified before the phone went back.** ⚠️ **Arranged with a relative (owner, 2026-09-13).** ⚠️⚠️ **THE DATE IS A REFERENCE, NOT A GATE — it may happen TODAY, and 2026-09-14 is only the expectation.** ⚠️⚠️ **THE REAL GATE IS `5a-iv-c-2`, AND IT IS A HARD ONE: if the evening arrives before the Release APK exists, the evening is a setup and should be SPENT LATER RATHER THAN SPENT BADLY.** That is the whole argument the three-way split was built on. ⚠️ **A human step is owed on the DEVICE and it is not the owner's own**: USB debugging, via Developer Options. ✅ **Run sheet: `docs/checks/5a-iv-c-3-runsheet.md`** |
 
 **Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
 whole because its pieces all needed *the phone in your hand at the same moment*. These two
@@ -9834,8 +9909,8 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
 | **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13** — `docs/checks/5a-iv-c-2-rehearsal.sh` 15/15, six falsifications. ⚠️⚠️ **`formatToParts` IS PRESENT on Android Hermes**, so `R10` is now an INTERSECTION of platforms |
-| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS THE ONE PIECE OF `5a` A SESSION CANNOT START ALONE.** ✅ **An evening with a relative's Android, arranged (owner, 2026-09-13).** ⚠️⚠️ **The date is a REFERENCE — it may be today; 2026-09-14 is only the expectation.** ✅ **`5a-iv-c-2`'s HARD PREREQUISITE IS DISCHARGED: a Release APK exists, launches and renders**, and it is copied to `~/wera-release-2026-09-13.apk` so the sitting does not depend on an eleven-minute rebuild. ⚠️ **USB debugging must be enabled on a device that is not the owner's**: `docs/checks/5a-iv-c-3-runsheet.md` |
-| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
+| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅✅ **DONE 2026-09-13 — the evening was held A DAY EARLY**, on a Galaxy Z Flip 8 (Android 17 / One UI 9). **Six readings, six answers**; `docs/checks/5a-iv-c-3-runsheet.md` is now the filled-in record. ⚠️⚠️ **A5 found a real defect and it was fixed and re-verified on the same phone** — see the log |
+| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS A DATE RATHER THAN WORK — EVERYTHING ELSE IS WAITING ON THE OWNER.** ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density
