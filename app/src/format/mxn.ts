@@ -33,6 +33,28 @@
 // `app/test/mxn.test.ts` pins them. That is the difference between a rule and
 // a hope, and this repository has a file's worth of opinions about it.
 //
+// ⚠️⚠️ AND THE FIRST SPELLING OF THAT IDEA USED `formatToParts`, WHICH CRASHED
+// THE APP ON LAUNCH. Measured on the owner's iPhone 15, 2026-09-13, plan task
+// `5a-iv-a`: `TypeError: undefined is not a function` at `formatMXN`, an
+// uncaught JS exception that terminates the process. `Intl.NumberFormat`
+// CONSTRUCTS on Hermes and `.format()` returns `$1,234.50` correctly — the
+// device said so — but `.formatToParts()` is not there.
+//
+// ⚠️ THE TWENTY-SIX ASSERTIONS IN `app/test/mxn.test.ts` WERE ALL GREEN THROUGH
+// THIS. They run under node, which ships full ICU; the app runs under Hermes,
+// which does not. A green CI run is evidence about the runtime CI used, and
+// this file is the proof that the two are not the same machine. `env.ts`
+// already wrote that warning down — "⚠️ HAND-ROLLED, AND THE REASON IS THE TWO
+// RUNTIMES" about `atob` — and this function was written in the same step and
+// did not take its own advice.
+//
+// ✅ SO THE SHAPE IS STILL READ FROM ICU, THROUGH THE ONE DOOR HERMES OPENS:
+// `format()` is called on two probe values at module load and the symbol, the
+// decimal separator, the suffix and the sign's POSITION are read back out of
+// the strings. Nothing about the shape is typed in here, C12.2 stays a
+// measurement rather than an assertion, and no method outside
+// `format` / `resolvedOptions` is touched.
+//
 // ⚠️ NOT IN `packages/money`, deliberately — see the decision note in
 // docs/PLAN.md under 5a-ii. That package is locale-free and exports no
 // peso-valued anything on purpose; this is §2.11's "money on screen" row, and
@@ -58,19 +80,71 @@ const PESOS = new Intl.NumberFormat('es-MX', {
   maximumFractionDigits: 0,
 });
 
+/** Where the locale puts everything that is not a digit. */
+interface Shape {
+  /** What precedes the number — the currency symbol, plus any locale spacing. */
+  readonly prefix: string;
+  /** The character between pesos and centavos. C12.2 expects `.` for es-MX. */
+  readonly decimal: string;
+  /** Anything the locale puts after the digits. Empty for es-MX. */
+  readonly suffix: string;
+  /** What a negative amount gains at the front, and at the back. */
+  readonly negativePrefix: string;
+  readonly negativeSuffix: string;
+}
+
 /**
- * `$1,234.50`, `$1,234`, `-$0.05`.
+ * Read the shape out of ICU using `format` alone.
  *
- * @param centavos an INTEGER number of centavos — `PricedLine.gross` and its
- * siblings from `@tienda/money`, or a `numeric(12,2)` column lifted to
- * integers. Never pesos.
- *
- * ⚠️ IT THROWS ON A NON-INTEGER RATHER THAN ROUNDING ONE. `formatMXN(11.6)` is
- * someone passing pesos, and the friendly reading of that call renders `$0.12`
- * — a wrong price, on the screen, silently, in the one place a shopkeeper
- * trusts absolutely. There is no rounding here at all: rounding is §2.5 rule 6
- * and it happens in `packages/money`, before this function is reached.
+ * ⚠️ THE PROBES ARE `1` AND `-1` ON PURPOSE. One integer digit and no
+ * grouping, so the only non-digit characters in the result are the ones this
+ * function is looking for. A larger probe would put a group separator in the
+ * middle and there would be two candidates for `decimal`.
  */
+function readShape(): Shape {
+  const positive = SHAPE.format(1); // es-MX: "$1.00"
+  const negative = SHAPE.format(-1); // es-MX: "-$1.00"
+
+  const first = positive.search(/\d/);
+  let last = -1;
+  for (let i = positive.length - 1; i >= 0; i -= 1) {
+    if (positive[i] >= '0' && positive[i] <= '9') {
+      last = i;
+      break;
+    }
+  }
+
+  // ⚠️ IT DOES NOT THROW, AND THAT IS THE WHOLE LESSON OF THIS FILE. This runs
+  // at module load on a phone; throwing here is the crash we are fixing, in a
+  // new place. If ICU ever returns something unreadable the app still renders
+  // a correct, if plain, amount — and `app/test/mxn.test.ts` is what notices
+  // the shape stopped matching C12.2.
+  if (first < 0 || last < first) {
+    return { prefix: '$', decimal: '.', suffix: '', negativePrefix: '-', negativeSuffix: '' };
+  }
+
+  const prefix = positive.slice(0, first);
+  const suffix = positive.slice(last + 1);
+  // "1.00" → every non-digit in the core is the decimal separator.
+  const decimal = positive.slice(first, last + 1).replace(/\d/g, '');
+
+  // The sign is whatever the negative rendering gains. Both positions are
+  // handled because the locale, not this file, decides which one it uses.
+  let negativePrefix = '';
+  let negativeSuffix = '';
+  if (negative.endsWith(positive)) {
+    negativePrefix = negative.slice(0, negative.length - positive.length);
+  } else if (negative.startsWith(positive)) {
+    negativeSuffix = negative.slice(positive.length);
+  } else {
+    negativePrefix = '-';
+  }
+
+  return { prefix, decimal, suffix, negativePrefix, negativeSuffix };
+}
+
+const SHAPE_OF = readShape();
+
 export function formatMXN(centavos: number): string {
   if (!Number.isSafeInteger(centavos)) {
     throw new RangeError(
@@ -91,34 +165,12 @@ export function formatMXN(centavos: number): string {
   // C12.2: hidden at zero, exactly two when present. There is no third case.
   const fraction = remainder === 0 ? null : String(remainder).padStart(2, '0');
 
-  // The probe carries every part a rendered amount can have — sign, symbol,
-  // one integer run, separator, fraction — and none of the parts we substitute
-  // depend on its value. `-1` / `1` rather than a larger number on purpose: it
-  // produces exactly ONE `integer` part and no `group` parts, so the
-  // substitution below cannot land in the middle of someone else's grouping.
-  let out = '';
-  let numberWritten = false;
-  for (const part of SHAPE.formatToParts(negative ? -1 : 1)) {
-    switch (part.type) {
-      case 'integer':
-        if (!numberWritten) {
-          out += grouped;
-          numberWritten = true;
-        }
-        break;
-      case 'group':
-        // The probe has none; PESOS.format already grouped the real number.
-        break;
-      case 'decimal':
-        if (fraction !== null) out += part.value;
-        break;
-      case 'fraction':
-        if (fraction !== null) out += fraction;
-        break;
-      default:
-        // currency, minusSign, and any literal the locale puts between them.
-        out += part.value;
-    }
-  }
-  return out;
+  return (
+    (negative ? SHAPE_OF.negativePrefix : '') +
+    SHAPE_OF.prefix +
+    grouped +
+    (fraction === null ? '' : SHAPE_OF.decimal + fraction) +
+    SHAPE_OF.suffix +
+    (negative ? SHAPE_OF.negativeSuffix : '')
+  );
 }

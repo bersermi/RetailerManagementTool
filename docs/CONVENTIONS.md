@@ -215,6 +215,37 @@ codebase is the record of something that went wrong once.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R8.
 
+### R10 — The app runs on Hermes; CI runs Node. `Intl` is limited to what has been measured on a phone
+
+In `src/format/mxn.ts` — the only module allowed to touch `Intl` at all (**R5**)
+— the permitted surface is **`format()` and `resolvedOptions()`**, and nothing
+else.
+
+⚠️⚠️ **This is an allow-list, not a deny-list, and the distinction is the
+rule.** The banned names below are not "known missing". They are
+**unmeasured** — and on 2026-09-13 an unmeasured one took the app down on
+launch:
+
+> `TypeError: undefined is not a function` at `formatMXN`. `Intl.NumberFormat`
+> constructs on Hermes and `.format()` returns `$1,234.50` correctly. **`.formatToParts()`
+> is not there.** The app terminated on the splash, on the owner's own iPhone,
+> the first time it was ever run on a device.
+
+**The twenty-six assertions over `formatMXN` were green throughout.** They run
+under Node, which ships full ICU. *"A file is not evidence; a green CI run is"*
+still holds — but a green CI run is evidence **about the runtime CI used**, and
+that is not the runtime the shopkeeper holds.
+
+So: before using any other ECMA-402 method, **put it on a device and look.**
+Then add it here and to the gate's allow-list, with the date you measured it.
+
+⚠️ The same trap is already written down in `src/lib/env.ts`, about `atob`:
+*"HAND-ROLLED, AND THE REASON IS THE TWO RUNTIMES."* That warning and
+`formatToParts` were written in the same step. Writing the warning is not the
+same as taking it.
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R10.
+
 ### R9 — A deliverable no check can see is written down as such, and routed to the task that can see it
 
 When you build something this repository's checks cannot reach — a label that is
