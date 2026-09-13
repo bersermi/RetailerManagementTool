@@ -2,8 +2,8 @@
 # plan-handover — can the next session, with no context, find the right task?
 #
 # WHY THIS EXISTS. `docs/PLAN.md` is the only thing a cleared session reads to
-# work out what to do next, and in two days THREE separate stale-duplicate
-# defects have been found in it:
+# work out what to do next, and SIX separate stale-duplicate defects have now
+# been found in this repository's prose:
 #
 #   * Facebook inside `C1.4` — the coverage check printed 10/10 across an edit
 #     that moved a third of a deliverable to another task (2026-09-11).
@@ -12,6 +12,16 @@
 #     routings while reporting success (2026-09-12).
 #   * The `5a-iii-b` dashboard gate, closed by the owner, still recorded as
 #     OWED in FOUR places (2026-09-12).
+#   * `docs/HANDBOOK.md`'s "no app yet", nine days stale (2026-09-12, #76).
+#   * `README.md`'s "the client does not exist yet" — the FRONT DOOR of the
+#     repository, untouched since kick-off (2026-09-12, #77).
+#   * ⚠️⚠️ A SECOND STATUS TABLE inside `## Position` saying `5a … Not started`
+#     with six of eight sub-tasks done, `4.5 … UNDER WAY` where the same
+#     section's header said it was closed, and NO ROW FOR STEP 4.6 — found by
+#     the owner, by reading, on 2026-09-13. Assertion 5 is that one.
+#
+# ⚠️ FIVE OF THE SIX WERE FOUND BY A PERSON READING, NOT BY A CHECK. Each new
+# assertion here is one shape retired; the shapes are not running out.
 #
 # All three are one rule: A CLAIM IS ONLY AS TRUE AS THE COPY THE CHECK HAPPENS
 # TO READ. `5a-split-coverage.sh` now enforces that for `5a`'s deliverables.
@@ -22,6 +32,16 @@
 # ⚠️ IT DOES NOT VALIDATE THE PLAN'S CONTENT. It cannot tell a good next task
 # from a bad one — only that the file names one task, unambiguously, and does
 # not simultaneously claim it is finished and blocked.
+#
+# ⚠️⚠️ NEVER QUOTE THIS CHECK'S SENTINELS VERBATIM IN `docs/PLAN.md`. Its
+# next-task sentinel and the status-board words below are grepped out of that
+# file; a paragraph that SPELLS one becomes a match, and on 2026-09-13 a
+# write-up explaining this very check made assertion 2 read the write-up
+# instead of the status log. Describe the sentinel; do not spell it. THE SAME
+# TRAP FIRED THREE TIMES THAT DAY, IN THREE DIFFERENT SCRIPTS —
+# `conventions-gate.sh` (a comment naming a banned token),
+# `5a-split-coverage.sh` (prose quoting a table row), and here. PROSE ABOUT A
+# CHECK IS INPUT TO THAT CHECK.
 #
 # Run:  bash docs/checks/plan-handover.sh
 # Exit: 0 all assertions hold; 1 otherwise, naming each failure.
@@ -112,7 +132,37 @@ else
   fails=$((fails+1))
 fi
 
-# --- 5. the working tree is not mid-task ----------------------------------
+# --- 5. no SECOND status board ---------------------------------------------
+# ⚠️⚠️ THE SIXTH INSTANCE, AND THE FIRST THAT WAS A WHOLE TABLE. Found by the
+# owner on 2026-09-13, by reading — not by any check here.
+#
+# `docs/PLAN.md` carried a summary table `| Step | What | Status |` inside
+# `## Position`, 960 lines below that section's own header. It said
+# `5a … Not started` while six of `5a`'s eight sub-tasks were done, `4.5 …
+# UNDER WAY` while the header said steps 1-4.5 were all closed, and it had no
+# row for step 4.6 at all. THE SECTION CONTRADICTED ITSELF, and a cleared
+# session reading the table would have concluded the client had not been begun.
+#
+# ⚠️ NOTHING COULD SEE IT. Assertion 1 reads rows marked "THIS IS THE NEXT
+# TASK"; `5a-split-coverage.sh` reads bold-name rows like `| **5a-i** |`. A row
+# spelled `| 5a | … | Not started |` matched neither, and status that no
+# instrument reads is status that only ages.
+#
+# ✅ THE TABLE'S STATUS COLUMN WAS REMOVED RATHER THAN CORRECTED — the shape
+# `#76` chose for HANDBOOK.md. Status belongs in the status log and in each
+# step's own section, and this assertion is what stops a third home appearing.
+note
+BOARD="$(grep -nE '^\|[^|]*\|[^|]*\|[[:space:]]*(Not started|NOT STARTED|Not begun|UNDER WAY|Under way)[[:space:]]*\|' "$PLAN")"
+if [[ -z "$BOARD" ]]; then
+  ok "no second status board — step status lives in the log and the step sections"
+else
+  fail "a step-status summary row is back. This is the defect that made 5a read"
+  echo "      'Not started' with six of its eight sub-tasks done:"
+  cut -d: -f1 <<< "$BOARD" | sed 's/^/        line /'
+  echo "      Put the status in the status log, not in a second table."
+fi
+
+# --- 6. the working tree is not mid-task ----------------------------------
 # A cleared session inherits the filesystem, not the conversation. Uncommitted
 # edits are work it cannot see the reason for.
 note
@@ -132,8 +182,8 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like. The seventh suite here to carry one.
-if (( ran < 5 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 5 — this check asserted almost"
+if (( ran < 6 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 6 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

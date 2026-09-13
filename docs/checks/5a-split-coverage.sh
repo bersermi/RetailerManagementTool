@@ -25,6 +25,11 @@
 # deliverable is the file at `.github/workflows/app.yml`, which is how the parent row
 # names it too.
 #
+# ⚠️⚠️ NEVER QUOTE A TABLE-ROW PATTERN VERBATIM IN `docs/PLAN.md` PROSE. The
+# row readers are anchored to column 0 now, which defuses it — but the rule is
+# cheaper than the defence, and it generalises: PROSE ABOUT A CHECK IS INPUT TO
+# THAT CHECK. Three scripts here were fooled that way on 2026-09-13.
+#
 # Run:  bash docs/checks/5a-split-coverage.sh
 # Exit: 0 all eleven covered; 1 otherwise, naming each failure.
 
@@ -39,7 +44,16 @@ PLAN="${1:-docs/PLAN.md}"
 # Mac as well as on ubuntu-latest. The first spelling used `declare -A`, which failed
 # on the development machine — loudly, and in the right direction, but a check that
 # only runs on one of the two machines that matter is not one.
-row() { grep -m1 -F "| **$1** |" "$PLAN"; }
+# ⚠️⚠️ `| grep "^|"` IS LOAD-BEARING, ADDED 2026-09-13, AND THE BUG IT FIXES WAS
+# WRITTEN BY THE PROSE THAT EXPLAINS THIS CHECK. `docs/PLAN.md` gained a
+# paragraph describing how this file reads rows, and that paragraph QUOTED the
+# row pattern. The quote sits 8,000 lines above the real table, `grep -m1` takes
+# the first hit, and four of `5a-i`'s deliverables instantly read as dropped.
+#
+# The same shape as `conventions-gate.sh`'s comment-stripping trap, hit the same
+# day: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS THE DEFECT.
+# A table row begins at column 0; prose quoting one does not.
+row() { grep -F "| **$1** |" "$PLAN" | grep "^|" | head -1; }
 
 # ⚠️⚠️ EVERY COPY, NOT THE FIRST — added 2026-09-12, and it was added because the
 # single-row reader above HID A STALE CLAIM for the length of one session.
@@ -54,7 +68,7 @@ row() { grep -m1 -F "| **$1** |" "$PLAN"; }
 # CLAIM AGREES." This is the same family as C1.4-and-Facebook and C1.3-in-the-
 # sub-split — a claim is only as true as the copy the check happens to read —
 # and it is the first time the duplicate was a whole ROW rather than a phrase.
-rows_all() { grep -F -e "| **$1** |" -e "| **\`$1\`** |" "$PLAN"; }
+rows_all() { grep -F -e "| **$1** |" -e "| **\`$1\`** |" "$PLAN" | grep "^|"; }
 
 # Does ANY copy of task $1's row match regex $2? Duplicate-safe, so a task
 # stated in two tables counts once for ownership.

@@ -22,6 +22,31 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+⚠️⚠️ **A SIXTH STALE COPY, FOUND BY THE OWNER ON 2026-09-13 BY READING — AND FIXING IT
+PRODUCED A SEVENTH, INSIDE THE FIX.** `## Position` carried a second status table 960
+lines below its own header: `5a … Not started` with **six of eight sub-tasks done**,
+`4.5 … UNDER WAY` where the same section's header said steps 1–4.5 were **all closed**,
+and **no row for step 4.6 at all**. ⚠️ **No instrument here could see it** — `plan-handover.sh`
+reads rows carrying its next-task sentinel, `5a-split-coverage.sh` reads bold sub-task
+rows; a status row of the shape this table used matched neither. ✅ **The status column is
+REMOVED rather than corrected** — `#76`'s shape — so the table is a map and status lives
+in exactly two guarded places. ✅ **`plan-handover.sh` assertion 5 now refuses a second
+status board**, falsified against the exact row the owner spotted.
+
+⚠️⚠️ **AND THE PARAGRAPH EXPLAINING ALL THAT BROKE `5a-split-coverage.sh`.** It quoted the
+row pattern verbatim — the literal `| **5a-i** |` — 8,000 lines above the real table.
+`row()` was `grep -m1`, unanchored, first hit wins, so it read the PROSE and reported
+**four of `5a-i`'s deliverables as dropped by the split.** ⚠️⚠️ **AND THEN IT HAPPENED A
+THIRD TIME, IN THIS VERY PARAGRAPH**: the sentence naming `plan-handover.sh`'s next-task
+sentinel contained that sentinel, so assertion 2 read this write-up instead of the status
+log. ✅ **THE RULE, WRITTEN DOWN IN BOTH SCRIPTS: never quote a check's sentinel string
+verbatim in the file that check reads.** Describe it; do not spell it. ✅ **The row readers now require
+column 0**: a table row starts there and prose quoting one never does. ⚠️ **This is the
+same shape as `conventions-gate.sh`'s comment-stripping trap, hit the same day, in a
+different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS THE DEFECT.**
+Twice in one day is not a coincidence — **prose about a check is input to that check**,
+and neither script had been written with that in mind.
+
 ✅✅ **`5a-iv-a` IS DONE AS OF 2026-09-13 — THE APP RAN ON A PHONE FOR THE FIRST TIME, AND IT CRASHED.**
 ⚠️⚠️ **THE FINDING IS THE BIGGEST ONE THIS PROJECT HAS HAD: `Intl.NumberFormat.prototype.formatToParts`
 DOES NOT EXIST ON HERMES, AND `formatMXN` USED IT.** `TypeError: undefined is not a function`,
@@ -969,9 +994,12 @@ that seed** rather than only over a fixture.
 2026-08-19 was to fix them immediately rather than fold them into the RPC migration, and
 `0010` (task 1.8, below) is that fix: the allocators take the moment an event happened
 instead of the moment it was written, and purchase-price memory decides its prefill from
-the data instead of from a uuid. **Every finding in this file is now closed**, step 1's
-and step 2's alike.
-**Every open decision in this file is closed again** — the purchase-side rounding direction 3.5 found was settled by the owner on 2026-08-26 and shipped the next day. Two
+the data instead of from a uuid. ⚠️ **This paragraph is STEP 1 AND 2's, and it is kept
+because `0010` is still the fix it describes.** Its claim was *"every finding in this
+file is now closed"*, true when written on 2026-08-27 and **not a standing claim** —
+findings since then are recorded per task, and the open ones are in the status log at
+the top of this section.
+~~**Every open decision in this file is closed again**~~ — **true on 2026-08-27, false now**: register #9 and C3.18's opinion half are both open. The sentence is kept only for what follows it, which is still accurate: the purchase-side rounding direction 3.5 found was settled by the owner on 2026-08-26 and shipped the next day. Two
 modelling choices made while building 1.3b, and three from 1.4, are listed below and
 are the owner's to confirm or overturn. A fourth from 1.4 — who gets the purchase
 price prefill — was **confirmed on 2026-08-18** and is closed. All five that remain
@@ -979,18 +1007,34 @@ open are function bodies or a view definition, so revising any of them is a
 `create or replace` in a new migration with no data to migrate — see the corrected
 deadline under *Confirmed by the owner* below.
 
-| Step | What | Status |
-|------|------|--------|
-| 0 | A Postgres you can actually run | **Done** — CI green |
-| 1 | Migrations and seed script | **Done** |
-| 2 | The three Insight queries — *the design gate* | **Done** — three of three, plus the timezone column 2.1 and 2.2 asked for and the spine fix 2.3 found |
-| 3 | Test suites (pgTAP, Vitest) | **Done** — split into 3.1–3.7 on 2026-08-22, 3.6 and 3.7 split again on 2026-09-01; **all ten pieces closed 2026-09-02**. ⚠️ Three of §2.10's nine rows are owed by steps 4 and 4.5, named under *What step 3 does NOT ship* |
-| 4 | RPCs — the write surface of §2.6 | ✅ **DONE 2026-09-05** — split into 4a–4f on 2026-09-03, one migration each, **`0015`–`0022`** (4d re-split 2026-09-04, 4e re-split the same day, 4e-ii again the same day). All six functions applied, 4f last |
-| 4.5 | The failure path | **UNDER WAY** — sized `XL` and **split into 4.5a / 4.5b / 4.5c on 2026-09-05, before any of it was written**, taking `0023`–`0025`. ⚠️ **The split cost NO renumbering** — nothing is downstream of step 4.5. ✅ **4.5a (`0023`) and 4.5b (`0024`) are DONE 2026-09-05**. ⚠️ **`4.5c` WAS RE-SIZED 2026-09-05 FROM `M/L` TO `L` AND SPLIT INTO `4.5c-i` (the replay marker and the exemption, `0025`) / `4.5c-ii` (`replay_failed_write`, `0026`)**, before any of it was written. ✅ **`4.5c-i` IS DONE 2026-09-05** — 84 checks, 21 falsifications, and 4e-ii-a's owed window-basis check closed; **`4.5c-ii` is the LAST task in the database build**. ⚠️ The split cost no renumbering either — `0026` is handed out at the end — but it DID rename the pre-committed overflow seam to `4.5c-i-b` / `4.5c-ii-b`. It still owes the REPLAY MARKER `0021` could not enforce, and inherits 4e-ii-b's *a rule written once per branch needs a check once per branch* |
-| 5a | Client foundation — **hiring gate** | Not started |
-| 5b | Vender and Home | Not started |
-| 6 | Comprar, Desperdicio, Catálogo, Proveedores | Not started |
-| 7 | Números | Not started |
+⚠️⚠️ **THIS TABLE CARRIES NO STATUS, AND THAT IS DELIBERATE AS OF 2026-09-13.** It used
+to, and it was **the sixth instance** of this repository's recurring defect — *a claim is
+only as true as the copy the reader happens to open*. It said `5a … Not started` when six
+of `5a`'s eight sub-tasks were done, `4.5 … UNDER WAY` when the header of this very
+section said steps 1–4.5 were all closed, and **it had no row for step 4.6 at all**.
+⚠️ **No check in this repository could see any of that**: `plan-handover.sh` reads rows
+marked *THIS IS THE NEXT TASK*, and `5a-split-coverage.sh` reads rows whose first cell
+is a bold sub-task name. A row spelled `| 5a | … | Not started |` matched neither.
+
+✅ **So the duplicate is REMOVED rather than guarded**, which is the shape `#76` chose for
+`HANDBOOK.md`. **Status lives in exactly two places**: the status log at the top of this
+section, and each step's own section below. This is a map, not a status board.
+
+| Step | What |
+|------|------|
+| 0 | A Postgres you can actually run |
+| 1 | Migrations and seed script |
+| 2 | The three Insight queries — *the design gate* |
+| 3 | Test suites (pgTAP, Vitest) |
+| 4 | RPCs — the write surface of §2.6 |
+| 4.5 | The failure path |
+| 4.6 | ⚠️ **What the UI/UX grill reopened** — three migrations, `0027`–`0029`. Did not exist before 2026-09-07 |
+| 5a | Client foundation — **hiring gate** |
+| 5b | Vender and Home |
+| 5b.5 | ⚠️ `CONVENTIONS.md`, second pass — ruled by the owner 2026-09-13 |
+| 5c–5i | Offline, Productos, the transaction screen, Comprar, Vender, Facebook |
+| 6 | Comprar, Desperdicio, Catálogo, Proveedores |
+| 7 | Números |
 
 Steps 0–4.5 are the whole system; 5–7 are windows onto it (ADR-035 §3).
 
