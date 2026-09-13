@@ -21,8 +21,8 @@ import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-import { TABS } from '../src/navigation/tabs';
-import { ES } from '../src/strings';
+import { TABS } from '@/navigation/tabs';
+import { ES } from '@/strings';
 
 // ⚠️ THE SHIPPED GLYPH MAP, RESOLVED THROUGH THE PACKAGE. This is the same file
 // the icon component reads at runtime, so a name that is not in it is a blank

@@ -4,10 +4,17 @@ The fourth workspace. **`app/**` is the juniors' side of the seam** (ADR-035 §2
 screens, components, navigation. The money path is deliberately *not* here — it lives
 in `@tienda/money`, owned by the schema owner, for the reason that section gives.
 
+**Read [`docs/CONVENTIONS.md`](../docs/CONVENTIONS.md) before adding a file here.**
+Nine rules, seven of them read by `app.yml` on every pull request — where a file
+goes, how it imports, where the words live, why no number on a screen is a
+literal. It describes this directory as it is, not as it should be.
+
 **Read `docs/PLAN.md` step 5 before adding anything.** Every screen in this app is
 specified there and traced to the question in the 2026-09-07 interview that produced
-it. Nothing in `src/app/` today is one of them: `5a-i` shipped the workspace and the
-workflow that watches it, and the placeholder route exists so there is a route.
+it. ⚠️ **None of them has been built yet.** What `src/app/` holds today is the shell
+`5a-i`–`5a-iii` shipped — the sign-in screen, the tab bar, and three placeholder
+routes that exist so the shell is a real shell. `src/scaffolding/Pendiente.tsx` is
+what stands behind them, and the task that builds each screen deletes it.
 
 | | |
 |---|---|

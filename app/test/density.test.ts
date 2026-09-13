@@ -21,7 +21,7 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { DENSITIES, DENSITY_MODES, MIN_TAP_TARGET, type DensityScale } from '../src/theme/density';
+import { DENSITIES, DENSITY_MODES, MIN_TAP_TARGET, type DensityScale } from '@/theme/density';
 
 const tokens = Object.keys(DENSITIES.normal) as (keyof DensityScale)[];
 
