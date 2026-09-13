@@ -174,6 +174,16 @@ else fail "R2  $r2 violation(s) of the test boundary"; fi
 # Spanish sentence this app says carries one; a single unaccented word typed in
 # place (`'Entrar'`) does not, and this cannot see it. A narrow guard that says
 # what it misses beats a broad one that is believed to catch everything.
+#
+# ⚠️⚠️ AN ALTERNATION AND NOT A BRACKET EXPRESSION, AND THE REASON IS THE OTHER
+# MACHINE. `[áéíóú]` is a set of BYTES, not of characters, wherever the locale
+# is not a UTF-8 one — this runs on the owner's Mac and on ubuntu-latest, which
+# do not agree about that, and the failure would be silent in the worse
+# direction: a rule that quietly stops recognising Spanish. Each alternative
+# below is matched as a literal multi-byte string, which is locale-independent.
+# The same family as the bash 3.2 trap two other checks here already recorded:
+# a check that only works on one of the two machines that matter is not one.
+ACCENTS='á|é|í|ó|ú|Á|É|Í|Ó|Ú|ñ|Ñ|¿|¡'
 note
 r4=0
 for f in $(src_files); do
@@ -181,7 +191,7 @@ for f in $(src_files); do
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     r4=$((r4+1)); offend "$f" "$line"
-  done < <(code "$f" | grep -E "['\"\`][^'\"\`]*[áéíóúÁÉÍÓÚñÑ¿¡][^'\"\`]*['\"\`]")
+  done < <(code "$f" | grep -E "$ACCENTS" | grep -E "['\"\`]")
 done
 if (( r4 == 0 )); then ok "R4  src/strings.ts is the only module with Spanish in it"
 else fail "R4  $r4 Spanish literal(s) outside src/strings.ts"; fi
