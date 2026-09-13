@@ -43,6 +43,13 @@
 # owner's Mac as well as on ubuntu-latest — the trap `5a-split-coverage.sh` and
 # `plan-handover.sh` both recorded, hit again by the next script written.
 #
+# ⚠️ WHEN YOU ADD OR CHANGE A RULE HERE, RE-FALSIFY IT.
+# `docs/checks/conventions-gate-falsify.sh` is the harness — sixteen fixtures,
+# fifteen of which must turn this file RED and one of which must leave it GREEN.
+# It is the only falsification harness committed in this repository, and its
+# header says why. A new rule with no fixture is a rule nobody has shown can
+# fail, which is rule 4 of this repository exactly.
+#
 # Run:  bash docs/checks/conventions-gate.sh
 # Exit: 0 every enforced rule holds; 1 otherwise, naming the rule and the file.
 

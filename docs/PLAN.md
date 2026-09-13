@@ -8693,7 +8693,21 @@ comment naming *every* banned token at once, which must stay **green**.
 | **5** | **Five test imports rewritten to `@/`** | See above. ⚠️ It is app code changed by a documentation task, which is why it is named here — but the alternative was publishing `R1` already false |
 | **6** | **The gate runs LAST in `app.yml`, after typecheck and the suite** | Those assert correctness; this asserts form. A red form check ahead of a red correctness check hides it and costs a round trip. Reversing is moving four lines |
 
-##### Fifteen falsifications, run by hand — thirteen before `5a-iv-b` merged, two with the `5b.5` cross-check the next day
+##### Sixteen falsifications — and ⚠️ **THIS IS THE ONE HARNESS IN THIS REPOSITORY THAT IS COMMITTED**
+
+⚠️⚠️ **`docs/checks/conventions-gate-falsify.sh`, added 2026-09-13 with the owner's
+agreement, and it is a deliberate break with precedent.** Every task from `4a` onwards
+falsified its checks by hand, recorded the fixtures as a table here, and threw the
+harness away — right for a pgTAP suite, which is falsified once and then finished.
+**`conventions-gate.sh` is not finished**: `R10` was added the same day after
+`formatToParts` crashed the app, and `R11` is already expected at `5b.5`. Every such
+edit needs the gate re-proved, and re-deriving sixteen fixtures from a table of prose
+costs more than keeping them. ⚠️ **The gate's own header now says so**, so a session
+adding `R11` is told to re-falsify rather than left to decide.
+
+⚠️ **Porting it out of the scratchpad found two defects in it**: it carried a hardcoded
+home directory, and `sed -i ''` is BSD-only — **the fourth script here to hit the
+two-machine trap**, after `declare -A`, `mapfile` and a multibyte bracket expression.
 
 Every fixture is a copy of the tree with one thing broken, **diffed against the original
 before the check runs** — the trap `5a-i` recorded, where a fixture that edited nothing
