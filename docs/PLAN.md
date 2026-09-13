@@ -85,6 +85,36 @@ cannot create a free team's first provisioning profile because it never passes
 where `devicectl install` goes straight through. ⚠️ **`14/14 — this Mac can build, sign and
 install` was not a supported claim**: it rested on a Release-on-SIMULATOR build, which needs
 no provisioning at all. The same shape `#75` recorded, in the file `#75` wrote.
+✅✅ **`5a-iv-c-1` IS DONE AS OF 2026-09-13 — this Mac can build for Android and run what
+it builds, and `5a-iv-c-2` IS THE NEXT TASK.** JDK 17, the SDK, `adb`, build-tools 36.1.0,
+platform 36, and an **`arm64-v8a`** AVD. `docs/checks/5a-iv-c-toolchain.sh` reads **14/14**,
+and the last three of those are a **booted** emulator: `adb` sees it, it reaches
+`sys.boot_completed=1`, and **its ABI is read off the running device with `getprop`** rather
+than inferred from the name of the image that was downloaded.
+⚠️⚠️ **AND THE CHECK'S FIRST SPELLING WAS A SEVENTH SHAPE OF MISLEADING GREEN, CAUGHT BY ITS
+OWN FALSIFICATION.** It asserted that a shell nobody configured can find the SDK — and it
+asked by spawning `zsh -c` and printing `$ANDROID_HOME`. **A child shell inherits its
+parent's environment**, so it printed the value the script already had and never consulted a
+startup file at all. Fixture `T1` hid every startup file behind an empty `ZDOTDIR` and **the
+assertion stayed green.** ✅ Fixed with `env -u`, which makes the startup file the only way
+the variables can come back. ⚠️ **It would have passed for exactly one person — whoever was
+still in the shell that installed the SDK** — and reported nothing for a fresh terminal
+tomorrow. Same family as `#75`'s simulator build: *an assertion that passes while measuring
+something adjacent to its own claim.*
+⚠️ **A second finding, and it is why the exports are in `~/.zshenv` and not `~/.zshrc`**,
+which is what Android's own documentation says. `zsh` sources `.zshrc` for **interactive**
+shells; `-l` makes a shell a *login* shell, which is a different thing. The first
+arrangement was correct, the first test of it read `zsh -lc`, and **a correct machine
+reported nothing installed.** ✅ **The stricter home was chosen over the looser test**:
+`.zshenv` is read by every `zsh`, including the plain `zsh -c` that a build tool or an agent
+session spawns — which is the case that actually matters and the one `.zshrc` would have
+missed silently.
+⚠️ **Nothing in this repository changed except `docs/`** — the toolchain lives on the
+machine, and `docs/checks/5a-iv-c-toolchain.sh` is the only record of it. ⚠️ **It cannot run
+in CI** (no SDK on a runner, and booting an emulator needs virtualisation a runner does not
+offer), so it has `5a-iv-a-preflight.sh`'s standing: not evidence in the sense of §9, but
+the local instrument for a surface with no file in this repository.
+
 ⚠️⚠️ **`5a-iv-c` WAS RE-SIZED 2026-09-13 BEFORE IT WAS TAKEN — IT IS AN `L`, NOT THE `S/M`
 THIS FILE CARRIED, AND IT SPLITS THREE WAYS. `5a-iv-c-1` IS THE NEXT TASK.**
 ⚠️ **The re-size was a MEASUREMENT of this Mac, not a guess**, because that is the one
@@ -8481,8 +8511,8 @@ a **cold Gradle build**, which on a first run resolves a dependency cache of its
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅ **Ungated.** Needs no hardware, no Apple ID, no owner input |
-| **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, but it needs `5a-iv-c-1` finished |
+| **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅✅ **DONE 2026-09-13.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` reads 14/14, three of them over a *booted* `arm64-v8a` emulator. ⚠️ **Its own first spelling was misleading green** — see the log |
+| **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, and `5a-iv-c-1` is finished — 14/14 on 2026-09-13 |
 | **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ⚠️⚠️ **THE SCHEDULING GATE, AND IT BINDS ONLY THIS ROW.** One evening, unbooked. ⚠️ **It is on no critical path** — nothing else in `5a` waits for it |
 
 **Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
@@ -8517,6 +8547,36 @@ check that asserts nothing, which is this repository's rule 4.
 caught by the check's first run.** `register #13`'s smoke test was claimed by both the
 rehearsal and the borrowed evening, which is the *"owned by neither"* shape three levels
 of this split have now produced. **The row was corrected, not the check.**
+
+##### ✅✅ `5a-iv-c-1` closed 2026-09-13 — what was installed, and the check that looked at it
+
+| | |
+|---|---|
+| JDK | **17.0.20.1**, Homebrew `openjdk@17`, keg-only. ⚠️ The sudo symlink into `/Library/Java/JavaVirtualMachines` is **deliberately not done** — Gradle reads `JAVA_HOME` |
+| SDK root | `~/Library/Android/sdk` — **not** a Homebrew prefix, so 4.3 GB of system images survive a package upgrade and Android Studio adopts this SDK rather than downloading a second one |
+| Packages | `platform-tools` (adb 37.0.1), `platforms;android-36`, `build-tools;36.1.0`, `emulator`, `system-images;android-36;google_apis;arm64-v8a` |
+| AVD | `wera-android-36`, Pixel 7 profile, **`arm64-v8a`** |
+| Environment | `~/.zshenv` — see the log for why not `~/.zshrc` |
+
+**Six falsifications over `docs/checks/5a-iv-c-toolchain.sh`.**
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **T1** | ⚠️⚠️ **Every shell startup file hidden behind an empty `ZDOTDIR`** | 🟢 **GREEN — AND THAT WAS THE DEFECT.** The assertion spawned a child shell, which *inherits* its parent's environment, so it read the value the script already held. ✅ Fixed with `env -u`; 🔴 after |
+| **T2** | `JAVA_HOME` pointed at a JDK that is not there | 🔴 *"does not export JAVA_HOME at a runnable JDK"* + the AGP-floor assertion |
+| **T3** | The AVD renamed out from under the check | 🔴 *"no loadable AVD named …"* |
+| **T4** | ⚠️ **`arm64-v8a` swapped for `x86_64` against the RUNNING arm64 device** | 🔴 *"the running device reports ABI 'arm64-v8a', wanted x86_64"* — proof the ABI is measured, not read off a package name |
+| **T5** | Four assertions deleted outright | 🔴 *"only 8 assertions ran, fewer than the 11 this file contains"* |
+| **T6** | `--no-boot` | 🟢 by design, and it **refuses to print the full claim** — *"the packages are present and NOT that this Mac can run them"* |
+
+⚠️⚠️ **T1 is the one worth keeping.** The check's sentence was *"a shell nobody configured
+can find the SDK"*, and what it actually measured was *"this script's own environment has
+the variable"* — two claims that agree for exactly one person, whoever is still in the shell
+that ran the installer, and diverge for everyone opening a terminal tomorrow. **It is the
+seventh shape of misleading green recorded here**, and the closest relative of `#75`'s
+`14/14 — this Mac can build, sign and install`, which rested on a build for the simulator.
+⚠️ **Both were caught by falsifying, not by reading**, and in both cases the number printed
+was the number the author wanted to see.
 
 ##### ⚠️ C1.4 IS THE THIRD DELIVERABLE IN THIS FILE THAT IS A LIST, AND THE FIRST TWO BOTH DREW BLOOD
 
@@ -9513,8 +9573,8 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ✅✅ **DONE 2026-09-13.** Five of six readings taken on the owner's iPhone 15; ⚠️ **C3.18's opinion half is still owed** (see below). ✅✅ **THE PRE-CHECK PASSED — `5a-iv-d` IS FREE, NO $99.** ⚠️⚠️ **It found a CRASH: `formatToParts` is absent on Hermes and took the app down on launch, with 26 green assertions over it.** |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
 | **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
-| **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated** — no hardware, no Apple ID, no owner input. Ends at `adb devices` showing a booted emulator, proved by `docs/checks/5a-iv-c-toolchain.sh` rather than by a screenshot |
-| **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, but needs `5a-iv-c-1` finished |
+| **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
+| **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated**, and its machine is ready — `5a-iv-c-1` closed 2026-09-13 at 14/14 |
 | **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ⚠️⚠️ **The scheduling gate: one evening with a relative's Android** (confirmed by the owner 2026-09-12), unbooked. ⚠️ **On no critical path** — nothing else in `5a` waits for it |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
