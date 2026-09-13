@@ -85,11 +85,33 @@ cannot create a free team's first provisioning profile because it never passes
 where `devicectl install` goes straight through. ⚠️ **`14/14 — this Mac can build, sign and
 install` was not a supported claim**: it rested on a Release-on-SIMULATOR build, which needs
 no provisioning at all. The same shape `#75` recorded, in the file `#75` wrote.
-✅ **`5a-iv-c` (Android, on real hardware) IS THE NEXT TASK.** ⚠️ **What gets taken is the
-TOOLCHAIN half, which is ungated** — Android Studio, the SDK, `adb`, and a Release build on
-the emulator — so that the one borrowed evening is a sitting and not a setup. `5a-iv-a` is
-the argument for doing it that way: its Mac half *was* prepared in advance and the evening
-still lost an hour to three things nobody had measured.
+⚠️⚠️ **`5a-iv-c` WAS RE-SIZED 2026-09-13 BEFORE IT WAS TAKEN — IT IS AN `L`, NOT THE `S/M`
+THIS FILE CARRIED, AND IT SPLITS THREE WAYS. `5a-iv-c-1` IS THE NEXT TASK.**
+⚠️ **The re-size was a MEASUREMENT of this Mac, not a guess**, because that is the one
+lesson `5a-iv-a` cost an hour to learn: *"nothing else blocks it"* had been written about
+the Mac without looking at it. Looked at, on 2026-09-13: **no Android Studio, no SDK, no
+`adb`, and — the one nobody had named — NO JDK OF ANY KIND.** `java -version` reports
+*"Unable to locate a Java Runtime."* ⚠️ **`@react-native/gradle-plugin` pins AGP `8.12.0`
+and Kotlin `2.1.20`, so the floor is JDK 17**, and that is a fourth download nobody had
+counted. Roughly **4–5 GB across five independent installers**, then a cold Gradle build,
+is not an `S/M`.
+✅ **The three pieces, and the seam is what each one can be WRONG about:**
+**`5a-iv-c-1`** the toolchain — JDK, SDK, `adb`, an emulator that boots, and nothing from
+this repository involved; **`5a-iv-c-2`** the Release rehearsal — `expo prebuild`, an APK,
+installed and launched, which is register #13's emulator smoke test and the first thing
+that can be wrong about *the app*; **`5a-iv-c-3`** the borrowed evening on C1.1's real
+Oppo and Samsung, which is the only piece the scheduling gate binds.
+⚠️⚠️ **`5a-iv-c-2` IS WHERE A REAL FINDING IS LIKELY, AND IT IS `R10` AGAIN.** `R10` says
+`Intl` in the client is an allow-list of *"what has been measured on a phone"* — and every
+word of that measurement was taken on **iOS Hermes**, on 2026-09-13. Android Hermes is a
+**different ECMA-402 backing implementation**, so `format()` working on an iPhone is not
+evidence about an Oppo. **The rule is right and its evidence covers one of the two
+runtimes the pilot ships to.** `5a-iv-c-2` is the first instrument that can say.
+
+✅ **`5a-iv-a`'s argument is why the toolchain half runs ahead of the evening at all**: its
+Mac half *was* prepared in advance and the evening still lost an hour to three things
+nobody had measured. Preparing it did not make the preparation sufficient — it made the
+hour visible.
 
 ✅✅ **TWO RULINGS FROM THE OWNER, 2026-09-13 — *"keep it in docs/, and do the second
 pass after 5b."*** Both close questions `5a-iv-b` raised the day before.
@@ -8416,7 +8438,7 @@ bringing the $99 forward to buy an iPhone build that outlives the measurement.
 |---|---|---|---|
 | **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️⚠️ **ONE THING BLOCKS IT AND IT IS NOT THE HARDWARE: THE MAC HOLDS NO CODE-SIGNING IDENTITY AND NO APPLE ID** — measured 2026-09-12, along with three other things *"nothing else blocks it"* had not looked at. The other three were cleared the same day. ✅ **Run `docs/checks/5a-iv-a-preflight.sh` first** |
 | **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md`, nine rules, seven of them read by `docs/checks/conventions-gate.sh` in `app.yml`. ⚠️ **Taken OUT OF ORDER, ahead of `5a-iv-a`**, because `5a-iv-a` needs an Apple ID only the owner can type and this needs nothing. See the write-up below |
-| **`5a-iv-c`** | **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
+| **`5a-iv-c`** | ⚠️⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13, BEFORE IT WAS TAKEN — see the sub-split below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android**, prepared for in advance — ⚠️⚠️ **and that gate binds `5a-iv-c-3` ALONE.** The other two pieces are ungated, which is the whole reason this row was split rather than scheduled |
 | **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task, AND IT IS NOW FIXED.** ✅ The `5a-iv-a` day-0 pre-check PASSED on 2026-09-13, so this is free — no $99. **Day 0 is 2026-09-13; the reading is due 2026-09-21.** ⚠️⚠️ **The free profile expires `2026-09-20T06:19:32Z`, which is BEFORE the reading** — re-deploy (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`) and only THEN open and look. **Do not open Wera in between; launching it restarts the measurement.** |
 
 **Why `a` is one task and not three.** The build, the round trip and the four
@@ -8433,6 +8455,68 @@ for eight days is a task whose other deliverables sit unmerged behind it. ⚠️
 and `src/api` exist is a guess at what the conventions will be, and the close of
 `5a-iv-a` is the first moment there is a pattern to describe. It needs no hardware, so
 it is the thing to do **during** the wait rather than after it.
+
+##### ⚠️⚠️ Re-sized 2026-09-13 — `5a-iv-c` IS AN `L`, NOT THE `S/M` THIS FILE CARRIED, AND IT SPLITS THREE WAYS
+
+⚠️ **The `S/M` was written on 2026-09-11 by someone who had not run `which adb`.** It is
+the same defect `5a-iv-a`'s Mac half found in its own gate cell a day later — *"nothing
+else blocks it"*, written without looking at the machine — and the correction here is the
+same one: **measure the machine, then size.**
+
+**Measured on the owner's Mac, 2026-09-13** (`arm64`, macOS 25.5, 223 GB free, Homebrew 6.0.22):
+
+| Thing the `S/M` assumed | What is actually there |
+|---|---|
+| Android Studio | ⚠️ absent — `/Applications/Android Studio.app` does not exist |
+| The SDK | ⚠️ absent — `~/Library/Android/sdk` does not exist |
+| `adb` | ⚠️ absent — not on `PATH`; `ANDROID_HOME`/`ANDROID_SDK_ROOT` unset |
+| A JDK | ⚠️⚠️ **absent, and NOBODY HAD COUNTED IT.** `java -version` → *"Unable to locate a Java Runtime."* `@react-native/gradle-plugin` pins AGP `8.12.0` / Kotlin `2.1.20`, so the floor is **JDK 17** |
+| An emulator image | ⚠️ absent, and on `arm64` it must be an `arm64-v8a` system image — an `x86_64` one boots under emulation slowly enough to be useless |
+
+✅ **Four independent installers plus a system image is roughly 4–5 GB of download**, then
+a **cold Gradle build**, which on a first run resolves a dependency cache of its own. The
+`S/M` was a description of the *outcome* — "a build on an emulator" — not of the work.
+
+**The split, and where the seams are**
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **`5a-iv-c-1`** | **The toolchain, and an emulator that boots.** JDK 17, the Android SDK (command-line tools, `platform-tools`, a platform, build-tools), the emulator, an `arm64-v8a` system image, an AVD, and the licences accepted. ⚠️ **Nothing from this repository is involved** — no `prebuild`, no Gradle, no app. That is the seam: this piece can only be wrong about **the machine**. ✅ Ends at `adb devices` listing a booted emulator, and a check that says so. | `M` | ✅ **Ungated.** Needs no hardware, no Apple ID, no owner input |
+| **`5a-iv-c-2`** | **The Release rehearsal.** `expo prebuild -p android` (the folder is generated, not committed — `/android` is already in `app/.gitignore`), a **Release** APK, installed on the AVD and launched. ⚠️ **This is decision register #13's emulator smoke test**, discharged literally. ⚠️⚠️ **It is also the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, but it needs `5a-iv-c-1` finished |
+| **`5a-iv-c-3`** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. A relative's Android for ONE EVENING (confirmed by the owner 2026-09-12). | `S` | ⚠️⚠️ **THE SCHEDULING GATE, AND IT BINDS ONLY THIS ROW.** One evening, unbooked. ⚠️ **It is on no critical path** — nothing else in `5a` waits for it |
+
+**Why `1` and `2` are separate, when `5a-iv-a` argued the opposite.** `5a-iv-a` was kept
+whole because its pieces all needed *the phone in your hand at the same moment*. These two
+need nothing in the room. What they have instead is **a sharp boundary of blame**: if the
+emulator will not boot, that is `1` and it is about this Mac; if the APK will not launch on
+it, that is `2` and it is about the app. ⚠️ **Merged, a red screen is ambiguous between
+them**, and an ambiguous failure on a multi-gigabyte install is the kind that gets
+re-diagnosed from scratch after a context clear.
+
+**Why `3` stayed a row rather than becoming the parent's gate.** It is the only piece the
+evening blocks. Left inside a single `5a-iv-c`, the ungated 90% of the task inherits a gate
+it does not have — which is exactly how a task with a scheduling dependency stops being
+worked on at all.
+
+**Eight falsifications, run by hand before this split was committed.**
+`5a-split-coverage.sh` grew a `5a-iv-c` block; a check that has never been red is a
+check that asserts nothing, which is this repository's rule 4.
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **Q1** | ⚠️⚠️ **The borrowed evening re-attached to `5a-iv-c-1`'s gate** — the exact defect the split exists to fix | 🔴 *"re-attaches a scheduling dependency to the piece that needs NO hardware"* |
+| **Q2** | The JDK softened to *"a Java runtime"* in `5a-iv-c-1` | 🔴 *"no longer names the JDK … the reason this row is an L"* |
+| **Q3** | The build-order copy of `5a-iv-c-2` deleted | 🔴 *"no table row for 5a-iv-c-2"* |
+| **Q4** | ⚠️ **Only the SIZING copy of `5a-iv-c-2` deleted, leaving one** — the 2026-09-12 stale-duplicate shape | 🔴 *"has 1 row(s) … BOTH are read"* |
+| **Q5** | `arm64-v8a` claimed by the rehearsal as well as the toolchain | 🔴 *"appears in 5a-iv-c-1 5a-iv-c-2 — owned by neither"* |
+| **Q6** | `5a-iv-c-3`'s gate reworded so it no longer names the evening | 🔴 *"the only piece the scheduling dependency binds — unnamed … 'later' becomes 'never'"* |
+| **Q7** | Every `5a-iv-c-1` row removed | 🔴 *"no table row for 5a-iv-c-1"* |
+| **Q8** | ✅ **A benign prose edit inside this section** | 🟢 — it does not fire on any change to the file |
+
+⚠️ **Q5 was not a fixture first; it was a real defect in the first draft of these rows,
+caught by the check's first run.** `register #13`'s smoke test was claimed by both the
+rehearsal and the borrowed evening, which is the *"owned by neither"* shape three levels
+of this split have now produced. **The row was corrected, not the check.**
 
 ##### ⚠️ C1.4 IS THE THIRD DELIVERABLE IN THIS FILE THAT IS A LIST, AND THE FIRST TWO BOTH DREW BLOOD
 
@@ -9428,7 +9512,10 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 | **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ✅✅ **DONE 2026-09-13.** Five of six readings taken on the owner's iPhone 15; ⚠️ **C3.18's opinion half is still owed** (see below). ✅✅ **THE PRE-CHECK PASSED — `5a-iv-d` IS FREE, NO $99.** ⚠️⚠️ **It found a CRASH: `formatToParts` is absent on Hermes and took the app down on launch, with 26 green assertions over it.** |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
-| **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `S/M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ⚠️ The borrowed evening is a SCHEDULING gate, not a code one — **the toolchain half is ungated and is what gets taken**: Android Studio, the SDK, `adb`, and a Release build produced on the emulator, so the borrowed evening is a sitting rather than a setup. That is exactly what `5a-iv-a` proved the value of — its Mac half was prepared in `#75` and the evening still lost an hour to three things nobody had measured. |
+| **5a-iv-c** | ⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13 — see the sizing below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android** — ⚠️⚠️ **a SCHEDULING gate that binds `5a-iv-c-3` ALONE.** The first two pieces are ungated. The `S/M` was written without running `which adb`; measured, this Mac has no SDK, no `adb` and **no JDK at all** |
+| **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** ✅ **Ungated** — no hardware, no Apple ID, no owner input. Ends at `adb devices` showing a booted emulator, proved by `docs/checks/5a-iv-c-toolchain.sh` rather than by a screenshot |
+| **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅ **Ungated**, but needs `5a-iv-c-1` finished |
+| **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ⚠️⚠️ **The scheduling gate: one evening with a relative's Android** (confirmed by the owner 2026-09-12), unbooked. ⚠️ **On no critical path** — nothing else in `5a` waits for it |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo

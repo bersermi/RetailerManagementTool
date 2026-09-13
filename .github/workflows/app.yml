@@ -53,6 +53,16 @@ on:
       # closing `5b.5` in the plan alone is exactly the edit that would
       # otherwise leave the page sending juniors to a task that no longer exists.
       - "docs/PLAN.md"
+      # ⚠️⚠️ AND THE TWO PLAN GUARDS, ADDED 2026-09-13 WITH THE `5a-iv-c` SPLIT.
+      # Until that day NEITHER `plan-handover.sh` NOR `5a-split-coverage.sh` was
+      # run by any workflow — they existed, they were thorough, and they had
+      # only ever been run by hand by the session that wrote them. That is this
+      # repository's founding rule failing on the file the rule is kept in:
+      # "a file is not evidence; a green CI run is" (ADR-035 §9), and a guard
+      # nobody runs is a file. It is also the specific way the six stale-copy
+      # defects survived — every one of them was found by a person reading.
+      - "docs/checks/plan-handover.sh"
+      - "docs/checks/5a-split-coverage.sh"
 
 concurrency:
   group: app-${{ github.ref }}
@@ -134,3 +144,23 @@ jobs:
       # its position here costs nothing but the ordering.
       - name: Conventions — is docs/CONVENTIONS.md still true of app/ (plan 5a-iv-b)
         run: bash docs/checks/conventions-gate.sh
+
+      # ⚠️⚠️ THE TWO PLAN GUARDS, WIRED IN 2026-09-13 (plan task 5a-iv-c-1).
+      #
+      # They are not new — `5a-split-coverage.sh` has been catching real defects
+      # since 2026-09-11 and `plan-handover.sh` since 2026-09-13. What is new is
+      # that a machine runs them. Before this, BOTH were hand-run by whichever
+      # session happened to remember, which means their green was a claim about
+      # that session's diligence and not about the file. `docs/PLAN.md` is the
+      # one file a cleared session reads to decide what to do next; it is also
+      # the file with six recorded stale-duplicate defects, five of them found
+      # by a person reading rather than by either of these scripts running.
+      #
+      # ⚠️ `plan-handover.sh` asserts a clean working tree. On a checkout that
+      # is free, which is the point: the assertion is aimed at the owner's Mac,
+      # where it is not.
+      - name: Plan — can a cleared session find the next task (plan 5a-iv-c-1)
+        run: bash docs/checks/plan-handover.sh
+
+      - name: Plan — did any split lose a deliverable (plan 5a-iv-c-1)
+        run: bash docs/checks/5a-split-coverage.sh
