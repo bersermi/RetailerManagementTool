@@ -244,6 +244,46 @@ Then add it here and to the gate's allow-list, with the date you measured it.
 `formatToParts` were written in the same step. Writing the warning is not the
 same as taking it.
 
+⚠️⚠️ **AND THE SECOND RUNTIME WAS MEASURED ON 2026-09-13, PLAN TASK `5a-iv-c-2`
+— IT DISAGREES WITH THE FIRST, AND THAT IS WHY THIS IS AN INTERSECTION AND NOT
+A LIST.** A Release APK on an API-36 emulator, the strings read back out of the
+running app's view hierarchy as code points:
+
+| Probe | Android Hermes | Code points |
+|---|---|---|
+| `format(1)`, currency es-MX/MXN | `$1.00` | `24 31 2e 30 30` |
+| `format(-1)` | `-$1.00` | `2d 24 31 2e 30 30` |
+| `format(1234.5)` | `$1,234.50` | `24 31 2c 32 33 34 2e 35 30` |
+| `resolvedOptions()` | `locale=es-MX currency=MXN useGrouping=true` | |
+| `formatMXN(123450)` | `$1,234.50` | `24 31 2c 32 33 34 2e 35 30` |
+| `formatMXN(0)` | `$0` | `24 30` |
+| `formatMXN(-99)` | `-$0.99` | `2d 24 30 2e 39 39` |
+
+✅ **`format` and `resolvedOptions` now have evidence on BOTH runtimes**, and
+C12.2's two promises — comma thousands, point decimals — hold byte-for-byte on
+each. No `MX$`, no `U+00A0`, no comma decimal.
+
+⚠️⚠️ **THE FINDING: `Intl.NumberFormat.prototype.formatToParts` IS A FUNCTION ON
+ANDROID HERMES.** The name that terminated the app on an iPhone is simply
+*there* on the other platform. Hermes gets ECMA-402 from the host — Apple's
+Foundation on one side, Android's ICU on the other — so **the surface is a
+property of the PLATFORM, not of the engine**, and two devices running "Hermes"
+do not agree about what exists.
+
+⚠️⚠️ **SO THE ALLOW-LIST IS THE INTERSECTION OF THE RUNTIMES THE PILOT SHIPS TO,
+AND A SINGLE GREEN DEVICE IS NOT A MEASUREMENT — IT IS ONE OF TWO.** Had Android
+been measured first, `formatToParts` would have read as present and correct, and
+the crash would have shipped to the iPhone half of the pilot (**C1.1**: an
+iPhone 11 and an iPhone 15 are two of the four devices). ⚠️ **The date beside a
+name below is the date it was measured on the runtime that is WORST about it**,
+and a name stays banned while any shipping platform has not been asked.
+
+⚠️ Also measured, and also still banned: `Intl.PluralRules` is `undefined` on
+Android Hermes (`new Intl.PluralRules(…)` → *"undefined cannot be used as a
+constructor"*, which is the fixture `5a-iv-c-2`'s check was falsified with);
+`Intl.DateTimeFormat` and `Intl.Collator` are functions on Android and have
+never been asked on iOS. **Present on one platform is not a measurement.**
+
 **Checked by:** `docs/checks/conventions-gate.sh`, R10.
 
 ### R9 — A deliverable no check can see is written down as such, and routed to the task that can see it

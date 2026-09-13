@@ -377,6 +377,19 @@ else fail "R7  $r7 place(s) reading the environment outside the one module that 
 # ⚠️ IT IS AN ALLOW-LIST. The names below are not "known missing" — they are
 # UNMEASURED, which is the same thing until someone puts one on a phone. Adding
 # one is not a code change, it is a measurement plus a code change.
+#
+# ⚠️⚠️ AND IT IS AN INTERSECTION, WHICH WAS MEASURED ON 2026-09-13, PLAN TASK
+# `5a-iv-c-2`. A Release APK on an Android emulator says `formatToParts` IS A
+# FUNCTION. Hermes takes ECMA-402 from the host — Foundation on iOS, ICU on
+# Android — so the surface is a property of the PLATFORM and two devices running
+# "Hermes" do not agree about what exists. The name that killed the app on an
+# iPhone works on an Oppo.
+#
+# SO A NAME STAYS IN THE BANNED LIST WHILE ANY SHIPPING PLATFORM HAS NOT BEEN
+# ASKED, AND ONE GREEN DEVICE IS ONE OF TWO. `PluralRules` is `undefined` on
+# Android and unasked on iOS; `DateTimeFormat` and `Collator` are functions on
+# Android and unasked on iOS. `format` and `resolvedOptions` are the only two
+# with evidence from both.
 note
 INTL_ALLOWED='format|resolvedOptions'
 INTL_BANNED='formatToParts|formatRangeToParts|formatRange|selectRange|supportedLocalesOf|Segmenter|RelativeTimeFormat|ListFormat|DisplayNames|PluralRules|Collator'
