@@ -55,6 +55,27 @@ never records the owner owning, and it treated a ceiling as fatal without measur
 five-minute pre-check** — sign in, re-deploy, open, *still signed in?* — because an
 expired profile stops the app launching and does not touch the SQLite file the session
 lives in. **That one answer decides whether the $99 is needed at all.**
+✅✅ **THE MAC HALF OF `5a-iv-a` WAS PREPARED 2026-09-12, AND IT FOUND THAT THE GATE CELL
+WAS FALSE IN FOUR MEASURED WAYS.** *"Nothing else blocks it"* had been written without
+looking at the machine: `xcode-select` pointed at the Command Line Tools while Xcode 26.6
+sat unused in `/Applications`, CocoaPods was absent, no native project had ever been
+generated, and the keychain held **zero code-signing identities**. Three were cleared the
+same day, and the app's native side compiled for the first time — `** BUILD SUCCEEDED **`,
+with a 3.4 MB embedded bundle. ⚠️ **The fourth is the owner's and cannot be delegated: an
+Apple ID typed into Xcode.** ⚠️ **Where exactly the seven-day clock starts was NOT
+measured** — a free personal team's provisioning profile is created when Xcode signs a
+build, and its certificate when the Apple ID is added, and this session held neither. It
+does not change the instruction, because both happen minutes apart in one sitting, which
+is where the run sheet puts the pre-check.
+⚠️⚠️ **AND THE PREPARATION FOUND THE ONE THAT WOULD HAVE VOIDED THE EIGHT-DAY READING
+WITHOUT SAYING SO: `npx expo run:ios` DEFAULTS TO `Debug`, AND A DEBUG BUILD CONTAINS NO
+JAVASCRIPT** — `AppDelegate.swift` asks Metro for it, so the app **cannot launch with the
+Mac out of the room**. On day 8 that returns a red screen about a development server, not
+a reading. ✅ **`--configuration Release` is mandatory**, and
+`docs/checks/5a-iv-a-preflight.sh` (14 assertions, 13 green, 7 falsifications) pins the
+*reason* rather than the command. ✅ **`docs/checks/5a-iv-a-runsheet.md` is the sitting
+itself, as a form with boxes** — four of the six readings are opinions, and an opinion not
+written down at the time becomes a memory of one.
 ✅✅ **`5a-iii-b` IS DONE AS OF 2026-09-11 — Google and C1.3's last screen.** 132 assertions, 15 falsifications, all red,
 plus three over the gate. ✅ **THE GATE IS CLOSED AS OF 2026-09-12 — the owner added
 `mx.bserafin.wera://**` to the Supabase dashboard's Redirect URLs.** ⚠️⚠️ **AND NO CHECK
@@ -8244,7 +8265,7 @@ bringing the $99 forward to buy an iPhone build that outlives the measurement.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️ **The owner's Mac and his own iPhone 15.** Nothing else blocks it |
+| **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️⚠️ **ONE THING BLOCKS IT AND IT IS NOT THE HARDWARE: THE MAC HOLDS NO CODE-SIGNING IDENTITY AND NO APPLE ID** — measured 2026-09-12, along with three other things *"nothing else blocks it"* had not looked at. The other three were cleared the same day. ✅ **Run `docs/checks/5a-iv-a-preflight.sh` first** |
 | **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | — |
 | **`5a-iv-c`** | **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
 | **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
@@ -8333,6 +8354,152 @@ lives in a paragraph; the guard makes it live in a check. Same role as `5i`'s G5
 ⚠️ **What this sizing did NOT do:** it took no hardware decision. Whether the $99 comes
 forward is the owner's, it is decision 1 above, and **Android was chosen precisely so
 that it does not have to be answered today.**
+
+
+##### ⚠️⚠️ Prepared 2026-09-12, before the sitting — *"NOTHING ELSE BLOCKS IT"* WAS FALSE IN FOUR MEASURED WAYS
+
+`5a-iv-a`'s gate cell read **"the owner's Mac and his own iPhone 15. Nothing else
+blocks it."** ⚠️ **That sentence was written without looking at the Mac.** It was looked
+at on 2026-09-12, and it is the same shape as everything else this plan keeps finding: a
+claim that was true of nothing in particular, believed because nobody had run the two
+commands that settle it.
+
+| | What the gate assumed | What the Mac held, measured | Cleared |
+|---|---|---|---|
+| 1 | Xcode is the toolchain | `xcode-select -p` → `/Library/Developer/CommandLineTools`. **Xcode 26.6 is installed and was not being used** — no `xcodebuild`, no iOS SDK, no device path | ✅ without sudo, via `DEVELOPER_DIR` |
+| 2 | CocoaPods is present | It is not. ⚠️ **And `gem install` is the wrong fix** — this Mac's system Ruby is 2.6, below what current CocoaPods supports | ✅ `brew install cocoapods` → 1.17.0 |
+| 3 | There is something to build | There was no native project at all. `app/ios/` is gitignored (`/ios`) because this is a Continuous Native Generation project, so it is a **build product a fresh clone does not have** | ✅ `npx expo prebuild -p ios` |
+| 4 | ⚠️⚠️ Signing is a detail | **ZERO code-signing identities. No Apple ID in Xcode. No provisioning profiles directory.** | 🔴 **THE OWNER'S, AND NOTHING ELSE CAN DO IT** |
+
+✅ **The phone is not one of the four.** `xcrun devicectl list devices` already knows
+`iPhone de Bernie`, model `iPhone15,4` — it reports `unavailable`, which means *not
+plugged in right now* and not *unknown*. **C1.6's hardware is real and paired.**
+
+⚠️ **ROW 4 RAISES A DATE QUESTION AND DOES NOT ANSWER IT.** A free personal team's
+**provisioning profile** expires seven days after it is created, and it is created when
+Xcode signs a build — while the **certificate** is created earlier, when the Apple ID is
+added. ⚠️⚠️ **WHICH OF THE TWO IS THE SEVEN-DAY CLOCK WAS NOT MEASURED HERE**, because
+this machine held neither, and this file does not assume claims about Apple's system —
+see `credentials.ts` on email normalisation for the same refusal. ✅ **It does not change
+the instruction either way**: sign-in and first build are minutes apart in one sitting, so
+the day-0 pre-check belongs in that same sitting rather than the following evening, and
+the run sheet puts it there. ⚠️ **An earlier draft of this section asserted the Apple ID
+was the start. That was reasoning, not measurement, and it is the error this plan spends
+most of its pages on** — it is corrected here rather than deleted.
+
+##### ⚠️⚠️ AND THE PREPARATION FOUND THE ONE THAT WOULD HAVE VOIDED `5a-iv-d` WITHOUT SAYING SO
+
+**`npx expo run:ios` defaults to the `Debug` configuration, and a Debug build does not
+contain its own JavaScript.** Both halves measured rather than recalled:
+
+- `npx expo run:ios --help` prints, verbatim: *"`--configuration <configuration>`  Xcode
+  configuration to use. Debug or Release. **Default: Debug**"*.
+- `app/ios/Wera/AppDelegate.swift:62–68` forks on it: under `#if DEBUG` it returns
+  `RCTBundleURLProvider.sharedSettings().jsBundleURL(…)` — **a URL pointing at Metro, on
+  the Mac** — and only the `#else` branch reads an embedded `main.jsbundle`.
+
+⚠️⚠️ **SO THE OBVIOUS COMMAND PRODUCES AN APP THAT CANNOT LAUNCH WITHOUT THE LAPTOP, AND
+THAT IS FATAL TO BOTH HALVES OF THE PERSISTENCE MEASUREMENT.** The day-0 pre-check
+re-deploys and re-opens; `5a-iv-d` opens the app eight days later with the Mac somewhere
+else entirely. A Debug build on day 8 shows a red screen about a development server —
+and **the reading that comes back is not "signed out", it is nothing at all, from an
+instrument that never reached the question.**
+
+⚠️ **This is the sizing's own error committed a second time, in a different currency.**
+The correction of 2026-09-11 was about not reasoning from two documented numbers to a $99
+decision. This one would have started an eight-day clock on an instrument that was never
+able to answer — **and the failure would have arrived looking exactly like a genuine
+result.** ✅ **`--configuration Release` is therefore not a preference in the run sheet;
+it is the thing the run sheet is for.**
+
+##### ✅ The rehearsal build — what it is evidence of, and what it is not
+
+```
+xcodebuild -workspace ios/Wera.xcworkspace -scheme Wera \
+  -configuration Release -sdk iphonesimulator \
+  -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
+```
+
+**`** BUILD SUCCEEDED **`**, and the product at
+`ios/build/Build/Products/Release-iphonesimulator/Wera.app/` carries a **3,396,248-byte
+`main.jsbundle`**.
+
+✅ **What that IS evidence of.** Every pod compiles — forty-odd Expo modules, Reanimated
+4.5, the React Compiler, `expo-glass-effect`, `@expo/ui` — and the *"Bundle React Native
+code and images"* phase ran and produced an embedded bundle. That phase is gated on the
+**configuration**, not on the platform, so a device Release build will embed one too.
+⚠️ **This is the first time any machine has compiled this app's native side**, and it
+needed no Apple ID to find out.
+
+⚠️ **What it is NOT.** It is a **rehearsal, not a verification** — `5a-iv-c`'s emulator
+argument in the other platform's words, and it is held to the same standard. **It cannot
+take one of the five readings**: no Google interstitial, no deep link back from Safari,
+no opinion about whether 76pt reads as big to someone over fifty. Simulator ≠ signed, and
+a simulator has no keychain, no Safari sign-in sheet and no eyes.
+
+##### ✅ `docs/checks/5a-iv-a-preflight.sh` — fourteen assertions, and the only one that is red is the owner's
+
+Same standing as `docs/checks/5a-iii-gate.sh`: ⚠️ **it cannot run in CI and saying so is
+the point.** It reads one laptop's Xcode, keychain, paired devices and gitignored
+`.env.local`. It is **not evidence in the sense of ADR-035 §9** — it is the local
+instrument for a surface with no file in this repository, and it obeys the rule
+underneath §9 instead: *do not believe a report when you can measure.*
+
+**13 of 14 green on 2026-09-12.** The red one is the Apple ID, and its failure message is
+the four lines of Xcode clicking that clear it. ⚠️ **It prints no key and no certificate**
+— it counts signing identities and never names one, and it asserts `.env.local`'s two
+names are non-empty without echoing either.
+
+⚠️ **The assertion that earns its place is the Debug/Release fork**, which pins the
+*reason* rather than the command: if a future React Native moves that `#if DEBUG`, the
+justification for `--configuration Release` has moved with it, and this is where that
+surfaces — **not on day 8.**
+
+✅ **`docs/checks/5a-iv-a-runsheet.md` is the human half**, and it is a form with boxes
+rather than a description. ⚠️ **Four of the six readings are OPINIONS** — *did an
+interstitial appear*, *does that read as big* — and an opinion not written down at the
+time becomes a memory of an opinion. It also carries the two steps that are not in any
+command and that everyone forgets: **Developer Mode on the phone** (Settings → Privacy &
+Security), which reboots it, and **trusting the developer profile** after the first
+install refuses.
+
+##### Seven falsifications over the preflight, run by hand before it was committed
+
+⚠️ **THE BASELINE IS NOT GREEN ON THIS MACHINE, AND THAT IS WHY THE HARNESS DOES NOT READ
+THE EXIT CODE.** The signing assertion is red before any fixture is applied, so a
+falsification that only checked *"still non-zero"* would have passed all seven
+**vacuously** — the same family as 4b-i's third way a failing suite exits 0. Each fixture
+is instead diffed against an unmodified one, and must add a **named failure the baseline
+did not already have**.
+
+| | Break | Result |
+|---|---|---|
+| **R1** | The native project never generated | 🔴 *"the native project exists: …/Wera.xcworkspace"* |
+| **R2** | ⚠️⚠️ **The `#if DEBUG` Metro fork deleted from `AppDelegate.swift`** — *the reason for `Release` quietly moving* | 🔴 *"AppDelegate still forks on DEBUG"* |
+| **R3** | `EXPO_PUBLIC_SUPABASE_URL` present but **empty** — builds, installs, launches, dead | 🔴 *"both EXPO_PUBLIC_ names are present and non-empty"* |
+| **R4** | ⚠️ The `NEXT_PUBLIC_` spelling — **the one the owner actually pasted on 2026-09-11** | 🔴 *"no NEXT_PUBLIC_ spelling … Expo inlines neither the name nor a warning"* |
+| **R5** | ⚠️⚠️ A Release `.app` with **no embedded `main.jsbundle`** — *the day-8 shape exactly* | 🔴 *"the rehearsal build embedded its JavaScript"* |
+| **R6** | `.env.local` deleted, so two assertions have no subject | 🔴 **two failures, not two skips** — and the count still reads 14 |
+| **R7** | Pointed at `docs/`, which is not an app directory | 🔴 7 of 14 — **it does not pass vacuously** |
+
+⚠️ **R6 IS THE ONE ABOUT THIS FILE RATHER THAN ABOUT THE MAC.** The two `.env.local`
+assertions began life nested inside an `if [[ -r … ]]`, which is the fifth shape of
+misleading green in this repository — *a check that never runs.* They now **fail** when
+the file is missing rather than vanishing, so the assertion count is 14 whatever the
+filesystem looks like, and the anti-vacuity floor is not doing a second job badly.
+
+##### Decisions taken on the owner's behalf in this preparation
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | **CocoaPods installed with Homebrew** (1.17.0), not with `gem` | The system Ruby is 2.6 and current CocoaPods needs newer. ⚠️ **It writes outside this repository** — `brew uninstall cocoapods` reverses it, and nothing here depends on the version |
+| **2** | ⚠️ **`app/package.json`'s `ios`/`android` scripts now say `expo run:*`, not `expo start --*`** | **`expo prebuild` rewrote them itself**, and it is right: once a project has a custom scheme and native modules, `expo start --ios` means Expo Go, which cannot run this app's OAuth redirect at all. ⚠️ **Cheap to reverse today**, and it is the kind of line nobody re-reads later — so it is named here rather than left in a diff |
+| **3** | **`DEVELOPER_DIR` rather than `sudo xcode-select -s`** | A check should not ask for a password. ⚠️ **The consequence is that `npx expo run:ios` still needs the export**, which the run sheet carries. The one-line permanent fix is the owner's and is in the preflight's failure message |
+| **4** | **The rehearsal build is Release-on-simulator, not Debug** | Debug would have compiled the same pods and proved **nothing about the bundle**, which is the half that decides whether `5a-iv-d` can happen. ⚠️ Costs a few minutes more and answers a second question |
+
+⚠️ **What this preparation did NOT do: it took no reading.** All five of `5a-iv-a`'s
+readings and the pre-check are still owed, `5a-iv-a` is still open, and it is still the
+next task. **What changed is that the evening is now a sitting rather than a setup.**
 
 
 #### ✅✅ `5a-iii-b` IS DONE AS OF 2026-09-11 — Google, the last screen, and a check that was written and then deleted
@@ -8965,7 +9132,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-iii-a** | **The client, the session, and the way in that needs no deep link.** The app's identity in `app.json` (**Wera**, `mx.bserafin.wera`, the scheme), `.env.example`, the Supabase client and **where the session is stored**, `AppState` refresh, the signed-in/signed-out route guard, and **email sign-in, sign-up and the explicit log-out** (C1.4). ⚠️ **The first task in this repository whose subject is a value the app HOLDS rather than computes.** | `M` | ✅ **DONE 2026-09-11** — see the write-up below |
 | **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ✅ **The dashboard edit was closed by the owner 2026-09-12**: Redirect URLs carry `mx.bserafin.wera://**`. ⚠️ **Reported, not measurable** — no check here can see it, and `5a-iv-a` is the first thing that can |
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
-| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone 15 |
+| **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone 15 — ✅ **the Mac's half was prepared 2026-09-12** (Xcode selected, CocoaPods, the native project, a rehearsal build that compiled). ⚠️ **What remains is an APPLE ID typed into Xcode**, which nothing but the owner can do and which starts the seven-day clock. `docs/checks/5a-iv-a-preflight.sh` |
 | **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | — |
 | **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **A DATE.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
