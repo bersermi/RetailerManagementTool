@@ -126,6 +126,28 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-13 — §3's build-order step `5a` and §2.10's closing paragraph
+  amended, on the decision maker's instruction (*"do the second pass after 5b"*,
+  2026-09-13, and the amendment itself instructed the same day). This closes the **fourth**
+  and last of the plan-vs-ADR disagreements found while sizing `5a` on 2026-09-07.
+  §3 listed `src/api/`, the `src/ui/` primitives and the `expo-sqlite` outbox as step
+  `5a` deliverables; `docs/PLAN.md` had spread the first two across `5d`–`5h` and the
+  outbox into `5c`, **and neither file had recorded a decision to do that.**
+  ⚠️ **THE RULING IS NOT "THE PLAN WON."** §3's reason for naming them — *"step 6's
+  four screens are supposed to arrive to a pattern"* — is accepted in full. What the
+  owner rejected is discharging it by building ten primitives against screens nobody
+  has drawn. The obligation moves to **`5b.5`**, a new interstitial step in the shape
+  of `4.5`/`4.6`, which writes the conventions once `5b` has produced a real pattern
+  and **still lands before step 6**, which is all §2.10 ever asked for.
+  ⚠️ Two items were struck rather than moved: *"session persistence on a shared till
+  device"* and *"how the client resolves its `location_id`"* rest on a shared till,
+  and **C1.5/C1.1 established the pilot has none — the staff use personal phones.**
+  A deliverable whose premise is false is not deferred; it is withdrawn.
+  ⚠️ `docs/PLAN.md` and `docs/CONVENTIONS.md` both assert `5b.5` exists, and
+  `docs/checks/conventions-gate.sh` fails if the page and the plan's `5b.5` row stop
+  agreeing. **A deferral is the most perishable claim in this repository** — it has
+  six recorded stale copies to prove it — so this one is guarded rather than trusted.
+
 - **Revised:** 2026-09-07 — §2.10 and §2.11 amended, on the decision maker's
   instruction, to close a disagreement between this document and `docs/PLAN.md` found
   while sizing build step `5a` and **before a line of app code was written**. §2.11's
@@ -1155,7 +1177,11 @@ build rather than the pilot. The owner writes the **foundation and Vender** (ste
 pattern-following work. Note that a screen is not a pattern — if step 5 ships only a
 screen, step 6 is four copy-pastes of it and step 7 inherits four dialects. What
 makes step 6 parallel is `src/ui`, `src/api` and one page of written conventions,
-which is why §3 names them as deliverables. If a junior ever needs to write a
+which is why §3 names them as deliverables. ⚠️ **Amended 2026-09-13: the three are
+still required and the STEP THEY LAND IN CHANGED.** `src/ui` and `src/api` are built
+across `5d`–`5h` against screens that exist, and the conventions describing them are
+written at **`5b.5`** — before step 6, which is what this paragraph actually requires.
+The claim here is about ORDER RELATIVE TO STEP 6, not about the letter `5a`. If a junior ever needs to write a
 migration, that is a missing RPC — a design bug, not a permissions problem.
 
 ### 2.11 Client architecture
@@ -1216,12 +1242,25 @@ Pace-independent. Each step gates the next; step 2 is the design gate.
    path that has no failure path bakes in the assumption that writes succeed, and
    that assumption is invisible until the day it is wrong.
 5a. **Foundation** (schema owner). `packages/money` with `cases.json` wired into both
-   suites; the `expo-sqlite` outbox with its three states and its route to 4.5;
-   `src/api/` wrapping every RPC; the `src/ui/` primitives; the Expo Router shell,
-   Supabase session persistence on a shared till device, and how the client resolves
-   its `location_id`. Plus **`CONVENTIONS.md` — one page**. Hiring gates on that file
-   existing, because a junior arriving before it does will write the conventions
-   themselves, by accident, in four places.
+   suites; the Expo Router shell and Supabase session persistence. Plus
+   **`CONVENTIONS.md` — one page**. Hiring gates on that file existing, because a
+   junior arriving before it does will write the conventions themselves, by accident,
+   in four places.
+
+   ⚠️ **Amended 2026-09-13 — three things left this step, and one of them is the
+   reason the step exists.** `src/api/` and `src/ui/` move to `5d`–`5h`, and **`5b.5`
+   carries the obligation they were here to discharge**: see the revision entry, and
+   `docs/PLAN.md`. The `expo-sqlite` **outbox moves to `5c`**. *"Session persistence
+   on a shared till device"* is struck as a premise, not deferred — **C1.5/C1.1
+   established there is no shared till; the pilot uses personal phones** — and *"how
+   the client resolves its `location_id`"* went with it, since a phone belonging to
+   one person resolves it from membership.
+
+5b.5. **`CONVENTIONS.md`, second pass** — the `src/api/` and `src/ui/` conventions,
+   written once `5b` has produced a real pattern. ⚠️ **This is where step 5a's
+   *"arrive to a pattern"* requirement is actually discharged**, and it is load-bearing
+   rather than a tidy-up: skip it and step 6's four screens arrive to nothing, which
+   is the outcome §2.10 and this section were both written to prevent.
 5b. **Vender and Home** — ship the dominant loop, put it in front of a real cashier.
    Written by the schema owner as the reference implementation.
 6. **Comprar, Desperdicio, Catálogo, Proveedores.** Four independent screens over an
