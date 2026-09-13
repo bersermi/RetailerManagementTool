@@ -22,6 +22,29 @@ from the knowledge graph. Nothing there describes the system being built.
 
 ## Position
 
+✅✅ **`5a-iv-b` IS DONE AS OF 2026-09-12 — `docs/CONVENTIONS.md`, the page §3 gates
+hiring on.** Nine rules read out of `app/src` rather than proposed for it; seven of
+them enforced by `docs/checks/conventions-gate.sh`, now a fourth step in `app.yml`,
+with the page and the script **asserted to agree about which two a machine cannot
+read.** ⚠️ **Taken out of order** — `5a-iv-a` is still open and unchanged below; it is
+blocked on an Apple ID only the owner can type, and `5a-iv-b` was put in this split
+precisely as the piece that needs no hardware.
+⚠️⚠️ **ITS FINDING IS THAT `README.md` HAS SAID *"THE CLIENT DOES NOT EXIST YET"* SINCE
+KICK-OFF — the fifth instance in three days of a claim only being as true as the copy
+the reader opens, and the first one on the FIRST FILE ANYBODY OPENS.** `#76` corrected
+`HANDBOOK.md` the day before and did not look at the README. ✅ Both it and
+`app/README.md` are corrected, in `#76`'s shape: they say where the build is and
+deliberately defer *which piece is next* to this file.
+⚠️ **A second finding: `R1` was false the moment it was written.** Five test files
+still imported `../src/…` while six written since `5a-iii` used `@/` — the same module
+imported both ways in two suites. Three days of drift, invisible to reading, found by
+trying to state the rule. ✅ Normalised; 132 assertions still green.
+⚠️⚠️ **And a trap inside the check itself: a guard that greps for a banned token reads
+the COMMENT WARNING ABOUT IT first**, so the first spelling was red on the files that
+got it right — which would have made deleting the explanation the cheapest way to
+green. ✅ Comments are stripped, and **`F13` is the only falsification in this
+repository whose expected result is green.**
+
 **STEPS 1, 2, 3, 4 AND 4.5 ARE ALL CLOSED. ⚠️⚠️ THE DATABASE IS *NOT* COMPLETE — THE
 UI/UX GRILL-ME OF 2026-09-07 REOPENED IT, AND THE THREE OWED MIGRATIONS ARE THE NEW
 STEP 4.6.** Step 5 — the client — is sized `XL` and split into `5a`–`5h`, and
@@ -8266,7 +8289,7 @@ bringing the $99 forward to buy an iPhone build that outlives the measurement.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️⚠️ **ONE THING BLOCKS IT AND IT IS NOT THE HARDWARE: THE MAC HOLDS NO CODE-SIGNING IDENTITY AND NO APPLE ID** — measured 2026-09-12, along with three other things *"nothing else blocks it"* had not looked at. The other three were cleared the same day. ✅ **Run `docs/checks/5a-iv-a-preflight.sh` first** |
-| **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | — |
+| **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md`, nine rules, seven of them read by `docs/checks/conventions-gate.sh` in `app.yml`. ⚠️ **Taken OUT OF ORDER, ahead of `5a-iv-a`**, because `5a-iv-a` needs an Apple ID only the owner can type and this needs nothing. See the write-up below |
 | **`5a-iv-c`** | **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
 | **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
 
@@ -8501,6 +8524,132 @@ filesystem looks like, and the anti-vacuity floor is not doing a second job badl
 readings and the pre-check are still owed, `5a-iv-a` is still open, and it is still the
 next task. **What changed is that the evening is now a sitting rather than a setup.**
 
+
+#### ✅✅ `5a-iv-b` IS DONE AS OF 2026-09-12 — the conventions page, and the fifth stale copy was the front door
+
+⚠️ **TAKEN OUT OF ORDER, AND THE REASON IS THE GATE.** `5a-iv-a` is still the next
+task and is still open; it is blocked on **an Apple ID typed into Xcode**, which
+nothing but the owner can do. `5a-iv-b` was placed in this split precisely as *"the
+one piece that needs no hardware"*, so a session that cannot start `a` takes `b`
+rather than stopping. **No part of `5a-iv-a` was attempted or consumed.**
+
+**What shipped:**
+
+- **`docs/CONVENTIONS.md`** — §3's one page. Nine rules, `R1`–`R9`, every one of them
+  **read out of `app/src` rather than proposed for it**: the `@/` alias, the test
+  boundary, the decides/acts seam, one strings file, integer centavos, no hardcoded
+  sizes, two `EXPO_PUBLIC_` variables, a header on every module, and *"a deliverable
+  no check can see is written down as such."*
+- **`docs/checks/conventions-gate.sh`** — 9 assertion groups, **7 of the 9 rules
+  enforced** over 22 source and 11 test files. 13 falsifications, 12 red and one that
+  had to stay green.
+- **`.github/workflows/app.yml`** — the gate as a fourth step, and `docs/CONVENTIONS.md`
+  plus the script itself **added to the `paths:` filter**, so an edit to the page alone
+  re-runs the check that reads it.
+
+##### ⚠️⚠️ THE FINDING — README.md HAS SAID *"THE CLIENT DOES NOT EXIST YET"* SINCE KICK-OFF, AND IT IS THE FIFTH INSTANCE IN THREE DAYS
+
+`#76` corrected `docs/HANDBOOK.md`'s nine-day-stale *"no app yet"* and recorded it as
+the fourth instance of **a claim is only as true as the copy the reader happens to
+open.** ⚠️ **It did not look at `README.md`, which said the same thing, had said it
+since `7fbd1b0`, and is the FIRST FILE ANYBODY OPENS.** `git log -- README.md` returns
+three commits, the newest of them the kick-off.
+
+✅ **Corrected, and corrected in the shape `#76` chose rather than a fifth copy of the
+status:** the README now says where the build is **and deliberately does not name the
+next task**, deferring to `docs/PLAN.md` — which `plan-handover.sh` exists to keep
+singular. `app/README.md`'s *"nothing in `src/app/` today"* was stale the same way and
+went with it.
+
+⚠️ **THIS IS WHY THE PAGE HAS A GUARD AT ALL.** A conventions page is the worst
+possible host for this defect. A stale status line is merely believed; **a stale
+convention is COPIED INTO THE CODE by the next person**, which is the accident §3
+names in terms — *"a junior arriving before it does will write the conventions
+themselves, by accident, in four places."* So `R1`–`R9` are numbered, and the check
+asserts that the page and the script **name the same nine rules and agree about which
+two a machine cannot read.**
+
+##### ⚠️⚠️ AND WRITING THE RULES DOWN FOUND THE FIRST ONE ALREADY BROKEN
+
+**`R1` was false when it was written.** Five test files imported `../src/theme/density`,
+`../src/wiring`, `../src/format/mxn`, `../src/navigation/tabs` and `../src/strings`,
+while the six written since `5a-iii` used `@/`. **The same module, `tabs`, was imported
+both ways in two different suites.** The alias was added to `app/vitest.config.ts`
+during `5a-ii` and the files written before it were never brought across — chronological
+drift, not a decision, and invisible because both spellings work.
+
+✅ **Normalised, 132 assertions still green.** ⚠️ **This is what a conventions page is
+FOR, and it is worth naming**: the drift was three days old, in eleven files, and
+nobody would ever have found it by reading. It was found by trying to state the rule.
+
+##### ⚠️⚠️ THE TRAP IN THE CHECK ITSELF — A GUARD THAT READS THE WARNING REPORTS THE DEFECT
+
+The first spelling of `conventions-gate.sh` was **red on the files that got it right.**
+
+This codebase documents its traps in prose *next to the code that avoids them*:
+`src/lib/env.ts` contains the string `NEXT_PUBLIC_` in a comment explaining why
+`NEXT_PUBLIC_` must never appear, and `src/format/mxn.ts` contains `centavos / 100` in
+a comment explaining why nothing divides by 100. A grep for the banned token finds the
+warning first.
+
+⚠️ **THE FAILURE MODE IS NOT THE FALSE POSITIVE, IT IS WHAT THE FALSE POSITIVE
+TEACHES.** A check that fires on the explanation makes deleting the explanation the
+cheapest way to green — so the guard would, over time, strip this repository of exactly
+the comments that make it legible. ✅ Full-line comments are stripped before any rule is
+applied, and **`F13` is a falsification in the other direction**: a fixture that adds a
+comment naming *every* banned token at once, which must stay **green**.
+
+##### Decisions taken on the owner's behalf in `5a-iv-b`
+
+| | Call | Why, and what reversing costs |
+|---|---|---|
+| **1** | **The page is at `docs/CONVENTIONS.md`**, not the repository root | §3 names the file and no directory. `docs/` is where this project's prose already lives — `PLAN.md`, `HANDBOOK.md`, `adr/`. ⚠️ **Reversing is a `git mv` and four links**, and it gets dearer once anything cites the path |
+| **2** | **It ships with a check, which §3 did not ask for** | *"A file is not evidence; a green CI run is"* is non-negotiable in `CLAUDE.md`, and this is a file made entirely of claims about other files. A page of rules nothing can falsify is the artifact this repository exists to prevent. Reversing is deleting one script and one step |
+| **3** | **Scoped to `app/` only.** It does not restate the migration rules, the RLS rule or the evidence rule | Those live in `CLAUDE.md` and `supabase/README.md` and are **correct there**. Copying them here would create the sixth instance of the defect this very page is guarding against. The page links instead |
+| **4** | **Seven rules enforced, two declared unenforceable — and the split is itself asserted** | `R3` (the decides/acts seam) and `R9` (name what no check can see) are about judgement. ⚠️ **A rule quietly moving from "checked" to "stated" is the same stale-copy defect**, so assertion 0 reads each rule's own `**Checked by:**` line and fails if it disagrees with the script |
+| **5** | **Five test imports rewritten to `@/`** | See above. ⚠️ It is app code changed by a documentation task, which is why it is named here — but the alternative was publishing `R1` already false |
+| **6** | **The gate runs LAST in `app.yml`, after typecheck and the suite** | Those assert correctness; this asserts form. A red form check ahead of a red correctness check hides it and costs a round trip. Reversing is moving four lines |
+
+##### Thirteen falsifications, run by hand before `5a-iv-b` was committed
+
+Every fixture is a copy of the tree with one thing broken, **diffed against the original
+before the check runs** — the trap `5a-i` recorded, where a fixture that edited nothing
+reported success. The original copy is confirmed green first.
+
+| | Break | Result |
+|---|---|---|
+| **F1** | One test import reverted to `../src/` — *the defect this task actually found* | 🔴 *"1 import(s) climb out of their directory"* |
+| **F2** | A test file placed beside the source under `src/` | 🔴 *"a test file under app/src/"* |
+| **F3** | A test import changed to one that **resolves** to a `.tsx` | 🔴 *"imports '@/theme/DensityProvider', which resolves to a .tsx"* |
+| **F4** | A Spanish sentence typed straight into a route | 🔴 *"1 Spanish literal(s) outside src/strings.ts"* |
+| **F5** | `toFixed` added **inside `src/format/mxn.ts`** — the file exempt from the division rule and not from this one | 🔴 *"a peso-valued float could be made"* |
+| **F6** | `/ 100` in `src/wiring.ts` | 🔴 — same assertion, other spelling |
+| **F7** | `fontSize: 32` hardcoded on the one screen that has a size | 🔴 *"elder mode cannot change these"* |
+| **F8** | A second module reading `process.env` | 🔴 *"reading the environment outside the one module that may"* |
+| **F9** | A module's `// =====` header deleted | 🔴 *"1 module(s) with no header"* |
+| **F10** | An `R10` added to the page and not to the script | 🔴 *"the page and this script disagree about which rules exist"* |
+| **F11** | ⚠️⚠️ `R3`'s page claim flipped to *"enforced"*, script untouched | 🔴 *"R3: the page says it is enforced, this script stated it"* |
+| **F12** | Twenty source files removed, so every loop goes quiet | 🔴 *"only 2 source and 11 test files were read"* — the anti-vacuity guard |
+| **F13** | ⚠️⚠️ **THE REVERSE ONE.** A comment naming `NEXT_PUBLIC_`, `process.env`, `toFixed(2)`, `/ 100`, `fontSize: 16` and a Spanish sentence, all at once | ✅ **GREEN** — and it was RED before the comment stripping |
+
+⚠️ **F11 AND F13 ARE THE TWO THAT MATTER.** F11 is the stale-copy family caught in its
+newest form — not a duplicated row, but a page and a script disagreeing about *whether a
+claim is checked at all*. F13 is the only falsification in this repository whose expected
+result is green, and it is the one that keeps the guard from eating the comments.
+
+##### ⚠️ What `5a-iv-b` did NOT do
+
+- **It took no reading.** All six of `5a-iv-a`'s readings and the day-0 pre-check are
+  still owed, and `5a-iv-a` is still the next task.
+- **It did not settle §3's `src/api/` and `src/ui/` question**, which is the fourth row
+  of the plan-vs-ADR table above and is the owner's to rule on. ⚠️ **`CONVENTIONS.md`
+  therefore describes no API-wrapper or primitive conventions at all**, because there
+  are none to describe yet — and that is the half of §3's argument (*"step 6's four
+  screens are supposed to arrive to a pattern"*) that the re-sequencing left open.
+- **It added no rule the code did not already keep.** Every one of `R1`–`R9` was read
+  out of `app/src`; the only edit to app code was the five imports in `F1`'s family.
+
+---
 
 #### ✅✅ `5a-iii-b` IS DONE AS OF 2026-09-11 — Google, the last screen, and a check that was written and then deleted
 
@@ -9133,7 +9282,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-iii-b** | **Google, and the last screen.** The OAuth round trip — ⚠️ **`expo-auth-session` was NOT used, see the decisions** — and **C1.3's last-screen restore**. ⚠️ **The deep link was the whole risk and it still is**: it is the only thing in `5a` whose failure mode is *the browser opens and never comes back*, and the half in the Supabase dashboard turned out to be **unmeasurable from outside a browser**, not merely unread. | `M` | ✅ **DONE 2026-09-11** — see the write-up below. ✅ **The dashboard edit was closed by the owner 2026-09-12**: Redirect URLs carry `mx.bserafin.wera://**`. ⚠️ **Reported, not measurable** — no check here can see it, and `5a-iv-a` is the first thing that can |
 | **5a-iv** | ⚠️ **RE-SIZED AND SPLIT FOUR WAYS 2026-09-11 — see the sizing below; `5a-iv-a` is what gets taken.** **On the owner's own devices**, plus **`CONVENTIONS.md`**. A local dev build on his iPhone (C1.6) and the Android run decision register #13 asked for as an emulator smoke test, now on real hardware (C1.1). ⚠️ **The only task in this step no CI can verify**, and the only one that needs the owner's Mac in the room. ⚠️⚠️ **IT IS THE SOLE INSTRUMENT FOR SIX READINGS ACROSS FOUR TASKS**, which is what the re-size was for. | `L` — **not the `S/M` this table carried** | ⚠️ **The owner's hardware, and the ~$124/yr of C1.6 — a schedule dependency, not a code one** |
 | **5a-iv-a** | **iOS, and the round trip.** The dev build on his own iPhone (C1.6), then everything visible in one sitting: Google sign-in end to end — **the redirect allow-list, the PKCE exchange, the *"unverified app"* interstitial** — the guard redirecting rather than hanging, **C1.3**'s restore landing, **C12.1**'s words, **C3.18**'s numbers. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — which answers the free-provisioning question before any clock is started and decides whether `5a-iv-d` is free or costs $99. | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK.** The owner's Mac and his own iPhone 15 — ✅ **the Mac's half was prepared 2026-09-12** (Xcode selected, CocoaPods, the native project, a rehearsal build that compiled). ⚠️ **What remains is an APPLE ID typed into Xcode**, which nothing but the owner can do and which starts the seven-day clock. `docs/checks/5a-iv-a-preflight.sh` |
-| **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | — |
+| **5a-iv-b** | **`CONVENTIONS.md`** — one page (§3). ⚠️ **The one piece that needs no hardware**, placed to run while `5a-iv-d`'s clock ticks. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md` + `docs/checks/conventions-gate.sh`, wired into `app.yml`. ⚠️ **Taken out of order**, ahead of `5a-iv-a`, which needs the owner's Apple ID |
 | **5a-iv-c** | **Android, on real hardware.** C1.1's Oppo and Samsung, widening register #13's emulator smoke test. ✅ **A relative's Android for ONE EVENING** (confirmed 2026-09-12), so ⚠️ **the toolchain is installed and a build produced BEFORE it, on the emulator** — register #13's emulator rehabilitated as a toolchain rehearsal, not a verification. ⚠️ **On no critical path.** | `S/M` | ⚠️ **One evening with a borrowed Android**, prepared for in advance |
 | **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **A DATE.** Eight days after a `5a-iv-a` build is signed into and put down, **and only once the day-0 pre-check has passed** |
 

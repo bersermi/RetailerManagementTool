@@ -23,7 +23,7 @@ import { describe, expect, it } from 'vitest';
 
 import { SCALE, formatDecimal, priceSellLine } from '@tienda/money';
 
-import { placeholderTotal } from '../src/wiring';
+import { placeholderTotal } from '@/wiring';
 
 // ⚠️ RESOLVED, NOT PATH-JOINED. `../../packages/money/cases.json` would pass
 // while proving nothing about the workspace: it reads the file through the

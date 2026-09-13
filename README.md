@@ -6,8 +6,12 @@ catalog, providers, waste and reports, over an append-only inventory ledger.
 **Stack:** PostgreSQL via Supabase, React Native (Expo) client. MXN and IVA;
 LFPDPPP rather than GDPR; CFDI out of scope.
 
-**Status:** database layer. The schema foundation is applied and verified; the
-client does not exist yet. See [`docs/PLAN.md`](docs/PLAN.md) for the current step.
+**Status:** the database layer is applied and verified, and the client has
+started. `app/` is an Expo project with a session, a sign-in, a tab shell and a
+money formatter — checked as far as a machine here can reach, and not yet
+watched running on a phone. See [`docs/PLAN.md`](docs/PLAN.md) for which piece
+is next; this file deliberately does not name it, because a second copy of that
+claim is how it goes stale.
 
 ## Where things are
 
@@ -15,8 +19,11 @@ client does not exist yet. See [`docs/PLAN.md`](docs/PLAN.md) for the current st
 |------|------|
 | [`docs/PLAN.md`](docs/PLAN.md) | Build plan and current position |
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. Authoritative — where anything disagrees, this wins |
+| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | How code in `app/` is written. Read before adding a file to the client |
 | [`supabase/`](supabase/) | Migrations, schema conventions, verification status |
+| [`app/`](app/README.md) | The Expo client, `@tienda/app` — the fourth workspace |
 | [`.github/workflows/db.yml`](.github/workflows/db.yml) | Applies every migration from scratch on any PR touching `supabase/**` |
+| [`.github/workflows/app.yml`](.github/workflows/app.yml) | Typecheck, suite and conventions gate on any PR touching `app/**` |
 | [`archive/power-platform/`](archive/power-platform/README.md) | Superseded Canvas/Dataverse era — history only |
 
 ## Running the database locally

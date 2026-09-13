@@ -22,7 +22,7 @@ import { describe, expect, it } from 'vitest';
 
 import { formatDecimal, parseDecimal } from '@tienda/money';
 
-import { formatMXN } from '../src/format/mxn';
+import { formatMXN } from '@/format/mxn';
 
 // Resolved through the workspace, never path-joined — 5a-i's rule, and its
 // reasoning is in app/test/wiring.test.ts.

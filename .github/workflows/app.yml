@@ -39,6 +39,13 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/app.yml"
+      # ⚠️ THE CONVENTIONS PAGE AND ITS GUARD ARE IN THIS FILTER ON PURPOSE
+      # (plan task 5a-iv-b). `docs/CONVENTIONS.md` is a page of claims ABOUT
+      # `app/**`, so an edit to the page alone must re-run the check that reads
+      # it — otherwise the one file whose whole job is to stop a stale claim is
+      # itself the one edit CI never looks at.
+      - "docs/CONVENTIONS.md"
+      - "docs/checks/conventions-gate.sh"
 
 concurrency:
   group: app-${{ github.ref }}
@@ -108,3 +115,15 @@ jobs:
             }
             console.log(`${r.numPassedTests} assertions ran over the app workspace boundary`);
           '
+
+      # ⚠️ LAST, AND DELIBERATELY NOT FIRST. Plan task 5a-iv-b. The two steps
+      # above assert CORRECTNESS — does it compile, does it compute the right
+      # number. This one asserts FORM: is `docs/CONVENTIONS.md` still describing
+      # the codebase a junior is about to add a file to. A red form check placed
+      # ahead of a red correctness check hides it and costs a round trip, and
+      # form is the cheaper of the two to fix.
+      #
+      # It needs no node and no install — it is bash over the working tree — so
+      # its position here costs nothing but the ordering.
+      - name: Conventions — is docs/CONVENTIONS.md still true of app/ (plan 5a-iv-b)
+        run: bash docs/checks/conventions-gate.sh
