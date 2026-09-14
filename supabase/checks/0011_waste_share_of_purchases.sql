@@ -845,25 +845,70 @@ select chk('day: ⚠️ the seed trades in UTC office hours, so it cannot discri
 -- a claim about what the database is doing.
 --
 -- ⚠️ WIDENED BY 2.3 TO ALL THREE ANALYTICS VIEWS, as docs/PLAN.md's "Settled in 2.4"
--- requires. The list is spelled out rather than discovered, so that ADDING a fourth
+-- requires, AND TO A FOURTH BY 0031 (product_purchases_daily, plan task 4.6c-i).
+--
+-- ⚠️⚠️ THE SENTENCE THAT USED TO STAND HERE WAS FALSE, AND 0031 IS WHAT PROVED IT.
+-- It read: "The list is spelled out rather than discovered, so that ADDING a fourth
 -- analytics view without adding it here fails the count instead of passing silently
--- — which is exactly the failure mode this check exists for.
+-- — which is exactly the failure mode this check exists for." The count below is a
+-- count of the LIST, not of the schema, so a fourth view changed nothing: 0031 was
+-- applied on 2026-09-14, supabase/checks/ was run unchanged, and all eight files
+-- passed with an unexamined analytics view standing. A check describing a guarantee
+-- it does not provide is this repository's recorded defect — "a green check that
+-- stopped measuring its own claim" — and this is its fifth appearance.
+--
+-- ✅ FIXED BY MAKING THE CLAIM TRUE RATHER THAN BY DELETING IT. The list is still
+-- spelled out, because naming what is expected is worth more than a discovered set
+-- nobody reads. What is new is the COMPLETENESS assertion beneath it: every view in
+-- `public` whose definition buckets a day is in the list, discovered from the
+-- catalogue. A fifth analytics view now fails here on the day it lands, which is
+-- what the old sentence promised.
 create temp view _tz as
 select v.relname::text as view_name,
        pg_get_viewdef(v.oid)                                     as def,
        (pg_get_viewdef(v.oid) ~* 'AT TIME ZONE ''[A-Za-z]+/')     as has_literal_zone,
        (pg_get_viewdef(v.oid) ~* 'timezone')                      as reads_column
   from (values ('product_margin_daily'::text), ('product_waste_daily'::text),
-               ('product_velocity_daily'::text)) x(n)
+               ('product_velocity_daily'::text), ('product_purchases_daily'::text)) x(n)
   join pg_class v on v.relname = x.n and v.relnamespace = 'public'::regnamespace;
 
-select chk('day: NO analytics view hardcodes a zone — all three read location.timezone',
-           (select count(*) from _tz) = 3
+select chk('day: NO analytics view hardcodes a zone — all FOUR read location.timezone',
+           (select count(*) from _tz) = 4
        and (select bool_and(not has_literal_zone) from _tz)
        and (select bool_and(reads_column) from _tz),
            (select string_agg(view_name || ' => '
                    || case when has_literal_zone then 'STILL HARDCODED' else 'reads the column' end,
                    ', ' order by view_name) from _tz));
+
+-- ⚠️⚠️ AND THE LIST ABOVE IS COMPLETE, DISCOVERED RATHER THAN TRUSTED. This is the
+-- assertion the comment claimed to be making since 2.3 and was not. A view that
+-- buckets a day is an analytics view for this purpose; `at time zone` in its shipped
+-- definition is the only signature it can have, since that is how a timestamptz
+-- becomes a local date. provider_price_memory picks a row and buckets nothing, so it
+-- is correctly not in scope.
+--
+-- ⚠️ OBJECTS NAMED `_*` ARE HARNESS AND ARE EXCLUDED, which is the same convention
+-- supabase/tests/, supabase/pgtap/ and this directory already use for files. This
+-- file itself builds `public._waste_inner` to take the view apart, and its
+-- definition contains `at time zone` because the real view's does — so without the
+-- exclusion this assertion reports the scaffolding it stands on. Found on its own
+-- first run.
+select chk('⚠️ day: and NO FIFTH analytics view exists that this check has never looked at',
+           (select count(*) from (
+              select c.relname::text from pg_class c
+                join pg_namespace n on n.oid = c.relnamespace
+               where n.nspname = 'public' and c.relkind = 'v'
+                 and c.relname not like '\_%'
+                 and pg_get_viewdef(c.oid) ~* 'at time zone'
+              except
+              select view_name from _tz) x) = 0,
+           (select coalesce(string_agg(c.relname, ', ' order by c.relname),
+                            'none — the list and the schema agree')
+              from pg_class c join pg_namespace n on n.oid = c.relnamespace
+             where n.nspname = 'public' and c.relkind = 'v'
+               and c.relname not like '\_%'
+               and pg_get_viewdef(c.oid) ~* 'at time zone'
+               and c.relname not in (select view_name from _tz)));
 
 select chk('day: every bucket is a day the shop traded or took a delivery, in THAT store''s zone',
            (select count(*) from product_waste_daily d
