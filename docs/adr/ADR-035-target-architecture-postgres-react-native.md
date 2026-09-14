@@ -12,6 +12,22 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-13 (third entry this date) — **§2.7 and §8 amended, on the
+  decision maker's instruction**, because **one sentence of the second entry's own
+  amendment went stale within hours of being written.** §2.7 said register #9's eight
+  rulings *"freeze when `0027` merges"*. Plan task `4.6a` was then sized `L` and **split
+  three ways** — `4.6a-i` / `4.6a-ii` / `4.6a-iii` over **`0027`–`0029`** — so each
+  ruling freezes when **its own** migration merges, and `D6`/`D7`/`D8` stay revisable for
+  two migrations longer than `D1`–`D5`. ⚠️ **The claim was right and the number was one of
+  three**, which is the kind of error that reads as correct forever: nothing in the
+  sentence looks wrong unless you know how many files the task became. **It was named in
+  `docs/PLAN.md` rather than edited here**, because this document is amended by decision
+  and a sizing session is not one; the decision maker then instructed the amendment.
+  ⚠️ **No schema is applied by this revision**, and the eight rulings are unchanged — only
+  where each of them becomes append-only. ✅ **The claim is now GUARDED across three
+  files** (`docs/checks/4.6a-split-coverage.sh`): this document, `docs/PLAN.md` and
+  `supabase/README.md` must agree on which task owns `0027`–`0031`, so the next split
+  cannot leave this sentence behind a second time.
 - **Revised:** 2026-09-13 (second entry this date) — **§2.7 and decision register
   #9 amended, on the decision maker's instruction**, to carry **C11.5 / C11.6**: the
   joiner enters a **workspace code**, **requests** access, and is **approved**, and an
@@ -23,7 +39,8 @@
   the decision maker as yes/no rulings and all eight were taken; they are recorded in
   §2.7 below and in `docs/PLAN.md`. ⚠️ **No schema is applied by this revision** —
   `create_invite` and `redeem_invite` were assigned to `0005` and never written, so
-  §2.7 has always described functions that do not exist. `4.6a` / `0027` builds them.
+  §2.7 has always described functions that do not exist. `4.6a` builds them — ⚠️ **as
+  `4.6a-i`–`4.6a-iii` over `0027`–`0029`** since the third revision of this date.
 - **Revised:** 2026-08-22 — §2.7 and §2.10 amended, on the decision maker's
   instruction, to close a disagreement between this document and the applied
   schema that plan task 3.1 found. The ADR named a policy `tenant_isolation`;
@@ -1006,8 +1023,20 @@ table and one lifecycle, not two.
 | **D8** | ⚠️⚠️ **The approval RPC takes `location_ids` and refuses an empty array for `role = 'staff'`.** Staff write only where `member_location` puts them and **RLS enforces it silently** — an approved joiner with no locations opens the app and every write is refused with no message, which looks exactly like the app being broken |
 
 ⚠️ **`workspace` gains the join code**; it has no such column today and no migration
-adds one. ⚠️ **All of it freezes when `0027` merges** — after that each row above is a
-fix-forward migration rather than an edit.
+adds one. ⚠️⚠️ **AMENDED 2026-09-13 (third entry this date): IT FREEZES ACROSS
+`0027`–`0029`, NOT AT `0027`.** Plan task `4.6a` was sized `L` and split three ways on
+the day of this ruling, before a line of it was written, and the eight rows above do not
+all land in one migration:
+
+| Migration | Plan task | Which of the eight |
+|---|---|---|
+| `0027` | `4.6a-i` | **`D1`**, **`D2`**, **`D4`**, **`D5`**, and **`D3′`**'s helper — the table, the column and the shared functions |
+| `0028` | `4.6a-ii` | The push path: `create_invite` / `redeem_invite`, which call `D3′`'s helper |
+| `0029` | `4.6a-iii` | **`D6`**, **`D7`**, **`D8`** — the pull path, its approval, and the joiner's status read `my_access_requests()`, ruled in 2026-09-13 |
+
+**Each row above freezes when ITS migration merges**, and each merges on its own green
+run. ⚠️ **So `D6`, `D7` and `D8` stay cheap for two migrations longer than the rest** —
+which is worth knowing, and the opposite of what a single number implied.
 
 ⚠️ **On an offline write the window is measured from `recorded_at`, not
 `occurred_at`** (settled 2026-09-04 — §2.6 carries the rule and the reasoning).
@@ -1508,7 +1537,7 @@ match the independent tally within 5%, with no intervention.
 - [ ] Provider price memory as a **view over `purchase_line`**, excluding reversals and reversed documents; index `(workspace_id, provider_id, variant_id, occurred_at desc)`
 - [ ] Generic provider row created by `onboard_workspace`, `is_generic`, not deletable
 - [ ] Manager-only views for cost and margin; revoke staff `select` on the base tables that carry cost
-- [ ] `workspace_invite` + `create_invite` + `redeem_invite` — ⚠️ **still unbuilt; they were assigned to `0005` and never written.** Plus, from the 2026-09-13 amendment: `workspace.code`, the request path, and its approval RPC (plan `4.6a` / `0027`)
+- [ ] `workspace_invite` + `create_invite` + `redeem_invite` — ⚠️ **still unbuilt; they were assigned to `0005` and never written.** Plus, from the 2026-09-13 amendment: `workspace.code`, the request path, and its approval RPC (plan `4.6a`, split three ways 2026-09-13: `4.6a-i` / `0027`, `4.6a-ii` / `0028`, `4.6a-iii` / `0029`)
 - [ ] `payload_hash` on every transaction header
 - [ ] Nightly report pipe: `pg_cron` → Edge Function → WhatsApp/Telegram, sending **daily including green**
 - [ ] Record the 20-minute walkthrough of `0001`–`0004`

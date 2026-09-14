@@ -25,7 +25,11 @@ set -uo pipefail
 CHECK="docs/checks/4.6a-split-coverage.sh"
 PLAN="docs/PLAN.md"
 DBDOC="supabase/README.md"
-[[ -r "$CHECK" && -r "$PLAN" && -r "$DBDOC" ]] || { echo "FAIL: run me from the repo root"; exit 1; }
+# ⚠️ THE THIRD FILE, ADDED 2026-09-13 when the owner amended ADR-035 and the guard
+# grew an assertion over it. A harness that only copies two of the three files the
+# check reads cannot falsify the third.
+ADR="docs/adr/ADR-035-target-architecture-postgres-react-native.md"
+[[ -r "$CHECK" && -r "$PLAN" && -r "$DBDOC" && -r "$ADR" ]] || { echo "FAIL: run me from the repo root"; exit 1; }
 
 WORK="$(mktemp -d)"
 trap 'rm -rf "$WORK"' EXIT
@@ -54,9 +58,9 @@ PY
 # $1 label, $2 expected outcome (red|green), $3 substring the output must contain
 # (ignored when green), then the two files to run against.
 fixture() {
-  local label="$1" want="$2" needle="$3" plan="$4" dbdoc="$5" out rc
+  local label="$1" want="$2" needle="$3" plan="$4" dbdoc="$5" adr="${6:-$WORK/adr.md}" out rc
   ran=$((ran+1))
-  out="$(bash "$CHECK" "$plan" "$dbdoc" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$plan" "$dbdoc" "$adr" 2>&1)"; rc=$?
   if [[ "$want" == "green" ]]; then
     if (( rc == 0 )); then echo "  ok    $label — green, as recorded"
     else
@@ -78,7 +82,7 @@ fixture() {
   fi
 }
 
-fresh() { cp "$PLAN" "$WORK/plan.md"; cp "$DBDOC" "$WORK/db.md"; }
+fresh() { cp "$PLAN" "$WORK/plan.md"; cp "$DBDOC" "$WORK/db.md"; cp "$ADR" "$WORK/adr.md"; }
 
 # --- Z0. control -----------------------------------------------------------
 fresh
@@ -151,13 +155,29 @@ mutate "$WORK/plan.md" "and \`my_access_requests()\` — **ruled in by the owner
                        "and so the joiner" || exit 1
 fixture "Z8 my_access_requests dropped from 4.6a-iii" red "in the parent row and in NO child" "$WORK/plan.md" "$WORK/db.md"
 
+# --- Z9. the ADR's superseded sentence comes back -------------------------
+# ⚠️ THE ONE THE OWNER'S AMENDMENT FIXED. `CLAUDE.md` tells a cleared session the ADR
+# wins over every other file, so this sentence is an instruction and not a note.
+fresh
+mutate "$WORK/adr.md" "⚠️⚠️ **AMENDED 2026-09-13 (third entry this date): IT FREEZES ACROSS" \
+                      "⚠️ **All of it freezes when \`0027\` merges** — ⚠️⚠️ **AMENDED 2026-09-13: IT FREEZES ACROSS" || exit 1
+fixture "Z9 ADR-035 freezes everything at 0027 again" red "freeze when 0027 merges" "$WORK/plan.md" "$WORK/db.md"
+
+# --- Z10. the ADR stops naming a child task ------------------------------
+# ⚠️ THE ANTI-VACUITY HALF. Without it, DELETING the amendment's table outright would
+# leave assertion 7 passing on the absence of the banned sentence alone — which is
+# fixture U3's lesson from the 5b.5 amendment, applied a week later.
+fresh
+mutate "$WORK/adr.md" "| \`0029\` | \`4.6a-iii\` |" "| \`0029\` | the pull path |" || exit 1
+fixture "Z10 ADR-035 stops naming 0029 against 4.6a-iii" red "does not name 0029 against 4.6a-iii" "$WORK/plan.md" "$WORK/db.md"
+
 echo
 if (( fails > 0 )); then
   echo "$ran fixtures ran, $fails did not behave as recorded."
   exit 1
 fi
-if (( ran < 9 )); then
-  echo "FAIL: only $ran fixtures ran, expected 9."
+if (( ran < 11 )); then
+  echo "FAIL: only $ran fixtures ran, expected 11."
   exit 1
 fi
 echo "all $ran fixtures behaved as recorded in docs/PLAN.md — the guard fails on each"
