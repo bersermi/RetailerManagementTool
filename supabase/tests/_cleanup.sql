@@ -121,6 +121,14 @@ begin
   -- The seven below are new shapes and do. ⚠️ `_pload*` are deliberately NOT a
   -- new arity of `_pay`: a different arity would sit BESIDE 0024's helper and
   -- make a short call ambiguous rather than wrong.
+  -- ⚠️ ADDED 2026-09-13 (task 4.6a-ii), on the day the suite lands, which is the
+  -- rule 4f wrote and every suite since has followed. `0028`'s suite creates one
+  -- helper of its own: `_as`, which sets `request.jwt.claims` so a check can be
+  -- made AS somebody. It cost this session the hour the rule predicts — a run
+  -- that aborted at check 33 left the function standing, and the next run died
+  -- on "function _as already exists" instead of on the defect it was injecting.
+  drop function if exists public._as(uuid);
+
   drop function if exists public._rep(uuid);
   drop function if exists public._pload(uuid, jsonb, timestamptz, boolean);
   drop function if exists public._pload_p(uuid, uuid, jsonb, timestamptz, boolean);

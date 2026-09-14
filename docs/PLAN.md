@@ -110,6 +110,48 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`4.6a-ii` IS DONE AS OF 2026-09-13 — `0028` IS APPLIED, AND `4.6a-iii` IS THE NEXT TASK.**
+The push path exists: `create_invite` and `redeem_invite`, the two functions `0002:362`
+assigned to `0005` and `0005` never wrote, so ADR-035 has described this flow since it was
+written and no migration had ever shipped it. **77 behavioural checks in
+`supabase/tests/0028_invite_path.sql`, eleven falsifications against a green control**, and
+the first membership this database has ever written for somebody who did not create the
+workspace.
+
+⚠️⚠️ **ONE DECISION IS OFFERED BACK, AND IT IS THE ONE AN OWNER MIGHT RULE THE OTHER WAY:
+`redeem_invite` DOES NOT REQUIRE THE CALLER'S SIGNED-IN ADDRESS TO MATCH THE INVITE'S.** The
+token is the credential — unguessable, single-use, seven days old at most, and delivered by
+the owner to the person the owner chose. An address check would add a second factor and would
+also refuse the ordinary case this pilot is about to meet: **`5a-iv-c-3` signs the shopkeeper
+in with GOOGLE**, and the address Google returns is not necessarily the one the owner typed
+into the invite screen. That refusal is silent from the joiner's side and looks like a broken
+app. **`accepted_by` records who actually joined (`D4`), so the difference is kept rather than
+lost.** ⚠️ Reversing it is a `create or replace`; a client that has branched on it is what
+makes it dearer. Check **`6.9`** is its home and falsification **`F11`** is the reversal.
+
+⚠️⚠️ **AND §2.7's OWN SENTENCE ABOUT THIS FUNCTION IS WRONG — *"an owner or manager calls
+`create_invite(...)` under normal RLS"*.** It predates its own amendment, and `D3′` is what
+overtakes it: the creating RPC must SUPERSEDE an expired pending row, superseding is an
+UPDATE, and `0002:576` says in terms that `workspace_invite` has **no update policy**.
+⚠️ **The suite asked the database rather than the file, and the answer was harder than the
+migration's first draft claimed**: `0002:594` never granted UPDATE to `authenticated` either,
+so an owner's UPDATE is refused `42501` and never reaches a policy at all. **The invoker
+spelling would have died on the supersede — and the obvious fix for that error is to grant
+UPDATE, after which the missing policy makes it a silent no-op and `D3′`'s bug returns wearing
+the costume of its own cure.** So `create_invite` is `security definer` with the fence in the
+body, which is where `0021`, `0022`, `0025` and `0026` already keep theirs, and it is the same
+predicate the policy carries. ⚠️ **`0027`'s own grant comment already named this function as
+one of the definer bodies that call its helper** — the ADR sentence is the stale copy, not the
+migration. **It is NAMED here rather than quietly edited into the ADR**: the ADR is amended by
+the owner's deliberate decision, and a task is not one.
+
+⚠️ **THE SIGNATURE GAINED AN ARGUMENT THE PLAN'S SKETCH DID NOT HAVE.** This file's row said
+`create_invite(email, role, location_ids)`; it ships as
+`create_invite(workspace_id, email, role, location_ids)`. Deriving the workspace from the
+caller is a different claim, and §2.7 refuses it in advance — *"many workspaces per user works
+from day one … retrofitting that later would touch every screen."* A three-argument spelling
+is that retrofit, pre-written.
+
 ✅✅ **`4.6a-i` IS DONE AS OF 2026-09-13 — `0027` IS APPLIED, AND `4.6a-ii` IS THE NEXT TASK.**
 The membership shape landed: `workspace.code` (**`D5`**), `workspace_invite` re-shaped
 (**`D1`**, **`D2`**, **`D4`** — the first column rename in this schema), the **`D3′`**
@@ -8165,8 +8207,8 @@ it.
 |---|---|---|---|---|
 | **4.6a** | ⚠️ **`0027`–`0029`, three files** | **Membership — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** Sized `L` and SPLIT three ways 2026-09-13, before a line was written, exactly as this row demanded. `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path `request_access` and its approval `approve_request`, plus the joiner's status read `my_access_requests`. Register #9's eight rulings, all of which land somewhere below: **`D1`** `source`, **`D2`** nullable `token_hash`, **`D3′`** supersede the expired pending row, **`D4`** `invited_by` → `decided_by`, **`D5`** the 8-character Crockford code, **`D6`** resolve the whole code with no scan policy, **`D7`** a request absorbs a pending invite, **`D8`** locations required at approval | `L` — **split, three `M`s** | Blocks **half of `5b`** |
 | **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0027` applied, 64 behavioural checks, eleven falsifications. `4.6a-ii` and `4.6a-iii` are unblocked |
-| **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(email, role, location_ids)` returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — the invite screen in `5b` |
-| **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | the join screen in `5b` |
+| **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(workspace_id, email, role, location_ids)` — ⚠️ **the workspace is an argument, not a derivation** — returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0028` applied, 77 behavioural checks, eleven falsifications. The invite screen in `5b` is unblocked |
+| **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — the join screen in `5b` |
 | **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
 | **4.6c** | ⚠️ `0031` — **was `0029`, renumbered by the `4.6a` split, 2026-09-13** | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — área 9 is BRIEFED and still UNRULED**; part A is shop truth and nobody here can answer it |
 
@@ -8315,6 +8357,126 @@ six recorded stale-copy defects.
 | **Z8** | ⚠️ **`my_access_requests` struck from `4.6a-iii`** — added 2026-09-13 with the thirteenth deliverable | 🔴 — an atom added to a coverage list and never falsified is an atom nobody has shown the guard can see |
 | **Z9** | ⚠️ **ADR-035 §2.7's superseded sentence restored** — the rulings freeze at `0027` again | 🔴 *"freeze when 0027 merges"* — and this is the file `CLAUDE.md` tells a cleared session to obey over every other, so the sentence is an instruction and not a note |
 | **Z10** | ⚠️⚠️ **`4.6a-iii` struck out of §2.7's amendment TABLE** — the anti-vacuity case | 🔴 **only after the assertion was fixed.** It was GREEN first: the guard matched the same pair 1,500 lines away in §8's checklist. **A fixture caught the guard measuring the wrong copy** |
+
+### ✅✅ `4.6a-ii` IS DONE AS OF 2026-09-13 — `0028` applied, and §2.7's sentence about it is the stale copy
+
+**`0028_invite_path.sql` is applied and green.** `create_invite(workspace_id, email, role,
+location_ids)` and `redeem_invite(token)`, plus two helpers nobody may call —
+`generate_invite_token()` and `hash_invite_token(text)`. Suite:
+`supabase/tests/0028_invite_path.sql`, **77 behavioural checks**, and **eleven
+falsifications** against a **green control**.
+
+⚠️ **It adds no column, no policy, and no ruling of register #9.** `D1`, `D2`, `D4` and
+`D5` are `0027`'s columns and this writes rows under them; **`D3′` is `0027`'s helper and
+this is its first caller**; `D6`, `D7` and `D8` are `0029`'s and stay there. The only place
+this file touches the pull path is the branch that REFUSES to absorb a live request.
+
+#### ⚠️⚠️ §2.7 SAYS THIS FUNCTION RUNS "UNDER NORMAL RLS" AND IT CANNOT
+
+**Found by trying to write the supersede call, not by reading the sentence.** §2.7's push
+paragraph predates its own amendment; `D3′` arrived later and contradicts it:
+
+| | Says |
+|---|---|
+| **§2.7, push paragraph** | *"An owner or manager calls `create_invite(...)` **under normal RLS**"* |
+| **`D3′`** | *"the creating RPC must **SUPERSEDE** any expired pending row"* |
+
+⚠️ **Superseding is an UPDATE, and `0002:576` says in terms that there is no update policy
+on `workspace_invite`** — *"redemption is written by `redeem_invite()`, which is security
+definer. An invite is never edited by hand."*
+
+⚠️⚠️ **AND THE DATABASE ANSWERED HARDER THAN THIS SESSION'S FIRST DRAFT OF THE MIGRATION
+CLAIMED.** The draft said the UPDATE would match zero rows and say nothing. It does not even
+get that far: **`0002:594` grants `authenticated` select, insert and delete on that table and
+NOT update**, so the statement is refused `42501` before any policy is consulted. The
+invoker-rights spelling would therefore have **died** on the supersede — and the obvious fix
+for that error is to grant UPDATE, at which point the missing policy makes it the silent
+no-op, the INSERT collides with `workspace_invite_one_pending_idx`, and **`D3′`'s bug returns
+wearing the costume of its own cure.** ✅ **Both halves are asserted rather than argued:
+check `8.2` is the missing policy, check `8.3` performs the refused UPDATE under
+`set role authenticated` as an OWNER of the workspace.**
+
+✅ **So `create_invite` is `security definer` with the fence in the body** — `has_role(ws,
+'manager')`, the same predicate `workspace_invite_insert` carries — which is where `0021`,
+`0022`, `0025` and `0026` already keep theirs. ⚠️ **`0027`'s own grant comment already named
+this function as one of the definer bodies that call `supersede_expired_invite`**, so the
+applied schema and the ADR sentence had already disagreed and nobody had said so.
+⚠️ **It is named here rather than edited into the ADR**: the ADR is amended by the owner's
+deliberate decision and a task is not one. **It is the ninth stale copy recorded here, and
+the second inside ADR-035 itself.**
+
+#### ⚠️ Six decisions taken on the owner's behalf, and the fifth is the one offered back
+
+| | Decision | Why it was taken rather than asked |
+|---|---|---|
+| **1** | **`security definer`, fence in the body** (above) | `D3′` cannot be obeyed any other way, and the alternative — a definer `supersede_expired_invite` — is the one `0027` refused in writing, because a definer helper reachable on its own retires somebody else's pending invite |
+| **2** | ⚠️ **`create_invite` takes `p_workspace_id`**, which this file's own sketch of the signature did not | Deriving it is *"the one workspace this caller manages"*, and §2.7 refuses that in advance: *"many workspaces per user works from day one … retrofitting that later would touch every screen."* Every other fenced RPC here is NAMED its scope by the caller; this one has no row to read it off |
+| **3** | **The token is 16 Crockford characters (80 bits), and normalisation lives INSIDE the hash** | Same alphabet as `D5`'s code because it is delivered the same way — §2.7: *"the owner sends the code over WhatsApp"*. 16 rather than 8 because `redeem_invite` is an oracle by construction and this token IS the approval, where the join code admits a caller to nothing until an owner acts. Normalising inside `hash_invite_token` is what makes *"the creating and redeeming halves disagree about what a token is"* unwriteable — a defect that would present as *"the code the owner is reading aloud does not work"* with nothing in the schema looking wrong |
+| **4** | ⚠️ **A `staff` invite must name at least one location; a `manager` or `owner` invite stores `'{}'` whatever was passed** | **`D8`'s ARGUMENT, not `D8`** — which is `0029`'s and stays there. Its reasoning is about `member_location`, not about which RPC wrote it: an approved joiner with no locations opens the app and **every write is refused by RLS with no message**, which looks exactly like the app being broken. The converse is `0002:377`: those roles get every location by role, and a row here would outlive a demotion |
+| **5** | ⚠️⚠️ **Redemption does NOT require the caller's signed-in address to match the invite's** | **OFFERED BACK — see the status log.** The token is the credential; `5a-iv-c-3` signs the shopkeeper in with Google, whose address is not necessarily the one the owner typed, and refusing that is silent from the joiner's side. `accepted_by` records who actually joined, so nothing is lost. Check `6.9`, falsification `F11` |
+| **6** | **A LIVE pending invite is replaced; a LIVE pending REQUEST is refused** | *"I sent it, they never got it, send it again"* is what a shop does, and refusing costs a human step — the owner's tie-break is the option that adds none. But inviting someone who has already ASKED is an **approval**, and approval carries `D8`, which is `0029`'s: absorbing it here is the `Z2` fixture's shape exactly, two tasks each assuming the other owns a ruling |
+
+⚠️ **A seventh call is inside decision 6's family and is worth its own line: a returning
+member is REACTIVATED and the invite's locations REPLACE what was there.**
+`workspace_member_unique` makes re-joining an UPDATE rather than an INSERT, and the
+alternative is `23505` in front of a shop re-hiring last summer's cashier. ⚠️ **The
+replacement is also what stops a second `23505`** — falsification `F7` removed it and the
+suite went red on a `member_location_pkey` collision, not on the check written for it: an
+existing member re-invited to a store they already hold collides with themselves.
+
+#### ⚠️ Three things found by asking the database rather than reading the file
+
+**`H1` — `authenticated` HAS NO UPDATE GRANT ON `workspace_invite` AT ALL**, which is
+stronger than the missing policy and makes decision 1 unavoidable rather than merely wise.
+Written up above; check `8.3`.
+
+**`H2` — `proconfig` SPELLS THE EMPTY SEARCH PATH `search_path=""`, WITH THE QUOTES.** The
+first spelling of check `1.7` asserted `search_path=` and went red against four functions
+that all carry it correctly. ⚠️ **Had it been written the other way round — asserting a
+prefix that always matches — it would have passed on a function with NO `search_path` at
+all**, which is the vacuous green this repository keeps finding. Check `1.7`.
+
+**`H3` — `workspace_invite_expiry_future` REFUSES A ROW WHOSE EXPIRY PRECEDES ITS CREATION**
+(`0002:387`), so *"make this invite old"* is **two columns, not one**. The constraint caught
+the first spelling of check `6.7`, which moved `expires_at` into the past and left
+`created_at` at `now()`. Nothing in the migration changed; the suite did.
+
+#### Eleven falsifications, run by hand before `0028` was committed
+
+⚠️ **Each mutates the SHIPPED migration, runs `supabase db reset` from scratch, and re-runs
+the suite** — so every row below is a claim about the file that merges. The control was
+**green on its first run**, unlike `0027`'s: the harness pipes `_cleanup.sql` and the suite
+into the container over stdin rather than copying them in, so the container recreation that
+cost `4.6a-i` an hour cannot happen here.
+
+| Fixture | The edit to `0028` | Result |
+|---|---|---|
+| **F0** | Control, unedited, fresh reset | 🟢 all 77 |
+| **F1** | ⚠️⚠️ `create_invite` stops calling `supersede_expired_invite` — **`D3′` unwired** | 🔴 aborts at `4.2` with `23505` on `workspace_invite_one_pending_idx` — the lapsed row holding the slot forever, which is the bug `D3′` exists for |
+| **F2** | The live pending invite is no longer replaced (decision 6) | 🔴 aborts at `4.5` with the same `23505`, one section later |
+| **F3** | `hash_invite_token` stops normalising (decision 3) | 🔴 `2.7`, `6.11`, `6.12` — and `6.11` is the end-to-end one: a token typed in lower case and in groups is *"not valid"* |
+| **F4** | `hash_invite_token` granted to `authenticated` | 🔴 `1.4` — the offline oracle, which is what 80 bits is defending |
+| **F5** | A `staff` invite may name no location (decision 4) | 🔴 `3.9`, and **not the way it was expected to**: `23502`, not acceptance — with the guard gone, `array_agg` over an empty array returns NULL and the not-null column refuses it. The check asserts the SQLSTATE, which is why it caught a wrong error rather than passing on any error |
+| **F6** | A manager may mint an owner (decision 9 of the migration) | 🔴 `3.6` — *"no exception raised"* |
+| **F7** | The old `member_location` rows are merged, not replaced | 🔴 `7.3`, **and `6.9`/`6.10` with a `member_location_pkey` collision** — see above |
+| **F8** | The membership is written and the `member_location` rows are not | 🔴 `5.3`, `5.7`, `5.8` — **`5.7` is the one that matters**: `my_locations()` returns 0 of the workspace's 2 stores for a joiner whose row looks fine |
+| **F9** | Expiry stops being checked at redemption | 🔴 `6.7` |
+| **F10** | A spent token becomes reusable by anybody | 🔴 `6.6` |
+| **F11** | ⚠️⚠️ **Decision 5 REVERSED** — the caller's address must match the invite's | 🔴 aborts at `5.9`, before it reaches `6.9`, because the fixture contains two such mismatches. **This is the fixture that proves the suite can see the ruling either way**, which is what makes offering it back cheap |
+
+#### ⚠️ What `0028` deliberately does NOT do
+
+- **No `request_access`, no `approve_request`, no `my_access_requests`.** They are `0029`
+  (`4.6a-iii`) and `D6`/`D7`/`D8` freeze when it merges.
+- **No policy, on any table.** Checks `8.1`, `8.2`, `8.4` and `8.5` say so structurally —
+  including that `workspace` still has exactly its two policies from `0001`, because the
+  cheapest-looking way to make `5b`'s join screen work is a SELECT policy there and `D6`
+  rules it out.
+- **No seed rows.** `02`'s `F9` asserts `workspace_invite` is empty in the seed on purpose,
+  which `4.6a-i` recorded as `S2`; `0028` touches no seed file either.
+- **No `source = 'request'` handling in `redeem_invite`, and none is needed.** `0027`'s
+  `workspace_invite_source_consistent` makes `token_hash` NULL on that path, and a null
+  cannot equal a hash — **the constraint is the check**, so there is no branch to get wrong.
 
 ### ✅✅ `4.6a-i` IS DONE AS OF 2026-09-13 — `0027` applied, and two of the eight rulings could not both be true
 
