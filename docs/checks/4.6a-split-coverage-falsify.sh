@@ -121,8 +121,15 @@ mutate "$WORK/plan.md" "the join-request path \`request_access\` and its approva
 fixture "Z4 the parent row stops naming request_access" red "no longer named in the parent 4.6a row" "$WORK/plan.md" "$WORK/db.md"
 
 # --- Z5. the renumbering goes stale ---------------------------------------
+# ⚠️ THE ANCHOR MOVED ON 2026-09-14 AND THIS SCRIPT IS WHAT SAID SO. `4.6c` was
+# re-scoped when the owner ruled area 9 — the family margin view is cancelled —
+# and its row was rewritten, so this fixture could no longer find the text it
+# edits and `mutate` refused. A fixture that cannot be APPLIED is not a fixture
+# that passed; it is a guard whose falsification silently stopped running, which
+# is the one failure this whole file exists to prevent. The anchor is now the
+# shortest thing that is still true of the row: its name and its first number.
 fresh
-mutate "$WORK/plan.md" "| **4.6c** | ⚠️ \`0031\` — **was \`0029\`, renumbered by the \`4.6a\` split, 2026-09-13**" \
+mutate "$WORK/plan.md" "| **4.6c** | ⚠️ \`0031\`–\`0033\`" \
                        "| **4.6c** | \`0029\`" || exit 1
 fixture "Z5 4.6c left claiming 0029" red "also claims migration 0029" "$WORK/plan.md" "$WORK/db.md"
 

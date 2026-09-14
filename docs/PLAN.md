@@ -33,7 +33,9 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **Área 9 — Números.** *"Three numbers, not thirty."* ⚠️⚠️ **The brief found that TWO of §2.9's three questions are wrong for the pilot's main product line, not one** — so the answer decides more than one migration's shape. ⚠️ **It has two halves and they take different kinds of answer**: `A1`–`A6` are shop truth and carry **no recommendation on purpose**; `B1`–`B8` are engineering and carry one each | `4.6c` | ✅ **Written 2026-09-13** — `4.6c`'s section below, *"Área 9 — THE BRIEF"* |
+| **Revenue: GROSS or NET of IVA?** ⚠️ `product_velocity_daily` carries `revenue_net` and nothing else, and `workspace.prices_include_tax` defaults to **true** — so the number the view returns is **not the number on the shelf label**, and *"Revenue Earned"* (`A6`) is ambiguous between them. ✅ **Recommendation: GROSS as the headline, net beside it**, because the shopkeeper reconciles against the cash in the till and the price they typed already included the tax | `4.6c-i` | ✅ **Asked 2026-09-14**, with the reasoning, in this session's closing message |
+| **Does a CASHIER see the shop's revenue?** ⚠️⚠️ **Today they DO, and it is applied, not proposed**: a staff member of the seed's Tienda Doña Lupe reads 15,099 rows of `product_velocity_daily` totalling **$65,549** of `revenue_net`, while margin, cost and waste correctly return ZERO rows for them. §2.7's capability table fences *"see cost and margin"*, and revenue is neither. ✅ **Recommendation: leave it** — they ring the sales up, so they already know — but it is **your** call, not an accident to inherit | `4.6c-i` | ✅ **Asked 2026-09-14**, measured against the seed rather than reasoned |
+| **ADR-035 §2.9 now disagrees with your ruling, and `CLAUDE.md` says the ADR wins.** §2.9's first question is *"what made me money?"* and `A3` retires it: *"we won't derive the profit so let's ignore margins for now."* ⚠️⚠️ **Until §2.9 is amended on your instruction, a cleared session is told to rebuild the margin view** — the plan would be the bug, not the ADR | `4.6c-i`, and every later Números task | ✅ **Asked 2026-09-14.** The amendment is three lines and I will write it on your word |
 
 **Four falsifications over the block itself** (`plan-handover.sh`, assertions 7a–7c):
 
@@ -8259,7 +8261,10 @@ it.
 | **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(workspace_id, email, role, location_ids)` — ⚠️ **the workspace is an argument, not a derivation** — returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0028` applied, 77 behavioural checks, eleven falsifications. The invite screen in `5b` is unblocked |
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
 | **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14** — the replay control in `5c` |
-| **4.6c** | ⚠️ `0031` — **was `0029`, renumbered by the `4.6a` split, 2026-09-13** | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — área 9 is BRIEFED and still UNRULED**; part A is shop truth and nobody here can answer it |
+| **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
+| **4.6c-i** | `0031` | **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace | `M` | ⛔ **GATED on `N1`** — gross or net revenue is the owner's call and it decides this view's columns |
+| **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's | `M` | the price card in `5d` |
+| **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
 
 ### ⚠️⚠️ Sized 2026-09-13 — `4.6a` IS AN `L`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS A RENUMBERING
 
@@ -8862,6 +8867,108 @@ brief's own reasoning**, found because the migration was opened instead of the s
 it. The same move found `5a-iv-a`'s four blockers, `5a-iv-c-1`'s missing JDK, and the four
 collisions this brief is built on. **Three for three.**
 
+### ✅✅ ÁREA 9 IS RULED, 2026-09-14 — and the answer RETIRES the question `4.6c` was written to fix
+
+**The owner answered all six of Part A in his own words.** The brief was built to decide
+*which* of two broken margin questions `4.6c` would repair. ⚠️⚠️ **His answer was neither:
+`A3` — *"we won't derive the profit so let's ignore margins for now. I'd rather just show
+total revenue"*.** So `4.6c` as scoped — *"the family margin view: purchases-in against
+sales-out, per family, per period"* — **is cancelled, not re-sized.** `B2`, `B3` and `B4`
+were recommendations about a view nobody is building.
+
+⚠️ **This is the grill-me rule earning its keep.** Part A carried **no recommendations on
+purpose**, and a session that had proposed the obvious answer would have proposed the
+margin view — the thing the owner does not want — and been agreed with, because it was the
+only option on the table. **The brief's own sentence was "CI can prove a view is consistent;
+it can never prove it is the number a shopkeeper wanted."**
+
+#### The rulings, in his words
+
+| | Ruling |
+|---|---|
+| **A1** | Números is *"charts and tables about their transactions … doesn't have to be very robust nor sophisticated for now"*: **how much was bought this week/month**, **how much are we selling per day, per product / product family**, and **how prices have changed for purchases/selling**. Plus a **download of the transactions breakdown** — all transactions and waste for a given month. More complex questions and user-chosen tiles come later |
+| **A2** | **Daily / Weekly / Monthly, switchable.** *"Make a good guess for this initial version, we will improve it afterwards"* |
+| **A3** | ⚠️⚠️ **No profit, no margin.** *"I'd rather just show total revenue"*, displayable **per product family AND per product variant** |
+| **A4** | **Waste sits in a different visual**, not inside any profit number |
+| **A5** | Today he checks with **a notebook and a feeling** |
+| **A6** | The three: **1.** quantity sold, in pieces, kg or whatever unit. **2.** revenue earned. **3.** **price changes per product over time**, purchases and sales, with a small card of the **% change** over the current month, 1, 3, 6, 9 months and **YTD** |
+
+#### ⚠️ What the applied schema ALREADY answers, measured rather than assumed
+
+**Asked of the database on 2026-09-14, against the seed, under `set role authenticated`:**
+
+| Read | Staff | Manager |
+|---|---|---|
+| `product_velocity_daily` — `qty_base_sold`, `revenue_net`, per variant per day, **carrying `family_id` and `family_name` on every row** | ✅ **15,099 rows, $65,549** | ✅ 28,433 rows |
+| `product_margin_daily` — cost, COGS, margin | 🚫 **0 rows** | ✅ 1,608 rows |
+| `product_waste_daily` — waste cost **and `purchases_qty_base` / `purchases_net`** | 🚫 **0 rows** | ✅ 954 rows |
+
+✅✅ **So `A6`'s first two numbers are ALREADY IN THE SCHEMA and already reach a cashier.**
+`0013`/`0014`'s velocity view is quantity-and-revenue with no cost in it — which is exactly
+why `F2`'s twin did not break it — and it carries the family on every row, so *"per family
+and per variant"* is a `group by`, not a migration.
+
+⚠️ **The cost fence is real and was verified, not trusted.** `0009` carries
+`has_role(..., 'manager')` **in the view body**; `product_waste_daily` does **not**, and
+does not need it — every base table it reads (`stock_movement`, `purchase`, `purchase_line`)
+carries `has_role(workspace_id, 'manager')` in its own SELECT policy, so a staff caller gets
+zero rows by RLS. **Both were checked by asking the database, after one of them was wrongly
+suspected of leaking.**
+
+#### ⚠️⚠️ THREE THINGS THE RULING NEEDS THAT THE SCHEMA DOES NOT HAVE
+
+| | What | Where it stands |
+|---|---|---|
+| **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it | ⛔ **Owner's call** — parked in the decisions block |
+| **N2** | **Purchases as a first-class read.** *"How much was bought this week/month"* exists only as `purchases_qty_base` / `purchases_net` **inside `product_waste_daily`** — a view named for waste, which is not where anyone will look, and whose grain is a variant-day | Needs a view |
+| **N3** | **Price over time, both sides, with the % windows.** Nothing in the schema answers it. `provider_price_memory` (`0008`) is the **last** purchase price only, not a history; `price_list` is the *intended* sale price and **is EMPTY in the seed (0 rows)**. The real history is in the ledger — `purchase_line` and `sale_line` unit prices, dated | Needs a view, and it is the largest piece |
+
+⚠️ **The export (`A1`'s download) is a fourth, and it is not a chart**: all transactions and
+waste for a month, flat. Three tables with three different shapes, and the client should not
+be unioning them itself under three different RLS fences.
+
+#### ⚠️⚠️ `4.6c` IS RE-SCOPED AND SPLIT THREE WAYS, BEFORE A LINE OF IT IS WRITTEN
+
+The old `4.6c` was an `M` for one view. What the ruling asks for is **`N2` + `N3` + the
+export**, which is an `L` by the same measure that sized `4.6a`. **The seam is the same one
+that worked there: one migration each, so each merges on its own green run.**
+
+| Piece | Migration | What, and why it is first |
+|---|---|---|
+| **`4.6c-i`** | `0031` | **Purchases as a read** (`N2`), per variant and family per day, beside the revenue that already exists — plus **`B8`'s honesty comment on `0009`**, which matters more now than when it was recommended: nothing will replace that view, so it keeps returning **100 % margin on a despiece** for ever unless it says why. ⚠️ **Blocked on `N1`**: whether revenue is gross or net decides this view's columns |
+| **`4.6c-ii`** | `0032` | **Price over time** (`N3`), purchase and sale unit prices per variant, from the **ledger** rather than from `price_list`. ⚠️ **Daily grain, and the % windows are the CLIENT's** — `B5`'s argument, and `A2` is precisely the answer that changes after a pilot: *"1, 3, 6, 9 months and YTD"* baked into SQL is a migration every time he wants a different card |
+| **`4.6c-iii`** | `0033` | **The month export** — transactions and waste, flat, one shape, one fence |
+
+⚠️ **`4.6b` still comes first**: it is an `S`, it is unblocked, and `4.6c-i` is waiting on
+`N1` in any case.
+
+#### ⚠️ And re-scoping `4.6c` broke a GUARD'S FALSIFICATION, which is a thing only its own fixtures could report
+
+`4.6a-split-coverage.sh` stayed green through the rewrite — correctly, since `4.6c` still
+claims `0031`. But `4.6a-split-coverage-falsify.sh`, the file that proves that guard can
+still FAIL, anchors its `Z5` fixture on the literal text of `4.6c`'s row, and that row was
+rewritten. **`mutate` could no longer find what it edits and refused.**
+
+⚠️⚠️ **A fixture that cannot be APPLIED is not a fixture that passed** — it is a guard whose
+falsification quietly stopped running, while both scripts still exit 0 in CI. That is the
+exact failure this repository added the falsify script to prevent, arriving from the one
+direction nobody watches: **not an edit to the check, but an edit to the FILE THE CHECK
+READS.** ✅ **`Z5`'s anchor is now the shortest thing still true of that row — its name and
+its first migration number — and all eleven fixtures behave again.**
+
+#### The Part B recommendations, settled against the ruling
+
+| | Was | Now |
+|---|---|---|
+| **B1** | A new view, leave `0009` alone | ✅ **Stands** — and `0009` is now *orphaned but applied*, which is what makes `B8` urgent rather than tidy |
+| **B2** | Purchases-in against sales-out, per family, per period | ❌ **CANCELLED by `A3`.** There is no margin number |
+| **B3** | Do not call it margin | ✅ **Stands, and is now free** — nothing in the new scope is a margin, so nothing can be mistaken for one |
+| **B4** | One view answers waste too | ❌ **CANCELLED by `A4`** — waste is its own visual, and `product_waste_daily` already exists for it |
+| **B5** | Daily grain, client sums | ✅✅ **Confirmed by `A2` and doubly by `A6`'s % windows** |
+| **B6** | Net of IVA on both sides | ⚠️ **Reopened as `N1`** — it was the right answer for a margin, where both sides must match. For revenue alone the question is *"which number does he recognise"*, and that is his |
+| **B7** | Manager and above | ⚠️ **Split.** The revenue read is **already staff-visible** and changing that is a decision, not a default (parked). `N2` and `N3` carry cost, so they are manager-and-above like every cost read here |
+| **B8** | Comment `0009`'s C8.6 limit | ✅✅ **Stands, and is now in `4.6c-i`** |
+
 ### ⚠️⚠️ Área 9 — THE BRIEF. Two of the three Números questions are broken, not one
 
 **Prepared 2026-09-13, at the owner's request.** ⚠️⚠️ **THIS BRIEF HAS TWO HALVES AND THEY
@@ -8932,14 +9039,22 @@ fence (the replayer has reviewed the dead-letter and can carry cost for any kind
 survives intact rather than being overridden. ⚠️ **The recorders' own `manager` fence
 is untouched.**
 
-### ⚠️ 4.6c — GATED, and it is the one that needs an interview first
+### ✅✅ 4.6c — THE INTERVIEW HAPPENED 2026-09-14, AND IT CANCELLED THIS TASK'S SUBJECT
 
-F2 under step 5: `product_margin_daily` (`0009`) is COGS-from-the-lot-consumed, so
+~~F2 under step 5: `product_margin_daily` (`0009`) is COGS-from-the-lot-consumed, so
 under C8.6 the pieces sell against a zero-cost shortfall lot at **100 % margin** while
 the whole bird's cost never enters COGS at all. What the owner described is
 **purchases-in against sales-out, per family, per period**. ⚠️ **Do not write this
-until area 9 has been asked** — *"three numbers, not thirty"* is unanswered, and a
-view built against a guess is a migration built against a guess.
+until area 9 has been asked**~~ — **asked and answered on 2026-09-14, and the answer was
+neither of the two margin questions the brief was written to choose between:** *"we won't
+derive the profit so let's ignore margins for now. I'd rather just show total revenue."*
+
+⚠️⚠️ **The gate did exactly what it was for.** A view built against a guess would have been
+the family margin view — consistent, tested, green, and **not a number the owner wants to
+look at**. The re-scope, the three-way split and the rulings in his own words are in
+*"ÁREA 9 IS RULED"* above. ⚠️ **`0009` is now orphaned but applied**, which is why the
+comment naming its C8.6 limit moved from *tidy* to *urgent*: nothing will replace it, and it
+goes on returning 100 % margin on a despiece to whoever reads it next.
 
 ---
 
