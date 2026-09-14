@@ -829,16 +829,21 @@ select chk_json('2.2 ⚠⚠ a MANAGER SUCCEEDS, AND ACTUALLY REPLAYS — 0030, o
 --     A MANAGER MAY REPLAY A DEAD LETTER SHE CANNOT SEE.
 --
 -- It is pinned here so it is a decision on the record rather than a discovery.
--- ⚠️ THIS CHECK IS SUPPOSED TO GO RED ONE DAY. Step `5c`'s dead-letter banner
--- (C11.9) needs the manager to see something, and the owner has two spellings
--- to choose between — loosen `failed_write_select`, or add a `security
--- definer` read in the shape of `my_access_requests()` (`0029`). Whoever takes
--- that decision changes this check and says whose decision it was. Whoever
--- changes it WITHOUT one is undoing `0024` decision 8 by accident.
+-- ⚠️⚠️ AND IT IS NO LONGER A PLACEHOLDER. This comment read "THIS CHECK IS
+-- SUPPOSED TO GO RED ONE DAY" for the few hours the question was open. ✅✅ THE
+-- OWNER RULED 2026-09-14 — **the device remembers its own failure**: `5c`'s
+-- dead-letter banner reads the DEVICE'S OWN OUTBOX and makes no server read at
+-- all, because `0024` decision 7 makes `failed_write.id` BE the client uuid, so
+-- the device that failed already holds what `replay_failed_write` needs.
+-- **C11.4 says "fix", not "browse".** So this state is the intended one:
+-- `failed_write_select` stays owner-only, §2.8 and C10.5 both survive, and no
+-- migration was written. ⚠️⚠️ CHANGING THIS CHECK UNDOES THAT RULING.
 select chk('2.2b ⚠⚠ …AND SHE CANNOT READ THE ROW SHE JUST REPLAYED. '
            'failed_write_select is still owner-only (0024 decision 8) and 0030 '
            'moved only the call fence, so the manager selects ZERO rows of the '
-           'dead letter she just recovered. Recorded as a decision, owed to 5c',
+           'dead letter she just recovered. ⚠️ RULED 2026-09-14 AS THE INTENDED '
+           'END STATE: 5c''s banner reads the device''s own outbox, so she does '
+           'not need to. Changing this undoes a ruling',
            (select count(*) from public.failed_write where id = :dl_fen) = 0,
            format('rows visible to the manager=%s',
                   (select count(*) from public.failed_write

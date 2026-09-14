@@ -33,9 +33,11 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| ⚠️⚠️ **CAN A MANAGER SEE THE DEAD LETTER SHE IS ALLOWED TO REPLAY?** `4.6b` moved the CALL fence to `manager` (C11.4) and left `failed_write_select` at `owner` (`0024` decision 8) — so as of `0030` she may replay a row she cannot `select`. **Two spellings, and they are not equivalent.** | **`5c`** — the dead-letter banner (C11.9). ⚠️ **It blocks NOTHING in step 4.6** — the migration that comes next reads purchases and never touches this table | **(a) Loosen `failed_write_select` to `manager`.** Cheap, one policy, and it exposes nothing §2.7 does not already grant a manager (*See cost and margin* is manager-and-above). ⚠️ But it puts a **vendor surface** (§2.8 — *"dead letters go to the operator of this system"*) permanently inside a merchant's reach. **(b) A `security definer` read — `my_failed_writes()`.** The shape this repo already chose for exactly this problem: `my_access_requests()` (`0029`) exists so a joiner can see a row no policy can ever show them, ruled in by the owner 2026-09-13. Returns what a banner needs — a count, a peso figure — and nothing else, so §2.8's fence survives. ⚠️ **RECOMMENDATION: (b).** It is the precedent, it answers C11.9's *"least invasive thing that works"* without widening a policy, and it lets the banner show a NUMBER rather than a table the shopkeeper would have to read — which is [[users-dont-do-bookkeeping]] applied. ⚠️ **It costs a migration either way**, so the cheap moment is before `5c` starts, not during it |
 
-⚠️⚠️ **ONE IS OWED AS OF 2026-09-14, AND IT ARRIVED WITH `0030`.** ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ The three
+✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
+FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
+date**, which is what it is for. The three
 decisions parked here that morning — gross-or-net revenue, whether a cashier sees revenue,
 and the ADR amendment §2.9 needed — were all ruled the same day: **gross, leave it, amend it.**
 ⚠️ **The block STAYS when it empties**: `plan-handover.sh` says in its own comment that zero
@@ -157,6 +159,79 @@ earlier and all three are closed before any of them could go stale.
 — §2.5's reason for a per-line net cites margin-by-product (the requirement stands, the example
 moved, and one clause was corrected), and §3 step 2's gate text describes a step that **closed
 in August**. **Completed history is left as the record of what was actually done.**
+
+✅✅ **RULED BY THE OWNER 2026-09-14 — THE DEVICE REMEMBERS ITS OWN FAILURE, AND NEITHER
+MIGRATION IS WRITTEN.** The decision `4.6b` raised hours earlier — *can a manager see the
+dead letter she is allowed to replay?* — is answered, and the answer is **neither of the two
+options the brief was written to choose between.** ⚠️⚠️ **`failed_write_select` STAYS
+`owner`-ONLY, PERMANENTLY AS FAR AS THIS PLAN IS CONCERNED**, and `5c`'s dead-letter banner
+is driven by the device's own outbox.
+
+⚠️⚠️ **THE PREMISE OF BOTH OPTIONS WAS WRONG, AND THAT IS THE FINDING. C11.4 SAYS *"FIX"*,
+NOT *"BROWSE"*.** `replay_failed_write` takes an id, and **the device already has it**:
+`5c` ships client-generated document uuids for §2.6 idempotency, and `0024` decision 7 makes
+`failed_write.id` **be** that uuid. The client therefore knows the id of its own failed write
+**before it ever calls the server**, so the banner needs no server read at all. **Both parked
+options were answers to a question C11.4 never asked.**
+
+✅ **AND IT MEANS `4.6b` WAS EXACTLY SUFFICIENT, NOT MERELY DEFENSIBLE.** The only thing
+standing between the manager and C11.4 was the `TD003` refusal. She now clears the fence and
+replays with an id her own device holds. **The blindness `0030` flagged is real and blocks
+nothing.**
+
+**Why the two parked options lost, in the owner's terms:**
+
+- **(a) loosen `failed_write_select` to `manager` — REFUSED.** ⚠️ **The cheap version buys
+  nothing and the useful version breaks two rulings.** Used only to count rows it shows
+  exactly what (b) shows, having taken a permanent policy risk for free; used to render a
+  LIST it must rebuild the receipt client-side from `payload` — variant uuids, base-unit
+  quantities — which `0024` decision 6 says **is never validated**, so it may name a deleted
+  variant or a unit that no longer resolves. **The screen that most needs to render reliably
+  would be built on the only data in the schema with no integrity guarantee**, and what it
+  renders when that fails is `42501`. It also contradicts **C10.5** — *"a rejected queued
+  write is NEVER shown to the shopkeeper… it must stay in our side for analytics"* — and
+  ends §2.8's *"dead letters go to the operator of this system"* at the fence level, which
+  is a boundary that costs a policy migration **plus whatever client shipped against it** to
+  put back.
+- **(b) `my_failed_writes()`, a `security definer` read — NOT WRONG, JUST UNNECESSARY.** It
+  was the recommendation and it survives as the fallback: §2.8 intact, a count and a peso
+  figure, the precedent `my_access_requests()` (`0029`) already set. **It loses only because
+  (c) produces the identical screen for no migration at all.** ⚠️ **Recorded rather than
+  deleted**: if the device-local path turns out not to cover the pilot, this is the answer,
+  already argued.
+
+⚠️ **WHAT (c) DOES NOT COVER, ACCEPTED DELIBERATELY.** It is per-device and lost on a
+reinstall, and it does not show a failure that happened on the OTHER person's phone. **Both
+fall back to HAND RECOVERY BY US**, which is the ruling of 2026-09-05 and which already says
+that is permanently the answer while the pile is a trickle. ⚠️⚠️ **AND IT IS MEASURED RATHER
+THAN ASSUMED**: §2.10's nightly check prices the pile for free, so the pilot answers this
+within weeks. **If it stops being a trickle, this file's own recorded reading is that
+something upstream is broken and worth fixing at the SOURCE — not that it is time to build
+recovery tooling.**
+
+✅ **NO ADR AMENDMENT IS OWED, AND THAT IS THE FIRST TIME IN FOUR RULINGS.** The three of
+2026-09-14 that preceded it needed §2.7 and §2.9 changed. This one **upholds** §2.8 and
+C10.5 rather than bending either, so ADR-035 is already correct about it. ⚠️ **Nothing here
+is a schema change**, which is why it costs nothing to reverse if the pilot disagrees — the
+opposite of both options it replaced.
+
+⚠️⚠️ **ONE COPY LAGS THIS RULING ON PURPOSE AND IS NAMED RATHER THAN EDITED: `0030`'s
+`comment on function`.** It says the blindness is *"owed to step `5c`'s dead-letter
+banner"*, which stopped being true the moment this was ruled. **A function comment is
+APPLIED SCHEMA, and migrations are append-only** — so it is NOT edited in place, and the
+migration file is left exactly as CI applied it. ✅ **Fold the one-line `comment on function`
+correction into `0031`**, which `4.6c-i` ships anyway, so it costs nothing. ⚠️ **Every other
+copy was re-signed in this commit**: `0030` checks 2.1 and 3.3, `0026` check 2.2b, the 4.6b
+section, the `5c` row and `supabase/README.md` — because *"the copy nobody checks is the copy
+that goes stale"* has been this repository's most-recorded defect, nine times.
+
+⚠️⚠️ **AND THE THREE CHECKS CHANGED MEANING WITHOUT CHANGING ONE LINE OF SQL.** They were
+written as *"this is expected to go red one day"* — a placeholder waiting for a decision.
+**They now HOLD a decision**, and their labels say so, which is exactly what `0028`'s `6.9`
+and `6.10` had to do for the redemption ruling: **a later session widening
+`failed_write_select` is undoing the owner's ruling of 2026-09-14, not hardening a fence.**
+⚠️ **Nothing but these checks can hold it** — the ruling is that a policy stays as it is, and
+a change that is not made has no constraint, grant or policy to live in.
 
 ✅✅ **`4.6b` IS DONE AS OF 2026-09-14 — `0030` IS APPLIED, AND `4.6c-i` IS THE NEXT TASK.**
 `replay_failed_write` is fenced at **`manager`**, one notch down from `owner`, which is what
@@ -9169,10 +9244,19 @@ EQUAL, which is the shape `0025` decision 3 wrote before `0026` chose to be tigh
 
 ⚠️⚠️ **AND THE THING IT DID NOT DO IS THE THING WORTH READING: A MANAGER MAY NOW REPLAY A
 DEAD LETTER SHE CANNOT SEE.** `failed_write_select` is still `owner`-only (`0024`
-decision 8). **It is parked as an owner decision against `5c`** — the full brief, both
-spellings and the recommendation are in the decisions block at the top of this file — and
-it is held by three checks rather than by prose, one of which is written to go RED the day
-somebody widens that policy.
+decision 8). ~~It is parked as an owner decision against `5c`.~~ ✅✅ **RULED THE SAME DAY,
+AND THE ANSWER WAS NEITHER OPTION: the device remembers its own failure** — `failed_write.id`
+IS the client uuid, so `5c`'s banner needs no server read and **the blindness blocks
+nothing.** The full ruling, and why both parked options lost, is in *"THE DEVICE REMEMBERS
+ITS OWN FAILURE"* at the top of this file.
+
+⚠️ **SO THE THREE CHECKS HOLDING IT CHANGED MEANING WITHOUT CHANGING A LINE OF SQL.** `0030`
+2.1 and 3.3 and `0026` 2.2b were written as *"expected to go red one day"*, a placeholder
+waiting on a decision; **they now hold the decision**, and their labels name it. ⚠️⚠️ **A
+later session widening `failed_write_select` is undoing the owner's ruling of 2026-09-14,
+not hardening a fence** — and nothing but these checks can say so, because the ruling is that
+a policy STAYS as it is, and a change that is not made has no constraint, grant or policy to
+live in. **Same shape as `0028`'s `6.9`/`6.10` for the redemption ruling.**
 
 #### The ten falsifications, run by hand before this was committed
 
@@ -9639,7 +9723,7 @@ free today and stay free until the first task merges.
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
 | **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️ **`5b` closing.** `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
-| **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
+| **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
