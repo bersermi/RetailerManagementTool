@@ -135,6 +135,135 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅✅ **`4.6c-iii` IS DONE AS OF 2026-09-14 — `0033` IS APPLIED, `4.6c` IS COMPLETE, **STEP
+4.6 IS CLOSED**, AND `5b` IS THE NEXT TASK.** `transaction_export` exists: every sale,
+delivery and write-off, **one row per LINE**, three kinds in one shape, with the month a
+`where` clause on `day`. **42 behavioural checks in
+`supabase/checks/0033_transaction_export.sql`, three applied check files re-signed, and ten
+falsifications against a green control.**
+
+⚠️⚠️ **THE DATABASE BUILD HAS NO OPEN TASK AS OF 2026-09-14.** `0001`–`0033`, thirty-three
+migrations, and step 4.6 — *"the step that did not exist before 2026-09-07 and whose existence
+is the main result of the UI/UX grill-me"* — has no unapplied number left. ⚠️ **Dated rather
+than called finished, and deliberately.** This repository has said *"the database is complete"*
+once before, on 2026-09-05, and **both sentences saying it were false within two days**: step
+4.6 exists because asking the owner about CONTROLS found two more views and a fence. `supabase/
+README.md` carries a guard that refuses the undated form of this claim, and it fired on this
+session's first draft of that file's own `0033` row. **The plan's own copy is dated for the
+same reason.** The property worth protecting is narrower and is still true: **steps 5–7 ship no
+migration**, which is what `4.6` was numbered separately to keep.
+
+⚠️⚠️ **ONE FENCE, AND IT HAD TO BE WRITTEN DOWN — WHICH IS THE OPPOSITE CALL TO `4.6c-ii`'S,
+ONE MIGRATION EARLIER.** The row said *"three tables with three different shapes"*; the fences
+turned out to be **three different combinations**, measured from `pg_policies` rather than
+assumed:
+
+| | Fence |
+|---|---|
+| `sale`, `sale_line` | member-level — a cashier must see her own till |
+| `waste` (the HEADER) | **member-level** — the header is not the cost |
+| `waste_line` | **manager** — it carries `unit_cost_net_per_base` |
+| `purchase`, `purchase_line` | **manager** — this is what the business pays |
+
+✅✅ **SO THE DECISION WAS PRICED RATHER THAN ARGUED: THE UNFENCED VIEW WAS BUILT INSIDE THE
+CHECK FILE AND READ AS THE CASHIER.** Under inheritance alone her *"all transactions and
+waste"* download is **1 040 rows of ONE kind and $65 549.43** — every delivery and every
+write-off silently absent. **A partial export is worse than no export**: it is a document
+somebody reconciles against a notebook, and the app loses that argument while being right. So
+`0009`'s predicate, for `0009`'s stated reason — a member-level half left standing when the
+gated half disappears — and **a staff caller reads ZERO ROWS. Complete, or nothing.**
+
+⚠️ **`4.6c-ii` WENT THE OTHER WAY AND THE TWO ARE NOT IN TENSION.** There a predicate would
+have hidden a number the same cashier computes from two columns she is granted — a fence
+anyone defeats with a calculator. Here its ABSENCE does not hide anything: it **manufactures a
+misleading document**. The test is not *"is this row cost"* but *"does the view tell the truth
+to a caller RLS has filtered"*, and one view is a number while the other is a record of what
+happened.
+
+⚠️⚠️ **THE GUARD `0031` REBUILT ONE MIGRATION EARLIER FIRED FOR REAL, ON THE FIRST DAY IT
+COULD.** `0011`'s analytics-view assertion used to count a hardcoded list of three, which
+`4.6c-i` found *"claimed in its own comment to catch a fourth analytics view and did not"* —
+and rebuilt to DISCOVER the population from the catalogue, recording that *"a FIFTH view fails
+on the day it lands"*. **`0033` is the fifth. It went red, named `transaction_export`, and did
+it before that view had ever been examined for a hardcoded timezone.** ✅ **This is the first
+guard in this repository to catch the thing it was built for on its first opportunity**, and
+it cost the session nothing but a re-signing.
+
+⚠️⚠️ **AND `0032`'S CHECK WAS RE-CUT RATHER THAN BUMPED, WHICH IS THE ONE THING IN THIS TASK
+THAT COULD HAVE QUIETLY COST A RULING.** It held *"leave it on the two views"* as a **count of
+the views in `public`** (= 5). `0033` added one, it went red, **and the cheap repair — 5 to 6 —
+would have handed the ruling away**: with a bare count, a later session splitting the price
+into a view of its own passes by bumping the number again. ✅ **It now asserts the ruling as a
+PROPERTY**: the eight price-over-time columns live on those two views and **no other view
+carries one**. That survives an unrelated view landing and goes red on exactly the change the
+ruling forbids. ⚠️ **A count is not a claim; it is a proxy for one, and the day the proxy
+breaks is the day somebody chooses whether to keep the claim.**
+
+⚠️⚠️ **AND THIS FILE'S OWN LAST CHECK CAUGHT THE FIRST DRAFT THROWING AWAY TWO OF ITS RESULTS
+— A NEW MEMBER OF THE FAMILY, AND IT FIRED ON THE FIRST RUN.** The counterfactual block was
+wrapped in `begin … rollback` to clean up its temporary view, and **the rollback discarded the
+two `chk()` rows the block had just written** — `chk()` is an INSERT like any other. The
+sequence stood at 39 and the table held 37: two checks ran, PASSED, and were thrown away, and
+the suite would have reported *"all 38 passed"* **with its loudest measurement missing and not
+one FAIL**. ⚠️ **It is not a green check that stopped measuring its claim — it is a check
+whose RESULT never landed**, which no assertion about the schema could ever see. Caught by the
+`did not throw away any of its own results` line every file in this directory carries.
+
+**Four decisions taken on his behalf, all cheap to reverse and all named here:**
+
+- **The grain is the LINE, not the document.** *"Breakdown"* means the product, and a
+  document-grain export carries the money and loses it. ⚠️ **Document totals are deliberately
+  NOT columns**: `sum(line_net) = total_net` exactly (`0003` rounds the lines, never the
+  document — 0 mismatches over 1 086 documents), and a total repeated on each of its rows is
+  how a spreadsheet multiplies it by the line count
+- **No signed, normalised or totalled money column.** Money leaving the till on a delivery,
+  arriving on a sale and lost on a write-off are three directions; `kind` carries it. A column
+  that summed them would invent exactly the accounting convention `A3` cancelled
+- **Reversals are IN and FLAGGED, not excluded.** ⚠️ **The cross-month case is real in this
+  seed rather than hypothetical: one delivery reversal lands 9 days and a calendar MONTH after
+  the document it cancels**, so a month holding one half does not net out. `0031`'s finding,
+  at document grain
+- **A view and not a function taking a month.** The caller filters on `day`; a period baked
+  into the schema is a migration every time he wants a different one — `B5` and `A2`
+
+⚠️ **What is NOT in the file, and two of the three CANNOT be.** **Transfers and stock
+adjustments have no document at all** — §2.4 gives a transfer none, which is `0025`'s own
+reason for `replay_result` naming a transfer id, and an adjustment has none either. **30
+movements in the seed, measured, that this export can never carry**, and that is a table which
+does not exist rather than an omission. ⚠️ **And no human name for `created_by` exists anywhere
+in this schema**: §2.7 never exposes `auth.users` and `workspace_member` carries `user_id`,
+`role` and `is_active` with no name column. **The export can say WHETHER two rows are the same
+person and never WHO.** Named as a gap, the way `0014` names a delisting.
+
+⚠️⚠️ **TWO THINGS THIS SEED CANNOT FALSIFY, AND THE FIRST IS SHARPER THAN IT LOOKED.** It is
+not merely that **not one row is `recorded_offline`** — it is that **`recorded_at` EQUALS
+`occurred_at` on all 3 448 rows**, so *no behavioural check in the file can tell the two
+apart*. `G4` proved it by swapping the day's source and turning nothing red, reconciliation
+included. ✅ **The claim is now held STRUCTURALLY** — the view body is asserted to bucket
+`occurred_at` and never `recorded_at` — and the pinned check says out loud that the structural
+one is carrying it until a seed contains an offline document. ⚠️ **A behavioural check over a
+fixture where two columns are equal is not a weak check, it is not a check at all**, and only
+a falsification could say so. The second gap: **no document carries two lines for the same
+variant**, so nothing here can tell a per-line export from a per-variant one. Both go red the
+day the seed changes.
+
+**Ten falsifications against a green control**, each mutating the migration, re-applying it and
+running `0033`'s checks — and `0011`'s, `0031`'s and `0032`'s where the mutation could reach
+them. ⚠️⚠️ **One of them came back GREEN and was the most valuable of the ten** — see `G4`:
+
+| Fixture | The mutation | Result |
+|---|---|---|
+| **G1** | the fence removed from the body entirely | 🔴 — the cashier reads the sale half, which is the whole argument |
+| **G2** | the `row_security_active` half dropped | 🔴 — the fence closes on the superuser and `service_role` too, and §2.9's nightly job would have materialised zero rows onto a dashboard nobody would question |
+| **G3** | the `provider` join made INNER | 🔴 — 2 400 of 3 448 rows are not a delivery and would vanish entirely rather than lose a column |
+| **G4** | ⚠️⚠️ **the day taken from `recorded_at` instead of `occurred_at`** | 🟢 **GREEN — AND IT FOUND THE HOLE THE REVIEW MISSED.** `recorded_at = occurred_at` on all 3 448 rows, because no row is `recorded_offline`, so **every behavioural assertion about the day is vacuous on this axis** — the day-for-day reconciliation included. The exact §2.6 confusion `0010` exists because of, and it passed. ✅ Closed by a STRUCTURAL assertion on the view body; 🔴 on re-run |
+| **G5** | the day bucketed in a hardcoded zone | 🔴 in `0033` **and in `0011`**, which is the assertion that exists for exactly this |
+| **G6** | the waste leg dropped from the union | 🔴 |
+| **G7** | `line_gross` re-derived from `tax_rate` instead of the stored `tax_amount` | 🔴 |
+| **G8** | `is_reversal` inverted | 🔴 |
+| **G9** | an `ORDER BY` added to the view | 🔴 |
+| **G10** | ⚠️⚠️ **the price split out into a view of its own — the owner's ruling of 2026-09-14 undone** | 🔴 **in `0032`**, which is the fixture that proves the re-cut ruling check can still go red. Under the count it replaced, this fixture would have passed |
+
 ✅✅ **RULED BY THE OWNER 2026-09-14, THE SAME DAY `0032` MERGED — *"leave it on the two
 views."* THE DECISION BELOW WAS TAKEN ON HIS BEHALF AND IS NOW HIS.** Nothing changes in the
 schema and nothing is owed; what changes is that a later session **splitting the price into a
@@ -2217,7 +2346,7 @@ section, and each step's own section below. This is a map, not a status board.
 | 3 | Test suites (pgTAP, Vitest) |
 | 4 | RPCs — the write surface of §2.6 |
 | 4.5 | The failure path |
-| 4.6 | ⚠️ **What the UI/UX grill reopened** — **seven** migrations, `0027`–`0033`, since `4.6a` was split three ways on 2026-09-13 and `4.6c` was re-scoped and split three ways on 2026-09-14. ⚠️ **Six of the seven are applied** (`0027`–`0032`); `0033` is `4.6c-iii`. Did not exist before 2026-09-07 |
+| 4.6 | ⚠️ **What the UI/UX grill reopened** — **seven** migrations, `0027`–`0033`, since `4.6a` was split three ways on 2026-09-13 and `4.6c` was re-scoped and split three ways on 2026-09-14. ✅✅ **ALL SEVEN ARE APPLIED** (`0027`–`0033`) **AND STEP 4.6 IS CLOSED, 2026-09-14.** Did not exist before 2026-09-07 |
 | 5a | Client foundation — **hiring gate** |
 | 5b | Vender and Home |
 | 5b.5 | ⚠️ `CONVENTIONS.md`, second pass — ruled by the owner 2026-09-13 |
@@ -8746,7 +8875,7 @@ it.
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
 | **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. ✅ **And the one decision it took on the owner's behalf was RULED the same day — *"leave gross revenue on the velocity view"***, which ADR-035 §2.9 had already said. The Números charts in `5d` are unblocked |
 | **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from ~~the empty~~ `price_list`. Daily grain; the %-change windows are the client's. ⚠️⚠️ **BOTH OF THE THINGS THIS ROW SAID `0031` SETTLED WERE HALF WRONG.** `product_purchases_daily` is not a *precedent to match*, it is **where the purchase price belongs** — so `0032` ships **no new view at all**, only four appended columns on each of the two views that already own each side of the ledger. And it is not *the* fence: a purchase price is cost (manager) and a sale price is revenue ÷ quantity (staff, §2.7), so **each price inherits its own fence and the migration writes no predicate**. ⚠️ ~~the empty `price_list`~~ — **it holds 390 rows and is a dated range table**; §2.9's reason for reading the ledger is that it holds the INTENDED price, and the two disagree in 1 050 of 2 139 buckets | `M` | ✅✅ **DONE 2026-09-14** — `0032` applied, 48 behavioural checks, twelve falsifications. ⚠️ **It re-cut four applied checks, three of which would have stayed GREEN while their claims died.** The price card in `5d` is unblocked |
-| **4.6c-iii** | `0033` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **The month export**: transactions and waste, flat, one shape and one fence. ⚠️ **`0032` leaves it nothing to inherit and one thing to notice** — it is the only one of the three that is not a daily aggregate, and §2.9 calls it *"the raw rows"*: every transaction and the waste for a given month, which is three tables with three shapes under three different RLS fences | `M` | the download in `5d` |
+| **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence. ⚠️⚠️ **"THREE DIFFERENT RLS FENCES" WAS AN UNDERSTATEMENT — THERE ARE THREE DIFFERENT COMBINATIONS**, and the `waste` HEADER is member-level while `waste_line` is not. So *"one fence"* could not be inherited: it is written into the view's body, `0009`-style, and **a staff caller reads zero rows rather than a silent third of the file** | `M` | ✅✅ **DONE 2026-09-14** — `0033` applied, 41 behavioural checks, ten falsifications. ⚠️ **It re-signs three applied check files**, one of which held an owner's ruling as a count and had to be re-cut rather than bumped. **The download in `5d` is unblocked, and step 4.6 is CLOSED** |
 
 ### ⚠️⚠️ Sized 2026-09-13 — `4.6a` IS AN `L`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS A RENUMBERING
 
@@ -9419,7 +9548,7 @@ that worked there: one migration each, so each merges on its own green run.**
 |---|---|---|
 | **`4.6c-i`** | `0031` | ✅✅ **DONE 2026-09-14.** **Purchases as a read** (`N2`), per variant and family per day, beside the revenue that already exists — plus **`B8`'s honesty comment on `0009`**. ⚠️ **`B8` earned its keep on a case the seed actually holds**: one bucket reports **100 % margin with `cost_attributed` TRUE**, because the movements exist and merely cost nothing — **the one case 0009's own honesty column cannot see**. ~~Blocked on `N1`~~ — ruled, and gross landed on `product_velocity_daily` rather than in a new view |
 | **`4.6c-ii`** | `0032` | ✅✅ **DONE 2026-09-14.** **Price over time** (`N3`), purchase and sale unit prices per variant, from the **ledger** rather than from `price_list`. ⚠️ **Daily grain, and the % windows are the CLIENT's** — `B5`'s argument, and `A2` is precisely the answer that changes after a pilot: *"1, 3, 6, 9 months and YTD"* baked into SQL is a migration every time he wants a different card. ⚠️⚠️ **It shipped NO VIEW**: `0031` created `product_purchases_daily` the day before, and between it and `product_velocity_daily` every column a price needs except the price was already at the right grain — so the price landed on both by `create or replace`, and §2.7's manager/staff split fell out without a predicate |
-| **`4.6c-iii`** | `0033` | **The month export** — transactions and waste, flat, one shape, one fence |
+| **`4.6c-iii`** | `0033` | ✅✅ **DONE 2026-09-14, AND IT CLOSES STEP 4.6.** **The month export** — transactions and waste, flat, one shape, one fence. ⚠️ **The fence is in the view's BODY**, because the three kinds sit behind three different RLS combinations and inheritance alone hands a cashier the sales and silently drops every delivery and every write-off — measured at 1 040 rows of one kind |
 
 ⚠️ **`4.6b` still comes first**: it is an `S`, it is unblocked, and `4.6c-i` is waiting on
 `N1` in any case.
@@ -10074,7 +10203,7 @@ free today and stay free until the first task merges.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
-| **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
+| **5b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). ⚠️ **SIZE IT BEFORE WRITING ANYTHING**: the row says `M/L`, and `4.6a` and `4.6c` were both `L`s that split three ways before a line was written. ⚠️ **Everything the server half needs now EXISTS** — `create_invite`, `redeem_invite`, `request_access`, `approve_request` and `my_access_requests` (`0027`–`0029`), which is what the gate was waiting for | `M/L` | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and with `0033` the whole database build is closed |
 | **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️ **`5b` closing.** `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |

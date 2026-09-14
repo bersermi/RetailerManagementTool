@@ -868,12 +868,18 @@ select v.relname::text as view_name,
        pg_get_viewdef(v.oid)                                     as def,
        (pg_get_viewdef(v.oid) ~* 'AT TIME ZONE ''[A-Za-z]+/')     as has_literal_zone,
        (pg_get_viewdef(v.oid) ~* 'timezone')                      as reads_column
+  -- ⚠️ RE-SIGNED 2026-09-14 BY 0033: transaction_export is the FIFTH, and the
+  -- completeness assertion below is what found it — on the first day a fifth view
+  -- existed, which is exactly what 0031 rebuilt this check to do. It buckets a day
+  -- from a document's occurred_at in the store's own zone, so it is in scope for
+  -- the same reason the four before it are.
   from (values ('product_margin_daily'::text), ('product_waste_daily'::text),
-               ('product_velocity_daily'::text), ('product_purchases_daily'::text)) x(n)
+               ('product_velocity_daily'::text), ('product_purchases_daily'::text),
+               ('transaction_export'::text)) x(n)
   join pg_class v on v.relname = x.n and v.relnamespace = 'public'::regnamespace;
 
-select chk('day: NO analytics view hardcodes a zone — all FOUR read location.timezone',
-           (select count(*) from _tz) = 4
+select chk('day: NO analytics view hardcodes a zone — all FIVE read location.timezone',
+           (select count(*) from _tz) = 5
        and (select bool_and(not has_literal_zone) from _tz)
        and (select bool_and(reads_column) from _tz),
            (select string_agg(view_name || ' => '
@@ -893,7 +899,13 @@ select chk('day: NO analytics view hardcodes a zone — all FOUR read location.t
 -- definition contains `at time zone` because the real view's does — so without the
 -- exclusion this assertion reports the scaffolding it stands on. Found on its own
 -- first run.
-select chk('⚠️ day: and NO FIFTH analytics view exists that this check has never looked at',
+-- ⚠️⚠️ THIS FIRED FOR REAL ON 2026-09-14, THE DAY AFTER IT WAS WRITTEN, AND IT IS
+-- THE FIRST GUARD IN THIS REPOSITORY TO CATCH THE THING IT WAS BUILT FOR ON ITS
+-- FIRST OPPORTUNITY. 0031 replaced a count-of-a-hardcoded-list with this discovery
+-- because the old one "claimed in its own comment to catch a fourth analytics view
+-- and did not". 0033 added a fifth; this went red and named it by name, before that
+-- view had ever been examined for a hardcoded zone. The list above now carries it.
+select chk('⚠️ day: and NO SIXTH analytics view exists that this check has never looked at',
            (select count(*) from (
               select c.relname::text from pg_class c
                 join pg_namespace n on n.oid = c.relnamespace
