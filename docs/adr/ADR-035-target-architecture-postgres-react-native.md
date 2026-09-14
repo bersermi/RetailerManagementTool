@@ -12,6 +12,18 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-13 (second entry this date) — **§2.7 and decision register
+  #9 amended, on the decision maker's instruction**, to carry **C11.5 / C11.6**: the
+  joiner enters a **workspace code**, **requests** access, and is **approved**, and an
+  owner's invite counts as *a request that arrives pre-approved*. **Both paths, one
+  table.** This closes the last of the four plan-vs-ADR disagreements the UI/UX
+  grill-me of 2026-09-07 opened, and it is the one that had been **blocking plan task
+  `4.6a`** — a migration, so a session obeying *"the ADR wins"* literally would have
+  written the inverse flow and merged it automatically. Eight sub-decisions were put to
+  the decision maker as yes/no rulings and all eight were taken; they are recorded in
+  §2.7 below and in `docs/PLAN.md`. ⚠️ **No schema is applied by this revision** —
+  `create_invite` and `redeem_invite` were assigned to `0005` and never written, so
+  §2.7 has always described functions that do not exist. `4.6a` / `0027` builds them.
 - **Revised:** 2026-08-22 — §2.7 and §2.10 amended, on the decision maker's
   instruction, to close a disagreement between this document and the applied
   schema that plan task 3.1 found. The ADR named a policy `tenant_isolation`;
@@ -973,6 +985,30 @@ the `workspace_member` and `member_location` rows, and marks the invite accepted
 one fewer piece of infrastructure standing between here and the pilot, and it is how
 a shop with three staff would do it anyway.
 
+⚠️⚠️ **AMENDED 2026-09-13 — THERE ARE TWO WAYS IN, NOT ONE, AND THE ONE ABOVE IS THE
+LESS IMPORTANT OF THEM (C11.5 / C11.6).** The paragraphs above describe an
+owner-initiated **push**. The decision maker asked for the **pull** as well: the joiner
+is given a **workspace code**, enters it, and **requests** access, which the owner
+approves. **An invite is simply a request that arrives pre-approved** — so it is one
+table and one lifecycle, not two.
+
+**The eight rulings, taken 2026-09-13, all as recommended:**
+
+| | Ruling |
+|---|---|
+| **D1** | `workspace_invite` gains **`source`** (`'invite'` \| `'request'`); `invited_by` becomes **nullable**, with a CHECK that it is present exactly when `source = 'invite'`. The invariant is the database's, not a rule the app remembers |
+| **D2** | **`token_hash` nullable** under the same CHECK. A self-request has no token *as a matter of concept, not of timing*; a dummy would be a unique, never-redeemable secret stored for nothing |
+| **D3** | **The 7-day expiry is kept for both paths.** ⚠️ **And the creating RPC must SUPERSEDE any expired pending row** for that `(workspace_id, email)` — because `workspace_invite_one_pending_idx` is partial on `accepted_at is null`, so an expired row **still occupies the slot** and blocks re-asking forever. It cannot be fixed in the index: `now()` is not `immutable` and may not appear in an index predicate |
+| **D4** | ⚠️⚠️ **`invited_by` is renamed `decided_by`** — nullable, set at creation for an invite and at approval for a request — and **`accepted_by` keeps its one meaning: who actually joined.** As written, `accepted_by` meant the **invitee** on one path and the **owner** on the other: a semantic overload that reads as correct until someone asks who approved a membership, and then the answer is not in the schema |
+| **D5** | The join code is **8 characters, Crockford base32** (no `I`, `L`, `O`, `U`), normalised case-insensitively, `unique`, generated with retry-on-collision. It is read aloud over WhatsApp and typed by someone standing up |
+| **D6** | A code is resolved by a **`security definer` RPC taking the WHOLE code**, and **no policy permits a scan** (C11.6 — workspaces are never listed). ⚠️ Such an RPC is an **enumeration oracle by construction**; 8 Crockford characters are what make guessing impractical, and that — not aesthetics — is the reason for the length |
+| **D7** | **The two paths may collide on one person**, and the request path **absorbs the invite rather than erroring**: if a pending invite exists for that email, entering the code **accepts it**. An invite is a pre-approved request, so someone already invited who then types the code is simply let in, and is told none of it |
+| **D8** | ⚠️⚠️ **The approval RPC takes `location_ids` and refuses an empty array for `role = 'staff'`.** Staff write only where `member_location` puts them and **RLS enforces it silently** — an approved joiner with no locations opens the app and every write is refused with no message, which looks exactly like the app being broken |
+
+⚠️ **`workspace` gains the join code**; it has no such column today and no migration
+adds one. ⚠️ **All of it freezes when `0027` merges** — after that each row above is a
+fix-forward migration rather than an edit.
+
 ⚠️ **On an offline write the window is measured from `recorded_at`, not
 `occurred_at`** (settled 2026-09-04 — §2.6 carries the rule and the reasoning).
 Without that, a shop with poor connectivity has a self-service void that is expired
@@ -1472,7 +1508,7 @@ match the independent tally within 5%, with no intervention.
 - [ ] Provider price memory as a **view over `purchase_line`**, excluding reversals and reversed documents; index `(workspace_id, provider_id, variant_id, occurred_at desc)`
 - [ ] Generic provider row created by `onboard_workspace`, `is_generic`, not deletable
 - [ ] Manager-only views for cost and margin; revoke staff `select` on the base tables that carry cost
-- [ ] `workspace_invite` + `create_invite` + `redeem_invite`
+- [ ] `workspace_invite` + `create_invite` + `redeem_invite` — ⚠️ **still unbuilt; they were assigned to `0005` and never written.** Plus, from the 2026-09-13 amendment: `workspace.code`, the request path, and its approval RPC (plan `4.6a` / `0027`)
 - [ ] `payload_hash` on every transaction header
 - [ ] Nightly report pipe: `pg_cron` → Edge Function → WhatsApp/Telegram, sending **daily including green**
 - [ ] Record the 20-minute walkthrough of `0001`–`0004`
@@ -1496,7 +1532,7 @@ answered one is just a decision.
 | 6c | Números scope | **Consolidated by default**, location filter as drill-down | §2.9 |
 | 7 | Idempotency semantics | `on conflict do nothing` + `payload_hash`. Same payload → `already_recorded`. In flight → block on the lock. **Different lines → raise and dead-letter** | §2.6 |
 | 8 | `occurred_at` trust | Server overrides when online; clamped to `[now() − 72h, now()]` when `recorded_offline`; **`replay_failed_write` exempt** | §2.6 |
-| 9 | Staff invitation flow | `workspace_invite` + `redeem_invite`, token by WhatsApp. `auth.users` never exposed | §2.7 |
+| 9 | Staff invitation flow | ⚠️ **Amended 2026-09-13 (C11.5/C11.6): BOTH paths, one table.** The joiner enters a **workspace code**, **requests**, and is **approved**; an owner's invite is *a request that arrives pre-approved*. `source`, nullable `token_hash`, `invited_by` → **`decided_by`**, locations required at approval. Token still by WhatsApp; `auth.users` never exposed. **Eight rulings in §2.7** | §2.7 |
 | 10 | Schema review continuity | **No deputy.** Beyond 48 h unavailable, migrations wait. A junior is explicitly not the backup | §2.10 |
 | 11 | Who reads the nightly report | WhatsApp/Telegram to the owner's phone, **every day including green** | §2.10 |
 | 12 | Latency thresholds | 300 ms confirmation · 1 s RPC · **2 s cold open → Vender** | §5 |
