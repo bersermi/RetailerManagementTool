@@ -36,11 +36,17 @@
 #   6. `supabase/README.md` carries `0027`–`0031` against those task names, and no
 #      longer asserts the database build ended at `0026`.
 #
+#   7. ADR-035 §2.7 no longer says register #9's rulings freeze at `0027` alone,
+#      and names `0027`–`0029` against the three child tasks. ⚠️⚠️ ADDED 2026-09-13
+#      WHEN THE OWNER INSTRUCTED THAT AMENDMENT. Until then this file said in its
+#      own comments that the ADR's lag was "the owner's to amend, not a guard's" —
+#      which was true, and became a stale claim the moment he amended it. THIRD
+#      FILE, ONE CLAIM: the ADR, the plan and the database doc must agree on which
+#      task owns which migration.
+#
 # ⚠️ WHAT IT DOES NOT ASSERT. Nothing about `0027`'s CONTENT — it cannot tell a
 # correct migration from an incorrect one, only that the plan still routes every
-# ruling somewhere. And nothing about ADR-035, whose §2.7 names `0027` alone for a
-# freeze that is now three migrations wide; that lag is recorded in the plan and is
-# the owner's to amend, because the ADR is amended by decision and not by a guard.
+# ruling somewhere, and that the three documents describing the split agree.
 #
 # ⚠️⚠️ NEVER QUOTE THIS CHECK'S SENTINELS VERBATIM IN THE FILES IT READS. It reads
 # plan table rows anchored at column 0 (prose quoting a row never starts there) and
@@ -56,8 +62,10 @@ set -uo pipefail
 
 PLAN="${1:-docs/PLAN.md}"
 DBDOC="${2:-supabase/README.md}"
+ADR="${3:-docs/adr/ADR-035-target-architecture-postgres-react-native.md}"
 [[ -r "$PLAN"  ]] || { echo "FAIL: cannot read $PLAN";  exit 1; }
 [[ -r "$DBDOC" ]] || { echo "FAIL: cannot read $DBDOC"; exit 1; }
+[[ -r "$ADR"   ]] || { echo "FAIL: cannot read $ADR";   exit 1; }
 
 fails=0
 ran=0
@@ -278,6 +286,51 @@ else
   fails=$((fails+1))
 fi
 
+# --- 7. ADR-035 carries the split ------------------------------------------
+# ⚠️⚠️ THE ARCHITECTURE DOCUMENT IS THE FILE `CLAUDE.md` TELLS A CLEARED SESSION TO
+# OBEY — "if anything disagrees with the ADR, the ADR wins" — so a stale sentence
+# there is not a documentation defect, it is an instruction. §2.7 said the eight
+# rulings "freeze when `0027` merges", which was written hours before `4.6a` became
+# three migrations. Amended on the owner's instruction 2026-09-13, and asserted here
+# so the next split cannot leave it behind.
+#
+# ⚠️ IT ASSERTS THE POSITIVE FORM — the three migrations named against the three
+# child tasks — AND the absence of the superseded sentence. The positive half alone
+# passes on a document that says both things, which is the shape of every stale-copy
+# defect recorded in this repository.
+#
+# ⚠️⚠️ THE FIRST SPELLING OF THIS GROUP READ THE WRONG COPY, AND FIXTURE Z10 IS WHAT
+# SAID SO. It flattened the whole document and looked for each number within eighty
+# characters of its task name — which §8's follow-up checklist and this file's own
+# revision entry both satisfy, 1,500 lines from §2.7. So a fixture that struck
+# `4.6a-iii` out of the §2.7 amendment table stayed GREEN: the guard was measuring
+# something adjacent to its claim, for the second time in this file's short life.
+# ✅ NOW IT READS THE AMENDMENT'S OWN TABLE ROWS, anchored at column 0 — which also
+# makes the anti-vacuity case free, because deleting the table removes the rows this
+# loop requires rather than only the sentence the next check bans.
+note
+adr_fails=0
+for pair in "0027:4.6a-i" "0028:4.6a-ii" "0029:4.6a-iii"; do
+  num="${pair%%:*}"; task="${pair##*:}"
+  if ! grep -F "| \`$num\` |" "$ADR" | grep -qF "\`$task\`"; then
+    echo "FAIL: ADR-035 §2.7's amendment table does not name $num against $task. It is"
+    echo "      the document a cleared session is told to obey over every other file, so"
+    echo "      a split it does not carry is a split that reads as wrong."
+    adr_fails=$((adr_fails+1))
+  fi
+done
+if grep -q "All of it freezes when .0027. merges" "$ADR"; then
+  echo "FAIL: ADR-035 §2.7 says register #9's rulings freeze when 0027 merges. They"
+  echo "      freeze across 0027-0029 — D6, D7 and D8 stay revisable for two migrations"
+  echo "      longer — and this sentence is the one the 4.6a split made stale."
+  adr_fails=$((adr_fails+1))
+fi
+if (( adr_fails == 0 )); then
+  ok "ADR-035 carries the three-way split and no longer freezes everything at 0027"
+else
+  fails=$((fails+1))
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$ran assertion groups ran, $fails failed — the 4.6a split is not safe to take."
@@ -285,10 +338,10 @@ if (( fails > 0 )); then
 fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above is
 # conditional, so "0 failures" is also what a run that asserted nothing looks like.
-if (( ran < 5 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 5 — this check asserted almost"
+if (( ran < 6 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 6 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
 echo "all $ran assertion groups passed — 4.6a's $total deliverables have three homes,"
-echo "0027–0031 are claimed once each, and both files that hand out numbers agree."
+echo "0027–0031 are claimed once each, and all three files describing the split agree."

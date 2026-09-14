@@ -169,14 +169,29 @@ is"* arrow is replaced by what is actually true — **that piece is waiting on a
 step 4.6. ⚠️ **No check reads `docs/HANDBOOK.md`**, which is how `#76` happened and is why
 this one was found by reading rather than by a run.
 
-⚠️ **ONE LINE OF ADR TEXT NOW LAGS THE SPLIT, AND IT IS NAMED RATHER THAN QUIETLY EDITED.**
-ADR-035 §2.7 and decision register #9 both say register #9's rulings *"freeze when `0027`
-merges"*; after the split they freeze across **`0027`–`0029`** — `D1`/`D2`/`D4`/`D5` at
-`0027`, `D3′` at `0027` with its callers in `0028` and `0029`, and `D6`/`D7`/`D8` at `0029`.
-**The claim it makes is still the right claim** — everything freezes, and sooner than the
-owner may think — but the number is one of three now. **The ADR is amended only by
-deliberate decision**, and a sizing session is not one, which is why this is a sentence here
-instead of an edit there.
+✅✅ **THE ADR IS AMENDED — the owner instructed it on 2026-09-13 and ADR-035 carries it**
+(§2.7 and §8, revision entry **third of that date**). ~~⚠️ **ONE LINE OF ADR TEXT NOW LAGS
+THE SPLIT, AND IT IS NAMED RATHER THAN QUIETLY EDITED.**~~ §2.7 said register #9's rulings
+*"freeze when `0027` merges"*; they freeze across **`0027`–`0029`** — `D1`/`D2`/`D4`/`D5` at
+`0027`, `D3′`'s helper at `0027` with its callers in `0028` and `0029`, and `D6`/`D7`/`D8` at
+`0029`, **so three of the eight stay revisable for two migrations longer than the rest.**
+⚠️ **The claim was right and the number was one of three**, which is the error that reads as
+correct forever: nothing in the sentence looks wrong unless you know how many files the task
+became. **It was named here rather than edited there** because the ADR is amended by
+deliberate decision and a sizing session is not one — and then it was ruled on within hours.
+
+✅✅ **AND THE CLAIM IS NOW GUARDED ACROSS THREE FILES, WHICH IT WAS NOT WHEN THE ADR WAS
+THE ONLY COPY THAT WAS WRONG.** `4.6a-split-coverage.sh` reads `docs/PLAN.md`,
+`supabase/README.md` **and ADR-035**, and asserts all three agree on which task owns
+`0027`–`0031`. ⚠️⚠️ **ITS FIRST SPELLING OF THE ADR ASSERTION READ THE WRONG COPY AND A
+FIXTURE CAUGHT IT** — it flattened the document and matched each number within eighty
+characters of its task name, which §8's checklist and the revision entry both satisfy 1,500
+lines from §2.7, so striking `4.6a-iii` out of §2.7's own table stayed **green**. ✅ **It now
+reads that table's rows at column 0**, which is the same fix three scripts took on
+2026-09-13 and the anti-vacuity case for free: deleting the table removes the rows the loop
+requires, not merely the sentence the next check bans. **That is the SECOND time in this
+file's short life that it measured something adjacent to its claim, and both times a
+falsification is what said so.**
 
 ⚠️⚠️ **A SIXTH STALE COPY, FOUND BY THE OWNER ON 2026-09-13 BY READING — AND FIXING IT
 PRODUCED A SEVENTH, INSIDE THE FIX.** `## Position` carried a second status table 960
@@ -588,8 +603,9 @@ appeared anywhere in this file before 2026-09-13. ⚠️ **The worst is `accepte
 means the INVITEE on one path and the OWNER on the other**: not a missing column, a
 **semantic overload that reads as correct** until someone asks who approved a membership.
 ✅ **Six decisions, `D1`–`D6`, each with a recommendation and its reasoning**, in `4.6a`'s
-section below — written so the owner rules rather than designs. **All of it freezes when
-`0027` merges.**
+section below — written so the owner rules rather than designs. ~~**All of it freezes when
+`0027` merges.**~~ ⚠️ **Corrected 2026-09-13 with the split and the ADR amendment: it
+freezes across `0027`–`0029`**, each ruling when its own migration merges.
 ⚠️ **3. Decision register #9 was re-described at the owner's request and remains OPEN** —
 it is now the **single open decision in this file**. One sentence: *the ADR says the owner
 pushes an invite; the owner said the joiner pulls with a code; he wants both.* It still
@@ -8244,8 +8260,10 @@ assumed the other had it.
 run a guard's falsifications in CI rather than only the guard.** The other two plan checks
 are machine-run; the fixtures proving they can still FAIL are not, so an edit that loosened
 one into a check that passes on everything would be green twice over.
-It asserts the **thirteen** deliverables of `4.6a` — twelve from the split, plus the status
-read the owner ruled in — each land in **exactly one** child row and the right one; that each child row exists **exactly once** in the file; that the five migration
+⚠️ **It reads THREE files as of the ADR amendment** — the plan, `supabase/README.md` and
+ADR-035 — and **eleven fixtures** hold it. It asserts the **thirteen** deliverables of
+`4.6a` — twelve from the split, plus the status read the owner ruled in — each land in
+**exactly one** child row and the right one; that each child row exists **exactly once** in the file; that the five migration
 numbers are claimed once each; and that **`supabase/README.md` agrees** — the cross-file
 half, because the numbering authority is a second copy of the claim and this repository has
 six recorded stale-copy defects.
@@ -8261,6 +8279,8 @@ six recorded stale-copy defects.
 | **Z6** | `supabase/README.md`'s *"last migration of the database build"* left uncorrected | 🔴 — the numbering authority still says the schema is finished |
 | **Z7** | A second copy of `4.6a-i`'s row added 200 lines away | 🔴 — the shape of THREE of this repository's six stale-copy defects |
 | **Z8** | ⚠️ **`my_access_requests` struck from `4.6a-iii`** — added 2026-09-13 with the thirteenth deliverable | 🔴 — an atom added to a coverage list and never falsified is an atom nobody has shown the guard can see |
+| **Z9** | ⚠️ **ADR-035 §2.7's superseded sentence restored** — the rulings freeze at `0027` again | 🔴 *"freeze when 0027 merges"* — and this is the file `CLAUDE.md` tells a cleared session to obey over every other, so the sentence is an instruction and not a note |
+| **Z10** | ⚠️⚠️ **`4.6a-iii` struck out of §2.7's amendment TABLE** — the anti-vacuity case | 🔴 **only after the assertion was fixed.** It was GREEN first: the guard matched the same pair 1,500 lines away in §8's checklist. **A fixture caught the guard measuring the wrong copy** |
 
 ### ⚠️⚠️ 4.6a — the membership flow has no functions, and the owner wants the inverse of the one it was designed for
 
