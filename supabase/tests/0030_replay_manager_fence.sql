@@ -37,16 +37,38 @@
 --       in `0026`.
 --
 -- ----------------------------------------------------------------------------
--- ⚠️⚠️ THE ONE CLAIM IN HERE THAT IS SUPPOSED TO GO RED ONE DAY
+-- ⚠️⚠️ THE ONE CLAIM IN HERE THAT HOLDS AN OWNER'S RULING RATHER THAN A FENCE
 -- ----------------------------------------------------------------------------
--- Check **2.1** asserts that `failed_write_select` is STILL owner-only. That is
--- the applied state and it is a decision, not an oversight: C11.4 ruled on who
--- may CALL this function and nothing has ruled on who may READ the table
--- (`0024` decision 8). The consequence is stated plainly — **a manager may
--- replay a dead letter she cannot see** — and it is owed to step `5c`'s
--- dead-letter banner (C11.9), where the owner chooses between loosening the
--- policy and adding a `security definer` read in the shape of
--- `my_access_requests()` (`0029`).
+-- Check **2.1** asserts that `failed_write_select` is STILL owner-only, and
+-- **3.3** asserts the consequence: a manager may replay a dead letter she
+-- cannot see. ⚠️ **THIS FILE'S FIRST VERSION CALLED THAT "supposed to go red
+-- one day" — A PLACEHOLDER WAITING ON A DECISION. THE DECISION CAME THE SAME
+-- DAY AND WENT THE OTHER WAY**, so these two checks now hold a ruling.
+--
+-- ✅✅ **RULED BY THE OWNER 2026-09-14: THE DEVICE REMEMBERS ITS OWN FAILURE.**
+-- Neither parked option was taken. `5c`'s dead-letter banner reads the DEVICE'S
+-- OWN OUTBOX and makes no server read at all — `0024` decision 7 makes
+-- `failed_write.id` BE the client uuid, so the device that failed already holds
+-- the argument `replay_failed_write` needs, before it ever calls the server.
+-- **C11.4 says "fix", not "browse", and both options were answers to a question
+-- it never asked.**
+--
+-- ⚠️⚠️ SO A LATER SESSION WIDENING `failed_write_select` IS UNDOING THE OWNER'S
+-- RULING, NOT HARDENING A FENCE — and the two options it would be reaching for
+-- are already argued and already refused:
+--   (a) loosen the policy to `manager` — REFUSED. Counting rows with it shows
+--       what a definer read shows, for a permanent policy risk; rendering a LIST
+--       with it means rebuilding the receipt client-side from `payload`, which
+--       `0024` decision 6 never validates. It also contradicts C10.5 and ends
+--       §2.8 at the fence level.
+--   (b) `my_failed_writes()`, a definer read — NOT WRONG, just unnecessary, and
+--       kept as the fallback if the device-local path does not cover the pilot.
+--
+-- ⚠️⚠️ AND NOTHING BUT THESE CHECKS CAN HOLD IT. The ruling is that a policy
+-- STAYS AS IT IS, and a change that is not made has no constraint, no grant and
+-- no policy to live in — the same reason `0028`'s `6.9`/`6.10` are the entire
+-- guard on the redemption ruling. **If you are here to change 2.1, say whose
+-- decision you are undoing.**
 --
 -- ⚠️ `docs/PLAN.md`'s 4.5c-ii section PREDICTED THE OPPOSITE SCOPE, on
 -- 2026-09-05: *"it is TWO changes, the fence AND `failed_write`'s SELECT
@@ -385,12 +407,12 @@ select chk('1.7 ⚠️⚠️ …AND THE COMMENT NAMES THE BLINDNESS RATHER THAN 
 
 -- ⚠️ THE ONE THAT IS SUPPOSED TO GO RED ONE DAY. See this file's header.
 select chk('2.1 ⚠️⚠️ failed_write_select IS STILL OWNER-ONLY — 0024 decision 8, '
-           'untouched by 0030. THIS CHECK IS EXPECTED TO GO RED EVENTUALLY: '
-           '5c''s dead-letter banner (C11.9) needs the manager to see '
-           'something, and the owner chooses between loosening this policy and '
-           'a security-definer read in the shape of my_access_requests (0029). '
-           'Whoever changes it says whose decision it was; whoever changes it '
-           'silently is undoing 0024 decision 8 by accident',
+           'untouched by 0030 and KEPT BY THE OWNER''S RULING OF 2026-09-14. '
+           '5c''s banner reads the DEVICE''S OWN OUTBOX and makes no server '
+           'read: failed_write.id IS the client uuid (0024 decision 7), so the '
+           'device already holds what replay needs. ⚠️⚠️ CHANGING THIS CHECK '
+           'UNDOES A RULING, NOT A FENCE — it is not a hardening and it is not '
+           'a tidy-up. See this file''s header for both refused options',
            (select pg_get_expr(pol.polqual, pol.polrelid) like '%''owner''%'
               from pg_policy pol
               join pg_class c on c.oid = pol.polrelid
@@ -467,9 +489,10 @@ select chk_json('3.2 ⚠️⚠️ THE CHECK THAT HOLDS 4.6b: a MANAGER REPLAYS. 
 -- The half `0030` chose not to fix, pinned where it happens.
 select chk('3.3 ⚠️⚠️ …AND SHE CANNOT SEE THE ROW SHE JUST RECOVERED. Zero rows '
            'of failed_write are visible to the manager who replayed it, '
-           'because failed_write_select is owner-only (2.1). This is the '
-           'applied consequence of one notch rather than two, and it is owed '
-           'to 5c',
+           'because failed_write_select is owner-only (2.1). ⚠️ THIS IS THE '
+           'INTENDED END STATE, NOT AN INTERIM ONE — ruled 2026-09-14: she does '
+           'not need to see it, because the device that failed already holds '
+           'the id. C11.4 says FIX, not BROWSE',
            (select count(*) from public.failed_write where id = :dl_fen) = 0,
            format('rows visible to the manager=%s',
                   (select count(*) from public.failed_write where id = :dl_fen)));
