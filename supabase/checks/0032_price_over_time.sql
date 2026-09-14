@@ -130,15 +130,47 @@ select chk('pre-flight: the only tax rates in the ledger are 0% and 16%',
 -- A new view would have been two supersets of two applied views. N1's ruling of
 -- 2026-09-14 refused that exact shape for that exact reason, one day earlier.
 
-select chk('⚠️⚠️ 0032 created NO view, NO table, NO function, NO policy and NO column on a table',
-           (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
-             where n.nspname='public' and c.relkind='v') = 5
+-- ⚠️⚠️ RE-CUT 2026-09-14 BY 0033, AND THE RE-CUT IS THE WHOLE POINT. This check
+-- read "0032 created NO view" and asserted it as a COUNT of the views in public
+-- (= 5). It went red the moment 0033 added transaction_export — correctly, as a
+-- count, and uselessly as a claim, because the cheap repair is to bump 5 to 6 and
+-- **that would hand the ruling away**: with a bare count, a later session
+-- splitting the price into a view of its own passes by bumping the number again.
+--
+-- ⚠️ THE OWNER RULED ON 2026-09-14: *"leave it on the two views."* A count of
+-- views cannot hold that. The property can, and it is the ruling written out: the
+-- eight price-over-time columns live on the two views that own each side of the
+-- ledger, and NO OTHER VIEW CARRIES ONE. That survives any number of unrelated
+-- views landing — 0033's did — and goes red on exactly the change the ruling
+-- forbids.
+--
+-- ⚠️ `unit_price_net_per_base` is deliberately NOT matched: it is a stored LEDGER
+-- column that provider_price_memory and transaction_export both surface as-is, and
+-- it is not a price-over-time series. N3 already drew that line — 0008 is "the LAST
+-- purchase price only, not a history".
+select chk('⚠️⚠️ THE OWNER''S RULING, HELD AS A PROPERTY: the price series lives on those two views and nowhere else',
+           (select count(*) from information_schema.columns c
+              join pg_class k on k.relname = c.table_name
+              join pg_namespace n on n.oid = k.relnamespace and n.nspname = 'public'
+             where c.table_schema = 'public' and k.relkind = 'v'
+               and (c.column_name like '%\_price\_net' or c.column_name like '%\_price\_gross'
+                    or c.column_name like '%\_price\_last\_%')) = 8
+       and (select count(*) from information_schema.columns c
+              join pg_class k on k.relname = c.table_name
+              join pg_namespace n on n.oid = k.relnamespace and n.nspname = 'public'
+             where c.table_schema = 'public' and k.relkind = 'v'
+               and c.table_name not in ('product_purchases_daily','product_velocity_daily')
+               and (c.column_name like '%\_price\_net' or c.column_name like '%\_price\_gross'
+                    or c.column_name like '%\_price\_last\_%')) = 0
        and (select count(*) from pg_policies where schemaname='public') = 41,
-           (select 'five views, unchanged since 0031 — four analytics plus '
-              || 'provider_price_memory: ' || string_agg(c.relname, ', ' order by c.relname)
-              || ' | policies: ' || (select count(*) from pg_policies where schemaname='public')
-              from pg_class c join pg_namespace n on n.oid=c.relnamespace
-             where n.nspname='public' and c.relkind='v'));
+           (select string_agg(c.table_name || '.' || c.column_name, ', '
+                              order by c.table_name, c.column_name)
+              from information_schema.columns c
+              join pg_class k on k.relname = c.table_name
+              join pg_namespace n on n.oid = k.relnamespace and n.nspname = 'public'
+             where c.table_schema='public' and k.relkind='v'
+               and (c.column_name like '%\_price\_net' or c.column_name like '%\_price\_gross'
+                    or c.column_name like '%\_price\_last\_%')));
 
 select chk('and the two views it replaced are the two that already owned each side of the ledger',
            pg_get_viewdef('public.product_purchases_daily'::regclass) ~* 'purchase_line'

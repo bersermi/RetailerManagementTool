@@ -601,13 +601,19 @@ select chk('⚠️ the new view reads location.timezone — no analytics view ha
            pg_get_viewdef('public.product_purchases_daily'::regclass) !~* 'AT TIME ZONE ''[A-Za-z]+/'
        and pg_get_viewdef('public.product_purchases_daily'::regclass) ~* 'timezone');
 
-select chk('and there are FOUR of them now, discovered rather than listed',
+-- ⚠️ RE-SIGNED 2026-09-14 BY 0033, WHICH IS THE FIFTH — and the point of writing
+-- this as a discovery rather than a list is that the count moving is what a new
+-- analytics view is SUPPOSED to do here. It went red on the day 0033 landed, named
+-- transaction_export, and 0011's spelled-out list now carries it too.
+select chk('and there are FIVE of them now, discovered rather than listed',
            (select count(*) from pg_class c join pg_namespace n on n.oid = c.relnamespace
              where n.nspname = 'public' and c.relkind = 'v'
-               and pg_get_viewdef(c.oid) ~* 'at time zone') = 4,
+               and c.relname not like '\_%'
+               and pg_get_viewdef(c.oid) ~* 'at time zone') = 5,
            (select string_agg(c.relname, ', ' order by c.relname)
               from pg_class c join pg_namespace n on n.oid = c.relnamespace
-             where n.nspname='public' and c.relkind='v' and pg_get_viewdef(c.oid) ~* 'at time zone'));
+             where n.nspname='public' and c.relkind='v' and c.relname not like '\_%'
+               and pg_get_viewdef(c.oid) ~* 'at time zone'));
 
 select chk('this file did not throw away any of its own results',
            (select max(n) from public._verify) = (select count(*) from public._verify),
