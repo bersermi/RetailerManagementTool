@@ -119,7 +119,12 @@ insert into auth.users (id, email) values
   ('44444444-4444-4444-4444-444444444444', 'staff.a@example.mx'),
   ('55555555-5555-5555-5555-555555555555', 'joiner@example.mx'),
   ('66666666-6666-6666-6666-666666666666', 'otra.cuenta@example.mx'),
-  ('77777777-7777-7777-7777-777777777777', 'tecleado@example.mx');
+  ('77777777-7777-7777-7777-777777777777', 'tecleado@example.mx'),
+  -- ⚠️ ADDED BY 0029 (4.6a-iii). The request fixture below now needs an ACCOUNT:
+  -- `workspace_invite_requested_by_consistent` refuses a `source = 'request'` row
+  -- with no `requested_by`, because approval copies that account into
+  -- `accepted_by` rather than resolving an email string back into one.
+  ('88888888-8888-8888-8888-888888888888', 'pidio@example.mx');
 
 \set owner_a  '''11111111-1111-1111-1111-111111111111'''
 \set mgr_a    '''22222222-2222-2222-2222-222222222222'''
@@ -128,6 +133,7 @@ insert into auth.users (id, email) values
 \set joiner   '''55555555-5555-5555-5555-555555555555'''
 \set other    '''66666666-6666-6666-6666-666666666666'''
 \set typist   '''77777777-7777-7777-7777-777777777777'''
+\set asker    '''88888888-8888-8888-8888-888888888888'''
 
 select public._as(:owner_a);
 select onboard_workspace('Tienda A') as ws_a \gset
@@ -446,9 +452,11 @@ select public._as(:owner_a);
 -- asked is an APPROVAL, and approval carries D8. No such row can exist until
 -- 0029 applies; this one is written by hand for exactly that reason.
 insert into public.workspace_invite
-  (workspace_id, email, role, location_ids, source, decided_by, token_hash)
+  (workspace_id, email, role, location_ids, source, decided_by, token_hash,
+   requested_by)
 values
-  (:'ws_a', 'pidio@example.mx', 'staff', '{}'::uuid[], 'request', null, null);
+  (:'ws_a', 'pidio@example.mx', 'staff', '{}'::uuid[], 'request', null, null,
+   :asker);
 
 select chk_raises('4.8 a LIVE pending REQUEST is refused — approving it is 0029''s job',
   format('select public.create_invite(%L, %L, %L, array[%L]::uuid[])',
