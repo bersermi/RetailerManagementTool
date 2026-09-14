@@ -135,6 +135,26 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **RULED BY THE OWNER 2026-09-14, THE SAME DAY `0032` MERGED — *"leave it on the two
+views."* THE DECISION BELOW WAS TAKEN ON HIS BEHALF AND IS NOW HIS.** Nothing changes in the
+schema and nothing is owed; what changes is that a later session **splitting the price into a
+view of its own is UNDOING A RULING, not tidying a judgement call.** ⚠️ **It is the third
+time in two days that a decision reported in a closing message was ruled before it could go
+stale**, which is what reporting them by name is for — and the second consecutive `4.6c`
+child where the owner upheld the smaller shape.
+
+⚠️ **NOTHING BUT THE CHECKS CAN HOLD IT, exactly as `4.6b`'s ruling found.** The ruling is
+that a thing STAYS AS IT IS, and a change that is not made has no constraint, grant or policy
+to live in. `0032`'s section 2 — *"`0032` created NO view, NO table, NO function, NO policy
+and NO column on a table"* and *"the two views it replaced are the two that already owned each
+side of the ledger"* — was written as a description and **now holds a decision**. A fifth view
+appearing in `public` turns it red, and `0011`'s completeness assertion turns red beside it.
+
+⚠️ **AND THE REVERSIBILITY IS NOW INSURANCE RATHER THAN AN OPEN QUESTION.** `5d`'s price card
+may be written against `product_purchases_daily.purchase_price_*` and
+`product_velocity_daily.sale_price_*` **without hedging** — two queries, one per side, which
+is the same shape any buy-against-sell comparison in this schema already takes.
+
 ✅✅ **`4.6c-ii` IS DONE AS OF 2026-09-14 — `0032` IS APPLIED, AND `4.6c-iii` IS THE NEXT TASK.**
 Price over time exists on both sides of the ledger: `purchase_price_net` / `_gross` /
 `_last_net` / `_last_gross` on `product_purchases_daily`, and `sale_price_*` on
