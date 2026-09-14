@@ -110,6 +110,71 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`4.6a` IS SIZED AND SPLIT AS OF 2026-09-13, BEFORE A LINE OF IT WAS WRITTEN — IT IS AN
+`L`, IT BECOMES THREE `M`s, AND `4.6a-i` IS THE NEXT TASK.** The row said *size and split it
+before writing a line*; this is that, and **nothing else — `0027` does not exist yet.** The
+seam is the two ways in, with the schema landing alone: **`4.6a-i`** is `0027`, the table and
+the column nobody has; **`4.6a-ii`** is `0028`, the PUSH path `create_invite` /
+`redeem_invite` that `0002` assigned to `0005` and `0005` never wrote; **`4.6a-iii`** is
+`0029`, the PULL path C11.5 asked for. ⚠️ **The split COSTS A RENUMBERING — `4.6b` becomes
+`0030`, `4.6c` becomes `0031`** — the third in this repository, for `4d`'s reason exactly:
+three tasks that each merge on their own green run cannot share one unapplied file.
+
+⚠️⚠️ **AND `supabase/README.md` — WHICH CALLS ITSELF THE AUTHORITY ON NUMBERING — DID NOT
+KNOW STEP 4.6 EXISTED. THAT IS A SEVENTH STALE COPY, AND THIS SESSION HAD TO HAND OUT THE
+NUMBERS IT WAS WRONG ABOUT.** It said `0026` was *"the LAST migration in the database build"*
+and that *"nothing is downstream of it, because steps 5–7 are the client and ship none"* —
+**true when it was written on 2026-09-05, false since 2026-09-07**, when the UI/UX grill
+created step 4.6 and three migrations with it. ✅ **Corrected in both places, and the
+correction is now GUARDED rather than trusted**: the new split check reads `0027`–`0031` out
+of that file and fails if it slips back to claiming the schema is finished. ⚠️ **Nothing
+could have caught it** — the six recorded stale-copy defects are all inside `docs/PLAN.md`,
+`HANDBOOK.md`, `README.md` and `CONVENTIONS.md`, and no check had ever read
+`supabase/README.md` at all.
+
+⚠️⚠️ **FOUR THINGS WERE FOUND BY OPENING APPLIED SQL RATHER THAN THE RECORD OF IT, AND THE
+FIRST TURNS THREE GREEN SUITES RED.** `D4`'s rename of `invited_by` breaks the invite fixture
+in `02`, `03` and `04` — all three INSERT it by name (`02:106`, `03:256`, `04:363`) — so they
+fail in **setup**, which `4c-ii` already recorded as the failure that reports zero failing
+tests. **Re-signing them is inside `4.6a-i`.** ⚠️ **The second reversed an instinct**: two
+earlier findings (`3.2a`, `4.5b`) say an empty tenant table should be seeded, but `02`'s `F9`
+**asserts** this one is empty in the seed and says a future seed populating it turns red on
+purpose — **so `0027` touches no seed file.** ⚠️ **The third is a hole in `5b`**: a joiner
+cannot read the request they just made, and no policy will ever let them, because
+`workspace_invite_select` is manager-and-above and a non-member has no role at all — so
+`4.6a-iii` ships a status read, or the join screen has nothing to draw and the next session
+reaches for the select policy `D6` forbids. ⚠️⚠️ **The fourth is a privilege escalation, and
+it is `D7`'s**: *"entering the code accepts a pending invite for that email"* is safe only
+while the joiner can choose **neither** the email **nor** the role. `request_access`
+therefore takes **no email argument** — it reads the caller's own inside the definer body —
+and **the absorbed invite's role wins over the requested one**, silently.
+
+⚠️ **SEVEN DECISIONS WERE TAKEN ON THE OWNER'S BEHALF, and decision 7 is the one to overturn
+today if it is going to be overturned**: the joiner's status-read RPC is a granted function
+in `0029`, and cutting it after the merge is a fix-forward migration. All seven are listed in
+`4.6a`'s sizing section with their reasoning. ✅ **One new guard,
+`docs/checks/4.6a-split-coverage.sh`, falsified against eight fixtures and wired into
+`app.yml`** beside the other two plan guards — it is the first check in this repository that
+reads `supabase/README.md`.
+
+⚠️ **AND `docs/HANDBOOK.md` STILL SAID STEP 4.6 COULD NOT START UNTIL THE ADR WAS AMENDED**
+— false for one day, and it is the file a non-developer reads first. ✅ **Struck and dated,
+along with two more of its cells**: step 4.6's row now records the split and says which of the
+two remaining gates is still the owner's (área 9), and `5a-iv`'s *"this is where the build
+is"* arrow is replaced by what is actually true — **that piece is waiting on a calendar**
+(2026-09-20 re-deploy, 2026-09-21 and 2026-10-13 readings), while the takeable work moved to
+step 4.6. ⚠️ **No check reads `docs/HANDBOOK.md`**, which is how `#76` happened and is why
+this one was found by reading rather than by a run.
+
+⚠️ **ONE LINE OF ADR TEXT NOW LAGS THE SPLIT, AND IT IS NAMED RATHER THAN QUIETLY EDITED.**
+ADR-035 §2.7 and decision register #9 both say register #9's rulings *"freeze when `0027`
+merges"*; after the split they freeze across **`0027`–`0029`** — `D1`/`D2`/`D4`/`D5` at
+`0027`, `D3′` at `0027` with its callers in `0028` and `0029`, and `D6`/`D7`/`D8` at `0029`.
+**The claim it makes is still the right claim** — everything freezes, and sooner than the
+owner may think — but the number is one of three now. **The ADR is amended only by
+deliberate decision**, and a sizing session is not one, which is why this is a sentence here
+instead of an edit there.
+
 ⚠️⚠️ **A SIXTH STALE COPY, FOUND BY THE OWNER ON 2026-09-13 BY READING — AND FIXING IT
 PRODUCED A SEVENTH, INSIDE THE FIX.** `## Position` carried a second status table 960
 lines below its own header: `5a … Not started` with **six of eight sub-tasks done**,
@@ -199,7 +264,8 @@ reasoning is worth keeping, the claim is not, and leaving both is how a seventh 
 would have been born in the same commit that fixed six.
 
 ✅✅ **DECISION REGISTER #9 IS RULED AS OF 2026-09-13 — ALL EIGHT TAKEN AS RECOMMENDED,
-ADR-035 IS AMENDED, AND `4.6a` IS THE NEXT TASK.** The membership flow is settled: **the
+ADR-035 IS AMENDED, AND ~~`4.6a` IS THE NEXT TASK~~ — `4.6a` WAS SIZED AND SPLIT LATER THE
+SAME DAY AND `4.6a-i` IS.** The membership flow is settled: **the
 joiner enters a workspace code, requests access, and is approved; an owner's invite is a
 request that arrives pre-approved. Both paths, one table** (C11.5 / C11.6). **The
 decisions-owed block now holds ONE row — area 9 — and the build is no longer
@@ -232,7 +298,9 @@ listed `create_invite` / `redeem_invite` as an unticked box without saying they 
 **assigned to `0005` and never written**, which is why §2.7 has always described functions
 that do not exist.
 
-⚠️⚠️ **`4.6a` IS AN `L` AND MUST BE SIZED AND SPLIT BEFORE A LINE IS WRITTEN.** It carries
+✅✅ **DONE THE SAME DAY — the split is the entry above, and `4.6a-i` / `4.6a-ii` /
+`4.6a-iii` are in the step 4.6 table. The paragraph below is kept as the argument that
+produced it.** ⚠️⚠️ **`4.6a` IS AN `L` AND MUST BE SIZED AND SPLIT BEFORE A LINE IS WRITTEN.** It carries
 `0027` **and three or four RPCs that do not exist** — `create_invite`, `redeem_invite`, the
 request path and its approval — and `0027` is append-only and merges without review. **The
 row says so; do not skip it.** ⚠️ **Everything the eight rulings decided freezes the moment
@@ -1531,7 +1599,7 @@ section, and each step's own section below. This is a map, not a status board.
 | 3 | Test suites (pgTAP, Vitest) |
 | 4 | RPCs — the write surface of §2.6 |
 | 4.5 | The failure path |
-| 4.6 | ⚠️ **What the UI/UX grill reopened** — three migrations, `0027`–`0029`. Did not exist before 2026-09-07 |
+| 4.6 | ⚠️ **What the UI/UX grill reopened** — **five** migrations, `0027`–`0031`, since `4.6a` was split three ways on 2026-09-13. Did not exist before 2026-09-07 |
 | 5a | Client foundation — **hiring gate** |
 | 5b | Vender and Home |
 | 5b.5 | ⚠️ `CONVENTIONS.md`, second pass — ruled by the owner 2026-09-13 |
@@ -8042,9 +8110,146 @@ it.
 
 | Task | Migration | What it is | Size | Blocks |
 |---|---|---|---|---|
-| **4.6a** | `0027` | **Membership.** `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path and its approval | `L` — expect a split | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS UNBLOCKED AS OF 2026-09-13** — register #9 is ruled and ADR-035 carries it. ⚠️⚠️ **SIZE AND SPLIT IT BEFORE WRITING A LINE**: it is an `L` carrying a migration *and* three or four RPCs that do not exist, and `0027` is append-only and merges automatically. Blocks **half of `5b`** |
-| **4.6b** | `0028` | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
-| **4.6c** | `0029` | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — area 9 unasked** |
+| **4.6a** | ⚠️ **`0027`–`0029`, three files** | **Membership — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** Sized `L` and SPLIT three ways 2026-09-13, before a line was written, exactly as this row demanded. `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path `request_access` and its approval `approve_request`. Register #9's eight rulings, all of which land somewhere below: **`D1`** `source`, **`D2`** nullable `token_hash`, **`D3′`** supersede the expired pending row, **`D4`** `invited_by` → `decided_by`, **`D5`** the 8-character Crockford code, **`D6`** resolve the whole code with no scan policy, **`D7`** a request absorbs a pending invite, **`D8`** locations required at approval | `L` — **split, three `M`s** | Blocks **half of `5b`** |
+| **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — blocks `4.6a-ii` and `4.6a-iii`, which are both unwritable until the columns exist |
+| **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(email, role, location_ids)` returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | the invite screen in `5b` |
+| **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and a status read so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | the join screen in `5b` |
+| **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
+| **4.6c** | ⚠️ `0031` — **was `0029`, renumbered by the `4.6a` split, 2026-09-13** | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — área 9 is BRIEFED and still UNRULED**; part A is shop truth and nobody here can answer it |
+
+### ⚠️⚠️ Sized 2026-09-13 — `4.6a` IS AN `L`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS A RENUMBERING
+
+**Sized and split before a line of SQL was written**, which is what the parent row demanded
+in terms. ⚠️ **`0027` DOES NOT EXIST YET.** Nothing in `supabase/migrations/` moved in this
+session; this section, the table above and one new guard are the whole of it. That is
+deliberate: `0027` is append-only and merges automatically, so the cheapest moment to be
+wrong about its shape is now, in a file, rather than after it has applied.
+
+**Why it is an `L` and not the `M` a single table change would be.** Counting what has to
+exist before the request screen in `5b` can call anything: **two new columns**
+(`workspace.code`, `workspace_invite.source`), **one rename** — the first in this schema's
+history — **two dropped `not null`s**, **one check constraint** carrying `D1` and `D2`
+together, **one unique index**, **three helper functions** (generate a code, normalise a
+typed one, supersede an expired pending row), **`onboard_workspace` replaced a third time**
+so a new workspace is born with a code, **a backfill** for the workspaces that already
+exist, **four RPCs** that have never existed, and **a re-signing of three applied pgTAP
+suites**. Every step-4 task that was one function was an `M`; this is four functions and a
+table change.
+
+#### The seam: the two ways in, with the schema landing alone
+
+| | Takes | Why the line is here |
+|---|---|---|
+| `4.6a-i` | `0027` — the table, the code column, the three helpers, the backfill | **Both paths need all of it and neither path can be written without it.** It is also the only piece that touches an applied test suite, and the only one that cannot be done as a `create or replace` if it turns out wrong |
+| `4.6a-ii` | `0028` — `create_invite`, `redeem_invite` | The flow **ADR-035 has described since it was written and this database has never had** (`0002:362` sends them to `0005`; `0005` is the allocator). It is a closed loop on its own: an owner can invite and an invitee can redeem with nothing from `4.6a-iii` present |
+| `4.6a-iii` | `0029` — `request_access`, `approve_request`, the joiner's status read | C11.5's **pull**, which is the half the owner changed his mind about. It depends on `0027`'s columns and on **nothing in `0028`** — `D7`'s absorb reads an invite ROW, not `redeem_invite` |
+
+⚠️ **`D7` is the only coupling between the two paths, and it points at the table rather
+than at the function** — which is why the pull path can be third and still be finishable.
+
+**Three alternative seams were considered and refused:**
+
+- **One migration, three sessions.** Refused by the append-only rule and by automated
+  merging: each session merges on its own green run, so three tasks cannot share one
+  unapplied file. This is 4d's argument exactly, and 4d is where it cost a renumbering too.
+- **Two ways — the table, then all four RPCs.** Refused because "all four RPCs" is one
+  session writing four `security definer` functions with four failure vocabularies, which
+  is the shape 4e was split to avoid. The second piece would be an `L` again.
+- **Push path first, including the table.** Refused because `0027`'s check constraint,
+  `source` column and code generator are all there for the PULL path; folding them into the
+  invite migration means the invite task ships the request path's schema and cannot test
+  half of what it adds.
+
+#### The renumbering, and it is the third in this repository
+
+⚠️ **`4.6b` becomes `0030` and `4.6c` becomes `0031`.** `4d` and `4e` both moved numbers for
+the same reason and `4.5` did not; the rule that decides it is whether the split's pieces
+each ship a migration. Here all three do. **`supabase/README.md` is the authority on
+numbering and now carries `0027`–`0031`** — see the finding below, because it did not carry
+step 4.6 at all.
+
+**The overflow seam is pre-committed**, as `4e` and `4.5` did it: if any of the three
+overflows a session, the overflow is **test breadth and ships NO migration** (`4.6a-i-b`,
+`4.6a-ii-b`, `4.6a-iii-b`), so a fourth task never renumbers a fifth.
+
+#### ⚠️⚠️ Four things found by opening applied SQL instead of the record of it, and the first turns three GREEN suites RED
+
+**`S1` — `D4`'s rename breaks `02`, `03` and `04`, all of which are green today.** Three
+pgTAP suites insert their own `workspace_invite` fixture and every one of them names the
+column being renamed: `02_rls_isolation_reads.sql:106`, `03_rls_isolation_writes.sql:256`,
+`04_rls_isolation_writes_inserts.sql:363`. The rename does not break a test's *claim*; it
+breaks the INSERT, so all three fail in setup. ⚠️ **`4c-ii` recorded what that looks like:
+a suite that dies in `beforeAll` reports zero failing tests.** So re-signing the three
+suites is **inside `4.6a-i`**, named in its row, and not a surprise for whoever runs
+`supabase db reset` next.
+
+**`S2` — the seed must NOT be given invite rows, and two earlier findings point the other
+way.** `3.2a` found `workspace_invite` is the one tenant table the seed leaves empty, and
+`4.5b` found that the isolation suites go red on an empty tenant table — so "seed it" looks
+like the fix. ⚠️⚠️ **It is not: `02`'s own `F9` asserts the table was empty in the seed**,
+and says in terms that a future seed populating it *"turns red and someone decides whether
+the fixture is still wanted."* The suite already writes one invite per workspace inside a
+transaction it rolls back. **So `0027` touches no seed file**, and `F9` stays the guard on
+that decision rather than becoming its casualty.
+
+**`S3` — a requester cannot read the row they just created, and no policy will ever let
+them.** `workspace_invite_select` is `has_role(workspace_id, 'manager')` (`0002:563`), and a
+non-member's `my_role()` is null, so `has_role` is false — the joiner is invisible to
+themselves. `workspace_select` is `id in (select my_workspaces())`, so they cannot read the
+workspace either, which is `D6` working as designed. ⚠️ **`5b`'s join screen therefore has
+nothing to render after the tap**, and the cheapest-looking fix a later session would reach
+for is a select policy — the exact thing `D6` forbids. **`4.6a-iii` ships the status read
+as a `security definer` RPC keyed on the caller's own email.**
+
+**`S4` — `D7` is a privilege-escalation path in two ways, and both are closed by how the
+RPC is signed, not by a check.** *"Entering the code accepts a pending invite for that
+email"* is safe only if the joiner cannot choose the email and cannot choose the role.
+⚠️⚠️ **If `request_access` took an email argument, anyone could absorb anyone's pending
+invite — including one issued for `manager` or `owner`.** And if the absorb honoured the
+*requested* role rather than the invite's, requesting `owner` while holding a `staff` invite
+would be a promotion nobody approved. **So: no email argument — the RPC reads
+`auth.users.email` for `auth.uid()` inside the definer body — and the absorbed invite's own
+role wins, silently** (§2.8: we do the bookkeeping, not the shopkeeper).
+
+#### ⚠️ Seven decisions taken on the owner's behalf in the sizing, and all seven are cheap only until `0027` merges
+
+| | Decision | Why it was taken rather than asked |
+|---|---|---|
+| **1** | **The seam above**: schema alone, then push, then pull | A sizing judgement, which is the session's job. The alternatives and why they lose are written out above |
+| **2** | **The renumbering**: `4.6b` → `0030`, `4.6c` → `0031` | Mechanical once the split has three migrations. `4d` and `4e` set the precedent |
+| **3** | **`source` defaults to `'invite'`** | It keeps the three applied suite fixtures valid under `D1`'s check with no `source` column in their INSERT, and it needs no backfill of existing rows. ⚠️ The alternative — no default — makes `S1`'s re-signing bigger for no gain |
+| **4** | **No seed rows for `workspace_invite`** (`S2`) | `02`'s `F9` asserts the opposite of what the instinct suggests, and it asserts it deliberately |
+| **5** | **`request_access` takes no email argument** (`S4`) | The version that takes one is a way to claim somebody else's invite. This is a security property, not a signature preference |
+| **6** | **The absorbed invite's role wins over the requested one** (`S4`) | The other way round is an unapproved promotion |
+| **7** | **`4.6a-iii` ships the joiner's status read** (`S3`) | Without it `5b` cannot draw the screen, and the obvious alternative is the select policy `D6` rules out. ⚠️ **This is the one an owner might cut** — if the client is allowed to remember "I asked for X" locally and show nothing from the server, the RPC is unnecessary |
+
+⚠️⚠️ **Decision 7 is the one to overturn today if it is going to be overturned**, because it
+is a granted function in `0029` and a fix-forward afterwards.
+
+#### The split's own guard, and the eight fixtures it was falsified against
+
+`docs/checks/4.6a-split-coverage.sh`, wired into `app.yml` beside the other two plan guards
+— and ⚠️ **its eight fixtures are wired in too, as
+`docs/checks/4.6a-split-coverage-falsify.sh`, which is the first time this repository has
+run a guard's falsifications in CI rather than only the guard.** The other two plan checks
+are machine-run; the fixtures proving they can still FAIL are not, so an edit that loosened
+one into a check that passes on everything would be green twice over.
+It asserts the twelve deliverables of `4.6a` each land in **exactly one** child row and the
+right one; that each child row exists **exactly once** in the file; that the five migration
+numbers are claimed once each; and that **`supabase/README.md` agrees** — the cross-file
+half, because the numbering authority is a second copy of the claim and this repository has
+six recorded stale-copy defects.
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **Z0** | Control, unedited | 🟢 |
+| **Z1** | `4.6a-iii`'s row deleted | 🔴 *"no table row for 4.6a-iii"* |
+| **Z2** | **`D8`** moved from `4.6a-iii` into `4.6a-ii` | 🔴 — landed in the wrong child, which is how two tasks each assume the other has it |
+| **Z3** | **`D3′`** struck from `4.6a-i`'s row | 🔴 — in the parent and in no child: dropped by the split |
+| **Z4** | The parent row stops naming `request_access` | 🔴 — the coverage claim would be vacuous for it |
+| **Z5** | `4.6c` left claiming `0029` | 🔴 — two rows claiming one migration number, which is the renumbering going stale in the file that hands the numbers out |
+| **Z6** | `supabase/README.md`'s *"last migration of the database build"* left uncorrected | 🔴 — the numbering authority still says the schema is finished |
+| **Z7** | A second copy of `4.6a-i`'s row added 200 lines away | 🔴 — the shape of THREE of this repository's six stale-copy defects |
 
 ### ⚠️⚠️ 4.6a — the membership flow has no functions, and the owner wants the inverse of the one it was designed for
 
