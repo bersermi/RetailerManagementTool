@@ -155,9 +155,28 @@ view body.** ⚠️ **The three copies are struck in place rather than deleted**
 got wrong is worth more than what they got right: a fence on a VIEW was read as a fence on the
 COLUMN underneath it, by three files, for a week.
 
-⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE ONE WORTH OVERTURNING EARLY
-IF IT IS WRONG: GROSS REVENUE LANDS ON `product_velocity_daily` BY `create or replace`, NOT IN
-A NEW VIEW.** `B1` ruled *"a NEW view, leave `0009` untouched"* — but that was about the
+✅✅ **RULED BY THE OWNER 2026-09-14, THE SAME DAY `0031` MERGED — *"leave gross revenue on the
+velocity view."* THE DECISION BELOW WAS TAKEN ON HIS BEHALF AND IS NOW HIS.** Nothing changes
+in the schema and nothing is owed; what changes is that a later session widening or splitting
+this view is **undoing a ruling**, not tidying a judgement call. ⚠️ **It is the second time in
+two days that a decision reported in a closing message was ruled before it could go stale**,
+which is what reporting them by name is for.
+
+⚠️⚠️ **AND THE RULING FOUND SOMETHING: ADR-035 HAD ALREADY SAID IT, AND THIS FILE CALLED IT AN
+OPEN DESIGN PROBLEM.** §2.9's amended question table, written on 2026-09-14 hours before
+`4.6c-i` was taken, says of `product_velocity_daily` in terms: ***"`product_velocity_daily`
+(`0013`/`0014`) is the view behind row 1"*** — row 1 being *"quantity sold and GROSS revenue,
+per variant and per family, daily."* **`CLAUDE.md` says the ADR wins, and the ADR had already
+ruled.** The session read the plan's `N1`/`N2` rows and the `4.6c-i` row and did not read
+§2.9's table, so it re-derived an answer that was already authoritative and reported it as a
+judgement call. ⚠️ **The call was right and the process was wrong**, and the cheap lesson is
+the one this repository keeps paying for: **when the plan says a question is open, check
+whether the ADR has already closed it** — that is the tenth stale-copy defect, and the first
+where the stale copy was the plan describing its own task as harder than it was. ✅ **No ADR
+amendment is owed. The ADR is already correct about this.**
+
+⚠️⚠️ **THE DECISION, AS IT WAS TAKEN AND NOW AS IT IS RULED: GROSS REVENUE LANDS ON
+`product_velocity_daily` BY `create or replace`, NOT IN A NEW VIEW.** `B1` ruled *"a NEW view, leave `0009` untouched"* — but that was about the
 **margin** view, which is broken under C8.6 and is being replaced by nothing. The velocity view
 is the opposite case: this file's own table calls it *"intact, and for a stated reason"*, it is
 already the staff-readable home of quantity-and-revenue, it already carries `family_id` on
@@ -166,8 +185,9 @@ returning revenue beside the first would be two answers to `A6`'s question 2 dif
 tax** — and the second copy going stale is this repository's most-recorded defect, nine times
 over. ⚠️ **It is cheap to reverse and that is why it was taken rather than parked**: one
 `create or replace` undoes the whole of it, nothing here is a table, a column or a policy, and
-the seed writes no data against it. **If the owner wants a separate revenue view, say so and it
-costs one migration.**
+the seed writes no data against it. ~~**If the owner wants a separate revenue view, say so and
+it costs one migration.**~~ — **HE RULED: LEAVE IT. The reversibility is now insurance rather
+than an open question**, and `5d`'s charts may be written against this view without hedging.
 
 **Four smaller calls made on his behalf, all cheap to reverse and all named here:**
 
@@ -212,6 +232,32 @@ is applied schema and migrations are append-only), and **it did not move one fen
 asserts `replay_failed_write` is still `manager` and `failed_write_select` is still owner-only,
 because a migration that rewrites a comment ABOUT a policy is exactly where somebody would later
 tidy the policy too.
+
+⚠️⚠️ **AND RUNNING THE GUARDS AFTER THE RULING FOUND A FALSIFICATION HARNESS THAT HAD BEEN
+DEAD SINCE 2026-09-13 — SIXTEEN FIXTURES, NONE OF THEM RUNNING, NOTHING RED ANYWHERE.**
+`conventions-gate-falsify.sh` builds a fixture tree by copying `docs/CONVENTIONS.md`,
+`docs/PLAN.md`, the gate and `app/src` + `app/test` into a temp directory. ⚠️ **It never
+copied `docs/adr/`** — and `conventions-gate.sh` gained a **tenth assertion group** on
+2026-09-13, when ADR-035 §3 was amended to carry the `5b.5` deferral as its third copy, which
+**reads the ADR**. In the fixture tree that file does not exist, so the gate failed, the
+**baseline went red, and the harness refuses to run a single fixture when the baseline is
+red.** Both scripts still existed, both were still invoked, and `conventions-gate.sh` itself
+still passed on the real tree. **Nothing was red anywhere and every falsification of it had
+silently stopped running, for a day.**
+
+⚠️ **IT IS `Z5`'S DEFECT FROM THE SAME DIRECTION, AND THE RE-SCOPE THAT RECORDED `Z5` DID NOT
+COVER IT.** `Z5` was *"not an edit to the check, but an edit to the FILE THE CHECK READS"*.
+This is one step further out: **a check that started reading a NEW file the harness was never
+told about.** The rule that covers both: **when an assertion gains a new input, the thing that
+falsifies it gains the same input** — and nothing enforces that but running the falsify script
+and reading its first line.
+
+✅ **Fixed: `mk()` copies the whole of `docs/adr/`, not one file, so the next assertion group
+to read an ADR does not repeat this. 16 fixtures now run — 15 red as recorded, `F13` green as
+recorded.** ⚠️ **One gap left named rather than closed**: the tenth group now EXECUTES on the
+baseline, but this harness carries no fixture proving it can go red. `U1`–`U3` were run by hand
+when the group was written and are recorded above under the ADR-disagreement section; folding
+them into this harness is a small task nobody has taken.
 
 ⚠️ **One thing this seed cannot falsify, pinned rather than papered over.** Every purchase
 variant-day bucket holds **exactly one line** — 1 048 lines in 1 048 buckets — so mutating
@@ -8545,7 +8591,7 @@ it.
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
 | **4.6b** | ✅ **`0030`, APPLIED 2026-09-14** — was `0028`, renumbered by the `4.6a` split, 2026-09-13 | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch. ⚠️⚠️ **ONE NOTCH MEANT ONE NOTCH: `failed_write_select` IS UNTOUCHED, so a manager may now replay a dead letter she cannot SELECT** — pinned by three checks, not prose, and parked as an owner decision against `5c` | `S` | ✅✅ **DONE 2026-09-14** — 18 behavioural checks in `supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed to 88, ten falsifications. The replay control in `5c` is unblocked |
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
-| **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. The Números charts in `5d` are unblocked |
+| **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. ✅ **And the one decision it took on the owner's behalf was RULED the same day — *"leave gross revenue on the velocity view"***, which ADR-035 §2.9 had already said. The Números charts in `5d` are unblocked |
 | **4.6c-ii** | `0032` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's. ⚠️ **`0031` settled two things it inherits**: the tax columns exist on both sides now, and `product_purchases_daily` is the manager-fenced precedent a price view should match rather than re-argue | `M` | the price card in `5d` |
 | **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
 
@@ -9324,7 +9370,7 @@ status entry does not: the shape of what shipped, and what was measured against 
 | Object | What |
 |---|---|
 | `product_purchases_daily` | **NEW view**, `security_invoker`. `workspace_id, location_id, variant_id, day`, the catalog names and `family_id`/`family_name`, then `purchases_qty_base`, `purchases_net`, `tax_paid`, `purchases_gross`, `purchase_line_count`. Manager-and-above **by inheritance** — both base tables are manager-gated, so it fails CLOSED and states no `has_role` of its own, which `0011` can do and `0009` cannot |
-| `product_velocity_daily` | **Replaced.** 0014's body verbatim plus four hunks: `sum(sl.tax_amount)` in `sold`, its coalesce in `daily`, three APPENDED columns (`create or replace view` cannot reorder), one appended window sum |
+| `product_velocity_daily` | **Replaced.** 0014's body verbatim plus four hunks: `sum(sl.tax_amount)` in `sold`, its coalesce in `daily`, three APPENDED columns (`create or replace view` cannot reorder), one appended window sum. ✅✅ **That this is where gross revenue lives was RULED by the owner on 2026-09-14** — *"leave gross revenue on the velocity view"* — confirming both the call the session made and ADR-035 §2.9's table, which had already said so |
 | `product_margin_daily` | **`comment on view` only.** `B1` stands and the body is untouched |
 | `replay_failed_write` | **`comment on function` only.** `0030`'s file is not edited — a function comment is applied schema |
 

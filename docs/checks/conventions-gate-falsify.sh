@@ -75,10 +75,29 @@ ran=0
 
 mk() {
   rm -rf "${WORK:?}"/*
-  mkdir -p "$WORK/docs/checks" "$WORK/app"
+  mkdir -p "$WORK/docs/checks" "$WORK/docs/adr" "$WORK/app"
   cp "$REPO/docs/CONVENTIONS.md" "$WORK/docs/"
   cp "$REPO/docs/PLAN.md"        "$WORK/docs/"
   cp "$REPO/$GATE"               "$WORK/docs/checks/"
+  # ⚠️⚠️ docs/adr/ WAS MISSING HERE AND IT KILLED EVERY FIXTURE IN THIS FILE.
+  # `conventions-gate.sh` gained a TENTH assertion group on 2026-09-13, when
+  # ADR-035 §3 was amended to carry the `5b.5` deferral as its third copy — and
+  # that group reads the ADR. This harness never copied it, so the gate could not
+  # find the file in the fixture tree, the BASELINE went red, and the harness
+  # refuses to run a single fixture when the baseline is red. Both scripts still
+  # existed, both were still invoked, and `conventions-gate.sh` still passed on
+  # the real tree: nothing was red anywhere, and every falsification of it had
+  # silently stopped running.
+  #
+  # ⚠️ THAT IS THE EXACT DEFECT THE `4.6c` RE-SCOPE RECORDED ABOUT `Z5`, arriving
+  # from the same direction — "not an edit to the check, but an edit to the FILE
+  # THE CHECK READS", here a check that started reading a NEW file the harness
+  # was never told about. Found 2026-09-14 while running the guards after the
+  # gross-revenue ruling; it had been dead since the amendment.
+  #
+  # The whole directory, not the one file, so the next assertion group to read an
+  # ADR does not repeat this.
+  cp -R "$REPO/docs/adr/."       "$WORK/docs/adr/"
   cp -R "$REPO/app/src"          "$WORK/app/src"
   cp -R "$REPO/app/test"         "$WORK/app/test"
 }
