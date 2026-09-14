@@ -33,8 +33,9 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| ⚠️⚠️ **WHO IS A MEMBER, ON THE MEMBER SCREEN? C11.8 ASKS FOR A NAME AND NO TABLE IN THIS SCHEMA CARRIES ONE.** Measured 2026-09-14, not assumed: `workspace_member` holds `user_id`, `role` and `is_active` — **no name and no email**. `workspace_invite` holds the email, but only for someone who arrived through it, and **all six members in the seed have no invite row at all**, because `onboard_workspace` writes the member directly. §2.7 never exposes `auth.users`. So C11.8's *"name, email and the role asked for — enough not to approve the wrong Juan"* is **one third unbuildable and one third conditional**. ✅ **RECOMMENDED: email only, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** It costs nothing, ships no migration, and covers everyone who joins from now on — the founding owner is the caller, so he names himself. A distinct email is what stops the wrong Juan; a display name would not add to that. ⚠️ **The alternative, recorded rather than offered: a `security definer` RPC reading `auth.users.raw_user_meta_data->>'full_name'`** — one migration, `0034`, reopening a step that closed hours ago, for a string an OAuth provider may not have set | `5b-ii` and `5b-iii` | ⚠️ **It is YOURS because C11.8 is your sentence and the miss is visible on the screen** — this is shop truth, not schema consistency, and CI can prove neither. ⚠️ **It is cheap only until `5b-ii` renders a list**: a screen built on email and later given names is a rewrite of the row, and a migration added afterwards reopens a closed step. **`5b-i` is unaffected and is takeable now** |
 
-✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+⚠️ **ONE IS OWED AS OF 2026-09-14, AND IT ARRIVED WITH `5b`'S SIZING.** ~~✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.**~~ ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
 raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
 FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
 date**, which is what it is for. The three
@@ -134,6 +135,125 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+✅✅ **`5b` IS SIZED `L` AND SPLIT THREE WAYS AS OF 2026-09-14, BEFORE A LINE OF CLIENT CODE
+WAS WRITTEN — AND `5b-i` IS THE NEXT TASK.** ⚠️ **No app code was written in this session and
+none should have been**: `supabase/migrations/` and `app/src/` are untouched by the split, and
+this section, four table rows, one parked decision and one new guard are the whole of it. That
+is deliberate and it is `4.6a`'s argument repeated one step up — **the cheapest moment to be
+wrong about the shape of three screens is now, in a file, rather than after one of them
+exists.**
+
+⚠️⚠️ **WHY IT IS AN `L` AND NOT THE `M/L` THE ROW CARRIED.** Counting what has to exist before
+a second person can be standing in the shop with the app open: **two RPC-backed flows that
+have never had a screen** (push and pull), **three screens and a sheet that do not exist**
+(onboarding, Ajustes, join-by-code, and the approval surface), **one navigation state
+`guard.ts` does not have** (signed in, belongs to no workspace), **the app's first non-tab
+surface** — §2.8 fixed Ajustes as a sheet — **a badge on a Home screen that is still
+`Pendiente` scaffolding**, and **`src/api/`, which does not exist at all.** The app today is
+twenty-three source files: an auth shell, four tab stubs, a density theme and a money
+formatter. **There is no data layer.** Every step-4 task that was one function was an `M`;
+this is six RPCs, four surfaces and the layer they are all called through.
+
+#### The seam, and each piece is a closed loop somebody can actually use
+
+| | Takes | Why the line is here |
+|---|---|---|
+| `5b-i` | `onboard_workspace`, C1.7's IVA question, the no-workspace landing, `src/api/` | **Everything else in `5b` needs a workspace to exist**, and nothing else can be built until something can create one. It is also the only piece that introduces a navigation state, and the only one that cannot be done as an addition to a screen that already exists |
+| `5b-ii` | Ajustes, the code and its share, member management, `create_invite`, `redeem_invite` | The PUSH path, **which ADR-035 has described since it was written and this client has never had**. A closed loop on its own: an owner invites and an invitee redeems with nothing from `5b-iii` present |
+| `5b-iii` | `request_access`, `my_access_requests`, `approve_request`, the location picker, C11.8's badge | C11.5's **pull**, which is the half the owner changed his mind about. It depends on `5b-i` and on **nothing in `5b-ii`** — a request absorbs an invite ROW (`D7`), never a function |
+
+⚠️ **`D7` is the only coupling between the two paths and it points at the table**, which is
+exactly what let `4.6a` put the pull path third and still finish it. **The client seam is the
+server seam, one layer up**, and that is not a coincidence — it is the reason the three
+migrations were cut where they were.
+
+**Three alternative seams were considered and refused:**
+
+- **Onboarding, then "all of membership".** Refused: *all of membership* is both paths, two
+  screens, a sheet, a badge and a location picker. That is an `L` again, and it is `4e`'s and
+  `4.6a`'s recorded mistake — the second piece would need splitting on the day it was taken.
+- **All the screens first, then all the wiring.** Refused: **a screen with no call is a
+  deliverable no check in this repository can see.** §2.11 bans rendering suites, `5a-ii`'s
+  own tab bar exists as a data table precisely because of that, and a task whose entire output
+  is unverifiable JSX is the shape `5a` spent four sub-tasks learning to avoid.
+- **Split by PERSON — everything the owner sees, then everything the joiner sees.** Refused:
+  the joiner's half of push (`redeem_invite`) and of pull (`request_access`) are **one screen
+  in two states**, so this seam has one task building half a screen and another finishing it.
+  That is `5a-iv`'s sub-split defect — one deliverable stated in two places — which this file
+  has already paid for once.
+
+#### ⚠️⚠️ Two things found by opening the applied schema instead of the row that describes it
+
+**`T1` — C11.8 ASKS FOR A NAME AND NOTHING IN THIS SCHEMA HAS ONE. It is parked as an owner
+decision and it blocks two of the three children.** `workspace_member` carries `user_id`,
+`role` and `is_active` — no name, no email. §2.7 never exposes `auth.users`. The full brief is
+in the decisions block at the top of this file, which is where a session that has read nothing
+else will find it. ⚠️ **It is the same gap `4.6c-iii` named hours earlier from the export
+side** — `transaction_export.created_by` is a raw uuid for exactly this reason — **and two
+tasks hitting one missing column on the same day is what says it is a real hole rather than a
+screen's inconvenience.**
+
+**`T2` — THE FOUNDING OWNER HAS NO INVITE ROW, so the obvious repair for `T1` does not cover
+him.** The instinct on reading `T1` is *"join `workspace_member` back to `workspace_invite` on
+`accepted_by` and take the email from there"*. ⚠️ **Measured: all six members in the seed have
+no such row**, because `onboard_workspace` inserts the membership directly and writes no
+invite. So that join returns **nothing at all** for the one person guaranteed to be looking at
+the screen. ✅ **The recommendation in the decisions block survives it** — the founding owner
+is the CALLER, so his row is labelled *Tú* without a lookup — **but it survives it by design
+rather than by luck, and the next person to reach for that join should know it returns zero.**
+
+#### ⚠️ Two decisions taken on the owner's behalf in the sizing, both cheap and both named
+
+| | Decision | Why it was taken rather than asked |
+|---|---|---|
+| **1** | **The seam above**: a shop, then push, then pull | A sizing judgement, which is the session's job. The three alternatives and why each loses are written out above |
+| **2** | **`5b.5` now gates on `5b-i` closing rather than on all of `5b`** | `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. The owner's ruling of 2026-09-13 said the pattern is described *"once `5b` has produced a real one"* — **`5b-i` is where a real one appears**, so this upholds the ruling rather than bending it, and it is cheaper: one consumer to reconcile instead of three that each invented their own. ⚠️ **Reversed by one plan edit** while `5b-i` is still open |
+
+#### The guard, and what it does not do
+
+`docs/checks/5b-split-coverage.sh` asserts the four rows exist, that each child is stated
+**exactly once**, and that **all thirteen deliverables the parent promises land in exactly one
+child, the assigned one** — the shape `4.6a-split-coverage.sh` uses, for the reason that file
+records: `5a-iv`'s sub-split was stated in two tables and the guard read the wrong one.
+⚠️ **It cannot tell a good split from a bad one**, only that nothing the parent promises has
+fallen between two children that each assume the other has it. Nine fixtures prove it can
+still fail.
+
+⚠️ **AND IT CORRECTED THIS SECTION ON ITS FIRST RUN, WHICH IS A SMALL VERSION OF THE WHOLE
+POINT.** The prose above said *twelve* deliverables and the list holds **thirteen** — a count
+in a paragraph disagreeing with the list beside it, written and read within the same hour.
+**This file has recorded eleven stale-copy defects and had just written its twelfth**; the
+guard printed `13/13` and the paragraph said twelve, so it was caught before the commit rather
+than in four days by a person.
+
+**Nine fixtures over the guard itself** (`5b-split-coverage-falsify.sh`), each mutating a copy
+of this file and matching the MESSAGE rather than the exit code:
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **Y0** | the control, unedited | 🟢 — a harness whose baseline is red runs no fixture at all, which is how `conventions-gate-falsify.sh` spent a day dead |
+| **Y1** | `5b-iii`'s row deleted | 🔴 *"no table row for 5b-iii"* |
+| **Y2** | ⚠️ **C11.8's badge moved from `5b-iii` into `5b-ii`** | 🔴 *"this split assigned it to 5b-iii"* — the commonest real mistake: a session in Ajustes finds the badge convenient and takes it, and the pull path is left with no surface |
+| **Y3** | C11.7's share button in no child | 🔴 *"in the parent row and in NO child"* |
+| **Y4** | ⚠️⚠️ **`src/api/` struck from the PARENT row** | 🔴 *"no longer named in the parent 5b row"* — the edit that makes a coverage check **vacuous** rather than red, which is this repository's most-recorded check defect |
+| **Y5** | `5b-ii`'s row stated twice | 🔴 — `5a-iv`'s sub-split defect exactly |
+| **Y6** | ⚠️ **`5b.5` re-pointed back at the whole of `5b`** | 🔴 — the fixture that guards a DECISION rather than a deliverable |
+| **Y7** | the parent row stops saying it is not takeable | 🔴 — `plan-handover.sh`'s `V4` is the record of what that costs |
+| **Y8** | `5b-iii` also claims `create_invite` | 🔴 *"owned by neither"* — a row describing work it does not do is how `4.6b`'s scope disagreed with `4.5c-ii`'s for four days |
+
+⚠️⚠️ **TWO OF THE NINE WERE RED FOR THE WRONG REASON ON THEIR FIRST RUN, AND THE HARNESS SAID
+SO RATHER THAN COUNTING THEM.** `Y2` anchored its insert on a phrase the **parent** row also
+carries, so the badge landed in the parent — which already promises it — and the guard reported
+a *dropped* deliverable instead of a *misrouted* one. `Y4` wrote `` `src/api/` `` inside double
+quotes in bash, so the backticks **ran as a command** and the fixture died on *"No such file or
+directory"* having tested nothing. ✅ **Both were caught because this harness matches the
+message and not the exit code** — the rule a sister harness paid for: *"a fixture that is red
+for the wrong reason is not a falsification, it is a coincidence."*
+
+⚠️ **NO RENUMBERING, AND THAT IS WORTH ONE LINE.** `4.6a`'s split cost one because its pieces
+each ship an append-only migration. **`5b`'s children ship none** — every RPC they call is
+already applied — so the letters are free and nothing after `5b` moves.
 
 ✅✅✅ **`4.6c-iii` IS DONE AS OF 2026-09-14 — `0033` IS APPLIED, `4.6c` IS COMPLETE, **STEP
 4.6 IS CLOSED**, AND `5b` IS THE NEXT TASK.** `transaction_export` exists: every sale,
@@ -10203,8 +10323,11 @@ free today and stay free until the first task merges.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
-| **5b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). ⚠️ **SIZE IT BEFORE WRITING ANYTHING**: the row says `M/L`, and `4.6a` and `4.6c` were both `L`s that split three ways before a line was written. ⚠️ **Everything the server half needs now EXISTS** — `create_invite`, `redeem_invite`, `request_access`, `approve_request` and `my_access_requests` (`0027`–`0029`), which is what the gate was waiting for | `M/L` | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and with `0033` the whole database build is closed |
-| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️ **`5b` closing.** `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
+| **5b** | ⚠️⚠️ **SIZED `L` AND SPLIT THREE WAYS 2026-09-14, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Onboarding and membership.** Thirteen deliverables, all of which land in a child below: **`onboard_workspace`**; **the IVA question** (**C1.7**); **the no-workspace landing** for a signed-in person who belongs to none; **`src/api/`**, the app's first real data layer; **Ajustes**, its first non-tab surface; the join code and its WhatsApp share (**C11.7**); **member management**; **`create_invite`**; **`redeem_invite`**; **`request_access`** with **`my_access_requests`**; **`approve_request`** and its location picker; and the Home notifications icon and badge (**C11.8**). ⚠️ **Everything the server half needs EXISTS** — `0027`–`0029`, which is what the gate was waiting for. **Nothing below ships a migration** | `L` — **split, an `M` and two `M/L`s** | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and the database build has no open task |
+| **5b-i** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one | `M` | ✅ **Unblocked.** Nothing in `5b` can be built before a workspace can exist |
+| **5b-ii** | **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ⚠️ **`5b-i`**, and ⛔ **one owner decision is OPEN against this row** — see the decisions block |
+| **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing | `M/L` | ⚠️ **`5b-i`**, and ⛔ **the same open decision** — see the decisions block |
+| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
