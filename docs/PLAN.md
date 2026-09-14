@@ -33,7 +33,6 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **Register #9 — the membership flow.** *The ADR says the owner pushes an invite; the owner said the joiner pulls with a code; he wants both.* ⚠️ **Six sub-decisions, `D1`–`D6`, each with a recommendation and its reasoning — the intended answer is yes or no, not a design.** ⚠️ `D4` is the only genuinely arguable one: `accepted_by` means the **invitee** on one path and the **owner** on the other | `4.6a`, and `5b` behind it | `4.6a`'s section below — *"Decision register #9 — THE BRIEF"* |
 | **Area 9 — Números.** *"Three numbers, not thirty."* ⚠️ **No brief written yet**; the answer decides a migration's shape | `4.6c` | Not yet written — ask for it and it will be prepared the same way |
 
 **Four falsifications over the block itself** (`plan-handover.sh`, assertions 7a–7c):
@@ -44,6 +43,26 @@ let a blocked task be marked as the next task.**
 | **V2** | A second block added elsewhere | 🔴 *"a second home is how one of them goes stale"* |
 | **V3** | A row stops naming what it blocks | 🔴 — a decision nobody is waiting on is how *"later"* becomes *"never"* |
 | **V4** | ⚠️⚠️ **`4.6a` marked as the next task while register #9 is open** | 🔴 *"taking it writes code against a guess — and if it is a migration, an automated merge deploys that guess"* |
+| **W1** | ⚠️⚠️ **A REAL open decision naming the next task**, added 2026-09-13 when the one above stopped being real | 🔴 — same message, now from the table it is supposed to read |
+| **W2** | A decision blocking a *different* task | 🟢 — it must not fire on every open decision, only on one that names the next task |
+
+⚠️⚠️ **AND ON 2026-09-13 IT STOPPED THE WRONG WORK. THE GUARD READ THIS VERY TABLE.**
+`plan-handover.sh` collected the decisions block's rows by taking every line starting with
+`|` until the next `##` heading — which swept up **the falsification table you are reading**,
+whose `V4` row spells the blocked task's name because describing it is the row's entire job.
+So the moment register #9 was **ruled** and that task legitimately became next, assertion 7c
+found the name in a *Result* cell it had mistaken for a *Blocks* cell, and refused it.
+⚠️ **The script's own comment already described the correct behaviour** — *"the block's table
+runs from its heading to the first blank line after the rows begin"* — **and the code did
+something else.** ✅ **Fixed: the reader now stops at the first non-`|` line once rows have
+begun**, falsified by `W1`/`W2` above. ⚠️⚠️ **It was dormant and wrong from the day it was
+written and surfaced exactly when it would do damage** — a false red on the one task it
+exists to protect, on the day that task was unblocked. **The cheap "fix" was to move the
+marker back, which would have left the task unstartable for good and looked like the guard
+working.** ⚠️ **This is the FOURTH time here that prose about a check became input to that
+check**, and the rule those three taught — *never spell a check's sentinel in the file it
+reads* — **did not cover it.** The rule this one adds: **a check must BOUND the region it
+reads, not trust the next heading.**
 
 ⚠️⚠️ **V4 IS THE ONE THAT CAN STOP WORK RATHER THAN DESCRIBE IT.** This file has said
 *"do not start `4.6a`"* in prose since 2026-09-07. **Prose is not a gate**, and `4.6a` is
@@ -79,6 +98,54 @@ same shape as `conventions-gate.sh`'s comment-stripping trap, hit the same day, 
 different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS THE DEFECT.**
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
+
+✅✅ **DECISION REGISTER #9 IS RULED AS OF 2026-09-13 — ALL EIGHT TAKEN AS RECOMMENDED,
+ADR-035 IS AMENDED, AND `4.6a` IS THE NEXT TASK.** The membership flow is settled: **the
+joiner enters a workspace code, requests access, and is approved; an owner's invite is a
+request that arrives pre-approved. Both paths, one table** (C11.5 / C11.6). **The
+decisions-owed block now holds ONE row — area 9 — and the build is no longer
+decision-blocked.**
+
+⚠️⚠️ **THREE OF THE EIGHT DID NOT EXIST WHEN THE BRIEF WAS WRITTEN, AND ONE OF THEM IS A
+DEFECT IN THE BRIEF'S OWN REASONING.** `0002_catalog.sql:370` was opened line by line before
+the rulings were put, rather than the summary being trusted. **All four collisions were
+confirmed exactly as briefed** — and then:
+⚠️⚠️ **`D3` WAS WRONG ABOUT ITS OWN CONSEQUENCE. It said an expired request *"costs the
+joiner one tap to re-ask"*; in fact they can NEVER ask again.**
+`workspace_invite_one_pending_idx` is partial on `accepted_at is null`, and an expired row
+still satisfies that — **so it holds the slot permanently**, and re-requesting, or
+re-inviting anyone whose invite lapsed, is refused by a unique violation. ⚠️ **It cannot be
+fixed in the index**: `now()` is not `immutable` and may not appear in an index predicate.
+✅ **Ruled: keep the expiry, and make the creating RPC supersede the stale row.**
+✅ **`D7` — the two paths can collide on one person**, and the request path now **absorbs**
+a pending invite instead of erroring. ✅ **`D8` — the approval RPC takes `location_ids` and
+refuses an empty array for staff**, because `member_location` + RLS means an approved staff
+member with no locations has every write refused **with no message at all**.
+⚠️ **`D8` is the one that would have reached a shop**: it is invisible to every test that
+runs as a manager or owner, and to the joiner it is indistinguishable from a broken app.
+
+✅ **ADR-035 §2.7 and decision register #9 both carry the ruling**, with a revision entry
+dated 2026-09-13 — **the second entry that date**. ⚠️ **That mattered more than usual
+here**: `CLAUDE.md` tells a fresh session *"the ADR wins"*, `4.6a` is a migration, and
+migrations merge automatically — so a session reading the unamended ADR would have written
+the **inverse** flow and deployed it. ✅ **§8's follow-up checklist is corrected too**: it
+listed `create_invite` / `redeem_invite` as an unticked box without saying they had been
+**assigned to `0005` and never written**, which is why §2.7 has always described functions
+that do not exist.
+
+⚠️⚠️ **`4.6a` IS AN `L` AND MUST BE SIZED AND SPLIT BEFORE A LINE IS WRITTEN.** It carries
+`0027` **and three or four RPCs that do not exist** — `create_invite`, `redeem_invite`, the
+request path and its approval — and `0027` is append-only and merges without review. **The
+row says so; do not skip it.** ⚠️ **Everything the eight rulings decided freezes the moment
+`0027` merges**, and each becomes a fix-forward migration rather than an edit.
+
+⚠️ **A GAP WORTH NAMING, NOT YET BUILT: THERE IS A DECISIONS-OWED BLOCK AND NOTHING
+EQUIVALENT FOR DATES.** Three are now live — the iPhone re-deploy before
+`2026-09-20T06:19:32Z`, the day-8 reading on **2026-09-21**, and the day-30 reading on
+**2026-10-13** — and they are held only by table cells and this log. ⚠️ **That is precisely
+the shape the decisions block was invented for**: a thing nobody has to remember, re-offered
+every session. **Not built here, because it would change `plan-handover.sh`'s invariants and
+this session did not size that.**
 
 ✅✅ **`5a-iv-d`'s SESSION CONFIGURATION WAS READ ON 2026-09-13, AND IT ANSWERED IN THIRTY
 SECONDS THE HALF THAT EIGHT DAYS WAS NEVER GOING TO REACH.** The eight-day reading was
@@ -7871,7 +7938,7 @@ it.
 
 | Task | Migration | What it is | Size | Blocks |
 |---|---|---|---|---|
-| **4.6a** | `0027` | **Membership.** `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path and its approval | `L` — expect a split | **half of `5b`** |
+| **4.6a** | `0027` | **Membership.** `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path and its approval | `L` — expect a split | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS UNBLOCKED AS OF 2026-09-13** — register #9 is ruled and ADR-035 carries it. ⚠️⚠️ **SIZE AND SPLIT IT BEFORE WRITING A LINE**: it is an `L` carrying a migration *and* three or four RPCs that do not exist, and `0027` is append-only and merges automatically. Blocks **half of `5b`** |
 | **4.6b** | `0028` | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
 | **4.6c** | `0029` | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — area 9 unasked** |
 
@@ -7909,6 +7976,14 @@ there.
 serve; nobody reads a uuid over WhatsApp. Unique, short, transcribable, and **never
 listed** — C11.6 is explicit that workspaces are not browsable.
 
+### ✅✅ Decision register #9 — RULED 2026-09-13. All eight taken as recommended, and three of the eight did not exist when the brief was written
+
+⚠️⚠️ **CLOSED. `4.6a` IS UNBLOCKED AND ADR-035 CARRIES THE RULING** (§2.7 and decision
+register #9, revision entry dated 2026-09-13). **The brief below is kept as written**,
+because it is the argument the ruling accepted — but **`D3` was AMENDED and `D7`/`D8` were
+added** after the table was opened again on the day of the ruling. See *"The three that
+were not in the brief"* beneath it.
+
 ### ⚠️⚠️ Decision register #9 — THE BRIEF. Four collisions, not one, and three were found by reading the table
 
 **Prepared 2026-09-13 so the owner is RULING, NOT DESIGNING.** Each row below has a
@@ -7938,6 +8013,24 @@ and ✅ **no later migration adds one** (checked across `supabase/migrations/**`
 ⚠️ **D1 and D2 share one CHECK; D4 is a rename plus a nullable column; D5/D6 are one column
 and one function.** None of it is large. **All of it is frozen the moment `0027` merges**,
 which is why it is a brief and not a task.
+
+#### ⚠️⚠️ The three that were not in the brief — found on the day of the ruling, by opening the table again
+
+**The brief was verified before it was put, and the verification found more.** `0002_
+catalog.sql:370` was read line by line rather than trusted; all four collisions were
+confirmed exactly as described, **and one recommendation turned out to rest on something
+false.**
+
+| # | | Ruling | Why |
+|---|---|---|---|
+| **D3′** | ⚠️⚠️ **`D3`'s REASONING WAS WRONG, AND THE RULING CORRECTS IT.** The brief said an expired request *"costs the joiner one tap to re-ask."* **It costs them everything: they can never ask again.** `workspace_invite_one_pending_idx` is partial on `accepted_at is null`, and **an expired row still has `accepted_at is null`** — so it holds the slot permanently and a second row for that `(workspace_id, email)` is refused. The same bug blocks re-inviting anyone whose invite lapsed | ✅ **Keep the 7-day expiry for both paths, and make the creating RPC SUPERSEDE any expired pending row first** | ⚠️ **It cannot be fixed in the index.** `now()` is not `immutable`, so `where accepted_at is null and expires_at > now()` is not a legal index predicate. The fix has to live in the function |
+| **D7** | **The two paths can collide on one person.** The owner invites Alice; Alice also types the join code. The unique index rejects her insert and she is shown a database error for doing the thing she was asked to do | ✅ **The request path ABSORBS the invite rather than erroring**: a pending invite for that email is **accepted** by entering the code | *"An invite is a request that arrives pre-approved"* — so someone already invited who then uses the code should simply be let in, **and told none of it** (§2.8: we do the bookkeeping, not them) |
+| **D8** | ⚠️⚠️ **AN APPROVED STAFF MEMBER WITH NO LOCATIONS CANNOT DO ANYTHING, AND IS NEVER TOLD.** Staff write only where `member_location` puts them, enforced by **RLS** (`location_id in (select my_locations())`). On the invite path the owner picks `location_ids` up front; **on the request path nobody has picked them** | ✅ **The approval RPC takes `location_ids` and refuses an empty array when `role = 'staff'`** | The failure is **silent** — the joiner opens the app and every write is refused with no message. That is indistinguishable, to them, from the app being broken |
+
+⚠️ **`D3′` is the one to notice.** It is not a new requirement; it is a **defect in the
+brief's own reasoning**, found because the migration was opened instead of the summary of
+it. The same move found `5a-iv-a`'s four blockers, `5a-iv-c-1`'s missing JDK, and the four
+collisions this brief is built on. **Three for three.**
 
 ### ✅ 4.6b — one notch, and `0026` predicted it
 
@@ -9979,7 +10072,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
 | **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13** — `docs/checks/5a-iv-c-2-rehearsal.sh` 15/15, six falsifications. ⚠️⚠️ **`formatToParts` IS PRESENT on Android Hermes**, so `R10` is now an INTERSECTION of platforms |
 | **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅✅ **DONE 2026-09-13 — the evening was held A DAY EARLY**, on a Galaxy Z Flip 8 (Android 17 / One UI 9). **Six readings, six answers**; `docs/checks/5a-iv-c-3-runsheet.md` is now the filled-in record. ⚠️⚠️ **A5 found a real defect and it was fixed and re-verified on the same phone** — see the log |
-| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS A DATE RATHER THAN WORK — EVERYTHING ELSE IS WAITING ON THE OWNER.** ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** ✅✅ **A SECOND, CLOCK-FREE INSTRUMENT WAS SEALED 2026-09-13 18:23 CST** — the AVD `wera-reading-5a-iv-d`, Google-signed-in on a **different account**, seal-tested and powered down. ⚠️ **Do not boot it; use `wera-android-36` for design and testing** — opening the app restarts the clock. ✅ **Session config READ (a report, not a measurement): time-box `0`, inactivity `0` — nothing expires a session**; reuse detection **On** at a `10s` interval, which is where the real risk now sits. ⚠️ **Day 8 is a CHECKPOINT, not the answer — look again on 2026-10-13 (day 30).** |
+| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **A DATE, NOT WORK — it is not the next task, it is a diary entry.** ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** ✅✅ **A SECOND, CLOCK-FREE INSTRUMENT WAS SEALED 2026-09-13 18:23 CST** — the AVD `wera-reading-5a-iv-d`, Google-signed-in on a **different account**, seal-tested and powered down. ⚠️ **Do not boot it; use `wera-android-36` for design and testing** — opening the app restarts the clock. ✅ **Session config READ (a report, not a measurement): time-box `0`, inactivity `0` — nothing expires a session**; reuse detection **On** at a `10s` interval, which is where the real risk now sits. ⚠️ **Day 8 is a CHECKPOINT, not the answer — look again on 2026-10-13 (day 30).** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density

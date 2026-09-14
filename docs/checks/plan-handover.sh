@@ -201,8 +201,32 @@ else
   # The block's table runs from its heading to the first blank line after the
   # rows begin. Rows are read at column 0, the rule three scripts learned the
   # hard way on 2026-09-13.
+  #
+  # ⚠️⚠️ AND THE LINE BELOW USED TO SAY `/^## /{exit}`, WHICH IS NOT WHAT THE
+  # SENTENCE ABOVE PROMISES — AND IT MADE THIS GUARD BLOCK REAL WORK ON
+  # 2026-09-13, THE FIRST DAY IT COULD. Exiting only at the next `##` heading
+  # means every `|` line in between is scooped up, INCLUDING THE FALSIFICATION
+  # TABLE THAT DOCUMENTS THIS VERY CHECK — and fixture `V4`'s cell spells
+  # `4.6a` verbatim, because its whole job is to describe `4.6a` being blocked.
+  # So the moment register #9 was RULED and `4.6a` legitimately became the next
+  # task, assertion 7c read its own fixture, found `4.6a` in a "Blocks" column
+  # that was really a "Result" column, and refused the task.
+  #
+  # ⚠️⚠️ IT WAS DORMANT AND WRONG FROM THE DAY IT WAS WRITTEN, AND IT SURFACED
+  # EXACTLY WHEN IT WOULD DO DAMAGE — a false red on the one task it exists to
+  # protect, at the moment that task was finally unblocked. The cheap "fix" is
+  # to move the next-task marker back, which would leave `4.6a` unstartable for
+  # good and look like the guard working.
+  #
+  # THIS IS THE FOURTH TIME IN THIS REPOSITORY THAT PROSE ABOUT A CHECK BECAME
+  # INPUT TO THAT CHECK — after `conventions-gate.sh`'s comment-stripping trap,
+  # `5a-split-coverage.sh` reading a quoted table row, and this file's own
+  # assertion 2 reading the paragraph that named its sentinel. The rule was
+  # already written down in both scripts. It was not enough, because the rule
+  # says "do not SPELL the sentinel" and this defect needed a different one:
+  # A CHECK MUST BOUND THE REGION IT READS, NOT TRUST THE NEXT HEADING.
   DEC_START="$(cut -d: -f1 <<< "$DEC_HEAD")"
-  DEC_ROWS="$(awk -v s="$DEC_START" 'NR>s && /^\|/ {print} NR>s && /^## / {exit}' "$PLAN")"
+  DEC_ROWS="$(awk -v s="$DEC_START" 'NR>s { if (/^\|/) { seen=1; print } else if (seen) { exit } }' "$PLAN")"
   DEC_BODY="$(grep -v '^|[-: |]*|$' <<< "$DEC_ROWS" | tail -n +2)"
 
   # --- 7b. every row says what it blocks ---------------------------------
