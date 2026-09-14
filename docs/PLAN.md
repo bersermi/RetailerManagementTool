@@ -73,6 +73,42 @@ not produce a reviewable mistake — it produces a deployed one.
 freezes when the migration behind it merges — which is the whole reason it is parked in
 front of the work instead of inside it.
 
+### ⏳ DATES OWED — what a calendar owes, and no person is holding
+
+⚠️⚠️ **THIS BLOCK EXISTS BECAUSE THE DECISIONS BLOCK DID NOT COVER DATES, AND ON 2026-09-13
+THERE WERE THREE LIVE ONES HELD ONLY BY PROSE.** A decision waits until someone rules; **a
+date passes whether or not anyone looked**, and a missed reading is not recoverable by
+trying harder afterwards — it is recoverable only by starting the clock again.
+
+⚠️ **A DATE IS NOT A TASK.** It carries no next-task marker, it is not sized, and it must
+never be what a cleared session "takes" — the next task is always in the tables below.
+
+⚠️⚠️ **AND THIS BLOCK HAS TEETH THE DECISIONS BLOCK DOES NOT: `plan-handover.sh` FAILS once
+a due date is in the PAST and its row is not ticked.** A red here blocks every merge, which
+is deliberate and is the only reason a date survives a context clear — **and the exit is ten
+seconds: tick the box and write what was read.** ⚠️ It fires only on dates **strictly
+before** today (UTC), so a due-today row is never a false red on a timezone.
+
+| Due | What | Why it cannot simply be moved | Done |
+|---|---|---|---|
+| **2026-09-20** | ⚠️⚠️ **Re-deploy Wera to the iPhone** — the free provisioning profile expires `2026-09-20T06:19:32Z`. `xcodebuild … -allowProvisioningUpdates`, then `devicectl install` | **It expires BEFORE the reading it exists for.** An expired profile stops the app launching, which on day 8 returns a red screen instead of an answer. ⚠️ **Re-deploy does NOT open the app** — opening it is what restarts the measurement | ☐ |
+| **2026-09-21** | **`5a-iv-d` day-8 reading**, on BOTH instruments: the owner's iPhone 15, and the sealed AVD `wera-reading-5a-iv-d` | Day 0 was 2026-09-13. ⚠️ **Opening either app before this date restarts its clock** — `wera-android-36` is the emulator to use for design work, never the sealed one | ☐ |
+| **2026-10-13** | **`5a-iv-d` day-30 reading**, same two instruments | C1.4 claims persistence *"until an explicit log-out"*, which is unbounded; **eight days can only fail to disprove it.** Both devices are sealed already, so this costs a glance | ☐ |
+
+**Three falsifications over this block** (`plan-handover.sh`, assertions 9a–9c):
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **X1** | ⚠️⚠️ **A due date moved into the past, row left unticked** | 🔴 *"a dated obligation came due and nothing says whether it was met"* |
+| **X2** | The same row ticked | 🟢 — the exit is a tick and a sentence, not a negotiation |
+| **X3** | The block deleted | 🔴 — the same argument as `V1`: a date nobody is re-offered is a date nobody takes |
+
+⚠️ **The region this block occupies is BOUNDED by the reader** — it stops at the first
+non-table line after the rows begin, rather than running to the next heading. That is not
+caution, it is the defect assertion 7c shipped with: the unbounded version swallowed the
+falsification table beneath it and refused a legitimate task. **Every table-reading
+assertion in this file now bounds its region.**
+
 
 ⚠️⚠️ **A SIXTH STALE COPY, FOUND BY THE OWNER ON 2026-09-13 BY READING — AND FIXING IT
 PRODUCED A SEVENTH, INSIDE THE FIX.** `## Position` carried a second status table 960
@@ -98,6 +134,40 @@ same shape as `conventions-gate.sh`'s comment-stripping trap, hit the same day, 
 different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS THE DEFECT.**
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
+
+✅✅ **THE OPEN ITEMS WERE PUT IN ORDER ON 2026-09-13, AND THE FINDING IS THAT THIS FILE HAD
+THREE KINDS OF OWED THING AND HOMES FOR ONLY ONE.** The owner asked for the backlog to be
+made legible to the standing prompt rather than to a person who was here. Sorted:
+
+| What is owed | Where it lived | Where it lives now |
+|---|---|---|
+| **A decision** | ⛔ the decisions-owed block, guarded, re-offered every session | unchanged — **one row left**, area 9 |
+| **A task** | the build-order tables + exactly one next-task marker, guarded | unchanged — **`4.6a`** |
+| ⚠️⚠️ **A DATE** | **nowhere. Three live ones, held by prose and a memory file** | ✅ **`⏳ DATES OWED`, and `plan-handover.sh` assertion 9** |
+| ⚠️⚠️ **A FINDING THAT IMPLIES FUTURE WORK** | **nowhere — three floating paragraphs saying *"routed to 5i"* and *"candidate task"*** | ✅ **real rows: `5c.5`, and two additions to `5i`** |
+
+⚠️⚠️ **THE PATTERN IS THE POINT: WHENEVER A SESSION FINDS SOMETHING IT CANNOT DO NOW, IT
+WRITES A PARAGRAPH — AND THIS REPOSITORY HAS SIX RECORDED STALE-COPY DEFECTS PROVING
+PARAGRAPHS DO NOT SURVIVE.** Decisions got a guarded home after one went stale; tasks always
+had one. Dates and findings never did, and both had already accumulated three.
+
+✅ **`⏳ DATES OWED` has teeth the decisions block deliberately lacks: `plan-handover.sh`
+FAILS once a due date is in the past and its row is unanswered, which blocks every merge.**
+⚠️ **A guard that can stop all work is the shape that refused `4.6a` earlier the same day**,
+so two things bound it: the exit is a sentence in the Done cell, and it fires only on dates
+**strictly before** today in UTC, so a due-today row is never a timezone false red.
+✅ **Falsified `X1`/`X2`/`X3`** — past-due unanswered 🔴, answered 🟢, block deleted 🔴.
+✅ **And it BOUNDS THE REGION IT READS from its first line**, which is assertion 7c's lesson
+applied the day it was learned rather than after the next incident.
+
+✅ **`5c.5` is the flaky-network refresh reading**, sized `S`, ungated, needing no calendar —
+**this is where C1.4's real risk moved** once the session config was read. ✅ **`5i` gained
+the two pilot-day INSTALL findings** — Auto Blocker refusing a sideload, and the debug
+keystore that cannot update into a real one — neither of which is about sign-in, which is
+why neither had a home in a row about Facebook.
+⚠️ **The prose that called these *"not yet placed"* is struck rather than deleted**: the
+reasoning is worth keeping, the claim is not, and leaving both is how a seventh stale copy
+would have been born in the same commit that fixed six.
 
 ✅✅ **DECISION REGISTER #9 IS RULED AS OF 2026-09-13 — ALL EIGHT TAKEN AS RECOMMENDED,
 ADR-035 IS AMENDED, AND `4.6a` IS THE NEXT TASK.** The membership flow is settled: **the
@@ -139,8 +209,10 @@ request path and its approval — and `0027` is append-only and merges without r
 row says so; do not skip it.** ⚠️ **Everything the eight rulings decided freezes the moment
 `0027` merges**, and each becomes a fix-forward migration rather than an edit.
 
-⚠️ **A GAP WORTH NAMING, NOT YET BUILT: THERE IS A DECISIONS-OWED BLOCK AND NOTHING
-EQUIVALENT FOR DATES.** Three are now live — the iPhone re-deploy before
+✅✅ **BUILT THE SAME DAY — see `## Position`'s `⏳ DATES OWED` block and
+`plan-handover.sh` assertion 9. The paragraph below is kept as the argument that produced
+it.** ~~⚠️ **A GAP WORTH NAMING, NOT YET BUILT: THERE IS A DECISIONS-OWED BLOCK AND NOTHING
+EQUIVALENT FOR DATES.**~~ Three are now live — the iPhone re-deploy before
 `2026-09-20T06:19:32Z`, the day-8 reading on **2026-09-21**, and the day-30 reading on
 **2026-10-13** — and they are held only by table cells and this log. ⚠️ **That is precisely
 the shape the decisions block was invented for**: a thing nobody has to remember, re-offered
@@ -180,7 +252,8 @@ the person is signed out for no reason they can see.** **The pilot store is offl
 that is not a hypothetical there.**
 ⚠️ **NOT MEASURED, AND DELIBERATELY NOT DESIGNED AROUND.** Turning reuse detection off would
 remove an alarm rather than answer it. **The test this deserves is a flaky-network refresh,
-which needs no calendar at all** — written below as a candidate task so it is not lost.
+which needs no calendar at all** — ✅ **now a real row, `5c.5`, promoted out of prose the
+same day.**
 
 ✅✅ **A SECOND, CLOCK-FREE INSTRUMENT FOR `5a-iv-d` WAS SEALED 2026-09-13 AT 18:23 CST.**
 A dedicated AVD, **`wera-reading-5a-iv-d`**, signed in with Google and powered down.
@@ -208,7 +281,9 @@ disprove** it, and with time-box and inactivity both at `0` the idle scenario is
 reading is measuring a situation the pilot never reaches and the flaky-network test is the
 whole of the risk.
 
-⚠️ **CANDIDATE TASK, NOT YET SIZED OR PLACED: the flaky-network refresh test.** Put the app
+✅✅ **PLACED THE SAME DAY AS `5c.5`, SIZED `S` — this paragraph is kept only for the
+reasoning. ⚠️ It is no longer a candidate and must not be re-added as one.**
+~~⚠️ **CANDIDATE TASK, NOT YET SIZED OR PLACED: the flaky-network refresh test.**~~ Put the app
 on a device with a live session, force a refresh across a connection that drops **after the
 request and before the reply**, and see whether the session survives. It is the reading that
 matches C10.1/C10.2's world and the offline write path of `5c`, it needs **no calendar**, and
@@ -8455,12 +8530,13 @@ free today and stay free until the first task merges.
 | **5b** | **Onboarding and membership.** `onboard_workspace`, **the IVA question** (C1.7), the join code and its WhatsApp share button in Configuración, member management, the Home notifications icon and its badge for join requests (C11.7, C11.8). | `M/L` | ⚠️ **4.6a** |
 | **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️ **`5b` closing.** `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). | `L` | ⚠️ **4.6b** for the replay control only |
+| **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
 | **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
-| **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio |
+| **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |
 
 #### ⚠️⚠️ Sized 2026-09-11 — `5a-iii` IS AN `L`, NOT THE `M/L` THIS FILE CARRIED, AND IT SPLITS IN TWO
 

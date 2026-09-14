@@ -271,6 +271,72 @@ else
   fi
 fi
 
+# --- 9. ⏳ DATED OBLIGATIONS -----------------------------------------------
+# ⚠️⚠️ ADDED 2026-09-13. The decisions block covers what a PERSON owes. It does
+# not cover what a CALENDAR owes, and that day there were three live dates held
+# only by prose: an iPhone provisioning profile expiring before the reading it
+# exists for, and two readings of C1.4.
+#
+# A decision waits patiently until someone rules. A DATE PASSES WHETHER OR NOT
+# ANYONE LOOKED, and a missed reading cannot be recovered by trying harder
+# afterwards — only by starting the clock again. So this assertion has teeth the
+# decisions block does not: once a due date is in the PAST and its row is not
+# answered, this fails, and a red here blocks every merge.
+#
+# ⚠️ THAT IS DELIBERATE AND IT IS ALSO THE RISK. A guard that can stop all work
+# is the shape that, on this very day, refused a legitimate task (assertion 7c).
+# Two things make this one safe: the exit is TEN SECONDS — write what was read
+# into the Done cell — and it fires only on dates STRICTLY BEFORE today in UTC,
+# so a due-today row is never a false red on a timezone difference.
+#
+# ⚠️ AND IT BOUNDS THE REGION IT READS, which is 7c's lesson applied on the day
+# it was learned rather than after the next incident.
+note
+DATE_HEAD="$(grep -n '^### ⏳ DATES OWED' "$PLAN")"
+if [[ -z "$DATE_HEAD" ]]; then DATE_COUNT=0; else DATE_COUNT="$(grep -c . <<< "$DATE_HEAD")"; fi
+
+if (( DATE_COUNT == 0 )); then
+  fail "the dates-owed block is gone. Three live dates were held only by prose before"
+  echo "      it existed, and a date nobody is re-offered is a date nobody takes."
+elif (( DATE_COUNT > 1 )); then
+  fail "$DATE_COUNT dates-owed blocks — a second home is how one of them goes stale."
+else
+  ok "exactly one dates-owed block"
+
+  DATE_START="$(cut -d: -f1 <<< "$DATE_HEAD")"
+  DATE_ROWS="$(awk -v s="$DATE_START" 'NR>s { if (/^\|/) { seen=1; print } else if (seen) { exit } }' "$PLAN")"
+  DATE_BODY="$(grep -v '^|[-: |]*|$' <<< "$DATE_ROWS" | tail -n +2)"
+
+  TODAY="$(date -u +%Y-%m-%d)"
+  BADDATE=0
+  DATED=0
+  while IFS= read -r r; do
+    [[ -n "$r" ]] || continue
+    due="$(awk -F'|' '{print $2}' <<< "$r" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)"
+    if [[ -z "$due" ]]; then
+      echo "FAIL: a dates-owed row carries no YYYY-MM-DD due date:"
+      echo "      ${r:0:100}…"
+      BADDATE=$((BADDATE+1)); continue
+    fi
+    DATED=$((DATED+1))
+    done_cell="$(awk -F'|' '{print $(NF-1)}' <<< "$r")"
+    grep -qE '☑|[A-Za-z0-9]' <<< "$done_cell" && continue
+    if [[ "$due" < "$TODAY" ]]; then
+      echo "FAIL: a dated obligation came due on $due and nothing says whether it was met:"
+      echo "      ${r:0:110}…"
+      echo "      Write what was read into the Done cell. An unanswered past date is how"
+      echo "      a measurement becomes a memory of one."
+      BADDATE=$((BADDATE+1))
+    fi
+  done <<< "$DATE_BODY"
+
+  if (( BADDATE == 0 )); then
+    ok "$DATED dated obligation(s), none past due and unanswered (today is $TODAY UTC)"
+  else
+    fails=$((fails+1))
+  fi
+fi
+
 # --- 6. the working tree is not mid-task ----------------------------------
 # A cleared session inherits the filesystem, not the conversation. Uncommitted
 # edits are work it cannot see the reason for.
