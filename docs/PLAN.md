@@ -135,6 +135,92 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`4.6c-i` IS DONE AS OF 2026-09-14 — `0031` IS APPLIED, AND `4.6c-ii` IS THE NEXT TASK.**
+`product_purchases_daily` exists, revenue is GROSS with net beside it, `0009` says out loud
+what it gets wrong, and `0030`'s one stale sentence is corrected. **47 behavioural checks in
+`supabase/checks/0031_purchases_and_gross_revenue.sql`, `0011`'s re-signed from 56 to 57, and
+twelve falsifications against a green control.**
+
+⚠️⚠️ **THE "FIRST DESIGN PROBLEM" THIS FILE PUT AT THE TOP OF THE TASK DOES NOT EXIST, AND
+THAT IS THE MAIN FINDING.** Three copies — the `N1` row, the `4.6c-i` row and
+`supabase/README.md`'s planned list — all said the tax gross revenue needs *"lives today only
+in the manager-only `product_margin_daily`, so reaching it without widening that fence is this
+task's first design problem."* **That is true of the VIEWS and false of the COLUMNS.**
+`product_margin_daily.tax_collected` is `sum(sale_line.tax_amount)`, and `sale_line_select`
+(`0003`) carries **no `has_role`** — its own comment says why: *"a sale line carries a price,
+not a cost."* Asked of the database under `set role authenticated` as `caja.centro`: she reads
+**1 040 sale lines carrying $4 826.96 of tax** and **0 rows** of `product_margin_daily`.
+**Gross revenue cost no policy, no `security definer`, no widening and no migration beyond the
+view body.** ⚠️ **The three copies are struck in place rather than deleted**, because what they
+got wrong is worth more than what they got right: a fence on a VIEW was read as a fence on the
+COLUMN underneath it, by three files, for a week.
+
+⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE ONE WORTH OVERTURNING EARLY
+IF IT IS WRONG: GROSS REVENUE LANDS ON `product_velocity_daily` BY `create or replace`, NOT IN
+A NEW VIEW.** `B1` ruled *"a NEW view, leave `0009` untouched"* — but that was about the
+**margin** view, which is broken under C8.6 and is being replaced by nothing. The velocity view
+is the opposite case: this file's own table calls it *"intact, and for a stated reason"*, it is
+already the staff-readable home of quantity-and-revenue, it already carries `family_id` on
+every row, and `0014` established that it is amended by `create or replace`. **A second view
+returning revenue beside the first would be two answers to `A6`'s question 2 differing only by
+tax** — and the second copy going stale is this repository's most-recorded defect, nine times
+over. ⚠️ **It is cheap to reverse and that is why it was taken rather than parked**: one
+`create or replace` undoes the whole of it, nothing here is a table, a column or a policy, and
+the seed writes no data against it. **If the owner wants a separate revenue view, say so and it
+costs one migration.**
+
+**Four smaller calls made on his behalf, all cheap to reverse and all named here:**
+
+- **Purchases carry `tax_paid` and `purchases_gross`, not just net.** `N1` ruled on revenue; the
+  same argument applies to the invoice he is holding. ⚠️ **Deliberately NOT one `tax` column
+  across both sides** — these are IVA acreditable and trasladado and somebody would eventually
+  sum them. ⚠️⚠️ **Neither is a declaration figure**, and both comments say so: CFDI is out of
+  scope and a reversal moves the number in the month it was RECORDED
+- **The grain is variant-day and there is no provider dimension.** It matches the three existing
+  daily views exactly, so a family rollup is a `group by` and nothing else. Purchases *by
+  provider* is a different question and `provider_price_memory` (`0008`) is already its home
+- **No delivery-count column**, because `count(distinct purchase_id)` is **not additive across a
+  rollup** — one delivery appears on every variant row of its day. Every measure in the new
+  view is additive, which is a property worth keeping whole
+- **No day spine, unlike `0014`.** Nothing records a delivery that was DUE and did not arrive,
+  so every zero a spine produced would be a claim nobody can back
+
+⚠️⚠️ **AND A GUARD SAID IN ITS OWN COMMENT THAT IT WOULD CATCH THIS AND DID NOT — THE FIFTH
+"GREEN CHECK THAT STOPPED MEASURING ITS OWN CLAIM."** `0011`'s timezone guard reads: *"The list
+is spelled out rather than discovered, so that ADDING a fourth analytics view without adding it
+here fails the count instead of passing silently — which is exactly the failure mode this check
+exists for."* **Its count is a count of the LIST, not of the schema.** Measured: `0031` was
+applied and all eight files in `supabase/checks/` passed, green, with an unexamined analytics
+view standing. ✅ **Fixed by making the claim TRUE rather than by deleting it** — the spelled-out
+list stays and gains a completeness assertion discovered from the catalogue, so a FIFTH view
+fails on the day it lands (falsified: `F10` red with a fifth view, `F10b` green when it is
+dropped). ⚠️ **Its own first run then reported the scaffolding it stands on** — this file's
+`public._waste_inner` — so harness objects are excluded by the `_*` convention the rest of the
+repository already uses for files.
+
+⚠️⚠️ **AND THE MIGRATION'S FIRST DRAFT SPELLED A CHECK'S SENTINEL IN THE TEXT THE CHECK READS,
+FOR THE FIFTH TIME IN THIS REPOSITORY.** The check asserting `0030`'s stale clause is GONE found
+it inside the paragraph explaining that it had gone, because the correction quoted the sentence
+it corrected. ✅ **The SENTENCE was changed, not the check** — which 4.6b's ruling named as the
+cheaper half and the half that keeps being forgotten — and both files now carry a `do not
+re-introduce the quotation` note beside it. ⚠️ **This one cost nothing because the check's own
+first run caught it**, which is the difference between this instance and the four before it.
+
+⚠️ **What `0031` did NOT do, deliberately.** It did not touch `0009`'s body (`B1` stands — a
+`comment on view` and nothing else), it did not edit `0030`'s migration file (a function comment
+is applied schema and migrations are append-only), and **it did not move one fence**: a check
+asserts `replay_failed_write` is still `manager` and `failed_write_select` is still owner-only,
+because a migration that rewrites a comment ABOUT a policy is exactly where somebody would later
+tidy the policy too.
+
+⚠️ **One thing this seed cannot falsify, pinned rather than papered over.** Every purchase
+variant-day bucket holds **exactly one line** — 1 048 lines in 1 048 buckets — so mutating
+`sum(pl.line_net)` to `min` or `max` changes nothing and turns no check red. Confirmed by
+mutation, not assumed. The precondition is pinned instead, so the day a delivery splits a variant
+across two lines the check goes red and someone reads the paragraph. ✅ **The SALE side does not
+have that gap** (2 263 lines in 2 139 buckets, up to three deep), so `sum(sl.tax_amount)` is a
+real assertion — the division of labour, stated.
+
 ✅✅ **THREE RULINGS, 2026-09-14 — GROSS REVENUE, THE CASHIER KEEPS HER VIEW, AND ADR-035 IS
 AMENDED. THE DECISIONS BLOCK IS NOW EMPTY.** All three were raised by the área 9 ruling hours
 earlier and all three are closed before any of them could go stale.
@@ -1932,7 +2018,7 @@ section, and each step's own section below. This is a map, not a status board.
 | 3 | Test suites (pgTAP, Vitest) |
 | 4 | RPCs — the write surface of §2.6 |
 | 4.5 | The failure path |
-| 4.6 | ⚠️ **What the UI/UX grill reopened** — **five** migrations, `0027`–`0031`, since `4.6a` was split three ways on 2026-09-13. Did not exist before 2026-09-07 |
+| 4.6 | ⚠️ **What the UI/UX grill reopened** — **seven** migrations, `0027`–`0033`, since `4.6a` was split three ways on 2026-09-13 and `4.6c` was re-scoped and split three ways on 2026-09-14. ⚠️ **Five of the seven are applied** (`0027`–`0031`); `0032` and `0033` are `4.6c-ii` and `4.6c-iii`. Did not exist before 2026-09-07 |
 | 5a | Client foundation — **hiring gate** |
 | 5b | Vender and Home |
 | 5b.5 | ⚠️ `CONVENTIONS.md`, second pass — ruled by the owner 2026-09-13 |
@@ -8459,8 +8545,8 @@ it.
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
 | **4.6b** | ✅ **`0030`, APPLIED 2026-09-14** — was `0028`, renumbered by the `4.6a` split, 2026-09-13 | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch. ⚠️⚠️ **ONE NOTCH MEANT ONE NOTCH: `failed_write_select` IS UNTOUCHED, so a manager may now replay a dead letter she cannot SELECT** — pinned by three checks, not prose, and parked as an owner decision against `5c` | `S` | ✅✅ **DONE 2026-09-14** — 18 behavioural checks in `supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed to 88, ten falsifications. The replay control in `5c` is unblocked |
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
-| **4.6c-i** | `0031` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace. ⚠️ **Revenue is GROSS** (ruled 2026-09-14), and the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem | `M` | ✅ **UNGATED as of 2026-09-14** — the Números charts in `5d` |
-| **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's | `M` | the price card in `5d` |
+| **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. The Números charts in `5d` are unblocked |
+| **4.6c-ii** | `0032` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's. ⚠️ **`0031` settled two things it inherits**: the tax columns exist on both sides now, and `product_purchases_daily` is the manager-fenced precedent a price view should match rather than re-argue | `M` | the price card in `5d` |
 | **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
 
 ### ⚠️⚠️ Sized 2026-09-13 — `4.6a` IS AN `L`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS A RENUMBERING
@@ -9116,7 +9202,7 @@ suspected of leaking.**
 
 | | What | Where it stands |
 |---|---|---|
-| **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it | ✅✅ **RULED 2026-09-14: GROSS, net beside it.** ⚠️ The fence problem is real and is now `4.6c-i`'s opening move, not a discovery |
+| **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. ~~The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it~~ | ✅✅ **RULED 2026-09-14: GROSS, net beside it.** ⚠️⚠️ **AND THE STRUCK HALF WAS WRONG — `4.6c-i` MEASURED IT.** `tax_collected` is a VIEW COLUMN over `sale_line.tax_amount`, which is member-level (`0003`, no `has_role`): the cashier reads $4 826.96 of it and 0 rows of `product_margin_daily`. **A fence on a view was read as a fence on the column under it.** No fence moved |
 | **N2** | **Purchases as a first-class read.** *"How much was bought this week/month"* exists only as `purchases_qty_base` / `purchases_net` **inside `product_waste_daily`** — a view named for waste, which is not where anyone will look, and whose grain is a variant-day | Needs a view |
 | **N3** | **Price over time, both sides, with the % windows.** Nothing in the schema answers it. `provider_price_memory` (`0008`) is the **last** purchase price only, not a history; `price_list` is the *intended* sale price and **is EMPTY in the seed (0 rows)**. The real history is in the ledger — `purchase_line` and `sale_line` unit prices, dated | Needs a view, and it is the largest piece |
 
@@ -9132,7 +9218,7 @@ that worked there: one migration each, so each merges on its own green run.**
 
 | Piece | Migration | What, and why it is first |
 |---|---|---|
-| **`4.6c-i`** | `0031` | **Purchases as a read** (`N2`), per variant and family per day, beside the revenue that already exists — plus **`B8`'s honesty comment on `0009`**, which matters more now than when it was recommended: nothing will replace that view, so it keeps returning **100 % margin on a despiece** for ever unless it says why. ⚠️ **Blocked on `N1`**: whether revenue is gross or net decides this view's columns |
+| **`4.6c-i`** | `0031` | ✅✅ **DONE 2026-09-14.** **Purchases as a read** (`N2`), per variant and family per day, beside the revenue that already exists — plus **`B8`'s honesty comment on `0009`**. ⚠️ **`B8` earned its keep on a case the seed actually holds**: one bucket reports **100 % margin with `cost_attributed` TRUE**, because the movements exist and merely cost nothing — **the one case 0009's own honesty column cannot see**. ~~Blocked on `N1`~~ — ruled, and gross landed on `product_velocity_daily` rather than in a new view |
 | **`4.6c-ii`** | `0032` | **Price over time** (`N3`), purchase and sale unit prices per variant, from the **ledger** rather than from `price_list`. ⚠️ **Daily grain, and the % windows are the CLIENT's** — `B5`'s argument, and `A2` is precisely the answer that changes after a pilot: *"1, 3, 6, 9 months and YTD"* baked into SQL is a migration every time he wants a different card |
 | **`4.6c-iii`** | `0033` | **The month export** — transactions and waste, flat, one shape, one fence |
 
@@ -9164,7 +9250,7 @@ its first migration number — and all eleven fixtures behave again.**
 | **B5** | Daily grain, client sums | ✅✅ **Confirmed by `A2` and doubly by `A6`'s % windows** |
 | **B6** | Net of IVA on both sides | ⚠️ **Reopened as `N1`** — it was the right answer for a margin, where both sides must match. For revenue alone the question is *"which number does he recognise"*, and that is his |
 | **B7** | Manager and above | ⚠️ **Split.** The revenue read is **already staff-visible** and changing that is a decision, not a default (parked). `N2` and `N3` carry cost, so they are manager-and-above like every cost read here |
-| **B8** | Comment `0009`'s C8.6 limit | ✅✅ **Stands, and is now in `4.6c-i`** |
+| **B8** | Comment `0009`'s C8.6 limit | ✅✅ **Stands, SHIPPED in `0031`, and stronger than when it was written** — the seed holds a bucket at 100 % margin with `cost_attributed` TRUE, so the flag 0009 already carries is demonstrably not enough |
 
 ### ⚠️⚠️ Área 9 — THE BRIEF. Two of the three Números questions are broken, not one
 
@@ -9225,6 +9311,74 @@ task rather than inside it.
 solves it and the conversation becomes whether to model the despiece at all, which is a
 much larger decision than `4.6c`.
 ⚠️⚠️ **All of it freezes when `0029` merges.**
+
+### ✅✅ 4.6c-i — DONE 2026-09-14. The gate it was blocked on had nothing behind it
+
+⚠️⚠️ **THE ARGUMENT, THE DECISIONS TAKEN ON THE OWNER'S BEHALF AND THE FINDINGS ARE IN THE
+STATUS LOG AT THE TOP OF THIS FILE AND ARE NOT RESTATED HERE.** Two long copies of one
+account is how the ninth stale-copy defect happened. This section carries only what the
+status entry does not: the shape of what shipped, and what was measured against it.
+
+**What `0031` contains — four objects, no table, no policy, no function, no new column:**
+
+| Object | What |
+|---|---|
+| `product_purchases_daily` | **NEW view**, `security_invoker`. `workspace_id, location_id, variant_id, day`, the catalog names and `family_id`/`family_name`, then `purchases_qty_base`, `purchases_net`, `tax_paid`, `purchases_gross`, `purchase_line_count`. Manager-and-above **by inheritance** — both base tables are manager-gated, so it fails CLOSED and states no `has_role` of its own, which `0011` can do and `0009` cannot |
+| `product_velocity_daily` | **Replaced.** 0014's body verbatim plus four hunks: `sum(sl.tax_amount)` in `sold`, its coalesce in `daily`, three APPENDED columns (`create or replace view` cannot reorder), one appended window sum |
+| `product_margin_daily` | **`comment on view` only.** `B1` stands and the body is untouched |
+| `replay_failed_write` | **`comment on function` only.** `0030`'s file is not edited — a function comment is applied schema |
+
+**What was measured, not argued:**
+
+- **The reconciliations.** Purchases agree with `purchase_line` on qty, net, tax and line
+  count to the centavo; gross revenue agrees with `sum(line_net + tax_amount)` over
+  `sale_line` at **$147 581.88**; `revenue_net` is **unchanged at $138 673.24** over the
+  same **30 472 rows**, so the replace moved neither a peso nor a row of what 0013/0014
+  already returned
+- ⚠️ **The anti-vacuity one, which the others would have passed without.** A `revenue_gross`
+  that was a copy of `revenue_net` reconciles perfectly in a shop that sells only IVA-exempt
+  goods. **964 selling buckets differ and 1 175 legitimately do not** — the second number is
+  the Mexican basic-groceries basket, and it is asserted so that a check which only ever saw
+  zero-rated goods cannot pass while measuring nothing
+- ⚠️ **The new view agrees ROW FOR ROW with the copy of itself inside `product_waste_daily`**,
+  both directions, which is an assertion that exists only because the column names were kept
+  identical instead of improved
+- ⚠️ **Voided deliveries do not cancel inside a day.** `0009`'s *"a reversal cancels itself in
+  the sum"* is a claim about a RANGE. A sale is voided within 15 minutes; the seed's three
+  purchase reversals are **2, 2 and 9 days** after the documents they cancel, so **23 buckets
+  are negative** and a daily chart shows bars below zero. In the view's own comment, and
+  pinned
+- **The fence, under `set role authenticated`, three callers.** Cashier: **0** purchase rows
+  — zero rows, not rows summing to zero — while reading **$70 376.39 gross** at her own store.
+  Manager: **863** rows across both stores, **$562 630.18**. The other workspace's owner:
+  **185** rows and **none** of Doña Lupe's. 863 + 185 = 1 048
+
+**Twelve falsifications against a green control** (`F0`/`F10b`), each mutating the SHIPPED
+object and confirming the check that names the claim goes red:
+
+| | The mutation | Result |
+|---|---|---|
+| **F1** | `purchases_gross` drops the tax | 🔴 the row-arithmetic and manager-total checks |
+| **F2** | `tax_paid` is always zero | 🔴 the ledger reconciliation and the IVA-exempt split |
+| **F3** | ⚠️ `revenue_gross` is a copy of `revenue_net` | 🔴 — **the anti-vacuity check is the one that catches it**, and it is the only one that would |
+| **F4** | the purchases view states a `has_role` of its own | 🔴 |
+| **F5** | the day boundary is hardcoded again | 🔴 in `0031` … |
+| **F5b** | … **and in `0011`'s timezone guard**, which now sees a fourth view | 🔴 |
+| **F6** | voided deliveries excluded instead of summed | 🔴 the reconciliation and the waste-view agreement |
+| **F7** | the trailing window attached to net and labelled gross | 🔴 the independent recomputation |
+| **F8** | `0009` keeps its pre-`0031` comment | 🔴 |
+| **F9** | `0030`'s stale clause left standing | 🔴 |
+| **F10** | ⚠️⚠️ **a FIFTH analytics view lands and nobody adds it to `0011`'s list** | 🔴 — the assertion that comment claimed to make since 2.3 and did not |
+| **F10b** | the fifth view dropped again | 🟢 — it must not be permanently red |
+| **F11** | the view granted to `anon` as well | 🔴 |
+
+⚠️ **Two fixtures were green for the wrong reason first, and are reported from the corrected
+run.** `F8` and `F9`'s first attempt ran under `zsh`, which does not word-split an unquoted
+command held in a variable, so the mutation never reached the database and both came back
+green. **A fixture that did not run is not a fixture that passed** — the same lesson the
+`4.6a` split recorded about a mutation helper that emptied the files it meant to edit.
+
+---
 
 ### ✅✅ 4.6b — DONE 2026-09-14. One notch, `0026` predicted it, and the half it did not do is now a decision
 
