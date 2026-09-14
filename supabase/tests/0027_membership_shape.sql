@@ -335,41 +335,54 @@ select chk_raises('6.3 an invite with NO decider is refused (D1)',
             values (%L, 'i3@x.mx', 'staff', 'invite', null, 'tok-6-3')$q$,
          :'ws_a'), '23514');
 
+-- ⚠️⚠️ RE-SIGNED BY 0029 (4.6a-iii), AND ALL FIVE OF 6.4-6.8 CHANGED, NOT THE TWO
+-- THAT WENT RED. `0029` adds `workspace_invite.requested_by` with a CHECK that a
+-- `source = 'request'` row carries one, so the two chk_succeeds inserts below
+-- failed outright — the S1 shape, a second time. The three chk_raises inserts did
+-- NOT fail: they still raised 23514 and still went green, FROM THE NEW CONSTRAINT
+-- INSTEAD OF THE ONE THEY ARE ABOUT. Left alone, 6.5, 6.6 and 6.8 would assert
+-- nothing about D1 or D2 while reporting PASS, which is this repository's twice-
+-- recorded defect of measuring something adjacent to the claim. Every one of them
+-- now names a requester, so the only constraint left to refuse them is the one
+-- each was written for.
 select chk_succeeds('6.4 a pending request has neither a token nor a decider',
   format($q$insert into public.workspace_invite
-              (workspace_id, email, role, source, decided_by, token_hash)
-            values (%L, 'r1@x.mx', 'staff', 'request', null, null)$q$,
-         :'ws_a'));
+              (workspace_id, email, role, source, decided_by, token_hash,
+               requested_by)
+            values (%L, 'r1@x.mx', 'staff', 'request', null, null, %L)$q$,
+         :'ws_a', :owner_b));
 
 select chk_raises('6.5 a request carrying a token is refused (D2)',
   format($q$insert into public.workspace_invite
-              (workspace_id, email, role, source, decided_by, token_hash)
-            values (%L, 'r2@x.mx', 'staff', 'request', null, 'tok-6-5')$q$,
-         :'ws_a'), '23514');
+              (workspace_id, email, role, source, decided_by, token_hash,
+               requested_by)
+            values (%L, 'r2@x.mx', 'staff', 'request', null, 'tok-6-5', %L)$q$,
+         :'ws_a', :owner_b), '23514');
 
 -- ⚠️ 6.6 AND 6.7 ARE A PAIR. Neither is meaningful alone.
 select chk_raises(
   '6.6 D1: a PENDING request may not name a decider — nobody has decided it',
   format($q$insert into public.workspace_invite
-              (workspace_id, email, role, source, decided_by, token_hash)
-            values (%L, 'r3@x.mx', 'staff', 'request', %L, null)$q$,
-         :'ws_a', :owner_a), '23514');
+              (workspace_id, email, role, source, decided_by, token_hash,
+               requested_by)
+            values (%L, 'r3@x.mx', 'staff', 'request', %L, null, %L)$q$,
+         :'ws_a', :owner_a, :owner_b), '23514');
 
 select chk_succeeds(
   '6.7 D4: an APPROVED request names both who approved it and who joined',
   format($q$insert into public.workspace_invite
               (workspace_id, email, role, source, decided_by, token_hash,
-               accepted_at, accepted_by)
-            values (%L, 'r4@x.mx', 'staff', 'request', %L, null, now(), %L)$q$,
-         :'ws_a', :owner_a, :owner_b));
+               accepted_at, accepted_by, requested_by)
+            values (%L, 'r4@x.mx', 'staff', 'request', %L, null, now(), %L, %L)$q$,
+         :'ws_a', :owner_a, :owner_b, :owner_b));
 
 select chk_raises(
   '6.8 an ACCEPTED request with no decider is refused — approval had an author',
   format($q$insert into public.workspace_invite
               (workspace_id, email, role, source, decided_by, token_hash,
-               accepted_at, accepted_by)
-            values (%L, 'r5@x.mx', 'staff', 'request', null, null, now(), %L)$q$,
-         :'ws_a', :owner_b), '23514');
+               accepted_at, accepted_by, requested_by)
+            values (%L, 'r5@x.mx', 'staff', 'request', null, null, now(), %L, %L)$q$,
+         :'ws_a', :owner_b, :owner_b), '23514');
 
 select chk_raises('6.9 a third source value is refused',
   format($q$insert into public.workspace_invite
