@@ -129,6 +129,17 @@ begin
   -- on "function _as already exists" instead of on the defect it was injecting.
   drop function if exists public._as(uuid);
 
+  -- ⚠️ ADDED 2026-09-14 (task 4.6b), on the day the suite lands. `0030`'s suite
+  -- creates ONE helper of its own — `_src`, which returns a function's applied
+  -- body from `pg_proc` so the fence can be read out of the catalog rather than
+  -- out of the migration file (ADR-035 §9). Everything else it uses — `chk`,
+  -- `chk_raises_like`, `_rep`, `_sl`, `_pl` — is created at the EXACT signature
+  -- an earlier suite gave it, defaults included, so none of those needs a
+  -- second drop. That is deliberate rather than lucky: `_pl` carries a fourth
+  -- argument `0030` never passes, precisely so it REPLACES 0026's helper on a
+  -- re-run instead of sitting beside it.
+  drop function if exists public._src(text);
+
   drop function if exists public._rep(uuid);
   drop function if exists public._pload(uuid, jsonb, timestamptz, boolean);
   drop function if exists public._pload_p(uuid, uuid, jsonb, timestamptz, boolean);
