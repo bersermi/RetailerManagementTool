@@ -46,10 +46,16 @@
 --   produce a sale dated 2099. Only the second and fourth can tell a correct
 --   implementation from a naive `v_at := payload occurred_at`.
 --
---   ⚠️ THE FENCE IS A PAIR (2.2/2.3). A refusal proves nothing about WHICH
---   fence refused unless the same call, on the same row, succeeds for the role
---   above it — otherwise the check would pass against a function fenced at
---   `service_role`, or one that refuses everything.
+--   ⚠️ THE FENCE IS A LADDER, NOT A PAIR (2.1 → 2.2 → 2.3 → 2.3b), RE-CUT AT
+--   `0030`. A refusal proves nothing about WHICH fence refused unless the same
+--   call, on the same row, succeeds for the role above it — otherwise the check
+--   would pass against a function fenced at `service_role`, or one that refuses
+--   everything. Under `0026` that pair was 2.2/2.3, manager-refused and
+--   owner-succeeds. `0030` moved the fence to `manager` (C11.4), so it is now
+--   cashier-refused / manager-REPLAYS / owner-reaches-already_replayed, plus
+--   2.3b: the cashier refused a SECOND time on the row the manager just
+--   replayed, which is what says the fence sits above the idempotency branch
+--   rather than below it.
 --
 --   ⚠️ THE GRANTS ARE READ FROM THE CATALOG (section 1). Postgres grants EXECUTE
 --   to PUBLIC by default, so a migration that only `grant`s hands `anon` the
@@ -139,6 +145,30 @@ $$;
 grant execute on function public.chk_succeeds(text, text, text) to authenticated;
 
 -- ---- the calls under test, as text ------------------------------------------
+-- ⚠️ 4d's helper, AND IT IS HERE FOR A FALSIFICATION RATHER THAN FOR TIDINESS.
+-- The first spelling of the manager/owner checks below called
+-- `replay_failed_write` inline inside `select chk(...)`. Under fixture F1 — the
+-- fence reverted to `owner` — that call RAISES, and under `ON_ERROR_STOP` psql
+-- aborted the whole file at that statement: a genuine red, but one that printed
+-- no report table, ran none of the checks below it, and told a reader the
+-- sqlstate instead of which claim broke. `chk_json` traps, records, and lets
+-- the rest of the ladder run — which is the difference between a suite that
+-- fails and a suite that says what failed.
+create function public.chk_json(p_label text, p_sql text, p_key text, p_expect text)
+returns void language plpgsql as $$
+declare v jsonb;
+begin
+  execute p_sql into v;
+  perform public.chk(p_label, (v ->> p_key) is not distinct from p_expect,
+                     format('%s=%s (wanted %s)', p_key,
+                            coalesce(v ->> p_key, 'null'),
+                            coalesce(p_expect, 'null')));
+exception when others then
+  perform public.chk(p_label, false, 'RAISED ' || sqlstate || ': ' || sqlerrm);
+end;
+$$;
+grant execute on function public.chk_json(text, text, text, text) to authenticated;
+
 create or replace function public._rep(p_fw uuid)
 returns text language sql as $$
   select format('select public.replay_failed_write(%L::uuid)', p_fw)
@@ -738,41 +768,113 @@ select chk('1.9 nothing is stamped yet — every claim below about a stamp is '
 -- 2. The fence, and who may not even see the row  (decision 4; §2.6, §2.7)
 -- ============================================================================
 
+-- ⚠⚠ RE-SIGNED BY `4.6b` / `0030`, 2026-09-14. THIS SECTION USED TO ASSERT
+-- THAT A MANAGER WAS REFUSED, AND THAT IS NOW FALSE BY DECISION. `0026` fenced
+-- the orchestrator at `owner`; C11.4 loosened it one notch to `manager` — the
+-- person standing in the shop must be able to fix a failed write, C11.1 says
+-- she is alone in it half the time, and C11.2 says she is a manager. `0030` is
+-- that `create or replace`, which `0026`'s own header named as the exit.
+--
+-- ⚠️ THE LADDER IS NOW MEASURED AT THREE RUNGS ON ONE ROW, IN ORDER, AND THE
+-- ORDER IS THE CLAIM: cashier refused (2.1) → manager SUCCEEDS and does the
+-- work (2.2), while STILL not being able to read the row (2.2b) → owner, above
+-- the fence, reaches the idempotency branch instead
+-- of a refusal (2.3) → and the cashier, on that same now-replayed row, is
+-- STILL refused (2.3b). 2.3b is the one that could not be written before: it
+-- says the fence is evaluated ABOVE the already-replayed branch, so 2.1's
+-- refusal is the role and not the freshness of the row.
+
 begin;
 select set_config('request.jwt.claims', :jwt_cashier, true);
 set local role authenticated;
 select chk_raises_like('2.1 a CASHIER is refused — TD003, the role refusal, and '
                        'not a location wall. §2.7 puts the dead-letter pile '
                        'behind a role because it is denominated in unrecorded '
-                       'revenue',
-                       public._rep(:dl_fen::uuid), 'TD003', 'only an owner');
+                       'revenue. ⚠️ THE BOTTOM OF THE LADDER IS THE HALF 0030 '
+                       'DID NOT MOVE, and it is the half that was ever '
+                       'load-bearing',
+                       public._rep(:dl_fen::uuid), 'TD003',
+                       'only a manager or an owner');
 commit;
 
 begin;
 select set_config('request.jwt.claims', :jwt_manager, true);
 set local role authenticated;
--- ⚠️ THE HALF THAT MAKES THIS A DECISION AND NOT A COPY. `0025` fences the
--- replay MARKER at manager; `0026` fences the ORCHESTRATOR one notch higher,
--- because §2.6's replayer "has already reviewed the dead-letter row" and `0024`
--- decision 8 makes that review owner-only. A manager-fenced replay would be a
--- decision taken on a row the decider cannot read.
-select chk_raises_like('2.2 ⚠️ a MANAGER is refused too, which is TIGHTER than '
-                       'the marker''s own fence (0025 decision 3) and is 0026 '
-                       'decision 4 — a manager may not READ failed_write (0024 '
-                       'decision 8), so a manager-triggered replay would be a '
-                       'decision taken on a row the decider cannot see',
-                       public._rep(:dl_fen::uuid), 'TD003', 'only an owner');
+-- ⚠⚠ THE CHECK THAT HOLDS `0030`, AND IT IS AN INVERSION OF WHAT STOOD HERE.
+-- It read "a MANAGER is refused too, which is TIGHTER than the marker's own
+-- fence (0025 decision 3)" — true of `0026` and refused by C11.4. The two
+-- fences are now EQUAL, which is what `0025` decision 3 wrote in the first
+-- place. A later session re-tightening this to `owner` is undoing the owner's
+-- ruling, not hardening a function.
+--
+-- ⚠️ AND IT MUST BE A REAL REPLAY, NOT A NON-REFUSAL. `chk_succeeds` would
+-- pass on an `already_replayed` return, so the assertion below reads the
+-- returned jsonb: this call is the one that did the work.
+select chk_json('2.2 ⚠⚠ a MANAGER SUCCEEDS, AND ACTUALLY REPLAYS — 0030, on '
+                'the owner''s ruling C11.4. Not merely un-refused: '
+                'already_replayed is FALSE, so this call is the one that did '
+                'the work. The row''s own stamp is asserted from OUTSIDE this '
+                'role block, in 2.7 and 2.8 — see 2.2b for why it cannot be '
+                'read from inside it',
+                public._rep(:dl_fen::uuid), 'already_replayed', 'false');
+
+-- ⚠️⚠️ 2.2b IS THE UNCOMFORTABLE HALF OF `0030`, ASSERTED RATHER THAN LEFT AS
+-- PROSE, AND IT WAS FOUND BY A DETAIL STRING COMING BACK EMPTY. 2.2's first
+-- spelling printed `replayed_at is not null` read from `failed_write` — and it
+-- rendered as NULL, not `true`, because `failed_write_select` is still
+-- owner-only (`0024` decision 8) and the manager who had just replayed the row
+-- could not SELECT it. `0030` moved the CALL fence one notch and deliberately
+-- did not touch the READ policy, so this is the applied state:
+--
+--     A MANAGER MAY REPLAY A DEAD LETTER SHE CANNOT SEE.
+--
+-- It is pinned here so it is a decision on the record rather than a discovery.
+-- ⚠️ THIS CHECK IS SUPPOSED TO GO RED ONE DAY. Step `5c`'s dead-letter banner
+-- (C11.9) needs the manager to see something, and the owner has two spellings
+-- to choose between — loosen `failed_write_select`, or add a `security
+-- definer` read in the shape of `my_access_requests()` (`0029`). Whoever takes
+-- that decision changes this check and says whose decision it was. Whoever
+-- changes it WITHOUT one is undoing `0024` decision 8 by accident.
+select chk('2.2b ⚠⚠ …AND SHE CANNOT READ THE ROW SHE JUST REPLAYED. '
+           'failed_write_select is still owner-only (0024 decision 8) and 0030 '
+           'moved only the call fence, so the manager selects ZERO rows of the '
+           'dead letter she just recovered. Recorded as a decision, owed to 5c',
+           (select count(*) from public.failed_write where id = :dl_fen) = 0,
+           format('rows visible to the manager=%s',
+                  (select count(*) from public.failed_write
+                    where id = :dl_fen)));
 commit;
 
 begin;
 select set_config('request.jwt.claims', :jwt_owner, true);
 set local role authenticated;
--- The pair half. Without it 2.1 and 2.2 would pass against a function that
--- refuses everybody.
-select chk_succeeds('2.3 ⚠️ …and the OWNER succeeds on the same row, the same '
-                    'call, the same second. Nothing but the role explains the '
-                    'difference between this and 2.1/2.2',
-                    public._rep(:dl_fen::uuid));
+-- The pair half, re-cut. Under `0026` this was "the owner succeeds on the same
+-- row"; the manager has now already replayed that row, so a plain
+-- `chk_succeeds` here would pass on the idempotency branch and assert nothing
+-- about the fence. It asserts the branch instead — an owner who reached
+-- `already_replayed` CLEARED the fence, because the fence is above it (2.3b).
+select chk_json('2.3 ⚠️ …and the OWNER, above the fence, reaches the '
+                'already-replayed branch rather than TD003 — has_role is a '
+                'ladder and not an equality, so loosening to manager did not '
+                'fence the owner out of her own dead letter',
+                public._rep(:dl_fen::uuid), 'already_replayed', 'true');
+commit;
+
+begin;
+select set_config('request.jwt.claims', :jwt_cashier, true);
+set local role authenticated;
+-- ⚠⚠ NEW AT `0030`, AND IT IS THE ANTI-VACUITY HALF OF 2.1. A row that is
+-- already replayed returns rather than raises (section 3 of the function), so
+-- if the fence sat BELOW that branch the cashier would now get a cheerful
+-- `already_replayed: true` instead of a refusal — a privilege escalation
+-- visible only after a successful replay, which is the state 2.1 can never
+-- reach on its own.
+select chk_raises_like('2.3b ⚠⚠ the CASHIER is refused on the same row AFTER '
+                       'it has been replayed — TD003, not already_replayed. '
+                       'The fence is evaluated above the idempotency branch, so '
+                       '2.1 measured the role and not the freshness of the row',
+                       public._rep(:dl_fen::uuid), 'TD003',
+                       'only a manager or an owner');
 commit;
 
 begin;
@@ -807,9 +909,15 @@ select chk('2.7 the refused calls left NOTHING behind — no stamp on the two '
            format('stamped=%s', (select count(*) from failed_write
                                   where replayed_at is not null)));
 
-select chk('2.8 …and the owner''s successful replay stamped ITS row with the '
-           'owner, not with the cashier who reported it',
-           (select replayed_by = :owner_a::uuid and reported_by = :cashier_a::uuid
+-- ⚠️ RE-SIGNED AT `0030`: the successful replay in 2.2 is now the MANAGER's,
+-- so the stamp names her. The claim is unchanged and is the interesting one —
+-- `replayed_by` and `reported_by` are different people, which is what the two
+-- columns exist to keep apart.
+select chk('2.8 …and the MANAGER''s successful replay (2.2) stamped ITS row '
+           'with the manager, not with the cashier who reported it — 0030 '
+           'moved who may replay and did NOT touch who is recorded as having '
+           'done it',
+           (select replayed_by = :manager_a::uuid and reported_by = :cashier_a::uuid
               from failed_write where id = :dl_fen),
            format('replayed_by=%s reported_by=%s',
                   (select replayed_by from failed_write where id = :dl_fen),
@@ -1580,12 +1688,14 @@ select chk('14.5 ⚠️ NO LOT IN WORKSPACE A WAS INVENTED BY THE FAILURE PATH. 
 -- that ends in `rollback` VANISHES rather than failing, so the count is the only
 -- thing that can see a section that silently did not run. The literal is
 -- deliberately a literal.
-select chk('15.1 ALL 86 CHECKS IN THIS FILE ACTUALLY RAN',
-           (select count(*) from public._verify) = 85,
-           format('recorded=%s of 85 before this one',
+select chk('15.1 ALL 88 CHECKS IN THIS FILE ACTUALLY RAN — 86 before 0030, '
+           'which added 2.2b and 2.3b',
+           (select count(*) from public._verify) = 87,
+           format('recorded=%s of 87 before this one',
                   (select count(*) from public._verify)));
 
 drop function public.chk_raises_like(text, text, text, text);
+drop function public.chk_json(text, text, text, text);
 drop function public.chk_succeeds(text, text, text);
 drop function public._rep(uuid);
 drop function public._rs(uuid, uuid, jsonb, timestamptz, boolean, uuid);

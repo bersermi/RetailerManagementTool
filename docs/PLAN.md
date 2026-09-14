@@ -33,8 +33,9 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| ⚠️⚠️ **CAN A MANAGER SEE THE DEAD LETTER SHE IS ALLOWED TO REPLAY?** `4.6b` moved the CALL fence to `manager` (C11.4) and left `failed_write_select` at `owner` (`0024` decision 8) — so as of `0030` she may replay a row she cannot `select`. **Two spellings, and they are not equivalent.** | **`5c`** — the dead-letter banner (C11.9). ⚠️ **It blocks NOTHING in step 4.6** — the migration that comes next reads purchases and never touches this table | **(a) Loosen `failed_write_select` to `manager`.** Cheap, one policy, and it exposes nothing §2.7 does not already grant a manager (*See cost and margin* is manager-and-above). ⚠️ But it puts a **vendor surface** (§2.8 — *"dead letters go to the operator of this system"*) permanently inside a merchant's reach. **(b) A `security definer` read — `my_failed_writes()`.** The shape this repo already chose for exactly this problem: `my_access_requests()` (`0029`) exists so a joiner can see a row no policy can ever show them, ruled in by the owner 2026-09-13. Returns what a banner needs — a count, a peso figure — and nothing else, so §2.8's fence survives. ⚠️ **RECOMMENDATION: (b).** It is the precedent, it answers C11.9's *"least invasive thing that works"* without widening a policy, and it lets the banner show a NUMBER rather than a table the shopkeeper would have to read — which is [[users-dont-do-bookkeeping]] applied. ⚠️ **It costs a migration either way**, so the cheap moment is before `5c` starts, not during it |
 
-✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.** The three
+⚠️⚠️ **ONE IS OWED AS OF 2026-09-14, AND IT ARRIVED WITH `0030`.** ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ The three
 decisions parked here that morning — gross-or-net revenue, whether a cashier sees revenue,
 and the ADR amendment §2.9 needed — were all ruled the same day: **gross, leave it, amend it.**
 ⚠️ **The block STAYS when it empties**: `plan-handover.sh` says in its own comment that zero
@@ -114,6 +115,17 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 | **X2** | The same row ticked | 🟢 — the exit is a tick and a sentence, not a negotiation |
 | **X3** | The block deleted | 🔴 — the same argument as `V1`: a date nobody is re-offered is a date nobody takes |
 
+⚠️⚠️ **AND IT FIRED AGAIN ON 2026-09-14, ON THE ROW ABOVE, FOR THE FIFTH TIME — THE FIRST
+ONE THAT WAS PURELY SELF-INFLICTED AND THE EASIEST TO FIX.** `4.6b`'s decision row named the
+next task in its *Blocks* cell, in a sentence whose whole purpose was to say the decision
+does **not** block it — *"NOT the next task: `4.6c-i` is unaffected"* — and assertion 7c read
+the name and refused the task. **The check was right and the prose was wrong**: a *Blocks*
+cell is machine-read, so it is not a place to write reassurance. ✅ The cell now says what it
+blocks and describes the next task without naming it. ⚠️ **The four earlier instances all
+needed the CHECK changed; this one needed the SENTENCE changed**, which is the cheaper half
+of the rule *never spell a check's sentinel in the file it reads* and the half that keeps
+being forgotten because nothing enforces it but reading the failure.
+
 ⚠️ **The region this block occupies is BOUNDED by the reader** — it stops at the first
 non-table line after the rows begin, rather than running to the next heading. That is not
 caution, it is the defect assertion 7c shipped with: the unbounded version swallowed the
@@ -145,6 +157,82 @@ earlier and all three are closed before any of them could go stale.
 — §2.5's reason for a per-line net cites margin-by-product (the requirement stands, the example
 moved, and one clause was corrected), and §3 step 2's gate text describes a step that **closed
 in August**. **Completed history is left as the record of what was actually done.**
+
+✅✅ **`4.6b` IS DONE AS OF 2026-09-14 — `0030` IS APPLIED, AND `4.6c-i` IS THE NEXT TASK.**
+`replay_failed_write` is fenced at **`manager`**, one notch down from `owner`, which is what
+C11.4 asked for and what `0026`'s own header named as the exit: *"loosening this to `manager`
+is a `create or replace` in a new migration."* **18 behavioural checks in
+`supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed from 86 to 88, and ten
+falsifications against a green control.** The body is `0026`'s, copied verbatim — the diff
+against it is two hunks, `create function` → `create or replace function` and the fence.
+
+⚠️⚠️ **ONE DECISION IS OWED AND IT IS PARKED IN THE BLOCK ABOVE: `0030` LEFT A MANAGER ABLE
+TO REPLAY A DEAD LETTER SHE CANNOT SEE.** `failed_write_select` is still `owner`-only
+(`0024` decision 8) and this migration did not touch it. **That was a scope call, and it is
+the one thing in this task worth the owner's minutes**, so it is written out in full in the
+decisions table rather than buried here. ⚠️ **Three checks hold the state** — `0030` 2.1 and
+3.3 and `0026` 2.2b — and **2.1 is written to GO RED** the day somebody widens the policy,
+so the change cannot be made silently.
+
+⚠️⚠️ **AND THE SCOPE WAS A GENUINE DISAGREEMENT BETWEEN TWO COPIES, NOT A JUDGEMENT CALL IN
+A VACUUM — THE NINTH STALE-COPY DEFECT, AND THE FIRST WHERE THE STALE COPY WAS THE MORE
+CAUTIOUS ONE.** `4.5c-ii`'s section, written 2026-09-05 when the fence was set, says:
+*"Recorded for whoever proposes it later: it is TWO changes, the fence AND `failed_write`'s
+SELECT policy, or the manager replays blind."* Three later copies — the `4.6b` row, the
+`4.6b` section (*"one notch"*, *"the recorders' own `manager` fence is untouched"*) and
+`supabase/README.md`'s planned list — all say ONE change. **C11.4 is the ruling and it is
+about who may CALL the function**; nothing has ever ruled on who may READ the table.
+⚠️ **So the minority copy won on the CONSEQUENCE and lost on the SCOPE**, and both halves
+are now recorded: the migration ships one notch, and the blindness it predicted is a pinned
+check plus an owner decision. **A migration that merges automatically does not get widened
+on the strength of a sentence four days older than the ruling.**
+
+⚠️ **`supabase/README.md`'s `0026` ROW WAS A STALE COPY THE MOMENT `0030` APPLIED** — it
+said in bold *"FENCED AT `owner`, TIGHTER THAN THE MARKER'S `manager`"*. ✅ **Struck and
+dated in place rather than deleted**, because it is the argument `0030` had to answer — and
+the answer is uncomfortable: **`0030` did not refute it, it accepted it and moved the fence
+anyway**, on the owner's instruction. The struck sentence now describes the live schema.
+
+⚠️⚠️ **A FALSIFICATION CHANGED THE SUITE'S SHAPE, WHICH IS THE POINT OF RUNNING THEM.** Two
+findings, neither visible from a green run:
+
+- **The first spelling of the manager/owner checks called the RPC inline inside
+  `select chk(...)`.** Under `F1` — the fence reverted to `owner` — that call RAISES, and
+  under `ON_ERROR_STOP` psql killed the whole file at that statement. **A genuine red that
+  printed no report table, ran none of the checks below it, and named a sqlstate instead of
+  a claim.** ✅ Both now use `chk_json`, which traps and records, so the rest of the ladder
+  still runs. **The difference between a suite that fails and a suite that says what failed.**
+- ⚠️⚠️ **`_src()` DIED ON THE ONE DEFECT IT EXISTS TO CATCH.** It was a scalar subquery on
+  `proname`; under `F2` — an OVERLOAD rather than a replacement, the worst thing
+  `create or replace` can do — it returned two rows and raised *"more than one row returned
+  by a subquery"*, **killing the file before check 1.1 could report the overload**. ✅ Every
+  `§1` claim now aggregates (`bool_and`, `string_agg`), which is both survivable and the
+  stronger sentence — *"…of EVERY `replay_failed_write` in the catalog"* — so an overload
+  carrying the old owner fence turns 1.3 red as well as 1.1. **A suite that dies on the
+  defect it is written to name has not caught it.**
+
+⚠️ **AND `0026`'s SECTION 2 GAINED A RUNG THAT COULD NOT BE WRITTEN BEFORE `0030`.** The old
+pair was *manager refused / owner succeeds*. It is now a four-rung ladder on one row —
+cashier refused → manager REPLAYS → manager still cannot read it (2.2b) → owner reaches the
+idempotency branch → **cashier refused AGAIN on the now-replayed row (2.3b)**. 2.3b is the
+new one and it is not decoration: the already-replayed branch RETURNS rather than raises, so
+a fence sitting below it would hand a cashier a cheerful `already_replayed: true` on every
+recovered row. **A privilege escalation visible only after a successful replay**, which the
+old pair could never reach. Falsified by `F9`, which moves the fence below that branch and
+turns 2.3b red while `0030`'s own suite stays green — the division of labour, stated.
+
+⚠️ **`0026`'s 2.3 ALSO HAD TO BE RE-CUT RATHER THAN KEPT.** It read *"the OWNER succeeds on
+the same row"*, and with the manager replaying first that call now lands on the idempotency
+branch — so a plain `chk_succeeds` would have passed **without asserting anything about the
+fence**, which is this repository's recorded *"green check that stopped measuring its own
+claim"* arriving for the fourth time. It asserts the branch instead.
+
+⚠️ **ONE LOCAL-HARNESS TRAP, ALREADY DOCUMENTED IN `_cleanup.sql` AND HIT ANYWAY.** An
+aborted first run left a three-argument `_pl` standing, and the next run died on *"function
+is not unique"* rather than on the defect. ✅ `0030`'s suite now creates `_pl` at **`0026`'s
+exact four-argument signature, defaults included** — the fourth argument is never passed —
+so it REPLACES the older helper instead of sitting beside it, which is the rule that file
+states in its own words. `_src` is registered there too, on the day the suite lands.
 
 ✅✅ **`4.6a-iii` IS DONE AS OF 2026-09-14 — `0029` IS APPLIED, `4.6a` IS COMPLETE, AND `4.6b` IS THE NEXT TASK.**
 The pull path exists: `request_access(code)`, `approve_request(id, location_ids)` and
@@ -8294,9 +8382,9 @@ it.
 | **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0027` applied, 64 behavioural checks, eleven falsifications. `4.6a-ii` and `4.6a-iii` are unblocked |
 | **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(workspace_id, email, role, location_ids)` — ⚠️ **the workspace is an argument, not a derivation** — returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0028` applied, 77 behavioural checks, eleven falsifications. The invite screen in `5b` is unblocked |
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
-| **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14** — the replay control in `5c` |
+| **4.6b** | ✅ **`0030`, APPLIED 2026-09-14** — was `0028`, renumbered by the `4.6a` split, 2026-09-13 | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch. ⚠️⚠️ **ONE NOTCH MEANT ONE NOTCH: `failed_write_select` IS UNTOUCHED, so a manager may now replay a dead letter she cannot SELECT** — pinned by three checks, not prose, and parked as an owner decision against `5c` | `S` | ✅✅ **DONE 2026-09-14** — 18 behavioural checks in `supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed to 88, ten falsifications. The replay control in `5c` is unblocked |
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
-| **4.6c-i** | `0031` | **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace. ⚠️ **Revenue is GROSS** (ruled 2026-09-14), and the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem | `M` | ✅ **UNGATED as of 2026-09-14** — the Números charts in `5d` |
+| **4.6c-i** | `0031` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace. ⚠️ **Revenue is GROSS** (ruled 2026-09-14), and the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem | `M` | ✅ **UNGATED as of 2026-09-14** — the Números charts in `5d` |
 | **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's | `M` | the price card in `5d` |
 | **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
 
@@ -9063,15 +9151,64 @@ solves it and the conversation becomes whether to model the despiece at all, whi
 much larger decision than `4.6c`.
 ⚠️⚠️ **All of it freezes when `0029` merges.**
 
-### ✅ 4.6b — one notch, and `0026` predicted it
+### ✅✅ 4.6b — DONE 2026-09-14. One notch, `0026` predicted it, and the half it did not do is now a decision
 
-`replay_failed_write` is fenced at **owner** (`0026:317`), and its header already
-named the exit: *"Loosening this to `manager` is a `create or replace` in a new
-migration."* C11.4 asks for exactly that, and **C11.2 is what makes one notch
-enough** — the family member is a manager, not staff, so §2.6's argument for the
-fence (the replayer has reviewed the dead-letter and can carry cost for any kind)
-survives intact rather than being overridden. ⚠️ **The recorders' own `manager` fence
-is untouched.**
+~~`replay_failed_write` is fenced at **owner** (`0026:317`)~~ — **it is fenced at
+`manager` as of `0030`.** `0026`'s header already named the exit: *"Loosening this to
+`manager` is a `create or replace` in a new migration."* C11.4 asked for exactly that, and
+**C11.2 is what made one notch enough** — the family member is a manager, not staff, so
+§2.6's argument for the fence (the replayer has reviewed the dead-letter and can carry cost
+for any kind) survives intact rather than being overridden. ⚠️ **The recorders' own
+`manager` fence is untouched**, and so is `0025`'s replay marker: the two fences are now
+EQUAL, which is the shape `0025` decision 3 wrote before `0026` chose to be tighter.
+
+**What shipped:** `supabase/migrations/0030_replay_manager_fence.sql`, one
+`create or replace` whose body is `0026`'s copied verbatim — the diff is two hunks, the
+`create` keyword and the fence. 18 behavioural checks in
+`supabase/tests/0030_replay_manager_fence.sql`; `0026`'s suite re-signed from 86 to 88.
+
+⚠️⚠️ **AND THE THING IT DID NOT DO IS THE THING WORTH READING: A MANAGER MAY NOW REPLAY A
+DEAD LETTER SHE CANNOT SEE.** `failed_write_select` is still `owner`-only (`0024`
+decision 8). **It is parked as an owner decision against `5c`** — the full brief, both
+spellings and the recommendation are in the decisions block at the top of this file — and
+it is held by three checks rather than by prose, one of which is written to go RED the day
+somebody widens that policy.
+
+#### The ten falsifications, run by hand before this was committed
+
+⚠️ **Each fixture is checked for having APPLIED, and each red is checked for naming the
+right assertion.** `4.6c`'s re-scope recorded why: *"a fixture that cannot be applied is not
+a fixture that passed"*, and `0027`'s session recorded the other half — *"a fixture that is
+red for the wrong reason is not a falsification, it is a coincidence"*. **Two of these were
+red for the wrong reason on the first attempt and were re-cut**, which is the only reason
+the table below is worth anything.
+
+| Fixture | The edit | `0030` | `0026` |
+|---|---|---|---|
+| **F0** | ✅ Control | 🟢 | 🟢 |
+| **F1** | `0030` undone — the fence back at `owner` | 🔴 1.3, 3.2, 3.4, 3.5 | 🔴 2.2, 2.3, 2.8 |
+| **F2** | ⚠️ **An OVERLOAD instead of a replacement**, carrying the old owner fence | 🔴 1.1, 1.2, 1.3 | 🔴 (dies in setup — the overload makes its own call ambiguous) |
+| **F3** | `security definer` → `security invoker` | 🔴 1.4, and all of §3 | 🔴 (dies in setup — its fixture needs the definer) |
+| **F4** | The ACL reset to Postgres's default `EXECUTE` to `PUBLIC` | 🔴 1.5 | 🔴 1.2 |
+| **F5** | The comment left saying *"OWNER only"* | 🔴 1.6 | 🟢 — correctly; `0026` makes no claim about the comment |
+| **F6** | ⚠️ The blindness sentence stripped from the comment, everything else correct | 🔴 1.7 | 🟢 |
+| **F7** | ⚠️⚠️ **`failed_write_select` loosened to `manager`** — the change this task refused to make | 🔴 2.1, 3.3 | 🔴 2.2b, 14.1 |
+| **F8** | A role fence grown on `record_failed_write` | 🔴 2.2 | 🟢 |
+| **F9** | ⚠️⚠️ **The fence moved BELOW the already-replayed branch** — a cashier gets `already_replayed: true` on any recovered row | 🟢 — **stated, not hidden**: the behavioural ladder lives in `0026` | 🔴 2.3b |
+| **F10** | The fence loosened one notch too far, to `staff` | 🔴 1.3, 3.1 | 🔴 2.1, 2.3b |
+
+⚠️ **F2 AND F8 WERE RE-CUT AFTER THEIR FIRST SPELLING PROVED NOTHING.** F8's first version
+fenced `record_failed_write` at `manager`, which killed the suite's own fixture — the
+cashier could no longer report a dead letter — so it went red **in setup**, which
+`4c-ii` already recorded as the failure that reports zero failing tests. Re-cut at `staff`,
+the fixture builds and 2.2 fires on the catalog read, which is the claim. F2's first version
+gave the overload a DEFAULT, which made the one-argument call ambiguous and aborted the file
+before 1.1 — **and fixing that is what found the `_src` defect described in the status log.**
+
+⚠️ **F9 IS RECORDED AS A GAP RATHER THAN CLOSED BY DUPLICATION.** `0030`'s suite stays green
+on it by design: the behavioural ladder is `0026`'s and copying it here would make two suites
+over one claim, which is the drift this repository keeps recording. **The division is stated
+in `0030`'s header** so a later reader does not mistake the green for coverage.
 
 ### ✅✅ 4.6c — THE INTERVIEW HAPPENED 2026-09-14, AND IT CANCELLED THIS TASK'S SUBJECT
 
