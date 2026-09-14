@@ -41,11 +41,14 @@
 -- affects ZERO rows and raises nothing. A silent no-op is what the invoker
 -- spelling would have shipped.
 --
--- ⚠️ SECTION 6.9 IS DECISION 5, WHICH IS THE CALL THE OWNER MAY WANT MADE THE
--- OTHER WAY. A joiner whose signed-in address is not the address the invite was
--- written to is admitted, and `accepted_by` records who actually walked through
--- the door. If that ruling is reversed, this check is the one that goes red, on
--- purpose and by name.
+-- ⚠️⚠️ SECTION 6.9 IS AN OWNER'S RULING, NOT A SESSION'S JUDGEMENT — *"do what you
+-- recommend"*, 2026-09-13, the day `0028` merged. A joiner whose signed-in address
+-- is not the address the invite was written to is admitted, and `accepted_by`
+-- records who actually walked through the door. **6.9 and 6.10 are the only thing
+-- in this repository holding that ruling**: no constraint can express it, because
+-- it is the ABSENCE of a comparison. A later session adding the email check that
+-- looks like a hardening turns them red, and the message is what says whose
+-- decision it was undoing.
 --
 -- ⚠️ NOTHING ABOUT request_access, approve_request OR my_access_requests. None
 -- of them exists: they are `0029` (4.6a-iii). The one place this file touches
@@ -360,7 +363,13 @@ select chk('3.17 it expires in seven days (D3)',
 -- Decision 8's converse: 0002:377 says empty for a manager or owner, who get
 -- every location from my_locations() by role. A row here would outlive a
 -- demotion and grant a location nobody granted.
-select public.create_invite(:'ws_a', 'jefa@example.mx', 'manager',
+-- ⚠️ THE ADDRESS IS `:other`'s OWN, and that is not decoration. This invite is
+-- redeemed at 5.9 by that user, and an address they do not hold would make 5.9 a
+-- second, INCIDENTAL test of the 2026-09-13 ruling — so a session reversing that
+-- ruling would be stopped three sections before the check that names it, and told
+-- nothing about whose decision it was undoing. Measured: F11 aborted here until
+-- this line was re-signed.
+select public.create_invite(:'ws_a', 'otra.cuenta@example.mx', 'manager',
                             array[:'loc_a1']::uuid[]) as r2 \gset
 select (:'r2'::jsonb->>'invite_id') as inv_mgr \gset
 select (:'r2'::jsonb->>'token') as tok_mgr \gset
@@ -584,10 +593,14 @@ select chk_raises('6.7 an expired token raises TD003 — a workflow, not a defec
 select chk_raises('6.8 a superseded token raises TD003 as well',
   format('select public.redeem_invite(%L)', :'tok_new'), 'TD003');
 
--- ⚠️ 6.9 IS DECISION 5, the call the owner may want made the other way. The
--- token is the credential; the address the owner typed is not necessarily the
--- one a Google sign-in returns (5a-iv-c-3), and refusing that is silent from the
--- joiner's side. If this ruling is reversed, THIS is the check that goes red.
+-- ⚠️⚠️ 6.9 IS THE OWNER'S RULING OF 2026-09-13, taken on the recommendation this
+-- file shipped with and offered back the same day. The token is the credential;
+-- the address the owner typed is not necessarily the one a Google sign-in returns
+-- (5a-iv-c-3), and refusing that is silent from the joiner's side, which is §2.8's
+-- complaint about handing the shopkeeper an edge case. ⚠️ NOTHING ELSE HOLDS IT:
+-- the ruling is that redemption does NOT compare two values, and an absent
+-- comparison has no constraint, no grant and no policy to live in. This check is
+-- the whole guard, which is why its label names the ruling and not the behaviour.
 select public._as(:owner_a);
 select public.create_invite(:'ws_a', 'direccion.que.el.dueno.escribio@example.mx',
                             'staff', array[:'loc_a1']::uuid[]) as r9 \gset
@@ -595,12 +608,13 @@ select (:'r9'::jsonb->>'token') as tok_mismatch \gset
 select (:'r9'::jsonb->>'invite_id') as inv_mismatch \gset
 
 select public._as(:staff_a);
-select chk_succeeds('6.9 a joiner signed in under a DIFFERENT address is admitted '
-                    '(decision 5)',
+select chk_succeeds('6.9 a joiner signed in under a DIFFERENT address is admitted — '
+                    'the owner ruled this 2026-09-13; reversing it is his call, not a '
+                    'hardening',
   format('select public.redeem_invite(%L)', :'tok_mismatch'));
 
-select chk('6.10 and the difference is recorded: the invited address stays, '
-           'accepted_by is who joined',
+select chk('6.10 and the difference is RECORDED rather than lost: the invited address '
+           'stays on the row, accepted_by is who actually joined (D4)',
            (select email = 'direccion.que.el.dueno.escribio@example.mx'
                    and accepted_by = :staff_a::uuid
               from public.workspace_invite where id = :'inv_mismatch'::uuid));
