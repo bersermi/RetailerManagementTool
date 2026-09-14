@@ -149,10 +149,13 @@ while the joiner can choose **neither** the email **nor** the role. `request_acc
 therefore takes **no email argument** — it reads the caller's own inside the definer body —
 and **the absorbed invite's role wins over the requested one**, silently.
 
-⚠️ **SEVEN DECISIONS WERE TAKEN ON THE OWNER'S BEHALF, and decision 7 is the one to overturn
-today if it is going to be overturned**: the joiner's status-read RPC is a granted function
-in `0029`, and cutting it after the merge is a fix-forward migration. All seven are listed in
-`4.6a`'s sizing section with their reasoning. ✅ **One new guard,
+⚠️ **SEVEN DECISIONS WERE TAKEN ON THE OWNER'S BEHALF**, all seven listed in `4.6a`'s sizing
+section with their reasoning. ✅✅ **AND THE ONE THAT WAS OFFERED BACK IS RULED: the owner said
+*"keep the status read"* on 2026-09-13, hours after the split merged** — so `my_access_requests()`
+is a deliverable of `4.6a-iii` by decision rather than by a sizing session's judgement. ✅ **It is
+now NAMED in both the parent row and the child row, and the split guard carries a thirteenth
+deliverable so it cannot quietly vanish** — which is the whole difference between a decision
+recorded and a decision held. ✅ **One new guard,
 `docs/checks/4.6a-split-coverage.sh`, falsified against eight fixtures and wired into
 `app.yml`** beside the other two plan guards — it is the first check in this repository that
 reads `supabase/README.md`.
@@ -8110,10 +8113,10 @@ it.
 
 | Task | Migration | What it is | Size | Blocks |
 |---|---|---|---|---|
-| **4.6a** | ⚠️ **`0027`–`0029`, three files** | **Membership — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** Sized `L` and SPLIT three ways 2026-09-13, before a line was written, exactly as this row demanded. `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path `request_access` and its approval `approve_request`. Register #9's eight rulings, all of which land somewhere below: **`D1`** `source`, **`D2`** nullable `token_hash`, **`D3′`** supersede the expired pending row, **`D4`** `invited_by` → `decided_by`, **`D5`** the 8-character Crockford code, **`D6`** resolve the whole code with no scan policy, **`D7`** a request absorbs a pending invite, **`D8`** locations required at approval | `L` — **split, three `M`s** | Blocks **half of `5b`** |
+| **4.6a** | ⚠️ **`0027`–`0029`, three files** | **Membership — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** Sized `L` and SPLIT three ways 2026-09-13, before a line was written, exactly as this row demanded. `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path `request_access` and its approval `approve_request`, plus the joiner's status read `my_access_requests`. Register #9's eight rulings, all of which land somewhere below: **`D1`** `source`, **`D2`** nullable `token_hash`, **`D3′`** supersede the expired pending row, **`D4`** `invited_by` → `decided_by`, **`D5`** the 8-character Crockford code, **`D6`** resolve the whole code with no scan policy, **`D7`** a request absorbs a pending invite, **`D8`** locations required at approval | `L` — **split, three `M`s** | Blocks **half of `5b`** |
 | **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — blocks `4.6a-ii` and `4.6a-iii`, which are both unwritable until the columns exist |
 | **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(email, role, location_ids)` returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | the invite screen in `5b` |
-| **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and a status read so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | the join screen in `5b` |
+| **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | the join screen in `5b` |
 | **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
 | **4.6c** | ⚠️ `0031` — **was `0029`, renumbered by the `4.6a` split, 2026-09-13** | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — área 9 is BRIEFED and still UNRULED**; part A is shop truth and nobody here can answer it |
 
@@ -8221,10 +8224,17 @@ role wins, silently** (§2.8: we do the bookkeeping, not the shopkeeper).
 | **4** | **No seed rows for `workspace_invite`** (`S2`) | `02`'s `F9` asserts the opposite of what the instinct suggests, and it asserts it deliberately |
 | **5** | **`request_access` takes no email argument** (`S4`) | The version that takes one is a way to claim somebody else's invite. This is a security property, not a signature preference |
 | **6** | **The absorbed invite's role wins over the requested one** (`S4`) | The other way round is an unapproved promotion |
-| **7** | **`4.6a-iii` ships the joiner's status read** (`S3`) | Without it `5b` cannot draw the screen, and the obvious alternative is the select policy `D6` rules out. ⚠️ **This is the one an owner might cut** — if the client is allowed to remember "I asked for X" locally and show nothing from the server, the RPC is unnecessary |
+| **7** | ✅✅ **RULED BY THE OWNER 2026-09-13, NOT TAKEN ON HIS BEHALF AFTER ALL — *"keep the status read"*.** `4.6a-iii` ships `my_access_requests()` (`S3`) | Without it `5b` cannot draw the screen, and the obvious alternative is the select policy `D6` rules out. ⚠️ **It was offered back because it was the one an owner might cut** — the client could have remembered *"I asked for X"* locally and shown nothing from the server. **He kept it**, so the joiner learns their request's state from the database that holds it |
 
-⚠️⚠️ **Decision 7 is the one to overturn today if it is going to be overturned**, because it
-is a granted function in `0029` and a fix-forward afterwards.
+✅✅ **DECISION 7 IS CLOSED — the owner ruled *"keep the status read"* on 2026-09-13, within
+hours of the split merging and before `0029` existed.** ⚠️ **That is the cheapest a decision
+of this kind ever gets**: a granted function in an unwritten migration, rather than a
+fix-forward afterwards. ✅ **The function is now named — `my_access_requests()` — in the
+parent row and in `4.6a-iii`'s row, and `4.6a-split-coverage.sh` counts it as the THIRTEENTH
+deliverable.** ⚠️⚠️ **A ruled deliverable that only prose remembers is the shape of six of
+this repository's seven stale-copy defects**, and it would have been the seventh kind: a
+decision the owner made, recorded in a paragraph, and lost between two child tasks that each
+assumed the other had it.
 
 #### The split's own guard, and the eight fixtures it was falsified against
 
@@ -8234,8 +8244,8 @@ is a granted function in `0029` and a fix-forward afterwards.
 run a guard's falsifications in CI rather than only the guard.** The other two plan checks
 are machine-run; the fixtures proving they can still FAIL are not, so an edit that loosened
 one into a check that passes on everything would be green twice over.
-It asserts the twelve deliverables of `4.6a` each land in **exactly one** child row and the
-right one; that each child row exists **exactly once** in the file; that the five migration
+It asserts the **thirteen** deliverables of `4.6a` — twelve from the split, plus the status
+read the owner ruled in — each land in **exactly one** child row and the right one; that each child row exists **exactly once** in the file; that the five migration
 numbers are claimed once each; and that **`supabase/README.md` agrees** — the cross-file
 half, because the numbering authority is a second copy of the claim and this repository has
 six recorded stale-copy defects.
@@ -8250,6 +8260,7 @@ six recorded stale-copy defects.
 | **Z5** | `4.6c` left claiming `0029` | 🔴 — two rows claiming one migration number, which is the renumbering going stale in the file that hands the numbers out |
 | **Z6** | `supabase/README.md`'s *"last migration of the database build"* left uncorrected | 🔴 — the numbering authority still says the schema is finished |
 | **Z7** | A second copy of `4.6a-i`'s row added 200 lines away | 🔴 — the shape of THREE of this repository's six stale-copy defects |
+| **Z8** | ⚠️ **`my_access_requests` struck from `4.6a-iii`** — added 2026-09-13 with the thirteenth deliverable | 🔴 — an atom added to a coverage list and never falsified is an atom nobody has shown the guard can see |
 
 ### ⚠️⚠️ 4.6a — the membership flow has no functions, and the owner wants the inverse of the one it was designed for
 

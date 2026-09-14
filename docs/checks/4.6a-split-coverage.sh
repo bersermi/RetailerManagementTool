@@ -26,8 +26,10 @@
 #   1. Rows exist for the parent, the three children, and `4.6b` / `4.6c`.
 #   2. Each child row appears EXACTLY ONCE in the plan. Three of the six recorded
 #      stale-copy defects were a claim stated twice and corrected in one copy.
-#   3. Each of `4.6a`'s TWELVE deliverables is still named in the PARENT row —
+#   3. Each of `4.6a`'s THIRTEEN deliverables is still named in the PARENT row —
 #      otherwise a shrinking parent makes the coverage claim below vacuous.
+#      Thirteen and not twelve because the owner ruled the joiner's status read IN
+#      on 2026-09-13, hours after the split merged.
 #   4. Each deliverable is named by EXACTLY ONE child row, and by the right one.
 #   5. The five migration numbers are claimed once each and by the right task —
 #      this is where the renumbering (`4.6b` → `0030`, `4.6c` → `0031`) is held.
@@ -130,6 +132,13 @@ DELIVERABLES=(
   "redeem_invite|redeem_invite|4.6a-ii"
   "request_access|request_access|4.6a-iii"
   "approve_request|approve_request|4.6a-iii"
+  # ⚠️ THE THIRTEENTH, ADDED 2026-09-13 BECAUSE THE OWNER RULED ON IT. The sizing
+  # session took the joiner's status read on his behalf and offered it back as the
+  # one cheap-today-dear-later call in the split; he said keep it. A deliverable
+  # that a DECISION put there, and that only prose remembers, is exactly the shape
+  # of six of this repository's seven stale-copy defects — so it is counted here
+  # rather than trusted to the paragraph that records the ruling.
+  "my_access_requests — the joiner's status read|my_access_requests|4.6a-iii"
 )
 
 # --- 3. + 4. the parent still promises each one, and exactly one child has it
@@ -281,5 +290,5 @@ if (( ran < 5 )); then
   echo "      nothing and was about to report success."
   exit 1
 fi
-echo "all $ran assertion groups passed — 4.6a's twelve deliverables have three homes,"
+echo "all $ran assertion groups passed — 4.6a's $total deliverables have three homes,"
 echo "0027–0031 are claimed once each, and both files that hand out numbers agree."
