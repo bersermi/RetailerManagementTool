@@ -323,9 +323,19 @@ it:**
   the split assigned the shape to `0027`, and this is the pull path's own
 - `0030` — `replay_failed_write` loosened to `manager` (**4.6b**), a `create or replace`,
   one notch. ⚠️ **Was `0028` before the `4.6a` split**
-- `0031` — the family contribution view (**4.6c**). ⚠️ **Was `0029` before the `4.6a`
-  split**, and ⚠️⚠️ **GATED**: área 9 is briefed and unruled, and two of §2.9's three
-  questions are broken under C8.6 rather than one
+- `0031` — **purchases as a first-class read** (**4.6c**, through its first child `4.6c-i`),
+  plus the C8.6 honesty comment on `0009`. ⚠️ **Was `0029` before the `4.6a` split.**
+  ⚠️⚠️ **IT WAS *the family contribution view* UNTIL 2026-09-14, AND THAT VIEW IS CANCELLED**:
+  área 9 was ruled and the owner retired the question — *"we won't derive the profit so let's
+  ignore margins for now. I'd rather just show total revenue."* `4.6c` was re-scoped and split
+  three ways the same day, before a line was written. ⚠️ **Still gated**, now on one narrow
+  question: whether revenue is **gross or net of IVA**, which decides this view's columns
+- `0032` — **price over time** (**4.6c-ii**): purchase and sale unit prices per variant, read
+  from the ledger rather than from `price_list`, which holds the *intended* sale price and is
+  **empty in the seed**. Daily grain; the %-change windows (current month, 1/3/6/9, YTD) are
+  the client's, because baking a window into a view means a migration to change your mind
+- `0033` — **the month export** (**4.6c-iii**): transactions and waste, flat, one shape and
+  one fence, so the client is not unioning three tables under three different RLS rules
 
 ⚠️ **Every one of them must check `location_id in (select public.my_locations())` in
 its own body.** They are `security definer`, so grants and RLS do not constrain them
