@@ -63,6 +63,18 @@ on:
       # defects survived — every one of them was found by a person reading.
       - "docs/checks/plan-handover.sh"
       - "docs/checks/5a-split-coverage.sh"
+      # ⚠️⚠️ AND THE THIRD PLAN GUARD, ADDED 2026-09-13 WITH THE `4.6a` SPLIT —
+      # PLUS `supabase/README.md`, WHICH IS THE FIRST TIME ANY WORKFLOW HAS PUT
+      # THAT FILE IN A FILTER. `4.6a-split-coverage.sh` asserts that the plan and
+      # the database doc agree about which task owns `0027`–`0031`, and the
+      # SEVENTH stale-copy defect in this repository was in exactly that file:
+      # it called `0026` the last migration of the build for six days after step
+      # 4.6 was created. Two files, one claim — so an edit to EITHER has to
+      # re-run the check, and a correction made only in the database doc is
+      # precisely the edit that would otherwise never be looked at.
+      - "docs/checks/4.6a-split-coverage.sh"
+      - "docs/checks/4.6a-split-coverage-falsify.sh"
+      - "supabase/README.md"
       # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
       # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
       # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
@@ -173,3 +185,20 @@ jobs:
 
       - name: Plan — did any split lose a deliverable (plan 5a-iv-c-1)
         run: bash docs/checks/5a-split-coverage.sh
+
+      # ⚠️⚠️ THE THIRD PLAN GUARD, AND THE FIRST TO READ OUTSIDE `docs/` (the
+      # `4.6a` split, 2026-09-13). It holds register #9's eight rulings to three
+      # child tasks and the five migration numbers to one task each, across
+      # `docs/PLAN.md` AND `supabase/README.md`.
+      - name: Plan — did the 4.6a split lose a ruling (plan 4.6a sizing)
+        run: bash docs/checks/4.6a-split-coverage.sh
+
+      # ⚠️ AND THE GUARD'S OWN FALSIFICATIONS, WHICH IS NEW HERE. The other two
+      # plan checks are run by CI; the fixtures proving they can FAIL are not,
+      # which means a future edit that loosens one into a check that passes on
+      # everything would be green twice over. This runs the eight fixtures the
+      # split guard was falsified against — it is bash and python3 over two
+      # temporary copies, it costs about a second, and it is the difference
+      # between "the check passed" and "the check can still fail".
+      - name: Plan — can the 4.6a guard still fail (its own eight fixtures)
+        run: bash docs/checks/4.6a-split-coverage-falsify.sh

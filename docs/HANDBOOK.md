@@ -309,12 +309,12 @@ to stop and ask rather than pick a side.
 | 4 | The write operations (sell, buy, waste, void) | **Done** — all six |
 | 4.5 | What happens when a write fails | **Done** |
 | — | **The screens interview** — two rounds, 2026-09-07 | **Done** — eight of twelve subjects |
-| **4.6** | **Three database changes the interview uncovered** | **Open** — one of them blocks a screen |
+| **4.6** | **Three database changes the interview uncovered** — ⚠️ **five migration files, since the membership one was split three ways on 2026-09-13** | **Open, and it is where the next piece of work is.** The first of the three was blocked on a decision you made on 2026-09-13; it is unblocked, sized and split. One of the other two still waits on you — the Números questions (área 9) |
 | **5a** | **App foundations** — the first app code in the project | **Split into four on 2026-09-07**, before any of it was written |
 | **5a-i** | The empty app, and the automated check that watches it | **Done 2026-09-07** — and it is the first app code in the project |
 | **5a-ii** | Text size and money formatting | **Done 2026-09-07** |
 | **5a-iii** | Sign-in — email, then Google, and reopening on the last screen | **Done 2026-09-11** — split in two on the day it was taken, both halves closed |
-| **5a-iv** | **Running it on your own phone** | **Split into four on 2026-09-11** — ⬅️ **this is where the build is, and the next piece needs YOU rather than Claude.** The Mac was prepared on 2026-09-12, but signing needs your Apple ID, and five of the six readings are things only a person holding the phone can see. ⚠️ **Which piece is next is `docs/PLAN.md`'s to say, not this file's** — it is named there once, and `docs/checks/plan-handover.sh` is what keeps it named once |
+| **5a-iv** | **Running it on your own phone** | **Split into four on 2026-09-11** — ⚠️ **the last piece is now waiting on a CALENDAR, not on a person: the readings fall on 2026-09-21 and 2026-10-13, and opening either app early restarts the clock.** ⚠️ **Re-deploy to the iPhone before 2026-09-20** or the free profile expires and day 8 shows a red screen instead of an answer. Both dates are in `docs/PLAN.md`'s dates block, which fails the automated check once one of them passes unanswered. **Meanwhile the next takeable task is in step 4.6**, and it needed YOU rather than Claude too — you unblocked it on 2026-09-13. The Mac was prepared on 2026-09-12, but signing needs your Apple ID, and five of the six readings are things only a person holding the phone can see. ⚠️ **Which piece is next is `docs/PLAN.md`'s to say, not this file's** — it is named there once, and `docs/checks/plan-handover.sh` is what keeps it named once |
 | 5b–5h | The actual screens | After 5a |
 | 6–7 | Beyond the pilot | Later |
 
@@ -323,7 +323,10 @@ to stop and ask rather than pick a side.
 *(Kept because the reasoning is the useful part, and because this is the first time an
 architecture document was amended to let a check do more rather than less.)*
 
-Step 4.6 needs an amendment to ADR-035 before it can start — you already knew that.
+~~Step 4.6 needs an amendment to ADR-035 before it can start~~ — ✅ **it got it on
+2026-09-13, when you ruled on the membership flow; step 4.6's first task is unblocked,
+sized and split.** The sentence is struck rather than deleted because what follows it is
+the argument you accepted, and that is still worth reading.
 **Sizing `5a` on 2026-09-07 found a second one, and this one blocks the very next
 task.**
 
