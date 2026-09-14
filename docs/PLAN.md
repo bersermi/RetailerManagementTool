@@ -80,6 +80,75 @@ different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS TH
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
 
+✅✅ **`5a-iv-d`'s SESSION CONFIGURATION WAS READ ON 2026-09-13, AND IT ANSWERED IN THIRTY
+SECONDS THE HALF THAT EIGHT DAYS WAS NEVER GOING TO REACH.** The eight-day reading was
+designed around **Google's** 7-day test-user clock and **had never considered Supabase's
+own session settings** — which are the things that would actually bound a session, and
+which `GET /auth/v1/settings` does not expose (32 fields, none of them about sessions;
+checked, not assumed).
+
+| Setting | Value | What it means |
+|---|---|---|
+| **Time-box user sessions** | `0` | disabled — **no hard maximum session age** |
+| **Inactivity timeout** | `0` | disabled — **a session does not die from disuse** |
+| **Detect and revoke compromised refresh tokens** | **On** | a replayed refresh token revokes the whole session family |
+| **Refresh-token reuse interval** | `10s` | the default tolerance for a replay |
+
+✅ **SO C1.4 IS NOT CONTRADICTED BY CONFIGURATION — nothing on the project is set to expire
+a session.** ⚠️ **This is a REPORT, not a measurement**, in the same standing this file
+already gives the Supabase redirect allow-list: the anon key cannot read these values, no
+check here can, and the owner read them off the dashboard on 2026-09-13. **Do not upgrade
+it to a measurement later by forgetting where it came from.**
+
+⚠️⚠️ **AND THE RISK MOVED. THE ONE SETTING THAT IS ON IS THE ONE THAT CAN SIGN A SHOPKEEPER
+OUT, AND IT IS AIMED SQUARELY AT THIS PILOT.** Reuse detection revokes a session family when
+a refresh token is presented twice outside the 10-second interval. ✅ **The common cause is
+already handled and that was checked in the library rather than worried about**: `auth-js`
+**single-flights** refreshes (`refreshingDeferred` plus a commit guard in
+`_callRefreshToken`) and retries only on network-class errors, so two parts of the app
+cannot race each other into a replay. ⚠️⚠️ **The residual case is a LOST RESPONSE: the
+server processes the refresh, the reply never arrives over a bad connection, and the client
+retries the same token. Inside 10s that is forgiven; outside it, the session is revoked and
+the person is signed out for no reason they can see.** **The pilot store is offline a lot —
+that is not a hypothetical there.**
+⚠️ **NOT MEASURED, AND DELIBERATELY NOT DESIGNED AROUND.** Turning reuse detection off would
+remove an alarm rather than answer it. **The test this deserves is a flaky-network refresh,
+which needs no calendar at all** — written below as a candidate task so it is not lost.
+
+✅✅ **A SECOND, CLOCK-FREE INSTRUMENT FOR `5a-iv-d` WAS SEALED 2026-09-13 AT 18:23 CST.**
+A dedicated AVD, **`wera-reading-5a-iv-d`**, signed in with Google and powered down.
+⚠️ **It is a SEPARATE AVD from `wera-android-36` on purpose, and that is not tidiness**:
+opening the app refreshes the token and restarts the clock, so a design session three days
+from now would silently destroy the measurement. **`wera-android-36` is the one to open for
+design and testing; this one is not to be booted until the reading.**
+✅ **The instrument was seal-tested before being trusted** — force-stopped to a dead pid,
+relaunched, still on Inicio — so the session is known to be on disk rather than assumed.
+✅ **It uses a DIFFERENT Google account from the iPhone**, at the owner's initiative, so the
+two instruments have independent blast radii. ⚠️ **That matters precisely because reuse
+detection is on**: one account would have made a revocation capable of killing both readings
+at once, and two correlated instruments are one instrument.
+⚠️ **Its value is that it has NO PROVISIONING CLOCK.** The iPhone remains the primary
+reading, and its free profile expires `2026-09-20T06:19:32Z` — *before* day 8 — so if that
+re-deploy is fumbled, or Wera is opened by accident, **this emulator still answers.**
+
+⚠️⚠️ **DECIDED ON THE OWNER'S BEHALF, HE HAVING DELEGATED IT: THE 21st IS CHECKPOINT ONE,
+NOT THE ANSWER, AND THERE IS A SECOND LOOK ON 2026-10-13 (DAY 30).** C1.4 claims persistence
+*"until an explicit log-out"*, which is unbounded; eight days could only ever **fail to
+disprove** it, and with time-box and inactivity both at `0` the idle scenario is now the
+*least* likely way this breaks. Both devices are sealed already, so day 30 costs a glance.
+⚠️ **The shop-truth question behind it was put and was delegated rather than answered** —
+*is any pilot device plausibly untouched for a week?* If the answer is ever *no*, the idle
+reading is measuring a situation the pilot never reaches and the flaky-network test is the
+whole of the risk.
+
+⚠️ **CANDIDATE TASK, NOT YET SIZED OR PLACED: the flaky-network refresh test.** Put the app
+on a device with a live session, force a refresh across a connection that drops **after the
+request and before the reply**, and see whether the session survives. It is the reading that
+matches C10.1/C10.2's world and the offline write path of `5c`, it needs **no calendar**, and
+as of today nothing in this plan owns it. ⚠️ **It belongs near `5c`, not in `5a`** — but it
+is written here because the evidence that motivates it was gathered here and would otherwise
+be lost.
+
 ✅✅ **`5a-iv-c-3` IS DONE AS OF 2026-09-13 — THE EVENING WAS HELD A DAY EARLY, ALL SIX
 READINGS WERE TAKEN, AND `5a-iv-d` IS THE NEXT TASK.** A **Samsung Galaxy Z Flip 8**
 (SM-F776B, **Android 17 / One UI 9.0**, `arm64-v8a`) arrived in the owner's hands, so the
@@ -8753,7 +8822,7 @@ bringing the $99 forward to buy an iPhone build that outlives the measurement.
 | **`5a-iv-a`** | **iOS, and the round trip.** A local dev build on the owner's own **iPhone 15** (C1.6), then everything that can be seen in one sitting with the phone in hand: Google sign-in walked end to end — **the Supabase redirect allow-list, the PKCE exchange, and Google's *"unverified app"* interstitial** — the guard redirecting rather than hanging on a splash, **C1.3**'s restore actually landing, **C12.1**'s words drawn under the icons, and **C3.18**'s numbers looked at by someone who is not twenty-five. ⚠️⚠️ **ITS FIRST STEP IS THE DAY-0 RE-DEPLOY PRE-CHECK** — sign in, re-deploy, open, *still signed in?* — because that single answer decides whether `5a-iv-d` is free or costs $99. See the corrected finding above. | `M` | ⚠️⚠️ **ONE THING BLOCKS IT AND IT IS NOT THE HARDWARE: THE MAC HOLDS NO CODE-SIGNING IDENTITY AND NO APPLE ID** — measured 2026-09-12, along with three other things *"nothing else blocks it"* had not looked at. The other three were cleared the same day. ✅ **Run `docs/checks/5a-iv-a-preflight.sh` first** |
 | **`5a-iv-b`** | **`CONVENTIONS.md`.** One page (§3). ⚠️ **Deliberately the one piece that needs NO hardware**, so it runs while `5a-iv-d`'s clock ticks rather than competing with a device for the owner's evening. | `S` | ✅ **DONE 2026-09-12** — `docs/CONVENTIONS.md`, nine rules, seven of them read by `docs/checks/conventions-gate.sh` in `app.yml`. ⚠️ **Taken OUT OF ORDER, ahead of `5a-iv-a`**, because `5a-iv-a` needs an Apple ID only the owner can type and this needs nothing. See the write-up below |
 | **`5a-iv-c`** | ⚠️⚠️ **RE-SIZED AND SPLIT THREE WAYS 2026-09-13, BEFORE IT WAS TAKEN — see the sub-split below; `5a-iv-c-1` is what gets taken.** **Android, on real hardware.** Decision register #13 asked for an emulator smoke test; **C1.1 widened it to the pilot's actual Oppo and Samsung**. ✅ **A relative's Android is available for ONE EVENING** (confirmed by the owner 2026-09-12) — the pilot's own devices are the users' (*"not me to take their devices anywhere"*). ⚠️⚠️ **SO THE TOOLCHAIN IS INSTALLED AND A BUILD PRODUCED *BEFORE* THAT EVENING, ON THE EMULATOR** — Android Studio, the SDK and `adb` are hours of setup, and spending a borrowed evening on them is spending the one resource this task cannot re-book. ✅ **That is register #13's emulator, rehabilitated as a TOOLCHAIN REHEARSAL and not as a verification** — it still cannot answer one of the six readings. ⚠️ **It is on no critical path**: nothing else in `5a` waits for it. | `L` — **not the `S/M` this table carried** | ⚠️ **One evening with a borrowed Android**, prepared for in advance — ⚠️⚠️ **and that gate binds `5a-iv-c-3` ALONE.** The other two pieces are ungated, which is the whole reason this row was split rather than scheduled |
-| **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task, AND IT IS NOW FIXED.** ✅ The `5a-iv-a` day-0 pre-check PASSED on 2026-09-13, so this is free — no $99. **Day 0 is 2026-09-13; the reading is due 2026-09-21.** ⚠️⚠️ **The free profile expires `2026-09-20T06:19:32Z`, which is BEFORE the reading** — re-deploy (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`) and only THEN open and look. **Do not open Wera in between; launching it restarts the measurement.** |
+| **`5a-iv-d`** | **The eight-day reading, and nothing else.** C1.4's *"the session persists until an explicit log-out"*, measured. ⚠️ **On the owner's iPhone 15** — see the correction above; the Android detour was mine and it was wrong. | `XS` **in effort, and the longest lead time in step 5** | ⚠️⚠️ **A DATE, not a task, AND IT IS NOW FIXED.** ✅ The `5a-iv-a` day-0 pre-check PASSED on 2026-09-13, so this is free — no $99. **Day 0 is 2026-09-13; the reading is due 2026-09-21.** ⚠️⚠️ **The free profile expires `2026-09-20T06:19:32Z`, which is BEFORE the reading** — re-deploy (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`) and only THEN open and look. **Do not open Wera in between; launching it restarts the measurement.** ✅✅ **A SECOND, CLOCK-FREE INSTRUMENT WAS SEALED 2026-09-13 18:23 CST** — the AVD `wera-reading-5a-iv-d`, Google-signed-in on a **different account**, seal-tested and powered down. ⚠️ **Do not boot it; use `wera-android-36` for design and testing** — opening the app restarts the clock. ✅ **Session config READ (a report, not a measurement): time-box `0`, inactivity `0` — nothing expires a session**; reuse detection **On** at a `10s` interval, which is where the real risk now sits. ⚠️ **Day 8 is a CHECKPOINT, not the answer — look again on 2026-10-13 (day 30).** |
 
 **Why `a` is one task and not three.** The build, the round trip and the four
 look-at-it deliverables all happen **with the phone in your hand, in one sitting**.
@@ -9910,7 +9979,7 @@ are cheap today and dear once a screen rests on them.
 | **5a-iv-c-1** | **The toolchain, and an emulator that boots.** JDK 17 (AGP `8.12.0` / Kotlin `2.1.20` set the floor), the Android SDK command-line tools, `platform-tools`, a platform, build-tools, the emulator, an **`arm64-v8a`** system image, an AVD, licences accepted. ⚠️ **Nothing from this repository is involved**, which is the seam: this piece can only be wrong about the machine. | `M` | ✅✅ **DONE 2026-09-13 — 14/14.** It was **ungated**, as sized. `docs/checks/5a-iv-c-toolchain.sh` ends on a *booted* emulator whose ABI is read with `getprop`, not inferred from the package name |
 | **5a-iv-c-2** | **The Release rehearsal.** `expo prebuild -p android` (generated, not committed — `/android` is already ignored), a **Release** APK, installed on the AVD and launched. ⚠️ **Decision register #13's emulator smoke test, discharged literally.** ⚠️⚠️ **And the first instrument that can look at `R10` on the SECOND runtime** — every `Intl` measurement behind that rule was taken on iOS Hermes, and Android Hermes backs ECMA-402 differently. | `M` | ✅✅ **DONE 2026-09-13** — `docs/checks/5a-iv-c-2-rehearsal.sh` 15/15, six falsifications. ⚠️⚠️ **`formatToParts` IS PRESENT on Android Hermes**, so `R10` is now an INTERSECTION of platforms |
 | **5a-iv-c-3** | **The borrowed evening.** C1.1's actual Oppo and Samsung — the widening that made this task more than an emulator run. | `S` | ✅✅ **DONE 2026-09-13 — the evening was held A DAY EARLY**, on a Galaxy Z Flip 8 (Android 17 / One UI 9). **Six readings, six answers**; `docs/checks/5a-iv-c-3-runsheet.md` is now the filled-in record. ⚠️⚠️ **A5 found a real defect and it was fixed and re-verified on the same phone** — see the log |
-| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS A DATE RATHER THAN WORK — EVERYTHING ELSE IS WAITING ON THE OWNER.** ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** |
+| **5a-iv-d** | **The eight-day reading**, and nothing else — C1.4's persistence, measured. ⚠️ **On the owner's iPhone 15** — the Android routing was withdrawn 2026-09-12; see the correction in the sizing section. | `XS` in effort, **longest lead time in step 5** | ⚠️⚠️ **THIS IS THE NEXT TASK, AND IT IS A DATE RATHER THAN WORK — EVERYTHING ELSE IS WAITING ON THE OWNER.** ⚠️⚠️ **THE DATE IS SET BY A `5a-iv-a` BUILD: DAY 0 IS 2026-09-13, THE READING IS DUE 2026-09-21.** ✅ The `5a-iv-a` day-0 pre-check passed, so this is free. ⚠️⚠️ **The profile expires `2026-09-20T06:19:32Z` — BEFORE the reading.** Re-deploy first (`xcodebuild … -allowProvisioningUpdates`, then `devicectl install`), *then* open and look. **Do not open Wera before then.** ✅✅ **A SECOND, CLOCK-FREE INSTRUMENT WAS SEALED 2026-09-13 18:23 CST** — the AVD `wera-reading-5a-iv-d`, Google-signed-in on a **different account**, seal-tested and powered down. ⚠️ **Do not boot it; use `wera-android-36` for design and testing** — opening the app restarts the clock. ✅ **Session config READ (a report, not a measurement): time-box `0`, inactivity `0` — nothing expires a session**; reuse detection **On** at a `10s` interval, which is where the real risk now sits. ⚠️ **Day 8 is a CHECKPOINT, not the answer — look again on 2026-10-13 (day 30).** |
 
 ✅ **Nothing in `5a`'s row was dropped in the split.** Its ten deliverables — the Expo
 project, both platforms, OAuth, the persistent session, last-screen restore, the density
