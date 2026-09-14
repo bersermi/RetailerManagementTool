@@ -118,16 +118,30 @@ written and no migration had ever shipped it. **77 behavioural checks in
 the first membership this database has ever written for somebody who did not create the
 workspace.
 
-⚠️⚠️ **ONE DECISION IS OFFERED BACK, AND IT IS THE ONE AN OWNER MIGHT RULE THE OTHER WAY:
-`redeem_invite` DOES NOT REQUIRE THE CALLER'S SIGNED-IN ADDRESS TO MATCH THE INVITE'S.** The
+✅✅ **AND THE ONE DECISION THAT WAS OFFERED BACK IS RULED, HOURS LATER AND BEFORE `0029`
+EXISTS — the owner said *"do what you recommend"* on 2026-09-13, which is the recommendation
+below: `redeem_invite` DOES NOT REQUIRE THE CALLER'S SIGNED-IN ADDRESS TO MATCH THE
+INVITE'S.** ⚠️ **The behaviour does not change — it is what `0028` merged with** — so the
+ruling costs no migration, which is the cheapest a decision of this kind ever gets. The
 token is the credential — unguessable, single-use, seven days old at most, and delivered by
 the owner to the person the owner chose. An address check would add a second factor and would
 also refuse the ordinary case this pilot is about to meet: **`5a-iv-c-3` signs the shopkeeper
 in with GOOGLE**, and the address Google returns is not necessarily the one the owner typed
 into the invite screen. That refusal is silent from the joiner's side and looks like a broken
 app. **`accepted_by` records who actually joined (`D4`), so the difference is kept rather than
-lost.** ⚠️ Reversing it is a `create or replace`; a client that has branched on it is what
-makes it dearer. Check **`6.9`** is its home and falsification **`F11`** is the reversal.
+lost.** ⚠️⚠️ **AND NOTHING BUT A TEST CAN HOLD IT**, which is why it is written up rather
+than filed: the ruling is that redemption does **not** compare two values, and an absent
+comparison has no constraint, no grant and no policy to live in. **Checks `6.9` and `6.10`
+are the entire guard**, and their labels now name the ruling rather than the behaviour — so a
+later session adding the email check that looks like a hardening is told whose decision it is
+undoing. ⚠️⚠️ **AND THE GUARD DID NOT FIRE WHERE IT WAS DOCUMENTED UNTIL A FIXTURE WAS
+RE-SIGNED.** Re-running **`F11`** against the renamed checks aborted the suite at `5.9`,
+three sections early, because that section's manager invite was addressed to somebody other
+than the user who redeems it — an INCIDENTAL second test of the ruling, in a check written
+about something else. ✅ **`3.18`'s fixture now carries that user's own address**, the
+reversal lands on `6.9`/`6.10`, and the message a future session reads is the one naming the
+decision. **A check that names a ruling is worth nothing if a fixture three sections above it
+stops the run first.**
 
 ⚠️⚠️ **AND §2.7's OWN SENTENCE ABOUT THIS FUNCTION IS WRONG — *"an owner or manager calls
 `create_invite(...)` under normal RLS"*.** It predates its own amendment, and `D3′` is what
@@ -8413,7 +8427,7 @@ the second inside ADR-035 itself.**
 | **2** | ⚠️ **`create_invite` takes `p_workspace_id`**, which this file's own sketch of the signature did not | Deriving it is *"the one workspace this caller manages"*, and §2.7 refuses that in advance: *"many workspaces per user works from day one … retrofitting that later would touch every screen."* Every other fenced RPC here is NAMED its scope by the caller; this one has no row to read it off |
 | **3** | **The token is 16 Crockford characters (80 bits), and normalisation lives INSIDE the hash** | Same alphabet as `D5`'s code because it is delivered the same way — §2.7: *"the owner sends the code over WhatsApp"*. 16 rather than 8 because `redeem_invite` is an oracle by construction and this token IS the approval, where the join code admits a caller to nothing until an owner acts. Normalising inside `hash_invite_token` is what makes *"the creating and redeeming halves disagree about what a token is"* unwriteable — a defect that would present as *"the code the owner is reading aloud does not work"* with nothing in the schema looking wrong |
 | **4** | ⚠️ **A `staff` invite must name at least one location; a `manager` or `owner` invite stores `'{}'` whatever was passed** | **`D8`'s ARGUMENT, not `D8`** — which is `0029`'s and stays there. Its reasoning is about `member_location`, not about which RPC wrote it: an approved joiner with no locations opens the app and **every write is refused by RLS with no message**, which looks exactly like the app being broken. The converse is `0002:377`: those roles get every location by role, and a row here would outlive a demotion |
-| **5** | ⚠️⚠️ **Redemption does NOT require the caller's signed-in address to match the invite's** | **OFFERED BACK — see the status log.** The token is the credential; `5a-iv-c-3` signs the shopkeeper in with Google, whose address is not necessarily the one the owner typed, and refusing that is silent from the joiner's side. `accepted_by` records who actually joined, so nothing is lost. Check `6.9`, falsification `F11` |
+| **5** | ✅✅ **RULED BY THE OWNER 2026-09-13, NOT TAKEN ON HIS BEHALF AFTER ALL — *"do what you recommend"*.** Redemption does NOT require the caller's signed-in address to match the invite's | It was offered back because it was the one an owner might cut: an address check is a real second factor. He kept the recommendation, so the token is the credential — `5a-iv-c-3` signs the shopkeeper in with Google, whose address is not necessarily the one the owner typed, and refusing that is silent from the joiner's side. `accepted_by` records who actually joined, so nothing is lost. ⚠️ **The behaviour is unchanged from what `0028` merged with**, so the ruling cost no migration. Checks `6.9` and `6.10` are the only thing holding it; falsification `F11` |
 | **6** | **A LIVE pending invite is replaced; a LIVE pending REQUEST is refused** | *"I sent it, they never got it, send it again"* is what a shop does, and refusing costs a human step — the owner's tie-break is the option that adds none. But inviting someone who has already ASKED is an **approval**, and approval carries `D8`, which is `0029`'s: absorbing it here is the `Z2` fixture's shape exactly, two tasks each assuming the other owns a ruling |
 
 ⚠️ **A seventh call is inside decision 6's family and is worth its own line: a returning
@@ -8462,7 +8476,7 @@ cost `4.6a-i` an hour cannot happen here.
 | **F8** | The membership is written and the `member_location` rows are not | 🔴 `5.3`, `5.7`, `5.8` — **`5.7` is the one that matters**: `my_locations()` returns 0 of the workspace's 2 stores for a joiner whose row looks fine |
 | **F9** | Expiry stops being checked at redemption | 🔴 `6.7` |
 | **F10** | A spent token becomes reusable by anybody | 🔴 `6.6` |
-| **F11** | ⚠️⚠️ **Decision 5 REVERSED** — the caller's address must match the invite's | 🔴 aborts at `5.9`, before it reaches `6.9`, because the fixture contains two such mismatches. **This is the fixture that proves the suite can see the ruling either way**, which is what makes offering it back cheap |
+| **F11** | ⚠️⚠️ **The 2026-09-13 ruling REVERSED** — the caller's address must match the invite's | 🔴 `6.9`, `6.10`, and `4.7`/`6.7`/`6.8` as collateral, because the added comparison sits ahead of the expiry branch and answers `42501` where the suite wants `TD003`. ⚠️ **RE-RUN AFTER THE RULING, AND THE FIRST RUN WAS WORSE THAN IT LOOKED**: it aborted at `5.9` — whose manager invite was addressed to somebody other than the user who redeems it — so the suite died three sections before the check that NAMES the ruling and said nothing about whose decision was being undone. ✅ **`3.18`'s fixture is re-signed to that user's own address**, and the reversal now lands where it is documented |
 
 #### ⚠️ What `0028` deliberately does NOT do
 
