@@ -110,6 +110,30 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`4.6a-i` IS DONE AS OF 2026-09-13 — `0027` IS APPLIED, AND `4.6a-ii` IS THE NEXT TASK.**
+The membership shape landed: `workspace.code` (**`D5`**), `workspace_invite` re-shaped
+(**`D1`**, **`D2`**, **`D4`** — the first column rename in this schema), the **`D3′`**
+supersede helper, the backfill, `onboard_workspace` replaced a third time, and pgTAP `02`,
+`03` and `04` re-signed because the rename breaks their INSERT. **64 behavioural checks in
+`supabase/tests/0027_membership_shape.sql`, eleven falsifications against a green control.**
+
+⚠️⚠️ **ONE THING NEEDS THE OWNER'S EYE, AND IT IS CHEAP ONLY UNTIL `0028` MERGES: §2.7's
+`D1` AND `D4` CONTRADICT EACH OTHER, AND `0027` CHOSE `D4`.** `D1` says `decided_by` is
+present *"exactly when `source = 'invite'`"*; `D4` says it is also set *"at approval for a
+request"*. **An approved request has a decider on a `request` row, so no constraint
+satisfies both.** The migration keeps `D4` — because `D4` exists so that *"who approved this
+membership"* has an answer, and the request path is the only path where approval is a
+separate act — and preserves `D1`'s reason, which is about the row **at creation**, by
+checking `(decided_by is not null) = (accepted_at is not null)` on a request. **The full
+argument, the pair of checks that hold it and the falsification that breaks it are in
+`4.6a-i`'s done section.**
+
+⚠️ **AND THE GATE ABOVE `4.6a` WAS STALE WHEN THIS TASK WAS TAKEN.** The READ-FIRST block
+still said decision register #9 was *"STILL OWED AND STILL BLOCKING"* hours after ADR-035
+had been amended to carry C11.5/C11.6 — **the eighth stale copy recorded here, and the first
+where the stale copy was a gate**. The ADR won, as `CLAUDE.md` says it must. ⚠️ **No guard
+reads that block**, which is how it survived.
+
 ✅✅ **`4.6a` IS SIZED AND SPLIT AS OF 2026-09-13, BEFORE A LINE OF IT WAS WRITTEN — IT IS AN
 `L`, IT BECOMES THREE `M`s, AND `4.6a-i` IS THE NEXT TASK.** The row said *size and split it
 before writing a line*; this is that, and **nothing else — `0027` does not exist yet.** The
@@ -8055,9 +8079,19 @@ the second pass after 5b."*** Both halves, in one sentence:
 **What is owed, as of 2026-09-13 — ONE amendment, and one line of ADR text that lags a
 ruling:**
 
-- ⚠️⚠️ **STILL OWED AND STILL BLOCKING: decision register #9**, the membership flow.
-  `4.6a` must not be written until the ADR carries C11.5/C11.6. **It is now the ONLY
-  open item of the four**, the other three having closed on 2026-09-07 and 2026-09-13.
+- ✅✅ **CLOSED, AND THE LINE BELOW WAS STALE FOR PART OF 2026-09-13: decision
+  register #9**, the membership flow. ⚠️ **This bullet still read *"STILL OWED AND
+  STILL BLOCKING"* when `4.6a-i` was taken**, while ADR-035 had already carried
+  C11.5/C11.6 since the second revision entry of that date — so the file telling a
+  cleared session *"do not start `4.6a`"* disagreed with the file `CLAUDE.md` says
+  wins, and with this plan's own `4.6a-i` row calling itself the next task. **The ADR
+  won, as the rule says.** It is the EIGHTH stale-copy defect recorded here and the
+  first where the stale copy was a GATE: a session obeying it literally would have
+  downed tools on an unblocked task and waited for a ruling already given.
+  ⚠️ **No guard reads this block** — `4.6a-split-coverage.sh` checks the table rows
+  and the three files' agreement on the split, not this prose — which is exactly how
+  it survived. The paragraph below is kept because it is still the clearest one-line
+  statement of what the amendment was.
   ⚠️ **Re-described for the owner on 2026-09-13, who asked what it was.** In one
   sentence: **the ADR says the owner pushes an invite, and the owner said the joiner
   pulls with a code — and he wants both.** The register records `create_invite(email,
@@ -8130,8 +8164,8 @@ it.
 | Task | Migration | What it is | Size | Blocks |
 |---|---|---|---|---|
 | **4.6a** | ⚠️ **`0027`–`0029`, three files** | **Membership — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** Sized `L` and SPLIT three ways 2026-09-13, before a line was written, exactly as this row demanded. `workspace` join code; `create_invite` / `redeem_invite`, **which were assigned to `0005` and never written**; the join-request path `request_access` and its approval `approve_request`, plus the joiner's status read `my_access_requests`. Register #9's eight rulings, all of which land somewhere below: **`D1`** `source`, **`D2`** nullable `token_hash`, **`D3′`** supersede the expired pending row, **`D4`** `invited_by` → `decided_by`, **`D5`** the 8-character Crockford code, **`D6`** resolve the whole code with no scan policy, **`D7`** a request absorbs a pending invite, **`D8`** locations required at approval | `L` — **split, three `M`s** | Blocks **half of `5b`** |
-| **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — blocks `4.6a-ii` and `4.6a-iii`, which are both unwritable until the columns exist |
-| **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(email, role, location_ids)` returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | the invite screen in `5b` |
+| **4.6a-i** | `0027` | **The table, and the column nobody has.** `workspace.code` with its generator and its input normaliser (**`D5`**); `workspace_invite` re-shaped — `source` (**`D1`**), nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**) — with ONE check constraint holding the first two together; and the **`D3′`** supersede helper that both creating RPCs call, written once here rather than twice downstream. ⚠️ **It re-signs `02`, `03` and `04`**, which each insert an invite fixture naming the renamed column. Suite: `supabase/tests/0027_membership_shape.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0027` applied, 64 behavioural checks, eleven falsifications. `4.6a-ii` and `4.6a-iii` are unblocked |
+| **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(email, role, location_ids)` returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-13** — the invite screen in `5b` |
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | the join screen in `5b` |
 | **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | the replay control in `5c` |
 | **4.6c** | ⚠️ `0031` — **was `0029`, renumbered by the `4.6a` split, 2026-09-13** | **The family margin view**: purchases-in against sales-out, per family, per period | `M` | ⚠️ **GATED — área 9 is BRIEFED and still UNRULED**; part A is shop truth and nobody here can answer it |
@@ -8281,6 +8315,134 @@ six recorded stale-copy defects.
 | **Z8** | ⚠️ **`my_access_requests` struck from `4.6a-iii`** — added 2026-09-13 with the thirteenth deliverable | 🔴 — an atom added to a coverage list and never falsified is an atom nobody has shown the guard can see |
 | **Z9** | ⚠️ **ADR-035 §2.7's superseded sentence restored** — the rulings freeze at `0027` again | 🔴 *"freeze when 0027 merges"* — and this is the file `CLAUDE.md` tells a cleared session to obey over every other, so the sentence is an instruction and not a note |
 | **Z10** | ⚠️⚠️ **`4.6a-iii` struck out of §2.7's amendment TABLE** — the anti-vacuity case | 🔴 **only after the assertion was fixed.** It was GREEN first: the guard matched the same pair 1,500 lines away in §8's checklist. **A fixture caught the guard measuring the wrong copy** |
+
+### ✅✅ `4.6a-i` IS DONE AS OF 2026-09-13 — `0027` applied, and two of the eight rulings could not both be true
+
+**`0027_membership_shape.sql` is applied and green.** `workspace.code` with its
+generator and normaliser (**`D5`**), `workspace_invite` re-shaped — `source` (**`D1`**),
+nullable `token_hash` (**`D2`**), `invited_by` → `decided_by` (**`D4`**, the first rename
+in this schema) — under ONE check constraint, the **`D3′`** supersede helper, the
+backfill, `onboard_workspace` replaced a third time, and `02`/`03`/`04` re-signed
+exactly as `S1` predicted. Suite: `supabase/tests/0027_membership_shape.sql`, **64
+behavioural checks**, and **eleven falsifications** against a **green control**.
+
+#### ⚠️⚠️ `D1` AND `D4` CANNOT BOTH BE TRUE AS WRITTEN, AND THIS IS THE DECISION OF THE SESSION
+
+**Found by trying to write the check constraint, not by reading the ruling.** ADR-035
+§2.7 carries both, ten lines apart, and they contradict each other:
+
+| | Says |
+|---|---|
+| **`D1`** | `decided_by` is *"present **exactly when** `source = 'invite'`"* |
+| **`D4`** | `decided_by` is *"set at creation for an invite **and at approval for a request**"* |
+
+⚠️ **An approved request has a decider on a `source = 'request'` row.** `D1`'s CHECK
+forbids precisely the row `D4` requires, so no constraint satisfies both and the
+migration had to choose one.
+
+✅ **It chose `D4`, and `D1`'s own reason survives intact.** `D1` exists because *"a
+self-request has nobody to put there"* — a statement about the row **at creation**, not
+for all time. A CHECK cannot say *"at creation"*, so the invariant is expressed as the
+state that means the same thing:
+
+```
+invite   → decided_by is not null                              (a decider from the start)
+request  → (decided_by is not null) = (accepted_at is not null) (a decider once decided)
+```
+
+⚠️⚠️ **Taking `D1` literally instead would have left `D4` renaming a column for a
+question it can no longer answer.** `D4`'s entire argument is that *"who approved this
+membership"* must have an answer in the schema — and the request path is the **only**
+path where approval is a separate act by a separate person. A literal `D1` empties
+`decided_by` on exactly those rows.
+
+⚠️ **This is reported rather than assumed, and it is cheap only until `0028` builds on
+the column.** It is the one call here the owner might make differently — the other way
+is a second column, which is what `D4` was written to avoid. **Checks `6.6` and `6.7`
+are the pair that holds it**, and falsification **`F2`** is the literal reading: it
+turns `6.7` and `6.8` red, and `6.8` red means the schema permits an approved
+membership whose approver is nobody.
+
+#### ⚠️⚠️ Three things found by asking the database instead of reading the file, and the first is a security defect in this session's own first draft
+
+**`G1` — `revoke all … from anon, authenticated` LEFT EXECUTE GRANTED TO PUBLIC.** The
+first spelling of `0027` revoked the two Supabase roles from all three helpers, which
+reads as tighter than the repository's idiom and is strictly weaker: **EXECUTE on a new
+function is granted to `PUBLIC` by default**, and `proacl` still read `=X/postgres`
+after the revoke. ⚠️ **`supersede_expired_invite` was reachable by any authenticated
+caller** — a way to retire somebody else's pending invite. `0001:595` and `0002:596`
+already had it right (`from public`); the tighter-looking line was the wrong one.
+✅ **Caught by `\d`-ing `pg_proc.proacl` rather than re-reading the migration**, which
+is the same move that found `5a-iv-a`'s four blockers and register #9's three extra
+collisions. **Four for four.** Checks `9.1`–`9.4`; falsification **`F7`**.
+
+**`G2` — A COLUMN RENAME DOES NOT RENAME ITS CONSTRAINTS.** After `D4`, the foreign key
+was still called `workspace_invite_invited_by_fkey` — a copy of the old name living in
+the catalog, which is the place a later session reads when a constraint fires and the
+error names it. ✅ **Renamed in the same migration**, since after `0027` merges it is a
+fix-forward. Check `7.3`; falsification **`F10`**.
+
+**`G3` — ⚠️⚠️ THE BACKFILL RUNS OVER ZERO ROWS IN CI, AND THE PILOT WORKSPACE IS THE
+ROW IT EXISTS FOR.** `supabase db reset` applies every migration **before** the seed,
+and the seed creates its workspaces afterwards through `onboard_workspace` — so the
+green run that proves `0027` applies **never executes its backfill loop against a
+single row.** This is not a defect in the migration; it is a **hole in what a green
+db.yml can mean**, and it is the same shape as `3.6a`'s *"a green tick is also what a
+step that ran nothing looks like."* ✅ **Section 5 of the suite re-performs the loop's
+guarantee** — 50 rows written one at a time into `public.workspace`, distinct and valid
+— and **says in its own header that it did not watch the migration's `do` block run.**
+⚠️ **It is written as inserts into the real table on purpose**: `generate_workspace_code`
+tests collisions against `public.workspace`, so a version writing to a temp table would
+pass against a generator with no collision check at all.
+
+#### ⚠️ Four decisions taken on the owner's behalf, and the first is the only expensive one
+
+| | Decision | Why it was taken rather than asked |
+|---|---|---|
+| **1** | ⚠️⚠️ **`D1` resolved in `D4`'s favour** (above) | Neither ruling can be dropped without the other losing its purpose, and no constraint satisfies both. **Cheap until `0028`; a fix-forward migration after.** Flagged by name for exactly that reason |
+| **2** | **`D3′` needs a column: `superseded_at`, and the partial index re-cut to read it** | A function can free the one-pending slot only by DELETING the row or changing a column the predicate reads. `0002:403` calls these rows *"an audit trail"*, and stamping `accepted_at` instead would record a membership that does not exist. It is a timestamp, not a boolean, because *"when did this lapse"* is what an approval queue gets asked |
+| **3** | **The code is generated from `gen_random_bytes`, not `random()`** | `D6` makes the resolving RPC an enumeration oracle and says the length is the only thing defending it. A caller who can predict the PRNG does not need to guess. pgcrypto was already installed |
+| **4** | **`source` is text-with-a-CHECK, not a seventh enum** | Follows `failed_write.kind` (`0024:205`), the most recent precedent and the closest in shape. The six enums here are domain vocabulary; this is a two-valued discriminator §2.7 spells as two string literals |
+
+#### Eleven falsifications, run by hand before `0027` was committed
+
+⚠️ **Each mutates the SHIPPED migration, resets from scratch, and re-runs the suite** —
+so every row below is a claim about the file that merges, not about a hand-edited
+database. ⚠️⚠️ **The control was RED on its first run and it was the harness, not the
+schema**: `supabase db reset` recreates the container, so the `_cleanup.sql` copied into
+`/tmp` beforehand had vanished and the seed's two workspaces survived into the suite
+(`4.2` and `5.2` counted five workspaces, not three). **A fixture red for the wrong
+reason is a coincidence, not a falsification** — `5a-iv`'s mutation helper made the same
+class of mistake — so the table below is from the corrected harness, with the failing
+check names read out of each run rather than assumed.
+
+| Fixture | The edit to `0027` | Result |
+|---|---|---|
+| **F0** | Control, unedited | 🟢 all 64 |
+| **F2** | ⚠️ **`D1` read LITERALLY** — a request may never name a decider | 🔴 `6.7`, `6.8` — and `6.8` is the one that matters: the schema now permits an approved membership with no approver |
+| **F3** | **`D4` alone** — nothing constrains `decided_by` on a request | 🔴 `6.6`, `6.8` |
+| **F4** | The partial index left as `0002` wrote it | 🔴 `8.1`, `8.4` — the fix stops working, and `8.2` still passes, which is the point of the pair |
+| **F5** | `supersede_expired_invite` forgets it is about EXPIRED rows | 🔴 `8.6`, `8.7`, `8.8` |
+| **F6** | It ignores the `workspace_id` it was given | 🔴 `8.8` |
+| **F7** | ⚠️ **`G1`'s original spelling restored** — revoke from `anon, authenticated` | 🔴 `9.1`–`9.4` |
+| **F8** | A 36-character alphabet — `I`, `L`, `O`, `U` back in | 🔴 **AT RESET**, on `workspace_code_shape`: the seed's own `onboard_workspace` cannot write a code. Confirmed by reading the constraint name out of the failure, not by assuming |
+| **F9** | The normaliser stops mapping Crockford's excluded letters | 🔴 `3.2`, `3.3`, `3.4` |
+| **F10** | **`G2`'s rename skipped** — the FK keeps the old column's name | 🔴 `7.3` |
+| **F11** | ⚠️ **A whole section of the SUITE deleted** (section 10) — the anti-vacuity case | 🔴 `11.1`, the count guard |
+| **F12** | The code shape check relaxed to `code is not null` | 🔴 `1.5`–`1.11`, plus `3.10`, `4.2`, `5.2` downstream |
+
+#### What `0027` deliberately does NOT do
+
+- **No RPC.** `create_invite` / `redeem_invite` are `0028`; `request_access` /
+  `approve_request` / `my_access_requests` are `0029`. Asserting anything about the flow
+  here would be asserting it about a function nobody has written.
+- **No seed rows** (`S2`). `02`'s `F9` asserts `workspace_invite` was empty in the seed
+  and says a future seed populating it *"turns red and someone decides whether the
+  fixture is still wanted."* No seed file was touched.
+- **No policy.** `D6` forbids a scan of `workspace` by code, and the cheapest-looking way
+  to make `0029`'s join screen work is exactly the SELECT policy it rules out. Checks
+  `10.1` and `10.2` assert `workspace` still has only its two policies from `0001` and
+  that the SELECT one is still membership-scoped.
 
 ### ⚠️⚠️ 4.6a — the membership flow has no functions, and the owner wants the inverse of the one it was designed for
 

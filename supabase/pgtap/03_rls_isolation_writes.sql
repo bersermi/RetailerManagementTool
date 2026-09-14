@@ -253,7 +253,11 @@ update iso_actor x
 create temp table iso_invite_before as
 select count(*)::int as n from public.workspace_invite;
 
-insert into public.workspace_invite (workspace_id, email, role, invited_by, token_hash)
+-- ⚠️ `decided_by` WAS `invited_by` UNTIL `0027` (register #9 D4, the first rename
+-- in this schema). This fixture is re-signed in the same commit as the migration,
+-- because the rename breaks the INSERT rather than the claim — and a suite that
+-- dies in setup reports zero failing tests (4c-ii).
+insert into public.workspace_invite (workspace_id, email, role, decided_by, token_hash)
 select a.ws_id,
        'invite.' || a.tag || '@pgtap.invalid',
        'staff',
