@@ -33,9 +33,18 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **Revenue: GROSS or NET of IVA?** ⚠️ `product_velocity_daily` carries `revenue_net` and nothing else, and `workspace.prices_include_tax` defaults to **true** — so the number the view returns is **not the number on the shelf label**, and *"Revenue Earned"* (`A6`) is ambiguous between them. ✅ **Recommendation: GROSS as the headline, net beside it**, because the shopkeeper reconciles against the cash in the till and the price they typed already included the tax | `4.6c-i` | ✅ **Asked 2026-09-14**, with the reasoning, in this session's closing message |
-| **Does a CASHIER see the shop's revenue?** ⚠️⚠️ **Today they DO, and it is applied, not proposed**: a staff member of the seed's Tienda Doña Lupe reads 15,099 rows of `product_velocity_daily` totalling **$65,549** of `revenue_net`, while margin, cost and waste correctly return ZERO rows for them. §2.7's capability table fences *"see cost and margin"*, and revenue is neither. ✅ **Recommendation: leave it** — they ring the sales up, so they already know — but it is **your** call, not an accident to inherit | `4.6c-i` | ✅ **Asked 2026-09-14**, measured against the seed rather than reasoned |
-| **ADR-035 §2.9 now disagrees with your ruling, and `CLAUDE.md` says the ADR wins.** §2.9's first question is *"what made me money?"* and `A3` retires it: *"we won't derive the profit so let's ignore margins for now."* ⚠️⚠️ **Until §2.9 is amended on your instruction, a cleared session is told to rebuild the margin view** — the plan would be the bug, not the ADR | `4.6c-i`, and every later Números task | ✅ **Asked 2026-09-14.** The amendment is three lines and I will write it on your word |
+
+✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.** The three
+decisions parked here that morning — gross-or-net revenue, whether a cashier sees revenue,
+and the ADR amendment §2.9 needed — were all ruled the same day: **gross, leave it, amend it.**
+⚠️ **The block STAYS when it empties**: `plan-handover.sh` says in its own comment that zero
+open decisions is *"a legitimate and desirable state"* and that deleting the block is what it
+refuses, because the block is the only thing that guarantees the next one gets re-offered.
+
+✅ **AND THE EMPTIED BLOCK WAS PROVED TO STILL GUARD, NOT MERELY TO STILL PASS.** An empty
+region is exactly where a check goes vacuous, so a copy of this file was given one row naming
+the next task and `plan-handover.sh` went **red** — *"4.6b is marked as the next task, and the
+decisions-owed block says it is blocked"*. **Zero rows is a state, not a disarmed assertion.**
 
 **Four falsifications over the block itself** (`plan-handover.sh`, assertions 7a–7c):
 
@@ -111,6 +120,31 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+✅✅ **THREE RULINGS, 2026-09-14 — GROSS REVENUE, THE CASHIER KEEPS HER VIEW, AND ADR-035 IS
+AMENDED. THE DECISIONS BLOCK IS NOW EMPTY.** All three were raised by the área 9 ruling hours
+earlier and all three are closed before any of them could go stale.
+
+- **Revenue is GROSS of IVA**, net beside it. `prices_include_tax` defaults true, so the price
+  typed into the catalog already contains the tax and gross is what reconciles against the
+  cash in the till. ⚠️ **`product_velocity_daily` carries `revenue_net` and no tax column**, so
+  this is not free: `4.6c-i` has to reach the tax that today lives only in the manager-only
+  `product_margin_daily`. **It is now that view's first design problem rather than a surprise
+  in the middle of writing it.**
+- **A cashier keeps seeing quantity and revenue.** ⚠️ **Ruled rather than inherited, which is
+  the point**: she could already, and nobody had decided it — `product_velocity_daily` carries
+  no cost and grants `select` to `authenticated`. **ADR-035 §2.7's capability table now carries
+  a row of its own for it**, so the next person to read the fence sees a decision instead of an
+  omission.
+- ✅✅ **ADR-035 §2.9 IS AMENDED on his instruction** — the first question is **retired, not
+  re-measured** — so `CLAUDE.md`'s *"the ADR wins"* now points a cleared session at the
+  numbers he actually asked for. ⚠️ **This is what the third decision was for**: the plan had
+  been right and the ADR had been authoritative, and they disagreed.
+
+⚠️ **Two older ADR sentences point at the retired question and are deliberately NOT rewritten**
+— §2.5's reason for a per-line net cites margin-by-product (the requirement stands, the example
+moved, and one clause was corrected), and §3 step 2's gate text describes a step that **closed
+in August**. **Completed history is left as the record of what was actually done.**
 
 ✅✅ **`4.6a-iii` IS DONE AS OF 2026-09-14 — `0029` IS APPLIED, `4.6a` IS COMPLETE, AND `4.6b` IS THE NEXT TASK.**
 The pull path exists: `request_access(code)`, `approve_request(id, location_ids)` and
@@ -8262,7 +8296,7 @@ it.
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
 | **4.6b** | ⚠️ `0030` — **was `0028`, renumbered by the `4.6a` split, 2026-09-13** | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch | `S` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14** — the replay control in `5c` |
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
-| **4.6c-i** | `0031` | **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace | `M` | ⛔ **GATED on `N1`** — gross or net revenue is the owner's call and it decides this view's columns |
+| **4.6c-i** | `0031` | **Purchases as a first-class read**, per variant and family per day, beside the revenue `0013`/`0014` already return — plus **the C8.6 honesty comment on `0009`**, which nothing will now replace. ⚠️ **Revenue is GROSS** (ruled 2026-09-14), and the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem | `M` | ✅ **UNGATED as of 2026-09-14** — the Números charts in `5d` |
 | **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's | `M` | the price card in `5d` |
 | **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
 
@@ -8919,7 +8953,7 @@ suspected of leaking.**
 
 | | What | Where it stands |
 |---|---|---|
-| **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it | ⛔ **Owner's call** — parked in the decisions block |
+| **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it | ✅✅ **RULED 2026-09-14: GROSS, net beside it.** ⚠️ The fence problem is real and is now `4.6c-i`'s opening move, not a discovery |
 | **N2** | **Purchases as a first-class read.** *"How much was bought this week/month"* exists only as `purchases_qty_base` / `purchases_net` **inside `product_waste_daily`** — a view named for waste, which is not where anyone will look, and whose grain is a variant-day | Needs a view |
 | **N3** | **Price over time, both sides, with the % windows.** Nothing in the schema answers it. `provider_price_memory` (`0008`) is the **last** purchase price only, not a history; `price_list` is the *intended* sale price and **is EMPTY in the seed (0 rows)**. The real history is in the ledger — `purchase_line` and `sale_line` unit prices, dated | Needs a view, and it is the largest piece |
 
