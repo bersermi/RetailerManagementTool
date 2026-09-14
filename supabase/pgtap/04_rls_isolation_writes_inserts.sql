@@ -357,10 +357,12 @@ begin
         w.ws_id, v_variant, v_price_loc, '2099-01-01')),
 
       -- workspace_invite_insert: has_role(workspace_id, 'manager').
+      -- ⚠️ `decided_by` was `invited_by` until `0027` (register #9 D4); re-signed
+      -- with the migration, since the rename breaks the INSERT, not the claim.
       -- `token_hash` is globally unique, so it carries the workspace id — which
       -- is a uuid, and therefore masked away by F8 along with the others.
       (w.tag, 'workspace_invite', format(
-        'insert into public.workspace_invite (workspace_id, email, role, invited_by, token_hash) '
+        'insert into public.workspace_invite (workspace_id, email, role, decided_by, token_hash) '
         || 'values (%L, %L, %L, %L, %L)',
         w.ws_id, 'invitee.3.2b-ii@pgtap.invalid', 'staff', v_owner_user,
         'pgtap-3.2b-ii-' || w.ws_id));
