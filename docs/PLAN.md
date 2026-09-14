@@ -33,7 +33,7 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **Area 9 — Números.** *"Three numbers, not thirty."* ⚠️ **No brief written yet**; the answer decides a migration's shape | `4.6c` | Not yet written — ask for it and it will be prepared the same way |
+| **Área 9 — Números.** *"Three numbers, not thirty."* ⚠️⚠️ **The brief found that TWO of §2.9's three questions are wrong for the pilot's main product line, not one** — so the answer decides more than one migration's shape. ⚠️ **It has two halves and they take different kinds of answer**: `A1`–`A6` are shop truth and carry **no recommendation on purpose**; `B1`–`B8` are engineering and carry one each | `4.6c` | ✅ **Written 2026-09-13** — `4.6c`'s section below, *"Área 9 — THE BRIEF"* |
 
 **Four falsifications over the block itself** (`plan-handover.sh`, assertions 7a–7c):
 
@@ -134,6 +134,35 @@ same shape as `conventions-gate.sh`'s comment-stripping trap, hit the same day, 
 different file: A GUARD THAT READS THE SENTENCE EXPLAINING THE DEFECT REPORTS THE DEFECT.**
 Twice in one day is not a coincidence — **prose about a check is input to that check**,
 and neither script had been written with that in mind.
+
+✅✅ **ÁREA 9's BRIEF IS WRITTEN AS OF 2026-09-13, AND IT FOUND THAT TWO OF THE THREE
+NÚMEROS QUESTIONS ARE BROKEN, NOT ONE.** The decisions-owed block's last row now points at a
+written brief instead of an offer to write one. ⚠️ **It is still OPEN — it is a brief, not a
+ruling.**
+
+⚠️⚠️ **F2 HAS A TWIN, AND IT WAS FOUND THE SAME WAY F2 WAS: BY READING THE OTHER VIEWS
+INSTEAD OF TRUSTING THE RECORD OF THEM.** `F2` said question 1 was broken under C8.6.
+**Question 2 is broken identically**: `product_waste_daily` costs waste from
+`unit_cost_net_per_base` on the movement — **zero for a shortfall lot** — so throwing away
+`Pechuga` costs **$0**, and the rate's denominator is purchases of `Pechuga`, which is
+**also zero** because you buy whole birds. ✅ **Question 3 is intact and says so itself**:
+velocity is quantity only, and `0013`'s header already records *"there is no cost column for
+it to fail open on."* ⚠️⚠️ **`4.6c` was therefore scoped to fix one of two, on the pilot's
+MAIN product line** — whether one view answers both is `B4`, and `B4` waits on `A4`.
+
+⚠️⚠️ **THE BRIEF HAS TWO HALVES THAT TAKE DIFFERENT KINDS OF ANSWER, AND THAT IS THE
+DELIBERATE DIFFERENCE FROM REGISTER #9.** `A1`–`A6` are **shop truth and carry NO
+recommendation**, because the grill-me rule is *ask, do not propose* and a proposal there is
+a guess about a shop nobody here stands in — **CI can prove a view is consistent and can
+never prove it is the number a shopkeeper wanted.** `B1`–`B8` are engineering and carry a
+recommendation each, in register #9's shape.
+⚠️ **`A5` is asked because ADR-035 §4 told us to**: its risk row says *"owner doesn't open
+Números unprompted in week two → the three questions are the wrong three. Ask what they
+checked instead."* **That question is now asked before the pilot rather than after it.**
+⚠️⚠️ **And `A3` can invalidate half of Part B**: if the number is wanted **per piece**, no
+view solves it, because C8.6 means a piece's cost is **not derivable from anything the
+ledger stores** — the conversation would become whether to model the despiece at all, which
+is far larger than `4.6c`.
 
 ✅✅ **THE OPEN ITEMS WERE PUT IN ORDER ON 2026-09-13, AND THE FINDING IS THAT THIS FILE HAD
 THREE KINDS OF OWED THING AND HOMES FOR ONLY ONE.** The owner asked for the backlog to be
@@ -8107,6 +8136,66 @@ brief's own reasoning**, found because the migration was opened instead of the s
 it. The same move found `5a-iv-a`'s four blockers, `5a-iv-c-1`'s missing JDK, and the four
 collisions this brief is built on. **Three for three.**
 
+### ⚠️⚠️ Área 9 — THE BRIEF. Two of the three Números questions are broken, not one
+
+**Prepared 2026-09-13, at the owner's request.** ⚠️⚠️ **THIS BRIEF HAS TWO HALVES AND THEY
+TAKE DIFFERENT KINDS OF ANSWER, WHICH IS THE ONE THING TO READ BEFORE THE REST.**
+
+- **Part A is SHOP TRUTH and carries NO RECOMMENDATIONS, deliberately.** The grill-me rule
+  is *ask, do not propose*, and it exists because a proposal here is a guess about a shop
+  nobody in this repository stands in. **CI can prove a view is consistent; it can never
+  prove it is the number a shopkeeper wanted.** Answer these in your own words.
+- **Part B is ENGINEERING and carries a recommendation each**, in register #9's shape —
+  the intended answer is *yes* or *no*.
+
+#### ⚠️⚠️ The finding, and it re-scopes `4.6c`: F2 has a twin
+
+`F2` recorded that **question 1** is broken under **C8.6**. Reading the other two views on
+2026-09-13 — rather than trusting that record — found that **question 2 is broken the same
+way and nobody had written it down.**
+
+| | The question (§2.9) | The view | Under C8.6 (`Pollo entero` in, pieces out) |
+|---|---|---|---|
+| **1** | *What made me money?* | `product_margin_daily` (`0009`) | ⚠️⚠️ **Broken.** `Pechuga` sells from a **zero-cost shortfall lot** → **100 % margin**; `Pollo entero` is bought and never sold → **its cost never enters COGS at all.** Rolling up by family does not rescue it: the family's COGS is still zero |
+| **2** | *What am I throwing away?* | `product_waste_daily` (`0011` / `0012`) | ⚠️⚠️ **BROKEN THE SAME WAY, AND UNRECORDED UNTIL NOW.** Waste cost is `qty × unit_cost_net_per_base` **off the movement**, which for a shortfall lot is **zero** — so throwing away `Pechuga` costs **$0**. And the rate's **denominator** is purchases *of that product*, which for `Pechuga` is also zero, because you buy birds. **The headline number is 0 over 0** |
+| **3** | *What stopped selling?* | velocity (`0013` / `0014`) | ✅ **Intact, and for a stated reason.** It is **quantity only** — `0013`'s own header says *"there is no cost column for it to fail open on."* **One of the three survives** |
+
+⚠️⚠️ **SO `4.6c` WAS SCOPED TO FIX ONE OF TWO.** It is sized `M` as *"the family margin
+view"*. If question 2 is to be fixed too — and it is broken for the pilot's **main product
+line** — then either one view answers both or there are two migrations. **That is a sizing
+question the owner's Part A answers decide**, and it is why this brief exists before the
+task rather than inside it.
+
+#### Part A — shop truth. No recommendations, on purpose
+
+| # | The question | Why it cannot be answered here |
+|---|---|---|
+| **A1** | **When you open Números, what are you about to decide?** Reorder more or less? Change a price? Stop carrying something? Or just check nothing is wrong? | The measure follows the decision. A number nobody acts on is a number that should not be built |
+| **A2** | **Over what period do you think?** A day, a week, *"since the last delivery"*, a month? | ⚠️ **Purchases-in against sales-out only means anything over a period long enough to absorb the lag** — you buy today and sell over three days. Too short and the number is noise; the length is a fact about your shop |
+| **A3** | **For the chicken, is the number you want per FAMILY (`Pollo`) or per PIECE (`Pechuga`)?** | **C8.6 says the app cannot attribute a piece's cost**, so per-piece profit is not merely missing — it is **not derivable from anything the ledger stores.** If you need it per piece, the answer is a different conversation about modelling the despiece, not a view |
+| **A4** | **Should what you threw away be inside the profit number, or beside it?** | Both are defensible and they are different numbers. Inside, one figure tells you whether the week worked; beside, you can see *why* it did not |
+| **A5** | ⚠️ **What do you check TODAY, without the app?** A notebook, the till, a feeling at closing time? | ADR-035 §4's own risk row says it plainly: *"Owner doesn't open Números unprompted in week two → the three questions are the wrong three. **Ask what they checked instead.**"* This is that question, asked before the pilot rather than after |
+| **A6** | **If you could have only three numbers, which three?** | *"Three numbers, not thirty"* is your sentence. §2.9's three were written in August, before the grill-me and before C8.6 — **they are a proposal, not your answer** |
+
+#### Part B — the schema consequences. Recommendation each, yes or no
+
+| # | | Recommendation | Why |
+|---|---|---|---|
+| **B1** | Fix `0009`, or add a new view beside it? | ✅ **A NEW view; leave `0009` applied and untouched** | Migrations are append-only, and `0009` is **correct for everything that is not a despiece** — a shop selling tins has no shortfall lot. Replacing it would break a working answer to fix a different one |
+| **B2** | The basis for the new view | ✅ **Purchases-in against sales-out, per family, per period** — the owner's own 8.4 description | It is **the only basis that survives C8.6**, because it never needs per-piece cost attribution: the bird's cost enters as a purchase and the pieces' revenue leaves as sales, whatever the despiece did in between |
+| **B3** | ⚠️⚠️ What it is CALLED | ✅ **Do not call it margin.** Name it a **period contribution** — `family_contribution_period` or similar | **It is not a margin and the difference will bite.** Margin matches a sale to *that sale's* cost; this matches a period's purchases to a period's sales, so stock movement between periods moves the number. Calling both "margin" invites someone to compare them, find they disagree, and conclude the **ledger** is wrong |
+| **B4** | Does the same view answer question 2? | ✅ **Yes — one view, both questions**, *if* `A4` says waste belongs inside | Purchases-in **already contains** the cost of everything wasted, so waste is the gap between what you bought and what you sold. ⚠️ **Blocked on `A4`**, and it is the answer that decides whether `4.6c` stays an `M` |
+| **B5** | The period grain in SQL | ✅ **Expose a DAILY grain and let the client sum** | `0009` and `0011` are already daily, so it matches. ⚠️ **Baking "week" into a view means a migration to change your mind**, and `A2` is exactly the kind of answer that changes after a pilot |
+| **B6** | Tax | ✅ **Net of IVA on both sides** | §2.9 says *"net of tax"*, and purchases and sales must be on the same basis or the number is meaningless rather than merely wrong |
+| **B7** | Who may read it | ✅ **Manager and above**, matching §2.11's Números row and the existing cost fences | ⚠️ **A cost view that fails open is a cashier reading the shop's margins** — `0013`'s header already records that trap, and this view is nothing but cost and revenue |
+| **B8** | `0009`'s own honesty | ✅ **Add a comment to `0009` naming its C8.6 limit** — a `comment on view`, in the same migration | Today it returns **100 % margin** on a despiece line and says nothing about why. ⚠️ **A number that is confidently wrong is worse than a missing one**, and the next person to read it will not have this brief |
+
+⚠️ **`B1`, `B2`, `B3`, `B5`, `B6`, `B7` and `B8` stand regardless of Part A.** **`B4` waits on
+`A4`**, and **`A3` can invalidate `B2` entirely** — if the answer is *per piece*, no view
+solves it and the conversation becomes whether to model the despiece at all, which is a
+much larger decision than `4.6c`.
+⚠️⚠️ **All of it freezes when `0029` merges.**
+
 ### ✅ 4.6b — one notch, and `0026` predicted it
 
 `replay_failed_write` is fenced at **owner** (`0026:317`), and its header already
@@ -8482,8 +8571,17 @@ turned on facts the database had already settled.
   enters COGS at all**. Rolling up by family does not rescue it — the family's COGS
   is still zero. What the owner asked for in 8.4 is **purchases-in against sales-out
   per family over a period**, which is a different query that **does not exist**.
-  ⚠️ **This is Números' problem (area 9, unasked) and it is OWED.** It is a view, so
+  ⚠️ **This is Números' problem (área 9) and it is OWED.** It is a view, so
   it is a migration — the first thing since 2026-09-05 that would reopen the schema.
+  ⚠️⚠️ **AND F2 HAS A TWIN, FOUND 2026-09-13 WHILE WRITING ÁREA 9's BRIEF: QUESTION 2 IS
+  BROKEN THE SAME WAY.** `product_waste_daily` (`0011`/`0012`) costs waste from
+  `unit_cost_net_per_base` **on the movement** — zero for a shortfall lot — so throwing
+  away `Pechuga` costs **$0**, and the rate's denominator is purchases *of that product*,
+  which is also zero because you buy birds. **The headline number is 0 over 0.**
+  ✅ **Question 3 survives and says why**: velocity is quantity only, and `0013`'s header
+  already states *"there is no cost column for it to fail open on."*
+  ⚠️⚠️ **So `4.6c` was scoped to fix one of two.** Whether one view answers both is
+  `B4` in the brief and it waits on `A4`.
 - **F3 — ✅ `price_unit_code` HAD NO CONSUMER ANYWHERE AND THE CLIENT IS ITS FIRST.**
   Declared `not null` at `0002:132`, dimension-checked at `0002:191`, and read by no
   RPC, no view and no other line of the ADR. C3.8 is the column finally doing the job
