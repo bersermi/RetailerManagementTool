@@ -315,11 +315,23 @@ select chk('and the two denominators give two different, both-honest answers',
            'per calendar day 11.786939 vs per traded day 14.554465 — the view '
         || 'ships both denominators and divides neither');
 
-select chk('the view ships no rate column at all',
-           (select count(*) from information_schema.columns
+-- ⚠️⚠️ RE-CUT 2026-09-14 BY 0032. This read "the view ships no rate column at
+-- all" and it STAYED GREEN when four ratio columns landed, because it tests a
+-- list of column names and sale_price_net contains none of them. The claim above
+-- it — two defensible denominators, so the view picks neither — is the real one,
+-- and it is asserted here as arithmetic instead of as a spelling: the only
+-- division in this body is by the row's own quantity.
+select chk('the view divides only by its own quantity — neither trailing denominator is used',
+           regexp_count(pg_get_viewdef('public.product_velocity_daily'::regclass), '/') = 2
+       and regexp_count(pg_get_viewdef('public.product_velocity_daily'::regclass),
+                        '/ NULLIF\(d\.qty_base_sold') = 2
+       and (select count(*) from information_schema.columns
              where table_schema = 'public' and table_name = 'product_velocity_daily'
                and (column_name like '%rate%' or column_name like '%avg%'
-                    or column_name like '%ratio%')) = 0);
+                    or column_name like '%ratio%')) = 0,
+           'trailing_days and trailing_traded_days are both shipped and neither is '
+        || 'divided by. A unit price has exactly one denominator, it is on the row, '
+        || 'and that is why 0032 was allowed to divide where this check was not');
 
 -- Every MEASURE adds across a location rollup, which is what makes "consolidated"
 -- a `group by` the caller drops (§2.9, 2.1's binding rule).

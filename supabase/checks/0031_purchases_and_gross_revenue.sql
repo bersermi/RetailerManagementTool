@@ -184,12 +184,14 @@ select chk('and the part of that which actually matters: anon gets no SELECT, no
 -- staff-readable view is that it quietly changes a number somebody already reads,
 -- so the first two checks here are about what did NOT change.
 
-select chk('the replace added 3 columns and not one row: still 30 472 rows over 510 pairs',
+-- ⚠️ RE-SIGNED 2026-09-14 BY 0032, WHICH APPENDED FOUR PRICE COLUMNS: 22 → 26.
+-- The row and pair counts are the claim that matters and neither moved.
+select chk('the replace added 3 columns and not one row: still 30 472 rows over 510 pairs (26 columns since 0032)',
            (select count(*) from product_velocity_daily) = 30472
        and (select count(*) from (select workspace_id, location_id, variant_id
                                     from product_velocity_daily group by 1,2,3) x) = 510
        and (select count(*) from information_schema.columns
-             where table_schema='public' and table_name='product_velocity_daily') = 22);
+             where table_schema='public' and table_name='product_velocity_daily') = 26);
 
 select chk('and not one peso of what it already returned: revenue_net still 138 673.24',
            (select sum(revenue_net) from product_velocity_daily) = 138673.24
@@ -232,12 +234,31 @@ select chk('trailing_revenue_gross is the 28-day window of revenue_gross, recomp
              where x.trailing_revenue_gross is distinct from x.recomputed) = 0,
            'the window is attached to gross, not to net with a gross label');
 
-select chk('the view still ships no rate, ratio or average column, and still divides nothing',
-           (select count(*) from information_schema.columns
+-- ⚠️⚠️ RE-CUT 2026-09-14 BY 0032, AND THE RE-CUT IS THE POINT. This check read
+-- "the view still ships no rate, ratio or average column, and still divides
+-- nothing". 0032 appended four ratio columns — sale_price_net, sale_price_gross,
+-- sale_price_last_net, sale_price_last_gross — and THIS CHECK STAYED GREEN,
+-- because its test is a list of column NAMES and none of those contains 'rate',
+-- 'avg' or 'ratio'. Measured by applying 0032 and running this file unchanged.
+--
+-- The claim underneath was never "never divide". 0013 states the real one beside
+-- its own copy: trailing_days and trailing_traded_days are BOTH defensible
+-- denominators, so the view refuses to pick. A unit price has exactly one
+-- denominator and it is on the row. So the rule is kept and stated as arithmetic:
+-- every division in this body divides by nullif() of the row's own quantity, and
+-- nothing is rounded.
+select chk('the view divides ONLY by its own quantity — no denominator a caller would have to choose',
+           regexp_count(pg_get_viewdef('public.product_velocity_daily'::regclass), '/') = 2
+       and regexp_count(pg_get_viewdef('public.product_velocity_daily'::regclass),
+                        '/ NULLIF\(d\.qty_base_sold') = 2
+       and (select count(*) from information_schema.columns
              where table_schema='public' and table_name='product_velocity_daily'
                and (column_name like '%rate%' or column_name like '%avg%'
                     or column_name like '%ratio%')) = 0
-       and pg_get_viewdef('public.product_velocity_daily'::regclass) !~* 'round\s*\(');
+       and pg_get_viewdef('public.product_velocity_daily'::regclass) !~* 'round\s*\(',
+           'the three trailing denominators are all shipped and none is used; the '
+        || 'two price columns divide by qty_base_sold, which is on the same row, so '
+        || 'any rollup recomputes them exactly. See 0032');
 
 select chk('and it still has no cost reach — 0014''s claim survives the replace',
            pg_get_viewdef('public.product_velocity_daily'::regclass) !~* 'stock_batch'
@@ -302,8 +323,21 @@ select chk('per-family is a group by: family_id and family_name on every row, ne
                                  group by family_id) f)
          = (select sum(purchases_gross) from product_purchases_daily));
 
-select chk('every MEASURE is additive — no rate, ratio, average or document count column',
-           (select count(*) from information_schema.columns
+-- ⚠️⚠️ RE-CUT 2026-09-14 BY 0032, for the same reason as the velocity check above
+-- and with the same evidence: this read "every MEASURE is additive" and stayed
+-- GREEN after four non-additive price columns landed on the view, because
+-- purchase_price_net contains none of the strings it tests for.
+--
+-- The distinction the original was reaching for survives and is sharper: a price
+-- is non-additive but EXACTLY RECOVERABLE at any grain from two additive columns
+-- on the same row, and a distinct-count is recoverable from nothing. So the claim
+-- becomes "every measure is additive OR is a ratio of two additive columns beside
+-- it", and the document count is still refused.
+select chk('every MEASURE is additive or is a ratio of two additive columns on its own row',
+           (select count(*) from product_purchases_daily
+             where purchase_price_net   is distinct from purchases_net   / nullif(purchases_qty_base,0)
+                or purchase_price_gross is distinct from purchases_gross / nullif(purchases_qty_base,0)) = 0
+       and (select count(*) from information_schema.columns
              where table_schema='public' and table_name='product_purchases_daily'
                and (column_name like '%rate%' or column_name like '%avg%'
                     or column_name like '%ratio%' or column_name like '%share%'

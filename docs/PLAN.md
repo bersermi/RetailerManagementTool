@@ -135,6 +135,139 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`4.6c-ii` IS DONE AS OF 2026-09-14 — `0032` IS APPLIED, AND `4.6c-iii` IS THE NEXT TASK.**
+Price over time exists on both sides of the ledger: `purchase_price_net` / `_gross` /
+`_last_net` / `_last_gross` on `product_purchases_daily`, and `sale_price_*` on
+`product_velocity_daily`. **48 behavioural checks in
+`supabase/checks/0032_price_over_time.sql`, four claims re-cut in `0031` and `0013` without
+either count changing — 47 and 49 — and twelve falsifications against a green control.**
+
+⚠️⚠️ **`0032` SHIPS NO NEW VIEW, AND THREE COPIES OF THIS FILE SAID IT WOULD NEED ONE.** The
+`N3` row below says *"Needs a view, and it is the largest piece"*; the `4.6c` split table and
+`supabase/README.md`'s planned `0032` entry say the same. **All three were written
+2026-09-13, and `product_purchases_daily` was created by `0031` on 2026-09-14 — the day
+before this task was taken.** Between it and `product_velocity_daily`, every column a price
+needs except the price was already standing at the right grain: the quantity, the net, the
+gross, the family, the catalog name and the store's own trading day. **A new view would have
+been two supersets of two applied views**, and `N1`'s ruling of 2026-09-14 refused that exact
+shape one day earlier — *"a second view returning revenue beside the first would be two
+answers to one question."* ⚠️ **This is the eleventh stale-copy defect and the second in two
+days where the stale copy was the plan describing its own task**; `4.6c-i`'s was the same
+shape — a premise that stopped being true between the writing and the taking.
+
+⚠️⚠️ **AND THE FENCE — WHICH `B7` PUT AT MANAGER AND THE `4.6c-ii` ROW CALLED A PRECEDENT TO
+MATCH — FELL OUT OF §2.7 WITHOUT A PREDICATE BEING WRITTEN.** `B7` says *"`N2` and `N3` carry
+cost, so they are manager-and-above"*. **Half of that is right.** A purchase price **is**
+cost, and §2.7's capability table puts *See cost and margin* at manager. A sale price is
+revenue over quantity, and the same table puts *See quantity sold and revenue (Números)* at
+**staff**. So the purchase price lands on the manager-gated view and the sale price on the
+member-level one, **each inheriting the fence that already governs it, with no `has_role`
+written, moved or removed anywhere in the migration.**
+
+⚠️⚠️ **ONE COMBINED PRICE VIEW WOULD HAVE HAD `0009`'S EXACT SHAPE AND `0009`'S EXACT NEED
+FOR A PREDICATE IN ITS BODY** — a manager-gated half beside a member-level half, which
+`0031`'s own header names as the only reason `0009` writes one. **And that predicate would
+have guarded nothing**: a cashier reads `sale_line.unit_price_net_per_base` directly (`0003`
+— *"a sale line carries a price, not a cost"*) and `revenue_net ÷ qty_base_sold` off the
+velocity view since `0013`. A fence anyone defeats with a calculator, bought at the price of
+a second weaker copy of a fence RLS already holds. **Measured under `set role authenticated`:
+the cashier reads 1 004 sale prices in her own store and ZERO rows of the purchases view; the
+manager reads 863 purchase buckets with a price on every one; the other workspace's owner
+reads not one row of either.**
+
+⚠️⚠️ **`price_list` IS NOT EMPTY, AND `N3` SAYS IN BOLD THAT IT IS.** It holds **390 rows over
+341 variants**, with `effective_from`, `effective_to`, a generated `daterange` and a
+no-overlap exclusion constraint — **structurally a price history**, and it covers **every**
+sale bucket in the seed. ⚠️ **The conclusion is unchanged and the reason is now much
+stronger**, because ADR-035 §2.9 gave the true one all along: *"that table holds the INTENDED
+price"*. **Measured: the intended price and the price the till actually charged disagree in
+1 050 of 2 139 buckets.** A price card built on `price_list` would disagree with the receipt
+about half the time. ⚠️⚠️ **THIS IS THE THIRD TIME IN THREE DAYS THAT THE PLAN'S REASON FOR A
+DESIGN WAS FALSE WHILE THE ADR'S WAS TRUE** — `4.6c-i`'s fence, `4.6c-ii`'s missing view, and
+now this. **`CLAUDE.md` says the ADR wins; the cheap habit it keeps buying is to read §2.9's
+own sentence before believing the plan's paraphrase of it.**
+
+⚠️⚠️ **THREE APPLIED CHECKS WOULD HAVE STAYED GREEN WHILE THEIR CLAIMS DIED — THE SIXTH
+INSTANCE HERE AND THE FIRST CAUGHT BEFORE THE MIGRATION SHIPPED.** `0013`'s *"the view ships
+no rate column at all"* and `0031`'s *"still ships no rate, ratio or average column, and
+still divides nothing"* and *"every MEASURE is additive"* each test a **list of column
+NAMES** — `%rate%`, `%avg%`, `%ratio%` — and **not one of the eight new columns contains any
+of those strings.** ✅ **Measured rather than argued: `0032` was applied and the whole of
+`supabase/checks/` was run unchanged. Only the column COUNT went red.** The three are re-cut
+to assert **arithmetic instead of spelling** — *each view body contains exactly two division
+operators and both divide by `nullif()` of the row's own quantity* — which keeps `0013`'s
+real rule and admits the one price that does not break it.
+
+⚠️ **THE RULE THOSE CHECKS WERE REACHING FOR SURVIVES, CORRECTLY SCOPED, AND IT IS WHAT MADE
+THE DESIGN LEGAL.** `0013`'s refusal is written beside its own check: *"per calendar day
+11.786939 vs per traded day 14.554465 — the view ships both denominators and divides
+neither."* **The refusal is about a denominator that is a JUDGEMENT CALL.** A unit price has
+exactly one defensible denominator, it sits on the same row, and that is also what separates
+it from the delivery count `0031` refused: **a price is exactly recoverable at any grain from
+two additive columns beside it; `count(distinct purchase_id)` is recoverable from nothing.**
+
+**Four smaller calls made on his behalf, all cheap to reverse and all named here:**
+
+- **Two prices per side, not one.** The EFFECTIVE price (money ÷ quantity) is the one that
+  charts and the only one that rolls up; the TYPED price (`unit_price_net_per_base` off the
+  day's last line) is the price as a **state** — *what am I charging now*, *what did I last
+  pay* — which an average cannot answer and which is what §2.9's row actually asks. ⚠️ **They
+  disagree in 736 of 1 048 purchase buckets that hold exactly ONE line**, because `line_net`
+  is already rounded to the centavo (§2.5) and the typed price is not: one is the price
+  CHARGED, the other the price MEANT
+- **Gross beside net on both, by the `N1` ruling applied to a price.** The typed gross uses
+  the **line's own snapshot `tax_rate`** (`0003`), never the variant's current one
+- **No min, no max, and no trailing price column.** A trailing price is
+  `trailing_revenue_net ÷ trailing_qty_base` and both are already on the row; min/max is a
+  diagnostic nobody asked for, and on the purchase side the seed cannot tell it from the mean
+- **`nullif` in the view rather than in every client, and it is not defensive coding.** ⚠️
+  **Ten sale buckets in the seed net to exactly zero quantity** — a sale rung up and voided
+  inside §2.6's 15-minute window — so a client dividing for itself raises `division_by_zero`
+  on data the pilot makes in its first week. **Ten variant-MONTHS of purchases do the same at
+  the rollup grain**, which is why the view comment's rollup instruction carries `nullif` too
+
+⚠️ **One thing this seed cannot falsify, pinned rather than papered over, and it is `0031`'s
+gap from the other side.** Every purchase variant-day bucket holds **exactly one line**, so
+min, max, last and the mean coincide and mutating the purchases-side pick to `max` turns
+**nothing** red. The precondition is pinned instead. ✅ **The SALE side does not have the
+gap** — 56 buckets carry more than one distinct price, and the pick differs from `max` in 33
+of them and from `min` in 23 — **so the ordering is a real assertion exactly once, and the
+division of labour is stated.** ⚠️ **A second gap, newly created and named: no two sale
+documents in this seed share an `occurred_at`, so the `created_at`/`id` tiebreak is
+untested.** A real till writes several sales into one second. Pinned by a check that goes red
+the day one ties.
+
+⚠️ **A price does not roll up over PRODUCTS, and both view comments say so.** Every other
+measure on these two views is a `group by` away from a family number. A family mixes base
+units (§2.5 — six families in the seed do), so `sum(money) ÷ sum(quantity)` across one
+divides pesos by a total of kilos and pieces. **Over TIME it rolls up exactly: sum the two
+additive columns beside it and divide once, never average the daily prices** — that weights
+by days instead of by quantity, and the check measures the difference rather than asserting
+it.
+
+**Twelve falsifications against a green control**, each mutating the migration, re-applying it
+and running `0032`'s, `0031`'s and `0013`'s check files:
+
+| Fixture | The mutation | Result |
+|---|---|---|
+| **F1** | `nullif()` removed from the effective sale price | 🔴 **the suite CRASHED — `division by zero`**, on the ten cancelled buckets. The strongest possible statement of why it is in the view |
+| **F2** | the last-price pick ordered `asc` — the FIRST sale of the day | 🔴 three checks, led by the independent lateral recomputation |
+| **F3** | ⚠️⚠️ **the `id` tiebreak dropped from ONE of the two picks** | 🟢 **GREEN ON THE FIRST RUN — AND IT WAS THE CHECK THAT WAS WRONG.** The assertion used `~*`, which asks only whether the ordering appears *somewhere*, so the untouched second pick kept it matching. **That is the drift case exactly**: a net and a gross ordered differently come off DIFFERENT LINES, and the view reports a price carrying somebody else's tax. ✅ Re-cut to COUNT the ordering — 🔴 on re-run |
+| **F4** | purchases: the last-price pick replaced by `max` | 🟢 **GREEN BY DESIGN, AND IT IS THE PINNED GAP.** Every purchase bucket in this seed holds exactly one line, so `max`, `min`, `last` and the mean coincide. A check pins the precondition, not the absence |
+| **F5** | velocity: the same mutation, `last` → `max` | 🔴 — the sale side HAS depth (56 buckets, 33 differing from `max`), which is why the gap above is survivable |
+| **F6** | the typed gross grossed up by a hardcoded `1.16` instead of the line's own `tax_rate` | 🔴 — the seed carries 0% lines, and they are what catch it |
+| **F7** | the typed price `coalesce`d to 0 on spine days | 🔴 three checks. A quiet day would have rendered as a 100% discount |
+| **F8** | the effective price as the unweighted MEAN of the typed prices | 🔴 three checks — including the one asserting a price is recoverable from the two columns beside it |
+| **F9** | the effective gross price divides by `revenue_net` instead of the quantity | 🔴 — and by the *exactly two divisions, both by `nullif()` of the row's own quantity* check, which is the re-cut rule doing its job |
+| **F10** | ⚠️⚠️ **a THIRD division appended — a trailing average over `trailing_days`** | 🔴 **in `0032`, in `0031` AND in `0013`.** This is the fixture that matters: it proves the three re-cut checks CAN go red, which the versions they replaced could not |
+| **F11** | the effective price `round()`ed to the centavo inside the view | 🔴 in `0032` and `0031` |
+| **F12** | a `has_role(manager)` predicate added to the purchases view | 🔴 in `0032` and `0031` — a second copy of a fence RLS already holds, and it fails closed on the superuser it was never meant to see |
+
+⚠️ **What `0032` did NOT do, deliberately.** It created no view, no table, no function, no
+policy and no column on a table; it moved no fence and no grant; and it did not touch `0009`,
+`0011` or `0030`. **The whole of it is undone by one more `create or replace`.**
+
+
 ✅✅ **`4.6c-i` IS DONE AS OF 2026-09-14 — `0031` IS APPLIED, AND `4.6c-ii` IS THE NEXT TASK.**
 `product_purchases_daily` exists, revenue is GROSS with net beside it, `0009` says out loud
 what it gets wrong, and `0030`'s one stale sentence is corrected. **47 behavioural checks in
@@ -2064,7 +2197,7 @@ section, and each step's own section below. This is a map, not a status board.
 | 3 | Test suites (pgTAP, Vitest) |
 | 4 | RPCs — the write surface of §2.6 |
 | 4.5 | The failure path |
-| 4.6 | ⚠️ **What the UI/UX grill reopened** — **seven** migrations, `0027`–`0033`, since `4.6a` was split three ways on 2026-09-13 and `4.6c` was re-scoped and split three ways on 2026-09-14. ⚠️ **Five of the seven are applied** (`0027`–`0031`); `0032` and `0033` are `4.6c-ii` and `4.6c-iii`. Did not exist before 2026-09-07 |
+| 4.6 | ⚠️ **What the UI/UX grill reopened** — **seven** migrations, `0027`–`0033`, since `4.6a` was split three ways on 2026-09-13 and `4.6c` was re-scoped and split three ways on 2026-09-14. ⚠️ **Six of the seven are applied** (`0027`–`0032`); `0033` is `4.6c-iii`. Did not exist before 2026-09-07 |
 | 5a | Client foundation — **hiring gate** |
 | 5b | Vender and Home |
 | 5b.5 | ⚠️ `CONVENTIONS.md`, second pass — ruled by the owner 2026-09-13 |
@@ -8592,8 +8725,8 @@ it.
 | **4.6b** | ✅ **`0030`, APPLIED 2026-09-14** — was `0028`, renumbered by the `4.6a` split, 2026-09-13 | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch. ⚠️⚠️ **ONE NOTCH MEANT ONE NOTCH: `failed_write_select` IS UNTOUCHED, so a manager may now replay a dead letter she cannot SELECT** — pinned by three checks, not prose, and parked as an owner decision against `5c` | `S` | ✅✅ **DONE 2026-09-14** — 18 behavioural checks in `supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed to 88, ten falsifications. The replay control in `5c` is unblocked |
 | **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
 | **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. ✅ **And the one decision it took on the owner's behalf was RULED the same day — *"leave gross revenue on the velocity view"***, which ADR-035 §2.9 had already said. The Números charts in `5d` are unblocked |
-| **4.6c-ii** | `0032` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from the empty `price_list`. Daily grain; the %-change windows are the client's. ⚠️ **`0031` settled two things it inherits**: the tax columns exist on both sides now, and `product_purchases_daily` is the manager-fenced precedent a price view should match rather than re-argue | `M` | the price card in `5d` |
-| **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence | `M` | the download in `5d` |
+| **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from ~~the empty~~ `price_list`. Daily grain; the %-change windows are the client's. ⚠️⚠️ **BOTH OF THE THINGS THIS ROW SAID `0031` SETTLED WERE HALF WRONG.** `product_purchases_daily` is not a *precedent to match*, it is **where the purchase price belongs** — so `0032` ships **no new view at all**, only four appended columns on each of the two views that already own each side of the ledger. And it is not *the* fence: a purchase price is cost (manager) and a sale price is revenue ÷ quantity (staff, §2.7), so **each price inherits its own fence and the migration writes no predicate**. ⚠️ ~~the empty `price_list`~~ — **it holds 390 rows and is a dated range table**; §2.9's reason for reading the ledger is that it holds the INTENDED price, and the two disagree in 1 050 of 2 139 buckets | `M` | ✅✅ **DONE 2026-09-14** — `0032` applied, 48 behavioural checks, twelve falsifications. ⚠️ **It re-cut four applied checks, three of which would have stayed GREEN while their claims died.** The price card in `5d` is unblocked |
+| **4.6c-iii** | `0033` | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **The month export**: transactions and waste, flat, one shape and one fence. ⚠️ **`0032` leaves it nothing to inherit and one thing to notice** — it is the only one of the three that is not a daily aggregate, and §2.9 calls it *"the raw rows"*: every transaction and the waste for a given month, which is three tables with three shapes under three different RLS fences | `M` | the download in `5d` |
 
 ### ⚠️⚠️ Sized 2026-09-13 — `4.6a` IS AN `L`, IT SPLITS THREE WAYS, AND THE SPLIT COSTS A RENUMBERING
 
@@ -9250,7 +9383,7 @@ suspected of leaking.**
 |---|---|---|
 | **N1** | **Revenue in the currency the shopkeeper recognises.** `revenue_net` is net of IVA; `workspace.prices_include_tax` defaults **true**, so the shelf label already includes the tax and *"revenue earned"* almost certainly means **gross**. ~~The only column carrying tax is `product_margin_daily.tax_collected` — **manager-only**, so the staff-readable view cannot reach it~~ | ✅✅ **RULED 2026-09-14: GROSS, net beside it.** ⚠️⚠️ **AND THE STRUCK HALF WAS WRONG — `4.6c-i` MEASURED IT.** `tax_collected` is a VIEW COLUMN over `sale_line.tax_amount`, which is member-level (`0003`, no `has_role`): the cashier reads $4 826.96 of it and 0 rows of `product_margin_daily`. **A fence on a view was read as a fence on the column under it.** No fence moved |
 | **N2** | **Purchases as a first-class read.** *"How much was bought this week/month"* exists only as `purchases_qty_base` / `purchases_net` **inside `product_waste_daily`** — a view named for waste, which is not where anyone will look, and whose grain is a variant-day | Needs a view |
-| **N3** | **Price over time, both sides, with the % windows.** Nothing in the schema answers it. `provider_price_memory` (`0008`) is the **last** purchase price only, not a history; `price_list` is the *intended* sale price and **is EMPTY in the seed (0 rows)**. The real history is in the ledger — `purchase_line` and `sale_line` unit prices, dated | Needs a view, and it is the largest piece |
+| **N3** | **Price over time, both sides, with the % windows.** Nothing in the schema answers it. `provider_price_memory` (`0008`) is the **last** purchase price only, not a history; `price_list` is the *intended* sale price and ~~**is EMPTY in the seed (0 rows)**~~ — ⚠️⚠️ **FALSE, AND MEASURED FALSE BY `4.6c-ii`: 390 rows over 341 variants, with `effective_from`/`effective_to` and a no-overlap constraint — structurally a price history, covering every sale bucket in the seed.** §2.9's reason is the one that holds: it is the INTENDED price, and it disagrees with what the till charged in **1 050 of 2 139 buckets**. The real history is in the ledger — `purchase_line` and `sale_line` unit prices, dated | ~~Needs a view, and it is the largest piece~~ ⚠️⚠️ **IT NEEDED NO VIEW.** True when written on 2026-09-13; `0031` created `product_purchases_daily` on 2026-09-14 and the claim died with it. **Four appended columns on each of two existing views** |
 
 ⚠️ **The export (`A1`'s download) is a fourth, and it is not a chart**: all transactions and
 waste for a month, flat. Three tables with three different shapes, and the client should not
@@ -9265,7 +9398,7 @@ that worked there: one migration each, so each merges on its own green run.**
 | Piece | Migration | What, and why it is first |
 |---|---|---|
 | **`4.6c-i`** | `0031` | ✅✅ **DONE 2026-09-14.** **Purchases as a read** (`N2`), per variant and family per day, beside the revenue that already exists — plus **`B8`'s honesty comment on `0009`**. ⚠️ **`B8` earned its keep on a case the seed actually holds**: one bucket reports **100 % margin with `cost_attributed` TRUE**, because the movements exist and merely cost nothing — **the one case 0009's own honesty column cannot see**. ~~Blocked on `N1`~~ — ruled, and gross landed on `product_velocity_daily` rather than in a new view |
-| **`4.6c-ii`** | `0032` | **Price over time** (`N3`), purchase and sale unit prices per variant, from the **ledger** rather than from `price_list`. ⚠️ **Daily grain, and the % windows are the CLIENT's** — `B5`'s argument, and `A2` is precisely the answer that changes after a pilot: *"1, 3, 6, 9 months and YTD"* baked into SQL is a migration every time he wants a different card |
+| **`4.6c-ii`** | `0032` | ✅✅ **DONE 2026-09-14.** **Price over time** (`N3`), purchase and sale unit prices per variant, from the **ledger** rather than from `price_list`. ⚠️ **Daily grain, and the % windows are the CLIENT's** — `B5`'s argument, and `A2` is precisely the answer that changes after a pilot: *"1, 3, 6, 9 months and YTD"* baked into SQL is a migration every time he wants a different card. ⚠️⚠️ **It shipped NO VIEW**: `0031` created `product_purchases_daily` the day before, and between it and `product_velocity_daily` every column a price needs except the price was already at the right grain — so the price landed on both by `create or replace`, and §2.7's manager/staff split fell out without a predicate |
 | **`4.6c-iii`** | `0033` | **The month export** — transactions and waste, flat, one shape, one fence |
 
 ⚠️ **`4.6b` still comes first**: it is an `S`, it is unblocked, and `4.6c-i` is waiting on
