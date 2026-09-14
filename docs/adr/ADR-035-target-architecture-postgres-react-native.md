@@ -12,6 +12,29 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-14 — **§2.7 and §2.9 amended, on the decision maker's instruction**,
+  after the **área 9 interview** he called for. ⚠️⚠️ **§2.9's FIRST QUESTION IS RETIRED, NOT
+  RE-MEASURED.** *"What made me money?"* was *gross margin by product*, and the ruling is
+  *"we won't derive the profit so let's ignore margins for now — I'd rather just show total
+  revenue."* **Three things forced it and only the first is a preference:** under **C8.6** the
+  app cannot attribute a piece's cost to the bird it came from, so per-piece profit is **not
+  derivable from anything the ledger stores**; `product_margin_daily` (`0009`) therefore
+  returns **100 % margin** on a despiece line today; and the owner does not want the number
+  anyway. **The measure that replaces it is quantity and GROSS revenue**, per variant and per
+  family. ⚠️ **Revenue is gross of IVA by ruling** — `prices_include_tax` defaults true, so the
+  shelf label already includes the tax and gross is the number the shopkeeper reconciles
+  against the till; net stays available beside it. ⚠️ **A cashier may see revenue** — ruled
+  explicitly rather than inherited, because they already could: `product_velocity_daily`
+  carries no cost and is readable by `staff`, which was **measured against the seed**, not
+  assumed. §2.7's capability table now says so in a row of its own. ⚠️ **No schema is applied
+  by this revision**; plan task `4.6c` was re-scoped and split three ways (`0031`–`0033`) the
+  same day, before a line of it was written. ⚠️ **Two older sentences now point at a question
+  that no longer exists and are NOT rewritten**: §2.5's reason for a per-line net cites
+  margin-by-product — the requirement stands, the example does not — and §3 step 2's gate text
+  describes a step that **closed in August**, so it is left as the record of what was actually
+  done. **§2.9's waste question is kept and carries a new warning**: its cost half is broken
+  under C8.6 in exactly the way the margin question was, and **nobody had written that down
+  until 2026-09-13**.
 - **Revised:** 2026-09-13 (third entry this date) — **§2.7 and §8 amended, on the
   decision maker's instruction**, because **one sentence of the second entry's own
   amendment went stale within hours of being written.** §2.7 said register #9's eight
@@ -569,9 +592,11 @@ The fix costs nothing at the counter: **one question at workspace setup**
 
 Per line rather than per document because the line is what the customer sees on the
 §2.8 review screen, and a document-level split makes the displayed lines fail to sum
-to the displayed total. Margin-by-product (§2.9) also needs a per-line net; deriving
+to the displayed total. Per-product reporting (§2.9) also needs a per-line net; deriving
 one from a document-level split means re-allocating, which reintroduces exactly the
-rounding just performed.
+rounding just performed. ⚠️ **This clause said *margin-by-product* until 2026-09-14**, when
+§2.9's margin question was retired. **The requirement is unchanged and the example moved**:
+the per-line net is what lets revenue be shown net beside gross, and it is already applied.
 
 `cases.json` seeds with: the three cases named in §2.10, a half-centavo boundary per
 tax rate, one multi-line document where per-line and per-document disagree, one
@@ -968,6 +993,7 @@ access to their own operation; *Viewer* would be null forever.
 | Void any transaction, any time | — | ● | ● |
 | Edit catalog and prices | — | ● | ● |
 | See cost and margin | — | ● | ● |
+| See quantity sold and revenue (Números) | ● assigned locations | ● all | ● all |
 | Stock counts and adjustments | — | ● | ● |
 | Transfer stock between locations | — | ● | ● |
 | Members, settings, roles, locations | — | — | ● |
@@ -1110,13 +1136,41 @@ shop (§5), which conceals the gap for exactly three days.
 
 ### 2.9 Analytics
 
-Three questions, not three totals. An owner already knows roughly what they sold.
+⚠️⚠️ **AMENDED 2026-09-14 on the decision maker's instruction, after the área 9 interview.
+THE FIRST QUESTION IS RETIRED RATHER THAN RE-MEASURED**, and the three below are the ones he
+asked for in his own words: *"Números is charts and tables about their transactions … it
+doesn't have to be very robust nor sophisticated for now."*
 
 | Question | Measure | Why this one |
 |----------|---------|--------------|
-| What made me money? | Gross margin by product, net of tax | Revenue ranking flatters high-volume low-margin lines |
-| What am I throwing away? | Waste cost as % of purchases, by product | The reorder-quantity signal; needs cost snapshot and batch attribution |
-| What stopped selling? | Velocity vs trailing average | Catches spoilage, theft, and a competitor down the street |
+| What am I selling, and what did it bring in? | **Quantity sold** in the variant's own unit, and **GROSS revenue**, per **variant** and per **family**, daily | The two numbers he named first. Quantity is the one measure C8.6 cannot corrupt: it has no cost in it |
+| How have my prices moved? | **Purchase and sale unit price over time, per variant**, with a **% change** card over the current month, 1, 3, 6, 9 months and **YTD** | Both sides of the price, because a shop this size negotiates its purchases and re-marks its shelf in the same week. Read from the **ledger**, not from `price_list` — that table holds the *intended* price |
+| What am I throwing away? | Waste **quantity** by product. ⚠️⚠️ **Its COST half is broken under C8.6** — see the warning below | The reorder-quantity signal. Kept as a question, and it gets **its own visual** rather than being folded into any other number |
+| ~~What made me money?~~ | ~~Gross margin by product, net of tax~~ | ⚠️⚠️ **RETIRED 2026-09-14.** *"We won't derive the profit so let's ignore margins for now."* Not a preference alone: **under C8.6 the app cannot attribute a piece's cost to the whole item it was cut from**, so per-piece profit is **not derivable from anything the ledger stores**, and `product_margin_daily` (`0009`) returns **100 % margin** on a despiece line while the whole item's cost never enters COGS at all |
+| ~~What stopped selling?~~ | ~~Velocity vs trailing average~~ | **Not retired — absorbed.** `product_velocity_daily` (`0013`/`0014`) is the view behind row 1, and its trailing columns still answer this. It survived C8.6 for the reason row 1 does: *"there is no cost column for it to fail open on"* |
+
+⚠️⚠️ **THE WASTE MEASURE IS BROKEN THE SAME WAY THE MARGIN ONE WAS, AND NOBODY HAD WRITTEN IT
+DOWN UNTIL 2026-09-13.** *"Waste cost as % of purchases, by product"* fails twice over on a
+despiece: the numerator reads `unit_cost_net_per_base` off the movement, which for a shortfall
+lot is **zero**, so throwing away a cut piece costs **$0**; and the denominator is purchases
+**of that product**, which is also zero, because the shop buys whole items. **The headline is
+0 over 0.** The quantity half is sound and is what the visual shows until a decision is taken
+about the rest.
+
+**Revenue is GROSS of IVA** (ruled 2026-09-14). `workspace.prices_include_tax` defaults true,
+so the price typed into the catalog already contains the tax and gross is the number that
+reconciles against the cash in the till. Net stays available beside it — the ledger stores the
+per-line split (§2.5), so this is a presentation choice and not a loss of information.
+
+**The grain is DAILY and the client rolls it up** to the Daily / Weekly / Monthly switch he
+asked for, and computes the % windows. A period baked into a view is a migration every time
+he wants a different card, and *"make a good guess for this initial version, we will improve
+it afterwards"* is precisely the answer that changes after a pilot.
+
+**Números also hands over the raw rows.** A download of the transactions breakdown — every
+transaction **and the waste** for a given month — is part of the screen, not a later feature:
+it is what an owner who has always used a notebook checks the app against.
+
 
 SQL views over the ledger, so reports cannot drift from transactions. Nightly
 materialised rollups per workspace and product, with the current partial day unioned

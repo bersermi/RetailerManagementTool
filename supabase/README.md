@@ -328,8 +328,11 @@ it:**
   ⚠️⚠️ **IT WAS *the family contribution view* UNTIL 2026-09-14, AND THAT VIEW IS CANCELLED**:
   área 9 was ruled and the owner retired the question — *"we won't derive the profit so let's
   ignore margins for now. I'd rather just show total revenue."* `4.6c` was re-scoped and split
-  three ways the same day, before a line was written. ⚠️ **Still gated**, now on one narrow
-  question: whether revenue is **gross or net of IVA**, which decides this view's columns
+  three ways the same day, before a line was written. ✅ **UNGATED as of 2026-09-14**: revenue is **GROSS of
+  IVA** by ruling, net beside it. ⚠️ **That is not free** — `product_velocity_daily` carries
+  `revenue_net` and no tax column, and the only `tax_collected` in the schema sits in the
+  **manager-only** `product_margin_daily`, so reaching it without widening that fence is this
+  migration's first design problem
 - `0032` — **price over time** (**4.6c-ii**): purchase and sale unit prices per variant, read
   from the ledger rather than from `price_list`, which holds the *intended* sale price and is
   **empty in the seed**. Daily grain; the %-change windows (current month, 1/3/6/9, YTD) are
