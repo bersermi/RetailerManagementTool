@@ -8132,9 +8132,9 @@ history — **two dropped `not null`s**, **one check constraint** carrying `D1` 
 together, **one unique index**, **three helper functions** (generate a code, normalise a
 typed one, supersede an expired pending row), **`onboard_workspace` replaced a third time**
 so a new workspace is born with a code, **a backfill** for the workspaces that already
-exist, **four RPCs** that have never existed, and **a re-signing of three applied pgTAP
-suites**. Every step-4 task that was one function was an `M`; this is four functions and a
-table change.
+exist, **four RPCs** that have never existed — **five** counting the joiner's status read, which
+`S3` below is why — and **a re-signing of three applied pgTAP suites**. Every step-4 task
+that was one function was an `M`; this is five functions and a table change.
 
 #### The seam: the two ways in, with the schema landing alone
 
