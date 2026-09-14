@@ -142,13 +142,22 @@ io.open(p,"w",encoding="utf-8").writelines(lines)
 PY
 fixture "Z7 a second copy of 4.6a-i's row, 200 lines away" red "row appears 2 times" "$WORK/plan.md" "$WORK/db.md"
 
+# --- Z8. the RULED deliverable dropped ------------------------------------
+# ⚠️ ADDED WITH THE THIRTEENTH DELIVERABLE, 2026-09-13. The owner ruled the joiner's
+# status read IN; an atom added to a coverage list and never falsified is an atom
+# nobody has shown the guard can see.
+fresh
+mutate "$WORK/plan.md" "and \`my_access_requests()\` — **ruled in by the owner 2026-09-13** — so the joiner" \
+                       "and so the joiner" || exit 1
+fixture "Z8 my_access_requests dropped from 4.6a-iii" red "in the parent row and in NO child" "$WORK/plan.md" "$WORK/db.md"
+
 echo
 if (( fails > 0 )); then
   echo "$ran fixtures ran, $fails did not behave as recorded."
   exit 1
 fi
-if (( ran < 8 )); then
-  echo "FAIL: only $ran fixtures ran, expected 8."
+if (( ran < 9 )); then
+  echo "FAIL: only $ran fixtures ran, expected 9."
   exit 1
 fi
 echo "all $ran fixtures behaved as recorded in docs/PLAN.md — the guard fails on each"
