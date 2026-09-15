@@ -121,6 +121,25 @@ DELIVERABLES=(
   "my_access_requests — the joiner's pending state (S3)|my_access_requests|5b-iii"
   "approve_request, and the location picker D8 refuses to leave empty|approve_request|5b-iii"
   "C11.8 — the Home notifications icon and its badge|C11\.8|5b-iii"
+  # ⚠️⚠️ THE FOURTEENTH AND FIFTEENTH, ADDED 2026-09-14 BECAUSE THE OWNER RULED ON
+  # THEM — and they are here for the reason `4.6b`'s ruling made explicit: A
+  # DECISION ABOUT WHAT A SCREEN RENDERS HAS NO CONSTRAINT, GRANT OR POLICY TO LIVE
+  # IN. The sizing found that C11.8 asks for a requester's NAME and that no table in
+  # this schema carries one (`T1`), and that the obvious repair returns nothing for
+  # the founding owner (`T2`). He ruled: EMAIL ONLY, recovered from
+  # workspace_invite, with the caller's own row labelled Tú — and explicitly NOT the
+  # migration that would add a name.
+  #
+  # Nothing else can hold that. There is no column to assert, no policy to read, and
+  # §2.11 bans the rendering suite that would otherwise catch a name appearing. So
+  # the ruling is a DELIVERABLE, owned by the row that renders it, and a session
+  # that quietly re-adds a name has to delete a line from a plan row to do it.
+  #
+  # ⚠️ TWO ENTRIES AND NOT ONE, because they are two screens. The member list is
+  # `5b-ii`'s and the approval row is `5b-iii`'s, and C11.8's own sentence — "enough
+  # not to approve the wrong Juan" — is about the second one.
+  "the member row is identified by EMAIL, never a name (ruled 2026-09-14)|identified by EMAIL|5b-ii"
+  "the approver sees an EMAIL and a role, never a name (ruled 2026-09-14)|approver sees an EMAIL|5b-iii"
 )
 
 # --- 3. + 4. the parent still promises each one, and exactly one child has it
