@@ -172,7 +172,17 @@ mk; sedi "s|const HINT =|const DEBUG = process.env.EXPO_PUBLIC_DEBUG;\\
 const HINT =|" "$WORK/app/src/lib/env.ts"
 run F8 red "R7 — a second module reading process.env"
 
-mk; sedi '1,25d' "$WORK/app/src/auth/guard.ts"
+# ⚠️⚠️ THE MUTATION IS BY PATTERN AND NOT BY LINE NUMBER, AND THE REASON IS A
+# SECOND STALE FIXTURE — the same family as `F10` below, found on 2026-09-14.
+# This read `sedi '1,25d'`, which deleted the first twenty-five lines of
+# `guard.ts` because that was where its header ENDED at the time. `5b-i` added a
+# paragraph to that header, the fence moved past line 25, the deletion left the
+# closing `// =====` standing, and R8 still saw a header — so the fixture went
+# GREEN while claiming to prove the gate could see a header go missing. **A
+# fixture pinned to a line number of a file that other tasks edit is a fixture
+# with an expiry date nobody wrote down.** The range below is anchored to the
+# fence itself and does not care how long the block is.
+mk; sedi '/^\/\/ =====/,/^\/\/ =====/d' "$WORK/app/src/auth/guard.ts"
 run F9 red "R8 — a module's header block deleted"
 
 # ⚠️ `R11` AND NOT `R10`, AND THE REASON IS ITSELF A FINDING. This fixture

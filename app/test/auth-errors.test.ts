@@ -112,10 +112,23 @@ describe('the library has exactly one caller', () => {
     expect(callers).toEqual(['auth/AuthProvider.tsx', 'lib/supabase.ts']);
   });
 
-  it('imports the client only where the session is owned', () => {
+  // ⚠️ TWO OWNERS AS OF 5b-i, AND THE SECOND ONE IS §2.11's OTHER HALF. The
+  // session is owned by `AuthProvider`; every ROW is owned by `api/calls.ts` —
+  // "src/api/: one wrapper per RPC, juniors never call supabase.rpc directly".
+  // This list growing a third entry is the boundary going, and it goes the way
+  // it always goes: one screen, in a hurry, reading one table for itself.
+  it('imports the client only where the session and the rows are owned', () => {
     const importers = sources()
       .filter(([rel, text]) => rel !== 'lib/supabase.ts' && /from '@\/lib\/supabase'/.test(text))
       .map(([rel]) => rel);
-    expect(importers).toEqual(['auth/AuthProvider.tsx']);
+    expect(importers).toEqual(['api/calls.ts', 'auth/AuthProvider.tsx']);
+  });
+
+  // The write path, asserted the same way the auth path is above.
+  it('calls `supabase.rpc` and `supabase.from` in api/calls.ts and nowhere else', () => {
+    const callers = sources()
+      .filter(([rel, text]) => rel !== 'lib/supabase.ts' && /supabase\.(rpc|from)\(/.test(text))
+      .map(([rel]) => rel);
+    expect(callers).toEqual(['api/calls.ts']);
   });
 });

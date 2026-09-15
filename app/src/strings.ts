@@ -85,6 +85,52 @@ export const ES = {
   },
 
   /**
+   * THE FIRST SCREEN AFTER THE WAY IN, AND ONLY FOR SOMEONE WHO BELONGS TO NO
+   * SHOP YET (5b-i). Two questions, and the second one is C1.7.
+   *
+   * ⚠️ THE IVA QUESTION IS ADR-035's OWN WORDING, NOT A PARAPHRASE. §2.8 wrote
+   * it — *¿Tus precios ya incluyen IVA?* — and `workspace.prices_include_tax`
+   * is commented with the same sentence in `0001`. It decides how every
+   * recorder splits net from tax for the life of the shop, so the wording is
+   * quoted rather than improved on.
+   *
+   * ⚠️ AND IT IS ASKED ONCE, OF SOMEONE WHO DOES NOT DO BOOK-KEEPING. The hint
+   * names the thing in their hand — the price on the label — because "inclusive
+   * of value added tax" is our vocabulary and not theirs.
+   */
+  onboarding: {
+    title: 'Tu tienda',
+    nameLabel: '¿Cómo se llama tu tienda?',
+    ivaQuestion: '¿Tus precios ya incluyen IVA?',
+    ivaHint: 'Es el precio de la etiqueta, el que paga el cliente.',
+    ivaYes: 'Sí, ya lo incluyen',
+    ivaNo: 'No, se agrega aparte',
+    create: 'Crear mi tienda',
+  },
+
+  /**
+   * WHAT THE SHOPKEEPER IS TOLD WHEN A CALL TO THE SERVER FAILS (5b-i).
+   *
+   * ⚠️ THE SAME RULE AS `auth.errors` AND FOR THE SAME REASON: nothing
+   * PostgREST returns is ever shown. Its messages are English, they name
+   * internal states (`permission denied for function onboard_workspace`), and
+   * a shopkeeper handed one is the failure the owner's own rule refuses — WE
+   * DO THE BOOK-KEEPING, NOT THEM. `app/src/api/errors.ts` maps a code to a
+   * KEY of this table.
+   */
+  api: {
+    errors: {
+      nameMissing: 'Escribe el nombre de tu tienda.',
+      /** ⚠️ THE SESSION IS GONE, WHICH IS A `42501` FROM POSTGRES AND NOT A
+       *  SIGN-IN FAILURE. It is the one API error with a next step a person
+       *  can take, so it names it. */
+      sessionEnded: 'Tu sesión se cerró. Entra de nuevo.',
+      offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      unknown: 'Algo salió mal. Intenta de nuevo.',
+    },
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

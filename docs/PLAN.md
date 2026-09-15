@@ -135,6 +135,75 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅✅ **`5b-i` IS DONE AS OF 2026-09-14 — a shop can be created from the phone, `src/api/`
+exists, and `5b-ii` IS THE NEXT TASK.** Install, sign in, name the shop, answer C1.7, land on
+Inicio. **No migration** — `0027`'s `onboard_workspace` has been applied since 2026-09-13 and
+this task is the first thing that ever calls it. **The app is twenty-nine source files and
+thirteen suites; 166 assertions pass, up from 146.**
+
+⚠️⚠️ **THE VERIFICATION THAT MATTERS IS NOT THE VITEST RUN, AND SAYING WHY IS THE POINT OF
+THIS ENTRY.** PostgREST resolves an RPC **by its parameter names**. Send `display_name` where
+`0027` declared `p_display_name` and the call does not fail — **the function is not FOUND**:
+`{"code":"PGRST202"}`, HTTP 404. **The typecheck passes, the suite passes, the bundle
+builds**, and the first thing that notices is a shopkeeper who cannot create her shop, on the
+one screen every other screen in `5b` is behind. Nothing in TypeScript has ever read `0027`.
+✅ **So `docs/checks/5b-i-api-contract.sh` posts the app's own strings — read out of
+`app/src/api/workspace.ts`, never retyped — to a reset database over HTTP and reads what comes
+back.** Six assertion groups, all green: the empty read that IS the landing state, the RPC
+answering to the three argument names, one row with every column asked for, **C1.7 carried as
+`false` and not defaulted**, the first location named after the shop, and a blank name refused
+as `23514`.
+
+⚠️⚠️ **AND ITS OWN FALSIFICATION HARNESS FOUND A DEFECT IN IT ON THE FIRST RUN, IN THE ONE
+LINE THAT MATTERS.** The check read the argument names with
+`sed -n 's/^  readonly \(p_[a-z_]*\):.*/\1/p'` — **it recognised an argument by the very
+prefix it exists to test.** So fixture `Z1`, which drops the prefix, made it report *"could not
+read the contract"* instead of the `PGRST202` it is for: **red, and for the wrong reason** —
+the worse kind, because it reads as the check being broken rather than the app being wrong,
+and that is what gets a check deleted. ✅ **Fixed to read the `OnboardArgs` block, BOUNDED**,
+which is `plan-handover.sh`'s own lesson applied by the next script written. **Six fixtures,
+all matching the MESSAGE and not the exit code.**
+
+⚠️ **IT RUNS IN `db.yml`, NOT `app.yml`, AND THAT IS THE FIRST TIME A SCHEMA WORKFLOW HAS
+WATCHED A FILE UNDER `app/`.** The evidence it needs is a reset database with PostgREST and
+GoTrue standing in front of it, which `db.yml` already has; so `app/src/api/**` is now in that
+workflow's `paths:` filter. **Two files, one claim** — the argument that put `cases.json` there
+and `docs/CONVENTIONS.md` in `app.yml`.
+
+⚠️⚠️ **SEVEN DECISIONS TAKEN ON THE OWNER'S BEHALF, AND THE FIRST IS THE ONLY EXPENSIVE ONE.**
+
+| | Decision | Why, and what it costs to reverse |
+|---|---|---|
+| **1** | ⚠️⚠️ **TanStack Query is installed and is now the app's server-state layer.** | **ADR-035 §2.11 names it — *"TanStack Query, exclusively"* — and the plan had never scheduled it.** This is the first server read this app has ever done, so it is the cheapest moment there will ever be; the alternative was `5b-ii` and `5b-iii` each inventing a read and `5b.5` then documenting a pattern the ADR does not describe. ⚠️ **Reversing it after `5b` costs three call sites, not one** |
+| **2** | **Onboarding asks for ONE name, not two.** | `onboard_workspace` names the first location after the shop when passed `null` — **measured against the applied schema, not assumed** (the store came back called *Contrato 5b-i*). A one-store shop being asked a second name for the same building is a question with no right answer. The wrapper still takes the argument |
+| **3** | **C1.7 defaults to *yes*, and the screen carries a one-line hint the ADR did not write** — *"Es el precio de la etiqueta, el que paga el cliente."* | The column is `default true` (`0001`) and almost every shop is. A default matching the common case is the one a person who does not read the question gets right by not answering it. ⚠️ **The hint is mine, not his** — the question itself is §2.8's wording, quoted |
+| **4** | **The landing is `/bienvenida`, in a third route group `(onboarding)`.** | `guard.ts` now answers *which of three rooms* rather than *which side of the door*. `5b-iii`'s joiner lands here too — signed in, belonging to nowhere, is the same state whether they are about to create a shop or ask to join one |
+| **5** | **The membership read is a `select` on `workspace`, not on `workspace_member`.** | `workspace_select` is `id in (select public.my_workspaces())`, so the table already answers the question and **an empty array IS the no-workspace state**. Reading the membership table needs a second policy hop to say the same thing |
+| **6** | ⚠️ **C1.3's restore now requires an ESTABLISHED shop, which changes a `5a-iii-b` rule.** | Every route in `RESTORABLE_ROUTES` is a tab of a shop. Without it, a person who signed up last night is restored to Vender for one frame on the way to the landing — **and that frame spends the launch's one and only restore** |
+| **7** | **`db.yml` now watches `app/src/api/**`.** | Stated above. It costs a `supabase start` on commits that touch the data layer |
+
+⚠️⚠️ **AND RUNNING THE STANDING GUARDS AFTERWARDS FOUND TWO MORE THINGS, BOTH IN CHECKS
+RATHER THAN IN CODE.** `5b-split-coverage.sh` went **red on a sentence written ten minutes
+earlier**: the gate cell added to `5b-ii` said what `5b-i` had left for it and spelled a
+deliverable that row does not own — **the seventh instance of *never spell a check's sentinel
+in the file it reads***, and the second where the sentinel was spelled by prose describing a
+legitimate hand-over. ✅ **The sentence was changed, not the check.** And
+`conventions-gate-falsify.sh`'s fixture `F9` — *"a module's header block deleted"* — **went
+GREEN while claiming to prove R8 can fail.** It deleted `guard.ts`'s first twenty-five lines
+because that is where the header ended when the fixture was written; this task added a
+paragraph to that header, the fence moved past line 25, and the deletion left a header
+standing. ⚠️ **A fixture pinned to a LINE NUMBER of a file other tasks edit has an expiry date
+nobody wrote down** — the same family as the stale `F10` that file already records. ✅ **Re-anchored to the fence itself. Sixteen fixtures, all behaving.**
+
+⚠️ **WHAT NO CHECK IN THIS REPOSITORY CAN SEE, NAMED RATHER THAN LEFT TO BE DISCOVERED.**
+§2.11 bans rendering suites, so **that `bienvenida.tsx` calls the contract the other two
+checks agree about is the owner's own phone**, and it joins the list `5a-iv` already carries.
+⚠️ **And one behaviour is deliberately unpolished**: between signing in and the membership read
+returning, the guard moves nobody — correct, and on a bad connection it is a sign-in screen
+that sits there looking idle. **A spinner for that state is rendering, and rendering is `5c`'s
+and the phone's.**
+
+
 ✅✅ **RULED BY THE OWNER 2026-09-14, HOURS AFTER `5b` WAS SPLIT — *"EMAIL ONLY."* THE MEMBER
 SCREEN SHOWS AN EMAIL AND NEVER A NAME, AND NO MIGRATION IS ADDED TO MAKE ONE.** The decision
 `5b`'s sizing raised — *C11.8 asks for the requester's NAME and no table in this schema carries
@@ -192,6 +261,11 @@ surface** — §2.8 fixed Ajustes as a sheet — **a badge on a Home screen that
 twenty-three source files: an auth shell, four tab stubs, a density theme and a money
 formatter. **There is no data layer.** Every step-4 task that was one function was an `M`;
 this is six RPCs, four surfaces and the layer they are all called through.
+
+⚠️ **The paragraph above is the reading ON THE DAY OF THE SIZING and is left as it was** —
+the same call this section makes about the `13` a few paragraphs down. **`5b-i` closed on
+2026-09-14**: `src/api/` exists, there is a data layer, and the app is **twenty-nine** source
+files. The sentence describes what was in front of the sizing, not what is in front of you.
 
 #### The seam, and each piece is a closed loop somebody can actually use
 
@@ -10373,9 +10447,9 @@ free today and stay free until the first task merges.
 |---|---|---|---|
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | ⚠️⚠️ **SIZED `L` AND SPLIT THREE WAYS 2026-09-14, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Onboarding and membership.** Fifteen deliverables, all of which land in a child below: **`onboard_workspace`**; **the IVA question** (**C1.7**); **the no-workspace landing** for a signed-in person who belongs to none; **`src/api/`**, the app's first real data layer; **Ajustes**, its first non-tab surface; the join code and its WhatsApp share (**C11.7**); **member management**; **`create_invite`**; **`redeem_invite`**; **`request_access`** with **`my_access_requests`**; **`approve_request`** and its location picker; and the Home notifications icon and badge (**C11.8**). ✅ **Plus the two halves of the ruling of 2026-09-14**: a member row **identified by EMAIL** and never by a name, and an approval row where **the approver sees an EMAIL** and never a name. ⚠️ **Everything the server half needs EXISTS** — `0027`–`0029`, which is what the gate was waiting for. **Nothing below ships a migration** | `L` — **split, an `M` and two `M/L`s** | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and the database build has no open task |
-| **5b-i** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one | `M` | ✅ **Unblocked.** Nothing in `5b` can be built before a workspace can exist |
-| **5b-ii** | **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ✅ **`5b-i`, and nothing else.** The decision that was open against this row was ruled on the day it was parked |
-| **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **`5b-i`, and nothing else.** The decision that was open against this row was ruled on the day it was parked |
+| **5b-i** | ✅✅ **IS DONE AS OF 2026-09-14 — `0033` was the last migration and this task shipped none.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one. ✅ **Shipped:** `src/api/` in five modules over one impure boundary, TanStack Query as the server-state layer ADR-035 §2.11 names, a third route group `(onboarding)`, and **`docs/checks/5b-i-api-contract.sh`** — a real HTTP round trip against a reset database, because a wrong argument name is a 404 that the typecheck, the suite and the bundler all pass over | `M` | ✅ **Was unblocked, and is closed.** `5b.5` is now takeable, and so is everything below |
+| **5b-ii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14**, and this row is the first consumer of the data layer it built. ⚠️ **That layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned this guard red while the sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
+| **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14.** The decision that was open against this row was ruled on the day it was parked |
 | **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |

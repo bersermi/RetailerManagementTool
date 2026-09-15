@@ -348,14 +348,23 @@ named task ends up.
 
 ## ⚠️ What this page does not cover yet — a second pass is owed at `5b.5`
 
-**There are no `src/api/` and no `src/ui/` conventions here, because neither
-directory exists.** ADR-035 §3 put both in step `5a` so that *"step 6's four
-screens arrive to a pattern"*; this build spread them across `5d`–`5h` instead,
-and **the owner ruled on 2026-09-13 that the re-sequencing stands and the
-pattern gets described once `5b` has produced a real one** — rather than ten
-primitives guessed at against screens nobody has drawn.
+**There are no `src/api/` and no `src/ui/` conventions here.** ADR-035 §3 put
+both in step `5a` so that *"step 6's four screens arrive to a pattern"*; this
+build spread them across `5d`–`5h` instead, and **the owner ruled on 2026-09-13
+that the re-sequencing stands and the pattern gets described once `5b` has
+produced a real one** — rather than ten primitives guessed at against screens
+nobody has drawn.
 
-So if you are about to write the first RPC wrapper or the first shared
+⚠️ **UPDATED 2026-09-14: `app/src/api/` NOW EXISTS. `app/src/ui/` STILL DOES
+NOT.** This sentence used to read *"because neither directory exists"*, and
+`5b-i` made half of it false the hour it shipped — which is this page's own
+recorded defect, arriving on the page that exists because of it. The data layer
+is five modules, one of which is the only place in the app that may touch
+`supabase`; read `app/src/api/workspace.ts` first, because its header is where
+the reasoning is. **What is still owed is the WRITTEN convention**, not the
+pattern: the pattern is now on disk, and `5b.5` is where it gets described.
+
+So if you are about to write the second RPC wrapper or the first shared
 component: **that is the second pass, and it is plan task `5b.5`.** Read
 [`docs/PLAN.md`](PLAN.md) for what it owes, and add the conventions here as you
 establish them — do not invent them in four screens, which is the exact accident

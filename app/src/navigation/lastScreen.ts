@@ -16,6 +16,8 @@
 // rule below testable — including what happens when there is no store at all.
 // ============================================================================
 
+import type { Membership } from '@/api/workspace';
+
 /**
  * The routes a person may be sent back to.
  *
@@ -51,6 +53,12 @@ export interface RestoreState {
    */
   readonly ready: boolean;
   readonly hasSession: boolean;
+  /**
+   * Does this person belong to a shop yet? ⚠️ ADDED IN 5b-i, AND THE RULE IT
+   * CARRIES IS BELOW. The same three-valued flag `guard.ts` takes, for the
+   * same reason: `unknown` is "the read has not come back yet".
+   */
+  readonly membership: Membership;
   /** Has this LAUNCH already restored once? See the rule below. */
   readonly alreadyRestored: boolean;
   /** Whatever is in storage — not trusted, not assumed to be a route. */
@@ -73,6 +81,14 @@ export function restoreTarget(state: RestoreState): RestorableRoute | null {
   // "A signed-out user restores to nothing." The guard is already sending them
   // to /entrar; a restore competing with it is two navigations in one frame.
   if (!state.hasSession) return null;
+
+  // ⚠️ AND NEITHER DOES ANYONE WHOSE SHOP IS NOT ESTABLISHED (5b-i). The same
+  // argument, one table further out: every route in `RESTORABLE_ROUTES` is a
+  // tab of a shop, and the guard is about to send a person who has none to
+  // `/bienvenida`. Restoring first is the flicker where a shopkeeper who signed
+  // up last night sees Vender for a frame on the way to the screen that creates
+  // the shop Vender needs — and it spends this launch's one restore doing it.
+  if (state.membership !== 'member') return null;
 
   // ⚠️ C1.3 IS ABOUT THE LAUNCH, NOT ABOUT EVERY RENDER. Without this the
   // effect re-decides on each navigation and drags a shopkeeper who just tapped
