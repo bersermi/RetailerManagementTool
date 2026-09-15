@@ -51,7 +51,16 @@ const broken: RouteMemory = {
   },
 };
 
-const SIGNED_IN = { ready: true, hasSession: true, alreadyRestored: false, at: '/' } as const;
+// ⚠️ `membership: 'member'` IS PART OF "SIGNED IN" AS OF 5b-i. C1.3 restores a
+// person to a TAB, and a tab is a screen of a shop — so the fixture for
+// "somebody the app should reopen for" is somebody who has one.
+const SIGNED_IN = {
+  ready: true,
+  hasSession: true,
+  membership: 'member',
+  alreadyRestored: false,
+  at: '/',
+} as const;
 
 // ============================================================================
 // ⚠️ THE ALLOW-LIST AND THE TAB BAR ARE TWO FILES, AND THIS IS WHAT KEEPS THEM
@@ -95,12 +104,29 @@ describe('what the app reopens on', () => {
   it('moves nobody until the stored session has been looked for', () => {
     expect(restoreTarget({ ...SIGNED_IN, ready: false, stored: '/vender' })).toBeNull();
     expect(
-      restoreTarget({ ready: false, hasSession: false, alreadyRestored: false, stored: '/vender', at: '/' }),
+      restoreTarget({
+        ready: false,
+        hasSession: false,
+        membership: 'unknown',
+        alreadyRestored: false,
+        stored: '/vender',
+        at: '/',
+      }),
     ).toBeNull();
   });
 
   it('restores a signed-out person to nothing', () => {
     expect(restoreTarget({ ...SIGNED_IN, hasSession: false, stored: '/vender' })).toBeNull();
+  });
+
+  // ⚠️ AND NEITHER DOES SOMEONE WITH NO SHOP, OR SOMEONE WHOSE SHOP IS NOT
+  // KNOWN YET (5b-i). Every route in `RESTORABLE_ROUTES` is a tab of a shop.
+  // Without this rule a person who signed up last night is restored to Vender
+  // for one frame on the way to `/bienvenida` — and that frame SPENDS this
+  // launch's one and only restore, so the tap it costs is never given back.
+  it('restores nobody whose shop is not established', () => {
+    expect(restoreTarget({ ...SIGNED_IN, membership: 'none', stored: '/vender' })).toBeNull();
+    expect(restoreTarget({ ...SIGNED_IN, membership: 'unknown', stored: '/vender' })).toBeNull();
   });
 
   // ⚠️ THE ONE THAT IS WORSE THAN NEVER RESTORING AT ALL. Without it the effect

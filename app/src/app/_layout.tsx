@@ -1,6 +1,8 @@
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
 
+import { QueryProvider } from '@/api/QueryProvider';
+import { useMembership } from '@/api/hooks';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
 import {
@@ -11,9 +13,15 @@ import {
 } from '@/navigation/lastScreen';
 import { DensityProvider } from '@/theme/DensityProvider';
 
-// The root, and it now does three things: it puts C3.18's density scale in
-// reach of every screen, it puts the session there too, and it hands navigation
-// to the tab shell.
+// The root, and it now does four things: it puts C3.18's density scale in reach
+// of every screen, it puts the session there too, it puts TanStack Query — the
+// only server-state layer this app has (ADR-035 §2.11) — between the two, and it
+// hands navigation to the tab shell.
+//
+// ⚠️ `QueryProvider` IS INSIDE `AuthProvider` AND OUTSIDE EVERYTHING ELSE
+// (5b-i). Every query is scoped to whoever holds the session, so the provider
+// that knows who that is has to be above it; and `Gate` reads a query, so it has
+// to be below it.
 //
 // ⚠️ THE STACK'S HEADER IS OFF BECAUSE THE TABS CARRY THEIR OWN. A group like
 // `(tabs)` is a screen as far as the Stack is concerned, so leaving both on
@@ -22,10 +30,12 @@ import { DensityProvider } from '@/theme/DensityProvider';
 export default function RootLayout() {
   return (
     <AuthProvider>
-      <DensityProvider>
-        <Gate />
-        <Stack screenOptions={{ headerShown: false }} />
-      </DensityProvider>
+      <QueryProvider>
+        <DensityProvider>
+          <Gate />
+          <Stack screenOptions={{ headerShown: false }} />
+        </DensityProvider>
+      </QueryProvider>
     </AuthProvider>
   );
 }
@@ -52,6 +62,10 @@ export default function RootLayout() {
 // ============================================================================
 function Gate() {
   const { session, ready } = useAuth();
+  // ⚠️ A SERVER READ, AND IT IS THE FIRST THING IN THIS APP THAT CAN BE SLOW
+  // (5b-i). Until it comes back this is `unknown`, and `redirectFor` moves
+  // nobody on an `unknown` — see its own note on why that is not a `none`.
+  const membership = useMembership();
   const segments = useSegments();
   const pathname = usePathname();
 
@@ -64,19 +78,20 @@ function Gate() {
   useEffect(() => {
     const hasSession = session !== null;
 
-    const to = redirectFor({ ready, hasSession, group: groupOf(segments) });
+    const to = redirectFor({ ready, hasSession, membership, group: groupOf(segments) });
     if (to !== null) {
       router.replace(to);
       return;
     }
 
-    if (!ready || !hasSession) return;
+    if (!ready || !hasSession || membership !== 'member') return;
 
     if (!restored.current) {
       restored.current = true;
       const target = restoreTarget({
         ready,
         hasSession,
+        membership,
         alreadyRestored: false,
         stored: readLastScreen(routeMemory()),
         at: pathname,
@@ -88,7 +103,7 @@ function Gate() {
     }
 
     rememberLastScreen(routeMemory(), pathname);
-  }, [ready, session, segments, pathname]);
+  }, [ready, session, membership, segments, pathname]);
 
   return null;
 }

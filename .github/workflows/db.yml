@@ -52,6 +52,19 @@ on:
       # passed no PR — the same argument that put cases.json above.
       - "package.json"
       - "package-lock.json"
+      # ⚠️⚠️ AND THE APP'S DATA LAYER, as of plan task 5b-i. This is the first
+      # time a workflow over `supabase/**` has watched a file under `app/`, and
+      # the reason is that `app/src/api/workspace.ts` is now a CLAIM ABOUT THE
+      # APPLIED SCHEMA — the RPC's name, its three argument names, the columns
+      # read off `workspace`. PostgREST resolves an RPC by its parameter names,
+      # so a rename on either side of that line is a 404 (`PGRST202`) that the
+      # typecheck, the Vitest suite and the bundler all pass straight over. Two
+      # files, one claim — so an edit to EITHER has to re-run the check that
+      # watches it, which is the same argument that put `packages/money/cases.json`
+      # above and `docs/CONVENTIONS.md` in app.yml.
+      - "app/src/api/**"
+      - "docs/checks/5b-i-api-contract.sh"
+      - "docs/checks/5b-i-api-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -378,6 +391,33 @@ jobs:
             }
             console.log(`${r.numPassedTests} two-connection assertions ran against the reset database`);
           '
+
+      # ⚠️⚠️ THE APP'S DATA LAYER, ASKED OF THE DATABASE ITSELF (plan task 5b-i).
+      #
+      # `app.yml` typechecks `app/src/api/` and runs a Vitest suite over it, and
+      # NEITHER CAN SEE THE ONE DEFECT THAT MATTERS: TypeScript has never read
+      # `0027`, so an argument renamed on either side of the wire is a 404 with
+      # code `PGRST202` — "Could not find the function
+      # public.onboard_workspace(display_name) in the schema cache" — that
+      # compiles, bundles, passes 166 assertions and is first noticed by a
+      # shopkeeper who cannot create her shop.
+      #
+      # It runs HERE rather than in app.yml because the evidence it needs is a
+      # reset database with PostgREST and GoTrue in front of it, and that is
+      # what this workflow already has standing. It reads the app's own strings
+      # out of `app/src/api/workspace.ts` rather than carrying a second copy.
+      - name: Contract — does app/src/api/ still describe the schema (plan 5b-i)
+        run: bash docs/checks/5b-i-api-contract.sh
+
+      # And its own six fixtures, for the reason app.yml states about the plan
+      # guards: a check nobody has seen fail is a check nobody has shown can.
+      # ⚠️ ITS FIRST RUN FOUND A DEFECT IN THE CHECK ABOVE — the argument reader
+      # recognised an argument by the `p_` prefix it exists to test, so dropping
+      # the prefix made it report "could not read the contract" instead of the
+      # 404. Red for the wrong reason, which is the failure this harness is
+      # written to match on rather than trusting an exit code.
+      - name: Contract — can that check still fail (its own six fixtures)
+        run: bash docs/checks/5b-i-api-contract-falsify.sh
 
       - name: Stop
         if: always()
