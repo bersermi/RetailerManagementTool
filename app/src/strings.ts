@@ -46,11 +46,28 @@ export const ES = {
     title: 'Wera',
     emailLabel: 'Correo',
     passwordLabel: 'Contraseña',
+    /**
+     * ⚠️ THE TWO FIELDS THAT ONLY EXIST ON THE SIGN-UP HALF (5b.7). The owner
+     * asked for them by name on 2026-09-18 — *"Nombre y Apellido"* — and ruled
+     * the same day that BOTH are required. Two boxes and not one, because a
+     * rule about spaces inside one box is a rule about how a Spanish name is
+     * SHAPED, and Spanish routinely carries two surnames: `María del Carmen
+     * Rodríguez Gómez` breaks every split anyone would write.
+     */
+    nameLabel: 'Nombre',
+    surnameLabel: 'Apellido',
     signIn: 'Entrar',
     signUp: 'Crear cuenta',
     /** C1.4's other way in (5a-iii-b). The provider is named because the
      *  person has to recognise which account they are about to use. */
     google: 'Entrar con Google',
+    /**
+     * ⚠️ THE SWITCH BETWEEN THE SCREEN'S TWO HALVES, AND UNTIL 5b.7 THESE WERE
+     * DEAD COPY. They were written at 5a-iii-a for a shape that never shipped —
+     * the screen had two buttons and no halves, so neither string had a reader.
+     * `5b.7` gave the screen halves (two fields a returning person must never
+     * be shown) and these are what moves between them.
+     */
     toSignUp: '¿No tienes cuenta? Crear una',
     toSignIn: '¿Ya tienes cuenta? Entrar',
     signOut: 'Cerrar sesión',
@@ -66,6 +83,10 @@ export const ES = {
       emailMissing: 'Escribe tu correo.',
       passwordMissing: 'Escribe tu contraseña.',
       passwordShort: 'La contraseña necesita al menos 6 letras o números.',
+      /** ⚠️ SIGN-UP ONLY (5b.7). Nothing on the sign-in path can produce
+       *  either of these — a person coming back does not type their name. */
+      nameMissing: 'Escribe tu nombre.',
+      surnameMissing: 'Escribe tu apellido.',
       notConfirmed: 'Todavía falta confirmar tu correo.',
       tooMany: 'Demasiados intentos. Espera un minuto y vuelve a intentar.',
       offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
