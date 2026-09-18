@@ -322,7 +322,7 @@ to stop and ask rather than pick a side.
 | **5b.5** | The conventions page, second pass | After `5b.6`, so it describes the data layer and the colours in one go |
 | **5b-ii** | **Ajustes, the join code, and inviting someone** | After the colours — it is the first screen that would otherwise invent its own |
 | 5b-iii–5h | The rest of the screens | After 5b-ii |
-| **—** | ⚠️ **Two things are waiting on YOU** | **Does removing a line from the carrito get an undo?** and **what your Números questions actually are** — both are in `docs/PLAN.md`'s decisions block, and every session re-offers them until you rule |
+| **—** | ⚠️ **One thing is waiting on YOU** | **What your Números questions actually are.** You said on 2026-09-17 they are *not* about how it looks — so they are about what it measures, which reopens área 9 and probably costs a migration. ✅ The undo question was answered the same day: **no undo.** It is in `docs/PLAN.md`'s decisions block and every session re-offers it until you say |
 | 6–7 | Beyond the pilot | Later |
 
 ### ✅ The decision you made on 2026-09-07, and what it bought
