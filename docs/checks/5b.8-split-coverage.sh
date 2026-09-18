@@ -225,7 +225,7 @@ fi
 # --- 5. the write rule survives ---------------------------------------------
 # ⚠️ THE FIRST OF TWO THAT GUARD A DECISION RATHER THAN A DELIVERABLE, and it is
 # the most expensive decision in this split. `redeem_invite` (0028:520),
-# `request_access` (0029:253) and `approve_request` (0029:452) all take an
+# `request_access` (0029:252) and `approve_request` (0029:451) all take an
 # `update` branch when the member row already exists. If that branch refreshes the
 # name from `raw_user_meta_data`, a person who corrected their own name through
 # `5b.8-iii` loses it the next time somebody re-invites her — silently, on an
@@ -242,7 +242,7 @@ if grep -qF "only where the stored value is null" <<< "$ROW_I"; then
 else
   fail "5b.8-i's row no longer says the name is written on \`update\` ONLY where the"
   echo "      stored value is null. Three of the four writers take an update branch"
-  echo "      (0028:520, 0029:253, 0029:452), so without that rule a re-invite"
+  echo "      (0028:520, 0029:252, 0029:451), so without that rule a re-invite"
   echo "      silently replaces a name a person corrected about themselves with"
   echo "      whatever Google sent. Restore it, or record the decision to refresh"
   echo "      the name every time and say what it costs her."

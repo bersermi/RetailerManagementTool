@@ -298,7 +298,7 @@ is met rather than discovered.**
 
 **`R5` — THREE OF THE FOUR WRITERS HAVE AN `UPDATE` BRANCH, AND WHAT IT DOES TO AN EDITED NAME
 IS A MODELLING CHOICE THE MIGRATION BAKES IN.** `redeem_invite` (`0028:520`), `request_access`
-(`0029:253`) and `approve_request` (`0029:452`) all do *"if the member row exists, update role
+(`0029:252`) and `approve_request` (`0029:451`) all do *"if the member row exists, update role
 and `is_active`"* rather than insert. ⚠️ **If that branch also refreshes the name from
 `raw_user_meta_data`, then a person who corrects their own name through the third child and is
 later re-invited silently loses the correction** — and the app has overwritten a person's own
