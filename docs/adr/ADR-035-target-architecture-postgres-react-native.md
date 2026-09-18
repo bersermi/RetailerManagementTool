@@ -35,6 +35,19 @@
   done. **§2.9's waste question is kept and carries a new warning**: its cost half is broken
   under C8.6 in exactly the way the margin question was, and **nobody had written that down
   until 2026-09-13**.
+- **Revised:** 2026-09-17 — **§2.8 and §2.11 amended, on the decision maker's instruction**,
+  after the **aesthetic round** he called for on 2026-09-15 (plan task *área 13*). The client
+  had reached `5b-i` with **no palette, no motion rule and no colour anywhere in twenty-nine
+  source files** — §2.11 had settled navigation, server state, money and strings and had never
+  settled what the app LOOKS like, and nothing in this document had either. ⚠️⚠️ **§2.8's Home
+  row is the one that CHANGES rather than gains**: it said *"No nav panel here — redundant"*
+  and Inicio now carries the three work modules as large cards plus rows to Productos and
+  Proveedores. **The sentence's intent survives and is restated** — state before doors, the
+  day's takings and the 48-hour expiries stay above the modules — but the prohibition does not,
+  and it is amended rather than reinterpreted. ⚠️ **§2.11 gains two rows, palette and motion**,
+  and the motion row is a performance constraint before it is a taste one: two of the pilot's
+  four phones are low-end Android. ⚠️ **No schema, and no app code by this revision** — the
+  palette is plan task `5b.6`, which is where `R11` enforces it.
 - **Revised:** 2026-09-13 (third entry this date) — **§2.7 and §8 amended, on the
   decision maker's instruction**, because **one sentence of the second entry's own
   amendment went stale within hours of being written.** §2.7 said register #9's eight
@@ -1081,7 +1094,7 @@ Three capture screens that *feel* like distinct modes, sharing one engine undern
 
 | Surface | Job | Notes |
 |---------|-----|-------|
-| **Home** | Today's sales total and count, anything expiring within 48h | Shows state, not just doors. No nav panel here — redundant. Deliberately *not* a place where sync failures surface — see below |
+| **Home** | Today's sales total and count, anything expiring within 48h, **and the way into every module** | ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. Deliberately *not* a place where sync failures surface — see below |
 | **Vender** | The dominant loop; persistent primary action, thumb-reachable everywhere | One tap from cold open; two taps to a committed single-item sale |
 | **Comprar** | Provider context, price prefill from history, optional expiry | Episodic — not tap-optimised |
 | **Desperdicio** | Reason-first waste entry | Feeds the analytics asset |
@@ -1316,6 +1329,8 @@ four dialects and a junior inventing a cache. Settled 2026-08-14:
 | Local state | **Zustand, cart only**, persisted to `expo-sqlite` | Survives the app being backgrounded mid-sale. One rule: **if it came from Postgres it lives in Query; if it is not committed yet it lives in the cart store.** Nothing lives in both |
 | Components | **~10 hand-rolled primitives in `src/ui/`** | No Tamagui, no gluestack. The unit-aware input and the tap budget in §2.8 are idiosyncratic requirements; a general kit is fought, then worked around, then partially abandoned |
 | Strings | **Hardcoded Spanish, centralised in one file** | No i18n runtime in v1. Centralising costs nothing now and makes a second language a refactor instead of an excavation |
+| **Palette** | **One file of named ROLES, `src/theme/palette.ts`** — added 2026-09-17 | The twin of C3.18's density scale, and it arrives for the same reason that one did: retrofitting colour onto finished screens is an audit of every file, and the ones it misses are the states nobody looks at. A role has **one job** (`atención` is the unpriced row and nothing else), which is what lets someone who is not a designer add a screen without inventing anything. ⚠️ **No state is ever announced by colour ALONE** — always colour *and* a word, or colour *and* a border: the users are old, the shop is bright, and a hue on its own is not a signal to them. Enforced by `R11` in `docs/checks/conventions-gate.sh`, the shape `R6` already has for sizes |
+| **Motion** | **One staggered entrance per screen; `transform` and `opacity` only** — added 2026-09-17 | It is a performance rule before it is a taste one. C1.1 puts **two low-end Androids** among the pilot's four phones; transform and opacity run on the compositor, while animating layout, colour, shadow or blur does not. One orchestrated reveal also beats scattered micro-interactions on a screen someone opens four hundred times a day |
 | Money on screen | `Intl.NumberFormat('es-MX')` for **rendering only** | Arithmetic is integer centavos in `packages/money`, always. A formatter never touches a value that will be compared against Postgres |
 | Client tests | **Narrow, and bounded by what they assert.** Allowed where a test pins a value a customer sees or the ledger stores — the money formatter, unit conversion, the outbox state machine. Refused over rendering, navigation and layout. `packages/money` is not negotiable | Per §2.10, amended 2026-09-07. A suite over a thin UI is still a poor use of a small team; four assertions over a pure function that decides a displayed price are not that suite, and they are what makes `app.yml`'s green mean something other than *"it compiled"* |
 

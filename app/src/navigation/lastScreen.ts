@@ -23,9 +23,16 @@ import type { Membership } from '@/api/workspace';
  *
  * ⚠️ IT IS A LIST AND NOT A DERIVATION FROM `TABS`, AND THE TEST IS WHAT KEEPS
  * THEM IN STEP. `app/test/last-screen.test.ts` asserts this equals the tab
- * table's routes exactly, so a fifth tab added in `5d` that nobody may be
- * restored to is a RED TEST rather than a silent omission — and a tab DELETED
- * is a red test rather than a stored path that sends the app nowhere.
+ * table's routes exactly, so a tab added later that nobody may be restored to is
+ * a RED TEST rather than a silent omission — and a tab DELETED is a red test
+ * rather than a stored path that sends the app nowhere.
+ *
+ * ⚠️ THIS PARAGRAPH USED TO SAY "a fifth tab added in `5d`" AND THAT IS NO LONGER
+ * COMING. Area 13, 2026-09-17: `Productos` was drawn as a fifth tab and the
+ * tension with C12.1 was visible in the hand — five icon-plus-word tabs across
+ * 390 px give each 78 px, and one of the words is `Desperdicio`. The bar is
+ * capped at FOUR; `Productos` and `Proveedores` are entered from Inicio. The
+ * routes they push are not tabs and are not restorable.
  *
  * ⚠️ AND IT IS AN ALLOW-LIST, NOT A DENY-LIST. Whatever is in storage was
  * written by a previous version of this app; `5b` will add routes, `5e` will

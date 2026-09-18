@@ -33,8 +33,10 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| **Does `Quitar` get an undo?** Removing a line from the carrito is immediate today. | `5h` | Raised by the model on 2026-09-16 while drawing the carrito and **not answered**. The two candidates both have a cost a shopkeeper pays: a few seconds of *Deshacer* is a **timed** affordance, and the users are old and the counter is busy — the ones who need it most are the ones who will not reach it in time; a confirmation on every removal is the book-keeping the owner's own rule refuses to hand them. ⚠️ **The model's recommendation is NEITHER** — no undo and no dialog, because re-adding the item is two taps on the list that is already behind the sheet. That is a recommendation, not a ruling, and the row stays here until it is one. |
+| **The Números questions.** The owner said on 2026-09-15 that the screen *"raises questions"* and asked to take them in a later round. | the Números screen, and **área 9** if they reopen it | ⚠️ **NOT YET ASKED, AND THE SHAPE OF THE ANSWER DECIDES THE COST.** If the questions are about how Números LOOKS, it is a design round and the screen is already drawn. **If they are about what it MEASURES, they reopen área 9** — ruled 2026-09-14, *"we won't derive the profit… I'd rather just show total revenue"* — and `0031`, `0032` and `0033` are **already applied against those answers**, so a change there is a fix-forward migration and not an edit. **Ask which kind before spending a session on it.** |
 
-✅✅ **NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.** ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+⚠️⚠️ **TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.** Both came out of the aesthetic round; both are recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
 raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
 FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
 date**, which is what it is for. The three
@@ -134,6 +136,126 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+✅✅✅ **ÁREA 13 — THE AESTHETIC ROUND — IS RULED AS OF 2026-09-17, AND `5b.6` IS THE NEXT TASK.**
+The owner called it on 2026-09-15 (*"we need to make authoritative the simplicity and efficiency of
+the aesthetic aspect… we won't have a big UX/UI team"*), chose **canvas first, then the interview**,
+and settled it over three rounds of drawings rather than a questionnaire. **Direction B — Mercado —
+is the app.** ⚠️ **No app code and no schema in this session**: this entry, an ADR amendment, two
+annotated constraints, one new task row and two parked decisions are the whole of it.
+
+📐 **THE CANVAS IS THE RECORD AND IT IS NOT IN THIS REPOSITORY — the link is the only copy:**
+**`https://claude.ai/code/artifact/5d0fe2fd-3e7c-448a-a27d-4c0f2fe99127`**
+Two pages. **Wera** holds the system sheet, the tab-to-card transition in three frames, and six
+screens (Inicio, the Vender carrito, the vaciar confirmation, Productos, Familia, Números).
+**Descartadas** holds the two rejected directions, kept on purpose as the record of the choice.
+⚠️ **A session that cannot open that link has the eleven colour roles below and nothing else** —
+which is why they are written out here rather than pointed at.
+
+#### ⚠️⚠️ WHY THIS ROUND HAPPENED AT ALL, AND IT IS THE FINDING THAT MATTERS MOST
+
+**The client reached `5b-i` with no palette, no motion rule and NO COLOUR ANYWHERE.** Measured, not
+assumed: twenty-nine source files, zero `backgroundColor`, zero `color:` — every screen was default
+text on a default ground. §2.11 had settled navigation, server state, money and strings **and had
+never settled what the app looks like**; the UI/UX grill of 2026-09-07 covered twelve areas and
+**aesthetics was not one of them**; `density.ts` says in its own header *"THIS FILE HAS NO COLOURS
+AND NO FONTS"*. ⚠️ **The only colour decision in the project was C3.17's amber**, taken on the
+owner's behalf, with no token behind it. **This was a hole, not a deferral**, and `5d` — the first
+screen of the four §3 was talking about — is where it would have set.
+
+#### The direction, and what the other two would have bought
+
+Three directions were drawn over the **same** Vender basket, same data, the exact tokens out of
+`density.ts`, differing on one question: **what tells the shopkeeper a row needs attention?**
+
+| | Carries meaning with | Chosen? |
+|---|---|---|
+| **A — Papel** | **Weight and air.** Six roles, cheapest to render and to extend, closest to what the app already looked like | ❌ Almost nothing announced itself as tappable, and the counter needs that |
+| **B — Mercado** | **Hue.** Green acts, amber warns, red destroys. Eleven roles | ✅ **Five more tokens than A, and they buy unmistakable affordance** |
+| **C — Etiqueta** | **Structure.** 2 px rules, money in a boxed cell, state as a filled tag | ❌ Best under glare and for failing colour vision — but at *Letra grande* the borders ate the screen |
+
+⚠️ **C's argument survived as a RULE rather than as a direction**, and it is the one worth keeping:
+**no state is ever announced by colour alone.** Amber on its own is a weak signal for ageing eyes in
+a badly-lit shop, which is the exact population C3.18 exists for — so every state carries colour
+**and** a word, or colour **and** a border. It is also the only aesthetic decision here a machine
+can check, which is why it becomes `R11` and not a paragraph.
+
+#### The eleven roles, written out because the link may not open
+
+| Role | Value | Its one job |
+|---|---|---|
+| fondo | `#FFFCF6` | the ground of every screen |
+| superficie | `#FFFFFF` | lists, cards, sheets |
+| banda | `#FBF0DE` | the screen header |
+| tinta | `#201D16` | all primary text |
+| tinta apagada | `#6F675A` | units and secondary labels |
+| línea | `#E7E0D2` | 1 px separators |
+| acción | `#1C6B4B` | cobrar, recibir, the active tab |
+| acción suave | `#E6F0EA` | the resting fill of an action |
+| atención | `#A8620A` | falta precio and `$0.00` — **C3.17, and nothing else** |
+| atención suave | `#FCF1DE` | the ground of a row needing attention |
+| error | `#A32218` | `Quitar`, cancelling a sale, merma |
+
+**Type is the operating system's own face** — no download, no layout shift on first paint, native
+numerals. The pilot store spends its day without signal, and two of its four phones are low-end
+Android; a brand face is a download and a reflow for a shop that cannot afford either.
+
+#### ⚠️⚠️ TWO THINGS THAT WERE ALREADY WRITTEN DOWN ARE NOW DIFFERENT, AND BOTH ARE AMENDED IN PLACE
+
+**`C8.13` — `Productos` is no longer family-first.** It listed a **grid of family tiles**; the owner
+ruled on 2026-09-15 that it is a **flat list of every VARIANT**, and that tapping one opens the
+family **with that variant preselected**. ⚠️ **It is arguably more consistent than what it
+replaces** — C3.1 already flattens the transaction screens, so the whole app now flattens and the
+family structure appears in exactly one place on purpose — **but it overwrites an interview answer
+and is recorded as that**, not as a detail. The constraint's own bullet is annotated rather than
+rewritten, the shape C11.8's ruling used.
+
+**ADR-035 §2.8's Home row said *"No nav panel here — redundant"*, and Inicio is now partly one.**
+The owner ruled that Vender, Comprar and Desperdicio are reachable **directly from Inicio**, and
+Productos and Proveedores live there too. ⚠️ **The ADR was amended rather than reinterpreted**
+(2026-09-17), because CLAUDE.md says the ADR wins and a design that quietly disagrees with it is
+**the design that is the bug**. **The sentence's intent survives**: the day's takings and the
+48-hour expiries stay **above** anything tappable, so Inicio still informs before it navigates.
+⚠️ **`app/src/navigation/tabs.ts` carried the same claim in a comment** — a third copy, found by
+grep rather than by memory, and updated in the same commit.
+
+#### What the owner ruled, in his words
+
+| | Ruling |
+|---|---|
+| **1** | *"Let's go full B."* |
+| **2** | The carrito: **tapping the scrim continues selling**, so the header control becomes **`Vaciar carrito`** with **a small confirmation screen**. |
+| **3** | The collapsed rows, the in-place controls and **`Quitar` instead of a swipe** are approved as drawn. |
+| **4** | `Productos` is **good for the pilot**; the preselected variant shows **no legend**. |
+| **5** | **Inicio was off**: bigger buttons that invite a tap, an easy animation that *"keeps the app live"*, and Vender / Comprar / Desperdicio reachable from it. |
+| **6** | Explore **the tabs becoming buttons on Inicio and buttons becoming tabs elsewhere** — drawn in three frames on the canvas. |
+| **7** | The **tab bar stays at four**; Productos and Proveedores are entered from Inicio. **This resolves C12.1's tension** — five icon-plus-word tabs do not fit 390 px, and the fifth tab `lastScreen.ts` anticipated is now not happening. |
+| **8** | **The product-images build is deferred** (2026-09-15) — see its own block below. |
+
+#### ⚠️ Nine decisions taken on the owner's behalf, and none is expensive to reverse
+
+| | Decision | Why it was taken rather than asked |
+|---|---|---|
+| **1** | **The eleven roles and their exact values** | He ruled the direction; the hex is the sizing work that follows a ruling |
+| **2** | ⚠️ **No state announced by colour alone** — the rule borrowed from direction C | The users are old and the shop is bright. It is the one rule here a machine can enforce, and it becomes `R11` |
+| **3** | **The operating system's own font, no webfont** | Stated above: a download and a reflow the pilot cannot afford |
+| **4** | **`error` became the eleventh role, for `Quitar`** | Removing a line is the only destructive act on that screen; giving it the same green as `+` would be the system lying about what the button does |
+| **5** | **The preselected variant is marked three ways** — tint, border, check | Rule 2 applied to itself: if colour alone cannot announce a state it cannot announce a selection |
+| **6** | **Vender gets the large card; Comprar and Desperdicio share the row below** | §2.8 already calls Vender the dominant loop. Three equal cards would be the layout lying about the day |
+| **7** | **Only the tab items morph.** Productos and Proveedores are deliberately a different shape on Inicio | The geometry teaches the navigation model instead of the user having to learn it |
+| **8** | **The entrance is staggered ~70 ms, the press is 3 %, and the tapped card leaves first and lands last** | One orchestrated reveal beats scattered micro-interactions, and the eye needs one thing to follow rather than three moving at once |
+| **9** | ⚠️ **`5b.5` now also waits on `5b.6`** | So the conventions page describes `src/api/` **and** the palette in ONE pass instead of being opened twice. **It upholds his ruling of 2026-09-13 rather than bending it** — *"described once `5b` has produced a real one"* — and it is the second time that row has been re-pointed. **Reversed by one plan edit** |
+
+#### ⚠️ What no check in this repository can see, and what will hold instead
+
+§2.11 bans rendering suites, so **nothing will ever turn red because a screen got ugly.** Of
+everything above, exactly one thing is machine-checkable — *no colour literal outside the palette* —
+and it ships as **`R11`** in `5b.6`, with fixtures in `conventions-gate-falsify.sh`, the shape `R6`
+already has for sizes. ⚠️ **Everything else is held by this entry and by the canvas**, which is a
+weaker instrument than this repository normally accepts and is said out loud rather than papered
+over. ⚠️ **And one behaviour needs a phone, not an argument**: the morph runs on **every** move to
+and from Inicio, the commonest navigation in the app. Charming on day one, possibly slow by day ten.
+**Measure it on the owner's own device before `5d`** — the rule this project already paid for twice.
 
 ✅✅✅ **`5b-i` IS DONE AS OF 2026-09-14 — a shop can be created from the phone, `src/api/`
 exists, and `5b-ii` IS THE NEXT TASK.** Install, sign in, name the shop, answer C1.7, land on
@@ -10192,6 +10314,17 @@ re-litigated from scratch.
   its price, plus `Agregar Variante` / `Costos` / `Editar`. This is the one screen
   where the family/variant structure is visible — the transaction screens flatten it
   (C3.1). (8.11, screenshots)
+  - ⚠️⚠️ **CHANGED BY THE OWNER 2026-09-15, IN ÁREA 13 — `Productos` IS VARIANT-FIRST.**
+    *"The list of products displayed in Productos should be all the product variants;
+    once one taps a product, the full product family opens with the tapped variant
+    preselected."* **The grid of family tiles is gone**; the flat list of variants
+    replaces it. ✅ **The second half of the constraint SURVIVES UNCHANGED** — the
+    family with its variants at sight, each with its price, plus the three actions —
+    it is simply reached by tapping a variant rather than a tile. ⚠️ **And the app is
+    now flat everywhere**: C3.1 already flattened the transaction screens, so the
+    family structure appears in exactly one surface, on purpose. **Annotated rather
+    than rewritten, because the bullet above is the record of what was asked for in
+    the interview and this is the record of what he settled on.**
 - **C8.14 — ⚠️ PHOTOS ARE AN ADMIN CHORE, NOT A USER TASK, AND NOT PILOT-BLOCKING.**
   A merchant-created product shows **initials** and is transactable immediately. We
   assign the picture afterwards as maintenance. The merchant is **not** shown a
@@ -10344,6 +10477,13 @@ would have built a sign-in screen on top of a membership flow that does not exis
 
 - **C12.1 — ICONS PLUS THE SPANISH WORD**, always, everywhere. Never icons alone.
   (12.2)
+  - ⚠️ **RESOLVED 2026-09-15, IN ÁREA 13 — THE TAB BAR IS CAPPED AT FOUR.** Drawing
+    `Productos` as a fifth tab showed the tension in the hand: five icon-plus-word
+    tabs across 390 px gives each 78 px, and one of the words is *Desperdicio*.
+    ✅ **`Productos` and `Proveedores` are entered from Inicio instead**, so the
+    constraint is kept rather than quietly bent. ⚠️ **`app/src/navigation/lastScreen.ts`
+    anticipated that fifth tab in a comment** — *"a fifth tab added in `5d`"* — and
+    that expectation is now wrong; the comment was corrected in the same commit.
 - **C12.2 — `$1,234.50`** — comma thousands, point decimals. **Centavos are hidden
   when zero**; when there are decimals at all, **exactly two** are shown. (12.3)
 - **C12.3 — ⚠️ THE 50-CENTAVO CEILING IS A DISPLAY RULE ON ONE NUMBER, AND THAT IS
@@ -10448,9 +10588,10 @@ free today and stay free until the first task merges.
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | ⚠️⚠️ **SIZED `L` AND SPLIT THREE WAYS 2026-09-14, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Onboarding and membership.** Fifteen deliverables, all of which land in a child below: **`onboard_workspace`**; **the IVA question** (**C1.7**); **the no-workspace landing** for a signed-in person who belongs to none; **`src/api/`**, the app's first real data layer; **Ajustes**, its first non-tab surface; the join code and its WhatsApp share (**C11.7**); **member management**; **`create_invite`**; **`redeem_invite`**; **`request_access`** with **`my_access_requests`**; **`approve_request`** and its location picker; and the Home notifications icon and badge (**C11.8**). ✅ **Plus the two halves of the ruling of 2026-09-14**: a member row **identified by EMAIL** and never by a name, and an approval row where **the approver sees an EMAIL** and never a name. ⚠️ **Everything the server half needs EXISTS** — `0027`–`0029`, which is what the gate was waiting for. **Nothing below ships a migration** | `L` — **split, an `M` and two `M/L`s** | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and the database build has no open task |
 | **5b-i** | ✅✅ **IS DONE AS OF 2026-09-14 — `0033` was the last migration and this task shipped none.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one. ✅ **Shipped:** `src/api/` in five modules over one impure boundary, TanStack Query as the server-state layer ADR-035 §2.11 names, a third route group `(onboarding)`, and **`docs/checks/5b-i-api-contract.sh`** — a real HTTP round trip against a reset database, because a wrong argument name is a 404 that the typecheck, the suite and the bundler all pass over | `M` | ✅ **Was unblocked, and is closed.** `5b.5` is now takeable, and so is everything below |
-| **5b-ii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-14.** **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14**, and this row is the first consumer of the data layer it built. ⚠️ **That layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned this guard red while the sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
+| **5b-ii** | **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ⚠️ **UNBLOCKED, BUT NO LONGER NEXT — `5b.6` WAS INSERTED AHEAD OF IT 2026-09-17.** `5b-i` closed 2026-09-14 and this row is the first consumer of the data layer it built; it is also **the first screen that would otherwise invent its own colours**, which is exactly what área 13 exists to prevent. ⚠️ **That layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned this guard red while the sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
 | **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14.** The decision that was open against this row was ruled on the day it was parked |
-| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree |
+| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** |
+| **5b.6** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-17. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **Unblocked — área 13 was ruled 2026-09-17 and ADR-035 §2.11 carries the palette row.** Neither decision in the owed block above touches this task |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
