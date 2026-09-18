@@ -66,7 +66,7 @@ TESTS="$ROOT/app/test"
 
 # ⚠️ THE TWO LISTS THE PAGE IS CHECKED AGAINST. Adding a rule to the page
 # without adding it here is a FAILURE, not an omission — see assertion 0.
-ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10"
+ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10 R11"
 STATED="R3 R9"
 
 fails=0
@@ -219,6 +219,44 @@ else
   fi
 fi
 
+# --- 0d. the page's quick-start line names the rules this script enforces --
+# ⚠️⚠️ ADDED 2026-09-17 AT `5b.6`, AND THE REASON IS THAT THIS TASK FOUND TWO
+# STALE CLAIMS ON THE PAGE AT ONCE — both about the check reading them.
+#
+#   * the header said "Nine rules; seven of them are read by a machine". Ten
+#     rules, eight enforced. Stale since `R10` landed on 2026-09-13.
+#   * the `bash …` line said "reads R1, R2, R4–R8". It had never mentioned R10.
+#
+# Neither was checked by anything, because assertion 0 reads the rules' own
+# HEADINGS and their "Checked by:" lines — it never read the page's summary of
+# itself. A reader who does not scroll takes the summary as the answer.
+#
+# The English count is now deleted rather than corrected: a number no machine
+# reads goes stale again on the next rule. The LIST stays, spelled as bare
+# tokens so it can be compared, and this is what compares it.
+#
+# ⚠️ IT READS ONE BOUNDED LINE, not a region — `plan-handover.sh`'s lesson, and
+# the narrowest possible application of it.
+note
+CMD_LINE="$(grep -m1 -E '^bash docs/checks/conventions-gate\.sh .*# reads ' "$PAGE")"
+if [[ -z "$CMD_LINE" ]]; then
+  fail "docs/CONVENTIONS.md has no 'bash docs/checks/conventions-gate.sh … # reads …'"
+  echo "      line. That line is the page's own summary of what a machine checks,"
+  echo "      and it is the first thing a junior reads. Restore it."
+else
+  CLAIMED="$(sed -e 's/.*# reads //' -e 's/ against app\/.*//' <<< "$CMD_LINE" \
+             | tr ' ' '\n' | grep -E '^R[0-9]+$' | sort -u)"
+  WANTED="$(echo "$ENFORCED" | tr ' ' '\n' | sort -u)"
+  if [[ "$CLAIMED" == "$WANTED" ]]; then
+    ok "the page's quick-start line names exactly the enforced rules"
+  else
+    fail "docs/CONVENTIONS.md's quick-start line and this script disagree about"
+    echo "      which rules are enforced."
+    echo "      page:   $(echo "$CLAIMED" | tr '\n' ' ')"
+    echo "      script: $(echo "$WANTED"  | tr '\n' ' ')"
+  fi
+fi
+
 # --- R1. imports are written `@/…`, never a climb out of the directory -----
 # The alias is declared TWICE — `app/tsconfig.json` for Metro and the
 # typecheck, `app/vitest.config.ts` for the suite — and a relative path that
@@ -335,6 +373,36 @@ done
 if (( r6 == 0 )); then ok "R6  every size on a screen comes from useDensity(), not a literal"
 else fail "R6  $r6 hardcoded size(s) — elder mode cannot change these"; fi
 
+# --- R11. a colour a person sees comes from the palette -------------------
+# ⚠️ ADDED 2026-09-17, PLAN TASK `5b.6`. Área 13's one machine-checkable half.
+# The owner ruled direction B — colour carries meaning, green acts, amber warns,
+# red destroys — and eleven named roles landed in `src/theme/palette.ts`. A hex
+# typed into a screen is a twelfth role nobody named, and the states it gets
+# wrong are the ones nobody looks at: the empty list, the failed write, the row
+# with no price. Exactly `R6`'s argument, about colour instead of size.
+#
+# ⚠️ TWO PATTERNS, AND THE SECOND IS NOT REDUNDANT. A hex catches `'#A8620A'`;
+# the colour-key pattern catches `color: 'white'`, which has no hex in it at
+# all and is the spelling somebody reaches for first.
+#
+# ⚠️ WHAT IT CANNOT SEE, SAID HERE RATHER THAN DISCOVERED LATER: the rule that
+# NO STATE IS ANNOUNCED BY COLOUR ALONE. That needs a rendered screen, and
+# §2.11 bans the suite that would render one. It lives in the palette's header,
+# in `R11` on the page, and in ADR-035 §2.11 — and `R9` is the convention that
+# says an unseeable deliverable gets written down, which this is.
+note
+r11=0
+COLOUR_KEYS='[A-Za-z]*[Cc]olor'
+for f in $(src_files); do
+  [[ "$f" == "$SRC/theme/palette.ts" ]] && continue
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    r11=$((r11+1)); offend "$f" "$line"
+  done < <(code "$f" | grep -E "#[0-9a-fA-F]{3,8}|rgba?\(|hsla?\(|(^|[^A-Za-z])($COLOUR_KEYS)[[:space:]]*:[[:space:]]*['\"\`]")
+done
+if (( r11 == 0 )); then ok "R11 every colour comes from src/theme/palette.ts, not a literal"
+else fail "R11 $r11 colour literal(s) — a role nobody named, in a state nobody checks"; fi
+
 # --- R7. two environment variables, EXPO_PUBLIC_, spelled out in full -----
 # Expo's babel plugin INLINES `process.env.EXPO_PUBLIC_FOO` where it is
 # written; it does not build a populated `process.env`. So a second reader, or
@@ -434,7 +502,12 @@ fi
 # is conditional, so "0 failures" is also what a run that found no files looks
 # like. The eighth check here to carry one, and the first where the thing that
 # could empty it is a `find` over a directory that moved.
-note_expected=11
+# ⚠️ 14 AND NOT 13, AND THE OFF-BY-ONE WAS ALREADY HERE. This read `11` while
+# TWELVE groups ran, so one group could have been deleted and the guard would
+# still have passed. `5b.6` added two groups and tightened it to the real
+# number at the same time: a floor one below the truth is a floor with one
+# free deletion in it.
+note_expected=14
 if (( ran < note_expected )); then
   echo "FAIL: only $ran assertion groups ran, expected $note_expected — this check"
   echo "      asserted almost nothing and was about to report success."

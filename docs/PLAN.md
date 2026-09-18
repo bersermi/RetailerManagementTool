@@ -163,7 +163,91 @@ answers, and a change there is a **fix-forward migration**. ⚠️ **The row sta
 block** because the questions themselves are still unstated and only the owner has them. **It
 blocks nothing takeable today.**
 
-✅✅✅ **ÁREA 13 — THE AESTHETIC ROUND — IS RULED AS OF 2026-09-17, AND `5b.6` IS THE NEXT TASK.**
+✅✅ **`5b.6` IS DONE AS OF 2026-09-17 — THE APP HAS COLOUR, A MACHINE READS IT, AND `5b.5` IS
+THE NEXT TASK.** `app/src/theme/palette.ts` holds the eleven roles as a typed record beside
+`density.ts`; `R11` in `docs/checks/conventions-gate.sh` refuses a colour literal anywhere else in
+`app/src/`; `conventions-gate-falsify.sh` now runs **twenty-one fixtures, all behaving** (20 red, 1
+deliberately green) — **and it runs in CI for the first time**, which it never has. **No migration,
+no screen, and not one component adopting the palette** — that
+is `5b-ii`, and `5d` is the deadline. **The app is thirty source files and fourteen suites; 173
+assertions pass, up from 166.**
+
+⚠️⚠️ **THE VERIFICATION THAT MATTERS IS NOT THE SUITE, AND IT IS NOT THE GATE GOING GREEN EITHER.
+IT IS `conventions-gate-falsify.sh`, AND IT FOUND TWO DEAD FIXTURES ON THE FIRST RUN.** A gate that
+prints *"all 14 assertion groups passed"* prints the same sentence when it has stopped reading the
+files, which is this repository's rule 4. So the check that looked at `R11` is the harness that
+turns it red on purpose — `F17` a hex typed into a screen, `F18` the word `'white'`, which carries
+no hex at all and is the spelling a person reaches for first, `F19` a colour put in
+`theme/density.ts` to prove the exemption is ONE FILE and not a directory. **And `F13`, the green
+one, now names a hex and a `color:` in a comment**: a guard that fires on the prose explaining a
+trap makes deleting the prose the cheapest way to green.
+
+⚠️⚠️ **FINDING 1 — `F12` WENT GREEN, AND THE TASK THAT DISARMED IT IS THIS ONE. THIRD STALE FIXTURE
+IN THAT FILE, THIRD DIFFERENT MECHANISM.** `F12` proves the gate's anti-vacuity floor (`SRC_N < 10`)
+can fire; it did so by deleting the **last twenty** of twenty-nine source files, leaving nine.
+`palette.ts` made it thirty. **Thirty minus twenty is ten, ten is not fewer than ten**, the floor did
+not fire, and the fixture reported success having proved that the guard against silent green is
+still... green. ⚠️ **After `F9`'s LINE NUMBER and `F10`'s RULE NAME, this one was pinned to a FILE
+COUNT** — and the task that breaks a count-pinned fixture is any task that adds a file, which is most
+of them. ✅ **Re-anchored to `tail -n +4`**: keep the first three, whatever the tree grows to.
+
+⚠️⚠️ **FINDING 2 — `F10` HAD GONE STALE AGAIN, BY THE MECHANISM ITS OWN COMMENT PREDICTED, AND
+NOBODY WAS WATCHING FOR IT.** `F10` proves assertion 0 can see a rule added to the page and not to
+the script. Its first spelling invented an `R10`; `R10` became real on 2026-09-13 and the fixture
+started adding a duplicate heading that `sort -u` collapsed, going green while claiming to prove the
+opposite. It was then rewritten to say **`R11`** — a name that `conventions-gate-falsify.sh`'s own
+header was at that moment forecasting as *"already expected at `5b.5`"*. **This task made `R11`
+real.** ✅ It now invents `R12`, and the lesson recorded is not *"pick a higher number"*: **a fixture
+whose mutation is a name the codebase is expected to claim has an expiry date nobody wrote down.**
+
+⚠️⚠️ **FINDING 3 — THE PAGE'S OWN SUMMARY OF ITSELF WAS STALE IN TWO PLACES, AND NOTHING READ IT.**
+`docs/CONVENTIONS.md` said *"Nine rules; seven of them are read by a machine"* (it was ten and eight,
+stale since `R10`), and its `bash docs/checks/conventions-gate.sh   # reads R1, R2, R4–R8` line had
+**never** mentioned `R10`. Assertion 0 reads each rule's own heading and its *"Checked by:"* line —
+it had never read **the page's summary of itself**, which is the part a junior who does not scroll
+takes as the answer. ✅ **The English count is DELETED rather than corrected** — a number no machine
+reads goes stale on the next rule — **and the list is now machine-read by new assertion `0d`**, with
+fixtures `F20` and `F21`. ⚠️ A new assertion with no fixture is a rule nobody has shown can fail,
+which is that harness's own sentence.
+
+⚠️⚠️ **AND THE GATE'S ANTI-VACUITY FLOOR HAD ONE FREE DELETION IN IT.** `note_expected` read `11`
+while **twelve** groups ran. A floor one below the truth lets a group be deleted with nothing going
+red. ✅ Set to the real number, `14`, in the same pass that added two.
+
+⚠️⚠️ **SIX DECISIONS TAKEN ON THE OWNER'S BEHALF. THE FIRST IS THE ONLY ONE THAT CHANGES SOMETHING
+HE LOOKED AT, AND IT IS FLAGGED LOUDLY BECAUSE IT DISAGREES WITH THE CANVAS HE RULED ON.**
+
+| | Decision | Why, and what it costs to reverse |
+|---|---|---|
+| **1** | ⚠️⚠️ **`atención` SHIPPED AS `#9A5A09`, NOT THE CANVAS'S `#A8620A`.** | **Measured, not preferred.** The drawn amber is **4.25:1 on `atenciónSuave`** — below WCAG AA's 4.5:1 for normal text, **on the exact pairing the role exists for**: amber words on the amber row. It also missed on `banda` (4.22) and `acción suave` (4.08). The shipped value is the **same hue (33.4°) and the same saturation**, three steps darker, and clears 4.5:1 on every ground with 4.69 at worst. ⚠️ **The canvas is outside this repository and cannot be updated**, so the eleven-role table above is now the record and carries the strike-through. **Reversed by one hex and one test constant** |
+| **2** | **A test file at all — `app/test/palette.test.ts`, seven assertions.** | §2.11 allows a test that pins *"a value a customer sees"* and refuses suites over rendering. The contrast matrix is arithmetic over a table; nothing is rendered and no component is imported. It is `density.test.ts`'s argument, and finding 1 above is what it bought: the failure was found by running it |
+| **3** | **`R11` scans `app/src/` only, not `app/test/`** | The gate's other literal rule, `R6`, does the same. A test that asserts a colour must be able to name one |
+| **4** | ⚠️ **Assertion `0d` is new and was not in the row's definition.** | It is finding 3's fix. The row bought *"`R11`, with its fixtures"*; this is twenty lines and two fixtures more, and it closes a stale-claim class this task hit twice in one sitting. **Reversed by deleting one block and two fixtures** |
+| **5** | ⚠️⚠️ **`conventions-gate-falsify.sh` NOW RUNS IN `app.yml`, AND IT NEVER HAD.** | Two other falsification harnesses were already wired in; **the repository's only committed harness for a STANDING gate was hand-run by whichever session remembered.** That is the sentence `app.yml` already carries about the two plan guards. ⚠️ **It is not hypothetical**: both of this task's dead fixtures were found by running it by hand, and it had previously spent a day dead. It writes nothing, needs no node, and costs seconds. **Reversed by deleting one step and one path** |
+| **6** | ⚠️ **`5b.5` IS THE NEXT TASK, RATHER THAN RESUMING AT `5b-ii`.** | `5b.6` was inserted ahead of `5b-ii` so that screen would not invent colours; with the palette shipped, `5b-ii` is takeable again. But **`5b.5`'s own gate argues for now** — *"one consumer to reconcile instead of three"* — and `5b-ii` plus `5b-iii` are the other two. **Reversed by one plan edit** |
+
+⚠️ **AND TWO THINGS ABOUT THE PALETTE ARE MEASURED, RECORDED AND DELIBERATELY NOT REPAIRED.**
+
+- **`banda` and `atención suave` are TWO CHANNEL STEPS APART** — for a shopkeeper they are the same
+  cream. They never abut today (one is the header, the other a list row), so it is not a defect; it
+  is the sharpest argument there is for *no state announced by colour alone*.
+- ⚠️⚠️ **`acción` and `atención` are 1.18:1 APART IN LUMINANCE.** Green-acts and amber-warns are
+  carried **entirely by hue**, and hue is the channel roughly one man in twelve does not have. **A
+  test asserts this weakness on purpose**, with the reasoning next to it, so that nobody later
+  "fixes" the palette into a false sense of safety and drops the word. ⚠️ It is **not** repaired by
+  darkening one of them: both already clear 4.5:1 on every ground, a monochrome viewer would still
+  be guessing, and **the word is the fix and the word is free.** ⚠️ This is also how the third
+  assertion in that file was written: a threshold **I invented** (*"the state colours are 1.2:1
+  apart"*) went red, and the instrument was wrong, not the palette — luminance does not measure hue.
+
+⚠️ **WHAT NO CHECK CAN SEE, NAMED RATHER THAN LEFT TO BE DISCOVERED.** `R11` proves every colour
+comes from `palette.ts`. It cannot prove the RIGHT role was picked — `error` on a *cobrar* button is
+green to this gate — and it cannot see the rule the whole round turns on, *never colour alone*,
+because §2.11 bans the suite that would render a screen. That is `R9`'s shape, and it is why the
+palette's header, `R11` on the page and ADR-035 §2.11 all carry the sentence in prose. **The first
+screen to adopt a colour is `5b-ii`'s, and the eye that checks it is the owner's.**
+
+✅✅✅ **ÁREA 13 — THE AESTHETIC ROUND — IS RULED AS OF 2026-09-17, AND ~~`5b.6` IS THE NEXT TASK~~ — `5b.6` WAS TAKEN AND CLOSED THE SAME DAY; SEE THE ENTRY ABOVE.**
 The owner called it on 2026-09-15 (*"we need to make authoritative the simplicity and efficiency of
 the aesthetic aspect… we won't have a big UX/UI team"*), chose **canvas first, then the interview**,
 and settled it over three rounds of drawings rather than a questionnaire. **Direction B — Mercado —
@@ -218,7 +302,7 @@ can check, which is why it becomes `R11` and not a paragraph.
 | línea | `#E7E0D2` | 1 px separators |
 | acción | `#1C6B4B` | cobrar, recibir, the active tab |
 | acción suave | `#E6F0EA` | the resting fill of an action |
-| atención | `#A8620A` | falta precio and `$0.00` — **C3.17, and nothing else** |
+| atención | ~~`#A8620A`~~ **`#9A5A09`** | falta precio and `$0.00` — **C3.17, and nothing else**. ⚠️ **The canvas value was 4.25:1 on its own ground and was darkened at `5b.6`** — same hue, same saturation; see that entry |
 | atención suave | `#FCF1DE` | the ground of a row needing attention |
 | error | `#A32218` | `Quitar`, cancelling a sale, merma |
 
@@ -10616,8 +10700,8 @@ free today and stay free until the first task merges.
 | **5b-i** | ✅✅ **IS DONE AS OF 2026-09-14 — `0033` was the last migration and this task shipped none.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one. ✅ **Shipped:** `src/api/` in five modules over one impure boundary, TanStack Query as the server-state layer ADR-035 §2.11 names, a third route group `(onboarding)`, and **`docs/checks/5b-i-api-contract.sh`** — a real HTTP round trip against a reset database, because a wrong argument name is a 404 that the typecheck, the suite and the bundler all pass over | `M` | ✅ **Was unblocked, and is closed.** `5b.5` is now takeable, and so is everything below |
 | **5b-ii** | **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ⚠️ **UNBLOCKED, BUT NO LONGER NEXT — `5b.6` WAS INSERTED AHEAD OF IT 2026-09-17.** `5b-i` closed 2026-09-14 and this row is the first consumer of the data layer it built; it is also **the first screen that would otherwise invent its own colours**, which is exactly what área 13 exists to prevent. ⚠️ **That layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned this guard red while the sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
 | **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14.** The decision that was open against this row was ruled on the day it was parked |
-| **5b.5** | ⚠️⚠️ **`CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** |
-| **5b.6** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-17. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **Unblocked — área 13 was ruled 2026-09-17 and ADR-035 §2.11 carries the palette row.** Neither decision in the owed block above touches this task |
+| **5b.5** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-17. `CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** ⚠️⚠️ **AND BOTH THINGS IT WAITED FOR NOW EXIST, SO IT IS TAKEABLE — TAKEN AS A DECISION ON THE OWNER'S BEHALF 2026-09-17, NOT AS A RULING.** `5b-i` built `src/api/` and `5b.6` built the palette; the row's own gate argues for going now rather than later — *"one consumer to reconcile instead of three, each having invented its own"* — and `5b-ii` and `5b-iii` are the two that would otherwise become the other two. ⚠️ **The alternative was to resume the interrupted order and build the Ajustes sheet first**, which is defensible and costs a page written against two consumers instead of one. **Reversed by one plan edit** |
+| **5b.6** | ✅✅ **IS DONE AS OF 2026-09-17 — the palette exists, `R11` reads it, and twenty-one fixtures say `R11` can fail. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **CLOSED 2026-09-17.** Shipped as sized: `app/src/theme/palette.ts` (eleven roles), `app/test/palette.test.ts` (7 assertions, no hex spelled twice), `R11` + assertion `0d` in the gate, fixtures `F17`–`F21`, and `F10`/`F12` repaired after both went stale on this task. **No migration, no screen, no component adopting it** |
 | **5c** | **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
