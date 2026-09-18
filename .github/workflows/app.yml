@@ -106,6 +106,12 @@ on:
       # workflow ran it, and spent one of them dead without anything going red.
       - "docs/checks/5b-ii-split-coverage.sh"
       - "docs/checks/5b-ii-split-coverage-falsify.sh"
+      # ⚠️ AND THE THIRD GENERATION, added 2026-09-18 when `5b-ii-b` was sized `L`
+      # and split in two. Three guards now watch three levels of one step's split,
+      # and they do not overlap: each matches `| **<task>** |` including the
+      # closing pipe, which is what keeps `5b-ii-b` from matching `5b-ii-b-1`.
+      - "docs/checks/5b-ii-b-split-coverage.sh"
+      - "docs/checks/5b-ii-b-split-coverage-falsify.sh"
       # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
       # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
       # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
@@ -267,3 +273,7 @@ jobs:
         run: bash docs/checks/5b-ii-split-coverage.sh
       - name: Plan — can the 5b-ii guard still fail (its own nine fixtures)
         run: bash docs/checks/5b-ii-split-coverage-falsify.sh
+      - name: Plan — did the 5b-ii-b split lose a deliverable (plan 5b-ii-b sizing)
+        run: bash docs/checks/5b-ii-b-split-coverage.sh
+      - name: Plan — can the 5b-ii-b guard still fail (its own nine fixtures)
+        run: bash docs/checks/5b-ii-b-split-coverage-falsify.sh
