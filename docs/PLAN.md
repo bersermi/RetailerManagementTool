@@ -223,7 +223,14 @@ the creating and redeeming halves cannot disagree. ⚠️ **So the landing scree
 credentials that differ only in length: eight for a code, sixteen for a token.** `5b-iii`
 builds the code half. **A person holding one of them has no way to know which kind they were
 sent**, which means the screen cannot ask them. ⚠️ **Decided below, and it is the cheap-now
-call of this sizing.**
+call of this sizing.** ✅ **AND THE DECISION'S PRECONDITION IS MEASURED RATHER THAN ASSUMED**,
+because *"only length tells them apart"* is worthless if normalising can change a length:
+`normalize_workspace_code` (`0027:175`) is `translate(upper(regexp_replace(…, '[^0-9A-Za-z]',
+'', 'g')), 'ILO', '110')` — the regex removes only separators, and `upper` and `translate` are
+both **1:1**. So it is **length-preserving on alphanumerics**, the column is
+`check (code ~ '^[0-9ABCDEFGHJKMNPQRSTVWXYZ]{8}$')` (`0027:221`) and the token is sixteen by
+construction: **a normalised credential is exactly 8 or exactly 16, and the two cannot
+collide.** Anything else is refused before a call is made.
 
 **`P3` — `create_invite` ANSWERS WITH TWO FACTS ABOUT AN INVITE THAT IS NOW DEAD, AND NOTHING
 ON THE ROW SAYS WHAT THE SCREEN DOES WITH THEM.** `replaced_pending` and `superseded_count`.
