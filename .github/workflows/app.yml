@@ -60,10 +60,13 @@ on:
       # be a hand.
       - "docs/checks/conventions-gate-falsify.sh"
       # ⚠️ AND `docs/PLAN.md`, ADDED 2026-09-13 WITH THE `5b.5` CROSS-CHECK. The
-      # gate now asserts that the page's deferral of `src/api`/`src/ui` and the
-      # plan's `5b.5` row agree about whether that second pass is still owed.
+      # gate asserts that the page's deferral and the plan row it names agree
+      # about whether a pass of that page is still owed. ⚠️ As of 2026-09-18 the
+      # TASK ID IS READ from both files rather than hardcoded in the script —
+      # `5b.5` wrote the `src/api/` half and moved the `src/ui/` half to `5h.5`,
+      # and the old spelling would have gone green on exactly that edit.
       # Two files, one claim — so an edit to EITHER has to re-run the check, and
-      # closing `5b.5` in the plan alone is exactly the edit that would
+      # closing that task in the plan alone is exactly the edit that would
       # otherwise leave the page sending juniors to a task that no longer exists.
       - "docs/PLAN.md"
       # ⚠️⚠️ AND THE TWO PLAN GUARDS, ADDED 2026-09-13 WITH THE `5a-iv-c` SPLIT.
@@ -188,16 +191,19 @@ jobs:
         run: bash docs/checks/conventions-gate.sh
 
       # ⚠️⚠️ AND CAN THAT GATE STILL FAIL. Added 2026-09-17 (plan task `5b.6`).
-      # The step above prints "all 14 assertion groups passed", and that sentence
+      # The step above prints "all N assertion groups passed", and that sentence
       # is ALSO what a gate which stopped reading the files prints — rule 4 of
-      # this repository. This is what distinguishes the two: twenty-one fixtures,
-      # twenty of which must turn that gate red and one of which must leave it
-      # green, each a copy of the tree with exactly one thing broken.
+      # this repository. This is what distinguishes the two: twenty-seven
+      # fixtures, twenty-six of which must turn that gate red and one of which
+      # must leave it green, each a copy of the tree with exactly one thing
+      # broken. ⚠️ The count is in that harness's own anti-vacuity floor; it is
+      # deliberately NOT repeated in this step's name, because `5b.5` found the
+      # number stale in three places at once.
       #
       # ⚠️ IT WRITES NOTHING TO THE TREE (mktemp, trapped) and needs no node, so
       # it costs seconds. That it was not here is why two of its fixtures were
       # silently dead until a session ran it by hand.
-      - name: Conventions — can that gate still fail (its own twenty-one fixtures)
+      - name: Conventions — can that gate still fail (its own fixtures)
         run: bash docs/checks/conventions-gate-falsify.sh
 
       # ⚠️⚠️ THE TWO PLAN GUARDS, WIRED IN 2026-09-13 (plan task 5a-iv-c-1).

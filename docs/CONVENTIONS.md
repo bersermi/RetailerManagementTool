@@ -25,7 +25,7 @@ this page is the bug** — the same rule `docs/PLAN.md` carries.
 | **How to write the file in front of you** | here |
 
 ```bash
-bash docs/checks/conventions-gate.sh     # reads R1 R2 R4 R5 R6 R7 R8 R10 R11 against app/
+bash docs/checks/conventions-gate.sh     # reads R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13 against app/
 ```
 
 ---
@@ -37,6 +37,7 @@ app/
   src/app/            routes, and only routes — Expo Router maps file to URL
     (auth)/           the signed-out side of the door
     (tabs)/           the signed-in side
+  src/api/            the data layer — one wrapper per RPC (R12, R13)
   src/<area>/         everything that decides something: auth, format,
                       navigation, theme, lib, scaffolding
   test/               the whole suite, .ts only, never beside the source
@@ -91,6 +92,7 @@ structural half.**
 | `src/auth/guard.ts` — which side of the door | `src/app/_layout.tsx` — calls `router.replace` |
 | `src/navigation/tabs.ts` — the tabs, as data | `src/app/(tabs)/_layout.tsx` — draws them |
 | `src/navigation/lastScreen.ts` — where to reopen | `src/app/_layout.tsx` — navigates there |
+| `src/api/workspace.ts` — the argument names, the columns, the membership | `src/api/calls.ts` — the three lines that talk to Postgres |
 
 The left column is importable by a node suite; the right column is not, and by
 §2.11 must not be. So **the decision is where the assertion can reach it.**
@@ -120,7 +122,9 @@ Two consequences worth stating, because both are already load-bearing:
 - **Error handling maps a code to a KEY of `ES`, never to a sentence.**
   `src/auth/errors.ts` returns `keyof typeof ES.auth.errors`, so a Spanish
   sentence typed in at the call site is a **typecheck failure**, not a second
-  copy nobody notices.
+  copy nobody notices. ⚠️ **`src/api/errors.ts` is the second instance, added
+  at `5b-i`, and it is deliberately the same shape** — one habit spelled twice
+  is a pattern; two habits spelled once each are two dialects.
 - **Developer-facing text is English and is deliberately not in `ES`.**
   `src/lib/env.ts` throws paragraphs of English. `ES` is what the app says to a
   *shopkeeper*; a build misconfiguration is read by whoever ran the build, and a
@@ -344,6 +348,79 @@ choose between them.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R11.
 
+### R12 — Postgres is reached through `src/api/`, and a screen reaches `src/api/` through a hook
+
+`useMyWorkspaces()`, `useOnboardWorkspace()`. Never `supabase.from` or
+`supabase.rpc` in a screen, and never an import of `@/api/calls`,
+`@/api/errors` or `@/lib/supabase` from anything under `src/app/`.
+
+§2.11: *"`src/api/` — one wrapper per RPC. Juniors never call `supabase.rpc`
+directly."* The layer `5b-i` built is five modules over one boundary, and the
+boundary is the rule:
+
+| Module | What it is | Can a node suite load it? |
+|---|---|---|
+| `src/api/workspace.ts` | the contract — the RPC's name, its argument names, the column list, and every decision about them | **yes**, and `app/test/api-workspace.test.ts` does |
+| `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
+| `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
+| `src/api/hooks.ts` | the two things a screen may ask, over TanStack Query | no |
+| `src/api/QueryProvider.tsx` | one `QueryClient` per mount, never at module scope | no |
+
+Three habits follow, and each is the record of a way this goes wrong:
+
+- **A wrapper throws; it does not return `{ data, error }`.** supabase-js never
+  rejects, and TanStack Query decides `isError`, retries and invalidation from
+  a **rejected promise**. A wrapper that resolved with an error object is one
+  every caller has to remember to unpack — and the one that forgets caches a
+  success holding a failure.
+- **A screen is handed a Spanish sentence or nothing, never a PostgREST error.**
+  `useOnboardWorkspace().create()` returns `string | null`. Hand the error to
+  the screen and there are as many opinions about what it means as there are
+  screens.
+- **If it came from Postgres it lives in Query.** Not in a `useState` beside it.
+  A second copy of a row is a second answer to *"is this still true?"*, and only
+  one of the two is invalidated when the write lands.
+
+⚠️ **The read is disabled while there is no session, and that is correctness,
+not economy.** `workspace_select` is `id in (select public.my_workspaces())`
+over `auth.uid()`, so an anonymous read **succeeds and returns zero rows** — it
+would cache a truthful-looking *"belongs to no shop"* against the next person to
+sign in on that phone.
+
+⚠️ **Two instruments, and they watch different halves.** The gate reads the
+**screen** side — a route that reaches past the hooks. `app/test/auth-errors.test.ts`'s
+*"the library has exactly one caller"* block pins the **inner** side as an exact
+list: `supabase.rpc`/`supabase.from` in `api/calls.ts` and nowhere, and
+`@/lib/supabase` imported by `api/calls.ts` and `auth/AuthProvider.tsx` only.
+That list growing a third entry is the boundary going, and it goes the way it
+always goes: one screen, in a hurry, reading one table for itself.
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R12 — the screen side. The
+suite pins the other, in `app/test/auth-errors.test.ts`.
+
+### R13 — An RPC's name, its `p_` arguments and the columns it asks for are written once, in a module the suite can read
+
+`supabase.rpc(ONBOARD_WORKSPACE, onboardArgs(input))`, never
+`supabase.rpc('onboard_workspace', { p_display_name: name })`. And never
+`select('*')`.
+
+⚠️⚠️ **PostgREST matches an RPC BY ITS PARAMETER NAMES, and no typecheck has
+ever read a migration.** Send `display_name` where `0027` declared
+`p_display_name` and the call does not fail — it **fails to find the function**:
+`PGRST202`, HTTP 404, *"Could not find the function
+public.onboard_workspace(display_name) in the schema cache"*. Measured against
+the applied schema on 2026-09-14, not recalled. The bundler, the typecheck and
+the suite all pass over it, which is why the names live in one module and
+`docs/checks/5b-i-api-contract.sh` — **a real HTTP round trip against a reset
+database** — is what asserts they are still the ones the database answers to.
+
+⚠️ **`select('*')` is a promise to keep parsing whatever a later migration
+adds**, and it ships every column of the row to a phone, including ones added
+for a report nobody on that screen may see. Name the columns, once, beside the
+RPC's name.
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R13.
+
 ### R9 — A deliverable no check can see is written down as such, and routed to the task that can see it
 
 When you build something this repository's checks cannot reach — a label that is
@@ -384,46 +461,57 @@ named task ends up.
 
 ---
 
-## ⚠️ What this page does not cover yet — a second pass is owed at `5b.5`
+## ⚠️ What this page does not cover yet — the `src/ui/` conventions, owed at `5h.5`
 
-**There are no `src/api/` and no `src/ui/` conventions here.** ADR-035 §3 put
-both in step `5a` so that *"step 6's four screens arrive to a pattern"*; this
-build spread them across `5d`–`5h` instead, and **the owner ruled on 2026-09-13
-that the re-sequencing stands and the pattern gets described once `5b` has
-produced a real one** — rather than ten primitives guessed at against screens
-nobody has drawn.
+**There are no `src/ui/` conventions here, because there is no `app/src/ui/`.**
+Measured, not assumed: the app is thirty source files and the only shared
+component in it is `src/scaffolding/Pendiente.tsx`, which exists to say a screen
+is not built yet.
 
-⚠️ **UPDATED 2026-09-14: `app/src/api/` NOW EXISTS. `app/src/ui/` STILL DOES
-NOT.** This sentence used to read *"because neither directory exists"*, and
-`5b-i` made half of it false the hour it shipped — which is this page's own
-recorded defect, arriving on the page that exists because of it. The data layer
-is five modules, one of which is the only place in the app that may touch
-`supabase`; read `app/src/api/workspace.ts` first, because its header is where
-the reasoning is. **What is still owed is the WRITTEN convention**, not the
-pattern: the pattern is now on disk, and `5b.5` is where it gets described.
+ADR-035 §3 put `src/api/` and `src/ui/` in step `5a` so that *"step 6's four
+screens arrive to a pattern"*; this build spread them across `5d`–`5h`, and
+**the owner ruled on 2026-09-13 that the re-sequencing stands and the pattern
+gets described once `5b` has produced a real one** — rather than ten primitives
+guessed at against screens nobody has drawn.
 
-⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 AND ARE NO LONGER MISSING FROM
-THIS PAGE — see `R11` above.** `app/src/theme/palette.ts` holds the eleven roles
-and the gate reads them. ⚠️ **The MOTION rule is still only prose**: one staggered
-entrance per screen, `transform` and `opacity` only, because those two run on the
-compositor and animating layout, colour, shadow or blur does not — C1.1 puts two
-low-end Androids in the pilot. ADR-035 §2.11 carries it as a row. **No check can
-see it, and no screen animates yet**; the first one that does is `5d`'s, and the
-plan says to measure the Inicio morph on the owner's own device before it.
+✅ **THE `src/api/` HALF IS WRITTEN, AT `5b.5` ON 2026-09-18 — see `R12` and
+`R13` above, and the row added to `R3`.** `5b-i` produced the real pattern the
+ruling was waiting for. ⚠️ **The `src/ui/` half is unchanged by that**: the
+primitives are built at `5d`–`5h`, against screens that will exist, and
+describing them today would be the exact thing the owner refused. So the
+obligation moves down the same ladder it moved down before — to **`5h.5`**,
+after the last screen that builds a primitive and **before step 6**, which is
+all ADR-035 §2.10 ever asked for (*"the claim here is about order relative to
+step 6"*).
 
-So if you are about to write the second RPC wrapper or the first shared
-component: **that is the second pass, and it is plan task `5b.5`.** Read
-[`docs/PLAN.md`](PLAN.md) for what it owes, and add the conventions here as you
-establish them — do not invent them in four screens, which is the exact accident
-§3 wrote this page to prevent.
+⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 — see `R11` above.**
+`app/src/theme/palette.ts` holds the eleven roles and the gate reads them.
+⚠️ **The MOTION rule is still only prose**: one staggered entrance per screen,
+`transform` and `opacity` only, because those two run on the compositor and
+animating layout, colour, shadow or blur does not — C1.1 puts two low-end
+Androids in the pilot. ADR-035 §2.11 carries it as a row. **No check can see it,
+and no screen animates yet**; the first one that does is `5d`'s, and the plan
+says to measure the Inicio morph on the owner's own device before it.
+
+So if you are about to write **the second RPC wrapper**: the pattern is `R12`
+and `R13` above, and `app/src/api/workspace.ts`'s header is where the reasoning
+is. If you are about to write **the first shared component**: there is no rule
+here yet, so write it down at `5h.5` rather than inventing it in four screens,
+which is the exact accident §3 wrote this page to prevent.
 
 ⚠️ **This section is checked, not merely written.**
-`docs/checks/conventions-gate.sh` fails if this page and `docs/PLAN.md`'s `5b.5`
-row stop agreeing about whether the second pass is still owed. A deferral that
-goes quietly stale is the defect that produced this page in the first place.
+`docs/checks/conventions-gate.sh` reads the task named in the heading above,
+finds that row in [`docs/PLAN.md`](PLAN.md), and fails if it is closed, missing,
+or if the plan owes this page a pass the heading does not name. ⚠️ **The task id
+is READ rather than hardcoded, as of `5b.5`** — the earlier spelling named
+`5b.5` in the script, and a deferral that moves to a task the script has never
+heard of is a check that goes quietly green on both halves at once. A deferral
+is the most perishable claim in this repository, which is why this one is the
+only kind that has an instrument.
 
 ---
 
-*Written at `5a-iv-b`. Every rule here was read out of `app/src` rather than
-proposed for it — if one of them surprises you, the code is what it describes,
-and `docs/checks/conventions-gate.sh` is what keeps that true.*
+*Written at `5a-iv-b`; second pass — the `src/api/` rules — at `5b.5`. Every
+rule here was read out of `app/src` rather than proposed for it: if one of them
+surprises you, the code is what it describes, and
+`docs/checks/conventions-gate.sh` is what keeps that true.*

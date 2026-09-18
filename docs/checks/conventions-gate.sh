@@ -44,8 +44,9 @@
 # `plan-handover.sh` both recorded, hit again by the next script written.
 #
 # ⚠️ WHEN YOU ADD OR CHANGE A RULE HERE, RE-FALSIFY IT.
-# `docs/checks/conventions-gate-falsify.sh` is the harness — sixteen fixtures,
-# fifteen of which must turn this file RED and one of which must leave it GREEN.
+# `docs/checks/conventions-gate-falsify.sh` is the harness — twenty-six
+# fixtures, twenty-five of which must turn this file RED and one of which must
+# leave it GREEN.
 # It is the only falsification harness committed in this repository, and its
 # header says why. A new rule with no fixture is a rule nobody has shown can
 # fail, which is rule 4 of this repository exactly.
@@ -66,7 +67,7 @@ TESTS="$ROOT/app/test"
 
 # ⚠️ THE TWO LISTS THE PAGE IS CHECKED AGAINST. Adding a rule to the page
 # without adding it here is a FAILURE, not an omission — see assertion 0.
-ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10 R11"
+ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13"
 STATED="R3 R9"
 
 fails=0
@@ -128,41 +129,67 @@ for r in $BOTH; do
 done
 (( mismatch == 0 )) && ok "every rule's '**Checked by:**' line matches what this script does"
 
-# --- 0b. the deferred second pass has not gone stale ----------------------
+# --- 0b. the deferral the page carries has not gone stale -----------------
 # ⚠️⚠️ THE OWNER RULED ON 2026-09-13 — *"keep it in docs/, and do the second
-# pass after 5b"* — and a DEFERRAL IS THE MOST PERISHABLE KIND OF CLAIM THERE
-# IS. The page tells a junior "there are no src/api or src/ui conventions here
-# yet, that is `5b.5`"; the plan carries `5b.5` as an open row. When `5b.5` is
-# eventually done, BOTH have to move, and the one that gets forgotten is the
-# page — which would then be telling a new hire to go read a task that closed.
+# pass after 5b"* — and A DEFERRAL IS THE MOST PERISHABLE KIND OF CLAIM THERE
+# IS. The page tells a junior "there is no convention for this here yet, that is
+# task X"; the plan carries X as an open row. When X is done, BOTH have to move,
+# and the one that gets forgotten is the page — which would then be sending a
+# new hire to read a task that closed.
 #
-# This is the same shape as assertion 0 and the same shape as the five stale
-# copies in this repository's history: two files, one claim, no instrument.
+# ⚠️⚠️ THE TASK ID IS READ FROM THE PAGE AND FROM THE PLAN, NOT WRITTEN HERE —
+# CHANGED 2026-09-18 AT `5b.5`, AND THE OLD SPELLING WOULD HAVE GONE GREEN ON
+# THIS VERY EDIT. It grepped the two literals `5b.5` and the page's exact
+# sentence about it. `5b.5` wrote the `src/api/` half and moved the `src/ui/`
+# half to a later task: the page's sentence changed, so PAGE_DEFERS went false,
+# and the hardcoded row went done, so PLAN_OPEN went false — BOTH HALVES FALSE
+# IS THIS CHECK'S "nothing is owed, and that is correct" BRANCH. It would have
+# reported success while asserting nothing about the deferral that had just
+# moved. A check whose sentinel is the thing that moves is a check with an
+# expiry date, which is `F9`, `F10` and `F12`'s lesson in this repository's own
+# falsification harness, arriving for the fourth time in a different file.
+#
+# So both sides name each other and this compares them:
+#   * the page's heading says `… owed at \`<task>\``
+#   * the plan's row for that task says, in words, that it owes this page a pass
+# and the assertion is that those two lists are EQUAL. Empty on both sides is a
+# legitimate state — it means every pass this page owed has been written.
 note
 PLAN="$ROOT/docs/PLAN.md"
 if [[ ! -r "$PLAN" ]]; then
-  fail "cannot read $PLAN — the second-pass cross-check needs it"
+  fail "cannot read $PLAN — the deferral cross-check needs it"
 else
-  PAGE_DEFERS=no; grep -qF 'a second pass is owed at `5b.5`' "$PAGE" && PAGE_DEFERS=yes
-  PLAN_ROW="$(grep -m1 -F '| **5b.5** |' "$PLAN")"
-  PLAN_OPEN=no
-  if [[ -n "$PLAN_ROW" ]] && ! grep -Eq '✅ \*\*DONE|IS DONE AS OF' <<< "$PLAN_ROW"; then
-    PLAN_OPEN=yes
+  DEFER_LINE="$(grep -m1 -E '^## .*owed at `[^`]+`' "$PAGE")"
+  PAGE_OWES=""
+  if [[ -n "$DEFER_LINE" ]]; then
+    PAGE_OWES="$(sed -e 's/.*owed at `//' -e 's/`.*//' <<< "$DEFER_LINE")"
   fi
-  if [[ "$PAGE_DEFERS" == "$PLAN_OPEN" ]]; then
-    if [[ "$PAGE_DEFERS" == yes ]]; then
-      ok "the page defers src/api and src/ui to 5b.5, and 5b.5 is open in the plan"
+  # Task rows only — anchored at column 0, so prose quoting a row never matches.
+  # ⚠️ The id filter is what keeps a DECISION row (`| **1** | …`) out of this.
+  PLAN_OWES="$(grep -E '^\| \*\*`?[0-9]+[a-z0-9.-]*`?\*\* \|' "$PLAN" \
+               | grep -F 'owes `docs/CONVENTIONS.md` a pass' \
+               | grep -Ev '✅ \*\*DONE|IS DONE AS OF' \
+               | sed -E 's/^\| \*\*`?//; s/`?\*\* \|.*//' \
+               | sort -u | tr '\n' ' ' | sed 's/ *$//')"
+  if [[ "$PAGE_OWES" == "$PLAN_OWES" ]]; then
+    if [[ -z "$PAGE_OWES" ]]; then
+      ok "every pass docs/CONVENTIONS.md owed is written, and the plan agrees"
     else
-      ok "the second pass is done in the plan and the page no longer defers to it"
+      ok "the page defers to $PAGE_OWES, and $PAGE_OWES is open in the plan and says so"
     fi
-  elif [[ "$PAGE_DEFERS" == yes ]]; then
-    fail "the page says the second pass is owed at 5b.5, but docs/PLAN.md has no"
-    echo "      open 5b.5 row. Either the task closed and this page was not updated,"
-    echo "      or the row was renamed — a junior is being sent to a task that is gone."
+  elif [[ -z "$PLAN_OWES" ]]; then
+    fail "docs/CONVENTIONS.md defers a convention to '$PAGE_OWES', but no open row in"
+    echo "      docs/PLAN.md says it owes this page a pass. Either the task closed and"
+    echo "      the page was not updated, or it was renamed — and a junior is being"
+    echo "      sent to a task that is gone."
+  elif [[ -z "$PAGE_OWES" ]]; then
+    fail "docs/PLAN.md still owes docs/CONVENTIONS.md a pass ($PLAN_OWES), but the"
+    echo "      page defers nothing. It now reads as complete when it is not, which is"
+    echo "      worse than the gap it is hiding: a junior believes it."
   else
-    fail "docs/PLAN.md carries 5b.5 as open, but docs/CONVENTIONS.md no longer says"
-    echo "      the second pass is owed. The page now reads as complete when it is not,"
-    echo "      and src/api / src/ui conventions are what is missing from it."
+    fail "the page and the plan disagree about which task owes this page a pass"
+    echo "      page: $PAGE_OWES"
+    echo "      plan: $PLAN_OWES"
   fi
 fi
 
@@ -403,6 +430,79 @@ done
 if (( r11 == 0 )); then ok "R11 every colour comes from src/theme/palette.ts, not a literal"
 else fail "R11 $r11 colour literal(s) — a role nobody named, in a state nobody checks"; fi
 
+# --- R12. a screen reaches Postgres through a hook, or not at all ---------
+# ⚠️ ADDED 2026-09-18, PLAN TASK `5b.5` — THE `src/api/` HALF OF THE SECOND
+# PASS. ADR-035 §2.11: "`src/api/` — one wrapper per RPC. Juniors never call
+# `supabase.rpc` directly." `5b-i` built the layer; this is the sentence that
+# keeps it a layer.
+#
+# ⚠️ IT WATCHES THE SCREEN SIDE, AND THE SUITE WATCHES THE OTHER. The "library
+# has exactly one caller" block in `app/test/auth-errors.test.ts` pins the inner
+# list as an EQUALITY — `supabase.rpc`/`.from` in `api/calls.ts` and nowhere,
+# `@/lib/supabase` imported by two modules and no third. Repeating that here
+# would be two copies of one claim, which is the defect this whole file exists
+# for. What no suite can assert is the shape of the violation that actually
+# happens: a route, in a hurry, reading one table for itself.
+#
+# ⚠️ `@/api/workspace` IS DELIBERATELY NOT ON THE LIST. It is the pure half —
+# `checkShopName` is a screen's business, and `(onboarding)/bienvenida.tsx`
+# calls it. The ban is on the modules that TALK (`calls`), the modules that
+# decide what a failure MEANS (`errors`), and the client itself.
+note
+r12=0
+API_DOOR='@/api/calls|@/api/errors|@/lib/supabase'
+for f in $(src_files); do
+  case "$f" in "$SRC"/app/*) ;; *) continue ;; esac
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    r12=$((r12+1)); offend "$f" "$line"
+  done < <(code "$f" | grep -E "($API_DOOR)|supabase\.(rpc|from)\(")
+done
+if (( r12 == 0 )); then ok "R12 every route reaches Postgres through @/api/hooks, not around it"
+else fail "R12 $r12 place(s) where a route reaches past the data layer"; fi
+
+# --- R13. the RPC's name, its p_ arguments and its columns, written once --
+# ⚠️⚠️ ADDED 2026-09-18, PLAN TASK `5b.5`, AND IT GUARDS A 404 THAT NOTHING
+# ELSE IN THIS REPOSITORY CAN SEE. PostgREST matches a function BY ITS PARAMETER
+# NAMES: `display_name` where `0027` declared `p_display_name` does not fail the
+# call, it fails to FIND the function — `PGRST202`, HTTP 404. TypeScript has
+# never read a migration, the suite cannot load `api/calls.ts`, and the bundler
+# does not care. Measured against the applied schema on 2026-09-14.
+#
+# So the names live in ONE module per RPC, beside the column list, where
+# `app/test/api-workspace.test.ts` can read them and
+# `docs/checks/5b-i-api-contract.sh` can put them in front of a real database.
+#
+# ⚠️ THREE PATTERNS, AND THEY CATCH THREE DIFFERENT HABITS. A string literal in
+# `.rpc(` is the name typed at the call site; a `p_` identifier outside the
+# contract modules is the ARGUMENTS typed at the call site — the half a constant
+# for the name does not cover; `select('*')` is the column list not written at
+# all, which ships every column of a row to a phone and promises to keep parsing
+# whatever a later migration adds.
+note
+r13=0
+for f in $(src_files); do
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    r13=$((r13+1)); offend "$f" "$line"
+  done < <(code "$f" | grep -E "\.rpc\([[:space:]]*['\"\`]|\.select\([[:space:]]*['\"\`][^'\"\`]*\*")
+  # The contract modules may spell `p_`; `api/calls.ts` and every screen may not.
+  # ⚠️ A PORTABLE WORD BOUNDARY AND NOT `\b`: GNU grep and BSD grep disagree
+  # about that escape, and this runs on the owner's Mac and on ubuntu-latest —
+  # the same two-machine trap R4's accent class already records.
+  skip_p=no
+  case "$f" in
+    "$SRC"/api/*) [[ "$f" != "$SRC/api/calls.ts" ]] && skip_p=yes ;;
+  esac
+  [[ "$skip_p" == yes ]] && continue
+  while IFS= read -r line; do
+    [[ -z "$line" ]] && continue
+    r13=$((r13+1)); offend "$f" "$line"
+  done < <(code "$f" | grep -E "(^|[^A-Za-z0-9_])p_[a-z][a-z_]*")
+done
+if (( r13 == 0 )); then ok "R13 an RPC's name, arguments and columns are written once, in the contract"
+else fail "R13 $r13 place(s) where an RPC's contract is spelled at the call site"; fi
+
 # --- R7. two environment variables, EXPO_PUBLIC_, spelled out in full -----
 # Expo's babel plugin INLINES `process.env.EXPO_PUBLIC_FOO` where it is
 # written; it does not build a populated `process.env`. So a second reader, or
@@ -506,8 +606,8 @@ fi
 # TWELVE groups ran, so one group could have been deleted and the guard would
 # still have passed. `5b.6` added two groups and tightened it to the real
 # number at the same time: a floor one below the truth is a floor with one
-# free deletion in it.
-note_expected=14
+# free deletion in it. ⚠️ **16 as of `5b.5`**, which added `R12` and `R13`.
+note_expected=16
 if (( ran < note_expected )); then
   echo "FAIL: only $ran assertion groups ran, expected $note_expected — this check"
   echo "      asserted almost nothing and was about to report success."
