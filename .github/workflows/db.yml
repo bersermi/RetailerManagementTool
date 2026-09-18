@@ -509,13 +509,20 @@ jobs:
       - name: Contract — does create_invite answer to what the app sends (plan 5b-ii-b-1)
         run: bash docs/checks/5b-ii-b-1-invite-contract.sh
 
-      # And its own nine fixtures. ⚠️ TWO OF THEM MUTATE THE PROBE rather than
-      # the app, for the reason the sign-up harness above gives: no line in
-      # `app/` can make Postgres store a plaintext token or drop its own fence,
-      # and a fixture nobody can write is an assertion nobody has shown can
-      # fail. ⚠️ Its own fixtures caught TWO defects in this check while it was
-      # being written — an assertion that could not fail, and one that was red
-      # for the wrong reason.
+      # And its own nine fixtures, in about fifteen seconds. ⚠️ TWO OF THEM
+      # MUTATE THE PROBE rather than the app, for the reason the sign-up harness
+      # above gives: no line in `app/` can make Postgres store a plaintext token
+      # or drop its own fence, and a fixture nobody can write is an assertion
+      # nobody has shown can fail. ⚠️ Its own fixtures caught TWO defects in the
+      # check while it was being written — an assertion that could not fail, and
+      # one that was red for the wrong reason.
+      #
+      # ⚠️⚠️ AND THIS STEP WAS CANCELLED ON ITS FIRST CI RUN, at the 15-minute job
+      # cap, because the harness reset the database once per fixture on a comment
+      # that claimed the reset was required and had never been tested. It is not:
+      # every run mints a fresh workspace and fresh addresses, so nothing can
+      # collide. A CANCELLED step is neither a pass nor a failure, which makes it
+      # the worst of the three to merge on.
       - name: Contract — can the invite check still fail (its own nine fixtures)
         run: bash docs/checks/5b-ii-b-1-invite-contract-falsify.sh
 

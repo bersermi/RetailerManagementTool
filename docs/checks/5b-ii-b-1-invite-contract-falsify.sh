@@ -24,10 +24,23 @@
 # those two mutate the PROBE. That is `5b.7`'s `Y6` arrangement and its argument:
 # *"a fixture nobody can write is an assertion nobody has shown can fail."*
 #
-# ⚠️ EACH FIXTURE RESETS THE DATABASE FIRST. The check mints rows, and `0028`'s
-# one-pending-invite index means a second run against a dirty database refuses
-# for a reason that has nothing to do with the fixture — red for the wrong
-# reason, which is not a falsification but a coincidence.
+# ⚠️⚠️ NO FIXTURE RESETS THE DATABASE, AND THE FIRST VERSION OF THIS FILE DID —
+# ONCE PER FIXTURE. The comment here used to say a reset was required because
+# `0028`'s one-pending-invite index would make a second run refuse for a reason
+# that had nothing to do with the fixture. **That was asserted and never tested,
+# and it is false**: every invocation of the check mints a NEW workspace and new
+# addresses off `$STAMP` (`$$` plus the clock), and
+# `workspace_invite_one_pending_idx` is partial on `(workspace_id, email)` — so
+# two runs cannot collide.
+#
+# ⚠️ IT COST A CI TIMEOUT RATHER THAN AN ARGUMENT. Nine resets ran the harness to
+# six minutes and counting against `db.yml`'s fifteen-minute job cap, and the step
+# was CANCELLED — which is not a failure and not a pass, and would have been the
+# worst of the three to merge on. Measured after removing them: **sixteen seconds,
+# with all nine fixtures behaving identically.** The check itself takes two.
+#
+# ⚠️ WHAT THE FIXTURES DO STILL NEED is a database with the migrations applied,
+# which `db.yml` has already done several steps earlier.
 #
 # Run:  supabase start && bash docs/checks/5b-ii-b-1-invite-contract-falsify.sh
 # Exit: 0 when all eight fixtures behave as recorded; 1 otherwise.
@@ -50,7 +63,6 @@ fresh() {
   cp "$CONTRACT" "$WORK/invites.ts"
   cp "$WORKSPACE_CONTRACT" "$WORK/workspace.ts"
   cp "$CHECK" "$WORK/check.sh"
-  supabase db reset >/dev/null 2>&1 || { echo "FAIL: could not reset the database"; exit 1; }
 }
 
 # Replace inside the copied contract, asserting the anchor was there and that

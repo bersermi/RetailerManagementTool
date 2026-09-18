@@ -242,9 +242,9 @@ dearer once a second caller depends on the prose.**
 | **2** | **The date is rendered from a month table, not from `Intl.DateTimeFormat`** | `mxn.ts` records that `Intl.NumberFormat.formatToParts` **crashed this app on launch** on the owner's iPhone 15 — twenty-six green node assertions and an uncaught `TypeError` on Hermes. `DateTimeFormat` is the same family and a node suite would say exactly as little about it. ⚠️ **It costs the property `mxn.ts` fought for** — the shape stays an assertion rather than a measurement of ICU — and nothing about a date is fixed by a C-constraint, so there is no claim to keep honest. **Reversed by one function, and it is measurable on the phone in a minute** |
 | **3** | **No year and no time on the expiry, and `null` rather than a broken sentence** | An invite lives seven days, so the year is a word that is wrong to read aloud fifty-one weeks out of fifty-two; the time invites a shopkeeper to cut fine a value she cannot act on precisely. **The date rounds the safe way**: the code dies partway through the day named, never after it. ⚠️ **A date it cannot parse omits the line entirely** — *"expira el NaN de undefined"* is the app visibly broken in front of the one person who cannot tell whether the rest of it worked. **Reversed by one format string** |
 
-#### ⚠️⚠️ Four defects in this session's own instruments, and three were found by a harness rather than by reading
+#### ⚠️⚠️ Five defects in this session's own instruments, none in the app, and only one was found by reading
 
-⚠️ **All four were in a CHECK or a plan row, not in the app.** The app's code was right the first time;
+⚠️ **All five were in a CHECK or a plan row, not in the app.** The app's code was right the first time;
 what took the work was making the evidence real.
 
 1. ⚠️⚠️ **ASSERTION 2 WAS A TAUTOLOGY ON ITS FIRST WRITING.** It READ the four `p_` names out of
@@ -267,6 +267,31 @@ what took the work was making the evidence real.
    green minutes before. ⚠️ **The rule this adds, and it is new here: NEVER PUT AN APOSTROPHE
    INSIDE A HEREDOC THAT SITS IN A COMMAND SUBSTITUTION — not even in a comment.** The two older
    `VERDICT` blocks in this same file were safe by luck.
+
+#### ⚠️⚠️ And a FIFTH, found by CI rather than by anything here — a comment that asserted a constraint nobody had tested
+
+⚠️ **`db.yml` CANCELLED THE HARNESS STEP AT THE FIFTEEN-MINUTE JOB CAP**, and a cancelled step
+is neither a pass nor a failure — **the worst of the three states to merge on**, because the
+tick next to the run says nothing at all about it.
+
+The harness reset the database **once per fixture**, nine times. Its own comment said why:
+*"`0028`'s one-pending-invite index means a second run against a dirty database refuses for a
+reason that has nothing to do with the fixture."* ⚠️⚠️ **That was asserted when the file was
+written and never tested, and it is FALSE.** Every invocation of the check mints a new
+workspace and new addresses off `$STAMP` — `$$` plus the clock — and
+`workspace_invite_one_pending_idx` is partial on `(workspace_id, email)`, so two runs cannot
+collide by construction.
+
+| | |
+|---|---|
+| With nine resets | **six minutes and still running** when the cap cancelled it |
+| With none | ✅ **sixteen seconds, all nine fixtures behaving identically** |
+
+✅ **The resets are gone and the comment now says what is true**, including that it was wrong.
+⚠️ **The rule is the owner's own, and it is in this model's standing notes: MEASURE BEFORE
+DESIGNING AROUND A LIMIT.** A constraint written into a comment reads exactly like a measured
+one six months later, and this one bought a defended six minutes against a cost that did not
+exist. **The check itself takes two seconds.**
 
 #### ⚠️ And a fourth, found by the SPLIT guard's harness while this row was being closed
 
