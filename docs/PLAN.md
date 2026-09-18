@@ -34,8 +34,9 @@ let a blocked task be marked as the next task.**
 | Decision | Blocks | The brief, already written |
 |---|---|---|
 | ⚠️⚠️ **WHAT ARE THE NÚMEROS QUESTIONS?** The owner has them; nobody else can state them. | the Números screen, and **área 9** — with a fix-forward migration in play | ⚠️⚠️ **HALF-ANSWERED 2026-09-17 AND THAT HALF IS THE EXPENSIVE ONE: *"not about how it looks."*** So they are about **what Números MEASURES**, which reopens **área 9** — ruled 2026-09-14 as *"we won't derive the profit… I'd rather just show total revenue"* — and **`0031`, `0032` and `0033` are already applied against those answers.** A change there is a **fix-forward migration**, not an edit, and merging is automated. ⚠️ **The model cannot run this interview alone**: the questions are the owner's, and área 9's own record says a Números answer can retire a task rather than create one. **The next step is one message from him saying what they are** — after that it is sizing, an ADR §2.9 amendment, and probably a migration. ⚠️ **It gets dearer once a Números SCREEN exists** (step 6), and cheaper than that it will never be. |
+| ⚠️⚠️ **AMEND ADR-035 §2.7: `create_invite` IS NOT "UNDER NORMAL RLS".** The sentence says an owner or manager *"calls `create_invite(...)` under normal RLS"*; the applied function is `security definer` with the fence in its body, and it had to be. | nothing takeable — but `5b.8` is already the task that opens §2.7, and it should carry this rather than spend a session of its own | ⚠️ **RECORDED AT `4.6a-ii` ON 2026-09-13 AS THE NINTH STALE COPY AND DELIBERATELY NOT EDITED**, because *"the ADR is amended by the owner's deliberate decision and a task is not one."* The reason it cannot be under normal RLS is measured, not argued: `D3′` orders the creating RPC to SUPERSEDE an expired pending row, that is an UPDATE, and `0002:594` grants `authenticated` select, insert and delete on `workspace_invite` and **not update** — so the invoker-rights spelling dies `42501` before any policy is consulted, and granting UPDATE to fix it makes the missing policy a silent no-op and returns `D3′`'s own bug wearing the costume of its cure. ✅ **`0028`'s suite asserts both halves** (checks `8.2`, `8.3`). ⚠️ **The client contract is IDENTICAL either way** — a non-manager is refused `42501` under both spellings — **so this blocks no build and changes no code**; what it costs while it stands is that `CLAUDE.md`'s rule *"the ADR wins"* points at a sentence the database has already refused. ⚠️ **`5b.8` owes §2.7 two other amendments** (`workspace_member`'s columns, and *"`auth.users` is never exposed"*), which is why the recommendation is to fold this in there: one deliberate pass over the section instead of three |
 
-⚠️ **ONE IS OWED AS OF 2026-09-18, AND IT DOES NOT BLOCK THE NEXT TASK.** ~~TWO ARE OWED AS OF 2026-09-18.~~ **The second — the ADR §3 amendment `5b.5` raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"amend ADR-035 §3 to say 5h.5"*. ⚠️ SIX decisions have now been parked and cleared in this block within two days**, which is what it is for. ~~TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.~~ **The `Quitar` undo was parked on 2026-09-16 and RULED ON 2026-09-17 — no undo. See *"NO UNDO, AND THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK"* below.** The one that remains came out of the aesthetic round too, and it is recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+⚠️ **TWO ARE OWED AS OF 2026-09-18, AND NEITHER BLOCKS THE NEXT TASK.** **The second arrived with `5b-ii-b`'s sizing and is an ADR amendment, not a product call: §2.7 describes `create_invite` as running under normal RLS and the applied function cannot.** ~~ONE IS OWED AS OF 2026-09-18, AND IT DOES NOT BLOCK THE NEXT TASK.~~ ~~TWO ARE OWED AS OF 2026-09-18.~~ **The second — the ADR §3 amendment `5b.5` raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"amend ADR-035 §3 to say 5h.5"*. ⚠️ SIX decisions have now been parked and cleared in this block within two days**, which is what it is for. ~~TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.~~ **The `Quitar` undo was parked on 2026-09-16 and RULED ON 2026-09-17 — no undo. See *"NO UNDO, AND THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK"* below.** The one that remains came out of the aesthetic round too, and it is recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
 raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
 FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
 date**, which is what it is for. The three
@@ -162,6 +163,188 @@ would have carried a decision about a control it does not own. ✅ **The ruling 
 answers, and a change there is a **fix-forward migration**. ⚠️ **The row stays in the decisions
 block** because the questions themselves are still unstated and only the owner has them. **It
 blocks nothing takeable today.**
+
+✅✅ **`5b-ii-b` IS SIZED `L` AND SPLIT IN TWO AS OF 2026-09-18, BEFORE A LINE OF IT WAS
+WRITTEN — AND `5b-ii-b-1` IS THE NEXT TASK.** ⚠️ **No app code was written in this session
+and none should have been**: `app/src/` and `supabase/migrations/` are untouched, and this
+section, three table rows, one new guard, its harness and the two `app.yml` steps that run
+them are the whole of it. It is `5b-ii`'s own split made one level further down, on the same
+argument — **the cheapest moment to be wrong about the shape of two screens is now, in a
+file, rather than after one of them exists.**
+
+#### ⚠️⚠️ Why it is an `L` and not the `M` the row carried — and the calibration is a commit, not a feeling
+
+`5b-ii-a` was an `M`, it closed six days into this step, and its diff is on `main`:
+**`b082e83` — 2,288 insertions across 20 files**, one contract module, one screen, one actor,
+one contract check and its harness. That is what an `M` has cost here most recently, so it is
+the ruler. Against it, `5b-ii-b` as the row describes it:
+
+| | `5b-ii-a`, the `M` that shipped | `5b-ii-b`, as its row describes it |
+|---|---|---|
+| Contract modules | one — `members.ts` | **two** — the two invite RPCs, and the `location` read the picker needs |
+| Screens touched | one | **two, in two route groups** — the sheet, and the landing |
+| Actors | one | **two**, and the second is on a second device |
+| Table reads new to this app | two | **one more**, and its policy is not scoped the way any existing one is |
+| `security definer` RPCs wrapped | none | **two** |
+| Contract check | one actor, one round trip | **two actors**, and the second half cannot run until the first has minted a token |
+| New primitives | the device store | **a date formatter**, which does not exist |
+
+⚠️ **The `M` was written on 2026-09-14 against three nouns on the row** — `create_invite`,
+the location, `redeem_invite` — **and it has been carried unexamined through four sessions
+since, including the one that split its own parent.** Nothing was wrong with it as a first
+guess. It was never re-measured, and `5b.8`'s row already carries the rule this session is
+obeying: *"re-size it on the day it is taken."* ⚠️ **`4e`, `4.6a`, `5a-iv`, `5a-iv-c` and
+`5b-ii` were all sized smaller than they were**, every one of them corrected on the day it
+was picked up rather than on the day it was written, and this is the sixth.
+
+#### ⚠️⚠️ Four things found by reading the applied schema, three of which the row does not own
+
+**`P1` — THE PICKER NEEDS A READ NO LINE IN `app/` PERFORMS, AND ITS POLICY IS NOT SCOPED LIKE
+ANY OTHER READ IN THIS APP.** ⚠️ **This one is not new and that is the finding**: `N1` named
+it in passing six days ago — *"and a `location` read the app does not have"* — inside the
+prose of a finding, and **it never became a deliverable, a row, or a line any guard reads.**
+Measured today: nothing under `app/src/` selects from `location` at all. `workspace.ts` reads
+`workspace`; `members.ts` reads `workspace_member` and `workspace_invite`; that is every read
+this app has. ⚠️⚠️ **And `location_select` (`0001:506`) is `id in (select
+public.my_locations())` — scoped by LOCATION, not by workspace** — its own comment saying why:
+*"a cashier assigned to one store has no business enumerating the other."* Every other read
+here is workspace-scoped. So what a manager is offered in the picker arrives by **role**
+through `my_locations()` (`0002:377`), and that is a claim to measure against a live database
+rather than to read off a policy. **It is `P1` and not `N1` because a deliverable inside a
+paragraph is the exact defect this repository has now recorded fourteen times.**
+
+**`P2` — AN INVITE TOKEN AND A JOIN CODE ARE THE SAME ALPHABET AND THE SAME NORMALISER, AND
+ONLY LENGTH TELLS THEM APART.** `generate_invite_token` (`0028`) draws **sixteen** characters
+from `0123456789ABCDEFGHJKMNPQRSTVWXYZ`, and its own comment says the choice was deliberate:
+*"the same alphabet as the join code (`D5`) … read aloud over WhatsApp by the same person, in
+the same conditions."* `hash_invite_token` then normalises through **`normalize_workspace_code`
+— the join code's own normaliser** — and explains that the normaliser sits inside the hash so
+the creating and redeeming halves cannot disagree. ⚠️ **So the landing screen will carry two
+credentials that differ only in length: eight for a code, sixteen for a token.** `5b-iii`
+builds the code half. **A person holding one of them has no way to know which kind they were
+sent**, which means the screen cannot ask them. ⚠️ **Decided below, and it is the cheap-now
+call of this sizing.**
+
+**`P3` — `create_invite` ANSWERS WITH TWO FACTS ABOUT AN INVITE THAT IS NOW DEAD, AND NOTHING
+ON THE ROW SAYS WHAT THE SCREEN DOES WITH THEM.** `replaced_pending` and `superseded_count`.
+`0028`'s decision 6 **replaces** a live pending invite for the same address, deliberately —
+*"send it again is what a shop does and refusing costs a human step"* — and supersedes expired
+ones through `D3′`'s helper. ⚠️⚠️ **So an owner who invites `ana@…` twice has handed out two
+codes and the first one has stopped working**, and whoever is holding it gets `TD003` on the
+sibling screen, a week later, with no way to tell that from the app being broken. **It is the
+only finding here that a shopkeeper would experience as a defect**, and the app's one chance
+to say so is the moment it happens.
+
+**`P4` — THE TOKEN SCREEN HAS TO SAY WHEN THE CODE DIES, AND THIS APP CANNOT FORMAT A DATE.**
+`create_invite` returns `expires_at`; the seven-day window is `D3`'s, it is the database's and
+not the client's, and a code with no date beside it is one the owner cannot answer a question
+about. ⚠️ **`app/src/format/` holds `mxn.ts` and nothing else.** A date is the second thing
+this app renders that has a right answer and a wrong one, so `5a-ii`'s argument for putting
+money in a module with a suite applies to it unchanged — §2.11 admits a unit test exactly
+where it *"pins a value a customer sees"*, and a date rendered inside a screen is a value no
+suite can reach.
+
+#### The seam, and what each piece is
+
+| | Takes | Why the line is here |
+|---|---|---|
+| `5b-ii-b-1` | `create_invite`, the picker and the read behind it, the token shown once, its expiry, and what a replaced code costs | **Everything the inviting half touches, and ONE actor on ONE device.** It arrives at a surface that already exists and adds a control to it. All three of the findings that need building — `P1`, `P3`, `P4` — are the push path's, and none of them is visible from the other side |
+| `5b-ii-b-2` | `redeem_invite`, the landing entry, and the three refusals `0028` mints | **The second actor, the second device, and the loop that closes.** Its one finding is `P2`, which is a question about a screen the sibling never opens — and about a screen `5b-iii` opens next |
+
+⚠️⚠️ **THE LOOP SPANS THE TWO CHILDREN AND THE FIRST ONE IS A HALF LOOP, WHICH IS A COST AND
+IS NAMED RATHER THAN HIDDEN.** After `5b-ii-b-1` an owner can mint a code and read it aloud
+and nothing in this app can spend it. **That is the same trade `5b-ii`'s own split took** —
+its parent row says *"a closed loop across the two children"* — and it is taken again for the
+same reason: the alternative seams all put both actors in one task, which is the `L` being
+split. ✅ **What makes the half loop safe is that the first half is independently FALSIFIABLE**:
+a token minted, a hash stored, the plaintext absent from the table, and a staff invite refused
+without a location are all assertions a one-actor round trip can make.
+
+#### Three alternative seams considered and refused
+
+- **By RPC only** — both wrappers, args and hooks in one piece; both screens in the other.
+  Refused: it is the data-layer-first seam **the parent already refused for a stated reason**
+  — *"a typed module nothing calls"* is the same defect as a screen with no call, facing the
+  other way — and `5b.5` has since written that pattern down as `R12`.
+- **Keep it an `M` and move the picker to `5b-iii`**, which owns `D8` and needs a picker
+  anyway. Refused: `0028:291` raises `22023` without a location, so `create_invite` **could
+  not issue a staff invite at all** in its own task — the task would ship an RPC it cannot
+  call correctly — and the row already rules the other way (*"`D8`'s ARGUMENT, not `D8`"*).
+- **Keep it an `M` and cut the contract check to one actor.** Refused: `5b-i`'s own finding is
+  that a wrong `p_` name is a **404 the typecheck, the suite and the bundler all pass over**,
+  and redemption's entire risk is the hop between two devices. ⚠️ **Cutting the check to fit
+  the size is sizing the evidence to the estimate**, which is the one move this repository's
+  founding rule exists to refuse.
+
+#### ⚠️ Four decisions taken on the owner's behalf, and the second is the one to look at
+
+| | Decision | Why, and what reversing costs |
+|---|---|---|
+| **1** | **The seam above, and `5b-ii-b` stops being takeable** | A sizing judgement, which the working agreement makes the session's job. The three alternatives and why each loses are above. **Reversed by one plan edit** — nothing after it renumbers, because neither child ships a migration and no app code exists for either |
+| **2** | ⚠️⚠️ **`P2`: ONE BOX ON THE LANDING, NOT TWO, AND IT DECIDES BY LENGTH.** Eight characters is a join code and goes to `5b-iii`'s path; sixteen is an invite token and goes to `redeem_invite` | **Two labelled boxes ask a shopkeeper which KIND of credential she was sent, and she cannot know** — the sender typed it into WhatsApp with no label on it. That is the app handing a person an internal state, which is the owner's own standing rule, and it is `N3`'s argument arriving on a different screen. ⚠️ **The alphabet makes it safe**: `normalize_workspace_code` strips the grouping for both, the two lengths cannot collide, and anything that is neither length is refused before a call is made. ⚠️⚠️ **It is cheap today and a retrofit the moment either screen exists**, and `5b-iii` is the second of them — **flagged for that reason and not because it is close.** **Reversed by one screen edit while neither screen exists** |
+| **3** | **`P3`: the screen says a previous code was replaced, in one sentence, with no dialog and no confirmation** | The alternative is a confirmation in front of *"invite this person again"*, which is book-keeping handed to a shopkeeper, and the owner's tie-break is the option that adds no human step. ⚠️ **Saying nothing was refused**: the old code silently stops working and the person holding it cannot tell that from a broken app. **Reversed by deleting one string** |
+| **4** | **`P4`: the date formatter goes in `src/format/` beside `mxn.ts`, with a suite** | `5a-ii`'s argument unchanged — a value a customer sees belongs where a test can reach it, and §2.11 admits exactly that test. The alternative is `toLocaleDateString` inline in a screen, which no suite in this repository can load. **Reversed by inlining it**, and it would then be unfalsifiable |
+
+#### The guard, and what it does not do
+
+`docs/checks/5b-ii-b-split-coverage.sh` is `5b-ii-split-coverage.sh` pointed one level down
+again. It asserts the parent row and both children exist, that each child is stated **exactly
+once**, that the parent still promises each of the **eight** deliverables — three the row's
+own, one from `N1`, and four from `P1`–`P4` — that each lands in exactly one child and
+the assigned one, that `P2`'s length rule is still written into the child that renders it, and
+that the parent says it is **no longer takeable**. Nine fixtures in
+`5b-ii-b-split-coverage-falsify.sh` say it can still fail on each.
+
+⚠️ **It cannot tell a good split from a bad one.** It cannot see whether `5b-ii-b-1` is really
+buildable in one session, and it cannot see a redemption appearing in it — only that the row
+does not CLAIM one. ⚠️ **And it cannot see `P1` at all**, because that is a claim about a
+policy and a live database rather than about this file; the instrument for it is the contract
+check `5b-ii-b-1` ships, which is the same division `5b-i` drew and `5b.7` repeated.
+
+#### Nine fixtures, run before this was pushed
+
+⚠️ **Every mutation is scoped to ONE table row, by name, rather than to a phrase** — `Y2`'s
+lesson inherited: its first spelling anchored an insert on a phrase the PARENT row also
+carried, the edit landed in the parent, which already promised it, and the guard reported a
+DROPPED deliverable instead of a MISROUTED one. **A fixture that is red for the wrong reason
+is not a falsification, it is a coincidence.**
+
+⚠️⚠️ **AND THIS HARNESS HAS A TRAP THE TWO OLDER ONES DID NOT: THREE OF THE TASK NAMES ARE
+PREFIXES OF EACH OTHER.** `5b-ii-b` is a prefix of `5b-ii-b-1`. Both the guard and the harness
+match `| **<task>** |` **including the closing pipe**, which is what keeps the parent's
+mutation off the child's row — and it is also why the two older guards are untouched by these
+rows existing at all, which `Q0` and the two older harnesses re-running green together are the
+evidence for.
+
+| | Break | Result |
+|---|---|---|
+| **Q0** | The tree as committed | 🟢 — the control, and the thing that says the baseline is not already red |
+| **Q1** | `5b-ii-b-2`'s row deleted | 🔴 *"no table row for 5b-ii-b-2"* |
+| **Q2** | ⚠️⚠️ **`redeem_invite` MOVED into `5b-ii-b-1`** — the commonest real mistake, and the one the seam exists to make visible: a session that has just wrapped `create_invite` finds the other RPC one screen below it in `0028` and takes it too | 🔴 *"this split assigned it to 5b-ii-b-2"* |
+| **Q3** | The **date formatter** (`P4`) named by neither child | 🔴 *"in the parent row and in NO child"* — the shape `P1` spent six days in |
+| **Q4** | ⚠️⚠️ **The `location_select` read (`P1`) struck from the PARENT row** | 🔴 *"no longer named in the parent 5b-ii-b row"* — **the edit that makes a coverage check vacuous rather than red**, which is this repository's most-recorded check defect |
+| **Q5** | `5b-ii-b-1`'s row stated twice | 🔴 *"row appears 2 times"* — `5a-iv`'s sub-split defect exactly |
+| **Q6** | ⚠️ **`P2`'s length rule deleted from `5b-ii-b-2`** | 🔴 — the decision guard. §2.11 bans the rendering suite that would catch two boxes appearing, so this row is the only thing holding it |
+| **Q7** | The parent stops saying it is not takeable | 🔴 *"does not say it is no longer takeable"* — `plan-handover.sh`'s `V4`, one level down |
+| **Q8** | `5b-ii-b-1` **also** claims `redeem_invite`, a COPY and not a move | 🔴 *"owned by neither"* — nothing is dropped, which is why a check that only counted homes would pass, and two tasks now each assume the other has it |
+
+⚠️ **`Q2` and `Q8` are the same edit told apart by whether the sibling keeps the deliverable**,
+and they were written as one fixture first. The MISROUTED branch is reached only when a
+deliverable LEAVES its owner; the *"owned by neither"* branch only when it does not. **One
+fixture could not reach both, and the harness is what said so.**
+
+#### ⚠️ Two things this session corrected in its own work, found by re-running rather than by reading
+
+- ⚠️ **`Q4`'s first spelling could never have fired.** Its anchor carried a newline, and a
+  build-order row is one line — so the mutation always failed, the `||` fallback always ran,
+  and the fixture was green for a reason that had nothing to do with what it asserts. **A
+  fixture whose setup silently fails is the `conventions-gate-falsify.sh` failure in
+  miniature**, and it was caught by reading the script back rather than by the harness, which
+  reported nine passes throughout.
+- ⚠️ **`Q6`'s needle matched the wrong sentence.** It looked for *"told apart"*, which appears
+  in the guard's **success** message as well as its failure. `fixture()` checks the exit code
+  before the needle, so it could not have passed a green run — but it would have accepted a
+  red one that failed for any other reason. **Tightened to a phrase only the failure prints.**
 
 ✅✅ **`5b.7` IS DONE AS OF 2026-09-18 — A PERSON'S NAME IS COLLECTED AT SIGN-UP AND
 STORED, NOTHING DISPLAYS IT YET, AND `5b-ii-b` IS THE NEXT TASK.** The event-shaped
@@ -11385,7 +11568,9 @@ free today and stay free until the first task merges.
 | **5b-i** | ✅✅ **IS DONE AS OF 2026-09-14 — `0033` was the last migration and this task shipped none.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one. ✅ **Shipped:** `src/api/` in five modules over one impure boundary, TanStack Query as the server-state layer ADR-035 §2.11 names, a third route group `(onboarding)`, and **`docs/checks/5b-i-api-contract.sh`** — a real HTTP round trip against a reset database, because a wrong argument name is a 404 that the typecheck, the suite and the bundler all pass over | `M` | ✅ **Was unblocked, and is closed.** `5b.5` is now takeable, and so is everything below |
 | **5b-ii** | ⚠️⚠️ **SIZED `L` AND SPLIT IN TWO 2026-09-18, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Ajustes, the code, and the PUSH path.** Eight deliverables, all of which land in a child below: the **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; the **density** switch and its persistence, parked on this sheet by `5a-iii-b` and carried in no list until the sizing (`N2`); **`create_invite`** returning a token shown **once**; the location **a staff invite must name**, which `0028` refuses to do without (`N1`); and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️⚠️ **And the sizing measured a THIRD case the ruling does not cover (`N3`): the invite table is readable by managers and above only, so a staff caller recovers no identity at all.** ⚠️ **A closed loop across the two children**: an owner invites, a second person redeems, and there are two people in the shop | `L` — **split, two `M`s** | ✅ **Was takeable and is now a parent.** Both things inserted ahead of it are closed — `5b.6` shipped the palette 2026-09-17 and `5b.5` wrote the data-layer conventions 2026-09-18 — and the split is the only thing between here and the sheet. ⚠️ **The data layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned the `5b` guard red while that sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
 | **5b-ii-a** | ✅✅ **IS DONE AS OF 2026-09-18 — every one of its five deliverables is built and closed.** **The sheet, and everything on it that only reads.** The **Ajustes** sheet itself — the app's first non-tab surface, and the first screen of any kind to adopt `5b.6`'s palette under `R11`; its entry point from a Home screen that is still scaffolding; **member management**, the roster; the **join code** and its WhatsApp share (**C11.7**); and the **density** switch finally persisted, which `5a-iii-b` deferred to this surface and no list has carried since. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, with the caller's own row labelled *Tú* and no name anywhere.** ✅✅ **RULED BY THE OWNER 2026-09-18 — the roster is MANAGER-AND-ABOVE.** It was taken on his behalf in the sizing that morning and confirmed the same day, so it is a ruling and no longer a call awaiting a look. `workspace_invite` is readable at `manager` (`0002:563`), `workspace_member` by any member (`0001:524`), so a staff caller would get a list of rows it cannot identify; the sheet shows them the shop and their own settings instead. ⚠️ **It ships NO membership write** — that is the seam, and it is what the guard asserts. ⚠️ **Two reads and a client-side join**: no foreign key links the two tables and neither may embed the other (`N4`). ⚠️ **A closed loop**: an owner opens the sheet, sees who is in the shop, shares the code, and sets his own text size. ✅ **Shipped:** the sheet as the app's first `presentation: 'modal'` route and the first consumer of the palette; a second `src/api/` contract module carrying both column lists and the join PostgREST refuses; three hooks; the per-phone storage module for the text-size choice; `src/lib/store.ts`, one device store where there were about to be two; 42 new Vitest assertions; and **`docs/checks/5b-ii-a-roster-contract.sh`**, which asks a real database whether the ruling is still the right ruling. ⚠️ **Inicio's two temporary blocks are deleted**, which `5a-ii` named this task to do. ⚠️ **The file list is deliberately NOT spelled out in this row** — it is machine-read for eight sentinels, and a paragraph naming them a second time is what disarmed fixture `Z3` while this sentence was first being written: the NINTH instance of *never spell a check's sentinel in the file it reads*, caught in seconds by the harness rather than in days by a person | `M` | ✅ **WAS TAKEABLE, AND IS CLOSED.** `5b-i` built the data layer it calls through, `5b.6` built the palette it is the first consumer of, and `5b.5` wrote the pattern it is the first consumer of. Nothing is waiting on the owner |
-| **5b-ii-b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-18.** ~~NOT NEXT — `5b.7` was inserted ahead of it.~~ **`5b.7` closed the same day it was inserted, and this row is unchanged by it**, which is what its own status cell predicted. **Both membership writes, and both actors.** **`create_invite`** — four arguments, a manager fence in the body, and a token **shown once and stored only as a hash**, so the screen that renders it is the only place it will ever exist; the location **a staff invite must name**, which `0028:291` refuses to do without and which the split of 2026-09-14 had left with the other child (`N1`); and **`redeem_invite`**, off the landing `5b-i` built, on a second person's phone. ⚠️ **`D8`'s ARGUMENT, not `D8`** — the approval path's own picker stays where it is, and whether the two are one component is `5h.5`'s question rather than this task's. ✅ **Nothing is asked when a shop has one location** — C1.5 says both pilot shops are exactly that, so the picker appears only above one, and refuses to be empty when it does. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M` | ✅ **TAKEABLE, AND NOW FIRST IN LINE. UNBLOCKED BY THE SERVER AND SEQUENCED BEHIND THE SURFACE.** ⚠️ **Nothing in `5b.7` or `5b.8` changes this task's shape** — the token flow and the argument names are untouched by a column added elsewhere, which is why the insertion ahead of it costs a session and not a rewrite. `0028` has been applied since 2026-09-13 and ships nothing here. It arrives at a sheet that already exists, so it adds a control and two flows rather than inventing a surface — which is the whole reason the seam is where it is |
+| **5b-ii-b** | ⚠️⚠️ **SIZED `L` AND SPLIT IN TWO 2026-09-18, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~It was first in line as of 2026-09-18, and `5b.7` closed the same day it was inserted ahead of it.~~ **Both membership writes, and both actors.** Eight deliverables, all of which land in a child below: **`create_invite`** — four arguments, a manager fence in the body, and a token **shown once** and stored only as a hash, so the screen that renders it is the only place it will ever exist; the location **a staff invite must name**, which `0028:291` refuses to do without and which the split of 2026-09-14 had left with the other child (`N1`); the **`location_select`** read that picker needs, which **no line in `app/` performs today** (`P1`); the **`replaced_pending`** answer, which is the app's only chance to say that a code somebody is already holding has just been killed (`P3`); the **date formatter** the token's expiry needs and this app does not have (`P4`); and **`redeem_invite`**, off the landing `5b-i` built, on a second person's phone, where a token is **sixteen characters** of the same alphabet the join code uses and only its length tells the two apart (`P2`). ⚠️ **`D8`'s ARGUMENT, not `D8`** — the approval path's own picker stays where it is, and whether the two are one component is `5h.5`'s question rather than this task's. ✅ **Nothing is asked when a shop has one location** — C1.5 says both pilot shops are exactly that, so the picker appears only above one, and refuses to be empty when it does. ⚠️ **A closed loop across the two children**: an owner invites, a second person redeems, and there are two people in the shop | `L` — **split, two `M`s** | ✅ **WAS FIRST IN LINE AND IS NOW A PARENT.** ⚠️ **Nothing in `5b.7` or `5b.8` changes this task's shape** — the token flow and the argument names are untouched by a column added elsewhere. `0028` has been applied since 2026-09-13 and ships nothing here. ⚠️⚠️ **The re-size found FOUR things this row did not own** (`P1`–`P4`), one of which had been named in `N1`'s prose six days ago and never became a deliverable — see the sizing in the status log |
+| **5b-ii-b-1** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-18.** **The push, and everything the person doing the inviting touches.** **`create_invite`** — four arguments (`p_workspace_id`, `p_email`, `p_role`, `p_location_ids`), the manager fence `0028` keeps in the BODY rather than in a policy, and a token **shown once** and stored only as a hash, so the screen that renders it is the only place it will ever exist. Plus the location **a staff invite must name** (`N1`) and therefore the picker; the **`location_select`** read behind it (`P1`), a fourth table for this app, whose policy is `id in (select public.my_locations())` — scoped by LOCATION and not by workspace like every other read here — so what a manager is offered comes from their ROLE and is a thing to measure rather than assume; the **`replaced_pending`** answer (`P3`), because re-inviting one address deliberately kills the live code somebody is already holding; and the **date formatter** the expiry needs (`P4`), which belongs beside `mxn.ts` and not inside a screen. ⚠️ **It lands on the surface `5b-ii-a` built and invents none of its own.** ⚠️ **A HALF loop, deliberately**: an owner issues a code and reads it aloud, and nothing in this app can spend it until the sibling ships — the same trade the parent's own split accepted one level up | `M` | ✅ **TAKEABLE, AND FIRST IN LINE. UNBLOCKED BY THE SERVER AND SEQUENCED BEHIND THE SURFACE.** `0028` applied 2026-09-13; this ships no migration, no schema and no policy. ⚠️ **Three decisions were taken on the owner's behalf in the sizing and none of them blocks this build** — each is named in the status log with what reversing it costs |
+| **5b-ii-b-2** | **The redemption, the second actor, and the loop that closes.** **`redeem_invite`**, off the landing `5b-i` built, on a second person's phone: the token goes in, `0028` writes the membership and its location rows, and `guard.ts` sends them to Inicio the moment the read comes back — which is `5b-i`'s recorded rule that a screen never holds a second opinion about navigation. ⚠️⚠️ **AND THE SCREEN HAS TO TELL TWO CREDENTIALS APART (`P2`).** An invite token is **sixteen characters** of the *same* Crockford alphabet as the eight-character join code, and `hash_invite_token` normalises it through the *same* `normalize_workspace_code` — so the two are indistinguishable except by LENGTH, and the screen that takes the other one is `5b-iii`'s. ⚠️ **The refusals are already minted and have to reach a person in Spanish**: `TD003` for a code that expired or was replaced, `42501` for one that is not valid or is already spent, and the **idempotent** second tap that answers `already_redeemed` and is not an error at all. ⚠️ **A closed loop, and it is the one the parent promised**: an owner invites, a second person redeems, and there are two people in the shop | `M` | ⚠️ **NOT TAKEABLE UNTIL `5b-ii-b-1` IS CLOSED** — it spends a token nothing in this app can issue yet, and a contract check for it would have to mint one by hand against the half that is unwritten. ⚠️ **It is also the half that needs TWO devices**, which `5a-iv-c`'s instrument rules already cover, and `5b.8` must land after it because that task edits the RPC this one wraps |
 | **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14.** The decision that was open against this row was ruled on the day it was parked |
 | **5b.7** | ✅✅ **DONE AS OF 2026-09-18.** **ASK FOR A PERSON'S NAME WHEN THEY CREATE THEIR ACCOUNT, AND STORE IT. NOTHING DISPLAYS IT YET.** ✅ **Instructed by the owner 2026-09-18** — *"let's include the Name at Sign-in: Nombre y Apellido"*, which **supersedes the no-name half of his ruling of 2026-09-14**, taken when the finding was that no table carries a name and nobody had noticed Google hands us one. ⚠️⚠️ **TWO REQUIRED FIELDS — `Nombre` AND `Apellido` — on the sign-up half of `(auth)/entrar.tsx` only, and NEVER on sign-in**, where nobody types their name to come back. ✅ **Two boxes and not a word count** (owner, 2026-09-18): neither may be blank, and nothing else is asserted about either. A rule about SPACES in one box is a rule about how a name is shaped, and Spanish routinely carries two surnames — `María del Carmen Rodríguez Gómez` breaks every split anyone would write. ⚠️ **Stored as ONE joined string**, because that is the shape the other way in already delivers: one column, one reader, one display. `checkCredentials`' third and fourth rules; `supabase.auth.signUp({ options: { data: { full_name } } })`, **the key Google's provider already writes**, so one reader serves both ways in; the Spanish for both. ⚠️ **IT SHIPS NO MIGRATION, NO SCHEMA AND NO LIST** — the display is `5b.8`, and separating them is the whole point of the split. ⚠️⚠️ **AND THE OTHER WAY IN IS TAKEN AS-IS, WITH NO GATE.** Google hands over ONE STRING and there is no form to validate; **an account with no surname is legitimate** — that field is optional in most locales — so `Ana` can arrive and must be accepted. The correction is not a screen between the button and the shop: it is an editable own-name field on the sheet `5b-ii-a` built, and it is `5b.8`'s. ⚠️ **The identity ladder already handles the floor**: a person with no name at all still falls through to their address and then to their role, which is what `5b-ii-a`'s `Dueño` case is for. ⚠️ **A round trip is the evidence, not the file**: that the metadata survives `signUp` is a claim about somebody else's system, and §9 says a green CI run is what settles those | `S` | ✅✅ **DONE — AND THE IRRECOVERABLE DEADLINE IS CLOSED.** It was not a date but an EVENT: the pilot's first email sign-up. From this commit a sign-up sends `Nombre` and `Apellido` joined into `raw_user_meta_data.full_name`, and `docs/checks/5b.7-signup-name-contract.sh` asserts on a live round trip that it is still there on a LATER sign-in — the claim `5b.8`'s backfill depends on. ⚠️ **Google remains the documented default and is still NOT measured on this project**; one glance at `user_metadata` on the next real Google sign-in on the phone settles it, and it is a look rather than a task. ⚠️ **The screen gained a MODE** — see the status-log entry's decision 1 |
 | **5b.8** | **SHOW THE NAME, WHICH IS A MIGRATION AND AN ADR AMENDMENT.** A `display_name` column on `workspace_member` — the table a phone CAN read — written by **the shop-creation RPC** and by **the redemption RPC** from the caller's own `raw_user_meta_data`, plus a **backfill** for rows that already exist, with a pgTAP suite and its falsifications. Then the fourth identity case in `rosterFrom`, the column added to the roster's read, and the contract check and harness extended to match. ⚠️⚠️ **AND IT IS THE TASK THAT RETIRES A RULING.** The 2026-09-14 ruling on how a member row is identified — and its twin about what an approver sees — are held as DELIVERABLES by two split guards and written into three rows. This task changes those sentinels; **until it does, they stay exactly as they are**, because a guard asserting a rule that is not yet true is worse than one asserting a rule that has been superseded on paper. ⚠️ **`ADR-035 §2.7` describes `workspace_member`'s columns and says `auth.users` is never exposed** — both sentences need amending, on the instruction given today, in the same task as the migration, the way `4.6a` did it. ⚠️⚠️ **PLUS A `security definer` RPC SO A PERSON CAN FIX THEIR OWN NAME, AND THE OBVIOUS ALTERNATIVE IS A TRAP.** Measured, not assumed: `workspace_member_update` (`0001:532`) is `has_role(workspace_id, 'owner')` — **owner-only** — so a manager or a staff member cannot edit the row that describes them, and a Google account that arrived with one word can never be repaired. ⚠️⚠️ **A "you may update your own row" policy is NOT the fix and must not be written: RLS filters ROWS, NOT COLUMNS**, so it would also let that person change their own `role` — the tenancy wall opened to buy a text field. The RPC touches one column and nothing else, and the control lives on the sheet `5b-ii-a` built. ⚠️ **The `Dueño` fallback from `5b-ii-a` STAYS** as the last resort — it is what an account with empty metadata still gets | `M/L` | ⚠️ **NOT TAKEABLE UNTIL `5b.7` AND `5b-ii-b` ARE CLOSED, AND IT MUST LAND BEFORE `5b-iii`.** After `5b.7` because backfilling from metadata nobody is collecting yet is a migration written against an empty column. After `5b-ii-b` because that task wraps the redemption RPC this one edits, and one pass over a settled flow beats two. **Before `5b-iii`**, because that screen is built against the ruling this task retires — building it first means building it twice. ⚠️⚠️ **RE-SIZE IT ON THE DAY IT IS TAKEN, AND IT GREW ON 2026-09-18 BEFORE IT WAS EVEN TAKEN** — the self-edit RPC and its control were not in this row when it was written, and they arrived from one grep of an applied policy. `4e` and `4.6a` both recorded that a deferred second half needs splitting when it is picked up, and this one carries a migration, a suite, a client change, two guards and an ADR |
