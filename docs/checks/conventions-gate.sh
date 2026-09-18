@@ -156,11 +156,13 @@ done
 # legitimate state — it means every pass this page owed has been written.
 note
 PLAN="$ROOT/docs/PLAN.md"
+# ⚠️ SET OUTSIDE THE BRANCH BELOW, because assertion 0c reads it too and a
+# missing plan must not silently disarm the ADR half as well as this one.
+PAGE_OWES=""
 if [[ ! -r "$PLAN" ]]; then
   fail "cannot read $PLAN — the deferral cross-check needs it"
 else
   DEFER_LINE="$(grep -m1 -E '^## .*owed at `[^`]+`' "$PAGE")"
-  PAGE_OWES=""
   if [[ -n "$DEFER_LINE" ]]; then
     PAGE_OWES="$(sed -e 's/.*owed at `//' -e 's/`.*//' <<< "$DEFER_LINE")"
   fi
@@ -212,7 +214,15 @@ ADR="$ROOT/docs/adr/ADR-035-target-architecture-postgres-react-native.md"
 if [[ ! -r "$ADR" ]]; then
   fail "cannot read $ADR — the third copy of the 5b.5 deferral is unchecked"
 else
-  ADR_5B5=no;   grep -qF '5b.5' "$ADR" && ADR_5B5=yes
+  # ⚠️⚠️ THE TASK IS THE ONE THE PAGE NAMES, NOT A LITERAL — CHANGED 2026-09-18
+  # WITH THE §3 AMENDMENT, AND FOR THE REASON ASSERTION 0b HAD JUST BEEN
+  # REWRITTEN FOR. This read `grep -qF '5b.5'`, and `5b.5` is now a CLOSED task
+  # that this document will name in its revision log for ever — so the literal
+  # would have gone on passing while the live deferral, `5h.5`, could have been
+  # dropped from §3 with nothing going red. A check pinned to a name the
+  # codebase has finished with is a check that has stopped watching anything.
+  ADR_TASK=yes
+  if [[ -n "$PAGE_OWES" ]] && ! grep -qF "$PAGE_OWES" "$ADR"; then ADR_TASK=no; fi
   # §3's step `5a` paragraph must no longer claim src/api and src/ui for itself.
   #
   # ⚠️⚠️ THE FIRST SPELLING OF THIS FIRED ON THE AMENDMENT NOTE. It grepped the
@@ -233,16 +243,18 @@ else
   # And the marker must be there at all, or HEAD is the whole block and the
   # assertion above would pass only because the amendment was deleted wholesale.
   if ! grep -qF 'Amended 2026-09-13' <<< "$BLOCK"; then ADR_5A_CLAIMS=yes; fi
-  if [[ "$ADR_5B5" == no ]]; then
-    fail "ADR-035 does not mention 5b.5. The 2026-09-13 amendment moved §3's"
-    echo "      src/api and src/ui obligation there; without it the ADR reads as"
-    echo "      though step 5a still owes them, and CLAUDE.md says the ADR wins."
+  if [[ "$ADR_TASK" == no ]]; then
+    fail "docs/CONVENTIONS.md defers a convention to '$PAGE_OWES' and ADR-035 does not"
+    echo "      mention it. §3's amendments moved that obligation out of step 5a and"
+    echo "      into a named task; without the name the ADR reads as though step 5a"
+    echo "      still owes it, and CLAUDE.md says the ADR wins — so the next session"
+    echo "      to read §3 literally un-does the split."
   elif [[ "$ADR_5A_CLAIMS" == yes ]]; then
     fail "ADR-035 §3's step 5a claims src/api or src/ui again, outside the"
     echo "      amendment note. That is the exact reversion the amendment exists to"
     echo "      prevent — re-opening a question the owner closed on 2026-09-13."
   else
-    ok "ADR-035 carries the 5b.5 deferral and step 5a no longer claims src/api or src/ui"
+    ok "ADR-035 names ${PAGE_OWES:-every pass this page owes} and step 5a no longer claims src/api or src/ui"
   fi
 fi
 
