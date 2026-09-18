@@ -30,7 +30,9 @@
 # drives that refusal for real and fails if the message stops containing the
 # marker the app exports — so a reworded migration is red and named, rather than
 # quietly costing the one refusal that has a next step. **The honest fix is a
-# SQLSTATE of its own and that is a migration; it is routed to `5b-iii`.**
+# SQLSTATE of its own and that is a migration; RULED BY THE OWNER 2026-09-18 into
+# `5b-iii`, which owns the approval path the message points at. ⚠️ THIS ASSERTION
+# RETIRES WITH IT — when the code lands, assertion 8 asserts the CODE, not prose.**
 #
 # WHAT IT ASSERTS, all against a REAL round trip over HTTP, with three real
 # people and two stores:

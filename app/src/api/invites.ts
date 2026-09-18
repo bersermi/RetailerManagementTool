@@ -314,7 +314,10 @@ export function issuedFrom(data: unknown): InviteIssued {
  *
  * ⚠️ THE HONEST FIX IS A SQLSTATE OF ITS OWN — `TD001` and `TD003` are codes this
  * project has minted before — and that is a MIGRATION, which this task does not
- * ship. Routed to `5b-iii`, which owns the approval path this message points at.
+ * ship. ✅ **RULED BY THE OWNER 2026-09-18 INTO `5b-iii`**, which owns the approval
+ * path this message points at. ⚠️ **THIS CONSTANT AND THE ASSERTION THAT GUARDS IT
+ * ARE RETIRED IN THAT SAME PASS** — a rule still asserted after it has been
+ * superseded is worse than one asserted before it is true.
  */
 export const ALREADY_REQUESTED_MARKER = 'already requested';
 
