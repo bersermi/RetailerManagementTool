@@ -19,7 +19,7 @@
 # `R11` for `5b.5` and *"when `src/api/` and `src/ui/` arrive"*, which is not
 # what it turned out to be; the forecast is left visible rather than quietly
 # corrected, because it is the argument for keeping the fixtures. Every one of
-# those edits needs the gate re-proved, and re-deriving twenty-seven fixtures from a
+# those edits needs the gate re-proved, and re-deriving thirty fixtures from a
 # table of prose costs more than keeping the fixtures.
 #
 # ⚠️ THE RULE IT SERVES IS RULE 4 OF THIS REPOSITORY: A GUARD NOTHING CAN TURN
@@ -43,10 +43,11 @@
 #
 # ⚠️ IDS ARE STABLE AND ARE NOT IN RUN ORDER. `F13` runs last because it is the
 # green one; `F14`–`F16` were added after it, `F17`–`F19` after those, `F20`–`F21`
-# with assertion 0d, and `F22`–`F27` at `5b.5` with `R12`, `R13` and the rewritten
-# `0b`. The numbers match the fixture tables in `docs/PLAN.md` under `5a-iv-b`,
-# `5b.6` and `5b.5`, and renumbering them would break that cross-reference for
-# no gain.
+# with assertion 0d, `F22`–`F27` at `5b.5` with `R12`, `R13` and the rewritten
+# `0b`, and `F28`–`F30` with the §3 amendment of 2026-09-18 — the first fixtures
+# assertion `0c` has ever had. The numbers match the fixture tables in
+# `docs/PLAN.md` under `5a-iv-b`, `5b.6` and `5b.5`, and renumbering them would
+# break that cross-reference for no gain.
 #
 # Run:  bash docs/checks/conventions-gate-falsify.sh
 # Exit: 0 every fixture behaved as expected; 1 otherwise.
@@ -116,8 +117,19 @@ run() {
   # ⚠️ THE ANTI-VACUITY GUARD, PER FIXTURE. A `sed` that matched nothing leaves
   # an unbroken copy, the gate goes green, and a fixture expecting green would
   # be COUNTED AS EVIDENCE while having tested nothing at all.
+  # ⚠️⚠️ `docs/adr/` IS IN THIS LIST AS OF 2026-09-18, AND IT WAS NOT BEFORE —
+  # FOUND BY THE FIRST THREE FIXTURES THAT EDIT IT. The gate has read the ADR
+  # since 2026-09-13 (assertion 0c); this guard diffed the other five inputs and
+  # not that one, so an ADR-only fixture came back "EDITED NOTHING" having edited
+  # the file correctly. ⚠️ **It is the same shape as the defect that killed this
+  # harness for a day** — the gate gained an input the harness was never told
+  # about — arriving one layer in: the harness COPIED the new input and its own
+  # vacuity guard still did not watch it. **The rule is that this list and the
+  # gate's inputs are the same set**, and the only thing that keeps them so is a
+  # fixture that edits each one.
   if diff -r -q "$REPO/app/src" "$WORK/app/src" >/dev/null 2>&1 \
      && diff -r -q "$REPO/app/test" "$WORK/app/test" >/dev/null 2>&1 \
+     && diff -r -q "$REPO/docs/adr" "$WORK/docs/adr" >/dev/null 2>&1 \
      && diff -q "$REPO/docs/CONVENTIONS.md" "$WORK/docs/CONVENTIONS.md" >/dev/null 2>&1 \
      && diff -q "$REPO/docs/PLAN.md" "$WORK/docs/PLAN.md" >/dev/null 2>&1 \
      && diff -q "$REPO/$GATE" "$WORK/docs/checks/conventions-gate.sh" >/dev/null 2>&1; then
@@ -279,6 +291,32 @@ run F25 red "R13 — the p_ argument names typed at the call site"
 mk; sedi "s|.select(WORKSPACE_COLUMNS)|.select('*')|" "$WORK/app/src/api/calls.ts"
 run F26 red "R13 — select('*'), which ships every column of the row to a phone"
 
+# --- 0c's three, added 2026-09-18 with the §3 amendment -------------------
+# ⚠️⚠️ ASSERTION 0c HAD NO FIXTURE FOR SEVEN DAYS, AND IT IS THE ONE THAT READS
+# THE ADR. It was added on 2026-09-13 as the third copy of the deferral, and the
+# only thing that ever exercised it was the BASELINE — which is how it was found,
+# on 2026-09-14, to have been dead for a day because this harness did not copy
+# `docs/adr/` at all. A green baseline is not a falsification: it says the check
+# passes on a correct tree, which is what a check that reads nothing also does.
+# `5b.5`'s own sentence, paid for again: a new assertion with no fixture is a
+# rule nobody has shown can fail.
+ADR_MD="docs/adr/ADR-035-target-architecture-postgres-react-native.md"
+
+mk; sedi 's/5h\.5/5x.9/g' "$WORK/$ADR_MD"
+run F28 red "0c — the ADR stops naming the task the page defers to"
+
+# ⚠️ THE REVERSION THE AMENDMENT EXISTS TO PREVENT: step 5a's DELIVERABLE LIST
+# claiming src/api back, which is the edit a session obeying "the ADR wins"
+# would make if the amendment note were ever lost.
+mk; sedi 's|   \*\*`CONVENTIONS.md` — one page\*\*. Hiring gates on that file existing, because a|   **`src/api/` wrappers and the `src/ui/` primitives**, plus **`CONVENTIONS.md` — one page**. Hiring gates on that file existing, because a|' "$WORK/$ADR_MD"
+run F29 red "0c — step 5a's deliverable list claims src/api back"
+
+# ⚠️ AND THE MARKER ITSELF, which is the half that stops the fixture above from
+# being answerable by deleting the amendment wholesale: with no marker, the
+# "deliverable list" is the entire block and the grep finds the note's own words.
+mk; sedi 's/Amended 2026-09-13/Amended at some point/g' "$WORK/$ADR_MD"
+run F30 red "0c — the amendment marker deleted, which makes 0c's region the whole block"
+
 # --- R11's three, added 2026-09-17 at `5b.6` -------------------------------
 # ⚠️ THE MUTATIONS ARE ANCHORED TO A STYLE PROP THAT EXISTS, not to a line
 # number — `F9`'s lesson, twice paid for in this file.
@@ -348,7 +386,7 @@ echo
 # a run that executed no fixtures looks like — the eighth check here to need
 # one, and the first where the thing that could empty it is this file's own
 # fixture list being edited down.
-EXPECTED_FIXTURES=27
+EXPECTED_FIXTURES=30
 if (( ran < EXPECTED_FIXTURES )); then
   echo "FAIL: only $ran fixtures ran, expected $EXPECTED_FIXTURES — this harness"
   echo "      proved almost nothing and was about to report success."

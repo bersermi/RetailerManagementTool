@@ -482,7 +482,10 @@ describing them today would be the exact thing the owner refused. So the
 obligation moves down the same ladder it moved down before — to **`5h.5`**,
 after the last screen that builds a primitive and **before step 6**, which is
 all ADR-035 §2.10 ever asked for (*"the claim here is about order relative to
-step 6"*).
+step 6"*). ✅✅ **AND ADR-035 §3 SAYS SO IN ITS OWN WORDS, AS OF THE OWNER'S
+RULING OF 2026-09-18** — a `5b.5.` entry for `src/api/` and a `5h.5.` entry for
+`src/ui/`. **The ADR is not merely compatible with this page; it names the same
+task**, and the gate asserts it still does.
 
 ⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 — see `R11` above.**
 `app/src/theme/palette.ts` holds the eleven roles and the gate reads them.

@@ -12,6 +12,29 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-18 — **§3 amended, on the decision maker's instruction**
+  (*"amend ADR-035 §3 to say 5h.5"*), with §2.10's one-line reference to the same
+  claim brought along. ⚠️⚠️ **THE OBLIGATION DID NOT MOVE AND WAS NOT REDUCED; IT
+  TAKES TWO PASSES.** §3 named the `src/api/` **and** `src/ui/` conventions together
+  at `5b.5`. `5b.5` ran on 2026-09-18 and wrote the `src/api/` half — `R12` and `R13`
+  in `docs/CONVENTIONS.md`, both machine-read — and **could not write the other half,
+  because `app/src/ui/` did not exist**: thirty source files, and the only shared
+  component among them a placeholder that says a screen is not built yet. Describing
+  primitives nobody has drawn is the exact thing the decision maker refused on
+  2026-09-13. So the `src/ui/` half is now **`5h.5`**, after the last task that builds
+  a primitive and **before step 6**, which is the only ordering §2.10 ever claimed
+  (*"about ORDER RELATIVE TO STEP 6, not about the letter"*).
+  ⚠️ **This closes a disagreement between this document and `docs/PLAN.md` that the
+  plan opened first**, and it is recorded that way deliberately: the plan made the
+  split on 2026-09-18 and flagged it as owed here, rather than letting §3 quietly read
+  as though a closed task still owed something it had not delivered. **CLAUDE.md says
+  the ADR wins — so a session reading §3 literally would have concluded the plan was
+  the bug, and un-split it.**
+  ⚠️ `docs/CONVENTIONS.md`, `docs/PLAN.md` and this document are three copies of one
+  deferral, and `docs/checks/conventions-gate.sh` reads all three: the page names the
+  task in its own heading, the plan row names the page, and assertion 0c asserts THIS
+  file still names the task the page defers to. **No copy of it is trusted.**
+  **No schema change, no app code, and nothing here was built against the old wording.**
 - **Revised:** 2026-09-14 — **§2.7 and §2.9 amended, on the decision maker's instruction**,
   after the **área 9 interview** he called for. ⚠️⚠️ **§2.9's FIRST QUESTION IS RETIRED, NOT
   RE-MEASURED.** *"What made me money?"* was *gross margin by product*, and the ruling is
@@ -1312,7 +1335,10 @@ makes step 6 parallel is `src/ui`, `src/api` and one page of written conventions
 which is why §3 names them as deliverables. ⚠️ **Amended 2026-09-13: the three are
 still required and the STEP THEY LAND IN CHANGED.** `src/ui` and `src/api` are built
 across `5d`–`5h` against screens that exist, and the conventions describing them are
-written at **`5b.5`** — before step 6, which is what this paragraph actually requires.
+written at **`5b.5`** (`src/api`, done 2026-09-18) and **`5h.5`** (`src/ui`, once
+primitives exist) — both before step 6, which is what this paragraph actually
+requires. ⚠️ **Amended 2026-09-18**, and the sentence it replaced named only `5b.5`:
+see §3 and the revision entry.
 The claim here is about ORDER RELATIVE TO STEP 6, not about the letter `5a`. If a junior ever needs to write a
 migration, that is a missing RPC — a design bug, not a permissions problem.
 
@@ -1384,17 +1410,37 @@ Pace-independent. Each step gates the next; step 2 is the design gate.
    ⚠️ **Amended 2026-09-13 — three things left this step, and one of them is the
    reason the step exists.** `src/api/` and `src/ui/` move to `5d`–`5h`, and **`5b.5`
    carries the obligation they were here to discharge**: see the revision entry, and
-   `docs/PLAN.md`. The `expo-sqlite` **outbox moves to `5c`**. *"Session persistence
+   `docs/PLAN.md`. ⚠️ **Amended again 2026-09-18: that obligation takes TWO passes —
+   `5b.5` for `src/api/`, `5h.5` for `src/ui/`** — for the reason written under those
+   two entries below. The `expo-sqlite` **outbox moves to `5c`**. *"Session persistence
    on a shared till device"* is struck as a premise, not deferred — **C1.5/C1.1
    established there is no shared till; the pilot uses personal phones** — and *"how
    the client resolves its `location_id`"* went with it, since a phone belonging to
    one person resolves it from membership.
 
-5b.5. **`CONVENTIONS.md`, second pass** — the `src/api/` and `src/ui/` conventions,
-   written once `5b` has produced a real pattern. ⚠️ **This is where step 5a's
-   *"arrive to a pattern"* requirement is actually discharged**, and it is load-bearing
-   rather than a tidy-up: skip it and step 6's four screens arrive to nothing, which
-   is the outcome §2.10 and this section were both written to prevent.
+5b.5. **`CONVENTIONS.md`, second pass** — the **`src/api/`** conventions, written once
+   `5b` has produced a real pattern. ⚠️ **Done 2026-09-18**: `R12` and `R13` on that
+   page, read by `docs/checks/conventions-gate.sh`.
+
+   ⚠️ **Amended 2026-09-18 — THE OBLIGATION IS ONE THING AND IT TAKES TWO PASSES,
+   BECAUSE THE TWO DIRECTORIES ARE NOT BUILT AT THE SAME TIME.** This entry named
+   `src/api/` and `src/ui/` together at `5b.5`, and on the day `5b.5` ran there was
+   no `app/src/ui/` — the client was thirty source files and the only shared
+   component in it was a placeholder saying a screen was not built yet. Writing
+   primitive conventions there would have been the very thing the decision maker
+   refused on 2026-09-13, *"rather than ten primitives guessed at against screens
+   nobody has drawn"*, arriving one step later wearing this document's authority.
+   **So the `src/ui/` half is `5h.5`, below**, and this paragraph is the amendment
+   rather than the plan being the bug — see the revision entry of 2026-09-18.
+
+5h.5. **`CONVENTIONS.md`, third pass** — the **`src/ui/`** conventions, written once
+   `5d`–`5h` have produced real primitives, and **before step 6**. ⚠️ **This, with
+   `5b.5`, is where step 5a's *"arrive to a pattern"* requirement is actually
+   discharged**, and both are load-bearing rather than tidy-ups: skip either and
+   step 6's four screens arrive to half a pattern or none, which is the outcome
+   §2.10 and this section were both written to prevent. ⚠️ **The claim this section
+   makes is ORDER RELATIVE TO STEP 6** (§2.10 says so in its own words), which is
+   why moving the pass down the build order upholds it and skipping it does not.
 5b. **Vender and Home** — ship the dominant loop, put it in front of a real cashier.
    Written by the schema owner as the reference implementation.
 6. **Comprar, Desperdicio, Catálogo, Proveedores.** Four independent screens over an
