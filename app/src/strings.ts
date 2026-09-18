@@ -179,6 +179,110 @@ export const ES = {
   },
 
   /**
+   * Inviting somebody, and the code that comes back once. Plan task 5b-ii-b-1.
+   *
+   * ⚠️ THE WORD IS `invitar` AND NEVER `agregar`. Adding somebody is what an
+   * owner thinks she is doing and it is not what happens: a code is issued, and
+   * the other person has to act. Copy that promised the first would leave her
+   * waiting for a colleague who is already in the shop as far as she knows.
+   */
+  invite: {
+    section: 'Invitar a alguien',
+    /** The control that opens the form. C12.1: an icon never travels alone. */
+    open: 'Invitar a alguien',
+    cancel: 'Cancelar',
+    emailLabel: 'Correo de la persona',
+    emailPlaceholder: 'nombre@correo.com',
+    roleLabel: '¿Qué va a poder hacer?',
+    /**
+     * ⚠️ THE ROLES ARE DESCRIBED BY WHAT THEY DO, not by where they sit. A
+     * shopkeeper choosing between `Encargado` and `Empleado` is choosing how
+     * much of her shop somebody sees, and the noun alone does not say.
+     */
+    roleHelp: {
+      manager: 'Ve toda la tienda y puede invitar a otros.',
+      staff: 'Registra ventas y compras en las sucursales que le asignes.',
+    },
+    locationLabel: '¿En qué sucursal va a trabajar?',
+    submit: 'Crear invitación',
+    working: 'Creando…',
+
+    /** What the form refuses before it calls, and why. See `checkInvite`. */
+    issues: {
+      emailMissing: 'Escribe el correo de la persona que quieres invitar.',
+      emailShape: 'Ese correo no se ve bien. Revísalo.',
+      locationMissing: 'Elige al menos una sucursal para esta persona.',
+      /**
+       * ⚠️ UNREACHABLE IN BOTH PILOT SHOPS AND WRITTEN ANYWAY. C1.5 says each
+       * has one location, created by `onboard_workspace`, so a staff invite
+       * always has somewhere to go. It is here because the alternative to a
+       * sentence is a disabled button with no reason beside it.
+       */
+      noLocations: 'Esta tienda todavía no tiene sucursales.',
+    },
+
+    /** The result, which exists on this screen and nowhere else, ever. */
+    issued: {
+      title: 'Listo. Este es el código',
+      /**
+       * ⚠️⚠️ THE WHOLE POINT OF THE SCREEN, SAID PLAINLY. `0028` stores only a
+       * hash, so there is no second look. A shopkeeper who closes this without
+       * sending it has not lost anything she cannot redo — inviting again mints
+       * a new code — and saying so is what stops the sentence reading as a
+       * threat.
+       */
+      once: 'Solo se muestra una vez. Si lo pierdes, vuelve a invitar.',
+      share: 'Enviar código',
+      done: 'Listo',
+      /** ⚠️ `0028` decision 6, and the one thing here a person would call a bug. */
+      replaced: 'Ya habías invitado a esta persona. El código anterior dejó de servir.',
+      expires: (day: string) => `Sirve hasta el ${day}.`,
+    },
+
+    /**
+     * ⚠️ THE ONE REFUSAL FROM THE SERVER WITH A NEXT STEP, and the step is on a
+     * screen nobody has built yet (`5b-iii`). It says what happened and does not
+     * promise a button that is not there.
+     */
+    alreadyRequested: 'Esta persona ya pidió entrar a tu tienda. Te va a aparecer para aceptarla.',
+
+    /**
+     * ⚠️ IT CARRIES THE SHOP'S NAME for `4.6a-iii`'s recorded reason — a code
+     * with no shop attached is sixteen characters in a chat window three weeks
+     * later. Same shape and same argument as `members.shareMessage`; the
+     * deviation from flat literals is that file's, argued there.
+     */
+    shareMessage: (shopName: string, token: string) =>
+      `Te invité a ${shopName} en Wera. Tu código es ${token}`,
+  },
+
+  /**
+   * Dates, for the one value that has one. Plan task 5b-ii-b-1.
+   *
+   * ⚠️ A TABLE AND NOT `Intl.DateTimeFormat`, and `@/format/date`'s header
+   * carries the argument: Hermes ships a partial ICU and this app has already
+   * been crashed on launch by exactly that, on the owner's own phone.
+   */
+  dates: {
+    months: [
+      'enero',
+      'febrero',
+      'marzo',
+      'abril',
+      'mayo',
+      'junio',
+      'julio',
+      'agosto',
+      'septiembre',
+      'octubre',
+      'noviembre',
+      'diciembre',
+    ] as readonly string[],
+    /** ⚠️ The grammar lives here, not at the call site — `members.shareMessage`'s rule. */
+    dayOfMonth: (day: number, month: string) => `${day} de ${month}`,
+  },
+
+  /**
    * WHO IS IN THE SHOP (5b-ii-a).
    *
    * ⚠️⚠️ NO NAME APPEARS ANYWHERE HERE, AND THAT IS A RULING, NOT A GAP. The

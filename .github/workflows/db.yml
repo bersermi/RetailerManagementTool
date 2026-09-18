@@ -88,6 +88,17 @@ on:
       - "app/src/auth/**"
       - "docs/checks/5b.7-signup-name-contract.sh"
       - "docs/checks/5b.7-signup-name-contract-falsify.sh"
+      # ⚠️⚠️ AND THE INVITE PATH, as of plan task 5b-ii-b-1. It watches
+      # `app/src/api/invites.ts` because that module holds the four `p_` names
+      # `create_invite` answers to, and PostgREST matches an RPC BY ITS
+      # PARAMETER NAMES — so a rename there is a 404 the typecheck, the suite
+      # and the bundler all pass over, reaching a shopkeeper as a button that
+      # does nothing. ⚠️ It also asserts the one thing no suite can reach: that
+      # the minted token is NOT in `workspace_invite`. Only the hash is stored
+      # (`0002:364`), and if that stopped being true every Vitest assertion
+      # would stay green with the secret sitting in a readable column.
+      - "docs/checks/5b-ii-b-1-invite-contract.sh"
+      - "docs/checks/5b-ii-b-1-invite-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -487,6 +498,26 @@ jobs:
       # reason, the third time that shape has appeared in a contract check here.
       - name: Contract — can the sign-up name check still fail (its own seven fixtures)
         run: bash docs/checks/5b.7-signup-name-contract-falsify.sh
+
+      # ⚠️⚠️ THE INVITE PATH (plan task 5b-ii-b-1). Nine assertion groups over one
+      # reset database with three real people and two stores. The two that
+      # nothing else in this repository can make: the minted token is nowhere in
+      # `workspace_invite` — only the hash is stored — and a STAFF caller is
+      # refused `42501` by the fence in `create_invite`'s BODY, which is where it
+      # has to be because §2.7's "under normal RLS" cannot supersede a row
+      # (`5b.8` owes that amendment, ruled 2026-09-18).
+      - name: Contract — does create_invite answer to what the app sends (plan 5b-ii-b-1)
+        run: bash docs/checks/5b-ii-b-1-invite-contract.sh
+
+      # And its own nine fixtures. ⚠️ TWO OF THEM MUTATE THE PROBE rather than
+      # the app, for the reason the sign-up harness above gives: no line in
+      # `app/` can make Postgres store a plaintext token or drop its own fence,
+      # and a fixture nobody can write is an assertion nobody has shown can
+      # fail. ⚠️ Its own fixtures caught TWO defects in this check while it was
+      # being written — an assertion that could not fail, and one that was red
+      # for the wrong reason.
+      - name: Contract — can the invite check still fail (its own nine fixtures)
+        run: bash docs/checks/5b-ii-b-1-invite-contract-falsify.sh
 
       - name: Stop
         if: always()

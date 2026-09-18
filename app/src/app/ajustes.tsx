@@ -1,12 +1,25 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
-import type { ReactNode } from 'react';
-import { Pressable, ScrollView, Share, Text, View } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useRoster, useWorkspace } from '@/api/hooks';
-import { groupedCode, shareText, type RosterEntry } from '@/api/members';
+import { useCreateInvite, useLocations, useMyRole, useRoster, useWorkspace } from '@/api/hooks';
+import {
+  INVITABLE_ROLES,
+  canInvite,
+  groupedToken,
+  inviteShareText,
+  checkInvite,
+  locationsRequired,
+  resolveLocations,
+  type InviteIssueKey,
+  type InviteIssued,
+  type LocationOption,
+} from '@/api/invites';
+import { groupedCode, shareText, type Role, type RosterEntry } from '@/api/members';
 import { useAuth } from '@/auth/AuthProvider';
+import { formatExpiry } from '@/format/date';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
@@ -124,6 +137,8 @@ export default function Ajustes() {
             )}
           </Section>
         )}
+
+        <Invitar />
 
         <Section title={ES.settings.densitySection}>
           <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
@@ -365,5 +380,407 @@ function Salir() {
         {ES.auth.signOut}
       </Text>
     </Pressable>
+  );
+}
+
+// ============================================================================
+// INVITING SOMEBODY. Plan task 5b-ii-b-1, and the first membership WRITE on this
+// sheet — `5b-ii-a` shipped none, which was the seam the split was made on.
+//
+// ⚠️⚠️ THE SECTION IS MANAGER-AND-ABOVE, AND IT IS NOT THE ROSTER'S FENCE WEARING
+// A SECOND HAT. `canInvite` is `0028`'s own body predicate — what the RPC will
+// accept — and `canSeeRoster` is about whether the rows above would be
+// identifiable at all. They agree today and are argued separately in
+// `@/api/invites`, because a migration that loosened either would move one.
+//
+// ⚠️ THREE STATES AND THEY ARE ONE VARIABLE. Closed is a button; `form` is the
+// questions; `issued` is the code. A boolean pair would admit a fourth state
+// that means nothing, and the one that means nothing here is "showing a code
+// and a form at once" — two codes on screen, one of them dead.
+// ============================================================================
+
+function Invitar() {
+  const { scale } = useDensity();
+  const workspace = useWorkspace();
+  const role = useMyRole();
+  const locations = useLocations();
+  const { issue, busy } = useCreateInvite();
+
+  const [step, setStep] = useState<'closed' | 'form' | 'issued'>('closed');
+  const [email, setEmail] = useState('');
+  const [chosenRole, setChosenRole] = useState<Role>('staff');
+  const [locationIds, setLocationIds] = useState<readonly string[]>([]);
+  const [issue_, setIssue] = useState<InviteIssueKey | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [issued, setIssued] = useState<InviteIssued | null>(null);
+
+  if (!canInvite(role) || workspace === null) return null;
+
+  function reset() {
+    setEmail('');
+    setChosenRole('staff');
+    setLocationIds([]);
+    setIssue(null);
+    setFailure(null);
+  }
+
+  async function submit() {
+    if (workspace === null) return;
+    const draft = {
+      email,
+      role: chosenRole,
+      locationIds: resolveLocations(
+        { email, role: chosenRole, locationIds },
+        locations.options,
+      ),
+    };
+    const problem = checkInvite(draft, { locationCount: locations.options.length });
+    setIssue(problem);
+    setFailure(null);
+    if (problem !== null) return;
+
+    const result = await issue(workspace.id, draft);
+    if (result.issued === null) {
+      setFailure(result.error);
+      return;
+    }
+    setIssued(result.issued);
+    setStep('issued');
+    reset();
+  }
+
+  return (
+    <Section title={ES.invite.section}>
+      {step === 'closed' && (
+        <Boton
+          icon="account-plus"
+          label={ES.invite.open}
+          onPress={() => {
+            setIssued(null);
+            setStep('form');
+          }}
+        />
+      )}
+
+      {step === 'form' && (
+        <View style={{ gap: scale.rowGap }}>
+          <Campo label={ES.invite.emailLabel}>
+            <TextInput
+              value={email}
+              onChangeText={setEmail}
+              placeholder={ES.invite.emailPlaceholder}
+              placeholderTextColor={PALETTE.tintaApagada}
+              autoCapitalize="none"
+              autoCorrect={false}
+              keyboardType="email-address"
+              editable={!busy}
+              style={{
+                fontSize: scale.bodySize,
+                minHeight: scale.tapTarget,
+                color: PALETTE.tinta,
+                backgroundColor: PALETTE.fondo,
+                borderWidth: 1,
+                borderColor: PALETTE.linea,
+                borderRadius: scale.space / 2,
+                paddingHorizontal: scale.space,
+              }}
+            />
+          </Campo>
+
+          <Campo label={ES.invite.roleLabel}>
+            {INVITABLE_ROLES.map((candidate) => (
+              <Opcion
+                key={candidate}
+                chosen={candidate === chosenRole}
+                title={ES.members.roles[candidate]}
+                subtitle={ES.invite.roleHelp[candidate as 'manager' | 'staff']}
+                onPress={() => setChosenRole(candidate)}
+              />
+            ))}
+          </Campo>
+
+          {/* ⚠️ THE PICKER APPEARS ONLY ABOVE ONE STORE, which is the decision of
+              the 5b-ii sizing and C1.5's consequence: both pilot shops have
+              exactly one location, so nothing is asked and `resolveLocations`
+              fills it in. Asking a one-store shopkeeper which store is the
+              question with no right answer `5b-i` already refused about its
+              NAME. ⚠️ And it is only asked for `staff` at all — `0028` stores
+              '{}' for a manager whatever was passed. */}
+          {locationsRequired(chosenRole) && locations.options.length > 1 && (
+            <Campo label={ES.invite.locationLabel}>
+              {locations.options.map((option) => (
+                <Sucursal
+                  key={option.id}
+                  option={option}
+                  chosen={locationIds.includes(option.id)}
+                  onPress={() =>
+                    setLocationIds((current) =>
+                      current.includes(option.id)
+                        ? current.filter((id) => id !== option.id)
+                        : [...current, option.id],
+                    )
+                  }
+                />
+              ))}
+            </Campo>
+          )}
+
+          {/* ⚠️ ONE PLACE FOR BOTH KINDS OF REFUSAL — the form's own and the
+              database's. Two slots would mean a screen that can show two
+              contradictory reasons at once, and the second one is always the
+              one that is out of date. */}
+          {(issue_ !== null || failure !== null) && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>
+              {issue_ !== null ? ES.invite.issues[issue_] : failure}
+            </Text>
+          )}
+
+          <Boton
+            icon="check"
+            label={busy ? ES.invite.working : ES.invite.submit}
+            busy={busy}
+            onPress={() => void submit()}
+          />
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              reset();
+              setStep('closed');
+            }}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.invite.cancel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+
+      {step === 'issued' && issued !== null && (
+        <Emitido
+          issued={issued}
+          shopName={workspace.displayName}
+          onDone={() => {
+            setIssued(null);
+            setStep('closed');
+          }}
+        />
+      )}
+    </Section>
+  );
+}
+
+/** A label above its control. The one shape the form repeats. */
+function Campo({ label, children }: { label: string; children: ReactNode }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ gap: scale.rowGap / 2 }}>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+        {label}
+      </Text>
+      {children}
+    </View>
+  );
+}
+
+/**
+ * One choice in a list of them.
+ *
+ * ⚠️ THE CHOSEN ONE IS ANNOUNCED THREE WAYS — ground, border and a filled tick —
+ * which is `Letra`'s rule on this sheet and the palette's: no state is ever
+ * carried by colour alone. `R9` cannot see it, so it is written down here.
+ */
+function Opcion({
+  chosen,
+  title,
+  subtitle,
+  onPress,
+}: {
+  chosen: boolean;
+  title: string;
+  subtitle?: string;
+  onPress: () => void;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={{
+        minHeight: scale.tapTarget,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap / 2,
+        borderRadius: scale.space / 2,
+        borderWidth: chosen ? 2 : 1,
+        borderColor: chosen ? PALETTE.accion : PALETTE.linea,
+        backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
+      }}
+    >
+      <MaterialCommunityIcons
+        name={chosen ? 'check-circle' : 'circle-outline'}
+        size={scale.iconSize}
+        color={chosen ? PALETTE.accion : PALETTE.tintaApagada}
+      />
+      <View style={{ flex: 1 }}>
+        <Text
+          style={{
+            fontSize: scale.bodySize,
+            fontWeight: chosen ? '700' : '400',
+            color: PALETTE.tinta,
+          }}
+        >
+          {title}
+        </Text>
+        {subtitle !== undefined && (
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{subtitle}</Text>
+        )}
+      </View>
+    </Pressable>
+  );
+}
+
+/** One store, ticked or not. Many may be chosen — `0028` takes an array. */
+function Sucursal({
+  option,
+  chosen,
+  onPress,
+}: {
+  option: LocationOption;
+  chosen: boolean;
+  onPress: () => void;
+}) {
+  return <Opcion chosen={chosen} title={option.name} onPress={onPress} />;
+}
+
+/** A filled control with its word beside its icon (C12.1). */
+function Boton({
+  icon,
+  label,
+  onPress,
+  busy = false,
+}: {
+  icon: 'account-plus' | 'check' | 'share-variant';
+  label: string;
+  onPress: () => void;
+  busy?: boolean;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      disabled={busy}
+      onPress={onPress}
+      style={{
+        minHeight: scale.tapTarget,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: scale.rowGap,
+        paddingHorizontal: scale.space,
+        borderRadius: scale.space / 2,
+        backgroundColor: PALETTE.accionSuave,
+        borderWidth: 1,
+        borderColor: PALETTE.accion,
+        opacity: busy ? 0.6 : 1,
+      }}
+    >
+      {busy ? (
+        <ActivityIndicator color={PALETTE.accion} />
+      ) : (
+        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.accion} />
+      )}
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * The code, which exists here and nowhere else, ever.
+ *
+ * ⚠️⚠️ `0028` STORES ONLY `sha256(normalize_workspace_code(token))`, so there is
+ * no second look — no read recovers it and no column holds it. That is why the
+ * sentence saying so is not fine print but the second line on the card, and why
+ * `Enviar código` sits above `Listo`: the only safe way off this screen is
+ * through the share sheet.
+ *
+ * ⚠️ AT `moneySize`, the token for "the number this mode exists for" — the same
+ * decision the join code's render made one section up, for the same reason. It
+ * is read aloud over WhatsApp by somebody holding a phone at arm's length.
+ *
+ * ⚠️ THE REPLACED LINE IS `atencion` AND NOT `error`, because nothing failed:
+ * `0028` decision 6 replaces a live pending invite deliberately — *"send it
+ * again is what a shop does"* — and the only person harmed is one holding a code
+ * that has just stopped working. It is the one thing on this card a shopkeeper
+ * would otherwise call a bug, and it is `P3`.
+ */
+function Emitido({
+  issued,
+  shopName,
+  onDone,
+}: {
+  issued: InviteIssued;
+  shopName: string;
+  onDone: () => void;
+}) {
+  const { scale } = useDensity();
+  const day = formatExpiry(issued.expiresAt);
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+        {ES.invite.issued.title}
+      </Text>
+
+      <Text
+        style={{
+          fontSize: scale.moneySize,
+          fontWeight: '700',
+          color: PALETTE.tinta,
+          letterSpacing: scale.space / 4,
+        }}
+      >
+        {groupedToken(issued.token)}
+      </Text>
+
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+        {ES.invite.issued.once}
+      </Text>
+
+      {/* ⚠️ OMITTED ENTIRELY WHEN THE DATE CANNOT BE READ, never rendered half.
+          `formatExpiry` returns null rather than a string with NaN in it. */}
+      {day !== null && (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {ES.invite.issued.expires(day)}
+        </Text>
+      )}
+
+      {issued.replacedPending && (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.atencion }}>
+          {ES.invite.issued.replaced}
+        </Text>
+      )}
+
+      <Boton
+        icon="share-variant"
+        label={ES.invite.issued.share}
+        onPress={() => {
+          void Share.share({ message: inviteShareText(shopName, issued.token) }).catch(() => {});
+        }}
+      />
+      <Pressable
+        accessibilityRole="button"
+        onPress={onDone}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {ES.invite.issued.done}
+        </Text>
+      </Pressable>
+    </View>
   );
 }

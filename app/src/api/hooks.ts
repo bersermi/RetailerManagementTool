@@ -23,7 +23,23 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorMessage } from '@/api/errors';
-import { myWorkspaces, onboardWorkspace, workspaceInvites, workspaceMembers } from '@/api/calls';
+import {
+  createInvite,
+  myWorkspaces,
+  onboardWorkspace,
+  workspaceInvites,
+  workspaceLocations,
+  workspaceMembers,
+} from '@/api/calls';
+import {
+  LOCATIONS_KEY,
+  canInvite,
+  inviteErrorMessage,
+  locationsFrom,
+  type InviteDraft,
+  type InviteIssued,
+  type LocationOption,
+} from '@/api/invites';
 import {
   INVITES_KEY,
   MEMBERS_KEY,
@@ -170,4 +186,82 @@ export function useRoster(): {
       selfUserId: session?.user.id ?? null,
     }),
   };
+}
+
+// ============================================================================
+// ISSUING AN INVITE. Plan task 5b-ii-b-1, and it is two hooks because it is one
+// read and one write — and the read is a list the write cannot be made without.
+// ============================================================================
+
+/**
+ * The stores this person may put somebody in.
+ *
+ * ⚠️ DISABLED WITHOUT A SESSION FOR THE REASON EVERY READ HERE IS.
+ * `location_select` reads `my_locations()`, which reads `auth.uid()`, so an
+ * anonymous read SUCCEEDS AND RETURNS ZERO ROWS — and a cached empty list is a
+ * shop that looks like it has no stores, which is the one state `checkInvite`
+ * turns into a refusal.
+ *
+ * ⚠️ IT IS ALSO FENCED ON THE ROLE, the shape `useRoster` established: only a
+ * manager and above can issue an invite at all (`0028`'s body predicate), so
+ * below that this asks the database a question whose answer the app will not
+ * use — on a connection the pilot store loses routinely.
+ */
+export function useLocations(): {
+  readonly loading: boolean;
+  readonly options: readonly LocationOption[];
+} {
+  const { session, ready } = useAuth();
+  const role = useMyRole();
+  const query = useQuery({
+    queryKey: LOCATIONS_KEY,
+    queryFn: workspaceLocations,
+    enabled: ready && session !== null && canInvite(role),
+  });
+  return { loading: query.data === undefined, options: locationsFrom(query.data) };
+}
+
+/**
+ * Issuing the invite.
+ *
+ * ⚠️⚠️ IT RETURNS THE ISSUED INVITE AND DOES NOT CACHE IT. The token is not
+ * server state — it is a value that existed once, in one response — so putting
+ * it in Query would make it re-fetchable in principle and stale in fact, and
+ * `invalidateQueries` would quietly blank the screen showing it. The screen
+ * holds it, for as long as the screen is open. `@/api/invites`'s header is the
+ * argument.
+ *
+ * ⚠️ IT DOES INVALIDATE THE ROSTER'S INVITE READ, because a new pending row now
+ * exists and `workspace_invite` is what the roster joins against. Nothing on the
+ * sheet renders a pending invite today — `rosterFrom` drops them, since
+ * `accepted_by` is null until redemption — so this is invalidating for the
+ * NEXT reader rather than for a visible change, which is the cheap direction.
+ *
+ * ⚠️ AND IT RETURNS A SPANISH SENTENCE OR `null` FOR THE FAILURE, the shape
+ * `useOnboardWorkspace` established: the screen is never handed a PostgREST
+ * error to have an opinion about.
+ */
+export function useCreateInvite() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ workspaceId, draft }: { workspaceId: string; draft: InviteDraft }) =>
+      createInvite(workspaceId, draft),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: INVITES_KEY });
+    },
+  });
+
+  async function issue(
+    workspaceId: string,
+    draft: InviteDraft,
+  ): Promise<{ issued: InviteIssued | null; error: string | null }> {
+    try {
+      const issued = await mutation.mutateAsync({ workspaceId, draft });
+      return { issued, error: null };
+    } catch (thrown) {
+      return { issued: null, error: inviteErrorMessage(thrown) };
+    }
+  }
+
+  return { issue, busy: mutation.isPending };
 }

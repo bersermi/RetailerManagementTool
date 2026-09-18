@@ -36,6 +36,15 @@ import {
   type MemberRow,
 } from '@/api/members';
 import {
+  CREATE_INVITE,
+  LOCATION_COLUMNS,
+  createInviteArgs,
+  issuedFrom,
+  type InviteDraft,
+  type InviteIssued,
+  type LocationRow,
+} from '@/api/invites';
+import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
   onboardArgs,
@@ -94,6 +103,46 @@ export async function workspaceInvites(): Promise<InviteRow[]> {
   const { data, error } = await supabase.from('workspace_invite').select(INVITE_COLUMNS);
   if (error) throw reported(error);
   return (data ?? []) as InviteRow[];
+}
+
+/**
+ * The stores this caller may put somebody in — the read no line in this app
+ * performed before `5b-ii-b-1` (`P1`).
+ *
+ * ⚠️ `location_select` IS `id in (select public.my_locations())` (`0001:506`),
+ * which is scoped by LOCATION and not by workspace like every other read here.
+ * Measured against `0001:332`: `my_locations()` returns every ACTIVE location in
+ * the workspace when `wm.role >= 'manager'`, and only explicit `member_location`
+ * rows below that. So a manager gets the whole list by role, a staff caller gets
+ * the stores they work in — and neither ever sees an inactive one, which is why
+ * `LOCATION_COLUMNS` does not read `is_active`.
+ *
+ * ⚠️ AN EMPTY ARRAY IS AN ANSWER, NOT A FAILURE, exactly as it is for
+ * `myWorkspaces` — and here it is the one `checkInvite` turns into `noLocations`
+ * rather than a refusal from the wire.
+ */
+export async function workspaceLocations(): Promise<LocationRow[]> {
+  const { data, error } = await supabase.from('location').select(LOCATION_COLUMNS);
+  if (error) throw reported(error);
+  return (data ?? []) as LocationRow[];
+}
+
+/**
+ * Issues one invite and returns its token — which exists in this result and
+ * nowhere else, ever (`0028` stores only the hash).
+ *
+ * ⚠️ `issuedFrom` THROWS ON A RESULT IT CANNOT PARSE rather than returning a
+ * partial, and `@/api/invites` argues why: a half-parsed result is an invite
+ * that has been created in the database and lost on the way to the person who
+ * needed it.
+ */
+export async function createInvite(
+  workspaceId: string,
+  draft: InviteDraft,
+): Promise<InviteIssued> {
+  const { data, error } = await supabase.rpc(CREATE_INVITE, createInviteArgs(workspaceId, draft));
+  if (error) throw reported(error);
+  return issuedFrom(data);
 }
 
 /**

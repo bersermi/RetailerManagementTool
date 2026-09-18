@@ -176,6 +176,13 @@ in the one place a shopkeeper trusts absolutely.
 separates pesos from centavos by **integer** arithmetic, with its reasons
 written above it.
 
+⚠️ **AND `src/format/date.ts` IS IN THAT DIRECTORY AND TOUCHES NO `Intl` AT ALL**
+(plan `5b-ii-b-1`). It renders one value — when an invite code stops working — from
+`Date` arithmetic and a month table in `src/strings.ts`, because the measurement
+below is about `Intl.NumberFormat` on Hermes and `Intl.DateTimeFormat` is in the
+same family. The rule did not have to bend; the second formatter simply stays on
+the side of it that is already known to work.
+
 ⚠️⚠️ **THE `no Intl outside mxn.ts` HALF NOW HAS A MEASUREMENT BEHIND IT AND NOT
 JUST AN ARGUMENT, AND IT IS NOT THE ONE ANYONE EXPECTED.** Plan task
 `5a-iv-c-3`, on a Samsung Galaxy Z Flip 8 bought and used in Mexico
@@ -379,6 +386,7 @@ directly."* The layer `5b-i` built is five modules over one boundary and
 |---|---|---|
 | `src/api/workspace.ts` | the contract — the RPC's name, its argument names, the column list, and every decision about them | **yes**, and `app/test/api-workspace.test.ts` does |
 | `src/api/members.ts` | the roster's contract — two column lists, the join PostgREST cannot do, and who may see the list of people | **yes**, and `app/test/api-members.test.ts` does |
+| `src/api/invites.ts` | the invite's contract — the RPC's name, its four `p_` arguments, the `location` column list, and the copies of `0028`'s own refusal rules | **yes**, and `app/test/api-invites.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
