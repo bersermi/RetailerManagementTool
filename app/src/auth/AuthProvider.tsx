@@ -4,7 +4,7 @@ import type { Session } from '@supabase/supabase-js';
 import * as WebBrowser from 'expo-web-browser';
 
 import { authErrorMessage } from '@/auth/errors';
-import { checkCredentials } from '@/auth/credentials';
+import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
 import { forgetLastScreen, routeMemory } from '@/navigation/lastScreen';
 import { ES } from '@/strings';
@@ -37,7 +37,16 @@ interface Auth {
   readonly ready: boolean;
   /** `null` on success, otherwise the Spanish sentence to show. */
   readonly signIn: (email: string, password: string) => Promise<string | null>;
-  readonly signUp: (email: string, password: string) => Promise<string | null>;
+  /**
+   * ⚠️ FOUR ARGUMENTS, AND THE LAST TWO ARE WHY THIS IS NOT `signIn` (5b.7).
+   * The name is asked for once, when the account is made, and never again.
+   */
+  readonly signUp: (
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+  ) => Promise<string | null>;
   /**
    * C1.4's other provider (5a-iii-b). ⚠️ `null` ALSO MEANS "THEY CHANGED THEIR
    * MIND" — a cancelled round trip is not a failure and must show no message.
@@ -101,15 +110,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return error ? authErrorMessage(error) : null;
   }, []);
 
-  const signUp = useCallback(async (email: string, password: string) => {
-    const checked = checkCredentials(email, password);
-    if (!checked.ok) return checked.message;
-    const { error } = await supabase.auth.signUp({
-      email: checked.email,
-      password: checked.password,
-    });
-    return error ? authErrorMessage(error) : null;
-  }, []);
+  // ⚠️⚠️ THE ONE PLACE A PERSON'S NAME ENTERS THIS SYSTEM BY THE EMAIL DOOR
+  // (5b.7). `options.data` is written to `raw_user_meta_data` on the new user,
+  // under the key GOOGLE'S PROVIDER ALREADY USES — so `5b.8` reads one key for
+  // both ways in.
+  //
+  // ⚠️ THE DEADLINE THIS CLOSES IS AN EVENT, NOT A DATE: the pilot's first
+  // email sign-up. Before this line, `signUp` sent an address and a password
+  // and nothing else, and a person who created an account then has no name
+  // anywhere, cannot be backfilled from anything, and could only be asked
+  // through a screen that does not exist yet.
+  //
+  // ⚠️ AND NOTHING READS IT YET. The display is `5b.8` — a column on
+  // `workspace_member`, which is the table another person's phone can read.
+  const signUp = useCallback(
+    async (email: string, password: string, firstName: string, lastName: string) => {
+      const checked = checkSignUp(email, password, firstName, lastName);
+      if (!checked.ok) return checked.message;
+      const { error } = await supabase.auth.signUp({
+        email: checked.email,
+        password: checked.password,
+        options: { data: { [FULL_NAME_KEY]: checked.fullName } },
+      });
+      return error ? authErrorMessage(error) : null;
+    },
+    [],
+  );
 
   // ==========================================================================
   // ⚠️ THE ROUND TRIP, AND EVERY DECISION IN IT IS IN `@/auth/oauth`. What is

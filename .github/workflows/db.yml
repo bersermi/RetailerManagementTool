@@ -76,6 +76,18 @@ on:
       # is the point rather than a side effect.
       - "docs/checks/5b-ii-a-roster-contract.sh"
       - "docs/checks/5b-ii-a-roster-contract-falsify.sh"
+      # ⚠️⚠️ AND THE NAME AT SIGN-UP, as of plan task 5b.7. This one watches
+      # `app/src/auth/`, which no workflow over `supabase/**` has ever looked at
+      # — and the reason is that `signUp`'s `options.data` is a claim about
+      # GoTrue rather than about PostgREST: that the name a person types is
+      # written to `raw_user_meta_data` and STAYS there. ⚠️ GoTrue does not
+      # reject an unknown option and does not reject a missing one, so the
+      # failure is a silent absence: the account is created, the shopkeeper
+      # reaches her shop, and `5b.8`'s backfill later reads an empty column for
+      # everyone who joined in between. They cannot be asked again.
+      - "app/src/auth/**"
+      - "docs/checks/5b.7-signup-name-contract.sh"
+      - "docs/checks/5b.7-signup-name-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -454,6 +466,27 @@ jobs:
       # its sister on ITS first run.
       - name: Contract — can the roster check still fail (its own eight fixtures)
         run: bash docs/checks/5b-ii-a-roster-contract-falsify.sh
+
+      # ⚠️⚠️ THE NAME A PERSON TYPES AT SIGN-UP (plan task 5b.7). The plan row
+      # says it in one sentence: *"a round trip is the evidence, not the file."*
+      # Everything up to the last hop is ours and `app/test/credentials.test.ts`
+      # covers it; that GoTrue writes `options.data` into `raw_user_meta_data`
+      # and keeps it is a claim about somebody else's system, and ADR-035 §9
+      # says a green CI run is what settles those. It signs a person up with
+      # accents and two surnames, signs them back IN on a second request that
+      # never saw the first one's body, and reads the same string back.
+      - name: Contract — does the name survive signUp (plan 5b.7)
+        run: bash docs/checks/5b.7-signup-name-contract.sh
+
+      # And its own seven fixtures. ⚠️ ONE OF THEM SILENCES THE PROBE rather
+      # than editing the app, for the reason the roster harness gives about the
+      # policy it loosens: no line in `app/` can make GoTrue lose what it was
+      # given, so that is the only way to show the two assertions which read the
+      # wire can go red at all. ⚠️ Its first run caught this check reporting
+      # `bad_json` where it owed "the field was absent" — red for the wrong
+      # reason, the third time that shape has appeared in a contract check here.
+      - name: Contract — can the sign-up name check still fail (its own seven fixtures)
+        run: bash docs/checks/5b.7-signup-name-contract-falsify.sh
 
       - name: Stop
         if: always()

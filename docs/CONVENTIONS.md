@@ -141,6 +141,21 @@ Spanish by its accents, and every *sentence* this app says has one. A single
 unaccented word typed in place — `'Entrar'` — is invisible to it. A narrow guard
 that says what it misses is worth more than a broad one that is believed.
 
+⚠️⚠️ **And it reads JSX comments as code — found at `5b.7`, 2026-09-18.** The
+gate strips full-line comments before applying any rule, precisely so that prose
+explaining a trap is not reported AS the trap. That stripper recognises `//`,
+`*` and `/*` at the start of a line, and a `{/* … */}` block inside JSX starts
+with neither: its continuation lines are indented prose. So a Spanish *example*
+in a JSX comment — a customer's name quoted to explain why the code does not
+split on spaces — turns R4 red on a file that obeys it. **The failure the gate's
+own header warns about, reached by the one comment syntax it did not enumerate**,
+and the first screen to write Spanish prose in a JSX comment found it. ⚠️ Nothing
+was loosened to make it green: the comment was reworded and the reason moved to
+`@/auth/credentials`, which is the cheaper half of *never spell a check's
+sentinel in the file it reads*. **Widening the stripper is a change to the gate
+and needs a fixture in `conventions-gate-falsify.sh`; it is routed to the next
+task that touches either file.**
+
 **Checked by:** `docs/checks/conventions-gate.sh`, R4.
 
 ### R5 — Money is integer centavos; `@tienda/money` computes, `src/format/mxn.ts` renders
