@@ -112,6 +112,14 @@ on:
       # closing pipe, which is what keeps `5b-ii-b` from matching `5b-ii-b-1`.
       - "docs/checks/5b-ii-b-split-coverage.sh"
       - "docs/checks/5b-ii-b-split-coverage-falsify.sh"
+      # ⚠️ AND THE FOURTH, added 2026-09-18 when `5b.8` was sized `L` and split
+      # three ways. ⚠️⚠️ IT IS THE FIRST SPLIT GUARD WATCHING A TASK THAT SHIPS A
+      # MIGRATION: a deliverable that falls out of `5b.8` is not a control nobody
+      # builds, it is a column nobody fills, deployed by an automated merge.
+      # ⚠️ `5b.8-i` is a prefix of BOTH its siblings, which is why the closing
+      # pipe in the matcher matters more here than in the three above.
+      - "docs/checks/5b.8-split-coverage.sh"
+      - "docs/checks/5b.8-split-coverage-falsify.sh"
       # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
       # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
       # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
@@ -277,3 +285,7 @@ jobs:
         run: bash docs/checks/5b-ii-b-split-coverage.sh
       - name: Plan — can the 5b-ii-b guard still fail (its own nine fixtures)
         run: bash docs/checks/5b-ii-b-split-coverage-falsify.sh
+      - name: Plan — 5b.8 split coverage (fourth generation, and it guards a migration)
+        run: bash docs/checks/5b.8-split-coverage.sh
+      - name: Plan — can the 5b.8 guard still fail (its own ten fixtures)
+        run: bash docs/checks/5b.8-split-coverage-falsify.sh
