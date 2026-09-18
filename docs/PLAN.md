@@ -33,9 +33,8 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| ⚠️⚠️ **WHAT ARE THE NÚMEROS QUESTIONS?** The owner has them; nobody else can state them. | the Números screen, and **área 9** — with a fix-forward migration in play | ⚠️⚠️ **HALF-ANSWERED 2026-09-17 AND THAT HALF IS THE EXPENSIVE ONE: *"not about how it looks."*** So they are about **what Números MEASURES**, which reopens **área 9** — ruled 2026-09-14 as *"we won't derive the profit… I'd rather just show total revenue"* — and **`0031`, `0032` and `0033` are already applied against those answers.** A change there is a **fix-forward migration**, not an edit, and merging is automated. ⚠️ **The model cannot run this interview alone**: the questions are the owner's, and área 9's own record says a Números answer can retire a task rather than create one. **The next step is one message from him saying what they are** — after that it is sizing, an ADR §2.9 amendment, and probably a migration. ⚠️ **It gets dearer once a Números SCREEN exists** (step 6), and cheaper than that it will never be. |
 
-⚠️ **ONE IS OWED AS OF 2026-09-18, AND IT DOES NOT BLOCK THE NEXT TASK.** ~~TWO ARE OWED AS OF 2026-09-18, AND NEITHER BLOCKS THE NEXT TASK.~~ **The second — the ADR §2.7 amendment `5b-ii-b`'s sizing raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"fold it into 5b.8."* It is now a DELIVERABLE of that task's row and no longer a question, which is the third §2.7 sentence `5b.8` owes. ⚠️ SEVEN decisions have now been parked and cleared in this block within two days.** ~~TWO ARE OWED AS OF 2026-09-18.~~ **The second — the ADR §3 amendment `5b.5` raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"amend ADR-035 §3 to say 5h.5"*. ⚠️ SIX decisions have now been parked and cleared in this block within two days**, which is what it is for. ~~TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.~~ **The `Quitar` undo was parked on 2026-09-16 and RULED ON 2026-09-17 — no undo. See *"NO UNDO, AND THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK"* below.** The one that remains came out of the aesthetic round too, and it is recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-18, AND THE EMPTY TABLE ABOVE IS DELIBERATE.** The last row — *what are the Números questions?* — **was RULED on 2026-09-18 and the table is empty for the second time in this project's life.** ⚠️ **EIGHT decisions have now been parked and cleared in this block within three days.** ~~ONE IS OWED AS OF 2026-09-18, AND IT DOES NOT BLOCK THE NEXT TASK.~~ ~~TWO ARE OWED AS OF 2026-09-18, AND NEITHER BLOCKS THE NEXT TASK.~~ **The second — the ADR §2.7 amendment `5b-ii-b`'s sizing raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"fold it into 5b.8."* It is now a DELIVERABLE of that task's row and no longer a question, which is the third §2.7 sentence `5b.8` owes. ⚠️ SEVEN decisions have now been parked and cleared in this block within two days.** ~~TWO ARE OWED AS OF 2026-09-18.~~ **The second — the ADR §3 amendment `5b.5` raised — was parked on 2026-09-18 and RULED THE SAME DAY: *"amend ADR-035 §3 to say 5h.5"*. ⚠️ SIX decisions have now been parked and cleared in this block within two days**, which is what it is for. ~~TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.~~ **The `Quitar` undo was parked on 2026-09-16 and RULED ON 2026-09-17 — no undo. See *"NO UNDO, AND THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK"* below.** The one that remains came out of the aesthetic round too, and it is recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
 raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
 FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
 date**, which is what it is for. The three
@@ -156,12 +155,72 @@ defect wearing a new hat: **a row describing work it does not do.** Had it gone 
 would have carried a decision about a control it does not own. ✅ **The ruling is written into the
 `5f` row**, where the person who builds it will be standing.
 
-⚠️ **THE NÚMEROS QUESTIONS ARE HALF-ANSWERED, AND IT IS THE EXPENSIVE HALF — 2026-09-17.**
+⚠️⚠️ ~~**THE NÚMEROS QUESTIONS ARE HALF-ANSWERED, AND IT IS THE EXPENSIVE HALF — 2026-09-17.**~~
+**SUPERSEDED 2026-09-18 BY THE OWNER'S OWN READING OF WHAT HE HAD SAID: *"I decided it's not
+about how it looks since we were making style corrections at that time."*** The clause was
+about the aesthetic round, and this entry inferred a reopened área 9 and a fix-forward
+migration from it. ⚠️ **Kept rather than deleted, because it is the clearest example in this
+file of the model reading a decision INTO a remark** — and the correction cost one message.
+The entry below is left exactly as it was written:**
 *"Not about how it looks."* That settles which KIND they are and nothing else: they are about
 **what Números measures**, so **área 9 reopens**, `0031`–`0033` are already applied against its
 answers, and a change there is a **fix-forward migration**. ⚠️ **The row stays in the decisions
 block** because the questions themselves are still unstated and only the owner has them. **It
 blocks nothing takeable today.**
+
+✅✅✅ **ÁREA 9 IS CLOSED AND THE DECISIONS BLOCK IS EMPTY — RULED BY THE OWNER 2026-09-18.**
+*"I decided it's not about how it looks since we were making style corrections at that time, we
+have already set the measures and would stick to see the Números screen in our Pilot and
+enhancing anything needed later."*
+
+⚠️⚠️ **THE HALF-ANSWER OF 2026-09-17 WAS CONTEXT, NOT A CLUE, AND THIS SESSION HAD READ IT THE
+EXPENSIVE WAY.** *"Not about how it looks"* was said during the aesthetic round, about the
+aesthetic round. The plan turned it into *"so they are about what Números MEASURES, which
+reopens área 9"* — **a whole reopened area, `0031`–`0033` put back in play, and a fix-forward
+migration anticipated — inferred from one clause spoken about something else.** ✅ **Nothing
+reopens. The measures are the ones already ruled and already applied.**
+
+**What this settles, concretely:**
+
+- ✅ **The `A3` ruling of 2026-09-14 STANDS** — *"we won't derive the profit so let's ignore
+  margins for now. I'd rather just show total revenue."*
+- ✅ **`0031`, `0032` and `0033` STAND AS APPLIED.** No fix-forward migration, and **no ADR
+  §2.9 amendment is owed** — the section already describes what shipped.
+- ✅ **The Números screen is UNBLOCKED** and is built against the applied views: gross revenue
+  on `product_velocity_daily`, purchases per variant and family per day, price over time, the
+  month export, and velocity as quantity.
+- ✅ **The enhancement loop is the PILOT, not another interview.** He will look at a real
+  screen in a real shop and say what is missing. That is the cheapest possible instrument for
+  a question CI provably cannot answer — *"is this the number a shopkeeper wanted?"*
+
+#### ⚠️⚠️ One consequence of this ruling that the builder of that screen must meet, carried here rather than discovered there
+
+⚠️ **The ruling settles WHICH measures. It does not repair a measure the brief already
+recorded as broken, and one of them still is.** Área 9's brief (2026-09-13) found that **two**
+of §2.9's three questions fail under **C8.6** — the despiece, which is the pilot's main product
+line. Question 1 (*what made me money?*) was answered by `A3`: **we do not derive profit**, so
+`0009` is orphaned-but-applied and nothing renders it. ⚠️⚠️ **Question 2 was never separately
+ruled on, because the ruling that followed was about PROFIT and this is a different number:**
+`product_waste_daily` (`0011`/`0012`) costs waste from `unit_cost_net_per_base` **on the
+movement**, which is **zero for a shortfall lot** — so throwing away `Pechuga` costs **$0** —
+and the rate's denominator is purchases *of that product*, also zero, because you buy whole
+birds. **The headline is 0 over 0.**
+
+✅ **So the constraint on the screen, and it is an implementation of his ruling rather than a
+reopening of it: Números and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS COST OR AS A RATE,
+until something fixes `0011`.** Quantity is intact for `0013`'s own stated reason — *"there is
+no cost column for it to fail open on."* ⚠️ **The alternative is a screen that tells a
+shopkeeper her waste cost her nothing**, which is the one thing worse than not showing the
+number: *"enhance it later"* works on a number that is missing, and does not work on a number
+she has already believed. ⚠️ **This is written into `4.6c`'s gate cell too**, which is the row
+that names the Números screens, so the session that builds them meets it rather than finds it.
+
+#### ✅ And the second ruling of the same message — *"do as you think better"*
+
+The `42501` overload routing **stands as shipped**: it is a deliverable of `5b-iii`, beside the
+`22023` fix he ruled there on 2026-09-18, to be fixed in one pass over one flow. ⚠️ **It is an
+owner-CONFIRMED decision now rather than one taken on his behalf**, which matters only in that
+nothing re-offers it next session.
 
 ✅✅✅ **`5b-ii-b-2` IS DONE AS OF 2026-09-18 — A SECOND PERSON CAN SPEND A CODE, THE LOOP
 `5b-ii` PROMISED IS SHUT, AND `5b.8` IS THE NEXT TASK.** An owner invites, a second person on
@@ -10572,7 +10631,7 @@ it.
 | **4.6a-ii** | `0028` | **The PUSH path — the flow the ADR always described and never shipped.** `create_invite(workspace_id, email, role, location_ids)` — ⚠️ **the workspace is an argument, not a derivation** — returning a one-time token shown once, and `redeem_invite(token)` writing the membership and its `member_location` rows. Both `security definer`; the creating half supersedes the stale pending row through `0027`'s helper. Suite: `supabase/tests/0028_invite_path.sql` | `M` | ✅✅ **DONE 2026-09-13** — `0028` applied, 77 behavioural checks, eleven falsifications. The invite screen in `5b` is unblocked |
 | **4.6a-iii** | `0029` | **The PULL path C11.5 asked for.** `request_access(code)` — resolves the WHOLE code through a `security definer` RPC with no scan policy behind it (**`D6`**), takes no email argument but reads the caller's own, and **absorbs** a pending invite instead of erroring (**`D7`**) — plus `approve_request(id, location_ids)`, which refuses an empty array when the role is `staff` (**`D8`**), and `my_access_requests()` — **ruled in by the owner 2026-09-13** — so the joiner can see a row no policy can ever show them. Suite: `supabase/tests/0029_request_path.sql` | `M` | ✅✅ **DONE 2026-09-14** — `0029` applied, 67 behavioural checks, thirteen falsifications. ⚠️ It also adds `requested_by` and re-signs `0027`'s and `0028`'s suites. The join screen in `5b` is unblocked |
 | **4.6b** | ✅ **`0030`, APPLIED 2026-09-14** — was `0028`, renumbered by the `4.6a` split, 2026-09-13 | **`replay_failed_write` fenced at `manager`, not `owner`** — a `create or replace`, one notch. ⚠️⚠️ **ONE NOTCH MEANT ONE NOTCH: `failed_write_select` IS UNTOUCHED, so a manager may now replay a dead letter she cannot SELECT** — pinned by three checks, not prose, and parked as an owner decision against `5c` | `S` | ✅✅ **DONE 2026-09-14** — 18 behavioural checks in `supabase/tests/0030_replay_manager_fence.sql`, `0026`'s re-signed to 88, ten falsifications. The replay control in `5c` is unblocked |
-| **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` |
+| **4.6c** | ⚠️ `0031`–`0033` — **`0031` was `0029`, renumbered by the `4.6a` split, 2026-09-13** | ⚠️⚠️ **RE-SCOPED AND SPLIT 2026-09-14, BEFORE A LINE WAS WRITTEN. THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~The family margin view~~ — **cancelled by the owner's `A3` ruling**, *"we won't derive the profit so let's ignore margins for now"*. What replaces it is Números as he described it: **purchases as a read**, **price over time**, and **the month export** | `L` — **split, three `M`s** | the Números screens in `5d` ⚠️⚠️ **AND THEY CARRY ONE CONSTRAINT OUT OF ÁREA 9's CLOSURE, 2026-09-18: WASTE IS SHOWN AS QUANTITY, NEVER AS COST AND NEVER AS A RATE.** `product_waste_daily` (`0011`/`0012`) costs waste off the movement's `unit_cost_net_per_base`, which is **zero for a shortfall lot** — so under C8.6, the pilot's main product line, throwing away `Pechuga` costs **$0** and the rate is **0 over 0**. Question 1 was retired by `A3` (*we do not derive profit*); **question 2 was never separately ruled on and is still broken.** ⚠️ *"Enhance it later"* works on a number that is MISSING and does not work on one a shopkeeper has already believed. Quantity is intact for `0013`'s stated reason — *"there is no cost column for it to fail open on"* |
 | **4.6c-i** | `0031` | **Purchases as a first-class read** — `product_purchases_daily`, per variant and family per day — plus **revenue made GROSS on `product_velocity_daily`** (`tax_collected`, `revenue_gross`, `trailing_revenue_gross`), **the C8.6 honesty comment on `0009`**, and `0030`'s stale `comment on function`. ⚠️⚠️ ~~*the tax it needs lives today only in the manager-only `product_margin_daily`, so reaching it without widening that fence is this task's first design problem*~~ — **FALSE, AND MEASURED FALSE**: `sale_line.tax_amount` is member-level (`0003`), so the cashier already reads every peso of it. The fence was on 0009's COPY of the number, never on the column | `M` | ✅✅ **DONE 2026-09-14** — `0031` applied, 47 behavioural checks, `0011`'s re-signed 56 → 57, twelve falsifications. ✅ **And the one decision it took on the owner's behalf was RULED the same day — *"leave gross revenue on the velocity view"***, which ADR-035 §2.9 had already said. The Números charts in `5d` are unblocked |
 | **4.6c-ii** | `0032` | **Price over time**: purchase and sale unit prices per variant, read from the LEDGER rather than from ~~the empty~~ `price_list`. Daily grain; the %-change windows are the client's. ⚠️⚠️ **BOTH OF THE THINGS THIS ROW SAID `0031` SETTLED WERE HALF WRONG.** `product_purchases_daily` is not a *precedent to match*, it is **where the purchase price belongs** — so `0032` ships **no new view at all**, only four appended columns on each of the two views that already own each side of the ledger. And it is not *the* fence: a purchase price is cost (manager) and a sale price is revenue ÷ quantity (staff, §2.7), so **each price inherits its own fence and the migration writes no predicate**. ⚠️ ~~the empty `price_list`~~ — **it holds 390 rows and is a dated range table**; §2.9's reason for reading the ledger is that it holds the INTENDED price, and the two disagree in 1 050 of 2 139 buckets | `M` | ✅✅ **DONE 2026-09-14** — `0032` applied, 48 behavioural checks, twelve falsifications. ⚠️ **It re-cut four applied checks, three of which would have stayed GREEN while their claims died.** The price card in `5d` is unblocked |
 | **4.6c-iii** | `0033` | **The month export**: transactions and waste, flat, one shape and one fence. ⚠️⚠️ **"THREE DIFFERENT RLS FENCES" WAS AN UNDERSTATEMENT — THERE ARE THREE DIFFERENT COMBINATIONS**, and the `waste` HEADER is member-level while `waste_line` is not. So *"one fence"* could not be inherited: it is written into the view's body, `0009`-style, and **a staff caller reads zero rows rather than a silent third of the file** | `M` | ✅✅ **DONE 2026-09-14** — `0033` applied, 41 behavioural checks, ten falsifications. ⚠️ **It re-signs three applied check files**, one of which held an owner's ruling as a count and had to be re-cut rather than bumped. **The download in `5d` is unblocked, and step 4.6 is CLOSED** |
@@ -11874,7 +11933,8 @@ turned on facts the database had already settled.
   enters COGS at all**. Rolling up by family does not rescue it — the family's COGS
   is still zero. What the owner asked for in 8.4 is **purchases-in against sales-out
   per family over a period**, which is a different query that **does not exist**.
-  ⚠️ **This is Números' problem (área 9) and it is OWED.** It is a view, so
+  ⚠️ ~~**This is Números' problem (área 9) and it is OWED.**~~ **NO LONGER OWED — área 9 closed
+  2026-09-18, and `A3` retired this view rather than commissioning it.** It is a view, so
   it is a migration — the first thing since 2026-09-05 that would reopen the schema.
   ⚠️⚠️ **AND F2 HAS A TWIN, FOUND 2026-09-13 WHILE WRITING ÁREA 9's BRIEF: QUESTION 2 IS
   BROKEN THE SAME WAY.** `product_waste_daily` (`0011`/`0012`) costs waste from
