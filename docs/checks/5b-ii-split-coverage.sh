@@ -197,10 +197,13 @@ fi
 # either" — while `workspace_member_select` admits any member of the workspace
 # (0001:524). So a STAFF caller can read the roster and can identify nobody on it.
 #
-# The decision taken on the owner's behalf is that the roster is manager-and-above
-# and a staff member is shown the shop and their own settings instead, because a
-# list of unidentifiable rows is the app rendering an internal state — the thing
-# the owner's own rule refuses to hand a shopkeeper.
+# The roster is therefore manager-and-above and a staff member is shown the shop
+# and their own settings instead, because a list of unidentifiable rows is the app
+# rendering an internal state — the thing the owner's own rule refuses to hand a
+# shopkeeper. ⚠️ TAKEN ON HIS BEHALF IN THE SIZING AND RULED BY HIM THE SAME DAY
+# — "manager-and-above is right", 2026-09-18 — so this assertion protects a
+# RULING now and not a session's judgement. The check did not change; what it is
+# protecting did.
 #
 # ⚠️ Nothing else can hold it. There is no column to assert, no policy to read on
 # the CLIENT side, and §2.11 bans the rendering suite that would catch the section
@@ -211,8 +214,8 @@ ROW_A="$(row 5b-ii-a)"
 if grep -qiF "manager-and-above" <<< "$ROW_A"; then
   ok "the roster is still recorded as manager-and-above in 5b-ii-a's row"
 else
-  fail "5b-ii-a's row no longer says the roster is manager-and-above. That was a"
-  echo "      decision taken on the owner's behalf on 2026-09-18, and reversing it"
+  fail "5b-ii-a's row no longer says the roster is manager-and-above. The owner"
+  echo "      RULED that on 2026-09-18 — 'manager-and-above is right' — and reversing it"
   echo "      renders a list whose every row but the caller's is blank for a staff"
   echo "      member — workspace_invite is readable at 'manager' (0002:563) and"
   echo "      workspace_member by any member (0001:524). Restore it, or record the"
