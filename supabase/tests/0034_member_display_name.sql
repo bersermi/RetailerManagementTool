@@ -573,14 +573,84 @@ select chk('6.1 a name under `name` or `display_name` is NOT read — only `full
 
 
 -- ============================================================================
--- 7. Did this file actually run?
+-- 7. ⚠️⚠️ WHO CAN READ IT — measured under the role a phone actually holds
+-- ============================================================================
+-- ✅✅ RULED 2026-09-18: THE NAME IS MEMBER-LEVEL, AND THAT IS A DECISION RATHER
+-- THAN AN OVERSIGHT. This section exists because the decision is INVISIBLE in
+-- the migration: `0034` moves no policy, so nothing in the diff says who the
+-- column reaches, and the honest reading of "no policy change" is easy to get
+-- backwards.
+--
+-- ⚠️ THE SCREEN AND THE POLICY ARE FENCED DIFFERENTLY, AND THEY ALWAYS WERE.
+-- `workspace_member_select` (`0001:532`) is `workspace_id in (select
+-- public.my_workspaces())` — ANY active member — while the roster SHEET is
+-- manager-and-above by the owner's ruling of 2026-09-18, enforced in
+-- `canSeeRoster` in `app/src/api/members.ts`. Before `0034` that gap was
+-- harmless: a staff caller reading this table got uuids and, in that file's own
+-- words, "could identify NOBODY on it". ⚠️ **After `0034` the same read carries
+-- names.** So the gap did not move — what moved through it did.
+--
+-- ⚠️⚠️ WHY IT WAS NOT FENCED, recorded here because the alternative looks cheap
+-- and is not. Postgres has no column-level RLS, so the three available moves are
+-- (a) a column GRANT — which §2.7 argues against BY NAME, because
+-- `supabase gen types` still emits the column and a staff read then compiles
+-- clean and fails at runtime in front of a customer; (b) a second view, which is
+-- a second copy of the roster and this repository's most-recorded defect; or
+-- (c) narrowing `workspace_member_select` itself, which is the read behind every
+-- member's own role lookup and `rosterFrom`'s join. All three are a migration
+-- with blast radius, bought to hide a coworker's first name from somebody
+-- standing at the same counter who can simply ask.
+--
+-- ⚠️ THE BOUNDARY THAT ACTUALLY MATTERS IS THE TENANT ONE, and 7.2 is it.
+
+select public._as(:u_pide);
+set role authenticated;
+
+select chk('7.1 a STAFF member reads her coworkers'' names — the recorded ruling, not an oversight',
+           (select count(*) from public.workspace_member wm
+             where wm.workspace_id = :'ws_a' and wm.display_name is not null) >= 2
+       and (select wm.display_name from public.workspace_member wm
+             where wm.workspace_id = :'ws_a' and wm.user_id = :u_owner) = 'Sergio Alarcón Pineda',
+           format('a cashier sees %s named member(s) in her own shop, the owner among them',
+                  (select count(*) from public.workspace_member wm
+                    where wm.workspace_id = :'ws_a' and wm.display_name is not null)));
+
+-- ⚠️ THE ONE A WIDENED POLICY WOULD BREAK. `my_workspaces()` is the whole fence,
+-- and a name is exactly the payload that would make crossing it matter.
+select chk('7.2 …and ZERO rows from a workspace she is not in — no name crosses a tenant',
+           (select count(*) from public.workspace_member wm
+             where wm.workspace_id = :'ws_n') = 0,
+           format('rows visible from another shop: %s',
+                  (select count(*) from public.workspace_member wm
+                    where wm.workspace_id = :'ws_n')));
+
+reset role;
+select public._as(null);
+
+-- Pinned from the catalog rather than from the migration: `0034` claims to move
+-- no policy, and this is that claim. A later session narrowing or widening this
+-- is then a visible decision instead of a quiet one.
+select chk('7.3 workspace_member has exactly ONE select policy and 0034 did not touch it',
+           (select count(*) from pg_policies
+             where schemaname = 'public' and tablename = 'workspace_member'
+               and cmd = 'SELECT') = 1
+       and (select qual from pg_policies
+             where schemaname = 'public' and tablename = 'workspace_member'
+               and cmd = 'SELECT') = '(workspace_id IN ( SELECT my_workspaces() AS my_workspaces))',
+           coalesce((select policyname || ': ' || qual from pg_policies
+                      where schemaname = 'public' and tablename = 'workspace_member'
+                        and cmd = 'SELECT'), 'NO SELECT POLICY'));
+
+
+-- ============================================================================
+-- 8. Did this file actually run?
 -- ============================================================================
 -- A green tick is also what a step that ran nothing looks like, and a suite
 -- that silently SHRANK is the third shape. Only a pinned count catches it.
 
-select chk('7.1 ALL 28 CHECKS IN THIS FILE ACTUALLY RAN',
-           (select count(*) from public._verify) = 27,
-           format('recorded=%s of 27 before this one',
+select chk('8.1 ALL 31 CHECKS IN THIS FILE ACTUALLY RAN',
+           (select count(*) from public._verify) = 30,
+           format('recorded=%s of 30 before this one',
                   (select count(*) from public._verify)));
 
 drop function public._name(uuid, uuid);

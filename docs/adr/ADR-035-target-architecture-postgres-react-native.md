@@ -1124,6 +1124,24 @@ written here rather than inferred from the struck sentence: *a client may never 
 `auth.users`; a person's chosen name reaches other members of their own shop, and
 nothing else about their account does.*
 
+✅✅ **AND THAT NARROWER GUARANTEE IS RULED, NOT INHERITED — 2026-09-18.** The name is
+**member-level**, deliberately. ⚠️ **The screen and the policy are fenced differently, and
+they always were**: `workspace_member_select` (`0001:532`) admits **any active member**,
+while the roster SHEET is manager-and-above by the ruling of the same date, enforced in
+`canSeeRoster`. Before `0034` that gap was harmless because the rows were uuids; after it,
+the same read carries names. **The gap did not move — what travels through it did.**
+⚠️ **Measured, not argued**: under `set role authenticated`, a cashier reads every name in
+her own shop, **and zero rows from any other** (`supabase/tests/0034` 7.1 and 7.2).
+
+⚠️ **It was not fenced because there is no cheap fence.** Postgres has no column-level
+RLS, so the three available moves are a **column GRANT** — which this very section argues
+against by name, since `supabase gen types typescript` still emits the column and a staff
+read then compiles clean and fails at runtime in front of a customer — a **second view**,
+which is a second copy of the roster, or **narrowing `workspace_member_select`**, which is
+the read behind every member's own role lookup. All three are a migration with blast
+radius, bought to hide a coworker's first name from somebody standing at the same counter.
+**The boundary that carries the weight is the tenant one, and it holds.**
+
 **Delivery is out of band for v1:** the owner sends the code over WhatsApp. That is
 one fewer piece of infrastructure standing between here and the pilot, and it is how
 a shop with three staff would do it anyway.
