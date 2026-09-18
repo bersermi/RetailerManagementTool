@@ -455,16 +455,45 @@ select chk('and the export ships exactly three kinds, with no fourth waiting to 
        and pg_get_viewdef('public.transaction_export'::regclass) !~* 'transfer'
        and pg_get_viewdef('public.transaction_export'::regclass) !~* 'stock_movement');
 
-select chk('⚠️ NO HUMAN NAME EXISTS FOR created_by, anywhere in this schema',
+-- ⚠️⚠️ RE-CUT 2026-09-18 BY `0034`, AND IT WENT RED FIRST — WHICH IS THE POINT.
+-- This check used to read, in part, "`workspace_member` has no name column", and
+-- on 2026-09-18 `0034` added `display_name` to exactly that table (plan task
+-- `5b.8-i`). The check fired, by name, on the day the column landed, in a file
+-- nobody had thought to look at: `docs/PLAN.md`'s `R6` named the PROSE copy of
+-- this claim in `supabase/README.md` and did not know the claim had a
+-- machine-readable twin standing over the seed.
+--
+-- ⚠️ BUMPING IT — deleting the `workspace_member` clause and moving on — would
+-- have handed the claim away, which is `0032`'s recorded lesson one migration
+-- earlier. THE CLAIM IS STILL TRUE AND IS STILL THE ONE WORTH PINNING: the
+-- month export names nobody. What changed is the REASON, and the change makes
+-- the assertion stronger rather than weaker. It used to hold because no name
+-- existed anywhere in the schema; it now holds because a name exists ONE JOIN
+-- AWAY and this view deliberately does not reach for it. So the shape below is
+-- a property of the VIEW — it reads neither `auth.users` nor the table that now
+-- carries a name, and it exposes no name-shaped column of its own — and it goes
+-- red on precisely the change the sentence forbids: somebody adding the join
+-- because it looks like an improvement.
+select chk('⚠️ THE EXPORT STILL NAMES NOBODY — and as of 0034 that is a choice, not an absence',
            (select count(*) from transaction_export where created_by is null) = 0
+       and pg_get_viewdef('public.transaction_export'::regclass) !~* 'auth\.users'
+       and pg_get_viewdef('public.transaction_export'::regclass) !~* 'workspace_member'
+       -- ⚠️ NOT `column_name like '%name%'`: this view carries four names
+       -- already — location, provider, variant, family — and none of them is a
+       -- PERSON. The list is people-shaped on purpose.
+       and (select count(*) from information_schema.columns
+             where table_schema='public' and table_name='transaction_export'
+               and column_name in ('created_by_name', 'member_name', 'user_name',
+                                   'staff_name', 'full_name', 'display_name',
+                                   'email')) = 0
        and (select count(*) from information_schema.columns
              where table_schema='public' and table_name='workspace_member'
-               and column_name in ('name','full_name','display_name','email')) = 0
-       and pg_get_viewdef('public.transaction_export'::regclass) !~* 'auth\.users',
+               and column_name = 'display_name') = 1,
            (select 'a raw uuid, and ' || count(distinct created_by)
-                || ' distinct people wrote these documents. §2.7 never exposes '
-                || 'auth.users and workspace_member carries no name column, so the '
-                || 'export can say WHETHER two rows are the same person and never WHO'
+                || ' distinct people wrote these documents. §2.7 still never exposes '
+                || 'auth.users, and workspace_member.display_name now EXISTS (0034) '
+                || 'and is not joined — so the export can say WHETHER two rows are '
+                || 'the same person and never WHO'
               from transaction_export));
 
 

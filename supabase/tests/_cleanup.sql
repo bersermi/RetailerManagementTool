@@ -148,6 +148,15 @@ begin
   drop function if exists public._adjlots(uuid, uuid);
   drop function if exists public._drift();
 
+  -- ⚠️ ADDED 2026-09-18 (task 5b.8-i), on the day the suite lands, which is the
+  -- rule 4f wrote and every suite since has followed. `0034`'s suite creates two
+  -- helpers of its own — `_name` and `_role`, which read one membership's stored
+  -- name and role by (workspace, user), because every one of its four paths in
+  -- asks the same two questions about a different person. It reuses `_as`,
+  -- `chk` and `chk_raises` at the EXACT signatures earlier suites gave them.
+  drop function if exists public._name(uuid, uuid);
+  drop function if exists public._role(uuid, uuid);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
