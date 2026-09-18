@@ -33,10 +33,9 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **Does `Quitar` get an undo?** Removing a line from the carrito is immediate today. | `5h` | Raised by the model on 2026-09-16 while drawing the carrito and **not answered**. The two candidates both have a cost a shopkeeper pays: a few seconds of *Deshacer* is a **timed** affordance, and the users are old and the counter is busy — the ones who need it most are the ones who will not reach it in time; a confirmation on every removal is the book-keeping the owner's own rule refuses to hand them. ⚠️ **The model's recommendation is NEITHER** — no undo and no dialog, because re-adding the item is two taps on the list that is already behind the sheet. That is a recommendation, not a ruling, and the row stays here until it is one. |
-| **The Números questions.** The owner said on 2026-09-15 that the screen *"raises questions"* and asked to take them in a later round. | the Números screen, and **área 9** if they reopen it | ⚠️ **NOT YET ASKED, AND THE SHAPE OF THE ANSWER DECIDES THE COST.** If the questions are about how Números LOOKS, it is a design round and the screen is already drawn. **If they are about what it MEASURES, they reopen área 9** — ruled 2026-09-14, *"we won't derive the profit… I'd rather just show total revenue"* — and `0031`, `0032` and `0033` are **already applied against those answers**, so a change there is a fix-forward migration and not an edit. **Ask which kind before spending a session on it.** |
+| ⚠️⚠️ **WHAT ARE THE NÚMEROS QUESTIONS?** The owner has them; nobody else can state them. | the Números screen, and **área 9** — with a fix-forward migration in play | ⚠️⚠️ **HALF-ANSWERED 2026-09-17 AND THAT HALF IS THE EXPENSIVE ONE: *"not about how it looks."*** So they are about **what Números MEASURES**, which reopens **área 9** — ruled 2026-09-14 as *"we won't derive the profit… I'd rather just show total revenue"* — and **`0031`, `0032` and `0033` are already applied against those answers.** A change there is a **fix-forward migration**, not an edit, and merging is automated. ⚠️ **The model cannot run this interview alone**: the questions are the owner's, and área 9's own record says a Números answer can retire a task rather than create one. **The next step is one message from him saying what they are** — after that it is sizing, an ADR §2.9 amendment, and probably a migration. ⚠️ **It gets dearer once a Números SCREEN exists** (step 6), and cheaper than that it will never be. |
 
-⚠️⚠️ **TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.** Both came out of the aesthetic round; both are recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
+⚠️ **ONE IS OWED AS OF 2026-09-17, AND IT DOES NOT BLOCK THE NEXT TASK.** ~~TWO ARE OWED AS OF 2026-09-17, AND NEITHER BLOCKS THE NEXT TASK.~~ **The `Quitar` undo was parked on 2026-09-16 and RULED ON 2026-09-17 — no undo. See *"NO UNDO, AND THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK"* below.** The one that remains came out of the aesthetic round too, and it is recorded here rather than in the model's memory, which is the entire point of this block. ~~NOTHING IS OWED AS OF 2026-09-14, AND THE EMPTY TABLE IS DELIBERATE.~~ ~~ONE IS OWED, AND IT ARRIVED WITH `5b`'S SIZING.~~ **The member-identity question that `5b`'s split raised was parked here and RULED THE SAME DAY — see *"THE MEMBER SCREEN SHOWS AN EMAIL"* below. ⚠️ FIVE decisions have now been parked and cleared in this block on one date.** ~~ONE IS OWED, AND IT ARRIVED WITH `0030`.~~ **The dead-letter read that `4.6b`
 raised was parked here and RULED THE SAME DAY — see *"THE DEVICE REMEMBERS ITS OWN
 FAILURE"* below.** ⚠️ **Four decisions have now been parked and cleared in this block on one
 date**, which is what it is for. The three
@@ -136,6 +135,33 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+✅✅ **RULED BY THE OWNER 2026-09-17 — *"`Quitar` doesn't get an Undo."* NO UNDO, AND NO
+CONFIRMATION DIALOG EITHER.** Removing a line from the carrito is immediate and final, and the
+recovery is the one already on screen: **re-adding the item is two taps on the list behind the
+sheet.** ⚠️ **It is the option that ships nothing**, and it is the model's recommendation taken as
+recommended — the two alternatives were a **timed** *Deshacer*, which fails exactly the users
+C3.18 exists for, and a confirmation on every removal, which is the book-keeping the owner's own
+rule refuses to hand a shopkeeper. ✅ **`Vaciar carrito` keeps its confirmation** and is untouched
+by this: emptying the whole basket is a different act from removing one line, and it is the one
+the owner asked to guard.
+
+⚠️⚠️ **AND THE RULING EXPOSED THAT THE QUESTION HAD BEEN PARKED AGAINST THE WRONG TASK.** It was
+filed as blocking **`5h`**. `5h` is *Vender* — `price_list` prefill, the `$0.00` amber path, the
+50-centavo ceiling, `record_sale`. **The carrito, its rows and the `Quitar` control are `5f`**, the
+shared transaction screen, which is where *basket sheet* is actually listed. ⚠️ **No damage,
+because it was ruled before either task was taken** — but it is this repository's own recorded
+defect wearing a new hat: **a row describing work it does not do.** Had it gone unanswered, the
+`5f` session would have built the carrito **without ever seeing the open question**, and `5h`
+would have carried a decision about a control it does not own. ✅ **The ruling is written into the
+`5f` row**, where the person who builds it will be standing.
+
+⚠️ **THE NÚMEROS QUESTIONS ARE HALF-ANSWERED, AND IT IS THE EXPENSIVE HALF — 2026-09-17.**
+*"Not about how it looks."* That settles which KIND they are and nothing else: they are about
+**what Números measures**, so **área 9 reopens**, `0031`–`0033` are already applied against its
+answers, and a change there is a **fix-forward migration**. ⚠️ **The row stays in the decisions
+block** because the questions themselves are still unstated and only the owner has them. **It
+blocks nothing takeable today.**
 
 ✅✅✅ **ÁREA 13 — THE AESTHETIC ROUND — IS RULED AS OF 2026-09-17, AND `5b.6` IS THE NEXT TASK.**
 The owner called it on 2026-09-15 (*"we need to make authoritative the simplicity and efficiency of
@@ -10596,7 +10622,7 @@ free today and stay free until the first task merges.
 | **5c.5** | ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
-| **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** | `XL` | — |
+| **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |
