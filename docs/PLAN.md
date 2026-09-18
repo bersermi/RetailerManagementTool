@@ -437,6 +437,23 @@ is the one use of a sentinel that reads as obviously safe. ✅ **Fixed by striki
 lower case and saying why in the row itself**, so the next session that wants to record a
 demotion has the answer beside the thing it is tempted to copy.
 
+#### ⚠️ And `docs/HANDBOOK.md` was three rows stale before this session touched it — again
+
+The owner-facing file, and **the second time in four days it has gone stale in exactly this
+way**. ⚠️ **`5b-ii-b-2`'s row still said *"this is where the next piece of work is"*** four
+days after it closed; **`5b.8`'s described a task that no longer exists as one**; and
+⚠️⚠️ **a row headed *"One thing is waiting on YOU"* was still asking for the
+Números questions, which were RULED on 2026-09-18** — the same ruling that emptied the
+decisions block in this file. ✅ **All three corrected here.**
+
+⚠️ **Only the middle one is this session's doing.** The other two were stale before it
+started, and **nothing in CI can see any of them**: `plan-handover.sh` reads `docs/PLAN.md`
+and the three split guards read table rows in it, so the HANDBOOK is the one document in this
+repository that the owner reads and no check does. ⚠️ **That is worth a guard and it is not
+this task's** — recorded here so the argument exists when somebody has a session to spend on
+it. **The cheap half of the rule holds meanwhile: a session that closes a task edits both
+files, and a session that splits one edits both.**
+
 ✅✅✅ **`5b-ii-b-2` IS DONE AS OF 2026-09-18 — A SECOND PERSON CAN SPEND A CODE, THE LOOP
 `5b-ii` PROMISED IS SHUT, AND `5b.8` IS THE NEXT TASK.** An owner invites, a second person on
 a second phone types sixteen characters into one box on the landing, `0028` writes her
