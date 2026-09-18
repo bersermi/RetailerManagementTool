@@ -317,8 +317,12 @@ to stop and ask rather than pick a side.
 | **5a-iv** | **Running it on your own phone** | **Split into four on 2026-09-11** — ⚠️ **the last piece is now waiting on a CALENDAR, not on a person: the readings fall on 2026-09-21 and 2026-10-13, and opening either app early restarts the clock.** ⚠️ **Re-deploy to the iPhone before 2026-09-20** or the free profile expires and day 8 shows a red screen instead of an answer. Both dates are in `docs/PLAN.md`'s dates block, which fails the automated check once one of them passes unanswered. **Meanwhile the takeable work has moved on to step 5b**, which needs nothing from you. The Mac was prepared on 2026-09-12, but signing needs your Apple ID, and five of the six readings are things only a person holding the phone can see. ⚠️ **Which piece is next is `docs/PLAN.md`'s to say, not this file's** — it is named there once, and `docs/checks/plan-handover.sh` is what keeps it named once |
 | **5b** | **Onboarding and membership** — creating a shop, and getting a second person into it | **Split into three on 2026-09-14**, before any of it was written |
 | **5b-i** | Creating the shop: its name, the IVA question, and the app's first data layer | ✅ **Done 2026-09-14** — install, sign in, name the shop, land on Inicio |
-| **5b-ii** | **Ajustes, the join code, and inviting someone** | ⚠️ **This is where the next piece of work is**, and nothing is waiting on you for it |
+| **—** | **The look of the app** — three directions drawn, you picked one | ✅ **Ruled 2026-09-17.** The canvas is at `claude.ai/code/artifact/5d0fe2fd-3e7c-448a-a27d-4c0f2fe99127` and it is the only copy |
+| **5b.6** | **The colours, written down as code plus a check that enforces them** | ⚠️ **This is where the next piece of work is**, and nothing is waiting on you for it |
+| **5b.5** | The conventions page, second pass | After `5b.6`, so it describes the data layer and the colours in one go |
+| **5b-ii** | **Ajustes, the join code, and inviting someone** | After the colours — it is the first screen that would otherwise invent its own |
 | 5b-iii–5h | The rest of the screens | After 5b-ii |
+| **—** | ⚠️ **Two things are waiting on YOU** | **Does removing a line from the carrito get an undo?** and **what your Números questions actually are** — both are in `docs/PLAN.md`'s decisions block, and every session re-offers them until you rule |
 | 6–7 | Beyond the pilot | Later |
 
 ### ✅ The decision you made on 2026-09-07, and what it bought

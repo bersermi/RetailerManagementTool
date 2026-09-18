@@ -364,6 +364,16 @@ is five modules, one of which is the only place in the app that may touch
 the reasoning is. **What is still owed is the WRITTEN convention**, not the
 pattern: the pattern is now on disk, and `5b.5` is where it gets described.
 
+⚠️⚠️ **AND THE COLOURS ARE RULED BUT NOT YET WRITTEN — 2026-09-17.** Área 13
+settled the app's palette (**eleven roles, each with one job**), its motion rule
+(**one staggered entrance per screen, `transform` and `opacity` only**) and the
+rule that matters most here: **no state is ever announced by colour alone —
+always colour AND a word, or colour AND a border.** ADR-035 §2.11 carries both as
+rows. ⚠️ **`app/src/theme/palette.ts` does not exist yet and neither does `R11`**,
+the gate rule that will enforce it the way `R6` enforces sizes. **That is plan
+task `5b.6`, and it is the next one.** Until it merges, **do not invent a colour
+in a screen** — the whole point of the round was that the app had none.
+
 So if you are about to write the second RPC wrapper or the first shared
 component: **that is the second pass, and it is plan task `5b.5`.** Read
 [`docs/PLAN.md`](PLAN.md) for what it owes, and add the conventions here as you
