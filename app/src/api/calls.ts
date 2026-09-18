@@ -45,6 +45,12 @@ import {
   type LocationRow,
 } from '@/api/invites';
 import {
+  REDEEM_INVITE,
+  redeemArgs,
+  redeemedFrom,
+  type Redeemed,
+} from '@/api/redeem';
+import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
   onboardArgs,
@@ -143,6 +149,26 @@ export async function createInvite(
   const { data, error } = await supabase.rpc(CREATE_INVITE, createInviteArgs(workspaceId, draft));
   if (error) throw reported(error);
   return issuedFrom(data);
+}
+
+/**
+ * Spends one invite token and returns the membership it just wrote (5b-ii-b-2).
+ *
+ * ⚠️ THE CALLER BELONGS TO NO SHOP WHEN THIS RUNS, which is why `redeem_invite`
+ * is `security definer` — `0028`'s own comment says it: *"the caller is not a
+ * member of anything yet and no policy could admit them."* So this is the one
+ * write in this app whose success is what makes its caller's other reads
+ * non-empty, and the invalidation in `useRedeemInvite` is not a refresh, it is
+ * the thing that lets the guard move her.
+ *
+ * ⚠️ IT IS PASSED WHAT THE PERSON TYPED AND NORMALISES ON THE WAY IN
+ * (`redeemArgs`), so the string that was CLASSIFIED by length is the string that
+ * is SPENT. `0028` normalises inside the hash as well, and the two agree.
+ */
+export async function redeemInvite(typed: string): Promise<Redeemed> {
+  const { data, error } = await supabase.rpc(REDEEM_INVITE, redeemArgs(typed));
+  if (error) throw reported(error);
+  return redeemedFrom(data);
 }
 
 /**

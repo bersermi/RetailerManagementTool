@@ -379,14 +379,16 @@ choose between them.
 `@/api/errors` or `@/lib/supabase` from anything under `src/app/`.
 
 §2.11: *"`src/api/` — one wrapper per RPC. Juniors never call `supabase.rpc`
-directly."* The layer `5b-i` built is five modules over one boundary and
-`5b-ii-a` added a sixth on the pure side of it; the boundary is the rule:
+directly."* The layer `5b-i` built is five modules over one boundary; `5b-ii-a`
+added a sixth on the pure side of it and `5b-ii-b-2` an eighth; the boundary is
+the rule:
 
 | Module | What it is | Can a node suite load it? |
 |---|---|---|
 | `src/api/workspace.ts` | the contract — the RPC's name, its argument names, the column list, and every decision about them | **yes**, and `app/test/api-workspace.test.ts` does |
 | `src/api/members.ts` | the roster's contract — two column lists, the join PostgREST cannot do, and who may see the list of people | **yes**, and `app/test/api-members.test.ts` does |
 | `src/api/invites.ts` | the invite's contract — the RPC's name, its four `p_` arguments, the `location` column list, and the copies of `0028`'s own refusal rules | **yes**, and `app/test/api-invites.test.ts` does |
+| `src/api/redeem.ts` | the redemption's contract — the RPC's name, its one `p_` argument, the normaliser, and the **two lengths** that decide which credential a person is holding | **yes**, and `app/test/api-redeem.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |

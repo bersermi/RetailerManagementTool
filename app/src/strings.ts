@@ -130,6 +130,63 @@ export const ES = {
   },
 
   /**
+   * THE OTHER HALF OF THE SAME LANDING — SHE WAS INVITED, AND SHE IS NOT HERE TO
+   * CREATE A SHOP AT ALL. Plan task 5b-ii-b-2.
+   *
+   * ⚠️⚠️ ONE BOX, NOT TWO, AND THE APP DECIDES WHICH CREDENTIAL IT IS. An invite
+   * token is sixteen characters of the same Crockford alphabet as the eight
+   * character join code, normalised by the same function — so they are
+   * indistinguishable except by LENGTH, and the person holding one was sent it in
+   * a WhatsApp message with no label on it. ⚠️ ASKING HER WHICH KIND SHE HAS IS
+   * THE APP HANDING A PERSON AN INTERNAL STATE, which is the owner's own standing
+   * rule. See `@/api/redeem`, and the `5b-ii-b` sizing's decision 2.
+   *
+   * ⚠️ THE WORDS ARE HERS AND NOT OURS. `código` and never `token`; `la persona
+   * que te invitó` and never `el emisor de la invitación`. She is a cashier
+   * standing in a shop with somebody's phone message open.
+   */
+  join: {
+    /** ⚠️ A QUESTION, BECAUSE IT IS ALSO THE SIGN THAT THIS HALF IS FOR HER. */
+    section: '¿Te invitaron a una tienda?',
+    hint: 'Escribe el código que te mandaron.',
+    label: 'Código de invitación',
+    submit: 'Entrar a la tienda',
+    working: 'Entrando…',
+
+    /** What the box refuses before it calls. See `checkCredential`. */
+    issues: {
+      missing: 'Escribe el código que te mandaron.',
+      /**
+       * ⚠️ ANY LENGTH THAT IS NEITHER. It says what to do rather than what is
+       * wrong, because "sixteen characters" is our arithmetic and not hers.
+       */
+      shape: 'Ese código no está completo. Revísalo y escríbelo otra vez.',
+      /**
+       * ⚠️⚠️ EIGHT CHARACTERS IS THE SHOP'S JOIN CODE, WHICH IS A REAL CODE THAT
+       * THIS APP CANNOT SPEND YET — `request_access` is `5b-iii`'s. Ajustes has
+       * shipped `Compartir código` since `5b-ii-a`, so an owner can hand one out
+       * today and the person holding it lands here. Telling her it "no se ve
+       * bien" would be this app calling a correct code wrong. ⚠️ IT NAMES HER
+       * NEXT STEP, not our missing screen. **`5b-iii` deletes this string.**
+       */
+      workspaceCode: 'Ese es el código de la tienda. Pídele a esa persona que te invite a ti.',
+    },
+
+    /**
+     * ⚠️ TWO SENTENCES FOR FOUR REFUSALS, AND THE COLLAPSING IS DELIBERATE.
+     * `0028` distinguishes expired from superseded, and not-valid from
+     * already-used; she cannot act on the difference in either pair, and the
+     * owner's rule is that we do the book-keeping and not her.
+     */
+    errors: {
+      /** Expired, or replaced by a newer invite to the same address. */
+      expired: 'Ese código ya venció. Pídele uno nuevo a la persona que te invitó.',
+      /** Not a real code, or somebody else already used it. */
+      spent: 'Ese código ya no sirve. Pídele uno nuevo a la persona que te invitó.',
+    },
+  },
+
+  /**
    * WHAT THE SHOPKEEPER IS TOLD WHEN A CALL TO THE SERVER FAILS (5b-i).
    *
    * ⚠️ THE SAME RULE AS `auth.errors` AND FOR THE SAME REASON: nothing
