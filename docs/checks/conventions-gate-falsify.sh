@@ -325,7 +325,17 @@ run F17 red "R11 — a hex typed into a screen, even one copied from the palette
 
 # ⚠️ NOT REDUNDANT WITH F17, AND THIS IS THE ONE A HEX-ONLY RULE WOULD MISS.
 # `'white'` contains no `#`, and it is the spelling a person reaches for first.
-mk; sedi "s|alignItems: 'center', justifyContent: 'center'|alignItems: 'center', backgroundColor: 'white'|" "$WORK/app/src/app/(tabs)/index.tsx"
+#
+# ⚠️⚠️ RE-ANCHORED AT `5b-ii-a`, AND IT WAS DEAD WHEN THAT TASK FOUND IT. The
+# anchor was a layout pair — `alignItems: 'center', justifyContent: 'center'` —
+# which that task's rewrite of Inicio broke apart, so the fixture edited nothing
+# and proved nothing. THIRD INSTANCE in this harness: `F10` and `F12` went the
+# same way, and the anti-vacuity diff is the only reason any of the three were
+# noticed rather than trusted. The new anchor is not a layout line but the
+# VIOLATION ITSELF INVERTED — a palette read replaced by a named colour — so it
+# can only stop applying on a screen that has stopped reading the palette, which
+# is a thing `R11` would already be shouting about.
+mk; sedi "s|backgroundColor: PALETTE.fondo|backgroundColor: 'white'|" "$WORK/app/src/app/(tabs)/index.tsx"
 run F18 red "R11 — a named CSS colour, which carries no hex at all"
 
 # ⚠️ THE EXEMPTION IS ONE FILE, NOT A DIRECTORY. `src/theme/palette.ts` may

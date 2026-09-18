@@ -131,6 +131,82 @@ export const ES = {
   },
 
   /**
+   * AJUSTES — THE SHEET, AND EVERYTHING ON IT THAT ONLY READS (5b-ii-a).
+   *
+   * §2.8 fixed Ajustes as a sheet and not a tab, and this is the app's first
+   * non-tab surface. Four sections: the shop, the code a person shares, who is
+   * in the shop, and how big this phone's text is.
+   *
+   * ⚠️ `Ajustes` AND NOT `Configuración`. The plan calls it both; §2.8's own
+   * table says **Ajustes**, and it is the shorter of the two on a tab-less
+   * header a shopkeeper reads at arm's length.
+   */
+  settings: {
+    title: 'Ajustes',
+    close: 'Cerrar',
+    /** The shop's own section. The name is the one answered at onboarding. */
+    shopSection: 'Tu tienda',
+    ivaIncluded: 'Los precios ya incluyen IVA',
+    ivaExcluded: 'El IVA se agrega aparte',
+    /** C11.7's section. "Not a protagonist at all in our UI." */
+    codeSection: 'Código de tu tienda',
+    codeHint: 'Compártelo con quien quieras que entre a tu tienda.',
+    share: 'Compartir código',
+    /** C3.18's control, finally on the surface it was always meant for. */
+    densitySection: 'Tamaño de la letra',
+    densityHint: 'Elige el tamaño que se lea mejor en este teléfono.',
+  },
+
+  /**
+   * WHO IS IN THE SHOP (5b-ii-a).
+   *
+   * ⚠️⚠️ NO NAME APPEARS ANYWHERE HERE, AND THAT IS A RULING, NOT A GAP. The
+   * owner ruled on 2026-09-14 that a member row is **identified by email**,
+   * with the caller's own row labelled *Tú* — because no table in this schema
+   * carries a human name and he ruled against the migration that would have
+   * added one.
+   */
+  members: {
+    section: 'Quién entra a tu tienda',
+    /** The caller's own row. The ruling of 2026-09-14, in one word. */
+    you: 'Tú',
+    /**
+     * ⚠️ THE THREE ROLES IN SPANISH, AND THEY DOUBLE AS AN IDENTITY. A member
+     * whose email this app cannot recover — in practice the founding owner,
+     * whose membership no invite precedes — is named by what he IS. See
+     * `Identity` in `@/api/members`.
+     */
+    roles: {
+      owner: 'Dueño',
+      manager: 'Encargado',
+      staff: 'Empleado',
+    },
+    /** While the two reads are still out. Never a spinner with no word beside it. */
+    loading: 'Un momento…',
+    /**
+     * ⚠️ REACHABLE ONLY IN A SHOP OF ONE, which is every shop on its first day.
+     * It says what to do next rather than reporting a count, because a
+     * shopkeeper alone in her shop does not need to be told she is alone.
+     */
+    alone: 'Por ahora solo estás tú. Comparte el código para que entre alguien más.',
+    /**
+     * ⚠️⚠️ THE ONE FUNCTION IN THIS FILE, AND THE HEADER ABOVE SAYS THE FILE IS
+     * FLAT LITERALS. The deviation is deliberate and it is the smaller of two:
+     * the alternative is assembling this sentence out of fragments at the call
+     * site, which puts its GRAMMAR — word order, punctuation, where the code
+     * sits relative to the shop's name — in `@/api/members`, and grammar is
+     * precisely what a second language would have to change. A template still
+     * fails the typecheck on a missing key, which is the whole benefit this
+     * file exists for before there is an i18n runtime.
+     *
+     * ⚠️ IT CARRIES THE SHOP'S NAME BECAUSE A CODE ALONE IS EIGHT CHARACTERS IN
+     * A CHAT WINDOW THREE WEEKS LATER — `4.6a-iii`'s decision 3, one layer out.
+     */
+    shareMessage: (shopName: string, code: string) =>
+      `Entra a ${shopName} en Wera. Tu código es ${code}`,
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

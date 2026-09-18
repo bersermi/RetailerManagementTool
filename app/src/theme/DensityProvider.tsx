@@ -1,6 +1,7 @@
-import { createContext, useContext, useMemo, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
 
 import { DENSITIES, type DensityMode, type DensityScale } from '@/theme/density';
+import { densityMemory, readDensityMode, rememberDensityMode } from '@/theme/densityMemory';
 
 // ============================================================================
 // HOW A SCREEN GETS AT C3.18's SCALE. Plan task 5a-ii.
@@ -9,12 +10,28 @@ import { DENSITIES, type DensityMode, type DensityScale } from '@/theme/density'
 // through props — was not considered for long: every component in the app needs
 // it, so it would be a prop on every component in the app.
 //
-// ⚠️ THE CHOICE IS NOT PERSISTED YET, AND THAT IS A SEAM, NOT AN OVERSIGHT.
-// Storage arrives with the session in `5a-iii` and the settings surface in
-// `5b`'s Configuración; until then the mode resets to `normal` on a cold start.
-// ⚠️ AND WHEN IT IS PERSISTED IT IS A DEVICE SETTING, NOT A WORKSPACE ONE — an
-// elder shopkeeper and their twenty-year-old nephew share a workspace and do
-// not share a pair of eyes (C1.5: personal phones, no shared till).
+// ⚠️⚠️ THE CHOICE IS PERSISTED AS OF `5b-ii-a`, AND THE SEAM THIS HEADER USED
+// TO DESCRIBE IS CLOSED. It said storage arrives with the session in `5a-iii`
+// and the surface in `5b`'s Ajustes; both now exist, the switch has moved off
+// the placeholder Home that `5a-iii-b` refused to write from, and the rules
+// live in `@/theme/densityMemory` where the suite can read them.
+// ⚠️ IT IS A DEVICE SETTING, NOT A WORKSPACE ONE — an elder shopkeeper and
+// their twenty-year-old nephew share a workspace and do not share a pair of
+// eyes (C1.5: personal phones, no shared till).
+//
+// ⚠️⚠️ THE STORED MODE IS READ IN THE `useState` INITIALISER, NOT IN AN EFFECT,
+// AND THAT IS THE WHOLE DIFFERENCE BETWEEN REMEMBERING AND FLICKERING. An
+// effect runs after the first paint, so elder mode would arrive as a resize:
+// every screen drawn once at 16pt and again at 20pt, on the launch of the one
+// person who cannot read the first of those. The store is synchronous SQLite,
+// installed by `lib/supabase.ts`'s import before any component renders, so
+// there is nothing to wait for.
+//
+// ⚠️ AND NO CHECK IN THIS REPOSITORY CAN SEE THAT IT SURVIVES A COLD START
+// (`R9`). §2.11 refuses suites over rendering, and a process that is never
+// killed cannot demonstrate persistence — `app/test/density-memory.test.ts`
+// pins what is written and what is read back, and whether the app actually
+// reopens at `Letra grande` is the owner's own phone, as ever.
 // ============================================================================
 
 interface Density {
@@ -44,8 +61,27 @@ export function DensityProvider({
   children: ReactNode;
   initialMode?: DensityMode;
 }) {
-  const [mode, setMode] = useState<DensityMode>(initialMode);
-  const value = useMemo<Density>(() => ({ mode, scale: DENSITIES[mode], setMode }), [mode]);
+  // ⚠️ THE STORED CHOICE WINS OVER `initialMode`, AND `initialMode` IS STILL
+  // THE FLOOR. The prop is what a caller asks for when nothing is remembered —
+  // the suite's hook, and the default `normal` — and a device that has been to
+  // Ajustes has an answer that outranks it.
+  const [mode, setStateMode] = useState<DensityMode>(
+    () => readDensityMode(densityMemory()) ?? initialMode,
+  );
+
+  // ⚠️ THE WRITE IS HERE AND NOT IN THE SCREEN, so that every control that ever
+  // sets the mode persists it — including the ones nobody has written yet. A
+  // screen that remembered to call the setter and forgot to call the store is
+  // exactly the shape of bug `R3` exists to keep out of screens.
+  const setMode = useCallback((next: DensityMode) => {
+    setStateMode(next);
+    rememberDensityMode(densityMemory(), next);
+  }, []);
+
+  const value = useMemo<Density>(
+    () => ({ mode, scale: DENSITIES[mode], setMode }),
+    [mode, setMode],
+  );
   return <DensityContext.Provider value={value}>{children}</DensityContext.Provider>;
 }
 

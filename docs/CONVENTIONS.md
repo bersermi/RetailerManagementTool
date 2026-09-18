@@ -93,6 +93,8 @@ structural half.**
 | `src/navigation/tabs.ts` — the tabs, as data | `src/app/(tabs)/_layout.tsx` — draws them |
 | `src/navigation/lastScreen.ts` — where to reopen | `src/app/_layout.tsx` — navigates there |
 | `src/api/workspace.ts` — the argument names, the columns, the membership | `src/api/calls.ts` — the three lines that talk to Postgres |
+| `src/api/members.ts` — the two column lists, the roster's join, who may see it | `src/app/ajustes.tsx` — draws the section, or does not |
+| `src/theme/densityMemory.ts` — what a stored mode means | `src/theme/DensityProvider.tsx` — reads it, writes it |
 
 The left column is importable by a node suite; the right column is not, and by
 §2.11 must not be. So **the decision is where the assertion can reach it.**
@@ -355,15 +357,16 @@ choose between them.
 `@/api/errors` or `@/lib/supabase` from anything under `src/app/`.
 
 §2.11: *"`src/api/` — one wrapper per RPC. Juniors never call `supabase.rpc`
-directly."* The layer `5b-i` built is five modules over one boundary, and the
-boundary is the rule:
+directly."* The layer `5b-i` built is five modules over one boundary and
+`5b-ii-a` added a sixth on the pure side of it; the boundary is the rule:
 
 | Module | What it is | Can a node suite load it? |
 |---|---|---|
 | `src/api/workspace.ts` | the contract — the RPC's name, its argument names, the column list, and every decision about them | **yes**, and `app/test/api-workspace.test.ts` does |
+| `src/api/members.ts` | the roster's contract — two column lists, the join PostgREST cannot do, and who may see the list of people | **yes**, and `app/test/api-members.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
-| `src/api/hooks.ts` | the two things a screen may ask, over TanStack Query | no |
+| `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
 | `src/api/QueryProvider.tsx` | one `QueryClient` per mount, never at module scope | no |
 
 Three habits follow, and each is the record of a way this goes wrong:
@@ -418,6 +421,15 @@ database** — is what asserts they are still the ones the database answers to.
 adds**, and it ships every column of the row to a phone, including ones added
 for a report nobody on that screen may see. Name the columns, once, beside the
 RPC's name.
+
+⚠️⚠️ **AND ON ONE TABLE IT IS THE ONLY THING STANDING BETWEEN A SECRET AND A
+PHONE.** `workspace_invite_select` is `has_role(workspace_id, 'manager')` — a
+manager may read the WHOLE row, `token_hash` included. `src/api/members.ts` asks
+for `email,accepted_by` and the policy would have given it more. So the named
+column list is not tidiness there, it is the fence; `docs/checks/5b-ii-a-roster-contract.sh`
+asserts the hash is readable **and** that it never comes back on the read the
+app actually makes, because a `*` contains no word a string-matching check could
+have caught.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R13.
 
