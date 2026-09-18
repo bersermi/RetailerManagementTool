@@ -69,6 +69,14 @@ on:
       # closing that task in the plan alone is exactly the edit that would
       # otherwise leave the page sending juniors to a task that no longer exists.
       - "docs/PLAN.md"
+      # ⚠️⚠️ AND `docs/HANDBOOK.md`, ADDED 2026-09-18 WITH THE HANDBOOK GUARD, AND
+      # THIS LINE IS THE WHOLE POINT OF IT. The guard reads two files; a filter
+      # naming only one of them means a HANDBOOK-ONLY edit — which is exactly the
+      # shape of every staleness it exists to catch — runs no check at all and
+      # merges green. `conventions-gate-falsify.sh` spent a day dead in precisely
+      # this way on 2026-09-13: WHEN AN ASSERTION GAINS A NEW INPUT, EVERYTHING
+      # THAT RUNS IT GAINS THE SAME INPUT.
+      - "docs/HANDBOOK.md"
       # ⚠️⚠️ AND THE TWO PLAN GUARDS, ADDED 2026-09-13 WITH THE `5a-iv-c` SPLIT.
       # Until that day NEITHER `plan-handover.sh` NOR `5a-split-coverage.sh` was
       # run by any workflow — they existed, they were thorough, and they had
@@ -120,6 +128,14 @@ on:
       # pipe in the matcher matters more here than in the three above.
       - "docs/checks/5b.8-split-coverage.sh"
       - "docs/checks/5b.8-split-coverage-falsify.sh"
+      # ⚠️⚠️ AND THE HANDBOOK GUARD, added 2026-09-18 on the owner's instruction.
+      # ⚠️ IT IS THE FIRST CHECK IN THIS REPOSITORY THAT READS `docs/HANDBOOK.md`
+      # AT ALL — until it existed, the one document the OWNER reads was the one
+      # document no machine looked at, and it went stale in six rows across two
+      # occasions. It asserts AGREEMENT with `docs/PLAN.md`, never judging the
+      # plan, so it is not the second status board `plan-handover.sh` refuses.
+      - "docs/checks/handbook-agreement.sh"
+      - "docs/checks/handbook-agreement-falsify.sh"
       # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
       # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
       # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
@@ -289,3 +305,7 @@ jobs:
         run: bash docs/checks/5b.8-split-coverage.sh
       - name: Plan — can the 5b.8 guard still fail (its own ten fixtures)
         run: bash docs/checks/5b.8-split-coverage-falsify.sh
+      - name: Handbook — does the file the owner reads still agree with the plan
+        run: bash docs/checks/handbook-agreement.sh
+      - name: Handbook — can that guard still fail (its own eleven fixtures)
+        run: bash docs/checks/handbook-agreement-falsify.sh
