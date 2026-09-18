@@ -6,8 +6,11 @@ arriving before it does will write the conventions themselves, by accident, in
 four places."*
 
 Every rule below is **already true of `app/` today** — none of it is aspiration.
-Nine rules; seven of them are read by a machine on every pull request, and the
-two that are not say so in their own words.
+Most are read by a machine on every pull request, and the two that are not say so
+in their own words. ⚠️ **This sentence used to carry the counts — *"nine rules;
+seven of them"* — and it was stale from the day `R10` was added.** A number nothing
+checks is a claim nothing keeps; the list in the command below is the count, and
+assertion 0d reads it.
 
 **This page is not the architecture.** ADR-035 decides; this page describes how
 those decisions are spelled in files. Where the two disagree, **the ADR wins and
@@ -22,7 +25,7 @@ this page is the bug** — the same rule `docs/PLAN.md` carries.
 | **How to write the file in front of you** | here |
 
 ```bash
-bash docs/checks/conventions-gate.sh     # reads R1, R2, R4–R8 against app/
+bash docs/checks/conventions-gate.sh     # reads R1 R2 R4 R5 R6 R7 R8 R10 R11 against app/
 ```
 
 ---
@@ -306,6 +309,41 @@ never been asked on iOS. **Present on one platform is not a measurement.**
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R10.
 
+### R11 — A colour a person sees comes from `src/theme/palette.ts`, never from a literal
+
+`backgroundColor`, `color`, `borderColor`, `tintColor` — all from `PALETTE`,
+never `'#FFFFFF'`, never `'white'`, never `rgba(0,0,0,.4)`.
+
+Área 13, ruled by the owner on 2026-09-17: *"let's go full B."* **Eleven named
+roles, and a role has one job.** `atencion` is the unpriced row and a line
+priced `$0.00` — it is not "the orange one". Picking a role means finding the
+sentence that matches what you are building; inventing a hex means the app now
+has two ambers, and the second one is the state nobody looks at.
+
+⚠️ **It is `R6`'s argument about colour.** The client reached `5b-i` with
+twenty-nine source files and **zero colour in any of them** — measured, not
+assumed. Retrofitting a palette onto finished screens is an audit of every
+file, and its misses are the empty list, the failed write, the row with no
+price.
+
+⚠️⚠️ **NO STATE IS EVER ANNOUNCED BY COLOUR ALONE** — always colour **and** a
+word, or colour **and** a border. This is the rule that survived from the
+rejected direction C, and it is the one thing on this page **no check can
+see**: §2.11 bans rendering suites. It is also not politeness. `accion` and
+`atencion` are **1.18:1 apart in luminance** (`app/test/palette.test.ts`
+asserts it): green-acts and amber-warns are carried entirely by *hue*, and hue
+is the channel roughly one man in twelve does not have. **The word is the fix,
+and the word is free.**
+
+⚠️ `src/theme/palette.ts` is the one file exempt, exactly as `density.ts` is
+exempt from `R6`. Everything else in `src/`, routes included.
+
+⚠️ **Density is size; the palette is colour. Neither file holds the other's
+tokens**, or `Letra grande` becomes a second *theme* and every screen has to
+choose between them.
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R11.
+
 ### R9 — A deliverable no check can see is written down as such, and routed to the task that can see it
 
 When you build something this repository's checks cannot reach — a label that is
@@ -364,15 +402,14 @@ is five modules, one of which is the only place in the app that may touch
 the reasoning is. **What is still owed is the WRITTEN convention**, not the
 pattern: the pattern is now on disk, and `5b.5` is where it gets described.
 
-⚠️⚠️ **AND THE COLOURS ARE RULED BUT NOT YET WRITTEN — 2026-09-17.** Área 13
-settled the app's palette (**eleven roles, each with one job**), its motion rule
-(**one staggered entrance per screen, `transform` and `opacity` only**) and the
-rule that matters most here: **no state is ever announced by colour alone —
-always colour AND a word, or colour AND a border.** ADR-035 §2.11 carries both as
-rows. ⚠️ **`app/src/theme/palette.ts` does not exist yet and neither does `R11`**,
-the gate rule that will enforce it the way `R6` enforces sizes. **That is plan
-task `5b.6`, and it is the next one.** Until it merges, **do not invent a colour
-in a screen** — the whole point of the round was that the app had none.
+⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 AND ARE NO LONGER MISSING FROM
+THIS PAGE — see `R11` above.** `app/src/theme/palette.ts` holds the eleven roles
+and the gate reads them. ⚠️ **The MOTION rule is still only prose**: one staggered
+entrance per screen, `transform` and `opacity` only, because those two run on the
+compositor and animating layout, colour, shadow or blur does not — C1.1 puts two
+low-end Androids in the pilot. ADR-035 §2.11 carries it as a row. **No check can
+see it, and no screen animates yet**; the first one that does is `5d`'s, and the
+plan says to measure the Inicio morph on the owner's own device before it.
 
 So if you are about to write the second RPC wrapper or the first shared
 component: **that is the second pass, and it is plan task `5b.5`.** Read
