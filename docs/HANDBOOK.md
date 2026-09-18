@@ -318,9 +318,11 @@ to stop and ask rather than pick a side.
 | **5b** | **Onboarding and membership** — creating a shop, and getting a second person into it | **Split into three on 2026-09-14**, before any of it was written |
 | **5b-i** | Creating the shop: its name, the IVA question, and the app's first data layer | ✅ **Done 2026-09-14** — install, sign in, name the shop, land on Inicio |
 | **—** | **The look of the app** — three directions drawn, you picked one | ✅ **Ruled 2026-09-17.** The canvas is at `claude.ai/code/artifact/5d0fe2fd-3e7c-448a-a27d-4c0f2fe99127` and it is the only copy |
-| **5b.6** | **The colours, written down as code plus a check that enforces them** | ⚠️ **This is where the next piece of work is**, and nothing is waiting on you for it |
-| **5b.5** | The conventions page, second pass | After `5b.6`, so it describes the data layer and the colours in one go |
-| **5b-ii** | **Ajustes, the join code, and inviting someone** | After the colours — it is the first screen that would otherwise invent its own |
+| **5b.6** | **The colours, written down as code plus a check that enforces them** | ✅ **Done 2026-09-17** — eleven named colours and a check that refuses any other |
+| **5b.5** | The conventions page, second pass | ✅ **Done 2026-09-18** — it describes the data layer; the shared-components half moved to `5h.5`, once there are some |
+| **5b-ii** | **Ajustes, the join code, and inviting someone** | **Split in two on 2026-09-18**, before any of it was written — it was bigger than the file said |
+| **5b-ii-a** | **The Ajustes sheet: who is in the shop, the join code, and text size** | ⚠️ **This is where the next piece of work is**, and nothing is waiting on you for it. ⚠️ **One call was made for you**: a staff member does not see the list of people — the database will not tell the app who they are, so the list would be blank rows. Say if you want it otherwise |
+| **5b-ii-b** | **Inviting someone, and them joining** | After the sheet exists |
 | 5b-iii–5h | The rest of the screens | After 5b-ii |
 | **—** | ⚠️ **One thing is waiting on YOU** | **What your Números questions actually are.** You said on 2026-09-17 they are *not* about how it looks — so they are about what it measures, which reopens área 9 and probably costs a migration. ✅ The undo question was answered the same day: **no undo.** It is in `docs/PLAN.md`'s decisions block and every session re-offers it until you say |
 | 6–7 | Beyond the pilot | Later |

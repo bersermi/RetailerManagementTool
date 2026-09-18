@@ -163,13 +163,217 @@ answers, and a change there is a **fix-forward migration**. ⚠️ **The row sta
 block** because the questions themselves are still unstated and only the owner has them. **It
 blocks nothing takeable today.**
 
+✅✅ **`5b-ii` IS SIZED `L` AND SPLIT IN TWO AS OF 2026-09-18, BEFORE A LINE OF IT WAS
+WRITTEN — AND `5b-ii-a` IS THE NEXT TASK.** ⚠️ **No app code was written in this session and
+none should have been**: `app/src/` and `supabase/migrations/` are untouched, and this
+section, three table rows, one new guard, its harness, the two `app.yml` steps that run them,
+and the *"where we are"* rows in `docs/HANDBOOK.md` — three of which were already stale before
+this session opened the file — are the whole of it. It is `5b`'s own argument one level down — **the
+cheapest moment to be wrong about the shape of two screens is now, in a file, rather than
+after one of them exists.**
+
+#### ⚠️⚠️ Why it is an `L` and not the `M/L` the row carried — five deliverables, twelve things to build
+
+The row names five: **Ajustes**, the **join code** and its share, **member management**,
+**`create_invite`**, **`redeem_invite`**. Counting what has to exist before a second person is
+standing in the shop with the app open:
+
+1. **The app's first non-tab surface.** §2.8 fixed Ajustes as a sheet. There is no modal
+   route, no presentation option and no sheet anywhere in thirty source files.
+2. **An entry point to it**, from a Home screen that is still `Pendiente` scaffolding.
+3. **The first screen that adopts the palette.** `5b.6` shipped eleven roles with **no
+   consumer**, and `R11` refuses a colour literal — so every colour decision on these
+   surfaces is made for the first time, under a rule nothing has been held by yet.
+4. **Two reads the app has never done**, and they are two because PostgREST cannot do it in
+   one — see `N4`.
+5. **The member list itself**, with three identity cases and not the one the row describes —
+   see `N3`.
+6. **The join code and a `Share` sheet**, the app's first hand-off to another application.
+7. **`create_invite`** — four arguments, one of them an array, one of them conditional on the
+   role — and a **token rendered once and never recoverable**, which is a screen state this
+   app has no shape for.
+8. **A location for a staff invite**, which `0028` refuses to do without — see `N1`.
+9. **`redeem_invite`**, off the landing `5b-i` built, which is a second actor on a second
+   device.
+10. **The density switch and its persistence**, parked on this sheet by `5a-iii-b` and
+    carried in no deliverable list until today — see `N2`.
+11. **The contract check.** `5b-i`'s own record is that a wrong `p_` name is a **404 that the
+    typecheck, the suite and the bundler all pass over**; that argument covers two more RPCs
+    and five more argument names here.
+12. **The Spanish copy** for all of it, including the two error branches `0028` raises by
+    workflow code (`TD003`) rather than by constraint.
+
+⚠️ **`5b-i` was an `M` and shipped five `src/api/` modules, one screen, one route group and
+one contract check.** This is two surfaces, two definer RPCs, two actors, a share sheet, a
+device setting and the first palette adoption. **The `M/L` was written on 2026-09-14 against
+the five nouns on the row, and four of the twelve above were not visible from it.**
+
+#### ⚠️⚠️ Four things found by reading the applied schema and this file's own notes, not the row
+
+**`N1` — A `staff` INVITE CANNOT BE CREATED WITHOUT A LOCATION, AND NOTHING ON THE ROW SAYS
+SO.** `0028:291` raises `22023` — *"a staff invite must name at least one location"* — and
+`4.6a-ii`'s decision 4 records why it is there and why it is **`D8`'s argument rather than
+`D8`**. The split of 2026-09-14 assigned the picker to the other child, which owns `D8`
+itself. ⚠️ **So the push path needs its own**, and a `location` read the app does not have.
+✅ **C1.5 makes it free for the pilot**: the two shops are one location each, created by
+`onboard_workspace`, so nothing is asked when there is one. **The picker appears only when a
+shop has more than one, and it refuses to be empty** — the same predicate `D8` puts on
+approval, one task earlier. ⚠️ **Whether that picker and `5b-iii`'s approval picker are ONE
+component is `5h.5`'s business, not this split's**, and naming it here is what stops them
+being two by accident.
+
+**`N2` — THE DENSITY SWITCH HAS BEEN PARKED ON THIS SHEET SINCE `5a-iii-b` AND IS IN NO
+DELIVERABLE LIST.** That task's own closing notes say the mode is a **device** setting
+(`5a-ii`'s decision 4), that the storage engine now exists, and that *"the surface that sets
+it is `5b`'s Ajustes"* — then deliberately did not build it, because *"persisting it behind a
+placeholder switch would put the write in the file that gets deleted."* ⚠️ **It was correct to
+defer and nobody wrote it down where a guard could see it.** C3.18 is the constraint; the
+scale is `5a-ii`'s and shipped; the control is this sheet's and has no home. ✅ **It is now a
+deliverable of `5b-ii-a`**, and that is scope this row did not carry — flagged below.
+
+**`N3` — ⚠️⚠️ THE EMAIL RULING HAS A THIRD CASE, AND IT IS THE ONE A PILOT WOULD MEET LAST
+AND TRUST LEAST.** The ruling of 2026-09-14 is *"identified by EMAIL, recovered from
+`workspace_invite`, with the caller's own row labelled Tú"*, and `T2` already recorded that
+the founding owner has no invite row. **Measured today, from `0002:563`:
+`workspace_invite_select` is `has_role(workspace_id, 'manager')`** — its own comment says *"the
+row carries an email address and a token hash, and staff have no reason to enumerate
+either"* — while `workspace_member_select` (`0001:524`) admits **any member of the
+workspace**. So the roster is readable by staff and the identities on it are not. There are
+three cases, not one:
+
+| Who is looking | At whose row | What comes back |
+|---|---|---|
+| anyone | their own | *Tú*, with no lookup — `T2`'s answer, and it still holds |
+| a manager or owner | someone who joined by invite | the email, as ruled |
+| ⚠️⚠️ **a staff member** | **any row but their own** | **nothing at all** — and a manager looking at the founding owner gets nothing either, which is `T2` |
+
+⚠️ **A roster of blank rows is a screen inventing a state the schema deliberately refuses.**
+The decision taken is below and it is the one this session most wants looked at.
+
+**`N4` — THE JOIN IS DONE IN TYPESCRIPT, AND POSTGREST CANNOT DO IT AT ALL.** The instinct is
+`select=*,workspace_invite(email)`. **There is no foreign key between `workspace_member` and
+`workspace_invite`** — `workspace_invite.accepted_by` and `workspace_member.user_id` both
+reference `auth.users`, which §2.7 never exposes — so PostgREST has no relationship to embed
+and returns `PGRST200`. ⚠️ **Two reads, joined on `accepted_by = user_id` in the client**,
+which is why the member list is a data-layer task and not a list component.
+
+#### The seam, and what each piece is
+
+| | Takes | Why the line is here |
+|---|---|---|
+| `5b-ii-a` | Ajustes as a surface, the density switch, the roster, the join code and its share | **Everything that READS, and nothing that writes a membership.** It is the piece that has to solve *"what is a sheet in this app"* and *"what does a screen look like"* — the first palette consumer and the first non-tab route — and it is a closed loop on its own: an owner opens Ajustes, sees who is in the shop, shares the code, and sets his own text size |
+| `5b-ii-b` | `create_invite` and its token, the location a staff invite must name, `redeem_invite` | **Both membership writes, and both actors.** It is the closed loop the parent row describes — an owner invites, a second person redeems, and there are two people in the shop — and it arrives at a sheet that already exists, so it adds a control and a flow rather than inventing a surface |
+
+⚠️ **The invariant is statable in one line and that is the point: `5b-ii-a` ships no
+membership write.** Not *"mostly reads"* — none. That is what makes the seam checkable rather
+than a matter of taste, and it is what the guard below asserts.
+
+#### Three alternative seams considered and refused
+
+- **The surface first, then everything with a person in it** — Ajustes, density, code and
+  share in one piece; roster, invites and redemption in the other. Refused: the second piece
+  is an `M/L` again, which is the defect being fixed, and it is `4e`'s and `4.6a`'s recorded
+  mistake — the second half needs splitting on the day it is taken.
+- **Split by PERSON**: everything the owner sees, then the joiner's screen. Refused: the
+  joiner's half is one screen and one RPC, an `S`, and the owner's half is then the whole `L`
+  minus a text field. A split that moves a tenth of the work is a renumbering, not a split.
+- **The data layer first, then the screens.** Refused by the parent's own argument, which this
+  session did not have to re-derive: *"a screen with no call is a deliverable no check in this
+  repository can see"*, §2.11 bans rendering suites, and the inverse — a typed module nothing
+  calls — is the same defect facing the other way. `5b-i` shipped its layer and its screen
+  together and that is the pattern `5b.5` has now written down.
+
+#### ⚠️ Four decisions taken on the owner's behalf, and the second is the one to look at
+
+| | Decision | Why, and what it costs to reverse |
+|---|---|---|
+| **1** | **The seam above**, and `5b-ii` stops being takeable | A sizing judgement, which is the session's job under the working agreement. The three alternatives and why each loses are written out above. **Reversed by one plan edit** — nothing after `5b-ii` renumbers, because these children ship no migration |
+| **2** | ⚠️⚠️ **THE ROSTER IS MANAGER-AND-ABOVE. A STAFF MEMBER OPENING AJUSTES SEES THE SHOP AND THEIR OWN SETTINGS, AND NO LIST OF PEOPLE.** | `N3` is the measurement. The alternative is a list whose every row but one is blank, which is this app deciding to show a shopkeeper an internal state — the thing the owner's own rule refuses. **The database already made this call and wrote its reason in the migration** (*"staff have no reason to enumerate either"*, `0002:561`); rendering the section anyway would be the client disagreeing with a policy it cannot win against. ⚠️ **It is a decision about what a screen RENDERS, so it has no constraint to live in** — it is held by the guard below, in the shape the ruling of 2026-09-14 is held. **Reversed by one predicate**, today or after the screen exists |
+| **3** | **The density switch is `5b-ii-a`'s, and that is scope the row did not carry.** | `N2`. The alternative is a fifteenth homeless deliverable, and the reason `5a-iii-b` gave for deferring it — *"the file that gets deleted"* — stops applying the moment Ajustes is real. ⚠️ **It is the only thing here that makes the task BIGGER**, and it is named rather than absorbed. **Reversed by one plan edit**, and it would then need a home |
+| **4** | **Nothing is asked when a shop has one location; the picker appears only above one.** | `N1`, and C1.5 says the pilot never sees it. The owner's tie-break is the option that adds no human step, and asking a one-store shopkeeper which store is the question with no right answer `5b-i` already refused about the location's NAME. **Reversed by always showing it** |
+
+#### The guard, and what it does not do
+
+`docs/checks/5b-ii-split-coverage.sh` is `5b-split-coverage.sh` pointed one level down. It
+asserts the parent row and both children exist, that each child is stated **exactly once**,
+that the parent still promises each of the **eight** deliverables — five of them the row's
+own, three added by `N1`, `N2` and the 2026-09-14 ruling — that each lands in exactly one
+child and the assigned one, that the roster's manager fence is still written down, and that
+the parent says it is **no longer takeable**.
+
+⚠️ **It cannot tell a good split from a bad one.** It cannot see whether `5b-ii-a` is really
+buildable in a session, and it cannot see a membership write appearing in it — only that the
+row does not CLAIM one. ⚠️ **And nothing here can see the palette being used well**: `R11`
+proves no colour is a literal and says nothing about whether the result is legible, which is
+área 13's own recorded limit and why the eye that checks it is the owner's.
+
+**Nine fixtures over the guard itself** (`5b-ii-split-coverage-falsify.sh`), each mutating a
+copy of this file and matching the MESSAGE rather than the exit code, for the reason its
+sister harness paid for: *a fixture that is red for the wrong reason is not a falsification,
+it is a coincidence.*
+
+| Fixture | The edit | Result |
+|---|---|---|
+| **Z0** | the control, unedited | 🟢 — a harness whose baseline is red runs no fixture at all |
+| **Z1** | `5b-ii-b`'s row deleted | 🔴 *"no table row for 5b-ii-b"* |
+| **Z2** | ⚠️⚠️ **`create_invite` moved into `5b-ii-a`** — the commonest real mistake, a session that has just built the roster finding the invite button one line away | 🔴 *"this split assigned it to 5b-ii-b"* |
+| **Z3** | the density switch in no child | 🔴 *"in the parent row and in NO child"* — `N2`'s whole point, since it was homeless for six days already |
+| **Z4** | ⚠️⚠️ the join code struck from the PARENT row | 🔴 *"no longer named in the parent 5b-ii row"* — the edit that makes a coverage check **vacuous** rather than red, which is this repository's most-recorded check defect |
+| **Z5** | `5b-ii-a`'s row stated twice | 🔴 — `5a-iv`'s sub-split defect, which cost an hour of two simultaneous routings |
+| **Z6** | ⚠️ **the roster's manager fence deleted from `5b-ii-a`** | 🔴 — the fixture that guards a DECISION rather than a deliverable, and the decision is `N3`'s |
+| **Z7** | the parent row stops saying it is not takeable | 🔴 — `plan-handover.sh`'s `V4` is the record of what that costs |
+| **Z8** | ⚠️ `5b-ii-a` **also** claims `redeem_invite`, which `5b-ii-b` still ships | 🔴 *"owned by neither"* — `Y8`'s shape, and nothing is DROPPED, which is why a check that only counted homes would pass |
+
+⚠️⚠️ **`Z2` WAS RED FOR THE WRONG REASON ON ITS FIRST RUN, AND THAT IS WHY `Z8` EXISTS.** It
+was written as a COPY — `create_invite` added to `5b-ii-a` and left in `5b-ii-b` — so the
+guard reported *"owned by neither"*, which is a real defect and not the one the fixture is
+named for. **The MISROUTED branch is only reached when a deliverable leaves its owner, and it
+was untested until the harness said so.** ✅ `Z2` is now a genuine move and `Z8` covers the
+branch it had been hitting by accident. ⚠️ **This is `Y2`'s lesson arriving one variant over**,
+and it is the second time in two splits that the fixture, not the guard, was the thing that
+was wrong.
+
+⚠️⚠️ **AND THE SENTINEL RULE WAS BROKEN WHILE THIS SPLIT WAS BEING WRITTEN — THE EIGHTH
+INSTANCE, CAUGHT IN SECONDS BY A CHECK RATHER THAN IN DAYS BY A PERSON.** The new `5b-ii` gate
+cell named the data layer by its path while explaining that the row deliberately does not name
+it, and `5b-split-coverage.sh` went red with *"owned by neither"* on the sentence that had just
+been typed. ✅ **The SENTENCE was changed, not the check** — the cheaper half of *never spell a
+check's sentinel in the file it reads*, and the half this file records as the one that keeps
+being forgotten. ⚠️ **The row's own text had warned about exactly this, one clause earlier.**
+
+⚠️ **The parent `5b` guard is untouched and still green at 15/15.** Its deliverable list reads
+`5b-i`, `5b-ii` and `5b-iii` only, and the three rows it reads still name everything they
+named yesterday — a grandchild row is invisible to it by construction, which is the property
+that let `4.6a` be split without rewriting `5a`'s guard.
+
+#### ⚠️ And `docs/HANDBOOK.md` was three rows stale before this session touched it
+
+Its *"where we are"* table still said `5b.6` was *"where the next piece of work is"* — closed
+2026-09-17 — and `5b.5` was *"after `5b.6`"*, closed 2026-09-18. ⚠️ **Neither session updated
+it**, and `plan-handover.sh` cannot see it: that check reads `docs/PLAN.md` and nothing else.
+**This is the thirteenth stale-copy defect recorded here and the second time the HANDBOOK is
+the copy that went quiet** — `#76` was the first. ✅ **Fixed in the same commit**, and named
+rather than tidied away silently, because the interesting part is that two consecutive
+sessions closed a task and left the non-developer's page saying it was next.
+
+⚠️⚠️ **AND THE REASON IS STRUCTURAL, NOT CARELESSNESS: NOTHING READS `docs/HANDBOOK.md`.**
+`plan-handover.sh` reads `docs/PLAN.md` and stops there; `conventions-gate.sh` reads
+`docs/CONVENTIONS.md` and `app/`; `app.yml`'s `paths:` filter names both of those pages and
+not this one. **The one page written for the person who cannot read the others is the only
+page in `docs/` with no instrument over it at all.** ⚠️ **Deliberately not fixed here** — a
+guard over it is its own task with its own fixtures, and inventing one inside a sizing
+session is the shape this file refuses. **It is named so the next interstitial has somewhere
+to start**, and because the count above will otherwise keep going up for the same reason.
+
 ✅✅ **RULED BY THE OWNER 2026-09-18 — *"amend ADR-035 §3 to say 5h.5."* THE ADR NOW SAYS THE
 OBLIGATION TAKES TWO PASSES, AND `5b-ii` IS THE NEXT TASK, UNCHANGED.** §3 named the
 `src/api/` **and** `src/ui/` conventions together at `5b.5`; `5b.5` wrote the first half and
 could not write the second, because `app/src/ui/` did not exist. **§3 now carries a `5b.5.`
 entry for `src/api/` and a `5h.5.` entry for `src/ui/`**, each with the reason, plus an
-amendment note on step `5a` and a dated revision entry. ⚠️ **No schema, no app code, and
-nothing was built against the old wording** — the plan made the split on 2026-09-18 and
+amendment note on step `5a` and a dated revision entry. ~~`5b-ii` is the next task,
+unchanged.~~ ⚠️ **`5b-ii` was sized `L` and split in two later the same day — see the entry
+above; `5b-ii-a` is what gets taken, and this ruling is unaffected by the split.**
+⚠️ **No schema, no app code, and nothing was built against the old wording** — the plan made the split on 2026-09-18 and
 flagged it as owed here rather than letting §3 read as though a closed task still owed
 something it never delivered.
 
@@ -219,7 +423,9 @@ all) and **`R13`** (an RPC's name, its `p_` arguments and its columns are writte
 module the suite can read), both read by `docs/checks/conventions-gate.sh`; a row in **`R3`**
 for the `workspace.ts` / `calls.ts` pair; a second instance named in **`R4`**; and `src/api/`
 in the file-layout tree, which had never listed it. **Sixteen assertion groups, twenty-seven
-fixtures, 173 assertions still passing, no app code and no migration.**
+fixtures, 173 assertions still passing, no app code and no migration.** ~~And `5b-ii` is the
+next task.~~ ⚠️ **It was, for a few hours: `5b-ii` was sized `L` and split in two on
+2026-09-18 and `5b-ii-a` is the next task — see the entry above.**
 
 ⚠️⚠️ **THE `src/ui/` HALF WAS NOT WRITTEN AND IS NOT PRETENDED TO BE. IT MOVED TO A NEW ROW,
 `5h.5`, AND THAT IS THE DECISION THIS SESSION MOST WANTS LOOKED AT.** `app/src/ui/` does not
@@ -10836,7 +11042,9 @@ free today and stay free until the first task merges.
 | **5a** | ⚠️ **SPLIT FOUR WAYS 2026-09-07 — see the sizing below; `5a-i` is what gets taken.** **The shell.** Expo project for **iOS and Android** (C1.1), OAuth sign-in — Google / email, **no phone auth** (C1.4) — ⚠️ **Facebook was promised here and moved to `5i` by decision on 2026-09-11, not dropped** — persistent session with last-screen restore (C1.3), the two density modes as a theme scale (C3.18), `$1,234.50` formatting with centavos hidden at zero (C12.2), icons-plus-words navigation (C12.1). Built and run locally on the owner's own iPhone (C1.6). ⚠️ **Plus `.github/workflows/app.yml` and the workspace entry — see below; they are part of "done", not a later tidy-up.** | `L` | — |
 | **5b** | ⚠️⚠️ **SIZED `L` AND SPLIT THREE WAYS 2026-09-14, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Onboarding and membership.** Fifteen deliverables, all of which land in a child below: **`onboard_workspace`**; **the IVA question** (**C1.7**); **the no-workspace landing** for a signed-in person who belongs to none; **`src/api/`**, the app's first real data layer; **Ajustes**, its first non-tab surface; the join code and its WhatsApp share (**C11.7**); **member management**; **`create_invite`**; **`redeem_invite`**; **`request_access`** with **`my_access_requests`**; **`approve_request`** and its location picker; and the Home notifications icon and badge (**C11.8**). ✅ **Plus the two halves of the ruling of 2026-09-14**: a member row **identified by EMAIL** and never by a name, and an approval row where **the approver sees an EMAIL** and never a name. ⚠️ **Everything the server half needs EXISTS** — `0027`–`0029`, which is what the gate was waiting for. **Nothing below ships a migration** | `L` — **split, an `M` and two `M/L`s** | ✅ **`4.6a` IS DONE** — `0027`–`0029` applied 2026-09-13/14, and the database build has no open task |
 | **5b-i** | ✅✅ **IS DONE AS OF 2026-09-14 — `0033` was the last migration and this task shipped none.** **A shop that exists, and the layer everything else calls through.** `onboard_workspace(display_name, prices_include_tax, location_name)`; the IVA question **C1.7** — *¿Tus precios ya incluyen IVA?*, the ADR wrote the wording, and **getting it wrong at onboarding is wrong for ever**; the **no-workspace landing**, which is a navigation state `guard.ts` does not have today; and **`src/api/`**, the first typed call surface in this app. ⚠️ **A closed loop on its own**: install, sign in, create the shop, land on Home. ⚠️ **It is also the piece that CREATES the pattern `5b.5` describes**, which is why that row now gates on this one. ✅ **Shipped:** `src/api/` in five modules over one impure boundary, TanStack Query as the server-state layer ADR-035 §2.11 names, a third route group `(onboarding)`, and **`docs/checks/5b-i-api-contract.sh`** — a real HTTP round trip against a reset database, because a wrong argument name is a 404 that the typecheck, the suite and the bundler all pass over | `M` | ✅ **Was unblocked, and is closed.** `5b.5` is now takeable, and so is everything below |
-| **5b-ii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-18.** **Ajustes, the code, and the PUSH path.** The **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; **`create_invite`** returning a token shown **once**; and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M/L` | ✅✅ **TAKEABLE AND NOW NEXT, 2026-09-18 — BOTH THE THINGS INSERTED AHEAD OF IT ARE CLOSED.** ~~UNBLOCKED, BUT NO LONGER NEXT — `5b.6` WAS INSERTED AHEAD OF IT 2026-09-17.~~ It is the first screen that can adopt the palette and the first consumer of the written pattern, which is the order both interstitials were inserted to produce. `5b-i` closed 2026-09-14 and this row is the first consumer of the data layer it built; it is also **the first screen that would otherwise invent its own colours**, which is exactly what área 13 exists to prevent. ⚠️ **That layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned this guard red while the sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
+| **5b-ii** | ⚠️⚠️ **SIZED `L` AND SPLIT IN TWO 2026-09-18, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** **Ajustes, the code, and the PUSH path.** Eight deliverables, all of which land in a child below: the **Ajustes** sheet — §2.8 fixed it as a sheet and not a tab, and it is the app's first non-tab surface; the **join code** with its WhatsApp share (**C11.7**); **member management**; the **density** switch and its persistence, parked on this sheet by `5a-iii-b` and carried in no list until the sizing (`N2`); **`create_invite`** returning a token shown **once**; the location **a staff invite must name**, which `0028` refuses to do without (`N1`); and **`redeem_invite`**. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, recovered from `workspace_invite`, with the caller's own row labelled *Tú*.** No name is rendered, because no table carries one (`T1`) — and no migration is added to make one. ⚠️⚠️ **And the sizing measured a THIRD case the ruling does not cover (`N3`): the invite table is readable by managers and above only, so a staff caller recovers no identity at all.** ⚠️ **A closed loop across the two children**: an owner invites, a second person redeems, and there are two people in the shop | `L` — **split, two `M`s** | ✅ **Was takeable and is now a parent.** Both things inserted ahead of it are closed — `5b.6` shipped the palette 2026-09-17 and `5b.5` wrote the data-layer conventions 2026-09-18 — and the split is the only thing between here and the sheet. ⚠️ **The data layer is named in `5b-i`'s row and in the parent's, and deliberately not here**: a row spelling a deliverable it does not own is what turned the `5b` guard red while that sentence was being written, which is the seventh instance of *never spell a check's sentinel in the file it reads.* The decision that was open against this row was ruled on the day it was parked |
+| **5b-ii-a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-18.** **The sheet, and everything on it that only reads.** The **Ajustes** sheet itself — the app's first non-tab surface, and the first screen of any kind to adopt `5b.6`'s palette under `R11`; its entry point from a Home screen that is still scaffolding; **member management**, the roster; the **join code** and its WhatsApp share (**C11.7**); and the **density** switch finally persisted, which `5a-iii-b` deferred to this surface and no list has carried since. ✅✅ **RULED 2026-09-14: the member row is **identified by EMAIL**, with the caller's own row labelled *Tú* and no name anywhere.** ⚠️⚠️ **The roster is MANAGER-AND-ABOVE — a decision taken on the owner's behalf 2026-09-18 and the one the sizing most wants looked at.** `workspace_invite` is readable at `manager` (`0002:563`), `workspace_member` by any member (`0001:524`), so a staff caller would get a list of rows it cannot identify; the sheet shows them the shop and their own settings instead. ⚠️ **It ships NO membership write** — that is the seam, and it is what the guard asserts. ⚠️ **Two reads and a client-side join**: no foreign key links the two tables and neither may embed the other (`N4`). ⚠️ **A closed loop**: an owner opens the sheet, sees who is in the shop, shares the code, and sets his own text size | `M` | ✅ **TAKEABLE.** `5b-i` built the data layer it calls through, `5b.6` built the palette it is the first consumer of, and `5b.5` wrote the pattern it is the first consumer of. Nothing is waiting on the owner |
+| **5b-ii-b** | **Both membership writes, and both actors.** **`create_invite`** — four arguments, a manager fence in the body, and a token **shown once and stored only as a hash**, so the screen that renders it is the only place it will ever exist; the location **a staff invite must name**, which `0028:291` refuses to do without and which the split of 2026-09-14 had left with the other child (`N1`); and **`redeem_invite`**, off the landing `5b-i` built, on a second person's phone. ⚠️ **`D8`'s ARGUMENT, not `D8`** — the approval path's own picker stays where it is, and whether the two are one component is `5h.5`'s question rather than this task's. ✅ **Nothing is asked when a shop has one location** — C1.5 says both pilot shops are exactly that, so the picker appears only above one, and refuses to be empty when it does. ⚠️ **A closed loop**: an owner invites, a second person redeems, and there are two people in the shop | `M` | ✅ **UNBLOCKED BY THE SERVER AND SEQUENCED BEHIND THE SURFACE.** `0028` has been applied since 2026-09-13 and ships nothing here. It arrives at a sheet that already exists, so it adds a control and two flows rather than inventing a surface — which is the whole reason the seam is where it is |
 | **5b-iii** | **The PULL path and the badge.** Join-by-code → **`request_access`** → the joiner's pending state through **`my_access_requests`** (`S3`: no policy can ever show them their own row); the Home **notifications icon and badge** (**C11.8**); and **`approve_request`** with the **location picker** `D8` refuses to leave empty for `staff`. ⚠️ **A closed loop**: someone asks, the owner sees a badge, approves, they are in — and the silent failure `D8` exists to prevent is a staff member who can open the app and write nothing. ✅✅ **RULED 2026-09-14: the approver sees an EMAIL and a role, never a name** — the other half of the member-identity ruling, and the half the constraint above is really about — *"enough not to approve the wrong Juan"*. ⚠️ **The constraint is named once in this row and once only**: a row that spells a sentinel it does not own is what `Y8` exists to catch, and a row that spells one twice makes `Y2` ambiguous — which is how this sentence was found | `M/L` | ✅ **UNBLOCKED — `5b-i` closed 2026-09-14.** The decision that was open against this row was ruled on the day it was parked |
 | **5b.5** | ✅✅ **IS DONE AS OF 2026-09-18 — the `src/api/` half is written; the `src/ui/` half moved to `5h.5`, which is the decision this task's closing message flags first. `CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** ⚠️⚠️ **AND BOTH THINGS IT WAITED FOR NOW EXIST, SO IT IS TAKEABLE — TAKEN AS A DECISION ON THE OWNER'S BEHALF 2026-09-17, NOT AS A RULING.** `5b-i` built `src/api/` and `5b.6` built the palette; the row's own gate argues for going now rather than later — *"one consumer to reconcile instead of three, each having invented its own"* — and `5b-ii` and `5b-iii` are the two that would otherwise become the other two. ⚠️ **The alternative was to resume the interrupted order and build the Ajustes sheet first**, which is defensible and costs a page written against two consumers instead of one. **Reversed by one plan edit** ✅ **CLOSED 2026-09-18.** Shipped: `R12` and `R13` on the page and in `docs/checks/conventions-gate.sh`, a row added to `R3`, a second instance named in `R4`, `src/api/` added to the file-layout tree, five new fixtures (`F22`–`F26`), `F10` re-anchored, and assertion `0b` rewritten to READ the deferred task id instead of carrying `5b.5` as a literal — which is what would have let this very edit pass unnoticed |
 | **5b.6** | ✅✅ **IS DONE AS OF 2026-09-17 — the palette exists, `R11` reads it, and twenty-one fixtures say `R11` can fail. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **CLOSED 2026-09-17.** Shipped as sized: `app/src/theme/palette.ts` (eleven roles), `app/test/palette.test.ts` (7 assertions, no hex spelled twice), `R11` + assertion `0d` in the gate, fixtures `F17`–`F21`, and `F10`/`F12` repaired after both went stale on this task. **No migration, no screen, no component adopting it** |
