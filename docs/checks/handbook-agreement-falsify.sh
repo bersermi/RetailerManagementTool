@@ -45,6 +45,34 @@ trap 'rm -rf "$WORK"' EXIT
 fails=0
 ran=0
 
+# ⚠️⚠️ THE MARKED ROW IS DISCOVERED, NOT SPELLED — AND THIS IS THE SECOND THING
+# THIS HARNESS LEARNED THE EXPENSIVE WAY. Three fixtures below (H3, H8, H9) edit
+# the row that carries the handbook's next-work marker. Their first version named
+# `5b.8-i`, because that is where the marker stood the day the guard shipped. On
+# 2026-09-18 `5b.8-i` closed, the marker moved one row, and all three fixtures
+# reported "anchor not present" — a SETUP failure, which this harness correctly
+# refuses to score as a pass, but which would have to be hand-repaired on the day
+# of every single task closure from now until step 6.
+#
+# ⚠️ A harness pinned to a task NAME goes stale the moment the project moves, and
+# it goes stale in the direction that costs a session an hour with nothing wrong.
+# So the two rows are read out of the file the way the GUARD reads them — the
+# marked row, and the row after it — and the fixtures below never name a task.
+MARK_LINE="$(grep -n "This is where the next piece of work is" "$BOOK" | head -1)"
+[[ -n "$MARK_LINE" ]] || { echo "FAIL: no next-work marker in $BOOK — nothing to falsify"; exit 1; }
+MARK_NO="${MARK_LINE%%:*}"
+MARK_TASK="$(sed -n "${MARK_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
+MARK_ANCHOR="⚠️ **This is where the next piece of work is**"
+
+# The row after it, for H9's "both files point, and they disagree". Its anchor is
+# the first bold run in its third cell, whatever that row happens to say.
+AFTER_NO="$((MARK_NO + 1))"
+AFTER_TASK="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
+AFTER_ANCHOR="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| [^|]* | [^|]* | //' | grep -oE '^\*\*[^*]+\*\*')"
+[[ -n "$MARK_TASK" && -n "$AFTER_TASK" && -n "$AFTER_ANCHOR" ]] || {
+  echo "FAIL: could not read the marked row and the one after it out of $BOOK"; exit 1; }
+
+
 # Replace inside ONE table row of ONE file, identified by its bold task name.
 # Asserts the row exists, that exactly one row carries that name, that the anchor
 # is in it, and that the file actually changed — the per-fixture anti-vacuity
@@ -142,8 +170,7 @@ fixture "H2 the plan says done, the handbook does not" red "is DONE and the hand
 # The handbook crediting the owner with work that has not shipped. Nothing else
 # in this repository looks at that sentence.
 fresh
-mutate_row book.md "5b.8-i" "⚠️ **This is where the next piece of work is**" \
-                            "✅ **Done 2026-09-18**"
+mutate_row book.md "$MARK_TASK" "$MARK_ANCHOR" "✅ **Done 2026-09-18**"
 guard
 fixture "H3 the handbook claims done and the plan does not" red "crediting him"
 
@@ -189,17 +216,16 @@ fixture "H7 no row says whether anything is waiting" red "expected exactly 1"
 # row removed the only next-work marker in the file and put none back, so for one
 # commit the owner's own document did not say where the project was.
 fresh
-mutate_row book.md "5b.8-i" "⚠️ **This is where the next piece of work is**" \
-                            "⚠️ **Coming up**"
+mutate_row book.md "$MARK_TASK" "$MARK_ANCHOR" "⚠️ **Coming up**"
 guard
 fixture "H8 no next-work marker anywhere" red "no longer tells him where the project is"
 
 # --- H9. both files point, and they disagree -----------------------------
 fresh
-mutate_row book.md "5b.8-i" "⚠️ **This is where the next piece of work is**" "⚠️ **First**"
+mutate_row book.md "$MARK_TASK" "$MARK_ANCHOR" "⚠️ **First**"
 guard
-mutate_row book.md "5b.8-ii" "**After the piece above.**" \
-                             "⚠️ **This is where the next piece of work is.**"
+mutate_row book.md "$AFTER_TASK" "$AFTER_ANCHOR" \
+                   "⚠️ **This is where the next piece of work is.**"
 guard
 fixture "H9 the two files point at different next tasks" red "and the handbook points at"
 

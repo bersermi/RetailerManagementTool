@@ -12,6 +12,25 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-18 (second entry this date) — **§2.3 and §2.7 amended**, by the
+  migration that made three of their sentences false: `0034`, plan task `5b.8-i`, which
+  adds `workspace_member.display_name` and fills it from all four applied membership
+  writers. ⚠️ **The paperwork was amended in the same pass as the schema, not after
+  it**, which is §9's rule pointed at this document rather than at a migration.
+  **§2.3** gains the column on its data-model row and the paragraph that says what it is
+  for, that it is nullable, and what the write rule is. **§2.7** loses two sentences to
+  strikethrough: *"under normal RLS"* about `create_invite`, which has been `security
+  definer` with a manager fence in its body since `0028` and was **never** true of the
+  applied schema; and *"`auth.users` is never exposed to anyone"*, which is still true
+  of every client role and is no longer true as an absolute — four definer bodies now
+  read one field of it and copy that field onto a table members can select.
+  ⚠️⚠️ **THE PLAN AND THIS DOCUMENT DISAGREED ABOUT WHERE ONE OF THESE LIVED, AND THE
+  ADR WON.** `docs/PLAN.md`'s `5b.8` row said §2.7 *"describes `workspace_member`'s
+  columns"*. It does not — §2.7 describes `workspace_invite`'s; `workspace_member`'s are
+  in §2.3's table. Nothing about what was built changed, because the same three
+  sentences are amended either way; the plan row was corrected rather than followed.
+  **The schema change is `0034` and its evidence is `supabase/tests/0034_member_display_name.sql`
+  — 28 behavioural checks, thirteen falsifications, twelve of them red.**
 - **Revised:** 2026-09-18 — **§3 amended, on the decision maker's instruction**
   (*"amend ADR-035 §3 to say 5h.5"*), with §2.10's one-line reference to the same
   claim brought along. ⚠️⚠️ **THE OBLIGATION DID NOT MOVE AND WAS NOT REDUCED; IT
@@ -355,12 +374,33 @@ months (confirmed 2026-08-14) and `location_id` on the ledger is a one-way door
 |-------|-----------------|-------------|
 | `workspace` | `display_name`, `prices_include_tax`, `currency` (MXN), `is_active` | — |
 | `location` | `workspace_id`, `name`, `is_active` | unique (workspace, lower(name)); unique (id, workspace) for composite FKs |
-| `workspace_member` | `user_id` → `auth.users`, `role` (staff/manager/owner), `is_active` | unique (workspace, user); unique (id, workspace) |
+| `workspace_member` | `user_id` → `auth.users`, `role` (staff/manager/owner), `is_active`, **`display_name`** | unique (workspace, user); unique (id, workspace); `display_name` not blank when present |
 | `member_location` | `workspace_id`, `member_id`, `location_id` | pk (member, location); **composite** FKs on (id, workspace) both sides |
 | `workspace_setting` | `use_last_sell_price`, `void_window_minutes` (15), `enforce_stock_default` (false) | unique (workspace) |
 
 Membership resolves on `auth.uid()`. The prior design matched on user display name
 (`prov-V1-BUILD-LOG.md` D-06), which is neither unique nor immutable.
+
+⚠️ **AMENDED 2026-09-18 — `workspace_member` CARRIES A PERSON'S NAME (`0034`, plan
+task `5b.8-i`).** `display_name` is **not** how membership resolves and never will
+be; that is still `auth.uid()`, and the sentence above is the reason. It is a
+**copy**, written at the moment a membership is written, of
+`auth.users.raw_user_meta_data ->> 'full_name'` — the key Google's provider uses and
+the key the email sign-up writes (`5b.7`). It exists because §2.7 does not expose
+`auth.users` and a roster still has to be drawable: without it, a shop of four people
+is four uuids.
+
+⚠️ **It is nullable, and that is the floor rather than an oversight.** An account
+whose provider returned no name is still admitted, and the client falls back to the
+role. What the column may not hold is the blank — a name that is present and renders
+as a gap — which is a CHECK.
+
+⚠️ **The write rule is the decision maker's, taken 2026-09-18: *"keep what they
+typed."*** All four membership writers set it on `insert`, and on `update` only where
+the stored value is null, so a re-invite never overwrites a correction a person made
+about themselves. ⚠️ **`workspace.display_name` is the SHOP's name and is a different
+column on a different table** — the two sit three lines apart inside
+`onboard_workspace`, which is why that function names its local for the person.
 
 `member_location` is a join table rather than a `location_id` column on
 `workspace_member` because the owner will move a cashier between stores to cover a
@@ -1053,12 +1093,36 @@ catches it — which is the same argument that put the types in CI (§2.10).
 was impossible.
 
 `workspace_invite` — `workspace_id`, `email` (citext), `role`, `location_ids`,
-`invited_by`, `token_hash`, `expires_at` (7 days), `accepted_at`, `accepted_by`. An
-owner or manager calls `create_invite(...)` under normal RLS and receives a
-single-use token. The recipient signs up through ordinary Supabase auth, then calls
-`redeem_invite(token)` — `security definer` — which verifies hash and expiry, writes
-the `workspace_member` and `member_location` rows, and marks the invite accepted.
-`auth.users` is never exposed to anyone.
+~~`invited_by`~~ **`decided_by`** (renamed by `0027`, D4), `token_hash`, `expires_at`
+(7 days), `accepted_at`, `accepted_by`. An owner or manager calls
+`create_invite(...)` ~~under normal RLS~~ and receives a single-use token. The
+recipient signs up through ordinary Supabase auth, then calls `redeem_invite(token)`
+— `security definer` — which verifies hash and expiry, writes the `workspace_member`
+and `member_location` rows, and marks the invite accepted. ~~`auth.users` is never
+exposed to anyone.~~
+
+⚠️ **AMENDED 2026-09-18 — TWO SENTENCES ABOVE WERE FALSE OF THE APPLIED SCHEMA, AND
+BOTH ARE STRUCK RATHER THAN DELETED.**
+
+**1. `create_invite` is NOT "under normal RLS."** It is `security definer` with the
+manager fence written into its own body (`0028`), and it has been since the day it
+was written — `0028`'s own header says so, and `supabase/tests/0028` section 4 is the
+measurement. The struck phrase describes a design that was never built: `create_invite`
+must read and write `workspace_invite` rows for a workspace the CALLER may be a manager
+of rather than an owner, and no policy expressible on that table gives the right answer
+for both paths in.
+
+**2. `auth.users` is never exposed to anyone — CORRECT ABOUT THE CLIENT, WRONG AS AN
+ABSOLUTE, AND `0034` IS WHY IT HAD TO BE RESTATED.** No client role can read
+`auth.users`, then or now, and nothing in `0034` changes that: `auth_full_name(uuid)`
+is `security definer` over that table and is granted to **nobody** — `revoke ... from
+public`, asserted from `pg_proc.proacl`. What is now true is that **four definer
+bodies read one field of it** — `raw_user_meta_data ->> 'full_name'` — and **copy that
+one field onto `workspace_member.display_name`**, a column every member of the same
+shop can already select. So the guarantee v1 makes is narrower and should be read as
+written here rather than inferred from the struck sentence: *a client may never read
+`auth.users`; a person's chosen name reaches other members of their own shop, and
+nothing else about their account does.*
 
 **Delivery is out of band for v1:** the owner sends the code over WhatsApp. That is
 one fewer piece of infrastructure standing between here and the pilot, and it is how
