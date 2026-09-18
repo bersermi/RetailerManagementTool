@@ -99,6 +99,13 @@ on:
       # and the thing that falsifies it read the same set of files.
       - "docs/checks/5b-split-coverage.sh"
       - "docs/checks/5b-split-coverage-falsify.sh"
+      # ⚠️ AND THE SUB-SPLIT'S GUARD, added 2026-09-18 when `5b-ii` was sized `L`
+      # and split in two. It is in the filter and in the steps below on the same
+      # commit that created it, which is the only arrangement that has never gone
+      # wrong here: `conventions-gate-falsify.sh` existed for ten days before any
+      # workflow ran it, and spent one of them dead without anything going red.
+      - "docs/checks/5b-ii-split-coverage.sh"
+      - "docs/checks/5b-ii-split-coverage-falsify.sh"
       # ⚠️⚠️ AND ADR-035, ADDED 2026-09-13 WITH THE §3 AMENDMENT. The conventions
       # gate now cross-checks the `5b.5` deferral across THREE files, the ADR
       # among them. An ADR-only edit that re-claimed `src/api`/`src/ui` for step
@@ -256,3 +263,7 @@ jobs:
       # And its own fixtures, for the reason the block above states.
       - name: Plan — can the 5b guard still fail (its own nine fixtures)
         run: bash docs/checks/5b-split-coverage-falsify.sh
+      - name: Plan — did the 5b-ii split lose a deliverable (plan 5b-ii sizing)
+        run: bash docs/checks/5b-ii-split-coverage.sh
+      - name: Plan — can the 5b-ii guard still fail (its own nine fixtures)
+        run: bash docs/checks/5b-ii-split-coverage-falsify.sh
