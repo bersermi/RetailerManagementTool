@@ -268,8 +268,18 @@ run F16 red "R10 — formatToParts put back: the exact call that crashed the pho
 # WOULD ACTUALLY WRITE, not to a line number — `F9`'s lesson, three times paid
 # for in this file. The two R12 fixtures are the two ways the boundary goes: the
 # import, and the call.
-mk; sedi "s|import { useOnboardWorkspace } from '@/api/hooks';|import { supabase } from '@/lib/supabase';\\
-import { useOnboardWorkspace } from '@/api/hooks';|" "$WORK/app/src/app/(onboarding)/bienvenida.tsx"
+# ⚠️⚠️ AND F22's ANCHOR IS THE IMPORT'S *SOURCE*, NOT ITS NAMED LIST, BECAUSE
+# THE NARROWER SPELLING WENT DEAD ON 2026-09-18. It read
+# `import { useOnboardWorkspace } from '@/api/hooks';`, and `5b-ii-b-2` added a
+# second hook to that very line — so the anchor stopped matching, `sedi` edited
+# nothing, and the fixture reported ⚠️ FIXTURE EDITED NOTHING. **It was found by
+# running this harness, not by reading it**, which is the fifth time in this
+# repository that a fixture was disarmed by ordinary work one file away. The rule
+# it adds to `F9`'s: ANCHOR ON THE PART OF THE LINE THE NEXT TASK HAS NO REASON
+# TO TOUCH. A screen's import LIST grows every time the screen does; the module
+# it imports FROM does not.
+mk; sedi "s|^\(.*from '@/api/hooks';\)$|import { supabase } from '@/lib/supabase';\\
+\1|" "$WORK/app/src/app/(onboarding)/bienvenida.tsx"
 run F22 red "R12 — a route imports the client, one import above the hook it should use"
 
 # ⚠️ NOT REDUNDANT WITH F22. A screen can reach the wrapper through `@/api/calls`

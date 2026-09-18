@@ -99,6 +99,18 @@ on:
       # would stay green with the secret sitting in a readable column.
       - "docs/checks/5b-ii-b-1-invite-contract.sh"
       - "docs/checks/5b-ii-b-1-invite-contract-falsify.sh"
+      # ⚠️⚠️ AND THE OTHER HALF OF THE LOOP, as of plan task 5b-ii-b-2. It
+      # watches `app/src/api/redeem.ts` for the reason above — a `p_` name is a
+      # 404 nothing in `app/` can see — and for one this repository has not had
+      # before: THE APP DECIDES WHICH RPC TO CALL BY MEASURING A LENGTH. An
+      # invite token (16) and a shop's join code (8) are the same Crockford
+      # alphabet and the same normaliser and carry no label, so length is the
+      # whole decision (`P2`). It is sound only while `generate_invite_token`
+      # mints sixteen and `workspace_code_shape` admits eight — both of which
+      # live under `supabase/migrations/**`, which is why a migration re-running
+      # this check is the point rather than a side effect.
+      - "docs/checks/5b-ii-b-2-redeem-contract.sh"
+      - "docs/checks/5b-ii-b-2-redeem-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -525,6 +537,30 @@ jobs:
       # the worst of the three to merge on.
       - name: Contract — can the invite check still fail (its own nine fixtures)
         run: bash docs/checks/5b-ii-b-1-invite-contract-falsify.sh
+
+      # ⚠️⚠️ THE REDEMPTION (plan task 5b-ii-b-2), AND IT CLOSES THE LOOP THE
+      # STEP ABOVE OPENS: an owner mints a token there, a second person spends it
+      # here, and there are two people in the shop. Nine assertion groups over one
+      # reset database with three real people, one shop and two stores.
+      #
+      # ⚠️ The one nothing else in this repository can make: THAT SIXTEEN AND
+      # EIGHT ARE STILL THE TWO LENGTHS. `@/api/redeem` chooses which RPC to call
+      # by measuring what a person typed, because the two credentials are
+      # indistinguishable otherwise — so if either length moved, every Vitest
+      # assertion would stay green while this app sent a joiner down the wrong
+      # path. §2.11 refuses the rendering suite that would notice.
+      - name: Contract — does redeem_invite answer to what the app sends (plan 5b-ii-b-2)
+        run: bash docs/checks/5b-ii-b-2-redeem-contract.sh
+
+      # And its own nine fixtures, in about seventeen seconds. ⚠️ TWO OF THEM
+      # MUTATE THE PROBE rather than the app, for the reason the two harnesses
+      # above give: no line in `app/` can make Postgres admit a stranger or stop
+      # being idempotent, and a fixture nobody can write is an assertion nobody
+      # has shown can fail. ⚠️ AND NONE OF THEM RESETS THE DATABASE — the sibling
+      # harness was CANCELLED at the 15-minute job cap for doing that, on a
+      # comment claiming the reset was required that had never been tested.
+      - name: Contract — can the redemption check still fail (its own nine fixtures)
+        run: bash docs/checks/5b-ii-b-2-redeem-contract-falsify.sh
 
       - name: Stop
         if: always()

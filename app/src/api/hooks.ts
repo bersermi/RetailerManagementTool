@@ -27,6 +27,7 @@ import {
   createInvite,
   myWorkspaces,
   onboardWorkspace,
+  redeemInvite,
   workspaceInvites,
   workspaceLocations,
   workspaceMembers,
@@ -40,6 +41,7 @@ import {
   type InviteIssued,
   type LocationOption,
 } from '@/api/invites';
+import { redeemErrorMessage } from '@/api/redeem';
 import {
   INVITES_KEY,
   MEMBERS_KEY,
@@ -264,4 +266,70 @@ export function useCreateInvite() {
   }
 
   return { issue, busy: mutation.isPending };
+}
+
+// ============================================================================
+// SPENDING ONE. Plan task 5b-ii-b-2, and it is ONE hook because it is one write
+// and no read at all — the person calling it belongs to no shop, so there is
+// nothing for her to have read first.
+// ============================================================================
+
+/**
+ * Redeeming the invite.
+ *
+ * ⚠️⚠️ IT INVALIDATES THE MEMBERSHIP READ AND NAVIGATES NOWHERE, which is
+ * `useOnboardWorkspace`'s rule and matters more here. `guard.ts` sends her to
+ * Inicio the moment `useMyWorkspaces` comes back `member`; a `router.replace` on
+ * this screen would be a second opinion about navigation competing with the
+ * first one in the same frame. ⚠️ The invalidation is not a refresh — it is the
+ * only thing that turns `membership: 'none'` into `'member'`, so WITHOUT IT she
+ * sits on the landing looking at a shop she has already joined.
+ *
+ * ⚠️ IT ALSO INVALIDATES THE ROSTER'S TWO KEYS. She is a new row in
+ * `workspace_member` and the invite she just spent now carries an `accepted_by`,
+ * which is exactly the join `rosterFrom` makes — so the next person to open
+ * Ajustes on this phone reads her, rather than a cached shop she is absent from.
+ *
+ * ⚠️⚠️ AND `already_redeemed` IS A SUCCESS, NOT AN ERROR. `0028` answers it when
+ * the same caller taps twice — the ordinary case on a bad connection, and the
+ * pilot store is offline a lot — so it takes the same path as a first
+ * redemption: invalidate, and let the guard move her. ⚠️ THERE IS NO SUCCESS
+ * SENTENCE ON EITHER PATH, deliberately: the screen it would be rendered on is
+ * gone by the next frame, and a message nobody can finish reading is a message
+ * that was written for us.
+ *
+ * ⚠️ THE LOCAL REFUSAL IS THE SCREEN'S AND NOT THIS HOOK'S — `checkCredential`,
+ * called before `redeem`, exactly as `checkShopName` and `checkInvite` are called
+ * by the two screens that own them. A key that has to become a sentence is
+ * rendered where the sentences are, and a hook that returned one would be the
+ * second place in this app that decides what a refusal READS like.
+ *
+ * ⚠️ AND IT RETURNS A SPANISH SENTENCE OR `null` FOR THE FAILURE, the shape
+ * `useOnboardWorkspace` established — here through `redeemErrorMessage`, because
+ * `42501` means something different on this screen than it does anywhere else in
+ * this app. That module's `REDEEM_REFUSALS` is where the difference is argued.
+ */
+export function useRedeemInvite() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: redeemInvite,
+    onSuccess: async () => {
+      await Promise.all([
+        queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY }),
+        queries.invalidateQueries({ queryKey: MEMBERS_KEY }),
+        queries.invalidateQueries({ queryKey: INVITES_KEY }),
+      ]);
+    },
+  });
+
+  async function redeem(typed: string): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(typed);
+      return null;
+    } catch (thrown) {
+      return redeemErrorMessage(thrown);
+    }
+  }
+
+  return { redeem, busy: mutation.isPending };
 }
