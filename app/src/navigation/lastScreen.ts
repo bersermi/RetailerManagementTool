@@ -17,6 +17,7 @@
 // ============================================================================
 
 import type { Membership } from '@/api/workspace';
+import { deviceStore, readKey, removeKey, writeKey, type DeviceStore } from '@/lib/store';
 
 /**
  * The routes a person may be sent back to.
@@ -124,53 +125,39 @@ export function restoreTarget(state: RestoreState): RestorableRoute | null {
 // convenience: the app losing the memory of which screen you were on must cost
 // you one tap, never a launch that crashes or hangs on the splash. The session
 // is in the same store and `AuthProvider` already takes the same care with it.
+//
+// ⚠️ THE THREE LINES THAT TALK TO THE DEVICE MOVED TO `@/lib/store` AT
+// `5b-ii-a`, WHEN THE DENSITY SWITCH BECAME A SECOND READER OF THE SAME STORE.
+// Nothing here changed shape: `RouteMemory` is that module's interface under
+// this file's name, because "the memory a route is kept in" is what this file
+// calls it and `app/test/last-screen.test.ts` spells it. What went is the
+// second copy of the try/catch, which is the defect, not the abstraction.
 // ============================================================================
 
 /** As much of `Storage` as this file uses. `undefined` is a legitimate value. */
-export interface RouteMemory {
-  getItem(key: string): string | null;
-  setItem(key: string, value: string): void;
-  removeItem(key: string): void;
-}
+export type RouteMemory = DeviceStore;
 
 /**
- * The store, if there is one.
- *
- * ⚠️ IT IS READ LAZILY AND NEVER AT MODULE SCOPE. `globalThis.localStorage` is
- * installed as a side effect of `lib/supabase.ts` importing
- * `expo-sqlite/localStorage/install`; that happens when the root layout's
- * imports are evaluated, which is before any effect runs but NOT necessarily
- * before this module is loaded. Reading it at call time removes the ordering
- * question entirely — and returns `undefined` under node, which is what makes
- * the suite able to load this file at all.
+ * The store, if there is one. ⚠️ READ LAZILY AND NEVER AT MODULE SCOPE — see
+ * `@/lib/store`, which owns that argument and the ordering trap behind it.
  */
 export function routeMemory(): RouteMemory | undefined {
-  return (globalThis as { localStorage?: RouteMemory }).localStorage;
+  return deviceStore();
 }
 
 /** The remembered route, or `null` for "nothing usable". */
 export function readLastScreen(memory: RouteMemory | undefined): string | null {
-  if (memory === undefined) return null;
-  try {
-    return memory.getItem(LAST_SCREEN_KEY);
-  } catch {
-    return null;
-  }
+  return readKey(memory, LAST_SCREEN_KEY);
 }
 
 /** Remember a route. Anything not restorable is not written. */
 export function rememberLastScreen(memory: RouteMemory | undefined, path: string): void {
-  if (memory === undefined) return;
   // ⚠️ FILTERED ON THE WAY IN AS WELL AS ON THE WAY OUT. `restoreTarget` would
   // refuse it anyway, so this is not the safety — it is that storage should not
   // accumulate `/entrar` and whatever `+not-found` a mistyped deep link
   // produces, where a later reader has to work out which entries meant anything.
   if (!isRestorable(path)) return;
-  try {
-    memory.setItem(LAST_SCREEN_KEY, path);
-  } catch {
-    // See the header: losing the memory costs one tap.
-  }
+  writeKey(memory, LAST_SCREEN_KEY, path);
 }
 
 /**
@@ -181,12 +168,11 @@ export function rememberLastScreen(memory: RouteMemory | undefined, path: string
  * nothing else ends a session — and the realistic next person to hold the phone
  * is a different one. A session that merely expired is NOT this: the route
  * survives, and they reopen where they were after signing back in.
+ *
+ * ⚠️ IT DOES NOT FORGET THE DENSITY (5b-ii-a). `Letra grande` is a property of
+ * the EYES holding the phone, not of the account signed into it: clearing it on
+ * log-out would reset an elder shopkeeper's text every time she signs back in.
  */
 export function forgetLastScreen(memory: RouteMemory | undefined): void {
-  if (memory === undefined) return;
-  try {
-    memory.removeItem(LAST_SCREEN_KEY);
-  } catch {
-    // Nothing to do, and nothing a shopkeeper could do either.
-  }
+  removeKey(memory, LAST_SCREEN_KEY);
 }

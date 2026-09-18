@@ -1,6 +1,6 @@
 // ============================================================================
 // THE ONLY MODULE IN THIS APP THAT CALLS `supabase.rpc` OR `supabase.from`.
-// Plan task 5b-i. ADR-035 §2.11: "`src/api/` — one wrapper per RPC. Juniors
+// Plan tasks 5b-i and 5b-ii-a. ADR-035 §2.11: "`src/api/` — one wrapper per RPC. Juniors
 // never call `supabase.rpc` directly."
 //
 // ⚠️ IT IS DELIBERATELY UNTESTABLE, AND EVERYTHING IN IT WITH A RIGHT ANSWER IS
@@ -29,6 +29,12 @@
 
 import { supabase } from '@/lib/supabase';
 import { isContractMismatch } from '@/api/errors';
+import {
+  INVITE_COLUMNS,
+  MEMBER_COLUMNS,
+  type InviteRow,
+  type MemberRow,
+} from '@/api/members';
 import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
@@ -59,6 +65,35 @@ export async function onboardWorkspace(input: OnboardInput): Promise<string> {
     throw new Error(`${ONBOARD_WORKSPACE} returned ${typeof data}, expected a workspace id`);
   }
   return data;
+}
+
+/**
+ * Every active and inactive membership of every shop the caller belongs to
+ * (5b-ii-a). `workspace_member_select` (`0001`) scopes it to their workspaces
+ * and does NOT filter `is_active`, which is why the column is read and
+ * `rosterFrom` is what drops a membership that has ended.
+ */
+export async function workspaceMembers(): Promise<MemberRow[]> {
+  const { data, error } = await supabase.from('workspace_member').select(MEMBER_COLUMNS);
+  if (error) throw reported(error);
+  return (data ?? []) as MemberRow[];
+}
+
+/**
+ * The invites this caller may read — the other half of the roster's join.
+ *
+ * ⚠️⚠️ A STAFF CALLER GETS `[]` AND NOT A 403, WHICH IS THE ENTIRE REASON
+ * `canSeeRoster` IS A CLIENT-SIDE FENCE AND NOT AN ERROR HANDLER.
+ * `workspace_invite_select` is `has_role(workspace_id, 'manager')` (`0002`), and
+ * a row a policy hides is a row that was never there: the read SUCCEEDS and
+ * returns nothing. Rendering the roster from that answer is a list of people
+ * with no identity on any of them, so the decision is taken before the call —
+ * see `@/api/members`, and the owner's ruling of 2026-09-18.
+ */
+export async function workspaceInvites(): Promise<InviteRow[]> {
+  const { data, error } = await supabase.from('workspace_invite').select(INVITE_COLUMNS);
+  if (error) throw reported(error);
+  return (data ?? []) as InviteRow[];
 }
 
 /**

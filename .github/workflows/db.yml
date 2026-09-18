@@ -65,6 +65,17 @@ on:
       - "app/src/api/**"
       - "docs/checks/5b-i-api-contract.sh"
       - "docs/checks/5b-i-api-contract-falsify.sh"
+      # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
+      # is a second claim about the applied schema — two column lists — and it
+      # carries something `workspace.ts` does not: a claim about a POLICY. The
+      # owner ruled the roster manager-and-above on the measured asymmetry
+      # between `workspace_invite_select` (manager) and `workspace_member_select`
+      # (any member). A migration that loosened the first would make the client's
+      # fence wrong, and NOTHING ELSE HERE WOULD GO RED — a policy that allows
+      # more breaks no test. That is why `supabase/migrations/**` re-running this
+      # is the point rather than a side effect.
+      - "docs/checks/5b-ii-a-roster-contract.sh"
+      - "docs/checks/5b-ii-a-roster-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -418,6 +429,31 @@ jobs:
       # written to match on rather than trusting an exit code.
       - name: Contract — can that check still fail (its own six fixtures)
         run: bash docs/checks/5b-i-api-contract-falsify.sh
+
+      # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan
+      # task 5b-ii-a). Three real people in three real roles: the founding owner,
+      # a manager who redeemed an invite, and a staff member who redeemed
+      # another. It asserts the two column lists against the real tables, that
+      # the client-side join has something to join on, that the founding owner
+      # has no invite row (`T2`), that `token_hash` never reaches the app — and,
+      # the assertion no other check in this repository can make, that a STAFF
+      # caller still reads the roster and zero invites. That asymmetry is what
+      # the owner's ruling of 2026-09-18 was ruled ON.
+      - name: Contract — does Ajustes' roster still describe the schema (plan 5b-ii-a)
+        run: bash docs/checks/5b-ii-a-roster-contract.sh
+
+      # And its own eight fixtures. ⚠️ ONE OF THEM LOOSENS THE INVITE POLICY IN
+      # PLACE, runs the check, and puts it back — because the ruling's assertion
+      # cannot be falsified by editing a TypeScript file, and a fixture nobody
+      # can write is an assertion nobody has shown can fail. The restore is
+      # trapped on every exit path and then asserted by a second green run.
+      # ⚠️ Its first run found a real defect in the check above: a PostgREST 400
+      # body quotes the column it thinks you meant, and pasting that into a
+      # Python literal made the check say "unreadable" where it owed the column's
+      # name. Red for the wrong reason — the same shape 5b-i's harness found in
+      # its sister on ITS first run.
+      - name: Contract — can the roster check still fail (its own eight fixtures)
+        run: bash docs/checks/5b-ii-a-roster-contract-falsify.sh
 
       - name: Stop
         if: always()

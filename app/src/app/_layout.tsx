@@ -27,13 +27,23 @@ import { DensityProvider } from '@/theme/DensityProvider';
 // `(tabs)` is a screen as far as the Stack is concerned, so leaving both on
 // stacks two headers — the outer one showing the group's name, which is not a
 // word in this app's vocabulary.
+//
+// ⚠️⚠️ AND AS OF `5b-ii-a` IT DECLARES ONE SCREEN BY NAME: `ajustes`, the app's
+// first non-tab surface. Expo Router still discovers every other route from the
+// filesystem — a `Stack.Screen` here is how a route is given OPTIONS, not how it
+// is registered — and the option is the deliverable: §2.8 fixed Ajustes as a
+// SHEET, and `presentation: 'modal'` is the whole of that sentence in code.
+// ⚠️ It is at the root and in no group deliberately: `groupOf()` returns `null`
+// for it, which is the one value `redirectFor` leaves a member sitting on.
 export default function RootLayout() {
   return (
     <AuthProvider>
       <QueryProvider>
         <DensityProvider>
           <Gate />
-          <Stack screenOptions={{ headerShown: false }} />
+          <Stack screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
+          </Stack>
         </DensityProvider>
       </QueryProvider>
     </AuthProvider>
