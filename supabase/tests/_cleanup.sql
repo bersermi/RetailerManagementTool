@@ -185,6 +185,17 @@ begin
   drop function if exists public._differs(uuid, text);
   drop function if exists public._verdict(text);
 
+  -- `0037`'s four readers of the approval queue. They exist so that section 3's
+  -- fence is measured as `authenticated` rather than as the superuser, which is
+  -- why they are suite-local rather than schema objects — and they are dropped
+  -- here, on the day the suite lands, which is the rule `4f` wrote after five
+  -- falsifications in a row died on "function already exists" instead of on the
+  -- defect they injected.
+  drop function if exists public._pq_n(uuid);
+  drop function if exists public._pq_names(uuid);
+  drop function if exists public._pq_emails(uuid);
+  drop function if exists public._pq_order(uuid);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
