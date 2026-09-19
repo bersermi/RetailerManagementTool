@@ -210,6 +210,28 @@ and the harness reported a guard that could not see its defect. A fixture that d
 the defect accuses a working check. Fixed by writing replacement prose that does not quote
 the marker.
 
+#### ⚠️⚠️ CI CAUGHT A SECOND FIXTURE PINNED TO A MOMENT — `X2`, AND IT WOULD HAVE FIRED THREE TIMES
+
+`5b-iii-split-coverage-falsify.sh`'s `X2` is a CROSS-GUARD fixture: it runs
+`plan-handover.sh` against the tree and asserts the next-task marker moved cleanly onto a
+child. Its first spelling hard-coded **`agree on 5b-iii-a`** — true on the day the split
+landed, and **false the moment `5b-iii-a` closed and the marker moved to `5b-iii-b`.** It
+went red in CI on a correct tree.
+
+⚠️ **Bumping the string to `5b-iii-b` would have been the wrong fix**: it fires again at
+`b`→`c` and at `c`→`d`, three red runs on three correct trees, which is how a harness gets
+edited away by whoever meets it next. The claim was never *"the marker is on `a`"* — it is
+**"the marker is on exactly one of THIS SPLIT'S FOUR CHILDREN, and the status log names the
+same one"**. `X2` now reads the task name out of `plan-handover`'s own agreement line and
+tests it for membership, so the two instruments are compared to each other rather than both
+to a constant written here. **Falsified both ways: the marker on `5b-iii-c` is green (a
+child), the marker back on the parent `5b-iii` is red.**
+
+⚠️ **AND THIS SESSION'S VERIFICATION GAP IS THE FINDING, NOT THE FIXTURE.** It ran
+`5b-iii-split-coverage.sh` and not its harness. **Every `docs/checks/*-falsify.sh` was run
+after the repair — all fifteen green** — and a session that edits `docs/PLAN.md` should run
+the harnesses of the guards that read it, not only the guards.
+
 #### ⚠️ The two contract-check assertions did not disappear — they were TURNED OVER
 
 Both files had written down, in their own headers, that the assertion retires when the code

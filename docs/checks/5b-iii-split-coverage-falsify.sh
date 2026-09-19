@@ -319,6 +319,19 @@ fi
 # the grep does not see. This runs the handover guard against the tree and ignores
 # only its working-tree cleanliness group, which is about the owner's Mac rather
 # than about the split.
+#
+# ⚠️⚠️ IT READS WHICH CHILD RATHER THAN NAMING ONE, AND THAT IS A FIX, NOT A
+# LOOSENING — IT WENT RED IN CI ON 2026-09-19 THE FIRST TIME A CHILD SHIPPED.
+# The first spelling hard-coded `agree on 5b-iii-a`, which was true on the day
+# the split landed and false the moment `5b-iii-a` closed and the marker moved
+# to `5b-iii-b`. That pins the fixture to a MOMENT instead of to the claim, and
+# it would have fired again at `b`→`c` and at `c`→`d` — three red runs on three
+# correct trees, which is how a harness gets edited away by whoever meets it
+# next. The claim was never "the marker is on `a`"; it is **"the marker is on
+# exactly one of THIS SPLIT'S CHILDREN, and the status log names the same one"**.
+# That is what is asserted now, and the membership test is what keeps it strict:
+# a marker that wandered onto `5b-iii` itself, onto `5b.8-iii-b`, or onto a name
+# this split does not contain is still red.
 ran=$((ran+1))
 reset
 if [[ ! -r "$HANDOVER" ]]; then
@@ -326,12 +339,21 @@ if [[ ! -r "$HANDOVER" ]]; then
   fails=$((fails+1))
 else
   h_out="$(bash "$HANDOVER" "$WORK/plan.md" 2>&1)"
+  # The task name out of the handover guard's own agreement line, so the two
+  # instruments are compared rather than both compared to a constant here.
+  X2_TASK="$(sed -n 's/.*and the table agree on \(.*\)$/\1/p' <<< "$h_out" | head -1)"
+  X2_OK=0
+  case "$X2_TASK" in
+    5b-iii-a|5b-iii-b|5b-iii-c|5b-iii-d) X2_OK=1 ;;
+  esac
   if grep -qF "exactly one table row is marked as the next task" <<< "$h_out" \
-     && grep -qF "agree on 5b-iii-a" <<< "$h_out"; then
-    echo "  ok    X2  the next-task marker moved onto 5b-iii-a and the header agrees"
+     && (( X2_OK == 1 )); then
+    echo "  ok    X2  the next-task marker is on one child of this split ($X2_TASK) and the header agrees"
   else
     echo "FAIL: X2 — the split left the next-task marker ambiguous, or the status log"
-    echo "      and the table disagree about which child is next:"
+    echo "      and the table disagree about which child is next, or the marker is"
+    echo "      on something that is not one of this split's four children:"
+    echo "        read: '$X2_TASK'"
     sed 's/^/        /' <<< "$h_out"
     fails=$((fails+1))
   fi
