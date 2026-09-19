@@ -342,11 +342,18 @@ export const ES = {
   /**
    * WHO IS IN THE SHOP (5b-ii-a).
    *
-   * ⚠️⚠️ NO NAME APPEARS ANYWHERE HERE, AND THAT IS A RULING, NOT A GAP. The
-   * owner ruled on 2026-09-14 that a member row is **identified by email**,
-   * with the caller's own row labelled *Tú* — because no table in this schema
-   * carries a human name and he ruled against the migration that would have
-   * added one.
+   * ⚠️⚠️ NO NAME APPEARS IN THIS FILE, AND THAT IS NOW FOR A DIFFERENT REASON
+   * THAN IT WAS. The owner ruled on 2026-09-14 that a member row is
+   * **identified by email**, with the caller's own row labelled *Tú*, because
+   * no table in this schema carried a human name and he ruled against the
+   * migration that would have added one. `5b.7` and `0034` reversed that on
+   * 2026-09-18: `workspace_member.display_name` exists, the roster reads it,
+   * and a row says who the person is.
+   *
+   * ⚠️ WHAT STAYS TRUE IS THIS FILE'S OWN RULE. A name is DATA and never a
+   * string — it comes off a row and is rendered as it was typed, so there is
+   * nothing here to translate. `roles` below is still the bottom rung, and the
+   * reason it is reached is no longer `T1` but the column's nullability.
    */
   members: {
     section: 'Quién entra a tu tienda',
@@ -354,9 +361,11 @@ export const ES = {
     you: 'Tú',
     /**
      * ⚠️ THE THREE ROLES IN SPANISH, AND THEY DOUBLE AS AN IDENTITY. A member
-     * whose email this app cannot recover — in practice the founding owner,
-     * whose membership no invite precedes — is named by what he IS. See
-     * `Identity` in `@/api/members`.
+     * with neither a stored name nor a recoverable email is named by what he
+     * IS. ⚠️ `0034` made that rarer and did NOT make it unreachable — the
+     * column is nullable, so an account whose metadata carried no name still
+     * arrives with nothing. See `Identity` in `@/api/members` for the whole
+     * four-rung ladder.
      */
     roles: {
       owner: 'Dueño',

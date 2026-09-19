@@ -42,8 +42,18 @@ const OWNER = '11111111-1111-4111-8111-111111111111';
 const MANAGER = '22222222-2222-4222-8222-222222222222';
 const STAFF = '33333333-3333-4333-8333-333333333333';
 
-function member(user_id: string, role: string, is_active = true): MemberRow {
-  return { user_id, role, is_active };
+// ⚠️ `display_name` DEFAULTS TO NULL SO THAT EVERY ASSERTION WRITTEN BEFORE
+// `0034` STILL MEANS WHAT IT MEANT. The email and role rungs are not legacy —
+// the column is nullable by design — so the fixtures that reach them have to go
+// on reaching them, and a default of `null` is what stops a later edit quietly
+// promoting them all to `name`.
+function member(
+  user_id: string,
+  role: string,
+  is_active = true,
+  display_name: string | null = null,
+): MemberRow {
+  return { user_id, role, is_active, display_name };
 }
 
 function invite(email: string, accepted_by: string | null): InviteRow {
@@ -57,13 +67,22 @@ const SHOP: MemberRow[] = [member(OWNER, 'owner'), member(MANAGER, 'manager')];
 // `onboard_workspace`; no invite precedes it, which is `T2`.
 const INVITES: InviteRow[] = [invite('encargada@example.com', MANAGER)];
 
+// ⚠️ THE SAME SHOP AFTER `5b.8-i`. Both memberships were written by a function
+// that copies `raw_user_meta_data ->> 'full_name'`, so both carry a name — and
+// the manager carries an EMAIL as well, which is the whole point of the pair:
+// it is the only fixture where the ladder has to choose.
+const NAMED_SHOP: MemberRow[] = [
+  member(OWNER, 'owner', true, 'Bernardo Serafín'),
+  member(MANAGER, 'manager', true, 'Lupita Hernández'),
+];
+
 describe('the two column lists', () => {
   // ⚠️ THESE ARE THE STRINGS THE CONTRACT CHECK POSTS. A rename on either side
   // of the wire is a 400 that the typecheck, the bundler and this file all pass
   // over — the assertion is that they are written ONCE, here, not that they are
   // right. See the header.
   it('names its columns and never asks for a star', () => {
-    expect(MEMBER_COLUMNS).toBe('user_id,role,is_active');
+    expect(MEMBER_COLUMNS).toBe('user_id,role,is_active,display_name');
     expect(INVITE_COLUMNS).toBe('email,accepted_by');
     expect(MEMBER_COLUMNS).not.toContain('*');
     expect(INVITE_COLUMNS).not.toContain('*');
@@ -75,6 +94,23 @@ describe('the two column lists', () => {
     // back. Dropping this column is how a person let go in March stays on the
     // roster for ever.
     expect(MEMBER_COLUMNS.split(',')).toContain('is_active');
+  });
+
+  it('reads display_name, which is what 0034 added the column for', () => {
+    // ⚠️ THE COLUMN EXISTED FOR A WHOLE TASK WITHOUT REACHING A PHONE. `0034`'s
+    // own closing section says so in as many words — "NOTHING READS THE COLUMN"
+    // — and this line is what ended that. Drop it and `rosterFrom`'s `name` rung
+    // is unreachable in production while every assertion below goes on passing,
+    // because they hand it rows this app would never receive.
+    expect(MEMBER_COLUMNS.split(',')).toContain('display_name');
+  });
+
+  it('asks workspace_member for the name and never auth.users', () => {
+    // §2.7: `auth.users` is never exposed to a client. The name is on the
+    // membership BECAUSE of that, so a read that went anywhere else for it would
+    // be a read this app cannot make.
+    expect(MEMBER_COLUMNS).not.toContain('raw_user_meta_data');
+    expect(MEMBER_COLUMNS).not.toContain('auth');
   });
 
   it('never asks for the token hash', () => {
@@ -145,6 +181,78 @@ describe('the join, which PostgREST cannot do', () => {
     expect(rows.filter((row) => row.identity.kind === 'self')).toHaveLength(1);
   });
 
+  // ⚠️⚠️ THE FOURTH RUNG, AND THE RULING IT SUPERSEDES. The owner ruled on
+  // 2026-09-14 that a member row is identified by EMAIL and by no name, BECAUSE
+  // no table in this schema carried one (`T1`). `5b.7` and `0034` ended that,
+  // and he ruled again on 2026-09-18. These are the assertions that make the
+  // second ruling true of something a person can see.
+  it('names a member by the name on their membership', () => {
+    const rows = rosterFrom({ members: NAMED_SHOP, invites: INVITES, selfUserId: OWNER });
+    const other = rows.find((row) => row.userId === MANAGER);
+    expect(other?.identity).toEqual({ kind: 'name', text: 'Lupita Hernández' });
+  });
+
+  it('prefers the name over the email it could have recovered', () => {
+    // The manager has BOTH: a membership written by `redeem_invite` with her
+    // name on it, and the invite she redeemed carrying her address. The ladder
+    // has to choose, and a name is what a person calls a colleague.
+    const rows = rosterFrom({ members: NAMED_SHOP, invites: INVITES, selfUserId: OWNER });
+    const other = rows.find((row) => row.userId === MANAGER);
+    expect(other?.identity.text).not.toBe('encargada@example.com');
+  });
+
+  it('labels the caller Tu even when the caller has a name of their own', () => {
+    // `self` is the top rung and stays there. A person does not need to be told
+    // their own name on a list they are reading.
+    const rows = rosterFrom({ members: NAMED_SHOP, invites: INVITES, selfUserId: OWNER });
+    expect(rows[0].identity).toEqual({ kind: 'self', text: ES.members.you });
+  });
+
+  it('names the founding owner, who has no invite to recover anything from', () => {
+    // ⚠️ T2 WITH A NAME ON IT. `onboard_workspace` writes the founder's
+    // membership and no invite precedes it, so before `0034` the manager of a
+    // two-person shop looked at a row that said `Dueño`. It says who he is now.
+    const rows = rosterFrom({ members: NAMED_SHOP, invites: INVITES, selfUserId: MANAGER });
+    const founder = rows.find((row) => row.userId === OWNER);
+    expect(founder?.identity).toEqual({ kind: 'name', text: 'Bernardo Serafín' });
+  });
+
+  it('identifies everyone for a caller who cannot read a single invite', () => {
+    // ⚠️⚠️ THE MEASURED CHANGE, AND IT IS THE SENTENCE THE MODULE HEADER USED TO
+    // END ON. `workspace_invite_select` is manager-and-above (`0002:563`), so a
+    // staff caller reads `[]` invites — and used to get a list of role labels.
+    // The name is on `workspace_member`, which any member may read, so the same
+    // caller now reads every colleague by name. Section 7 of
+    // `supabase/tests/0034_member_display_name.sql` measured it in the database;
+    // this is the same fact on the side of the wire that renders it.
+    const rows = rosterFrom({ members: NAMED_SHOP, invites: [], selfUserId: MANAGER });
+    expect(rows.map((row) => row.identity.kind)).toEqual(['self', 'name']);
+  });
+
+  it('treats a blank name as no name and falls to the rung below', () => {
+    // ⚠️ `0034` MAKES `''` UNREACHABLE FROM THE DATABASE — the column carries
+    // `check (display_name is null or btrim(display_name) <> '')` — so this
+    // guards the other ways in: a cache written by an older build, or a later
+    // migration that relaxes the constraint. A rung that renders an empty string
+    // swallows the three below it and leaves a gap where a person should be.
+    const rows = rosterFrom({
+      members: [member(OWNER, 'owner'), member(MANAGER, 'manager', true, '   ')],
+      invites: INVITES,
+      selfUserId: OWNER,
+    });
+    const other = rows.find((row) => row.userId === MANAGER);
+    expect(other?.identity).toEqual({ kind: 'email', text: 'encargada@example.com' });
+  });
+
+  it('trims a name rather than rendering its whitespace', () => {
+    const rows = rosterFrom({
+      members: [member(OWNER, 'owner'), member(MANAGER, 'manager', true, '  Lupita  ')],
+      invites: [],
+      selfUserId: OWNER,
+    });
+    expect(rows.find((row) => row.userId === MANAGER)?.identity.text).toBe('Lupita');
+  });
+
   it('recovers an email from the invite that person redeemed', () => {
     const rows = rosterFrom({ members: SHOP, invites: INVITES, selfUserId: OWNER });
     const other = rows.find((row) => row.userId === MANAGER);
@@ -213,6 +321,22 @@ describe('the join, which PostgREST cannot do', () => {
       selfUserId: STAFF,
     });
     expect(rows.map((row) => row.role)).toEqual(['staff', 'owner', 'manager']);
+  });
+
+  it('sorts two colleagues of one role by the name on the screen', () => {
+    // The comparator's last key is `identity.text`, and after `0034` that text
+    // is a name for almost every row. Two managers sort the way a person reading
+    // the list would expect them to, rather than by a `user_id` nobody sees.
+    const rows = rosterFrom({
+      members: [
+        member(OWNER, 'owner', true, 'Bernardo Serafín'),
+        member(STAFF, 'manager', true, 'Zulema Ríos'),
+        member(MANAGER, 'manager', true, 'Ana Beltrán'),
+      ],
+      invites: [],
+      selfUserId: OWNER,
+    });
+    expect(rows.map((row) => row.identity.text)).toEqual([ES.members.you, 'Ana Beltrán', 'Zulema Ríos']);
   });
 
   it('does not reshuffle the rest of the list when the caller changes', () => {

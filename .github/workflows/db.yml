@@ -477,17 +477,26 @@ jobs:
       - name: Contract — does Ajustes' roster still describe the schema (plan 5b-ii-a)
         run: bash docs/checks/5b-ii-a-roster-contract.sh
 
-      # And its own eight fixtures. ⚠️ ONE OF THEM LOOSENS THE INVITE POLICY IN
-      # PLACE, runs the check, and puts it back — because the ruling's assertion
+      # And its own eleven fixtures. ⚠️ TWO OF THEM MOVE AN APPLIED POLICY IN
+      # PLACE, run the check, and put it back — because those two assertions
       # cannot be falsified by editing a TypeScript file, and a fixture nobody
-      # can write is an assertion nobody has shown can fail. The restore is
+      # can write is an assertion nobody has shown can fail. Each restore is
       # trapped on every exit path and then asserted by a second green run.
+      # ⚠️ `G5` LOOSENS the invite policy: the roster's manager fence exists
+      # because staff cannot read `workspace_invite`. ⚠️⚠️ `G8` NARROWS
+      # `workspace_member_select` — the fence the owner DECLINED on 2026-09-18
+      # when he ruled "leave it" on a cashier reading her colleagues' names, and
+      # the fixture that keeps `5b.8-ii`'s retirement of two split-guard
+      # sentinels honest: that retirement rests on assertion 9, so assertion 9
+      # has to be able to fail. A narrowed policy left behind makes the whole
+      # tree look broken rather than safe, which is why its restore is asserted
+      # in its own right.
       # ⚠️ Its first run found a real defect in the check above: a PostgREST 400
       # body quotes the column it thinks you meant, and pasting that into a
       # Python literal made the check say "unreadable" where it owed the column's
       # name. Red for the wrong reason — the same shape 5b-i's harness found in
       # its sister on ITS first run.
-      - name: Contract — can the roster check still fail (its own eight fixtures)
+      - name: Contract — can the roster check still fail (its own eleven fixtures)
         run: bash docs/checks/5b-ii-a-roster-contract-falsify.sh
 
       # ⚠️⚠️ THE NAME A PERSON TYPES AT SIGN-UP (plan task 5b.7). The plan row

@@ -66,9 +66,83 @@ MARK_ANCHOR="⚠️ **This is where the next piece of work is**"
 
 # The row after it, for H9's "both files point, and they disagree". Its anchor is
 # the first bold run in its third cell, whatever that row happens to say.
+#
+# ⚠️⚠️ AND IT IS ANCHORED ANYWHERE IN THAT CELL, NOT AT ITS START — THE THIRD
+# THING THIS HARNESS LEARNED THE EXPENSIVE WAY, AND IT IS THE SAME LESSON AS THE
+# OTHER TWO, ONE LEVEL FURTHER OUT. The first spelling matched `^\*\*…` and so
+# assumed the following row OPENS its third cell with a bold run. That was true
+# on the day it was written and false the next time the marker moved: `5b.8-ii`
+# closed on 2026-09-18, the marker moved to `5b.8-iii`, and the row after it
+# opens *"After the two rows above."* in plain prose. The harness died at setup
+# with "could not read the marked row and the one after it".
+#
+# ⚠️ IT STOPPED SPELLING A TASK NAME AND WENT ON SPELLING A SHAPE. The rule the
+# other two fixtures paid for is "a harness must not name the file's moving
+# parts"; a row's punctuation is a moving part too. The repair is NOT to reword
+# the handbook so the harness can find its anchor — that is the file bending to
+# the check, and this repository has the inverse rule written down twice.
 AFTER_NO="$((MARK_NO + 1))"
 AFTER_TASK="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
-AFTER_ANCHOR="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| [^|]* | [^|]* | //' | grep -oE '^\*\*[^*]+\*\*')"
+AFTER_ANCHOR="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| [^|]* | [^|]* | //' | grep -oE '\*\*[^*]+\*\*' | head -1)"
+
+# ⚠️⚠️ AND THE WAITING-ON-YOU ROW IS DISCOVERED TOO, FOR THE SAME REASON AND ON
+# THE SAME DAY. `H5`, `H6` and `H7` spelled `✅ **Nothing is waiting on YOU**`,
+# which is only ONE of that row's two legitimate states — the guard itself reads
+# it with `grep "waiting on YOU"` precisely because it flips. On 2026-09-18 a
+# decision was parked, the row correctly became *"One thing is waiting on YOU"*,
+# and all three fixtures died at setup with "found 0".
+#
+# ⚠️ THREE FIXTURES, THREE SPELLINGS OF ONE MISTAKE. H3/H8/H9 named a TASK,
+# H9 named a row's PUNCTUATION, and these named a row's current STATE. The rule
+# is one rule: a harness reads the file the way the guard reads it, and asserts
+# nothing about what the file happens to say today.
+WAIT_ANCHOR="$(grep -oE '\*\*[^*]*waiting on YOU\*\*' "$BOOK" | head -1)"
+[[ -n "$WAIT_ANCHOR" ]] || {
+  echo "FAIL: no waiting-on-you row in $BOOK — nothing for H5/H6/H7 to falsify"; exit 1; }
+
+# The two states that row is allowed to be in, and one that is neither.
+WAIT_ASKING='**One thing is waiting on YOU**'
+WAIT_SILENT='**Nothing is waiting on YOU**'
+
+# Empty the plan's decisions block: every row under its separator, up to the
+# first line that is not a table row. ⚠️ BOUNDED BY THE ROWS AND NOT BY THE NEXT
+# HEADING — `plan-handover.sh` shipped the unbounded version and it swallowed the
+# falsification table beneath the block.
+empty_decisions() {
+  python3 - "$WORK/plan.md" <<'PY'
+import io,sys
+p=sys.argv[1]
+lines=io.open(p,encoding="utf-8").readlines()
+h=[n for n,l in enumerate(lines) if l.startswith("### ⛔ DECISIONS OWED BY THE OWNER")]
+assert len(h)==1, "expected one decisions block"
+sep=[n for n in range(h[0],len(lines)) if lines[n].startswith("|---")]
+assert sep, "no table separator under the decisions heading"
+n=sep[0]+1
+end=n
+while end < len(lines) and lines[end].startswith("|"):
+    end+=1
+if end==n: sys.exit("the decisions block is already empty - fixture void")
+del lines[n:end]
+io.open(p,"w",encoding="utf-8").writelines(lines)
+PY
+}
+
+# One open decision, whatever the block already holds. ⚠️ ITS `Blocks` CELL MUST
+# NOT NAME THE TASK THE PLAN MARKS NEXT, or `plan-handover.sh`'s assertion 7c
+# would be the thing that fires — in a harness for a different check.
+add_decision() {
+  python3 - "$WORK/plan.md" <<'PY'
+import io,sys
+p=sys.argv[1]
+lines=io.open(p,encoding="utf-8").readlines()
+h=[n for n,l in enumerate(lines) if l.startswith("### ⛔ DECISIONS OWED BY THE OWNER")]
+assert len(h)==1, "expected one decisions block"
+sep=[n for n in range(h[0],len(lines)) if lines[n].startswith("|---")]
+assert sep, "no table separator under the decisions heading"
+lines.insert(sep[0]+1, "| A question only he can answer | a task that is not the next one | the fixture's brief |\n")
+io.open(p,"w",encoding="utf-8").writelines(lines)
+PY
+}
 [[ -n "$MARK_TASK" && -n "$AFTER_TASK" && -n "$AFTER_ANCHOR" ]] || {
   echo "FAIL: could not read the marked row and the one after it out of $BOOK"; exit 1; }
 
@@ -185,29 +259,23 @@ fixture "H4 a split parent not described as split" red "no longer takeable"
 # empty, and the handbook kept asking him for it. He had answered it the day
 # before, and the only file he reads was still pointing him at it.
 fresh
-mutate_line book.md "✅ **Nothing is waiting on YOU**" "⚠️ **One thing is waiting on YOU**"
+empty_decisions
+guard
+mutate_line book.md "$WAIT_ANCHOR" "$WAIT_ASKING"
 guard
 fixture "H5 block empty, handbook still asking" red "is EMPTY and the handbook still says something"
 
 # --- H6. the inverse: a real question nobody is re-offered ---------------
 fresh
-python3 - "$WORK/plan.md" <<'PY'
-import io,sys
-p=sys.argv[1]
-lines=io.open(p,encoding="utf-8").readlines()
-h=[n for n,l in enumerate(lines) if l.startswith("### ⛔ DECISIONS OWED BY THE OWNER")]
-assert len(h)==1, "expected one decisions block"
-sep=[n for n in range(h[0],len(lines)) if lines[n].startswith("|---")]
-assert sep, "no table separator under the decisions heading"
-lines.insert(sep[0]+1, "| A question only he can answer | `5b.8-ii` | the fixture's brief |\n")
-io.open(p,"w",encoding="utf-8").writelines(lines)
-PY
+add_decision
+guard
+mutate_line book.md "$WAIT_ANCHOR" "$WAIT_SILENT"
 guard
 fixture "H6 an open decision the handbook does not mention" red "says nothing is"
 
 # --- H7. the owner is never told either way ------------------------------
 fresh
-mutate_line book.md "✅ **Nothing is waiting on YOU**" "✅ **All clear**"
+mutate_line book.md "$WAIT_ANCHOR" "**All clear**"
 guard
 fixture "H7 no row says whether anything is waiting" red "expected exactly 1"
 

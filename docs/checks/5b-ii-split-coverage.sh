@@ -132,7 +132,18 @@ DELIVERABLES=(
   "Ajustes — the first non-tab surface|Ajustes|5b-ii-a"
   "C11.7 — the join code and its WhatsApp share|C11\.7|5b-ii-a"
   "member management — the roster|member management|5b-ii-a"
-  "the member row is identified by EMAIL, never a name (ruled 2026-09-14)|identified by EMAIL|5b-ii-a"
+  # ⚠️⚠️ REPLACED 2026-09-18 BY `5b.8-ii`, AND THE OLD WORDING IS WORTH KNOWING.
+  # It was "the member row is identified by EMAIL, never a name (ruled
+  # 2026-09-14)", and it rested on `T1`: no table in this schema carried a human
+  # name, and the owner declined the migration that would add one. `5b.7` and
+  # `0034` reversed that, he ruled again, and the sentinel moved WITH the ruling
+  # rather than being deleted — a decision about what a screen renders still has
+  # no constraint, grant or policy to live in, which is the whole argument for
+  # its being here. ⚠️ It moved in the task that put the name ON A SCREEN and not
+  # in the one that stored it: a stored column changes nothing a person sees, so
+  # retiring it a task early would have left this guard asserting a rule that was
+  # neither true nor superseded for as long as that task took.
+  "the member row is identified by the NAME on the membership (ruled 2026-09-18)|identified by the NAME|5b-ii-a"
   # ⚠️ N2. Deferred onto this sheet by `5a-iii-b`, which was right to defer it —
   # "persisting it behind a placeholder switch would put the write in the file that
   # gets deleted" — and wrote it nowhere a check could read. Six days homeless.
@@ -191,11 +202,19 @@ fi
 # --- 5. the roster's manager fence survives --------------------------------
 # ⚠️ THIS IS THE ONE THAT GUARDS A DECISION RATHER THAN A DELIVERABLE, and it is
 # here because the sizing measured something the ruling of 2026-09-14 did not
-# cover. That ruling says the member row is identified by EMAIL, recovered from
+# cover. That ruling said the member row is identified by EMAIL, recovered from
 # `workspace_invite`. `workspace_invite_select` is `has_role(workspace_id,
 # 'manager')` (0002:563) — its own comment says "staff have no reason to enumerate
 # either" — while `workspace_member_select` admits any member of the workspace
-# (0001:524). So a STAFF caller can read the roster and can identify nobody on it.
+# (0001:524). So a STAFF caller could read the roster and identify nobody on it.
+#
+# ⚠️⚠️ THAT SENTENCE EXPIRED ON 2026-09-18 AND THE FENCE DID NOT. `0034` put a
+# name on `workspace_member` and `5b.8-ii` reads it, so a staff roster is now
+# perfectly legible — measured, as assertion 9 of
+# `docs/checks/5b-ii-a-roster-contract.sh`. What holds the fence up is the half
+# of the asymmetry that did not move: this sheet also carries the INVITE button
+# (`5b-ii-b`), and a roster a cashier can open is a roster with a control she may
+# not use on it. ⚠️ The guard below is unchanged; what it is protecting is not.
 #
 # The roster is therefore manager-and-above and a staff member is shown the shop
 # and their own settings instead, because a list of unidentifiable rows is the app

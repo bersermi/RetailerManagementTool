@@ -14,11 +14,19 @@
 # OWNER'S RULING OF 2026-09-18 IS STILL THE RIGHT ONE. "Manager-and-above is
 # right" was ruled on a MEASUREMENT — `workspace_invite_select` is
 # `has_role(workspace_id, 'manager')` (`0002:563`) while `workspace_member_select`
-# admits any member (`0001:524`), so a staff caller reads the roster and can
-# identify nobody on it. That asymmetry is the whole reason `canSeeRoster`
-# exists. If a later migration loosens the invite policy, the fence in the
-# client becomes a section this app is hiding for no reason — and NOTHING ELSE
-# WOULD GO RED, because a policy that allows more breaks no test.
+# admits any member (`0001:524`). That asymmetry is the whole reason
+# `canSeeRoster` exists. If a later migration loosens the invite policy, the
+# fence in the client becomes a section this app is hiding for no reason — and
+# NOTHING ELSE WOULD GO RED, because a policy that allows more breaks no test.
+#
+# ⚠️⚠️ ONE HALF OF THAT MEASUREMENT EXPIRED ON 2026-09-18 AND ASSERTION 9 IS
+# WHERE IT WAS RE-TAKEN. The ruling's original wording was that a staff caller
+# "reads the roster and can identify nobody on it". `0034` put a name on
+# `workspace_member` and `5b.8-ii` reads it, so a staff roster is now perfectly
+# legible and THAT sentence is dead. The fence stays on the half that did not
+# move — this sheet also carries the invite button — and both halves are
+# measured here rather than remembered: assertion 5 for the invites, assertion 9
+# for the names.
 #
 # ⚠️ A POLICY THAT HIDES ROWS RETURNS `200 []`, NOT `403`. That is why the fence
 # is a decision taken before the call and not an error handler, and assertion 5
@@ -46,10 +54,38 @@
 #      because `select('*')` contains no such word.
 #   7. The embed PostgREST cannot do returns `PGRST200`, which is why the join
 #      is in TypeScript at all (`N4`).
+#   8. ⚠️⚠️ THE NAME COMES BACK ON THE COLUMNS THE APP ASKS FOR, AND THE NULL
+#      DOES TOO. `0034` copies `raw_user_meta_data ->> 'full_name'` onto the
+#      membership at every one of the four ways into a shop; this signs two
+#      people up WITH that metadata and one WITHOUT, and reads all three off the
+#      wire. The null is asserted as deliberately as the name: the column is
+#      nullable so an account with empty metadata is still ADMITTED, and that is
+#      the floor `rosterFrom`'s email and role rungs stand on. A migration that
+#      made the column NOT NULL would refuse that person at the door, and
+#      nothing in TypeScript would go red.
+#   9. ⚠️⚠️ A STAFF CALLER READS EVERY COLLEAGUE'S NAME, WHICH IS THE
+#      MEASUREMENT THAT RETIRES THE 2026-09-14 RULING. That ruling — the member
+#      row is identified by EMAIL and by no name — rested on `T1`: no table in
+#      this schema carried one. Two split guards held it as a DELIVERABLE, and
+#      `5b.8-ii` retires their sentinels. THIS is the assertion that makes the
+#      retirement evidence rather than a claim: the same caller who reads zero
+#      invites in assertion 5 reads a NAME on every row, because the name lives
+#      on `workspace_member` and that policy admits any member (`0001:524`).
+#      ⚠️ It is also the shape of the thing the owner RULED on the same day —
+#      *"leave it"* — so if a later migration fences the column off, this goes
+#      red and the ruling gets re-read rather than silently reversed.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT. Anything about the SHEET. §2.11 refuses suites over
 # rendering, so that `ajustes.tsx` asks `canSeeRoster` before it draws — rather
 # than drawing and hiding — is the owner's own phone, as ever.
+#
+# ⚠️ THE `full_name` METADATA KEY IS TYPED HERE AND IT IS THE ONE STRING THIS
+# FILE SPELLS THAT IT DOES NOT READ OUT OF THE APP. It belongs to GoTrue and to
+# Google's provider, not to us — `docs/checks/5b.7-signup-name-contract.sh` is
+# the check that owns it and reads it out of `app/src/auth/credentials.ts`. Here
+# it is fixture setup: this file's subject is what comes back on the ROSTER read,
+# and a second reader of that key would be a second copy of somebody else's
+# contract.
 #
 # ⚠️ THE FIXTURE IS DRIVEN WITH `0028`'s OWN ARGUMENT NAMES, TYPED HERE. That is
 # not a second copy of anything: `create_invite` and `redeem_invite` are
@@ -155,9 +191,32 @@ PY
 pick()   { python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('$1','') if isinstance(d,dict) else '')" <<< "$2" 2>/dev/null; }
 
 STAMP="$$-$(date +%s)"
-signup() { # email -> sets TOKEN and USER_ID
-  local out
-  out="$(TOKEN="" api POST /auth/v1/signup "{\"email\":\"$1\",\"password\":\"roster-probe-123\"}")"
+
+# ⚠️ ACCENTS, AND THEY ARE NOT DECORATION. This is a Mexican app whose users are
+# mostly called things with accents in, and a transport that mangled UTF-8
+# anywhere between the sign-up body and the roster read would otherwise be green.
+# The same argument `5b.7`'s check makes one hop upstream.
+OWNER_NAME='Bernardo Serafín Quiñones'
+MANAGER_NAME='María del Carmen Rodríguez'
+
+# ⚠️ THE PAYLOAD IS BUILT BY `json.dumps` AND NEVER BY STRING INTERPOLATION.
+# A name is the one fixture value in this file that contains characters a shell
+# heredoc and JSON disagree about, and hand-quoting it is how a check goes red
+# for the wrong reason — the defect `stash` already records one layer down.
+#
+# ⚠️ AN ABSENT NAME IS AN ABSENT `data` OBJECT, NOT AN EMPTY ONE.
+# `{"full_name": ""}` is a different account from one that never carried the key,
+# and the floor assertions 8 and 9 rest on is the second of the two.
+signup() { # email [full_name] -> sets TOKEN and USER_ID
+  local out payload
+  payload="$(python3 -c '
+import json, sys
+doc = {"email": sys.argv[1], "password": "roster-probe-123"}
+if sys.argv[2]:
+    doc["data"] = {"full_name": sys.argv[2]}
+print(json.dumps(doc))
+' "$1" "${2-}")"
+  out="$(TOKEN="" api POST /auth/v1/signup "$payload")"
   TOKEN="$(pick access_token "$(body "$out")")"
   USER_ID="$(python3 -c "import sys,json;print(json.load(sys.stdin).get('user',{}).get('id',''))" <<< "$(body "$out")" 2>/dev/null)"
   [[ -n "$TOKEN" && -n "$USER_ID" ]] || { echo "FAIL: could not sign $1 in — $(body "$out")"; exit 1; }
@@ -168,7 +227,7 @@ OWNER_EMAIL="roster-owner-$STAMP@example.com"
 MANAGER_EMAIL="roster-manager-$STAMP@example.com"
 STAFF_EMAIL="roster-staff-$STAMP@example.com"
 
-signup "$OWNER_EMAIL"; OWNER_TOKEN="$TOKEN"; OWNER_ID="$USER_ID"
+signup "$OWNER_EMAIL" "$OWNER_NAME"; OWNER_TOKEN="$TOKEN"; OWNER_ID="$USER_ID"
 
 CREATED="$(api POST "/rest/v1/rpc/$ONBOARD" \
   '{"p_display_name":"Roster 5b-ii-a","p_prices_include_tax":true,"p_location_name":null}')"
@@ -186,9 +245,9 @@ try:
     members = json.load(open(sys.argv[3]))
     invites = json.load(open(sys.argv[4]))
 except Exception as exc:
-    print('unreadable: %s' % exc); raise SystemExit
+    print("unreadable: %s" % exc); raise SystemExit
 if not isinstance(members, list):
-    print('the roster read came back as an error: %r' % (members,)); raise SystemExit
+    print("the roster read came back as an error: %r" % (members,)); raise SystemExit
 if len(members) != 1:
     print('a new shop read %d memberships, expected exactly the founder' % len(members)); raise SystemExit
 missing = [c for c in cols if c not in members[0]]
@@ -230,9 +289,13 @@ if [[ -z "$MANAGER_TOKEN_STR" || -z "$STAFF_TOKEN_STR" ]]; then
   exit 1
 fi
 
-signup "$MANAGER_EMAIL"; MANAGER_TOKEN="$TOKEN"; MANAGER_ID="$USER_ID"
+signup "$MANAGER_EMAIL" "$MANAGER_NAME"; MANAGER_TOKEN="$TOKEN"; MANAGER_ID="$USER_ID"
 api POST /rest/v1/rpc/redeem_invite "{\"p_token\":\"$MANAGER_TOKEN_STR\"}" > /dev/null
 
+# ⚠️ NO NAME, DELIBERATELY. Assertions 8 and 9 need one account whose metadata
+# is empty — a Google sign-in that returned nothing, or anybody made before
+# `5b.7` — because that is the person `rosterFrom`'s lower rungs exist for, and
+# the person a NOT NULL column would refuse at the door.
 signup "$STAFF_EMAIL"; STAFF_TOKEN="$TOKEN"; STAFF_ID="$USER_ID"
 api POST /rest/v1/rpc/redeem_invite "{\"p_token\":\"$STAFF_TOKEN_STR\"}" > /dev/null
 
@@ -248,7 +311,7 @@ try:
     members = json.load(open(sys.argv[5]))
     invites = json.load(open(sys.argv[6]))
 except Exception as exc:
-    print('unreadable: %s' % exc); raise SystemExit
+    print("unreadable: %s" % exc); raise SystemExit
 if not isinstance(members, list) or not isinstance(invites, list):
     print('one of the two reads came back as an error: %r / %r' % (members, invites)); raise SystemExit
 try:
@@ -353,11 +416,101 @@ else
   echo "      and the client is doing two reads it no longer has to."
 fi
 
+# --- 8. the name 0034 stores, and the null it deliberately allows -----------
+# ⚠️ READ AS THE OWNER, OFF THE COLUMNS THE APP ASKS FOR. `$MEMBERS` above was
+# fetched with `select=$MEMBER_COLUMNS`, so if `display_name` is not in that
+# string this group has nothing to look at — and says so, rather than reporting
+# that a name was absent from a row nobody asked for it on.
+note
+VERDICT="$(python3 - "$MEMBER_COLUMNS" "$OWNER_ID" "$MANAGER_ID" "$STAFF_ID" "$OWNER_NAME" "$MANAGER_NAME" "$MEMBERS" <<'PY'
+import json, sys
+cols = sys.argv[1].split(',')
+owner, manager, staff, owner_name, manager_name = sys.argv[2:7]
+if 'display_name' not in cols:
+    print("the app does not ask workspace_member for display_name, so the "
+          "0034 column reaches no phone - MEMBER_COLUMNS is [%s]" % sys.argv[1])
+    raise SystemExit
+try:
+    members = json.load(open(sys.argv[7]))
+except Exception as exc:
+    print("unreadable: %s" % exc); raise SystemExit
+if not isinstance(members, list):
+    print("the roster read came back as an error: %r" % (members,)); raise SystemExit
+by_user = {}
+for m in members:
+    if 'display_name' not in m:
+        print("a membership row came back without display_name, though the select "
+              "asked for it: %r" % (m,)); raise SystemExit
+    by_user[m['user_id']] = m['display_name']
+if by_user.get(owner) != owner_name:
+    print('onboard_workspace did not store the founder name: %r, sent %r'
+          % (by_user.get(owner), owner_name)); raise SystemExit
+if by_user.get(manager) != manager_name:
+    print('redeem_invite did not store the joiner name: %r, sent %r'
+          % (by_user.get(manager), manager_name)); raise SystemExit
+if by_user.get(staff) is not None:
+    print("an account signed up with NO full_name metadata came back with "
+          "%r - the nullable column is the floor the identity ladder stands on"
+          % (by_user.get(staff),)); raise SystemExit
+print('ok')
+PY
+)"
+[[ -z "$VERDICT" ]] && VERDICT="the verdict script produced nothing - it crashed on the shape that came back"
+if [[ "$VERDICT" == "ok" ]]; then
+  ok "two names came back intact through two different writers, and the account with no metadata came back null"
+else
+  fail "$VERDICT"
+  echo "      0034 copies raw_user_meta_data ->> 'full_name' onto the membership at"
+  echo "      all four ways into a shop, and the identity ladder reads it."
+  echo "      ⚠️ The NULL is asserted as deliberately as the name: the column is"
+  echo "      nullable so an account with empty metadata is still ADMITTED. A"
+  echo "      migration that made it NOT NULL would refuse that person at the"
+  echo "      door, and nothing in TypeScript would have gone red."
+fi
+
+# --- 9. ⚠️⚠️ THE MEASUREMENT THAT RETIRED THE 2026-09-14 RULING -------------
+# The same caller as assertion 5, asking the same question about the other
+# table. She reads ZERO invites and every colleague's NAME, because the name is
+# on `workspace_member` and that policy admits any member of the workspace.
+note
+TOKEN="$STAFF_TOKEN"
+STAFF_NAMED="$(stash staff-named "$(api GET "/rest/v1/workspace_member?select=$MEMBER_COLUMNS")")"
+VERDICT="$(python3 - "$OWNER_ID" "$MANAGER_ID" "$OWNER_NAME" "$MANAGER_NAME" "$STAFF_NAMED" <<'PY'
+import json, sys
+owner, manager, owner_name, manager_name = sys.argv[1:5]
+try:
+    members = json.load(open(sys.argv[5]))
+except Exception as exc:
+    print("unreadable: %s" % exc); raise SystemExit
+if not isinstance(members, list):
+    print("the staff roster read came back as an error: %r" % (members,)); raise SystemExit
+by_user = dict((m.get('user_id'), m.get('display_name')) for m in members)
+if by_user.get(owner) != owner_name or by_user.get(manager) != manager_name:
+    print("a staff caller read %r, expected both colleagues by name" % (by_user,)); raise SystemExit
+print('ok')
+PY
+)"
+[[ -z "$VERDICT" ]] && VERDICT="the verdict script produced nothing - it crashed on the shape that came back"
+if [[ "$VERDICT" == "ok" ]]; then
+  ok "a staff caller reads every colleague by NAME — the 2026-09-14 EMAIL ruling is superseded, measured"
+else
+  fail "$VERDICT"
+  echo "      The owner ruled on 2026-09-14 that a member row is identified by"
+  echo "      EMAIL and by no name, BECAUSE no table in this schema carried one."
+  echo "      0034 ended that and he ruled again on 2026-09-18 — leave it — there"
+  echo "      being no cheap fence: Postgres has no column-level RLS. Two split"
+  echo "      guards held the old ruling as a deliverable and 5b.8-ii retired"
+  echo "      their sentinels ON THE STRENGTH OF THIS ASSERTION. If it is red, the"
+  echo "      column has been fenced off after all and that retirement is now a"
+  echo "      claim with nothing behind it — re-read the ruling, do not delete"
+  echo "      this group."
+fi
+
 echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like — which here is one unset variable away.
-EXPECTED=7
+EXPECTED=9
 if (( ran < EXPECTED )); then
   echo "FAIL: only $ran assertion groups ran, expected $EXPECTED — this check"
   echo "      asserted almost nothing and was about to report success."
@@ -369,4 +522,5 @@ if (( fails > 0 )); then
   exit 1
 fi
 echo "all $ran assertion groups passed — the database answers to exactly what"
-echo "Ajustes reads, and the roster's manager fence is still the right one."
+echo "Ajustes reads, the roster's manager fence is still the right one, and a"
+echo "member row says who the person is."
