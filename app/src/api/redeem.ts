@@ -122,25 +122,27 @@ export function classifyCredential(raw: string): {
 export type JoinIssueKey = keyof typeof ES.join.issues;
 
 /**
- * Is this something `redeem_invite` can be called with?
+ * Is this something either door can be called with?
  *
- * ⚠️⚠️ THE EIGHT-CHARACTER ANSWER IS A SENTENCE AND NOT A CALL, BECAUSE THE
- * SCREEN THAT SPENDS A JOIN CODE DOES NOT EXIST YET (`5b-iii`, `request_access`).
- * ⚠️ AND IT IS NOT HYPOTHETICAL: Ajustes has shipped `Compartir código` since
- * `5b-ii-a`, so an owner can hand out an eight-character code TODAY and the
- * person holding it lands here. Telling her *"ese código no se ve bien"* would
- * be this app calling a correct code wrong.
+ * ⚠️⚠️ AS OF `5b-iii-b` BOTH LENGTHS ARE A CALL AND NEITHER IS A SENTENCE, AND
+ * THAT IS THE CHANGE THIS FUNCTION EXISTS TO RECORD. Until the pull path was
+ * wired, eight characters returned `'workspaceCode'` — *"that is the shop's
+ * code, ask them to invite you"* — because `request_access` had no wrapper and
+ * this app could not spend one. `@/api/requests` is that wrapper, so the branch
+ * and its string are both deleted: an eight-character code now goes to
+ * `request_access` and a sixteen-character token to `redeem_invite`, which is
+ * the fork `classifyCredential` has always been able to describe and had nowhere
+ * to send.
  *
- * ⚠️ THE SENTENCE NAMES HER NEXT STEP AND NOT OUR INTERNAL STATE — "ask them to
- * invite you", which is a thing she can do, rather than "that path is not built",
- * which is ours. The owner's standing rule: WE DO THE BOOK-KEEPING, NOT THEM.
- * `5b-iii` DELETES THIS BRANCH AND ITS STRING when it wires the other door.
+ * ⚠️ SO WHAT IS LEFT REFUSES ONLY WHAT NEITHER RPC COULD ACCEPT: nothing typed
+ * at all, and any length that is neither 8 nor 16. ⚠️ THE CALLER STILL HAS TO
+ * ASK `classifyCredential` WHICH DOOR — a `null` from here means "send it", not
+ * "send it to `redeem_invite`", and the screen reads `kind` to decide.
  */
 export function checkCredential(raw: string): JoinIssueKey | null {
   const { kind, value } = classifyCredential(raw);
   if (value === '') return 'missing';
-  if (kind === 'code') return 'workspaceCode';
-  if (kind !== 'token') return 'shape';
+  if (kind === null) return 'shape';
   return null;
 }
 

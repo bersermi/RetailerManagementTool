@@ -125,6 +125,24 @@ on:
       # migration touching either would leave every suite here green.
       - "docs/checks/5b.8-iii-b-name-contract.sh"
       - "docs/checks/5b.8-iii-b-name-contract-falsify.sh"
+      # ⚠️⚠️ AND THE PULL PATH, as of plan task `5b-iii-b`. It watches
+      # `app/src/api/requests.ts` for the `p_`-name 404 above, and for two claims
+      # no suite in this repository can reach. ⚠️ FIRST — `S3`: that a person who
+      # has just asked to join CANNOT read her own request any other way.
+      # `workspace_invite_select` (`0002:563`) is manager-and-above and she has
+      # no role at all, which is the entire reason `my_access_requests` is
+      # `security definer`. A migration widening that policy would make the check
+      # red while every Vitest assertion stayed green — and the cheap reading of
+      # that red is "the function is redundant now", which is one predicate away
+      # from the shop enumeration `D6` refuses. ⚠️⚠️ SECOND: `0029` RAISES
+      # `42501` FOR AN UNKNOWN CODE, WHICH IS ALSO WHAT AN ABSENT SESSION LOOKS
+      # LIKE — `@/api/errors` maps it app-wide to "your session ended". The app
+      # reads it as the CODE on this screen only, and the check DRIVES BOTH and
+      # asserts they still come back indistinguishable. That is the same shape
+      # `0036` retired one RPC over, and a migration minting a code for it must
+      # turn this check red rather than pass silently.
+      - "docs/checks/5b-iii-b-request-contract.sh"
+      - "docs/checks/5b-iii-b-request-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -611,6 +629,36 @@ jobs:
       # trap `5b.7`'s check had already written down.
       - name: Contract — can the name check still fail (its own ten fixtures)
         run: bash docs/checks/5b.8-iii-b-name-contract-falsify.sh
+
+      # ⚠️⚠️ ASKING TO JOIN (plan task 5b-iii-b) — THE PULL PATH, and the other
+      # half of the loop the two redemption steps above close. Eleven assertion
+      # groups over one reset database with four real people and two shops.
+      #
+      # ⚠️ The two nothing else in this repository can make. FIRST, `S3`: the
+      # check has a REAL non-member select `workspace_invite` directly and
+      # asserts she gets zero rows, which is what says `my_access_requests` is
+      # the only door rather than a convenience. SECOND, THE `42501` OVERLOAD: it
+      # drives an anonymous caller AND a nonsense code and compares the two
+      # answers to each other as well as to the app's own constant — so the
+      # screen-local reading in `@/api/requests` is a measured judgement rather
+      # than somebody not having noticed. ⚠️ That assertion is written to TURN
+      # OVER: when a SQLSTATE is minted for the unknown code, it goes red on a
+      # correct tree and is replaced by its opposite, in the pass that deletes
+      # `UNKNOWN_CODE`. A marker and the assertion that drives it retire together.
+      - name: Contract — does request_access answer to what the app sends (plan 5b-iii-b)
+        run: bash docs/checks/5b-iii-b-request-contract.sh
+
+      # And its own ten fixtures. ⚠️ THREE OF THEM MUTATE THE PROBE rather than
+      # the app, for the reason the three harnesses above give: no line in `app/`
+      # can make Postgres show a non-member her own invite row, stop ordering by
+      # `created_at`, or mint a SQLSTATE. ⚠️ AND NONE OF THEM RESETS THE DATABASE
+      # — the sibling harness was CANCELLED at the 15-minute job cap for doing
+      # that. ⚠️ Its own fixtures caught a weakness in the check while it was
+      # being written: assertion 2's expected `PGRST202` has TWO causes, and a
+      # renamed RPC makes it green on a broken app. Assertion 4 covers it and
+      # `V1`'s comment says so, rather than the fixture being quietly reworded.
+      - name: Contract — can the request check still fail (its own ten fixtures)
+        run: bash docs/checks/5b-iii-b-request-contract-falsify.sh
 
       - name: Stop
         if: always()

@@ -56,6 +56,14 @@ import {
   type Redeemed,
 } from '@/api/redeem';
 import {
+  MY_ACCESS_REQUESTS,
+  REQUEST_ACCESS,
+  outcomeFrom,
+  requestAccessArgs,
+  type AccessOutcome,
+  type AccessRequestRow,
+} from '@/api/requests';
+import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
   onboardArgs,
@@ -174,6 +182,56 @@ export async function redeemInvite(typed: string): Promise<Redeemed> {
   const { data, error } = await supabase.rpc(REDEEM_INVITE, redeemArgs(typed));
   if (error) throw reported(error);
   return redeemedFrom(data);
+}
+
+/**
+ * Asks to join a shop by its code, and returns what became of the ask
+ * (5b-iii-b).
+ *
+ * ⚠️ THE CALLER BELONGS TO NO SHOP WHEN THIS RUNS — `redeemInvite`'s situation,
+ * and `request_access` is `security definer` for the same reason plus one more:
+ * `0029`'s `D6` refuses the select policy that would let a stranger SCAN for
+ * shops, so the code is resolved WHOLE inside the function and never matched
+ * against a list this app could read.
+ *
+ * ⚠️⚠️ IT IS NOT ALWAYS AN ASK. `0029`'s `D7` absorbs a pending invite: a person
+ * who was already invited by email and types the shop code instead of the token
+ * is let straight in, and the answer comes back `joined` rather than
+ * `requested`. `outcomeFrom` is where that is read, and `useRequestAccess` is
+ * what makes the guard notice.
+ *
+ * ⚠️ IT IS PASSED WHAT THE PERSON TYPED AND NORMALISES ON THE WAY IN
+ * (`requestAccessArgs`), so the string that was CLASSIFIED by length is the
+ * string that is SENT — `redeemInvite`'s rule, through the same normaliser.
+ */
+export async function requestAccess(typed: string): Promise<AccessOutcome> {
+  const { data, error } = await supabase.rpc(REQUEST_ACCESS, requestAccessArgs(typed));
+  if (error) throw reported(error);
+  return outcomeFrom(data);
+}
+
+/**
+ * What this account has asked for, and what became of it (5b-iii-b).
+ *
+ * ⚠️⚠️ IT IS THE ONLY WAY SHE CAN EVER SEE A ROW OF HER OWN, AND THAT IS WHY IT
+ * IS A FUNCTION AND NOT A SELECT (`S3`). `workspace_invite_select` (`0002:563`)
+ * is manager-and-above; somebody who has just asked to join has NO ROLE AT ALL,
+ * so no policy can show her the row she just created. The cheap-looking fix — a
+ * select policy keyed on the requester — is exactly what `D6` rules out, because
+ * it is one predicate away from letting a stranger enumerate shops.
+ *
+ * ⚠️ IT IS KEYED ON `auth.uid()` INSIDE THE FUNCTION and takes no argument at
+ * all, so there is nothing a screen could pass to read somebody else's. `0029`'s
+ * decision 1: an email is mutable and a status read that moves with it is a way
+ * to read another person's.
+ *
+ * ⚠️ AN EMPTY ARRAY IS AN ANSWER, NOT A FAILURE — the rule `myWorkspaces` sets.
+ * It is what every founding owner who lands on this screen gets.
+ */
+export async function myAccessRequests(): Promise<AccessRequestRow[]> {
+  const { data, error } = await supabase.rpc(MY_ACCESS_REQUESTS);
+  if (error) throw reported(error);
+  return (data ?? []) as AccessRequestRow[];
 }
 
 /**

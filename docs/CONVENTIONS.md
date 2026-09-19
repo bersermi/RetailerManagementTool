@@ -95,6 +95,7 @@ structural half.**
 | `src/api/workspace.ts` — the argument names, the columns, the membership | `src/api/calls.ts` — the three lines that talk to Postgres |
 | `src/api/members.ts` — the two column lists, the roster's join, who may see it | `src/app/ajustes.tsx` — draws the section, or does not |
 | `src/api/displayName.ts` — the write rule, the refusals, whose name it is | `src/app/ajustes.tsx` — draws the box, or draws the name |
+| `src/api/requests.ts` — the two RPCs, the four statuses, which one she may see | `src/app/(onboarding)/bienvenida.tsx` — draws the wait, or draws nothing |
 | `src/theme/densityMemory.ts` — what a stored mode means | `src/theme/DensityProvider.tsx` — reads it, writes it |
 
 The left column is importable by a node suite; the right column is not, and by
@@ -391,6 +392,7 @@ the rule:
 | `src/api/invites.ts` | the invite's contract — the RPC's name, its four `p_` arguments, the `location` column list, and the copies of `0028`'s own refusal rules | **yes**, and `app/test/api-invites.test.ts` does |
 | `src/api/redeem.ts` | the redemption's contract — the RPC's name, its one `p_` argument, the normaliser, and the **two lengths** that decide which credential a person is holding | **yes**, and `app/test/api-redeem.test.ts` does |
 | `src/api/displayName.ts` | a person's own name — the RPC's name, its two `p_` arguments, and the **marker** that separates `0035`'s two `42501`s. ⚠️ Both SQLSTATEs it raises mean something different here than they do app-wide | **yes**, and `app/test/api-display-name.test.ts` does |
+| `src/api/requests.ts` | asking to join — two RPC names, one `p_` argument, the four statuses `0029` answers and the four states it computes. ⚠️ It reads `42501` as **the code and not the session**, which is a screen-local judgement argued in the file and measured by `docs/checks/5b-iii-b-request-contract.sh` | **yes**, and `app/test/api-requests.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
