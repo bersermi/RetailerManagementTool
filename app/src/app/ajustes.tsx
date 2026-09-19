@@ -4,7 +4,16 @@ import { useState, type ReactNode } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useCreateInvite, useLocations, useMyRole, useRoster, useWorkspace } from '@/api/hooks';
+import {
+  useCreateInvite,
+  useLocations,
+  useMyDisplayName,
+  useMyRole,
+  useRoster,
+  useSetMyDisplayName,
+  useWorkspace,
+} from '@/api/hooks';
+import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
   INVITABLE_ROLES,
   canInvite,
@@ -39,7 +48,11 @@ import { PALETTE } from '@/theme/palette';
 // `null` and `redirectFor` leaves a member exactly where they are — measured
 // against `guard.ts`, not assumed.
 //
-// ⚠️⚠️ FOUR SECTIONS, AND ONE OF THEM IS NOT ALWAYS THERE. The shop, the join
+// ⚠️⚠️ FIVE SECTIONS, AND TWO OF THEM ARE NOT ALWAYS THERE. ⚠️ IT SAID FOUR
+// UNTIL `5b.8-iii-b` ADDED `Tu nombre`, and the count is restated rather than
+// left standing for the reason `0035` restates `0034`'s column comment: a
+// sentence that went from true to wrong one task later is this repository's
+// most-recorded defect, and nothing here can hold it but a person reading. The shop, the join
 // code, who is in the shop, and how big this phone's text is. The roster is
 // manager-and-above — RULED BY THE OWNER 2026-09-18, *"manager-and-above is
 // right"*. ⚠️ **The reason that was given for it stopped being true later the
@@ -122,6 +135,8 @@ export default function Ajustes() {
             <Compartir shopName={workspace.displayName} code={workspace.code} />
           </Section>
         )}
+
+        <MiNombre />
 
         {roster.visible && (
           <Section title={ES.members.section}>
@@ -257,6 +272,184 @@ function Miembro({ entry }: { entry: RosterEntry }) {
         </Text>
       )}
     </View>
+  );
+}
+
+// ============================================================================
+// FIXING YOUR OWN NAME. Plan task 5b.8-iii-b, and it is the SECOND membership
+// write on this sheet — and the first one every member may make.
+//
+// ⚠️⚠️ IT IS NOT A PENCIL ON A ROSTER ROW, AND THAT IS THE WHOLE DESIGN. A
+// control attached to a row in a list is a control that implies a SUBJECT, and
+// the subject of the row above yours is somebody else. Fixing your own name and
+// administering another person's are different acts with different fences, and
+// `0035` made that structural — there is no argument in the RPC that could name
+// anybody else. This section says whose name it is in its title and takes no
+// subject at all.
+//
+// ⚠️⚠️ AND IT IS FENCED BY NOTHING — RULED BY THE OWNER, 2026-09-19:
+// *"everybody is right, keep it."* THAT IS THE OPPOSITE OF THE TWO SECTIONS
+// BELOW IT. The roster and the invite form are manager-and-above; this is for
+// everybody, because the person whose Google account arrived as ONE WORD is most
+// often the cashier — and she is the one member of the shop who can see neither
+// of those two sections. A role fence here would leave the gap open for exactly
+// the people it was opened on.
+//
+// ⚠️ IT WAS BUILT THIS WAY AND THEN ASKED ABOUT, WHICH IS WHY THE RULING EXISTS.
+// `5b.8-iii-b`'s plan row already said the roster is manager-and-above *"while
+// this is for everybody"* — but a row's phrasing is not a ruling, and this is the
+// one line that decides who the whole task was for. It was flagged as a decision
+// taken on the owner's behalf, it cost one predicate to reverse, and he ruled it
+// the same day. ⚠️ A later session wanting to add a role fence here is reversing
+// the owner, not tidying an assumption.
+//
+// ⚠️ THE STORED NAME IS RENDERED AND NEVER THE TEXT BOX'S CONTENTS. `0035`
+// returns what it wrote, trimmed, and `saved` below holds THAT. The alternative
+// — showing what was typed — diverges from the database by a space nobody can
+// see and disagrees with the roster one section down.
+//
+// ⚠️ WHY BOTH `saved` AND THE QUERY. `useSetMyDisplayName` invalidates
+// `MEMBERS_KEY`, so `useMyDisplayName` catches up on its own; `saved` is what
+// fills the frames between the write landing and the refetch returning, so the
+// section never shows the old name back to somebody who has just corrected it.
+// The two cannot disagree for long, and when they do it is the DATABASE's answer
+// on screen either way.
+// ============================================================================
+
+function MiNombre() {
+  const { scale } = useDensity();
+  const workspace = useWorkspace();
+  const stored = useMyDisplayName();
+  const { rename, busy } = useSetMyDisplayName();
+
+  const [editing, setEditing] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [issue, setIssue] = useState<NameIssueKey | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+
+  // ⚠️ THE SECTION IS ABSENT UNTIL THE SHOP IS KNOWN, not disabled. `0035` takes
+  // a workspace id and there is nothing to send without one — and a box that
+  // accepts typing and then refuses to save is worse than a section that
+  // appears a moment later, which is `useRoster`'s own argument about `visible`.
+  if (workspace === null) return null;
+
+  const shown = saved ?? stored;
+
+  async function submit() {
+    if (workspace === null) return;
+    const problem = checkDisplayName(typed);
+    setIssue(problem);
+    setFailure(null);
+    if (problem !== null) return;
+
+    const result = await rename(workspace.id, typed);
+    if (result.stored === null) {
+      setFailure(result.error);
+      return;
+    }
+    setSaved(result.stored);
+    setEditing(false);
+    setTyped('');
+  }
+
+  return (
+    <Section title={ES.myName.section}>
+      {!editing && (
+        <>
+          {/* ⚠️ THE NAME AT `titleSize`, THE SHOP'S OWN TOKEN ONE SECTION UP.
+              What this section is FOR is the name, and the hint underneath it is
+              the explanation — the same weighting `Tu tienda` already makes. */}
+          <Text
+            style={{
+              fontSize: shown === null ? scale.bodySize : scale.titleSize,
+              fontWeight: '600',
+              color: shown === null ? PALETTE.tintaApagada : PALETTE.tinta,
+            }}
+          >
+            {shown ?? ES.myName.empty}
+          </Text>
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+            {ES.myName.hint}
+          </Text>
+          <Boton
+            icon="pencil"
+            label={ES.myName.edit}
+            onPress={() => {
+              // Prefilled with what is stored, because the common case is a
+              // name that is nearly right — one word out of two — and retyping
+              // a correct surname to fix a missing one is work we made for her.
+              setTyped(shown ?? '');
+              setIssue(null);
+              setFailure(null);
+              setEditing(true);
+            }}
+          />
+        </>
+      )}
+
+      {editing && (
+        <View style={{ gap: scale.rowGap }}>
+          <Campo label={ES.myName.label}>
+            <TextInput
+              value={typed}
+              onChangeText={setTyped}
+              placeholder={ES.myName.placeholder}
+              placeholderTextColor={PALETTE.tintaApagada}
+              // ⚠️ `words` AND NOT `none`. This is a person's name, and the two
+              // fields it comes from at sign-up are capitalised the same way —
+              // `5b.7`'s Nombre and Apellido. The address field one section down
+              // is `none` for the opposite reason.
+              autoCapitalize="words"
+              autoCorrect={false}
+              editable={!busy}
+              style={{
+                fontSize: scale.bodySize,
+                minHeight: scale.tapTarget,
+                color: PALETTE.tinta,
+                backgroundColor: PALETTE.fondo,
+                borderWidth: 1,
+                borderColor: PALETTE.linea,
+                borderRadius: scale.space / 2,
+                paddingHorizontal: scale.space,
+              }}
+            />
+          </Campo>
+
+          {/* ⚠️ ONE PLACE FOR BOTH KINDS OF REFUSAL — the box's own and the
+              database's, which is `Invitar`'s rule on this sheet and for its
+              reason: two slots is a screen that can show two contradictory
+              reasons at once, and the stale one is always the one that stays. */}
+          {(issue !== null || failure !== null) && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>
+              {issue !== null ? ES.myName.issues[issue] : failure}
+            </Text>
+          )}
+
+          <Boton
+            icon="check"
+            label={busy ? ES.myName.working : ES.myName.save}
+            busy={busy}
+            onPress={() => void submit()}
+          />
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              setTyped('');
+              setIssue(null);
+              setFailure(null);
+              setEditing(false);
+            }}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.myName.cancel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+    </Section>
   );
 }
 
@@ -676,7 +869,7 @@ function Boton({
   onPress,
   busy = false,
 }: {
-  icon: 'account-plus' | 'check' | 'share-variant';
+  icon: 'account-plus' | 'check' | 'pencil' | 'share-variant';
   label: string;
   onPress: () => void;
   busy?: boolean;

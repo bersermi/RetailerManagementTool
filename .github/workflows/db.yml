@@ -111,6 +111,20 @@ on:
       # this check is the point rather than a side effect.
       - "docs/checks/5b-ii-b-2-redeem-contract.sh"
       - "docs/checks/5b-ii-b-2-redeem-contract-falsify.sh"
+      # ⚠️⚠️ AND THE BOX A PERSON FIXES HER OWN NAME IN, as of plan task
+      # `5b.8-iii-b`. It watches `app/src/api/displayName.ts` for the `p_`-name
+      # 404 above, and for TWO reasons the other four contract checks do not
+      # have. ⚠️ FIRST: `0035` RAISES ONE SQLSTATE FOR TWO DIFFERENT REFUSALS —
+      # no session, and not a member of this shop — so the app tells them apart
+      # by a MARKER IN THE SERVER'S PROSE, and a migration rewording that
+      # sentence would silently tell a person who has been removed from the shop
+      # that her session ended. ⚠️⚠️ SECOND: it is the only check in this
+      # repository that measures A CASHIER WRITING TO `workspace_member`.
+      # `workspace_member_update` (`0001:532`) is owner-only, so that write
+      # exists solely because `0035` is `security definer` — and a later
+      # migration touching either would leave every suite here green.
+      - "docs/checks/5b.8-iii-b-name-contract.sh"
+      - "docs/checks/5b.8-iii-b-name-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -570,6 +584,33 @@ jobs:
       # comment claiming the reset was required that had never been tested.
       - name: Contract — can the redemption check still fail (its own nine fixtures)
         run: bash docs/checks/5b-ii-b-2-redeem-contract-falsify.sh
+
+      # ⚠️⚠️ FIXING YOUR OWN NAME (plan task 5b.8-iii-b). Eight assertion groups
+      # over one reset database with three real people in one shop.
+      #
+      # ⚠️ The one nothing else in this repository can make: A STAFF CALLER
+      # RENAMES HERSELF AND IT IS ACCEPTED. `workspace_member_update`
+      # (`0001:532`) is `has_role(workspace_id,'owner')`, so before `0035` a
+      # cashier could not touch the row that describes her — and she is the
+      # likeliest person to have arrived from Google as ONE WORD. §2.11 refuses
+      # the rendering suite that would notice the section missing, and no Vitest
+      # assertion can see a policy: a `security definer` function narrowed by a
+      # later migration would leave all 363 of them green.
+      - name: Contract — can a person fix her own name (plan 5b.8-iii-b)
+        run: bash docs/checks/5b.8-iii-b-name-contract.sh
+
+      # And its own ten fixtures, in about seventeen seconds. ⚠️ THREE OF THEM
+      # MUTATE THE PROBE rather than the app, for the reason the three harnesses
+      # above give: no line in `app/` can make Postgres stop trimming a name,
+      # stop refusing a blank one, or start refusing a cashier. ⚠️ Its own
+      # fixtures caught a defect in the check while it was being written — a
+      # request body inlined inside three levels of command substitution, which
+      # PostgREST answered `PGRST102 — Empty or invalid json` and the assertion
+      # reported as "could not seat a staff member". RED FOR THE WRONG REASON,
+      # the fourth time that shape has appeared in a contract check here, and the
+      # trap `5b.7`'s check had already written down.
+      - name: Contract — can the name check still fail (its own ten fixtures)
+        run: bash docs/checks/5b.8-iii-b-name-contract-falsify.sh
 
       - name: Stop
         if: always()

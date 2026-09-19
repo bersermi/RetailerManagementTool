@@ -180,6 +180,37 @@ export function roleOf(rows: readonly MemberRow[] | null | undefined, userId: st
 }
 
 /**
+ * The caller's OWN stored name in this shop, or `null` when there is none —
+ * which is the state `5b.8-iii-b` exists to let a person out of. Plan task
+ * `5b.8-iii-b`.
+ *
+ * ⚠️ IT IS `roleOf`'S SHAPE ON PURPOSE, DOWN TO THE `is_active` FILTER. Both
+ * answer "what does my own row say", off the read every member already makes —
+ * so they agree about which row is mine, and a fifth column read off that row
+ * later lands beside these two rather than inventing a third finder.
+ *
+ * ⚠️⚠️ AND IT INHERITS `roleOf`'S ONE LIMITATION, NAMED HERE RATHER THAN LEFT TO
+ * BE FOUND. `MEMBER_COLUMNS` does not read `workspace_id`, so neither function
+ * can tell one shop's membership from another's — in a person with two shops
+ * this returns whichever row PostgREST listed first. That is pre-existing and
+ * wider than this function: `rosterFrom` would already mix two shops' people
+ * into one list. Every real user has exactly one shop (`0001:317`), and the
+ * repair is one column added to `MEMBER_COLUMNS` plus a filter here, not a
+ * migration.
+ *
+ * ⚠️ A BLANK IS NO NAME, which is `nonBlank`'s rule and not a second one.
+ */
+export function nameOf(
+  rows: readonly MemberRow[] | null | undefined,
+  userId: string | null,
+): string | null {
+  if (rows === null || rows === undefined || userId === null) return null;
+  const mine = rows.find((row) => row.user_id === userId && row.is_active);
+  if (mine === undefined || mine.display_name === null) return null;
+  return nonBlank(mine.display_name) ?? null;
+}
+
+/**
  * How one row on the roster says who it is.
  *
  * ⚠️⚠️ FOUR KINDS, AND THE 2026-09-14 RULING THAT SAID THERE WOULD BE THREE IS
@@ -303,8 +334,16 @@ export function rosterFrom({
  * rule stated on the side of the wire that renders it. It is not a second
  * opinion about what the database allows — it is what keeps a row that got here
  * some other way from occupying a rung it cannot fill.
+ *
+ * ⚠️⚠️ AND IT IS EXPORTED AS OF `5b.8-iii-b`, WHICH IS THE WRITE SIDE BORROWING
+ * THE READ SIDE'S RULE RATHER THAN RESTATING IT. `0035` normalises with
+ * `nullif(btrim(coalesce(…, '')), '')` and its own comment says why one rule and
+ * not two: *"two normalisation rules for one column is how the blank gets in by
+ * the door the CHECK is not watching."* `@/api/displayName` is the only other
+ * caller, and a second copy of this function is exactly the stale-duplicate
+ * defect this repository has recorded seven times.
  */
-function nonBlank(value: string): string | undefined {
+export function nonBlank(value: string): string | undefined {
   const trimmed = value.trim();
   return trimmed === '' ? undefined : trimmed;
 }

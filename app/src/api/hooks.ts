@@ -28,10 +28,12 @@ import {
   myWorkspaces,
   onboardWorkspace,
   redeemInvite,
+  setMyDisplayName,
   workspaceInvites,
   workspaceLocations,
   workspaceMembers,
 } from '@/api/calls';
+import { nameErrorMessage } from '@/api/displayName';
 import {
   LOCATIONS_KEY,
   canInvite,
@@ -46,6 +48,7 @@ import {
   INVITES_KEY,
   MEMBERS_KEY,
   canSeeRoster,
+  nameOf,
   roleOf,
   rosterFrom,
   type Role,
@@ -142,6 +145,87 @@ export function useMyRole(): Role | null {
   const { session } = useAuth();
   const { data } = useWorkspaceMembers();
   return roleOf(data, session?.user.id ?? null);
+}
+
+/**
+ * The caller's own STORED name, or `null` while the read is out — and `null`
+ * again when there genuinely is none, which is the state `5b.8-iii-b` exists to
+ * let a person out of. Plan task `5b.8-iii-b`.
+ *
+ * ⚠️ IT MAKES NO READ OF ITS OWN. `useWorkspaceMembers` is already out for every
+ * member of every shop — `useMyRole` rides it, and so does the roster — and
+ * `display_name` has been in `MEMBER_COLUMNS` since `5b.8-ii`. A dedicated read
+ * would be a second question with the same answer, asked on every open of the
+ * sheet, on a connection the pilot store loses routinely.
+ *
+ * ⚠️ WHICH IS ALSO WHY THE INVALIDATION IN `useSetMyDisplayName` IS THE WHOLE OF
+ * "the roster re-reads": one key feeds this section AND the list of people, so
+ * they cannot show two different names for the same person.
+ *
+ * ⚠️ `null` IS "NOT KNOWN" AND "NOT SET" AT ONCE, AND THE SHEET IS ALLOWED TO
+ * CONFLATE THEM — unlike `roleOf`, where the distinction fences a section. Both
+ * render the same thing here: an invitation to type one. Telling a person which
+ * of the two she is looking at would be reporting our internal state.
+ */
+export function useMyDisplayName(): string | null {
+  const { session } = useAuth();
+  const { data } = useWorkspaceMembers();
+  return nameOf(data, session?.user.id ?? null);
+}
+
+// ============================================================================
+// FIXING YOUR OWN NAME. Plan task `5b.8-iii-b`, and it is ONE hook because it is
+// one write over a read that is already out.
+// ============================================================================
+
+/**
+ * A person fixes her own name.
+ *
+ * ⚠️⚠️ IT INVALIDATES `MEMBERS_KEY` AND THAT IS A DELIVERABLE, NOT HOUSEKEEPING.
+ * The plan row says it in one sentence: *"the roster must re-read after the
+ * write, or a person corrects her name and the list in front of her still shows
+ * the old one."* ⚠️ The list is not the only reader — `useMyDisplayName` above
+ * is the same query — so without this the BOX ITSELF would still be showing what
+ * she just replaced.
+ *
+ * ⚠️ IT DOES NOT TOUCH `INVITES_KEY`. Nothing about an invitation changed, and
+ * `rosterFrom` reads the email off the invite only for a member who has no name
+ * — which, one line after this call succeeds, she does.
+ *
+ * ⚠️⚠️ AND IT RETURNS THE STORED NAME RATHER THAN `null`-for-success, which is
+ * where this hook deviates from `useOnboardWorkspace`'s shape ON PURPOSE.
+ * `0035`'s decision 2 exists so the screen renders what the DATABASE wrote —
+ * trimmed — instead of the contents of its own text box. A hook that swallowed
+ * the return would put that divergence back.
+ *
+ * ⚠️ THE FAILURE IS A SPANISH SENTENCE, the shape every hook here uses — through
+ * `nameErrorMessage`, because BOTH SQLSTATEs this RPC raises mean something
+ * different on this call than they do app-wide. `@/api/displayName`'s header is
+ * the argument.
+ */
+export function useSetMyDisplayName() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ workspaceId, typed }: { workspaceId: string; typed: string }) =>
+      setMyDisplayName(workspaceId, typed),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: MEMBERS_KEY });
+    },
+  });
+
+  async function rename(
+    workspaceId: string,
+    typed: string,
+  ): Promise<{ stored: string | null; error: string | null }> {
+    try {
+      const stored = await mutation.mutateAsync({ workspaceId, typed });
+      return { stored, error: null };
+    } catch (thrown) {
+      return { stored: null, error: nameErrorMessage(thrown) };
+    }
+  }
+
+  return { rename, busy: mutation.isPending };
 }
 
 /**
