@@ -13155,15 +13155,32 @@ would have built a sign-in screen on top of a membership flow that does not exis
   **Configuración → members**, alongside a member-management list. *"Not a
   protagonist at all in our UI."* (11.8)
 - **C11.8 — a NOTIFICATIONS ICON ON HOME with a badge**, and membership requests
-  surface there. The owner sees the requester's ~~**name**~~, **email and the role asked
-  for** — enough not to approve the wrong Juan. (11.6) ⚠️⚠️ **THE NAME IS STRUCK BY THE
-  OWNER'S RULING OF 2026-09-14, NOT BY AN OVERSIGHT.** `5b`'s sizing measured that **no
-  table in this schema carries a human name** — `workspace_member` holds `user_id`, `role`
-  and `is_active`; §2.7 never exposes `auth.users` — so one of the three was never
-  buildable without a migration. He ruled **email only**, and against the migration that
-  would have added a name. **The email is what stops the wrong Juan; it is carried as two
+  surface there. ✅✅ **The owner sees the requester's EMAIL AS THE HEADER, their NAME
+  BENEATH IT, and the role asked for** — enough not to approve the wrong Juan. (11.6)
+  ⚠️⚠️ **SUPERSEDED 2026-09-19, AND THIS BULLET WAS THE SIXTH STALE COPY OF THE OLD
+  RULING — found on 2026-09-19 while sizing `5b-iii-d`, the row that renders it.** The
+  build rows, the handbook, the status log and `5b-split-coverage.sh`'s own comment had
+  all been updated; **this one had not**, and it is the copy a session reads when it goes
+  looking for what the constraint actually SAYS. ~~The owner sees the requester's
+  **name**, **email and the role asked for**.~~ ~~THE NAME IS STRUCK BY THE OWNER'S
+  RULING OF 2026-09-14, NOT BY AN OVERSIGHT: `5b`'s sizing measured that no table in this
+  schema carries a human name — `workspace_member` holds `user_id`, `role` and
+  `is_active`; §2.7 never exposes `auth.users` — so one of the three was never buildable
+  without a migration. He ruled email only, and against the migration that would have
+  added a name.~~ ⚠️⚠️ **BOTH HALVES OF THAT ARE NOW FALSE, AND BY BUILT CODE RATHER
+  THAN BY A CHANGE OF MIND ALONE.** `T1`'s premise died on 2026-09-18 — `5b.7` stores the
+  name a person types at sign-up and `0034` copies it onto `workspace_member` — and the
+  migration he ruled against **has shipped**: `0037` returns the requester's name through
+  `public.auth_full_name`, which is reachable only from a definer body. ⚠️ **The ORDER is
+  the ruling**, his words being *"Show the Email as a Header and the Name as a subtitle of
+  the request"* — the INVERSE of the roster, where the name is the title, because on an
+  approval you are matching a stranger against an address somebody read out to you.
+  ⚠️ **The name can be ABSENT** — the metadata is nullable — and then the row is the
+  address with nothing under it, handled silently. **It is still carried as two
   deliverables in `5b-split-coverage.sh` because nothing else can hold a decision about
-  what a screen renders.** See `T1` and `T2` in `5b`'s sizing.
+  what a screen renders**, and §2.11 bans the suite that would otherwise notice. See `T1`
+  and `T2` in `5b`'s sizing for the dead premise, and `5b-iii-d`'s sizing for the split
+  that found this bullet.
 - **C11.9 — the dead-letter control is the LEAST INVASIVE THING THAT WORKS**, and it
   is *"not a priority for the owner at this point."* A banner, not a screen. (11.5)
 
