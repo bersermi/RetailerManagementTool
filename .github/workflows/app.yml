@@ -139,6 +139,23 @@ on:
       # the harness's `S1` fixture is what proves it still does.
       - "docs/checks/5b.8-iii-split-coverage.sh"
       - "docs/checks/5b.8-iii-split-coverage-falsify.sh"
+      # ⚠️⚠️ AND THE SIXTH GENERATION, added 2026-09-19. `5b-iii` was re-sized to an
+      # `XL` and split FOUR ways on the day it was taken, exactly as its own gate
+      # cell had ordered since 2026-09-18. THE FIRST SPLIT GUARD WATCHING A TASK
+      # THAT SHIPS TWO MIGRATIONS: `5b-iii-a` mints two application SQLSTATEs and
+      # `5b-iii-c` writes a `security definer` read, and a deliverable that falls
+      # out of either is deployed, not reviewed.
+      # ⚠️ THE PREFIX CHAIN IS THREE DEEP HERE — `5b-i` inside `5b-iii` inside all
+      # four children — which is the worst instance in this directory of the trap
+      # the comments above name. The closing pipe in the matcher is what separates
+      # them, and the harness's `S1` and `S9` fixtures are what prove it still does.
+      # ⚠️⚠️ AND ITS HARNESS CARRIES TWO CROSS-GUARD FIXTURES, which no older one
+      # here has: `X1` runs `5b-split-coverage.sh` and `X2` runs `plan-handover.sh`
+      # against the same tree, because this split makes a claim about both of them.
+      # Their paths are already in this filter above, so nothing new is needed —
+      # which is itself the rule `conventions-gate-falsify.sh` spent a day dead for.
+      - "docs/checks/5b-iii-split-coverage.sh"
+      - "docs/checks/5b-iii-split-coverage-falsify.sh"
       # ⚠️⚠️ AND THE HANDBOOK GUARD, added 2026-09-18 on the owner's instruction.
       # ⚠️ IT IS THE FIRST CHECK IN THIS REPOSITORY THAT READS `docs/HANDBOOK.md`
       # AT ALL — until it existed, the one document the OWNER reads was the one
@@ -320,6 +337,10 @@ jobs:
         run: bash docs/checks/5b.8-iii-split-coverage.sh
       - name: Plan — can the 5b.8-iii guard still fail (its own twelve fixtures)
         run: bash docs/checks/5b.8-iii-split-coverage-falsify.sh
+      - name: Plan — 5b-iii split coverage (sixth generation, and it guards two migrations)
+        run: bash docs/checks/5b-iii-split-coverage.sh
+      - name: Plan — can the 5b-iii guard still fail (its own sixteen fixtures)
+        run: bash docs/checks/5b-iii-split-coverage-falsify.sh
       - name: Handbook — does the file the owner reads still agree with the plan
         run: bash docs/checks/handbook-agreement.sh
       - name: Handbook — can that guard still fail (its own eleven fixtures)
