@@ -128,6 +128,17 @@ on:
       # pipe in the matcher matters more here than in the three above.
       - "docs/checks/5b.8-split-coverage.sh"
       - "docs/checks/5b.8-split-coverage-falsify.sh"
+      # ⚠️⚠️ AND THE SPLIT UNDER IT, added 2026-09-19. `5b.8-iii` was re-sized to
+      # an `L` and split in two on the day it was taken, exactly as its own gate
+      # cell had ordered since 2026-09-18. THE SECOND MIGRATION-BEARING SPLIT
+      # GUARD: `5b.8-iii-a` ships a `security definer` RPC, and a deliverable
+      # that falls out of it is deployed, not reviewed.
+      # ⚠️ THE PARENT IS A STRICT PREFIX OF BOTH CHILDREN here, which is the
+      # worst instance of the trap the comment above names — `5b.8-iii` inside
+      # `5b.8-iii-a`. The closing pipe in the matcher is what separates them, and
+      # the harness's `S1` fixture is what proves it still does.
+      - "docs/checks/5b.8-iii-split-coverage.sh"
+      - "docs/checks/5b.8-iii-split-coverage-falsify.sh"
       # ⚠️⚠️ AND THE HANDBOOK GUARD, added 2026-09-18 on the owner's instruction.
       # ⚠️ IT IS THE FIRST CHECK IN THIS REPOSITORY THAT READS `docs/HANDBOOK.md`
       # AT ALL — until it existed, the one document the OWNER reads was the one
@@ -305,6 +316,10 @@ jobs:
         run: bash docs/checks/5b.8-split-coverage.sh
       - name: Plan — can the 5b.8 guard still fail (its own ten fixtures)
         run: bash docs/checks/5b.8-split-coverage-falsify.sh
+      - name: Plan — 5b.8-iii split coverage (fifth generation, and it guards an RPC)
+        run: bash docs/checks/5b.8-iii-split-coverage.sh
+      - name: Plan — can the 5b.8-iii guard still fail (its own twelve fixtures)
+        run: bash docs/checks/5b.8-iii-split-coverage-falsify.sh
       - name: Handbook — does the file the owner reads still agree with the plan
         run: bash docs/checks/handbook-agreement.sh
       - name: Handbook — can that guard still fail (its own eleven fixtures)
