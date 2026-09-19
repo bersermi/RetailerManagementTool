@@ -165,16 +165,36 @@ mutate "export const LOCATION_COLUMNS = 'id,name';" \
 guard
 fixture "S4 the app reads is_active, which my_locations() already filtered" red "now carries is_active"
 
-# --- S5. the marker the string match depends on --------------------------
-# ⚠️ THE ONE SERVER MESSAGE THIS APP READS. There is no distinguishing SQLSTATE
-# for "already requested" — 0028 raises 22023 for five different refusals — so
-# `@/api/invites` matches on prose, and THIS assertion is the only thing that
-# makes that safe. A reworded migration must be red and named, not silent.
+# --- S5. the CODE the branch depends on ----------------------------------
+# ⚠️ RE-POINTED 2026-09-19 (task `5b-iii-a`). It used to mutate the MARKER — a
+# substring of the server's prose — because `0028` raised `22023` for five
+# different refusals and `@/api/invites` had nothing else to read. `0036` minted
+# `TD004`, so the fixture mutates the CODE instead, and the defect it stands for
+# is the same one: the app branching on something the database does not raise,
+# which costs a shopkeeper the only refusal here that has a next step.
 fresh
-mutate "export const ALREADY_REQUESTED_MARKER = 'already requested';" \
-       "export const ALREADY_REQUESTED_MARKER = 'ya solicitó acceso';"
+mutate "export const ALREADY_REQUESTED = 'TD004';" \
+       "export const ALREADY_REQUESTED = 'TD009';"
 guard
-fixture "S5 the marker no longer matches what 0028 raises" red "no longer contains the marker the app matches on"
+fixture "S5 the code the app branches on is not what create_invite raises" red "was not refused TD009"
+
+# --- S9. ⚠️ THE TWO CODES HAVE NOT ACTUALLY COME APART --------------------
+# ⚠️ THE HALF OF ASSERTION 8 THAT IS NEW, and it needs its own fixture because
+# S5 above cannot reach it: S5 proves the check sees a WRONG code, and this
+# proves it sees the approval refusal and a bad payload still wearing ONE code —
+# which is the pre-`0036` defect, and the one a migration could reintroduce by
+# minting `TD004` for the whole body rather than for one branch.
+#
+# ⚠️ IT MUTATES THE PROBE, not the app, for `S7`'s recorded reason: no line in
+# `app/` can make Postgres raise one code for two refusals. The probe is made to
+# send a VALID address, so the payload call succeeds and the check is left with
+# nothing to tell the approval refusal apart from — exactly what it looks like
+# from here when the two have not separated.
+fresh
+mutate 'PAYLOAD_BODY="$(invite_body "no-arroba-aqui" staff "[\"$NORTE\"]")"' \
+       'PAYLOAD_BODY="$(invite_body "valida-$STAMP@example.com" staff "[\"$NORTE\"]")"' check.sh
+guard
+fixture "S9 a bad payload is no longer refused 22023 — the codes have not come apart" red "was not refused 22023"
 
 # --- S6. the contract cannot be read at all ------------------------------
 # ⚠️ THE VACUITY GUARD. A check that cannot find the app's strings has nothing to
@@ -218,13 +238,13 @@ guard
 fixture "S8 a caller who should be refused is not" red "was not refused 42501"
 
 echo
-if (( ran != 9 )); then
-  echo "FAIL: $ran fixtures ran, expected 9 — the harness skipped some and was about"
+if (( ran != 10 )); then
+  echo "FAIL: $ran fixtures ran, expected 10 — the harness skipped some and was about"
   echo "      to report success, which is how a sister harness spent a day dead."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all 9 fixtures behaved as recorded (8 red, 1 deliberately green) —"
+  echo "all 10 fixtures behaved as recorded (9 red, 1 deliberately green) —"
   echo "5b-ii-b-1-invite-contract.sh can still fail on every defect it was written for."
   exit 0
 fi

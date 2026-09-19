@@ -204,8 +204,8 @@ export function redeemedFrom(data: unknown): Redeemed {
 }
 
 /**
- * ⚠️⚠️ THE TWO SQLSTATES `redeem_invite` REFUSES WITH, AND THE SECOND IS
- * OVERLOADED WITH SOMETHING ELSE ENTIRELY.
+ * ⚠️⚠️ THE TWO SQLSTATES `redeem_invite` REFUSES WITH, AND NEITHER IS OVERLOADED
+ * ANY MORE.
  *
  * The values are KEYS of `ES.join.errors`, never sentences — `@/api/errors`'s
  * discipline, so a message typed at a call site is a typecheck failure.
@@ -213,38 +213,41 @@ export function redeemedFrom(data: unknown): Redeemed {
  *     TD003   expired, or superseded by a newer invite to the same address
  *             (`0028`, decision 11). One sentence for both: they differ in
  *             which row died, and her next step is identical.
- *     42501   the token is not valid, or somebody else already spent it.
+ *     TD005   the token is not valid, or somebody else already spent it
+ *             (`0036`). One sentence for both, for the same reason: whichever
+ *             way it is dead, the code in her hand will never work and she has
+ *             to ask for another.
  *
- * ⚠️⚠️ AND `42501` IS ALSO WHAT AN ABSENT SESSION LOOKS LIKE — `@/api/errors`
- * maps it to `sessionEnded` app-wide, because the `authenticated` grant is what
- * refuses an anonymous caller. Both are real; `redeem_invite` raises it from its
- * own body for a bad token AND PostgREST raises it for a caller with no session.
- * **On THIS screen it is read as the code**, and the reason is who is standing
- * there: `/bienvenida` is behind `guard.ts`, which sends a person with no session
- * to `/entrar` — so a caller here has one. The rare wrong guess costs her a
- * confusing sentence and the next launch corrects it; the other way round costs
- * her a correct sentence about a session while she retypes a dead code forever.
+ * ⚠️⚠️ UNTIL `0036` THE SECOND ROW WAS `42501`, AND THAT IS THE WHOLE POINT OF
+ * THIS EDIT. `@/api/errors` maps `42501` app-wide to `sessionEnded`, because
+ * the `authenticated` grant is what refuses an anonymous caller — and
+ * `redeem_invite` ALSO raised it from its own body for a dead token. So this
+ * screen had to GUESS which of the two had happened, and it guessed "dead
+ * token" on the argument that `/bienvenida` sits behind `guard.ts` and a caller
+ * here therefore has a session. That guess was documented, measured by
+ * `docs/checks/5b-ii-b-2-redeem-contract.sh` assertion 9, and routed to
+ * `5b-iii`.
  *
- * ⚠️ THE HONEST FIX IS A SQLSTATE OF ITS OWN — `TD001` (`4b-i`) and `TD003`
- * (`0021`) are codes this project has minted before — and that is a MIGRATION,
- * which `app/**` never ships. ROUTED TO `5b-iii`, which the owner ruled on
- * 2026-09-18 is where `0028`'s other SQLSTATE overload gets fixed. ⚠️ THIS
- * TABLE AND THE ASSERTION GUARDING IT RETIRE IN THAT SAME PASS.
+ * ✅ IT IS GONE. `0036` (task `5b-iii-a`) moved both token refusals onto
+ * `TD005` and left `42501` on the authentication guard alone, so the two
+ * events now answer differently and neither module is guessing. `42501`
+ * reaching this screen falls through to `apiErrorMessage` and gets the session
+ * sentence — which is what it always meant everywhere else.
  */
 export const REDEEM_REFUSALS: Readonly<Record<string, keyof typeof ES.join.errors>> = {
   TD003: 'expired',
-  '42501': 'spent',
+  TD005: 'spent',
 };
 
 /**
  * What the joiner is told when `redeem_invite` refuses.
  *
  * ⚠️ IT IS HERE AND NOT IN `@/api/errors` FOR `inviteErrorMessage`'s REASON: the
- * two sentences are one RPC's refusals, not API-wide codes, and `42501` means
- * something different here than it does everywhere else in this app. The general
- * path is still `apiErrorMessage`, called below, so the offline sentence stays
- * the one every other screen gives — and offline is the pilot store's normal
- * write path, so it is the one that will actually be read.
+ * two sentences are one RPC's refusals, not API-wide codes. The general path is
+ * still `apiErrorMessage`, called below, so the offline sentence stays the one
+ * every other screen gives — and offline is the pilot store's normal write
+ * path, so it is the one that will actually be read. ⚠️ As of `0036` the
+ * SESSION sentence goes down that path too, which it could not before.
  */
 export function redeemErrorMessage(error: unknown): string {
   if (typeof error === 'object' && error !== null) {

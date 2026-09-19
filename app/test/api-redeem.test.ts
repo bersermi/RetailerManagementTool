@@ -228,8 +228,8 @@ describe('reading what redeem_invite answered', () => {
 });
 
 describe('what the joiner is told when it refuses', () => {
-  it('maps only the two SQLSTATEs 0028 raises, to KEYS and never sentences', () => {
-    expect(Object.keys(REDEEM_REFUSALS).sort()).toEqual(['42501', 'TD003']);
+  it('maps only the two SQLSTATEs redeem_invite raises, to KEYS and never sentences', () => {
+    expect(Object.keys(REDEEM_REFUSALS).sort()).toEqual(['TD003', 'TD005']);
     for (const key of Object.values(REDEEM_REFUSALS)) {
       expect(typeof ES.join.errors[key]).toBe('string');
     }
@@ -239,15 +239,23 @@ describe('what the joiner is told when it refuses', () => {
     expect(redeemErrorMessage({ code: 'TD003' })).toBe(ES.join.errors.expired);
   });
 
-  // ⚠️⚠️ `42501` MEANS SOMETHING DIFFERENT HERE THAN IT DOES ANYWHERE ELSE IN
-  // THIS APP. `@/api/errors` maps it to `sessionEnded`, because the
-  // `authenticated` grant is what refuses a caller with no session. On this
-  // screen the caller has one — `/bienvenida` is behind `guard.ts` — so it is
-  // read as the code. The honest fix is a SQLSTATE of its own, which is a
-  // migration, routed to `5b-iii`.
-  it('42501 is the code on this screen, and NOT the session sentence', () => {
-    expect(redeemErrorMessage({ code: '42501' })).toBe(ES.join.errors.spent);
-    expect(redeemErrorMessage({ code: '42501' })).not.toBe(ES.api.errors.sessionEnded);
+  // ⚠️ ONE SENTENCE FOR BOTH WAYS A TOKEN IS DEAD, which is what `0036` minted
+  // one code for rather than two: unknown and already-spent differ in which row
+  // is missing, and not at all in what she does next.
+  it('TD005 is “that code is dead”, unknown and already-spent alike', () => {
+    expect(redeemErrorMessage({ code: 'TD005' })).toBe(ES.join.errors.spent);
+  });
+
+  // ⚠️⚠️ THIS TEST IS THE INVERSE OF THE ONE IT REPLACES, AND IT IS THE POINT OF
+  // TASK `5b-iii-a`. Until `0036`, `42501` meant "dead token" on this screen and
+  // "your session ended" everywhere else in the app — the same code, two
+  // meanings, and this screen GUESSED between them on the argument that
+  // `/bienvenida` sits behind `guard.ts`. `0036` moved both token refusals onto
+  // `TD005`, so `42501` here now falls through to the app-wide sentence, which
+  // is what it always meant. The guess is retired, not re-tuned.
+  it('42501 is the SESSION sentence again, like everywhere else in this app', () => {
+    expect(redeemErrorMessage({ code: '42501' })).toBe(ES.api.errors.sessionEnded);
+    expect(redeemErrorMessage({ code: '42501' })).not.toBe(ES.join.errors.spent);
   });
 
   // ⚠️ OFFLINE IS THE PILOT STORE'S NORMAL WRITE PATH, so it is the sentence
