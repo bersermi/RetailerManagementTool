@@ -156,6 +156,18 @@ on:
       # which is itself the rule `conventions-gate-falsify.sh` spent a day dead for.
       - "docs/checks/5b-iii-split-coverage.sh"
       - "docs/checks/5b-iii-split-coverage-falsify.sh"
+      # ⚠️⚠️ THE SEVENTH GENERATION, ADDED 2026-09-19 WHEN `5b-iii-d` WAS SIZED ON
+      # THE DAY IT WAS TAKEN AND SPLIT IN TWO. ⚠️ IT IS THE FIRST SPLIT GUARD HERE
+      # THAT HAS NO MIGRATION UNDERNEATH IT — both halves are client-only — so
+      # there is no pgTAP suite downstream to catch what it misses. Its subject is
+      # `D8`'s fence on a SCREEN, and §2.11 keeps rendering out of scope, which
+      # means these three table rows are the entire instrument. ⚠️ Its harness
+      # carries two CROSS-GENERATION fixtures, `P1` and `P2`, which run
+      # `5b-iii-split-coverage.sh` against the split tree — its path is already in
+      # this filter above, so nothing new is needed, which is again the rule
+      # `conventions-gate-falsify.sh` spent a day dead for.
+      - "docs/checks/5b-iii-d-split-coverage.sh"
+      - "docs/checks/5b-iii-d-split-coverage-falsify.sh"
       # ⚠️⚠️ AND THE HANDBOOK GUARD, added 2026-09-18 on the owner's instruction.
       # ⚠️ IT IS THE FIRST CHECK IN THIS REPOSITORY THAT READS `docs/HANDBOOK.md`
       # AT ALL — until it existed, the one document the OWNER reads was the one
@@ -341,6 +353,10 @@ jobs:
         run: bash docs/checks/5b-iii-split-coverage.sh
       - name: Plan — can the 5b-iii guard still fail (its own sixteen fixtures)
         run: bash docs/checks/5b-iii-split-coverage-falsify.sh
+      - name: Plan — 5b-iii-d split coverage (seventh generation, and it guards no migration at all)
+        run: bash docs/checks/5b-iii-d-split-coverage.sh
+      - name: Plan — can the 5b-iii-d guard still fail (its own fourteen fixtures)
+        run: bash docs/checks/5b-iii-d-split-coverage-falsify.sh
       - name: Handbook — does the file the owner reads still agree with the plan
         run: bash docs/checks/handbook-agreement.sh
       - name: Handbook — can that guard still fail (its own eleven fixtures)
