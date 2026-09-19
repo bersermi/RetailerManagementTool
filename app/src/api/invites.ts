@@ -296,38 +296,33 @@ export function issuedFrom(data: unknown): InviteIssued {
 }
 
 /**
- * ⚠️⚠️ THE ONE SERVER MESSAGE THIS APP READS, AND IT IS READ BECAUSE THERE IS NO
- * CODE TO READ INSTEAD.
+ * ⚠️⚠️ IT WAS A MARKER IN THE SERVER'S PROSE UNTIL `0036`, AND IT IS A CODE NOW.
  *
- * `0028` raises `22023` for five different refusals, one of which needs a
+ * `0028` raised `22023` for five different refusals, one of which needs a
  * different sentence than the others: inviting somebody who has ALREADY ASKED to
- * join is an approval, and approval is `0029`'s `approve_request` — a screen
- * `5b-iii` builds and this app does not have yet. The other four are what
- * `checkInvite` above already refuses locally.
+ * join is an approval, and approval is `0029`'s `approve_request`. The other
+ * four are what `checkInvite` above already refuses locally. With no
+ * distinguishing SQLSTATE, this module matched a substring of the message —
+ * `ALREADY_REQUESTED_MARKER = 'already requested'` — which is normally a defect
+ * here and was safe only because `docs/checks/5b-ii-b-1-invite-contract.sh`
+ * drove that refusal for real and went red if the wording moved.
  *
- * ⚠️ MATCHING ON A SERVER'S PROSE IS NORMALLY A DEFECT HERE, and it is safe in
- * exactly one arrangement: **the marker is asserted against the live database.**
- * `docs/checks/5b-ii-b-1-invite-contract.sh` drives that refusal for real and
- * fails if the message no longer contains this string — so a migration that
- * rewords it turns a check red and names it, rather than silently costing the
- * one refusal that has a next step.
+ * ✅ `0036` MINTED `TD004` FOR IT (task `5b-iii-a`, ruled into this step by the
+ * owner on 2026-09-18), so the marker, the substring match and the assertion
+ * that made them safe are all retired together. A message is not a contract;
+ * a SQLSTATE is.
  *
- * ⚠️ THE HONEST FIX IS A SQLSTATE OF ITS OWN — `TD001` and `TD003` are codes this
- * project has minted before — and that is a MIGRATION, which this task does not
- * ship. ✅ **RULED BY THE OWNER 2026-09-18 INTO `5b-iii`**, which owns the approval
- * path this message points at. ⚠️ **THIS CONSTANT AND THE ASSERTION THAT GUARDS IT
- * ARE RETIRED IN THAT SAME PASS** — a rule still asserted after it has been
- * superseded is worse than one asserted before it is true.
+ * ⚠️ THE OTHER FOUR REFUSALS KEEP `22023` AND THAT IS WHY THE CODE IS STILL
+ * CHECKED. A bad payload is a bad payload — one meaning reached four ways —
+ * so `22023` reaching here means the phone let something through that
+ * `checkInvite` should have caught, and it is NOT this.
  */
-export const ALREADY_REQUESTED_MARKER = 'already requested';
+export const ALREADY_REQUESTED = 'TD004';
 
 /** Did the database refuse this because the person has already asked to join? */
 export function isAlreadyRequested(error: unknown): boolean {
   if (typeof error !== 'object' || error === null) return false;
-  const code = (error as { code?: unknown }).code;
-  if (code !== '22023') return false;
-  const message = (error as { message?: unknown }).message;
-  return typeof message === 'string' && message.includes(ALREADY_REQUESTED_MARKER);
+  return (error as { code?: unknown }).code === ALREADY_REQUESTED;
 }
 
 /**

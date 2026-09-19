@@ -22,24 +22,29 @@
 # green: the app would be sending and parsing correctly, and the secret would
 # simply also be sitting in a column a manager can read.
 #
-# ⚠️⚠️ AND ONE ASSERTION EXISTS TO KEEP A STRING MATCH HONEST. `0028` raises
-# `22023` for five different refusals, one of which needs its own sentence —
-# inviting somebody who has ALREADY ASKED to join is an approval, and approval is
-# `0029`'s. There is no distinguishing SQLSTATE, so `@/api/invites` matches on a
-# marker in the server's prose, which is normally a defect here. Assertion 8
-# drives that refusal for real and fails if the message stops containing the
-# marker the app exports — so a reworded migration is red and named, rather than
-# quietly costing the one refusal that has a next step. **The honest fix is a
-# SQLSTATE of its own and that is a migration; RULED BY THE OWNER 2026-09-18 into
-# `5b-iii`, which owns the approval path the message points at. ⚠️ THIS ASSERTION
-# RETIRES WITH IT — when the code lands, assertion 8 asserts the CODE, not prose.**
+# ⚠️⚠️ ONE ASSERTION USED TO KEEP A STRING MATCH HONEST, AND AS OF 2026-09-19 IT
+# ASSERTS A CODE INSTEAD. `0028` raised `22023` for five different refusals, one
+# of which needs its own sentence — inviting somebody who has ALREADY ASKED to
+# join is an approval, and approval is `0029`'s. There was no distinguishing
+# SQLSTATE, so `@/api/invites` matched a marker in the server's prose, which is
+# normally a defect here, and assertion 8 drove that refusal for real so a
+# reworded migration went red rather than quietly costing the one refusal that
+# has a next step.
+#
+# ✅ `0036` MINTED `TD004` (task `5b-iii-a`, ruled into this step by the owner on
+# 2026-09-18). Assertion 8 now reads the CODE out of `@/api/invites` and asserts
+# the database raises it — the promise this file's own prose made when it said
+# "THIS ASSERTION RETIRES WITH IT". ⚠️ It is STRICTLY STRONGER than what it
+# replaces: the old form could not tell `TD004` from `22023` (it read the
+# message), and this one drives a second refusal in the same body to prove the
+# two codes have actually come apart.
 #
 # WHAT IT ASSERTS, all against a REAL round trip over HTTP, with three real
 # people and two stores:
 #
-#   1. The RPC's name, the location column list and the marker are READ OUT OF
-#      `app/src/api/invites.ts` — not typed in here. A second copy of a contract
-#      is the defect this repository has recorded eleven times.
+#   1. The RPC's name, the location column list and the REFUSAL CODE are READ
+#      OUT OF `app/src/api/invites.ts` — not typed in here. A second copy of a
+#      contract is the defect this repository has recorded eleven times.
 #   2. The four `p_` names the app sends are the ones the function answers to,
 #      and a deliberately wrong one is `PGRST202` — so assertion 2 also proves
 #      this check could SEE a drift rather than merely not meeting one.
@@ -60,7 +65,9 @@
 #      `createInviteArgs` sends `[]` rather than the form's contents.
 #   7. Inviting the same address twice answers `replaced_pending: true` — `0028`
 #      decision 6, and `P3`.
-#   8. The `already requested` refusal still contains the marker the app matches.
+#   8. The `already requested` refusal raises the CODE the app branches on, and
+#      a DIFFERENT refusal in the same body still raises `22023` — so the check
+#      says the two have come apart rather than merely that one of them fired.
 #   9. A STAFF caller cannot create an invite at all: `42501` from the fence in
 #      the BODY, which is where it is because §2.7's "under normal RLS" cannot
 #      work (`5b.8` owes that amendment, ruled 2026-09-18).
@@ -103,7 +110,11 @@ fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 # --- 1. the app's own claims, read out of its source -----------------------
 CREATE_INVITE="$(sed -n "s/^export const CREATE_INVITE = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 LOCATION_COLUMNS="$(sed -n "s/^export const LOCATION_COLUMNS = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
-MARKER="$(sed -n "s/^export const ALREADY_REQUESTED_MARKER = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+# ⚠️ THE CODE, READ OUT OF THE APP. Until 0036 this was a MARKER — a substring
+# of the server's message — and the app matched prose because 0028 gave it
+# nothing else. It is a SQLSTATE now, and it is still read from the module
+# rather than typed here for assertion 2's reason: a copy is a tautology.
+ALREADY_REQUESTED="$(sed -n "s/^export const ALREADY_REQUESTED = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 ONBOARD="$(sed -n "s/^export const ONBOARD_WORKSPACE = '\([^']*\)';.*/\1/p" "$WORKSPACE_CONTRACT" | head -1)"
 WORKSPACE_COLUMNS="$(sed -n "s/^export const WORKSPACE_COLUMNS = '\([^']*\)';.*/\1/p" "$WORKSPACE_CONTRACT" | head -1)"
 
@@ -117,10 +128,10 @@ ARG_N="$(printf '%s\n' "$ARGS" | grep -c . )"
 ARG_NAMES="$(printf '%s\n' "$ARGS" | sort | tr '\n' ',' | sed 's/,$//')"
 
 note
-if [[ -z "$CREATE_INVITE" || -z "$LOCATION_COLUMNS" || -z "$MARKER" || -z "$ONBOARD" \
+if [[ -z "$CREATE_INVITE" || -z "$LOCATION_COLUMNS" || -z "$ALREADY_REQUESTED" || -z "$ONBOARD" \
       || -z "$WORKSPACE_COLUMNS" ]] || (( ARG_N != 4 )); then
   fail "could not read the invite contract out of $CONTRACT"
-  echo "      rpc='$CREATE_INVITE' columns='$LOCATION_COLUMNS' marker='$MARKER'"
+  echo "      rpc='$CREATE_INVITE' columns='$LOCATION_COLUMNS' code='$ALREADY_REQUESTED'"
   echo "      args='$ARG_NAMES' onboard='$ONBOARD'"
   echo "      This check asserts the app's own strings against the database. If it"
   echo "      cannot find them it has nothing to assert, and a green here would be"
@@ -428,7 +439,13 @@ else
   ok "a second invite to one address answers replaced_pending, with a new token (P3)"
 fi
 
-# --- 8. the marker the app matches on ------------------------------------
+# --- 8. the CODE the app branches on, and that it is not the payload code --
+# ⚠️ TWO REFUSALS, NOT ONE, AND THAT IS WHAT MAKES THIS STRONGER THAN THE MARKER
+# ASSERTION IT REPLACES. The first is the approval refusal, which must now be
+# TD004. The second is a BAD PAYLOAD in the same function, which must still be
+# 22023. A migration that minted TD004 for the whole body - or that reverted it -
+# leaves one of the two wrong, and a check that drove only the first would be
+# green for a `create_invite` that had stopped telling them apart at all.
 note
 signup "$ASKER_EMAIL"; ASKER_TOKEN="$TOKEN"
 ASK="$(stash ask "$(api POST /rest/v1/rpc/request_access "{\"p_code\":\"$CODE\"}")")"
@@ -437,20 +454,30 @@ CLASH_BODY="$(invite_body "$ASKER_EMAIL" staff "[\"$NORTE\"]")"
 CLASH="$(stash clash "$(api POST "/rest/v1/rpc/$CREATE_INVITE" "$CLASH_BODY")")"
 CLASH_CODE="$(jfield "$CLASH" code)"
 CLASH_MSG="$(jfield "$CLASH" message)"
+PAYLOAD_BODY="$(invite_body "no-arroba-aqui" staff "[\"$NORTE\"]")"
+PAYLOAD="$(stash payload "$(api POST "/rest/v1/rpc/$CREATE_INVITE" "$PAYLOAD_BODY")")"
+PAYLOAD_CODE="$(jfield "$PAYLOAD" code)"
 if [[ "$(jfield "$ASK" workspace_id)" == "" ]]; then
   fail "could not make somebody ask to join, so assertion 8 checked nothing: $(cat "$ASK")"
-elif [[ "$CLASH_CODE" != "22023" ]]; then
-  fail "inviting someone who already asked was not refused 22023 (got '$CLASH_CODE')"
-elif ! grep -qF "$MARKER" <<< "$CLASH_MSG"; then
-  fail "the refusal no longer contains the marker the app matches on: $MARKER"
+elif [[ "$CLASH_CODE" != "$ALREADY_REQUESTED" ]]; then
+  fail "inviting someone who already asked was not refused $ALREADY_REQUESTED (got '$CLASH_CODE')"
   echo "      The server said: $CLASH_MSG"
-  echo "      The app matches this prose because 0028 raises 22023 for five"
-  echo "      different refusals and only this one has a next step. The honest"
-  echo "      fix is a SQLSTATE of its own, which is a migration - routed to"
-  echo "      5b-iii, which owns the approval path. Until then THIS assertion is"
-  echo "      what makes the string match safe, and it has gone red not silent."
+  echo "      @/api/invites branches on $ALREADY_REQUESTED to give her the ONE"
+  echo "      sentence with a next step in it - somebody has asked, approve her"
+  echo "      rather than inviting her again. 0036 minted that code for exactly"
+  echo "      this refusal. If it has moved, the shopkeeper gets the generic"
+  echo "      failure sentence instead and the approval path is invisible."
+elif [[ "$PAYLOAD_CODE" != "22023" ]]; then
+  fail "a MALFORMED address was not refused 22023 (got '$PAYLOAD_CODE')"
+  echo "      This half of the assertion is what says the two codes have come"
+  echo "      APART. 0028 raised 22023 for both, which is why the app used to"
+  echo "      match the message; if a later migration swept the payload refusals"
+  echo "      onto $ALREADY_REQUESTED too, the overload is back wearing a new"
+  echo "      number and the half above would not have noticed."
+elif [[ "$CLASH_CODE" == "$PAYLOAD_CODE" ]]; then
+  fail "the approval refusal and a bad payload still share one code ($CLASH_CODE)"
 else
-  ok "the 'already requested' refusal still carries the marker the app matches on"
+  ok "the approval refusal raises $ALREADY_REQUESTED and a bad payload still raises 22023 - they are apart"
 fi
 
 # --- 9. the fence in the body -------------------------------------------

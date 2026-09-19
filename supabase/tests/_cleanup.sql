@@ -167,6 +167,24 @@ begin
   -- a run died on "function already exists", which is the hour 4f and 4.5a both
   -- paid.
 
+  -- ⚠️ ADDED 2026-09-19 (task 5b-iii-a), on the day the suite lands, and this
+  -- session paid the hour 4f's rule predicts BEFORE adding them: the first run
+  -- of `0036`'s suite aborted on a wrong column name, and the second died on
+  -- "function _state already exists" instead of on anything real. `0036`'s
+  -- suite creates FOUR helpers of its own, and all three exist for one
+  -- assertion — 4.3, which compares the SQLSTATE a dead token raises to a
+  -- caller with a session against the one it raises to a caller without,
+  -- rather than comparing each to a constant. `_state` returns a state as a
+  -- VALUE instead of recording it; `_pair` and `_differs` take both
+  -- measurements in one statement, because the session has to move between
+  -- them and a `chk` cannot do that mid-expression. Everything else it uses —
+  -- `chk`, `chk_raises`, `chk_raises_like`, `_as`, `_src` — is at the EXACT
+  -- signature an earlier suite gave it and is already dropped above.
+  drop function if exists public._state(text);
+  drop function if exists public._pair(uuid, text);
+  drop function if exists public._differs(uuid, text);
+  drop function if exists public._verdict(text);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.

@@ -180,7 +180,7 @@ mutate 'signup "$STRANGER_EMAIL"
 SPENT=' 'TOKEN="$JOINER_TOKEN"
 SPENT=' check.sh
 guard
-fixture "U7 a caller who should be refused is not" red "was not refused 42501"
+fixture "U7 a caller who should be refused is not" red "was not refused TD005"
 
 # --- U8. ⚠️ IDEMPOTENCY STOPS HOLDING -----------------------------------
 # ⚠️ THE PROBE AGAIN, for the same reason. `0028` made the second tap idempotent
@@ -194,14 +194,31 @@ mutate 'TWICE="$(api POST "/rest/v1/rpc/$REDEEM_INVITE" "$(redeem_body "$INVITE_
 guard
 fixture "U8 the second tap is refused instead of answered" red "a second tap by the same person was an ERROR"
 
+# --- U9. ⚠️⚠️ THE OVERLOAD COMES BACK ------------------------------------
+# ⚠️ ADDED 2026-09-19 (task `5b-iii-a`), and it is the fixture for the assertion
+# that was TURNED OVER rather than deleted. Assertion 9 used to say the overload
+# was real; it now says it is gone. A green assertion with no fixture behind it
+# is a claim nobody has shown can fail — and this one's whole value is that it
+# goes red if a later migration ever puts a dead token and an absent session back
+# on one code.
+#
+# ⚠️ IT MUTATES THE APP'S MAP BACK TO ITS PRE-0036 STATE, which is the cheapest
+# way to land the defect from here: the check reads `SPENT_CODE` off that map, so
+# re-keying it to `42501` makes the check measure exactly what it measured before
+# this task — and the anonymous caller's `42501` then equals it.
+fresh
+mutate "  TD005: 'spent'," "  '42501': 'spent',"
+guard
+fixture "U9 the token refusal is back on 42501 — the overload restored" red "the overload is back"
+
 echo
-if (( ran != 9 )); then
-  echo "FAIL: $ran fixtures ran, expected 9 — the harness skipped some and was about"
+if (( ran != 10 )); then
+  echo "FAIL: $ran fixtures ran, expected 10 — the harness skipped some and was about"
   echo "      to report success, which is how a sister harness spent a day dead."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all 9 fixtures behaved as recorded (8 red, 1 deliberately green) —"
+  echo "all 10 fixtures behaved as recorded (9 red, 1 deliberately green) —"
   echo "5b-ii-b-2-redeem-contract.sh can still fail on every defect it was written for."
   exit 0
 fi

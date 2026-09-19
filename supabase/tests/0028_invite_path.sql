@@ -458,9 +458,16 @@ values
   (:'ws_a', 'pidio@example.mx', 'staff', '{}'::uuid[], 'request', null, null,
    :asker);
 
+-- ⚠️ TD004 SINCE 0036 (task 5b-iii-a), AND IT WAS 22023 WHEN THIS FILE WAS
+-- WRITTEN. Decision 11 of 0028 minted no code and reused 22023 under 4d-i's
+-- rule; what it could not see is that this refusal and the four bad-payload
+-- ones were not one meaning reached five ways, they were two meanings wearing
+-- one code — and @/api/invites was telling them apart by matching the English
+-- sentence. This is the only refusal in this function that has a NEXT STEP:
+-- somebody has asked, so approve her rather than inviting her again.
 select chk_raises('4.8 a LIVE pending REQUEST is refused — approving it is 0029''s job',
   format('select public.create_invite(%L, %L, %L, array[%L]::uuid[])',
-         :'ws_a', 'pidio@example.mx', 'staff', :'loc_a1'), '22023');
+         :'ws_a', 'pidio@example.mx', 'staff', :'loc_a1'), 'TD004');
 
 update public.workspace_invite
    set expires_at = now() - interval '1 day',
@@ -557,13 +564,23 @@ select public._as(null);
 -- ============================================================================
 
 select public._as(:staff_a);
+-- ⚠️⚠️ TD005 SINCE 0036, AND 6.3 BELOW IS WHY IT HAD TO MOVE. Both were 42501
+-- when this file was written — this one from the function's own body, 6.3's
+-- from the authentication guard — and PostgREST raises the same 42501 for an
+-- anonymous HTTP caller, which @/api/errors maps app-wide to "sign in again".
+-- So the join screen could not tell a dead code from a lapsed session and had
+-- to GUESS. 6.1 and 6.3 now answer differently, which is the whole of task
+-- 5b-iii-a; supabase/tests/0036 section 4 asserts that difference directly.
 select chk_raises('6.1 a token nobody issued is refused',
-  format('select public.redeem_invite(%L)', 'ZZZZZZZZZZZZZZZZ'), '42501');
+  format('select public.redeem_invite(%L)', 'ZZZZZZZZZZZZZZZZ'), 'TD005');
 
 select chk_raises('6.2 an empty token is refused before anything is hashed',
   $q$select public.redeem_invite('   ')$q$, '22023');
 
 select public._as(null);
+-- ⚠️ THIS ONE KEEPS 42501 AND KEEPING IT IS THE POINT. After 0036 it is the
+-- ONLY thing redeem_invite raises it for, so the code means one thing here —
+-- "sign in again" — which is what the rest of this app always read it as.
 select chk_raises('6.3 an unauthenticated caller may not redeem',
   format('select public.redeem_invite(%L)', :'tok_shape'), '42501');
 
@@ -581,8 +598,12 @@ select chk('6.5 and there is still exactly one membership',
              where workspace_id = :'ws_a'::uuid and user_id = :joiner::uuid));
 
 select public._as(:staff_a);
+-- ⚠️ THE SAME TD005 AS 6.1, AND DELIBERATELY. Decision 11 called an unknown
+-- token and one somebody else has spent ONE meaning — "this is not yours" —
+-- and 0036 gave that one meaning one code rather than splitting it. Whichever
+-- way it is dead, she has to ask for another, so no screen draws the line.
 select chk_raises('6.6 somebody ELSE presenting a spent token is refused',
-  format('select public.redeem_invite(%L)', :'tok_join'), '42501');
+  format('select public.redeem_invite(%L)', :'tok_join'), 'TD005');
 
 -- Expiry and supersession are TD003 — 0021's workflow code, reused rather than
 -- minted (4d-i's rule): "ask the owner for another" is an instruction, not a bug.

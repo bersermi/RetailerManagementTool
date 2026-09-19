@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
-  ALREADY_REQUESTED_MARKER,
+  ALREADY_REQUESTED,
   CREATE_INVITE,
   INVITABLE_ROLES,
   LOCATIONS_KEY,
@@ -319,9 +319,9 @@ describe('groupedToken', () => {
   });
 });
 
-describe('the one server message this app reads', () => {
+describe('the refusal that has a next step, and it is a CODE now', () => {
   const alreadyRequested = {
-    code: '22023',
+    code: 'TD004',
     message: 'create_invite: ana@example.com has already requested access — approve the request instead',
   };
 
@@ -330,24 +330,35 @@ describe('the one server message this app reads', () => {
     expect(inviteErrorMessage(alreadyRequested)).toBe(ES.invite.alreadyRequested);
   });
 
-  // ⚠️ THE MARKER IS ASSERTED AGAINST THE LIVE DATABASE by the contract check,
-  // which is the only arrangement in which matching a server's prose is safe
-  // here. If 0028 is reworded, that check goes red and names it.
-  it('matches on the marker it exports, not on a sentence typed twice', () => {
-    expect(alreadyRequested.message).toContain(ALREADY_REQUESTED_MARKER);
+  // ⚠️⚠️ THIS TEST REPLACES THE ONE THAT ASSERTED A MARKER, and the replacement
+  // is not cosmetic. `0036` (task `5b-iii-a`) minted `TD004`, so this module
+  // reads a SQLSTATE instead of a substring of the server's prose — which means
+  // the refusal survives a reworded message, which the old arrangement did not.
+  // The contract check that made the substring safe was retired in the same
+  // pass: an assertion still standing over a rule that has been superseded is
+  // red on a correct tree.
+  it('reads the CODE, so a reworded message changes nothing', () => {
+    expect(isAlreadyRequested({ code: 'TD004', message: 'reworded entirely' })).toBe(true);
+    expect(isAlreadyRequested({ code: 'TD004' })).toBe(true);
   });
 
-  it('does not claim every 22023 is that one', () => {
+  // ⚠️ THE FOUR OTHER 22023s ARE NOT THIS ONE, and that is the whole reason the
+  // code was minted. `checkInvite` catches all four on the phone; one arriving
+  // here means something got past it, and it is not an approval.
+  it('does not claim a 22023 is that one — not even carrying the old words', () => {
     expect(
       isAlreadyRequested({ code: '22023', message: 'a staff invite must name at least one location' }),
     ).toBe(false);
+    expect(
+      isAlreadyRequested({ code: '22023', message: 'ana has already requested access' }),
+    ).toBe(false);
   });
 
-  it('does not match the marker under a different code', () => {
+  it('does not match the old prose under any other code', () => {
     expect(isAlreadyRequested({ code: '42501', message: 'already requested' })).toBe(false);
   });
 
-  it.each([[null], [undefined], ['22023'], [{}]])('is false for %s', (junk) => {
+  it.each([[null], [undefined], ['TD004'], [{}]])('is false for %s', (junk) => {
     expect(isAlreadyRequested(junk)).toBe(false);
   });
 

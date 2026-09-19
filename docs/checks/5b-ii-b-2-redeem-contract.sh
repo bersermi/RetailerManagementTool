@@ -47,15 +47,19 @@
 #      `0028` made it idempotent because a joiner taps twice on a bad connection,
 #      and the pilot store is offline a lot; the app treats it as a success.
 #   7. A THIRD party presenting a spent token is refused with the SQLSTATE the
-#      app maps to `spent`.
+#      app maps to `spent` — `TD005` as of `0036`, read off the app's own map.
 #   8. A SUPERSEDED token is refused with the SQLSTATE the app maps to `expired`.
-#   9. ⚠️⚠️ THE OVERLOAD, ASSERTED RATHER THAN ASSUMED: an anonymous caller is
-#      refused with that SAME `42501`. So the code genuinely means two things, and
-#      `@/api/redeem`'s decision to read it as the code ON THIS SCREEN is a
-#      judgement about who is standing there — not a misreading. The honest fix is
-#      a SQLSTATE of its own, which is a migration; ROUTED TO `5b-iii`, where the
-#      owner ruled on 2026-09-18 that `0028`'s other SQLSTATE overload is fixed.
-#      ⚠️ THIS ASSERTION RETIRES WITH IT.
+#   9. ⚠️⚠️ THE OVERLOAD IS GONE, ASSERTED RATHER THAN ASSUMED — AND THIS IS THE
+#      SAME ASSERTION IT ALWAYS WAS, TURNED OVER. It used to say that an
+#      anonymous caller was refused the SAME code as a dead token, which is why
+#      `@/api/redeem` reading it as "dead token" was a judgement about who was
+#      standing there rather than a contract. `0036` (task `5b-iii-a`) minted
+#      `TD005` for both of `redeem_invite`'s token refusals and left `42501` on
+#      the authentication guard alone, so the two now answer DIFFERENTLY — and
+#      this assertion is what says so, against a live database, rather than the
+#      migration file saying it. ⚠️ The check compares the two measurements to
+#      EACH OTHER as well as to the app's map: an editor who changed both
+#      expectations would still be red.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT. Anything about the SCREEN. §2.11 refuses suites over
 # rendering, so that the code box appears BELOW the create-a-shop half, that one
@@ -111,8 +115,10 @@ REDEEM_ARG_N="$(printf '%s\n' "$REDEEM_ARGS" | grep -c . )"
 REDEEM_ARG="$(printf '%s\n' "$REDEEM_ARGS" | head -1)"
 
 # ⚠️ AND THE TWO SQLSTATES ARE READ OFF THE MAP, so assertions 7 and 8 assert the
-# app's own claim about what 0028 raises rather than a pair of numbers this file
-# believes. The values are keys of `ES.join.errors`; the keys are the codes.
+# app's own claim about what redeem_invite raises rather than a pair of numbers
+# this file believes. The values are keys of `ES.join.errors`; the keys are the
+# codes. ⚠️ As of 0036 neither is 42501, and assertion 9 is what says so — this
+# reader is why that assertion needed no second edit to follow the change.
 SPENT_CODE="$(sed -n "s/^  '\{0,1\}\([A-Za-z0-9]*\)'\{0,1\}: 'spent',.*/\1/p" "$CONTRACT" | head -1)"
 EXPIRED_CODE="$(sed -n "s/^  '\{0,1\}\([A-Za-z0-9]*\)'\{0,1\}: 'expired',.*/\1/p" "$CONTRACT" | head -1)"
 
@@ -401,24 +407,36 @@ else
   ok "a superseded token is refused $EXPIRED_CODE, the code the app maps to 'expired'"
 fi
 
-# --- 9. ⚠️⚠️ the overload, asserted rather than assumed ------------------
-# `@/api/redeem` reads 42501 as "the code" while `@/api/errors` reads it
-# app-wide as "your session ended". Both readings are of the SAME code, and this
-# is what says so out loud — so the screen-local decision is a judgement about
-# who is standing there rather than somebody not having noticed.
+# --- 9. ⚠️⚠️ the overload is GONE, asserted rather than assumed -----------
+# This assertion used to prove the overload was REAL: `@/api/redeem` read 42501
+# as "that code is dead" while `@/api/errors` read the same 42501 app-wide as
+# "your session ended", and the screen had to guess which person was standing
+# there. `0036` minted TD005 for both token refusals and left 42501 on the
+# authentication guard alone. This is the same measurement, now saying they have
+# come apart — which is the thing task 5b-iii-a claims to have done, said by a
+# live database rather than by a migration file.
 note
 TOKEN=""
 ANON="$(stash anon "$(api POST "/rest/v1/rpc/$REDEEM_INVITE" "$(redeem_body "$INVITE_TOKEN")")")"
 ANON_CODE="$(jfield "$ANON" code)"
 TOKEN="$OWNER_TOKEN"
-if [[ "$ANON_CODE" != "$SPENT_CODE" ]]; then
-  fail "an anonymous caller was NOT refused $SPENT_CODE (got '$ANON_CODE')"
-  echo "      This assertion exists to prove the OVERLOAD is real: the same code"
-  echo "      means \"bad token\" and \"no session\". If they have come apart, the"
-  echo "      screen-local reading in @/api/redeem is no longer needed and the"
-  echo "      honest mapping routed to 5b-iii is cheaper than it was."
+if [[ "$ANON_CODE" == "$SPENT_CODE" ]]; then
+  fail "an anonymous caller is STILL refused $SPENT_CODE — the overload is back"
+  echo "      0036 exists to separate these two. A caller with no session and a"
+  echo "      caller holding a dead token must not answer with one code, because"
+  echo "      @/api/redeem maps $SPENT_CODE to \"pide otro codigo\" and"
+  echo "      @/api/errors maps the session code to \"vuelve a entrar\". Sharing"
+  echo "      one code means one of those two people is told the wrong thing and"
+  echo "      no test in app/ can see which."
+elif [[ -z "$ANON_CODE" ]]; then
+  fail "an anonymous caller was not refused at ALL — redeem_invite is reachable with no session"
+elif [[ "$ANON_CODE" != "42501" ]]; then
+  fail "an anonymous caller was refused '$ANON_CODE', not 42501"
+  echo "      @/api/errors maps 42501 (and PGRST301) to the session sentence"
+  echo "      app-wide. If PostgREST has started answering something else, the"
+  echo "      joiner whose session lapsed falls through to the catch-all."
 else
-  ok "an anonymous caller is refused $SPENT_CODE too — the overload the app's screen-local reading answers"
+  ok "an anonymous caller is refused 42501 and a dead token $SPENT_CODE — the overload 5b-ii-b-2 measured is retired"
 fi
 
 echo
