@@ -198,20 +198,25 @@ mutate "$WORK/plan.md" "**SUPERSEDED — the member row is now identified by the
                        "**the member row is identified somehow**" || exit 1
 fixture "Y9 the member-identity ruling struck from the parent row" red "no longer named in the parent 5b row"
 
-# --- Y10. the half that was NOT retired -----------------------------------
-# ⚠️⚠️ THE FIXTURE THAT EXISTS BECAUSE THE OTHER HALF WAS RETIRED. On 2026-09-18
-# the member-list sentinel was genuinely superseded, and the approval-row one was
-# MEASURED AND LEFT STANDING: a pending request is a `workspace_invite` row
-# (`0029:296`) and the person asking has no `workspace_member` row until
-# `approve_request` writes one (`0029:455`), so no membership carries their name
-# while the approver is looking. The premise died; the outcome did not.
+# --- Y10. the approval row's own ruling -----------------------------------
+# ⚠️⚠️ THIS FIXTURE HAS OUTLIVED THE RULING IT WAS WRITTEN FOR, BY ONE DAY, AND
+# THAT IS WORTH READING BEFORE TOUCHING IT. It shipped on 2026-09-18 to protect
+# the half of the 2026-09-14 ruling that `5b.8-ii` MEASURED AND LEFT STANDING —
+# "the approver sees an EMAIL and a role, never a name" — because the foreseeable
+# mistake was a session deleting both halves on hearing that one was retired.
 #
-# ⚠️ THE FORESEEABLE MISTAKE IS DELETING BOTH, by a session that has read "the
-# 2026-09-14 EMAIL ruling was retired" and not the measurement under it. This is
-# what that looks like.
+# ✅ On 2026-09-19 the owner ruled on the parked question and the sentence
+# changed: *"Show the Email as a Header and the Name as a subtitle of the
+# request."* The fixture follows the guard's wording, in the same commit, which
+# is the rule that keeps a replaced assertion from being an unfalsified one.
+#
+# ⚠️ WHAT IT PROTECTS IS UNCHANGED AND IS NOT THE OLD SENTENCE: a decision about
+# what a screen renders has no constraint, grant or policy to live in, and §2.11
+# bans the rendering suite that would catch it going missing. The ORDER is the
+# ruling — email above, name below — and nothing but this row records it.
 fresh
-mutate "$WORK/plan.md" "the approver sees an EMAIL** and never a name" \
-                       "the approver sees whatever is on the request** and never a name" || exit 1
+mutate "$WORK/plan.md" "the **EMAIL as the header** and the **NAME** beneath it" \
+                       "whatever the screen feels like showing" || exit 1
 fixture "Y10 the approval-row ruling struck from the parent row" red "no longer named in the parent 5b row"
 
 echo
