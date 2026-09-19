@@ -12,6 +12,23 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-19 — **§2.3 amended**, by the migration that gave one of its
+  sentences a mechanism: `0035`, plan task `5b.8-iii-a`, `set_my_display_name(uuid, text)`.
+  ⚠️ **Nothing in §2.3 became FALSE, which is why this entry is one sentence and not a
+  strikethrough.** The 2026-09-18 amendment above already said the write rule exists *"so
+  a re-invite never overwrites a correction a person made about themselves"* — and named
+  no way for her to make one. From `5b.8-ii` that gap was live on a screen: a Google
+  account that arrived as one word was on the roster in front of the whole shop, and
+  `workspace_member_update` (`0001:532`) is owner-only, so a manager or a cashier could
+  not repair the row describing her. §2.3 now names the function that does it, and says
+  in one line why it is a `security definer` RPC rather than the policy anybody would
+  reach for first — **RLS filters rows, not columns**, so *"you may update your own row"*
+  also hands every cashier her own `role`, which is the argument §2.7 already makes about
+  `cost` on `purchase_line`. ⚠️ **It is workspace-scoped, and that is a decision taken on
+  the decision maker's behalf** — recorded in `docs/PLAN.md` `5b.8-iii-a`, in `0035`'s
+  header, and measured by check 3.5 of its suite. **The schema change is `0035` and its
+  evidence is `supabase/tests/0035_set_my_display_name.sql` — 38 behavioural checks,
+  sixteen falsifications, fifteen of them red.**
 - **Revised:** 2026-09-18 (second entry this date) — **§2.3 and §2.7 amended**, by the
   migration that made three of their sentences false: `0034`, plan task `5b.8-i`, which
   adds `workspace_member.display_name` and fills it from all four applied membership
@@ -401,6 +418,24 @@ the stored value is null, so a re-invite never overwrites a correction a person 
 about themselves. ⚠️ **`workspace.display_name` is the SHOP's name and is a different
 column on a different table** — the two sit three lines apart inside
 `onboard_workspace`, which is why that function names its local for the person.
+
+⚠️ **AMENDED 2026-09-19 — THE CORRECTION ABOVE HAS A MECHANISM, AND IT IS A FUNCTION
+RATHER THAN A POLICY (`0035`, plan task `5b.8-iii-a`).** `set_my_display_name(uuid,
+text)` is a `security definer` RPC that writes this one column on the caller's own
+active membership in the workspace she names, and nothing else: no argument can name
+another person, and `role` is not in its `set` list. It is the **fifth** writer of the
+column and the **only** one permitted to overwrite a non-null name, because the caller
+is the person the name is about and she asked for it — which is the 2026-09-18 ruling
+being honoured rather than bent.
+
+⚠️⚠️ **The obvious alternative is refused by name: a policy letting a person update her
+own `workspace_member` row.** RLS filters **rows, not columns** — the sentence §2.7
+already spends a paragraph on about `cost` on `purchase_line` — so that policy also
+lets a cashier set her own `role`. `workspace_member_update` (`0001:532`) stays
+owner-only and `0035` moves no policy at all. ⚠️ **The call is workspace-scoped**: it
+fixes the name in ONE shop, because `my_workspaces()` is set-returning and an unscoped
+write would cross the tenant boundary this schema spends all its effort not crossing. A
+scoped call can later fan out; an unscoped write that has already run cannot be un-run.
 
 `member_location` is a join table rather than a `location_id` column on
 `workspace_member` because the owner will move a cashier between stores to cover a
