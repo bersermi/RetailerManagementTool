@@ -342,17 +342,31 @@ else
   # The task name out of the handover guard's own agreement line, so the two
   # instruments are compared rather than both compared to a constant here.
   X2_TASK="$(sed -n 's/.*and the table agree on \(.*\)$/\1/p' <<< "$h_out" | head -1)"
+  # ⚠️⚠️ A CHILD OR ANY DESCENDANT OF ONE, AND THAT IS THE SECOND TIME THIS
+  # FIXTURE HAS BEEN PINNED TO A MOMENT INSTEAD OF TO ITS CLAIM. The spelling
+  # above this comment already records going red in CI on 2026-09-19 for
+  # hard-coding `5b-iii-a`; the repair listed all four children — and went red
+  # again the same day, on a correct tree, the moment `5b-iii-d` was itself sized
+  # and split and handed its marker DOWN to `5b-iii-d-1`. ⚠️ A child splitting is
+  # not a defect; it is what `5b-iii-d`'s own gate cell ordered, and three rows in
+  # this split are predicted to do the same. The claim was never "the marker is on
+  # one of four names" — it is **"the marker is somewhere INSIDE this split"**.
+  # ⚠️ IT IS NOT A LOOSENING: `5b-iii` itself is still refused (there is no bare
+  # `5b-iii` arm), and so is `5b.8-iii-b`, `5b-iii-e`, or any name this split does
+  # not contain. The lesson, which is this directory's oldest one facing a new
+  # way: A FIXTURE MUST ASSERT THE CLAIM, NOT THE TREE IT WAS WRITTEN AGAINST.
   X2_OK=0
   case "$X2_TASK" in
-    5b-iii-a|5b-iii-b|5b-iii-c|5b-iii-d) X2_OK=1 ;;
+    5b-iii-[abcd]|5b-iii-[abcd]-*) X2_OK=1 ;;
   esac
   if grep -qF "exactly one table row is marked as the next task" <<< "$h_out" \
      && (( X2_OK == 1 )); then
-    echo "  ok    X2  the next-task marker is on one child of this split ($X2_TASK) and the header agrees"
+    echo "  ok    X2  the next-task marker is inside this split ($X2_TASK) and the header agrees"
   else
     echo "FAIL: X2 — the split left the next-task marker ambiguous, or the status log"
     echo "      and the table disagree about which child is next, or the marker is"
-    echo "      on something that is not one of this split's four children:"
+    echo "      on something that is not one of this split's four children or a"
+    echo "      descendant of one:"
     echo "        read: '$X2_TASK'"
     sed 's/^/        /' <<< "$h_out"
     fails=$((fails+1))
