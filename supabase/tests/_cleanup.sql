@@ -157,6 +157,16 @@ begin
   drop function if exists public._name(uuid, uuid);
   drop function if exists public._role(uuid, uuid);
 
+  -- ⚠️ 2026-09-19 (task 5b.8-iii-a), and this entry is here to say that NOTHING
+  -- WAS ADDED, which is the rule being followed rather than skipped. `0035`'s
+  -- suite creates five helpers and every one of them is at the EXACT signature
+  -- an earlier suite gave it — `_as` (0028), `_name` and `_role` (0034), `_src`
+  -- (0030) and `chk_raises_like` (0024) — so each REPLACES its predecessor on a
+  -- re-run instead of sitting beside it, and all five are already dropped above.
+  -- That was checked against this file before the suite was written, not after
+  -- a run died on "function already exists", which is the hour 4f and 4.5a both
+  -- paid.
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.
