@@ -291,11 +291,11 @@ jobs:
         run: bash docs/checks/5b-split-coverage.sh
 
       # And its own fixtures, for the reason the block above states.
-      - name: Plan — can the 5b guard still fail (its own nine fixtures)
+      - name: Plan — can the 5b guard still fail (its own eleven fixtures)
         run: bash docs/checks/5b-split-coverage-falsify.sh
       - name: Plan — did the 5b-ii split lose a deliverable (plan 5b-ii sizing)
         run: bash docs/checks/5b-ii-split-coverage.sh
-      - name: Plan — can the 5b-ii guard still fail (its own nine fixtures)
+      - name: Plan — can the 5b-ii guard still fail (its own ten fixtures)
         run: bash docs/checks/5b-ii-split-coverage-falsify.sh
       - name: Plan — did the 5b-ii-b split lose a deliverable (plan 5b-ii-b sizing)
         run: bash docs/checks/5b-ii-b-split-coverage.sh

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 5b-ii-split-coverage-falsify — the nine fixtures the 5b-ii split guard was
+# 5b-ii-split-coverage-falsify — the ten fixtures the 5b-ii split guard was
 # checked against, kept as a script rather than as a paragraph claiming it was.
 #
 # WHY THIS EXISTS. `docs/PLAN.md` records a falsification table for every guard in
@@ -27,7 +27,7 @@
 # it is a coincidence.
 #
 # Run:  bash docs/checks/5b-ii-split-coverage-falsify.sh
-# Exit: 0 when all nine fixtures behave as recorded; 1 otherwise.
+# Exit: 0 when all ten fixtures behave as recorded; 1 otherwise.
 
 set -uo pipefail
 
@@ -190,14 +190,35 @@ mutate_row "5b-ii-a" "; and the **density** switch" \
 guard
 fixture "Z8 5b-ii-a also claims redeem_invite" red "owned by neither"
 
+# --- Z9. the identity ruling, in its 2026-09-18 wording -------------------
+# ⚠️⚠️ ADDED BY `5b.8-ii` IN THE SAME COMMIT THAT REPLACED THE ASSERTION IT
+# FALSIFIES, which is the rule `conventions-gate-falsify.sh` spent a day dead to
+# learn: WHEN AN ASSERTION CHANGES, THE THING THAT FALSIFIES IT CHANGES WITH IT.
+# The sentinel used to read "identified by EMAIL" and now reads "identified by
+# the NAME on the membership" — the owner ruled on 2026-09-14, `0034` killed the
+# premise (`T1`), and he ruled again on 2026-09-18.
+#
+# ⚠️ THE OLD ENTRY HAD NO FIXTURE OF ITS OWN FOR FOUR DAYS. It was covered only
+# by the generic shapes above, which means nothing ever proved the guard could
+# fail ON THIS ENTRY. Replacing an unfalsified assertion with another unfalsified
+# assertion would have been a retirement resting on nothing.
+#
+# ⚠️ IT MUTATES THE CHILD AND NOT THE PARENT, so the branch reached is MISROUTED
+# rather than DROPPED — `Z2`'s lesson, and the two say different things.
+fresh
+mutate_row "5b-ii-a" "identified by the NAME on the membership, with the caller" \
+                     "identified however the sheet feels like it, with the caller"
+guard
+fixture "Z9 the member-identity ruling struck from the child row" red "in the parent row and in NO child"
+
 echo
-if (( ran != 9 )); then
-  echo "FAIL: $ran fixtures ran, expected 9 — the harness skipped some and was about"
+if (( ran != 10 )); then
+  echo "FAIL: $ran fixtures ran, expected 10 — the harness skipped some and was about"
   echo "      to report success, which is how a sister harness spent a day dead."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all 9 fixtures behaved as recorded (8 red, 1 deliberately green) —"
+  echo "all 10 fixtures behaved as recorded (9 red, 1 deliberately green) —"
   echo "5b-ii-split-coverage.sh can still fail on every defect it was written for."
   exit 0
 fi

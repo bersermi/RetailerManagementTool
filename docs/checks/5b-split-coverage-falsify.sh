@@ -186,7 +186,46 @@ mutate "$WORK/plan.md" "Join-by-code → **\`request_access\`**" \
                        "Join-by-code (and the **\`create_invite\`** token, re-read here) → **\`request_access\`**" || exit 1
 fixture "Y8 5b-iii claims create_invite as well" red "owned by neither"
 
+# --- Y9. the member-identity ruling, in its 2026-09-18 wording ------------
+# ⚠️⚠️ ADDED BY `5b.8-ii` IN THE SAME COMMIT THAT REPLACED THE ASSERTION IT
+# FALSIFIES. The sentinel read "identified by EMAIL" from 2026-09-14; `5b.7` and
+# `0034` killed its premise (`T1`), the owner ruled again on 2026-09-18, and it
+# now reads "identified by the NAME on the membership". An assertion whose
+# wording moves without its fixture moving is an assertion nobody has proved can
+# fail — and for four days this entry had no fixture of its own at all.
+fresh
+mutate "$WORK/plan.md" "**SUPERSEDED — the member row is now identified by the NAME on the membership**" \
+                       "**the member row is identified somehow**" || exit 1
+fixture "Y9 the member-identity ruling struck from the parent row" red "no longer named in the parent 5b row"
+
+# --- Y10. the half that was NOT retired -----------------------------------
+# ⚠️⚠️ THE FIXTURE THAT EXISTS BECAUSE THE OTHER HALF WAS RETIRED. On 2026-09-18
+# the member-list sentinel was genuinely superseded, and the approval-row one was
+# MEASURED AND LEFT STANDING: a pending request is a `workspace_invite` row
+# (`0029:296`) and the person asking has no `workspace_member` row until
+# `approve_request` writes one (`0029:455`), so no membership carries their name
+# while the approver is looking. The premise died; the outcome did not.
+#
+# ⚠️ THE FORESEEABLE MISTAKE IS DELETING BOTH, by a session that has read "the
+# 2026-09-14 EMAIL ruling was retired" and not the measurement under it. This is
+# what that looks like.
+fresh
+mutate "$WORK/plan.md" "the approver sees an EMAIL** and never a name" \
+                       "the approver sees whatever is on the request** and never a name" || exit 1
+fixture "Y10 the approval-row ruling struck from the parent row" red "no longer named in the parent 5b row"
+
 echo
+# ⚠️ THE ANTI-VACUITY FLOOR, rule 4 of this repository, and it was MISSING from
+# this harness until `5b.8-ii` added two fixtures to it. Every failure path above
+# is conditional, so "0 failures" is also what a harness that stopped running
+# fixtures prints — which is precisely how `conventions-gate-falsify.sh` spent a
+# day dead with both its scripts still green.
+EXPECTED=11
+if (( ran < EXPECTED )); then
+  echo "FAIL: only $ran fixtures ran, expected $EXPECTED — this harness proved"
+  echo "      almost nothing and was about to report success."
+  exit 1
+fi
 if (( fails == 0 )); then
   echo "all $ran fixtures behaved as recorded in docs/PLAN.md — the guard fails on each"
   echo "defect it claims to catch, and each failure names that defect."

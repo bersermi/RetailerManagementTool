@@ -138,7 +138,34 @@ DELIVERABLES=(
   # ⚠️ TWO ENTRIES AND NOT ONE, because they are two screens. The member list is
   # `5b-ii`'s and the approval row is `5b-iii`'s, and C11.8's own sentence — "enough
   # not to approve the wrong Juan" — is about the second one.
-  "the member row is identified by EMAIL, never a name (ruled 2026-09-14)|identified by EMAIL|5b-ii"
+  #
+  # ⚠️⚠️ AND ON 2026-09-18 THE TWO STOPPED HAVING THE SAME ANSWER. `T1` — the
+  # premise under BOTH of them — died: `5b.7` put the name a person types at
+  # sign-up into `raw_user_meta_data` and `5b.8-i` (`0034`) copied it onto
+  # `workspace_member` from all four writers. The owner ruled again the same day.
+  # `5b.8-ii` was the task charged with retiring both sentinels, and MEASURING the
+  # second one is what stopped it retiring the second one:
+  #
+  #   * THE MEMBER LIST. `workspace_member.display_name` is on the row the roster
+  #     already reads, so the first sentinel is genuinely SUPERSEDED. It is
+  #     REPLACED below rather than deleted — a screen decision still has no
+  #     constraint to live in, and the new ruling needs the same home the old one
+  #     had. ⚠️ `5b.8-ii`'s assertion 9 in `5b-ii-a-roster-contract.sh` is where it
+  #     is true of a real database; this entry is where it is true of the plan.
+  #
+  #   * THE APPROVAL ROW. ⚠️⚠️ STILL EXACTLY AS IT WAS, AND THE REASON CHANGED
+  #     UNDER IT. A pending request is a `workspace_invite` row with
+  #     `requested_by` set (`0029:296`); the person asking has NO
+  #     `workspace_member` row until `approve_request` writes one (`0029:455`).
+  #     So there is no membership to carry their name at the moment the approver
+  #     is looking, and the ruling's OUTCOME survives its premise. Retiring this
+  #     sentinel because its twin was retired would have deleted a live guard
+  #     over a rule that is still the operative one for that screen.
+  #     ⚠️ Whether the approver SHOULD see a name now that one is reachable —
+  #     `public.auth_full_name(requested_by)` exists (`0034:122`) and is callable
+  #     from a definer body — is a DECISION, parked in the plan's decisions block
+  #     on 2026-09-18 against `5b-iii`. Until it is ruled, this stays.
+  "the member row is identified by the NAME on the membership (ruled 2026-09-18)|identified by the NAME|5b-ii"
   "the approver sees an EMAIL and a role, never a name (ruled 2026-09-14)|approver sees an EMAIL|5b-iii"
 )
 

@@ -42,10 +42,16 @@ import { PALETTE } from '@/theme/palette';
 // ⚠️⚠️ FOUR SECTIONS, AND ONE OF THEM IS NOT ALWAYS THERE. The shop, the join
 // code, who is in the shop, and how big this phone's text is. The roster is
 // manager-and-above — RULED BY THE OWNER 2026-09-18, *"manager-and-above is
-// right"* — because `workspace_invite` is readable at `manager` (`0002:563`)
-// while `workspace_member` is readable by any member (`0001:524`): a staff
-// caller would be handed a list of colleagues it can identify none of. The
-// decision is `canSeeRoster` in `@/api/members`, where the suite can read it.
+// right"*. ⚠️ **The reason that was given for it stopped being true later the
+// same day, and the fence did not move.** It was ruled because `workspace_member`
+// is readable by any member (`0001:524`) while `workspace_invite` is
+// manager-and-above (`0002:563`), so a staff caller would be handed a list of
+// colleagues it could identify none of. `0034` put a name on the membership and
+// `5b.8-ii` reads it, so that list is now perfectly legible — and the OTHER half
+// of the asymmetry is what holds the fence up: this sheet also carries the
+// invite button, and a roster a cashier can open is a roster with a control she
+// may not use on it. The argument lives beside `canSeeRoster` in
+// `@/api/members`, where the suite can read it.
 //
 // ⚠️⚠️ AND IT SHIPS NO MEMBERSHIP WRITE. Not "mostly reads" — none. That is the
 // seam `5b-ii` was split on: `create_invite`, the location a staff invite must
@@ -225,11 +231,18 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
 /**
  * One person in the shop.
  *
- * ⚠️ THE ROLE IS THE SUBTITLE UNLESS IT IS ALREADY THE TITLE. A member whose
- * email this app cannot recover is named by what they are (`identity.kind` is
- * `role`), and repeating `Dueño` underneath `Dueño` is the app filling space.
- * See `@/api/members` for why that case exists at all — it is `T2`, the founding
- * owner, whose membership no invite precedes.
+ * ⚠️ THE ROLE IS THE SUBTITLE UNLESS IT IS ALREADY THE TITLE. A member with
+ * neither a name nor a recoverable email is named by what they are
+ * (`identity.kind` is `role`), and repeating `Dueño` underneath `Dueño` is the
+ * app filling space. See `@/api/members` for why that case still exists after
+ * `0034`: the column is nullable, so an account whose metadata carried no name
+ * is admitted and falls to the bottom rung.
+ *
+ * ⚠️ AND THE CONDITION IS `kind !== 'role'` RATHER THAN A LIST OF THE KINDS THAT
+ * DO GET A SUBTITLE. `name` — the rung `5b.8-ii` added — needs the role
+ * underneath it exactly as `email` and `self` do, and it got that by this line
+ * NOT being rewritten. A fifth kind would be right by default here too, which is
+ * the point of stating the exception rather than the rule.
  */
 function Miembro({ entry }: { entry: RosterEntry }) {
   const { scale } = useDensity();
