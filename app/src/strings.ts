@@ -244,7 +244,8 @@ export const ES = {
    * ON IT THAT ONLY READS."* This is a write, and `invite` was separated from
    * `settings` on exactly that line one task earlier.
    *
-   * ⚠️ IT IS NOT FENCED BY ROLE, WHICH IS THE WHOLE POINT AND IS THE OPPOSITE
+   * ✅✅ IT IS NOT FENCED BY ROLE — RULED BY THE OWNER, 2026-09-19: *"everybody
+   * is right, keep it."* THAT IS THE WHOLE POINT AND IT IS THE OPPOSITE
    * OF THE TWO SECTIONS EITHER SIDE OF IT. The roster is manager-and-above and
    * so is inviting; fixing your own name is for everybody, because the person
    * whose Google account came through as one word is most often the cashier,

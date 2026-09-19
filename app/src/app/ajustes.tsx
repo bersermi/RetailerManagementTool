@@ -287,12 +287,21 @@ function Miembro({ entry }: { entry: RosterEntry }) {
 // anybody else. This section says whose name it is in its title and takes no
 // subject at all.
 //
-// ⚠️⚠️ AND IT IS FENCED BY NOTHING, WHICH IS THE OPPOSITE OF THE TWO SECTIONS
+// ⚠️⚠️ AND IT IS FENCED BY NOTHING — RULED BY THE OWNER, 2026-09-19:
+// *"everybody is right, keep it."* THAT IS THE OPPOSITE OF THE TWO SECTIONS
 // BELOW IT. The roster and the invite form are manager-and-above; this is for
 // everybody, because the person whose Google account arrived as ONE WORD is most
 // often the cashier — and she is the one member of the shop who can see neither
 // of those two sections. A role fence here would leave the gap open for exactly
 // the people it was opened on.
+//
+// ⚠️ IT WAS BUILT THIS WAY AND THEN ASKED ABOUT, WHICH IS WHY THE RULING EXISTS.
+// `5b.8-iii-b`'s plan row already said the roster is manager-and-above *"while
+// this is for everybody"* — but a row's phrasing is not a ruling, and this is the
+// one line that decides who the whole task was for. It was flagged as a decision
+// taken on the owner's behalf, it cost one predicate to reverse, and he ruled it
+// the same day. ⚠️ A later session wanting to add a role fence here is reversing
+// the owner, not tidying an assumption.
 //
 // ⚠️ THE STORED NAME IS RENDERED AND NEVER THE TEXT BOX'S CONTENTS. `0035`
 // returns what it wrote, trimmed, and `saved` below holds THAT. The alternative

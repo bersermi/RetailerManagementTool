@@ -211,12 +211,20 @@ skipping any row already carrying the marker. ⚠️ **The cheap fix was to bold
 the inverse rule this repository has written down twice, and the one that block already
 refuses one paragraph above where it broke.
 
-#### ⚠️ Decisions taken on the owner's behalf, and the first is the one to argue with
+#### ⚠️ Decisions taken on the owner's behalf — and the first was RULED THE SAME DAY
 
-1. ⚠️⚠️ **THE SECTION IS NOT FENCED BY ROLE — every member sees `Tu nombre`.** The plan row
-   said the roster is manager-and-above *"while this is for everybody"*, so this is that
-   sentence built rather than a new call; it is flagged because it is the one line that
-   decides who the task was for. **Cheap to reverse: one predicate.**
+1. ✅✅ **THE SECTION IS NOT FENCED BY ROLE — every member sees `Tu nombre`. FLAGGED AS A
+   DECISION TAKEN ON THE OWNER'S BEHALF AND RULED BY HIM ON 2026-09-19, IN THE CLOSING
+   MESSAGE OF THE SESSION THAT TOOK IT: *"everybody is right, keep it."*** ⚠️ **That is the
+   working agreement's obligation paying for itself inside one session** — the merge is
+   automated, so the report is the only checkpoint left, and this is the shape it exists for:
+   a call that was cheap to reverse the day it was made (one predicate) and that decides who
+   the whole task was for. The plan row had already said the roster is manager-and-above
+   *"while this is for everybody"*, so the session built that sentence rather than inventing
+   one — **and it still asked, because a row's phrasing is not a ruling.** ⚠️ **It is now a
+   ruling and the code says so**, in `@/strings`'s `myName` block and in `ajustes.tsx`'s
+   `MiNombre` header, where the argument for the fence lives and where the next session will
+   read it.
 2. **It is a NEW `src/api/` module, `displayName.ts`, rather than three functions added to
    `members.ts`.** That file's header says *"NOTHING HERE WRITES A MEMBERSHIP"* — the seam
    `5b-ii` was split on — and this writes one. ⚠️ **What IS borrowed is `nonBlank`, imported
