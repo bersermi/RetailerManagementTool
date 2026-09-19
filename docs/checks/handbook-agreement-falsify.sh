@@ -108,6 +108,21 @@ WAIT_SILENT='**Nothing is waiting on YOU**'
 # first line that is not a table row. ⚠️ BOUNDED BY THE ROWS AND NOT BY THE NEXT
 # HEADING — `plan-handover.sh` shipped the unbounded version and it swallowed the
 # falsification table beneath the block.
+#
+# ⚠️⚠️ AN ALREADY-EMPTY BLOCK IS A NO-OP AND NOT A VOID FIXTURE, AND THE FIRST
+# SPELLING OF THIS GOT THAT BACKWARDS — one day after three fixtures in this same
+# file were repaired for the identical reason. It exited with "the decisions block
+# is already empty - fixture void", which is true of the EDIT and false of the
+# FIXTURE: this is a PRECONDITION, not the mutation under test. The block legally
+# holds zero rows — `plan-handover.sh` calls that "a legitimate and desirable
+# state" — so the setter has to work from either state. A decision was parked on
+# 2026-09-18 and ruled on 2026-09-19, and the harness broke on the ruling.
+#
+# ⚠️ WHAT KEEPS THAT SAFE IS `H0`, NOT AN EDIT COUNT. The control proves the
+# unedited tree is GREEN, so a setup that happened to change nothing would leave
+# the check green and the fixture would fail loudly as "should have been RED".
+# Vacuity is caught by the assertion, which is where it belongs — counting edits
+# is what made this helper refuse a legitimate state.
 empty_decisions() {
   python3 - "$WORK/plan.md" <<'PY'
 import io,sys
@@ -121,7 +136,6 @@ n=sep[0]+1
 end=n
 while end < len(lines) and lines[end].startswith("|"):
     end+=1
-if end==n: sys.exit("the decisions block is already empty - fixture void")
 del lines[n:end]
 io.open(p,"w",encoding="utf-8").writelines(lines)
 PY

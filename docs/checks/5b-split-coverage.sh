@@ -153,20 +153,44 @@ DELIVERABLES=(
   #     had. ⚠️ `5b.8-ii`'s assertion 9 in `5b-ii-a-roster-contract.sh` is where it
   #     is true of a real database; this entry is where it is true of the plan.
   #
-  #   * THE APPROVAL ROW. ⚠️⚠️ STILL EXACTLY AS IT WAS, AND THE REASON CHANGED
-  #     UNDER IT. A pending request is a `workspace_invite` row with
-  #     `requested_by` set (`0029:296`); the person asking has NO
-  #     `workspace_member` row until `approve_request` writes one (`0029:455`).
-  #     So there is no membership to carry their name at the moment the approver
-  #     is looking, and the ruling's OUTCOME survives its premise. Retiring this
-  #     sentinel because its twin was retired would have deleted a live guard
-  #     over a rule that is still the operative one for that screen.
-  #     ⚠️ Whether the approver SHOULD see a name now that one is reachable —
-  #     `public.auth_full_name(requested_by)` exists (`0034:122`) and is callable
-  #     from a definer body — is a DECISION, parked in the plan's decisions block
-  #     on 2026-09-18 against `5b-iii`. Until it is ruled, this stays.
+  #   * THE APPROVAL ROW. ⚠️⚠️ IT SURVIVED 2026-09-18 AND WAS SUPERSEDED ON
+  #     2026-09-19, AND THE ONE-DAY GAP IS THE POINT. On the 18th `5b.8-ii`
+  #     measured it rather than retiring it by analogy: a pending request is a
+  #     `workspace_invite` row with `requested_by` set (`0029:296`), and the
+  #     person asking has NO `workspace_member` row until `approve_request`
+  #     writes one (`0029:455`), so no membership carried their name while the
+  #     approver was looking. The premise (`T1`) had died; the OUTCOME had not.
+  #     ⚠️ That measurement is what turned the question into a real one — a name
+  #     IS reachable from a definer body through `public.auth_full_name`
+  #     (`0034:122`) — and it was parked in front of `5b-iii` rather than decided
+  #     by a session. ✅ THE OWNER RULED ON 2026-09-19: *"Show the Email as a
+  #     Header and the Name as a subtitle of the request."*
+  #
+  #     ⚠️ SO THE APPROVAL ROW SHOWS BOTH, AND THE ORDER IS THE RULING. The
+  #     email is the header and the name sits under it — the INVERSE of the
+  #     roster one screen over, where the name is the title and the role the
+  #     subtitle. That is not an inconsistency: on the roster you already know
+  #     everyone and are looking them up by name; on an approval you are matching
+  #     a stranger against an address somebody read out to you, so the email is
+  #     the thing being verified and the name is what stops you approving the
+  #     wrong one.
   "the member row is identified by the NAME on the membership (ruled 2026-09-18)|identified by the NAME|5b-ii"
-  "the approver sees an EMAIL and a role, never a name (ruled 2026-09-14)|approver sees an EMAIL|5b-iii"
+  #
+  # ⚠️ THE SECOND ENTRY IN THIS LIST TO NEED CASE-TOLERANCE, AND FOR THE SAME
+  # REASON AS THE FIRST: the child row SHOUTS the ruling because it is that row's
+  # heading, and the parent states it in a sentence. Matching one casing reported
+  # the ruling DROPPED BY THE SPLIT the moment it was recorded — which is what it
+  # did, once, before this line was written.
+  #
+  # ⚠️⚠️ AND IT IS BRACKET CLASSES AND NEVER `(a|b)`, WHICH IS NOT A STYLE
+  # CHOICE. These entries are split on `|` by `IFS='|' read`, so a `|` inside the
+  # regex field truncates it — `EMAIL (as` becomes the whole pattern and the
+  # owner field becomes `AS) (the`. It fails as a DROPPED deliverable, which
+  # reads exactly like the defect this list exists to catch and is not one. The
+  # first case-tolerant entry above used a bracket class for this reason; the
+  # comment there called it an alternation, which is what led the next writer
+  # straight into the trap.
+  "the approval row shows the EMAIL as the header and the NAME beneath it (ruled 2026-09-19)|EMAIL [aA][sS] [tT][hH][eE] [hH][eE][aA][dD][eE][rR]|5b-iii"
 )
 
 # --- 3. + 4. the parent still promises each one, and exactly one child has it

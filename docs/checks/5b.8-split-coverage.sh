@@ -171,8 +171,14 @@ DELIVERABLES=(
   "the column added to the roster's read|MEMBER_COLUMNS|5b.8-ii"
   "the contract check and harness extended|contract check and harness|5b.8-ii"
   # ⚠️ R3. Capitalised at the head of a sentence in the child row, lower-case in
-  # the parent's — which is why this one regex carries an alternation and the
-  # thirteen others do not.
+  # the parent's — which is why this one regex carries a BRACKET CLASS and the
+  # thirteen others do not. ⚠️⚠️ NOT AN ALTERNATION, AND THIS COMMENT USED TO SAY
+  # IT WAS: these entries are split on `|` by `IFS='|' read`, so a `(a|b)` inside
+  # the regex field truncates it — the pattern becomes `(a`, the owner field
+  # becomes `b)`, and the entry fails as a DROPPED deliverable, which reads
+  # exactly like the defect this list exists to catch and is not one. The wrong
+  # word here is what walked `5b-split-coverage.sh`'s next writer into it on
+  # 2026-09-19.
   "the two split guards whose sentinels this retires (R3)|[Tt]wo split guards|5b.8-ii"
   "the security definer self-edit RPC|set_my_display_name|5b.8-iii"
   "the control a person fixes their own name with|the control lives on the sheet|5b.8-iii"
