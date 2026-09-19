@@ -81,9 +81,57 @@ MARK_ANCHOR="⚠️ **This is where the next piece of work is**"
 # parts"; a row's punctuation is a moving part too. The repair is NOT to reword
 # the handbook so the harness can find its anchor — that is the file bending to
 # the check, and this repository has the inverse rule written down twice.
-AFTER_NO="$((MARK_NO + 1))"
-AFTER_TASK="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
-AFTER_ANCHOR="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| [^|]* | [^|]* | //' | grep -oE '\*\*[^*]+\*\*' | head -1)"
+#
+# ⚠️⚠️ AND IT IS "THE NEAREST OTHER ROW WITH A BOLD RUN", NOT "THE ROW AFTER" —
+# THE FOURTH THING THIS HARNESS LEARNED THE EXPENSIVE WAY, ON 2026-09-19, AND IT
+# IS THE SAME LESSON A FOURTH TIME. The previous spelling took `MARK_NO + 1` and
+# assumed a row follows the marked one AT ALL. `5b.8-iii-b` closed, the marker
+# moved to the LAST task row in that table, and the row after it is the catch-all
+# `| 5d–5h | The rest of the screens | After 5b |` — three plain words, no bold
+# run anywhere. The harness died at setup with the very message the comment above
+# was written about. ⚠️ The cheap "fix" was to bold something in that row so the
+# harness could find an anchor, which is the file bending to the check — the
+# inverse rule this repository has written down twice, and the one this block
+# already refuses one paragraph up.
+#
+# ⚠️ IT SEARCHES DOWN AND THEN UP, because the marker can legitimately sit on the
+# first row of the table as well as the last. `H9` needs ANY second row to plant a
+# competing marker in; which one is immaterial, and that is exactly why the
+# harness must not have an opinion about which.
+pick_other_row() {
+  local n total line cell id
+  total="$(grep -c . "$BOOK")"
+  for n in $(seq "$((MARK_NO + 1))" "$total") $(seq "$((MARK_NO - 1))" -1 1); do
+    line="$(sed -n "${n}p" "$BOOK")"
+    case "$line" in \|*) ;; *) continue ;; esac
+    cell="$(sed 's/^| [^|]* | [^|]* | //' <<< "$line" | grep -oE '\*\*[^*]+\*\*' | head -1)"
+    [[ -n "$cell" ]] || continue
+    # ⚠️ AND IT MUST NOT LAND ON A ROW THAT ALREADY CARRIES THE MARKER, which is
+    # the one row `H9` cannot use: planting a second copy where one already sits
+    # would make `H8`'s "zero markers" and `H9`'s "two markers" the same edit.
+    grep -qF "This is where the next piece of work is" <<< "$line" && continue
+    # ⚠️⚠️ AND THE ROW'S ID MUST BE ONE `mutate_row` CAN REACH — a bold id that
+    # starts with a DIGIT, appearing exactly once. The handbook carries two
+    # `| **—** |` separator rows and `mutate_row` refuses an ambiguous anchor by
+    # design, so a picker that offered one of those would hand `H9` a setup
+    # failure that reads like a defect in the guard. That is what the first
+    # spelling of this search did on the day it was written.
+    case "$line" in \|\ \*\*[0-9]*) ;; *) continue ;; esac
+    id="$(sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//' <<< "$line")"
+    [[ "$(grep -c -F "| **$id** |" "$BOOK")" == "1" ]] || continue
+    AFTER_NO="$n"
+    return 0
+  done
+  return 1
+}
+AFTER_NO=""
+pick_other_row
+AFTER_TASK=""
+AFTER_ANCHOR=""
+if [[ -n "$AFTER_NO" ]]; then
+  AFTER_TASK="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
+  AFTER_ANCHOR="$(sed -n "${AFTER_NO}p" "$BOOK" | sed 's/^| [^|]* | [^|]* | //' | grep -oE '\*\*[^*]+\*\*' | head -1)"
+fi
 
 # ⚠️⚠️ AND THE WAITING-ON-YOU ROW IS DISCOVERED TOO, FOR THE SAME REASON AND ON
 # THE SAME DAY. `H5`, `H6` and `H7` spelled `✅ **Nothing is waiting on YOU**`,

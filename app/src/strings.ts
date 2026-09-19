@@ -236,6 +236,66 @@ export const ES = {
   },
 
   /**
+   * YOUR OWN NAME, AND THE ONE BOX ON THIS SHEET EVERY MEMBER MAY USE. Plan
+   * task 5b.8-iii-b.
+   *
+   * ⚠️⚠️ IT IS ITS OWN BLOCK AND NOT PART OF `settings`, BECAUSE `settings`'s
+   * own header says what that block is: *"AJUSTES — THE SHEET, AND EVERYTHING
+   * ON IT THAT ONLY READS."* This is a write, and `invite` was separated from
+   * `settings` on exactly that line one task earlier.
+   *
+   * ⚠️ IT IS NOT FENCED BY ROLE, WHICH IS THE WHOLE POINT AND IS THE OPPOSITE
+   * OF THE TWO SECTIONS EITHER SIDE OF IT. The roster is manager-and-above and
+   * so is inviting; fixing your own name is for everybody, because the person
+   * whose Google account came through as one word is most often the cashier,
+   * and she is the one member of the shop who can see neither of the others.
+   *
+   * ⚠️ `errors.nameMissing` IS THE SAME SENTENCE AS `auth.errors.nameMissing`
+   * AND IS WRITTEN TWICE ON PURPOSE. The tables are what the KEYS are typed
+   * against — `api/errors.ts`'s discipline — so sharing a key across two of
+   * them would be the one thing this file's shape exists to prevent. `offline`
+   * already sits verbatim in `auth.errors` and in `api.errors` for the same
+   * reason, and that duplication has been correct since 5b-i.
+   */
+  myName: {
+    section: 'Tu nombre',
+    /** ⚠️ IT SAYS WHERE THE NAME IS SEEN, WHICH IS ALSO WHERE IT IS SCOPED.
+     *  `set_my_display_name` fixes the name in ONE shop (`0035`), and *"en esta
+     *  tienda"* is the only honest way to say so to somebody who does not do
+     *  book-keeping — a sentence about workspaces would be our vocabulary. */
+    hint: 'Así te ven los demás en esta tienda.',
+    /** ⚠️ REACHABLE, AND IT IS THE GAP THE WHOLE TASK EXISTS FOR. `0034`'s
+     *  column is nullable: an account whose metadata carried no name arrives
+     *  with nothing, and until this box existed nobody could put one there. */
+    empty: 'Todavía no pusiste tu nombre.',
+    edit: 'Cambiar mi nombre',
+    label: 'Tu nombre',
+    placeholder: 'Nombre y apellido',
+    save: 'Guardar',
+    working: 'Guardando…',
+    cancel: 'Cancelar',
+
+    /** What the box refuses before it calls. See `checkDisplayName`. */
+    issues: {
+      missing: 'Escribe tu nombre.',
+    },
+
+    /**
+     * ⚠️ THE TWO REFUSALS `0035` RAISES THAT ARE NOT WHAT THEIR SQLSTATE MEANS
+     * EVERYWHERE ELSE — `@/api/displayName`'s header is the argument. Both are
+     * mapped there, and everything else on this call still falls to
+     * `ES.api.errors`, offline included.
+     */
+    errors: {
+      nameMissing: 'Escribe tu nombre.',
+      /** ⚠️ SHE IS NOT TOLD WHY, AND THERE IS NOTHING SHE CAN DO FROM HERE. It
+       *  names the thing that changed rather than the internal state that
+       *  produced it — a deactivated membership is our word, not hers. */
+      notAMember: 'Ya no perteneces a esta tienda.',
+    },
+  },
+
+  /**
    * Inviting somebody, and the code that comes back once. Plan task 5b-ii-b-1.
    *
    * ⚠️ THE WORD IS `invitar` AND NEVER `agregar`. Adding somebody is what an

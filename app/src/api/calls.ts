@@ -45,6 +45,11 @@ import {
   type LocationRow,
 } from '@/api/invites';
 import {
+  SET_MY_DISPLAY_NAME,
+  setMyDisplayNameArgs,
+  storedNameFrom,
+} from '@/api/displayName';
+import {
   REDEEM_INVITE,
   redeemArgs,
   redeemedFrom,
@@ -169,6 +174,34 @@ export async function redeemInvite(typed: string): Promise<Redeemed> {
   const { data, error } = await supabase.rpc(REDEEM_INVITE, redeemArgs(typed));
   if (error) throw reported(error);
   return redeemedFrom(data);
+}
+
+/**
+ * Fixes the caller's OWN name in ONE shop, and returns the name that was stored
+ * (5b.8-iii-b).
+ *
+ * ⚠️⚠️ THERE IS NO ARGUMENT THAT COULD NAME ANYBODY ELSE. `0035` puts
+ * `user_id = auth.uid()` in its own `where` clause — not "the caller may only
+ * pass her own id", which is a rule a client could get wrong, but no id to pass
+ * at all. So this wrapper cannot be misused by a screen, which is why the
+ * control it serves is a text box and not an editor with a subject.
+ *
+ * ⚠️ IT IS `security definer` BECAUSE THE FENCE HAS TO BE PER-COLUMN.
+ * `workspace_member_update` (`0001:532`) is owner-only, and the policy that
+ * would have been easier — "you may update your own row" — hands every cashier
+ * her own `role`, because RLS filters ROWS and not COLUMNS.
+ *
+ * ⚠️ IT RETURNS THE STORED NAME, and the screen renders THAT rather than what it
+ * typed. `storedNameFrom` throws instead of falling back to the input, because
+ * the fallback is the divergence the return value exists to prevent.
+ */
+export async function setMyDisplayName(workspaceId: string, typed: string): Promise<string> {
+  const { data, error } = await supabase.rpc(
+    SET_MY_DISPLAY_NAME,
+    setMyDisplayNameArgs(workspaceId, typed),
+  );
+  if (error) throw reported(error);
+  return storedNameFrom(data);
 }
 
 /**
