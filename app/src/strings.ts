@@ -161,15 +161,6 @@ export const ES = {
        * wrong, because "sixteen characters" is our arithmetic and not hers.
        */
       shape: 'Ese código no está completo. Revísalo y escríbelo otra vez.',
-      /**
-       * ⚠️⚠️ EIGHT CHARACTERS IS THE SHOP'S JOIN CODE, WHICH IS A REAL CODE THAT
-       * THIS APP CANNOT SPEND YET — `request_access` is `5b-iii`'s. Ajustes has
-       * shipped `Compartir código` since `5b-ii-a`, so an owner can hand one out
-       * today and the person holding it lands here. Telling her it "no se ve
-       * bien" would be this app calling a correct code wrong. ⚠️ IT NAMES HER
-       * NEXT STEP, not our missing screen. **`5b-iii` deletes this string.**
-       */
-      workspaceCode: 'Ese es el código de la tienda. Pídele a esa persona que te invite a ti.',
     },
 
     /**
@@ -183,6 +174,57 @@ export const ES = {
       expired: 'Ese código ya venció. Pídele uno nuevo a la persona que te invitó.',
       /** Not a real code, or somebody else already used it. */
       spent: 'Ese código ya no sirve. Pídele uno nuevo a la persona que te invitó.',
+    },
+
+    // ------------------------------------------------------------------------
+    // THE PULL PATH. Plan task 5b-iii-b, and every sentence below is for the
+    // person who typed the SHOP's code rather than an invite token.
+    // ------------------------------------------------------------------------
+
+    /**
+     * What she is told when `request_access` refuses. See `REQUEST_REFUSALS`.
+     *
+     * ⚠️ THEY ARE SEPARATE FROM `errors` ABOVE THOUGH BOTH ARE "the code did not
+     * work", because the NEXT STEP differs and the next step is the whole
+     * content of a refusal. A dead invite token is somebody else's to reissue —
+     * *"ask them for a new one"*. A shop code that matches nothing is hers to
+     * re-read — *"check it and type it again"*. Telling her to ask for a new one
+     * when she has simply mistyped is sending her to bother a person for nothing.
+     */
+    requestErrors: {
+      /**
+       * ⚠️⚠️ NO SUCH SHOP, OR THE SHOP IS CLOSED, OR — the overload
+       * `@/api/requests` argues — HER SESSION ENDED. It says what to DO, which
+       * is the same instruction under all three, and names neither our internal
+       * state nor a distinction she cannot act on.
+       */
+      noSuchShop: 'Ese código no es de ninguna tienda. Revísalo y escríbelo otra vez.',
+      /**
+       * ⚠️ A PHONE-ONLY ACCOUNT, WHICH C1.4 DOES NOT ADMIT — `0029` calls it a
+       * wall rather than a branch. Unreachable in v1 and written anyway, because
+       * the alternative is the catch-all sentence for the one refusal she could
+       * actually fix.
+       */
+      noEmail: 'Tu cuenta no tiene correo. Entra con Google o con tu correo para pedir acceso.',
+      /** Her earlier request lapsed or was replaced. Asking again is free. */
+      requestExpired: 'Tu solicitud ya venció. Escribe el código otra vez para volver a pedir.',
+    },
+
+    /**
+     * THE HALF LOOP, ON SCREEN. Plan task `5b-iii-b`.
+     *
+     * ⚠️⚠️ THE WAIT IS THE PRODUCT HERE AND IT IS SAID PLAINLY. Nothing in this
+     * app can admit her until `5b-iii-d` ships the approval screen, so the
+     * honest sentence is *"we asked, wait for them"* — and it stays honest
+     * afterwards, because the wait is real either way: a person has to tap
+     * approve. ⚠️ IT NAMES NO STATE AND NO ROW. She is told the thing she wanted
+     * is true, which is §2.8's rule and the owner's standing one.
+     */
+    pending: {
+      /** ⚠️ Takes the shop's name, for `4.6a-iii`'s reason: a code with no shop
+       *  attached is eight characters she cannot place three days later. */
+      title: (shop: string) => `Le pediste entrar a ${shop}.`,
+      body: 'Ya avisamos. Cuando te acepten, la tienda se abre sola aquí.',
     },
   },
 

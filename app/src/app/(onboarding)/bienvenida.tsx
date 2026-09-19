@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
-import { useOnboardWorkspace, useRedeemInvite } from '@/api/hooks';
-import { checkCredential } from '@/api/redeem';
+import {
+  useMyAccessRequests,
+  useOnboardWorkspace,
+  useRedeemInvite,
+  useRequestAccess,
+} from '@/api/hooks';
+import { checkCredential, classifyCredential } from '@/api/redeem';
 import { checkShopName } from '@/api/workspace';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -54,6 +59,28 @@ import { PALETTE } from '@/theme/palette';
 // LENGTH, and the person holding one was not told which she has. `@/api/redeem`
 // decides, and `5b-iii` adds the second destination without adding a second box.
 //
+// ⚠️⚠️ 5b-iii-b ADDED THAT SECOND DESTINATION, AND THE BOX DID NOT CHANGE — WHICH
+// IS THE WHOLE RETURN ON THE `P2` DECISION. Eight characters used to be a
+// sentence saying this app could not spend a shop's code; it is now a call to
+// `request_access`. One box, two doors, and `classifyCredential` is the only
+// thing that decides — the same function, answering the same question, now with
+// somewhere to send both answers.
+//
+// ⚠️⚠️ AND THE TWO DOORS END IN DIFFERENT PLACES, WHICH IS THE ONE THING A
+// JOINER MUST NOT BE CONFUSED ABOUT. A token is a membership: the guard moves
+// her off this screen within a frame and she never reads anything here. A shop
+// code is an ASK — nobody has agreed to anything, and she stays exactly where
+// she is, looking at the pending block below. ⚠️ EXCEPT WHEN IT IS NOT: `0029`'s
+// `D7` lets a person who was already invited by email straight in when she types
+// the shop code, and then the code path ends like the token path. Nothing on
+// this screen branches on that — the guard does, off the membership read — which
+// is why `useRequestAccess` invalidates it on every success.
+//
+// ⚠️ THE PENDING BLOCK IS A HALF LOOP AND THE PLAN SAYS SO: she asks, she sees
+// that she asked, and nothing in this app can admit her until the approval
+// screen ships. The sentence is written so it stays true afterwards — the wait
+// is real either way, because a person has to tap approve.
+//
 // ⚠️ NO CHECK IN THIS REPOSITORY CAN SEE THIS FILE. §2.11 refuses suites over
 // rendering, so what is asserted lives behind it: `checkShopName` and
 // `onboardArgs` in `@/api/workspace`, `checkCredential` and `redeemArgs` in
@@ -66,7 +93,13 @@ export default function Bienvenida() {
   const { scale } = useDensity();
   const { create, busy } = useOnboardWorkspace();
 
-  const { redeem, busy: joining } = useRedeemInvite();
+  const { redeem, busy: redeeming } = useRedeemInvite();
+  const { ask, busy: asking } = useRequestAccess();
+  const { pending } = useMyAccessRequests();
+
+  // ⚠️ ONE BUSY FLAG FOR ONE BOX. Two mutations sit behind it and a person can
+  // only be running one of them, because the credential she typed picks which.
+  const joining = redeeming || asking;
 
   const [name, setName] = useState('');
   const [pricesIncludeTax, setPricesIncludeTax] = useState(true);
@@ -100,12 +133,25 @@ export default function Bienvenida() {
   // `0028` answers the same caller's second redemption `already_redeemed` rather
   // than an error, which is the ordinary case on a connection the pilot store
   // loses routinely. The success path is identical.
+  // ⚠️⚠️ THE FORK IS HERE AND IT IS THE ONLY ONE ON THIS SCREEN. `checkCredential`
+  // says whether either door can be called at all; `classifyCredential` says
+  // which. Both come from `@/api/redeem`, which is where the lengths are
+  // measured against a live database by the contract checks.
+  //
+  // ⚠️ THE ASK'S SUCCESS IS NOT RENDERED AS A MESSAGE — it becomes the pending
+  // block below, off a read that has just been invalidated. A sentence here
+  // would be a second copy of the same fact, and the one this screen holds would
+  // be the one that could disagree with the database.
   async function join() {
     if (joining) return;
     setJoinProblem(null);
     const issue = checkCredential(credential);
     if (issue !== null) {
       setJoinProblem(ES.join.issues[issue]);
+      return;
+    }
+    if (classifyCredential(credential).kind === 'code') {
+      setJoinProblem((await ask(credential)).error);
       return;
     }
     setJoinProblem(await redeem(credential));
@@ -279,6 +325,34 @@ export default function Bienvenida() {
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>{ES.join.submit}</Text>
         )}
       </Pressable>
+
+      {/* ⚠️⚠️ THE HALF LOOP, AND IT IS THE ONLY THING SHE GETS FOR ASKING.
+          `my_access_requests` is the ONLY way she can ever see this row — `S3`:
+          `workspace_invite_select` is manager-and-above and she has no role at
+          all — so without this block an ask is a button that appears to do
+          nothing, on the one screen she has no way around.
+
+          ⚠️ IT RENDERS NOTHING WHILE THE READ IS OUT AND NOTHING WHEN THERE IS
+          NO PENDING ROW, which is the same branch: `pending` is `null` for both.
+          A founding owner never sees it, and never sees a spinner where it
+          would be. */}
+      {pending !== null && (
+        <View
+          style={{
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            borderRadius: scale.space / 2,
+            padding: scale.space,
+            gap: scale.rowGap,
+            marginTop: scale.space,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>
+            {ES.join.pending.title(pending.workspaceName)}
+          </Text>
+          <Text style={{ fontSize: scale.bodySize }}>{ES.join.pending.body}</Text>
+        </View>
+      )}
     </ScrollView>
   );
 }

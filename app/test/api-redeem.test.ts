@@ -142,25 +142,36 @@ describe('what the box refuses before it calls', () => {
     expect(checkCredential('ABC')).toBe('shape');
   });
 
-  // ⚠️⚠️ THE EIGHT-CHARACTER CASE IS A SENTENCE, NOT A CALL, AND IT IS NOT
-  // HYPOTHETICAL: Ajustes has shipped `Compartir código` since 5b-ii-a, so an
-  // owner can hand out a join code today and this screen is where it lands.
-  // `5b-iii` DELETES THIS BRANCH when it wires `request_access`.
-  it('a join code is recognised and named, never called “no se ve bien”', () => {
-    expect(checkCredential('ABCDEFGH')).toBe('workspaceCode');
-    expect(ES.join.issues.workspaceCode).not.toBe(ES.join.issues.shape);
+  // ⚠️⚠️ THE EIGHT-CHARACTER CASE USED TO BE A SENTENCE AND IS NOW A CALL, AND
+  // THIS ASSERTION IS THE ONE `5b-ii-b-2` WROTE DOWN FOR `5b-iii` TO TURN OVER.
+  // It used to say a join code was RECOGNISED AND NAMED rather than refused as
+  // malformed, because `request_access` had no wrapper. `5b-iii-b` built it, so
+  // the branch, its string and this assertion's old direction all retire in the
+  // same pass — a marker and the assertion that drives it, which is
+  // `5b-iii-a`'s rule applied to a client refusal instead of a server one.
+  it('a join code PASSES now, and is not refused as malformed', () => {
+    expect(checkCredential('ABCDEFGH')).toBeNull();
+    expect(classifyCredential('ABCDEFGH').kind).toBe('code');
   });
 
   it('a token passes', () => {
     expect(checkCredential('abcd efgh jkmn pqrs')).toBeNull();
+    expect(classifyCredential('abcd efgh jkmn pqrs').kind).toBe('token');
   });
 
   // ⚠️ EVERY KEY IT CAN RETURN HAS A SENTENCE. A key with no string is a blank
   // line under the box, which is the app refusing and not saying why.
   it('every issue it can return is a key of ES.join.issues', () => {
-    for (const key of ['missing', 'shape', 'workspaceCode'] as const) {
+    for (const key of ['missing', 'shape'] as const) {
       expect(typeof ES.join.issues[key]).toBe('string');
     }
+  });
+
+  // ⚠️⚠️ AND THE RETIRED STRING IS GONE RATHER THAN MERELY UNUSED. A sentence
+  // left in `ES` after its branch is deleted is the shape that gets re-wired by
+  // somebody reading the strings file and assuming it is still reachable.
+  it('the join-code refusal string is deleted, not orphaned', () => {
+    expect('workspaceCode' in ES.join.issues).toBe(false);
   });
 });
 

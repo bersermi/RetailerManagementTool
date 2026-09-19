@@ -25,9 +25,11 @@ import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorMessage } from '@/api/errors';
 import {
   createInvite,
+  myAccessRequests,
   myWorkspaces,
   onboardWorkspace,
   redeemInvite,
+  requestAccess,
   setMyDisplayName,
   workspaceInvites,
   workspaceLocations,
@@ -44,6 +46,14 @@ import {
   type LocationOption,
 } from '@/api/invites';
 import { redeemErrorMessage } from '@/api/redeem';
+import {
+  MY_REQUESTS_KEY,
+  pendingRequest,
+  requestErrorMessage,
+  requestsFrom,
+  type AccessOutcome,
+  type AccessRequest,
+} from '@/api/requests';
 import {
   INVITES_KEY,
   MEMBERS_KEY,
@@ -416,4 +426,125 @@ export function useRedeemInvite() {
   }
 
   return { redeem, busy: mutation.isPending };
+}
+
+// ============================================================================
+// ASKING TO JOIN ONE. Plan task 5b-iii-b, and it is two hooks because it is one
+// write and one read — and unlike the push path, the read is the POINT: what a
+// person gets for asking is a row she can see, and `S3` says no policy can ever
+// show it to her.
+// ============================================================================
+
+/**
+ * What this account has asked for, and what became of it.
+ *
+ * ⚠️ DISABLED WITHOUT A SESSION FOR THE REASON EVERY READ HERE IS, and here the
+ * trap is sharper than elsewhere. `my_access_requests` is keyed on `auth.uid()`
+ * INSIDE the function, so an anonymous call does not fail — IT SUCCEEDS AND
+ * RETURNS ZERO ROWS. Running it signed out would cache a truthful-looking "you
+ * have asked for nothing" against the next person to sign in on this phone, who
+ * may well be the one who asked.
+ *
+ * ⚠️ IT IS NOT FENCED ON A ROLE, and it is the only read in this file that is
+ * not. Every other one asks about a shop the caller is in; this one is asked BY
+ * somebody who is in no shop at all, which is the whole pull path. `0029`'s
+ * grants say the same thing — `authenticated`, deliberately, because RLS can say
+ * nothing about a person with no membership.
+ *
+ * ⚠️ `pending` IS `null` WHILE THE READ IS OUT AND `null` AGAIN WHEN THERE IS
+ * GENUINELY NOTHING, and the landing is allowed to conflate them — `useMyDisplayName`'s
+ * rule. Both render the same thing: no pending block at all. Showing a spinner
+ * where a sentence might go would put a flicker on the screen of every founding
+ * owner, who is the common case here and has never asked anybody for anything.
+ */
+export function useMyAccessRequests(): {
+  readonly loading: boolean;
+  readonly requests: readonly AccessRequest[];
+  readonly pending: AccessRequest | null;
+} {
+  const { session, ready } = useAuth();
+  const query = useQuery({
+    queryKey: MY_REQUESTS_KEY,
+    queryFn: myAccessRequests,
+    enabled: ready && session !== null,
+  });
+  const requests = requestsFrom(query.data);
+  return {
+    loading: query.data === undefined,
+    requests,
+    pending: pendingRequest(requests),
+  };
+}
+
+/**
+ * Asking to join.
+ *
+ * ⚠️⚠️ IT INVALIDATES THE MEMBERSHIP READ ON EVERY SUCCESS, INCLUDING THE ONES
+ * THAT ARE ONLY AN ASK — and that is not defensive, it is `D7`. `0029` absorbs a
+ * pending invite: a person who was already invited by email and types the SHOP's
+ * code instead of her token is let straight in and the answer is `joined`, not
+ * `requested`. So this hook cannot know from the outside whether a membership
+ * was just written, and the read is what settles it. ⚠️ `already_member` is the
+ * same shape from the other end: she was in the shop before she typed anything,
+ * and the guard has to be told.
+ *
+ * ⚠️ AND IT NAVIGATES NOWHERE, which is `useRedeemInvite`'s rule and matters
+ * identically. `guard.ts` moves her to Inicio the moment `useMyWorkspaces` comes
+ * back `member`; a `router.replace` here would be a second opinion about
+ * navigation competing with the first one in the same frame.
+ *
+ * ⚠️ IT INVALIDATES `MY_REQUESTS_KEY` TOO, AND THAT IS THE VISIBLE HALF. On the
+ * ordinary path — `requested` — no membership changed and nothing about the
+ * guard fires; what changes is that she now has a pending row, and this
+ * invalidation is the only thing that puts it on the screen she is looking at.
+ *
+ * ⚠️ IT ALSO INVALIDATES THE ROSTER'S TWO KEYS, for `useRedeemInvite`'s reason
+ * and only on the paths that write: `joined` makes her a `workspace_member` row
+ * and stamps `accepted_by` on the invite she never redeemed, which is exactly
+ * the join `rosterFrom` makes. Invalidating them on a plain `requested` costs
+ * two reads that were already empty for her, which is cheaper than a branch that
+ * can be wrong.
+ *
+ * ⚠️⚠️ AND `already_requested` IS A SUCCESS, NOT AN ERROR. `0029`'s decision 5
+ * hands back her own live row rather than refusing — she taps twice on a bad
+ * connection, or asks again the next morning because nothing has happened — so
+ * it takes the same path as a first ask. The pilot store is offline a lot and
+ * this is the ordinary case, not the edge one.
+ *
+ * ⚠️ THE LOCAL REFUSAL IS THE SCREEN'S AND NOT THIS HOOK'S — `checkCredential`
+ * and `classifyCredential`, called before `ask`, exactly as `checkShopName` and
+ * `checkInvite` are called by the screens that own them.
+ *
+ * ⚠️ AND IT RETURNS A SPANISH SENTENCE OR `null` FOR THE FAILURE, the shape
+ * `useOnboardWorkspace` established — here through `requestErrorMessage`,
+ * because `42501` means something different on this screen than it does anywhere
+ * else in this app. That module's `UNKNOWN_CODE` is where the difference is
+ * argued and where the check that measures it is named.
+ */
+export function useRequestAccess() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: requestAccess,
+    onSuccess: async () => {
+      await Promise.all([
+        queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY }),
+        queries.invalidateQueries({ queryKey: MY_REQUESTS_KEY }),
+        queries.invalidateQueries({ queryKey: MEMBERS_KEY }),
+        queries.invalidateQueries({ queryKey: INVITES_KEY }),
+      ]);
+    },
+  });
+
+  async function ask(
+    typed: string,
+  ): Promise<{ outcome: AccessOutcome | null; error: string | null }> {
+    try {
+      const outcome = await mutation.mutateAsync(typed);
+      return { outcome, error: null };
+    } catch (thrown) {
+      return { outcome: null, error: requestErrorMessage(thrown) };
+    }
+  }
+
+  return { ask, busy: mutation.isPending };
 }
