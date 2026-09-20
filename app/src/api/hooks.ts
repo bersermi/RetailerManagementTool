@@ -26,6 +26,7 @@ import { apiErrorMessage } from '@/api/errors';
 import {
   createInvite,
   myAccessRequests,
+  pendingAccessRequests,
   myWorkspaces,
   onboardWorkspace,
   redeemInvite,
@@ -36,6 +37,12 @@ import {
   workspaceMembers,
 } from '@/api/calls';
 import { nameErrorMessage } from '@/api/displayName';
+import {
+  PENDING_REQUESTS_KEY,
+  canApprove,
+  pendingFrom,
+  type PendingRequest,
+} from '@/api/approvals';
 import {
   LOCATIONS_KEY,
   canInvite,
@@ -281,6 +288,71 @@ export function useRoster(): {
       invites: invites.data,
       selfUserId: session?.user.id ?? null,
     }),
+  };
+}
+
+// ============================================================================
+// WHO IS WAITING TO BE LET IN. Plan task `5b-iii-d-1`, and it is ONE hook
+// because this half is one READ. The act is `5b-iii-d-2`.
+// ============================================================================
+
+/**
+ * The queue behind the bell — and whether there is a bell at all.
+ *
+ * ⚠️⚠️ `visible` IS RETURNED RATHER THAN AN EMPTY LIST, WHICH IS `useRoster`'S
+ * SHAPE AND MATTERS MORE HERE THAN IT DOES THERE. `0037` answers a non-owner
+ * with ZERO ROWS rather than refusing — decision 2, taken so this path does not
+ * acquire a THIRD meaning for `42501` — so "you may not see this" and "nobody is
+ * waiting" arrive over the wire as the same answer. Only `canApprove`, asked
+ * BEFORE the call, can tell them apart, and collapsing them is how a manager is
+ * told her shop has no queue when what is true is that the queue is not hers.
+ *
+ * ⚠️ SO THE QUERY IS FENCED ON THE ROLE AS WELL AS ON THE SESSION, the
+ * arrangement `useRoster` and `useLocations` already hold: below `owner` this
+ * would ask the database a question whose answer the app has been told, on every
+ * open of Inicio, on a connection the pilot store loses routinely.
+ *
+ * ⚠️ THE KEY CARRIES THE WORKSPACE ID because `0037` is workspace-scoped
+ * (decision 5) and `0001:317` admits many shops per person from day one. A key
+ * without it would serve one shop's queue of strangers from the other shop's
+ * cache — and `PENDING_REQUESTS_KEY` is still the PREFIX, so one invalidation
+ * sweeps every shop's.
+ *
+ * ⚠️ `loading` IS ONLY EVER TRUE FOR SOMEBODY WHO WILL SEE THE LIST. For anyone
+ * else the query never runs, so `data` stays `undefined` forever — and a
+ * `loading` derived from that alone would leave a manager's Inicio holding a
+ * spinner for a section she is never going to be shown.
+ */
+export function usePendingRequests(): {
+  readonly visible: boolean;
+  readonly loading: boolean;
+  readonly entries: readonly PendingRequest[];
+  readonly count: number;
+} {
+  const { session, ready } = useAuth();
+  const workspace = useWorkspace();
+  const role = useMyRole();
+  const visible = canApprove(role);
+  const workspaceId = workspace?.id ?? null;
+
+  const query = useQuery({
+    queryKey: [...PENDING_REQUESTS_KEY, workspaceId],
+    // ⚠️ THE NON-NULL IS SAFE BECAUSE `enabled` CARRIES THE SAME CONDITION, and
+    // it is written as a guard rather than as a `!` so a future edit to
+    // `enabled` cannot silently send `null` down the wire as the string "null".
+    queryFn: () => (workspaceId === null ? Promise.resolve([]) : pendingAccessRequests(workspaceId)),
+    enabled: ready && session !== null && visible && workspaceId !== null,
+  });
+
+  const entries = pendingFrom(query.data);
+  return {
+    visible,
+    loading: visible && query.data === undefined,
+    entries,
+    // ⚠️ THE BADGE COUNTS WHAT IS ON THE SCREEN, not what came back on the wire.
+    // `pendingFrom` drops a row it cannot read, and a badge saying 3 over a list
+    // of 2 is the app telling a shopkeeper she has missed somebody.
+    count: entries.length,
   };
 }
 

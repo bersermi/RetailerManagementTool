@@ -96,6 +96,7 @@ structural half.**
 | `src/api/members.ts` — the two column lists, the roster's join, who may see it | `src/app/ajustes.tsx` — draws the section, or does not |
 | `src/api/displayName.ts` — the write rule, the refusals, whose name it is | `src/app/ajustes.tsx` — draws the box, or draws the name |
 | `src/api/requests.ts` — the two RPCs, the four statuses, which one she may see | `src/app/(onboarding)/bienvenida.tsx` — draws the wait, or draws nothing |
+| `src/api/approvals.ts` — the RPC, the six columns, who may look, **and the order of the two lines** | `src/app/solicitudes.tsx` — draws the queue, or draws the empty room |
 | `src/theme/densityMemory.ts` — what a stored mode means | `src/theme/DensityProvider.tsx` — reads it, writes it |
 
 The left column is importable by a node suite; the right column is not, and by
@@ -393,6 +394,7 @@ the rule:
 | `src/api/redeem.ts` | the redemption's contract — the RPC's name, its one `p_` argument, the normaliser, and the **two lengths** that decide which credential a person is holding | **yes**, and `app/test/api-redeem.test.ts` does |
 | `src/api/displayName.ts` | a person's own name — the RPC's name, its two `p_` arguments, and the **marker** that separates `0035`'s two `42501`s. ⚠️ Both SQLSTATEs it raises mean something different here than they do app-wide | **yes**, and `app/test/api-display-name.test.ts` does |
 | `src/api/requests.ts` | asking to join — two RPC names, one `p_` argument, the four statuses `0029` answers and the four states it computes. ⚠️ It reads `42501` as **the code and not the session**, which is a screen-local judgement argued in the file and measured by `docs/checks/5b-iii-b-request-contract.sh` | **yes**, and `app/test/api-requests.test.ts` does |
+| `src/api/approvals.ts` | who is waiting to be let in — the RPC's name, its one `p_` argument, the six columns `0037` returns, and the `owner` fence that has to be asked **before** the call because a refusal and an empty queue are the same answer on the wire. ⚠️⚠️ It also holds `linesOf`, and that is deliberate: §2.11 keeps rendering out of scope, so the owner's ruling of 2026-09-19 — **the email is the header, the name is the subtitle** — is a pure function a test can read rather than a paragraph in a screen | **yes**, and `app/test/api-approvals.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
