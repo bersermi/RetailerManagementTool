@@ -1,0 +1,53 @@
+# 5b — the client's three surfaces. Split 2026-09-13.
+SPLIT_ID="5b"
+SPLIT_GROUPS=( "5b|5b-i 5b-ii 5b-iii" )
+DELIVERABLES=(
+  "onboard_workspace — the shop is created|onboard_workspace|5b-i"
+  "C1.7 — the IVA question, asked once and wrong for ever|C1\.7|5b-i"
+  "the no-workspace landing|no-workspace landing|5b-i"
+  "src/api/ — the app's first data layer|src/api/|5b-i"
+  "Ajustes — the first non-tab surface|Ajustes|5b-ii"
+  "C11.7 — the join code and its WhatsApp share|C11\.7|5b-ii"
+  "member management|member management|5b-ii"
+  "create_invite|create_invite|5b-ii"
+  "redeem_invite|redeem_invite|5b-ii"
+  "request_access — the joiner types the code|request_access|5b-iii"
+  "my_access_requests — the joiner's pending state (S3)|my_access_requests|5b-iii"
+  "approve_request, and the location picker D8 refuses to leave empty|approve_request|5b-iii"
+  "C11.8 — the Home notifications icon and its badge|C11\.8|5b-iii"
+  # ⚠️⚠️ THE FOURTEENTH AND FIFTEENTH ARE RULINGS, NOT CODE, and they are here for
+  # the reason `4.6b` made explicit: A DECISION ABOUT WHAT A SCREEN RENDERS HAS NO
+  # CONSTRAINT, GRANT OR POLICY TO LIVE IN. §2.11 bans the rendering suite that
+  # would otherwise catch a name appearing. So the ruling is a DELIVERABLE, owned
+  # by the row that renders it, and a session that quietly re-adds a name has to
+  # delete a line from a plan row to do it.
+  #
+  # ⚠️ TWO ENTRIES AND NOT ONE, because they are two screens — the member list is
+  # `5b-ii`'s and the approval row is `5b-iii`'s — and on 2026-09-18 the two
+  # stopped having the same answer. `T1` (no table carried a human name) died when
+  # `5b.7` stored the sign-up name and `0034` copied it onto `workspace_member`.
+  # The member list's ruling was SUPERSEDED and REPLACED below; the approval row's
+  # survived the 18th and was superseded on the 19th, when the owner ruled:
+  # *"Show the Email as a Header and the Name as a subtitle of the request."*
+  #
+  # ⚠️ THE ORDER IS THE RULING, and it is the INVERSE of the roster one screen
+  # over. On the roster you know everyone and look them up by name; on an approval
+  # you are matching a stranger against an address somebody read out, so the email
+  # is the thing being verified and the name is what stops you approving the wrong
+  # Juan. Not an inconsistency — two different acts.
+  "the member row is identified by the NAME on the membership (ruled 2026-09-18)|identified by the NAME|5b-ii"
+  # ⚠️ CASE-TOLERANT BY BRACKET CLASS: the child row SHOUTS the ruling because it
+  # is that row's heading, the parent states it in a sentence. Never (a|b) — see
+  # the engine's assertion 0.
+  "the approval row shows the EMAIL as the header and the NAME beneath it (ruled 2026-09-19)|EMAIL [aA][sS] [tT][hH][eE] [hH][eE][aA][dD][eE][rR]|5b-iii"
+)
+# ⚠️ GUARDS A DECISION THE SIZING RE-POINTED. The owner ruled 2026-09-13 that the
+# conventions second pass happens "once 5b has produced a real one"; the split
+# re-pointed it at `5b-i`, the child that actually creates `src/api/`. That is an
+# upholding, not a bend — but it is the kind of re-reading a later session could
+# quietly undo. Gating on all of 5b means the pattern is written after three
+# screens have each invented their own.
+PHRASES=(
+  "5b.5|F|5b-i|5b.5 must gate on 5b-i, the child that CREATES src/api/ — not on the whole of 5b. conventions-gate.sh needs this row and so does the deferral in docs/CONVENTIONS.md and ADR-035 §3."
+)
+SUMMARY="5b.5 still points at the child that builds the pattern."

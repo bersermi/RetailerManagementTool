@@ -1,0 +1,26 @@
+# 5b-iii-d — the approval half. Sized L and split in two 2026-09-19, on the day it
+# was taken. ⚠️ THIS GUARDS NO MIGRATION AT ALL, and that is the point rather than
+# a relaxation: both children ship client code only, every function either calls is
+# already applied (`0029`, `0037`), and §2.11 keeps rendering out of scope. There
+# is no suite in this repository that would notice D8's fence going missing on a
+# SCREEN. These table rows are the whole instrument.
+#
+# THE SEAM, IN ONE LINE: `5b-iii-d-1` READS and writes nothing, so every claim in
+# it is falsifiable by one contract check over real HTTP; `5b-iii-d-2` is the only
+# WRITE and carries the one decision no instrument here can see. That is the
+# read-then-write line `5b-ii` was split on, reused rather than invented.
+SPLIT_ID="5b-iii-d"
+SPLIT_GROUPS=( "5b-iii-d|5b-iii-d-1 5b-iii-d-2" )
+DELIVERABLES=(
+  "C11.8 — the Home notifications icon and its badge|C11\.8|5b-iii-d-1"
+  "the approval row's order, ruled 2026-09-19|EMAIL [aA][sS] [tT][hH][eE] [hH][eE][aA][dD][eE][rR]|5b-iii-d-1"
+  "approve_request — the act that shuts the loop|approve_request|5b-iii-d-2"
+  "the location picker D8 refuses to leave empty|location picker|5b-iii-d-2"
+)
+PHRASES=(
+  "5b-iii-d-2|F|WRITES NOTHING, SILENTLY|D8's silent failure must survive into the half that actually builds the control. An approved staff member with no location writes nothing and is told nothing; that sentence is the whole reason the picker refuses to be empty."
+  "5b-iii-d-1|F|DELIBERATELY HALF A LOOP|The cheapest thing a session building the list can do is wire the approve button while the file is already open — and that is the whole task back in one sitting, with the fence riding along in the half where nothing can measure it. The row must say the half is deliberate, or the next session reads an unfinished screen."
+)
+EACH_CHILD_SAYS=(
+  "F|ships NO migration|Both halves are client-only. A child that grows a migration has grown out of this split — and merging is automated, so it is not a reviewable mistake but a deployed one, repaired by a fix-forward migration. A POSITIVE assertion on purpose: a silent row is what a row that quietly acquired one looks like."
+)

@@ -1,0 +1,24 @@
+# 5b-ii-b — the invite pair. Split 2026-09-14, re-sized and split 2026-09-16.
+SPLIT_ID="5b-ii-b"
+SPLIT_GROUPS=( "5b-ii-b|5b-ii-b-1 5b-ii-b-2" )
+DELIVERABLES=(
+  "create_invite, and its four arguments|create_invite|5b-ii-b-1"
+  "the token shown once and stored only as a hash|shown once|5b-ii-b-1"
+  # ⚠️ N1, inherited. `0028:291` raises 22023 without it, and the split of
+  # 2026-09-14 had assigned the picker to the child that owns D8 itself.
+  "the location a staff invite must name (N1)|staff invite must name|5b-ii-b-1"
+  # ⚠️ P1. Named inside N1's prose on 2026-09-18 and never made a deliverable.
+  "the location_select read behind the picker (P1)|location_select|5b-ii-b-1"
+  # ⚠️ P3. 0028 decision 6 replaces a live pending invite deliberately, so the
+  # code somebody is already holding stops working and nothing says so.
+  "what a replaced code costs the person holding it (P3)|replaced_pending|5b-ii-b-1"
+  # ⚠️ P4. app/src/format/ holds mxn.ts and nothing else.
+  "the date formatter the expiry needs (P4)|date formatter|5b-ii-b-1"
+  "redeem_invite|redeem_invite|5b-ii-b-2"
+  # ⚠️ P2. Sixteen characters against the join code's eight, same alphabet, same
+  # normaliser — so the landing screen's one box decides by length.
+  "an invite token is sixteen characters, not eight (P2)|sixteen characters|5b-ii-b-2"
+)
+PHRASES=(
+  "5b-ii-b-2|F|except by LENGTH|The landing screen's one box tells an invite token from a join code by LENGTH and nothing else — same alphabet, same normaliser, sixteen against eight. Drop the sentence and the box needs a second field, or guesses."
+)

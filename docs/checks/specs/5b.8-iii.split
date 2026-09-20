@@ -1,0 +1,19 @@
+# 5b.8-iii — a person fixes her own name. Sized L and split in two 2026-09-18.
+SPLIT_ID="5b.8-iii"
+SPLIT_GROUPS=( "5b.8-iii|5b.8-iii-a 5b.8-iii-b" )
+DELIVERABLES=(
+  "the self-edit RPC itself|set_my_display_name|5b.8-iii-a"
+  "it is a definer function, not a policy|security definer|5b.8-iii-a"
+  "it takes the next migration number|next free number|5b.8-iii-a"
+  "it touches one column and nothing else|ONE column|5b.8-iii-a"
+  "the pgTAP suite over the RPC|pgTAP suite|5b.8-iii-a"
+  "a non-member is refused|non-member is refused|5b.8-iii-a"
+  "a blank is refused|blank is refused|5b.8-iii-a"
+  "the role column is provably untouched|provably untouched|5b.8-iii-a"
+  "the column-not-row refusal|RLS FILTERS ROWS, NOT COLUMNS|5b.8-iii-a"
+  "the control a person fixes their own name with|[Tt]he control lives on the sheet|5b.8-iii-b"
+)
+PHRASES=(
+  "5b.8-iii-a|F|IT IS WORKSPACE-SCOPED|A person has one membership row per workspace, so the self-edit must name which one. Drop it and the RPC either edits an arbitrary row or every row the caller owns."
+  "5b.8-iii-a|F|RLS FILTERS ROWS, NOT COLUMNS|This is why the self-edit is a definer function and not a policy. An UPDATE policy can say which ROWS a cashier may touch and cannot stop her setting 'role' on one of them. The row must keep the reason, or the next session replaces the function with the policy that looks simpler."
+)

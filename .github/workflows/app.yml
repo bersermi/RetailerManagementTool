@@ -48,7 +48,8 @@ on:
       - "docs/checks/conventions-gate.sh"
       # ⚠️⚠️ AND THE HARNESS THAT FALSIFIES IT, ADDED 2026-09-17 AT `5b.6` —
       # IT HAD NEVER BEEN IN ANY WORKFLOW. Two other falsification harnesses are
-      # run below (`4.6a-` and `5b-split-coverage-falsify.sh`); the repository's
+      # run below (`4.6a-split-coverage-falsify.sh` and, since 2026-09-19,
+      # `split-coverage-falsify.sh` for all seven splits at once); the repository's
       # ONLY committed harness for a STANDING gate was hand-run by whichever
       # session remembered, which is the same sentence written forty lines above
       # about the two plan guards, and the same rule: a guard nobody runs is a
@@ -99,75 +100,28 @@ on:
       - "docs/checks/4.6a-split-coverage.sh"
       - "docs/checks/4.6a-split-coverage-falsify.sh"
       - "supabase/README.md"
-      # ⚠️ THE FOURTH PLAN GUARD, ADDED 2026-09-14 WITH THE `5b` SPLIT. It reads
-      # `docs/PLAN.md` and nothing else, so it needs no second path here — which
-      # is itself the point: `conventions-gate-falsify.sh` spent a day dead
-      # because the gate it falsifies gained an input file the harness was never
-      # told about, and the rule that came out of that day is that an assertion
-      # and the thing that falsifies it read the same set of files.
-      - "docs/checks/5b-split-coverage.sh"
-      - "docs/checks/5b-split-coverage-falsify.sh"
-      # ⚠️ AND THE SUB-SPLIT'S GUARD, added 2026-09-18 when `5b-ii` was sized `L`
-      # and split in two. It is in the filter and in the steps below on the same
-      # commit that created it, which is the only arrangement that has never gone
-      # wrong here: `conventions-gate-falsify.sh` existed for ten days before any
-      # workflow ran it, and spent one of them dead without anything going red.
-      - "docs/checks/5b-ii-split-coverage.sh"
-      - "docs/checks/5b-ii-split-coverage-falsify.sh"
-      # ⚠️ AND THE THIRD GENERATION, added 2026-09-18 when `5b-ii-b` was sized `L`
-      # and split in two. Three guards now watch three levels of one step's split,
-      # and they do not overlap: each matches `| **<task>** |` including the
-      # closing pipe, which is what keeps `5b-ii-b` from matching `5b-ii-b-1`.
-      - "docs/checks/5b-ii-b-split-coverage.sh"
-      - "docs/checks/5b-ii-b-split-coverage-falsify.sh"
-      # ⚠️ AND THE FOURTH, added 2026-09-18 when `5b.8` was sized `L` and split
-      # three ways. ⚠️⚠️ IT IS THE FIRST SPLIT GUARD WATCHING A TASK THAT SHIPS A
-      # MIGRATION: a deliverable that falls out of `5b.8` is not a control nobody
-      # builds, it is a column nobody fills, deployed by an automated merge.
-      # ⚠️ `5b.8-i` is a prefix of BOTH its siblings, which is why the closing
-      # pipe in the matcher matters more here than in the three above.
-      - "docs/checks/5b.8-split-coverage.sh"
-      - "docs/checks/5b.8-split-coverage-falsify.sh"
-      # ⚠️⚠️ AND THE SPLIT UNDER IT, added 2026-09-19. `5b.8-iii` was re-sized to
-      # an `L` and split in two on the day it was taken, exactly as its own gate
-      # cell had ordered since 2026-09-18. THE SECOND MIGRATION-BEARING SPLIT
-      # GUARD: `5b.8-iii-a` ships a `security definer` RPC, and a deliverable
-      # that falls out of it is deployed, not reviewed.
-      # ⚠️ THE PARENT IS A STRICT PREFIX OF BOTH CHILDREN here, which is the
-      # worst instance of the trap the comment above names — `5b.8-iii` inside
-      # `5b.8-iii-a`. The closing pipe in the matcher is what separates them, and
-      # the harness's `S1` fixture is what proves it still does.
-      - "docs/checks/5b.8-iii-split-coverage.sh"
-      - "docs/checks/5b.8-iii-split-coverage-falsify.sh"
-      # ⚠️⚠️ AND THE SIXTH GENERATION, added 2026-09-19. `5b-iii` was re-sized to an
-      # `XL` and split FOUR ways on the day it was taken, exactly as its own gate
-      # cell had ordered since 2026-09-18. THE FIRST SPLIT GUARD WATCHING A TASK
-      # THAT SHIPS TWO MIGRATIONS: `5b-iii-a` mints two application SQLSTATEs and
-      # `5b-iii-c` writes a `security definer` read, and a deliverable that falls
-      # out of either is deployed, not reviewed.
-      # ⚠️ THE PREFIX CHAIN IS THREE DEEP HERE — `5b-i` inside `5b-iii` inside all
-      # four children — which is the worst instance in this directory of the trap
-      # the comments above name. The closing pipe in the matcher is what separates
-      # them, and the harness's `S1` and `S9` fixtures are what prove it still does.
-      # ⚠️⚠️ AND ITS HARNESS CARRIES TWO CROSS-GUARD FIXTURES, which no older one
-      # here has: `X1` runs `5b-split-coverage.sh` and `X2` runs `plan-handover.sh`
-      # against the same tree, because this split makes a claim about both of them.
-      # Their paths are already in this filter above, so nothing new is needed —
-      # which is itself the rule `conventions-gate-falsify.sh` spent a day dead for.
-      - "docs/checks/5b-iii-split-coverage.sh"
-      - "docs/checks/5b-iii-split-coverage-falsify.sh"
-      # ⚠️⚠️ THE SEVENTH GENERATION, ADDED 2026-09-19 WHEN `5b-iii-d` WAS SIZED ON
-      # THE DAY IT WAS TAKEN AND SPLIT IN TWO. ⚠️ IT IS THE FIRST SPLIT GUARD HERE
-      # THAT HAS NO MIGRATION UNDERNEATH IT — both halves are client-only — so
-      # there is no pgTAP suite downstream to catch what it misses. Its subject is
-      # `D8`'s fence on a SCREEN, and §2.11 keeps rendering out of scope, which
-      # means these three table rows are the entire instrument. ⚠️ Its harness
-      # carries two CROSS-GENERATION fixtures, `P1` and `P2`, which run
-      # `5b-iii-split-coverage.sh` against the split tree — its path is already in
-      # this filter above, so nothing new is needed, which is again the rule
-      # `conventions-gate-falsify.sh` spent a day dead for.
-      - "docs/checks/5b-iii-d-split-coverage.sh"
-      - "docs/checks/5b-iii-d-split-coverage-falsify.sh"
+      # ⚠️⚠️ THE SPLIT-COVERAGE ENGINE AND ITS SPECS, 2026-09-19 — replacing the
+      # FOURTEEN path entries that stood here (seven guards, seven falsifiers, one
+      # per generation of `5b` ⊂ `5b-ii` ⊂ `5b-ii-b`, `5b.8` ⊂ `5b.8-iii`,
+      # `5b-iii` ⊂ `5b-iii-d`). The seven were ~290-line copies of one another and
+      # each carried a ~265-line copy of the same fixtures.
+      #
+      # ⚠️ THE RULE THAT COST A DAY STILL HOLDS AND IS EASIER TO HOLD NOW: an
+      # assertion and the thing that falsifies it must read the same set of files
+      # (`conventions-gate-falsify.sh` spent a day dead because its gate gained an
+      # input the harness was never told about). The engine, its specs, its one
+      # falsifier and the corpus assembler are all named here, so a new split adds
+      # a SPEC FILE that `specs/**` already matches — there is nothing to forget.
+      - "docs/checks/split-coverage.sh"
+      - "docs/checks/split-coverage-falsify.sh"
+      - "docs/checks/specs/**"
+      # ⚠️⚠️ AND THE PLAN CORPUS, 2026-09-19. `docs/PLAN.md` passed a context window
+      # at ~313k tokens, so Steps 0–4.5 moved to `docs/plan/archive/`. Every plan
+      # check now reads the ASSEMBLED corpus, which means THE ARCHIVE IS A CHECK
+      # INPUT — if it is not in this filter, an edit to an archived row runs no
+      # guard, which is precisely the day-dead failure above.
+      - "docs/checks/plan-corpus.sh"
+      - "docs/plan/archive/**"
       # ⚠️⚠️ AND THE HANDBOOK GUARD, added 2026-09-18 on the owner's instruction.
       # ⚠️ IT IS THE FIRST CHECK IN THIS REPOSITORY THAT READS `docs/HANDBOOK.md`
       # AT ALL — until it existed, the one document the OWNER reads was the one
@@ -320,43 +274,40 @@ jobs:
       - name: Plan — can the 4.6a guard still fail (its own eight fixtures)
         run: bash docs/checks/4.6a-split-coverage-falsify.sh
 
-      # ⚠️⚠️ THE FOURTH PLAN GUARD (the `5b` split, 2026-09-14), AND THE FIRST
-      # OVER A CLIENT TASK. `5b`'s children ship NO migration, so a deliverable
-      # lost between them never becomes a deployed mistake — it becomes a screen
-      # nobody builds, found by the owner during a pilot, on his own phone. That
-      # is a slower failure and a cheaper one, and it is also the kind nothing
-      # else in this repository can see: §2.11 bans rendering suites, so no test
-      # will ever notice that C11.7's share button was not built.
-      - name: Plan — did the 5b split lose a deliverable (plan 5b sizing)
-        run: bash docs/checks/5b-split-coverage.sh
+      # ⚠️⚠️ THE SPLIT GUARDS, NOW ONE ENGINE OVER SEVEN SPECS (2026-09-19).
+      # Fourteen steps stood here. What they asserted has not changed and is not
+      # reduced: 71 deliverables across seven splits, each owned by exactly one
+      # child, plus the twelve sentences that carry a ruling no other instrument in
+      # this repository can see (§2.11 bans the rendering suite that would catch a
+      # screen decision, so a plan row is the only home a ruling has).
+      #
+      # ⚠️ TWO THINGS THE COPIES HAD LOST, FIXED BY CONSOLIDATION:
+      #   * `5b-split-coverage.sh` HAD NO ANTI-VACUITY GUARD — it ended on
+      #     `fails == 0` alone, so a run that skipped every assertion reported
+      #     success. Rule 4, missing for 24 days from the guard over the largest
+      #     split. The engine counts its groups for every spec.
+      #   * THE `IFS='|'` TRUNCATION TRAP bit three separate writers, each of whom
+      #     "fixed" it by adding a comment telling the next one not to. The engine
+      #     COUNTS THE FIELDS and names the trap (assertion 0, fixture E1).
+      - name: Plan — did any split lose a deliverable (all 7 specs, one engine)
+        run: bash docs/checks/split-coverage.sh --all
 
-      # And its own fixtures, for the reason the block above states.
-      - name: Plan — can the 5b guard still fail (its own eleven fixtures)
-        run: bash docs/checks/5b-split-coverage-falsify.sh
-      - name: Plan — did the 5b-ii split lose a deliverable (plan 5b-ii sizing)
-        run: bash docs/checks/5b-ii-split-coverage.sh
-      - name: Plan — can the 5b-ii guard still fail (its own ten fixtures)
-        run: bash docs/checks/5b-ii-split-coverage-falsify.sh
-      - name: Plan — did the 5b-ii-b split lose a deliverable (plan 5b-ii-b sizing)
-        run: bash docs/checks/5b-ii-b-split-coverage.sh
-      - name: Plan — can the 5b-ii-b guard still fail (its own nine fixtures)
-        run: bash docs/checks/5b-ii-b-split-coverage-falsify.sh
-      - name: Plan — 5b.8 split coverage (fourth generation, and it guards a migration)
-        run: bash docs/checks/5b.8-split-coverage.sh
-      - name: Plan — can the 5b.8 guard still fail (its own ten fixtures)
-        run: bash docs/checks/5b.8-split-coverage-falsify.sh
-      - name: Plan — 5b.8-iii split coverage (fifth generation, and it guards an RPC)
-        run: bash docs/checks/5b.8-iii-split-coverage.sh
-      - name: Plan — can the 5b.8-iii guard still fail (its own twelve fixtures)
-        run: bash docs/checks/5b.8-iii-split-coverage-falsify.sh
-      - name: Plan — 5b-iii split coverage (sixth generation, and it guards two migrations)
-        run: bash docs/checks/5b-iii-split-coverage.sh
-      - name: Plan — can the 5b-iii guard still fail (its own sixteen fixtures)
-        run: bash docs/checks/5b-iii-split-coverage-falsify.sh
-      - name: Plan — 5b-iii-d split coverage (seventh generation, and it guards no migration at all)
-        run: bash docs/checks/5b-iii-d-split-coverage.sh
-      - name: Plan — can the 5b-iii-d guard still fail (its own fourteen fixtures)
-        run: bash docs/checks/5b-iii-d-split-coverage-falsify.sh
+      # ⚠️⚠️ AND THE ENGINE'S FALSIFICATIONS — 342 FIXTURES, DERIVED FROM THE SPECS.
+      # The seven hand-written harnesses ran ~90 fixtures between them, each author
+      # choosing a handful of deliverables to mutate. These are GENERATED from every
+      # spec, so every defect class runs against every one of the 71 deliverables:
+      # parent row gone, child gone, child stated twice, deliverable out of the
+      # parent, out of every child, claimed by two, moved to the wrong one, a
+      # required sentence dropped, a parent left takeable.
+      #
+      # ⚠️ A DOUBLE-OWNERSHIP FIXTURE EDITS THE NON-OWNING ROW. Grafting onto the
+      # row that already owns the deliverable leaves the check correctly green and
+      # makes the fixture accuse a working guard — recorded after it happened once.
+      # S6/S7 extract the matched substring from the owner and graft it onto a
+      # SIBLING, which is also what lets them be generic over an arbitrary ERE.
+      - name: Plan — can the split engine still fail (342 generated fixtures)
+        run: bash docs/checks/split-coverage-falsify.sh
+
       - name: Handbook — does the file the owner reads still agree with the plan
         run: bash docs/checks/handbook-agreement.sh
       - name: Handbook — can that guard still fail (its own eleven fixtures)
