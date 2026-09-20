@@ -33,12 +33,37 @@ import { WRITE_KINDS, type OutboxState, type QueuedWrite, type WriteKind } from 
 // ⚠️ AND IT CANNOT SEE WHEN A FLUSH RUNS, because nothing here decides that —
 // the trigger is `5c-ii-b`. A test that had to mock a connectivity listener
 // would be the first sign this module had grown one.
+//
+// ⚠️⚠️ IT ALSO CANNOT SEE THE DOWNGRADE, AND THAT IS THE HALF THAT CHANGES THE
+// LEDGER (`5c-iii`). Everything below drives the DECISION to dead-letter — the
+// order, the counts, the row that leaves — over a `report` port that is a fake.
+// Whether `record_failed_write` actually moves the shelf for a `sale` and
+// leaves a `purchase` alone is a fact about `0024`, and
+// `docs/checks/5c-iii-dead-letter-contract.sh` is its instrument.
 // ============================================================================
+
+/** The shop every fixture below belongs to. */
+const SHOP = '00000000-1111-4222-8333-444444444444';
+
+/** A refusal shaped like the one supabase-js hands a caller. */
+function refusal(code: string, message = 'refused'): Error & { code: string } {
+  return Object.assign(new Error(message), { code });
+}
+
+/** What `record_failed_write` answers when it has filed the row. */
+const FILED = {
+  failed_write_id: '11111111-2222-4333-8444-555555555555',
+  already_recorded: false,
+  downgraded: true,
+  downgrade_skipped: null,
+  movement_count: 1,
+};
 
 /** A queued row in whatever state the assertion needs. */
 function row(over: Partial<QueuedWrite> = {}): QueuedWrite {
   return {
     id: '11111111-2222-4333-8444-555555555555',
+    workspaceId: SHOP,
     kind: 'sale',
     payload: { location_id: '99999999-8888-4777-8666-555555555555', lines: [] },
     state: 'pending',
@@ -52,10 +77,12 @@ function row(over: Partial<QueuedWrite> = {}): QueuedWrite {
 function ports(
   queue: QueuedWrite[],
   send: (kind: WriteKind, args: Readonly<Record<string, unknown>>) => Promise<unknown>,
+  report: (args: Readonly<Record<string, unknown>>) => Promise<unknown> = async () => FILED,
 ) {
   const settled: Array<[string, OutboxState, number]> = [];
   const forgotten: string[] = [];
   const sent: Array<[WriteKind, Readonly<Record<string, unknown>>]> = [];
+  const filed: Array<Readonly<Record<string, unknown>>> = [];
   const p: FlushPorts = {
     read: () => queue.slice(),
     settle: (id, state, attempts) => {
@@ -72,8 +99,12 @@ function ports(
       sent.push([kind, args]);
       return send(kind, args);
     },
+    report: (args) => {
+      filed.push(args);
+      return report(args);
+    },
   };
-  return { p, settled, forgotten, sent };
+  return { p, settled, forgotten, sent, filed };
 }
 
 const OK = { already_recorded: false, sale_id: 'x' };
@@ -235,6 +266,8 @@ describe('the drain', () => {
       landed: 1,
       alreadyRecorded: 0,
       retried: 0,
+      deadLettered: 0,
+      downgraded: 0,
     });
     expect(q).toEqual([]);
   });
@@ -326,6 +359,8 @@ describe('the drain', () => {
       landed: 0,
       alreadyRecorded: 0,
       retried: 0,
+      deadLettered: 0,
+      downgraded: 0,
     });
   });
 });
@@ -382,5 +417,191 @@ describe('reading the server’s reply', () => {
     for (const reply of [null, undefined, 42, 'ok', [], {}, { already_recorded: 'yes' }]) {
       expect(landedFrom(reply)).toEqual({ landed: false });
     }
+  });
+});
+
+// ============================================================================
+// THE DEAD LETTER. Plan task 5c-iii, and the only half of `5c` that changes the
+// ledger. Everything here drives the DECISION; `docs/checks/
+// 5c-iii-dead-letter-contract.sh` is what drives the downgrade.
+// ============================================================================
+
+describe('a permanently rejected write', () => {
+  // ⚠️⚠️ THE ORDER IS THE ASSERTION. `dead` is terminal from the device, so a
+  // row marked dead before the server confirmed the dead letter is a sale that
+  // exists nowhere: off the queue, off the ledger, with no `failed_write` row
+  // for §2.10's nightly check to find.
+  it('is reported BEFORE it is marked dead, never after', async () => {
+    const q = [row()];
+    const order: string[] = [];
+    const { p } = ports(
+      q,
+      async () => {
+        throw refusal('22023', 'record_sale: line 1 — no such variant');
+      },
+      async () => {
+        order.push('reported');
+        return FILED;
+      },
+    );
+    const origSettle = p.settle;
+    const watched: FlushPorts = {
+      ...p,
+      settle: (id, state, attempts) => {
+        order.push(`settle:${state}`);
+        origSettle(id, state, attempts);
+      },
+    };
+    await createFlusher(watched).flush();
+    expect(order).toEqual(['settle:flushing', 'reported', 'settle:dead']);
+  });
+
+  it('leaves the queue in the dead state, keeping the attempt it made', async () => {
+    const q = [row()];
+    const { p, settled, forgotten } = ports(q, async () => {
+      throw refusal('42501', 'location not accessible');
+    });
+    const report = await createFlusher(p).flush();
+    expect(settled).toEqual([
+      [row().id, 'flushing', 1],
+      [row().id, 'dead', 1],
+    ]);
+    // ⚠️ IT IS NOT FORGOTTEN. `forget` is for a write that LANDED; a dead letter
+    // stays on the phone, which is what `5c-iv`'s banner will count.
+    expect(forgotten).toEqual([]);
+    expect(report.deadLettered).toBe(1);
+    expect(report.downgraded).toBe(1);
+  });
+
+  it('is reported with the payload untouched, so 0026 can replay it', async () => {
+    const payload = { location_id: 'L', lines: [1, 2], occurred_at: 'T', recorded_offline: true };
+    const q = [row({ payload })];
+    const { p, filed } = ports(q, async () => {
+      throw refusal('TD001', 'already recorded with a different payload');
+    });
+    await createFlusher(p).flush();
+    expect(filed).toHaveLength(1);
+    expect(filed[0].p_payload).toEqual(payload);
+    expect(filed[0].p_id).toBe(row().id);
+    expect(filed[0].p_kind).toBe('sale');
+    expect(filed[0].p_workspace_id).toBe(SHOP);
+    expect(filed[0].p_error_code).toBe('TD001');
+  });
+
+  // ⚠️⚠️ THIS IS THE HALF THAT UNBLOCKS THE QUEUE. `5c-ii-a`'s decision 1 named
+  // the cost of stopping at the first failure — "a row that can never succeed
+  // blocks every write behind it" — and the fix is removing the row, not
+  // loosening the rule.
+  it('does not stop the drain, because it has left the queue', async () => {
+    const q = [
+      row({ id: 'a', queuedAt: '2026-09-20T09:00:00.000Z' }),
+      row({ id: 'b', queuedAt: '2026-09-20T10:00:00.000Z' }),
+    ];
+    const { p, sent } = ports(q, async (_kind, args) => {
+      if (args.p_id === 'a') throw refusal('22023', 'no such variant');
+      return OK;
+    });
+    const report = await createFlusher(p).flush();
+    expect(sent.map(([, args]) => args.p_id)).toEqual(['a', 'b']);
+    expect(report.stop).toBe('drained');
+    expect(report.deadLettered).toBe(1);
+    expect(report.landed).toBe(1);
+  });
+});
+
+describe('a transient failure, which is everything not on the list', () => {
+  // ⚠️ THE SAFE DIRECTION. A permanent failure retried forever is a sale still
+  // on the phone; a transient one dead-lettered is a sale downgraded that would
+  // have arrived on its own.
+  it('is retried and stops the drain, and nothing is reported', async () => {
+    const q = [
+      row({ id: 'a', queuedAt: '2026-09-20T09:00:00.000Z' }),
+      row({ id: 'b', queuedAt: '2026-09-20T10:00:00.000Z' }),
+    ];
+    const { p, sent, filed, settled } = ports(q, async () => {
+      throw refusal('PGRST301', 'JWT expired');
+    });
+    const report = await createFlusher(p).flush();
+    expect(filed).toEqual([]);
+    expect(sent.map(([, args]) => args.p_id)).toEqual(['a']);
+    expect(settled).toEqual([
+      ['a', 'flushing', 1],
+      ['a', 'pending', 1],
+    ]);
+    expect(report.stop).toBe('failed');
+    expect(report.deadLettered).toBe(0);
+  });
+
+  it('is what a throw with no code at all is — the offline case', async () => {
+    const q = [row()];
+    const { p, filed } = ports(q, async () => {
+      throw new Error('Network request failed');
+    });
+    expect((await createFlusher(p).flush()).deadLettered).toBe(0);
+    expect(filed).toEqual([]);
+  });
+});
+
+describe('a report that does not land', () => {
+  // ⚠️⚠️ THE ONE OUTCOME IN THE WHOLE QUEUE THAT LOSES A SALE OUTRIGHT is a row
+  // marked dead with no `failed_write` row behind it. So a failed report is an
+  // ordinary retry, and the uuid makes the second report a no-op rather than a
+  // second downgrade (`0024` decision 7).
+  it('leaves the row pending rather than dead when the report throws', async () => {
+    const q = [row()];
+    const { p, settled } = ports(
+      q,
+      async () => {
+        throw refusal('22023', 'no such variant');
+      },
+      async () => {
+        throw new Error('no signal');
+      },
+    );
+    const report = await createFlusher(p).flush();
+    expect(settled).toEqual([
+      [row().id, 'flushing', 1],
+      [row().id, 'pending', 1],
+    ]);
+    expect(report.stop).toBe('failed');
+    expect(report.deadLettered).toBe(0);
+  });
+
+  it('does the same for a reply it cannot read, rather than assuming it filed', async () => {
+    const q = [row()];
+    const { p, settled } = ports(
+      q,
+      async () => {
+        throw refusal('22023', 'no such variant');
+      },
+      async () => ({ ok: 'sure' }),
+    );
+    const report = await createFlusher(p).flush();
+    expect(settled[1]).toEqual([row().id, 'pending', 1]);
+    expect(report.deadLettered).toBe(0);
+  });
+});
+
+describe('what the drain counts', () => {
+  it('counts a downgrade only when the server says it ran', async () => {
+    const q = [row({ kind: 'purchase', payload: { location_id: 'L', lines: [] } })];
+    const { p } = ports(
+      q,
+      async () => {
+        throw refusal('22023', 'no such variant');
+      },
+      // ⚠️ `0024` amendment 2: a rejected purchase dead-letters and the ledger
+      // is NOT touched — the stock is on the shelf with a manager holding the
+      // delivery note, and an auto-upgrade would double it.
+      async () => ({
+        ...FILED,
+        downgraded: false,
+        downgrade_skipped: 'kind_not_downgraded',
+        movement_count: 0,
+      }),
+    );
+    const report = await createFlusher(p).flush();
+    expect(report.deadLettered).toBe(1);
+    expect(report.downgraded).toBe(0);
   });
 });

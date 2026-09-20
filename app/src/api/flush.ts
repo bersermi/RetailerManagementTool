@@ -34,13 +34,32 @@
 // clamp AND from the 15-minute void window — a flush that forwarded one out of
 // a payload would hand a cashier both. It is stripped, by name, below.
 //
-// ⚠️ NOTHING HERE EVER DEAD-LETTERS. Transient against permanent is `5c-iii`,
-// deliberately: every failure in this module is a retry, so the only way this
-// half can be wrong is to retry something forever — never to downgrade a sale
-// that would have arrived on its own. That is the safe direction to be wrong
-// in while the classification is still one task away.
+// ⚠️⚠️ IT DEAD-LETTERS AS OF `5c-iii`, AND THE JUDGEMENT IS NOT HERE. This
+// module owned no classification until 2026-09-20 — every failure was a retry —
+// and what changed is one branch: `classify` in `@/api/deadletter` says whether
+// a thrown refusal can ever succeed, and a permanent one is REPORTED to
+// `record_failed_write` and then rejected. The reasons live in that module
+// beside the codes, because they are claims about `0016`–`0025` rather than
+// about the loop.
+//
+// ⚠️ THE ORDER IS REPORT FIRST, REJECT SECOND, AND IT IS NOT STYLISTIC. `dead`
+// is terminal from the device (`advance`: *"replay is manual, never
+// automatic"*), so a row marked `dead` before the server confirmed the dead
+// letter is a sale that exists nowhere — off the queue, off the ledger, with no
+// `failed_write` row for §2.10's nightly check to find. A failed report is
+// therefore an ordinary retry: the row goes back to `pending`, and the uuid
+// makes the second report a no-op rather than a second downgrade (`0024`
+// decision 7).
+//
+// ⚠️⚠️ AND A DEAD-LETTERED ROW DOES NOT STOP THE DRAIN. A transient failure
+// still does — the overwhelmingly common one is no signal, where every later
+// row fails identically — but a permanent one has LEFT the queue, so there is
+// nothing left to block behind it. That is `5c-ii-a`'s decision 1 paying for
+// itself: the cost it named was "a row that can never succeed blocks every
+// write behind it", and this is the half that removes the row.
 // ============================================================================
 
+import { classify, reportArgs, reportedFrom, type Failure } from '@/api/deadletter';
 import {
   advance,
   forgotten,
@@ -202,13 +221,24 @@ export interface FlushPorts {
    * resolves with the function's `jsonb` reply.
    */
   readonly send: (kind: WriteKind, args: Readonly<Record<string, unknown>>) => Promise<unknown>;
+  /**
+   * `record_failed_write`, the fifth port and the only one that CHANGES THE
+   * LEDGER. ⚠️ It throws like `send`, and a throw here is a retry of the report
+   * rather than a dead letter of its own — see the header for why the order is
+   * report-then-reject.
+   */
+  readonly report: (args: Readonly<Record<string, unknown>>) => Promise<unknown>;
 }
 
 /** Why a drain stopped. */
 export type FlushStop =
   /** Nothing left that is `pending`. */
   | 'drained'
-  /** A send failed, so the rest of the queue is not attempted — see `flush`. */
+  /**
+   * A send failed TRANSIENTLY, so the rest of the queue is not attempted — see
+   * `flush`. ⚠️ A permanently rejected write does not stop a drain; it is
+   * dead-lettered and the drain continues.
+   */
   | 'failed'
   /** Another flush was already running. Nothing was attempted. */
   | 'busy';
@@ -223,6 +253,19 @@ export interface FlushReport {
   readonly alreadyRecorded: number;
   /** Rows put back to `pending` by a failure. At most one — see `flush`. */
   readonly retried: number;
+  /**
+   * Rows the server accepted as permanently rejected and this drain marked
+   * `dead`. ⚠️ Unlike `retried` there may be many: a dead letter leaves the
+   * queue, so the drain carries on.
+   */
+  readonly deadLettered: number;
+  /**
+   * Of those, the ones whose shelf the server actually moved — `sale` and
+   * `waste` only (`0024`, amendment 2). ⚠️ THIS IS THE COUNT §2.6 CALLS LOSSY:
+   * every one of them reconciled quantity and carried no revenue, no tax split
+   * and no batch attribution.
+   */
+  readonly downgraded: number;
 }
 
 export interface Flusher {
@@ -240,13 +283,13 @@ export interface Flusher {
  * ⚠️ It is also what makes `stale` safe: inside this gate, a `flushing` row
  * belongs to no live send.
  *
- * ⚠️⚠️ THE DRAIN STOPS AT THE FIRST FAILURE, AND THE COST IS NAMED RATHER THAN
- * HIDDEN. The overwhelmingly common failure is no signal, where every later row
- * would fail identically — and stopping keeps the ledger's order the shop's
- * order, which oldest-first exists for. ⚠️ WHAT IT COSTS: a row that can never
- * succeed blocks every write behind it. That is `5c-iii`'s job and it is the
- * NEXT task — permanent failures dead-letter, and the queue unblocks. Until
- * then nothing in this app enqueues anything, so nothing is stuck in practice.
+ * ⚠️⚠️ THE DRAIN STOPS AT THE FIRST *TRANSIENT* FAILURE. The overwhelmingly
+ * common one is no signal, where every later row would fail identically — and
+ * stopping keeps the ledger's order the shop's order, which oldest-first exists
+ * for. ⚠️ A PERMANENT one does not stop it: the row is dead-lettered, leaves the
+ * queue, and the drain moves on. `5c-ii-a` named the cost of stopping — *"a row
+ * that can never succeed blocks every write behind it"* — and `5c-iii` is the
+ * half that removes the row rather than the half that loosens the rule.
  */
 export function createFlusher(ports: FlushPorts): Flusher {
   let inFlight: Promise<FlushReport> | null = null;
@@ -263,6 +306,8 @@ export function createFlusher(ports: FlushPorts): Flusher {
 
     let landed = 0;
     let alreadyRecorded = 0;
+    let deadLettered = 0;
+    let downgraded = 0;
     for (const write of drainOrder(ports.read())) {
       const claim = advance(write, 'claim');
       if (!moved(claim)) continue;
@@ -270,12 +315,14 @@ export function createFlusher(ports: FlushPorts): Flusher {
       const claimed: QueuedWrite = { ...write, state: claim.move, attempts: claim.attempts };
 
       let result: SendResult;
+      // ⚠️ `{ permanent: false }` IS ALSO WHAT A SUCCESS LEAVES BEHIND, which is
+      // why this is read only on the `!landed` path below.
+      let failure: Failure = { permanent: false };
       try {
         result = landedFrom(await ports.send(claimed.kind, sendArgs(claimed)));
-      } catch {
-        // ⚠️ EVERY THROW IS A RETRY HERE. Transient against permanent is
-        // `5c-iii`; see the header for why that is the safe way round.
+      } catch (error) {
         result = { landed: false };
+        failure = classify(error);
       }
 
       if (result.landed) {
@@ -286,12 +333,51 @@ export function createFlusher(ports: FlushPorts): Flusher {
         continue;
       }
 
+      if (failure.permanent) {
+        // ⚠️⚠️ REPORT FIRST, REJECT SECOND — see the header. If the report
+        // throws, or answers something `reportedFrom` will not read, this falls
+        // through to the retry below with the row still in the queue and the
+        // ledger untouched.
+        let filed = false;
+        try {
+          const report = reportedFrom(await ports.report(reportArgs(claimed, failure)));
+          filed = true;
+          if (report.downgraded) downgraded += 1;
+        } catch {
+          filed = false;
+        }
+        if (filed) {
+          const gone = advance(claimed, 'reject');
+          if (moved(gone)) ports.settle(claimed.id, gone.move, gone.attempts);
+          deadLettered += 1;
+          // ⚠️ AND THE DRAIN CARRIES ON. The row that could never succeed is
+          // out of `pending`, so nothing is behind it any more.
+          continue;
+        }
+      }
+
       const back = advance(claimed, 'retry');
       if (moved(back)) ports.settle(claimed.id, back.move, back.attempts);
-      return { stop: 'failed', recovered, landed, alreadyRecorded, retried: 1 };
+      return {
+        stop: 'failed',
+        recovered,
+        landed,
+        alreadyRecorded,
+        retried: 1,
+        deadLettered,
+        downgraded,
+      };
     }
 
-    return { stop: 'drained', recovered, landed, alreadyRecorded, retried: 0 };
+    return {
+      stop: 'drained',
+      recovered,
+      landed,
+      alreadyRecorded,
+      retried: 0,
+      deadLettered,
+      downgraded,
+    };
   }
 
   return {
@@ -303,6 +389,8 @@ export function createFlusher(ports: FlushPorts): Flusher {
           landed: 0,
           alreadyRecorded: 0,
           retried: 0,
+          deadLettered: 0,
+          downgraded: 0,
         });
       }
       const run = drain().finally(() => {

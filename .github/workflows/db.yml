@@ -201,6 +201,12 @@ on:
       # to the check alone — loosening an assertion, say — must re-run it.
       - "docs/checks/5c-ii-a-flush-contract.sh"
       - "docs/checks/5c-ii-a-flush-contract-falsify.sh"
+      # ⚠️⚠️ THE DEAD LETTER (plan task `5c-iii`), AND IT IS THE ONLY HALF OF
+      # STEP 5 THAT CHANGES THE LEDGER. Same rule as the two lines above: the
+      # check and its harness are named here because an edit to the check alone
+      # — loosening an assertion — must re-run it.
+      - "docs/checks/5c-iii-dead-letter-contract.sh"
+      - "docs/checks/5c-iii-dead-letter-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -861,6 +867,32 @@ jobs:
       # run: red for the wrong reason.
       - name: Contract — can the flush check still fail (its own nine fixtures)
         run: bash docs/checks/5c-ii-a-flush-contract-falsify.sh
+
+      # ⚠️⚠️ THE DEAD LETTER (plan task `5c-iii`), AND IT IS THE ONLY CHECK IN
+      # THIS WORKFLOW WHOSE SUBJECT CAN CHANGE THE LEDGER WITHOUT ANYBODY
+      # NOTICING. `record_failed_write` downgrades the shelf so the balance
+      # matches what is physically there, and a downgrade carries no revenue, no
+      # tax split and no batch attribution — §2.6: "stock stays true; margin goes
+      # quiet". §2.8 sends the row to the VENDOR, and C10.5 keeps it off the
+      # shopkeeper's screen entirely. So there is no person in the loop who would
+      # ever see a misclassification, and this is the whole instrument.
+      #
+      # ⚠️ THE TWO ASSERTIONS NOTHING ELSE IN THIS REPOSITORY CAN MAKE: that an
+      # unusable session answers `PGRST301` and NOT the `42501` the app
+      # dead-letters — without which one stale token downgrades a whole queue —
+      # and that `TD002` ("not enough stock") is cleared by the very next retry,
+      # because `0017` skips enforcement when `recorded_offline` is true and the
+      # flush's second attempt always sets it. Both are facts about the applied
+      # schema that no typecheck and no Vitest suite has ever read.
+      - name: Contract — is what the app dead-letters what the schema raises (plan 5c-iii)
+        run: bash docs/checks/5c-iii-dead-letter-contract.sh
+
+      # And its own eleven fixtures. ⚠️ SIX DRIFT A NAME AND MEET A 404; FIVE
+      # DRIFT A JUDGEMENT — a code moved from one side of the classification to
+      # the other — and those are the ones nothing but a database can see, because
+      # a misfiled code is a green build, a green suite and a quietly wrong ledger.
+      - name: Contract — can the dead-letter check still fail (its own eleven fixtures)
+        run: bash docs/checks/5c-iii-dead-letter-contract-falsify.sh
 
       - name: Stop
         if: always()

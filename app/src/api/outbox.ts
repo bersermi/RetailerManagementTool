@@ -34,6 +34,20 @@
 // `p_`-keyed arguments instead would typecheck, store, flush and dead-letter
 // perfectly, and be discovered on the day somebody tried to replay one.
 //
+// ⚠️⚠️ A QUEUED WRITE CARRIES ITS OWN `workspaceId`, ADDED BY `5c-iii`, AND IT
+// IS NOT A CONVENIENCE. `record_failed_write` (`0024`) takes `p_workspace_id`
+// as an ARGUMENT and validates it — §2.6: "record_failed_write validates
+// workspace and not location" — while none of the four `record_*` functions
+// takes one at all, because each derives it from the location it has already
+// proved the caller holds. So the dead letter needs a value nothing else on
+// this path has, and there are only two places it can come from: the row, or
+// whatever the app believes the CURRENT shop is at the moment of the flush.
+// ⚠️ THE SECOND IS WRONG FOR A PERSON WHO BELONGS TO TWO SHOPS — `0001:317`
+// admits many from day one — and it is wrong in the expensive direction: a sale
+// queued in shop A and dead-lettered while shop B is open would file the row
+// against B and DOWNGRADE B'S SHELF for a sale that never happened there. The
+// workspace is known when the person rings the sale up, so it is stored then.
+//
 // ⚠️ "THE OUTBOX TABLE" IS A TABLE ON THE PHONE AND NOT A MIGRATION. Step 5
 // ships no Postgres migration and this task ships none; the schema here is
 // device-local SQLite, created by the app on first open and versioned by
@@ -87,6 +101,14 @@ export interface QueuedWrite {
    * module generates it once and never again.
    */
   readonly id: string;
+  /**
+   * ⚠️ THE SHOP THIS WRITE BELONGS TO, AND IT IS HERE FOR ONE CALLER ONLY —
+   * `record_failed_write`'s `p_workspace_id`. No `record_*` function takes one
+   * (each derives it from the location), so this column is carried the whole
+   * way for the failure path and is unused on the happy one. See the header for
+   * why it is stored at enqueue rather than read at flush.
+   */
+  readonly workspaceId: string;
   readonly kind: WriteKind;
   readonly payload: WritePayload;
   readonly state: OutboxState;
@@ -98,6 +120,8 @@ export interface QueuedWrite {
 
 /** What the caller asks to be queued. */
 export interface WriteDraft {
+  /** The shop the write belongs to — see `QueuedWrite.workspaceId`. */
+  readonly workspaceId: string;
   readonly kind: WriteKind;
   readonly payload: WritePayload;
 }
@@ -120,7 +144,7 @@ export interface Stamp {
  */
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
-export function normalizeWriteId(value: string): string | null {
+export function normalizeUuid(value: string): string | null {
   const lower = value.trim().toLowerCase();
   return UUID.test(lower) ? lower : null;
 }
@@ -148,7 +172,11 @@ export function isWritePayload(value: unknown): value is WritePayload {
 }
 
 /** Why a draft was refused. Never shown to anybody — see `queueWrite`. */
-export type QueueRefusal = 'unknown-kind' | 'payload-not-an-object' | 'bad-id';
+export type QueueRefusal =
+  | 'unknown-kind'
+  | 'payload-not-an-object'
+  | 'bad-id'
+  | 'bad-workspace';
 
 export type Queued =
   | { readonly ok: true; readonly write: QueuedWrite }
@@ -160,8 +188,9 @@ export type Queued =
  *
  * ⚠️⚠️ EVERY REFUSAL HERE IS A PROGRAMMING ERROR AND NONE OF THEM IS A
  * SHOPKEEPER'S PROBLEM. An unknown kind, a payload that is not an object, a
- * malformed uuid: a person standing at a counter cannot cause any of the
- * three, and none has a Spanish sentence because none may ever reach a screen.
+ * malformed uuid, a workspace that is not one: a person standing at a counter
+ * cannot cause any of the four, and none has a Spanish sentence because none
+ * may ever reach a screen.
  * They are returned rather than thrown so the caller that WILL exist — the
  * wrapper in `5c-ii` — has somewhere to put them other than a crash on the
  * till. ⚠️ `R4` is also why: a sentence here would be Spanish outside
@@ -170,12 +199,21 @@ export type Queued =
 export function queueWrite(draft: WriteDraft, stamp: Stamp): Queued {
   if (!isWriteKind(draft.kind)) return { ok: false, why: 'unknown-kind' };
   if (!isWritePayload(draft.payload)) return { ok: false, why: 'payload-not-an-object' };
-  const id = normalizeWriteId(stamp.id);
+  const id = normalizeUuid(stamp.id);
   if (id === null) return { ok: false, why: 'bad-id' };
+  // ⚠️ REFUSED HERE RATHER THAN AT THE DEAD LETTER, which is a whole task later.
+  // A row queued without a workspace can be sent and can land; the only thing it
+  // cannot do is be REPORTED when it is permanently rejected — so a malformed
+  // one would be discovered at the exact moment the shop most needs the report,
+  // and `record_failed_write` would answer `42501` to a caller who has no way to
+  // act on it.
+  const workspaceId = normalizeUuid(draft.workspaceId);
+  if (workspaceId === null) return { ok: false, why: 'bad-workspace' };
   return {
     ok: true,
     write: {
       id,
+      workspaceId,
       kind: draft.kind,
       payload: draft.payload,
       state: 'pending',
