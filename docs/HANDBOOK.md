@@ -290,11 +290,65 @@ example.
 | `docs/PLAN.md` | Where the build is. Next task, what "done" means, what is unresolved | Claude updates it as tasks close |
 | `docs/adr/ADR-035` | The architecture. 1,454 lines deciding how everything works — amended since it was written, always on your instruction | Changes only by deliberate decision — yours |
 | `CLAUDE.md` | Rules a fresh session reads automatically. Written for Claude, not you | Claude maintains it |
+| `docs/plan/archive/` | **Closed** steps of the plan, cut out of `docs/PLAN.md` whole. Still part of the plan | Claude moves a step here when it closes |
 | `archive/power-platform/` | The abandoned first attempt. Kept for its reasoning only | Frozen — never cite it as current |
 
 There is a strict order of authority: **ADR-035 wins over everything.** If the
 plan and the architecture disagree, the plan is the bug, and Claude is instructed
 to stop and ask rather than pick a side.
+
+### ⚠️ Two archives, and they mean opposite things
+
+**`archive/power-platform/` is WRONG.** It describes a system nobody is building,
+four of its ADRs are provably false, and citing it as current is a defect.
+
+**`docs/plan/archive/` is CLOSED, and still true.** On 2026-09-19 `docs/PLAN.md`
+reached 14,998 lines — about 313,000 tokens, **larger than a context window**. No
+session could read it; every session grepped it instead, and paid for the grepping.
+Steps 0 through 4.5 were finished and still being carried in full, so they were cut
+out whole — 6,361 lines, **unedited, in their original order**. Nothing was
+summarised and nothing was deleted; the split was verified by rebuilding the
+original file from the two halves and confirming it came back **byte-identical**.
+
+### You do not have to fetch anything back to read it
+
+⚠️ **The checks still see the archived rows.** `docs/checks/plan-corpus.sh`
+assembles `docs/PLAN.md` plus everything in `docs/plan/archive/` into one file, and
+the plan guards read *that*. So a task row keeps working after its step is
+archived. Run `bash docs/checks/plan-corpus.sh --list` to see what it assembles.
+
+This works only because of a property the repository already had by luck: every
+plan check finds its row by **content** — `| **5b-iii-d** |` — and never by line
+number. Had one check counted lines, archiving would have been impossible.
+
+⚠️ **Not every check reads the corpus, and the difference is deliberate:**
+
+| Check | Reads | Why |
+|---|---|---|
+| `split-coverage.sh` (all 7 splits), `5a-`, `4.6a-` | the **corpus** | They look up specific task ids. An archived row must still resolve |
+| `plan-handover.sh`, `handbook-agreement.sh` | the **live plan only** | They assert there is *exactly one* next task and *one* decisions block. An archived copy would read as a second one and they would refuse a correct plan |
+
+### If a closed step genuinely reopens
+
+Reading it is not "getting it back" — just read the file. **Move a section back
+into `docs/PLAN.md` only when work has actually restarted**, and then:
+
+1. **Move it, never copy it.** Two homes for one claim is how six of this
+   repository's seven stale-copy defects happened. Cut from the archive, paste
+   into the plan.
+2. **Say in the row why it reopened, and on what date.**
+3. **Re-run `bash docs/checks/split-coverage.sh --all`.** If you copied instead of
+   moved, *"row appears 2 times"* catches it — that assertion reads the corpus, so
+   it sees both copies. This is the safety net for exactly this move.
+4. **If the reopened work changes the schema, it is a new numbered migration.**
+   Migrations are append-only once applied. Moving text between two Markdown files
+   cannot un-apply anything that is already deployed.
+
+⚠️ **Whether a step is closed enough to archive is a judgement, and Claude should
+say so in the session that makes it.** Steps 0, 1 and 2 carried a `✅` in their own
+headings; 3, 4 and 4.5 did not, and were archived on the evidence of 41, 50 and 31
+completion marks inside them. That is a decision made on your behalf — the kind the
+working agreement says must be reported by name.
 
 ---
 

@@ -1,0 +1,29 @@
+# 5b.8 — the display name. Sized L and split three ways 2026-09-18.
+SPLIT_ID="5b.8"
+SPLIT_GROUPS=( "5b.8|5b.8-i 5b.8-ii 5b.8-iii" )
+DELIVERABLES=(
+  "the display_name column on workspace_member|the table a phone CAN read|5b.8-i"
+  "the shop-creation RPC writes it|onboard_workspace|5b.8-i"
+  "the redemption RPC writes it|redeem_invite|5b.8-i"
+  # ⚠️ R1. 0029:256, the D7 fast path. On no row before 2026-09-18.
+  "the join-by-code fast path writes it (R1)|request_access|5b.8-i"
+  # ⚠️ R2. 0029:455, and it is 5b-iii's own RPC — the ordering's whole point.
+  "the approval path writes it (R2)|approve_request|5b.8-i"
+  "the backfill for rows that already exist|backfill|5b.8-i"
+  "the pgTAP suite over the four writers|pgTAP suite over the four writers|5b.8-i"
+  # ⚠️ Two sections, not one: §2.3 carries the columns, §2.7 the auth.users
+  # sentence and the create_invite spelling. The plan said §2.7 for all three.
+  "the ADR amendments|ADR-035 §2.7|5b.8-i"
+  "the fourth identity case in the roster|rosterFrom|5b.8-ii"
+  "the column added to the roster's read|MEMBER_COLUMNS|5b.8-ii"
+  "the contract check and harness extended|contract check and harness|5b.8-ii"
+  # ⚠️ R3. Capitalised at the head of a sentence in the child row, lower-case in
+  # the parent's — which is why this one carries a BRACKET CLASS. Never (a|b).
+  "the two split guards whose sentinels this retires (R3)|[Tt]wo split guards|5b.8-ii"
+  "the security definer self-edit RPC|set_my_display_name|5b.8-iii"
+  "the control a person fixes their own name with|the control lives on the sheet|5b.8-iii"
+)
+PHRASES=(
+  "5b.8-i|F|only where the stored value is null|The backfill must not overwrite a name a person already fixed. Drop the clause and the migration reverts every correction made since 0034."
+  "5b.8-ii|F|the sentinels move HERE and not in the migration|The two split-guard sentinels retire in the task that puts the name ON A SCREEN, not the one that stores it. A stored column changes nothing a person sees, so retiring them a task early leaves a guard asserting a rule that is neither true nor superseded."
+)

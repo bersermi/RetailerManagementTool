@@ -60,7 +60,19 @@
 
 set -uo pipefail
 
-PLAN="${1:-docs/PLAN.md}"
+# ⚠️⚠️ THE PLAN CORPUS, 2026-09-19. `docs/PLAN.md` passed a context window at ~313k
+# tokens and Steps 0–4.5 moved to `docs/plan/archive/`. This check does pure
+# id LOOKUPS — `| **task** |` — so it must read the ASSEMBLED corpus, or the day a
+# row it needs is archived it fails for a reason that has nothing to do with the
+# split it guards. ⚠️ Duplicate detection reading the corpus is a FEATURE, not a
+# hazard: a row that exists both live and archived is exactly the stale-copy defect
+# this repository has had six of, and "row appears 2 times" is what catches it.
+# ⚠️ `plan-handover.sh` and `handbook-agreement.sh` deliberately do NOT do this —
+# they assert UNIQUENESS over the live plan (one next task, one decisions block),
+# and an archived copy would read as a second one. See docs/HANDBOOK.md.
+if [[ -n "${1:-}" ]]; then PLAN="$1"; else
+  PLAN="$(bash "$(dirname "$0")/plan-corpus.sh")" || { echo "FAIL: could not assemble the plan corpus"; exit 1; }
+fi
 DBDOC="${2:-supabase/README.md}"
 ADR="${3:-docs/adr/ADR-035-target-architecture-postgres-react-native.md}"
 [[ -r "$PLAN"  ]] || { echo "FAIL: cannot read $PLAN";  exit 1; }

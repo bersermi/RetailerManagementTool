@@ -1,0 +1,23 @@
+# 5b-iii — the joiner's loop. Sized XL and split four ways 2026-09-17.
+SPLIT_ID="5b-iii"
+SPLIT_GROUPS=( "5b-iii|5b-iii-a 5b-iii-b 5b-iii-c 5b-iii-d" )
+DELIVERABLES=(
+  "the code for a second ask on the push path|approve the request instead|5b-iii-a"
+  "the prose marker it retires|ALREADY_REQUESTED_MARKER|5b-iii-a"
+  "the code for a dead token|this token is not valid|5b-iii-a"
+  "the screen-local reading it retires|@/api/redeem|5b-iii-a"
+  "the join-by-code screen|[Jj]oin-by-code|5b-iii-b"
+  "request_access — the joiner types the code|request_access|5b-iii-b"
+  "my_access_requests — the joiner's pending state (S3)|my_access_requests|5b-iii-b"
+  "the definer read of the requester's name|auth_full_name|5b-iii-c"
+  "C11.8 — the Home notifications icon and its badge|C11\.8|5b-iii-d"
+  "approve_request — the act that shuts the loop|approve_request|5b-iii-d"
+  "the location picker D8 refuses to leave empty|location picker|5b-iii-d"
+  # ⚠️ CASE-TOLERANT BY BRACKET CLASS, never (a|b) — see the engine's assertion 0.
+  "the approval row's order, ruled 2026-09-19|EMAIL [aA][sS] [tT][hH][eE] [hH][eE][aA][dD][eE][rR]|5b-iii-d"
+)
+PHRASES=(
+  "5b-iii-a|F|RETIRE IN THE SAME PASS|The two refusals get codes and the prose markers they replace must go in the SAME pass. Leave both and the next reader cannot tell which one the app is deciding on — the stale-copy defect this repository has had seven of."
+  "5b-iii-c|I|column whose meaning depends on another column|The requester's name is read through a definer body because no membership row exists yet. A column whose meaning depends on another column is the shape the owner was warned about; the row must keep saying so or the next session models it as a plain column."
+  "5b-iii-d|F|WRITES NOTHING, SILENTLY|D8 is why the picker refuses to be empty for staff. Let it through — pick a default, ask later — and a cashier can open the app and write nothing, with no message, because RLS refuses those writes in silence and §2.11 means no test here can see it."
+)

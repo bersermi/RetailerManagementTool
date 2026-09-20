@@ -1,0 +1,30 @@
+# 5b-ii — Ajustes and the roster. Split 2026-09-14.
+SPLIT_ID="5b-ii"
+SPLIT_GROUPS=( "5b-ii|5b-ii-a 5b-ii-b" )
+DELIVERABLES=(
+  "Ajustes — the first non-tab surface|Ajustes|5b-ii-a"
+  "C11.7 — the join code and its WhatsApp share|C11\.7|5b-ii-a"
+  "member management — the roster|member management|5b-ii-a"
+  # ⚠️⚠️ REPLACED 2026-09-18 BY `5b.8-ii`. It was "identified by EMAIL, never a
+  # name", resting on `T1`: no table carried a human name and the owner declined
+  # the migration that would add one. `5b.7` and `0034` reversed that, he ruled
+  # again, and the sentinel MOVED WITH THE RULING rather than being deleted — a
+  # decision about what a screen renders still has no constraint to live in.
+  # ⚠️ It moved in the task that put the name ON A SCREEN, not the one that stored
+  # it: a stored column changes nothing a person sees, so retiring it a task early
+  # would have left this asserting a rule that was neither true nor superseded.
+  "the member row is identified by the NAME on the membership (ruled 2026-09-18)|identified by the NAME|5b-ii-a"
+  # ⚠️ N2. Deferred onto this sheet by `5a-iii-b`, which was right to defer it —
+  # "persisting it behind a placeholder switch would put the write in the file that
+  # gets deleted" — and wrote it nowhere a check could read. Six days homeless.
+  "the density switch and its persistence (N2)|density|5b-ii-a"
+  "create_invite, and the token shown once|create_invite|5b-ii-b"
+  "redeem_invite|redeem_invite|5b-ii-b"
+  # ⚠️ N1. `0028:291` refuses a staff invite with no location. It is D8's ARGUMENT
+  # and not D8, which is the approval path's and stays there — so this is the one
+  # deliverable the 2026-09-14 split put in the wrong child by omission.
+  "the location a staff invite must name (N1)|staff invite must name|5b-ii-b"
+)
+PHRASES=(
+  "5b-ii-a|I|manager-and-above|The roster's write surface is manager-and-above. Drop that and a cashier gets controls RLS will refuse in silence — the shape memory records as a reassignment, not a permission."
+)
