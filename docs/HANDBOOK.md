@@ -305,16 +305,23 @@ four of its ADRs are provably false, and citing it as current is a defect.
 **`docs/plan/archive/` is CLOSED, and still true.** On 2026-09-19 `docs/PLAN.md`
 reached 14,998 lines — about 313,000 tokens, **larger than a context window**. No
 session could read it; every session grepped it instead, and paid for the grepping.
-It was cut in two passes, both **unedited and in original order**, and both verified
+It was cut in three passes, all **unedited and in original order**, and each verified
 by rebuilding the source file and confirming it came back **byte-identical**:
 
 | File | What moved | Lines |
 |---|---|---|
 | `steps-0-to-4.5.md` | Steps 0–4.5, all closed | 6,361 |
 | `status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | 4,576 |
+| `status-log-2026-09-19.md` | The whole 2026-09-19 working day | 790 |
 
-`docs/PLAN.md` went **14,998 → 4,298 lines**, and `## Position` — the section your
-prompt sends every session to *first* — went **5,484 → 933**.
+`docs/PLAN.md` went **14,998 → 3,874 lines**, and `## Position` — the section your
+prompt sends every session to *first* — went **5,484 → 509**.
+
+⚠️ **The third cut was called by the size check rather than by anybody noticing.**
+Position had climbed back to 1,241 of its 1,400 limit within two days of the first
+cut — the same rate that took it to 5,484 in the first place — so the check caught
+early what had previously been caught late. **Nothing was summarised or deleted**;
+it moved.
 
 ⚠️ **It cannot grow back quietly.** `plan-handover.sh` now fails when `docs/PLAN.md`
 passes 6,000 lines or `## Position` passes 1,400, and the failure names the remedy.

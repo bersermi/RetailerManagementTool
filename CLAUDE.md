@@ -21,8 +21,14 @@ moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstru
 | `docs/PLAN.md` | **LIVE** — Position, the ADR-disagreement gate, Steps 4.6 and 5, working agreement | Yes |
 | `docs/plan/archive/steps-0-to-4.5.md` | Closed steps 0–4.5 | Only to move a section back |
 | `docs/plan/archive/status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | Only to move an entry back |
+| `docs/plan/archive/status-log-2026-09-19.md` | The whole 2026-09-19 working day | Only to move an entry back |
 
-⚠️⚠️ **CLOSED IS NOT WRONG, AND THE TWO ARCHIVES ARE OPPOSITES.** `archive/power-platform/`
+⚠️ **The status log is archived ONE WORKING DAY PER FILE** and there will be more of
+them. `plan-corpus.sh` globs `docs/plan/archive/*.md`, so a new one needs no wiring —
+**never rename an existing archive to absorb a new cut**: the plan's own history names
+these files, and renaming for tidiness makes a recorded statement false.
+
+⚠️⚠️ **CLOSED IS NOT WRONG, AND THE TWO KINDS OF ARCHIVE ARE OPPOSITES.** `archive/power-platform/`
 describes a system nobody is building and must never be cited as current.
 `docs/plan/archive/` is **this** system's own history — every line was true when written,
 and for several owner rulings about what a screen renders **it is the only record that
