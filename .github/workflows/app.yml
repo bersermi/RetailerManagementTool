@@ -289,10 +289,10 @@ jobs:
       #   * THE `IFS='|'` TRUNCATION TRAP bit three separate writers, each of whom
       #     "fixed" it by adding a comment telling the next one not to. The engine
       #     COUNTS THE FIELDS and names the trap (assertion 0, fixture E1).
-      - name: Plan — did any split lose a deliverable (all 7 specs, one engine)
+      - name: Plan — did any split lose a deliverable (every spec, one engine)
         run: bash docs/checks/split-coverage.sh --all
 
-      # ⚠️⚠️ AND THE ENGINE'S FALSIFICATIONS — 342 FIXTURES, DERIVED FROM THE SPECS.
+      # ⚠️⚠️ AND THE ENGINE'S FALSIFICATIONS, DERIVED FROM THE SPECS.
       # The seven hand-written harnesses ran ~90 fixtures between them, each author
       # choosing a handful of deliverables to mutate. These are GENERATED from every
       # spec, so every defect class runs against every one of the 71 deliverables:
@@ -305,7 +305,13 @@ jobs:
       # makes the fixture accuse a working guard — recorded after it happened once.
       # S6/S7 extract the matched substring from the owner and graft it onto a
       # SIBLING, which is also what lets them be generic over an arbitrary ERE.
-      - name: Plan — can the split engine still fail (342 generated fixtures)
+      # ⚠️ THE COUNTS CAME OUT OF THESE TWO STEP NAMES ON 2026-09-20, when `5c.split`
+      # took the suite from 342 fixtures over seven specs to 409 over eight and made
+      # both names false with nothing going red. It is the same reason the conventions
+      # falsifier's count is NOT repeated here — `5b.5` found that number stale in three
+      # places at once. The harness carries its own anti-vacuity floor; that is where a
+      # number belongs, because it is read by the thing it constrains.
+      - name: Plan — can the split engine still fail (fixtures generated from the specs)
         run: bash docs/checks/split-coverage-falsify.sh
 
       - name: Handbook — does the file the owner reads still agree with the plan
