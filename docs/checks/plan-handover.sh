@@ -349,6 +349,48 @@ else
   ok "the working tree is clean"
 fi
 
+# --- 7. the plan is still READABLE, not merely correct ----------------------
+# ⚠️⚠️ THIS IS THE ONE THAT STOPS THE DISEASE COMING BACK, AND IT IS HERE RATHER
+# THAN IN A NEW FILE BECAUSE IT IS THE SAME QUESTION: can a cleared session resume?
+# A plan it cannot READ is one it cannot resume from, however correct every row is.
+#
+# ⚠️ IT IS NOT A STYLE RULE. On 2026-09-19 `docs/PLAN.md` reached 14,998 lines —
+# about 313k tokens, LARGER THAN A CONTEXT WINDOW — so no session could read it and
+# every session grepped it instead, paying for the grepping. `## Position` alone
+# reached 5,484 lines, larger than the whole of Step 5, and it is the section the
+# working prompt sends every session to FIRST. Neither number was decided by anyone:
+# they arrived at one or two status-log entries per session, and nothing noticed.
+#
+# ⚠️ THE REMEDY IS NAMED IN THE FAILURE because a session that trips this is a
+# session that wanted to be writing something else, and the cheap wrong fix — delete
+# an entry — loses the owner's record. Archiving MOVES it and keeps it readable by
+# `plan-corpus.sh`, which is what every split guard reads.
+note
+PLAN_MAX=6000
+POS_MAX=1400
+pl=$(grep -c '' "$PLAN")
+pos=$(awk '/^## Position/{s=NR} s && NR>s && /^## /{print NR-s; exit}' "$PLAN")
+[[ -n "$pos" ]] || pos=0
+size_bad=0
+if (( pl > PLAN_MAX )); then
+  fail "docs/PLAN.md is $pl lines (ceiling $PLAN_MAX). A session reads this file to"
+  echo "      decide what to do next; past a context window it cannot, and greps instead."
+  echo "      REMEDY: move the oldest CLOSED step or status-log entries to"
+  echo "      docs/plan/archive/ — move, never copy — and leave a pointer. The guards"
+  echo "      keep reading them through docs/checks/plan-corpus.sh."
+  size_bad=1
+fi
+if (( pos > POS_MAX )); then
+  fail "## Position is $pos lines (ceiling $POS_MAX). It is the FIRST thing every"
+  echo "      session reads, so every line here is a tax paid before any work starts."
+  echo "      REMEDY: move the oldest status-log entries to"
+  echo "      docs/plan/archive/status-log-through-<date>.md. ⚠️ NEVER move the"
+  echo "      DECISIONS OWED or DATES OWED blocks — assertions 4 and 5 above require"
+  echo "      exactly one of each in the LIVE plan, and a second copy is a second home."
+  size_bad=1
+fi
+(( size_bad == 0 )) && ok "the plan is readable: $pl lines total, ## Position $pos (ceilings $PLAN_MAX / $POS_MAX)"
+
 echo
 if (( fails > 0 )); then
   echo "$ran assertion groups ran, $fails failed — the next session cannot resume cleanly."
@@ -357,8 +399,8 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like. The seventh suite here to carry one.
-if (( ran < 9 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 9 — this check asserted almost"
+if (( ran < 10 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 10 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
