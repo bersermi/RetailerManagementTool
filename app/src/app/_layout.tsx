@@ -28,13 +28,16 @@ import { DensityProvider } from '@/theme/DensityProvider';
 // stacks two headers — the outer one showing the group's name, which is not a
 // word in this app's vocabulary.
 //
-// ⚠️⚠️ AND AS OF `5b-ii-a` IT DECLARES ONE SCREEN BY NAME: `ajustes`, the app's
-// first non-tab surface. Expo Router still discovers every other route from the
+// ⚠️⚠️ AND AS OF `5b-ii-a` IT DECLARES SCREENS BY NAME — `ajustes`, the app's
+// first non-tab surface, and as of `5b-iii-d-1` `solicitudes`, its second. Expo
+// Router still discovers every other route from the
 // filesystem — a `Stack.Screen` here is how a route is given OPTIONS, not how it
 // is registered — and the option is the deliverable: §2.8 fixed Ajustes as a
 // SHEET, and `presentation: 'modal'` is the whole of that sentence in code.
-// ⚠️ It is at the root and in no group deliberately: `groupOf()` returns `null`
-// for it, which is the one value `redirectFor` leaves a member sitting on.
+// ⚠️ Both are at the root and in no group deliberately: `groupOf()` returns
+// `null` for them, which is the one value `redirectFor` leaves a member sitting
+// on. ⚠️ Neither is in `RESTORABLE_ROUTES`: C1.3 reopens the screen a person was
+// WORKING on, and a modal over Inicio is not that.
 export default function RootLayout() {
   return (
     <AuthProvider>
@@ -43,6 +46,7 @@ export default function RootLayout() {
           <Gate />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
+            <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
           </Stack>
         </DensityProvider>
       </QueryProvider>

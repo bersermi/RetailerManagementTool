@@ -30,6 +30,11 @@
 import { supabase } from '@/lib/supabase';
 import { isContractMismatch } from '@/api/errors';
 import {
+  PENDING_ACCESS_REQUESTS,
+  pendingRequestsArgs,
+  type PendingRequestRow,
+} from '@/api/approvals';
+import {
   INVITE_COLUMNS,
   MEMBER_COLUMNS,
   type InviteRow,
@@ -232,6 +237,40 @@ export async function myAccessRequests(): Promise<AccessRequestRow[]> {
   const { data, error } = await supabase.rpc(MY_ACCESS_REQUESTS);
   if (error) throw reported(error);
   return (data ?? []) as AccessRequestRow[];
+}
+
+/**
+ * Who is waiting to be let into ONE shop, and what to call her (5b-iii-d-1).
+ *
+ * ⚠️⚠️ IT IS `security definer` BECAUSE THE NAME IS NOT ON ANY TABLE THIS CALLER
+ * MAY READ. A person who has asked to join has NO `workspace_member` row until
+ * `approve_request` writes one, so there is nothing carrying `display_name` to
+ * join to; the only place her name exists is `auth.users.raw_user_meta_data`,
+ * which §2.7 never exposes and which exactly one function in the schema reads.
+ * `0037` is that function's second caller. The EMAIL, by contrast, was already
+ * reachable — `workspace_invite_select` is manager-and-above — so this read
+ * widens exactly one column.
+ *
+ * ⚠️⚠️ A NON-OWNER GETS `[]` AND NOT A 403, WHICH IS WHY `canApprove` IS A
+ * CLIENT-SIDE FENCE AND NOT AN ERROR HANDLER — `workspaceInvites`' arrangement,
+ * and here it is deliberate on the server's side too. `0037`'s decision 2
+ * refuses with an empty list rather than `42501`, because that SQLSTATE is
+ * already carrying two meanings on this path and a third is the overload
+ * `@/api/requests` is currently guessing around. So the empty answer is a
+ * REFUSAL and an EMPTY QUEUE at once, and only `canApprove` — asked before the
+ * call — can tell a screen which one it is looking at.
+ *
+ * ⚠️ IT IS WORKSPACE-SCOPED and takes the id, rather than fanning out over
+ * `my_workspaces()`: `0001:317` admits many shops per person from day one, and
+ * approving is per-shop. `0037`'s decision 5.
+ */
+export async function pendingAccessRequests(workspaceId: string): Promise<PendingRequestRow[]> {
+  const { data, error } = await supabase.rpc(
+    PENDING_ACCESS_REQUESTS,
+    pendingRequestsArgs(workspaceId),
+  );
+  if (error) throw reported(error);
+  return (data ?? []) as PendingRequestRow[];
 }
 
 /**

@@ -440,6 +440,25 @@ export const ES = {
     ] as readonly string[],
     /** ⚠️ The grammar lives here, not at the call site — `members.shareMessage`'s rule. */
     dayOfMonth: (day: number, month: string) => `${day} de ${month}`,
+    /**
+     * HOW LONG SOMEBODY HAS BEEN WAITING (5b-iii-d-1), as three phrases rather
+     * than as a number the call site wraps in words.
+     *
+     * ⚠️ THE VERB IS HERE AND NOT ON THE SCREEN, which is `shareMessage`'s rule
+     * and the reason this file admits a function at all: *pidió* is the whole
+     * sentence's tense, and a second language changes it. What the screen has
+     * is one string it draws.
+     *
+     * ⚠️ `hoy` AND `ayer` ARE NOT `hace 0 días` AND `hace 1 días`. The plural
+     * is wrong in Spanish at one, and *hace 0 días* is not something a person
+     * says — which is the whole of why the day count is spelled as three cases
+     * instead of one template.
+     */
+    waiting: {
+      today: 'Pidió hoy',
+      yesterday: 'Pidió ayer',
+      daysAgo: (days: number) => `Pidió hace ${days} días`,
+    },
   },
 
   /**
@@ -498,6 +517,58 @@ export const ES = {
      */
     shareMessage: (shopName: string, code: string) =>
       `Entra a ${shopName} en Wera. Tu código es ${code}`,
+  },
+
+  /**
+   * WHO IS WAITING TO BE LET IN (5b-iii-d-1), and the bell on Inicio that says
+   * so — **C11.8**.
+   *
+   * ⚠️⚠️ NO EMAIL AND NO NAME APPEARS IN THIS FILE, for `members`' reason: both
+   * are DATA, off a row, rendered as they were typed. What is here is the
+   * furniture around them — and the ORDER they are drawn in is not here either,
+   * because it is a ruling rather than a word: it lives in `linesOf` in
+   * `@/api/approvals`, where a test can read it.
+   *
+   * ⚠️ `bell` IS THE WORD C12.1 REQUIRES BESIDE THE ICON, and it is the same
+   * word as the screen's title on purpose — `TabsLayout` records the rule: the
+   * door and the room are called the same thing.
+   *
+   * ⚠️ AND THERE IS NO STRING HERE FOR "YOU MAY NOT SEE THIS". A manager is not
+   * refused, she is simply never shown the bell — `canApprove` decides that
+   * before any call is made, and a sentence explaining the absence would be us
+   * handing a shopkeeper our own internal state.
+   */
+  approvals: {
+    bell: 'Solicitudes',
+    title: 'Solicitudes',
+    /**
+     * ⚠️ ITS OWN WORD AND NOT `settings.close`, which is the same six letters.
+     * These blocks are what a second language would be translated in, one
+     * screen at a time, and a screen borrowing another screen's noun is a
+     * screen that moves when the other one is reworded. `offline` already sits
+     * verbatim in two error tables for the same reason.
+     */
+    close: 'Cerrar',
+    /** While the read is out. Never a spinner with no word beside it. */
+    loading: 'Un momento…',
+    /**
+     * ⚠️ THE ORDINARY CASE AND NOT A FAILURE — it is what an owner sees on every
+     * day nobody has typed his code, which is most days. It says what the queue
+     * IS rather than reporting a count of zero, which is `members.alone`'s rule.
+     */
+    empty: 'Nadie está esperando entrar.',
+    /** The role she asked for. ⚠️ The grammar is here; the label comes off `members.roles`. */
+    askedFor: (role: string) => `Quiere entrar como ${role}`,
+    /**
+     * ⚠️ THE HALF-LOOP SENTENCE, AND IT IS DELIBERATE RATHER THAN A PLACEHOLDER.
+     * `5b-iii-d-1` ships the queue and NOT the act — `approve_request` and the
+     * location picker are `5b-iii-d-2` — so an owner looking at somebody's name
+     * with no way to admit her must be told that is where the app is, not left
+     * to conclude the button is broken. It is the one place this app explains
+     * its own state to a shopkeeper, and it is here because the alternative is
+     * her tapping a row that does nothing.
+     */
+    notYet: 'Por ahora solo puedes ver quién está esperando.',
   },
 
   /**

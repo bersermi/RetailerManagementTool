@@ -143,6 +143,27 @@ on:
       # turn this check red rather than pass silently.
       - "docs/checks/5b-iii-b-request-contract.sh"
       - "docs/checks/5b-iii-b-request-contract-falsify.sh"
+      # ⚠️⚠️ AND THE APPROVER'S HALF OF IT, as of plan task `5b-iii-d-1`. It
+      # watches `app/src/api/approvals.ts` for the `p_`-name 404 above, plus the
+      # COLUMN LIST — which no other instrument in this repository looks at. A
+      # renamed column is not an error at the client: the field is `unknown`, the
+      # typecheck is happy, the suite's fixtures are hand-written objects, and
+      # what reaches a person is a BLANK where a stranger's address should be on
+      # the one screen whose job is to identify her. ⚠️ AND THE FENCE, WHICH IS
+      # `0037`'s decision 2 and cannot be seen from a row count: a non-owner is
+      # answered with an EMPTY LIST rather than refused — deliberately, so this
+      # path does not acquire a third meaning for `42501` — so the check reads ONE
+      # workspace holding the SAME two pending requests as an owner (two rows) and
+      # as a manager, a cashier, a stranger and the requester herself (zero). The
+      # PAIR is the assertion; either half alone is vacuous.
+      # ⚠️ `credentials.ts` IS IN THE FILTER because the check reads
+      # `FULL_NAME_KEY` out of it: the name this queue renders reaches the
+      # database through that constant at sign-up, and a drift there means every
+      # account created from then on is nameless, silently.
+      - "docs/checks/5b-iii-d-1-approvals-contract.sh"
+      - "docs/checks/5b-iii-d-1-approvals-contract-falsify.sh"
+      - "app/src/api/approvals.ts"
+      - "app/src/auth/credentials.ts"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -659,6 +680,33 @@ jobs:
       # `V1`'s comment says so, rather than the fixture being quietly reworded.
       - name: Contract — can the request check still fail (its own ten fixtures)
         run: bash docs/checks/5b-iii-b-request-contract-falsify.sh
+
+      # ⚠️⚠️ THE APPROVER'S HALF OF THE PULL PATH (plan task `5b-iii-d-1`), AND IT
+      # ASSERTS THREE THINGS NOTHING ELSE HERE CAN. FIRST, THE COLUMN LIST, both
+      # ways: the six fields `PendingRequestRow` names must be exactly what `0037`
+      # returns, because a column read that is not there renders blank rather than
+      # failing. SECOND, THE FENCE AS A PAIR: an owner's two rows against a
+      # manager's, a cashier's, a stranger's and the REQUESTER'S OWN zero, over one
+      # workspace holding the same two requests — `0037` answers a non-owner with
+      # an empty list rather than refusing, so a row count alone cannot tell the
+      # fence from a quiet day. THIRD, THAT THE NAME HAS NO SECOND DOOR: the owner
+      # is made to try the invite row itself and `auth_full_name` directly, and
+      # both must stay shut. If either opens, `0037` has become a convenience
+      # rather than the only route.
+      - name: Contract — does pending_access_requests answer what the app sends (plan 5b-iii-d-1)
+        run: bash docs/checks/5b-iii-d-1-approvals-contract.sh
+
+      # And its own thirteen fixtures. ⚠️ FIVE MUTATE THE PROBE rather than the
+      # app, for the reason every harness above gives: no line in `app/` can make
+      # Postgres show a manager somebody else's queue, unfence `auth_full_name`,
+      # put a name on the invite row, count a push invite as a person waiting, or
+      # reverse a `select` order. ⚠️ `V4` IS THE ONE TO READ — it adds a column to
+      # the app's row type, which is the direction a real edit goes and the defect
+      # the typecheck, the suite and the bundler all pass straight over.
+      # ⚠️ AND NONE OF THEM RESETS THE DATABASE — a sibling harness was CANCELLED
+      # at the job cap for doing that, which is neither a pass nor a failure.
+      - name: Contract — can the approvals check still fail (its own thirteen fixtures)
+        run: bash docs/checks/5b-iii-d-1-approvals-contract-falsify.sh
 
       - name: Stop
         if: always()
