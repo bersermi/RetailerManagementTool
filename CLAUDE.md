@@ -7,8 +7,48 @@ React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope.
 
 | File | Authority |
 |------|-----------|
-| [`docs/PLAN.md`](docs/PLAN.md) | Where the build is. Which step is next, what "done" means, what is unresolved |
+| [`docs/PLAN.md`](docs/PLAN.md) | Where the build is. Which step is next, what "done" means, what is unresolved. ⚠️ **Read `## Position` first — it holds the two blocks that carry live obligations** |
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. **If anything disagrees with the ADR, the ADR wins and the other file is the bug** |
+
+## The plan is three files, and only one of them is live
+
+⚠️ **`docs/PLAN.md` is the LIVE plan and the only one you edit.** On 2026-09-19 it had
+reached 14,998 lines / ~313k tokens — **larger than a context window** — so closed work
+moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstruction:
+
+| File | Status | Edit it? |
+|---|---|---|
+| `docs/PLAN.md` | **LIVE** — Position, the ADR-disagreement gate, Steps 4.6 and 5, working agreement | Yes |
+| `docs/plan/archive/steps-0-to-4.5.md` | Closed steps 0–4.5 | Only to move a section back |
+| `docs/plan/archive/status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | Only to move an entry back |
+
+⚠️⚠️ **CLOSED IS NOT WRONG, AND THE TWO ARCHIVES ARE OPPOSITES.** `archive/power-platform/`
+describes a system nobody is building and must never be cited as current.
+`docs/plan/archive/` is **this** system's own history — every line was true when written,
+and for several owner rulings about what a screen renders **it is the only record that
+exists**, because §2.11 keeps rendering out of scope so there is no constraint, grant or
+policy to hold them.
+
+**To search the whole plan, live and archived, in one command:**
+
+```
+grep -n '<task-id>' "$(bash docs/checks/plan-corpus.sh)"
+```
+
+`plan-corpus.sh` assembles live + archive into one file, and it is what every split guard
+already reads — so a task row resolves from the archive exactly as it did before the cut.
+Every plan lookup here is **content-addressed** (`| **task** |`), never by line number,
+which is the property that made archiving possible at all.
+
+⚠️ **Moving something back is a MOVE, never a copy.** Two homes for one claim is the
+defect this repository has had six of; `split-coverage.sh` fails on *"row appears 2
+times"*, and it reads the corpus, so it sees both copies.
+
+⚠️ **`plan-handover.sh` assertion 7 caps the size** — `docs/PLAN.md` at 6,000 lines and
+`## Position` at 1,400 — and names the remedy in the failure. Position reached 5,484 lines
+at one or two status-log entries per session, with nobody deciding to. ⚠️ **Never archive
+the `⛔ DECISIONS OWED` or `⏳ DATES OWED` blocks**: the same check requires exactly one of
+each in the LIVE plan.
 
 ## What this is not
 
@@ -87,6 +127,18 @@ treat the graph as a structural index, not a summarised one: it reliably tells y
 **where** something is, and never tells you what it means.
 
 Rules:
+- ⚠️⚠️ **`docs/plan/archive/` IS INDEXED; `archive/power-platform/` IS NOT.** The
+  `.graphifyignore` rule is `/archive/` **with a leading slash** — without it, a bare
+  `archive/` matches any directory of that name at any depth, and on 2026-09-19 it
+  silently swallowed `docs/plan/archive/`, dropping ~9,200 lines of closed-but-true plan
+  history out of the graph with nothing going red. An over-matching ignore rule produces
+  a smaller graph, not an error. **A result's `src=` tells you which archive it came
+  from — check it before citing anything as current.**
+- ⚠️ **The graph is weak for "what did we DECIDE about X".** It is AST-only with no
+  semantic layer, so it reliably finds *where* a file or symbol is and cannot tell you
+  what a plan paragraph means. For decisions and rulings, search the corpus directly:
+  `grep -n '<term>' "$(bash docs/checks/plan-corpus.sh)"`. Query the graph for code, SQL,
+  scripts and file locations, where it is genuinely fast.
 - For codebase questions, first run `graphify query "<question>"` when graphify-out/graph.json exists. Use `graphify path "<A>" "<B>"` for relationships and `graphify explain "<concept>"` for focused concepts. These return a scoped subgraph, usually much smaller than GRAPH_REPORT.md or raw grep output.
 - If graphify-out/wiki/index.md exists, use it for broad navigation instead of raw source browsing.
 - Read graphify-out/GRAPH_REPORT.md only for broad architecture review or when query/path/explain do not surface enough context.

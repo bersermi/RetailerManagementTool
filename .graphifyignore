@@ -1,10 +1,27 @@
 # Keep the knowledge graph scoped to the system being built.
 #
+# ⚠️⚠️ THE LEADING SLASH IS LOAD-BEARING AND WAS MISSING UNTIL 2026-09-20.
+# `archive/` with no slash matches a directory named `archive` AT ANY DEPTH, so when
+# `docs/plan/archive/` was created on 2026-09-19 it was silently swallowed by the rule
+# written for `archive/power-platform/` — and ~9,200 lines of CLOSED BUT TRUE plan
+# history disappeared from `graphify query`, which is the first navigation tool every
+# session is told to use. Nothing went red: an ignore rule that over-matches produces
+# a smaller graph, not an error. `/archive/` is anchored to the repository root.
+#
 # The Power Platform era is kept for its reasoning (see archive/power-platform/README.md)
 # but it is ~3.9MB of superseded documentation. Indexing it means every
 # `graphify query` competes against decisions that are no longer true — including
 # four ADRs that ADR-035 §1 proves were never true.
-archive/
+/archive/
+
+# ⚠️ `docs/plan/archive/` IS DELIBERATELY NOT IGNORED, and the difference matters.
+# `/archive/` describes a system NOBODY IS BUILDING. `docs/plan/archive/` is this
+# system's own closed history — every line of it was true when written, and for
+# several owner rulings about what a screen renders IT IS THE ONLY RECORD THAT
+# EXISTS (§2.11 keeps rendering out of scope, so there is no constraint, grant or
+# policy to hold them). A query result carries its `source_file`, so an answer from
+# `docs/plan/archive/` is self-labelling as closed work — check the path before
+# citing it as current.
 
 # Generated output.
 graphify-out/

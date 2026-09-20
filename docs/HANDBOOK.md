@@ -290,7 +290,7 @@ example.
 | `docs/PLAN.md` | Where the build is. Next task, what "done" means, what is unresolved | Claude updates it as tasks close |
 | `docs/adr/ADR-035` | The architecture. 1,454 lines deciding how everything works — amended since it was written, always on your instruction | Changes only by deliberate decision — yours |
 | `CLAUDE.md` | Rules a fresh session reads automatically. Written for Claude, not you | Claude maintains it |
-| `docs/plan/archive/` | **Closed** steps of the plan, cut out of `docs/PLAN.md` whole. Still part of the plan | Claude moves a step here when it closes |
+| `docs/plan/archive/` | **Closed** parts of the plan — finished steps, and status-log entries older than the current working day. Still part of the plan | Claude moves things here when `plan-handover.sh` says the file is too big |
 | `archive/power-platform/` | The abandoned first attempt. Kept for its reasoning only | Frozen — never cite it as current |
 
 There is a strict order of authority: **ADR-035 wins over everything.** If the
@@ -305,10 +305,51 @@ four of its ADRs are provably false, and citing it as current is a defect.
 **`docs/plan/archive/` is CLOSED, and still true.** On 2026-09-19 `docs/PLAN.md`
 reached 14,998 lines — about 313,000 tokens, **larger than a context window**. No
 session could read it; every session grepped it instead, and paid for the grepping.
-Steps 0 through 4.5 were finished and still being carried in full, so they were cut
-out whole — 6,361 lines, **unedited, in their original order**. Nothing was
-summarised and nothing was deleted; the split was verified by rebuilding the
-original file from the two halves and confirming it came back **byte-identical**.
+It was cut in two passes, both **unedited and in original order**, and both verified
+by rebuilding the source file and confirming it came back **byte-identical**:
+
+| File | What moved | Lines |
+|---|---|---|
+| `steps-0-to-4.5.md` | Steps 0–4.5, all closed | 6,361 |
+| `status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | 4,576 |
+
+`docs/PLAN.md` went **14,998 → 4,298 lines**, and `## Position` — the section your
+prompt sends every session to *first* — went **5,484 → 933**.
+
+⚠️ **It cannot grow back quietly.** `plan-handover.sh` now fails when `docs/PLAN.md`
+passes 6,000 lines or `## Position` passes 1,400, and the failure names the remedy.
+Position reached 5,484 at one or two status-log entries a session, and **nobody ever
+decided to let it** — that is precisely the kind of drift a check exists for.
+
+⚠️ **The `⛔ DECISIONS OWED` and `⏳ DATES OWED` blocks never move.** The same check
+requires exactly one of each in the live plan; a copy in the archive would be a
+second home for one claim.
+
+### ⚠️ When a task is too big, add a SPEC — do not write a new guard
+
+This is the one procedure that changed, and the one most likely to go wrong, because
+the old way had been done seven times and reads like the house style.
+
+**Before 2026-09-19**, splitting a task meant writing a ~290-line bash guard plus a
+~265-line falsification harness, bespoke to that split, and wiring both into
+`app.yml`. Seven of those were written. They were copies of each other, and two
+defects rode along in the copying: one of the seven had **lost its anti-vacuity
+guard** entirely — it reported success on a run that asserted nothing — and the same
+`|`-in-a-regex trap caught three separate writers.
+
+**Now**: add one file, `docs/checks/specs/<task>.split`, listing the parent, the
+children, each deliverable and who owns it, and any sentence a row must keep. That
+is ~30 lines of data. `app.yml` already matches `docs/checks/specs/**`, so **there
+is nothing to wire** — which also removes the failure that cost a day once, where a
+guard existed but no workflow ran it.
+
+Run `bash docs/checks/split-coverage.sh --all` and
+`bash docs/checks/split-coverage-falsify.sh` (add `--quick` for a fast local loop).
+The falsifier **generates its fixtures from your spec**, so a new split gets the full
+battery — parent row gone, child gone, child stated twice, deliverable dropped,
+claimed by two, moved to the wrong child — without you writing any of them.
+
+⚠️ **If a session ever starts writing `<task>-split-coverage.sh`, that is the bug.**
 
 ### You do not have to fetch anything back to read it
 
