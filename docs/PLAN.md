@@ -139,6 +139,77 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+
+✅✅ **`5c` IS SIZED `XL` AND SPLIT FOUR WAYS AS OF 2026-09-20, BEFORE A LINE OF IT
+WAS WRITTEN. `5c-i` IS THE NEXT TASK.** No migration, no product code, no screen —
+the session's whole output is a split, a spec and this entry.
+
+⚠️ **The file carried `5c` as an `L` and it is an `XL`.** Fourteen deliverables
+across four layers that fail in four unrelated ways: a durable queue on a phone, a
+transport, a failure path that writes to the ledger, and three pieces of chrome.
+**Three of the four are falsifiable end to end and the fourth is not**, which is
+what says a row is four tasks rather than one with sections. The full argument, the
+seam and the failure-mode table are in *"Sized 2026-09-20"* under Step 5.
+
+| | | Size |
+|---|---|---|
+| `5c-i` | The outbox, and nothing in it talks — the table, the three states, the uuid, the enqueue | `M` |
+| `5c-ii` | The flush, and the retries the uuid makes free | `M/L` |
+| `5c-iii` | The writes that will never land, and the only half that changes the ledger | `M` |
+| `5c-iv` | What a person sees | `M` |
+
+⚠️ **The split is a SPEC, not a guard** — `docs/checks/specs/5c.split`, ~65 lines of
+data, under the procedure `docs/HANDBOOK.md` records and the one most likely to
+regress because the old way was done seven times. `app.yml` already matches
+`specs/**`, so there was nothing to wire.
+
+⚠️⚠️ **AND THE FALSIFIER CAUGHT A DEFECT IN THE SPEC ON ITS FIRST RUN, WHICH IS WHAT
+IT IS FOR AND WHICH ADDS A RULE.** The classification deliverable was written
+`[Tt]ransient` against a row that said *"**Transient** against permanent … and a
+**transient** one dead-lettered"*. Fixture `S5` strips **the first match's literal
+text** out of the owner's row — `Transient` — and the lower-case spelling survived,
+so **the engine went GREEN on a deliverable the fixture had just deleted**, and `S7`
+went red for the shallower reason. ⚠️ The rule already written down is *use a bracket
+class, never an alternation*; the one this adds is **a case-tolerant class must not
+match two different spellings inside one row**. ⚠️ **Nothing but the falsifier could
+have seen it** — `split-coverage.sh` itself was green on the broken spec, which is
+the exact shape of a guard that reads as working.
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — all client-side, all cheap to reverse, and
+two of them are worth his eye:**
+
+| | Decision | Reversal |
+|---|---|---|
+| **1** | **`5c` re-sized `L` → `XL`**, four children rather than three, the fourth being the chrome nothing here can measure | One letter |
+| **2** | ⚠️⚠️ **`recorded_offline` is decided AT FLUSH** — a write carries it when it was not committed on its first attempt, rather than from what the device believed about connectivity. **It decides which day a sale counts on in Números** | One condition, client code |
+| **3** | ⚠️ **C10.3 is discharged by the write path, not by a screen.** If enqueuing is the only way to write, the screen is never told whether it was offline, so there is no second wording to add | Let a screen await the RPC |
+| **4** | **The outbox is a real SQLite table**, not another key in the `localStorage` shim — a queued sale is not a per-phone preference | A new module beside the old one |
+| **5** | ⚠️ **The dead-letter banner is manager-and-above**, derived from §2.7, the 1.3a cost rule and C10.5 rather than parked as a question | One condition |
+
+⚠️⚠️ **AND ONE STALE SENTENCE WAS FIXED INSIDE ADR-035 ITSELF — THE NINTH STALE COPY
+RECORDED HERE AND THE FIRST IN THE FILE EVERY OTHER FILE DEFERS TO.** §2.6 still
+said the outbox *"is a named deliverable of build step 5a"*, while §3 has said since
+the amendment of 2026-09-13 that it **moves to `5c`**. `CLAUDE.md` tells a cleared
+session the ADR wins — so the ADR was telling it to build the outbox in a step that
+closed on 2026-09-12. ⚠️ **This is not a new amendment and was not treated as one**:
+the decision was the owner's, on 2026-09-13, and §2.6's sentence was simply missed in
+that pass. It now points at `5c` and says which revision moved it.
+
+⚠️ **WHAT A CLEARED SESSION IS MOST LIKELY TO GET WRONG, AND THE OWNER SHOULD HEAR
+IT RATHER THAN DISCOVER IT: `5c-i` HAS NO CALLER AND IS SUPPOSED TO.** Nothing in
+this app writes a sale, a purchase or a waste yet — `5f`–`5h` are those screens.
+**So `5c-i` through `5c-iii` change nothing on his phone**; the first visible thing
+in this step is `5c-iv`.
+
+**Evidence: `split-coverage.sh` over the new spec — 7 assertion groups, 14/14
+deliverables in exactly one child each, 4 required sentences, every child stating it
+ships no migration; `split-coverage-falsify.sh` generating its fixtures from that
+spec; all 8 specs green together; `plan-handover.sh` 11 groups and
+`handbook-agreement.sh` 5 groups, both re-run because this session edited both files
+they read.** ⚠️ **No product code changed, so no app suite could have been affected,
+and the app was NOT opened on either instrument** — the dated obligations above are
+a reading, and opening the app restarts the measurement.
+
 ✅✅ **`## Position` WAS CUT A SECOND TIME, 1,241 LINES TO 465 — 2026-09-20. `5c` REMAINS
 THE NEXT TASK.** No product code, no migration, nothing about the app changed. ⚠️ **The
 ceiling called this, not a person**: `plan-handover.sh` assertion 11 trips at 1,400 and
@@ -2101,7 +2172,11 @@ free today and stay free until the first task merges.
 | **5b.8-iii-b** | ✅✅ **DONE 2026-09-19 — A PERSON CAN FIX HER OWN NAME, AND A CASHIER CAN TOO.** ~~this was the next task, as of 2026-09-19~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line, a strikethrough is only a rendering, and a row quoting its own history in the shouted form claims the marker it has just handed on.** **The control a person fixes their own name with, and the only half anybody can see.** ⚠️ **No migration** — it calls what `5b.8-iii-a` applied. The control lives on the sheet `5b-ii-a` built, `app/src/app/ajustes.tsx`, as the caller's OWN row made editable — **not** a pencil against a roster row, which is the difference between fixing your own name and administering somebody else's, and the roster is manager-and-above while this is for everybody. ⚠️ **The call belongs in `src/api/` under `5b.5`'s conventions** (`R12`, `R13`): everything with a right answer in the module, nothing that talks. ⚠️ **The roster must re-read after the write**, or a person corrects her name and the list in front of her still shows the old one. ⚠️ **Its Spanish strings go in `app/src/strings.ts`**, and its contract check and harness join the pair `5b-ii-a` ships | `M` | ✅ **CLOSED 2026-09-19, AS SIZED.** Shipped: `app/src/api/displayName.ts` (the fifth `src/api/` module), the `setMyDisplayName` wrapper in `calls.ts`, `useMyDisplayName` and `useSetMyDisplayName` in `hooks.ts`, `nameOf`/`nonBlank` exported from `members.ts`, the `Tu nombre` section on `ajustes.tsx`, the `ES.myName` block, `app/test/api-display-name.test.ts` (28 assertions), and the pair `5b-ii-a` ships — `docs/checks/5b.8-iii-b-name-contract.sh` (8 groups) and its harness (10 fixtures), both wired into `db.yml`. ⚠️ **It shipped no migration, as promised.** ⚠️ **One defect found by the harness while the check was being written** — a request body inlined inside three levels of command substitution; see the status entry |
 | **5b.5** | ✅✅ **IS DONE AS OF 2026-09-18 — the `src/api/` half is written; the `src/ui/` half moved to `5h.5`, which is the decision this task's closing message flags first. `CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** ⚠️⚠️ **AND BOTH THINGS IT WAITED FOR NOW EXIST, SO IT IS TAKEABLE — TAKEN AS A DECISION ON THE OWNER'S BEHALF 2026-09-17, NOT AS A RULING.** `5b-i` built `src/api/` and `5b.6` built the palette; the row's own gate argues for going now rather than later — *"one consumer to reconcile instead of three, each having invented its own"* — and `5b-ii` and `5b-iii` are the two that would otherwise become the other two. ⚠️ **The alternative was to resume the interrupted order and build the Ajustes sheet first**, which is defensible and costs a page written against two consumers instead of one. **Reversed by one plan edit** ✅ **CLOSED 2026-09-18.** Shipped: `R12` and `R13` on the page and in `docs/checks/conventions-gate.sh`, a row added to `R3`, a second instance named in `R4`, `src/api/` added to the file-layout tree, five new fixtures (`F22`–`F26`), `F10` re-anchored, and assertion `0b` rewritten to READ the deferred task id instead of carrying `5b.5` as a literal — which is what would have let this very edit pass unnoticed |
 | **5b.6** | ✅✅ **IS DONE AS OF 2026-09-17 — the palette exists, `R11` reads it, and twenty-one fixtures say `R11` can fail. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **CLOSED 2026-09-17.** Shipped as sized: `app/src/theme/palette.ts` (eleven roles), `app/test/palette.test.ts` (7 assertions, no hex spelled twice), `R11` + assertion `0d` in the gate, fixtures `F17`–`F21`, and `F10`/`F12` repaired after both went stale on this task. **No migration, no screen, no component adopting it** |
-| **5c** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-20 — AND IT IS AN `L`, SO THE SESSION THAT TAKES IT SIZES IT FIRST.** ⚠️ **`5c.5` closed first and handed it a number to design against: a dropped connection costs up to 90 seconds before the app tries again, which is exactly the expiry margin.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Offline.** The write queue, client-generated document uuids for §2.6 idempotency, `recorded_offline`, the quiet dismissible *"Sin conexión a internet"* (C10.1), the fading reconnect toast (C10.2), the identical-offline slide (C10.3), and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `L` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
+| **5c** | ⚠️⚠️ **SIZED `XL` AND SPLIT FOUR WAYS 2026-09-20, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-20, and this file carried it as an `L`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ **`5c.5` closed first and handed the split a number to design against: a dropped connection costs up to 90 seconds before the app tries again, which is exactly the expiry margin.** **Offline.** **Fourteen deliverables, all of which land in a child below:** the **outbox table** in `expo-sqlite` and its three states — **pending**, **flushing**, **dead** (§2.6); **client-generated document uuids** for §2.6 idempotency; the **enqueue** every write goes through; the **identical-offline slide** (C10.3); the **flush on reconnect**; `recorded_offline`; **transient** against permanent; `record_failed_write` and the downgrade it runs for `sale` and `waste` only; the quiet dismissible *"Sin conexión a internet"* (C10.1); the fading reconnect toast (C10.2); and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `XL` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
+| **5c-i** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-20.** **The outbox, and nothing in it talks.** The **outbox table** in `expo-sqlite` — a real table, not another key in the `localStorage` shim `5b-ii-a` built — carrying the client uuid, the kind, the payload as JSON, the attempt count and the state; its three states **pending**, **flushing** and **dead** as ONE transition function rather than a column somebody sets; **client-generated document uuids** for §2.6 idempotency; and the **enqueue** every write in this app will go through, behind `@/api/` where §2.11 puts it. ⚠️⚠️ **IT HAS NO CALLER AND THAT IS THE POINT** — `5f`–`5h` are the screens that will write, and a screen that learns to `await` an RPC first is a screen rewritten later. ⚠️⚠️ **C10.3, the identical-offline slide, IS DISCHARGED HERE BY CONSTRUCTION RATHER THAN BY A SCREEN**: if enqueuing is the only write path then the confirmation **NEVER WAITS FOR THE NETWORK** and cannot look different offline, because the screen is never told which it was. ⚠️ **§2.11 names the outbox state machine as testable by decision**, so this is the one child of the split a Vitest suite can hold end to end. ⚠️ **It ships NO migration** — step 5's property, and `0024`–`0026` have been applied since 2026-09-05 | `M` | — |
+| **5c-ii** | **The flush, and the retries the uuid makes free.** Connectivity as ONE signal the whole app reads; the **flush on reconnect** that drains the queue oldest-first and single-flight, at a cadence designed against the **90 seconds** `5c.5` measured a lost reply costs before the client tries again — *"`EXPIRY_MARGIN_MS` is exactly 90 seconds. The margin has zero slack."*; a re-send under the SAME uuid, which §2.6 makes a success carrying `already_recorded` rather than a duplicate sale; and `recorded_offline`, ⚠️⚠️ **SET WHEN A WRITE WAS NOT COMMITTED ON ITS FIRST attempt** rather than from a connectivity guess — the sizing below argues it, and it decides which day a sale counts on in Números. ⚠️ **It renders nothing**: the signal it produces is what the last child draws, and this half is measured by a contract check over real HTTP against `record_sale`, which `0016` has had applied since long before any screen existed. ⚠️ **It ships NO migration** | `M/L` | ⚠️ **Blocked on the queue existing** — there is nothing to drain until the child above it ships |
+| **5c-iii** | **The writes that will never land, and the only half that changes the ledger.** **Transient** against permanent — the classification, and the whole of this task's risk sits in it: a permanent failure retried forever is a sale that never lands, and a passing one dead-lettered is a sale downgraded that would have arrived on its own. Then `record_failed_write` (`0024`, applied and unused since 2026-09-05), the `dead` state it puts the row in, and the auto-downgrade the server runs **for `sale` and `waste` only** — `purchase` and `transfer` dead-letter without one, because the stock is still on the shelf and an upgrade would double it. ⚠️⚠️ **C10.5 IS WHAT THIS HALF COSTS AND IT IS DELIBERATE: THE LEDGER CAN DIFFER FROM WHAT THE SHOPKEEPER TYPED, SILENTLY.** A downgrade reconciles quantity and carries no revenue, no tax split and no batch attribution — *"stock stays true; margin goes quiet"* (§2.6) — and nobody in the shop is told. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** | `M` | ⚠️ **Blocked on the transport** — a write only becomes permanent after something has tried to send it |
+| **5c-iv** | **What a person sees, and the only half nothing in this repository can measure.** The quiet dismissible *"Sin conexión a internet"* (C10.1) — an icon, intermittent, surfacing on screen changes, never blocking and never interrupting; the fading reconnect toast (C10.2), *"Tus últimas operaciones ya se guardaron."*, which fades on its own and **does not say how many**; and the least-invasive dead-letter banner (C11.9), **a banner and not a screen**, reading this device's own queue and making no server read. ⚠️⚠️ **IT SHOWS A COUNT AND A PESO FIGURE, NEVER A LIST, NEVER AN `error_code`** — the peso figure priced on the device by `@tienda/money`, the same arithmetic §2.10's nightly check uses on the server side. ⚠️⚠️ **AND THE BANNER IS MANAGER-AND-ABOVE, decided in the sizing rather than asked**: §2.7 fences unrecorded revenue there, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and C10.5 refuses to show a rejected write to the person at the counter at all. ⚠️ **§2.11 keeps rendering, navigation and layout out of scope, so no suite here can see any of this** — this row and the owner's own phone (`R9`) are the whole instrument, which is why it is last and alone rather than riding along with code that can be measured. ⚠️ **It ships NO migration** | `M` | ⚠️ **Blocked on the dead-letter half** — the banner counts rows only that child can create |
 | **5c.5** | ✅✅ **DONE 2026-09-20 — READ, AND THE ANSWER IS YES: THE SESSION SURVIVES. ⚠️ THE WORRY THAT CREATED THIS ROW WAS WRONG, AND THE REASON IS NOT THE ONE IT NAMED.** ~~this was the next task, as of 2026-09-20, reordered ahead of `5c` by the owner~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ✅✅ **CLOSED — the `S` was right**, one sitting, and what it produced is an answer plus a standing guard rather than a screen. ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
@@ -2110,6 +2185,79 @@ free today and stay free until the first task merges.
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 | **5h.5** | ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |
+
+#### ⚠️⚠️ Sized 2026-09-20 — `5c` IS AN `XL`, NOT THE `L` THIS FILE CARRIED, AND IT SPLITS FOUR WAYS
+
+Sized before a line of it was written, under the working agreement — the same
+discipline that split `5a` four ways, `5a-iii` two, `5b.8` three, `5b-iii` four and
+`5b-iii-d` two. ✅ **Nothing gates it**: `4.6b` unblocked the replay control on
+2026-09-14, and `5c.5` closed on 2026-09-20 with the one measurement this whole
+design rests on. The split is the only thing between here and offline code.
+
+**Why the `L` was wrong, in one line:** the row reads as one subject — *"offline"* —
+and is actually **fourteen deliverables across four layers that fail in four
+unrelated ways**: a durable queue on a phone, a transport, a failure path that
+writes to the ledger, and three pieces of chrome. ⚠️ **Three of the four are
+falsifiable end to end and the fourth is not**, which is the tell that a row is
+really four tasks rather than one with sections.
+
+| Task | What it is | Size | Blocked on |
+|---|---|---|---|
+| `5c-i` | The outbox, and nothing in it talks — the table, the three states, the uuid, the enqueue | `M` | — |
+| `5c-ii` | The flush, and the retries the uuid makes free | `M/L` | `5c-i` |
+| `5c-iii` | The writes that will never land, and the only half that changes the ledger | `M` | `5c-ii` |
+| `5c-iv` | What a person sees | `M` | `5c-iii` |
+
+**Where the seams are, and why they are there rather than at "the queue" and "the
+UI".** Each child fails in a way the others cannot:
+
+| | Its characteristic failure | Who would notice | The instrument |
+|---|---|---|---|
+| `5c-i` | A sale is accepted by the screen and never reaches the queue — **lost on the device, silently** | nobody, ever | a Vitest suite. §2.11 names the outbox state machine as a thing a unit test may pin |
+| `5c-ii` | A sale is sent **twice**, or sits in the queue while the app believes it flushed | Números, days later | a contract check over real HTTP against `record_sale` — `0016` has been applied since long before any screen |
+| `5c-iii` | A transient failure is dead-lettered, or a permanent one is retried forever. **The ledger moves either way** | §2.10's nightly check, or nobody | the same contract check, driving `0024` and reading `stock_movement.failed_write_id` back |
+| `5c-iv` | A person is told the wrong thing, or told nothing | the owner, on his own phone | ⚠️ **nothing here.** §2.11 keeps rendering out of scope; the plan row and `R9` are the whole instrument |
+
+⚠️⚠️ **THE FOURTH LINE OF THAT TABLE IS THE REASON FOR A FOURTH CHILD RATHER THAN
+THREE.** The cheapest thing a session building the flush can do is draw the offline
+icon while the file is already open — and then the one half nothing can measure has
+ridden along inside a task whose green CI run says nothing about it. `5b-iii-d`'s
+split was made on this argument eleven days into the client build and its row still
+carries it; this is the same argument, applied to the same hazard.
+
+⚠️ **AND THE SEAM IS NOT "ONLINE" / "OFFLINE".** Every child works with no signal —
+that is the subject. It is **storage / transport / the failure path / the chrome**,
+which is also the order in which each one becomes possible: there is nothing to
+drain until the queue exists, nothing is permanently rejected until something tried
+to send it, and there is nothing to count in a banner until something dead-letters.
+
+**DECISIONS TAKEN IN THE SIZING — no migration, no product code, all cheap to
+reverse, and the last two are the ones worth reading:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **`5c` is re-sized `L` → `XL`** | Fourteen deliverables, four failure modes, a new npm dependency, and a write surface with no caller yet. `5a-iii` and `5a-iv` were both re-sized upward on the day they were taken, and both were right to be | One letter |
+| **2** | ⚠️⚠️ **`recorded_offline` IS DECIDED AT FLUSH — a write carries it when it was NOT committed on its first attempt** — rather than from what the device believed about connectivity when the shopkeeper slid | It decides whether the server overrides `occurred_at`, and therefore **which day a sale counts on in Números**. A connectivity guess is wrong in the expensive direction: a phone that thinks it has signal and does not marks the write online, and the server then stamps `now()` at flush — re-dating a 09:00 sale to 14:00, which is the precise harm §2.6's clamp exists to bound. The first-attempt rule needs no connectivity oracle and degrades safely: a blip at 09:00:05 flags a write offline, the client's own time is accepted, clamped, and nothing is wrong | Move the flag's decision point back to enqueue; it is one condition, and it is client code |
+| **3** | ⚠️⚠️ **C10.3 IS DISCHARGED BY `5c-i`'s CONSTRUCTION, NOT BY A SCREEN** | *"The slide looks identical offline"* reads like a rendering rule, and §2.11 guarantees nothing here can hold a rendering rule. It is not one: **if enqueuing is the only write path, the screen is never told which it was**, so there is no second wording for anybody to add. Turning a promise about a screen into a property of the write path is the same move `5b-iii-d-1` made when it put a row's line order into a pure function | Let a screen `await` the RPC. ⚠️ Which is why the row says the confirmation NEVER WAITS FOR THE NETWORK, and why a check reads that sentence |
+| **4** | **The outbox is a REAL SQLite table, not another key in the `localStorage` shim** | `@/lib/store.ts` is a key-value store over `expo-sqlite/localStorage`, and its own header says what is kept there is *"a per-phone preference"* whose loss must cost a tap. **A queued sale is not a preference**: it needs rows, an oldest-first order, an attempt count and a state, and losing one is losing money off the shelf | It is a new module beside the existing one; nothing already shipped moves |
+| **5** | ⚠️ **THE DEAD-LETTER BANNER IS MANAGER-AND-ABOVE, and this was derived rather than asked** | Three settled statements already answer it and none of them is about this banner: §2.7 fences unrecorded revenue at the manager role, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and **C10.5 refuses to show a rejected write to the person at the counter at all**. A cashier can do nothing about a dead letter and is the one person the requirement names. ⚠️ **Recorded here rather than parked**, because a question three documents already answer is not a decision the owner owes | One condition in the banner |
+
+⚠️⚠️ **WHAT THE SPLIT DID NOT DECIDE, NAMED SO THE NEXT SESSION DOES NOT ASSUME IT
+WAS:** which connectivity source `5c-ii` reads. `expo-network` is in the SDK and
+needs no config plugin; `@react-native-community/netinfo` is the React Native
+default and is a new dependency with one. **That is `5c-ii`'s call, on the evidence
+of what the two actually report on both instruments** — and
+[[measure-both-platforms-not-one]] is the reason it is not being taken today from a
+reading of two changelogs.
+
+⚠️⚠️ **AND THE THING A CLEARED SESSION IS MOST LIKELY TO GET WRONG HERE: `5c-i` HAS
+NO CALLER, AND IT IS SUPPOSED TO.** Nothing in this app writes a sale, a purchase or
+a waste — `5f`, `5g` and `5h` are those screens and none of them is built. The queue
+is therefore built **ahead of** the screens that will use it, deliberately: §2.6 puts
+every client write behind it, and a screen that learns to `await supabase.rpc` first
+is a screen rewritten when the queue arrives. ⚠️ **The consequence is real and the
+owner should hear it rather than discover it:** `5c-i` through `5c-iii` change
+nothing he can see on his phone. The first visible thing in this step is `5c-iv`.
 
 #### ⚠️⚠️ Sized 2026-09-11 — `5a-iii` IS AN `L`, NOT THE `M/L` THIS FILE CARRIED, AND IT SPLITS IN TWO
 

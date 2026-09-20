@@ -250,6 +250,18 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-20 — §2.6's outbox sentence corrected from step `5a` to step
+  **`5c`**. ⚠️ **NOT A NEW DECISION, AND DELIBERATELY NOT TREATED AS ONE.** The ruling
+  is the decision maker's of 2026-09-13, recorded in the entry directly below this one;
+  §3 was rewritten that day and §2.6's one-line restatement of the same claim was
+  missed. ⚠️⚠️ **It mattered more than a typo because of `CLAUDE.md`'s own rule** —
+  *"if anything disagrees with the ADR, the ADR wins"* — so for seven days this
+  document told a cleared session to build the outbox inside a step that closed on
+  2026-09-12, and the plan, which was right, would have read as the bug. Found while
+  sizing `5c` on 2026-09-20. **No schema change, no deliverable moved, and nothing
+  already shipped becomes non-conforming.** ⚠️ It is the ninth stale copy of one claim
+  recorded in this repository and the first inside this file, which is the one every
+  other file defers to.
 - **Revised:** 2026-09-13 — §3's build-order step `5a` and §2.10's closing paragraph
   amended, on the decision maker's instruction (*"do the second pass after 5b"*,
   2026-09-13, and the amendment itself instructed the same day). This closes the **fourth**
@@ -897,7 +909,12 @@ the question a sync engine would have answered — `expo-sqlite` plus an outbox 
 is sufficient, and §6's deferral of offline-first stands.
 
 The outbox has three states — `pending`, `flushing`, `dead` — and it is a named
-deliverable of build step 5a, not something a screen acquires along the way.
+deliverable of build step **`5c`**, not something a screen acquires along the way.
+⚠️ **This sentence said `5a` until 2026-09-20 and that was a stale copy, not a
+second opinion** — §3's step `5a` was amended on 2026-09-13, on the decision
+maker's instruction, and the outbox moved to `5c` in that pass. Nothing was
+re-decided here; the sentence was simply missed. See the revision entry of
+2026-09-13 for the ruling, and the one of 2026-09-20 for this correction.
 
 **Rejected writes.** Idempotency makes *retries* free. It does nothing for
 *rejection*, and the first draft of this ADR did not distinguish them:

@@ -1,0 +1,58 @@
+# 5c — offline. Sized XL and split four ways 2026-09-20, before a line was written.
+# The file had it down as an L; it is fourteen deliverables across four layers that
+# fail in four unrelated ways.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, and that is a property rather than a relaxation:
+# step 5 ships none, and the whole failure path these children drive — `0024`
+# `failed_write`, `0025` the replay marker, `0026` `replay_failed_write` — has been
+# applied since 2026-09-05 and has never had a caller. EACH_CHILD_SAYS asserts it
+# positively, because a child that quietly grows a migration is one an automated
+# merge deploys.
+#
+# THE SEAMS, IN ONE LINE EACH: `5c-i` never talks — it is storage and a transition
+# function, and a Vitest suite can hold all of it. `5c-ii` talks and never renders,
+# so every claim in it is falsifiable by a contract check over real HTTP. `5c-iii`
+# is the only half that CHANGES THE LEDGER, and it is lossy on purpose. `5c-iv` is
+# the only half nothing in this repository can look at — §2.11 keeps rendering out
+# of scope — so it is last and alone rather than riding along with measurable code.
+SPLIT_ID="5c"
+SPLIT_GROUPS=( "5c|5c-i 5c-ii 5c-iii 5c-iv" )
+DELIVERABLES=(
+  "the outbox table in expo-sqlite|outbox table|5c-i"
+  # ⚠️ ONE transition function, not a column somebody sets. §2.11 names the state
+  # machine as a thing a unit test may pin, which is why it is worth stating.
+  "its three states — pending, flushing, dead|pending.*flushing.*dead|5c-i"
+  "client-generated document uuids (§2.6 idempotency)|client-generated document uuids|5c-i"
+  "the enqueue every write goes through|enqueue|5c-i"
+  # ⚠️ C10.3 is discharged by the WRITE PATH, not by a screen — see the PHRASES
+  # entry. Assigned here deliberately, and the regex avoids `C10.3` so that a
+  # sibling row may still cite the requirement number in passing.
+  "C10.3 — the identical-offline slide|identical-offline slide|5c-i"
+  "the flush on reconnect|flush on reconnect|5c-ii"
+  "the 90 seconds 5c.5 measured, as the cadence to design against|90 seconds|5c-ii"
+  "recorded_offline|recorded_offline|5c-ii"
+  # ⚠️⚠️ THE BRACKET CLASS COST A FIXTURE BEFORE IT SAVED ONE, AND THE RULE IS NEW.
+  # This row first read `**Transient** against permanent … and a **transient** one
+  # dead-lettered …`. Fixture S5 strips THE FIRST MATCH'S LITERAL TEXT out of the
+  # owner's row — "Transient" — and the lower-case one survived, so the engine went
+  # GREEN on a deliverable the fixture had just deleted. ⚠️ The existing rule is "use
+  # a bracket class, never an alternation"; the one this adds is **A CASE-TOLERANT
+  # CLASS MUST NOT MATCH TWO DIFFERENT SPELLINGS INSIDE ONE ROW** — write the word
+  # once, or the removal fixture is defeated and the guard is weaker than it reads.
+  # Caught by split-coverage-falsify.sh, which is the half that makes this evidence.
+  "transient against permanent — the classification|[Tt]ransient|5c-iii"
+  "record_failed_write and the downgrade it runs|record_failed_write|5c-iii"
+  "C10.1 — the quiet dismissible offline notice|Sin conexión a internet|5c-iv"
+  "C10.2 — the fading reconnect toast|C10\.2|5c-iv"
+  "C11.9 — the least-invasive dead-letter banner|C11\.9|5c-iv"
+  "the count and the peso figure the banner shows|PESO FIGURE|5c-iv"
+)
+PHRASES=(
+  "5c-i|F|NEVER WAITS FOR THE NETWORK|C10.3 is discharged by the write path rather than by a screen: enqueue-and-confirm is what makes the offline slide identical, and §2.11 means no suite in this repository would notice a screen that learned to await the RPC instead. Drop the sentence and C10.3 becomes a screen's promise nothing can hold."
+  "5c-ii|F|NOT COMMITTED ON ITS FIRST|recorded_offline decides whether the server overrides occurred_at, and therefore which day a sale counts on in Números. Deciding it from a connectivity guess re-dates every sale the device only THOUGHT it had sent — which is the harm §2.6's clamp exists to bound, arriving through the client instead."
+  "5c-iii|F|THE LEDGER CAN DIFFER FROM WHAT THE SHOPKEEPER TYPED|C10.5 taken to its conclusion, and it is the cost of this half rather than a defect in it. The downgrade is silent by design; drop the sentence and the next session adds a message to the person at the counter, which is the one thing this half must not do."
+  "5c-iv|F|NEVER A LIST, NEVER AN|C10.5 and §2.8 both. The banner is a count and a peso figure; a list or an error_code is the vendor's pile handed to the merchant, and the ruling of 2026-09-14 is the only record that it must not be."
+)
+EACH_CHILD_SAYS=(
+  "I|ships NO migration|Step 5 ships no migration and that property is what makes a screen cheap to get wrong. The whole failure path is already applied — 0024 through 0026, since 2026-09-05 — so a child here needs none. A POSITIVE assertion on purpose: merging is automated, so a child that quietly grew one is not a reviewable mistake but a deployed one."
+)
