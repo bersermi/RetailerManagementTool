@@ -1,0 +1,50 @@
+# 5c-ii — the flush. Sized M/L and split in two 2026-09-20, on the day it was taken
+# and before a line of it was written.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, the same property `5c.split` asserts one level up:
+# step 5 ships none, `0016`/`0025`'s `record_sale` and `0024`'s failure path have
+# been applied for weeks, and both children are client code only. EACH_CHILD_SAYS
+# asserts it POSITIVELY, because a child that quietly grows a migration is one an
+# automated merge deploys.
+#
+# THE SEAM, IN ONE LINE: `5c-ii-a` is WHAT A FLUSH DOES and `5c-ii-b` is WHEN ONE
+# RUNS. That is not a tidy-sounding division — it is where the instruments part.
+# Everything in `-a` is falsifiable on this machine: a pure decision a Vitest suite
+# can pin, and a round trip over real HTTP that sends one uuid twice. Nothing in
+# `-b` is: which of `expo-network` and `@react-native-community/netinfo` reports
+# usably is a READING on two devices, and on 2026-09-20 neither iOS instrument was
+# available to take it — this Mac has no iOS Simulator (Command Line Tools only,
+# `xcrun simctl` absent) and the owner's iPhone is holding the `5a-iv-d` day-8
+# reading due 2026-09-21, which opening the app restarts.
+#
+# ⚠️⚠️ THE TRIGGER IS THE PART THAT WANTS TO RIDE ALONG. The cheapest thing a
+# session writing the drain can do is add the listener while the file is open —
+# and then the dependency is chosen off a changelog, inside a task whose green CI
+# run says nothing about it. That is `5c-iv`'s argument, one level down; PHRASES
+# holds `-a`'s row to saying so.
+SPLIT_ID="5c-ii"
+SPLIT_GROUPS=( "5c-ii|5c-ii-a 5c-ii-b" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW — the rule 5c.split learned from fixture S5: a
+  # case-tolerant class that matches two spellings inside one row defeats the
+  # removal fixture and the guard is weaker than it reads.
+  "the drain, oldest-first|oldest-first|5c-ii-a"
+  "single-flight — two flushes may never claim one row|single-flight|5c-ii-a"
+  "the same uuid re-sent, which is a success and not a second sale|already_recorded|5c-ii-a"
+  "recorded_offline, decided at flush|recorded_offline|5c-ii-a"
+  # ⚠️ The instrument is a deliverable here, not a nicety: it is the whole reason
+  # -a is separable from -b, and a row that stops claiming it is a row that has
+  # quietly become unfalsifiable.
+  "the contract check over real HTTP|real HTTP|5c-ii-a"
+  "connectivity as ONE signal the whole app reads|Connectivity as ONE signal|5c-ii-b"
+  "the flush on reconnect|flush on reconnect|5c-ii-b"
+  "the 90 seconds 5c.5 measured, as the cadence to design against|90 seconds|5c-ii-b"
+)
+PHRASES=(
+  "5c-ii-a|F|NEVER DECIDES WHEN IT RUNS|The seam is a property of -a's code, not a note about scheduling: no timer, no listener, no native import. A drain that grows its own trigger has taken 5c-ii-b back into a sitting where nothing here can measure it — and the connectivity dependency then gets chosen off a changelog inside a task whose green run says nothing about it."
+  "5c-ii-a|F|NOT COMMITTED ON ITS FIRST|recorded_offline decides whether the server overrides occurred_at, and therefore which day a sale counts on in Números. Deciding it from a connectivity guess re-dates every sale the device only THOUGHT it had sent — the harm §2.6's clamp exists to bound, arriving through the client instead. The rule moved down here with the deliverable; 5c-ii's row still carries it too."
+  "5c-ii-b|F|MEASURED ON BOTH INSTRUMENTS|The dependency choice is the one thing in this split no check can hold, and both plausible answers read fine on paper. iOS and Android have already disagreed three ways in one day on this project, so a row that stops demanding a reading is a row that will be settled by a changelog."
+)
+EACH_CHILD_SAYS=(
+  "I|ships NO migration|Both halves are client-only and every function either one calls is already applied. A POSITIVE assertion on purpose: merging is automated, so a child that quietly grew a migration is not a reviewable mistake but a deployed one, repaired only by a fix-forward migration."
+)

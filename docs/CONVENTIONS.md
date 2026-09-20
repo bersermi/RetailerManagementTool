@@ -385,6 +385,7 @@ choose between them.
 directly."* The layer `5b-i` built is five modules over one boundary; `5b-ii-a`
 added a sixth on the pure side of it and `5b-ii-b-2` an eighth; `5c-i` added a
 ninth plus the first two modules on the far side that are not Postgres at all;
+`5c-ii-a` added a tenth and the module that binds its ports;
 the boundary is the rule:
 
 | Module | What it is | Can a node suite load it? |
@@ -398,9 +399,11 @@ the boundary is the rule:
 | `src/api/approvals.ts` | who is waiting to be let in — the RPC's name, its one `p_` argument, the six columns `0037` returns, and the `owner` fence that has to be asked **before** the call because a refusal and an empty queue are the same answer on the wire. ⚠️⚠️ It also holds `linesOf`, and that is deliberate: §2.11 keeps rendering out of scope, so the owner's ruling of 2026-09-19 — **the email is the header, the name is the subtitle** — is a pure function a test can read rather than a paragraph in a screen | **yes**, and `app/test/api-approvals.test.ts` does |
 | `src/api/errors.ts` | a Postgres or PostgREST code mapped to a **key** of `ES.api.errors` | **yes** |
 | `src/api/outbox.ts` | the offline queue's contract — the four kinds `0024` allows, the three states §2.6 names, and the transition function that is the whole of what the queue decides. ⚠️ It is the one `src/api/` module whose subject is NOT an RPC: §2.11 names the outbox state machine among the three things a client unit test may pin, so this suite is its whole instrument rather than a second opinion beside a contract check. ⚠️⚠️ Its payload is `failed_write.payload`'s shape — arguments keyed by name, **no `p_` prefix** — because `replay_failed_write` reads it directly | **yes**, and `app/test/api-outbox.test.ts` does |
+| `src/api/flush.ts` | what a flush DOES — the drain order, single-flight, `recorded_offline`, and the RPC each kind is sent to. ⚠️⚠️ **The one module here whose `p_` argument names are BUILT rather than written**: `0024` stores `failed_write.payload` keyed by argument name with no prefix and `0026` reads it that way, so the prefix is added at the call and the prefix rule IS the contract. ⚠️ It decides nothing about WHEN a flush runs — that is `5c-ii-b` | **yes**, and `app/test/api-flush.test.ts` does, with all four ports injected |
 | `src/api/calls.ts` | the only module that says `supabase.rpc` or `supabase.from`. Three lines per call | **no** — it imports the live client, which runs side effects at module scope |
 | `src/lib/outboxDb.ts` | the only module that opens the queue's SQLite database — the table, the `PRAGMA user_version` migration, and the marshalling. ⚠️ A table on the PHONE, not a migration | **no** — `expo-sqlite` is native |
 | `src/lib/ids.ts` | where a client uuid comes from, and the only place it does | **no** — `expo-crypto` is native |
+| `src/lib/flushRunner.ts` | the only module that binds the flush's four ports to the real queue and the real client — and the app's ONE flusher, which is what makes single-flight mean anything | **no** — it reaches both native halves |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
 | `src/api/QueryProvider.tsx` | one `QueryClient` per mount, never at module scope | no |
 
