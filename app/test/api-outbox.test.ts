@@ -9,7 +9,7 @@ import {
   isWriteKind,
   isWritePayload,
   moved,
-  normalizeWriteId,
+  normalizeUuid,
   queueWrite,
   type OutboxEvent,
   type OutboxState,
@@ -39,10 +39,14 @@ import {
 // ever read that function; `5c-iii`'s contract check is what will.
 // ============================================================================
 
+/** The shop every fixture below belongs to. See `workspaceId`. */
+const SHOP = '00000000-1111-4222-8333-444444444444';
+
 /** A row in whatever state the assertion needs. */
 function row(over: Partial<QueuedWrite> = {}): QueuedWrite {
   return {
     id: '11111111-2222-4333-8444-555555555555',
+    workspaceId: SHOP,
     kind: 'sale',
     payload: { lines: [], occurred_at: '2026-09-20T10:00:00.000Z' },
     state: 'pending',
@@ -89,7 +93,7 @@ describe('the two lists the database already fixed', () => {
 
 describe('the uuid, which is the same key in two Postgres tables', () => {
   it('accepts a canonical uuid unchanged', () => {
-    expect(normalizeWriteId('11111111-2222-4333-8444-555555555555')).toBe(
+    expect(normalizeUuid('11111111-2222-4333-8444-555555555555')).toBe(
       '11111111-2222-4333-8444-555555555555',
     );
   });
@@ -99,19 +103,19 @@ describe('the uuid, which is the same key in two Postgres tables', () => {
   // SQLite `text` primary key. Lower-casing on the way in is what stops a
   // queue holding a duplicate the server would have deduplicated.
   it('lower-cases, so one uuid cannot become two rows on the device', () => {
-    expect(normalizeWriteId('AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE')).toBe(
+    expect(normalizeUuid('AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE')).toBe(
       'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
     );
-    expect(normalizeWriteId('  11111111-2222-4333-8444-555555555555  ')).toBe(
+    expect(normalizeUuid('  11111111-2222-4333-8444-555555555555  ')).toBe(
       '11111111-2222-4333-8444-555555555555',
     );
   });
 
   it('refuses anything Postgres would not take as a uuid', () => {
-    expect(normalizeWriteId('11111111-2222-4333-8444-55555555555')).toBeNull();
-    expect(normalizeWriteId('11111111222243338444555555555555')).toBeNull();
-    expect(normalizeWriteId('')).toBeNull();
-    expect(normalizeWriteId('zzzzzzzz-2222-4333-8444-555555555555')).toBeNull();
+    expect(normalizeUuid('11111111-2222-4333-8444-55555555555')).toBeNull();
+    expect(normalizeUuid('11111111222243338444555555555555')).toBeNull();
+    expect(normalizeUuid('')).toBeNull();
+    expect(normalizeUuid('zzzzzzzz-2222-4333-8444-555555555555')).toBeNull();
   });
 });
 
@@ -131,9 +135,10 @@ describe('what a payload may be', () => {
 
 describe('queueing a write', () => {
   const stamp = { id: '11111111-2222-4333-8444-555555555555', now: '2026-09-20T10:00:00.000Z' };
+  const draft = { workspaceId: SHOP, kind: 'sale' as const, payload: { lines: [] } };
 
   it('starts pending, at zero attempts, on the instant it was handed', () => {
-    const q = queueWrite({ kind: 'sale', payload: { lines: [] } }, stamp);
+    const q = queueWrite(draft, stamp);
     expect(q.ok).toBe(true);
     if (!q.ok) return;
     expect(q.write.state).toBe('pending');
@@ -149,14 +154,14 @@ describe('queueing a write', () => {
   // means no suite in this repository could see that on a screen — so it is
   // pinned here, at the one place it is structural.
   it('returns a row and never a promise — the confirmation cannot wait for a network', () => {
-    const q = queueWrite({ kind: 'sale', payload: { lines: [] } }, stamp);
+    const q = queueWrite(draft, stamp);
     expect(q).not.toBeInstanceOf(Promise);
     expect(typeof (q as { then?: unknown }).then).toBe('undefined');
   });
 
   it('normalises the id on the way in rather than at three call sites', () => {
     const q = queueWrite(
-      { kind: 'waste', payload: {} },
+      { workspaceId: SHOP, kind: 'waste', payload: {} },
       { id: 'AAAAAAAA-BBBB-4CCC-8DDD-EEEEEEEEEEEE', now: stamp.now },
     );
     expect(q.ok).toBe(true);
@@ -164,19 +169,52 @@ describe('queueing a write', () => {
     expect(q.write.id).toBe('aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee');
   });
 
-  it('refuses the three things that are programming errors, by name', () => {
-    expect(queueWrite({ kind: 'adjustment' as never, payload: {} }, stamp)).toEqual({
+  it('refuses the four things that are programming errors, by name', () => {
+    expect(queueWrite({ workspaceId: SHOP, kind: 'adjustment' as never, payload: {} }, stamp)).toEqual({
       ok: false,
       why: 'unknown-kind',
     });
-    expect(queueWrite({ kind: 'sale', payload: [] as never }, stamp)).toEqual({
+    expect(queueWrite({ workspaceId: SHOP, kind: 'sale', payload: [] as never }, stamp)).toEqual({
       ok: false,
       why: 'payload-not-an-object',
     });
-    expect(queueWrite({ kind: 'sale', payload: {} }, { ...stamp, id: 'nope' })).toEqual({
+    expect(queueWrite({ ...draft, payload: {} }, { ...stamp, id: 'nope' })).toEqual({
       ok: false,
       why: 'bad-id',
     });
+    // ⚠️⚠️ THE FOURTH, ADDED BY `5c-iii`, AND IT IS REFUSED HERE RATHER THAN AT
+    // THE DEAD LETTER. A row queued with no workspace can be sent and can land;
+    // the only thing it can never do is be REPORTED when it is permanently
+    // rejected, because `record_failed_write` takes `p_workspace_id` and
+    // validates it. Catching it at the till turns a failure discovered at the
+    // worst possible moment into one that cannot be queued at all.
+    expect(queueWrite({ ...draft, workspaceId: 'not-a-uuid' }, stamp)).toEqual({
+      ok: false,
+      why: 'bad-workspace',
+    });
+  });
+
+  // ⚠️ THE SAME NORMALISATION AS THE ID, AND FOR THE SAME REASON ONE LAYER OUT:
+  // Postgres stores a uuid lower-cased, so two spellings of one workspace are
+  // one shop on the server and two strings here.
+  it('normalises the workspace the same way it normalises the id', () => {
+    const q = queueWrite({ ...draft, workspaceId: SHOP.toUpperCase() }, stamp);
+    expect(q.ok).toBe(true);
+    if (!q.ok) return;
+    expect(q.write.workspaceId).toBe(SHOP);
+  });
+
+  // ⚠️⚠️ NOT A CONVENIENCE, AND THE COST OF THE ALTERNATIVE IS A SHELF. `0001`
+  // admits many shops per person from day one. If the dead letter read "the
+  // current shop" at flush instead of this field, a sale queued in shop A and
+  // rejected while shop B is open would be filed against B — and `0024` would
+  // DOWNGRADE B's shelf for a sale that never happened there.
+  it('carries the shop the write was made in, not the shop that is open later', () => {
+    const other = '99999999-8888-4777-8666-555555555555';
+    const q = queueWrite({ ...draft, workspaceId: other }, stamp);
+    expect(q.ok).toBe(true);
+    if (!q.ok) return;
+    expect(q.write.workspaceId).toBe(other);
   });
 });
 

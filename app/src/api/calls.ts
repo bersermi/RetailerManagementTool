@@ -28,6 +28,7 @@
 // ============================================================================
 
 import { supabase } from '@/lib/supabase';
+import { RECORD_FAILED_WRITE } from '@/api/deadletter';
 import { isContractMismatch } from '@/api/errors';
 import { RECORD_RPC } from '@/api/flush';
 import { type WriteKind } from '@/api/outbox';
@@ -346,15 +347,43 @@ export async function setMyDisplayName(workspaceId: string, typed: string): Prom
  * `occurred_at` fallback and `recorded_offline`; none of those is a decision
  * this file may hold, because no node suite can load it.
  *
- * ⚠️ IT THROWS, like every other wrapper — `createFlusher` turns that into a
- * retry, and `5c-iii` is what will one day tell a transient throw from a
- * permanent one.
+ * ⚠️ IT THROWS, like every other wrapper — and `classify` in `@/api/deadletter`
+ * is what tells a transient throw from a permanent one.
  */
 export async function sendQueuedWrite(
   kind: WriteKind,
   args: Readonly<Record<string, unknown>>,
 ): Promise<unknown> {
   const { data, error } = await supabase.rpc(RECORD_RPC[kind], args);
+  if (error) throw reported(error);
+  return data;
+}
+
+/**
+ * One permanently rejected write, dead-lettered and the shelf downgraded with
+ * it, in one transaction (5c-iii).
+ *
+ * ⚠️⚠️ IT IS THE ONLY CALL IN THIS APP THAT MOVES STOCK, and it moves it
+ * without anybody choosing a quantity: `0024` derives every movement from a
+ * payload a `record_*` function already refused, which is why §2.7's manager
+ * fence on stock adjustment is NOT on this grant. The person whose write was
+ * rejected is usually a cashier, and §2.6's exception exists for exactly her —
+ * a fence here would refuse the report in its commonest case.
+ *
+ * ⚠️ IT TAKES ARGUMENTS ALREADY BUILT, like `sendQueuedWrite`. `reportArgs`
+ * decides the `p_` names, hands the payload over UNTOUCHED so `0026` can replay
+ * it, and reads the location out of it by name; none of those is a decision
+ * this file may hold, because no node suite can load it.
+ *
+ * ⚠️ IT THROWS, and `createFlusher` reads a throw here as a failed REPORT — the
+ * row goes back to `pending` rather than to `dead`. A row marked dead with no
+ * `failed_write` row behind it is the one outcome in the whole queue that loses
+ * a sale outright.
+ */
+export async function reportFailedWrite(
+  args: Readonly<Record<string, unknown>>,
+): Promise<unknown> {
+  const { data, error } = await supabase.rpc(RECORD_FAILED_WRITE, args);
   if (error) throw reported(error);
   return data;
 }
