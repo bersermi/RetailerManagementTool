@@ -29,6 +29,8 @@
 
 import { supabase } from '@/lib/supabase';
 import { isContractMismatch } from '@/api/errors';
+import { RECORD_RPC } from '@/api/flush';
+import { type WriteKind } from '@/api/outbox';
 import {
   APPROVE_REQUEST,
   PENDING_ACCESS_REQUESTS,
@@ -331,6 +333,30 @@ export async function setMyDisplayName(workspaceId: string, typed: string): Prom
   );
   if (error) throw reported(error);
   return storedNameFrom(data);
+}
+
+/**
+ * One queued write, sent (5c-ii-a). The four `record_*` functions are one
+ * wrapper here rather than four, ⚠️ **and that is not a shortcut**: a flush
+ * does not know which kind it is holding until it reads the row, so four
+ * wrappers would need a fifth thing to choose between them — which is the
+ * mapping `RECORD_RPC` already is, in a module the suite can read (`R13`).
+ *
+ * ⚠️ IT TAKES ARGUMENTS ALREADY BUILT. `sendArgs` decides the `p_` names, the
+ * `occurred_at` fallback and `recorded_offline`; none of those is a decision
+ * this file may hold, because no node suite can load it.
+ *
+ * ⚠️ IT THROWS, like every other wrapper — `createFlusher` turns that into a
+ * retry, and `5c-iii` is what will one day tell a transient throw from a
+ * permanent one.
+ */
+export async function sendQueuedWrite(
+  kind: WriteKind,
+  args: Readonly<Record<string, unknown>>,
+): Promise<unknown> {
+  const { data, error } = await supabase.rpc(RECORD_RPC[kind], args);
+  if (error) throw reported(error);
+  return data;
 }
 
 /**

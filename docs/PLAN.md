@@ -141,6 +141,97 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅ **`5c-ii` WAS SPLIT IN TWO AND `5c-ii-a` IS DONE, BOTH ON 2026-09-20 — A
+QUEUED SALE CAN NOW BE SENT, AND SENDING IT TWICE IS STILL ONE SALE. `5c-iii` IS
+THE NEXT TASK.** No migration, no screen, and still nothing a person can see.
+
+**The split first, because it is the part that changes what the next session
+takes.** `5c-ii` was an `M/L` covering two jobs — **what a flush DOES** and
+**WHEN one runs** — and the second could not be started at all on 2026-09-20.
+Choosing between `expo-network` and `@react-native-community/netinfo` is a
+reading on two devices (the sizing of `5c` said so in terms), and **both iOS
+instruments were unavailable**: `xcrun simctl` is not installed on this Mac
+(Command Line Tools only, checked rather than assumed) and the owner's iPhone is
+holding the `5a-iv-d` day-8 reading due **2026-09-21**, which opening the app
+restarts. ⚠️ **Taking the whole row today meant either guessing the dependency
+off two changelogs or spending tomorrow's reading on it.** The split costs
+neither: `5c-ii-a` needs no device, and `5c-ii-b` is takeable the moment the
+day-8 reading is in.
+
+**What shipped, four files plus two checks:**
+
+| | |
+|---|---|
+| `app/src/api/flush.ts` | the tenth `src/api/` module: the drain order, single-flight, `recorded_offline`, the `occurred_at` fallback, the RPC per kind, and the whole loop over four injected ports |
+| `app/test/api-flush.test.ts` | 31 assertions over that loop — §2.11 names the outbox state machine as a thing a client unit test may pin, and the drain is that machine being driven |
+| `app/src/api/calls.ts` | one new wrapper, `sendQueuedWrite` — four `record_*` functions behind one call, because a flush does not know its kind until it reads the row |
+| `app/src/lib/flushRunner.ts` | the only module that binds the four ports to the real queue and the real client, and the app's ONE flusher |
+| `docs/checks/5c-ii-a-flush-contract.sh` | 9 assertion groups over REAL HTTP against a real shop, as a real signed-in owner |
+| `docs/checks/5c-ii-a-flush-contract-falsify.sh` | 9 fixtures, every one of which drifts a name in `@/api/flush` and demands the check meet the 404 a shop would |
+
+⚠️⚠️ **THE FINDING THAT WOULD HAVE COST A DAY IN NÚMEROS AND NOTHING ANYWHERE
+ELSE: AN OFFLINE WRITE WITH NO `occurred_at` IS SILENTLY RE-DATED TO THE MOMENT
+OF THE FLUSH.** `0025`'s offline branch is `greatest(least(coalesce(p_occurred_at,
+v_now), v_now), v_now - interval '72 hours')` — so the *omission* of a time is
+not refused, it is **defaulted to `now()`**, and a sale rung up at 09:00 without
+signal and drained at 14:00 counts on the wrong day with nothing raising on
+either side. The queue already holds the answer (`queuedAt`, written by
+`queueWrite` from the device's clock), so the flush sends it whenever the payload
+carries none. ⚠️ **It is measured rather than argued** — assertion 7 of the
+contract check drives the null case and reads `now()` back, so the day this stops
+being true, the reason the fallback exists goes red instead of going quiet.
+
+⚠️ **AND THE `p_` PREFIX IS THE CONTRACT, WHICH IS NEW HERE.** Every other
+`src/api/` module writes its argument names out as literals. This one builds them
+— `p_` plus the payload's own keys — because `0024` decision 5 stores the payload
+keyed by argument name with **no prefix** and `0026` reads it that way. So a
+single character decides every argument at once, and assertion 4 sends the bare
+`location_id` on purpose to prove the prefixed one is not merely a habit: the
+bare name is `PGRST202`.
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no seed, all client-side
+and all cheap to reverse. ⚠️ The first two are the ones worth his eye:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | ⚠️⚠️ **THE DRAIN STOPS AT THE FIRST FAILURE** rather than trying every row | The overwhelmingly common failure is no signal, where every later row fails identically — and stopping keeps the ledger's order the shop's order, which oldest-first exists for (a sale allocates FEFO against the shelf, so the order writes land in is the order cost is attributed in). ⚠️ **WHAT IT COSTS, NAMED RATHER THAN HIDDEN: a row that can never succeed blocks every write behind it.** That is exactly what `5c-iii` fixes, and it is why `5c-iii` is now marked next rather than `5c-ii-b` | One `continue` instead of a `return` |
+| **2** | ⚠️ **`5c-iii` IS THE NEXT TASK, NOT `5c-ii-b`** — a re-ordering inside today's own split | `5c-ii-b` cannot be finished before tomorrow's reading, and `5c-iii` became takeable the moment the send existed. It is also the half that un-blocks the queue, per decision 1 | Swap the marker; neither task has been started |
+| **3** | **A row left `flushing` by a process that died is RE-QUEUED at the start of the next flush** | The app is killed mid-send and the row stays claimed forever — a sale lost on the device with nobody to notice. Re-sending is free even if it already landed: the uuid answers `already_recorded`. ⚠️ Safe only inside the single-flight gate, where a `flushing` row provably belongs to nobody — and `advance` needed no new event, because `retry` already says exactly this | Drop the `stale()` pass |
+| **4** | **`p_replay_of_failed_write_id` is stripped from every payload, by name** | `0025` fences it at `manager` and exempts the write it marks from BOTH the 72-hour clamp and the 15-minute void window. A flush that forwarded one out of a payload would hand a cashier both. ⚠️ Assertion 9 proves the argument is real and WOULD be accepted, so the exclusion is a decision rather than a no-op | One name in a list |
+| **5** | **An unreadable reply is a RETRY, not a success** | If the server committed, the re-send answers `already_recorded`; if it did not, the write finally lands. Reading an unrecognisable object as a success is the only version of this that can lose a sale | One branch in `landedFrom` |
+| **6** | **One wrapper for all four `record_*`, not four** | A flush does not know which kind it holds until it reads the row, so four wrappers would need a fifth thing to choose between them — which is the mapping `RECORD_RPC` already is, in a module the suite can read (`R13`) | Four wrappers and a switch |
+
+⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** the SQL
+in `@/lib/outboxDb` and the binding in `@/lib/flushRunner`. Both import native
+modules, so no node process loads either; the suite drives fakes and the contract
+check drives real HTTP with no SQLite anywhere. ⚠️ **The first thing that will
+exercise the two together is a real device, and that is `5c-ii-b`'s business.**
+⚠️⚠️ **AND THE APP WAS NOT OPENED ON EITHER INSTRUMENT** — the dated obligations
+above are a reading, and opening the app restarts the measurement.
+
+**Evidence: 493 Vitest assertions over 24 files (was 462 over 23), of which 31
+are the new drain; `docs/checks/5c-ii-a-flush-contract.sh` — 9 assertion groups
+over real HTTP against a reset database, with its own anti-vacuity floor, which
+caught itself expecting 10 groups and running 9 on its first run;
+`5c-ii-a-flush-contract-falsify.sh` — 9 fixtures, all red for the stated reason
+and one deliberately green; `conventions-gate.sh`'s 16 groups over 46 source and
+24 test files (was 44 and 23) plus its own 30 fixtures; `split-coverage.sh` over
+NINE specs including the new `5c-ii.split`, and `split-coverage-falsify.sh` at
+451 fixtures (was 409), 41 of them generated for this split; a typecheck of the
+whole workspace.**
+
+⚠️⚠️ **TWO DEFECTS IN THE NEW CHECK WERE FOUND BY ITS OWN HARNESS, AND BOTH WERE
+THE SAME SHAPE `5b-i`'s HARNESS FOUND IN ITS SISTER: RED FOR THE WRONG REASON.**
+The check read the argument names by grepping for the spellings it expected — so
+renaming one in the app made it report *"could not read the contract"* instead of
+meeting the 404. A check that greps for the name it expects can only ever say
+*"not found"*, and the defect it exists for is a name that CHANGED. Every name is
+now read as a spelling and every request is built from what was read, so all nine
+fixtures go red through the database. ⚠️ A third defect was a shell one: a JSON
+object written inline inside a nested `$( )` loses its quoting and bash
+BRACE-EXPANDS it into two arguments, which PostgREST answers `PGRST102 Empty or
+invalid json` — a shell bug that reads exactly like a schema bug.
+
 ✅✅ **`5c-i` IS DONE AS OF 2026-09-20 — THE QUEUE EXISTS, AND NOTHING IN IT
 TALKS. `5c-ii` IS THE NEXT TASK.** No migration, no screen, and **nothing a
 person can see** — which the split said in advance and is worth reading as a
@@ -2245,8 +2336,10 @@ free today and stay free until the first task merges.
 | **5b.6** | ✅✅ **IS DONE AS OF 2026-09-17 — the palette exists, `R11` reads it, and twenty-one fixtures say `R11` can fail. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **CLOSED 2026-09-17.** Shipped as sized: `app/src/theme/palette.ts` (eleven roles), `app/test/palette.test.ts` (7 assertions, no hex spelled twice), `R11` + assertion `0d` in the gate, fixtures `F17`–`F21`, and `F10`/`F12` repaired after both went stale on this task. **No migration, no screen, no component adopting it** |
 | **5c** | ⚠️⚠️ **SIZED `XL` AND SPLIT FOUR WAYS 2026-09-20, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-20, and this file carried it as an `L`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ **`5c.5` closed first and handed the split a number to design against: a dropped connection costs up to 90 seconds before the app tries again, which is exactly the expiry margin.** **Offline.** **Fourteen deliverables, all of which land in a child below:** the **outbox table** in `expo-sqlite` and its three states — **pending**, **flushing**, **dead** (§2.6); **client-generated document uuids** for §2.6 idempotency; the **enqueue** every write goes through; the **identical-offline slide** (C10.3); the **flush on reconnect**; `recorded_offline`; **transient** against permanent; `record_failed_write` and the downgrade it runs for `sale` and `waste` only; the quiet dismissible *"Sin conexión a internet"* (C10.1); the fading reconnect toast (C10.2); and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `XL` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c-i** | ✅✅ **DONE 2026-09-20 — THE QUEUE EXISTS AND NOTHING IN IT TALKS.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering, so a row quoting its own history in the shouted form claims the marker it has just handed on.** **The outbox, and nothing in it talks.** The **outbox table** in `expo-sqlite` — a real table, not another key in the `localStorage` shim `5b-ii-a` built — carrying the client uuid, the kind, the payload as JSON, the attempt count and the state; its three states **pending**, **flushing** and **dead** as ONE transition function rather than a column somebody sets; **client-generated document uuids** for §2.6 idempotency; and the **enqueue** every write in this app will go through, behind `@/api/` where §2.11 puts it. ⚠️⚠️ **IT HAS NO CALLER AND THAT IS THE POINT** — `5f`–`5h` are the screens that will write, and a screen that learns to `await` an RPC first is a screen rewritten later. ⚠️⚠️ **C10.3, the identical-offline slide, IS DISCHARGED HERE BY CONSTRUCTION RATHER THAN BY A SCREEN**: if enqueuing is the only write path then the confirmation **NEVER WAITS FOR THE NETWORK** and cannot look different offline, because the screen is never told which it was. ⚠️ **§2.11 names the outbox state machine as testable by decision**, so this is the one child of the split a Vitest suite can hold end to end. ⚠️ **It ships NO migration** — step 5's property, and `0024`–`0026` have been applied since 2026-09-05 | `M` | — |
-| **5c-ii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-20.** **The flush, and the retries the uuid makes free.** Connectivity as ONE signal the whole app reads; the **flush on reconnect** that drains the queue oldest-first and single-flight, at a cadence designed against the **90 seconds** `5c.5` measured a lost reply costs before the client tries again — *"`EXPIRY_MARGIN_MS` is exactly 90 seconds. The margin has zero slack."*; a re-send under the SAME uuid, which §2.6 makes a success carrying `already_recorded` rather than a duplicate sale; and `recorded_offline`, ⚠️⚠️ **SET WHEN A WRITE WAS NOT COMMITTED ON ITS FIRST attempt** rather than from a connectivity guess — the sizing below argues it, and it decides which day a sale counts on in Números. ⚠️ **It renders nothing**: the signal it produces is what the last child draws, and this half is measured by a contract check over real HTTP against `record_sale`, which `0016` has had applied since long before any screen existed. ⚠️ **It ships NO migration** | `M/L` | ⚠️ **Blocked on the queue existing** — there is nothing to drain until the child above it ships |
-| **5c-iii** | **The writes that will never land, and the only half that changes the ledger.** **Transient** against permanent — the classification, and the whole of this task's risk sits in it: a permanent failure retried forever is a sale that never lands, and a passing one dead-lettered is a sale downgraded that would have arrived on its own. Then `record_failed_write` (`0024`, applied and unused since 2026-09-05), the `dead` state it puts the row in, and the auto-downgrade the server runs **for `sale` and `waste` only** — `purchase` and `transfer` dead-letter without one, because the stock is still on the shelf and an upgrade would double it. ⚠️⚠️ **C10.5 IS WHAT THIS HALF COSTS AND IT IS DELIBERATE: THE LEDGER CAN DIFFER FROM WHAT THE SHOPKEEPER TYPED, SILENTLY.** A downgrade reconciles quantity and carries no revenue, no tax split and no batch attribution — *"stock stays true; margin goes quiet"* (§2.6) — and nobody in the shop is told. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** | `M` | ⚠️ **Blocked on the transport** — a write only becomes permanent after something has tried to send it |
+| **5c-ii** | ⚠️⚠️ **SIZED `M/L` AND SPLIT IN TWO 2026-09-20, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **The flush, and the retries the uuid makes free.** **Eight deliverables, all of which land in a child below:** Connectivity as ONE signal the whole app reads; the **flush on reconnect**; the cadence designed against the **90 seconds** `5c.5` measured a lost reply costs before the client tries again — *"`EXPIRY_MARGIN_MS` is exactly 90 seconds. The margin has zero slack."*; the drain that takes the queue **oldest-first**; **single-flight**, so two flushes can never claim one row; a re-send under the SAME uuid, which §2.6 makes a success carrying `already_recorded` rather than a duplicate sale; and `recorded_offline`, ⚠️⚠️ **SET WHEN A WRITE WAS NOT COMMITTED ON ITS FIRST attempt** rather than from a connectivity guess — it decides which day a sale counts on in Números. ⚠️ **It renders nothing**: the signal it produces is what the last child draws, and the half that talks is measured by a contract check over real HTTP against `record_sale`, which `0016` has had applied since long before any screen existed. ⚠️⚠️ **WHY IT SPLIT, AND IT IS NOT A SIZE ARGUMENT ALONE: ONE HALF IS FALSIFIABLE WITHOUT LEAVING THIS MACHINE AND THE OTHER CANNOT BE MEASURED TODAY AT ALL.** The connectivity source is a native call whose answer is a READING on two devices, and **both iOS instruments are unavailable**: there is no iOS Simulator on this Mac (Command Line Tools only — `xcrun simctl` is not installed) and the owner's iPhone is holding the `5a-iv-d` day-8 reading due 2026-09-21, which opening the app restarts. **A session that took this whole row today would have had to either guess the dependency off two changelogs or spend tomorrow's reading on it.** ⚠️ **It ships NO migration** | `M/L` | ✅ **`5c-i` is DONE** — the queue exists, so there is something to drain |
+| **5c-ii-a** | ✅✅ **DONE 2026-09-20 — A QUEUED SALE CAN BE SENT, AND SENDING IT TWICE IS STILL ONE SALE.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **The drain, and the retries the uuid makes free.** What a flush DOES once something has decided to run one: the queue taken **oldest-first**, **single-flight** so two of them can never claim one row, `claim` → send → settle through `advance`, and a re-send under the SAME uuid, which §2.6 makes a success carrying `already_recorded` rather than a duplicate sale. And `recorded_offline`, ⚠️⚠️ **SET WHEN A WRITE WAS NOT COMMITTED ON ITS FIRST attempt** rather than from a connectivity guess — it decides which day a sale counts on in Números, and `0025`'s `record_sale` is the function that acts on it. ⚠️⚠️ **IT NEVER DECIDES WHEN IT RUNS, AND THAT IS THE SEAM** — no timer, no listener, no native import; the trigger is the sibling below, and a drain that grows one has taken that task back into a sitting where nothing in this repository could measure it. ⚠️ **Every claim in it is falsifiable without leaving this machine**: a Vitest suite over the decision, and a contract check over real HTTP that sends one uuid to `record_sale` twice. ⚠️ **It ships NO migration** | `M` | ✅ **`5c-i` is DONE** — the queue exists, so there is something to drain. ⚠️ **And it still has no caller**: nothing in this app enqueues a sale yet, so the drain ships with nothing to drain on the owner's phone |
+| **5c-ii-b** | **When a flush runs, and the one call nothing in this repository can answer.** Connectivity as ONE signal the whole app reads — ⚠️⚠️ **`expo-network` against `@react-native-community/netinfo`, AND THE ANSWER IS A READING RATHER THAN A CHOICE BETWEEN TWO CHANGELOGS: MEASURED ON BOTH INSTRUMENTS** before a line of it is written, because iOS and Android have already disagreed three ways in one day on this project. Then the **flush on reconnect**, the app-state wake, and the cadence designed against the **90 seconds** `5c.5` measured a lost reply costs before the client tries again. ⚠️ **It renders nothing**: the signal it produces is what `5c-iv` draws. ⚠️ **It ships NO migration** | `M` | ⚠️⚠️ **GATED ON AN INSTRUMENT RATHER THAN ON CODE.** `5c-ii-a` first; and the iOS half needs a device — this Mac has no iOS Simulator — so it waits on the `5a-iv-d` day-8 reading of 2026-09-21, which opening the app before would restart |
+| **5c-iii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-20.** **The writes that will never land, and the only half that changes the ledger.** **Transient** against permanent — the classification, and the whole of this task's risk sits in it: a permanent failure retried forever is a sale that never lands, and a passing one dead-lettered is a sale downgraded that would have arrived on its own. Then `record_failed_write` (`0024`, applied and unused since 2026-09-05), the `dead` state it puts the row in, and the auto-downgrade the server runs **for `sale` and `waste` only** — `purchase` and `transfer` dead-letter without one, because the stock is still on the shelf and an upgrade would double it. ⚠️⚠️ **C10.5 IS WHAT THIS HALF COSTS AND IT IS DELIBERATE: THE LEDGER CAN DIFFER FROM WHAT THE SHOPKEEPER TYPED, SILENTLY.** A downgrade reconciles quantity and carries no revenue, no tax split and no batch attribution — *"stock stays true; margin goes quiet"* (§2.6) — and nobody in the shop is told. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** | `M` | ✅ **UNBLOCKED 2026-09-20 — `5c-ii-a` shipped the send.** A write only becomes permanent after something has tried it, and now something does. ⚠️⚠️ **AND IT IS WHAT UNBLOCKS THE QUEUE ITSELF**: the drain stops at the first failure, so until this half can dead-letter a permanent one, a poison row holds every write behind it |
 | **5c-iv** | **What a person sees, and the only half nothing in this repository can measure.** The quiet dismissible *"Sin conexión a internet"* (C10.1) — an icon, intermittent, surfacing on screen changes, never blocking and never interrupting; the fading reconnect toast (C10.2), *"Tus últimas operaciones ya se guardaron."*, which fades on its own and **does not say how many**; and the least-invasive dead-letter banner (C11.9), **a banner and not a screen**, reading this device's own queue and making no server read. ⚠️⚠️ **IT SHOWS A COUNT AND A PESO FIGURE, NEVER A LIST, NEVER AN `error_code`** — the peso figure priced on the device by `@tienda/money`, the same arithmetic §2.10's nightly check uses on the server side. ⚠️⚠️ **AND THE BANNER IS MANAGER-AND-ABOVE, decided in the sizing rather than asked**: §2.7 fences unrecorded revenue there, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and C10.5 refuses to show a rejected write to the person at the counter at all. ⚠️ **§2.11 keeps rendering, navigation and layout out of scope, so no suite here can see any of this** — this row and the owner's own phone (`R9`) are the whole instrument, which is why it is last and alone rather than riding along with code that can be measured. ⚠️ **It ships NO migration** | `M` | ⚠️ **Blocked on the dead-letter half** — the banner counts rows only that child can create |
 | **5c.5** | ✅✅ **DONE 2026-09-20 — READ, AND THE ANSWER IS YES: THE SESSION SURVIVES. ⚠️ THE WORRY THAT CREATED THIS ROW WAS WRONG, AND THE REASON IS NOT THE ONE IT NAMED.** ~~this was the next task, as of 2026-09-20, reordered ahead of `5c` by the owner~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ✅✅ **CLOSED — the `S` was right**, one sitting, and what it produced is an answer plus a standing guard rather than a screen. ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
@@ -2256,6 +2349,65 @@ free today and stay free until the first task merges.
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. | `M` | ⚠️ **areas 5 and 6** |
 | **5h.5** | ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |
+
+#### ⚠️⚠️ Sized 2026-09-20 — `5c-ii` SPLITS IN TWO, AND THE SECOND HALF CANNOT BE MEASURED TODAY
+
+Sized on the day it was taken and before a line of it was written, under the working
+agreement — the same discipline that split `5a` four ways, `5a-iii` two, `5b.8` three,
+`5b-iii` four, `5b-iii-d` two and `5c` four yesterday. ✅ **Nothing gates the first
+half**: `5c-i` shipped the queue this morning, so there is something to drain.
+
+**Why one sitting was wrong, in one line:** the row reads as one subject — *"the
+flush"* — and is actually **what a flush DOES** and **WHEN one runs**, which are not
+two sections of one job but two jobs with different instruments, ⚠️⚠️ **and one of
+them has no instrument available today.**
+
+| Task | What it is | Size | Blocked on |
+|---|---|---|---|
+| `5c-ii-a` | The drain — oldest-first, single-flight, and the retries the uuid makes free | `M` | — |
+| `5c-ii-b` | When it runs — the connectivity signal, the reconnect, the cadence | `M` | ⚠️ an instrument, not code |
+
+**Where the seam is, and why it is there rather than at "the code" and "the wiring".**
+
+| | Its characteristic failure | Who would notice | The instrument |
+|---|---|---|---|
+| `5c-ii-a` | A sale is sent **twice**, or is claimed and then sits in the queue forever because nothing settled it | Números, days later | a Vitest suite over the decision, **plus a round trip over real HTTP that sends one uuid to `record_sale` twice** |
+| `5c-ii-b` | The queue never drains, or drains so eagerly it burns a phone's battery between customers | the pilot shopkeeper, as *"the app is slow"* | ⚠️⚠️ **two devices, and nothing else.** No node process can ask `expo-network` anything |
+
+⚠️⚠️ **AND THE SECOND ROW OF THAT TABLE IS NOT AVAILABLE ON 2026-09-20, WHICH IS
+WHAT TURNED A SIZING JUDGEMENT INTO A MEASUREMENT.** The sizing of `5c` deliberately
+left one thing undecided and said so — *"which connectivity source `5c-ii` reads …
+that is `5c-ii`'s call, on the evidence of what the two actually report on both
+instruments"*. Taking that call today needs an iOS reading, and **there is no iOS
+instrument free to take one**:
+
+* **This Mac has no iOS Simulator.** `xcode-select -p` is `/Library/Developer/CommandLineTools` and `xcrun simctl` is not installed — *"unable to find utility simctl, not a developer tool or in PATH"*. Checked, not assumed.
+* **The owner's iPhone is an instrument in use.** It is holding the `5a-iv-d` day-8 reading due **2026-09-21**, and the ⏳ block says in terms that opening the app restarts the clock. A connectivity reading means launching a build.
+
+**So the whole row, taken today, forces one of two bad moves**: choose the dependency
+from two changelogs — which is exactly what [[measure-both-platforms-not-one]] exists
+to stop, after iOS and Android disagreed three ways in one day — or spend tomorrow's
+reading on it. ⚠️ **Splitting costs neither.** `5c-ii-a` needs no device at all, and
+`5c-ii-b` becomes takeable the moment the day-8 reading is in.
+
+⚠️ **THE TRIGGER IS THE PART THAT WANTS TO RIDE ALONG**, which is `5c-iv`'s argument
+one level down, reused rather than invented: the cheapest thing a session writing the
+drain can do is add the listener while the file is already open — and then the native
+dependency has been chosen inside a task whose green CI run says nothing about it. The
+spec holds `5c-ii-a`'s row to *"NEVER DECIDES WHEN IT RUNS"* for that reason.
+
+**DECISIONS TAKEN IN THIS SIZING — no migration, no product code, both cheap to
+reverse:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **`5c-ii` splits in two rather than staying one `M/L` sitting** | Eight deliverables over two layers, one of which is unmeasurable today. ⚠️ **The honest counter-argument, recorded rather than skipped:** this project's process is already heavy, and a second split-shaped session in two days is process outgrowing product. It is not one — **the split and its first half ship together**, in this session, so the sizing costs the build nothing | Merge the two rows; delete `docs/checks/specs/5c-ii.split` |
+| **2** | ⚠️ **The seam is WHAT A FLUSH DOES / WHEN ONE RUNS, not "logic and wiring"** | The two halves fail differently and are read by different instruments — and putting `recorded_offline` in the first half is what makes the *"not committed on its first attempt"* rule falsifiable over HTTP instead of being a sentence about a device | Move the trigger into `5c-ii-a`; it is one module |
+
+⚠️ **The split is a SPEC, not a guard** — `docs/checks/specs/5c-ii.split`, the second
+written under the procedure `docs/HANDBOOK.md` records and the ninth split in the
+repository. `app.yml` already matches `docs/checks/specs/**`, so there is nothing to
+wire.
 
 #### ⚠️⚠️ Sized 2026-09-20 — `5c` IS AN `XL`, NOT THE `L` THIS FILE CARRIED, AND IT SPLITS FOUR WAYS
 

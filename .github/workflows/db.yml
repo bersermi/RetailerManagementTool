@@ -194,6 +194,13 @@ on:
       - "app/src/api/approvals.ts"
       - "app/src/api/invites.ts"
       - "app/src/auth/credentials.ts"
+      # ⚠️⚠️ THE FLUSH (plan task `5c-ii-a`). `app/src/api/**` above already
+      # matches `flush.ts`, but the check and its harness are named here for the
+      # rule that has cost this repository a day once already: WHEN AN ASSERTION
+      # GAINS A NEW INPUT, EVERYTHING THAT RUNS IT GAINS THE SAME INPUT. An edit
+      # to the check alone — loosening an assertion, say — must re-run it.
+      - "docs/checks/5c-ii-a-flush-contract.sh"
+      - "docs/checks/5c-ii-a-flush-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -827,6 +834,33 @@ jobs:
       # at the job cap for doing that, which is neither a pass nor a failure.
       - name: Contract — can the approve check still fail (its own seventeen fixtures)
         run: bash docs/checks/5b-iii-d-2-approve-contract-falsify.sh
+
+      # ⚠️⚠️ THE FLUSH (plan task `5c-ii-a`), AND ITS SUBJECT IS A CONTRACT NO
+      # OTHER MODULE IN THIS APP HAS. Every other `src/api/` module writes its
+      # `p_` argument names out as literals; `@/api/flush` BUILDS them, as `p_`
+      # plus the payload's own keys — because `0024` decision 5 stores
+      # `failed_write.payload` as the original call's arguments keyed by argument
+      # name, and `replay_failed_write` reads that object directly. So the prefix
+      # rule IS the contract, and nothing in the typecheck or the Vitest suite
+      # has ever read a migration.
+      #
+      # ⚠️ THE TWO ASSERTIONS NOTHING ELSE HERE CAN MAKE: one uuid sent twice is
+      # ONE sale carrying `already_recorded` — the whole of "retries are free",
+      # measured on the path the flush actually uses — and an OFFLINE write with
+      # a null `occurred_at` is silently stamped with `now()`, which is the harm
+      # `occurredAt`'s `queuedAt` fallback exists to prevent and the reason that
+      # fallback is not a default.
+      - name: Contract — does record_sale answer what a flush sends (plan 5c-ii-a)
+        run: bash docs/checks/5c-ii-a-flush-contract.sh
+
+      # And its own nine fixtures. ⚠️ EVERY ONE OF THEM DRIFTS A NAME IN
+      # `@/api/flush` AND DEMANDS THE CHECK MEET THE 404 A SHOP WOULD — not
+      # merely fail to find the old spelling, which is a check agreeing with
+      # itself. Its first run found exactly that defect in two of the check's
+      # readers, the same shape `5b-i`'s harness found in its sister on ITS first
+      # run: red for the wrong reason.
+      - name: Contract — can the flush check still fail (its own nine fixtures)
+        run: bash docs/checks/5c-ii-a-flush-contract-falsify.sh
 
       - name: Stop
         if: always()
