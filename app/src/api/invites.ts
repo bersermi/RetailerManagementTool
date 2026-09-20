@@ -177,11 +177,65 @@ export function createInviteArgs(workspaceId: string, draft: InviteDraft): Creat
   };
 }
 
-/** `0028` deduplicates too, because `member_location`'s PK would refuse the copy. */
-function dedupe(ids: readonly string[]): string[] {
+/**
+ * `0028` deduplicates too, because `member_location`'s PK would refuse the copy.
+ *
+ * ⚠️ EXPORTED FOR `@/api/approvals`, WHICH SENDS THE SAME ARRAY TO A DIFFERENT
+ * RPC. `approve_request` (`0029:410`) does `array_agg(distinct l)` for the
+ * identical reason, so the two callers of `member_location` normalise the same
+ * way rather than each remembering to.
+ */
+export function dedupe(ids: readonly string[]): string[] {
   const seen: string[] = [];
   for (const id of ids) if (!seen.includes(id)) seen.push(id);
   return seen;
+}
+
+/**
+ * A role and the stores ticked for it — the whole of what `D8` is about, and
+ * the LEAST this file needs in order to answer either question below.
+ *
+ * ⚠️⚠️ IT IS A WIDENING OF `InviteDraft` AND THAT IS THE POINT: `D8` is not an
+ * invite rule, it is a `member_location` rule, and `approve_request` enforces it
+ * too (`0029:407`). An `InviteDraft` satisfies this structurally, so the invite
+ * path is unchanged; the approval path passes the same shape without inventing
+ * an email it does not have.
+ */
+export interface LocationChoice {
+  readonly role: Role;
+  readonly locationIds: readonly string[];
+}
+
+/** What a location choice gets wrong, in the vocabulary both screens use. */
+export type LocationIssue = 'noLocations' | 'locationMissing';
+
+/**
+ * `D8`, AS ONE PREDICATE WITH ONE HOME.
+ *
+ * ⚠️⚠️ BOTH WRITERS OF `member_location` ASK IT, AND A SECOND COPY IS THE DEFECT
+ * THIS REPOSITORY HAS RECORDED SIX OF. `create_invite` refuses a staff invite
+ * with no location (`0028:291`) and `approve_request` refuses a staff approval
+ * with no location (`0029:407`) — the same rule, raised by two functions,
+ * because RLS refuses a location-less staff member's every write SILENTLY and
+ * the app then looks broken (ADR-035 §2.7 `D8`). The client copy exists so a
+ * shopkeeper is told which box is wrong instead of taking a round trip to find
+ * out; what makes the copy safe is that it is ONE copy, and that
+ * `5b-ii-b-1-invite-contract.sh` and `5b-iii-d-2-approve-contract.sh` each drive
+ * their own RPC with the same choices and demand the two agree.
+ *
+ * ⚠️ THE KEYS ARE NEUTRAL AND THE SENTENCES ARE NOT. `ES.invite.issues` and
+ * `ES.approvals.issues` both carry these two keys and word them for the screen
+ * they are on — a shared predicate, two vocabularies, which is the rule
+ * `ES.approvals.close` already states about borrowing another screen's noun.
+ */
+export function checkLocations(
+  choice: LocationChoice,
+  context: { readonly locationCount: number },
+): LocationIssue | null {
+  if (!locationsRequired(choice.role)) return null;
+  if (context.locationCount === 0) return 'noLocations';
+  if (dedupe(choice.locationIds).length === 0) return 'locationMissing';
+  return null;
 }
 
 /** Why this app will not send the form yet. Keys of `ES.invite.issues`. */
@@ -218,11 +272,11 @@ export function checkInvite(
   if (email === '') return 'emailMissing';
   if (!/^[^@\s]+@[^@\s]+$/.test(email)) return 'emailShape';
 
-  if (locationsRequired(draft.role)) {
-    if (context.locationCount === 0) return 'noLocations';
-    if (dedupe(draft.locationIds).length === 0) return 'locationMissing';
-  }
-  return null;
+  // ⚠️ `D8` IS NOT ASKED HERE, IT IS ASKED IN ONE PLACE — `checkLocations`, which
+  // `checkApproval` asks too. The email rules above are `0028`'s alone; the
+  // location rules are shared with `0029` and were inlined here until
+  // `5b-iii-d-2` needed the second caller.
+  return checkLocations(draft, context);
 }
 
 /**
@@ -233,14 +287,19 @@ export function checkInvite(
  * location"* — and it is the owner's standing tie-break: the option that adds no
  * human step. Asking a one-store shopkeeper which store is the question with no
  * right answer that `5b-i` already refused about the location's NAME.
+ *
+ * ⚠️ IT TAKES A `LocationChoice` AND NO LONGER AN `InviteDraft`, so the approval
+ * screen can ask the same question without inventing an email it does not have.
+ * `InviteDraft` satisfies it structurally, which is why `createInviteArgs` above
+ * is unchanged.
  */
 export function resolveLocations(
-  draft: InviteDraft,
+  choice: LocationChoice,
   options: readonly LocationOption[],
 ): readonly string[] {
-  if (!locationsRequired(draft.role)) return [];
+  if (!locationsRequired(choice.role)) return [];
   if (options.length === 1) return [options[0].id];
-  return draft.locationIds;
+  return choice.locationIds;
 }
 
 /** What `create_invite` answers with, once. */

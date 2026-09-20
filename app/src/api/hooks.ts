@@ -24,6 +24,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorMessage } from '@/api/errors';
 import {
+  approveRequest,
   createInvite,
   myAccessRequests,
   pendingAccessRequests,
@@ -39,8 +40,11 @@ import {
 import { nameErrorMessage } from '@/api/displayName';
 import {
   PENDING_REQUESTS_KEY,
+  approveErrorMessage,
   canApprove,
   pendingFrom,
+  type ApprovalDraft,
+  type Approved,
   type PendingRequest,
 } from '@/api/approvals';
 import {
@@ -354,6 +358,66 @@ export function usePendingRequests(): {
     // of 2 is the app telling a shopkeeper she has missed somebody.
     count: entries.length,
   };
+}
+
+/**
+ * Letting one person in.
+ *
+ * ⚠️⚠️ IT INVALIDATES THE QUEUE ITSELF, AND THAT IS THE VISIBLE HALF. The row
+ * she just approved no longer satisfies `0037`'s four-part definition of
+ * pending — `accepted_at` is stamped — so the re-read is what makes the entry
+ * LEAVE the list and the bell's badge count down. Without it an owner is
+ * looking at somebody she has already admitted, and the obvious next thing to
+ * do about that is tap the button again.
+ *
+ * ⚠️ IT INVALIDATES THE ROSTER'S TWO KEYS TOO, for `useRedeemInvite`'s reason
+ * and here it is literal rather than anticipatory: a `workspace_member` row was
+ * just written and the invite it came from now carries an `accepted_by`, which
+ * is exactly the join `rosterFrom` makes. The next person to open Ajustes on
+ * this phone reads her, rather than a shop she is absent from.
+ *
+ * ⚠️ IT DOES NOT INVALIDATE `MY_WORKSPACES_KEY`, WHICH THE OTHER TWO WRITES DO.
+ * Those change the CALLER's own membership and therefore what `guard.ts` does
+ * with her; this changes somebody else's, on a phone that is not hers. A sweep
+ * here would re-read the owner's own shops to learn nothing, on a connection
+ * the pilot store loses routinely.
+ *
+ * ⚠️⚠️ AND `already_approved` IS A SUCCESS, NOT AN ERROR — `useRedeemInvite`'s
+ * rule, and the pilot store is why it is not a nicety. A tap on a bad
+ * connection is tapped again; `0029:381` answers the second one with the
+ * membership rather than raising, so it takes the same path as the first:
+ * invalidate, and let the queue shorten.
+ *
+ * ⚠️ THE LOCAL REFUSAL IS THE SCREEN'S AND NOT THIS HOOK'S — `checkApproval`,
+ * called before `admit`, exactly as `checkInvite` and `checkCredential` are
+ * called by the screens that own them. A key that has to become a sentence is
+ * rendered where the sentences are.
+ */
+export function useApproveRequest() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (draft: ApprovalDraft) => approveRequest(draft),
+    onSuccess: async () => {
+      await Promise.all([
+        queries.invalidateQueries({ queryKey: PENDING_REQUESTS_KEY }),
+        queries.invalidateQueries({ queryKey: MEMBERS_KEY }),
+        queries.invalidateQueries({ queryKey: INVITES_KEY }),
+      ]);
+    },
+  });
+
+  async function admit(
+    draft: ApprovalDraft,
+  ): Promise<{ approved: Approved | null; error: string | null }> {
+    try {
+      const approved = await mutation.mutateAsync(draft);
+      return { approved, error: null };
+    } catch (thrown) {
+      return { approved: null, error: approveErrorMessage(thrown) };
+    }
+  }
+
+  return { admit, busy: mutation.isPending };
 }
 
 // ============================================================================

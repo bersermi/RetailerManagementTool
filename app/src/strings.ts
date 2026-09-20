@@ -559,16 +559,62 @@ export const ES = {
     empty: 'Nadie está esperando entrar.',
     /** The role she asked for. ⚠️ The grammar is here; the label comes off `members.roles`. */
     askedFor: (role: string) => `Quiere entrar como ${role}`,
+
     /**
-     * ⚠️ THE HALF-LOOP SENTENCE, AND IT IS DELIBERATE RATHER THAN A PLACEHOLDER.
-     * `5b-iii-d-1` ships the queue and NOT the act — `approve_request` and the
-     * location picker are `5b-iii-d-2` — so an owner looking at somebody's name
-     * with no way to admit her must be told that is where the app is, not left
-     * to conclude the button is broken. It is the one place this app explains
-     * its own state to a shopkeeper, and it is here because the alternative is
-     * her tapping a row that does nothing.
+     * LETTING HER IN. Plan task `5b-iii-d-2`.
+     *
+     * ⚠️ THE HALF-LOOP SENTENCE THAT LIVED HERE IS GONE, AND ITS DELETION IS
+     * PART OF THIS TASK RATHER THAN A TIDY-UP. `5b-iii-d-1` shipped
+     * `notYet` — *"Por ahora solo puedes ver quién está esperando"* — because
+     * an owner looking at a stranger's name with no way to admit her would
+     * otherwise conclude the button was broken. The button exists now, so the
+     * sentence would be a lie on the screen. Its own comment said this task
+     * would delete it.
      */
-    notYet: 'Por ahora solo puedes ver quién está esperando.',
+    approve: 'Dejar entrar',
+    /**
+     * ⚠️ THE CONFIRM STEP IS A SEPARATE WORD FROM THE ONE THAT OPENS IT. Two
+     * taps say different things — *"this one"* and *"yes"* — and a row whose
+     * button reads the same in both states is a row a shopkeeper cannot tell
+     * the state of without remembering what she just did.
+     */
+    confirm: 'Sí, dejarla entrar',
+    cancel: 'Cancelar',
+    working: 'Dejando entrar…',
+    /** ⚠️ Its own question, worded for a person already in the shop asking to
+     *  be let in — `invite.locationLabel` is asked of somebody not here yet. */
+    locationLabel: '¿En qué sucursal va a trabajar?',
+
+    /** What the row refuses before it calls, and why. See `checkApproval`. */
+    issues: {
+      /**
+       * ⚠️⚠️ `D8`, AND IT IS THE ONE SENTENCE IN THIS FILE STANDING BETWEEN A
+       * STAFF MEMBER AND AN APP THAT SILENTLY REFUSES HER EVERY WRITE. An
+       * approved staff member with no `member_location` row is inside the shop
+       * and can do nothing in it, with no message, because RLS does not explain
+       * itself (ADR-035 §2.7 `D8`). The picker refuses to be empty so that
+       * never happens.
+       */
+      locationMissing: 'Elige al menos una sucursal para esta persona.',
+      /** ⚠️ Unreachable in both pilot shops and written anyway — `invite.issues`'
+       *  recorded argument: the alternative to a sentence is a dead button. */
+      noLocations: 'Esta tienda todavía no tiene sucursales.',
+    },
+
+    /** What the database refuses with, in the two cases it has its own word for. */
+    errors: {
+      /**
+       * ⚠️ ONE SENTENCE FOR BOTH HALVES OF `TD003` — expired (`0029:401`) and
+       * superseded by a newer ask (`0029:396`). They are one act for the person
+       * holding the phone: the row is stale and what fixes it is the other
+       * person asking again. Telling her which of our two bookkeeping states
+       * she is in is bookkeeping we do, not her.
+       */
+      gone: 'Esa solicitud ya no sirve. Pídele que vuelva a escribir el código.',
+      /** ⚠️ `0029:415`. Reaching this means the phone sent a store that is not
+       *  this shop's, so the sentence names the store and not the tick. */
+      location: 'Esa sucursal no es de esta tienda.',
+    },
   },
 
   /**

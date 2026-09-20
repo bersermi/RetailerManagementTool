@@ -162,7 +162,26 @@ on:
       # account created from then on is nameless, silently.
       - "docs/checks/5b-iii-d-1-approvals-contract.sh"
       - "docs/checks/5b-iii-d-1-approvals-contract-falsify.sh"
+      # ⚠️⚠️ AND THE ACT, as of plan task `5b-iii-d-2` — the only WRITE on this
+      # screen, and the one whose central rule §2.11 removed every instrument
+      # for. `D8`: an approved staff member with no `member_location` row is
+      # inside the shop and can do NOTHING in it, because `location_select`
+      # (`0001:506`) is `id in (select my_locations())` and RLS refuses her
+      # every write with no message. The client refuses to send an empty array
+      # and `0029:407` refuses to accept one — two copies of one rule, and this
+      # check is what says they still agree. ⚠️ IT ALSO SIGNS IN AS HER: the
+      # approved staff member must read exactly the store she was given and not
+      # the other, which is the only assertion anywhere here that measures `D8`
+      # on the person it protects rather than on a refusal.
+      # ⚠️ `invites.ts` IS IN THE FILTER because `D8`'s predicate lives there —
+      # `checkLocations`, asked by BOTH `checkInvite` and `checkApproval`, since
+      # `create_invite` and `approve_request` are the two writers of
+      # `member_location`. An edit to that one function moves the fence on two
+      # screens at once.
+      - "docs/checks/5b-iii-d-2-approve-contract.sh"
+      - "docs/checks/5b-iii-d-2-approve-contract-falsify.sh"
       - "app/src/api/approvals.ts"
+      - "app/src/api/invites.ts"
       - "app/src/auth/credentials.ts"
 
 # A later push to the same branch makes an in-flight run irrelevant.
@@ -707,6 +726,36 @@ jobs:
       # at the job cap for doing that, which is neither a pass nor a failure.
       - name: Contract — can the approvals check still fail (its own thirteen fixtures)
         run: bash docs/checks/5b-iii-d-1-approvals-contract-falsify.sh
+
+      # ⚠️⚠️ THE ACT (plan task `5b-iii-d-2`), AND `D8` IS WHY THIS STEP MATTERS
+      # MORE THAN ITS SIBLINGS. §2.11 keeps rendering out of scope, so no suite
+      # in this repository can see a location picker quietly defaulting to
+      # empty — and the person who pays for that is the approved staff member,
+      # who is let into the shop and then silently refused every write she
+      # makes. This step drives the SERVER half of that fence (`0029:407`
+      # refuses an empty array for a staff row), asserts the refusal wrote
+      # nothing, and then SIGNS IN AS HER to prove the store she was given is
+      # the only one she can read.
+      # ⚠️ IT ALSO CLOSES THE GAP `5b-iii-d-1`'s check names in its own header —
+      # that an approved request LEAVES the queue — which was unassertable until
+      # this module existed.
+      # ⚠️ AND IT MEASURES THE OWNER FENCE AS A PAIR: a manager, a cashier, a
+      # stranger, another shop's owner and the requester herself are each
+      # refused the SAME live request the owner then approves. A `42501` from a
+      # function that is simply broken is also a `42501`.
+      - name: Contract — does approve_request answer what the app sends (plan 5b-iii-d-2)
+        run: bash docs/checks/5b-iii-d-2-approve-contract.sh
+
+      # And its own seventeen fixtures. ⚠️ EIGHT MUTATE THE PROBE rather than the
+      # app, for the reason every harness above gives. ⚠️ `W9` AND `W11` ARE THE
+      # TWO TO READ: the first sends a store where the check means to send NONE,
+      # so assertion 3 must be measuring the empty array specifically; the second
+      # reads the staff member's view as the OWNER, who sees both stores, so
+      # assertion 4 cannot be green for the wrong person.
+      # ⚠️ AND NONE OF THEM RESETS THE DATABASE — a sibling harness was CANCELLED
+      # at the job cap for doing that, which is neither a pass nor a failure.
+      - name: Contract — can the approve check still fail (its own seventeen fixtures)
+        run: bash docs/checks/5b-iii-d-2-approve-contract-falsify.sh
 
       - name: Stop
         if: always()
