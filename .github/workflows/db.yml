@@ -180,6 +180,17 @@ on:
       # screens at once.
       - "docs/checks/5b-iii-d-2-approve-contract.sh"
       - "docs/checks/5b-iii-d-2-approve-contract-falsify.sh"
+      # ⚠️⚠️ THE SESSION READING (plan `5c.5`), and its filter is WIDER than
+      # its own files on purpose. It is the only thing here that would notice
+      # a GoTrue or `auth-js` bump changing whether a dropped connection signs
+      # a shopkeeper out — so the lockfile and `config.toml` are inputs to it
+      # in a way they are not to a contract check, and `supabase.ts` is where
+      # the client options it reasons about are set.
+      - "docs/checks/5c-5-refresh-under-loss.sh"
+      - "docs/checks/5c-5-refresh-under-loss-falsify.sh"
+      - "docs/checks/lib/5c-5-refresh-under-loss.mjs"
+      - "app/src/lib/supabase.ts"
+      - "package-lock.json"
       - "app/src/api/approvals.ts"
       - "app/src/api/invites.ts"
       - "app/src/auth/credentials.ts"
@@ -190,6 +201,66 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  # ===========================================================================
+  # ⚠️⚠️ ITS OWN JOB, AND THAT IS A MEASUREMENT RATHER THAN TIDINESS. The
+  # `reset` job below already runs 12m27s against a `timeout-minutes: 15` cap,
+  # and this reading takes about two minutes on its own because the cooldown it
+  # measures is sixty seconds long and cannot be hurried from outside the
+  # library. Bolting it on would put that job at ~14.5 minutes — and this
+  # repository has already had a harness CANCELLED at the cap, which is neither
+  # a pass nor a failure and is the worst of the three to merge on. Jobs run in
+  # parallel, so this costs wall-clock nothing.
+  #
+  # WHAT IT GUARDS (plan task `5c.5`): that a refresh whose REPLY is lost does
+  # not sign a shopkeeper out. That is a claim about GoTrue and `auth-js`, not
+  # about our code, so NOTHING ELSE HERE WOULD NOTICE a version bump changing
+  # it — and the first symptom would be a pilot shopkeeper signed out mid-sale
+  # with no explanation. The pilot store is offline a lot; this is not
+  # hypothetical there.
+  # ===========================================================================
+  auth-session:
+    name: session survives a lost refresh reply
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      # ⚠️ `auth` AND `db` ARE THE ONLY SERVICES THIS NEEDS, and the instrument
+      # talks to GoTrue through the API gateway. Bringing up the rest would be
+      # a minute of start-up for containers nothing here touches.
+      - name: Start Postgres and GoTrue
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      # `@supabase/supabase-js` is a root-workspace dependency; the instrument
+      # resolves it from the repo root because ESM ignores NODE_PATH.
+      - name: Install workspace dependencies
+        run: npm ci
+
+      - name: Reading — does a session survive a refresh whose reply is lost (plan 5c.5)
+        run: bash docs/checks/5c-5-refresh-under-loss.sh
+
+      # ⚠️ AND CAN THE READING STILL FAIL? Most fixtures feed the check a
+      # CRAFTED reading rather than re-running the two-minute instrument —
+      # what is being falsified there is the JUDGE. One fixture mutates the
+      # real instrument, because the one thing a crafted reading cannot test
+      # is whether the instrument itself is honest about what it dropped.
+      - name: Reading — can it still fail (its own fixtures)
+        run: bash docs/checks/5c-5-refresh-under-loss-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
   reset:
     name: supabase db reset
     runs-on: ubuntu-latest
