@@ -635,10 +635,11 @@ function Invitar() {
     const draft = {
       email,
       role: chosenRole,
-      locationIds: resolveLocations(
-        { email, role: chosenRole, locationIds },
-        locations.options,
-      ),
+      // ⚠️ THE EMAIL IS NOT PASSED BECAUSE `resolveLocations` NEVER READ IT.
+      // `5b-iii-d-2` widened it to a `LocationChoice` so the approval screen
+      // could ask the same question without inventing an address it does not
+      // have — one home for `D8`, two callers.
+      locationIds: resolveLocations({ role: chosenRole, locationIds }, locations.options),
     };
     const problem = checkInvite(draft, { locationCount: locations.options.length });
     setIssue(problem);

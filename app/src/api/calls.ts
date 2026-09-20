@@ -30,8 +30,13 @@
 import { supabase } from '@/lib/supabase';
 import { isContractMismatch } from '@/api/errors';
 import {
+  APPROVE_REQUEST,
   PENDING_ACCESS_REQUESTS,
+  approveArgs,
+  approvedFrom,
   pendingRequestsArgs,
+  type ApprovalDraft,
+  type Approved,
   type PendingRequestRow,
 } from '@/api/approvals';
 import {
@@ -271,6 +276,33 @@ export async function pendingAccessRequests(workspaceId: string): Promise<Pendin
   );
   if (error) throw reported(error);
   return (data ?? []) as PendingRequestRow[];
+}
+
+/**
+ * Lets one person in (5b-iii-d-2) — and it is the only call in this app that
+ * writes a `workspace_member` row somebody else will use.
+ *
+ * ⚠️⚠️ IT WRITES TWO TABLES IN ONE STATEMENT AND BOTH INSERT POLICIES ARE
+ * OWNER-ONLY (`0001`). That is why the fence one module up is `canApprove` and
+ * not `canInvite`: `create_invite` is manager-and-above because an invite is a
+ * row nobody can use until it is redeemed, and this is the membership itself.
+ * `0029`'s decision 6.
+ *
+ * ⚠️⚠️ AND IT IS IDEMPOTENT, WHICH IS NOT A NICETY ON THIS CONNECTION. The pilot
+ * store is offline a lot; a tap that appears to do nothing is tapped again.
+ * `0029:381` answers the second one with the membership and `already_approved`,
+ * rather than raising — so `approvedFrom` treats it as the success it is, and
+ * the screen must not invent a refusal the database does not have.
+ *
+ * ⚠️ THE LOCATION ARRAY IS `D8` AND IS NOT A CONVENIENCE. An approved staff
+ * member with no `member_location` row writes NOTHING, silently, for the rest of
+ * her time in the shop; `checkApproval` is what stops this being called with an
+ * empty one, and `0029:407` raises `22023` if it ever is.
+ */
+export async function approveRequest(draft: ApprovalDraft): Promise<Approved> {
+  const { data, error } = await supabase.rpc(APPROVE_REQUEST, approveArgs(draft));
+  if (error) throw reported(error);
+  return approvedFrom(data);
 }
 
 /**

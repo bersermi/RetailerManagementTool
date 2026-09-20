@@ -14,10 +14,12 @@
 // are separate functions — a person reading one is standing somewhere the other
 // person never is.
 //
-// ⚠️⚠️ AND THIS HALF WRITES NOTHING. `approve_request` is `5b-iii-d-2`, with
-// the location picker `D8` refuses to leave empty. The bell shows who is
-// waiting and the owner cannot yet let them in, which is deliberate and is what
-// keeps this sitting falsifiable by one contract check over real HTTP.
+// ⚠️⚠️ AND IT IS NOW BOTH HALVES OF THE LOOP, IN THAT ORDER. Everything above
+// `THE ACT` is the QUEUE (`5b-iii-d-1`) and reads; everything below it is
+// `approve_request` (`5b-iii-d-2`) and writes. The file holds both because they
+// are one RPC pair over one table and one screen — and the seam is marked
+// rather than implied, because the two halves obey OPPOSITE parse rules and
+// `pendingFrom` / `approvedFrom` each say why at their own definition.
 //
 // ⚠️ THE ORDER OF THE TWO LINES IS THE OWNER'S RULING OF 2026-09-19 AND IS THE
 // INVERSE OF THE ROSTER'S. `linesOf` below is where it lives, and it lives
@@ -26,7 +28,15 @@
 // repository can see. As a pure function it is one the suite reads.
 // ============================================================================
 
+import { apiErrorMessage } from '@/api/errors';
+import {
+  checkLocations,
+  dedupe,
+  locationsRequired,
+  type LocationChoice,
+} from '@/api/invites';
 import { ROLES, nonBlank, type Role } from '@/api/members';
+import { ES } from '@/strings';
 
 /** The RPC's name, written once (`R13`). */
 export const PENDING_ACCESS_REQUESTS = 'pending_access_requests';
@@ -208,4 +218,251 @@ export function linesOf(entry: PendingRequest): {
   readonly subtitle: string | null;
 } {
   return { header: entry.email, subtitle: entry.name };
+}
+
+// ============================================================================
+// THE ACT. Plan task `5b-iii-d-2`, and it is the half of this screen that
+// WRITES — the only write in `5b-iii-d`, and the reason that task was split in
+// two on 2026-09-19.
+//
+// ⚠️⚠️ `D8` IS THE WHOLE OF WHY THE PICKER EXISTS, AND NO SUITE IN THIS
+// REPOSITORY CAN SEE IT. An approved staff member with no location writes
+// NOTHING: `member_location` is what `my_locations()` reads, RLS refuses every
+// write that falls outside it, and it refuses SILENTLY — so on a phone it looks
+// exactly like the app being broken, to somebody who has no way to find out
+// otherwise (ADR-035 §2.7 `D8`). §2.11 keeps rendering out of scope, so a
+// control that quietly defaulted to an empty set would be caught by nothing
+// here. `checkApproval` is that rule as a value the suite can read, and
+// `0029:407` is the server raising `22023` for it if this ever lets one past.
+//
+// ⚠️ IT WRITES TWO TABLES AND BOTH INSERT POLICIES ARE OWNER-ONLY (`0001`),
+// which is why `canApprove` is fenced at `owner` and not at `manager` — asymmetric
+// with `canInvite` one screen over, on purpose, and `0029`'s decision 6 is the
+// argument.
+//
+// ⚠️ IT SHIPS NO MIGRATION. `approve_request` has been applied since `0029`.
+// ============================================================================
+
+/** The RPC's name, written once (`R13`). */
+export const APPROVE_REQUEST = 'approve_request';
+
+/** The two `p_` names `0029` declared, and the only place they are written (`R13`). */
+export interface ApproveRequestArgs {
+  readonly p_request_id: string;
+  readonly p_location_ids: readonly string[];
+}
+
+/**
+ * The entry and the stores ticked for her — what the row's controls collect.
+ *
+ * ⚠️ IT CARRIES THE WHOLE ENTRY AND NOT JUST AN ID, because the ROLE is what
+ * decides whether a location is required and the role is the requester's, not
+ * something this screen chooses. `0029:407` reads it off the ROW for the same
+ * reason — its decision 7, *"on the ROW's role, not on a constant"* — and a
+ * client that kept its own copy would be a second answer to a question the
+ * database already answers.
+ */
+export interface ApprovalDraft {
+  readonly entry: PendingRequest;
+  readonly locationIds: readonly string[];
+}
+
+/** The draft as a `LocationChoice`, which is all `D8` ever needed. */
+export function choiceOf(draft: ApprovalDraft): LocationChoice {
+  return { role: draft.entry.role, locationIds: draft.locationIds };
+}
+
+/**
+ * The draft as `approve_request`'s two arguments.
+ *
+ * ⚠️ A MANAGER APPROVAL SENDS `[]` WHATEVER WAS TICKED, which is
+ * `createInviteArgs`' rule for `createInviteArgs`' reason: `0029:434` overwrites
+ * it — *"a manager or owner is granted every location by role, and a row here
+ * would outlive a demotion"* — so sending one would be this app asking for
+ * something the database then discards, and two rows nobody can explain later.
+ *
+ * ⚠️⚠️ AND THE NON-STAFF BRANCH IS UNREACHABLE ON THIS PATH TODAY, WHICH IS
+ * WRITTEN DOWN RATHER THAN DISCOVERED AGAIN. `request_access` takes no role
+ * argument — `0029`'s `S4`, because a role argument is a way to claim somebody
+ * else's invite — and it inserts without naming the column, so
+ * `workspace_invite.role`'s default of `'staff'` (`0002:374`) decides. EVERY
+ * entry this screen can show is therefore staff, and `D8`'s picker is never
+ * skipped. The branch is kept because `0029:434` keeps the mirror of it, and
+ * assertion 9 of `docs/checks/5b-iii-d-2-approve-contract.sh` goes red the day
+ * that stops being true — which is the day this branch stops being dead.
+ *
+ * ⚠️ IT DEDUPLICATES because `0029:410` does `array_agg(distinct l)` and
+ * `member_location`'s primary key would refuse the copy. One normalisation, on
+ * the way in, agreeing with the one in the body — `dedupe` is shared with the
+ * invite path rather than written twice.
+ */
+export function approveArgs(draft: ApprovalDraft): ApproveRequestArgs {
+  return {
+    p_request_id: draft.entry.requestId,
+    p_location_ids: locationsRequired(draft.entry.role) ? dedupe(draft.locationIds) : [],
+  };
+}
+
+/** Why this screen will not send the approval yet. Keys of `ES.approvals.issues`. */
+export type ApprovalIssueKey = keyof typeof ES.approvals.issues;
+
+/**
+ * ⚠️⚠️ THE FENCE THAT REFUSES TO BE EMPTY, AND IT IS THE ONE DECISION IN THIS
+ * TASK NO INSTRUMENT IN THIS REPOSITORY CAN SEE ON A SCREEN.
+ *
+ * `0029:407` raises `22023` for a staff approval with no location and the
+ * migration's own comment says why: *"Staff write only where `member_location`
+ * puts them, and RLS refuses the rest silently."* This is that refusal said in
+ * Spanish BEFORE the call is made — not because the round trip is expensive, but
+ * because a shopkeeper who has ticked nothing should be told which box is empty
+ * rather than handed a SQLSTATE's translation.
+ *
+ * ⚠️ THE PREDICATE IS `checkLocations` AND IS NOT WRITTEN HERE. It is the same
+ * rule `checkInvite` asks, because `create_invite` and `approve_request` are the
+ * two writers of `member_location` and `D8` is about that table, not about
+ * either RPC. A second copy is the defect this repository has recorded six of.
+ *
+ * ⚠️ `locationCount` IS HOW "NOTHING IS ASKED IN A ONE-STORE SHOP" IS EXPRESSED,
+ * `checkInvite`'s arrangement: C1.5 says both pilot shops have exactly one
+ * location, so the picker is never rendered there and `resolveLocations` fills
+ * it in. A staff approval with nothing ticked is therefore only an ERROR in a
+ * shop that had a choice to make.
+ */
+export function checkApproval(
+  draft: ApprovalDraft,
+  context: { readonly locationCount: number },
+): ApprovalIssueKey | null {
+  return checkLocations(choiceOf(draft), context);
+}
+
+/**
+ * What `approve_request` answers with.
+ *
+ * ⚠️ `alreadyApproved` IS A SUCCESS AND NOT AN ERROR, which is
+ * `already_redeemed`'s rule one module over and matters more here: the pilot
+ * store is offline a lot, a tap that appears to do nothing is tapped again, and
+ * `0029:381` answers the second one with the membership rather than raising. A
+ * screen that invented a refusal the database does not have would be telling a
+ * shopkeeper her own successful approval failed.
+ */
+export interface Approved {
+  readonly requestId: string;
+  readonly memberId: string | null;
+  readonly role: Role;
+  /** How many `member_location` rows were written. `0` for a manager, by design. */
+  readonly locationCount: number;
+  readonly alreadyApproved: boolean;
+}
+
+/**
+ * `approve_request`'s `jsonb` as the screen's value.
+ *
+ * ⚠️⚠️ IT THROWS RATHER THAN RETURNING A PARTIAL, AND THAT IS THE OPPOSITE OF
+ * `pendingFrom` TWENTY LINES UP — deliberately, and this file now holds both
+ * rules because it holds both kinds of call. `pendingFrom` parses a READ of a
+ * list, where an unreadable row costs one entry; this parses a WRITE that has
+ * already happened, where a partial would be a screen quietly claiming an
+ * outcome it could not read. `issuedFrom` and `outcomeFrom` are the precedent.
+ *
+ * ⚠️ AND THE THROW IS SAFE TO RETRY, which is not true of `issuedFrom`. A token
+ * that cannot be parsed is lost forever; an approval that cannot be parsed has
+ * still been WRITTEN, and the next tap answers `already_approved`. That is what
+ * makes "refuse and let her tap again" the honest handling rather than a gamble.
+ *
+ * ⚠️ `member_id` IS `string | null` BECAUSE THE IDEMPOTENT BRANCH CAN HAVE NO
+ * ROW TO NAME. `0029:376` looks the membership up by `requested_by`, and a
+ * request stamped `accepted_at` whose member row was later deleted comes back
+ * with `null` there. Nothing on this screen renders it; it is parsed so that the
+ * shape stays the whole of what `0029` returns, in one place (`R13`).
+ */
+export function approvedFrom(data: unknown): Approved {
+  if (typeof data !== 'object' || data === null) {
+    throw new Error(`${APPROVE_REQUEST} returned ${typeof data}, expected an object`);
+  }
+  const row = data as Record<string, unknown>;
+  const requestId = row.request_id;
+  const role = row.role;
+
+  if (typeof requestId !== 'string' || requestId === '') {
+    throw new Error(`${APPROVE_REQUEST} returned no request_id`);
+  }
+  if (!(ROLES as readonly string[]).includes(String(role))) {
+    throw new Error(`${APPROVE_REQUEST} returned an unknown role: ${String(role)}`);
+  }
+
+  return {
+    requestId,
+    memberId: typeof row.member_id === 'string' && row.member_id !== '' ? row.member_id : null,
+    role: role as Role,
+    // ⚠️ ABSENT IS `0`, AND THE IDEMPOTENT BRANCH IS WHERE THAT HAPPENS:
+    // `0029:381` returns no `location_count` at all, because the second tap
+    // wrote nothing. Treating a missing count as unknown would put a hedge on a
+    // screen for the ordinary case on a bad connection.
+    locationCount: typeof row.location_count === 'number' ? row.location_count : 0,
+    // ⚠️ ABSENT IS `false`, NOT UNKNOWN — `issuedFrom`'s rule for
+    // `replaced_pending`. The field is always in `0029`'s result on both paths.
+    alreadyApproved: row.already_approved === true,
+  };
+}
+
+/**
+ * ⚠️⚠️ THE REQUEST IS GONE, AND `0029` RAISES ONE CODE FOR BOTH WAYS IT CAN BE.
+ *
+ * `TD003` is raised for a request that EXPIRED (`0029:401`) and for one
+ * SUPERSEDED by a newer ask (`0029:396`). They are one sentence on this screen
+ * because they are one act for the shopkeeper: the row in front of her is stale,
+ * and what fixes it is the person asking again. Splitting them would mean
+ * explaining our own bookkeeping to somebody who cannot act on the difference.
+ *
+ * ⚠️ IT IS THE SAME SQLSTATE `@/api/redeem` AND `@/api/requests` ALREADY READ,
+ * and that is the argument FOR a workflow code rather than against it: `TD003`
+ * means one thing — *this credential is no longer live* — on all three paths,
+ * which is exactly what `42501` does not do.
+ */
+export const REQUEST_GONE = 'TD003';
+
+/**
+ * ⚠️ THE STORE IS NOT THIS SHOP'S. `0029:415` raises `22023` when a ticked
+ * location does not belong to the workspace or is inactive, and ALSO for the
+ * empty staff array `checkApproval` refuses locally. Reaching here therefore
+ * means the phone let something through — `checkInvite`'s recorded argument
+ * about the same code — so the sentence names the store rather than the tick.
+ */
+export const BAD_LOCATION = '22023';
+
+function codeOf(error: unknown): string | null {
+  if (typeof error !== 'object' || error === null) return null;
+  const code = (error as { code?: unknown }).code;
+  return typeof code === 'string' ? code : null;
+}
+
+/** Did the database refuse this because the request is no longer live? */
+export function isRequestGone(error: unknown): boolean {
+  return codeOf(error) === REQUEST_GONE;
+}
+
+/**
+ * What the shopkeeper is told when `approve_request` refuses.
+ *
+ * ⚠️⚠️ `42501` IS DELIBERATELY LEFT TO `apiErrorMessage`, AND THIS SCREEN IS THE
+ * ONE PLACE IN THIS APP WHERE THAT IS THE RIGHT ANSWER RATHER THAN A GUESS.
+ * `0029` raises it twice — for a request that is not this caller's to approve
+ * (`0029:369`), and for a caller with no session at all (`0029:346`) — and BOTH
+ * of the first kind are unreachable from this screen: `0037` hands a non-owner
+ * an EMPTY LIST, so there is no row to tap, and `canApprove` never opens the
+ * queue for one. What is left is the session, and *"tu sesión se cerró"* is
+ * exactly what that is. ⚠️ So the `request_access` overload parked in the
+ * decisions block does NOT acquire a second guessing client here; `/bienvenida`
+ * remains the only module reading that code for a meaning it cannot verify.
+ *
+ * ⚠️ AND THE TWO SENTENCES BELOW ARE `ES.approvals`' AND NOT `ES.api.errors`' —
+ * `inviteErrorMessage`'s rule and its reason: that table's values are keys, so a
+ * sentence typed at a call site is a typecheck failure, and these are one RPC's
+ * refusals rather than an API-wide code. The offline and session-ended sentences
+ * stay the ones every other screen gives.
+ */
+export function approveErrorMessage(error: unknown): string {
+  if (isRequestGone(error)) return ES.approvals.errors.gone;
+  if (codeOf(error) === BAD_LOCATION) return ES.approvals.errors.location;
+  return apiErrorMessage(error);
 }
