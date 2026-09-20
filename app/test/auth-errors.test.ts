@@ -131,4 +131,20 @@ describe('the library has exactly one caller', () => {
       .map(([rel]) => rel);
     expect(callers).toEqual(['api/calls.ts']);
   });
+
+  // ⚠️⚠️ THE SECOND STORAGE ENGINE, PINNED THE SAME WAY — ADDED AT 5c-i. There
+  // are now two things in this app that reach SQLite: `lib/supabase.ts`
+  // installs it as the session's `localStorage`, and `lib/outboxDb.ts` opens
+  // the queue's own database file. ⚠️ A THIRD ENTRY HERE IS A SCREEN THAT
+  // OPENED THE QUEUE FOR ITSELF, which is the same failure as a screen calling
+  // `supabase.rpc` and it is worse: §2.6 makes the outbox the only write path,
+  // so a second opener is a sale written by a route that never learned about
+  // `pending`, `flushing` or `dead`. It goes the way it always goes — one
+  // screen, in a hurry, reading one table for itself.
+  it('reaches expo-sqlite in the session store and the outbox, and nowhere else', () => {
+    const openers = sources()
+      .filter(([, text]) => /from 'expo-sqlite|import 'expo-sqlite/.test(text))
+      .map(([rel]) => rel);
+    expect(openers).toEqual(['lib/outboxDb.ts', 'lib/supabase.ts']);
+  });
 });
