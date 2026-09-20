@@ -158,6 +158,13 @@ fixture() {
   fi
 }
 
+# ⚠️ COUNTED, NOT TYPED. The closing line used to say "all 7 splits"; adding
+# `5c.split` on 2026-09-20 made that sentence false with nothing going red, which
+# is the stale-copy defect this repository has recorded nine of — in the file
+# whose whole job is to prove a claim is still true.
+SPEC_COUNT=0
+for spec in "$SPECS_DIR"/*.split; do SPEC_COUNT=$((SPEC_COUNT+1)); done
+
 # --- E0. the projection is equivalent to the full corpus, for every spec -----
 echo "═══ E0 the rows-only projection"
 for spec in "$SPECS_DIR"/*.split; do
@@ -323,7 +330,11 @@ fi
 echo
 # ⚠️ RULE 4 FOR THIS FILE. The floor is mode-aware because `--quick` runs one
 # deliverable per spec on purpose; the number CI must see is the full one.
-if (( QUICK == 1 )); then MIN=75; else MIN=305; fi
+# ⚠️ RAISED 75/305 → 80/400 on 2026-09-20 when `5c.split` took the suite from 342
+# fixtures to 409. The floor is a LOWER BOUND and goes stale only in the safe
+# direction — a deleted spec still trips it — but a floor left 100 fixtures below
+# the real count lets a whole spec go silently unrun, which is rule 4 half-applied.
+if (( QUICK == 1 )); then MIN=80; else MIN=400; fi
 if (( fails == 0 && ran < MIN )); then
   echo "FAIL: only $ran fixtures ran, expected at least $MIN — fixtures were skipped,"
   echo "      which is how a falsifier reports success having proved nothing."
@@ -331,7 +342,7 @@ if (( fails == 0 && ran < MIN )); then
 fi
 if (( fails == 0 )); then
   echo "all $ran fixtures behaved as recorded — the engine still fails, for the stated"
-  echo "reason, on every defect class against every deliverable of all 7 splits."
+  echo "reason, on every defect class against every deliverable of all $SPEC_COUNT splits."
   exit 0
 fi
 echo "$ran fixtures ran, $fails failed."
