@@ -82,6 +82,22 @@ export function subscribe(watcher: (online: Online) => void): Stop {
 }
 
 /**
+ * Something was just queued — drain it if the link is there.
+ *
+ * ⚠️⚠️ THIS IS THE ONLINE PATH'S OWN TRIGGER, AND WITHOUT IT THE ONLINE PATH IS
+ * THE WORSE OF THE TWO. A reconnect drains and a wake drains; a sale rung up on
+ * a working connection by a cashier who never leaves the app has nothing to
+ * trigger it. ⚠️ **Its caller arrives with the slide-to-commit at `5f`** — see
+ * that row in `docs/PLAN.md`, which carries the obligation — because
+ * `queueWrite` returns a row rather than a promise (C10.3) and there is no
+ * screen yet to call it from. ⚠️ Calling it while offline or before `start()`
+ * is a safe no-op, so a screen never has to ask.
+ */
+export function queued(): void {
+  take({ kind: 'queued' });
+}
+
+/**
  * Start the signal and the drain it triggers.
  *
  * ⚠️ IDEMPOTENT, AND THAT MATTERS ON A ROUTER. React 19 in development mounts

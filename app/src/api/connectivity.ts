@@ -148,6 +148,16 @@ export type Wake =
   | { readonly kind: 'due' }
   | { readonly kind: 'foreground' }
   | { readonly kind: 'background' }
+  /**
+   * ⚠️⚠️ SOMETHING WAS JUST PUT IN THE QUEUE. Without this the ONLINE path is
+   * worse than the offline one: a reconnect drains, a wake drains, and a sale
+   * rung up on a working connection by a cashier who never leaves the app has
+   * NOTHING to trigger it — it would sit until the link flapped or the phone
+   * was backgrounded. ⚠️ Its caller arrives with the slide-to-commit at `5f`;
+   * `queueWrite` returns a row rather than a promise (C10.3), so the trigger
+   * has to be told rather than awaited.
+   */
+  | { readonly kind: 'queued' }
   /** A drain finished. `@/api/flush`'s own word for how it stopped. */
   | { readonly kind: 'flushed'; readonly stop: FlushStop };
 
@@ -233,6 +243,14 @@ export function step(conn: Conn, wake: Wake, now: number): Step {
       const awake = { ...conn, foreground: true, dueAt: null };
       if (conn.online !== true) return STAY(awake);
       return { conn: awake, flush: true, changed: false };
+    }
+
+    case 'queued': {
+      // ⚠️ AN ENQUEUE HAPPENS IN THE FOREGROUND BY DEFINITION — a person slid
+      // the control. What it cannot be sure of is the link, and offline is the
+      // case the reconnect already owns.
+      if (conn.online !== true) return STAY(conn);
+      return { conn: { ...conn, dueAt: null }, flush: true, changed: false };
     }
 
     case 'background':

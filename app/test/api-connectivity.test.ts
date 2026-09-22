@@ -208,6 +208,36 @@ describe('the reconnect is what drains the queue', () => {
   });
 });
 
+describe('an enqueue is a trigger too, or the online path is the worse one', () => {
+  it('drains immediately when a write is queued on a working link', () => {
+    // ⚠️⚠️ A reconnect drains and a wake drains. A sale rung up on a working
+    // connection by a cashier who never leaves the app has neither, and would
+    // sit in the queue until the link flapped.
+    const queued = step(connected(), { kind: 'queued' }, 5_000);
+    expect(queued.flush).toBe(true);
+    expect(queued.changed).toBe(false);
+  });
+
+  it('does nothing when a write is queued with no link — the reconnect owns that', () => {
+    const off = run(connected(), [offline(0), [{ kind: 'settle' }, 2_000]]).conn;
+    const queued = step(off, { kind: 'queued' }, 3_000);
+    expect(queued.flush).toBe(false);
+    expect(queued.conn).toEqual(off);
+  });
+
+  it('does not drain before anything has read the network', () => {
+    expect(step(UNKNOWN, { kind: 'queued' }, 0).flush).toBe(false);
+  });
+
+  it('restarts the ladder rather than racing the retry that is already owed', () => {
+    const owing = step(connected(), { kind: 'flushed', stop: 'failed' }, 0).conn;
+    expect(retryAt(owing)).toBe(5_000);
+    const queued = step(owing, { kind: 'queued' }, 1_000);
+    expect(queued.flush).toBe(true);
+    expect(retryAt(queued.conn)).toBeNull();
+  });
+});
+
 describe('the app-state wake', () => {
   it('flushes on foreground when the link is up, without waiting for a reading', () => {
     // ⚠️⚠️ A phone that was online the whole time it sat in a pocket produces a
