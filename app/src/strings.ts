@@ -618,6 +618,34 @@ export const ES = {
   },
 
   /**
+   * ⚠️⚠️ THE TWO SENTENCES THE OFFLINE PATH SAYS OUT LOUD, AND THEY ARE THE
+   * ONLY TWO IT EVER WILL (C10.1, C10.2, plan task `5c-iv-a`).
+   *
+   * ⚠️ `notice` IS NOT `ES.api.errors.offline`, AND THE TWO MUST NOT BE MERGED.
+   * That one — *"Sin conexión a internet. Intenta de nuevo en un momento."* —
+   * is what a FAILED CALL says to somebody who is waiting on it, and the second
+   * sentence is an instruction. This one is a standing mark in the corner of a
+   * working screen: the app is not asking her to do anything, it is admitting
+   * something about itself. C10.1 gives it word for word, and adding *"intenta
+   * de nuevo"* to a notice that never blocks anything would be telling a shop
+   * to retry a sale that was never at risk.
+   *
+   * ⚠️⚠️ AND `restored` DOES NOT SAY HOW MANY — C10.2 in the owner's own words.
+   * A count is the app talking about its own plumbing: the number is meaningful
+   * to us and to nobody standing behind a counter, and a *"3 operaciones"* that
+   * ever disagrees with what she remembers selling is worse than no number at
+   * all. It also needs no acknowledgement, which is why there is no verb here.
+   */
+  offline: {
+    /** C10.1, word for word. It never blocks and never interrupts. */
+    notice: 'Sin conexión a internet',
+    /** C10.2, word for word. It fades on its own. */
+    restored: 'Tus últimas operaciones ya se guardaron.',
+    /** The label on the tap that brushes the notice away for this screen. */
+    dismiss: 'Entendido',
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

@@ -1,5 +1,6 @@
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 
 import { QueryProvider } from '@/api/QueryProvider';
 import { useMembership } from '@/api/hooks';
@@ -12,6 +13,7 @@ import {
   routeMemory,
 } from '@/navigation/lastScreen';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
+import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { DensityProvider } from '@/theme/DensityProvider';
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
@@ -46,10 +48,20 @@ export default function RootLayout() {
         <DensityProvider>
           <Gate />
           <Drain />
-          <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
-            <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
-          </Stack>
+          {/* ⚠️ THE STACK IS WRAPPED SO THE OFFLINE SURFACES CAN SIT OVER IT
+              (5c-iv-a). They are absolutely positioned and `box-none`, so they
+              overlay every screen without the screens knowing — which is what
+              C10.1's "surfacing on screen changes" needs, and what putting the
+              notice inside each screen would have cost: every screen having to
+              remember. ⚠️ They are AFTER the Stack deliberately: a sibling
+              earlier in the tree renders underneath it. */}
+          <View style={{ flex: 1 }}>
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
+            </Stack>
+            <OfflineSurfaces />
+          </View>
         </DensityProvider>
       </QueryProvider>
     </AuthProvider>
