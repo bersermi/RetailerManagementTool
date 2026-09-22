@@ -35,7 +35,10 @@ import { placeholderGrossCentavos } from '@/wiring';
 //
 // WHAT IS LEFT HERE: the money formatter at whatever size the mode says — the
 // one thing `5a-ii` could only claim on a machine and can be LOOKED AT on a
-// phone — the way into Ajustes, and as of `5b-iii-d-1` the BELL.
+// phone — the way into Ajustes, the BELL as of `5b-iii-d-1`, and as of `5d-ii`
+// a THIRD temporary row: the door into Productos. ⚠️ That door says in its own
+// comment that `5d-iv` deletes it, which is the arrangement the two blocks
+// above used before `5b-ii-a` cleaned them up.
 //
 // ⚠️⚠️ THE BELL IS IN THE BODY AND NOT IN THE NAVIGATOR'S HEADER, AND THIS FILE
 // ALREADY RECORDED WHY BEFORE IT EXISTED. `Ajustes` below refused a `headerRight`
@@ -70,6 +73,7 @@ export default function Inicio() {
       </Text>
 
       <Solicitudes />
+      <ProductosDoor />
       <Ajustes />
     </View>
   );
@@ -94,7 +98,7 @@ function Fila({
   onPress,
   right,
 }: {
-  icon: 'bell-outline' | 'cog-outline';
+  icon: 'bell-outline' | 'cog-outline' | 'package-variant-closed';
   label: string;
   onPress: () => void;
   right?: ReactNode;
@@ -193,6 +197,43 @@ function Insignia({ count }: { count: number }) {
         {String(count)}
       </Text>
     </View>
+  );
+}
+
+/**
+ * THE WAY INTO PRODUCTOS — AND IT IS TEMPORARY, WHICH IS WHY IT SAYS SO HERE.
+ * Plan task `5d-ii`.
+ *
+ * ⚠️⚠️ WHOEVER BUILDS `5d-iv` DELETES THIS BLOCK. §2.8's Inicio — as área 13
+ * amended it — puts the day's takings above anything tappable, then Vender,
+ * Comprar and Desperdicio as large cards, then rows to Productos and
+ * Proveedores. This is that row, arriving a task early and in the middle of a
+ * placeholder, exactly the arrangement `5a-ii`'s two temporary blocks used
+ * before `5b-ii-a` deleted them — comment included, because the one that is not
+ * written down is the one that becomes permanent.
+ *
+ * ⚠️ A ROW AND NOT A FIFTH TAB. C12.1 caps the bar at four: five icon-plus-word
+ * tabs across 390 px gives each 78 px and one of the words is *Desperdicio*.
+ * That was settled by drawing it (área 13, 2026-09-15), and `src/navigation/
+ * tabs.ts` carries the same sentence.
+ *
+ * ⚠️ NO FENCE ON IT, AND THAT IS MEASURED RATHER THAN ASSUMED.
+ * `product_variant_select` and `price_list_select` admit any member of the shop
+ * (`0002`), the manager fence is on INSERT and UPDATE, and a cashier already
+ * sees every variant and its price on Vender (C3.1) — so hiding this door would
+ * protect nothing and cost a fence to maintain.
+ * `docs/checks/5d-i-catalog-contract.sh` is where that stays true.
+ *
+ * ⚠️ `router.push` AND NOT `replace`, like the two rows beside it: you come
+ * back from a screen you went into.
+ */
+function ProductosDoor() {
+  return (
+    <Fila
+      icon="package-variant-closed"
+      label={ES.catalog.title}
+      onPress={() => router.push('/productos')}
+    />
   );
 }
 

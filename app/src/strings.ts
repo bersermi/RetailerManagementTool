@@ -718,6 +718,35 @@ export const ES = {
     noPrice: '—',
     /** C3.10's separator: `$35.00 / kg`. The price is never shown alone. */
     per: '/',
+
+    /** The room's name — the module word, never translated (see this file's header). */
+    title: 'Productos',
+    /**
+     * The way back out. ⚠️ *Volver* and not *Cerrar*: this is a screen you went
+     * INTO, where `Ajustes` and `Solicitudes` are sheets you came back FROM.
+     */
+    back: 'Volver',
+
+    /** The search box's placeholder — and its label to a screen reader. */
+    search: 'Buscar producto',
+    /**
+     * ⚠️ A WORD AND NOT A CROSS. `clearButtonMode` is iOS-only and C1.1 puts two
+     * Androids among the pilot's four phones; C12.1 refuses an icon with no word
+     * beside it, so the control that works on both is a labelled one.
+     */
+    clear: 'Limpiar',
+
+    /**
+     * ⚠️⚠️ THREE EMPTY STATES AND THEY ARE THREE DIFFERENT FACTS. A shop with a
+     * hundred products that mistypes a name must not be told its catalog is
+     * empty — she is the merchant C8.2 describes, whose catalog is deliberately
+     * incomplete and who is being encouraged to add to it. And a read that has
+     * not landed is neither: saying *"no products"* for the second before the
+     * rows arrive is a screen that lies on every cold open.
+     */
+    loading: 'Cargando productos…',
+    empty: 'Todavía no hay productos.',
+    noMatches: 'Ningún producto coincide con esa búsqueda.',
   },
 
   /**

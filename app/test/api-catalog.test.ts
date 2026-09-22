@@ -12,6 +12,7 @@ import {
   UNIT_COLUMNS,
   VARIANT_COLUMNS,
   catalogFrom,
+  emptyLineKey,
   initials,
   isoDay,
   matches,
@@ -453,6 +454,39 @@ describe('unitFactorsFrom — the map 5c-iv-b refused to hard-code', () => {
   it('is a plain record of decimal strings at scale 6', () => {
     for (const value of Object.values(FACTORS)) {
       expect(value).toMatch(/^\d+\.\d{6}$/);
+    }
+  });
+});
+
+describe('emptyLineKey — the three things an empty list means', () => {
+  // ⚠️ THE READ HAS NOT LANDED. Saying "no products" for the second before the
+  // rows arrive is a screen that lies on every cold open.
+  it('says it is loading while the read is out, typed or not', () => {
+    expect(emptyLineKey(true, '')).toBe('loading');
+    expect(emptyLineKey(true, 'pechuga')).toBe('loading');
+  });
+
+  // ⚠️⚠️ THE TWO THAT MUST NOT COLLAPSE. A shopkeeper with a hundred products
+  // who mistypes a name must not be told her catalog is empty — she is the
+  // merchant C8.2 describes, and the sentence would be false.
+  it('tells an empty catalog apart from an empty search', () => {
+    expect(emptyLineKey(false, '')).toBe('empty');
+    expect(emptyLineKey(false, 'tornillos')).toBe('noMatches');
+  });
+
+  // ⚠️ WHITESPACE IS NOT A SEARCH: `matches` treats a blank box as matching
+  // everything, so a box holding three spaces is not "nothing found".
+  it('treats a box of spaces as an empty box', () => {
+    expect(emptyLineKey(false, '   ')).toBe('empty');
+  });
+
+  // ⚠️ IT RETURNS A KEY AND NEVER A SENTENCE — the shape `@/api/errors` uses,
+  // and what keeps every Spanish word in one file (`R4`).
+  it('returns a key ES.catalog actually has', () => {
+    for (const typed of ['', 'x']) {
+      for (const loading of [true, false]) {
+        expect(ES.catalog[emptyLineKey(loading, typed)]).toBeTypeOf('string');
+      }
     }
   });
 });
