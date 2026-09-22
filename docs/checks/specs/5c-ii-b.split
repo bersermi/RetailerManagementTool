@@ -1,0 +1,49 @@
+# 5c-ii-b — when a flush runs. Sized M and split in two 2026-09-22, on the day its
+# gate cleared and before a line of it was written.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, the property `5c.split` and `5c-ii.split` both
+# assert one level up: step 5 ships none, and every function either child would
+# call has been applied for weeks. EACH_CHILD_SAYS asserts it POSITIVELY, because
+# merging is automated and a child that quietly grows a migration is not a
+# reviewable mistake but a deployed one.
+#
+# THE SEAM, IN ONE LINE: `5c-ii-b-1` is THE READING and `5c-ii-b-2` is THE CODE
+# THAT READING DECIDES. That is not "install it" and "use it". The open question
+# is not only which of `expo-network` and `@react-native-community/netinfo`
+# reports usably, but WHAT THE SIGNAL CARRIES — ADR-035 §2.6 calls mobile data
+# "a fallback whose 1–2 minute figure is background flush cadence", so a cadence
+# that varies by connection type is live, and the iOS Simulator cannot answer it
+# (it shares the host's network stack and has no cellular radio). If the answer
+# is yes, `-2` reads a signal with a TYPE on it; if no, a boolean. Writing that
+# module before the reading is in means writing it twice.
+#
+# ⚠️⚠️ THE INSTALL BELONGS WITH THE READING, NOT WITH THE CODE. Putting the
+# dependency choice in `-1` and the REASON for it in `-2` is the arrangement this
+# project has refused twice: a choice defended by a green run that never asked the
+# question. `-1` ends with two tables of observed values and the loser DELETED.
+SPLIT_ID="5c-ii-b"
+SPLIT_GROUPS=( "5c-ii-b|5c-ii-b-1 5c-ii-b-2" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW — the rule 5c.split learned from fixture S5: a
+  # case-tolerant class that matches two spellings inside one row defeats the
+  # removal fixture and the guard is weaker than it reads.
+  #
+  # ⚠️ THE FIRST ROW'S REGEX IS ALSO `5c-ii.split`'s REQUIRED SENTENCE on the
+  # parent. That is deliberate and not a duplicate home: there it is a PHRASE the
+  # parent must keep, here it is a DELIVERABLE that must land in exactly one
+  # child. The reading is the one thing in this split no check can perform, so
+  # both instruments point at it.
+  "the reading on both instruments — expo-network against netinfo|MEASURED ON BOTH INSTRUMENTS|5c-ii-b-1"
+  "whether the signal needs a connection TYPE at all|wifi versus cellular|5c-ii-b-1"
+  "connectivity as ONE signal the whole app reads|Connectivity as ONE signal|5c-ii-b-2"
+  "the flush on reconnect|flush on reconnect|5c-ii-b-2"
+  "the app-state wake|app-state wake|5c-ii-b-2"
+  "the 90 seconds 5c.5 measured, as the cadence to design against|90 seconds|5c-ii-b-2"
+)
+PHRASES=(
+  "5c-ii-b-1|F|It writes NO product code|The reading is separable only while it stays a reading. A session that adds the listener while the dependency is being installed has taken -2 back into the sitting this split exists to avoid — the connectivity choice and the code that depends on it merging in one PR, with the choice defended by a green run that never asked the question. It is also the seam's other half: 5c-ii-a's row is held to NEVER DECIDES WHEN IT RUNS for the same reason one level up."
+  "5c-ii-b-2|F|READS THE SIGNAL, NEVER THE LIBRARY|ONE module owns the native import. 5c-iv draws its notice from the same fact this task drains on, so two subscriptions to the same library is how the banner and the drain come to disagree about whether the shop is online — and §2.11 keeps rendering out of scope, so no suite in this repository would see it. The plan row is the only home this constraint has."
+)
+EACH_CHILD_SAYS=(
+  "I|ships NO migration|Both halves are client-only and every function either one calls is already applied. A POSITIVE assertion on purpose: merging is automated, so a child that quietly grew a migration is not a reviewable mistake but a deployed one, repaired only by a fix-forward migration."
+)
