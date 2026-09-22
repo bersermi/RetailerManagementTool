@@ -13,6 +13,7 @@ import {
   routeMemory,
 } from '@/navigation/lastScreen';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
+import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { DensityProvider } from '@/theme/DensityProvider';
 
@@ -61,6 +62,13 @@ export default function RootLayout() {
               <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
             </Stack>
             <OfflineSurfaces />
+            {/* ⚠️ C11.9's banner overlays every screen too (5c-iv-b), and it
+                sits at the TOP while the surfaces above own the bottom —
+                two absolutely-positioned strips at one edge is a collision
+                nothing in this repository could see. ⚠️ It draws for a
+                manager and above only, and fences before it reads: a
+                cashier's phone never opens the queue for it. */}
+            <DeadLetterBanner />
           </View>
         </DensityProvider>
       </QueryProvider>

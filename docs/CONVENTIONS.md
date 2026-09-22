@@ -440,7 +440,7 @@ list: `supabase.rpc`/`supabase.from` in `api/calls.ts` and nowhere, and
 That list growing a third entry is the boundary going, and it goes the way it
 always goes: one screen, in a hurry, reading one table for itself.
 
-⚠️⚠️ **THAT BLOCK NOW PINS FIVE LISTS, AND FOUR OF THEM ARE THE ONLY INSTRUMENT
+⚠️⚠️ **THAT BLOCK NOW PINS SIX LISTS, AND FIVE OF THEM ARE THE ONLY INSTRUMENT
 THEIR RULE HAS.** As of `5c-ii-b-2` it also holds **`expo-network` to
 `lib/connectivityMonitor.ts`**, **`@/api/connectivity` to one driver**
 — ⚠️ **value imports only, since `5c-iv-a`: an `import type` line is erased by the
@@ -449,7 +449,12 @@ red on an erased line is one the next person loosens all the way** — **`AppSta
 to two owners** (the session store's auto-refresh and the monitor's wake — different
 subjects over one core API, so it is pinned as an equality at two rather than argued
 down to one), and **`@/lib/flushRunner` to one caller**, because the app's one flusher
-is what makes `@/api/flush`'s single-flight gate mean anything. Each was falsified by
+is what makes `@/api/flush`'s single-flight gate mean anything. ⚠️ **And as of `5c-iv-b`,
+`@/lib/outboxDb` to TWO READERS** — `lib/flushRunner.ts`, which drains the queue, and
+`offline/DeadLetterBanner.tsx`, which counts it. That is the list one layer out from
+`expo-sqlite`: the banner never opens the database itself, and a third entry here is the
+failure §2.6 cannot survive — a route writing a sale through a file that never learned
+about `pending`, `flushing` or `dead`. Each was falsified by
 grafting the import onto a module that does not own it; each turns exactly its own
 assertion red.
 

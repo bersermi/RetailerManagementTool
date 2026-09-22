@@ -643,6 +643,37 @@ export const ES = {
     restored: 'Tus últimas operaciones ya se guardaron.',
     /** The label on the tap that brushes the notice away for this screen. */
     dismiss: 'Entendido',
+
+    /**
+     * C11.9 — THE DEAD-LETTER BANNER (5c-iv-b), AND IT IS THE ONE SURFACE IN
+     * THIS APP THAT SAYS HOW MANY.
+     *
+     * ⚠️⚠️ THAT LOOKS LIKE A CONTRADICTION OF `restored` ABOVE AND IS NOT, SO
+     * IT IS WRITTEN DOWN RATHER THAN LEFT TO BE RE-ARGUED. The toast's count is
+     * refused because it is shown to EVERYBODY about writes that are FINE — the
+     * app talking about its own plumbing to a person at a counter. This one is
+     * shown only to a manager (§2.7, 1.3a, C10.5) about writes that will never
+     * land without us, and the count is the entire reason it exists: it is what
+     * turns *"something went wrong"* into a thing somebody can ask us to fix.
+     *
+     * ⚠️ IT NAMES NO CAUSE AND NO DOCUMENT. No `error_code`, no list, no
+     * *"venta"* or *"compra"* — C10.5 keeps the rejected write itself out of the
+     * shop, and [[users-dont-do-bookkeeping]] is why the sentence stops at how
+     * many and how much.
+     *
+     * ⚠️ AND IT ENDS BY ASKING FOR US, WHICH IS THE ONLY TRUE NEXT STEP.
+     * `replay_failed_write` is manager-fenced on the server (`0030`) and run by
+     * hand, one row at a time (ruling of 2026-09-05) — so a button here would
+     * be a promise this app cannot keep.
+     */
+    deadLetters: {
+      count: (n: number) =>
+        n === 1 ? 'Una operación no se guardó' : `${n} operaciones no se guardaron`,
+      /** ⚠️ The amount arrives already rendered by `formatMXN` (`R5`). */
+      value: (amount: string) => `Valor: ${amount}`,
+      hint: (n: number) =>
+        n === 1 ? 'Avísanos para recuperarla.' : 'Avísanos para recuperarlas.',
+    },
   },
 
   /**

@@ -230,6 +230,119 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅ **`5c-iv-b` IS DONE AS OF 2026-09-22 — THE QUEUE HAS A PRICE, AND `5c` IS
+CLOSED. `5b.9` IS THE NEXT TASK, AND IT IS THE ONLY OPEN ROW IN STEP 5 THAT
+SHIPS A MIGRATION.** No migration here. **The only number in this app priced on
+the device that the server also prices.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: THE COUNT IS NEVER LOSSY AND THE PESO FIGURE
+CAN BE, AND SAYING SO IS THE WHOLE DESIGN.** A dead document is dead — that is
+not a question a payload can fail to answer. What it was WORTH is, and a sum
+that quietly omits a line it could not read is a smaller number **indistinguishable
+on screen from a correct one**. So `QueueValue.complete` withholds the figure
+instead, the count stands alone, and nothing is ever understated. §2.6's own
+sentence about the downgrade — *"stock stays true; margin goes quiet"* — is the
+same shape one layer up.
+
+**THE FIVE RULES THAT WOULD HAVE GONE IN WRONG SILENTLY, each now an assertion:**
+
+| | The rule | What getting it wrong costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **A purchase line is NET and a sale line is GROSS** — §2.5 rule 2, *direction follows the document* | Reading a purchase through the sale key understates every dead purchase **by the IVA on it**, and nothing on the shelf looks wrong. The two keys are `unit_price_net_per_base` and `unit_price_gross_per_base`, and `0018` and `0016` are where they come from |
+| **2** | ⚠️⚠️ **The quantity is converted AND ROUNDED to the thousandth before it is priced** — `round(qty_display * factor_to_base, 3)`, half-up away from zero | That is `0016`–`0020`'s own line, and Postgres's `round(numeric)` is the rule `Math.round` gets wrong on a negative tie. ⚠️ **Every factor `0001` seeds is a whole number, so this is a no-op on today's data and a skipped round would pass every realistic case** — the assertion uses a fractional factor the `numeric(14,6)` column permits, which is the only way to falsify it at all |
+| **3** | ⚠️ **An absent `qty_display_unit` is the variant's BASE unit, factor exactly `1`** — `0001`'s `unit_base_is_identity`, and the `coalesce` every `record_*` does | It is the one case that is exact **with no map and no server read**, which is why the banner already prices something today rather than nothing |
+| **4** | ⚠️⚠️ **An unreadable line poisons its whole document** rather than being skipped | Two readable lines out of three is the smaller-number failure above, arriving one level down |
+| **5** | ⚠️ **A transfer is worth NOTHING and is KNOWN to be** | `0020` carries no price because moving stock between a shop's own locations is not a document with a value on it. *Priceless by design* and *could not be read* must not collapse into one answer — if they do, one dead transfer withholds the figure for every sale beside it |
+
+⚠️⚠️ **AND THE ONE THING THIS TASK REFUSED TO BUILD IS THE ONE THAT LOOKED
+CHEAPEST: A COPY OF `0001`'s TEN UNITS.** The unit table is closed — *"users
+pick from this list; they never define their own factors"* — so hard-coding
+`kg = 1000` here would work, forever, and would be the **sixth two-homes-for-one-claim
+defect this repository has recorded.** `5f` must already hold those factors to
+price a basket with no signal (§2.6, C10.3), so the app gets a second copy the
+moment that screen exists. ✅ **The map is an ARGUMENT instead** (`R3`: a module
+takes its world as an argument), `NO_UNIT_FACTORS` is empty today because
+**nothing in this app enqueues yet**, and ⚠️ **the obligation to pass it is
+written into `5f`'s row rather than left to be noticed** — `R9`, and the second
+line that row now owes after `queued()`.
+
+⚠️ **THE FENCE WAS RE-DERIVED RATHER THAN INHERITED, WHICH `5c`'s SIZING
+EXPLICITLY ASKED FOR.** `0024`'s decision 8 fences the `failed_write` TABLE at
+**`owner`**, because it hands over `payload`, which *"can carry COST for any
+kind"* — and §2.7 makes cost **manager-and-above at the loosest**. This banner
+hands over no payload at all: a count and one figure, no line, no variant, no
+location, no `error_code`. **So the looser fence is the one §2.7 actually
+names**, 1.3a's *"cost is manager-and-above; quantity is everyone"* settles the
+figure, and C10.5 refuses to show a rejected write to the person at the counter
+at all. ⚠️ **The fence is read BEFORE the queue is**: a cashier's phone never
+opens the outbox for this banner.
+
+⚠️⚠️ **THE DISMISSAL IS THE OPPOSITE OF `5c-iv-a`'s, DELIBERATELY, AND IT IS THE
+ONLY REASON *"least invasive"* IS TRUE.** A dismissal there dies with the screen,
+because being offline comes and goes and a shop that brushed the notice away at
+9am must still be told at 4pm. **A dead letter does not go away on its own** —
+recovery is ours, by hand, one row at a time (ruling of 2026-09-05) — so
+re-offering it on every navigation nags a manager about something she has
+already done everything she can about. **It is keyed to the COUNT: silence until
+the number changes, and a fourth dead letter says it again.** ⚠️ A count that
+FALLS does not re-arm it — a replay takes rows out of the queue, and nothing new
+has happened to tell anybody about.
+
+⚠️ **WHERE IT SITS WAS DECIDED RATHER THAN DEFAULTED.** `OfflineSurfaces` owns
+the **bottom** of every screen; this owns the **top**, behind `insets.top`. **Two
+absolutely-positioned strips at one edge is a collision no check in this
+repository could ever see** — §2.11 keeps layout out of scope — so it is settled
+here, in the file and in this entry, rather than discovered on a phone.
+
+⚠️ **AND IT RE-READS ON A SCREEN CHANGE AND NOWHERE ELSE, WHICH IS A CHOICE.**
+Nothing in this app announces *"a flush just dead-lettered a row"*, and adding
+that signal belongs to `@/lib/connectivityMonitor`, whose one job `5c-ii-b-2`
+deliberately kept to the link. C11.9 says the dead-letter control is *"not a
+priority for the owner at this point"*, a manager navigates constantly, and a
+poll would be a synchronous SQLite read on a timer for a row that is usually not
+there.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/offline/deadLetters.ts` | the pure module — which rows count, the two price keys, the unit conversion, the document sum, `complete`, the fence and the dismissal |
+| `app/src/offline/DeadLetterBanner.tsx` | a `View`, a `Text` and no judgement — the second non-route component in this app, and the outbox's second reader |
+| `app/src/app/_layout.tsx` | mounted after `OfflineSurfaces`, at the top of every screen, so no screen has to remember |
+| `app/src/strings.ts` | three sentences, and ⚠️ **the one surface in this app that says HOW MANY** — which is not a contradiction of C10.2's toast and is written down as such in the file |
+| `app/test/offline-dead-letters.test.ts` | 28 assertions over every rule above |
+| `app/test/auth-errors.test.ts` | a **sixth** pinned list: the outbox has exactly two readers |
+| `docs/PLAN.md`, `docs/HANDBOOK.md`, `docs/CONVENTIONS.md` | this entry, the two rows, `5f`'s second owed line, and `R12`'s list count |
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` — **611
+assertions over 28 files, up from 582 over 27** — plus `npm run typecheck` and
+`bash docs/checks/conventions-gate.sh` (16 groups over **53** source and 28 test
+files, up from 51/27). **Eight hand-run falsification fixtures**: seven grafted
+into the machine (a purchase read as gross, an unknown unit assumed to be base,
+an unreadable line skipped, a transfer read as unpriceable, the quantity carried
+in unrounded, the fence opened to everybody, the figure shown while incomplete)
+and one grafted onto `src/api/errors.ts` to prove the new pinned list looks.
+**Each turned exactly its own assertions red and nothing else.** ⚠️ **And the split of
+`## Position` below was verified the way the two before it were**: the live file and
+the new archive were reassembled and the result was **byte-identical** to the plan as
+it stood before the cut. ⚠️⚠️ **There is
+deliberately NO contract check over real HTTP: this task ships no migration,
+calls no RPC and touches no schema** — and ⚠️ **not one of those 610 assertions
+has seen a pixel. The instrument for how this looks is the owner's phone
+(`R9`).**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no schema, and every one
+of them is as cheap to reverse tomorrow as it is today:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **The peso figure is withheld when any dead document could not be priced; the count is always shown** | An understated sum looks exactly like a correct one. [[users-dont-do-bookkeeping]]: she is never shown *"approximately"* and never shown our internal state | One predicate |
+| **2** | **Every kind is priced by its own document's authoritative figure** — a sale and a waste at gross, a purchase at net, a transfer at nothing | §2.5 rule 2. The device holds no tax rate without a server read, so a purchase CANNOT be shown gross here — and the net is the figure printed on the supplier's invoice, which is the one the owner reads anyway | One table |
+| **3** | **The dismissal is keyed to the count and is not remembered across launches** | See above. A fresh launch is a fresh chance to notice, and storing it would be a second thing on disk that can disagree with the queue | One condition |
+| **4** | **No state colour, again** | §2.11 fences `atencion` to C3.17 and `error` to what DESTROYS. A dead letter has already happened and nothing is about to break because of it | Two tokens |
+| **5** | **It sits at the top; the offline surfaces keep the bottom** | Two strips at one edge is a collision nothing here can see | Two lines |
+| **6** | **`$0.00` is never shown** | A queue of dead transfers is worth exactly nothing, and `$0.00` reads as a broken screen — C3.17 gives that number a different meaning everywhere else in this app | One comparison |
+
 ✅✅ **`5c-iv-a` IS DONE AS OF 2026-09-22 — THE APP ADMITS IT QUIETLY, AND THE
 SIGNAL SHIPPED THIS MORNING HAS ITS FIRST READER. `5c-iv-b` IS THE NEXT TASK, AND
 IT IS THE LAST CHILD OF `5c`.** No migration. **The first thing in this project a
@@ -621,717 +734,6 @@ simulator does not simply replace the phone and its row now says so**: a simulat
 shares the host's network and has no cellular radio, so it can answer *"what do these
 two libraries report when the link drops"* and cannot answer *"wifi versus cellular"*.
 **Whether that distinction is needed is `5c-ii-b`'s first question.**
-
-✅✅ **`5c-iii` IS DONE AS OF 2026-09-20 — A WRITE THAT CAN NEVER LAND NOW
-LEAVES THE QUEUE, AND THE SHELF FOLLOWS IT. `5c-ii-b` IS THE NEXT TASK, AND IT
-CANNOT BE STARTED UNTIL TOMORROW.** No migration, no screen, and still nothing a
-person can see — but this is the first half of `5c` that **changes the ledger**.
-
-**The next task first, because it is the part that changes what a cleared
-session does.** `5c-iv` became takeable the moment this closed, and it is NOT
-marked next: it DRAWS the connectivity signal `5c-ii-b` produces, so taking the
-chrome first is the exact ordering the split's own argument refuses. `5c-ii-b`
-is therefore next and ⚠️ **it is gated on an instrument, not on code** — the
-`5a-iv-d` day-8 reading due **2026-09-21**, already in the ⏳ DATES OWED block,
-and opening the app before it restarts the measurement. **It is takeable the
-moment that reading is in**, which is tomorrow.
-
-**What shipped, four files plus two checks:**
-
-| | |
-|---|---|
-| `app/src/api/deadletter.ts` | the eleventh `src/api/` module — the classification, `record_failed_write`'s name and its seven `p_` arguments, the payload handed over UNTOUCHED, and which kinds the server downgrades |
-| `app/test/api-deadletter.test.ts` | 26 assertions over the classification and the two readers |
-| `app/src/api/flush.ts` | a fifth port and one branch: report, then reject, then **carry on draining** |
-| `app/src/api/outbox.ts`, `app/src/lib/outboxDb.ts` | `workspaceId` on a queued write, and SQLite schema **version 2** — the first walk of the migration path `5c-i` built before anything needed it |
-| `docs/checks/5c-iii-dead-letter-contract.sh` | 9 assertion groups over REAL HTTP against a real shop, as a real signed-in owner |
-| `docs/checks/5c-iii-dead-letter-contract-falsify.sh` | 11 fixtures — six drift a NAME and meet a 404, five drift a JUDGEMENT and meet a database that disagrees |
-
-⚠️⚠️ **TWO CODES WERE MEASURED RATHER THAN REASONED ABOUT, AND A CAREFUL SESSION
-WOULD HAVE GOT BOTH WRONG. THEY ARE THE TASK.**
-
-**The first: `TD002` — *"not enough stock"* — is the most permanent-looking
-refusal in the schema and it is CLEARED BY THE VERY NEXT RETRY.** `0017` and
-`0020` both guard the availability check with `if v_enforce and not v_offline`,
-and the flush sets `recorded_offline` from `attempts > 1`. So the second attempt
-skips the very check that raised. ⚠️ **Measured, not argued**: the same uuid
-with the same lines was refused `TD002` online and came back `200` with a
-`sale_id` offline, seconds apart. Dead-lettering it would have downgraded a sale
-that was about to be recorded IN FULL — the stock reconciled and the money gone
-from Números, silently.
-
-**The second: `42501` is §2.6's own example of a PERMANENT failure and is also
-what an expired session looks like app-wide** (`@/api/errors` maps it to *"tu
-sesión se cerró"*). Dead-lettering the second reading is a whole queue
-downgraded the first time a token goes stale in a shop with no signal. ⚠️ **They
-are distinguishable and that was measured**: a refusal raised inside the
-function is `42501`/403; an unusable token is `PGRST301`/401 and never reaches
-the body. Assertion 5 drives both and reads the codes back, so the day that
-stops being true, the reason the entry exists goes red instead of going quiet.
-
-⚠️ **AND THE SHELL TRAP FROM THIS MORNING BIT AGAIN, IN THE SAME SHAPE AND IN A
-NEW FILE.** A JSON body written inline inside a nested `$( )` brace-expands into
-two arguments and PostgREST answers `PGRST102`. The check's first run therefore
-reported that *"a deleted variant raises PGRST102, which the app retries"* — a
-shell bug wearing a schema bug's clothes, and one that, believed, would have put
-`PGRST102` on the permanent list as a real code. **Every body is now built into
-a variable first**, and the comment saying why is in the file.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no seed, all client-side
-and all cheap to reverse. ⚠️ The first three are the ones worth his eye:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | ⚠️⚠️ **THE CLASSIFICATION IS AN ALLOW-LIST OF PERMANENT CODES — AN UNRECOGNISED FAILURE RETRIES** | The two ways to be wrong are not symmetrical. A transient failure dead-lettered is a sale downgraded that would have arrived on its own: the ledger moves, the margin goes quiet, and nobody is told. A permanent one retried forever is a sale that never lands and, with the drain stopping at the first transient failure, everything behind it blocked — bad, **and lossless**: the row is still on the phone in full, and `5c-iv`'s banner is about to count it. ⚠️ It is `landedFrom`'s own rule one level out: an unreadable reply is a retry there, an unrecognised refusal is a retry here | One `default:` branch |
-| **2** | ⚠️⚠️ **THERE IS NO ATTEMPT CEILING, AND ITS ABSENCE IS THE DECISION** | *"Dead-letter after N tries"* is the obvious way to stop an unrecognised failure blocking the queue forever, and on **this** shop it is the wrong one: [[pilot-store-is-offline-a-lot]], offline is the normal write path (§2.6), and a ceiling counts a week of no signal as a permanent rejection — downgrading a shelf that is perfectly fine because the wifi was out. **It turns the commonest condition in the shop into the rarest and most expensive outcome** | Add a counter |
-| **3** | ⚠️⚠️ **A QUEUED WRITE CARRIES ITS OWN `workspace_id`, WHICH IS A NEW SQLITE COLUMN** — rather than the flush reading whatever shop is open | `record_failed_write` is the ONLY function on this path that takes a workspace, and it validates it; no `record_*` takes one at all. `0001:317` admits many shops per person from day one, so *"the current shop"* files a sale queued in shop A against shop B **and downgrades B's shelf for a sale that never happened there**. ⚠️ Nothing on any phone is lost: the queue is provably empty today, because no screen enqueues anything until `5f`–`5h` | A fifth port and one `alter table` |
-| **4** | **REPORT FIRST, REJECT SECOND — a failed report is an ordinary retry** | `dead` is terminal from the device (§2.6: replay is manual), so a row marked dead before the server confirmed is a sale that exists nowhere: off the queue, off the ledger, with no `failed_write` row for §2.10's nightly check to find. **The only outcome in the whole queue that loses a sale outright** | Swap two statements |
-| **5** | **A dead-lettered row does NOT stop the drain** | It has LEFT the queue, so there is nothing behind it to block. `5c-ii-a`'s decision 1 named the cost of stopping — *"a row that can never succeed blocks every write behind it"* — and this is the half that removes the row rather than the half that loosens the rule | One `return` instead of a `continue` |
-| **6** | ⚠️ **`reportedFrom` THROWS where `landedFrom` RETURNS**, on a reply it cannot read | Opposite choices for opposite failures. An unreadable reply from `record_sale` read as *"did not land"* costs a free retry; the same reply from `record_failed_write` read as *"filed"* marks the row `dead` with nothing holding it | One branch |
-| **7** | **The dead letter names its store explicitly, and for a transfer that is the ORIGIN** | `record_failed_write` defaults the location out of `payload->>'location_id'`, which a transfer's payload does not have (`0020` takes `from_`/`to_`). A dead-lettered transfer would land with a NULL location, and §2.10's nightly check reads `failed_write` by workspace and kind to price unrecorded revenue: a row it cannot attribute to a store is a row nobody can act on | One key in a list |
-| **8** | **`PGRST202` and `XX000` are TRANSIENT, deliberately** | Both are OURS — an app/schema disagreement and a *"should be impossible"* raise — and both are fixed by a deploy or a migration, at which point the retry works. Dead-lettering them converts one bad release into a silently downgraded ledger **in every shop at once**, and `record_failed_write` may be equally unreachable anyway | Two entries |
-
-⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** the
-SQLite half again. `@/lib/outboxDb` imports a native module, so no node process
-loads it — the `alter table`, the `user_version` bump and the dropped row with
-no workspace are asserted by nothing and argued in the file instead. ⚠️ **The
-first thing that will exercise them is a device**, and the earliest that can
-happen is the re-deploy already dated **2026-09-27**. ⚠️⚠️ **AND THE APP WAS NOT
-OPENED ON EITHER INSTRUMENT** — the dated obligations above are a reading, and
-opening the app restarts the measurement.
-
-**Evidence: 530 Vitest assertions over 25 files (was 493 over 24), of which 26
-are the new classification and 11 the new drain branch;
-`docs/checks/5c-iii-dead-letter-contract.sh` — 9 assertion groups over real HTTP
-against a live database, with its own anti-vacuity floor;
-`5c-iii-dead-letter-contract-falsify.sh` — 11 fixtures, ten red for the stated
-reason and one deliberately green; `conventions-gate.sh`'s 16 groups over 47
-source and 25 test files (was 46 and 24) plus its own 30 fixtures;
-`handbook-agreement.sh`'s 5 groups and `plan-handover.sh`'s 11, both re-run
-because this session edited both files they read; `split-coverage.sh` over nine
-specs; a typecheck of the whole workspace.**
-
-✅✅ **`5c-ii` WAS SPLIT IN TWO AND `5c-ii-a` IS DONE, BOTH ON 2026-09-20 — A
-QUEUED SALE CAN NOW BE SENT, AND SENDING IT TWICE IS STILL ONE SALE. `5c-iii` IS
-THE NEXT TASK.** No migration, no screen, and still nothing a person can see.
-
-**The split first, because it is the part that changes what the next session
-takes.** `5c-ii` was an `M/L` covering two jobs — **what a flush DOES** and
-**WHEN one runs** — and the second could not be started at all on 2026-09-20.
-Choosing between `expo-network` and `@react-native-community/netinfo` is a
-reading on two devices (the sizing of `5c` said so in terms), and **both iOS
-instruments were unavailable**: `xcrun simctl` is not installed on this Mac
-(Command Line Tools only, checked rather than assumed) and the owner's iPhone is
-holding the `5a-iv-d` day-8 reading due **2026-09-21**, which opening the app
-restarts. ⚠️ **Taking the whole row today meant either guessing the dependency
-off two changelogs or spending tomorrow's reading on it.** The split costs
-neither: `5c-ii-a` needs no device, and `5c-ii-b` is takeable the moment the
-day-8 reading is in.
-
-**What shipped, four files plus two checks:**
-
-| | |
-|---|---|
-| `app/src/api/flush.ts` | the tenth `src/api/` module: the drain order, single-flight, `recorded_offline`, the `occurred_at` fallback, the RPC per kind, and the whole loop over four injected ports |
-| `app/test/api-flush.test.ts` | 31 assertions over that loop — §2.11 names the outbox state machine as a thing a client unit test may pin, and the drain is that machine being driven |
-| `app/src/api/calls.ts` | one new wrapper, `sendQueuedWrite` — four `record_*` functions behind one call, because a flush does not know its kind until it reads the row |
-| `app/src/lib/flushRunner.ts` | the only module that binds the four ports to the real queue and the real client, and the app's ONE flusher |
-| `docs/checks/5c-ii-a-flush-contract.sh` | 9 assertion groups over REAL HTTP against a real shop, as a real signed-in owner |
-| `docs/checks/5c-ii-a-flush-contract-falsify.sh` | 9 fixtures, every one of which drifts a name in `@/api/flush` and demands the check meet the 404 a shop would |
-
-⚠️⚠️ **THE FINDING THAT WOULD HAVE COST A DAY IN NÚMEROS AND NOTHING ANYWHERE
-ELSE: AN OFFLINE WRITE WITH NO `occurred_at` IS SILENTLY RE-DATED TO THE MOMENT
-OF THE FLUSH.** `0025`'s offline branch is `greatest(least(coalesce(p_occurred_at,
-v_now), v_now), v_now - interval '72 hours')` — so the *omission* of a time is
-not refused, it is **defaulted to `now()`**, and a sale rung up at 09:00 without
-signal and drained at 14:00 counts on the wrong day with nothing raising on
-either side. The queue already holds the answer (`queuedAt`, written by
-`queueWrite` from the device's clock), so the flush sends it whenever the payload
-carries none. ⚠️ **It is measured rather than argued** — assertion 7 of the
-contract check drives the null case and reads `now()` back, so the day this stops
-being true, the reason the fallback exists goes red instead of going quiet.
-
-⚠️ **AND THE `p_` PREFIX IS THE CONTRACT, WHICH IS NEW HERE.** Every other
-`src/api/` module writes its argument names out as literals. This one builds them
-— `p_` plus the payload's own keys — because `0024` decision 5 stores the payload
-keyed by argument name with **no prefix** and `0026` reads it that way. So a
-single character decides every argument at once, and assertion 4 sends the bare
-`location_id` on purpose to prove the prefixed one is not merely a habit: the
-bare name is `PGRST202`.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no seed, all client-side
-and all cheap to reverse. ⚠️ The first two are the ones worth his eye:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | ⚠️⚠️ **THE DRAIN STOPS AT THE FIRST FAILURE** rather than trying every row | The overwhelmingly common failure is no signal, where every later row fails identically — and stopping keeps the ledger's order the shop's order, which oldest-first exists for (a sale allocates FEFO against the shelf, so the order writes land in is the order cost is attributed in). ⚠️ **WHAT IT COSTS, NAMED RATHER THAN HIDDEN: a row that can never succeed blocks every write behind it.** That is exactly what `5c-iii` fixes, and it is why `5c-iii` is now marked next rather than `5c-ii-b` | One `continue` instead of a `return` |
-| **2** | ⚠️ **`5c-iii` IS THE NEXT TASK, NOT `5c-ii-b`** — a re-ordering inside today's own split | `5c-ii-b` cannot be finished before tomorrow's reading, and `5c-iii` became takeable the moment the send existed. It is also the half that un-blocks the queue, per decision 1 | Swap the marker; neither task has been started |
-| **3** | **A row left `flushing` by a process that died is RE-QUEUED at the start of the next flush** | The app is killed mid-send and the row stays claimed forever — a sale lost on the device with nobody to notice. Re-sending is free even if it already landed: the uuid answers `already_recorded`. ⚠️ Safe only inside the single-flight gate, where a `flushing` row provably belongs to nobody — and `advance` needed no new event, because `retry` already says exactly this | Drop the `stale()` pass |
-| **4** | **`p_replay_of_failed_write_id` is stripped from every payload, by name** | `0025` fences it at `manager` and exempts the write it marks from BOTH the 72-hour clamp and the 15-minute void window. A flush that forwarded one out of a payload would hand a cashier both. ⚠️ Assertion 9 proves the argument is real and WOULD be accepted, so the exclusion is a decision rather than a no-op | One name in a list |
-| **5** | **An unreadable reply is a RETRY, not a success** | If the server committed, the re-send answers `already_recorded`; if it did not, the write finally lands. Reading an unrecognisable object as a success is the only version of this that can lose a sale | One branch in `landedFrom` |
-| **6** | **One wrapper for all four `record_*`, not four** | A flush does not know which kind it holds until it reads the row, so four wrappers would need a fifth thing to choose between them — which is the mapping `RECORD_RPC` already is, in a module the suite can read (`R13`) | Four wrappers and a switch |
-
-⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** the SQL
-in `@/lib/outboxDb` and the binding in `@/lib/flushRunner`. Both import native
-modules, so no node process loads either; the suite drives fakes and the contract
-check drives real HTTP with no SQLite anywhere. ⚠️ **The first thing that will
-exercise the two together is a real device, and that is `5c-ii-b`'s business.**
-⚠️⚠️ **AND THE APP WAS NOT OPENED ON EITHER INSTRUMENT** — the dated obligations
-above are a reading, and opening the app restarts the measurement.
-
-**Evidence: 493 Vitest assertions over 24 files (was 462 over 23), of which 31
-are the new drain; `docs/checks/5c-ii-a-flush-contract.sh` — 9 assertion groups
-over real HTTP against a reset database, with its own anti-vacuity floor, which
-caught itself expecting 10 groups and running 9 on its first run;
-`5c-ii-a-flush-contract-falsify.sh` — 9 fixtures, all red for the stated reason
-and one deliberately green; `conventions-gate.sh`'s 16 groups over 46 source and
-24 test files (was 44 and 23) plus its own 30 fixtures; `split-coverage.sh` over
-NINE specs including the new `5c-ii.split`, and `split-coverage-falsify.sh` at
-451 fixtures (was 409), 41 of them generated for this split; a typecheck of the
-whole workspace.**
-
-⚠️⚠️ **TWO DEFECTS IN THE NEW CHECK WERE FOUND BY ITS OWN HARNESS, AND BOTH WERE
-THE SAME SHAPE `5b-i`'s HARNESS FOUND IN ITS SISTER: RED FOR THE WRONG REASON.**
-The check read the argument names by grepping for the spellings it expected — so
-renaming one in the app made it report *"could not read the contract"* instead of
-meeting the 404. A check that greps for the name it expects can only ever say
-*"not found"*, and the defect it exists for is a name that CHANGED. Every name is
-now read as a spelling and every request is built from what was read, so all nine
-fixtures go red through the database. ⚠️ A third defect was a shell one: a JSON
-object written inline inside a nested `$( )` loses its quoting and bash
-BRACE-EXPANDS it into two arguments, which PostgREST answers `PGRST102 Empty or
-invalid json` — a shell bug that reads exactly like a schema bug.
-
-✅✅ **`5c-i` IS DONE AS OF 2026-09-20 — THE QUEUE EXISTS, AND NOTHING IN IT
-TALKS. `5c-ii` IS THE NEXT TASK.** No migration, no screen, and **nothing a
-person can see** — which the split said in advance and is worth reading as a
-prediction that held rather than as an apology.
-
-A sale can now be written down on the phone the instant it is made, with its own
-permanent uuid, and left there. Nothing sends it yet.
-
-**What shipped, seven files:**
-
-| | |
-|---|---|
-| `app/src/api/outbox.ts` | the ninth `src/api/` module and **the first whose subject is not an RPC** — the four kinds `0024` allows, the three states §2.6 names, `queueWrite`, and `advance`, the transition function |
-| `app/src/lib/outboxDb.ts` | the only module that opens the queue's SQLite file — the table, a `PRAGMA user_version` migration path, `insert or ignore`, and a read that drops a row it cannot parse |
-| `app/src/lib/ids.ts` | three lines, alone, because `expo-crypto` is native and one import of it would make every suite that touches the outbox unloadable |
-| `app/test/api-outbox.test.ts` | 20 assertions over the state machine — **§2.11 names it, by decision, as a thing a client unit test may pin** |
-| `app/test/auth-errors.test.ts` | one new assertion: **expo-sqlite has exactly two openers** |
-| `app/package.json`, `docs/CONVENTIONS.md` | the dependency, and the three new rows on `R12`'s boundary table |
-
-⚠️⚠️ **THE FINDING THAT WOULD HAVE COST A WHOLE TASK TO DISCOVER LATER: THE
-PAYLOAD SHAPE WAS NEVER OURS TO CHOOSE.** `0024`'s decision 5 says
-`failed_write.payload` is *"the original call's arguments, KEYED BY ARGUMENT
-NAME"*, and `0026` reads that object directly — `payload->'lines'`,
-`payload->>'occurred_at'`, `payload->>'recorded_offline'`,
-`payload->>'provider_id'`, `payload->>'from_location_id'`. ⚠️ **Note what is
-not there: the `p_` prefix.** So a queued write stores arguments in `0026`'s
-spelling, `5c-iii` hands the object to `record_failed_write` untouched, and
-replay works. ⚠️⚠️ **Storing `p_`-keyed arguments instead — which is what `R13`
-reads like at a glance, because every other module in this directory owns `p_`
-names — would typecheck, store, flush and dead-letter perfectly, and be
-discovered on the day somebody first tried to REPLAY one.** Both migrations are
-applied and append-only, so the fix would have been a migration, not an edit.
-
-⚠️ **C10.3 IS NOW STRUCTURAL RATHER THAN PROMISED, AND A TEST READS IT.** The
-split argued that *"the slide looks identical offline"* is discharged by the
-write path, not by a screen. It survives only while `queueWrite` returns a ROW
-instead of a promise: the moment it can be awaited, a screen can wait for it,
-and there is an offline path that looks different. §2.11 means no suite here
-could ever see that on a screen — so the assertion sits where it is structural,
-and it is the one place in this repository where a C-number is pinned by a type.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no seed, all cheap to
-reverse:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | ⚠️ **One new dependency — `expo-crypto`** (`~57.0.2`, the SDK-matched version), for `randomUUID` | React Native ships no `crypto` global — **checked on 0.86.3, not assumed** — so there was nothing to fall back to. ⚠️ **And the reason is not secrecy**: this uuid is a primary key in two Postgres tables across every phone in every shop, and a collision is not a failed write, it is `on conflict (id) do nothing` deciding somebody else's sale is this one and answering `already_recorded: true`. A `Math.random` uuid is the cheap version of exactly that risk | Remove the import; it has one caller |
-| **2** | **A separate SQLite FILE for the queue**, not a table beside the session's store | Clearing a session must never be the thing that drops a queued sale, and a corrupt session and a corrupt queue should be two accidents rather than one | One constant |
-| **3** | ⚠️ **A `PRAGMA user_version` migration path from version 1**, before anything needs it | The app is already installed on the owner's phone. `5c-ii` and `5c-iii` will each want a column, and inventing a schema-change path against a device that is already holding sales is the expensive version of ten lines | Delete the function |
-| **4** | **A row the reader cannot parse is SKIPPED, not thrown on** — and it stays in the table | Throwing would let one unreadable sale stop every other sale on the phone from ever being sent. Nothing is destroyed, so `5c-iii` can still find it. Same choice `@/api/approvals` made for a server row it could not read | One `continue` |
-| **5** | ⚠️ **`dead` is terminal from the device** | §2.6: *"replay is manual, never automatic"*, by a person who has seen the peso figure first. A device that can re-queue its own dead letter is that ruling undone in the one place nobody is looking | One branch in `advance` |
-
-⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** the
-SQL. `@/lib/outboxDb` imports `expo-sqlite`, so no node process can load it —
-the table, the `insert or ignore` and the skipped row are asserted by nothing
-and are argued in the file instead. ⚠️ **The first thing that will exercise
-them is `5c-ii`**, and that is the task that should decide whether this half
-earns an instrument of its own. ⚠️ **AND THE APP WAS NOT OPENED ON EITHER
-INSTRUMENT** — the dated obligations above are a reading, and opening the app
-restarts the measurement, so `expo-crypto` is in the manifest and has never run
-on a device. The next re-deploy, already dated 2026-09-27, is the first build
-that will carry it.
-
-**Evidence: 462 Vitest assertions over 23 files (was 441 over 22), of which 20
-are the new state machine; `conventions-gate.sh`'s 16 groups over 44 source and
-23 test files (was 41 and 22) and its own 30 fixtures; a typecheck that also
-proves the workspace still resolves `expo-crypto`. ⚠️ AND THE ONE NEW BOUNDARY
-ASSERTION WAS FALSIFIED BY HAND rather than trusted: an `import 'expo-sqlite'`
-added to `lib/env.ts` turned it red naming the third opener, and was removed.**
-
-✅✅ **`5c` IS SIZED `XL` AND SPLIT FOUR WAYS AS OF 2026-09-20, BEFORE A LINE OF IT
-WAS WRITTEN. `5c-i` IS THE NEXT TASK.** No migration, no product code, no screen —
-the session's whole output is a split, a spec and this entry.
-
-⚠️ **The file carried `5c` as an `L` and it is an `XL`.** Fourteen deliverables
-across four layers that fail in four unrelated ways: a durable queue on a phone, a
-transport, a failure path that writes to the ledger, and three pieces of chrome.
-**Three of the four are falsifiable end to end and the fourth is not**, which is
-what says a row is four tasks rather than one with sections. The full argument, the
-seam and the failure-mode table are in *"Sized 2026-09-20"* under Step 5.
-
-| | | Size |
-|---|---|---|
-| `5c-i` | The outbox, and nothing in it talks — the table, the three states, the uuid, the enqueue | `M` |
-| `5c-ii` | The flush, and the retries the uuid makes free | `M/L` |
-| `5c-iii` | The writes that will never land, and the only half that changes the ledger | `M` |
-| `5c-iv` | What a person sees | `M` |
-
-⚠️ **The split is a SPEC, not a guard** — `docs/checks/specs/5c.split`, ~65 lines of
-data, under the procedure `docs/HANDBOOK.md` records and the one most likely to
-regress because the old way was done seven times. `app.yml` already matches
-`specs/**`, so there was nothing to wire.
-
-⚠️⚠️ **AND THE FALSIFIER CAUGHT A DEFECT IN THE SPEC ON ITS FIRST RUN, WHICH IS WHAT
-IT IS FOR AND WHICH ADDS A RULE.** The classification deliverable was written
-`[Tt]ransient` against a row that said *"**Transient** against permanent … and a
-**transient** one dead-lettered"*. Fixture `S5` strips **the first match's literal
-text** out of the owner's row — `Transient` — and the lower-case spelling survived,
-so **the engine went GREEN on a deliverable the fixture had just deleted**, and `S7`
-went red for the shallower reason. ⚠️ The rule already written down is *use a bracket
-class, never an alternation*; the one this adds is **a case-tolerant class must not
-match two different spellings inside one row**. ⚠️ **Nothing but the falsifier could
-have seen it** — `split-coverage.sh` itself was green on the broken spec, which is
-the exact shape of a guard that reads as working.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — all client-side, all cheap to reverse, and
-two of them are worth his eye:**
-
-| | Decision | Reversal |
-|---|---|---|
-| **1** | **`5c` re-sized `L` → `XL`**, four children rather than three, the fourth being the chrome nothing here can measure | One letter |
-| **2** | ⚠️⚠️ **`recorded_offline` is decided AT FLUSH** — a write carries it when it was not committed on its first attempt, rather than from what the device believed about connectivity. **It decides which day a sale counts on in Números** | One condition, client code |
-| **3** | ⚠️ **C10.3 is discharged by the write path, not by a screen.** If enqueuing is the only way to write, the screen is never told whether it was offline, so there is no second wording to add | Let a screen await the RPC |
-| **4** | **The outbox is a real SQLite table**, not another key in the `localStorage` shim — a queued sale is not a per-phone preference | A new module beside the old one |
-| **5** | ⚠️ **The dead-letter banner is manager-and-above**, derived from §2.7, the 1.3a cost rule and C10.5 rather than parked as a question | One condition |
-
-⚠️⚠️ **AND ONE STALE SENTENCE WAS FIXED INSIDE ADR-035 ITSELF — THE NINTH STALE COPY
-RECORDED HERE AND THE FIRST IN THE FILE EVERY OTHER FILE DEFERS TO.** §2.6 still
-said the outbox *"is a named deliverable of build step 5a"*, while §3 has said since
-the amendment of 2026-09-13 that it **moves to `5c`**. `CLAUDE.md` tells a cleared
-session the ADR wins — so the ADR was telling it to build the outbox in a step that
-closed on 2026-09-12. ⚠️ **This is not a new amendment and was not treated as one**:
-the decision was the owner's, on 2026-09-13, and §2.6's sentence was simply missed in
-that pass. It now points at `5c` and says which revision moved it.
-
-⚠️ **WHAT A CLEARED SESSION IS MOST LIKELY TO GET WRONG, AND THE OWNER SHOULD HEAR
-IT RATHER THAN DISCOVER IT: `5c-i` HAS NO CALLER AND IS SUPPOSED TO.** Nothing in
-this app writes a sale, a purchase or a waste yet — `5f`–`5h` are those screens.
-**So `5c-i` through `5c-iii` change nothing on his phone**; the first visible thing
-in this step is `5c-iv`.
-
-**Evidence: `split-coverage.sh` over the new spec — 7 assertion groups, 14/14
-deliverables in exactly one child each, 4 required sentences, every child stating it
-ships no migration; `split-coverage-falsify.sh` generating its fixtures from that
-spec; all 8 specs green together; `plan-handover.sh` 11 groups and
-`handbook-agreement.sh` 5 groups, both re-run because this session edited both files
-they read.** ⚠️ **No product code changed, so no app suite could have been affected,
-and the app was NOT opened on either instrument** — the dated obligations above are
-a reading, and opening the app restarts the measurement.
-
-✅✅ **`## Position` WAS CUT A SECOND TIME, 1,241 LINES TO 465 — 2026-09-20. `5c` REMAINS
-THE NEXT TASK.** No product code, no migration, nothing about the app changed. ⚠️ **The
-ceiling called this, not a person**: `plan-handover.sh` assertion 11 trips at 1,400 and
-Position had reached **1,241 three sessions after the first cut** — 83% of the ceiling in
-two days, which is the same growth rate that took it to 5,484 last time. **Caught early
-instead of late, which is the whole reason the number exists.**
-
-⚠️ **THE RULE WAS ALREADY WRITTEN AND WAS SIMPLY APPLIED AGAIN** — keep the two blocks that
-carry live obligations plus the most recent working day, archive the rest. The whole
-**2026-09-19** working day moved to `docs/plan/archive/status-log-2026-09-19.md`: 790 lines,
-unedited, **verified byte-identical by rebuilding `docs/PLAN.md` from the two halves and
-comparing against its pre-cut state.**
-
-| | Before | After, this entry included |
-|---|---|---|
-| `docs/PLAN.md` | 4,606 lines | **3,874** |
-| `## Position` | 1,241 | **509** (36% of the 1,400 ceiling) |
-
-⚠️ **The "after" column counts THIS ENTRY**, which is 45 of those lines. The cut itself
-removed 790; a status log that did not describe its own cut would be the one kind of
-entry this section cannot afford to be missing.
-
-⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE ONLY ONE: A SECOND ARCHIVE
-FILE RATHER THAN A RENAMED FIRST ONE.** The tidier shelf was to append these entries to
-`status-log-through-2026-09-18.md` and rename it `…-through-2026-09-19.md`. That name is
-referenced in five places, and **one of them is a historical statement that renaming would
-make false** — this file records that the first cut moved *"4,576 lines to
-`status-log-through-2026-09-18.md`"*, which was true. **Tidying the shelf would have meant
-editing the record of what happened**, which is the same rule that left the out-of-order
-2026-09-17 entry alone. ⚠️ The scheme going forward is **one file per cut, named for the
-working day it holds**. ⚠️ **It needed no wiring**: `plan-corpus.sh` globs
-`docs/plan/archive/*.md`, and all seven split specs were re-run to prove a row still
-resolves from the new file. **Reversal is a `cat` and a `git mv`.**
-
-⚠️ **AND THE THING MOST LIKELY TO GO WRONG HERE DID NOT, BECAUSE IT WAS CHECKED RATHER THAN
-ASSUMED.** `.graphifyignore` says `/archive/` **with a leading slash** — the fix from
-2026-09-19, after a bare `archive/` silently swallowed `docs/plan/archive/` and dropped
-~9,200 lines out of the graph with nothing going red. The new file is indexed; the graph was
-rebuilt and asked for it.
-
-**Evidence: reconstruction is byte-identical (sha256 of the rebuilt file equals the pre-cut
-file); `plan-handover.sh` 11 groups; `handbook-agreement.sh` 5 groups; all 7 split specs
-green against the corpus, which now assembles three files instead of two.**
-
-
-✅✅ **`5c.5` IS DONE AS OF 2026-09-20 — A REFRESH WHOSE REPLY IS LOST DOES NOT SIGN A
-SHOPKEEPER OUT. `5c` IS THE NEXT TASK.** No migration, no product code, no screen. ⚠️ **Taken
-out of order on the owner's ruling of 2026-09-20** — a one-sitting measurement of the risk
-`5c` is built around, ahead of another sizing session.
-
-⚠️⚠️ **THE WORRY THAT CREATED THIS ROW IS WRONG, AND IT IS WRONG FOR A REASON NOBODY HAD
-GUESSED.** The archived prose of 2026-09-13 said: *"Inside 10s that is forgiven; outside it,
-the session is revoked and the person is signed out for no reason they can see."* **The
-ten-second interval never enters into the lost-reply case at all.** ⚠️ The archived sentence
-is left exactly as written — closed is not wrong, it was true as a fear when written, and
-`docs/plan/archive/` is moved from, never edited. This entry is what supersedes it.
-
-**What actually decides it, measured rather than read:** GoTrue refuses a spent refresh token
-only when the chain has moved **past** it — that is, when its child has **itself been used**.
-A lost reply by definition never uses the child, so the spent token keeps working and keeps
-handing back **the same child**. Measured at 13s directly and at 88.6s end to end; two
-exploratory probes put it at 30s and 90s with no change.
-
-**Three independent layers, any one of which would be enough:**
-
-| | Layer | Measured |
-|---|---|---|
-| 1 | **GoTrue** returns the same unused child to a spent token, for as long as the child stays unused | assertion 7, and assertion 8 proves it still refuses a *genuine* replay — so this is a distinction, not a server that says yes to everything |
-| 2 | **`auth-js`** does not tear down a session when a refresh fails for a network reason; it keeps the OLD token in storage | assertion 4 |
-| 3 | Even a **detected** replay does not sign anybody out on the spot — the newest token still works and the access token lasts to its own expiry | exploratory probe, recorded here rather than asserted |
-
-⚠️⚠️ **AND THE READING FOUND A COST NOBODY HAD WRITTEN DOWN, WHICH IS THE PART `5c` NEEDS.**
-`auth-js` caches a failed refresh for `REFRESH_FAILURE_COOLDOWN_MS` — **60 seconds**, keyed on
-the refresh token — and serves that cached failure to every caller **without touching the
-network**. So the signal coming back is *not* when the app recovers; the cooldown lapsing is.
-⚠️ **Stacked with the in-call retry budget (up to 30s of exponential backoff, bounded by
-`AUTO_REFRESH_TICK_DURATION_MS`), a dropped connection costs up to 90 SECONDS before the next
-real attempt — and `EXPIRY_MARGIN_MS` is exactly 90 seconds.** The margin has zero slack. That
-is not a defect and nothing here is broken by it: the session survives regardless, because the
-token stays valid. But it is the number `5c` should design the outbox against, and it was
-invisible until something ran.
-
-**What shipped, four files:**
-
-| | |
-|---|---|
-| `docs/checks/lib/5c-5-refresh-under-loss.mjs` | the instrument — a proxy that reads the upstream reply **to completion** (so the rotation commits) and then destroys the socket, driving a real `@supabase/supabase-js` client |
-| `docs/checks/5c-5-refresh-under-loss.sh` | 8 assertion groups over that reading plus two direct HTTP probes of the mechanism |
-| its falsifier | 9 fixtures |
-| `.github/workflows/db.yml` | a NEW parallel job, `auth-session` |
-
-⚠️ **THE INSTRUMENT'S CENTRAL DESIGN IS ONE LINE AND FIXTURE `Y7` IS WHAT DEFENDS IT.** The
-proxy must read the upstream response fully **before** killing the socket, or the server never
-rotates and the whole thing measures a lost **request** — the easy case nobody was worried
-about. `Y7` mutates exactly that and the check must go red.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no product code:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | **The reading became a standing CI guard, not a paragraph** | The answer is load-bearing for the whole of `5c`, and it is a claim about GoTrue and `auth-js` rather than about our code — so **nothing else here would notice a version bump changing it**, and the first symptom would be a pilot shopkeeper signed out mid-sale | Delete two steps |
-| **2** | ⚠️ **It runs in its OWN parallel job** (`auth-session`) rather than in `reset` | Measured, not guessed: `reset` already runs **12m27s against a 15-minute cap**, and this reading takes ~2 minutes because the cooldown cannot be hurried. Bolting it on lands at ~14.5 min, and this repository has already had a harness **CANCELLED** at the cap — neither a pass nor a failure. Jobs run in parallel, so it costs wall-clock nothing | Move the steps |
-| **3** | **Most falsifier fixtures feed a CRAFTED reading rather than re-running the instrument** | Nine real runs is twenty minutes. What those fixtures falsify is the **judge**, which is the half that rots quietly — and `Y7` still mutates the real instrument, because whether it is honest about what it dropped is the one thing a stub cannot test. ⚠️ Stated in the harness header rather than glossed | Swap the stub for the real path |
-
-⚠️⚠️ **THE BOUNDARY OF THIS READING, NAMED SO IT IS NOT QUIETLY WIDENED LATER: IT IS ABOUT THE
-LOCAL STACK.** Pinned and printed on every run — **gotrue `v2.195.0`, `supabase-js` 2.116.0,
-`auth-js` 2.116.0, rotation on, reuse interval 10s**, read from the RUNNING CONTAINER rather
-than from `config.toml`, because a config file is a request and the container's environment is
-what is enforced. ⚠️ **The hosted project's settings remain a REPORT the owner read off the
-dashboard on 2026-09-13, exactly as the plan already says — this does not upgrade them to a
-measurement**, and the hosted GoTrue version is not known to match.
-
-⚠️ **AND THE TICKER WAS DELIBERATELY OFF.** The instrument sets `autoRefreshToken: false` so
-the 30-second ticker cannot fire a refresh the script did not ask for. The app runs it **true**
-(`app/src/lib/supabase.ts`, with an `AppState` listener), which only makes recovery *more*
-automatic than what was measured. **This is the stricter case, not a laxer one.**
-
-**Evidence: 8 assertion groups, all green, end to end through a real client against real
-GoTrue; 9 falsification fixtures — 8 red with the message naming the defect, 1 control green.
-⚠️ No product code changed, so no app suite could have been affected; `plan-handover.sh` and
-`handbook-agreement.sh` were re-run because this session edited both files they read.**
-
-
-✅✅ **`5b-iii-d-2` IS DONE AS OF 2026-09-20 — THE OWNER CAN LET HER IN, THE PICKER REFUSES
-TO BE EMPTY, AND `5b-iii` AND `5b` ARE CLOSED IN FULL. `5c` IS THE NEXT TASK.** No migration.
-The loop that opened on 2026-09-19 with a join code is shut.
-
-An owner opens the bell, taps `Dejar entrar` beside a stranger's address, is asked which
-store she will work in **only if his shop has more than one**, taps again, and she is gone
-from the queue and inside the shop. She opens the app and reads exactly that store — not
-the other one.
-
-**What shipped, eleven files:**
-
-| | |
-|---|---|
-| `app/src/api/approvals.ts` | the act, below the queue in the same module: `APPROVE_REQUEST`, two `p_` names, `checkApproval`, `approvedFrom`, and the two refusal codes |
-| `app/src/api/invites.ts` | `D8`'s predicate EXTRACTED to one home — `checkLocations`, now asked by `checkInvite` and `checkApproval` both; `resolveLocations` widened to a `LocationChoice` |
-| `app/src/api/calls.ts`, `hooks.ts` | one wrapper, one hook — `useApproveRequest`, returning `admit` / `busy` |
-| `app/src/app/solicitudes.tsx` | the confirm step, the picker, the two refusal slots; `ES.approvals.notYet` deleted |
-| `app/src/app/ajustes.tsx` | one call site, for the widened signature |
-| `app/src/strings.ts` | the block, and `notYet` gone |
-| `docs/checks/5b-iii-d-2-approve-contract.sh` + its falsifier | 14 assertion groups over real HTTP, 17 fixtures |
-| `.github/workflows/db.yml` | the two steps and the path filter, `invites.ts` included |
-
-⚠️⚠️ **`D8` IS NOW ASSERTED FROM BOTH SIDES AND ON THE PERSON IT PROTECTS, WHICH IS WHAT
-THIS SITTING WAS SPLIT OFF TO MAKE POSSIBLE.** The sizing of 2026-09-19 said a session
-shipping this control beside a badge and a list would have *"nothing able to go red"*. Three
-instruments now look at it: `checkApproval` is a pure function the Vitest suite reads (client
-half); assertion 3 of the contract check drives the real RPC with an empty array and demands
-`22023` (server half); and ⚠️ **assertion 4 SIGNS IN AS THE APPROVED STAFF MEMBER** and
-demands she read exactly the store she was given and not the other — which is the first time
-anything here has measured `D8`'s consequence rather than its refusal. `location_select`
-(`0001:506`) is `id in (select my_locations())`, so an approval with no store would have left
-her inside the shop reading nothing, refused on every write, with no message.
-
-⚠️⚠️ **THE CHECK FOUND A DEFECT IN ITSELF ON ITS FIRST RUN, AND THE FIX IS THE MORE USEFUL
-HALF.** The original assertion 9 approved a `manager`-role request and demanded
-`location_count = 0` (`0029:434`). It went red — **because there is no such thing.**
-`request_access` takes NO role argument (`0029`'s `S4`: a role argument is a way to claim
-somebody else's invite) and inserts without naming the column, so `workspace_invite.role`'s
-default of `'staff'` (`0002:374`) decides. ⚠️ **EVERY REQUEST THIS SCREEN CAN EVER SHOW IS
-`staff`** — so `D8`'s picker is unskippable on this path, and `approveArgs`' non-staff branch
-is currently DEAD CODE, kept only because `0029:434` keeps the mirror of it. The assertion now
-states that invariant, and goes red the day `request_access` gains a role — which is the day
-the branch stops being dead. ⚠️ **A consequence the owner may want to change: an owner cannot
-admit somebody as a MANAGER through this screen. He invites her instead.**
-
-⚠️⚠️ **AND THE FALSIFIER FOUND A SECOND ONE, RED FOR THE SHALLOWER REASON — the failure mode
-this repository has now recorded twice.** Fixtures `W2`/`W3` rename a `p_` argument and the
-check went red saying *"could not read the approval contract"* rather than meeting the
-`PGRST202` it exists to meet: it was discovering the two names by looking for `request` and
-`location` INSIDE them. ⚠️ **Red for the shallower reason looks exactly like red**, and a
-harness that only asks *"did it fail?"* would have banked it. The names are now read off
-`approveArgs`' returned literal — the key assigned the request id, the key assigned the
-locations — so the probe sends **whatever the app sends**, which is the only version that
-catches a rename the app made consistently.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no seed, all cheap to reverse:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | ⚠️ **`D8`'s predicate moved to ONE home and both screens ask it** — `checkLocations` in `@/api/invites`, asked by `checkInvite` and `checkApproval` | `D8` is a `member_location` rule, not an invite rule, and `create_invite` and `approve_request` are its two writers. A second copy is the defect this repository has six of | Inline it back into each; one function, two callers |
-| **2** | ⚠️⚠️ **THE APPROVAL IS TWO TAPS, NOT ONE** — `Dejar entrar` opens a confirm step even when nothing needs asking | The owner's standing tie-break is the option that adds no human step, and it is why a one-store shop is never asked WHICH store. This is not a question with no right answer, it is a guard against the wrong ROW: admitting somebody writes a `workspace_member` row, there is no `Quitar` yet, and a mis-tap in elder mode puts a stranger in the shop with nothing in this app able to remove her. ⚠️ It also makes the button ONE behaviour — without it a manager row would approve on the first tap and a staff row would open a picker, on rows that look alike | Render `Boton` straight onto `onConfirm`; ~8 lines |
-| **3** | ⚠️⚠️ **`42501` IS LEFT TO THE APP-WIDE SENTENCE HERE, AND THIS SHARPENS THE DECISION PARKED ABOVE RATHER THAN DEEPENING IT** | `0029` raises `42501` twice — a request that is not the caller's to approve, and no session at all — and **the first is unreachable from this screen**: `0037` hands a non-owner an EMPTY LIST, so there is no row to tap, and `canApprove` never opens the queue for one. What is left really is the session, so *"tu sesión se cerró"* is correct rather than a guess. ⚠️ **So the cost the parked row predicted — *"a second client path starts reading `42501`, and then it is two modules guessing instead of one"* — DID NOT MATERIALISE.** `/bienvenida` is still the only module guessing | One entry in `approveErrorMessage` |
-| **4** | **`TD003`'s two branches get ONE sentence** — expired and superseded | One act for the shopkeeper: the row is stale, and what fixes it is the person asking again. Telling her which of our two bookkeeping states she is in is bookkeeping we do, not her | Split the string; one key |
-
-⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** that the confirm
-step reads as a confirmation and not as a second unrelated button, that the ticked store is
-legible in elder mode, and that the picker does not push the button below the fold on a row
-with a long address. Those are the owner's phone (`R9`). ⚠️ **AND THE APP HAS NOT BEEN RUN ON
-A DEVICE THIS SESSION** — the dated obligations above are a re-deploy and a reading, and
-opening the app is what restarts the measurement, so nothing here touched either instrument.
-
-**Evidence: 14 assertion groups over real HTTP against a reset database with eight people,
-two shops and two stores, all green; 17 falsification fixtures — 16 red with the message
-naming the defect, 1 control green; 441 Vitest assertions over 22 files (was 417);
-`conventions-gate.sh`'s 16 groups over 41 source and 22 test files. ⚠️ AND THE THREE CHECKS
-MY EDITS COULD HAVE BROKEN WERE RE-RUN, not assumed: `5b-i-api-contract.sh` (6 groups),
-`5b-ii-b-1-invite-contract.sh` (9 groups — the one at risk from the `resolveLocations`
-refactor) and `5b-iii-d-1-approvals-contract.sh` (12 groups), all green.**
-
-
-✅✅ **`5b-iii-d-1` IS DONE AS OF 2026-09-20 — THE BELL RINGS, THE QUEUE HAS FACES ON IT,
-AND NOT ONE ROW IN THE DATABASE CHANGED. `5b-iii-d-2` IS THE NEXT TASK.** No migration, no
-write, and the first product session since the consolidation.
-
-An owner opening Inicio now sees a row with a bell on it and a count beside its word; it
-opens `solicitudes`, which lists everybody waiting to be let into his shop — **the address
-as the header, the name beneath it**, the role she asked for, and how long she has been
-waiting. A manager, a cashier and a stranger see no bell at all.
-
-**What shipped, twelve files:**
-
-| | |
-|---|---|
-| `app/src/api/approvals.ts` | the sixth contract module — one RPC name, one `p_` argument, the six columns `0037` returns, the `owner` fence, and the parser that drops a row it cannot read |
-| `app/src/api/calls.ts`, `hooks.ts` | one wrapper, one hook — `usePendingRequests`, returning `visible` / `loading` / `entries` / `count` |
-| `app/src/app/solicitudes.tsx` | the surface, a modal sheet at the root in no group, `ajustes`' shape |
-| `app/src/app/(tabs)/index.tsx` | the bell and the badge, plus a row component the two doors on that screen now share instead of duplicating |
-| `app/src/format/date.ts` | `formatWaiting` — `Pidió hoy` / `Pidió ayer` / `Pidió hace 3 días` |
-| `app/src/strings.ts` | the block, and the three waiting phrases |
-| `docs/checks/5b-iii-d-1-approvals-contract.sh` + its falsifier | 12 assertion groups over real HTTP, 13 fixtures |
-| `.github/workflows/db.yml`, `docs/CONVENTIONS.md` | both wired in the same pass |
-
-⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE ONE THIS ENTRY EXISTS FOR:
-THE ORDER OF THE TWO LINES IS A PURE FUNCTION NOW, NOT JSX.** His ruling of 2026-09-19 —
-*"Show the Email as a Header and the Name as a subtitle of the request"* — would ordinarily
-have lived in a `<Text>` above another `<Text>`, where §2.11 guarantees nothing can see it.
-This plan says in several places that a screen ruling has nowhere to live but a paragraph.
-It has somewhere now: `linesOf(entry)` returns `{ header, subtitle }`, and three assertions
-in `app/test/api-approvals.test.ts` fail if anybody swaps them. ⚠️ **It changes nothing a
-person sees, and it is reversed by inlining two fields.** ⚠️ **It is not a repeal of §2.11**
-— the suite still reads no component, and everything about WHERE the bell sits, what the
-badge looks like and whether a manager sees one is still the owner's own phone (`R9`).
-
-⚠️ **AND THE HALF-LOOP IS ON THE SCREEN IN WORDS.** `ES.approvals.notYet` — *"Por ahora
-solo puedes ver quién está esperando"* — renders only when somebody is actually waiting.
-A shopkeeper looking at a stranger's name with no way to admit her would otherwise conclude
-the button is broken, and this repository's own rule is that **we do the bookkeeping, not
-them**. It is deleted by `5b-iii-d-2`, and its own comment says so.
-
-⚠️ **THE `owner` FENCE IS A CLIENT-SIDE DECISION AND HAS TO BE, which is worth restating
-because it looks like belt and braces and is not.** `0037`'s decision 2 answers a non-owner
-with an EMPTY LIST rather than `42501` — taken so this path would not acquire a **third**
-meaning for a SQLSTATE already carrying two, which is the very overload parked in the
-decisions block above. The cost of that choice lands here: **"you may not see this" and
-"nobody is waiting" arrive as the same answer**, and only `canApprove`, asked before the
-call, can tell them apart. Assertion 6 of the contract check measures the pair — an owner's
-two rows against a manager's, a cashier's, a stranger's and **the requester's own** zero,
-over one workspace holding the same two requests. Either half alone is vacuous.
-
-⚠️⚠️ **THE CHECK ASSERTS A COLUMN LIST, AND THAT IS NEW TO THIS DIRECTORY.** Six contract
-checks before it asserted RPC names and `p_` arguments. This one also demands that the six
-fields `PendingRequestRow` names are **exactly** what `0037` returns, both directions — and
-fixture `V4` is why: a column the app reads that the function does not return is invisible
-to the typecheck (the field is `unknown`), to the suite (its fixtures are hand-written
-objects) and to the bundler. What reaches a person is a **blank where a stranger's address
-should be**, on the one screen whose entire job is to identify her.
-
-⚠️ **THE WAITING LINE USES THE PHONE'S CLOCK, AND THAT IS ARGUED RATHER THAN ASSUMED.**
-`0027` refuses a client-side deadline and `formatExpiry` renders a timestamp the database
-chose; this computes. The difference is that **nothing is decided by this string** — the row
-is in the queue or absent on the server's clock, and a phone a day out makes a sentence a
-day wrong, never makes an approval fail. It counts **calendar days in the device's own
-timezone**, so a request made at 23:50 is *ayer* at 00:10, which is what a person standing
-in the shop means; and a clock behind the server reads as *hoy* rather than as
-`hace -1 días`.
-
-**Evidence: 12 assertion groups over real HTTP against a reset database with seven people
-and two shops, all green; 13 falsification fixtures — 12 red with the message naming the
-defect, 1 control green; 417 Vitest assertions over 22 files; `conventions-gate.sh`'s 16
-groups over 41 source and 22 test files, and its own 30 fixtures.** ⚠️ **The contract check
-carries an anti-vacuity floor** (`EXPECTED_GROUPS`), which `5b-split-coverage.sh` went 24
-days without and which fixture `V7` is what proves fires.
-
-⚠️ **WHAT NO CHECK HERE LOOKED AT, NAMED RATHER THAN LEFT TO BE FOUND:** that the bell is
-in the body of Inicio and not in the navigator's header, that the badge is legible beside
-its word in elder mode, and that a manager really sees nothing. Those are the owner's phone.
-⚠️ **AND THE APP HAS NOT BEEN RUN ON A DEVICE THIS SESSION** — the dated obligations above
-are a re-deploy and a reading, and opening the app is what restarts the measurement, so
-nothing here touched either instrument.
-
-✅✅ **`## Position` WAS CUT FROM 5,484 LINES TO 933, AND THE PLAN NOW HAS A SIZE CHECK —
-2026-09-20. `5b-iii-d-1` REMAINS THE WORK IN FRONT.** ⚠️ **No product code, no migration.**
-Second and final pass of the consolidation the owner ordered on 2026-09-19.
-
-⚠️⚠️ **THE RULE CHANGED FROM THE ONE PROPOSED, AND THE REASON IS THE MEASUREMENT.** The
-proposal was *"move the struck-through prior states to a decisions ledger"*. That was wrong
-about where the mass was: the strikethrough lives in a 68-line block, while **the status log
-was 5,300 lines** — forty reverse-chronological narrative entries, one per closed task. The
-rule actually applied is **keep the two blocks that carry live obligations plus the most
-recent working day (2026-09-19), archive the rest**, which is the whole of `5b-iii` and
-`5b.8-iii` kept — the lineage the next task sits in.
-
-| | Before | After |
-|---|---|---|
-| `docs/PLAN.md` | 8,849 lines | **4,298** (~108k tokens; it was ~313k two days ago) |
-| `## Position` | 5,484 lines — larger than the whole of Step 5 | **933** |
-
-⚠️ **LOSSLESS AGAIN, PROVED THE SAME WAY.** 4,576 lines moved to
-`docs/plan/archive/status-log-through-2026-09-18.md` unedited; the source file was rebuilt
-from the two halves and diffed against its pre-cut state — **byte-identical**.
-
-⚠️⚠️ **AND THE CEILING IS NOW CHECKED RATHER THAN REMEMBERED — `plan-handover.sh`
-ASSERTION 7.** It fails when `docs/PLAN.md` passes **6,000** lines or `## Position` passes
-**1,400**, and names the remedy in the failure. ⚠️ **This is the assertion that matters
-most, because nobody ever decided to let Position reach 5,484** — it arrived at one or two
-entries a session, under a working agreement that says to update the plan when a task
-closes and never said to shrink it. Falsified four ways: padded Position goes red, a padded
-whole plan goes red, the real plan stays green, and the decisions block is confirmed to
-exist exactly once in the live plan.
-
-⚠️⚠️ **A SILENT GRAPH DEFECT WAS FOUND AND FIXED, AND IT WAS INTRODUCED BY THE PREVIOUS
-SESSION.** `.graphifyignore` said `archive/` with **no leading slash**, which in
-gitignore semantics matches a directory of that name **at any depth**. So when
-`docs/plan/archive/` was created on 2026-09-19, the rule written for
-`archive/power-platform/` silently swallowed it: **0 nodes indexed, ~9,200 lines of
-closed-but-true plan history invisible to `graphify query`** — the first navigation tool
-every session is told to use. ⚠️ **Nothing went red, and nothing could have**: an
-over-matching ignore rule produces a smaller graph, not an error. Anchored to `/archive/`;
-the archive now contributes **305 nodes** and `archive/power-platform/` still contributes
-**0**. ⚠️ **The two archives mean opposite things** — one is a system nobody is building,
-the other is this system's own closed history, and for several screen rulings **the plan is
-the only record that exists**. A query result carries its `source_file`, so it is
-self-labelling; `CLAUDE.md` now says to check it.
-
-⚠️ **THE WORKING PROMPT IS UNCHANGED.** Every assumption it makes still holds: `docs/PLAN.md`
-is readable again, `## Position` still carries both gate blocks, the ADR still wins, and a
-session still names the check that looked at its work. Nothing to relearn.
-
-⚠️⚠️ **WHAT DID CHANGE IS THE SPLITTING PROCEDURE, AND IT IS THE MOST LIKELY THING TO
-REGRESS** — the old way was done seven times and reads like the house style. A split is now
-**one ~30-line spec** in `docs/checks/specs/`, not a ~290-line guard plus a ~265-line
-harness; `app.yml` already matches `specs/**`, so there is nothing to wire. **If a session
-starts writing `<task>-split-coverage.sh`, that is the bug.** Recorded in `docs/HANDBOOK.md`
-under *"When a task is too big, add a SPEC"*.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF, all cheap to reverse — no migration, no seed:**
-
-| Decision | Why | Reversal |
-|---|---|---|
-| Cut at the **working-day** boundary, not the struck-through prose | The mass was the status log, not the strikethrough; the proposed rule would have saved ~68 lines | Move entries back from the archive |
-| Kept **all of 2026-09-19** rather than only `5b-iii` | `5b-iii-d-1` renders a name that `5b.8`'s lineage put there; keeping `5b.8-iii` keeps that reasoning live | — |
-| Ceilings set at **6,000 / 1,400** | Roughly 1.4× today's sizes — room for a week of sessions before it asks | One number each |
-| `docs/plan/archive/` **indexed** by graphify, power-platform still not | Closed is not wrong, and results are self-labelling by `source_file` | One line in `.graphifyignore` |
-
-⚠️ **ONE PRE-EXISTING WART LEFT ALONE, AND NAMED:** the status log is reverse-chronological
-except for one 2026-09-17 entry sitting between two 2026-09-18 ones. It is in the archived
-range now. Re-ordering it would have meant editing the owner's record for tidiness, which is
-not a reason.
-
-
-### 📦 Older status-log entries — 2026-09-19 and back, moved out of this file ✅
-
-⚠️ **THE STATUS LOG IS NOW ARCHIVED ONE WORKING DAY PER FILE, AND THERE ARE TWO:**
-
-| File | Holds | Cut on |
-|---|---|---|
-| [`status-log-through-2026-09-18.md`](plan/archive/status-log-through-2026-09-18.md) | everything up to and including 2026-09-18 — 4,576 lines, forty entries | 2026-09-20 |
-| [`status-log-2026-09-19.md`](plan/archive/status-log-2026-09-19.md) | the whole 2026-09-19 working day — the plan split, `5b-iii-d`'s sizing, `5b-iii-a/b/c`, `5b.8-iii` and its two halves | 2026-09-20, later the same day |
-
-Both are unedited and both were verified **byte-identical on reconstruction**.
-
-⚠️⚠️ **THE 2026-09-18 FILE WAS NOT RENAMED TO SWALLOW THE SECOND CUT, AND THE REASON IS
-WORTH KEEPING.** Appending and renaming to `…-through-2026-09-19.md` was the tidier shelf,
-and it would have made a **historical statement false**: the entry above records that the
-first cut moved *"4,576 lines to `status-log-through-2026-09-18.md`"*. That was true.
-**Renaming for tidiness means editing the record of what happened**, which is the same
-rule that left one out-of-order 2026-09-17 entry where it was. ⚠️ `plan-corpus.sh` globs
-`docs/plan/archive/*.md`, so a new file needs **no wiring at all** — every split guard
-picks it up the moment it exists.
-
-**What stays, and the rule — unchanged since the first cut:** the two blocks that carry
-live obligations (`⛔ DECISIONS OWED`, `⏳ DATES OWED`) and the most recent working day's
-entries. ⚠️ **The blocks must never be archived**: `plan-handover.sh` requires exactly one
-of each **in the live plan**, and a second copy is a second home for one claim.
-
-⚠️⚠️ **AND THE CEILING IS WHAT CALLED THIS CUT RATHER THAN ANYBODY NOTICING.**
-`plan-handover.sh` assertion 11 fails when `## Position` passes **1,400 lines**. It reached
-**1,241** three sessions after the first cut — 83% of the ceiling in two days — which is the
-growth rate that took it to 5,484 last time, caught early instead of late. **This is the
-check working as designed, and the answer is a cut, not a bigger number.**
-
-To find an archived entry: `graphify query` first, then search the whole plan — live and
-both archives — in one command:
-
-```
-grep -n '<task-id>' "$(bash docs/checks/plan-corpus.sh)"
-```
 
 ## Steps 0 through 4.5 — closed, and moved out of this file ✅
 
@@ -2903,7 +2305,7 @@ free today and stay free until the first task merges.
 | **5b.8-iii-a** | ✅✅ **DONE 2026-09-19 — `0035` IS APPLIED AND A PERSON CAN FIX HER OWN NAME.** ~~this was the next task, as of 2026-09-19~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line, a strikethrough is only a rendering, and a row quoting its own history in the shouted form claims the marker it has just handed on.** **The repair path in the database, and nothing a person can see yet.** `set_my_display_name(p_workspace_id uuid, p_display_name text)` — a `security definer` RPC taking the next free number `0035`, writing ONE column of ONE row, the caller's own. ⚠️⚠️ **IT IS WORKSPACE-SCOPED, AND THAT IS A DECISION TAKEN ON THE OWNER'S BEHALF** — `my_workspaces()` returns `setof uuid` and its own comment says many-workspaces-per-user *"works from day one even though every real user has exactly one"* (`0001:317`), so an unscoped write would reach across a tenant boundary to save one argument. **Reversible: a scoped call can later fan out; an unscoped write that has already run cannot be un-run.** ⚠️⚠️ **A *"you may update your own row"* POLICY IS NOT THE FIX AND MUST NOT BE WRITTEN: RLS FILTERS ROWS, NOT COLUMNS** — it would also let a cashier set her own `role`. ⚠️ **The write rule `0034` baked in stands**: this RPC is the ONE writer that may overwrite a non-null name, because it is the person herself doing it. ⚠️ **Its own pgTAP suite and falsifications, under `set role authenticated`** — a member edits their own row, a non-member is refused, a blank is refused, another member's row is untouched, and the `role` column is provably untouched by the call. ⚠️ **`supabase/README.md`'s numbering entry** | `M` | ✅ **CLOSED 2026-09-19, AS SIZED.** Shipped: `supabase/migrations/0035_set_my_display_name.sql`, `supabase/tests/0035_set_my_display_name.sql` (38 checks, sixteen falsifications, fifteen red), the `supabase/README.md` numbering entry, an additive ADR-035 §2.3 amendment, and a note in `_cleanup.sql` recording that the suite added NO new helper shape. ⚠️ **Two falsifications changed the SUITE** — an unfalsifiable guard and an abort-instead-of-FAIL; see the status entry. ⚠️ **It ships no screen**, so nothing a person can see changed until `5b.8-iii-b` |
 | **5b.8-iii-b** | ✅✅ **DONE 2026-09-19 — A PERSON CAN FIX HER OWN NAME, AND A CASHIER CAN TOO.** ~~this was the next task, as of 2026-09-19~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line, a strikethrough is only a rendering, and a row quoting its own history in the shouted form claims the marker it has just handed on.** **The control a person fixes their own name with, and the only half anybody can see.** ⚠️ **No migration** — it calls what `5b.8-iii-a` applied. The control lives on the sheet `5b-ii-a` built, `app/src/app/ajustes.tsx`, as the caller's OWN row made editable — **not** a pencil against a roster row, which is the difference between fixing your own name and administering somebody else's, and the roster is manager-and-above while this is for everybody. ⚠️ **The call belongs in `src/api/` under `5b.5`'s conventions** (`R12`, `R13`): everything with a right answer in the module, nothing that talks. ⚠️ **The roster must re-read after the write**, or a person corrects her name and the list in front of her still shows the old one. ⚠️ **Its Spanish strings go in `app/src/strings.ts`**, and its contract check and harness join the pair `5b-ii-a` ships | `M` | ✅ **CLOSED 2026-09-19, AS SIZED.** Shipped: `app/src/api/displayName.ts` (the fifth `src/api/` module), the `setMyDisplayName` wrapper in `calls.ts`, `useMyDisplayName` and `useSetMyDisplayName` in `hooks.ts`, `nameOf`/`nonBlank` exported from `members.ts`, the `Tu nombre` section on `ajustes.tsx`, the `ES.myName` block, `app/test/api-display-name.test.ts` (28 assertions), and the pair `5b-ii-a` ships — `docs/checks/5b.8-iii-b-name-contract.sh` (8 groups) and its harness (10 fixtures), both wired into `db.yml`. ⚠️ **It shipped no migration, as promised.** ⚠️ **One defect found by the harness while the check was being written** — a request body inlined inside three levels of command substitution; see the status entry |
 | **5b.5** | ✅✅ **IS DONE AS OF 2026-09-18 — the `src/api/` half is written; the `src/ui/` half moved to `5h.5`, which is the decision this task's closing message flags first. `CONVENTIONS.md`, SECOND PASS — RULED BY THE OWNER 2026-09-13.** The page shipped at `5a-iv-b` describes **no `src/api/` and no `src/ui/` conventions, because none exist yet**. §3 put both in `5a` so that *"step 6's four screens arrive to a pattern"*; this plan spread them across `5d`–`5h`, and the owner ruled that **the re-sequencing stands and the pattern is described once `5b` has produced a real one** — rather than ten primitives guessed at against screens nobody has drawn. Numbered `5b.5` in the shape of `4.5`/`4.6`: an interstitial obligation, not a build step. ⚠️ **It is the LAST moment this is cheap** — `5d` is the first of the screens §3 was talking about. | `S` | ⚠️⚠️ **RE-POINTED AT `5b-i` CLOSING, 2026-09-14, WHEN `5b` WAS SPLIT** — a decision taken on the owner's behalf and named in the closing message. `5b-i` is the task that CREATES `src/api/`; `5b-ii` and `5b-iii` are its first two consumers. Describing the pattern after `5b-i` is §3's own argument (*"step 6's four screens arrive to a pattern"*) applied one level down, and it is cheaper — one consumer to reconcile instead of three, each having invented its own. ⚠️ **His ruling of 2026-09-13 is UPHELD, not bent**: it said the pattern is described *"once `5b` has produced a real one"*, and `5b-i` is where a real one appears. `docs/checks/conventions-gate.sh` fails if this row and the page's own second-pass note disagree. ⚠️⚠️ **AND IT NOW ALSO WAITS ON `5b.6`, DECIDED 2026-09-17 — the second re-point of this row, and named as a decision taken on the owner's behalf.** `5b.6` creates `palette.ts`; describing `src/api/` now and the palette later means opening this page twice. **His ruling of 2026-09-13 is upheld again rather than bent** — *"described once `5b` has produced a real one"* — it just waits for the second real one. **Reversed by one plan edit** ⚠️⚠️ **AND BOTH THINGS IT WAITED FOR NOW EXIST, SO IT IS TAKEABLE — TAKEN AS A DECISION ON THE OWNER'S BEHALF 2026-09-17, NOT AS A RULING.** `5b-i` built `src/api/` and `5b.6` built the palette; the row's own gate argues for going now rather than later — *"one consumer to reconcile instead of three, each having invented its own"* — and `5b-ii` and `5b-iii` are the two that would otherwise become the other two. ⚠️ **The alternative was to resume the interrupted order and build the Ajustes sheet first**, which is defensible and costs a page written against two consumers instead of one. **Reversed by one plan edit** ✅ **CLOSED 2026-09-18.** Shipped: `R12` and `R13` on the page and in `docs/checks/conventions-gate.sh`, a row added to `R3`, a second instance named in `R4`, `src/api/` added to the file-layout tree, five new fixtures (`F22`–`F26`), `F10` re-anchored, and assertion `0b` rewritten to READ the deferred task id instead of carrying `5b.5` as a literal — which is what would have let this very edit pass unnoticed |
-| **5b.9** | ⚠️⚠️ **MINT A SQLSTATE FOR `request_access`'s UNKNOWN CODE — RULED 2026-09-22, *"let's follow your recommendation"*, AND DELIBERATELY NOT NEXT.** `0029` refuses an unknown workspace code with **`42501`**, and `@/api/errors` maps `42501` app-wide to *"tu sesión se cerró"* — so the join box must guess, and `@/api/requests`'s `UNKNOWN_CODE` guesses *"the code"* because `/bienvenida` sits behind `guard.ts`. ⚠️ **It guesses right almost always and wrong in one case**: a person whose session expired mid-screen is told to re-read a code that was fine, and her next launch corrects it. **That is the whole exposure, which is why this blocked nothing for four days.** ⚠️⚠️ **THE PRECEDENT IS EXACT AND ELEVEN DAYS OLD: `0036` minted `TD004`/`TD005`** for the identical arrangement `5b-ii-b-2` shipped, on the reasoning the owner gave on 2026-09-18 — **cheap now, dearer once a second caller depends on it.** This is **`TD006`** in **`0038`**, and `0036`'s own distinction is the argument: **reuse is one meaning reached from two places; an overload is two meanings wearing one code**, and the difference is whether a client can branch on it. ⚠️⚠️ **IT MUST NOT BE FOLDED INTO ANYTHING, and that is the ruling's own wording**: *"as its own small task after `5c-iv`"*. `5c-iv-a` and `5c-iv-b` ship **no migration at all**, so folding it there would mean giving a screen task a migration it does not otherwise have — and *"one migration over two unrelated functions is harder to falsify and harder to revert"* is this project's recorded refusal. ⚠️ **THE GUARD THAT PROVES IT ALREADY EXISTS AND IS CURRENTLY GREEN ON THE DEFECT**: `docs/checks/5b-iii-b-request-contract.sh` asserts the two meanings of `42501` are **still indistinguishable on the wire**. So this task closes by turning a standing check RED and rewriting it — not by adding one, which is the cheapest possible evidence that the fix landed. ⚠️ **`0037` MADE THE CASE SHARPER RATHER THAN SOFTER**: its decision 2 chose an EMPTY LIST over a `42501` refusal precisely so this overload would not become a fourth, and wrote that reason into the applied function's comment. **The next module that needs to refuse on this path will not have that exit.** ⚠️ **It ships a migration — `0038` — and it is the only open row in step 5 that does** | `S` | ✅ **Ungated, and deliberately queued behind `5c-iv`** by the ruling of 2026-09-22 |
+| **5b.9** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-22 — `5c` CLOSED AND THE QUEUE BEHIND IT IS EMPTY. MINT A SQLSTATE FOR `request_access`'s UNKNOWN CODE — RULED 2026-09-22, *"let's follow your recommendation"*, AND DELIBERATELY NOT NEXT.** `0029` refuses an unknown workspace code with **`42501`**, and `@/api/errors` maps `42501` app-wide to *"tu sesión se cerró"* — so the join box must guess, and `@/api/requests`'s `UNKNOWN_CODE` guesses *"the code"* because `/bienvenida` sits behind `guard.ts`. ⚠️ **It guesses right almost always and wrong in one case**: a person whose session expired mid-screen is told to re-read a code that was fine, and her next launch corrects it. **That is the whole exposure, which is why this blocked nothing for four days.** ⚠️⚠️ **THE PRECEDENT IS EXACT AND ELEVEN DAYS OLD: `0036` minted `TD004`/`TD005`** for the identical arrangement `5b-ii-b-2` shipped, on the reasoning the owner gave on 2026-09-18 — **cheap now, dearer once a second caller depends on it.** This is **`TD006`** in **`0038`**, and `0036`'s own distinction is the argument: **reuse is one meaning reached from two places; an overload is two meanings wearing one code**, and the difference is whether a client can branch on it. ⚠️⚠️ **IT MUST NOT BE FOLDED INTO ANYTHING, and that is the ruling's own wording**: *"as its own small task after `5c-iv`"*. `5c-iv-a` and `5c-iv-b` ship **no migration at all**, so folding it there would mean giving a screen task a migration it does not otherwise have — and *"one migration over two unrelated functions is harder to falsify and harder to revert"* is this project's recorded refusal. ⚠️ **THE GUARD THAT PROVES IT ALREADY EXISTS AND IS CURRENTLY GREEN ON THE DEFECT**: `docs/checks/5b-iii-b-request-contract.sh` asserts the two meanings of `42501` are **still indistinguishable on the wire**. So this task closes by turning a standing check RED and rewriting it — not by adding one, which is the cheapest possible evidence that the fix landed. ⚠️ **`0037` MADE THE CASE SHARPER RATHER THAN SOFTER**: its decision 2 chose an EMPTY LIST over a `42501` refusal precisely so this overload would not become a fourth, and wrote that reason into the applied function's comment. **The next module that needs to refuse on this path will not have that exit.** ⚠️ **It ships a migration — `0038` — and it is the only open row in step 5 that does** | `S` | ✅✅ **UNGATED, AND THE QUEUE IT WAS BEHIND IS NOW EMPTY.** ~~ungated, and deliberately queued behind `5c-iv`~~ by the ruling of 2026-09-22 — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** `5c-iv-b` closed on 2026-09-22 and `5c` with it, so the ordering the ruling asked for is satisfied |
 | **5b.6** | ✅✅ **IS DONE AS OF 2026-09-17 — the palette exists, `R11` reads it, and twenty-one fixtures say `R11` can fail. THE PALETTE, AND THE ONE GUARD THAT CAN HOLD IT.** `app/src/theme/palette.ts` — **eleven named roles, each with one job**, beside `density.ts` and in the same shape: a typed record, no component adopting it yet. Plus **`R11` in `docs/checks/conventions-gate.sh`** — *every colour a person sees comes from the palette, never a literal* — **with its fixtures in `conventions-gate-falsify.sh`**, which is the half that makes a new rule evidence rather than a claim. ⚠️ **The palette is the ONLY part of área 13 a machine can check**; §2.11 bans rendering suites, so everything else about how the app looks is held by prose and a canvas. ⚠️ **Tokens only, and deliberately no screen retrofitted** — `5b-ii` is the first consumer and `5d` is the deadline. **Ships no migration and no screen.** | `S/M` | ✅ **CLOSED 2026-09-17.** Shipped as sized: `app/src/theme/palette.ts` (eleven roles), `app/test/palette.test.ts` (7 assertions, no hex spelled twice), `R11` + assertion `0d` in the gate, fixtures `F17`–`F21`, and `F10`/`F12` repaired after both went stale on this task. **No migration, no screen, no component adopting it** |
 | **5c** | ⚠️⚠️ **SIZED `XL` AND SPLIT FOUR WAYS 2026-09-20, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-20, and this file carried it as an `L`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ **`5c.5` closed first and handed the split a number to design against: a dropped connection costs up to 90 seconds before the app tries again, which is exactly the expiry margin.** **Offline.** **Fourteen deliverables, all of which land in a child below:** the **outbox table** in `expo-sqlite` and its three states — **pending**, **flushing**, **dead** (§2.6); **client-generated document uuids** for §2.6 idempotency; the **enqueue** every write goes through; the **identical-offline slide** (C10.3); the **flush on reconnect**; `recorded_offline`; **transient** against permanent; `record_failed_write` and the downgrade it runs for `sale` and `waste` only; the quiet dismissible *"Sin conexión a internet"* (C10.1); the fading reconnect toast (C10.2); and the least-invasive dead-letter banner (C11.9). ⚠️⚠️ **THE BANNER READS THE DEVICE'S OWN OUTBOX AND MAKES NO SERVER READ — ruled 2026-09-14.** `failed_write.id` IS the client uuid (`0024` decision 7), so the device that failed already holds what `replay_failed_write` needs. **It shows a COUNT and a PESO FIGURE, never a list, never an `error_code`** — C10.5 and §2.8 both survive intact. ⚠️ **The uuids are therefore load-bearing twice**: §2.6 idempotency and this. ⚠️ **What it cannot cover — a reinstall, or a failure on the other person's phone — falls back to HAND RECOVERY BY US** (ruling of 2026-09-05), and §2.10's nightly check is what says whether that is enough | `XL` | ✅ **4.6b is DONE** — the replay control is unblocked, and the read it seemed to need was ruled away |
 | **5c-i** | ✅✅ **DONE 2026-09-20 — THE QUEUE EXISTS AND NOTHING IN IT TALKS.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering, so a row quoting its own history in the shouted form claims the marker it has just handed on.** **The outbox, and nothing in it talks.** The **outbox table** in `expo-sqlite` — a real table, not another key in the `localStorage` shim `5b-ii-a` built — carrying the client uuid, the kind, the payload as JSON, the attempt count and the state; its three states **pending**, **flushing** and **dead** as ONE transition function rather than a column somebody sets; **client-generated document uuids** for §2.6 idempotency; and the **enqueue** every write in this app will go through, behind `@/api/` where §2.11 puts it. ⚠️⚠️ **IT HAS NO CALLER AND THAT IS THE POINT** — `5f`–`5h` are the screens that will write, and a screen that learns to `await` an RPC first is a screen rewritten later. ⚠️⚠️ **C10.3, the identical-offline slide, IS DISCHARGED HERE BY CONSTRUCTION RATHER THAN BY A SCREEN**: if enqueuing is the only write path then the confirmation **NEVER WAITS FOR THE NETWORK** and cannot look different offline, because the screen is never told which it was. ⚠️ **§2.11 names the outbox state machine as testable by decision**, so this is the one child of the split a Vitest suite can hold end to end. ⚠️ **It ships NO migration** — step 5's property, and `0024`–`0026` have been applied since 2026-09-05 | `M` | — |
@@ -2915,11 +2317,11 @@ free today and stay free until the first task merges.
 | **5c-iii** | ✅✅ **DONE 2026-09-20 — A WRITE THAT CAN NEVER LAND NOW LEAVES THE QUEUE, AND THE SHELF FOLLOWS IT.** ~~this was the next task, as of 2026-09-20~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **The writes that will never land, and the only half that changes the ledger.** **Transient** against permanent — the classification, and the whole of this task's risk sits in it: a permanent failure retried forever is a sale that never lands, and a passing one dead-lettered is a sale downgraded that would have arrived on its own. Then `record_failed_write` (`0024`, applied and unused since 2026-09-05), the `dead` state it puts the row in, and the auto-downgrade the server runs **for `sale` and `waste` only** — `purchase` and `transfer` dead-letter without one, because the stock is still on the shelf and an upgrade would double it. ⚠️⚠️ **C10.5 IS WHAT THIS HALF COSTS AND IT IS DELIBERATE: THE LEDGER CAN DIFFER FROM WHAT THE SHOPKEEPER TYPED, SILENTLY.** A downgrade reconciles quantity and carries no revenue, no tax split and no batch attribution — *"stock stays true; margin goes quiet"* (§2.6) — and nobody in the shop is told. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** ✅ **Shipped:** `app/src/api/deadletter.ts`, the eleventh `src/api/` module — an ALLOW-LIST of permanent codes with everything else retrying; a fifth flush port, `record_failed_write`, reported BEFORE the row is rejected; a `workspace_id` on the queue and the first walk of `5c-i`'s `PRAGMA user_version` path; **37 new Vitest assertions — 530 passing over 25 files, up from 493 over 24**; and **`docs/checks/5c-iii-dead-letter-contract.sh`**, nine assertion groups over real HTTP, with eleven fixtures, wired into `db.yml` on the same commit. ⚠️⚠️ **AND TWO CODES WERE MEASURED RATHER THAN REASONED ABOUT, BOTH OF WHICH A CAREFUL SESSION WOULD HAVE GOT WRONG**: `TD002` *"not enough stock"* is cleared by the very next retry, because `0017` skips enforcement on any write the flush has already marked as made without a signal; and an expired session is `PGRST301` and never reaches the function body, which is the only thing that makes `42501` safe to dead-letter. ⚠️ **The flag is deliberately NOT named here: it is `5c-ii`'s deliverable, and `split-coverage.sh` caught this row spelling it — the recorded rule, met again** | `M` | ✅ **UNBLOCKED 2026-09-20 — `5c-ii-a` shipped the send.** A write only becomes permanent after something has tried it, and now something does. ⚠️⚠️ **AND IT IS WHAT UNBLOCKS THE QUEUE ITSELF**: the drain stops at the first failure, so until this half can dead-letter a permanent one, a poison row holds every write behind it |
 | **5c-iv** | ⚠️⚠️ **SIZED `M/L` AND SPLIT IN TWO 2026-09-22, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-22, and it is the last child of `5c`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **WHY IT SPLIT, AND IT IS NOT A SIZE ARGUMENT ALONE: THE TWO HALVES READ DIFFERENT THINGS AND SHARE NOTHING BUT A PLACE ON THE SCREEN.** One draws **the link** — the signal `5c-ii-b-2` shipped, whose `subscribe()` still has no caller. The other draws **the queue** — a count and a peso figure priced on the device out of `failed_write` payloads, behind a role fence, with no server read at all. ⚠️ **The second half is the one with arithmetic in it**, and it is the same arithmetic §2.10's nightly check runs on the server side, so getting it wrong is a number that disagrees with the ledger rather than a banner that looks odd. ⚠️ **The first half is the one a shopkeeper meets every day**; C11.9 says in the owner's own words that the dead-letter control is *"not a priority for the owner at this point."* ⚠️⚠️ **AND NEITHER HALF CAN BE MEASURED HERE, WHICH IS WHY SMALL MATTERS MORE THAN USUAL**: §2.11 keeps rendering out of scope, so the instrument for both is the owner's own phone (`R9`). **Two things he can look at separately beat one he has to take or leave.** **What a person sees, and the only half nothing in this repository can measure.** The quiet dismissible *"Sin conexión a internet"* (C10.1) — an icon, intermittent, surfacing on screen changes, never blocking and never interrupting; the fading reconnect toast (C10.2), *"Tus últimas operaciones ya se guardaron."*, which fades on its own and **does not say how many**; and the least-invasive dead-letter banner (C11.9), **a banner and not a screen**, reading this device's own queue and making no server read. ⚠️⚠️ **IT SHOWS A COUNT AND A PESO FIGURE, NEVER A LIST, NEVER AN `error_code`** — the peso figure priced on the device by `@tienda/money`, the same arithmetic §2.10's nightly check uses on the server side. ⚠️⚠️ **AND THE BANNER IS MANAGER-AND-ABOVE, decided in the sizing rather than asked**: §2.7 fences unrecorded revenue there, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and C10.5 refuses to show a rejected write to the person at the counter at all. ⚠️ **§2.11 keeps rendering, navigation and layout out of scope, so no suite here can see any of this** — this row and the owner's own phone (`R9`) are the whole instrument, which is why it is last and alone rather than riding along with code that can be measured. ⚠️ **It ships NO migration** | `M/L` | ✅✅ **UNGATED AS OF 2026-09-22 — BOTH THINGS IT DRAWS NOW EXIST.** ~~blocked on the dead-letter half — the banner counts rows only that child can create~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** `5c-iii` shipped the `dead` rows the banner counts on 2026-09-20, and `5c-ii-b-2` shipped the signal the notice and the toast are drawn from on 2026-09-22. ⚠️⚠️ **IT READS THE SIGNAL AND NEVER THE LIBRARY** — `subscribe()` in `@/lib/connectivityMonitor` is the whole of its connectivity import, and a second `expo-network` import turns `app/test/auth-errors.test.ts` red |
 | **5c-iv-a** | ✅✅ **DONE 2026-09-22 — THE APP ADMITS IT QUIETLY, AND `subscribe()` HAS A CALLER.** ~~this was the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **The link, drawn — and the first caller `subscribe()` has ever had.** The quiet dismissible *"Sin conexión a internet"* (C10.1): **an icon, intermittent, surfacing on screen changes, never blocking and never interrupting**, and easily dismissed. Then the fading reconnect toast (**C10.2**), *"Tus últimas operaciones ya se guardaron."*, which fades on its own, needs no acknowledgement and ⚠️ **does not say how many** — a count here is the app talking about its own plumbing, which is the whole of what C10.3 refuses on the slide. ⚠️⚠️ **IT READS THE SIGNAL, NEVER THE LIBRARY.** `@/lib/connectivityMonitor`'s `subscribe()` is its entire connectivity import; a second `expo-network` import turns `app/test/auth-errors.test.ts` red, which is the only instrument either half of this constraint has. ⚠️⚠️ **AND THE MOTION RULE IS NOT TASTE HERE, IT IS §2.11: `transform` AND `opacity` ONLY.** C1.1 puts **two low-end Androids** among the pilot's four phones, and those two properties are the ones that run on the compositor — animating layout, colour, shadow or blur does not. A toast that fades by animating a background colour is the rule broken in the one place nobody would look. ⚠️ **The dismissal is a rule, not a preference**: C10.1 says the notice surfaces **on screen changes**, so a dismissal lasts until the next screen rather than for the session — dismissing it forever is how a shop stops being told it is offline on the day that matters. ⚠️ **Nothing here can be measured by any check in this repository** — §2.11 keeps rendering, navigation and layout out of scope — so what a suite CAN hold is the pure decision *"given the signal and where we are, what should be on screen?"*, and that is where every rule above is written down. **The rest is `R9`: it goes to the owner's phone.** ⚠️ **It ships NO migration** ✅ **Shipped:** `app/src/offline/notice.ts`, a pure `(state, event, now)` machine holding every rule; `app/src/offline/OfflineSurfaces.tsx`, the first non-route component in this app that is not scaffolding — a `View`, a `Text` and an `opacity`, with no judgement in it; the `Stack` wrapped in `_layout.tsx` so the two surfaces overlay every screen without any screen knowing; two strings; and **15 new assertions — 582 passing over 27 files, up from 567 over 26**. ⚠️⚠️ **THE RULE MOST LIKELY TO HAVE GONE IN WRONG AND SILENTLY IS THE DISMISSAL, AND IT IS NOW FOUR ASSERTIONS**: a dismissal is keyed to the SCREEN it was made on, dies with it, is not re-armed by a re-render on that same screen, and **is not carried into the next outage**. A session-long dismissal is kinder for ten seconds and wrong for the rest of the day. ⚠️⚠️ **AND THE TOAST NEVER FIRES AT LAUNCH**, which is the whole of why `UNKNOWN` is a third state: `null → true` is the first reading of a session, not a reconnect a person lived through, and toasting there tells somebody her operations are saved when she never saw them at risk. **An outage arriving mid-toast cancels it**, because by then it is lying. ⚠️ **The notice carries NO state colour, decided rather than defaulted**: `atencion` is fenced by §2.11 to C3.17 alone and `error` is what destroys — being offline is the pilot shop's ordinary condition, and a warning colour on a condition that holds half the day teaches a shopkeeper to stop seeing warning colours. ⚠️ **It also tightened a guard `5c-ii-b-2` shipped this morning**: *one driver of the connectivity machine* now reads **value imports only**, because a type-only import is erased and cannot step anything — falsified three ways | `S/M` | ✅ **Ungated — `5c-ii-b-2` shipped the signal on 2026-09-22** |
-| **5c-iv-b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-22 — AND IT IS THE LAST CHILD OF `5c`.** **The queue, counted — and the only number in this app priced on the device that the server also prices.** The least-invasive dead-letter banner (**C11.9**), **a banner and not a screen**, reading **this device's own outbox** and ⚠️⚠️ **MAKING NO SERVER READ** — `failed_write.id` IS the client uuid (`0024` decision 7), so the phone that failed already holds everything the banner needs. ⚠️⚠️ **IT SHOWS A COUNT AND A PESO FIGURE, NEVER A LIST, NEVER AN `error_code`** — the ruling of 2026-09-14, and C10.5 and §2.8 both: a list is the vendor's pile handed to the merchant. ⚠️ **The peso figure is priced on the device by `@tienda/money`, the same arithmetic §2.10's nightly check uses on the server side**, which is why this half is the one with a real suite behind it: a number that disagrees with the ledger is worse than a banner that looks odd. ⚠️⚠️ **AND THE BANNER IS MANAGER-AND-ABOVE, decided in `5c`'s sizing rather than asked**: §2.7 fences unrecorded revenue there, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and C10.5 refuses to show a rejected write to the person at the counter at all. `useMyRole()` already exists and is the fence. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** | `M` | ✅ **Ungated — `5c-iii` shipped the `dead` rows it counts on 2026-09-20.** ⚠️ Independent of `5c-iv-a`: it reads the queue, not the link |
+| **5c-iv-b** | ✅✅ **DONE 2026-09-22 — THE QUEUE HAS A PRICE, AND `5c` IS CLOSED.** ~~this was the next task, as of 2026-09-22, and it is the last child of `5c`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **The queue, counted — and the only number in this app priced on the device that the server also prices.** The least-invasive dead-letter banner (**C11.9**), **a banner and not a screen**, reading **this device's own outbox** and ⚠️⚠️ **MAKING NO SERVER READ** — `failed_write.id` IS the client uuid (`0024` decision 7), so the phone that failed already holds everything the banner needs. ⚠️⚠️ **IT SHOWS A COUNT AND A PESO FIGURE, NEVER A LIST, NEVER AN `error_code`** — the ruling of 2026-09-14, and C10.5 and §2.8 both: a list is the vendor's pile handed to the merchant. ⚠️ **The peso figure is priced on the device by `@tienda/money`, the same arithmetic §2.10's nightly check uses on the server side**, which is why this half is the one with a real suite behind it: a number that disagrees with the ledger is worse than a banner that looks odd. ⚠️⚠️ **AND THE BANNER IS MANAGER-AND-ABOVE, decided in `5c`'s sizing rather than asked**: §2.7 fences unrecorded revenue there, *"cost is manager-and-above; quantity is everyone"* was settled in 1.3a, and C10.5 refuses to show a rejected write to the person at the counter at all. `useMyRole()` already exists and is the fence. ⚠️ **`replay_failed_write` is not built here and needs no screen**: `4.6b` shipped its manager fence and running it is ours, by hand, one row at a time. ⚠️ **It ships NO migration** ✅ **Shipped:** `app/src/offline/deadLetters.ts`, a pure module holding which rows count, what a document is worth and who may be told; `app/src/offline/DeadLetterBanner.tsx`, a `View`, a `Text` and no judgement, mounted at the TOP of the root layout because `OfflineSurfaces` owns the bottom; three strings; **29 new assertions — 611 passing over 28 files, up from 582 over 27** — and a **sixth pinned list** in `app/test/auth-errors.test.ts`: the outbox has exactly two readers, the flusher and this banner. ⚠⚠ **THE PESO FIGURE CAN BE WITHHELD AND THE COUNT NEVER CAN, WHICH IS THE ONE DECISION HERE THAT WOULD HAVE GONE IN WRONG SILENTLY:** a sum that quietly omits a line it could not read is a smaller number indistinguishable from a correct one, so `QueueValue.complete` withholds the figure instead and the count — which is never lossy — stands alone. ⚠️ **`## Position` WAS CUT A THIRD TIME IN THIS SESSION — 1,423 lines against its 1,400 ceiling — and the whole 2026-09-20 working day moved to `docs/plan/archive/status-log-2026-09-20.md`, one day per file as before.** ⚠️ **The unit factors are an ARGUMENT rather than a copy of `0001`'s ten rows**, and the obligation to pass them is written into `5f`'s row, which must hold them anyway to price a basket offline. **Eight hand-run falsification fixtures** — seven over the machine, one over the pinned list — are what distinguish the green from a suite that stopped looking | `M` | ✅ **Ungated — `5c-iii` shipped the `dead` rows it counts on 2026-09-20.** ⚠️ Independent of `5c-iv-a`: it reads the queue, not the link |
 | **5c.5** | ✅✅ **DONE 2026-09-20 — READ, AND THE ANSWER IS YES: THE SESSION SURVIVES. ⚠️ THE WORRY THAT CREATED THIS ROW WAS WRONG, AND THE REASON IS NOT THE ONE IT NAMED.** ~~this was the next task, as of 2026-09-20, reordered ahead of `5c` by the owner~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **THE REFRESH-UNDER-LOSS READING — PROMOTED FROM PROSE 2026-09-13.** Does a session survive a refresh whose REPLY is lost? Drop the connection after the request and before the response, let the client retry, and see whether the person is still signed in. | `S` | ✅✅ **CLOSED — the `S` was right**, one sitting, and what it produced is an answer plus a standing guard rather than a screen. ⚠️ **Ungated, and it needs NO calendar** — unlike `5a-iv-d`. ⚠️⚠️ **This is where C1.4's real risk moved on 2026-09-13**: the project time-boxes nothing and has no inactivity timeout, but **reuse detection is ON with a 10s interval**, so a replayed refresh token revokes the whole session family. `auth-js` single-flights refreshes, so the in-app race is handled; **a lost response is not**. ⚠️ **The pilot store is offline a lot** — see `5c`'s own reason for existing |
 | **5d** | **Productos, read.** Family grid, initials tiles, family sheet with variants and prices. | `M` | — |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
-| **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. ⚠️⚠️ **AND TWO CONFIRMATION ANIMATIONS, ADDED BY THE OWNER 2026-09-21 IN PLACE OF THE CHANGE CALCULATION HE DEFERRED** — *"a simple confirmation animation if the sale is done and another one if we empty the carrito."* ⚠️ **Two constraints on them and neither is taste:** §2.11's motion rule is **`transform` and `opacity` ONLY** — a performance rule, because C1.1 puts two low-end Androids among the pilot's four phones and animating layout, colour or shadow does not run on the compositor. ⚠️⚠️ **And the sale confirmation fires on ENQUEUE, never on the server's reply**: C10.3 says the slide looks identical offline, and `5c-i` made that structural by having `queueWrite` return a row rather than a promise. **An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it.** ⚠️⚠️ **AND IT OWES ONE LINE THAT NOTHING HERE CAN SEE UNTIL IT IS WRITTEN: THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`.** `5c-ii-b-2` built the trigger and shipped that function with **no caller**, deliberately and for the reason `R9` exists: there is no screen to call it from yet. ⚠️ **Without the call, the ONLINE path is the worse of the two** — a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger it, and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger has to be TOLD rather than awaited; calling it offline or before the monitor starts is a safe no-op, so the screen never has to ask | `XL` | — |
+| **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. ⚠️⚠️ **AND TWO CONFIRMATION ANIMATIONS, ADDED BY THE OWNER 2026-09-21 IN PLACE OF THE CHANGE CALCULATION HE DEFERRED** — *"a simple confirmation animation if the sale is done and another one if we empty the carrito."* ⚠️ **Two constraints on them and neither is taste:** §2.11's motion rule is **`transform` and `opacity` ONLY** — a performance rule, because C1.1 puts two low-end Androids among the pilot's four phones and animating layout, colour or shadow does not run on the compositor. ⚠️⚠️ **And the sale confirmation fires on ENQUEUE, never on the server's reply**: C10.3 says the slide looks identical offline, and `5c-i` made that structural by having `queueWrite` return a row rather than a promise. **An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it.** ⚠️⚠️ **AND IT OWES ONE LINE THAT NOTHING HERE CAN SEE UNTIL IT IS WRITTEN: THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`.** `5c-ii-b-2` built the trigger and shipped that function with **no caller**, deliberately and for the reason `R9` exists: there is no screen to call it from yet. ⚠️ **Without the call, the ONLINE path is the worse of the two** — a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger it, and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger has to be TOLD rather than awaited; calling it offline or before the monitor starts is a safe no-op, so the screen never has to ask. ⚠️⚠️ **AND IT OWES A SECOND LINE NOTHING HERE CAN SEE, ADDED BY `5c-iv-b` ON 2026-09-22: THE UNIT FACTORS THIS SCREEN ALREADY NEEDS MUST BE HANDED TO `@/offline/deadLetters` TOO.** This screen has to price a basket with no signal (§2.6, C10.3), so it already holds `unit.factor_to_base` for every display unit a shop sells in; `5c-iv-b` takes that map as an ARGUMENT (`NO_UNIT_FACTORS`, empty today) rather than hard-coding `0001`'s ten rows, precisely so this app never grows a second answer to *how many grams in a kilo*. ⚠️ **Until the map is passed, the dead-letter banner prices only a line quoted in its variant's own base unit** — factor exactly `1` by `0001`'s `unit_base_is_identity` — **and withholds the peso figure for the rest rather than understating it**, which is what `QueueValue.complete` is for. **Nothing goes wrong quietly; the count is still right and the figure is simply absent** | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. ⚠️⚠️ **AND THE UNDO, RULED BY THE OWNER 2026-09-22.** One *undo* on the document just committed, over `void_transaction` (`0021`) — applied since 2026-09-04 and **never called by anything**. ⚠️ **Nothing is edited or deleted**: a mirror-image document cancels the first, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **TWO THINGS A SCREEN MUST NOT INVENT:** the window is read from `workspace_setting.void_window_minutes` (`0001:561` — *"the client reads it to render correctly"*), so **hardcoding 15 is wrong the first time a shop changes it**; and the fence is a **role boundary, not a deadline** — a cashier undoes their OWN document inside the window, a manager or owner undoes ANYTHING at any time with no window. ⚠️ `void_transaction` takes `purchase`, `sale` and `waste`, so this is one affordance for three screens: `5h` builds it, `5g` and `6a` reuse it | `M` | ⚠️ **areas 5 and 6** |
 | **5h.5** | ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |

@@ -22,6 +22,7 @@ moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstru
 | `docs/plan/archive/steps-0-to-4.5.md` | Closed steps 0–4.5 | Only to move a section back |
 | `docs/plan/archive/status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-19.md` | The whole 2026-09-19 working day | Only to move an entry back |
+| `docs/plan/archive/status-log-2026-09-20.md` | The whole 2026-09-20 working day | Only to move an entry back |
 
 ⚠️ **The status log is archived ONE WORKING DAY PER FILE** and there will be more of
 them. `plan-corpus.sh` globs `docs/plan/archive/*.md`, so a new one needs no wiring —
