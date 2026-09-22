@@ -1,0 +1,64 @@
+# 5d-iv — Inicio. Sized M/L and split in two 2026-09-22, on the day it was taken and
+# before a line of it was written. `5d.split` had it down as an M, and the row itself
+# told the next session to size it again — *"the takings and the count are a read
+# NOTHING IN THIS APP PERFORMS."*
+#
+# ⚠️ THIS GUARDS NO MIGRATION, the property `5d.split` asserts one level up: every
+# column either child reads has been applied since 0003, and 0012 added the one that
+# decides the day on 2026-08-20. EACH_CHILD_SAYS asserts it POSITIVELY, because
+# merging is automated and a child that quietly grows a migration is not a reviewable
+# mistake but a deployed one.
+#
+# THE SEAM, IN ONE LINE: it is `5d`'s own seam applied one level down. `5d` split in
+# four on the argument that 5d-i is the half a machine can hold and the other three
+# are the half only the owner's eye can — and 5d-iv, alone among the four, still
+# carried BOTH. 5d-iv-a is the second 5d-i: a module, a contract check over real
+# HTTP, no screen. 5d-iv-b is the screen, whose whole instrument is a phone (R9).
+#
+# ⚠️⚠️ AND THE SPLIT IS WORTH MORE HERE THAN SIZE ALONE, BECAUSE THE TWO HALVES HAVE
+# DIFFERENT INSTRUMENTS AND DIFFERENT FAILURE MODES. The read's mistakes are silent
+# and arithmetical — a trading day bucketed in the device's zone instead of the
+# shop's agrees with the server in Guadalajara and disagrees with it in Hermosillo,
+# and 0012's own header records that NOTHING ARITHMETIC COULD SEE that drift the last
+# time these two bucketings diverged. The screen's mistakes are visible and cost a
+# glance. Putting them in one row means the one nothing can see rides in on the back
+# of the one only a person can.
+SPLIT_ID="5d-iv"
+SPLIT_GROUPS=( "5d-iv|5d-iv-a 5d-iv-b" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare `|` in the regex field
+  # truncates the entry and it fails downstream as a DROPPED deliverable, which reads
+  # exactly like the defect this list exists to catch.
+  #
+  # ⚠️ ROWS 6 THROUGH 10 ARE ALSO `5d.split`'s DELIVERABLES on the parent. That is
+  # deliberate and not a second home: there they must land in `5d-iv`, here they must
+  # land in exactly one of its children — the arrangement `5c-iv.split` already
+  # stands in.
+  "the takings read itself — columns no line in app/ reads today|THE TAKINGS READ|5d-iv-a"
+  "the trading day, which 0012 made a property of the LOCATION and not the device|trading day|5d-iv-a"
+  "gross of IVA — two columns added, never one column read|total_net|5d-iv-a"
+  "what a void does to the figure and to the count|reversal_of|5d-iv-a"
+  "the contract check over real HTTP — the only instrument this half gets|5d-iv-a-takings-contract|5d-iv-a"
+  "state above anything tappable|above anything tappable|5d-iv-b"
+  "room at the top for the dead-letter banner|room at the top|5d-iv-b"
+  "the 48-hour expiry block — withdrawn by the ruling of 2026-09-22|48-hour|5d-iv-b"
+  "Vender, Comprar and Desperdicio as cards|as cards|5d-iv-b"
+  "the rows to Productos and Proveedores|Proveedores|5d-iv-b"
+  "the bell and Ajustes, placed at last|the bell|5d-iv-b"
+  # ⚠️ THE DELETIONS ARE A DELIVERABLE, not tidying. All three blocks name the task
+  # that removes them in their own comments, which is the arrangement 5a-ii's two
+  # temporary blocks used — and the one that is not written down is the one that
+  # becomes permanent.
+  "the three temporary blocks on Inicio, deleted by the task their comments name|TEMPORARY BLOCKS|5d-iv-b"
+)
+PHRASES=(
+  "5d-iv-a|F|NO SCREEN AND NO COMPONENT|The 5d-i shape, and the reason is the same one 5d's own split gave: 5h.5 owns src/ui/ and comes after 5d-5h have produced real primitives, so a primitive invented in the child that draws nothing is the refusal of 2026-09-13 broken in the cheapest place to break it. It is also what keeps this child fully checkable — everything it ships has a right answer a node suite or a live round trip can read."
+  "5d-iv-a|F|a real HTTP round trip|No typecheck has ever read 0003, and PostgREST answers a wrong column name with a 400 that the bundler, the suite and the typecheck all pass straight over. R13's rule is that the names live in one module and a live round trip is what asserts they are still the ones the database answers to — the shape 5b-i-api-contract.sh established and 5d-i repeated."
+  "5d-iv-a|F|A phone that asks its own clock what day it is|The single decision in this child that would go in wrong silently. 0012 put timezone on location on 2026-08-20 precisely because a trading day is local, and product_margin_daily buckets on (occurred_at at time zone l.timezone)::date. A device-clock bucketing agrees with that view for every shop in UTC-6 and disagrees for one in Hermosillo — and 0012's header records that nothing arithmetic saw the drift the last time these two diverged."
+  "5d-iv-a|F|occurred_at\` AND NEVER \`recorded_at|The pilot store is offline half the day, which is why 5c exists at all. A sale rung up at 17:00 and synced at 21:00 belongs to 17:00, and 0003 accepts the client's occurred_at clamped to 72 hours for exactly this. Bucketing on recorded_at would move a shop's whole afternoon into the evening it reconnected."
+  "5d-iv-b|F|STATE COMES FIRST|§2.8's Home row was amended on 2026-09-17 to allow the module cards, and the amendment kept one half deliberately: the takings sit ABOVE anything tappable, so Inicio still informs before it navigates. Nothing in this repository can see the order things are rendered in, so this row is the only record that the order was a decision."
+  "5d-iv-b|F|the owner's phone is the whole instrument|R9 and §2.11. Every judgement left in this child is rendering, navigation or layout, and no check here will ever say it is wrong. A row that does not say so reads like a row something is watching."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|Every column both children read has been applied since 0003, and step 5 ships no schema change by rule. A POSITIVE assertion because merging is automated: a child that quietly grew a migration is repaired only by a fix-forward migration, never by an edit. ⚠️ It matters more in step 5 than it did earlier: 5b.9 is an open row in this same step that DOES ship one, so 'the next task has no migration' has stopped being true of the step as a whole."
+)

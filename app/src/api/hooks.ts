@@ -46,6 +46,7 @@ import {
   workspaceInvites,
   workspaceLocations,
   workspaceMembers,
+  todaySales,
 } from '@/api/calls';
 import { nameErrorMessage } from '@/api/displayName';
 import {
@@ -92,6 +93,53 @@ import {
   type OnboardInput,
   type Workspace,
 } from '@/api/workspace';
+import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
+
+/**
+ * What the shop has taken today, and how many sales stand behind it — the two
+ * numbers §2.8 puts above anything tappable on Inicio. Plan task `5d-iv-a`.
+ *
+ * ⚠️ THE FAILURE IS REPORTED SEPARATELY FROM `loading`, and it is not a
+ * precaution — it is the defect the owner found on his own phone on 2026-09-22.
+ * `loading` is `data === undefined`, which is ALSO what a failed query looks
+ * like, so a read that could not happen rendered *Cargando productos…* for ever.
+ * The same mistake at the top of Inicio would be a shop whose takings never
+ * arrive, on the screen she opens between customers.
+ *
+ * ⚠️ ONE MINUTE OF STALENESS, DECIDED HERE BECAUSE `QueryProvider` says every
+ * read from `5d` onwards decides its own. The catalog takes five, because a
+ * catalog changes when somebody edits it; this changes on every sale, and Home
+ * is the screen somebody opens BETWEEN customers — a figure a minute old is a
+ * figure from before the customer she just served.
+ *
+ * ⚠️⚠️ AND IT WILL LAG THE TILL BY WHATEVER THE QUEUE IS HOLDING, WHICH IS NOT A
+ * DEFECT AND IS WORTH SAYING BEFORE `5f` MAKES IT VISIBLE. This is a SERVER read;
+ * a sale rung up offline lives in the device's outbox until the link comes back
+ * (`5c`), so Inicio can honestly show less than the cashier remembers taking.
+ * Reconciling the two is `5f`'s question — it is the task that creates the
+ * queued sale — and pricing the outbox here would be a second answer to *what
+ * did we take*, on the one screen that must not have two.
+ */
+export function useToday(): Takings & {
+  readonly loading: boolean;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const query = useQuery({
+    queryKey: TODAY_KEY,
+    queryFn: todaySales,
+    enabled: ready && session !== null,
+    staleTime: 60_000,
+  });
+  return {
+    // ⚠️ `takingsFrom` IS HANDED `undefined` UNCHANGED, and that is the point of
+    // its first two lines: a read in flight and a read that failed both withhold
+    // the figure rather than reporting a confident zero.
+    ...takingsFrom(query.data),
+    loading: query.data === undefined,
+    failed: query.error ? apiErrorKey(query.error) : null,
+  };
+}
 
 /** The shops this person belongs to, or nothing while there is no session. */
 export function useMyWorkspaces() {

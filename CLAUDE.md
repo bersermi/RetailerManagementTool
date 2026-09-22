@@ -24,6 +24,7 @@ moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstru
 | `docs/plan/archive/status-log-2026-09-19.md` | The whole 2026-09-19 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-20.md` | The whole 2026-09-20 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-21.md` | The whole 2026-09-21 working day — the `5a-iv-d` day-8 reading | Only to move an entry back |
+| `docs/plan/archive/status-log-2026-09-22.md` | **The 2026-09-22 working day, FIRST CUT** — ⚠️ the first archive taken from a day still running, because there was no older day left to take. **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
 
 ⚠️ **The status log is archived ONE WORKING DAY PER FILE** and there will be more of
 them. `plan-corpus.sh` globs `docs/plan/archive/*.md`, so a new one needs no wiring —

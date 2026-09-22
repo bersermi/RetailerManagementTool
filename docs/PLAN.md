@@ -248,6 +248,100 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅ **`5d-iv-a` IS DONE AS OF 2026-09-22 — THE APP CAN ASK WHAT THE SHOP TOOK
+TODAY, AND `5d-iv-b` IS THE NEXT TASK: INICIO ITSELF.** One module, one wire
+call, one hook, **33 new Vitest assertions (729 over 30 files, up from 696 over
+29)** and a contract check of eleven assertion groups over real HTTP with eleven
+fixtures of its own. **No migration, no screen, no `src/ui/`.**
+
+⚠️⚠️ **THE DESIGN THE SIZING ASKED FOR TURNED OUT TO BE FORBIDDEN — AND BY THIS
+REPOSITORY'S OWN RULES RATHER THAN BY TASTE. THAT IS THE FINDING, AND IT IS WHY
+THE SPLIT PAID FOR ITSELF INSIDE ONE SESSION.** The sizing said, correctly, that
+a trading day is local and `0012` put the zone on `location`. Converting an IANA
+NAME into an instant needs **`Intl.DateTimeFormat`**, and:
+
+| The rule | What it says |
+|---|---|
+| **`R5`** | **NO `Intl.` anywhere outside `src/format/mxn.ts`** — enforced, and the gate reads every source file |
+| **`R10`** | an **ALLOW-LIST** of `format` and `resolvedOptions`, the only two names measured on BOTH runtimes. `DateTimeFormat` is recorded there as *"a function on Android and unasked on iOS"* |
+
+⚠️⚠️ **THAT IS THE EXACT STATE `formatToParts` WAS IN ON 2026-09-13, WHEN IT
+TERMINATED THIS APP ON THE SPLASH SCREEN OF THE OWNER'S OWN IPHONE** with
+twenty-six green assertions behind it. So the device's own midnight is used —
+which needs no `Intl` and no table, and is **the call `catalog.ts`'s `isoDay` had
+already made four hours earlier** for the price window, on the same ground: *the
+phone is in the shop*. **Two answers to *what day is it* in one app would have
+been the defect this file has recorded eight shapes of.**
+
+⚠️ **THE COST IS IN THE MODULE'S HEADER RATHER THAN DISCOVERED LATER:** a phone
+outside its shop's zone buckets differently from `product_velocity_daily`. That
+is **zero shops today** — C1.5 puts both pilot shops in one location each and the
+column defaults to `America/Mexico_City` — and the day it is not, the fix is a
+MEASUREMENT on both runtimes first and a code change second. **Adding an ECMA-402
+name is not a code change.**
+
+⚠️⚠️ **AND THE BOUNDARY FIXTURE WAS MACHINE-DEPENDENT AND WOULD HAVE BEEN GREEN
+IN CI. IT WAS CAUGHT BY ASKING RATHER THAN BY ASSUMING.** Fixture `F1` replaces
+the local boundary with a UTC one; it went **red on the owner's Mac at UTC−6** and
+would have gone **green on a UTC runner**, because there the two are the same
+instant. ✅ `process.env.TZ` was **measured** to be re-read by node for every
+`Date` constructed after it, so the block now pins `America/Mexico_City` —
+`0012`'s own default — and ⚠️ **asserts the zone took before asserting anything
+in it**, because a pinning that silently failed would leave every case comparing
+UTC against UTC and passing for it. **A boundary suite that only falsifies on one
+of the two machines that matter is what `5a-split-coverage.sh` recorded about
+`mapfile`.**
+
+**THE THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, all client arithmetic and all
+reversible for nothing — no migration, no stored value:**
+
+| | The decision | The alternative, and what it costs |
+|---|---|---|
+| **1** | **GROSS of IVA** — `total_net` + `total_tax` | Not new: ruled 2026-09-14. Net would be short by the IVA every single day, against a till that holds the gross |
+| **2** | ⚠️⚠️ **A VOIDED SALE COUNTS AS NEITHER ONE NOR TWO** | `0021` writes a SECOND row, negated, so the peso figure self-corrects on its own and a `count(*)` does not. *2 ventas* after one sale and one undo is the app doing bookkeeping at a shopkeeper. ⚠️ A void the NEXT morning leaves today whole — which is **not** an approximation: it is what `product_margin_daily` does on the server, and the two agreeing is worth more than either being clever |
+| **3** | ⚠️ **NO ROWS READ IS NOT ZERO ROWS** | `undefined` is what a read in flight AND a read that FAILED both look like; an empty array is a genuinely quiet morning. Collapsing them puts a confident **$0.00** at the top of Inicio on a phone that could not reach the database — the same shape as the *Cargando productos…* the owner found this morning, except that this one does not look like it is waiting |
+
+⚠️ **AND ONE MORE THING THE ROW SHOULD SAY BEFORE `5f` MAKES IT VISIBLE:** this is
+a SERVER read, and a sale rung up offline lives in the device's outbox until the
+link returns. **Inicio can honestly show less than the cashier remembers taking.**
+Reconciling the two is `5f`'s question — it is the task that creates the queued
+sale — and pricing the outbox here would be a second answer to *what did we take*
+on the one screen that must not have two.
+
+
+⚠️⚠️ **`5d-iv` WAS SIZED AGAIN ON 2026-09-22, AS ITS OWN ROW DEMANDED, AND IT
+SPLIT IN TWO. `5d-iv-a` IS THE NEXT TASK: THE TAKINGS READ.** The row had said
+*"SIZE IT AGAIN WHEN IT IS TAKEN — the takings and the count are a read NOTHING
+IN THIS APP PERFORMS"*, and that turned out to be an understatement: it is not
+one read, it is a read plus the arithmetic that decides **which rows are
+today's**, and the database already commits to an answer.
+
+⚠️⚠️ **THE SEAM IS `5d`'s OWN, ONE LEVEL DOWN.** `5d` split in four on the
+argument that `5d-i` is the half a machine can hold and the other three are the
+half only the owner's eye can — and `5d-iv`, alone among the four, still carried
+**both**. `5d-iv-a` is the second `5d-i`: a module, a contract check over real
+HTTP, **no screen**. `5d-iv-b` is Inicio, whose whole instrument is a phone.
+
+**WHAT THE SIZING FOUND, and none of it was in the row:**
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | ⚠️⚠️ **A TRADING DAY IS LOCAL, AND `0012` PUT THE TIMEZONE ON `location`** | The server's `product_margin_daily` buckets on `(occurred_at at time zone l.timezone)::date`. A phone bucketing on its own clock agrees in Guadalajara and disagrees in Hermosillo — and `0012`'s header records that **nothing arithmetic saw the drift** the last time these two diverged: every reconciliation stayed green |
+| **2** | **A VOID IS TWO ROWS, NOT A DELETED ONE** (`0021`) | The peso figure self-corrects by summing negated totals; **the COUNT does not.** *2 ventas* after one sale rung up and undone is the app doing bookkeeping at a shopkeeper |
+| **3** | **`LOCATION_COLUMNS` IS `'id,name'`** — no timezone | The read `5d-iv-a` needs does not exist even in the column list, which is `R13`'s shape: a name the database answers to, asserted by a live round trip and by nothing else |
+| **4** | ⚠️ **NOTHING IN THIS APP WRITES A SALE UNTIL `5f`** | So Inicio will read **$0.00 and 0 ventas** on every phone. The contract check has to **make** the sales it counts (`record_sale`, `0016`), and `5d-iv-b`'s question *does a zero read as a quiet morning or as a broken app?* is **routed to `5f`** rather than put to the owner blind |
+
+⚠️ **`5d-iv-b` IS NOT DEFERRED, AND THAT WAS DECIDED RATHER THAN ASSUMED.** The
+rule of 2026-09-22 defers a row only when **both** tests are yes, and only one
+is here: the cards, the rows, the placement and the banner's room are all
+reachable on his phone today. **The falsifiable half is never deferred for the
+sake of the look-half**, which is `5d-iv-a`.
+
+⚠️ **`docs/checks/specs/5d-iv.split` is the thirteenth split spec**, twelve
+deliverables over two children, and the falsifier derives its fixtures from it —
+**177 fixtures now, up from 165**, with no wiring added.
+
+
 ✅✅✅ **`5d-iii` WAS LOOKED AT ON 2026-09-22 AND ALL THREE QUESTIONS CAME BACK
 YES — THE ONLY INSTRUMENT THIS SCREEN HAS EVER HAD, AND IT HAS NOW BEEN USED.**
 The owner, on his own iPhone, against his own shop's catalog:
@@ -1120,255 +1214,17 @@ seen a pixel. **The instrument for how this looks is the owner's phone.**
 | **4** | **`Entendido` is the dismiss label, and it is only ever read by a screen reader** | The pill shows the sentence, not a button word; the label is what `accessibilityLabel` announces, so a person using VoiceOver is told it can be dismissed | One string |
 | **5** | **The surfaces are mounted in the root layout, after the `Stack`** | A sibling earlier in the tree renders underneath it. Mounting per-screen means every screen has to remember — the same argument `Gate` and `Drain` already settled | Delete two lines |
 
-✅✅ **`5c-iv` WAS SIZED AND SPLIT IN TWO ON 2026-09-22, THE DAY IT WAS TAKEN AND
-BEFORE A LINE OF IT WAS WRITTEN — AND THE SQLSTATE MINT WAS RULED THE SAME HOUR.
-`5c-iv-a` IS THE NEXT TASK.** No migration, no product code, no screen: this entry
-is a sizing, a ruling turned into a row, and the eleventh split spec.
+⚠️⚠️ **THE THREE ENTRIES THAT OPENED 2026-09-22 WERE ARCHIVED THE SAME DAY, TO
+[`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**
+— the `5c-ii-b` sizing and its connectivity reading, `5c-ii-b-2`'s flush trigger,
+and the `5c-iv` sizing. `## Position` had reached **1,445 lines against its 1,400
+ceiling** and `plan-handover.sh` assertion 7 names the remedy in its own failure.
+⚠️ **This is the first cut taken from a day that was still running** — every
+earlier one waited for the day to close, because there was always an older day to
+take; today there was not. **A later session APPENDS to that file rather than
+making a second one for the same date.** ⚠️ It is a MOVE and not a copy, and
+`plan-corpus.sh` reads it, so every guard resolves those rows exactly as before.
 
-⚠️⚠️ **THE RULING FIRST, BECAUSE IT EMPTIES THE BLOCK FOR THE THIRD TIME IN THIS
-PROJECT'S LIFE.** *"Let's follow your recommendation"* — **yes, mint it, and as its
-own small task after `5c-iv`**, which is the recommendation in full including the
-ordering. It is now **`5b.9`**, sized `S`, shipping **`0038`** and minting **`TD006`**.
-⚠️ **It is deliberately NOT marked next**, and the row says why it cannot be folded
-into the task that is: `5c-iv-a` ships no migration at all, and *"one migration over
-two unrelated functions is harder to falsify and harder to revert"* is this project's
-own recorded refusal. ⚠️⚠️ **AND IT CLOSES BY TURNING A STANDING CHECK RED**:
-`docs/checks/5b-iii-b-request-contract.sh` currently asserts the two meanings of
-`42501` are **still indistinguishable on the wire**, so the fix breaks its own guard —
-which is the cheapest possible evidence that it landed, and it was built that way on
-purpose eleven days before anybody ruled.
-
-**WHY `5c-iv` SPLIT, AND IT IS NOT A SIZE ARGUMENT ALONE.** The row read as one job —
-*"the three things you actually see"* — and it is two, because **the two halves read
-different things and share nothing but a place on the screen**:
-
-| | `5c-iv-a` — the link | `5c-iv-b` — the queue |
-|---|---|---|
-| reads | the signal `5c-ii-b-2` shipped, through `subscribe()` — **which has never had a caller** | **this device's own outbox**, with no server read at all |
-| renders | two states of one boolean: a quiet notice, a fading toast | one count and **one peso figure** |
-| has arithmetic? | none | ⚠️ **yes, and it is the same arithmetic §2.10's nightly check runs on the server side** |
-| has a fence? | none | **manager-and-above** (§2.7, 1.3a, C10.5) |
-| a suite can hold | *"given the signal and where we are, what should be on screen?"* | **the pricing**, which is the half with a real instrument behind it |
-| the owner's own priority | the thing a shopkeeper meets every day | C11.9: *"not a priority for the owner at this point"* |
-
-⚠️⚠️ **AND NEITHER HALF CAN BE MEASURED HERE, WHICH MAKES THE SPLIT WORTH MORE THAN
-USUAL RATHER THAN LESS.** §2.11 keeps rendering, navigation and layout out of scope,
-so the instrument for both is the owner's phone (`R9`). **Two things he can look at and
-correct separately beat one he has to take or leave** — and a screen decision that goes
-in wrong has no check anywhere that would say so. Every previous split on this project
-argued the opposite way round: *this one cannot be falsified, so keep it small.*
-
-⚠️ **THE ORDER IS `-a` FIRST AND IT IS NOT ARBITRARY.** `-a` gives `subscribe()` its
-first caller, so the seam shipped this morning is exercised while it is still fresh;
-and C11.9 is the owner's own lowest priority in the whole offline design. ⚠️ **They are
-independent** — `-b` waits on nothing from `-a` — so the order is a preference rather
-than a gate, and a later session may swap them without breaking anything.
-
-⚠️⚠️ **ONE THING `5c-iv-a` MUST NOT INVENT, AND IT IS ALREADY DECIDED: WHERE A
-NON-ROUTE COMPONENT LIVES.** `src/scaffolding/Pendiente.tsx` is the precedent and its
-header carries the reasoning: **not under `src/app/`**, because Expo Router makes every
-file there a navigable URL nobody meant to ship; and ⚠️ **not `src/ui/` either** — §2.11's
-ten primitives and `5h.5`'s conventions pass are scheduled for after there is a pattern
-to describe, and `5d`–`5h` own that directory by ADR-035 §3's amendment of 2026-09-13.
-**A `Banner` primitive built here would be the thing the owner refused on 2026-09-13**,
-*"ten primitives guessed at against screens nobody has drawn"*, arriving four tasks early.
-
-**What shipped, and it is three files and no code:**
-
-| | |
-|---|---|
-| `docs/checks/specs/5c-iv.split` | the eleventh split spec — six deliverables, four required sentences, one positive *"ships NO migration"* |
-| `docs/PLAN.md` | the ruling, `5b.9`, the sizing, the two child rows, this entry |
-| `docs/HANDBOOK.md` | the parent described as split, two child rows in plain words, and the question retired |
-
-✅✅ **`5c-ii-b-2` IS DONE AS OF 2026-09-22 — THE QUEUE HAS A TRIGGER, AND THE
-APP'S ONE FLUSHER HAS ITS FIRST CALLER AFTER TWO DAYS WITH NONE.
-`5c-iv` IS THE NEXT TASK, AND IT IS THE LAST CHILD OF `5c`.** No migration, no RPC, no screen —
-but this is the commit where a sale rung up with no signal starts leaving the
-phone on its own.
-
-**WHAT THE READING DECIDED, AND WHAT IT LEFT FOR THE CODE.** `5c-ii-b-1` chose
-`expo-network` and handed this task three findings no changelog would have
-carried. Every one of them is now a line of code with an assertion over it:
-
-| | The finding | What it became |
-|---|---|---|
-| **iOS listener untrustworthy** | announced the reconnect in one run of two; its READ was right within 5 s in both | **a listener PLUS a poll PLUS the app-state wake**, and the poll runs **only while offline** |
-| **1 — the handover blip** | both libraries emit a spurious `isConnected: false` on wifi→cellular, `72–324 ms` long | `OFFLINE_SETTLE_MS = 2_000`, debouncing **down only** — up is taken immediately |
-| **2 — repeated payloads** | the same `WIFI` event twice, `2.6 s` apart, twice in one run | an identical reading is not an event; it is the difference between one flush and two |
-| **3 — `isInternetReachable: null`** | `null` for iOS's first `~120 ms` where `isConnected` was already `true` | the trigger keys on **`isConnected`**; reachability is advisory and is never read |
-
-⚠️⚠️ **THE POLL'S ASYMMETRY IS THE READING'S OWN AND IT IS THE CHEAPEST THING
-HERE.** The DROP was caught by both libraries on both platforms within **8 ms**,
-so the listener is trusted going down; it is the way back up that it missed. So
-the poll is armed **only while the signal says offline** — which is exactly when
-it is needed and exactly when the app has nothing else to do. **Cost while
-online: nothing at all.**
-
-⚠️⚠️ **AND THE 90 SECONDS IS NOW A TABLE A CHECK READS, NOT A NUMBER IN A
-COMMENT.** `5c.5` measured `auth-js` caching a failed refresh for 60 s and
-serving it **without touching the network**, plus up to 30 s of in-call backoff.
-So a flush fired the instant the link returns can be refused by an auth layer
-that has not noticed the link returned. The ladder lands attempts at **0 s, 5 s,
-20 s, 50 s and 110 s** after a reconnect — four inside the window the cooldown
-owns, and one past it. `attemptSchedule` states that, the suite **drives the
-same ladder through the machine** and asserts they agree, and a ladder edited to
-give up at 50 s turns four assertions red rather than leaving a paragraph stale.
-
-**What shipped, and the ADR row the owner ruled on this morning:**
-
-| | |
-|---|---|
-| `app/src/api/connectivity.ts` | the eleventh `src/api/` module — a pure `(state, event, now)` machine: the debounce, the de-duplication, the wake, the ladder, and three selectors the timers are armed from |
-| `app/src/lib/connectivityMonitor.ts` | ⚠️⚠️ **the only module in this app that imports a connectivity library** — two subscriptions, three timers, `subscribe()` for `5c-iv`, `queued()` for `5f`, and the first call of `flusher()` |
-| `app/src/app/_layout.tsx` | a `Drain` sibling that renders nothing, the shape `Gate` already had |
-| `app/test/api-connectivity.test.ts` | 33 assertions over every transition |
-| `app/test/auth-errors.test.ts` | the *"exactly one caller"* block grows from two lists to five |
-| `docs/adr/…ADR-035…md` | ⚠️ **§2.11's CONNECTIVITY row and its revision entry — the owner's ruling of 2026-09-22, folded in here** |
-| `docs/CONVENTIONS.md` | `R12`'s module table at eleven, and the five pinned lists written down |
-
-⚠️ **THE §2.11 ROW CARRIES THE BOUND AND NOT ONLY THE NAME**, which was the
-ruling's explicit condition: the reading was taken on a **simulator whose network
-is the host's**, so the losing library's failure to recover is a simulator
-finding **a real iPhone may not reproduce**. A row stating the choice without its
-evidence is the stale-copy shape recorded ten times in this file.
-
-⚠️⚠️ **AND THE ONE-MODULE CONSTRAINT IS AN ASSERTION, NOT A PARAGRAPH — WHICH IS
-THE ONLY REASON IT WILL SURVIVE.** `5c-iv` draws its notice from the same fact
-this drains on; §2.11 keeps rendering out of scope, so nothing here could ever
-see a banner and a drain disagree. `app/test/auth-errors.test.ts` now pins
-**five** lists as equalities — `expo-network` to one importer, `@/api/connectivity`
-to one driver, `AppState` to **two** owners (the session store's auto-refresh and
-the monitor's wake: different subjects over one core API, so it is pinned at two
-rather than argued down to one), `@/lib/flushRunner` to one caller, and the two
-that were already there. **Each was falsified by grafting the import onto a module
-that does not own it, and each turns exactly its own assertion red.**
-
-⚠️⚠️ **A GAP WAS FOUND WHILE WRITING THIS AND IT WAS IN NOBODY'S ROW — THE
-ONLINE PATH HAD NO TRIGGER AT ALL.** A reconnect drains and an app-state wake
-drains; **a sale rung up on a working connection by a cashier who never leaves
-the app had neither**, and would have sat in the queue until the link flapped or
-the phone was pocketed. Nothing in `5c`'s fourteen deliverables assigns an
-enqueue-triggered flush to any child — it fell between `5c-i`'s enqueue and this
-task's trigger. ✅ **The trigger half is built here** (`queued()`, four
-assertions), **and the one line that calls it is routed to `5f` by `R9`'s rule
-rather than left to be noticed**: `queueWrite` returns a row rather than a
-promise, so there is no screen to call it from today, and a function with no
-caller is precisely what this task was written to stop being tolerated. See
-`5f`'s row.
-
-⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` — **563
-assertions over 26 files, up from 530 over 25** — plus `npm run typecheck` and
-`bash docs/checks/conventions-gate.sh` (16 groups over 49 source and 26 test
-files). ⚠️⚠️ **There is deliberately NO contract check over real HTTP here, and
-that is stated rather than quietly skipped: this task ships no migration, calls
-no RPC of its own and touches no schema**, so there is nothing for a database to
-be asked. Eight hand-run falsification fixtures — four over the one-owner lists,
-four over the machine — are what distinguish the green from a suite that stopped
-looking.
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no schema, and nothing
-here is dearer to reverse later than it is today:**
-
-| | Decision | Why | Reversal |
-|---|---|---|---|
-| **1** | **The poll runs only while the signal says offline** | The listener caught every drop within 8 ms on both platforms and missed only the recovery. Polling while online would buy nothing and cost a native call every five seconds all day, on two low-end Androids | One line in `polling()` |
-| **2** | **The debounce is 2 s, and it debounces going DOWN only** | ~6× the worst blip measured. Being early about coming back is free — a flush into a dead link fails transiently and the ladder retries; being late is a queue nobody drains | One constant |
-| **3** | **The ladder is 5/15/30/60 s then 120 s steady** | It is the shape that straddles the 90 s, not a preference. A shop's queue must not wait minutes because an auth cache has not lapsed | One table, with the suite asserting the straddle rather than the numbers |
-| **4** | **`UNKNOWN` is a third state and is not `false`** | Two things fall out of it: the first good reading of a launch counts as a reconnect, so **an app killed holding a queue drains it on the way back in**; and `5c-iv` draws no offline notice for a shop nobody has looked at | Delete a `null` |
-| **5** | **The drain is mounted as a session-gated `Drain` sibling in the root layout** | A drain with no session sends as an anonymous caller, gets `PGRST301`, and walks the whole ladder for nothing — and there is nothing in the queue before somebody signs in. The shape is `Gate`'s, which already renders nothing and lives for the app's lifetime | Delete a component |
-| **6** | **A failed native read is NOT reported as an outage** | It is the module answering badly. Inventing a `false` there stops the drain and draws an offline notice on a working connection | One `catch` |
-| **7** | **`busy` is not an outcome and does not advance the ladder** | `@/api/flush` is single-flight; the drain that is in flight reports its own stop. Scheduling here would double the ladder for one failure | One branch |
-
-⚠️ **NOTHING ABOVE IS A ONE-WAY DOOR.** There is no migration, no seed and no
-row shape in this task — every decision is a constant or a branch in client code,
-and the phone-shaped risk that usually makes these expensive (a modelling choice
-baked into a table) does not exist here.
-
-✅✅ **`5c-ii-b` WAS SIZED AND SPLIT IN TWO ON 2026-09-22, AND ITS FIRST HALF CLOSED
-THE SAME DAY. THE READING WAS TAKEN ON BOTH INSTRUMENTS AND IT DID NOT SPLIT THE TIE —
-IT BROKE IT. `5c-ii-b-2` IS THE NEXT TASK.** No migration, no product code, no screen.
-⚠️ **The only thing in the tree that a customer could ever reach is one line of
-`app/package.json`**: `expo-network` in, `@react-native-community/netinfo` out.
-
-**THE ANSWER, AND IT IS A DIFF RATHER THAN AN IMPRESSION.** Both libraries were armed
-**in the same process at the same moment** — three channels each, so they could be
-caught disagreeing: one read at arm time, every listener event, and a poll every five
-seconds. The poll is what saved the reading, and the reason is the finding below.
-
-| | `wera-android-36` | iOS 26.5 Simulator |
-|---|---|---|
-| link dropped, detected by | both, `8 ms` apart | both, `5 ms` apart |
-| link restored, **listener** fired | both, netinfo first by `250–330 ms` | ⚠️⚠️ **NEITHER, in the run that was captured to disk** |
-| link restored, **read** recovered | both | ⚠️⚠️ **`expo-network` YES within 5 s; NETINFO NEVER** |
-| events over the same transitions | `expo-network` 8, netinfo 15 | `expo-network` 5, netinfo 9 |
-| wifi from cellular | both report it; netinfo adds `isConnectionExpensive`, `carrier`, `cellularGeneration` | no cellular radio — out of reach by construction |
-
-⚠️⚠️ **THE FINDING THAT DECIDED IT: ON THE iOS SIMULATOR, `@react-native-community/netinfo`
-WENT OFFLINE AND STAYED OFFLINE.** The link came back at `68 s`; `expo-network`'s next
-read was `WIFI / isConnected: true / isInternetReachable: true` at `75 s`, and **every
-netinfo read from `75 s` to `130 s` — twelve consecutive polls, fifty-five seconds
-after the link returned — still said `none / false / false`.** It fired no event
-either. **A flush-on-reconnect built on that library would not have fired on iOS after
-a real outage**, which is `5c-ii-b`'s own characteristic failure — *"the queue never
-drains"* — arriving through the dependency rather than through the cadence.
-
-⚠️ **AND THE BOUND ON IT IS STATED RATHER THAN DISCOVERED LATER.** This is the
-**simulator**, which has no network of its own: the drop was the Mac's Wi-Fi going
-down, so the interface *disappeared* rather than losing signal, and netinfo's iOS
-implementation watches reachability. **A real iPhone may not do this.** The claim
-here is bounded to what was seen and is not generalised — but it is enough to
-choose on, because the other library did not do it under the identical event.
-
-⚠️⚠️ **THE SECOND FINDING IS NOT ABOUT THE CHOICE AT ALL, AND IT CHANGED `5c-ii-b-2`
-BEFORE IT WAS TAKEN: ON iOS THE LISTENER IS NOT TRUSTWORTHY.** `expo-network`
-announced the reconnect in the FIRST iOS run (`66880 ms`) and **missed it in the
-second**, where it emitted two duplicate `NONE` events as the link returned and then
-never said `WIFI` — while its READ was right within five seconds in both. So the
-signal `5c-ii-b-2` builds is a **listener plus a poll plus the app-state wake**, and a
-subscription on its own is the shape that leaves a shop's queue full overnight. **No
-changelog would have said this.**
-
-**THREE SMALLER THINGS THE READING TURNED UP, all Android unless said:**
-
-| | Finding | What it changes |
-|---|---|---|
-| **1** | ⚠️ **BOTH libraries emit a spurious `isConnected: false` during the wifi→cellular handover** — a `NONE` blip at `10341 ms` followed by `CELLULAR` `72–324 ms` later | `5c-iv` draws C10.1's *"Sin conexión a internet"* from this signal. **Un-debounced, a shop walking from the counter to the door flashes an offline notice.** Recorded on `5c-ii-b-2`'s deliverable, because the debounce belongs to the signal, not to the banner |
-| **2** | ⚠️ **`expo-network` repeats identical events** — the same `WIFI` payload twice, `2.6 s` apart, twice in one run | The signal must compare payloads and not re-fire. Cheap, but it is the difference between one flush and two |
-| **3** | ⚠️ **On iOS, netinfo reports `isInternetReachable: null` for its first `~120 ms`** where `expo-network` says `true` immediately | A trigger keyed on `=== true` would sit out the first fifth of a second of every launch. It is a reason to key on `isConnected` and treat reachability as advisory |
-
-✅ **THE `"wifi versus cellular"` QUESTION IS ANSWERED, AND THE ANSWER IS NO FOR v1 —
-SO THE OWNER'S PHONE IS NOT NEEDED.** Both libraries report the type, so the capability
-was never in doubt; the question was whether the app should ACT on it. It should not:
-a queued sale is a few hundred bytes, §2.6 already says flush on reconnect without
-qualification, and a cadence that branches on connection type is a second code path
-that no instrument in this repository can exercise. ⚠️ **What it costs is named: we
-give up `isConnectionExpensive`, which only netinfo carries** — so if a pilot
-shopkeeper ever complains about mobile data, that is the row to reopen, and reopening
-it means changing the library, not adding a branch.
-
-⚠️⚠️ **AND THE iOS SIMULATOR DID NOT BUILD, WHICH IS AN INSTRUMENT FINDING AND NOT A
-CONNECTIVITY ONE.** The *"second iOS instrument"* recorded on 2026-09-21 could not
-compile this app: `ld: symbol(s) not found`, `facebook::react::Sealable`, referenced
-from `libRNScreens.a`, `libRNGestureHandler.a` and `libRNReanimated.a`. **Expo 57 links
-a PREBUILT React Native core while those three community modules build from source**
-(`[Expo-precompiled] … prebuilt tarball not found`), and the prebuilt core does not
-export what they reference. ✅ **The fix is `RCT_USE_PREBUILT_RNCORE=0 RCT_USE_RN_DEP=0
-pod install`**, which builds React Native from source and links clean. ⚠️ **It cost
-three failed builds to find, and nothing in this repository would have said so** —
-`app.yml` runs a typecheck and a Vitest suite, neither of which compiles a line of
-native code. ⚠️ **It is not recorded as a task**: `ios/` is generated and gitignored,
-so the remedy is an environment variable a future session needs to know, not a file to
-commit. **That is what this paragraph is for.**
-
-**What shipped, and it is four files and no code:**
-
-| | |
-|---|---|
-| `docs/checks/specs/5c-ii-b.split` | the tenth split spec — six deliverables, two required sentences, one positive *"ships NO migration"* |
-| `docs/PLAN.md` | the sizing, the two child rows, this entry |
-| `docs/HANDBOOK.md` | the parent described as split, two child rows in plain words |
-| `app/package.json` | ⚠️ **the only line that reaches a phone**: `expo-network` in, netinfo out |
 
 
 ## Steps 0 through 4.5 — closed, and moved out of this file ✅
@@ -2959,7 +2815,9 @@ free today and stay free until the first task merges.
 | **5d-i** | ✅✅ **DONE 2026-09-22 — THE APP CAN READ WHAT THE SHOP SELLS, AND TWELVE ASSERTION GROUPS OVER REAL HTTP SAY THE DATABASE AGREES.** ~~this was the next task, as of 2026-09-22, and it is the half of `5d` a check can look at~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **The CATALOG READ, as a contract with Postgres, and nothing on screen.** `product_variant`, `product_family`, `price_list` and `unit` — four applied tables that **no line in `app/` reads today** — behind `src/api/catalog.ts` and one hook (`R12`, `R13`). Everything it decides is pure and is read by `app/test/api-catalog.test.ts`: the four **named** column lists, never `select('*')`, which on `price_list` would ship a shop's whole price history to a phone; **which price is today's**, out of a dated range table whose `valid_period` is a generated `daterange` and whose `location_id` is null for the workspace default (C1.5: one location per pilot shop, so the two scopes are a preference and not a picker); the peso figure itself, converted out of **`price_per_base`** — a `numeric(14,6)` per BASE unit — into the variant's `price_unit_code` and into integer centavos through `@tienda/money` (`R5`); **C3.10**, *a price is never shown without its unit* — `$35.00 / kg`, `$9.00 / 250 gr`; **C3.12**, a variant with no price row rendering as a DASH and never as `$0.00`, which is `0008`'s own instruction and the opposite of what the Power Apps screen did; the **INITIALS, COMPUTED** from a variant's name, for the un-pictured product that must still look finished; and the search key, which has to fold exactly the way `0002`'s **`normalize_name`** does, or the list disagrees with the uniqueness rule the database itself enforces. ⚠️⚠️ **NO SCREEN, NO COMPONENT AND NO PRIMITIVE** — `5h.5` owns `src/ui/`, and a primitive invented here is what the owner refused on 2026-09-13, arriving early. ⚠️ **The instrument is `docs/checks/5d-i-catalog-contract.sh` and its falsifier: a real HTTP round trip against a reset database**, because no typecheck has ever read `0002`, and PostgREST answers a wrong column name with a 400 that the bundler, the suite and the typecheck all pass straight over. ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED.** Nothing is owed that touches it: the one decision parked on 2026-09-22 is about Inicio, and it names the child it blocks |
 | **5d-ii** | ✅✅ **DONE 2026-09-22 — THE SHOP CAN SEE WHAT IT SELLS, AND NOTHING IN THIS REPOSITORY CAN SAY WHETHER IT LOOKS RIGHT.** ~~this was the next task, as of 2026-09-22, and it is the first screen of the shop itself~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **Productos, the flat list.** ⚠️⚠️ **C8.13 AS THE OWNER AMENDED IT ON 2026-09-15 — PRODUCTOS IS VARIANT-FIRST.** *"The list of products displayed in Productos should be all the product variants"* — **the grid of family tiles the old `5d` row promised is gone**, and this row is where that is recorded, because the constraint's own bullet was annotated rather than rewritten. One row per variant: the name, its family under it, the price sentence `5d-i` computes beside it, and a **search box** above the list — the shape C3.1 already fixed for the transaction screens, which is why this app is flat everywhere on purpose. Plus the **initials tile** an un-pictured product carries, with no *pending photo* state anywhere near it: a merchant-created product is finished and transactable, and the picture is our maintenance chore, not his (C8.14). ⚠️ **The way in is a ROW ON INICIO rather than a fifth tab** — **C12.1** caps the bar at four, and five icon-plus-word tabs across 390 px is where that was measured. ⚠️ **Its door is temporary and must say so in the file**: it goes beside the two rows `index.tsx` already draws, and `5d-iv` places it properly — the arrangement `5a-ii`'s two placeholder blocks used, comment included, before `5b-ii-a` deleted them. ⚠️ **No check in this repository can see any of this** (`R9`, §2.11): the instrument is the owner's phone. ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED — `5d-i` shipped the read it draws on 2026-09-22.** ⚠️ The one decision parked that day is about Inicio and blocks a different child |
 | **5d-iii** | ✅✅ **DONE 2026-09-22 — THE FAMILY OPENS, THE MARK CARRIES NO WORD, AND THE THREE BUTTONS ARE PLAINLY DEAD.** ~~this was the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **La Familia — the one surface in this app where the family/variant structure is visible at all.** It is **reached by tapping a variant**, and it opens with that variant preselected and **no legend** on it — ruling 4 of área 13, in the owner's words, and the half of the catalog constraint that survived the 2026-09-15 amendment untouched. The family's variants are **at sight**, each with its price, and three affordances sit with them: **`Agregar Variante`**, `Costos` and `Editar`. ⚠️⚠️ **ALL THREE ARE INERT HERE, AND THAT IS WHAT `5d` BEING *read* MEANS.** Every one of them writes; `product_variant_insert` and `product_family_insert` are both `has_role(…, 'manager')` (`0002`), and `5e` is the row that builds them. A control that looks live and refuses silently is worse than one that is plainly not built yet. ⚠️ **No check here can look at it** (`R9`, §2.11): the instrument is the owner's phone. ⚠️ **It ships no migration.** ⚠️⚠️ **WHAT IT SHIPPED AND WHERE THE RULING LANDED:** `app/src/app/familia/[id].tsx` — the family in the PATH and the tapped variant as a QUERY PARAMETER, which is what each one is; `familyView`, `familyTitle` and `familyLineKey` in `@/api/catalog`, where **twelve new assertions** read them; `ES.family`'s nine words; and Productos' rows becoming `Pressable` at last, with the two letters on each row moving from `fondo` to **`accionSuave`** — the affordance carried in HUE, which is what direction B was chosen for, rather than a chevron the icon-needs-a-word rule forbids outright. ⚠️ **The mark on the preselected variant is a green left rule and a heavier name and NO WORD**: ruling 4 forbids the legend, and área 13's surviving rule from direction C forbids colour alone, so it is colour AND a border — with `accessibilityState.selected` as the one telling that is not a legend. ⚠️⚠️ **AND IT MARKS NOTHING RATHER THAN FALLING BACK TO THE FIRST ROW** when the id does not belong to the family: with no legend on the screen, a wrong mark is a claim a shopkeeper cannot check. | `S/M` | ✅ **CLOSED 2026-09-22.** Shipped as sized: one route, three pure functions, twelve assertions, no migration, no `src/ui/` |
-| **5d-iv** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-22.** **INICIO, THE REAL ONE — AND IT IS IN THIS SPLIT BECAUSE TWO RECORDS OUTSIDE THE `5d` ROW ALREADY PUT IT HERE**: the header of `app/src/app/(tabs)/index.tsx`, which names this task twice, and área 13's decision table (*"Reversed by `5d`, which has to place it properly anyway"*). §2.8's Home row as amended 2026-09-17: today's takings and today's count **above anything tappable** — **STATE COMES FIRST**, the half of the original sentence the amendment deliberately kept — then Vender, Comprar and Desperdicio **as cards**, then the rows to Productos and **Proveedores**, and **the bell** and Ajustes placed at last rather than floating in the middle of a placeholder. ⚠️⚠️ **AND IT IS NOW THE ONE SCREEN THAT CARRIES THE DEAD-LETTER BANNER** — ruled 2026-09-22, *"let's keep it Home Only"* — which is a layout constraint this row inherits rather than a thing it builds: the banner is mounted at the root and `onHome` decides, so what this row owes is **room at the top for it**, above anything tappable and not underneath the takings. ⚠️⚠️ **THE 48-hour EXPIRY BLOCK §2.8 ASKS FOR IS WITHDRAWN, NOT DEFERRED — RULED 2026-09-22: *"Let's drop it for the pilot then."*** It had a data path and the pilot fills none of it (`0018`'s tier 2 needs `track_expiry`, which C8.9's four-field create never turns on), and `7e` was already rewritten to DERIVE the same answer. **A deliverable whose premise is false is withdrawn** — the shape ADR-035 §3 used when C1.5 killed the shared till. ⚠️ **This row draws no expiry panel, and an always-empty one is the thing the ruling refused.** ⚠️ **SIZE IT AGAIN WHEN IT IS TAKEN**: the takings and the count are a read **nothing in this app performs**, and the `M` here assumes the expiry half is ruled away. ⚠️ **No check here can look at it** (`R9`, §2.11). ⚠️ **It ships no migration.** | `M` | ✅✅ **UNGATED AS OF 2026-09-22 — BOTH HALVES OF THE §2.8 QUESTION WERE RULED THE SAME DAY.** The expiry block is withdrawn, and Home carries the dead-letter banner and is the only screen that does (`onHome`, shipped with the ruling). ⚠️ It wants `5d-ii` built first, since the row it places points at Productos |
+| **5d-iv** | ⚠️⚠️ **SIZED `M/L` AND SPLIT IN TWO 2026-09-22, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-22, and it is the last child of `5d`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **WHY IT SPLIT, AND THE ROW ASKED FOR IT IN ITS OWN WORDS BEFORE ANY SESSION DID: *“SIZE IT AGAIN WHEN IT IS TAKEN — the takings and the count are a read NOTHING IN THIS APP PERFORMS.”*** **Sized again on 2026-09-22 and the answer is `M/L`, because that sentence turned out to be an understatement: it is not one read, it is a read plus the arithmetic that decides WHICH ROWS ARE TODAY'S, and that arithmetic has a right answer the database already commits to.** ⚠️⚠️ **AND THE SEAM IS `5d`'S OWN, APPLIED ONE LEVEL DOWN: THE HALF A MACHINE CAN HOLD, AND THE HALF ONLY AN EYE CAN.** `5d` split in four on exactly this argument — *“`5d-i` is the half a machine can hold and the other three are the half only the owner's eye can”* — and this row, alone among the four, still carries BOTH. **`5d-iv-a` is the second `5d-i`**: a module, a contract check over real HTTP, and no screen at all. **`5d-iv-b` is Inicio**, whose whole instrument is a phone (`R9`, §2.11). **THE INVENTORY, so that neither child can quietly drop a piece of it:** — **THE TAKINGS READ** itself, four applied columns no line in `app/` reads today; the **trading day**, which `0012` made a property of the LOCATION and not of the device holding the phone; gross of IVA, which is `total_net` and `total_tax` ADDED and never one column read; what a `reversal_of` row does to the figure and to the count; **`docs/checks/5d-iv-a-takings-contract.sh`**, the only instrument this half gets — then **STATE COMES FIRST**, the takings and the count **above anything tappable**, which is the half of §2.8's Home row the 2026-09-17 amendment deliberately kept; **room at the top for the dead-letter banner**, ruled Home-only on 2026-09-22 and a layout constraint this split inherits rather than builds; the **48-hour** expiry block, **WITHDRAWN and not deferred**; Vender, Comprar and Desperdicio **as cards**; the rows to Productos and **Proveedores**; **the bell** and Ajustes placed at last; and the three **TEMPORARY BLOCKS** on that screen, deleted by the task their own comments name. ⚠️ **It ships no migration**, and every column both children read has been applied since `0003`. | `M/L` — **split, an `M` and an `M`** | ✅✅ **UNGATED AS OF 2026-09-22 — BOTH HALVES OF THE §2.8 QUESTION WERE RULED THE SAME DAY.** The expiry block is withdrawn, and Home carries the dead-letter banner and is the only screen that does (`onHome`, shipped with the ruling). ⚠️ It wants `5d-ii` built first, since the row it places points at Productos |
+| **5d-iv-a** | ✅✅ **DONE 2026-09-22 — THE APP CAN ASK WHAT THE SHOP TOOK TODAY, AND ELEVEN ASSERTION GROUPS OVER REAL HTTP SAY THE DATABASE AGREES.** ~~this was the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **THE TAKINGS READ — AND IT SHIPS NO SCREEN AND NO COMPONENT, WHICH IS THE WHOLE REASON IT IS A ROW OF ITS OWN.** §2.8's Inicio opens with a peso figure and a number of sales, and **nothing in this app has ever asked a database for either.** This child is that question, asked properly, and stops before anything is drawn. ⚠️⚠️ **THE ONE THING IT WOULD GET WRONG SILENTLY IS *WHEN IS TODAY*, AND `0012` ALREADY ANSWERED IT: A **trading day** IS LOCAL, AND THE SHOP IS WHAT MAKES IT LOCAL.** The timezone is a column on `location`, put there on 2026-08-20 rather than left as a constant, and the server's own `product_margin_daily` buckets on `(s.occurred_at at time zone l.timezone)::date`. **A phone that asks its own clock what day it is agrees with that view in Guadalajara and disagrees with it in Hermosillo** — and ⚠️ **`0012`'s own header records that NOTHING ARITHMETIC COULD SEE THE DRIFT** the last time these two bucketings diverged: every reconciliation stayed green and only a literal-comparison guard caught it. **So the device reads the column.** ⚠️ **`occurred_at` AND NEVER `recorded_at`**: the pilot store is offline half the day (`5c`'s reason for existing), so a sale rung up at 17:00 and synced at 21:00 belongs to 17:00 — and `0003` says `occurred_at` is the client's value clamped to a 72-hour window for exactly this. ⚠️ **GROSS OF IVA, WHICH IS TWO COLUMNS ADDED AND NOT ONE COLUMN READ** — `total_net` plus `total_tax`, the ruling of 2026-09-14 (*“gross, net beside it”*), on the ground that `prices_include_tax` defaults true so gross is what reconciles against the cash in the till. **And no role fence**: the same day ruled *“a cashier keeps seeing quantity and revenue”*, and `sale_select` (`0003`) is member-level at your own locations already. ⚠️⚠️ **AND A VOID IS TWO ROWS, NOT A DELETED ONE.** `0021` writes a second `sale` with negated totals and `reversal_of` set — so the PESO FIGURE self-corrects by summing and **the COUNT does not**, and a screen that says *2 ventas* after one sale was rung up and undone is the app doing bookkeeping at a shopkeeper. **Decided here, named in the row, and reversible for nothing because it is client arithmetic.** ⚠️ **`docs/checks/5d-iv-a-takings-contract.sh`, over a real HTTP round trip**, wired into `db.yml` on the same commit — the shape `5d-i` established and the only instrument this half gets: no typecheck has ever read `0003`, and PostgREST answers a wrong column name with a 400 the bundler, the suite and the typecheck all pass straight over. **It has to MAKE the sales it counts** (`record_sale`, `0016`), because `5f` is unbuilt and no shop has one. ⚠️ **NO SCREEN AND NO COMPONENT and no `src/ui/` primitive** — `5h.5` owns that and comes later. ⚠️ **It ships no migration.** ✅ **Shipped:** `app/src/api/today.ts`, the twelfth `src/api/` module — a column list, a day boundary and one pure function, and nothing that talks; `todaySales` in `calls.ts` and `useToday` in `hooks.ts`; **33 new Vitest assertions — 729 passing over 30 files, up from 696 over 29**; and **`docs/checks/5d-iv-a-takings-contract.sh`**, eleven assertion groups over real HTTP with its own eleven fixtures, wired into `db.yml` on the same commit. ⚠️⚠️ **THE DESIGN THE SIZING ASKED FOR TURNED OUT TO BE FORBIDDEN, AND BY THIS REPOSITORY'S OWN RULES RATHER THAN BY TASTE — WHICH IS THE FINDING.** Converting `location.timezone` into an instant needs `Intl.DateTimeFormat`; `R5` allows NO `Intl.` outside `src/format/mxn.ts` and `R10` is an allow-list of `format` and `resolvedOptions`, with `DateTimeFormat` recorded as *"a function on Android and unasked on iOS"* — **the exact state `formatToParts` was in on 2026-09-13 when it terminated this app on the splash screen of the owner's own iPhone.** So the device's own midnight is used, which is the call `catalog.ts`'s `isoDay` had already made four hours earlier for the price window, on the same ground: **the phone is in the shop.** **The cost is written into the module's header rather than discovered** — a phone outside its shop's zone buckets differently from `product_velocity_daily`, which is zero shops today and a MEASUREMENT before a code change the day it is not. ⚠️⚠️ **AND THE BOUNDARY FIXTURE WAS FOUND TO BE MACHINE-DEPENDENT AND FIXED, WHICH NEARLY WENT THE OTHER WAY.** `F1` — the UTC-shaped day — went red on the owner's Mac at UTC−6 and would have been **green on a UTC runner**, because there local midnight and UTC midnight are the same instant. `process.env.TZ` was measured to be re-read by node per `Date`, so the block now pins `America/Mexico_City` — `0012`'s own default — and asserts the zone took before asserting anything in it. **A boundary suite that only falsifies on one of the two machines that matter is the shape `5a-split-coverage.sh` recorded about `mapfile`.** ⚠️ **Nine hand-run fixtures over the module and eleven over the check** are what distinguish the green from a suite that stopped looking | `M` | ✅ **Ungated — every column it reads has been applied since `0003`, and `0012` added the one that decides the day on 2026-08-20.** ⚠️ **It is the falsifiable half of `5d-iv` and is deliberately NOT deferred behind `5f`**: the rule of 2026-09-22 defers a row whose only instrument is the owner's eye, and this one's instrument is a contract check |
+| **5d-iv-b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-22.** **INICIO, THE REAL ONE — AND IT IS IN THIS SPLIT BECAUSE TWO RECORDS OUTSIDE THE `5d` ROW ALREADY PUT IT HERE**: the header of `app/src/app/(tabs)/index.tsx`, which names this task twice, and área 13's decision table (*“Reversed by `5d`, which has to place it properly anyway”*). §2.8's Home row as amended 2026-09-17: **STATE COMES FIRST** — today's takings and today's count **above anything tappable**, the half of the original sentence the amendment deliberately kept — then Vender, Comprar and Desperdicio **as cards**, then the rows to Productos and **Proveedores**, and **the bell** and Ajustes placed at last rather than floating in the middle of a placeholder. ⚠️⚠️ **AND IT IS THE ONE SCREEN THAT CARRIES THE DEAD-LETTER BANNER** — ruled 2026-09-22, *“let's keep it Home Only”* — which is a layout constraint this row inherits rather than a thing it builds: the banner is mounted at the root and `onHome` decides, so what this row owes is **room at the top** for it, above anything tappable and not underneath the takings. ⚠️⚠️ **THE 48-hour EXPIRY BLOCK §2.8 ASKS FOR IS WITHDRAWN, NOT DEFERRED — RULED 2026-09-22: *“Let's drop it for the pilot then.”*** It had a data path and the pilot fills none of it (`0018`'s tier 2 needs `track_expiry`, which C8.9's four-field create never turns on), and `7e` was already rewritten to DERIVE the same answer. **A deliverable whose premise is false is withdrawn** — the shape ADR-035 §3 used when C1.5 killed the shared till. ⚠️ **This row draws no expiry panel, and an always-empty one is the thing the ruling refused.** ⚠️ **IT DELETES THE THREE TEMPORARY BLOCKS ON THAT SCREEN, AND ALL THREE SAY SO IN THEIR OWN COMMENTS** — the Productos door `5d-ii` put there a task early, the bell `5b-iii-d-1` left in the body, and the Ajustes button sitting alone in the centre. ⚠️ **And the placeholder figure goes with them**: `placeholderGrossCentavos()` renders **$11.60 out of `cases.json`** on the owner's phone today, which is a test fixture presented to a shopkeeper as her takings. ⚠️⚠️ **NO CHECK HERE CAN LOOK AT IT** (`R9`, §2.11) — **the owner's phone is the whole instrument**, and the questions it is asked go in this row before it ships. ⚠️⚠️ **AND ONE OF THEM CANNOT BE ANSWERED YET AND IS ROUTED RATHER THAN ASKED BLIND:** `5f` is unbuilt, nothing in this app writes a sale, so the figure at the top reads **$0.00 and 0 ventas** on every phone until Vender ships. *Does a zero at the top of Inicio read as a quiet morning or as a broken app?* is a `5f` question, and asking it now would be the `5c-iv-b` mistake the ruling of 2026-09-22 named. ⚠️ **It ships no migration.** | `M` | ✅ **Ungated, and it wants `5d-iv-a` first** — the read it puts at the top is that child's whole deliverable, and a screen written against a read that does not exist yet is a screen written against a guess. ⚠️ **It stays TAKEABLE rather than deferred behind `5f`, and that was decided rather than assumed**: the 2026-09-22 rule needs BOTH tests yes, and only one is — the cards, the rows, the placement and the banner's room are all reachable on his phone today, and the figure's own look-question is routed to `5f` above |
 | **5e** | **Productos, write.** The four-field `Agregar`, one unit into all four columns, family suggestion with gesture override, three entry points, `Editar`. | `M/L` | — |
 | **5f** | **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. ⚠️⚠️ **AND TWO CONFIRMATION ANIMATIONS, ADDED BY THE OWNER 2026-09-21 IN PLACE OF THE CHANGE CALCULATION HE DEFERRED** — *"a simple confirmation animation if the sale is done and another one if we empty the carrito."* ⚠️ **Two constraints on them and neither is taste:** §2.11's motion rule is **`transform` and `opacity` ONLY** — a performance rule, because C1.1 puts two low-end Androids among the pilot's four phones and animating layout, colour or shadow does not run on the compositor. ⚠️⚠️ **And the sale confirmation fires on ENQUEUE, never on the server's reply**: C10.3 says the slide looks identical offline, and `5c-i` made that structural by having `queueWrite` return a row rather than a promise. **An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it.** ⚠️⚠️ **AND IT OWES ONE LINE THAT NOTHING HERE CAN SEE UNTIL IT IS WRITTEN: THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`.** `5c-ii-b-2` built the trigger and shipped that function with **no caller**, deliberately and for the reason `R9` exists: there is no screen to call it from yet. ⚠️ **Without the call, the ONLINE path is the worse of the two** — a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger it, and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger has to be TOLD rather than awaited; calling it offline or before the monitor starts is a safe no-op, so the screen never has to ask. ⚠️⚠️ **AND IT OWES A SECOND LINE NOTHING HERE CAN SEE, ADDED BY `5c-iv-b` ON 2026-09-22: THE UNIT FACTORS THIS SCREEN ALREADY NEEDS MUST BE HANDED TO `@/offline/deadLetters` TOO.** This screen has to price a basket with no signal (§2.6, C10.3), so it already holds `unit.factor_to_base` for every display unit a shop sells in; `5c-iv-b` takes that map as an ARGUMENT (`NO_UNIT_FACTORS`, empty today) rather than hard-coding `0001`'s ten rows, precisely so this app never grows a second answer to *how many grams in a kilo*. ⚠️ **Until the map is passed, the dead-letter banner prices only a line quoted in its variant's own base unit** — factor exactly `1` by `0001`'s `unit_base_is_identity` — **and withholds the peso figure for the rest rather than understating it**, which is what `QueueValue.complete` is for. **Nothing goes wrong quietly; the count is still right and the figure is simply absent**. ⚠️⚠️ **AND IT OWES A THIRD THING, WHICH IS NOT CODE: THE FIRST LOOK AT `5c-iv-b`'s BANNER.** Ruled by the owner on 2026-09-22 — see the working agreement at the foot of this file. That banner draws only when the outbox holds a `dead` row, and **nothing in this app enqueues anything until this screen exists**, so it has never been on a screen and could not be. **The three questions it left open are look-questions and they are answered HERE, with the app in a hand, not before:** ✅ **(a) placement — ANSWERED 2026-09-22 AND NO LONGER A LOOK-QUESTION.** ~~it sits at the TOP of every screen because `OfflineSurfaces` owns the bottom; *on Inicio only* is the alternative, and it is one condition either way.~~ The owner ruled **Inicio only**, which is the alternative that row named, and it shipped as `onHome`. ⚠️ **It was settled on paper rather than on a phone because ADR-035 §2.8 forbade the shipped placement outright** — a disagreement a session building Inicio would have resolved by deleting the banner. **Two look-questions remain here, not three.** ⚠️ **(b) size and weight** — three lines of `bodySize` in a pill, no state colour. ⚠️ **(c) the words** — *"N operaciones no se guardaron"*, *"Valor: $X"*, *"Avísanos para recuperarlas."* ⚠️ **The cheapest way to ask all three is to ring up a sale with the phone in airplane mode against a shop code that no longer resolves**, which is the one path that puts a `dead` row on a device without a migration or a fixture. ⚠️ **None of this blocks this row** — it is a review that rides along with it | `XL` | — |
 | **5g** | **Comprar.** Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |

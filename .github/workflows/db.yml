@@ -227,6 +227,29 @@ on:
       # the point rather than a side effect.
       - "docs/checks/5d-i-catalog-contract.sh"
       - "docs/checks/5d-i-catalog-contract-falsify.sh"
+      # ⚠️⚠️ AND THE TAKINGS, as of plan task `5d-iv-a` — the read §2.8's Home row
+      # has asked for since the ADR was written and no line in this app had ever
+      # performed. Same rule as every line above: the check and its harness are
+      # named here because an edit to the check alone — loosening an assertion —
+      # must re-run it.
+      # ⚠️ Three of its assertions exist nowhere else. The `::text` casts are all
+      # that stand between the peso figure and a DOUBLE, and a dropped one does
+      # not show a wrong number — it shows NO number, because `parseDecimal`
+      # refuses a number argument and the app withholds the figure. The day
+      # WINDOW has no second home by design: *"which rows are today's"* lives in
+      # the query, and moving it to `recorded_at` sweeps last night's late trade
+      # into this morning's takings on a shop that is offline half the day. And
+      # what a VOID actually writes — a second row, negated, rather than a delete
+      # — is the premise of the whole count rule, asked rather than read off
+      # `0021`.
+      # ⚠️⚠️ IT ALSO HOLDS A RULING: a CASHIER sees the day's takings, decided
+      # 2026-09-14 (*"a cashier keeps seeing quantity and revenue"*). `sale_select`
+      # is member-level with no `has_role` in it; a migration that narrowed it
+      # would blank the top of Inicio for the person at the counter, and a policy
+      # that allows LESS breaks no test — which is why `supabase/migrations/**`
+      # re-running this is the point rather than a side effect.
+      - "docs/checks/5d-iv-a-takings-contract.sh"
+      - "docs/checks/5d-iv-a-takings-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -942,6 +965,31 @@ jobs:
       # every-member read is a decision no client-side edit can falsify.
       - name: Contract — can the catalog check still fail (its own thirteen fixtures)
         run: bash docs/checks/5d-i-catalog-contract-falsify.sh
+
+      # ⚠️⚠️ THE TAKINGS, AND THE FOUR THINGS ONLY A DATABASE CAN SAY ABOUT THEM.
+      # `app/test/api-today.test.ts` proves the app agrees with itself over
+      # thirty-three assertions; not one of them has read `0003`. This one drives
+      # three real sales — one dated yesterday and recorded now, two this morning,
+      # one of them then voided — through the exact `select=` and the exact `gte`
+      # the app sends.
+      #
+      # It is the only instrument for: the `::text` casts, read as a JSON TYPE off
+      # the wire, without which the app shows NO takings rather than wrong ones;
+      # the DAY WINDOW, which lives in the query and nowhere else; the fact that a
+      # void writes a SECOND negated row rather than deleting the first, which is
+      # the premise of the count rule; and the fact that a CASHIER reads the day's
+      # sales, which is the owner's ruling of 2026-09-14 and dies silently the day
+      # a migration narrows a policy.
+      - name: Contract — does app/src/api/today.ts still describe the schema (plan 5d-iv-a)
+        run: bash docs/checks/5d-iv-a-takings-contract.sh
+
+      # And its own eleven fixtures. ⚠️ SEVEN BREAK THE CONTRACT — a renamed
+      # column, either dropped cast, a star select, the wrong window column, a
+      # missing `reversal_of`, an unreadable contract — and TWO NARROW AN APPLIED
+      # POLICY, then put it back, because a cashier's right to see the day's
+      # takings is a decision no client-side edit can falsify.
+      - name: Contract — can the takings check still fail (its own eleven fixtures)
+        run: bash docs/checks/5d-iv-a-takings-contract-falsify.sh
 
       - name: Stop
         if: always()
