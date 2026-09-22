@@ -24,7 +24,17 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorMessage } from '@/api/errors';
 import {
+  CATALOG_KEY,
+  UNITS_KEY,
+  catalogFrom,
+  search,
+  unitFactorsFrom,
+  type CatalogEntry,
+} from '@/api/catalog';
+import {
   approveRequest,
+  catalogUnits,
+  catalogVariants,
   createInvite,
   myAccessRequests,
   pendingAccessRequests,
@@ -683,4 +693,76 @@ export function useRequestAccess() {
   }
 
   return { ask, busy: mutation.isPending };
+}
+
+// ============================================================================
+// THE CATALOG. Plan task 5d-i, and it is the first read in this app about what
+// a shop SELLS. `5d-ii` draws the list and `5d-iii` opens a family from it;
+// neither of them knows a column name.
+// ============================================================================
+
+/**
+ * Everything this shop sells, priced for today, in the database's own order.
+ *
+ * ⚠️ THREE READS AND ONE OF THEM IS SHARED. The variants and the ten units are
+ * this hook's; the locations are `LOCATIONS_KEY`, the same cache entry
+ * `useLocations` fills — and they are read here WITHOUT that hook, because its
+ * `enabled` carries the invite screen's manager fence and the catalog has no
+ * fence at all. `location_select` is `my_locations()`, so a cashier reads the
+ * store she is assigned to and a manager reads them all.
+ *
+ * ⚠️⚠️ ONE LOCATION MEANS THAT STORE'S PRICES; ANY OTHER NUMBER MEANS THE
+ * SHOP-WIDE ONE, AND THE LIMIT IS WRITTEN DOWN RATHER THAN HIDDEN. C1.5 says
+ * both pilot shops are one location each, so this is exact for every shop that
+ * exists today. A workspace with two stores that prices them differently would
+ * need this phone to know which store it is standing in — and ADR-035 §3 STRUCK
+ * *"how the client resolves its location_id"* on 2026-09-13 rather than
+ * deferring it, because the premise it rested on (a shared till) is false. So
+ * there is no task to route this to: the day a second location appears, the
+ * question comes back, and the fallback until then is the price every store
+ * shares rather than one store's guess.
+ *
+ * ⚠️ THE STALE TIME IS THIS SCREEN'S, which is what `QueryProvider` says every
+ * read from `5d` onwards must decide for itself. A catalog changes when
+ * somebody edits it — `5e` invalidates `CATALOG_KEY` when it does — so five
+ * minutes is a cheap read on a connection this shop loses half the day. The ten
+ * units change only in a migration, so they are never stale.
+ */
+export function useCatalog(typed: string = ''): {
+  readonly loading: boolean;
+  readonly entries: readonly CatalogEntry[];
+} {
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null;
+
+  const variants = useQuery({
+    queryKey: CATALOG_KEY,
+    queryFn: catalogVariants,
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    enabled,
+    staleTime: Infinity,
+  });
+  const locations = useQuery({
+    queryKey: LOCATIONS_KEY,
+    queryFn: workspaceLocations,
+    enabled,
+  });
+
+  const stores = locationsFrom(locations.data);
+  const locationId = stores.length === 1 ? stores[0].id : null;
+  const entries = catalogFrom(variants.data, unitFactorsFrom(units.data), locationId);
+
+  return {
+    // ⚠️ THE UNITS COUNT TOWARDS *loading* AND THE LOCATIONS DO NOT. Without the
+    // factors every row would render C3.12's dash — a screen saying this shop
+    // has priced nothing — where the locations only decide WHICH of two prices
+    // wins, and the shop-wide one is a correct answer while they are in flight.
+    loading: variants.data === undefined || units.data === undefined,
+    entries: search(entries, typed),
+  };
 }
