@@ -37,6 +37,9 @@ import {
   canSeeDeadLetters,
   deadLetters,
   lineCentavos,
+  HOME_ROUTE,
+  onHome,
+  readsQueue,
   showsBanner,
   showsValue,
   valueOf,
@@ -290,11 +293,54 @@ describe('who may see it', () => {
   // banner for the second the roster read is out.
   it('draws nothing while the role is unknown', () => {
     expect(canSeeDeadLetters(null)).toBe(false);
-    expect(showsBanner(null, { count: 3, centavos: 500, complete: true }, null)).toBe(false);
+    expect(showsBanner(null, { count: 3, centavos: 500, complete: true }, null, HOME)).toBe(false);
   });
 
   it('draws nothing for a cashier, however many are dead', () => {
-    expect(showsBanner('staff', { count: 9, centavos: 90_000, complete: true }, null)).toBe(false);
+    expect(showsBanner('staff', { count: 9, centavos: 90_000, complete: true }, null, HOME)).toBe(false);
+  });
+});
+
+/** Inicio's route, and the only screen this banner may appear on. */
+const HOME = HOME_ROUTE;
+
+describe('Home only — the owner\u2019s ruling of 2026-09-22', () => {
+  const three = { count: 3, centavos: 500, complete: true };
+
+  // ⚠️⚠️ THIS REPLACES WHAT 5c-iv-b SHIPPED. The banner overlaid every screen
+  // until the ruling, which disagreed with ADR-035 §2.8 in the opposite
+  // direction — the ADR said Home was the one place it must NOT be.
+  it('draws on Inicio', () => {
+    expect(onHome(HOME)).toBe(true);
+    expect(showsBanner('manager', three, null, HOME)).toBe(true);
+  });
+
+  // ⚠️ THE SCREENS IT NO LONGER SITS ON ARE THE ONES IN USE MID-SALE, which is
+  // the whole of C11.9's "least invasive".
+  it('draws on none of the transaction screens', () => {
+    for (const route of ['/vender', '/comprar', '/desperdicio', '/ajustes', '/solicitudes']) {
+      expect(onHome(route)).toBe(false);
+      expect(showsBanner('manager', three, null, route)).toBe(false);
+    }
+  });
+
+  // ⚠️ `usePathname` HAS NO VALUE FOR A FRAME OR TWO ON A COLD OPEN, and a
+  // banner that flashed on an unknown screen is what this rule exists to stop.
+  it('treats an unknown route as not Home', () => {
+    expect(onHome(null)).toBe(false);
+    expect(onHome(undefined)).toBe(false);
+    expect(showsBanner('manager', three, null, null)).toBe(false);
+  });
+
+  // ⚠️⚠️ THE FENCE IS READ BEFORE THE QUEUE IS. A phone standing on Vender never
+  // opens the outbox for this banner at all — the same correctness argument the
+  // role fence already carried, now true of the route.
+  it('does not even open the queue anywhere but Inicio', () => {
+    expect(readsQueue('manager', HOME)).toBe(true);
+    expect(readsQueue('owner', HOME)).toBe(true);
+    expect(readsQueue('manager', '/vender')).toBe(false);
+    expect(readsQueue('staff', HOME)).toBe(false);
+    expect(readsQueue(null, HOME)).toBe(false);
   });
 });
 
@@ -302,11 +348,11 @@ describe('the dismissal is keyed to the count, not to the screen', () => {
   const three = { count: 3, centavos: 500, complete: true };
 
   it('shows when something is dead and nothing has been dismissed', () => {
-    expect(showsBanner('manager', three, null)).toBe(true);
+    expect(showsBanner('manager', three, null, HOME)).toBe(true);
   });
 
   it('shows nothing when nothing is dead', () => {
-    expect(showsBanner('manager', NOTHING_DEAD, null)).toBe(false);
+    expect(showsBanner('manager', NOTHING_DEAD, null, HOME)).toBe(false);
   });
 
   // ⚠️⚠️ THIS IS THE OPPOSITE OF `5c-iv-a`'s RULE, DELIBERATELY. Being offline
@@ -315,16 +361,16 @@ describe('the dismissal is keyed to the count, not to the screen', () => {
   // every navigation is nagging somebody about something she has already done
   // everything she can about.
   it('stays dismissed while the count does not change', () => {
-    expect(showsBanner('manager', three, 3)).toBe(false);
+    expect(showsBanner('manager', three, 3, HOME)).toBe(false);
   });
 
   it('comes back when a fourth one dies', () => {
-    expect(showsBanner('manager', { ...three, count: 4 }, 3)).toBe(true);
+    expect(showsBanner('manager', { ...three, count: 4 }, 3, HOME)).toBe(true);
   });
 
   // ⚠️ A REPLAY TAKES ROWS OUT OF THE QUEUE, so the count can fall. A fall must
   // not re-arm the banner: nothing new has happened to tell anybody about.
   it('does not come back when the count falls', () => {
-    expect(showsBanner('manager', { ...three, count: 2 }, 3)).toBe(false);
+    expect(showsBanner('manager', { ...three, count: 2 }, 3, HOME)).toBe(false);
   });
 });

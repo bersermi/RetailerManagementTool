@@ -12,6 +12,27 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-22 — **§2.8's HOME row, both halves, on the decision maker's
+  instruction.** (1) *"Let's drop it for the pilot then."* — **Home no longer shows anything
+  expiring within 48 hours.** The row had a working data path (`0018`'s tier 2 seeds a batch's
+  expiry from `product_family.default_lifespan_days` with nothing typed at a counter) and the
+  pilot fills none of it: `track_expiry` is `false` by default and C8.9's four-field *Agregar*
+  asks for neither. **An always-empty panel above everything tappable is the app talking about
+  its own plumbing**, and plan task `7e` was already rewritten on 2026-09-21 to DERIVE shelf
+  life from records the shop produces anyway. ⚠️ **The cost is named rather than hidden: a
+  derived answer needs weeks of records, where a typed date would have worked on day one.**
+  (2) *"Let's keep it Home Only."* — **the dead-letter banner appears on Inicio and on no other
+  screen**, which is neither of the two things the previous sentence allowed: it said permanent
+  failures *"do not appear on Home at all"*, and `5c-iv-b` shipped a banner on EVERY screen.
+  ⚠️⚠️ **THE OLD SENTENCE'S REASONING SURVIVES AND IS WHY THE AMENDMENT IS NARROW**: what it
+  refused was *"a list they cannot act on"*, and C11.9's banner is a count, a value and
+  *"avísanos"* — manager-and-above, no list, no `error_code`, no document named. **Home is the
+  one surface that carries it, and the screens a person uses mid-sale carry none.**
+  ⚠️ **What this does NOT discharge: §8's alerting destination and its owner, still due before
+  the pilot ends.** A banner on Home makes a vendor-side gap feel handled; during the pilot the
+  only thing standing in for it is the schema owner being in the shop (§5). ⚠️ **No schema is
+  applied by this revision**; what shipped with it is one condition in `@/offline/deadLetters`
+  and the four assertions that hold it.
 - **Revised:** 2026-09-22 — **§2.11 gains a CONNECTIVITY row, on the decision maker's
   instruction** (*"let's follow your recommendation"*), folded into plan task `5c-ii-b-2`
   rather than given a session of its own. §2.11's stack table fixes every other app-wide
@@ -1265,7 +1286,7 @@ Three capture screens that *feel* like distinct modes, sharing one engine undern
 
 | Surface | Job | Notes |
 |---------|-----|-------|
-| **Home** | Today's sales total and count, anything expiring within 48h, **and the way into every module** | ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. Deliberately *not* a place where sync failures surface — see below |
+| **Home** | Today's sales total and count, ~~anything expiring within 48h~~, **and the way into every module** — plus **the dead-letter banner, and it is the only screen that carries it** | ⚠️⚠️ **AMENDED AGAIN 2026-09-22, BOTH HALVES, ON THE DECISION MAKER'S INSTRUCTION — see the revision entry.** The 48-hour expiry block is **withdrawn for the pilot** (*"let's drop it for the pilot then"*): nothing fills it, because expiry dates are not captured and no family carries a lifespan. And the sentence at the end of this cell reversed: *"deliberately not a place where sync failures surface"* became **Home only** (*"let's keep it Home Only"*), which is where C11.9's banner now draws and the only place it does. ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. ~~Deliberately *not* a place where sync failures surface~~ — **reversed 2026-09-22; see below** |
 | **Vender** | The dominant loop; persistent primary action, thumb-reachable everywhere | One tap from cold open; two taps to a committed single-item sale |
 | **Comprar** | Provider context, price prefill from history, optional expiry | Episodic — not tap-optimised |
 | **Desperdicio** | Reason-first waste entry | Feeds the analytics asset |
@@ -1306,7 +1327,7 @@ within a day, then provide only the appearance of a check.
 
 **Where failures surface — the vendor, not the merchant.** The device shows one thing
 about sync and one only: an *unsynced count*, never a confirmation the database has
-not given (§2.6). Permanent failures do not appear on Home at all. The merchant did
+not given (§2.6). ~~Permanent failures do not appear on Home at all.~~ ⚠️⚠️ **AMENDED 2026-09-22: permanent failures appear on HOME AND NOWHERE ELSE**, as C11.9's dead-letter banner — a count, a value and *"avísanos"*, manager-and-above, **never a list and never an `error_code`**. The reasoning below is why the amendment is that narrow rather than a reversal: what this paragraph refused is a PILE the merchant cannot act on, and a receipt saying *tell us* is not one. Home is the screen somebody opens between customers; Vender, Comprar and Desperdicio are the ones in use mid-sale, and they carry nothing. The merchant did
 not cause a `42501`, cannot diagnose it, and cannot act on it — a list they cannot
 act on becomes furniture within a week, which is the same failure as the confirmation
 dialogs rejected above, relocated. Dead letters go to the operator of this system via

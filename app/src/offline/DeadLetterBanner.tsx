@@ -9,7 +9,7 @@ import { outboxDb, readQueue } from '@/lib/outboxDb';
 import {
   NOTHING_DEAD,
   NO_UNIT_FACTORS,
-  canSeeDeadLetters,
+  readsQueue,
   showsBanner,
   showsValue,
   valueOf,
@@ -39,13 +39,24 @@ import { useDensity } from '@/theme/DensityProvider';
 // module that opens the queue, and `app/test/auth-errors.test.ts` pins that
 // list at two.
 //
+// ⚠️⚠️ IT DRAWS ON INICIO AND NOWHERE ELSE — RULED BY THE OWNER 2026-09-22,
+// AND IT REPLACES WHAT `5c-iv-b` SHIPPED. This component overlaid every screen
+// until that ruling, which disagreed with ADR-035 §2.8's *"permanent failures
+// do not appear on Home at all"* in the exact opposite direction. The ruling is
+// neither of the two the sentence framed: the banner waits at the door — the
+// screen somebody opens between customers — rather than sitting on Vender,
+// Comprar and Desperdicio, which are the screens in use mid-sale. §2.8 carries
+// the amendment; `onHome` carries the rule.
+//
 // ⚠️ THE READ IS FENCED BEFORE IT HAPPENS, WHICH IS CORRECTNESS AND NOT
-// ECONOMY. A cashier's phone never opens the queue for this banner at all, so
-// there is no window in which the rows exist in memory behind a component that
-// has decided not to draw them.
+// ECONOMY. A cashier's phone never opens the queue for this banner at all, and
+// since the ruling neither does anybody's phone anywhere but Inicio — so there
+// is no window in which the rows exist in memory behind a component that has
+// decided not to draw them.
 //
 // ⚠️ IT RE-READS ON A SCREEN CHANGE AND NOWHERE ELSE, WHICH IS A CHOICE AND NOT
-// AN OVERSIGHT. Nothing in this app announces "a flush dead-lettered a row" —
+// AN OVERSIGHT — and since the ruling above, the change that matters is an
+// ARRIVAL AT INICIO. Nothing in this app announces "a flush dead-lettered a row" —
 // adding that signal belongs to `@/lib/connectivityMonitor`, whose one job
 // `5c-ii-b-2` deliberately kept to the link. A dead letter is not urgent
 // (C11.9: *"not a priority for the owner at this point"*) and a manager
@@ -66,16 +77,18 @@ export function DeadLetterBanner() {
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
   useEffect(() => {
-    // ⚠️ THE FENCE IS READ FIRST — see the header. `useMyRole` is `null` while
-    // the roster read is out, so this also waits rather than guessing.
-    if (!canSeeDeadLetters(role)) {
+    // ⚠️ BOTH FENCES ARE READ FIRST — the role and, since the ruling of
+    // 2026-09-22, the ROUTE. `useMyRole` is `null` while the roster read is
+    // out, so this waits rather than guessing; and a phone standing on Vender
+    // never opens the outbox for this banner at all.
+    if (!readsQueue(role, pathname)) {
       setValue(NOTHING_DEAD);
       return;
     }
     setValue(valueOf(readQueue(outboxDb()), NO_UNIT_FACTORS));
   }, [role, pathname]);
 
-  if (!showsBanner(role, value, dismissedAt)) return null;
+  if (!showsBanner(role, value, dismissedAt, pathname)) return null;
   return <Banner value={value} onDismiss={() => setDismissedAt(value.count)} />;
 }
 

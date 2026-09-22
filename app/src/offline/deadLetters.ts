@@ -325,13 +325,62 @@ export function canSeeDeadLetters(role: Role | null): boolean {
  * the component's state and dies with the process; a fresh launch is a fresh
  * chance to notice, and storing it would be a second thing on disk that can
  * disagree with the queue.
+ *
+ * ⚠️ AND THE DISMISSAL SURVIVES LEAVING HOME, because the component is mounted
+ * at the root and never unmounts. Brushing it away on Inicio, selling for an
+ * hour and coming back is silence — which is the whole of the rule above, and
+ * would be undone by moving the state into the screen.
  */
+/**
+ * Inicio's route. Expo Router renders `(tabs)/index.tsx` at `/`, which is also
+ * what `RESTORABLE_ROUTES` calls it one module over.
+ */
+export const HOME_ROUTE = '/';
+
+/**
+ * Is this the one screen the banner may appear on?
+ *
+ * ⚠️⚠️ HOME ONLY — RULED BY THE OWNER 2026-09-22, AND IT REPLACES *every
+ * screen*, WHICH IS WHAT `5c-iv-b` SHIPPED. ADR-035 §2.8 said permanent
+ * failures *"do not appear on Home at all"* and the banner appeared on all of
+ * them, which is the disagreement that put the question in front of him. The
+ * ruling is the third answer rather than either of the two the sentence framed:
+ * **Home, and nowhere else.**
+ *
+ * ⚠️ IT IS THE OPPOSITE OF THE OFFLINE NOTICE'S RULE AND THAT IS THE POINT.
+ * C10.1's pill belongs wherever a person is standing, because being offline
+ * changes what the NEXT tap means. A dead letter has already happened and
+ * nothing about the next tap depends on it, so it waits at the door — the
+ * screen somebody opens between customers — rather than interrupting the ones
+ * they use mid-sale (C11.9: *the least invasive thing that works*).
+ *
+ * ⚠️ `null` IS NOT HOME. `usePathname` has no value for a frame or two on a
+ * cold open, and a banner that flashed on an unknown screen is exactly what
+ * this rule exists to stop.
+ */
+export function onHome(pathname: string | null | undefined): boolean {
+  return pathname === HOME_ROUTE;
+}
+
+/**
+ * Should this device even open its queue?
+ *
+ * ⚠️ THE FENCE IS READ BEFORE THE ROWS ARE, which is correctness and not
+ * economy — the component's header says so about the role and it is now true of
+ * the route as well. A cashier's phone never opens the outbox for this banner,
+ * and as of the ruling above neither does anybody standing on Vender.
+ */
+export function readsQueue(role: Role | null, pathname: string | null | undefined): boolean {
+  return canSeeDeadLetters(role) && onHome(pathname);
+}
+
 export function showsBanner(
   role: Role | null,
   value: QueueValue,
   dismissedAt: number | null,
+  pathname: string | null | undefined,
 ): boolean {
-  if (!canSeeDeadLetters(role)) return false;
+  if (!readsQueue(role, pathname)) return false;
   if (value.count === 0) return false;
   return dismissedAt === null || value.count > dismissedAt;
 }

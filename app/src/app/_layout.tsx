@@ -62,12 +62,17 @@ export default function RootLayout() {
               <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
             </Stack>
             <OfflineSurfaces />
-            {/* ⚠️ C11.9's banner overlays every screen too (5c-iv-b), and it
-                sits at the TOP while the surfaces above own the bottom —
-                two absolutely-positioned strips at one edge is a collision
-                nothing in this repository could see. ⚠️ It draws for a
-                manager and above only, and fences before it reads: a
-                cashier's phone never opens the queue for it. */}
+            {/* ⚠️ C11.9's banner is mounted here with the surfaces above, but
+                it DRAWS ON INICIO ONLY — ruled by the owner 2026-09-22,
+                replacing the every-screen placement 5c-iv-b shipped. It is
+                mounted at the root rather than inside that screen so the
+                dismissal survives selling for an hour and coming back; the
+                route is a condition in `@/offline/deadLetters`, not a
+                different mount point. ⚠️ It sits at the TOP while the
+                surfaces above own the bottom — two absolutely-positioned
+                strips at one edge is a collision nothing here could see.
+                ⚠️ It draws for a manager and above only, and fences before
+                it reads: a cashier's phone never opens the queue for it. */}
             <DeadLetterBanner />
           </View>
         </DensityProvider>
