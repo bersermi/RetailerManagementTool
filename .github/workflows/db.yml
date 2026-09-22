@@ -134,13 +134,14 @@ on:
       # `security definer`. A migration widening that policy would make the check
       # red while every Vitest assertion stayed green — and the cheap reading of
       # that red is "the function is redundant now", which is one predicate away
-      # from the shop enumeration `D6` refuses. ⚠️⚠️ SECOND: `0029` RAISES
+      # from the shop enumeration `D6` refuses. ⚠️⚠️ SECOND: `0029` RAISED
       # `42501` FOR AN UNKNOWN CODE, WHICH IS ALSO WHAT AN ABSENT SESSION LOOKS
-      # LIKE — `@/api/errors` maps it app-wide to "your session ended". The app
-      # reads it as the CODE on this screen only, and the check DRIVES BOTH and
-      # asserts they still come back indistinguishable. That is the same shape
-      # `0036` retired one RPC over, and a migration minting a code for it must
-      # turn this check red rather than pass silently.
+      # LIKE — `@/api/errors` maps it app-wide to "your session ended" — so the
+      # app had to read it as the CODE on this screen only, and the check DROVE
+      # BOTH and asserted they came back indistinguishable. ✅ `0038` (task
+      # `5b.9`) minted `TD006` and ended that on 2026-09-22; the check now drives
+      # both and asserts they come back DIFFERENT, which is what says a later
+      # migration cannot re-merge them silently.
       - "docs/checks/5b-iii-b-request-contract.sh"
       - "docs/checks/5b-iii-b-request-contract-falsify.sh"
       # ⚠️⚠️ AND THE APPROVER'S HALF OF IT, as of plan task `5b-iii-d-1`. It
@@ -764,24 +765,30 @@ jobs:
       # the only door rather than a convenience. SECOND, THE `42501` OVERLOAD: it
       # drives an anonymous caller AND a nonsense code and compares the two
       # answers to each other as well as to the app's own constant — so the
-      # screen-local reading in `@/api/requests` is a measured judgement rather
-      # than somebody not having noticed. ⚠️ That assertion is written to TURN
-      # OVER: when a SQLSTATE is minted for the unknown code, it goes red on a
-      # correct tree and is replaced by its opposite, in the pass that deletes
-      # `UNKNOWN_CODE`. A marker and the assertion that drives it retire together.
+      # screen-local reading in `@/api/requests` was a measured judgement rather
+      # than somebody not having noticed. ⚠️⚠️ THAT ASSERTION HAS NOW TURNED
+      # OVER, on 2026-09-22: `0038` (task `5b.9`) minted `TD006` for the code that
+      # resolves to no shop, the marker constant in `@/api/requests` is deleted,
+      # and assertion 9 asserts the OPPOSITE — that the two come back DIFFERENT.
+      # A marker and the assertion that drives it retire together, and this step
+      # is what says a later migration cannot quietly put them back.
       - name: Contract — does request_access answer to what the app sends (plan 5b-iii-b)
         run: bash docs/checks/5b-iii-b-request-contract.sh
 
-      # And its own ten fixtures. ⚠️ THREE OF THEM MUTATE THE PROBE rather than
+      # And its own eleven fixtures. ⚠️ FOUR OF THEM MUTATE THE PROBE rather than
       # the app, for the reason the three harnesses above give: no line in `app/`
       # can make Postgres show a non-member her own invite row, stop ordering by
-      # `created_at`, or mint a SQLSTATE. ⚠️ AND NONE OF THEM RESETS THE DATABASE
+      # `created_at`, re-merge two SQLSTATEs, or change what PostgREST refuses an
+      # anonymous caller with. ⚠️ `V10` is the newest and it is the rule this
+      # directory keeps re-learning: assertion 9 gained a branch when `0038`
+      # inverted it, so the harness gained a fixture in the same pass — a branch
+      # nobody has shown can fire is a branch nobody has tested. ⚠️ AND NONE OF THEM RESETS THE DATABASE
       # — the sibling harness was CANCELLED at the 15-minute job cap for doing
       # that. ⚠️ Its own fixtures caught a weakness in the check while it was
       # being written: assertion 2's expected `PGRST202` has TWO causes, and a
       # renamed RPC makes it green on a broken app. Assertion 4 covers it and
       # `V1`'s comment says so, rather than the fixture being quietly reworded.
-      - name: Contract — can the request check still fail (its own ten fixtures)
+      - name: Contract — can the request check still fail (its own eleven fixtures)
         run: bash docs/checks/5b-iii-b-request-contract-falsify.sh
 
       # ⚠️⚠️ THE APPROVER'S HALF OF THE PULL PATH (plan task `5b-iii-d-1`), AND IT

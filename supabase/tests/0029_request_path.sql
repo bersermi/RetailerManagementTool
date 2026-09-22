@@ -222,13 +222,24 @@ select chk('2.3 workspace still has exactly its two policies from 0001 — no sc
            (select string_agg(polname, ' ') from pg_policy
              where polrelid = 'public.workspace'::regclass));
 
+-- ⚠️⚠️ `TD006` AND NOT `42501` AS OF 2026-09-22 — `0038`, TASK `5b.9`, AND THESE
+-- THREE WENT RED ON A CORRECT TREE, WHICH IS WHAT THEY WERE FOR. `0029`'s own
+-- decision 10 refused this code with `42501`, reusing "this is not yours" under
+-- `4d-i`'s rule — and PostgREST raises the SAME `42501` to a caller with no
+-- session, which `@/api/errors` maps app-wide to "sign in again". So the join
+-- box could not tell a mistyped code from a lapsed session and had to GUESS.
+-- `0038` minted `TD006` for exactly this branch on the owner's ruling. ⚠️ 2.7
+-- below is UNCHANGED and that is the whole shape of the fix: the authentication
+-- guard keeps `42501`, so after `0038` that code reaching this screen means one
+-- thing. These three and 2.7 asserting the SAME state was the defect; them
+-- asserting different ones is the cure, said by this file.
 select chk_raises('2.4 a code nobody owns is refused',
-  format('select public.request_access(%L)', 'ZZZZZZZZ'), '42501');
+  format('select public.request_access(%L)', 'ZZZZZZZZ'), 'TD006');
 
 -- ⚠️ 2.5 is the anti-scan case in the RPC rather than in the policy: the resolver
 -- takes the WHOLE code, so seven eighths of a real one is worth nothing.
 select chk_raises('2.5 a SEVEN-character prefix of a real code resolves to nothing',
-  format('select public.request_access(%L)', substr(:'code_a', 1, 7)), '42501');
+  format('select public.request_access(%L)', substr(:'code_a', 1, 7)), 'TD006');
 
 select chk_raises('2.6 an empty code is refused before anything is looked up',
   $q$select public.request_access('  -- ')$q$, '22023');
@@ -238,10 +249,14 @@ select chk_raises('2.7 an unauthenticated caller may not ask',
   format('select public.request_access(%L)', :'code_a'), '42501');
 
 -- Decision 4: same message, same sqlstate. "That shop has been switched off" is
--- a fact about a workspace, told to somebody who is not a member of it.
+-- a fact about a workspace, told to somebody who is not a member of it. ⚠️ That
+-- sqlstate is `TD006` as of `0038` and the identity is the point — both halves
+-- of the branch moved together, which `supabase/tests/0038` check 1.2 drives
+-- because a migration that moved only the `not found` half would leave this one
+-- on `42501` and 1.1 would still be green.
 select public._as(:asker);
 select chk_raises('2.8 an INACTIVE workspace is refused exactly as an unknown code is',
-  format('select public.request_access(%L)', :'code_c'), '42501');
+  format('select public.request_access(%L)', :'code_c'), 'TD006');
 
 select chk_succeeds('2.9 a code typed in lower case and in groups resolves',
   format('select public.request_access(%L)',

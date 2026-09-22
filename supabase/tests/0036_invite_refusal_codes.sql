@@ -594,16 +594,22 @@ select chk(
               from pg_proc where pronamespace = 'public'::regnamespace
                 and prosrc like '%TD005%'), 'NONE — TD005 IS RAISED NOWHERE'));
 
--- ⚠️ AND THE NEXT ONE IS FREE, stated here because the next session to mint a
--- code will read this file's siblings and not `supabase/README.md`. `TD006` is
--- the next slot; if this ever goes red, somebody has minted one without saying so.
-select chk(
-  '7.3 TD006 is still free — the next slot, asserted rather than assumed',
-  (select count(*) from pg_proc where pronamespace = 'public'::regnamespace
-     and prosrc like '%TD006%') = 0,
-  coalesce((select string_agg(proname, ', ' order by proname)
-              from pg_proc where pronamespace = 'public'::regnamespace
-                and prosrc like '%TD006%'), 'free'));
+-- ⚠️⚠️ THE FREE-SLOT ASSERTION THAT USED TO SIT HERE HAS RETIRED, AND IT RETIRED
+-- BY DOING ITS JOB. It read: *"7.3 TD006 is still free — the next slot, asserted
+-- rather than assumed"*, with the note *"if this ever goes red, somebody has
+-- minted one without saying so"*. On 2026-09-22 somebody minted one AND said so:
+-- `0038` (task `5b.9`) gave `request_access`'s unknown-code refusal `TD006`, on
+-- the owner's ruling of that day. The check went red on a correct tree, which is
+-- exactly what it was written to do.
+--
+-- ⚠️ IT IS NOT REWRITTEN IN PLACE, IT IS MOVED, and the difference is this
+-- repository's most-recorded defect. *"TD006 is taken, by exactly one function"*
+-- is word for word what `supabase/tests/0038` check 7.1 already asserts, so
+-- keeping a version of it here would be two homes for one claim —
+-- `split-coverage.sh`'s *"row appears 2 times"* in SQL. The free-slot claim now
+-- names `TD007` and lives in `0038` check 7.2, which is the suite of the newest
+-- code: the frontier assertion belongs to the migration that moved the frontier,
+-- and it moves again the next time one does.
 
 -- ⚠️ THE OTHER THREE CODES ARE UNTOUCHED. `0036` replaced two functions; if a
 -- transcription had swept up `TD003` in `redeem_invite`, section 3.4 would
@@ -626,9 +632,13 @@ select chk(
 -- A green tick is also what a step that ran nothing looks like, and a suite that
 -- silently SHRANK is the third shape. Only a pinned count catches it.
 
-select chk('8.1 ALL 29 CHECKS IN THIS FILE ACTUALLY RAN',
-           (select count(*) from public._verify) = 28,
-           format('recorded=%s of 28 before this one',
+-- ⚠️ 28 AND NOT 29 AS OF 2026-09-22 (task `5b.9`): check 7.3 retired above, into
+-- `supabase/tests/0038` 7.2, when `0038` minted the slot it was watching. The
+-- count moves with the file, which is the only reason a pinned count can be
+-- trusted at all.
+select chk('8.1 ALL 28 CHECKS IN THIS FILE ACTUALLY RAN',
+           (select count(*) from public._verify) = 27,
+           format('recorded=%s of 27 before this one',
                   (select count(*) from public._verify)));
 
 drop function public._verdict(text);
