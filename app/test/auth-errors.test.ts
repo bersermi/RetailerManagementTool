@@ -147,4 +147,58 @@ describe('the library has exactly one caller', () => {
       .map(([rel]) => rel);
     expect(openers).toEqual(['lib/outboxDb.ts', 'lib/supabase.ts']);
   });
+
+  // ⚠️⚠️ THE CONNECTIVITY LIBRARY, PINNED THE SAME WAY — ADDED AT 5c-ii-b-2,
+  // AND IT IS THE ONLY INSTRUMENT THIS REPOSITORY HAS FOR THAT TASK'S CENTRAL
+  // CONSTRAINT: *one module owns the native import and every other file reads
+  // the signal, never the library.* `5c-iv` draws C10.1's "Sin conexión a
+  // internet" from the same fact `@/lib/connectivityMonitor` drains on, so a
+  // second `expo-network` subscription is a banner and a drain that can
+  // disagree about whether the shop is online — and §2.11 keeps rendering out
+  // of scope, so nothing else here would ever see them disagree. A second entry
+  // in this list is that, and it goes the way it always goes: one screen, in a
+  // hurry, asking the library directly because it is one line.
+  it('imports expo-network in the connectivity monitor and nowhere else', () => {
+    const importers = sources()
+      .filter(([, text]) => /from 'expo-network|import 'expo-network/.test(text))
+      .map(([rel]) => rel);
+    expect(importers).toEqual(['lib/connectivityMonitor.ts']);
+  });
+
+  // ⚠️ AND THE MACHINE HAS EXACTLY ONE DRIVER, which is the same claim one
+  // layer down. `@/api/connectivity` holds a state — the debounce, the ladder,
+  // whether the poll should be running — so two modules stepping it are two
+  // answers to "is the shop online?", arrived at from the same events. The
+  // banner reads `subscribe()` from the monitor; it does not step the machine
+  // for itself.
+  it('steps the connectivity machine from one module only', () => {
+    const drivers = sources()
+      .filter(([, text]) => /from '@\/api\/connectivity'/.test(text))
+      .map(([rel]) => rel);
+    expect(drivers).toEqual(['lib/connectivityMonitor.ts']);
+  });
+
+  // ⚠️ `AppState` HAS TWO LEGITIMATE OWNERS AND THAT IS NOT THE SAME CLAIM.
+  // `lib/supabase.ts` drives auth auto-refresh off it (5a-iii); the monitor
+  // drives the flush wake off it. They are different subjects over one core
+  // API, so this is pinned as an EQUALITY at two rather than argued down to
+  // one — a third entry is a screen that started its own lifecycle listener.
+  it('listens to AppState in the session store and the connectivity monitor only', () => {
+    const listeners = sources()
+      .filter(([, text]) => /AppState\.addEventListener\(/.test(text))
+      .map(([rel]) => rel);
+    expect(listeners).toEqual(['lib/connectivityMonitor.ts', 'lib/supabase.ts']);
+  });
+
+  // ⚠️ AND THE QUEUE HAS EXACTLY ONE TRIGGER. `lib/flushRunner.ts` holds the
+  // app's ONE flusher, which is what makes `@/api/flush`'s single-flight gate
+  // mean anything; a second caller of it is a second drain over one queue,
+  // reading the same `pending` row. ⚠️ It sat with NO caller from 5c-ii-a until
+  // this task, which is why the list is one entry and not two.
+  it('calls the app flusher from the connectivity monitor and nowhere else', () => {
+    const callers = sources()
+      .filter(([, text]) => /from '@\/lib\/flushRunner'/.test(text))
+      .map(([rel]) => rel);
+    expect(callers).toEqual(['lib/connectivityMonitor.ts']);
+  });
 });
