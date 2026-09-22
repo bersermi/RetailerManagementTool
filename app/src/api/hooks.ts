@@ -22,7 +22,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { useAuth } from '@/auth/AuthProvider';
-import { apiErrorMessage } from '@/api/errors';
+import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
 import {
   CATALOG_KEY,
   UNITS_KEY,
@@ -731,6 +731,7 @@ export function useRequestAccess() {
 export function useCatalog(typed: string = ''): {
   readonly loading: boolean;
   readonly entries: readonly CatalogEntry[];
+  readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
   const enabled = ready && session !== null;
@@ -757,6 +758,19 @@ export function useCatalog(typed: string = ''): {
   const locationId = stores.length === 1 ? stores[0].id : null;
   const entries = catalogFrom(variants.data, unitFactorsFrom(units.data), locationId);
 
+  // ⚠️⚠️ THE FAILURE IS REPORTED SEPARATELY FROM *loading*, AND UNTIL 2026-09-22
+  // IT WAS NOT. `loading` is `data === undefined`, which is ALSO what a failed
+  // query looks like — TanStack leaves `data` undefined on an error — so a read
+  // that could not happen rendered as *Cargando productos…* for ever. The owner
+  // found it on his own phone, on a project whose schema had never been
+  // deployed, and no check in this repository could have: §2.11 keeps rendering
+  // out of scope and the suite's fixtures are hand-written rows that never fail.
+  //
+  // ⚠️ THE VARIANTS' FAILURE IS READ FIRST because it is the one that empties
+  // the screen; a units failure alone would leave every row showing C3.12's dash,
+  // which is also worth saying out loud rather than rendering as a priceless shop.
+  const thrown = variants.error ?? units.error;
+
   return {
     // ⚠️ THE UNITS COUNT TOWARDS *loading* AND THE LOCATIONS DO NOT. Without the
     // factors every row would render C3.12's dash — a screen saying this shop
@@ -764,5 +778,6 @@ export function useCatalog(typed: string = ''): {
     // wins, and the shop-wide one is a correct answer while they are in flight.
     loading: variants.data === undefined || units.data === undefined,
     entries: search(entries, typed),
+    failed: thrown ? apiErrorKey(thrown) : null,
   };
 }

@@ -33,9 +33,10 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| ⚠️⚠️ **THE HOSTED SUPABASE PROJECT HAS NO SCHEMA. MAY WE PUSH ALL THIRTY-EIGHT MIGRATIONS TO IT?** — and it needs the owner's own `supabase login`, which nobody but him can run | **Everything the owner can SEE on his phone.** Not a task in the tables below — no row is waiting on this, because every check and every contract in this project runs against a database CI builds from scratch and throws away. What it blocks is the app being usable at all on a real device | **Measured 2026-09-22, not inferred:** `GET /rest/v1/` on `hweutzjhzvioswnjzqki` returns **zero tables and zero paths**, and every table the app reads — `unit`, `product_variant`, `product_family`, `price_list`, and even `workspace` — answers `PGRST205 Could not find the table … in the schema cache`. ⚠️ **The CLI has never been linked either**: no `supabase/.temp/project-ref`, and `supabase projects list` says no access token. **So no migration has ever been applied anywhere except CI's throwaway Postgres.** ⚠️⚠️ **THE SECOND READING, WHICH ONLY HE CAN SETTLE: the key in `app/.env.local` may simply point at the WRONG project.** Zero tables is equally consistent with *never deployed* and with *deployed somewhere else*, and `supabase projects list` — his login — is what tells the two apart. **The recommendation is: log in, confirm the ref, then `supabase db push`.** ⚠️ Nothing is destroyed either way — the project is empty — but it is his live project, so it is his call, not a session's |
 
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-22, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
-FOURTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **TWELVE decisions have now been parked and cleared in
+⚠️⚠️ **ONE IS OWED AS OF 2026-09-22, IT CAME OUT OF THE OWNER'S OWN PHONE, AND IT BLOCKS NO ROW
+IN THE TABLES BELOW — IT BLOCKS HIM SEEING ANYTHING.** The table above was empty for the fourth time this morning and it is not any more: Productos hung on *Cargando productos…* on his phone, and the read behind it cannot succeed because **the hosted project has no schema at all**. ⚠️ **THIRTEEN decisions have now been parked in this block.** ~~✅✅✅ nothing is owed as of 2026-09-22, and the empty table above is deliberate — for the fourth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **TWELVE decisions have now been parked and cleared in
 this block**, and the twelfth — ADR-035 §2.8's Home row — **was parked and ruled inside the same
 day, in two halves, the second of them after the owner asked what the implications were.**
 ~~one is owed as of 2026-09-22, it arrived with `5d`'s sizing, and it blocks only the last of that
@@ -247,6 +248,78 @@ assertion in this file now bounds its region.**
 
 
 
+
+⚠️⚠️ **THE OWNER OPENED PRODUCTOS ON HIS PHONE AND IT SAID *Cargando
+productos…* FOR EVER — TWO DEFECTS, ONE OF THEM THE BIGGEST THING FOUND IN THIS
+PROJECT SINCE THE POWER APPS ERA ENDED.** *"When hitting in Productos, it stays
+loading."* **Fifteen minutes on a phone found what forty-one policies, twelve
+contract checks and 689 assertions could not**, which is `R9` paying for itself
+on the first day it was tested.
+
+⚠️⚠️ **DEFECT 1 — THE ONE THAT MATTERS: THE HOSTED SUPABASE PROJECT HAS NO
+SCHEMA. NOT A STALE ONE. NONE.** Measured, not inferred: `GET /rest/v1/` on
+`hweutzjhzvioswnjzqki` returns **zero tables and zero paths**, and every table
+the app reads — `unit`, `product_variant`, `product_family`, `price_list` and
+even `workspace` — answers `PGRST205 Could not find the table … in the schema
+cache`. ⚠️ **The CLI has never been linked to it either**: there is no
+`supabase/.temp/project-ref`, and `supabase projects list` reports no access
+token. **Thirty-eight migrations exist in this repository and in CI's throwaway
+Postgres, and nowhere else.**
+
+⚠️⚠️ **AND THIS IS THIS REPOSITORY'S FOUNDING SENTENCE, ONE LEVEL FURTHER OUT
+THAN IT WAS WRITTEN.** ADR-035 §9 says *"a file is not evidence; a green CI run
+is"* — because the previous era recorded decisions that were never deployed.
+**CI proves a migration APPLIES. Nothing in this project has ever proved a
+migration was applied ANYWHERE A PHONE CAN REACH**, and the gap survived
+thirty-eight migrations, twelve live-HTTP contract checks and a device build,
+because every one of those checks builds its own database and throws it away.
+**The contract checks are not wrong and they were never asked this question.**
+⚠️ **It is parked in the ⛔ block as a decision rather than fixed here**: it is
+the owner's live project and his login, and *"the key points at the wrong
+project"* is equally consistent with the measurement — only `supabase projects
+list` tells those two apart.
+
+✅ **DEFECT 2 — FIXED HERE, AND IT IS WHY DEFECT 1 LOOKED LIKE A SLOW NETWORK:
+A FAILED READ AND A PENDING ONE WERE THE SAME STATE.** `useCatalog` reported
+`loading` as `data === undefined`, **and TanStack leaves `data` undefined on an
+error too** — so a read that could not happen rendered as *Cargando
+productos…*, for ever, with no way for a person to tell the difference. ⚠️ **The
+screen was the honest half and the hook was the lying half**: `emptyLineKey`
+already separated three states with four assertions on them, and the fourth
+state never reached it.
+
+**What shipped for defect 2:**
+
+| | |
+|---|---|
+| `app/src/api/hooks.ts` | `useCatalog` returns **`failed: ApiMessageKey \| null`** beside `loading`, read off `variants.error ?? units.error` |
+| `app/src/api/catalog.ts` | `catalogLine` and `familyLine` — **failure outranks loading**, because TanStack retries twice and a screen that preferred *loading* would put the endless spinner back on every retry |
+| `app/src/app/productos.tsx`, `app/src/app/familia/[id].tsx` | both `Vacio`s take **a finished sentence** rather than the failure key |
+| `app/test/api-catalog.test.ts` | **seven new assertions**, 696 in the app suite |
+
+⚠️⚠️ **THE TWO SENTENCES THAT MUST NEVER APPEAR ON A FAILURE, EACH NOW AN
+ASSERTION.** *Todavía no hay productos* is the one empty-state sentence a
+shopkeeper would **act** on — she would go and add products she already has —
+and on La Familia, *ya no está en el catálogo* tells her the product **in her
+hand** has been deleted. **Both are worse than the spinner they replace if they
+fire on a read that simply could not happen.**
+
+⚠️ **AND `R12` CAUGHT THE FIRST ATTEMPT AT THIS FIX, CORRECTLY.** Both screens
+imported `ApiMessageKey` from `@/api/errors` — *the module that decides what a
+failure MEANS*, which a route may not reach. The repair was not to widen the
+rule: **no route names that type at all**, and the components are handed the
+finished line. **A guard that fires on the fix is a guard doing its job**, and
+this is the second time today one has (`split-coverage.sh` caught two sentinel
+collisions in `5d-iii`'s closing row).
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` is **696
+tests over 29 files** (seven new), `npm run typecheck` clean, `bash
+docs/checks/conventions-gate.sh` **16 groups over 56 source and 29 test files**
+with its 30 fixtures still red. ⚠️⚠️ **NONE OF THEM COULD HAVE FOUND EITHER
+DEFECT, AND THAT IS THE POINT OF THE ENTRY.** The suite's fixtures are
+hand-written rows that never fail, and §2.11 keeps rendering out of scope. **The
+instrument was the owner's phone, and it found in a quarter of an hour what this
+repository had been unable to ask for eleven days.**
 
 ✅✅ **THE OWNER TOOK HIS PHONE BACK ON 2026-09-22, AND A BUILD FOR IT FOUND A
 DEAD POD NOBODY COULD HAVE SEEN.** *"I'm working through my iPhone, deploy it

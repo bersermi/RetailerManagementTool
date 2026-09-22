@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '@/api/hooks';
-import { familyLineKey, familyView, type CatalogEntry } from '@/api/catalog';
+import { familyLine, familyView, type CatalogEntry } from '@/api/catalog';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -75,7 +75,7 @@ export default function Familia() {
   // variant only marks a row in it — and a link that lost the parameter still
   // opens the right family, with nothing marked.
   const { id, variante } = useLocalSearchParams<{ id: string; variante?: string }>();
-  const { loading, entries } = useCatalog();
+  const { loading, entries, failed } = useCatalog();
   const family = familyView(entries, id, variante);
 
   return (
@@ -96,7 +96,7 @@ export default function Familia() {
         }}
       >
         {family.variants.length === 0 ? (
-          <Vacio loading={loading} />
+          <Vacio line={familyLine(loading, failed)} />
         ) : (
           <View
             style={{
@@ -312,6 +312,11 @@ function Acciones() {
 /**
  * An empty family screen, and the two things it can mean.
  *
+ * ⚠️⚠️ THREE STATES AS OF 2026-09-22, NOT TWO — a FAILED read is its own fact,
+ * and on this screen it is the sharpest of the three: telling a shopkeeper the
+ * product in her hand is gone, because the app could not ask, is worse than
+ * either of the others. `familyLine` puts failure ahead of both.
+ *
  * ⚠️⚠️ *THE READ HAS NOT LANDED* IS NOT *THIS PRODUCT IS GONE*. This screen is
  * opened by tapping a row, so on a cold start with no signal the catalog is
  * briefly empty — and a screen that said *ya no está en el catálogo* then
@@ -319,9 +324,11 @@ function Acciones() {
  * holding it. The choice is `familyLineKey`'s, in `@/api/catalog`, where
  * `app/test/api-catalog.test.ts` reads it (`R3`, `R4`).
  */
-function Vacio({ loading }: { loading: boolean }) {
+function Vacio({ line }: { line: string }) {
+  // ⚠️ A SENTENCE AND NOT THE FAILURE KEY — `R12`: a route may not import
+  // `@/api/errors`, the module that decides what a failure means. `familyLine`
+  // is called where the hook's result already is, one function up.
   const { scale } = useDensity();
-  const line = ES.family[familyLineKey(loading)];
   return (
     <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>

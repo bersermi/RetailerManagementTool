@@ -12,7 +12,9 @@ import {
   UNIT_COLUMNS,
   VARIANT_COLUMNS,
   catalogFrom,
+  catalogLine,
   emptyLineKey,
+  familyLine,
   familyLineKey,
   familyTitle,
   familyView,
@@ -618,5 +620,68 @@ describe('familyLineKey — the two things an empty family screen means', () => 
     for (const loading of [true, false]) {
       expect(ES.family[familyLineKey(loading)]).toBeTypeOf('string');
     }
+  });
+});
+
+// ============================================================================
+// THE FOURTH STATE — found by the owner on his own phone on 2026-09-22, and no
+// assertion in this file could have found it. Productos sat on *Cargando
+// productos…* for ever against a project whose schema had never been deployed,
+// because `loading` is `data === undefined` and SO IS A FAILED QUERY.
+// ============================================================================
+
+describe('catalogLine — a failed read never wears a loading sentence', () => {
+  // ⚠️⚠️ THE BUG, AS AN ASSERTION. This is the exact state the phone was in.
+  it('says the read failed instead of saying it is loading', () => {
+    expect(catalogLine(true, '', 'unknown')).toBe(ES.api.errors.unknown);
+    expect(catalogLine(true, '', 'unknown')).not.toBe(ES.catalog.loading);
+  });
+
+  // ⚠️ FAILURE OUTRANKS LOADING BECAUSE TANSTACK RETRIES TWICE: a query that
+  // has failed can still be fetching, and preferring *loading* would put the
+  // endless spinner back on every retry.
+  it('keeps saying so while it retries', () => {
+    for (const loading of [true, false]) {
+      expect(catalogLine(loading, 'pechuga', 'offline')).toBe(ES.api.errors.offline);
+    }
+  });
+
+  // ⚠️⚠️ AND IT NEVER TELLS HER THE SHOP IS EMPTY WHEN THE APP COULD NOT ASK.
+  // *Todavía no hay productos* is the one empty-state sentence a shopkeeper
+  // would ACT on — by adding products she already has.
+  it('never says the catalog is empty on a failure', () => {
+    expect(catalogLine(false, '', 'sessionEnded')).not.toBe(ES.catalog.empty);
+    expect(catalogLine(false, '', 'sessionEnded')).toBe(ES.api.errors.sessionEnded);
+  });
+
+  it('is exactly the old three sentences when nothing failed', () => {
+    expect(catalogLine(true, '', null)).toBe(ES.catalog.loading);
+    expect(catalogLine(false, '', null)).toBe(ES.catalog.empty);
+    expect(catalogLine(false, 'tornillos', null)).toBe(ES.catalog.noMatches);
+  });
+
+  // ⚠️ EVERY KEY `apiErrorKey` CAN RETURN HAS A SENTENCE, which is what stops
+  // this returning `undefined` on the one path nobody renders in a suite.
+  it('resolves every api error key to a real sentence', () => {
+    for (const key of Object.keys(ES.api.errors) as (keyof typeof ES.api.errors)[]) {
+      expect(catalogLine(false, '', key)).toBeTypeOf('string');
+      expect(catalogLine(false, '', key).length).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('familyLine — and here the wrong sentence deletes a product', () => {
+  // ⚠️⚠️ THE SHARPEST CASE IN THE APP. This screen is reached by TAPPING a
+  // product, so falling through to *ya no está en el catálogo* on a failed read
+  // tells a shopkeeper the thing in her hand has been deleted.
+  it('never says the product is gone when the read failed', () => {
+    expect(familyLine(false, 'unknown')).not.toBe(ES.family.missing);
+    expect(familyLine(false, 'unknown')).toBe(ES.api.errors.unknown);
+  });
+
+  it('says so while it retries, and keeps the old two otherwise', () => {
+    expect(familyLine(true, 'offline')).toBe(ES.api.errors.offline);
+    expect(familyLine(true, null)).toBe(ES.family.loading);
+    expect(familyLine(false, null)).toBe(ES.family.missing);
   });
 });
