@@ -169,11 +169,22 @@ describe('the library has exactly one caller', () => {
   // layer down. `@/api/connectivity` holds a state — the debounce, the ladder,
   // whether the poll should be running — so two modules stepping it are two
   // answers to "is the shop online?", arrived at from the same events. The
-  // banner reads `subscribe()` from the monitor; it does not step the machine
-  // for itself.
+  // offline surfaces read `subscribe()` from the monitor; they do not step the
+  // machine for themselves.
+  //
+  // ⚠️⚠️ `import type` IS EXCLUDED, AND THE EXCLUSION IS THE CLAIM RATHER THAN A
+  // CONCESSION. This assertion first read every import and fired on `5c-iv-a`'s
+  // `import type { Online }` in `offline/notice.ts` — a line TypeScript erases,
+  // which cannot call `step`, cannot hold state and cannot disagree with
+  // anything. A guard that goes red on an erased line teaches the next person to
+  // loosen it, and the version they would reach for is the one that stops
+  // reading imports at all. ⚠️ The word `type` must follow `import` directly:
+  // `import { type Online, step }` is a VALUE import and still counts.
   it('steps the connectivity machine from one module only', () => {
     const drivers = sources()
-      .filter(([, text]) => /from '@\/api\/connectivity'/.test(text))
+      .filter(([, text]) =>
+        /(^|\n)import(?!\s+type\s)[^;]*from '@\/api\/connectivity'/.test(text),
+      )
       .map(([rel]) => rel);
     expect(drivers).toEqual(['lib/connectivityMonitor.ts']);
   });

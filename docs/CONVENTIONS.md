@@ -442,7 +442,10 @@ always goes: one screen, in a hurry, reading one table for itself.
 
 ⚠️⚠️ **THAT BLOCK NOW PINS FIVE LISTS, AND FOUR OF THEM ARE THE ONLY INSTRUMENT
 THEIR RULE HAS.** As of `5c-ii-b-2` it also holds **`expo-network` to
-`lib/connectivityMonitor.ts`**, **`@/api/connectivity` to one driver**, **`AppState`
+`lib/connectivityMonitor.ts`**, **`@/api/connectivity` to one driver**
+— ⚠️ **value imports only, since `5c-iv-a`: an `import type` line is erased by the
+compiler, cannot call `step` and cannot disagree with anything, and a guard that goes
+red on an erased line is one the next person loosens all the way** — **`AppState`
 to two owners** (the session store's auto-refresh and the monitor's wake — different
 subjects over one core API, so it is pinned as an equality at two rather than argued
 down to one), and **`@/lib/flushRunner` to one caller**, because the app's one flusher
