@@ -455,6 +455,35 @@ export function catalogFrom(
 }
 
 /**
+ * Which of the three things an empty list means — as a KEY of `ES.catalog`,
+ * never as a sentence.
+ *
+ * ⚠️⚠️ IT IS A FUNCTION AND NOT A TERNARY IN THE SCREEN, WHICH IS `R3` AND THE
+ * SHAPE `linesOf` ALREADY USES IN `@/api/approvals`. §2.11 keeps rendering out
+ * of scope, so a decision spelled only in JSX is one no instrument in this
+ * repository can read — and this one has a right answer.
+ *
+ * ⚠️⚠️ THE THREE MUST NOT COLLAPSE INTO TWO. *"This shop has no products"* and
+ * *"nothing matches what you typed"* are different facts: a shopkeeper with a
+ * hundred products who mistypes a name would otherwise be told her catalog is
+ * empty — and she is the merchant C8.2 describes, whose catalog is deliberately
+ * incomplete and who is being encouraged to add to it. ⚠️ And *the read has not
+ * landed* is a third: a list that says "no products" for the second before the
+ * rows arrive lies on every cold open, on a connection this shop loses half the
+ * day.
+ *
+ * ⚠️ WHITESPACE IS NOT A SEARCH. `matches` already treats a blank box as
+ * matching everything, so a box holding three spaces is not "nothing found".
+ */
+export function emptyLineKey(
+  loading: boolean,
+  typed: string,
+): 'loading' | 'noMatches' | 'empty' {
+  if (loading) return 'loading';
+  return searchKey(typed) === '' ? 'empty' : 'noMatches';
+}
+
+/**
  * Does this row answer what was typed?
  *
  * ⚠️ THE FAMILY COUNTS. Typing `pollo` finds `Pechuga`, because the family is
