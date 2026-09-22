@@ -42,7 +42,10 @@ DELIVERABLES=(
   "the family's variants at sight, each with its price|at sight|5d-iii"
   "Agregar Variante, Costos and Editar — inert here, built by 5e|Agregar Variante|5d-iii"
   "today's takings and count, above anything tappable|above anything tappable|5d-iv"
-  "the 48-hour expiry block §2.8 asks for|48-hour|5d-iv"
+  # ⚠️ WITHDRAWN 2026-09-22, and still a row here: the child has to keep SAYING
+  # what happened to it. A deliverable that simply vanishes from a split is
+  # indistinguishable from one that was dropped by accident.
+  "the 48-hour expiry block §2.8 asks for — withdrawn by the ruling of 2026-09-22|48-hour|5d-iv"
   "Vender, Comprar and Desperdicio as cards|as cards|5d-iv"
   "the rows to Productos and Proveedores|Proveedores|5d-iv"
   "the bell and Ajustes, placed at last|the bell|5d-iv"
