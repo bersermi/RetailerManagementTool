@@ -69,6 +69,12 @@ import {
   type Redeemed,
 } from '@/api/redeem';
 import {
+  SALE_COLUMNS,
+  TODAY_COLUMN,
+  dayStartISO,
+  type SaleRow,
+} from '@/api/today';
+import {
   MY_ACCESS_REQUESTS,
   REQUEST_ACCESS,
   outcomeFrom,
@@ -449,6 +455,39 @@ export async function catalogUnits(): Promise<UnitRow[]> {
   const { data, error } = await supabase.from('unit').select(UNIT_COLUMNS);
   if (error) throw reported(error);
   return (data ?? []) as unknown as UnitRow[];
+}
+
+/**
+ * Today's sale documents — the read §2.8's Home row has asked for since the ADR
+ * was written and no line in this app has ever performed. Plan task `5d-iv-a`.
+ *
+ * ⚠️⚠️ THE DAY BOUNDARY IS THE DEVICE'S AND IT IS COMPUTED HERE RATHER THAN SENT
+ * BY THE SERVER, exactly as `catalogVariants` above computes the price window's
+ * date and for the same reason: no call in this app knows what day it is where
+ * the shop stands. ⚠️ `today.ts`'s header is where the harder half of that lives
+ * — `0012` put the shop's zone on `location`, and reading it would need
+ * `Intl.DateTimeFormat`, which `R5` and `R10` both refuse until somebody has put
+ * it on an iPhone and an Android and looked.
+ *
+ * ⚠️ ONE FILTER AND NO UPPER BOUND, WHICH IS THE SCHEMA'S DOING RATHER THAN AN
+ * OVERSIGHT. `0003` clamps `occurred_at` to `[now() - 72h, now()]`, so no row can
+ * be in the future and `gte` alone is the whole window.
+ *
+ * ⚠️ NO `location_id` FILTER, AND THAT IS THE POLICY'S DECISION RATHER THAN
+ * THIS FILE'S. `sale_select` (`0003`) is
+ * `workspace_id in (select my_workspaces()) and location_id in (select my_locations())`,
+ * so a cashier already reads her own store and a manager reads every store she
+ * covers — which is *"the shop's takings today"*, the reading §2.8 asks for.
+ * C1.5 makes both pilot shops one location each, so today the two are the same
+ * question.
+ */
+export async function todaySales(): Promise<SaleRow[]> {
+  const { data, error } = await supabase
+    .from('sale')
+    .select(SALE_COLUMNS)
+    .gte(TODAY_COLUMN, dayStartISO(new Date()));
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as SaleRow[];
 }
 
 /**
