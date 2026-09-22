@@ -1,0 +1,50 @@
+# 5c-iv — what a person sees. Sized M/L and split in two 2026-09-22, on the day it
+# was taken and before a line of it was written. `5c.split` had it down as an M.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, the property `5c.split` asserts one level up: the
+# whole failure path these children draw has been applied since 2026-09-05.
+# EACH_CHILD_SAYS asserts it POSITIVELY, because merging is automated and a child
+# that quietly grows a migration is not a reviewable mistake but a deployed one.
+#
+# THE SEAM, IN ONE LINE: `5c-iv-a` draws THE LINK and `5c-iv-b` draws THE QUEUE.
+# They share nothing but a place on the screen. The first reads the signal
+# `5c-ii-b-2` shipped — whose `subscribe()` has never had a caller — and renders
+# two states of one boolean. The second reads this device's own outbox, prices it
+# with `@tienda/money`, and puts the answer behind a role fence; that arithmetic is
+# the same arithmetic §2.10's nightly check runs on the server side, so getting it
+# wrong is a number that disagrees with the ledger rather than a banner that looks
+# odd. Splitting on the SOURCE rather than on size is what makes each half
+# separately correctable.
+#
+# ⚠️⚠️ AND NEITHER HALF CAN BE MEASURED HERE, WHICH IS WHY THE SPLIT IS WORTH MORE
+# THAN USUAL RATHER THAN LESS. §2.11 keeps rendering, navigation and layout out of
+# scope, so the instrument for both is the owner's phone (`R9`). Two things he can
+# look at and correct separately beat one he has to take or leave — and a screen
+# decision that goes in wrong has no check anywhere that would say so.
+SPLIT_ID="5c-iv"
+SPLIT_GROUPS=( "5c-iv|5c-iv-a 5c-iv-b" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW — the rule `5c.split` learned from fixture S5: a
+  # case-tolerant class matching two spellings inside one row defeats the removal
+  # fixture and the guard is weaker than it reads.
+  #
+  # ⚠️ THE FIRST TWO ROWS ARE ALSO `5c.split`'s DELIVERABLES on the parent. That is
+  # deliberate and not a second home: there they must land in `5c-iv`, here they
+  # must land in exactly one of its children. The same arrangement `5c-ii.split`
+  # and `5c-ii-b.split` already stand in.
+  "C10.1 — the quiet dismissible offline notice|Sin conexión a internet|5c-iv-a"
+  "C10.2 — the fading reconnect toast|C10\.2|5c-iv-a"
+  "the dismissal that re-arms on a screen change, rather than for the session|on screen changes|5c-iv-a"
+  "C11.9 — the least-invasive dead-letter banner|C11\.9|5c-iv-b"
+  "the count and the peso figure the banner shows|PESO FIGURE|5c-iv-b"
+  "the manager-and-above fence on the banner|manager-and-above|5c-iv-b"
+)
+PHRASES=(
+  "5c-iv-a|F|READS THE SIGNAL, NEVER THE LIBRARY|The constraint 5c-ii-b-2 shipped, and this is its first consumer. 5c-iv-a's notice and the drain are the same fact; a second expo-network import makes them two subscriptions that can disagree about whether the shop is online, and §2.11 keeps rendering out of scope so nothing in this repository would ever see them disagree. The plan row and app/test/auth-errors.test.ts are the only two places this is written down."
+  "5c-iv-a|F|transform\` AND \`opacity\` ONLY|§2.11's motion rule is a PERFORMANCE constraint before it is a taste one: C1.1 puts two low-end Androids among the pilot's four phones, and transform and opacity are the properties that run on the compositor. A toast that fades by animating a background colour breaks it in the one place nobody would look, and no check here can see a rendered property."
+  "5c-iv-b|F|NEVER A LIST, NEVER AN|C10.5 and §2.8 both, and the ruling of 2026-09-14. The banner is a count and a peso figure; a list or an error_code is the vendor's pile handed to the merchant. §2.11 bans the suite that would notice, so this row is the only record that it must not be."
+  "5c-iv-b|F|MAKING NO SERVER READ|Ruled 2026-09-14. failed_write.id IS the client uuid (0024 decision 7), so the device that failed already holds what the banner needs — which is what lets the banner work on the phone that is offline, the only phone that has anything to show. A server read here is a banner that goes blank exactly when it matters."
+)
+EACH_CHILD_SAYS=(
+  "I|ships NO migration|Both halves are client-only and every function either one reads is already applied. A POSITIVE assertion on purpose: merging is automated, so a child that quietly grew a migration is not a reviewable mistake but a deployed one, repaired only by a fix-forward migration. ⚠️ It matters more here than it did on the siblings: 5b.9 is an open row in this same step that DOES ship one, so 'the next task has no migration' has stopped being true of step 5 as a whole."
+)
