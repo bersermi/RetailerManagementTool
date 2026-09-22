@@ -33,10 +33,9 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| ⚠️⚠️ **THE HOSTED SUPABASE PROJECT HAS NO SCHEMA. MAY WE PUSH ALL THIRTY-EIGHT MIGRATIONS TO IT?** — and it needs the owner's own `supabase login`, which nobody but him can run | **Everything the owner can SEE on his phone.** Not a task in the tables below — no row is waiting on this, because every check and every contract in this project runs against a database CI builds from scratch and throws away. What it blocks is the app being usable at all on a real device | **Measured 2026-09-22, not inferred:** `GET /rest/v1/` on `hweutzjhzvioswnjzqki` returns **zero tables and zero paths**, and every table the app reads — `unit`, `product_variant`, `product_family`, `price_list`, and even `workspace` — answers `PGRST205 Could not find the table … in the schema cache`. ⚠️ **The CLI has never been linked either**: no `supabase/.temp/project-ref`, and `supabase projects list` says no access token. **So no migration has ever been applied anywhere except CI's throwaway Postgres.** ⚠️⚠️ **THE SECOND READING, WHICH ONLY HE CAN SETTLE: the key in `app/.env.local` may simply point at the WRONG project.** Zero tables is equally consistent with *never deployed* and with *deployed somewhere else*, and `supabase projects list` — his login — is what tells the two apart. **The recommendation is: log in, confirm the ref, then `supabase db push`.** ⚠️ Nothing is destroyed either way — the project is empty — but it is his live project, so it is his call, not a session's |
 
-⚠️⚠️ **ONE IS OWED AS OF 2026-09-22, IT CAME OUT OF THE OWNER'S OWN PHONE, AND IT BLOCKS NO ROW
-IN THE TABLES BELOW — IT BLOCKS HIM SEEING ANYTHING.** The table above was empty for the fourth time this morning and it is not any more: Productos hung on *Cargando productos…* on his phone, and the read behind it cannot succeed because **the hosted project has no schema at all**. ⚠️ **THIRTEEN decisions have now been parked in this block.** ~~✅✅✅ nothing is owed as of 2026-09-22, and the empty table above is deliberate — for the fourth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **TWELVE decisions have now been parked and cleared in
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-22, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+FIFTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **THIRTEEN decisions have now been parked and cleared in this block, and the thirteenth was parked and ruled inside the same hour** — the owner ran `supabase login` himself, confirmed the ref, and pushed: ***"done, it's the right project."*** **`0001`–`0038` are applied to `hweutzjhzvioswnjzqki` and `supabase migration list` shows local and remote identical, row for row.** ~~⚠️⚠️ one is owed as of 2026-09-22, it came out of the owner's own phone, and it blocks no row in the tables below — it blocks him seeing anything.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** The table above was empty for the fourth time this morning and it is not any more: Productos hung on *Cargando productos…* on his phone, and the read behind it cannot succeed because **the hosted project has no schema at all**. ⚠️ **THIRTEEN decisions have now been parked in this block.** ~~✅✅✅ nothing is owed as of 2026-09-22, and the empty table above is deliberate — for the fourth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **TWELVE decisions have now been parked and cleared in
 this block**, and the twelfth — ADR-035 §2.8's Home row — **was parked and ruled inside the same
 day, in two halves, the second of them after the owner asked what the implications were.**
 ~~one is owed as of 2026-09-22, it arrived with `5d`'s sizing, and it blocks only the last of that
@@ -248,6 +247,44 @@ assertion in this file now bounds its region.**
 
 
 
+
+✅✅✅ **THE SCHEMA IS DEPLOYED AS OF 2026-09-22 — THE HOSTED PROJECT IS REAL,
+AND THE ANSWER TO THE SECOND READING WAS *NO*.** The owner logged in, checked
+the list himself and pushed: ***"done, it's the right project."*** So it was
+never a wrong key — **thirty-eight migrations had simply never been applied
+anywhere a phone could reach.**
+
+**Measured from here afterwards, with no secret and no assumption:**
+
+| What was asked | What came back |
+|---|---|
+| `supabase migration list` | **`0001`–`0038`, local and remote identical, row for row** |
+| `select count(*) from public.unit` | **10** — `0001`'s seed is really there |
+| `auth.users` | **3** | 
+| `public.workspace`, `public.product_variant` | **0 and 0** — nobody has created a shop yet |
+| `GET /rest/v1/unit` as the publishable key | **`42501 permission denied`** |
+
+⚠️⚠️ **AND THAT LAST ROW IS THE FENCE WORKING, NOT A DEFECT — WORTH WRITING DOWN
+BECAUSE IT READS LIKE ONE.** `0001:579` revokes `unit` from `anon` and grants
+`select` to `authenticated` only, explicitly, *"so the intent is reviewable in
+the migration"*. **An anonymous caller being refused is the deployment being
+correct.** The app reads it with a signed-in session and will be let through.
+
+⚠️ **WHAT THE OWNER SEES NEXT, SAID NOW SO IT IS NOT MISTAKEN FOR A SECOND BUG:
+the app will send him to `bienvenida` to create a shop**, because `workspace` is
+empty and `redirectFor` routes a member of nothing to onboarding. **And then
+Productos will be honestly empty** — `product_variant` is 0, and **nothing in
+this app can create a product until `5e`.** The screen `5d-iii` shipped cannot
+be judged on an empty list, so the rows have to be put there by hand or the look
+waits for `5e`.
+
+⚠️⚠️ **THE GAP THIS EXPOSED IS NOW A TASK — `5R-f`, BELOW — AND IT IS NOT THE
+MIGRATIONS' FAULT.** Every contract check in this repository builds a database
+from scratch, asserts against it and throws it away. **Not one of them, and no
+workflow, has ever asked whether the database a PHONE talks to has the same
+schema** — and `supabase migration list` answers exactly that question in one
+command that needs no password. **The deploy happened today by hand; nothing
+would say so if it drifted tomorrow.**
 
 ⚠️⚠️ **THE OWNER OPENED PRODUCTOS ON HIS PHONE AND IT SAID *Cargando
 productos…* FOR EVER — TWO DEFECTS, ONE OF THEM THE BIGGEST THING FOUND IN THIS
@@ -4914,6 +4951,7 @@ also says something true: §2.11 puts the release path *"running in parallel fro
 | **5R-c** | ⚠️⚠️ **ACCOUNT DELETION — A STORE GATE THAT EXISTS IN NO DOCUMENT AND NO LINE OF CODE.** Both stores require an app that creates accounts to offer in-app deletion; Google additionally requires a web-reachable request path. **Found 2026-09-21 by grepping for it and finding nothing.** ⚠️⚠️ **AND IT IS NOT A BUTTON: `sale.created_by` and `failed_write.reported_by` are `not null` references to `auth.users`, so a hard delete is REFUSED BY THE LEDGER.** The design question — anonymise the actor, transfer the workspace, or refuse deletion to an owner who still has a shop — is a real one and it touches the append-only ledger | `M/L` | ⚠️ **Needs a decision before code. Unsized until that decision; `M/L` is a placeholder** |
 | **5R-d** | **The listing, and the law.** `aviso de privacidad` at a public URL (LFPDPPP, §2.2's cross-border disclosure), Apple privacy labels, Google Data Safety, screenshots, descriptions, age rating, test credentials for review. ⚠️ **One risk checked and probably already retired**: Apple requires *Sign in with Apple* only where an app uses third-party login **exclusively** — `5a-iii-a` shipped email sign-in beside Google, which is what should exempt us. **Verify against the current guideline before submitting rather than discovering it in review** | `M` | `5R-a` |
 | **5R-e** | **Submit, survive review, and be listed in both stores.** | `S` | `5R-b`–`5R-d`, and a build worth reviewing |
+| **5R-f** | ⚠️⚠️ **THE SCHEMA DEPLOY PATH, AND THE GUARD THAT WOULD HAVE CAUGHT 2026-09-22.** On that day the hosted project the owner's phone signs in to was found to have **no schema at all** — thirty-eight migrations applied in CI's throwaway Postgres and nowhere else — and it was found by **him tapping Productos**, not by any check. ⚠️ **The migrations are innocent and the contract checks are not wrong**: every one of them builds its own database, asserts against it and deletes it, which is the right design for proving a migration APPLIES and says nothing about whether it WAS applied. **What this row builds is the other half:** a check that reads `supabase migration list` — local against remote, one command, **no password and no service key** — and goes red when they diverge, plus the one paragraph in `supabase/README.md` naming the hosted project as the deploy target and `supabase db push` as how it gets there. ⚠️⚠️ **IT CANNOT LIVE IN `db.yml` AS THE OTHER CHECKS DO**: CI has no access token for the owner's account, so this is either a local check a session runs, or it needs a repository secret — **and deciding which is the first thing this row does.** ⚠️ **It ships no migration.** | `S` | ✅ **UNGATED.** ⚠️ Nothing is waiting on the owner for it — the deploy itself is already done |
 
 ---
 
