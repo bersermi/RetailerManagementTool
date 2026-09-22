@@ -201,6 +201,26 @@ describe('the library has exactly one caller', () => {
     expect(listeners).toEqual(['lib/connectivityMonitor.ts', 'lib/supabase.ts']);
   });
 
+  // ⚠️⚠️ AND THE QUEUE HAS EXACTLY TWO READERS — ADDED AT 5c-iv-b, WHICH IS
+  // WHAT MADE THE LIST TWO. `lib/outboxDb.ts` is pinned as the only module that
+  // touches `expo-sqlite` above; this is the list one layer out, of the modules
+  // that go through it. The flusher DRAINS the queue and the dead-letter banner
+  // COUNTS it, and neither is a screen.
+  //
+  // ⚠️ A THIRD ENTRY IS THE FAILURE §2.6 CANNOT SURVIVE: the outbox is the only
+  // write path, so a route that opened it for itself would be a sale written by
+  // a file that never learned about `pending`, `flushing` or `dead`. ⚠️ The
+  // banner is `src/offline/`, deliberately not `src/app/` — a reader that
+  // appears under `src/app/` is the shape this pins against even though the
+  // path alone would still satisfy the equality, so the list is read with its
+  // directory attached.
+  it('reads the outbox from the flusher and the dead-letter banner only', () => {
+    const readers = sources()
+      .filter(([, text]) => /from '@\/lib\/outboxDb'/.test(text))
+      .map(([rel]) => rel);
+    expect(readers).toEqual(['lib/flushRunner.ts', 'offline/DeadLetterBanner.tsx']);
+  });
+
   // ⚠️ AND THE QUEUE HAS EXACTLY ONE TRIGGER. `lib/flushRunner.ts` holds the
   // app's ONE flusher, which is what makes `@/api/flush`'s single-flight gate
   // mean anything; a second caller of it is a second drain over one queue,
