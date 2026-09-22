@@ -1,0 +1,59 @@
+# 5d — Productos, read. Sized L and split in four on 2026-09-22, on the day it was
+# taken and before a line of it was written. The row carried M, written before any
+# of step 5 existed, and told the next session to size it first.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, and EACH_CHILD_SAYS asserts it POSITIVELY: every
+# table these four children read has been applied since 0002, merging is automated,
+# and a child that quietly grows a migration is not a reviewable mistake but a
+# deployed one.
+#
+# THE SEAM, IN ONE LINE: 5d-i is the half a machine can hold and the other three
+# are the half only the owner's eye can. §2.11 keeps rendering, navigation and
+# layout out of scope, so the instrument for the three screens is a phone (R9) and
+# nothing here will ever say they are wrong. So the first child ships no screen at
+# all: four applied tables no line in app/ reads today, the arithmetic that turns
+# price_per_base into a price with its unit on it, and a contract check over real
+# HTTP — the only instrument any of this gets.
+#
+# ⚠️⚠️ TWO DELIVERABLES WERE NOT IN THE PARENT ROW WHEN IT WAS TAKEN, and finding
+# them is most of what the sizing was worth. Productos has not been a grid of family
+# tiles since 2026-09-15 (C8.13, annotated in place, VARIANT-FIRST), and Inicio is
+# 5d's by two records OUTSIDE the plan table — the header of
+# app/src/app/(tabs)/index.tsx and área 13's decision table. A deliverable held only
+# by files this guard does not read is one context clear from being lost.
+SPLIT_ID="5d"
+SPLIT_GROUPS=( "5d|5d-i 5d-ii 5d-iii 5d-iv" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare pipe in the regex
+  # field truncates the entry and it fails downstream as a DROPPED deliverable,
+  # which reads exactly like the defect this list exists to catch.
+  "the catalog read itself — four applied tables no line in app/ reads today|CATALOG READ|5d-i"
+  "the peso figure, converted out of the per-base price|price_per_base|5d-i"
+  "C3.10 — a price is never shown without its unit|C3\.10|5d-i"
+  "C3.12 — a missing price is a dash and never zero pesos|C3\.12|5d-i"
+  "the initials an un-pictured product shows, computed|INITIALS, COMPUTED|5d-i"
+  "the search key, folded the way the database folds a name|normalize_name|5d-i"
+  "the contract check over real HTTP — the only instrument any of this gets|5d-i-catalog-contract|5d-i"
+  "C8.13 as amended 2026-09-15 — the flat list of every variant|C8\.13|5d-ii"
+  "the search box above the list|search box|5d-ii"
+  "the initials tile, with no pending-photo state near it|initials tile|5d-ii"
+  "the way in, which is a row on Inicio because the tab bar is capped at four|C12\.1|5d-ii"
+  "the tapped variant preselected, and no legend on it|no legend|5d-iii"
+  "the family's variants at sight, each with its price|at sight|5d-iii"
+  "Agregar Variante, Costos and Editar — inert here, built by 5e|Agregar Variante|5d-iii"
+  "today's takings and count, above anything tappable|above anything tappable|5d-iv"
+  "the 48-hour expiry block §2.8 asks for|48-hour|5d-iv"
+  "Vender, Comprar and Desperdicio as cards|as cards|5d-iv"
+  "the rows to Productos and Proveedores|Proveedores|5d-iv"
+  "the bell and Ajustes, placed at last|the bell|5d-iv"
+)
+PHRASES=(
+  "5d-i|F|NO SCREEN, NO COMPONENT AND NO PRIMITIVE|5h.5 owns src/ui/ and comes after 5d-5h have produced real primitives. The owner refused ten primitives guessed at against undrawn screens on 2026-09-13, and a primitive invented in the one child that draws nothing is that refusal broken in the cheapest place to break it. It is also what keeps this child fully checkable: everything it ships has a right answer a node suite can read."
+  "5d-i|F|a real HTTP round trip|No typecheck has ever read 0002, and PostgREST answers a wrong column name with a 400 that the bundler, the suite and the typecheck all pass straight over. R13's rule is that the names live in one module and a live round trip is what asserts they are still the ones the database answers to — the shape 5b-i-api-contract.sh established."
+  "5d-ii|F|VARIANT-FIRST|The owner overwrote an interview answer on 2026-09-15: Productos lists every VARIANT and the grid of family tiles is gone. C8.13's bullet was annotated rather than rewritten, so this row is the other place that ruling lives — and the 5d row it replaces still described the grid four days later."
+  "5d-iii|F|reached by tapping a variant|It is the half of C8.13 that survived the 2026-09-15 amendment: the family with its variants is no longer a tile on a grid, it is what opens when a row is tapped. A sheet reached any other way is the family-first screen coming back through the side door."
+  "5d-iv|F|STATE COMES FIRST|§2.8's Home row was amended on 2026-09-17 to allow the module cards, and the amendment kept one half deliberately: the takings and the expiries sit ABOVE anything tappable, so Inicio still informs before it navigates. Nothing in this repository can see the order things are rendered in, so this row is the only record that the order was a decision."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|Every table these four read has been applied since 0002 and step 5 ships no schema change by rule. A POSITIVE assertion because merging is automated: a child that quietly grew a migration is repaired only by a fix-forward migration, never by an edit."
+)
