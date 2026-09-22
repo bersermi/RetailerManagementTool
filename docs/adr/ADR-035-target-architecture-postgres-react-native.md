@@ -12,6 +12,20 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-22 — **§2.11 gains a CONNECTIVITY row, on the decision maker's
+  instruction** (*"let's follow your recommendation"*), folded into plan task `5c-ii-b-2`
+  rather than given a session of its own. §2.11's stack table fixes every other app-wide
+  choice — router, query layer, cart store, palette, motion — precisely so a junior cannot
+  invent a second one, and **the library that answers *"am I online?"* was the only one of
+  them with no row.** ⚠️⚠️ **THE ROW CARRIES THE BOUND AND NOT ONLY THE NAME.** The reading
+  that chose `expo-network` (`5c-ii-b-1`, 2026-09-22) was taken on an **iOS Simulator, whose
+  network is the host's**: the Mac's Wi-Fi went down, so the interface *disappeared* rather
+  than losing signal, and the losing library watches reachability. **A real iPhone may not
+  reproduce it.** A row stating the choice without its evidence is the stale-copy shape this
+  repository has recorded ten times, and it is the shape that would let a later session
+  "correct" the choice from a changelog. ⚠️ **No schema is applied by this revision and no
+  migration exists anywhere in step 5**; what shipped with it is client code — one pure
+  module, one native binder, and the source-tree assertion that keeps the import in one file.
 - **Revised:** 2026-09-19 — **§2.3 amended**, by the migration that gave one of its
   sentences a mechanism: `0035`, plan task `5b.8-iii-a`, `set_my_display_name(uuid, text)`.
   ⚠️ **Nothing in §2.3 became FALSE, which is why this entry is one sentence and not a
@@ -1491,6 +1505,7 @@ four dialects and a junior inventing a cache. Settled 2026-08-14:
 | Strings | **Hardcoded Spanish, centralised in one file** | No i18n runtime in v1. Centralising costs nothing now and makes a second language a refactor instead of an excavation |
 | **Palette** | **One file of named ROLES, `src/theme/palette.ts`** — added 2026-09-17 | The twin of C3.18's density scale, and it arrives for the same reason that one did: retrofitting colour onto finished screens is an audit of every file, and the ones it misses are the states nobody looks at. A role has **one job** (`atención` is the unpriced row and nothing else), which is what lets someone who is not a designer add a screen without inventing anything. ⚠️ **No state is ever announced by colour ALONE** — always colour *and* a word, or colour *and* a border: the users are old, the shop is bright, and a hue on its own is not a signal to them. Enforced by `R11` in `docs/checks/conventions-gate.sh`, the shape `R6` already has for sizes |
 | **Motion** | **One staggered entrance per screen; `transform` and `opacity` only** — added 2026-09-17 | It is a performance rule before it is a taste one. C1.1 puts **two low-end Androids** among the pilot's four phones; transform and opacity run on the compositor, while animating layout, colour, shadow or blur does not. One orchestrated reveal also beats scattered micro-interactions on a screen someone opens four hundred times a day |
+| **Connectivity** | **`expo-network`, read through ONE module** — added 2026-09-22 | It is the fact the whole app acts on when it is offline: the outbox's flush-on-reconnect and C10.1's *"Sin conexión a internet"* are the same signal, so two subscriptions is a drain and a banner that can disagree, with nothing in this repository able to see them disagree. **One module holds the import; everything else reads the signal.** ⚠️⚠️ **CHOSEN BY MEASUREMENT AND BOUNDED BY IT.** Both candidates were armed in one process on 2026-09-22: on the **iOS Simulator** `@react-native-community/netinfo` went offline and **never recovered** — twelve consecutive polls, fifty-five seconds after the link returned, still `none/false/false` — while `expo-network` read correctly within five seconds. ⚠️ **That is a SIMULATOR finding** (its network is the host's, so the interface vanished rather than losing signal) and **a real iPhone may not reproduce it**; it is enough to choose on because the other library did not do it under the identical event, and it is not a general claim about either library. ⚠️ **The signal is a listener PLUS a poll PLUS the app-state wake** — the winner's listener announced the reconnect in one iOS run of two and missed it in the other, while its read was right in both. ⚠️ **What this costs: `isConnectionExpensive`**, which only the loser carries. A pilot complaint about mobile data reopens the library choice, not a branch: **the cadence does not vary by connection type** (§2.6 says flush on reconnect without qualification, and no instrument here can exercise a second path) |
 | Money on screen | `Intl.NumberFormat('es-MX')` for **rendering only** | Arithmetic is integer centavos in `packages/money`, always. A formatter never touches a value that will be compared against Postgres |
 | Client tests | **Narrow, and bounded by what they assert.** Allowed where a test pins a value a customer sees or the ledger stores — the money formatter, unit conversion, the outbox state machine. Refused over rendering, navigation and layout. `packages/money` is not negotiable | Per §2.10, amended 2026-09-07. A suite over a thin UI is still a poor use of a small team; four assertions over a pure function that decides a displayed price are not that suite, and they are what makes `app.yml`'s green mean something other than *"it compiled"* |
 

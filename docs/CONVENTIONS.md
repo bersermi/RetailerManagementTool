@@ -385,7 +385,8 @@ choose between them.
 directly."* The layer `5b-i` built is five modules over one boundary; `5b-ii-a`
 added a sixth on the pure side of it and `5b-ii-b-2` an eighth; `5c-i` added a
 ninth plus the first two modules on the far side that are not Postgres at all;
-`5c-ii-a` added a tenth and the module that binds its ports;
+`5c-ii-a` added a tenth and the module that binds its ports; `5c-ii-b-2` added an
+eleventh and the module that owns the connectivity import;
 the boundary is the rule:
 
 | Module | What it is | Can a node suite load it? |
@@ -405,6 +406,8 @@ the boundary is the rule:
 | `src/lib/outboxDb.ts` | the only module that opens the queue's SQLite database — the table, the `PRAGMA user_version` migration, and the marshalling. ⚠️ A table on the PHONE, not a migration | **no** — `expo-sqlite` is native |
 | `src/lib/ids.ts` | where a client uuid comes from, and the only place it does | **no** — `expo-crypto` is native |
 | `src/lib/flushRunner.ts` | the only module that binds the flush's five ports to the real queue and the real client — and the app's ONE flusher, which is what makes single-flight mean anything | **no** — it reaches both native halves |
+| `src/api/connectivity.ts` | WHEN a flush runs — the debounce over the handover blip, the de-duplication of a repeated payload, the app-state wake, and the retry ladder designed to straddle the **90 seconds** `5c.5` measured the auth layer can spend refusing from cache. ⚠️ Its subject is not an RPC either: it is the trigger `src/api/flush.ts` deliberately does not own | **yes**, and `app/test/api-connectivity.test.ts` does — it is the whole instrument for that task |
+| `src/lib/connectivityMonitor.ts` | the only module in this app that imports a connectivity library, and the first caller of the flusher. ⚠️⚠️ **Everything else READS THE SIGNAL, NEVER THE LIBRARY** — `subscribe()` is how `5c-iv`'s notice will, and a second `expo-network` import is a banner and a drain that can disagree | **no** — `expo-network` and `AppState` are native |
 | `src/api/hooks.ts` | what a screen may ask, over TanStack Query | no |
 | `src/api/QueryProvider.tsx` | one `QueryClient` per mount, never at module scope | no |
 
@@ -436,6 +439,16 @@ list: `supabase.rpc`/`supabase.from` in `api/calls.ts` and nowhere, and
 `@/lib/supabase` imported by `api/calls.ts` and `auth/AuthProvider.tsx` only.
 That list growing a third entry is the boundary going, and it goes the way it
 always goes: one screen, in a hurry, reading one table for itself.
+
+⚠️⚠️ **THAT BLOCK NOW PINS FIVE LISTS, AND FOUR OF THEM ARE THE ONLY INSTRUMENT
+THEIR RULE HAS.** As of `5c-ii-b-2` it also holds **`expo-network` to
+`lib/connectivityMonitor.ts`**, **`@/api/connectivity` to one driver**, **`AppState`
+to two owners** (the session store's auto-refresh and the monitor's wake — different
+subjects over one core API, so it is pinned as an equality at two rather than argued
+down to one), and **`@/lib/flushRunner` to one caller**, because the app's one flusher
+is what makes `@/api/flush`'s single-flight gate mean anything. Each was falsified by
+grafting the import onto a module that does not own it; each turns exactly its own
+assertion red.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R12 — the screen side. The
 suite pins the other, in `app/test/auth-errors.test.ts`.

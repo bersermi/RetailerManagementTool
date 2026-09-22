@@ -11,6 +11,7 @@ import {
   restoreTarget,
   routeMemory,
 } from '@/navigation/lastScreen';
+import { start as startConnectivity } from '@/lib/connectivityMonitor';
 import { DensityProvider } from '@/theme/DensityProvider';
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
@@ -44,6 +45,7 @@ export default function RootLayout() {
       <QueryProvider>
         <DensityProvider>
           <Gate />
+          <Drain />
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
             <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
@@ -118,6 +120,39 @@ function Gate() {
 
     rememberLastScreen(routeMemory(), pathname);
   }, [ready, session, membership, segments, pathname]);
+
+  return null;
+}
+
+// ============================================================================
+// ⚠️ THE ONLY PLACE THE QUEUE'S DRAIN IS STARTED, AND IT DECIDES NOTHING.
+// Plan task 5c-ii-b-2. Every rule about WHEN a flush runs is in
+// `@/api/connectivity` as a pure machine the suite can read, and every native
+// call is in `@/lib/connectivityMonitor`; what is left here is a lifetime.
+//
+// ⚠️ IT RENDERS NOTHING, the same shape as `Gate` above and for the same
+// reason: starting the monitor from inside a screen means every screen has to
+// remember to, and a sibling with no output has exactly one job and is mounted
+// for as long as the app is.
+//
+// ⚠️⚠️ IT IS GATED ON A SESSION, WHICH IS CORRECTNESS RATHER THAN ECONOMY. A
+// drain with no session sends `record_sale` as an anonymous caller, gets
+// `PGRST301` — which `@/api/deadletter` classifies transient, correctly, since
+// the very next launch fixes it — and then walks the whole retry ladder for
+// nothing. There is also nothing in the queue to drain before somebody has
+// signed in.
+//
+// ⚠️ AND NO CHECK IN THIS REPOSITORY CAN SEE THAT IT WORKS, which is `5c-iv`'s
+// sentence too: §2.11 keeps rendering, navigation and layout out of scope, so
+// the instrument for this mount is the owner's own phone (`R9`).
+// ============================================================================
+function Drain() {
+  const { session } = useAuth();
+
+  useEffect(() => {
+    if (session === null) return;
+    return startConnectivity();
+  }, [session]);
 
   return null;
 }
