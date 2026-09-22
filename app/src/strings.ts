@@ -749,6 +749,52 @@ export const ES = {
     noMatches: 'Ningún producto coincide con esa búsqueda.',
   },
 
+  /** La Familia — the one surface where family and variant are both visible.
+   *  Plan task 5d-iii. */
+  family: {
+    /**
+     * ⚠️ THE BANDA PRINTS THE FAMILY'S OWN NAME, and this word is what it
+     * prints when there isn't one. The family is an EMBEDDED resource, so a
+     * row that does not come back leaves `familyName` empty — on Productos
+     * that is one missing line under a name, and here it would be a screen
+     * with no heading. `familyTitle` in `@/api/catalog` is what chooses.
+     */
+    title: 'Familia',
+    /** ⚠️ *Volver* and not *Cerrar*, for `ES.catalog.back`'s reason: this is a
+     *  screen you went INTO, pushed on top of Productos. */
+    back: 'Volver',
+
+    /**
+     * ⚠️⚠️ THE THREE AFFORDANCES, IN THE OWNER'S OWN WORDS AND INERT UNTIL
+     * `5e`. Every one of them WRITES — `product_variant_insert` and
+     * `product_family_insert` are both `has_role(…, 'manager')` in `0002` —
+     * and this whole step is the catalog being READ. They are drawn because
+     * the family is where they belong and a shopkeeper should see what is
+     * coming; they are drawn plainly dead because a control that looks live
+     * and refuses silently is worse than one that is obviously not built.
+     */
+    addVariant: 'Agregar Variante',
+    costs: 'Costos',
+    edit: 'Editar',
+    /**
+     * ⚠️ THE ONE SENTENCE THAT KEEPS THE THREE FROM LOOKING BROKEN — the shape
+     * `ES.approvals.notYet` had at `5b-iii-d-1`, and it is deleted by the task
+     * that makes them work, exactly as that one was. Without it a shopkeeper
+     * is left to work out for herself whether the app is unfinished or her
+     * phone is; with it, the answer is on the screen.
+     */
+    notYet: 'Por ahora solo puedes ver; todavía no se puede agregar ni editar.',
+
+    /**
+     * ⚠️⚠️ TWO STATES AND THEY ARE NOT THE SAME FACT. This screen is reached by
+     * TAPPING a row, so a cold open with the link out would otherwise tell a
+     * shopkeeper that the product in her hand has been deleted. See
+     * `familyLineKey`.
+     */
+    loading: 'Cargando…',
+    missing: 'Este producto ya no está en el catálogo.',
+  },
+
   /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and

@@ -13,6 +13,9 @@ import {
   VARIANT_COLUMNS,
   catalogFrom,
   emptyLineKey,
+  familyLineKey,
+  familyTitle,
+  familyView,
   initials,
   isoDay,
   matches,
@@ -487,6 +490,133 @@ describe('emptyLineKey — the three things an empty list means', () => {
       for (const loading of [true, false]) {
         expect(ES.catalog[emptyLineKey(loading, typed)]).toBeTypeOf('string');
       }
+    }
+  });
+});
+
+// ============================================================================
+// LA FAMILIA — plan task `5d-iii`, and the three decisions that screen makes
+// that a machine can read. Everything else about it is rendering, which §2.11
+// keeps out of scope and `R9` routes to the owner's phone.
+// ============================================================================
+
+describe('familyView — one family, out of the catalog already in hand', () => {
+  const OTHER_FAMILY = '44444444-4444-4444-8444-444444444444';
+
+  /** Two families in one catalog, which is what every real shop has. */
+  const ENTRIES = catalogFrom(
+    [
+      variant('a', 'Queso Oaxaca 250 g', '250g', [price('0.120000')]),
+      variant('b', 'Queso Oaxaca 500 g', '500g', [price('0.120000')]),
+      { ...variant('c', 'Plátano macho', 'kg', [price('0.020000')]), family_id: OTHER_FAMILY,
+        product_family: { id: OTHER_FAMILY, name: 'Frutas' } },
+      variant('d', 'Queso Oaxaca 1 kg', 'kg', []),
+    ],
+    FACTORS,
+    null,
+  );
+
+  it('collects the family the tapped row belongs to, and nothing else', () => {
+    const view = familyView(ENTRIES, FAMILY, 'b');
+    expect(view.variants.map((entry) => entry.id)).toEqual(['a', 'b', 'd']);
+  });
+
+  // ⚠️ THE ORDER IS THE DATABASE'S — `order=name` on the query — and a sort
+  // here would be a second answer to which variant comes first, decided by
+  // whatever collation Hermes has rather than by the one Postgres applied.
+  it('keeps the order the rows arrived in', () => {
+    const backwards = [...ENTRIES].reverse();
+    expect(familyView(backwards, FAMILY, 'b').variants.map((entry) => entry.id)).toEqual([
+      'd',
+      'b',
+      'a',
+    ]);
+  });
+
+  it('marks the variant that was tapped', () => {
+    expect(familyView(ENTRIES, FAMILY, 'b').selectedId).toBe('b');
+  });
+
+  // ⚠️⚠️ THE ONE THAT MUST NOT BECOME A FALLBACK. Área 13's ruling 4 is that
+  // the preselected variant carries NO LEGEND, so the mark is the only thing
+  // saying *this is the one you came from* — and marking the first row when the
+  // id does not belong here would put that claim on a product she never
+  // touched, with nothing on the screen to correct it.
+  it('marks nothing when the id is not in this family', () => {
+    expect(familyView(ENTRIES, FAMILY, 'c').selectedId).toBeNull();
+    expect(familyView(ENTRIES, FAMILY, 'nope').selectedId).toBeNull();
+  });
+
+  it('marks nothing when the route lost the parameter', () => {
+    expect(familyView(ENTRIES, FAMILY, undefined).selectedId).toBeNull();
+    expect(familyView(ENTRIES, FAMILY, '').selectedId).toBeNull();
+  });
+
+  // ⚠️ AN EMPTY FAMILY ID IS AN EMPTY FAMILY, NEVER THE WHOLE CATALOG. A
+  // missing route parameter must not match every variant whose family failed
+  // to embed — that is a screen showing a shop's entire catalog under one
+  // heading.
+  it('shows nothing at all without a family', () => {
+    expect(familyView(ENTRIES, '', 'a').variants).toHaveLength(0);
+    expect(familyView(ENTRIES, null, 'a').variants).toHaveLength(0);
+    expect(familyView(ENTRIES, undefined, 'a').variants).toHaveLength(0);
+  });
+
+  it('is empty while the catalog read is still out', () => {
+    expect(familyView([], FAMILY, 'a').variants).toHaveLength(0);
+    expect(familyView([], FAMILY, 'a').selectedId).toBeNull();
+  });
+
+  // ⚠️ `catalogFrom` ALREADY DROPS A DISCONTINUED VARIANT, and this screen
+  // inherits that rather than deciding it again: the policy does not filter, so
+  // the rule lives in one place.
+  it('never lists a variant the shop stopped selling', () => {
+    const withRetired = catalogFrom(
+      [
+        variant('a', 'Queso Oaxaca 250 g', '250g', [price('0.120000')]),
+        variant('e', 'Queso Oaxaca 2 kg', 'kg', [price('0.120000')], false),
+      ],
+      FACTORS,
+      null,
+    );
+    expect(familyView(withRetired, FAMILY, 'a').variants.map((entry) => entry.id)).toEqual(['a']);
+  });
+
+  it('names the banda after the family itself', () => {
+    expect(familyView(ENTRIES, FAMILY, 'a').title).toBe('Pollo');
+    expect(familyView(ENTRIES, OTHER_FAMILY, 'c').title).toBe('Frutas');
+  });
+
+  // ⚠️ THE EMBED CAN COME BACK EMPTY — `product_family` is an embedded resource,
+  // and `catalogFrom` turns a missing one into `''`. On Productos that is one
+  // absent line under a name; here it would be a screen with no heading at all.
+  it('falls back to a word when no variant carries the family name', () => {
+    const orphans = catalogFrom(
+      [{ ...variant('f', 'Huérfano', 'kg', [price('0.020000')]), product_family: null }],
+      FACTORS,
+      null,
+    );
+    expect(familyView(orphans, FAMILY, 'f').title).toBe(ES.family.title);
+    expect(familyTitle('')).toBe(ES.family.title);
+    expect(familyTitle('   ')).toBe(ES.family.title);
+    expect(familyTitle('Quesos')).toBe('Quesos');
+  });
+});
+
+describe('familyLineKey — the two things an empty family screen means', () => {
+  // ⚠️⚠️ THEY MUST NOT COLLAPSE, AND IT IS SHARPER HERE THAN ON PRODUCTOS. This
+  // screen is reached by TAPPING a row, so a cold open with the link out would
+  // otherwise tell a shopkeeper that the product in her hand has been deleted.
+  it('tells a read that has not landed from a product that is gone', () => {
+    expect(familyLineKey(true)).toBe('loading');
+    expect(familyLineKey(false)).toBe('missing');
+  });
+
+  // ⚠️ A KEY AND NEVER A SENTENCE — `emptyLineKey`'s shape, and what keeps every
+  // Spanish word in one file (`R4`).
+  it('returns a key ES.family actually has', () => {
+    for (const loading of [true, false]) {
+      expect(ES.family[familyLineKey(loading)]).toBeTypeOf('string');
     }
   });
 });

@@ -507,3 +507,86 @@ export function search(
 ): readonly CatalogEntry[] {
   return entries.filter((entry) => matches(entry, typed));
 }
+
+// ----------------------------------------------------------------------------
+// LA FAMILIA — plan task `5d-iii`, and the three decisions that screen has that
+// a machine can still read. Everything else about it is rendering, which §2.11
+// keeps out of scope and `R9` routes to the owner's phone.
+//
+// ⚠️ THE FAMILY IS ASSEMBLED FROM THE CATALOG THE PHONE ALREADY HOLDS, AND
+// THERE IS NO SECOND READ. `useCatalog` fetches every variant in one round trip
+// and TanStack Query keeps it; filtering that list to one `family_id` is the
+// whole of "open the family". A `?family_id=eq.…` read here would be a screen
+// that works at the counter and spins in the stockroom, on a link this shop
+// loses half the day — and it would be a second answer to *which price is
+// today's* besides.
+// ----------------------------------------------------------------------------
+
+/** What `app/src/app/familia/[id].tsx` draws, with no rendering in it. */
+export interface FamilyView {
+  /** The word in the banda. `familyTitle`'s answer, never a raw column. */
+  readonly title: string;
+  /** The family's variants, in the order the database returned them. */
+  readonly variants: readonly CatalogEntry[];
+  /** The variant that was tapped, or `null`. ⚠️ NEVER A FALLBACK — see below. */
+  readonly selectedId: string | null;
+}
+
+/**
+ * The family's name as a person reads it, or the word for a family with none.
+ *
+ * ⚠️ THE FALLBACK IS A KEY OF `ES` AND NOT A BLANK BANDA. `FAMILY_COLUMNS` is
+ * an EMBEDDED resource, so a family whose row is not readable comes back as
+ * `null` and `catalogFrom` turns that into `''` — which on Productos is one
+ * missing line under a name and here would be a screen with no heading at all.
+ */
+export function familyTitle(name: string): string {
+  return name.trim() === '' ? ES.family.title : name;
+}
+
+/**
+ * One family, out of the catalog already in hand.
+ *
+ * ⚠️⚠️ THE PRESELECTION IS THE TAPPED VARIANT OR NOTHING, AND THE ALTERNATIVE
+ * IS A LIE THE SHOPKEEPER CANNOT SEE. The owner's ruling (área 13, ruling 4) is
+ * that the tapped variant opens preselected and carries **no legend saying so**
+ * — so the mark is the only thing that says *this is the one you came from*,
+ * and a fallback to the first row would put that mark on a product she never
+ * touched, with nothing on the screen to correct it. If the id does not belong
+ * to this family, nothing is marked.
+ *
+ * ⚠️ THE ORDER IS THE DATABASE'S, the same refusal `catalogFrom` makes: a sort
+ * here would be a second answer to *which variant comes first*, decided by
+ * whatever collation Hermes has rather than the one Postgres applied.
+ *
+ * ⚠️ AN EMPTY `familyId` IS AN EMPTY FAMILY, NOT THE WHOLE CATALOG. A missing
+ * route parameter must not match every variant whose family failed to embed.
+ */
+export function familyView(
+  entries: readonly CatalogEntry[],
+  familyId: string | null | undefined,
+  variantId: string | null | undefined,
+): FamilyView {
+  const wanted = familyId ?? '';
+  const variants = wanted === '' ? [] : entries.filter((entry) => entry.familyId === wanted);
+  const named = variants.find((entry) => entry.familyName !== '');
+  const selected = variants.find((entry) => entry.id === variantId);
+  return {
+    title: familyTitle(named?.familyName ?? ''),
+    variants,
+    selectedId: selected?.id ?? null,
+  };
+}
+
+/**
+ * What an EMPTY family screen says — as a KEY of `ES.family`, never a sentence.
+ *
+ * ⚠️⚠️ *THE READ HAS NOT LANDED* AND *THIS PRODUCT IS GONE* MUST NOT COLLAPSE,
+ * which is `emptyLineKey`'s argument one screen along and is sharper here: this
+ * screen is reached by tapping a row, so on a cold open — the app killed, the
+ * link out, the catalog not yet back — an unguarded version would tell a
+ * shopkeeper that the product she is holding has been deleted.
+ */
+export function familyLineKey(loading: boolean): 'loading' | 'missing' {
+  return loading ? 'loading' : 'missing';
+}
