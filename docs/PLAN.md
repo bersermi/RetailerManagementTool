@@ -322,11 +322,17 @@ new, all of them over `familyView` / `familyTitle` / `familyLineKey`),
 regenerated** — which is itself the evidence that the router discovers the new
 file, since the generator walked `src/app` and emitted `/familia/[id]` — and
 `bash docs/checks/conventions-gate.sh` is **16 groups over 56 source and 29 test
-files** (55 before). ⚠️ **`docs/checks/5d-i-catalog-contract.sh` was NOT re-run
-and it had nothing to do**: this task added no column, no filter and no string
-that goes over the wire, and `db.yml` does not fire on an `app/**` edit — saying
-it passed would be a green tick on a run with nothing to assert, which is the
-shape this repository has recorded four times. ⚠️⚠️ **And not one of those looked
+files** (55 before). ⚠️⚠️ **`docs/checks/5d-i-catalog-contract.sh` WAS NOT RE-RUN BY
+HAND AND CI RAN IT ANYWAY — WHICH THE SESSION GOT WRONG FIRST AND THE JOB LOG
+CORRECTED.** A hand-run would have asserted nothing new: this task adds no
+column, no filter and no string that goes over the wire. **But `db.yml`'s
+`paths:` has watched `app/src/api/**` since `5b-i`** — because a module under it
+is a CLAIM ABOUT THE APPLIED SCHEMA — and this task appended three functions to
+`app/src/api/catalog.ts`, so the whole database workflow fired: **12 of 12
+against a real reset database, with its thirteen fixtures still red.** ⚠️ **The
+first draft of this paragraph said that workflow does not fire on an app edit.
+It does, and its own filter comment says why** — which is the difference between
+reading the job log and reading the tick. ⚠️⚠️ **And not one of those looked
 at a pixel.**
 
 **DECISIONS TAKEN ON THE OWNER'S BEHALF:** the six in the table above, plus the
