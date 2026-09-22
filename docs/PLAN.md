@@ -248,6 +248,45 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅✅ **`5d-iii` WAS LOOKED AT ON 2026-09-22 AND ALL THREE QUESTIONS CAME BACK
+YES — THE ONLY INSTRUMENT THIS SCREEN HAS EVER HAD, AND IT HAS NOW BEEN USED.**
+The owner, on his own iPhone, against his own shop's catalog:
+
+| The question, as the row asked it | His answer |
+|---|---|
+| Does the green rule read as *this is the one you tapped*, or as an alarm? | ***"The green line indeed reads as the item selected."*** |
+| Do three inert buttons read as deliberate, or as broken? | ***"The three grey buttons read as not-built."*** |
+| Does a six-variant family still fit at *Letra grande*? | ***"A six variant family still fits in Letra grande."*** |
+
+⚠️⚠️ **THIS IS THE FIRST TIME IN THIS PROJECT THAT AN `R9` DELIVERABLE HAS BEEN
+CLOSED BY THE INSTRUMENT IT WAS ROUTED TO, RATHER THAN BY THE TASK SHIPPING.**
+`R9` says a deliverable no check can see is written down and routed to whoever
+can see it; until today every such row was routed and then left. **The
+difference is that the app was in his hand the same day**, which is the working
+agreement's own argument for deferring a look until there is something to look
+at — applied in the other direction.
+
+⚠️ **WHAT THE ANSWERS RETIRE, PRECISELY.** The three decisions behind them are
+now the owner's rather than a session's: **the mark is colour AND a border with
+no word** (área 13's ruling 4 and direction C's surviving rule, which framed the
+problem but could not answer it), **an inert control drawn dead beats one left
+out**, and **the family list plus three buttons survives C3.18's larger mode**.
+⚠️ **What they do NOT settle is the grey dash on a missing price** — that one is
+already routed to `5e` by `5d-ii`'s own row, and `Chayote` now sits unpriced in
+his catalog so the question has something to look at when that task lands.
+
+⚠️ **AND THE CATALOG HE LOOKED AT IS REAL DATA IN THE HOSTED PROJECT, WRITTEN AS
+HIM.** Nineteen variants over three families — Pollo, Frutas, Verduras — for
+*Polleria y Recauderia Bernabe*, inserted with `set local role authenticated`
+and his own `sub` claim rather than as the superuser, **so the shipped policies
+had to allow the write for it to succeed.** `product_family_insert`,
+`product_variant_insert` and `price_list_insert` have now been exercised against
+the deployed database by a real owner, which no CI run can claim: CI proves them
+on a database it builds itself. ⚠️ **`price_per_base` is per GRAM** — $180 a
+kilo is `0.180000` — and the shape was copied from
+`docs/checks/5d-i-catalog-contract.sh` rather than invented, because a
+thousand-fold error there would have rendered as an entirely plausible price.
+
 ✅✅✅ **THE SCHEMA IS DEPLOYED AS OF 2026-09-22 — THE HOSTED PROJECT IS REAL,
 AND THE ANSWER TO THE SECOND READING WAS *NO*.** The owner logged in, checked
 the list himself and pushed: ***"done, it's the right project."*** So it was
@@ -1331,60 +1370,6 @@ commit. **That is what this paragraph is for.**
 | `docs/HANDBOOK.md` | the parent described as split, two child rows in plain words |
 | `app/package.json` | ⚠️ **the only line that reaches a phone**: `expo-network` in, netinfo out |
 
-
-✅✅ **THE `5a-iv-d` DAY-8 READING WAS TAKEN ON 2026-09-21, ON BOTH INSTRUMENTS,
-AND C1.4 HOLDS: THE SESSION SURVIVES EIGHT DAYS.** ⚠️ **A DATE, NOT A TASK** — no
-code changed, nothing was built, and `5c-ii-b` remains the next task. What this
-entry records is a measurement and three findings that came with it.
-
-**The answer, and why it is a diff rather than an impression.** Both stores were
-pulled **before** either app was launched and again after, so the verdict rests on
-what changed rather than on what a screen looked like:
-
-| | iPhone 15 | sealed AVD |
-|---|---|---|
-| account | `09bfc47e…` | `eb963741…` — **a different Google account**, so the two instruments are genuinely independent |
-| access token before | dead **8 d 7 h** | dead **7 d 14 h** |
-| after launch | new, valid 1 h | new, valid 1 h |
-| refresh token | **rotated** | **rotated** |
-| `last_sign_in_at` | **unchanged** `2026-09-13T06:47:53Z` | **unchanged** `2026-09-14T00:20:05Z` |
-
-⚠️⚠️ **`last_sign_in_at` NOT MOVING IS THE WHOLE FINDING.** A new access token could
-mean a fresh sign-in; an unchanged sign-in timestamp cannot. The session was
-**restored** from the stored refresh token with no human action but opening the app —
-which is exactly C1.4's *"persists until an explicit log-out"*. ✅ **The Android half
-also has a screenshot** — Inicio, tab bar, `Cerrar sesión` — because it is the one
-platform whose screen could be read directly.
-
-⚠️ **THE REFRESH TOKEN WAS DELIBERATELY NOT SPENT OUT-OF-BAND.** Calling the token
-endpoint directly would have answered the question in one request and **revoked the
-session family**: reuse detection is on at a 10s interval (`5c.5`), so the device's
-stored token would have been a replay. That is the measurement destroying itself and
-signing the owner out of his own phone. The app had to do it.
-
-⚠️ **AND THE EMULATOR'S CLOCK WAS CHECKED BEFORE THE VERDICT, NOT AFTER.** A sealed
-VM resuming with a stale clock answers this question wrongly and confidently — the
-generalisation of [[emulators-never-sleep-or-lock]], which is about asserting the
-instrument can actually look. It agreed with the host to the second, `auto_time=1`.
-
-**THREE FINDINGS, and the first two are obligations rather than trivia:**
-
-| | Finding | What it changes |
-|---|---|---|
-| **1** | ⚠️⚠️ **THE FIRST LAUNCH WAS REFUSED: *"its profile has not been explicitly trusted by the user"*.** The 2026-09-20 re-deploy minted a new signing certificate, and iOS will not start the app until a person taps Settings → General → VPN & Device Management → trust | **The 2026-09-27 re-deploy row did not say this and now does.** ⚠️ A re-deploy that is never trusted is an instrument that cannot be read on 2026-10-13, and **nothing would have said so until the day**. ✅ The refused launch was harmless and that was verified rather than assumed: no process started, the store kept its day-0 timestamp |
-| **2** | ⚠️⚠️ **THE DAY-30 READING NO LONGER MEASURES THIRTY DAYS.** Opening both apps today refreshed both sessions — that is what the reading IS — so 2026-10-13 measures **22 days from today**, not 30 from day 0 | Recorded on the row itself. **It is still worth taking** (22 untouched days is a longer gap than 8, and C1.4's claim is unbounded), but *"day 30"* is now a name rather than an interval, and a session reporting it as thirty days since sign-in would state something false |
-| **3** | ⚠️⚠️ **THIS MAC HAS AN iOS SIMULATOR AFTER ALL — Xcode 26.6, iOS 26.5, eleven devices.** The **tenth stale copy** recorded here, and the first caused by the MACHINE changing under a sentence that was true when written rather than by a copy drifting | ⚠️ **`xcrun simctl` still fails, which is why it was nearly missed twice**: `xcode-select -p` still points at `/Library/Developer/CommandLineTools`, so every `xcrun` call misses Xcode. Full paths under `/Applications/Xcode.app/Contents/Developer/usr/bin/` work. **It changes HOW `5c-ii-b`'s iOS half is measured, not whether `5c-ii-b` is gated** |
-
-⚠️ **THE 2026-09-20 SENTENCES ARE STRUCK, NOT DELETED.** *"There is no iOS Simulator
-on this Mac"* was true when written and the `5c-ii` split rests on it; a record that
-quietly rewrites its own premise cannot be audited, which is the same reason
-`docs/plan/archive/` exists.
-
-✅ **`5c-ii-b` IS UNGATED AND STILL THE NEXT TASK.** Its gate was this reading. ⚠️ **The
-simulator does not simply replace the phone and its row now says so**: a simulator
-shares the host's network and has no cellular radio, so it can answer *"what do these
-two libraries report when the link drops"* and cannot answer *"wifi versus cellular"*.
-**Whether that distinction is needed is `5c-ii-b`'s first question.**
 
 ## Steps 0 through 4.5 — closed, and moved out of this file ✅
 
