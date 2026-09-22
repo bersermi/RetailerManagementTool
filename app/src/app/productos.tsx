@@ -5,7 +5,7 @@ import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog } from '@/api/hooks';
-import { emptyLineKey, type CatalogEntry } from '@/api/catalog';
+import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -74,7 +74,7 @@ export default function Productos() {
   // the string and returns the rows that match, so this component holds a
   // keystroke and never an opinion about what it means.
   const [typed, setTyped] = useState('');
-  const { loading, entries } = useCatalog(typed);
+  const { loading, entries, failed } = useCatalog(typed);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -93,7 +93,7 @@ export default function Productos() {
         // ⚠️ A SEPARATOR RATHER THAN A BORDER ON EVERY ROW: one line between two
         // rows, never a line under the last one.
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio loading={loading} typed={typed} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
         contentContainerStyle={{
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
@@ -372,6 +372,13 @@ function Separador() {
 /**
  * The three things an empty list can mean, and they are three different facts.
  *
+ * ⚠️⚠️ AND AS OF 2026-09-22 THERE ARE FOUR OF THEM, BECAUSE THE OWNER FOUND THE
+ * MISSING ONE ON HIS PHONE: a read that FAILED was indistinguishable from one
+ * still in flight — `loading` is `data === undefined` and so is an error — so
+ * this screen sat on *Cargando productos…* for ever against a project whose
+ * schema had never been deployed. **A failed read now says so**, and it says it
+ * even while TanStack retries.
+ *
  * ⚠️⚠️ *"THIS SHOP HAS NO PRODUCTS"* AND *"NOTHING MATCHES WHAT YOU TYPED"*
  * MUST NOT SHARE A SENTENCE. A shopkeeper with a hundred products who mistypes
  * a name would otherwise be told her catalog is empty — and she is the person
@@ -380,13 +387,17 @@ function Separador() {
  * a list that says "no products" for the second before the rows land is a
  * screen that lies on every cold open, on a connection this shop loses.
  */
-function Vacio({ loading, typed }: { loading: boolean; typed: string }) {
+function Vacio({ line }: { line: string }) {
   const { scale } = useDensity();
-  // ⚠️ THE CHOICE IS `emptyLineKey`'s AND THE SENTENCE IS `ES`'s. This component
-  // holds neither — `R3` and `R4`, and it is what lets
-  // `app/test/api-catalog.test.ts` read a decision that would otherwise live in
-  // a ternary no instrument here can see.
-  const line = ES.catalog[emptyLineKey(loading, typed)];
+  // ⚠️ THE CHOICE IS `catalogLine`'s AND THE SENTENCE IS `ES`'s. This component
+  // is handed the finished line and holds neither — `R3` and `R4`, and it is
+  // what lets `app/test/api-catalog.test.ts` read a decision that would
+  // otherwise live in a ternary no instrument here can see.
+  //
+  // ⚠️ IT TAKES A SENTENCE RATHER THAN THE FAILURE KEY, AND `R12` IS WHY: a
+  // route may not import `@/api/errors`, the module that decides what a failure
+  // MEANS. The gate caught exactly that import here on 2026-09-22 and it was
+  // right to — the fix is that no route names that type at all.
   return (
     <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>

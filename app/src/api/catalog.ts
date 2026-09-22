@@ -51,6 +51,7 @@ import {
   parseDecimal,
 } from '@tienda/money';
 
+import type { ApiMessageKey } from '@/api/errors';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 
@@ -589,4 +590,60 @@ export function familyView(
  */
 export function familyLineKey(loading: boolean): 'loading' | 'missing' {
   return loading ? 'loading' : 'missing';
+}
+
+// ----------------------------------------------------------------------------
+// WHAT AN EMPTY CATALOG SCREEN SAYS WHEN THE READ FAILED — added after the owner
+// found it on his own phone on 2026-09-22: Productos sat on *Cargando
+// productos…* for ever.
+//
+// ⚠️⚠️ THE BUG WAS NOT THE READ, IT WAS THE SENTENCE. `useCatalog` reported
+// `loading` as `data === undefined`, and **that is also exactly what a FAILED
+// query looks like** — TanStack leaves `data` undefined on an error, so the two
+// states were one state and the failing one wore the other's words. A spinner
+// that never ends is the worst of the three things this screen can say: it is
+// wrong, it blames nothing, and it invites a person to keep waiting.
+//
+// ⚠️ IT IS A FUNCTION AND NOT A TERNARY IN THE SCREEN, for `emptyLineKey`'s
+// reason (`R3`) — and it returns the SENTENCE rather than a key because it has
+// to choose between TWO namespaces, `ES.api.errors` and `ES.catalog`. A key
+// alone cannot say which one it belongs to, and a screen holding that answer is
+// the decision leaving the module again. `priceLabel` above already returns a
+// rendered string from this file, so the shape is the module's own.
+// ----------------------------------------------------------------------------
+
+/**
+ * The one line an empty Productos shows.
+ *
+ * ⚠️⚠️ FAILURE OUTRANKS LOADING, AND THAT ORDER IS THE WHOLE FIX. TanStack
+ * retries twice, so a query that has failed can still be fetching — and a
+ * screen that preferred *loading* would go back to the endless spinner every
+ * time it retried. **A read that has failed says so, even while it tries
+ * again.**
+ *
+ * ⚠️ AND IT NEVER SAYS *Todavía no hay productos* ON A FAILURE, which is the
+ * sentence a shopkeeper would act on: she would go and add products she already
+ * has, because the app told her the shop was empty when the truth is that the
+ * app could not ask.
+ */
+export function catalogLine(
+  loading: boolean,
+  typed: string,
+  failed: ApiMessageKey | null,
+): string {
+  if (failed !== null) return ES.api.errors[failed];
+  return ES.catalog[emptyLineKey(loading, typed)];
+}
+
+/**
+ * The one line an empty La Familia shows. `catalogLine`'s argument, and the
+ * third state this screen already had: *the product is gone*.
+ *
+ * ⚠️ IT IS THE SHARPER CASE. This screen is reached by TAPPING a product, so a
+ * failed read that fell through to *ya no está en el catálogo* would tell a
+ * shopkeeper the thing in her hand had been deleted.
+ */
+export function familyLine(loading: boolean, failed: ApiMessageKey | null): string {
+  if (failed !== null) return ES.api.errors[failed];
+  return ES.family[familyLineKey(loading)];
 }
