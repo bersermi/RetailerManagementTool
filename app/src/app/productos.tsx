@@ -23,12 +23,16 @@ import { PALETTE } from '@/theme/palette';
 // reached by tapping a row, and it is the one surface in this app where that
 // structure is visible at all (C3.1 already flattened the transaction screens).
 //
-// ⚠️⚠️ THE ROWS ARE NOT TAPPABLE YET AND THEY DO NOT PRETEND TO BE. `5d-iii`
-// is what opens a family, and until it exists a row that looked pressable and
-// did nothing is worse than one that is plainly not built — the rule that row
-// states about its own three buttons, applied one task early. There is no
-// chevron, no ripple and no `Pressable` here; the day `5d-iii` lands, the row
-// becomes one.
+// ⚠️⚠️ THE ROWS OPEN THE FAMILY AS OF `5d-iii`, AND THAT IS WHAT THE PREVIOUS
+// TASK SAID WOULD HAPPEN. `5d-ii` shipped this list with no `Pressable`, no
+// chevron and no ripple on purpose — a row that looked pressable and did
+// nothing is worse than one that is plainly not built — and said in this header
+// that the day `5d-iii` landed the row would become one. It has, and it did.
+// ⚠️ THE AFFORDANCE IS THE INITIALS TILE'S GROUND AND NOT A CHEVRON: `Iniciales`
+// moves from `fondo` to `accionSuave`, whose one job is *the resting fill of an
+// action, so it reads as tappable at rest* — which is direction B carrying
+// affordance with HUE, the thing it was chosen over direction A for. A chevron
+// would be an icon with no word beside it, which C12.1 refuses outright.
 //
 // ⚠️ IT DECIDES NOTHING ABOUT THE CATALOG. Which price is today's, what a peso
 // figure comes to, what a row's two letters are and what a typed search matches
@@ -226,18 +230,37 @@ function Buscador({ value, onChange }: { value: string; onChange: (text: string)
   );
 }
 
-/** One product. Two letters, a name over its family, and a price with its unit. */
+/**
+ * One product. Two letters, a name over its family, and a price with its unit —
+ * and, as of `5d-iii`, the way into the family behind it.
+ *
+ * ⚠️⚠️ THE FAMILY IS THE PATH AND THE TAPPED VARIANT IS A QUERY PARAMETER,
+ * because that is what each one is: `/familia/<family_id>?variante=<id>` opens
+ * the family and marks the row she came from. A link that lost the parameter
+ * still opens the right family with nothing marked, which is the failure worth
+ * having.
+ *
+ * ⚠️ `router.push` AND NOT `replace`, like the door on Inicio: you come back
+ * from a screen you went into, and *Volver* is the control that does it.
+ */
 function Fila({ entry }: { entry: CatalogEntry }) {
   const { scale } = useDensity();
   return (
-    <View
+    <Pressable
       // ⚠️ THE WHOLE ROW IS ONE THING TO A SCREEN READER, in the order a person
       // reads it: the product, then the family it belongs to, then what it
       // costs. Three separate labels would be three swipes per product.
       accessible
+      accessibilityRole="button"
       accessibilityLabel={[entry.name, entry.familyName, entry.price]
         .filter((part) => part !== '')
         .join('. ')}
+      onPress={() =>
+        router.push({
+          pathname: '/familia/[id]',
+          params: { id: entry.familyId, variante: entry.id },
+        })
+      }
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -284,7 +307,7 @@ function Fila({ entry }: { entry: CatalogEntry }) {
       >
         {entry.price}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
@@ -298,10 +321,12 @@ function Fila({ entry }: { entry: CatalogEntry }) {
  * product with initials is a finished product; assigning the picture is our
  * maintenance chore (C8.15), and the shop is never told we owe it one.
  *
- * ⚠️ THE GROUND IS `fondo` AND NOT `accionSuave`. `accionSuave`'s one job is
- * *"the resting fill behind an action, so it reads as tappable at rest"* — and
- * these rows are not tappable until `5d-iii`. The screen's own ground showing
- * through a `superficie` row is a recess rather than a button.
+ * ⚠️⚠️ THE GROUND IS `accionSuave` AS OF `5d-iii`, AND THE CHANGE IS THE WHOLE
+ * AFFORDANCE. `5d-ii` drew it on `fondo` and wrote down why: `accionSuave`'s one
+ * job is *"the resting fill behind an action, so it reads as tappable at rest"*,
+ * and the rows were not tappable yet. They are now — the tile is what says so,
+ * and it says it in HUE, which is what direction B was chosen over direction A
+ * for. ⚠️ The alternative was a chevron, and C12.1 refuses an icon with no word.
  */
 function Iniciales({ text }: { text: string }) {
   const { scale } = useDensity();
@@ -319,7 +344,7 @@ function Iniciales({ text }: { text: string }) {
         borderRadius: scale.space / 2,
         borderWidth: 1,
         borderColor: PALETTE.linea,
-        backgroundColor: PALETTE.fondo,
+        backgroundColor: PALETTE.accionSuave,
         alignItems: 'center',
         justifyContent: 'center',
       }}
