@@ -77,6 +77,17 @@ import {
   type AccessRequestRow,
 } from '@/api/requests';
 import {
+  CATALOG_ORDER_COLUMN,
+  CATALOG_SELECT,
+  PRICE_STARTS_COLUMN,
+  PRICE_TABLE,
+  UNIT_COLUMNS,
+  isoDay,
+  priceEndsAfter,
+  type UnitRow,
+  type VariantRow,
+} from '@/api/catalog';
+import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
   onboardArgs,
@@ -386,6 +397,58 @@ export async function reportFailedWrite(
   const { data, error } = await supabase.rpc(RECORD_FAILED_WRITE, args);
   if (error) throw reported(error);
   return data;
+}
+
+/**
+ * The shop's catalog, in ONE round trip: every variant, its family, and
+ * whatever price is in force TODAY. Plan task 5d-i, and the first read in this
+ * app that is about what a shop sells rather than who works in it.
+ *
+ * ⚠️⚠️ THE DATE IS THE DEVICE'S AND IT IS COMPUTED HERE RATHER THAN SENT BY
+ * THE SERVER, because there is no server call in this app that knows what day
+ * it is where the shop stands. `isoDay` takes the LOCAL day for the reason its
+ * own comment gives; a UTC day would move a price change half an afternoon
+ * early in Mexico.
+ *
+ * ⚠️ THE WINDOW IS TWO FILTERS ON AN EMBEDDED RESOURCE, not one on a range
+ * column — `valid_period=cs.<date>` is a 400, measured. `effective_from` is
+ * narrowed with `lte` and the open end with an `or`, both scoped to
+ * `price_list` through `referencedTable`, so the variant rows themselves are
+ * untouched: a product with no price still comes back, with an empty array,
+ * which is what C3.12's dash is drawn from.
+ *
+ * ⚠️ THE ORDER IS THE DATABASE'S (`order=name`), and nothing re-sorts it on the
+ * phone — see `catalogFrom`.
+ */
+export async function catalogVariants(): Promise<VariantRow[]> {
+  const today = isoDay(new Date());
+  const { data, error } = await supabase
+    .from('product_variant')
+    .select(CATALOG_SELECT)
+    .lte(`${PRICE_TABLE}.${PRICE_STARTS_COLUMN}`, today)
+    .or(priceEndsAfter(today), { referencedTable: PRICE_TABLE })
+    .order(CATALOG_ORDER_COLUMN);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as VariantRow[];
+}
+
+/**
+ * The ten units, and the factors that turn one into another.
+ *
+ * ⚠️ `unit_read_all` IS `using (true)` (`0001`) — the table is global reference
+ * data with no workspace column, because factors are physics. So this read is
+ * the one in this app that is not fenced by tenancy, and that is the policy's
+ * decision rather than an oversight here.
+ *
+ * ⚠️ IT IS A SEPARATE QUERY AND NOT AN EMBED, deliberately. `product_variant`
+ * has four unit columns and PostgREST would need a hint for each; ten rows that
+ * change once a migration are better cached under their own key than fetched
+ * once per variant.
+ */
+export async function catalogUnits(): Promise<UnitRow[]> {
+  const { data, error } = await supabase.from('unit').select(UNIT_COLUMNS);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as UnitRow[];
 }
 
 /**

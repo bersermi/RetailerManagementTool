@@ -208,6 +208,25 @@ on:
       # — loosening an assertion — must re-run it.
       - "docs/checks/5c-iii-dead-letter-contract.sh"
       - "docs/checks/5c-iii-dead-letter-contract-falsify.sh"
+      # ⚠️⚠️ AND THE CATALOG, as of plan task `5d-i` — the first claim in this
+      # app about what a shop SELLS rather than about who works in it, and the
+      # first that is not an RPC at all: four column lists, an EMBED across a
+      # composite foreign key, and a price window expressed as PostgREST filters.
+      # ⚠️ Two of its assertions exist nowhere else. The `::text` casts are the
+      # only thing standing between the money path and a DOUBLE — drop them and
+      # `parseDecimal` refuses every price, with the typecheck, the suite and the
+      # bundler all green. And the price WINDOW has no second home by design:
+      # *"which price is today's"* lives in the query, so a widened window puts
+      # last year's price on a shelf and nothing in TypeScript could disagree.
+      # ⚠️⚠️ IT ALSO HOLDS A DECISION TAKEN ON THE OWNER'S BEHALF: Productos is
+      # shown to every member, because `product_variant_select` and
+      # `price_list_select` admit every member while the INSERT/UPDATE policies
+      # are manager-fenced. A migration that narrowed either would empty that
+      # screen for the person at the counter, and a policy that allows LESS
+      # breaks no test — which is why `supabase/migrations/**` re-running this is
+      # the point rather than a side effect.
+      - "docs/checks/5d-i-catalog-contract.sh"
+      - "docs/checks/5d-i-catalog-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -900,6 +919,29 @@ jobs:
       # a misfiled code is a green build, a green suite and a quietly wrong ledger.
       - name: Contract — can the dead-letter check still fail (its own eleven fixtures)
         run: bash docs/checks/5c-iii-dead-letter-contract-falsify.sh
+
+      # ⚠️⚠️ THE CATALOG, AND THE THREE THINGS ONLY A DATABASE CAN SAY ABOUT IT.
+      # `app/test/api-catalog.test.ts` proves the app agrees with itself over
+      # fifty-eight tests; not one of them has read `0002`. This one drives a real shop —
+      # a family, three variants, an expired price, a future price and a
+      # store-scoped one — through the exact `select=` the app sends.
+      #
+      # It is the only instrument for: the EMBED across `product_variant_family_fk`,
+      # which is a COMPOSITE key and the reason the whole catalog is one request;
+      # the `::text` casts, read as a JSON TYPE off the wire, without which every
+      # price becomes a double and then a dash; the price WINDOW, which lives in
+      # the query and nowhere else; and the fact that a CASHIER reads every
+      # product and every shelf price, which is `5d`'s own decision on the
+      # owner's behalf and dies silently the day a migration narrows a policy.
+      - name: Contract — does app/src/api/catalog.ts still describe the schema (plan 5d-i)
+        run: bash docs/checks/5d-i-catalog-contract.sh
+
+      # And its own thirteen fixtures. ⚠️ EIGHT BREAK THE CONTRACT — a renamed
+      # column, a dropped cast, an inner join, a star select, a widened window —
+      # and TWO NARROW AN APPLIED POLICY, then put it back, because the
+      # every-member read is a decision no client-side edit can falsify.
+      - name: Contract — can the catalog check still fail (its own thirteen fixtures)
+        run: bash docs/checks/5d-i-catalog-contract-falsify.sh
 
       - name: Stop
         if: always()

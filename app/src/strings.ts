@@ -677,6 +677,50 @@ export const ES = {
   },
 
   /**
+   * THE TEN UNITS `0001` SEEDS, AS A SHOPKEEPER READS THEM. Plan task 5d-i.
+   *
+   * ⚠️⚠️ THE CODE AND THE WORD ARE NOT THE SAME STRING, WHICH IS THE WHOLE
+   * REASON THIS MAP EXISTS. `0002` calls a quarter kilo `250g`; C3.10 writes the
+   * price as `$9.00 / 250 gr`, in the owner's own words. Rendering the code
+   * would put database spelling on a shelf label.
+   *
+   * ⚠️ THE LIST IS CLOSED AND IT IS NOT OURS. `0001`'s comment is explicit —
+   * *"users pick from this list; they never define their own factors"* — so
+   * there are exactly ten, and an eleventh is a migration before it is a word.
+   * `priceLabel` still falls back to the code rather than to nothing, because a
+   * unit this map has not learned yet is a price a shopkeeper can still read.
+   *
+   * ⚠️ THE FACTORS ARE NOT HERE. They come from the `unit` table over the wire
+   * (`@/api/catalog`), for the reason `5c-iv-b` recorded: two homes for *how
+   * many grams in a kilo* is one home too many.
+   */
+  units: {
+    kg: 'kg',
+    g: 'gr',
+    '500g': '500 gr',
+    '250g': '250 gr',
+    '100g': '100 gr',
+    l: 'l',
+    ml: 'ml',
+    '500ml': '500 ml',
+    '100ml': '100 ml',
+    pza: 'pza',
+  },
+
+  /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */
+  catalog: {
+    /**
+     * C3.12 — A PRODUCT WITH NO PRICE SHOWS A DASH, NEVER `$0.00`.
+     * `0008`'s own instruction, and it overrides the Power Apps screen, which
+     * showed `Precio: $0.00` on rows nobody had priced. A zero is a price the
+     * owner set and sells at; the dash is a question nobody has answered yet.
+     */
+    noPrice: '—',
+    /** C3.10's separator: `$35.00 / kg`. The price is never shown alone. */
+    per: '/',
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.
