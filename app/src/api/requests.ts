@@ -269,60 +269,51 @@ export function pendingRequest(requests: readonly AccessRequest[]): AccessReques
 // ----------------------------------------------------------------------------
 
 /**
- * ⚠️⚠️ `request_access` REFUSES AN UNKNOWN CODE WITH `42501`, AND `42501` IS
- * ALSO WHAT AN ABSENT SESSION LOOKS LIKE. THIS MODULE READS IT AS THE CODE, ON
- * THIS SCREEN ONLY, AND THAT IS A MEASURED JUDGEMENT RATHER THAN AN OVERSIGHT.
+ * ⚠️⚠️ THE THREE SQLSTATES `request_access` REFUSES WITH, AND NONE OF THEM IS
+ * OVERLOADED ANY MORE.
  *
- * `0029`'s own decision 10 took it deliberately — *"`42501` keeps its one
- * meaning, 'this is not yours', and covers the code that resolves to nothing"* —
- * and that reading is coherent inside the database. It is not coherent at the
- * client, because `@/api/errors` maps `42501` app-wide to `sessionEnded`, for
- * the equally good reason that the `authenticated` grant is what refuses a
- * caller with no session. So the same code arrives here meaning two things:
+ * The values are KEYS of `ES.join.requestErrors`, never sentences —
+ * `@/api/errors`'s discipline, so a message typed at a call site is a typecheck
+ * failure (TS2820).
  *
- *     42501  no session at all — PostgREST refuses before the body runs, and
- *            `0029:190` raises `insufficient_privilege` from inside it too
- *     42501  `0029:212` — that code does not match a shop, or the shop is not
- *            active (decision 4 refuses those identically, on purpose)
+ *     TD006   the code resolves to no shop, or the shop has been switched off
+ *             (`0038`). `0029`'s decision 4 refuses those two identically and on
+ *             purpose: *"that shop has been switched off"* is a fact about a
+ *             workspace, told to somebody who is not a member of it — and her
+ *             next step is the same either way, which is to re-read the eight
+ *             characters.
+ *     22023   `0029`'s *"this account has no email address"* — a phone-only
+ *             Supabase account, which `0029` calls a wall rather than a branch.
+ *             C1.4 admits Google and email and NO phone auth, so v1 cannot reach
+ *             it; it is mapped anyway, because an unmapped refusal falls to
+ *             `unknown` and she would be told nothing at all about the one thing
+ *             she could actually fix.
+ *     TD003   `0021`'s workflow code, reused rather than minted: ask again.
  *
- * ⚠️ THE READING IS "THE CODE", AND THE ARGUMENT IS WHO IS STANDING THERE.
- * `/bienvenida` is behind `guard.ts`, which only routes a person here once a
- * session has loaded and the membership read has come back — so a caller on this
- * screen has a session. The wrong guess costs her one confusing sentence and the
- * next launch corrects it, because the guard sends a signed-out person to
- * `/entrar`. The other way round — telling a person with a mistyped code that
- * her session ended — leaves her signing in again, landing back here, retyping
- * the same wrong code and getting the same sentence forever.
+ * ⚠️⚠️ UNTIL `0038` THE FIRST ROW WAS `42501`, AND THAT IS THE WHOLE POINT OF
+ * THIS EDIT. `@/api/errors` maps `42501` app-wide to `sessionEnded`, because the
+ * `authenticated` grant is what refuses a caller with no session — and
+ * `request_access` ALSO raised it from its own body for a code that resolves to
+ * nothing. (`0029`'s decision 10: *"42501 keeps its one meaning, 'this is not
+ * yours'"*, which is coherent inside the database and is not coherent here.) So
+ * this screen had to GUESS which of the two had happened, and it guessed *"the
+ * code"* on the argument that `/bienvenida` sits behind `guard.ts` and a caller
+ * here therefore has a session. That guess was documented, measured by
+ * `docs/checks/5b-iii-b-request-contract.sh` assertion 9 against a live
+ * database, and routed to `5b.9`.
  *
- * ⚠️⚠️ THIS IS EXACTLY THE ARRANGEMENT `5b-ii-b-2` SHIPPED FOR `redeem_invite`
- * AND `5b-iii-a` RETIRED, ONE RPC LATER. That one was safe for the same two
- * reasons and unsafe for the same one, and `0036` ended it by minting `TD005`.
- * The same fix applies here and it is a MIGRATION, which this task does not
- * ship — so it is routed, named, and MEASURED rather than assumed:
- * `docs/checks/5b-iii-b-request-contract.sh` drives an anonymous caller and a
- * nonsense code against a live database and asserts they still come back
- * indistinguishable. The day a code is minted, that assertion turns over and
- * this constant goes with it — a marker and the assertion that drives it retire
- * in the same pass, which is `5b-iii-a`'s rule.
- *
- * ⚠️ `TD003` NEEDS NO SUCH ARGUMENT. `0021`'s workflow code means one thing
- * here, as it does everywhere: ask again.
- */
-export const UNKNOWN_CODE = '42501';
-
-/**
- * The SQLSTATEs `request_access` refuses with. Values are KEYS of
- * `ES.join.requestErrors`, never sentences — `@/api/errors`'s discipline, so a
- * message typed at a call site is a typecheck failure (TS2820).
- *
- * ⚠️ `22023` IS `0029`'s *"this account has no email address"* — a phone-only
- * Supabase account, which `0029` calls a wall rather than a branch. C1.4 admits
- * Google and email and NO phone auth, so v1 cannot reach it; it is mapped
- * anyway, because an unmapped refusal falls to `unknown` and a person would be
- * told nothing at all about the one thing she could actually fix.
+ * ✅ IT IS GONE. `0038` moved that one refusal onto `TD006` and left `42501` on
+ * the authentication guard alone, so the two events now answer differently and
+ * neither module is guessing. `42501` reaching this screen falls through to
+ * `apiErrorMessage` and gets the session sentence — which is what it always
+ * meant everywhere else. ⚠️ The marker constant that named the guess is DELETED
+ * rather than re-pointed, and assertion 9 is REPLACED BY ITS OPPOSITE in the
+ * same commit: a marker and the assertion that drives it retire together, which
+ * is `5b-iii-a`'s rule and this is its second instance. `@/api/redeem` reads
+ * exactly this way since `0036`, one RPC over and eleven days earlier.
  */
 export const REQUEST_REFUSALS: Readonly<Record<string, keyof typeof ES.join.requestErrors>> = {
-  [UNKNOWN_CODE]: 'noSuchShop',
+  TD006: 'noSuchShop',
   '22023': 'noEmail',
   TD003: 'requestExpired',
 };

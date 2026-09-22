@@ -196,6 +196,17 @@ begin
   drop function if exists public._pq_emails(uuid);
   drop function if exists public._pq_order(uuid);
 
+  -- `0038`'s one new helper, dropped here on the day its suite lands — the rule
+  -- `4f` wrote and `0036` paid for again. `_status` returns the `status` field
+  -- of a `request_access` answer, or `REFUSED <sqlstate>`, as a VALUE: the three
+  -- exits of that function which are NOT refusals have to be asserted without
+  -- the suite aborting when a transcription turns one of them into a raise, and
+  -- a raise inside a bare statement kills the file under ON_ERROR_STOP before it
+  -- can print a single FAIL row. Everything else `0038` uses — `chk`,
+  -- `chk_raises_like`, `_as`, `_src`, `_state`, `_pair`, `_differs` — is at the
+  -- EXACT signature an earlier suite gave it and is already dropped above.
+  drop function if exists public._status(text);
+
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
   --    suite in a way that looks like a schema bug.

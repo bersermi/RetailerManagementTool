@@ -7,7 +7,6 @@ import {
   REQUEST_ACCESS,
   REQUEST_REFUSALS,
   REQUEST_STATES,
-  UNKNOWN_CODE,
   isInsideShop,
   outcomeFrom,
   pendingRequest,
@@ -35,11 +34,14 @@ import { ES } from '@/strings';
 // screen she has no way around. THAT is
 // `docs/checks/5b-iii-b-request-contract.sh`.
 //
-// ⚠️⚠️ AND IT CANNOT SEE THE ONE THING THIS MODULE ACTUALLY GAMBLES ON: that
-// `42501` from `request_access` is the CODE and not the SESSION. Both meanings
-// are real, `@/api/requests` argues which one this screen gets, and only a live
-// database can say whether they are still indistinguishable. The contract check
-// drives both and compares them; assertions here pin only the app's own choice.
+// ⚠️⚠️ AND IT NO LONGER GAMBLES ON `42501`, WHICH IS WHAT `5b.9` CHANGED. This
+// module used to read `42501` from `request_access` as the CODE while
+// `@/api/errors` read the same `42501` app-wide as the SESSION, and only a live
+// database could say whether the two were still indistinguishable. `0038` minted
+// `TD006` for the code that resolves to no shop, so the guess is retired and the
+// assertion below pins the OPPOSITE of what it used to: `42501` here is the
+// session sentence, like everywhere else in this app. The contract check still
+// drives both against a real database and now asserts they come back DIFFERENT.
 // ============================================================================
 
 describe('the contract this app sends', () => {
@@ -241,15 +243,20 @@ describe('what the joiner is told when request_access refuses', () => {
     }
   });
 
-  // ⚠️⚠️ THE OVERLOAD, PINNED AS A CHOICE. `@/api/errors` maps `42501` app-wide
-  // to `sessionEnded`; this module reads it as the CODE, on this screen only,
-  // because `/bienvenida` sits behind `guard.ts`. Asserting the two DIFFER is
-  // what makes it a decision rather than a default — and it is the assertion
-  // that turns over the day a SQLSTATE is minted for it.
-  it('reads 42501 as the code, not as the session that ended', () => {
-    expect(UNKNOWN_CODE).toBe('42501');
-    expect(requestErrorMessage(refusal(UNKNOWN_CODE))).toBe(ES.join.requestErrors.noSuchShop);
-    expect(requestErrorMessage(refusal(UNKNOWN_CODE))).not.toBe(ES.api.errors.sessionEnded);
+  // ⚠️⚠️ THE OVERLOAD, RETIRED — AND THIS IS THE ASSERTION THAT TURNED OVER.
+  // Until `0038` it read *"reads 42501 as the code, not as the session that
+  // ended"*, pinning a documented GUESS about who was standing at the screen.
+  // `0038` (task `5b.9`) minted `TD006` for a code that resolves to no shop and
+  // left `42501` on the authentication guard alone, so this module stops
+  // guessing: `TD006` is hers to re-read, `42501` is the session, and the two
+  // sentences are different. ⚠️ Both halves are asserted, because "TD006 says
+  // no-such-shop" alone would still be green if `42501` had been left mapped
+  // beside it — which is the overload coming back wearing two codes.
+  it('reads TD006 as the code and leaves 42501 to the session sentence', () => {
+    expect(REQUEST_REFUSALS.TD006).toBe('noSuchShop');
+    expect(requestErrorMessage(refusal('TD006'))).toBe(ES.join.requestErrors.noSuchShop);
+    expect(requestErrorMessage(refusal('42501'))).toBe(ES.api.errors.sessionEnded);
+    expect(requestErrorMessage(refusal('42501'))).not.toBe(ES.join.requestErrors.noSuchShop);
   });
 
   // ⚠️ THE PULL PATH'S REFUSALS ARE NOT THE PUSH PATH'S, because the NEXT STEP

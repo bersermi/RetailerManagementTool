@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 5b-iii-b-request-contract-falsify — the ten fixtures the request contract check
-# was tested against, kept as a script rather than as a paragraph claiming it was.
+# 5b-iii-b-request-contract-falsify — the eleven fixtures the request contract
+# check was tested against, kept as a script rather than as a paragraph claiming
+# it was.
 #
 # WHY THIS EXISTS. `docs/PLAN.md` records a falsification table for every check in
 # this directory, and a table is a claim about a session's diligence. This
@@ -16,21 +17,24 @@
 # FOUR app modules — `requests.ts`, `redeem.ts`, `invites.ts` and `workspace.ts` —
 # and all four are copied, which `V0`'s green is what confirms.
 #
-# ⚠️⚠️ EIGHT FIXTURES MUTATE THE APP AND TWO MUTATE THE PROBE, BY NECESSITY AND
-# NOT BY CONVENIENCE. `V8` and `V9` cannot be reached from `app/` at all — no line
-# of TypeScript can make Postgres show a non-member her own invite row, or stop
-# ordering by `created_at` — so those two make the probe look in a world where the
-# claim is false. That is `5b.7`'s `Y6` arrangement and its argument: *"a fixture
-# nobody can write is an assertion nobody has shown can fail."*
+# ⚠️⚠️ SEVEN FIXTURES MUTATE THE APP AND FOUR MUTATE THE PROBE, BY NECESSITY AND
+# NOT BY CONVENIENCE. `V7`, `V8`, `V9` and `V10` cannot be reached from `app/` at
+# all — no line of TypeScript can make Postgres raise one SQLSTATE instead of two,
+# show a non-member her own invite row, or stop ordering by `created_at` — so
+# those four make the probe look in a world where the claim is false. That is
+# `5b.7`'s `Y6` arrangement and its argument: *"a fixture nobody can write is an
+# assertion nobody has shown can fail."*
 #
-# ⚠️⚠️ AND `V7` IS THE ONE TO READ. It restores the arrangement this task
-# deliberately ships — the `42501` overload — in the direction that would make it
-# SAFE, by pretending a distinct SQLSTATE was minted. The check must go red on
-# that, because the app would then be carrying `UNKNOWN_CODE` for an overload that
-# no longer exists: a screen-local guess still being applied after the thing it
-# guessed about was fixed. ⚠️ That is the fixture that makes assertion 9 a
-# TWO-WAY assertion rather than a claim that today's behaviour is fine, and it is
-# what will be red on the day `5b-iii-c` (or whoever) mints the code.
+# ⚠️⚠️ AND `V7` IS THE ONE TO READ, AND IT NOW RUNS THE OTHER WAY ROUND. Until
+# `0038` it pretended a distinct SQLSTATE HAD been minted, so that the check went
+# red while the app still carried its screen-local guess. `0038` minted it for
+# real (task `5b.9`), the guess is gone, and the fixture is inverted with the
+# assertion it falsifies: it now makes the anonymous call answer the SAME code as
+# a mistyped one — the overload COMING BACK — and the check must be red on that.
+# ⚠️ That is what keeps assertion 9 a TWO-WAY assertion rather than a claim that
+# today's behaviour is fine: without it, a migration that re-merged the two codes
+# would leave `@/api/requests` showing "that is not a shop" to somebody whose
+# session had simply lapsed, and nothing in this repository would say so.
 #
 # ⚠️ NO FIXTURE RESETS THE DATABASE, which a sibling harness learned the expensive
 # way: nine resets ran it to six minutes against `db.yml`'s job cap and the step
@@ -171,10 +175,14 @@ guard
 fixture "V4 the app stops reading 0029's joined status" red "could not read the request contract"
 
 # --- V5. the refusal code drifts ------------------------------------------
+# ⚠️ THE ANCHOR MOVED WITH `0038`. Until then the app carried a marker constant,
+# `UNKNOWN_CODE = '42501'`, whose whole job was to name a guess; the guess is
+# retired and the constant with it, so the code now lives where it always should
+# have — as a key of the app's own refusal map, which is what the check reads.
 fresh
-mutate "export const UNKNOWN_CODE = '42501';" "export const UNKNOWN_CODE = 'TD077';"
+mutate "  TD006: 'noSuchShop'," "  TD077: 'noSuchShop',"
 guard
-fixture "V5 the unknown-code SQLSTATE no longer matches 0029" red "the app maps 'TD077'"
+fixture "V5 the no-such-shop SQLSTATE no longer matches 0038" red "the app maps 'TD077'"
 
 # --- V6. the contract cannot be read at all -------------------------------
 # ⚠️ A CHECK THAT CANNOT FIND WHAT IT ASSERTS MUST SAY SO AND EXIT, not skip the
@@ -184,24 +192,25 @@ mutate "export interface RequestAccessArgs {" "export interface AskArgs {"
 guard
 fixture "V6 the argument interface renamed away" red "could not read the request contract"
 
-# --- V7. ⚠️⚠️ THE OVERLOAD IS FIXED AND THE APP STILL GUESSES -------------
-# THE FIXTURE TO READ, and it runs the OTHER WAY from every one above: it does
-# not break the app, it improves the DATABASE — a distinct SQLSTATE minted for
-# the unknown code, which is exactly what `0036` did for `redeem_invite` one RPC
-# over and exactly what this task recommends next. The app would then be reading
-# `42501` as "no such shop" when `42501` had gone back to meaning only "sign in
-# again", and a person whose session expired would be told to re-read a code that
-# was never wrong.
+# --- V7. ⚠️⚠️ THE OVERLOAD COMES BACK --------------------------------------
+# THE FIXTURE TO READ. It does not break the app, it breaks the DATABASE — a
+# later migration re-merging the two refusals onto one code, which is the exact
+# arrangement `0038` (task `5b.9`) existed to end and which `0029`'s own decision
+# 10 shipped in good faith under `4d-i`'s reuse rule. The app would then be
+# showing "that code is not a shop" to somebody whose session had simply lapsed,
+# and NOTHING in `app/` could see it: both are a `code` field on a rejected
+# promise, and the suite's fixtures are hand-written objects.
 #
 # ⚠️ IT IS SIMULATED FROM THE PROBE because no line of `app/` can change what
-# Postgres raises, and `0029` is applied and append-only. The probe is made to
-# see a world where the anonymous call answers differently.
+# Postgres raises, and `0038` is applied and append-only. The probe is made to
+# see a world where the anonymous call answers the same thing a mistyped code
+# does — which is what the world looked like the day before this task.
 fresh
 mutate 'ANON_CODE="$(jfield "$ANON" code)"' \
-       'ANON_CODE="TD0SESSION"' check.sh
+       'ANON_CODE="$NONSENSE_CODE"' check.sh
 guard
-fixture "V7 a SQLSTATE was minted and the app still carries UNKNOWN_CODE" red \
-        "the app still carries UNKNOWN_CODE for an overload that no longer exists"
+fixture "V7 a later migration puts both refusals back on one code" red \
+        "the overload is BACK"
 
 # --- V8. ⚠️ S3 BREAKS: a non-member can read her own invite row -----------
 # ⚠️ IT CANNOT BE WRITTEN FROM `app/` — it is a POLICY change, and the whole
@@ -226,6 +235,22 @@ mutate 'NEWEST="$(row "$ORDERED" 0 workspace_id)"' \
        'NEWEST="$(row "$ORDERED" 1 workspace_id)"' check.sh
 guard
 fixture "V9 0029 stops returning the newest request first" red "newest"
+
+# --- V10. ⚠️ THE SESSION CODE ITSELF DRIFTS --------------------------------
+# ⚠️ THE FIXTURE THE REWRITE OWES, AND THE RULE IS THIS DIRECTORY'S OWN: WHEN AN
+# ASSERTION GAINS A BRANCH, THE HARNESS GAINS A FIXTURE. Assertion 9 grew a third
+# outcome when `0038` inverted it — the two refusals differ from each other but
+# the anonymous one is no longer `42501`, which is what a PostgREST change would
+# look like. That is not a false alarm: `@/api/errors` maps `42501` and
+# `PGRST301` to the session sentence and nothing else, so a third code there
+# reaches a shopkeeper as the catch-all, on the one screen she has no way around.
+# Without this fixture that branch is a line nobody has shown can fire.
+fresh
+mutate 'ANON_CODE="$(jfield "$ANON" code)"' \
+       'ANON_CODE="PGRST999"' check.sh
+guard
+fixture "V10 PostgREST stops refusing an anonymous caller with 42501" red \
+        "not 42501"
 
 # ---------------------------------------------------------------------------
 echo

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 5b-iii-b-request-contract — does `request_access` still answer to the argument
 # name this app sends, is `my_access_requests` still the ONLY way a joiner can
-# see her own row, and are the two meanings of `42501` still indistinguishable?
+# see her own row, and have the two meanings of `42501` COME APART?
 #
 # WHY THIS EXISTS, AND IT IS THE SIBLING CHECKS' ARGUMENT ON THE PULL PATH.
 # `app/test/api-requests.test.ts` can prove the app is consistent with itself.
@@ -22,17 +22,19 @@
 #   live database with a real non-member in it can tell you which is true, and
 #   assertion 5 makes her try.
 #
-#   THE `42501` OVERLOAD — that an unknown code and an absent session still come
-#   back INDISTINGUISHABLE. `@/api/requests` reads `42501` on this screen as "no
-#   such shop", against `@/api/errors` mapping it app-wide to "your session
-#   ended", and that reading is a judgement about who is standing in front of the
-#   phone rather than a contract. Assertion 9 drives both and compares them.
-#   ⚠️ IT IS WRITTEN TO TURN OVER: the day a SQLSTATE is minted for the unknown
-#   code — `5b-iii-a` did exactly this for `redeem_invite`, and `0036` is the
-#   precedent — this assertion goes red on a correct tree and is REPLACED by its
-#   opposite, in the same pass that deletes `UNKNOWN_CODE` from the app. A marker
+#   THE `42501` OVERLOAD, NOW RETIRED — that an unknown code and an absent
+#   session come back DIFFERENT. ⚠️⚠️ THIS ASSERTION USED TO SAY THE OPPOSITE AND
+#   IT TURNED OVER ON 2026-09-22, WHICH IS WHAT IT WAS WRITTEN FOR. Until `0038`,
+#   `@/api/requests` read `42501` on this screen as "no such shop" against
+#   `@/api/errors` mapping it app-wide to "your session ended" — a judgement
+#   about who was standing in front of the phone rather than a contract — and
+#   assertion 9 asserted that overload out loud rather than leaving it a comment.
+#   `0038` (task `5b.9`) minted `TD006` for the code that resolves to no shop and
+#   left `42501` on the authentication guard alone. Assertion 9 is the same
+#   measurement saying they have come apart, and it reads the code off the app's
+#   OWN refusal map, so it needed no second edit to follow the change. A marker
 #   and the assertion that drives it retire together; that is `5b-iii-a`'s rule
-#   and this check is its next instance waiting to happen.
+#   and this is its second instance, eleven days after the first.
 #
 # WHAT IT ASSERTS, all against a REAL round trip over HTTP, with four real
 # people and two shops:
@@ -63,7 +65,7 @@
 #      it expects.
 #   8. Asking again from inside answers `already_member`, which is the other
 #      status the app must not render as a pending ask.
-#   9. ⚠️⚠️ THE OVERLOAD IS REAL, ASSERTED RATHER THAN ASSUMED — see above.
+#   9. ⚠️⚠️ THE OVERLOAD IS GONE, ASSERTED RATHER THAN ASSUMED — see above.
 #  10. The ORDERING `pendingRequest` trusts: `0029` promises `order by created_at
 #      desc` and the app takes the first `pending` row rather than sorting a
 #      string. Two asks, and the newest comes back first.
@@ -104,7 +106,14 @@ fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 # --- 1. the app's own claims, read out of its source -----------------------
 REQUEST_ACCESS="$(sed -n "s/^export const REQUEST_ACCESS = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 MY_REQUESTS="$(sed -n "s/^export const MY_ACCESS_REQUESTS = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
-UNKNOWN_CODE="$(sed -n "s/^export const UNKNOWN_CODE = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+# ⚠️⚠️ THE REFUSAL CODE IS READ OFF THE APP'S OWN MAP AND NOT OUT OF A CONSTANT
+# THIS FILE NAMES. Until `0038` the app carried `UNKNOWN_CODE = '42501'`, a
+# marker whose whole job was to name a guess; `0038` retired the guess and the
+# marker went with it. Reading the map's `noSuchShop` row instead means assertion
+# 9 asserts the app's CLAIM about what `request_access` raises — which is the
+# same arrangement `5b-ii-b-2`'s check adopted after `0036`, and the reason that
+# one needed no second edit when the code moved under it.
+NO_SHOP_CODE="$(sed -n "s/^  '\{0,1\}\([A-Za-z0-9]*\)'\{0,1\}: 'noSuchShop',.*/\1/p" "$CONTRACT" | head -1)"
 CODE_LENGTH="$(sed -n 's/^export const CODE_LENGTH = \([0-9]*\);.*/\1/p' "$REDEEM_CONTRACT" | head -1)"
 CREATE_INVITE="$(sed -n "s/^export const CREATE_INVITE = '\([^']*\)';.*/\1/p" "$INVITE_CONTRACT" | head -1)"
 ONBOARD="$(sed -n "s/^export const ONBOARD_WORKSPACE = '\([^']*\)';.*/\1/p" "$WORKSPACE_CONTRACT" | head -1)"
@@ -134,20 +143,20 @@ INVITE_ARGS="$(sed -n '/^export interface CreateInviteArgs {/,/^}/p' "$INVITE_CO
 has_status() { printf '%s\n' "$STATUSES" | grep -qx "$1"; }
 
 note
-if [[ -z "$REQUEST_ACCESS" || -z "$MY_REQUESTS" || -z "$UNKNOWN_CODE" || -z "$CODE_LENGTH" \
+if [[ -z "$REQUEST_ACCESS" || -z "$MY_REQUESTS" || -z "$NO_SHOP_CODE" || -z "$CODE_LENGTH" \
       || -z "$CREATE_INVITE" || -z "$ONBOARD" || -z "$WORKSPACE_COLUMNS" ]] \
    || (( ASK_ARG_N != 1 )) || (( STATES < 4 )) \
    || ! has_status requested || ! has_status already_requested \
    || ! has_status already_member || ! has_status joined; then
   fail "could not read the request contract out of $CONTRACT"
-  echo "      ask='$REQUEST_ACCESS($ASK_ARG)' read='$MY_REQUESTS' unknown='$UNKNOWN_CODE'"
+  echo "      ask='$REQUEST_ACCESS($ASK_ARG)' read='$MY_REQUESTS' no-shop='$NO_SHOP_CODE'"
   echo "      statuses=[$(printf '%s ' $STATUSES)] states=$STATES code_len=$CODE_LENGTH"
   echo "      This check asserts the app's own strings against the database. If it"
   echo "      cannot find them it has nothing to assert, and a green here would be"
   echo "      the vacuous kind this repository has recorded five shapes of."
   exit 1
 fi
-ok "read from $CONTRACT: $REQUEST_ACCESS($ASK_ARG), $MY_REQUESTS(), unknown-code '$UNKNOWN_CODE'"
+ok "read from $CONTRACT: $REQUEST_ACCESS($ASK_ARG), $MY_REQUESTS(), no-such-shop '$NO_SHOP_CODE'"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -369,13 +378,20 @@ else
   fail "asking from inside the shop answered '$INSIDE_STATUS', not 'already_member'"
 fi
 
-# --- 9. THE OVERLOAD: an unknown code and an absent session are the same ----
-# ⚠️⚠️ THIS IS THE ASSERTION THE APP'S `UNKNOWN_CODE` RESTS ON, AND IT IS
-# WRITTEN TO TURN OVER. It compares the two measurements to EACH OTHER as well
-# as to the app's constant, so an editor who changed both expectations would
-# still be red. The day a SQLSTATE is minted for the unknown code, this goes red
-# on a correct tree and is replaced by its opposite — `0036` is the precedent,
-# one RPC over.
+# --- 9. ⚠️⚠️ THE OVERLOAD IS GONE: they answer DIFFERENTLY -------------------
+# ⚠️⚠️ THIS ASSERTION IS THE PREVIOUS ONE INVERTED, AND THE INVERSION IS THE
+# EVIDENCE THAT `5b.9` LANDED. Until `0038` it read: "the overload is REAL and
+# measured: both answer 42501 (app reads it as the code)". `@/api/requests` was
+# then carrying a documented GUESS — that a caller on `/bienvenida` has a session,
+# so `42501` here means the code — because the database could not tell the two
+# apart. `0038` minted `TD006` for the code that resolves to no shop and left
+# `42501` on the authentication guard alone.
+#
+# It still compares the two measurements TO EACH OTHER as well as to the app's
+# own map, so an editor who changed both expectations would still be red. And the
+# first branch below is the one that matters most: if a later migration ever puts
+# these two back on one code, this says so in the sentence that names what it
+# costs — which is a person told to re-read eight characters that were fine.
 note
 TOKEN="$ASKER_TOKEN"
 NONSENSE="$(stash nonsense "$(api POST "/rest/v1/rpc/$REQUEST_ACCESS" "$(ask_body ZZZZZZZZ)")")"
@@ -384,23 +400,35 @@ NONSENSE_CODE="$(jfield "$NONSENSE" code)"
 TOKEN=""
 ANON="$(stash anon "$(api POST "/rest/v1/rpc/$REQUEST_ACCESS" "$(ask_body "$SHOP_CODE")")")"
 ANON_CODE="$(jfield "$ANON" code)"
+TOKEN="$ASKER_TOKEN"
 
 if [[ -z "$NONSENSE_CODE" ]]; then
   fail "a nonsense code was not refused at all — $(cat "$NONSENSE")"
-elif [[ "$NONSENSE_CODE" != "$UNKNOWN_CODE" ]]; then
-  fail "an unknown code answered '$NONSENSE_CODE', and the app maps '$UNKNOWN_CODE'"
-  echo "      @/api/requests would show her the wrong sentence. If a SQLSTATE was"
-  echo "      just minted for this, that is the GOOD case: update UNKNOWN_CODE and"
-  echo "      REPLACE this assertion with its opposite — the two events must then"
-  echo "      answer DIFFERENTLY, and this check must say so."
-elif [[ "$ANON_CODE" != "$NONSENSE_CODE" ]]; then
-  ok "the overload is GONE: anonymous '$ANON_CODE' vs unknown code '$NONSENSE_CODE'"
-  echo "      ⚠️ Then @/api/requests no longer needs UNKNOWN_CODE, and this"
-  echo "      assertion should be rewritten to REQUIRE the difference. See the"
-  echo "      header: a marker and the assertion that drives it retire together."
-  fail "the app still carries UNKNOWN_CODE for an overload that no longer exists"
+elif [[ -z "$ANON_CODE" ]]; then
+  fail "an anonymous caller was not refused at ALL — request_access is reachable with no session"
+  echo "      0029's own guard raises insufficient_privilege before the body runs,"
+  echo "      and the grant is to \`authenticated\`. If neither refused, the pull"
+  echo "      path is open to anybody who knows a shop's code."
+elif [[ "$NONSENSE_CODE" != "$NO_SHOP_CODE" ]]; then
+  fail "an unknown code answered '$NONSENSE_CODE', and the app maps '$NO_SHOP_CODE' to noSuchShop"
+  echo "      @/api/requests would show her the wrong sentence. The app reads its"
+  echo "      refusal map, not this file — so this is the applied function and the"
+  echo "      client disagreeing about what a mistyped code raises."
+elif [[ "$ANON_CODE" == "$NONSENSE_CODE" ]]; then
+  fail "the overload is BACK: an absent session and an unknown code both answer '$ANON_CODE'"
+  echo "      0038 exists to separate these two. A caller with no session and a"
+  echo "      caller who mistyped eight characters must not answer with one code,"
+  echo "      because @/api/requests maps '$NO_SHOP_CODE' to \"ese código no es de"
+  echo "      ninguna tienda\" and @/api/errors maps the session code to \"tu sesión"
+  echo "      se cerró\". Sharing one code means one of those two people is told the"
+  echo "      wrong thing and no test in app/ can see which."
+elif [[ "$ANON_CODE" != "42501" ]]; then
+  fail "an anonymous caller was refused '$ANON_CODE', not 42501"
+  echo "      @/api/errors maps 42501 (and PGRST301) to the session sentence"
+  echo "      app-wide. If PostgREST has started answering something else, the"
+  echo "      joiner whose session lapsed falls through to the catch-all."
 else
-  ok "the overload is REAL and measured: both answer '$NONSENSE_CODE' (app reads it as the code)"
+  ok "the overload is RETIRED and measured: no session '$ANON_CODE', unknown code '$NONSENSE_CODE'"
 fi
 
 # --- 10. the ordering pendingRequest trusts ---------------------------------
