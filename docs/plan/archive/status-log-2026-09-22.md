@@ -889,3 +889,91 @@ of scope, so *"the banner is on Inicio"* is held by `onHome`'s four assertions a
 nobody's eye — **and it cannot be looked at yet either**: nothing in this app enqueues
 until `5f` exists, so the queue is empty on every phone today. `5f`'s row carries the two
 look-questions that remain — size and words — and no longer carries placement.
+
+---
+
+## The EIGHTH cut, taken 2026-09-23 — `5d-ii`, and it came off the FOOT again
+
+⚠️⚠️ **`## Position` STOOD AT 1,357 LINES OF ITS 1,400 CEILING with `5e-iii`'s
+sizing entry in place, and `5e-iii-a`'s closing entry would have spent the rest.**
+So the oldest entry left in that block — `5d-ii`, Productos — was moved here rather
+than the next session paying for this one. ⚠️ **It is a MOVE and not a copy**, and
+`plan-corpus.sh` reads this file, so every content-addressed lookup resolves it
+exactly as before.
+
+⚠️ **This is the fourth cut taken from the block's FOOT rather than its head**, and
+the file's own heading above already says the archive stopped being strictly
+oldest-first. **Ten entries of 2026-09-22 are now here, in eight cuts.**
+
+✅✅ **`5d-ii` IS DONE AS OF 2026-09-22 — PRODUCTOS EXISTS.
+`5d-iii` IS THE NEXT TASK, AND IT IS WHAT MAKES THESE ROWS TAPPABLE.** One route, a search box, a flat list of every variant, and a
+temporary door on Inicio. **No migration, no primitive, and no `src/ui/`.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING IN THIS REPOSITORY CAN SAY WHETHER
+THIS SCREEN LOOKS RIGHT, AND THAT WAS TRUE BEFORE A LINE OF IT WAS WRITTEN.**
+§2.11 keeps rendering, navigation and layout out of scope; `R9` is the rule and
+this row is its largest instance so far. **The instrument is the owner's phone**,
+and what he is being asked to look at is named on the file's own header: whether
+the list is legible across a counter, whether the search box is reachable with
+one thumb, whether the initials tile reads as a product rather than a badge, and
+whether *Letra grande* leaves room for a price beside a long name.
+
+⚠️⚠️ **AND IT WAS NOT RENDERED HERE, WHICH IS WORTH RECORDING SO NOBODY REPEATS
+THE DETOUR.** The design emulator (`wera-android-36` — never the sealed
+`wera-reading-5a-iv-d`) was booted, the debug APK launched against Metro, and a
+demo shop seeded in the LOCAL stack with eight variants, two families, an
+accented name and one deliberately unpriced row. **Sign-in was refused as
+*invalid credentials* even after `.env.local` was pointed at the local stack,
+Metro restarted with `--clear`, `adb reverse tcp:54321` set and the app's data
+cleared** — and the served bundle demonstrably carried `http://localhost:54321`
+while the running app did not. ⚠️ **The error rules out the innocent reading**:
+`authErrorKey` maps a fetch failure to *sin conexión*, so the app reached an
+auth server and was told no — it was still running a bundle built against the
+hosted project. **Pointing a dev-client build at the local stack needs more than
+restarting Metro.** ✅ `app/.env.local` was restored **byte-identical** (`diff
+-q`) and the emulator shut down.
+
+**THE FIVE DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
+nothing else here can hold them:**
+
+| | The decision | What the alternative costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE ROWS ARE NOT PRESSABLE, AND THEY DO NOT LOOK IT** | `5d-iii` is what opens a family. A row that looked tappable and did nothing is *"a control that looks live and refuses silently"* — that row's own rule, applied a task early. No chevron, no ripple, no `Pressable` |
+| **2** | ⚠️⚠️ **A MISSING PRICE IS A DASH IN `tintaApagada`, NOT AMBER** | `atencion`'s ONE job is C3.17: a row whose missing price BLOCKS a sale, where the fix is one tap away. Nothing here can set a price — `Editar` is `5e` — so amber would be an alarm on a hundred rows nobody can silence, and a second job for the role. ⚠️ **This is the one to look at again when `5e` lands** |
+| **3** | ⚠️ **THE SEARCH BOX DOES NOT SCROLL AWAY** | C3.1 puts it *above* a scrolling list. A box inside the list as a header means scrolling back to the top to search, and the shop with a hundred products is the shop that searches |
+| **4** | ⚠️ **IT CLEARS WITH A WORD (*Limpiar*), NOT A CROSS** | `clearButtonMode` is iOS-only and C1.1 puts two Androids among the four pilot phones. C12.1 refuses an icon with no word, so the control that works on both is a labelled one |
+| **5** | ⚠️ **A `FlatList` AND NOT A `ScrollView`** | C8.3 is ~100 products and C1.1 two low-end Androids; a ScrollView mounts every row at once. This is the scroll that stutters on exactly those phones and on nobody's development machine |
+
+⚠️⚠️ **AND THE ONE DECISION WITH A RIGHT ANSWER WAS MOVED OUT OF THE SCREEN
+BEFORE IT SHIPPED.** The three things an empty list can mean — *the read is out*,
+*this shop has no products*, *nothing matches what you typed* — began as a
+ternary in the component, which is a decision no instrument here can read. It is
+`emptyLineKey` in `@/api/catalog` now, returning a KEY of `ES.catalog` and never
+a sentence (`R3`, `R4`, the shape `@/api/errors` and `linesOf` already use), with
+four assertions on it. ⚠️ **The two that must not collapse**: a shopkeeper with a
+hundred products who mistypes a name must not be told her catalog is empty — she
+is the merchant C8.2 describes, whose catalog is deliberately incomplete.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/app/productos.tsx` | the route, the banda, the search box, the list, the row, the initials tile and the three empty states |
+| `app/src/api/catalog.ts` | `emptyLineKey` — the one decision on the screen that has a right answer |
+| `app/src/app/(tabs)/index.tsx` | the temporary door, with the comment that names `5d-iv` as the task that deletes it |
+| `app/src/strings.ts` | `ES.catalog`'s seven new words, the units map staying where it is |
+| `app/test/api-catalog.test.ts` | **four new assertions**, 677 tests in the app suite |
+
+⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
+`npm run test --workspace @tienda/app` is **677 tests over 29 files**,
+`npm run typecheck` clean, `bash docs/checks/conventions-gate.sh` **16 groups
+over 55 source and 29 test files** — which is where `R6` caught a literal
+`height: 1` in the separator and it became a hairline border, the same spelling
+every other file uses — and `bash docs/checks/5d-i-catalog-contract.sh` is still
+**12 of 12** against the live database. ⚠️⚠️ **Not one of those looked at a
+pixel, and no check in this repository ever will.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the five in the table above, plus
+**Productos is NOT in `RESTORABLE_ROUTES`** — C1.3 reopens the screen a person
+was WORKING on, and browsing the catalog is not work. Every one of them is one
+line to reverse.

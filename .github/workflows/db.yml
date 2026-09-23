@@ -277,6 +277,21 @@ on:
       - "docs/checks/5e-i-catalog-write-contract.sh"
       - "docs/checks/5e-i-catalog-write-contract-falsify.sh"
 
+      # ⚠️⚠️ AND THE EDIT SIDE, WHICH IS A DIFFERENT FENCE AND NOT THE SAME ONE
+      # AGAIN. `price_list_insert` is `with check`, so a cashier posting a price is
+      # a `42501` the file above already asserts. Every UPDATE policy on these
+      # tables is `using` as well, and a row a `using` clause excludes is a row
+      # PostgREST CANNOT SEE — the PATCH matches nothing and comes back 200 with an
+      # empty array. Measured 2026-09-23. So `catalogEdit.ts` sends `.single()` on
+      # every patch to turn that into a `PGRST116`, and this check is the only
+      # instrument that can say either shape is still what the database does.
+      # ⚠️ Its other two: the ORDER — close before you open, because
+      # `price_list_no_overlap` refuses two rows over one day — and the SAME-DAY
+      # branch, which exists because `price_list_range_ordered` refuses a
+      # zero-length range and nothing in TypeScript can discover that.
+      - "docs/checks/5e-iii-a-catalog-edit-contract.sh"
+      - "docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh"
+
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
   group: db-${{ github.ref }}
@@ -416,6 +431,18 @@ jobs:
       # the tree look safe when it is not.
       - name: Contract — can the catalog write check still fail (its own fifteen fixtures)
         run: bash docs/checks/5e-i-catalog-write-contract-falsify.sh
+
+      - name: Contract — does app/src/api/catalogEdit.ts still describe the schema (plan 5e-iii-a)
+        run: bash docs/checks/5e-iii-a-catalog-edit-contract.sh
+
+      # ⚠️ And its own ten fixtures, every one of them a MUTATED COPY of the app's
+      # contract module rather than an edit to the schema — which is what lets this
+      # harness leave nothing behind. ⚠️ Two of them move the codes the manager
+      # fence arrives as, and those are the ones worth reading: `A CASHIER IS
+      # REFUSED` is now a claim about a 403 AND about a silent 200, and a harness
+      # that could not break both would be watching half of it.
+      - name: Contract — can the catalog edit check still fail (its own ten fixtures)
+        run: bash docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh
 
       - name: Stop
         if: always()
