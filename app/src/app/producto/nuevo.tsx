@@ -4,6 +4,9 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Animated,
+  InputAccessoryView,
+  Keyboard,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -139,6 +142,7 @@ export default function NuevoProducto() {
   const banner = useRef(new Animated.Value(0)).current;
   const [released, setReleased] = useState(false);
 
+
   // ⚠️⚠️ THE FIXED FAMILY'S NAME IS LOOKED UP AND ITS ID IS NOT. `familyId` is
   // what the insert needs and what the route supplied; the name is only ever
   // rendered, so a family the read has not reached yet shows no word and still
@@ -169,8 +173,16 @@ export default function NuevoProducto() {
   // rather than being snatched away after it.
   if (!canWriteCatalog(role) || workspace === null) return null;
 
-  function flashReleased() {
-    setReleased(true);
+  // ⚠️⚠️ THE ANIMATION STARTS IN AN EFFECT AND NOT IN THE HANDLER, AND THAT IS THE
+  // BUG THE OWNER FOUND: *"the banner is not displaying."* `flashReleased` used to
+  // call `setReleased(true)` and `Animated.sequence(...).start()` in the same tick —
+  // so the native driver was handed an opacity to animate on a view **that React had
+  // not mounted yet**, because the `{released && …}` branch only renders on the next
+  // commit. A native-driver animation against a node that does not exist is dropped
+  // silently: no warning, no throw, no banner. ⚠️ Running it in an effect keyed on
+  // `released` means the view is on screen before the first frame is asked for.
+  useEffect(() => {
+    if (!released) return;
     banner.setValue(0);
     const run = Animated.sequence(
       bannerSequence().map((step) => Animated.timing(banner, { ...step, useNativeDriver: true })),
@@ -178,13 +190,29 @@ export default function NuevoProducto() {
     run.start(({ finished }) => {
       if (finished) setReleased(false);
     });
-  }
+    return () => run.stop();
+  }, [released, banner]);
+
+  // ⚠️⚠️ CLOSING THE KEYBOARD CLOSES THE FAMILY LIST — ruled 2026-09-23: *"if the
+  // keyboard is not open either we have picked the option we wanted or we are
+  // sticking with the suggestion."* The list is a thing you are typing INTO, so a
+  // dismissed keyboard is the end of that question either way.
+  //
+  // ⚠️ A TAP ON AN OPTION DOES NOT GO THROUGH HERE, and that is why this is safe
+  // rather than a race: `keyboardShouldPersistTaps="handled"` on the ScrollView
+  // means tapping a row does not dismiss the keyboard, so `pickFamily` closes both
+  // itself. This fires only when he dismisses it deliberately — *Listo*, a swipe, or
+  // the system control.
+  useEffect(() => {
+    const hidden = Keyboard.addListener('keyboardDidHide', () => setPicking(false));
+    return () => hidden.remove();
+  }, []);
 
   function pickUnit(code: string) {
     const outcome = chooseUnit(choice, code, entries, units);
     setFamily(outcome.family);
     setUnitCode(outcome.unitCode);
-    if (outcome.released) flashReleased();
+    if (outcome.released) setReleased(true);
   }
 
   function pickFamily(option: { readonly id: string; readonly name: string }) {
@@ -193,6 +221,9 @@ export default function NuevoProducto() {
     setUnitCode(outcome.unitCode);
     setPicking(false);
     setQuery('');
+    // ⚠️ THE KEYBOARD GOES WITH THE LIST. He has answered the family question, and
+    // the next field is a row of chips that needs no keyboard at all.
+    Keyboard.dismiss();
   }
 
   async function submit() {
@@ -215,10 +246,20 @@ export default function NuevoProducto() {
       }
       return;
     }
+    // ⚠️ THE KEYBOARD GOES BEFORE THE SCREEN DOES — ruled 2026-09-23. A keyboard
+    // that survives the navigation covers the bottom of the catalog he was sent
+    // there to look at, and the row that blinks may be under it.
+    Keyboard.dismiss();
     // ⚠️⚠️ THE CONFIRMATION IS ON THE OTHER SCREEN, WHICH IS THE OWNER'S RULING.
     // `dismissTo` pops back to the Productos already in the stack rather than
     // pushing a second copy of it, and `?nuevo=` is what makes that list scroll
     // the new product into sight and blink it.
+    //
+    // ⚠️⚠️ AND IT CARRIES ONLY THE NEW PRODUCT. A released family used to travel with
+    // it too, so Productos could show the sentence again and keep it up — and the
+    // owner had that removed on 2026-09-23, the same day it was added: it appeared
+    // when nothing had been released. **The banner now lives only on this screen, for
+    // one second, where the thing it describes actually happens.**
     router.dismissTo({ pathname: '/productos', params: { nuevo: outcome.variantId } });
   }
 
@@ -257,6 +298,12 @@ export default function NuevoProducto() {
                   autoCapitalize="sentences"
                   autoCorrect={false}
                   editable={!busy}
+                  // ⚠️ THE RETURN KEY SAYS *Listo* AND CLOSES THE KEYBOARD — ruled
+                  // 2026-09-23. This form is confirmed by a button on the screen, so
+                  // the return key has no job of its own; `onSubmitEditing` is what
+                  // makes the word true rather than decorative.
+                  returnKeyType="done"
+                  onSubmitEditing={() => Keyboard.dismiss()}
                   accessibilityLabel={ES.catalog.create.nameLabel}
                   style={{
                     flex: 1,
@@ -331,6 +378,14 @@ export default function NuevoProducto() {
                   // a pad is a convenience, never a validator.
                   keyboardType="decimal-pad"
                   editable={!busy}
+                  // ⚠️⚠️ THIS IS THE ONE BOX `returnKeyType` CANNOT REACH.
+                  // `decimal-pad` draws NO return key on either platform — and it is
+                  // not optional here, because C12.2 puts the point in `35.50` and a
+                  // pad without one is a shopkeeper who cannot type half a peso. On
+                  // iOS the accessory bar below carries *Listo*; on Android the
+                  // system's own dismiss control does the job, which is why the id is
+                  // undefined there rather than pointing at a bar that cannot render.
+                  inputAccessoryViewID={PRICE_PAD_ID}
                   accessibilityLabel={ES.catalog.create.priceLabel}
                   style={{
                     flex: 1,
@@ -376,7 +431,70 @@ export default function NuevoProducto() {
           </>
         )}
       </ScrollView>
+
+      {/* ⚠️ MOUNTED ONCE AND OUTSIDE THE SCROLL VIEW. `InputAccessoryView` renders
+          into the keyboard rather than into the layout, so where it sits in the tree
+          does not matter — but mounting it inside the conditional branch would mean
+          the bar disappearing while the catalog read is out, which is the one moment
+          the price box cannot be reached anyway. */}
+      <TecladoListo />
     </View>
+  );
+}
+
+/**
+ * The id tying the price box to its accessory bar.
+ *
+ * ⚠️ IT IS A CONSTANT AND NOT A LITERAL AT TWO CALL SITES, because `InputAccessoryView`
+ * matches a `TextInput` to a bar by STRING EQUALITY — two spellings is a bar that
+ * renders and never appears, with nothing to say why.
+ */
+const PRICE_PAD_ID = 'wera.price.pad';
+
+/**
+ * *Listo*, above the number pad — the only keyboard in this app with no return key.
+ *
+ * ⚠️⚠️ iOS ONLY, AND THE `Platform` CHECK IS THE HONEST HALF OF THE RULING RATHER
+ * THAN A GAP IN IT. `InputAccessoryView` does not exist on Android in React Native;
+ * Android's own keyboard draws a dismiss control the platform owns, so the shopkeeper
+ * has a way off the pad on both of C1.1's kinds of phone — by two different routes,
+ * which is worth knowing when he reports one and not the other.
+ *
+ * ⚠️ `R9`: nothing in this repository can see whether this bar appears, whether it
+ * sits where a thumb expects it, or whether Android's control is discoverable at all.
+ * **The instrument is the owner's phone**, and both platforms need asking, which is
+ * `R10`'s lesson about `formatToParts` applied to a control instead of to an API.
+ */
+function TecladoListo() {
+  const { scale } = useDensity();
+  if (Platform.OS !== 'ios') return null;
+  return (
+    <InputAccessoryView nativeID={PRICE_PAD_ID}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+          paddingHorizontal: scale.space,
+          borderTopWidth: 1,
+          borderTopColor: PALETTE.linea,
+          backgroundColor: PALETTE.banda,
+        }}
+      >
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => Keyboard.dismiss()}
+          style={{
+            minHeight: scale.tapTarget,
+            paddingHorizontal: scale.space,
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
+            {ES.catalog.create.done}
+          </Text>
+        </Pressable>
+      </View>
+    </InputAccessoryView>
   );
 }
 
@@ -582,6 +700,12 @@ function Buscar({
           autoCorrect={false}
           autoFocus
           editable={!busy}
+          // ⚠️ *Listo* CLOSES THE KEYBOARD AND THEREFORE CLOSES THIS LIST — the
+          // ruling's two halves meeting in one control: a dismissed keyboard means
+          // the family question is answered, either by a row he tapped or by the
+          // mirror he left alone.
+          returnKeyType="done"
+          onSubmitEditing={() => Keyboard.dismiss()}
           accessibilityLabel={ES.catalog.create.familySearch}
           style={{
             flex: 1,

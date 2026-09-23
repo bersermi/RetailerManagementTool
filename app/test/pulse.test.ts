@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
+import * as pulse from '@/theme/pulse';
 import {
   BANNER_FADE_MS,
   BANNER_HOLD_MS,
@@ -73,14 +74,37 @@ describe('the banner that says the family was let go', () => {
     expect(bannerSequence().map((step) => step.toValue)).toEqual([1, 1, 0]);
   });
 
-  // ⚠️⚠️ IT HOLDS LONG ENOUGH TO READ, WHICH IS THE ONLY NUMBER HERE THAT MATTERS.
-  // Eight Spanish words at a counter is about two seconds of reading, so a fade
-  // that began at 800ms would be a message nobody finished.
-  it('holds for longer than it takes to read eight words', () => {
-    expect(BANNER_HOLD_MS).toBeGreaterThanOrEqual(2000);
+  // ⚠️⚠️ THIS ASSERTION WAS INVERTED ON 2026-09-23 AND THE REASON IS WORTH KEEPING.
+  // It used to demand `>= 2000`, on the argument that eight Spanish words take two
+  // seconds to read. The argument was right; the design was wrong — the form is
+  // about to be saved and left, so no hold makes it readable. The owner moved the
+  // reading to Productos, where the banner PERSISTS, and cut this one to a glimpse:
+  // "show the banner for a second in the form screen but it should persist in the
+  // catalog screen once we go back there."
+  it('is a glimpse on the form — about a second, not long enough to read', () => {
+    expect(BANNER_HOLD_MS).toBe(1000);
     const hold = bannerSequence()[1];
     expect(hold.toValue).toBe(1);
     expect(hold.duration).toBe(BANNER_HOLD_MS);
+  });
+
+  // ⚠️⚠️ AND THE READABLE COPY HAS NO TIMING AT ALL, WHICH IS WHAT *persists*
+  // MEANS. This is an EQUALITY over the module's surface, the shape
+  // `auth-errors.test.ts` uses for "the library has exactly one caller": nothing
+  // here fades the banner on Productos, and a future `catalogBannerSequence` or
+  // `CATALOG_BANNER_HOLD_MS` would turn this red and make the next person confront
+  // the ruling rather than quietly undo it.
+  it('exports no timing for the copy that persists', () => {
+    expect(Object.keys(pulse).sort()).toEqual([
+      'BANNER_FADE_MS',
+      'BANNER_HOLD_MS',
+      'NEW_PRODUCT_BLINKS',
+      'PULSE_DIM',
+      'PULSE_HALF_MS',
+      'bannerSequence',
+      'pulseSequence',
+      'pulseTotalMs',
+    ]);
   });
 
   // ⚠️ IT ENDS AT ZERO: the family was released, he has been told why, and a

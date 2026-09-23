@@ -884,9 +884,16 @@ export const ES = {
        * it, and the moment he types, the text becomes `tinta` and his.
        */
       nameLabel: 'Nombre',
-      /** ⚠️ A REAL PRODUCT AND NOT *"Ej. producto"*: C8.5's own despiece, so the
-       *  example shows that a variant is the CUT and not the animal. */
-      nameHint: 'Pechuga sin hueso',
+      /**
+       * ⚠️⚠️ AN INSTRUCTION AND NOT AN EXAMPLE, RULED 2026-09-23 — *"the hint is
+       * not looking as a hint in Nombre, do it the same way as we're doing in
+       * Familia"*. It used to read `Pechuga sin hueso`, which is a real product
+       * from C8.5's despiece and taught something; **but a real product name sitting
+       * in the box is indistinguishable from a product name somebody typed**, which
+       * is the same complaint he made about the family and the price. An imperative
+       * cannot be mistaken for a value.
+       */
+      nameHint: 'Escribe el nombre del producto',
 
       familyLabel: 'Familia',
       /**
@@ -940,6 +947,23 @@ export const ES = {
 
       submit: 'Guardar producto',
       working: 'Guardando…',
+
+      /**
+       * ⚠️⚠️ THE WAY OFF THE KEYBOARD, RULED 2026-09-23 — *"display the keyboard
+       * with the hide option where the search/enter button usually is"*. Every text
+       * box in this app either searches LIVE or is confirmed by a button on the
+       * screen, so the return key has no job of its own; making it *Listo* gives it
+       * the one job a person actually wants from it.
+       *
+       * ⚠️⚠️ AND IT IS A REAL STRING BECAUSE ONE KEYBOARD HAS NO RETURN KEY AT ALL.
+       * `decimal-pad` — which the price box needs, because C12.2 puts the point in
+       * `35.50` and a pad with no point is a shopkeeper who cannot type half a peso
+       * — draws no return key on either platform. On iOS that box gets an accessory
+       * bar carrying this word; on Android the system's own dismiss control does the
+       * job. So `returnKeyType` covers the other three boxes and this covers the one
+       * it cannot reach.
+       */
+      done: 'Listo',
     },
 
     /**
