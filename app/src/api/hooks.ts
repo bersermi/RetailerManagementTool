@@ -37,13 +37,18 @@ import {
   type ProductDraft,
 } from '@/api/catalogWrite';
 import {
+  EDIT_ORDER,
   PRICE_EDIT_KEY,
+  VARIANT_EDIT_KEY,
   type ActivePatch,
+  type EditOutcome,
+  type EditPlan,
   type NamePatch,
   type PriceChange,
   type PriceChangeOutcome,
   type PriceInForce,
   type SettingsPatch,
+  type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
   approveRequest,
@@ -54,6 +59,7 @@ import {
   createProduct,
   patchVariant,
   variantPrices,
+  variantSettingsRow,
   myAccessRequests,
   pendingAccessRequests,
   myWorkspaces,
@@ -798,6 +804,18 @@ export function useCatalog(typed: string = ''): {
   readonly loading: boolean;
   readonly entries: readonly CatalogEntry[];
   readonly failed: ApiMessageKey | null;
+  /**
+   * The store whose prices these entries were resolved at, or `null` for the
+   * shop-wide ones.
+   *
+   * ⚠️⚠️ IT IS RETURNED RATHER THAN RE-DERIVED BY `Editar`, AND THAT IS ONE
+   * ANSWER TO ONE QUESTION. `priceChange` needs the scope the READ used, because
+   * a change must edit the row the shopkeeper is looking at; a screen that
+   * resolved it a second time out of `LOCATIONS_KEY` would be a second opinion
+   * about which store this phone is standing in, and the two would disagree the
+   * first time a shop opened its second location.
+   */
+  readonly locationId: string | null;
 } {
   const { session, ready } = useAuth();
   const enabled = ready && session !== null;
@@ -845,6 +863,7 @@ export function useCatalog(typed: string = ''): {
     loading: variants.data === undefined || units.data === undefined,
     entries: search(entries, typed),
     failed: thrown ? apiErrorKey(thrown) : null,
+    locationId,
   };
 }
 
@@ -970,6 +989,25 @@ export function useEditProduct(variantId: string | null) {
     enabled,
   });
 
+  // ⚠️⚠️ THE TWO SET-ONCE FIGURES, AND THEY ARE A READ RATHER THAN A DEFAULT.
+  // `variantSettings` sends no column for a box nobody typed into, so the form
+  // cannot overwrite an IVA by accident — but a shopkeeper still has to see what
+  // it is before leaving it alone, and the catalog read carries neither column.
+  const settings = useQuery({
+    queryKey: [...VARIANT_EDIT_KEY, variantId],
+    queryFn: () => variantSettingsRow(variantId as string),
+    enabled,
+  });
+
+  // ⚠️ THE SAME `UNITS_KEY` READ `useCatalog` AND `useCreateProduct` USE, never a
+  // second one: the price box divides by what one price unit weighs, and two
+  // homes for *how many grams in a kilo* is one home too many.
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    staleTime: Infinity,
+  });
+
   const mutation = useMutation({
     mutationFn: (plan: PriceChange) => changePrice(plan),
   });
@@ -977,6 +1015,7 @@ export function useEditProduct(variantId: string | null) {
   async function refresh(): Promise<void> {
     await queries.invalidateQueries({ queryKey: CATALOG_KEY });
     await queries.invalidateQueries({ queryKey: PRICE_EDIT_KEY });
+    await queries.invalidateQueries({ queryKey: VARIANT_EDIT_KEY });
   }
 
   async function edit(patch: NamePatch | SettingsPatch | ActivePatch): Promise<void> {
@@ -1005,11 +1044,58 @@ export function useEditProduct(variantId: string | null) {
     return outcome;
   }
 
+  /**
+   * One tap of *Guardar*, in `EDIT_ORDER` and stopping at the first failure.
+   *
+   * ⚠️⚠️ THE ORDER AND THE STOP ARE `@/api/catalogEdit`'s AND NOT THIS
+   * FUNCTION'S (`R3`) — this walks the list that module exports and does not
+   * know why it reads the way it does. What IS here is the awaiting, which is
+   * the half no node suite can hold.
+   *
+   * ⚠️ IT STOPS RATHER THAN CARRYING ON, and that is the point of the order: a
+   * rename refused `23505` must not be followed by a tax rate written onto a
+   * name the shopkeeper is about to abandon.
+   *
+   * ⚠️⚠️ AND THERE IS NO RETRY STATE — `useCreateProduct` has `retryDraft` and
+   * this deliberately has nothing. Every step that touched the database refreshes
+   * both reads, so the next tap re-plans from fresh rows and asks only for what
+   * is left. `@/api/catalogEdit`'s own section header is where that is argued.
+   */
+  async function save(plan: EditPlan): Promise<EditOutcome> {
+    let changed = false;
+    for (const step of EDIT_ORDER) {
+      if (step === 'price') {
+        if (plan.price.kind === 'unchanged') continue;
+        const outcome = await reprice(plan.price);
+        if (!outcome.ok) return { ok: false, failed: 'price', price: outcome };
+        changed = changed || outcome.changed;
+        continue;
+      }
+      const patch = step === 'name' ? plan.name : plan.settings;
+      if (patch === null) continue;
+      try {
+        await edit(patch);
+      } catch (error) {
+        return { ok: false, failed: step, error };
+      }
+      changed = true;
+    }
+    return { ok: true, changed };
+  }
+
   return {
+    // ⚠️ THE PRICE ROWS ARE WHAT THE FORM CANNOT OPEN WITHOUT — a plan built
+    // before they land would take the `open` branch on a priced product and be
+    // refused `23P01`. The two figures are not: they are printed beside their
+    // boxes, and a form that waited for them would be a form that will not open
+    // in the stockroom.
     loading: prices.isPending && enabled,
     prices: (prices.data ?? []) as readonly PriceInForce[],
+    settings: (settings.data ?? null) as VariantSettingsRow | null,
+    factors: unitFactorsFrom(units.data),
     edit,
     reprice,
+    save,
     busy: mutation.isPending,
   };
 }
