@@ -114,18 +114,34 @@ export default function Productos() {
   const rows = catalogRows(entries, typed, mayCreate);
   const list = useRef<FlatList<CatalogRow>>(null);
 
+  // ⚠️⚠️ THE SEARCH BOX IS CLEARED FIRST, AND WITHOUT THIS THE WHOLE FEATURE IS
+  // POINTLESS. `router.dismissTo` pops back to the Productos ALREADY IN THE STACK
+  // rather than mounting a new one, so `typed` survives — and the word he typed to
+  // reach the create row is a word the product he just made MATCHES. He would land
+  // on a filtered list of exactly one row, where "sorted and in sight" and the
+  // scroll both mean nothing. The owner asked for the product *"in the catalog
+  // sorted and in sight"*, which is the whole catalog with the row found in it.
+  useEffect(() => {
+    if (nuevo !== undefined) setTyped('');
+  }, [nuevo]);
+
   // ⚠️⚠️ THE SCROLL WAITS FOR THE ROW TO EXIST, AND THAT IS NOT A DETAIL. The
   // create invalidates `CATALOG_KEY`, so on the frame this screen comes back the
   // new product is usually NOT in `entries` yet — a `scrollToIndex` fired then
-  // throws on an out-of-range index. This runs again on every render until the
-  // row is there, and then once.
+  // throws on an out-of-range index. This runs again on every render until the row
+  // is there, and then once. ⚠️ It also waits for the box to be EMPTY, or it would
+  // scroll to the row's position in the filtered list and then the list would
+  // change underneath it.
   const scrolled = useRef<string | null>(null);
-  const at = nuevo === undefined ? -1 : rows.findIndex((row) => row.kind === 'product' && row.entry.id === nuevo);
+  const at =
+    nuevo === undefined
+      ? -1
+      : rows.findIndex((row) => row.kind === 'product' && row.entry.id === nuevo);
   useEffect(() => {
-    if (nuevo === undefined || at < 0 || scrolled.current === nuevo) return;
+    if (nuevo === undefined || typed !== '' || at < 0 || scrolled.current === nuevo) return;
     scrolled.current = nuevo;
     list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
-  }, [nuevo, at]);
+  }, [nuevo, typed, at]);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
