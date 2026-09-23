@@ -51,6 +51,7 @@ import {
 
 import { ROLES, type Role } from '@/api/members';
 import { isWritePayload, type QueuedWrite, type WriteKind } from '@/api/outbox';
+import type { DensityScale } from '@/theme/density';
 
 /**
  * The payload key each kind carries its price in — `0016`, `0018`, `0019` and
@@ -383,4 +384,63 @@ export function showsBanner(
   if (!readsQueue(role, pathname)) return false;
   if (value.count === 0) return false;
   return dismissedAt === null || value.count > dismissedAt;
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THE BANNER'S GEOMETRY, MOVED HERE BY `5d-iv-b` — AND IT IS THE SAME
+// ARGUMENT THIS FILE'S HEADER ALREADY MAKES ABOUT EVERY OTHER DECISION IN
+// `DeadLetterBanner.tsx`: *it decides nothing.* The two numbers below were
+// literals inside that component until Inicio needed to agree with them.
+//
+// ⚠️ THE REASON IS A COLLISION NO CHECK COULD SEE. The banner is
+// ABSOLUTELY POSITIONED at the top of the root — it is mounted once and never
+// unmounts — so it draws OVER whatever Inicio put there. As of the ruling of
+// 2026-09-22 the one screen underneath it is Inicio, whose first element is
+// §2.8's takings figure: the number a shopkeeper compares against her till.
+// Two copies of *how tall is the banner*, in two files, is the stale-duplicate
+// shape this repository has recorded seven times — and this instance would
+// have failed by HIDING THE ONE NUMBER Inicio exists to show.
+//
+// ⚠️ `bannerRoom` IS A FLOOR AND NOT A MEASUREMENT, AND THAT IS SAID HERE
+// RATHER THAN DISCOVERED ON A PHONE. The pill is three lines of `bodySize`
+// text; nothing outside a running renderer knows how tall that comes to, so
+// this clears the pill's MINIMUM and Inicio scrolls (see its header). A
+// three-line banner in `Letra grande` can still be taller than the room — and
+// then the takings are one short scroll away rather than hidden under a strip
+// that takes no taps.
+// ----------------------------------------------------------------------------
+
+/**
+ * Where the banner's strip begins, below the device's own top inset.
+ *
+ * ⚠️ THE INSET IS AN ARGUMENT AND NOT A HOOK CALL (`R3`). `useSafeAreaInsets`
+ * is React; this is arithmetic, and `app/test/offline-dead-letters.test.ts`
+ * reads it under plain Node.
+ */
+export function bannerTop(scale: DensityScale, topInset: number): number {
+  return topInset + scale.space;
+}
+
+/**
+ * The least vertical space the banner's pill can occupy — `R6`'s tap-target
+ * floor, which is what makes *"easily dismissed means a thumb"* true in both
+ * densities.
+ */
+export function bannerMinHeight(scale: DensityScale): number {
+  return scale.tapTarget;
+}
+
+/**
+ * How much room a screen under this banner must leave above anything it draws.
+ *
+ * ⚠️ IT IS RESERVED UNCONDITIONALLY, WHICH IS A DECISION AND NOT AN OVERSIGHT.
+ * Reserving it only while a banner is up would move Inicio's takings figure
+ * DOWN the moment a write dead-lettered — a number jumping under the eye of
+ * somebody already reading it, and the cards jumping under a thumb already
+ * travelling towards Vender. The same reasoning `Solicitudes` records one file
+ * over for not hiding the bell while its read is out: a control that arrives a
+ * beat late is worse than a control that was always there.
+ */
+export function bannerRoom(scale: DensityScale, topInset: number): number {
+  return bannerTop(scale, topInset) + bannerMinHeight(scale) + scale.space;
 }

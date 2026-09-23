@@ -66,6 +66,9 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import type { ApiMessageKey } from '@/api/errors';
+import { ES } from '@/strings';
+
 /**
  * The columns a client may ask `sale` for.
  *
@@ -219,4 +222,56 @@ function centavos(text: string): number | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * The one line under Inicio's peso figure — `catalogLine`'s shape, and the
+ * fourth state is what makes it a different function. Plan task `5d-iv-b`.
+ *
+ * ⚠️⚠️ FOUR FACTS AND NOT THREE, IN THE ORDER A READ FAILS IN. A read that
+ * FAILED and a read still IN FLIGHT are the pair the owner found on his own
+ * phone on 2026-09-22 — *Cargando productos…* for ever, because `loading` is
+ * `data === undefined` and so is a failure. The fourth is this module's own:
+ * `takingsFrom` WITHHOLDS the figure when a row will not parse, and a screen
+ * that printed the count beside a blank space would be reporting a total of
+ * nothing.
+ *
+ * ⚠️ AN UNREADABLE ROW TAKES THE COUNT DOWN WITH THE FIGURE, AND THAT IS A
+ * DECISION RATHER THAN AN OMISSION — `takingsFrom` still returns a count, and
+ * this chooses not to print it. *3 ventas* above a blank space where the pesos
+ * should be invites exactly one reading, *three sales that brought in nothing*,
+ * which is a shopkeeper doing arithmetic about a wire format. One sentence
+ * replaces both numbers, and `complete` is what chooses.
+ */
+export function takingsLine(
+  loading: boolean,
+  failed: ApiMessageKey | null,
+  takings: Takings,
+): string {
+  if (failed !== null) return ES.api.errors[failed];
+  if (loading) return ES.home.loading;
+  if (!takings.complete) return ES.home.partial;
+  return ES.home.sales(takings.count);
+}
+
+/**
+ * Does the peso figure get drawn at all?
+ *
+ * ⚠️ IT IS `grossCentavos !== null` AND NOTHING CLEVERER, AND IT IS A FUNCTION
+ * SO THAT THE SCREEN DOES NOT HAVE TO KNOW THAT. `takingsFrom` already decided
+ * — in flight, failed and unreadable all withhold — and a `!== null` typed into
+ * `index.tsx` would be that rule's second home, on the one screen where the
+ * number is compared against the cash in the till.
+ *
+ * ⚠️⚠️ IT IS A TYPE GUARD, AND THAT IS LOAD-BEARING RATHER THAN TIDY. Returning
+ * a plain `boolean` leaves `grossCentavos` typed `number | null` on the far side
+ * of the check, so the screen has to write `?? 0` to satisfy the compiler — a
+ * fallback that can never fire until the day it does, and whose value is a
+ * confident **$0.00** at the top of Inicio. The guard removes the place that
+ * zero could be typed.
+ */
+export function showsTakings<T extends Takings>(
+  takings: T,
+): takings is T & { readonly grossCentavos: number } {
+  return takings.grossCentavos !== null;
 }

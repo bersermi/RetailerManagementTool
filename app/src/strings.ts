@@ -707,6 +707,90 @@ export const ES = {
     pza: 'pza',
   },
 
+  /**
+   * PROVEEDORES — the module word, and today nothing else. Plan task `6b`.
+   *
+   * ⚠️ IT IS ITS OWN BLOCK WITH ONE KEY, AND THAT IS DELIBERATE. §2.8 puts a
+   * row to Proveedores on Inicio and `6b` builds the screen behind it, so the
+   * word is needed a step before the room is. Folding it into `ES.home` would
+   * put a MODULE NAME inside a SCREEN's block — the arrangement `displayName`
+   * refused for exactly this reason one task earlier — and `6b` would then have
+   * to move it, which is a rename nobody would notice was due.
+   */
+  providers: {
+    title: 'Proveedores',
+  },
+
+  /**
+   * INICIO — §2.8's Home row, and the two numbers that sit above anything
+   * tappable. Plan task `5d-iv-b`.
+   *
+   * ⚠️⚠️ THE MODULE WORDS ARE NOT HERE AND MUST NOT BE COPIED HERE. Vender,
+   * Comprar and Desperdicio are `ES.tabs`; Productos is `ES.catalog.title`.
+   * Inicio is a SECOND door onto rooms that already have names, and a second
+   * spelling of a room's name is the stale-duplicate defect this repository has
+   * recorded seven times — in the form where the tab says one word and the card
+   * beneath it says another.
+   *
+   * ⚠️ NOTHING HERE DRESSES UP A ZERO, AND THAT IS ROUTED RATHER THAN DECIDED.
+   * Nothing in this app writes a sale until `5f`, so every phone reads `$0.00`
+   * and `0 ventas` today. Whether that reads as a quiet morning or as a broken
+   * app is a question for the owner ON THE TASK THAT CREATES THE FIRST SALE —
+   * asking it now is the `5c-iv-b` mistake the ruling of 2026-09-22 named.
+   */
+  home: {
+    /**
+     * The word over the figure. ⚠️ IT IS THE DAY AND NOT THE MONEY: *Hoy*
+     * says which rows the number counts, which is the only thing about it a
+     * shopkeeper could get wrong. *Ventas de hoy* would repeat the line
+     * underneath it.
+     */
+    today: 'Hoy',
+    /**
+     * The count, under the figure. ⚠️ SINGULAR AND PLURAL, like
+     * `offline.deadLetters.count` — *1 ventas* on the screen she opens between
+     * customers is the app looking unfinished at the one number it is sure of.
+     */
+    sales: (n: number) => (n === 1 ? '1 venta' : `${n} ventas`),
+
+    /**
+     * ⚠️⚠️ THREE LINES FOR THREE DIFFERENT FACTS, AND THE DISTINCTION IS THE
+     * ONE THE OWNER FOUND ON HIS OWN PHONE ON 2026-09-22. A read in flight, a
+     * read that failed and a read that came back unparseable are not the same
+     * thing, and `useToday` reports all three separately for exactly this.
+     * ⚠️ The failed case is not in this block: it is `ES.api.errors`, chosen by
+     * `apiErrorKey`, because *sin conexión* is the same sentence everywhere.
+     */
+    loading: 'Cargando…',
+    /**
+     * ⚠️⚠️ WHAT STANDS WHERE THE PESO FIGURE WOULD BE WHEN THERE IS NONE TO
+     * SHOW — in flight, failed, or a row that would not parse. It is C3.12's
+     * character and it is NOT `ES.catalog.noPrice`: that dash means *nobody has
+     * answered this question yet* and this one means *we could not ask*. Two
+     * facts, two keys, the way `ES.family.back` is its own word beside
+     * `ES.catalog.back`. ⚠️ A `$0.00` here would be a number she carries to her
+     * till on a phone that never reached the database.
+     */
+    noFigure: '—',
+    /**
+     * ⚠️ THE FIGURE IS WITHHELD RATHER THAN SHRUNK (`takingsFrom`), so this is
+     * what stands in its place — and it says the total is missing rather than
+     * naming a column or a parse. [[users-dont-do-bookkeeping]]: she cannot act
+     * on *a numeric came back as a double*, and she can act on *do not trust
+     * this against the till*.
+     */
+    partial: 'No pudimos mostrar el total de hoy.',
+
+    /**
+     * ⚠️⚠️ PROVEEDORES IS DRAWN AND IS PLAINLY DEAD, WHICH IS `5d-iii`'s RULE
+     * APPLIED TO A DOOR RATHER THAN TO A BUTTON. §2.8 puts the row here and the
+     * screen behind it is `6b`, unbuilt — so the row exists because a shopkeeper
+     * should see what is coming, and it says so, because a door that looks live
+     * and opens onto nothing is worse than one that is obviously not built.
+     */
+    notYet: 'Todavía no está lista.',
+  },
+
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */
   catalog: {
     /**

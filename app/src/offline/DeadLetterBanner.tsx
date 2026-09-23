@@ -9,6 +9,8 @@ import { outboxDb, readQueue } from '@/lib/outboxDb';
 import {
   NOTHING_DEAD,
   NO_UNIT_FACTORS,
+  bannerMinHeight,
+  bannerTop,
   readsQueue,
   showsBanner,
   showsValue,
@@ -121,7 +123,13 @@ function Banner({ value, onDismiss }: { value: QueueValue; onDismiss: () => void
       pointerEvents="box-none"
       style={{
         position: 'absolute',
-        top: insets.top + scale.space,
+        // ⚠️ THE OFFSET AND THE PILL'S FLOOR BOTH COME FROM
+        // `@/offline/deadLetters` AS OF `5d-iv-b`, and they used to be
+        // literals here. Inicio has to leave room for this strip — it is
+        // absolutely positioned and draws OVER the takings figure — and two
+        // copies of how tall the banner is would have gone stale by hiding the
+        // one number that screen exists to show. See `bannerRoom`.
+        top: bannerTop(scale, insets.top),
         left: scale.space,
         right: scale.space,
         alignItems: 'center',
@@ -142,7 +150,7 @@ function Banner({ value, onDismiss }: { value: QueueValue; onDismiss: () => void
         // the same *"easily dismissed means a thumb, not a close cross"* the
         // offline notice settled.
         style={{
-          minHeight: scale.tapTarget,
+          minHeight: bannerMinHeight(scale),
           width: '100%',
           justifyContent: 'center',
           paddingVertical: scale.space,
