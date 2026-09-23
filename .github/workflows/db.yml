@@ -421,10 +421,29 @@ jobs:
         if: always()
         run: supabase stop --no-backup
 
+  # ⚠️⚠️ `timeout-minutes` WAS 15 AND THE JOB WAS BEING CANCELLED AT IT — RAISED
+  # TO 25 ON 2026-09-22, AND THE NUMBER IS A MEASUREMENT RATHER THAN A ROUND-UP.
+  # Run 35813212086: EVERY STEP SUCCEEDED and the job was killed 15m07s in, with
+  # the last falsifier ~23s from finishing. It was cancelled three times on
+  # `main` the same day (35802822473, 35792354993, 35783706860) and succeeded
+  # twice at 12m01s and 13m22s — so the cap had been cutting off legitimate runs
+  # for hours, intermittently.
+  #
+  # ⚠️ A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, which is the whole
+  # problem: the working agreement says never merge on one, and a cap that fires
+  # on a healthy job makes "wait for CI" a coin flip. 25 still catches a HANG,
+  # which is what a cap is for; it no longer catches a job doing its work.
+  #
+  # ⚠️⚠️ THIS IS A STOPGAP AND THE PLAN SAYS SO — `5R-g`. The job does ~5m12s of
+  # seed checks and then runs ELEVEN contract checks with their harnesses back to
+  # back, and every one of those is an `app/src/api/**` claim with the same shape
+  # as the `catalog-write` job above. Splitting them out is the real fix: jobs
+  # run in parallel, so it costs wall-clock nothing and stops this number needing
+  # to be raised again every few tasks.
   reset:
     name: supabase db reset
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4
