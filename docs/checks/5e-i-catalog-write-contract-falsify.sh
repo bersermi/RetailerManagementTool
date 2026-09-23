@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # 5e-i-catalog-write-contract-falsify — can that check still fail?
 #
-# ⚠️ RULE 4 OF THIS REPOSITORY. `5e-i-catalog-write-contract.sh` prints "all 15
+# ⚠️ RULE 4 OF THIS REPOSITORY. `5e-i-catalog-write-contract.sh` prints "all 16
 # assertion groups passed", and that sentence is ALSO what a check which stopped
-# reading anything prints. This is what distinguishes the two: fifteen fixtures —
-# a control that must stay green, six that break the CONTRACT, and five that
-# break the DATABASE, each restored.
+# reading anything prints. This is what distinguishes the two: seventeen fixtures
+# — a control that must stay green, six that break the CONTRACT, five that break
+# the DATABASE, and one that breaks the READ module, each restored.
 #
 # ⚠️⚠️ EACH FIXTURE MATCHES THE MESSAGE, NOT THE EXIT CODE. *A fixture that is
 # red for the wrong reason is not a falsification, it is a coincidence* — the
@@ -47,7 +47,13 @@ set -uo pipefail
 
 CHECK="docs/checks/5e-i-catalog-write-contract.sh"
 SOURCE="app/src/api/catalogWrite.ts"
-[[ -r "$CHECK" && -r "$SOURCE" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+# ⚠️ THE READ MODULE IS MUTATED TOO, BY `G12` ALONE. The claim that a product
+# created with NO price is still on the catalog read lives half in the check and
+# half in THIS file's embed, so proving the assertion still has teeth means
+# handing the check a `catalog.ts` with an `!inner` in it.
+READ_SOURCE="app/src/api/catalog.ts"
+[[ -r "$CHECK" && -r "$SOURCE" && -r "$READ_SOURCE" ]] \
+  || { echo "FAIL: run this from the repository root"; exit 1; }
 
 # ⚠️ THE CONTAINER NAME COMES FROM `supabase/config.toml`, NOT FROM THE
 # DIRECTORY — the coincidence `5b-ii-a`'s harness recorded. The owner's Mac has
@@ -157,11 +163,11 @@ bad=0
 # Runs the check against a (possibly mutated) contract and matches its output.
 # $1 label  $2 expectation: a grep -E pattern, or the word GREEN  $3 contract path
 expect() {
-  local label="$1" pattern="$2" contract="$3" out rc
+  local label="$1" pattern="$2" contract="$3" read_module="${4:-$READ_SOURCE}" out rc
   fixtures=$((fixtures+1))
-  out="$(bash "$CHECK" "$contract" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$contract" "$read_module" 2>&1)"; rc=$?
   if [[ "$pattern" == GREEN ]]; then
-    if (( rc == 0 )) && grep -q 'all 15 assertion groups passed' <<< "$out"; then
+    if (( rc == 0 )) && grep -q 'all 16 assertion groups passed' <<< "$out"; then
       echo "  ok    $label — green, as it must be"
     else
       echo "FAIL: $label should have been GREEN (exit $rc)"
@@ -188,10 +194,10 @@ expect() {
 # THE ORIGINAL AFTERWARDS: "the fixture edited nothing" is the anti-vacuity
 # failure one layer in, and it is how three fixtures in this repository were
 # found to have been silently dead.
-mutate() { # label sed-expression -> path
-  local label="$1" expr="$2" path="$TMP/$1.ts"
-  sed "$expr" "$SOURCE" > "$path"
-  if cmp -s "$path" "$SOURCE"; then
+mutate() { # label sed-expression [source] -> path
+  local label="$1" expr="$2" src="${3:-$SOURCE}" path="$TMP/$1.ts"
+  sed "$expr" "$src" > "$path"
+  if cmp -s "$path" "$src"; then
     echo "FAIL: fixture $label edited nothing — it proves nothing about the check."
     bad=$((bad+1))
   fi
@@ -305,16 +311,31 @@ echo
 expect G11R GREEN "$SOURCE"
 
 echo
+echo "— the READ module, mutated —"
+
+# ⚠️⚠️ G12 GUARDS THE OWNER'S RULING OF 2026-09-22, AND IT IS THE ONLY FIXTURE
+# IN THIS HARNESS THAT TOUCHES THE READ. `5d-i` already proves an unpriced
+# variant survives the embed — on a variant its own fixture INSERTED. What
+# changed is who makes them: a shopkeeper now deliberately creates products with
+# no price, on a form, and an `!inner` would make every one of them vanish off
+# Productos the moment he saved it. He would watch it happen and have nothing to
+# read from it except that the app lost his product.
+expect G12 'was DROPPED by the read|!inner' "$SOURCE" \
+  "$(mutate G12 's/product_family(\${FAMILY_COLUMNS}),\${PRICE_TABLE}(/product_family(${FAMILY_COLUMNS}),${PRICE_TABLE}!inner(/' "$READ_SOURCE")"
+expect G12R GREEN "$SOURCE"
+
+echo
 if (( bad > 0 )); then
   echo "$fixtures fixtures ran, $bad did not behave as recorded."
   exit 1
 fi
 # ⚠️ RULE 4 AGAIN, ONE LAYER OUT: a harness that ran no fixtures is also silent.
-if (( fixtures < 15 )); then
-  echo "FAIL: only $fixtures fixtures ran, expected 15."
+if (( fixtures < 17 )); then
+  echo "FAIL: only $fixtures fixtures ran, expected 17."
   exit 1
 fi
 echo "all $fixtures fixtures behaved as recorded — the check still fails on a renamed"
 echo "column, a reordered write, an unmapped refusal code, a constraint the app keys on"
 echo "that no longer fires, an unreadable contract, EITHER INSERT POLICY WIDENED TO A"
-echo "CASHIER, a dropped foreign key, a narrowed uniqueness, and a moved tax default."
+echo "CASHIER, a dropped foreign key, a narrowed uniqueness, a moved tax default, and an"
+echo "!inner embed that would hide every product the owner ruled may have no price."

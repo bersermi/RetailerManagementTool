@@ -380,3 +380,134 @@ seen a pixel. **The instrument for how this looks is the owner's phone.**
 | **3** | **The toast lives 4 s with a 400 ms fade each end** | Long enough to read eight words at arm's length in a bright shop, short enough to be gone before it is in the way. Asserted as a RATIO rather than a number, so the two cannot drift into a toast nobody can read | Two constants |
 | **4** | **`Entendido` is the dismiss label, and it is only ever read by a screen reader** | The pill shows the sentence, not a button word; the label is what `accessibilityLabel` announces, so a person using VoiceOver is told it can be dismissed | One string |
 | **5** | **The surfaces are mounted in the root layout, after the `Stack`** | A sibling earlier in the tree renders underneath it. Mounting per-screen means every screen has to remember — the same argument `Gate` and `Drain` already settled | Delete two lines |
+
+
+---
+
+## THIRD CUT, taken 2026-09-22 — `5c-iv-b`
+
+⚠️⚠️ **THE THIRD CUT OF THIS DAY, AND THE SECOND TAKEN FROM A DAY STILL RUNNING.**
+`## Position` reached **1,409 lines against its 1,400 ceiling** while recording the
+owner's ruling that a product may be created with no price, and `plan-handover.sh`
+assertion 7 names the remedy in its own failure. ⚠️ **Appended rather than given a
+file of its own** — the rule `CLAUDE.md` states: one working day per file, and a
+later session APPENDS. A `status-log-2026-09-22b.md` would make this day's history
+live in two places, which is the defect `split-coverage.sh` fails on.
+
+⚠️ **It is a MOVE and not a copy.** The entry below is gone from `docs/PLAN.md`;
+`plan-corpus.sh` reassembles it, so a task-id lookup resolves exactly as before.
+
+✅✅ **`5c-iv-b` IS DONE AS OF 2026-09-22 — THE QUEUE HAS A PRICE, AND `5c` IS
+CLOSED.** ⚠️⚠️ **ONE THING IT SHIPPED WAS CHANGED THE SAME DAY BY A RULING, AND IT IS RECORDED HERE RATHER THAN LEFT IN THE DIFF: THE BANNER DREW ON EVERY SCREEN AND NOW DRAWS ON INICIO ONLY** (*"let's keep it Home Only"*). ⚠️ **The row below still describes what this task shipped, which is what a closed row is for** — the placement was one of the three look-questions it handed to `5f`, and this one was answered on paper before the screen existed, because ADR-035 §2.8 forbade the placement outright and a session building Inicio would have deleted the banner while obeying `CLAUDE.md`. **The rule lives in `onHome`; §2.8 carries the amendment.** ~~`5b.9` is the next task, and it is the only open row in step 5 that
+ships a migration~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s
+row records.** `5b.9` closed the same day; see the entry above.** No migration here. **The only number in this app priced on
+the device that the server also prices.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: THE COUNT IS NEVER LOSSY AND THE PESO FIGURE
+CAN BE, AND SAYING SO IS THE WHOLE DESIGN.** A dead document is dead — that is
+not a question a payload can fail to answer. What it was WORTH is, and a sum
+that quietly omits a line it could not read is a smaller number **indistinguishable
+on screen from a correct one**. So `QueueValue.complete` withholds the figure
+instead, the count stands alone, and nothing is ever understated. §2.6's own
+sentence about the downgrade — *"stock stays true; margin goes quiet"* — is the
+same shape one layer up.
+
+**THE FIVE RULES THAT WOULD HAVE GONE IN WRONG SILENTLY, each now an assertion:**
+
+| | The rule | What getting it wrong costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **A purchase line is NET and a sale line is GROSS** — §2.5 rule 2, *direction follows the document* | Reading a purchase through the sale key understates every dead purchase **by the IVA on it**, and nothing on the shelf looks wrong. The two keys are `unit_price_net_per_base` and `unit_price_gross_per_base`, and `0018` and `0016` are where they come from |
+| **2** | ⚠️⚠️ **The quantity is converted AND ROUNDED to the thousandth before it is priced** — `round(qty_display * factor_to_base, 3)`, half-up away from zero | That is `0016`–`0020`'s own line, and Postgres's `round(numeric)` is the rule `Math.round` gets wrong on a negative tie. ⚠️ **Every factor `0001` seeds is a whole number, so this is a no-op on today's data and a skipped round would pass every realistic case** — the assertion uses a fractional factor the `numeric(14,6)` column permits, which is the only way to falsify it at all |
+| **3** | ⚠️ **An absent `qty_display_unit` is the variant's BASE unit, factor exactly `1`** — `0001`'s `unit_base_is_identity`, and the `coalesce` every `record_*` does | It is the one case that is exact **with no map and no server read**, which is why the banner already prices something today rather than nothing |
+| **4** | ⚠️⚠️ **An unreadable line poisons its whole document** rather than being skipped | Two readable lines out of three is the smaller-number failure above, arriving one level down |
+| **5** | ⚠️ **A transfer is worth NOTHING and is KNOWN to be** | `0020` carries no price because moving stock between a shop's own locations is not a document with a value on it. *Priceless by design* and *could not be read* must not collapse into one answer — if they do, one dead transfer withholds the figure for every sale beside it |
+
+⚠️⚠️ **AND THE ONE THING THIS TASK REFUSED TO BUILD IS THE ONE THAT LOOKED
+CHEAPEST: A COPY OF `0001`'s TEN UNITS.** The unit table is closed — *"users
+pick from this list; they never define their own factors"* — so hard-coding
+`kg = 1000` here would work, forever, and would be the **sixth two-homes-for-one-claim
+defect this repository has recorded.** `5f` must already hold those factors to
+price a basket with no signal (§2.6, C10.3), so the app gets a second copy the
+moment that screen exists. ✅ **The map is an ARGUMENT instead** (`R3`: a module
+takes its world as an argument), `NO_UNIT_FACTORS` is empty today because
+**nothing in this app enqueues yet**, and ⚠️ **the obligation to pass it is
+written into `5f`'s row rather than left to be noticed** — `R9`, and the second
+line that row now owes after `queued()`.
+
+⚠️ **THE FENCE WAS RE-DERIVED RATHER THAN INHERITED, WHICH `5c`'s SIZING
+EXPLICITLY ASKED FOR.** `0024`'s decision 8 fences the `failed_write` TABLE at
+**`owner`**, because it hands over `payload`, which *"can carry COST for any
+kind"* — and §2.7 makes cost **manager-and-above at the loosest**. This banner
+hands over no payload at all: a count and one figure, no line, no variant, no
+location, no `error_code`. **So the looser fence is the one §2.7 actually
+names**, 1.3a's *"cost is manager-and-above; quantity is everyone"* settles the
+figure, and C10.5 refuses to show a rejected write to the person at the counter
+at all. ⚠️ **The fence is read BEFORE the queue is**: a cashier's phone never
+opens the outbox for this banner.
+
+⚠️⚠️ **THE DISMISSAL IS THE OPPOSITE OF `5c-iv-a`'s, DELIBERATELY, AND IT IS THE
+ONLY REASON *"least invasive"* IS TRUE.** A dismissal there dies with the screen,
+because being offline comes and goes and a shop that brushed the notice away at
+9am must still be told at 4pm. **A dead letter does not go away on its own** —
+recovery is ours, by hand, one row at a time (ruling of 2026-09-05) — so
+re-offering it on every navigation nags a manager about something she has
+already done everything she can about. **It is keyed to the COUNT: silence until
+the number changes, and a fourth dead letter says it again.** ⚠️ A count that
+FALLS does not re-arm it — a replay takes rows out of the queue, and nothing new
+has happened to tell anybody about.
+
+⚠️ **WHERE IT SITS WAS DECIDED RATHER THAN DEFAULTED.** `OfflineSurfaces` owns
+the **bottom** of every screen; this owns the **top**, behind `insets.top`. **Two
+absolutely-positioned strips at one edge is a collision no check in this
+repository could ever see** — §2.11 keeps layout out of scope — so it is settled
+here, in the file and in this entry, rather than discovered on a phone.
+
+⚠️ **AND IT RE-READS ON A SCREEN CHANGE AND NOWHERE ELSE, WHICH IS A CHOICE.**
+Nothing in this app announces *"a flush just dead-lettered a row"*, and adding
+that signal belongs to `@/lib/connectivityMonitor`, whose one job `5c-ii-b-2`
+deliberately kept to the link. C11.9 says the dead-letter control is *"not a
+priority for the owner at this point"*, a manager navigates constantly, and a
+poll would be a synchronous SQLite read on a timer for a row that is usually not
+there.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/offline/deadLetters.ts` | the pure module — which rows count, the two price keys, the unit conversion, the document sum, `complete`, the fence and the dismissal |
+| `app/src/offline/DeadLetterBanner.tsx` | a `View`, a `Text` and no judgement — the second non-route component in this app, and the outbox's second reader |
+| `app/src/app/_layout.tsx` | mounted after `OfflineSurfaces`, at the top of every screen, so no screen has to remember |
+| `app/src/strings.ts` | three sentences, and ⚠️ **the one surface in this app that says HOW MANY** — which is not a contradiction of C10.2's toast and is written down as such in the file |
+| `app/test/offline-dead-letters.test.ts` | 28 assertions over every rule above |
+| `app/test/auth-errors.test.ts` | a **sixth** pinned list: the outbox has exactly two readers |
+| `docs/PLAN.md`, `docs/HANDBOOK.md`, `docs/CONVENTIONS.md` | this entry, the two rows, `5f`'s second owed line, and `R12`'s list count |
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` — **611
+assertions over 28 files, up from 582 over 27** — plus `npm run typecheck` and
+`bash docs/checks/conventions-gate.sh` (16 groups over **53** source and 28 test
+files, up from 51/27). **Eight hand-run falsification fixtures**: seven grafted
+into the machine (a purchase read as gross, an unknown unit assumed to be base,
+an unreadable line skipped, a transfer read as unpriceable, the quantity carried
+in unrounded, the fence opened to everybody, the figure shown while incomplete)
+and one grafted onto `src/api/errors.ts` to prove the new pinned list looks.
+**Each turned exactly its own assertions red and nothing else.** ⚠️ **And the split of
+`## Position` below was verified the way the two before it were**: the live file and
+the new archive were reassembled and the result was **byte-identical** to the plan as
+it stood before the cut. ⚠️⚠️ **There is
+deliberately NO contract check over real HTTP: this task ships no migration,
+calls no RPC and touches no schema** — and ⚠️ **not one of those 610 assertions
+has seen a pixel. The instrument for how this looks is the owner's phone
+(`R9`).**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no schema, and every one
+of them is as cheap to reverse tomorrow as it is today:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **The peso figure is withheld when any dead document could not be priced; the count is always shown** | An understated sum looks exactly like a correct one. [[users-dont-do-bookkeeping]]: she is never shown *"approximately"* and never shown our internal state | One predicate |
+| **2** | **Every kind is priced by its own document's authoritative figure** — a sale and a waste at gross, a purchase at net, a transfer at nothing | §2.5 rule 2. The device holds no tax rate without a server read, so a purchase CANNOT be shown gross here — and the net is the figure printed on the supplier's invoice, which is the one the owner reads anyway | One table |
+| **3** | **The dismissal is keyed to the count and is not remembered across launches** | See above. A fresh launch is a fresh chance to notice, and storing it would be a second thing on disk that can disagree with the queue | One condition |
+| **4** | **No state colour, again** | §2.11 fences `atencion` to C3.17 and `error` to what DESTROYS. A dead letter has already happened and nothing is about to break because of it | Two tokens |
+| **5** | **It sits at the top; the offline surfaces keep the bottom** | Two strips at one edge is a collision nothing here can see | Two lines |
+| **6** | **`$0.00` is never shown** | A queue of dead transfers is worth exactly nothing, and `$0.00` reads as a broken screen — C3.17 gives that number a different meaning everywhere else in this app | One comparison |
+

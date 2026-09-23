@@ -99,6 +99,7 @@ import {
   WRITE_ORDER,
   familyRow,
   parsePesos,
+  priceOmitted,
   priceRow,
   pricePerBase,
   variantRow,
@@ -534,17 +535,26 @@ export async function createProduct(
   const [FAMILY, VARIANT, PRICE] = WRITE_ORDER;
 
   // ⚠️⚠️ THE PRICE IS WORKED OUT BEFORE ANYTHING IS WRITTEN, AND THE ORDER OF
-  // THESE TWO LINES IS THE DIFFERENCE BETWEEN NO PRODUCT AND A PRICELESS ONE.
-  // `pricePerBase` answers null when the figure will not convert — which
-  // includes the case where the `unit` read has not landed and `factors` is
-  // empty — and computing it AFTER the two inserts would leave a real product
-  // on Productos wearing C3.12's dash, created by a phone that never had the
-  // factors to price it. `checkProduct` is what the form calls first and it
-  // refuses the same drafts; this is the belt to that screen's braces, and it
-  // reports the first step so `retryDraft` carries nothing forward.
-  const centavos = parsePesos(draft.pricePesos);
-  const perBase = centavos === null ? null : pricePerBase(centavos, factors[draft.unitCode] ?? '');
-  if (perBase === null) {
+  // THESE LINES IS THE DIFFERENCE BETWEEN NO PRODUCT AND A PRICELESS ONE BY
+  // ACCIDENT. `pricePerBase` answers null when the figure will not convert —
+  // which includes the case where the `unit` read has not landed and `factors`
+  // is empty — and computing it AFTER the two inserts would leave a real
+  // product on Productos wearing C3.12's dash, created by a phone that never
+  // had the factors to price it. That is now indistinguishable on the shelf
+  // from a product the shopkeeper MEANT to leave priceless, which is exactly
+  // why it has to be caught here rather than there.
+  //
+  // ⚠️⚠️ AN OMITTED PRICE IS NOT THAT, AND THE TWO ARE TOLD APART BY
+  // `priceOmitted` RATHER THAN BY A NULL — the owner's ruling of 2026-09-22.
+  // An empty box is a two-row create; a box holding something unreadable is a
+  // draft `checkProduct` refuses at the form and this refuses again here,
+  // reporting the FIRST step so `retryDraft` carries nothing forward and
+  // nothing was written.
+  const omitted = priceOmitted(draft.pricePesos);
+  const centavos = omitted ? null : parsePesos(draft.pricePesos);
+  const perBase =
+    centavos === null ? null : pricePerBase(centavos, factors[draft.unitCode] ?? '');
+  if (!omitted && perBase === null) {
     return { ok: false, failed: FAMILY, familyId: null, variantId: null, error: null };
   }
 
@@ -578,16 +588,32 @@ export async function createProduct(
   }
   const variantId = (variant.data as { id: string }).id;
 
-  const { error } = await supabase
-    .from(PRICE)
-    .insert(priceRow(workspaceId, variantId, perBase, isoDay(now)))
-    .select(INSERT_RETURNING)
-    .single();
-  if (error) {
-    return { ok: false, failed: PRICE, familyId, variantId, error: reported(error) };
+  // ⚠️⚠️ THE THIRD ROW IS NOT POSTED AT ALL WHEN THE SHOPKEEPER LEFT THE BOX
+  // EMPTY, AND THAT IS THE RULING RATHER THAN AN OPTIMISATION. A `price_list`
+  // row of zero is a price the owner SET and sells at; no row is a question
+  // nobody has answered — C3.12 makes them render differently on purpose, and
+  // posting `0.000000` here would quietly answer the question on his behalf at
+  // the one moment he deliberately declined to.
+  //
+  // ⚠️ WHAT NO INSTRUMENT IN THIS REPOSITORY CAN SEE (`R9`), named here rather
+  // than left to be discovered: that this branch posts TWO rows and not three.
+  // No suite can load this file, and the contract check builds its own bodies
+  // out of the column lists rather than calling this function — so *the app
+  // omits the price row* is checkable only by creating a product with an empty
+  // price on a real phone and seeing C3.12's dash under it. Routed to `5e-ii`,
+  // where the owner has the form in his hand.
+  if (perBase !== null) {
+    const { error } = await supabase
+      .from(PRICE)
+      .insert(priceRow(workspaceId, variantId, perBase, isoDay(now)))
+      .select(INSERT_RETURNING)
+      .single();
+    if (error) {
+      return { ok: false, failed: PRICE, familyId, variantId, error: reported(error) };
+    }
   }
 
-  return { ok: true, familyId, variantId };
+  return { ok: true, familyId, variantId, priced: perBase !== null };
 }
 
 /**

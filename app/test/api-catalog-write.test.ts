@@ -13,6 +13,8 @@ import {
   familiesFrom,
   familyRow,
   parsePesos,
+  noPriceNoticeKey,
+  priceOmitted,
   priceRow,
   pricePerBase,
   retryDraft,
@@ -359,8 +361,7 @@ describe('the four fields, before Postgres is asked', () => {
       'familyMissing',
     );
     expect(checkProduct(draft({ unitCode: 'arroba' }), ENTRIES, FACTORS)).toBe('unitMissing');
-    expect(checkProduct(draft({ pricePesos: '' }), ENTRIES, FACTORS)).toBe('priceMissing');
-    expect(checkProduct(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBe('priceMissing');
+    expect(checkProduct(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBe('priceUnreadable');
   });
 
   it('takes a new family by name, with no id', () => {
@@ -388,6 +389,116 @@ describe('the four fields, before Postgres is asked', () => {
     const issue = checkProduct(draft({ name: '' }), ENTRIES, FACTORS);
     expect(issue).not.toBeNull();
     expect(ES.catalog.issues[issue as keyof typeof ES.catalog.issues]).toBeTypeOf('string');
+  });
+});
+
+describe('a product with no price — the owner\'s ruling of 2026-09-22', () => {
+  // ⚠️⚠️ THE RULING REVERSED WHAT `5e-i` SHIPPED THAT MORNING. The price was
+  // REQUIRED, on the reading that C8.9 lists it among the four fields; the owner
+  // overrode it — *"allow the user to create a product without a sell nor
+  // purchasing price, but highlight he's doing so"* — which is the smaller,
+  // kinder thing, and the sixth time on this project he has taken it.
+  it('lets an empty price box through', () => {
+    for (const typed of ['', '   ', '$', ' $ ']) {
+      expect(checkProduct(draft({ pricePesos: typed }), ENTRIES, FACTORS)).toBeNull();
+    }
+  });
+
+  // ⚠️ EMPTY AND UNREADABLE ARE NOW TWO FACTS, AND BEFORE THE RULING THEY WERE
+  // ONE. A box with `gratis` in it is still a refusal: a price this app guessed
+  // at is a price the shop charges.
+  it('still refuses a box holding something that is not a price', () => {
+    for (const typed of ['gratis', 'abc', '3e2', '35.555', '-5']) {
+      expect(priceOmitted(typed)).toBe(false);
+      expect(checkProduct(draft({ pricePesos: typed }), ENTRIES, FACTORS)).toBe('priceUnreadable');
+    }
+  });
+
+  // ⚠️⚠️ `priceOmitted` AND `parsePesos` MUST AGREE ABOUT WHAT *EMPTY* MEANS,
+  // which is why one function does the cleaning for both. If they disagreed,
+  // `checkProduct` would let a draft through that `createProduct` then treated
+  // as a bug — or the reverse, and a shopkeeper would be refused a product the
+  // owner ruled he may create.
+  it('agrees with parsePesos about which boxes are empty', () => {
+    for (const typed of ['', '  ', '$', ' , ', '35', '0', 'abc', '$1,234.50']) {
+      if (priceOmitted(typed)) expect(parsePesos(typed)).toBeNull();
+    }
+    expect(priceOmitted('0')).toBe(false);
+    expect(parsePesos('0')).toBe(0);
+  });
+
+  // ⚠️⚠️ `$0.00` AND NO PRICE ARE NOT THE SAME PRODUCT — C3.12, and it is the
+  // reason the third row is omitted rather than posted as zero. A zero is a
+  // price the owner SET and sells at; no row is a question nobody has answered.
+  it('treats a typed zero as a price, not as an omission', () => {
+    expect(priceOmitted('0')).toBe(false);
+    expect(noPriceNoticeKey(draft({ pricePesos: '0' }), ENTRIES, FACTORS)).toBeNull();
+    expect(checkProduct(draft({ pricePesos: '0' }), ENTRIES, FACTORS)).toBeNull();
+    expect(pricePerBase(0, FACTORS.kg)).toBe('0.000000');
+  });
+
+  it('says something only when the price is the thing that is missing', () => {
+    expect(noPriceNoticeKey(draft({ pricePesos: '' }), ENTRIES, FACTORS)).toBe('noPrice');
+    expect(noPriceNoticeKey(draft({ pricePesos: '  ' }), ENTRIES, FACTORS)).toBe('noPrice');
+    expect(noPriceNoticeKey(draft(), ENTRIES, FACTORS)).toBeNull();
+    expect(noPriceNoticeKey(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBeNull();
+  });
+
+  // ⚠️⚠️ THE PRICE BOX STARTS EMPTY, so a notice keyed on emptiness ALONE would
+  // be on screen before a single character is typed — a warning about a product
+  // that does not exist yet, on every visit, which is how a shopkeeper learns to
+  // read past it. It appears when the sentence becomes TRUE, which is why the
+  // sentence is in the future tense.
+  it('stays quiet until the rest of the draft is one the database would accept', () => {
+    const bare: ProductDraft = {
+      name: '',
+      familyId: null,
+      familyName: '',
+      unitCode: '',
+      pricePesos: '',
+    };
+    expect(noPriceNoticeKey(bare, ENTRIES, FACTORS)).toBeNull();
+    expect(noPriceNoticeKey({ ...bare, name: 'Muslo' }, ENTRIES, FACTORS)).toBeNull();
+    expect(
+      noPriceNoticeKey({ ...bare, name: 'Muslo', familyName: 'Pollo' }, ENTRIES, FACTORS),
+    ).toBeNull();
+    expect(
+      noPriceNoticeKey(
+        { ...bare, name: 'Muslo', familyName: 'Pollo', unitCode: 'kg' },
+        ENTRIES,
+        FACTORS,
+      ),
+    ).toBe('noPrice');
+  });
+
+  // ⚠️ A REFUSAL OUTRANKS IT, and it falls out of asking `checkProduct` first
+  // rather than being a second rule: a name the shop already uses is something
+  // he must fix, and stacking "and by the way there is no price" under it is two
+  // messages about one box.
+  it('says nothing while a refusal is standing', () => {
+    expect(
+      noPriceNoticeKey(draft({ name: 'Pierna', pricePesos: '' }), ENTRIES, FACTORS),
+    ).toBeNull();
+    expect(checkProduct(draft({ name: 'Pierna', pricePesos: '' }), ENTRIES, FACTORS)).toBe(
+      'duplicate',
+    );
+  });
+
+  // ⚠️ IT ANSWERS A KEY AND NEVER A SENTENCE (`R4`), the shape `checkProduct`
+  // and `emptyLineKey` already use.
+  it('answers a key of ES.catalog.notice', () => {
+    const key = noPriceNoticeKey(draft({ pricePesos: '' }), ENTRIES, FACTORS);
+    expect(key).not.toBeNull();
+    expect(ES.catalog.notice[key as keyof typeof ES.catalog.notice]).toBeTypeOf('string');
+  });
+
+  // ⚠️⚠️ THE SENTENCE NAMES THE CONSEQUENCE AND NOT THE STATE, which is the
+  // owner's own point: C3.12 is his earlier ruling that a transaction cannot be
+  // concreted without a price, so what he cannot see from this form is that
+  // Vender and Comprar will both stop and ask him.
+  it('tells him what it will cost at the counter, not what he just typed', () => {
+    expect(ES.catalog.notice.noPrice).toMatch(/compres/);
+    expect(ES.catalog.notice.noPrice).toMatch(/vendas/);
   });
 });
 
