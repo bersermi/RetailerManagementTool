@@ -728,3 +728,164 @@ exists to apply**, which is exactly what a sizing session should leave behind.
 | **2** | ⚠️ **The catalog read goes first, before any screen** | It is the only piece with a right answer, `5b-i` set the precedent, and both remaining screens read it. The alternative — draw the list first against invented data — is what `R3` exists to refuse | One plan edit |
 | **3** | ⚠️ **`Productos` is shown to EVERY member, not manager-and-above** | Measurement 1 above: the SELECT policies admit any member, and a cashier already sees every variant and its price on Vender (C3.1). Hiding the read would protect nothing and cost a fence to maintain | One condition in `5d-ii` |
 | **4** | **The `5d-ii` door onto Inicio is temporary and says so in its own file** | `5d-iv` places it properly, and the placeholder-with-a-name-in-it shape is what `5a-ii` used and `5b-ii-a` cleaned up | One line |
+
+---
+
+## Sixth cut — taken 2026-09-23, before the session that wrote it cleared its context
+
+⚠️⚠️ **THIS ONE WAS TAKEN FOR THE NEXT SESSION RATHER THAN FOR THIS FILE.** `##
+Position` stood at **1,399 lines against its 1,400 ceiling** once the day's three
+`5e-ii` entries were recorded — **one line of headroom, which the next session's first
+status-log entry would have spent**, turning `plan-handover.sh` red on a tree with
+nothing wrong with it. The owner asked whether it was safe to clear context; it was
+not, and this is what made it so.
+
+⚠️ **`5d-i` is the entry — the catalog READ, which opened the work `5e` writes
+against.** It was the oldest left in the block after the fourth and fifth cuts took
+`5b.9` and the `5d` sizing, and like both of those it came off the FOOT of Position
+rather than its head.
+
+⚠️ **A MOVE AND NOT A COPY**: the lines below are gone from `docs/PLAN.md`, and
+`plan-corpus.sh` is what makes `| **5d-i** |` resolve out of this file as it did out
+of that one.
+
+✅✅ **`5d-i` IS DONE AS OF 2026-09-22 — THE APP CAN READ WHAT THE SHOP SELLS,
+AND `5d-ii` IS THE NEXT TASK: THE FIRST SCREEN OF THE SHOP ITSELF.** Four applied
+tables that no line in `app/` had ever read, one round trip, no screen and no
+migration.
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING IS VISIBLE AND NOTHING WILL BE UNTIL
+`5d-ii`.** This ships a module, a hook, a suite and a check. The owner cannot
+look at any of it, which is exactly why it was split off from the three children
+that end on his phone.
+
+**THE FIVE RULES THAT WOULD HAVE GONE IN WRONG SILENTLY, each now an assertion:**
+
+| | The rule | What getting it wrong costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **EVERY NUMERIC IS ASKED FOR AS `::text`** | PostgREST sends a bare `numeric` as a JSON NUMBER and `JSON.parse` makes it a double: `0.035 * 1000` is `35.000000000000004` here. `@tienda/money`'s `parseDecimal` **refuses a number argument outright**, so the failure is not a wrong price — it is EVERY price becoming a dash, with the typecheck, the suite and the bundler all green. The contract check reads the JSON TYPE off the wire, which no string-matching check could do |
+| **2** | ⚠️⚠️ **THE PRICE WINDOW LIVES IN THE QUERY AND NOWHERE ELSE** | `price_list` is a dated range table, so *"which price is today's"* is a predicate. A second copy in TypeScript would be a second answer; instead the check drives an EXPIRED row and a FUTURE row past a real PostgREST and asserts neither comes back. ⚠️ **And the obvious one-filter spelling does not work**: `valid_period=cs.<date>` on the generated `daterange` is `400 22P02 malformed range literal`, measured — a later session will try it, so the refusal is an assertion rather than a comment |
+| **3** | ⚠️ **A PRICE IS CONVERTED WITH THE LEDGER'S OWN ARITHMETIC** | `price_per_base` is per BASE unit and a shopkeeper reads per PRICE unit (C3.10, and `0016`'s own *"quoted per 100 g is a §2.8 presentation concern"*). The conversion asks what one price unit weighs — the factor, at the scale every `qty_base` column holds — and prices a line of exactly that quantity with `lineAnchorCentavos`. Rounding in floats, or with `Math.round`, disagrees with Postgres on a tie |
+| **4** | ⚠️⚠️ **`$0.00` AND A DASH ARE DIFFERENT FACTS** | C3.12 and C3.14: a zero is a price the owner set and sells at, a dash is a question nobody has answered. Rendering them alike is the Power Apps screen's own defect, named in the interview |
+| **5** | ⚠️ **AN UNKNOWN UNIT IS A DASH, NEVER A GUESS OF `1`** | Reading `kg` as a gram divides a shelf price by a thousand and looks entirely plausible. Same shape as `5c-iv-b`'s rule about a line it cannot price |
+
+⚠️⚠️ **AND IT FOUND A DISAGREEMENT BETWEEN TWO OF THE OWNER'S OWN CONSTRAINTS,
+WHICH IS WORTH MORE THAN THE MODULE.** **C3.10 writes its examples as `$35.00 / kg`
+and C12.2 says centavos are HIDDEN WHEN ZERO.** Both came out of the same
+interview. The later, narrower rule wins — C12.2 is about how a number is
+written, has a formatter and twenty-six assertions behind it, and C3.10's point
+is that the UNIT is never absent — so the app renders **`$35 / kg`**, and
+`$35.50 / kg` when there are centavos. ⚠️ **It is a shopkeeper-visible choice
+taken on the owner's behalf and it is one line to reverse**; the suite pins both
+spellings so the reversal cannot be silent.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/api/catalog.ts` | the contract: four column lists, the composite-FK embed, the window filters, the price arithmetic, the initials, the search key |
+| `app/test/api-catalog.test.ts` | **58 tests**, including C3.10's three examples and the accent-folding search |
+| `app/src/api/calls.ts` | two reads — `catalogVariants` (one round trip) and `catalogUnits` |
+| `app/src/api/hooks.ts` | `useCatalog(typed)`: three queries, the location rule, and its own stale times |
+| `app/src/strings.ts` | `ES.units` — the ten codes as a shopkeeper reads them (`250g` is *250 gr*) — and `ES.catalog` |
+| `docs/checks/5d-i-catalog-contract.sh` | **12 assertion groups over real HTTP**, with a real shop, a cashier and the shop next door |
+| `docs/checks/5d-i-catalog-contract-falsify.sh` | **13 fixtures**, two of which narrow an applied POLICY and put it back |
+| `.github/workflows/db.yml`, `docs/CONVENTIONS.md` | the two new steps, their `paths:` entries, and `R12`'s twelfth module |
+
+⚠️ **THE VERIFICATION, NAMED.** `bash docs/checks/5d-i-catalog-contract.sh` is
+**12 of 12 green against a reset local database** — the embed across the
+composite FK, both numerics as JSON strings, the window with an expired and a
+future row behind it, a variant with no price still in the list, both price
+scopes on one read, `valid_period=cs.` still a 400, a **cashier reading all three
+products and every shelf price**, the shop next door reading zero, ten units at
+scale 6, and the order the database itself applies with accents in it.
+`bash docs/checks/5d-i-catalog-contract-falsify.sh` is **13 of 13**, including
+`H9`/`H10`, which NARROW `product_variant_select` and `price_list_select` to
+manager and restore them. `npm run test --workspace @tienda/app` is **669 tests
+over 29 files**, `npm run typecheck` clean, `bash docs/checks/conventions-gate.sh`
+**16 groups over 54 source and 29 test files**, and its falsifier 30 fixtures.
+⚠️ **Not one of those numbers has seen a pixel.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | ⚠️⚠️ **`$35 / kg` rather than `$35.00 / kg`** | C12.2 against C3.10, above. The number rule is the narrower and the better-instrumented of the two | One line in `priceLabel`, and the suite pins both |
+| **2** | ⚠️ **The search folds accents; the KEY does not** | `0002` refuses to fold in `normalize_name` — *"Plátano and Platano being distinct is acceptable"* — and ends the same paragraph with **"search-time folding belongs in the query."** So typing `platano` finds `Plátano` and nothing about uniqueness moves. ⚠️ It folds with a seven-letter table rather than `String.normalize('NFD')`, because Hermes' Unicode surface is unmeasured here and the last assumed method crashed the app on the owner's phone | One function |
+| **3** | ⚠️ **A store's own price beats the shop-wide one, and one location means that store** | `price_list` allows both scopes on purpose. C1.5 makes both pilot shops one location each, so this is exact today; with two stores the shop-wide price is used until something tells this phone which store it is in. ⚠️ **ADR-035 §3 STRUCK *"how the client resolves its location_id"*** rather than deferring it, so there is no task to route this to and the limit is written into the hook | One argument |
+| **4** | **The window is the query's only home** | Rule 2 above. A defensive re-check in TypeScript is the two-homes defect this repository has recorded six of | One function |
+| **5** | **Inactive variants are dropped in TypeScript, not in the query** | The policy does not filter, so it is a DECISION, and a decision belongs where the suite can read it — the arrangement `members.ts` already made for a deactivated colleague | One line |
+
+---
+
+## Seventh cut — taken 2026-09-23, with the sixth, so the NEXT session has room to work
+
+⚠️⚠️ **THE SIXTH CUT BOUGHT ONE ENTRY OF HEADROOM AND THAT WAS NOT ENOUGH.** It left
+`## Position` at 1,334 of 1,400 — about the size of one status-log entry, which means
+the session after next would have hit the ceiling mid-task. **Two cuts were taken
+together rather than one**, deliberately, because the lesson of this whole day is that
+leaving a single entry of room is how a guard fires on somebody who has done nothing
+wrong.
+
+⚠️ **The entry is ADR-035 §2.8's Home row being amended in both halves** — the owner's
+ruling of 2026-09-22 that Inicio shows no 48-hour expiry block and that the dead-letter
+banner is *Home only*. ⚠️ **The RULINGS themselves are not archived with it**: they live
+in the decisions block at the top of `## Position`, which is never archived, and in
+ADR-035 §2.8 itself. What moved here is the record of the day they were applied.
+
+⚠️ **A MOVE AND NOT A COPY**: the lines below are gone from `docs/PLAN.md`, and
+`plan-corpus.sh` is what makes those rows resolve out of this file as before.
+
+✅✅ **ADR-035 §2.8's HOME ROW IS AMENDED IN BOTH HALVES, RULED 2026-09-22, AND THE
+SECOND HALF CHANGED SHIPPED CODE.** The question was parked that morning with `5d`'s
+sizing and ruled the same day, in two answers.
+
+**(a) *"Let's drop it for the pilot then."*** The 48-hour expiry block is **withdrawn**
+from Inicio — `5d-iv`'s row says *withdrawn* rather than *deferred*, the shape ADR-035
+§3 used when C1.5 killed the shared till. ⚠️ **The cost is unchanged by the ruling and
+is the owner's, taken twice:** `7e`'s derived shelf life needs weeks of the shop's own
+records before it says anything, where a typed date would have worked on day one.
+
+**(b) *"Let's keep it Home Only."*** ⚠️⚠️ **THE THIRD ANSWER, AND NEITHER OF THE TWO
+THE ADR's SENTENCE FRAMED.** §2.8 said permanent failures *"do not appear on Home at
+all"*; `5c-iv-b` had shipped a banner on **every** screen; the ruling is **Inicio and
+nowhere else.** ⚠️ **The reasoning of the old sentence survives and is why the amendment
+is narrow**: what it refused was *"a list they cannot act on"*, and C11.9's banner is a
+count, a value and *avísanos* — no list, no `error_code`, manager-and-above.
+
+⚠️⚠️ **WHAT IT COST IN CODE: ONE CONDITION, AND THE FENCE MOVED IN FRONT OF THE READ.**
+`onHome` and `readsQueue` are in `@/offline/deadLetters` where every other decision about
+this banner lives (`R3`), `showsBanner` takes the route as a fourth argument, and the
+component decides nothing — which it already said about itself. ⚠️ **A phone standing on
+Vender no longer opens the outbox at all**, which is the same correctness argument the
+role fence carried, now true of the route.
+
+⚠️ **AND THE DISMISSAL STILL SURVIVES LEAVING HOME**, because the banner is mounted at
+the ROOT rather than inside Inicio. Moving the mount into the screen would have been the
+obvious way to do *Home only* and would have quietly undone the one rule `5c-iv-b`
+argued hardest for: silence until the count changes, not until the next navigation.
+
+⚠️⚠️ **WHAT THIS RULING DOES NOT DISCHARGE, SAID PLAINLY BECAUSE A BANNER MAKES IT FEEL
+HANDLED: §8's alerting destination and its owner are still due before the pilot ends.**
+§2.8's promise was that dead letters reach US, through §2.10's nightly check. During the
+pilot the only thing standing in for that is the schema owner being in the shop (§5).
+
+**What shipped:**
+
+| | |
+|---|---|
+| `docs/adr/ADR-035…md` | a revision entry, the Home row, and the *"where failures surface"* paragraph — both halves, struck in place |
+| `app/src/offline/deadLetters.ts` | `HOME_ROUTE`, `onHome`, `readsQueue`, and the fourth argument to `showsBanner` |
+| `app/src/offline/DeadLetterBanner.tsx`, `app/src/app/_layout.tsx` | the route fence read before the queue, and two comments that claimed *every screen* |
+| `app/test/offline-dead-letters.test.ts` | **four new assertions**: it draws on Inicio, on none of the five other routes, not on an unknown one, and does not open the queue anywhere else |
+| `docs/PLAN.md`, `docs/HANDBOOK.md` | this entry, the empty decisions table, and four rows — `5d-iv`, `5c-iv-b`, `5f` and the handbook's |
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` is **673 tests over
+29 files** (four new), `npm run typecheck` clean, `bash docs/checks/conventions-gate.sh`
+**16 groups over 54 source and 29 test files**, `bash docs/checks/split-coverage.sh --all`
+green over twelve specs, `plan-handover.sh` and `handbook-agreement.sh` green with the
+table empty. ⚠️⚠️ **AND NOT ONE OF THOSE LOOKED AT A SCREEN.** §2.11 keeps rendering out
+of scope, so *"the banner is on Inicio"* is held by `onHome`'s four assertions and by
+nobody's eye — **and it cannot be looked at yet either**: nothing in this app enqueues
+until `5f` exists, so the queue is empty on every phone today. `5f`'s row carries the two
+look-questions that remain — size and words — and no longer carries placement.
