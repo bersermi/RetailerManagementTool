@@ -1,0 +1,62 @@
+# 5e — Productos, write. Sized M/L and split in three on 2026-09-22, on the day it
+# was taken and before a line of it was written. The row carried M/L and told the
+# next session, in its own first sentence, to size it again — the eighth split in
+# step 5 to be taken that way and the eighth that found something.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, and EACH_CHILD_SAYS asserts it POSITIVELY. 0002
+# applied product_family, product_variant and price_list and their six write
+# policies on 2026-08-26; merging is automated, so a child that quietly grows a
+# migration is not a reviewable mistake but a deployed one.
+#
+# THE SEAM, IN ONE LINE: 5e-i is the half a machine can hold and the other two are
+# the half only the owner's eye can. §2.11 keeps rendering out of scope, so nothing
+# here will ever say Agregar or Editar look wrong — but the WRITE is a contract
+# with Postgres and the FENCE on it is a policy a real database either applies or
+# does not, and CREATE POLICY is not even in the knowledge graph. So the first
+# child ships no screen at all: the three rows, the unit fan-out, the inverse of
+# 5d-i's price arithmetic, and a real-HTTP check whose central assertion is that a
+# cashier is refused.
+#
+# ⚠️⚠️ TWO DELIVERABLES WERE NOT IN THE PARENT ROW WHEN IT WAS TAKEN, which is most
+# of what the sizing was worth and is the same finding 5d's sizing made. Costos is
+# assigned to 5e by 5d-iii's row and by nothing in the 5e row — a deliverable held
+# only by a row this one does not read is one context clear from being lost. And
+# Editar was one word: its real subject is tax_rate, pack_size and deactivation,
+# and one of those (enforce_stock, its obvious neighbour) C8.8 forbids outright.
+SPLIT_ID="5e"
+SPLIT_GROUPS=( "5e|5e-i 5e-ii 5e-iii" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare pipe in the regex
+  # field truncates the entry and it fails downstream as a DROPPED deliverable,
+  # which reads exactly like the defect this list exists to catch.
+  "the four-field create turned into rows a database will accept|three rows|5e-i"
+  "C8.10 — one unit written into all four unit columns|C8\.10|5e-i"
+  "the typed peso figure written back as a per-base price|price_per_base|5e-i"
+  "the family proposed from what the shopkeeper has typed|SUGGESTED FROM THE TYPED NAME|5e-i"
+  "the order of the three writes, and what a half-done create leaves|partial failure|5e-i"
+  "the duplicate-name refusal, as a sentence rather than a code|23505|5e-i"
+  "the contract check over real HTTP — the only instrument the fence gets|5e-i-catalog-write-contract|5e-i"
+  "C8.9's four fields and nothing else|C8\.9|5e-ii"
+  "the suggestion overridden by a gesture, and a family created in place|gesture|5e-ii"
+  "the three entry points C8.12 names|C8\.12|5e-ii"
+  "the manager fence drawn rather than refused silently|never shown the control|5e-ii"
+  "Editar, and everything the four-field form pushed behind it|Editar|5e-iii"
+  "the price change, and the dated window price_list holds it to|dated window|5e-iii"
+  "the tax rate and the pack size, set once and never guessed|tax_rate|5e-iii"
+  "deactivation rather than deletion — neither table has a delete policy|is_active|5e-iii"
+  # ⚠️ NOT IN THE PARENT ROW UNTIL THIS SIZING PUT IT THERE. It was 5e's by
+  # 5d-iii's row alone, which is the shape 5d's Inicio had: a deliverable whose
+  # only home is a row nobody looking at this task would read.
+  "what becomes of Costos, the third button 5d-iii shipped dead|Costos|5e-iii"
+)
+PHRASES=(
+  "5e-i|F|NO SCREEN, NO COMPONENT AND NO PRIMITIVE|5h.5 owns src/ui/ and comes after the screens that would justify a primitive. The owner refused ten primitives guessed at against undrawn screens on 2026-09-13, and a primitive invented in the one child that draws nothing is that refusal broken in the cheapest place to break it. It is also what keeps this child fully checkable: everything it ships has a right answer a node suite can read."
+  "5e-i|F|A CASHIER IS REFUSED|The manager fence is an RLS policy, and nothing in TypeScript has ever read one — CREATE POLICY is not even indexed in the knowledge graph. RLS is also bypassed by the postgres superuser, so a check that does not set role authenticated passes vacuously. This is the only instrument in the repository that can say the fence is still there, and if a later migration widens product_variant_insert it is the only thing that goes red."
+  "5e-ii|F|DELIBERATELY INCOMPLETE|C8.2 is why Agregar is pilot-critical rather than a nicety: the owner seeds the catalog himself and seeds it short on purpose, so the first product this shop creates is created on this form by a shopkeeper with nobody watching. A row that forgets this reads Agregar as an admin convenience and defers it."
+  "5e-ii|F|never shown the control|product_variant_insert and product_family_insert are has_role(manager) in 0002 and the refusal is a bare 42501 with no sentence of its own. A control that looks live and refuses silently is the shape shift-cover-is-a-reassignment records, and it is what 5d-iii already chose against for the same three buttons."
+  "5e-iii|F|refuses a zero-length range|price_list is a dated range table under an exclusion constraint. Closing the row in force at today and opening a new one is the ordinary path; a SECOND change on the same day makes effective_to equal effective_from, which price_list_range_ordered refuses, so the row in force must be updated instead. A screen that knew only the first branch would work all day and fail the second time a shopkeeper corrected a price."
+  "5e-iii|F|C8.8|enforce_stock is the one switch a pilot screen may never expose, and Editar is the only screen that would ever have been tempted to offer it — C8.6 guarantees permanent drift in both directions, so turning it on breaks the polleria at the counter in front of a customer."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|0002 applied these three tables and their six write policies on 2026-08-26, and nothing in this split reopens the schema. A POSITIVE assertion because merging is automated: a child that quietly grew a migration is repaired only by a fix-forward migration, never by an edit."
+)

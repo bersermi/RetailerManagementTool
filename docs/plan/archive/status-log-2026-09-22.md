@@ -277,3 +277,106 @@ commit. **That is what this paragraph is for.**
 | `docs/PLAN.md` | the sizing, the two child rows, this entry |
 | `docs/HANDBOOK.md` | the parent described as split, two child rows in plain words |
 | `app/package.json` | ⚠️ **the only line that reaches a phone**: `expo-network` in, netinfo out |
+
+---
+
+⚠️⚠️ **SECOND CUT, APPENDED 2026-09-22 — THE SAME DAY, THE SAME FILE, AND THAT
+IS THE RULE RATHER THAN AN EXCEPTION.** `## Position` reached **1,356 lines against
+its 1,400 ceiling** while `5e` was being sized, which leaves the next session no room
+to write its own entry. ⚠️ **The entry below is MOVED, not copied** — two homes
+for one claim is the defect this repository has recorded six of, and
+`split-coverage.sh` fails on *"row appears 2 times"* because it reads the corpus,
+which includes this file. ⚠️ **This file was APPENDED TO rather than renamed or
+twinned**: one working day per file, and a `status-log-2026-09-22b.md` would break
+the rule this file's own header states.
+
+**What this cut adds, keeping the oldest-first order above:** `5c-iv-a`, the quiet
+offline notice and the reconnect toast — the first thing in this project a
+shopkeeper can see about being offline.
+
+✅✅ **`5c-iv-a` IS DONE AS OF 2026-09-22 — THE APP ADMITS IT QUIETLY, AND THE
+SIGNAL SHIPPED THIS MORNING HAS ITS FIRST READER. `5c-iv-b` IS THE NEXT TASK, AND
+IT IS THE LAST CHILD OF `5c`.** No migration. **The first thing in this project a
+shopkeeper can actually see about being offline.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING IN THIS REPOSITORY CAN LOOK AT WHETHER
+IT IS SMALL, QUIET OR OUT OF THE WAY.** §2.11 keeps rendering, navigation and
+layout out of scope. What a suite CAN hold is every **rule** the two surfaces
+obey, and that is why `@/offline/notice` is a pure `(state, event, now)` machine
+and the `.tsx` beside it holds a `View`, a `Text` and an opacity with no judgement
+in it. **The rest is `R9` and it goes to the owner's phone.**
+
+**THE THREE RULES THAT WOULD HAVE GONE IN WRONG SILENTLY, each now an assertion:**
+
+| | The rule | What getting it wrong costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **A dismissal is keyed to the SCREEN it was made on and dies with it** — C10.1's *"surfacing on screen changes"*, which is five words and the whole design | A session-long dismissal is kinder for ten seconds and **wrong for the rest of the day**: a shop that brushed the notice away at 9am is not told it is offline at 4pm. **Four assertions**: it dies on navigation, it survives a re-render on the same screen, and it is **not carried into the next outage** |
+| **2** | ⚠️⚠️ **The toast never fires at launch** — `null → true` is the first reading of a session, not a reconnect | *"Tus últimas operaciones ya se guardaron"* said to somebody who never saw them at risk, **on every single launch**. This is the whole of why `UNKNOWN` is a third state and not `false`; `5c-ii-b-2` took that decision for the drain and this is the half that pays for it |
+| **3** | ⚠️ **An outage cancels a toast in flight** | By then the toast is lying: it says the last operations are saved and the next one will not be |
+
+⚠️ **AND ONE DECISION THAT LOOKS LIKE TASTE AND IS NOT: THE NOTICE CARRIES NO
+STATE COLOUR AT ALL.** §2.11's palette row fences `atencion` to C3.17 alone —
+*falta precio* and a line priced `$0.00` — and `error` is what DESTROYS. **Being
+offline is the pilot shop's ordinary condition** ([[pilot-store-is-offline-a-lot]]),
+and a warning colour on a condition that holds half the day teaches a shopkeeper
+to stop seeing warning colours. Muted ink on a surface with a line round it is
+the quiet C10.1 asks for, and **minting a new palette role would have been an ADR
+amendment for a notice whose entire requirement is to be unobtrusive.** ⚠️ *Never
+colour alone* is satisfied by construction here rather than by care: the word is
+doing all the work because the colour is doing none.
+
+⚠️ **THE MOTION RULE IS OBEYED IN BOTH HALVES, AND THE SECOND HALF IS THE ONE
+THAT IS USUALLY MISSED.** §2.11 says `transform` and `opacity` only — and
+`useNativeDriver: true` is what actually keeps the fade off the JS thread. **An
+opacity animation without it is the rule obeyed in the letter on the two low-end
+Androids it was written for.**
+
+⚠️⚠️ **IT TIGHTENED A GUARD THIS MORNING'S TASK SHIPPED, AND THE GUARD WAS RIGHT
+TO FIRE.** `5c-ii-b-2` pinned *"one driver of the connectivity machine"* by
+matching every import of `@/api/connectivity`. `@/offline/notice` needs the
+`Online` type and nothing else, so it went red on `import type` — **a line
+TypeScript erases, which cannot call `step`, cannot hold state and cannot
+disagree with anything.** ✅ The assertion now reads **value imports only**, and
+the word `type` must follow `import` directly so that `import { type Conn, step }`
+still counts. **Falsified three ways** — a plain value import 🔴, an inline-type
+import that also takes a value 🔴, an `import type` line 🟢. ⚠️ **The reason to
+fix the guard rather than the file is that the cheap alternative was worse**: a
+red on an erased line teaches the next person to loosen it, and the version they
+reach for is the one that stops reading imports at all.
+
+⚠️ **WHERE A NON-ROUTE COMPONENT LIVES WAS DECIDED RATHER THAN INVENTED.**
+`src/offline/` — **not** under `src/app/` (Expo Router makes every file there a
+navigable URL, the reason `Pendiente.tsx` already records) and **not** `src/ui/`
+(§2.11's ten primitives and `5h.5`'s conventions pass come after there is a
+pattern to describe, and ADR-035 §3 gives that directory to `5d`–`5h`). **A
+`Banner` primitive built here would be the thing the owner refused on
+2026-09-13 — *"ten primitives guessed at against screens nobody has drawn"* —
+arriving four tasks early.**
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/offline/notice.ts` | the pure machine: the dismissal's lifetime, what counts as a reconnect, the toast's own, and the fade derived from it rather than stored beside it |
+| `app/src/offline/OfflineSurfaces.tsx` | **the first non-route component in this app that is not scaffolding** — and `subscribe()`'s first caller |
+| `app/src/app/_layout.tsx` | the `Stack` wrapped so the surfaces overlay every screen **without any screen knowing** — which is what "on screen changes" needs and what putting the notice inside each screen would have cost |
+| `app/src/strings.ts` | two sentences, and ⚠️ **`offline.notice` is deliberately NOT `api.errors.offline`** — that one ends *"Intenta de nuevo en un momento"* and is an instruction to somebody waiting on a call; this one never blocks anything, so telling a shop to retry a sale that was never at risk would be wrong |
+| `app/test/offline-notice.test.ts` | 15 assertions over every rule above |
+| `app/test/auth-errors.test.ts` | the driver assertion tightened to value imports |
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` — **582
+assertions over 27 files, up from 567 over 26** — plus `npm run typecheck` and
+`bash docs/checks/conventions-gate.sh` (16 groups over **51** source and 27 test
+files, up from 49/26). ⚠️⚠️ **And the thing a green run here does NOT mean is
+written down rather than left to be assumed**: not one of those assertions has
+seen a pixel. **The instrument for how this looks is the owner's phone.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — no migration, no schema:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **The notice is a pill at the bottom, dismissed by tapping it anywhere** | C10.1 says *"easily dismissed"*; a close cross is a small target for an older thumb, and the whole pill is `scale.tapTarget` tall | One component |
+| **2** | **No state colour on it** | See above — `atencion` is fenced, and a warning colour on a half-the-day condition stops being a warning | Two tokens |
+| **3** | **The toast lives 4 s with a 400 ms fade each end** | Long enough to read eight words at arm's length in a bright shop, short enough to be gone before it is in the way. Asserted as a RATIO rather than a number, so the two cannot drift into a toast nobody can read | Two constants |
+| **4** | **`Entendido` is the dismiss label, and it is only ever read by a screen reader** | The pill shows the sentence, not a button word; the label is what `accessibilityLabel` announces, so a person using VoiceOver is told it can be dismissed | One string |
+| **5** | **The surfaces are mounted in the root layout, after the `Stack`** | A sibling earlier in the tree renders underneath it. Mounting per-screen means every screen has to remember — the same argument `Gate` and `Drain` already settled | Delete two lines |
