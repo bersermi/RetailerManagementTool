@@ -18,7 +18,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCatalog, useCreateProduct, useMyRole, useWorkspace } from '@/api/hooks';
 import { catalogLine } from '@/api/catalog';
 import {
-  AVISO_UNIT_RELEASED,
   FAMILY_MIRROR,
   canWriteCatalog,
   checkProduct,
@@ -142,12 +141,7 @@ export default function NuevoProducto() {
   // timing is `@/theme/pulse`'s rather than this file's (`R3`).
   const banner = useRef(new Animated.Value(0)).current;
   const [released, setReleased] = useState(false);
-  // ⚠️⚠️ `released` IS THE BANNER AND THIS IS THE HISTORY, AND THEY ARE NOT THE SAME
-  // FACT. The banner fades after a second; whether the family was EVER released
-  // during this create is what Productos needs to know, and it has to survive that
-  // fade — saving four seconds later must still carry it. ⚠️ A `useRef` and not
-  // state, because nothing on screen depends on it: it is read once, at submit.
-  const everReleased = useRef(false);
+
 
   // ⚠️⚠️ THE FIXED FAMILY'S NAME IS LOOKED UP AND ITS ID IS NOT. `familyId` is
   // what the insert needs and what the route supplied; the name is only ever
@@ -218,10 +212,7 @@ export default function NuevoProducto() {
     const outcome = chooseUnit(choice, code, entries, units);
     setFamily(outcome.family);
     setUnitCode(outcome.unitCode);
-    if (outcome.released) {
-      everReleased.current = true;
-      setReleased(true);
-    }
+    if (outcome.released) setReleased(true);
   }
 
   function pickFamily(option: { readonly id: string; readonly name: string }) {
@@ -264,16 +255,12 @@ export default function NuevoProducto() {
     // pushing a second copy of it, and `?nuevo=` is what makes that list scroll
     // the new product into sight and blink it.
     //
-    // ⚠️⚠️ AND THE RELEASED FAMILY TRAVELS WITH IT. The banner on this form is a
-    // one-second glimpse on a screen that is about to disappear; the owner ruled
-    // that the readable copy belongs on Productos, so the fact goes in the link
-    // rather than being lost with the component that knew it.
-    router.dismissTo({
-      pathname: '/productos',
-      params: everReleased.current
-        ? { nuevo: outcome.variantId, aviso: AVISO_UNIT_RELEASED }
-        : { nuevo: outcome.variantId },
-    });
+    // ⚠️⚠️ AND IT CARRIES ONLY THE NEW PRODUCT. A released family used to travel with
+    // it too, so Productos could show the sentence again and keep it up — and the
+    // owner had that removed on 2026-09-23, the same day it was added: it appeared
+    // when nothing had been released. **The banner now lives only on this screen, for
+    // one second, where the thing it describes actually happens.**
+    router.dismissTo({ pathname: '/productos', params: { nuevo: outcome.variantId } });
   }
 
   return (

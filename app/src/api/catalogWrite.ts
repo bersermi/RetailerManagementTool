@@ -1121,36 +1121,3 @@ export function chooseFamily(
   }
   return { family, unitCode: preselect, released: false };
 }
-
-// ----------------------------------------------------------------------------
-// WHAT THE FORM TELLS THE CATALOG ON ITS WAY OUT. Plan task `5e-ii`, 2026-09-23.
-// ----------------------------------------------------------------------------
-
-/**
- * The one thing a create can need to say on the screen it lands on.
- *
- * ⚠️⚠️ IT TRAVELS AS A ROUTE PARAMETER AND NOT AS SHARED STATE, and that is the
- * same reason `?nuevo=` does: the form is unmounted by the time Productos renders,
- * so a module-level variable would be a second home for a fact with no owner. The
- * value is a KEY and never a sentence — `R4`'s rule, and the reason a screen cannot
- * invent a message on the way past.
- */
-export const AVISO_UNIT_RELEASED = 'unidad';
-
-/**
- * The sentence Productos shows after a create, or `null` for the ordinary case.
- *
- * ⚠️⚠️ IT IS THE SAME SENTENCE THE FORM FLASHED, AND THAT IS THE RULING RATHER
- * THAN A SHORTCUT. The owner asked for the banner to be *"a second in the form
- * screen"* and to *"persist in the catalog screen once we go back there"* — one
- * message, seen twice, because the form is about to navigate away from it and
- * Productos is not. A second wording would be two answers to *what just happened
- * to my family*.
- *
- * ⚠️ AN UNKNOWN PARAMETER IS SILENCE, not a fallback sentence. A link somebody
- * typed by hand must not be able to put words on a shopkeeper's screen, and a
- * `?aviso=` this version does not know about is exactly that.
- */
-export function avisoLine(aviso: string | undefined): string | null {
-  return aviso === AVISO_UNIT_RELEASED ? ES.catalog.create.unitReleased : null;
-}

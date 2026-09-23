@@ -806,21 +806,6 @@ export const ES = {
     /** The room's name — the module word, never translated (see this file's header). */
     title: 'Productos',
     /**
-     * ⚠️⚠️ THE RELEASED-FAMILY BANNER, SHOWN ON *THIS* SCREEN AND NOT ONLY ON THE
-     * FORM — ruled 2026-09-23. The form flashes it for a second and then saves and
-     * leaves, which is not long enough to read a sentence a shopkeeper has never
-     * seen; so the fact travels with the create (`?aviso=unidad`) and **persists
-     * here**, where nothing is about to navigate away from it. His words: *"show
-     * the banner for a second in the form screen but it should persist in the
-     * catalog screen once we go back there."*
-     *
-     * ⚠️ IT IS THE SAME SENTENCE AS `create.unitReleased` AND IS DELIBERATELY NOT A
-     * SECOND COPY OF IT — `ES.catalog.create.unitReleased` is the one home, and
-     * this comment is here so the next person looks there rather than writing a
-     * variant of it.
-     */
-    avisoDismiss: 'Entendido',
-    /**
      * The way back out. ⚠️ *Volver* and not *Cerrar*: this is a screen you went
      * INTO, where `Ajustes` and `Solicitudes` are sheets you came back FROM.
      */

@@ -1,12 +1,12 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 import { Animated, FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
-import { avisoLine, canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
+import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
 import { pulseSequence } from '@/theme/pulse';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -109,19 +109,24 @@ export default function Productos() {
   // ⚠️ THE PRODUCT JUST CREATED ARRIVES AS A ROUTE PARAMETER, not as state this
   // screen kept: it was unmounted-or-not while the form was open, and a variable
   // here would be empty on the path where the form replaced it.
-  const { nuevo, aviso } = useLocalSearchParams<{ nuevo?: string; aviso?: string }>();
+  const { nuevo } = useLocalSearchParams<{ nuevo?: string }>();
 
-  // ⚠️⚠️ THE RELEASED-FAMILY BANNER PERSISTS HERE, WHICH IS THE WHOLE POINT OF
-  // CARRYING IT — ruled 2026-09-23: *"show the banner for a second in the form
-  // screen but it should persist in the catalog screen once we go back there."* The
-  // form's copy is a one-second glimpse on a screen that is about to disappear;
-  // this one has nothing about to navigate away from it, so it does not fade and
-  // nothing has to be caught. `avisoLine` chooses the sentence (`R3`, `R4`).
-  const [avisoShown, setAvisoShown] = useState(true);
-  const line = avisoShown ? avisoLine(aviso) : null;
+  // ⚠️⚠️ THERE IS NO BANNER ON THIS SCREEN, AND ITS ABSENCE IS A RULING — 2026-09-23,
+  // the same day it was added: *"«Una familia de productos debe tener la misma unidad
+  // de medida» is showing at the top of the catalog, don't know why, let's get rid of
+  // it."* ⚠️ **It appeared when nothing had been released**, and the version that was
+  // removed had a defect that guarantees that whatever else was wrong: the dismissal
+  // was state re-set to `true` on every arrival, so it never stuck — and the `aviso`
+  // parameter could outlive the create that set it. **The banner now lives only on
+  // the form, for one second, where the thing it describes actually happens.**
+  // ⚠️ A future session adding it back inherits both problems; `5f`'s confirmation
+  // animation is the place that question reopens, not this screen.
 
   const rows = catalogRows(entries, typed, mayCreate);
   const list = useRef<FlatList<CatalogRow>>(null);
+  // ⚠️ THE SEARCH BOX ITSELF, because dismissing the keyboard is not the same as
+  // giving up focus — see the effect below.
+  const box = useRef<TextInput>(null);
 
   // ⚠️⚠️ THE SEARCH BOX IS CLEARED FIRST, AND WITHOUT THIS THE WHOLE FEATURE IS
   // POINTLESS. `router.dismissTo` pops back to the Productos ALREADY IN THE STACK
@@ -133,11 +138,16 @@ export default function Productos() {
   useEffect(() => {
     if (nuevo === undefined) return;
     setTyped('');
-    // ⚠️ AND THE KEYBOARD GOES — ruled 2026-09-23. The form dismisses it on its way
-    // out; this is the belt to that braces, because a keyboard still up covers the
-    // bottom of the list and the row that blinks may be under it.
+    // ⚠️⚠️ THE BOX IS BLURRED AND NOT ONLY THE KEYBOARD DISMISSED, AND THAT IS THE
+    // FIX FOR *"the keyboard is not hidding when redirecting to the Product
+    // catalog"*. The cause was not the dismissal — it was that **this screen's search
+    // box never lost focus.** He types a name here, taps the create row, and THIS
+    // COMPONENT STAYS MOUNTED under the pushed form with its `TextInput` still the
+    // focused one; when `dismissTo` pops back, iOS restores the keyboard for it,
+    // after the form's `Keyboard.dismiss()` has already run. **Dismissing a keyboard
+    // whose input is still focused is a keyboard that comes back.**
+    box.current?.blur();
     Keyboard.dismiss();
-    setAvisoShown(true);
   }, [nuevo]);
 
   // ⚠️⚠️ THE SCROLL WAITS FOR THE ROW TO EXIST, AND THAT IS NOT A DETAIL. The
@@ -161,8 +171,7 @@ export default function Productos() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
-      {line === null ? null : <Aviso line={line} onDismiss={() => setAvisoShown(false)} />}
-      <Buscador value={typed} onChange={setTyped} />
+      <Buscador value={typed} onChange={setTyped} box={box} />
 
       <FlatList
         ref={list}
@@ -267,7 +276,15 @@ function Banda() {
  * that exists on both is a labelled one — which is also what C12.1 asks for:
  * never an icon with no word beside it.
  */
-function Buscador({ value, onChange }: { value: string; onChange: (text: string) => void }) {
+function Buscador({
+  value,
+  onChange,
+  box,
+}: {
+  value: string;
+  onChange: (text: string) => void;
+  box: RefObject<TextInput | null>;
+}) {
   const { scale } = useDensity();
   return (
     <View
@@ -298,6 +315,7 @@ function Buscador({ value, onChange }: { value: string; onChange: (text: string)
             the same line, and it is what a person reads first. */}
         <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
         <TextInput
+          ref={box}
           value={value}
           onChangeText={onChange}
           placeholder={ES.catalog.search}
@@ -456,60 +474,6 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
 }
 
 /**
- * The released-family banner, and it is the copy that is actually READ.
- *
- * ⚠️⚠️ IT DOES NOT FADE, AND THAT ABSENCE IS THE RULING. The form flashes the same
- * sentence for a second and then saves and leaves; the owner ruled that the readable
- * copy belongs here, where nothing is about to navigate away from it. So there is no
- * `Animated` value in this component and no timer — and `@/theme/pulse` deliberately
- * exports no timing for it, with an equality over its surface asserting so.
- *
- * ⚠️ IT HAS A WAY OUT, because *persists* cannot mean *for ever* on the one screen a
- * shopkeeper keeps open. **A word and not a cross** (C12.1), and it is the only
- * control on it; it also clears on the next create.
- *
- * ⚠️ `atencionSuave` AND `atencion`: nothing failed and nothing was refused — one
- * field moved under his thumb — so `error` would be a lie about it and
- * `accionSuave` would claim it is tappable in the way an action is. ⚠️ The state is
- * carried by the SENTENCE and not by the colour, which is the rule direction C left
- * behind.
- */
-function Aviso({ line, onDismiss }: { line: string; onDismiss: () => void }) {
-  const { scale } = useDensity();
-  return (
-    <View
-      accessible
-      accessibilityRole="alert"
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.rowGap,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.atencion,
-        backgroundColor: PALETTE.atencionSuave,
-      }}
-    >
-      <Text style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>{line}</Text>
-      <Pressable
-        accessibilityRole="button"
-        onPress={onDismiss}
-        style={{
-          minHeight: scale.tapTarget,
-          justifyContent: 'center',
-          paddingHorizontal: scale.rowGap,
-        }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.atencion }}>
-          {ES.catalog.avisoDismiss}
-        </Text>
-      </Pressable>
-    </View>
-  );
-}
-
-/**
  * The door to making a product, and it is a ROW rather than a button — the
  * owner's ruling of 2026-09-23.
  *
@@ -537,9 +501,14 @@ function Crear({ name }: { name: string }) {
       accessible
       accessibilityRole="button"
       accessibilityLabel={`${ES.catalog.create.row}. ${name}`}
-      onPress={() =>
-        router.push({ pathname: '/producto/nuevo', params: { nombre: name } })
-      }
+      onPress={() => {
+        // ⚠️⚠️ THE KEYBOARD GOES BEFORE THE FORM ARRIVES, AND THIS IS THE CAUSE-SIDE
+        // HALF OF THE FIX. This screen stays mounted under the pushed form; leaving
+        // its search box focused is what brings the keyboard back when the form pops
+        // off again, however carefully the form dismisses it on the way out.
+        Keyboard.dismiss();
+        router.push({ pathname: '/producto/nuevo', params: { nombre: name } });
+      }}
       style={{
         flexDirection: 'row',
         alignItems: 'center',

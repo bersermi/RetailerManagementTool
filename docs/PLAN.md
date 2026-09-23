@@ -262,6 +262,54 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **TWO BUGS FROM THE OWNER'S PHONE, FIXED 2026-09-23, AND ONE OF THEM WAS A
+FEATURE ADDED THE SAME DAY AND REMOVED AGAIN.
+`5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS SUBSTANCE.**
+⚠️ **It ships no migration.**
+
+⚠️⚠️ **BUG 1 — *"the keyboard is not hidding when redirecting to the Product
+catalog"*, AND THE CAUSE WAS NOT THE DISMISSAL.** Both screens already called
+`Keyboard.dismiss()`, the form on its way out and Productos on arrival, and the
+keyboard came back anyway. **Productos' search box never lost FOCUS**: he types a
+name there, taps the create row, and that screen stays MOUNTED under the pushed form
+with its `TextInput` still the focused one — so when `dismissTo` pops back, iOS
+restores the keyboard for it, after both dismissals have already run.
+⚠️ **Dismissing a keyboard whose input is still focused is a keyboard that comes
+back.** Fixed on both sides: the create row calls `Keyboard.dismiss()` before it
+pushes, so nothing is focused while the form is open, and the arrival effect calls
+`box.current?.blur()` as well — which also covers the path in from La Familia, where
+Productos is further down the stack.
+
+⚠️⚠️ **BUG 2 — THE BANNER ON THE CATALOG IS DELETED, ONE DAY AFTER IT WAS ADDED AND
+BY THE SAME PERSON WHO ASKED FOR IT.** *"«Una familia de productos debe tener la
+misma unidad de medida» is showing at the top of the catalog, don't know why, let's
+get rid of it."* **It appeared when nothing had been released.** ⚠️ I could not prove
+the mechanism from the source — whether `dismissTo` merges params into a screen
+already in the stack is not something this repository can answer — **so it is
+recorded as removed rather than as diagnosed.** ⚠️⚠️ **What IS certain is a defect I
+can name: `avisoShown` was `useState(true)` and the arrival effect re-set it to
+`true`, so dismissing it never stuck across a second create**, and a stale `aviso`
+parameter would have been enough on its own. **Removing it removes the class**, and
+that is the whole of the ruling.
+
+⚠️ **WHAT THE REMOVAL COSTS, SAID RATHER THAN HIDDEN: the one-second glimpse on the
+form is now the ONLY copy of that sentence.** That was the hold he specified while a
+persistent copy existed, and the reason he asked for the persistent copy in the first
+place was that a second is not long enough to read eight Spanish words. ⚠️ **It is
+one constant (`BANNER_HOLD_MS`) if he finds it too short** — and it is worth asking,
+because the mount bug fixed earlier the same day means this is the first version in
+which that banner appears at all. ⚠️ **The question is NOT reopened on this screen**:
+`5f`'s confirmation animation is where a persistent notice on a catalog belongs.
+
+⚠️ **VERIFIED:** Vitest **866** — three fewer than the round above, because the three
+`avisoLine` assertions went with the feature they described; `tsc --noEmit` clean;
+`conventions-gate.sh` 16 groups over 61 source and 33 test files;
+`5e-i-catalog-write-contract.sh` 16 of 16 green against a real database; every split
+spec green; `plan-handover.sh` and `handbook-agreement.sh` green. ⚠️ **Nothing was
+left dangling**: the route parameter, `AVISO_UNIT_RELEASED`, `avisoLine`,
+`ES.catalog.avisoDismiss`, the `Aviso` component and the `everReleased` ref are all
+gone, which the typecheck is what confirms.
+
 ✅✅ **`5e-ii` TOOK A SECOND ROUND OF THE OWNER'S NOTES ON 2026-09-23 — FIVE
 ADJUSTMENTS, ONE OF THEM A REAL BUG I SHIPPED, AND ONE THING RECORDED RATHER THAN
 BUILT. `5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS
