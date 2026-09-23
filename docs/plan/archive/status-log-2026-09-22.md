@@ -1086,3 +1086,71 @@ route shape and the `RESTORABLE_ROUTES` omission. **Every one of them is one or
 two lines to reverse**, and the two worth a second look on the phone are the
 mark (decision 1's rule, and whether it reads as *you came from here*) and the
 three dead buttons (decisions 3 and 4 — whether they read as deliberate).
+
+## The TENTH cut, taken 2026-09-23 as `5e-iii-b` closed — the iPhone day, off the FOOT again
+
+⚠️ **ONE ENTRY, AND IT IS THE OLDEST THAT WAS LEFT** — the day the owner took his
+phone back, which is also the entry that armed the `5R-f` gap. `## Position` stood at
+**1,404 lines against its 1,400 ceiling** with `5e-iii-b`'s entry in place, so this came
+off the foot of the block rather than its head, exactly as the fourth, eighth and ninth
+cuts did. ⚠️ **It is MOVED, not copied**, and `plan-corpus.sh` still resolves every
+content-addressed lookup out of this file.
+
+✅✅ **THE OWNER TOOK HIS PHONE BACK ON 2026-09-22, AND A BUILD FOR IT FOUND A
+DEAD POD NOBODY COULD HAVE SEEN.** *"I'm working through my iPhone, deploy it
+there for me to see. Override anything related to the 30 day session check. I
+want to keep working from my device."*
+
+⚠️⚠️ **WHAT THAT RULING COSTS, STATED PLAINLY BECAUSE IT IS NOT RECOVERABLE BY
+TRYING HARDER LATER: THE IPHONE HALF OF THE DAY-30 READING IS SPENT.** Opening
+the app refreshes the session, and he will be opening it daily — so that phone
+can no longer answer *how long does a session survive untouched*. ✅ **The
+reading itself survives, on the instrument sealed for exactly this**: the AVD
+`wera-reading-5a-iv-d`, a different Google account and no provisioning clock,
+powered down since 2026-09-21. **A one-device reading is a weaker claim than a
+two-device one, and it is the claim this project now has.** ⚠️ **The day-8
+answer is unaffected and already in hand** — the session survived eight days on
+both instruments, `last_sign_in_at` unchanged on each.
+
+⚠️ **THREE ROWS WERE AMENDED RATHER THAN DELETED**, because a withdrawn
+obligation that simply vanishes is indistinguishable from one that was dropped:
+the ⏳ **2026-09-27** row keeps its date and loses its reason — it now keeps a
+WORKING APP alive rather than an instrument, and *"do not launch the app"* is
+withdrawn — the ⏳ **2026-10-13** row is now one instrument rather than two, and
+`5a-iv-d`'s task row records the trade.
+
+⚠️⚠️ **AND THE DATE DID NOT MOVE, WHICH WAS MEASURED RATHER THAN ASSUMED.** The
+re-deploy the 2026-09-27 row asks for was done **five days early** — but
+`xcodebuild` **reused profile `4930c966` instead of minting a new one**, read
+off the built bundle's own `embedded.mobileprovision`, so it bought **no extra
+days**: the app stops launching in his hand at `2026-09-27T14:22:11Z` exactly as
+that row said. **A re-deploy is not automatically a new seven days**, and a
+session that assumed it was would have told him he had until October.
+
+⚠️⚠️ **THE FINDING: THE FIRST iOS BUILD SINCE `5c-ii-b` FAILED, AND NOTHING IN
+THIS REPOSITORY COULD HAVE GONE RED.** `5c-ii-b-2` replaced
+`@react-native-community/netinfo` with `expo-network` on 2026-09-22 — the ADR
+§2.11 stack-table row the owner ruled the same day — and the package left
+`node_modules` while **`app/ios/Pods` kept a `react-native-netinfo` target
+pointing at a path that no longer exists**: *"Build input file cannot be found:
+…/netinfo/ios/RNCNetInfo.mm"*. ✅ One `pod install` fixed it. ⚠️⚠️ **WHY NOTHING
+SAW IT: NO WORKFLOW IN THIS REPOSITORY COMPILES THE NATIVE APP.** `app.yml` is a
+typecheck, a Vitest suite and the document guards; `app/ios/` is not even
+committed. **So a native-dependency change is invisible until somebody builds on
+a Mac** — and the phone had been carrying the day-0 build of 2026-09-13 since
+before `5b-iii`, so nobody had. ⚠️ **This is `R9`'s shape one layer below the
+screen**: not *no check can see how it looks*, but *no check can see whether it
+still compiles for a device.* **It cost fifteen minutes today because the owner
+asked for a build; the day it costs more is the day a deadline is on it.**
+
+**What he has, and what it is:** a **Release** build — `main.jsbundle` embedded,
+3.7 MB — so it runs **with no Mac and no Metro**, which is what *working through
+my iPhone* requires. ⚠️ A Debug build asks Metro for its bundle and shows a red
+screen without one; the runsheet has said so since `5a-iv-a` and it is why this
+was built Release rather than with `expo run:ios`.
+
+⚠️ **THE INSTALL IS ARMED RATHER THAN DONE, BECAUSE THE PHONE WAS OFFLINE TO THE
+MAC ALL SESSION** — `devicectl` reported it `unavailable` throughout. The
+built `.app` is signed and waiting; connecting the phone and running
+`devicectl device install app` is a thirty-second step, and the next session
+should check it landed rather than assume it.

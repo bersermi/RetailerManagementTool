@@ -99,14 +99,16 @@
 // that has vanished is not a state this app can produce. Zero rows here means the
 // fence.
 //
-// ⚠️⚠️ AND C3.17 SAYS THE FENCE SHOULD NOT BE THERE AT ALL. *"Any role may change
-// a price, including a cashier"* — with a closing sentence that it is
-// *"client-side only; no schema depends on it"*, which is FALSE against the
-// applied schema and has been since `0002` on 2026-08-26. The contradiction is
-// parked in the plan's decisions block. **This module describes the fence the
-// database applies today**; a ruling that widens it is a migration written
-// against a module that already names it, which is why that question blocks the
-// screen and not this.
+// ⚠️⚠️ AND C3.17 SAID THE FENCE SHOULD NOT BE THERE AT ALL — RULED 2026-09-23,
+// AND THE FENCE STAYS. *"Any role may change a price, including a cashier"*, with
+// a closing sentence that it is *"client-side only; no schema depends on it"*,
+// which was FALSE against the applied schema from `0002` on 2026-08-26. The
+// owner's answer was **"leave the fence as is"**: the database stays
+// manager-and-above on all three `price_list` policies and on
+// `product_variant_update`, and C3.17 has been corrected rather than widened. So
+// **this module describes the fence the database applies today AND the one the
+// owner intends**, which it did not on the day it was written — and `5e-iii-b`
+// draws `Editar` manager-only rather than letting a cashier meet the 200 above.
 // ============================================================================
 
 import { SCALE, formatDecimal, parseDecimal } from '@tienda/money';
@@ -162,6 +164,38 @@ export const PRICE_EDIT_TABLE = PRICE_TABLE;
  * already.
  */
 export const PRICE_EDIT_COLUMNS = 'id,price_per_base::text,location_id,effective_from,effective_to';
+
+/**
+ * The two figures the form has to SHOW before it can let anybody change them —
+ * `5e-iii-b`'s read, and the one column list in this module that exists for
+ * rendering rather than for a write.
+ *
+ * ⚠️⚠️ WITHOUT IT THE IVA BOX IS BLIND, AND A BLIND BOX IS WHERE THIS APP WOULD
+ * HAVE ASKED A SHOPKEEPER TO GUESS. `variantSettings` deliberately sends no
+ * column for a box nobody typed into, so an empty form cannot overwrite
+ * anything — but *what is the IVA on this product right now* is a question the
+ * catalog read cannot answer, because `VARIANT_COLUMNS` in `@/api/catalog`
+ * carries neither column and is paid for on every load of Productos for ~100
+ * products (C8.3). This read is for ONE variant, on the screen that changes it —
+ * `PRICE_EDIT_COLUMNS`' own argument, applied to the other two figures.
+ *
+ * ⚠️ BOTH AS `::text` FOR `PRICE_EDIT_COLUMNS`' REASON: `numeric(5,4)` and
+ * `numeric(14,3)` arrive as JSON numbers otherwise, and `parseDecimal` refuses a
+ * number outright rather than letting a double into the money path.
+ *
+ * ⚠️ `enforce_stock` IS NOT HERE EITHER (C8.8). A column absent from every list
+ * in this module is a column a screen cannot draw by accident — which is what
+ * that constraint needs, since C8.6 guarantees permanent drift in both
+ * directions and this is the one pilot screen that would have offered the switch.
+ */
+export const VARIANT_EDIT_COLUMNS = 'id,tax_rate::text,pack_size::text';
+
+/** One variant's two set-once figures, as `VARIANT_EDIT_COLUMNS` returns them. */
+export interface VariantSettingsRow {
+  readonly id: string;
+  readonly tax_rate: string;
+  readonly pack_size: string;
+}
 
 /**
  * The columns each patch sends — and nothing else.
@@ -272,6 +306,54 @@ export function parsePackSize(typed: string): string | null {
   } catch {
     return null;
   }
+}
+
+/**
+ * `tax_rate` as the shopkeeper's own figure — `0.1600` becomes `16`.
+ *
+ * ⚠️⚠️ IT IS SHOWN BESIDE THE BOX AND NEVER PUT INSIDE IT, WHICH IS THE OWNER'S
+ * RULING OF 2026-09-23 APPLIED TO AN EDIT. *A proposal must not look like a
+ * decision already made* — and a box PREFILLED with the current IVA is worse than
+ * a proposal, because `variantSettings` would then send the column back on a save
+ * the shopkeeper made for a different field entirely. An empty box means *leave it
+ * alone*; this is the fact printed next to it so *leave it alone* is an informed
+ * choice rather than a blind one.
+ *
+ * ⚠️ THE TRAILING ZEROS GO, AND ONLY THOSE. `16.00` is the column's shape and
+ * `16` is the shopkeeper's; `16.50` keeps its half, because trimming that would be
+ * a rate this app rounded on his behalf. ⚠️ An unreadable figure answers `''` and
+ * the screen shows nothing — a row the database could not have stored is ours to
+ * notice, not his ([[users-dont-do-bookkeeping]]).
+ */
+export function taxPercentOf(rate: string): string {
+  try {
+    return trimZeros(formatDecimal(parseDecimal(rate, SCALE.rate), PERCENT_SCALE));
+  } catch {
+    return '';
+  }
+}
+
+/** `pack_size` as the shopkeeper's own figure — `24.000` becomes `24`. See above. */
+export function packSizeOf(size: string): string {
+  try {
+    return trimZeros(formatDecimal(parseDecimal(size, SCALE.quantity), SCALE.quantity));
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * ⚠️ THE POINT GOES WITH ITS ZEROS — `24.000` is `24` and never `24.`, which is
+ * what this would render if it were one `replace`.
+ *
+ * ⚠️ THE FIRST LINE IS DEFENSIVE AND IS NOT REACHED BY EITHER CALLER TODAY, said
+ * here rather than left to look like a live rule: `formatDecimal` at a positive
+ * scale always emits a point, and both callers pass one. It is what stops `100`
+ * becoming `1` the day something calls this at scale 0.
+ */
+function trimZeros(figure: string): string {
+  if (!figure.includes('.')) return figure;
+  return figure.replace(/0+$/, '').replace(/\.$/, '');
 }
 
 // ----------------------------------------------------------------------------
@@ -524,6 +606,14 @@ export { priceEndsAfter, PRICE_STARTS_COLUMN } from '@/api/catalog';
 /** The query key one variant's dated price rows cache under. */
 export const PRICE_EDIT_KEY = ['catalog', 'prices'] as const;
 
+/**
+ * The cache key of the two set-once figures. ⚠️ ITS OWN KEY AND NOT A BRANCH OF
+ * `CATALOG_KEY`: it is read for ONE variant, on one screen, and invalidating the
+ * whole catalog to refresh an IVA would refetch ~100 products (C8.3) on a
+ * connection the pilot store loses half the day.
+ */
+export const VARIANT_EDIT_KEY = ['catalog', 'settings'] as const;
+
 // ----------------------------------------------------------------------------
 // WHAT THE FORM MUST NOT SEND
 // ----------------------------------------------------------------------------
@@ -728,4 +818,154 @@ export function catalogEditErrorMessage(error: unknown): string {
 export function priceChangeLine(outcome: PriceChangeFailed): string {
   if (outcome.closed) return ES.catalog.errors.priceGone;
   return catalogEditErrorMessage(outcome.error);
+}
+
+// ----------------------------------------------------------------------------
+// THE WHOLE SAVE, AND THE ORDER ITS FOUR WRITES GO IN — `5e-iii-b`
+// ----------------------------------------------------------------------------
+//
+// ⚠️⚠️ THIS SECTION WAS NOT IN `5e-iii-a` AND ITS ABSENCE WAS THE ONE THING THAT
+// ROW GOT WRONG. It said every judgement left in the screen was rendering; it is
+// not. `Editar` is FOUR writes behind one button — a rename, the two settings and
+// the price — across two tables with no transaction between them, and *which goes
+// first* and *what a failure leaves* are questions with right answers. A form that
+// answered them in its own JSX would be the seam `5e-iii`'s split exists to keep,
+// broken from the other side.
+//
+// ⚠️⚠️ THE ORDER IS name → settings → price, AND IT STOPS AT THE FIRST FAILURE.
+// Both arguments are about what is left behind rather than about speed:
+//
+//   * THE NAME GOES FIRST BECAUSE IT IS THE ONE THAT CAN BE REFUSED `23505`.
+//     `product_variant_name_unique` is shop-wide, so a rename onto a name another
+//     product already holds is a real and ordinary refusal — and stopping there
+//     leaves the IVA and the pack size exactly as they were. The other way round,
+//     a shopkeeper whose rename was refused would still have had his tax rate
+//     changed under a name he is about to abandon.
+//   * THE PRICE GOES LAST BECAUSE IT IS THE ONLY STEP THAT CAN HALF-HAPPEN.
+//     `changePrice` closes before it opens, so a failure between the two leaves
+//     the product PRICELESS — and `priceChangeLine` is the sentence for it. Every
+//     step before it is one call that either landed or did not, so putting the
+//     sequence last means the worst state this app can reach is also the last
+//     thing it can reach, with nothing written after it.
+//
+// ⚠️⚠️ AND THERE IS NO `retryPlan` HERE, WHICH IS A MEASURED ABSENCE RATHER THAN A
+// GAP — `retryDraft` one module over has one and this deliberately does not.
+// `useEditProduct` invalidates both reads on every path that touched the database,
+// so the NEXT tap of the same button re-plans from fresh rows: a name that landed
+// folds to `null` in `namePatch` because `current` is now that name, and a price
+// whose close landed reads back as *no row in force*, which is `priceChange`'s
+// `open` branch — exactly what `retryChange` answers. ⚠️ And when the refresh
+// itself failed, the stale plan is STILL right: re-closing an already-closed row
+// patches `effective_to` to the value it holds, and the insert that follows has
+// nothing left to overlap. Two paths, one correct answer, no third function.
+// ----------------------------------------------------------------------------
+
+/** Which of the save's three steps is being talked about. */
+export type EditStep = 'name' | 'settings' | 'price';
+
+/** ⚠️ THE ORDER IS THE DELIVERABLE. See the section header. */
+export const EDIT_ORDER: readonly EditStep[] = ['name', 'settings', 'price'];
+
+/**
+ * Everything one tap of *Guardar* has to do — and `null`/`unchanged` for every
+ * part of the form that was left alone.
+ */
+export interface EditPlan {
+  readonly name: NamePatch | null;
+  readonly settings: SettingsPatch | null;
+  readonly price: PriceChange;
+}
+
+/** What `editPlan` needs that is not the form itself. */
+export interface EditSubject {
+  readonly workspaceId: string;
+  readonly variantId: string;
+  /** The name the catalog currently holds — what a rename is compared against. */
+  readonly name: string;
+  /** `product_variant.price_unit_code` — what the typed peso figure is PER. */
+  readonly priceUnit: string;
+  /** The store whose prices this phone resolved, or `null` for the shop-wide one. */
+  readonly locationId: string | null;
+  readonly factors: UnitFactors;
+  /** The device's local day (`R3`: `isoDay` owns it, this never recomputes it). */
+  readonly today: string;
+}
+
+/**
+ * The four writes one tap owes, built out of the form and the rows behind it.
+ *
+ * ⚠️⚠️ AN UNTOUCHED BOX PRODUCES NOTHING, AND THAT IS THE WHOLE OF THIS
+ * FUNCTION. `namePatch` answers `null` for a name that did not move,
+ * `variantSettings` answers `null` when neither figure was typed, and an empty
+ * price box is `unchanged` rather than *remove the price* — `editPricePerBase`'s
+ * own recorded distinction. So a shopkeeper who opened `Editar`, read it and
+ * tapped *Guardar* performs **zero round trips**, on a link this shop loses half
+ * the day, and the shop's price history records no change that never happened.
+ *
+ * ⚠️ IT TAKES ONE OBJECT AND NOT TEN ARGUMENTS. Ten positional parameters of
+ * which four are strings is a call site nobody can read and a swap no type can
+ * catch — `priceChange`'s six is already the ceiling.
+ */
+export function editPlan(
+  subject: EditSubject,
+  edit: VariantEdit,
+  pricePesos: string,
+  prices: readonly PriceInForce[] | null | undefined,
+): EditPlan {
+  const perBase = editPricePerBase(pricePesos, subject.factors[subject.priceUnit]);
+  return {
+    name: namePatch(subject.name, edit.name),
+    settings: variantSettings(edit),
+    price:
+      perBase === null
+        ? { kind: 'unchanged' }
+        : priceChange(
+            subject.workspaceId,
+            subject.variantId,
+            prices,
+            subject.locationId,
+            subject.today,
+            perBase,
+          ),
+  };
+}
+
+/** Is there anything for Postgres to do at all? See `editPlan`. */
+export function editTouches(plan: EditPlan): boolean {
+  return plan.name !== null || plan.settings !== null || plan.price.kind !== 'unchanged';
+}
+
+/** The save landed. ⚠️ `changed` is false when the plan touched nothing, so a
+ *  confirmation cannot claim work nobody did — `PriceChangeSucceeded`'s rule. */
+export interface EditDone {
+  readonly ok: true;
+  readonly changed: boolean;
+}
+
+/**
+ * It did not — and the two shapes are different because the two failures are.
+ *
+ * ⚠️⚠️ A PATCH CARRIES AN ERROR AND THE PRICE CARRIES AN OUTCOME. `patchVariant`
+ * throws, because one call either happened or did not; `changePrice` ANSWERS, and
+ * its answer holds `closed` — the field that says the product is priceless right
+ * now. Folding the two into one `error` would lose exactly that, which is the one
+ * thing this whole module exists to carry.
+ */
+export type EditFailed =
+  | { readonly ok: false; readonly failed: 'name' | 'settings'; readonly error: unknown }
+  | { readonly ok: false; readonly failed: 'price'; readonly price: PriceChangeFailed };
+
+export type EditOutcome = EditDone | EditFailed;
+
+/**
+ * The one sentence a failed save shows.
+ *
+ * ⚠️ IT IS ONE SLOT AND NOT THREE, which is `Agregar`'s arrangement and its
+ * reason: a screen with a line per step can show two contradictory refusals at
+ * once, and the second one is always the stale one.
+ */
+export function editLine(outcome: EditFailed): string {
+  return outcome.failed === 'price'
+    ? priceChangeLine(outcome.price)
+    : catalogEditErrorMessage(outcome.error);
 }

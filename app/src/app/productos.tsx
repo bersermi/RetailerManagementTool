@@ -451,14 +451,18 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
         )}
       </View>
 
-      {/* ⚠️⚠️ THE PRICE IS `tinta` AND THE DASH IS NOT AMBER, WHICH IS A
-          DECISION AND NOT AN OMISSION. `atencion`'s one job is C3.17: a row
-          whose missing price BLOCKS a sale, on a screen where the fix is one
-          tap away. Nothing on this screen can set a price — `Editar` is `5e` —
-          so amber here would be an alarm on a hundred rows that nobody can
-          silence, and a colour that means "act" where there is no act is how a
-          role acquires a second job. The dash is a secondary label until there
-          is something to do about it. */}
+      {/* ⚠️⚠️ THE PRICE IS `tinta` AND THE DASH IS STILL NOT AMBER, AND AS OF
+          `5e-iii-b` THAT IS A DECISION THIS SCREEN MADE AGAIN RATHER THAN ONE IT
+          INHERITED. `atencion`'s one job is C3.17: a row whose missing price
+          BLOCKS a sale, where the fix is one tap away. ⚠️ `Editar` now exists —
+          but it is on LA FAMILIA, two taps from here, and nothing on this screen
+          sets a price. ⚠️⚠️ The reason that matters is C8.2: the owner seeds this
+          shop's catalog DELIBERATELY SHORT, so a flat list of ~100 products would
+          open amber on most of its rows for the pilot's first week. **An alarm on
+          a hundred rows is the alarm nobody can silence**, which is the argument
+          this comment has carried since `5d-ii` and the one thing `Editar`
+          landing did not change. La Familia is where the dash goes amber, for a
+          manager, beside the control that answers it. */}
       <Text
         style={{
           fontSize: scale.bodySize,

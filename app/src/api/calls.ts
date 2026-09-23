@@ -98,6 +98,7 @@ import {
   PRICE_EDIT_COLUMNS,
   PRICE_EDIT_TABLE,
   UPDATE_RETURNING,
+  VARIANT_EDIT_COLUMNS,
   VARIANT_TABLE,
   type ActivePatch,
   type NamePatch,
@@ -105,6 +106,7 @@ import {
   type PriceChangeOutcome,
   type PriceInForce,
   type SettingsPatch,
+  type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
   INSERT_RETURNING,
@@ -651,6 +653,35 @@ export async function variantPrices(variantId: string): Promise<PriceInForce[]> 
     .or(priceEndsAfter(today));
   if (error) throw reported(error);
   return (data ?? []) as unknown as PriceInForce[];
+}
+
+/**
+ * One variant's two set-once figures, for the form that changes them. Plan task
+ * `5e-iii-b`.
+ *
+ * ⚠️⚠️ IT EXISTS SO THE IVA BOX IS NOT BLIND. `variantSettings` sends no column
+ * for a box nobody typed into, so an empty form cannot overwrite anything — but
+ * a shopkeeper still has to be able to SEE what the IVA and the pack size are
+ * before deciding to leave them alone, and `VARIANT_COLUMNS` in `@/api/catalog`
+ * carries neither. Widening that read would pay for two columns on every load of
+ * Productos, for ~100 products (C8.3), to serve one screen.
+ *
+ * ⚠️ `.maybeSingle()` AND NOT `.single()`, WHICH IS THE OPPOSITE CALL FROM EVERY
+ * PATCH IN THIS SECTION AND FOR THE REASON THAT MAKES THOSE RIGHT. On a patch,
+ * zero rows is the fence arriving through a `using` clause and must become an
+ * error an app can act on; on a READ there is no fence — `product_variant_select`
+ * is the whole shop — so zero rows means the catalog moved under the screen, and
+ * a form that refused to open over it would be worse than one that simply shows
+ * no current figures.
+ */
+export async function variantSettingsRow(variantId: string): Promise<VariantSettingsRow | null> {
+  const { data, error } = await supabase
+    .from(VARIANT_TABLE)
+    .select(VARIANT_EDIT_COLUMNS)
+    .eq('id', variantId)
+    .maybeSingle();
+  if (error) throw reported(error);
+  return (data ?? null) as unknown as VariantSettingsRow | null;
 }
 
 /**
