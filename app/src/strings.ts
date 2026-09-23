@@ -967,6 +967,105 @@ export const ES = {
     },
 
     /**
+     * `Editar` — THE FORM, AND EVERY WORD ON IT. Plan task `5e-iii-b`, and it is
+     * everything the four-field create form (C8.9) deliberately pushed behind it:
+     * the rename, the price, the IVA, the pack size and retiring a product the
+     * shop has stopped selling.
+     *
+     * ⚠️⚠️ EVERY BOX STARTS EMPTY AND CARRIES AN INSTRUCTION, WHICH IS THE
+     * OWNER'S RULING OF 2026-09-23 APPLIED TO AN EDIT RATHER THAN TO A CREATE:
+     * *a proposal must not look like a decision already made.* A box PREFILLED
+     * with the figure the shop already has is worse than a proposal — it makes
+     * *leave it alone* look like *set it to this*, and `variantSettings` would
+     * then send a column back on a save made for a different field entirely. So
+     * an empty box means **leave it**, and the figure the shop holds today is
+     * printed BESIDE the box under `current`, where it cannot be mistaken for
+     * something somebody typed.
+     *
+     * ⚠️ THE NAME IS THE ONE EXCEPTION AND IT IS NOT AN EXCEPTION TO THE RULE:
+     * `product_variant.name` is `not null`, so there is no *leave it empty* state
+     * to confuse it with, and the box holds the product's own name because that
+     * is what a rename edits.
+     *
+     * ⚠️⚠️ AND THERE IS NO WORD HERE FOR `enforce_stock` (C8.8). C8.6
+     * guarantees permanent drift in both directions, and this is the one screen in
+     * the pilot that would ever have been tempted to offer the switch — a column
+     * with no sentence is a control nobody can draw by accident.
+     */
+    edit: {
+      /** The room's name. ⚠️ The product's own name is the subtitle under it,
+       *  because *Editar* alone does not say WHICH product is open. */
+      title: 'Editar producto',
+      /** ⚠️ *Cancelar* and not *Volver*, for `create.cancel`'s reason: this
+       *  screen holds typing that will be thrown away. */
+      cancel: 'Cancelar',
+
+      /**
+       * ⚠️ ONE WORD FOR ALL THREE FIGURES THE SHOP ALREADY HOLDS — the price,
+       * the IVA and the pack size. It labels a FACT printed beside a box, never
+       * the box's own content, which is the whole of the hint ruling applied here.
+       */
+      current: 'Actual',
+
+      nameLabel: 'Nombre',
+      /** ⚠️ `create.nameHint`'s sentence, for its measured reason: an
+       *  instruction cannot be mistaken for a product name somebody typed. */
+      nameHint: 'Escribe el nombre del producto',
+
+      priceLabel: 'Precio',
+      /**
+       * ⚠️⚠️ AN INSTRUCTION AND NOT THE OLD FIGURE. `35.50` sitting in the
+       * box is indistinguishable from a price a shopkeeper typed — and here it
+       * would be worse than on the create form, because leaving it alone would
+       * rewrite the shop's price history with a change that never happened.
+       */
+      priceHint: 'Escribe el precio nuevo',
+      /**
+       * ⚠️ WHAT AN UNTOUCHED PRICE BOX DOES, SAID ONCE. C3.12 makes *no price*
+       * a legitimate state, so *leave it* and *remove it* have to be visibly
+       * different — and nothing on this form removes a price at all.
+       */
+      priceKeep: 'Si lo dejas vacío, el precio no cambia.',
+
+      /** ⚠️ THE BOX IS A PERCENTAGE AND THE COLUMN IS A RATE — `0002`'s own
+       *  *"0.1600, not 16"*. `editIssues.taxUnreadable` shows the shape. */
+      taxLabel: 'IVA',
+      taxHint: 'Escribe el IVA como porcentaje',
+
+      packLabel: 'Piezas por paquete',
+      packHint: 'Escribe cuántas piezas trae el paquete',
+
+      submit: 'Guardar cambios',
+      working: 'Guardando…',
+      /** The way off the number pad. `create.done`'s word and its reason. */
+      done: 'Listo',
+
+      /**
+       * RETIRING A PRODUCT — `is_active` false, and never a DELETE.
+       * `product_family` and `product_variant` have no delete policy at all in
+       * `0002`: *"a family with ledger history is deactivated, never deleted"*.
+       */
+      retire: 'Retirar del catálogo',
+      retireAsk: '¿Retirar este producto del catálogo?',
+      /**
+       * ⚠️ WHAT IT COSTS, IN THE TWO HALVES A SHOPKEEPER CARES ABOUT: it goes
+       * off the screens he uses, and the money he has already taken stays where it
+       * is. The second half is what stops this reading as *delete*.
+       */
+      retireWhy: 'Dejará de aparecer en Productos y ya no podrás venderlo. Lo que ya vendiste no se borra.',
+      /**
+       * ⚠️⚠️ THE HONEST HALF, AND IT IS A LIMITATION OF THIS APP RATHER THAN
+       * OF THE DATABASE. `activePatch(true)` is the same call and would bring it
+       * back — but `catalogFrom` drops inactive variants, so nothing in the pilot
+       * lists them and there is no screen to tap. A confirmation that implied the
+       * tap was reversible would be this app promising something it does not have.
+       */
+      retireOnce: 'Por ahora no se puede volver a activar desde la app.',
+      retireYes: 'Sí, retirarlo',
+      retireNo: 'Cancelar',
+    },
+
+    /**
      * WHAT IS WRONG WITH THE FOUR FIELDS BEFORE POSTGRES IS ASKED. Plan task
      * `5e-i`, rendered by the form `5e-ii` builds. `checkProduct` in
      * `@/api/catalogWrite` chooses; nothing here is chosen at a call site.
@@ -1214,7 +1313,15 @@ export const ES = {
      * only what is still missing, and `5e-iii` and `5g` are the rows that delete
      * the halves they finish.
      */
-    notYet: 'Todavía no puedes ver costos ni editar un producto.',
+    /**
+     * ⚠️⚠️ REWORDED AGAIN AT `5e-iii-b`, AND IT NOW NAMES ONE BUTTON. It
+     * said *"costos ni editar"* while `Editar` was dead; that half went live with
+     * this task, and a sentence describing a control that works is false while
+     * still rendering green — the same defect `5e-ii` fixed in the other half.
+     * ⚠️ `5g` is the row that deletes what is left of it, by the ruling that
+     * left `Costos` dead until purchase cost exists to fill it.
+     */
+    notYet: 'Todavía no puedes ver los costos de un producto.',
 
     /**
      * ⚠️⚠️ TWO STATES AND THEY ARE NOT THE SAME FACT. This screen is reached by

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   ACTIVE_PATCH_COLUMNS,
+  EDIT_ORDER,
   NAME_PATCH_COLUMNS,
   PRICE_CLOSE_COLUMNS,
   PRICE_EDIT_COLUMNS,
@@ -10,18 +11,26 @@ import {
   PRICE_REPRICE_COLUMNS,
   SETTINGS_PATCH_COLUMNS,
   UPDATE_RETURNING,
+  VARIANT_EDIT_COLUMNS,
   VARIANT_TABLE,
   activePatch,
   catalogEditErrorMessage,
   checkEdit,
+  editLine,
+  editPlan,
   editPricePerBase,
+  editTouches,
   namePatch,
+  packSizeOf,
   parsePackSize,
   parseTaxRate,
   priceChange,
   priceChangeLine,
   retryChange,
+  taxPercentOf,
   variantSettings,
+  type EditFailed,
+  type EditSubject,
   type PriceChangeFailed,
   type PriceInForce,
   type VariantEdit,
@@ -464,5 +473,196 @@ describe('the refusals a shopkeeper can actually reach', () => {
     expect(catalogEditErrorMessage({ message: 'Network request failed' })).toBe(
       ES.api.errors.offline,
     );
+  });
+});
+
+// ----------------------------------------------------------------------------
+// `5e-iii-b` — THE FORM'S HALF THAT IS STILL NOT RENDERING.
+//
+// ⚠️⚠️ `5e-iii-b`'s ROW SAID EVERY JUDGEMENT LEFT IN IT WAS RENDERING, AND THAT
+// WAS THE ONE THING THE SIZING GOT WRONG. `Editar` is FOUR writes behind one
+// button across two tables with no transaction between them; *which goes first*,
+// *what a failure leaves* and *what an untouched box means* are questions with
+// right answers, and this block is where they are read.
+// ----------------------------------------------------------------------------
+
+const SUBJECT: EditSubject = {
+  workspaceId: WORKSPACE,
+  variantId: VARIANT,
+  name: 'Pechuga',
+  priceUnit: 'kg',
+  locationId: null,
+  factors: FACTORS,
+  today: TODAY,
+};
+
+describe('the two figures shown beside the boxes that change them', () => {
+  it('⚠️⚠️ renders the RATE back as the PERCENTAGE a shopkeeper knows', () => {
+    // `0002`: "IVA as a rate, not a percentage: 0.1600, not 16." A screen that
+    // printed the column would be telling him his IVA is sixteen hundredths of
+    // a percent, on the one figure that is a sixteen-fold error in the ledger.
+    expect(taxPercentOf('0.1600')).toBe('16');
+    expect(taxPercentOf('0.0000')).toBe('0');
+    expect(taxPercentOf('0.0825')).toBe('8.25');
+  });
+
+  it('⚠️ it is exactly the inverse of `parseTaxRate`, both ways', () => {
+    for (const typed of ['0', '8', '16', '16.5', '8.25', '99.99']) {
+      expect(taxPercentOf(parseTaxRate(typed) as string)).toBe(typed);
+    }
+  });
+
+  it('renders the pack size without the column\'s trailing zeros', () => {
+    expect(packSizeOf('24.000')).toBe('24');
+    expect(packSizeOf('1.000')).toBe('1');
+    expect(packSizeOf('0.500')).toBe('0.5');
+  });
+
+  it('⚠️ the point goes with its zeros — `24.000` is `24` and never `24.`', () => {
+    // Trimming the zeros and leaving the point is the shape this would take if
+    // it were written in one `replace`, and it is the one a screen would render.
+    expect(packSizeOf('24.000')).not.toContain('.');
+    expect(taxPercentOf('0.1000')).toBe('10');
+    expect(packSizeOf('100.000')).toBe('100');
+  });
+
+  it('⚠️ a figure the column could not have held draws nothing at all', () => {
+    // Ours to notice, not his ([[users-dont-do-bookkeeping]]): a label with
+    // nothing after it reads as a figure that failed to load.
+    expect(taxPercentOf('')).toBe('');
+    expect(packSizeOf('not a number')).toBe('');
+  });
+
+  it('the read asks for both columns as text, and never for enforce_stock', () => {
+    expect(VARIANT_EDIT_COLUMNS.split(',')).toEqual(['id', 'tax_rate::text', 'pack_size::text']);
+    expect(VARIANT_EDIT_COLUMNS).not.toContain('enforce_stock');
+  });
+});
+
+describe('what one tap of Guardar owes', () => {
+  it('⚠️⚠️ a form nobody touched makes NO round trip at all', () => {
+    // He opened `Editar`, read it, and tapped Guardar. Closing and re-opening an
+    // identical price row would write a change into the shop's price history
+    // that never happened — and the pilot store loses its link half the day.
+    const plan = editPlan(SUBJECT, EDIT, '', [row()]);
+    expect(plan.name).toBeNull();
+    expect(plan.settings).toBeNull();
+    expect(plan.price.kind).toBe('unchanged');
+    expect(editTouches(plan)).toBe(false);
+  });
+
+  it('⚠️ an EMPTY price box leaves the price alone — it does not remove it', () => {
+    // `price_list_delete` exists in `0002` and is deliberately unreachable from
+    // this app: *no price* and *price withdrawn today* are different facts.
+    const plan = editPlan(SUBJECT, { ...EDIT, name: 'Pechuga entera' }, '', [row()]);
+    expect(plan.name).toEqual({ name: 'Pechuga entera' });
+    expect(plan.price.kind).toBe('unchanged');
+  });
+
+  it('⚠️ an untouched IVA box sends no column, even when the name changed', () => {
+    const plan = editPlan(SUBJECT, { ...EDIT, name: 'Pechuga entera' }, '', [row()]);
+    expect(plan.settings).toBeNull();
+  });
+
+  it('carries the price through `priceChange` rather than deciding again', () => {
+    const plan = editPlan(SUBJECT, EDIT, '40.00', [row()]);
+    expect(plan.price.kind).toBe('closeAndOpen');
+    expect(editTouches(plan)).toBe(true);
+  });
+
+  it('⚠️ the same-day branch survives the trip through `editPlan`', () => {
+    const plan = editPlan(SUBJECT, EDIT, '40.00', [row({ effective_from: TODAY })]);
+    expect(plan.price.kind).toBe('reprice');
+  });
+
+  it('⚠️ an unpriced product is the `open` branch and is priced SHOP-WIDE', () => {
+    const plan = editPlan(SUBJECT, EDIT, '40.00', []);
+    expect(plan.price.kind).toBe('open');
+    if (plan.price.kind === 'open') expect(plan.price.open.location_id).toBeNull();
+  });
+
+  it('⚠️⚠️ the scope of a change is the one the read RESOLVED, never the phone\'s', () => {
+    // A phone standing in a store, correcting a price the shop set for every
+    // store. `5e-i`'s decision A: nothing here ever creates a store-scoped price
+    // for a shop that did not have one — that would be this app answering a
+    // question C8.9 never asked, and the shop's other store would keep the old
+    // figure with nothing on screen saying which store the new one was for.
+    const shopWide = editPlan({ ...SUBJECT, locationId: STORE }, EDIT, '40.00', [row()]);
+    if (shopWide.price.kind === 'closeAndOpen') {
+      expect(shopWide.price.open.location_id).toBeNull();
+    } else {
+      throw new Error(`expected closeAndOpen, got ${shopWide.price.kind}`);
+    }
+
+    // And a store that DOES price itself keeps its own scope.
+    const ownPrice = editPlan({ ...SUBJECT, locationId: STORE }, EDIT, '40.00', [
+      row({ location_id: STORE }),
+    ]);
+    if (ownPrice.price.kind === 'closeAndOpen') {
+      expect(ownPrice.price.open.location_id).toBe(STORE);
+    } else {
+      throw new Error(`expected closeAndOpen, got ${ownPrice.price.kind}`);
+    }
+  });
+
+  it('⚠️ the peso figure is divided by the PRICE unit and not by the base one', () => {
+    // `$45 / 250g` is `0.18` per gram. A plan that divided by the base unit
+    // would price the shop at a quarter of what it charges.
+    const plan = editPlan({ ...SUBJECT, priceUnit: '250g' }, EDIT, '45.00', []);
+    if (plan.price.kind === 'open') {
+      expect(plan.price.open.price_per_base).toBe(pricePerBase(4500, '250.000000'));
+    } else {
+      throw new Error(`expected open, got ${plan.price.kind}`);
+    }
+  });
+});
+
+describe('the order the four writes go in', () => {
+  it('⚠️⚠️ the name goes FIRST, because it is the one that can be refused 23505', () => {
+    // `product_variant_name_unique` is shop-wide. Stopping there leaves the IVA
+    // and the pack size as they were; the other way round a shopkeeper whose
+    // rename was refused has had his tax rate changed under a name he is about
+    // to abandon.
+    expect(EDIT_ORDER[0]).toBe('name');
+  });
+
+  it('⚠️⚠️ the price goes LAST, because it is the only step that can half-happen', () => {
+    // `changePrice` closes before it opens, so the worst state this app can
+    // reach is also the last thing it can reach — with nothing written after it.
+    expect(EDIT_ORDER[EDIT_ORDER.length - 1]).toBe('price');
+  });
+
+  it('every step of a plan is in the order, and the order invents none', () => {
+    expect([...EDIT_ORDER].sort()).toEqual(['name', 'price', 'settings']);
+  });
+});
+
+describe('what a failed save says', () => {
+  it('⚠️ a refused rename is the edit sentence and not the create one', () => {
+    const said = editLine({ ok: false, failed: 'name', error: { code: '42501' } } as EditFailed);
+    expect(said).toBe(ES.catalog.errors.notAllowedEdit);
+    expect(said).not.toBe(ES.catalog.errors.notAllowed);
+  });
+
+  it('⚠️⚠️ a failure AFTER the close says the price is GONE, not that nothing happened', () => {
+    const failed: PriceChangeFailed = {
+      ok: false,
+      failed: 'open',
+      closed: true,
+      error: { message: 'Network request failed' },
+    };
+    expect(editLine({ ok: false, failed: 'price', price: failed })).toBe(
+      ES.catalog.errors.priceGone,
+    );
+  });
+
+  it('a price failure with nothing landed keeps the ordinary sentence', () => {
+    const failed: PriceChangeFailed = {
+      ok: false,
+      failed: 'close',
+      closed: false,
+      error: { message: 'Network request failed' },
+    };
+    expect(editLine({ ok: false, failed: 'price', price: failed })).toBe(ES.api.errors.offline);
   });
 });

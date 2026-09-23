@@ -1,4 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -30,7 +31,7 @@ import { PALETTE } from '@/theme/palette';
 // `accessibilityState.selected`, which a person who cannot see the rule needs
 // and a person who can never hears.
 //
-// ⚠️⚠️ ONE OF THE THREE AFFORDANCES WORKS AS OF `5e-ii`, AND TWO ARE STILL
+// ⚠️⚠️ TWO OF THE THREE AFFORDANCES WORK AS OF `5e-iii-b`, AND ONE IS STILL
 // DRAWN PLAINLY DEAD. `Agregar Variante` is C8.12's SECOND door into `Agregar`
 // and the one where the family question is not asked at all — it pushes
 // `/producto/nuevo?familia=<this family>`, and the form attaches the new variant
@@ -45,25 +46,33 @@ import { PALETTE } from '@/theme/palette';
 // sentence of its own, so `canWriteCatalog` keeps the control off her screen
 // entirely rather than letting it look live ([[shift-cover-is-a-reassignment]]).
 //
-// ⚠️ `Costos` AND `Editar` STAY `View`s AND STAY DEAD, by two rulings rather
-// than by inertia: *"leave Costos dead until `5g`"* (2026-09-22), because nothing
-// writes a purchase until Comprar exists and a costs view built now would show an
-// empty list on every product for ever; and `Editar` is `5e-iii`. ⚠️ Deleting
-// them was refused for `5d-iv-b`'s Proveedores reason — an affordance a shop has
-// seen and then seen vanish reads as an app getting smaller.
+// ⚠️ `Costos` STAYS A `View` AND STAYS DEAD, by a ruling rather than by inertia:
+// *"leave Costos dead until `5g`"* (2026-09-22), because nothing writes a
+// purchase until Comprar exists and a costs view built now would show an empty
+// list on every product in the shop, for ever. ⚠️ Deleting it was refused for
+// `5d-iv-b`'s Proveedores reason — an affordance a shop has seen and then seen
+// vanish reads as an app getting smaller.
 //
-// ⚠️⚠️ AND `ES.family.notYet` WAS REWORDED RATHER THAN DELETED, WHICH IS THE
-// HALF A ONE-LINE CHANGE WOULD HAVE MISSED. It used to say *"solo puedes ver;
-// todavía no se puede agregar ni editar"* — three dead buttons — and the moment
-// one of them opened a form that sentence became false while still rendering
-// green. It now names only what is missing; `5e-iii` and `5g` delete the halves
-// they finish.
+// ⚠️⚠️ AND `ES.family.notYet` HAS NOW BEEN REWORDED TWICE RATHER THAN DELETED,
+// WHICH IS THE HALF A ONE-LINE CHANGE KEEPS MISSING. At `5d-iii` it said *"solo
+// puedes ver; todavía no se puede agregar ni editar"* — three dead buttons; at
+// `5e-ii` it dropped *agregar*; here it drops *editar*, because a sentence that
+// names a control which works is false while still rendering green. `5g` deletes
+// what is left of it.
 //
-// ⚠️ AND THE VARIANT ROWS HERE ARE NOT PRESSABLE EITHER, for the same reason
-// one task along: the selection is a record of where you came from, and
-// NOTHING CONSUMES IT YET. The day `Costos` and `Editar` act on a variant is
-// the day moving the mark means something; until then a row that highlighted
-// under a thumb and changed nothing is the control this whole step refuses.
+// ⚠️⚠️ THE VARIANT ROWS ARE PRESSABLE AS OF `5e-iii-b`, AND `5d-iii` SAID THIS IS
+// THE DAY THEY WOULD BE. That header wrote: the selection is a record of where
+// you came from and nothing consumes it yet, so *the day `Editar` acts on a
+// variant is the day moving the mark means something*. `Editar` now does, so a
+// tap moves the mark and the mark is what the button opens. ⚠️ A row still does
+// not NAVIGATE — pressing it changes which product the controls below are about,
+// which is why it keeps `accessibilityState.selected` and gains no chevron.
+//
+// ⚠️⚠️ AND `Editar` IS ABSENT WHEN NOTHING IS MARKED, WHICH IS NOT A THIRD
+// VISUAL STATE BUT THE ABSENCE OF AN UNANSWERABLE QUESTION. Every real door into
+// this screen passes `?variante` (Productos is the only one), so a family opened
+// with no mark is a deep link — and *edit which one?* has no answer until he
+// taps a row, at which point the control appears beside the one he tapped.
 //
 // ⚠️ IT DECIDES NOTHING ABOUT THE CATALOG, AND IT PERFORMS NO READ OF ITS OWN.
 // `useCatalog()` is the same one round trip Productos already made and
@@ -81,11 +90,14 @@ import { PALETTE } from '@/theme/palette';
 //
 // ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this
 // screen it is nearly all of it. Nothing here will ever say whether the mark
-// reads as *this is the one you tapped* rather than as an alert, whether one
-// live button beside two dead ones reads as a step forward or as a row that is
-// half broken, or whether a family of six variants fits above the fold at *Letra
-// grande*. **The instrument is the owner's phone.** The half that is checkable — which variants belong, which
-// one is marked, what an empty screen says — is in `@/api/catalog` on purpose.
+// reads as *this is the one you tapped* rather than as an alert, whether a row
+// that highlights under a thumb and goes nowhere reads as a selection or as a
+// link that failed, whether ONE amber price among six reads as *price this* or
+// as *something is broken*, whether two live buttons beside one dead one reads
+// as a step forward or as a row that is half finished, or whether a family of
+// six variants fits above the fold at *Letra grande*. **The instrument is the
+// owner's phone.** The half that is checkable — which variants belong, which one
+// is marked, what an empty screen says — is in `@/api/catalog` on purpose.
 // ============================================================================
 
 export default function Familia() {
@@ -98,7 +110,15 @@ export default function Familia() {
   // opens the right family, with nothing marked.
   const { id, variante } = useLocalSearchParams<{ id: string; variante?: string }>();
   const { loading, entries, failed } = useCatalog();
-  const family = familyView(entries, id, variante);
+
+  // ⚠️⚠️ THE ROUTE SEEDS THE MARK AND THE THUMB MOVES IT, AND `null` IS WHAT
+  // KEEPS THOSE TWO FROM FIGHTING. `useState(variante)` alone would ignore a
+  // later parameter and an effect that synced it would undo a tap on the next
+  // render — `nuevo.tsx`'s recorded trap about its own prefill. `null` means
+  // *he has not tapped*, so the link's answer stands until he gives one.
+  const [tapped, setTapped] = useState<string | null>(null);
+  const family = familyView(entries, id, tapped ?? variante);
+  const mayWrite = canWriteCatalog(useMyRole());
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -110,8 +130,8 @@ export default function Familia() {
         // two low-end Androids (C8.3, C1.1) and virtualising is the difference
         // between a scroll and a stutter; a family is a handful of sizes of one
         // product, and the three affordances below have to scroll WITH them
-        // rather than float over them — which still holds now that one of the
-        // three is live: a button that floated would cover a variant's price.
+        // rather than float over them — which still holds now that two of the
+        // three are live: a button that floated would cover a variant's price.
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -135,13 +155,18 @@ export default function Familia() {
                 {index === 0 ? null : (
                   <View style={{ borderBottomWidth: 1, borderBottomColor: PALETTE.linea }} />
                 )}
-                <Variante entry={entry} selected={entry.id === family.selectedId} />
+                <Variante
+                  entry={entry}
+                  selected={entry.id === family.selectedId}
+                  mayWrite={mayWrite}
+                  onPress={() => setTapped(entry.id)}
+                />
               </View>
             ))}
           </View>
         )}
 
-        <Acciones familyId={id} />
+        <Acciones familyId={id} variantId={family.selectedId} mayWrite={mayWrite} />
       </ScrollView>
     </View>
   );
@@ -222,26 +247,57 @@ function Volver() {
  * a picture nobody needs — and the tile is what makes a row look tappable
  * there, which these rows are not.
  *
- * ⚠️ THE MISSING PRICE IS A DASH IN `tintaApagada` AND NEVER AMBER, which is
- * Productos' call and its reason: `atencion`'s one job is C3.17, a missing
- * price BLOCKING a sale where the fix is one tap away. ⚠️⚠️ `5e-ii` LOOKED AT
- * THIS AGAIN, AS THIS COMMENT ASKED, AND THE DASH STAYS. `Agregar` can create a
- * priceless product but nothing anywhere can yet PRICE one — the price change is
- * `5e-iii`'s, with the dated window it has to respect — so the fix is still not
- * one tap away and amber would still be an alarm nobody can silence. ⚠️ Look at
- * it again at `5e-iii`, which is the task that makes it actionable.
+ * ⚠️⚠️ THE MISSING PRICE IS AMBER AS OF `5e-iii-b`, AND ONLY FOR SOMEBODY WHO
+ * CAN ACT ON IT. `5d-iii` drew it in `tintaApagada` and wrote *look at this again
+ * when `5e` lands*; `5e-ii` looked and left it, because `Agregar` could CREATE a
+ * priceless product and nothing anywhere could yet PRICE one. This task is where
+ * that stopped being true: `Editar` is on this screen, so C3.17's *the fix is one
+ * tap away* is literally the case — one tap of the control below.
+ *
+ * ⚠️⚠️ AND IT IS `tintaApagada` FOR A CASHIER, WHICH IS THE OWNER'S RULING OF
+ * 2026-09-23 IN ITS SECOND HALF. *"Leave the fence as is"* keeps `price_list`
+ * manager-and-above, so *the fix is one tap away* is true **for the people who
+ * can make the tap** — and a cashier shown an alarm she can never silence is a
+ * colour that means *act* where there is no act, which is how a role acquires a
+ * second job. §2.11 fences `atencion` to C3.17 alone, so this is now that colour's
+ * only use in the app and it has a rule rather than a guess.
+ *
+ * ⚠️ PRODUCTOS KEEPS THE QUIET DASH, DELIBERATELY AND NOT BY OVERSIGHT. Nothing
+ * on that screen sets a price — it is two taps away through this one — and C8.2
+ * has the owner seeding the catalog DELIBERATELY SHORT, so a flat list of ~100
+ * products would open amber on most of its rows for the pilot's first week. An
+ * alarm on a hundred rows is the alarm nobody can silence, one screen out.
+ * ⚠️ `R9`: whether one amber row among six reads as *price this* rather than as
+ * *something is broken* is the owner's phone's question, not a check's.
  */
-function Variante({ entry, selected }: { entry: CatalogEntry; selected: boolean }) {
+function Variante({
+  entry,
+  selected,
+  mayWrite,
+  onPress,
+}: {
+  entry: CatalogEntry;
+  selected: boolean;
+  mayWrite: boolean;
+  onPress: () => void;
+}) {
   const { scale } = useDensity();
+  // ⚠️⚠️ AMBER ONLY WHEN THERE IS SOMETHING TO DO AND SOMEBODY WHO MAY DO IT.
+  // See this function's header: C3.17's *the fix is one tap away* is true of a
+  // manager standing on this screen and false of a cashier on any screen.
+  const missing = entry.centavos === null;
+  const alarm = missing && mayWrite;
   return (
-    <View
+    <Pressable
       accessible
       // ⚠️ THE ONE WAY THE MARK IS SPOKEN. A legend is a word on the screen and
       // the ruling forbids it; this is the state a screen reader announces and
       // nobody else hears, which is what a person who cannot see the green rule
       // needs to know she opened the product she tapped.
+      accessibilityRole="button"
       accessibilityState={{ selected }}
       accessibilityLabel={[entry.name, entry.price].filter((part) => part !== '').join('. ')}
+      onPress={onPress}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -273,90 +329,124 @@ function Variante({ entry, selected }: { entry: CatalogEntry; selected: boolean 
         style={{
           fontSize: scale.bodySize,
           fontWeight: '600',
-          color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta,
+          color: alarm ? PALETTE.atencion : missing ? PALETTE.tintaApagada : PALETTE.tinta,
         }}
       >
         {entry.price}
       </Text>
-    </View>
+    </Pressable>
   );
 }
 
 /**
- * `Agregar Variante`, `Costos` and `Editar` — the three affordances C8.13 puts
- * with the family. As of `5e-ii` the first one works and the other two do not,
- * and the difference is drawn rather than explained.
+ * `Agregar Variante`, `Editar` and `Costos` — the three affordances C8.13 puts
+ * with the family. As of `5e-iii-b` two of them work and one does not, and the
+ * difference is drawn rather than explained.
  *
- * ⚠️⚠️ THE LIVE ONE IS A `Pressable` IN THE ACTION COLOUR AND THE DEAD ONES ARE
- * `View`s IN `tintaApagada`. `accion` and `accionSuave` mean *this is tappable
- * at rest*, which is exactly the claim the two dead ones must not make; and a
- * dead one is a `View` and not a disabled `Pressable` because there is no
- * handler to attach and therefore no press path to wire up wrong later. ⚠️ The
- * role and the disabled state are what a screen reader needs, and it gets both.
+ * ⚠️⚠️ THE LIVE ONES ARE `Pressable`s IN THE ACTION COLOUR AND THE DEAD ONE IS A
+ * `View` IN `tintaApagada`. `accion` and `accionSuave` mean *this is tappable at
+ * rest*, which is exactly the claim `Costos` must not make; and a dead one is a
+ * `View` and not a disabled `Pressable` because there is no handler to attach and
+ * therefore no press path to wire up wrong later. ⚠️ The role and the disabled
+ * state are what a screen reader needs, and it gets both.
  *
- * ⚠️⚠️ AND THE LIVE ONE IS ABSENT ALTOGETHER FOR A CASHIER — never disabled for
- * her, which would be the third visual state on one row. `canWriteCatalog` is
- * `0002`'s own predicate on the three INSERT policies, and `null` — the
- * membership read still out — is fenced out with her, so the control fades in
- * when the answer lands rather than being snatched away.
+ * ⚠️⚠️ AND BOTH LIVE ONES ARE ABSENT ALTOGETHER FOR A CASHIER — never disabled
+ * for her, which would be a third visual state on one row. `canWriteCatalog` is
+ * `0002`'s own predicate, and it covers the UPDATE policies as well as the INSERT
+ * ones: the owner ruled *"leave the fence as is"* on 2026-09-23, so
+ * `product_variant_update` and both `price_list` write policies stay
+ * manager-and-above. ⚠️⚠️ ON AN UPDATE HER REFUSAL WOULD NOT EVEN BE A REFUSAL —
+ * a `using` clause hides the row and PostgREST answers 200 with `[]` — so a live
+ * `Editar` for her is the silent-failure shape [[shift-cover-is-a-reassignment]]
+ * records, arriving through a success code.
  *
- * ⚠️ IT CARRIES THE FAMILY, WHICH IS THE WHOLE DIFFERENCE BETWEEN THIS DOOR AND
- * THE ONE ON PRODUCTOS. C8.12: from inside an opened family the new variant
- * belongs to that family, *no question asked* — so the id goes in the link and
- * the form draws no family control at all.
+ * ⚠️ `role === null` — the membership read still out — is fenced out WITH her, so
+ * the controls fade in when the answer lands rather than being snatched away.
+ *
+ * ⚠️ `Agregar Variante` CARRIES THE FAMILY AND `Editar` CARRIES THE VARIANT,
+ * WHICH IS WHAT EACH ONE IS ABOUT. C8.12: from inside an opened family the new
+ * variant belongs to that family, *no question asked*. An edit is about one
+ * product, and the one it is about is the marked row.
+ *
+ * ⚠️⚠️ `Editar` IS ABSENT WHEN NOTHING IS MARKED rather than disabled: *edit
+ * which one?* has no answer, and every real door into this screen passes the
+ * variant. See this file's header.
  */
-function Acciones({ familyId }: { familyId: string }) {
+function Acciones({
+  familyId,
+  variantId,
+  mayWrite,
+}: {
+  familyId: string;
+  variantId: string | null;
+  mayWrite: boolean;
+}) {
   const { scale } = useDensity();
-  const mayAdd = canWriteCatalog(useMyRole());
   return (
     <View style={{ gap: scale.rowGap }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
-        {mayAdd && (
-          <Pressable
-            accessibilityRole="button"
+        {mayWrite && (
+          <Accion
+            label={ES.family.addVariant}
             onPress={() =>
               router.push({ pathname: '/producto/nuevo', params: { familia: familyId } })
             }
-            style={{
-              minHeight: scale.tapTarget,
-              justifyContent: 'center',
-              paddingHorizontal: scale.space,
-              borderRadius: scale.space / 2,
-              borderWidth: 1,
-              borderColor: PALETTE.accion,
-              backgroundColor: PALETTE.accionSuave,
-            }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-              {ES.family.addVariant}
-            </Text>
-          </Pressable>
+          />
         )}
-        {[ES.family.costs, ES.family.edit].map((word) => (
-          <View
-            key={word}
-            accessibilityRole="button"
-            accessibilityState={{ disabled: true }}
-            style={{
-              minHeight: scale.tapTarget,
-              justifyContent: 'center',
-              paddingHorizontal: scale.space,
-              borderRadius: scale.space / 2,
-              borderWidth: 1,
-              borderColor: PALETTE.linea,
-              backgroundColor: PALETTE.fondo,
-            }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
-              {word}
-            </Text>
-          </View>
-        ))}
+        {mayWrite && variantId !== null && (
+          <Accion
+            label={ES.family.edit}
+            onPress={() =>
+              router.push({ pathname: '/producto/[id]', params: { id: variantId } })
+            }
+          />
+        )}
+        <View
+          accessibilityRole="button"
+          accessibilityState={{ disabled: true }}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+            paddingHorizontal: scale.space,
+            borderRadius: scale.space / 2,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.fondo,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
+            {ES.family.costs}
+          </Text>
+        </View>
       </View>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
         {ES.family.notYet}
       </Text>
     </View>
+  );
+}
+
+/** One of the controls that works. ⚠️ A word and never a glyph alone (C12.1). */
+function Accion({ label, onPress }: { label: string; onPress: () => void }) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={{
+        minHeight: scale.tapTarget,
+        justifyContent: 'center',
+        paddingHorizontal: scale.space,
+        borderRadius: scale.space / 2,
+        borderWidth: 1,
+        borderColor: PALETTE.accion,
+        backgroundColor: PALETTE.accionSuave,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+        {label}
+      </Text>
+    </Pressable>
   );
 }
 

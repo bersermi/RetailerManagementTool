@@ -141,6 +141,21 @@ edit "export const SETTINGS_PATCH_COLUMNS = 'tax_rate,pack_size';" \
      "export const SETTINGS_PATCH_COLUMNS = 'iva,caja';"
 mutated && fixture "F8 the tax rate and pack size are renamed" red "the tax rate and the pack size are not bounded where the app thinks"
 
+# --- F10. ⚠️⚠️ THE FORM'S OWN READ LOSES ITS `::text` — `5e-iii-b` ---------
+# ⚠️ THE DEFECT IS INVISIBLE EVERYWHERE ELSE. A bare `numeric` arrives as a JSON
+# number, which is a double; `parseDecimal` refuses a number outright, so
+# `taxPercentOf` answers `''` and the screen simply draws no `Actual:` line. It
+# compiles, it bundles, it passes Vitest, and the only thing that changes is that
+# a shopkeeper can no longer see the IVA he is deciding whether to leave alone.
+fresh
+edit "'id,tax_rate::text,pack_size::text'" "'id,tax_rate,pack_size'"
+mutated && fixture "F10 the two set-once figures come back as doubles" red "did not come back as text at their column scales"
+
+# --- F11. the form's read asks for a column the database does not have -----
+fresh
+edit "'id,tax_rate::text,pack_size::text'" "'id,iva::text,pack_size::text'"
+mutated && fixture "F11 the form reads a column that is not there" red "did not come back as text at their column scales"
+
 # --- F9. ⚠️ THE VACUITY CASE — a contract the check cannot read ------------
 # ⚠️ IT MUST REFUSE RATHER THAN RUN. A check that cannot find the strings it
 # asserts has nothing to assert, and this repository has recorded five shapes of
@@ -153,8 +168,8 @@ PY
 mutated && fixture "F9 a contract with no constants in it" red "could not read the catalog edit's contract"
 
 echo
-if (( fails == 0 && ran < 10 )); then
-  echo "FAIL: only $ran fixtures ran, expected 10 — this harness asserted almost"
+if (( fails == 0 && ran < 12 )); then
+  echo "FAIL: only $ran fixtures ran, expected 12 — this harness asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

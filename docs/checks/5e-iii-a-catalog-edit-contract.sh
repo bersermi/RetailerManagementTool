@@ -88,6 +88,7 @@ str() {
 priv() { sed -n "s/^const $1 = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1; }
 
 PRICE_EDIT_COLUMNS="$(str PRICE_EDIT_COLUMNS)"
+VARIANT_EDIT_COLUMNS="$(str VARIANT_EDIT_COLUMNS)"
 NAME_PATCH_COLUMNS="$(str NAME_PATCH_COLUMNS)"
 SETTINGS_PATCH_COLUMNS="$(str SETTINGS_PATCH_COLUMNS)"
 ACTIVE_PATCH_COLUMNS="$(str ACTIVE_PATCH_COLUMNS)"
@@ -111,7 +112,7 @@ PRICE_INSERT_COLUMNS="$(sed -n "/^export const PRICE_INSERT_COLUMNS =/,/;\$/p" a
 
 note
 MISSING=""
-for name in PRICE_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
+for name in PRICE_EDIT_COLUMNS VARIANT_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
             ACTIVE_PATCH_COLUMNS PRICE_CLOSE_COLUMNS PRICE_REPRICE_COLUMNS \
             UPDATE_RETURNING VARIANT_TABLE FORBIDDEN_CODE OVERLAP_CODE \
             NO_ROWS_CODE REJECTED_CODES PRICE_TABLE PRICE_INSERT_COLUMNS; do
@@ -160,6 +161,10 @@ msg_of() { pick message "$1"; }
 first_id(){ python3 -c "import sys,json;r=json.load(sys.stdin);print(r[0]['id'] if isinstance(r,list) and r else (r.get('id','') if isinstance(r,dict) else ''))" <<< "$1" 2>/dev/null; }
 rows_in(){ python3 -c "import sys,json;r=json.load(sys.stdin);print(len(r) if isinstance(r,list) else -1)" <<< "$1" 2>/dev/null; }
 field()  { python3 -c "import sys,json;r=json.load(sys.stdin);print(r[0].get('$1','') if isinstance(r,list) and r else '')" <<< "$2" 2>/dev/null; }
+# ⚠️ IS IT TEXT ON THE WIRE, OR A JSON NUMBER? `::text` is what makes the
+# difference, and a double reaching `parseDecimal` is refused outright — so the
+# TYPE is the assertion here and the value alone would pass either way.
+istext() { python3 -c "import sys,json;r=json.load(sys.stdin);print('yes' if isinstance(r,list) and r and isinstance(r[0].get('$1'),str) else 'no')" <<< "$2" 2>/dev/null; }
 
 # ⚠️ EVERY BODY IS BUILT INTO A VARIABLE BEFORE IT IS PASSED, never inlined into a
 # nested `$( )`: bash brace-expands `{"a":1}` inside one and PostgREST answers
@@ -398,6 +403,39 @@ else
   echo "      reason catalogEdit offers is_active and no DELETE at all."
 fi
 
+# --- 10. ⚠️ THE FORM'S OWN READ: THE TWO FIGURES IT SHOWS BESIDE ITS BOXES ---
+# `5e-iii-b`. `variantSettings` sends no column for a box nobody typed into, so
+# an empty form cannot overwrite anything — which makes *what is the IVA right
+# now* a question the screen must be able to ASK, and `VARIANT_COLUMNS` in
+# `@/api/catalog` carries neither column. ⚠️ The TYPE is the assertion, not the
+# value: a bare `numeric` arrives as a JSON number, which is a double, and
+# `parseDecimal` refuses a number outright — so a `::text` dropped from this list
+# compiles, bundles, passes Vitest and renders an empty `Actual:` line.
+#
+# ⚠️⚠️ IT READS BACK WHAT ASSERTION 7 WROTE, AND THE ORDER IS THE POINT RATHER
+# THAN AN ACCIDENT OF PLACEMENT. Asserting `0002`'s defaults would only say the
+# columns exist; asserting the 16% and the pack of 24 that assertion 7 patched in
+# says the two halves of `Editar` agree — what `parseTaxRate` sent as `0.1600`
+# comes back as `0.1600`, which is exactly what `taxPercentOf` renders as `16`.
+# ⚠️ A fixture that reorders these two groups breaks this and should.
+note
+TOKEN="$OWNER_TOKEN"
+SETTINGS_OUT="$(api GET "/rest/v1/$VARIANT_TABLE?select=$VARIANT_EDIT_COLUMNS&id=eq.$VARIANT_ID")"
+SETTINGS_BODY="$(body "$SETTINGS_OUT")"
+if [[ "$(status "$SETTINGS_OUT")" == "200" && "$(rows_in "$SETTINGS_BODY")" == "1" \
+      && "$(istext tax_rate "$SETTINGS_BODY")" == "yes" \
+      && "$(istext pack_size "$SETTINGS_BODY")" == "yes" \
+      && "$(field tax_rate "$SETTINGS_BODY")" == "0.1600" \
+      && "$(field pack_size "$SETTINGS_BODY")" == "24.000" ]]; then
+  ok "the form reads back what assertion 7 wrote, as TEXT and at the column's scale: 0.1600 and 24.000"
+else
+  fail "the two set-once figures did not come back as text at their column scales:"
+  echo "        $(status "$SETTINGS_OUT") $SETTINGS_BODY"
+  echo "      VARIANT_EDIT_COLUMNS is read out of $CONTRACT. A '::text' dropped"
+  echo "      here is a JSON double, which \`parseDecimal\` refuses — and the screen"
+  echo "      shows nothing rather than failing, which is the worst of the two."
+fi
+
 # --- 9. the shop next door cannot edit into this one ------------------------
 note
 TOKEN="$NEIGHBOUR_TOKEN"
@@ -416,8 +454,8 @@ echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything looks
 # like — and `5b-split-coverage.sh` shipped without one.
-if (( fails == 0 && ran < 8 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 8 — this check asserted almost"
+if (( fails == 0 && ran < 9 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 9 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
