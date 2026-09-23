@@ -250,6 +250,32 @@ on:
       # re-running this is the point rather than a side effect.
       - "docs/checks/5d-iv-a-takings-contract.sh"
       - "docs/checks/5d-iv-a-takings-contract-falsify.sh"
+      # ⚠️⚠️ AND THE CATALOG WRITE, as of plan task `5e-i` — the first line in this
+      # app that CREATES anything a shop sells, and the first whose central claim
+      # is a POLICY rather than a column. Same rule as every line above: the check
+      # and its harness are named here because an edit to the check alone —
+      # loosening an assertion — must re-run it.
+      # ⚠️⚠️ THIS IS THE ONE THAT HOLDS A FENCE. `product_family_insert`,
+      # `product_variant_insert` and `price_list_insert` are all
+      # `has_role(…, 'manager')` in `0002`, and NOTHING ELSE IN THIS REPOSITORY
+      # CAN SEE THAT: no typecheck, suite or bundler has ever read a policy,
+      # `CREATE POLICY` is not in the knowledge graph, and RLS is bypassed by the
+      # `postgres` superuser, so a check run as superuser passes vacuously. This
+      # one signs a real cashier in over real HTTP and asserts she is refused on
+      # all three tables. ⚠️ A POLICY THAT ALLOWS MORE BREAKS NO TEST — and
+      # `5e-ii` DRAWS that fence rather than discovering it, so the day one of
+      # them is widened the app is hiding a control from somebody entitled to use
+      # it, silently. Which is why `supabase/migrations/**` re-running this is the
+      # point rather than a side effect.
+      # ⚠️ Three more of its assertions exist nowhere else. The ORDER of the three
+      # writes is a correctness rule resting on two composite foreign keys, and
+      # the only way to say so is to post a price before its variant. The
+      # uniqueness is SHOP-WIDE, which is why the app's sentence deliberately does
+      # not blame the family. And the price written TODAY must be on TODAY's
+      # catalog read, byte for byte, through `5d-i`'s own window — the only place
+      # `pricePerBase` and `priceCentavos` meet over a real `numeric(14,6)`.
+      - "docs/checks/5e-i-catalog-write-contract.sh"
+      - "docs/checks/5e-i-catalog-write-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -317,10 +343,107 @@ jobs:
         if: always()
         run: supabase stop --no-backup
 
+  # ===========================================================================
+  # ⚠️⚠️ ITS OWN JOB, AND IT IS A MEASUREMENT RATHER THAN TIDINESS — the same
+  # argument `auth-session` above makes, and this time the measurement is a
+  # CANCELLED RUN rather than a prediction. The `reset` job below was already
+  # running 12-13 minutes against its `timeout-minutes: 15` cap and had been
+  # CANCELLED THREE TIMES ON `main` on 2026-09-22 before this task touched
+  # anything. Appending this check and its fifteen-fixture harness to it made
+  # that deterministic: run 35811840869 was cancelled mid-way through a step
+  # that predates `5e-i`, so these two never ran at all.
+  #
+  # ⚠️ A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, AND IT IS THE WORST OF
+  # THE THREE TO MERGE ON — the sentence `auth-session` already carries, now
+  # with a second run behind it. Jobs run in parallel, so this costs wall-clock
+  # nothing and takes ~2 minutes off the capped job's critical path.
+  #
+  # ⚠️⚠️ WHAT IT GUARDS (plan task `5e-i`): THE MANAGER FENCE. `product_family_insert`,
+  # `product_variant_insert` and `price_list_insert` are all
+  # `has_role(…, 'manager')` in `0002`, and NOTHING ELSE IN THIS REPOSITORY CAN
+  # SEE THAT — no typecheck, suite or bundler has ever read a policy, `CREATE
+  # POLICY` is not in the knowledge graph, and RLS is bypassed by the `postgres`
+  # superuser, so a check run as superuser passes vacuously. This signs a real
+  # cashier in over real HTTP and asserts she is refused on all three tables.
+  # ⚠️ A POLICY THAT ALLOWS MORE BREAKS NO OTHER TEST — and `5e-ii` DRAWS that
+  # fence rather than discovering it, so the day one is widened the app is
+  # hiding a control from somebody entitled to use it, silently.
+  #
+  # ⚠️ Three more of its assertions exist nowhere else. The ORDER of the three
+  # writes is a correctness rule resting on two composite foreign keys, and the
+  # only way to say so is to post a price before its variant. The uniqueness is
+  # SHOP-WIDE, which is why the app's sentence deliberately does not blame the
+  # family. And the price written TODAY must be on TODAY's catalog read, byte
+  # for byte, through `5d-i`'s own window — the only place `pricePerBase` and
+  # `priceCentavos` meet over a real `numeric(14,6)`.
+  # ===========================================================================
+  catalog-write:
+    name: the catalog write, and the manager fence on it
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned for `reset`'s reason: a CLI release must not turn a green
+          # schema red without a commit saying why.
+          version: 2.114.0
+
+      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS — the
+      # instrument signs two people up through GoTrue and posts rows through
+      # PostgREST, both via Kong. The exclusion list is `auth-session`'s, for
+      # its reason: bringing up the rest is a minute of start-up for containers
+      # nothing here touches.
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does app/src/api/catalogWrite.ts still describe the schema (plan 5e-i)
+        run: bash docs/checks/5e-i-catalog-write-contract.sh
+
+      # And its own fifteen fixtures. ⚠️ SIX BREAK THE CONTRACT — a renamed
+      # column, a reordered write, an unmapped refusal code, a constraint the
+      # app keys on that no longer fires, an unreadable contract — and FIVE MOVE
+      # THE APPLIED SCHEMA and put it back, because neither insert policy, the
+      # foreign key, the uniqueness nor the tax default can be falsified by any
+      # edit to a TypeScript file. ⚠️ Each restore is in a `trap` that runs on
+      # every exit path: a harness that left a WIDENED policy behind would make
+      # the tree look safe when it is not.
+      - name: Contract — can the catalog write check still fail (its own fifteen fixtures)
+        run: bash docs/checks/5e-i-catalog-write-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ⚠️⚠️ `timeout-minutes` WAS 15 AND THE JOB WAS BEING CANCELLED AT IT — RAISED
+  # TO 25 ON 2026-09-22, AND THE NUMBER IS A MEASUREMENT RATHER THAN A ROUND-UP.
+  # Run 35813212086: EVERY STEP SUCCEEDED and the job was killed 15m07s in, with
+  # the last falsifier ~23s from finishing. It was cancelled three times on
+  # `main` the same day (35802822473, 35792354993, 35783706860) and succeeded
+  # twice at 12m01s and 13m22s — so the cap had been cutting off legitimate runs
+  # for hours, intermittently.
+  #
+  # ⚠️ A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, which is the whole
+  # problem: the working agreement says never merge on one, and a cap that fires
+  # on a healthy job makes "wait for CI" a coin flip. 25 still catches a HANG,
+  # which is what a cap is for; it no longer catches a job doing its work.
+  #
+  # ⚠️⚠️ THIS IS A STOPGAP AND THE PLAN SAYS SO — `5R-g`. The job does ~5m12s of
+  # seed checks and then runs ELEVEN contract checks with their harnesses back to
+  # back, and every one of those is an `app/src/api/**` claim with the same shape
+  # as the `catalog-write` job above. Splitting them out is the real fix: jobs
+  # run in parallel, so it costs wall-clock nothing and stops this number needing
+  # to be raised again every few tasks.
   reset:
     name: supabase db reset
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 25
 
     steps:
       - uses: actions/checkout@v4

@@ -90,9 +90,21 @@ import {
   UNIT_COLUMNS,
   isoDay,
   priceEndsAfter,
+  type UnitFactors,
   type UnitRow,
   type VariantRow,
 } from '@/api/catalog';
+import {
+  INSERT_RETURNING,
+  WRITE_ORDER,
+  familyRow,
+  parsePesos,
+  priceRow,
+  pricePerBase,
+  variantRow,
+  type CreateOutcome,
+  type ProductDraft,
+} from '@/api/catalogWrite';
 import {
   ONBOARD_WORKSPACE,
   WORKSPACE_COLUMNS,
@@ -488,6 +500,94 @@ export async function todaySales(): Promise<SaleRow[]> {
     .gte(TODAY_COLUMN, dayStartISO(new Date()));
   if (error) throw reported(error);
   return (data ?? []) as unknown as SaleRow[];
+}
+
+/**
+ * THE SHOP MAKING A PRODUCT — three rows, in the order `WRITE_ORDER` gives, and
+ * the only write in this app that is three round trips rather than one RPC.
+ * Plan task `5e-i`.
+ *
+ * ⚠️⚠️ IT RETURNS AN OUTCOME AND DOES NOT THROW, WHICH IS THE OPPOSITE OF EVERY
+ * OTHER FUNCTION IN THIS FILE, AND THE REASON IS THAT THERE IS NO TRANSACTION.
+ * This file's own header says a wrapper throws so TanStack can decide `isError`
+ * from a rejected promise — true of a single call, where failure means nothing
+ * happened. Here failure can mean two rows landed and one did not, and a thrown
+ * error carries no room for the ids that did. `CreateOutcome` is that room, and
+ * `retryDraft` is what the next attempt needs out of it.
+ *
+ * ⚠️ THE ARITHMETIC IS `@/api/catalogWrite`'s AND NOT THIS FILE'S (`R3`, `R13`):
+ * the peso figure, the fan-out and the row shapes all arrive from the module
+ * `app/test/api-catalog-write.test.ts` can load. What is left here are the three
+ * lines that talk.
+ *
+ * ⚠️ THE TABLES ARE READ OUT OF `WRITE_ORDER` BY INDEX rather than spelled
+ * three times, so the order this file posts in is the order that array claims —
+ * which is what `docs/checks/5e-i-catalog-write-contract.sh` drives against a
+ * real PostgREST.
+ */
+export async function createProduct(
+  workspaceId: string,
+  draft: ProductDraft,
+  factors: UnitFactors,
+  now: Date = new Date(),
+): Promise<CreateOutcome> {
+  const [FAMILY, VARIANT, PRICE] = WRITE_ORDER;
+
+  // ⚠️⚠️ THE PRICE IS WORKED OUT BEFORE ANYTHING IS WRITTEN, AND THE ORDER OF
+  // THESE TWO LINES IS THE DIFFERENCE BETWEEN NO PRODUCT AND A PRICELESS ONE.
+  // `pricePerBase` answers null when the figure will not convert — which
+  // includes the case where the `unit` read has not landed and `factors` is
+  // empty — and computing it AFTER the two inserts would leave a real product
+  // on Productos wearing C3.12's dash, created by a phone that never had the
+  // factors to price it. `checkProduct` is what the form calls first and it
+  // refuses the same drafts; this is the belt to that screen's braces, and it
+  // reports the first step so `retryDraft` carries nothing forward.
+  const centavos = parsePesos(draft.pricePesos);
+  const perBase = centavos === null ? null : pricePerBase(centavos, factors[draft.unitCode] ?? '');
+  if (perBase === null) {
+    return { ok: false, failed: FAMILY, familyId: null, variantId: null, error: null };
+  }
+
+  let familyId = draft.familyId;
+
+  if (familyId === null) {
+    const { data, error } = await supabase
+      .from(FAMILY)
+      .insert(familyRow(workspaceId, draft.familyName))
+      .select(INSERT_RETURNING)
+      .single();
+    if (error) {
+      return { ok: false, failed: FAMILY, familyId: null, variantId: null, error: reported(error) };
+    }
+    familyId = (data as { id: string }).id;
+  }
+
+  const variant = await supabase
+    .from(VARIANT)
+    .insert(variantRow(workspaceId, familyId, draft))
+    .select(INSERT_RETURNING)
+    .single();
+  if (variant.error) {
+    return {
+      ok: false,
+      failed: VARIANT,
+      familyId,
+      variantId: null,
+      error: reported(variant.error),
+    };
+  }
+  const variantId = (variant.data as { id: string }).id;
+
+  const { error } = await supabase
+    .from(PRICE)
+    .insert(priceRow(workspaceId, variantId, perBase, isoDay(now)))
+    .select(INSERT_RETURNING)
+    .single();
+  if (error) {
+    return { ok: false, failed: PRICE, familyId, variantId, error: reported(error) };
+  }
+
+  return { ok: true, familyId, variantId };
 }
 
 /**
