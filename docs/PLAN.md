@@ -323,6 +323,24 @@ he does at the counter.**
 | **B** | **THE UNIT LIST IS NARROWED BY THE FAMILY, AND A LIST OF ONE ANSWERS ITSELF** | C8.5, above, which nothing else keeps. ⚠️ It deliberately does **not** preselect out of a longer list: `kg` over `100g` is a guess about how this shop prices, and C8.9 asks the question. A count family can only take `pza`, so asking there is a tap paid to be told there was no choice |
 | **C** | **THE FORM WAITS FOR THE CATALOG READ AND WILL NOT OPEN ON AN EMPTY ONE** | Every family question is answered out of the rows `useCatalog` holds, so a form drawn on a read that had not landed would propose a NEW family for one this shop already has. ⚠️ **An EMPTY catalog is deliberately NOT that state** — that is C8.2's shop on its first morning, and adding the first product is exactly what this screen is for |
 
+⚠️⚠️ **AND THE SENTINEL RULE WAS BROKEN TWICE IN ONE SESSION, IN TWO DIFFERENT
+FILES, AND ONLY THE SECOND ONE GOT PAST A LOCAL RUN.** `split-coverage.sh` caught
+the first immediately: the `5e-ii` row above spelled `C8.10`, `Costos` and
+`Editar` — three deliverables belonging to other children — and reported all
+three as *owned by neither*. The second reached CI. `docs/HANDBOOK.md`'s next-work
+marker was written as *…next piece of work is.**`* with the full stop INSIDE the
+bold run; `handbook-agreement.sh` was **green**, because it greps the sentence and
+not the markup, and `handbook-agreement-falsify.sh` went red on **four fixtures at
+once**, each saying *"anchor not present in the `5e-iii` row"*. ⚠️ **A harness that
+cannot find the row it is meant to break reads exactly like a guard that has lost
+its teeth**, which is why the pair is run together and why the base being green is
+not the whole answer. ⚠️ **Nothing was loosened**: the sentence was reworded so the
+period sits outside the bold — `5b.7`'s call about the R4 stripper, made again —
+and **widening the anchor is routed, in that file's own header, to the next task
+that touches either file.** ⚠️ **The lesson that generalises: after editing a file
+a guard READS, run the guard AND its falsifier**, because the falsifier is the half
+that depends on the file's exact spelling.
+
 ⚠️⚠️ **AND FIVE THINGS ARE ROUTED TO HIS PHONE RATHER THAN GUESSED (`R9`, §2.11).**
 Does the suggested family read as a **proposal** or as a decision already taken —
 and is `Cambiar` findable beside it? Is the no-price line quiet enough to live
