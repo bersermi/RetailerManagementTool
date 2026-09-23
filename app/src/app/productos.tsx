@@ -4,8 +4,9 @@ import { useState } from 'react';
 import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useCatalog } from '@/api/hooks';
+import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
+import { canWriteCatalog } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -22,6 +23,17 @@ import { PALETTE } from '@/theme/palette';
 // underneath its name. The family with its variants at sight is `5d-iii`,
 // reached by tapping a row, and it is the one surface in this app where that
 // structure is visible at all (C3.1 already flattened the transaction screens).
+//
+// ⚠️⚠️ AND IT IS THE FIRST OF C8.12's THREE DOORS INTO `Agregar`, AS OF
+// `5e-ii`. The banda carries one word beside *Volver*, and it is **absent for a
+// cashier**: `product_variant_insert` and `product_family_insert` are both
+// `has_role(…, 'manager')` in `0002`, the refusal is a bare `42501` with no
+// sentence of its own, and `canWriteCatalog` is what keeps a control that cannot
+// work off her screen. Plainly absent beats looking live and refusing silently —
+// the same call `5d-iii` made for these three buttons, and the shape
+// [[shift-cover-is-a-reassignment]] records. ⚠️ From here the form asks the
+// FAMILY question (C8.12); from inside a family it does not, which is why that
+// screen passes `?familia=`.
 //
 // ⚠️⚠️ THE ROWS OPEN THE FAMILY AS OF `5d-iii`, AND THAT IS WHAT THE PREVIOUS
 // TASK SAID WOULD HAPPEN. `5d-ii` shipped this list with no `Pressable`, no
@@ -111,6 +123,10 @@ export default function Productos() {
 function Banda() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
+  // ⚠️ THE ROLE IS READ HERE AND NOT INSIDE THE JSX. `useMyRole` is a hook, and
+  // a hook called in the left operand of an `&&` is one line away from being
+  // called conditionally — which is the rule React cannot recover from.
+  const mayAdd = canWriteCatalog(useMyRole());
   return (
     <View
       style={{
@@ -126,9 +142,38 @@ function Banda() {
         gap: scale.space,
       }}
     >
-      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+      <Text
+        numberOfLines={1}
+        style={{
+          flex: 1,
+          fontSize: scale.titleSize,
+          fontWeight: '700',
+          color: PALETTE.tinta,
+        }}
+      >
         {ES.catalog.title}
       </Text>
+
+      {/* ⚠️⚠️ ABSENT FOR A CASHIER AND NOT DISABLED FOR HER — see the header.
+          ⚠️ And absent while `useMyRole()` is still `null`, which is "not
+          known" rather than "no authority" (`roleOf`): the control fades in when
+          the membership read lands, instead of being snatched away from somebody
+          who was not allowed it. */}
+      {mayAdd && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/producto/nuevo')}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+            {ES.catalog.create.open}
+          </Text>
+        </Pressable>
+      )}
+
       <Pressable
         accessibilityRole="button"
         onPress={() => router.back()}

@@ -17,10 +17,13 @@ file is the rule, and a `status-log-2026-09-22b.md` would break it. ⚠️ **And
 is never renamed to absorb a later cut**: the plan's own history names these
 files, and renaming for tidiness makes a recorded statement false.
 
-**What is here, oldest first as the plan had it — the three entries that opened
-2026-09-22, all of them step `5c`'s last day:** the `5c-ii-b` sizing and the
-reading that broke the connectivity tie; `5c-ii-b-2`, the flush trigger; and the
-`5c-iv` sizing that split what a person sees in two.
+**What is here, oldest first as the plan had it.** The three entries that opened
+2026-09-22, all of them step `5c`'s last day: the `5c-ii-b` sizing and the reading
+that broke the connectivity tie; `5c-ii-b-2`, the flush trigger; and the `5c-iv`
+sizing that split what a person sees in two. ⚠️ **And the later cuts, each named in
+its own heading below** — `5c-iv-a`, `5c-iv-b`, and `5b.9`, the last row of step
+`5b`, which was at the FOOT of `## Position` rather than its head and is therefore
+the NEWEST entry in this file.
 
 ⚠️ **`plan-corpus.sh` globs `docs/plan/archive/*.md`, so this file needed no
 wiring and every content-addressed lookup — `| **task** |` — resolves out of it
@@ -511,3 +514,129 @@ of them is as cheap to reverse tomorrow as it is today:**
 | **5** | **It sits at the top; the offline surfaces keep the bottom** | Two strips at one edge is a collision nothing here can see | Two lines |
 | **6** | **`$0.00` is never shown** | A queue of dead transfers is worth exactly nothing, and `$0.00` reads as a broken screen — C3.17 gives that number a different meaning everywhere else in this app | One comparison |
 
+---
+
+## Fourth cut — taken 2026-09-22 while `5e-ii` was being closed
+
+⚠️ **ONE ENTRY, AND IT IS THE NEWEST OF THE SIX RATHER THAN THE OLDEST**, which
+is why it is at the bottom: this file is **oldest first, as `## Position` had it**
+reversed, and `5b.9` was the last row of step `5b` and the entry that stood at the
+foot of Position after the three earlier cuts. `## Position` had reached **1,388
+lines against its 1,400 ceiling** with the `5e-ii` entry added — twelve lines of
+headroom, which is one session away from a red — so the cut was taken here rather
+than left as a trap for the next session. `plan-handover.sh` assertion 7 names the
+remedy in its own failure.
+
+⚠️ **A MOVE AND NOT A COPY**, exactly as the three cuts above: the lines below are
+gone from `docs/PLAN.md`, and `plan-corpus.sh` is what makes `| **5b.9** |` resolve
+out of this file as it did out of that one.
+
+✅✅ **`5b.9` IS DONE AS OF 2026-09-22 — `0038` IS APPLIED, `TD006` EXISTS, AND
+THE JOIN BOX HAS STOPPED GUESSING WHO IS STANDING THERE. `5d` IS THE NEXT TASK,
+AND IT IS THE FIRST SCREEN OF PRODUCTOS.** One migration, one raise site, one
+deleted marker. **The last row of step 5b, and the only open row in step 5 that
+shipped a migration.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING HERE IS NEW BEHAVIOUR, AND THE ONLY
+PERSON WHO WILL EVER NOTICE IS THE ONE WHOSE SESSION LAPSED MID-SCREEN.** She
+was being told to re-read eight characters that were fine; she is now told her
+session ended, which is what happened. **That is the whole of the user-visible
+change**, and it is why this blocked nothing for four days — the row said so
+before it was taken and the measurement did not change it.
+
+⚠️⚠️ **IT CLOSED BY TURNING *FIVE* STANDING CHECKS RED ON A CORRECT TREE, WHICH
+IS FOUR MORE THAN THE ROW PREDICTED — AND EVERY ONE OF THEM WAS WRITTEN TO DO
+EXACTLY THAT.** The row promised one: `docs/checks/5b-iii-b-request-contract.sh`
+assertion 9, which asserts over real HTTP that the two meanings of `42501` are
+still indistinguishable. Running the directory rather than the file found four
+more, and that is the rule `0036` paid for:
+
+| | What went red | What it had been asserting | Where it went |
+|---|---|---|---|
+| **1** | `docs/checks/5b-iii-b-request-contract.sh` **9** | the overload is REAL, over real HTTP | **replaced by its opposite** — they must now come back DIFFERENT |
+| **2** | `supabase/tests/0029` **2.4** | a code nobody owns is refused `42501` | re-pointed to `TD006` |
+| **3** | `supabase/tests/0029` **2.5** | a seven-character prefix is refused `42501` | re-pointed to `TD006` |
+| **4** | `supabase/tests/0029` **2.8** | an INACTIVE workspace is refused identically | re-pointed to `TD006` — ⚠️ **and the identity is the point** |
+| **5** | `supabase/tests/0036` **7.3** | *"TD006 is still free"* | **retired into `supabase/tests/0038` 7.2**, which now watches `TD007` |
+
+⚠️ **`supabase/tests/0029` 2.7 DID NOT MOVE, AND IT IS THE HALF THAT MAKES THE
+FIX A FIX.** It asserts an unauthenticated caller is refused `42501`. Before
+`0038` it and 2.4 asserted the SAME state on the same function — **which is the
+defect, written down in the suite of the migration that shipped it and never
+read as one.** Them asserting different states is the cure, said by a file that
+was already there.
+
+**THE FIVE RULES THAT WOULD HAVE GONE IN WRONG SILENTLY, each now an assertion:**
+
+| | The rule | What getting it wrong costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE TRANSCRIPTION SOURCE IS `0034:409`, NOT `0029:158`** | `create or replace` needs the whole function, and `request_access` had been replaced once since `0029` — by `0034`, which added `display_name = coalesce(display_name, auth_full_name(…))` inside the `D7` branch so a person invited by email who types the SHOP code arrives NAMED. Transcribing `0029` reverts the owner's ruling of 2026-09-18 in one of the four places it lives, **and nothing in `0038`'s own suite would say so** — `supabase/tests/0034` 2.3b would, one sweep later. ✅ **The body was extracted mechanically and diffed against `0034`'s**: the only difference is the one `errcode` and its comment. Check 2.5 re-performs `0034`'s assertion here |
+| **2** | ⚠️⚠️ **BOTH WAYS INTO THE BRANCH MOVE TOGETHER** | `0029`'s decision 4 refuses an INACTIVE workspace through the same raise site as an unknown code, identically and on purpose. A migration that moved only the `not found` half leaves the other on `42501` **and check 1.1 is still green.** Check 1.2 drives a shop that has been switched off — and nothing else in this repository builds one, so the fixture had to `update workspace set is_active = false` by hand and say that it did |
+| **3** | ⚠️ **THE AUTHENTICATION GUARD KEEPS `insufficient_privilege`** | `0036` decision 3, repeated. Moving it too would retire the overload by EMPTYING the code, which is not the same as resolving it — and `42501` reaching this screen has to keep meaning *"sign in again"*, because that is what `@/api/errors` maps it to app-wide and what check 3.1 measures |
+| **4** | ⚠️ **THE TWO `22023`s AND `approve_request`'s TWO `42501`s STAY** | A bad payload is one meaning reached two ways and a fence is a fence: `4d-i`'s reuse rule, not an overload. ⚠️ The `22023` for a phone-only account is **unreachable in v1** (C1.4 admits no phone auth) and is driven anyway, by a fixture with a NULL email — nothing else here reaches it, and a transcription that dropped it would be invisible |
+| **5** | ⚠️⚠️ **THE THREE EXITS THAT ARE NOT REFUSALS ARE DRIVEN TOO** | `requested`, `already_requested`, `already_member` and `joined` are successes. A transcription that turned one into a raise leaves `TD006` correct and the function broken **for its ordinary caller** — and, through `_status`, a raise there records a FAIL instead of aborting the file under `ON_ERROR_STOP`, which is the shape `0035`, `0036` and `0037` each recorded printing no failures at all |
+
+⚠️⚠️ **AND THE SUITE SHIPPED A DEFECT OF ITS OWN THAT ITS OWN OUTPUT CAUGHT, WHICH
+IS WORTH MORE THAN THE MIGRATION.** `chk(label, condition, detail)` takes two
+expressions, and the first writing of checks 2.6–2.10 called
+`public._status('select public.request_access(…)')` **in both of them** — so the
+RPC ran TWICE per check, and `request_access` WRITES. Check 2.6 was GREEN with
+the detail `got already_requested`: the condition's call made the row, and the
+detail's call found it. **The assertion was right and its evidence was a
+different event.** Nothing would have failed; the next session to read that
+detail would have been reading a lie about what this function does. ✅ Every
+status is now taken once with `\gset` and asserted from the variable, and the
+reason is written into the file rather than into this entry alone.
+
+⚠️ **WHERE THE FREE-SLOT CLAIM LIVES WAS A DECISION, NOT A TIDY-UP.** `0036`'s
+check 7.3 said *"TD006 is still free — if this ever goes red, somebody has
+minted one without saying so"*. Somebody has, and said so. **Rewriting it in
+place as *"TD006 is taken, by exactly one function"* would have been word for
+word `0038`'s check 7.1** — two homes for one claim, which is the defect this
+repository has recorded six of and which `split-coverage.sh` fails on by name.
+**So it MOVED**: the frontier assertion belongs to the migration that moved the
+frontier, and `0038` 7.2 now watches `TD007`. `0036`'s pinned count went 29 → 28
+in the same edit, because a count that does not move with its file is the next
+vacuous green.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `supabase/migrations/0038_request_refusal_code.sql` | one `create or replace`, one `errcode`, one restated comment — no table, column, view, policy, trigger, grant or signature |
+| `supabase/tests/0038_request_refusal_code.sql` | **28 behavioural checks**, and a fixture with a deactivated shop and a phone-only account |
+| `supabase/tests/0029_request_path.sql` | three checks re-pointed, with the reason and the 2.7 contrast written in |
+| `supabase/tests/0036_invite_refusal_codes.sql` | 7.3 retired with a pointer to where it went; the pinned count follows it |
+| `supabase/tests/_cleanup.sql` | `_status(text)` dropped on the day its suite lands — `4f`'s rule, followed rather than re-learned |
+| `app/src/api/requests.ts` | the marker constant DELETED, `REQUEST_REFUSALS` re-keyed onto `TD006`, and the argument rewritten as history rather than as a live guess |
+| `app/test/api-requests.test.ts` | the pinned choice INVERTED — `TD006` is the shop, `42501` is the session — and both halves asserted |
+| `docs/checks/5b-iii-b-request-contract.sh` | assertion 9 replaced by its opposite; the code now read off the app's own refusal MAP, not a constant |
+| `docs/checks/…-falsify.sh` | `V5` re-anchored, `V7` INVERTED, and a new `V10` for the branch the rewrite grew |
+| `.github/workflows/db.yml`, `supabase/README.md` | three stale comments, the step name, the `0038` row and `0036`'s count |
+| `docs/PLAN.md`, `docs/HANDBOOK.md` | this entry, the two rows, and the next task |
+
+⚠️ **THE VERIFICATION, NAMED.** `supabase db reset` applied `0038` from scratch,
+then **every suite in `supabase/tests/` was run in name order** — 25 files,
+**1,471 behavioural checks, all green**, which is how the three `0029` reds were
+found at all. `supabase/tests/0038` is **28 of 28**.
+`bash docs/checks/5b-iii-b-request-contract.sh` is **11 assertion groups green
+over real HTTP**, and its line reads *"the overload is RETIRED and measured: no
+session '42501', unknown code 'TD006'"* — the same instrument that said the
+opposite yesterday, against a live database rather than a file.
+`bash docs/checks/5b-iii-b-request-contract-falsify.sh` is **11 of 11 fixtures
+red against a green control**, including the inverted `V7` and the new `V10`.
+`npm run test --workspace @tienda/app` is **611 assertions over 28 files**,
+`npm run typecheck` clean, `bash docs/checks/conventions-gate.sh` **16 groups
+over 53 source and 28 test files**. ⚠️ **Not one of those numbers has seen a
+pixel, and this task ships no screen at all.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF — and one of them is a migration, so it
+freezes on merge:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | ⚠️⚠️ **`TD006` covers an unknown code AND a shop that has been switched off** | `0029`'s decision 4 already made them one refusal with one message, deliberately. Minting for one alone would leave the other on `42501`, the client would still need `42501: 'noSuchShop'` in its table, **and the overload this task exists to retire would survive it** — which is exactly the argument `0036` decision 2 made about `redeem_invite`'s two dead tokens. Her next step is identical either way: re-read the eight characters | ⚠️ **A fix-forward migration, not an edit.** If you want *"that shop is closed"* told apart from *"that is not a code"*, it is a new small row |
+| **2** | **`approve_request`'s two `42501`s are left alone** | A fence and a row you may not act on are what that code means everywhere else here, and `@/api/approvals` already leaves them to the app-wide sentence. Sweeping them up makes this migration two unrelated changes — the refusal the ruling's own wording avoided | One migration |
+| **3** | **The marker constant is deleted rather than re-pointed to `TD006`** | A marker exists to name a GUESS, and there is no guess left to name. `@/api/redeem` has read this way since `0036` | One line |
+| **4** | **`0036`'s free-slot check MOVED rather than being rewritten** | Two homes for one claim, and the newest migration is the right home for a frontier | One check |
+| **5** | **The message is unchanged, word for word** | A migration that fixed the code AND reworded the sentence is indistinguishable from one that broke the sentence — and the suite matches on the message to prove the right branch fired | Nothing depends on it |

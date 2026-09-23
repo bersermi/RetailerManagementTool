@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CATALOG_WRITE_REFUSALS,
+  FAMILY_SUGGESTED,
   FAMILY_INSERT_COLUMNS,
   INSERT_RETURNING,
   PRICE_INSERT_COLUMNS,
@@ -18,10 +19,17 @@ import {
   priceRow,
   pricePerBase,
   retryDraft,
+  savedLine,
   suggestFamily,
+  unitChoice,
   unitColumns,
+  unitOptions,
+  canWriteCatalog,
+  resolveFamily,
   variantRow,
   type CreateFailed,
+  type CreateSucceeded,
+  type FamilyChoice,
   type ProductDraft,
 } from '@/api/catalogWrite';
 import {
@@ -634,6 +642,216 @@ describe('what a partial write leaves behind', () => {
     for (const step of WRITE_ORDER) {
       expect(createLine(failed({ failed: step }))).toBeTypeOf('string');
       expect(createLine(failed({ failed: step }))).not.toBe('');
+    }
+  });
+});
+
+// ============================================================================
+// WHAT THE FORM DECIDES, DECIDED IN THE MODULE. Plan task `5e-ii`.
+//
+// ⚠️⚠️ THESE ARE THE FIVE THINGS DRAWING `Agregar` TURNED OUT TO DECIDE, and
+// `5e`'s split had said the second child *renders and decides nothing*. Every
+// one is here rather than in the JSX for `R3`'s reason — a rule written into a
+// screen is a rule no instrument in this repository will ever read — and the
+// gap this suite still cannot close is unchanged: it cannot say whether
+// `Cambiar` is findable or whether five unit chips fit at *Letra grande*. That
+// is `R9`, and it is the owner's phone.
+// ============================================================================
+
+describe('the manager fence, drawn rather than discovered', () => {
+  // ⚠️ `0002`'s OWN PREDICATE ON ALL THREE TABLES, `has_role(…, 'manager')`.
+  // ⚠️⚠️ AND THIS SUITE CANNOT PROVE THE POLICY, only that the app agrees with
+  // what somebody wrote down about it. `docs/checks/5e-i-catalog-write-contract.sh`
+  // is the only instrument that asks a real database, and its central assertion
+  // is that a cashier is refused.
+  it('admits the owner and a manager', () => {
+    expect(canWriteCatalog('owner')).toBe(true);
+    expect(canWriteCatalog('manager')).toBe(true);
+  });
+
+  it('keeps a cashier off the control entirely', () => {
+    expect(canWriteCatalog('staff')).toBe(false);
+  });
+
+  // ⚠️ `null` IS "NOT KNOWN" AND NOT "NO AUTHORITY" — `roleOf`'s distinction.
+  // The control is absent while the membership read is out and appears when it
+  // lands, rather than being shown and then snatched away.
+  it('refuses while the role is still unknown', () => {
+    expect(canWriteCatalog(null)).toBe(false);
+  });
+});
+
+describe('C8.11 — the family suggested, and overridden by a gesture', () => {
+  it('follows the typed name until somebody overrides it', () => {
+    expect(resolveFamily(FAMILY_SUGGESTED, ENTRIES, 'Pierna de pollo')).toEqual(
+      suggestFamily(ENTRIES, 'Pierna de pollo'),
+    );
+    expect(resolveFamily(FAMILY_SUGGESTED, ENTRIES, 'Pierna de pollo').familyId).toBe(POLLO);
+  });
+
+  // ⚠️⚠️ THE OVERRIDE OUTRANKS THE SUGGESTION, AND THE OPPOSITE IS THE BUG THIS
+  // ASSERTION EXISTS FOR: a form that re-suggested would undo her choice on the
+  // next keystroke of the product name.
+  it('keeps a chosen family while the name goes on changing', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: CERDO, name: 'Cerdo' };
+    expect(resolveFamily(chosen, ENTRIES, 'Pierna de pollo')).toEqual({
+      familyId: CERDO,
+      familyName: 'Cerdo',
+    });
+  });
+
+  it('creates the family she typed, and never the one suggested', () => {
+    const own: FamilyChoice = { kind: 'new', name: '  Queso   Oaxaca  ' };
+    expect(resolveFamily(own, ENTRIES, 'Pierna de pollo')).toEqual({
+      familyId: null,
+      familyName: 'Queso Oaxaca',
+    });
+  });
+
+  // ⚠️ AN EMPTY NEW-FAMILY BOX STAYS `new` AND IS REFUSED BY `checkProduct`,
+  // rather than falling back to a suggestion she had just decided against.
+  it('does not fall back to the suggestion when the box is empty', () => {
+    const empty: FamilyChoice = { kind: 'new', name: '   ' };
+    expect(resolveFamily(empty, ENTRIES, 'Pierna de pollo')).toEqual({
+      familyId: null,
+      familyName: '',
+    });
+    expect(
+      checkProduct(
+        { ...draft(), familyId: null, familyName: '' },
+        [],
+        FACTORS,
+      ),
+    ).toBe('familyMissing');
+  });
+});
+
+describe("C8.5 — one family, one dimension, kept by the form because nothing else keeps it", () => {
+  // ⚠️⚠️ THE DATABASE DOES NOT APPLY C8.5 ACROSS VARIANTS, which is why this
+  // list exists at all. `product_variant_units_same_dimension_trg` (`0002:204`)
+  // counts dimensions across the four unit columns of ONE row, and C8.10's
+  // fan-out makes that one by construction.
+  const LECHE = '33333333-3333-4333-8333-333333333333';
+  const HUEVO = '44444444-4444-4444-8444-444444444444';
+  const OTHERS = catalogFrom(
+    [
+      { ...variant('d', 'Leche entera', LECHE, 'Leche'), price_unit_code: 'l' },
+      { ...variant('e', 'Huevo', HUEVO, 'Huevo'), price_unit_code: 'pza' },
+    ],
+    FACTORS,
+    null,
+  );
+
+  it('offers all ten units when there is no family to constrain them', () => {
+    expect(unitOptions(UNITS, ENTRIES, null)).toHaveLength(UNITS.length);
+  });
+
+  // ⚠️ A FAMILY NOBODY HAS ADDED TO PUTS NO CONSTRAINT ON ANYTHING — including
+  // the invisible family a failed `5e-i` write leaves behind.
+  it('offers all ten inside a family that has no variants yet', () => {
+    expect(unitOptions(UNITS, ENTRIES, 'a-family-nobody-has-used')).toHaveLength(UNITS.length);
+  });
+
+  it('offers only weights inside a family measured in kilos', () => {
+    expect(unitOptions(UNITS, ENTRIES, POLLO)).toEqual(['kg', '500g', '250g', '100g', 'g']);
+  });
+
+  it('offers only volumes inside a family measured in litres', () => {
+    expect(unitOptions(UNITS, OTHERS, LECHE)).toEqual(['l', '500ml', '100ml', 'ml']);
+  });
+
+  it('offers exactly one unit inside a family counted in pieces', () => {
+    expect(unitOptions(UNITS, OTHERS, HUEVO)).toEqual(['pza']);
+  });
+
+  // ⚠️⚠️ THE ORDER IS `0001`'s `display_order` AND NOT THE READ'S, AND THIS IS
+  // THE ASSERTION THAT MAKES THAT TRUE RATHER THAN LUCKY. `catalogUnits` asks
+  // for no `order=`, so PostgREST may answer in any order it likes, and a picker
+  // that trusted it would rearrange itself between launches.
+  it('puts the list in the same order however the read arrives', () => {
+    const shuffled = [...UNITS].reverse();
+    expect(unitOptions(shuffled, ENTRIES, null)).toEqual(unitOptions(UNITS, ENTRIES, null));
+    expect(unitOptions(UNITS, ENTRIES, null)).toEqual([
+      'kg',
+      'l',
+      'pza',
+      '500g',
+      '500ml',
+      '250g',
+      '100g',
+      '100ml',
+      'g',
+      'ml',
+    ]);
+  });
+});
+
+describe('the unit she picked, against the units the family allows', () => {
+  const MASS = unitOptions(UNITS, ENTRIES, POLLO);
+
+  it('keeps a pick the family allows', () => {
+    expect(unitChoice(MASS, '250g')).toBe('250g');
+  });
+
+  // ⚠️⚠️ THE BUG THIS EXISTS FOR, AND NOTHING ELSE IN THIS REPOSITORY WOULD HAVE
+  // CAUGHT IT: she types `Leche`, picks `l`, then overrides the family to
+  // `Pollo`. `l` is gone from the screen, and a form holding it in `useState`
+  // would post a litre of chicken — which Postgres accepts.
+  it('drops a pick the family no longer allows', () => {
+    expect(unitChoice(MASS, 'l')).toBe('');
+  });
+
+  it('leaves the question open while nothing is picked', () => {
+    expect(unitChoice(MASS, '')).toBe('');
+  });
+
+  // ⚠️ A LIST OF ONE IS A DERIVATION AND NOT A DEFAULT THE APP GUESSED.
+  it('answers a list of one by itself', () => {
+    expect(unitChoice(['pza'], '')).toBe('pza');
+  });
+
+  // ⚠️ AND IT NEVER PRESELECTS OUT OF A LONGER LIST: `kg` over `100g` is a guess
+  // about how this shop prices, and C8.9 asks the question.
+  it('never preselects out of a list of more than one', () => {
+    expect(unitChoice(MASS, '')).toBe('');
+    expect(MASS.length).toBeGreaterThan(1);
+  });
+});
+
+describe('what a create that WORKED says, and there are two of them', () => {
+  function saved(over: Partial<CreateSucceeded> = {}): CreateSucceeded {
+    return { ok: true, familyId: POLLO, variantId: VARIANT_ID, priced: true, ...over };
+  }
+
+  function halfDone(step: CreateFailed['failed']): CreateFailed {
+    return {
+      ok: false,
+      failed: step,
+      familyId: POLLO,
+      variantId: step === 'price_list' ? VARIANT_ID : null,
+      error: refusal('23505', 'duplicate key value violates unique constraint "product_variant_name_unique"'),
+    };
+  }
+
+  it('says it is in the catalog', () => {
+    expect(savedLine(saved())).toBe(ES.catalog.create.saved);
+  });
+
+  // ⚠️⚠️ `CreateSucceeded.priced` IS WHAT THIS LINE WAS PUT THERE FOR. A product
+  // saved wearing C3.12's dash is a different event, and the sentence is
+  // `ES.catalog.notice.noPrice` in the past tense.
+  it('says what is still missing when the price was left out', () => {
+    expect(savedLine(saved({ priced: false }))).toBe(ES.catalog.create.savedNoPrice);
+    expect(savedLine(saved({ priced: false }))).not.toBe(savedLine(saved()));
+  });
+
+  // ⚠️ THE TWO SUCCESS SENTENCES AND THE THREE FAILURE ONES ARE FIVE DIFFERENT
+  // SENTENCES. A create that half-worked must never be able to say the same
+  // words as one that worked.
+  it('never shares a sentence with a failure', () => {
+    const lines = [savedLine(saved()), savedLine(saved({ priced: false }))];
+    for (const step of WRITE_ORDER) {
+      expect(lines).not.toContain(createLine(halfDone(step)));
     }
   });
 });

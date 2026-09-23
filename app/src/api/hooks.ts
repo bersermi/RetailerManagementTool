@@ -905,5 +905,12 @@ export function useCreateProduct() {
     return outcome;
   }
 
-  return { create, busy: mutation.isPending, factors };
+  // ⚠️ THE ROWS AND NOT ONLY THE FACTORS, AS OF `5e-ii`. `pricePerBase` needs
+  // what one price unit weighs; `unitOptions` needs each unit's DIMENSION and
+  // `0001`'s own `display_order`, because C8.5 holds a family to one dimension
+  // and nothing in the database compares a new variant against its siblings.
+  // Both come off the one `UNITS_KEY` read — a second query for the same ten
+  // rows would be two answers to *how many grams in a kilo*, which is the
+  // refusal `@/api/catalog` records.
+  return { create, busy: mutation.isPending, factors, units: units.data ?? [] };
 }
