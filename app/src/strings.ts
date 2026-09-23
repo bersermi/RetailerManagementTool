@@ -831,6 +831,93 @@ export const ES = {
     loading: 'Cargando productos…',
     empty: 'Todavía no hay productos.',
     noMatches: 'Ningún producto coincide con esa búsqueda.',
+
+    /**
+     * WHAT IS WRONG WITH THE FOUR FIELDS BEFORE POSTGRES IS ASKED. Plan task
+     * `5e-i`, rendered by the form `5e-ii` builds. `checkProduct` in
+     * `@/api/catalogWrite` chooses; nothing here is chosen at a call site.
+     *
+     * ⚠️ EACH ONE NAMES THE FIELD AND NOT THE RULE. *"Escribe el nombre"* is
+     * something a person does; *"el nombre no puede estar vacío"* is a
+     * constraint talking about itself, and `product_variant_name_not_blank` is
+     * ours to know ([[users-dont-do-bookkeeping]]).
+     */
+    issues: {
+      nameMissing: 'Escribe el nombre del producto.',
+      /**
+       * ⚠️⚠️ IT DOES NOT SAY *"en esta familia"*, AND THAT IS THE MEASUREMENT
+       * RATHER THAN THE WORDING. `product_variant_name_unique` is
+       * `(workspace_id, normalized_name)` — SHOP-WIDE — so `Pierna` under Pollo
+       * really does refuse `Pierna` under Cerdo, and a sentence that blamed the
+       * family would send a shopkeeper to change the family and be refused
+       * again. It names what she can act on: pick another name.
+       */
+      duplicate: 'Ya tienes un producto con ese nombre. Usa otro.',
+      familyMissing: 'Elige o escribe una familia para este producto.',
+      unitMissing: 'Elige la unidad en la que vendes este producto.',
+      /**
+       * ⚠️ ONE SENTENCE FOR BLANK AND FOR UNREADABLE, because they are one act
+       * for the person holding the phone: what is in the box is not a price and
+       * what fixes it is typing one. Telling her whether we objected to the
+       * emptiness or to the exponent is bookkeeping we do.
+       */
+      priceMissing: 'Escribe el precio, por ejemplo 35.50',
+    },
+
+    /**
+     * WHAT THE DATABASE REFUSES THE WRITE WITH. Plan task `5e-i`, and every one
+     * of these was measured against the applied schema on 2026-09-22 rather
+     * than recalled.
+     *
+     * ⚠️ THEY ARE HERE AND NOT IN `ES.api.errors` FOR `inviteErrorMessage`'s
+     * RECORDED REASON: that map's contract is that every value is an API-WIDE
+     * code's sentence, and these are three tables' own refusals. The general
+     * path is still `apiErrorMessage`, so *sin conexión* stays the one sentence
+     * this app gives for a lost link — and offline is the pilot store's normal
+     * write path, so it is the one that will actually be read.
+     */
+    errors: {
+      /** `23505` on `product_variant_name_unique`. `issues.duplicate`'s sentence,
+       *  because it is the same fact arriving from the other side — the local
+       *  check can miss a product added on another phone, or a DEACTIVATED one,
+       *  which `catalogFrom` drops and the unique index still counts. */
+      duplicate: 'Ya tienes un producto con ese nombre. Usa otro.',
+      /**
+       * `23505` on `product_family_name_unique` — and it is NOT the same
+       * sentence. She named a product, not a family; the family was suggested.
+       * Telling her the product name is taken when it is not would send her to
+       * change the one thing that was right.
+       */
+      familyExists: 'Esa familia ya existe. Elígela de la lista.',
+      /**
+       * ⚠️⚠️ `42501`, AND IT IS NOT *"tu sesión se cerró"*. The three INSERT
+       * policies are `has_role(…, 'manager')`, so this is a CASHIER being
+       * refused — measured as HTTP 403 on all three tables. Sending her to sign
+       * in again would be a loop with no end in it. ⚠️ `5e-ii` draws the fence
+       * instead of discovering it, so this is the belt to that screen's braces:
+       * what a manager demoted mid-shift sees.
+       */
+      notAllowed: 'Solo el dueño o un gerente puede agregar productos.',
+      /**
+       * ⚠️ THE HONEST CATCH-ALL FOR A ROW WE SHOULD NEVER HAVE SENT — `23514`
+       * from the blank-name check or the dimension trigger, `23503` from a unit
+       * code the `unit` table does not have. `checkProduct` makes all three
+       * unreachable, so reaching one is OUR mistake, deployed; dressing it in a
+       * helpful sentence would hide the one class of failure that must be fixed
+       * rather than retried. `@/api/errors` makes the same argument about
+       * `PGRST202` in its own header.
+       */
+      rejected: 'No pudimos guardar este producto. Inténtalo de nuevo.',
+      /**
+       * ⚠️⚠️ THE PRODUCT SAVED AND ITS PRICE DID NOT, which is the one partial
+       * state a shopkeeper can SEE. PostgREST has no transaction, so a failure
+       * on the third of three rows leaves a real product on Productos wearing
+       * C3.12's dash. Saying *"no se pudo guardar"* here would send her to type
+       * it all again and the second attempt is refused by the row the first one
+       * made — so the sentence says what happened and what is left to do.
+       */
+      priceNotSaved: 'Guardamos el producto, pero no su precio. Ponle precio desde el producto.',
+    },
   },
 
   /** La Familia — the one surface where family and variant are both visible.

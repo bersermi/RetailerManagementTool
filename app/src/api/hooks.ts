@@ -32,10 +32,16 @@ import {
   type CatalogEntry,
 } from '@/api/catalog';
 import {
+  WRITE_ORDER,
+  type CreateOutcome,
+  type ProductDraft,
+} from '@/api/catalogWrite';
+import {
   approveRequest,
   catalogUnits,
   catalogVariants,
   createInvite,
+  createProduct,
   myAccessRequests,
   pendingAccessRequests,
   myWorkspaces,
@@ -828,4 +834,76 @@ export function useCatalog(typed: string = ''): {
     entries: search(entries, typed),
     failed: thrown ? apiErrorKey(thrown) : null,
   };
+}
+
+// ============================================================================
+// THE SHOP MAKING A PRODUCT. Plan task `5e-i`, and the hook `5e-ii`'s form
+// calls — one write, over three round trips, through `@/api/calls`.
+// ============================================================================
+
+/**
+ * Creating a product: a family when one is being made, the variant, the price.
+ *
+ * ⚠️⚠️ IT RETURNS THE OUTCOME RATHER THAN THROWING, WHICH IS NOT THE SHAPE
+ * `useCreateInvite` ESTABLISHED, AND THE DIFFERENCE IS THE MISSING
+ * TRANSACTION. Those hooks answer `{ issued, error }` because the call either
+ * happened or did not; here it can half-happen, and a shopkeeper whose product
+ * saved without its price must be told something different from one whose
+ * product did not save at all. `createLine` is what says which, and
+ * `retryDraft` is what the next attempt needs.
+ *
+ * ⚠️⚠️ IT INVALIDATES `CATALOG_KEY` ON EVERY PATH THAT WROTE A VARIANT,
+ * SUCCESS OR NOT — which is the one line that would be easy to put under
+ * `onSuccess` and be wrong. A create that failed at the PRICE still put a
+ * product in the catalog; leaving the cached list alone would hide the product
+ * she just made behind a five-minute `staleTime`, on the screen she would go to
+ * next to price it.
+ *
+ * ⚠️ `UNITS_KEY` IS NOT INVALIDATED. The ten units change only in a migration
+ * (`0001`: *"users pick from this list; they never define their own factors"*),
+ * so a refetch here would be a round trip for an answer that cannot have moved.
+ *
+ * ⚠️ THE FACTORS COME FROM THE SAME READ `useCatalog` USES, not from a second
+ * one: `pricePerBase` needs what one price unit weighs, and two homes for *how
+ * many grams in a kilo* is one home too many — the refusal `5c-iv-b` recorded
+ * and `@/api/catalog` repeats.
+ */
+export function useCreateProduct() {
+  const queries = useQueryClient();
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    staleTime: Infinity,
+  });
+  const factors = unitFactorsFrom(units.data);
+
+  const mutation = useMutation({
+    mutationFn: ({ workspaceId, draft }: { workspaceId: string; draft: ProductDraft }) =>
+      createProduct(workspaceId, draft, factors),
+  });
+
+  async function create(workspaceId: string, draft: ProductDraft): Promise<CreateOutcome> {
+    let outcome: CreateOutcome;
+    try {
+      outcome = await mutation.mutateAsync({ workspaceId, draft });
+    } catch (thrown) {
+      // ⚠️ THE ONLY WAY HERE IS A THROW THAT IS NOT A REFUSAL — the fetch dying
+      // mid-flight. Nothing is known to have landed, so it is reported as a
+      // failure at the FIRST step, which is the one `retryDraft` treats as
+      // "carry nothing forward".
+      outcome = {
+        ok: false,
+        failed: WRITE_ORDER[0],
+        familyId: null,
+        variantId: null,
+        error: thrown,
+      };
+    }
+    if (outcome.ok || outcome.variantId !== null) {
+      await queries.invalidateQueries({ queryKey: CATALOG_KEY });
+    }
+    return outcome;
+  }
+
+  return { create, busy: mutation.isPending, factors };
 }
