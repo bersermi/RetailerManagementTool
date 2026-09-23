@@ -1,184 +1,225 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useCreateProduct, useMyRole, useWorkspace } from '@/api/hooks';
 import { catalogLine } from '@/api/catalog';
 import {
-  FAMILY_SUGGESTED,
+  FAMILY_MIRROR,
   canWriteCatalog,
   checkProduct,
-  familiesFrom,
+  chooseFamily,
+  chooseUnit,
+  createLine,
+  familyUnit,
   noPriceNoticeKey,
   resolveFamily,
   retryDraft,
-  savedLine,
-  unitChoice,
-  unitOptions,
-  createLine,
+  searchFamilies,
+  unitOrder,
   type FamilyChoice,
   type ProductIssue,
 } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { bannerSequence } from '@/theme/pulse';
 
 // ============================================================================
 // AGREGAR — THE SHORTEST FORM THAT PRODUCES A USABLE PRODUCT. Plan task `5e-ii`,
-// the app's FIFTH non-tab surface, and the first screen in this app that WRITES
-// something the shop sells.
+// REWORKED 2026-09-23 on the owner's ruling after he held the first version on
+// his own phone.
 //
-// ⚠️⚠️ IT IS PILOT-CRITICAL RATHER THAN A CONVENIENCE, AND C8.2 IS WHY. The
-// owner builds the pilot catalog himself (C8.1) but builds it DELIBERATELY
-// INCOMPLETE — *"to encourage him to create some on his own"* — so the first
-// product this shop ever makes is made on this screen, by a shopkeeper, with
-// nobody watching. A form that is nearly right here is a catalog that is wrong
-// for the rest of the pilot.
+// ⚠️⚠️ ONE SENTENCE EXPLAINS EVERY CHANGE HE ASKED FOR: *a proposal must not look
+// like a decision already made.* He said it about the family box and the price
+// box in the same breath, and the `Agregar` button was the same mistake one
+// screen over. So all three fields now carry a HINT — `tintaApagada`, not the
+// field's value — and nothing is saved from a hint.
 //
-// ⚠️ FOUR FIELDS AND NOTHING ELSE (C8.9): a name, a family, one unit, one
-// price. `tax_rate` and `pack_size` are `5e-iii`'s and are never guessed at a
-// till; `enforce_stock` is on NO pilot screen at all (C8.8 — C8.6 guarantees
-// permanent drift, and turning it on breaks the pollería at the counter); the
-// price is SHOP-WIDE by the decision `5e-i` recorded; and there is no expiry
-// date, because the owner ruled on 2026-09-22 that the pilot captures none.
+// ⚠️⚠️ THE FAMILY MIRRORS THE PRODUCT AND NO LONGER MATCHES BEHIND HIS BACK.
+// `suggestFamily` used to attach `Pierna de pollo` to an existing `Pollo`; that
+// is deleted. The default is the typed name itself, and finding the existing
+// family is something he DOES — which is the third of the three scenarios he
+// ranked, in his order:
 //
-// ⚠️⚠️ IT DECIDES NOTHING, WHICH IS THE SEAM `5e`'s SPLIT WAS MADE ON — and
-// drawing it moved five decisions into `@/api/catalogWrite` rather than keeping
-// any here. `canWriteCatalog` is the fence, `resolveFamily` is which family
-// answer wins, `unitOptions` and `unitChoice` are C8.5, `savedLine` is what a
-// successful create says, and `checkProduct` / `noPriceNoticeKey` / `createLine`
-// / `retryDraft` were already that child's. `R3`: a rule written into this file
-// is a rule no check in this repository will ever see, and
+//   1. he takes the mirrored family, and the shop gains a family of one;
+//   2. he types the new family he wants;
+//   3. he realises `Pollo` is already there and picks it out of the search.
+//
+// ⚠️⚠️ THE UNIT AND THE FAMILY POLICE EACH OTHER, WHICH IS C8.5 MADE VISIBLE.
+// Picking an existing family preselects its unit; picking a unit that family
+// cannot hold RELEASES the family back to the mirror and says why, in a banner
+// that fades. **Nothing in the database enforces this** —
+// `product_variant_units_same_dimension_trg` (`0002:204`) counts dimensions
+// across the four unit columns of one row, and C8.10's fan-out makes that one by
+// construction — so this form is the only thing that keeps *one family, one kind
+// of measurement* true. ⚠️ The previous version kept it by NARROWING the picker,
+// and the owner replaced that with a rule he can see: six options quietly missing
+// is the app having decided again.
+//
+// ⚠️ FOUR FIELDS AND NOTHING ELSE (C8.9). No tax rate, no pack size, no store, no
+// photo, no expiry — `5e-iii` owns the first two, `location_id` is null by the
+// decision `5e-i` recorded, `enforce_stock` is on NO pilot screen at all (C8.8),
+// and the owner ruled out expiry capture entirely on 2026-09-22.
+//
+// ⚠️⚠️ IT DECIDES NOTHING. `canWriteCatalog` is the fence, `resolveFamily` is
+// which family answer wins, `searchFamilies` ranks scenario 3, `chooseFamily` and
+// `chooseUnit` are the rule above, `familyUnit` is the preselect, `unitOrder` is
+// the picker's order, and `checkProduct` / `noPriceNoticeKey` / `createLine` /
+// `retryDraft` were already `5e-i`'s. `R3`: a rule written into this file is a
+// rule no check in this repository will ever see, and
 // `app/test/api-catalog-write.test.ts` reads every one of them.
 //
-// ⚠️⚠️ THE FENCE IS DRAWN RATHER THAN DISCOVERED, AND THIS SCREEN IS THE SECOND
-// HALF OF THAT. `canWriteCatalog` keeps the OPENING controls off a cashier's
-// Productos and off her family screen; this file's own guard is what handles the
-// case those cannot — a manager demoted while the form was already open, and a
-// deep link. ⚠️ It renders NOTHING rather than a refusal: the three INSERT
-// policies answer a bare `42501` with no sentence of its own, and a control that
-// looks live and refuses silently is what [[shift-cover-is-a-reassignment]]
-// records and what `5d-iii` already chose against for these same three buttons.
+// ⚠️⚠️ TWO ENTRY POINTS, AND BOTH NOW ARRIVE WITH SOMETHING FILLED IN. From
+// Productos it is `?nombre=<what he typed into the search>` — the create row is
+// the only door there since `Agregar` was removed, and the name he typed is the
+// name he meant, so re-typing it would be the app forgetting on purpose. From
+// inside an opened family it is `?familia=<id>`, and **no family question is
+// asked** (C8.12) — unless the unit releases it, which is the one case where the
+// question has to come back because the answer stopped being true.
 //
-// ⚠️⚠️ TWO ENTRY POINTS, AND THE FAMILY BEHAVES DIFFERENTLY IN ONE OF THEM —
-// C8.12, exactly. From Productos: type the name, get a family SUGGESTION,
-// override it by a gesture (C8.11). From inside an opened family, with
-// `?familia=<id>`: the variant belongs to that family and **no family question
-// is asked at all**. ⚠️ The third door C8.12 names — the Comprar/Vender `...`
-// quick action — is ROUTED to `5f` and `5g`, which build the screens it would
-// open from; a door with no room behind it is the scaffolding `5d` spent a step
-// deleting.
+// ⚠️ THE THIRD DOOR C8.12 NAMES — the Comprar/Vender `...` quick action — is
+// still ROUTED to `5f` and `5g`, which build the screens it would open from.
 //
-// ⚠️ THE FORM STAYS OPEN AFTER A SUCCESSFUL SAVE and keeps the family and the
-// unit, which is a decision and not an oversight: C8.2's shopkeeper adds
-// `Pechuga`, `Pierna` and `Muslo` in one sitting, all `Pollo`, all in kilos, and
-// returning to Productos each time is a tap per product spent getting back
-// ([[prefer-the-option-that-adds-no-human-step]]). What it costs is seeing the
-// row appear in the list, and the saved product's NAME above
-// `ES.catalog.create.saved` is what pays for it.
+// ⚠️⚠️ ON SUCCESS IT GOES BACK TO THE CATALOG AND THE NEW PRODUCT BLINKS THERE.
+// `router.dismissTo` pops back to the Productos already in the stack with
+// `?nuevo=<variant id>`, so the confirmation is *seeing the product in the list,
+// in its alphabetical place*, rather than a sentence on a form. The owner asked
+// for exactly that and for nothing else — *"don't [add] any other indicator like
+// a line or anything"* — which is why the two sentences the first version showed
+// after a save are gone.
 //
-// ⚠️⚠️ NOT IN `RESTORABLE_ROUTES`, AND HERE THAT IS SHARPER THAN ON THE TWO
-// SCREENS BEFORE IT. C1.3 reopens the screen a person was WORKING on, and this
-// is the only one so far where that argument could be made — but a half-typed
-// product restored on the next launch is a form claiming to remember state it
-// never stored, and nothing on this screen survives the app closing.
-//
-// ⚠️ A PUSHED SCREEN AND NOT A SHEET, like Productos and La Familia, with its
-// own `banda` because the root `Stack` draws no header. ⚠️ At the ROOT and in NO
-// group, so `groupOf()` calls it `null` and `redirectFor` leaves a member where
-// they are.
-//
-// ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this
-// screen it is the whole of the design. Nothing here will ever say whether the
-// suggested family reads as a proposal rather than a decision already taken,
-// whether `Cambiar` is findable, whether the no-price line is quiet enough to
-// live under a field or loud enough to be read, whether five unit chips fit on
-// one line at *Letra grande*, or whether staying on the form after a save reads
-// as *saved* or as *nothing happened*. **The instrument is the owner's phone**,
-// and the questions it is asked are written into this task's row in
-// `docs/PLAN.md` before this ships.
+// ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this screen
+// it is the whole of the design. Nothing here will ever say whether a hint reads
+// as a hint, whether the family search finds what he means, whether the released
+// banner is legible before it fades, or whether the blink on the far side reads as
+// *this is the one you just made*. **The instrument is the owner's phone**, and the
+// questions it is asked are in this task's row in `docs/PLAN.md` before it ships.
 // ============================================================================
 
 export default function NuevoProducto() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
 
-  // ⚠️ THE FAMILY IS A QUERY PARAMETER AND ITS ABSENCE IS THE OTHER ENTRY POINT.
-  // C8.12's two doors are one route: `?familia=<id>` is *from inside an opened
-  // family*, and no parameter is *from Productos*. A link that lost it asks the
-  // family question, which is the failure worth having.
-  const { familia } = useLocalSearchParams<{ familia?: string }>();
+  // ⚠️ BOTH DOORS ARRIVE AS PARAMETERS. `nombre` is what he typed into the search
+  // on Productos; `familia` is the family he was standing in. A link that lost
+  // either still opens a working form, which is the failure worth having.
+  const { nombre, familia } = useLocalSearchParams<{ nombre?: string; familia?: string }>();
   const role = useMyRole();
   const workspace = useWorkspace();
   const { loading, entries, failed } = useCatalog();
   const { create, busy, factors, units } = useCreateProduct();
 
-  const [name, setName] = useState('');
+  // ⚠️ THE PREFILL IS THE INITIAL STATE AND NOT A SYNCED VALUE. He can edit the
+  // name; an effect that pushed the parameter back in would undo his editing on
+  // the next render.
+  const [name, setName] = useState(nombre ?? '');
   const [pricePesos, setPricePesos] = useState('');
-  const [chosenUnit, setChosenUnit] = useState('');
-  const [family, setFamily] = useState<FamilyChoice>(FAMILY_SUGGESTED);
+  const [unitCode, setUnitCode] = useState('');
+  const [family, setFamily] = useState<FamilyChoice>(
+    familia === undefined ? FAMILY_MIRROR : { kind: 'chosen', id: familia, name: '' },
+  );
   const [picking, setPicking] = useState(false);
+  const [query, setQuery] = useState('');
   const [issue, setIssue] = useState<ProductIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const [saved, setSaved] = useState<{ readonly name: string; readonly line: string } | null>(null);
 
-  const families = familiesFrom(entries);
-  // ⚠️ THE FIXED FAMILY'S NAME IS LOOKED UP AND ITS ID IS NOT. `familyId` is
+  // ⚠️ THE BANNER'S OPACITY IS THE ONLY ANIMATED THING ON THIS SCREEN, and its
+  // timing is `@/theme/pulse`'s rather than this file's (`R3`).
+  const banner = useRef(new Animated.Value(0)).current;
+  const [released, setReleased] = useState(false);
+
+  // ⚠️⚠️ THE FIXED FAMILY'S NAME IS LOOKED UP AND ITS ID IS NOT. `familyId` is
   // what the insert needs and what the route supplied; the name is only ever
   // rendered, so a family the read has not reached yet shows no word and still
   // attaches to the right row.
-  const fixed = familia === undefined ? null : familia;
+  const known = searchFamilies(entries, '');
   const choice: FamilyChoice =
-    fixed === null
-      ? family
-      : { kind: 'chosen', id: fixed, name: families.find((f) => f.id === fixed)?.name ?? '' };
+    family.kind === 'chosen' && family.name === ''
+      ? { kind: 'chosen', id: family.id, name: known.find((f) => f.id === family.id)?.name ?? '' }
+      : family;
 
-  const resolved = resolveFamily(choice, entries, name);
-  const options = unitOptions(units, entries, resolved.familyId);
-  const unitCode = unitChoice(options, chosenUnit);
+  const resolved = resolveFamily(choice, name);
+  const codes = unitOrder(units);
   const draft = { name, ...resolved, unitCode, pricePesos };
   const notice = noPriceNoticeKey(draft, entries, factors);
 
-  // ⚠️⚠️ THE FENCE, AND IT RENDERS NOTHING RATHER THAN A SENTENCE. See the
-  // header: a cashier is never shown the control that gets here, so reaching
-  // this line means a demotion mid-shift or a deep link, and the honest answer
-  // to both is that this screen does not exist for her. ⚠️ `role === null` is
-  // "not known" and is fenced out with her (`roleOf`), so the form appears when
-  // the membership read lands rather than being snatched away after it.
+  // ⚠️ THE FAMILY QUESTION IS NOT ASKED WHEN HE CAME FROM A FAMILY — C8.12, in
+  // its own words. ⚠️⚠️ IT COMES BACK IF THE UNIT RELEASED THE FAMILY, and that is
+  // the only honest answer: the family he was standing in can no longer hold this
+  // product, so *no question asked* has stopped being true and hiding the field
+  // would hide the one thing that changed.
+  const askFamily = familia === undefined || choice.kind !== 'chosen';
+
+  // ⚠️⚠️ THE FENCE, AND IT RENDERS NOTHING RATHER THAN A SENTENCE. A cashier is
+  // never shown the create row that gets here, so reaching this line means a
+  // demotion mid-shift or a deep link, and the honest answer to both is that this
+  // screen does not exist for her. ⚠️ `role === null` is "not known" and is fenced
+  // out with her (`roleOf`), so the form appears when the membership read lands
+  // rather than being snatched away after it.
   if (!canWriteCatalog(role) || workspace === null) return null;
+
+  function flashReleased() {
+    setReleased(true);
+    banner.setValue(0);
+    const run = Animated.sequence(
+      bannerSequence().map((step) => Animated.timing(banner, { ...step, useNativeDriver: true })),
+    );
+    run.start(({ finished }) => {
+      if (finished) setReleased(false);
+    });
+  }
+
+  function pickUnit(code: string) {
+    const outcome = chooseUnit(choice, code, entries, units);
+    setFamily(outcome.family);
+    setUnitCode(outcome.unitCode);
+    if (outcome.released) flashReleased();
+  }
+
+  function pickFamily(option: { readonly id: string; readonly name: string }) {
+    const outcome = chooseFamily(option, unitCode, entries, units);
+    setFamily(outcome.family);
+    setUnitCode(outcome.unitCode);
+    setPicking(false);
+    setQuery('');
+  }
 
   async function submit() {
     if (workspace === null) return;
     const problem = checkProduct(draft, entries, factors);
     setIssue(problem);
     setFailure(null);
-    setSaved(null);
     if (problem !== null) return;
 
     const outcome = await create(workspace.id, draft);
     if (!outcome.ok) {
       setFailure(createLine(outcome));
       // ⚠️⚠️ THE FAMILY THE FIRST ATTEMPT CREATED IS CARRIED FORWARD, AND
-      // `retryDraft` IS WHAT DECIDES SO. Without it the next tap asks Postgres
-      // to create a family it made thirty seconds earlier and is refused
-      // `23505` — a shopkeeper told she already has a product she has never
-      // managed to save. This is that module's answer mirrored into the form's
-      // own state, not a second opinion about it.
+      // `retryDraft` IS WHAT DECIDES SO. Without it the next tap asks Postgres to
+      // create a family it made thirty seconds earlier and is refused `23505` — a
+      // shopkeeper told he already has a product he has never managed to save.
       const next = retryDraft(draft, outcome);
       if (next.familyId !== null) {
         setFamily({ kind: 'chosen', id: next.familyId, name: next.familyName });
       }
       return;
     }
-    // ⚠️ THE NAME AND THE UNIT SURVIVE DIFFERENTLY: the product's name and its
-    // price are cleared because the next product has its own, and the family and
-    // the unit are kept because the next product almost certainly shares them.
-    setSaved({ name: draft.name.trim(), line: savedLine(outcome) });
-    setName('');
-    setPricePesos('');
-    setIssue(null);
+    // ⚠️⚠️ THE CONFIRMATION IS ON THE OTHER SCREEN, WHICH IS THE OWNER'S RULING.
+    // `dismissTo` pops back to the Productos already in the stack rather than
+    // pushing a second copy of it, and `?nuevo=` is what makes that list scroll
+    // the new product into sight and blink it.
+    router.dismissTo({ pathname: '/productos', params: { nuevo: outcome.variantId } });
   }
 
   return (
@@ -195,14 +236,10 @@ export default function NuevoProducto() {
       >
         {loading || failed !== null ? (
           // ⚠️⚠️ THE FORM WAITS FOR THE CATALOG RATHER THAN OPENING WITHOUT IT,
-          // and that is correctness. Every family question on this screen is
-          // answered out of the rows `useCatalog` holds — the suggestion, the
-          // list to override with, the duplicate courtesy and the units C8.5
-          // allows — so a form drawn on an empty read would propose a NEW family
-          // for a product whose family this shop already has, and offer all ten
-          // units inside a family measured in kilos. ⚠️ An EMPTY catalog is not
-          // this state and must not be: that is C8.2's shop on its first
-          // morning, and adding the first product is exactly what it is for.
+          // and that is correctness. The family search, the duplicate courtesy and
+          // the unit preselect are all answered out of the rows `useCatalog`
+          // holds. ⚠️ An EMPTY catalog is not this state and must not be — that is
+          // C8.2's shop on its first morning.
           <Aviso line={catalogLine(loading, '', failed)} />
         ) : (
           <>
@@ -211,7 +248,7 @@ export default function NuevoProducto() {
                 <TextInput
                   value={name}
                   onChangeText={setName}
-                  placeholder={ES.catalog.create.namePlaceholder}
+                  placeholder={ES.catalog.create.nameHint}
                   placeholderTextColor={PALETTE.tintaApagada}
                   // ⚠️ SENTENCES, NOT WORDS: a product name is `Pechuga sin
                   // hueso`, so the first letter is capitalised and the rest are
@@ -231,46 +268,52 @@ export default function NuevoProducto() {
               </Caja>
             </Campo>
 
-            {/* ⚠️ NO FAMILY QUESTION FROM INSIDE A FAMILY — C8.12, in its own
-                words: *"the new variant belongs to that family, no question
-                asked."* The banda already names the family she came from. */}
-            {fixed === null && (
+            {askFamily && (
               <Campo label={ES.catalog.create.familyLabel}>
-                <Familia
-                  resolvedId={resolved.familyId}
-                  resolvedName={resolved.familyName}
-                  creating={resolved.familyId === null && resolved.familyName !== ''}
-                  picking={picking}
-                  families={families}
-                  typed={choice.kind === 'new' ? choice.name : ''}
-                  busy={busy}
-                  onOpen={() => setPicking(true)}
-                  onChoose={(option) => {
-                    setFamily({ kind: 'chosen', id: option.id, name: option.name });
-                    setPicking(false);
-                  }}
-                  onType={(text) => setFamily({ kind: 'new', name: text })}
-                  onSuggested={() => {
-                    setFamily(FAMILY_SUGGESTED);
-                    setPicking(false);
-                  }}
-                />
+                {picking ? (
+                  <Buscar
+                    query={query}
+                    onQuery={setQuery}
+                    options={searchFamilies(entries, query)}
+                    chosenId={choice.kind === 'chosen' ? choice.id : null}
+                    busy={busy}
+                    onPick={pickFamily}
+                    onCreate={() => {
+                      setFamily({ kind: 'new', name: query });
+                      setPicking(false);
+                    }}
+                    onMirror={() => {
+                      setFamily(FAMILY_MIRROR);
+                      setPicking(false);
+                      setQuery('');
+                    }}
+                  />
+                ) : (
+                  <Espejo
+                    text={resolved.familyName}
+                    /* ⚠️ A MIRROR IS A HINT AND A CHOICE IS A VALUE, AND THE INK
+                       IS THE ONLY THING THAT SAYS SO. That is the owner's
+                       correction: an untouched family must not read as decided. */
+                    hint={choice.kind === 'mirror'}
+                    busy={busy}
+                    onOpen={() => {
+                      setQuery('');
+                      setPicking(true);
+                    }}
+                  />
+                )}
               </Campo>
             )}
 
             <Campo label={ES.catalog.create.unitLabel}>
-              <Unidades
-                options={options}
-                chosen={unitCode}
-                busy={busy}
-                onPress={setChosenUnit}
-              />
-              {/* ⚠️ THE LIST IS SHORTER INSIDE A FAMILY AND THE SCREEN SAYS SO.
-                  C8.5 holds every variant of a family to one dimension and
-                  `unitOptions` is the only thing that keeps it, so six missing
-                  options need a reason on screen rather than a puzzle. */}
-              {resolved.familyId !== null && options.length < units.length && (
-                <Nota line={ES.catalog.create.unitFamily} />
+              <Unidades codes={codes} chosen={unitCode} busy={busy} onPress={pickUnit} />
+              {/* ⚠️⚠️ THE BANNER, AND IT FIRES ONLY WHEN THE FAMILY WAS ACTUALLY
+                  LET GO — `chooseUnit` decides, not this file. It fades on its
+                  own; nothing dismisses it and nothing is blocked while it is up. */}
+              {released && (
+                <Animated.View style={{ opacity: banner }}>
+                  <Nota line={ES.catalog.create.unitReleased} />
+                </Animated.View>
               )}
             </Campo>
 
@@ -280,12 +323,12 @@ export default function NuevoProducto() {
                 <TextInput
                   value={pricePesos}
                   onChangeText={setPricePesos}
-                  placeholder={ES.catalog.create.pricePlaceholder}
+                  placeholder={ES.catalog.create.priceHint}
                   placeholderTextColor={PALETTE.tintaApagada}
                   // ⚠️ A DECIMAL PAD AND NOT A NUMERIC ONE: C12.2 puts the point
                   // in `35.50` and a keyboard with no point is a shopkeeper who
-                  // cannot type half a peso. `parsePesos` is still what reads it
-                  // — a pad is a convenience, never a validator.
+                  // cannot type half a peso. `parsePesos` is still what reads it —
+                  // a pad is a convenience, never a validator.
                   keyboardType="decimal-pad"
                   editable={!busy}
                   accessibilityLabel={ES.catalog.create.priceLabel}
@@ -306,20 +349,19 @@ export default function NuevoProducto() {
                   </Text>
                 )}
               </Caja>
-              {/* ⚠️⚠️ THE NO-PRICE LINE, AND WHEN IT APPEARS IS `noPriceNoticeKey`'s
-                  DECISION AND NOT THIS FILE'S. The owner ruled on 2026-09-22 that
-                  a product may be created with none and that the surface is a LINE
-                  with no extra tap — never a confirmation he dismisses. It stays
-                  quiet until the rest of the draft is one the database would
-                  accept, because the box starts empty and a notice keyed on
-                  emptiness alone would be on screen before a character is typed. */}
+              {/* ⚠️⚠️ THE NO-PRICE LINE, REWORDED BY THE OWNER ON 2026-09-23, AND
+                  WHEN IT APPEARS IS STILL `noPriceNoticeKey`'s DECISION AND NOT
+                  THIS FILE'S. It stays quiet until the rest of the draft is one
+                  the database would accept, and it goes the moment the box has
+                  something in it — which is what he asked for and was already
+                  true. */}
               {notice === null ? null : <Nota line={ES.catalog.notice[notice]} />}
             </Campo>
 
             {/* ⚠️ ONE PLACE FOR BOTH KINDS OF REFUSAL — the form's own and the
                 database's, which is `Invitar`'s arrangement one sheet over. Two
-                slots would let the screen show two contradictory reasons at
-                once, and the second is always the stale one. */}
+                slots would let the screen show two contradictory reasons at once,
+                and the second is always the stale one. */}
             {(issue !== null || failure !== null) && (
               <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>
                 {issue !== null ? ES.catalog.issues[issue] : failure}
@@ -327,13 +369,10 @@ export default function NuevoProducto() {
             )}
 
             <Boton
-              icon="check"
               label={busy ? ES.catalog.create.working : ES.catalog.create.submit}
               busy={busy}
               onPress={() => void submit()}
             />
-
-            {saved === null ? null : <Guardado name={saved.name} line={saved.line} />}
           </>
         )}
       </ScrollView>
@@ -360,7 +399,10 @@ function Banda() {
         gap: scale.space,
       }}
     >
-      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+      <Text
+        numberOfLines={1}
+        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+      >
         {ES.catalog.create.title}
       </Text>
       <Pressable
@@ -386,7 +428,7 @@ function Campo({ label, children }: { label: string; children: ReactNode }) {
   const { scale } = useDensity();
   return (
     <View style={{ gap: scale.rowGap / 2 }}>
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
         {label}
       </Text>
       {children}
@@ -418,9 +460,7 @@ function Caja({ children }: { children: ReactNode }) {
 /** A quiet line under a field — never a refusal, which is `PALETTE.error`. */
 function Nota({ line }: { line: string }) {
   const { scale } = useDensity();
-  return (
-    <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{line}</Text>
-  );
+  return <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{line}</Text>;
 }
 
 /** The catalog is not here yet, or could not be asked. */
@@ -436,143 +476,169 @@ function Aviso({ line }: { line: string }) {
 }
 
 /**
- * C8.11 — the family SUGGESTED from the typed name, and overridable by a
- * gesture.
+ * The family, collapsed — scenario 1, and the owner's correction in one prop.
  *
- * ⚠️⚠️ THE SUGGESTION IS SHOWN AS A PROPOSAL AND NOT AS A CHOSEN VALUE, which
- * is the one thing about this control that could be wrong in a way a shopkeeper
- * pays for. She is typing a product; the family under it moves as she types; and
- * if it reads as settled she will not look at it. `Cambiar` beside it is what
- * says it is hers to move — a WORD, because C12.1 refuses an icon with nothing
- * next to it.
+ * ⚠️⚠️ `hint` IS THE WHOLE POINT. When the family is mirroring the product's name
+ * nothing has been chosen, so the text is `tintaApagada` — the same ink as the
+ * placeholder in every other box on this screen — and it reads as *this is what
+ * it will be called* rather than as *this is the family*. The moment he picks or
+ * types one it becomes `tinta` and his. The first version drew a matched family in
+ * full ink, and he said it *"looks as a decision already made"*.
  *
- * ⚠️ AND IT SAYS WHICH OF TWO THINGS WILL HAPPEN. Attaching to `Pollo` changes
- * nothing about the shop; creating `Pollo` adds a row she will see for ever, so
- * `ES.catalog.create.familyNew` is under it in that case and not in the other.
- *
- * ⚠️ NOTHING HERE DECIDES WHICH FAMILY WINS — `resolveFamily` does, and this
- * control is handed the answer (`R3`). What it holds is a keystroke and whether
- * the list is open.
+ * ⚠️ `Cambiar` IS A WORD AND NOT A CHEVRON (C12.1), and it is the gesture C8.11
+ * asks for.
  */
-function Familia({
-  resolvedId,
-  resolvedName,
-  creating,
-  picking,
-  families,
-  typed,
+function Espejo({
+  text,
+  hint,
   busy,
   onOpen,
-  onChoose,
-  onType,
-  onSuggested,
 }: {
-  resolvedId: string | null;
-  resolvedName: string;
-  creating: boolean;
-  picking: boolean;
-  families: readonly { readonly id: string; readonly name: string }[];
-  typed: string;
+  text: string;
+  hint: boolean;
   busy: boolean;
   onOpen: () => void;
-  onChoose: (option: { readonly id: string; readonly name: string }) => void;
-  onType: (text: string) => void;
-  onSuggested: () => void;
+}) {
+  const { scale } = useDensity();
+  const empty = text === '';
+  return (
+    <Caja>
+      <Text
+        numberOfLines={1}
+        style={{
+          flex: 1,
+          minHeight: scale.tapTarget,
+          paddingVertical: scale.rowGap,
+          fontSize: scale.bodySize,
+          fontWeight: hint || empty ? '400' : '600',
+          color: hint || empty ? PALETTE.tintaApagada : PALETTE.tinta,
+        }}
+      >
+        {empty ? ES.catalog.create.familyHint : text}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        disabled={busy}
+        onPress={onOpen}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.catalog.create.familyChange}
+        </Text>
+      </Pressable>
+    </Caja>
+  );
+}
+
+/**
+ * The family search — the owner's *"improved search on existing Families while
+ * still allowing the user to create a new Family"*, in his own order.
+ *
+ * ⚠️⚠️ THE ORDER OF THE THREE BLOCKS IS THE HIERARCHY HE RANKED, AND IT IS NOT
+ * ALPHABETICAL OR ARBITRARY. The box he types into comes first (scenario 2, *"user
+ * types the new family he wants to create"*), with *Crear esta familia* attached
+ * to it; the families the shop already has come under it (scenario 3, *"user
+ * realizes there's an existing family"*); and the way back to the mirror
+ * (scenario 1) sits last, because it is the state he arrived in and the one he
+ * needs a control for least.
+ *
+ * ⚠️ `searchFamilies` RANKS THE LIST AND THIS COMPONENT DOES NOT (`R3`). Putting
+ * `Pollo` above `Pollo rostizado` is the whole value of the search and it has a
+ * right answer a node suite can read.
+ *
+ * ⚠️ *Crear esta familia* IS HIDDEN WHEN THE BOX IS EMPTY, because a family with
+ * no name is `familyMissing` and offering it would be offering a refusal.
+ */
+function Buscar({
+  query,
+  onQuery,
+  options,
+  chosenId,
+  busy,
+  onPick,
+  onCreate,
+  onMirror,
+}: {
+  query: string;
+  onQuery: (text: string) => void;
+  options: readonly { readonly id: string; readonly name: string }[];
+  chosenId: string | null;
+  busy: boolean;
+  onPick: (option: { readonly id: string; readonly name: string }) => void;
+  onCreate: () => void;
+  onMirror: () => void;
 }) {
   const { scale } = useDensity();
   return (
     <View style={{ gap: scale.rowGap }}>
-      {!picking && (
-        <Caja>
-          <Text
-            numberOfLines={1}
-            style={{
-              flex: 1,
-              minHeight: scale.tapTarget,
-              paddingVertical: scale.rowGap,
-              fontSize: scale.bodySize,
-              fontWeight: '600',
-              color: resolvedName === '' ? PALETTE.tintaApagada : PALETTE.tinta,
-            }}
-          >
-            {resolvedName === '' ? ES.catalog.create.familyOwnPlaceholder : resolvedName}
-          </Text>
-          <Pressable
-            accessibilityRole="button"
-            disabled={busy}
-            onPress={onOpen}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-              {ES.catalog.create.familyChange}
-            </Text>
-          </Pressable>
-        </Caja>
+      <Caja>
+        <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
+        <TextInput
+          value={query}
+          onChangeText={onQuery}
+          placeholder={ES.catalog.create.familySearch}
+          placeholderTextColor={PALETTE.tintaApagada}
+          autoCapitalize="sentences"
+          autoCorrect={false}
+          autoFocus
+          editable={!busy}
+          accessibilityLabel={ES.catalog.create.familySearch}
+          style={{
+            flex: 1,
+            minHeight: scale.tapTarget,
+            fontSize: scale.bodySize,
+            color: PALETTE.tinta,
+          }}
+        />
+      </Caja>
+
+      {query.trim() !== '' && (
+        <Opcion chosen={false} icon="plus" label={ES.catalog.create.familyCreate} sub={query.trim()} onPress={onCreate} />
       )}
 
-      {picking && (
-        <View style={{ gap: scale.rowGap }}>
-          <Nota line={ES.catalog.create.familyPick} />
-          {families.map((option) => (
-            <Opcion
-              key={option.id}
-              chosen={option.id === resolvedId}
-              label={option.name}
-              onPress={() => onChoose(option)}
-            />
-          ))}
-          <Nota line={ES.catalog.create.familyOwn} />
-          <Caja>
-            <TextInput
-              value={typed}
-              onChangeText={onType}
-              placeholder={ES.catalog.create.familyOwnPlaceholder}
-              placeholderTextColor={PALETTE.tintaApagada}
-              autoCapitalize="sentences"
-              autoCorrect={false}
-              editable={!busy}
-              accessibilityLabel={ES.catalog.create.familyOwn}
-              style={{
-                flex: 1,
-                minHeight: scale.tapTarget,
-                fontSize: scale.bodySize,
-                color: PALETTE.tinta,
-              }}
-            />
-          </Caja>
-          <Pressable
-            accessibilityRole="button"
-            disabled={busy}
-            onPress={onSuggested}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-              {ES.catalog.create.familySuggested}
-            </Text>
-          </Pressable>
-        </View>
-      )}
+      {options.length > 0 && <Nota line={ES.catalog.create.familyExisting} />}
+      {options.map((option) => (
+        <Opcion
+          key={option.id}
+          chosen={option.id === chosenId}
+          label={option.name}
+          onPress={() => onPick(option)}
+        />
+      ))}
 
-      {creating && <Nota line={ES.catalog.create.familyNew} />}
+      <Pressable
+        accessibilityRole="button"
+        disabled={busy}
+        onPress={onMirror}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.catalog.create.familyMirror}
+        </Text>
+      </Pressable>
     </View>
   );
 }
 
 /**
- * One choice, ticked or not. `Invitar`'s `Opcion` without the subtitle.
+ * One choice in a list of them.
  *
  * ⚠️ THREE SIGNALS FOR THE CHOSEN ONE — ground, border and a filled tick — which
  * is the palette's rule and not decoration: `accion` and `atencion` are 1.18:1
- * apart in luminance, so a state carried by hue alone is a state one man in
- * twelve cannot see. `R9` cannot look at this, which is why it is written here.
+ * apart in luminance, so a state carried by hue alone is a state one man in twelve
+ * cannot see. `R9` cannot look at this, which is why it is written here.
  */
 function Opcion({
   chosen,
   label,
+  sub,
+  icon,
   onPress,
 }: {
   chosen: boolean;
   label: string;
+  sub?: string;
+  icon?: 'plus';
   onPress: () => void;
 }) {
   const { scale } = useDensity();
@@ -580,6 +646,7 @@ function Opcion({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected: chosen }}
+      accessibilityLabel={sub === undefined ? label : `${label}. ${sub}`}
       onPress={onPress}
       style={{
         minHeight: scale.tapTarget,
@@ -587,6 +654,7 @@ function Opcion({
         alignItems: 'center',
         gap: scale.rowGap,
         paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap / 2,
         borderRadius: scale.space / 2,
         borderWidth: chosen ? 2 : 1,
         borderColor: chosen ? PALETTE.accion : PALETTE.linea,
@@ -594,49 +662,63 @@ function Opcion({
       }}
     >
       <MaterialCommunityIcons
-        name={chosen ? 'check-circle' : 'circle-outline'}
+        name={icon === 'plus' ? 'plus' : chosen ? 'check-circle' : 'circle-outline'}
         size={scale.iconSize}
-        color={chosen ? PALETTE.accion : PALETTE.tintaApagada}
+        color={chosen || icon === 'plus' ? PALETTE.accion : PALETTE.tintaApagada}
       />
-      <Text
-        style={{
-          flex: 1,
-          fontSize: scale.bodySize,
-          fontWeight: chosen ? '700' : '400',
-          color: PALETTE.tinta,
-        }}
-      >
-        {label}
-      </Text>
+      <View style={{ flex: 1 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: scale.bodySize,
+            fontWeight: chosen ? '700' : '400',
+            color: PALETTE.tinta,
+          }}
+        >
+          {label}
+        </Text>
+        {sub === undefined ? null : (
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.tinta }}
+          >
+            {sub}
+          </Text>
+        )}
+      </View>
     </Pressable>
   );
 }
 
 /**
- * The one unit question C8.10 asks, out of the units C8.5 allows.
+ * The one unit question C8.10 asks — all ten of them, always.
  *
- * ⚠️⚠️ ONE QUESTION AND FOUR COLUMNS. `product_variant` demands
- * `base_unit_code`, `purchase_unit_code`, `sell_unit_code` and
- * `price_unit_code` all `not null`; `unitColumns` fans the one answer into all
- * four, and a shopkeeper is never asked four times.
+ * ⚠️⚠️ ALL TEN, WHICH REVERSES WHAT THIS SCREEN DID YESTERDAY. The first version
+ * narrowed the list to the chosen family's dimension; the owner replaced that with
+ * a rule he can SEE — pick anything, and a unit the family cannot hold releases
+ * the family and says why. `chooseUnit` is where that lives.
+ *
+ * ⚠️ ONE QUESTION AND FOUR COLUMNS. `product_variant` demands
+ * `base_unit_code`, `purchase_unit_code`, `sell_unit_code` and `price_unit_code`
+ * all `not null`; `unitColumns` fans the one answer into all four, and a
+ * shopkeeper is never asked four times.
  *
  * ⚠️ THE CODES ARE THE DATABASE'S WORDS AND ARE NOT TRANSLATED — `kg`, `250g`,
- * `pza`, the same strings `@/api/catalog` already renders in `$35.00 / kg`. They
- * are not in `ES` because they are not this app's words to choose; they are
- * `0001`'s ten rows, and a second spelling of them here is the drift `R4` exists
- * to prevent applied to data rather than to prose.
+ * `pza`, the same strings `@/api/catalog` renders in `$35.00 / kg`. They are not
+ * in `ES` because they are not this app's words to choose; they are `0001`'s ten
+ * rows, and a second spelling here is the drift `R4` prevents, applied to data.
  *
- * ⚠️ WRAPPING RATHER THAN SCROLLING, because a horizontal list hides its own
- * far end: five chips at *Letra grande* take two rows, and two rows a person can
- * see beat one row with something off the side of it.
+ * ⚠️ WRAPPING RATHER THAN SCROLLING, because a horizontal list hides its own far
+ * end: ten chips at *Letra grande* take three rows, and rows a person can see beat
+ * one row with something off the side of it.
  */
 function Unidades({
-  options,
+  codes,
   chosen,
   busy,
   onPress,
 }: {
-  options: readonly string[];
+  codes: readonly string[];
   chosen: string;
   busy: boolean;
   onPress: (code: string) => void;
@@ -644,7 +726,7 @@ function Unidades({
   const { scale } = useDensity();
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
-      {options.map((code) => {
+      {codes.map((code) => {
         const isChosen = code === chosen;
         return (
           <Pressable
@@ -682,14 +764,12 @@ function Unidades({
   );
 }
 
-/** `Invitar`'s button, one icon narrower. */
+/** `Invitar`'s button. ⚠️ A tick and a word, never a glyph alone (C12.1). */
 function Boton({
-  icon,
   label,
   onPress,
   busy = false,
 }: {
-  icon: 'check';
   label: string;
   onPress: () => void;
   busy?: boolean;
@@ -717,59 +797,11 @@ function Boton({
       {busy ? (
         <ActivityIndicator color={PALETTE.accion} />
       ) : (
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.accion} />
+        <MaterialCommunityIcons name="check" size={scale.iconSize} color={PALETTE.accion} />
       )}
       <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
         {label}
       </Text>
     </Pressable>
-  );
-}
-
-/**
- * What just landed, and it is the only confirmation this form gives.
- *
- * ⚠️⚠️ THE PRODUCT'S NAME IS THE POINT AND THE SENTENCE IS THE CONTEXT. The
- * form stays open and the name box is cleared, so without the name here a
- * shopkeeper adding six products in a row has no way to tell the sixth
- * confirmation from the fifth. `savedLine` chooses between the two sentences,
- * out of `CreateSucceeded.priced` — a product saved wearing C3.12's dash is a
- * different event from one saved with a price, and `5e-i` put that flag on the
- * outcome for exactly this line.
- *
- * ⚠️ `accionSuave` AND NOT `atencionSuave`, INCLUDING FOR THE PRICELESS CASE.
- * Nothing went wrong: the owner ruled on 2026-09-22 that a product may be
- * created with no price, so amber here would be an alarm about a thing he chose.
- * ⚠️ And the state is not carried by the colour: `ES.catalog.create.savedLabel`
- * is the word beside it, which is the rule direction C left behind.
- *
- * ⚠️ NO ANIMATION. §2.11's motion rule allows `transform` and `opacity` only
- * (C1.1 puts two low-end Androids in the pilot), and the owner's confirmation
- * animation is `5f`'s deliverable on the sale — a second, different one invented
- * here would be the pattern decided by whichever screen shipped first.
- */
-function Guardado({ name, line }: { name: string; line: string }) {
-  const { scale } = useDensity();
-  return (
-    <View
-      accessible
-      accessibilityLabel={`${ES.catalog.create.savedLabel}. ${name}. ${line}`}
-      style={{
-        gap: scale.rowGap / 2,
-        padding: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        backgroundColor: PALETTE.accionSuave,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {ES.catalog.create.savedLabel}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-        {name}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{line}</Text>
-    </View>
   );
 }

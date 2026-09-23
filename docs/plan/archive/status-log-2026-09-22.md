@@ -640,3 +640,91 @@ freezes on merge:**
 | **3** | **The marker constant is deleted rather than re-pointed to `TD006`** | A marker exists to name a GUESS, and there is no guess left to name. `@/api/redeem` has read this way since `0036` | One line |
 | **4** | **`0036`'s free-slot check MOVED rather than being rewritten** | Two homes for one claim, and the newest migration is the right home for a frontier | One check |
 | **5** | **The message is unchanged, word for word** | A migration that fixed the code AND reworded the sentence is indistinguishable from one that broke the sentence — and the suite matches on the message to prove the right branch fired | Nothing depends on it |
+
+---
+
+## Fifth cut — taken 2026-09-23, as `5e-ii` was reopened and closed again
+
+⚠️ **ONE ENTRY, AND IT IS NOW THE OLDEST IN THIS FILE RATHER THAN THE NEWEST** —
+the `5d` sizing, which opened step `5d`. It sat at the FOOT of `## Position` after
+the fourth cut took `5b.9`, and `## Position` had reached **1,353 lines against its
+1,400 ceiling** once the `5e-ii` reopening was recorded. **Forty-seven lines of
+headroom is less than one status-log entry**, so the cut was taken here rather than
+left as the next session's problem — the same reason the fourth was taken, and the
+reason `plan-handover.sh` assertion 7 names its own remedy.
+
+⚠️⚠️ **THE FILE IS NO LONGER STRICTLY OLDEST-FIRST, AND SAYING SO IS CHEAPER THAN
+RE-SORTING IT.** The first three cuts came off the head of Position (the oldest work
+of the day) and the fourth and fifth off its foot, so the reading order now runs:
+the three that opened 2026-09-22, then `5c-iv-a`, `5c-iv-b`, `5b.9`, and this one —
+which is older than all of them. **Each cut says which it is in its own heading**,
+and a file re-sorted for tidiness would make the sentences the earlier cuts wrote
+about themselves false.
+
+⚠️ **A MOVE AND NOT A COPY**: the lines below are gone from `docs/PLAN.md`, and
+`plan-corpus.sh` is what makes `| **5d** |` resolve out of this file as it did out
+of that one.
+
+⚠️⚠️ **`5d` WAS SIZED `L` AND SPLIT IN FOUR ON 2026-09-22, BEFORE A LINE OF IT WAS
+WRITTEN, AND `5d-i` IS THE NEXT TASK — THE CATALOG READ, WITH NO SCREEN IN IT.** The row
+told the next session to size it first and it was right to: **it described a screen that no
+longer exists and left out one it owns.**
+
+⚠️⚠️ **THE TWO FINDINGS THAT CHANGED THE SHAPE, AND NEITHER IS ABOUT SIZE.**
+**(1) `Productos` has not been a grid of family tiles since 2026-09-15** — the owner made it
+**variant-first** in área 13, C8.13 was annotated rather than rewritten, and the `5d` row
+was never re-read against that. A session taking `5d` at face value would have built the
+screen he replaced. **(2) Inicio is `5d`'s and the row never said so.** Two records outside
+it do: the header of `app/src/app/(tabs)/index.tsx` names this task twice — *"`5d` builds
+§2.8's real Inicio"* and *"`5d` builds that screen and places this properly"* — and área
+13's decision table says *"Reversed by `5d`, which has to place it properly anyway."*
+**A deliverable held only by two files that the split guard does not read is a deliverable
+one context clear away from being lost**, which is the whole argument for this file's
+tables and is why it is now nineteen rows in `docs/checks/specs/5d.split`.
+
+**THE SEAM, IN ONE LINE: `5d-i` IS THE HALF A MACHINE CAN HOLD AND THE OTHER THREE ARE
+THE HALF ONLY HIS EYE CAN.** §2.11 keeps rendering, navigation and layout out of scope, so
+three of these four children end on the owner's phone (`R9`) and nothing here will ever say
+they are wrong. That is an argument for a small first piece rather than a large one — the
+sizing `5c-iv` made four days ago — and the first piece is therefore the one with a right
+answer in it: four applied tables **no line in `app/` reads today**, the arithmetic that
+turns `price_per_base` into `$35.00 / kg`, and a contract check over real HTTP.
+
+⚠️ **WHAT WAS MEASURED RATHER THAN RECALLED, because three of these decide the split:**
+
+| | Measured | Why it mattered here |
+|---|---|---|
+| **1** | `product_family_select`, `product_variant_select` and `price_list_select` are all **`workspace_id in (select my_workspaces())`** — any member reads the catalog AND the shelf price (`0002:490`, `507`, `542`) | §2.8 labels `Catálogo` **Manager+**, and that label is on **create/edit**: the INSERT and UPDATE policies are `has_role('manager')` and the SELECTs are not. So `5d` needs no fence at all, and `5e` needs one it already has |
+| **2** | **`price_list` holds 390 seeded rows** and is a dated range table with a generated `valid_period` and a null `location_id` for the workspace default | *"Which price does a row show"* is a real decision, not a column read — and C1.5 makes the two scopes a preference rather than a picker |
+| **3** | `record_purchase` (`0018:363`) seeds a batch's expiry from `product_family.default_lifespan_days` **only when `track_expiry` is true**, and it is `false` by default with nothing in C8.9's four-field create to turn it on | It is why the §2.8 question below is a real one and not a shrug: the 48-hour block has a data path and the pilot fills none of it |
+
+⚠️⚠️ **AND IT FOUND A SECOND ADR DISAGREEMENT NOBODY WAS LOOKING FOR: §2.8 SAYS PERMANENT
+FAILURES *"DO NOT APPEAR ON HOME AT ALL"*, AND `5c-iv-b`'s DEAD-LETTER BANNER — MERGED
+YESTERDAY — OVERLAYS EVERY SCREEN INCLUDING INICIO.** Both halves are the same row of the
+same table, so they are parked as **one decision and one amendment**. ⚠️ **It blocks
+`5d-iv` alone**; the first three children never touch Inicio.
+
+**What shipped, and it is documents only:**
+
+| | |
+|---|---|
+| `docs/PLAN.md` | the `5d` parent rewritten as a split record, four child rows, this entry, and the decision above |
+| `docs/checks/specs/5d.split` | **nineteen deliverables**, five required sentences, one statement every child must make |
+| `docs/HANDBOOK.md` | the `5d` row rewritten as split, four plain-language rows, and the one question now waiting on the owner |
+
+⚠️ **THE VERIFICATION, NAMED.** `bash docs/checks/split-coverage.sh docs/checks/specs/5d.split`
+is **seven assertion groups green over nineteen deliverables**;
+`bash docs/checks/split-coverage-falsify.sh` runs **every defect class against every
+deliverable of every spec** and the `5d` ones are red-on-demand with a green control;
+`bash docs/checks/plan-handover.sh` and `bash docs/checks/handbook-agreement.sh` are green
+with the new next task and the now-open decision. ⚠️ **No code was written and no migration
+exists to apply**, which is exactly what a sizing session should leave behind.
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF:**
+
+| | Decision | Why | Reversal |
+|---|---|---|---|
+| **1** | **Four children rather than three, with Inicio as the last** | The three screens are separately correctable on a phone and Inicio is the only one with a blocked half. Folding Inicio into `5d-ii` would have made the blocked half block a screen that is not blocked | One plan edit |
+| **2** | ⚠️ **The catalog read goes first, before any screen** | It is the only piece with a right answer, `5b-i` set the precedent, and both remaining screens read it. The alternative — draw the list first against invented data — is what `R3` exists to refuse | One plan edit |
+| **3** | ⚠️ **`Productos` is shown to EVERY member, not manager-and-above** | Measurement 1 above: the SELECT policies admit any member, and a cashier already sees every variant and its price on Vender (C3.1). Hiding the read would protect nothing and cost a fence to maintain | One condition in `5d-ii` |
+| **4** | **The `5d-ii` door onto Inicio is temporary and says so in its own file** | `5d-iv` places it properly, and the placeholder-with-a-name-in-it shape is what `5a-ii` used and `5b-ii-a` cleaned up | One line |

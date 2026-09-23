@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   CATALOG_WRITE_REFUSALS,
-  FAMILY_SUGGESTED,
+  FAMILY_MIRROR,
   FAMILY_INSERT_COLUMNS,
   INSERT_RETURNING,
   PRICE_INSERT_COLUMNS,
@@ -19,16 +19,17 @@ import {
   priceRow,
   pricePerBase,
   retryDraft,
-  savedLine,
-  suggestFamily,
-  unitChoice,
   unitColumns,
-  unitOptions,
+  unitOrder,
   canWriteCatalog,
+  catalogRows,
+  chooseFamily,
+  chooseUnit,
+  familyUnit,
   resolveFamily,
+  searchFamilies,
   variantRow,
   type CreateFailed,
-  type CreateSucceeded,
   type FamilyChoice,
   type ProductDraft,
 } from '@/api/catalogWrite';
@@ -299,62 +300,57 @@ describe('the price, inverted — the exact inverse of what 5d-i shipped', () =>
   });
 });
 
-describe('the family, suggested from the typed name', () => {
-  it('lists each family of the held catalog once, in the database order', () => {
+describe('the families this shop has, and the search that finds one', () => {
+  // ⚠️⚠️ `suggestFamily` WAS DELETED ON 2026-09-23 BY THE OWNER'S RULING and its
+  // matching survives here as tier 1. It attached `Pierna de pollo` to `Pollo`
+  // with nothing on screen saying a choice had been made; he held the form and
+  // said it "looks as a decision already made, not as a suggestion". The matching
+  // was never the mistake — the silence was.
+  it('lists every family once, in the catalog order, ignoring variants', () => {
     expect(familiesFrom(ENTRIES)).toEqual([
       { id: POLLO, name: 'Pollo' },
       { id: CERDO, name: 'Cerdo' },
     ]);
   });
 
-  it('attaches to a family the typed name contains', () => {
-    expect(suggestFamily(ENTRIES, 'Pierna de pollo')).toEqual({
-      familyId: POLLO,
-      familyName: 'Pollo',
-    });
+  it('gives every family back for an empty box — the list he scrolls', () => {
+    expect(searchFamilies(ENTRIES, '')).toEqual(familiesFrom(ENTRIES));
+    expect(searchFamilies(ENTRIES, '   ')).toEqual(familiesFrom(ENTRIES));
   });
 
-  // ⚠️⚠️ `0002` REFUSES TO FOLD ACCENTS IN `normalize_name` AND ASKS FOR
-  // SEARCH-TIME FOLDING BY NAME. A shopkeeper hunting for a family types what
-  // is quickest.
-  it('folds accents when it matches, the way searchTerm does', () => {
-    const entries = catalogFrom([variant('d', 'Macho', POLLO, 'Plátano')], FACTORS, null);
-    expect(suggestFamily(entries, 'platano tabasco').familyId).toBe(POLLO);
+  it('finds a family by a whole word inside the name he typed', () => {
+    expect(searchFamilies(ENTRIES, 'Pierna de pollo').map((f) => f.name)).toEqual(['Pollo']);
   });
 
-  // ⚠️ WHOLE WORDS AND NOT A SUBSTRING. `includes` would match `Res` inside
-  // `Refresco`, and a form that proposes the wrong family by default is worse
-  // than one that proposes none.
-  it('does not match a family hiding inside a longer word', () => {
-    const entries = catalogFrom([variant('e', 'Costilla', CERDO, 'Res')], FACTORS, null);
-    expect(suggestFamily(entries, 'Refresco de cola').familyId).toBeNull();
+  it('finds a family while he is still half-typing it', () => {
+    expect(searchFamilies(ENTRIES, 'poll').map((f) => f.name)).toEqual(['Pollo']);
   });
 
-  it('prefers the longest match when two families fit', () => {
-    const entries = catalogFrom(
+  // ⚠️ THE FOLD IS `searchTerm`'s AND THEREFORE FOLDS ACCENTS, which is the
+  // opposite of the duplicate pre-check and deliberate in both places: `0002` put
+  // accent folding in the QUERY and kept it out of the uniqueness rule.
+  it('folds accents, because hunting for a family is a search', () => {
+    const shop = catalogFrom([variant('z', 'Macho', 'F9', 'Plátano')], FACTORS, null);
+    expect(searchFamilies(shop, 'platano').map((f) => f.name)).toEqual(['Plátano']);
+  });
+
+  // ⚠️⚠️ THE RANKING IS THE WHOLE VALUE OF THIS SEARCH — scenario 3 is the moment
+  // he realises `Pollo` is already there, and a plain filter buries it under the
+  // longer name that also matched.
+  it('puts the shorter, whole-word family above the longer one', () => {
+    const shop = catalogFrom(
       [
-        variant('f', 'Entero', POLLO, 'Pollo'),
-        variant('g', 'Cruda', CERDO, 'Pierna de pollo'),
+        variant('a', 'Rostizado', 'F1', 'Pollo rostizado'),
+        variant('b', 'Pechuga', POLLO, 'Pollo'),
       ],
       FACTORS,
       null,
     );
-    expect(suggestFamily(entries, 'Pierna de pollo ahumada').familyName).toBe('Pierna de pollo');
+    expect(searchFamilies(shop, 'pollo').map((f) => f.name)).toEqual(['Pollo', 'Pollo rostizado']);
   });
 
-  // ⚠️ THE WHOLE TYPED NAME AND NOT ITS FIRST WORD: `Agua mineral` becoming a
-  // family called `Agua` is the app being clever about a substance it knows
-  // nothing about, and `Jitomate` / `Jitomate a granel` is what a family of one
-  // looks like before it grows variants.
-  it('proposes a new family named for the whole typed product when none fits', () => {
-    expect(suggestFamily(ENTRIES, '  Agua   mineral ')).toEqual({
-      familyId: null,
-      familyName: 'Agua mineral',
-    });
-  });
-
-  it('proposes nothing out of an empty box', () => {
-    expect(suggestFamily(ENTRIES, '   ')).toEqual({ familyId: null, familyName: '' });
+  it('answers nothing when nothing matches, rather than everything', () => {
+    expect(searchFamilies(ENTRIES, 'queso')).toEqual([]);
   });
 });
 
@@ -504,9 +500,27 @@ describe('a product with no price — the owner\'s ruling of 2026-09-22', () => 
   // owner's own point: C3.12 is his earlier ruling that a transaction cannot be
   // concreted without a price, so what he cannot see from this form is that
   // Vender and Comprar will both stop and ask him.
-  it('tells him what it will cost at the counter, not what he just typed', () => {
-    expect(ES.catalog.notice.noPrice).toMatch(/compres/);
-    expect(ES.catalog.notice.noPrice).toMatch(/vendas/);
+  // ⚠️⚠️ REWRITTEN 2026-09-23 BY THE OWNER'S OWN REWORDING, AND HIS VERSION IS
+  // MORE CORRECT THAN THE ONE IT REPLACED. The old sentence said *"cuando lo
+  // compres o lo vendas"* and this assertion pinned both verbs — but **Comprar
+  // never needed this price**: `price_list` is not read by any function in any
+  // migration (`from`/`join` count is zero across all of them), `record_purchase`
+  // prices each line from the `p_lines` the caller sends, and the only reader is
+  // `priceFor` in `@/api/catalog`, prefilling a SELL price. So naming Comprar was
+  // a promise about a screen that will not stop him. ⚠️ The assertion now pins
+  // what the sentence claims rather than the words it used: it names selling, and
+  // it does NOT merely restate the state he can already see.
+  it('names the counter that will stop him, and only that one', () => {
+    expect(ES.catalog.notice.noPrice).toMatch(/vender/);
+    expect(ES.catalog.notice.noPrice).not.toMatch(/compr/);
+  });
+
+  // ⚠️ IT NAMES A CONSEQUENCE AND NOT A STATE. *"Este producto no tiene precio"*
+  // is what he just typed; what he cannot see from this form is that Vender will
+  // stop and ask him, which is C3.12 — the owner's own earlier ruling.
+  it('does not restate the empty box back at him', () => {
+    expect(ES.catalog.notice.noPrice).not.toMatch(/no tendrá precio/);
+    expect(ES.catalog.notice.noPrice).not.toMatch(/no tiene precio/);
   });
 });
 
@@ -647,23 +661,25 @@ describe('what a partial write leaves behind', () => {
 });
 
 // ============================================================================
-// WHAT THE FORM DECIDES, DECIDED IN THE MODULE. Plan task `5e-ii`.
+// WHAT THE FORM AND THE LIST DECIDE, DECIDED IN THE MODULE. Plan task `5e-ii`,
+// REWORKED 2026-09-23 on the owner's ruling after he held the first version.
 //
-// ⚠️⚠️ THESE ARE THE FIVE THINGS DRAWING `Agregar` TURNED OUT TO DECIDE, and
-// `5e`'s split had said the second child *renders and decides nothing*. Every
-// one is here rather than in the JSX for `R3`'s reason — a rule written into a
-// screen is a rule no instrument in this repository will ever read — and the
-// gap this suite still cannot close is unchanged: it cannot say whether
-// `Cambiar` is findable or whether five unit chips fit at *Letra grande*. That
-// is `R9`, and it is the owner's phone.
+// ⚠️⚠️ EVERY ASSERTION BELOW IS A RULE HE STATED IN PROSE, TURNED INTO A VALUE.
+// *A proposal must not look like a decision already made* is not checkable; *the
+// family mirrors the typed name* and *a conflicting unit releases the family* are.
+// That split is `R3`, and it is why the JSX above holds keystrokes and no opinions.
+//
+// ⚠️ WHAT IT STILL CANNOT SEE is whether a hint READS as a hint, whether the
+// family search finds what he means, whether the released banner is legible before
+// it fades, or whether the blink reads as *this is the one you just made*. `R9`,
+// §2.11, and the owner's phone.
 // ============================================================================
 
 describe('the manager fence, drawn rather than discovered', () => {
   // ⚠️ `0002`'s OWN PREDICATE ON ALL THREE TABLES, `has_role(…, 'manager')`.
-  // ⚠️⚠️ AND THIS SUITE CANNOT PROVE THE POLICY, only that the app agrees with
-  // what somebody wrote down about it. `docs/checks/5e-i-catalog-write-contract.sh`
-  // is the only instrument that asks a real database, and its central assertion
-  // is that a cashier is refused.
+  // ⚠️⚠️ THIS SUITE CANNOT PROVE THE POLICY, only that the app agrees with what
+  // somebody wrote down about it. `docs/checks/5e-i-catalog-write-contract.sh` is
+  // the only instrument that asks a real database.
   it('admits the owner and a manager', () => {
     expect(canWriteCatalog('owner')).toBe(true);
     expect(canWriteCatalog('manager')).toBe(true);
@@ -674,184 +690,188 @@ describe('the manager fence, drawn rather than discovered', () => {
   });
 
   // ⚠️ `null` IS "NOT KNOWN" AND NOT "NO AUTHORITY" — `roleOf`'s distinction.
-  // The control is absent while the membership read is out and appears when it
-  // lands, rather than being shown and then snatched away.
   it('refuses while the role is still unknown', () => {
     expect(canWriteCatalog(null)).toBe(false);
   });
 });
 
-describe('C8.11 — the family suggested, and overridden by a gesture', () => {
-  it('follows the typed name until somebody overrides it', () => {
-    expect(resolveFamily(FAMILY_SUGGESTED, ENTRIES, 'Pierna de pollo')).toEqual(
-      suggestFamily(ENTRIES, 'Pierna de pollo'),
-    );
-    expect(resolveFamily(FAMILY_SUGGESTED, ENTRIES, 'Pierna de pollo').familyId).toBe(POLLO);
+describe('the list that creates — Productos, where Agregar used to be', () => {
+  it('is just the products while the search still matches something', () => {
+    const rows = catalogRows(ENTRIES, 'pollo', true);
+    expect(rows).toHaveLength(ENTRIES.length);
+    expect(rows.every((row) => row.kind === 'product')).toBe(true);
   });
 
-  // ⚠️⚠️ THE OVERRIDE OUTRANKS THE SUGGESTION, AND THE OPPOSITE IS THE BUG THIS
-  // ASSERTION EXISTS FOR: a form that re-suggested would undo her choice on the
-  // next keystroke of the product name.
-  it('keeps a chosen family while the name goes on changing', () => {
+  // ⚠️⚠️ THE ANTI-DUPLICATE MECHANISM, AS ONE ASSERTION. The door opens only once
+  // the list has nothing left to show him — which is the whole of the owner's
+  // *"this allows us to discard partially duplicate product creation"*.
+  it('appends the create row only when the search found nothing', () => {
+    expect(catalogRows([], 'Pechuga sin hueso', true)).toEqual([
+      { kind: 'create', name: 'Pechuga sin hueso' },
+    ]);
+  });
+
+  it('carries the typed name, so the form is handed the word he typed', () => {
+    const rows = catalogRows([], '  Pierna   de pollo  ', true);
+    expect(rows[0]).toEqual({ kind: 'create', name: 'Pierna de pollo' });
+  });
+
+  // ⚠️ A BLANK BOX IS NOT A SEARCH THAT FOUND NOTHING — a create row with no name
+  // in it would be `Agregar` back again, wearing a list row.
+  it('offers nothing to create from an empty box, spaces included', () => {
+    expect(catalogRows([], '', true)).toEqual([]);
+    expect(catalogRows([], '   ', true)).toEqual([]);
+  });
+
+  // ⚠️⚠️ THE FENCE IS IN THE ROWS AND NOT IN THE SCREEN. A cashier gets a list
+  // with no door in it; the refusal on the other side is a bare `42501`.
+  it('never hands a cashier a door she will be refused', () => {
+    expect(catalogRows([], 'Pechuga', false)).toEqual([]);
+  });
+});
+
+describe("the family: a mirror, not a match — the owner's ruling of 2026-09-23", () => {
+  // ⚠️⚠️ THE RULING, AS ONE ASSERTION. The old default searched the catalog and
+  // attached `Pierna de pollo` to `Pollo`. The new one proposes the typed name.
+  it('mirrors the product name instead of matching a family behind his back', () => {
+    expect(resolveFamily(FAMILY_MIRROR, 'Pierna de pollo')).toEqual({
+      familyId: null,
+      familyName: 'Pierna de pollo',
+    });
+  });
+
+  it('collapses the mirror the way the database will', () => {
+    expect(resolveFamily(FAMILY_MIRROR, '  Queso   Oaxaca  ').familyName).toBe('Queso Oaxaca');
+  });
+
+  // ⚠️ THE OVERRIDE OUTRANKS EVERYTHING, and the opposite is the bug: a form that
+  // re-derived the family would undo his choice on the next keystroke.
+  it('keeps a chosen family while the product name goes on changing', () => {
     const chosen: FamilyChoice = { kind: 'chosen', id: CERDO, name: 'Cerdo' };
-    expect(resolveFamily(chosen, ENTRIES, 'Pierna de pollo')).toEqual({
+    expect(resolveFamily(chosen, 'Pierna de pollo')).toEqual({
       familyId: CERDO,
       familyName: 'Cerdo',
     });
   });
 
-  it('creates the family she typed, and never the one suggested', () => {
-    const own: FamilyChoice = { kind: 'new', name: '  Queso   Oaxaca  ' };
-    expect(resolveFamily(own, ENTRIES, 'Pierna de pollo')).toEqual({
+  it('creates the family he typed, and never the mirror', () => {
+    expect(resolveFamily({ kind: 'new', name: '  Queso   Oaxaca ' }, 'Pechuga')).toEqual({
       familyId: null,
       familyName: 'Queso Oaxaca',
     });
   });
 
   // ⚠️ AN EMPTY NEW-FAMILY BOX STAYS `new` AND IS REFUSED BY `checkProduct`,
-  // rather than falling back to a suggestion she had just decided against.
-  it('does not fall back to the suggestion when the box is empty', () => {
-    const empty: FamilyChoice = { kind: 'new', name: '   ' };
-    expect(resolveFamily(empty, ENTRIES, 'Pierna de pollo')).toEqual({
+  // rather than falling back to a mirror he had just decided against.
+  it('does not fall back to the mirror when the box is empty', () => {
+    expect(resolveFamily({ kind: 'new', name: '   ' }, 'Pechuga')).toEqual({
       familyId: null,
       familyName: '',
     });
-    expect(
-      checkProduct(
-        { ...draft(), familyId: null, familyName: '' },
-        [],
-        FACTORS,
-      ),
-    ).toBe('familyMissing');
+    expect(checkProduct({ ...draft(), familyId: null, familyName: '' }, [], FACTORS)).toBe(
+      'familyMissing',
+    );
   });
 });
 
-describe("C8.5 — one family, one dimension, kept by the form because nothing else keeps it", () => {
-  // ⚠️⚠️ THE DATABASE DOES NOT APPLY C8.5 ACROSS VARIANTS, which is why this
-  // list exists at all. `product_variant_units_same_dimension_trg` (`0002:204`)
-  // counts dimensions across the four unit columns of ONE row, and C8.10's
-  // fan-out makes that one by construction.
+describe('C8.5 — the unit and the family policing each other', () => {
   const LECHE = '33333333-3333-4333-8333-333333333333';
   const HUEVO = '44444444-4444-4444-8444-444444444444';
-  const OTHERS = catalogFrom(
+  const SHOP = catalogFrom(
     [
+      variant('a', 'Pechuga', POLLO, 'Pollo'),
       { ...variant('d', 'Leche entera', LECHE, 'Leche'), price_unit_code: 'l' },
       { ...variant('e', 'Huevo', HUEVO, 'Huevo'), price_unit_code: 'pza' },
     ],
     FACTORS,
     null,
   );
+  const POLLO_F = { id: POLLO, name: 'Pollo' };
+  const LECHE_F = { id: LECHE, name: 'Leche' };
 
-  it('offers all ten units when there is no family to constrain them', () => {
-    expect(unitOptions(UNITS, ENTRIES, null)).toHaveLength(UNITS.length);
+  // ⚠️⚠️ ALL TEN UNITS, ALWAYS — WHICH REVERSES WHAT THIS MODULE DID YESTERDAY.
+  // The owner replaced a narrowed picker with a rule he can see.
+  it('offers all ten units whatever the family is', () => {
+    expect(unitOrder(UNITS)).toHaveLength(UNITS.length);
   });
 
-  // ⚠️ A FAMILY NOBODY HAS ADDED TO PUTS NO CONSTRAINT ON ANYTHING — including
-  // the invisible family a failed `5e-i` write leaves behind.
-  it('offers all ten inside a family that has no variants yet', () => {
-    expect(unitOptions(UNITS, ENTRIES, 'a-family-nobody-has-used')).toHaveLength(UNITS.length);
-  });
-
-  it('offers only weights inside a family measured in kilos', () => {
-    expect(unitOptions(UNITS, ENTRIES, POLLO)).toEqual(['kg', '500g', '250g', '100g', 'g']);
-  });
-
-  it('offers only volumes inside a family measured in litres', () => {
-    expect(unitOptions(UNITS, OTHERS, LECHE)).toEqual(['l', '500ml', '100ml', 'ml']);
-  });
-
-  it('offers exactly one unit inside a family counted in pieces', () => {
-    expect(unitOptions(UNITS, OTHERS, HUEVO)).toEqual(['pza']);
-  });
-
-  // ⚠️⚠️ THE ORDER IS `0001`'s `display_order` AND NOT THE READ'S, AND THIS IS
-  // THE ASSERTION THAT MAKES THAT TRUE RATHER THAN LUCKY. `catalogUnits` asks
-  // for no `order=`, so PostgREST may answer in any order it likes, and a picker
-  // that trusted it would rearrange itself between launches.
-  it('puts the list in the same order however the read arrives', () => {
-    const shuffled = [...UNITS].reverse();
-    expect(unitOptions(shuffled, ENTRIES, null)).toEqual(unitOptions(UNITS, ENTRIES, null));
-    expect(unitOptions(UNITS, ENTRIES, null)).toEqual([
-      'kg',
-      'l',
-      'pza',
-      '500g',
-      '500ml',
-      '250g',
-      '100g',
-      '100ml',
-      'g',
-      'ml',
+  // ⚠️ THE ORDER IS `0001`'s `display_order`, AND THIS IS WHAT MAKES THAT TRUE
+  // RATHER THAN LUCKY: `catalogUnits` asks for no `order=`.
+  it('puts the picker in the same order however the read arrives', () => {
+    expect(unitOrder([...UNITS].reverse())).toEqual(unitOrder(UNITS));
+    expect(unitOrder(UNITS)).toEqual([
+      'kg', 'l', 'pza', '500g', '500ml', '250g', '100g', '100ml', 'g', 'ml',
     ]);
   });
-});
 
-describe('the unit she picked, against the units the family allows', () => {
-  const MASS = unitOptions(UNITS, ENTRIES, POLLO);
-
-  it('keeps a pick the family allows', () => {
-    expect(unitChoice(MASS, '250g')).toBe('250g');
+  it('knows what an existing family is already priced in', () => {
+    expect(familyUnit(SHOP, POLLO)).toBe('kg');
+    expect(familyUnit(SHOP, LECHE)).toBe('l');
+    expect(familyUnit(SHOP, 'a-family-nobody-has-used')).toBe('');
+    expect(familyUnit(SHOP, null)).toBe('');
   });
 
-  // ⚠️⚠️ THE BUG THIS EXISTS FOR, AND NOTHING ELSE IN THIS REPOSITORY WOULD HAVE
-  // CAUGHT IT: she types `Leche`, picks `l`, then overrides the family to
-  // `Pollo`. `l` is gone from the screen, and a form holding it in `useState`
-  // would post a litre of chicken — which Postgres accepts.
-  it('drops a pick the family no longer allows', () => {
-    expect(unitChoice(MASS, 'l')).toBe('');
+  // ⚠️ THE PRESELECT IS THE OWNER'S RULE — one tap saved on the commonest create
+  // in the shop: another cut of chicken, in kilos, like every other cut.
+  it('preselects the family unit when he picks a family', () => {
+    const out = chooseFamily(POLLO_F, '', SHOP, UNITS);
+    expect(out.family).toEqual({ kind: 'chosen', id: POLLO, name: 'Pollo' });
+    expect(out.unitCode).toBe('kg');
+    expect(out.released).toBe(false);
   });
 
-  it('leaves the question open while nothing is picked', () => {
-    expect(unitChoice(MASS, '')).toBe('');
+  it('leaves a compatible unit he already chose alone', () => {
+    expect(chooseFamily(POLLO_F, '250g', SHOP, UNITS).unitCode).toBe('250g');
   });
 
-  // ⚠️ A LIST OF ONE IS A DERIVATION AND NOT A DEFAULT THE APP GUESSED.
-  it('answers a list of one by itself', () => {
-    expect(unitChoice(['pza'], '')).toBe('pza');
+  it("overrides a unit the family it just joined cannot hold", () => {
+    expect(chooseFamily(POLLO_F, 'l', SHOP, UNITS).unitCode).toBe('kg');
   });
 
-  // ⚠️ AND IT NEVER PRESELECTS OUT OF A LONGER LIST: `kg` over `100g` is a guess
-  // about how this shop prices, and C8.9 asks the question.
-  it('never preselects out of a list of more than one', () => {
-    expect(unitChoice(MASS, '')).toBe('');
-    expect(MASS.length).toBeGreaterThan(1);
-  });
-});
-
-describe('what a create that WORKED says, and there are two of them', () => {
-  function saved(over: Partial<CreateSucceeded> = {}): CreateSucceeded {
-    return { ok: true, familyId: POLLO, variantId: VARIANT_ID, priced: true, ...over };
-  }
-
-  function halfDone(step: CreateFailed['failed']): CreateFailed {
-    return {
-      ok: false,
-      failed: step,
-      familyId: POLLO,
-      variantId: step === 'price_list' ? VARIANT_ID : null,
-      error: refusal('23505', 'duplicate key value violates unique constraint "product_variant_name_unique"'),
-    };
-  }
-
-  it('says it is in the catalog', () => {
-    expect(savedLine(saved())).toBe(ES.catalog.create.saved);
+  // ⚠️⚠️ THE OWNER'S RULE IN HIS OWN WORDS: "if the user selects a different unit,
+  // the family defaults to the variant again and shows a small banner."
+  it('releases a chosen family when the unit cannot live in it', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: POLLO, name: 'Pollo' };
+    const out = chooseUnit(chosen, 'l', SHOP, UNITS);
+    expect(out.family).toEqual(FAMILY_MIRROR);
+    expect(out.unitCode).toBe('l');
+    expect(out.released).toBe(true);
   });
 
-  // ⚠️⚠️ `CreateSucceeded.priced` IS WHAT THIS LINE WAS PUT THERE FOR. A product
-  // saved wearing C3.12's dash is a different event, and the sentence is
-  // `ES.catalog.notice.noPrice` in the past tense.
-  it('says what is still missing when the price was left out', () => {
-    expect(savedLine(saved({ priced: false }))).toBe(ES.catalog.create.savedNoPrice);
-    expect(savedLine(saved({ priced: false }))).not.toBe(savedLine(saved()));
-  });
-
-  // ⚠️ THE TWO SUCCESS SENTENCES AND THE THREE FAILURE ONES ARE FIVE DIFFERENT
-  // SENTENCES. A create that half-worked must never be able to say the same
-  // words as one that worked.
-  it('never shares a sentence with a failure', () => {
-    const lines = [savedLine(saved()), savedLine(saved({ priced: false }))];
-    for (const step of WRITE_ORDER) {
-      expect(lines).not.toContain(createLine(halfDone(step)));
+  // ⚠️⚠️ THE DIMENSION AND NOT THE EXACT UNIT, which is a reading of two of his
+  // own sentences that disagree: the banner says "la misma unidad de medida" and
+  // C8.5 says a family's variants "all share kg/gr" — two units, one dimension. A
+  // pollería pricing Menudencias per 100g inside a kg family is real.
+  it('does not release the family for another weight in the same family', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: POLLO, name: 'Pollo' };
+    for (const code of ['250g', '100g', 'g', '500g', 'kg']) {
+      expect(chooseUnit(chosen, code, SHOP, UNITS).released).toBe(false);
     }
+  });
+
+  it('releases it for a volume and for a count', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: POLLO, name: 'Pollo' };
+    expect(chooseUnit(chosen, 'ml', SHOP, UNITS).released).toBe(true);
+    expect(chooseUnit(chosen, 'pza', SHOP, UNITS).released).toBe(true);
+  });
+
+  // ⚠️ A MIRROR AND A TYPED-NEW FAMILY HAVE NO SIBLINGS TO DISAGREE WITH, so
+  // nothing can release them — and releasing a name he typed himself would be the
+  // app throwing away the one field it is sure about.
+  it('never releases a mirror or a family he typed', () => {
+    expect(chooseUnit(FAMILY_MIRROR, 'pza', SHOP, UNITS).released).toBe(false);
+    expect(chooseUnit({ kind: 'new', name: 'Huevo' }, 'pza', SHOP, UNITS).released).toBe(false);
+  });
+
+  // ⚠️ AN UNKNOWN UNIT RELEASES NOTHING: if the `unit` read has not landed,
+  // `dimensions` has no answer, and punishing him for a slow connection is wrong.
+  it('releases nothing while the unit read has not landed', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: POLLO, name: 'Pollo' };
+    expect(chooseUnit(chosen, 'pza', SHOP, []).released).toBe(false);
+  });
+
+  it('releases nothing for a family that has no unit of its own yet', () => {
+    const chosen: FamilyChoice = { kind: 'chosen', id: 'empty-family', name: 'Nueva' };
+    expect(chooseUnit(chosen, 'pza', SHOP, UNITS).released).toBe(false);
   });
 });

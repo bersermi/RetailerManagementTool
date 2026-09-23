@@ -1,12 +1,13 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { FlatList, Pressable, Text, TextInput, View } from 'react-native';
+import { router, useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
-import { canWriteCatalog } from '@/api/catalogWrite';
+import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
+import { pulseSequence } from '@/theme/pulse';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -24,16 +25,32 @@ import { PALETTE } from '@/theme/palette';
 // reached by tapping a row, and it is the one surface in this app where that
 // structure is visible at all (C3.1 already flattened the transaction screens).
 //
-// ⚠️⚠️ AND IT IS THE FIRST OF C8.12's THREE DOORS INTO `Agregar`, AS OF
-// `5e-ii`. The banda carries one word beside *Volver*, and it is **absent for a
-// cashier**: `product_variant_insert` and `product_family_insert` are both
+// ⚠️⚠️ THE SEARCH IS THE WAY A PRODUCT GETS CREATED, AND THERE IS NO `Agregar`
+// BUTTON — ruled by the owner on 2026-09-23, after he held the version that had
+// one. He types a name; while anything matches he is looking at what the shop
+// ALREADY sells; and only when nothing matches does the typed name become a row
+// with *Crear Nuevo Producto* under it. ⚠️⚠️ **THE POINT IS FEWER PARTIAL
+// DUPLICATES, NOT FEWER BUTTONS** — in his words, *"this allows us to discard
+// partially duplicate product creation"*. A button in the banda is reachable
+// without ever reading the list; this door can only be reached THROUGH the list.
+// ⚠️ It is also closer to C8.12 than the button was: that constraint says *"From
+// Productos → type the name"*, which is now literally the gesture.
+//
+// ⚠️ THE ROWS ARE `catalogRows`' AND THE FENCE IS IN IT (`R3`). A cashier is
+// handed a list with no create row: all three catalog INSERT policies are
 // `has_role(…, 'manager')` in `0002`, the refusal is a bare `42501` with no
-// sentence of its own, and `canWriteCatalog` is what keeps a control that cannot
-// work off her screen. Plainly absent beats looking live and refusing silently —
-// the same call `5d-iii` made for these three buttons, and the shape
-// [[shift-cover-is-a-reassignment]] records. ⚠️ From here the form asks the
-// FAMILY question (C8.12); from inside a family it does not, which is why that
-// screen passes `?familia=`.
+// sentence of its own, and plainly absent beats looking live and refusing
+// silently — the shape [[shift-cover-is-a-reassignment]] records.
+//
+// ⚠️⚠️ AND A PRODUCT JUST CREATED COMES BACK INTO SIGHT AND BLINKS. The form
+// pops back here with `?nuevo=<variant id>`; this screen scrolls that row into
+// view and pulses its OPACITY a few times. ⚠️ The owner asked for *"an
+// intermitent animation… don't [add] any other indicator like a line or
+// anything"*, so there is no rule, no badge and no colour on that row — and the
+// list stays in the database's alphabetical order, which is what makes the scroll
+// necessary in the first place. ⚠️ §2.11's motion rule allows `transform` and
+// `opacity` only (C1.1 puts two low-end Androids in the pilot); this is opacity,
+// on the native driver.
 //
 // ⚠️⚠️ THE ROWS OPEN THE FAMILY AS OF `5d-iii`, AND THAT IS WHAT THE PREVIOUS
 // TASK SAID WOULD HAPPEN. `5d-ii` shipped this list with no `Pressable`, no
@@ -87,6 +104,28 @@ export default function Productos() {
   // keystroke and never an opinion about what it means.
   const [typed, setTyped] = useState('');
   const { loading, entries, failed } = useCatalog(typed);
+  const mayCreate = canWriteCatalog(useMyRole());
+
+  // ⚠️ THE PRODUCT JUST CREATED ARRIVES AS A ROUTE PARAMETER, not as state this
+  // screen kept: it was unmounted-or-not while the form was open, and a variable
+  // here would be empty on the path where the form replaced it.
+  const { nuevo } = useLocalSearchParams<{ nuevo?: string }>();
+
+  const rows = catalogRows(entries, typed, mayCreate);
+  const list = useRef<FlatList<CatalogRow>>(null);
+
+  // ⚠️⚠️ THE SCROLL WAITS FOR THE ROW TO EXIST, AND THAT IS NOT A DETAIL. The
+  // create invalidates `CATALOG_KEY`, so on the frame this screen comes back the
+  // new product is usually NOT in `entries` yet — a `scrollToIndex` fired then
+  // throws on an out-of-range index. This runs again on every render until the
+  // row is there, and then once.
+  const scrolled = useRef<string | null>(null);
+  const at = nuevo === undefined ? -1 : rows.findIndex((row) => row.kind === 'product' && row.entry.id === nuevo);
+  useEffect(() => {
+    if (nuevo === undefined || at < 0 || scrolled.current === nuevo) return;
+    scrolled.current = nuevo;
+    list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
+  }, [nuevo, at]);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -94,18 +133,33 @@ export default function Productos() {
       <Buscador value={typed} onChange={setTyped} />
 
       <FlatList
+        ref={list}
         // ⚠️ A `FlatList` AND NOT A `ScrollView`, AND IT IS A PERFORMANCE
         // DECISION RATHER THAN A HABIT. C8.3 puts ~100 products in the pilot
         // catalog and C1.1 puts two LOW-END ANDROIDS among its four phones; a
         // ScrollView mounts every row at once, which is the scroll that stutters
         // on exactly those two devices and on nobody's development machine.
-        data={entries}
-        keyExtractor={(entry) => entry.id}
-        renderItem={({ item }) => <Fila entry={item} />}
+        data={rows}
+        keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.entry.id)}
+        renderItem={({ item }) =>
+          item.kind === 'create' ? (
+            <Crear name={item.name} />
+          ) : (
+            <Fila entry={item.entry} nuevo={item.entry.id === nuevo} />
+          )
+        }
         // ⚠️ A SEPARATOR RATHER THAN A BORDER ON EVERY ROW: one line between two
         // rows, never a line under the last one.
         ItemSeparatorComponent={Separador}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, WHICH IS WHAT
+        // MAKES `scrollToIndex` REACH A ROW IT HAS NOT DRAWN YET. Without it a
+        // jump past the render window fails; `onScrollToIndexFailed` is the belt
+        // to that braces, because a row two screens down is exactly the case the
+        // owner asked for and a thrown error there is a blank screen.
+        onScrollToIndexFailed={({ index }) => {
+          list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
+        }}
         contentContainerStyle={{
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
@@ -123,10 +177,6 @@ export default function Productos() {
 function Banda() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
-  // ⚠️ THE ROLE IS READ HERE AND NOT INSIDE THE JSX. `useMyRole` is a hook, and
-  // a hook called in the left operand of an `&&` is one line away from being
-  // called conditionally — which is the rule React cannot recover from.
-  const mayAdd = canWriteCatalog(useMyRole());
   return (
     <View
       style={{
@@ -153,26 +203,6 @@ function Banda() {
       >
         {ES.catalog.title}
       </Text>
-
-      {/* ⚠️⚠️ ABSENT FOR A CASHIER AND NOT DISABLED FOR HER — see the header.
-          ⚠️ And absent while `useMyRole()` is still `null`, which is "not
-          known" rather than "no authority" (`roleOf`): the control fades in when
-          the membership read lands, instead of being snatched away from somebody
-          who was not allowed it. */}
-      {mayAdd && (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push('/producto/nuevo')}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.catalog.create.open}
-          </Text>
-        </Pressable>
-      )}
 
       <Pressable
         accessibilityRole="button"
@@ -288,9 +318,39 @@ function Buscador({ value, onChange }: { value: string; onChange: (text: string)
  * ⚠️ `router.push` AND NOT `replace`, like the door on Inicio: you come back
  * from a screen you went into, and *Volver* is the control that does it.
  */
-function Fila({ entry }: { entry: CatalogEntry }) {
+function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
   const { scale } = useDensity();
+
+  // ⚠️⚠️ THE BLINK, AND EVERY DECISION IN IT IS `@/theme/pulse`'s RATHER THAN
+  // THIS FILE'S (`R3`). How many times, how far down, how long, and that it rests
+  // at full opacity are all values `app/test/pulse.test.ts` reads; what is here is
+  // the `Animated` call, which no suite in this repository may load.
+  //
+  // ⚠️ `useNativeDriver` IS TRUE AND THAT IS §2.11's MOTION RULE, not a tuning
+  // knob: opacity on the native driver runs on the compositor, and C1.1 puts two
+  // low-end Androids among the pilot's phones. A JS-driven opacity would stutter
+  // on exactly those two and on nobody's development machine.
+  const fade = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+    if (!nuevo) return;
+    // ⚠️ IT IS RESET BEFORE IT RUNS. The row can be recycled by the virtualiser
+    // mid-blink, and a value left at `PULSE_DIM` would leave some OTHER product
+    // looking dimmed for no reason.
+    fade.setValue(1);
+    const blink = Animated.sequence(
+      pulseSequence().map((step) =>
+        Animated.timing(fade, { ...step, useNativeDriver: true }),
+      ),
+    );
+    blink.start();
+    return () => {
+      blink.stop();
+      fade.setValue(1);
+    };
+  }, [nuevo, fade]);
+
   return (
+    <Animated.View style={{ opacity: fade }}>
     <Pressable
       // ⚠️ THE WHOLE ROW IS ONE THING TO A SCREEN READER, in the order a person
       // reads it: the product, then the family it belongs to, then what it
@@ -352,6 +412,83 @@ function Fila({ entry }: { entry: CatalogEntry }) {
       >
         {entry.price}
       </Text>
+    </Pressable>
+    </Animated.View>
+  );
+}
+
+/**
+ * The door to making a product, and it is a ROW rather than a button — the
+ * owner's ruling of 2026-09-23.
+ *
+ * ⚠️⚠️ IT ONLY EXISTS WHEN THE SEARCH FOUND NOTHING, AND `catalogRows` IS WHAT
+ * DECIDES THAT (`R3`). While anything matched, he was reading what the shop
+ * already sells; this appears once that list has nothing left to offer him, which
+ * is the whole of *"discard partially duplicate product creation"*.
+ *
+ * ⚠️ IT WEARS THE PRODUCT ROW'S SHAPE — the same initials tile, the same height,
+ * the typed name where a product's name goes — because that is the claim: *this
+ * is what the product would be.* The legend underneath is what keeps it from
+ * reading as a product the shop already has.
+ *
+ * ⚠️ `accionSuave` ON THE TILE AND `accion` ON THE LEGEND: the palette's one job
+ * for those two roles is *this is tappable, this acts*, which is exactly true
+ * here and deliberately NOT true of the three dead buttons on La Familia.
+ *
+ * ⚠️ NO ICON WITHOUT A WORD (C12.1). The plus glyph sits beside *Crear Nuevo
+ * Producto*, never alone.
+ */
+function Crear({ name }: { name: string }) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessible
+      accessibilityRole="button"
+      accessibilityLabel={`${ES.catalog.create.row}. ${name}`}
+      onPress={() =>
+        router.push({ pathname: '/producto/nuevo', params: { nombre: name } })
+      }
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        minHeight: scale.rowHeight,
+        paddingVertical: scale.rowGap,
+        paddingHorizontal: scale.space,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{
+          width: scale.tapTarget,
+          height: scale.tapTarget,
+          borderRadius: scale.space / 2,
+          borderWidth: 1,
+          borderColor: PALETTE.accion,
+          backgroundColor: PALETTE.accionSuave,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <MaterialCommunityIcons name="plus" size={scale.iconSize} color={PALETTE.accion} />
+      </View>
+
+      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+        <Text
+          numberOfLines={1}
+          style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}
+        >
+          {name}
+        </Text>
+        <Text
+          numberOfLines={1}
+          style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.accion }}
+        >
+          {ES.catalog.create.row}
+        </Text>
+      </View>
     </Pressable>
   );
 }
