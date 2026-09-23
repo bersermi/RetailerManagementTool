@@ -474,6 +474,19 @@ describe('what a partial write leaves behind', () => {
     expect(retryDraft(original, failed({ familyId: POLLO })).familyId).toBe(POLLO);
   });
 
+  // ⚠️⚠️ A PRICE THAT WILL NOT CONVERT MUST STOP THE WRITE BEFORE IT STARTS, not
+  // after two rows have landed. The case that makes it real is not a typo: it is
+  // the `unit` read not having landed, which leaves `factors` empty — and a
+  // create that discovered that AFTER inserting would leave a real product on
+  // Productos wearing C3.12's dash, made by a phone that never had the factors
+  // to price it. `createProduct` computes it first; this is the piece of that
+  // decision a node suite can hold.
+  it('knows a draft is unpriceable before anything is posted', () => {
+    const noFactors = {};
+    expect(checkProduct(draft(), ENTRIES, noFactors)).toBe('unitMissing');
+    expect(pricePerBase(3500, noFactors['kg' as keyof typeof noFactors] ?? '')).toBeNull();
+  });
+
   it('changes nothing when the family itself is what failed', () => {
     const original = draft({ familyId: null, familyName: 'Pollo' });
     expect(retryDraft(original, failed({ failed: 'product_family', familyId: null }))).toEqual(

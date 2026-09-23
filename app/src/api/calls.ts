@@ -532,6 +532,22 @@ export async function createProduct(
   now: Date = new Date(),
 ): Promise<CreateOutcome> {
   const [FAMILY, VARIANT, PRICE] = WRITE_ORDER;
+
+  // ⚠️⚠️ THE PRICE IS WORKED OUT BEFORE ANYTHING IS WRITTEN, AND THE ORDER OF
+  // THESE TWO LINES IS THE DIFFERENCE BETWEEN NO PRODUCT AND A PRICELESS ONE.
+  // `pricePerBase` answers null when the figure will not convert — which
+  // includes the case where the `unit` read has not landed and `factors` is
+  // empty — and computing it AFTER the two inserts would leave a real product
+  // on Productos wearing C3.12's dash, created by a phone that never had the
+  // factors to price it. `checkProduct` is what the form calls first and it
+  // refuses the same drafts; this is the belt to that screen's braces, and it
+  // reports the first step so `retryDraft` carries nothing forward.
+  const centavos = parsePesos(draft.pricePesos);
+  const perBase = centavos === null ? null : pricePerBase(centavos, factors[draft.unitCode] ?? '');
+  if (perBase === null) {
+    return { ok: false, failed: FAMILY, familyId: null, variantId: null, error: null };
+  }
+
   let familyId = draft.familyId;
 
   if (familyId === null) {
@@ -561,16 +577,6 @@ export async function createProduct(
     };
   }
   const variantId = (variant.data as { id: string }).id;
-
-  // ⚠️ THE PRICE CANNOT BE `null` HERE — `checkProduct` refuses a draft whose
-  // figure will not convert, and the form calls it before this. It is handled
-  // rather than asserted because the alternative to a branch is a `!`, and a
-  // non-null assertion is a claim no instrument in this repository can read.
-  const centavos = parsePesos(draft.pricePesos);
-  const perBase = centavos === null ? null : pricePerBase(centavos, factors[draft.unitCode] ?? '');
-  if (perBase === null) {
-    return { ok: false, failed: PRICE, familyId, variantId, error: null };
-  }
 
   const { error } = await supabase
     .from(PRICE)
