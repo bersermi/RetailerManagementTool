@@ -95,11 +95,24 @@ import { PALETTE } from '@/theme/palette';
 // catalog table a delete policy at all. It gets a confirmation where `Quitar`
 // was ruled not to (2026-09-17): a basket line is re-added in two taps, and a
 // product retired by a mis-tap looks exactly like a deletion to the person who
-// made it. ⚠️⚠️ AND THE SECOND SENTENCE OF THAT CONFIRMATION IS THE HONEST ONE:
-// nothing in this app can bring it back. `activePatch(true)` is the same call,
-// but `catalogFrom` drops inactive variants and no pilot screen lists them —
-// so the undo exists in the database and has no door. That is recorded as a
-// decision the owner owes, in `docs/PLAN.md`.
+// made it.
+//
+// ⚠️⚠️ AND IT IS ONE-WAY BY DESIGN AS OF THE OWNER'S RULING OF 2026-09-23, NOT BY
+// OMISSION. He described the act in his own words — a shopkeeper deletes a product
+// he made, it **leaves the catalog and stays in the transactions and the history** —
+// which is exactly what `is_active` false does, and he asked for no way back. So
+// `ES.catalog.edit.retireOnce` states that rather than apologising for it, and the
+// question parked here on 2026-09-23 is answered and closed.
+//
+// ⚠️⚠️ WHAT THE SAME RULING WILL CHANGE HERE, AND WHY IT CHANGES NOTHING YET:
+// **a product from a prebuilt catalog cannot be deleted at all**, so this control
+// is ABSENT for those rows rather than confirmed — the `canWriteCatalog` treatment
+// applied to a row instead of to a role. ⚠️ Nothing in the database can tell one
+// today: `product_variant` and `product_family` carry no origin column, and **no
+// migration seeds a catalog anywhere**, so every product in every shop is one
+// somebody made and every one of them is deletable. **Drawing the fence now would
+// be a control with no rows to apply to**, which is the scaffolding `5d` spent a
+// step deleting. `6c` is the row that owns it.
 //
 // ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this
 // screen it is everything that is left. Nothing here will ever say whether

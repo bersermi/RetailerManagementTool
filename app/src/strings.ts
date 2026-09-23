@@ -1054,13 +1054,24 @@ export const ES = {
        */
       retireWhy: 'Dejará de aparecer en Productos y ya no podrás venderlo. Lo que ya vendiste no se borra.',
       /**
-       * ⚠️⚠️ THE HONEST HALF, AND IT IS A LIMITATION OF THIS APP RATHER THAN
-       * OF THE DATABASE. `activePatch(true)` is the same call and would bring it
-       * back — but `catalogFrom` drops inactive variants, so nothing in the pilot
-       * lists them and there is no screen to tap. A confirmation that implied the
-       * tap was reversible would be this app promising something it does not have.
+       * ⚠️⚠️ IT IS THE DESIGN AND NO LONGER AN APOLOGY — RULED 2026-09-23.
+       * ~~*"Por ahora no se puede volver a activar desde la app."*~~ *Por ahora*
+       * described a gap waiting to be closed, and the owner ruled that it is not
+       * one: a shopkeeper deletes a product he made, **it leaves the catalog and
+       * stays in the transactions**, and nothing brings it back. So the sentence
+       * states the fact instead of promising a later fix that is not coming.
+       *
+       * ⚠️ IT IS THE SECOND HALF OF A PAIR AND MUST NOT BE READ ALONE:
+       * `retireWhy` above is what says the sales are kept, which is the whole
+       * reason this is safe to be irreversible ([[users-dont-do-bookkeeping]]).
+       *
+       * ⚠️⚠️ AND IT WILL NEED A THIRD STATE THE DAY PREBUILT CATALOGS LAND: the
+       * same ruling says **a default product cannot be deleted at all**, so the
+       * control is absent rather than confirmed for those rows. Nothing marks one
+       * today — no column, no seeded row anywhere in `supabase/migrations/` — so
+       * there is nothing yet to draw differently. See `6c`.
        */
-      retireOnce: 'Por ahora no se puede volver a activar desde la app.',
+      retireOnce: 'Esto no se puede deshacer.',
       retireYes: 'Sí, retirarlo',
       retireNo: 'Cancelar',
     },

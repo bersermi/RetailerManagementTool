@@ -1392,6 +1392,29 @@ catalog difference — and stock is already per location, which covers "we don't
 that here" without splitting anything. Splitting the catalog would double the owner's
 maintenance to express something the ledger already expresses.
 
+**A shop STARTS from a catalog we maintain, and its rows are not the shop's to
+delete** (settled 2026-09-23, on the owner's ruling). A workspace is seeded from a
+prebuilt catalog rather than opening empty; the merchant adds families and variants of
+his own on top, and **deletes only what he made** — which removes it from the catalog
+and leaves it in the transactions and every historical read, because that is what
+`is_active` already does and neither catalog table has a delete policy. **A prebuilt
+row offers no delete at all**, and no disable either: it is the same fence
+`canWriteCatalog` applies to a role, applied to a row.
+
+⚠️ **This is still ONE CATALOG PER WORKSPACE and it does not reopen the paragraph
+above.** The prebuilt rows are COPIED INTO the workspace, not referenced across
+tenants: every line table's composite foreign key is `(id, workspace_id)` and every
+policy is `workspace_id`-scoped, so shared rows owned by nobody are not representable
+here and are not what this means. The catalog still belongs to the merchant.
+
+⚠️ **Nothing implements it yet, and that is deliberate rather than pending.** No
+migration seeds a catalog, and `product_family`/`product_variant` carry no column
+saying where a row came from — so **every product in every shop today is one somebody
+made, and every one is deletable**, which is correct under this rule rather than in
+spite of it. The marker and the fence go in **with the migration that first seeds a
+catalog, never after it**: a shop seeded before the marker exists has rows that can
+never be told apart again. `docs/PLAN.md` `6c` owns it.
+
 **Cross-workspace benchmarking.** The eventual insight product needs to read across
 tenants, which is what RLS forbids. Resolution is one deliberate door, never a
 weakened policy: a scheduled `service_role` job writes de-identified aggregates into
