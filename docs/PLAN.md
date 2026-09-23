@@ -33,13 +33,29 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| ⚠️⚠️ **A RETIRED PRODUCT CANNOT BE BROUGHT BACK FROM ANYWHERE IN THE APP. Should it be able to be — and is that even a thing a shop does?** | Nothing today. The retirement shipped either way and the confirmation says so out loud; this is a gap, not a gate, and there is no open row waiting on it | **THE RECOMMENDATION, SO THIS IS ONE WORD RATHER THAN AN ESSAY: make it findable through the search he already uses, and build no screen for it.** ⚠️ **What is true today, measured rather than assumed (2026-09-23):** `activePatch(true)` is the SAME call that retires — `product_variant.is_active`, one patch, already shipped and already fenced to a manager — but `catalogFrom` drops inactive variants from every read, so **no surface in the pilot lists them and there is nothing to tap.** The undo exists in the database with no door onto it. ⚠️⚠️ **THE CONFIRMATION ALREADY SAYS SO, WHICH IS WHY THIS DOES NOT BLOCK ANYTHING**: *"Por ahora no se puede volver a activar desde la app."* A sentence that implied the tap was reversible would have been this app promising something it does not have — so the shopkeeper is told, and the question is whether to stop telling him. ⚠️ **THE RECOMMENDATION IN FULL:** when a search on Productos matches a RETIRED product, show it below the live ones, dimmed, with *Reactivar* on it — one extra branch in `catalogRows`, no new screen, and it reuses the door C8.12 already made the only way into creating a product. **It also solves the case that actually happens**: he retires the wrong row, types the name again, and the app shows him what he did instead of an empty list with *Crear Nuevo Producto* under it — which is how a mis-tap becomes a DUPLICATE. ⚠️⚠️ **THE ALTERNATIVE IS TO DO NOTHING, AND IT IS NOT UNREASONABLE**: if a shop never un-retires a product, this is a screen nobody opens, and [[check-whether-it-needs-building-at-all]] is a pattern this project has recorded five times. ⚠️ **The question only you can answer is the shop one**: does a pollería ever bring a product back, or does it just make a new one? |
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-23, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+EIGHTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **SIXTEEN decisions have now been parked and cleared in
+this block, and the sixteenth spent about ninety minutes in the table** — parked by `5e-iii-b`'s
+retirement control and answered the same evening, on the phone it shipped to.
 
-⚠️ **ONE IS OWED AS OF 2026-09-23, IT CAME OUT OF `5e-iii-b`'s RETIREMENT CONTROL, AND IT
-BLOCKS NOTHING AT ALL** — not the row marked next, not any row in the tables below. ⚠️⚠️ **IT IS
-THE SECOND ONE HERE THAT IS A GAP RATHER THAN A QUESTION**, after the C3.17 contradiction of
-the same day: the other fifteen asked the owner to choose between two things a session could have
-built, and this one says a thing was built with a hole in it and asks whether the hole matters.
+✅✅ **THE SIXTEENTH RULING, IN FULL, BECAUSE THE TABLE IT WAS IN IS NOW EMPTY — 2026-09-23.**
+Asked: *a retired product cannot be brought back from anywhere in the app. Should it be able to
+be, and is that even a thing a shop does?* ⚠️⚠️ **HE ANSWERED A LARGER QUESTION THAN THE ONE
+ASKED, WHICH IS THE THIRD TIME THAT HAS HAPPENED ON THIS PROJECT AND THE SECOND THIS WEEK.**
+*"I took the decision to start working with prebuilt catalogs. The user can still create new
+Familias and Productos and they can delete those disappearing from the Product Catalog but
+persisting in the transactions and other historical parts. But the default products cannot be
+deleted and it doesn't really make sense at this point to disable them or anything else."*
+⚠️ **SO THE HOLE IS NOT A HOLE: deletion is ONE-WAY BY DESIGN**, and the answer to *should it
+come back* is no. The recommendation this block carried — surface a retired product in the search
+with *Reactivar* — **is withdrawn rather than deferred**; nothing is owed it and no row inherits
+it. ✅ **What shipped needed one string**: `ES.catalog.edit.retireOnce` said *"Por ahora no se
+puede volver a activar desde la app"*, and *por ahora* described a gap waiting to be closed. It
+now says **`Esto no se puede deshacer.`** ⚠️⚠️ **AND THE HALF THAT IS NOT YET BUILDABLE IS
+`C8.2b` AND `6c`, NOT THIS BLOCK**: *default products cannot be deleted* is unenforceable today
+because nothing marks one and no migration seeds one, so it is a row with a size on it rather
+than a question with a date. ⚠️ **ADR-035's catalog section carries the rule**, which is the
+fifth ADR amendment folded into the work that raised it.
 ~~nothing is owed as of 2026-09-23, and the empty table above is deliberate — for the
 seventh time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
 `5b.8-i`'s row records.** ~~✅✅✅ **NOTHING IS OWED AS OF 2026-09-23, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
@@ -297,6 +313,62 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+✅✅ **THE PREBUILT-CATALOG RULING, 2026-09-23 — AND IT NEEDS NOTHING BUILT NOW, WHICH
+WAS MEASURED RATHER THAN HOPED. `5f` IS STILL THE NEXT TASK.** The owner ruled after
+holding `5e-iii-b` on his phone: *"I took the decision to start working with prebuilt
+catalogs. The user can still create new Familias and Productos and they can delete those
+disappearing from the Product Catalog but persisting in the transactions and other
+historical parts. But the default products cannot be deleted and it doesn't really make
+sense at this point to disable them or anything else."* He asked whether it had to be
+addressed now. **It does not, and the reason is a measurement rather than a judgement.**
+
+⚠️⚠️ **HALF OF IT WAS ALREADY BUILT AND NOBODY HAD NOTICED — INCLUDING THE SESSION THAT
+BUILT IT.** *"Delete… disappearing from the Product Catalog but persisting in the
+transactions"* is **exactly** `5e-iii-b`'s retirement: `is_active` false, dropped by
+`catalogFrom`, kept by every ledger read. His sentence describes the shipped behaviour
+line for line, and `0002` gives neither catalog table a delete policy at all, so the
+database **cannot** do the other thing. **It was parked as a decision and it was a
+description.**
+
+⚠️⚠️ **AND THE OTHER HALF IS VACUOUS TODAY, WHICH IS THE WHOLE ANSWER TO *do I need to
+address this now*.** Measured against the applied schema and every migration in the
+repository: `product_family` and `product_variant` carry **no origin column**, and there
+is **not one `insert into` either table anywhere in `supabase/migrations/`**. So **there
+are no default products**, every product in every shop is one somebody made, and every
+one of them is correctly deletable. **A fence drawn now would be a control with no rows
+to apply to** — the scaffolding `5d` spent a step deleting.
+
+⚠️⚠️ **THE ONE THING THAT IS CHEAP NOW AND DEAR LATER, NAMED LOUDLY BECAUSE MERGING IS
+AUTOMATED: THE MARKER SHIPS IN THE MIGRATION THAT FIRST SEEDS A CATALOG, NEVER AFTER
+IT.** A shop seeded before it exists has rows nothing can ever tell apart again, and
+back-filling means guessing by name. **The exposure is zero today because no shop has
+been seeded**, and it starts the day one is — which is why the sentence is in `6c`, in
+`C8.2b` and in the ADR rather than in a session's head.
+
+✅ **WHAT ACTUALLY CHANGED IN CODE: ONE STRING.** `ES.catalog.edit.retireOnce` read
+*"Por ahora no se puede volver a activar desde la app."* — and *por ahora* describes a
+gap waiting to be closed, which the ruling says it is not. It now reads **`Esto no se
+puede deshacer.`** ⚠️ The sentence above it was already his own — *"Lo que ya vendiste no
+se borra"* — and that pairing is what makes one-way deletion safe to offer at all.
+
+✅ **WHAT CHANGED IN THE RECORD, WHICH IS MOST OF IT.** **C8.1** amended — a shop starts
+from a prebuilt catalog, and its *no import, no bulk tool* half stands. **C8.2** still
+true, for a second reason. **`C8.2b` is new** and carries the fence and its measurement.
+**C8.4 pulled forward** from *later* to a row. **`6c` written**, sized *size it first*,
+recommended after `5g` and explicitly the owner's to move ahead of `5f` if the pilot is
+to open on a prebuilt catalog. **ADR-035's catalog section amended** — the fifth
+amendment folded into the work that raised it — ⚠️ **including the sentence that keeps
+it from reading as a reversal**: the rows are COPIED INTO a workspace and never shared
+across tenants, because every line table's foreign key is composite on
+`(id, workspace_id)`. **One catalog per workspace is untouched, and the catalog still
+belongs to the merchant.**
+
+⚠️ **ONE QUESTION GOES BACK TO HIM AND IT IS ONE WORD**: the control says
+*Retirar del catálogo* and he calls the act **delete**. `Eliminar` is what a shopkeeper
+would look for; `Retirar` was chosen because the thing survives in the ledger. **The
+honesty is carried by the sentence underneath either way**, so this is his ear rather
+than an argument — and he is holding the phone.
 
 ✅✅ **`5e-iii-b` IS DONE AS OF 2026-09-23 — A SHOPKEEPER CAN CHANGE A PRODUCT ON A PHONE,
 AND `5e` IS CLOSED. `5f` IS THE NEXT TASK: VENDER, AND ITS OWN ROW SAYS TO SIZE IT FIRST.**
@@ -1190,117 +1262,7 @@ kilo is `0.180000` — and the shape was copied from
 `docs/checks/5d-i-catalog-contract.sh` rather than invented, because a
 thousand-fold error there would have rendered as an entirely plausible price.
 
-✅✅✅ **THE SCHEMA IS DEPLOYED AS OF 2026-09-22 — THE HOSTED PROJECT IS REAL,
-AND THE ANSWER TO THE SECOND READING WAS *NO*.** The owner logged in, checked
-the list himself and pushed: ***"done, it's the right project."*** So it was
-never a wrong key — **thirty-eight migrations had simply never been applied
-anywhere a phone could reach.**
-
-**Measured from here afterwards, with no secret and no assumption:**
-
-| What was asked | What came back |
-|---|---|
-| `supabase migration list` | **`0001`–`0038`, local and remote identical, row for row** |
-| `select count(*) from public.unit` | **10** — `0001`'s seed is really there |
-| `auth.users` | **3** | 
-| `public.workspace`, `public.product_variant` | **0 and 0** — nobody has created a shop yet |
-| `GET /rest/v1/unit` as the publishable key | **`42501 permission denied`** |
-
-⚠️⚠️ **AND THAT LAST ROW IS THE FENCE WORKING, NOT A DEFECT — WORTH WRITING DOWN
-BECAUSE IT READS LIKE ONE.** `0001:579` revokes `unit` from `anon` and grants
-`select` to `authenticated` only, explicitly, *"so the intent is reviewable in
-the migration"*. **An anonymous caller being refused is the deployment being
-correct.** The app reads it with a signed-in session and will be let through.
-
-⚠️ **WHAT THE OWNER SEES NEXT, SAID NOW SO IT IS NOT MISTAKEN FOR A SECOND BUG:
-the app will send him to `bienvenida` to create a shop**, because `workspace` is
-empty and `redirectFor` routes a member of nothing to onboarding. **And then
-Productos will be honestly empty** — `product_variant` is 0, and **nothing in
-this app can create a product until `5e`.** The screen `5d-iii` shipped cannot
-be judged on an empty list, so the rows have to be put there by hand or the look
-waits for `5e`.
-
-⚠️⚠️ **THE GAP THIS EXPOSED IS NOW A TASK — `5R-f`, BELOW — AND IT IS NOT THE
-MIGRATIONS' FAULT.** Every contract check in this repository builds a database
-from scratch, asserts against it and throws it away. **Not one of them, and no
-workflow, has ever asked whether the database a PHONE talks to has the same
-schema** — and `supabase migration list` answers exactly that question in one
-command that needs no password. **The deploy happened today by hand; nothing
-would say so if it drifted tomorrow.**
-
-⚠️⚠️ **THE OWNER OPENED PRODUCTOS ON HIS PHONE AND IT SAID *Cargando
-productos…* FOR EVER — TWO DEFECTS, ONE OF THEM THE BIGGEST THING FOUND IN THIS
-PROJECT SINCE THE POWER APPS ERA ENDED.** *"When hitting in Productos, it stays
-loading."* **Fifteen minutes on a phone found what forty-one policies, twelve
-contract checks and 689 assertions could not**, which is `R9` paying for itself
-on the first day it was tested.
-
-⚠️⚠️ **DEFECT 1 — THE ONE THAT MATTERS: THE HOSTED SUPABASE PROJECT HAS NO
-SCHEMA. NOT A STALE ONE. NONE.** Measured, not inferred: `GET /rest/v1/` on
-`hweutzjhzvioswnjzqki` returns **zero tables and zero paths**, and every table
-the app reads — `unit`, `product_variant`, `product_family`, `price_list` and
-even `workspace` — answers `PGRST205 Could not find the table … in the schema
-cache`. ⚠️ **The CLI has never been linked to it either**: there is no
-`supabase/.temp/project-ref`, and `supabase projects list` reports no access
-token. **Thirty-eight migrations exist in this repository and in CI's throwaway
-Postgres, and nowhere else.**
-
-⚠️⚠️ **AND THIS IS THIS REPOSITORY'S FOUNDING SENTENCE, ONE LEVEL FURTHER OUT
-THAN IT WAS WRITTEN.** ADR-035 §9 says *"a file is not evidence; a green CI run
-is"* — because the previous era recorded decisions that were never deployed.
-**CI proves a migration APPLIES. Nothing in this project has ever proved a
-migration was applied ANYWHERE A PHONE CAN REACH**, and the gap survived
-thirty-eight migrations, twelve live-HTTP contract checks and a device build,
-because every one of those checks builds its own database and throws it away.
-**The contract checks are not wrong and they were never asked this question.**
-⚠️ **It is parked in the ⛔ block as a decision rather than fixed here**: it is
-the owner's live project and his login, and *"the key points at the wrong
-project"* is equally consistent with the measurement — only `supabase projects
-list` tells those two apart.
-
-✅ **DEFECT 2 — FIXED HERE, AND IT IS WHY DEFECT 1 LOOKED LIKE A SLOW NETWORK:
-A FAILED READ AND A PENDING ONE WERE THE SAME STATE.** `useCatalog` reported
-`loading` as `data === undefined`, **and TanStack leaves `data` undefined on an
-error too** — so a read that could not happen rendered as *Cargando
-productos…*, for ever, with no way for a person to tell the difference. ⚠️ **The
-screen was the honest half and the hook was the lying half**: `emptyLineKey`
-already separated three states with four assertions on them, and the fourth
-state never reached it.
-
-**What shipped for defect 2:**
-
-| | |
-|---|---|
-| `app/src/api/hooks.ts` | `useCatalog` returns **`failed: ApiMessageKey \| null`** beside `loading`, read off `variants.error ?? units.error` |
-| `app/src/api/catalog.ts` | `catalogLine` and `familyLine` — **failure outranks loading**, because TanStack retries twice and a screen that preferred *loading* would put the endless spinner back on every retry |
-| `app/src/app/productos.tsx`, `app/src/app/familia/[id].tsx` | both `Vacio`s take **a finished sentence** rather than the failure key |
-| `app/test/api-catalog.test.ts` | **seven new assertions**, 696 in the app suite |
-
-⚠️⚠️ **THE TWO SENTENCES THAT MUST NEVER APPEAR ON A FAILURE, EACH NOW AN
-ASSERTION.** *Todavía no hay productos* is the one empty-state sentence a
-shopkeeper would **act** on — she would go and add products she already has —
-and on La Familia, *ya no está en el catálogo* tells her the product **in her
-hand** has been deleted. **Both are worse than the spinner they replace if they
-fire on a read that simply could not happen.**
-
-⚠️ **AND `R12` CAUGHT THE FIRST ATTEMPT AT THIS FIX, CORRECTLY.** Both screens
-imported `ApiMessageKey` from `@/api/errors` — *the module that decides what a
-failure MEANS*, which a route may not reach. The repair was not to widen the
-rule: **no route names that type at all**, and the components are handed the
-finished line. **A guard that fires on the fix is a guard doing its job**, and
-this is the second time today one has (`split-coverage.sh` caught two sentinel
-collisions in `5d-iii`'s closing row).
-
-⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` is **696
-tests over 29 files** (seven new), `npm run typecheck` clean, `bash
-docs/checks/conventions-gate.sh` **16 groups over 56 source and 29 test files**
-with its 30 fixtures still red. ⚠️⚠️ **NONE OF THEM COULD HAVE FOUND EITHER
-DEFECT, AND THAT IS THE POINT OF THE ENTRY.** The suite's fixtures are
-hand-written rows that never fail, and §2.11 keeps rendering out of scope. **The
-instrument was the owner's phone, and it found in a quarter of an hour what this
-repository had been unable to ask for eleven days.**
-
-⚠️⚠️ **TWELVE ENTRIES OF 2026-09-22 ARE ARCHIVED, IN TEN CUTS, TO
+⚠️⚠️ **FOURTEEN ENTRIES OF 2026-09-22 ARE ARCHIVED, IN ELEVEN CUTS, TO
 [`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**
 — the `5c-ii-b` sizing and its connectivity reading, `5c-ii-b-2`'s flush trigger,
 the `5c-iv` sizing, **`5c-iv-a`, moved in the second cut while `5e` was being
@@ -1328,8 +1290,12 @@ archive for one of them is what put it over the ceiling twice in one hour.**
 ⚠️ **And the iPhone-day entry went in the TENTH, on 2026-09-23 as `5e-iii-b` closed,
 off the FOOT again** — this block stood at **1,404 of 1,400** with that task's entry in
 place, which is the fourth time a closing entry has spent the last of the headroom.
+⚠️ **And the two that opened that afternoon — the schema deployment and the Productos
+failure that found it — went in the ELEVENTH, on 2026-09-23 with the prebuilt-catalog
+ruling, off the FOOT again**: this block stood at **1,390 of 1,400**, ten lines of
+headroom, which is less than one paragraph.
 ⚠️⚠️ **The archive is no longer strictly oldest-first and its own headings say so**:
-three cuts came off this block's head and seven off its foot.
+three cuts came off this block's head and eight off its foot.
 ⚠️ **This is the first cut taken from a day that was still running** — every
 earlier one waited for the day to close, because there was always an older day to
 take; today there was not. **A later session APPENDS to that file rather than
@@ -2558,14 +2524,49 @@ re-litigated from scratch.
   No import, no spreadsheet, no photo-OCR, no bulk tool in the pilot. *"For the first
   pilot I'll make the catalog myself."* The likeliest week-one death is bought off
   with the owner's own time. (8.5)
+  ⚠️⚠️ **AMENDED 2026-09-23 — A SHOP NOW STARTS FROM A PREBUILT CATALOG, WHICH IS
+  C8.4 PULLED FORWARD BY THE OWNER.** *"I took the decision to start working with
+  prebuilt catalogs."* **C8.1's second sentence still stands for the pilot** — there
+  is still no import, no spreadsheet and no bulk tool on any screen, and the
+  onboarding that IMPORTS one is explicitly polish for after the app is whole, in his
+  own words. What changed is where the first rows come from, not what a shopkeeper
+  can do at a counter.
 - **C8.2 — but he seeds it DELIBERATELY INCOMPLETE**, *"to encourage him to create
   some on his own"*. So **`Agregar` is pilot-critical after all**, and the create
   flow is not deferrable. (8.6)
+  ⚠️ **STILL TRUE AND NOW TRUE FOR A SECOND REASON, 2026-09-23.** The prebuilt
+  catalog does not close the create flow: *"the user can still create new Familias and
+  Productos."* An incomplete start is the same argument whether the incompleteness is
+  the owner's doing or the template's.
+- **C8.2b — ⚠️⚠️ NEW 2026-09-23, AND IT IS THE HALF THAT COSTS SOMETHING: A DEFAULT
+  PRODUCT CANNOT BE DELETED, AND IS NOT DISABLED EITHER.** The owner's words, in full:
+  *"they can delete those disappearing from the Product Catalog but persisting in the
+  transactions and other historical parts. But the default products cannot be deleted
+  and it doesn't really make sense at this point to disable them or anything else."*
+  ✅ **The first half is ALREADY SHIPPED and needed nothing**: `5e-iii-b`'s retirement
+  is `is_active` false, `catalogFrom` drops it from Productos and every ledger read
+  keeps it — his sentence describes the built behaviour exactly, and neither catalog
+  table has a delete policy at all, so the database cannot do the other thing.
+  ⚠️⚠️ **The second half is UNENFORCEABLE AND VACUOUS TODAY, measured rather than
+  assumed on 2026-09-23**: `product_family` and `product_variant` carry **no origin
+  column**, and **no migration inserts a single catalog row anywhere** — so there are
+  no default products, every product in every shop is one somebody made, and every one
+  of them is correctly deletable. **Drawing the fence now would be a control with no
+  rows to apply to.** ⚠️ **It goes in with the seeding and never after it**: a shop
+  seeded before the marker exists has rows nothing can ever tell apart. **`6c` owns
+  it**, and ADR-035's catalog section carries the rule.
 - **C8.3 — the pilot is ~100 products** across four store types — **pollería,
   carnicería, cremería/salchichonería, recaudería** — with overlap between them.
   (8.1)
 - **C8.4 — later, catalogs are SHARED to onboard new merchants**, maintained by us.
   Not pilot scope; it is why C8.1 is affordable. (8.5)
+  ⚠️⚠️ **PULLED FORWARD 2026-09-23 — *later* NOW HAS A ROW, `6c`.** This constraint
+  is the one the owner's ruling promotes, and it had been sitting here as the reason
+  another constraint was affordable rather than as work. ⚠️ **What it still does NOT
+  become is the onboarding IMPORT** — *"once we wrap up the full app we will polish
+  many parts, one of them is the onboarding to import a catalog"* — so a merchant
+  loading his own spreadsheet stays where C8.1 put it, and only the maintained
+  template moves.
 
 #### The despiece — how a pollería is representable at all
 
@@ -4941,10 +4942,19 @@ beginning and has never had task rows.** §3 lists *"Comprar, Desperdicio, Catá
 Proveedores"*; the plan since moved **Comprar to `5g`** and **Catálogo to `5d`/`5e`**,
 so what genuinely remains here is two screens.
 
+⚠️⚠️ **AND A THIRD ROW AS OF 2026-09-23, WHICH IS NOT A SCREEN: `6c`, THE PREBUILT
+CATALOG.** It arrived as an owner's ruling rather than out of §3, it is C8.4 promoted
+from *later* to a row, and it is **the first thing in step 6 that ships a migration**.
+It is placed here rather than in step 5 because `5e` is closed and because a catalog
+nothing can sell through is one nobody can test — ⚠️ **but that placement is a
+recommendation and the owner's to overrule**: if the pilot is to open on a prebuilt
+catalog, it goes ahead of `5f`.
+
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **6a** | ⚠️⚠️ **DESPERDICIO, AND IT IS REORDERED AHEAD OF ITS STEP ON THE OWNER'S INSTRUCTION, 2026-09-21.** `record_waste` (`0019`) has been applied and callerless since 2026-09-05 and `desperdicio.tsx` is a NINE-LINE placeholder. **The reorder is a business decision, not an engineering one:** waste is the acquisition hook, and until this screen exists the tier-2 investigation has no input at all. It reuses `5f`'s shared surface, so taken straight after `5f` it is cheap; taken in step order it is the last thing built before Números needs its data | `M` | `5f` — the shared transaction surface |
 | **6b** | **Proveedores.** The provider list and its editing, behind `5g`'s selector and `provider_price_memory`'s prefill | `M` | `5g` |
+| **6c** | ⚠️⚠️ **THE PREBUILT CATALOG, AND THE FENCE ON IT — NEW 2026-09-23, ON THE OWNER'S RULING, AND IT IS C8.4 PULLED FORWARD.** *"I took the decision to start working with prebuilt catalogs."* **A shop stops opening empty**: it is seeded from a catalog we maintain, the merchant adds his own families and variants on top, and **he deletes only what he made**. ⚠️⚠️ **HALF OF IT IS ALREADY SHIPPED AND THIS ROW MUST NOT REBUILD IT**: *"delete… disappearing from the Product Catalog but persisting in the transactions and other historical parts"* is `5e-iii-b`'s retirement, unchanged — `is_active` false, dropped by `catalogFrom`, kept by every ledger read, and no delete policy on either table. **What is missing is only the other half: a default product offers no delete at all, and no disable either.** ⚠️⚠️ **AND THAT HALF IS UNENFORCEABLE TODAY, MEASURED RATHER THAN ASSUMED (2026-09-23): there is no origin column on `product_family` or `product_variant`, and not one `insert into` either table anywhere in `supabase/migrations/`.** So there are no default products, every product is one somebody made, and every one is correctly deletable — **drawing the fence now would be a control with no rows to apply to**, which is the scaffolding `5d` spent a step deleting. ⚠️⚠️ **THE ONE THING THAT IS CHEAP NOW AND DEAR LATER, NAMED LOUDLY BECAUSE MERGING IS AUTOMATED: THE MARKER SHIPS IN THE SAME MIGRATION THAT FIRST SEEDS A CATALOG, NEVER AFTER IT.** A shop seeded before the marker exists has rows nothing can ever tell apart again, and back-filling means guessing by name. **Today that costs nothing, because no shop has been seeded** — the exposure starts the day one is. ⚠️ **The rows are COPIED INTO the workspace and never shared across tenants**: every line table's foreign key is composite on `(id, workspace_id)` and every policy is `workspace_id`-scoped, so reference rows owned by nobody are not representable and are not what this means. ADR-035's catalog section carries the rule and says so. ⚠️⚠️ **WHAT THIS ROW IS NOT: THE ONBOARDING IMPORT.** *"Once we wrap up the full app we will polish many parts, one of them is the onboarding to import a catalog."* A merchant loading his own spreadsheet stays where C8.1 put it — out of scope — and only the template we maintain moves. ⚠️ **It ships a migration**, which is the first in step 6 and the reason this is a row rather than an edit. ⚠️ **Size it before building it**: it is a marker, a seeding path, an `onboard_workspace` change and a drawn fence, and the last of those is the only part with nothing to measure | **size it** | ⚠️ **Recommended AFTER `5g`** — a catalog nothing can sell or buy through is a catalog nobody can test, and C8.4's own reason for deferring it still holds. ⚠️⚠️ **IF THE PILOT IS TO START ON A PREBUILT CATALOG IT MOVES AHEAD OF `5f`, AND THAT IS THE OWNER'S CALL RATHER THAN A SESSION'S** — C8.1 still has him building the pilot's catalog by hand, and those products will read as his own, which is correct |
 
 ---
 

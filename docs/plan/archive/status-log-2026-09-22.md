@@ -1154,3 +1154,120 @@ MAC ALL SESSION** — `devicectl` reported it `unavailable` throughout. The
 built `.app` is signed and waiting; connecting the phone and running
 `devicectl device install app` is a thirty-second step, and the next session
 should check it landed rather than assume it.
+
+## The ELEVENTH cut, taken 2026-09-23 with the prebuilt-catalog ruling — off the FOOT again
+
+⚠️ **The two entries that opened 2026-09-22's afternoon** — the schema being deployed to
+the hosted project, and the Productos failure on the owner's phone that found it. They were
+the oldest left, and `## Position` stood at **1,390 of 1,400** with the ruling's entry in
+place: **ten lines of headroom**, which is less than one paragraph. ⚠️ **MOVED, not copied.**
+
+✅✅✅ **THE SCHEMA IS DEPLOYED AS OF 2026-09-22 — THE HOSTED PROJECT IS REAL,
+AND THE ANSWER TO THE SECOND READING WAS *NO*.** The owner logged in, checked
+the list himself and pushed: ***"done, it's the right project."*** So it was
+never a wrong key — **thirty-eight migrations had simply never been applied
+anywhere a phone could reach.**
+
+**Measured from here afterwards, with no secret and no assumption:**
+
+| What was asked | What came back |
+|---|---|
+| `supabase migration list` | **`0001`–`0038`, local and remote identical, row for row** |
+| `select count(*) from public.unit` | **10** — `0001`'s seed is really there |
+| `auth.users` | **3** | 
+| `public.workspace`, `public.product_variant` | **0 and 0** — nobody has created a shop yet |
+| `GET /rest/v1/unit` as the publishable key | **`42501 permission denied`** |
+
+⚠️⚠️ **AND THAT LAST ROW IS THE FENCE WORKING, NOT A DEFECT — WORTH WRITING DOWN
+BECAUSE IT READS LIKE ONE.** `0001:579` revokes `unit` from `anon` and grants
+`select` to `authenticated` only, explicitly, *"so the intent is reviewable in
+the migration"*. **An anonymous caller being refused is the deployment being
+correct.** The app reads it with a signed-in session and will be let through.
+
+⚠️ **WHAT THE OWNER SEES NEXT, SAID NOW SO IT IS NOT MISTAKEN FOR A SECOND BUG:
+the app will send him to `bienvenida` to create a shop**, because `workspace` is
+empty and `redirectFor` routes a member of nothing to onboarding. **And then
+Productos will be honestly empty** — `product_variant` is 0, and **nothing in
+this app can create a product until `5e`.** The screen `5d-iii` shipped cannot
+be judged on an empty list, so the rows have to be put there by hand or the look
+waits for `5e`.
+
+⚠️⚠️ **THE GAP THIS EXPOSED IS NOW A TASK — `5R-f`, BELOW — AND IT IS NOT THE
+MIGRATIONS' FAULT.** Every contract check in this repository builds a database
+from scratch, asserts against it and throws it away. **Not one of them, and no
+workflow, has ever asked whether the database a PHONE talks to has the same
+schema** — and `supabase migration list` answers exactly that question in one
+command that needs no password. **The deploy happened today by hand; nothing
+would say so if it drifted tomorrow.**
+
+⚠️⚠️ **THE OWNER OPENED PRODUCTOS ON HIS PHONE AND IT SAID *Cargando
+productos…* FOR EVER — TWO DEFECTS, ONE OF THEM THE BIGGEST THING FOUND IN THIS
+PROJECT SINCE THE POWER APPS ERA ENDED.** *"When hitting in Productos, it stays
+loading."* **Fifteen minutes on a phone found what forty-one policies, twelve
+contract checks and 689 assertions could not**, which is `R9` paying for itself
+on the first day it was tested.
+
+⚠️⚠️ **DEFECT 1 — THE ONE THAT MATTERS: THE HOSTED SUPABASE PROJECT HAS NO
+SCHEMA. NOT A STALE ONE. NONE.** Measured, not inferred: `GET /rest/v1/` on
+`hweutzjhzvioswnjzqki` returns **zero tables and zero paths**, and every table
+the app reads — `unit`, `product_variant`, `product_family`, `price_list` and
+even `workspace` — answers `PGRST205 Could not find the table … in the schema
+cache`. ⚠️ **The CLI has never been linked to it either**: there is no
+`supabase/.temp/project-ref`, and `supabase projects list` reports no access
+token. **Thirty-eight migrations exist in this repository and in CI's throwaway
+Postgres, and nowhere else.**
+
+⚠️⚠️ **AND THIS IS THIS REPOSITORY'S FOUNDING SENTENCE, ONE LEVEL FURTHER OUT
+THAN IT WAS WRITTEN.** ADR-035 §9 says *"a file is not evidence; a green CI run
+is"* — because the previous era recorded decisions that were never deployed.
+**CI proves a migration APPLIES. Nothing in this project has ever proved a
+migration was applied ANYWHERE A PHONE CAN REACH**, and the gap survived
+thirty-eight migrations, twelve live-HTTP contract checks and a device build,
+because every one of those checks builds its own database and throws it away.
+**The contract checks are not wrong and they were never asked this question.**
+⚠️ **It is parked in the ⛔ block as a decision rather than fixed here**: it is
+the owner's live project and his login, and *"the key points at the wrong
+project"* is equally consistent with the measurement — only `supabase projects
+list` tells those two apart.
+
+✅ **DEFECT 2 — FIXED HERE, AND IT IS WHY DEFECT 1 LOOKED LIKE A SLOW NETWORK:
+A FAILED READ AND A PENDING ONE WERE THE SAME STATE.** `useCatalog` reported
+`loading` as `data === undefined`, **and TanStack leaves `data` undefined on an
+error too** — so a read that could not happen rendered as *Cargando
+productos…*, for ever, with no way for a person to tell the difference. ⚠️ **The
+screen was the honest half and the hook was the lying half**: `emptyLineKey`
+already separated three states with four assertions on them, and the fourth
+state never reached it.
+
+**What shipped for defect 2:**
+
+| | |
+|---|---|
+| `app/src/api/hooks.ts` | `useCatalog` returns **`failed: ApiMessageKey \| null`** beside `loading`, read off `variants.error ?? units.error` |
+| `app/src/api/catalog.ts` | `catalogLine` and `familyLine` — **failure outranks loading**, because TanStack retries twice and a screen that preferred *loading* would put the endless spinner back on every retry |
+| `app/src/app/productos.tsx`, `app/src/app/familia/[id].tsx` | both `Vacio`s take **a finished sentence** rather than the failure key |
+| `app/test/api-catalog.test.ts` | **seven new assertions**, 696 in the app suite |
+
+⚠️⚠️ **THE TWO SENTENCES THAT MUST NEVER APPEAR ON A FAILURE, EACH NOW AN
+ASSERTION.** *Todavía no hay productos* is the one empty-state sentence a
+shopkeeper would **act** on — she would go and add products she already has —
+and on La Familia, *ya no está en el catálogo* tells her the product **in her
+hand** has been deleted. **Both are worse than the spinner they replace if they
+fire on a read that simply could not happen.**
+
+⚠️ **AND `R12` CAUGHT THE FIRST ATTEMPT AT THIS FIX, CORRECTLY.** Both screens
+imported `ApiMessageKey` from `@/api/errors` — *the module that decides what a
+failure MEANS*, which a route may not reach. The repair was not to widen the
+rule: **no route names that type at all**, and the components are handed the
+finished line. **A guard that fires on the fix is a guard doing its job**, and
+this is the second time today one has (`split-coverage.sh` caught two sentinel
+collisions in `5d-iii`'s closing row).
+
+⚠️ **THE VERIFICATION, NAMED.** `npm run test --workspace @tienda/app` is **696
+tests over 29 files** (seven new), `npm run typecheck` clean, `bash
+docs/checks/conventions-gate.sh` **16 groups over 56 source and 29 test files**
+with its 30 fixtures still red. ⚠️⚠️ **NONE OF THEM COULD HAVE FOUND EITHER
+DEFECT, AND THAT IS THE POINT OF THE ENTRY.** The suite's fixtures are
+hand-written rows that never fail, and §2.11 keeps rendering out of scope. **The
+instrument was the owner's phone, and it found in a quarter of an hour what this
+repository had been unable to ask for eleven days.**
