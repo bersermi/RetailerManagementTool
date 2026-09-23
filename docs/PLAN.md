@@ -262,6 +262,29 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+⚠️⚠️ **`main`'s `db` WORKFLOW IS RED AS OF 2026-09-23 AND NOTHING IN THIS REPOSITORY
+CAUSED IT. ⚠️ DELETE THIS PARAGRAPH THE FIRST TIME IT IS GREEN AGAIN — it is a note
+about weather, and a stale one is worse than none.**
+
+**What happened:** all three `db` jobs failed at their *Start Postgres…* step on both
+`80d36f7` and `cf9df55`, with **58 lines of `toomanyrequests` from `ghcr.io`** —
+GitHub's container registry throttling the Supabase image pulls. **Every later step is
+`skipped`, not failed**, which is the shape to recognise: nothing was run, so nothing
+was judged. A re-run hit the same throttle.
+
+**Why it is not a regression, proved rather than assumed:** the content the `db`
+workflow exists to check — `app/src/api/`, `supabase/` and `packages/` — is
+**byte-identical at `cf9df55`, `80d36f7` and `5dcc729`**, and it was **green at
+`5dcc729`**. The commits since then changed screens, strings, tests and this file.
+⚠️ **And `5e-i-catalog-write-contract.sh` was run locally against a real database after
+the final code state: 16 of 16 green**, *A CASHIER IS REFUSED* on all three tables.
+
+⚠️ **What a cleared session should do:** re-run the workflow, or let the next push to
+`main` run it. **Do not go looking for a broken migration** — the `db` job never
+reached one. ⚠️ **And do not read this as licence to merge red**: the rule is
+unchanged. This is a run that did not happen, which is a different thing from a run
+that failed, and the difference is visible in the step list.
+
 ✅✅ **TWO BUGS FROM THE OWNER'S PHONE, FIXED 2026-09-23, AND ONE OF THEM WAS A
 FEATURE ADDED THE SAME DAY AND REMOVED AGAIN.
 `5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS SUBSTANCE.**
