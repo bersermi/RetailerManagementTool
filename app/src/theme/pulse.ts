@@ -84,8 +84,26 @@ export function pulseTotalMs(blinks: number = NEW_PRODUCT_BLINKS): number {
 // THE BANNER THAT FADES — the family being released, said once and then gone
 // ----------------------------------------------------------------------------
 
-/** How long the released-family banner is fully readable before it leaves. */
-export const BANNER_HOLD_MS = 2600;
+/**
+ * How long the released-family banner is fully readable **on the form** before it
+ * leaves.
+ *
+ * ⚠️⚠️ ONE SECOND, RULED 2026-09-23, AND THE NUMBER ONLY MAKES SENSE WITH THE
+ * OTHER HALF OF THE RULING. I first set this to 2600ms and argued for it here:
+ * eight Spanish words at a counter is about two seconds of reading, so a shorter
+ * fade is a message nobody finishes. **That argument was right and the design was
+ * wrong** — the form is about to be saved and left, so however long the banner
+ * holds, it is on a screen that is going away. The owner's answer was to move the
+ * reading somewhere it can happen: *"show the banner for a second in the form
+ * screen but it should persist in the catalog screen once we go back there."*
+ *
+ * ⚠️ SO THIS IS NOW A GLIMPSE AND NOT THE MESSAGE — it says *something just
+ * changed under your thumb*, and `ES.catalog.avisoDismiss` is the copy of it that
+ * is actually read, on a screen with nothing about to navigate away from it.
+ * **There is no `bannerSequence` for the catalog one**, and that absence is the
+ * point: it does not fade, so nobody has to catch it.
+ */
+export const BANNER_HOLD_MS = 1000;
 
 /** How long it takes to arrive, and to go. */
 export const BANNER_FADE_MS = 220;
@@ -93,12 +111,12 @@ export const BANNER_FADE_MS = 220;
 /**
  * The banner's whole life: in, hold, out.
  *
- * ⚠️⚠️ IT HOLDS LONG ENOUGH TO READ, WHICH IS THE ONLY NUMBER HERE THAT MATTERS.
- * The owner asked for a banner *"that fades"*, and a sentence of eight Spanish
- * words at a counter is about two seconds of reading — so a fade that began at
- * 800ms would be a message nobody finished. ⚠️ And it ENDS at `0`: the family was
- * released, he has been told why, and a banner that stayed would be a warning
- * about a state he has already accepted.
+ * ⚠️⚠️ IT IS A GLIMPSE AND NOT THE MESSAGE, which is the 2026-09-23 ruling and the
+ * opposite of what this comment said yesterday. A banner on a form that is about to
+ * be saved and left cannot be the place a sentence is read, however long it holds —
+ * so this one says *something just changed under your thumb* and the readable copy
+ * waits on Productos, where it PERSISTS. ⚠️ It still ENDS at `0`, because a warning
+ * left on screen is a warning about a state he has already accepted.
  *
  * ⚠️ THE HOLD IS A `duration` ON AN OPACITY THAT DOES NOT MOVE, rather than a
  * `setTimeout`. One sequence owns the whole life of the thing, so cancelling it —

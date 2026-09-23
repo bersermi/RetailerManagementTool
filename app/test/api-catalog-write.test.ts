@@ -21,6 +21,8 @@ import {
   retryDraft,
   unitColumns,
   unitOrder,
+  AVISO_UNIT_RELEASED,
+  avisoLine,
   canWriteCatalog,
   catalogRows,
   chooseFamily,
@@ -873,5 +875,26 @@ describe('C8.5 — the unit and the family policing each other', () => {
   it('releases nothing for a family that has no unit of its own yet', () => {
     const chosen: FamilyChoice = { kind: 'chosen', id: 'empty-family', name: 'Nueva' };
     expect(chooseUnit(chosen, 'pza', SHOP, UNITS).released).toBe(false);
+  });
+});
+
+describe('what the form tells the catalog on its way out', () => {
+  // ⚠️⚠️ ONE SENTENCE SEEN TWICE, WHICH IS THE RULING RATHER THAN A SHORTCUT. The
+  // form flashes it for a second and then saves and leaves; the readable copy is on
+  // Productos, where nothing is about to navigate away from it. A second wording
+  // would be two answers to *what just happened to my family*.
+  it('is the same sentence the form flashed', () => {
+    expect(avisoLine(AVISO_UNIT_RELEASED)).toBe(ES.catalog.create.unitReleased);
+  });
+
+  it('says nothing for an ordinary create', () => {
+    expect(avisoLine(undefined)).toBeNull();
+  });
+
+  // ⚠️ A LINK SOMEBODY TYPED BY HAND MUST NOT BE ABLE TO PUT WORDS ON A SHOPKEEPER'S
+  // SCREEN, so an unknown parameter is silence and never a fallback sentence.
+  it('says nothing for a parameter this version does not know', () => {
+    expect(avisoLine('cualquier-cosa')).toBeNull();
+    expect(avisoLine('')).toBeNull();
   });
 });

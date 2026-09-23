@@ -806,6 +806,21 @@ export const ES = {
     /** The room's name — the module word, never translated (see this file's header). */
     title: 'Productos',
     /**
+     * ⚠️⚠️ THE RELEASED-FAMILY BANNER, SHOWN ON *THIS* SCREEN AND NOT ONLY ON THE
+     * FORM — ruled 2026-09-23. The form flashes it for a second and then saves and
+     * leaves, which is not long enough to read a sentence a shopkeeper has never
+     * seen; so the fact travels with the create (`?aviso=unidad`) and **persists
+     * here**, where nothing is about to navigate away from it. His words: *"show
+     * the banner for a second in the form screen but it should persist in the
+     * catalog screen once we go back there."*
+     *
+     * ⚠️ IT IS THE SAME SENTENCE AS `create.unitReleased` AND IS DELIBERATELY NOT A
+     * SECOND COPY OF IT — `ES.catalog.create.unitReleased` is the one home, and
+     * this comment is here so the next person looks there rather than writing a
+     * variant of it.
+     */
+    avisoDismiss: 'Entendido',
+    /**
      * The way back out. ⚠️ *Volver* and not *Cerrar*: this is a screen you went
      * INTO, where `Ajustes` and `Solicitudes` are sheets you came back FROM.
      */
@@ -884,9 +899,16 @@ export const ES = {
        * it, and the moment he types, the text becomes `tinta` and his.
        */
       nameLabel: 'Nombre',
-      /** ⚠️ A REAL PRODUCT AND NOT *"Ej. producto"*: C8.5's own despiece, so the
-       *  example shows that a variant is the CUT and not the animal. */
-      nameHint: 'Pechuga sin hueso',
+      /**
+       * ⚠️⚠️ AN INSTRUCTION AND NOT AN EXAMPLE, RULED 2026-09-23 — *"the hint is
+       * not looking as a hint in Nombre, do it the same way as we're doing in
+       * Familia"*. It used to read `Pechuga sin hueso`, which is a real product
+       * from C8.5's despiece and taught something; **but a real product name sitting
+       * in the box is indistinguishable from a product name somebody typed**, which
+       * is the same complaint he made about the family and the price. An imperative
+       * cannot be mistaken for a value.
+       */
+      nameHint: 'Escribe el nombre del producto',
 
       familyLabel: 'Familia',
       /**
@@ -940,6 +962,23 @@ export const ES = {
 
       submit: 'Guardar producto',
       working: 'Guardando…',
+
+      /**
+       * ⚠️⚠️ THE WAY OFF THE KEYBOARD, RULED 2026-09-23 — *"display the keyboard
+       * with the hide option where the search/enter button usually is"*. Every text
+       * box in this app either searches LIVE or is confirmed by a button on the
+       * screen, so the return key has no job of its own; making it *Listo* gives it
+       * the one job a person actually wants from it.
+       *
+       * ⚠️⚠️ AND IT IS A REAL STRING BECAUSE ONE KEYBOARD HAS NO RETURN KEY AT ALL.
+       * `decimal-pad` — which the price box needs, because C12.2 puts the point in
+       * `35.50` and a pad with no point is a shopkeeper who cannot type half a peso
+       * — draws no return key on either platform. On iOS that box gets an accessory
+       * bar carrying this word; on Android the system's own dismiss control does the
+       * job. So `returnKeyType` covers the other three boxes and this covers the one
+       * it cannot reach.
+       */
+      done: 'Listo',
     },
 
     /**
