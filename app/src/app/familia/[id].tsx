@@ -35,7 +35,11 @@ import { PALETTE } from '@/theme/palette';
 // and the one where the family question is not asked at all — it pushes
 // `/producto/nuevo?familia=<this family>`, and the form attaches the new variant
 // here without offering a choice, which is the constraint in the owner's own
-// words. ⚠️⚠️ It is **absent for a cashier**: all three of these WRITE,
+// words. ⚠️⚠️ WITH ONE EXIT, ADDED 2026-09-23: if he picks a unit this family
+// cannot hold, the form RELEASES the family and the family question comes back —
+// because *no question asked* has stopped being true, and hiding the field would
+// hide the one thing that changed. C8.5 is why (one family, one kind of
+// measurement) and nothing in the database enforces it. ⚠️⚠️ It is **absent for a cashier**: all three of these WRITE,
 // `product_variant_insert` and `product_family_insert` are both
 // `has_role(…, 'manager')` in `0002`, and the refusal is a bare `42501` with no
 // sentence of its own, so `canWriteCatalog` keeps the control off her screen

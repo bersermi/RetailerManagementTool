@@ -851,45 +851,66 @@ export const ES = {
      * demoted mid-shift sees, on a form she had already opened.
      */
     create: {
-      /** The control that opens it, on Productos and inside a family. */
-      open: 'Agregar',
-      /** ⚠️ The control inside a family says what it makes — `ES.family.addVariant`. */
+      /**
+       * ⚠️⚠️ THE LEGEND UNDER THE CREATE ROW, AND IT IS THE ONLY DOOR INTO THIS
+       * FORM FROM PRODUCTOS SINCE 2026-09-23. The `Agregar` button is gone: the
+       * shopkeeper searches, and when nothing matches, what he typed becomes a row
+       * with this line under it. ⚠️ The point is not fewer buttons — it is that he
+       * has just been shown everything the shop already sells under that name,
+       * which is when a partial duplicate gets noticed instead of created.
+       *
+       * ⚠️ TITLE CASE IS THE OWNER'S OWN SPELLING, like `Agregar Variante` one
+       * screen over. It reads as the name of an action rather than as a sentence.
+       */
+      row: 'Crear Nuevo Producto',
+
+      /** The room's name. ⚠️ The control inside a family says what it makes —
+       *  `ES.family.addVariant`. */
       title: 'Nuevo producto',
       /**
        * ⚠️ *Cancelar* AND NOT *Volver*, WHICH IS THE ONE PLACE THIS APP BREAKS
-       * THAT HABIT AND IT IS DELIBERATE. Productos and La Familia are screens
-       * you went into and came back from; this one holds typing that will be
-       * thrown away, and *Volver* would understate what the tap costs.
+       * THAT HABIT AND IT IS DELIBERATE. Productos and La Familia are screens you
+       * went into and came back from; this one holds typing that will be thrown
+       * away, and *Volver* would understate what the tap costs.
        */
       cancel: 'Cancelar',
 
+      /**
+       * ⚠️⚠️ THE THREE FIELDS BELOW ALL CARRY A HINT AND NOT A VALUE, AND THAT IS
+       * ONE RULING APPLIED THREE TIMES — 2026-09-23, after the owner held the first
+       * version. The family showed a family it had matched for him, and the price
+       * box looked answered; both *"look as a decision already made"*. A hint is
+       * drawn in `tintaApagada` and is not the field's value: nothing is saved from
+       * it, and the moment he types, the text becomes `tinta` and his.
+       */
       nameLabel: 'Nombre',
       /** ⚠️ A REAL PRODUCT AND NOT *"Ej. producto"*: C8.5's own despiece, so the
        *  example shows that a variant is the CUT and not the animal. */
-      namePlaceholder: 'Pechuga sin hueso',
+      nameHint: 'Pechuga sin hueso',
 
       familyLabel: 'Familia',
       /**
-       * ⚠️⚠️ THE SUGGESTION SAYS WHICH OF TWO THINGS IT IS ABOUT TO DO, because
-       * they are not the same event. Attaching to `Pollo` changes nothing about
-       * the shop; creating `Pollo` adds a row she will see for ever. C8.11 makes
-       * the suggestion overridable and says nothing about announcing it — and a
-       * form that silently created families would be the app doing bookkeeping
-       * in her name.
+       * ⚠️⚠️ A HINT ON WHAT TO TYPE, WHICH IS THE OWNER'S CORRECTION IN ITS
+       * SHORTEST FORM. The box used to show a family the app had chosen; it now
+       * shows the product's own name MIRRORED, in hint ink, and this line is what
+       * it says when there is no name yet. Neither is a value until he touches it.
        */
-      familyNew: 'Se creará esta familia.',
+      familyHint: 'Escribe la familia del producto',
       /** ⚠️ THE GESTURE C8.11 ASKS FOR, and it is a WORD: C12.1 refuses an icon
        *  with nothing beside it, and *Cambiar* is what the override is. */
       familyChange: 'Cambiar',
-      /** Back to the family the typed name suggests, after an override. */
-      familySuggested: 'Usar la sugerida',
-      /** The heading over the families this shop already has. */
-      familyPick: 'Elige una familia',
-      /** ⚠️ CREATING ONE IN PLACE IS THE OTHER HALF OF C8.11 — *"he can override
-       *  and create his own family in place"* — so it is on this screen and never
-       *  behind a second one. */
-      familyOwn: 'O escribe una nueva',
-      familyOwnPlaceholder: 'Pollo',
+      /** The family search's own box — scenario 3, the one he goes looking for. */
+      familySearch: 'Busca una familia',
+      /**
+       * ⚠️ WHAT THE MIRROR WILL DO, SAID PLAINLY, because attaching to `Pollo` and
+       * creating `Pollo` are not the same event: one changes nothing about the shop
+       * and the other adds a row he will see for ever.
+       */
+      familyCreate: 'Crear esta familia',
+      /** The families the shop already has, under the search box. */
+      familyExisting: 'Familias que ya tienes',
+      /** ⚠️ Back to the mirror after a wrong turn in the search. */
+      familyMirror: 'Usar el nombre del producto',
 
       /**
        * ⚠️ THE QUESTION IS ABOUT SELLING AND NOT ABOUT MEASURING, which is what
@@ -898,45 +919,27 @@ export const ES = {
        */
       unitLabel: 'Unidad',
       /**
-       * ⚠️⚠️ WHY THE LIST CAN BE SHORTER THAN TEN, SAID ON THE SCREEN RATHER
-       * THAN LEFT TO PUZZLE HER. C8.5 holds every variant of a family to ONE
-       * dimension, so adding to `Pollo` offers weights and no litres —
-       * `unitOptions` is what narrows it, and a picker that silently lost six
-       * options would read as a bug on the one screen a shopkeeper is learning.
+       * ⚠️⚠️ THE OWNER'S OWN SENTENCE, AND IT FIRES ONLY WHEN THE FAMILY WAS
+       * ACTUALLY LET GO. C8.5 holds a family to one kind of measurement, and
+       * nothing in the database enforces it across variants — so when he picks a
+       * unit the chosen family cannot hold, the family goes back to mirroring the
+       * product and this says why, then fades. ⚠️ It is a BANNER AND NOT A REFUSAL:
+       * nothing was rejected, one field moved, and `PALETTE.error` would be a lie
+       * about that.
        */
-      unitFamily: 'Las unidades son las de esta familia.',
+      unitReleased: 'Una familia de productos debe tener la misma unidad de medida.',
 
       priceLabel: 'Precio',
       /**
        * ⚠️ THE SAME TWO-DECIMAL SHAPE `ES.catalog.issues.priceUnreadable` SHOWS
-       * HER WHEN SHE GETS IT WRONG. Two spellings of one example is how the
-       * placeholder and the refusal end up disagreeing about what this app
-       * accepts, and the refusal is the one she reads second.
+       * HIM WHEN HE GETS IT WRONG. Two spellings of one example is how a
+       * placeholder and a refusal end up disagreeing about what this app accepts,
+       * and the refusal is the one he reads second.
        */
-      pricePlaceholder: '35.50',
+      priceHint: '35.50',
 
       submit: 'Guardar producto',
       working: 'Guardando…',
-
-      /**
-       * ⚠️⚠️ THE FORM STAYS OPEN AND SAYS WHAT LANDED, and the sentence is what
-       * makes that honest rather than ambiguous. C8.2's shopkeeper adds products
-       * in a sitting — `Pechuga`, `Pierna`, `Muslo`, all `Pollo`, all in kilos —
-       * so returning to Productos after each one is a tap per product to get
-       * back ([[prefer-the-option-that-adds-no-human-step]]). What she loses is
-       * seeing the row appear in the list, and this line plus the name above it
-       * is what pays for it.
-       */
-      saved: 'Ya está en tu catálogo.',
-      /**
-       * ⚠️ THE SAME EVENT WITHOUT A PRICE — `CreateSucceeded.priced`, which
-       * `5e-i` put there for this. It is `ES.catalog.notice.noPrice` in the past
-       * tense, because the notice described what saving WOULD produce and this
-       * describes what it did.
-       */
-      savedNoPrice: 'Ya está en tu catálogo, sin precio. Cuando lo compres o lo vendas tendrás que ponerle uno.',
-      /** The name of the product that just landed sits above those two lines. */
-      savedLabel: 'Guardado',
     },
 
     /**
@@ -996,9 +999,18 @@ export const ES = {
      */
     notice: {
       /**
-       * ⚠️⚠️ THE OWNER'S OWN SENTENCE, TIGHTENED — his words were *"Si quieres
-       * comprar/vender tendrás que poner un precio al llevar a cabo la
-       * operación."* Three changes, and each is small: the slash becomes two
+       * ⚠️⚠️ REWRITTEN BY THE OWNER ON 2026-09-23, IN HIS OWN WORDS, AFTER HE READ
+       * THE FIRST ONE ON HIS PHONE: *"Si no agregas el precio del producto ahora,
+       * lo tendrás que agregar al momento de vender."* One grammatical fix only
+       * (*agregar* → *agregas* in the conditional). ⚠️ **It is shorter and it moves
+       * the cost to the end of the sentence** — the old one opened by restating
+       * what he had just done (*"este producto no tendrá precio"*) before getting
+       * to the part he cannot see, which is that Vender will stop and ask him.
+       * ⚠️ It disappears the moment the price box has something in it, which is
+       * `noPriceNoticeKey`'s doing and was already true.
+       *
+       * ~~his words were *"Si quieres comprar/vender tendrás que poner un precio al
+       * llevar a cabo la operación."*~~ Three changes, and each is small: the slash becomes two
        * verbs, because `comprar/vender` is a construction nobody says out loud;
        * *la operación* becomes *lo compres o lo vendas*, because a shopkeeper
        * does not have operations, he buys and sells; and the first half names
@@ -1011,7 +1023,8 @@ export const ES = {
        * thing he cannot see from this form is that Vender and Comprar will both
        * stop and ask him. That is the part worth a sentence.
        */
-      noPrice: 'Este producto no tendrá precio. Cuando lo compres o lo vendas tendrás que ponerle uno.',
+      noPrice:
+        'Si no agregas el precio del producto ahora, lo tendrás que agregar al momento de vender.',
     },
 
     /**

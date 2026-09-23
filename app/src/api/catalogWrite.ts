@@ -375,52 +375,20 @@ export interface FamilySuggestion {
 }
 
 /**
- * The family a typed product name belongs to. C8.13 and `5e`'s own row: the
- * family is SUGGESTED, never demanded.
+ * ⚠️⚠️ `suggestFamily` WAS DELETED HERE ON 2026-09-23 BY THE OWNER'S RULING, AND
+ * ITS MATCHING SURVIVES IN `searchFamilies` AS TIER 1. It took the typed product
+ * name and returned the longest whole-word match among the shop's families, so
+ * typing `Pierna de pollo` attached the product to `Pollo` with nothing on screen
+ * saying a choice had been made. He held the form and said it *"looks as a
+ * decision already made, not as a suggestion"*.
  *
- * ⚠️⚠️ IT IS FOLDED THROUGH `searchTerm`, SO THE APP NEVER PROPOSES A FAMILY
- * THE DATABASE WOULD THEN REFUSE — the confusion `searchKey`'s doc-comment in
- * `@/api/catalog` names this task as inheriting. Typing `Pierna de pollo` in a
- * shop that has a `Pollo` family attaches to THAT family rather than offering
- * to create a second one, and typing `platano` finds `Plátano` — which is the
- * same accent-folding `0002` asked for by name and refused to put in the
- * uniqueness rule.
- *
- * ⚠️ THE MATCH IS ON WHOLE WORDS AND NOT ON A SUBSTRING, and the difference is
- * a suggestion a shopkeeper would have to undo: `includes` would match `Res`
- * inside `Refresco` and inside `Cerveza`, and a form that proposes the wrong
- * family by default is worse than one that proposes none — she has to notice
- * before she can correct it.
- *
- * ⚠️ THE LONGEST MATCH WINS. A shop with both `Pollo` and `Pierna de pollo`
- * gets the more specific one for `Pierna de pollo entera`; ties go to the
- * database's order, the same refusal to re-sort `catalogFrom` makes.
- *
- * ⚠️⚠️ AND WITH NO MATCH IT PROPOSES THE WHOLE TYPED NAME AS A NEW FAMILY,
- * rather than its first word. `Agua mineral` becoming a family called `Agua` is
- * the app being clever about a substance it knows nothing about — and the
- * shape `Jitomate` / `Jitomate a granel` is exactly a family of one that grows
- * variants later. ⚠️ The suggestion is overridable by a GESTURE at the form,
- * which is `5e-ii`'s deliverable and not this one's: nothing here is final.
+ * ⚠️ THE MATCHING WAS NOT THE MISTAKE — THE SILENCE WAS. The same word-run rule
+ * is what makes `searchFamilies` put `Pollo` above `Pollo rostizado` when he goes
+ * looking, which is scenario 3 of the three he ranked. So this is a deliverable
+ * RETIRED rather than dropped: `5e-i`'s row still records what it shipped,
+ * because that is what shipped, and the behaviour now lives one function down
+ * where he asks for it instead of receiving it.
  */
-export function suggestFamily(
-  entries: readonly CatalogEntry[],
-  typedName: string,
-): FamilySuggestion {
-  const typed = words(typedName);
-  let best: FamilyOption | null = null;
-  let bestLength = 0;
-  for (const option of familiesFrom(entries)) {
-    const candidate = words(option.name);
-    if (!runOfWords(typed, candidate)) continue;
-    if (candidate.length > bestLength) {
-      best = option;
-      bestLength = candidate.length;
-    }
-  }
-  if (best !== null) return { familyId: best.id, familyName: best.name };
-  return { familyId: null, familyName: typedName.replace(/\s+/g, ' ').trim() };
-}
 
 // ----------------------------------------------------------------------------
 // THE FOUR FIELDS, AND WHAT IS WRONG WITH THEM BEFORE POSTGRES SEES THEM
@@ -430,7 +398,7 @@ export function suggestFamily(
  * C8.9's four fields, exactly — a name, a family, one unit, one price.
  *
  * ⚠️ `familyId` AND `familyName` ARE ONE FIELD IN TWO HALVES, which is
- * `suggestFamily`'s answer carried whole: an id means *attach to this one* and
+ * `resolveFamily`'s answer carried whole: an id means *attach to this one* and
  * a null means *make one with this name*. Collapsing them to a single string
  * would make the form unable to tell an existing `Pollo` from a new one.
  *
@@ -716,12 +684,17 @@ export function retryDraft(draft: ProductDraft, outcome: CreateFailed): ProductD
  * distinguishable, and they are two different facts: one is a product the shop
  * already sells and the other is a family it already has.
  *
- * ⚠️ THE FAMILY ONE IS NEARLY UNREACHABLE AND IS WRITTEN ANYWAY —
- * `suggestFamily` attaches to a family it can see rather than proposing to
- * create it. What is left is the race: a family made on the other phone since
- * this one last read. `invite.issues` already recorded this project's answer to
- * *"unreachable in both pilot shops"* — the alternative to a sentence is a dead
- * button.
+ * ⚠️⚠️ THE FAMILY ONE WENT FROM NEARLY UNREACHABLE TO ORDINARY ON 2026-09-23,
+ * AND THE SENTENCE THAT WAS WRITTEN FOR A RACE IS NOW A TEACHING MOMENT. It used
+ * to be unreachable because `suggestFamily` attached to a family it could see; the
+ * family now MIRRORS the product's name, so typing `Pollo` in a shop that already
+ * has a `Pollo` family proposes creating a second one and `product_family_name_unique`
+ * refuses it. **That is the sentence doing its job**: *"Esa familia ya existe.
+ * Elígela de la lista."* names the family search, which is exactly scenario 3 of
+ * the three the owner ranked — and `WRITE_ORDER` puts the family first, so nothing
+ * is created when it fires. ⚠️ It was written for a race and kept for one, and the
+ * ruling gave it a second caller; `invite.issues` recorded this project's answer to
+ * *"unreachable in both pilot shops"* and this is why that answer was right.
  */
 export const CATALOG_WRITE_REFUSALS: Readonly<Record<string, keyof typeof ES.catalog.errors>> = {
   product_variant_name_unique: 'duplicate',
@@ -808,190 +781,343 @@ export function createLine(outcome: CreateFailed): string {
 }
 
 // ----------------------------------------------------------------------------
-// WHAT THE FORM DECIDES, DECIDED HERE INSTEAD. Plan task `5e-ii`, and every
-// function below landed with the screen rather than with the write.
+// WHAT THE FORM AND THE LIST DECIDE, DECIDED HERE INSTEAD. Plan task `5e-ii`,
+// REWORKED 2026-09-23 on the owner's ruling after he held the first version.
 //
-// ⚠️⚠️ `5e`'s SPLIT SAID THE SECOND CHILD *RENDERS AND DECIDES NOTHING*, AND
-// DRAWING THE FORM FOUND FIVE THINGS THAT DECIDE SOMETHING. That is not the
-// seam failing; it is `R3` applied at the moment the seam is tested. A
-// suggestion that can be overridden needs a rule for *which answer wins*; a
-// unit list in front of a shopkeeper needs a rule for *which units are
-// offerable*; and a control a cashier must never see needs a predicate, because
-// `42501` arriving after the tap is the thing `5d-iii` already refused. All
-// five have a right answer, so all five are here where
-// `app/test/api-catalog-write.test.ts` can read them, and the JSX above them
-// holds keystrokes and no opinions.
+// ⚠️⚠️ WHAT HE CHANGED, AND THE THREAD RUNNING THROUGH ALL OF IT IS THE SAME
+// SENTENCE THREE TIMES: *a proposal must not look like a decision already made.*
+// The family suggestion, the price box and the `Agregar` button were each the app
+// having decided something on his behalf, and each is now a HINT, a MIRROR or
+// nothing at all.
+//
+//   1. `Agregar` IS GONE. Creation is reached by SEARCHING — type a name, and if
+//      nothing matches, the typed name IS a row in the list with *Crear Nuevo
+//      Producto* under it. ⚠️ THE POINT IS NOT FEWER BUTTONS, IT IS FEWER
+//      PARTIAL DUPLICATES: a shopkeeper about to add `Pechuga sin hueso` is shown
+//      what the shop already sells under that name before the create row exists.
+//      ⚠️ This is also CLOSER to C8.12 than the button was — that constraint says
+//      *"From Productos → type the name"*, which is now literally the gesture.
+//   2. THE FAMILY MIRRORS THE VARIANT and no longer matches an existing family
+//      behind his back. `suggestFamily`'s longest-word-run match was a decision
+//      wearing a suggestion's clothes; the default is now the typed name itself,
+//      drawn as a hint, and an existing family is something he FINDS — which is
+//      scenario 3 of the three he ranked.
+//   3. THE UNIT AND THE FAMILY POLICE EACH OTHER. Picking an existing family
+//      preselects its unit; picking a unit that family cannot hold releases the
+//      family back to the mirror and says why. That is C8.5 kept by a rule a
+//      person can see, rather than by six options quietly missing from a picker.
 // ----------------------------------------------------------------------------
 
 /**
  * ⚠️ WHO MAY ADD A PRODUCT AT ALL — `0002`'s own predicate on all three
  * tables, `has_role(…, 'manager')`.
  *
- * ⚠️⚠️ IT EXISTS SO THE REFUSAL NEVER HAPPENS, WHICH IS THE OPPOSITE JOB FROM
- * `catalogWriteErrorMessage`'s. That function is what a manager demoted
- * mid-shift sees; this one is what keeps a cashier from ever tapping a control
- * that cannot work. `5d-iii` drew those three buttons dead for exactly this
- * reason, and [[shift-cover-is-a-reassignment]] is the shape it was avoiding:
- * an RLS refusal is silent, and a shopkeeper who taps and gets nothing concludes
- * her phone is broken.
+ * ⚠️⚠️ IT NOW FENCES A ROW IN A LIST RATHER THAN A BUTTON IN A BANDA, AND THAT
+ * IS THE SAME FENCE AND NOT A WEAKER ONE. `Agregar` is gone; the create row
+ * `catalogRows` appends is the only door left on this screen, and a cashier must
+ * not be shown it either — the refusal is a bare `42501` with no sentence of its
+ * own, and a control that looks live and refuses silently is the shape
+ * [[shift-cover-is-a-reassignment]] records.
  *
  * ⚠️ IT IS NOT AN ALIAS OF `canInvite` OR `canSeeRoster` AND MUST NOT BECOME
- * ONE, which is `canInvite`'s own recorded argument one module over. All three
- * answer *manager and above* today and all three are different questions: the
- * roster's is about whether rows would be identifiable, the invite's is about
- * what an RPC accepts, and this one is about what three INSERT policies accept.
- * A migration that loosened one would move one, and an alias is how the wrong
- * one moves.
+ * ONE, which is `canInvite`'s own recorded argument. All three answer *manager
+ * and above* today and all three are different questions; a migration that
+ * loosened one would move one, and an alias is how the wrong one moves.
  *
  * ⚠️ `null` IS "NOT KNOWN" AND IS FENCED OUT, `roleOf`'s own distinction: the
- * control is absent while the membership read is out and appears when it lands,
- * which is a control that fades in rather than one snatched away from somebody
- * who was not allowed it.
+ * create row is absent while the membership read is out and appears when it
+ * lands, rather than being snatched away from somebody who was not allowed it.
  */
 export function canWriteCatalog(role: Role | null): boolean {
   if (role === null) return false;
   return ROLES.indexOf(role) <= ROLES.indexOf('manager');
 }
 
-/**
- * What the form is currently saying about the family — C8.11's suggestion, or
- * the shopkeeper having overridden it.
- *
- * ⚠️⚠️ THREE KINDS AND NOT A NULLABLE ID, BECAUSE `suggested` IS A STATE AND
- * NOT A VALUE. A form holding only `familyId | null` cannot tell *she has not
- * touched this* from *she chose to make a new family*, and the difference is
- * whether the family follows the name she is still typing. `resolveLocations`
- * in `@/api/invites` is the same shape for the same reason.
- *
- * ⚠️ `new` CARRIES THE NAME SHE TYPED AND NOT THE ONE SUGGESTED. Overriding
- * into a new family is the one gesture C8.11 names explicitly, and a `new`
- * that re-read the suggestion would erase what she typed on the next keystroke
- * of the product name.
- */
-export type FamilyChoice =
-  | { readonly kind: 'suggested' }
-  | { readonly kind: 'chosen'; readonly id: string; readonly name: string }
-  | { readonly kind: 'new'; readonly name: string };
+// ----------------------------------------------------------------------------
+// THE LIST THAT CREATES — Productos, where `Agregar` used to be
+// ----------------------------------------------------------------------------
 
-/** The choice a form opens on: follow the suggestion. */
-export const FAMILY_SUGGESTED: FamilyChoice = { kind: 'suggested' };
+/** One row of Productos: a product the shop sells, or the door to making one. */
+export type CatalogRow =
+  | { readonly kind: 'product'; readonly entry: CatalogEntry }
+  | { readonly kind: 'create'; readonly name: string };
 
 /**
- * The family this create will actually use — C8.11's *"overridable by a
- * gesture"* as a function rather than as a branch in JSX.
+ * Productos, as rows — including the create row, when there is one.
  *
- * ⚠️⚠️ THE OVERRIDE OUTRANKS THE SUGGESTION AND THE SUGGESTION FOLLOWS THE
- * NAME. Those two sentences are the whole of this function, and both are
- * wrong in the obvious implementations: a form that re-suggested after an
- * override would undo her choice on her next keystroke, and one that froze the
- * suggestion at the first character would propose a family for `P`.
+ * ⚠️⚠️ THE CREATE ROW APPEARS ONLY WHEN THE SEARCH FOUND NOTHING, AND THAT IS
+ * THE WHOLE ANTI-DUPLICATE MECHANISM RATHER THAN A TIDINESS RULE. While anything
+ * matches, the shopkeeper is looking at what the shop ALREADY sells — which is
+ * the moment to notice that `Pechuga` exists before adding `Pechuga sin hueso`.
+ * The door opens only once the list has nothing left to show him, so *create* is
+ * never the first thing on screen and never competes with a row he could have
+ * tapped instead.
  *
- * ⚠️ A `new` FAMILY WHOSE BOX IS EMPTY IS STILL `new`, and `checkProduct`
- * is what refuses it (`familyMissing`). Falling back to the suggestion here
- * would save the product under a family she had just decided against.
+ * ⚠️ A BLANK BOX IS NOT A SEARCH THAT FOUND NOTHING. `searchKey` folds spaces
+ * away, so three spaces is still a blank box — and a create row with no name in
+ * it would be `Agregar` back again, wearing a list row.
+ *
+ * ⚠️⚠️ AND IT CARRIES THE NAME RATHER THAN A FLAG, so the form is handed the
+ * word he typed instead of reading the search box across a route boundary. The
+ * prefilled field IS this string; a form that re-derived it would be a second
+ * answer to *what is this product called*.
+ *
+ * ⚠️ THE FENCE IS APPLIED HERE AND NOT IN THE SCREEN (`R3`): `mayCreate` comes
+ * from `canWriteCatalog`, and a cashier gets a list with no create row in it —
+ * so the one thing this function must never do is return a door she will be
+ * refused. `app/test/api-catalog-write.test.ts` is what reads that.
  */
-export function resolveFamily(
-  choice: FamilyChoice,
+export function catalogRows(
   entries: readonly CatalogEntry[],
-  typedName: string,
-): FamilySuggestion {
-  if (choice.kind === 'chosen') return { familyId: choice.id, familyName: choice.name };
-  if (choice.kind === 'new') {
-    return { familyId: null, familyName: choice.name.replace(/\s+/g, ' ').trim() };
-  }
-  return suggestFamily(entries, typedName);
+  typed: string,
+  mayCreate: boolean,
+): readonly CatalogRow[] {
+  const rows: CatalogRow[] = entries.map((entry) => ({ kind: 'product', entry }) as CatalogRow);
+  if (rows.length > 0) return rows;
+  if (!mayCreate) return rows;
+  const name = collapse(typed);
+  if (name === '') return rows;
+  return [{ kind: 'create', name }];
+}
+
+// ----------------------------------------------------------------------------
+// THE FAMILY: A MIRROR, A SEARCH, OR A NEW ONE — the three scenarios, ranked
+// ----------------------------------------------------------------------------
+
+/** One run of inner whitespace, and no edges. What a typed name is worth. */
+function collapse(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
 }
 
 /**
- * The units this product may be sold in — C8.5 enforced by the FORM, because
- * nothing enforces it anywhere else.
+ * What the form is currently saying about the family.
  *
- * ⚠️⚠️ THE DATABASE DOES NOT APPLY C8.5 AND I CHECKED RATHER THAN ASSUMED.
- * `product_variant_units_same_dimension_trg` (`0002:204`) counts distinct
- * dimensions across the FOUR unit columns OF ONE ROW, so C8.10's fan-out makes
- * it one by construction and the trigger can never fire from this app. Nothing
- * compares a new variant against its SIBLINGS. So *"one family, many variants,
- * ONE dimension"* — C8.5, and the sentence that *"keeps the arithmetic
- * honest"* — is a promise only this list can keep, and a picker showing all ten
- * units inside a family measured in kilos is the one place it gets broken:
- * `Pollo` gains a variant priced per litre and Postgres takes it.
+ * ⚠️⚠️ `mirror` REPLACED `suggested` ON 2026-09-23 AND THE DIFFERENCE IS THE
+ * OWNER'S WHOLE POINT. `suggested` ran `suggestFamily`, which matched the typed
+ * name against families the shop already had — so typing `Pierna de pollo`
+ * silently attached the new product to `Pollo`. He held it and said it *"looks
+ * as a decision already made, not as a suggestion"*, and he was right: the box
+ * showed a family he had never chosen, and the only way to discover that was to
+ * read it. `mirror` proposes the typed name ITSELF, drawn as a hint, and finding
+ * the existing `Pollo` is scenario 3 — something he does, in the family search.
  *
- * ⚠️ A FAMILY WITH NO VARIANTS PUTS NO CONSTRAINT ON ANYTHING, so a new family
- * — and a family nobody has ever added to — is offered all ten. There is no
- * signal to narrow on, and inventing one would be the app having an opinion
- * about a substance it knows nothing about, which is `suggestFamily`'s own
- * refusal about first words.
+ * ⚠️ THE THREE KINDS ARE HIS THREE SCENARIOS, IN HIS ORDER: `mirror` is *"the
+ * user chooses autofilled family with the new variant"*, `new` is *"user types
+ * the new family he wants to create"*, and `chosen` is *"user realizes there's
+ * an existing family"*. Nothing here ranks them — the form draws them in that
+ * order — but a fourth kind would mean a scenario nobody has described.
  *
- * ⚠️⚠️ THE ORDER IS `unit.display_order` AND NOT THE READ'S, AND THAT IS A
- * CORRECTNESS POINT RATHER THAN A PREFERENCE. `catalogUnits` asks for no
- * `order=`, so PostgREST may return the ten rows in any order it likes and a
- * picker that trusted it would rearrange itself between launches. `0001` has
- * its own opinion about prominence — `kg`, `l` and `pza` are all `10` — and the
- * code breaks the tie so two shops see the same list.
+ * ⚠️ `new` CARRIES THE NAME HE TYPED AND NOT THE MIRROR. Overriding into a new
+ * family is the one thing that must survive the next keystroke of the PRODUCT
+ * name, and a `new` that re-read the mirror would erase it.
  */
-export function unitOptions(
-  units: readonly UnitRow[],
-  entries: readonly CatalogEntry[],
-  familyId: string | null,
-): readonly string[] {
-  const dimensions: Readonly<Record<string, string>> = Object.fromEntries(
-    units.map((unit) => [unit.code, unit.dimension]),
-  );
-  const family =
-    familyId === null
-      ? []
-      : entries.filter((entry) => entry.familyId === familyId && entry.priceUnit !== '');
-  const wanted: readonly string[] = family
-    .map((entry) => dimensions[entry.priceUnit])
-    .filter((dimension) => dimension !== undefined);
+export type FamilyChoice =
+  | { readonly kind: 'mirror' }
+  | { readonly kind: 'chosen'; readonly id: string; readonly name: string }
+  | { readonly kind: 'new'; readonly name: string };
 
+/** The choice a form opens on: the family mirrors the product's own name. */
+export const FAMILY_MIRROR: FamilyChoice = { kind: 'mirror' };
+
+/**
+ * The family this create will actually use.
+ *
+ * ⚠️⚠️ IT NO LONGER TAKES THE CATALOG, AND THAT SHRINKING IS THE RULING. The old
+ * signature needed every entry in the shop because `suggested` searched them;
+ * `mirror` needs only the name he is typing. A function that still accepted
+ * `entries` would be inviting the next person to put the matching back.
+ *
+ * ⚠️ A `new` FAMILY WHOSE BOX IS EMPTY STAYS `new`, and `checkProduct` refuses
+ * it (`familyMissing`). Falling back to the mirror here would save the product
+ * under a family he had just decided against.
+ */
+export function resolveFamily(choice: FamilyChoice, typedName: string): FamilySuggestion {
+  if (choice.kind === 'chosen') return { familyId: choice.id, familyName: choice.name };
+  if (choice.kind === 'new') return { familyId: null, familyName: collapse(choice.name) };
+  return { familyId: null, familyName: collapse(typedName) };
+}
+
+/**
+ * The families this shop already has, narrowed and RANKED by what he typed —
+ * *"an improved search on existing Families"*.
+ *
+ * ⚠️⚠️ RANKED AND NOT MERELY FILTERED, BECAUSE THIS SEARCH EXISTS FOR SCENARIO
+ * 3 — the moment he realises `Pollo` is already there. A plain `includes` filter
+ * puts `Pollo` below `Pollo rostizado` whenever both match, which is the wrong
+ * way round for the word he is hunting: the shorter, earlier, whole-word hit is
+ * the family he means. Three tiers, and the reason for each:
+ *
+ *   1. **A whole-word run** — `pollo` inside `Pierna de pollo`, the match
+ *      `suggestFamily` was built on. It survives the ruling because a shopkeeper
+ *      SEARCHING wants it; it was only wrong as a silent default.
+ *   2. **A substring** — `poll`, which is what half-typed hunting looks like.
+ *   3. Within a tier, the SHORTER name first, then the catalog's own order.
+ *
+ * ⚠️ IT FOLDS THROUGH `searchTerm` AND THEREFORE FOLDS ACCENTS, which is the
+ * opposite of the duplicate pre-check one function down and deliberate in both
+ * places: `0002` put accent folding in the QUERY and kept it out of the
+ * uniqueness rule, so hunting for `platano` must find `Plátano` while creating
+ * `Plátano` must not be refused for `Platano`.
+ *
+ * ⚠️ A BLANK BOX RETURNS EVERY FAMILY, in the catalog's order — the list he
+ * scrolls when he does not know what he is looking for. `matches` makes the same
+ * call one screen over for the same reason.
+ */
+export function searchFamilies(
+  entries: readonly CatalogEntry[],
+  typed: string,
+): readonly FamilyOption[] {
+  const all = familiesFrom(entries);
+  const needle = searchTerm(typed);
+  if (needle === '') return all;
+
+  const ranked: { readonly option: FamilyOption; readonly tier: number; readonly at: number }[] = [];
+  all.forEach((option, at) => {
+    const folded = searchTerm(option.name);
+    if (runOfWords(words(option.name), words(typed)) || runOfWords(words(typed), words(option.name))) {
+      ranked.push({ option, tier: 1, at });
+      return;
+    }
+    if (folded.includes(needle)) ranked.push({ option, tier: 2, at });
+  });
+
+  return ranked
+    .sort(
+      (a, b) =>
+        a.tier - b.tier || a.option.name.length - b.option.name.length || a.at - b.at,
+    )
+    .map((row) => row.option);
+}
+
+// ----------------------------------------------------------------------------
+// THE UNIT AND THE FAMILY, POLICING EACH OTHER — C8.5, made visible
+// ----------------------------------------------------------------------------
+
+/**
+ * The ten units in the order a person is offered them.
+ *
+ * ⚠️⚠️ ALL TEN, ALWAYS — WHICH REVERSES WHAT THIS FILE DID YESTERDAY. The first
+ * version narrowed the list to the family's own dimension, and the owner replaced
+ * that with a rule he can see: offer everything, and if he picks a unit the
+ * chosen family cannot hold, RELEASE THE FAMILY and say so (`chooseUnit`). ⚠️ The
+ * narrowing was not wrong about C8.5, it was wrong about who should notice — six
+ * options quietly missing from a picker is the app having decided again.
+ *
+ * ⚠️ THE ORDER IS `unit.display_order` AND NOT THE READ'S, AND THAT IS
+ * CORRECTNESS RATHER THAN TASTE. `catalogUnits` asks for no `order=`, so
+ * PostgREST may answer in any order it likes and a picker that trusted it would
+ * rearrange itself between launches. `0001` has its own opinion about prominence
+ * — `kg`, `l` and `pza` are all `10` — and the code breaks the tie so two shops
+ * see the same list.
+ */
+export function unitOrder(units: readonly UnitRow[]): readonly string[] {
   return units
-    .filter((unit) => wanted.length === 0 || wanted.includes(unit.dimension))
     .slice()
     .sort((a, b) => a.display_order - b.display_order || (a.code < b.code ? -1 : 1))
     .map((unit) => unit.code);
 }
 
-/**
- * The unit this create will actually use, out of what she picked and what is
- * offerable — or `''` when the question is still open.
- *
- * ⚠️⚠️ IT DROPS A PICK THE FAMILY NO LONGER ALLOWS, AND WITHOUT IT THE FORM
- * SHIPS A BUG NOTHING WOULD HAVE CAUGHT. `unitOptions` narrows on the FAMILY,
- * and the family moves while the form is open — she types `Leche`, picks `l`,
- * then overrides the family to `Pollo`. `l` is no longer on the screen and a
- * form holding it in `useState` would post it anyway: a litre of chicken,
- * accepted by Postgres, breaking the one rule the list above exists to keep.
- *
- * ⚠️ A LIST OF ONE ANSWERS ITSELF, and that is a DERIVATION rather than a
- * default the app guessed. A count family can only take `pza`, so asking is a
- * tap paid to be told there was no choice ([[prefer-the-option-that-adds-no-human-step]]).
- * ⚠️ It deliberately does NOT preselect out of a longer list: `kg` over `100g`
- * is a guess about how this shop prices, and C8.9 asks the question.
- */
-export function unitChoice(options: readonly string[], chosen: string): string {
-  if (chosen !== '' && options.includes(chosen)) return chosen;
-  if (options.length === 1) return options[0];
-  return '';
+/** `unit.dimension` by code — `mass`, `volume`, `count`. */
+function dimensions(units: readonly UnitRow[]): Readonly<Record<string, string>> {
+  const map: Record<string, string> = {};
+  for (const unit of units) map[unit.code] = unit.dimension;
+  return map;
 }
 
 /**
- * The one sentence the form shows after a create that WORKED — and there are
- * two of them, which is what `CreateSucceeded.priced` was put there for.
+ * The unit an existing family already prices in, or `''` when it has none.
  *
- * ⚠️⚠️ A PRODUCT SAVED WITHOUT A PRICE IS NOT THE SAME EVENT AS ONE SAVED WITH
- * ONE, AND THE DIFFERENCE IS NOT A DETAIL SHE CAN SEE FROM THIS FORM. C3.12
- * puts a dash on the row and the owner's own earlier ruling makes a sale
- * impossible without a price, so the thing worth saying is what happens NEXT —
- * the same argument `ES.catalog.notice.noPrice` makes before the save, in the
- * past tense afterwards.
+ * ⚠️ IT IS WHAT *PRESELECTS* WHEN HE PICKS A FAMILY, which is the owner's own
+ * rule and one tap saved on the commonest create in the shop: another cut of
+ * chicken, in kilos, like every other cut of chicken.
  *
- * ⚠️ IT IS `createLine`'s TWIN AND IS DELIBERATELY NOT `createLine` WIDENED.
- * That function turns three partial failures into two instructions; this one
- * turns two successes into two. One function over `CreateOutcome` would be a
- * single sentence-chooser whose branches share nothing, and the first thing
- * anyone would do to it is forget which half they were in.
+ * ⚠️ THE FIRST VARIANT'S UNIT AND NOT THE COMMONEST, and the difference is
+ * visible only in a family that already breaks C8.5 — which no path in this app
+ * can now produce. `catalogFrom` hands the rows back in the DATABASE's order
+ * (`order=name`), so "first" is stable between launches rather than being
+ * whatever the phone happened to receive first.
  */
-export function savedLine(outcome: CreateSucceeded): string {
-  return outcome.priced ? ES.catalog.create.saved : ES.catalog.create.savedNoPrice;
+export function familyUnit(entries: readonly CatalogEntry[], familyId: string | null): string {
+  if (familyId === null) return '';
+  const inFamily = entries.find((entry) => entry.familyId === familyId && entry.priceUnit !== '');
+  return inFamily === undefined ? '' : inFamily.priceUnit;
+}
+
+/** What `chooseUnit` answers: the family may have been let go, and it says so. */
+export interface UnitOutcome {
+  readonly family: FamilyChoice;
+  readonly unitCode: string;
+  /** ⚠️ True exactly when the family was RELEASED — the banner's whole trigger. */
+  readonly released: boolean;
+}
+
+/**
+ * Picking a unit — and the one case where that also changes the family.
+ *
+ * ⚠️⚠️ THE OWNER'S RULE, IN HIS WORDS: *"if the user selects a different unit,
+ * the family defaults to the variant again and shows a small banner."* This is
+ * C8.5 — *one family, many variants, ONE dimension* — enforced where a person
+ * can see it happen, because **nothing in the database enforces it at all**:
+ * `product_variant_units_same_dimension_trg` (`0002:204`) counts dimensions
+ * across the four unit columns of ONE row, and C8.10's fan-out makes that one by
+ * construction, so no constraint ever compares a new variant with its siblings.
+ *
+ * ⚠️⚠️ IT IS THE DIMENSION AND NOT THE EXACT UNIT, AND THAT IS A READING OF TWO
+ * OF HIS OWN SENTENCES THAT DISAGREE. The banner says *la misma unidad de
+ * medida*; C8.5, from the interview, says a family's variants *"all share
+ * kg/gr"* — which is the DIMENSION, since kg and gr are two units. Taking the
+ * banner literally would release the family the moment a shop priced
+ * `Menudencias` per `100g` inside a `Pollo` family sold per `kg`, and that is a
+ * real pollería. So `250g` inside a `kg` family is no conflict; `l` and `pza`
+ * are.
+ *
+ * ⚠️ IT ONLY EVER RELEASES A `chosen` FAMILY. A mirror and a typed-new family
+ * have no siblings to disagree with, so there is nothing for a unit to conflict
+ * with — and releasing a name he typed himself would be the app throwing away
+ * the one field it is sure about.
+ *
+ * ⚠️ AND AN UNKNOWN UNIT RELEASES NOTHING: if the `unit` read has not landed,
+ * `dimensions` has no answer, and a form that released the family on a missing
+ * dimension would punish him for a slow connection.
+ */
+export function chooseUnit(
+  family: FamilyChoice,
+  unitCode: string,
+  entries: readonly CatalogEntry[],
+  units: readonly UnitRow[],
+): UnitOutcome {
+  if (family.kind !== 'chosen') return { family, unitCode, released: false };
+  const dims = dimensions(units);
+  const existing = familyUnit(entries, family.id);
+  const want = dims[unitCode];
+  const has = dims[existing];
+  if (want === undefined || has === undefined || want === has) {
+    return { family, unitCode, released: false };
+  }
+  return { family: FAMILY_MIRROR, unitCode, released: true };
+}
+
+/**
+ * Picking a family — and the unit that comes with it.
+ *
+ * ⚠️ THE PRESELECT IS THE OWNER'S RULE AND IT DOES NOT OVERWRITE A UNIT HE
+ * ALREADY CHOSE DELIBERATELY *unless it has to*: a unit that conflicts with the
+ * family he just picked cannot stand, so the family's own unit wins and the form
+ * is consistent the moment the sheet closes. A form that kept the conflicting
+ * unit would need the banner to fire on a tap that did not touch the unit.
+ */
+export function chooseFamily(
+  option: FamilyOption,
+  unitCode: string,
+  entries: readonly CatalogEntry[],
+  units: readonly UnitRow[],
+): UnitOutcome {
+  const family: FamilyChoice = { kind: 'chosen', id: option.id, name: option.name };
+  const preselect = familyUnit(entries, option.id);
+  if (preselect === '') return { family, unitCode, released: false };
+  const dims = dimensions(units);
+  if (unitCode === '' || dims[unitCode] === dims[preselect]) {
+    return { family, unitCode: unitCode === '' ? preselect : unitCode, released: false };
+  }
+  return { family, unitCode: preselect, released: false };
 }
