@@ -856,12 +856,48 @@ export const ES = {
       familyMissing: 'Elige o escribe una familia para este producto.',
       unitMissing: 'Elige la unidad en la que vendes este producto.',
       /**
-       * ⚠️ ONE SENTENCE FOR BLANK AND FOR UNREADABLE, because they are one act
-       * for the person holding the phone: what is in the box is not a price and
-       * what fixes it is typing one. Telling her whether we objected to the
-       * emptiness or to the exponent is bookkeeping we do.
+       * ⚠️⚠️ THIS IS THE UNREADABLE BOX AND NO LONGER THE EMPTY ONE — the
+       * owner's ruling of 2026-09-22 split what had been one key. An EMPTY
+       * price is now a legitimate product (`ES.catalog.confirm.noPrice` is what
+       * it gets instead); `35,5,5` and `gratis` are still refused, because a
+       * price this app guessed at is a price the shop charges.
+       *
+       * ⚠️ IT SHOWS THE SHAPE RATHER THAN NAMING THE RULE. *"No se permiten
+       * exponentes"* is a parser talking about itself; an example is something
+       * a person can copy ([[users-dont-do-bookkeeping]]).
        */
-      priceMissing: 'Escribe el precio, por ejemplo 35.50',
+      priceUnreadable: 'Ese precio no se entiende. Escríbelo así: 35.50',
+    },
+
+    /**
+     * WHAT A SHOPKEEPER IS TOLD BEFORE A CREATE THAT IS ALLOWED BUT WORTH
+     * KNOWING ABOUT. Plan task `5e-i`, reopened by the owner's ruling of
+     * 2026-09-22. `priceConfirmKey` in `@/api/catalogWrite` chooses.
+     *
+     * ⚠️ IT IS ITS OWN BLOCK BESIDE `issues` AND NOT INSIDE IT, and the
+     * distinction is the ruling's substance: an `issue` STOPS the save and this
+     * does not. Folding them would put a sentence that means *go on* in the
+     * table of sentences that mean *you cannot*, and the next person to render
+     * the block would treat them alike.
+     */
+    confirm: {
+      /**
+       * ⚠️⚠️ THE OWNER'S OWN SENTENCE, TIGHTENED — his words were *"Si quieres
+       * comprar/vender tendrás que poner un precio al llevar a cabo la
+       * operación."* Three changes, and each is small: the slash becomes two
+       * verbs, because `comprar/vender` is a construction nobody says out loud;
+       * *la operación* becomes *lo compres o lo vendas*, because a shopkeeper
+       * does not have operations, he buys and sells; and the first half names
+       * what is about to happen so the sentence works whether `5e-ii` draws it
+       * as a confirmation he taps through or as a line under an empty box.
+       *
+       * ⚠️ WHY IT NAMES A CONSEQUENCE AND NOT A STATE. *"Este producto no tiene
+       * precio"* is what he just typed. C3.12 is the owner's own earlier ruling
+       * — *"impossible to concrete a transaction without a price"* — so the
+       * thing he cannot see from this form is that Vender and Comprar will both
+       * stop and ask him. That is the part worth a sentence.
+       */
+      noPrice: 'Este producto no tendrá precio. Cuando lo compres o lo vendas tendrás que ponerle uno.',
     },
 
     /**

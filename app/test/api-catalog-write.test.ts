@@ -13,6 +13,8 @@ import {
   familiesFrom,
   familyRow,
   parsePesos,
+  priceConfirmKey,
+  priceOmitted,
   priceRow,
   pricePerBase,
   retryDraft,
@@ -359,8 +361,7 @@ describe('the four fields, before Postgres is asked', () => {
       'familyMissing',
     );
     expect(checkProduct(draft({ unitCode: 'arroba' }), ENTRIES, FACTORS)).toBe('unitMissing');
-    expect(checkProduct(draft({ pricePesos: '' }), ENTRIES, FACTORS)).toBe('priceMissing');
-    expect(checkProduct(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBe('priceMissing');
+    expect(checkProduct(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBe('priceUnreadable');
   });
 
   it('takes a new family by name, with no id', () => {
@@ -388,6 +389,76 @@ describe('the four fields, before Postgres is asked', () => {
     const issue = checkProduct(draft({ name: '' }), ENTRIES, FACTORS);
     expect(issue).not.toBeNull();
     expect(ES.catalog.issues[issue as keyof typeof ES.catalog.issues]).toBeTypeOf('string');
+  });
+});
+
+describe('a product with no price — the owner\'s ruling of 2026-09-22', () => {
+  // ⚠️⚠️ THE RULING REVERSED WHAT `5e-i` SHIPPED THAT MORNING. The price was
+  // REQUIRED, on the reading that C8.9 lists it among the four fields; the owner
+  // overrode it — *"allow the user to create a product without a sell nor
+  // purchasing price, but highlight he's doing so"* — which is the smaller,
+  // kinder thing, and the sixth time on this project he has taken it.
+  it('lets an empty price box through', () => {
+    for (const typed of ['', '   ', '$', ' $ ']) {
+      expect(checkProduct(draft({ pricePesos: typed }), ENTRIES, FACTORS)).toBeNull();
+    }
+  });
+
+  // ⚠️ EMPTY AND UNREADABLE ARE NOW TWO FACTS, AND BEFORE THE RULING THEY WERE
+  // ONE. A box with `gratis` in it is still a refusal: a price this app guessed
+  // at is a price the shop charges.
+  it('still refuses a box holding something that is not a price', () => {
+    for (const typed of ['gratis', 'abc', '3e2', '35.555', '-5']) {
+      expect(priceOmitted(typed)).toBe(false);
+      expect(checkProduct(draft({ pricePesos: typed }), ENTRIES, FACTORS)).toBe('priceUnreadable');
+    }
+  });
+
+  // ⚠️⚠️ `priceOmitted` AND `parsePesos` MUST AGREE ABOUT WHAT *EMPTY* MEANS,
+  // which is why one function does the cleaning for both. If they disagreed,
+  // `checkProduct` would let a draft through that `createProduct` then treated
+  // as a bug — or the reverse, and a shopkeeper would be refused a product the
+  // owner ruled he may create.
+  it('agrees with parsePesos about which boxes are empty', () => {
+    for (const typed of ['', '  ', '$', ' , ', '35', '0', 'abc', '$1,234.50']) {
+      if (priceOmitted(typed)) expect(parsePesos(typed)).toBeNull();
+    }
+    expect(priceOmitted('0')).toBe(false);
+    expect(parsePesos('0')).toBe(0);
+  });
+
+  // ⚠️⚠️ `$0.00` AND NO PRICE ARE NOT THE SAME PRODUCT — C3.12, and it is the
+  // reason the third row is omitted rather than posted as zero. A zero is a
+  // price the owner SET and sells at; no row is a question nobody has answered.
+  it('treats a typed zero as a price, not as an omission', () => {
+    expect(priceOmitted('0')).toBe(false);
+    expect(priceConfirmKey(draft({ pricePesos: '0' }))).toBeNull();
+    expect(checkProduct(draft({ pricePesos: '0' }), ENTRIES, FACTORS)).toBeNull();
+    expect(pricePerBase(0, FACTORS.kg)).toBe('0.000000');
+  });
+
+  it('asks for a word only when the price is omitted', () => {
+    expect(priceConfirmKey(draft({ pricePesos: '' }))).toBe('noPrice');
+    expect(priceConfirmKey(draft({ pricePesos: '  ' }))).toBe('noPrice');
+    expect(priceConfirmKey(draft())).toBeNull();
+    expect(priceConfirmKey(draft({ pricePesos: 'gratis' }))).toBeNull();
+  });
+
+  // ⚠️ IT ANSWERS A KEY AND NEVER A SENTENCE (`R4`), the shape `checkProduct`
+  // and `emptyLineKey` already use.
+  it('answers a key of ES.catalog.confirm', () => {
+    const key = priceConfirmKey(draft({ pricePesos: '' }));
+    expect(key).not.toBeNull();
+    expect(ES.catalog.confirm[key as keyof typeof ES.catalog.confirm]).toBeTypeOf('string');
+  });
+
+  // ⚠️⚠️ THE SENTENCE NAMES THE CONSEQUENCE AND NOT THE STATE, which is the
+  // owner's own point: C3.12 is his earlier ruling that a transaction cannot be
+  // concreted without a price, so what he cannot see from this form is that
+  // Vender and Comprar will both stop and ask him.
+  it('tells him what it will cost at the counter, not what he just typed', () => {
+    expect(ES.catalog.confirm.noPrice).toMatch(/compres/);
+    expect(ES.catalog.confirm.noPrice).toMatch(/vendas/);
   });
 });
 

@@ -54,6 +54,9 @@
 #   7. A duplicate FAMILY names the other constraint the app keys on.
 #   8. ⚠️⚠️ The price written today is on the catalog read TODAY, byte for byte,
 #      through `5d-i`'s own window.
+#  8b. ⚠️⚠️ And a product created with NO price — which the owner ruled on
+#      2026-09-22 a shopkeeper may do — is on that same read with an EMPTY
+#      array, not dropped and not wearing a row of zero.
 #   9. ⚠️ The columns the app never sends come back at `0002`'s defaults.
 #  10. The shop next door cannot write into this one.
 #  11. A blank name and an unknown unit are the codes the app maps to its honest
@@ -257,15 +260,27 @@ VARIANT_ID="$(first_id "$(body "$VARIANT_OUT")")"
 PRICE_BODY="$(row "$PRICE_COLUMNS" "$WORKSPACE_ID" "$VARIANT_ID" "$NULL" "$PRICE_PER_BASE" "$TODAY" "$NULL")"
 PRICE_OUT="$(api POST "/rest/v1/$PRICE_TABLE?select=$INSERT_RETURNING" "$PRICE_BODY")"
 
+# ⚠️⚠️ AND THE TWO-ROW CREATE, WHICH IS A WHOLE PRODUCT SINCE THE OWNER'S RULING
+# OF 2026-09-22: *"allow the user to create a product without a sell nor
+# purchasing price."* No `price_list` row at all — not a row of zero, which
+# C3.12 makes a different product. Same family, same column list, one fewer
+# round trip.
+BARE_NAME="Plátano sin precio"
+BARE_BODY="$(row "$VARIANT_COLUMNS" "$WORKSPACE_ID" "$FAMILY_ID" "$BARE_NAME" kg kg kg kg)"
+BARE_OUT="$(api POST "/rest/v1/$VARIANT_TABLE?select=$INSERT_RETURNING" "$BARE_BODY")"
+BARE_ID="$(first_id "$(body "$BARE_OUT")")"
+
 note
 if [[ "$(status "$FAMILY_OUT")" == "201" && "$(status "$VARIANT_OUT")" == "201" \
-      && "$(status "$PRICE_OUT")" == "201" && -n "$FAMILY_ID" && -n "$VARIANT_ID" ]]; then
-  ok "the three rows the app builds are accepted, each with exactly its own columns"
+      && "$(status "$PRICE_OUT")" == "201" && "$(status "$BARE_OUT")" == "201" \
+      && -n "$FAMILY_ID" && -n "$VARIANT_ID" && -n "$BARE_ID" ]]; then
+  ok "the three rows the app builds are accepted, and so is the two-row create"
 else
   fail "the app's own insert bodies were not accepted:"
   echo "        $FAMILY_TABLE  $(status "$FAMILY_OUT") $(body "$FAMILY_OUT")"
   echo "        $VARIANT_TABLE $(status "$VARIANT_OUT") $(body "$VARIANT_OUT")"
   echo "        $PRICE_TABLE   $(status "$PRICE_OUT") $(body "$PRICE_OUT")"
+  echo "        $VARIANT_TABLE (no price) $(status "$BARE_OUT") $(body "$BARE_OUT")"
   echo "      Every column above is read out of $CONTRACT. A rename on either side"
   echo "      of the wire compiles, bundles and passes the whole Vitest suite."
   exit 1
@@ -390,7 +405,12 @@ fi
 # --- 8. ⚠️⚠️ THE TWO ARITHMETICS MEET, THROUGH 5d-i's OWN READ --------------
 # The price written above must be on the catalog read TODAY — not tomorrow —
 # byte for byte, and still a JSON STRING.
-READ_MODULE="app/src/api/catalog.ts"
+# ⚠️ AN ARGUMENT RATHER THAN A CONSTANT, AND THE REASON IS FALSIFIABILITY. The
+# claim below — that a product created with NO price is still on the catalog
+# read — lives half in this file and half in the READ module's embed, so a
+# harness that could not hand this check a mutated `catalog.ts` could not prove
+# the assertion still notices an `!inner`.
+READ_MODULE="${2:-app/src/api/catalog.ts}"
 rstr() { sed -n "s/^export const $1 = '\([^']*\)';.*/\1/p" "$READ_MODULE" | head -1; }
 R_VARIANT="$(rstr VARIANT_COLUMNS)"; R_FAMILY="$(rstr FAMILY_COLUMNS)"
 R_PRICE="$(rstr PRICE_COLUMNS)"; R_TABLE="$(rstr PRICE_TABLE)"
@@ -452,6 +472,43 @@ note
 OUT="$(python3 "$SCRATCH/roundtrip.py" "$CATALOG_FILE" "$VARIANT_ID" "$PRICE_PER_BASE" "$FAMILY_NAME" 2>&1)"
 [[ -z "$OUT" ]] && OUT="the verdict script produced nothing — it crashed on the shape that came back"
 if [[ "$OUT" == ok* ]]; then ok "the write and the read agree over a real database${OUT#ok}"; else fail "$OUT"; fi
+
+# --- 8b. ⚠️⚠️ THE PRODUCT THE OWNER RULED HE MAY CREATE --------------------
+# A product with NO price row must be ON the catalog read, with an EMPTY array —
+# which is what C3.12's dash is drawn from. Before the ruling of 2026-09-22 this
+# was only ever the seed's problem, and `5d-i` measures it on a variant a fixture
+# inserted; it is now something a shopkeeper DELIBERATELY makes on a form, so a
+# read that dropped it would hide a product he watched himself create.
+cat > "$SCRATCH/no-price.py" <<'NOPRICE'
+import json, sys
+path, bare_id, priced_id = sys.argv[1:4]
+rows = json.load(open(path))
+if not isinstance(rows, list):
+    print('the catalog read came back as an error: %r' % (rows,)); raise SystemExit
+bare = next((r for r in rows if r['id'] == bare_id), None)
+if bare is None:
+    print('the product created WITHOUT a price was DROPPED by the read. The owner ruled '
+          'on 2026-09-22 that a shopkeeper may create one; the embed must not be !inner, '
+          'or every product he makes that way vanishes off Productos the moment he saves '
+          'it, and C3.12 dash cannot be drawn on a row that is not there')
+    raise SystemExit
+if bare.get('price_list') != []:
+    print('the product created with no price came back with %r. It must be an EMPTY '
+          'ARRAY and not a row of zero: C3.12 makes 0.00 a price the owner SET and the '
+          'dash a question nobody answered, and this app deliberately posts no third row'
+          % (bare['price_list'],)); raise SystemExit
+priced = next((r for r in rows if r['id'] == priced_id), None)
+if priced is None or len(priced.get('price_list') or []) != 1:
+    print('the check can no longer tell a product with no price from a priced one, '
+          'because the priced product came back with %r, so an empty array proves nothing'
+          % (None if priced is None else priced.get('price_list'),)); raise SystemExit
+print('ok - a product created with no price is on the read with an empty array, and a '
+      'priced one beside it is not')
+NOPRICE
+note
+OUT="$(python3 "$SCRATCH/no-price.py" "$CATALOG_FILE" "$BARE_ID" "$VARIANT_ID" 2>&1)"
+[[ -z "$OUT" ]] && OUT="the no-price verdict crashed on the shape that came back"
+if [[ "$OUT" == ok* ]]; then ok "the product the owner ruled he may create${OUT#ok}"; else fail "$OUT"; fi
 
 # --- 9. the columns the app never sends ------------------------------------
 note
@@ -530,12 +587,13 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that asserted nothing looks
 # like.
-if (( ran < 15 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 15 — this check asserted almost"
+if (( ran < 16 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 16 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
 echo "all $ran assertion groups passed — app/src/api/catalogWrite.ts still describes the"
 echo "database: the three rows land in WRITE_ORDER's order, A CASHIER IS REFUSED ON ALL"
 echo "THREE TABLES, the duplicate is shop-wide and names its constraint, the fold is case"
-echo "and spaces and not accents, and the price written today is on today's catalog read."
+echo "and spaces and not accents, the price written today is on today's catalog read,"
+echo "and a product created with no price is on it too, wearing an empty array."

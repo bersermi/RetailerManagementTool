@@ -215,14 +215,44 @@ export function unitColumns(unitCode: string): UnitColumns {
  * charges.
  */
 export function parsePesos(typed: string): number | null {
-  const cleaned = typed.replace(/[\s,$]/g, '');
-  if (cleaned === '') return null;
+  const figure = cleanPesos(typed);
+  if (figure === '') return null;
   try {
-    const centavos = parseDecimal(cleaned, SCALE.money);
+    const centavos = parseDecimal(figure, SCALE.money);
     return centavos < 0 ? null : centavos;
   } catch {
     return null;
   }
+}
+
+/**
+ * What is left of a typed price once the decoration is off: the `$`, the
+ * thousands commas and the spaces. ⚠️ ONE HOME FOR THE CLEANING, because
+ * `priceOmitted` and `parsePesos` must agree exactly about what *empty* means —
+ * a box holding `"  $  "` is an empty box, and if only one of them thought so
+ * the other would refuse a product the owner ruled may be created.
+ */
+function cleanPesos(typed: string): string {
+  return typed.replace(/[\s,$]/g, '');
+}
+
+/**
+ * Is the price box EMPTY — as opposed to holding something that is not a price?
+ *
+ * ⚠️⚠️ THE TWO ARE DIFFERENT FACTS SINCE THE OWNER'S RULING OF 2026-09-22, AND
+ * BEFORE IT THEY WERE ONE. *"Let's allow the user to create a product without a
+ * sell nor purchasing price, but highlight he's doing so."* An empty box is now
+ * a legitimate create — the product goes into the catalog wearing C3.12's dash,
+ * which is exactly what that dash has always meant — and `abc` is still a
+ * refusal, because a price this app guessed at is a price the shop charges.
+ *
+ * ⚠️ IT IS NOT `parsePesos(typed) === null`. That answers null for BOTH, which
+ * is precisely the collapse the ruling undid: `checkProduct` would go on
+ * refusing the empty box, and `createProduct` could not tell a deliberate
+ * omission from a bug and would post a price row it has no figure for.
+ */
+export function priceOmitted(typed: string): boolean {
+  return cleanPesos(typed) === '';
 }
 
 /**
@@ -448,10 +478,44 @@ export function checkProduct(
   }
   if (draft.familyId === null && searchKey(draft.familyName) === '') return 'familyMissing';
   if (factors[draft.unitCode] === undefined) return 'unitMissing';
+  // ⚠️⚠️ AN EMPTY PRICE BOX IS NOT AN ISSUE — RULED 2026-09-22. It is a
+  // deliberate create, and `priceConfirmKey` below is what makes sure the
+  // shopkeeper knows he is making one. What is still refused is a box with
+  // something unreadable in it.
+  if (priceOmitted(draft.pricePesos)) return null;
   const centavos = parsePesos(draft.pricePesos);
-  if (centavos === null) return 'priceMissing';
-  if (pricePerBase(centavos, factors[draft.unitCode]) === null) return 'priceMissing';
+  if (centavos === null) return 'priceUnreadable';
+  if (pricePerBase(centavos, factors[draft.unitCode]) === null) return 'priceUnreadable';
   return null;
+}
+
+/**
+ * The one thing a shopkeeper must be TOLD before this create goes through — as
+ * a KEY of `ES.catalog.confirm`, never as a sentence.
+ *
+ * ⚠️⚠️ IT IS A WARNING AND NOT A REFUSAL, WHICH IS THE WHOLE OF THE OWNER'S
+ * RULING OF 2026-09-22. `5e-i` shipped the price as REQUIRED, on the reading
+ * that C8.9 lists it among the four fields; the owner overrode that — *"allow
+ * the user to create a product without a sell nor purchasing price, but
+ * highlight he's doing so"* — and the override is the smaller, kinder thing,
+ * which is the sixth time on this project he has chosen it.
+ *
+ * ⚠️ WHAT THE SENTENCE OWES HIM IS THE CONSEQUENCE, NOT THE STATE. C3.12 is the
+ * owner's own earlier words — *"impossible to concrete a transaction without a
+ * price"* — so a product with no `price_list` row is one Vender and Comprar
+ * will both have to stop and ask about. Telling him *"this product has no
+ * price"* would be telling him what he just typed; telling him what it will
+ * cost him at the counter is the part he cannot see from the form.
+ *
+ * ⚠️⚠️ AND IT IS `null` RATHER THAN A SENTENCE WHEN THE DRAFT IS PRICED, so a
+ * screen cannot render a warning about a product that does not need one. ⚠️ WHAT
+ * SURFACE IT IS SHOWN ON — a confirmation the shopkeeper taps through, or a
+ * line that appears under the price box as soon as it is left empty — is
+ * `5e-ii`'s and is routed to the owner's phone (`R9`, §2.11): nothing in this
+ * repository can say which of those reads better at a counter.
+ */
+export function priceConfirmKey(draft: ProductDraft): keyof typeof ES.catalog.confirm | null {
+  return priceOmitted(draft.pricePesos) ? 'noPrice' : null;
 }
 
 // ----------------------------------------------------------------------------
@@ -552,11 +616,19 @@ export function priceRow(
 // WHAT CAME BACK, AND WHAT IS LEFT BEHIND WHEN IT DIDN'T
 // ----------------------------------------------------------------------------
 
-/** All three rows landed. */
+/**
+ * The rows landed — all three, or the two that a priceless product needs.
+ *
+ * ⚠️ `priced` IS HERE BECAUSE THE FORM CANNOT WORK IT OUT AFTERWARDS. The draft
+ * it sent is gone by the time this comes back, and *what did we just save* is
+ * the one thing a confirmation may not get wrong. It is also what lets `5e-ii`
+ * say something different about a product that went in wearing C3.12's dash.
+ */
 export interface CreateSucceeded {
   readonly ok: true;
   readonly familyId: string;
   readonly variantId: string;
+  readonly priced: boolean;
 }
 
 /**
