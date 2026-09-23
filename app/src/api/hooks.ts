@@ -37,11 +37,23 @@ import {
   type ProductDraft,
 } from '@/api/catalogWrite';
 import {
+  PRICE_EDIT_KEY,
+  type ActivePatch,
+  type NamePatch,
+  type PriceChange,
+  type PriceChangeOutcome,
+  type PriceInForce,
+  type SettingsPatch,
+} from '@/api/catalogEdit';
+import {
   approveRequest,
   catalogUnits,
   catalogVariants,
   createInvite,
+  changePrice,
   createProduct,
+  patchVariant,
+  variantPrices,
   myAccessRequests,
   pendingAccessRequests,
   myWorkspaces,
@@ -913,4 +925,91 @@ export function useCreateProduct() {
   // rows would be two answers to *how many grams in a kilo*, which is the
   // refusal `@/api/catalog` records.
   return { create, busy: mutation.isPending, factors, units: units.data ?? [] };
+}
+
+/**
+ * `Editar`, as the one thing a screen is allowed to reach for (`R12`). Plan task
+ * `5e-iii-a`; `5e-iii-b` is the screen that calls it.
+ *
+ * ⚠️⚠️ IT READS THIS VARIANT'S DATED PRICE ROWS, WHICH `useCatalog` DOES NOT
+ * HOLD. The list read carries a figure and a scope per variant; every branch of
+ * `priceChange` turns on a row's `id` and on which DAY it started. So the price
+ * box cannot be planned off the catalog the phone already has, and a screen that
+ * tried would take the `closeAndOpen` branch on the second correction of a day
+ * and be refused a zero-length range.
+ *
+ * ⚠️⚠️ THE PRICE OUTCOME IS RETURNED RATHER THAN THROWN — `useCreateProduct`'s
+ * argument, sharpened. That call can half-happen too, and here the half-done
+ * state is a product with NO price on the shelf, so *"what actually happened"*
+ * is the one thing this hook may not lose. `priceChangeLine` is what says which
+ * of the two sentences to show, and `retryChange` is what the next attempt needs.
+ *
+ * ⚠️ THE THREE PATCHES THROW, BECAUSE A SINGLE CALL CANNOT HALF-HAPPEN. They are
+ * separate calls and not one body for `catalogEdit`'s recorded reason: a `23505`
+ * on the name must not be shown to somebody who changed the IVA.
+ *
+ * ⚠️⚠️ IT INVALIDATES `CATALOG_KEY` ON EVERY PATH THAT TOUCHED THE DATABASE,
+ * SUCCESS OR NOT — `useCreateProduct`'s one easy-to-get-wrong line, and it is
+ * worse here. A price change that failed AFTER the close really did remove a
+ * price; leaving the cached list alone would show the shopkeeper the old figure,
+ * on the screen she goes to next, for the five minutes of its `staleTime` — a
+ * price the till would no longer charge.
+ *
+ * ⚠️ AND `PRICE_EDIT_KEY` IS INVALIDATED WITH IT, because the plan for the NEXT
+ * change is built out of these rows: a second correction planned against the rows
+ * from before the first one would try to close a row that is already closed.
+ */
+export function useEditProduct(variantId: string | null) {
+  const queries = useQueryClient();
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null && variantId !== null;
+
+  const prices = useQuery({
+    queryKey: [...PRICE_EDIT_KEY, variantId],
+    queryFn: () => variantPrices(variantId as string),
+    enabled,
+  });
+
+  const mutation = useMutation({
+    mutationFn: (plan: PriceChange) => changePrice(plan),
+  });
+
+  async function refresh(): Promise<void> {
+    await queries.invalidateQueries({ queryKey: CATALOG_KEY });
+    await queries.invalidateQueries({ queryKey: PRICE_EDIT_KEY });
+  }
+
+  async function edit(patch: NamePatch | SettingsPatch | ActivePatch): Promise<void> {
+    if (variantId === null) return;
+    await patchVariant(variantId, patch);
+    await refresh();
+  }
+
+  async function reprice(plan: PriceChange): Promise<PriceChangeOutcome> {
+    let outcome: PriceChangeOutcome;
+    try {
+      outcome = await mutation.mutateAsync(plan);
+    } catch (thrown) {
+      // ⚠️ THE ONLY WAY HERE IS A THROW THAT IS NOT A REFUSAL — the fetch dying
+      // mid-flight. Nothing is known to have landed, so it is reported as a
+      // failure at the FIRST call of the plan with `closed` false, which is the
+      // state `retryChange` treats as "the whole plan again".
+      outcome = {
+        ok: false,
+        failed: plan.kind === 'reprice' ? 'reprice' : 'close',
+        closed: false,
+        error: thrown,
+      };
+    }
+    if (!outcome.ok ? outcome.closed : outcome.changed) await refresh();
+    return outcome;
+  }
+
+  return {
+    loading: prices.isPending && enabled,
+    prices: (prices.data ?? []) as readonly PriceInForce[],
+    edit,
+    reprice,
+    busy: mutation.isPending,
+  };
 }

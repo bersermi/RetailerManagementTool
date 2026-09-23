@@ -34,8 +34,34 @@ let a blocked task be marked as the next task.**
 | Decision | Blocks | The brief, already written |
 |---|---|---|
 
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-22, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
-SIXTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **FOURTEEN decisions have now been parked and cleared in
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-23, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+SEVENTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **FIFTEEN decisions have now been parked and cleared in
+this block, and the fifteenth spent about two hours in the table** — parked by `5e-iii`'s sizing
+and ruled the same evening. ⚠️⚠️ **IT WAS THE FIRST ONE HERE THAT WAS A CONTRADICTION RATHER
+THAN A QUESTION**, and that is worth keeping: the other fourteen asked the owner to choose, and
+this one told him two things he had already written down disagreed.
+~~one is owed as of 2026-09-23, it came out of `5e-iii`'s sizing, and it is the first
+one here that is a contradiction rather than a question — the owner's own C3.17 against the
+schema that has been applied since 2026-08-26. it does NOT block the task marked next.~~
+— ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.**
+
+✅✅ **THE C3.17 RULING, IN FULL, BECAUSE THE TABLE IT WAS IN IS NOW EMPTY — 2026-09-23:
+*"leave the fence as is."*** **The database stays manager-and-above on all three
+`price_list` policies and on `product_variant_update`, and C3.17 has been corrected rather
+than left standing**: its closing sentence claimed *"it is client-side only; no schema depends
+on it"*, which was false from the day `0002` applied and is now struck, with the measurement
+beside it. ⚠️⚠️ **WHAT IT DISCHARGES: `5e-iii-b` IS UNGATED AND IS THE NEXT TASK.** `Editar`
+is drawn manager-only, which is `5e-ii`'s treatment of the create control applied to the edit
+one, and the amber question resolves the same way — *the fix is one tap away* is true for the
+people who can make the tap. ⚠️⚠️ **WHAT IT DOES NOT DISCHARGE, AND NO SESSION MAY ASSUME IT
+EITHER WAY:** whether Vender offers a cashier a price override **for this sale only**, one
+that never writes `price_list`. That is a different affordance, it is entangled with C3.16's
+*a price change persists by default*, and **`5f`'s row is what owes it** — the same shape as
+`Costos` being *deferred to the row that can answer it* rather than dropped.
+~~nothing is owed as of 2026-09-22, and the empty table above is deliberate — for the
+sixth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
+`5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a
+rendering.** ⚠️ **FOURTEEN decisions have now been parked and cleared in
 this block, and the fourteenth spent about half an hour in the table** — parked by `5e`'s sizing and
 ruled the same evening. ~~one is owed as of 2026-09-22, it came out of `5e`'s sizing, and it blocks the
 last of that split's three children and nothing else.~~ — ⚠️ **struck in lower case deliberately,
@@ -284,6 +310,149 @@ the final code state: 16 of 16 green**, *A CASHIER IS REFUSED* on all three tabl
 reached one. ⚠️ **And do not read this as licence to merge red**: the rule is
 unchanged. This is a run that did not happen, which is a different thing from a run
 that failed, and the difference is visible in the step list.
+
+✅✅ **THE C3.17 CONTRADICTION WAS RULED ON 2026-09-23, ABOUT TWO HOURS AFTER IT WAS
+PARKED: *"leave the fence as is."*
+`5e-iii-b` IS THE NEXT TASK: `Editar`, DRAWN MANAGER-ONLY.** ⚠️ **It ships no
+migration**, and the ruling is why — the alternative was one.
+
+⚠️⚠️ **WHAT WAS CORRECTED RATHER THAN MERELY ANSWERED.** C3.17 closed with *"it is
+client-side only; no schema depends on it"*, and that sentence was **false from the day
+`0002` applied** — `price_list_insert`, `price_list_update` and `price_list_delete` are
+every one of them `has_role(workspace_id, 'manager')`. It is struck, with `5e-iii-a`'s
+measurement beside it: a cashier's INSERT is a `42501` and **her UPDATE is not refused at
+all**, because a `using` clause hides the row and PostgREST answers 200 with an empty
+array. ⚠️ **The constraint's own claim that this was the cheapest thing in its section to
+reverse is struck with it** — reversing it is an append-only migration that merges
+automatically, which is the opposite of cheap.
+
+✅ **WHAT IT DISCHARGES: `5e-iii-b` IS UNGATED**, `Editar` is drawn manager-only — the
+`5e-ii` treatment of the create control applied to the edit one — **and the amber
+question resolves with it.** *The fix is one tap away* is true for the people who can
+make the tap, and a cashier who can never set a price must not be shown an alarm she
+cannot silence. §2.11 fences `atención` to C3.17 alone, so that colour now has a rule
+rather than a guess.
+
+⚠️⚠️ **WHAT IT DOES NOT DISCHARGE, AND NO SESSION MAY ASSUME IT EITHER WAY:** whether
+Vender offers a cashier a price override **for this sale only**, one that never writes
+`price_list`. It is a different affordance from the one C3.17 describes, it is entangled
+with **C3.16**'s *a price change persists by default*, and **`5f`'s row now owes the
+word** — the `Costos` shape, deferred to the row that can answer it rather than dropped.
+⚠️ `5f` is therefore no longer marked next and **its sizing instruction stands**.
+
+✅✅ **`5e-iii-a` IS DONE AS OF 2026-09-23 — THE APP KNOWS HOW TO CHANGE A PRICE, AND
+THE UPDATE FENCE HAS AN INSTRUMENT FOR THE FIRST TIME.
+~~`5f` is the next task: Vender, and its own row says to size it first.~~ — ⚠️ **struck
+in lower case deliberately within the hour, by the C3.17 ruling above: `5e-iii-b` was
+ungated the same evening it was gated, so it goes back in front of `5f`.**
+One module, one hook, three calls, **50 new assertions**, a contract check over real
+HTTP and **twenty falsification fixtures** — ten through the suite and ten through the
+check. ⚠️ **It ships no migration**, as its row promised.
+
+⚠️ **WHAT SHIPPED.** `app/src/api/catalogEdit.ts` — the three patches, the two typed
+figures, the dated window's three branches, the retry and the refusals;
+`variantPrices`, `patchVariant` and `changePrice` in `@/api/calls`; `useEditProduct`
+in `@/api/hooks`; three new sentences and a new `ES.catalog.editIssues` block; and
+`docs/checks/5e-iii-a-catalog-edit-contract.sh`, wired into `db.yml` beside `5e-i`'s.
+
+⚠️⚠️ **THE FINDING, AND IT IS THE REASON THIS CHILD WAS WORTH A SESSION: THE FENCE ON
+AN UPDATE IS NOT THE FENCE ON AN INSERT, AND A CASHIER'S EDIT IS NOT REFUSED AT ALL —
+IT IS INVISIBLE.** Measured against a real database on 2026-09-23, not recalled.
+`price_list_insert` is `with check`, so a cashier posting a price gets the `42501`
+`5e-i` already records. Every UPDATE policy on these tables carries `using` as well,
+and **a row a `using` clause excludes is a row PostgREST cannot see** — so her PATCH
+matches nothing and comes back **HTTP 200 with `[]`**. No code, no message, no
+refusal. ⚠️⚠️ **A screen that read that as success would tell her the price changed
+while the shelf kept the old one** — [[shift-cover-is-a-reassignment]]'s silent
+refusal, arriving this time through a 200. ✅ **`.single()` on every patch is what
+turns it into a 406 `PGRST116`** — measured on both tables — and that code is now
+mapped to the same sentence as `42501`. **It is a deliverable, not a style**, and it
+is written down as one in the module and in the check.
+
+⚠️⚠️ **AND THE ORDERING CLAIM IS DRIVEN RATHER THAN ASSERTED.** *Close before you
+open* is not a preference: an overlapping insert answers **`23P01` on
+`price_list_no_overlap`**, and closing a row that started today answers **`23514` on
+`price_list_range_ordered`** — both read back off a real PostgREST, which is the only
+way either sentence could be checked at all. **The second is why `priceChange` has a
+third branch**, and a module with only the ordinary one would have worked all day and
+failed the second time a shopkeeper corrected a price.
+
+⚠️⚠️ **THREE DECISIONS WERE TAKEN ON THE OWNER'S BEHALF. NONE IS A MIGRATION AND NONE
+IS BAKED INTO A SEED, so all three are an edit rather than a fix-forward.**
+
+| | Decision | Why, and what the alternative was |
+|---|---|---|
+| **A** | ⚠️ **`PGRST116` IS READ AS THE FENCE**, and gets *"Solo el dueño o un gerente puede cambiar un producto."* | Zero rows on this path has one cause: the id comes from the catalog the phone just read, and **neither catalog table has a DELETE policy** — measured, `42501 permission denied for table product_variant` — so a row that vanished is not a state this app can produce. The alternative is `apiErrorMessage`'s *"algo salió mal"*, which is the honest nothing for a case that is never a mystery |
+| **B** | **THE CHANGE EDITS THE SCOPE THE READ RESOLVED**, and never invents one | `priceFor` prefers a store's own row, so correcting a store price stays a store price and correcting the shop-wide one stays shop-wide. ⚠️ Only a product with NO price is priced shop-wide, which is `5e-i`'s decision **A** unchanged. The alternative — always pricing the store this phone is standing in — is identical in both pilot shops (C1.5) and silently splits a shop's price list the first morning one opens a second store |
+| **C** | **AN UNTOUCHED BOX SENDS NO COLUMN**, and an identical price is no round trip at all | `0002` defaults `tax_rate` to 0 and `pack_size` to 1 for a shop selling basic groceries; sending those back explicitly looks identical in the row and is this app answering a question nobody asked — `VARIANT_INSERT_COLUMNS`' own argument. And closing and re-opening an unchanged price writes a change into the shop's price history that never happened, which `7`'s reports would eventually read as real |
+
+⚠️⚠️ **AND THE PARTIAL FAILURE IS NAMED RATHER THAN DISCOVERED.** Close lands, open
+does not, and the product is **priced yesterday and priceless today** — on the shelf,
+mid-morning, put there by somebody who was CORRECTING a price. It is
+`PriceChangeFailed.closed`, it has its own sentence (`ES.catalog.errors.priceGone`),
+and `retryChange` re-opens rather than re-closing. ⚠️ **What `5e-iii-b` must not do
+with it**: show *"no se pudo guardar"*, which would send a shopkeeper away believing
+the old price still stands while the next customer is charged nothing at all.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5e-iii-a-catalog-edit-contract.sh`
+reports **9 of 9 assertion groups green against a real database** — *A CASHIER IS
+REFUSED*, in both of its shapes, with the row read back afterwards and unchanged — and
+its own harness reports **10 of 10 fixtures behaving**, two of which move the codes the
+fence arrives as. Vitest: **916** over 34 files, up from 866 over 33, and **ten
+fixtures were driven through the new assertions and each turned exactly its own red**:
+the same-day branch removed, an identical price re-opened, the scope invented, the
+retry re-closing, `checkEdit` refusing the product itself, the tax ceiling dropped, a
+pack of zero allowed, the silent refusal unmapped, a half-done change wearing the
+ordinary sentence, and an untouched settings box sent as the column default.
+`tsc --noEmit`: clean. `conventions-gate.sh`: 16 groups over **62** source and **34**
+test files, and its own 30 fixtures. `5d-i-catalog-contract.sh` 12/12 and
+`5e-i-catalog-write-contract.sh` 16/16, both still green against the same database.
+`split-coverage.sh --all`: 15 specs, and `--quick` falsification over all of them.
+`plan-handover.sh` and `handbook-agreement.sh` green, the latter with **one** open
+decision and the handbook saying so.
+
+⚠️ **WHAT NO CHECK HERE CAN SEE (`R9`, §2.11), routed to `5e-iii-b` rather than
+guessed:** every screen question, and one that is not obviously one — **whether a
+shopkeeper should be told that a price change takes effect TODAY and not retroactively**.
+The dated window is the whole design and nothing on the form says it exists.
+
+⚠️⚠️ **`5e-iii` WAS SIZED ON 2026-09-23 BEFORE A LINE OF IT WAS WRITTEN, IT IS AN
+`M/L` AND NOT THE `M` THIS FILE CARRIED, AND IT SPLITS IN TWO.
+`5e-iii-a` IS THE NEXT TASK: THE EDIT AS A CONTRACT WITH POSTGRES, NO SCREEN ON IT.**
+⚠️ **Neither child ships a migration.** The ninth split in step 5 taken that way and
+the ninth that found something.
+
+⚠️ **THE SEAM IS `5e`'s OWN, ONE LEVEL DOWN — the move `5d-iv` made on 2026-09-22.**
+`5e` divided on the argument that `5e-i` is the half a machine can hold and the other
+two are the half only the owner's eye can. **`5e-iii`, alone of the three, still
+carried both**: a form somebody has to look at, and a write whose rules are an
+exclusion constraint, a range check and four `has_role(…, 'manager')` policies.
+`5e-iii-a` is the second `5e-i` — `app/src/api/catalogEdit.ts`, a node suite, and
+`docs/checks/5e-iii-a-catalog-edit-contract.sh` over real HTTP. `5e-iii-b` is
+`Editar` itself, and `R9` is its whole instrument.
+
+⚠️⚠️ **THE SIZING FOUND TWO THINGS THE ROW DID NOT SAY, AND THE FIRST IS THE WORST
+PARTIAL FAILURE THIS APP HAS HAD SO FAR.** The row described the same-day branch and
+stopped there. It never said the ordinary branch is **two calls whose order is
+forced**: the row in force must be CLOSED at today before the new one is opened, or
+both cover today and `price_list_no_overlap` refuses the second. ⚠️ **So there is a
+gap between them, and a failure inside it leaves the product priced yesterday and
+priceless today** — mid-morning, wearing C3.12's dash, done by a shopkeeper who was
+CORRECTING a price rather than removing one. **`5e-i`'s three partial states were
+invisible or harmless; this one is neither**, and it is now a named state with a
+retry that re-opens rather than re-closing.
+
+⚠️⚠️ **THE SECOND IS A CONTRADICTION BETWEEN THE OWNER'S OWN CONSTRAINT AND THE
+APPLIED SCHEMA, AND NOTHING IN THIS REPOSITORY HAD NOTICED IT IN FOUR WEEKS. IT IS
+PARKED IN THE DECISIONS BLOCK.** C3.17 says **any role may change a price, including
+a cashier**, and closes with *"it is client-side only; no schema depends on it."*
+⚠️ **That last sentence is false and has been since `0002` applied on 2026-08-26**:
+`price_list_insert`, `price_list_update` and `price_list_delete` are every one of
+them `has_role(workspace_id, 'manager')`. A cashier is refused by the database, in
+silence, with a bare `42501` — the shape [[shift-cover-is-a-reassignment]] records.
+⚠️ **It blocks `5e-iii-b` and `5f`, and it does NOT block `5e-iii-a`**: the module
+describes the fence the database applies today, and a ruling that widens the fence is
+a migration written against a module that already names it.
 
 ✅✅ **TWO BUGS FROM THE OWNER'S PHONE, FIXED 2026-09-23, AND ONE OF THEM WAS A
 FEATURE ADDED THE SAME DAY AND REMOVED AGAIN.
@@ -1134,178 +1303,14 @@ built `.app` is signed and waiting; connecting the phone and running
 `devicectl device install app` is a thirty-second step, and the next session
 should check it landed rather than assume it.
 
-✅✅ **`5d-iii` IS DONE AS OF 2026-09-22 — THE FAMILY OPENS FROM A TAP, AND
-`5d-iv` IS THE NEXT TASK: INICIO, THE REAL ONE.** One route, three pure
-functions, twelve assertions and the rows of Productos becoming pressable at
-last. **No migration, no primitive and no `src/ui/`.**
-
-⚠️⚠️ **THE HONEST HEADLINE FIRST, AND IT IS THE SAME ONE `5d-ii` CARRIED:
-NOTHING IN THIS REPOSITORY CAN SAY WHETHER THIS SCREEN LOOKS RIGHT.** §2.11
-keeps rendering, navigation and layout out of scope and `R9` is the rule.
-**The instrument is the owner's phone**, and the three questions it is being
-asked are named in the file's own header: whether a green rule down one row's
-edge reads as *this is the one you tapped* rather than as an alarm, whether
-three dead buttons read as deliberate rather than broken, and whether a family
-of six variants still fits above the three buttons at *Letra grande*.
-
-⚠️⚠️ **THE RULING IT IMPLEMENTS IS ONE LINE LONG AND IT FORBIDS THE OBVIOUS
-ANSWER.** Área 13, ruling 4, in the owner's words: *"the preselected variant
-shows no legend."* So the mark cannot be a word — not *seleccionado*, not a
-tick, not a badge. **And área 13's other surviving rule forbids the other
-obvious answer**: the one thing direction C left behind when B was chosen is
-*no state is ever announced by colour alone*. **What is left is colour AND a
-border**, which is what shipped: a `accion` rule down the row's leading edge
-and a heavier name. ⚠️ **The rule's WIDTH is constant and only its COLOUR
-changes**, because a border that appeared only on the marked row would shove
-that one name three pixels sideways — the single row that then fails to line up
-with the others, which reads as a rendering fault rather than as a mark.
-
-**THE SIX DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
-nothing else here can hold them:**
-
-| | The decision | What the alternative costs |
-|---|---|---|
-| **1** | ⚠️⚠️ **NOTHING IS MARKED WHEN THE ID IS NOT IN THIS FAMILY — NEVER A FALLBACK TO THE FIRST ROW** | The ruling took the legend away, so the mark is the ONLY thing on the screen saying *this is the one you came from*. Marking row one on a bad parameter puts that claim on a product she never touched, with nothing to correct it. `familyView` returns `null` and four assertions hold it |
-| **2** | ⚠️⚠️ **THE VARIANT ROWS HERE ARE NOT PRESSABLE EITHER** | Nothing consumes the selection yet: `Costos` and `Editar` are `5e`. A row that highlighted under a thumb and changed nothing is the control this whole step refuses — the same rule `5d-ii` applied to itself one task early. ⚠️ **One `useState` and a `Pressable` to reverse, the day `5e` gives the mark a consumer** |
-| **3** | ⚠️⚠️ **THE THREE AFFORDANCES ARE `View`s, NOT DISABLED `Pressable`s, AND THEY BORROW NO ACTION COLOUR** | `accion`/`accionSuave` mean *tappable at rest*, which is the claim these must not make, so they are `tintaApagada` on `fondo` inside a `linea` border. And a `View` has no handler to attach, so there is no press path to wire up wrong later |
-| **4** | ⚠️ **ONE SENTENCE UNDER THEM, NOT A LABEL ON EACH** | `ES.family.notYet` is the `ES.approvals.notYet` shape `5b-iii-d-1` shipped and `5b-iii-d-2` deleted — the one place this app explains its own state to a shopkeeper, because the alternative is her deciding her phone is broken. ⚠️ **`5e` deletes it**, and its own comment says so |
-| **5** | ⚠️ **NO INITIALS TILE ON THIS SCREEN, AND PRODUCTOS KEEPS ITS OWN** | C8.14's two letters stand in for a PHOTO among DIFFERENT products; a family is one product in several sizes, so six identical tiles is six copies of a picture nobody needs — and on Productos the tile is what now says *tappable*, which these rows are not |
-| **6** | ⚠️ **A `ScrollView` HERE AND A `FlatList` THERE** | The opposite call from Productos on the same argument: ~100 rows on two low-end Androids is what virtualisation is for (C8.3, C1.1), and a family is a handful of sizes whose three buttons have to scroll WITH them rather than float over them |
-
-⚠️⚠️ **AND THE AFFORDANCE ON PRODUCTOS WAS ALREADY DECIDED, BY THE TASK THAT
-COULD NOT USE IT.** `5d-ii` drew the initials tile on `fondo` and wrote down
-why — *`accionSuave`'s one job is the resting fill of an action, and these rows
-are not tappable until `5d-iii`*. They are now, so the tile moved to
-`accionSuave` and the rows became `Pressable`. ⚠️ **The alternative was a
-chevron, and C12.1 refuses an icon with no word beside it** — which is why the
-affordance had to be carried by HUE, the thing direction B was chosen over
-direction A for.
-
-⚠️ **THE ROUTE SHAPE IS A DECISION TOO: `/familia/<family_id>?variante=<id>`.**
-The family is what the screen SHOWS and the variant only marks a row in it, so
-one is the path and the other is a parameter — **and a link that lost the
-parameter still opens the right family with nothing marked**, which is the
-failure worth having. ⚠️ It is at the ROOT and in NO GROUP (`groupOf()` →
-`null`), it is a PUSHED screen rather than a sheet — no `Stack.Screen` entry, so
-no `presentation: 'modal'` — and it is **not** in `RESTORABLE_ROUTES`, which is
-Productos' own call: C1.3 reopens the screen a person was WORKING on, and
-reading a product is not work.
-
-**What shipped:**
-
-| | |
-|---|---|
-| `app/src/app/familia/[id].tsx` | the route, the banda, the marked row, the three dead affordances and the two empty states |
-| `app/src/api/catalog.ts` | `familyView`, `familyTitle`, `familyLineKey` — the three decisions on this screen that have a right answer |
-| `app/src/app/productos.tsx` | the row is a `Pressable`, the tile's ground is `accionSuave`, and the header paragraph that promised both is now the record that it happened |
-| `app/src/strings.ts` | `ES.family`'s nine words, the three affordances in the owner's own spelling |
-| `app/test/api-catalog.test.ts` | **twelve new assertions**, 689 tests in the app suite |
-
-⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
-`npm run test --workspace @tienda/app` is **689 tests over 29 files** (twelve
-new, all of them over `familyView` / `familyTitle` / `familyLineKey`),
-`npm run typecheck` clean **after expo-router's typed-route declarations were
-regenerated** — which is itself the evidence that the router discovers the new
-file, since the generator walked `src/app` and emitted `/familia/[id]` — and
-`bash docs/checks/conventions-gate.sh` is **16 groups over 56 source and 29 test
-files** (55 before). ⚠️⚠️ **`docs/checks/5d-i-catalog-contract.sh` WAS NOT RE-RUN BY
-HAND AND CI RAN IT ANYWAY — WHICH THE SESSION GOT WRONG FIRST AND THE JOB LOG
-CORRECTED.** A hand-run would have asserted nothing new: this task adds no
-column, no filter and no string that goes over the wire. **But `db.yml`'s
-`paths:` has watched `app/src/api/**` since `5b-i`** — because a module under it
-is a CLAIM ABOUT THE APPLIED SCHEMA — and this task appended three functions to
-`app/src/api/catalog.ts`, so the whole database workflow fired: **12 of 12
-against a real reset database, with its thirteen fixtures still red.** ⚠️ **The
-first draft of this paragraph said that workflow does not fire on an app edit.
-It does, and its own filter comment says why** — which is the difference between
-reading the job log and reading the tick. ⚠️⚠️ **And not one of those looked
-at a pixel.**
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the six in the table above, plus the
-route shape and the `RESTORABLE_ROUTES` omission. **Every one of them is one or
-two lines to reverse**, and the two worth a second look on the phone are the
-mark (decision 1's rule, and whether it reads as *you came from here*) and the
-three dead buttons (decisions 3 and 4 — whether they read as deliberate).
-
-✅✅ **`5d-ii` IS DONE AS OF 2026-09-22 — PRODUCTOS EXISTS.
-`5d-iii` IS THE NEXT TASK, AND IT IS WHAT MAKES THESE ROWS TAPPABLE.** One route, a search box, a flat list of every variant, and a
-temporary door on Inicio. **No migration, no primitive, and no `src/ui/`.**
-
-⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING IN THIS REPOSITORY CAN SAY WHETHER
-THIS SCREEN LOOKS RIGHT, AND THAT WAS TRUE BEFORE A LINE OF IT WAS WRITTEN.**
-§2.11 keeps rendering, navigation and layout out of scope; `R9` is the rule and
-this row is its largest instance so far. **The instrument is the owner's phone**,
-and what he is being asked to look at is named on the file's own header: whether
-the list is legible across a counter, whether the search box is reachable with
-one thumb, whether the initials tile reads as a product rather than a badge, and
-whether *Letra grande* leaves room for a price beside a long name.
-
-⚠️⚠️ **AND IT WAS NOT RENDERED HERE, WHICH IS WORTH RECORDING SO NOBODY REPEATS
-THE DETOUR.** The design emulator (`wera-android-36` — never the sealed
-`wera-reading-5a-iv-d`) was booted, the debug APK launched against Metro, and a
-demo shop seeded in the LOCAL stack with eight variants, two families, an
-accented name and one deliberately unpriced row. **Sign-in was refused as
-*invalid credentials* even after `.env.local` was pointed at the local stack,
-Metro restarted with `--clear`, `adb reverse tcp:54321` set and the app's data
-cleared** — and the served bundle demonstrably carried `http://localhost:54321`
-while the running app did not. ⚠️ **The error rules out the innocent reading**:
-`authErrorKey` maps a fetch failure to *sin conexión*, so the app reached an
-auth server and was told no — it was still running a bundle built against the
-hosted project. **Pointing a dev-client build at the local stack needs more than
-restarting Metro.** ✅ `app/.env.local` was restored **byte-identical** (`diff
--q`) and the emulator shut down.
-
-**THE FIVE DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
-nothing else here can hold them:**
-
-| | The decision | What the alternative costs |
-|---|---|---|
-| **1** | ⚠️⚠️ **THE ROWS ARE NOT PRESSABLE, AND THEY DO NOT LOOK IT** | `5d-iii` is what opens a family. A row that looked tappable and did nothing is *"a control that looks live and refuses silently"* — that row's own rule, applied a task early. No chevron, no ripple, no `Pressable` |
-| **2** | ⚠️⚠️ **A MISSING PRICE IS A DASH IN `tintaApagada`, NOT AMBER** | `atencion`'s ONE job is C3.17: a row whose missing price BLOCKS a sale, where the fix is one tap away. Nothing here can set a price — `Editar` is `5e` — so amber would be an alarm on a hundred rows nobody can silence, and a second job for the role. ⚠️ **This is the one to look at again when `5e` lands** |
-| **3** | ⚠️ **THE SEARCH BOX DOES NOT SCROLL AWAY** | C3.1 puts it *above* a scrolling list. A box inside the list as a header means scrolling back to the top to search, and the shop with a hundred products is the shop that searches |
-| **4** | ⚠️ **IT CLEARS WITH A WORD (*Limpiar*), NOT A CROSS** | `clearButtonMode` is iOS-only and C1.1 puts two Androids among the four pilot phones. C12.1 refuses an icon with no word, so the control that works on both is a labelled one |
-| **5** | ⚠️ **A `FlatList` AND NOT A `ScrollView`** | C8.3 is ~100 products and C1.1 two low-end Androids; a ScrollView mounts every row at once. This is the scroll that stutters on exactly those phones and on nobody's development machine |
-
-⚠️⚠️ **AND THE ONE DECISION WITH A RIGHT ANSWER WAS MOVED OUT OF THE SCREEN
-BEFORE IT SHIPPED.** The three things an empty list can mean — *the read is out*,
-*this shop has no products*, *nothing matches what you typed* — began as a
-ternary in the component, which is a decision no instrument here can read. It is
-`emptyLineKey` in `@/api/catalog` now, returning a KEY of `ES.catalog` and never
-a sentence (`R3`, `R4`, the shape `@/api/errors` and `linesOf` already use), with
-four assertions on it. ⚠️ **The two that must not collapse**: a shopkeeper with a
-hundred products who mistypes a name must not be told her catalog is empty — she
-is the merchant C8.2 describes, whose catalog is deliberately incomplete.
-
-**What shipped:**
-
-| | |
-|---|---|
-| `app/src/app/productos.tsx` | the route, the banda, the search box, the list, the row, the initials tile and the three empty states |
-| `app/src/api/catalog.ts` | `emptyLineKey` — the one decision on the screen that has a right answer |
-| `app/src/app/(tabs)/index.tsx` | the temporary door, with the comment that names `5d-iv` as the task that deletes it |
-| `app/src/strings.ts` | `ES.catalog`'s seven new words, the units map staying where it is |
-| `app/test/api-catalog.test.ts` | **four new assertions**, 677 tests in the app suite |
-
-⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
-`npm run test --workspace @tienda/app` is **677 tests over 29 files**,
-`npm run typecheck` clean, `bash docs/checks/conventions-gate.sh` **16 groups
-over 55 source and 29 test files** — which is where `R6` caught a literal
-`height: 1` in the separator and it became a hairline border, the same spelling
-every other file uses — and `bash docs/checks/5d-i-catalog-contract.sh` is still
-**12 of 12** against the live database. ⚠️⚠️ **Not one of those looked at a
-pixel, and no check in this repository ever will.**
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the five in the table above, plus
-**Productos is NOT in `RESTORABLE_ROUTES`** — C1.3 reopens the screen a person
-was WORKING on, and browsing the catalog is not work. Every one of them is one
-line to reverse.
 
 
 
 
 
 
-⚠️⚠️ **NINE ENTRIES OF 2026-09-22 ARE ARCHIVED, IN SEVEN CUTS, TO
+
+⚠️⚠️ **ELEVEN ENTRIES OF 2026-09-22 ARE ARCHIVED, IN NINE CUTS, TO
 [`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**
 — the `5c-ii-b` sizing and its connectivity reading, `5c-ii-b-2`'s flush trigger,
 the `5c-iv` sizing, **`5c-iv-a`, moved in the second cut while `5e` was being
@@ -1322,8 +1327,16 @@ one entry. `## Position` had reached **1,445 lines** before the first cut, and
 1,399 of 1,400 and the next session's first entry would have spent the last line** —
 with §2.8's Home amendment in a SEVENTH taken the same minute, because one entry of
 headroom is how a guard fires on somebody who has done nothing wrong.
+⚠️ **And `5d-ii`'s went in the EIGHTH, on 2026-09-23, because `5e-iii`'s sizing entry
+left this block forty-three lines of headroom** — and a closing entry is longer than
+that, so the session that wrote the sizing paid for its own successor rather than
+handing it a red.
+⚠️ **And `5d-iii`'s went in the NINTH, an hour after the eighth, because the C3.17
+ruling arrived the same evening `5e-iii-a` closed and this block reached 1,413** —
+⚠️⚠️ **a session that ships a task AND takes a ruling writes TWO entries, and sizing the
+archive for one of them is what put it over the ceiling twice in one hour.**
 ⚠️⚠️ **The archive is no longer strictly oldest-first and its own headings say so**:
-three cuts came off this block's head and four off its foot.
+three cuts came off this block's head and six off its foot.
 ⚠️ **This is the first cut taken from a day that was still running** — every
 earlier one waited for the day to close, because there was always an older day to
 take; today there was not. **A later session APPENDS to that file rather than
@@ -2524,8 +2537,27 @@ re-litigated from scratch.
   means **a cashier's counter discount permanently rewrites the shop's price list.**
   The owner was shown that consequence by name and took it: *"We'll perfectionate on
   the role capabilities, for now let's allow anyone to change the price."* (3.11,
-  3.15) **This is the cheapest thing in this section to reverse and the likeliest to
-  need reversing** — it is client-side only; no schema depends on it.
+  3.15) ~~**This is the cheapest thing in this section to reverse and the likeliest to
+  need reversing** — it is client-side only; no schema depends on it.~~
+  ⚠️⚠️ **STRUCK 2026-09-23, AND IT WAS NOT A WORDING ERROR — IT WAS FALSE ABOUT THE
+  DATABASE AND HAD BEEN FOR FOUR WEEKS.** `0002` applied `price_list_insert`,
+  `price_list_update` and `price_list_delete` on 2026-08-26 and **every one of them is
+  `has_role(workspace_id, 'manager')`**. So a schema does depend on it, this is
+  **not** the cheapest thing here to reverse — reversing it is an append-only
+  migration that merges automatically — and a cashier is refused today.
+  ⚠️⚠️ **MEASURED, NOT INFERRED (`5e-iii-a`, 2026-09-23):** her INSERT is a `42501`;
+  her UPDATE is **not refused at all** — a `using` clause hides the row, so PostgREST
+  answers **200 with an empty array** and the tap does nothing, visibly or otherwise.
+  ✅✅ **RULED BY THE OWNER 2026-09-23: *"leave the fence as is."*** **The database
+  stays manager-and-above, and this constraint no longer claims otherwise.**
+  ⚠️ **WHAT THE RULING DOES NOT SETTLE, and it is `5f`'s to raise:** whether Vender
+  offers a cashier a price override **for THIS SALE ONLY** — one that never writes
+  `price_list`. That is a different affordance from the one this constraint describes,
+  it is entangled with **C3.16**'s *a price change persists by default*, and no
+  session may assume it either way. **`5f`'s row carries it.**
+  ⚠️ **AND §2.11 FENCES THE `atención` COLOUR TO THIS CONSTRAINT ALONE**, so what
+  *the fix is one tap away* now means depends on who is holding the phone —
+  `5e-iii-b`'s own row is where that lands.
 
 #### The catalog (area 8)
 
@@ -2926,8 +2958,10 @@ free today and stay free until the first task merges.
 | **5e** | ⚠️⚠️ **SIZED `M/L` AND SPLIT IN THREE 2026-09-22, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-22, and it is the first task in step 5 that writes to the catalog~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Productos, write.** ⚠️⚠️ **WHY IT SPLIT, AND THE SEAM IS `5d`'s OWN ONE STEP ON: the first child ships NO SCREEN, AND IT IS THE ONLY CHILD ANY INSTRUMENT IN THIS REPOSITORY CAN LOOK AT.** §2.11 keeps rendering out of scope, so the two forms are judged on the owner's phone (`R9`) and nothing here will ever say they are wrong — but the WRITE is a contract with Postgres, and the fence on it is a policy a real database either applies or does not. ⚠️ **The fence is not a detail**: `product_variant_insert` and `product_family_insert` are both `has_role(…, 'manager')` in `0002`, and a cashier shown a control she will be refused silently is the shape [[shift-cover-is-a-reassignment]] records. **Sixteen deliverables, each landing in exactly one child below:** the four-field create turned into **three rows** a database will accept; **C8.10** — one unit written into all four unit columns, because `product_variant` demands four `not null` codes and a shopkeeper is asked one question; the typed peso figure written back as **`price_per_base`**, the inverse of the arithmetic `5d-i` shipped; the family **SUGGESTED FROM THE TYPED NAME**, folded the way `normalize_name` folds; the ORDER of the three writes and what a **partial failure** leaves, because PostgREST has no transaction to offer; the two refusals a shopkeeper can actually hit — **`23505`** on a name the shop already uses, `42501` on the fence — as sentences rather than codes; **`docs/checks/5e-i-catalog-write-contract.sh`**, the only instrument the fence ever gets; **C8.9**'s four fields and nothing else; the suggestion overridable by a **gesture**, and a family created in place; the three entry points **C8.12** names; the fence DRAWN, so a cashier is **never shown the control**; **`Editar`** and everything the four-field form pushed behind it; the price change and the **dated window** it has to respect; **`tax_rate`** and `pack_size`, set once and never guessed; deactivation by **`is_active`** rather than deletion, because neither catalog table has a delete policy; and what becomes of **`Costos`**, the third button `5d-iii` shipped dead. ⚠️⚠️ **TWO OF THE SIXTEEN WERE NOT IN THIS ROW WHEN IT WAS TAKEN, AND FINDING THEM IS MOST OF WHAT THE SIZING WAS WORTH.** `Costos` is `5e`'s by `5d-iii`'s row and by nothing here — the same shape as `5d`'s Inicio, a deliverable held only by a row this row does not read. And `Editar` was one word: its real subject is `tax_rate`, `pack_size` and deactivation, none of which this row listed, and one of which C8.8 forbids outright. | `M/L` — **split, three `M`s** | ✅ **UNGATED when it was taken, and ALL THREE CHILDREN ARE UNGATED AS OF 2026-09-22.** ~~one of the three is not: `5e-iii` is blocked on the `Costos` decision parked in the decisions block~~ — **ruled the same evening**, *"leave Costos dead until `5g`"* |
 | **5e-i** | ✅✅ **DONE 2026-09-22.** ~~this was the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **The catalog write, as a contract with Postgres — and the only child of `5e` an instrument in this repository can look at.** ⚠️ **NO SCREEN, NO COMPONENT AND NO PRIMITIVE**: `5h.5` owns `src/ui/` and comes after the screens that would justify a primitive, and everything here has a right answer a node suite can read. It turns the four-field create into **three rows** — a family when one is being made, the variant, the price — with **C8.10** fanning the one chosen unit into all four `not null` unit columns, and the typed peso figure written back as **`price_per_base`**, the exact inverse of the arithmetic `5d-i` shipped. The family is **SUGGESTED FROM THE TYPED NAME** here, folded through the same `searchKey` that already copies `normalize_name`, so the app never proposes a family the database will then refuse. ⚠️⚠️ **THE ORDER OF THE THREE WRITES IS A DELIVERABLE AND NOT AN IMPLEMENTATION DETAIL, BECAUSE POSTGREST HAS NO TRANSACTION TO OFFER.** Family, then variant, then price: a **partial failure** then leaves a family nobody can see — Productos is variant-first since 2026-09-15 — or a variant wearing C3.12's dash, and never a price pointing at a variant that does not exist. ⚠️ **The two refusals a shopkeeper can actually reach become sentences rather than codes:** **`23505`** on `product_variant_name_unique`, which is `(workspace_id, normalized_name)` and therefore SHOP-WIDE rather than per family — so `Pierna` under Pollo refuses `Pierna` under Cerdo, and `normalize_name` folds case and spaces but NOT accents — and `42501` on the fence. `searchKey`'s own doc-comment in `@/api/catalog` already names this task as the one that inherits that confusion. ⚠️⚠️ **`docs/checks/5e-i-catalog-write-contract.sh` IS THE ONLY INSTRUMENT THE FENCE EVER GETS, AND ITS CENTRAL ASSERTION IS THAT A CASHIER IS REFUSED.** No typecheck, suite or bundler has ever read a policy, and `CREATE POLICY` is not even in the knowledge graph; RLS is bypassed by `postgres`, so the run is `set role authenticated` over real HTTP with a real owner and a real cashier — the `5d-i` shape, pointed at the write side, with a falsifier beside it. ⚠️ **It ships no migration**: `0002` applied these three tables and their six write policies on 2026-08-26, and nothing here reopens the schema. ✅✅ **SHIPPED: `app/src/api/catalogWrite.ts`** — `WRITE_ORDER`, the three insert column lists and row builders, `unitColumns`, `parsePesos`/`pricePerBase`, `suggestFamily`/`familiesFrom`, `checkProduct`, `CATALOG_WRITE_REFUSALS`/`catalogWriteErrorMessage`, `retryDraft`/`createLine` — with `createProduct` in `@/api/calls`, `useCreateProduct` in `@/api/hooks`, `ES.catalog.issues` and `ES.catalog.errors`, and **44 assertions** in `app/test/api-catalog-write.test.ts`. ✅✅ **THE CHECK IS GREEN AND ITS HARNESS PROVES IT CAN STILL FAIL**: 15 assertion groups against a real database, 15 fixtures behind it, **five of which move the applied schema and put it back** because no client-side edit can make a policy admit a cashier. ⚠️⚠️ **REOPENED AND CLOSED AGAIN THE SAME DAY BY A RULING: *"allow the user to create a product without a sell nor purchasing price, but highlight he's doing so."* THE PRICE IS NO LONGER REQUIRED** — `checkProduct` lets an empty box through, `createProduct` posts **two rows** and never a `price_list` row of zero (C3.12: `$0.00` is a price the owner SET and the dash is a question nobody answered), `priceOmitted` tells an EMPTY box from an UNREADABLE one, and `noPriceNoticeKey` hands `5e-ii` the sentence **and the moment it appears** — it stays quiet until the rest of the draft is acceptable, because the price box starts empty. ⚠️ **`ES.catalog.confirm`/`priceConfirmKey` were renamed to `notice`/`noPriceNoticeKey` the same afternoon**, when the owner ruled the surface is a line and not a confirmation: a name that describes the thing he ruled against is a name that misleads the screen which renders it. The check gained a sixteenth group — the two-row create is on `5d-i`'s own read wearing an empty array — and the harness a seventeenth fixture, `G12`, which mutates the READ module to `!inner` and confirms the check notices when every priceless product would vanish. ⚠️ **THREE DECISIONS WERE TAKEN ON THE OWNER'S BEHALF** — a new product's price is SHOP-WIDE (`location_id` null), ~~the price is REQUIRED~~ **overruled the same day, above**, and `effective_from` is the device's local day — all three recorded in the status log above and in the PR body, and **the second was re-asked and RULED the same day**, which is what that routing was for. | `M` | ✅ **Closed** — ~~ungated~~ |
 | **5e-ii** | ✅✅ **DONE 2026-09-22, REOPENED AND CLOSED AGAIN 2026-09-23 BY A RULING — A SHOPKEEPER CAN MAKE A PRODUCT ON A PHONE, AND THE MANAGER FENCE IS NOW DRAWN AS WELL AS APPLIED.** ~~this was the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **`Agregar` — the shortest form that produces a usable product.** **C8.9**'s four fields and nothing else: a name, a family, one unit, one price. ⚠️⚠️ **IT IS PILOT-CRITICAL RATHER THAN A NICETY, AND C8.2 IS WHY**: the owner seeds the catalog himself but seeds it DELIBERATELY INCOMPLETE, *"to encourage him to create some on his own"* — so the first product this shop makes is made on this form, by a shopkeeper, with nobody watching. The family the child before it proposes is overridable by a **gesture**, and a family the shop does not have yet is created in place, which is what keeps *creating a variant is always through a family* true. ⚠️⚠️ **THE FENCE IS DRAWN RATHER THAN DISCOVERED: a cashier is never shown the control at all**, which is the `5d-iii` treatment of a button that writes — plainly absent beats looking live and refusing silently, and the refusal here is an RLS `42501` with no sentence of its own. ⚠️ **The three entry points **C8.12** names, and only two of them have a screen to hang on yet:** from Productos, and from inside an opened family where no family question is asked at all. **The Comprar/Vender `...` quick action is ROUTED to `5f` and `5g`** — they build the screens it opens from, and a door with no room behind it is the scaffolding `5d` spent a step deleting. ⚠️ **No check here can look at any of it** (`R9`, §2.11): the instrument is the owner's phone, and the questions it is asked go in this row before it ships. ⚠️ **It ships no migration.** ✅✅ **BOTH PRICE QUESTIONS ARE RULED AND THIS ROW OWES NEITHER.** ~~is the price required?~~ ~~and where does the message go?~~ — answered on 2026-09-22, in that order: **a product may be created with none**, and the sentence is **a line under the empty price box with NO EXTRA TAP**, never a confirmation he dismisses ([[prefer-the-option-that-adds-no-human-step]]). `5e-i` shipped the write, the sentence (`ES.catalog.notice.noPrice`) and **when it appears** — `noPriceNoticeKey` stays quiet until the rest of the draft is one the database would accept, because the price box starts empty and a notice keyed on emptiness alone would be on screen before a character is typed. ⚠️ **SO THIS ROW RENDERS AND DECIDES NOTHING**, which is the seam `5e`'s split exists for. ⚠️ **What is still the owner's eye and not a check (`R9`)**: whether that line reads well at a counter — where it sits and how quiet it is. ✅✅ **SHIPPED: `app/src/app/producto/nuevo.tsx`** — the four fields, the suggestion with `Cambiar` beside it, a family created in place, the unit chips, the no-price line, the one refusal slot and the confirmation — with **two doors into it**: `Agregar` in the Productos banda, and `Agregar Variante` on La Familia now live and passing `?familia=<id>` so **no family question is asked** (C8.12). ⚠️ **`ES.family.notYet` WAS REWORDED RATHER THAN DELETED** — it named three dead buttons and one of them opened a form, so the sentence was false while still rendering green; the other two stay drawn dead, and `5e-iii` and `5g` delete the halves they finish. ⚠️ **The two words those buttons carry are deliberately not spelled in this row** — they belong to the child below, and *never spell a check's sentinel in the file it reads* is the rule `split-coverage.sh` caught this row breaking. ⚠️⚠️ **AND DRAWING IT MOVED FIVE DECISIONS INTO `@/api/catalogWrite` (`R3`), WHICH THIS ROW HAD SAID IT WOULD NOT HAVE**: `canWriteCatalog` (the fence, so a cashier is **never shown the control**), `resolveFamily` (which family answer wins when the suggestion is overridden by a **gesture**), `unitOptions` + `unitChoice` (**C8.5**, and the finding below), and `savedLine`. **21 new assertions** in `app/test/api-catalog-write.test.ts`, seven falsification fixtures behind them, and **851** in the suite. ⚠️⚠️ **THE FINDING: NOTHING IN THE DATABASE APPLIES C8.5 ACROSS VARIANTS.** `product_variant_units_same_dimension_trg` (`0002:204`) counts dimensions across the four unit columns of ONE row, and the fan-out `5e-i` shipped writes the same code into all four — so the trigger can never fire from this app and nothing compares a new variant against its SIBLINGS. *One family, one dimension* was a promise **nothing in this system kept**, and a picker offering all ten units inside a family measured in kilos would have had Postgres accept a litre of chicken. ⚠️⚠️ **REOPENED THE NEXT MORNING BY THE OWNER, WHO HELD IT AND REPLACED FOUR OF ITS DECISIONS — AND ONE SENTENCE COVERS ALL FOUR: *a proposal must not look like a decision already made.*** **(1) `Agregar` IS DELETED.** Creation is reached by SEARCHING: he types a name, and only when nothing matches does the typed name become a row with *Crear Nuevo Producto* under it — *"this allows us to discard partially duplicate product creation"*, and it is **closer to C8.12 than the button was**, because that constraint says *from Productos, type the name*. **(2) THE FAMILY MIRRORS THE VARIANT** and no longer matches an existing family behind his back — the matching survives as tier 1 of a ranked family SEARCH, which is the third of the three scenarios he ranked. **(3) THE UNIT AND THE FAMILY POLICE EACH OTHER**: picking an existing family preselects its unit, and picking a unit that family cannot hold RELEASES the family and says why in a banner that fades. ⚠️ That replaced the narrowed picker — *six options quietly missing is the app deciding again* — and it is the same C8.5 kept where a person can watch it happen. **(4) THE CONFIRMATION MOVED TO THE CATALOG**: the form pops back to Productos with `?nuevo=`, which scrolls the new product into sight in its alphabetical place and blinks its opacity three times, *"don't [add] any other indicator like a line or anything"*. ⚠️ **All three fields now carry a HINT and not a value**, and the no-price line is his own rewording. | `M` | ✅ **Closed** — reopened 2026-09-23 and closed the same day — ~~ungated, and `5e-i` is DONE~~ — ~~it wants `5e-i` first~~; the rows it posts and the suggestion it draws are that child's whole deliverable, and they exist now: `useCreateProduct`, `suggestFamily`, `checkProduct` and `createLine` |
-| **5e-iii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-22.** **`Editar`, and everything the four-field form pushed behind it.** The rename; the price change and the **dated window** it has to respect; **`tax_rate`** and `pack_size`, set once here and never guessed at a till; and deactivation by **`is_active`** rather than deletion, because neither catalog table has a delete policy and a product with ledger history behind it must not be removable. ⚠️⚠️ **THE PRICE CHANGE IS THE SUBSTANCE, AND IT HAS A BRANCH NOTHING ELSE IN THIS APP HAS.** `price_list` is a dated range table under an exclusion constraint, so the ordinary change closes the row in force at today and opens a new one — but a SECOND change on the SAME DAY cannot, because `price_list_range_ordered` refuses a zero-length range, and it must update the row in force instead. **A screen that knew only the first branch would work all day and fail the second time a shopkeeper corrected a price**, which is precisely the moment he is watching it. ⚠️⚠️ **`enforce_stock` IS NEVER ON THIS FORM AND THAT IS A HARD PILOT CONSTRAINT**: C8.8 says no pilot screen may expose it, C8.6 guarantees permanent drift in both directions, and this is the one screen that would ever have been tempted to offer it. ⚠️⚠️ **AND WHAT BECOMES OF `Costos` IS RULED RATHER THAN CARRIED: *"Leave Costos dead until `5g`"* (2026-09-22).** The third button `5d-iii` shipped dead beside `Agregar Variante` was assigned to `5e` by that row and by no other record in this file, and **nothing in this app writes a purchase until `5g`** — so a costs view built here would show an empty list on every product in the shop, forever, which is the premise problem the Inicio ruling of the same day named. ⚠️ **SO THIS ROW BUILDS NOTHING FOR IT AND DELETES NOTHING EITHER**: the button stays drawn dead with `ES.family.notYet` under it, which is `5d-iv-b`'s Proveedores treatment and refused for its reason — an affordance a shop has seen and then seen vanish reads as an app getting smaller. ⚠️ **`5g` is the row that owes the word**, and its own cell says so. ⚠️ **It ships no migration.** ⚠️⚠️ **AND `5e-ii` LEFT IT ONE THING ITS OWN ROW DID NOT LIST: THE DASH ON LA FAMILIA IS STILL `tintaApagada` AND NOT AMBER, AND THIS IS THE TASK THAT MAKES THAT A REAL QUESTION.** `5d-iii` wrote *look at this again when `5e` lands*; `5e-ii` looked and left it, because `Agregar` can CREATE a priceless product and nothing anywhere can yet PRICE one — so C3.17's *the fix is one tap away* was still false and amber would still be an alarm nobody can silence. **This row is where it becomes true.** | `M` | ✅ **UNGATED as of 2026-09-22** — ~~blocked on the `Costos` decision parked that morning~~, **ruled the same evening**, and the ruling is recorded in the decisions block and in this row. ⚠️ **It still wants `5e-i` first** — the price branch above is that child's arithmetic and that child's check |
-| **5f** | ⚠️⚠️ **THE QUANTITY CONTROL IS SPECIFIED BY THE OWNER AS OF 2026-09-23, AND IT IS THE FIRST THING TO READ ON THIS ROW.** *"$45/250gr, when selling he can use the stepper to go 250 → 500 → 750 → 1000. But he can also tap to enter 288gr if needed."* **So the stepper's step is the PRICE UNIT and free entry is the BASE unit, and both go in the same line.** ⚠️⚠️ **IT NEEDS NO MIGRATION AND THAT WAS MEASURED RATHER THAN HOPED (2026-09-23):** `sale_line` (`0003:306`) carries **`qty_base numeric(14,3)`, `qty_display numeric(14,3)` AND `qty_display_unit`** as three separate columns, and `record_sale` (`0016`) takes `qty_display` with an optional `qty_display_unit`, computing `qty_base = round(qty_display * factor_to_base, 3)`. So `250 → 500 → 750` is `qty_display` 1, 2, 3 in `250g`, **and 288g is `qty_display: 288, qty_display_unit: 'g'` — exact, with no fractional display quantity and no schema change.** `unit_price_net_per_base` is `numeric(14,6)`, so `$45/250g` is `0.18/g` and 288g is `$51.84` to the centavo. ⚠️ **THE STEP IS `unit.factor_to_base` AND NOT A NUMBER THIS SCREEN PICKS** — the map is already on the phone (`unitFactorsFrom`, `5d-i`) and `@/offline/deadLetters` takes it as an ARGUMENT for the same reason: two answers to *how many grams in a kilo* is one too many. ⚠️ **AND `5e-ii` DELIBERATELY BUILT NONE OF IT.** `Agregar` writes `price_per_base` and one `price_unit_code`; the owner's words were *"we're just making the Crear Producto… just make a very good consideration about these things for the future parts"*, so this row is the consideration and the code is this row's. **The one thing `5e-ii` had to get right for it is that the price is stored PER BASE UNIT**, which it is — the inverse arithmetic `5d-i` shipped — so a product created at `$45/250g` can be sold in grams without anything being re-derived. **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. ⚠️⚠️ **AND TWO CONFIRMATION ANIMATIONS, ADDED BY THE OWNER 2026-09-21 IN PLACE OF THE CHANGE CALCULATION HE DEFERRED** — *"a simple confirmation animation if the sale is done and another one if we empty the carrito."* ⚠️ **Two constraints on them and neither is taste:** §2.11's motion rule is **`transform` and `opacity` ONLY** — a performance rule, because C1.1 puts two low-end Androids among the pilot's four phones and animating layout, colour or shadow does not run on the compositor. ⚠️⚠️ **And the sale confirmation fires on ENQUEUE, never on the server's reply**: C10.3 says the slide looks identical offline, and `5c-i` made that structural by having `queueWrite` return a row rather than a promise. **An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it.** ⚠️⚠️ **AND IT OWES ONE LINE THAT NOTHING HERE CAN SEE UNTIL IT IS WRITTEN: THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`.** `5c-ii-b-2` built the trigger and shipped that function with **no caller**, deliberately and for the reason `R9` exists: there is no screen to call it from yet. ⚠️ **Without the call, the ONLINE path is the worse of the two** — a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger it, and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger has to be TOLD rather than awaited; calling it offline or before the monitor starts is a safe no-op, so the screen never has to ask. ⚠️⚠️ **AND IT OWES A SECOND LINE NOTHING HERE CAN SEE, ADDED BY `5c-iv-b` ON 2026-09-22: THE UNIT FACTORS THIS SCREEN ALREADY NEEDS MUST BE HANDED TO `@/offline/deadLetters` TOO.** This screen has to price a basket with no signal (§2.6, C10.3), so it already holds `unit.factor_to_base` for every display unit a shop sells in; `5c-iv-b` takes that map as an ARGUMENT (`NO_UNIT_FACTORS`, empty today) rather than hard-coding `0001`'s ten rows, precisely so this app never grows a second answer to *how many grams in a kilo*. ⚠️ **Until the map is passed, the dead-letter banner prices only a line quoted in its variant's own base unit** — factor exactly `1` by `0001`'s `unit_base_is_identity` — **and withholds the peso figure for the rest rather than understating it**, which is what `QueueValue.complete` is for. **Nothing goes wrong quietly; the count is still right and the figure is simply absent**. ⚠️⚠️ **AND IT OWES A THIRD THING, WHICH IS NOT CODE: THE FIRST LOOK AT `5c-iv-b`'s BANNER.** Ruled by the owner on 2026-09-22 — see the working agreement at the foot of this file. That banner draws only when the outbox holds a `dead` row, and **nothing in this app enqueues anything until this screen exists**, so it has never been on a screen and could not be. **The three questions it left open are look-questions and they are answered HERE, with the app in a hand, not before:** ✅ **(a) placement — ANSWERED 2026-09-22 AND NO LONGER A LOOK-QUESTION.** ~~it sits at the TOP of every screen because `OfflineSurfaces` owns the bottom; *on Inicio only* is the alternative, and it is one condition either way.~~ The owner ruled **Inicio only**, which is the alternative that row named, and it shipped as `onHome`. ⚠️ **It was settled on paper rather than on a phone because ADR-035 §2.8 forbade the shipped placement outright** — a disagreement a session building Inicio would have resolved by deleting the banner. **Two look-questions remain here, not three.** ⚠️ **(b) size and weight** — three lines of `bodySize` in a pill, no state colour. ⚠️⚠️ **AND AS OF `5d-iv-b` THIS IS NO LONGER ONLY THE BANNER'S QUESTION: INICIO NOW RESERVES ROOM FOR IT UNCONDITIONALLY** (`bannerRoom`), so the same look answers two things at once — whether the pill is the right weight, and whether the gap it sits in reads as deliberate or as a hole at the top of Home on every phone that never dead-letters anything. ⚠️ **`bannerRoom` clears the pill's MINIMUM and no more**, so a three-line banner in `Letra grande` may overlap the takings until a short scroll — that is the case to look at, and it is the one no check here can reach. ⚠️ **(c) the words** — *"N operaciones no se guardaron"*, *"Valor: $X"*, *"Avísanos para recuperarlas."* ⚠️ **The cheapest way to ask all three is to ring up a sale with the phone in airplane mode against a shop code that no longer resolves**, which is the one path that puts a `dead` row on a device without a migration or a fixture. ⚠️ **None of this blocks this row** — it is a review that rides along with it | `XL` | — |
+| **5e-iii** | ⚠️⚠️ **SIZED `M/L` AND SPLIT IN TWO 2026-09-23, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this is the next task, as of 2026-09-22~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **`Editar`, and everything the four-field form pushed behind it.** The rename; the price change and the **dated window** it has to respect; **`tax_rate`** and `pack_size`, set once here and never guessed at a till; and deactivation by **`is_active`** rather than deletion, because neither catalog table has a delete policy and a product with ledger history behind it must not be removable. ⚠️⚠️ **THE PRICE CHANGE IS THE SUBSTANCE, AND IT HAS A BRANCH NOTHING ELSE IN THIS APP HAS.** `price_list` is a dated range table under an exclusion constraint, so the ordinary change closes the row in force at today and opens a new one — but a SECOND change on the SAME DAY cannot, because `price_list_range_ordered` refuses a zero-length range, and it must update the row in force instead. **A screen that knew only the first branch would work all day and fail the second time a shopkeeper corrected a price**, which is precisely the moment he is watching it. ⚠️⚠️ **`enforce_stock` IS NEVER ON THIS FORM AND THAT IS A HARD PILOT CONSTRAINT**: C8.8 says no pilot screen may expose it, C8.6 guarantees permanent drift in both directions, and this is the one screen that would ever have been tempted to offer it. ⚠️⚠️ **AND WHAT BECOMES OF `Costos` IS RULED RATHER THAN CARRIED: *"Leave Costos dead until `5g`"* (2026-09-22).** The third button `5d-iii` shipped dead beside `Agregar Variante` was assigned to `5e` by that row and by no other record in this file, and **nothing in this app writes a purchase until `5g`** — so a costs view built here would show an empty list on every product in the shop, forever, which is the premise problem the Inicio ruling of the same day named. ⚠️ **SO THIS ROW BUILDS NOTHING FOR IT AND DELETES NOTHING EITHER**: the button stays drawn dead with `ES.family.notYet` under it, which is `5d-iv-b`'s Proveedores treatment and refused for its reason — an affordance a shop has seen and then seen vanish reads as an app getting smaller. ⚠️ **`5g` is the row that owes the word**, and its own cell says so. ⚠️ **It ships no migration.** ⚠️⚠️ **AND `5e-ii` LEFT IT ONE THING ITS OWN ROW DID NOT LIST: THE DASH ON LA FAMILIA IS STILL `tintaApagada` AND NOT AMBER, AND THIS IS THE TASK THAT MAKES THAT A REAL QUESTION.** `5d-iii` wrote *look at this again when `5e` lands*; `5e-ii` looked and left it, because `Agregar` can CREATE a priceless product and nothing anywhere can yet PRICE one — so C3.17's *the fix is one tap away* was still false and amber would still be an alarm nobody can silence. **This row is where it becomes true.** ⚠️⚠️ **WHY IT SPLIT, AND IT IS `5e`'s OWN SEAM ONE LEVEL DOWN — THE SAME MOVE `5d-iv` MADE ON 2026-09-22.** `5e` divided on the argument that `5e-i` is the half a machine can hold and the other two are the half only the owner's eye can; this child, alone of the three, still carried **both**. The price change is not a form detail, it is **three branches of a contract with Postgres under an exclusion constraint**, and the UPDATE fence on four policies is a thing no typecheck, suite or bundler has ever read. The rest — what the form looks like, which door opens it, whether the dash turns amber — is rendering, and §2.11 keeps rendering out of every instrument in this repository. ⚠️⚠️ **AND THE SIZING FOUND TWO THINGS THE ROW ABOVE DOES NOT SAY, WHICH IS MOST OF WHAT IT WAS WORTH.** **(1) THE CLOSE-AND-OPEN HAS A PARTIAL FAILURE `5e-i`'s NEVER HAD, AND IT IS THE WORST ONE IN THE APP SO FAR**: the old row must be closed BEFORE the new one is opened, or the two overlap and `price_list_no_overlap` refuses both — and if the second call then fails, the product is left **priced yesterday and priceless today**, mid-morning, by a shopkeeper who was correcting a price. **`docs/checks/5e-iii-a-catalog-edit-contract.sh`** is the instrument that half gets, and it asserts on UPDATE what `5e-i`'s asserted on INSERT. **(2) C3.17 AND THE APPLIED SCHEMA CONTRADICT EACH OTHER AND NOBODY HAD NOTICED**; it is parked in the decisions block and it blocks the second child, not the first | `M/L` — **split, two `M`s** | ✅ **UNGATED as of 2026-09-22** — ~~blocked on the `Costos` decision parked that morning~~, **ruled the same evening**, and the ruling is recorded in the decisions block and in this row. ⚠️ **It still wants `5e-i` first** — the price branch above is that child's arithmetic and that child's check. ⚠️ ~~`5e-iii-a` is ungated; `5e-iii-b` is NOT~~ — **both are ungated as of 2026-09-23**, `5e-iii-a` is DONE, and the C3.17 question that gated the second was ruled the evening it was parked |
+| **5e-iii-a** | ✅✅ **DONE 2026-09-23 — THE APP KNOWS HOW TO CHANGE A PRICE, AND THE UPDATE FENCE HAS AN INSTRUMENT FOR THE FIRST TIME.** ~~this is the next task, as of 2026-09-23~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **THE FINDING: A CASHIER'S EDIT IS NOT REFUSED, IT IS INVISIBLE.** Every UPDATE policy here carries `using`, and a row a `using` clause excludes is a row PostgREST cannot see — so her PATCH matches nothing and comes back **200 with `[]`**, measured 2026-09-23. `.single()` on every patch is what turns that into a `PGRST116` an app can act on, and it is mapped to the same sentence as `42501`. ✅ **SHIPPED:** `app/src/api/catalogEdit.ts`, `variantPrices`/`patchVariant`/`changePrice` in `@/api/calls`, `useEditProduct`, `ES.catalog.editIssues` and three new refusal sentences, **50 assertions** with ten falsification fixtures, and `docs/checks/5e-iii-a-catalog-edit-contract.sh` — **9 of 9 green against a real database**, its own harness 10 of 10, wired into `db.yml`. **The edit as a contract with Postgres, and it ships NO SCREEN AND NO COMPONENT.** The `5e-i` shape and the `5d-iv-a` shape: `app/src/api/catalogEdit.ts`, a node suite over it, and **`docs/checks/5e-iii-a-catalog-edit-contract.sh`** over a real HTTP round trip against a real database. ⚠️⚠️ **THE PRICE CHANGE IS THE SUBSTANCE AND THE DATED WINDOW IT HAS TO RESPECT IS THREE BRANCHES, NOT ONE.** `price_list` is a dated range table under an exclusion constraint. **(1)** No row in force — the product wears C3.12's dash, which `5e-i` made a legitimate state — so one insert, `[today, ∞)`. **(2)** A row in force that started EARLIER — close it at today and open a new one. **(3)** A row in force that started TODAY — it cannot be closed, because `price_list_range_ordered` **refuses a zero-length range**, so its `price_per_base` is updated in place. **A module that knew only branch 2 would work all day and fail the second time a shopkeeper corrected a price.** ⚠️⚠️ **AND THE ORDER IS A DELIVERABLE, NOT AN IMPLEMENTATION DETAIL — CLOSE BEFORE YOU OPEN.** Opening `[today, ∞)` while the old row is still open makes two rows cover today, and `price_list_no_overlap` refuses the second — so the sequence is forced, exactly as `WRITE_ORDER` is forced in the child that created the product. ⚠️⚠️ **WHICH MEANS A PARTIAL FAILURE THIS APP HAS NEVER HAD: close succeeds, open fails, and the product is PRICELESS MID-DAY** — priced yesterday, dashed today, by a shopkeeper who was fixing a price rather than removing one. **`5e-i`'s partial states were all invisible or harmless; this one is neither**, so the outcome carries what landed and the retry re-opens rather than re-closing. ⚠️ **All three are the same dated window, read the way `5d-i` reads it**, and none of them is a preference. ⚠️ **The scope is the one the READ resolved and is never invented**: `priceFor` prefers a store's own row over the shop-wide one, so the change edits the row the shopkeeper is looking at — and a product with no price at all is priced shop-wide, `location_id` null, which is `5e-i`'s decision **A** unchanged. ⚠️ **`tax_rate` and `pack_size` are typed figures turned into `numeric(5,4)` and `numeric(14,3)`** — `0.1600` and not `16`, refused at 1.0 by `product_variant_tax_rate_sane` and at zero by `product_variant_pack_size_positive` — and `enforce_stock` is not in any column list this child writes. ⚠️ **Retirement is `is_active` false and never a DELETE**: `product_family` and `product_variant` have no delete policy at all, so a DELETE is a `42501` rather than a mistake somebody could make. ⚠️⚠️ **AND THE CHECK IS THE ONLY INSTRUMENT THE UPDATE FENCE WILL EVER GET.** `product_variant_update`, `product_family_update`, `price_list_update` and `price_list_insert` are all `has_role(…, 'manager')` in `0002`; nothing in TypeScript has ever read a policy, `CREATE POLICY` is not in the knowledge graph, and RLS is bypassed by `postgres` — so the central assertion is again **A CASHIER IS REFUSED**, this time on UPDATE, which `5e-i`'s check never touched. ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED** — `5e-i` shipped the arithmetic this inverts and the harness this check is built from. ⚠️ **The C3.17 question parked in the decisions block does NOT block it**: the module describes the fence the database applies today, and a ruling that widens the fence is a migration against a module that already names it |
+| **5e-iii-b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-23** — ungated the same evening it was gated, by the C3.17 ruling. ⚠️⚠️ **THE SCREEN — and the owner's phone is the whole instrument (`R9`, §2.11).** **`Editar` — everything the four-field form pushed behind it**, drawn: the rename, the price box, the tax rate and the pack size set once and never at a till, and retiring a product the shop has stopped selling. ⚠️ **Every judgement left in this child is rendering, navigation or layout, and no check in this repository will ever say it is wrong** — which is the same sentence `5d-iv-b` carries and the reason the two halves were separated. ⚠️⚠️ **`enforce_stock` IS NEVER DRAWN AND THAT IS C8.8, A HARD PILOT CONSTRAINT** — C8.6 guarantees permanent drift in both directions, and this is the one screen in the pilot that would ever have been tempted to offer the switch. ⚠️⚠️ **AND WHAT BECOMES OF `Costos` IS RULED RATHER THAN CARRIED: *"Leave Costos dead until `5g`"* (2026-09-22)** — so this child **builds nothing for it and deletes nothing either**; the button stays drawn dead with `ES.family.notYet` under it, `5d-iv-b`'s Proveedores treatment, and `5g` is the row that owes the word. ⚠️⚠️ **THE DASH ON LA FAMILIA IS THIS CHILD'S REAL QUESTION AND IT IS NOW A DECISION THE OWNER OWES.** `5d-iii` drew a missing price as a dash in `tintaApagada` rather than amber, and wrote *look at this again when `5e` lands*; `5e-ii` looked and left it. **This child is where it becomes answerable** — and the sizing of 2026-09-23 found that it cannot be answered without ruling on C3.17 first, because amber means *the fix is one tap away* and `0002` refuses a cashier every one of those taps. ⚠️ **It ships no migration.** | `M` | ✅✅ **UNGATED AS OF 2026-09-23** — ~~gated on the C3.17 question parked that afternoon~~, **ruled the same evening: *"leave the fence as is."*** So `Editar` is drawn manager-only — `5e-ii`'s treatment of the create control, applied to the edit one — and **the amber question resolves with it**: *the fix is one tap away* is true for the people who can make the tap, and a cashier who can never set a price must not be shown an alarm she cannot silence. ⚠️ **`5e-iii-a` IS DONE**, so the rules this screen draws a box around already exist: every rule it draws a box around is that child's module, and a form that re-derived the price branches in its own JSX is the seam this split exists to keep |
+| **5f** | ⚠️⚠️ **SIZE IT BEFORE BUILDING ANY OF IT** — this row lists a screen, a stepper, a basket, a slide-to-commit, a price change and a persistence setting, which is not one sitting. ⚠️⚠️ **AND IT OWES A WORD THE C3.17 RULING DELIBERATELY DID NOT GIVE: does the `...` offer a cashier a price override FOR THIS SALE ONLY — one that never writes `price_list`?** The owner ruled on 2026-09-23 *"leave the fence as is"*, so the shop's price list is manager-and-above and a cashier's PATCH of it does nothing at all — **measured, and it does not even fail loudly** (`5e-iii-a`). **That settles who may change the SHOP's price and says nothing about a discount on one line**, which is entangled with C3.16's *a price change persists by default*. ⚠️ **This row is where that question is asked**, and a child that drew the control without asking would ship a button a cashier taps and nothing happens. ⚠️⚠️ **THE QUANTITY CONTROL IS SPECIFIED BY THE OWNER AS OF 2026-09-23, AND IT IS THE FIRST THING TO READ ON THIS ROW.** *"$45/250gr, when selling he can use the stepper to go 250 → 500 → 750 → 1000. But he can also tap to enter 288gr if needed."* **So the stepper's step is the PRICE UNIT and free entry is the BASE unit, and both go in the same line.** ⚠️⚠️ **IT NEEDS NO MIGRATION AND THAT WAS MEASURED RATHER THAN HOPED (2026-09-23):** `sale_line` (`0003:306`) carries **`qty_base numeric(14,3)`, `qty_display numeric(14,3)` AND `qty_display_unit`** as three separate columns, and `record_sale` (`0016`) takes `qty_display` with an optional `qty_display_unit`, computing `qty_base = round(qty_display * factor_to_base, 3)`. So `250 → 500 → 750` is `qty_display` 1, 2, 3 in `250g`, **and 288g is `qty_display: 288, qty_display_unit: 'g'` — exact, with no fractional display quantity and no schema change.** `unit_price_net_per_base` is `numeric(14,6)`, so `$45/250g` is `0.18/g` and 288g is `$51.84` to the centavo. ⚠️ **THE STEP IS `unit.factor_to_base` AND NOT A NUMBER THIS SCREEN PICKS** — the map is already on the phone (`unitFactorsFrom`, `5d-i`) and `@/offline/deadLetters` takes it as an ARGUMENT for the same reason: two answers to *how many grams in a kilo* is one too many. ⚠️ **AND `5e-ii` DELIBERATELY BUILT NONE OF IT.** `Agregar` writes `price_per_base` and one `price_unit_code`; the owner's words were *"we're just making the Crear Producto… just make a very good consideration about these things for the future parts"*, so this row is the consideration and the code is this row's. **The one thing `5e-ii` had to get right for it is that the price is stored PER BASE UNIT**, which it is — the inverse arithmetic `5d-i` shipped — so a product created at `$45/250g` can be sold in grams without anything being re-derived. **The transaction screen, shared.** Flat variant list and search, the row, the `price_unit_code` stepper and keypad, quantity-is-the-line, sticky `Total`, basket sheet, slide-to-commit, the amber/badge rule, the `...` price change and its persistence setting. **The highest-traffic surface in the app.** ✅✅ **RULED 2026-09-17: `Quitar` REMOVES A LINE IMMEDIATELY — no undo, no confirmation.** The recovery is re-adding the item, two taps on the list behind the sheet. A timed *Deshacer* fails the users C3.18 exists for; a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` is the exception and KEEPS its confirmation** — emptying the basket is a different act from removing one line. ⚠️ **This ruling was parked against `5h` by mistake and belongs here**, which is where *basket sheet* is listed. ⚠️ **And área 13 drew this screen**: the row opens in place, the stepper reduces, `Quitar` is a labelled control and never a swipe — see the canvas link in área 13's entry. ⚠️⚠️ **AND TWO CONFIRMATION ANIMATIONS, ADDED BY THE OWNER 2026-09-21 IN PLACE OF THE CHANGE CALCULATION HE DEFERRED** — *"a simple confirmation animation if the sale is done and another one if we empty the carrito."* ⚠️ **Two constraints on them and neither is taste:** §2.11's motion rule is **`transform` and `opacity` ONLY** — a performance rule, because C1.1 puts two low-end Androids among the pilot's four phones and animating layout, colour or shadow does not run on the compositor. ⚠️⚠️ **And the sale confirmation fires on ENQUEUE, never on the server's reply**: C10.3 says the slide looks identical offline, and `5c-i` made that structural by having `queueWrite` return a row rather than a promise. **An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it.** ⚠️⚠️ **AND IT OWES ONE LINE THAT NOTHING HERE CAN SEE UNTIL IT IS WRITTEN: THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`.** `5c-ii-b-2` built the trigger and shipped that function with **no caller**, deliberately and for the reason `R9` exists: there is no screen to call it from yet. ⚠️ **Without the call, the ONLINE path is the worse of the two** — a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger it, and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger has to be TOLD rather than awaited; calling it offline or before the monitor starts is a safe no-op, so the screen never has to ask. ⚠️⚠️ **AND IT OWES A SECOND LINE NOTHING HERE CAN SEE, ADDED BY `5c-iv-b` ON 2026-09-22: THE UNIT FACTORS THIS SCREEN ALREADY NEEDS MUST BE HANDED TO `@/offline/deadLetters` TOO.** This screen has to price a basket with no signal (§2.6, C10.3), so it already holds `unit.factor_to_base` for every display unit a shop sells in; `5c-iv-b` takes that map as an ARGUMENT (`NO_UNIT_FACTORS`, empty today) rather than hard-coding `0001`'s ten rows, precisely so this app never grows a second answer to *how many grams in a kilo*. ⚠️ **Until the map is passed, the dead-letter banner prices only a line quoted in its variant's own base unit** — factor exactly `1` by `0001`'s `unit_base_is_identity` — **and withholds the peso figure for the rest rather than understating it**, which is what `QueueValue.complete` is for. **Nothing goes wrong quietly; the count is still right and the figure is simply absent**. ⚠️⚠️ **AND IT OWES A THIRD THING, WHICH IS NOT CODE: THE FIRST LOOK AT `5c-iv-b`'s BANNER.** Ruled by the owner on 2026-09-22 — see the working agreement at the foot of this file. That banner draws only when the outbox holds a `dead` row, and **nothing in this app enqueues anything until this screen exists**, so it has never been on a screen and could not be. **The three questions it left open are look-questions and they are answered HERE, with the app in a hand, not before:** ✅ **(a) placement — ANSWERED 2026-09-22 AND NO LONGER A LOOK-QUESTION.** ~~it sits at the TOP of every screen because `OfflineSurfaces` owns the bottom; *on Inicio only* is the alternative, and it is one condition either way.~~ The owner ruled **Inicio only**, which is the alternative that row named, and it shipped as `onHome`. ⚠️ **It was settled on paper rather than on a phone because ADR-035 §2.8 forbade the shipped placement outright** — a disagreement a session building Inicio would have resolved by deleting the banner. **Two look-questions remain here, not three.** ⚠️ **(b) size and weight** — three lines of `bodySize` in a pill, no state colour. ⚠️⚠️ **AND AS OF `5d-iv-b` THIS IS NO LONGER ONLY THE BANNER'S QUESTION: INICIO NOW RESERVES ROOM FOR IT UNCONDITIONALLY** (`bannerRoom`), so the same look answers two things at once — whether the pill is the right weight, and whether the gap it sits in reads as deliberate or as a hole at the top of Home on every phone that never dead-letters anything. ⚠️ **`bannerRoom` clears the pill's MINIMUM and no more**, so a three-line banner in `Letra grande` may overlap the takings until a short scroll — that is the case to look at, and it is the one no check here can reach. ⚠️ **(c) the words** — *"N operaciones no se guardaron"*, *"Valor: $X"*, *"Avísanos para recuperarlas."* ⚠️ **The cheapest way to ask all three is to ring up a sale with the phone in airplane mode against a shop code that no longer resolves**, which is the one path that puts a `dead` row on a device without a migration or a fixture. ⚠️ **None of this blocks this row** — it is a review that rides along with it | `XL` | — |
 | **5g** | ⚠️ **IT INHERITS `5f`'s QUANTITY CONTROL, AND THE PURCHASE SIDE ALREADY HAS THE SAME THREE COLUMNS** — `record_purchase` (`0018:134`) takes `p_lines` carrying `qty_display` and `qty_display_unit` and prices each line from what the caller sends, so the stepper-and-free-entry rule the owner specified on 2026-09-23 is one control serving two screens rather than a Vender feature. ⚠️ **Read `5f`'s row for it; it is not restated here**, because two homes for one claim is the defect this file has recorded six of. **Comprar.** ⚠️⚠️ **AND IT OWES ONE WORD NOTHING ELSE CAN SAY: WHAT `Costos` SHOWS.** Ruled 2026-09-22 — *"Leave Costos dead until `5g`"* — so the dead button `5d-iii` shipped on La Familia stays dead through the whole of `5e`, and **this is the task that wakes it**, because purchase cost lives in `purchase_line` from `0003` and nothing writes one until this screen exists. ⚠️ **A deferral is only a deferral if a row owes the answer**; this is that row. Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. ⚠️⚠️ **AND THE UNDO, RULED BY THE OWNER 2026-09-22.** One *undo* on the document just committed, over `void_transaction` (`0021`) — applied since 2026-09-04 and **never called by anything**. ⚠️ **Nothing is edited or deleted**: a mirror-image document cancels the first, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **TWO THINGS A SCREEN MUST NOT INVENT:** the window is read from `workspace_setting.void_window_minutes` (`0001:561` — *"the client reads it to render correctly"*), so **hardcoding 15 is wrong the first time a shop changes it**; and the fence is a **role boundary, not a deadline** — a cashier undoes their OWN document inside the window, a manager or owner undoes ANYTHING at any time with no window. ⚠️ `void_transaction` takes `purchase`, `sale` and `waste`, so this is one affordance for three screens: `5h` builds it, `5g` and `6a` reuse it | `M` | ⚠️ **areas 5 and 6** |
 | **5h.5** | ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |

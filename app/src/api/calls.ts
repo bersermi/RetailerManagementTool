@@ -95,6 +95,18 @@ import {
   type VariantRow,
 } from '@/api/catalog';
 import {
+  PRICE_EDIT_COLUMNS,
+  PRICE_EDIT_TABLE,
+  UPDATE_RETURNING,
+  VARIANT_TABLE,
+  type ActivePatch,
+  type NamePatch,
+  type PriceChange,
+  type PriceChangeOutcome,
+  type PriceInForce,
+  type SettingsPatch,
+} from '@/api/catalogEdit';
+import {
   INSERT_RETURNING,
   WRITE_ORDER,
   familyRow,
@@ -614,6 +626,120 @@ export async function createProduct(
   }
 
   return { ok: true, familyId, variantId, priced: perBase !== null };
+}
+
+/**
+ * One variant's dated price rows, as the edit needs them. Plan task `5e-iii-a`.
+ *
+ * ⚠️⚠️ IT IS A SECOND READ OF `price_list` AND THAT IS DELIBERATE. `catalogVariants`
+ * above embeds `PRICE_COLUMNS` — a figure and a scope — for every variant in the
+ * shop; every branch of `priceChange` turns on a row's `id` and on which DAY it
+ * started, and widening the list read to carry those would pay for them on every
+ * load of Productos to serve one screen.
+ *
+ * ⚠️ THE WINDOW IS THE SAME WINDOW, spelled by the same two exports. A second
+ * answer to *which row is in force* is a second price, and the one a shopkeeper
+ * gets would be whichever screen asked.
+ */
+export async function variantPrices(variantId: string): Promise<PriceInForce[]> {
+  const today = isoDay(new Date());
+  const { data, error } = await supabase
+    .from(PRICE_EDIT_TABLE)
+    .select(PRICE_EDIT_COLUMNS)
+    .eq('variant_id', variantId)
+    .lte(PRICE_STARTS_COLUMN, today)
+    .or(priceEndsAfter(today));
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as PriceInForce[];
+}
+
+/**
+ * A rename, the two settings, or a retirement — one patch, one answer.
+ *
+ * ⚠️⚠️ ONE PATCH PER CALL AND NOT ONE BODY FOR ALL THREE, which is
+ * `catalogEdit`'s recorded decision rather than a shape this function chose: a
+ * rename can be refused `23505` while the tax rate beside it was fine, and one
+ * refusal for two unrelated edits sends a shopkeeper to fix the thing that was
+ * right.
+ *
+ * ⚠️ IT THROWS RATHER THAN ANSWERING AN OUTCOME, which is the opposite of
+ * `createProduct` one function up and is the right shape here for the reason that
+ * one is not: a single call either happened or did not, so there is no partial
+ * state to carry and nothing for a retry to know. `changePrice` below is the one
+ * that can half-happen.
+ */
+export async function patchVariant(
+  variantId: string,
+  patch: NamePatch | SettingsPatch | ActivePatch,
+): Promise<void> {
+  const { error } = await supabase
+    .from(VARIANT_TABLE)
+    .update(patch)
+    .eq('id', variantId)
+    .select(UPDATE_RETURNING)
+    .single();
+  if (error) throw reported(error);
+}
+
+/**
+ * The price change, performed in the only order `price_list` accepts.
+ *
+ * ⚠️⚠️ CLOSE BEFORE YOU OPEN. Two rows covering today is a `23P01` from
+ * `price_list_no_overlap`, so the old row's `effective_to` is patched to today
+ * FIRST and only then is the new row posted. `createProduct`'s `WRITE_ORDER` is
+ * the same kind of claim with a foreign key behind it instead of an exclusion.
+ *
+ * ⚠️⚠️ AND THE GAP BETWEEN THE TWO CALLS IS THE WORST PARTIAL STATE IN THIS APP.
+ * PostgREST has no transaction. A close that lands followed by an open that does
+ * not leaves the product **priced yesterday and priceless today** — on the shelf,
+ * mid-morning, put there by somebody who was CORRECTING a price. That is why the
+ * failure carries `closed`, why `priceChangeLine` has a sentence of its own for
+ * it, and why `retryChange` re-opens rather than re-closing.
+ *
+ * ⚠️ `unchanged` IS NOT A ROUND TRIP. A shopkeeper who opened the price box,
+ * looked and left it alone has changed nothing, and closing and re-opening an
+ * identical row would write a change into the shop's own price history that never
+ * happened.
+ */
+export async function changePrice(plan: PriceChange): Promise<PriceChangeOutcome> {
+  if (plan.kind === 'unchanged') return { ok: true, changed: false };
+
+  if (plan.kind === 'reprice') {
+    const { error } = await supabase
+      .from(PRICE_EDIT_TABLE)
+      .update(plan.patch)
+      .eq('id', plan.rowId)
+      .select(UPDATE_RETURNING)
+      .single();
+    if (error) {
+      return { ok: false, failed: 'reprice', closed: false, error: reported(error) };
+    }
+    return { ok: true, changed: true };
+  }
+
+  let closed = false;
+  if (plan.kind === 'closeAndOpen') {
+    const { error } = await supabase
+      .from(PRICE_EDIT_TABLE)
+      .update(plan.closePatch)
+      .eq('id', plan.closeRowId)
+      .select(UPDATE_RETURNING)
+      .single();
+    if (error) {
+      return { ok: false, failed: 'close', closed: false, error: reported(error) };
+    }
+    closed = true;
+  }
+
+  const { error } = await supabase
+    .from(PRICE_EDIT_TABLE)
+    .insert(plan.open)
+    .select(INSERT_RETURNING)
+    .single();
+  if (error) {
+    return { ok: false, failed: 'open', closed, error: reported(error) };
+  }
+  return { ok: true, changed: true };
 }
 
 /**

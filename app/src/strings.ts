@@ -1004,6 +1004,37 @@ export const ES = {
     },
 
     /**
+     * WHAT STOPS AN EDIT, AS OPPOSED TO A CREATE. Plan task `5e-iii-a`.
+     * `checkEdit` in `@/api/catalogEdit` chooses.
+     *
+     * ⚠️⚠️ IT IS ITS OWN BLOCK BESIDE `issues` AND NOT MORE KEYS INSIDE IT, and
+     * the reason is `ProductIssue`: that type is `keyof typeof issues`, so a key
+     * added there is a refusal `checkProduct` claims it can return and never
+     * does. Two forms, two sets of right answers, two keyed blocks — and three
+     * of the sentences below are deliberately the SAME STRING as their `issues`
+     * twin, because they are the same fact said to the same person.
+     */
+    editIssues: {
+      nameMissing: 'Escribe el nombre del producto.',
+      /** ⚠️ The same sentence as `issues.duplicate` — `checkEdit` is what makes
+       *  it mean something different, by excluding the product being edited. */
+      duplicate: 'Ya tienes un producto con ese nombre. Usa otro.',
+      /**
+       * ⚠️⚠️ IT SAYS WHAT THE BOX IS AND SHOWS THE SHAPE, because the column is
+       * a RATE and the box is a PERCENTAGE — `0002`'s own *"0.1600, not 16"*.
+       * A shopkeeper typing `0.16` here means sixteen hundredths of a percent
+       * and would be told nothing at all by *"revisa el IVA"*.
+       */
+      taxUnreadable: 'Escribe el IVA como porcentaje, así: 16',
+      /** ⚠️ Zero is refused as well as a negative: `pack_size > 0`, and a case
+       *  of nothing is not a case. The example is `0002`'s own. */
+      packUnreadable: 'Escribe cuántas piezas trae el paquete, así: 24',
+      /** ⚠️ `issues.priceUnreadable`'s sentence, for its reason — an example is
+       *  something a person can copy ([[users-dont-do-bookkeeping]]). */
+      priceUnreadable: 'Ese precio no se entiende. Escríbelo así: 35.50',
+    },
+
+    /**
      * WHAT A SHOPKEEPER IS TOLD ABOUT A CREATE THAT IS ALLOWED BUT WORTH
      * KNOWING ABOUT. Plan task `5e-i`, reopened by the owner's ruling of
      * 2026-09-22. `noPriceNoticeKey` in `@/api/catalogWrite` chooses.
@@ -1104,6 +1135,36 @@ export const ES = {
        * made — so the sentence says what happened and what is left to do.
        */
       priceNotSaved: 'Guardamos el producto, pero no su precio. Ponle precio desde el producto.',
+      /**
+       * ⚠️⚠️ `42501` ON AN EDIT, AND THE VERB IS WHY IT IS NOT `notAllowed`.
+       * That sentence says *agregar productos*, which is true of a create and
+       * wrong of a rename: a manager demoted mid-shift, looking at a product she
+       * is trying to RENAME, would be given an accurate sentence about something
+       * she was not doing. Plan task `5e-iii-a`, and the policies are
+       * `product_variant_update`, `price_list_update` and `price_list_insert`.
+       */
+      notAllowedEdit: 'Solo el dueño o un gerente puede cambiar un producto.',
+      /**
+       * ⚠️⚠️ `23P01` — `price_list_no_overlap`, and it exists nowhere else in
+       * this app. A correctly planned change reaches it only from a read that
+       * went stale under the screen: another phone priced this product while it
+       * was open. ⚠️ IT SENDS HER BACK TO THE PRODUCT AND NOT TO THE PRICE BOX,
+       * because re-typing the same figure against the same stale rows is refused
+       * again — which is a loop, and the thing `redeemErrorMessage` recorded
+       * this project's refusal of.
+       */
+      overlap: 'Alguien más cambió este precio. Vuelve a abrir el producto.',
+      /**
+       * ⚠️⚠️ THE OLD PRICE WAS REMOVED AND THE NEW ONE NEVER LANDED, WHICH IS
+       * THE WORST PARTIAL STATE THIS APP HAS. `price_list` is a dated range
+       * table, the old row must be CLOSED before the new one is opened, and
+       * PostgREST has no transaction — so a failure between the two leaves the
+       * product priced yesterday and priceless today, wearing C3.12's dash.
+       * ⚠️ Saying *"no se pudo guardar"* here would send a shopkeeper away
+       * believing the old price still stands, and the next customer is charged
+       * nothing at all. Plan task `5e-iii-a`.
+       */
+      priceGone: 'Quitamos el precio anterior y no pudimos poner el nuevo. Ponle precio otra vez.',
     },
   },
 

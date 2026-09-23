@@ -889,3 +889,200 @@ of scope, so *"the banner is on Inicio"* is held by `onHome`'s four assertions a
 nobody's eye — **and it cannot be looked at yet either**: nothing in this app enqueues
 until `5f` exists, so the queue is empty on every phone today. `5f`'s row carries the two
 look-questions that remain — size and words — and no longer carries placement.
+
+---
+
+## The EIGHTH cut, taken 2026-09-23 — `5d-ii`, and it came off the FOOT again
+
+⚠️⚠️ **`## Position` STOOD AT 1,357 LINES OF ITS 1,400 CEILING with `5e-iii`'s
+sizing entry in place, and `5e-iii-a`'s closing entry would have spent the rest.**
+So the oldest entry left in that block — `5d-ii`, Productos — was moved here rather
+than the next session paying for this one. ⚠️ **It is a MOVE and not a copy**, and
+`plan-corpus.sh` reads this file, so every content-addressed lookup resolves it
+exactly as before.
+
+⚠️ **This is the fourth cut taken from the block's FOOT rather than its head**, and
+the file's own heading above already says the archive stopped being strictly
+oldest-first. **Ten entries of 2026-09-22 are now here, in eight cuts.**
+
+✅✅ **`5d-ii` IS DONE AS OF 2026-09-22 — PRODUCTOS EXISTS.
+`5d-iii` IS THE NEXT TASK, AND IT IS WHAT MAKES THESE ROWS TAPPABLE.** One route, a search box, a flat list of every variant, and a
+temporary door on Inicio. **No migration, no primitive, and no `src/ui/`.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST: NOTHING IN THIS REPOSITORY CAN SAY WHETHER
+THIS SCREEN LOOKS RIGHT, AND THAT WAS TRUE BEFORE A LINE OF IT WAS WRITTEN.**
+§2.11 keeps rendering, navigation and layout out of scope; `R9` is the rule and
+this row is its largest instance so far. **The instrument is the owner's phone**,
+and what he is being asked to look at is named on the file's own header: whether
+the list is legible across a counter, whether the search box is reachable with
+one thumb, whether the initials tile reads as a product rather than a badge, and
+whether *Letra grande* leaves room for a price beside a long name.
+
+⚠️⚠️ **AND IT WAS NOT RENDERED HERE, WHICH IS WORTH RECORDING SO NOBODY REPEATS
+THE DETOUR.** The design emulator (`wera-android-36` — never the sealed
+`wera-reading-5a-iv-d`) was booted, the debug APK launched against Metro, and a
+demo shop seeded in the LOCAL stack with eight variants, two families, an
+accented name and one deliberately unpriced row. **Sign-in was refused as
+*invalid credentials* even after `.env.local` was pointed at the local stack,
+Metro restarted with `--clear`, `adb reverse tcp:54321` set and the app's data
+cleared** — and the served bundle demonstrably carried `http://localhost:54321`
+while the running app did not. ⚠️ **The error rules out the innocent reading**:
+`authErrorKey` maps a fetch failure to *sin conexión*, so the app reached an
+auth server and was told no — it was still running a bundle built against the
+hosted project. **Pointing a dev-client build at the local stack needs more than
+restarting Metro.** ✅ `app/.env.local` was restored **byte-identical** (`diff
+-q`) and the emulator shut down.
+
+**THE FIVE DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
+nothing else here can hold them:**
+
+| | The decision | What the alternative costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE ROWS ARE NOT PRESSABLE, AND THEY DO NOT LOOK IT** | `5d-iii` is what opens a family. A row that looked tappable and did nothing is *"a control that looks live and refuses silently"* — that row's own rule, applied a task early. No chevron, no ripple, no `Pressable` |
+| **2** | ⚠️⚠️ **A MISSING PRICE IS A DASH IN `tintaApagada`, NOT AMBER** | `atencion`'s ONE job is C3.17: a row whose missing price BLOCKS a sale, where the fix is one tap away. Nothing here can set a price — `Editar` is `5e` — so amber would be an alarm on a hundred rows nobody can silence, and a second job for the role. ⚠️ **This is the one to look at again when `5e` lands** |
+| **3** | ⚠️ **THE SEARCH BOX DOES NOT SCROLL AWAY** | C3.1 puts it *above* a scrolling list. A box inside the list as a header means scrolling back to the top to search, and the shop with a hundred products is the shop that searches |
+| **4** | ⚠️ **IT CLEARS WITH A WORD (*Limpiar*), NOT A CROSS** | `clearButtonMode` is iOS-only and C1.1 puts two Androids among the four pilot phones. C12.1 refuses an icon with no word, so the control that works on both is a labelled one |
+| **5** | ⚠️ **A `FlatList` AND NOT A `ScrollView`** | C8.3 is ~100 products and C1.1 two low-end Androids; a ScrollView mounts every row at once. This is the scroll that stutters on exactly those phones and on nobody's development machine |
+
+⚠️⚠️ **AND THE ONE DECISION WITH A RIGHT ANSWER WAS MOVED OUT OF THE SCREEN
+BEFORE IT SHIPPED.** The three things an empty list can mean — *the read is out*,
+*this shop has no products*, *nothing matches what you typed* — began as a
+ternary in the component, which is a decision no instrument here can read. It is
+`emptyLineKey` in `@/api/catalog` now, returning a KEY of `ES.catalog` and never
+a sentence (`R3`, `R4`, the shape `@/api/errors` and `linesOf` already use), with
+four assertions on it. ⚠️ **The two that must not collapse**: a shopkeeper with a
+hundred products who mistypes a name must not be told her catalog is empty — she
+is the merchant C8.2 describes, whose catalog is deliberately incomplete.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/app/productos.tsx` | the route, the banda, the search box, the list, the row, the initials tile and the three empty states |
+| `app/src/api/catalog.ts` | `emptyLineKey` — the one decision on the screen that has a right answer |
+| `app/src/app/(tabs)/index.tsx` | the temporary door, with the comment that names `5d-iv` as the task that deletes it |
+| `app/src/strings.ts` | `ES.catalog`'s seven new words, the units map staying where it is |
+| `app/test/api-catalog.test.ts` | **four new assertions**, 677 tests in the app suite |
+
+⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
+`npm run test --workspace @tienda/app` is **677 tests over 29 files**,
+`npm run typecheck` clean, `bash docs/checks/conventions-gate.sh` **16 groups
+over 55 source and 29 test files** — which is where `R6` caught a literal
+`height: 1` in the separator and it became a hairline border, the same spelling
+every other file uses — and `bash docs/checks/5d-i-catalog-contract.sh` is still
+**12 of 12** against the live database. ⚠️⚠️ **Not one of those looked at a
+pixel, and no check in this repository ever will.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the five in the table above, plus
+**Productos is NOT in `RESTORABLE_ROUTES`** — C1.3 reopens the screen a person
+was WORKING on, and browsing the catalog is not work. Every one of them is one
+line to reverse.
+
+---
+
+## The NINTH cut, taken 2026-09-23 — `5d-iii`, and the owner's ruling is what spent the line
+
+⚠️⚠️ **`## Position` REACHED 1,413 OF ITS 1,400 CEILING** once the C3.17 ruling was
+recorded — the eighth cut, taken an hour earlier, had left enough room for the
+`5e-iii-a` closing entry and not for a ruling arriving the same evening. So `5d-iii`,
+the oldest entry left in that block, was moved here. ⚠️ **It is a MOVE and not a copy**,
+and `plan-corpus.sh` reads this file, so every content-addressed lookup resolves it
+exactly as before.
+
+⚠️ **Fifth cut from the block's foot; eleven entries of 2026-09-22 are now here, in nine
+cuts.** ⚠️⚠️ **And the lesson is the eighth cut's, sharpened: a session that ships a
+task AND takes a ruling on the same evening writes TWO entries, not one** — sizing the
+archive for one of them is what put this block over the ceiling twice in an hour.
+
+✅✅ **`5d-iii` IS DONE AS OF 2026-09-22 — THE FAMILY OPENS FROM A TAP, AND
+`5d-iv` IS THE NEXT TASK: INICIO, THE REAL ONE.** One route, three pure
+functions, twelve assertions and the rows of Productos becoming pressable at
+last. **No migration, no primitive and no `src/ui/`.**
+
+⚠️⚠️ **THE HONEST HEADLINE FIRST, AND IT IS THE SAME ONE `5d-ii` CARRIED:
+NOTHING IN THIS REPOSITORY CAN SAY WHETHER THIS SCREEN LOOKS RIGHT.** §2.11
+keeps rendering, navigation and layout out of scope and `R9` is the rule.
+**The instrument is the owner's phone**, and the three questions it is being
+asked are named in the file's own header: whether a green rule down one row's
+edge reads as *this is the one you tapped* rather than as an alarm, whether
+three dead buttons read as deliberate rather than broken, and whether a family
+of six variants still fits above the three buttons at *Letra grande*.
+
+⚠️⚠️ **THE RULING IT IMPLEMENTS IS ONE LINE LONG AND IT FORBIDS THE OBVIOUS
+ANSWER.** Área 13, ruling 4, in the owner's words: *"the preselected variant
+shows no legend."* So the mark cannot be a word — not *seleccionado*, not a
+tick, not a badge. **And área 13's other surviving rule forbids the other
+obvious answer**: the one thing direction C left behind when B was chosen is
+*no state is ever announced by colour alone*. **What is left is colour AND a
+border**, which is what shipped: a `accion` rule down the row's leading edge
+and a heavier name. ⚠️ **The rule's WIDTH is constant and only its COLOUR
+changes**, because a border that appeared only on the marked row would shove
+that one name three pixels sideways — the single row that then fails to line up
+with the others, which reads as a rendering fault rather than as a mark.
+
+**THE SIX DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
+nothing else here can hold them:**
+
+| | The decision | What the alternative costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **NOTHING IS MARKED WHEN THE ID IS NOT IN THIS FAMILY — NEVER A FALLBACK TO THE FIRST ROW** | The ruling took the legend away, so the mark is the ONLY thing on the screen saying *this is the one you came from*. Marking row one on a bad parameter puts that claim on a product she never touched, with nothing to correct it. `familyView` returns `null` and four assertions hold it |
+| **2** | ⚠️⚠️ **THE VARIANT ROWS HERE ARE NOT PRESSABLE EITHER** | Nothing consumes the selection yet: `Costos` and `Editar` are `5e`. A row that highlighted under a thumb and changed nothing is the control this whole step refuses — the same rule `5d-ii` applied to itself one task early. ⚠️ **One `useState` and a `Pressable` to reverse, the day `5e` gives the mark a consumer** |
+| **3** | ⚠️⚠️ **THE THREE AFFORDANCES ARE `View`s, NOT DISABLED `Pressable`s, AND THEY BORROW NO ACTION COLOUR** | `accion`/`accionSuave` mean *tappable at rest*, which is the claim these must not make, so they are `tintaApagada` on `fondo` inside a `linea` border. And a `View` has no handler to attach, so there is no press path to wire up wrong later |
+| **4** | ⚠️ **ONE SENTENCE UNDER THEM, NOT A LABEL ON EACH** | `ES.family.notYet` is the `ES.approvals.notYet` shape `5b-iii-d-1` shipped and `5b-iii-d-2` deleted — the one place this app explains its own state to a shopkeeper, because the alternative is her deciding her phone is broken. ⚠️ **`5e` deletes it**, and its own comment says so |
+| **5** | ⚠️ **NO INITIALS TILE ON THIS SCREEN, AND PRODUCTOS KEEPS ITS OWN** | C8.14's two letters stand in for a PHOTO among DIFFERENT products; a family is one product in several sizes, so six identical tiles is six copies of a picture nobody needs — and on Productos the tile is what now says *tappable*, which these rows are not |
+| **6** | ⚠️ **A `ScrollView` HERE AND A `FlatList` THERE** | The opposite call from Productos on the same argument: ~100 rows on two low-end Androids is what virtualisation is for (C8.3, C1.1), and a family is a handful of sizes whose three buttons have to scroll WITH them rather than float over them |
+
+⚠️⚠️ **AND THE AFFORDANCE ON PRODUCTOS WAS ALREADY DECIDED, BY THE TASK THAT
+COULD NOT USE IT.** `5d-ii` drew the initials tile on `fondo` and wrote down
+why — *`accionSuave`'s one job is the resting fill of an action, and these rows
+are not tappable until `5d-iii`*. They are now, so the tile moved to
+`accionSuave` and the rows became `Pressable`. ⚠️ **The alternative was a
+chevron, and C12.1 refuses an icon with no word beside it** — which is why the
+affordance had to be carried by HUE, the thing direction B was chosen over
+direction A for.
+
+⚠️ **THE ROUTE SHAPE IS A DECISION TOO: `/familia/<family_id>?variante=<id>`.**
+The family is what the screen SHOWS and the variant only marks a row in it, so
+one is the path and the other is a parameter — **and a link that lost the
+parameter still opens the right family with nothing marked**, which is the
+failure worth having. ⚠️ It is at the ROOT and in NO GROUP (`groupOf()` →
+`null`), it is a PUSHED screen rather than a sheet — no `Stack.Screen` entry, so
+no `presentation: 'modal'` — and it is **not** in `RESTORABLE_ROUTES`, which is
+Productos' own call: C1.3 reopens the screen a person was WORKING on, and
+reading a product is not work.
+
+**What shipped:**
+
+| | |
+|---|---|
+| `app/src/app/familia/[id].tsx` | the route, the banda, the marked row, the three dead affordances and the two empty states |
+| `app/src/api/catalog.ts` | `familyView`, `familyTitle`, `familyLineKey` — the three decisions on this screen that have a right answer |
+| `app/src/app/productos.tsx` | the row is a `Pressable`, the tile's ground is `accionSuave`, and the header paragraph that promised both is now the record that it happened |
+| `app/src/strings.ts` | `ES.family`'s nine words, the three affordances in the owner's own spelling |
+| `app/test/api-catalog.test.ts` | **twelve new assertions**, 689 tests in the app suite |
+
+⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
+`npm run test --workspace @tienda/app` is **689 tests over 29 files** (twelve
+new, all of them over `familyView` / `familyTitle` / `familyLineKey`),
+`npm run typecheck` clean **after expo-router's typed-route declarations were
+regenerated** — which is itself the evidence that the router discovers the new
+file, since the generator walked `src/app` and emitted `/familia/[id]` — and
+`bash docs/checks/conventions-gate.sh` is **16 groups over 56 source and 29 test
+files** (55 before). ⚠️⚠️ **`docs/checks/5d-i-catalog-contract.sh` WAS NOT RE-RUN BY
+HAND AND CI RAN IT ANYWAY — WHICH THE SESSION GOT WRONG FIRST AND THE JOB LOG
+CORRECTED.** A hand-run would have asserted nothing new: this task adds no
+column, no filter and no string that goes over the wire. **But `db.yml`'s
+`paths:` has watched `app/src/api/**` since `5b-i`** — because a module under it
+is a CLAIM ABOUT THE APPLIED SCHEMA — and this task appended three functions to
+`app/src/api/catalog.ts`, so the whole database workflow fired: **12 of 12
+against a real reset database, with its thirteen fixtures still red.** ⚠️ **The
+first draft of this paragraph said that workflow does not fire on an app edit.
+It does, and its own filter comment says why** — which is the difference between
+reading the job log and reading the tick. ⚠️⚠️ **And not one of those looked
+at a pixel.**
+
+**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the six in the table above, plus the
+route shape and the `RESTORABLE_ROUTES` omission. **Every one of them is one or
+two lines to reverse**, and the two worth a second look on the phone are the
+mark (decision 1's rule, and whether it reads as *you came from here*) and the
+three dead buttons (decisions 3 and 4 — whether they read as deliberate).
