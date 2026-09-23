@@ -10,6 +10,15 @@
 // and `docs/checks/5e-i-catalog-write-contract.sh` can both read it. §2.11 keeps
 // rendering out of scope; this is the half of `5e` that is not rendering.
 //
+// ⚠️⚠️ AND `5e-ii` ADDED FIVE MORE OF THEM, IN THE SECTION AT THE BOTTOM MARKED
+// WITH ITS NAME. Drawing the form is what found them: `canWriteCatalog` is the
+// fence drawn rather than discovered, `resolveFamily` is which answer wins when
+// the suggestion is overridden, `unitOptions` and `unitChoice` are C8.5 kept by
+// the only thing that can keep it, and `savedLine` is the second half of
+// `createLine`. The split's own words were that the second child *renders and
+// decides nothing*; `R3` is why the things it turned out to decide are down
+// there and not in the JSX.
+//
 // ⚠️⚠️ FOUR FIELDS BECOME THREE ROWS, AND THE ORDER IS A DELIVERABLE RATHER
 // THAN AN IMPLEMENTATION DETAIL, BECAUSE POSTGREST HAS NO TRANSACTION TO OFFER.
 // `WRITE_ORDER` below is family, then variant, then price. Any other order is
@@ -60,7 +69,8 @@
 import { SCALE, divRoundHalfUpAwayFromZero, formatDecimal, parseDecimal } from '@tienda/money';
 
 import { apiErrorMessage } from '@/api/errors';
-import { searchKey, searchTerm, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { searchKey, searchTerm, type CatalogEntry, type UnitFactors, type UnitRow } from '@/api/catalog';
+import { ROLES, type Role } from '@/api/members';
 import { ES } from '@/strings';
 
 /**
@@ -795,4 +805,193 @@ export function catalogWriteErrorMessage(error: unknown): string {
 export function createLine(outcome: CreateFailed): string {
   if (outcome.failed === 'price_list') return ES.catalog.errors.priceNotSaved;
   return catalogWriteErrorMessage(outcome.error);
+}
+
+// ----------------------------------------------------------------------------
+// WHAT THE FORM DECIDES, DECIDED HERE INSTEAD. Plan task `5e-ii`, and every
+// function below landed with the screen rather than with the write.
+//
+// ⚠️⚠️ `5e`'s SPLIT SAID THE SECOND CHILD *RENDERS AND DECIDES NOTHING*, AND
+// DRAWING THE FORM FOUND FIVE THINGS THAT DECIDE SOMETHING. That is not the
+// seam failing; it is `R3` applied at the moment the seam is tested. A
+// suggestion that can be overridden needs a rule for *which answer wins*; a
+// unit list in front of a shopkeeper needs a rule for *which units are
+// offerable*; and a control a cashier must never see needs a predicate, because
+// `42501` arriving after the tap is the thing `5d-iii` already refused. All
+// five have a right answer, so all five are here where
+// `app/test/api-catalog-write.test.ts` can read them, and the JSX above them
+// holds keystrokes and no opinions.
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ WHO MAY ADD A PRODUCT AT ALL — `0002`'s own predicate on all three
+ * tables, `has_role(…, 'manager')`.
+ *
+ * ⚠️⚠️ IT EXISTS SO THE REFUSAL NEVER HAPPENS, WHICH IS THE OPPOSITE JOB FROM
+ * `catalogWriteErrorMessage`'s. That function is what a manager demoted
+ * mid-shift sees; this one is what keeps a cashier from ever tapping a control
+ * that cannot work. `5d-iii` drew those three buttons dead for exactly this
+ * reason, and [[shift-cover-is-a-reassignment]] is the shape it was avoiding:
+ * an RLS refusal is silent, and a shopkeeper who taps and gets nothing concludes
+ * her phone is broken.
+ *
+ * ⚠️ IT IS NOT AN ALIAS OF `canInvite` OR `canSeeRoster` AND MUST NOT BECOME
+ * ONE, which is `canInvite`'s own recorded argument one module over. All three
+ * answer *manager and above* today and all three are different questions: the
+ * roster's is about whether rows would be identifiable, the invite's is about
+ * what an RPC accepts, and this one is about what three INSERT policies accept.
+ * A migration that loosened one would move one, and an alias is how the wrong
+ * one moves.
+ *
+ * ⚠️ `null` IS "NOT KNOWN" AND IS FENCED OUT, `roleOf`'s own distinction: the
+ * control is absent while the membership read is out and appears when it lands,
+ * which is a control that fades in rather than one snatched away from somebody
+ * who was not allowed it.
+ */
+export function canWriteCatalog(role: Role | null): boolean {
+  if (role === null) return false;
+  return ROLES.indexOf(role) <= ROLES.indexOf('manager');
+}
+
+/**
+ * What the form is currently saying about the family — C8.11's suggestion, or
+ * the shopkeeper having overridden it.
+ *
+ * ⚠️⚠️ THREE KINDS AND NOT A NULLABLE ID, BECAUSE `suggested` IS A STATE AND
+ * NOT A VALUE. A form holding only `familyId | null` cannot tell *she has not
+ * touched this* from *she chose to make a new family*, and the difference is
+ * whether the family follows the name she is still typing. `resolveLocations`
+ * in `@/api/invites` is the same shape for the same reason.
+ *
+ * ⚠️ `new` CARRIES THE NAME SHE TYPED AND NOT THE ONE SUGGESTED. Overriding
+ * into a new family is the one gesture C8.11 names explicitly, and a `new`
+ * that re-read the suggestion would erase what she typed on the next keystroke
+ * of the product name.
+ */
+export type FamilyChoice =
+  | { readonly kind: 'suggested' }
+  | { readonly kind: 'chosen'; readonly id: string; readonly name: string }
+  | { readonly kind: 'new'; readonly name: string };
+
+/** The choice a form opens on: follow the suggestion. */
+export const FAMILY_SUGGESTED: FamilyChoice = { kind: 'suggested' };
+
+/**
+ * The family this create will actually use — C8.11's *"overridable by a
+ * gesture"* as a function rather than as a branch in JSX.
+ *
+ * ⚠️⚠️ THE OVERRIDE OUTRANKS THE SUGGESTION AND THE SUGGESTION FOLLOWS THE
+ * NAME. Those two sentences are the whole of this function, and both are
+ * wrong in the obvious implementations: a form that re-suggested after an
+ * override would undo her choice on her next keystroke, and one that froze the
+ * suggestion at the first character would propose a family for `P`.
+ *
+ * ⚠️ A `new` FAMILY WHOSE BOX IS EMPTY IS STILL `new`, and `checkProduct`
+ * is what refuses it (`familyMissing`). Falling back to the suggestion here
+ * would save the product under a family she had just decided against.
+ */
+export function resolveFamily(
+  choice: FamilyChoice,
+  entries: readonly CatalogEntry[],
+  typedName: string,
+): FamilySuggestion {
+  if (choice.kind === 'chosen') return { familyId: choice.id, familyName: choice.name };
+  if (choice.kind === 'new') {
+    return { familyId: null, familyName: choice.name.replace(/\s+/g, ' ').trim() };
+  }
+  return suggestFamily(entries, typedName);
+}
+
+/**
+ * The units this product may be sold in — C8.5 enforced by the FORM, because
+ * nothing enforces it anywhere else.
+ *
+ * ⚠️⚠️ THE DATABASE DOES NOT APPLY C8.5 AND I CHECKED RATHER THAN ASSUMED.
+ * `product_variant_units_same_dimension_trg` (`0002:204`) counts distinct
+ * dimensions across the FOUR unit columns OF ONE ROW, so C8.10's fan-out makes
+ * it one by construction and the trigger can never fire from this app. Nothing
+ * compares a new variant against its SIBLINGS. So *"one family, many variants,
+ * ONE dimension"* — C8.5, and the sentence that *"keeps the arithmetic
+ * honest"* — is a promise only this list can keep, and a picker showing all ten
+ * units inside a family measured in kilos is the one place it gets broken:
+ * `Pollo` gains a variant priced per litre and Postgres takes it.
+ *
+ * ⚠️ A FAMILY WITH NO VARIANTS PUTS NO CONSTRAINT ON ANYTHING, so a new family
+ * — and a family nobody has ever added to — is offered all ten. There is no
+ * signal to narrow on, and inventing one would be the app having an opinion
+ * about a substance it knows nothing about, which is `suggestFamily`'s own
+ * refusal about first words.
+ *
+ * ⚠️⚠️ THE ORDER IS `unit.display_order` AND NOT THE READ'S, AND THAT IS A
+ * CORRECTNESS POINT RATHER THAN A PREFERENCE. `catalogUnits` asks for no
+ * `order=`, so PostgREST may return the ten rows in any order it likes and a
+ * picker that trusted it would rearrange itself between launches. `0001` has
+ * its own opinion about prominence — `kg`, `l` and `pza` are all `10` — and the
+ * code breaks the tie so two shops see the same list.
+ */
+export function unitOptions(
+  units: readonly UnitRow[],
+  entries: readonly CatalogEntry[],
+  familyId: string | null,
+): readonly string[] {
+  const dimensions: Readonly<Record<string, string>> = Object.fromEntries(
+    units.map((unit) => [unit.code, unit.dimension]),
+  );
+  const family =
+    familyId === null
+      ? []
+      : entries.filter((entry) => entry.familyId === familyId && entry.priceUnit !== '');
+  const wanted: readonly string[] = family
+    .map((entry) => dimensions[entry.priceUnit])
+    .filter((dimension) => dimension !== undefined);
+
+  return units
+    .filter((unit) => wanted.length === 0 || wanted.includes(unit.dimension))
+    .slice()
+    .sort((a, b) => a.display_order - b.display_order || (a.code < b.code ? -1 : 1))
+    .map((unit) => unit.code);
+}
+
+/**
+ * The unit this create will actually use, out of what she picked and what is
+ * offerable — or `''` when the question is still open.
+ *
+ * ⚠️⚠️ IT DROPS A PICK THE FAMILY NO LONGER ALLOWS, AND WITHOUT IT THE FORM
+ * SHIPS A BUG NOTHING WOULD HAVE CAUGHT. `unitOptions` narrows on the FAMILY,
+ * and the family moves while the form is open — she types `Leche`, picks `l`,
+ * then overrides the family to `Pollo`. `l` is no longer on the screen and a
+ * form holding it in `useState` would post it anyway: a litre of chicken,
+ * accepted by Postgres, breaking the one rule the list above exists to keep.
+ *
+ * ⚠️ A LIST OF ONE ANSWERS ITSELF, and that is a DERIVATION rather than a
+ * default the app guessed. A count family can only take `pza`, so asking is a
+ * tap paid to be told there was no choice ([[prefer-the-option-that-adds-no-human-step]]).
+ * ⚠️ It deliberately does NOT preselect out of a longer list: `kg` over `100g`
+ * is a guess about how this shop prices, and C8.9 asks the question.
+ */
+export function unitChoice(options: readonly string[], chosen: string): string {
+  if (chosen !== '' && options.includes(chosen)) return chosen;
+  if (options.length === 1) return options[0];
+  return '';
+}
+
+/**
+ * The one sentence the form shows after a create that WORKED — and there are
+ * two of them, which is what `CreateSucceeded.priced` was put there for.
+ *
+ * ⚠️⚠️ A PRODUCT SAVED WITHOUT A PRICE IS NOT THE SAME EVENT AS ONE SAVED WITH
+ * ONE, AND THE DIFFERENCE IS NOT A DETAIL SHE CAN SEE FROM THIS FORM. C3.12
+ * puts a dash on the row and the owner's own earlier ruling makes a sale
+ * impossible without a price, so the thing worth saying is what happens NEXT —
+ * the same argument `ES.catalog.notice.noPrice` makes before the save, in the
+ * past tense afterwards.
+ *
+ * ⚠️ IT IS `createLine`'s TWIN AND IS DELIBERATELY NOT `createLine` WIDENED.
+ * That function turns three partial failures into two instructions; this one
+ * turns two successes into two. One function over `CreateOutcome` would be a
+ * single sentence-chooser whose branches share nothing, and the first thing
+ * anyone would do to it is forget which half they were in.
+ */
+export function savedLine(outcome: CreateSucceeded): string {
+  return outcome.priced ? ES.catalog.create.saved : ES.catalog.create.savedNoPrice;
 }

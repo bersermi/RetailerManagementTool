@@ -62,6 +62,19 @@ MARK_LINE="$(grep -n "This is where the next piece of work is" "$BOOK" | head -1
 [[ -n "$MARK_LINE" ]] || { echo "FAIL: no next-work marker in $BOOK — nothing to falsify"; exit 1; }
 MARK_NO="${MARK_LINE%%:*}"
 MARK_TASK="$(sed -n "${MARK_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}\*\* |.*//')"
+# ⚠️⚠️ THE ANCHOR IS A LITERAL AND THE MARKER MUST BE SPELLED EXACTLY THIS WAY IN
+# THE HANDBOOK — found by CI on 2026-09-23, plan task `5e-ii`. That task wrote the
+# marker as `…next piece of work is.**`, with the full stop INSIDE the bold run.
+# `handbook-agreement.sh` was green (it greps the sentence, not the markup) and
+# this file went red on FOUR fixtures at once, every one of them reporting
+# *"anchor not present in the <task> row"* — a harness that cannot find the row it
+# is supposed to break reads exactly like a guard that has lost its teeth.
+# ⚠️ NOTHING WAS LOOSENED TO MAKE IT GREEN: the handbook sentence was reworded, so
+# the period sits outside the bold and the anchor matches — the cheaper half of
+# *never spell a check's sentinel differently in the file it reads*, and the same
+# call `5b.7` made about the R4 stripper. ⚠️ Widening this anchor to tolerate a
+# trailing period is a change to the harness and needs a fixture of its own; it is
+# routed to the next task that touches either file.
 MARK_ANCHOR="⚠️ **This is where the next piece of work is**"
 
 # The row after it, for H9's "both files point, and they disagree". Its anchor is

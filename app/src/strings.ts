@@ -833,6 +833,113 @@ export const ES = {
     noMatches: 'Ningún producto coincide con esa búsqueda.',
 
     /**
+     * `Agregar` — THE FORM ITSELF, AND EVERY WORD ON IT. Plan task `5e-ii`, and
+     * it is pilot-critical rather than a convenience: C8.2 has the owner seeding
+     * the catalog DELIBERATELY SHORT, *"to encourage him to create some on his
+     * own"*, so the first product this shop makes is made here, by a shopkeeper,
+     * with nobody watching.
+     *
+     * ⚠️ FOUR FIELDS AND NOTHING ELSE (C8.9). There is no tax rate here, no pack
+     * size, no store, no photo and no expiry — `5e-iii` owns the first two,
+     * `location_id` is null by the decision `5e-i` recorded, and the owner ruled
+     * out expiry capture entirely on 2026-09-22.
+     *
+     * ⚠️⚠️ AND THERE IS NO SENTENCE HERE FOR A CASHIER BEING REFUSED, WHICH IS
+     * THE FENCE BEING DRAWN RATHER THAN DISCOVERED. `canWriteCatalog` keeps her
+     * off this screen, so the words she would have needed do not exist;
+     * `ES.catalog.errors.notAllowed` is the belt to that braces — what a manager
+     * demoted mid-shift sees, on a form she had already opened.
+     */
+    create: {
+      /** The control that opens it, on Productos and inside a family. */
+      open: 'Agregar',
+      /** ⚠️ The control inside a family says what it makes — `ES.family.addVariant`. */
+      title: 'Nuevo producto',
+      /**
+       * ⚠️ *Cancelar* AND NOT *Volver*, WHICH IS THE ONE PLACE THIS APP BREAKS
+       * THAT HABIT AND IT IS DELIBERATE. Productos and La Familia are screens
+       * you went into and came back from; this one holds typing that will be
+       * thrown away, and *Volver* would understate what the tap costs.
+       */
+      cancel: 'Cancelar',
+
+      nameLabel: 'Nombre',
+      /** ⚠️ A REAL PRODUCT AND NOT *"Ej. producto"*: C8.5's own despiece, so the
+       *  example shows that a variant is the CUT and not the animal. */
+      namePlaceholder: 'Pechuga sin hueso',
+
+      familyLabel: 'Familia',
+      /**
+       * ⚠️⚠️ THE SUGGESTION SAYS WHICH OF TWO THINGS IT IS ABOUT TO DO, because
+       * they are not the same event. Attaching to `Pollo` changes nothing about
+       * the shop; creating `Pollo` adds a row she will see for ever. C8.11 makes
+       * the suggestion overridable and says nothing about announcing it — and a
+       * form that silently created families would be the app doing bookkeeping
+       * in her name.
+       */
+      familyNew: 'Se creará esta familia.',
+      /** ⚠️ THE GESTURE C8.11 ASKS FOR, and it is a WORD: C12.1 refuses an icon
+       *  with nothing beside it, and *Cambiar* is what the override is. */
+      familyChange: 'Cambiar',
+      /** Back to the family the typed name suggests, after an override. */
+      familySuggested: 'Usar la sugerida',
+      /** The heading over the families this shop already has. */
+      familyPick: 'Elige una familia',
+      /** ⚠️ CREATING ONE IN PLACE IS THE OTHER HALF OF C8.11 — *"he can override
+       *  and create his own family in place"* — so it is on this screen and never
+       *  behind a second one. */
+      familyOwn: 'O escribe una nueva',
+      familyOwnPlaceholder: 'Pollo',
+
+      /**
+       * ⚠️ THE QUESTION IS ABOUT SELLING AND NOT ABOUT MEASURING, which is what
+       * `ES.catalog.issues.unitMissing` already says: C8.10 writes the one answer
+       * into all four columns, so a shopkeeper is never asked four times.
+       */
+      unitLabel: 'Unidad',
+      /**
+       * ⚠️⚠️ WHY THE LIST CAN BE SHORTER THAN TEN, SAID ON THE SCREEN RATHER
+       * THAN LEFT TO PUZZLE HER. C8.5 holds every variant of a family to ONE
+       * dimension, so adding to `Pollo` offers weights and no litres —
+       * `unitOptions` is what narrows it, and a picker that silently lost six
+       * options would read as a bug on the one screen a shopkeeper is learning.
+       */
+      unitFamily: 'Las unidades son las de esta familia.',
+
+      priceLabel: 'Precio',
+      /**
+       * ⚠️ THE SAME TWO-DECIMAL SHAPE `ES.catalog.issues.priceUnreadable` SHOWS
+       * HER WHEN SHE GETS IT WRONG. Two spellings of one example is how the
+       * placeholder and the refusal end up disagreeing about what this app
+       * accepts, and the refusal is the one she reads second.
+       */
+      pricePlaceholder: '35.50',
+
+      submit: 'Guardar producto',
+      working: 'Guardando…',
+
+      /**
+       * ⚠️⚠️ THE FORM STAYS OPEN AND SAYS WHAT LANDED, and the sentence is what
+       * makes that honest rather than ambiguous. C8.2's shopkeeper adds products
+       * in a sitting — `Pechuga`, `Pierna`, `Muslo`, all `Pollo`, all in kilos —
+       * so returning to Productos after each one is a tap per product to get
+       * back ([[prefer-the-option-that-adds-no-human-step]]). What she loses is
+       * seeing the row appear in the list, and this line plus the name above it
+       * is what pays for it.
+       */
+      saved: 'Ya está en tu catálogo.',
+      /**
+       * ⚠️ THE SAME EVENT WITHOUT A PRICE — `CreateSucceeded.priced`, which
+       * `5e-i` put there for this. It is `ES.catalog.notice.noPrice` in the past
+       * tense, because the notice described what saving WOULD produce and this
+       * describes what it did.
+       */
+      savedNoPrice: 'Ya está en tu catálogo, sin precio. Cuando lo compres o lo vendas tendrás que ponerle uno.',
+      /** The name of the product that just landed sits above those two lines. */
+      savedLabel: 'Guardado',
+    },
+
+    /**
      * WHAT IS WRONG WITH THE FOUR FIELDS BEFORE POSTGRES IS ASKED. Plan task
      * `5e-i`, rendered by the form `5e-ii` builds. `checkProduct` in
      * `@/api/catalogWrite` chooses; nothing here is chosen at a call site.
@@ -979,25 +1086,37 @@ export const ES = {
     back: 'Volver',
 
     /**
-     * ⚠️⚠️ THE THREE AFFORDANCES, IN THE OWNER'S OWN WORDS AND INERT UNTIL
-     * `5e`. Every one of them WRITES — `product_variant_insert` and
-     * `product_family_insert` are both `has_role(…, 'manager')` in `0002` —
-     * and this whole step is the catalog being READ. They are drawn because
-     * the family is where they belong and a shopkeeper should see what is
-     * coming; they are drawn plainly dead because a control that looks live
-     * and refuses silently is worse than one that is obviously not built.
+     * ⚠️⚠️ THE THREE AFFORDANCES, IN THE OWNER'S OWN WORDS — AND AS OF `5e-ii`
+     * THE FIRST OF THEM WORKS. Every one of them WRITES: `product_variant_insert`
+     * and `product_family_insert` are both `has_role(…, 'manager')` in `0002`,
+     * which is why `5d-iii` drew all three dead while the catalog was only being
+     * read. `Agregar Variante` now opens the form — and only for a manager or
+     * the owner, because `canWriteCatalog` keeps a cashier from seeing a control
+     * she would be refused silently.
+     *
+     * ⚠️ `Costos` AND `Editar` ARE STILL DRAWN DEAD, and that is two rulings
+     * rather than an omission: *"leave Costos dead until `5g`"* (2026-09-22),
+     * because nothing writes a purchase until Comprar exists, and `Editar` is
+     * `5e-iii`. ⚠️ Deleting them was refused for `5d-iv-b`'s Proveedores reason
+     * — an affordance a shop has seen and then seen vanish reads as an app
+     * getting smaller.
      */
     addVariant: 'Agregar Variante',
     costs: 'Costos',
     edit: 'Editar',
     /**
-     * ⚠️ THE ONE SENTENCE THAT KEEPS THE THREE FROM LOOKING BROKEN — the shape
-     * `ES.approvals.notYet` had at `5b-iii-d-1`, and it is deleted by the task
-     * that makes them work, exactly as that one was. Without it a shopkeeper
-     * is left to work out for herself whether the app is unfinished or her
-     * phone is; with it, the answer is on the screen.
+     * ⚠️ THE ONE SENTENCE THAT KEEPS THE DEAD ONES FROM LOOKING BROKEN — the
+     * shape `ES.approvals.notYet` had at `5b-iii-d-1`, and it is deleted by the
+     * task that makes them work, exactly as that one was.
+     *
+     * ⚠️⚠️ IT WAS REWORDED AT `5e-ii` AND IT HAD TO BE. It used to read *"solo
+     * puedes ver; todavía no se puede agregar ni editar"*, which stopped being
+     * true the moment `Agregar Variante` opened a form — a sentence naming three
+     * dead buttons, sitting under two dead ones and one live one. It now names
+     * only what is still missing, and `5e-iii` and `5g` are the rows that delete
+     * the halves they finish.
      */
-    notYet: 'Por ahora solo puedes ver; todavía no se puede agregar ni editar.',
+    notYet: 'Todavía no puedes ver costos ni editar un producto.',
 
     /**
      * ⚠️⚠️ TWO STATES AND THEY ARE NOT THE SAME FACT. This screen is reached by

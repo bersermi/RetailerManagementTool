@@ -2,8 +2,9 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useCatalog } from '@/api/hooks';
+import { useCatalog, useMyRole } from '@/api/hooks';
 import { familyLine, familyView, type CatalogEntry } from '@/api/catalog';
+import { canWriteCatalog } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -29,13 +30,30 @@ import { PALETTE } from '@/theme/palette';
 // `accessibilityState.selected`, which a person who cannot see the rule needs
 // and a person who can never hears.
 //
-// ⚠️⚠️ THE THREE AFFORDANCES ARE DRAWN AND THEY ARE PLAINLY DEAD. Every one of
-// them WRITES — `product_variant_insert` and `product_family_insert` are both
-// `has_role(…, 'manager')` in `0002` — and `5d` is the catalog being READ.
-// They are `View`s and not disabled `Pressable`s: there is no handler to
-// attach, so there is no press path to wire up wrong later. `ES.family.notYet`
-// is the sentence that keeps them from reading as broken, and `5e` deletes it
-// exactly as `5b-iii-d-2` deleted `ES.approvals.notYet`.
+// ⚠️⚠️ ONE OF THE THREE AFFORDANCES WORKS AS OF `5e-ii`, AND TWO ARE STILL
+// DRAWN PLAINLY DEAD. `Agregar Variante` is C8.12's SECOND door into `Agregar`
+// and the one where the family question is not asked at all — it pushes
+// `/producto/nuevo?familia=<this family>`, and the form attaches the new variant
+// here without offering a choice, which is the constraint in the owner's own
+// words. ⚠️⚠️ It is **absent for a cashier**: all three of these WRITE,
+// `product_variant_insert` and `product_family_insert` are both
+// `has_role(…, 'manager')` in `0002`, and the refusal is a bare `42501` with no
+// sentence of its own, so `canWriteCatalog` keeps the control off her screen
+// entirely rather than letting it look live ([[shift-cover-is-a-reassignment]]).
+//
+// ⚠️ `Costos` AND `Editar` STAY `View`s AND STAY DEAD, by two rulings rather
+// than by inertia: *"leave Costos dead until `5g`"* (2026-09-22), because nothing
+// writes a purchase until Comprar exists and a costs view built now would show an
+// empty list on every product for ever; and `Editar` is `5e-iii`. ⚠️ Deleting
+// them was refused for `5d-iv-b`'s Proveedores reason — an affordance a shop has
+// seen and then seen vanish reads as an app getting smaller.
+//
+// ⚠️⚠️ AND `ES.family.notYet` WAS REWORDED RATHER THAN DELETED, WHICH IS THE
+// HALF A ONE-LINE CHANGE WOULD HAVE MISSED. It used to say *"solo puedes ver;
+// todavía no se puede agregar ni editar"* — three dead buttons — and the moment
+// one of them opened a form that sentence became false while still rendering
+// green. It now names only what is missing; `5e-iii` and `5g` delete the halves
+// they finish.
 //
 // ⚠️ AND THE VARIANT ROWS HERE ARE NOT PRESSABLE EITHER, for the same reason
 // one task along: the selection is a record of where you came from, and
@@ -59,10 +77,10 @@ import { PALETTE } from '@/theme/palette';
 //
 // ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this
 // screen it is nearly all of it. Nothing here will ever say whether the mark
-// reads as *this is the one you tapped* rather than as an alert, whether three
-// dead buttons look deliberate rather than broken, or whether a family of six
-// variants fits above the fold at *Letra grande*. **The instrument is the
-// owner's phone.** The half that is checkable — which variants belong, which
+// reads as *this is the one you tapped* rather than as an alert, whether one
+// live button beside two dead ones reads as a step forward or as a row that is
+// half broken, or whether a family of six variants fits above the fold at *Letra
+// grande*. **The instrument is the owner's phone.** The half that is checkable — which variants belong, which
 // one is marked, what an empty screen says — is in `@/api/catalog` on purpose.
 // ============================================================================
 
@@ -88,7 +106,8 @@ export default function Familia() {
         // two low-end Androids (C8.3, C1.1) and virtualising is the difference
         // between a scroll and a stutter; a family is a handful of sizes of one
         // product, and the three affordances below have to scroll WITH them
-        // rather than float over them.
+        // rather than float over them — which still holds now that one of the
+        // three is live: a button that floated would cover a variant's price.
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -118,7 +137,7 @@ export default function Familia() {
           </View>
         )}
 
-        <Acciones />
+        <Acciones familyId={id} />
       </ScrollView>
     </View>
   );
@@ -201,9 +220,12 @@ function Volver() {
  *
  * ⚠️ THE MISSING PRICE IS A DASH IN `tintaApagada` AND NEVER AMBER, which is
  * Productos' call and its reason: `atencion`'s one job is C3.17, a missing
- * price BLOCKING a sale where the fix is one tap away. Nothing on this screen
- * can set a price yet — `Editar` is `5e` — so amber here is an alarm nobody
- * can silence. ⚠️ Look at this one again when `5e` lands.
+ * price BLOCKING a sale where the fix is one tap away. ⚠️⚠️ `5e-ii` LOOKED AT
+ * THIS AGAIN, AS THIS COMMENT ASKED, AND THE DASH STAYS. `Agregar` can create a
+ * priceless product but nothing anywhere can yet PRICE one — the price change is
+ * `5e-iii`'s, with the dated window it has to respect — so the fix is still not
+ * one tap away and amber would still be an alarm nobody can silence. ⚠️ Look at
+ * it again at `5e-iii`, which is the task that makes it actionable.
  */
 function Variante({ entry, selected }: { entry: CatalogEntry; selected: boolean }) {
   const { scale } = useDensity();
@@ -258,30 +280,55 @@ function Variante({ entry, selected }: { entry: CatalogEntry; selected: boolean 
 
 /**
  * `Agregar Variante`, `Costos` and `Editar` — the three affordances C8.13 puts
- * with the family, and every one of them is inert.
+ * with the family. As of `5e-ii` the first one works and the other two do not,
+ * and the difference is drawn rather than explained.
  *
- * ⚠️⚠️ THEY ARE DRAWN DEAD RATHER THAN LEFT OUT, WHICH IS A CHOICE AND NOT A
- * PLACEHOLDER. All three WRITE, and `5d` is the catalog being read; `5e` is
- * the task that builds them. Leaving them out would hide where the work lands;
- * drawing them live would be a control that refuses silently — and a
- * shopkeeper who taps *Editar* and gets nothing concludes her phone is broken.
- * The sentence underneath is what makes the difference, and `5e` deletes it.
+ * ⚠️⚠️ THE LIVE ONE IS A `Pressable` IN THE ACTION COLOUR AND THE DEAD ONES ARE
+ * `View`s IN `tintaApagada`. `accion` and `accionSuave` mean *this is tappable
+ * at rest*, which is exactly the claim the two dead ones must not make; and a
+ * dead one is a `View` and not a disabled `Pressable` because there is no
+ * handler to attach and therefore no press path to wire up wrong later. ⚠️ The
+ * role and the disabled state are what a screen reader needs, and it gets both.
  *
- * ⚠️ THEY BORROW NO ACTION COLOUR. `accion` and `accionSuave` mean *this is
- * tappable at rest*, which is exactly the claim these must not make, so they
- * are `tintaApagada` on the screen's own ground inside a `linea` border. The
- * same argument the initials tile made about its ground one screen down.
+ * ⚠️⚠️ AND THE LIVE ONE IS ABSENT ALTOGETHER FOR A CASHIER — never disabled for
+ * her, which would be the third visual state on one row. `canWriteCatalog` is
+ * `0002`'s own predicate on the three INSERT policies, and `null` — the
+ * membership read still out — is fenced out with her, so the control fades in
+ * when the answer lands rather than being snatched away.
  *
- * ⚠️ AND THEY ARE `View`s, NOT DISABLED `Pressable`s. There is no handler to
- * attach and therefore no press path to wire up wrong; the role and the
- * disabled state are what a screen reader needs, and it gets both.
+ * ⚠️ IT CARRIES THE FAMILY, WHICH IS THE WHOLE DIFFERENCE BETWEEN THIS DOOR AND
+ * THE ONE ON PRODUCTOS. C8.12: from inside an opened family the new variant
+ * belongs to that family, *no question asked* — so the id goes in the link and
+ * the form draws no family control at all.
  */
-function Acciones() {
+function Acciones({ familyId }: { familyId: string }) {
   const { scale } = useDensity();
+  const mayAdd = canWriteCatalog(useMyRole());
   return (
     <View style={{ gap: scale.rowGap }}>
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
-        {[ES.family.addVariant, ES.family.costs, ES.family.edit].map((word) => (
+        {mayAdd && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() =>
+              router.push({ pathname: '/producto/nuevo', params: { familia: familyId } })
+            }
+            style={{
+              minHeight: scale.tapTarget,
+              justifyContent: 'center',
+              paddingHorizontal: scale.space,
+              borderRadius: scale.space / 2,
+              borderWidth: 1,
+              borderColor: PALETTE.accion,
+              backgroundColor: PALETTE.accionSuave,
+            }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+              {ES.family.addVariant}
+            </Text>
+          </Pressable>
+        )}
+        {[ES.family.costs, ES.family.edit].map((word) => (
           <View
             key={word}
             accessibilityRole="button"
