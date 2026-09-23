@@ -479,7 +479,7 @@ export function checkProduct(
   if (draft.familyId === null && searchKey(draft.familyName) === '') return 'familyMissing';
   if (factors[draft.unitCode] === undefined) return 'unitMissing';
   // ⚠️⚠️ AN EMPTY PRICE BOX IS NOT AN ISSUE — RULED 2026-09-22. It is a
-  // deliberate create, and `priceConfirmKey` below is what makes sure the
+  // deliberate create, and `noPriceNoticeKey` below is what makes sure the
   // shopkeeper knows he is making one. What is still refused is a box with
   // something unreadable in it.
   if (priceOmitted(draft.pricePesos)) return null;
@@ -490,31 +490,53 @@ export function checkProduct(
 }
 
 /**
- * The one thing a shopkeeper must be TOLD before this create goes through — as
- * a KEY of `ES.catalog.confirm`, never as a sentence.
+ * The one thing a shopkeeper must be TOLD while this create is being typed — as
+ * a KEY of `ES.catalog.notice`, never as a sentence, and `null` when there is
+ * nothing to say.
  *
- * ⚠️⚠️ IT IS A WARNING AND NOT A REFUSAL, WHICH IS THE WHOLE OF THE OWNER'S
+ * ⚠️⚠️ IT IS A NOTICE AND NOT A REFUSAL, WHICH IS THE WHOLE OF THE OWNER'S
  * RULING OF 2026-09-22. `5e-i` shipped the price as REQUIRED, on the reading
  * that C8.9 lists it among the four fields; the owner overrode that — *"allow
  * the user to create a product without a sell nor purchasing price, but
  * highlight he's doing so"* — and the override is the smaller, kinder thing,
- * which is the sixth time on this project he has chosen it.
+ * which is the seventh time on this project he has chosen it.
  *
- * ⚠️ WHAT THE SENTENCE OWES HIM IS THE CONSEQUENCE, NOT THE STATE. C3.12 is the
- * owner's own earlier words — *"impossible to concrete a transaction without a
- * price"* — so a product with no `price_list` row is one Vender and Comprar
- * will both have to stop and ask about. Telling him *"this product has no
- * price"* would be telling him what he just typed; telling him what it will
- * cost him at the counter is the part he cannot see from the form.
+ * ⚠️⚠️ AND IT IS A LINE RATHER THAN A CONFIRMATION HE TAPS THROUGH — ruled
+ * 2026-09-22, the same day, on the recommendation: **no extra tap**
+ * ([[prefer-the-option-that-adds-no-human-step]]). C8.2 has the owner seeding
+ * the catalog deliberately short so the shopkeeper makes products himself, and
+ * a shop doing that leaves the price empty on product after product — a dialog
+ * per product is a tap paid repeatedly to be told the same thing, which is how
+ * a warning becomes something a person dismisses without reading. **So the
+ * function's name says notice, and so does the `ES` block it keys into.**
  *
- * ⚠️⚠️ AND IT IS `null` RATHER THAN A SENTENCE WHEN THE DRAFT IS PRICED, so a
- * screen cannot render a warning about a product that does not need one. ⚠️ WHAT
- * SURFACE IT IS SHOWN ON — a confirmation the shopkeeper taps through, or a
- * line that appears under the price box as soon as it is left empty — is
- * `5e-ii`'s and is routed to the owner's phone (`R9`, §2.11): nothing in this
- * repository can say which of those reads better at a counter.
+ * ⚠️⚠️ WHEN IT APPEARS IS A DECISION AND NOT A DETAIL, AND IT IS HERE RATHER
+ * THAN IN THE FORM (`R3`) BECAUSE IT HAS A RIGHT ANSWER. The price box starts
+ * EMPTY, so *"show it whenever the box is empty"* puts the sentence on screen
+ * before a single character is typed — a warning about a product that does not
+ * exist yet, on every visit, which is exactly how a shopkeeper learns to read
+ * past it. It appears when the sentence BECOMES TRUE: the rest of the draft is
+ * one the database will accept, and the price is the only thing missing. That
+ * is the moment *"este producto no tendrá precio"* stops being a guess about
+ * what he might do and starts describing what saving now would produce — which
+ * is why the sentence is in the future tense.
+ *
+ * ⚠️ A REFUSAL OUTRANKS IT, and that falls out of asking `checkProduct` first
+ * rather than being a second rule: a name the shop already uses is something he
+ * must fix, and stacking *and by the way there is no price* under it is two
+ * messages about one box. `catalogLine`'s *failure outranks loading* is the same
+ * ordering one screen over.
+ *
+ * ⚠️ WHAT IT STILL CANNOT SAY is whether the line reads well at a counter —
+ * where it sits, what it looks like, whether it is quiet enough to live under a
+ * field. `R9` and §2.11 route that to the owner's phone at `5e-ii`.
  */
-export function priceConfirmKey(draft: ProductDraft): keyof typeof ES.catalog.confirm | null {
+export function noPriceNoticeKey(
+  draft: ProductDraft,
+  entries: readonly CatalogEntry[],
+  factors: UnitFactors,
+): keyof typeof ES.catalog.notice | null {
+  if (checkProduct(draft, entries, factors) !== null) return null;
   return priceOmitted(draft.pricePesos) ? 'noPrice' : null;
 }
 

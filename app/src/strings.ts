@@ -858,7 +858,7 @@ export const ES = {
       /**
        * ⚠️⚠️ THIS IS THE UNREADABLE BOX AND NO LONGER THE EMPTY ONE — the
        * owner's ruling of 2026-09-22 split what had been one key. An EMPTY
-       * price is now a legitimate product (`ES.catalog.confirm.noPrice` is what
+       * price is now a legitimate product (`ES.catalog.notice.noPrice` is what
        * it gets instead); `35,5,5` and `gratis` are still refused, because a
        * price this app guessed at is a price the shop charges.
        *
@@ -870,17 +870,24 @@ export const ES = {
     },
 
     /**
-     * WHAT A SHOPKEEPER IS TOLD BEFORE A CREATE THAT IS ALLOWED BUT WORTH
+     * WHAT A SHOPKEEPER IS TOLD ABOUT A CREATE THAT IS ALLOWED BUT WORTH
      * KNOWING ABOUT. Plan task `5e-i`, reopened by the owner's ruling of
-     * 2026-09-22. `priceConfirmKey` in `@/api/catalogWrite` chooses.
+     * 2026-09-22. `noPriceNoticeKey` in `@/api/catalogWrite` chooses.
      *
      * ⚠️ IT IS ITS OWN BLOCK BESIDE `issues` AND NOT INSIDE IT, and the
      * distinction is the ruling's substance: an `issue` STOPS the save and this
      * does not. Folding them would put a sentence that means *go on* in the
      * table of sentences that mean *you cannot*, and the next person to render
      * the block would treat them alike.
+     *
+     * ⚠️⚠️ IT IS `notice` AND NOT `confirm`, AND THE RENAME IS A SECOND RULING
+     * OF THE SAME DAY: **no extra tap.** A block called `confirm` describes a
+     * thing the shopkeeper dismisses, and the owner ruled against exactly that —
+     * a line under the empty price box instead. The word was wrong for one
+     * afternoon and is corrected here rather than left to mislead the screen
+     * that renders it.
      */
-    confirm: {
+    notice: {
       /**
        * ⚠️⚠️ THE OWNER'S OWN SENTENCE, TIGHTENED — his words were *"Si quieres
        * comprar/vender tendrás que poner un precio al llevar a cabo la

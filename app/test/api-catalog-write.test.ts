@@ -13,7 +13,7 @@ import {
   familiesFrom,
   familyRow,
   parsePesos,
-  priceConfirmKey,
+  noPriceNoticeKey,
   priceOmitted,
   priceRow,
   pricePerBase,
@@ -432,24 +432,64 @@ describe('a product with no price — the owner\'s ruling of 2026-09-22', () => 
   // price the owner SET and sells at; no row is a question nobody has answered.
   it('treats a typed zero as a price, not as an omission', () => {
     expect(priceOmitted('0')).toBe(false);
-    expect(priceConfirmKey(draft({ pricePesos: '0' }))).toBeNull();
+    expect(noPriceNoticeKey(draft({ pricePesos: '0' }), ENTRIES, FACTORS)).toBeNull();
     expect(checkProduct(draft({ pricePesos: '0' }), ENTRIES, FACTORS)).toBeNull();
     expect(pricePerBase(0, FACTORS.kg)).toBe('0.000000');
   });
 
-  it('asks for a word only when the price is omitted', () => {
-    expect(priceConfirmKey(draft({ pricePesos: '' }))).toBe('noPrice');
-    expect(priceConfirmKey(draft({ pricePesos: '  ' }))).toBe('noPrice');
-    expect(priceConfirmKey(draft())).toBeNull();
-    expect(priceConfirmKey(draft({ pricePesos: 'gratis' }))).toBeNull();
+  it('says something only when the price is the thing that is missing', () => {
+    expect(noPriceNoticeKey(draft({ pricePesos: '' }), ENTRIES, FACTORS)).toBe('noPrice');
+    expect(noPriceNoticeKey(draft({ pricePesos: '  ' }), ENTRIES, FACTORS)).toBe('noPrice');
+    expect(noPriceNoticeKey(draft(), ENTRIES, FACTORS)).toBeNull();
+    expect(noPriceNoticeKey(draft({ pricePesos: 'gratis' }), ENTRIES, FACTORS)).toBeNull();
+  });
+
+  // ⚠️⚠️ THE PRICE BOX STARTS EMPTY, so a notice keyed on emptiness ALONE would
+  // be on screen before a single character is typed — a warning about a product
+  // that does not exist yet, on every visit, which is how a shopkeeper learns to
+  // read past it. It appears when the sentence becomes TRUE, which is why the
+  // sentence is in the future tense.
+  it('stays quiet until the rest of the draft is one the database would accept', () => {
+    const bare: ProductDraft = {
+      name: '',
+      familyId: null,
+      familyName: '',
+      unitCode: '',
+      pricePesos: '',
+    };
+    expect(noPriceNoticeKey(bare, ENTRIES, FACTORS)).toBeNull();
+    expect(noPriceNoticeKey({ ...bare, name: 'Muslo' }, ENTRIES, FACTORS)).toBeNull();
+    expect(
+      noPriceNoticeKey({ ...bare, name: 'Muslo', familyName: 'Pollo' }, ENTRIES, FACTORS),
+    ).toBeNull();
+    expect(
+      noPriceNoticeKey(
+        { ...bare, name: 'Muslo', familyName: 'Pollo', unitCode: 'kg' },
+        ENTRIES,
+        FACTORS,
+      ),
+    ).toBe('noPrice');
+  });
+
+  // ⚠️ A REFUSAL OUTRANKS IT, and it falls out of asking `checkProduct` first
+  // rather than being a second rule: a name the shop already uses is something
+  // he must fix, and stacking "and by the way there is no price" under it is two
+  // messages about one box.
+  it('says nothing while a refusal is standing', () => {
+    expect(
+      noPriceNoticeKey(draft({ name: 'Pierna', pricePesos: '' }), ENTRIES, FACTORS),
+    ).toBeNull();
+    expect(checkProduct(draft({ name: 'Pierna', pricePesos: '' }), ENTRIES, FACTORS)).toBe(
+      'duplicate',
+    );
   });
 
   // ⚠️ IT ANSWERS A KEY AND NEVER A SENTENCE (`R4`), the shape `checkProduct`
   // and `emptyLineKey` already use.
-  it('answers a key of ES.catalog.confirm', () => {
-    const key = priceConfirmKey(draft({ pricePesos: '' }));
+  it('answers a key of ES.catalog.notice', () => {
+    const key = noPriceNoticeKey(draft({ pricePesos: '' }), ENTRIES, FACTORS);
     expect(key).not.toBeNull();
-    expect(ES.catalog.confirm[key as keyof typeof ES.catalog.confirm]).toBeTypeOf('string');
+    expect(ES.catalog.notice[key as keyof typeof ES.catalog.notice]).toBeTypeOf('string');
   });
 
   // ⚠️⚠️ THE SENTENCE NAMES THE CONSEQUENCE AND NOT THE STATE, which is the
@@ -457,8 +497,8 @@ describe('a product with no price — the owner\'s ruling of 2026-09-22', () => 
   // concreted without a price, so what he cannot see from this form is that
   // Vender and Comprar will both stop and ask him.
   it('tells him what it will cost at the counter, not what he just typed', () => {
-    expect(ES.catalog.confirm.noPrice).toMatch(/compres/);
-    expect(ES.catalog.confirm.noPrice).toMatch(/vendas/);
+    expect(ES.catalog.notice.noPrice).toMatch(/compres/);
+    expect(ES.catalog.notice.noPrice).toMatch(/vendas/);
   });
 });
 
