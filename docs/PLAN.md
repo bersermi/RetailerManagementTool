@@ -1303,98 +1303,6 @@ built `.app` is signed and waiting; connecting the phone and running
 `devicectl device install app` is a thirty-second step, and the next session
 should check it landed rather than assume it.
 
-✅✅ **`5d-iii` IS DONE AS OF 2026-09-22 — THE FAMILY OPENS FROM A TAP, AND
-`5d-iv` IS THE NEXT TASK: INICIO, THE REAL ONE.** One route, three pure
-functions, twelve assertions and the rows of Productos becoming pressable at
-last. **No migration, no primitive and no `src/ui/`.**
-
-⚠️⚠️ **THE HONEST HEADLINE FIRST, AND IT IS THE SAME ONE `5d-ii` CARRIED:
-NOTHING IN THIS REPOSITORY CAN SAY WHETHER THIS SCREEN LOOKS RIGHT.** §2.11
-keeps rendering, navigation and layout out of scope and `R9` is the rule.
-**The instrument is the owner's phone**, and the three questions it is being
-asked are named in the file's own header: whether a green rule down one row's
-edge reads as *this is the one you tapped* rather than as an alarm, whether
-three dead buttons read as deliberate rather than broken, and whether a family
-of six variants still fits above the three buttons at *Letra grande*.
-
-⚠️⚠️ **THE RULING IT IMPLEMENTS IS ONE LINE LONG AND IT FORBIDS THE OBVIOUS
-ANSWER.** Área 13, ruling 4, in the owner's words: *"the preselected variant
-shows no legend."* So the mark cannot be a word — not *seleccionado*, not a
-tick, not a badge. **And área 13's other surviving rule forbids the other
-obvious answer**: the one thing direction C left behind when B was chosen is
-*no state is ever announced by colour alone*. **What is left is colour AND a
-border**, which is what shipped: a `accion` rule down the row's leading edge
-and a heavier name. ⚠️ **The rule's WIDTH is constant and only its COLOUR
-changes**, because a border that appeared only on the marked row would shove
-that one name three pixels sideways — the single row that then fails to line up
-with the others, which reads as a rendering fault rather than as a mark.
-
-**THE SIX DECISIONS A SCREEN CAN GET WRONG SILENTLY, each written down because
-nothing else here can hold them:**
-
-| | The decision | What the alternative costs |
-|---|---|---|
-| **1** | ⚠️⚠️ **NOTHING IS MARKED WHEN THE ID IS NOT IN THIS FAMILY — NEVER A FALLBACK TO THE FIRST ROW** | The ruling took the legend away, so the mark is the ONLY thing on the screen saying *this is the one you came from*. Marking row one on a bad parameter puts that claim on a product she never touched, with nothing to correct it. `familyView` returns `null` and four assertions hold it |
-| **2** | ⚠️⚠️ **THE VARIANT ROWS HERE ARE NOT PRESSABLE EITHER** | Nothing consumes the selection yet: `Costos` and `Editar` are `5e`. A row that highlighted under a thumb and changed nothing is the control this whole step refuses — the same rule `5d-ii` applied to itself one task early. ⚠️ **One `useState` and a `Pressable` to reverse, the day `5e` gives the mark a consumer** |
-| **3** | ⚠️⚠️ **THE THREE AFFORDANCES ARE `View`s, NOT DISABLED `Pressable`s, AND THEY BORROW NO ACTION COLOUR** | `accion`/`accionSuave` mean *tappable at rest*, which is the claim these must not make, so they are `tintaApagada` on `fondo` inside a `linea` border. And a `View` has no handler to attach, so there is no press path to wire up wrong later |
-| **4** | ⚠️ **ONE SENTENCE UNDER THEM, NOT A LABEL ON EACH** | `ES.family.notYet` is the `ES.approvals.notYet` shape `5b-iii-d-1` shipped and `5b-iii-d-2` deleted — the one place this app explains its own state to a shopkeeper, because the alternative is her deciding her phone is broken. ⚠️ **`5e` deletes it**, and its own comment says so |
-| **5** | ⚠️ **NO INITIALS TILE ON THIS SCREEN, AND PRODUCTOS KEEPS ITS OWN** | C8.14's two letters stand in for a PHOTO among DIFFERENT products; a family is one product in several sizes, so six identical tiles is six copies of a picture nobody needs — and on Productos the tile is what now says *tappable*, which these rows are not |
-| **6** | ⚠️ **A `ScrollView` HERE AND A `FlatList` THERE** | The opposite call from Productos on the same argument: ~100 rows on two low-end Androids is what virtualisation is for (C8.3, C1.1), and a family is a handful of sizes whose three buttons have to scroll WITH them rather than float over them |
-
-⚠️⚠️ **AND THE AFFORDANCE ON PRODUCTOS WAS ALREADY DECIDED, BY THE TASK THAT
-COULD NOT USE IT.** `5d-ii` drew the initials tile on `fondo` and wrote down
-why — *`accionSuave`'s one job is the resting fill of an action, and these rows
-are not tappable until `5d-iii`*. They are now, so the tile moved to
-`accionSuave` and the rows became `Pressable`. ⚠️ **The alternative was a
-chevron, and C12.1 refuses an icon with no word beside it** — which is why the
-affordance had to be carried by HUE, the thing direction B was chosen over
-direction A for.
-
-⚠️ **THE ROUTE SHAPE IS A DECISION TOO: `/familia/<family_id>?variante=<id>`.**
-The family is what the screen SHOWS and the variant only marks a row in it, so
-one is the path and the other is a parameter — **and a link that lost the
-parameter still opens the right family with nothing marked**, which is the
-failure worth having. ⚠️ It is at the ROOT and in NO GROUP (`groupOf()` →
-`null`), it is a PUSHED screen rather than a sheet — no `Stack.Screen` entry, so
-no `presentation: 'modal'` — and it is **not** in `RESTORABLE_ROUTES`, which is
-Productos' own call: C1.3 reopens the screen a person was WORKING on, and
-reading a product is not work.
-
-**What shipped:**
-
-| | |
-|---|---|
-| `app/src/app/familia/[id].tsx` | the route, the banda, the marked row, the three dead affordances and the two empty states |
-| `app/src/api/catalog.ts` | `familyView`, `familyTitle`, `familyLineKey` — the three decisions on this screen that have a right answer |
-| `app/src/app/productos.tsx` | the row is a `Pressable`, the tile's ground is `accionSuave`, and the header paragraph that promised both is now the record that it happened |
-| `app/src/strings.ts` | `ES.family`'s nine words, the three affordances in the owner's own spelling |
-| `app/test/api-catalog.test.ts` | **twelve new assertions**, 689 tests in the app suite |
-
-⚠️ **THE VERIFICATION, NAMED — AND WHAT IT DOES NOT COVER.**
-`npm run test --workspace @tienda/app` is **689 tests over 29 files** (twelve
-new, all of them over `familyView` / `familyTitle` / `familyLineKey`),
-`npm run typecheck` clean **after expo-router's typed-route declarations were
-regenerated** — which is itself the evidence that the router discovers the new
-file, since the generator walked `src/app` and emitted `/familia/[id]` — and
-`bash docs/checks/conventions-gate.sh` is **16 groups over 56 source and 29 test
-files** (55 before). ⚠️⚠️ **`docs/checks/5d-i-catalog-contract.sh` WAS NOT RE-RUN BY
-HAND AND CI RAN IT ANYWAY — WHICH THE SESSION GOT WRONG FIRST AND THE JOB LOG
-CORRECTED.** A hand-run would have asserted nothing new: this task adds no
-column, no filter and no string that goes over the wire. **But `db.yml`'s
-`paths:` has watched `app/src/api/**` since `5b-i`** — because a module under it
-is a CLAIM ABOUT THE APPLIED SCHEMA — and this task appended three functions to
-`app/src/api/catalog.ts`, so the whole database workflow fired: **12 of 12
-against a real reset database, with its thirteen fixtures still red.** ⚠️ **The
-first draft of this paragraph said that workflow does not fire on an app edit.
-It does, and its own filter comment says why** — which is the difference between
-reading the job log and reading the tick. ⚠️⚠️ **And not one of those looked
-at a pixel.**
-
-**DECISIONS TAKEN ON THE OWNER'S BEHALF:** the six in the table above, plus the
-route shape and the `RESTORABLE_ROUTES` omission. **Every one of them is one or
-two lines to reverse**, and the two worth a second look on the phone are the
-mark (decision 1's rule, and whether it reads as *you came from here*) and the
-three dead buttons (decisions 3 and 4 — whether they read as deliberate).
 
 
 
@@ -1402,7 +1310,7 @@ three dead buttons (decisions 3 and 4 — whether they read as deliberate).
 
 
 
-⚠️⚠️ **TEN ENTRIES OF 2026-09-22 ARE ARCHIVED, IN EIGHT CUTS, TO
+⚠️⚠️ **ELEVEN ENTRIES OF 2026-09-22 ARE ARCHIVED, IN NINE CUTS, TO
 [`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**
 — the `5c-ii-b` sizing and its connectivity reading, `5c-ii-b-2`'s flush trigger,
 the `5c-iv` sizing, **`5c-iv-a`, moved in the second cut while `5e` was being
@@ -1423,8 +1331,12 @@ headroom is how a guard fires on somebody who has done nothing wrong.
 left this block forty-three lines of headroom** — and a closing entry is longer than
 that, so the session that wrote the sizing paid for its own successor rather than
 handing it a red.
+⚠️ **And `5d-iii`'s went in the NINTH, an hour after the eighth, because the C3.17
+ruling arrived the same evening `5e-iii-a` closed and this block reached 1,413** —
+⚠️⚠️ **a session that ships a task AND takes a ruling writes TWO entries, and sizing the
+archive for one of them is what put it over the ceiling twice in one hour.**
 ⚠️⚠️ **The archive is no longer strictly oldest-first and its own headings say so**:
-three cuts came off this block's head and five off its foot.
+three cuts came off this block's head and six off its foot.
 ⚠️ **This is the first cut taken from a day that was still running** — every
 earlier one waited for the day to close, because there was always an older day to
 take; today there was not. **A later session APPENDS to that file rather than
