@@ -1,80 +1,296 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { type ReactNode } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { usePendingRequests } from '@/api/hooks';
+import { usePendingRequests, useToday } from '@/api/hooks';
+import { showsTakings, takingsLine } from '@/api/today';
 import { formatMXN } from '@/format/mxn';
+import {
+  INICIO_BLOCKS,
+  doorsOfShape,
+  isOpen,
+  type InicioBlock,
+  type InicioDoor,
+} from '@/navigation/inicio';
+import { bannerRoom } from '@/offline/deadLetters';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { placeholderGrossCentavos } from '@/wiring';
 
 // ============================================================================
-// ⚠️ STILL NOT INICIO. §2.8's Inicio is today's takings, today's count, and
-// anything expiring within 48 hours — none of which exists yet, because none of
-// it has a query behind it in this app. Área 13 added the module cards. All of
-// that is `5d`.
+// INICIO — §2.8's Home row, finally the screen it describes. Plan task
+// `5d-iv-b`, and the last child of `5d`.
 //
-// ⚠️⚠️ THE TWO TEMPORARY BLOCKS `5a-ii` PUT HERE ARE GONE, AND THIS IS THE TASK
-// THAT WAS NAMED TO DELETE THEM. Both said so in their own comments — *"whoever
-// builds Ajustes deletes this block"* — and both are now on a surface that is
-// not going anywhere:
+// ⚠️⚠️ THE THREE TEMPORARY BLOCKS ARE GONE, AND ALL THREE NAMED THIS TASK IN
+// THEIR OWN COMMENTS. The Productos door `5d-ii` put here a task early, the
+// bell `5b-iii-d-1` left floating in the body, and the Ajustes button sitting
+// alone in the centre of an empty screen. That is the arrangement `5a-ii`'s two
+// temporary blocks used before `5b-ii-a` deleted them — comment included,
+// because the one that is not written down is the one that becomes permanent.
+// ⚠️ THE PLACEHOLDER FIGURE WENT WITH THEM: `placeholderGrossCentavos()`
+// rendered **$11.60** out of `packages/money/cases.json` at the top of this
+// screen, which is a test fixture presented to a shopkeeper as her takings. It
+// was on the owner's own phone this morning. The number here now comes from
+// `sale`.
 //
-//   * the density switch, which `5a-iii-b` refused to persist while it lived
-//     here, because *"persisting it behind a placeholder switch would put the
-//     write in the file that gets deleted"*. It is persisted now (`5b-ii-a`).
-//   * `Cerrar sesión`, which was here so that `5a-iv` could DEMONSTRATE C1.4 —
-//     the only way to tell a session that survived from one that was never
-//     asked for is to end one deliberately and be asked again.
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ STATE COMES FIRST, AND THAT IS THE ONE PROHIBITION §2.8 KEPT.
+// ----------------------------------------------------------------------------
+// The Home row was amended on 2026-09-17 to allow the module cards — the
+// original sentence refused a nav panel here as *"redundant"* — and the
+// amendment kept half of it deliberately: the takings and the count sit ABOVE
+// ANYTHING TAPPABLE, so Inicio informs before it navigates. ⚠️ The order is not
+// written in this file's JSX. It is `INICIO_BLOCKS` in `@/navigation/inicio`,
+// rendered by a `.map`, because §2.11 refuses suites over layout and an order
+// written as a sequence of children is a deliverable NO CHECK HERE CAN SEE —
+// moving the cards above the figure would ship green. `app/test/inicio.test.ts`
+// reads the table. The same trade `tabs.ts` made for C12.1.
 //
-// ⚠️ THE LOG-OUT IS STILL REACHABLE IN TWO TAPS, and that matters to a dated
-// obligation rather than to a preference: the `5a-iv-d` day-8 and day-30
-// readings both end by signing out, and a control that had moved somewhere
-// unreachable would have broken the instrument rather than the app.
+// ⚠️ THE 48-HOUR EXPIRY BLOCK §2.8 ASKS FOR IS NOT HERE, AND IT IS WITHDRAWN
+// RATHER THAN DEFERRED — ruled by the owner 2026-09-22, *"let's drop it for the
+// pilot then."* It had a data path and the pilot fills none of it: `0018`'s
+// tier 2 needs `track_expiry`, which C8.9's four-field create never turns on,
+// and `7e` was rewritten to DERIVE shelf life from records the shop already
+// produces. An always-empty panel is the thing the ruling refused, so this
+// screen draws none.
 //
-// WHAT IS LEFT HERE: the money formatter at whatever size the mode says — the
-// one thing `5a-ii` could only claim on a machine and can be LOOKED AT on a
-// phone — the way into Ajustes, the BELL as of `5b-iii-d-1`, and as of `5d-ii`
-// a THIRD temporary row: the door into Productos. ⚠️ That door says in its own
-// comment that `5d-iv` deletes it, which is the arrangement the two blocks
-// above used before `5b-ii-a` cleaned them up.
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THE ROOM AT THE TOP IS FOR THE DEAD-LETTER BANNER, WHICH THIS FILE DOES
+// NOT MOUNT AND CANNOT SEE.
+// ----------------------------------------------------------------------------
+// `DeadLetterBanner` is mounted at the ROOT and is absolutely positioned, so it
+// draws OVER whatever is at the top of the screen underneath it — and as of the
+// ruling of 2026-09-22 (*"let's keep it Home Only"*) the one screen underneath
+// it is this one. What this row owes is therefore ROOM: `bannerRoom` in
+// `@/offline/deadLetters` owns the arithmetic, so the banner's height has ONE
+// home rather than two that drift apart by hiding the takings.
 //
-// ⚠️⚠️ THE BELL IS IN THE BODY AND NOT IN THE NAVIGATOR'S HEADER, AND THIS FILE
-// ALREADY RECORDED WHY BEFORE IT EXISTED. `Ajustes` below refused a `headerRight`
-// icon on the ground that C12.1 forbids an icon with no word beside it and a
-// header corner has no room for one. C11.8 asks for a notifications icon and a
-// badge; the same sentence applies to it, so it lands here as a row with its
-// word on it. ⚠️ `5d` builds §2.8's real Inicio — state at the top, module cards
-// below — and places both of these properly; neither is where it ends up.
+// ⚠️ AND THE SCROLL IS WHAT MAKES THAT ROOM A FLOOR RATHER THAN A PROMISE. The
+// banner's pill is three lines of `bodySize` text and nothing outside a running
+// renderer knows how tall that is; in `Letra grande` the cards and rows do not
+// fit one screen either. So the content scrolls, and the worst case is a short
+// drag rather than a number hidden under a strip.
 //
-// ⚠️ THE BELL IS ABSENT FOR EVERYBODY BUT AN OWNER, and that absence is the whole
-// fence. `0037` answers a non-owner with an empty list rather than a refusal
-// (its decision 2), so "you may not see this" and "nobody is waiting" are the
-// same answer on the wire — `usePendingRequests` decides which BEFORE the call,
-// and a manager is shown no control rather than an empty room.
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11, and on this
+// screen it is nearly everything.
+// ----------------------------------------------------------------------------
+// **The owner's phone is the whole instrument.** Nothing here will say whether
+// the takings figure reads across a counter, whether three cards and two rows
+// fit above the tab bar in `Letra grande`, whether the dead Proveedores row
+// looks unfinished or looks honest, or whether the room at the top reads as
+// deliberate or as a gap. ⚠️ ONE QUESTION IS ROUTED RATHER THAN ASKED BLIND:
+// nothing in this app writes a sale until `5f`, so the figure is **$0.00 and 0
+// ventas on every phone**. *Does a zero at the top of Inicio read as a quiet
+// morning or as a broken app?* is a `5f` question — asking it today would be
+// the `5c-iv-b` mistake the ruling of 2026-09-22 named.
+//
+// ⚠️ IT SHIPS NO MIGRATION. Every column behind the figure has been applied
+// since `0003`.
 // ============================================================================
 
 export default function Inicio() {
   const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: PALETTE.fondo,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.space * 2,
+    <ScrollView
+      style={{ flex: 1, backgroundColor: PALETTE.fondo }}
+      contentContainerStyle={{
+        // ⚠️ THE BANNER'S ROOM. Reserved whether or not a banner is up — see
+        // `bannerRoom`, which says why a gap that appears is worse than a gap
+        // that was always there.
+        paddingTop: bannerRoom(scale, insets.top),
+        paddingHorizontal: scale.space,
+        paddingBottom: scale.space * 2,
+        gap: scale.space * 1.5,
       }}
     >
-      <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
-        {formatMXN(placeholderGrossCentavos())}
-      </Text>
+      {/* ⚠️ THE ORDER IS THE TABLE'S AND NOT THIS FILE'S — see the header. */}
+      {INICIO_BLOCKS.map((block) => (
+        <Bloque key={block} block={block} />
+      ))}
+    </ScrollView>
+  );
+}
 
+/** One band of the screen. The `switch` is exhaustive by `InicioBlock`. */
+function Bloque({ block }: { block: InicioBlock }) {
+  switch (block) {
+    case 'estado':
+      return <Estado />;
+    case 'tarjetas':
+      return <Tarjetas />;
+    case 'filas':
+      return <Filas />;
+    case 'cierre':
+      return <Cierre />;
+  }
+}
+
+/**
+ * WHAT THE SHOP TOOK TODAY — the first thing on the screen, and the only thing
+ * on it that is not tappable.
+ *
+ * ⚠️⚠️ IT DECIDES NEITHER NUMBER. `@/api/today` owns which rows are today's,
+ * what a void does to the count, whether the figure may be shown at all and
+ * what the line underneath says; `app/test/api-today.test.ts` reads all four and
+ * `docs/checks/5d-iv-a-takings-contract.sh` drives them past a real PostgREST.
+ * This draws what `useToday` returns.
+ *
+ * ⚠️ THE FIGURE IS WITHHELD RATHER THAN SHRUNK, and `ES.home.noFigure` is what
+ * stands in its place — C3.12's character, on C3.12's reasoning and under its
+ * own key: a confident `$0.00` on a phone that could not reach the database is
+ * a number a shopkeeper would carry to her till.
+ *
+ * ⚠️ IT WILL LAG THE TILL BY WHATEVER THE QUEUE IS HOLDING. This is a SERVER
+ * read; a sale rung up offline waits in the device's outbox (`5c`). That is not
+ * a defect and it is `5f`'s question — see `useToday`.
+ */
+function Estado() {
+  const { scale } = useDensity();
+  const takings = useToday();
+
+  return (
+    <View style={{ gap: scale.rowGap / 2 }}>
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.home.today}</Text>
+      <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
+        {showsTakings(takings) ? formatMXN(takings.grossCentavos) : ES.home.noFigure}
+      </Text>
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+        {takingsLine(takings.loading, takings.failed, takings)}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * THE THREE WORK MODULES, AS LARGE CARDS — §2.8's own word.
+ *
+ * ⚠️ THEY GO WHERE THE TABS GO, AND THE REDUNDANCY IS PAID FOR ON PURPOSE. The
+ * amendment of 2026-09-17 says so in one line: it buys a fifth and sixth
+ * destination — Productos and Proveedores — that otherwise have no home, because
+ * C12.1 caps the tab bar at four.
+ *
+ * ⚠️ `router.navigate` AND NOT `push` FOR A TAB. Pushing would stack a second
+ * copy of a screen the bar already owns, and the way back from Vender is the
+ * tab bar rather than a back gesture. The rows below still `push`, because
+ * Productos is somewhere you GO.
+ */
+function Tarjetas() {
+  const { scale } = useDensity();
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      {doorsOfShape('tarjeta').map((door) => (
+        <Tarjeta key={door.key} door={door} />
+      ))}
+    </View>
+  );
+}
+
+function Tarjeta({ door }: { door: InicioDoor }) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={door.label}
+      onPress={() => {
+        if (door.route !== null) router.navigate(door.route);
+      }}
+      style={{
+        // ⚠️ `rowHeight` AND NOT `tapTarget` — this is C3.18's *taller rows*
+        // token, and a card §2.8 calls large should be visibly bigger than the
+        // rows under it rather than merely tappable.
+        minHeight: scale.rowHeight,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.space,
+        paddingHorizontal: scale.space * 1.5,
+        paddingVertical: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        // ⚠️ `accionSuave`, WHOSE ONE JOB IS *the resting fill of an action, so
+        // it reads as tappable at rest* — the same role `5d-iii` put under the
+        // initials tile. These three cards are what the shop DOES all day.
+        backgroundColor: PALETTE.accionSuave,
+      }}
+    >
+      {/* C12.1 — the icon NEVER appears without its word. */}
+      <MaterialCommunityIcons name={door.icon} size={scale.iconSize} color={PALETTE.accion} />
+      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+        {door.label}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * THE TWO ROOMS THE TAB BAR HAD NO SPACE FOR — §2.8's rows, and the fifth and
+ * sixth destinations the amendment bought.
+ *
+ * ⚠️⚠️ PROVEEDORES IS DRAWN AND IS DRAWN DEAD. `6b` builds the screen behind
+ * it; until then the row is here because a shopkeeper should see what is coming,
+ * and it carries `ES.home.notYet` because a door that looks live and opens onto
+ * nothing is worse than one that is obviously not built. That is `5d-iii`'s
+ * ruling applied to a door rather than to a button, and `ES.approvals.notYet`
+ * before it — both deleted by the task that makes the thing work.
+ */
+function Filas() {
+  const { scale } = useDensity();
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      {doorsOfShape('fila').map((door) => (
+        <View key={door.key} style={{ gap: scale.rowGap / 2 }}>
+          <Fila
+            icon={door.icon}
+            label={door.label}
+            open={isOpen(door)}
+            onPress={() => {
+              if (door.route !== null) router.push(door.route);
+            }}
+          />
+          {isOpen(door) ? null : (
+            <Text
+              style={{
+                fontSize: scale.bodySize,
+                color: PALETTE.tintaApagada,
+                paddingHorizontal: scale.space * 1.5,
+              }}
+            >
+              {ES.home.notYet}
+            </Text>
+          )}
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * THE BELL AND AJUSTES, PLACED AT LAST — and *at last* is both of its meanings.
+ * Neither was where it ends up: the bell sat in the body because `5b-iii-d-1`
+ * had nowhere better, and Ajustes was a button alone in the centre of a
+ * placeholder.
+ *
+ * ⚠️ THEY ARE LAST AND NOT FIRST BECAUSE NEITHER IS WORK. §2.8 puts state at
+ * the top and the doors below it; approving somebody and changing the text size
+ * are things you do between customers, on the screen you open between
+ * customers.
+ */
+function Cierre() {
+  const { scale } = useDensity();
+  return (
+    <View style={{ gap: scale.rowGap }}>
       <Solicitudes />
-      <ProductosDoor />
-      <Ajustes />
+      <Fila
+        icon="cog-outline"
+        label={ES.settings.title}
+        open
+        onPress={() => router.push('/ajustes')}
+      />
     </View>
   );
 }
@@ -83,30 +299,38 @@ export default function Inicio() {
  * THE ONE ROW SHAPE THIS SCREEN REPEATS — an icon, its word, and whatever the
  * caller wants on the right.
  *
- * ⚠️ IT IS A COMPONENT RATHER THAN A SECOND COPY OF THE SAME TWELVE STYLE LINES.
- * `5b-iii-d-1` added the second door on this screen, and the cheap move was to
- * paste the first one — which is the stale-duplicate defect this repository has
- * recorded seven times, in its smallest form: two rows that drift apart the
- * first time one of them is restyled.
+ * ⚠️ IT IS A COMPONENT RATHER THAN A SECOND COPY OF THE SAME TWELVE STYLE
+ * LINES. `5b-iii-d-1` added the second door on this screen and the cheap move
+ * was to paste the first one, which is the stale-duplicate defect in its
+ * smallest form: two rows that drift apart the first time one is restyled.
+ * `5d-iv-b` added the third and fourth without touching it.
  *
- * ⚠️ `router.push` AND NOT `replace` FOR BOTH: a sheet you come back from is the
- * whole reason §2.8 made these sheets.
+ * ⚠️⚠️ `open` IS WHAT A DEAD DOOR LOOKS LIKE, AND IT IS NOT COLOUR ALONE. The
+ * ink drops to `tintaApagada` AND `accessibilityState` says disabled AND the
+ * sentence under it says so in Spanish — three signals, because the palette's
+ * own header records that `accion` and `atencion` are one man in twelve's
+ * red-green pair, so state is never carried by colour by itself here.
  */
 function Fila({
   icon,
   label,
+  open,
   onPress,
   right,
 }: {
-  icon: 'bell-outline' | 'cog-outline' | 'package-variant-closed';
+  icon: InicioDoor['icon'] | 'bell-outline' | 'cog-outline';
   label: string;
+  open: boolean;
   onPress: () => void;
   right?: ReactNode;
 }) {
   const { scale } = useDensity();
+  const ink = open ? PALETTE.tinta : PALETTE.tintaApagada;
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityState={{ disabled: !open }}
+      disabled={!open}
       onPress={onPress}
       style={{
         minHeight: scale.tapTarget,
@@ -121,8 +345,8 @@ function Fila({
       }}
     >
       {/* C12.1 — the icon NEVER appears without its word. */}
-      <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.tinta} />
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{label}</Text>
+      <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
+      <Text style={{ fontSize: scale.bodySize, color: ink }}>{label}</Text>
       {right}
     </Pressable>
   );
@@ -132,20 +356,24 @@ function Fila({
  * THE BELL — C11.8, and the count behind it. Plan task `5b-iii-d-1`.
  *
  * ⚠️⚠️ ABSENT ENTIRELY FOR ANYBODY WHO IS NOT AN OWNER, which is `useRoster`'s
- * `visible` rule and is the fence itself rather than a decoration on one. See
- * this file's header: the empty list `0037` hands a manager is indistinguishable
- * from the empty list an owner sees on a quiet day, so the two are told apart
- * before the call and never after it.
+ * `visible` rule and is the fence itself rather than a decoration on one.
+ * `0037` answers a non-owner with an empty list rather than a refusal (its
+ * decision 2), so *"you may not see this"* and *"nobody is waiting"* are the
+ * same answer on the wire — `usePendingRequests` decides which BEFORE the call,
+ * and a manager is shown no control rather than an empty room.
  *
- * ⚠️ AN OWNER WITH AN EMPTY QUEUE STILL GETS THE ROW, WITH NO BADGE ON IT. That
- * is the same distinction one line down: the badge reports a COUNT and its
- * absence means zero, while the row's absence means the queue is not yours. A
- * door that vanished when the room was empty would also be a door nobody could
- * find to check.
+ * ⚠️ AN OWNER WITH AN EMPTY QUEUE STILL GETS THE ROW, WITH NO BADGE ON IT. The
+ * badge reports a COUNT and its absence means zero, while the row's absence
+ * means the queue is not yours. A door that vanished when the room was empty
+ * would also be a door nobody could find to check.
  *
  * ⚠️ AND IT IS NOT HIDDEN WHILE THE READ IS OUT. `loading` is true for a moment
  * on every open; a row that appeared a beat late would be a control that moves
  * under a thumb already travelling towards Ajustes.
+ *
+ * ⚠️ IT IS IN THE BODY AND NOT IN THE NAVIGATOR'S HEADER, and this screen has
+ * recorded why since before it was a screen: C12.1 forbids an icon with no word
+ * beside it, and a header corner has no room for one.
  */
 function Solicitudes() {
   const queue = usePendingRequests();
@@ -154,6 +382,7 @@ function Solicitudes() {
     <Fila
       icon="bell-outline"
       label={ES.approvals.bell}
+      open
       onPress={() => router.push('/solicitudes')}
       right={queue.count > 0 ? <Insignia count={queue.count} /> : undefined}
     />
@@ -197,62 +426,5 @@ function Insignia({ count }: { count: number }) {
         {String(count)}
       </Text>
     </View>
-  );
-}
-
-/**
- * THE WAY INTO PRODUCTOS — AND IT IS TEMPORARY, WHICH IS WHY IT SAYS SO HERE.
- * Plan task `5d-ii`.
- *
- * ⚠️⚠️ WHOEVER BUILDS `5d-iv` DELETES THIS BLOCK. §2.8's Inicio — as área 13
- * amended it — puts the day's takings above anything tappable, then Vender,
- * Comprar and Desperdicio as large cards, then rows to Productos and
- * Proveedores. This is that row, arriving a task early and in the middle of a
- * placeholder, exactly the arrangement `5a-ii`'s two temporary blocks used
- * before `5b-ii-a` deleted them — comment included, because the one that is not
- * written down is the one that becomes permanent.
- *
- * ⚠️ A ROW AND NOT A FIFTH TAB. C12.1 caps the bar at four: five icon-plus-word
- * tabs across 390 px gives each 78 px and one of the words is *Desperdicio*.
- * That was settled by drawing it (área 13, 2026-09-15), and `src/navigation/
- * tabs.ts` carries the same sentence.
- *
- * ⚠️ NO FENCE ON IT, AND THAT IS MEASURED RATHER THAN ASSUMED.
- * `product_variant_select` and `price_list_select` admit any member of the shop
- * (`0002`), the manager fence is on INSERT and UPDATE, and a cashier already
- * sees every variant and its price on Vender (C3.1) — so hiding this door would
- * protect nothing and cost a fence to maintain.
- * `docs/checks/5d-i-catalog-contract.sh` is where that stays true.
- *
- * ⚠️ `router.push` AND NOT `replace`, like the two rows beside it: you come
- * back from a screen you went into.
- */
-function ProductosDoor() {
-  return (
-    <Fila
-      icon="package-variant-closed"
-      label={ES.catalog.title}
-      onPress={() => router.push('/productos')}
-    />
-  );
-}
-
-/**
- * The way into the sheet.
- *
- * ⚠️⚠️ IT IS A BUTTON IN THE MIDDLE OF A PLACEHOLDER, AND THAT IS NOT WHERE IT
- * ENDS UP. §2.8's Inicio — as amended by área 13 — puts state at the top and the
- * module cards below it, and Ajustes belongs with the rows to Productos and
- * Proveedores rather than alone in the centre of an empty screen. `5d` builds
- * that screen and places this properly. ⚠️ THE ALTERNATIVE WAS A HEADER ICON,
- * refused because the tab shell's header is react-navigation's and a
- * `headerRight` here would be the first navigation option this app sets for
- * decoration — and C12.1 forbids an icon with no word beside it, which a header
- * corner has no room for. ⚠️ THAT REFUSAL IS WHY THE BELL IS IN THE BODY TOO —
- * see this file's header.
- */
-function Ajustes() {
-  return (
-    <Fila icon="cog-outline" label={ES.settings.title} onPress={() => router.push('/ajustes')} />
   );
 }

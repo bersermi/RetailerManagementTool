@@ -5,9 +5,12 @@ import {
   TODAY_COLUMN,
   TODAY_KEY,
   dayStartISO,
+  showsTakings,
   takingsFrom,
+  takingsLine,
   type SaleRow,
 } from '@/api/today';
+import { ES } from '@/strings';
 
 // ============================================================================
 // WHAT THE SHOP TOOK TODAY. Plan task `5d-iv-a`.
@@ -281,5 +284,84 @@ describe('a row this app cannot be exact about', () => {
 
   it('accepts a whole-peso figure with no decimal point at all', () => {
     expect(takingsFrom([sale({ total_net: '100', total_tax: ZERO })]).grossCentavos).toBe(10_000);
+  });
+});
+
+// ============================================================================
+// WHAT INICIO PUTS UNDER THE FIGURE. Plan task `5d-iv-b`, and the four facts
+// are four DIFFERENT facts — which is the distinction the owner found broken on
+// his own phone on 2026-09-22, when a failed read rendered *Cargando
+// productos…* for ever because `loading` is `data === undefined` and so is a
+// failure.
+// ============================================================================
+
+describe('the line under the figure', () => {
+  const full = takingsFrom([sale({ total_net: '100.00', total_tax: '16.00' })]);
+  const broken = takingsFrom([sale({ total_net: 'cien' })]);
+
+  it('counts the sales when the read landed and every row parsed', () => {
+    expect(takingsLine(false, null, full)).toBe(ES.home.sales(1));
+  });
+
+  it('says one venta in the singular, and two in the plural', () => {
+    expect(ES.home.sales(1)).toContain('1 venta');
+    expect(ES.home.sales(1)).not.toContain('ventas');
+    expect(ES.home.sales(2)).toContain('2 ventas');
+  });
+
+  // ⚠️ A ZERO IS A SHOP THAT HAS SOLD NOTHING YET, AND IT IS NOT DRESSED UP.
+  // Nothing in this app writes a sale until `5f`, so this is what every phone
+  // reads today — and whether it looks like a quiet morning or a broken app is
+  // a question routed to `5f` rather than answered here.
+  it('says 0 ventas for a shop that has genuinely sold nothing', () => {
+    expect(takingsLine(false, null, takingsFrom([]))).toBe(ES.home.sales(0));
+  });
+
+  it('says it is still loading while the read is in flight', () => {
+    expect(takingsLine(true, null, takingsFrom(undefined))).toBe(ES.home.loading);
+  });
+
+  // ⚠️⚠️ THE PAIR. Both have `data === undefined`, so a screen reading
+  // `loading` alone cannot tell them apart — and the failed one must never wear
+  // a loading sentence.
+  it('says what went wrong when the read failed, and never that it is loading', () => {
+    const line = takingsLine(true, 'offline', takingsFrom(undefined));
+    expect(line).toBe(ES.api.errors.offline);
+    expect(line).not.toBe(ES.home.loading);
+  });
+
+  it('prefers the failure over every other state', () => {
+    expect(takingsLine(false, 'sessionEnded', full)).toBe(ES.api.errors.sessionEnded);
+    expect(takingsLine(false, 'sessionEnded', broken)).toBe(ES.api.errors.sessionEnded);
+  });
+
+  // An unreadable row takes the count down with the figure: *3 ventas* above a
+  // blank space reads as three sales that brought in nothing.
+  it('replaces both numbers when a row would not parse', () => {
+    expect(broken.count).toBe(1);
+    expect(takingsLine(false, null, broken)).toBe(ES.home.partial);
+    expect(takingsLine(false, null, broken)).not.toBe(ES.home.sales(1));
+  });
+});
+
+describe('whether the peso figure is drawn at all', () => {
+  it('draws it when the read landed and every row parsed', () => {
+    expect(showsTakings(takingsFrom([sale()]))).toBe(true);
+  });
+
+  // ⚠️ A SHOP THAT SOLD NOTHING STILL GETS A NUMBER, and it is $0.00 — a fact,
+  // not a withholding. This is the distinction Productos did not need.
+  it('draws $0.00 for a shop that has genuinely sold nothing', () => {
+    expect(showsTakings(takingsFrom([]))).toBe(true);
+    expect(takingsFrom([]).grossCentavos).toBe(0);
+  });
+
+  it('withholds it while the read is in flight, and after one has failed', () => {
+    expect(showsTakings(takingsFrom(undefined))).toBe(false);
+    expect(showsTakings(takingsFrom(null))).toBe(false);
+  });
+
+  it('withholds it when a row would not parse', () => {
+    expect(showsTakings(takingsFrom([sale({ total_tax: '16.005' })]))).toBe(false);
   });
 });

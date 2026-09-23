@@ -47,8 +47,16 @@ export function placeholderTotal(): string {
  * The same case as an integer number of centavos — 1160 — which is the form
  * every value in this app travels in (ADR-035 §2.11) and the only form
  * `formatMXN()` accepts.
+ *
+ * ⚠️⚠️ NO LONGER EXPORTED, AND `5d-iv-b` UN-EXPORTED IT ON PURPOSE. Until
+ * 2026-09-22 this number was `formatMXN`'d at the top of Inicio, where it
+ * rendered **$11.60** — a `cases.json` fixture presented to a shopkeeper as her
+ * takings, on the owner's own phone. The figure there comes from `sale` now
+ * (`@/api/today`), and a module-private function is a fixture that cannot be
+ * reached by a screen again. `placeholderTotal` above is the boundary claim
+ * `app/test/wiring.test.ts` asserts, and it is the only caller left.
  */
-export function placeholderGrossCentavos(): number {
+function placeholderGrossCentavos(): number {
   // unit_price scale 6, qty scale 3, rate scale 4 — see SCALE in @tienda/money.
   return priceSellLine(11_600_000, 1_000, 1_600).gross;
 }
