@@ -1,0 +1,96 @@
+# 5f-iii — the basket sheet and the slide-to-commit. Sized M/L and split in two
+# on 2026-09-24, on the day it was taken and before a line of it was written.
+# 5f.split had it down as one of four; the parent row's own text names the reason
+# it would not stay one — it is a screen that SHOWS a basket and a gesture that
+# COMMITS one, and only the second of those writes.
+#
+# THE SEAM, IN ONE LINE: it is 5f's own seam one level down, the move 5e-iii made
+# on 2026-09-23. 5f divided on the argument that 5f-i is the half a machine can
+# hold and the rest is the half only the owner's eye can — and 5f-iii, alone of
+# the four, still carried BOTH.
+#
+# ⚠️⚠️ AND THE SPLIT IS WORTH MORE HERE THAN SIZE ALONE, FOR 5c-iv's AND 5d-iv's
+# REASON: THE TWO HALVES FAIL DIFFERENTLY. The sheet's mistakes are visible and
+# cost a glance — a wrong row, a missing confirmation, a shopkeeper who says so in
+# a sentence. The slide's belong to the QUEUE, the one part of this app whose
+# failures are silent by design: a sale that never enqueues, one that enqueues
+# twice, or one that enqueues and never triggers a drain. Nobody reports a sale
+# they watched an animation confirm. Putting them in one row means the one nothing
+# can see rides in on the back of the one only a person can.
+#
+# ⚠️ AND THE ORDER IS NOT TASTE. ADR-035 §2.8's Error prevention names REVIEW
+# BEFORE COMMIT as one of its three guards, and the review IS the sheet. Building
+# the slide first ships a commit control with nothing in front of it, on the one
+# screen that takes a customer's money.
+#
+# ⚠️⚠️ TWO THINGS WERE NOT IN THE PARENT ROW WHEN IT WAS TAKEN, which is most of
+# what the sizing was worth.
+#   * THE SHEET IS THE SCREEN §2.5 RULE 5 IS WRITTEN ABOUT, AND 5f-i BUILT NO
+#     LINES FOR IT. Rule 5 is "the displayed lines fail to sum to the displayed
+#     total on the review screen, which is the one screen where a customer is
+#     checking the arithmetic by hand." basketOf returns centavos, a COUNT of
+#     lines and a complete flag — no lines at all — so the sheet has nothing to
+#     draw a row from, and the obvious move is for it to price its own. That is
+#     two arithmetics over one basket: they agree for every shop today, because
+#     prices_include_tax is true and NO_TAX_RATES is empty, and they part by a
+#     centavo the first time a rate rounds. One function returns the lines AND the
+#     total, the total being their sum. It is also what makes 5f-iii-a a CHECKABLE
+#     child rather than a rendering one — the lesson 5e-iii.split wrote down in
+#     its own postscript.
+#   * THE TWO ANIMATIONS BELONG TO DIFFERENT CHILDREN. The owner asked for both on
+#     2026-09-21 in one sentence, and 5f.split carries them as one deliverable
+#     spelled CONFIRMATION ANIMATIONS. The emptying one fires from Vaciar carrito,
+#     which is the sheet's; the sale one fires from the slide, which is not. Here
+#     they are TWO deliverables, so that 5f-iii-a cannot ship a Vaciar whose
+#     confirmation is orphaned in its sibling.
+#
+# ✅ AND ONE THING MEASURED RATHER THAN HOPED: the gesture costs no pod install.
+# react-native-gesture-handler ~2.32.0, react-native-reanimated 4.5.1 and
+# react-native-worklets 0.10.1 are already dependencies of @tienda/app, read off
+# app/package.json on 2026-09-24. It matters because NO CI COMPILES THIS APP — a
+# native dependency added in step 5 stays green all the way to a Mac.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, the property 5f.split asserts one level up. 0003
+# applied sale_line with qty_base, qty_display and qty_display_unit, and 0016 has
+# taken qty_display with an optional qty_display_unit since 2026-09-04.
+# EACH_CHILD_SAYS asserts it POSITIVELY, because merging is automated and a child
+# that quietly grows a migration is not a reviewable mistake but a deployed one.
+SPLIT_ID="5f-iii"
+SPLIT_GROUPS=( "5f-iii|5f-iii-a 5f-iii-b" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare pipe in the regex
+  # field truncates the entry and it fails downstream as a DROPPED deliverable,
+  # which reads exactly like the defect this list exists to catch.
+  #
+  # ⚠️ NO BACKTICKS IN A REGEX. This file is SOURCED by bash, so a backtick is
+  # command substitution. Match the words inside the backticks instead.
+  #
+  # ⚠️ EVERY REGEX MUST ALSO MATCH THE PARENT ROW — assertion 3 refuses a
+  # deliverable the parent stopped promising, so the coverage claim cannot go
+  # vacuous by the parent being tidied.
+  #
+  # ⚠️ ROWS 1, 3, 4, 6, 7 AND 9 ARE ALSO 5f.split's DELIVERABLES on the parent. That is
+  # deliberate and not a second home: there they must land in 5f-iii, here in
+  # exactly one of its children — the arrangement 5c-iv.split, 5d-iv.split and
+  # 5e-iii.split already stand in.
+  "the sheet over the cart, and only the rows carrying a quantity|basket sheet|5f-iii-a"
+  "the lines the sheet draws and the total they must sum to, out of one function|sum to the displayed total|5f-iii-a"
+  "removing one line, immediately, with no undo and no dialog|Quitar|5f-iii-a"
+  "emptying the whole basket, which keeps its confirmation|Vaciar carrito|5f-iii-a"
+  "the confirmation the owner asked for when the basket is emptied|empty the carrito|5f-iii-a"
+  "commit is a gesture and not a tap|slide-to-commit|5f-iii-b"
+  "the flush trigger that has had no caller since 2026-09-22|queued\\(\\)|5f-iii-b"
+  "the confirmation the owner asked for when the sale is done, priced on the queue|fires on ENQUEUE|5f-iii-b"
+  "the first look at the dead-letter banner, and the room Inicio reserves|bannerRoom|5f-iii-b"
+)
+PHRASES=(
+  "5f-iii-a|F|COMMITS NOTHING|The whole of the seam, said in the row a cleared session reads. This child draws no commit control, so C3.4's sticky bar still commits nothing and this app still writes nothing — and a row that did not say so would read as a sheet whose slide had been forgotten rather than one whose slide is its sibling."
+  "5f-iii-a|F|no undo, no confirmation|Ruled by the owner on 2026-09-17, against a session's own recommendation of a timed Deshacer. The recovery is re-adding the item, two taps on the list behind the sheet; a timed undo fails the users C3.18 exists for, and a dialog on every removal is book-keeping handed to a shopkeeper. A decision about what a screen renders has no constraint, grant or policy to live in, so this row is its only home."
+  "5f-iii-a|F|transform|§2.11's motion rule is a performance rule before it is a taste one: C1.1 puts two low-end Androids among the pilot's four phones, and transform and opacity run on the compositor while layout, colour and shadow do not. It binds the emptying animation exactly as it binds the sale one."
+  "5f-iii-a|F|started in an effect|A native-driver animation started in the handler that mounts the view fails SILENTLY — no error, no motion. It is the one mistake here that no suite and no glance at the code would catch, because the code reads correctly."
+  "5f-iii-b|F|fires on ENQUEUE|C10.3 says the slide looks identical offline, and 5c-i made that structural by having queueWrite return a row rather than a promise. An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it."
+  "5f-iii-b|F|no caller|5c-ii-b-2 shipped queued() with no caller on purpose, for the reason R9 exists. Without the call the ONLINE path is the worse of the two: a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger a drain, and sits in the queue until the link flaps."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|0003 applied sale_line with qty_base, qty_display and qty_display_unit as three separate columns, and 0016 has taken qty_display with an optional qty_display_unit since 2026-09-04. Nothing in this split reopens the schema. A POSITIVE assertion because merging is automated: a child that quietly grew a migration is repaired only by a fix-forward migration, never by an edit."
+)
