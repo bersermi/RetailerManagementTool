@@ -21,7 +21,13 @@
 
 import { describe, expect, it } from 'vitest';
 
-import { catalogFrom, unitFactorsFrom, type UnitRow, type VariantRow } from '@/api/catalog';
+import {
+  catalogFrom,
+  unitBasesFrom,
+  unitFactorsFrom,
+  type UnitRow,
+  type VariantRow,
+} from '@/api/catalog';
 import { qtySent, stepOf } from '@/cart/cart';
 import { MEASURED_IN, baseFromShown, qtyShown, shownUnitOf } from '@/cart/quantity';
 
@@ -30,19 +36,20 @@ import { MEASURED_IN, baseFromShown, qtyShown, shownUnitOf } from '@/cart/quanti
 // ---------------------------------------------------------------------------
 
 const UNITS: readonly UnitRow[] = [
-  { code: 'g', dimension: 'mass', factor_to_base: '1.000000', display_order: 40 },
-  { code: 'kg', dimension: 'mass', factor_to_base: '1000.000000', display_order: 10 },
-  { code: '500g', dimension: 'mass', factor_to_base: '500.000000', display_order: 20 },
-  { code: '250g', dimension: 'mass', factor_to_base: '250.000000', display_order: 25 },
-  { code: '100g', dimension: 'mass', factor_to_base: '100.000000', display_order: 30 },
-  { code: 'ml', dimension: 'volume', factor_to_base: '1.000000', display_order: 40 },
-  { code: 'l', dimension: 'volume', factor_to_base: '1000.000000', display_order: 10 },
-  { code: '500ml', dimension: 'volume', factor_to_base: '500.000000', display_order: 20 },
-  { code: '100ml', dimension: 'volume', factor_to_base: '100.000000', display_order: 30 },
-  { code: 'pza', dimension: 'count', factor_to_base: '1.000000', display_order: 10 },
+  { code: 'g', dimension: 'mass', base_code: 'g', factor_to_base: '1.000000', display_order: 40 },
+  { code: 'kg', dimension: 'mass', base_code: 'g', factor_to_base: '1000.000000', display_order: 10 },
+  { code: '500g', dimension: 'mass', base_code: 'g', factor_to_base: '500.000000', display_order: 20 },
+  { code: '250g', dimension: 'mass', base_code: 'g', factor_to_base: '250.000000', display_order: 25 },
+  { code: '100g', dimension: 'mass', base_code: 'g', factor_to_base: '100.000000', display_order: 30 },
+  { code: 'ml', dimension: 'volume', base_code: 'ml', factor_to_base: '1.000000', display_order: 40 },
+  { code: 'l', dimension: 'volume', base_code: 'ml', factor_to_base: '1000.000000', display_order: 10 },
+  { code: '500ml', dimension: 'volume', base_code: 'ml', factor_to_base: '500.000000', display_order: 20 },
+  { code: '100ml', dimension: 'volume', base_code: 'ml', factor_to_base: '100.000000', display_order: 30 },
+  { code: 'pza', dimension: 'count', base_code: 'pza', factor_to_base: '1.000000', display_order: 10 },
 ];
 
 const FACTORS = unitFactorsFrom(UNITS);
+const BASES = unitBasesFrom(UNITS);
 const FAMILY = '11111111-1111-4111-8111-111111111111';
 
 const POR_CUARTO = '44444444-4444-4444-8444-444444444444';
@@ -72,6 +79,7 @@ const CATALOG = catalogFrom(
   ],
   FACTORS,
   null,
+  BASES,
 );
 
 const entry = (id: string) => CATALOG.find((e) => e.id === id)!;
@@ -114,7 +122,7 @@ describe('which unit the quantity box speaks in', () => {
   // ⚠️ A UNIT ADDED AFTER THIS FILE WAS WRITTEN IS A PACK UNTIL SOMEBODY SAYS
   // OTHERWISE, which fails as a bigger number rather than as a wrong one.
   it('falls back to the base unit for a code it has never heard of', () => {
-    const caja = catalogFrom([variant(POR_PIEZA, 'caja', 'pza')], FACTORS, null)[0];
+    const caja = catalogFrom([variant(POR_PIEZA, 'caja', 'pza')], FACTORS, null, BASES)[0];
     expect(shownUnitOf(caja)).toBe('pza');
   });
 });
@@ -237,5 +245,57 @@ describe('the box and the ledger agree', () => {
       qty_display: '3',
       qty_display_unit: '250g',
     });
+  });
+});
+
+describe("the variant's own base_unit_code is not believed", () => {
+  // ⚠️⚠️ THE OWNER'S BUG, 2026-09-24, FOUND ON HIS PHONE: a product priced per
+  // 250 g stepped `1, 2, 3` instead of `250, 500, 750`.
+  //
+  // ⚠️ THE CAUSE WAS DATA, NOT ARITHMETIC. `unitColumns` in `@/api/catalogWrite`
+  // writes ALL FOUR unit columns as the price unit, so every product made
+  // through `Agregar` at `$45 / 250 g` carries `base_unit_code = '250g'`. The
+  // box fell back to it, and a quantity of 250 g read as one 250-gram unit.
+  // ⚠️ `0016:217` refuses any line where `u.base_code <> pv.base_unit_code`, so
+  // those rows cannot be SOLD either — which is a defect in the row and is not
+  // this module's to fix. What is this module's is to stop believing the column.
+  const WRONG = catalogFrom(
+    [variant(POR_CUARTO, '250g', '250g')],
+    FACTORS,
+    null,
+    BASES,
+  )[0];
+
+  it("takes the unit table's base_code over the variant's own column", () => {
+    expect(WRONG.baseUnit).toBe('g');
+    expect(shownUnitOf(WRONG)).toBe('g');
+  });
+
+  it('steps 250, 500, 750 — the owner’s own example, and the bug he reported', () => {
+    const by = stepOf(WRONG.priceUnit, FACTORS)!;
+    const unit = shownUnitOf(WRONG);
+    expect([1, 2, 3].map((taps) => qtyShown(by * taps, unit, FACTORS))).toEqual([
+      '250',
+      '500',
+      '750',
+    ]);
+  });
+
+  // ⚠️⚠️ AND THE HALF THAT WOULD HAVE REACHED THE LEDGER SILENTLY. `qtySent`'s
+  // keypad branch sends the BASE unit, so before this fix a keyed 288 g on a
+  // quarter-kilo product went out as `288` `250g` — seventy-two kilos, or a
+  // refused line, depending on which check the server reached first.
+  it('sends a keyed quantity in grams and not in quarter-kilos', () => {
+    expect(qtySent(288 * ONE_BASE, WRONG, FACTORS)).toEqual({
+      qty_display: '288.000',
+      qty_display_unit: 'g',
+    });
+  });
+
+  // ⚠️ THE FALLBACK IS THE OLD BEHAVIOUR AND NOT A GUESS: with no units read,
+  // the variant's column is all there is.
+  it('falls back to the variant column while the unit read is in flight', () => {
+    const cold = catalogFrom([variant(POR_CUARTO, '250g', 'g')], {}, null, {})[0];
+    expect(cold.baseUnit).toBe('g');
   });
 });
