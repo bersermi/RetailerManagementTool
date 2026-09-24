@@ -110,6 +110,15 @@ import {
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
+  MEMORY_COLUMNS,
+  MEMORY_PROVIDER_COLUMN,
+  MEMORY_TABLE,
+  PROVIDER_COLUMNS,
+  PROVIDER_ORDER_COLUMN,
+  type MemoryRow,
+  type ProviderRow,
+} from '@/api/providers';
+import {
   INSERT_RETURNING,
   WRITE_ORDER,
   familyRow,
@@ -777,6 +786,57 @@ export async function changePrice(plan: PriceChange): Promise<PriceChangeOutcome
     return { ok: false, failed: 'open', closed, error: reported(error) };
   }
   return { ok: true, changed: true };
+}
+
+// ============================================================================
+// WHO THE SHOP BUYS FROM, AND WHAT THEY CHARGED. Plan task `5g-i`.
+// ============================================================================
+
+/**
+ * The provider directory — every row, retired ones included.
+ *
+ * ⚠️ NO `is_active` FILTER IN THE QUERY, and that is `catalogVariants`' own
+ * arrangement: `provider_select` does not filter either, so the rule belongs in
+ * `providersFrom` where `app/test/api-providers.test.ts` reads it rather than in
+ * this file, which no suite can load.
+ *
+ * ⚠️ THE ORDER IS THE DATABASE'S — `order=name`. `providersFrom` promotes the
+ * generic row to the front and re-sorts nothing, for the reason `catalogFrom`
+ * gives: a second sort here is a second answer to *which comes first*, decided
+ * by whatever collation Hermes has rather than the one Postgres applied.
+ */
+export async function shopProviders(): Promise<ProviderRow[]> {
+  const { data, error } = await supabase
+    .from('provider')
+    .select(PROVIDER_COLUMNS)
+    .order(PROVIDER_ORDER_COLUMN);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as ProviderRow[];
+}
+
+/**
+ * What ONE provider has charged, per variant — `0008`'s view, filtered to the
+ * relationship Comprar is currently about.
+ *
+ * ⚠️⚠️ THE FILTER IS THE WHOLE POINT AND IT IS NOT AN OPTIMISATION. §2.8: a
+ * supplier price is a fact about a relationship, so reading every provider's
+ * memory and picking in TypeScript would put the other providers' prices on the
+ * phone, one refactor away from prefilling with one of them. **The row that must
+ * never reach this screen does not leave the database.**
+ *
+ * ⚠️ A CASHIER GETS 200 AND ZERO ROWS RATHER THAN A 403. The view is
+ * `security_invoker` and `purchase_line_select` is manager-and-above, so an
+ * empty array here means EITHER *never bought from them* or *you may not see
+ * this* — measured on 2026-09-24, and the reason `memoryState` exists in
+ * `@/api/providers` instead of a screen reading `length === 0`.
+ */
+export async function providerMemory(providerId: string): Promise<MemoryRow[]> {
+  const { data, error } = await supabase
+    .from(MEMORY_TABLE)
+    .select(MEMORY_COLUMNS)
+    .eq(MEMORY_PROVIDER_COLUMN, providerId);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as MemoryRow[];
 }
 
 /**

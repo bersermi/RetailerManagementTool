@@ -33,8 +33,18 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-24, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
-ELEVENTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **TWENTY-ONE decisions have now been parked and
+| ⚠️⚠️ **WHAT DOES `Costos` SHOW?** The ruling of 2026-09-22 was *"leave Costos dead until `5g`"* — **it said WHEN and it never said WHAT**, and this is the task that was charged with coming back for the word. ⚠️ **It is a deferral only if a row owes the answer**; this is that row, and this is that answer being asked for | `5g-iii`, and that child alone. ⚠️ **Neither of the other two children of that split waits on it**, and the one marked next is one of them | ⚠️⚠️ **THREE SCREENS FIT THE WORD AND THEY ARE NOT VARIANTS OF EACH OTHER.** ✅ **(a) THE LAST PRICE PAID AND TO WHOM** — one line per variant, straight off `provider_price_memory`, which is the read `5g-i` builds anyway. **Cheapest, and it answers *what does this cost me* the way a shopkeeper asks it.** ⚠️ **(b) A PER-PROVIDER COMPARISON** — the same variant across every provider who has ever delivered it, which is the question *am I buying this in the right place*. **It is the only one of the three that could change where she shops**, and it needs no new table either. ⚠️ **(c) A TRAILING SERIES** — what this has cost over time, which is `0032`'s `price_over_time` territory and is the one that says nothing until the pilot has weeks of deliveries in it. ⚠️⚠️ **MY RECOMMENDATION IS (a) NOW AND (b) NAMED AS A ROW, AND THE REASON IS NOT SIZE** — (a) is true on the first delivery and (b) is true on the second one from a second provider, so (a) is the only one that is not blank on the day the pilot starts. **(c) is worth deferring twice over**: §2.9 already owns *price over time* and a series over three deliveries is a chart that lies. ⚠️ **What no session can settle: whether `Costos` is a SHEET on La Familia or a screen of its own.** §2.11 fences that out of every suite here and he has the app in his hand |
+| ⚠️ **IS THE GENERIC PROVIDER CALLED `Compra directa` OR `Genérico`?** ⚠️⚠️ **THIS IS NOT A GAP — IT IS A DISAGREEMENT BETWEEN THIS PLAN AND THE APPLIED SCHEMA, FOUND BY `5g`'s SIZING AND MEASURED LIVE ON 2026-09-24.** F6 says *"a provider named `Genérico` must be seeded in every workspace"*; `onboard_workspace` has seeded one since `0002` on 2026-08-26, carried forward unchanged through `0027` and `0034`, **and it is named `Compra directa`** | The header string on Comprar — **and nothing in the tables below, which is the point.** The screen renders whatever the row is called, so **no code waits on this and it goes quietly wrong instead.** ⚠️ **This cell names no task on purpose**: it is machine-read, and `4.6b` spent a day red because a *Blocks* cell wrote reassurance into it | ⚠️⚠️ **IT IS FREE TODAY AND IT IS A MIGRATION TOMORROW, WHICH IS WHY IT IS BEING ASKED NOW RATHER THAN WHEN SOMEBODY NOTICES.** The seed lives inside an applied `security definer` function, so changing it later is a fix-forward migration **plus** an `update` over live rows — and by then a shop's deliveries point at a provider called something the header no longer says. ⚠️ **The substance of F6 is already satisfied** and no child of `5g` owns it: `purchase.provider_id` is `not null` and `record_purchase` raises *"a delivery has a counterparty"* without one, so what F6 really requires is that the ROW exist — and it does. **What is in dispute is a string a shopkeeper reads in `Comprando a:` every time she records a delivery.** ⚠️⚠️ **MY RECOMMENDATION IS `Compra directa`, and the argument is not inertia.** `Genérico` is a category name — it describes the ROW to whoever built the schema. `Compra directa` describes **what she did**: she bought it directly, at the market, this morning. `0002`'s own comment is that sentence (*"I bought this at the market this morning"*), so the applied schema is already the more careful of the two and **F6 is the stale copy, not the database.** ⚠️ **Either way this block gets the answer and the plan stops carrying both** |
+⚠️⚠️ **TWO ARE OWED AS OF 2026-09-24. BOTH CAME OUT OF `5g`'s SIZING, NEITHER BLOCKS THE TASK
+MARKED NEXT, AND THE SECOND IS THE FIRST ROW THIS BLOCK HAS EVER CARRIED THAT IS A DISAGREEMENT
+BETWEEN THIS PLAN AND A MIGRATION CI HAS APPLIED** rather than a choice between two things a
+session could build. ⚠️ **The first is not new work either — it is the word `5g` was charged
+with coming back for on 2026-09-22**, arriving on schedule, which is the whole shape a deferral
+is supposed to have.
+~~✅✅✅ nothing is owed as of 2026-09-24, and the empty table above is deliberate — for the
+eleventh time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
+`5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a
+rendering.** ⚠️ **TWENTY-ONE decisions have now been parked and
 cleared here, and the twenty-first spent about two hours in the table** — the first one the
 OWNER ASKED FOR rather than one a session parked, and the first answered with a list rather
 than a sentence.
@@ -463,6 +473,134 @@ non-table line after the rows begin, rather than running to the next heading. Th
 caution, it is the defect assertion 7c shipped with: the unbounded version swallowed the
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
+
+
+✅✅✅ **`5g-i` IS DONE AS OF 2026-09-24 — THIS APP HAS RECORDED ITS FIRST DELIVERY, AND
+A GUARD REFUSED THE FIRST DESIGN OF ITS OWN CHECK. `5g-ii` IS THE NEXT TASK: COMPRAR
+ITSELF.** 33 new assertions (**1,082 over 38 files**, up from 1,049), a new contract check of
+**10 assertion groups over real HTTP** with **eleven falsification fixtures**, and **no
+migration**, as the row promised.
+
+⚠️⚠️ **THE FINDING, AND IT IS A DISAGREEMENT WITH ADR-035 IN SHIPPED CODE: `quoted` READ
+`prices_include_tax` ON BOTH SIDES OF THE COUNTER, AND §2.5 RULE 2 SCOPES IT TO THE SALE IN
+ITS OWN PARENTHESIS** — *"`prices_include_tax` is a workspace flag, so the earlier wording
+read as though it governed deliveries too; it does not."* ⚠️ **`0018`'s header is binding on
+the same point and has been since 2026-08-26**: *"a shelf price is agreed gross and a supplier
+invoice is quoted net"*, and the payload key it reads is `unit_price_net_per_base` — **the
+INVOICE net**. ⚠️⚠️ **WHAT IT COST, AND IT IS NOT WHAT IT LOOKED LIKE: THE FLAG IS TRUE BY
+`0001`'s DEFAULT AND TRUE IN EVERY SHOP THAT EXISTS, SO THE BUY SIDE COULD NEVER BE PRICED AT
+ALL.** `5f-i` recorded that as *"the buy side is priceless until `5g` hands a figure in"* —
+**the figure was never the missing half.** ✅ A purchase quote is now sent verbatim, and the
+two assertions that pinned the old reading were REWRITTEN rather than deleted, with the
+parenthesis quoted above them.
+
+⚠️⚠️ **AND THE FALSIFIER FOUND TWO HOLES IN THIS SESSION'S OWN CHECK, WHICH IS THE WHOLE
+REASON RULE 4 EXISTS.** ⚠️ **(1) `P6` walked straight past the banned-column assertion**,
+because the first version compared the response to the columns the app had ASKED for — so a
+contract that asked for `phone` was consistent with itself and green. **It was measuring the
+wrong thing**: the question is not whether the read got what it wanted, it is whether a column
+Comprar never draws reached a phone. It now carries a named BANNED list and reads it off the
+wire, which is `5d-i`'s `enforce_stock` assertion one table over. ⚠️⚠️ **(2) `P9` was GREEN on
+a widened fence, and the reason is worth keeping: `provider_price_memory` JOINS `purchase_line`
+to `purchase` and the view is `security_invoker`, so BOTH tables apply their own policy.**
+Widening one leaves the join empty and the fixture proves nothing while looking like it proved
+something. **The memory is fenced twice, and that is now measured rather than assumed.**
+
+⚠️⚠️ **THE CASHIER ASYMMETRY IS NOW A STANDING CHECK RATHER THAN A PARAGRAPH.** Driven against
+a reset database with a publishable key: she reads **2** providers, **0** rows of the memory
+(**200 and an empty array, never a 403**), **records a delivery that SUCCEEDS**, and reads
+**0** purchases back. ⚠️ **`memoryState` is this app's answer**: it takes what the caller
+already knows — *may this person read a purchase at all* — and names which of the two states
+this is, rather than guessing from `length === 0`. **None of its four values is a Spanish
+sentence** (`R4`), because what a cashier is TOLD is a screen decision the owner has not been
+asked for, and `5g-ii` is the row that asks.
+
+⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL CHEAP TO REVERSE AND ALL NAMED HERE.**
+⚠️ **(1) The generic provider is kept in the picker even when `is_active` is false** —
+`provider_protect_generic` refuses a DELETE and a DEMOTION and stops there, so one editable
+boolean would otherwise leave a shop with no default and `record_purchase` refusing every
+delivery. ⚠️ **(2) Changing the provider clears the typed prices and KEEPS the lines**, which
+is C3.11 read exactly — what arrived is what arrived, whoever it came from. ⚠️ **(3)
+`CART_KEY` moved to `v2`**, which is the store's own rule obeyed rather than a version bump: a
+`v1` blob restored into the new shape leaves `typed` undefined and every reducer throws on the
+first tap. **A shape change strands the old basket.** ⚠️ **The cost is a basket half-rung when
+this ships, and that is seconds.**
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5g-i-purchase-contract.sh` reports **10
+assertion groups over real HTTP**, including *record_purchase accepts the payload draftOf
+builds*, *the invoice net is stored verbatim and the quantity re-derives to 3000 g*, *the
+memory offers it back as a JSON STRING*, *two providers, one variant, two prices — and neither
+read sees the other's*, and *a cashier reads 2 providers, 0 memories, WRITES a delivery, reads
+0 back*. Its falsifier runs **eleven fixtures — a green control, seven mutated contracts and
+three that move applied SQL and put it back** — and every one is red for the reason it is named
+for. `conventions-gate.sh` passes **16 groups over 69 source and 38 test files** and its
+falsifier **30 fixtures**. The suite is **1,082 assertions**, the typecheck is clean, and
+`5d-i`'s own check is still green on the shared module. ⚠️ **`db.yml` now watches both new
+files**, because a check edited to loosen an assertion must re-run itself.
+
+⚠️ **WHAT IT DOES NOT PROVE, SAID RATHER THAN IMPLIED:** nothing here has been looked at. There
+is no screen, `§2.11` fences every judgement about one out of this repository, and **the row
+that draws `Comprando a:` is `5g-ii`.**
+
+
+⚠️⚠️ **`5g` WAS SIZED ON 2026-09-24, THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS
+WRITTEN, AND IT SPLIT THREE WAYS. `5g-i` IS THE NEXT TASK: EVERYTHING COMPRAR NEEDS FROM
+POSTGRES, WITH NO SCREEN ON IT.** The row said `M`; it is an `XL`. **This entry is a sizing,
+three findings the row did not carry, one measurement taken against a live database, two
+questions parked and the seventeenth split spec.**
+
+⚠️⚠️ **THE SIZE IS THE WEAKEST OF THE THREE REASONS IT SPLIT, AND IT IS NAMED LAST ON PURPOSE.**
+The working agreement was amended by the owner the same day — an `M` or an `L` is one sitting —
+so a session reaching for a size argument at `M` is asking for the old rule back. **All three of
+the agreement's surviving reasons apply here independently**, and the strong one is reason 2.
+
+⚠️⚠️ **REASON 2, AND IT WAS MEASURED RATHER THAN ARGUED: A CASHIER'S COMPRAR IS BROKEN AND
+LOOKS EXACTLY LIKE A WORKING ONE.** `provider_select` admits any member (`0002:522`);
+`provider_price_memory` is manager-and-above, inherited through `security_invoker` from
+`purchase` and `purchase_line`; and **`record_purchase` fences neither** — it is `security
+definer` carrying §2.6's location wall and no role check at all. Driven against a reset database
+on 2026-09-24 with a publishable key: **she reads the provider list (200, one row), reads ZERO
+rows of the memory (200 and an empty array, NEVER a 403), records a delivery that SUCCEEDS
+(200), and then reads ZERO purchases back.** ⚠️⚠️ **Every symptom of the broken case is a
+DESIGNED state of the working one** — §2.8's *new pairing: empty and required* is what an empty
+memory renders as, and it is the correct rendering when the pairing really is new. **Nothing on
+that screen can tell the two apart, and the screen is not the instrument for either.**
+
+⚠️ **REASON 1 IS THE GATE:** `5g-iii` is blocked on a word the owner owes and the other two are
+not — the `5f-i`/`5f-ii` arrangement, one split later. ⚠️ **Reason 3 is size, and it is real
+too**: Comprar is Vender plus a provider in the header, an editable price per line, three price
+states that must look different and a commit that BLOCKS. `vender.tsx` is **1,792 lines** and
+took four sessions.
+
+⚠️⚠️ **THREE THINGS WERE NOT IN THE ROW, AND ALL THREE CHANGE WHAT GETS BUILT.**
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | **THE PURCHASE PAYLOAD HAS NO PROVIDER IN IT** | `draftOf` builds `location_id` and `lines`; `record_purchase` raises `22023` — *"a delivery has a counterparty"* — without one (`0018:200`). **The buy side of a module that already SHIPPED cannot commit at all**, so this is a change to live code and not a new screen's problem |
+| **2** | **A TYPED PURCHASE PRICE HAS NOWHERE TO LIVE** | C3.13 makes the price something a person ENTERS, and `Quotes` is the map `5f-i` built for it and left empty. §2.11 persists the basket because a phone rings mid-sale — **and a delivery note's figures are worse to re-key than a basket, because she has to find the note again** |
+| **3** | **THE PREFILL IS STORED PER BASE AND READ PER PRICE UNIT** | `unit_price_net_per_base` is a `numeric(14,6)` per base; she reads `$8.50 / kg`. And `last_qty_display_unit` is the denomination she typed **last time**, which need not be the variant's `price_unit_code` today. That is arithmetic, and none of it is in `app/` |
+
+⚠️⚠️ **AND ONE DISAGREEMENT WITH A MIGRATION CI HAS APPLIED, WHICH IS A FIRST FOR THE DECISIONS
+BLOCK.** F6 requires a provider named **`Genérico`** in every workspace. `onboard_workspace` has
+seeded one since `0002` on 2026-08-26 — carried through `0027` and `0034` untouched — **and it
+is named `Compra directa`.** ⚠️ **F6's SUBSTANCE is satisfied and no child owns it**: what F6
+really requires is that the ROW exist, because `purchase.provider_id` is `not null`. **What is in
+dispute is a string she reads in `Comprando a:` on every delivery**, and it is free to choose
+today and a fix-forward migration plus an `update` over live rows tomorrow. **Parked, with a
+recommendation: keep `Compra directa`, because `Genérico` names the row and `Compra directa`
+names what she did.**
+
+⚠️ **ONE MORE MEASUREMENT, RECORDED SO IT IS NOT RE-DISCOVERED:** `unit_price_net_per_base`
+comes off the wire as a **JSON number** (`0.018000`), which is a double, and `parseDecimal`
+refuses a number argument outright — so the read must cast `::text`, exactly as `PRICE_COLUMNS`
+already does one table over.
+
+⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/split-coverage.sh` on the new spec reports
+**18/18 deliverables landing in exactly one child, the assigned one**, eleven required sentences
+surviving and every child carrying *it ships no migration*; `--all` is green over all seventeen
+specs; `plan-handover.sh` passes eleven groups with **two** open decisions, including *the next
+task is not blocked by any open decision*; `handbook-agreement.sh` agrees on `5g-i` and on two
+being owed. **No app code changed in the sizing itself, so no suite could have.**
 
 
 ✅✅✅ **`5R-g` IS DONE AS OF 2026-09-24 — `db.yml`'s BIGGEST JOB IS SPLIT, THE STOPGAP CAP IS
@@ -989,216 +1127,8 @@ reads `unit.base_code` off the wire — with its falsifier's **17 fixtures** re-
 A PRODUCT IN THE APP.** `Editar`'s retire control is drawn on nothing until `6c`, so the runbook
 is the affordance. **`6c` is where that comes back.**
 
-✅✅ **`5f-ii` IS DONE AS OF 2026-09-24 — VENDER IS A SCREEN.**
-**`5f-iii` IS THE NEXT TASK.** The `Pendiente` placeholder that has stood behind the Vender tab since `5a-ii` is
-gone. **The search, the flat variant list, C3.2's row, the stepper-and-keypad on every
-product and C3.4's sticky `Total`** — with **nothing committed and nothing written**, which
-is the split and not an omission: the sheet, the slide and the first call `queueWrite` has
-ever had are `5f-iii`.
-
-⚠️ **Shipped:** `app/src/app/(tabs)/vender.tsx`; `app/src/cart/quantity.ts`, the pure half
-of the quantity control; an `ES.sell` block; and `app/test/cart-quantity.test.ts` —
-**19 new assertions, 1,006 passing over 36 files, up from 987 over 35.** No migration, and
-`5f.split`'s `EACH_CHILD_SAYS` asserts that positively on all four rows.
-
-⚠️⚠️ **THE ONE THING THAT WOULD HAVE GONE IN WRONG SILENTLY: C3.8 GIVES TWO EXAMPLES AND
-THEY NEED A RULE BETWEEN THEM, AND `0001` DOES NOT HOLD IT.** The constraint says *"priced
-por cuarto, three taps read `250`, `500`, `750` with `gr` beside the field — grams, not
-cuartos"* and *"priced por kilo, the same product is entered as `0.250 kg`"*. **No uniform
-rule satisfies both**: always-the-price-unit gives *3 cuartos*, which C3.8 refuses by name,
-and always-the-base-unit makes a kilo of chicken read `1000 gr`. ⚠️ **So the price unit
-decides, and what separates the two examples is what KIND of unit it is** — `kg` is a thing
-a shop weighs in, `250g` is a denomination a shop prices in. ⚠️⚠️ **AND THE `unit` TABLE
-RECORDS NOTHING THAT SEPARATES THEM — MEASURED, NOT ASSUMED:** `code`, `dimension`,
-`base_code`, `factor_to_base` and `display_order`, and the only column that happens to sort
-them is `display_order`, which means *where this unit goes in a picker*. **Leaning on it
-would be a rule derived from a column that does not mean it.**
-
-⚠️ **SO IT IS A DECISION AND IT IS WRITTEN DOWN AS ONE** — `MEASURED_IN` in
-`@/cart/quantity`, five codes out of `0001`'s ten, with the five packs named as absent and a
-**base-unit fallback for a code nobody listed**, which fails as a bigger number rather than
-as a wrong one. ⚠️ **The precedent for a per-code fact living in the app is `ES.units`**,
-which already maps `250g` to *250 gr* keyed by code with a fallback; this is that shape,
-one file over, and it is a two-line edit if the owner reads the line differently.
-
-⚠️⚠️ **AND THE AMBER SETTLED AN ARGUMENT `5d-ii` LOOKED LIKE IT WAS HAVING WITH `5f-ii`.**
-§2.11 fences the `atención` colour to C3.17's unpriced row; `productos.tsx` refuses to paint
-its dash amber and its reason is good — C8.2 has the owner seeding the catalog
-**deliberately short**, so a flat list of ~100 products would open amber on most of its rows
-for the pilot's first week, and *"an alarm on a hundred rows is the alarm nobody can
-silence"*. ✅ **Both hold, and the CONDITION separates them: a priceless product nobody is
-selling is not a problem, and the same product with a quantity on it is about to be sold for
-nothing.** So the row goes amber the moment it becomes a line and not before — one row at a
-time, exactly C3.17's *the fix is one tap away*, silenced by either of the two things she
-would do anyway. ⚠️ **Never by colour alone** (`R11`): `ES.sell.noPrice` rides with the hue
-on the row and `ES.sell.someUnpriced` beside the total.
-
-⚠️⚠️ **WHAT THE SCREEN DOES ABOUT AN UNPRICED ROW IS DELIBERATELY STILL NOT DECIDED** — a
-purchase blocked (C3.13), a sale allowed and loud (C3.14). Two answers to one basket, owned
-by `5g` and `5h`, and this list is shared by both.
-
-⚠️ **THREE THINGS THAT WOULD HAVE BEEN EASY TO GET WRONG AND WERE NOT, EACH FOR A REASON
-ALREADY WRITTEN DOWN IN THIS REPOSITORY.** ⚠️ **(1) The basket is priced against the WHOLE
-catalog and not the filtered one.** `useCatalog(typed)` returns the rows that MATCH, so
-pricing the basket off it would make the `Total` fall every time she typed a different
-product's name. ⚠️ **(2) `openShop` is called only once a shop is KNOWN.** `useWorkspace`
-answers `null` while its read is in flight — every cold start — and `openShop(null)` on a
-store restored from disk means *the shop changed* and drops the basket, on exactly the
-launch §2.11 persisted it for. ⚠️ **(3) The total is withheld rather than guessed while the
-shop is unknown**, because `?? true` for `prices_include_tax` is the identity `5f-i` refused
-to hard-code and a screen is not the place to reintroduce it.
-
-⚠️ **THE `...` IS ABSENT AND NOT DRAWN DEAD**, which is the opposite of `Costos` on La
-Familia and is `5f-ii`'s own row: `Costos` is dead because a shopkeeper had already SEEN it,
-and nobody has ever seen a `...` here. **The initials tile is absent too** — C3.2 does not
-list one, and this row carries a `−`, a box and a `+` that Productos' row does not.
-
-⚠️ **THE SEARCH BOX AND THE EMPTY STATES ARE COPIED FROM `productos.tsx`, DELIBERATELY.**
-`5h.5` owns `src/ui/`, §3 requires the primitives before step 6, and the owner refused *"ten
-primitives guessed at against screens nobody has drawn"* on 2026-09-13. **This is the second
-drawing of a search box and the first of a sticky bar — the real pattern `5h.5` extracts.**
-
-⚠️ **THE GATE CAUGHT ONE THING AND IT IS WORTH KEEPING:** `R6` refused `height: 1` on the
-separator. A height is a size a person looks at, and `1` would have been the one measurement
-on this screen *Letra grande* could not change — the same refusal `productos.tsx` already
-records, made a second time by a second file and caught by the check rather than by a
-reader.
-
-⚠️ **VERIFIED BY:** `npm run typecheck --workspace @tienda/app`; the Vitest suite
-(**1,006 assertions over 36 files**, the 19 new ones in `app/test/cart-quantity.test.ts`);
-`docs/checks/conventions-gate.sh` (**16 groups over 66 source and 36 test files**) and its
-falsifier `conventions-gate-falsify.sh` (**30 fixtures, 29 red and 1 deliberately green**);
-`plan-handover.sh`; and `split-coverage.sh --all`. ⚠️⚠️ **AND WHAT NONE OF THEM LOOKED AT IS
-MOST OF THIS TASK** — §2.11 keeps rendering, navigation and layout out of scope, so whether
-the row is legible across a counter, whether the `−`, the box and the `+` are reachable with
-one thumb, and whether the sticky bar leaves room for a price in *Letra grande* are `R9` and
-**the owner's phone is the whole instrument.**
-
-✅✅ **BOTH QUESTIONS WERE RULED ON 2026-09-24, ABOUT FOUR HOURS AFTER THEY WERE PARKED,
-AND THE FIRST IS AN ADR AMENDMENT THAT IS NOW APPLIED. `5f-ii` IS THE NEXT TASK AGAIN.**
-No code: this entry is two rulings, two amended ADR sections, two amended constraints, a
-deferred child and a marker handed back. **The decisions block is empty for the ninth
-time in this project's life.**
-
-⚠️⚠️ **RULING 1 — THE QUANTITY CONTROL, AND HE REVERSED THE HALF OF THE RECOMMENDATION
-THAT HAD BEEN CALLED SAFE.** *"Amend it to say both, this should be easily switchable and
-configurable. The step for the stepper and essentially any product qty can be set by
-keypad. If a user wants to sell 15 manojos of cilantro, he shouldn't have to click the
-stepper 14 times."* ✅ **ADR-035 §2.8's *Unit-aware input* row and §2.11's `QtyInput` are
-amended**, with a revision entry, and C3.8 carries the ruling. **The control is not a
-switch: every product has a stepper AND a keypad, one tap apart.**
-
-⚠️⚠️ **THE BRIEF SAID *nothing is lost — a discrete unit gets no keypad, because there is
-no 288th of a `pza`*. THAT WAS TRUE AND BESIDE THE POINT.** A keypad is not about
-precision, it is about **magnitude**: fifteen manojos of cilantro is fifteen taps, and the
-tap budget §2.8 exists to protect was about to be spent on the one product shape the
-recommendation had reasoned its way past. ⚠️ **It is the fourth ruling in this block to
-answer a larger question than the one asked**, and the first to correct the
-recommendation's own reasoning rather than choose between its options.
-
-⚠️ **ONE AMBIGUITY IS RECORDED RATHER THAN RESOLVED ON HIS BEHALF.** *"The step for the
-stepper … can be set by keypad"* has a reading in which the STEP SIZE is itself typed in.
-**The step is already configurable without any new affordance** — it is `price_unit_code`'s
-factor, and he picks that unit per product in `Agregar` and `Editar`, so pricing *por
-cuarto* sets a 250 g step. **A step set independently of the price unit is a different
-thing, `5f-ii`'s row says it is not being built, and one sentence brings it back.**
-
-⚠️⚠️ **RULING 2 — NO COUNTER DISCOUNTS IN THE PILOT, AND IT KILLED MORE THAN THE QUESTION
-ASKED.** *"Let's not do those discount controls part of the pilot yet, we will need to
-understand the interactions before creating anything like that. Any money 'knock-off'
-happens in her head and is out of the scope of the app for now."* **The answer is NO and
-`5f-iv` is deferred out of the pilot.**
-
-⚠️⚠️ **WHAT IT ALSO KILLED, FLAGGED RATHER THAN ABSORBED: C3.16's *reset-after-each-
-transaction* SETTING IS THE SAME AFFORDANCE.** The question was whether a cashier can knock
-money off ONE sale without touching the price list; **that setting is exactly that, made
-global instead of per-tap** — so the ruling strikes it, and with it the discreet Home
-banner that existed only to announce it. ⚠️ **If he meant to keep the setting and refuse
-only the per-tap control, that is one sentence and it comes back.** ⚠️ **What survives
-untouched:** a price change persists, because there is now no other kind; `Editar` is where
-one is made; C3.17's manager fence is unchanged.
-
-⚠️ **AND `5f-ii` DRAWS NO `...` AT ALL RATHER THAN A DEAD ONE**, which is the opposite of
-what `Costos` gets and for the reason that makes `Costos` right: a button a shopkeeper has
-already SEEN and then cannot find reads as the app shrinking, **and nobody has ever seen a
-`...` on this screen.** Nothing to preserve, so nothing to draw.
-
-⚠️ **`6c` HELD THE MARKER FOR ABOUT FOUR HOURS AND HANDED IT BACK**, exactly as its row
-said it would. ⚠️ **What the detour bought is worth keeping:** `plan-handover.sh` refuses
-to let a blocked task be marked next, so the plan could not quietly sit on a row nobody
-could start — **the check turned a stall into a visible question**, and the question was
-answered the same evening.
-
-⚠️ **VERIFIED, AND NOT BY A TICK.** `split-coverage.sh` on `5f.split` still reports
-**20/20 deliverables in exactly one child** and all twelve required sentences after both
-rows were rewritten; `plan-handover.sh` passes eleven groups with an empty decisions block;
-`handbook-agreement.sh` agrees on the next task and on nothing being owed. **No code
-changed, so no suite could have.**
 
 
-✅✅ **`5f-i` IS DONE AS OF 2026-09-24 — THE APP CAN HOLD A BASKET AND PRICE IT, AND
-A GUARD REFUSED THE FIRST DESIGN OF IT. `6c` IS THE NEXT TASK, AND THAT IS A HOLDING
-MOVE: EVERY REMAINING CHILD OF `5f` IS BLOCKED ON THE OWNER.** 51 new assertions
-(**1,030 over 35 files**, up from 979), **eighteen falsification fixtures**, one new
-dependency — `zustand`, §2.11's own choice and this app's only store — and **no
-migration**, as the row promised.
-
-⚠️⚠️ **THE FINDING, AND IT COST THE SESSION ITS FIRST DESIGN: `5d-i`'s CONTRACT CHECK
-REFUSED A WIDENING OF THE CATALOG READ, BY NAME, AND WAS RIGHT.** The sale payload needs
-a tax rate whenever `prices_include_tax` is false, so this child added `tax_rate::text`
-to `VARIANT_COLUMNS`. **`docs/checks/5d-i-catalog-contract.sh` went red on the assertion
-that exists for it** — `enforce_stock`, `tax_rate` and `pack_size` are banned from the
-list read on C8.8's argument, *"a column the app never asks for is a column that never
-reaches a phone"* — and `5e-iii-a` already reads those two per variant. ⚠️ **The tempting
-move was to teach the check about `::text` casts. That would have been weakening a guard
-to fit a change**, and the guard was making the better argument: **a rate is needed only
-on the branch no shop takes**, so every phone would have carried a column on every
-catalog read for a case none of them reaches. ✅ **The rate is an ARGUMENT now**, and
-`quoted` returns `null` rather than defaulting it to zero — **loud and stuck beats quiet
-and short by the IVA on every line for ever.**
-
-⚠️⚠️ **AND THE SECOND FINDING FELL OUT OF THE FIRST, WHICH IS WHY IT IS WORTH RECORDING:
-A PURCHASE MUST NOT FALL BACK TO THE SHELF PRICE.** Once the quote was a parameter, the
-buy side had a default — and §2.8 is explicit that a supplier price is *"a fact about a
-relationship, not about a product"* (C3.11). **A delivery quietly recorded at retail is
-plausible, syntactically perfect and wrong in the margin for ever**, so `quoteFor` hands
-the buy side `null` until `5g` passes a figure. ⚠️ **The one column that WAS added is
-`base_unit_code`** — what a keyed `288` is sent in — and the live check is green on it.
-
-⚠️ **WHAT IT DOES NOT PROVE, SAID RATHER THAN IMPLIED:** nothing here has asked Postgres
-whether it accepts this payload. `record_sale` is `5h`'s and `record_purchase` is `5g`'s,
-so the round trip is named on those rows. **A node suite read every rule; no database
-read any of them.**
-
-⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5d-i-catalog-contract.sh` reports **12
-assertion groups over real HTTP**, including *C8.8's switch does not reach the phone,
-measured off the wire* — the assertion that refused this session's first design.
-`conventions-gate.sh` passes **16 groups over 65 source and 35 test files**. The suite is
-**1,030 assertions**, the typecheck is clean, and **eighteen falsifications were run by
-hand and each restored**: a quote that ignores the flag, a missing rate defaulted to zero,
-a purchase falling back to the shelf, the step picked rather than read, a keyed fourth
-decimal rounded away, a zero line kept, an unpriced line counted as nothing, figures sent
-as JSON numbers, the wrong price key, a self-stamped `occurred_at`, a draft with no
-location, a step-down that clamps, one cart shared by both screens, a restored basket
-thrown away, a shop change that keeps the old basket, and `Vaciar` emptying both sides.
-**Rule 4: these assertions were confirmed capable of failing before they were believed.**
-
-⚠️⚠️ **WHY THE MARKER MOVED TO `6c`, AND IT IS THE FIRST TIME IT HAS MOVED BECAUSE THE
-FRONT END RAN OUT OF UNGATED WORK.** `5f-ii` is blocked on the ADR amendment, `5f-iii` on
-`5f-ii`, and `5f-iv` on the sale-only override — so `plan-handover.sh`'s rule that a
-blocked task may not be next leaves one ungated row worth taking. **It is a holding move
-and the row says so: one sentence about the quantity control and `5f-ii` is next again.**
-⚠️ `6c` is a migration and the owner asked to keep the front end moving, **so if he would
-rather the front end waited for nothing, the ruling is the cheaper of the two things he
-could send.**
-
-
-⚠️⚠️ **`5f` WAS SIZED ON 2026-09-24, THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS
-WRITTEN, AND IT SPLIT FOUR WAYS. `5f-i` IS THE NEXT TASK: THE CART AND THE ARITHMETIC
-THAT PRICES IT, WITH NO SCREEN ON IT.** No code, no migration: this entry is a sizing,
-two questions parked, one row promoted out of the ADR, and the sixteenth split spec.
-**The full argument is under Step 5, in *"Sized 2026-09-24"*, where it survives this
-block being archived.**
 
 ⚠️⚠️ **THE ROW ASKED FOR THE SIZING IN ITS OWN WORDS AND IT WAS RIGHT: TWENTY
 DELIVERABLES.** *"This row lists a screen, a stepper, a basket, a slide-to-commit, a
@@ -1343,6 +1273,17 @@ lines, and an `XL` sizing entry is longer than that, so the choice was to cut fi
 go red on a document while the work being reported was fine. ⚠️ **Twelve of the thirteen
 cuts have now been taken by a session that wanted to be writing something else**, which
 is the argument assertion 7 makes in its own failure text.
+⚠️⚠️ **AND THE SIXTEENTH WENT IN THE SAME SITTING, AS `5g-i` CLOSED — `5f-ii`'s ENTRY AND
+THE TWO RULINGS IT CARRIED, 145 LINES.** This block stood at **1,440 of 1,400** with the
+closing entry written. ⚠️ **Two cuts in one session is a first, and the reason is not that
+the entries got longer**: it is that this sitting wrote TWO of them — a sizing and a close —
+which is what the amended working agreement makes an ordinary day.
+⚠️⚠️ **AND THE FIFTEENTH WENT IN ON 2026-09-24 WHILE `5g` WAS BEING SIZED, OFF THE FOOT
+AGAIN — `5f-i`'s CLOSING ENTRY AND THE `5f` SIZING THAT PRECEDED IT, 63 LINES.** This block
+stood at **1,429 of 1,400** with the `5g` sizing entry written, which is the second time an
+`XL` sizing has spent more headroom than existed — **and the remedy is the one assertion 7
+names in its own failure text, taken without argument.** ⚠️ **Thirteen of the fifteen cuts
+have now been taken by a session that wanted to be writing something else.**
 ⚠️⚠️ **And `5d-iv-b` WENT IN THE FOURTEENTH, in the same sitting as the thirteenth and
 for the reason the thirteenth wrote down.** That cut bought ninety-three lines and the
 `5f` sizing entry spent fifty-one of them, leaving **1,349 of 1,400 — less than one
@@ -3070,10 +3011,109 @@ free today and stay free until the first task merges.
 | **5f-iii-b** | ✅✅✅ **DONE 2026-09-24 — THIS APP HAS WRITTEN ITS FIRST SALE, AND `5f-iii` IS CLOSED.** ~~gated on the bar arrangement the owner asked for proposals on~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **THE SLIDE-TO-COMMIT, AND THE FIRST WRITE THIS APP HAS EVER PUT IN THE QUEUE.** **Commit is a gesture and not a tap (C3.6):** the control in C3.4's sticky bar becomes the slide-to-commit and the gesture commits. ⚠️⚠️ **THAT IS NOT A FLOURISH: `5c`'s FOUR CHILDREN HAVE NEVER HAD A CALLER.** Nothing in this app enqueues anything today, so the outbox, the flush, the dead-letter path and the banner have all been built against fixtures — and this child is where they first meet a shopkeeper. ⚠️⚠️ **THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`, AND THIS IS THE LINE `5f` SAID NOTHING COULD SEE UNTIL IT WAS WRITTEN.** `5c-ii-b-2` shipped that function with **no caller**, deliberately, because there was no screen to call it from. ⚠️ **Without the call the ONLINE path is the worse of the two**: a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger a drain and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger is TOLD rather than awaited, and calling it offline or before the monitor starts is a safe no-op — the screen never has to ask. ⚠️⚠️ **AND THE SECOND OF THE OWNER'S TWO ANIMATIONS — *"a simple confirmation animation if the sale is done"* — WHOSE ONE HARD RULE IS THAT IT fires on ENQUEUE, never on the server's reply**: an animation that awaits Postgres is the offline path looking different, undone in the one place nobody would test it. ⚠️ Same motion rule as its sibling — `transform` and `opacity` only, started in an effect. ⚠️⚠️ **AND IT CARRIES THE FIRST LOOK AT `5c-iv-b`'s DEAD-LETTER BANNER, which is a review riding along rather than code**: **(b) its size and weight** — three lines of `bodySize` in a pill, no state colour — against the room Inicio now reserves for it unconditionally (`bannerRoom`, which clears the pill's MINIMUM and no more, so three lines in `Letra grande` may overlap the takings until a short scroll); and **(c) the words**. ⚠️ **The cheapest way to ask both is to ring up a sale in airplane mode against a shop code that no longer resolves** — the one path that puts a `dead` row on a device without a migration or a fixture, **and it does not exist until this child ships**. **It ships no migration** | `M` | ✅ **Ungated and closed 2026-09-24** — the ruling arrived and the whole row shipped in one sitting, which is the amended working agreement's first outing |
 | **5f-iv** | ⚠️⚠️ **OUT OF THE PILOT — RULED 2026-09-24, AND THE ANSWER TO THE QUESTION THIS CHILD EXISTED TO ASK IS *NO*.** ~~gated on a decision the owner owes~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** *"Let's not do those discount controls part of the pilot yet, we will need to understand the interactions before creating anything like that. Any money 'knock-off' happens in her head and is out of the scope of the app for now."* ⚠️⚠️ **IT KILLED MORE THAN THE QUESTION ASKED, AND THE OWNER MAY NOT HAVE NOTICED — SO IT IS WRITTEN DOWN HERE RATHER THAN ACTED ON QUIETLY: C3.16's SETTING IS THE SAME AFFORDANCE.** *Reset-after-each-transaction* is a sale-only override expressed as a switch rather than as a tap, so *"any money knock-off happens in her head"* answers both, and **the discreet Home banner goes with it** — it existed only to announce that setting. ⚠️ **What survives untouched:** a price change persists, because there is now no other kind; `Editar` is where one is made; and C3.17's manager fence is unchanged. ⚠️⚠️ **THE ROW IS NOT DELETED, AND THAT IS `5d-iv-b`'s AND PROVEEDORES' REASON:** *"we will need to understand the interactions"* is a deferral with a condition on it, and the condition is watching the shop use Vender. **This row is what the answer comes back to**, and it opens by owing the word — the shape `Costos` already has. ⚠️ **Nothing is drawn for it**, and `5f-ii` draws no `...` rather than a dead one, because nobody has seen this affordance and there is nothing to preserve. **Deferred, not dropped.** ~~**The `...` quick actions: the price change and its persistence setting.** C3.15 — *prices are changed from the `...`, in two taps, at the counter, on both screens* — and **C3.16**, which is the half that reaches the shop rather than the screen: **a price change PERSISTS BY DEFAULT**, so the change made at the counter becomes the shop's price; a setting flips it to reset-after-each-transaction; and **while that setting is off, Inicio carries a discreet banner saying so**, because a shopkeeper who changed a price on Monday is otherwise surprised on Tuesday. ⚠️ **That banner is the SECOND thing Inicio has been asked to carry conditionally** — `5d-iv-b` already reserves room for the first — and two banners arguing about the top of one screen is the shape §2.8's Home ruling exists to prevent. ⚠️⚠️ **AND THE QUESTION THIS CHILD EXISTS TO ASK BEFORE IT DRAWS ANYTHING: does the `...` offer a cashier a price override FOR THIS SALE ONLY — one that never writes `price_list`?** The C3.17 ruling of 2026-09-23, *"leave the fence as is"*, settled who may change the SHOP's price and deliberately said nothing about a discount on one line. ⚠️ **A child that drew the control without asking would ship a button a cashier taps while nothing happens**, and not visibly: her PATCH is not refused, the row is simply invisible to her, so PostgREST answers **200 with an empty array** — measured by `5e-iii-a`, not inferred. ⚠️ **The write itself is already built and is not this child's**: `5e-iii-a`'s `editPlan` closes the row in force and opens the new one, in that order, because `price_list_no_overlap` allows no other. **It ships no migration** — widening the fence WOULD be one, and an append-only migration that merges automatically is exactly why this question was parked in front of the work rather than inside it~~ | `M` | ⏸️ **Deferred out of the pilot 2026-09-24** — it returns on the owner's word, after he has watched the shop use Vender |
 | **5f.5** | ⚠️⚠️ **PROMOTED OUT OF THE ADR ON 2026-09-24 BY `5f`'s SIZING, BECAUSE §2.8 REQUIRES IT AND NO ROW IN THIS FILE HELD IT.** ADR-035 §2.8's *Error prevention* names **three** guards on the capture screens, *"none blocking"*: unit-aware input, review before commit — the sheet and the slide — and ⚠️⚠️ **the MAGNITUDE WARNING: *"flag any quantity or unit price beyond ~3× the trailing median for that product"*, WHICH APPEARS NOWHERE IN THIS PLAN.** Measured 2026-09-24: the phrase and its wording return nothing from the plan corpus and nothing from `app/src/`, and §6 does not defer it either. ⚠️ **What that search bounds is the PLAN and this app's modules — not the shop** — but the guard is a client behaviour, so those two are the whole of where it could have lived. ⚠️⚠️ **AND IT SITS AFTER `5g` FOR A REASON THAT IS NOT ORDERING TASTE: §2.8 seeds it from PURCHASE history *"so it works from day one"*, and nothing in this app has ever read a purchase.** `record_purchase` has no caller, `purchase_line` has no client read, and a median over an empty table warns about everything or about nothing. **`5g` is the row that creates the history this one reads** — the same shape as `Costos` being deferred to the row that can answer it rather than dropped. ⚠️ **The error it prevents is the expensive one and the ADR states it in full**: *"a cashier meaning 1.5 kg who types 15 produces a transaction that is syntactically perfect, prices plausibly, and silently corrupts stock, margin and waste analytics."* ⚠️ **It is a WARNING and never a block** — §2.8 says so, and C3.9 is why: *"precision is the shop's, not ours"*, so 2 kg on a scale reading 2.050 is correct behaviour and nothing may reconcile it. **It ships no migration**; the median is a read | `S/M` | `5g` |
-| **5g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-24 — `M`, UNGATED, AND THE NEXT PRODUCT STEP.** ⚠️ **An `M` is one sitting under the amended working agreement**, but this row already owes a word before code: what `Costos` shows, deferred here on 2026-09-22 and named below. ⚠️ **It also inherits the price override `5f` was left owing** — whether Vender offers a cashier a price for THIS SALE ONLY, never written to `price_list`. **That is a look-question for the owner and it belongs to this row.** ⚠️ **IT INHERITS `5f`'s QUANTITY CONTROL, AND THE PURCHASE SIDE ALREADY HAS THE SAME THREE COLUMNS** — `record_purchase` (`0018:134`) takes `p_lines` carrying `qty_display` and `qty_display_unit` and prices each line from what the caller sends, so the stepper-and-free-entry rule the owner specified on 2026-09-23 is one control serving two screens rather than a Vender feature. ⚠️ **Read `5f`'s row for it; it is not restated here**, because two homes for one claim is the defect this file has recorded six of. **Comprar.** ⚠️⚠️ **AND IT OWES ONE WORD NOTHING ELSE CAN SAY: WHAT `Costos` SHOWS.** Ruled 2026-09-22 — *"Leave Costos dead until `5g`"* — so the dead button `5d-iii` shipped on La Familia stays dead through the whole of `5e`, and **this is the task that wakes it**, because purchase cost lives in `purchase_line` from `0003` and nothing writes one until this screen exists. ⚠️ **A deferral is only a deferral if a row owes the answer**; this is that row. Provider selector, the `Genérico` seed (F6), `provider_price_memory` prefill and re-price on provider change, the dash empty state, block-on-missing-price, `record_purchase`. **No 50-centavo rounding here** (C12.3). | `M` | — |
+| **5g** | ⚠️⚠️ **SIZED `XL` AND SPLIT THREE WAYS 2026-09-24, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-24, and this file carried it as an `M`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Comprar.** ⚠️⚠️ **THE ROW NAMED SEVEN DELIVERABLES; THE SIZING FOUND EIGHTEEN, AND THE THREE IT DID NOT NAME ARE THE THREE THAT CHANGE WHAT GETS BUILT.** **Eighteen deliverables, all of which land in exactly one child below:** the **provider list read**, an applied table no line in `app/` touches; the **price memory read** over `provider_price_memory` (`0008`), per (provider, variant) and never across providers; the prefill that is stored per BASE and read **per PRICE UNIT**, which is arithmetic and not a rename; **`last_qty_display_unit`**, the denomination she typed last time and which need not be the variant's price unit today; the **provider on the purchase payload** — `draftOf` builds `location_id` and `lines` and nothing else, while `record_purchase` raises on a null **`p_provider_id`**; the **typed price, persisted with the basket**, because a purchase price is entered rather than looked up and §2.11 persists the basket it belongs to; **the live round trip** that proves Postgres accepts a purchase, which nothing in this repository has ever performed; the **cashier asymmetry**, measured rather than inferred; **`Comprando a:`** — the provider chosen FIRST, in the header (C3.11); **changing the provider re-prices every row** already on screen (C3.11); the **three price states** §2.8 requires to look different, the middle one *empty and required* and visibly not a prefill; **C3.12**'s dash, never `$0.00`; **C3.13** — the slide blocked while any row has no price, and the banner that says so; setting that missing price **fast from where** the shopkeeper already is; the sheet, the slide and the confirmation, **the shape 5f-iii shipped**; **no 50-centavo rounding here** (**C12.3**); **what Costos shows**, the word deferred onto this row on 2026-09-22; and the button `5d-iii` **drew dead on La Familia**, which is the surface that word lands on | `XL` — **split, an `M`, an `M/L` and an `S`** | ✅ **UNGATED when it was taken.** ⚠️ **One of the three children is not: `5g-iii` is blocked on the word the owner owes, and it is the only one that is** |
+| **5g-i** | ✅✅ **DONE 2026-09-24 — THIS APP HAS RECORDED ITS FIRST DELIVERY, AND A GUARD REFUSED THE FIRST DESIGN OF ITS OWN CHECK.** ~~this is the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **It is the half of `5g` a machine can hold.** **Everything Comprar needs from Postgres, and NO SCREEN.** The **provider list read** — `provider`'s named columns behind `src/api/providers.ts` and one hook (`R12`, `R13`), the generic row first, because F6 makes it the default and it is a ROW rather than a blank. The **price memory read** over `provider_price_memory` (`0008`), per (provider, variant), **never across providers**: §2.8's middle state exists because a supplier price is a fact about a relationship, and a prefill borrowed from another provider is a guess wearing a memory's clothes. ⚠️⚠️ **THE FIGURE IS STORED PER BASE AND THE SHOPKEEPER READS IT per PRICE UNIT** — a `numeric(14,6)` per base against `$8.50 / kg` — which is the conversion `priceCentavos` already makes in the other direction, made once here rather than twice on a screen. ⚠️ **And `last_qty_display_unit` is the denomination she typed LAST TIME, which need not be the variant's price unit today**, so it is offered and never assumed. The **provider on the purchase payload**: `draftOf` builds `location_id` and `lines` today, and `record_purchase` raises `22023` on a null **`p_provider_id`** (`0018:200`) — so the buy side cannot commit at all until this lands, which is a change to SHIPPED code and not a new module. The **typed price, persisted with the basket** — `Quotes` is the map `5f-i` built and nothing fills, and §2.11 persists the basket for the same reason a half-keyed delivery must not lose the figures somebody has already read off a note. ⚠️⚠️ **THE INSTRUMENT IS `docs/checks/5g-i-purchase-contract.sh` AND ITS FALSIFIER: the live round trip, over real HTTP against a reset database.** `5f-i`'s row named it as this one's, and nothing in this repository has ever sent `record_purchase` anything. ⚠️⚠️ **IT ALSO PINS THE cashier asymmetry, MEASURED 2026-09-24 AND NOT INFERRED**: a cashier reads the provider list (200, one row), reads **zero** rows of the memory (200 and an empty array, never a 403), **records a delivery successfully** (200 — the RPC carries the location wall and no role fence at all) and then reads **zero** purchases back. ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED** |
+| **5g-ii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-24.** **Comprar itself, and nothing in this repository can say whether it looks right.** **`Comprando a:`** in the header — the provider is chosen FIRST and the screen is about a relationship before it is about products (C3.11) — and **changing the provider re-prices every row** already on screen, which is the half of C3.11 a session would leave out because the basket looks unchanged. The **three price states** §2.8 requires to look different, and **the middle one is the one that matters**: *you have bought this, but never from THIS provider* renders **empty and required**, visibly not a prefill — *"an empty required field asks a question; a wrong prefill answers one nobody asked"*. **C3.12**'s dash for no memory, never `$0.00`. **C3.13** — the slide is BLOCKED while any row has no price, a banner says so, and setting the missing price is **fast from where** she already is, which is the opposite of Vender's C3.14 and is the owner's own rule. The search, the row, the quantity control, the sticky bar, the sheet, the slide and the two confirmation animations are **the shape 5f-iii shipped**, and this is the THIRD drawing of a search box — §2.8's *"three capture screens sharing one engine underneath"* is the sentence that makes the extraction due here rather than a tidy-up, and `src/ui/` is built across `5d`–`5h` while `5h.5` writes its conventions after. ⚠️ **No 50-centavo rounding here** (**C12.3**): it is a selling convenience and a delivery is paid to the centavo. ⚠️⚠️ **`R9` AND §2.11: THE OWNER'S PHONE IS THE WHOLE INSTRUMENT.** Every judgement left in this child is rendering, navigation or layout, and no check here will ever say it is wrong. ⚠️ **It ships no migration.** | `M/L` | ✅ **UNGATED** — `5g-i` is closed and nothing is owed that touches this row. ⚠️ **It inherits one question to PUT to the owner rather than to answer**: what a cashier is told when her price memory comes back empty because she may not read one |
+| **5g-iii** | ⚠️⚠️ **GATED ON THE WORD THE OWNER OWES, AND THAT IS THIS CHILD'S WHOLE REASON FOR EXISTING.** **`Costos` — the button `5d-iii` drew dead on La Familia and this is what wakes it.** Ruled 2026-09-22: *"Leave Costos dead until `5g`"* — a deferral with a condition on it, and the condition is met the moment `5g-i` can read a purchase price. ⚠️ **But *until `5g`* said WHEN, not WHAT**, so **what Costos shows** is still owed and a session must not pick: last price paid and to whom, a per-provider comparison, and a trailing series are three different screens over the same rows, and §2.11 fences every one of them out of this repository's suites. ⚠️⚠️ **IT IS SPLIT OFF FOR REASON 1 OF THE WORKING AGREEMENT AND NOT FOR SIZE** — half the row is blocked on a decision and the other half is not, which is exactly the arrangement that let `5f-i` ship the day `5f-ii` was gated. ⚠️ **And the screen it lands on is not Comprar**: `familia/[id].tsx` is where the dead button is, so this child touches a file the other two never open. ⚠️ **It ships no migration.** | `S` | ⛔ **BLOCKED — the owner owes one word.** It is parked in ⛔ DECISIONS OWED and it blocks this child alone |
 | **5h** | **Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`. ⚠️⚠️ **AND THE UNDO, RULED BY THE OWNER 2026-09-22.** One *undo* on the document just committed, over `void_transaction` (`0021`) — applied since 2026-09-04 and **never called by anything**. ⚠️ **Nothing is edited or deleted**: a mirror-image document cancels the first, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **TWO THINGS A SCREEN MUST NOT INVENT:** the window is read from `workspace_setting.void_window_minutes` (`0001:561` — *"the client reads it to render correctly"*), so **hardcoding 15 is wrong the first time a shop changes it**; and the fence is a **role boundary, not a deadline** — a cashier undoes their OWN document inside the window, a manager or owner undoes ANYTHING at any time with no window. ⚠️ `void_transaction` takes `purchase`, `sale` and `waste`, so this is one affordance for three screens: `5h` builds it, `5g` and `6a` reuse it | `M` | ⚠️ **areas 5 and 6** |
 | **5h.5** | ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |
+
+#### ⚠️⚠️ Sized 2026-09-24 — `5g` IS AN `XL` AND IT SPLITS THREE WAYS, AND SIZE IS THE WEAKEST OF THE THREE REASONS
+
+⚠️⚠️ **THE ROW SAID `M`, AND AN `M` IS ONE SITTING UNDER THE AGREEMENT THE OWNER
+AMENDED THE SAME DAY. SO THIS SECTION HAS TO CARRY ITS ARGUMENT AND NOT JUST ITS
+CONCLUSION** — *"a size-only split at `M` or `L` is now the thing to refuse, and a
+session that wants one is asking for the old rule back."* **All three of the
+agreement's surviving reasons apply here independently, and they are given in the
+order of their strength rather than the order they were found.**
+
+##### Reason 2 — two failure classes, and one of them is invisible here
+
+⚠️⚠️ **THIS IS THE STRONG ONE, AND IT WAS MEASURED ON 2026-09-24 AGAINST A RESET
+DATABASE RATHER THAN ARGUED FROM THE MIGRATIONS.** Three fences, and no two of them
+agree:
+
+| Surface | Who may | Where it is written |
+|---|---|---|
+| `provider` — the list Comprar's header chooses from | **any member**, cashier included | `provider_select`, `0002:522` — `my_workspaces()` and nothing else |
+| `provider_price_memory` — the prefill | **manager and above** | inherited, not restated: the view is `security_invoker`, so `purchase` and `purchase_line`'s own policies apply (`0003:558`) |
+| `record_purchase` — the write | **any member who may act in that store** | `0018:165` — `security definer`, §2.6's location wall, and **no role check at all** |
+
+⚠️⚠️ **WHAT THAT PRODUCES ON A CASHIER'S PHONE, DRIVEN OVER REAL HTTP WITH A
+PUBLISHABLE KEY:** she reads the provider list (**200, one row**); she reads **zero**
+rows of the memory (**200 and an empty array — never a 403**); she records a delivery
+and it **succeeds** (**200**); and she then reads **zero** purchases back.
+
+⚠️⚠️ **AND THE REASON THIS IS A SPLIT ARGUMENT RATHER THAN A BUG REPORT: EVERY
+SYMPTOM OF THE BROKEN CASE IS A DESIGNED STATE OF THE WORKING ONE.** §2.8 requires
+*new pairing* to render **empty and required** — so an empty memory is CORRECT
+rendering, and it is exactly what a fence she cannot see also produces. **A screen
+cannot tell them apart and a person looking at the screen cannot either.** Put the
+read and the screen in one row and the half nothing can see is reviewed as though
+somebody had looked at it — which is `5c-iv`'s, `5d-iv`'s, `5e-iii`'s and `5f-iii`'s
+argument, made a fifth time by the sharpest instance of it yet.
+
+⚠️ **The fences are NOT being changed here and no child proposes a migration.**
+Whether Comprar should be manager-fenced in the app is a shop question — the memory
+this project keeps says a cashier never accepts a delivery — **and it is `5g-ii`'s to
+raise once there is a screen to raise it about.** What this sizing owes is that
+nobody discovers it by accident.
+
+##### Reason 1 — the gate
+
+⚠️ **`5g-iii` is blocked on a word the owner owes and the other two are not.** The
+ruling of 2026-09-22 was *"leave Costos dead until `5g`"*, which said **when** and
+never **what** — and *last price paid*, *a per-provider comparison* and *a trailing
+series* are three different screens over the same rows. **This is `5f-i`/`5f-ii`'s
+arrangement one split later**, and splitting is what lets the unblocked work ship
+while the question sits in the block that re-offers it every session.
+
+##### Reason 3 — and only now, size
+
+| | | |
+|---|---|---|
+| **Comprar is Vender PLUS four things** | a provider in the header, an **editable price per line**, three price states that must look different, and a commit that **BLOCKS** | none of the four has any precedent in this app |
+| **Vender took four sessions** | `5f-i`, `5f-ii`, `5f-iii-a`, `5f-iii-b` | `app/src/app/(tabs)/vender.tsx` is **1,792 lines** |
+| **And `5g` adds a data layer Vender never needed** | a new `src/api/` module, a read of two applied surfaces no line in `app/` touches, and the first live round trip against `record_purchase` | `5d-i` was an `M` on its own for less than this |
+
+##### ⚠️⚠️ What the sizing found, and none of the three was in the row
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE PURCHASE PAYLOAD HAS NO PROVIDER IN IT** | `draftOf` builds `location_id` and `lines`. `record_purchase` raises `22023` — *"record_purchase: provider_id is required — a delivery has a counterparty"* — on a null one (`0018:200`). **So the buy side of a module that already SHIPPED cannot commit at all**, and the row read as though Comprar were only a screen |
+| **2** | ⚠️⚠️ **A TYPED PURCHASE PRICE HAS NOWHERE TO LIVE** | C3.13 makes the price something a person **enters**, and `Quotes` is the map `5f-i` built for exactly this and left empty. §2.11 persists the basket because a phone rings mid-sale — **and a delivery note's figures are worse to re-key than a basket, because she has to find the note again** |
+| **3** | ⚠️⚠️ **THE PREFILL IS STORED PER BASE AND READ PER PRICE UNIT** | `provider_price_memory.unit_price_net_per_base` is a `numeric(14,6)` per BASE unit; she reads `$8.50 / kg`. And `last_qty_display_unit` is the denomination she typed **last time**, which need not be the variant's `price_unit_code` today. That is arithmetic, and none of it exists in `app/` |
+
+⚠️⚠️ **AND A FOURTH THAT IS NOT A DELIVERABLE BUT A DISAGREEMENT WITH AN APPLIED
+MIGRATION.** F6 requires *"a provider named `Genérico` … in every workspace"*.
+`onboard_workspace` has seeded one since `0002` on 2026-08-26, carried through `0027`
+and `0034` untouched, **and it is named `Compra directa`** — read off a live database
+rather than off the file. ⚠️ **F6's SUBSTANCE is satisfied**, which is why no child
+owns it: what F6 actually requires is that the ROW exist, because
+`purchase.provider_id` is `not null`. **What is in dispute is a string a shopkeeper
+reads in `Comprando a:` on every delivery she records**, and it is parked in the
+decisions block because it is free to choose today and a fix-forward migration plus
+an `update` over live rows once a shop has bought anything.
+
+⚠️ **One more measurement, recorded so the next session does not re-take it:**
+`unit_price_net_per_base` comes off the wire as a **JSON number** (`0.018000`), which
+is a double — and `@tienda/money`'s `parseDecimal` refuses a number argument outright.
+**The read must cast `::text`**, exactly as `PRICE_COLUMNS` already does one table
+over, and assertion 4 of `5d-i`'s check is the precedent for asserting it off the wire
+rather than off the column string.
+
+##### The seam
+
+| child | what it is | what can look at it |
+|---|---|---|
+| `5g-i` | the provider read, the price memory, the payload's provider, the persisted typed price | a node suite **and a live round trip** — the first this repository has ever run against `record_purchase` |
+| `5g-ii` | Comprar itself: the header, the three price states, the block, the sheet and the slide | the owner's phone (`R9`, §2.11), and nothing here |
+| `5g-iii` | `Costos`, on La Familia | **his word first**, then his phone |
+
+⚠️ **`5g-iii` opens a file the other two never touch** — `app/src/app/familia/[id].tsx`
+— which is the cheapest available check that this seam is real rather than
+administrative.
 
 #### ⚠️⚠️ Sized 2026-09-24 — `5f` IS AN `XL` AND IT SPLITS FOUR WAYS, AND THE ROW ASKED FOR THAT ITSELF
 

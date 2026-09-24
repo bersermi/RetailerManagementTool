@@ -39,6 +39,15 @@ import {
   type ProductDraft,
 } from '@/api/catalogWrite';
 import {
+  PROVIDERS_KEY,
+  memoryKey,
+  providersFrom,
+  quotesFor,
+  type MemoryRow,
+  type Provider,
+} from '@/api/providers';
+import type { Quotes } from '@/cart/cart';
+import {
   EDIT_ORDER,
   PRICE_EDIT_KEY,
   VARIANT_EDIT_KEY,
@@ -66,8 +75,10 @@ import {
   pendingAccessRequests,
   myWorkspaces,
   onboardWorkspace,
+  providerMemory,
   redeemInvite,
   requestAccess,
+  shopProviders,
   setMyDisplayName,
   workspaceInvites,
   workspaceLocations,
@@ -876,6 +887,71 @@ export function useCatalog(typed: string = ''): {
     entries: search(entries, typed),
     failed: thrown ? apiErrorKey(thrown) : null,
     locationId,
+  };
+}
+
+// ============================================================================
+// WHO THE SHOP BUYS FROM, AND WHAT THEY CHARGED LAST TIME. Plan task `5g-i`.
+//
+// ⚠️ TWO READS AND ONE HOOK (`R12`), and the second is DISABLED until a provider
+// is chosen — not as an optimisation but because *"the memory of no provider"*
+// is not a question. `providerMemory` takes an id and there is nothing sensible
+// to pass it, and a query fired with an empty string would cache a truthful
+// -looking *nothing remembered* under a key the real provider then reads.
+// ============================================================================
+
+/**
+ * The header's picker and the prices behind it, out of two reads.
+ *
+ * ⚠️⚠️ `quotes` IS `@/cart/cart`'s OWN MAP AND GOES STRAIGHT INTO `draftOf`.
+ * It is per BASE unit, exactly as Postgres sent it, because that is the
+ * denomination `record_purchase` is told — see `@/api/providers`' header for why
+ * nothing converts on the way through.
+ *
+ * ⚠️ THE FAILURE OF THE MEMORY READ IS REPORTED SEPARATELY FROM THE LIST'S, for
+ * `useCatalog`'s reason as amended on 2026-09-22: a failed read whose `data` is
+ * undefined looks exactly like one still in flight, and the screen that cannot
+ * tell them apart shows a spinner that never ends. ⚠️ **Here the second one is
+ * worse than a spinner**: an unreadable memory renders as §2.8's *new pairing*,
+ * which is a legitimate state, so the screen would silently ask her to re-type
+ * every price the shop already knows.
+ */
+export function useProviders(providerId: string | null = null): {
+  readonly loading: boolean;
+  readonly providers: readonly Provider[];
+  /** What this provider charged, per variant, per base. `draftOf`'s `quotes`. */
+  readonly quotes: Quotes;
+  /** The rows themselves, for `memoryFor` and `memoryState`. */
+  readonly memory: readonly MemoryRow[] | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null;
+
+  const list = useQuery({
+    queryKey: PROVIDERS_KEY,
+    queryFn: shopProviders,
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+  const memory = useQuery({
+    queryKey: memoryKey(providerId),
+    queryFn: () => providerMemory(providerId as string),
+    enabled: enabled && providerId !== null && providerId !== '',
+    staleTime: 60_000,
+  });
+
+  const thrown = list.error ?? memory.error;
+  return {
+    // ⚠️ THE MEMORY DOES NOT COUNT TOWARDS *loading* AND THE LIST DOES. Without
+    // the list there is no provider to choose and no screen at all; without the
+    // memory every row is C3.12's dash, which C3.13 already blocks the commit on
+    // — loud and correct rather than a screen that will not draw.
+    loading: list.data === undefined,
+    providers: providersFrom(list.data),
+    quotes: quotesFor(memory.data, providerId),
+    memory: memory.data ?? null,
+    failed: thrown ? apiErrorKey(thrown) : null,
   };
 }
 

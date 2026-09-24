@@ -55,7 +55,7 @@ import {
   stepOf,
   type Cart,
 } from '@/cart/cart';
-import { useCartStore } from '@/cart/store';
+import { CART_KEY, useCartStore } from '@/cart/store';
 
 // ---------------------------------------------------------------------------
 // The shop. `0001`'s own ten units, and the pollería the interview described.
@@ -75,6 +75,8 @@ const FAMILY = '11111111-1111-4111-8111-111111111111';
 const WORKSPACE = '22222222-2222-4222-8222-222222222222';
 const LOCATION = '33333333-3333-4333-8333-333333333333';
 const PECHUGA = '44444444-4444-4444-8444-444444444444';
+/** `Compra directa`, or whatever the shop calls it — `5g-i`. */
+const PROVIDER = '88888888-8888-4888-8888-888888888888';
 const HUEVO = '55555555-5555-4555-8555-555555555555';
 
 function variant(
@@ -325,22 +327,45 @@ describe('the price direction follows the document — §2.5 rule 2', () => {
     expect(quoted(SHELF, 'sell', false, IVA)).toBe(208_800);
   });
 
-  it('nets an invoice figure DOWN for a purchase when prices include IVA', () => {
-    expect(quoted(SHELF, 'buy', true, IVA)).toBe(155_172);
+  // ⚠️⚠️ THESE TWO ASSERTIONS WERE REWRITTEN BY `5g-i` ON 2026-09-24 BECAUSE
+  // THEY PINNED A DISAGREEMENT WITH THE ADR, AND THE ADR WINS. They used to
+  // require `quoted(SHELF, 'buy', true, IVA)` to net the figure DOWN and
+  // `quoted(SHELF, 'buy', true)` to REFUSE — both on the reading that
+  // `prices_include_tax` governs a delivery. §2.5 rule 2 says in its own
+  // parenthesis that it does not: *"`prices_include_tax` is a workspace flag, so
+  // the earlier wording read as though it governed deliveries too; it does not."*
+  // ⚠️ `0018`'s header is binding on the same point and has been since
+  // 2026-08-26: *"a shelf price is agreed gross and a supplier invoice is quoted
+  // net"*, and the key it reads is `unit_price_net_per_base` — the INVOICE net.
+  it('sends a purchase quote VERBATIM, whatever the workspace flag says', () => {
+    // ⚠️⚠️ AND THE OLD READING MADE COMPRAR IMPOSSIBLE RATHER THAN WRONG.
+    // `prices_include_tax` is true by `0001`'s default and true in every shop
+    // that exists, so the buy side could never be priced at all — which `5f-i`
+    // recorded as *"priceless until 5g hands a figure in"* when the figure was
+    // never the missing half.
+    expect(quoted(SHELF, 'buy', true)).toBe(180_000);
+    expect(quoted(SHELF, 'buy', true, IVA)).toBe(180_000);
+    expect(quoted(SHELF, 'buy', false)).toBe(180_000);
+    expect(quoted(SHELF, 'buy', false, IVA)).toBe(180_000);
   });
 
-  it('sends the typed price as the purchase net when they do not', () => {
-    expect(quoted(SHELF, 'buy', false)).toBe(180_000);
+  it('never consults a tax rate on a purchase, because the net is the anchor', () => {
+    // ⚠️ The rate is still SNAPSHOTTED server-side from the variant (`0018:80`,
+    // *"tax_rate is NOT accepted from the client"*) — what changed is that this
+    // app does not need one to build the line.
+    for (const rate of [null, 0, IVA, 8_000]) {
+      expect(quoted(SHELF, 'buy', true, rate)).toBe(180_000);
+    }
   });
 
   it('REFUSES to quote rather than guessing when the branch needs a rate', () => {
-    // ⚠️⚠️ THE WHOLE POINT OF THE ARGUMENT. A shop that answers *no* to
-    // *¿Tus precios ya incluyen IVA?* is quoted nothing until something hands
-    // the rate in — loud and stuck, rather than quiet and short by the IVA on
-    // every line for ever. A zero default here is the bug this refuses.
+    // ⚠️⚠️ THE WHOLE POINT OF THE ARGUMENT, and it is now a SALE-ONLY branch. A
+    // shop that answers *no* to *¿Tus precios ya incluyen IVA?* is quoted
+    // nothing until something hands the rate in — loud and stuck, rather than
+    // quiet and short by the IVA on every line for ever. A zero default here is
+    // the bug this refuses.
     expect(quoted(SHELF, 'sell', false)).toBeNull();
     expect(quoted(SHELF, 'sell', false, null)).toBeNull();
-    expect(quoted(SHELF, 'buy', true)).toBeNull();
   });
 
   it('is the identity at a zero rate, which is 0002s own default', () => {
@@ -574,6 +599,61 @@ describe('the payload, and the queue that accepts it', () => {
     });
   });
 
+  // ==========================================================================
+  // THE COUNTERPARTY — plan task `5g-i`. A delivery has one and a sale does not.
+  // ==========================================================================
+
+  it('refuses a delivery with nobody to have come from', () => {
+    // ⚠️⚠️ `record_purchase` raises 22023 — "a delivery has a counterparty, and
+    // the generic provider is a real row" — on a null `p_provider_id`
+    // (`0018:200`). Refused HERE it is a control that was never drawn; sent and
+    // refused there it is a dead letter with a SQLSTATE on it.
+    const buy = { 'v': '0.018000' };
+    const priced = setQty(EMPTY_CART, PECHUGA, 250_000);
+    const no = (provider: string | null) =>
+      draftOf(priced, CATALOG, FACTORS, 'buy', true, WORKSPACE, LOCATION, {}, {
+        [PECHUGA]: '0.018000',
+      }, provider);
+    expect(no(null)).toEqual({ ok: false, why: 'no-provider' });
+    expect(no('')).toEqual({ ok: false, why: 'no-provider' });
+    expect(no(PROVIDER).ok).toBe(true);
+    expect(Object.keys(buy)).toHaveLength(1);
+  });
+
+  it('puts the provider on a purchase payload and nowhere near a sale', () => {
+    // ⚠️ `@/api/flush` builds its arguments as `p_` plus the payload's own keys,
+    // so a `provider_id` the sale side did not need would reach `record_sale` as
+    // an argument it does not take.
+    const priced = setQty(EMPTY_CART, PECHUGA, 250_000);
+    const buy = mustDraft(
+      draftOf(priced, CATALOG, FACTORS, 'buy', true, WORKSPACE, LOCATION, {}, {
+        [PECHUGA]: '0.018000',
+      }, PROVIDER),
+    );
+    expect(buy.payload.provider_id).toBe(PROVIDER);
+    expect(isWritePayload(buy.payload)).toBe(true);
+
+    const sell = mustDraft(
+      draftOf(priced, CATALOG, FACTORS, 'sell', true, WORKSPACE, LOCATION, {}, {}, PROVIDER),
+    );
+    expect('provider_id' in sell.payload).toBe(false);
+  });
+
+  it('reaches record_purchase as p_provider_id', () => {
+    const priced = setQty(EMPTY_CART, PECHUGA, 250_000);
+    const draft = mustDraft(
+      draftOf(priced, CATALOG, FACTORS, 'buy', true, WORKSPACE, LOCATION, {}, {
+        [PECHUGA]: '0.018000',
+      }, PROVIDER),
+    );
+    const queued = queueWrite(draft, {
+      id: '77777777-7777-4777-8777-777777777777',
+      now: '2026-09-24T09:00:00.000Z',
+    });
+    if (!queued.ok) throw new Error(`the queue refused the draft: ${queued.why}`);
+    expect(sendArgs(queued.write).p_provider_id).toBe(PROVIDER);
+  });
+
   it('sends the NET key on a purchase and the GROSS key on a sale', () => {
     const one = setQty(EMPTY_CART, PECHUGA, 250_000);
     const sell = lineSent(one[0], entry(PECHUGA), FACTORS, 'sell', true)!;
@@ -602,7 +682,12 @@ describe('the store — §2.11s one piece of local state', () => {
   // is `@/lib/store`'s own rule that a missing store is an ordinary input, and
   // it is the same path a phone with a full disk takes.
   beforeEach(() => {
-    useCartStore.setState({ carts: { sell: EMPTY_CART, buy: EMPTY_CART }, workspaceId: null });
+    useCartStore.setState({
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART },
+      typed: { sell: {}, buy: {} },
+      workspaceId: null,
+      providerId: null,
+    });
   });
 
   it('keeps Vender and Comprar apart, because they are two documents', () => {
@@ -658,5 +743,83 @@ describe('the store — §2.11s one piece of local state', () => {
     useCartStore.getState().setQty('sell', PECHUGA, 250_000);
     useCartStore.getState().openShop(WORKSPACE);
     expect(useCartStore.getState().carts.sell).toHaveLength(1);
+  });
+
+  // ==========================================================================
+  // THE PROVIDER AND THE PRICES SOMEBODY TYPED — plan task `5g-i`.
+  // ==========================================================================
+
+  it('keeps a typed price with the basket, because a delivery note is not', () => {
+    // ⚠️ §2.11 persists the cart because a phone rings mid-sale. The figures on
+    // a delivery note are worse to lose than a basket: re-keying them means
+    // finding the note again.
+    useCartStore.getState().setQty('buy', HUEVO, 30_000);
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    expect(useCartStore.getState().typed.buy).toEqual({ [HUEVO]: '0.018000' });
+  });
+
+  it('forgets a typed price when the provider changes, and keeps the line', () => {
+    // ⚠️⚠️ C3.11 — *"changing the provider re-prices every row already on
+    // screen."* A figure entered against one supplier is not a figure about the
+    // next, and keeping it is §2.8's borrowed prefill arriving through the store.
+    useCartStore.getState().openProvider(PROVIDER);
+    useCartStore.getState().setQty('buy', HUEVO, 30_000);
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    useCartStore.getState().openProvider('99999999-9999-4999-8999-999999999999');
+    expect(useCartStore.getState().typed.buy).toEqual({});
+    expect(useCartStore.getState().carts.buy).toHaveLength(1);
+  });
+
+  it('leaves a typed price alone when told the same provider twice', () => {
+    // ⚠️ The screen calls this from an effect: re-running it on every render
+    // would wipe a price the moment after it was typed.
+    useCartStore.getState().openProvider(PROVIDER);
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    useCartStore.getState().openProvider(PROVIDER);
+    expect(useCartStore.getState().typed.buy).toEqual({ [HUEVO]: '0.018000' });
+  });
+
+  it('forgets the price of a line that was removed', () => {
+    // ⚠️ Otherwise the same product re-added later arrives carrying a figure
+    // nobody typed for it.
+    useCartStore.getState().setQty('buy', HUEVO, 30_000);
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    useCartStore.getState().remove('buy', HUEVO);
+    expect(useCartStore.getState().typed.buy).toEqual({});
+  });
+
+  it('empties the typed prices with the basket it priced', () => {
+    useCartStore.getState().setQty('buy', HUEVO, 30_000);
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    useCartStore.getState().setQty('sell', PECHUGA, 250_000);
+    useCartStore.getState().setPrice('sell', PECHUGA, '0.004000');
+    useCartStore.getState().clear('buy');
+    expect(useCartStore.getState().typed.buy).toEqual({});
+    expect(useCartStore.getState().typed.sell).toEqual({ [PECHUGA]: '0.004000' });
+  });
+
+  it('treats an emptied price box as forgetting rather than as a zero', () => {
+    useCartStore.getState().setPrice('buy', HUEVO, '0.018000');
+    useCartStore.getState().setPrice('buy', HUEVO, null);
+    expect(useCartStore.getState().typed.buy).toEqual({});
+    useCartStore.getState().setPrice('buy', HUEVO, '0.000000');
+    expect(useCartStore.getState().typed.buy).toEqual({ [HUEVO]: '0.000000' });
+  });
+
+  it('drops the provider with the shop, because a supplier belongs to one', () => {
+    // ⚠️ `record_purchase` refuses another workspace's provider by composite
+    // foreign key (`0018:205`), so carrying it across is a delivery that cannot
+    // land and a header naming somebody this shop has never heard of.
+    useCartStore.getState().openShop(WORKSPACE);
+    useCartStore.getState().openProvider(PROVIDER);
+    useCartStore.getState().openShop('99999999-9999-4999-8999-999999999999');
+    expect(useCartStore.getState().providerId).toBeNull();
+  });
+
+  it('persists under a new key, because the shape changed', () => {
+    // ⚠️⚠️ A `v1` blob restored into the new shape leaves `typed` undefined and
+    // every reducer reading `s.typed[kind]` throws on the first tap. The
+    // module's own rule: a shape change STRANDS the old basket.
+    expect(CART_KEY).toBe('tienda.cart.v2');
   });
 });

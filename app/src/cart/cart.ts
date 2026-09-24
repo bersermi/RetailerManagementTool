@@ -73,12 +73,15 @@
 //     `queueWrite` accepts; **the live round trip that proves Postgres accepts
 //     this shape is `5h`'s contract check.** A node suite can read every rule
 //     here and cannot read that, and saying so is `R9`.
-//   * IT DOES NOT QUOTE A PURCHASE, AND IT REFUSES TO RATHER THAN FALLING BACK.
-//     C3.11 prefills Comprar from the last price paid TO THAT PROVIDER, which is
-//     a read of `purchase_line` that nothing in this app performs; `5g` owns it.
-//     The shelf price is right there and taking it would record a delivery at
-//     retail — so `quoteFor` hands the buy side `null` until `5g` passes a
-//     figure, and the line is plainly unpriced instead of plausibly wrong.
+//   * IT DOES NOT PREFILL A PURCHASE, AND IT REFUSES TO RATHER THAN FALLING
+//     BACK. C3.11 prefills Comprar from the last price paid TO THAT PROVIDER;
+//     `@/api/providers` performs that read and `5g-i` built it. The shelf price
+//     is right there and taking it would record a delivery at retail — so
+//     `quoteFor` still hands the buy side `null` when no quote is supplied, and
+//     the line is plainly unpriced instead of plausibly wrong.
+//   * ⚠️⚠️ AND WHAT IT DOES TO A SUPPLIED PURCHASE QUOTE CHANGED ON 2026-09-24:
+//     it sends it VERBATIM. `quoted` had read `prices_include_tax` on both sides
+//     and §2.5 rule 2 scopes that flag to the SALE — see `quoted`.
 //   * IT DECIDES NOTHING ABOUT WHAT IS DRAWN. The stepper, the keypad, the
 //     sticky bar and the sheet are `5f-ii` and `5f-iii`, and the first of those
 //     is gated on an ADR amendment.
@@ -90,7 +93,6 @@ import {
   formatDecimal,
   grossFromNet,
   lineAnchorCentavos,
-  netFromGross,
   parseDecimal,
   type Kind,
 } from '@tienda/money';
@@ -263,9 +265,24 @@ export function qtySent(base: number, entry: CatalogEntry, factors: UnitFactors)
  * when this variant has no price today.
  *
  * ⚠️⚠️ THE DIRECTION FOLLOWS THE DOCUMENT (§2.5 rule 2): a SALE is anchored on
- * the gross and a PURCHASE on the net. `prices_include_tax` says which of those
- * the shopkeeper typed, so exactly one of the four combinations needs
- * converting on each side, and the other is the number itself.
+ * the gross and a PURCHASE on the net. **`prices_include_tax` scopes the SALE
+ * side only**, and the rule says so in its own words: *"`prices_include_tax` is
+ * a workspace flag, so the earlier wording read as though it governed deliveries
+ * too; it does not."*
+ *
+ * ⚠️⚠️ CORRECTED BY `5g-i` ON 2026-09-24, AND IT WAS A DISAGREEMENT WITH THE ADR
+ * RATHER THAN A SLIP. This function read the flag on BOTH sides —
+ * `kind === 'sell' ? pricesIncludeTax : !pricesIncludeTax` — which made a
+ * purchase need a tax rate whenever the flag was true. **It is true by `0001`'s
+ * default and true in every shop that exists**, so the buy side could never be
+ * priced at all, and `5f-i` recorded that as *"the buy side is priceless until
+ * `5g` hands a figure in"* when the figure was never the missing half.
+ * ⚠️ `0018`'s own header settles it in one line, binding since 2026-08-26: *"a
+ * shelf price is agreed gross and a supplier invoice is quoted net"*, and the
+ * payload key it reads is `unit_price_net_per_base` — *the INVOICE net*. **So a
+ * purchase quote is sent exactly as it arrived**: read back out of
+ * `provider_price_memory`, which is a net column, or typed into a box whose
+ * label says what it is. ⚠️ Converting it would have netted a net.
  *
  * ⚠️ IT IS THE SHELF PRICE AND NOT A LOOKUP AT FLUSH TIME. `0016` refuses to
  * read `price_list` itself and says why: the customer agreed to the number the
@@ -285,11 +302,14 @@ export function quoted(
   } catch {
     return null;
   }
-  // The typed figure IS the document's anchor on one side of each flag, and
-  // needs converting on the other. See the header for why the rate is handed in.
-  if (kind === 'sell' ? pricesIncludeTax : !pricesIncludeTax) return typed;
+  // ⚠️⚠️ A PURCHASE IS ANCHORED ON THE INVOICE NET WHATEVER THE FLAG SAYS, AND
+  // THE FLAG IS NOT ABOUT DELIVERIES AT ALL. See the header: corrected by
+  // `5g-i` against ADR-035 §2.5 rule 2, which says so in its own parenthesis.
+  if (kind === 'buy') return typed;
+  // A SALE is anchored on the gross, and the flag says whether she typed one.
+  if (pricesIncludeTax) return typed;
   if (rate === null) return null;
-  return kind === 'sell' ? grossFromNet(typed, rate) : netFromGross(typed, rate);
+  return grossFromNet(typed, rate);
 }
 
 /**
@@ -525,6 +545,7 @@ export function lineSent(
 export type DraftRefusal =
   | 'empty-cart'
   | 'no-location'
+  | 'no-provider'
   | 'line-cannot-be-priced'
   | 'variant-not-in-catalog';
 
@@ -540,13 +561,27 @@ export type Drafted =
  * after `queueWrite` — a rule that has no home in this module because nothing
  * here knows a gesture happened.
  *
+ * ⚠️⚠️ A PURCHASE CARRIES A COUNTERPARTY AND A SALE DOES NOT, WHICH IS WHY THE
+ * PAYLOAD FORKS ON `kind` RATHER THAN CARRYING A NULLABLE KEY EITHER WAY. Added
+ * by `5g-i`: `record_purchase` raises `22023` — *"a delivery has a counterparty,
+ * and the generic provider is a real row"* — on a null `p_provider_id`
+ * (`0018:200`), and `@/api/flush` builds its arguments as `p_` plus the
+ * payload's own keys, so a `provider_id` the sale side did not need would reach
+ * `record_sale` as an argument it does not take. **The fork is what keeps one
+ * draft function honest about two documents.**
+ *
+ * ⚠️ AND `no-provider` IS REFUSED HERE RATHER THAN SENT AND REFUSED THERE. A
+ * delivery that reaches Postgres without one comes back as a dead letter with a
+ * SQLSTATE on it; refused here it is a control that was never drawn, which is
+ * `canCommit`'s whole argument in `@/cart/commit`.
+ *
  * ⚠️ EVERY REFUSAL IS A PROGRAMMING ERROR AND NONE IS A SHOPKEEPER'S PROBLEM,
  * which is `queueWrite`'s own argument one module over: a commit control that
- * is drawn on an empty basket, a shop with no location resolved, a line for a
- * variant that is not in the catalog this basket was priced against. They are
- * returned rather than thrown so the screen has somewhere to put them other
- * than a crash on the till, and none has a Spanish sentence because none may
- * reach a screen (`R4`).
+ * is drawn on an empty basket, a shop with no location resolved, a delivery with
+ * nobody to have come from, a line for a variant that is not in the catalog this
+ * basket was priced against. They are returned rather than thrown so the screen
+ * has somewhere to put them other than a crash on the till, and none has a
+ * Spanish sentence because none may reach a screen (`R4`).
  *
  * ⚠️ `occurred_at` IS DELIBERATELY ABSENT. `@/api/flush` sends the queue row's
  * own `queuedAt` whenever the payload carries none, and it says why: an offline
@@ -564,9 +599,12 @@ export function draftOf(
   locationId: string | null,
   rates: TaxRates = NO_TAX_RATES,
   quotes: Quotes = NO_QUOTES,
+  providerId: string | null = null,
 ): Drafted {
   if (cart.length === 0) return { ok: false, why: 'empty-cart' };
   if (locationId === null || locationId === '') return { ok: false, why: 'no-location' };
+  if (kind === 'buy' && (providerId === null || providerId === ''))
+    return { ok: false, why: 'no-provider' };
   const lines: Readonly<Record<string, unknown>>[] = [];
   for (const line of cart) {
     const entry = entries.find((e) => e.id === line.variantId);
@@ -588,7 +626,10 @@ export function draftOf(
     draft: {
       workspaceId,
       kind: WRITE_KIND[kind],
-      payload: { location_id: locationId, lines },
+      payload:
+        kind === 'buy'
+          ? { location_id: locationId, provider_id: providerId, lines }
+          : { location_id: locationId, lines },
     },
   };
 }
