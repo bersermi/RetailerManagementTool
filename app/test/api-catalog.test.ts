@@ -63,12 +63,12 @@ const OTHER_STORE = '33333333-3333-4333-8333-333333333333';
 
 /** The ten rows `0001` seeds, as PostgREST sends them with `::text`. */
 const UNITS: readonly UnitRow[] = [
-  { code: 'g', dimension: 'mass', factor_to_base: '1.000000', display_order: 40 },
-  { code: 'kg', dimension: 'mass', factor_to_base: '1000.000000', display_order: 10 },
-  { code: '500g', dimension: 'mass', factor_to_base: '500.000000', display_order: 20 },
-  { code: '250g', dimension: 'mass', factor_to_base: '250.000000', display_order: 25 },
-  { code: '100g', dimension: 'mass', factor_to_base: '100.000000', display_order: 30 },
-  { code: 'pza', dimension: 'count', factor_to_base: '1.000000', display_order: 10 },
+  { code: 'g', dimension: 'mass', base_code: 'g', factor_to_base: '1.000000', display_order: 40 },
+  { code: 'kg', dimension: 'mass', base_code: 'g', factor_to_base: '1000.000000', display_order: 10 },
+  { code: '500g', dimension: 'mass', base_code: 'g', factor_to_base: '500.000000', display_order: 20 },
+  { code: '250g', dimension: 'mass', base_code: 'g', factor_to_base: '250.000000', display_order: 25 },
+  { code: '100g', dimension: 'mass', base_code: 'g', factor_to_base: '100.000000', display_order: 30 },
+  { code: 'pza', dimension: 'count', base_code: 'pza', factor_to_base: '1.000000', display_order: 10 },
 ];
 
 const FACTORS = unitFactorsFrom(UNITS);

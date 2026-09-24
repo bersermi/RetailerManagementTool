@@ -104,7 +104,17 @@ export const FAMILY_COLUMNS = 'id,name';
 export const PRICE_COLUMNS = 'price_per_base::text,location_id';
 
 /** The columns a client may ask `unit` for. ⚠️ `factor_to_base::text` — header. */
-export const UNIT_COLUMNS = 'code,dimension,factor_to_base::text,display_order';
+/**
+ * ⚠️⚠️ `base_code` WAS ADDED 2026-09-24 BECAUSE `product_variant.base_unit_code`
+ * CANNOT BE TRUSTED, AND THE OWNER FOUND IT ON HIS PHONE. `unitColumns` in
+ * `@/api/catalogWrite` writes ALL FOUR unit columns as the price unit, so a
+ * product created through `Agregar` at `$45 / 250 g` carries
+ * `base_unit_code = '250g'` — while every piece of arithmetic in this app, and
+ * `record_sale` itself, means GRAMS by *base*. This column is the unit table's
+ * own answer to *what is this dimension stored in*, and it is what the entry
+ * below now carries. See `catalogFrom`.
+ */
+export const UNIT_COLUMNS = 'code,dimension,base_code,factor_to_base::text,display_order';
 
 /** The embedded resource the price window filters, spelled once. */
 export const PRICE_TABLE = 'price_list';
@@ -186,6 +196,11 @@ export interface VariantRow {
 export interface UnitRow {
   readonly code: string;
   readonly dimension: string;
+  /** `unit.base_code` — the canonical unit of this dimension. `0001:78`:
+   *  *"the canonical unit for this dimension. Ledger quantities are stored in
+   *  it."* ⚠️ It is the answer `product_variant.base_unit_code` is SUPPOSED to
+   *  agree with, and `record_sale` refuses the line when it does not. */
+  readonly base_code: string;
   readonly factor_to_base: string;
   readonly display_order: number;
 }
@@ -203,6 +218,31 @@ export interface UnitRow {
  * not import across that boundary to do it for them.
  */
 export type UnitFactors = Readonly<Record<string, string>>;
+
+/**
+ * `unit.base_code` keyed by unit code — *what is a quantity in this unit stored
+ * in*, as `0001` answers it.
+ *
+ * ⚠️⚠️ IT EXISTS BECAUSE THE VARIANT'S OWN COLUMN IS WRONG ON EVERY PRODUCT
+ * THIS APP HAS CREATED, AND THAT WAS MEASURED ON A PHONE RATHER THAN REASONED
+ * ABOUT. `unitColumns` writes `base_unit_code = price_unit_code`, so a product
+ * priced per `250g` says it is stored in `250g` — and `record_sale` (`0016:217`)
+ * refuses any line where `u.base_code <> pv.base_unit_code`. **The unit table is
+ * the one that is right**, and it is also the one `priceCentavos` and
+ * `pricePerBase` have always agreed with: both convert through
+ * `factor_to_base`, which lands in `base_code` and nowhere else.
+ */
+export type UnitBases = Readonly<Record<string, string>>;
+
+/** Empty, which is what a units read still in flight looks like. */
+export const NO_UNIT_BASES: UnitBases = {};
+
+/** The base code of each unit's dimension, keyed by code. */
+export function unitBasesFrom(rows: readonly UnitRow[] | null | undefined): UnitBases {
+  const bases: Record<string, string> = {};
+  for (const row of rows ?? []) bases[row.code] = row.base_code;
+  return bases;
+}
 
 /** The factors, keyed by code. Nothing is dropped and nothing is renamed. */
 export function unitFactorsFrom(rows: readonly UnitRow[] | null | undefined): UnitFactors {
@@ -425,8 +465,27 @@ export interface CatalogEntry {
   readonly familyName: string;
   /** `product_variant.price_unit_code` — what the price below is PER. */
   readonly priceUnit: string;
-  /** `product_variant.base_unit_code` — what the ledger stores, and what a
-   * KEYED quantity is sent in. See `VariantRow.base_unit_code`. */
+  /**
+   * What the ledger stores this variant in, and what a KEYED quantity is sent
+   * in — **`unit.base_code` for the PRICE unit, not `product_variant.
+   * base_unit_code`.**
+   *
+   * ⚠️⚠️ THE TWO ARE SUPPOSED TO AGREE AND ON THIS APP'S OWN PRODUCTS THEY DO
+   * NOT — corrected 2026-09-24, after the owner found the quantity box on
+   * Vender counting `1, 2, 3` for a product priced per 250 g instead of
+   * `250, 500, 750`. `unitColumns` writes all four unit columns as the price
+   * unit, so `base_unit_code` reads `250g`; `record_sale` refuses any line
+   * where `u.base_code <> pv.base_unit_code`, and `priceCentavos` and
+   * `pricePerBase` have always converted through `factor_to_base` — which lands
+   * in `base_code`. **The unit table is the one the rest of the system agrees
+   * with, so it is the one this field carries.**
+   *
+   * ⚠️ IT FALLS BACK TO THE VARIANT'S COLUMN ONLY WHEN THE PRICE UNIT IS NOT IN
+   * THE UNIT TABLE THIS PHONE HOLDS — a units read still in flight, or a code
+   * `0001` does not seed. That is the same *"a null is a unit this phone has
+   * not read"* rule `stepOf` states, and the fallback is the old behaviour
+   * rather than a guess.
+   */
   readonly baseUnit: string;
   /** What one price unit costs, or `null`. See `priceCentavos`. */
   readonly centavos: number | null;
@@ -468,6 +527,7 @@ export function catalogFrom(
   rows: readonly VariantRow[] | null | undefined,
   factors: UnitFactors,
   locationId: string | null,
+  bases: UnitBases = NO_UNIT_BASES,
 ): readonly CatalogEntry[] {
   const entries: CatalogEntry[] = [];
   for (const row of rows ?? []) {
@@ -485,7 +545,7 @@ export function catalogFrom(
       familyId: row.family_id,
       familyName,
       priceUnit: row.price_unit_code,
-      baseUnit: row.base_unit_code,
+      baseUnit: bases[row.price_unit_code] ?? row.base_unit_code,
       centavos,
       perBase: price?.price_per_base ?? null,
       price: priceLabel(centavos, row.price_unit_code),

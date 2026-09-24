@@ -28,6 +28,7 @@ import {
   UNITS_KEY,
   catalogFrom,
   search,
+  unitBasesFrom,
   unitFactorsFrom,
   type CatalogEntry,
   type UnitFactors,
@@ -841,7 +842,17 @@ export function useCatalog(typed: string = ''): {
 
   const stores = locationsFrom(locations.data);
   const locationId = stores.length === 1 ? stores[0].id : null;
-  const entries = catalogFrom(variants.data, unitFactorsFrom(units.data), locationId);
+  // ⚠️ THE BASES MAP COMES FROM THE SAME READ AS THE FACTORS, AND IT IS WHY
+  // `UNIT_COLUMNS` GAINED `base_code` ON 2026-09-24. `product_variant.
+  // base_unit_code` disagrees with the unit table on every product `Agregar`
+  // has ever made, and the quantity box on Vender was counting `1, 2, 3` for a
+  // product priced per 250 g because of it. See `catalogFrom`.
+  const entries = catalogFrom(
+    variants.data,
+    unitFactorsFrom(units.data),
+    locationId,
+    unitBasesFrom(units.data),
+  );
 
   // ⚠️⚠️ THE FAILURE IS REPORTED SEPARATELY FROM *loading*, AND UNTIL 2026-09-22
   // IT WAS NOT. `loading` is `data === undefined`, which is ALSO what a failed

@@ -33,8 +33,14 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-24, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
-NINTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **NINETEEN decisions have now been parked and cleared
+| **⚠️⚠️ EVERY PRODUCT `Agregar` HAS EVER MADE IS UNSELLABLE, AND FIXING THE WRITER DOES NOT FIX THE ROWS.** `unitColumns` (`@/api/catalogWrite`) writes **all four** unit columns as the picked price unit, so a product created at `$45 / 250 g` carries `base_unit_code = '250g'`. ⚠️ **`record_sale` (`0016:217`) refuses any line where `u.base_code <> pv.base_unit_code`** — and for `250g` that is `'g' <> '250g'`. **So the row cannot be sold, cannot be bought (`0018:265`) and cannot be transferred (`0020:355`).** ⚠️ **MEASURED, NOT INFERRED, AND THE INSTRUMENT WAS HIS PHONE:** the quantity box on Vender counted `1, 2, 3` for a 250 g product instead of `250, 500, 750`, which is only possible if `baseUnit` read `250g`. ✅ **The seed does it CORRECTLY** (`00_skeleton.sql:334` — `base_unit 'g'`, `price_unit 'kg'`), so this is the app's writer and not the design. ⚠️⚠️ **THREE QUESTIONS AND THEY ARE NOT THE SAME SIZE.** **(a)** Fix `unitColumns` to write the dimension's base — ⚠️ **NOT a one-liner: `pricePerBase` converts through `factor_to_base` and its header rests on all four codes being equal**, so changing one of them without re-reading that arithmetic moves money. **(b)** Backfill the rows already in your shop — that is an append-only **migration**, and it is the half that cannot be undone by editing. **(c)** Or delete them and re-make them, which costs nothing if they are still *"merely indicative"* ([[catalog-belongs-to-merchant]]'s sibling ruling of 2026-09-24). ⚠️ **The recommendation is (a) + (c) and NOT (b)**: the backfill is a migration written to repair rows the owner has already said do not matter, and `6c` is about to touch these same two tables anyway | **`5h`** (the sale itself) and **`5g`** (the purchase). ⚠️⚠️ **IT DOES NOT BLOCK THE TASK MARKED NEXT, which enqueues a document and never asks Postgres to accept it — and that child's id is deliberately NOT spelled in this cell**: assertion 7c greps it for task names, so naming the row it does not block reads here as blocking it. *Never spell a check's sentinel in the file it reads*, recorded for the sixth time | This cell |
+⚠️⚠️ **ONE IS OWED AS OF 2026-09-24. IT CAME OUT OF THE OWNER LOOKING AT `5f-ii` ON HIS OWN
+PHONE, IT IS THE SECOND DECISION IN THIS BLOCK THAT IS ABOUT LIVE DATA RATHER THAN A DESIGN,
+AND IT DOES NOT BLOCK THE TASK MARKED NEXT.** ⚠️ **TWENTY decisions have now been parked here.**
+~~✅✅✅ nothing is owed as of 2026-09-24, and the empty table above is deliberate — for the
+ninth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
+`5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a
+rendering.** ⚠️ **NINETEEN decisions have now been parked and cleared
 in this block, and the eighteenth and nineteenth were parked and ruled inside four hours** —
 both out of `5f`'s sizing, both answered in one message.
 

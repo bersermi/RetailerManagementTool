@@ -68,9 +68,9 @@ function row(over: Partial<PriceInForce> = {}): PriceInForce {
 }
 
 const UNITS: readonly UnitRow[] = [
-  { code: 'kg', dimension: 'mass', factor_to_base: '1000.000000', display_order: 1 },
-  { code: '250g', dimension: 'mass', factor_to_base: '250.000000', display_order: 2 },
-  { code: 'pza', dimension: 'count', factor_to_base: '1.000000', display_order: 3 },
+  { code: 'kg', dimension: 'mass', base_code: 'g', factor_to_base: '1000.000000', display_order: 1 },
+  { code: '250g', dimension: 'mass', base_code: 'g', factor_to_base: '250.000000', display_order: 2 },
+  { code: 'pza', dimension: 'count', base_code: 'pza', factor_to_base: '1.000000', display_order: 3 },
 ];
 const FACTORS = unitFactorsFrom(UNITS);
 

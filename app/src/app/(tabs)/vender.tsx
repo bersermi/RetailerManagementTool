@@ -1,6 +1,15 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useEffect, useRef, useState, type RefObject } from 'react';
-import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import {
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
@@ -92,6 +101,35 @@ import { PALETTE } from '@/theme/palette';
 // the CATALOG, where the row's whole job is to be recognised.
 //
 // ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THE KEYBOARD MUST NOT SIT ON TOP OF THE BOX BEING TYPED INTO
+// ----------------------------------------------------------------------------
+// Reported by the owner on 2026-09-24, on his own phone: *"the screen must
+// adjust on top of the keypad for us to see what we're tipping, currently it can
+// still sit behind the keypad."* ⚠️ **It is two problems and one of them is not
+// obvious.** The first is the container: without a `KeyboardAvoidingView` the
+// screen keeps its full height and the bottom of the list — and C3.4's sticky
+// bar with it — goes under the keyboard. The second is that **shrinking the
+// screen does not move the list**: a row that was near the bottom is simply
+// outside the new viewport, and RN scrolls nothing into view on its own.
+//
+// ⚠️ SO THE FOCUSED ROW IS SCROLLED TO THE MIDDLE, AND IT WAITS FOR
+// `keyboardDidShow` RATHER THAN FIRING ON FOCUS. Scrolling on focus centres the
+// row in the OLD viewport and the resize then pushes it back down — which is
+// the same bug with an animation on it. ⚠️ `onScrollToIndexFailed` is the belt
+// to that brace: rows here are not a fixed height, so a jump past the render
+// window has to fall back to an offset, the arrangement `productos.tsx` already
+// uses for the same reason.
+//
+// ⚠️ `behavior` IS `padding` ON iOS AND NOTHING ON ANDROID, which is not a
+// hedge: Expo sets `softwareKeyboardLayoutMode: "resize"`, so Android's window
+// is already shortened by the system and a second adjustment double-counts it.
+// C1.1 puts two Androids among the pilot's four phones.
+//
+// ⚠️ THE OFFSET IS THE TAB BAR'S OWN HEIGHT PLUS THE DEVICE INSET, because this
+// screen is inside the tab navigator: without it the avoidance is short by
+// exactly the bar and the box still clips.
+//
 // ⚠️ THE SEARCH BOX AND THE EMPTY STATES ARE `productos.tsx`'s, COPIED
 // ----------------------------------------------------------------------------
 // Deliberately, and it is `5h.5`'s row that resolves it: §2.11 lists ~10
@@ -118,6 +156,23 @@ export default function Vender() {
   const box = useRef<TextInput>(null);
   const rows = search(entries, typed);
 
+  // ⚠️ WHICH ROW IS BEING TYPED INTO, HELD IN A REF AND NOT IN STATE. It changes
+  // on every focus and nothing renders differently for it; state here would
+  // re-render a ~100-row list on the phone C1.1 puts two low-end Androids among.
+  const list = useRef<FlatList<CatalogEntry>>(null);
+  const editing = useRef<number | null>(null);
+
+  // ⚠️⚠️ IT WAITS FOR THE KEYBOARD TO BE UP — see this file's header. Scrolling
+  // on focus centres the row in a viewport that is about to shrink.
+  useEffect(() => {
+    const up = Keyboard.addListener('keyboardDidShow', () => {
+      const at = editing.current;
+      if (at === null || at < 0) return;
+      list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
+    });
+    return () => up.remove();
+  }, []);
+
   const cart = useCart('sell');
   const openShop = useCartStore((state) => state.openShop);
 
@@ -142,25 +197,51 @@ export default function Vender() {
     workspace === null ? null : basketOf(cart, entries, 'sell', workspace.pricesIncludeTax);
 
   return (
-    <View style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top }}
+      // See this file's header: `padding` on iOS, nothing on Android, where the
+      // system has already resized the window.
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+    >
       <Buscador value={typed} onChange={setTyped} box={box} />
 
       <FlatList
+        ref={list}
         // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: C8.3 puts ~100 products
         // in the pilot catalog and C1.1 puts two low-end Androids among its four
         // phones, and a `ScrollView` mounts every row at once.
         data={rows}
         keyExtractor={(entry) => entry.id}
-        renderItem={({ item }) => <Fila entry={item} factors={factors} />}
+        renderItem={({ item, index }) => (
+          <Fila
+            entry={item}
+            factors={factors}
+            onEdit={(on) => {
+              editing.current = on ? index : null;
+            }}
+          />
+        )}
         ItemSeparatorComponent={Separador}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
-        keyboardDismissMode="on-drag"
+        // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE ONLY WHEN THE
+        // JUMP IS INSIDE THE RENDER WINDOW; past it `scrollToIndex` throws, and
+        // a thrown error on the till is a blank screen. `productos.tsx` carries
+        // the same fallback for the same reason.
+        onScrollToIndexFailed={({ index }) => {
+          list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
+        }}
+        // ⚠️ NOT `on-drag` ANY MORE, AND THAT IS PART OF THE SAME FIX. Dismissing
+        // the keyboard the instant a thumb moves makes a mis-scroll cost the
+        // number being typed; the box is committed on every parseable keystroke,
+        // so the way out is *Listo* or a tap elsewhere.
+        keyboardDismissMode="none"
         keyboardShouldPersistTaps="handled"
       />
 
       <Barra basket={basket} />
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -266,7 +347,15 @@ function Buscador({
  * price, a quantity and two buttons, and a fourth number on it is the row
  * `5d-ii` said a counter cannot read across a shop.
  */
-function Fila({ entry, factors }: { entry: CatalogEntry; factors: UnitFactors }) {
+function Fila({
+  entry,
+  factors,
+  onEdit,
+}: {
+  entry: CatalogEntry;
+  factors: UnitFactors;
+  onEdit: (editing: boolean) => void;
+}) {
   const { scale } = useDensity();
   const base = useCartStore((state) => {
     for (const line of state.carts.sell) if (line.variantId === entry.id) return line.base;
@@ -325,7 +414,7 @@ function Fila({ entry, factors }: { entry: CatalogEntry; factors: UnitFactors })
         </View>
       </View>
 
-      <Cantidad entry={entry} base={base} factors={factors} />
+      <Cantidad entry={entry} base={base} factors={factors} onEdit={onEdit} />
     </View>
   );
 }
@@ -361,10 +450,12 @@ function Cantidad({
   entry,
   base,
   factors,
+  onEdit,
 }: {
   entry: CatalogEntry;
   base: number;
   factors: UnitFactors;
+  onEdit: (editing: boolean) => void;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -417,7 +508,14 @@ function Cantidad({
         <TextInput
           value={shown}
           onChangeText={typeInto}
-          onBlur={() => setDraft(null)}
+          // ⚠️ THE ROW TELLS THE SCREEN IT IS THE ONE BEING TYPED INTO, and the
+          // screen scrolls it into view once the keyboard is actually up — see
+          // this file's header.
+          onFocus={() => onEdit(true)}
+          onBlur={() => {
+            onEdit(false);
+            setDraft(null);
+          }}
           editable={by !== null}
           // ⚠️ `decimal-pad` AND NOT `numeric`: `numeric` carries a minus sign
           // and an exponent on some Android keyboards, and neither is a
