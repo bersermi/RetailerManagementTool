@@ -90,6 +90,7 @@ import {
   UNIT_COLUMNS,
   isoDay,
   priceEndsAfter,
+  type UnitBases,
   type UnitFactors,
   type UnitRow,
   type VariantRow,
@@ -544,6 +545,11 @@ export async function createProduct(
   workspaceId: string,
   draft: ProductDraft,
   factors: UnitFactors,
+  // ⚠️ THE BASES COME FROM THE SAME UNIT READ AS THE FACTORS, and they are what
+  // `base_unit_code` is written from as of 2026-09-24. See `unitColumns`: the
+  // form used to write the picked unit into all four columns, and every product
+  // it made was refused by `record_sale` for it.
+  bases: UnitBases,
   now: Date = new Date(),
 ): Promise<CreateOutcome> {
   const [FAMILY, VARIANT, PRICE] = WRITE_ORDER;
@@ -588,7 +594,7 @@ export async function createProduct(
 
   const variant = await supabase
     .from(VARIANT)
-    .insert(variantRow(workspaceId, familyId, draft))
+    .insert(variantRow(workspaceId, familyId, draft, bases))
     .select(INSERT_RETURNING)
     .single();
   if (variant.error) {
