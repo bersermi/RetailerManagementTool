@@ -30,6 +30,7 @@ import {
   search,
   unitFactorsFrom,
   type CatalogEntry,
+  type UnitFactors,
 } from '@/api/catalog';
 import {
   WRITE_ORDER,
@@ -1098,4 +1099,42 @@ export function useEditProduct(variantId: string | null) {
     save,
     busy: mutation.isPending,
   };
+}
+
+// ============================================================================
+// THE UNIT FACTORS, ON THEIR OWN. Plan task `5f-i`.
+// ============================================================================
+
+/**
+ * `unit.factor_to_base` keyed by code — the map `@/offline/deadLetters` has
+ * taken as an ARGUMENT since 2026-09-22 with nothing to hand it.
+ *
+ * ⚠️⚠️ THIS IS THE SECOND LINE `5f` OWED AND NOTHING COULD SEE UNTIL IT WAS
+ * WRITTEN. `5c-iv-b` refused to hard-code `0001`'s ten rows into the dead-letter
+ * banner, precisely so this app never grows a second answer to *how many grams
+ * in a kilo* — and shipped `NO_UNIT_FACTORS`, an empty map, because the screen
+ * that holds the real one did not exist. ⚠️ **Until it was passed, the banner
+ * priced only a line quoted in its variant's own base unit** (factor exactly
+ * `1`, by `0001`'s `unit_base_is_identity`) and withheld the peso figure for
+ * every other one rather than understating it — `QueueValue.complete`. The count
+ * was always right; the figure was simply absent.
+ *
+ * ⚠️ THE SAME `UNITS_KEY` READ, and that is the entire point of the hook
+ * existing rather than the banner querying for itself. `staleTime: Infinity`
+ * because the ten rows change only in a migration (`0001`: *"users pick from
+ * this list; they never define their own factors"*).
+ *
+ * ⚠️ IT RETURNS AN EMPTY MAP WHILE THE READ IS IN FLIGHT OR FAILED, which is
+ * exactly `NO_UNIT_FACTORS` and is the state the banner already handles. A hook
+ * that threw would take down Inicio to price a banner nobody asked for.
+ */
+export function useUnitFactors(): UnitFactors {
+  const { session, ready } = useAuth();
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    enabled: ready && session !== null,
+    staleTime: Infinity,
+  });
+  return unitFactorsFrom(units.data);
 }

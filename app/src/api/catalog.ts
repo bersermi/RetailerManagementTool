@@ -62,13 +62,24 @@ import { ES } from '@/strings';
  * `tax_rate` and `enforce_stock` to a phone that renders none of them — and
  * `enforce_stock` is the switch C8.8 says no pilot screen may expose.
  *
+ * ⚠️⚠️ `tax_rate` WAS ADDED HERE BY `5f-i` AND TAKEN BACK OUT THE SAME HOUR,
+ * BECAUSE `docs/checks/5d-i-catalog-contract.sh` REFUSED IT AND WAS RIGHT. That
+ * check bans `enforce_stock`, `tax_rate` and `pack_size` from this read by name
+ * — *"a column the app never asks for is a column that never reaches a phone"* —
+ * and `5e-iii-a` already reads the two set-once figures per variant through
+ * `VARIANT_EDIT_COLUMNS` for exactly that reason. **The basket needs a rate only
+ * while `prices_include_tax` is FALSE, which is no shop today**, so widening a
+ * list read that every phone performs, for a branch none of them takes, is the
+ * wrong trade. `@/cart/cart` takes the rate as an ARGUMENT and refuses to quote
+ * without one instead — loudly, rather than by understating IVA.
+ *
  * ⚠️ `is_active` IS IN THE LIST BECAUSE THE POLICY DOES NOT FILTER.
  * `product_variant_select` is `workspace_id in (select public.my_workspaces())`
  * and nothing more, so a discontinued product comes back like any other. The
  * filtering is `catalogFrom`'s, below, where the suite can read it — the same
  * arrangement `members.ts` made for a deactivated colleague.
  */
-export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,is_active';
+export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active';
 
 /**
  * The columns a client may ask `product_family` for, as an EMBEDDED resource.
@@ -153,6 +164,19 @@ export interface VariantRow {
   readonly name: string;
   readonly family_id: string;
   readonly price_unit_code: string;
+  /**
+   * `product_variant.base_unit_code` — what the LEDGER stores this variant in
+   * (`0002:113`: *"smallest practical — g, ml, pza"*).
+   *
+   * ⚠️⚠️ IT IS READ HERE FOR `5f-i`, AND IT IS THE UNIT A KEYED QUANTITY IS
+   * SENT IN. The owner's rule of 2026-09-23 is that the stepper counts PRICE
+   * units and free entry counts BASE units — *"he can also tap to enter
+   * 288gr"* — so `288` reaches `record_sale` as `qty_display_unit: 'g'`, and
+   * `'g'` is this column. Without it the only spelling available is the price
+   * unit, and 288 g priced per 250 g would be recorded as `1.152` of a
+   * quarter-kilo: arithmetically identical and unreadable on a receipt.
+   */
+  readonly base_unit_code: string;
   readonly is_active: boolean;
   readonly product_family: FamilyRow | null;
   readonly price_list: readonly PriceRow[] | null;
@@ -401,8 +425,23 @@ export interface CatalogEntry {
   readonly familyName: string;
   /** `product_variant.price_unit_code` — what the price below is PER. */
   readonly priceUnit: string;
+  /** `product_variant.base_unit_code` — what the ledger stores, and what a
+   * KEYED quantity is sent in. See `VariantRow.base_unit_code`. */
+  readonly baseUnit: string;
   /** What one price unit costs, or `null`. See `priceCentavos`. */
   readonly centavos: number | null;
+  /**
+   * `price_list.price_per_base` exactly as Postgres sent it — a decimal string
+   * at scale 6, or `null` when this variant has no price today.
+   *
+   * ⚠️⚠️ IT IS THE RAW STRING AND NOT `centavos`, BECAUSE THEY ANSWER TWO
+   * DIFFERENT QUESTIONS. `centavos` is what ONE PRICE UNIT costs, which is what
+   * C3.10's label needs; a basket line needs what ONE BASE UNIT costs, because
+   * `record_sale` prices per base and a quantity is base units. Deriving one
+   * from the other would divide a rounded figure back out and lose centavos on
+   * exactly the products quoted in packs.
+   */
+  readonly perBase: string | null;
   /** C3.10's sentence, ready to render. */
   readonly price: string;
   /** C8.14's two letters. */
@@ -446,7 +485,9 @@ export function catalogFrom(
       familyId: row.family_id,
       familyName,
       priceUnit: row.price_unit_code,
+      baseUnit: row.base_unit_code,
       centavos,
+      perBase: price?.price_per_base ?? null,
       price: priceLabel(centavos, row.price_unit_code),
       initials: initials(row.name),
       term: `${searchTerm(row.name)} ${searchTerm(familyName)}`,

@@ -84,12 +84,14 @@ function variant(
   prices: readonly PriceRow[],
   is_active = true,
   familyName = 'Pollo',
+  base_unit_code = 'g',
 ): VariantRow {
   return {
     id,
     name,
     family_id: FAMILY,
     price_unit_code,
+    base_unit_code,
     is_active,
     product_family: { id: FAMILY, name: familyName },
     price_list: prices,
