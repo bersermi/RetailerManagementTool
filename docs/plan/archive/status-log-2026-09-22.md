@@ -1271,3 +1271,48 @@ DEFECT, AND THAT IS THE POINT OF THE ENTRY.** The suite's fixtures are
 hand-written rows that never fail, and §2.11 keeps rendering out of scope. **The
 instrument was the owner's phone, and it found in a quarter of an hour what this
 repository had been unable to ask for eleven days.**
+
+## The TWELFTH cut, taken 2026-09-24 with the backfill ruling — off the FOOT again
+
+⚠️ **`5d-iii`'s R9 look, the oldest entry left** — the first time in this project an `R9`
+deliverable came back from the owner's phone. `## Position` stood at **1,410 of 1,400** with
+the ruling's entry in place. ⚠️ **MOVED, not copied.**
+
+✅✅✅ **`5d-iii` WAS LOOKED AT ON 2026-09-22 AND ALL THREE QUESTIONS CAME BACK
+YES — THE ONLY INSTRUMENT THIS SCREEN HAS EVER HAD, AND IT HAS NOW BEEN USED.**
+The owner, on his own iPhone, against his own shop's catalog:
+
+| The question, as the row asked it | His answer |
+|---|---|
+| Does the green rule read as *this is the one you tapped*, or as an alarm? | ***"The green line indeed reads as the item selected."*** |
+| Do three inert buttons read as deliberate, or as broken? | ***"The three grey buttons read as not-built."*** |
+| Does a six-variant family still fit at *Letra grande*? | ***"A six variant family still fits in Letra grande."*** |
+
+⚠️⚠️ **THIS IS THE FIRST TIME IN THIS PROJECT THAT AN `R9` DELIVERABLE HAS BEEN
+CLOSED BY THE INSTRUMENT IT WAS ROUTED TO, RATHER THAN BY THE TASK SHIPPING.**
+`R9` says a deliverable no check can see is written down and routed to whoever
+can see it; until today every such row was routed and then left. **The
+difference is that the app was in his hand the same day**, which is the working
+agreement's own argument for deferring a look until there is something to look
+at — applied in the other direction.
+
+⚠️ **WHAT THE ANSWERS RETIRE, PRECISELY.** The three decisions behind them are
+now the owner's rather than a session's: **the mark is colour AND a border with
+no word** (área 13's ruling 4 and direction C's surviving rule, which framed the
+problem but could not answer it), **an inert control drawn dead beats one left
+out**, and **the family list plus three buttons survives C3.18's larger mode**.
+⚠️ **What they do NOT settle is the grey dash on a missing price** — that one is
+already routed to `5e` by `5d-ii`'s own row, and `Chayote` now sits unpriced in
+his catalog so the question has something to look at when that task lands.
+
+⚠️ **AND THE CATALOG HE LOOKED AT IS REAL DATA IN THE HOSTED PROJECT, WRITTEN AS
+HIM.** Nineteen variants over three families — Pollo, Frutas, Verduras — for
+*Polleria y Recauderia Bernabe*, inserted with `set local role authenticated`
+and his own `sub` claim rather than as the superuser, **so the shipped policies
+had to allow the write for it to succeed.** `product_family_insert`,
+`product_variant_insert` and `price_list_insert` have now been exercised against
+the deployed database by a real owner, which no CI run can claim: CI proves them
+on a database it builds itself. ⚠️ **`price_per_base` is per GRAM** — $180 a
+kilo is `0.180000` — and the shape was copied from
+`docs/checks/5d-i-catalog-contract.sh` rather than invented, because a
+thousand-fold error there would have rendered as an entirely plausible price.
