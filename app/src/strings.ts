@@ -805,21 +805,24 @@ export const ES = {
      */
     slide: {
       /**
-       * ⚠️ AN INSTRUCTION AND NOT A VERB. *Cobrar* alone reads as a button, and
-       * this is the one control in the app that must not: a thumb that brushes a
-       * button has committed a sale, which is the whole reason C3.6 made it a
-       * gesture.
+       * ⚠️⚠️ ONE WORD, AND IT IS THE VERB — ruled by the owner 2026-09-24:
+       * *"Let's change the legend of the slicer to 'Cobrar' in both cases."*
+       *
+       * ⚠️ IT REPLACES *Desliza para cobrar* / *Desliza*, AND THE OBJECTION THAT
+       * PUT THOSE THERE IS NOW MOOT RATHER THAN OVERRULED. The argument was that
+       * a verb alone reads as a button, and a button is what C3.6 refused: a
+       * thumb that brushes one has committed a sale. **In the same message he
+       * made the track TAPPABLE** — a tap opens the basket — so the control is
+       * now honestly both, and the word no longer has to carry the instruction.
+       * ⚠️ **What still stops a brush committing a sale is `COMMIT_AT`**, not
+       * the wording, and that has not changed.
        */
-      wide: 'Desliza para cobrar',
+      word: 'Cobrar',
       /**
-       * ⚠️ THE SHORT TRACK'S WORD, for the slide inside the basket sheet — the
-       * owner asked for one there on 2026-09-24, *"to the right of the Vaciar
-       * Carrito option… of course it will be shorter"*. Still an instruction:
-       * the track is narrower, the rule is not.
+       * To a screen reader, which has no track to look at and no thumb to see
+       * move (C12.1). ⚠️ It names BOTH gestures, because the control has two.
        */
-      compact: 'Desliza',
-      /** To a screen reader, where there is no track to look at (C12.1). */
-      label: 'Desliza para cobrar la venta',
+      label: 'Cobrar — desliza para confirmar la venta, o toca para ver el carrito',
     },
 
     /**

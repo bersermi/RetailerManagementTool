@@ -465,6 +465,61 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **`5f-iii` TOOK A ROUND OF THE OWNER'S NOTES ON HIS OWN PHONE, 2026-09-24 — FIVE CHANGES,
+AND ONE OF THEM OVERRULES AN ARGUMENT THIS FILE HAD WRITTEN DOWN AS SETTLED. `5R-f` IS STILL
+THE NEXT TASK.** ⚠️ **It ships no migration.**
+
+⚠️⚠️ **(1) THE SEARCH BOX WAS TOO LOW, AND THE SAFE AREA WAS BEING COUNTED TWICE.** *"The
+search bar is too low and we have a lot of dead space above the product catalog."* The tab
+navigator draws a header (`title: tab.label`) which already sits below the notch, and
+`vender.tsx` then added `paddingTop: insets.top` on top of it. ✅ **Removed.** ⚠️ **What found
+it was the comparison, not the screenshot**: `productos.tsx` never had that padding, which is
+why only this screen had the gap — and the same defect would be invisible on any screen the
+navigator did not put a header on.
+
+⚠️⚠️ **(2) A TAP ON THE TRACK OPENS THE BASKET** — *"Let's make the carrito able to open by
+tapping the slider as well."* ⚠️⚠️ **THE FIRST DESIGN OF IT WAS WRONG AND IS RECORDED RATHER
+THAN QUIETLY REPLACED**: it wrapped the track in a `Pressable` and spread `panHandlers` onto
+it. **`Pressable` installs its own responder handlers on the underlying view**, so the two
+fight over one touch and which one wins is not something the file gets to decide. ✅ **One
+responder, two readings**: the pan claims the touch, and a release whose `dx` is within
+`TAP_SLOP` is a tap. ⚠️ **`app/test/cart-commit.test.ts` pins that one release can never be
+read as BOTH**, which is what keeps the ordering in the handler a belt rather than the only
+brace.
+
+⚠️⚠️ **(3) THE LEGEND IS `Cobrar` IN BOTH TRACKS, AND THE ARGUMENT AGAINST IT IS MOOT RATHER
+THAN OVERRULED.** `ES.sell.slide` said *Desliza para cobrar* / *Desliza* because **a verb alone
+reads as a button, and a button is what C3.6 refused** — a thumb that brushes one has committed
+a sale. ✅ **In the same message he made the track tappable**, so the control is now honestly
+both and the word no longer has to carry the instruction. ⚠️ **What still stops a brush
+committing a sale is `COMMIT_AT`, not the wording**, and that has not changed.
+
+⚠️⚠️ **(4) `Vaciar carrito` IS ON THE CLOSED BAR TOO, WITH THE SAME QUESTION** — *"Include
+Vaciar carrito in the closed Carrito as well, with the confirmation message also displaying
+when tapped there."* ✅ **The bar's second row is now the sheet's foot**: the same two controls
+in the same order, so the thumb that learns one has learned the other. ⚠️⚠️ **THE STATE MOVED
+UP TO THE SCREEN RATHER THAN BEING COPIED** — `asking`, `emptied` and the animation's value all
+live in `Vender`, and one `Confirmacion` is rendered inside the sheet's `Modal` when the basket
+is open and over the screen when it is not, made mutually exclusive by `cartOpen`. **Two copies
+would be two questions that drift apart**, which is the defect this repository has recorded six
+of. ⚠️ **The alternative was a second `Modal` over the first**, and nested modals on iOS animate
+against each other. ⚠️ `Vaciar carrito` is drawn **even when the sale cannot be committed** — a
+basket with an unpriced line still has to be emptiable, and that is the case where a shopkeeper
+is most likely to want to.
+
+⚠️⚠️ **(5) THE SCRIM CLOSES THE SHEET, AND THIS ONE IS A REVERSAL OF A DECISION TAKEN ON HIS
+BEHALF.** *"Make the Carrito close if the user taps in the scrim outside the carrito, not only
+in the Cerrar button."* **`5f-iii-a` made the velo deliberately inert** and wrote down why: a
+thumb reaching past the sheet for a row it can still see would dismiss it. ✅ **He has the app
+in his hand and took the trade** — tap-outside is what a sheet does, and `Cerrar` is still
+there. ⚠️ **The refusal is struck in the file rather than deleted**, because the reasoning is
+still the reason to think twice on the next sheet.
+
+⚠️ **Verified:** `app/test/cart-commit.test.ts` **+2 assertions, 1,038 over 37 files**;
+typecheck clean; `conventions-gate.sh` **16/16 over 68 source files**. **Photographed on the
+simulator before it reached his phone**, which is how (1), (3) and (4) were confirmed and how
+the `Pressable` mistake in (2) was caught by reading rather than by him finding it.
+
 ✅✅✅ **`5f-iii-b` IS DONE AS OF 2026-09-24 — THIS APP HAS WRITTEN ITS FIRST SALE, AND `5f-iii`
 IS CLOSED. `5R-f` IS THE NEXT TASK.** ⚠️⚠️ **`5c`'s FOUR CHILDREN HAVE A CALLER FOR THE FIRST
 TIME.** The outbox, the flush, the dead-letter path and the banner have been built entirely
@@ -1181,103 +1236,6 @@ would look for; `Retirar` was chosen because the thing survives in the ledger. *
 honesty is carried by the sentence underneath either way**, so this is his ear rather
 than an argument — and he is holding the phone.
 
-✅✅ **`5e-iii-b` IS DONE AS OF 2026-09-23 — A SHOPKEEPER CAN CHANGE A PRODUCT ON A PHONE,
-AND `5e` IS CLOSED. `5f` IS THE NEXT TASK: VENDER, AND ITS OWN ROW SAYS TO SIZE IT FIRST.**
-One new route, one hook method, four new module exports, **20 new assertions (936 in the suite)**,
-ten falsification fixtures through the suite and two more through the contract check — which is
-now **10 of 10 green against a real database**, its harness **12 of 12**. ⚠️ **It ships no
-migration**, as its row promised.
-
-⚠️⚠️ **THE ROW'S OWN CLAIM WAS HALF WRONG, AND FINDING THAT IS MOST OF WHAT THE SESSION WAS
-WORTH.** `5e-iii`'s split argued that the second child was *rendering, navigation and layout* and
-nothing else. It is not: **`Editar` is FOUR WRITES BEHIND ONE BUTTON**, across two tables, with no
-transaction between them — and *which goes first* and *what a failure leaves* are questions with
-right answers that `5e-iii-a` never asked, because that child's subject was the price alone.
-✅ **So `EDIT_ORDER`, `editPlan`, `editTouches` and `editLine` went into `@/api/catalogEdit`**,
-where the suite and the check can read them, rather than into the form's JSX — which is `R3`, and
-the seam this split exists to keep, held from the side nobody was watching.
-
-⚠️ **The order is `name → settings → price`, and it stops at the first failure.** The name goes
-first because it is the one that can be refused `23505` by a shop-wide unique index — stopping
-there leaves the IVA untouched under a name he is about to abandon. The price goes last because it
-is the only step that can HALF-happen, so **the worst state this app can reach is also the last
-thing it can reach**, with nothing written after it. ⚠️⚠️ **AND THERE IS NO RETRY STATE, WHICH WAS
-MEASURED RATHER THAN SKIPPED**: `useEditProduct` invalidates both reads on every path that touched
-the database, so the next tap re-plans from fresh rows — a close that landed reads back as *no row
-in force*, which is `priceChange`'s `open` branch, **exactly what `retryChange` answers**. And when
-the refresh itself failed, the stale plan is still right: re-closing a closed row patches
-`effective_to` to the value it holds and the insert has nothing left to overlap. Two paths, one
-answer, no third function.
-
-⚠️⚠️ **THE SECOND FINDING: THE IVA BOX WOULD HAVE BEEN BLIND.** `variantSettings` deliberately
-sends no column for a box nobody typed into, so an empty form cannot overwrite anything — **and
-that is only a choice if he can see what he is leaving alone.** `VARIANT_COLUMNS` in
-`@/api/catalog` carries neither `tax_rate` nor `pack_size`, and widening it would pay for two
-columns over ~100 products on every load of Productos (C8.3) to serve one screen. **So
-`VARIANT_EDIT_COLUMNS` is a second read for ONE variant**, `PRICE_EDIT_COLUMNS`' own argument, and
-the figure is printed BESIDE the box and never inside it. ⚠️ **Both columns are `::text`**, and the
-contract check's new assertion is about the TYPE rather than the value: a bare `numeric` arrives as
-a JSON double, `parseDecimal` refuses a number outright, and the screen would simply draw no line —
-compiling, bundling and passing Vitest the whole way.
-
-⚠️⚠️ **THE DASH IS ANSWERED, AND IT IS ANSWERED IN TWO PLACES WITH TWO DIFFERENT ANSWERS.** On **La
-Familia** a missing price is now **amber for a manager and `tintaApagada` for a cashier** — C3.17's
-*the fix is one tap away* is literally true there (the control is on the same screen) and false for
-somebody the fence refuses, which is the C3.17 ruling's second half. **Productos keeps the quiet
-dash on every row**, decided again rather than inherited: nothing on that screen sets a price, and
-C8.2 has the owner seeding the catalog DELIBERATELY SHORT — so a flat list of ~100 products would
-open amber on most of its rows for the pilot's first week, which is the alarm nobody can silence.
-
-⚠️⚠️ **AND LA FAMILIA'S ROWS ARE PRESSABLE, WHICH `5d-iii` SAID THIS DAY WOULD BRING.** That
-screen's header wrote: *the selection is a record of where you came from and nothing consumes it
-yet — the day `Editar` acts on a variant is the day moving the mark means something.* It does, so a
-tap moves the mark and the mark is what `Editar` opens. ⚠️ `Editar` is **absent when nothing is
-marked** rather than disabled: every real door passes `?variante`, and *edit which one?* has no
-answer until he taps.
-
-⚠️⚠️ **ONE DECISION IS PARKED, AND IT IS A GAP RATHER THAN A QUESTION — THE SECOND OF THOSE IN ONE
-DAY.** Retirement shipped (`is_active` false, never a DELETE, behind a confirmation), and
-**nothing in this app can bring a product back**: `activePatch(true)` is the same call, but
-`catalogFrom` drops inactive variants and no pilot screen lists them. **The undo exists in the
-database with no door onto it.** The confirmation says so in its own words rather than implying the
-tap is reversible, the recommendation is written out in the decisions block, and **it blocks
-nothing** — including `5f`.
-
-⚠️ **FIVE THINGS GO TO THE OWNER'S PHONE AND NOWHERE ELSE (`R9`, §2.11)**, and they are listed on
-`5e-iii-b`'s row: whether *Actual: $35.00 / kg* beside an empty box reads as a fact or as a failed
-load; whether one amber price among six reads as *price this* or as *something is broken*; whether
-going back to La Familia is confirmation enough or wants the blink `Agregar` got; whether four
-fields and a retire control fit one screen at *Letra grande*; and whether a row that highlights
-under a thumb and goes nowhere reads as a selection or as a link that failed.
-
-✅✅ **THE C3.17 CONTRADICTION WAS RULED ON 2026-09-23, ABOUT TWO HOURS AFTER IT WAS
-PARKED: *"leave the fence as is."*
-`5e-iii-b` IS THE NEXT TASK: `Editar`, DRAWN MANAGER-ONLY.** ⚠️ **It ships no
-migration**, and the ruling is why — the alternative was one.
-
-⚠️⚠️ **WHAT WAS CORRECTED RATHER THAN MERELY ANSWERED.** C3.17 closed with *"it is
-client-side only; no schema depends on it"*, and that sentence was **false from the day
-`0002` applied** — `price_list_insert`, `price_list_update` and `price_list_delete` are
-every one of them `has_role(workspace_id, 'manager')`. It is struck, with `5e-iii-a`'s
-measurement beside it: a cashier's INSERT is a `42501` and **her UPDATE is not refused at
-all**, because a `using` clause hides the row and PostgREST answers 200 with an empty
-array. ⚠️ **The constraint's own claim that this was the cheapest thing in its section to
-reverse is struck with it** — reversing it is an append-only migration that merges
-automatically, which is the opposite of cheap.
-
-✅ **WHAT IT DISCHARGES: `5e-iii-b` IS UNGATED**, `Editar` is drawn manager-only — the
-`5e-ii` treatment of the create control applied to the edit one — **and the amber
-question resolves with it.** *The fix is one tap away* is true for the people who can
-make the tap, and a cashier who can never set a price must not be shown an alarm she
-cannot silence. §2.11 fences `atención` to C3.17 alone, so that colour now has a rule
-rather than a guess.
-
-⚠️⚠️ **WHAT IT DOES NOT DISCHARGE, AND NO SESSION MAY ASSUME IT EITHER WAY:** whether
-Vender offers a cashier a price override **for this sale only**, one that never writes
-`price_list`. It is a different affordance from the one C3.17 describes, it is entangled
-with **C3.16**'s *a price change persists by default*, and **`5f`'s row now owes the
-word** — the `Costos` shape, deferred to the row that can answer it rather than dropped.
-⚠️ `5f` is therefore no longer marked next and **its sizing instruction stands**.
 
 
 
@@ -1291,12 +1249,20 @@ word** — the `Costos` shape, deferred to the row that can answer it rather tha
 
 ⚠️⚠️ **AND 2026-09-23 NOW HAS ITS OWN FILE —
 [`docs/plan/archive/status-log-2026-09-23.md`](plan/archive/status-log-2026-09-23.md)**,
-opened on 2026-09-24 in the same session that shipped `5f-iii-a` **and cut FIVE TIMES in it**, which has not happened before —
+opened on 2026-09-24 in the same session that shipped `5f-iii-a` **and cut SIX TIMES in it**, which has not happened before —
 `5e-ii` reopened and closed again, then `5e-ii`'s second round of the owner's notes, the
 second because the working-agreement amendment left this block **two lines** of headroom, the third because `5f-iii-a` was reopened and fixed the same afternoon, and the fourth because `5f-iii-b` then shipped a whole `M` in one sitting under the amended agreement — **which is the lesson: the amendment made sittings bigger, and a bigger sitting writes a longer entry.** ⚠️ `## Position` stood at **1,403 of
 1,400** with that task's closing entry in place — **the fifth time a closing entry has spent
 the last of the headroom, and the second time in one day this block has been cut.** ⚠️ **A
 later session APPENDS to that file; never a second one for the same date.**
+⚠️⚠️ **THE SIXTH CUT WENT IN ON 2026-09-24 WHILE `5f-iii`'s ROUND OF THE OWNER'S NOTES
+WAS SHIPPING, AND WITH IT THERE IS NO 2026-09-23 ENTRY LEFT IN THIS BLOCK** — the C3.17
+ruling and `5e-iii-b` closing, the two oldest. ⚠️ **It is the first cut this file has
+taken that a CLOSING ENTRY did not spend**: five changes to a screen the owner already
+had in his hand, no task closed, and `## Position` still reached **1,410 of 1,400**.
+**That is the amended working agreement's own arithmetic** — bigger sittings write
+longer entries — and it is written here because the remedy will be needed again sooner
+than the five-cut rhythm above suggests.
 
 ⚠️⚠️ **TWENTY-FOUR ENTRIES OF 2026-09-22 ARE ARCHIVED, IN SIXTEEN CUTS, TO
 [`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**

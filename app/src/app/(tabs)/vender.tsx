@@ -19,7 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { useCatalog, useUnitFactors, useWorkspace } from '@/api/hooks';
 import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
-import { canCommit, commitOf, releaseCommits, type Basketful } from '@/cart/commit';
+import { canCommit, commitOf, releaseCommits, releaseTaps, type Basketful } from '@/cart/commit';
 import { baseFromShown, qtyShown, shownUnitOf } from '@/cart/quantity';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
@@ -228,6 +228,21 @@ export default function Vender() {
   // already on screen.
   const [cartOpen, setCartOpen] = useState(false);
   const closeCart = useCallback(() => setCartOpen(false), []);
+  const openCart = useCallback(() => setCartOpen(true), []);
+
+  // ⚠️⚠️ THE EMPTYING QUESTION LIVES ON THE SCREEN AND NOT IN THE SHEET, AND
+  // THAT MOVED ON 2026-09-24 — *"Include Vaciar carrito in the closed Carrito as
+  // well, with the confirmation message also displaying when tapped there."*
+  // **So the same question is asked from two places**, and one state answering
+  // both is what stops them from becoming two questions that drift apart.
+  //
+  // ⚠️ IT IS RENDERED IN WHICHEVER OF THE TWO IS ON SCREEN — inside the sheet's
+  // `Modal` when the basket is open, over the screen when it is not. `cartOpen`
+  // makes those mutually exclusive. **The alternative was a second `Modal` over
+  // the first**, and nested modals on iOS animate against each other.
+  const [asking, setAsking] = useState(false);
+  const [emptied, setEmptied] = useState(false);
+  const bloom = useRef(new Animated.Value(0)).current;
 
   // ⚠️⚠️ THE COMMIT — and this is the first write this app has ever put in the
   // queue. `5c`'s four children have been built entirely against fixtures.
@@ -246,6 +261,42 @@ export default function Vender() {
           workspaceId: workspace.id,
           locationId,
         };
+
+  // ⚠️⚠️ THE OWNER'S EMPTYING ANIMATION — *"another one if we empty the
+  // carrito"* (2026-09-21), and it plays in the box that ASKED rather than in
+  // the sheet (2026-09-24). ⚠️ `transform` and `opacity` only (§2.11), and
+  // **started in an effect rather than in the handler that sets the state**,
+  // which on the native driver is the difference between motion and silence.
+  // ⚠️ THE SHEET CLOSES ON THE ANIMATION'S OWN COMPLETION, not on a timer.
+  useEffect(() => {
+    if (!emptied) return;
+    bloom.setValue(0);
+    const run = Animated.timing(bloom, {
+      toValue: 1,
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    run.start(({ finished }) => {
+      if (!finished) return;
+      setEmptied(false);
+      setCartOpen(false);
+    });
+    return () => run.stop();
+  }, [emptied, bloom]);
+
+  // ⚠️ A QUESTION LEFT HALF-ASKED IS FORGOTTEN WHEN THE BASKET EMPTIES OR THE
+  // SHEET CLOSES — otherwise *Sí, vaciar* would be waiting under a thumb that
+  // came back for something else.
+  useEffect(() => {
+    if (cart.length === 0) setAsking(false);
+  }, [cart.length]);
+
+  const emptyCart = useCallback(() => {
+    setAsking(false);
+    clear('sell');
+    setEmptied(true);
+  }, [clear]);
 
   const commit = useCallback(() => {
     if (basketful === null) return;
@@ -266,7 +317,14 @@ export default function Vender() {
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top }}
+      // ⚠️⚠️ NO `paddingTop: insets.top`, AND IT WAS HERE UNTIL 2026-09-24 —
+      // *"The search bar is too low and we have a lot of dead space above the
+      // product catalog."* **The safe area was being counted twice**: the tab
+      // navigator draws a header (`title: tab.label`), which already sits below
+      // the notch, and this screen then pushed itself down by the inset again.
+      // ⚠️ `productos.tsx` never had it, which is why only this screen had the
+      // gap — and is the measurement that found it.
+      style={{ flex: 1, backgroundColor: PALETTE.fondo }}
       // See this file's header: `padding` on iOS, nothing on Android, where the
       // system has already resized the window.
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -310,8 +368,9 @@ export default function Vender() {
 
       <Barra
         basket={basket}
-        onOpen={() => setCartOpen(true)}
+        onOpen={openCart}
         onCommit={commit}
+        onEmpty={() => setAsking(true)}
         canSell={basketful !== null && canCommit(basketful)}
       />
 
@@ -322,8 +381,28 @@ export default function Vender() {
         entries={entries}
         factors={factors}
         onCommit={commit}
+        onEmpty={() => setAsking(true)}
         canSell={basketful !== null && canCommit(basketful)}
+        asking={asking}
+        emptied={emptied}
+        bloom={bloom}
+        onConfirmEmpty={emptyCart}
+        onCancelEmpty={() => setAsking(false)}
       />
+
+      {/* ⚠️ THE SAME QUESTION, ASKED FROM THE BAR — rendered here only while the
+          sheet is CLOSED, because the sheet renders its own copy inside its
+          `Modal`. See the state's comment above for why it is not a second
+          modal. */}
+      {!cartOpen ? (
+        <Confirmacion
+          asking={asking}
+          emptied={emptied}
+          bloom={bloom}
+          onConfirm={emptyCart}
+          onCancel={() => setAsking(false)}
+        />
+      ) : null}
 
       <Vendido shown={sold} onDone={() => setSold(false)} />
     </KeyboardAvoidingView>
@@ -719,11 +798,13 @@ function Barra({
   basket,
   onOpen,
   onCommit,
+  onEmpty,
   canSell,
 }: {
   basket: Basket | null;
   onOpen: () => void;
   onCommit: () => void;
+  onEmpty: () => void;
   canSell: boolean;
 }) {
   const { scale } = useDensity();
@@ -794,10 +875,41 @@ function Barra({
         </View>
       </Strip>
 
-      {/* ⚠️ THE SECOND ROW, AND ONLY WHEN THERE IS A SALE TO MAKE. See above. */}
-      {live && canSell ? (
-        <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}>
-          <Deslizador onCommit={onCommit} />
+      {/* ⚠️ THE SECOND ROW, AND ONLY ONCE THERE IS A BASKET. See above.
+          ⚠️⚠️ IT IS THE SHEET'S FOOT, ON THE SCREEN — `Vaciar carrito` left, the
+          slide right — ruled 2026-09-24: *"Include Vaciar carrito in the closed
+          Carrito as well, with the confirmation message also displaying when
+          tapped there."* **The two rows are deliberately the same shape**, so
+          the thumb that learns one has learned the other.
+          ⚠️ `Vaciar carrito` IS DRAWN EVEN WHEN THE SALE CANNOT BE COMMITTED —
+          a basket with an unpriced line still has to be emptiable, and that is
+          the case where a shopkeeper is most likely to want to. */}
+      {live ? (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: scale.space,
+            paddingHorizontal: scale.space,
+            paddingBottom: scale.space,
+          }}
+        >
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ES.sell.cart.empty}
+            onPress={onEmpty}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+              {ES.sell.cart.empty}
+            </Text>
+          </Pressable>
+
+          {canSell ? (
+            <View style={{ flex: 1 }}>
+              <Deslizador onCommit={onCommit} onOpen={onOpen} />
+            </View>
+          ) : null}
         </View>
       ) : null}
     </View>
@@ -841,9 +953,12 @@ function Barra({
 function Deslizador({
   compact = false,
   onCommit,
+  onOpen,
 }: {
   compact?: boolean;
   onCommit: () => void;
+  /** A TAP opens the basket — ruled 2026-09-24. See the header. */
+  onOpen: () => void;
 }) {
   const { scale } = useDensity();
   const height = scale.tapTarget;
@@ -869,16 +984,27 @@ function Deslizador({
 
   const pan = useRef(
     PanResponder.create({
-      // ⚠️ IT CLAIMS THE GESTURE ON MOVEMENT, NOT ON TOUCH. Claiming on touch
-      // swallows a tap meant for what is behind it, and a slide that also works
-      // as a tap is not the control C3.6 asked for.
-      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 4,
+      // ⚠️⚠️ IT CLAIMS THE TOUCH, AND THE TAP IS READ ON RELEASE — which is the
+      // SECOND design of this. The first wrapped the track in a `Pressable` and
+      // spread `panHandlers` onto it; `Pressable` installs its OWN responder
+      // handlers on the underlying view, so the two fight over one touch and
+      // which wins is not something this file gets to decide.
+      // ⚠️ **One responder, two readings, separated by `TAP_SLOP`** — nothing
+      // sits behind this control, so claiming the touch costs nothing.
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (_e, g) => {
         if (done.current) return;
         x.setValue(Math.min(Math.max(0, g.dx), span.current));
       },
       onPanResponderRelease: (_e, g) => {
         if (done.current) return;
+        // ⚠️ A TOUCH THAT NEVER MOVED IS A TAP, AND IT OPENS THE BASKET.
+        if (releaseTaps(g.dx)) {
+          settle(0);
+          onOpen();
+          return;
+        }
         const at = Math.min(Math.max(0, g.dx), span.current);
         if (releaseCommits(at, span.current)) {
           done.current = true;
@@ -894,10 +1020,19 @@ function Deslizador({
     }),
   ).current;
 
+  // ⚠️⚠️ A TAP OPENS THE BASKET — *"Let's make the carrito able to open by
+  // tapping the slider as well"* (2026-09-24). ⚠️ **It costs the gesture
+  // nothing**, and the reason is in `onMoveShouldSetPanResponder` above: the
+  // pan claims the touch only once the finger has moved 4 pt, so a press that
+  // never moves is still a press and a drag still cancels it.
+  // ⚠️ **It is also what made the word *Cobrar* honest** — see `ES.sell.slide`.
+
   const fill = Animated.subtract(x, travel);
 
   return (
     <View
+      accessibilityRole="button"
+      accessibilityLabel={ES.sell.slide.label}
       onLayout={(e) => setTrack(e.nativeEvent.layout.width)}
       style={{
         height,
@@ -955,13 +1090,11 @@ function Deslizador({
             color: PALETTE.accion,
           }}
         >
-          {compact ? ES.sell.slide.compact : ES.sell.slide.wide}
+          {ES.sell.slide.word}
         </Text>
       </Animated.View>
 
       <Animated.View
-        accessibilityRole="adjustable"
-        accessibilityLabel={ES.sell.slide.label}
         style={{
           width: height,
           height,
@@ -1019,7 +1152,13 @@ function Carrito({
   entries,
   factors,
   onCommit,
+  onEmpty,
   canSell,
+  asking,
+  emptied,
+  bloom,
+  onConfirmEmpty,
+  onCancelEmpty,
 }: {
   open: boolean;
   onClose: () => void;
@@ -1027,70 +1166,16 @@ function Carrito({
   entries: readonly CatalogEntry[];
   factors: UnitFactors;
   onCommit: () => void;
+  onEmpty: () => void;
   canSell: boolean;
+  asking: boolean;
+  emptied: boolean;
+  bloom: Animated.Value;
+  onConfirmEmpty: () => void;
+  onCancelEmpty: () => void;
 }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
-  const clear = useCartStore((state) => state.clear);
-
-  // ⚠️ TWO STATES AND NOT ONE. `asking` is the confirmation; `emptied` is the
-  // moment after it, and it exists only so that the animation below has
-  // something to run ON. Folding them makes the sheet close before the
-  // confirmation the owner asked for has been seen.
-  const [asking, setAsking] = useState(false);
-  const [emptied, setEmptied] = useState(false);
-
-  const bloom = useRef(new Animated.Value(0)).current;
-
-  // ⚠️⚠️ THE OWNER'S CONFIRMATION ANIMATION — *"another one if we empty the
-  // carrito"* (2026-09-21), in place of the change calculation he deferred.
-  //
-  // ⚠️ `transform` AND `opacity` ONLY (§2.11). That is a performance rule
-  // before it is a taste one: C1.1 puts two low-end Androids among the pilot's
-  // four phones, and those two properties run on the compositor while layout,
-  // colour and shadow do not.
-  //
-  // ⚠️⚠️ AND IT IS STARTED IN AN EFFECT RATHER THAN IN THE HANDLER THAT MOUNTS
-  // THE VIEW, which on the native driver is the difference between motion and
-  // silence: a driver attached to a view that is not laid out yet fails with no
-  // error and no animation. The handler sets `emptied`; this effect runs after
-  // the render that mounts the glyph.
-  //
-  // ⚠️ THE SHEET CLOSES ON THE ANIMATION'S OWN COMPLETION and not on a timer —
-  // one mechanism, and nothing to keep in step with a duration.
-  useEffect(() => {
-    if (!emptied) return;
-    bloom.setValue(0);
-    const run = Animated.timing(bloom, {
-      toValue: 1,
-      duration: 420,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    });
-    run.start(({ finished }) => {
-      if (!finished) return;
-      setEmptied(false);
-      onClose();
-    });
-    return () => run.stop();
-  }, [emptied, bloom, onClose]);
-
-  // ⚠️⚠️ THE SHEET DOES NOT CLOSE ITSELF WHEN THE LAST LINE GOES, AND THE FIRST
-  // WRITING OF THIS FILE DID — a one-line effect on `cart.length` in `Vender`,
-  // which read as tidy and **broke the animation above**: `Vaciar` empties the
-  // basket, so that effect unmounted this `Modal` in the same commit that set
-  // `emptied`, and the confirmation the owner asked for played on nothing. ⚠️ It
-  // is also wrong on its own terms: `Quitar` on the last line is a removal, not
-  // a decision to leave, and a sheet that vanished under the thumb would take
-  // the list's scroll position with it. The empty state and `Cerrar` say it
-  // instead.
-  //
-  // ⚠️ THE CONFIRMATION IS FORGOTTEN WHEN THE SHEET CLOSES. A `Vaciar` left
-  // half-asked and reopened an hour later would put *Sí, vaciar* under a thumb
-  // that came back for something else.
-  useEffect(() => {
-    if (!open) setAsking(false);
-  }, [open]);
 
   const rows = review === null ? [] : review.rows;
 
@@ -1104,41 +1189,35 @@ function Carrito({
       onRequestClose={onClose}
     >
       <View style={{ flex: 1 }}>
-        {/* ⚠️ THE VELO IS A SEPARATE VIEW UNDER AN `opacity` RATHER THAN A
-            TRANSLUCENT FILL ON THE CONTAINER. `opacity` on a parent dims its
+        {/* ⚠️⚠️ THE VELO CLOSES THE SHEET WHEN TAPPED — ruled 2026-09-24:
+            *"Make the Carrito close if the user taps in the scrim outside the
+            carrito, not only in the Cerrar button."* ⚠️ **It shipped
+            deliberately inert and the argument for that is now overruled**: a
+            thumb reaching past the sheet for a row it can still see would
+            dismiss it. He has the app in his hand and took the trade —
+            tap-outside is what a sheet does, and `Cerrar` is still there.
+            ⚠️ THE VELO IS A SEPARATE VIEW UNDER AN `opacity` RATHER THAN A
+            TRANSLUCENT FILL ON THE CONTAINER: `opacity` on a parent dims its
             children, so painting it on the wrapper would put the sheet itself
             behind the dimming. ⚠️ And `R11` forbids a translucent literal by
-            name — the rule's own page spells the one this would have been:
-            the hue is a role, `PALETTE.velo`, and the translucency is a number.
-            ⚠️ The spelling is NOT repeated here: `conventions-gate.sh` reads
-            this file, and a comment quoting a check's sentinel turns it red,
-            which is this repository's *never spell a sentinel in the file it
-            reads* caught by the guard it describes.
-            ⚠️ IT IS NOT A `Pressable`: tap-to-dismiss would put a dismissal
-            under the thumb of a shopkeeper reaching past the sheet for the row
-            she can still see, and `Cerrar` is one tap away at the top. */}
-        <View
-          pointerEvents="none"
+            name — the hue is a role, `PALETTE.velo`, and the translucency is a
+            number. The spelling is NOT repeated here: `conventions-gate.sh`
+            reads this file, and a comment quoting a check's sentinel turns it
+            red. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.sell.cart.close}
+          onPress={onClose}
           style={{
             position: 'absolute',
-            top: 0,
             left: 0,
+            top: 0,
             right: 0,
             bottom: 0,
             opacity: 0.4,
             backgroundColor: PALETTE.velo,
           }}
         />
-        {/* ⚠️⚠️ THE SIZING LIVES ON THIS VIEW AND NOT ON THE CARD, AND THE FIRST
-            WRITING PUT IT ON THE CARD — which is the bug the owner saw on
-            2026-09-24: *"it is all churned at the bottom and I can't see the
-            controls nor the items properly."* A `KeyboardAvoidingView` with no
-            style is CONTENT-SIZED, so the card's `maxHeight: '85%'` was a
-            percentage of a parent with no definite height. Yoga cannot resolve
-            that and drops the constraint — the `FlatList` below then had no
-            bound either, rendered its whole content, and pushed `Vaciar` off
-            the bottom of the screen. ⚠️ `flex: 1` here is what makes the
-            percentage resolvable at all. */}
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}
@@ -1194,82 +1273,23 @@ function Carrito({
                 />
 
                 {rows.length === 0 ? null : (
-                  <Vaciar
-                    canSell={canSell}
-                    onCommit={onCommit}
-                    onAsk={() => setAsking(true)}
-                  />
+                  <Vaciar canSell={canSell} onCommit={onCommit} onAsk={onEmpty} onOpen={onClose} />
                 )}
               </>
             </>
           </View>
         </KeyboardAvoidingView>
 
-        {/* ⚠️⚠️ THE CENTRED QUESTION, AND IT IS THE OWNER'S OWN SPECIFICATION —
-            *"a separate box in the center of the screen with it's scrim with a
-            confirmation message."* ⚠️ It is a sibling of the sheet inside ONE
-            `Modal` rather than a second one: nested modals on iOS animate
-            against each other and the inner one owns the whole screen, which is
-            exactly what a confirmation over a sheet must not do.
-            ⚠️ **Its own scrim is a second `velo`**, so the sheet behind it dims
-            the way the list behind the sheet does — the depth reads as depth. */}
-        {asking || emptied ? (
-          <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-            <View
-              pointerEvents="none"
-              style={{
-                position: 'absolute',
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                opacity: 0.4,
-                backgroundColor: PALETTE.velo,
-              }}
-            />
-            <View
-              style={{
-                flex: 1,
-                alignItems: 'center',
-                justifyContent: 'center',
-                padding: scale.space * 2,
-              }}
-            >
-              <View
-                style={{
-                  width: '100%',
-                  // ⚠️ NO `maxWidth` — `R6`, and the gate caught it. A cap in
-                  // points is a size a person looks at that `Letra grande`
-                  // cannot change; the wrapper's own `space * 2` padding is what
-                  // keeps the box off the edges, and that scales with the mode.
-                  borderRadius: scale.space,
-                  backgroundColor: PALETTE.fondo,
-                  padding: scale.space * 1.5,
-                  gap: scale.space,
-                }}
-              >
-                {emptied ? (
-                  /* ⚠️ THE ANIMATION PLAYS HERE, IN THE BOX THAT ASKED — ruled
-                     the same day: *"If the person confirms, the confirmation
-                     message and animation should be shown there."* */
-                  <Vaciado bloom={bloom} />
-                ) : (
-                  <Pregunta
-                    onConfirm={() => {
-                      setAsking(false);
-                      clear('sell');
-                      setEmptied(true);
-                    }}
-                    /* ⚠️ CANCEL ROLLS THE WHOLE THING BACK AND LEAVES THE SHEET
-                       AS IT WAS — his words, and it is why the sheet was never
-                       unmounted to show this. */
-                    onCancel={() => setAsking(false)}
-                  />
-                )}
-              </View>
-            </View>
-          </View>
-        ) : null}
+        {/* ⚠️ THE SAME QUESTION AS THE BAR ASKS, rendered inside this `Modal`
+            because a sibling of the `Modal` would be behind it. `Vender` owns
+            the state; `cartOpen` makes the two mount points exclusive. */}
+        <Confirmacion
+          asking={asking}
+          emptied={emptied}
+          bloom={bloom}
+          onConfirm={onConfirmEmpty}
+          onCancel={onCancelEmpty}
+        />
       </View>
     </Modal>
   );
@@ -1434,10 +1454,14 @@ function Renglon({
 function Vaciar({
   onAsk,
   onCommit,
+  onOpen,
   canSell,
 }: {
   onAsk: () => void;
   onCommit: () => void;
+  /** ⚠️ A TAP ON THE TRACK INSIDE THE SHEET CLOSES IT, because the basket it
+   *  would open is already open — the same gesture, read where it is. */
+  onOpen: () => void;
   canSell: boolean;
 }) {
   const { scale } = useDensity();
@@ -1471,9 +1495,79 @@ function Vaciar({
           wider and the track is correspondingly shorter. */}
       {canSell ? (
         <View style={{ flex: 1 }}>
-          <Deslizador compact onCommit={onCommit} />
+          <Deslizador compact onCommit={onCommit} onOpen={onOpen} />
         </View>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * ⚠️⚠️ THE EMPTYING QUESTION AND ITS ANSWER — a centred box with its own scrim,
+ * the owner's specification of 2026-09-24.
+ *
+ * ⚠️ IT IS RENDERED FROM TWO PLACES AND IS ONE COMPONENT WITH ONE STATE: the
+ * bar asks it when the basket is closed, the sheet asks it when the basket is
+ * open, and `Vender` owns `asking`/`emptied` so the two can never disagree.
+ * **Two copies of this would be two questions that drift apart**, which is the
+ * defect this repository has recorded six of in its own documents.
+ *
+ * ⚠️ ITS OWN SCRIM IS A SECOND `velo`, so the sheet behind it dims the way the
+ * list behind the sheet does — the depth reads as depth.
+ */
+function Confirmacion({
+  asking,
+  emptied,
+  bloom,
+  onConfirm,
+  onCancel,
+}: {
+  asking: boolean;
+  emptied: boolean;
+  bloom: Animated.Value;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const { scale } = useDensity();
+  if (!asking && !emptied) return null;
+
+  return (
+    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          opacity: 0.4,
+          backgroundColor: PALETTE.velo,
+        }}
+      />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: scale.space * 2,
+        }}
+      >
+        <View
+          style={{
+            width: '100%',
+            // ⚠️ NO `maxWidth` — `R6`, and the gate caught it once. A cap in
+            // points is a size `Letra grande` cannot change; the wrapper's own
+            // padding is what keeps the box off the edges, and that scales.
+            borderRadius: scale.space,
+            backgroundColor: PALETTE.fondo,
+            padding: scale.space * 1.5,
+            gap: scale.space,
+          }}
+        >
+          {emptied ? <Vaciado bloom={bloom} /> : <Pregunta onConfirm={onConfirm} onCancel={onCancel} />}
+        </View>
+      </View>
     </View>
   );
 }

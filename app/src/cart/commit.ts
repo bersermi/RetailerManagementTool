@@ -167,6 +167,25 @@ export function progressOf(x: number, travel: number): number {
   return x / travel;
 }
 
+/**
+ * How far a finger may move and still have been a TAP rather than a drag.
+ *
+ * ⚠️⚠️ THE TRACK IS BOTH, RULED BY THE OWNER 2026-09-24 — *"Let's make the
+ * carrito able to open by tapping the slider as well."* So one touch has two
+ * readings and this is the number that separates them.
+ *
+ * ⚠️ IT IS SMALL ON PURPOSE. A generous slop would turn the beginning of an
+ * abandoned drag into *open the basket*, which is a screen change under a thumb
+ * that was trying to sell something. Four points is about the jitter of a
+ * finger that did not mean to move at all.
+ */
+export const TAP_SLOP = 4;
+
+/** Was this release a tap — the gesture that OPENS rather than commits? */
+export function releaseTaps(dx: number): boolean {
+  return Number.isFinite(dx) && Math.abs(dx) <= TAP_SLOP;
+}
+
 /** Was this release a commit? */
 export function releaseCommits(x: number, travel: number): boolean {
   return progressOf(x, travel) >= COMMIT_AT;

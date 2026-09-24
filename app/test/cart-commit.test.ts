@@ -21,10 +21,12 @@ import { isWriteKind, isWritePayload, type Stamp } from '@/api/outbox';
 import { EMPTY_CART, setQty, type Cart } from '@/cart/cart';
 import {
   COMMIT_AT,
+  TAP_SLOP,
   canCommit,
   commitOf,
   progressOf,
   releaseCommits,
+  releaseTaps,
   type Basketful,
 } from '@/cart/commit';
 
@@ -207,6 +209,31 @@ describe('what counts as a completed gesture — C3.6', () => {
     expect(progressOf(Number.NaN, 200)).toBe(0);
     expect(progressOf(50, Number.NaN)).toBe(0);
     expect(releaseCommits(50, 0)).toBe(false);
+  });
+
+  it('reads a touch that never moved as a TAP, which opens the basket', () => {
+    // ⚠️ ONE RESPONDER, TWO READINGS. The owner made the track tappable on
+    // 2026-09-24, so the same touch has to answer *open* or *commit* — and the
+    // slop is what separates them. It is small on purpose: a generous one turns
+    // the start of an abandoned drag into a screen change under a selling thumb.
+    expect(TAP_SLOP).toBeGreaterThan(0);
+    expect(TAP_SLOP).toBeLessThan(12);
+    expect(releaseTaps(0)).toBe(true);
+    expect(releaseTaps(TAP_SLOP)).toBe(true);
+    expect(releaseTaps(-TAP_SLOP)).toBe(true);
+    expect(releaseTaps(TAP_SLOP + 1)).toBe(false);
+    expect(releaseTaps(Number.NaN)).toBe(false);
+  });
+
+  it('never reads one release as BOTH a tap and a commit', () => {
+    // ⚠️⚠️ THE ASSERTION THAT MATTERS NOW THAT THE CONTROL HAS TWO GESTURES: a
+    // release that opened the basket must not also have sold it. The screen
+    // checks the tap FIRST and returns, and this is what pins the two ranges
+    // apart so that order stays a belt rather than the only brace.
+    const travel = 300;
+    for (const dx of [0, 1, TAP_SLOP, TAP_SLOP + 1, 100, travel - 1, travel]) {
+      expect(releaseTaps(dx) && releaseCommits(dx, travel), `dx=${dx}`).toBe(false);
+    }
   });
 
   it('commits at the threshold and not a point before it', () => {

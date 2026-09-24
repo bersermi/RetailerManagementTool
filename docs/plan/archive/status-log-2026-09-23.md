@@ -351,3 +351,115 @@ decision and the handbook saying so.
 guessed:** every screen question, and one that is not obviously one — **whether a
 shopkeeper should be told that a price change takes effect TODAY and not retroactively**.
 The dated window is the whole design and nothing on the form says it exists.
+
+## The SIXTH cut, taken 2026-09-24 while `5f-iii`'s round of the owner's notes was shipping
+
+⚠️⚠️ **THE FIRST CUT THIS FILE HAS TAKEN THAT WAS NOT SPENT BY A CLOSING ENTRY.** The
+five before it each came off the back of a task closing; this one came off a round of
+the owner's notes on an app he already had in his hand — **five changes and no task
+closed** — which is the shape the amended working agreement makes more of, not less.
+⚠️ `## Position` stood at **1,410 of 1,400**, and `plan-handover.sh` assertion 7 named
+the remedy in its own failure, as it has six times in this file.
+
+⚠️ **TWO ENTRIES, OLDEST FIRST AS THE PLAN HAD THEM**, and with them **2026-09-23 is
+wholly out of `## Position`** — the ruling that unblocked `5e-iii-b`, and `5e-iii-b`
+closing with it. ⚠️ **It is a MOVE and not a copy**: `split-coverage.sh` fails on *"row
+appears 2 times"* and it reads the corpus, which includes this file.
+
+✅✅ **THE C3.17 CONTRADICTION WAS RULED ON 2026-09-23, ABOUT TWO HOURS AFTER IT WAS
+PARKED: *"leave the fence as is."*
+`5e-iii-b` IS THE NEXT TASK: `Editar`, DRAWN MANAGER-ONLY.** ⚠️ **It ships no
+migration**, and the ruling is why — the alternative was one.
+
+⚠️⚠️ **WHAT WAS CORRECTED RATHER THAN MERELY ANSWERED.** C3.17 closed with *"it is
+client-side only; no schema depends on it"*, and that sentence was **false from the day
+`0002` applied** — `price_list_insert`, `price_list_update` and `price_list_delete` are
+every one of them `has_role(workspace_id, 'manager')`. It is struck, with `5e-iii-a`'s
+measurement beside it: a cashier's INSERT is a `42501` and **her UPDATE is not refused at
+all**, because a `using` clause hides the row and PostgREST answers 200 with an empty
+array. ⚠️ **The constraint's own claim that this was the cheapest thing in its section to
+reverse is struck with it** — reversing it is an append-only migration that merges
+automatically, which is the opposite of cheap.
+
+✅ **WHAT IT DISCHARGES: `5e-iii-b` IS UNGATED**, `Editar` is drawn manager-only — the
+`5e-ii` treatment of the create control applied to the edit one — **and the amber
+question resolves with it.** *The fix is one tap away* is true for the people who can
+make the tap, and a cashier who can never set a price must not be shown an alarm she
+cannot silence. §2.11 fences `atención` to C3.17 alone, so that colour now has a rule
+rather than a guess.
+
+⚠️⚠️ **WHAT IT DOES NOT DISCHARGE, AND NO SESSION MAY ASSUME IT EITHER WAY:** whether
+Vender offers a cashier a price override **for this sale only**, one that never writes
+`price_list`. It is a different affordance from the one C3.17 describes, it is entangled
+with **C3.16**'s *a price change persists by default*, and **`5f`'s row now owes the
+word** — the `Costos` shape, deferred to the row that can answer it rather than dropped.
+⚠️ `5f` is therefore no longer marked next and **its sizing instruction stands**.
+
+✅✅ **`5e-iii-b` IS DONE AS OF 2026-09-23 — A SHOPKEEPER CAN CHANGE A PRODUCT ON A PHONE,
+AND `5e` IS CLOSED. `5f` IS THE NEXT TASK: VENDER, AND ITS OWN ROW SAYS TO SIZE IT FIRST.**
+One new route, one hook method, four new module exports, **20 new assertions (936 in the suite)**,
+ten falsification fixtures through the suite and two more through the contract check — which is
+now **10 of 10 green against a real database**, its harness **12 of 12**. ⚠️ **It ships no
+migration**, as its row promised.
+
+⚠️⚠️ **THE ROW'S OWN CLAIM WAS HALF WRONG, AND FINDING THAT IS MOST OF WHAT THE SESSION WAS
+WORTH.** `5e-iii`'s split argued that the second child was *rendering, navigation and layout* and
+nothing else. It is not: **`Editar` is FOUR WRITES BEHIND ONE BUTTON**, across two tables, with no
+transaction between them — and *which goes first* and *what a failure leaves* are questions with
+right answers that `5e-iii-a` never asked, because that child's subject was the price alone.
+✅ **So `EDIT_ORDER`, `editPlan`, `editTouches` and `editLine` went into `@/api/catalogEdit`**,
+where the suite and the check can read them, rather than into the form's JSX — which is `R3`, and
+the seam this split exists to keep, held from the side nobody was watching.
+
+⚠️ **The order is `name → settings → price`, and it stops at the first failure.** The name goes
+first because it is the one that can be refused `23505` by a shop-wide unique index — stopping
+there leaves the IVA untouched under a name he is about to abandon. The price goes last because it
+is the only step that can HALF-happen, so **the worst state this app can reach is also the last
+thing it can reach**, with nothing written after it. ⚠️⚠️ **AND THERE IS NO RETRY STATE, WHICH WAS
+MEASURED RATHER THAN SKIPPED**: `useEditProduct` invalidates both reads on every path that touched
+the database, so the next tap re-plans from fresh rows — a close that landed reads back as *no row
+in force*, which is `priceChange`'s `open` branch, **exactly what `retryChange` answers**. And when
+the refresh itself failed, the stale plan is still right: re-closing a closed row patches
+`effective_to` to the value it holds and the insert has nothing left to overlap. Two paths, one
+answer, no third function.
+
+⚠️⚠️ **THE SECOND FINDING: THE IVA BOX WOULD HAVE BEEN BLIND.** `variantSettings` deliberately
+sends no column for a box nobody typed into, so an empty form cannot overwrite anything — **and
+that is only a choice if he can see what he is leaving alone.** `VARIANT_COLUMNS` in
+`@/api/catalog` carries neither `tax_rate` nor `pack_size`, and widening it would pay for two
+columns over ~100 products on every load of Productos (C8.3) to serve one screen. **So
+`VARIANT_EDIT_COLUMNS` is a second read for ONE variant**, `PRICE_EDIT_COLUMNS`' own argument, and
+the figure is printed BESIDE the box and never inside it. ⚠️ **Both columns are `::text`**, and the
+contract check's new assertion is about the TYPE rather than the value: a bare `numeric` arrives as
+a JSON double, `parseDecimal` refuses a number outright, and the screen would simply draw no line —
+compiling, bundling and passing Vitest the whole way.
+
+⚠️⚠️ **THE DASH IS ANSWERED, AND IT IS ANSWERED IN TWO PLACES WITH TWO DIFFERENT ANSWERS.** On **La
+Familia** a missing price is now **amber for a manager and `tintaApagada` for a cashier** — C3.17's
+*the fix is one tap away* is literally true there (the control is on the same screen) and false for
+somebody the fence refuses, which is the C3.17 ruling's second half. **Productos keeps the quiet
+dash on every row**, decided again rather than inherited: nothing on that screen sets a price, and
+C8.2 has the owner seeding the catalog DELIBERATELY SHORT — so a flat list of ~100 products would
+open amber on most of its rows for the pilot's first week, which is the alarm nobody can silence.
+
+⚠️⚠️ **AND LA FAMILIA'S ROWS ARE PRESSABLE, WHICH `5d-iii` SAID THIS DAY WOULD BRING.** That
+screen's header wrote: *the selection is a record of where you came from and nothing consumes it
+yet — the day `Editar` acts on a variant is the day moving the mark means something.* It does, so a
+tap moves the mark and the mark is what `Editar` opens. ⚠️ `Editar` is **absent when nothing is
+marked** rather than disabled: every real door passes `?variante`, and *edit which one?* has no
+answer until he taps.
+
+⚠️⚠️ **ONE DECISION IS PARKED, AND IT IS A GAP RATHER THAN A QUESTION — THE SECOND OF THOSE IN ONE
+DAY.** Retirement shipped (`is_active` false, never a DELETE, behind a confirmation), and
+**nothing in this app can bring a product back**: `activePatch(true)` is the same call, but
+`catalogFrom` drops inactive variants and no pilot screen lists them. **The undo exists in the
+database with no door onto it.** The confirmation says so in its own words rather than implying the
+tap is reversible, the recommendation is written out in the decisions block, and **it blocks
+nothing** — including `5f`.
+
+⚠️ **FIVE THINGS GO TO THE OWNER'S PHONE AND NOWHERE ELSE (`R9`, §2.11)**, and they are listed on
+`5e-iii-b`'s row: whether *Actual: $35.00 / kg* beside an empty box reads as a fact or as a failed
+load; whether one amber price among six reads as *price this* or as *something is broken*; whether
+going back to La Familia is confirmation enough or wants the blink `Agregar` got; whether four
+fields and a retire control fit one screen at *Letra grande*; and whether a row that highlights
+under a thumb and goes nowhere reads as a selection or as a link that failed.
