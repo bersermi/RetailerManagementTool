@@ -694,6 +694,51 @@ export const ES = {
    * (`@/api/catalog`), for the reason `5c-iv-b` recorded: two homes for *how
    * many grams in a kilo* is one home too many.
    */
+  /**
+   * VENDER — the counter, and every word on the highest-traffic surface in the
+   * app. Plan task `5f-ii`.
+   *
+   * ⚠️ IT REUSES `ES.catalog`'s SEARCH WORDS RATHER THAN SPELLING ITS OWN.
+   * C3.1 puts the SAME list on Vender and Comprar as on Productos — *"there are
+   * no buy-only or sell-only subsets"* — so *Buscar producto*, *Limpiar* and the
+   * three empty states are one set of words about one list. A second spelling
+   * here would be two answers to *what is this box for*, drifting apart the
+   * first time one of them is reworded.
+   *
+   * ⚠️⚠️ AND THE TWO AMBER WORDS BELOW ARE WHY `R11` EXISTS. §2.11 fences the
+   * `atención` colour to C3.17's unpriced row and gives it no second job, and it
+   * says no state is ever announced by colour ALONE — the users are old and the
+   * shop is bright. So the colour never travels without one of these.
+   */
+  sell: {
+    /** C3.4's sticky bar. The one total in this app that is not a day's takings. */
+    total: 'Total',
+    /**
+     * What the bar says under `Total` with nothing rung up yet.
+     *
+     * ⚠️ THE BAR IS DRAWN ANYWAY, WHICH IS WHY THIS WORD EXISTS. A bar that
+     * appeared on the first tap would move the list under a thumb that is
+     * already reaching for the second one.
+     */
+    emptyCart: 'Sin nada en el carrito',
+    /** How many products are in the basket — never how many UNITS of them. */
+    lines: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
+    /**
+     * ⚠️ THE AMBER WORD ON A ROW, AND IT IS SHOWN ONLY ON A ROW THAT IS IN THE
+     * BASKET — see `vender.tsx` for the argument, which is `5d-ii`'s *"an alarm
+     * on a hundred rows is the alarm nobody can silence"* applied rather than
+     * overruled. C3.12's dash is still what the price itself reads.
+     */
+    noPrice: 'Sin precio',
+    /** The same fact about the basket, beside the total the bar is withholding part of. */
+    someUnpriced: 'Falta un precio',
+    /** The `−` and the `+`, to a screen reader. C12.1: never an icon with no word. */
+    less: 'Menos',
+    more: 'Más',
+    /** The quantity box, to a screen reader — the unit is read out beside it. */
+    qty: 'Cantidad',
+  },
+
   units: {
     kg: 'kg',
     g: 'gr',
