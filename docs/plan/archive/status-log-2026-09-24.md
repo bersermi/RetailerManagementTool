@@ -76,3 +76,79 @@ the row whose sentence promises it.
 ⚠️ **Nothing was built.** The decisions block is empty for the eighth time, `6c` is ungated,
 and the owner's instruction was to keep the front end moving — so `5f` stays next and `6c`
 moves only on his word.
+
+
+---
+
+## Appended 2026-09-24 — the fifteenth cut, taken while `5g` was being sized
+
+⚠️ **`## Position` reached 1,429 of 1,400 with the `5g` sizing entry in place**, so the two
+oldest entries left in the block — `5f-i`'s closing entry and the `5f` sizing that preceded
+it — were moved here off the FOOT, unedited. ⚠️ **A MOVE and never a copy**: `split-coverage.sh`
+reads the corpus and fails on *"row appears 2 times"*, so two homes for one claim is the
+defect rather than the backup. ⚠️ **Appended to the file for their own day** rather than given
+a new one, which is the rule `status-log-2026-09-22.md` established.
+
+✅✅ **`5f-i` IS DONE AS OF 2026-09-24 — THE APP CAN HOLD A BASKET AND PRICE IT, AND
+A GUARD REFUSED THE FIRST DESIGN OF IT. `6c` IS THE NEXT TASK, AND THAT IS A HOLDING
+MOVE: EVERY REMAINING CHILD OF `5f` IS BLOCKED ON THE OWNER.** 51 new assertions
+(**1,030 over 35 files**, up from 979), **eighteen falsification fixtures**, one new
+dependency — `zustand`, §2.11's own choice and this app's only store — and **no
+migration**, as the row promised.
+
+⚠️⚠️ **THE FINDING, AND IT COST THE SESSION ITS FIRST DESIGN: `5d-i`'s CONTRACT CHECK
+REFUSED A WIDENING OF THE CATALOG READ, BY NAME, AND WAS RIGHT.** The sale payload needs
+a tax rate whenever `prices_include_tax` is false, so this child added `tax_rate::text`
+to `VARIANT_COLUMNS`. **`docs/checks/5d-i-catalog-contract.sh` went red on the assertion
+that exists for it** — `enforce_stock`, `tax_rate` and `pack_size` are banned from the
+list read on C8.8's argument, *"a column the app never asks for is a column that never
+reaches a phone"* — and `5e-iii-a` already reads those two per variant. ⚠️ **The tempting
+move was to teach the check about `::text` casts. That would have been weakening a guard
+to fit a change**, and the guard was making the better argument: **a rate is needed only
+on the branch no shop takes**, so every phone would have carried a column on every
+catalog read for a case none of them reaches. ✅ **The rate is an ARGUMENT now**, and
+`quoted` returns `null` rather than defaulting it to zero — **loud and stuck beats quiet
+and short by the IVA on every line for ever.**
+
+⚠️⚠️ **AND THE SECOND FINDING FELL OUT OF THE FIRST, WHICH IS WHY IT IS WORTH RECORDING:
+A PURCHASE MUST NOT FALL BACK TO THE SHELF PRICE.** Once the quote was a parameter, the
+buy side had a default — and §2.8 is explicit that a supplier price is *"a fact about a
+relationship, not about a product"* (C3.11). **A delivery quietly recorded at retail is
+plausible, syntactically perfect and wrong in the margin for ever**, so `quoteFor` hands
+the buy side `null` until `5g` passes a figure. ⚠️ **The one column that WAS added is
+`base_unit_code`** — what a keyed `288` is sent in — and the live check is green on it.
+
+⚠️ **WHAT IT DOES NOT PROVE, SAID RATHER THAN IMPLIED:** nothing here has asked Postgres
+whether it accepts this payload. `record_sale` is `5h`'s and `record_purchase` is `5g`'s,
+so the round trip is named on those rows. **A node suite read every rule; no database
+read any of them.**
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5d-i-catalog-contract.sh` reports **12
+assertion groups over real HTTP**, including *C8.8's switch does not reach the phone,
+measured off the wire* — the assertion that refused this session's first design.
+`conventions-gate.sh` passes **16 groups over 65 source and 35 test files**. The suite is
+**1,030 assertions**, the typecheck is clean, and **eighteen falsifications were run by
+hand and each restored**: a quote that ignores the flag, a missing rate defaulted to zero,
+a purchase falling back to the shelf, the step picked rather than read, a keyed fourth
+decimal rounded away, a zero line kept, an unpriced line counted as nothing, figures sent
+as JSON numbers, the wrong price key, a self-stamped `occurred_at`, a draft with no
+location, a step-down that clamps, one cart shared by both screens, a restored basket
+thrown away, a shop change that keeps the old basket, and `Vaciar` emptying both sides.
+**Rule 4: these assertions were confirmed capable of failing before they were believed.**
+
+⚠️⚠️ **WHY THE MARKER MOVED TO `6c`, AND IT IS THE FIRST TIME IT HAS MOVED BECAUSE THE
+FRONT END RAN OUT OF UNGATED WORK.** `5f-ii` is blocked on the ADR amendment, `5f-iii` on
+`5f-ii`, and `5f-iv` on the sale-only override — so `plan-handover.sh`'s rule that a
+blocked task may not be next leaves one ungated row worth taking. **It is a holding move
+and the row says so: one sentence about the quantity control and `5f-ii` is next again.**
+⚠️ `6c` is a migration and the owner asked to keep the front end moving, **so if he would
+rather the front end waited for nothing, the ruling is the cheaper of the two things he
+could send.**
+
+
+⚠️⚠️ **`5f` WAS SIZED ON 2026-09-24, THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS
+WRITTEN, AND IT SPLIT FOUR WAYS. `5f-i` IS THE NEXT TASK: THE CART AND THE ARITHMETIC
+THAT PRICES IT, WITH NO SCREEN ON IT.** No code, no migration: this entry is a sizing,
+two questions parked, one row promoted out of the ADR, and the sixteenth split spec.
+**The full argument is under Step 5, in *"Sized 2026-09-24"*, where it survives this
+block being archived.**
