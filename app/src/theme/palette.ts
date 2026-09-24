@@ -70,6 +70,19 @@ export interface Palette {
   readonly atencionSuave: string;
   /** What DESTROYS: `Quitar`, cancelling a sale, registering merma. */
   readonly error: string;
+  /**
+   * ⚠️ THE TWELFTH ROLE, ADDED 2026-09-24 BY `5f-iii-a`: **the screen a sheet
+   * is laid over, dimmed.** It is laid down under a translucency rather than
+   * painted flat — `opacity` is a number and not a colour, so `R11` is
+   * satisfied by naming the hue here instead of typing `rgba(0,0,0,.4)` into a
+   * screen, which that rule forbids by name.
+   *
+   * ⚠️ IT IS IN NO INK OR GROUND LIST AND THAT IS DELIBERATE. Nothing is ever
+   * written ON it — the sheet carries its own `fondo` — so a 4.5:1 assertion
+   * against the inks would be asserting something no shopkeeper ever reads.
+   * `linea` is absent from `GROUND_ROLES` for exactly this reason.
+   */
+  readonly velo: string;
 }
 
 /**
@@ -116,6 +129,7 @@ export const PALETTE: Palette = {
   atencion: '#9A5A09',
   atencionSuave: '#FCF1DE',
   error: '#A32218',
+  velo: '#15130E',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -137,6 +151,7 @@ export const PALETTE_ROLES: readonly PaletteRole[] = [
   'atencion',
   'atencionSuave',
   'error',
+  'velo',
 ];
 
 /**

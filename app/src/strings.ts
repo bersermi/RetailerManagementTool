@@ -737,6 +737,61 @@ export const ES = {
     more: 'Más',
     /** The quantity box, to a screen reader — the unit is read out beside it. */
     qty: 'Cantidad',
+
+    /**
+     * ⚠️ C3.5's BASKET SHEET (`5f-iii-a`) — the review before the commit, and
+     * one of the three guards §2.8 calls *Error prevention*.
+     */
+    cart: {
+      /** The sheet's own heading. One word, because the total is right there. */
+      title: 'Carrito',
+      /**
+       * ⚠️ WHAT OPENS IT, WRITTEN ON THE BAR RATHER THAN LEFT TO A GUESS. The
+       * whole sticky bar is the tap target — a strip the width of the screen —
+       * but a strip a shopkeeper has not been told is tappable is a strip she
+       * does not tap, and C12.1 refuses a glyph with no word beside it.
+       */
+      open: 'Ver carrito',
+      /** ⚠️ *Cerrar* and not *Volver*: the list was never left. */
+      close: 'Cerrar',
+      /**
+       * ⚠️ ONE LINE, GONE IMMEDIATELY — ruled by the owner 2026-09-17 against a
+       * session's own recommendation of a timed *Deshacer*. The recovery is
+       * re-adding the item on the list behind this sheet, and a dialog on every
+       * removal is book-keeping handed to a shopkeeper (C3.18).
+       */
+      remove: 'Quitar',
+      /**
+       * ⚠️ THE WHOLE BASKET, AND THIS ONE KEEPS ITS CONFIRMATION — emptying is a
+       * different act from removing one line, and its recovery is not two taps.
+       */
+      empty: 'Vaciar carrito',
+      /**
+       * ⚠️ THE CONFIRM STEP IS A DIFFERENT WORD FROM THE ONE THAT OPENS IT, for
+       * `approvals.confirm`'s reason: two taps that read the same are two taps a
+       * shopkeeper cannot tell apart afterwards.
+       */
+      emptyConfirm: 'Sí, vaciar',
+      emptyCancel: 'Cancelar',
+      /**
+       * ⚠️ THE WORD THE OWNER'S CONFIRMATION ANIMATION CARRIES — *"another one
+       * if we empty the carrito"* (2026-09-21). The motion is `transform` and
+       * `opacity` only (§2.11); the WORD is here because motion alone is a
+       * state announced without language, which is `R11`'s argument about
+       * colour applied to the other channel that has no text in it.
+       */
+      emptied: 'Carrito vacío',
+      /**
+       * ⚠️⚠️ A LINE WHOSE PRODUCT HAS LEFT THE CATALOG — a manager retiring it
+       * on another phone while this basket is open. `draftOf` refuses the whole
+       * basket for it, and this sheet is the ONLY surface that can remove it,
+       * because the list behind it is the catalog and the catalog no longer has
+       * the row. So it is named rather than hidden.
+       */
+      gone: 'Ya no está en el catálogo',
+      /** What that row is called, since the catalog can no longer say. */
+      goneName: 'Producto retirado',
+    },
   },
 
   units: {

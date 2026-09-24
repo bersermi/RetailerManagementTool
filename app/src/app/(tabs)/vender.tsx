@@ -1,9 +1,12 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
 import {
+  Animated,
+  Easing,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   Text,
@@ -14,7 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { useCatalog, useUnitFactors, useWorkspace } from '@/api/hooks';
-import { basketOf, stepOf, type Basket } from '@/cart/cart';
+import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { baseFromShown, qtyShown, shownUnitOf } from '@/cart/quantity';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
@@ -23,14 +26,23 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 
 // ============================================================================
-// VENDER — the counter. Plan task `5f-ii`, the second child of `5f`, and the
+// VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
+// control and the sticky bar) and `5f-iii-a` (the basket sheet), and the
 // highest-traffic surface in this app.
 //
-// ⚠️⚠️ IT COMMITS NOTHING AND WRITES NOTHING, AND THAT IS THE SPLIT RATHER THAN
-// AN OMISSION. The basket sheet, the slide-to-commit, `Quitar`, `Vaciar` and
-// the first call `queueWrite` has ever had are `5f-iii`. What is here is the
-// list, the row, the quantity control and the sticky `Total` — everything a
-// shopkeeper touches BEFORE she decides the sale is a sale.
+// ⚠️⚠️ IT STILL COMMITS NOTHING AND WRITES NOTHING, AND THAT IS THE SPLIT
+// RATHER THAN AN OMISSION. The slide-to-commit, the first call `queueWrite` has
+// ever had and the sale's own confirmation are `5f-iii-b`. What is here is
+// everything a shopkeeper touches BEFORE she decides the sale is a sale —
+// including the review she decides it ON.
+//
+// ⚠️ SO C3.4's BAR CARRIES `Total` AND `Ver carrito` AND NO COMMIT CONTROL.
+// §2.8 names three guards it calls *Error prevention*, *"none blocking"*:
+// unit-aware input (`5f-ii`), **review before commit** (this task's sheet) and
+// the magnitude warning (`5f.5`, gated on `5g`). The review is built before the
+// thing it reviews, which is the order that split chose deliberately: a commit
+// control with nothing in front of it, on the screen that takes a customer's
+// money, is the one arrangement worth refusing.
 //
 // ⚠️ THE OWNER'S PHONE IS THE WHOLE INSTRUMENT (`R9`, §2.11). Every judgement
 // left in this file is rendering, navigation or layout, and no check in this
@@ -193,8 +205,25 @@ export default function Vender() {
   // silently and in the ledger, for the first shop that answered no. That is
   // the identity `5f-i` refused to hard-code, and a screen is not the place to
   // reintroduce it.
-  const basket: Basket | null =
-    workspace === null ? null : basketOf(cart, entries, 'sell', workspace.pricesIncludeTax);
+  // ⚠️⚠️ ONE PASS OVER THE BASKET FEEDS BOTH THE BAR AND THE SHEET, AND §2.5
+  // RULE 5 IS WHY — *"the displayed lines fail to sum to the displayed total on
+  // the review screen."* `reviewOf` returns the rows AND the total those rows
+  // sum to; a sheet that priced its own would be a second arithmetic over one
+  // basket. See `@/cart/cart`, where `app/test/cart.test.ts` reads the identity.
+  const review: Review | null =
+    workspace === null ? null : reviewOf(cart, entries, 'sell', workspace.pricesIncludeTax);
+  const basket: Basket | null = review === null ? null : review.basket;
+
+  // ⚠️ THE SHEET'S OPEN STATE LIVES HERE AND NOT IN THE ROUTER, which is a
+  // decision and is recorded as one. `ajustes` and `solicitudes` are `Stack`
+  // modals because they are different PLACES; the basket is this place, zoomed —
+  // it is priced against the catalog this screen has already read, its rows
+  // carry the control the list behind them carries, and C3.5's own recovery is
+  // *"two taps on the list behind the sheet"*. A route would re-read the
+  // catalog, the unit factors and the workspace to show a subset of what is
+  // already on screen.
+  const [cartOpen, setCartOpen] = useState(false);
+  const closeCart = useCallback(() => setCartOpen(false), []);
 
   return (
     <KeyboardAvoidingView
@@ -240,7 +269,15 @@ export default function Vender() {
         keyboardShouldPersistTaps="handled"
       />
 
-      <Barra basket={basket} />
+      <Barra basket={basket} onOpen={() => setCartOpen(true)} />
+
+      <Carrito
+        open={cartOpen}
+        onClose={closeCart}
+        review={review}
+        entries={entries}
+        factors={factors}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -455,7 +492,10 @@ function Cantidad({
   entry: CatalogEntry;
   base: number;
   factors: UnitFactors;
-  onEdit: (editing: boolean) => void;
+  // ⚠️ OPTIONAL BECAUSE THE SHEET HAS NO LIST TO SCROLL. On the list this tells
+  // the screen which row the keyboard is about to cover; inside the sheet there
+  // are only the lines already in the basket, and nothing virtualises them.
+  onEdit?: (editing: boolean) => void;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -511,9 +551,9 @@ function Cantidad({
           // ⚠️ THE ROW TELLS THE SCREEN IT IS THE ONE BEING TYPED INTO, and the
           // screen scrolls it into view once the keyboard is actually up — see
           // this file's header.
-          onFocus={() => onEdit(true)}
+          onFocus={() => onEdit?.(true)}
           onBlur={() => {
-            onEdit(false);
+            onEdit?.(false);
             setDraft(null);
           }}
           editable={by !== null}
@@ -595,22 +635,41 @@ function Paso({
 }
 
 /**
- * ⚠️ C3.4's STICKY BAR — `Total`, and the commit control that is `5f-iii`'s.
+ * ⚠️ C3.4's STICKY BAR — `Total`, and the control that OPENS the review. The
+ * commit control is still `5f-iii-b`'s, so nothing here writes anything.
  *
  * ⚠️ IT IS DRAWN ON AN EMPTY BASKET TOO, which is why `ES.sell.emptyCart`
  * exists: a bar that appeared on the first tap would move the list under a
  * thumb already reaching for the second one.
  *
+ * ⚠️⚠️ AND THE WHOLE BAR IS THE TAP TARGET ONCE THERE IS SOMETHING TO REVIEW —
+ * a strip the width of the screen, which is the largest target this layout can
+ * offer the C1.2 hands it is drawn for. ⚠️ It carries `Ver carrito` and a
+ * chevron rather than relying on the strip being obviously tappable: C12.1
+ * refuses a glyph with no word, and a shopkeeper who has not been told a bar
+ * opens does not press it. ⚠️ **On an empty basket it is a `View` and not a
+ * disabled `Pressable`** — there is nothing to review, and a control that
+ * looks live and does nothing is the shape this repository refuses by name.
+ *
  * ⚠️⚠️ A BASKET WITH AN UNPRICEABLE LINE SHOWS THE TOTAL **AND SAYS SO**. That
- * is `basketOf`'s `complete`, and it is deliberately not a decision: C3.13
+ * is `reviewOf`'s `complete`, and it is deliberately not a decision: C3.13
  * blocks a purchase and C3.14 lets a sale through loudly, and those two answers
  * belong to `5g` and `5h`. What this bar owes is that the number is not read as
  * the whole of what the customer owes.
  */
-function Barra({ basket }: { basket: Basket | null }) {
+function Barra({ basket, onOpen }: { basket: Basket | null; onOpen: () => void }) {
   const { scale } = useDensity();
+  const live = basket !== null && basket.lines > 0;
+  const Strip = live ? Pressable : View;
   return (
-    <View
+    <Strip
+      {...(live
+        ? {
+            accessibilityRole: 'button' as const,
+            accessibilityLabel: ES.sell.cart.open,
+            onPress: onOpen,
+          }
+        : {})}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -643,7 +702,445 @@ function Barra({ basket }: { basket: Basket | null }) {
             {ES.sell.someUnpriced}
           </Text>
         ) : null}
+        {live ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
+            <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.accion }}>
+              {ES.sell.cart.open}
+            </Text>
+            <MaterialCommunityIcons
+              name="chevron-right"
+              size={scale.iconSize}
+              color={PALETTE.accion}
+            />
+          </View>
+        ) : null}
       </View>
+    </Strip>
+  );
+}
+
+/**
+ * ⚠️⚠️ C3.5's BASKET SHEET — the review before the commit, and one of the three
+ * guards ADR-035 §2.8 calls *Error prevention*, *"none blocking"*. Plan task
+ * `5f-iii-a`.
+ *
+ * ⚠️ IT LISTS ONLY THE ROWS CARRYING A QUANTITY, which is C3.3 read from the
+ * other end: a quantity greater than zero IS the line, so the basket IS the
+ * list. `reviewOf` has already narrowed it; this component narrows nothing.
+ *
+ * ⚠️ THE SAME FIELD AND THE SAME STEPPER AS THE LIST BEHIND IT — `Cantidad`,
+ * the one this file already draws. A second quantity control on the review
+ * screen would be a second set of rules about what a tap of `+` adds, and C3.8
+ * is exacting about that. ⚠️ **It is also why the line total is here and not on
+ * the list's row** (C3.4): this is the one surface where a customer is reading
+ * the arithmetic over the shopkeeper's shoulder.
+ *
+ * ⚠️⚠️ AND THE ROWS SUM TO THE BAR BECAUSE THEY ARE THE BAR'S OWN ADDENDS,
+ * not because two functions agree — see `reviewOf`. §2.5 rule 5 is written
+ * about this screen by name.
+ *
+ * ⚠️ AN `RN` `Modal` AND NOT A ROUTE, decided here and recorded in `Vender`.
+ *
+ * ⚠️⚠️ `Quitar` REMOVES A LINE IMMEDIATELY — NO UNDO AND NO DIALOG, ruled by
+ * the owner on 2026-09-17 against a session's own recommendation of a timed
+ * *Deshacer*. The recovery is re-adding the item, two taps on the list behind
+ * this sheet. ⚠️ **`Vaciar carrito` KEEPS its confirmation** and it is not an
+ * inconsistency: emptying is a different act, and its recovery is not two taps.
+ * The confirm word differs from the word that opens it, which is
+ * `solicitudes.tsx`'s arrangement and its reason.
+ */
+function Carrito({
+  open,
+  onClose,
+  review,
+  entries,
+  factors,
+}: {
+  open: boolean;
+  onClose: () => void;
+  review: Review | null;
+  entries: readonly CatalogEntry[];
+  factors: UnitFactors;
+}) {
+  const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
+  const clear = useCartStore((state) => state.clear);
+
+  // ⚠️ TWO STATES AND NOT ONE. `asking` is the confirmation; `emptied` is the
+  // moment after it, and it exists only so that the animation below has
+  // something to run ON. Folding them makes the sheet close before the
+  // confirmation the owner asked for has been seen.
+  const [asking, setAsking] = useState(false);
+  const [emptied, setEmptied] = useState(false);
+
+  const bloom = useRef(new Animated.Value(0)).current;
+
+  // ⚠️⚠️ THE OWNER'S CONFIRMATION ANIMATION — *"another one if we empty the
+  // carrito"* (2026-09-21), in place of the change calculation he deferred.
+  //
+  // ⚠️ `transform` AND `opacity` ONLY (§2.11). That is a performance rule
+  // before it is a taste one: C1.1 puts two low-end Androids among the pilot's
+  // four phones, and those two properties run on the compositor while layout,
+  // colour and shadow do not.
+  //
+  // ⚠️⚠️ AND IT IS STARTED IN AN EFFECT RATHER THAN IN THE HANDLER THAT MOUNTS
+  // THE VIEW, which on the native driver is the difference between motion and
+  // silence: a driver attached to a view that is not laid out yet fails with no
+  // error and no animation. The handler sets `emptied`; this effect runs after
+  // the render that mounts the glyph.
+  //
+  // ⚠️ THE SHEET CLOSES ON THE ANIMATION'S OWN COMPLETION and not on a timer —
+  // one mechanism, and nothing to keep in step with a duration.
+  useEffect(() => {
+    if (!emptied) return;
+    bloom.setValue(0);
+    const run = Animated.timing(bloom, {
+      toValue: 1,
+      duration: 420,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    });
+    run.start(({ finished }) => {
+      if (!finished) return;
+      setEmptied(false);
+      onClose();
+    });
+    return () => run.stop();
+  }, [emptied, bloom, onClose]);
+
+  // ⚠️⚠️ THE SHEET DOES NOT CLOSE ITSELF WHEN THE LAST LINE GOES, AND THE FIRST
+  // WRITING OF THIS FILE DID — a one-line effect on `cart.length` in `Vender`,
+  // which read as tidy and **broke the animation above**: `Vaciar` empties the
+  // basket, so that effect unmounted this `Modal` in the same commit that set
+  // `emptied`, and the confirmation the owner asked for played on nothing. ⚠️ It
+  // is also wrong on its own terms: `Quitar` on the last line is a removal, not
+  // a decision to leave, and a sheet that vanished under the thumb would take
+  // the list's scroll position with it. The empty state and `Cerrar` say it
+  // instead.
+  //
+  // ⚠️ THE CONFIRMATION IS FORGOTTEN WHEN THE SHEET CLOSES. A `Vaciar` left
+  // half-asked and reopened an hour later would put *Sí, vaciar* under a thumb
+  // that came back for something else.
+  useEffect(() => {
+    if (!open) setAsking(false);
+  }, [open]);
+
+  const rows = review === null ? [] : review.rows;
+
+  return (
+    <Modal
+      visible={open}
+      animationType="slide"
+      transparent
+      // ⚠️ ANDROID'S HARDWARE BACK CLOSES IT. Without this the button does
+      // nothing on the one platform C1.1 puts two of in the pilot.
+      onRequestClose={onClose}
+    >
+      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        {/* ⚠️ THE VELO IS A SEPARATE VIEW UNDER AN `opacity` RATHER THAN A
+            TRANSLUCENT FILL ON THE CONTAINER. `opacity` on a parent dims its
+            children, so painting it on the wrapper would put the sheet itself
+            behind the dimming. ⚠️ And `R11` forbids a translucent literal by
+            name — the rule's own page spells the one this would have been:
+            the hue is a role, `PALETTE.velo`, and the translucency is a number.
+            ⚠️ The spelling is NOT repeated here: `conventions-gate.sh` reads
+            this file, and a comment quoting a check's sentinel turns it red,
+            which is this repository's *never spell a sentinel in the file it
+            reads* caught by the guard it describes.
+            ⚠️ IT IS NOT A `Pressable`: tap-to-dismiss would put a dismissal
+            under the thumb of a shopkeeper reaching past the sheet for the row
+            she can still see, and `Cerrar` is one tap away at the top. */}
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            opacity: 0.4,
+            backgroundColor: PALETTE.velo,
+          }}
+        />
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View
+            style={{
+              maxHeight: '85%',
+              borderTopLeftRadius: scale.space,
+              borderTopRightRadius: scale.space,
+              backgroundColor: PALETTE.fondo,
+              paddingBottom: insets.bottom,
+            }}
+          >
+            <Encabezado onClose={onClose} />
+
+            {emptied ? (
+              <Vaciado bloom={bloom} />
+            ) : (
+              <>
+                <FlatList
+                  data={rows}
+                  keyExtractor={(row) => row.variantId}
+                  renderItem={({ item }) => (
+                    <Renglon
+                      row={item}
+                      entry={entries.find((e) => e.id === item.variantId)}
+                      factors={factors}
+                    />
+                  )}
+                  ItemSeparatorComponent={Separador}
+                  ListEmptyComponent={<Vacio line={ES.sell.emptyCart} />}
+                  keyboardShouldPersistTaps="handled"
+                />
+
+                {rows.length === 0 ? null : (
+                  <Vaciar
+                    asking={asking}
+                    onAsk={() => setAsking(true)}
+                    onCancel={() => setAsking(false)}
+                    onConfirm={() => {
+                      setAsking(false);
+                      clear('sell');
+                      setEmptied(true);
+                    }}
+                  />
+                )}
+              </>
+            )}
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+}
+
+/** The sheet's heading, and the way out that is not a gesture. */
+function Encabezado({ onClose }: { onClose: () => void }) {
+  const { scale } = useDensity();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.space,
+        borderBottomWidth: 1,
+        borderBottomColor: PALETTE.linea,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+        {ES.sell.cart.title}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={ES.sell.cart.close}
+        onPress={onClose}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.sell.cart.close}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * One line of the basket, as the sheet draws it.
+ *
+ * ⚠️⚠️ A ROW WHOSE PRODUCT HAS LEFT THE CATALOG IS DRAWN AND NOT HIDDEN — see
+ * `reviewOf`, which is where the argument lives. `draftOf` refuses the whole
+ * basket for it, and this sheet is the only surface that can remove it, because
+ * the list behind it is the catalog and the catalog no longer has the row. It
+ * keeps its `Quitar` and loses its quantity control: there is no price unit to
+ * step in and no factor to step by.
+ *
+ * ⚠️ THE LINE TOTAL IS A DASH WHEN IT COULD NOT BE PRICED, never `$0.00` —
+ * C3.12 about one row, which is the same fact `reviewOf` keeps out of the sum.
+ */
+function Renglon({
+  row,
+  entry,
+  factors,
+}: {
+  row: ReviewRow;
+  entry: CatalogEntry | undefined;
+  factors: UnitFactors;
+}) {
+  const { scale } = useDensity();
+  const remove = useCartStore((state) => state.remove);
+  const gone = entry === undefined;
+
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        minHeight: scale.rowHeight,
+        paddingVertical: scale.rowGap,
+        paddingHorizontal: scale.space,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+        <Text
+          numberOfLines={1}
+          style={{
+            fontSize: scale.bodySize,
+            fontWeight: '600',
+            color: gone ? PALETTE.tintaApagada : PALETTE.tinta,
+          }}
+        >
+          {row.name ?? ES.sell.cart.goneName}
+        </Text>
+        {/* ⚠️ `R11`: the state never travels as a colour alone. */}
+        <Text numberOfLines={1} style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+          {gone ? ES.sell.cart.gone : (row.familyName ?? '')}
+        </Text>
+      </View>
+
+      {gone ? null : (
+        <Cantidad entry={entry} base={row.base} factors={factors} />
+      )}
+
+      <View style={{ alignItems: 'flex-end', minWidth: scale.tapTarget * 1.5 }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+          {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
+        </Text>
+        {row.centavos === null && !gone ? (
+          <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
+            {ES.sell.noPrice}
+          </Text>
+        ) : null}
+      </View>
+
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${ES.sell.cart.remove} ${row.name ?? ES.sell.cart.goneName}`}
+        onPress={() => remove('sell', row.variantId)}
+        style={{
+          minWidth: scale.tapTarget,
+          minHeight: scale.tapTarget,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {/* ⚠️ `error` AND NOT A MUTED GREY — the palette's own sentence for that
+            role names `Quitar` first: *what DESTROYS*. On a review screen it is
+            what separates the control that removes a line from the two beside
+            it that only change its size. */}
+        <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.error} />
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * `Vaciar carrito`, and the one removal in this app that asks first.
+ *
+ * ⚠️ THE CONFIRM WORD IS NOT THE WORD THAT OPENED IT — `solicitudes.tsx`'s
+ * arrangement: two taps that read the same are two taps a shopkeeper cannot
+ * tell apart once she has made the first one.
+ */
+function Vaciar({
+  asking,
+  onAsk,
+  onCancel,
+  onConfirm,
+}: {
+  asking: boolean;
+  onAsk: () => void;
+  onCancel: () => void;
+  onConfirm: () => void;
+}) {
+  const { scale } = useDensity();
+  const frame = {
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    gap: scale.rowGap,
+    paddingHorizontal: scale.space,
+    paddingVertical: scale.space,
+    borderTopWidth: 1,
+    borderTopColor: PALETTE.linea,
+    backgroundColor: PALETTE.banda,
+  };
+
+  if (!asking) {
+    return (
+      <View style={frame}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.sell.cart.empty}
+          onPress={onAsk}
+          style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+            {ES.sell.cart.empty}
+          </Text>
+        </Pressable>
+      </View>
+    );
+  }
+
+  return (
+    <View style={frame}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={ES.sell.cart.emptyConfirm}
+        onPress={onConfirm}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.error }}>
+          {ES.sell.cart.emptyConfirm}
+        </Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={ES.sell.cart.emptyCancel}
+        onPress={onCancel}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.sell.cart.emptyCancel}
+        </Text>
+      </Pressable>
+    </View>
+  );
+}
+
+/**
+ * ⚠️⚠️ THE CONFIRMATION THE OWNER ASKED FOR WHEN THE BASKET IS EMPTIED. The
+ * animation is driven from `Carrito`'s effect — see the argument there for why
+ * it is not started where the tap happens.
+ *
+ * ⚠️ `opacity` AND `scale` AND NOTHING ELSE (§2.11). ⚠️ AND IT CARRIES A WORD:
+ * motion with no language is a state announced on the one channel a person can
+ * miss by looking away, which is `R11`'s argument about colour applied where
+ * there is no text at all.
+ */
+function Vaciado({ bloom }: { bloom: Animated.Value }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ alignItems: 'center', gap: scale.rowGap, padding: scale.space * 2 }}>
+      <Animated.View
+        style={{
+          opacity: bloom,
+          transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
+          alignItems: 'center',
+          gap: scale.rowGap,
+        }}
+      >
+        <MaterialCommunityIcons
+          name="check-circle-outline"
+          size={scale.iconSize * 2}
+          color={PALETTE.accion}
+        />
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+          {ES.sell.cart.emptied}
+        </Text>
+      </Animated.View>
     </View>
   );
 }

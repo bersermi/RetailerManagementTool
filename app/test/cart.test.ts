@@ -49,6 +49,7 @@ import {
   quoteFor,
   quoted,
   remove,
+  reviewOf,
   setQty,
   step,
   stepOf,
@@ -403,6 +404,97 @@ describe('what a line and a basket cost', () => {
 
   it('is empty and complete when there is nothing in it', () => {
     expect(basketOf(EMPTY_CART, CATALOG, 'sell', true)).toEqual(EMPTY_BASKET);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ⚠️⚠️ THE REVIEW SCREEN'S OWN ARITHMETIC — `5f-iii-a`, and the reason that
+// child is not a pure rendering task. §2.5 rule 5 is written about the basket
+// sheet BY NAME: *"the displayed lines fail to sum to the displayed total on
+// the review screen, which is the one screen where a customer is checking the
+// arithmetic by hand."* `basketOf` returned a total and a COUNT and never the
+// lines, so a sheet drawing its own rows would price the basket a second time.
+// These assertions read the identity rather than a reviewer hoping for it.
+describe('the sheet and the bar are one arithmetic — §2.5 rule 5', () => {
+  let cart: Cart = setQty(EMPTY_CART, PECHUGA, 288_000);
+  cart = setQty(cart, HUEVO, 3_000);
+
+  it('gives the sheet one row per line, in the order they were added', () => {
+    // ⚠️ RULE 4: a review with no rows makes every assertion below vacuous.
+    const review = reviewOf(cart, CATALOG, 'sell', true);
+    expect(review.rows).toHaveLength(2);
+    expect(review.rows.map((r) => r.variantId)).toEqual([PECHUGA, HUEVO]);
+  });
+
+  it('makes the total the SUM OF THE ROWS and not a second pass', () => {
+    const review = reviewOf(cart, CATALOG, 'sell', true);
+    const drawn = review.rows.reduce((n, r) => n + (r.centavos ?? 0), 0);
+    expect(review.basket.centavos).toBe(drawn);
+    expect(drawn).toBe(5_184 + 1_050);
+  });
+
+  it('is the SAME total the sticky bar shows, because the bar reads this one', () => {
+    // ⚠️⚠️ THE ASSERTION THE SPLIT EXISTS FOR. If these two ever disagree, a
+    // customer adding up the sheet by hand gets a different answer from the
+    // number she is being charged. `basketOf` delegates, so they cannot.
+    expect(basketOf(cart, CATALOG, 'sell', true)).toEqual(reviewOf(cart, CATALOG, 'sell', true).basket);
+  });
+
+  it('holds the identity on a basket with a priceless line too', () => {
+    // The branch where two arithmetics would actually part: a line the sheet
+    // cannot price is `null` on the row and MISSING from the sum, never a zero.
+    const mixed = catalogFrom([variant(PECHUGA, 'Pechuga', '250g', 'g', null), ROWS[1]], FACTORS, null);
+    const review = reviewOf(cart, mixed, 'sell', true);
+    expect(review.rows[0].centavos).toBeNull();
+    expect(review.rows[1].centavos).toBe(1_050);
+    expect(review.basket).toEqual({ centavos: 1_050, lines: 2, complete: false });
+    expect(basketOf(cart, mixed, 'sell', true)).toEqual(review.basket);
+  });
+
+  it('carries the name and the family the sheet draws, off the catalog', () => {
+    const review = reviewOf(cart, CATALOG, 'sell', true);
+    expect(review.rows[0].name).toBe('Pechuga');
+    expect(review.rows[0].familyName).toBe('Pollo');
+    expect(review.rows[0].base).toBe(288_000);
+  });
+
+  it('DRAWS a line whose variant has left the catalog rather than hiding it', () => {
+    // ⚠️⚠️ THE ONE JUDGEMENT IN `reviewOf`, AND IT IS NOT DEFENSIVE. A manager
+    // retires a product on another phone while this basket is open;
+    // `draftOf` then refuses the WHOLE basket with `variant-not-in-catalog`,
+    // and the list behind the sheet is the catalog, which no longer has the
+    // row. So the sheet is the only surface that can remove it — and a sheet
+    // that hid what it could not name would leave a shopkeeper with a commit
+    // that refuses and nothing on screen to act on.
+    const gone: Cart = setQty(cart, 'nobody', 1_000);
+    const review = reviewOf(gone, CATALOG, 'sell', true);
+    expect(review.rows).toHaveLength(3);
+    expect(review.rows[2]).toEqual({
+      variantId: 'nobody',
+      name: null,
+      familyName: null,
+      base: 1_000,
+      centavos: null,
+    });
+    expect(draftOf(gone, CATALOG, FACTORS, 'sell', true, WORKSPACE, LOCATION)).toEqual({
+      ok: false,
+      why: 'variant-not-in-catalog',
+    });
+  });
+
+  it('shows nothing and sums to nothing on an empty basket', () => {
+    const review = reviewOf(EMPTY_CART, CATALOG, 'sell', true);
+    expect(review.rows).toEqual([]);
+    expect(review.basket).toEqual(EMPTY_BASKET);
+  });
+
+  it('follows the document direction the bar follows — §2.5 rule 2', () => {
+    // A net-priced shop cannot be quoted without a rate (see the module
+    // header), so BOTH the row and the total withhold rather than guess. The
+    // point is that they withhold TOGETHER.
+    const review = reviewOf(cart, CATALOG, 'sell', false);
+    expect(review.rows.every((r) => r.centavos === null)).toBe(true);
+    expect(review.basket).toEqual({ centavos: 0, lines: 2, complete: false });
   });
 });
 
