@@ -523,6 +523,15 @@ was lost or silently duplicated by a 353-line move: **every `Contract —` step 
 identical**, and the only differences are the five setup steps the new job legitimately adds
 (checkout, CLI, start, reset, `Stop`).
 
+✅✅ **MEASURED AFTER THE SPLIT, AND THE PREDICTION WAS RIGHT ON ONE HALF AND PESSIMISTIC ON
+THE OTHER.** Predicted ~9m04s and ~9m50s; **actual `reset` 9.5m and `api-contracts` 7.2m.**
+⚠️ **The new job came in 2.6 minutes under** because the reduced service list starts faster
+than `reset`'s full `supabase start` — a saving the estimate did not think to claim.
+⚠️⚠️ **THE WORKFLOW'S WALL-CLOCK IS NOW SET BY `auth-session` AT 10.4m, NOT BY `reset`**, so
+`db` finishes in about **ten and a half minutes against nearly sixteen** — and the next
+minute saved is in a job this task did not touch. ✅ **Both split halves sit at 1.6x and 2.1x
+headroom against their 15-minute cap**, which is the property that was missing.
+
 ⚠️⚠️ **AND CI CAUGHT THE ONE THING THIS SESSION DID NOT — THE HANDBOOK'S NEXT-WORK MARKER,
 SPELLED WITH THE FULL STOP INSIDE THE BOLD RUN.** `handbook-agreement.sh` was GREEN, because
 it greps the sentence; `handbook-agreement-falsify.sh` went red on **four fixtures at once**,
