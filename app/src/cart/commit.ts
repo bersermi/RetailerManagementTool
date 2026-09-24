@@ -70,6 +70,16 @@ export interface Basketful {
   readonly locationId: string | null;
   readonly rates?: TaxRates;
   readonly quotes?: Quotes;
+  /**
+   * Who a DELIVERY came from. Ignored on a sale, and required on a purchase.
+   *
+   * ⚠️ OPTIONAL IN THE TYPE AND NOT OPTIONAL IN FACT, which is deliberate: the
+   * sale side has no counterparty at all, so a required field would make every
+   * Vender caller write `providerId: null` and mean nothing by it. `draftOf`
+   * refuses `no-provider` on the buy side, so the enforcement is where the
+   * suite reads it rather than in a type that cannot say *only when buying*.
+   */
+  readonly providerId?: string | null;
 }
 
 /** Why a basket could not become a queued write. Never shown to anybody. */
@@ -99,6 +109,7 @@ export function commitOf(b: Basketful, stamp: Stamp): Committed {
     b.locationId,
     b.rates ?? NO_TAX_RATES,
     b.quotes ?? NO_QUOTES,
+    b.providerId ?? null,
   );
   if (!drafted.ok) return { ok: false, why: drafted.why };
 

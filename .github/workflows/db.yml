@@ -291,6 +291,30 @@ on:
       # zero-length range and nothing in TypeScript can discover that.
       - "docs/checks/5e-iii-a-catalog-edit-contract.sh"
       - "docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh"
+      # ⚠️⚠️ AND THE BUY SIDE, as of plan task `5g-i` — the FIRST thing in this
+      # repository ever to send `record_purchase` anything. `0018` has been
+      # applied since 2026-09-04 and `5f-i`'s row said out loud that nothing had
+      # asked Postgres whether it accepts the payload this app builds.
+      # ⚠️⚠️ THREE OF ITS ASSERTIONS EXIST NOWHERE ELSE AND ONE OF THEM IS WHY
+      # `5g` SPLIT AT ALL. Comprar's design rests on a measured asymmetry:
+      # `provider_select` admits any member, `provider_price_memory` is
+      # manager-and-above through `security_invoker`, and `record_purchase`
+      # fences NEITHER — so a cashier reads the picker, reads ZERO rows of the
+      # memory (200 and an empty array, never a 403), records a delivery that
+      # SUCCEEDS, and reads zero purchases back. **Every symptom of the broken
+      # case is a designed state of the working one** — §2.8's *new pairing* IS
+      # an empty memory — so no screen and no person looking at a screen can
+      # tell them apart, and a migration that moved any of the three would
+      # change what a shop silently sees with nothing else going red.
+      # ⚠️ The second: the invoice net reaches the ledger UNCONVERTED. §2.5 rule
+      # 2 scopes `prices_include_tax` to the SALE in its own parenthesis, and
+      # `@/cart/cart` disagreed with it until 2026-09-24.
+      # ⚠️ The third: what the seeded generic provider is CALLED, read off the
+      # wire. F6 says `Genérico`, `onboard_workspace` has seeded `Compra
+      # directa` since `0002`, and the owner owes the word — so this goes red the
+      # day either one moves rather than letting the plan carry both for ever.
+      - "docs/checks/5g-i-purchase-contract.sh"
+      - "docs/checks/5g-i-purchase-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -448,6 +472,21 @@ jobs:
       # that could not break both would be watching half of it.
       - name: Contract — can the catalog edit check still fail (its own ten fixtures)
         run: bash docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh
+
+      # ⚠️⚠️ THE FIRST ROUND TRIP THIS REPOSITORY HAS EVER MADE AGAINST
+      # `record_purchase`, and the only instrument that can see the cashier
+      # asymmetry Comprar is designed around. See the path filter above.
+      - name: Contract — does app/src/api/providers.ts still describe the schema (plan 5g-i)
+        run: bash docs/checks/5g-i-purchase-contract.sh
+
+      # ⚠️ Eleven fixtures: a green control, seven mutated copies of the app's
+      # own contract module, and THREE that move applied SQL and put it back —
+      # because narrowing `provider_select`, widening the two policies the memory
+      # view joins across, and renaming the seeded generic provider are all
+      # invisible to every TypeScript edit. ⚠️ Each restore is in a `trap` that
+      # runs on every exit path.
+      - name: Contract — can the purchase check still fail (its own eleven fixtures)
+        run: bash docs/checks/5g-i-purchase-contract-falsify.sh
 
       - name: Stop
         if: always()
