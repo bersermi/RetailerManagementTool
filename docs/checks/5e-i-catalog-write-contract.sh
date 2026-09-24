@@ -578,6 +578,58 @@ else
   echo "      nombre de tu tienda' — a shopkeeper adding a product told to name her shop."
 fi
 
+# --- 17. THE PACK-PRICED PRODUCT IS SELLABLE -------------------------------
+# ⚠️⚠️ ADDED 2026-09-24, AFTER THE OWNER FOUND ON HIS PHONE THAT EVERY PRODUCT
+# `Agregar` HAD EVER MADE WAS UNSELLABLE. `unitColumns` wrote the picked unit
+# into ALL FOUR unit columns, so a product priced per 250 g said it was STORED
+# in `250g` — and `record_sale` (`0016:217`), `record_purchase` (`0018:265`) and
+# `record_transfer` (`0020:355`) all refuse a line where
+# `u.base_code <> pv.base_unit_code`.
+#
+# ⚠️⚠️ AND THIS CHECK COULD NOT HAVE SEEN IT, WHICH IS THE POINT OF ADDING IT
+# RATHER THAN OF WIDENING SOMETHING. Every variant above is posted `kg kg kg kg`,
+# and for a unit that is ALREADY its dimension's base the bug is invisible —
+# `pza` and `g` products are fine, and the pilot catalog is mostly those. The
+# defect only shows on a PACK unit, and no assertion here had ever posted one.
+#
+# ⚠️ THE TABLE ITSELF WILL NOT CATCH IT — asserted below rather than assumed.
+# `product_variant_units_same_dimension_trg` only refuses codes spanning two
+# DIMENSIONS, and `g` and `250g` are both mass. So the wrong row inserts
+# cleanly, reads back cleanly, prices cleanly, and fails only at the one call
+# nothing in this app had yet made.
+PACK_BASE="$(python3 -c '
+import json, sys
+rows = json.load(open(sys.argv[1]))
+print(rows[0]["base_code"] if rows else "")' \
+  "$(stash packunit "$(api GET "/rest/v1/unit?select=base_code&code=eq.250g")")" 2>/dev/null)"
+
+GOOD_PACK="$(api POST "/rest/v1/$VARIANT_TABLE?select=$INSERT_RETURNING" \
+  "$(row "$VARIANT_COLUMNS" "$WORKSPACE_ID" "$FAMILY_ID" "Plátano por cuarto" \
+     "$PACK_BASE" 250g 250g 250g)")"
+BAD_PACK="$(api POST "/rest/v1/$VARIANT_TABLE?select=$INSERT_RETURNING" \
+  "$(row "$VARIANT_COLUMNS" "$WORKSPACE_ID" "$FAMILY_ID" "Plátano por cuarto mal" \
+     250g 250g 250g 250g)")"
+
+note
+if [[ "$PACK_BASE" != "g" ]]; then
+  fail "unit '250g' reports base_code '$PACK_BASE' and 0001 seeds it as 'g'."
+  echo "      Everything below rests on the unit table knowing what a pack is stored in."
+elif [[ "$(status "$GOOD_PACK")" != "201" ]]; then
+  fail "the shape the app now writes for a pack-priced product was REFUSED"
+  echo "      (HTTP $(status "$GOOD_PACK"), code '$(code_of "$(body "$GOOD_PACK")")')."
+  echo "      base_unit_code='$PACK_BASE' with the other three '250g' is what"
+  echo "      unitColumns builds since 2026-09-24. If the database refuses it, the"
+  echo "      form is broken for every product not priced in g, ml or pza."
+elif [[ "$(status "$BAD_PACK")" != "201" ]]; then
+  ok "the database now refuses four-copies-of-a-pack itself — this check can retire"
+else
+  ok "a pack-priced product is stored in '$PACK_BASE' and the wrong shape still inserts"
+  echo "        Both rows were accepted, which is the finding: NO CONSTRAINT CATCHES"
+  echo "        base_unit_code='250g'. The app is the only thing standing between a"
+  echo "        shopkeeper and a product that cannot be sold, and app/test/"
+  echo "        api-catalog-write.test.ts is where that is pinned."
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$ran assertion groups ran, $fails failed — the app and the database disagree"
@@ -587,8 +639,8 @@ fi
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that asserted nothing looks
 # like.
-if (( ran < 16 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 16 — this check asserted almost"
+if (( ran < 17 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 17 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi
@@ -597,3 +649,5 @@ echo "database: the three rows land in WRITE_ORDER's order, A CASHIER IS REFUSED
 echo "THREE TABLES, the duplicate is shop-wide and names its constraint, the fold is case"
 echo "and spaces and not accents, the price written today is on today's catalog read,"
 echo "and a product created with no price is on it too, wearing an empty array."
+echo "AND a pack-priced product is stored in its DIMENSION's base, which is the one"
+echo "thing no constraint in the database checks and every sale depends on."

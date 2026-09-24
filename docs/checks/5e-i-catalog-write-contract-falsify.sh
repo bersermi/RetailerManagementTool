@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 5e-i-catalog-write-contract-falsify — can that check still fail?
 #
-# ⚠️ RULE 4 OF THIS REPOSITORY. `5e-i-catalog-write-contract.sh` prints "all 16
+# ⚠️ RULE 4 OF THIS REPOSITORY. `5e-i-catalog-write-contract.sh` prints "all 17
 # assertion groups passed", and that sentence is ALSO what a check which stopped
 # reading anything prints. This is what distinguishes the two: seventeen fixtures
 # — a control that must stay green, six that break the CONTRACT, five that break
@@ -167,7 +167,7 @@ expect() {
   fixtures=$((fixtures+1))
   out="$(bash "$CHECK" "$contract" "$read_module" 2>&1)"; rc=$?
   if [[ "$pattern" == GREEN ]]; then
-    if (( rc == 0 )) && grep -q 'all 16 assertion groups passed' <<< "$out"; then
+    if (( rc == 0 )) && grep -q 'all 17 assertion groups passed' <<< "$out"; then
       echo "  ok    $label — green, as it must be"
     else
       echo "FAIL: $label should have been GREEN (exit $rc)"

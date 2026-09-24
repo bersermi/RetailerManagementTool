@@ -69,7 +69,14 @@
 import { SCALE, divRoundHalfUpAwayFromZero, formatDecimal, parseDecimal } from '@tienda/money';
 
 import { apiErrorMessage } from '@/api/errors';
-import { searchKey, searchTerm, type CatalogEntry, type UnitFactors, type UnitRow } from '@/api/catalog';
+import {
+  searchKey,
+  searchTerm,
+  type CatalogEntry,
+  type UnitBases,
+  type UnitFactors,
+  type UnitRow,
+} from '@/api/catalog';
 import { ROLES, type Role } from '@/api/members';
 import { ES } from '@/strings';
 
@@ -183,6 +190,29 @@ export interface UnitColumns {
  * copies of one code cannot span two dimensions. A form that asked four
  * questions could reach it; this one cannot.
  *
+ * ⚠️⚠️ CORRECTED 2026-09-24, AND UNTIL THEN EVERY PRODUCT THIS FORM MADE WAS
+ * UNSELLABLE. ~~all four columns are the picked unit~~ — **`base_unit_code` is
+ * the DIMENSION'S base** (`unit.base_code`), and the other three are the picked
+ * unit. A product created at `$45 / 250 g` used to say it was stored in `250g`;
+ * `record_sale` (`0016:217`), `record_purchase` (`0018:265`) and
+ * `record_transfer` (`0020:355`) all refuse a line where
+ * `u.base_code <> pv.base_unit_code`, so the row could not be sold, bought or
+ * moved. ⚠️ **Found by the owner on his phone** — Vender's quantity box counted
+ * `1, 2, 3` for a quarter-kilo product — and **ruled by him the same day: fix
+ * the form, and delete and remake the products already made.**
+ *
+ * ⚠️ THE OTHER THREE STAY AS THE PICKED UNIT AND THE TRIGGER IS STILL
+ * UNREACHABLE. `product_variant_units_same_dimension_trg` raises `23514` only
+ * when the four codes span more than one DIMENSION, and `g` and `250g` are both
+ * mass — `unit.base_code` is by construction in the same dimension as the unit
+ * it belongs to, so the four can now differ and still never span two.
+ *
+ * ⚠️⚠️ AND THE PRICE ARITHMETIC NEEDED NO CHANGE, WHICH WAS CHECKED RATHER THAN
+ * HOPED. `pricePerBase` divides by `factor_to_base` of the PRICE unit, so
+ * `price_list.price_per_base` has always been per GRAM — it never read
+ * `base_unit_code` at all. The column was the only thing disagreeing with the
+ * arithmetic around it, which is why this is a one-column fix and not a repricing.
+ *
  * ⚠️ AND IT IS WHY THE PRICE ARITHMETIC BELOW IS SAFE WITH ONE FACTOR.
  * `pricePerBase` prices per `price_unit_code` and the ledger stores per
  * `base_unit_code`; with all four the same, the factor cancels to itself and
@@ -190,9 +220,9 @@ export interface UnitColumns {
  * legitimately wants four different denominations — a case bought, singles sold
  * — it is `5e-iii`'s form and `pack_size` with it, not this one.
  */
-export function unitColumns(unitCode: string): UnitColumns {
+export function unitColumns(unitCode: string, bases: UnitBases): UnitColumns {
   return {
-    base_unit_code: unitCode,
+    base_unit_code: bases[unitCode] ?? unitCode,
     purchase_unit_code: unitCode,
     sell_unit_code: unitCode,
     price_unit_code: unitCode,
@@ -566,12 +596,13 @@ export function variantRow(
   workspaceId: string,
   familyId: string,
   draft: ProductDraft,
+  bases: UnitBases,
 ): VariantInsert {
   return {
     workspace_id: workspaceId,
     family_id: familyId,
     name: draft.name.replace(/\s+/g, ' ').trim(),
-    ...unitColumns(draft.unitCode),
+    ...unitColumns(draft.unitCode, bases),
   };
 }
 

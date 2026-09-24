@@ -36,6 +36,7 @@ import {
 import {
   catalogFrom,
   priceCentavos,
+  unitBasesFrom,
   unitFactorsFrom,
   type UnitRow,
   type VariantRow,
@@ -84,6 +85,9 @@ const UNITS: readonly UnitRow[] = [
 ];
 
 const FACTORS = unitFactorsFrom(UNITS);
+
+/** `unit.base_code` — what a quantity in each unit is actually STORED in. */
+const BASES = unitBasesFrom(UNITS);
 
 function variant(id: string, name: string, familyId: string, familyName: string): VariantRow {
   return {
@@ -162,7 +166,7 @@ describe('the contract — every column this app posts', () => {
     for (const column of ['enforce_stock', 'tax_rate', 'pack_size']) {
       expect(VARIANT_INSERT_COLUMNS).not.toContain(column);
     }
-    expect(Object.keys(variantRow(SHOP, POLLO, draft()))).not.toContain('enforce_stock');
+    expect(Object.keys(variantRow(SHOP, POLLO, draft(), BASES))).not.toContain('enforce_stock');
   });
 
   // ⚠️ THE BUILDERS AND THE COLUMN LISTS ARE TWO COPIES OF ONE CLAIM, forty
@@ -172,7 +176,7 @@ describe('the contract — every column this app posts', () => {
     expect(Object.keys(familyRow(SHOP, 'Pollo')).sort()).toEqual(
       FAMILY_INSERT_COLUMNS.split(',').sort(),
     );
-    expect(Object.keys(variantRow(SHOP, POLLO, draft())).sort()).toEqual(
+    expect(Object.keys(variantRow(SHOP, POLLO, draft(), BASES)).sort()).toEqual(
       VARIANT_INSERT_COLUMNS.split(',').sort(),
     );
     expect(Object.keys(priceRow(SHOP, VARIANT_ID, '0.035000', '2026-09-22')).sort()).toEqual(
@@ -192,35 +196,62 @@ describe('the contract — every column this app posts', () => {
   // on a heading.
   it('trims the names it stores, the way normalize_name folds the key', () => {
     expect(familyRow(SHOP, '  Pollo   entero ').name).toBe('Pollo entero');
-    expect(variantRow(SHOP, POLLO, draft({ name: ' Muslo  con   hueso ' })).name).toBe(
+    expect(variantRow(SHOP, POLLO, draft({ name: ' Muslo  con   hueso ' }), BASES).name).toBe(
       'Muslo con hueso',
     );
   });
 });
 
 describe('C8.10 — one question at the form, four columns in the row', () => {
-  it('writes the chosen unit into all four not-null unit columns', () => {
-    expect(unitColumns('kg')).toEqual({
-      base_unit_code: 'kg',
-      purchase_unit_code: 'kg',
-      sell_unit_code: 'kg',
-      price_unit_code: 'kg',
+  // ⚠️⚠️ THE ROW USED TO BE FOUR COPIES OF THE PICKED UNIT AND THAT MADE EVERY
+  // PRODUCT THIS FORM CREATED UNSELLABLE. `record_sale` (`0016:217`),
+  // `record_purchase` (`0018:265`) and `record_transfer` (`0020:355`) all refuse
+  // a line where `u.base_code <> pv.base_unit_code` — and for a quarter-kilo
+  // product that is `'g' <> '250g'`. ⚠️ **The owner found it on his phone**
+  // (`R9`): Vender's quantity box counted `1, 2, 3` instead of `250, 500, 750`.
+  it('stores the DIMENSION base and prices, buys and sells in the picked unit', () => {
+    expect(unitColumns('250g', BASES)).toEqual({
+      base_unit_code: 'g',
+      purchase_unit_code: '250g',
+      sell_unit_code: '250g',
+      price_unit_code: '250g',
     });
   });
 
-  // ⚠️⚠️ THIS IS WHAT MAKES `product_variant_units_same_dimension_trg`
-  // UNREACHABLE — four copies of one code cannot span two dimensions — which is
-  // why there is no sentence in this app for that `23514`.
+  // ⚠️ A UNIT THAT IS ALREADY ITS DIMENSION'S BASE IS STILL FOUR COPIES, which
+  // is why the bug was invisible on `pza` and `g` products — and the pilot
+  // catalog's own rows are mostly those.
+  it('is unchanged for a unit that is already its own base', () => {
+    for (const code of ['g', 'ml', 'pza']) {
+      expect(new Set(Object.values(unitColumns(code, BASES))).size).toBe(1);
+    }
+  });
+
+  // ⚠️⚠️ THE TRIGGER IS STILL UNREACHABLE, WHICH IS WHY THERE IS NO SENTENCE IN
+  // THIS APP FOR ITS `23514`. `product_variant_units_same_dimension_trg` fires
+  // only when the four codes span more than one DIMENSION, and `unit.base_code`
+  // is by construction in the same dimension as the unit it belongs to.
   it('cannot produce a row that spans two dimensions', () => {
+    const dimension = Object.fromEntries(UNITS.map((u) => [u.code, u.dimension]));
     for (const code of Object.keys(FACTORS)) {
-      const codes = Object.values(unitColumns(code));
-      expect(new Set(codes).size).toBe(1);
+      const dims = new Set(Object.values(unitColumns(code, BASES)).map((c) => dimension[c]));
+      expect(dims.size).toBe(1);
+    }
+  });
+
+  // ⚠️ EVERY ROW THIS FORM WRITES IS SELLABLE, stated as the database states it.
+  it('writes a row record_sale will accept', () => {
+    const base = Object.fromEntries(UNITS.map((u) => [u.code, u.base_code]));
+    for (const code of Object.keys(FACTORS)) {
+      const row = variantRow(SHOP, POLLO, draft({ unitCode: code }), BASES);
+      expect(base[row.sell_unit_code]).toBe(row.base_unit_code);
+      expect(base[row.purchase_unit_code]).toBe(row.base_unit_code);
     }
   });
 
   it('puts all four on the variant row', () => {
-    const row = variantRow(SHOP, POLLO, draft({ unitCode: '250g' }));
-    expect(row.base_unit_code).toBe('250g');
+    const row = variantRow(SHOP, POLLO, draft({ unitCode: '250g' }), BASES);
+    expect(row.base_unit_code).toBe('g');
     expect(row.purchase_unit_code).toBe('250g');
     expect(row.sell_unit_code).toBe('250g');
     expect(row.price_unit_code).toBe('250g');

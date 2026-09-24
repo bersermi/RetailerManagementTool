@@ -33,13 +33,29 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **⚠️⚠️ EVERY PRODUCT `Agregar` HAS EVER MADE IS UNSELLABLE, AND FIXING THE WRITER DOES NOT FIX THE ROWS.** `unitColumns` (`@/api/catalogWrite`) writes **all four** unit columns as the picked price unit, so a product created at `$45 / 250 g` carries `base_unit_code = '250g'`. ⚠️ **`record_sale` (`0016:217`) refuses any line where `u.base_code <> pv.base_unit_code`** — and for `250g` that is `'g' <> '250g'`. **So the row cannot be sold, cannot be bought (`0018:265`) and cannot be transferred (`0020:355`).** ⚠️ **MEASURED, NOT INFERRED, AND THE INSTRUMENT WAS HIS PHONE:** the quantity box on Vender counted `1, 2, 3` for a 250 g product instead of `250, 500, 750`, which is only possible if `baseUnit` read `250g`. ✅ **The seed does it CORRECTLY** (`00_skeleton.sql:334` — `base_unit 'g'`, `price_unit 'kg'`), so this is the app's writer and not the design. ⚠️⚠️ **THREE QUESTIONS AND THEY ARE NOT THE SAME SIZE.** **(a)** Fix `unitColumns` to write the dimension's base — ⚠️ **NOT a one-liner: `pricePerBase` converts through `factor_to_base` and its header rests on all four codes being equal**, so changing one of them without re-reading that arithmetic moves money. **(b)** Backfill the rows already in your shop — that is an append-only **migration**, and it is the half that cannot be undone by editing. **(c)** Or delete them and re-make them, which costs nothing if they are still *"merely indicative"* ([[catalog-belongs-to-merchant]]'s sibling ruling of 2026-09-24). ⚠️ **The recommendation is (a) + (c) and NOT (b)**: the backfill is a migration written to repair rows the owner has already said do not matter, and `6c` is about to touch these same two tables anyway | **`5h`** (the sale itself) and **`5g`** (the purchase). ⚠️⚠️ **IT DOES NOT BLOCK THE TASK MARKED NEXT, which enqueues a document and never asks Postgres to accept it — and that child's id is deliberately NOT spelled in this cell**: assertion 7c greps it for task names, so naming the row it does not block reads here as blocking it. *Never spell a check's sentinel in the file it reads*, recorded for the sixth time | This cell |
-⚠️⚠️ **ONE IS OWED AS OF 2026-09-24. IT CAME OUT OF THE OWNER LOOKING AT `5f-ii` ON HIS OWN
-PHONE, IT IS THE SECOND DECISION IN THIS BLOCK THAT IS ABOUT LIVE DATA RATHER THAN A DESIGN,
-AND IT DOES NOT BLOCK THE TASK MARKED NEXT.** ⚠️ **TWENTY decisions have now been parked here.**
-~~✅✅✅ nothing is owed as of 2026-09-24, and the empty table above is deliberate — for the
-ninth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
-`5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-24, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+TENTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **TWENTY decisions have now been parked and cleared
+here, and the twentieth spent about half an hour in the table.**
+
+✅✅ **THE TWENTIETH RULING, IN FULL, BECAUSE THE TABLE IT WAS IN IS NOW EMPTY — 2026-09-24:
+*"Fix the form and delete and remake them."*** **Both halves of the recommendation, taken as
+recommended: `unitColumns` writes the dimension's base, and the rows already in his shop are
+deleted rather than repaired by a migration.** ⚠️⚠️ **IT IS THE SECOND DECISION IN THIS BLOCK
+ABOUT LIVE DATA RATHER THAN A DESIGN, and like the first it was cheaper than it looked for a
+reason only he could supply** — the rows are *"merely indicative"*, so deleting them costs
+nothing and a backfill migration would have been an expensive answer to a cheap problem
+([[tienda-decisions-need-shop-truth]]).
+
+⚠️⚠️ **WHAT THE RULING DOES NOT SETTLE, AND IT IS NAMED HERE RATHER THAN ASSUMED: HE CANNOT
+DELETE THEM IN THE APP.** `Editar`'s retire control is drawn on nothing until `6c` mints the
+origin marker, so *delete and remake* has no affordance behind it — the deletion ships as
+`docs/runbooks/delete-unsellable-products.sql`, pasted into the Supabase SQL editor, ending in
+`rollback` until he changes one line. ⚠️ **It is NOT a migration and its header says why**: it
+repairs one shop's accident once, and `supabase/migrations/` describes the schema.
+~~⚠️⚠️ one is owed as of 2026-09-24. it came out of the owner looking at `5f-ii` on his own
+phone, it is the second decision in this block that is about live data rather than a design,
+and it does not block the task marked next.~~ — ⚠️ **struck in lower case deliberately, the
+rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a
 rendering.** ⚠️ **NINETEEN decisions have now been parked and cleared
 in this block, and the eighteenth and nineteenth were parked and ruled inside four hours** —
 both out of `5f`'s sizing, both answered in one message.
@@ -393,6 +409,51 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+
+⚠️⚠️ **`5e-i` IS REOPENED AND FIXED FORWARD, 2026-09-24 — EVERY PRODUCT `Agregar` HAD EVER
+MADE WAS UNSELLABLE, AND `5f-ii` ON A PHONE IS THE ONLY REASON ANYBODY KNOWS.** `5f-iii` is
+still the next task.
+
+⚠️ **The chain, because it is the argument for `R9` and for the whole of step 5's shape.** The
+owner opened Vender, stepped `+` on a product priced per 250 g, and read `1, 2, 3` where C3.8
+says `250, 500, 750`. **That is a rendering complaint.** It was a display bug for about ten
+minutes — `shownUnitOf` trusting `entry.baseUnit` — and then the question *why does the variant
+say it is stored in `250g`* had an answer: `unitColumns` writes the picked unit into **all four**
+unit columns, and `record_sale` (`0016:217`), `record_purchase` (`0018:265`) and
+`record_transfer` (`0020:355`) each refuse a line where `u.base_code <> pv.base_unit_code`.
+
+⚠️⚠️ **SO A ONE-GLANCE DEFECT ON THE HIGHEST-TRAFFIC SCREEN WAS SITTING ON TOP OF A LEDGER
+DEFECT THAT NOTHING IN THIS REPOSITORY COULD SEE.** 1,006 assertions, sixteen conventions
+groups, forty-four live contract assertions over a real database, and every one of them green —
+because **no constraint in the database catches it either**, which was measured rather than
+assumed: the new assertion 17 posts both shapes and the wrong one is accepted. ⚠️ **`5e-i`'s
+own contract could not have caught it**, and the reason is exact: every variant it posts is
+`kg kg kg kg`, and for a unit that is already its dimension's base the bug is invisible. **It
+had been creating the broken shape itself, 296 rows of it, for three weeks.**
+
+✅ **Fixed, on the owner's ruling of the same day — *"Fix the form and delete and remake them"*:**
+`unitColumns(unitCode, bases)` writes `unit.base_code` into `base_unit_code` and the picked unit
+into the other three; `variantRow` and `createProduct` thread the map from the units read they
+already make. ⚠️ **The price arithmetic needed NO change and that was checked rather than hoped**
+— `pricePerBase` divides by `factor_to_base` of the PRICE unit, so `price_per_base` has always
+been per gram and never read `base_unit_code` at all. **The column was the only thing disagreeing
+with the arithmetic around it.**
+
+⚠️ **The trigger stays unreachable.** `product_variant_units_same_dimension_trg` fires only on
+codes spanning two DIMENSIONS, and `unit.base_code` is by construction in the unit's own
+dimension — so the four may now differ and still never span two. There is still no Spanish
+sentence for that `23514` and still no need of one.
+
+⚠️ **Shipped:** the `unitColumns` fix; `docs/runbooks/delete-unsellable-products.sql`, which is
+**not a migration and says so** — it repairs one shop's accident once, ends in `rollback`, and
+**was run against the local database as written**: 311 broken variants found, 137 prices and 109
+emptied families deleted, rolled back, count unchanged. **1,012 assertions over 36 files**, and
+**assertion 17 of `5e-i-catalog-write-contract.sh`** — which posts a pack-priced variant and
+reads `unit.base_code` off the wire — with its falsifier's **17 fixtures** re-run.
+
+⚠️⚠️ **AND THE HALF THE OWNER MUST DO HIMSELF, NAMED RATHER THAN QUIETLY LEFT: HE CANNOT DELETE
+A PRODUCT IN THE APP.** `Editar`'s retire control is drawn on nothing until `6c`, so the runbook
+is the affordance. **`6c` is where that comes back.**
 
 ✅✅ **`5f-ii` IS DONE AS OF 2026-09-24 — VENDER IS A SCREEN.**
 **`5f-iii` IS THE NEXT TASK.** The `Pendiente` placeholder that has stood behind the Vender tab since `5a-ii` is

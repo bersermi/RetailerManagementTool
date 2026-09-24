@@ -922,7 +922,7 @@ export function useCreateProduct() {
 
   const mutation = useMutation({
     mutationFn: ({ workspaceId, draft }: { workspaceId: string; draft: ProductDraft }) =>
-      createProduct(workspaceId, draft, factors),
+      createProduct(workspaceId, draft, factors, unitBasesFrom(units.data)),
   });
 
   async function create(workspaceId: string, draft: ProductDraft): Promise<CreateOutcome> {
