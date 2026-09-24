@@ -3,12 +3,11 @@ import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useMyRole } from '@/api/hooks';
+import { useMyRole, useUnitFactors } from '@/api/hooks';
 import { formatMXN } from '@/format/mxn';
 import { outboxDb, readQueue } from '@/lib/outboxDb';
 import {
   NOTHING_DEAD,
-  NO_UNIT_FACTORS,
   bannerMinHeight,
   bannerTop,
   readsQueue,
@@ -75,6 +74,15 @@ import { useDensity } from '@/theme/DensityProvider';
 export function DeadLetterBanner() {
   const pathname = usePathname();
   const role = useMyRole();
+  // ⚠️⚠️ THE MAP `5c-iv-b` REFUSED TO HARD-CODE, AND `5f-i` IS WHERE IT ARRIVES.
+  // This banner has taken its factors as an ARGUMENT since 2026-09-22 and been
+  // handed `NO_UNIT_FACTORS` — an empty map — because the screen that holds the
+  // real one did not exist. Until now it priced only a line quoted in its
+  // variant's own base unit and WITHHELD the peso figure for the rest rather
+  // than understating it; the count was always right. ⚠️ It is the same
+  // `UNITS_KEY` read the catalog uses, so there is still exactly one answer to
+  // *how many grams in a kilo* on this phone.
+  const factors = useUnitFactors();
   const [value, setValue] = useState<QueueValue>(NOTHING_DEAD);
   const [dismissedAt, setDismissedAt] = useState<number | null>(null);
 
@@ -87,8 +95,8 @@ export function DeadLetterBanner() {
       setValue(NOTHING_DEAD);
       return;
     }
-    setValue(valueOf(readQueue(outboxDb()), NO_UNIT_FACTORS));
-  }, [role, pathname]);
+    setValue(valueOf(readQueue(outboxDb()), factors));
+  }, [role, pathname, factors]);
 
   if (!showsBanner(role, value, dismissedAt, pathname)) return null;
   return <Banner value={value} onDismiss={() => setDismissedAt(value.count)} />;

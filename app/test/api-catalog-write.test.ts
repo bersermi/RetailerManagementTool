@@ -91,6 +91,7 @@ function variant(id: string, name: string, familyId: string, familyName: string)
     name,
     family_id: familyId,
     price_unit_code: 'kg',
+    base_unit_code: 'g',
     is_active: true,
     product_family: { id: familyId, name: familyName },
     price_list: [],
