@@ -1776,3 +1776,111 @@ six required sentences surviving, every child stated once and the parent closed;
 `split-coverage-falsify.sh` derives its fixtures from the spec, so the new spec
 brings its own falsification. `plan-handover.sh` passes all eleven groups.
 
+
+## ⚠️⚠️ THE SIXTEENTH CUT — taken 2026-09-24 while `5f-iii` was being sized, and it
+## falsifies the fifteenth's correction the same way the fifteenth falsified the fourteenth
+
+⚠️⚠️ **`5e-ii`'s CLOSING ENTRY — DATED 2026-09-22 — WAS STILL IN `## Position`.** The
+fifteenth cut struck a false sentence (*"there is no 2026-09-22 entry left"*) and replaced
+it with **"the day IS now wholly in its own file."** ⚠️ **That replacement was false too,
+and by one entry of eighty-six lines.** It is the NINTH instance in this repository of a
+claim made from the shape of the work rather than from the file — and the second committed
+in a row by a session whose job that hour was archiving. ✅ **The remedy is the same and it
+is not a better sentence: it is a `grep`.** `grep -c '2026-09-22' docs/PLAN.md` is four
+seconds and would have caught both.
+
+⚠️ **What forced the cut:** `## Position` reached **1,413 lines against its 1,400 ceiling**
+with `5f-iii`'s sizing entry in place — the sixth time a session has paid for a ceiling it
+did not raise, and the thirteenth of sixteen cuts taken by a session that wanted to be
+writing something else. **This one bought eighty-six lines.**
+
+⚠️ It is a MOVE and not a copy, it is an APPEND to this file rather than a second file for
+2026-09-22, and `plan-corpus.sh` reads it — so every content-addressed lookup resolves
+exactly as before.
+
+✅✅ **`5e-ii` IS DONE AS OF 2026-09-22 — A SHOPKEEPER CAN MAKE A PRODUCT ON A
+PHONE, AND THE MANAGER FENCE IS DRAWN AS WELL AS APPLIED.
+`5e-iii` IS THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS SUBSTANCE.** One new route, two doors
+into it, five decisions that moved out of the JSX, 21 new assertions and seven
+falsification fixtures. **It ships no migration**, as its row promised.
+
+⚠️ **WHAT SHIPPED.** `app/src/app/producto/nuevo.tsx` — C8.9's four fields and
+nothing else, the family suggestion with `Cambiar` beside it, a family created in
+place, the unit chips, the no-price line where `noPriceNoticeKey` says it goes,
+one slot for both kinds of refusal, and the confirmation. **Two of C8.12's three
+doors**: `Agregar` in the Productos banda, and `Agregar Variante` on La Familia
+now live, passing `?familia=<id>` so **no family question is asked at all**. The
+third — the Comprar/Vender `...` quick action — stays routed to `5f` and `5g`.
+
+⚠️⚠️ **THE FINDING, AND IT IS THE REASON THIS TASK WAS WORTH A SESSION: NOTHING IN
+THE DATABASE APPLIES C8.5 ACROSS VARIANTS, AND I CHECKED RATHER THAN ASSUMED.**
+`product_variant_units_same_dimension_trg` (`0002:204`) counts distinct dimensions
+across the **four unit columns of one row** — and C8.10's fan-out writes the same
+code into all four, so the trigger can never fire from this app. Nothing compares
+a new variant against its **siblings**. So *"one family, many variants, ONE
+dimension — what keeps the arithmetic honest"* was a promise **nothing in this
+system kept**, and a unit picker showing all ten units inside `Pollo` would have
+had Postgres cheerfully accept a variant priced per litre. `unitOptions` now
+narrows the list to the family's own dimension, and `unitChoice` **drops a pick
+the family stopped allowing** — she types `Leche`, picks `l`, overrides the family
+to `Pollo`, and a form holding that in `useState` would have posted it.
+
+⚠️⚠️ **AND `5e`'s SPLIT SAID THIS CHILD *RENDERS AND DECIDES NOTHING*. IT DECIDED
+FIVE THINGS, AND ALL FIVE ARE IN `@/api/catalogWrite` RATHER THAN IN THE JSX.**
+That is `R3` working rather than the seam failing: a suggestion that can be
+overridden needs a rule for which answer wins, a unit list in front of a person
+needs a rule for which units are offerable, and a control a cashier must never see
+needs a predicate. `canWriteCatalog`, `resolveFamily`, `unitOptions`, `unitChoice`
+and `savedLine` — each with a right answer a node suite reads.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5e-i-catalog-write-contract.sh`
+reports **all 16 assertion groups green against a real database** with these edits
+in place — *A CASHIER IS REFUSED* on all three tables — and its harness reports
+**all 17 fixtures behaving**, five of which move the applied schema and put it
+back. `5d-i-catalog-contract.sh`: 12/12 green. `conventions-gate.sh`: 16 groups
+over **60** source and 32 test files. Vitest: **851** assertions, up from 830.
+`tsc --noEmit`: clean, after `.expo/types/router.d.ts` was regenerated — which is
+**the only evidence in this repository that expo-router discovers the new screen**
+([[new-route-needs-typed-route-regen]]). `split-coverage.sh docs/checks/specs/5e.split`:
+still 16/16 in exactly one child. ⚠️ **Seven fixtures were driven through the new
+assertions** and each turned exactly its own red: the fence admitting a cashier,
+C8.5's narrowing removed, the read's order trusted, a stale unit pick kept, the
+suggestion overruling the override, a priceless save wearing the priced sentence,
+and the sole-unit derivation removed.
+
+⚠️⚠️ **THREE DECISIONS WERE TAKEN ON THE OWNER'S BEHALF. NONE IS A MIGRATION AND
+NONE IS BAKED INTO A SEED, so all three are an edit rather than a fix-forward —
+and the first is the one to look at, because it is the only one that changes what
+he does at the counter.**
+
+| | Decision | Why, and what the alternative was |
+|---|---|---|
+| **A** | ⚠️ **THE FORM STAYS OPEN AFTER A SAVE**, clears the name and the price, and **keeps the family and the unit** | C8.2 has him adding `Pechuga`, `Pierna`, `Muslo` in one sitting — same family, same unit — so returning to Productos each time is a tap per product spent getting back ([[prefer-the-option-that-adds-no-human-step]]). **What it costs is seeing the row appear in the list**, and the saved product's NAME above the sentence is what pays for it. The alternative — `router.back()` on success — is one line |
+| **B** | **THE UNIT LIST IS NARROWED BY THE FAMILY, AND A LIST OF ONE ANSWERS ITSELF** | C8.5, above, which nothing else keeps. ⚠️ It deliberately does **not** preselect out of a longer list: `kg` over `100g` is a guess about how this shop prices, and C8.9 asks the question. A count family can only take `pza`, so asking there is a tap paid to be told there was no choice |
+| **C** | **THE FORM WAITS FOR THE CATALOG READ AND WILL NOT OPEN ON AN EMPTY ONE** | Every family question is answered out of the rows `useCatalog` holds, so a form drawn on a read that had not landed would propose a NEW family for one this shop already has. ⚠️ **An EMPTY catalog is deliberately NOT that state** — that is C8.2's shop on its first morning, and adding the first product is exactly what this screen is for |
+
+⚠️⚠️ **AND THE SENTINEL RULE WAS BROKEN TWICE IN ONE SESSION, IN TWO DIFFERENT
+FILES, AND ONLY THE SECOND ONE GOT PAST A LOCAL RUN.** `split-coverage.sh` caught
+the first immediately: the `5e-ii` row above spelled `C8.10`, `Costos` and
+`Editar` — three deliverables belonging to other children — and reported all
+three as *owned by neither*. The second reached CI. `docs/HANDBOOK.md`'s next-work
+marker was written as *…next piece of work is.**`* with the full stop INSIDE the
+bold run; `handbook-agreement.sh` was **green**, because it greps the sentence and
+not the markup, and `handbook-agreement-falsify.sh` went red on **four fixtures at
+once**, each saying *"anchor not present in the `5e-iii` row"*. ⚠️ **A harness that
+cannot find the row it is meant to break reads exactly like a guard that has lost
+its teeth**, which is why the pair is run together and why the base being green is
+not the whole answer. ⚠️ **Nothing was loosened**: the sentence was reworded so the
+period sits outside the bold — `5b.7`'s call about the R4 stripper, made again —
+and **widening the anchor is routed, in that file's own header, to the next task
+that touches either file.** ⚠️ **The lesson that generalises: after editing a file
+a guard READS, run the guard AND its falsifier**, because the falsifier is the half
+that depends on the file's exact spelling.
+
+⚠️⚠️ **AND FIVE THINGS ARE ROUTED TO HIS PHONE RATHER THAN GUESSED (`R9`, §2.11).**
+Does the suggested family read as a **proposal** or as a decision already taken —
+and is `Cambiar` findable beside it? Is the no-price line quiet enough to live
+under a field and loud enough to be read? Do five unit chips fit on one line at
+*Letra grande*? Does staying on the form after a save read as *saved* or as
+*nothing happened*? And is `Agregar` in the banda findable on the one morning it
+matters most — the empty catalog?

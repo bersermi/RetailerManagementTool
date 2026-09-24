@@ -106,9 +106,25 @@ they are not the same thing, and conflating them is a one-way door (ADR-035 §2.
 
 ## Working agreement
 
-One task per session, taken from `docs/PLAN.md`. Estimate difficulty first; if the
-task is large, split it in the plan before writing code, so the work survives a
-context clear or a usage limit. Update `docs/PLAN.md` when a task closes.
+One task per session, taken from `docs/PLAN.md`. **Estimate difficulty first and
+write down what the estimate found** — that is the half that has repeatedly paid for
+itself, and it is not the same thing as splitting. Update `docs/PLAN.md` when a task
+closes.
+
+⚠️⚠️ **AMENDED BY THE OWNER 2026-09-24 — AN `M` OR AN `L` IS ONE SITTING:** *"if a
+task is M or L, let's do it at once, we have enough usage and space to do it."*
+**`XL` still splits on size; `M` and `L` do not.** The old rule's stated reason was
+*"so the work survives a context clear or a usage limit"* — a budget, and the budget
+changed.
+
+⚠️ **A split at `M` or `L` is now the exception and must name a reason that is NOT
+size, in its own row:** (1) half the row is **gated** on a decision or an ADR
+amendment the owner owes and the other half is not; (2) the row carries **two failure
+classes** and one of them is invisible here — the ledger or the queue — so one row
+would let the unseen half ride in on the back of the one a person can look at; or
+(3) the plan's **deferral test** (both halves yes) separates look-questions that
+cannot be answered yet. **Anything else is the old rule asking to come back.** The
+full argument is in `docs/PLAN.md`'s `## Working agreement`.
 
 **Merging is automated** (settled 2026-08-17, replacing the approval gate agreed
 earlier the same day). Push the branch, open the PR, wait for CI, **read the job

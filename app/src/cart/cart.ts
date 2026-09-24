@@ -374,14 +374,68 @@ export function quoteFor(entry: CatalogEntry, kind: Kind, quotes: Quotes): strin
   return kind === 'sell' ? entry.perBase : null;
 }
 
-export function basketOf(
+/**
+ * One row of the basket sheet — what the review screen draws, and the figure
+ * the total is the sum of.
+ *
+ * ⚠️ `centavos` IS `null` FOR A LINE THAT COULD NOT BE PRICED, never a zero.
+ * C3.12's dash is about one row and `Basket.complete` is the same fact about
+ * the sum; this is the pair of them said once, so a sheet cannot render a
+ * priceless line as free while the bar beside it says a price is missing.
+ */
+export interface ReviewRow {
+  readonly variantId: string;
+  /** The variant's name — or `null` when the catalog no longer has it. */
+  readonly name: string | null;
+  /** Its family, `''` when the variant is loose. `null` with the name. */
+  readonly familyName: string | null;
+  /** Base units at scale 3, straight off the line. */
+  readonly base: number;
+  /** What this line costs, or `null`. */
+  readonly centavos: number | null;
+}
+
+/** The sheet's rows and the bar's total, out of one pass over one basket. */
+export interface Review {
+  readonly rows: readonly ReviewRow[];
+  readonly basket: Basket;
+}
+
+/**
+ * The basket, as the review screen shows it AND as the sticky bar sums it.
+ *
+ * ⚠️⚠️ ONE FUNCTION RETURNS BOTH, AND §2.5 RULE 5 IS THE WHOLE REASON —
+ * *"the displayed lines fail to sum to the displayed total on the review
+ * screen, which is the one screen where a customer is checking the arithmetic
+ * by hand."* `basketOf` returned a total and a COUNT of lines and never the
+ * lines themselves, so the sheet had nothing to draw a row from and the
+ * obvious move was for it to price its own. **That is two arithmetics over one
+ * basket**: they agree for every shop today, because `prices_include_tax` is
+ * true and no rate is ever handed in, and they part by a centavo the first time
+ * one is. ⚠️ **The total here is the sum of the very numbers the rows carry**,
+ * so the identity is structural and `app/test/cart.test.ts` reads it rather
+ * than a reviewer hoping for it.
+ *
+ * ⚠️⚠️ A LINE WHOSE VARIANT HAS LEFT THE CATALOG IS A ROW AND NOT A GAP, and
+ * that is the one judgement in this function. `draftOf` refuses the WHOLE
+ * basket on `variant-not-in-catalog`, and a retired product does leave the
+ * catalog under a basket that is already open — a manager on another phone,
+ * mid-sale. ⚠️ **The sheet is then the only surface that can remove it**: the
+ * list behind it is the catalog, and the catalog no longer has the row. A sheet
+ * that hid what it could not name would leave a shopkeeper with a commit that
+ * refuses and nothing on screen to act on, which is `C3.18`'s users handed a
+ * piece of book-keeping. So the row appears, unnamed and unpriced, with the
+ * `Quitar` every other row has.
+ */
+export function reviewOf(
   cart: Cart,
   entries: readonly CatalogEntry[],
   kind: Kind,
   pricesIncludeTax: boolean,
   rates: TaxRates = NO_TAX_RATES,
   quotes: Quotes = NO_QUOTES,
-): Basket {
+): Review {
+  const rows: ReviewRow[] = [];
   let centavos = 0;
   let complete = true;
   for (const line of cart) {
@@ -396,13 +450,35 @@ export function basketOf(
             rates[line.variantId] ?? null,
           );
     const value = price === null ? null : lineCentavos(price, line.base);
+    rows.push({
+      variantId: line.variantId,
+      name: entry === undefined ? null : entry.name,
+      familyName: entry === undefined ? null : entry.familyName,
+      base: line.base,
+      centavos: value,
+    });
     if (value === null) {
       complete = false;
       continue;
     }
     centavos += value;
   }
-  return { centavos, lines: cart.length, complete };
+  return { rows, basket: { centavos, lines: cart.length, complete } };
+}
+
+/**
+ * What the whole basket costs. ⚠️ **It is `reviewOf`'s total and not a second
+ * pass** — see that function for why the two may never be written twice.
+ */
+export function basketOf(
+  cart: Cart,
+  entries: readonly CatalogEntry[],
+  kind: Kind,
+  pricesIncludeTax: boolean,
+  rates: TaxRates = NO_TAX_RATES,
+  quotes: Quotes = NO_QUOTES,
+): Basket {
+  return reviewOf(cart, entries, kind, pricesIncludeTax, rates, quotes).basket;
 }
 
 /**

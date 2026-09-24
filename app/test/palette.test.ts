@@ -62,11 +62,11 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe('área 13 — the palette is a table with eleven complete rows', () => {
+describe('área 13 — the palette is a table with twelve complete rows', () => {
   it('has roles to iterate, so every loop below is not vacuous', () => {
     // ⚠️ RULE 4. Empty arrays make every `for` below pass having asserted
     // nothing — the shape of misleading green this repository keeps hitting.
-    expect(PALETTE_ROLES).toHaveLength(11);
+    expect(PALETTE_ROLES).toHaveLength(12);
     expect(INK_ROLES.length, 'no inks to check').toBeGreaterThan(3);
     expect(GROUND_ROLES.length, 'no grounds to check').toBeGreaterThan(3);
   });
@@ -84,7 +84,7 @@ describe('área 13 — the palette is a table with eleven complete rows', () => 
     }
   });
 
-  it('gives every role its own value — eleven roles, eleven colours', () => {
+  it('gives every role its own value — twelve roles, twelve colours', () => {
     // Two roles sharing a value is one role wearing two hats, and the second
     // hat is the one nobody remembers to change.
     const values = PALETTE_ROLES.map((r) => PALETTE[r]);
