@@ -43,6 +43,52 @@ being cheap are the ones the seed writes data against.
 
 What is still not allowed is merging red, or merging on the strength of the tick.
 
+## Deploying — how the schema reaches the database a phone talks to
+
+⚠️⚠️ **A GREEN CI RUN PROVES A MIGRATION APPLIES. IT DOES NOT APPLY IT ANYWHERE
+THAT LASTS.** Every check in `docs/checks/` and every suite under this directory
+builds its own Postgres, asserts against it and deletes it. That is the right
+design and it is not the whole job: on **2026-09-22** the hosted project this app
+signs in to was found to have **no schema at all** — every migration applied in
+CI's throwaway database and nowhere else — and it was found by the owner **tapping
+Productos on his phone**, not by any check.
+
+**Deploy target — project ref:** `hweutzjhzvioswnjzqki`
+
+That is the one database the app talks to; its region is `us-east-1`, fixed at
+creation. ⚠️ **`config.toml`'s `project_id` is not this** — that names the local
+stack, not the hosted project.
+
+**How a merged migration gets there:**
+
+```
+supabase db push                       # applies what the remote is missing
+bash docs/checks/5R-f-schema-deployed.sh   # proves it actually landed
+```
+
+⚠️ **Linking is per-laptop and a clone does not inherit it.** `supabase/.temp/` is
+gitignored, so a fresh working copy needs `supabase link --project-ref
+hweutzjhzvioswnjzqki` once, and `supabase login` once per machine.
+
+**When to run the check:** straight after a `db push`, and whenever a migration has
+merged and nobody can say for certain that it was deployed. It needs **no password
+and no service key** — `--linked` authenticates with the stored access token.
+
+⚠️⚠️ **IT IS NOT IN ANY WORKFLOW, AND THAT IS DELIBERATE — `5R-f` DECIDED IT.** A
+Supabase access token is **account-wide**; there is no project-scoped one, so a
+repository secret would hand every workflow run the whole Supabase account in order
+to guard against a forgotten `db push`. And the check's answer depends on the
+**world rather than on the diff**: once a migration merges it is red until a person
+deploys, so in CI it would redden pull requests that neither caused it nor can fix
+it. A red that is not yours is how people stop reading CI, which is the one habit
+the merge agreement rests on.
+
+⚠️ **This does not loosen the rule above.** Nothing reaches the database by hand —
+`db push` applies the files in this directory and nothing else, and the check's
+sixth assertion goes red if the remote ever carries a migration this repository
+does not have.
+
+
 ## Migrations
 
 | File | Contents |
