@@ -523,6 +523,18 @@ was lost or silently duplicated by a 353-line move: **every `Contract —` step 
 identical**, and the only differences are the five setup steps the new job legitimately adds
 (checkout, CLI, start, reset, `Stop`).
 
+⚠️⚠️ **AND CI CAUGHT THE ONE THING THIS SESSION DID NOT — THE HANDBOOK'S NEXT-WORK MARKER,
+SPELLED WITH THE FULL STOP INSIDE THE BOLD RUN.** `handbook-agreement.sh` was GREEN, because
+it greps the sentence; `handbook-agreement-falsify.sh` went red on **four fixtures at once**,
+every one reporting *"anchor not present in the 5g row"*. ⚠️⚠️ **THE SAME DEFECT, FROM THE
+SAME CAUSE, HAPPENED ON 2026-09-23 IN `5e-ii` — AND THE HARNESS ITSELF CARRIES THE PARAGRAPH
+SAYING SO.** ⚠️ **A harness that cannot find the row it is supposed to break reads exactly
+like a guard that has lost its teeth**, which is why it is red rather than quiet. ✅ **Nothing
+was loosened**: the handbook sentence was reworded so the period sits outside the bold, which
+is what that paragraph says to do and is the cheaper half of *never spell a check's sentinel
+differently in the file it reads*. ⚠️ **The lesson is the one already written down and not
+followed here — run the FALSIFIER after editing what it reads, not just the guard.**
+
 ⚠️ **TWO COMMENTS ELSEWHERE IN THE FILE WENT STALE AND WERE AMENDED RATHER THAN REWRITTEN.**
 `auth-session`'s header and `catalog-write`'s both argue *do not bolt this onto `reset`* and
 cite its 12-13 minute runtime. ⚠️⚠️ **That paragraph made this task's case twice before
