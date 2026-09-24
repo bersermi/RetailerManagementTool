@@ -285,6 +285,24 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-24 — **§2.8's *Unit-aware input* row and §2.11's `QtyInput`
+  primitive, on the decision maker's instruction, and it is a REVERSAL.** *"Amend it to
+  say both, this should be easily switchable and configurable. The step for the stepper
+  and essentially any product qty can be set by keypad. If a user wants to sell 15
+  manojos of cilantro, he shouldn't have to click the stepper 14 times."* Both sections
+  said the quantity control was a **switch** — stepper for counts, keypad for weight,
+  *"never the same control for both"*. **It is not a switch: every product carries both,
+  one tap apart.** ⚠️⚠️ **THE AMENDMENT WAS RAISED BY A PLAN SIZING RATHER THAN BY A
+  SCREEN**, and that is why it is here before any of Vender was drawn: C3.8 and the
+  decision maker's own specification of 2026-09-23 had contradicted this sentence for
+  weeks, in a document the plan is required to lose arguments to, and nothing had looked.
+  ⚠️⚠️ **AND HIS EXAMPLE REVERSED THE RECOMMENDATION'S OWN SAFE HALF.** The brief put to
+  him said *nothing is lost — a discrete unit gets no keypad, because there is no 288th
+  of a `pza`*. **A keypad is not about precision, it is about magnitude**: fifteen
+  manojos of cilantro is fifteen taps, and the tap budget §2.8 exists to protect is spent
+  on the product shape the brief had reasoned its way past. ⚠️ **No code was written
+  against the wrong sentence** — `5f-ii` was gated on this amendment and `5f-i`'s
+  arithmetic never depended on it, which is the seam the split was drawn for.
 - **Revised:** 2026-09-20 — §2.6's outbox sentence corrected from step `5a` to step
   **`5c`**. ⚠️ **NOT A NEW DECISION, AND DELIBERATELY NOT TREATED AS ONE.** The ruling
   is the decision maker's of 2026-09-13, recorded in the entry directly below this one;
@@ -1317,8 +1335,32 @@ and silently corrupts stock, margin and waste analytics. Three guards, none bloc
 - **Magnitude warning** — flag any quantity or unit price beyond ~3× the trailing
   median for that product. Seeded from *purchase* history rather than sales, so it
   works from day one.
-- **Unit-aware input** — stepper for discrete units, decimal keypad for weight and
-  volume, unit rendered large beside the field. Never the same control for both.
+- **Unit-aware input** — ⚠️⚠️ **AMENDED 2026-09-24 ON THE DECISION MAKER'S
+  INSTRUCTION, AND IT IS A REVERSAL RATHER THAN A WIDENING.** ~~stepper for discrete
+  units, decimal keypad for weight and volume. Never the same control for both.~~
+  **EVERY product carries BOTH, and switching between them is one tap.** His words:
+  *"Amend it to say both, this should be easily switchable and configurable. The step
+  for the stepper and essentially any product qty can be set by keypad. If a user
+  wants to sell 15 manojos of cilantro, he shouldn't have to click the stepper 14
+  times."* ⚠️ **The unit is still rendered large beside the field**, which is the half
+  of this sentence that was never in question.
+  ⚠️⚠️ **THE EXAMPLE IS A DISCRETE UNIT, AND THAT IS THE WHOLE POINT.** The original
+  sentence reserved the keypad for weight and volume on the assumption that a count
+  needs no fractions — true, and irrelevant. **A keypad is not about precision, it is
+  about MAGNITUDE**: there is no half a manojo, and there are fifteen of them.
+  Fourteen taps at a counter is the tap budget this section exists to protect, spent
+  on the one product shape nobody thought to check.
+  ⚠️ **What survives of the original rule is the reason it was written**: the two
+  controls are for two different acts — the stepper for *one more of the usual
+  amount*, the keypad for *this exact number* — so they must be distinguishable and
+  reachable, not a single box that behaves differently depending on the product.
+  ⚠️⚠️ **AND THE STEP ITSELF IS CONFIGURABLE ALREADY, THROUGH THE PRICE UNIT.** The
+  step is `unit.factor_to_base` for the variant's `price_unit_code` (C3.8), and a
+  shopkeeper chooses that unit when creating or editing the product — so *"the step
+  can be set"* needs no new affordance: pricing *por cuarto* makes the step 250 g and
+  pricing *por kilo* makes it a kilo. **A step set independently of the price unit
+  would be a different thing and is NOT read into this amendment** — see the plan's
+  `5f-ii` row, which records that reading and does not build it.
 - **Review before commit** — the commit gesture confirms a line list with totals, not
   a bare number.
 
@@ -1553,8 +1595,11 @@ four dialects and a junior inventing a cache. Settled 2026-08-14:
 | Money on screen | `Intl.NumberFormat('es-MX')` for **rendering only** | Arithmetic is integer centavos in `packages/money`, always. A formatter never touches a value that will be compared against Postgres |
 | Client tests | **Narrow, and bounded by what they assert.** Allowed where a test pins a value a customer sees or the ledger stores — the money formatter, unit conversion, the outbox state machine. Refused over rendering, navigation and layout. `packages/money` is not negotiable | Per §2.10, amended 2026-09-07. A suite over a thin UI is still a poor use of a small team; four assertions over a pure function that decides a displayed price are not that suite, and they are what makes `app.yml`'s green mean something other than *"it compiled"* |
 
-The primitives, roughly: `Screen`, `Field`, `QtyInput` (the stepper/keypad switch
-from §2.8), `Money`, `LineList`, `PrimaryAction`, `Sheet`, `ListRow`, `Empty`,
+The primitives, roughly: `Screen`, `Field`, `QtyInput` (⚠️ **AMENDED 2026-09-24 with
+§2.8's *Unit-aware input* row and by the same instruction:** ~~the stepper/keypad
+switch~~ — **it is not a switch. Every product carries a stepper AND a keypad**, and
+the primitive's job is to make both reachable in one tap rather than to choose between
+them), `Money`, `LineList`, `PrimaryAction`, `Sheet`, `ListRow`, `Empty`,
 `Banner`. Ten is a target, not a budget; the point is that they exist before step 6
 rather than being extracted from Vender afterwards by someone who did not write it.
 

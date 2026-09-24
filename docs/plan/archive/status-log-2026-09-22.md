@@ -1532,3 +1532,247 @@ unreadable row still printing its count → red. A withheld figure drawn as
 `$0.00` → red. **Rule 4: these assertions were confirmed capable of failing
 before they were believed.**
 
+
+
+---
+
+## ⚠️⚠️ THE FIFTEENTH CUT — taken 2026-09-24, and it corrects a false sentence the fourteenth wrote
+
+⚠️⚠️ **THE FOURTEENTH CUT'S POINTER SAID *"THERE IS NO 2026-09-22 ENTRY LEFT IN
+`## Position`"*. THAT WAS FALSE WHEN IT WAS WRITTEN, AND FIVE OF THEM WERE STILL
+THERE** — the price ruling, the confirmation-surface ruling, `5e-i`, the `Costos`
+ruling and the `5e` sizing. **The claim was made from the shape of the work rather
+than from the file**, which is the defect this repository has now recorded eight of
+and the first one committed by a session whose whole job that hour was archiving.
+✅ **The sentence is corrected in `## Position` rather than deleted**, and these
+five entries are here.
+
+⚠️ **Why it matters more than an off-by-five:** `plan-corpus.sh` would have kept
+resolving every row either way, so nothing would have gone red. **A false sentence
+about where the history lives is exactly the kind that survives** — the next
+session archiving a day would have believed 2026-09-22 was closed and opened a
+second file for it, which the one-day-per-file rule exists to prevent.
+
+⚠️ **It is a MOVE and not a copy**, taken from the FOOT as eleven of the fifteen
+have been, and this file is appended to rather than replaced because the entries
+are that day's.
+
+---
+
+✅✅ **THE PRICE IS NO LONGER REQUIRED — RULED 2026-09-22, AND IT REVERSED A DECISION `5e-i`
+HAD ALREADY SHIPPED THAT DAY: *"Let's allow the user to create a product without a sell nor
+purchasing price, but highlight he's doing so."*** ⚠️ **FIFTEEN decisions have now been parked
+and cleared**, and this is the seventh time the owner has taken the smaller, kinder option than
+the recommendation ([[check-whether-it-needs-building-at-all]]).
+
+⚠️⚠️ **IT CHANGED MERGED CODE RATHER THAN A PLAN ROW, WHICH IS THE SHAPE THE §2.8 HOME RULING
+ALREADY HAD.** `checkProduct` no longer refuses an empty price box; `createProduct` posts **two
+rows** instead of three when it is empty — **never a `price_list` row of zero**, because C3.12
+makes `$0.00` a price the owner SET and the dash a question nobody answered, and posting zero
+would answer it on his behalf at the one moment he declined to. `priceOmitted` is what tells an
+EMPTY box from an UNREADABLE one: the two had been one fact and `gratis` is still refused.
+
+⚠️ **THE SENTENCE IS HIS, TIGHTENED, AND THE THREE EDITS ARE NAMED IN `ES.catalog.confirm`** —
+*"Este producto no tendrá precio. Cuando lo compres o lo vendas tendrás que ponerle uno."* It
+names the CONSEQUENCE and not the state, because C3.12 is his own earlier ruling that a
+transaction cannot be concreted without a price: what he cannot see from the form is that Vender
+and Comprar will both stop and ask him.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `5e-i-catalog-write-contract.sh` now reports **16**
+assertion groups — the new one creates a product with NO price through the same two-row path and
+proves it is on `5d-i`'s own catalog read wearing an **empty array** — and its harness reports
+**17** fixtures, the new `G12` mutating the READ module to `!inner` and confirming the check goes
+red when every priceless product would vanish off Productos. Also green: 828 Vitest assertions
+(was 821), `tsc --noEmit`, `conventions-gate.sh` 16 groups.
+
+✅✅ **AND THE SURFACE WAS RULED THE SAME DAY, ON THE RECOMMENDATION: *"Let's follow your
+recommendation"* — NO EXTRA TAP.** The sentence is a **line under the empty price box**, not a
+confirmation he dismisses. ⚠️ **SIXTEEN decisions have now been parked and cleared**, and this is
+the second ruling of the same afternoon on the same sentence.
+
+⚠️⚠️ **IT RENAMED A THING RATHER THAN ONLY CHOOSING ONE, AND THAT IS THE POINT: `ES.catalog.confirm`
+IS NOW `ES.catalog.notice`, AND `priceConfirmKey` IS `noPriceNoticeKey`.** A block called *confirm*
+describes exactly the thing the owner ruled against; the word was wrong for one afternoon and is
+corrected before the screen that renders it exists, rather than left to mislead it. C8.2 is the
+argument he was given: the shopkeeper seeds a deliberately short catalog himself, so he leaves the
+price empty product after product — **a dialog per product is a tap paid repeatedly to be told the
+same thing**, which is how a warning becomes something a person dismisses without reading.
+
+⚠️⚠️ **AND THE RULING MADE A SECOND DECISION CONCRETE THAT NOBODY HAD ASKED ABOUT: *WHEN* THE LINE
+APPEARS.** The price box starts EMPTY, so a notice keyed on emptiness alone would be on screen
+**before a single character is typed** — a warning about a product that does not exist yet, on
+every visit, which is how a shopkeeper learns to read past it. `noPriceNoticeKey` answers only when
+the rest of the draft is one the database would accept: the moment *"este producto no tendrá
+precio"* stops being a guess and starts describing what saving now would produce, **which is why
+the sentence is in the future tense**. ⚠️ A refusal outranks it, and that falls out of asking
+`checkProduct` first rather than being a second rule. ⚠️ **It is in `@/api/catalogWrite` and not in
+the form (`R3`)** — 830 Vitest assertions now, and `5e-ii` renders rather than decides.
+
+⚠️ **WHAT IS STILL THE OWNER'S EYE AND NOT A CHECK (`R9`)**: whether that line reads well at a
+counter — where it sits, how quiet it is. `5e-ii`, with the form in his hand.
+
+✅✅ **`5e-i` IS DONE AS OF 2026-09-22 — THE APP CAN MAKE A PRODUCT, AND THE
+MANAGER FENCE HAS AN INSTRUMENT FOR THE FIRST TIME. `5e-ii` IS THE NEXT TASK:
+`Agregar`, THE FORM ITSELF.** One new module, three rows on the wire, a node
+suite of 44 assertions and a real-HTTP contract check with 15 assertion groups
+and 15 fixtures behind it. **It ships no migration**, as its row promised:
+`0002` applied these three tables and their six write policies on 2026-08-26 and
+nothing here reopened the schema.
+
+⚠️ **WHAT SHIPPED.** `app/src/api/catalogWrite.ts` — `WRITE_ORDER` (family →
+variant → price, as an array, because **the order is the claim**), the three
+insert column lists and the three row builders, `unitColumns` for **C8.10**'s
+fan-out, `parsePesos` and `pricePerBase` for the money, `suggestFamily` and
+`familiesFrom` for the family **SUGGESTED FROM THE TYPED NAME**, `checkProduct`
+for the four fields, `CATALOG_WRITE_REFUSALS` / `catalogWriteErrorMessage` for
+the refusals, and `retryDraft` / `createLine` for what a **partial failure**
+leaves. `createProduct` in `@/api/calls` and `useCreateProduct` in `@/api/hooks`
+are the three lines that talk. ⚠️ **No screen, no component and no primitive**,
+as the row required.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK. `docs/checks/5e-i-catalog-write-contract.sh`
+REPORTS ALL 15 ASSERTION GROUPS GREEN AGAINST A REAL DATABASE, AND ITS OWN
+HARNESS REPORTS ALL 15 FIXTURES BEHAVING** — six that break the contract and
+**five that move the applied schema and put it back**, because no edit to a
+TypeScript file can make a policy admit a cashier. The two that matter most:
+`G7` widens `product_variant_insert` to any member and `G8` widens
+`price_list_insert`, and both make the check say *A CASHIER WROTE TO …*. The
+schema was read back afterwards and both policies are `has_role('manager')`
+again, `price_list_variant_fk` and `product_variant_name_unique` are `0002`'s,
+and `tax_rate`'s default is `0`. Also green: `conventions-gate.sh` (16 groups
+over 59 source and 32 test files), the Vitest suite (820 assertions, up from
+776), `tsc --noEmit`, and `split-coverage.sh docs/checks/specs/5e.split` still
+at **16/16 deliverables in exactly one child**.
+
+⚠️⚠️ **FOUR THINGS WERE MEASURED RATHER THAN RECALLED, AND TWO OF THEM WOULD
+HAVE SHIPPED WRONG.**
+
+| | What was measured | What it changed |
+|---|---|---|
+| **1** | ⚠️⚠️ **`42501` MEANS SOMETHING ELSE HERE THAN ANYWHERE ELSE IN THIS APP.** The three INSERT policies answer HTTP **403** *"new row violates row-level security policy for table …"* to a cashier, on all three tables | `@/api/errors` maps `42501` to **`sessionEnded`** — *"Tu sesión se cerró. Entra de nuevo."* — which would have sent a cashier round a loop she can never leave. `catalogWriteErrorMessage` intercepts it, the way `redeemErrorMessage` already does one table over |
+| **2** | ⚠️⚠️ **`23514` IS `nameMissing` API-WIDE**, because `0027` raises it on a blank SHOP name. On this path it is `product_variant_name_not_blank` or the dimension trigger | A shopkeeper adding a product would have been told **to name her shop**. It goes to an honest catch-all instead, which is `@/api/errors`' own argument about `PGRST202` |
+| **3** | The `23505` **constraint name is in `message` and `details` is `null`** — HTTP 409 | The two duplicates ARE distinguishable, so *a product you already sell* and *a family you already have* get two different sentences. The contract check asserts both names appear on the wire, so a sentence keyed on a constraint that stopped firing goes red |
+| **4** | `Platano` and `Plátano` are **BOTH accepted** as variant names in one shop; `  POLLO  ` is refused against `Pollo` | The duplicate pre-check folds with **`searchKey`** (case and spaces) and not `searchTerm` (accents too). Folding accents would refuse a product the database would have taken — and the family SUGGESTION still folds accents, which is `0002`'s own *"search-time folding belongs in the query"*. **Two folds in one file, on purpose** |
+
+⚠️⚠️ **THREE DECISIONS WERE TAKEN ON THE OWNER'S BEHALF AND ARE CHEAP NOW,
+DEARER ONCE THE FORM IS DRAWN AGAINST THEM.** None is a migration and none is
+baked into a seed, so all three are an edit rather than a fix-forward — but the
+first is the one to look at, because it is the only one a shopkeeper could ever
+notice.
+
+| | Decision | Why, and what the alternative was |
+|---|---|---|
+| **A** | ⚠️ **A NEW PRODUCT'S PRICE IS SHOP-WIDE — `price_list.location_id` is `null`** | C8.9 gives the form four fields and none of them is a store, and C1.5 makes both pilot shops one location each, so the two are identical today. The alternative — pricing the one store — is wrong the first morning a shop opens a second one, with nothing on screen saying which store the price was for. `priceFor` already prefers a store's own row when one exists, so `5e-iii` can add store pricing without moving this |
+| **B** | **THE PRICE IS REQUIRED** — `checkProduct` refuses a blank one | C8.9 lists it as one of the four fields. ⚠️ The cost is real and named: C3.12's dash exists for products nobody has priced, and a shopkeeper who does not know the price yet cannot add the product at all. **`5e-ii` is where to ask him**, because it is the screen that would carry the answer |
+| **C** | **`effective_from` IS THE DEVICE'S LOCAL DAY and `effective_to` IS `null`** | `isoDay` already owns *what day is it where the shop stands*, and the contract check asserts the consequence that actually matters: **a product created this morning is priced on this morning's catalog read**, not tomorrow's. A price opened in the future is a product that sells at a dash on the day it was made |
+
+⚠️⚠️ **AND CI FOUND SOMETHING THAT WAS NOT THIS TASK'S: the `db` workflow's `reset` job runs at
+its own timeout and was being CANCELLED at it, on `main`, for hours before this branch existed** —
+every step green, killed 15m07s into a 15-minute cap with ~23s of work left. **A cancelled job is
+neither a pass nor a failure and the working agreement says never merge on one.** The cap is raised
+to 25 as a stopgap, the catalog-write check was given its own job, and **`5R-g` owes the real fix**.
+
+⚠️ **ONE THING IS ROUTED RATHER THAN DECIDED (`R9`).** Nothing in this
+repository can say whether the suggested family is the RIGHT family — that it
+proposes `Pollo` for *Pierna de pollo* is checkable, and that a shopkeeper
+agrees with the proposal is not. **The instrument is the owner's phone, at
+`5e-ii`**, which is the child that draws the suggestion and the gesture that
+overrides it.
+
+✅✅ **THE `Costos` QUESTION WAS RULED ON 2026-09-22, ABOUT HALF AN HOUR AFTER IT
+WAS PARKED: *"Leave Costos dead until 5g."* ALL THREE CHILDREN OF `5e` ARE NOW
+UNGATED, AND `5e-i` IS THE NEXT TASK, UNCHANGED.** **The recommendation in full,
+including the ordering.** ⚠️ **FOURTEEN decisions have now been parked and
+cleared in the block above**, and this is the fourth to be parked and ruled inside
+the same day.
+
+⚠️⚠️ **WHAT IT DISCHARGES AND WHAT IT DELIBERATELY DOES NOT.** It unblocks
+`5e-iii`. It does **not** delete the button: `Costos` stays on La Familia, drawn
+dead, with `ES.family.notYet` under it, for the whole of `5e`. **Deleting it was
+the cheaper reading of *leave it dead* and it was refused** — `5d-iv-b` took the
+same decision about Proveedores for the same reason, and an affordance a shop has
+seen and then seen vanish reads as an app getting smaller rather than as one being
+built.
+
+⚠️⚠️ **AND THE RULING MOVED AN OBLIGATION RATHER THAN CLOSING ONE, WHICH IS THE
+HALF A PLAN FORGETS.** The owner did not say what `Costos` shows, and that is the
+ruling's shape rather than a gap in it: *until `5g`* means the question is re-asked
+by the task that makes it answerable, because purchase cost lives in `purchase_line`
+from `0003` and nothing writes one until Comprar exists. **`5g`'s row now opens by
+owing that word.** A deferral is only a deferral if some row owes the answer;
+otherwise it is a drop wearing a date, which is the shape this file has recorded
+against itself twice.
+
+⚠️ **VERIFIED, AND NOT BY A TICK.** `split-coverage.sh docs/checks/specs/5e.split`
+still reports **16/16 deliverables in exactly one child** — the `Costos` row is the
+one that would have gone red had this ruling been recorded by deleting the sentence
+instead of rewriting it — and `plan-handover.sh` reports the decisions block empty
+with `5e-i` unblocked and takeable.
+
+⚠️⚠️ **`5e` WAS SIZED ON 2026-09-22, AS ITS OWN ROW DEMANDED, AND IT SPLIT IN
+THREE. `5e-i` IS THE NEXT TASK: THE CATALOG WRITE, WITH NO SCREEN ON IT.** The
+row carried `M/L` and opened by telling the next session to size it again —
+the eighth task in step 5 taken that way, and the eighth to find something.
+**No line of code was written first.**
+
+⚠️⚠️ **THE SEAM IS `5d`'s OWN, ONE STEP ON, AND IT IS SHARPER HERE THAN IT
+WAS THERE.** `5d` split on the argument that `5d-i` is the half a machine can
+hold and the other three are the half only the owner's eye can. The same line
+runs through `5e` — except that this time the machine-checkable half contains
+**the fence**. `product_variant_insert` and `product_family_insert` are
+`has_role(…, 'manager')` in `0002`; nothing in TypeScript has ever read a
+policy, **`CREATE POLICY` is not indexed in the knowledge graph at all**, and
+RLS is bypassed by `postgres` — so a check that forgets `set role
+authenticated` passes vacuously. `5e-i` ends with the one instrument in this
+repository that can say the fence is still there.
+
+⚠️⚠️ **TWO OF THE SIXTEEN DELIVERABLES WERE NOT IN THE `5e` ROW, AND THAT IS
+MOST OF WHAT THE SIZING WAS WORTH — IT IS ALSO THE EXACT FINDING `5d`'s SIZING
+MADE.** `Costos` is assigned to `5e` by **`5d-iii`'s row and by nothing here**;
+a deliverable whose only home is a row nobody looking at this task would read is
+one context clear from being lost. And `Editar` was a single word: its real
+subject is `tax_rate`, `pack_size` and deactivation — and its obvious
+neighbour, `enforce_stock`, is the one switch **C8.8 forbids a pilot screen
+outright**, which a session building an edit form against a column list would
+have added without noticing.
+
+⚠️⚠️ **THREE THINGS THE SIZING FOUND THAT NO ROW HAD SAID, ALL OF THEM CHEAP
+NOW AND DEAR ONCE A FORM IS WRITTEN AGAINST THE WRONG ONE:**
+
+| | What | Why it changes the work |
+|---|---|---|
+| **1** | ⚠️⚠️ **THE CREATE IS THREE WRITES AND POSTGREST HAS NO TRANSACTION TO OFFER** | Family, variant, price are three round trips under RLS — there is no catalog RPC in any applied migration, and `§2.6`'s *"clients never insert"* governs **the ledger**, whose ten functions are its own table. So the ORDER is a deliverable: family → variant → price leaves either a family nobody can see (Productos is variant-first) or a variant wearing C3.12's dash, and never a price pointing at a variant that does not exist |
+| **2** | ⚠️⚠️ **THE DUPLICATE-NAME REFUSAL IS SHOP-WIDE, NOT PER FAMILY** | `product_variant_name_unique` is `(workspace_id, normalized_name)`, so `Pierna` under Pollo refuses `Pierna` under Cerdo — and C8.3 puts a pollería and a carnicería in the same pilot. `normalize_name` folds case and spaces and **not accents**. ⚠️ It is arguably the right constraint for a flat variant-first list, and either way the form owes a sentence rather than a `23505`. `searchKey`'s doc-comment in `@/api/catalog` already named this task as the one that inherits it |
+| **3** | ⚠️⚠️ **RE-PRICING TWICE IN ONE DAY IS A DIFFERENT WRITE FROM RE-PRICING ONCE** | `price_list` is a dated range under an exclusion constraint. The ordinary change closes the row in force at today and opens a new one; the second change that day would make `effective_to` equal `effective_from`, which `price_list_range_ordered` refuses — so it must **update the row in force**. A screen that knew only the first branch works all day and fails the second time a shopkeeper corrects a price, which is when he is watching |
+
+⚠️ **ONE DECISION WAS TAKEN ON THE OWNER'S BEHALF AND IT IS REVERSIBLE FOR
+NOTHING — no migration, no stored value, no seed.** ⚠️⚠️ **`Agregar` IS
+ONLINE-ONLY AND WILL SAY SO, RATHER THAN QUEUEING.** `0024`'s
+`failed_write_kind_known` admits `purchase`, `sale`, `waste`, `transfer` and
+nothing else, so a queued catalog create needs a migration and an RPC — but
+the real argument is worse than the cost: a variant created offline carries a
+client id **the server has never seen**, and the first sale of it would
+dead-letter too. **One refused create is better than a create that silently
+converts every sale after it into a dead letter.** The alternative — widen
+`0024` and mint a catalog RPC — stays open and is `5g`-sized, not a line.
+
+⚠️ **AND ONE THING WAS DELIBERATELY NOT ASKED.** C8.9's four fields do not
+include `tax_rate`, and a product created at the column default writes
+0%-IVA sale lines whose snapshot never updates. **That is already ruled**:
+`0002`'s own comment says *"default 0 because most basic groceries in Mexico
+are exempt, and the common case should need no edit"*, and C8.9 puts
+everything else behind `Editar`. Asking it again would be spending the owner's
+minutes on a sentence the schema already carries.
+
+⚠️ **THE THIRD ENTRY POINT IS ROUTED, NOT DROPPED.** C8.12 names three doors
+and only two have a screen: Productos, and inside an opened family. **The
+Comprar/Vender `...` quick action goes to `5f` and `5g`**, which build the
+screens it opens from — it is stated in `5e-ii`'s row so the split guard
+holds it, rather than left to be rediscovered.
+
+⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/split-coverage.sh
+docs/checks/specs/5e.split` reports **16/16 deliverables in exactly one child**,
+six required sentences surviving, every child stated once and the parent closed;
+`split-coverage-falsify.sh` derives its fixtures from the spec, so the new spec
+brings its own falsification. `plan-handover.sh` passes all eleven groups.
+
