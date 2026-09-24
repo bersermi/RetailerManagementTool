@@ -201,8 +201,15 @@ describe('the library has exactly one caller', () => {
     expect(listeners).toEqual(['lib/connectivityMonitor.ts', 'lib/supabase.ts']);
   });
 
-  // ⚠️⚠️ AND THE QUEUE HAS EXACTLY TWO READERS — ADDED AT 5c-iv-b, WHICH IS
-  // WHAT MADE THE LIST TWO. `lib/outboxDb.ts` is pinned as the only module that
+  // ⚠️⚠️ AND THE QUEUE HAS EXACTLY THREE MODULES, WHICH ARE THREE VERBS —
+  // ADDED AT 5c-iv-b AS TWO, AND MADE THREE AT `5f-iii-b` BY THE FIRST THING
+  // THAT EVER FILLED IT. `flushRunner` DRAINS the queue, `DeadLetterBanner`
+  // COUNTS it, and `commitRunner` FILLS it. ⚠️⚠️ THE GUARD FIRED ON THE WAY
+  // THERE AND IT WAS RIGHT: `5f-iii-b` first had `app/(tabs)/vender.tsx` call
+  // `enqueue(outboxDb())` itself, and this assertion refused it in exactly the
+  // words below. **The property being pinned was never *two* — it is that NONE
+  // of the entries is a screen**, which is why a `src/app/` path is what the
+  // list is read with its directory attached to catch. `lib/outboxDb.ts` is pinned as the only module that
   // touches `expo-sqlite` above; this is the list one layer out, of the modules
   // that go through it. The flusher DRAINS the queue and the dead-letter banner
   // COUNTS it, and neither is a screen.
@@ -218,7 +225,11 @@ describe('the library has exactly one caller', () => {
     const readers = sources()
       .filter(([, text]) => /from '@\/lib\/outboxDb'/.test(text))
       .map(([rel]) => rel);
-    expect(readers).toEqual(['lib/flushRunner.ts', 'offline/DeadLetterBanner.tsx']);
+    expect(readers).toEqual([
+      'lib/commitRunner.ts',
+      'lib/flushRunner.ts',
+      'offline/DeadLetterBanner.tsx',
+    ]);
   });
 
   // ⚠️ AND THE QUEUE HAS EXACTLY ONE TRIGGER. `lib/flushRunner.ts` holds the

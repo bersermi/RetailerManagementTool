@@ -214,3 +214,140 @@ spec green; `plan-handover.sh` and `handbook-agreement.sh` green. ⚠️ **Nothi
 left dangling**: the route parameter, `AVISO_UNIT_RELEASED`, `avisoLine`,
 `ES.catalog.avisoDismiss`, the `Aviso` component and the `everReleased` ref are all
 gone, which the typecheck is what confirms.
+
+## The FOURTH cut, taken 2026-09-24 — and it is the fourth in ONE sitting
+
+⚠️⚠️ **THE `5e-iii` SIZING OF 2026-09-23** — the split that found the price change is a
+contract with Postgres rather than a form detail, and the C3.17 contradiction that came with it.
+
+⚠️ **What forced it:** `5f-iii-b` shipped the whole of an `M` in one sitting under the amended
+working agreement, and a row carrying five owner rulings, a refused design and a finding routed
+to another task is a long entry. `## Position` reached **1,467 of 1,400**.
+
+⚠️⚠️ **FOUR CUTS IN ONE SITTING IS A RECORD, AND THE LEDGER SHOULD SAY WHAT IT MEANS RATHER
+THAN JUST COUNT IT: THE AMENDMENT MADE SITTINGS BIGGER, AND A BIGGER SITTING WRITES A LONGER
+ENTRY.** The ceiling did not move, so the archiving cadence is what absorbed the change. **If a
+later session finds itself cutting twice per task, that is the number to look at — not this
+block's ceiling.**
+
+⚠️⚠️ **`5e-iii` WAS SIZED ON 2026-09-23 BEFORE A LINE OF IT WAS WRITTEN, IT IS AN
+`M/L` AND NOT THE `M` THIS FILE CARRIED, AND IT SPLITS IN TWO.
+`5e-iii-a` IS THE NEXT TASK: THE EDIT AS A CONTRACT WITH POSTGRES, NO SCREEN ON IT.**
+⚠️ **Neither child ships a migration.** The ninth split in step 5 taken that way and
+the ninth that found something.
+
+⚠️ **THE SEAM IS `5e`'s OWN, ONE LEVEL DOWN — the move `5d-iv` made on 2026-09-22.**
+`5e` divided on the argument that `5e-i` is the half a machine can hold and the other
+two are the half only the owner's eye can. **`5e-iii`, alone of the three, still
+carried both**: a form somebody has to look at, and a write whose rules are an
+exclusion constraint, a range check and four `has_role(…, 'manager')` policies.
+`5e-iii-a` is the second `5e-i` — `app/src/api/catalogEdit.ts`, a node suite, and
+`docs/checks/5e-iii-a-catalog-edit-contract.sh` over real HTTP. `5e-iii-b` is
+`Editar` itself, and `R9` is its whole instrument.
+
+⚠️⚠️ **THE SIZING FOUND TWO THINGS THE ROW DID NOT SAY, AND THE FIRST IS THE WORST
+PARTIAL FAILURE THIS APP HAS HAD SO FAR.** The row described the same-day branch and
+stopped there. It never said the ordinary branch is **two calls whose order is
+forced**: the row in force must be CLOSED at today before the new one is opened, or
+both cover today and `price_list_no_overlap` refuses the second. ⚠️ **So there is a
+gap between them, and a failure inside it leaves the product priced yesterday and
+priceless today** — mid-morning, wearing C3.12's dash, done by a shopkeeper who was
+CORRECTING a price rather than removing one. **`5e-i`'s three partial states were
+invisible or harmless; this one is neither**, and it is now a named state with a
+retry that re-opens rather than re-closing.
+
+⚠️⚠️ **THE SECOND IS A CONTRADICTION BETWEEN THE OWNER'S OWN CONSTRAINT AND THE
+APPLIED SCHEMA, AND NOTHING IN THIS REPOSITORY HAD NOTICED IT IN FOUR WEEKS. IT IS
+PARKED IN THE DECISIONS BLOCK.** C3.17 says **any role may change a price, including
+a cashier**, and closes with *"it is client-side only; no schema depends on it."*
+⚠️ **That last sentence is false and has been since `0002` applied on 2026-08-26**:
+`price_list_insert`, `price_list_update` and `price_list_delete` are every one of
+them `has_role(workspace_id, 'manager')`. A cashier is refused by the database, in
+silence, with a bare `42501` — the shape [[shift-cover-is-a-reassignment]] records.
+⚠️ **It blocks `5e-iii-b` and `5f`, and it does NOT block `5e-iii-a`**: the module
+describes the fence the database applies today, and a ruling that widens the fence is
+a migration written against a module that already names it.
+
+## The FIFTH cut, taken 2026-09-24 — and it is the fifth in one sitting
+
+⚠️⚠️ **`5e-iii-a`'s CLOSING ENTRY, 2026-09-23** — the price change as a contract with Postgres,
+the three-branch dated window, and the finding that a cashier's edit is not REFUSED but
+INVISIBLE (HTTP 200 with an empty array).
+
+⚠️ **Taken immediately after the fourth, for the reason the fourth wrote down**: `5f-iii-b`'s
+entry is long because the sitting was large, and one cut did not clear the ceiling.
+✅✅ **`5e-iii-a` IS DONE AS OF 2026-09-23 — THE APP KNOWS HOW TO CHANGE A PRICE, AND
+THE UPDATE FENCE HAS AN INSTRUMENT FOR THE FIRST TIME.
+~~`5f` is the next task: Vender, and its own row says to size it first.~~ — ⚠️ **struck
+in lower case deliberately within the hour, by the C3.17 ruling above: `5e-iii-b` was
+ungated the same evening it was gated, so it goes back in front of `5f`.**
+One module, one hook, three calls, **50 new assertions**, a contract check over real
+HTTP and **twenty falsification fixtures** — ten through the suite and ten through the
+check. ⚠️ **It ships no migration**, as its row promised.
+
+⚠️ **WHAT SHIPPED.** `app/src/api/catalogEdit.ts` — the three patches, the two typed
+figures, the dated window's three branches, the retry and the refusals;
+`variantPrices`, `patchVariant` and `changePrice` in `@/api/calls`; `useEditProduct`
+in `@/api/hooks`; three new sentences and a new `ES.catalog.editIssues` block; and
+`docs/checks/5e-iii-a-catalog-edit-contract.sh`, wired into `db.yml` beside `5e-i`'s.
+
+⚠️⚠️ **THE FINDING, AND IT IS THE REASON THIS CHILD WAS WORTH A SESSION: THE FENCE ON
+AN UPDATE IS NOT THE FENCE ON AN INSERT, AND A CASHIER'S EDIT IS NOT REFUSED AT ALL —
+IT IS INVISIBLE.** Measured against a real database on 2026-09-23, not recalled.
+`price_list_insert` is `with check`, so a cashier posting a price gets the `42501`
+`5e-i` already records. Every UPDATE policy on these tables carries `using` as well,
+and **a row a `using` clause excludes is a row PostgREST cannot see** — so her PATCH
+matches nothing and comes back **HTTP 200 with `[]`**. No code, no message, no
+refusal. ⚠️⚠️ **A screen that read that as success would tell her the price changed
+while the shelf kept the old one** — [[shift-cover-is-a-reassignment]]'s silent
+refusal, arriving this time through a 200. ✅ **`.single()` on every patch is what
+turns it into a 406 `PGRST116`** — measured on both tables — and that code is now
+mapped to the same sentence as `42501`. **It is a deliverable, not a style**, and it
+is written down as one in the module and in the check.
+
+⚠️⚠️ **AND THE ORDERING CLAIM IS DRIVEN RATHER THAN ASSERTED.** *Close before you
+open* is not a preference: an overlapping insert answers **`23P01` on
+`price_list_no_overlap`**, and closing a row that started today answers **`23514` on
+`price_list_range_ordered`** — both read back off a real PostgREST, which is the only
+way either sentence could be checked at all. **The second is why `priceChange` has a
+third branch**, and a module with only the ordinary one would have worked all day and
+failed the second time a shopkeeper corrected a price.
+
+⚠️⚠️ **THREE DECISIONS WERE TAKEN ON THE OWNER'S BEHALF. NONE IS A MIGRATION AND NONE
+IS BAKED INTO A SEED, so all three are an edit rather than a fix-forward.**
+
+| | Decision | Why, and what the alternative was |
+|---|---|---|
+| **A** | ⚠️ **`PGRST116` IS READ AS THE FENCE**, and gets *"Solo el dueño o un gerente puede cambiar un producto."* | Zero rows on this path has one cause: the id comes from the catalog the phone just read, and **neither catalog table has a DELETE policy** — measured, `42501 permission denied for table product_variant` — so a row that vanished is not a state this app can produce. The alternative is `apiErrorMessage`'s *"algo salió mal"*, which is the honest nothing for a case that is never a mystery |
+| **B** | **THE CHANGE EDITS THE SCOPE THE READ RESOLVED**, and never invents one | `priceFor` prefers a store's own row, so correcting a store price stays a store price and correcting the shop-wide one stays shop-wide. ⚠️ Only a product with NO price is priced shop-wide, which is `5e-i`'s decision **A** unchanged. The alternative — always pricing the store this phone is standing in — is identical in both pilot shops (C1.5) and silently splits a shop's price list the first morning one opens a second store |
+| **C** | **AN UNTOUCHED BOX SENDS NO COLUMN**, and an identical price is no round trip at all | `0002` defaults `tax_rate` to 0 and `pack_size` to 1 for a shop selling basic groceries; sending those back explicitly looks identical in the row and is this app answering a question nobody asked — `VARIANT_INSERT_COLUMNS`' own argument. And closing and re-opening an unchanged price writes a change into the shop's price history that never happened, which `7`'s reports would eventually read as real |
+
+⚠️⚠️ **AND THE PARTIAL FAILURE IS NAMED RATHER THAN DISCOVERED.** Close lands, open
+does not, and the product is **priced yesterday and priceless today** — on the shelf,
+mid-morning, put there by somebody who was CORRECTING a price. It is
+`PriceChangeFailed.closed`, it has its own sentence (`ES.catalog.errors.priceGone`),
+and `retryChange` re-opens rather than re-closing. ⚠️ **What `5e-iii-b` must not do
+with it**: show *"no se pudo guardar"*, which would send a shopkeeper away believing
+the old price still stands while the next customer is charged nothing at all.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5e-iii-a-catalog-edit-contract.sh`
+reports **9 of 9 assertion groups green against a real database** — *A CASHIER IS
+REFUSED*, in both of its shapes, with the row read back afterwards and unchanged — and
+its own harness reports **10 of 10 fixtures behaving**, two of which move the codes the
+fence arrives as. Vitest: **916** over 34 files, up from 866 over 33, and **ten
+fixtures were driven through the new assertions and each turned exactly its own red**:
+the same-day branch removed, an identical price re-opened, the scope invented, the
+retry re-closing, `checkEdit` refusing the product itself, the tax ceiling dropped, a
+pack of zero allowed, the silent refusal unmapped, a half-done change wearing the
+ordinary sentence, and an untouched settings box sent as the column default.
+`tsc --noEmit`: clean. `conventions-gate.sh`: 16 groups over **62** source and **34**
+test files, and its own 30 fixtures. `5d-i-catalog-contract.sh` 12/12 and
+`5e-i-catalog-write-contract.sh` 16/16, both still green against the same database.
+`split-coverage.sh --all`: 15 specs, and `--quick` falsification over all of them.
+`plan-handover.sh` and `handbook-agreement.sh` green, the latter with **one** open
+decision and the handbook saying so.
+
+⚠️ **WHAT NO CHECK HERE CAN SEE (`R9`, §2.11), routed to `5e-iii-b` rather than
+guessed:** every screen question, and one that is not obviously one — **whether a
+shopkeeper should be told that a price change takes effect TODAY and not retroactively**.
+The dated window is the whole design and nothing on the form says it exists.

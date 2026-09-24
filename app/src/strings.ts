@@ -767,6 +767,13 @@ export const ES = {
        */
       empty: 'Vaciar carrito',
       /**
+       * ⚠️ THE QUESTION THE CENTRED BOX ASKS — the owner's own wording, 2026-09-24:
+       * *"it should be a separate box in the center of the screen with it's scrim
+       * with a confirmation message."* An inline strip at the foot of the sheet was
+       * what shipped first and he refused it.
+       */
+      emptyAsk: '¿Seguro de que quieres vaciar el carrito?',
+      /**
        * ⚠️ THE CONFIRM STEP IS A DIFFERENT WORD FROM THE ONE THAT OPENS IT, for
        * `approvals.confirm`'s reason: two taps that read the same are two taps a
        * shopkeeper cannot tell apart afterwards.
@@ -792,6 +799,35 @@ export const ES = {
       /** What that row is called, since the catalog can no longer say. */
       goneName: 'Producto retirado',
     },
+
+    /**
+     * ⚠️⚠️ C3.6's SLIDE — *"commit is a SLIDE, not a tap"* (`5f-iii-b`).
+     */
+    slide: {
+      /**
+       * ⚠️ AN INSTRUCTION AND NOT A VERB. *Cobrar* alone reads as a button, and
+       * this is the one control in the app that must not: a thumb that brushes a
+       * button has committed a sale, which is the whole reason C3.6 made it a
+       * gesture.
+       */
+      wide: 'Desliza para cobrar',
+      /**
+       * ⚠️ THE SHORT TRACK'S WORD, for the slide inside the basket sheet — the
+       * owner asked for one there on 2026-09-24, *"to the right of the Vaciar
+       * Carrito option… of course it will be shorter"*. Still an instruction:
+       * the track is narrower, the rule is not.
+       */
+      compact: 'Desliza',
+      /** To a screen reader, where there is no track to look at (C12.1). */
+      label: 'Desliza para cobrar la venta',
+    },
+
+    /**
+     * ⚠️⚠️ THE SALE'S OWN CONFIRMATION — the first of the owner's two animations
+     * (2026-09-21), and it fires when the sale enters the QUEUE, never when the
+     * server answers. See `vender.tsx`.
+     */
+    sold: 'Venta registrada',
   },
 
   units: {
