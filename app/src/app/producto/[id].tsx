@@ -18,8 +18,6 @@ import { useCatalog, useEditProduct, useMyRole, useWorkspace } from '@/api/hooks
 import { catalogLine, isoDay } from '@/api/catalog';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
-  activePatch,
-  catalogEditErrorMessage,
   checkEdit,
   editLine,
   editPlan,
@@ -150,7 +148,6 @@ export default function EditarProducto() {
   const [packSize, setPackSize] = useState('');
   const [issue, setIssue] = useState<EditIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const [asking, setAsking] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const working = saving || busy;
@@ -217,24 +214,6 @@ export default function EditarProducto() {
     // ⚠️ `R9`: whether that is confirmation enough, or wants the blink `Agregar`
     // got, is a question for the owner's phone and is in this task's row.
     router.back();
-  }
-
-  async function retire() {
-    if (entry === undefined) return;
-    setAsking(false);
-    setSaving(true);
-    try {
-      await edit(activePatch(false));
-      Keyboard.dismiss();
-      router.back();
-    } catch (error) {
-      // ⚠️ THE MODULE'S SENTENCE AND NOT `@/api/errors`' (`R12`): a route may not
-      // import the map that decides what a code means, and `42501`/`PGRST116` on
-      // this path is the manager fence rather than a lost session.
-      setFailure(catalogEditErrorMessage(error));
-    } finally {
-      setSaving(false);
-    }
   }
 
   return (
@@ -391,15 +370,22 @@ export default function EditarProducto() {
               onPress={() => void submit()}
             />
 
-            {/* ⚠️⚠️ RETIRING SITS BELOW THE SAVE AND BEHIND A QUESTION. It is the
-                one control on this screen that takes a product off every other
-                screen, and `Quitar`'s no-confirmation ruling (2026-09-17) turned
-                on a recovery that was two taps away — which this one is not. */}
-            {asking ? (
-              <Confirmar busy={working} onYes={() => void retire()} onNo={() => setAsking(false)} />
-            ) : (
-              <Retirar busy={working} onPress={() => setAsking(true)} />
-            )}
+            {/* ⚠️⚠️ THE RETIRE CONTROL IS NOT DRAWN, AND ITS ABSENCE IS THE
+                OWNER'S CORRECTION OF 2026-09-23 RATHER THAN AN OMISSION.
+                His rule: *a shopkeeper may delete only the products HE CREATED*;
+                a product that came with the catalog is not his to remove.
+                ⚠️⚠️ NOTHING IN THE DATABASE RECORDS WHERE A ROW CAME FROM —
+                `product_family` and `product_variant` carry no origin column —
+                so this screen **cannot tell one from the other**, and it was
+                offering the control on every product in the shop. He found it
+                on his phone, which is `R9` doing exactly what it is for.
+                ⚠️ DRAWN ON NONE IS THE HONEST STATE WHILE IT CANNOT TELL, and it
+                is `canWriteCatalog`'s argument applied to a ROW instead of a role:
+                plainly absent beats looking live and doing the wrong thing. It
+                costs him deleting products he really did make, which is the price
+                of not deleting ones he did not. ⚠️ `6c` mints the marker, fences
+                it in the database, and brings this control back on his own rows
+                only. `ES.catalog.edit.retire*` is kept for it. */}
           </>
         )}
       </ScrollView>
@@ -641,136 +627,5 @@ function Boton({
         {label}
       </Text>
     </Pressable>
-  );
-}
-
-/**
- * Taking a product off the shop's screens.
- *
- * ⚠️⚠️ IT IS OUTLINED AND NOT FILLED, WHICH IS THE PALETTE'S RULE RATHER THAN
- * TASTE. `error`'s one job is *what DESTROYS*, and a filled destructive button
- * under a filled save button is two equally loud controls where only one is the
- * thing he came to do. The word carries the meaning and the colour agrees with
- * it — never the colour alone, which is the rule `accion` and `atencion` being
- * 1.18:1 apart in luminance makes non-negotiable.
- */
-function Retirar({ busy, onPress }: { busy: boolean; onPress: () => void }) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.error,
-        backgroundColor: PALETTE.fondo,
-        opacity: busy ? 0.6 : 1,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-        {ES.catalog.edit.retire}
-      </Text>
-    </Pressable>
-  );
-}
-
-/**
- * The question, its two consequences, and the two ways out.
- *
- * ⚠️⚠️ IT REPLACES THE CONTROL RATHER THAN FLOATING OVER IT, and that is a
- * decision about a phone rather than about a dialog: a system `Alert` is the one
- * surface in this app whose words this repository cannot style, cannot size at
- * *Letra grande* and cannot read back — and C1.1 puts two low-end Androids among
- * the pilot's four phones, where the two platforms' dialogs put the destructive
- * button on opposite sides.
- *
- * ⚠️⚠️ TWO SENTENCES AND THE SECOND IS THE HONEST ONE. The first says what he
- * loses; the second says that this app cannot give it back — `activePatch(true)`
- * is the same call, but `catalogFrom` drops inactive variants and no pilot screen
- * lists them, so the undo exists in the database with no door onto it. That gap
- * is a decision the owner owes and is recorded in `docs/PLAN.md` rather than
- * left in a comment.
- *
- * ⚠️ *Cancelar* COMES FIRST AND IS THE ACTION-COLOURED ONE. The safe way out is
- * the one a thumb finds by accident.
- */
-function Confirmar({
-  busy,
-  onYes,
-  onNo,
-}: {
-  busy: boolean;
-  onYes: () => void;
-  onNo: () => void;
-}) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        gap: scale.rowGap,
-        padding: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.error,
-        backgroundColor: PALETTE.superficie,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-        {ES.catalog.edit.retireAsk}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-        {ES.catalog.edit.retireWhy}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-        {ES.catalog.edit.retireOnce}
-      </Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
-        <Pressable
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={onNo}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.space,
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: PALETTE.accion,
-            backgroundColor: PALETTE.accionSuave,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.catalog.edit.retireNo}
-          </Text>
-        </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          disabled={busy}
-          onPress={onYes}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.space,
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: PALETTE.error,
-            backgroundColor: PALETTE.fondo,
-            opacity: busy ? 0.6 : 1,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-            {ES.catalog.edit.retireYes}
-          </Text>
-        </Pressable>
-      </View>
-    </View>
   );
 }

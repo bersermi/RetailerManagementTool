@@ -33,8 +33,17 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-23, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
-EIGHTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **SIXTEEN decisions have now been parked and cleared in
+| ⚠️⚠️ **THE BACKFILL: of the products ALREADY in your shop, which ones count as yours?** | The migration inside `6c`, and only its backfill — the marker, the fence and the restored delete are unaffected either way. Nothing else in the plan waits on it | **THE RECOMMENDATION FIRST: treat everything that exists today as NOT yours — undeletable — and everything created through `Agregar` from tomorrow as yours.** ⚠️⚠️ **WHY IT NEEDS YOU AND NOT A DEFAULT: A MIGRATION IS APPEND-ONLY, AND THIS ONE DECIDES WHICH ROWS BECOME UNDELETABLE FOR EVER.** Nothing recorded where any current product came from, so the backfill cannot look it up — it can only be told. ⚠️ **The recommendation errs toward locking**: a product wrongly locked is a nuisance you can report and we unlock with one more migration; a product wrongly left deletable is one you can destroy from the catalog by accident, which is the failure this whole rule exists to prevent. ⚠️⚠️ **WHAT IT COSTS YOU, PLAINLY: any product you typed in yourself before today becomes undeletable**, and you would have to tell us which to release. **The question that decides it is one you can answer in a sentence: of the products on your phone right now, did you type any of them in, or did they all arrive some other way?** ⚠️ **If they all arrived with the catalog, the recommendation is free and there is nothing to weigh.** ⚠️⚠️ **AND THERE IS A SECOND SHAPE IF YOU PREFER IT: mark nothing, and let the FIRST SEEDED SHOP be the first to carry the marker** — your current shop keeps deleting everything, and the rule starts applying to shops created after it. **That is cleaner in the database and leaves your own shop exactly as wrong as it is today**, which is why it is not the recommendation |
+⚠️ **ONE IS OWED AS OF 2026-09-23 — THE BACKFILL ABOVE — AND IT BLOCKS ONLY HALF OF ONE
+ROW.** It came out of the owner finding a wrong button on his phone an hour after the
+ruling that created it, and ⚠️⚠️ **IT IS THE FIRST DECISION IN THIS BLOCK THAT IS ABOUT
+LIVE DATA RATHER THAN ABOUT A DESIGN.** Every one of the sixteen before it chose between
+two things a session could have built; this one chooses what happens to rows that already
+exist in a shop somebody is using, and it cannot be looked up because nothing recorded it.
+~~nothing is owed as of 2026-09-23, and the empty table above is deliberate — for the
+eighth time in this project's life.~~ — ⚠️ **struck in lower case deliberately, the rule
+`5b.8-i`'s row records.** ~~✅✅✅ **NOTHING IS OWED AS OF 2026-09-23, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+EIGHTH TIME IN THIS PROJECT'S LIFE.**~~ ⚠️ **SIXTEEN decisions have now been parked and cleared in
 this block, and the sixteenth spent about ninety minutes in the table** — parked by `5e-iii-b`'s
 retirement control and answered the same evening, on the phone it shipped to.
 
@@ -314,6 +323,54 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+⚠️⚠️ **THE PREBUILT-CATALOG ANSWER ABOVE WAS WRONG ON ITS CENTRAL POINT, AND THE OWNER
+FOUND IT ON HIS PHONE WITHIN THE HOUR — 2026-09-23.** *"But I said that the user can only
+Retirar or Eliminar things he created, why am I still seeing the button for the already
+existing products?"* ✅ **HE IS RIGHT, AND THE ERROR IS WORTH RECORDING BECAUSE OF ITS
+SHAPE RATHER THAN ITS SIZE.**
+
+⚠️⚠️ **WHAT WAS WRONG: A FACT ABOUT THE SCHEMA WAS ALLOWED TO STAND AS A FACT ABOUT HIS
+SHOP.** The entry below says *"there are no default products, every product in every shop
+is one somebody made, and every one of them is correctly deletable"*, and the evidence
+offered for it was that no migration inserts a catalog row. **That evidence is true and
+it does not support that conclusion.** A shop's products do not have to arrive through a
+migration to exist — they arrive through the app, through the dashboard, through
+whatever the owner does — and **he is looking at products he did not type in, with a
+delete button on each one.** ⚠️ The grep was scoped to `supabase/migrations/` and the
+claim was made about the world. ⚠️⚠️ **AND `supabase/seeds/00_skeleton.sql` BUILDS A
+CATALOG, WHICH THAT GREP ALSO MISSED** — it seeds its own `ws_a`/`ws_b` and runs only on
+`supabase db reset`, so it did not put these rows in his shop, **but a narrower search
+that had found it would have stopped the wrong sentence being written.**
+
+✅✅ **WHAT IS ACTUALLY TRUE, AND IT IS THE SAME SENTENCE FOR EVERY ORIGIN THOSE ROWS
+COULD HAVE: `product_family` AND `product_variant` RECORD NOTHING ABOUT WHERE A ROW CAME
+FROM.** There is no origin column on either table. So `Editar` **cannot tell** a product
+that came with the catalog from one a shopkeeper typed in, and it was offering the
+destructive control on all of them. **The rule he stated is not enforceable by any
+amount of screen work** — it needs the database to know the answer.
+
+✅ **SHIPPED IMMEDIATELY, AND IT IS ONE BLOCK OF JSX: THE RETIRE CONTROL IS DRAWN ON
+NOTHING.** ⚠️⚠️ **THAT IS `canWriteCatalog`'s ARGUMENT APPLIED TO A ROW INSTEAD OF A
+ROLE** — plainly absent beats looking live and doing the wrong thing, which is the shape
+[[shift-cover-is-a-reassignment]] records and the one this app has now chosen four times.
+While the screen cannot tell his products from the catalog's, **offering the control on
+none of them is strictly better than offering it on all of them**: the cost is that he
+cannot delete the ones he really did make, and the thing it buys is that he cannot delete
+the ones he did not. ⚠️ **It is one block to put back**, and `ES.catalog.edit.retire*` is
+kept in place for `6c` rather than deleted.
+
+⚠️⚠️ **`6c` IS NOW THE ROW THAT RESTORES A CAPABILITY RATHER THAN ONE THAT ADDS A
+FENCE**, which is a different row and is rewritten as one. ⚠️ **`5f` IS STILL MARKED
+NEXT AND THAT IS A CALL, NOT AN OVERSIGHT**: the wrong button is gone, so nothing on the
+phone is lying any more, and `6c` is no longer urgent — **but it now costs him deleting
+anything at all, so if that matters more than Vender does, `6c` goes first and that is
+his word to give.**
+
+⚠️⚠️ **AND ONE QUESTION `6c` CANNOT ANSWER FROM THIS MACHINE — IT IS IN THE DECISIONS
+BLOCK.** The marker is cheap; the BACKFILL is not, because it decides which of the rows
+already in his shop become undeletable, and **an append-only migration is a poor place to
+guess.** See the block.
+
 ✅✅ **THE PREBUILT-CATALOG RULING, 2026-09-23 — AND IT NEEDS NOTHING BUILT NOW, WHICH
 WAS MEASURED RATHER THAN HOPED. `5f` IS STILL THE NEXT TASK.** The owner ruled after
 holding `5e-iii-b` on his phone: *"I took the decision to start working with prebuilt
@@ -331,8 +388,11 @@ line for line, and `0002` gives neither catalog table a delete policy at all, so
 database **cannot** do the other thing. **It was parked as a decision and it was a
 description.**
 
-⚠️⚠️ **AND THE OTHER HALF IS VACUOUS TODAY, WHICH IS THE WHOLE ANSWER TO *do I need to
-address this now*.** Measured against the applied schema and every migration in the
+~~⚠️⚠️ **AND THE OTHER HALF IS VACUOUS TODAY, WHICH IS THE WHOLE ANSWER TO *do I need to
+address this now*.**~~ ⚠️⚠️ **STRUCK 2026-09-23, WITHIN THE HOUR, BY THE OWNER ON HIS
+PHONE — SEE THE ENTRY ABOVE. IT IS NOT VACUOUS AND IT WAS NOT THE ANSWER.** The paragraph
+below is left standing because the measurement in it is correct and only the conclusion
+drawn from it is not, which is the more useful thing to keep. Measured against the applied schema and every migration in the
 repository: `product_family` and `product_variant` carry **no origin column**, and there
 is **not one `insert into` either table anywhere in `supabase/migrations/`**. So **there
 are no default products**, every product in every shop is one somebody made, and every
@@ -4954,7 +5014,7 @@ catalog, it goes ahead of `5f`.
 |---|---|---|---|
 | **6a** | ⚠️⚠️ **DESPERDICIO, AND IT IS REORDERED AHEAD OF ITS STEP ON THE OWNER'S INSTRUCTION, 2026-09-21.** `record_waste` (`0019`) has been applied and callerless since 2026-09-05 and `desperdicio.tsx` is a NINE-LINE placeholder. **The reorder is a business decision, not an engineering one:** waste is the acquisition hook, and until this screen exists the tier-2 investigation has no input at all. It reuses `5f`'s shared surface, so taken straight after `5f` it is cheap; taken in step order it is the last thing built before Números needs its data | `M` | `5f` — the shared transaction surface |
 | **6b** | **Proveedores.** The provider list and its editing, behind `5g`'s selector and `provider_price_memory`'s prefill | `M` | `5g` |
-| **6c** | ⚠️⚠️ **THE PREBUILT CATALOG, AND THE FENCE ON IT — NEW 2026-09-23, ON THE OWNER'S RULING, AND IT IS C8.4 PULLED FORWARD.** *"I took the decision to start working with prebuilt catalogs."* **A shop stops opening empty**: it is seeded from a catalog we maintain, the merchant adds his own families and variants on top, and **he deletes only what he made**. ⚠️⚠️ **HALF OF IT IS ALREADY SHIPPED AND THIS ROW MUST NOT REBUILD IT**: *"delete… disappearing from the Product Catalog but persisting in the transactions and other historical parts"* is `5e-iii-b`'s retirement, unchanged — `is_active` false, dropped by `catalogFrom`, kept by every ledger read, and no delete policy on either table. **What is missing is only the other half: a default product offers no delete at all, and no disable either.** ⚠️⚠️ **AND THAT HALF IS UNENFORCEABLE TODAY, MEASURED RATHER THAN ASSUMED (2026-09-23): there is no origin column on `product_family` or `product_variant`, and not one `insert into` either table anywhere in `supabase/migrations/`.** So there are no default products, every product is one somebody made, and every one is correctly deletable — **drawing the fence now would be a control with no rows to apply to**, which is the scaffolding `5d` spent a step deleting. ⚠️⚠️ **THE ONE THING THAT IS CHEAP NOW AND DEAR LATER, NAMED LOUDLY BECAUSE MERGING IS AUTOMATED: THE MARKER SHIPS IN THE SAME MIGRATION THAT FIRST SEEDS A CATALOG, NEVER AFTER IT.** A shop seeded before the marker exists has rows nothing can ever tell apart again, and back-filling means guessing by name. **Today that costs nothing, because no shop has been seeded** — the exposure starts the day one is. ⚠️ **The rows are COPIED INTO the workspace and never shared across tenants**: every line table's foreign key is composite on `(id, workspace_id)` and every policy is `workspace_id`-scoped, so reference rows owned by nobody are not representable and are not what this means. ADR-035's catalog section carries the rule and says so. ⚠️⚠️ **WHAT THIS ROW IS NOT: THE ONBOARDING IMPORT.** *"Once we wrap up the full app we will polish many parts, one of them is the onboarding to import a catalog."* A merchant loading his own spreadsheet stays where C8.1 put it — out of scope — and only the template we maintain moves. ⚠️ **It ships a migration**, which is the first in step 6 and the reason this is a row rather than an edit. ⚠️ **Size it before building it**: it is a marker, a seeding path, an `onboard_workspace` change and a drawn fence, and the last of those is the only part with nothing to measure | **size it** | ⚠️ **Recommended AFTER `5g`** — a catalog nothing can sell or buy through is a catalog nobody can test, and C8.4's own reason for deferring it still holds. ⚠️⚠️ **IF THE PILOT IS TO START ON A PREBUILT CATALOG IT MOVES AHEAD OF `5f`, AND THAT IS THE OWNER'S CALL RATHER THAN A SESSION'S** — C8.1 still has him building the pilot's catalog by hand, and those products will read as his own, which is correct |
+| **6c** | ⚠️⚠️ **WHERE A PRODUCT CAME FROM, AND THE DELETE THAT DEPENDS ON IT — NEW 2026-09-23 ON THE OWNER'S RULING, REWRITTEN THE SAME HOUR WHEN HE FOUND THE DEFECT IT DESCRIBES.** *"The user can only Retirar or Eliminar things he created"*, and *"why am I still seeing the button for the already existing products?"* ⚠️⚠️ **THIS ROW RESTORES A CAPABILITY RATHER THAN ADDING A FENCE, WHICH IS NOT WHAT IT SAID WHEN IT WAS WRITTEN.** `Editar`'s retire control is **drawn on nothing** as of 2026-09-23: `product_family` and `product_variant` record **no origin**, so the screen cannot tell a catalog product from one a shopkeeper typed in, and it was offering deletion on all of them. Drawn-on-none is `canWriteCatalog`'s argument applied to a row — **but it costs him deleting products he really did make, and this row is what gives that back, on his own rows only.** ⚠️⚠️ **THE DELIVERABLE IS A MIGRATION AND IT IS THE FIRST IN STEP 6.** An origin marker on both catalog tables whose DEFAULT is *the shop made this*, so `5e-i`'s insert needs no column added and every product created through `Agregar` from now on is correctly the shopkeeper's. ⚠️⚠️ **AND THE FENCE MUST BE IN THE DATABASE AND NOT ONLY DRAWN, WHICH IS THIS REPOSITORY'S OWN RULE APPLIED TO A NEW SUBJECT**: `5e-iii-a` proved a drawn fence is theatre unless a policy refuses the write, and *a catalog row cannot be deactivated* is exactly that shape. A policy or a trigger, and `docs/checks/5e-iii-a-catalog-edit-contract.sh` is the instrument that already knows how to ask. ⚠️⚠️ **THE BACKFILL IS THE EXPENSIVE HALF AND IT IS A DECISION THE OWNER OWES, NOT A DEFAULT A SESSION PICKS** — it decides which rows already in his shop become undeletable for ever, and **a migration is append-only**. It is parked in the decisions block. ⚠️⚠️ **AND THE MARKER SHIPS BEFORE ANY SHOP IS SEEDED, NEVER AFTER**: a shop seeded first has rows nothing can tell apart again. ⚠️ **The rows are COPIED INTO a workspace and never shared across tenants** — every line table's foreign key is composite on `(id, workspace_id)`. ADR-035's catalog section carries the rule. ⚠️⚠️ **WHAT THIS ROW IS NOT: THE ONBOARDING IMPORT.** *"Once we wrap up the full app we will polish many parts, one of them is the onboarding to import a catalog."* A merchant loading his own spreadsheet stays out of scope; only the template we maintain moves. ⚠️ **Nor is it the seeding itself** — the marker and the fence are what the app needs; what actually PUTS a catalog in a new shop can follow, and splitting them is the difference between a migration that can be reviewed and one that cannot. ⚠️ **Size it before building it.** | **size it** | ⚠️⚠️ **UNGATED ON WORK AND GATED ON ONE WORD — the backfill decision in the block above.** ⚠️ **Recommended after `5g`, and that is now a weaker recommendation than it was**: the wrong button is gone, so nothing is lying on his phone — **but he cannot delete anything at all until this ships**, and if that matters more than Vender does it goes first. His call |
 
 ---
 
