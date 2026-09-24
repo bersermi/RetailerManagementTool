@@ -148,3 +148,69 @@ ASSERTION I WROTE IN THIS ROUND WAS A DUD AND WAS REPLACED**: it compared
 `Object.keys` of an object literal, which is trivially true and tests nothing —
 the same shape as the dud fixture recorded in the entry below. **It is now an
 equality over `@/theme/pulse`'s real export surface.**
+
+## The THIRD cut, taken 2026-09-24 — and the third in one sitting, which is a first
+
+⚠️⚠️ **THE TWO BUGS FROM THE OWNER'S PHONE, 2026-09-23** — the keyboard that would not hide, the
+catalog banner added and removed inside a day, and the follow-up he parked himself.
+
+⚠️ **What forced it:** `5f-iii-a` was reopened and fixed the same day it shipped, and a reopening
+that carries a parked decision is a long entry. `## Position` stood at **1,405 of 1,400** with it in
+place. ⚠️⚠️ **This block has now been cut THREE TIMES IN ONE SITTING**, which has not happened
+before — twice on 2026-09-24 morning and once in the afternoon. **The pattern is not the archiving;
+it is that a session which both ships and takes a ruling writes two entries, and this one wrote
+three.**
+
+✅✅ **TWO BUGS FROM THE OWNER'S PHONE, FIXED 2026-09-23, AND ONE OF THEM WAS A
+FEATURE ADDED THE SAME DAY AND REMOVED AGAIN.
+`5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS SUBSTANCE.**
+⚠️ **It ships no migration.**
+
+⚠️⚠️ **BUG 1 — *"the keyboard is not hidding when redirecting to the Product
+catalog"*, AND THE CAUSE WAS NOT THE DISMISSAL.** Both screens already called
+`Keyboard.dismiss()`, the form on its way out and Productos on arrival, and the
+keyboard came back anyway. **Productos' search box never lost FOCUS**: he types a
+name there, taps the create row, and that screen stays MOUNTED under the pushed form
+with its `TextInput` still the focused one — so when `dismissTo` pops back, iOS
+restores the keyboard for it, after both dismissals have already run.
+⚠️ **Dismissing a keyboard whose input is still focused is a keyboard that comes
+back.** Fixed on both sides: the create row calls `Keyboard.dismiss()` before it
+pushes, so nothing is focused while the form is open, and the arrival effect calls
+`box.current?.blur()` as well — which also covers the path in from La Familia, where
+Productos is further down the stack.
+
+⚠️⚠️ **BUG 2 — THE BANNER ON THE CATALOG IS DELETED, ONE DAY AFTER IT WAS ADDED AND
+BY THE SAME PERSON WHO ASKED FOR IT.** *"«Una familia de productos debe tener la
+misma unidad de medida» is showing at the top of the catalog, don't know why, let's
+get rid of it."* **It appeared when nothing had been released.** ⚠️ I could not prove
+the mechanism from the source — whether `dismissTo` merges params into a screen
+already in the stack is not something this repository can answer — **so it is
+recorded as removed rather than as diagnosed.** ⚠️⚠️ **What IS certain is a defect I
+can name: `avisoShown` was `useState(true)` and the arrival effect re-set it to
+`true`, so dismissing it never stuck across a second create**, and a stale `aviso`
+parameter would have been enough on its own. **Removing it removes the class**, and
+that is the whole of the ruling.
+
+⚠️⚠️ **AND THE FOLLOW-UP QUESTION IS PARKED BY THE OWNER RATHER THAN OPEN — *"let's
+skip anything related to the banner for now"* (2026-09-23). A cleared session must not
+pick this up**: it is not in the decisions block, it blocks nothing, and `5f`'s
+confirmation animation is where a notice on a catalog is decided. ⚠️ The paragraph
+below is kept because it records what the removal cost, not because anything is owed.
+
+⚠️ **WHAT THE REMOVAL COSTS, SAID RATHER THAN HIDDEN: the one-second glimpse on the
+form is now the ONLY copy of that sentence.** That was the hold he specified while a
+persistent copy existed, and the reason he asked for the persistent copy in the first
+place was that a second is not long enough to read eight Spanish words. ⚠️ **It is
+one constant (`BANNER_HOLD_MS`) if he ever raises it** — ~~and it is worth asking~~,
+**struck: he parked it the same day**, and a session that asks anyway is spending his
+attention on the one thing he said to leave. ⚠️ **The question is NOT reopened on this screen**:
+`5f`'s confirmation animation is where a persistent notice on a catalog belongs.
+
+⚠️ **VERIFIED:** Vitest **866** — three fewer than the round above, because the three
+`avisoLine` assertions went with the feature they described; `tsc --noEmit` clean;
+`conventions-gate.sh` 16 groups over 61 source and 33 test files;
+`5e-i-catalog-write-contract.sh` 16 of 16 green against a real database; every split
+spec green; `plan-handover.sh` and `handbook-agreement.sh` green. ⚠️ **Nothing was
+left dangling**: the route parameter, `AVISO_UNIT_RELEASED`, `avisoLine`,
+`ES.catalog.avisoDismiss`, the `Aviso` component and the `everReleased` ref are all
+gone, which the typecheck is what confirms.
