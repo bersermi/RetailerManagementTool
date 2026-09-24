@@ -54,9 +54,9 @@ conversation and go again.
 ```
 Read docs/PLAN.md and take the next open task.
 
-Before starting, estimate difficulty. If it's large, split it in docs/PLAN.md
-first and take only the first piece — I'd rather resume cleanly than lose
-half-finished work to a context clear or a usage limit.
+Before starting, estimate difficulty and write down what the estimate found.
+An M or an L is one sitting — build the whole row. Split only an XL, or a row
+that is gated, or one whose mistakes would be invisible in half of it.
 
 Use graphify to orient before reading files. ADR-035 is authoritative: if the
 plan and the ADR disagree, stop and tell me rather than guessing.

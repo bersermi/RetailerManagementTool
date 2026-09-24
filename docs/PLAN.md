@@ -410,6 +410,44 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅ **THE WORKING AGREEMENT IS AMENDED BY THE OWNER, 2026-09-24 — AN `M` OR AN `L` IS ONE
+SITTING NOW.** *"we'll make an ammendment now that we have Claude Max, if a task is M or L,
+let's do it at once, we have enough usage and space to do it."* ⚠️ **It is the TWENTY-FIRST
+owner ruling recorded in this project and the first one that changes how the work is
+organised rather than what gets built.** **`XL` still splits on size; `M` and `L` do not.**
+
+⚠️⚠️ **THE OLD RULE'S PREMISE WAS A BUDGET, AND IT SAID SO IN ITS OWN TEXT** — *"so the work
+survives a usage limit or a context clear."* The splitting was never an argument that work is
+clearer in halves; it was insurance against losing half of it. **A plan is a poor place to
+carry a subscription tier's constraint after the tier has moved**, and this is the first time
+anything in these documents has been retired because its reason expired rather than because
+it was wrong.
+
+⚠️⚠️ **WHAT WAS FLAGGED BACK, AND THE AMENDMENT KEEPS IT: THE SIZING PASS IS NOT THE SPLIT.**
+Sixteen of the seventeen splits were preceded by an estimate that **found something the row
+did not say**, and in most of them the finding was worth more than the division. `5f`'s
+sizing found the cart store §2.11 had already chosen, the quantity control contradicting the
+ADR, and a commit payload about to hard-code a gross/net identity; `5f-iii`'s, that same
+morning, found the basket sheet is the screen §2.5 rule 5 is written about. **None of those
+needed a split to be worth taking.** ✅ So the agreement now reads *estimate first, write down
+what the estimate found, then build the whole row* — and `docs/HANDBOOK.md`'s working prompt
+says it in the owner's own words.
+
+⚠️⚠️ **AND THREE SPLITS SURVIVE AT `M` AND `L`, because none of the three is about how long a
+sitting is.** **(1) A GATE** — half the row blocked on a decision or an ADR amendment the
+owner owes and the other half not, which is what let `5f-i` ship on the morning `5f-ii` was
+stuck. **(2) TWO FAILURE CLASSES, one of them invisible here** — the ledger or the queue
+sharing a row with something a person can look at, which is `5c-iv`'s, `5d-iv`'s, `5e-iii`'s
+and `5f-iii`'s argument and the strong one: **one row means the unseen half is reviewed as
+though somebody had looked at it.** **(3) THE DEFERRAL TEST** already in this section.
+⚠️ **A size-only split at `M` or `L` is now the thing to refuse**, and a session asking for
+one is asking for the old rule back.
+
+⚠️ **Changed in three files, because the rule lived in three:** `docs/PLAN.md`'s
+`## Working agreement`, `CLAUDE.md`'s, and the working prompt in `docs/HANDBOOK.md` — which
+is the one the owner actually pastes, and the only one of the three that was telling a
+session to *"take only the first piece."*
+
 ✅✅ **`5f-iii-a` IS DONE AS OF 2026-09-24 — THE SHOP CAN READ ITS OWN BASKET BACK.
 `5f-iii-b` IS THE NEXT TASK: THE SLIDE, AND THE FIRST WRITE THIS APP HAS EVER PUT IN THE
 QUEUE.** C3.5's sheet is drawn — only the rows carrying a quantity, the same field and
@@ -1232,62 +1270,6 @@ left dangling**: the route parameter, `AVISO_UNIT_RELEASED`, `avisoLine`,
 `ES.catalog.avisoDismiss`, the `Aviso` component and the `everReleased` ref are all
 gone, which the typecheck is what confirms.
 
-✅✅ **`5e-ii` TOOK A SECOND ROUND OF THE OWNER'S NOTES ON 2026-09-23 — FIVE
-ADJUSTMENTS, ONE OF THEM A REAL BUG I SHIPPED, AND ONE THING RECORDED RATHER THAN
-BUILT. `5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS
-SUBSTANCE.** ⚠️ **It ships no migration.**
-
-⚠️⚠️ **THE BUG, AND IT IS THE INTERESTING ONE: *"the banner is not displaying."***
-`flashReleased` called `setReleased(true)` and `Animated.sequence(...).start()` in
-the SAME TICK — so the native driver was handed an opacity to animate on a view
-**React had not mounted yet**, because the `{released && …}` branch only renders on
-the next commit. ⚠️ **A native-driver animation against a node that does not exist
-is dropped in silence**: no warning, no throw, no banner, and nothing in this
-repository could have caught it — §2.11 keeps rendering out of every suite, and the
-timing it pins was correct the whole time. **The animation now starts in an effect
-keyed on `released`**, so the view is on screen before a frame is asked for.
-
-⚠️⚠️ **AND HIS FIX FOR IT REVERSED AN ARGUMENT I HAD WRITTEN DOWN AS SETTLED.** I
-set the banner's hold to 2600ms and argued it here: eight Spanish words at a counter
-is two seconds of reading. **The argument was right and the design was wrong** — the
-form is about to be saved and left, so no hold makes that sentence readable. His
-answer moved the reading instead of lengthening it: *"show the banner for a second
-in the form screen but it should persist in the catalog screen once we go back
-there."* So the form's copy is a **one-second glimpse**, the fact travels with the
-create as `?aviso=unidad`, and Productos shows the same sentence and **does not fade
-it**. ⚠️ `@/theme/pulse` exports no timing for that one, and `app/test/pulse.test.ts`
-asserts its whole export surface as an EQUALITY so a future `catalogBannerSequence`
-turns red rather than quietly undoing the ruling.
-
-| | What he asked for | What it is |
-|---|---|---|
-| **1** | The family list must close when the keyboard does | `keyboardDidHide` closes it. ⚠️ Safe rather than a race because `keyboardShouldPersistTaps="handled"` means tapping a row does not dismiss the keyboard — so this fires only on a deliberate dismissal, and *"either we have picked the option we wanted or we are sticking with the suggestion"* is true both ways |
-| **2** | `Nombre`'s hint must read like `Familia`'s | `Pechuga sin hueso` → **`Escribe el nombre del producto`**. ⚠️ The old one taught C8.5's despiece and that was its problem: **a real product name in the box is indistinguishable from one somebody typed**, which is the complaint he made about the family and the price |
-| **3** | The banner, fixed and moved | Above |
-| **4** | A way off every keyboard | `returnKeyType="done"` + `onSubmitEditing` on the three text boxes — and the search key on Productos was `"search"`, which promised an action that **had already happened** on a live filter. ⚠️⚠️ **The price box is the one `returnKeyType` cannot reach**: `decimal-pad` draws no return key on either platform and is not optional (C12.2 puts the point in `35.50`). iOS gets an `InputAccessoryView` carrying *Listo*; **Android has no such API** and uses the platform's own dismiss control. ⚠️ Two routes to one outcome, which is worth knowing when he reports one platform and not the other — `R10`'s lesson about `formatToParts`, applied to a control |
-| **5** | Leave the empty-catalog door alone | ✅ **RULED, AND IT CLOSES A LOOK-QUESTION I RAISED**: *"I'm not concerned about empty catalog/Crear Nuevo Producto behaviour since a default catalog will always be available."* ⚠️ **That is a fact about the pilot I did not have** — C8.1 has him building the catalog, and this says the app is never handed an empty one |
-
-⚠️⚠️ **AND THE SIXTH ITEM IS A SPECIFICATION FOR `5f`, RECORDED RATHER THAN BUILT,
-BECAUSE HE SAID SO: *"we're just making the Crear Producto… just make a very good
-consideration about these things for the future parts."*** The quantity control on a
-sale: *"$45/250gr… the stepper to go 250 → 500 → 750 → 1000. But he can also tap to
-enter 288gr if needed."* ⚠️ **It needs NO migration and that was measured**:
-`sale_line` (`0003:306`) carries `qty_base`, `qty_display` and `qty_display_unit` as
-three columns, `record_sale` computes the base from the display and its unit, and
-`unit_price_net_per_base` is `numeric(14,6)` — so 288g of a `$45/250g` product is
-`$51.84` to the centavo with no fractional display quantity. **The step is
-`unit.factor_to_base`, which is already on the phone.** ⚠️ **`5f`'s row now opens
-with it and `5g`'s points at that row rather than restating it.** ⚠️ **The one thing
-`5e-ii` had to get right for this is that the price is stored PER BASE UNIT — and it
-is**, which is why nothing about `Agregar` has to change when the stepper is built.
-
-⚠️ **VERIFIED:** Vitest **869** (was 865) over 33 files; `tsc --noEmit` clean;
-`conventions-gate.sh` 16 groups over 61 source and 33 test files; every split spec
-green; `plan-handover.sh` and `handbook-agreement.sh` green. ⚠️⚠️ **AND ONE
-ASSERTION I WROTE IN THIS ROUND WAS A DUD AND WAS REPLACED**: it compared
-`Object.keys` of an object literal, which is trivially true and tests nothing —
-the same shape as the dud fixture recorded in the entry below. **It is now an
-equality over `@/theme/pulse`'s real export surface.**
 
 
 
@@ -1297,8 +1279,9 @@ equality over `@/theme/pulse`'s real export surface.**
 
 ⚠️⚠️ **AND 2026-09-23 NOW HAS ITS OWN FILE —
 [`docs/plan/archive/status-log-2026-09-23.md`](plan/archive/status-log-2026-09-23.md)**,
-opened on 2026-09-24 in the same session that shipped `5f-iii-a`, with the oldest
-2026-09-23 entry: `5e-ii` reopened and closed again. ⚠️ `## Position` stood at **1,403 of
+opened on 2026-09-24 in the same session that shipped `5f-iii-a` **and cut twice in it** —
+`5e-ii` reopened and closed again, then `5e-ii`'s second round of the owner's notes, the
+second because the working-agreement amendment left this block **two lines** of headroom. ⚠️ `## Position` stood at **1,403 of
 1,400** with that task's closing entry in place — **the fifth time a closing entry has spent
 the last of the headroom, and the second time in one day this block has been cut.** ⚠️ **A
 later session APPENDS to that file; never a second one for the same date.**
@@ -5309,9 +5292,49 @@ alongside it.
 
 ## Working agreement
 
-One task per session. Before starting, estimate difficulty; if it is large, split it
-here first so the work survives a usage limit or a context clear. Update this file
-when a task closes — a plan that lags the code is the failure ADR-035 §9 names.
+One task per session. Before starting, estimate difficulty. Update this file when a
+task closes — a plan that lags the code is the failure ADR-035 §9 names.
+
+⚠️⚠️ **AMENDED BY THE OWNER 2026-09-24 — AN `M` OR AN `L` IS ONE SITTING NOW:**
+*"we'll make an ammendment now that we have Claude Max, if a task is M or L, let's do
+it at once, we have enough usage and space to do it."* **The old rule split anything
+large; this one splits `XL` and above.**
+
+⚠️ **THE PREMISE OF THE OLD RULE WAS A BUDGET AND IT HAS CHANGED, WHICH IS WHY THIS IS
+AN AMENDMENT AND NOT A LOOSENING.** *"so the work survives a usage limit or a context
+clear"* — the splitting was never about the work being clearer in halves, it was about
+half-finished work being lost. A plan is a poor place to carry a subscription tier's
+constraint after the tier has moved.
+
+⚠️⚠️ **WHAT DOES NOT CHANGE, AND IT IS THE HALF THAT PAID FOR ITSELF: THE SIZING PASS
+STAYS.** Sixteen of the seventeen splits in this project were preceded by an estimate
+that **found something the row did not say**, and the finding — not the split — is what
+those sessions were worth. `5f`'s sizing found the cart store §2.11 had already chosen,
+the quantity control's contradiction with the ADR, and a commit payload that would have
+hard-coded a gross/net identity. `5f-iii`'s, the same morning, found that the basket
+sheet is the screen §2.5 rule 5 is written about. **None of those needed a split to be
+worth taking; they needed somebody to look before writing.** So: estimate first, write
+down what the estimate found, and then build the whole row.
+
+⚠️⚠️ **AND A SPLIT MAY STILL HAPPEN AT `M` OR `L` — FOR A REASON THAT IS NOT SIZE, AND
+IT MUST SAY SO IN ITS OWN WORDS.** Three survive the amendment, because none of them is
+about how long a sitting is:
+
+1. **A GATE.** Half the row is blocked on a decision the owner owes or an ADR amendment
+   he has not made, and the other half is not. `5f-ii` was gated and `5f-i` was not;
+   splitting is what let the unblocked half ship the same day.
+2. **TWO FAILURE CLASSES IN ONE ROW, one of which nothing here can see.** This is
+   `5c-iv`'s, `5d-iv`'s, `5e-iii`'s and `5f-iii`'s argument, and it is the strong one:
+   when a row carries work whose mistakes cost a glance AND work whose mistakes are
+   silent — the ledger, the queue — one row means **the invisible half rides in on the
+   back of the visible one**, and it is reviewed as though somebody had looked at it.
+3. **THE DEFERRAL TEST BELOW**, which already splits a row whose look-questions cannot
+   be answered yet from the half that can be built today.
+
+⚠️ **A size-only split at `M` or `L` is now the thing to refuse**, and a session that
+wants one is asking for the old rule back. ⚠️ **`XL` still splits on size alone** —
+`5f` listed twenty deliverables across a store, two screens and a question the owner
+owed, and no premise about usage made that one row.
 
 Every schema claim must be traceable to a migration CI has applied. A file is not
 evidence; a green CI run is.

@@ -80,3 +80,71 @@ banner would release the family the moment a shop priced `Menudencias` per `100g
 inside a `Pollo` family sold per `kg`, and that is a real pollería. **So the rule is
 the dimension**: `250g` in a `kg` family is no conflict, `l` and `pza` are. His
 sentence is kept verbatim because he wrote it.
+
+## The SECOND cut, taken 2026-09-24 in the same session as the first — and the amendment is what spent the room
+
+⚠️⚠️ **`5e-ii`'s SECOND ROUND OF THE OWNER'S NOTES, 2026-09-23** — five adjustments, one of
+them a real bug, and the `5f` specification recorded rather than built.
+
+⚠️ **What forced it:** the working-agreement amendment of 2026-09-24 — *an `M` or an `L` is
+one sitting* — is a ruling, and a ruling gets an entry. `## Position` stood at **1,398 of
+1,400** with that entry in place: **two lines of headroom**, which is less than a sentence.
+⚠️⚠️ **The session that could see the number paid for its successor**, and this block has now
+been cut twice in a sitting on two consecutive sittings.
+
+✅✅ **`5e-ii` TOOK A SECOND ROUND OF THE OWNER'S NOTES ON 2026-09-23 — FIVE
+ADJUSTMENTS, ONE OF THEM A REAL BUG I SHIPPED, AND ONE THING RECORDED RATHER THAN
+BUILT. `5e-iii` IS STILL THE NEXT TASK: `Editar`, AND THE PRICE CHANGE IS ITS
+SUBSTANCE.** ⚠️ **It ships no migration.**
+
+⚠️⚠️ **THE BUG, AND IT IS THE INTERESTING ONE: *"the banner is not displaying."***
+`flashReleased` called `setReleased(true)` and `Animated.sequence(...).start()` in
+the SAME TICK — so the native driver was handed an opacity to animate on a view
+**React had not mounted yet**, because the `{released && …}` branch only renders on
+the next commit. ⚠️ **A native-driver animation against a node that does not exist
+is dropped in silence**: no warning, no throw, no banner, and nothing in this
+repository could have caught it — §2.11 keeps rendering out of every suite, and the
+timing it pins was correct the whole time. **The animation now starts in an effect
+keyed on `released`**, so the view is on screen before a frame is asked for.
+
+⚠️⚠️ **AND HIS FIX FOR IT REVERSED AN ARGUMENT I HAD WRITTEN DOWN AS SETTLED.** I
+set the banner's hold to 2600ms and argued it here: eight Spanish words at a counter
+is two seconds of reading. **The argument was right and the design was wrong** — the
+form is about to be saved and left, so no hold makes that sentence readable. His
+answer moved the reading instead of lengthening it: *"show the banner for a second
+in the form screen but it should persist in the catalog screen once we go back
+there."* So the form's copy is a **one-second glimpse**, the fact travels with the
+create as `?aviso=unidad`, and Productos shows the same sentence and **does not fade
+it**. ⚠️ `@/theme/pulse` exports no timing for that one, and `app/test/pulse.test.ts`
+asserts its whole export surface as an EQUALITY so a future `catalogBannerSequence`
+turns red rather than quietly undoing the ruling.
+
+| | What he asked for | What it is |
+|---|---|---|
+| **1** | The family list must close when the keyboard does | `keyboardDidHide` closes it. ⚠️ Safe rather than a race because `keyboardShouldPersistTaps="handled"` means tapping a row does not dismiss the keyboard — so this fires only on a deliberate dismissal, and *"either we have picked the option we wanted or we are sticking with the suggestion"* is true both ways |
+| **2** | `Nombre`'s hint must read like `Familia`'s | `Pechuga sin hueso` → **`Escribe el nombre del producto`**. ⚠️ The old one taught C8.5's despiece and that was its problem: **a real product name in the box is indistinguishable from one somebody typed**, which is the complaint he made about the family and the price |
+| **3** | The banner, fixed and moved | Above |
+| **4** | A way off every keyboard | `returnKeyType="done"` + `onSubmitEditing` on the three text boxes — and the search key on Productos was `"search"`, which promised an action that **had already happened** on a live filter. ⚠️⚠️ **The price box is the one `returnKeyType` cannot reach**: `decimal-pad` draws no return key on either platform and is not optional (C12.2 puts the point in `35.50`). iOS gets an `InputAccessoryView` carrying *Listo*; **Android has no such API** and uses the platform's own dismiss control. ⚠️ Two routes to one outcome, which is worth knowing when he reports one platform and not the other — `R10`'s lesson about `formatToParts`, applied to a control |
+| **5** | Leave the empty-catalog door alone | ✅ **RULED, AND IT CLOSES A LOOK-QUESTION I RAISED**: *"I'm not concerned about empty catalog/Crear Nuevo Producto behaviour since a default catalog will always be available."* ⚠️ **That is a fact about the pilot I did not have** — C8.1 has him building the catalog, and this says the app is never handed an empty one |
+
+⚠️⚠️ **AND THE SIXTH ITEM IS A SPECIFICATION FOR `5f`, RECORDED RATHER THAN BUILT,
+BECAUSE HE SAID SO: *"we're just making the Crear Producto… just make a very good
+consideration about these things for the future parts."*** The quantity control on a
+sale: *"$45/250gr… the stepper to go 250 → 500 → 750 → 1000. But he can also tap to
+enter 288gr if needed."* ⚠️ **It needs NO migration and that was measured**:
+`sale_line` (`0003:306`) carries `qty_base`, `qty_display` and `qty_display_unit` as
+three columns, `record_sale` computes the base from the display and its unit, and
+`unit_price_net_per_base` is `numeric(14,6)` — so 288g of a `$45/250g` product is
+`$51.84` to the centavo with no fractional display quantity. **The step is
+`unit.factor_to_base`, which is already on the phone.** ⚠️ **`5f`'s row now opens
+with it and `5g`'s points at that row rather than restating it.** ⚠️ **The one thing
+`5e-ii` had to get right for this is that the price is stored PER BASE UNIT — and it
+is**, which is why nothing about `Agregar` has to change when the stepper is built.
+
+⚠️ **VERIFIED:** Vitest **869** (was 865) over 33 files; `tsc --noEmit` clean;
+`conventions-gate.sh` 16 groups over 61 source and 33 test files; every split spec
+green; `plan-handover.sh` and `handbook-agreement.sh` green. ⚠️⚠️ **AND ONE
+ASSERTION I WROTE IN THIS ROUND WAS A DUD AND WAS REPLACED**: it compared
+`Object.keys` of an object literal, which is trivially true and tests nothing —
+the same shape as the dud fixture recorded in the entry below. **It is now an
+equality over `@/theme/pulse`'s real export surface.**
