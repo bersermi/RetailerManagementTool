@@ -465,6 +465,80 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅✅ **`5R-f` IS DONE AS OF 2026-09-24 — THIS REPOSITORY CAN NOW ASK THE HOSTED DATABASE
+WHETHER IT IS CARRYING THE SCHEMA, AND `5R-g` IS THE NEXT TASK.** ⚠️ **It ships no migration**
+and it is in **no workflow**, which was the first thing the row said to decide.
+
+⚠️⚠️ **THE ESTIMATE, WRITTEN BEFORE THE WORK AND WHAT IT FOUND.** Sized `S` on the row and
+`S` is right — one sitting, two files and a paragraph. **Four measurements changed the shape
+of it, and every one was cheaper to take than to reason about:**
+
+**(1) `supabase migration list --linked` works from this machine with NO PASSWORD AND NO
+SERVICE KEY**, exactly as the row hoped, **and it emits JSON on a non-TTY** — so the guard
+parses a payload instead of scraping a table. ⚠️ **The pooler URL's password still does not
+work and nothing here needs it.**
+
+**(2) THE HOSTED PROJECT IS CURRENTLY IN SYNC — ALL 36 MIGRATIONS APPLIED.** ⚠️⚠️ **That is
+the finding that decided how this task was built.** A guard whose real answer is green today
+and green every time anybody runs it has never been tested by running it. **So the harness is
+not an extra here, it is the only evidence the thing works**, and it is the larger half of the
+diff.
+
+**(3) THE PLAN SAYS "THIRTY-EIGHT MIGRATIONS" AND THERE ARE 36 FILES.** Numbering reaches
+`0038` and `0006`/`0007` have never existed. **Not a defect and nothing is corrected** — but a
+check that trusted the high number instead of counting files would report a phantom
+divergence forever, so it counts files.
+
+**(4) ⚠️⚠️ THE PROJECT REF LIVES ONLY IN `supabase/.temp/`, WHICH IS GITIGNORED.** So until
+this task, **nothing committed to this repository said which database the schema belongs to** —
+the ref appears in this plan and in a status archive, and nowhere a tool would look. **A check
+that did not pin it would pass vacuously against whatever project a laptop happened to be
+linked to**, which is the same shape as running an isolation test as `postgres`: green, and
+about nothing. ✅ `supabase/README.md` now names it, and assertion 2 compares the two.
+
+⚠️⚠️ **THE DECISION THE ROW SAID TO MAKE FIRST — LOCAL CHECK, NOT A REPOSITORY SECRET — AND
+IT WAS TAKEN ON THE OWNER'S BEHALF, SO IT IS NAMED HERE AND IN THE PR BODY.** Two reasons,
+and the second is this repository's own history rather than a general principle:
+
+**(a) A Supabase access token is ACCOUNT-WIDE; there is no project-scoped one.** A repository
+secret would hand every workflow run the owner's whole Supabase account in order to guard
+against a forgotten `db push` — **a blast radius far larger than the thing being guarded.**
+
+**(b) ⚠️⚠️ THIS CHECK'S ANSWER DEPENDS ON THE WORLD, NOT ON THE DIFF.** Once a migration
+merges it is red **until a person deploys** — so in CI it would redden pull requests that
+neither caused it nor can fix it. **`5R-g`'s row already records what that does**: a red that
+is not yours is how people learn to stop reading the result, and *read the job log by name* is
+the one habit the automated-merge agreement rests on. ⚠️ **If the owner would rather have it
+in CI, that is one sentence and a secret** — the guard itself needs no change.
+
+⚠️⚠️ **AND THE HARNESS EARNED ITS KEEP INSIDE THE HOUR — IT FOUND A REAL BUG IN THE GUARD,
+AND THE EXIT CODE HAD HIDDEN IT.** The normalised rows were tab-delimited, **a tab is IFS
+whitespace, and bash collapses a run of IFS whitespace into one delimiter** — so a
+remote-only row, whose middle field is empty, arrived as two fields and was read as an
+*undeployed* migration instead of a *hand-run* one. ⚠️ **Both are red, so `D2` passed on exit
+code and failed on REASON**, which is the only assertion that could have caught it. ✅ The
+delimiter is `|`. ⚠️ **This is the same family as [[bash-cannot-hold-a-nul-sentinel]]: the
+error named the wrong column.**
+
+⚠️ **`D8` is the fixture that justifies an assertion rather than testing one.** It hands back
+a listing that is **internally consistent** — every row it mentions is applied — while
+silently omitting a migration that is on disk. Groups 5 and 6 walk the CLI's rows, so **both
+pass while looking at almost nothing**; only the group that walks the DISK catches it.
+**Delete assertion 4 and that fixture goes green.**
+
+⚠️ **Verified, and named rather than ticked:** `5R-f-schema-deployed.sh` **6/6 against the
+real hosted project** (`hweutzjhzvioswnjzqki`, 36 rows), and
+`5R-f-schema-deployed-falsify.sh` **10/10** — the guard goes red on a remote that is behind,
+a remote that is ahead, a partial listing, a failed command, a wrong link, an unlinked copy,
+an undocumented target and unparseable output. ⚠️ **The stub is on PATH and the guard has no
+env var or flag that reads a file instead of the network**, so the harness leaves no backdoor
+in the thing it tests.
+
+⚠️ **What it does NOT do, said plainly: it compares VERSION NUMBERS, not schema.** A migration
+edited after it was applied would list as present on both sides. **Migrations are append-only
+once applied**, so that is the rule holding it rather than this check — and `supabase db push`
+would not re-apply it either.
+
 ✅✅ **`5f-iii` TOOK A ROUND OF THE OWNER'S NOTES ON HIS OWN PHONE, 2026-09-24 — FIVE CHANGES,
 AND ONE OF THEM OVERRULES AN ARGUMENT THIS FILE HAD WRITTEN DOWN AS SETTLED. `5R-f` IS STILL
 THE NEXT TASK.** ⚠️ **It ships no migration.**
@@ -1129,112 +1203,6 @@ the row whose sentence promises it.
 and the owner's instruction was to keep the front end moving — so `5f` stays next and `6c`
 moves only on his word.
 
-⚠️⚠️ **THE PREBUILT-CATALOG ANSWER ABOVE WAS WRONG ON ITS CENTRAL POINT, AND THE OWNER
-FOUND IT ON HIS PHONE WITHIN THE HOUR — 2026-09-23.** *"But I said that the user can only
-Retirar or Eliminar things he created, why am I still seeing the button for the already
-existing products?"* ✅ **HE IS RIGHT, AND THE ERROR IS WORTH RECORDING BECAUSE OF ITS
-SHAPE RATHER THAN ITS SIZE.**
-
-⚠️⚠️ **WHAT WAS WRONG: A FACT ABOUT THE SCHEMA WAS ALLOWED TO STAND AS A FACT ABOUT HIS
-SHOP.** The entry below says *"there are no default products, every product in every shop
-is one somebody made, and every one of them is correctly deletable"*, and the evidence
-offered for it was that no migration inserts a catalog row. **That evidence is true and
-it does not support that conclusion.** A shop's products do not have to arrive through a
-migration to exist — they arrive through the app, through the dashboard, through
-whatever the owner does — and **he is looking at products he did not type in, with a
-delete button on each one.** ⚠️ The grep was scoped to `supabase/migrations/` and the
-claim was made about the world. ⚠️⚠️ **AND `supabase/seeds/00_skeleton.sql` BUILDS A
-CATALOG, WHICH THAT GREP ALSO MISSED** — it seeds its own `ws_a`/`ws_b` and runs only on
-`supabase db reset`, so it did not put these rows in his shop, **but a narrower search
-that had found it would have stopped the wrong sentence being written.**
-
-✅✅ **WHAT IS ACTUALLY TRUE, AND IT IS THE SAME SENTENCE FOR EVERY ORIGIN THOSE ROWS
-COULD HAVE: `product_family` AND `product_variant` RECORD NOTHING ABOUT WHERE A ROW CAME
-FROM.** There is no origin column on either table. So `Editar` **cannot tell** a product
-that came with the catalog from one a shopkeeper typed in, and it was offering the
-destructive control on all of them. **The rule he stated is not enforceable by any
-amount of screen work** — it needs the database to know the answer.
-
-✅ **SHIPPED IMMEDIATELY, AND IT IS ONE BLOCK OF JSX: THE RETIRE CONTROL IS DRAWN ON
-NOTHING.** ⚠️⚠️ **THAT IS `canWriteCatalog`'s ARGUMENT APPLIED TO A ROW INSTEAD OF A
-ROLE** — plainly absent beats looking live and doing the wrong thing, which is the shape
-[[shift-cover-is-a-reassignment]] records and the one this app has now chosen four times.
-While the screen cannot tell his products from the catalog's, **offering the control on
-none of them is strictly better than offering it on all of them**: the cost is that he
-cannot delete the ones he really did make, and the thing it buys is that he cannot delete
-the ones he did not. ⚠️ **It is one block to put back**, and `ES.catalog.edit.retire*` is
-kept in place for `6c` rather than deleted.
-
-⚠️⚠️ **`6c` IS NOW THE ROW THAT RESTORES A CAPABILITY RATHER THAN ONE THAT ADDS A
-FENCE**, which is a different row and is rewritten as one. ⚠️ **`5f` IS STILL MARKED
-NEXT AND THAT IS A CALL, NOT AN OVERSIGHT**: the wrong button is gone, so nothing on the
-phone is lying any more, and `6c` is no longer urgent — **but it now costs him deleting
-anything at all, so if that matters more than Vender does, `6c` goes first and that is
-his word to give.**
-
-⚠️⚠️ **AND ONE QUESTION `6c` CANNOT ANSWER FROM THIS MACHINE — IT IS IN THE DECISIONS
-BLOCK.** The marker is cheap; the BACKFILL is not, because it decides which of the rows
-already in his shop become undeletable, and **an append-only migration is a poor place to
-guess.** See the block.
-
-✅✅ **THE PREBUILT-CATALOG RULING, 2026-09-23 — AND IT NEEDS NOTHING BUILT NOW, WHICH
-WAS MEASURED RATHER THAN HOPED. `5f` IS STILL THE NEXT TASK.** The owner ruled after
-holding `5e-iii-b` on his phone: *"I took the decision to start working with prebuilt
-catalogs. The user can still create new Familias and Productos and they can delete those
-disappearing from the Product Catalog but persisting in the transactions and other
-historical parts. But the default products cannot be deleted and it doesn't really make
-sense at this point to disable them or anything else."* He asked whether it had to be
-addressed now. **It does not, and the reason is a measurement rather than a judgement.**
-
-⚠️⚠️ **HALF OF IT WAS ALREADY BUILT AND NOBODY HAD NOTICED — INCLUDING THE SESSION THAT
-BUILT IT.** *"Delete… disappearing from the Product Catalog but persisting in the
-transactions"* is **exactly** `5e-iii-b`'s retirement: `is_active` false, dropped by
-`catalogFrom`, kept by every ledger read. His sentence describes the shipped behaviour
-line for line, and `0002` gives neither catalog table a delete policy at all, so the
-database **cannot** do the other thing. **It was parked as a decision and it was a
-description.**
-
-~~⚠️⚠️ **AND THE OTHER HALF IS VACUOUS TODAY, WHICH IS THE WHOLE ANSWER TO *do I need to
-address this now*.**~~ ⚠️⚠️ **STRUCK 2026-09-23, WITHIN THE HOUR, BY THE OWNER ON HIS
-PHONE — SEE THE ENTRY ABOVE. IT IS NOT VACUOUS AND IT WAS NOT THE ANSWER.** The paragraph
-below is left standing because the measurement in it is correct and only the conclusion
-drawn from it is not, which is the more useful thing to keep. Measured against the applied schema and every migration in the
-repository: `product_family` and `product_variant` carry **no origin column**, and there
-is **not one `insert into` either table anywhere in `supabase/migrations/`**. So **there
-are no default products**, every product in every shop is one somebody made, and every
-one of them is correctly deletable. **A fence drawn now would be a control with no rows
-to apply to** — the scaffolding `5d` spent a step deleting.
-
-⚠️⚠️ **THE ONE THING THAT IS CHEAP NOW AND DEAR LATER, NAMED LOUDLY BECAUSE MERGING IS
-AUTOMATED: THE MARKER SHIPS IN THE MIGRATION THAT FIRST SEEDS A CATALOG, NEVER AFTER
-IT.** A shop seeded before it exists has rows nothing can ever tell apart again, and
-back-filling means guessing by name. **The exposure is zero today because no shop has
-been seeded**, and it starts the day one is — which is why the sentence is in `6c`, in
-`C8.2b` and in the ADR rather than in a session's head.
-
-✅ **WHAT ACTUALLY CHANGED IN CODE: ONE STRING.** `ES.catalog.edit.retireOnce` read
-*"Por ahora no se puede volver a activar desde la app."* — and *por ahora* describes a
-gap waiting to be closed, which the ruling says it is not. It now reads **`Esto no se
-puede deshacer.`** ⚠️ The sentence above it was already his own — *"Lo que ya vendiste no
-se borra"* — and that pairing is what makes one-way deletion safe to offer at all.
-
-✅ **WHAT CHANGED IN THE RECORD, WHICH IS MOST OF IT.** **C8.1** amended — a shop starts
-from a prebuilt catalog, and its *no import, no bulk tool* half stands. **C8.2** still
-true, for a second reason. **`C8.2b` is new** and carries the fence and its measurement.
-**C8.4 pulled forward** from *later* to a row. **`6c` written**, sized *size it first*,
-recommended after `5g` and explicitly the owner's to move ahead of `5f` if the pilot is
-to open on a prebuilt catalog. **ADR-035's catalog section amended** — the fifth
-amendment folded into the work that raised it — ⚠️ **including the sentence that keeps
-it from reading as a reversal**: the rows are COPIED INTO a workspace and never shared
-across tenants, because every line table's foreign key is composite on
-`(id, workspace_id)`. **One catalog per workspace is untouched, and the catalog still
-belongs to the merchant.**
-
-⚠️ **ONE QUESTION GOES BACK TO HIM AND IT IS ONE WORD**: the control says
-*Retirar del catálogo* and he calls the act **delete**. `Eliminar` is what a shopkeeper
-would look for; `Retirar` was chosen because the thing survives in the ledger. **The
-honesty is carried by the sentence underneath either way**, so this is his ear rather
-than an argument — and he is holding the phone.
 
 
 
@@ -1256,13 +1224,27 @@ second because the working-agreement amendment left this block **two lines** of 
 the last of the headroom, and the second time in one day this block has been cut.** ⚠️ **A
 later session APPENDS to that file; never a second one for the same date.**
 ⚠️⚠️ **THE SIXTH CUT WENT IN ON 2026-09-24 WHILE `5f-iii`'s ROUND OF THE OWNER'S NOTES
-WAS SHIPPING, AND WITH IT THERE IS NO 2026-09-23 ENTRY LEFT IN THIS BLOCK** — the C3.17
-ruling and `5e-iii-b` closing, the two oldest. ⚠️ **It is the first cut this file has
-taken that a CLOSING ENTRY did not spend**: five changes to a screen the owner already
-had in his hand, no task closed, and `## Position` still reached **1,410 of 1,400**.
-**That is the amended working agreement's own arithmetic** — bigger sittings write
-longer entries — and it is written here because the remedy will be needed again sooner
-than the five-cut rhythm above suggests.
+WAS SHIPPING** — the C3.17 ruling and `5e-iii-b` closing, the two oldest. ⚠️ **It is the
+first cut this file has taken that a CLOSING ENTRY did not spend**: five changes to a
+screen the owner already had in his hand, no task closed, and `## Position` still
+reached **1,410 of 1,400**. **That is the amended working agreement's own arithmetic** —
+bigger sittings write longer entries — and it is written here because the remedy will be
+needed again sooner than the five-cut rhythm above suggests.
+
+~~and with it there is no 2026-09-23 entry left in this block~~ — ⚠️⚠️ **STRUCK THE SAME
+HOUR, BECAUSE IT WAS FALSE WHEN IT WAS WRITTEN AND THE SESSION THAT WROTE IT CHECKED
+AFTERWARDS RATHER THAN BEFORE.** Two 2026-09-23 entries were still here — the
+prebuilt-catalog ruling and the correction the owner found on his phone within the hour —
+and they went in the **SEVENTH** cut minutes later, on the same `5R-f` sitting. ⚠️ **It is
+the NINTH time that claim has been made wrongly in this repository**, and the remedy the
+archive already records is not a better sentence: it is `grep -c '2026-09-23' docs/PLAN.md`
+**before** writing one. ✅ **Now true, and checked this time.** ⚠️⚠️ **AND THE SEVENTH CUT
+REPAIRED A CROSS-REFERENCE RATHER THAN BREAKING ONE** — the correction opens *"THE
+PREBUILT-CATALOG ANSWER ABOVE"*, and in this block, which runs newest-first, the ruling it
+corrects sat BELOW it. The archive runs oldest-first, so that word is true there for the
+first time since it was written. ⚠️ **What still carries the date here is the
+DECISIONS-OWED block's own rulings**, which are not status entries and must never be
+archived.
 
 ⚠️⚠️ **TWENTY-FOUR ENTRIES OF 2026-09-22 ARE ARCHIVED, IN SIXTEEN CUTS, TO
 [`docs/plan/archive/status-log-2026-09-22.md`](plan/archive/status-log-2026-09-22.md)**
@@ -5155,8 +5137,8 @@ also says something true: §2.11 puts the release path *"running in parallel fro
 | **5R-c** | ⚠️⚠️ **ACCOUNT DELETION — A STORE GATE THAT EXISTS IN NO DOCUMENT AND NO LINE OF CODE.** Both stores require an app that creates accounts to offer in-app deletion; Google additionally requires a web-reachable request path. **Found 2026-09-21 by grepping for it and finding nothing.** ⚠️⚠️ **AND IT IS NOT A BUTTON: `sale.created_by` and `failed_write.reported_by` are `not null` references to `auth.users`, so a hard delete is REFUSED BY THE LEDGER.** The design question — anonymise the actor, transfer the workspace, or refuse deletion to an owner who still has a shop — is a real one and it touches the append-only ledger | `M/L` | ⚠️ **Needs a decision before code. Unsized until that decision; `M/L` is a placeholder** |
 | **5R-d** | **The listing, and the law.** `aviso de privacidad` at a public URL (LFPDPPP, §2.2's cross-border disclosure), Apple privacy labels, Google Data Safety, screenshots, descriptions, age rating, test credentials for review. ⚠️ **One risk checked and probably already retired**: Apple requires *Sign in with Apple* only where an app uses third-party login **exclusively** — `5a-iii-a` shipped email sign-in beside Google, which is what should exempt us. **Verify against the current guideline before submitting rather than discovering it in review** | `M` | `5R-a` |
 | **5R-e** | **Submit, survive review, and be listed in both stores.** | `S` | `5R-b`–`5R-d`, and a build worth reviewing |
-| **5R-f** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-24 — IT WAS TAKEN OUT OF ORDER WHILE `5f-iii-b` WAS GATED, THAT GATE CLEARED AND `5f-iii-b` SHIPPED FIRST, AND THIS ROW IS STILL `S`, UNGATED AND WAITING ON NOBODY.** **THE SCHEMA DEPLOY PATH, AND THE GUARD THAT WOULD HAVE CAUGHT 2026-09-22.** On that day the hosted project the owner's phone signs in to was found to have **no schema at all** — thirty-eight migrations applied in CI's throwaway Postgres and nowhere else — and it was found by **him tapping Productos**, not by any check. ⚠️ **The migrations are innocent and the contract checks are not wrong**: every one of them builds its own database, asserts against it and deletes it, which is the right design for proving a migration APPLIES and says nothing about whether it WAS applied. **What this row builds is the other half:** a check that reads `supabase migration list` — local against remote, one command, **no password and no service key** — and goes red when they diverge, plus the one paragraph in `supabase/README.md` naming the hosted project as the deploy target and `supabase db push` as how it gets there. ⚠️⚠️ **IT CANNOT LIVE IN `db.yml` AS THE OTHER CHECKS DO**: CI has no access token for the owner's account, so this is either a local check a session runs, or it needs a repository secret — **and deciding which is the first thing this row does.** ⚠️ **It ships no migration.** | `S` | ✅ **UNGATED.** ⚠️ Nothing is waiting on the owner for it — the deploy itself is already done |
-| **5R-g** | ⚠️⚠️ **THE `db` WORKFLOW'S BIGGEST JOB RUNS AT ITS OWN TIMEOUT AND WAS BEING CANCELLED AT IT — FOUND 2026-09-22 BY `5e-i`'s CI, AND IT HAD BEEN HAPPENING ON `main` FOR HOURS.** Run `35813212086`: **every step succeeded** and `supabase db reset` was killed 15m07s into a `timeout-minutes: 15` cap with the last falsifier about 23 seconds from finishing. Three runs on `main` the same day went the same way (`35802822473`, `35792354993`, `35783706860`); two others landed at 12m01s and 13m22s. ⚠️⚠️ **A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, AND THE WORKING AGREEMENT SAYS NEVER MERGE ON ONE** — so a cap firing on a healthy job turns *wait for CI* into a coin flip, and the cheap way out of a coin flip is to stop reading the result. ⚠️ **The cap is raised to 25 as a stopgap and that is NOT the fix**: the number will need raising again every few tasks, because the job does ~5m12s of seed checks and then runs **eleven contract checks with their harnesses back to back**, and every one is an `app/src/api/**` claim of exactly the shape `5e-i` gave its own job. ⚠️ **The fix is the split this file already argues for twice** — `auth-session`'s header and now `catalog-write`'s: jobs run in parallel, so moving the contract block out costs wall-clock nothing and takes the seed checks off the same clock as the app's contracts. ⚠️ **It ships no migration and touches no app code.** | `S` | ✅ **Ungated** |
+| **5R-f** | ✅✅ **DONE 2026-09-24 — `docs/checks/5R-f-schema-deployed.sh` CAN ASK THE HOSTED DATABASE WHETHER IT IS CARRYING THE SCHEMA, AND IT ANSWERED: ALL 36 MIGRATIONS APPLIED TO `hweutzjhzvioswnjzqki`.** ~~this was the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **THE DECISION THE ROW SAID TO MAKE FIRST WAS MADE ON THE OWNER'S BEHALF AND IS REVERSIBLE IN ONE SENTENCE: IT IS A LOCAL CHECK, NOT A REPOSITORY SECRET.** A Supabase access token is ACCOUNT-WIDE — there is no project-scoped one — so a secret would hand every workflow run the whole account to guard against a forgotten `db push`. ⚠️ **And its answer depends on the WORLD rather than on the diff**: once a migration merges it is red until a person deploys, so in CI it would redden pull requests that neither caused it nor can fix it — which is the argument `5R-g`'s own row makes about a red that is not yours. ⚠️⚠️ **AND IT PINS THE PROJECT REF, WHICH NOTHING COMMITTED TO THIS REPOSITORY DID BEFORE**: `supabase/.temp/` is gitignored, so a check that did not compare the link against `supabase/README.md`'s named target would pass vacuously against whatever project a laptop happened to be linked to. ⚠️ **Ten fixtures, and one of them found a real bug in the guard** — a tab-delimited empty field collapsed under IFS whitespace and a hand-run migration read as an undeployed one; both are red, so only the fixture asserting the REASON caught it. ⚠️ **It compares version numbers, not schema**, and append-only is what holds the rest. **THE SCHEMA DEPLOY PATH, AND THE GUARD THAT WOULD HAVE CAUGHT 2026-09-22.** On that day the hosted project the owner's phone signs in to was found to have **no schema at all** — thirty-eight migrations applied in CI's throwaway Postgres and nowhere else — and it was found by **him tapping Productos**, not by any check. ⚠️ **The migrations are innocent and the contract checks are not wrong**: every one of them builds its own database, asserts against it and deletes it, which is the right design for proving a migration APPLIES and says nothing about whether it WAS applied. **What this row builds is the other half:** a check that reads `supabase migration list` — local against remote, one command, **no password and no service key** — and goes red when they diverge, plus the one paragraph in `supabase/README.md` naming the hosted project as the deploy target and `supabase db push` as how it gets there. ⚠️⚠️ **IT CANNOT LIVE IN `db.yml` AS THE OTHER CHECKS DO**: CI has no access token for the owner's account, so this is either a local check a session runs, or it needs a repository secret — **and deciding which is the first thing this row does.** ⚠️ **It ships no migration.** | `S` | ✅ **UNGATED.** ⚠️ Nothing is waiting on the owner for it — the deploy itself is already done |
+| **5R-g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-24 — `S`, UNGATED, AND IT IS THE ROW `5R-f` JUST CITED IN ITS OWN REASONING.** ⚠️ **Taken next rather than `5g` on a stated ground and not on ordering taste: `5g` is the first screen since `5e-i` that will touch `app/src/api/**` heavily, which is exactly what fires `db.yml` — the job below.** A task whose CI result cannot be trusted is a task whose merge is a coin flip, and the working agreement rests on reading that log by name. ⚠️ **`5g` (`M`, ungated, Comprar) is the next PRODUCT step and is untouched by this.** **THE `db` WORKFLOW'S BIGGEST JOB RUNS AT ITS OWN TIMEOUT AND WAS BEING CANCELLED AT IT — FOUND 2026-09-22 BY `5e-i`'s CI, AND IT HAD BEEN HAPPENING ON `main` FOR HOURS.** Run `35813212086`: **every step succeeded** and `supabase db reset` was killed 15m07s into a `timeout-minutes: 15` cap with the last falsifier about 23 seconds from finishing. Three runs on `main` the same day went the same way (`35802822473`, `35792354993`, `35783706860`); two others landed at 12m01s and 13m22s. ⚠️⚠️ **A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, AND THE WORKING AGREEMENT SAYS NEVER MERGE ON ONE** — so a cap firing on a healthy job turns *wait for CI* into a coin flip, and the cheap way out of a coin flip is to stop reading the result. ⚠️ **The cap is raised to 25 as a stopgap and that is NOT the fix**: the number will need raising again every few tasks, because the job does ~5m12s of seed checks and then runs **eleven contract checks with their harnesses back to back**, and every one is an `app/src/api/**` claim of exactly the shape `5e-i` gave its own job. ⚠️ **The fix is the split this file already argues for twice** — `auth-session`'s header and now `catalog-write`'s: jobs run in parallel, so moving the contract block out costs wall-clock nothing and takes the seed checks off the same clock as the app's contracts. ⚠️ **It ships no migration and touches no app code.** | `S` | ✅ **Ungated** |
 
 ---
 

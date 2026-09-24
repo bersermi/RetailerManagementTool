@@ -361,9 +361,11 @@ closed** — which is the shape the amended working agreement makes more of, not
 ⚠️ `## Position` stood at **1,410 of 1,400**, and `plan-handover.sh` assertion 7 named
 the remedy in its own failure, as it has six times in this file.
 
-⚠️ **TWO ENTRIES, OLDEST FIRST AS THE PLAN HAD THEM**, and with them **2026-09-23 is
-wholly out of `## Position`** — the ruling that unblocked `5e-iii-b`, and `5e-iii-b`
-closing with it. ⚠️ **It is a MOVE and not a copy**: `split-coverage.sh` fails on *"row
+⚠️ **TWO ENTRIES, OLDEST FIRST AS THE PLAN HAD THEM** — the ruling that unblocked
+`5e-iii-b`, and `5e-iii-b` closing with it. ~~and with them 2026-09-23 is wholly out of
+`## Position`~~ — ⚠️⚠️ **STRUCK: THAT WAS FALSE WHEN IT WAS WRITTEN.** Two more 2026-09-23
+entries were still there and went in the SEVENTH cut below, minutes later. **See that
+cut's heading for the count that should have been taken first.** ⚠️ **It is a MOVE and not a copy**: `split-coverage.sh` fails on *"row
 appears 2 times"* and it reads the corpus, which includes this file.
 
 ✅✅ **THE C3.17 CONTRADICTION WAS RULED ON 2026-09-23, ABOUT TWO HOURS AFTER IT WAS
@@ -463,3 +465,134 @@ load; whether one amber price among six reads as *price this* or as *something i
 going back to La Familia is confirmation enough or wants the blink `Agregar` got; whether four
 fields and a retire control fit one screen at *Letra grande*; and whether a row that highlights
 under a thumb and goes nowhere reads as a selection or as a link that failed.
+
+## The SEVENTH cut, taken 2026-09-24 minutes after the sixth — and it exists because the sixth CLAIMED something false
+
+⚠️⚠️ **THE SIXTH CUT SAID 2026-09-23 WAS WHOLLY OUT OF `## Position`. IT WAS NOT, AND
+THE SESSION THAT WROTE IT CHECKED AFTERWARDS RATHER THAN BEFORE.** Two 2026-09-23
+status entries were still sitting there — the prebuilt-catalog ruling and the
+correction the owner found on his phone within the hour. ⚠️ **This is the NINTH cut in
+this repository's history to make that same claim wrongly**, and the remedy the
+archive already records is the one used here: **the fix is not a better sentence, it
+is `grep -c '2026-09-23' docs/PLAN.md` before writing one.** ✅ **The sixth cut's
+sentence is corrected in place rather than deleted**, and so is the paragraph in
+`## Position` that repeated it.
+
+⚠️⚠️ **AND MOVING THEM TOGETHER REPAIRED A CROSS-REFERENCE RATHER THAN BREAKING ONE.**
+The correction opens *"THE PREBUILT-CATALOG ANSWER ABOVE"* — and in `## Position`,
+which runs newest-first, the ruling it corrects sat **below** it, so the word `ABOVE`
+was already pointing at nothing. **This file runs oldest-first**, so the ruling now
+genuinely precedes its correction and the sentence is true for the first time since it
+was written.
+
+⚠️ **What is left in `## Position` carrying that date is the DECISIONS-OWED block's
+own rulings**, which are not status-log entries and must never be archived —
+`plan-handover.sh` assertions 4 and 5 require exactly one of that block in the live
+plan.
+
+✅✅ **THE PREBUILT-CATALOG RULING, 2026-09-23 — AND IT NEEDS NOTHING BUILT NOW, WHICH
+WAS MEASURED RATHER THAN HOPED. `5f` IS STILL THE NEXT TASK.** The owner ruled after
+holding `5e-iii-b` on his phone: *"I took the decision to start working with prebuilt
+catalogs. The user can still create new Familias and Productos and they can delete those
+disappearing from the Product Catalog but persisting in the transactions and other
+historical parts. But the default products cannot be deleted and it doesn't really make
+sense at this point to disable them or anything else."* He asked whether it had to be
+addressed now. **It does not, and the reason is a measurement rather than a judgement.**
+
+⚠️⚠️ **HALF OF IT WAS ALREADY BUILT AND NOBODY HAD NOTICED — INCLUDING THE SESSION THAT
+BUILT IT.** *"Delete… disappearing from the Product Catalog but persisting in the
+transactions"* is **exactly** `5e-iii-b`'s retirement: `is_active` false, dropped by
+`catalogFrom`, kept by every ledger read. His sentence describes the shipped behaviour
+line for line, and `0002` gives neither catalog table a delete policy at all, so the
+database **cannot** do the other thing. **It was parked as a decision and it was a
+description.**
+
+~~⚠️⚠️ **AND THE OTHER HALF IS VACUOUS TODAY, WHICH IS THE WHOLE ANSWER TO *do I need to
+address this now*.**~~ ⚠️⚠️ **STRUCK 2026-09-23, WITHIN THE HOUR, BY THE OWNER ON HIS
+PHONE — SEE THE ENTRY ABOVE. IT IS NOT VACUOUS AND IT WAS NOT THE ANSWER.** The paragraph
+below is left standing because the measurement in it is correct and only the conclusion
+drawn from it is not, which is the more useful thing to keep. Measured against the applied schema and every migration in the
+repository: `product_family` and `product_variant` carry **no origin column**, and there
+is **not one `insert into` either table anywhere in `supabase/migrations/`**. So **there
+are no default products**, every product in every shop is one somebody made, and every
+one of them is correctly deletable. **A fence drawn now would be a control with no rows
+to apply to** — the scaffolding `5d` spent a step deleting.
+
+⚠️⚠️ **THE ONE THING THAT IS CHEAP NOW AND DEAR LATER, NAMED LOUDLY BECAUSE MERGING IS
+AUTOMATED: THE MARKER SHIPS IN THE MIGRATION THAT FIRST SEEDS A CATALOG, NEVER AFTER
+IT.** A shop seeded before it exists has rows nothing can ever tell apart again, and
+back-filling means guessing by name. **The exposure is zero today because no shop has
+been seeded**, and it starts the day one is — which is why the sentence is in `6c`, in
+`C8.2b` and in the ADR rather than in a session's head.
+
+✅ **WHAT ACTUALLY CHANGED IN CODE: ONE STRING.** `ES.catalog.edit.retireOnce` read
+*"Por ahora no se puede volver a activar desde la app."* — and *por ahora* describes a
+gap waiting to be closed, which the ruling says it is not. It now reads **`Esto no se
+puede deshacer.`** ⚠️ The sentence above it was already his own — *"Lo que ya vendiste no
+se borra"* — and that pairing is what makes one-way deletion safe to offer at all.
+
+✅ **WHAT CHANGED IN THE RECORD, WHICH IS MOST OF IT.** **C8.1** amended — a shop starts
+from a prebuilt catalog, and its *no import, no bulk tool* half stands. **C8.2** still
+true, for a second reason. **`C8.2b` is new** and carries the fence and its measurement.
+**C8.4 pulled forward** from *later* to a row. **`6c` written**, sized *size it first*,
+recommended after `5g` and explicitly the owner's to move ahead of `5f` if the pilot is
+to open on a prebuilt catalog. **ADR-035's catalog section amended** — the fifth
+amendment folded into the work that raised it — ⚠️ **including the sentence that keeps
+it from reading as a reversal**: the rows are COPIED INTO a workspace and never shared
+across tenants, because every line table's foreign key is composite on
+`(id, workspace_id)`. **One catalog per workspace is untouched, and the catalog still
+belongs to the merchant.**
+
+⚠️ **ONE QUESTION GOES BACK TO HIM AND IT IS ONE WORD**: the control says
+*Retirar del catálogo* and he calls the act **delete**. `Eliminar` is what a shopkeeper
+would look for; `Retirar` was chosen because the thing survives in the ledger. **The
+honesty is carried by the sentence underneath either way**, so this is his ear rather
+than an argument — and he is holding the phone.
+
+⚠️⚠️ **THE PREBUILT-CATALOG ANSWER ABOVE WAS WRONG ON ITS CENTRAL POINT, AND THE OWNER
+FOUND IT ON HIS PHONE WITHIN THE HOUR — 2026-09-23.** *"But I said that the user can only
+Retirar or Eliminar things he created, why am I still seeing the button for the already
+existing products?"* ✅ **HE IS RIGHT, AND THE ERROR IS WORTH RECORDING BECAUSE OF ITS
+SHAPE RATHER THAN ITS SIZE.**
+
+⚠️⚠️ **WHAT WAS WRONG: A FACT ABOUT THE SCHEMA WAS ALLOWED TO STAND AS A FACT ABOUT HIS
+SHOP.** The entry below says *"there are no default products, every product in every shop
+is one somebody made, and every one of them is correctly deletable"*, and the evidence
+offered for it was that no migration inserts a catalog row. **That evidence is true and
+it does not support that conclusion.** A shop's products do not have to arrive through a
+migration to exist — they arrive through the app, through the dashboard, through
+whatever the owner does — and **he is looking at products he did not type in, with a
+delete button on each one.** ⚠️ The grep was scoped to `supabase/migrations/` and the
+claim was made about the world. ⚠️⚠️ **AND `supabase/seeds/00_skeleton.sql` BUILDS A
+CATALOG, WHICH THAT GREP ALSO MISSED** — it seeds its own `ws_a`/`ws_b` and runs only on
+`supabase db reset`, so it did not put these rows in his shop, **but a narrower search
+that had found it would have stopped the wrong sentence being written.**
+
+✅✅ **WHAT IS ACTUALLY TRUE, AND IT IS THE SAME SENTENCE FOR EVERY ORIGIN THOSE ROWS
+COULD HAVE: `product_family` AND `product_variant` RECORD NOTHING ABOUT WHERE A ROW CAME
+FROM.** There is no origin column on either table. So `Editar` **cannot tell** a product
+that came with the catalog from one a shopkeeper typed in, and it was offering the
+destructive control on all of them. **The rule he stated is not enforceable by any
+amount of screen work** — it needs the database to know the answer.
+
+✅ **SHIPPED IMMEDIATELY, AND IT IS ONE BLOCK OF JSX: THE RETIRE CONTROL IS DRAWN ON
+NOTHING.** ⚠️⚠️ **THAT IS `canWriteCatalog`'s ARGUMENT APPLIED TO A ROW INSTEAD OF A
+ROLE** — plainly absent beats looking live and doing the wrong thing, which is the shape
+[[shift-cover-is-a-reassignment]] records and the one this app has now chosen four times.
+While the screen cannot tell his products from the catalog's, **offering the control on
+none of them is strictly better than offering it on all of them**: the cost is that he
+cannot delete the ones he really did make, and the thing it buys is that he cannot delete
+the ones he did not. ⚠️ **It is one block to put back**, and `ES.catalog.edit.retire*` is
+kept in place for `6c` rather than deleted.
+
+⚠️⚠️ **`6c` IS NOW THE ROW THAT RESTORES A CAPABILITY RATHER THAN ONE THAT ADDS A
+FENCE**, which is a different row and is rewritten as one. ⚠️ **`5f` IS STILL MARKED
+NEXT AND THAT IS A CALL, NOT AN OVERSIGHT**: the wrong button is gone, so nothing on the
+phone is lying any more, and `6c` is no longer urgent — **but it now costs him deleting
+anything at all, so if that matters more than Vender does, `6c` goes first and that is
+his word to give.**
+
+⚠️⚠️ **AND ONE QUESTION `6c` CANNOT ANSWER FROM THIS MACHINE — IT IS IN THE DECISIONS
+BLOCK.** The marker is cheap; the BACKFILL is not, because it decides which of the rows
+already in his shop become undeletable, and **an append-only migration is a poor place to
+guess.** See the block.
