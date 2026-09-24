@@ -836,7 +836,7 @@ function Carrito({
       // nothing on the one platform C1.1 puts two of in the pilot.
       onRequestClose={onClose}
     >
-      <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+      <View style={{ flex: 1 }}>
         {/* ⚠️ THE VELO IS A SEPARATE VIEW UNDER AN `opacity` RATHER THAN A
             TRANSLUCENT FILL ON THE CONTAINER. `opacity` on a parent dims its
             children, so painting it on the wrapper would put the sheet itself
@@ -862,7 +862,20 @@ function Carrito({
             backgroundColor: PALETTE.velo,
           }}
         />
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        {/* ⚠️⚠️ THE SIZING LIVES ON THIS VIEW AND NOT ON THE CARD, AND THE FIRST
+            WRITING PUT IT ON THE CARD — which is the bug the owner saw on
+            2026-09-24: *"it is all churned at the bottom and I can't see the
+            controls nor the items properly."* A `KeyboardAvoidingView` with no
+            style is CONTENT-SIZED, so the card's `maxHeight: '85%'` was a
+            percentage of a parent with no definite height. Yoga cannot resolve
+            that and drops the constraint — the `FlatList` below then had no
+            bound either, rendered its whole content, and pushed `Vaciar` off
+            the bottom of the screen. ⚠️ `flex: 1` here is what makes the
+            percentage resolvable at all. */}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
+        >
           <View
             style={{
               maxHeight: '85%',
@@ -879,6 +892,12 @@ function Carrito({
             ) : (
               <>
                 <FlatList
+                  // ⚠️ `flexShrink` AND NOT `flex: 1`. A short basket must leave
+                  // the sheet short — `flex: 1` would stretch every basket to
+                  // the full 85% and put `Vaciar` at the bottom of a mostly
+                  // empty card. `flexGrow: 0` with `flexShrink: 1` is what lets
+                  // the card size to its content UP TO the cap and scroll after.
+                  style={{ flexGrow: 0, flexShrink: 1 }}
                   data={rows}
                   keyExtractor={(row) => row.variantId}
                   renderItem={({ item }) => (
@@ -958,6 +977,15 @@ function Encabezado({ onClose }: { onClose: () => void }) {
  *
  * ⚠️ THE LINE TOTAL IS A DASH WHEN IT COULD NOT BE PRICED, never `$0.00` —
  * C3.12 about one row, which is the same fact `reviewOf` keeps out of the sum.
+ *
+ * ⚠️⚠️ THREE LINES AND NOT ONE, AND THE FIRST WRITING PUT FOUR THINGS ON ONE
+ * ROW — the second half of the bug the owner saw on 2026-09-24. Measured rather
+ * than eyeballed, at `Letra grande` on his iPhone 15 (393 pt wide): the stepper
+ * is `tapTarget + box + tapTarget` = 222 pt, the line total 90, the removal 60,
+ * three gaps 36 and the padding 32 — **440 pt before the product name gets
+ * anything at all.** The name block is `flex: 1`, so it collapsed to nothing and
+ * the row overflowed. ⚠️ A review screen is the one place a name may not be
+ * squeezed: it is what the customer is checking the figure against.
  */
 function Renglon({
   row,
@@ -975,19 +1003,18 @@ function Renglon({
   return (
     <View
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        minHeight: scale.rowHeight,
+        gap: scale.rowGap / 2,
         paddingVertical: scale.rowGap,
         paddingHorizontal: scale.space,
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+      {/* The name, and the figure the customer is checking it against. */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
         <Text
           numberOfLines={1}
           style={{
+            flex: 1,
             fontSize: scale.bodySize,
             fontWeight: '600',
             color: gone ? PALETTE.tintaApagada : PALETTE.tinta,
@@ -995,19 +1022,18 @@ function Renglon({
         >
           {row.name ?? ES.sell.cart.goneName}
         </Text>
-        {/* ⚠️ `R11`: the state never travels as a colour alone. */}
-        <Text numberOfLines={1} style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
-          {gone ? ES.sell.cart.gone : (row.familyName ?? '')}
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+          {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
         </Text>
       </View>
 
-      {gone ? null : (
-        <Cantidad entry={entry} base={row.base} factors={factors} />
-      )}
-
-      <View style={{ alignItems: 'flex-end', minWidth: scale.tapTarget * 1.5 }}>
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-          {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
+      {/* ⚠️ `R11`: the state never travels as a colour alone. */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
+        <Text
+          numberOfLines={1}
+          style={{ flex: 1, fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+        >
+          {gone ? ES.sell.cart.gone : (row.familyName ?? '')}
         </Text>
         {row.centavos === null && !gone ? (
           <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
@@ -1016,23 +1042,30 @@ function Renglon({
         ) : null}
       </View>
 
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${ES.sell.cart.remove} ${row.name ?? ES.sell.cart.goneName}`}
-        onPress={() => remove('sell', row.variantId)}
-        style={{
-          minWidth: scale.tapTarget,
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        {/* ⚠️ `error` AND NOT A MUTED GREY — the palette's own sentence for that
-            role names `Quitar` first: *what DESTROYS*. On a review screen it is
-            what separates the control that removes a line from the two beside
-            it that only change its size. */}
-        <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.error} />
-      </Pressable>
+      {/* The controls, on their own line — see this component's header. */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} />}
+
+        {/* ⚠️ A WORD AND NOT A GLYPH, and the width is the reason as much as the
+            clarity: an icon plus its word does not fit beside the stepper at
+            `Letra grande`, and an icon alone on the one control that destroys
+            something is the shape C12.1 refuses. ⚠️ `error` is the palette's own
+            sentence for this role — it names `Quitar` first. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${ES.sell.cart.remove} ${row.name ?? ES.sell.cart.goneName}`}
+          onPress={() => remove('sell', row.variantId)}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+            paddingHorizontal: scale.rowGap,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+            {ES.sell.cart.remove}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
