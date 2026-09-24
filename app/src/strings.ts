@@ -767,6 +767,13 @@ export const ES = {
        */
       empty: 'Vaciar carrito',
       /**
+       * ⚠️ THE QUESTION THE CENTRED BOX ASKS — the owner's own wording, 2026-09-24:
+       * *"it should be a separate box in the center of the screen with it's scrim
+       * with a confirmation message."* An inline strip at the foot of the sheet was
+       * what shipped first and he refused it.
+       */
+      emptyAsk: '¿Seguro de que quieres vaciar el carrito?',
+      /**
        * ⚠️ THE CONFIRM STEP IS A DIFFERENT WORD FROM THE ONE THAT OPENS IT, for
        * `approvals.confirm`'s reason: two taps that read the same are two taps a
        * shopkeeper cannot tell apart afterwards.
@@ -792,6 +799,38 @@ export const ES = {
       /** What that row is called, since the catalog can no longer say. */
       goneName: 'Producto retirado',
     },
+
+    /**
+     * ⚠️⚠️ C3.6's SLIDE — *"commit is a SLIDE, not a tap"* (`5f-iii-b`).
+     */
+    slide: {
+      /**
+       * ⚠️⚠️ ONE WORD, AND IT IS THE VERB — ruled by the owner 2026-09-24:
+       * *"Let's change the legend of the slicer to 'Cobrar' in both cases."*
+       *
+       * ⚠️ IT REPLACES *Desliza para cobrar* / *Desliza*, AND THE OBJECTION THAT
+       * PUT THOSE THERE IS NOW MOOT RATHER THAN OVERRULED. The argument was that
+       * a verb alone reads as a button, and a button is what C3.6 refused: a
+       * thumb that brushes one has committed a sale. **In the same message he
+       * made the track TAPPABLE** — a tap opens the basket — so the control is
+       * now honestly both, and the word no longer has to carry the instruction.
+       * ⚠️ **What still stops a brush committing a sale is `COMMIT_AT`**, not
+       * the wording, and that has not changed.
+       */
+      word: 'Cobrar',
+      /**
+       * To a screen reader, which has no track to look at and no thumb to see
+       * move (C12.1). ⚠️ It names BOTH gestures, because the control has two.
+       */
+      label: 'Cobrar — desliza para confirmar la venta, o toca para ver el carrito',
+    },
+
+    /**
+     * ⚠️⚠️ THE SALE'S OWN CONFIRMATION — the first of the owner's two animations
+     * (2026-09-21), and it fires when the sale enters the QUEUE, never when the
+     * server answers. See `vender.tsx`.
+     */
+    sold: 'Venta registrada',
   },
 
   units: {
