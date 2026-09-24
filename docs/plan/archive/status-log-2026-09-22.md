@@ -1316,3 +1316,219 @@ on a database it builds itself. ⚠️ **`price_per_base` is per GRAM** — $180
 kilo is `0.180000` — and the shape was copied from
 `docs/checks/5d-i-catalog-contract.sh` rather than invented, because a
 thousand-fold error there would have rendered as an entirely plausible price.
+
+
+---
+
+## ⚠️ THE THIRTEENTH CUT — taken 2026-09-24 while `5f` was being sized, off the FOOT again
+
+⚠️⚠️ **TWO MORE ENTRIES OF 2026-09-22, AND THEY ARE THE OLDEST THAT WERE STILL
+LIVE**: `5d-iv-a`, the takings read, and the `5d-iv` sizing that created it.
+`## Position` stood at **1,373 of its 1,400 ceiling** before this cut, which is
+**twenty-seven lines of headroom and less than half of one closing entry** — so a
+session sizing an `XL` could not have written its own entry without going red on a
+check about a document while the work it was reporting was fine.
+
+⚠️ **It is a MOVE and not a copy.** `split-coverage.sh` fails on *"row appears 2
+times"* and it reads the corpus, which includes this file, so a copy would be
+found by a guard rather than by a person — and `plan-corpus.sh` globs this
+directory, so every content-addressed lookup (`| **task** |`) resolves out of
+here exactly as it did out of `## Position`.
+
+⚠️ **Why the FOOT and not the head, for the tenth time out of thirteen:** the head
+of that block held 2026-09-23 and 2026-09-24, and the rule is oldest-first where
+the block allows it. **These two entries are 2026-09-22's, so they belong in this
+file rather than in a new one** — which is the whole reason this file is appended
+to rather than replaced.
+
+---
+
+✅✅ **`5d-iv-a` IS DONE AS OF 2026-09-22 — THE APP CAN ASK WHAT THE SHOP TOOK
+TODAY, AND `5d-iv-b` IS THE NEXT TASK: INICIO ITSELF.** One module, one wire
+call, one hook, **33 new Vitest assertions (729 over 30 files, up from 696 over
+29)** and a contract check of eleven assertion groups over real HTTP with eleven
+fixtures of its own. **No migration, no screen, no `src/ui/`.**
+
+⚠️⚠️ **THE DESIGN THE SIZING ASKED FOR TURNED OUT TO BE FORBIDDEN — AND BY THIS
+REPOSITORY'S OWN RULES RATHER THAN BY TASTE. THAT IS THE FINDING, AND IT IS WHY
+THE SPLIT PAID FOR ITSELF INSIDE ONE SESSION.** The sizing said, correctly, that
+a trading day is local and `0012` put the zone on `location`. Converting an IANA
+NAME into an instant needs **`Intl.DateTimeFormat`**, and:
+
+| The rule | What it says |
+|---|---|
+| **`R5`** | **NO `Intl.` anywhere outside `src/format/mxn.ts`** — enforced, and the gate reads every source file |
+| **`R10`** | an **ALLOW-LIST** of `format` and `resolvedOptions`, the only two names measured on BOTH runtimes. `DateTimeFormat` is recorded there as *"a function on Android and unasked on iOS"* |
+
+⚠️⚠️ **THAT IS THE EXACT STATE `formatToParts` WAS IN ON 2026-09-13, WHEN IT
+TERMINATED THIS APP ON THE SPLASH SCREEN OF THE OWNER'S OWN IPHONE** with
+twenty-six green assertions behind it. So the device's own midnight is used —
+which needs no `Intl` and no table, and is **the call `catalog.ts`'s `isoDay` had
+already made four hours earlier** for the price window, on the same ground: *the
+phone is in the shop*. **Two answers to *what day is it* in one app would have
+been the defect this file has recorded eight shapes of.**
+
+⚠️ **THE COST IS IN THE MODULE'S HEADER RATHER THAN DISCOVERED LATER:** a phone
+outside its shop's zone buckets differently from `product_velocity_daily`. That
+is **zero shops today** — C1.5 puts both pilot shops in one location each and the
+column defaults to `America/Mexico_City` — and the day it is not, the fix is a
+MEASUREMENT on both runtimes first and a code change second. **Adding an ECMA-402
+name is not a code change.**
+
+⚠️⚠️ **AND THE BOUNDARY FIXTURE WAS MACHINE-DEPENDENT AND WOULD HAVE BEEN GREEN
+IN CI. IT WAS CAUGHT BY ASKING RATHER THAN BY ASSUMING.** Fixture `F1` replaces
+the local boundary with a UTC one; it went **red on the owner's Mac at UTC−6** and
+would have gone **green on a UTC runner**, because there the two are the same
+instant. ✅ `process.env.TZ` was **measured** to be re-read by node for every
+`Date` constructed after it, so the block now pins `America/Mexico_City` —
+`0012`'s own default — and ⚠️ **asserts the zone took before asserting anything
+in it**, because a pinning that silently failed would leave every case comparing
+UTC against UTC and passing for it. **A boundary suite that only falsifies on one
+of the two machines that matter is what `5a-split-coverage.sh` recorded about
+`mapfile`.**
+
+**THE THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, all client arithmetic and all
+reversible for nothing — no migration, no stored value:**
+
+| | The decision | The alternative, and what it costs |
+|---|---|---|
+| **1** | **GROSS of IVA** — `total_net` + `total_tax` | Not new: ruled 2026-09-14. Net would be short by the IVA every single day, against a till that holds the gross |
+| **2** | ⚠️⚠️ **A VOIDED SALE COUNTS AS NEITHER ONE NOR TWO** | `0021` writes a SECOND row, negated, so the peso figure self-corrects on its own and a `count(*)` does not. *2 ventas* after one sale and one undo is the app doing bookkeeping at a shopkeeper. ⚠️ A void the NEXT morning leaves today whole — which is **not** an approximation: it is what `product_margin_daily` does on the server, and the two agreeing is worth more than either being clever |
+| **3** | ⚠️ **NO ROWS READ IS NOT ZERO ROWS** | `undefined` is what a read in flight AND a read that FAILED both look like; an empty array is a genuinely quiet morning. Collapsing them puts a confident **$0.00** at the top of Inicio on a phone that could not reach the database — the same shape as the *Cargando productos…* the owner found this morning, except that this one does not look like it is waiting |
+
+⚠️ **AND ONE MORE THING THE ROW SHOULD SAY BEFORE `5f` MAKES IT VISIBLE:** this is
+a SERVER read, and a sale rung up offline lives in the device's outbox until the
+link returns. **Inicio can honestly show less than the cashier remembers taking.**
+Reconciling the two is `5f`'s question — it is the task that creates the queued
+sale — and pricing the outbox here would be a second answer to *what did we take*
+on the one screen that must not have two.
+
+
+⚠️⚠️ **`5d-iv` WAS SIZED AGAIN ON 2026-09-22, AS ITS OWN ROW DEMANDED, AND IT
+SPLIT IN TWO. `5d-iv-a` IS THE NEXT TASK: THE TAKINGS READ.** The row had said
+*"SIZE IT AGAIN WHEN IT IS TAKEN — the takings and the count are a read NOTHING
+IN THIS APP PERFORMS"*, and that turned out to be an understatement: it is not
+one read, it is a read plus the arithmetic that decides **which rows are
+today's**, and the database already commits to an answer.
+
+⚠️⚠️ **THE SEAM IS `5d`'s OWN, ONE LEVEL DOWN.** `5d` split in four on the
+argument that `5d-i` is the half a machine can hold and the other three are the
+half only the owner's eye can — and `5d-iv`, alone among the four, still carried
+**both**. `5d-iv-a` is the second `5d-i`: a module, a contract check over real
+HTTP, **no screen**. `5d-iv-b` is Inicio, whose whole instrument is a phone.
+
+**WHAT THE SIZING FOUND, and none of it was in the row:**
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | ⚠️⚠️ **A TRADING DAY IS LOCAL, AND `0012` PUT THE TIMEZONE ON `location`** | The server's `product_margin_daily` buckets on `(occurred_at at time zone l.timezone)::date`. A phone bucketing on its own clock agrees in Guadalajara and disagrees in Hermosillo — and `0012`'s header records that **nothing arithmetic saw the drift** the last time these two diverged: every reconciliation stayed green |
+| **2** | **A VOID IS TWO ROWS, NOT A DELETED ONE** (`0021`) | The peso figure self-corrects by summing negated totals; **the COUNT does not.** *2 ventas* after one sale rung up and undone is the app doing bookkeeping at a shopkeeper |
+| **3** | **`LOCATION_COLUMNS` IS `'id,name'`** — no timezone | The read `5d-iv-a` needs does not exist even in the column list, which is `R13`'s shape: a name the database answers to, asserted by a live round trip and by nothing else |
+| **4** | ⚠️ **NOTHING IN THIS APP WRITES A SALE UNTIL `5f`** | So Inicio will read **$0.00 and 0 ventas** on every phone. The contract check has to **make** the sales it counts (`record_sale`, `0016`), and `5d-iv-b`'s question *does a zero read as a quiet morning or as a broken app?* is **routed to `5f`** rather than put to the owner blind |
+
+⚠️ **`5d-iv-b` IS NOT DEFERRED, AND THAT WAS DECIDED RATHER THAN ASSUMED.** The
+rule of 2026-09-22 defers a row only when **both** tests are yes, and only one
+is here: the cards, the rows, the placement and the banner's room are all
+reachable on his phone today. **The falsifiable half is never deferred for the
+sake of the look-half**, which is `5d-iv-a`.
+
+⚠️ **`docs/checks/specs/5d-iv.split` is the thirteenth split spec**, twelve
+deliverables over two children, and the falsifier derives its fixtures from it —
+**177 fixtures now, up from 165**, with no wiring added.
+
+
+
+---
+
+## ⚠️ THE FOURTEENTH CUT — taken 2026-09-24 in the same session as the thirteenth, and for the reason the thirteenth wrote down
+
+⚠️⚠️ **`5d-iv-b` — INICIO — AND IT IS THE LAST 2026-09-22 ENTRY THAT WAS STILL
+LIVE.** The thirteenth cut bought `## Position` ninety-three lines and the `5f`
+sizing entry spent fifty-one of them, which left **1,349 of 1,400: fifty-one lines,
+and a closing entry is longer than that.** ⚠️ **So the session that could see the
+number paid for its successor rather than handing it a red** — the argument the
+pointer paragraph in `## Position` has now made fourteen times, and the first time
+it has been acted on twice in one sitting.
+
+⚠️ **It is a MOVE and not a copy**, and `plan-corpus.sh` globs this directory, so
+every content-addressed lookup resolves out of here exactly as before.
+
+---
+
+✅✅✅ **`5d-iv-b` IS DONE AS OF 2026-09-22 — INICIO IS THE SCREEN §2.8 DESCRIBES,
+AND `5d` IS CLOSED.** ~~and `5e` is the next task~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** One new pure module, one new strings
+block, one screen rewritten from a placeholder, **47 new Vitest assertions (776
+over 31 files, up from 729 over 30)**, and a falsification pass of **nine
+fixtures** run by hand against the new claims. **No migration, no `src/ui/`, no
+new route.**
+
+⚠️⚠️ **THE THREE TEMPORARY BLOCKS ARE GONE AND ALL THREE NAMED THIS TASK IN
+THEIR OWN COMMENTS — AND SO IS THE FIXTURE THAT WAS ON THE OWNER'S PHONE THIS
+MORNING.** `placeholderGrossCentavos()` rendered **$11.60** out of
+`packages/money/cases.json` at the top of Inicio: a test fixture presented to a
+shopkeeper as her takings. ⚠️ **It is not merely unused now — it is UN-EXPORTED**,
+so no screen can reach it again. `placeholderTotal` keeps it alive as `5a-i`'s
+boundary claim, which is the only thing `app/test/wiring.test.ts` ever asserted.
+
+⚠️⚠️ **THE ORDER OF THE SCREEN IS NOW A TABLE, AND THAT IS THE ONE THING THIS
+TASK SHIPPED THAT A MACHINE CAN SEE.** §2.8's Home row was amended on 2026-09-17
+to allow the cards and kept one half deliberately — **state comes first**, the
+takings above anything tappable. §2.11 refuses suites over layout, so written as
+a sequence of JSX children that half is a deliverable **that ships green when
+somebody moves the cards above the figure**. `app/src/navigation/inicio.ts` makes
+the bands and the doors DATA; `app/test/inicio.test.ts` reads them. ⚠️ **It is
+`tabs.ts`'s trade, made a second time for the same reason** — and `5a-ii`'s
+falsification `F14` is what paid for it the first time. ⚠️ **What it still
+cannot see is that `index.tsx` renders the table in order** rather than four
+children typed out by hand; it uses a `.map`, which is a person's check at review
+and the owner's phone afterwards (`R9`).
+
+⚠️⚠️ **AND THE ROOM AT THE TOP TURNED OUT TO BE A TWO-MODULE CLAIM, WHICH IS WHY
+THE BANNER'S GEOMETRY MOVED.** `DeadLetterBanner` is mounted at the root and
+**absolutely positioned**, so it draws OVER whatever Inicio put at the top — and
+since *"let's keep it Home Only"* the one screen underneath it is this one.
+Its offset and its pill's floor were **literals inside the component**, whose own
+header says *"it decides nothing"*. They are now `bannerTop`, `bannerMinHeight`
+and `bannerRoom` in `@/offline/deadLetters`, read by both files. ⚠️ **Two copies
+of *how tall is the banner* would have gone stale by HIDING THE TAKINGS FIGURE**
+— the one number the screen exists to show — and no check in this repository
+would have said so.
+
+⚠️ **`bannerRoom` IS A FLOOR AND NOT A MEASUREMENT, AND IT SAYS SO IN ITS OWN
+DOC-COMMENT.** The pill is three lines of `bodySize` text and nothing outside a
+running renderer knows how tall that comes to, so Inicio **scrolls** — which is
+needed in `Letra grande` regardless, where three cards and two rows do not fit
+one screen.
+
+**THE FOUR DECISIONS TAKEN ON THE OWNER'S BEHALF. All four are client-side, all
+four are reversible for nothing — no migration, no stored value, no seed:**
+
+| | The decision | The alternative, and what it costs |
+|---|---|---|
+| **1** | ⚠️⚠️ **PROVEEDORES IS DRAWN AND IS DRAWN DEAD** — a row with `route: null`, ink at `tintaApagada`, `accessibilityState` disabled, and *"Todavía no está lista."* under it | The alternative was a **placeholder route** (`Pendiente`, the `5a-ii` shape). Refused: `5d` is the step that DELETES scaffolding, and adding a fourth placeholder screen to satisfy a row is scaffolding arriving a step late. ⚠️ **The precedent is `5d-iii`'s own ruling, one task old** — the three dead buttons on La Familia — and `ES.approvals.notYet` before it. **`6b` deletes the sentence when it builds the room** |
+| **2** | **THE THREE CARDS `navigate`, THE TWO ROWS `push`** | A card opens a TAB the bar already owns; pushing would stack a second copy of Vender and the way back from it is the bar, not a back gesture. The rows are screens you GO into, which is what `push` is for — the distinction this file already carried for Ajustes and Solicitudes |
+| **3** | **AN UNREADABLE ROW TAKES THE COUNT DOWN WITH THE FIGURE** — one sentence replaces both numbers | `takingsFrom` still returns a count, so printing it was free. Refused: ***3 ventas*** above a blank space where the pesos should be has exactly one reading — *three sales that brought in nothing* — which is a shopkeeper doing arithmetic about a wire format ([[users-dont-do-bookkeeping]]) |
+| **4** | **THE ROOM AT THE TOP IS RESERVED UNCONDITIONALLY** | Reserving it only while a banner is up costs nothing in pixels and moves the takings figure DOWN the moment a write dead-letters — a number jumping under the eye of somebody reading it, and the cards jumping under a thumb already travelling. **Same reasoning `Solicitudes` records for not hiding the bell while its read is out** |
+
+⚠️⚠️ **WHAT THE OWNER'S PHONE IS OWED, AND ONE OF IT IS ROUTED RATHER THAN
+ASKED.** `R9` and §2.11: nearly everything on this screen is unseeable here —
+whether the figure reads across a counter, whether three cards and two rows fit
+above the tab bar in `Letra grande`, whether the dead Proveedores row looks
+honest or looks broken, whether the room at the top reads as deliberate or as a
+gap. ⚠️ **The last of those cannot be judged alone and is now named in `5f`'s
+row**: the banner it makes room for has never been on a screen, because nothing
+in this app enqueues anything until `5f` exists. ⚠️⚠️ **AND THE ZERO IS `5f`'s
+QUESTION, DELIBERATELY NOT ASKED TODAY** — nothing writes a sale yet, so the
+figure reads **$0.00 and 0 ventas on every phone**; *does that read as a quiet
+morning or as a broken app?* put to the owner now would be the `5c-iv-b` mistake
+the ruling of 2026-09-22 named.
+
+⚠️ **NINE FALSIFICATIONS, RUN BY HAND AND EACH RESTORED.** Cards above the
+takings → red. The room shrunk below the pill → red. The room stopped growing in
+elder mode → red. A label typed in place instead of read from `ES` → red.
+Proveedores given a room it does not have → red. A glyph that is not in the
+shipped font → red. A failed read wearing the loading sentence → red. An
+unreadable row still printing its count → red. A withheld figure drawn as
+`$0.00` → red. **Rule 4: these assertions were confirmed capable of failing
+before they were believed.**
+

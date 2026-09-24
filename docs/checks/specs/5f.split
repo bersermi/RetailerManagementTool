@@ -1,0 +1,111 @@
+# 5f — the transaction screen, shared. Sized XL and split FOUR ways on
+# 2026-09-24, on the day it was taken and before a line of it was written. The
+# row asked for exactly this in its own words — "SIZE IT BEFORE BUILDING ANY OF
+# IT — this row lists a screen, a stepper, a basket, a slide-to-commit, a price
+# change and a persistence setting, which is not one sitting."
+#
+# THE SEAM, IN ONE LINE: it is 5d's and 5e's seam, applied to a row that carried
+# THREE kinds of thing rather than two. 5f-i is the half a machine can hold — a
+# store, arithmetic and a payload, each with a right answer a node suite can
+# read. 5f-ii and 5f-iii are the half only the owner's phone can judge, and they
+# are two rather than one because the second one WRITES: it is the first caller
+# any of 5c's four children has ever had. 5f-iv is neither — it is a question
+# the owner owes, and drawing the control before he answers ships a button a
+# cashier taps while nothing happens.
+#
+# WHY FOUR AND NOT TWO, SAID AS A FAILURE ARGUMENT RATHER THAN A SIZE ONE, which
+# is what 5c-iv and 5d-iv established: the four halves FAIL DIFFERENTLY. 5f-i's
+# mistakes are silent and arrive in the ledger — a gross-for-net confusion
+# understates IVA on every line and nothing goes red. 5f-ii's cost a glance.
+# 5f-iii's are the queue's, and the queue is the one part of this app whose
+# failures are invisible by design. 5f-iv's is a fence the owner has already
+# ruled on once. Putting them in one row means the one nothing can see rides in
+# on the back of the one only a person can.
+#
+# THREE THINGS WERE NOT IN THE PARENT ROW WHEN IT WAS TAKEN, and that is most of
+# what the sizing was worth. All three are now IN the parent row, which is what
+# assertion 3 needs to stay non-vacuous.
+#   * THE CART IS STATE BEFORE IT IS A SHEET, AND ADR-035 §2.11 HAD ALREADY
+#     DECIDED WHERE IT LIVES — "Zustand, cart only, persisted to expo-sqlite",
+#     with the rule that nothing lives in both Query and the cart store. The row
+#     said "basket sheet" and named no store at all. zustand is not a dependency
+#     of @tienda/app: measured against app/package.json on 2026-09-24.
+#   * THE QUANTITY CONTROL CONTRADICTS THE ADR, AND THE ADR WINS. §2.8 says
+#     "stepper for discrete units, decimal keypad for weight and volume… Never
+#     the same control for both", and §2.11 names the primitive QtyInput as the
+#     stepper/keypad SWITCH. C3.8 and the owner's specification of 2026-09-23
+#     both put BOTH on one weighed line. Parked as an ADR amendment; it is why
+#     5f-ii is gated and 5f-i is not, the same arrangement C3.17 produced one
+#     split earlier.
+#   * THE COMMIT PAYLOAD IS A DECISION. record_sale takes
+#     unit_price_gross_per_base, price_list stores price_per_base, and the two
+#     are the same number only while workspace.prices_include_tax is true —
+#     §2.5 rule 2 anchors a sale on gross and a purchase on net. Every shop
+#     today has the flag true, so the pilot never sees the branch; a module that
+#     hard-codes the identity understates IVA the day one answers no.
+#
+# ⚠️ AND ONE THING THIS SPLIT DELIBERATELY DOES NOT COVER, named so no session
+# reads it as a gap: the LIVE round trip that proves Postgres accepts the
+# payload 5f-i builds. record_sale is 5h's and record_purchase is 5g's, so the
+# contract check over real HTTP belongs there. 5f-i asserts the shape a node
+# suite can read and says out loud that the database has not been asked.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, and EACH_CHILD_SAYS asserts it POSITIVELY in all
+# four rows because merging is automated: a child that quietly grows one is
+# repaired by a fix-forward migration, never by an edit. It was measured rather
+# than hoped — sale_line has carried qty_base, qty_display and qty_display_unit
+# since 0003, and record_sale has taken qty_display with an optional
+# qty_display_unit since 0016.
+SPLIT_ID="5f"
+SPLIT_GROUPS=( "5f|5f-i 5f-ii 5f-iii 5f-iv" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare pipe in the regex
+  # field truncates the entry and it fails downstream as a DROPPED deliverable,
+  # which reads exactly like the defect this list exists to catch.
+  #
+  # ⚠️ NO BACKTICKS IN A REGEX. This file is SOURCED by bash, so a backtick is
+  # command substitution — the regex would be replaced by the output of whatever
+  # it spelled. Match the words inside the backticks instead; they are still
+  # there in the row.
+  #
+  # ⚠️ EVERY REGEX MUST ALSO MATCH THE PARENT ROW — assertion 3 refuses a
+  # deliverable the parent stopped promising, so the coverage claim cannot go
+  # vacuous by the parent being tidied.
+  "the cart store §2.11 already chose, and the dependency that is not installed|Zustand|5f-i"
+  "the stepper's step, which is the price unit and not a number a screen picks|factor_to_base|5f-i"
+  "a line exists because a quantity is greater than zero|quantity-is-the-line|5f-i"
+  "the commit payload, and whether the shelf price is gross or net|unit_price_gross_per_base|5f-i"
+  "the unit factors handed to the dead-letter banner, empty since 2026-09-22|NO_UNIT_FACTORS|5f-i"
+  "one flat list of variants and a search box, the same list on both screens|Flat variant list and search|5f-ii"
+  "C3.2 — the row carries everything and there is no detail screen|the row is the whole control|5f-ii"
+  "the quantity control itself, which is what the ADR amendment is about|stepper and keypad|5f-ii"
+  "the bar that shows Total, and never a line total on the row|sticky|5f-ii"
+  "the unpriced row's colour, and colour is never the only signal|amber/badge|5f-ii"
+  "the sheet over the cart, and only the rows carrying a quantity|basket sheet|5f-iii"
+  "commit is a gesture and not a tap|slide-to-commit|5f-iii"
+  "removing one line, immediately, with no undo and no dialog|Quitar|5f-iii"
+  "emptying the whole basket, which keeps its confirmation|Vaciar carrito|5f-iii"
+  "the flush trigger that has had no caller since 2026-09-22|queued\\(\\)|5f-iii"
+  "the two the owner asked for in place of the change calculation|CONFIRMATION ANIMATIONS|5f-iii"
+  "the first look at the dead-letter banner, and the room Inicio reserves|bannerRoom|5f-iii"
+  "a price changed at the counter, and whether it persists|persistence setting|5f-iv"
+  "C3.16, which is the half of the price change that reaches the shop|C3\\.16|5f-iv"
+  "the override the C3.17 ruling deliberately did not settle|FOR THIS SALE ONLY|5f-iv"
+)
+PHRASES=(
+  "5f-i|F|NO SCREEN AND NO COMPONENT|The 5e-i, 5d-iv-a and 5e-iii-a shape, for the reason all three gave: 5h.5 owns src/ui/ and comes after the screens that would justify a primitive, and the owner refused ten primitives guessed at against undrawn screens on 2026-09-13. It is also what keeps this child fully checkable — everything it ships has a right answer a node suite can read."
+  "5f-i|F|survive the app being backgrounded mid-sale|§2.11 persists the cart for exactly this, and it is the only reason the store is not a useState. A phone rings in the middle of a sale; a basket that does not come back is a shopkeeper re-keying a customer's order in front of that customer."
+  "5f-i|F|READS the flag rather than assuming it|record_sale takes unit_price_gross_per_base and price_list stores price_per_base, and §2.5 rule 2 anchors a sale on GROSS and a purchase on NET. The two are the same number only while workspace.prices_include_tax is true. Every shop today has it true by 0001's default, so the pilot never sees the branch and nothing would go red — which is precisely why the identity must not be hard-coded."
+  "5f-i|F|named on|The live round trip that proves Postgres accepts this payload is 5h's, because 5h owns record_sale. A child that asserted the shape and implied the database had agreed would be the fourth instance of a file standing in for a green CI run."
+  "5f-ii|F|owner's phone is the whole instrument|R9 and §2.11. Every judgement left in this child is rendering, navigation or layout, and no check here will ever say it is wrong. A row that does not say so reads like a row something is watching."
+  "5f-ii|F|SWITCH|ADR-035 §2.8 says never the same control for both, and §2.11 names QtyInput as the stepper/keypad switch. The owner has specified BOTH on one weighed line twice — C3.8 and 2026-09-23. The ADR wins by this repository's own rule, so this is an amendment the owner owes and not a preference a session may settle. Drawing it first writes the disagreement into shipped code, where the next session reads it as a fact."
+  "5f-ii|F|colour alone|R11 and §2.11: no state is ever announced by colour alone, always colour and a word or colour and a border. The users are old and the shop is bright. The atención role is fenced to C3.17's unpriced row and has no second job."
+  "5f-iii|F|fires on ENQUEUE|C10.3 says the slide looks identical offline, and 5c-i made that structural by having queueWrite return a row rather than a promise. An animation that awaits Postgres is the offline path looking different — the one thing that design exists to prevent, undone in the one place nobody would test it."
+  "5f-iii|F|transform|§2.11's motion rule is a performance rule before it is a taste one: C1.1 puts two low-end Androids among the pilot's four phones, and transform and opacity run on the compositor while layout, colour and shadow do not."
+  "5f-iii|F|no caller|5c-ii-b-2 shipped queued() with no caller on purpose, for the reason R9 exists. Without the call the ONLINE path is the worse of the two: a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger a drain."
+  "5f-iv|F|200 with an empty array|Measured by 5e-iii-a on 2026-09-23, not inferred. Every UPDATE policy on price_list carries a using clause, and a row a using clause excludes is a row PostgREST cannot see — so a cashier's PATCH matches nothing and succeeds. The refusal is silent, which is why the control must not be drawn before the question is answered."
+  "5f-iv|F|reset-after-each-transaction|C3.16's second half, and the part that reaches the shop rather than the screen. A price change persists BY DEFAULT; the setting is what makes it not, and while it is off Inicio says so — because a shopkeeper who changed a price on Monday is otherwise surprised on Tuesday."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|0003 applied sale_line with qty_base, qty_display and qty_display_unit as three separate columns, and 0016 has taken qty_display with an optional qty_display_unit since 2026-09-04. Nothing in this split reopens the schema. A POSITIVE assertion because merging is automated: a child that quietly grew a migration is repaired only by a fix-forward migration, never by an edit. ⚠️ AND IT IS THE THING THE SALE-ONLY OVERRIDE WOULD CHANGE — widening price_list past manager is a migration, which is exactly why that question is parked in front of 5f-iv rather than inside it."
+)
