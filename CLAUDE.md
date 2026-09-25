@@ -175,13 +175,17 @@ supabase db push                            # applies what the remote is missing
 bash docs/checks/5R-f-schema-deployed.sh    # proves it actually landed
 ```
 
-⚠️⚠️⚠️ **AND IT IS RED RIGHT NOW — RUN 2026-09-25, 5 OF 6 GROUPS GREEN: `0039` AND `0040`
-MERGED HERE AND WERE NEVER APPLIED TO `hweutzjhzvioswnjzqki`.** The hosted project the
-owner's phone signs in to carries **36 of the 38** migrations, so **`Genérico` and the
-widened purchase fence are not on his phone.** ⚠️ **36 of 38, not 38 of 40** — this line
-said the latter for an hour, and both numbers were wrong the same way: the file count is
-**38** because `0006` and `0007` are permanent holes, so *"38 files"* and *"numbered up to
-0040"* are both true and are not the same number. This is 2026-09-22's shape again — caught this time
+✅ **IT WAS RED FOR MOST OF 2026-09-25 AND IS NOW GREEN — 6 OF 6, AFTER THE OWNER SAID
+*"deploy the two migrations"* THAT EVENING.** `0039` and `0040` had merged that day and
+**were never applied** to `hweutzjhzvioswnjzqki`; the guard found it, `supabase db push`
+applied both, and the check now reports *"carrying exactly the migrations this repository
+has merged"*. ⚠️⚠️ **THE GAP IS CLOSED, THE HOLE IT CAME THROUGH IS NOT: nothing runs this
+check automatically, so the next merged migration is undeployed until a person types the
+two commands.** ⚠️ **And it compares VERSION NUMBERS, not schema** — green here means the
+right migrations ran, never that the tables look right. ⚠️ **On counting: 36 of 38, and
+this line said *"38 of 40"* for an hour.** The file count is **38** because `0006` and
+`0007` are permanent holes, so *"38 files"* and *"numbered up to 0040"* are both true and
+are not the same number. This is 2026-09-22's shape again — caught this time
 by the guard instead of by him tapping Productos. **Do not reason about deployed behaviour
 until those two commands have been run.**
 
@@ -258,7 +262,9 @@ Two things did not change, and they are what the gate was really for:
 
 ⚠️⚠️ **AND MERGING IS NOT DEPLOYING — THIS IS THE STEP THAT GETS DROPPED.** A migration
 that merges green exists in CI's throwaway Postgres and nowhere else. **On 2026-09-25 two
-merged migrations were sitting undeployed**, which is the 2026-09-22 failure in miniature.
+merged migrations sat undeployed for a day** — the 2026-09-22 failure in miniature —
+**and they were deployed that evening only because somebody ran the guard while editing a
+document.**
 So a session that merges a migration owes a `supabase db push` and a green
 `docs/checks/5R-f-schema-deployed.sh` — or it owes the owner a sentence saying it did not
 deploy and why.

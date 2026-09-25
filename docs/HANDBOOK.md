@@ -133,7 +133,7 @@ checks themselves on 2026-09-25, rather than assumed:
 | Name the check that looked at the work | ⚠️ **Nobody.** Which is why the wording matters: *"a green tick on a run that had nothing to do"* is the failure this line exists for |
 | Say what only a person can judge | ⚠️ **Nobody** — and 2026-09-25 is the proof. The `Costos` PDF passed every check and was wrong on your phone |
 | Tell you the phone build needs rebuilding | ⚠️ **Nobody, and it has a deadline.** The free Apple signature on the build in your hand expires **2026-09-27, 14:22 UTC**, and the app then simply stops launching. A session that ships a screen for you to look at, on a phone that cannot open it, has produced a look-question nobody can answer. The date itself IS in the plan's dates block, which goes red if it passes unanswered |
-| Deploy a merged migration | ⚠️ **Nobody automatically.** The guard exists and runs only when somebody types it. **Two migrations were sitting undeployed when this was written** |
+| Deploy a merged migration | ⚠️ **Nobody automatically.** The guard exists and runs only when somebody types it. **Two migrations were sitting undeployed when this was written, and were deployed the same evening once you said so** — found by a session running the guard while editing a document, which is not a system |
 | Park a decision instead of quietly making one | ⚠️ **Nobody.** A session that decides and says nothing passes every check in the repository |
 
 ⚠️⚠️ **So the gates are mechanical and the checkpoints are not.** A session cannot run
@@ -878,16 +878,23 @@ suites. Neither builds the thing that goes on your phone, so a change to the app
 native plumbing stays green until a Mac actually builds it — which is a person, on
 purpose, about every seven days while your free Apple signature lasts.
 
-**2. ⚠️⚠️ No check looks at the database your phone talks to — and it is behind by two
-migrations at this moment.** On 2026-09-22 the hosted database was found to have **no
-schema at all**: every change had been applied to the throwaway copy GitHub builds and
-nowhere else, and **you found it by tapping Productos**, not any check. A guard for
-exactly that now exists, deliberately outside GitHub (it needs a key that would give
-every automated run access to your whole Supabase account). Run 2026-09-25 it says the
-hosted project carries **36 of the 38** migrations: `0039` (every shop's catch-all
-supplier being called `Genérico`) and `0040` (an Empleada being allowed to see what the
-shop paid) merged that day and **were never deployed**, so neither is on your phone.
-The fix is two commands, in `supabase/README.md` and in your prompt.
+**2. ⚠️ No check looks at the database your phone talks to — and on 25 September it was
+behind by two migrations for a day.** On 2026-09-22 the hosted database was found to have
+**no schema at all**: every change had been applied to the throwaway copy GitHub builds and
+nowhere else, and **you found it by tapping Productos**, not any check. A guard for exactly
+that now exists, deliberately outside GitHub (it needs a key that would give every automated
+run access to your whole Supabase account).
+
+✅ **On the evening of 25 September you said *"deploy the two migrations"* and they went:**
+`0039` (every shop's catch-all supplier being called `Genérico`) and `0040` (an Empleada
+being allowed to see what the shop paid) are now on the hosted project, and the guard reports
+**6 of 6 — *carrying exactly the migrations this repository has merged***. ⚠️ **What has not
+changed is the hole they came through.** Nothing runs that check automatically, so the next
+merged migration is undeployed until a person types two commands — and the only reason these
+two were caught is that a session ran the guard while editing a document. ⚠️ **It also
+compares version numbers rather than schema**: green means the right migrations ran, never
+that the tables look the way you expect. **The one thing that would tell you is opening
+Comprar.**
 
 **3. No check can tell whether any of it fits a real shop.** The suites prove the
 database is consistent with itself. ⚠️ **And 2026-09-25 added the sharper version of
