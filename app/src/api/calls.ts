@@ -110,6 +110,14 @@ import {
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
+  COSTS_COLUMNS,
+  COSTS_ORDER,
+  COSTS_ORDER_ASCENDING,
+  COSTS_TABLE,
+  COSTS_VARIANT_COLUMN,
+  type CostLineRow,
+} from '@/api/costs';
+import {
   MEMORY_COLUMNS,
   MEMORY_PROVIDER_COLUMN,
   MEMORY_TABLE,
@@ -837,6 +845,44 @@ export async function providerMemory(providerId: string): Promise<MemoryRow[]> {
     .eq(MEMORY_PROVIDER_COLUMN, providerId);
   if (error) throw reported(error);
   return (data ?? []) as unknown as MemoryRow[];
+}
+
+/**
+ * Every delivery of ONE product, with the document that carries its date and its
+ * counterparty — the rows `Costos` draws. Plan task `5g-iii`.
+ *
+ * ⚠️⚠️ ONE ROUND TRIP, AND THE JOIN IS THE DATABASE'S. `purchase_line` has no
+ * date of its own, so a client that read the lines and then read their documents
+ * would make two requests in a shop that is offline half the day — and the
+ * second one is the one that would fail, leaving prices on screen with no dates
+ * under them. `COSTS_COLUMNS` embeds `purchase!inner(…)` over a **composite**
+ * foreign key, which was driven against a real PostgREST before this module was
+ * written; see that constant.
+ *
+ * ⚠️ THE ORDER IS THE DATABASE'S TOO — `COSTS_ORDER`, on the EMBEDDED
+ * `occurred_at`. `costsFrom` reverses it once for the chart's direction and
+ * re-sorts nothing, the rule `catalogFrom` and `providersFrom` both wrote down:
+ * a second sort in this runtime is a second answer to *which came first*,
+ * decided by whatever collation Hermes has rather than the one Postgres applied.
+ *
+ * ⚠️ NO LOCATION FILTER, AND THAT IS §2.9's DEFAULT RATHER THAN AN OMISSION —
+ * *"consolidated by default, with a location filter"*. RLS scopes the read:
+ * `0040` dropped the role gate from `purchase_select` and `purchase_line_select`
+ * and **kept `my_locations()`**, so a manager scoped to one store sees that
+ * store's deliveries by policy and not by a setting.
+ */
+export async function variantCosts(variantId: string): Promise<CostLineRow[]> {
+  const { data, error } = await supabase
+    .from(COSTS_TABLE)
+    .select(COSTS_COLUMNS)
+    .eq(COSTS_VARIANT_COLUMN, variantId)
+    // ⚠️ THE COLUMN-EXPRESSION SPELLING AND NEVER `{ referencedTable }` — the
+    // second one sorts the embedded row inside each parent, which for a to-one
+    // embed is nothing at all and leaves the parent order to the planner. See
+    // `COSTS_ORDER`.
+    .order(COSTS_ORDER, { ascending: COSTS_ORDER_ASCENDING });
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as CostLineRow[];
 }
 
 /**

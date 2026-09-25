@@ -32,8 +32,7 @@ import { Vacio } from '@/ui/Vacio';
 // `accessibilityState.selected`, which a person who cannot see the rule needs
 // and a person who can never hears.
 //
-// ⚠️⚠️ TWO OF THE THREE AFFORDANCES WORK AS OF `5e-iii-b`, AND ONE IS STILL
-// DRAWN PLAINLY DEAD. `Agregar Variante` is C8.12's SECOND door into `Agregar`
+// ⚠️⚠️ `Agregar Variante` — C8.12's SECOND door into `Agregar`
 // and the one where the family question is not asked at all — it pushes
 // `/producto/nuevo?familia=<this family>`, and the form attaches the new variant
 // here without offering a choice, which is the constraint in the owner's own
@@ -41,25 +40,51 @@ import { Vacio } from '@/ui/Vacio';
 // cannot hold, the form RELEASES the family and the family question comes back —
 // because *no question asked* has stopped being true, and hiding the field would
 // hide the one thing that changed. C8.5 is why (one family, one kind of
-// measurement) and nothing in the database enforces it. ⚠️⚠️ It is **absent for a cashier**: all three of these WRITE,
-// `product_variant_insert` and `product_family_insert` are both
-// `has_role(…, 'manager')` in `0002`, and the refusal is a bare `42501` with no
-// sentence of its own, so `canWriteCatalog` keeps the control off her screen
-// entirely rather than letting it look live ([[shift-cover-is-a-reassignment]]).
+// measurement) and nothing in the database enforces it. ⚠️⚠️ It is **absent for a
+// cashier**, as `Editar` is: ~~all three of these WRITE~~ — **TWO of the three
+// do, corrected at `5g-iii`**, and `product_variant_insert` and
+// `product_family_insert` are both `has_role(…, 'manager')` in `0002`. The
+// refusal is a bare `42501` with no sentence of its own, so `canWriteCatalog`
+// keeps these two controls off her screen entirely rather than letting them look
+// live ([[shift-cover-is-a-reassignment]]). ⚠️ `Costos` is the exception and it
+// is the paragraph below.
 //
-// ⚠️ `Costos` STAYS A `View` AND STAYS DEAD, by a ruling rather than by inertia:
-// *"leave Costos dead until `5g`"* (2026-09-22), because nothing writes a
-// purchase until Comprar exists and a costs view built now would show an empty
-// list on every product in the shop, for ever. ⚠️ Deleting it was refused for
-// `5d-iv-b`'s Proveedores reason — an affordance a shop has seen and then seen
-// vanish reads as an app getting smaller.
+// ⚠️⚠️ ALL THREE AFFORDANCES ARE LIVE AS OF `5g-iii`, AND `Costos` WAS THE LAST
+// ONE — DEAD FOR TEN DAYS BY A RULING RATHER THAN BY INERTIA. *"Leave Costos dead
+// until `5g`"* (2026-09-22) was a decision about WHEN: nothing wrote a purchase
+// until Comprar existed, so a costs view built earlier would have shown an empty
+// list on every product in the shop, for ever. Comprar shipped with `5g-ii` on
+// 2026-09-25, and this is the row that spends the ruling. ⚠️ Deleting it while it
+// waited was refused for `5d-iv-b`'s Proveedores reason — an affordance a shop has
+// seen and then seen vanish reads as an app getting smaller — and it never had to
+// be.
 //
-// ⚠️⚠️ AND `ES.family.notYet` HAS NOW BEEN REWORDED TWICE RATHER THAN DELETED,
-// WHICH IS THE HALF A ONE-LINE CHANGE KEEPS MISSING. At `5d-iii` it said *"solo
-// puedes ver; todavía no se puede agregar ni editar"* — three dead buttons; at
-// `5e-ii` it dropped *agregar*; here it drops *editar*, because a sentence that
-// names a control which works is false while still rendering green. `5g` deletes
-// what is left of it.
+// ⚠️⚠️ `Costos` CARRIES THE **VARIANT**, SO IT FOLLOWS `Editar`'S ABSENCE RULE AND
+// NOT `Agregar Variante`'S. §2.9 measures price over time *per variant*, the owner
+// said *"for that product"*, and a family mixes base units — which
+// `product_purchases_daily`'s own comment calls *"money over a meaningless
+// total"*. So *costs of which one?* has no answer until a row is marked, exactly
+// as *edit which one?* has none, and the control is ABSENT rather than disabled.
+// ⚠️ Every real door into this screen passes `?variante`; a family opened with no
+// mark is a deep link, and it now shows one control instead of two.
+//
+// ⚠️⚠️ AND IT IS THE ONE OF THE THREE THAT IS **NOT** FENCED TO A MANAGER, WHICH
+// PUTS A THIRD SHAPE ON THIS ROW. `Agregar Variante` and `Editar` both WRITE and
+// stay behind `canWriteCatalog`; `Costos` only READS, and `0040` dropped the role
+// gate from `purchase_select` and `purchase_line_select` on the owner's ruling of
+// 2026-09-25 — *"Empleada should be able to see the both the purchase records and
+// the prices."* **So a cashier sees Costos and sees neither of the others**, and a
+// manager sees all three. That is why the row wraps rather than sitting on one
+// line at `Letra grande`.
+//
+// ⚠️⚠️ AND `ES.family.notYet` IS DELETED, WHICH IS THE END OF A SENTENCE THAT HAD
+// BEEN REWORDED THREE TIMES. At `5d-iii` it said *"solo puedes ver; todavía no se
+// puede agregar ni editar"* — three dead buttons; `5e-ii` dropped *agregar*;
+// `5e-iii-b` dropped *editar*; and it read *"todavía no puedes ver los costos"*
+// until today. **Each rewording was due because a sentence naming a control that
+// works is false while still rendering green**, and nothing in this repository can
+// see that. There is no fourth control to be still-missing about, so it goes —
+// `ES.approvals.notYet`'s ending, and the paragraph goes off the screen with it.
 //
 // ⚠️⚠️ THE VARIANT ROWS ARE PRESSABLE AS OF `5e-iii-b`, AND `5d-iii` SAID THIS IS
 // THE DAY THEY WOULD BE. That header wrote: the selection is a record of where
@@ -341,17 +366,19 @@ function Variante({
 
 /**
  * `Agregar Variante`, `Editar` and `Costos` — the three affordances C8.13 puts
- * with the family. As of `5e-iii-b` two of them work and one does not, and the
- * difference is drawn rather than explained.
+ * with the family. ⚠️⚠️ **AS OF `5g-iii` ALL THREE WORK, AND THE `View` IN
+ * `tintaApagada` IS GONE.** From `5d-iii` to `5e-iii-b` this function drew the
+ * dead ones as plain `View`s rather than as disabled `Pressable`s — there was no
+ * handler to attach, so there was no press path to wire up wrong later — and that
+ * shape has now served its whole purpose and is deleted rather than kept for a
+ * fourth control nobody has asked for.
  *
- * ⚠️⚠️ THE LIVE ONES ARE `Pressable`s IN THE ACTION COLOUR AND THE DEAD ONE IS A
- * `View` IN `tintaApagada`. `accion` and `accionSuave` mean *this is tappable at
- * rest*, which is exactly the claim `Costos` must not make; and a dead one is a
- * `View` and not a disabled `Pressable` because there is no handler to attach and
- * therefore no press path to wire up wrong later. ⚠️ The role and the disabled
- * state are what a screen reader needs, and it gets both.
+ * ⚠️⚠️ THE THREE DO NOT APPEAR TOGETHER FOR EVERYBODY, WHICH IS THE NEW THING ON
+ * THIS ROW AND IS NOT A THIRD VISUAL STATE. Two of them WRITE and one READS, and
+ * `0040` parted their fences on 2026-09-25: a **cashier sees `Costos` alone**, a
+ * manager sees all three. See this file's header.
  *
- * ⚠️⚠️ AND BOTH LIVE ONES ARE ABSENT ALTOGETHER FOR A CASHIER — never disabled
+ * ⚠️⚠️ AND THE TWO WRITERS ARE ABSENT ALTOGETHER FOR A CASHIER — never disabled
  * for her, which would be a third visual state on one row. `canWriteCatalog` is
  * `0002`'s own predicate, and it covers the UPDATE policies as well as the INSERT
  * ones: the owner ruled *"leave the fence as is"* on 2026-09-23, so
@@ -402,27 +429,17 @@ function Acciones({
             }
           />
         )}
-        <View
-          accessibilityRole="button"
-          accessibilityState={{ disabled: true }}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.space,
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            backgroundColor: PALETTE.fondo,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
-            {ES.family.costs}
-          </Text>
-        </View>
+        {/* ⚠️ NO `mayWrite` ON THIS ONE — `Costos` only reads, and `0040` opened
+            `purchase_select` and `purchase_line_select` to every member. ⚠️ It
+            still needs the VARIANT, so it shares `Editar`'s absence rule and not
+            its fence. */}
+        {variantId !== null && (
+          <Accion
+            label={ES.family.costs}
+            onPress={() => router.push({ pathname: '/costos/[id]', params: { id: variantId } })}
+          />
+        )}
       </View>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-        {ES.family.notYet}
-      </Text>
     </View>
   );
 }
