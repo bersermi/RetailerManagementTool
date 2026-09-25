@@ -200,8 +200,12 @@ select wm.workspace_id, wm.id,
 -- ----------------------------------------------------------------------------
 -- 5. Providers
 -- ----------------------------------------------------------------------------
--- Three named per merchant, plus 'Compra directa' — the generic one
+-- Three named per merchant, plus 'Genérico' — the generic one
 -- `onboard_workspace` already created, flagged `is_generic` and not deletable.
+-- ⚠️ Renamed from 'Compra directa' by `0039` on the owner's ruling of
+-- 2026-09-24. Nothing in these seeds SELECTS by that name — every reference is
+-- `is_generic` — so this is prose being kept true rather than a fixture that
+-- would otherwise break.
 -- It is not a dumping ground: it is there so "I bought this at the market this
 -- morning" is a two-tap purchase instead of a reason to invent a fake provider
 -- record (§2.3), and 1.6 should use it that way a handful of times, not hundreds.

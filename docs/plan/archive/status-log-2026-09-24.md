@@ -309,3 +309,165 @@ answered the same evening.
 rows were rewritten; `plan-handover.sh` passes eleven groups with an empty decisions block;
 `handbook-agreement.sh` agrees on the next task and on nothing being owed. **No code
 changed, so no suite could have.**
+
+
+---
+
+## Appended 2026-09-24 — the seventeenth cut, taken as `5g.5` closed
+
+⚠️ **`## Position` stood at 1,384 of 1,400 with `5g.5`'s entry and two rulings in place** —
+sixteen lines, which is less than one paragraph — so the oldest entry left in the block,
+`5f-iii-a`'s and the `unitColumns` fix it carried, was moved here off the FOOT, unedited.
+⚠️ **A MOVE and never a copy.** ⚠️⚠️ **THIS IS THE THIRD CUT OF ONE DAY AND THE SECOND PAID
+FORWARD RATHER THAN FORCED**: the block was not yet red, and leaving sixteen lines would have
+made the next session pay for this one — which is the argument `5d-iv-b`'s cut wrote down.
+
+✅✅ **`5f-iii-a` IS DONE AS OF 2026-09-24 — THE SHOP CAN READ ITS OWN BASKET BACK.
+`5f-iii-b` IS THE NEXT TASK: THE SLIDE, AND THE FIRST WRITE THIS APP HAS EVER PUT IN THE
+QUEUE.** C3.5's sheet is drawn — only the rows carrying a quantity, the same field and
+stepper as the list behind it, `Quitar` on every line and `Vaciar carrito` with its
+confirmation and the owner's animation. ⚠️ **It still commits nothing**, which is the split.
+
+⚠️⚠️ **THE HALF A MACHINE CAN SEE, AND IT IS THE HALF THE SIZING WENT LOOKING FOR:
+`reviewOf` RETURNS THE ROWS **AND** THE TOTAL THEY SUM TO.** §2.5 rule 5 is written about
+this screen by name, `basketOf` returned a total and a COUNT of lines and never the lines,
+and a sheet drawing its own rows would have been a second arithmetic over one basket —
+agreeing on every phone in the pilot and parting by a centavo the first time a rate rounds.
+✅ **`basketOf` now delegates to it**, so the bar's number IS the sum of the figures the
+sheet draws and the two cannot be written twice.
+
+⚠️⚠️ **AND THE ONE JUDGEMENT IN THAT FUNCTION WAS NOT IN THE ROW EITHER: A LINE WHOSE
+PRODUCT HAS LEFT THE CATALOG IS DRAWN, NOT HIDDEN.** A manager retires a product on another
+phone while a basket is open; `draftOf` then refuses **the whole basket** with
+`variant-not-in-catalog`, and the list behind the sheet is the catalog, which no longer has
+the row — **so this sheet is the only surface in the app that can remove it.** A sheet that
+hid what it could not name would leave a shopkeeper with a commit that refuses and nothing
+on screen to act on, which is C3.18's users handed a piece of book-keeping. It appears
+unnamed, unpriced, with the `Quitar` every other row has.
+
+⚠️⚠️ **AND THE BUG THIS SESSION WROTE AND CAUGHT IS WORTH MORE THAN THE FEATURE, BECAUSE
+NOTHING IN THIS REPOSITORY WOULD HAVE SEEN IT.** The first writing closed the sheet on
+`cart.length === 0` — one tidy-looking effect — and **`Vaciar` empties the basket**, so it
+unmounted the `Modal` in the same commit that started the owner's confirmation animation.
+**The animation would have played on nothing, silently, on the one path it exists for.**
+§2.11 bans the suite that would render it and no gate reads an effect's dependencies; it was
+found by reading the two states against each other. ✅ **The sheet no longer closes itself at
+all**: `Vaciar` closes on the animation's own completion, `Quitar` on the last line leaves the
+empty state and `Cerrar`. ⚠️ **The refusal is recorded IN the file, beside the animation**,
+because that is where a later session would re-add it.
+
+⚠️ **A TWELFTH PALETTE ROLE, `velo` — the screen a sheet is laid over, dimmed.** `R11`
+forbids a translucent literal in a screen by name, and its whole argument is that an
+invented hex is *"a twelfth role nobody named"*. ✅ So it is named: the hue is a role and
+the translucency is an `opacity`, laid on a separate view because `opacity` on a parent
+would dim the sheet too. ⚠️ **It is in neither `INK_ROLES` nor `GROUND_ROLES` deliberately** —
+nothing is ever written on it, which is `linea`'s own reason for being absent.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `app/test/cart.test.ts` — **8 new assertions, 1,020
+over 36 files, up from 1,012** — and **two falsifications run by hand**: making the total
+drift from the rows by one centavo turns **4 assertions red** (two of them `5f-i`'s own,
+which is the identity working), and skipping the vanished-variant row turns its assertion
+red. `conventions-gate.sh` **16/16 over 66 source files** with its falsifier's **30 fixtures**
+(29 red, 1 deliberately green); `split-coverage.sh` **7/7 on the new `5f-iii.split`** and
+green over all seventeen, with `split-coverage-falsify.sh`'s **943 fixtures**. ⚠️ **The gate
+fired on this session once and it was right**: a comment explaining the `velo` decision
+QUOTED the literal `R11` bans, and a guard that reads this file cannot tell an explanation
+from an instance — *never spell a sentinel in the file it reads*, caught by the guard it
+describes.
+
+⚠️⚠️ **AND FOUR THINGS ARE ROUTED TO HIS PHONE RATHER THAN GUESSED (`R9`, §2.11).** Is `Ver
+carrito` on the bar findable mid-sale, or does the thumb go looking for a button? Does the
+emptying animation read as *done* at 420 ms, or as a flicker? Is `Quitar` in `error` red on
+every line too loud for a ten-line basket — the palette's own sentence names `Quitar` first,
+but it has never been drawn ten times? And does the sheet at *Letra grande* still leave the
+line total readable beside the stepper, which is four things on one row?
+
+⚠️ **Shipped:** `reviewOf`, `Review` and `ReviewRow` in `@/cart/cart` with `basketOf`
+delegating; the sheet, its rows, `Vaciar` and the animation in
+`app/src/app/(tabs)/vender.tsx`; an `ES.sell.cart` block; `velo` in `@/theme/palette`.
+**No migration, and `5f-iii.split`'s `EACH_CHILD_SAYS` asserts that positively on both rows.**
+
+⚠️⚠️ **`5f-iii` IS SIZED AND SPLIT IN TWO, 2026-09-24 — ON THE DAY IT WAS TAKEN AND BEFORE A
+LINE OF IT WAS WRITTEN. `5f-iii-a` IS THE NEXT TASK: THE BASKET SHEET, AND IT COMMITS NOTHING.**
+
+**The seam is the commit itself** — `5f-iii` is a screen that SHOWS a basket and a gesture that
+COMMITS one, and only the second of those writes. It is `5f`'s own seam one level down, and the
+seventeenth split in this project. ⚠️ **Every `M/L` row here has been split and this was an
+`M/L`.**
+
+⚠️⚠️ **THE FAILURE ARGUMENT, WHICH IS THE ONE THAT MATTERS:** the sheet's mistakes cost a glance
+and a shopkeeper reports them in a sentence; the slide's belong to **the queue, the one part of
+this app whose failures are silent by design** — a sale that never enqueues, one that enqueues
+twice, one that never triggers a drain. **Nobody reports a sale they watched an animation
+confirm.** One row would have let the invisible half ride in on the back of the visible one.
+⚠️ **The order is not taste either:** §2.8 names *review before commit* as one of its three
+guards, and the review IS the sheet — building the slide first ships a commit with nothing in
+front of it, on the screen that takes a customer's money.
+
+⚠️⚠️ **WHAT THE SIZING FOUND, AND IT WAS NOT IN THE ROW: THE SHEET IS THE SCREEN §2.5 RULE 5 IS
+WRITTEN ABOUT, AND `5f-i` BUILT NO LINES FOR IT.** Rule 5 is *"the displayed lines fail to sum
+to the displayed total on the review screen, which is the one screen where a customer is
+checking the arithmetic by hand."* `basketOf` returns `centavos`, a **count** of lines and a
+`complete` flag — **no lines at all** — so the sheet has nothing to draw a row from and the
+obvious move is for it to price its own. **That is two arithmetics over one basket**, agreeing
+for every shop today (`prices_include_tax` true, `NO_TAX_RATES` empty) and parting by a centavo
+the first time a rate rounds. ✅ **One function returns the lines AND the total, the total being
+their sum** — which is also what makes `5f-iii-a` a checkable child rather than a rendering one,
+**the lesson `5e-iii.split` wrote into its own postscript.**
+
+⚠️ **And two smaller ones.** The owner's two animations belong to **different children** — the
+emptying one fires from `Vaciar carrito` and the sale one from the slide — so `5f.split`'s single
+`CONFIRMATION ANIMATIONS` deliverable is **two** here, and a `Vaciar` cannot ship with its
+confirmation orphaned in its sibling. ✅ And **the gesture costs no `pod install`**, measured
+against `app/package.json`: `react-native-gesture-handler`, `react-native-reanimated` and
+`react-native-worklets` are already dependencies — which matters because **no CI compiles this
+app**.
+
+⚠️ **Shipped:** the split in `docs/PLAN.md` and `docs/checks/specs/5f-iii.split`, the
+**seventeenth** split spec — nine deliverables over two children, six required sentences and
+one every child carries. **No migration, and no application code: this entry is the sizing.**
+
+⚠️⚠️ **`5e-i` IS REOPENED AND FIXED FORWARD, 2026-09-24 — EVERY PRODUCT `Agregar` HAD EVER
+MADE WAS UNSELLABLE, AND `5f-ii` ON A PHONE IS THE ONLY REASON ANYBODY KNOWS.** `5f-iii` is
+still the next task.
+
+⚠️ **The chain, because it is the argument for `R9` and for the whole of step 5's shape.** The
+owner opened Vender, stepped `+` on a product priced per 250 g, and read `1, 2, 3` where C3.8
+says `250, 500, 750`. **That is a rendering complaint.** It was a display bug for about ten
+minutes — `shownUnitOf` trusting `entry.baseUnit` — and then the question *why does the variant
+say it is stored in `250g`* had an answer: `unitColumns` writes the picked unit into **all four**
+unit columns, and `record_sale` (`0016:217`), `record_purchase` (`0018:265`) and
+`record_transfer` (`0020:355`) each refuse a line where `u.base_code <> pv.base_unit_code`.
+
+⚠️⚠️ **SO A ONE-GLANCE DEFECT ON THE HIGHEST-TRAFFIC SCREEN WAS SITTING ON TOP OF A LEDGER
+DEFECT THAT NOTHING IN THIS REPOSITORY COULD SEE.** 1,006 assertions, sixteen conventions
+groups, forty-four live contract assertions over a real database, and every one of them green —
+because **no constraint in the database catches it either**, which was measured rather than
+assumed: the new assertion 17 posts both shapes and the wrong one is accepted. ⚠️ **`5e-i`'s
+own contract could not have caught it**, and the reason is exact: every variant it posts is
+`kg kg kg kg`, and for a unit that is already its dimension's base the bug is invisible. **It
+had been creating the broken shape itself, 296 rows of it, for three weeks.**
+
+✅ **Fixed, on the owner's ruling of the same day — *"Fix the form and delete and remake them"*:**
+`unitColumns(unitCode, bases)` writes `unit.base_code` into `base_unit_code` and the picked unit
+into the other three; `variantRow` and `createProduct` thread the map from the units read they
+already make. ⚠️ **The price arithmetic needed NO change and that was checked rather than hoped**
+— `pricePerBase` divides by `factor_to_base` of the PRICE unit, so `price_per_base` has always
+been per gram and never read `base_unit_code` at all. **The column was the only thing disagreeing
+with the arithmetic around it.**
+
+⚠️ **The trigger stays unreachable.** `product_variant_units_same_dimension_trg` fires only on
+codes spanning two DIMENSIONS, and `unit.base_code` is by construction in the unit's own
+dimension — so the four may now differ and still never span two. There is still no Spanish
+sentence for that `23514` and still no need of one.
+
+⚠️ **Shipped:** the `unitColumns` fix; `docs/runbooks/delete-unsellable-products.sql`, which is
+**not a migration and says so** — it repairs one shop's accident once, ends in `rollback`, and
+**was run against the local database as written**: 311 broken variants found, 137 prices and 109
+emptied families deleted, rolled back, count unchanged. **1,012 assertions over 36 files**, and
+**assertion 17 of `5e-i-catalog-write-contract.sh`** — which posts a pack-priced variant and
+reads `unit.base_code` off the wire — with its falsifier's **17 fixtures** re-run.
+
+⚠️⚠️ **AND THE HALF THE OWNER MUST DO HIMSELF, NAMED RATHER THAN QUIETLY LEFT: HE CANNOT DELETE
+A PRODUCT IN THE APP.** `Editar`'s retire control is drawn on nothing until `6c`, so the runbook
+is the affordance. **`6c` is where that comes back.**

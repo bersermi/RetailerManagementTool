@@ -111,7 +111,7 @@ insert into public._d_ref (k, v) values
 --
 -- So each named provider is assigned whole families, with a deliberate GAP: some
 -- variants are bought from exactly one provider, and Comprar must show a blank
--- required field for the others. `Compra directa` (the generic provider) takes a
+-- required field for the others. `Genérico` (the generic provider) takes a
 -- thin slice of produce — the market run — and nothing else.
 
 create table public._d_supply (
@@ -289,7 +289,7 @@ select d.workspace_id, d.location_id, d.provider_id,
   ) as d
  cross join generate_series(0, 12) as w(week);
 
--- The market run: `Compra directa`, every second week, Centro only. A handful of
+-- The market run: `Genérico`, every second week, Centro only. A handful of
 -- lines each time — that is what the generic provider is for, and seeding it as a
 -- rare small delivery rather than a bulk channel is the honest shape (§2.3).
 insert into public._d_doc (workspace_id, location_id, provider_id, occurred_at, created_by, doc_key)
