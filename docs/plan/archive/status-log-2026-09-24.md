@@ -537,3 +537,123 @@ case one in the phrase — **which is the check doing precisely its job on its a
 `## Position` stood at **1,373 of 1,400** with nothing added yet, and an `XL` sizing
 entry is longer than twenty-seven lines — so `5d-iv-a` and the `5d-iv` sizing went to
 `status-log-2026-09-22.md`, the file for their own day, appended rather than replaced.
+
+
+---
+
+## Appended 2026-09-25 — the nineteenth cut, off the FOOT as `5g-ii-a` closed
+
+⚠️ **`## Position` reached 1,423 of 1,400** with the twenty-fourth ruling's entry in it, so the
+oldest entry left in the block went out — **the working-agreement amendment of 2026-09-24, the
+ruling that made an `M` or an `L` one sitting.** ⚠️ **A MOVE and never a copy**, unedited.
+
+⚠️⚠️ **IT IS ARCHIVED AND IT IS STILL BINDING, WHICH IS WORTH ONE LINE BECAUSE THE TWO ARE EASY
+TO CONFUSE.** The RULE lives in `docs/PLAN.md`'s `## Working agreement`, in `CLAUDE.md` and in
+`docs/HANDBOOK.md`'s working prompt — all three still carry it. **What moved here is the entry
+recording the day it was decided**, which is history and belongs in a status log.
+
+✅✅ **THE WORKING AGREEMENT IS AMENDED BY THE OWNER, 2026-09-24 — AN `M` OR AN `L` IS ONE
+SITTING NOW.** *"we'll make an ammendment now that we have Claude Max, if a task is M or L,
+let's do it at once, we have enough usage and space to do it."* ⚠️ **It is the TWENTY-FIRST
+owner ruling recorded in this project and the first one that changes how the work is
+organised rather than what gets built.** **`XL` still splits on size; `M` and `L` do not.**
+
+⚠️⚠️ **THE OLD RULE'S PREMISE WAS A BUDGET, AND IT SAID SO IN ITS OWN TEXT** — *"so the work
+survives a usage limit or a context clear."* The splitting was never an argument that work is
+clearer in halves; it was insurance against losing half of it. **A plan is a poor place to
+carry a subscription tier's constraint after the tier has moved**, and this is the first time
+anything in these documents has been retired because its reason expired rather than because
+it was wrong.
+
+⚠️⚠️ **WHAT WAS FLAGGED BACK, AND THE AMENDMENT KEEPS IT: THE SIZING PASS IS NOT THE SPLIT.**
+Sixteen of the seventeen splits were preceded by an estimate that **found something the row
+did not say**, and in most of them the finding was worth more than the division. `5f`'s
+sizing found the cart store §2.11 had already chosen, the quantity control contradicting the
+ADR, and a commit payload about to hard-code a gross/net identity; `5f-iii`'s, that same
+morning, found the basket sheet is the screen §2.5 rule 5 is written about. **None of those
+needed a split to be worth taking.** ✅ So the agreement now reads *estimate first, write down
+what the estimate found, then build the whole row* — and `docs/HANDBOOK.md`'s working prompt
+says it in the owner's own words.
+
+⚠️⚠️ **AND THREE SPLITS SURVIVE AT `M` AND `L`, because none of the three is about how long a
+sitting is.** **(1) A GATE** — half the row blocked on a decision or an ADR amendment the
+owner owes and the other half not, which is what let `5f-i` ship on the morning `5f-ii` was
+stuck. **(2) TWO FAILURE CLASSES, one of them invisible here** — the ledger or the queue
+sharing a row with something a person can look at, which is `5c-iv`'s, `5d-iv`'s, `5e-iii`'s
+and `5f-iii`'s argument and the strong one: **one row means the unseen half is reviewed as
+though somebody had looked at it.** **(3) THE DEFERRAL TEST** already in this section.
+⚠️ **A size-only split at `M` or `L` is now the thing to refuse**, and a session asking for
+one is asking for the old rule back.
+
+⚠️ **Changed in three files, because the rule lived in three:** `docs/PLAN.md`'s
+`## Working agreement`, `CLAUDE.md`'s, and the working prompt in `docs/HANDBOOK.md` — which
+is the one the owner actually pastes, and the only one of the three that was telling a
+session to *"take only the first piece."*
+
+
+---
+
+## Appended 2026-09-25 — the twentieth cut, taken to PAY FORWARD rather than to fit
+
+⚠️⚠️ **THE NINETEENTH CUT LEFT `## Position` AT 1,391 OF 1,400 — nine lines of room, which is
+not room.** A ceiling cleared by nine lines blocks the next session's first status-log entry, and
+that session then spends its opening minutes archiving instead of building. ⚠️ **So this one is
+taken with nothing pressing**, which is the arrangement the fifteenth cut recorded as *the first
+ever taken pre-emptively* and the one `plan-handover.sh` assertion 7 argues for in its own failure
+text.
+
+**What moved:** `5f-iii-a`'s reopening — the sheet that did not render, the owner's photograph,
+and the three bar arrangements he asked to see. ⚠️ **A MOVE and never a copy**, unedited.
+
+⚠️⚠️ **`5f-iii-a` WAS REOPENED AND FIXED THE SAME DAY — THE SHEET DID NOT RENDER, AND THE OWNER
+FOUND IT ON HIS PHONE WITHIN THE HOUR. `5R-f` IS THE NEXT TASK, BECAUSE `5f-iii-b` IS NOW GATED.**
+*"The cart/basket is not rendering properly, it is all churned at the bottom and I can't see the
+controls nor the items properly."* ⚠️ **He also refused to judge it in that state — *"I wouldn't
+want to answer anything related to that before looking at it well rendered"* — which is the right
+call and is why this session stopped guessing.**
+
+⚠️⚠️ **TWO BUGS, BOTH ARITHMETIC, AND NEITHER VISIBLE TO ANY CHECK IN THIS REPOSITORY.**
+**(1) THE SHEET HAD NO BOUNDED HEIGHT.** The `KeyboardAvoidingView` wrapping the card carried no
+style, so it was CONTENT-SIZED — which made the card's `maxHeight: '85%'` a percentage against a
+parent with no definite height. **Yoga cannot resolve that and drops the constraint**; the
+`FlatList` then had no bound either, rendered its whole content, and pushed `Vaciar` off the bottom
+of the screen. ✅ The sizing now lives on the `KeyboardAvoidingView` (`flex: 1`) and the list is
+`flexGrow: 0 / flexShrink: 1`, so a short basket still leaves a short sheet.
+**(2) THE ROW PUT FOUR THINGS ON ONE LINE.** Measured at `Letra grande` on his 393 pt iPhone 15:
+stepper 222 + line total 90 + removal 60 + gaps 36 + padding 32 = **440 pt before the product name
+gets anything at all.** The name is `flex: 1`, so it collapsed to nothing and the row overflowed.
+✅ Three lines now — name and total, family, then the stepper with `Quitar` — and the removal is a
+WORD, because an icon plus its word does not fit beside the stepper at that density either.
+
+⚠️⚠️ **AND THE REAL DELIVERABLE OF THIS SESSION IS THAT A SCREEN WAS LOOKED AT BY A MACHINE HERE
+FOR THE FIRST TIME.** §2.11 bans rendering suites and `R9` routes every look-question to the
+owner's phone — which is correct and is also why he found this rather than a check. ✅ **The app
+was built for the iOS Simulator, signed in, driven onto Vender and photographed, WITHOUT touching
+the hosted project and without weakening anything.** The chain, because it is reusable and every
+link was a refusal handled rather than bypassed: the app's **https-only guard** (`src/lib/env.ts`)
+correctly refuses a plain-`http` local Supabase, **so a local TLS terminator was put in front of it
+and its certificate added to the simulator's keychain** rather than the guard being loosened;
+sign-in was done by **minting a real session against the local stack and planting it in the app's
+own `expo-sqlite` store** under supabase-js's `sb-127-auth-token`; and navigation used **C1.3's
+`wera.lastScreen` key**, because `osascript` is not permitted to send keystrokes on this Mac and
+`simctl` cannot tap. ⚠️ **The one thing that WAS instrumented is named rather than hidden**: the
+sheet's `open` state was defaulted true for one build to photograph it, and reverted before commit.
+⚠️⚠️ **This does not make rendering checkable and must not be read as that** — it makes a screen
+*photographable by a session*, which is the difference between shipping a guess to his phone and
+shipping something that was seen.
+
+✅ **What the photograph settled that no assertion could:** the sheet renders, and **§2.5 rule 5
+holds on a device** — `$135 + $10.50 + $64 = $209.50`, and `$209.50` is what the bar says.
+
+⚠️⚠️ **ONE DECISION IS PARKED AND IT IS THE FIRST HE ASKED FOR RATHER THAN ONE A SESSION FOUND.**
+*"Show me your proposals."* Three bar arrangements, each measured at `Letra grande` on 393 pt, with
+**A recommended** — and the argument is arithmetic: in B the slide gets whatever is left after the
+total, so **the gesture gets shorter as the sale gets bigger** (154 pt at `$12,345.60`, of which the
+thumb eats 54), and in C the total is printed inside the track, so **the thumb crosses the one
+number a customer is reading.** ⚠️ **It blocks `5f-iii-b` and the marker has moved to `5R-f`** —
+`S`, ungated, waiting on nobody, and it guards the failure that cost this project a day on
+2026-09-22.
+
+⚠️ **Shipped:** the two layout fixes in `app/src/app/(tabs)/vender.tsx`. **1,020 assertions over 36
+files unchanged** (the bugs were layout, which no suite here reads), typecheck clean,
+`conventions-gate.sh` 16/16. **No migration.**

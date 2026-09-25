@@ -440,3 +440,39 @@ export function costShown(
   if (centavos === null) return '';
   return formatDecimal(centavos, SCALE.money);
 }
+
+/**
+ * Which sentence, if any, belongs under the cost box — as a KEY and never as
+ * Spanish (`R4`, the shape `src/auth/errors.ts` established).
+ *
+ * ⚠️⚠️ IT EXISTS BECAUSE A RULING LANDED ON A `.tsx` AND `R2` MEANS NO TEST CAN
+ * REACH ONE. The owner ruled on 2026-09-25 that **Comprar is for any role for
+ * now** — and that single sentence turned `5g-ii`'s rendering of `unreadable`
+ * from a simplification into a false statement, because an Empleada's memory read
+ * is empty on **every** row including the ones her shop buys weekly. A rule that
+ * important living in a ternary inside a 1,700-line screen is a rule the next
+ * session can undo without anything going red.
+ *
+ * ⚠️ `null` FOR `unreadable` IS THE RULING, AND IT IS THE WHOLE POINT OF THIS
+ * FUNCTION. The box is still empty and still required — that much is TRUE for
+ * her, because the app genuinely cannot tell her what this cost — but the screen
+ * says nothing about why. ⚠️ **Not *"no puedes ver los precios anteriores"*
+ * either**: that is a role boundary she did not ask about and cannot change
+ * ([[users-dont-do-bookkeeping]]), and it would be wrong on the rows that really
+ * are new, which nothing here can distinguish.
+ *
+ * ⚠️ `null` FOR `unknown` IS A DIFFERENT CLAIM WITH THE SAME ANSWER — *not back
+ * yet* must not render as *there is nothing* — and they are kept separate in
+ * `MemoryState` precisely so a later change can part them.
+ *
+ * ⚠️ AND `remembered` WITH NO FIGURE FALLS THROUGH TO `null` rather than to the
+ * new-pairing sentence: a state that says *we know this* while carrying nothing
+ * to show is a bug, and announcing it as *first time* would hide it.
+ */
+export type CostNote = 'last-paid' | 'new-pairing' | null;
+
+export function costNote(state: MemoryState, remembered: Memory | null): CostNote {
+  if (state === 'remembered') return remembered === null ? null : 'last-paid';
+  if (state === 'new-pairing') return 'new-pairing';
+  return null;
+}

@@ -11,6 +11,7 @@ import {
   memoryFor,
   memoryKey,
   canReadMemory,
+  costNote,
   costShown,
   memoryState,
   providerById,
@@ -393,5 +394,42 @@ describe('what the cost box reads', () => {
   // cost C3.13 blocks, not a free delivery somebody meant.
   it('shows an explicit zero rather than an empty box', () => {
     expect(costShown(typedPerBase(0, 'kg', FACTORS), 'kg', FACTORS)).toBe('0.00');
+  });
+});
+
+describe('which sentence goes under the cost box', () => {
+  const memo = { perBase: '0.018000', centavos: 1800, price: '$18.00 / kg', lastUnit: 'kg' };
+
+  it('names where a prefilled figure came from', () => {
+    expect(costNote('remembered', memo)).toBe('last-paid');
+  });
+
+  it('asks §2.8s question in the middle state', () => {
+    expect(costNote('new-pairing', null)).toBe('new-pairing');
+  });
+
+  // ⚠️⚠️ THE RULING OF 2026-09-25, AND THIS IS THE ONLY THING IN THIS REPOSITORY
+  // THAT HOLDS IT. The owner ruled *"Comprar should be for any role for now"* —
+  // so an Empleada uses this screen, her memory read is empty on EVERY row
+  // (`provider_price_memory` is manager-and-above, `0003:558`), and
+  // `Primera vez con este proveedor` would be **false on every row her shop buys
+  // weekly**. `5g-ii` shipped it saying exactly that; one sentence from him
+  // overturned it. ⚠️ The box stays empty and required, which IS true for her.
+  it('says nothing at all when the memory is fenced rather than absent', () => {
+    expect(costNote('unreadable', null)).toBeNull();
+    expect(costNote('unreadable', memo)).toBeNull();
+  });
+
+  // ⚠️ *Not back yet* must never render as *there is nothing* — the same
+  // distinction `membershipFrom` makes, and the reason `MemoryState` has four
+  // answers rather than three even though two of them are silent today.
+  it('says nothing while the read is still in flight', () => {
+    expect(costNote('unknown', null)).toBeNull();
+  });
+
+  // ⚠️ A STATE THAT CLAIMS TO KNOW AND CARRIES NOTHING IS A BUG, and announcing it
+  // as *first time* would hide it behind a legitimate-looking sentence.
+  it('falls silent rather than claiming a first time it cannot support', () => {
+    expect(costNote('remembered', null)).toBeNull();
   });
 });
