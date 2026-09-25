@@ -3,7 +3,9 @@
 //
 // ⚠️ NO SCREEN AND NO COMPONENT — the `5d-i`, `5e-i`, `5d-iv-a` and `5f-i`
 // shape, for the reason all four gave: everything decided here has a right
-// answer `app/test/api-providers.test.ts` can read, and `5h.5` owns `src/ui/`.
+// answer `app/test/api-providers.test.ts` can read. ⚠️ `5h.5` owns
+// `src/ui/`'s CONVENTIONS and `5g-ii` minted the directory — see
+// `src/ui/Buscador.tsx` for when the ADR says a primitive should appear.
 // Comprar itself is `5g-ii`, and the ADR fences its whole judgement out of this
 // repository (§2.11), so putting the two in one task means the half nothing can
 // see is reviewed as though somebody had looked at it.
@@ -42,14 +44,16 @@
 // ⚠️⚠️ THE FAILURE IS INVISIBLE BECAUSE THE BROKEN CASE RENDERS AS THE DESIGNED
 // ONE: an empty memory IS §2.8's new-pairing state, and it is the correct
 // rendering when the pairing really is new. Nothing on the screen can tell them
-// apart. `emptyMemoryMeans` below is this module's whole answer to that — it
+// apart. `memoryState` below is this module's whole answer to that — it
 // does not guess, it reports which of the two questions has not been asked, and
 // `docs/checks/5g-i-purchase-contract.sh` is where the claim is measured.
 //
 // ⚠️ THE FENCE IS NOT CHANGED HERE AND NO MIGRATION IS PROPOSED. Whether
 // Comprar should be manager-only in the APP is a shop question — a cashier does
 // not accept deliveries — and it belongs to `5g-ii`, which has a screen to ask
-// it about.
+// it about. ⚠️⚠️ **`5g-ii` PUT THAT QUESTION AND DID NOT ANSWER IT** — it is
+// in ⛔ DECISIONS OWED. `canReadMemory` below is the half that could be built
+// without the ruling, because it reports the fence rather than acting on it.
 //
 // ----------------------------------------------------------------------------
 // ⚠️ THE PREFILL IS STORED PER BASE AND READ PER PRICE UNIT, AND NEITHER
@@ -69,8 +73,11 @@
 // Postgres spelled it, and only the BOX a person types into converts.
 // ============================================================================
 
+import { SCALE, formatDecimal } from '@tienda/money';
+
 import { priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
 import { pricePerBase } from '@/api/catalogWrite';
+import { ROLES, type Role } from '@/api/members';
 import type { Quotes } from '@/cart/cart';
 
 /**
@@ -153,7 +160,7 @@ export interface MemoryRow {
 export interface Provider {
   readonly id: string;
   readonly name: string;
-  /** `Compra directa` — the row F6 requires, and the default. */
+  /** `Genérico` — the row F6 requires, and the default (`0039`). */
   readonly isGeneric: boolean;
 }
 
@@ -354,4 +361,82 @@ export function memoryState(
   if (rows === null || rows === undefined || providerId === null) return 'unknown';
   if (typeof quotesFor(rows, providerId)[variantId] === 'string') return 'remembered';
   return canReadPurchases ? 'new-pairing' : 'unreadable';
+}
+
+// ----------------------------------------------------------------------------
+// WHAT A SCREEN NEEDS AND `5g-i` COULD NOT SUPPLY — added by `5g-ii`
+// ----------------------------------------------------------------------------
+
+/**
+ * May this person read `provider_price_memory` at all?
+ *
+ * ⚠️⚠️ IT EXISTS BECAUSE `memoryState` TAKES THIS BOOLEAN AND NOTHING SUPPLIED
+ * ONE. `5g-i` built the distinction — *is this pairing new, or is this a fence
+ * you cannot see* — and left the caller to say which, because a ROLE is not a
+ * provider read and `useProviders` has no business fetching one. Comprar is the
+ * first caller, and without this the comparison would sit in a ternary inside a
+ * screen no instrument in this repository can look at (`R9`).
+ *
+ * ⚠️ IT IS A CLAIM ABOUT `0003:558` AND NOT A PREFERENCE.
+ * `provider_price_memory` is a `security_invoker` view over `purchase` and
+ * `purchase_line`, and both of those policies are
+ * `has_role(workspace_id, 'manager')` — so the predicate is *manager and above*,
+ * and it is here rather than in the screen precisely so
+ * `app/test/api-providers.test.ts` reads it.
+ *
+ * ⚠️ IT IS NOT AN ALIAS OF `canWriteCatalog` AND MUST NOT BECOME ONE, which is
+ * that function's own recorded argument made a third time. Both answer *manager
+ * and above* today and both are different questions; a migration that loosened
+ * one would move one, and an alias is how the wrong one moves.
+ * ⚠️⚠️ AND HERE THE LOOSENING IS THE LIKELY DIRECTION RATHER THAN A HYPOTHETICAL:
+ * `record_purchase` has NO role check at all (`0018:165`), so a shop that decided
+ * a cashier may receive a delivery would widen this view and leave the catalog
+ * exactly where it is.
+ *
+ * ⚠️ `null` IS "NOT KNOWN" AND IS FENCED OUT, `roleOf`'s own distinction — and
+ * here it is load-bearing rather than defensive. Answering `true` while the
+ * membership read is in flight would make `memoryState` report `new-pairing` on
+ * every row of a phone that has simply not been told who is holding it, which is
+ * the one thing that distinction exists to prevent.
+ */
+export function canReadMemory(role: Role | null): boolean {
+  if (role === null) return false;
+  return ROLES.indexOf(role) <= ROLES.indexOf('manager');
+}
+
+/**
+ * What the editable cost box READS — a peso figure per PRICE unit, as a person
+ * would type it, or `''` when there is nothing to put in it.
+ *
+ * ⚠️⚠️ IT IS THE INVERSE OF `typedPerBase`, AND THE PAIR IS THE POINT. The cart
+ * store holds what `record_purchase` will be sent — net, per BASE, scale 6 — so
+ * the box's value has to be DERIVED from the stored figure on every render. If
+ * that derivation disagreed with `typedPerBase` by one rounding, **a price she
+ * typed would come back into the box as a different price, and nothing on the
+ * screen would say which of the two the ledger got.**
+ * ⚠️ `app/test/api-providers.test.ts` reads the ROUND TRIP rather than each half,
+ * because agreeing with itself is the whole claim.
+ *
+ * ⚠️ NO `$` AND NO THOUSANDS COMMA, WHICH IS NOT A STYLE CHOICE: this string goes
+ * into a `TextInput` a thumb is about to edit. `formatMXN` is for a figure a
+ * person READS — `parsePesos` would take the decoration back, but a box that
+ * re-renders `$1,234.50` under a moving cursor is a box that fights the typist.
+ * ⚠️ `formatDecimal` at `SCALE.money` is `@tienda/money`'s own arithmetic, so no
+ * peso-valued float is constructed anywhere on this path (`R5`).
+ *
+ * ⚠️⚠️ `''` AND NOT C3.12's DASH. The dash is what a READ-ONLY price shows when
+ * there is no memory; an empty BOX is §2.8's *empty and required*, and a box
+ * holding `—` is a box whose first keystroke produces `—8`.
+ */
+export function costShown(
+  perBase: string | null | undefined,
+  priceUnit: string,
+  factors: UnitFactors,
+): string {
+  if (typeof perBase !== 'string' || perBase === '') return '';
+  const factor = factors[priceUnit];
+  if (factor === undefined) return '';
+  const centavos = priceCentavos(perBase, factor);
+  if (centavos === null) return '';
+  return formatDecimal(centavos, SCALE.money);
 }

@@ -10,6 +10,8 @@ import {
   defaultProvider,
   memoryFor,
   memoryKey,
+  canReadMemory,
+  costShown,
   memoryState,
   providerById,
   providersFrom,
@@ -285,5 +287,111 @@ describe('what an empty memory means', () => {
     for (const state of ['remembered', 'new-pairing', 'unreadable', 'unknown']) {
       expect(state).toMatch(/^[a-z-]+$/);
     }
+  });
+});
+
+// ============================================================================
+// WHAT COMPRAR'S SCREEN NEEDED AND `5g-i` COULD NOT SUPPLY. Plan task `5g-ii`.
+//
+// ⚠️ THESE TWO ARE THE ONLY PART OF `5g-ii` AN INSTRUMENT IN THIS REPOSITORY CAN
+// LOOK AT. Everything else in that row is rendering, navigation or layout, which
+// §2.11 fences out of the suite and `R9` fences onto the owner's phone — so the
+// two things it DID push down into a module are asserted here rather than
+// reviewed by eye inside a 1,700-line screen.
+// ============================================================================
+
+describe('who may read the price memory', () => {
+  // ⚠️⚠️ IT IS A CLAIM ABOUT `0003:558`, NOT A PREFERENCE.
+  // `provider_price_memory` is `security_invoker` over `purchase` and
+  // `purchase_line`, and both policies are `has_role(workspace_id, 'manager')`.
+  it('is manager and above, which is what the view inherits', () => {
+    expect(canReadMemory('owner')).toBe(true);
+    expect(canReadMemory('manager')).toBe(true);
+    expect(canReadMemory('staff')).toBe(false);
+  });
+
+  // ⚠️ `null` IS *NOT KNOWN* AND IS LOAD-BEARING HERE RATHER THAN DEFENSIVE.
+  // Answering `true` while the membership read is out would make `memoryState`
+  // report `new-pairing` on every row of a phone that has not been told who is
+  // holding it — the exact confusion `unreadable` exists to prevent.
+  it('refuses a role that has not come back yet', () => {
+    expect(canReadMemory(null)).toBe(false);
+  });
+
+  // ⚠️⚠️ WHAT THIS SUITE CANNOT REACH, SAID HERE RATHER THAN CLAIMED. The
+  // implementation is a THRESHOLD over `ROLES` and not `role !== 'staff'`, for
+  // `canWriteCatalog`'s recorded reason: a fourth role added by a migration must
+  // land on the correct side by itself. ⚠️ **The two spellings are
+  // indistinguishable from here** — they agree on all three roles that exist, and
+  // `Role` is a union so no test may pass a fourth. **That was measured**: a
+  // falsification replacing the body with `role !== 'staff'` left every assertion
+  // above green except the `null` one.
+  // ⚠️ So the claim lives in the function's own header, which is `R9`'s
+  // convention — an unseeable deliverable gets written down — and the ONE half a
+  // test can hold is asserted above: `null` is refused.
+  it('refuses the role that is not known, which is the half a test can hold', () => {
+    expect(canReadMemory(null)).toBe(false);
+    expect(canReadMemory('staff')).toBe(false);
+    expect(canReadMemory('manager')).toBe(true);
+  });
+});
+
+describe('what the cost box reads', () => {
+  // ⚠️ `0.018000` per gram is `$18.00 / kg`, and the box shows the figure a
+  // person would type — no `$`, no thousands comma: it is going into a
+  // `TextInput` under a moving cursor.
+  it('turns a stored per-base figure into pesos per price unit', () => {
+    expect(costShown('0.018000', 'kg', FACTORS)).toBe('18.00');
+    expect(costShown('0.018000', '250g', FACTORS)).toBe('4.50');
+    expect(costShown('0.018000', 'g', FACTORS)).toBe('0.02');
+  });
+
+  // ⚠️⚠️ AN EMPTY BOX AND NOT C3.12's DASH. The dash is what a READ-ONLY price
+  // shows; a box holding `—` is a box whose first keystroke produces `—8`.
+  it('is empty when there is nothing to put in it', () => {
+    expect(costShown(undefined, 'kg', FACTORS)).toBe('');
+    expect(costShown(null, 'kg', FACTORS)).toBe('');
+    expect(costShown('', 'kg', FACTORS)).toBe('');
+  });
+
+  // ⚠️ A UNIT THIS PHONE HAS NOT READ IS EMPTY AND NOT A GUESS — `stepOf`'s rule,
+  // and the reason C3.13 blocks the commit rather than sending something.
+  it('is empty for a unit the phone has not read', () => {
+    expect(costShown('0.018000', 'caja', FACTORS)).toBe('');
+  });
+
+  // ⚠️⚠️ THE CLAIM THAT MATTERS, AND IT IS THE ROUND TRIP RATHER THAN EITHER
+  // HALF. The store holds what `record_purchase` will be SENT and the box shows
+  // it back; if `costShown` and `typedPerBase` disagreed by one centavo, a price
+  // she typed would return as a DIFFERENT price and nothing on the screen would
+  // say which one the ledger got.
+  it('agrees with typedPerBase in both directions, at every price unit', () => {
+    for (const unit of ['g', 'kg', '250g', 'pza']) {
+      for (const centavos of [1, 50, 99, 850, 1800, 123456]) {
+        const perBase = typedPerBase(centavos, unit, FACTORS);
+        expect(perBase).not.toBeNull();
+        // What the box shows is exactly what she typed, to the centavo.
+        expect(costShown(perBase, unit, FACTORS)).toBe(
+          `${Math.floor(centavos / 100)}.${String(centavos % 100).padStart(2, '0')}`,
+        );
+      }
+    }
+  });
+
+  // ⚠️ AND THE OTHER DIRECTION OF THE SAME IDENTITY: a figure read back out of
+  // the box and re-committed must not move. This is what a shopkeeper does every
+  // time she taps a prefilled row and leaves it alone.
+  it('is stable under a read-then-write of a remembered figure', () => {
+    const remembered = '0.018000';
+    const shown = costShown(remembered, 'kg', FACTORS);
+    const again = typedPerBase(Number(shown.replace('.', '')), 'kg', FACTORS);
+    expect(costShown(again, 'kg', FACTORS)).toBe(shown);
+  });
+
+  // ⚠️ AN EXPLICIT ZERO SURVIVES AS A ZERO. `typedPerBase` accepts one — the
+  // schema does too (`purchase_line_price_non_negative`) — and it is the ABSENT
+  // cost C3.13 blocks, not a free delivery somebody meant.
+  it('shows an explicit zero rather than an empty box', () => {
+    expect(costShown(typedPerBase(0, 'kg', FACTORS), 'kg', FACTORS)).toBe('0.00');
   });
 });

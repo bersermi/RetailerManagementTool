@@ -537,10 +537,29 @@ named task ends up.
 
 ## ⚠️ What this page does not cover yet — the `src/ui/` conventions, owed at `5h.5`
 
-**There are no `src/ui/` conventions here, because there is no `app/src/ui/`.**
-Measured, not assumed: the app is thirty source files and the only shared
-component in it is `src/scaffolding/Pendiente.tsx`, which exists to say a screen
-is not built yet.
+⚠️⚠️ **`app/src/ui/` NOW EXISTS — `5g-ii` MINTED IT ON 2026-09-25 — AND THE
+CONVENTIONS ARE STILL OWED AT `5h.5`. Those are two different claims and this
+section used to be able to make them with one sentence.**
+
+~~There are no `src/ui/` conventions here, because there is no `app/src/ui/`.~~
+**Struck because it is now false**, and the correction is the point of this
+page: it went on saying *there is no `app/src/ui/`* for as long as it took
+somebody to read it, and no assertion in `conventions-gate.sh` could see the
+difference. ⚠️ **That is the tenth stale-copy defect recorded in this
+repository and the first one in this file.**
+
+**What is there, measured rather than assumed** — five components, each one
+lifted from screens that had already drawn it two or more times:
+`Buscador.tsx`, `Cantidad.tsx` (§2.11's `QtyInput`), `Deslizador.tsx` (its
+`PrimaryAction`), `Separador.tsx`, `TecladoListo.tsx` and `Vacio.tsx` (its
+`Empty`). `src/scaffolding/Pendiente.tsx` is still separate and still exists to
+say a screen is not built yet.
+
+⚠️ **NONE OF THEM WAS INVENTED, WHICH IS THE OWNER'S 2026-09-13 REFUSAL
+HONOURED RATHER THAN WORKED AROUND.** Two were byte-identical copies in two
+files; `Vacio`'s three copies had **already drifted** — two centred their text
+and Vender's did not, which nobody decided and nothing could see. **That drift
+is the argument, and it was found by looking.**
 
 ADR-035 §3 put `src/api/` and `src/ui/` in step `5a` so that *"step 6's four
 screens arrive to a pattern"*; this build spread them across `5d`–`5h`, and
@@ -550,10 +569,12 @@ guessed at against screens nobody has drawn.
 
 ✅ **THE `src/api/` HALF IS WRITTEN, AT `5b.5` ON 2026-09-18 — see `R12` and
 `R13` above, and the row added to `R3`.** `5b-i` produced the real pattern the
-ruling was waiting for. ⚠️ **The `src/ui/` half is unchanged by that**: the
-primitives are built at `5d`–`5h`, against screens that will exist, and
-describing them today would be the exact thing the owner refused. So the
-obligation moves down the same ladder it moved down before — to **`5h.5`**,
+ruling was waiting for. ⚠️⚠️ **The `src/ui/` half is STILL unchanged by that, and
+the directory existing does not change it either**: the ruling was about *"ten
+primitives guessed at against screens nobody has drawn"*, and the five that now
+exist were all extracted from drawn screens. **Describing their conventions is a
+separate act and it needs the LAST such screen**, which is `5h`'s. So the
+obligation stays exactly where it was — at **`5h.5`**,
 after the last screen that builds a primitive and **before step 6**, which is
 all ADR-035 §2.10 ever asked for (*"the claim here is about order relative to
 step 6"*). ✅✅ **AND ADR-035 §3 SAYS SO IN ITS OWN WORDS, AS OF THE OWNER'S
@@ -572,8 +593,11 @@ says to measure the Inicio morph on the owner's own device before it.
 
 So if you are about to write **the second RPC wrapper**: the pattern is `R12`
 and `R13` above, and `app/src/api/workspace.ts`'s header is where the reasoning
-is. If you are about to write **the first shared component**: there is no rule
-here yet, so write it down at `5h.5` rather than inventing it in four screens,
+is. If you are about to add to **`src/ui/`**: there is no rule here yet, so the
+standard is what the five files there already do — a `// =====` header saying
+why the component exists (`R8`), no decision in it that a `.ts` module could
+hold (`R3`, `R2`), and **no component that has not already been drawn twice.**
+⚠️ **Write the rule down at `5h.5` rather than inventing it in four screens**,
 which is the exact accident §3 wrote this page to prevent.
 
 ⚠️ **This section is checked, not merely written.**
@@ -588,7 +612,9 @@ only kind that has an instrument.
 
 ---
 
-*Written at `5a-iv-b`; second pass — the `src/api/` rules — at `5b.5`. Every
+*Written at `5a-iv-b`; second pass — the `src/api/` rules — at `5b.5`;
+`src/ui/` corrected from absent to present at `5g-ii`, with its conventions
+still owed at `5h.5`. Every
 rule here was read out of `app/src` rather than proposed for it: if one of them
 surprises you, the code is what it describes, and
 `docs/checks/conventions-gate.sh` is what keeps that true.*

@@ -710,7 +710,20 @@ export const ES = {
    * says no state is ever announced by colour ALONE — the users are old and the
    * shop is bright. So the colour never travels without one of these.
    */
-  sell: {
+  /**
+   * ⚠️⚠️ WHAT BOTH COUNTERS SAY IDENTICALLY — split out of `sell` by `5g-ii`,
+   * and it is §2.8's own sentence applied to the words rather than to the markup:
+   * *"three capture screens that feel like distinct modes, sharing one engine
+   * underneath."* Comprar draws the same basket, the same stepper and the same
+   * emptying question as Vender, so a second copy of `Vaciar carrito` would be two
+   * strings that can disagree about one control.
+   *
+   * ⚠️ WHAT STAYED BEHIND IS WHAT GENUINELY DIFFERS: the verb on the slide, the
+   * confirmation after it, and what an unpriced row MEANS on each side — a sale
+   * goes through loudly (C3.14) and a delivery is blocked (C3.13), which is two
+   * sentences and not one.
+   */
+  counter: {
     /** C3.4's sticky bar. The one total in this app that is not a day's takings. */
     total: 'Total',
     /**
@@ -723,15 +736,6 @@ export const ES = {
     emptyCart: 'Sin nada en el carrito',
     /** How many products are in the basket — never how many UNITS of them. */
     lines: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
-    /**
-     * ⚠️ THE AMBER WORD ON A ROW, AND IT IS SHOWN ONLY ON A ROW THAT IS IN THE
-     * BASKET — see `vender.tsx` for the argument, which is `5d-ii`'s *"an alarm
-     * on a hundred rows is the alarm nobody can silence"* applied rather than
-     * overruled. C3.12's dash is still what the price itself reads.
-     */
-    noPrice: 'Sin precio',
-    /** The same fact about the basket, beside the total the bar is withholding part of. */
-    someUnpriced: 'Falta un precio',
     /** The `−` and the `+`, to a screen reader. C12.1: never an icon with no word. */
     less: 'Menos',
     more: 'Más',
@@ -740,7 +744,8 @@ export const ES = {
 
     /**
      * ⚠️ C3.5's BASKET SHEET (`5f-iii-a`) — the review before the commit, and
-     * one of the three guards §2.8 calls *Error prevention*.
+     * one of the three guards §2.8 calls *Error prevention*. Comprar's sheet is
+     * the same sheet, which is why these words are here rather than in `sell`.
      */
     cart: {
       /** The sheet's own heading. One word, because the total is right there. */
@@ -799,6 +804,26 @@ export const ES = {
       /** What that row is called, since the catalog can no longer say. */
       goneName: 'Producto retirado',
     },
+  },
+
+  /**
+   * ⚠️ VENDER'S OWN WORDS — what is left once `counter` holds everything Comprar
+   * says too. Three things, and each of them is a place the two counters differ
+   * on purpose.
+   */
+  sell: {
+    /**
+     * ⚠️⚠️ THE AMBER WORD ON A ROW, AND IT IS SHOWN ONLY ON A ROW THAT IS IN THE
+     * BASKET — see `vender.tsx` for the argument, which is `5d-ii`'s *"an alarm
+     * on a hundred rows is the alarm nobody can silence"* applied rather than
+     * overruled. C3.12's dash is still what the price itself reads.
+     * ⚠️ IT IS NOT IN `counter` BECAUSE COMPRAR'S EQUIVALENT NAMES A DIFFERENT
+     * FACT: here a price is missing from the shelf, there a COST is missing from
+     * a delivery note in somebody's hand — and only one of the two blocks.
+     */
+    noPrice: 'Sin precio',
+    /** The same fact about the basket, beside the total the bar is withholding part of. */
+    someUnpriced: 'Falta un precio',
 
     /**
      * ⚠️⚠️ C3.6's SLIDE — *"commit is a SLIDE, not a tap"* (`5f-iii-b`).
@@ -833,6 +858,107 @@ export const ES = {
     sold: 'Venta registrada',
   },
 
+  /**
+   * ⚠️⚠️ COMPRAR — plan task `5g-ii`, and every word here is about something
+   * Vender does not have: a counterparty, a cost somebody types, and a commit
+   * that REFUSES.
+   */
+  buy: {
+    /**
+     * ⚠️⚠️ THE HEADER, AND THE COLON IS DOING WORK. C3.11 chooses the provider
+     * FIRST, because the screen is about a relationship before it is about
+     * products — so the header is a sentence with a blank in it rather than a
+     * label over a picker.
+     */
+    buyingFrom: 'Comprando a:',
+    /** The picker's own heading, once it is open. */
+    pickProvider: 'Comprando a',
+    /** ⚠️ *Cerrar* and not *Cancelar*: closing the picker chooses nothing. */
+    pickClose: 'Cerrar',
+    /**
+     * ⚠️⚠️ WHAT THE CATCH-ALL ROW IS FOR, BESIDE ITS NAME — and it is the owner's
+     * own sentence of 2026-09-24, kept because the word alone does not carry it:
+     * *"we don't have a Provider for that purchase so we buy it from a generic
+     * provider… a way to allow the user to make purchases from a non-recurrent
+     * provider if he wants."*
+     */
+    genericHint: 'Para una compra sin proveedor fijo',
+    /** The list still coming back. There is no screen at all without it. */
+    loadingProviders: 'Cargando proveedores…',
+
+    /**
+     * ⚠️ THE COST BOX, TO A SCREEN READER AND AS ITS LABEL. *Costo* and not
+     * *Precio*: a price is what the shop charges and a cost is what the shop
+     * paid, and `purchase_line.unit_price_net_per_base` is the second one.
+     */
+    cost: 'Costo',
+    /**
+     * ⚠️⚠️ THE PLACEHOLDER IN AN EMPTY REQUIRED BOX, AND IT IS A QUESTION ON
+     * PURPOSE. §2.8: *"an empty required field asks a question; a wrong prefill
+     * answers one nobody asked."* ⚠️ It is NOT `0.00`: a figure-shaped
+     * placeholder is a prefill wearing a placeholder's clothes, and the Power
+     * Apps screen this replaces showed `Precio: $0.00` on never-bought rows.
+     */
+    costHint: '¿Cuánto?',
+    /**
+     * ⚠️⚠️ §2.8's MIDDLE STATE, SAID IN WORDS — *you have bought this, but never
+     * from THIS provider.* **It is the state that matters**, and it must be
+     * *"visibly distinct from a prefill"*, so the empty box travels with this
+     * sentence rather than with a colour alone (`R11`).
+     * ⚠️ IT IS THE SAME SENTENCE FOR A BRAND-NEW PRODUCT, because the ADR's own
+     * table gives both states the *"same treatment"* — and `memoryState` cannot
+     * tell them apart either, which is the honest reason as well as the specified
+     * one.
+     */
+    newPairing: 'Primera vez con este proveedor',
+    /**
+     * ⚠️ WHERE A PREFILLED FIGURE CAME FROM, KEPT BESIDE THE BOX RATHER THAN
+     * REPLACING IT. It stays true after she edits the box, which a label reading
+     * *último costo* over an edited field would not — and it is the comparison she
+     * actually wants: *they have put it up again.*
+     * ⚠️ THE FIGURE IS C3.10's OWN SENTENCE (`memoryFor`'s `price`), so it arrives
+     * with its unit and this file never assembles one.
+     */
+    lastPaid: (price: string) => `Antes ${price}`,
+    /**
+     * ⚠️ THE AMBER WORD ON A ROW WITH NO COST — `R11`'s companion to the hue, and
+     * it names the COST rather than *a price* because the shelf price may be sitting
+     * right there and is not the missing number.
+     */
+    costMissing: 'Falta el costo',
+    /**
+     * ⚠️⚠️ C3.13's BANNER, AND IT IS THE OPPOSITE OF VENDER'S. A sale with an
+     * unpriced line goes through loudly (C3.14); a DELIVERY is **blocked**, because
+     * a delivery recorded at no cost is a margin that is wrong for ever and nothing
+     * downstream can tell. So this sentence is the reason a control is missing, and
+     * it says what to do rather than what happened.
+     */
+    blocked: (n: number) =>
+      n === 1 ? 'Falta el costo de 1 producto' : `Falta el costo de ${n} productos`,
+
+    /**
+     * ⚠️ THE SAME SLIDE AND A DIFFERENT VERB. *Registrar* and not *Cobrar*:
+     * nobody is paying at this counter, and *Pagar* would be a lie about a
+     * delivery that may be on credit.
+     */
+    slide: {
+      word: 'Registrar',
+      label: 'Registrar — desliza para confirmar la entrada, o toca para ver el carrito',
+    },
+    /**
+     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Vendido`'s own
+     * rule, and C10.3 is why: the slide must look identical offline.
+     */
+    recorded: 'Compra registrada',
+    /**
+     * ⚠️ THE WAY OFF THE NUMBER PAD, AND THIS SCREEN NEEDS IT MORE THAN ANY
+     * OTHER: it is the first with TWO decimal pads on one row, and `decimal-pad`
+     * draws no return key on either platform. `catalog.create.done`'s word and
+     * its reason — a fourth key holding one word is what `5h.5` would settle,
+     * and collapsing them is a conventions decision that row owns.
+     */
+    done: 'Listo',
+  },
   units: {
     kg: 'kg',
     g: 'gr',

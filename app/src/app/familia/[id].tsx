@@ -9,6 +9,7 @@ import { canWriteCatalog } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
 // LA FAMILIA — THE ONE SURFACE IN THIS APP WHERE THE FAMILY/VARIANT STRUCTURE
@@ -450,31 +451,3 @@ function Accion({ label, onPress }: { label: string; onPress: () => void }) {
   );
 }
 
-/**
- * An empty family screen, and the two things it can mean.
- *
- * ⚠️⚠️ THREE STATES AS OF 2026-09-22, NOT TWO — a FAILED read is its own fact,
- * and on this screen it is the sharpest of the three: telling a shopkeeper the
- * product in her hand is gone, because the app could not ask, is worse than
- * either of the others. `familyLine` puts failure ahead of both.
- *
- * ⚠️⚠️ *THE READ HAS NOT LANDED* IS NOT *THIS PRODUCT IS GONE*. This screen is
- * opened by tapping a row, so on a cold start with no signal the catalog is
- * briefly empty — and a screen that said *ya no está en el catálogo* then
- * would be telling a shopkeeper her product had been deleted while she is
- * holding it. The choice is `familyLineKey`'s, in `@/api/catalog`, where
- * `app/test/api-catalog.test.ts` reads it (`R3`, `R4`).
- */
-function Vacio({ line }: { line: string }) {
-  // ⚠️ A SENTENCE AND NOT THE FAILURE KEY — `R12`: a route may not import
-  // `@/api/errors`, the module that decides what a failure means. `familyLine`
-  // is called where the hook's result already is, one function up.
-  const { scale } = useDensity();
-  return (
-    <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-        {line}
-      </Text>
-    </View>
-  );
-}
