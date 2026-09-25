@@ -285,6 +285,15 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-25 — **§2.8's Comprar row, on the decision maker's instruction.** The
+  phrase *optional expiry* is marked **LATENT** rather than struck: *"We'll leave the expiry input
+  latent until we have some feedback from the pilot."* ⚠️ **It is an annotation and not a
+  withdrawal**, and the distinction is his: the 2026-09-21 ruling (*"we will not capture expiry
+  date for now"*) stopped the CONTROL being built, and this one keeps the intention alive without
+  a date on it. ⚠️⚠️ **The cell had lagged that ruling for four days** — the Home row above was
+  struck for the same ruling's sibling on 2026-09-22 and this one was missed — **which is why the
+  annotation is long: a reader who builds the date box has followed this document correctly, and
+  that is the failure mode the amendment exists to close.**
 - **Revised:** 2026-09-24 — **§2.8's *Unit-aware input* row and §2.11's `QtyInput`
   primitive, on the decision maker's instruction, and it is a REVERSAL.** *"Amend it to
   say both, this should be easily switchable and configurable. The step for the stepper
@@ -1306,7 +1315,7 @@ Three capture screens that *feel* like distinct modes, sharing one engine undern
 |---------|-----|-------|
 | **Home** | Today's sales total and count, ~~anything expiring within 48h~~, **and the way into every module** — plus **the dead-letter banner, and it is the only screen that carries it** | ⚠️⚠️ **AMENDED AGAIN 2026-09-22, BOTH HALVES, ON THE DECISION MAKER'S INSTRUCTION — see the revision entry.** The 48-hour expiry block is **withdrawn for the pilot** (*"let's drop it for the pilot then"*): nothing fills it, because expiry dates are not captured and no family carries a lifespan. And the sentence at the end of this cell reversed: *"deliberately not a place where sync failures surface"* became **Home only** (*"let's keep it Home Only"*), which is where C11.9's banner now draws and the only place it does. ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. ~~Deliberately *not* a place where sync failures surface~~ — **reversed 2026-09-22; see below** |
 | **Vender** | The dominant loop; persistent primary action, thumb-reachable everywhere | One tap from cold open; two taps to a committed single-item sale |
-| **Comprar** | Provider context, price prefill from history, optional expiry | Episodic — not tap-optimised |
+| **Comprar** | Provider context, price prefill from history, **optional expiry — ⚠️⚠️ LATENT, NOT BUILT, ON THE DECISION MAKER'S INSTRUCTION OF 2026-09-25** | Episodic — not tap-optimised. ⚠️⚠️ **THE EXPIRY INPUT IS DELIBERATELY UNBUILT AND THIS CELL IS WHAT STOPS THE NEXT READER BUILDING IT.** His words, 2026-09-25: ***"We'll leave the expiry input latent until we have some feedback from the pilot."*** ⚠️ **He was asked whether to STRIKE the phrase and said neither** — not struck, not deferred to a date, **latent pending an event**, which is the shape `Costos` carried (*"we will need to understand the interactions"*). The ruling behind it is 2026-09-21's: *"we will not capture expiry date for now"*, because shelf life is to be DERIVED — see the plan's `7e`. ⚠️⚠️ **NOTHING IS BROKEN AND NOTHING IS MISSING DOWNSTREAM: `purchase_line.expiry_date` is applied (`0003:197`) and `record_purchase` carries ADR-017's three tiers (`0018:112`), so a delivery that sends no date still gets one wherever a family has a lifespan.** Tier 1 — the date read off the box by a person — is the only tier that needs a control, and it is the one that is latent. ⚠️ **This cell lagged that ruling for four days** while the Home row above was struck for its sibling on 2026-09-22, and `5g-ii` found it by reading rather than by any check — **the tenth stale-copy defect in this repository and the first in this file** |
 | **Desperdicio** | Reason-first waste entry | Feeds the analytics asset |
 | **Catálogo** | Product create/edit; units and pack size set once here | Manager+ |
 | **Proveedores** | Provider directory | Own screen |

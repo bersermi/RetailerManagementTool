@@ -159,7 +159,15 @@ fi
 # nothing about what the file happens to say today.
 WAIT_ANCHOR="$(grep -oE '\*\*[^*]*waiting on YOU\*\*' "$BOOK" | head -1)"
 [[ -n "$WAIT_ANCHOR" ]] || {
-  echo "FAIL: no waiting-on-you row in $BOOK — nothing for H5/H6/H7 to falsify"; exit 1; }
+  echo "FAIL: no row in $BOOK matches '**…waiting on YOU**' — nothing for H5/H6/H7"
+  echo "      to mutate. ⚠️ THE ROW MAY EXIST AND STILL NOT MATCH, which is what this"
+  echo "      message used to hide: the anchor needs the BOLD SPAN TO END AT THE"
+  echo "      PRONOUN — '**One thing is waiting on YOU** — and …', never"
+  echo "      '**One thing is waiting on YOU, and …**'. Four drafts on 2026-09-25"
+  echo "      were refused here before the shape was written down, and each time the"
+  echo "      failure read as though the row were missing."
+  echo "      Found: $(grep -c 'waiting on YOU' "$BOOK") line(s) containing the phrase."
+  exit 1; }
 
 # The two states that row is allowed to be in, and one that is neither.
 WAIT_ASKING='**One thing is waiting on YOU**'

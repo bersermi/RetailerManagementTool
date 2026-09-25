@@ -67,7 +67,7 @@ export function Deslizador({
   label,
   compact = false,
   onCommit,
-  onOpen,
+  onTap,
 }: {
   /** The verb on the track — the one thing the two counters disagree about. */
   word: string;
@@ -75,8 +75,20 @@ export function Deslizador({
   label: string;
   compact?: boolean;
   onCommit: () => void;
-  /** A TAP opens the basket — ruled 2026-09-24. See the header. */
-  onOpen: () => void;
+  /**
+   * What a TAP does, beyond the nudge — and it is OPTIONAL, which is the whole
+   * of the 2026-09-25 ruling.
+   *
+   * ⚠️⚠️ THE NUDGE IS PLAYED WHETHER OR NOT THIS IS SUPPLIED, and that is the
+   * owner's own specification: *"In both cases make a small animation, showing
+   * that the slider was touched sliding a bit and bouncing. This same animation
+   * happens also when touching the slider while the carrito is closed but in this
+   * case it does open the carrito."* So the tap ALWAYS answers, and it opens the
+   * basket **only where there is a basket to open** — the bar. ⚠️ Inside the
+   * sheet this is `undefined`: it shipped as `onOpen={onClose}` on 2026-09-24,
+   * which made a tap CLOSE the review screen, and he refused it.
+   */
+  onTap?: () => void;
 }) {
   const { scale } = useDensity();
   const height = scale.tapTarget;
@@ -100,6 +112,42 @@ export function Deslizador({
     }).start();
   };
 
+  /**
+   * ⚠️⚠️ THE TAP'S OWN ANSWER — the owner's specification of 2026-09-25: *"a small
+   * animation, showing that the slider was touched sliding a bit and bouncing."*
+   *
+   * ⚠️ IT IS WHAT MAKES A TAP HONEST ON THE REVIEW SCREEN. Inside the sheet a tap
+   * now does nothing to the navigation, so without this the control would be a
+   * thing a thumb touches and gets no reply from — which is the same defect as a
+   * slide that completes and commits nothing, one step smaller.
+   *
+   * ⚠️ `translateX` ONLY, AND NO LAYOUT (§2.11): a `timing` out and a `spring`
+   * back, both on the same value the drag uses, both `useNativeDriver`. It is the
+   * shape `settle` already has, so it adds no driver risk that was not here.
+   *
+   * ⚠️ THE DISTANCE IS DERIVED FROM THE THUMB AND CLAMPED TO THE TRACK. A third
+   * of the thumb reads as *touched* rather than as *dragged*; clamping matters
+   * because a compact track inside the sheet is short, and a nudge longer than
+   * its travel would look like a failed commit rather than an acknowledgement.
+   */
+  const nudge = () => {
+    const to = Math.max(0, Math.min(height / 3, span.current));
+    Animated.sequence([
+      Animated.timing(x, {
+        toValue: to,
+        duration: 110,
+        easing: Easing.out(Easing.quad),
+        useNativeDriver: true,
+      }),
+      Animated.spring(x, {
+        toValue: 0,
+        friction: 5,
+        tension: 140,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
   const pan = useRef(
     PanResponder.create({
       // ⚠️⚠️ IT CLAIMS THE TOUCH, AND THE TAP IS READ ON RELEASE — which is the
@@ -117,10 +165,12 @@ export function Deslizador({
       },
       onPanResponderRelease: (_e, g) => {
         if (done.current) return;
-        // ⚠️ A TOUCH THAT NEVER MOVED IS A TAP, AND IT OPENS THE BASKET.
+        // ⚠️⚠️ A TOUCH THAT NEVER MOVED IS A TAP, AND IT ALWAYS NUDGES. Whether it
+        // also opens the basket is the CALLER's business as of 2026-09-25 — see
+        // `onTap`. The bar passes a handler; the sheet passes none.
         if (releaseTaps(g.dx)) {
-          settle(0);
-          onOpen();
+          nudge();
+          onTap?.();
           return;
         }
         const at = Math.min(Math.max(0, g.dx), span.current);
@@ -138,11 +188,14 @@ export function Deslizador({
     }),
   ).current;
 
-  // ⚠️⚠️ A TAP OPENS THE BASKET — *"Let's make the carrito able to open by
-  // tapping the slider as well"* (2026-09-24). ⚠️ **It costs the gesture
-  // nothing**, and the reason is in `onMoveShouldSetPanResponder` above: the
-  // pan claims the touch only once the finger has moved 4 pt, so a press that
-  // never moves is still a press and a drag still cancels it.
+  // ⚠️⚠️ A TAP ANSWERS, AND OPENS THE BASKET ONLY WHERE THERE IS ONE TO OPEN —
+  // *"Let's make the carrito able to open by tapping the slider as well"*
+  // (2026-09-24), **amended 2026-09-25 when he found that inside the sheet it
+  // closed the review screen**: *"do not close the carrito."*
+  // ⚠️ **It costs the gesture nothing**, and the reason is in
+  // `onMoveShouldSetPanResponder` above: the pan claims the touch only once the
+  // finger has moved 4 pt, so a press that never moves is still a press and a
+  // drag still cancels it.
   // ⚠️ **It is also what made a bare verb honest as the legend** — see the
   // slide's own strings, which each screen supplies.
 

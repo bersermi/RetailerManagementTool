@@ -741,6 +741,17 @@ export const ES = {
     more: 'Más',
     /** The quantity box, to a screen reader — the unit is read out beside it. */
     qty: 'Cantidad',
+    /**
+     * ⚠️⚠️ THE WAY OFF THE NUMBER PAD, AND IT IS IN `counter` BECAUSE BOTH SCREENS
+     * NEED IT — the owner's own report of 2026-09-25: *"The numerical Keypad isn't
+     * easy to hide when you're done typing."*
+     *
+     * ⚠️ `keyboardType="decimal-pad"` DRAWS NO RETURN KEY ON EITHER PLATFORM, which
+     * `nuevo.tsx` measured — so the `returnKeyType="done"` both quantity boxes carry
+     * is inert and always was. **This word is the actual exit**, on the bar
+     * `InputAccessoryView` draws above the keyboard.
+     */
+    done: 'Listo',
 
     /**
      * ⚠️ C3.5's BASKET SHEET (`5f-iii-a`) — the review before the commit, and
@@ -848,6 +859,14 @@ export const ES = {
        * move (C12.1). ⚠️ It names BOTH gestures, because the control has two.
        */
       label: 'Cobrar — desliza para confirmar la venta, o toca para ver el carrito',
+      /**
+       * ⚠️⚠️ THE SAME CONTROL INSIDE THE SHEET, WHERE A TAP NO LONGER NAVIGATES —
+       * ruled 2026-09-25: *"do not close the carrito."* A screen reader is the one user
+       * for whom the two surfaces are otherwise indistinguishable, so the sentence that
+       * promised *toca para ver el carrito* may not be read out where that is no longer
+       * true (C12.1).
+       */
+      labelInCart: 'Cobrar — desliza para confirmar la venta',
     },
 
     /**
@@ -885,6 +904,33 @@ export const ES = {
     genericHint: 'Para una compra sin proveedor fijo',
     /** The list still coming back. There is no screen at all without it. */
     loadingProviders: 'Cargando proveedores…',
+    /**
+     * ⚠️⚠️ THE PICKER'S HEADING WHEN IT OPENS THE SCREEN RATHER THAN CHANGING IT —
+     * the owner, 2026-09-25: *"When opening Comprar, show a small menu that let's
+     * you pick the Proveedor."* It is a question because at that moment nothing has
+     * been chosen; `pickProvider` is the same window reopened from the drop-down,
+     * where something has.
+     */
+    pickFirst: '¿A quién le estás comprando?',
+    /** Under it, so the window says why it is in the way. One line, no jargon. */
+    pickWhy: 'Los costos que verás son los de este proveedor.',
+
+    /**
+     * ⚠️⚠️ THE SORTER PILLS — his words: *"small pill sorters at the top, the
+     * preselected sorter is Recientes but you can also pick A-Z. These sorters are
+     * hidden when typing to search."*
+     *
+     * ⚠️ `Recientes` IS THIS PROVIDER'S RECENCY and `sortedForBuying` records what
+     * that costs on a brand-new provider. ⚠️ The pills are HIDDEN while typing
+     * rather than disabled, because `search` is already a third order and two
+     * orders on screen at once is a screen that cannot say which one it is in.
+     */
+    sort: {
+      recent: 'Recientes',
+      az: 'A-Z',
+      /** To a screen reader, which cannot see that one pill is filled (C12.1). */
+      label: 'Ordenar el catálogo',
+    },
 
     /**
      * ⚠️ THE COST BOX, TO A SCREEN READER AND AS ITS LABEL. *Costo* and not
@@ -944,6 +990,14 @@ export const ES = {
     slide: {
       word: 'Registrar',
       label: 'Registrar — desliza para confirmar la entrada, o toca para ver el carrito',
+      /**
+       * ⚠️⚠️ THE SAME CONTROL INSIDE THE SHEET, WHERE A TAP NO LONGER NAVIGATES —
+       * ruled 2026-09-25: *"do not close the carrito."* A screen reader is the one user
+       * for whom the two surfaces are otherwise indistinguishable, so the sentence that
+       * promised *toca para ver el carrito* may not be read out where that is no longer
+       * true (C12.1).
+       */
+      labelInCart: 'Registrar — desliza para confirmar la entrada',
     },
     /**
      * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Vendido`'s own
