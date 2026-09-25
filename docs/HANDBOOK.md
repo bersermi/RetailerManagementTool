@@ -61,16 +61,19 @@ conversation and go again.
 
 ### Your main prompt
 
-⚠️ **Deliberately free of numbers.** An earlier version of this block said *"it is eleven
-checks"* and told an anecdote about a question that went missing — both true, both
-destined to rot in the one text you paste daily. **Anything countable now lives in the
-files, and the prompt points at them.**
+⚠️ **Deliberately free of numbers.** An earlier version said *"it is eleven checks"* and
+told an anecdote about a question that went missing — both true, both destined to rot in
+the one text you paste daily. **Anything countable lives in the files; the prompt points
+at them.**
 
 ```
-Read docs/PLAN.md and take the next open task.
+Read docs/PLAN.md and take ONE open task. One task per session, then stop — even if
+it went quickly.
 
 Start with `bash docs/checks/plan-handover.sh` — it names the next task and refuses
-one that is blocked on a question I owe you. Trust it over your own reading.
+one that is blocked on a question I owe you. Trust it over your own reading. Then
+check nothing was left behind: an unmerged PR, a migration that merged and was never
+deployed, a reading I asked for and never got.
 
 Estimate difficulty first and write down what the estimate found. An M or an L is
 one sitting — build the whole row. Split only an XL, a row that is gated, or one
@@ -81,6 +84,16 @@ ADR-035 is authoritative — if it and the plan disagree, stop and tell me.
 
 Respect the gates. If a row says its decision sits in the decisions block, open the
 block and read it rather than trusting the row.
+
+STOP AND ASK ME — do not decide it and carry on — when the answer is a one-way door:
+a migration or anything that changes the database shape, a rule about who may see
+what, anything the seed bakes in, or anything that changes what a shopkeeper sees or
+types in the pilot. After an automated merge, undoing one of those costs a new
+migration rather than an edit.
+
+Otherwise don't wait on me: park the question in ⛔ DECISIONS OWED with your
+recommendation and carry on with the SAME task. Never start a second task to fill
+the time.
 
 Verify properly and name the check that looked at it — never "the file exists", and
 never a green tick on a run that had nothing to do. If only a person can judge it,
@@ -94,13 +107,51 @@ tally, a job log, the database — never from a grep, and say where it came from
 you find a claim in the plan, CLAUDE.md or this handbook that is no longer true, fix
 it in the same PR and tell me which.
 
-Don't wait on me. If a decision is needed, park it in ⛔ DECISIONS OWED with a
-recommendation and take the next unblocked task.
-
-Finish with what's next, what you decided on my behalf, and what you need from me —
-one recommendation with your reasoning, not a menu. If the question is about what a
-shopkeeper actually does, walk me through the situations before showing me a design.
+End every session the same way, so I can read it in twenty seconds:
+  - what shipped, and the check that looked at it, by name
+  - what I must LOOK at on my phone, or "nothing to look at" — and whether the build
+    on my phone has to be rebuilt first before I can open it
+  - what you decided on my behalf, and what reversing it would cost
+  - what is waiting on me — one recommendation with your reasoning, not a menu
+  - the next task, and whether it is gated
+If the question is about what a shopkeeper actually does, walk me through the
+situations before showing me a design.
 ```
+
+### ⚠️ What a machine enforces, and what is only Claude's word
+
+**This is the part to know, because the two halves fail differently.** Asked of the
+checks themselves on 2026-09-25, rather than assumed:
+
+| The prompt says | Who enforces it |
+|---|---|
+| Take the task the plan marks next | **A machine.** `plan-handover.sh` fails unless exactly one row is marked, and fails if the handbook disagrees with it |
+| Don't take a gated task | **A machine, and this is the strong one.** If the decisions block says a task is blocked and that task is marked next, the check fails outright: *"Taking it writes code against a guess — and if it is a migration, an automated merge deploys that guess."* It runs on every pull request, so a session cannot quietly proceed |
+| Answer a dated obligation | **A machine.** A date that passes unanswered turns the check red — four are live right now |
+| Leave the plan readable, one status board, one decisions block | **A machine** |
+| Estimate first, and write down what the estimate found | ⚠️ **Nobody.** The status-log entry is where it shows up; a session that skipped it leaves no trace |
+| Name the check that looked at the work | ⚠️ **Nobody.** Which is why the wording matters: *"a green tick on a run that had nothing to do"* is the failure this line exists for |
+| Say what only a person can judge | ⚠️ **Nobody** — and 2026-09-25 is the proof. The `Costos` PDF passed every check and was wrong on your phone |
+| Tell you the phone build needs rebuilding | ⚠️ **Nobody, and it has a deadline.** The free Apple signature on the build in your hand expires **2026-09-27, 14:22 UTC**, and the app then simply stops launching. A session that ships a screen for you to look at, on a phone that cannot open it, has produced a look-question nobody can answer. The date itself IS in the plan's dates block, which goes red if it passes unanswered |
+| Deploy a merged migration | ⚠️ **Nobody automatically.** The guard exists and runs only when somebody types it. **Two migrations were sitting undeployed when this was written** |
+| Park a decision instead of quietly making one | ⚠️ **Nobody.** A session that decides and says nothing passes every check in the repository |
+
+⚠️⚠️ **So the gates are mechanical and the checkpoints are not.** A session cannot run
+over a gate: the check refuses the task, in CI as well as locally. What it *can* do is
+finish a task having made a choice you never saw — which is why the closing block is
+specified in the prompt line by line, and why *"what you decided on my behalf, and what
+reversing it would cost"* is one of the five items rather than a courtesy.
+
+### ⚠️ The line that was too loose, and it was mine
+
+*"Don't wait on me"* went in on 2026-09-25 to stop a question stalling the work while
+you are away from the phone. **Read literally, it also licensed a session to decide a
+one-way door and keep going** — which is the opposite of what you asked it for. It is now
+bounded: **park and continue only when the answer is reversible in code; stop and ask on
+anything a migration, a policy or the seed would bake in**, and never start a second task
+to fill the time. **The bound matters most now**: the pilot is what these cycles are
+building toward, and a choice about what a shopkeeper sees is expensive to reverse once a
+real shop has used it.
 
 ⚠️ **Nearly every line is there because a session got it wrong first.** What each buys:
 
