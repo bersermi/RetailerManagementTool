@@ -26,10 +26,9 @@
 #           one alone leaves the join empty. The cashier's memory
 #           stops being empty, `memoryState`'s `unreadable` branch becomes dead
 #           code, and nothing else anywhere would notice.
-#   * `P10` renames the seeded generic provider, which is the live disagreement
-#           between F6 and `0002` that the owner owes a word on. It proves the
-#           check is really reading the NAME off the wire rather than carrying
-#           its own copy.
+#   * `P10` renames the seeded generic provider — the word `0039` settled. It
+#           proves the check is really reading the NAME off the wire rather than
+#           carrying its own copy of it.
 #
 # All three run the check, expect the named assertion to go red, and PUT THE
 # DATABASE BACK. ⚠️ Each restore is in a `trap` and runs on every exit path,
@@ -109,7 +108,7 @@ begin
   select pg_get_functiondef(p.oid) into body
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.proname = 'onboard_workspace';
-  execute replace(body, '''Genérico del falsificador''', '''Compra directa''');
+  execute replace(body, '''Genérico del falsificador''', '''Genérico''');
 end $$;
 SQL
   seed_restored=yes
@@ -261,10 +260,12 @@ SQL
 expect P9 'cashier asymmetry has changed|memory     200 / [1-9]' "$SOURCE"
 restore_line_policy
 
-# ⚠️⚠️ P10 — THE NAME THE OWNER OWES A WORD ON. F6 says `Genérico`; the applied
-# schema has seeded `Compra directa` since `0002`. The check reads the name OFF
-# THE WIRE, so a rename cannot land quietly — which is the whole reason that
-# assertion exists rather than a comment somewhere.
+# ⚠️⚠️ P10 — THE NAME. It was the owner's open question when this fixture was
+# written and it was ruled the same day (`0039`): the generic provider is
+# `Genérico`, because the row is the ABSENCE of a counterparty. The check reads
+# that name OFF THE WIRE, so a later `create or replace` of `onboard_workspace`
+# that dropped the literal cannot land quietly — which is why the assertion
+# survived the ruling instead of being deleted with it.
 seed_restored=no
 sql <<'SQL'
 do $$
@@ -273,7 +274,7 @@ begin
   select pg_get_functiondef(p.oid) into body
     from pg_proc p join pg_namespace n on n.oid = p.pronamespace
    where n.nspname = 'public' and p.proname = 'onboard_workspace';
-  execute replace(body, '''Compra directa''', '''Genérico del falsificador''');
+  execute replace(body, '''Genérico''', '''Genérico del falsificador''');
 end $$;
 SQL
 expect P10 'the generic provider is now called' "$SOURCE"

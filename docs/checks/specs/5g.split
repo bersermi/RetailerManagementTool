@@ -16,6 +16,16 @@
 #      trailing series" would be taking a decision on his behalf about a screen
 #      §2.11 fences out of every suite here. This is 5f-i/5f-ii's arrangement
 #      exactly, one split later.
+#      ✅ RULED 2026-09-24, about an hour after this spec was written, and the
+#      gate is CLEARED — annotated rather than rewritten, because the reason was
+#      true when the split was made and that is what this file records.
+#      ⚠️⚠️ AND THE RULING VINDICATED THE SPLIT RATHER THAN RETIRING IT: the
+#      answer was NONE of the three options as posed. It took the one the brief
+#      recommended DEFERRING (a series through time) and folded the one it
+#      recommended splitting out (a per-provider comparison) into it, as ONE
+#      chart — then added a collapsible matrix and a PDF export that nobody had
+#      named. A session that had picked for him would have built the smallest of
+#      the three and called the row closed.
 #   2. TWO FAILURE CLASSES, AND ONE OF THEM IS INVISIBLE HERE. This is the
 #      strong one and it was MEASURED on 2026-09-24 rather than argued:
 #        * provider_select admits ANY member (my_workspaces(), 0002:522);
@@ -124,7 +134,8 @@ PHRASES=(
   "5g-ii|F|empty and required|§2.8's middle price state, and the one that matters. You have bought this product, but never from THIS provider: it must be visibly distinct from a prefill, because an empty required field asks a question and a wrong prefill answers one nobody asked."
   "5g-ii|F|BLOCKED|C3.13, and it is the owner's own rule read against C3.14: a SALE at a missing price goes through loudly, a PURCHASE does not go through at all. One basket, two answers, and 5f-i made them one number — Basket.complete — so the two screens cannot disagree about the same basket."
   "5g-ii|I|third drawing of a search box|§2.8 opens with three capture screens sharing one engine underneath, and 5f-ii's row already recorded the second drawing as the pattern 5h.5 extracts. src/ui/ is built across 5d–5h; 5h.5 writes its conventions AFTER. A third copy-paste is how that sentence quietly stops being true."
-  "5g-iii|F|GATED|The 2026-09-22 ruling was leave Costos dead until 5g. It said WHEN and never WHAT, so the word is still owed. Last price paid, a per-provider comparison and a trailing series are three different screens over the same rows, and §2.11 fences all three out of every suite here — so a session picking between them is deciding on the owner's behalf with no instrument."
+  "5g-iii|I|share the view as a PDF|RULED 2026-09-24, and the answer took the option the brief recommended DEFERRING and folded the one it recommended splitting out into it: a per-provider series through time, a collapsible matrix of the same rows, and an export. The export is the half with no precedent anywhere in this app — nothing here has ever produced a file — so §2.11's stack table gains a row naming whatever library does it, as a DELIVERABLE of this task rather than a task of its own. That is 5c-ii-b-2's arrangement for expo-network, and the row must carry its BOUND as well as its name."
+  "5g-iii|I|Genérico is a series like any other|The owner's own second sentence: You can also look at it in Costos if there are records. It is what makes an unplanned market run visible BESIDE the suppliers rather than hidden among them, and it is the half of the naming ruling that reaches this screen rather than Comprar's header."
   "5g-iii|F|not Comprar|familia/[id].tsx is where the dead button is. This child opens a file the other two never touch, which is the cheapest possible check that the split's seam is real rather than administrative."
 )
 EACH_CHILD_SAYS=(

@@ -228,26 +228,31 @@ PY
 verdict "the provider read answers with what the app asked for" \
   "$SCRATCH/providers.py" "$PROVIDERS_FILE" "$PROVIDER_COLUMNS" "$BANNED"
 
-# ⚠️⚠️ ASSERTION 3 — WHAT THE SEEDED ROW IS ACTUALLY CALLED, AND IT IS A LIVE
-# DISAGREEMENT WITH THE PLAN RATHER THAN A CURIOSITY. F6 requires *"a provider
-# named `Genérico`"*; `onboard_workspace` has seeded `Compra directa` since
-# `0002` on 2026-08-26 and carried it through `0027` and `0034` untouched.
-# ⚠️ THE NAME IS PARKED IN ⛔ DECISIONS OWED, and this assertion is what makes
-# the answer land: it goes RED the day the seed changes, so a rename cannot
-# happen quietly and the plan cannot go on carrying both.
+# ⚠️⚠️ ASSERTION 3 — WHAT THE SEEDED ROW IS ACTUALLY CALLED. It was written on
+# 2026-09-24 while the plan and the applied schema DISAGREED about this string:
+# F6 required `Genérico`, `onboard_workspace` had seeded `Compra directa` since
+# `0002`, and nothing in this repository looked at a word.
+# ✅ **RULED THE SAME DAY AND SHIPPED AS `0039`:** *"Genérico is fine, that means
+# we don't have a Provider for that purchase."* **The row is the ABSENCE of a
+# counterparty rather than a description of how the goods were bought.**
+# ⚠️ THE ASSERTION STAYS, AND IT IS NOT NOW REDUNDANT: it is the only thing in
+# this repository that reads the word a shopkeeper sees, and a later
+# `create or replace` of `onboard_workspace` that forgot the literal would
+# otherwise silently seed the old name into every shop made after it.
 note
 GENERIC_NAME="$(python3 -c "
 import json,sys
 rows = json.load(open(sys.argv[1]))
 print(next((r['name'] for r in rows if r.get('is_generic')), ''))" "$PROVIDERS_FILE" 2>/dev/null)"
-if [[ "$GENERIC_NAME" == "Compra directa" ]]; then
-  ok "the seeded generic provider is still called 'Compra directa' (F6 says 'Genérico' — parked)"
+if [[ "$GENERIC_NAME" == "Genérico" ]]; then
+  ok "the seeded generic provider is called 'Genérico', as 0039 and F6 both say"
 else
-  fail "the generic provider is now called '$GENERIC_NAME'."
-  echo "      This check pins the name because F6 and the applied schema disagree about"
-  echo "      it and the owner owes a word. If this was the rename: answer the decision,"
-  echo "      update F6 and this line together, and note that a shop with deliveries"
-  echo "      already recorded needs its live rows updated too."
+  fail "the generic provider is now called '$GENERIC_NAME', and it should be 'Genérico'."
+  echo "      0039 renamed the seed AND the rows that already existed, on the owner's"
+  echo "      ruling of 2026-09-24. If this is a deliberate second rename it needs a"
+  echo "      fix-forward migration that does BOTH halves again — a seed changed alone"
+  echo "      leaves every existing shop pointing at the old word, which is the state"
+  echo "      0039 exists to have ended."
 fi
 
 GENERIC_ID="$(python3 -c "
