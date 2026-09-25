@@ -174,7 +174,15 @@ run F2 red "R2 — a test file placed beside the source"
 mk; sedi "s|from '@/theme/density'|from '@/theme/DensityProvider'|" "$WORK/app/test/density.test.ts"
 run F3 red "R2 — a test import that resolves to a .tsx"
 
-mk; sedi "s|<Pendiente what={ES.tabs.comprar} />|<Pendiente what='Recepción de mercancía' />|" "$WORK/app/src/app/(tabs)/comprar.tsx"
+# ⚠️⚠️ RE-ANCHORED 2026-09-25 BY `5g-ii`, AND IT HAD GONE QUIET WITHOUT FAILING.
+# This read `<Pendiente what={ES.tabs.comprar} />` — the scaffold that stood behind
+# the Comprar tab — and `5g-ii` replaced that file with the real screen, so the
+# `sed` matched nothing and the fixture reported `⚠️ FIXTURE EDITED NOTHING`.
+# ⚠️ **The gate itself never moved**: R4 was correct the whole time, and only the
+# harness went stale. **A fixture pinned to markup another task owns has an expiry
+# date nobody wrote down** — the rule `5b.8-i`'s row records about line numbers,
+# hit again by a string. ⚠️ The new anchor is a string the SAME task owns.
+mk; sedi "s|{ES.buy.genericHint}|{'Recepción de mercancía'}|" "$WORK/app/src/app/(tabs)/comprar.tsx"
 run F4 red "R4 — a Spanish sentence typed into a route"
 
 mk; sedi "s|const grouped = PESOS.format(pesos);|const grouped = String(pesos).toFixed(0);|" "$WORK/app/src/format/mxn.ts"

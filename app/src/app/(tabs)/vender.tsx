@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useRef, useState, type RefObject } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -7,7 +7,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Modal,
-  PanResponder,
   Platform,
   Pressable,
   Text,
@@ -18,9 +17,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { useCatalog, useUnitFactors, useWorkspace } from '@/api/hooks';
-import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
-import { canCommit, commitOf, releaseCommits, releaseTaps, type Basketful } from '@/cart/commit';
-import { baseFromShown, qtyShown, shownUnitOf } from '@/cart/quantity';
+import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
+import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
@@ -28,6 +26,11 @@ import { newWriteId, nowIso } from '@/lib/ids';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Buscador } from '@/ui/Buscador';
+import { Cantidad } from '@/ui/Cantidad';
+import { Deslizador } from '@/ui/Deslizador';
+import { Separador } from '@/ui/Separador';
+import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -146,15 +149,29 @@ import { PALETTE } from '@/theme/palette';
 // screen is inside the tab navigator: without it the avoidance is short by
 // exactly the bar and the box still clips.
 //
-// ⚠️ THE SEARCH BOX AND THE EMPTY STATES ARE `productos.tsx`'s, COPIED
+// ⚠️⚠️ THE SEARCH BOX, THE STEPPER, THE SLIDE AND THE EMPTY STATES ARE NOW
+// `src/ui/`'s — MOVED OUT BY `5g-ii`, AND THIS PARAGRAPH SAID THE OPPOSITE
 // ----------------------------------------------------------------------------
-// Deliberately, and it is `5h.5`'s row that resolves it: §2.11 lists ~10
-// primitives and §3 requires them before step 6, and the owner refused *"ten
-// primitives guessed at against screens nobody has drawn"* on 2026-09-13. This
-// is the second drawing of a search box and the first of a sticky bar — **the
-// real pattern `5h.5` extracts**, rather than a component invented from one
-// instance. ⚠️ A session that folds these into `src/ui/` before `5h` closes is
-// taking that row's decision for it.
+// ~~A session that folds these into `src/ui/` before `5h` closes is taking that
+// row's decision for it.~~ **That sentence was written here at `5f-ii` and
+// `5g`'s sizing overruled it**, so it is corrected rather than left to disagree
+// with the file it is now wrong about: two homes for one claim is the defect
+// this repository has recorded nine of.
+//
+// ⚠️ THREE THINGS SETTLE IT AND ALL THREE POINT THE SAME WAY. `5h.5`'s row owns
+// the CONVENTIONS and says `src/ui/` is built *"across `5d`–`5h`"*; the owner
+// ruled that in those words on 2026-09-13; and ADR-035 §2.11 says the primitives
+// should exist *"before step 6 rather than being extracted from Vender
+// afterwards by someone who did not write it."* ⚠️ **`5g-ii`'s own row names the
+// trigger**: Comprar is the THIRD drawing of a search box, and §2.8's *"three
+// capture screens sharing one engine underneath"* is what makes that an
+// extraction rather than a tidy-up.
+//
+// ⚠️ WHAT SURVIVES OF THE OLD PARAGRAPH IS THE OWNER'S REFUSAL IT CITED — *"ten
+// primitives guessed at against screens nobody has drawn"* — and it is honoured:
+// every one of the five that moved had been drawn TWO OR MORE TIMES first, two
+// of them were byte-identical copies, and `Vacio`'s three copies had already
+// drifted apart. **None was invented.**
 // ============================================================================
 
 export default function Vender() {
@@ -410,91 +427,6 @@ export default function Vender() {
 }
 
 /**
- * The search box. `productos.tsx`'s, one screen over — see this file's header
- * for why it is copied rather than shared, and `5h.5` for who resolves it.
- *
- * ⚠️ IT DOES NOT SCROLL AWAY. C3.1 puts the box ABOVE a scrolling list, and a
- * shop with a hundred products is exactly the shop that searches.
- */
-function Buscador({
-  value,
-  onChange,
-  box,
-}: {
-  value: string;
-  onChange: (text: string) => void;
-  box: RefObject<TextInput | null>;
-}) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.space,
-      }}
-    >
-      <View
-        style={{
-          flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: scale.rowGap,
-          minHeight: scale.tapTarget,
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
-          backgroundColor: PALETTE.superficie,
-        }}
-      >
-        {/* C12.1 is not bent: the word is the placeholder inside the same box. */}
-        <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
-        <TextInput
-          ref={box}
-          value={value}
-          onChangeText={onChange}
-          placeholder={ES.catalog.search}
-          placeholderTextColor={PALETTE.tintaApagada}
-          autoCorrect={false}
-          autoCapitalize="none"
-          // ⚠️ *Listo* AND NOT *Buscar*: the filtering has already happened on
-          // every keystroke, so the only thing that key can still do is put the
-          // keyboard away.
-          returnKeyType="done"
-          onSubmitEditing={() => Keyboard.dismiss()}
-          accessibilityLabel={ES.catalog.search}
-          style={{
-            flex: 1,
-            paddingVertical: scale.rowGap,
-            fontSize: scale.bodySize,
-            color: PALETTE.tinta,
-          }}
-        />
-      </View>
-
-      {value === '' ? null : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onChange('')}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.rowGap,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.catalog.clear}
-          </Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
-/**
  * ⚠️⚠️ ONE ROW, AND IT IS THE WHOLE CONTROL — C3.2, and the sentence that makes
  * this a screen rather than a list. The variant name, the family beneath it,
  * `Precio` never without its unit (C3.10), the quantity box and the `−`/`+`.
@@ -578,186 +510,8 @@ function Fila({
         </View>
       </View>
 
-      <Cantidad entry={entry} base={base} factors={factors} onEdit={onEdit} />
+      <Cantidad entry={entry} base={base} factors={factors} kind="sell" onEdit={onEdit} />
     </View>
-  );
-}
-
-/**
- * ⚠️⚠️ THE QUANTITY CONTROL, AND IT IS A STEPPER **AND** A KEYPAD ON EVERY
- * PRODUCT — never a switch between them.
- *
- * ADR-035 §2.8 and §2.11 said the opposite until 2026-09-24 (*"stepper for
- * discrete units, decimal keypad for weight and volume… never the same control
- * for both"*, and `QtyInput` named as the switch). The owner amended both:
- * *"Amend it to say both, this should be easily switchable and configurable…
- * If a user wants to sell 15 manojos of cilantro, he shouldn't have to click the
- * stepper 14 times."* ⚠️ **A keypad is about MAGNITUDE and not precision**,
- * which is why counts get one too — there is no 288th of a `pza`, and there are
- * fifteen manojos.
- *
- * ⚠️ THE TWO ARE DISTINGUISHABLE AND ONE TAP APART, which is what survives of
- * the original rule: `−` and `+` are for *one more of the usual amount* and the
- * box is for *this exact number*. The box IS the keypad — `decimal-pad` is what
- * C3.7's *"tapping the quantity field opens a numeric keypad"* means on a phone.
- *
- * ⚠️⚠️ THE STEP IS `price_unit_code`'s FACTOR AND NOT A NUMBER THIS FILE PICKS
- * (C3.8), and *configurable* needs no new affordance: the shopkeeper chooses
- * that unit in `Agregar` and `Editar`, so pricing *por cuarto* makes the step
- * 250 g. **A step set INDEPENDENTLY of the price unit is a different thing and
- * is not built here** — `5f-ii`'s row records that reading.
- *
- * ⚠️ WHICH UNIT THE BOX SPEAKS IN IS `@/cart/quantity`'s DECISION, not this
- * file's, and `app/test/cart-quantity.test.ts` reads it.
- */
-function Cantidad({
-  entry,
-  base,
-  factors,
-  onEdit,
-}: {
-  entry: CatalogEntry;
-  base: number;
-  factors: UnitFactors;
-  // ⚠️ OPTIONAL BECAUSE THE SHEET HAS NO LIST TO SCROLL. On the list this tells
-  // the screen which row the keyboard is about to cover; inside the sheet there
-  // are only the lines already in the basket, and nothing virtualises them.
-  onEdit?: (editing: boolean) => void;
-}) {
-  const { scale } = useDensity();
-  const setQty = useCartStore((state) => state.setQty);
-  const bump = useCartStore((state) => state.step);
-
-  const unit = shownUnitOf(entry);
-  const by = stepOf(entry.priceUnit, factors);
-  const settled = base === 0 ? '' : (qtyShown(base, unit, factors) ?? '');
-
-  // ⚠️⚠️ THE BOX KEEPS WHAT WAS TYPED WHILE IT IS BEING TYPED, AND THAT IS NOT
-  // A CONVENIENCE. `0.` is not a quantity, so committing on every keystroke
-  // would delete the line the instant a thumb reached the decimal point and the
-  // digit after it would land on an empty row. ⚠️ A parseable keystroke DOES
-  // commit, because the sticky `Total` a customer is watching must not lag the
-  // number she is reading. ⚠️ And `null` means *the store is the truth*, which
-  // is what makes `−` and `+` show up in the box while it is untouched.
-  const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? settled;
-
-  const typeInto = (text: string) => {
-    setDraft(text);
-    if (text.trim() === '') {
-      setQty('sell', entry.id, 0);
-      return;
-    }
-    const next = baseFromShown(text, unit, factors);
-    if (next !== null) setQty('sell', entry.id, next);
-  };
-
-  // ⚠️ THE UNIT'S WORD IS `ES.units`' AND NEVER THE CODE (`R4`): `250g` is what
-  // the database calls it and *250 gr* is what a shopkeeper reads.
-  const word = ES.units[unit as keyof typeof ES.units] ?? unit;
-
-  return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
-      <Paso
-        label={ES.sell.less}
-        glyph="minus"
-        // ⚠️ DISABLED RATHER THAN DEAD AT ZERO. Stepping down through zero
-        // removes a line that is not there; a control that looks live and does
-        // nothing is the shape this repository refuses by name.
-        disabled={by === null || base === 0}
-        onPress={() => {
-          setDraft(null);
-          bump('sell', entry.id, by, -1);
-        }}
-      />
-
-      <View style={{ alignItems: 'center', minWidth: scale.tapTarget * 1.5 }}>
-        <TextInput
-          value={shown}
-          onChangeText={typeInto}
-          // ⚠️ THE ROW TELLS THE SCREEN IT IS THE ONE BEING TYPED INTO, and the
-          // screen scrolls it into view once the keyboard is actually up — see
-          // this file's header.
-          onFocus={() => onEdit?.(true)}
-          onBlur={() => {
-            onEdit?.(false);
-            setDraft(null);
-          }}
-          editable={by !== null}
-          // ⚠️ `decimal-pad` AND NOT `numeric`: `numeric` carries a minus sign
-          // and an exponent on some Android keyboards, and neither is a
-          // quantity. A comma is read as a decimal point one module over.
-          keyboardType="decimal-pad"
-          returnKeyType="done"
-          onSubmitEditing={() => Keyboard.dismiss()}
-          accessibilityLabel={`${ES.sell.qty} ${word}`}
-          textAlign="center"
-          style={{
-            minWidth: scale.tapTarget * 1.5,
-            minHeight: scale.tapTarget,
-            paddingHorizontal: scale.rowGap / 2,
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: base === 0 ? PALETTE.linea : PALETTE.accion,
-            backgroundColor: PALETTE.superficie,
-            fontSize: scale.bodySize,
-            fontWeight: '600',
-            color: PALETTE.tinta,
-          }}
-        />
-        {/* ⚠️ THE UNIT IS RENDERED BESIDE THE FIELD AND ALWAYS — the half of
-            §2.8's *Unit-aware input* row that was never in question. */}
-        <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>{word}</Text>
-      </View>
-
-      <Paso
-        label={ES.sell.more}
-        glyph="plus"
-        disabled={by === null}
-        onPress={() => {
-          setDraft(null);
-          bump('sell', entry.id, by, 1);
-        }}
-      />
-    </View>
-  );
-}
-
-/** One half of the stepper. The glyph carries the word as its label (C12.1). */
-function Paso({
-  label,
-  glyph,
-  disabled,
-  onPress,
-}: {
-  label: string;
-  glyph: 'minus' | 'plus';
-  disabled: boolean;
-  onPress: () => void;
-}) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      accessibilityState={{ disabled }}
-      disabled={disabled}
-      onPress={onPress}
-      style={{
-        minWidth: scale.tapTarget,
-        minHeight: scale.tapTarget,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: scale.space / 2,
-        backgroundColor: disabled ? PALETTE.fondo : PALETTE.accionSuave,
-      }}
-    >
-      <MaterialCommunityIcons
-        name={glyph}
-        size={scale.iconSize}
-        color={disabled ? PALETTE.tintaApagada : PALETTE.accion}
-      />
-    </Pressable>
   );
 }
 
@@ -786,7 +540,7 @@ function Paso({
  * a button and is not yet aiming at anything.**
  *
  * ⚠️ THE SUMMARY ROW IS DRAWN ON AN EMPTY BASKET, which is why
- * `ES.sell.emptyCart` exists: a bar that appeared on the first tap would move
+ * `ES.counter.emptyCart` exists: a bar that appeared on the first tap would move
  * the list under a thumb already reaching for the second one.
  *
  * ⚠️⚠️ A BASKET WITH AN UNPRICEABLE LINE SHOWS THE TOTAL **AND SAYS SO**. That
@@ -822,7 +576,7 @@ function Barra({
         {...(live
           ? {
               accessibilityRole: 'button' as const,
-              accessibilityLabel: ES.sell.cart.open,
+              accessibilityLabel: ES.counter.cart.open,
               onPress: onOpen,
             }
           : {})}
@@ -837,7 +591,7 @@ function Barra({
       >
         <View style={{ gap: scale.rowGap / 4 }}>
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-            {ES.sell.total}
+            {ES.counter.total}
           </Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
             <Text
@@ -848,8 +602,8 @@ function Barra({
               }}
             >
               {basket === null || basket.lines === 0
-                ? ES.sell.emptyCart
-                : ES.sell.lines(basket.lines)}
+                ? ES.counter.emptyCart
+                : ES.counter.lines(basket.lines)}
             </Text>
             {live ? (
               <MaterialCommunityIcons
@@ -896,221 +650,27 @@ function Barra({
         >
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={ES.sell.cart.empty}
+            accessibilityLabel={ES.counter.cart.empty}
             onPress={onEmpty}
             style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
           >
             <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-              {ES.sell.cart.empty}
+              {ES.counter.cart.empty}
             </Text>
           </Pressable>
 
           {canSell ? (
             <View style={{ flex: 1 }}>
-              <Deslizador onCommit={onCommit} onOpen={onOpen} />
+              <Deslizador
+                word={ES.sell.slide.word}
+                label={ES.sell.slide.label}
+                onCommit={onCommit}
+                onOpen={onOpen}
+              />
             </View>
           ) : null}
         </View>
       ) : null}
-    </View>
-  );
-}
-
-/**
- * ⚠️⚠️ C3.6's SLIDE — *"commit is a SLIDE, not a tap. The button becomes a
- * slider and the gesture commits."* Plan task `5f-iii-b`.
- *
- * ⚠️⚠️ THE TRACK FILLS BEHIND THE THUMB, RULED BY THE OWNER 2026-09-24 —
- * *"make the slider fill along with the finger swipe."* It is what turns a knob
- * that moves into a gesture with a state: at any moment the amount of green is
- * how much of the sale has been agreed to.
- *
- * ⚠️⚠️ AND THE FILL IS A `translateX`, NOT A WIDTH — §2.11's motion rule
- * honoured rather than bent. A fill animated by growing its `width` is a LAYOUT
- * change every frame, on the phone C1.1 puts two low-end Androids among; a
- * full-width block slid in from the left under `overflow: 'hidden'` is a
- * transform, and transforms composite. **The visible result is identical and
- * the frame cost is not.**
- *
- * ⚠️ THE DRIVER IS THE JS ONE DURING THE DRAG, AND THAT IS NAMED RATHER THAN
- * HIDDEN. A value the native driver owns cannot be `setValue`d from JS, and a
- * `PanResponder` gesture has no native event to map — so the drag is JS-driven
- * and only the release animations use `useNativeDriver`. §2.11's rule is about
- * which PROPERTIES are animated, and both paths animate `transform` only.
- *
- * ⚠️ IT IS NOT DRAWN WHEN THE BASKET CANNOT BE COMMITTED — see `canCommit`. A
- * slide a thumb can complete over a sale that would be refused is worse than no
- * slide at all, and every refusal is a programming error that may never reach a
- * person (`R4`).
- *
- * ⚠️ BUILT ON `PanResponder` AND `Animated`, WHICH IS CORE REACT NATIVE. The
- * measurement that decided it: `react-native-gesture-handler` and
- * `react-native-reanimated` are installed as transitive dependencies and are
- * imported by NOTHING in `src/` — adding them means a babel plugin, a root view
- * and a native surface this app has never exercised, **on a build no CI
- * compiles.** Core RN costs a JS-driven drag and no new wiring.
- */
-function Deslizador({
-  compact = false,
-  onCommit,
-  onOpen,
-}: {
-  compact?: boolean;
-  onCommit: () => void;
-  /** A TAP opens the basket — ruled 2026-09-24. See the header. */
-  onOpen: () => void;
-}) {
-  const { scale } = useDensity();
-  const height = scale.tapTarget;
-  const [track, setTrack] = useState(0);
-  const travel = Math.max(0, track - height);
-
-  const x = useRef(new Animated.Value(0)).current;
-  // ⚠️ THE GESTURE READS REFS AND NOT STATE. `PanResponder` is built once, so a
-  // handler closing over `travel` would hold the width measured on the first
-  // frame — zero — for the life of the control.
-  const span = useRef(0);
-  span.current = travel;
-  const done = useRef(false);
-
-  const settle = (to: number) => {
-    Animated.timing(x, {
-      toValue: to,
-      duration: 160,
-      easing: Easing.out(Easing.quad),
-      useNativeDriver: true,
-    }).start();
-  };
-
-  const pan = useRef(
-    PanResponder.create({
-      // ⚠️⚠️ IT CLAIMS THE TOUCH, AND THE TAP IS READ ON RELEASE — which is the
-      // SECOND design of this. The first wrapped the track in a `Pressable` and
-      // spread `panHandlers` onto it; `Pressable` installs its OWN responder
-      // handlers on the underlying view, so the two fight over one touch and
-      // which wins is not something this file gets to decide.
-      // ⚠️ **One responder, two readings, separated by `TAP_SLOP`** — nothing
-      // sits behind this control, so claiming the touch costs nothing.
-      onStartShouldSetPanResponder: () => true,
-      onMoveShouldSetPanResponder: () => true,
-      onPanResponderMove: (_e, g) => {
-        if (done.current) return;
-        x.setValue(Math.min(Math.max(0, g.dx), span.current));
-      },
-      onPanResponderRelease: (_e, g) => {
-        if (done.current) return;
-        // ⚠️ A TOUCH THAT NEVER MOVED IS A TAP, AND IT OPENS THE BASKET.
-        if (releaseTaps(g.dx)) {
-          settle(0);
-          onOpen();
-          return;
-        }
-        const at = Math.min(Math.max(0, g.dx), span.current);
-        if (releaseCommits(at, span.current)) {
-          done.current = true;
-          settle(span.current);
-          // ⚠️ THE SALE IS COMMITTED WHEN THE GESTURE COMPLETES, not when the
-          // animation acknowledging it ends — the thumb has already said so.
-          onCommit();
-        } else {
-          settle(0);
-        }
-      },
-      onPanResponderTerminate: () => settle(0),
-    }),
-  ).current;
-
-  // ⚠️⚠️ A TAP OPENS THE BASKET — *"Let's make the carrito able to open by
-  // tapping the slider as well"* (2026-09-24). ⚠️ **It costs the gesture
-  // nothing**, and the reason is in `onMoveShouldSetPanResponder` above: the
-  // pan claims the touch only once the finger has moved 4 pt, so a press that
-  // never moves is still a press and a drag still cancels it.
-  // ⚠️ **It is also what made the word *Cobrar* honest** — see `ES.sell.slide`.
-
-  const fill = Animated.subtract(x, travel);
-
-  return (
-    <View
-      accessibilityRole="button"
-      accessibilityLabel={ES.sell.slide.label}
-      onLayout={(e) => setTrack(e.nativeEvent.layout.width)}
-      style={{
-        height,
-        borderRadius: height / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        backgroundColor: PALETTE.accionSuave,
-        overflow: 'hidden',
-        justifyContent: 'center',
-      }}
-      {...pan.panHandlers}
-    >
-      {/* The fill — a full-width block slid in from the left. See the header. */}
-      <Animated.View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          width: track,
-          backgroundColor: PALETTE.accion,
-          transform: [{ translateX: fill }],
-        }}
-      />
-
-      {/* ⚠️ THE WORD FADES AS THE FILL ARRIVES — `opacity`, so it composites,
-          and it is what stops green ink sitting on a green fill.
-          ⚠️⚠️ IT IS ABSOLUTELY POSITIONED AND THE FIRST WRITING WAS NOT, which
-          clipped it above the track on the simulator: a plain child of the track
-          is a FLEX SIBLING of the thumb, so the two stacked in a column instead
-          of overlaying. ⚠️ The horizontal padding is a whole `tapTarget` on each
-          side so the words never sit under the thumb at either end. */}
-      <Animated.View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingHorizontal: height,
-          opacity:
-            travel === 0 ? 1 : x.interpolate({ inputRange: [0, travel], outputRange: [1, 0] }),
-        }}
-      >
-        <Text
-          numberOfLines={1}
-          style={{
-            textAlign: 'center',
-            fontSize: compact ? scale.bodySize * 0.9 : scale.bodySize,
-            fontWeight: '700',
-            color: PALETTE.accion,
-          }}
-        >
-          {ES.sell.slide.word}
-        </Text>
-      </Animated.View>
-
-      <Animated.View
-        style={{
-          width: height,
-          height,
-          borderRadius: height / 2,
-          backgroundColor: PALETTE.accion,
-          alignItems: 'center',
-          justifyContent: 'center',
-          transform: [{ translateX: x }],
-        }}
-      >
-        <MaterialCommunityIcons
-          name="chevron-double-right"
-          size={scale.iconSize}
-          color={PALETTE.superficie}
-        />
-      </Animated.View>
     </View>
   );
 }
@@ -1206,7 +766,7 @@ function Carrito({
             red. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={ES.sell.cart.close}
+          accessibilityLabel={ES.counter.cart.close}
           onPress={onClose}
           style={{
             position: 'absolute',
@@ -1268,7 +828,7 @@ function Carrito({
                     />
                   )}
                   ItemSeparatorComponent={Separador}
-                  ListEmptyComponent={<Vacio line={ES.sell.emptyCart} />}
+                  ListEmptyComponent={<Vacio line={ES.counter.emptyCart} />}
                   keyboardShouldPersistTaps="handled"
                 />
 
@@ -1311,16 +871,16 @@ function Encabezado({ onClose }: { onClose: () => void }) {
       }}
     >
       <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-        {ES.sell.cart.title}
+        {ES.counter.cart.title}
       </Text>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={ES.sell.cart.close}
+        accessibilityLabel={ES.counter.cart.close}
         onPress={onClose}
         style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-          {ES.sell.cart.close}
+          {ES.counter.cart.close}
         </Text>
       </Pressable>
     </View>
@@ -1382,7 +942,7 @@ function Renglon({
             color: gone ? PALETTE.tintaApagada : PALETTE.tinta,
           }}
         >
-          {row.name ?? ES.sell.cart.goneName}
+          {row.name ?? ES.counter.cart.goneName}
         </Text>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
           {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
@@ -1395,7 +955,7 @@ function Renglon({
           numberOfLines={1}
           style={{ flex: 1, fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
         >
-          {gone ? ES.sell.cart.gone : (row.familyName ?? '')}
+          {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
         </Text>
         {row.centavos === null && !gone ? (
           <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
@@ -1406,7 +966,7 @@ function Renglon({
 
       {/* The controls, on their own line — see this component's header. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} />}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} kind="sell" />}
 
         {/* ⚠️ A WORD AND NOT A GLYPH, and the width is the reason as much as the
             clarity: an icon plus its word does not fit beside the stepper at
@@ -1415,7 +975,7 @@ function Renglon({
             sentence for this role — it names `Quitar` first. */}
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={`${ES.sell.cart.remove} ${row.name ?? ES.sell.cart.goneName}`}
+          accessibilityLabel={`${ES.counter.cart.remove} ${row.name ?? ES.counter.cart.goneName}`}
           onPress={() => remove('sell', row.variantId)}
           style={{
             minHeight: scale.tapTarget,
@@ -1424,7 +984,7 @@ function Renglon({
           }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-            {ES.sell.cart.remove}
+            {ES.counter.cart.remove}
           </Text>
         </Pressable>
       </View>
@@ -1480,12 +1040,12 @@ function Vaciar({
     >
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={ES.sell.cart.empty}
+        accessibilityLabel={ES.counter.cart.empty}
         onPress={onAsk}
         style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-          {ES.sell.cart.empty}
+          {ES.counter.cart.empty}
         </Text>
       </Pressable>
 
@@ -1495,7 +1055,13 @@ function Vaciar({
           wider and the track is correspondingly shorter. */}
       {canSell ? (
         <View style={{ flex: 1 }}>
-          <Deslizador compact onCommit={onCommit} onOpen={onOpen} />
+          <Deslizador
+            compact
+            word={ES.sell.slide.word}
+            label={ES.sell.slide.label}
+            onCommit={onCommit}
+            onOpen={onOpen}
+          />
         </View>
       ) : null}
     </View>
@@ -1598,12 +1164,12 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
           textAlign: 'center',
         }}
       >
-        {ES.sell.cart.emptyAsk}
+        {ES.counter.cart.emptyAsk}
       </Text>
       <View style={{ gap: scale.rowGap }}>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={ES.sell.cart.emptyConfirm}
+          accessibilityLabel={ES.counter.cart.emptyConfirm}
           onPress={onConfirm}
           style={{
             minHeight: scale.tapTarget,
@@ -1615,12 +1181,12 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
           }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.error }}>
-            {ES.sell.cart.emptyConfirm}
+            {ES.counter.cart.emptyConfirm}
           </Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel={ES.sell.cart.emptyCancel}
+          accessibilityLabel={ES.counter.cart.emptyCancel}
           onPress={onCancel}
           style={{
             minHeight: scale.tapTarget,
@@ -1631,7 +1197,7 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
           }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.sell.cart.emptyCancel}
+            {ES.counter.cart.emptyCancel}
           </Text>
         </Pressable>
       </View>
@@ -1667,7 +1233,7 @@ function Vaciado({ bloom }: { bloom: Animated.Value }) {
           color={PALETTE.accion}
         />
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-          {ES.sell.cart.emptied}
+          {ES.counter.cart.emptied}
         </Text>
       </Animated.View>
     </View>
@@ -1762,31 +1328,3 @@ function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
   );
 }
 
-/**
- * One line between two rows, and never under the last one.
- *
- * ⚠️ A BORDER AND NOT A ONE-PIXEL BOX, which is `R6` and not taste — a `height`
- * is a size a person looks at, and `1` here would be the one measurement on
- * this screen that *Letra grande* could not change. `productos.tsx` records the
- * same refusal; the gate caught this file making it a second time.
- */
-function Separador() {
-  return <View style={{ borderBottomWidth: 1, borderBottomColor: PALETTE.linea }} />;
-}
-
-/**
- * The three empty states, which are three different facts — a catalog still
- * loading, a shop with no products, and a search that matched none. The
- * sentence is `catalogLine`'s (`5d-i`), so this screen and Productos never
- * disagree about which one it is.
- */
-function Vacio({ line }: { line: string }) {
-  const { scale } = useDensity();
-  return (
-    <View style={{ padding: scale.space * 2 }}>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-        {line}
-      </Text>
-    </View>
-  );
-}

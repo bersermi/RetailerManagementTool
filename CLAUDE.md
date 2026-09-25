@@ -25,6 +25,14 @@ moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstru
 | `docs/plan/archive/status-log-2026-09-20.md` | The whole 2026-09-20 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-21.md` | The whole 2026-09-21 working day — the `5a-iv-d` day-8 reading | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-22.md` | **The 2026-09-22 working day, FIRST CUT** — ⚠️ the first archive taken from a day still running, because there was no older day left to take. **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
+| `docs/plan/archive/status-log-2026-09-23.md` | The whole 2026-09-23 working day | Only to move an entry back |
+| `docs/plan/archive/status-log-2026-09-24.md` | **The 2026-09-24 working day** — the second file ever opened for a day still running, and the one this project's busiest day went out in. ⚠️ **Six cuts have been appended to it**, which is the rule above being obeyed | Only to move an entry back, or to append a later cut of the same day |
+
+⚠️⚠️ **THIS TABLE IS READ BY NO CHECK, AND ON 2026-09-25 IT WAS MISSING TWO FILES** —
+`status-log-2026-09-23.md` and `status-log-2026-09-24.md`, both of which had existed for a
+day. **`5g-ii` found it by listing the directory and comparing.** The rows are added above;
+the lesson is that **the only thing keeping this table true is somebody looking**, so list
+`docs/plan/archive/` when you cite it.
 
 ⚠️ **The status log is archived ONE WORKING DAY PER FILE** and there will be more of
 them. `plan-corpus.sh` globs `docs/plan/archive/*.md`, so a new one needs no wiring —

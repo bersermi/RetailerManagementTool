@@ -471,3 +471,69 @@ reads `unit.base_code` off the wire — with its falsifier's **17 fixtures** re-
 ⚠️⚠️ **AND THE HALF THE OWNER MUST DO HIMSELF, NAMED RATHER THAN QUIETLY LEFT: HE CANNOT DELETE
 A PRODUCT IN THE APP.** `Editar`'s retire control is drawn on nothing until `6c`, so the runbook
 is the affordance. **`6c` is where that comes back.**
+
+
+---
+
+## Appended 2026-09-25 — the eighteenth cut, and it REUNITES a split entry
+
+⚠️⚠️ **THIS CUT IS NOT ABOUT SIZE FIRST, WHICH MAKES IT THE FIRST ONE THAT IS NOT.**
+The sixteenth cut moved `5f`'s SIZING HEADER into this file on 2026-09-24 and left its
+BODY — the twenty deliverables, the three findings and the verification — behind in
+`## Position`. **So one status-log entry had two homes**, which is the defect shape this
+repository has recorded ten of, arriving through an archive cut rather than through a
+copy-paste.
+
+⚠️ **It was not a duplicate and that was checked rather than assumed**: the two halves
+share no sentence, `split-coverage.sh`'s *"row appears 2 times"* could never have seen
+it, and the header in the fifteenth cut above points at Step 5's own section rather than
+at this prose. **A split entry is not a stale copy — it is worse, because each half reads
+as complete.**
+
+⚠️ **The size argument is real too**: `## Position` stood at **1,359 of 1,400** with
+`5g-ii`'s closing entry and two newly parked decisions in it, so the room had to come
+from somewhere. **Taking it from the half that was already orphaned is the cheapest
+forty-two lines in the file.** ⚠️ **A MOVE and never a copy**, unedited.
+
+⚠️⚠️ **THE ROW ASKED FOR THE SIZING IN ITS OWN WORDS AND IT WAS RIGHT: TWENTY
+DELIVERABLES.** *"This row lists a screen, a stepper, a basket, a slide-to-commit, a
+price change and a persistence setting, which is not one sitting."* **The seam is `5d`'s
+and `5e`'s** — the half a machine can hold goes first, alone — **plus a second one the
+earlier splits did not need: `5f-iii` WRITES.** Nothing in this app has ever enqueued
+anything, so all four of `5c`'s children have been built against fixtures and the first
+real caller is worth its own row.
+
+⚠️⚠️ **THREE THINGS THE SIZING FOUND, AND NONE OF THEM WAS IN THE ROW.**
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | **THE CART IS STATE BEFORE IT IS A SHEET, and §2.11 had already chosen where it lives** | *"Zustand, cart only, persisted to `expo-sqlite`"* — and **`zustand` is not a dependency of this app**, measured against `app/package.json`. The row said *basket sheet* and named no store at all |
+| **2** | ⚠️⚠️ **THE QUANTITY CONTROL CONTRADICTS THE ADR, AND THE ADR WINS** | §2.8 says *"never the same control for both"* and §2.11 names `QtyInput` as the stepper/keypad **switch**. C3.8 and the owner's own words of 2026-09-23 put **both** on one weighed line. **Parked as an ADR amendment** |
+| **3** | **THE COMMIT PAYLOAD IS A DECISION** | `record_sale` takes `unit_price_gross_per_base`, `price_list` stores `price_per_base`, and §2.5 rule 2 anchors a sale on GROSS and a purchase on NET. They agree only while `prices_include_tax` is true — true for every shop today, **so the branch is invisible until the day it is wrong** |
+
+⚠️⚠️ **TWO ARE PARKED IN THE DECISIONS BLOCK AND NEITHER BLOCKS THE TASK MARKED NEXT.**
+Finding 2 blocks `5f-ii`, because drawing the control either way writes the
+disagreement into shipped code. **And the price-override question `5f` has owed since
+the C3.17 ruling now sits on `5f-iv`**, the child that draws the `...` — a cashier's
+PATCH of `price_list` is not refused, it is invisible, so the control drawn without
+that answer is a button she taps while nothing happens.
+
+⚠️⚠️ **AND ONE THING ADR-035 §2.8 REQUIRES THAT NO ROW IN THIS FILE HELD — IT IS NOW
+`5f.5`, GATED ON `5g`.** §2.8 names **three** error-prevention guards; the third, the
+**magnitude warning** (*"beyond ~3× the trailing median"*), appears nowhere in this
+plan and nowhere in `app/src/`, and §6 does not defer it. ⚠️ **It is after `5g` because
+§2.8 seeds it from PURCHASE history and nothing in this app has ever read a purchase** —
+a median over an empty table warns about everything or about nothing.
+
+⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/split-coverage.sh` on the new spec
+reports **20/20 deliverables landing in exactly one child, the assigned one**, twelve
+required sentences surviving and every child carrying *it ships no migration*; `--all`
+is green over all sixteen specs; `plan-handover.sh` passes all eleven groups, including
+*the next task is not blocked by any open decision* with two now open. ⚠️ **The spec's
+first run was RED on a required sentence** — a capital `T` in the row against a lower
+case one in the phrase — **which is the check doing precisely its job on its author.**
+
+⚠️ **AND THE THIRTEENTH ARCHIVE CUT WAS TAKEN FIRST, BEFORE ANY OF THIS WAS WRITTEN.**
+`## Position` stood at **1,373 of 1,400** with nothing added yet, and an `XL` sizing
+entry is longer than twenty-seven lines — so `5d-iv-a` and the `5d-iv` sizing went to
+`status-log-2026-09-22.md`, the file for their own day, appended rather than replaced.

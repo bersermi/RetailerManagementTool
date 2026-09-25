@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
-import { useEffect, useRef, useState, type RefObject } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -11,6 +11,9 @@ import { pulseSequence } from '@/theme/pulse';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Buscador } from '@/ui/Buscador';
+import { Separador } from '@/ui/Separador';
+import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
 // PRODUCTOS — EVERYTHING THIS SHOP SELLS, IN ONE FLAT LIST. Plan task `5d-ii`,
@@ -264,104 +267,6 @@ function Banda() {
 }
 
 /**
- * The search box, above the list and staying there.
- *
- * ⚠️ IT DOES NOT SCROLL AWAY, which is why it is here rather than inside the
- * list as a header. C3.1 puts the box *above* a scrolling list; a box that
- * scrolled off would mean scrolling back to the top to search, and the shop
- * with a hundred products is exactly the shop that searches.
- *
- * ⚠️⚠️ AND IT CLEARS WITH A WORD RATHER THAN A CROSS. `clearButtonMode` is iOS
- * only and two of the pilot's four phones are Android (C1.1), so the control
- * that exists on both is a labelled one — which is also what C12.1 asks for:
- * never an icon with no word beside it.
- */
-function Buscador({
-  value,
-  onChange,
-  box,
-}: {
-  value: string;
-  onChange: (text: string) => void;
-  box: RefObject<TextInput | null>;
-}) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.space,
-      }}
-    >
-      <View
-        style={{
-          flex: 1,
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: scale.rowGap,
-          minHeight: scale.tapTarget,
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
-          backgroundColor: PALETTE.superficie,
-        }}
-      >
-        {/* ⚠️ THE ONE ICON ON THIS SCREEN WITH NO WORD BESIDE IT, AND C12.1 IS
-            NOT BENT BY IT: the word is the placeholder inside the same box, in
-            the same line, and it is what a person reads first. */}
-        <MaterialCommunityIcons name="magnify" size={scale.iconSize} color={PALETTE.tintaApagada} />
-        <TextInput
-          ref={box}
-          value={value}
-          onChangeText={onChange}
-          placeholder={ES.catalog.search}
-          placeholderTextColor={PALETTE.tintaApagada}
-          // ⚠️ NO AUTOCORRECT AND NO CAPITALS. A till types `pechuga` and a
-          // keyboard that "helps" turns a product search into a guessing game;
-          // `@/api/catalog` folds case and accents on both sides anyway.
-          autoCorrect={false}
-          autoCapitalize="none"
-          // ⚠️⚠️ *Listo* AND NOT *Buscar* — ruled 2026-09-23. This search is LIVE: it
-          // filters rows the phone already holds on every keystroke, so a *Buscar*
-          // key promises an action that has already happened. The one thing a person
-          // actually wants from that key here is the keyboard out of the way, and
-          // now it says so.
-          returnKeyType="done"
-          onSubmitEditing={() => Keyboard.dismiss()}
-          accessibilityLabel={ES.catalog.search}
-          style={{
-            flex: 1,
-            paddingVertical: scale.rowGap,
-            fontSize: scale.bodySize,
-            color: PALETTE.tinta,
-          }}
-        />
-      </View>
-
-      {value === '' ? null : (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => onChange('')}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.rowGap,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.catalog.clear}
-          </Text>
-        </Pressable>
-      )}
-    </View>
-  );
-}
-
-/**
  * One product. Two letters, a name over its family, and a price with its unit —
  * and, as of `5d-iii`, the way into the family behind it.
  *
@@ -603,53 +508,3 @@ function Iniciales({ text }: { text: string }) {
   );
 }
 
-/**
- * One line between two rows, and never under the last one.
- *
- * ⚠️ A BORDER AND NOT A ONE-PIXEL BOX, which is `R6` and not taste: a `height`
- * is a size a person looks at, so the gate refuses a literal one — and it is
- * right to, because `1` here would be the one measurement on this screen that
- * *Letra grande* could not change. A hairline border is what every other file
- * in this app draws a separator with.
- */
-function Separador() {
-  return <View style={{ borderBottomWidth: 1, borderBottomColor: PALETTE.linea }} />;
-}
-
-/**
- * The three things an empty list can mean, and they are three different facts.
- *
- * ⚠️⚠️ AND AS OF 2026-09-22 THERE ARE FOUR OF THEM, BECAUSE THE OWNER FOUND THE
- * MISSING ONE ON HIS PHONE: a read that FAILED was indistinguishable from one
- * still in flight — `loading` is `data === undefined` and so is an error — so
- * this screen sat on *Cargando productos…* for ever against a project whose
- * schema had never been deployed. **A failed read now says so**, and it says it
- * even while TanStack retries.
- *
- * ⚠️⚠️ *"THIS SHOP HAS NO PRODUCTS"* AND *"NOTHING MATCHES WHAT YOU TYPED"*
- * MUST NOT SHARE A SENTENCE. A shopkeeper with a hundred products who mistypes
- * a name would otherwise be told her catalog is empty — and she is the person
- * C8.2 describes, whose catalog is deliberately incomplete and who is being
- * encouraged to add to it. ⚠️ And the read being still out is a third state:
- * a list that says "no products" for the second before the rows land is a
- * screen that lies on every cold open, on a connection this shop loses.
- */
-function Vacio({ line }: { line: string }) {
-  const { scale } = useDensity();
-  // ⚠️ THE CHOICE IS `catalogLine`'s AND THE SENTENCE IS `ES`'s. This component
-  // is handed the finished line and holds neither — `R3` and `R4`, and it is
-  // what lets `app/test/api-catalog.test.ts` read a decision that would
-  // otherwise live in a ternary no instrument here can see.
-  //
-  // ⚠️ IT TAKES A SENTENCE RATHER THAN THE FAILURE KEY, AND `R12` IS WHY: a
-  // route may not import `@/api/errors`, the module that decides what a failure
-  // MEANS. The gate caught exactly that import here on 2026-09-22 and it was
-  // right to — the fix is that no route names that type at all.
-  return (
-    <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-        {line}
-      </Text>
-    </View>
-  );
-}
