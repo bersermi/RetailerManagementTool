@@ -629,6 +629,26 @@ comment and the test's comment now say what is actually true and what the assert
 holds.** **A green mutation is a finding, not a gap** — and it is the second time in two days that
 running the falsifier rather than the guard corrected this repository about itself.
 
+⚠️⚠️ **AND CI CAUGHT A SECOND DEAD FIXTURE OF EXACTLY THE `F4` SHAPE, ONE DAY AFTER `5g-ii` RECORDED
+THE LESSON — THIS ONE IN THE HARNESS THIS MACHINE COULD NOT RUN.** `5g-i-purchase-contract-falsify.sh`'s
+`P2` and `P3` both anchored on `MEMORY_COLUMNS` **ending** in `,last_qty_display_unit';`, and adding
+`last_purchased_at` for the `Recientes` pill moved the end of that string. ⚠️ **The CONTRACT stayed
+green** — assertion 5 read the new constant off the file and the database answered it — **and only the
+falsifier went red, which is the check doing its job on its author**: `mutate` compares the mutated
+copy against the original and refuses a fixture that edited nothing.
+⚠️⚠️ **WHY IT WAS NOT CAUGHT LOCALLY IS THE PART WORTH KEEPING: I RAN EVERY FALSIFIER I COULD AND NOT
+THE ONE THAT NEEDED A DATABASE.** The app-side four were green before the commit; this one drives real
+HTTP, so it went to CI unrun. ✅ **A local Supabase stack was already up and the run took under a
+minute** — so the honest correction is not *CI caught it* but **I did not look where looking was
+cheap.** ✅ **Re-verified locally after the fix: control green, seven contract mutations and three
+database mutations red, each for its named reason.**
+✅ **BOTH FIXTURES ARE NOW POSITION-INDEPENDENT** — `P2` anchors on the `::text` CAST, which is the
+thing it is about, and `P3` on the column NAME wherever it sits. ⚠️⚠️ **THAT IS THE THIRD INSTANCE IN
+TWO DAYS OF ONE RULE, AND THE THIRD DIFFERENT DISGUISE:** a fixture pinned to a JSX literal another
+task owned (`F4`), an archive cut bounded by *what comes next*, and now a fixture pinned to a
+constant's LAST element. **A bound derived from something another task may move has an expiry date
+nobody wrote down.**
+
 ⚠️⚠️ **AND A HARNESS REFUSED FOUR DRAFTS OF ONE SENTENCE WHILE TELLING ME THE ROW DID NOT EXIST.**
 `handbook-agreement-falsify.sh` locates the waiting-on-you row with `**…waiting on YOU**` and needs
 the **bold span to END at the pronoun**; every draft that wrote *"**One thing is waiting on YOU, and
