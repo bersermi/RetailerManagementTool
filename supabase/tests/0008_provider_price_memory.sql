@@ -552,16 +552,28 @@ select chk('32. anon holds no select on it',
 select chk('33. authenticated holds the grant — the gate is RLS, not the grant',
   has_table_privilege('authenticated', 'public.provider_price_memory', 'select'));
 
--- A STAFF MEMBER SEES NOTHING. purchase and purchase_line are manager-and-above
--- because they carry cost (§2.7), and the view inherits that rather than
--- restating it. Zero rows, not an error.
+-- ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25, AND THIS IS THE ASSERTION THE WHOLE RULING
+-- WAS ABOUT. It read *"a STAFF member at loc_a1 sees ZERO rows"* from the day `0008`
+-- landed: `purchase` and `purchase_line` were manager-and-above because they carry
+-- cost (§2.7), and the view inherits that rather than restating it.
+--
+-- ✅ The decision maker ruled otherwise — *"Empleada should be able to see the both
+-- the purchase records and the prices."* **So the prefill reaches the counter**, and
+-- this view is the surface it reaches it through.
+--
+-- ⚠️⚠️ AND THE NUMBER IS 11 AGAINST THE MANAGER'S 12 IN CHECK 35, WHICH IS THE BEST
+-- FORM THIS ASSERTION HAS EVER HAD. The one pair she cannot see is at the OTHER
+-- store — so the two checks together measure the fence that moved and the fence that
+-- did not, in one comparison, on one view. **A `> 0` here would have been true with
+-- the location wall gone as well.**
 begin;
 select set_config('request.jwt.claims',
   '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}', true);
 set local role authenticated;
-select chk('34. a STAFF member at loc_a1 sees zero rows — cost is manager-and-above',
-  (select count(*) from public.provider_price_memory) = 0,
-  (select count(*)::text from public.provider_price_memory));
+select chk('34. a STAFF member at loc_a1 sees ELEVEN pairs — her own store''s, since 0040',
+  (select count(*) from public.provider_price_memory) = 11,
+  (select count(*)::text || ' (manager sees 12 in check 35; the difference IS the store wall)'
+     from public.provider_price_memory));
 commit;
 
 begin;

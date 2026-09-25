@@ -104,9 +104,29 @@ select chk('⚠️ sale_line_select carries NO has_role — a cashier reads the 
            (select qual::text from pg_policies
              where schemaname='public' and tablename='sale_line' and policyname='sale_line_select'));
 
-select chk('and purchase_line_select DOES — so the purchases half is fenced and the sales half is not',
+-- ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25, ON THE DECISION MAKER'S INSTRUCTION:
+-- *"Empleada should be able to see the both the purchase records and the prices."*
+-- **The contrast this assertion was written to draw is GONE, not weakened** — the
+-- sales half and the purchases half now carry the same fence, and the thing that
+-- separates them is no longer the role gate. ⚠️ It is asserted POSITIVELY in the
+-- new direction rather than deleted, because a migration that put the gate back
+-- must turn something red.
+select chk('⚠️ and purchase_line_select NO LONGER DOES either (0040) — both halves are member-level now',
            (select qual::text from pg_policies
              where schemaname='public' and tablename='purchase_line' and policyname='purchase_line_select')
+           !~* 'has_role',
+           (select qual::text from pg_policies
+             where schemaname='public' and tablename='purchase_line' and policyname='purchase_line_select'));
+
+-- ⚠️ WHAT STILL SEPARATES COST FROM REVENUE, since the role gate no longer does:
+-- `waste_line` and `stock_batch` keep theirs, and `product_margin_daily` states its
+-- own predicate INSIDE the view (`0009`). **This view's own reach is unchanged.**
+select chk('and the fences that did NOT move are still there — waste_line and stock_batch',
+           (select qual::text from pg_policies
+             where schemaname='public' and tablename='waste_line' and policyname='waste_line_select')
+           ~* 'has_role'
+       and (select qual::text from pg_policies
+             where schemaname='public' and tablename='stock_batch' and policyname='stock_batch_select')
            ~* 'has_role');
 
 select chk('the tax is a column on a member-level table, not a column on 0009',
@@ -426,13 +446,29 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'caja.centro@tienda.mx')), true);
 set local role authenticated;
 
--- ⚠️ ZERO ROWS, NOT ROWS WITH ZERO MONEY. That is the difference between failing
--- closed and failing open, and it is the whole of 0009's cautionary tale: under
--- inheritance alone that view would have answered, in good faith, that the shop's
--- margin equals its revenue.
-select chk('⚠️ access: a cashier reads ZERO purchase rows — not rows summing to zero',
-           (select count(*) from product_purchases_daily) = 0
-       and (select count(*) from purchase_line) = 0);
+-- ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25, AND THIS CHECK IS ONE OF THE THREE THAT
+-- CAUGHT THE MIGRATION BY DRIVING A CASHIER RATHER THAN BY READING A POLICY. A grep
+-- for `purchase_select` does not find it, which is exactly why it is worth having.
+--
+-- ⚠️ WHAT IT USED TO ASSERT: **zero rows, not rows with zero money** — the
+-- difference between failing closed and failing open, and the whole of `0009`'s
+-- cautionary tale, because under inheritance alone that view would have answered in
+-- good faith that the shop's margin equals its revenue.
+--
+-- ✅ SINCE `0040` SHE READS THEM, on the decision maker's instruction: *"Empleada
+-- should be able to see the both the purchase records and the prices."* ⚠️⚠️ **AND
+-- THE NUMBERS ARE PINNED RATHER THAN LOOSENED TO `> 0`**: 468 lines, 468 view rows,
+-- **at exactly ONE location** — because the thing that still fences her is §2.6, and
+-- a count that only asserted *more than nothing* would go on passing if the store
+-- wall came off too.
+select chk('⚠️ access: a cashier reads HER STORE''s purchase rows since 0040 — 468, and one location',
+           (select count(*) from product_purchases_daily) = 468
+       and (select count(*) from purchase_line) = 468
+       and (select count(distinct location_id) from product_purchases_daily) = 1,
+           'the fence she may now pass, and the one she still may not: 0040 dropped '
+        || 'the ROLE gate from purchase_select and purchase_line_select and left '
+        || 'my_locations() on both. If distinct_location ever reads 2, the store wall '
+        || 'has gone and this number is the only place it would show');
 
 select chk('access: and the SAME cashier reads gross revenue at her own store — $70 376.39',
            (select count(*) from product_velocity_daily) = 15099

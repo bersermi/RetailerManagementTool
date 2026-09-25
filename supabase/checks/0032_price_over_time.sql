@@ -453,14 +453,19 @@ select chk('and the typed price of a reversed line is the price of the thing bei
 -- over quantity and §2.7 puts that at staff. Landing each price on the view that
 -- already owns its side of the ledger means neither fence has to be written down.
 
-select chk('no policy changed: 41 policies, and sale_line_select still carries NO has_role',
+-- ⚠️⚠️ THE COUNT IS UNCHANGED AND THE PURCHASE CLAUSE IS INVERTED BY `0040`
+-- (2026-09-25). **`alter policy` replaces a predicate and creates nothing**, which is
+-- why 41 still holds — and that is the assertion worth keeping here, because a
+-- `drop`+`create` pair that lost one would show up as 40.
+select chk('no policy was created or dropped: still 41, and neither line table carries has_role (0040)',
            (select count(*) from pg_policies where schemaname='public') = 41
        and (select qual::text from pg_policies
              where schemaname='public' and tablename='sale_line' and policyname='sale_line_select')
            !~* 'has_role'
        and (select qual::text from pg_policies
              where schemaname='public' and tablename='purchase_line' and policyname='purchase_line_select')
-           ~* 'has_role');
+           !~* 'has_role',
+           format('policies=%s', (select count(*) from pg_policies where schemaname='public')));
 
 select chk('⚠️ NEITHER VIEW STATES A FENCE OF ITS OWN, and 0009 still does — the contrast is the point',
            pg_get_viewdef('public.product_purchases_daily'::regclass) !~* 'has_role'
@@ -484,15 +489,29 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'caja.centro@tienda.mx')), true);
 set local role authenticated;
 
-select chk('⚠️⚠️ a CASHIER reads 1 004 sale prices in her own store and ZERO rows of the purchases view',
+-- ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25. It read *"and ZERO rows of the purchases
+-- view"* until then, and it is one of three checks that caught the migration by
+-- DRIVING A CASHIER rather than by reading a policy — none of which a grep for
+-- `purchase_select` finds.
+-- ✅ She now reads her own store's purchase view too, on the decision maker's
+-- instruction. ⚠️ **The location count is asserted alongside it**, because that is
+-- the fence that did NOT move and a `> 0` would not notice if it did.
+select chk('⚠️⚠️ a CASHIER reads 1 004 sale prices AND 468 purchase rows, all at her own store (0040)',
            (select count(*) from product_velocity_daily) = 15099
        and (select count(*) from product_velocity_daily where sale_price_net is not null) = 1004
-       and (select count(*) from product_purchases_daily) = 0,
+       and (select count(*) from product_purchases_daily) = 468
+       and (select count(distinct location_id) from product_purchases_daily) = 1,
            (select 'velocity rows ' || (select count(*) from product_velocity_daily)
                 || ', priced ' || (select count(*) from product_velocity_daily where sale_price_net is not null)
-                || ', purchases rows ' || (select count(*) from product_purchases_daily)));
+                || ', purchases rows ' || (select count(*) from product_purchases_daily)
+                || ', purchase locations ' || (select count(distinct location_id) from product_purchases_daily)));
 
-select chk('and the sale price grants her NOTHING NEW — she already reads the typed price off the line',
+-- ⚠️ AND THE MARGIN HALF IS UNTOUCHED BY `0040`, WHICH IS THE ASSERTION THAT MAKES
+-- THIS SECTION STILL MEAN SOMETHING. `product_margin_daily` states its own `has_role`
+-- predicate INSIDE the view (`0009`), so widening two table policies could not reach
+-- it — **she reads deliveries and still reads no margin**, which is the line the
+-- decision maker drew and the one this file is now the evidence for.
+select chk('and the sale price grants her NOTHING NEW — and MARGIN is still zero rows after 0040',
            (select count(*) from sale_line where unit_price_net_per_base is not null) = 1040
        and (select count(*) from product_margin_daily) = 0,
            'sale_line_select carries no has_role (0003: "a sale line carries a price, '

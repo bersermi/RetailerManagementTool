@@ -737,16 +737,27 @@ select id from workspace where display_name = 'Tienda Doña Lupe' \gset wsa_
 
 -- The failure this view would have if only ONE of its two sides were gated,
 -- demonstrated rather than described — the mirror of 0009's `_margin_ungated`.
--- `waste` the header is member-level (it carries retail value, not cost), so a
--- numerator read from it against a manager-gated denominator tells a cashier the
--- shop threw away stock it never bought.
+-- ⚠️⚠️ AND IT STOPPED BEING HYPOTHETICAL ON 2026-09-25: `0040` made `purchase_line`
+-- member-level, `product_waste_daily` inherited a gated numerator over an open
+-- denominator, and a cashier read 468 rows saying the shop bought $260,423.43 and
+-- wasted nothing. **This fixture is now a record of a defect that happened rather
+-- than a warning about one that could.**
+-- ⚠️⚠️ INVERTED BY `0040` (2026-09-25), AND IT IS THE SAME DEMONSTRATION FROM THE
+-- OTHER SIDE. It used to read its numerator from `waste` (member-level) against a
+-- manager-gated `purchase_line` denominator; **`purchase_line` is member-level now**,
+-- so that shape can no longer produce the zero denominator it was built to show.
+-- ✅ The numerator is now the manager-gated one (`stock_movement`) and the denominator
+-- the open one — **which is precisely the shape `product_waste_daily` itself had until
+-- section 4 of `0040` gave it a predicate.** This view is the record of that failure.
 create view public._waste_half_gated with (security_invoker = true) as
-select x.workspace_id, x.location_id,
-       sum(x.total_net) as waste_value_net,
-       coalesce((select sum(pl.line_net) from public.purchase_line pl
-                  where pl.workspace_id = x.workspace_id
-                    and pl.location_id  = x.location_id), 0) as purchases_net
-  from public.waste x
+select b.workspace_id, b.location_id,
+       coalesce((select sum(-m.qty_base * m.unit_cost_net_per_base)
+                   from public.stock_movement m
+                  where m.reason = 'waste'
+                    and m.workspace_id = b.workspace_id
+                    and m.location_id  = b.location_id), 0) as waste_value_net,
+       sum(b.line_net) as purchases_net
+  from public.purchase_line b
  group by 1, 2;
 grant select on public._waste_half_gated to authenticated;
 
@@ -755,21 +766,54 @@ select set_config('request.jwt.claims',
        format('{"sub":"%s","role":"authenticated"}', :'staff_id'), true);
 set local role authenticated;
 
-select chk('access: a cashier reads ZERO rows of the waste view',
+-- ⚠️⚠️ THE OUTCOME IS UNCHANGED AND THE REASON FOR IT IS NOT — `0040`, 2026-09-25.
+-- A cashier still reads zero rows, which is the thing that matters to the shop; what
+-- changed is WHY, and the old why is now false.
+select chk('access: a cashier STILL reads ZERO rows of the waste view',
            (select count(*) from product_waste_daily) = 0);
 
-select chk('access: and the REASON is that both sides are gated at the source',
-           (select count(*) from stock_movement where reason = 'waste') = 0
-       and (select count(*) from purchase_line) = 0,
-           'stock_movement and purchase_line are both manager-and-above, so '
-        || 'security_invoker inheritance fails CLOSED and 0011 needs no predicate');
+-- ⚠️⚠️ THIS IS THE ASSERTION `0040` BROKE, AND IT BROKE IT BY MAKING THE VIEW WRONG
+-- RATHER THAN BY MAKING THIS CHECK WRONG.
+--
+-- It read: *"the REASON is that both sides are gated at the source — stock_movement
+-- and purchase_line are both manager-and-above, so security_invoker inheritance fails
+-- CLOSED and 0011 needs no predicate."* **`0040` made `purchase_line` member-level on
+-- the decision maker's instruction, so one side stopped being gated and inheritance
+-- began failing OPEN.**
+--
+-- ⚠️⚠️ MEASURED BEFORE IT WAS REPAIRED: a cashier read **468 rows** with
+-- `waste_cost_net` summing to **0** and `purchases_net` to **$260,423.43** — the app
+-- telling her the shop bought a quarter of a million pesos of stock and threw away
+-- none of it. **A false sentence assembled from two true halves**, which is exactly
+-- what `_waste_half_gated` below exists to demonstrate.
+--
+-- ✅ SO `0040` GAVE THE VIEW THE PREDICATE `0009` CARRIES, and this assertion now
+-- reads the predicate rather than the premise that used to make it unnecessary.
+select chk('access: and the REASON is now the view''s OWN predicate, since 0040 half-opened it',
+           pg_get_viewdef('public.product_waste_daily'::regclass) ~* 'has_role'
+       and (select count(*) from stock_movement where reason = 'waste') = 0
+       and (select count(*) from purchase_line) > 0,
+           'purchase_line became member-level in 0040 while stock_movement stayed '
+        || 'manager-only, so inheritance alone would fail OPEN. The predicate in the '
+        || 'view body is what closes it — 0009''s arrangement, for 0009''s reason');
 
+-- ⚠️⚠️ AND THE FALSIFICATION NOW DEMONSTRATES THE FAILURE FROM THE OTHER SIDE, WHICH
+-- IS WHY IT IS KEPT. `_waste_half_gated` reads its numerator from `waste` (member-level)
+-- and its denominator from `purchase_line` — **which is no longer the gated side**, so
+-- the old shape cannot produce a zero denominator any more.
+-- ✅ The fixture is inverted to the arrangement that IS now dangerous: a manager-gated
+-- numerator (`stock_movement`) against an open denominator. **It is the shape
+-- `product_waste_daily` itself had for the minutes between section 1 and section 4 of
+-- `0040`**, and the numbers below are the ones that were measured then.
 select chk('falsified: gate only ONE side and the same cashier is told the shop wastes '
-           'what it never bought',
+           'NOTHING of what it bought',
            (select count(*) from public._waste_half_gated) > 0
-       and (select bool_and(purchases_net = 0) from public._waste_half_gated),
+       and (select bool_and(waste_value_net = 0) from public._waste_half_gated)
+       and (select bool_and(purchases_net > 0) from public._waste_half_gated),
            (select count(*) || ' half-gated row(s) visible to a cashier, every one with a '
-                 || 'zero denominator' from public._waste_half_gated));
+                 || 'ZERO NUMERATOR over a real denominator — "bought $"'
+                 || (select round(sum(purchases_net), 2) from public._waste_half_gated)
+                 || ', wasted nothing"' from public._waste_half_gated));
 commit;
 
 begin;

@@ -366,9 +366,23 @@ set local role authenticated;
 select chk('RLS staff@A1: sees the sale at their store',        (select count(*) from sale) = 3);
 select chk('RLS staff@A1: sees the sale line at their store',   (select count(*) from sale_line) = 1);
 select chk('RLS staff@A1: sees the waste header at their store',(select count(*) from waste) = 1);
-select chk('RLS staff@A1: is BLIND to purchase (cost)',         (select count(*) from purchase) = 0);
-select chk('RLS staff@A1: is BLIND to purchase_line (cost)',    (select count(*) from purchase_line) = 0);
-select chk('RLS staff@A1: is BLIND to waste_line (cost snapshot)',
+-- ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25, ON THE DECISION MAKER'S INSTRUCTION:
+-- *"Empleada should be able to see the both the purchase records and the prices."*
+-- These two read `= 0` from 2026-08-26 until today, and the sentence that justified
+-- it was `0003`'s own — *"the only table carrying what was paid, which is why its
+-- RLS policy is manager-and-above."* **He traded the exposure; the location wall he
+-- did not question, and it is still here.**
+select chk('RLS staff@A1: SEES the purchase at their own store (0040)',
+                                                                (select count(*) from purchase) = 1);
+select chk('RLS staff@A1: SEES the purchase line, which is where the cost is (0040)',
+                                                                (select count(*) from purchase_line) = 1);
+-- ⚠️⚠️ AND THE CONTRAST IS THE POINT, WHICH IS WHY THIS ONE IS LEFT ALONE AND
+-- ASSERTED BESIDE THEM. `waste_line` keeps its `has_role` from `0003` and
+-- `stock_batch`/`stock_movement` keep theirs from `0004`, so **cost on the shelf and
+-- the cost of what was thrown away are still manager-and-above.** `0040` moved the
+-- cost of a DELIVERY and nothing else — a claim that is worth more standing next to
+-- a table that did not move than asserted on its own.
+select chk('RLS staff@A1: is STILL BLIND to waste_line (cost snapshot) — 0040 moved only purchase',
                                                                 (select count(*) from waste_line) = 0);
 
 select chk_raises('grants: staff cannot insert a sale directly',
@@ -389,6 +403,19 @@ set local role authenticated;
 select chk('RLS staff@A2: sees no sale from the other store',      (select count(*) from sale) = 0);
 select chk('RLS staff@A2: sees no sale_line from the other store', (select count(*) from sale_line) = 0);
 select chk('RLS staff@A2: sees no waste from the other store',     (select count(*) from waste) = 0);
+-- ⚠️⚠️ THESE TWO ARE NEW WITH `0040` AND THEY ARE EVIDENCE NOTHING IN THIS REPOSITORY
+-- COULD PRODUCE BEFORE IT. `supabase/pgtap/05_location_isolation_reads.sql` states
+-- that **"there is no actor in the schema who is simultaneously manager-enough to
+-- read a purchase and location-restricted enough to be refused one"** — because
+-- `my_locations()` grants managers every location by role, so a cashier's zero rows
+-- on `purchase` said nothing whatever about the store wall. ✅ **Now she can read
+-- purchases, and hers is at the OTHER store, so this zero is the location clause
+-- doing its job and nothing else.** It is the first direct proof of the §2.6 wall on
+-- a delivery, and it exists because the role gate came off.
+select chk('RLS staff@A2: sees no purchase from the other store — the store wall on cost, provable at last (0040)',
+                                                                   (select count(*) from purchase) = 0);
+select chk('RLS staff@A2: sees no purchase_line from the other store (0040)',
+                                                                   (select count(*) from purchase_line) = 0);
 commit;
 
 -- --- manager in workspace A ---

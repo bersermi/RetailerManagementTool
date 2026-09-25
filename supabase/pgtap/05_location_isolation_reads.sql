@@ -22,25 +22,42 @@
 -- the day a `with check` mentions a location, this suite goes red and whoever
 -- is there re-reads the scope.
 --
--- ⚠️ THE TEN POLICIES SPLIT 5/5, AND THE HALVES NEED DIFFERENT ACTORS. This is
--- the finding this file was built around and it is not visible from the plan:
+-- ⚠️⚠️ THE TEN POLICIES SPLIT 7/3 AS OF `0040` (2026-09-25), AND IT WAS 5/5 FROM
+-- 2026-08-26 UNTIL THEN. This is the finding this file was built around, and the
+-- migration that moved it is the first one ever to widen a cost fence here:
 --
---   NOT role-gated  location, sale, sale_line, waste, batch_balance
+--   NOT role-gated  location, sale, sale_line, waste, batch_balance,
+--                   **purchase, purchase_line**
 --                   -> a cashier reads these, so the cashier IS the measurement
---   ALSO role-gated  purchase, purchase_line, waste_line, stock_batch,
---                   stock_movement — `and public.has_role(workspace_id,
---                   'manager')` sits beside the location clause (0003 §6,
---                   0004 §9: cost is hidden by ROLE, not by column grants)
+--   ALSO role-gated  waste_line, stock_batch, stock_movement — `and
+--                   public.has_role(workspace_id, 'manager')` sits beside the
+--                   location clause (0003 §6, 0004 §9: cost is hidden by ROLE,
+--                   not by column grants)
 --                   -> a cashier reads ZERO rows here for a reason that has
 --                      nothing to do with locations
 --
--- So on the second five, pointing a cashier at them and finding zero proves the
--- ROLE wall a second time and the location wall not at all. Worse, the obvious
+-- ⚠️ NOTHING IN THIS FILE HAD TO BE EDITED FOR THAT MOVE, WHICH IS THE PROPERTY
+-- IT WAS BUILT FOR: `role_gated` is read from `p.qual like '%has_role%'` and the
+-- plan is computed from the result, so `purchase` and `purchase_line` reclassified
+-- themselves and picked up the four cashier-observable assertions each instead of
+-- two. **The prose above is the only thing that went stale, and nothing checks
+-- prose** — which is why it is corrected in the same commit as the migration.
+--
+-- So on the role-gated three, pointing a cashier at them and finding zero proves
+-- the ROLE wall a second time and the location wall not at all. Worse, the obvious
 -- repair does not work either: anyone who passes `has_role(…, 'manager')` is by
 -- construction granted EVERY location by `my_locations()`, because the function
--- grants managers and owners every location in their workspaces by role. There
--- is no actor in the schema who is simultaneously manager-enough to read a
--- purchase and location-restricted enough to be refused one.
+-- grants managers and owners every location in their workspaces by role.
+--
+-- ⚠️⚠️ THIS FILE USED TO SAY *"there is no actor in the schema who is
+-- simultaneously manager-enough to read a purchase and location-restricted enough
+-- to be refused one"* — AND SINCE `0040` THERE IS ONE. A cashier can read
+-- deliveries and is held to her own stores, so **the store wall on a delivery is
+-- directly measurable for the first time**, and `supabase/tests/0003_transactions.sql`
+-- asserts it by name. ⚠️ **The sentence remains exactly true of `waste_line`,
+-- `stock_batch` and `stock_movement`**, which is why the paragraph survives rather
+-- than being deleted: it is the argument for why those three still need a different
+-- actor, and it is the argument `0040` would have to answer if it ever came for them.
 --
 -- ⚠️ THE LOCATION CLAUSE ON THOSE FIVE IS STILL LIVE, AND is_active IS WHAT
 -- MAKES IT SO. `my_locations()` excludes INACTIVE locations; `workspace_id in
@@ -525,7 +542,7 @@ select is_empty(
 );
 
 -- ---------------------------------------------------------------------------
--- The cashier-observable five, both directions
+-- The cashier-observable SEVEN, both directions  (five until 0040; see the header)
 --
 -- L-cross is the leak test: a predicate that forgot the store, or one written
 -- `location_id in (select my_locations()) or true`, turns it red.
@@ -555,7 +572,7 @@ select is(sm_total, n_mercado,
 from loc_read where not role_gated order by tbl;
 
 -- ---------------------------------------------------------------------------
--- The role-gated five, and what their zero is REALLY saying
+-- The role-gated THREE, and what their zero is REALLY saying  (five until 0040)
 --
 -- A cashier reads nothing here, and this file refuses to bank that as location
 -- isolation. It is recorded as its own claim, under its own name, because the
@@ -595,12 +612,17 @@ from loc_read order by tbl;
 
 -- ---------------------------------------------------------------------------
 -- The closed store — the only observation of the location clause on the
--- role-gated five, and the fail-closed proof on all ten
+-- role-gated three, and the fail-closed proof on all ten
 --
 -- D-mgr: with Mercado closed, the manager's whole-table count is Centro's rows
 -- exactly. On `sale` that is a wall the cashier tests already reach; on
--- `purchase` and `stock_movement` it is the only evidence in the repo that the
--- location clause on those policies does anything at all.
+-- `stock_batch`, `stock_movement` and `waste_line` it is the only evidence in the
+-- repo that the location clause on those policies does anything at all.
+-- ⚠️ `purchase` AND `purchase_line` LEFT THAT LIST ON 2026-09-25. `0040` dropped
+-- their role gate, so the cashier tests above now reach their location clause
+-- directly — **this closed-store observation stopped being the only evidence for
+-- them and became a second, independent one**, which is strictly better and is why
+-- it is kept rather than trimmed.
 --
 -- D-staff: the cashier stranded at the closed store sees ZERO — not everything.
 -- That is `my_locations()`'s fail-closed rule, and it is the direction the
