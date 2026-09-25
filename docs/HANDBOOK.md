@@ -27,16 +27,26 @@ that screens built on an unproven schema is exactly how the previous attempt fai
 
 **That changed on 2026-09-07.** The database build finished on 2026-09-05, a long
 interview about screens ran two days later, and the first app code landed the same
-day. There is now an app, and it has a way in: sign-in by email address or with
-Google, a session meant to survive until you log out, and a rule that reopens it on
-the screen you were last on.
+day.
 
-⚠️ **"Meant to" is doing real work in that sentence, and it is the honest word.**
-Those parts are written and checked by machine as far as a machine can reach — but
-**nobody has yet watched the app do any of it on a phone.** That is the next task,
-and it is yours rather than Claude's. ⚠️ **Everything behind the door is still a
-placeholder**: the four tabs are real tabs with nothing in them yet, and the screens
-themselves are `5b` onwards.
+⚠️⚠️ **THIS SECTION SAID *"nobody has yet watched the app do any of it on a phone"*
+AND *"the four tabs are real tabs with nothing in them yet"* UNTIL 2026-09-25, AND
+BOTH HAD BEEN DEAD FOR DAYS.** You have been holding this app on your own phone since
+20 September, five re-deploys have gone onto it, and **six of the plan's rulings came
+off rounds you did yourself on the screen** — including two that reversed work which
+had already shipped green. **What is actually there, as of 2026-09-25:**
+
+- **Getting in, and getting a shop going** — sign-in by email or Google, create the
+  shop, read out its join code, invite somebody by name, let in somebody who asks.
+- **Productos** — the catalog. Search it, add a product, edit one, open a family.
+- **Vender** — the counter. Search, a row per product with **a stepper and a keypad**
+  (your ruling: both, one tap apart), a basket, a running total, and a slide to
+  commit. **It has written real sales into the ledger.**
+- **Comprar** — a delivery from a supplier, usable by any role, plus **`Costos`**:
+  what this shop has paid for a product over time, as a chart on screen and **as a
+  PDF it hands you.** The first file this app has ever produced.
+- **Desperdicio** is still an empty tab — nine lines of placeholder — and **the undo
+  is the one question waiting on you.**
 
 The interview is worth knowing about, because it is the reason three more database
 changes appeared after the database was declared finished — see *Where we are*.
@@ -54,33 +64,48 @@ conversation and go again.
 ```
 Read docs/PLAN.md and take the next open task.
 
-Before starting, estimate difficulty and write down what the estimate found.
-An M or an L is one sitting — build the whole row. Split only an XL, or a row
-that is gated, or one whose mistakes would be invisible in half of it.
+Start with `bash docs/checks/plan-handover.sh`. It names the next task, refuses
+one that is blocked on a question I owe you, and says if the plan has grown too
+big to read. It is eleven checks, not a summary.
 
-Use graphify to orient before reading files. ADR-035 is authoritative: if the
-plan and the ADR disagree, stop and tell me rather than guessing.
+Estimate difficulty first and write down what the estimate found. An M or an L is
+one sitting — build the whole row. Split only an XL, a row that is gated, or one
+whose mistakes would be invisible in half of it.
 
-Respect the gates in the plan — some tasks are blocked on questions I have
-not answered yet, and one is blocked on an ADR amendment I owe you.
+Use graphify to find WHERE things are. For what we DECIDED, search the plan and
+its archive instead — grep the corpus. ADR-035 is authoritative: if the plan and
+the ADR disagree, stop and tell me rather than guessing.
 
-When done, verify it properly and name the check that looked at it — not
-"the file exists", and not a green tick on a run that had nothing to do.
+Respect the gates. If a row says the decision is in the decisions block, open
+that block and read it — a question fell out of it once and no check noticed.
 
-Finish by telling me what's next and what decision you need from me.
+When done, verify it properly and name the check that looked at it — not "the
+file exists", and not a green tick on a run that had nothing to do. If what you
+built is something only a person can see, say so plainly and tell me exactly what
+to look at on my phone, rather than calling it verified.
+
+If it merged a migration, deploy it: `supabase db push`, then
+`bash docs/checks/5R-f-schema-deployed.sh`. Merging changes no database.
+
+Finish with what's next, what you decided on my behalf, and what you need from
+me. When you need something, recommend one option with your reasoning — not a
+menu. If the question is about what a shopkeeper actually does, walk me through
+the situations first rather than handing me a design.
 ```
 
-⚠️ **The verification line changed on 2026-09-07, and it is worth knowing why.** It
-used to say *"`supabase db reset` and CI"*. That is the right test for a database task
-and the wrong one for a screen: an app task runs no migration, and until step 5a adds a
-third automated check, **no check watches app files at all**. So the question is no
-longer *"was CI green?"* but **"which check looked at the code you just wrote?"** — and
-a session that cannot name one has not verified anything.
+⚠️ **Six of those nine paragraphs were added or rewritten because a session got it
+wrong first.** What each one is buying:
 
-⚠️ **The gates line is new too.** The plan now contains tasks that are deliberately
-blocked: some on questions the interview never reached, and one on an amendment to
-ADR-035 that only you can make. Without that line a session will cheerfully take a
-blocked task and build it on a guess.
+| The line | Why it is there |
+|---|---|
+| `plan-handover.sh` **first** | The plan is 5,267 lines. The check reads it for you: it names the one row marked next, and it **refuses** to let a task blocked on you be taken. Reading for the next task by eye is how a blocked one gets built on a guess |
+| **An M or an L is one sitting** | Your amendment of 2026-09-24 — *"we have enough usage and space to do it"*. The old rule split them to survive a context clear, which was a budget argument, and the budget changed |
+| **graphify for where, the plan for what we decided** | The map is structural: it finds files and functions fast and cannot tell you what a paragraph means. Asking it *"what did we decide about X"* wastes a session |
+| **Open the decisions block and read it** | ⚠️ **On 2026-09-25 a question of yours was lost.** It was struck out of its own table on 21 September with the words *"read it there, not here"* and never written into the block, and the block then emptied. No check can catch that — the guard checks the block's shape, not that a question belonging in it is present |
+| **Name the check, and admit what no check can see** | The rule the project rests on. ⚠️ **And its honest other half, learned on 2026-09-25: the PDF this app makes was green on every check and wrong on your phone**, because nothing in the repository can look at a rendered page. A session that cannot name a check has verified nothing; one that names a check for work only your eyes can judge is worse |
+| **If it merged a migration, deploy it** | ⚠️⚠️ **New on 2026-09-25, because merging is not deploying and this is the step that goes missing.** Two merged migrations were sitting undeployed when this was written — see *Where Claude is likely to be wrong* |
+| **A recommendation, not a menu** | Yours, repeatedly. A list of options hands the decision back with extra reading attached |
+| **Walk me through the situations** | Yours, 2026-09-25: *"Let's address Area 6 with a back and forth set of simulations to get to the best option for this pilot."* It is now how the one open question gets answered |
 
 The last line keeps you in charge: every session ends with Claude asking rather
 than assuming. If a session ever ends without telling you what was decided on your
@@ -102,9 +127,10 @@ and picks up.
 
 Reads the documents and builds a map of how everything connects, so Claude can
 find the relevant paragraph without opening twenty files. That directly saves
-money: opening files costs tokens, and tokens are what you pay for. When the old
-Power Platform material was archived, the map shrank from 1,285 entries to 54 —
-every search is now roughly twenty times cheaper.
+money: opening files costs tokens, and tokens are what you pay for. *(The figures that
+used to be here — 1,285 entries shrinking to 54 when the old Power Platform material was
+archived — are history from August. The map has grown by a factor of sixty since, because
+the database, the app and the plan's own archive are all in it now.)*
 
 It nudges automatically: when Claude tries to read a file, a reminder fires
 telling it to check the map first. Those reminders appear in the transcript. That
@@ -138,7 +164,24 @@ changes to it, and then run every test suite against the result. If anything is
 broken, it goes red.
 
 This is the most important safety net in the project and it **is working** — it has
-been green on every migration since it merged. A run takes about three minutes.
+been green on every migration since it merged. ⚠️ **It is now three workflows and
+eight named jobs; this section said "two checks" and "about three minutes" until
+2026-09-25:**
+
+| Workflow | What it watches | Roughly |
+|---|---|---|
+| `db` | the database, **and the app's data layer** — four jobs, because the biggest one was split | 8–10 minutes |
+| `app` | the app's code **and the documents** — two jobs, split on 2026-09-25 because it had started timing out | 8 minutes |
+| `money` | the money package, on two versions of Node | under a minute |
+
+⚠️ **The job worth knowing by name is `app`'s second one — *"the documents still agree
+(plan + handbook)"*.** It reads **this file** and goes red if it disagrees with the plan
+about what is done, what was split, what is next, or **whether anything is waiting on
+you**. Until it existed, the one document written for you was the one document no
+machine ever looked at, and it went stale in three rows twice in four days.
+
+⚠️⚠️ **What this referee cannot do is in *Where Claude is likely to be wrong*, and one
+of those gaps is open as you read this.**
 
 ### Auto mode — fewer interruptions
 
@@ -162,19 +205,21 @@ That is the interactive map — boxes you can drag, click and search. It refresh
 itself when you commit or switch branches on `main`; to force it, run
 `graphify update .`.
 
-**Set your expectations before you open it.** The map now holds **over a thousand
+**Set your expectations before you open it.** The map now holds **a few thousand
 boxes**, and unlike when this section was first written, **the database is in it**:
 tables, functions, triggers, views and the CTEs inside queries, each with a file and
-a line number. `graphify explain "batch_balance"` works today.
+a line number.
 
 ⚠️ **Do not trust a count written in any document, including this sentence.** This
 file said 92 for weeks and `CLAUDE.md` said 437; both were replaced with 1,084 on
 2026-09-07 and **that number was wrong within the hour**, because merging the very
-commit that wrote it added twenty-five boxes. The map rebuilds itself on every commit
-to `main`. If you want the real figure, ask the map, not the prose.
+commit that wrote it added twenty-five boxes. `CLAUDE.md` then said *"a thousand-odd"*
+until 2026-09-25, by which point the real figure was about three times that. The map
+rebuilds itself on every commit to `main`. **If you want the real figure, ask the map,
+not the prose.**
 
 ⚠️ **One thing is still missing and it is the one that matters most on this
-project: `CREATE POLICY` is not indexed.** The forty-one row-level-security policies —
+project: `create policy` is not indexed.** The forty-one row-level-security policies —
 `sale_line_select`, `provider_update` and the rest — resolve to nothing in the map.
 For anything about who can see what, the migrations have to be read directly, or the
 database asked. Everything else in SQL, the map answers first.
@@ -191,9 +236,11 @@ Two other views of the same thing:
 | Explain one heading | `graphify explain "Traps in step 1"` |
 | How are two things connected | `graphify path "Build plan" "Traps in step 1"` |
 
-Those names have to be headings that exist in the documents. Asking
-`graphify explain "batch_balance"` returns *"No node matching found"* — not a fault,
-just the same point again: the tables are not in the map.
+⚠️ **This section used to end by saying `graphify explain "batch_balance"` returns
+*"No node matching found"* because the tables are not in the map — two paragraphs
+after saying they are.** Run today it answers *"Ambiguous: matches 2 nodes in
+different files"* and names both, `0004_inventory.sql` and `0032_price_over_time.sql`.
+**The tables are in the map; the contradiction was the stale half.**
 
 Ignore `GRAPH_TREE.html` — it is left over from an earlier build and is not being
 regenerated.
@@ -204,15 +251,13 @@ Three ways. Pick the first one unless you are in a hurry.
 
 **1. Supabase Studio — a web page, and by far the easiest.**
 
-Studio is **not running right now**: the database was last started with a reduced
-set of services to make migration work faster. Bring the full set back:
+⚠️ **Checked 2026-09-25: Studio IS running** — the full set of services is up, so
+there is nothing to restart. This paragraph said the opposite for weeks. If it is ever
+down (a session that started the database with a reduced set of services for speed,
+which is the normal way migration work is done), bring it back with `supabase stop`
+then `supabase start`, and remember it uses memory while running.
 
-```bash
-supabase stop
-supabase start
-```
-
-Then open **http://127.0.0.1:54323**. *Table Editor* on the left browses rows;
+Open **http://127.0.0.1:54323**. *Table Editor* on the left browses rows;
 *SQL Editor* runs queries. Nothing you do there can affect anyone else — this
 database lives only on your Mac.
 
@@ -246,23 +291,33 @@ docker exec -it supabase_db_RetailerManagementTool psql -U postgres
 
 ### What you will find in there
 
-**Twenty-one tables, four views, twenty-eight functions and forty-one security
-policies.** `unit` is the reference list of grams and kilos; the rest are the real
-model. The four views are the reports — `product_margin_daily`,
-`product_velocity_daily`, `product_waste_daily` and `provider_price_memory` — and the
-functions are the write operations plus their helpers.
+**Twenty-one tables, six views, forty-one functions and forty-one security
+policies** — asked of the database on 2026-09-25, not counted off the files. `unit` is
+the reference list of grams and kilos; the rest are the real model. The views are the
+reports — `product_margin_daily`, `product_velocity_daily`, `product_waste_daily`,
+`provider_price_memory`, and two that arrived with Números work: `product_purchases_daily`
+and `transaction_export`. The functions are the write operations plus their helpers.
 
-⚠️ **One of those views is known to be wrong for a butcher or a chicken shop**, and it
-was the interview on 2026-09-07 that found it, not a test. `product_margin_daily`
-works out profit from the cost of the exact goods that left the shelf — which is
+⚠️ **The chicken-shop problem in `product_margin_daily` was NOT replaced — you
+cancelled it**, and this section said *"it is being replaced"* until 2026-09-25. The
+view works out profit from the cost of the exact goods that left the shelf, which is
 correct for a can of beans and nonsense for a shop that buys whole chickens and sells
-breasts. It is being replaced. See *Where we are*.
+breasts. ✅ **Your ruling of 2026-09-14 retired the question instead of fixing it:**
+*"we won't derive the profit so let's ignore margins for now. I'd rather just show
+total revenue."* The view still exists and **nothing is being built on it** — Números
+shows revenue, quantity and price changes. A session that offers to repair the margin
+view is offering to build the thing you turned down.
 
 **The tables are no longer empty.** `supabase db reset` loads invented shop data
 afterwards, from three files listed in order in `supabase/config.toml` — a skeleton,
 then deliveries, then consumption — because you cannot deliver stock into a catalog
 that does not exist. What a test suite creates on top of that is still wiped before
 the next suite runs.
+
+⚠️ **Thirty-eight migrations, and the numbers `0006` and `0007` do not exist** —
+they were reserved in the early days for work that was written elsewhere, and the
+holes are permanent and documented in `supabase/README.md`. So *"38 files"* and
+*"up to 0040"* are both correct and are not the same number.
 
 ### The one warning that matters
 
@@ -283,13 +338,14 @@ example.
 
 ---
 
-## The four documents that matter
+## The five documents that matter
 
 | File | What it is | Who maintains it |
 |------|-----------|------------------|
 | `docs/PLAN.md` | Where the build is. Next task, what "done" means, what is unresolved | Claude updates it as tasks close |
-| `docs/adr/ADR-035` | The architecture. 1,454 lines deciding how everything works — amended since it was written, always on your instruction | Changes only by deliberate decision — yours |
-| `CLAUDE.md` | Rules a fresh session reads automatically. Written for Claude, not you | Claude maintains it |
+| `docs/HANDBOOK.md` | **This file** — written for you. A job on every push reads it and goes red if it disagrees with the plan | Claude updates it as tasks close |
+| `docs/adr/ADR-035` | The architecture. **2,050 lines** deciding how everything works — amended since it was written, always on your instruction (it was 1,454 when this row was written) | Changes only by deliberate decision — yours |
+| `CLAUDE.md` | Rules a fresh session reads automatically. Written for Claude, not you. ⚠️ **No check reads it** — so it goes stale silently, and it was corrected in eight places on 2026-09-25 | Claude maintains it |
 | `docs/plan/archive/` | **Closed** parts of the plan — finished steps, and status-log entries older than the current working day. Still part of the plan | Claude moves things here when `plan-handover.sh` says the file is too big |
 | `archive/power-platform/` | The abandoned first attempt. Kept for its reasoning only | Frozen — never cite it as current |
 
@@ -305,17 +361,33 @@ four of its ADRs are provably false, and citing it as current is a defect.
 **`docs/plan/archive/` is CLOSED, and still true.** On 2026-09-19 `docs/PLAN.md`
 reached 14,998 lines — about 313,000 tokens, **larger than a context window**. No
 session could read it; every session grepped it instead, and paid for the grepping.
-It was cut in three passes, all **unedited and in original order**, and each verified
-by rebuilding the source file and confirming it came back **byte-identical**:
+Everything moved is **unedited and in original order**, and each cut was verified by
+rebuilding the source file and confirming it came back **byte-identical**.
 
-| File | What moved | Lines |
+⚠️ **It was three files when this section was written. It is NINE, taken in seventeen
+cuts — listed 2026-09-25 by opening the directory rather than by trusting this table:**
+
+| File | What is in it | Lines |
 |---|---|---|
-| `steps-0-to-4.5.md` | Steps 0–4.5, all closed | 6,361 |
-| `status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | 4,576 |
-| `status-log-2026-09-19.md` | The whole 2026-09-19 working day | 790 |
+| `steps-0-to-4.5.md` | Steps 0–4.5, all closed | 6,404 |
+| `status-log-through-2026-09-18.md` | Everything logged up to 18 September | 4,643 |
+| `status-log-2026-09-19.md` | one working day | 833 |
+| `status-log-2026-09-20.md` | one working day | 737 |
+| `status-log-2026-09-21.md` | one working day | 77 |
+| `status-log-2026-09-22.md` | one working day, in several cuts | 1,886 |
+| `status-log-2026-09-23.md` | one working day | 598 |
+| `status-log-2026-09-24.md` | one working day, **seven cuts** | 1,230 |
+| `status-log-2026-09-25.md` | the first cut of 25 September; the day ran on past it | 450 |
 
-`docs/PLAN.md` went **14,998 → 3,874 lines**, and `## Position` — the section your
-prompt sends every session to *first* — went **5,484 → 509**.
+**One working day per file, from here on.** ⚠️ **And the rule that matters if a day is
+still running: a later session APPENDS to that day's file** — never a second file for
+the same date, and never a rename to tidy up, because the plan's own history names
+these files and renaming makes a recorded sentence false.
+
+`docs/PLAN.md` went **14,998 → 3,874 lines** on the day of the cut, and `## Position` —
+the section your prompt sends every session to *first* — went **5,484 → 509**. ⚠️ **As
+of 2026-09-25 they are back to 5,267 and 1,110**, against ceilings of 6,000 and 1,400,
+which is the growth rate this check exists to catch rather than a surprise.
 
 ⚠️ **The third cut was called by the size check rather than by anybody noticing.**
 Position had climbed back to 1,241 of its 1,400 limit within two days of the first
@@ -549,9 +621,10 @@ the argument you accepted, and that is still worth reading.
 task.**
 
 The rule this whole project rests on is *a file is not evidence; a green automated run
-is.* Right now **no automated check looks at app code**, because neither of the two
-existing ones is pointed at an app folder — there has never been one. So the first app
-task has to add a third check. That was already written down as part of the job.
+is.* ⚠️ **Read the next sentence as history, not as today:** at the time, **no automated
+check looked at app code**, because neither of the two existing ones was pointed at an app
+folder — there had never been one. So the first app task had to add a third check, and it
+did: the `app` workflow shipped on 2026-09-07 and now runs two jobs.
 
 **The problem is what that check should do.** The architecture document, in the table
 that fixes the client stack, says client-side tests are *skipped* — the reasoning being
@@ -672,6 +745,12 @@ Three reasons it is not being added today:
 **Where it would earn its place: task 5f**, the biggest screen in the plan — the first
 piece of work large enough that its own shape is a risk. Worth asking again there.
 
+⚠️ **That moment has been and gone: `5f` was sized `XL`, split four ways and built
+between 24 and 25 September, and nobody asked.** It went fine — the split is what
+carried it — so this is not a regret, but the trigger this row set has passed and the
+question is now undated. **If it is worth asking at all, the next comparable moment is
+`5h`, the undo.**
+
 ⚠️ If you do install it: **it reports telemetry by default.** Setting
 `SUPERPOWERS_DISABLE_TELEMETRY` turns that off. The honest way to judge it is to
 install it, run `claude plugin details superpowers@claude-plugins-official` to see what
@@ -718,25 +797,44 @@ that were never created, discovered only after a module shipped on top of them.
 The protection is mechanical, not human. When Claude says something works, the
 question that costs you nothing is: *did a machine other than you confirm that?*
 
-### That gap is now closed — and a different one has opened
+### That gap closed — and three others are open, one of them right now
 
 **This section used to say the opposite**, and it stayed wrong for weeks: it told you
 GitHub's login had never been completed and that nobody had ever seen a check result.
-That was true when written. It is not true now — the login is done, and both checks
-have been read by name in the job log on every merge since. **A handbook that tells
-you your safety net is switched off, when it is on, is worse than one that says
-nothing.**
+That was true when written. It is not true now — the login is done, and the checks have
+been read by name in the job log on every merge since. **A handbook that tells you your
+safety net is switched off, when it is on, is worse than one that says nothing.**
 
-⚠️ **The new gap is that the safety net does not reach the app.** The two automated
-checks are wired to fire only when the database files or the money package change.
-**Neither one watches an app directory, because there has never been one.** So from
-the first screen onward, *"a green run confirmed it"* would quietly mean *"both checks
-correctly decided they had nothing to do."*
+⚠️ **The gap it then described — *"neither check watches an app directory"* — is also
+closed**, and that sentence was itself stale by the time you read it: the `app`
+workflow shipped with the first app commit on 2026-09-07, exactly as the plan required.
 
-This is written into the plan as part of step 5a rather than left as a good
-intention: **5a is not finished until a third check exists that watches the app.**
-If a session ever tells you 5a is done and cannot name that check, that is the thing
-to push back on.
+**Here is what the referee genuinely cannot do, as of 2026-09-25. All three are real,
+and the second one is failing as this is written.**
+
+**1. No check compiles the app.** Everything that runs is the typechecker and the test
+suites. Neither builds the thing that goes on your phone, so a change to the app's
+native plumbing stays green until a Mac actually builds it — which is a person, on
+purpose, about every seven days while your free Apple signature lasts.
+
+**2. ⚠️⚠️ No check looks at the database your phone talks to — and it is behind by two
+migrations at this moment.** On 2026-09-22 the hosted database was found to have **no
+schema at all**: every change had been applied to the throwaway copy GitHub builds and
+nowhere else, and **you found it by tapping Productos**, not any check. A guard for
+exactly that now exists, deliberately outside GitHub (it needs a key that would give
+every automated run access to your whole Supabase account). Run 2026-09-25 it says the
+hosted project carries **36 of the 38** migrations: `0039` (every shop's catch-all
+supplier being called `Genérico`) and `0040` (an Empleada being allowed to see what the
+shop paid) merged that day and **were never deployed**, so neither is on your phone.
+The fix is two commands, in `supabase/README.md` and in your prompt.
+
+**3. No check can tell whether any of it fits a real shop.** The suites prove the
+database is consistent with itself. ⚠️ **And 2026-09-25 added the sharper version of
+this: they cannot tell whether a thing you can SEE is right either.** The `Costos` PDF
+passed every check and was wrong on your phone — the page was 130 pixels narrower than
+the chart drawn on it — and you found that by opening it. Two rulings that day reversed
+work which had shipped green. **That gap closes only when you look, or when you answer
+a question from the shop rather than from the plan.**
 
 ### Other things to watch
 
@@ -749,8 +847,13 @@ to push back on.
   Those choices are now listed at the end of each task — read that list.
 - **Scope creep looks like helpfulness.** If a session wanders from the task in
   `docs/PLAN.md`, pull it back. The plan exists so drift is visible.
-- **Pushing is public.** Committing is local and private; pushing sends work to
-  GitHub. Expect to be asked first, every time.
+- ⚠️ **This list said *"pushing is public — expect to be asked first, every time"*
+  until 2026-09-25, and it had been false since 17 August.** Committing is local;
+  pushing sends work to GitHub, **and Claude now pushes, opens the pull request, reads
+  the job log and merges without asking** — the automated-merge rule in the glossary,
+  which this bullet contradicted for weeks. What you still get, every time, is a report
+  of what was decided on your behalf. Saying *not yet, I want to read it first* still
+  works; it is simply no longer the default.
 
 ---
 
@@ -770,29 +873,46 @@ Not technical questions, which is exactly why they are yours.
 
 ### The open decisions right now
 
-⚠️⚠️ **REWRITTEN 24 September, because all three questions that used to be listed
-here had been ANSWERED — two of them a week earlier — and this section was still
-asking them.** That is the defect this repository has now recorded seven of: a claim
-that was true when it was written, in the one file you actually read.
+⚠️⚠️ **REWRITTEN AGAIN ON 2026-09-25, FOR THE SAME REASON AS LAST TIME — BOTH QUESTIONS
+LISTED HERE HAD BEEN ANSWERED, ONE OF THEM BY YOU IN WRITING.** This section was rewritten
+on 24 September precisely because it was asking answered questions, and it had gone stale
+again inside two days. **It is the eighth time this repository has recorded that defect,
+and every instance has been in a file somebody reads rather than in code.**
 
-**There are two, they are both in the last row of the table above — the one that
-says whether anything is with you — and the live list is always the
-`⛔ DECISIONS OWED` block in
-[`docs/PLAN.md`](PLAN.md)** — which every session reads before it does anything, so
-a question parked there is re-offered automatically until you rule on it.
+⚠️ **So treat this section as a pointer and never as the list.** The live list is the
+`⛔ DECISIONS OWED` block in [`docs/PLAN.md`](PLAN.md), which every session reads before
+it does anything — a question parked there is re-offered automatically until you rule on
+it. The row in the table above is the one the machine checks against that block.
 
-1. **The quantity control: one control or two?** Your words give a weighed product a
-   stepper *and* a number pad; the design document says a number pad only. **My
-   recommendation is yours, and I correct the document.**
-2. **Can a cashier knock money off one sale** without touching your price list?
-   **My recommendation is yes, and it is the only price control she is shown.**
+**There is one open question, and it is *Mistakes* — the undo.** When somebody rings up
+the wrong thing, what happens, and who may undo it? The machinery has been in the
+database since 4 September and **nothing has ever called it**, and a delivery cannot
+currently be undone at all, by anybody, through any screen. ⚠️ **You have already ruled
+on HOW this gets answered rather than what the answer is** — 2026-09-25: *"Let's address
+Area 6 with a back and forth set of simulations to get to the best option for this pilot
+before we start 5h."* **So the next thing that happens on it is a conversation, not a
+build**, and it needs you in the room. It does not hold up the task marked next.
 
-⚠️ **What used to be here, and where each answer went:** how a second person joins a
-shop — you asked for **both**, and it is built and working; whether anyone may change
-a price — **ruled on 23 September**, *"leave the fence as is"*; and the four subjects
-the interview never reached — the end of a sale, the undo, expiry dates and the three
-daily numbers — **all four ruled between 18 and 22 September**, with the undo built
-into the plan and expiry dates dropped for the pilot on your instruction.
+⚠️ **What was listed here until 2026-09-25, and where each answer went:**
+
+1. ~~**The quantity control: one control or two?**~~ ✅ **Settled — both.** Every row on
+   the selling screen gets **a stepper and a keypad, one tap apart, and never a switch
+   between them.** Your words won and the design document was corrected, not the other
+   way round.
+2. ~~**Can a cashier knock money off one sale?**~~ ✅ **Ruled — not for the pilot, in your
+   own words:** *"Let's not do those discount controls part of the pilot yet, we will need
+   to understand the interactions before creating anything like that. Any money 'knock-off'
+   happens in her head and is out of the scope of the app for now."* ⚠️ **That ruling
+   killed more than the question** — it removed a control the selling screen had been
+   designed around, which is why it is worth keeping visible here rather than deleting.
+
+⚠️ **And the older set, kept because the pattern is the useful part:** how a second person
+joins a shop — you asked for **both**, built and working; whether anyone may change a
+price — **ruled 23 September**, *"leave the fence as is"*; the four subjects the interview
+never reached — the end of a sale, the undo, expiry dates and the three daily numbers —
+**all four ruled between 18 and 22 September**, with expiry left *latent* rather than
+dropped, on your instruction of 25 September: *"We'll leave the expiry input latent until
+we have some feedback from the pilot."*
 
 ---
 
@@ -823,6 +943,12 @@ which becomes the version that includes them. The branch has then served its
 purpose. **Merging touches no database and deploys nothing** — it only changes
 which version of the files `main` points at. The work goes onto a branch first so
 that `main` only ever contains what CI has already passed.
+
+⚠️⚠️ **That last sentence has a consequence worth carrying: a database change that has
+merged is still not in your shop's database.** GitHub proves it applies by building a
+throwaway copy; putting it into the real one is `supabase db push`, run by a person.
+**On 2026-09-25 two merged changes were sitting undeployed** — see *Where Claude is
+likely to be wrong*, gap 2.
 
 ⚠️ **This paragraph used to describe an approval step that no longer exists, and it
 contradicted `CLAUDE.md` for weeks.** Two things were settled on 2026-08-17, hours
