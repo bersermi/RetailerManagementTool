@@ -40,6 +40,12 @@ import {
 } from '@/api/catalogWrite';
 import { costsFrom, costsKey, type Costs } from '@/api/costs';
 import {
+  MAGNITUDE_KEY,
+  NOTHING_TYPICAL,
+  typicalFrom,
+  type Typicals,
+} from '@/api/magnitude';
+import {
   PROVIDERS_KEY,
   memoryKey,
   providersFrom,
@@ -66,26 +72,27 @@ import {
   approveRequest,
   catalogUnits,
   catalogVariants,
-  createInvite,
   changePrice,
+  createInvite,
   createProduct,
-  patchVariant,
-  variantPrices,
-  variantSettingsRow,
   myAccessRequests,
-  pendingAccessRequests,
   myWorkspaces,
   onboardWorkspace,
+  patchVariant,
+  pendingAccessRequests,
   providerMemory,
   redeemInvite,
   requestAccess,
-  shopProviders,
-  variantCosts,
   setMyDisplayName,
+  shopMagnitude,
+  shopProviders,
+  todaySales,
+  variantCosts,
+  variantPrices,
+  variantSettingsRow,
   workspaceInvites,
   workspaceLocations,
   workspaceMembers,
-  todaySales,
 } from '@/api/calls';
 import { nameErrorMessage } from '@/api/displayName';
 import {
@@ -1286,4 +1293,44 @@ export function useCosts(variantId: string | null): Costs & {
     ...costsFrom(rows.data, providers, priceUnit, factors),
     failed: rows.error ? apiErrorKey(rows.error) : null,
   };
+}
+
+// ============================================================================
+// ADR-035 §2.8's THIRD GUARD — WHAT THIS SHOP USUALLY BUYS. Plan task `5f.5`.
+// ============================================================================
+
+/**
+ * The typical delivered quantity and cost of every product this shop has bought
+ * lately, for the magnitude warning on the two capture screens.
+ *
+ * ⚠️⚠️ IT TAKES NO ARGUMENT AND FIRES ONCE PER SCREEN, WHICH IS THE DIFFERENCE
+ * FROM `useCosts` AND THE REASON THIS ROW WAS SIZED BEFORE IT WAS BUILT. The
+ * warning fires while a basket is being keyed; a per-variant read would add a
+ * round trip per line. See `@/api/magnitude`'s header.
+ *
+ * ⚠️ FIVE MINUTES, LIKE THE CATALOG AND UNLIKE `useCosts`' ONE. A median over
+ * four hundred deliveries does not move because one more landed — and this read
+ * is fired by opening Vender, which is the screen a shopkeeper opens twenty
+ * times an hour. `useCosts` takes a minute because somebody opens `Costos`
+ * BECAUSE they just bought something.
+ *
+ * ⚠️⚠️ A FAILED READ IS `NOTHING_TYPICAL` AND THE SCREEN IS TOLD NOTHING, which
+ * is the opposite of `useCatalog`'s and `useProviders`' arrangement and is
+ * deliberate. Those two report their failure because a screen that cannot tell
+ * *failed* from *in flight* shows a spinner that never ends. **Nothing here ever
+ * spins**: a guard with no history is silent, and a guard whose read failed is
+ * silent, and those are the same thing on screen. Telling a shopkeeper that the
+ * check she never asked for could not run is exactly the book-keeping C3.18
+ * refuses — and it would be on screen on every till in the pilot store, half of
+ * whose day has no signal.
+ */
+export function useMagnitude(): Typicals {
+  const { session, ready } = useAuth();
+  const rows = useQuery({
+    queryKey: MAGNITUDE_KEY,
+    queryFn: shopMagnitude,
+    enabled: ready && session !== null,
+    staleTime: 5 * 60_000,
+  });
+  return rows.data === undefined ? NOTHING_TYPICAL : typicalFrom(rows.data);
 }
