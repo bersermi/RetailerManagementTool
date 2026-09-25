@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatExpiry, formatWaiting } from '@/format/date';
+import { formatExpiry, formatLedgerDay, formatWaiting } from '@/format/date';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -173,5 +173,77 @@ describe('formatWaiting', () => {
 
   it('reads the real shape 0037 returns, offset and all', () => {
     expect(formatWaiting('2026-09-19T18:00:00+00:00', localAt(2026, 8, 20))).not.toBeNull();
+  });
+});
+
+describe('formatLedgerDay', () => {
+  // ⚠️⚠️ THIS IS THE ONE FUNCTION IN THIS FILE THAT MUST NOT TOUCH `Date`, AND THE
+  // REASON IS MEASURED RATHER THAN ARGUED: `new Date('2026-09-24').getDate()` is
+  // **23** on this project's Mac (UTC−6) and **24** on `ubuntu-latest` (UTC).
+  // `CostPoint.day` is `occurred_at.slice(0, 10)` — a day POSTGRES already
+  // assigned a row to — so reinterpreting it through the device's calendar would
+  // print a heading that disagrees with the ledger, in a PDF whose reader can
+  // check neither. ⚠️ `formatExpiry` above wants exactly the opposite and says so.
+  //
+  // ⚠️ THE ASSERTIONS BELOW ARE THEREFORE TZ-INDEPENDENT BY CONSTRUCTION, not by a
+  // pinned `TZ`. A suite that set `process.env.TZ` would be proving the fixture
+  // instead of the code — [[local-time-tests-need-a-pinned-tz]] answered by
+  // removing the dependency rather than by pinning the machine.
+  it('reads the ledger label as the day the ledger meant', () => {
+    expect(formatLedgerDay('2026-09-24')).toEqual({
+      day: '24',
+      month: ES.dates.months[8],
+      year: '2026',
+    });
+  });
+
+  // ⚠️ THE FALSIFIER FOR THE CLAIM ABOVE, spelled as an assertion: a `Date`-based
+  // implementation returns `23` here on the machine this project is developed on,
+  // so this line is what would go red if somebody "simplified" it.
+  it('does not shift a day backwards on a machine west of UTC', () => {
+    expect(new Date('2026-09-24').getUTCDate()).toBe(24);
+    expect(formatLedgerDay('2026-09-24')?.day).toBe('24');
+    expect(formatLedgerDay('2026-01-01')).toEqual({
+      day: '1',
+      month: ES.dates.months[0],
+      year: '2026',
+    });
+  });
+
+  it('names every month the way the strings file does', () => {
+    for (let month = 0; month < 12; month += 1) {
+      const label = `2026-${String(month + 1).padStart(2, '0')}-15`;
+      expect(formatLedgerDay(label)?.month).toBe(ES.dates.months[month]);
+    }
+  });
+
+  // ⚠️ NOT PADDED — `formatExpiry`'s rule, for its reason: nobody writes *el 05 de
+  // mayo*, and a column heading reading `05` is a machine's zero.
+  it('does not pad the day', () => {
+    expect(formatLedgerDay('2026-05-05')?.day).toBe('5');
+  });
+
+  // ⚠️⚠️ AND THE YEAR IS PRESENT, WHICH `formatExpiry` DELIBERATELY DROPS. An
+  // invite lives seven days; a purchase history is opened out of a folder next
+  // March, and columns reading *24 septiembre* with no year cannot be placed.
+  it('carries the year, verbatim from the label', () => {
+    expect(formatLedgerDay('2025-12-31')).toEqual({
+      day: '31',
+      month: ES.dates.months[11],
+      year: '2025',
+    });
+  });
+
+  it('returns null for anything it cannot read, rather than a piece with NaN in it', () => {
+    for (const input of ['', '   ', 'nope', null, undefined, '2026-13-01', '2026-00-01', '2026-9-4', '2026-09-00', '20260924']) {
+      expect(formatLedgerDay(input)).toBeNull();
+    }
+  });
+
+  // ⚠️ IT TOLERATES A FULL ISO STRING because the label it is given is the first
+  // ten characters of one, and a caller that passed the whole thing would
+  // otherwise get `null` for a value that is perfectly readable.
+  it('reads the first ten characters of a full timestamp', () => {
+    expect(formatLedgerDay('2026-09-24T09:00:00+00:00')?.day).toBe('24');
   });
 });

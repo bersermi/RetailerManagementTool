@@ -435,6 +435,31 @@ describe('the matrix — the same rows, with no colour in them', () => {
     const rows = matrixOf(costsFrom(THREE, PROVIDERS, 'kg', FACTORS));
     expect(rows.map((row) => row.name).sort()).toEqual([GEN.name, KG.name].sort());
   });
+
+  // ⚠️⚠️ AND IT CARRIES `isGeneric`, ADDED BY `5g-iii-a` FOR A READER WITH NO
+  // LEGEND AT ALL. The owner took the chart out of the PDF and the legend went
+  // with it — a legend pairs a HUE with a name and there are no hues left — so
+  // *compra directa* has to ride on the row's own stub. ⚠️ It is a FIELD rather
+  // than an index into `costs.series` at the call site: this function's order is
+  // an implementation detail somebody may reasonably change, and pairing two
+  // arrays positionally across a module boundary is how that change becomes a
+  // market run labelled as a supplier.
+  it('says which row is the market, so a table with no legend still can', () => {
+    const rows = matrixOf(costsFrom(THREE, PROVIDERS, 'kg', FACTORS));
+    const gen = rows.find((row) => row.providerId === GEN.id);
+    const kg = rows.find((row) => row.providerId === KG.id);
+    expect(gen?.isGeneric).toBe(true);
+    expect(kg?.isGeneric).toBe(false);
+  });
+
+  // ⚠️ IT IS `CostSeries.isGeneric` VERBATIM AND NEVER A SECOND OPINION — a
+  // `name === 'Genérico'` test at either end would be a second answer to *is this
+  // the market*, decided by a word a shopkeeper could rename (`0039`).
+  it('takes the flag from the series and does not re-derive it', () => {
+    const costs = costsFrom(THREE, PROVIDERS, 'kg', FACTORS);
+    const rows = matrixOf(costs);
+    expect(rows.map((row) => row.isGeneric)).toEqual(costs.series.map((one) => one.isGeneric));
+  });
 });
 
 describe('the series ring, and what it is allowed to promise', () => {
