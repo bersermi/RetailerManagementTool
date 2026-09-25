@@ -657,3 +657,175 @@ number a customer is reading.** ⚠️ **It blocks `5f-iii-b` and the marker has
 ⚠️ **Shipped:** the two layout fixes in `app/src/app/(tabs)/vender.tsx`. **1,020 assertions over 36
 files unchanged** (the bugs were layout, which no suite here reads), typecheck clean,
 `conventions-gate.sh` 16/16. **No migration.**
+
+
+---
+
+## Appended 2026-09-25 — the twenty-first cut, off the FOOT as `5g-ii-c` closed
+
+⚠️ **`## Position` reached 1,440 of 1,400** with the owner's three-control round in it — the third
+status-log entry of one working day, which is what a day of live feedback looks like. **The oldest
+entry left in the block went out: `5f-iii-b`, the first sale this app ever wrote.** ⚠️ **A MOVE and
+never a copy**, unedited.
+
+⚠️⚠️ **AND THE FIRST ATTEMPT AT THIS CUT WAS DESTRUCTIVE, WHICH IS RECORDED HERE BECAUSE IT IS THE
+ONLY COPY OF THE LESSON.** The mover looked for the NEXT entry head to bound the block; `5f-iii-b`
+is the last entry in the region, so there was none, and it ran **297 lines** — past the end of the
+status log, through the archive-bookkeeping section, and **out of `## Position` entirely, taking
+`## Steps 0 through 4.5` and the `## READ FIRST — THE PLAN DISAGREES WITH ADR-035` gate with it.**
+⚠️ **`plan-handover.sh` did not catch it and could not**: the plan was still readable, still had one
+next task and one of each owed block — **a plan with two headings missing is not a plan that
+contradicts itself.** ✅ **It was caught by the line arithmetic not adding up** — 297 lines removed
+against 143 off `## Position`, which can only mean the cut left the section — **and reverted with
+`git checkout` before anything was committed.**
+
+✅ **THE MOVER NOW ASSERTS WHAT A SINGLE ENTRY IS, rather than inferring it**: the block may contain
+no `##` heading, no `| **task** |` row, and must be between 40 and 120 lines. **A bound derived from
+what comes next is a bound that fails at the end of the list**, which is the sister of the rule three
+scripts here already record — *a check must bound the region it reads, not trust the next heading.*
+
+✅✅✅ **`5f-iii-b` IS DONE AS OF 2026-09-24 — THIS APP HAS WRITTEN ITS FIRST SALE, AND `5f-iii`
+IS CLOSED. `5R-f` IS THE NEXT TASK.** ⚠️⚠️ **`5c`'s FOUR CHILDREN HAVE A CALLER FOR THE FIRST
+TIME.** The outbox, the flush, the dead-letter path and the banner have been built entirely
+against fixtures since 2026-09-20; today a gesture put a row in the queue.
+
+⚠️⚠️ **AND IT IS THE AMENDED WORKING AGREEMENT'S FIRST OUTING: AN `M` DONE IN ONE SITTING.**
+Under the old rule the bar, the slide, the sheet's slide and the enqueue would have been two
+or three rows. The ruling cleared the gate and the whole row shipped.
+
+✅ **The owner's five rulings, each built as stated** — the bar is **Arrangement A**, the
+slider **fills behind the thumb**, the count logic was confirmed rather than changed, the
+emptying confirmation is a **centred box with its own scrim**, the sheet's height is **fixed**,
+and the sheet has **its own shorter slide** beside `Vaciar carrito`. The full ruling is in the
+decisions block above.
+
+⚠️⚠️ **A GUARD REFUSED THE FIRST DESIGN OF THE WRITE, AND IT WAS RIGHT — THE SECOND TIME THAT
+HAS HAPPENED TO `5f`.** `vender.tsx` called `enqueue(outboxDb())` itself; `app/test/auth-
+errors.test.ts` went red naming the reason in its own comment — *"a third entry is the failure
+§2.6 cannot survive: the outbox is the only write path, so a route that opened it for itself
+would be a sale written by a file that never learned about `pending`, `flushing` or `dead`."*
+✅ **So `@/lib/commitRunner` exists**, and the queue now has three modules which are three
+verbs: `flushRunner` DRAINS it, `DeadLetterBanner` COUNTS it, `commitRunner` FILLS it. ⚠️ **The
+property that assertion actually pins was never *two* — it is that none of them is a screen**,
+and the guard's text now says so.
+
+⚠️⚠️ **THE FILL IS A `translateX` AND NEVER A `width`, WHICH IS §2.11 HONOURED RATHER THAN
+BENT.** The owner asked for the track to fill with the finger; a fill animated by growing its
+width is a LAYOUT change every frame on the two low-end Androids C1.1 puts in the pilot. **A
+full-width block slid in from the left under `overflow: hidden` is a transform, and transforms
+composite — the picture is identical and the frame cost is not.** ⚠️ **What IS conceded and
+named: the drag is JS-driven**, because a native-driven value cannot be `setValue`d from JS and
+a `PanResponder` gesture has no native event to map. Only the release animations use the native
+driver. **§2.11's rule is about which properties are animated, and both paths animate
+`transform` only.**
+
+⚠️ **AND THE SLIDE IS CORE REACT NATIVE, WHICH WAS A MEASUREMENT RATHER THAN A PREFERENCE.**
+`react-native-gesture-handler` and `react-native-reanimated` are installed — and imported by
+**nothing** in `src/`. Adding them means a babel plugin, a root view and a native surface this
+app has never exercised, **on a build no CI compiles**. `PanResponder` and `Animated` cost a
+JS-driven drag and no new wiring.
+
+⚠️⚠️ **WHAT THE LOOK FOUND THAT NO SUITE COULD: THE SLIDE'S LABEL WAS CLIPPED ABOVE THE
+TRACK.** A plain child of the track is a FLEX SIBLING of the thumb, so the two stacked in a
+column instead of overlaying. **It was caught on the simulator before it reached his phone**,
+which is what the harness built earlier today is for.
+
+⚠️⚠️ **AND ONE THING IS FOUND AND NOT FIXED, BECAUSE IT IS `5h`'s TO FIX: AN UNPRICED LINE NOW
+BLOCKS THE WHOLE SALE, AND C3.14 SAYS IT SHOULD NOT.** C3.13 blocks a PURCHASE on a missing
+price and **C3.14 lets a SALE through loudly** — but `draftOf` refuses `line-cannot-be-priced`
+for both, so `canCommit` is false and **the slide is simply absent**. ⚠️ **It was seen on the
+simulator with `Servilletas` in the basket**: the bar says `Falta un precio`, and the commit
+control is gone with nothing connecting the two. ⚠️ **It is not a regression** — `5f-i` has
+refused that basket since it shipped, and nothing had a commit control to hide until today.
+**`5h` owns C3.14 and its row is where this belongs**; naming it here is `R9`'s shape applied
+to a rule rather than to a look.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `app/test/cart-commit.test.ts` — **16 new assertions,
+1,036 over 37 files, up from 1,020** — and the one it exists for is `canCommit` agreeing with
+`commitOf` on every refusal, **from both ends**: a disagreement there is a slide a thumb can
+complete over a sale that silently does not happen, and nothing anywhere would go red.
+`conventions-gate.sh` **16/16 over 67 source files** — ⚠️ **it fired once and was right**, on a
+`maxWidth: 420` in the new dialog: a cap in points is a size `Letra grande` cannot change
+(`R6`). **Four screens photographed on the simulator** before anything reached his phone.
+
+⚠️ **Shipped:** `@/cart/commit` (the composition, and what `canCommit` answers), `@/lib/
+commitRunner` (the effect, and the order), the slide, Arrangement A, the centred question and
+the fixed-height sheet in `vender.tsx`, an `ES.sell.slide` block and `ES.sell.sold`. **No
+migration.**
+
+
+---
+
+## Appended 2026-09-25 — the twenty-second cut, taken to PAY FORWARD
+
+⚠️ **The twenty-first left `## Position` at 1,373 of 1,400 — twenty-seven lines, which is not room**
+for the next session's first entry. **So `5f-iii`'s round of the owner's notes goes out too**, with
+nothing pressing — the arrangement the fifteenth cut recorded as *the first ever taken pre-emptively.*
+⚠️ **A MOVE and never a copy**, unedited.
+
+⚠️⚠️ **AND THE GUARD ADDED BY THE TWENTY-FIRST CUT REFUSED THIS ONE'S FIRST ATTEMPT, WITHIN THE
+MINUTE.** The mover again bounded the block by the next entry head — and `5f-iii`'s notes had BECOME
+the last entry in the region when `5f-iii-b` left it — so it proposed **234 lines** and the new
+size assertion stopped it cold. ✅ **That is the whole value of writing the guard into the mover
+rather than into a comment**: the same defect, the same shape, one cut later, caught by a machine
+instead of by arithmetic.
+
+⚠️ **Four cuts on 2026-09-25.** Three status-log entries and three rulings landed in one day because
+the owner was holding the phone and answering inside the hour — **the ceiling is sized for a slower
+cadence than a live feedback day**, which is worth knowing rather than fixing: the corpus is still
+one file to `grep` (`docs/checks/plan-corpus.sh`).
+
+✅✅ **`5f-iii` TOOK A ROUND OF THE OWNER'S NOTES ON HIS OWN PHONE, 2026-09-24 — FIVE CHANGES,
+AND ONE OF THEM OVERRULES AN ARGUMENT THIS FILE HAD WRITTEN DOWN AS SETTLED. `5R-f` IS STILL
+THE NEXT TASK.** ⚠️ **It ships no migration.**
+
+⚠️⚠️ **(1) THE SEARCH BOX WAS TOO LOW, AND THE SAFE AREA WAS BEING COUNTED TWICE.** *"The
+search bar is too low and we have a lot of dead space above the product catalog."* The tab
+navigator draws a header (`title: tab.label`) which already sits below the notch, and
+`vender.tsx` then added `paddingTop: insets.top` on top of it. ✅ **Removed.** ⚠️ **What found
+it was the comparison, not the screenshot**: `productos.tsx` never had that padding, which is
+why only this screen had the gap — and the same defect would be invisible on any screen the
+navigator did not put a header on.
+
+⚠️⚠️ **(2) A TAP ON THE TRACK OPENS THE BASKET** — *"Let's make the carrito able to open by
+tapping the slider as well."* ⚠️⚠️ **THE FIRST DESIGN OF IT WAS WRONG AND IS RECORDED RATHER
+THAN QUIETLY REPLACED**: it wrapped the track in a `Pressable` and spread `panHandlers` onto
+it. **`Pressable` installs its own responder handlers on the underlying view**, so the two
+fight over one touch and which one wins is not something the file gets to decide. ✅ **One
+responder, two readings**: the pan claims the touch, and a release whose `dx` is within
+`TAP_SLOP` is a tap. ⚠️ **`app/test/cart-commit.test.ts` pins that one release can never be
+read as BOTH**, which is what keeps the ordering in the handler a belt rather than the only
+brace.
+
+⚠️⚠️ **(3) THE LEGEND IS `Cobrar` IN BOTH TRACKS, AND THE ARGUMENT AGAINST IT IS MOOT RATHER
+THAN OVERRULED.** `ES.sell.slide` said *Desliza para cobrar* / *Desliza* because **a verb alone
+reads as a button, and a button is what C3.6 refused** — a thumb that brushes one has committed
+a sale. ✅ **In the same message he made the track tappable**, so the control is now honestly
+both and the word no longer has to carry the instruction. ⚠️ **What still stops a brush
+committing a sale is `COMMIT_AT`, not the wording**, and that has not changed.
+
+⚠️⚠️ **(4) `Vaciar carrito` IS ON THE CLOSED BAR TOO, WITH THE SAME QUESTION** — *"Include
+Vaciar carrito in the closed Carrito as well, with the confirmation message also displaying
+when tapped there."* ✅ **The bar's second row is now the sheet's foot**: the same two controls
+in the same order, so the thumb that learns one has learned the other. ⚠️⚠️ **THE STATE MOVED
+UP TO THE SCREEN RATHER THAN BEING COPIED** — `asking`, `emptied` and the animation's value all
+live in `Vender`, and one `Confirmacion` is rendered inside the sheet's `Modal` when the basket
+is open and over the screen when it is not, made mutually exclusive by `cartOpen`. **Two copies
+would be two questions that drift apart**, which is the defect this repository has recorded six
+of. ⚠️ **The alternative was a second `Modal` over the first**, and nested modals on iOS animate
+against each other. ⚠️ `Vaciar carrito` is drawn **even when the sale cannot be committed** — a
+basket with an unpriced line still has to be emptiable, and that is the case where a shopkeeper
+is most likely to want to.
+
+⚠️⚠️ **(5) THE SCRIM CLOSES THE SHEET, AND THIS ONE IS A REVERSAL OF A DECISION TAKEN ON HIS
+BEHALF.** *"Make the Carrito close if the user taps in the scrim outside the carrito, not only
+in the Cerrar button."* **`5f-iii-a` made the velo deliberately inert** and wrote down why: a
+thumb reaching past the sheet for a row it can still see would dismiss it. ✅ **He has the app
+in his hand and took the trade** — tap-outside is what a sheet does, and `Cerrar` is still
+there. ⚠️ **The refusal is struck in the file rather than deleted**, because the reasoning is
+still the reason to think twice on the next sheet.
+
+⚠️ **Verified:** `app/test/cart-commit.test.ts` **+2 assertions, 1,038 over 37 files**;
+typecheck clean; `conventions-gate.sh` **16/16 over 68 source files**. **Photographed on the
+simulator before it reached his phone**, which is how (1), (3) and (4) were confirmed and how
+the `Pressable` mistake in (2) was caught by reading rather than by him finding it.

@@ -181,13 +181,25 @@ expect P1 'came back as an error|42703|does not have' \
 # the cast and PostgREST sends a JSON number; `JSON.parse` makes it a double,
 # `parseDecimal` refuses a number, and every prefill on Comprar becomes blank —
 # with the typecheck, the suite and the bundler all green.
+# ⚠️⚠️ RE-ANCHORED 2026-09-25 BY `5g-ii-c`, AND IT HAD GONE QUIET WITHOUT FAILING.
+# This matched the WHOLE constant, ending `,last_qty_display_unit';` — so the moment
+# `5g-ii-c` appended `last_purchased_at` for the `Recientes` pill, the `sed` matched
+# nothing, the fixture edited nothing and the run reported it as proving nothing.
+# ⚠️ **The check itself never moved**: assertion 5 was green over the same tree.
+# ✅ **It now anchors on THE CAST, which is the thing the fixture is about** — so a
+# column added at either end cannot silence it. **A fixture pinned to a constant's
+# LAST element has an expiry date nobody wrote down**, which is the same rule
+# `conventions-gate-falsify.sh`'s `F4` learned the day before against a JSX literal,
+# and the same shape as an archive cut bounded by *what comes next*.
 expect P2 'without the ::text cast it is a double|came back as' \
-  "$(mutate P2 "s|^  'provider_id,variant_id,unit_price_net_per_base::text,last_qty_display_unit';|  'provider_id,variant_id,unit_price_net_per_base,last_qty_display_unit';|")"
+  "$(mutate P2 "s|unit_price_net_per_base::text|unit_price_net_per_base|")"
 
 # ⚠️ P3: the denomination she typed last time is dropped. `0008` says "8.50
 # means nothing without it", and the loss is silent — the figure still arrives.
+# ⚠️ RE-ANCHORED 2026-09-25 FOR `P2`'s REASON: it required the column to be LAST in
+# the constant. It anchors on the column NAME now, wherever it sits.
 expect P3 'the view does not have|came back as an error' \
-  "$(mutate P3 "s|,last_qty_display_unit';|,last_qty_display_unitt';|")"
+  "$(mutate P3 "s|last_qty_display_unit|last_qty_display_unitt|")"
 
 # ⚠️⚠️ P4 IS THE ONE §2.8 SAYS THE OPERATOR CANNOT CATCH FOR US: drop the
 # provider filter and the read carries EVERY supplier's price to the phone. The

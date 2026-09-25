@@ -19,14 +19,18 @@ import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/
 import { parsePesos } from '@/api/catalogWrite';
 import { useCatalog, useMyRole, useProviders, useUnitFactors, useWorkspace } from '@/api/hooks';
 import {
+  DEFAULT_SORT,
   canReadMemory,
   costNote,
   costShown,
   defaultProvider,
+  lastPurchasedFor,
   memoryFor,
   memoryState,
   providerById,
+  sortedForBuying,
   typedPerBase,
+  type CatalogSort,
   type MemoryRow,
   type Provider,
 } from '@/api/providers';
@@ -184,7 +188,8 @@ export default function Comprar() {
 
   const [typed, setTyped] = useState('');
   const box = useRef<TextInput>(null);
-  const rows = search(entries, typed);
+  const [sort, setSort] = useState<CatalogSort>(DEFAULT_SORT);
+  const searching = typed.trim() !== '';
 
   const list = useRef<FlatList<CatalogEntry>>(null);
   const editing = useRef<number | null>(null);
@@ -218,18 +223,48 @@ export default function Comprar() {
   const { loading: providersOut, providers, memory } = useProviders(providerId);
   const provider = providerById(providers, providerId);
 
-  // ⚠️⚠️ THE DEFAULT IS CHOSEN ONCE THE LIST LANDS AND NEVER RE-CHOSEN, which is
-  // what the `providerId === null` test buys: `openProvider` CLEARS the typed
-  // costs (C3.11), so an effect that re-asserted the default on every render
-  // would wipe a figure the moment after it was typed. ⚠️ It is also why a
-  // provider she picked survives a refetch of the list.
+  // ⚠️⚠️ THE DEFAULT IS STILL CHOSEN, AND THE PICKER IS NOW WHAT CONFIRMS IT. F6
+  // makes the generic row the opening answer — *"I bought this at the market this
+  // morning"* — so the picker opens with it already marked and one tap away,
+  // rather than opening on nothing and making her choose before she can look.
+  // ⚠️ `providerId === null` is what stops it re-asserting: `openProvider` CLEARS
+  // the typed costs (C3.11), so an effect that ran again would wipe a figure the
+  // moment after it was typed. It is also why a provider she picked survives a
+  // refetch of the list.
   useEffect(() => {
     if (providerId !== null) return;
     const opening = defaultProvider(providers);
     if (opening !== null) openProvider(opening.id);
   }, [providerId, providers, openProvider]);
 
-  const [picking, setPicking] = useState(false);
+  // ⚠️⚠️ THE PICKER OPENS THE SCREEN — the owner, 2026-09-25: *"When opening
+  // Comprar, show a small menu that let's you pick the Proveedor."* C3.11 already
+  // said the provider comes FIRST; this makes the screen say so rather than
+  // leaving it to a header a thumb may never touch.
+  //
+  // ⚠️⚠️ EXCEPT WHEN A DELIVERY IS ALREADY HALF-KEYED, AND THAT IS A DECISION
+  // TAKEN ON HIS BEHALF. §2.11 persists the buy basket because a phone rings in
+  // the back room; re-asking *who are you buying from* over a basket that is
+  // already priced against an answer would either discard her work or ask a
+  // question whose only safe answer is the one already given. **So it opens on
+  // the picker when the basket is EMPTY and goes straight to the catalog when it
+  // is not.** Reversing that is one condition.
+  //
+  // ⚠️ IT IS READ ONCE, ON MOUNT, AND THE STORE IS ALREADY HYDRATED BY THEN —
+  // `@/lib/store` is synchronous (`expo-sqlite/localStorage`), which `5f-i` chose
+  // so that *"the first render of a restored basket"* cannot race the first tap.
+  // An async storage here would make this test read an empty cart on every cold
+  // start and ask the question over a basket she was halfway through.
+  //
+  // ⚠️ ONE CASE IT DELIBERATELY DOES NOT COVER, NAMED RATHER THAN MACHINED
+  // AROUND: a SHOP switch mid-session drops the basket and the provider
+  // (`openShop`), and this does not re-ask — because *opening Comprar* is what he
+  // described and a workspace switch is not that. **The drop-down is right there
+  // and now looks like one**, which is the affordance that makes leaving it alone
+  // defensible. The alternative — reopening whenever the provider is null — would
+  // flash the window on every cold start, since `defaultProvider` fills it one
+  // render later.
+  const [picking, setPicking] = useState(() => cart.length === 0);
 
   // ⚠️⚠️ MAY SHE READ THE MEMORY AT ALL — and the predicate is `@/api/providers`'
   // rather than a comparison written here, because it is a claim about
@@ -298,6 +333,15 @@ export default function Comprar() {
       ? null
       : reviewOf(cart, entries, 'buy', workspace.pricesIncludeTax, undefined, quotes);
   const basket: Basket | null = review === null ? null : review.basket;
+
+  // ⚠️⚠️ THE ORDER — and the SEARCH wins over the pill rather than combining with
+  // it. `search` ranks by what was typed, which is a third order the pills do not
+  // name; running a sort over its result would throw away the ranking, and running
+  // it before would be sorted then re-ranked. ⚠️ **So the pills are hidden while
+  // typing** (his instruction) and the two orders are never on screen together.
+  const rows = searching
+    ? search(entries, typed)
+    : sortedForBuying(entries, sort, lastPurchasedFor(memory, providerId));
 
   // ⚠️ HOW MANY ROWS HAVE NO COST — the banner's own figure, counted off the very
   // rows the total is the sum of (`reviewOf`), so the sentence and the arithmetic
@@ -400,6 +444,10 @@ export default function Comprar() {
 
       <Buscador value={typed} onChange={setTyped} box={box} />
 
+      {/* ⚠️ HIDDEN WHILE TYPING, which is his instruction and also the only
+          honest rendering: the list is ranked by the search then, not by a pill. */}
+      {searching ? null : <Ordenar sort={sort} onSort={setSort} />}
+
       <FlatList
         ref={list}
         data={rows}
@@ -474,6 +522,10 @@ export default function Comprar() {
         open={picking}
         providers={providers}
         chosen={providerId}
+        // ⚠️ THE OPENING QUESTION HAS NO WAY OUT BUT AN ANSWER — see `Proveedores`.
+        // An empty buy basket is what makes this the way IN rather than a change of
+        // mind, and it is the same condition that decided to show it at all.
+        opening={cart.length === 0}
         onClose={() => setPicking(false)}
         onChoose={(id) => {
           openProvider(id);
@@ -493,19 +545,24 @@ export default function Comprar() {
 }
 
 /**
- * ⚠️⚠️ `Comprando a:` — THE HEADER, AND IT IS THE FIRST THING ON THE SCREEN
- * BECAUSE C3.11 PUTS THE RELATIONSHIP BEFORE THE PRODUCTS.
+ * ⚠️⚠️ `Comprando a:` — THE HEADER, AND SINCE 2026-09-25 IT LOOKS LIKE THE
+ * CONTROL IT IS. The owner: *"You can also change the Proveedor from the
+ * drop-down at the top of the screen, make it look more like a drop-down
+ * control."*
  *
- * ⚠️ IT IS A SENTENCE WITH A BLANK IN IT rather than a label over a picker: the
- * provider is not a setting, it is who this document is WITH, and every cost on
- * the screen below is a fact about it.
+ * ⚠️ WHAT CHANGED IS AFFORDANCE AND NOT FUNCTION. It was a bare row of text with
+ * a chevron after it — tappable, and not visibly so. It is now a bordered,
+ * filled field with the chevron inside it, which is the same shape `Buscador`
+ * uses one row below: **a box means you can act on it, and this screen now has
+ * two boxes that both do.**
+ *
+ * ⚠️ THE LABEL STAYS OUTSIDE THE BOX. C3.11 makes this a sentence with a blank in
+ * it — the provider is who this document is WITH, not a setting — so
+ * `Comprando a:` reads as prose and only the ANSWER is a field.
  *
  * ⚠️ IT SITS ABOVE THE SEARCH BOX AND DOES NOT SCROLL, for the search box's own
- * reason one file over: a shop with a hundred products is exactly the shop where
- * a scrolled-away provider would be a delivery recorded against the wrong one.
- *
- * ⚠️ THE CHEVRON HAS A WORD BESIDE IT — the provider's own name, which is what
- * C12.1 requires and is also the only thing worth reading here.
+ * reason: a shop with a hundred products is exactly the shop where a
+ * scrolled-away provider would be a delivery recorded against the wrong one.
  */
 function Encabezado({
   provider,
@@ -517,136 +574,290 @@ function Encabezado({
   onPress: () => void;
 }) {
   const { scale } = useDensity();
+  const unknown = provider === null;
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${ES.buy.buyingFrom} ${provider === null ? '' : provider.name}`}
-      disabled={loading}
-      onPress={onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        minHeight: scale.tapTarget,
-        paddingHorizontal: scale.space,
-        paddingTop: scale.space,
-        backgroundColor: PALETTE.fondo,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+    <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space, gap: scale.rowGap / 2 }}>
+      <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
         {ES.buy.buyingFrom}
       </Text>
-      <Text
-        numberOfLines={1}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${ES.buy.buyingFrom} ${unknown ? '' : provider.name}`}
+        accessibilityState={{ disabled: loading }}
+        disabled={loading}
+        onPress={onPress}
         style={{
-          flex: 1,
-          fontSize: scale.bodySize,
-          fontWeight: '700',
-          color: provider === null ? PALETTE.tintaApagada : PALETTE.accion,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: scale.rowGap,
+          minHeight: scale.tapTarget,
+          paddingHorizontal: scale.space,
+          borderRadius: scale.space / 2,
+          borderWidth: 1,
+          borderColor: unknown ? PALETTE.linea : PALETTE.accion,
+          backgroundColor: PALETTE.superficie,
         }}
       >
-        {provider === null ? ES.buy.loadingProviders : provider.name}
-      </Text>
-      {loading ? null : (
-        <MaterialCommunityIcons
-          name="chevron-down"
-          size={scale.iconSize}
-          color={PALETTE.accion}
-        />
-      )}
-    </Pressable>
+        <Text
+          numberOfLines={1}
+          style={{
+            flex: 1,
+            fontSize: scale.bodySize,
+            fontWeight: '700',
+            color: unknown ? PALETTE.tintaApagada : PALETTE.tinta,
+          }}
+        >
+          {unknown ? ES.buy.loadingProviders : provider.name}
+        </Text>
+        {/* ⚠️ THE GLYPH IS INSIDE THE FIELD, which is what makes it read as a
+            drop-down rather than as a link. It carries no word of its own and
+            needs none: the provider's name is right beside it (C12.1). */}
+        {loading ? null : (
+          <MaterialCommunityIcons
+            name="chevron-down"
+            size={scale.iconSize}
+            color={PALETTE.accion}
+          />
+        )}
+      </Pressable>
+    </View>
   );
 }
 
 /**
- * ⚠️ THE PICKER — a sheet, not a route, for `Carrito`'s recorded reason: it is
- * this place zoomed, over a list this screen has already read.
+ * ⚠️⚠️ THE SORTER PILLS — the owner, 2026-09-25: *"small pill sorters at the top,
+ * the preselected sorter is Recientes but you can also pick A-Z."*
  *
- * ⚠️⚠️ THE GENERIC ROW IS FIRST AND CARRIES A SENTENCE. `providersFrom` promotes
- * it (F6: a default she has to scroll to is not one) and the owner's own words
- * are what the sentence says — *"a way to allow the user to make purchases from a
+ * ⚠️ TWO PILLS AND NO MORE, and the chosen one is filled **and** bolder — never
+ * colour alone (`R11`). A segmented control was the alternative and pills are what
+ * he asked for; they also degrade better at `Letra grande`, where two segments of a
+ * fixed-width control would clip their own words.
+ *
+ * ⚠️ THEY ARE NOT DRAWN AT ALL WHILE SHE IS TYPING — see `Comprar`. The search is a
+ * third order and a pill claiming to own the list while `search` ranks it would be
+ * a control that looks live and does nothing, which is the shape this repository
+ * refuses by name.
+ */
+function Ordenar({
+  sort,
+  onSort,
+}: {
+  sort: CatalogSort;
+  onSort: (next: CatalogSort) => void;
+}) {
+  const { scale } = useDensity();
+  const pills: readonly { readonly key: CatalogSort; readonly word: string }[] = [
+    { key: 'recent', word: ES.buy.sort.recent },
+    { key: 'az', word: ES.buy.sort.az },
+  ];
+  return (
+    <View
+      accessibilityRole="radiogroup"
+      accessibilityLabel={ES.buy.sort.label}
+      style={{
+        flexDirection: 'row',
+        gap: scale.rowGap,
+        paddingHorizontal: scale.space,
+        paddingBottom: scale.rowGap,
+      }}
+    >
+      {pills.map((pill) => {
+        const on = pill.key === sort;
+        return (
+          <Pressable
+            key={pill.key}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: on }}
+            accessibilityLabel={pill.word}
+            onPress={() => onSort(pill.key)}
+            style={{
+              paddingHorizontal: scale.space,
+              paddingVertical: scale.rowGap / 2,
+              borderRadius: scale.tapTarget / 2,
+              borderWidth: 1,
+              borderColor: on ? PALETTE.accion : PALETTE.linea,
+              backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: scale.bodySize * 0.85,
+                fontWeight: on ? '700' : '400',
+                color: on ? PALETTE.accion : PALETTE.tintaApagada,
+              }}
+            >
+              {pill.word}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * ⚠️⚠️ THE PICKER — A CENTRED WINDOW WITH ITS OWN SCRIM, AND IT WAS A BOTTOM
+ * SHEET UNTIL 2026-09-25. The owner: *"show a small menu that let's you pick the
+ * Proveedor, the list can be short or long so adapt it, I'm thinking of a small
+ * window with a scrim."*
+ *
+ * ⚠️ A WINDOW AND NOT A SHEET, AND THE DIFFERENCE IS WHAT IT IS FOR. A bottom
+ * sheet is a drawer on the surface behind it — the basket is that, correctly. This
+ * asks a question the screen cannot proceed without, so it belongs in the middle
+ * where `Confirmacion` already puts one, and it has the same shape for that
+ * reason: a thumb that has learned one has learned the other.
+ *
+ * ⚠️⚠️ *"THE LIST CAN BE SHORT OR LONG SO ADAPT IT"* IS A `maxHeight` AND NOT A
+ * `height`, WHICH IS THE WHOLE OF IT. Three providers get a window three rows
+ * tall; thirty get a window that stops at 70% and scrolls. ⚠️ **This is the one
+ * place in this app where a card is NOT fixed**, and it is the opposite of the
+ * basket sheet's ruling on purpose: the basket is fixed so `Vaciar` and the slide
+ * never move, and nothing in here is a control a thumb reaches for blind.
+ *
+ * ⚠️ ONE TAP CONFIRMS. *"when confirming the Proveedor you can see the Catalog"* —
+ * and a second *Confirmar* button under a list of single-purpose rows is a tap
+ * §2.8's budget will not pay for, when the row itself already says what it does.
+ *
+ * ⚠️⚠️ THE GENERIC ROW IS FIRST AND CARRIES A SENTENCE. `providersFrom` promotes it
+ * (F6: a default she has to scroll to is not one) and the owner's own words are
+ * what the sentence says — *"a way to allow the user to make purchases from a
  * non-recurrent provider if he wants"* — because `Genérico` alone does not carry
  * that to a shopkeeper.
  *
- * ⚠️ THE CHOSEN ROW IS MARKED WITH A TICK **AND** A COLOUR, never a colour alone
+ * ⚠️ THE CHOSEN ROW IS MARKED WITH A TICK **AND** A FILL, never a colour alone
  * (`R11`), and never a bare glyph without the name beside it (C12.1).
+ *
+ * ⚠️ THE SCRIM DOES NOT DISMISS WHEN THIS IS THE OPENING QUESTION, and that is
+ * the one judgement in this component. Tapping past a window that exists because
+ * nothing has been chosen would land on a catalog priced against a provider she
+ * never picked — so on the way IN the only exits are the rows. Reopened from the
+ * drop-down there IS a previous answer, so the scrim closes it like any sheet.
  */
 function Proveedores({
   open,
   providers,
   chosen,
+  opening,
   onClose,
   onChoose,
 }: {
   open: boolean;
   providers: readonly Provider[];
   chosen: string | null;
+  /** Is this the question that opens the screen, or the drop-down reopened? */
+  opening: boolean;
   onClose: () => void;
   onChoose: (id: string) => void;
 }) {
   const { scale } = useDensity();
-  const insets = useSafeAreaInsets();
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
       <View style={{ flex: 1 }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.buy.pickClose}
-          onPress={onClose}
+        {opening ? (
+          <View
+            pointerEvents="none"
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              opacity: 0.4,
+              backgroundColor: PALETTE.velo,
+            }}
+          />
+        ) : (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={ES.buy.pickClose}
+            onPress={onClose}
+            style={{
+              position: 'absolute',
+              left: 0,
+              top: 0,
+              right: 0,
+              bottom: 0,
+              opacity: 0.4,
+              backgroundColor: PALETTE.velo,
+            }}
+          />
+        )}
+
+        <View
           style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.4,
-            backgroundColor: PALETTE.velo,
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: scale.space * 2,
           }}
-        />
-        <View style={{ flex: 1, justifyContent: 'flex-end' }}>
+        >
           <View
             style={{
-              maxHeight: '72%',
-              borderTopLeftRadius: scale.space,
-              borderTopRightRadius: scale.space,
+              width: '100%',
+              // ⚠️ `maxHeight` AND NOT `height` — see this component's header. And
+              // no `maxWidth`: `R6`, and the gate caught that once on Vender. A cap
+              // in points is a size `Letra grande` cannot change; the wrapper's own
+              // padding keeps the window off the edges, and that scales.
+              maxHeight: '70%',
+              borderRadius: scale.space,
               backgroundColor: PALETTE.fondo,
-              paddingBottom: insets.bottom,
+              overflow: 'hidden',
             }}
           >
             <View
               style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                gap: scale.rowGap / 2,
                 paddingHorizontal: scale.space,
                 paddingVertical: scale.space,
                 borderBottomWidth: 1,
                 borderBottomColor: PALETTE.linea,
               }}
             >
-              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-                {ES.buy.pickProvider}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={ES.buy.pickClose}
-                onPress={onClose}
+              <View
                 style={{
-                  minHeight: scale.tapTarget,
-                  justifyContent: 'center',
-                  paddingHorizontal: scale.rowGap,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: scale.rowGap,
                 }}
               >
-                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-                  {ES.buy.pickClose}
+                <Text
+                  style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}
+                >
+                  {opening ? ES.buy.pickFirst : ES.buy.pickProvider}
                 </Text>
-              </Pressable>
+                {/* ⚠️ NO WAY OUT ON THE WAY IN — see the header. Nothing has been
+                    chosen yet, so `Cerrar` would leave the screen priced against a
+                    provider nobody picked. */}
+                {opening ? null : (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={ES.buy.pickClose}
+                    onPress={onClose}
+                    style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+                  >
+                    <Text
+                      style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}
+                    >
+                      {ES.buy.pickClose}
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+              {/* ⚠️ IT SAYS WHY IT IS IN THE WAY, and only on the way in: a window
+                  she opened herself needs no explanation. */}
+              {opening ? (
+                <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+                  {ES.buy.pickWhy}
+                </Text>
+              ) : null}
             </View>
 
             <FlatList
               data={providers}
               keyExtractor={(one) => one.id}
               ItemSeparatorComponent={Separador}
+              ListEmptyComponent={<Vacio line={ES.buy.loadingProviders} />}
               renderItem={({ item }) => {
                 const here = item.id === chosen;
                 return (
@@ -1108,7 +1319,7 @@ function Barra({
                 word={ES.buy.slide.word}
                 label={ES.buy.slide.label}
                 onCommit={onCommit}
-                onOpen={onOpen}
+                onTap={onOpen}
               />
             </View>
           ) : (
@@ -1302,13 +1513,7 @@ function Carrito({
             />
 
             {rows.length === 0 ? null : (
-              <Vaciar
-                canBuy={canBuy}
-                missing={missing}
-                onCommit={onCommit}
-                onAsk={onEmpty}
-                onOpen={onClose}
-              />
+              <Vaciar canBuy={canBuy} missing={missing} onCommit={onCommit} onAsk={onEmpty} />
             )}
           </View>
         </KeyboardAvoidingView>
@@ -1480,15 +1685,11 @@ function Renglon({
 function Vaciar({
   onAsk,
   onCommit,
-  onOpen,
   canBuy,
   missing,
 }: {
   onAsk: () => void;
   onCommit: () => void;
-  /** ⚠️ A TAP ON THE TRACK INSIDE THE SHEET CLOSES IT, because the basket it
-   *  would open is already open — the same gesture, read where it is. */
-  onOpen: () => void;
   canBuy: boolean;
   missing: number;
 }) {
@@ -1519,12 +1720,15 @@ function Vaciar({
 
       {canBuy ? (
         <View style={{ flex: 1 }}>
+          {/* ⚠️⚠️ NO `onTap`, AND THAT IS THE 2026-09-25 RULING. It shipped as
+              `onOpen={onClose}` — a tap on the track CLOSED the review screen — and
+              he refused it: *"when a carrito is open … do not close the carrito."*
+              The `Deslizador` still nudges, so the touch is answered. */}
           <Deslizador
             compact
             word={ES.buy.slide.word}
-            label={ES.buy.slide.label}
+            label={ES.buy.slide.labelInCart}
             onCommit={onCommit}
-            onOpen={onOpen}
           />
         </View>
       ) : (

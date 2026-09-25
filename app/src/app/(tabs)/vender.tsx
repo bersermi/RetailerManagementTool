@@ -30,6 +30,7 @@ import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { Deslizador } from '@/ui/Deslizador';
 import { Separador } from '@/ui/Separador';
+import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
@@ -173,6 +174,30 @@ import { Vacio } from '@/ui/Vacio';
 // of them were byte-identical copies, and `Vacio`'s three copies had already
 // drifted apart. **None was invented.**
 // ============================================================================
+
+/**
+ * The bar carrying *Listo* above the quantity pad.
+ *
+ * ⚠️⚠️ ADDED 2026-09-25, AND VENDER HAD NO WAY OFF THE KEYPAD AT ALL UNTIL NOW.
+ * The owner, on his own phone: *"The numerical Keypad isn't easy to hide when
+ * you're done typing. Can we replace it with one that has the 'Hide' or 'Done'
+ * control?"* ⚠️ **`keyboardType="decimal-pad"` DRAWS NO RETURN KEY ON EITHER
+ * PLATFORM** — `nuevo.tsx` measured that — so the `returnKeyType="done"` this
+ * screen has always carried was inert, and `onSubmitEditing` could never fire.
+ * **The only exits were a tap elsewhere on the list or the keyboard's own
+ * dismiss, and on the screen he opens four hundred times a day that is not an
+ * exit.**
+ *
+ * ⚠️ IT SHIPPED FOR COMPRAR AND NOT FOR HERE, which is the half of `5g-ii` that
+ * was wrong: `TecladoListo` was extracted into `src/ui/` that day and wired to
+ * Comprar's two pads only. **A primitive built and not connected is the shape
+ * this repository refuses by name.**
+ *
+ * ⚠️ A CONSTANT AND NOT A LITERAL AT TWO CALL SITES: `InputAccessoryView` matches
+ * an input to a bar by STRING EQUALITY, so two spellings is a bar that renders
+ * and never appears with nothing to say why.
+ */
+const PAD_ID = 'wera.sell.pad';
 
 export default function Vender() {
   const { scale } = useDensity();
@@ -422,6 +447,12 @@ export default function Vender() {
       ) : null}
 
       <Vendido shown={sold} onDone={() => setSold(false)} />
+
+      {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
+          renders into the KEYBOARD rather than into the layout, so where it sits
+          in the tree does not matter — but mounting it inside a branch means the
+          bar vanishing exactly while a read is out. */}
+      <TecladoListo padId={PAD_ID} label={ES.counter.done} />
     </KeyboardAvoidingView>
   );
 }
@@ -510,7 +541,14 @@ function Fila({
         </View>
       </View>
 
-      <Cantidad entry={entry} base={base} factors={factors} kind="sell" onEdit={onEdit} />
+      <Cantidad
+        entry={entry}
+        base={base}
+        factors={factors}
+        kind="sell"
+        onEdit={onEdit}
+        padId={PAD_ID}
+      />
     </View>
   );
 }
@@ -665,7 +703,7 @@ function Barra({
                 word={ES.sell.slide.word}
                 label={ES.sell.slide.label}
                 onCommit={onCommit}
-                onOpen={onOpen}
+                onTap={onOpen}
               />
             </View>
           ) : null}
@@ -833,7 +871,7 @@ function Carrito({
                 />
 
                 {rows.length === 0 ? null : (
-                  <Vaciar canSell={canSell} onCommit={onCommit} onAsk={onEmpty} onOpen={onClose} />
+                  <Vaciar canSell={canSell} onCommit={onCommit} onAsk={onEmpty} />
                 )}
               </>
             </>
@@ -966,7 +1004,7 @@ function Renglon({
 
       {/* The controls, on their own line — see this component's header. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} kind="sell" />}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} kind="sell" padId={PAD_ID} />}
 
         {/* ⚠️ A WORD AND NOT A GLYPH, and the width is the reason as much as the
             clarity: an icon plus its word does not fit beside the stepper at
@@ -1014,14 +1052,10 @@ function Renglon({
 function Vaciar({
   onAsk,
   onCommit,
-  onOpen,
   canSell,
 }: {
   onAsk: () => void;
   onCommit: () => void;
-  /** ⚠️ A TAP ON THE TRACK INSIDE THE SHEET CLOSES IT, because the basket it
-   *  would open is already open — the same gesture, read where it is. */
-  onOpen: () => void;
   canSell: boolean;
 }) {
   const { scale } = useDensity();
@@ -1055,12 +1089,15 @@ function Vaciar({
           wider and the track is correspondingly shorter. */}
       {canSell ? (
         <View style={{ flex: 1 }}>
+          {/* ⚠️⚠️ NO `onTap`, AND THAT IS THE 2026-09-25 RULING. It shipped as
+              `onOpen={onClose}` — a tap on the track CLOSED the review screen — and
+              he refused it: *"when a carrito is open … do not close the carrito."*
+              The `Deslizador` still nudges, so the touch is answered. */}
           <Deslizador
             compact
             word={ES.sell.slide.word}
-            label={ES.sell.slide.label}
+            label={ES.sell.slide.labelInCart}
             onCommit={onCommit}
-            onOpen={onOpen}
           />
         </View>
       ) : null}

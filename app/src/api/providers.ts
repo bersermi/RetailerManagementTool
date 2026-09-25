@@ -75,7 +75,13 @@
 
 import { SCALE, formatDecimal } from '@tienda/money';
 
-import { priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
+import {
+  priceCentavos,
+  priceLabel,
+  searchTerm,
+  type CatalogEntry,
+  type UnitFactors,
+} from '@/api/catalog';
 import { pricePerBase } from '@/api/catalogWrite';
 import { ROLES, type Role } from '@/api/members';
 import type { Quotes } from '@/cart/cart';
@@ -117,9 +123,20 @@ export const PROVIDERS_KEY = ['providers', 'list'] as const;
  * the variant's `price_unit_code` today — she may have bought a case last month
  * and kilos this week — so it is OFFERED and never assumed. `memoryFor` keeps it
  * beside the figure rather than folding the two together.
+ *
+ * ⚠️⚠️ `last_purchased_at` WAS ADDED BY `5g-ii-c` AND IT IS NOT A NEW READ. The
+ * view has derived it since `0008` (*"so a manager asking 'why is it offering me
+ * this?' can be answered with a row rather than an explanation"*) and this app
+ * simply never asked. **It is what makes the owner's `Recientes` pill possible
+ * without a second query** — see `sortedForBuying`.
+ *
+ * ⚠️ IT IS READ AS A STRING AND NEVER PARSED. `occurred_at` is `timestamptz`, so
+ * PostgREST sends ISO-8601 — which sorts correctly as TEXT for any two instants
+ * at the same offset, and Postgres renders them all in UTC. **No `Date`, no
+ * `Intl`, nothing in `R10`'s unmeasured surface.**
  */
 export const MEMORY_COLUMNS =
-  'provider_id,variant_id,unit_price_net_per_base::text,last_qty_display_unit';
+  'provider_id,variant_id,unit_price_net_per_base::text,last_qty_display_unit,last_purchased_at';
 
 /** The view, spelled once (`R13`). */
 export const MEMORY_TABLE = 'provider_price_memory';
@@ -154,6 +171,8 @@ export interface MemoryRow {
   /** Net, per BASE unit — a decimal string at scale 6. See `MEMORY_COLUMNS`. */
   readonly unit_price_net_per_base: string;
   readonly last_qty_display_unit: string | null;
+  /** ISO-8601, as PostgREST sends a `timestamptz`. Compared as text, never parsed. */
+  readonly last_purchased_at: string | null;
 }
 
 /** One entry of the header's picker, with no rendering in it. */
@@ -475,4 +494,115 @@ export function costNote(state: MemoryState, remembered: Memory | null): CostNot
   if (state === 'remembered') return remembered === null ? null : 'last-paid';
   if (state === 'new-pairing') return 'new-pairing';
   return null;
+}
+
+// ----------------------------------------------------------------------------
+// HOW THE CATALOG IS ORDERED ON COMPRAR — the owner's pills, 2026-09-25
+// ----------------------------------------------------------------------------
+
+/**
+ * The two orders the owner asked for: *"the preselected sorter is `Recientes`
+ * but you can also pick `A-Z`."*
+ *
+ * ⚠️ TWO AND NOT THREE. He also said the pills are *"hidden when typing to
+ * search"*, which is a third order — relevance — that `search` already owns and
+ * this type deliberately does not name.
+ */
+export type CatalogSort = 'recent' | 'az';
+
+/** What Comprar opens on. His word: `Recientes`. */
+export const DEFAULT_SORT: CatalogSort = 'recent';
+
+/**
+ * When this provider last sold the shop each variant, keyed by variant id.
+ *
+ * ⚠️ ONE PROVIDER, LIKE EVERYTHING ELSE IN THIS MODULE (C3.11, §2.8). Rows for
+ * another provider are dropped rather than trusted, which is `quotesFor`'s own
+ * belt-and-braces and for its reason: the moment a cache key or a filter slips,
+ * nothing else in this app would notice.
+ */
+export function lastPurchasedFor(
+  rows: readonly MemoryRow[] | null | undefined,
+  providerId: string | null,
+): Readonly<Record<string, string>> {
+  if (providerId === null) return {};
+  const when: Record<string, string> = {};
+  for (const row of rows ?? []) {
+    if (row.provider_id !== providerId) continue;
+    if (typeof row.last_purchased_at !== 'string' || row.last_purchased_at === '') continue;
+    when[row.variant_id] = row.last_purchased_at;
+  }
+  return when;
+}
+
+/**
+ * The catalog in the order the chosen pill asks for.
+ *
+ * ⚠️⚠️ `az` SORTS ON THE FOLDED NAME AND NOT ON `localeCompare`, AND THAT IS
+ * `R10` RATHER THAN A PREFERENCE. `Intl.Collator` is on the gate's BANNED list —
+ * *"a function on Android and unasked on iOS"* — and `localeCompare` is the same
+ * machinery behind a friendlier name. `searchTerm` (`@/api/catalog`) already
+ * lower-cases and strips accents for the search, so **`Ávila` sorts where a
+ * Spanish reader expects it, with no ICU anywhere on the path.**
+ *
+ * ⚠️ `recent` IS DESCENDING — newest first — and that is the only thing about it a
+ * mutation can catch. See the `undefined` branches in the body for the claim this
+ * function made about them that turned out to be false.
+ *
+ * ⚠️⚠️ `recent` IS *THIS PROVIDER'S* RECENCY, AND THE WART IS NAMED RATHER THAN
+ * DISCOVERED. A variant this provider has never sold the shop has no date, so it
+ * sorts AFTER every one that does — which means **on a brand-new provider the
+ * pill looks inert**, because every row ties and the order falls back to the one
+ * Postgres sent (`order=name`). ⚠️ The alternative is the shop's recency across
+ * every provider: it would make the pill live on a new provider and it costs a
+ * wider memory read, which gives up the rule `memoryKey` was written for — one
+ * cache key per provider, so no provider's prices can be served to another.
+ * **Not taken; `5g-ii-c`'s row records it for the owner to reverse in a sentence.**
+ *
+ * ⚠️ THE FALLBACK WITHIN A TIE IS THE INCOMING ORDER AND NOT A SECOND SORT, which
+ * is `providersFrom`'s recorded argument: a second sort in this runtime is a
+ * second answer to *which comes first*, decided by whatever collation Hermes has
+ * rather than the one Postgres applied.
+ *
+ * ⚠️ IT RETURNS A NEW ARRAY AND NEVER SORTS IN PLACE. The array it is handed is
+ * TanStack Query's cached value; sorting that would mutate the cache, and the
+ * next render would read an order nobody chose.
+ */
+export function sortedForBuying(
+  entries: readonly CatalogEntry[],
+  sort: CatalogSort,
+  when: Readonly<Record<string, string>>,
+): readonly CatalogEntry[] {
+  const at = entries.map((entry, index) => ({ entry, index }));
+  if (sort === 'az') {
+    at.sort((a, b) => {
+      const an = searchTerm(a.entry.name);
+      const bn = searchTerm(b.entry.name);
+      if (an < bn) return -1;
+      if (an > bn) return 1;
+      return a.index - b.index;
+    });
+    return at.map((one) => one.entry);
+  }
+  at.sort((a, b) => {
+    const aw = when[a.entry.id];
+    const bw = when[b.entry.id];
+    // ⚠️⚠️ A VARIANT THIS PROVIDER HAS NEVER SOLD SINKS, AND THE EXPLICIT BRANCHES
+    // ARE FOR CLARITY RATHER THAN FOR CORRECTNESS — which is a correction to what
+    // this comment said first. It claimed `'' < '2026-…'` would float every unbought
+    // product; **under a DESCENDING compare an empty string is the oldest instant,
+    // so it sinks either way.** A falsification replacing these three lines with
+    // `aw ?? ''` left all 58 assertions green, which is how the overstatement was
+    // caught. ⚠️ **The real trap is the DIRECTION**, and that has its own assertion.
+    // ⚠️ They stay because they would become load-bearing the moment anybody adds an
+    // ascending order, and because *absent* and *the beginning of time* are not the
+    // same fact even where they sort the same.
+    if (aw === undefined && bw === undefined) return a.index - b.index;
+    if (aw === undefined) return 1;
+    if (bw === undefined) return -1;
+    if (aw > bw) return -1;
+    if (aw < bw) return 1;
+    return a.index - b.index;
+  });
+  return at.map((one) => one.entry);
 }

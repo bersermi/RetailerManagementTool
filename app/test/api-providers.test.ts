@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEFAULT_SORT,
   MEMORY_COLUMNS,
   MEMORY_PROVIDER_COLUMN,
   MEMORY_TABLE,
@@ -13,15 +14,17 @@ import {
   canReadMemory,
   costNote,
   costShown,
+  lastPurchasedFor,
   memoryState,
   providerById,
+  sortedForBuying,
   providersFrom,
   quotesFor,
   typedPerBase,
   type MemoryRow,
   type ProviderRow,
 } from '@/api/providers';
-import type { UnitFactors } from '@/api/catalog';
+import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 
 // ============================================================================
 // WHO THE SHOP BUYS FROM, AND WHAT THEY CHARGED. Plan task `5g-i`.
@@ -56,6 +59,7 @@ function memory(over: Partial<MemoryRow> = {}): MemoryRow {
     variant_id: 'v-1',
     unit_price_net_per_base: '0.018000',
     last_qty_display_unit: 'kg',
+    last_purchased_at: '2026-09-20T10:00:00+00:00',
     ...over,
   };
 }
@@ -431,5 +435,118 @@ describe('which sentence goes under the cost box', () => {
   // as *first time* would hide it behind a legitimate-looking sentence.
   it('falls silent rather than claiming a first time it cannot support', () => {
     expect(costNote('remembered', null)).toBeNull();
+  });
+});
+
+// ============================================================================
+// THE ORDER COMPRAR'S CATALOG IS DRAWN IN. Plan task `5g-ii-c`, off the owner's
+// own round on his phone: *"the preselected sorter is Recientes but you can also
+// pick A-Z."*
+//
+// ⚠️ THE PILLS THEMSELVES ARE RENDERING AND `R9` FENCES THEM TO HIS PHONE. What
+// is here is the only part with a right answer: which row comes first.
+// ============================================================================
+
+function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
+  return {
+    id: 'v-1',
+    name: 'Manzana',
+    familyId: 'f-1',
+    familyName: 'Fruta',
+    priceUnit: 'kg',
+    baseUnit: 'g',
+    centavos: 1800,
+    perBase: '0.018000',
+    price: '$18.00 / kg',
+    initials: 'MA',
+    term: 'manzana fruta',
+    ...over,
+  };
+}
+
+describe('the order Comprar draws the catalog in', () => {
+  const A = entry({ id: 'a', name: 'Zanahoria' });
+  const B = entry({ id: 'b', name: 'Ávila queso' });
+  const C = entry({ id: 'c', name: 'manzana' });
+  const all = [A, B, C] as const;
+
+  it('opens on Recientes, the word the owner chose', () => {
+    expect(DEFAULT_SORT).toBe('recent');
+  });
+
+  // ⚠️⚠️ FOLDED, NOT `localeCompare` — `R10` bans `Intl.Collator` outright ("a
+  // function on Android and unasked on iOS"), and `localeCompare` is the same
+  // machinery behind a friendlier name. `searchTerm` strips the accent, so `Ávila`
+  // sorts where a Spanish reader expects it and no ICU is on the path.
+  it('sorts A-Z on the folded name, so an accent does not sort last', () => {
+    expect(sortedForBuying(all, 'az', {}).map((e) => e.id)).toEqual(['b', 'c', 'a']);
+  });
+
+  // ⚠️ AND CASE DOES NOT DECIDE IT EITHER: a raw `<` would put every capital
+  // before every lower-case letter, so `Zanahoria` would beat `manzana`.
+  it('sorts A-Z without case deciding it', () => {
+    const ids = sortedForBuying([A, C] as const, 'az', {}).map((e) => e.id);
+    expect(ids).toEqual(['c', 'a']);
+  });
+
+  it('sorts Recientes by what this provider sold last, newest first', () => {
+    const when = { a: '2026-09-01T00:00:00+00:00', c: '2026-09-20T00:00:00+00:00' };
+    expect(sortedForBuying(all, 'recent', when).map((e) => e.id)).toEqual(['c', 'a', 'b']);
+  });
+
+  // ⚠️⚠️ THIS ASSERTION IS WEAKER THAN IT LOOKS AND THE COMMENT SAYS SO, because a
+  // falsification proved it. It was written to catch *a missing date treated as an
+  // empty string*; replacing the `undefined` branches with `aw ?? ''` left it — and
+  // every other assertion here — GREEN, because under a descending compare an empty
+  // string is the oldest instant and sinks anyway. **What it does hold is the
+  // OUTCOME**: an unbought product ends up last. What it cannot see is which of two
+  // correct implementations produced that.
+  it('sinks a product this provider has never sold, never floats it', () => {
+    const when = { a: '2026-09-01T00:00:00+00:00' };
+    expect(sortedForBuying(all, 'recent', when).map((e) => e.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  // ⚠️ THE WART, ASSERTED SO IT IS A KNOWN SHAPE RATHER THAN A SURPRISE: on a
+  // brand-new provider nothing has a date, every row ties, and the order falls
+  // back to the one Postgres sent. `5g-ii-c`'s row records the alternative.
+  it('falls back to the incoming order on a provider with no history at all', () => {
+    expect(sortedForBuying(all, 'recent', {}).map((e) => e.id)).toEqual(['a', 'b', 'c']);
+  });
+
+  // ⚠️ IT NEVER SORTS IN PLACE. The array handed in is TanStack Query's cached
+  // value, and sorting that would mutate the cache — the next render would read an
+  // order nobody chose.
+  it('leaves the array it was given alone', () => {
+    const given = [A, B, C];
+    sortedForBuying(given, 'az', {});
+    expect(given.map((e) => e.id)).toEqual(['a', 'b', 'c']);
+  });
+});
+
+describe('when this provider last sold each product', () => {
+  it('keys the date by variant, for one provider only', () => {
+    const rows = [
+      memory({ provider_id: 'p-1', variant_id: 'v-1', last_purchased_at: '2026-09-20T00:00:00+00:00' }),
+      memory({ provider_id: 'p-2', variant_id: 'v-2', last_purchased_at: '2026-09-21T00:00:00+00:00' }),
+    ];
+    expect(lastPurchasedFor(rows, 'p-1')).toEqual({ 'v-1': '2026-09-20T00:00:00+00:00' });
+  });
+
+  // ⚠️ A ROW THE VIEW SENT WITH NO DATE IS NOT A KEY AT ALL, because `sortedForBuying`
+  // distinguishes *absent* from *old* and an empty string would read as the oldest
+  // possible instant.
+  it('drops a row carrying no date rather than keying it empty', () => {
+    expect(lastPurchasedFor([memory({ last_purchased_at: null })], 'p-1')).toEqual({});
+  });
+
+  it('is empty before a provider is chosen', () => {
+    expect(lastPurchasedFor([memory()], null)).toEqual({});
+  });
+
+  // ⚠️ THE COLUMN IS ASKED FOR, which is what makes all of the above reachable on a
+  // phone. `docs/checks/5g-i-purchase-contract.sh` is what proves the DATABASE still
+  // sends it; this asserts the app still asks.
+  it('asks the view for the date at all', () => {
+    expect(MEMORY_COLUMNS).toContain('last_purchased_at');
   });
 });
