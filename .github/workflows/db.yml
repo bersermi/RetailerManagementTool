@@ -316,6 +316,27 @@ on:
       - "docs/checks/5g-i-purchase-contract.sh"
       - "docs/checks/5g-i-purchase-contract-falsify.sh"
 
+      # ⚠️⚠️ `5g-iii` — THE PRICE SERIES BEHIND `Costos`, AND IT IS HERE FOR ONE
+      # ASSERTION NO OTHER INSTRUMENT CAN MAKE: that PostgREST really sorts the
+      # PARENT by an embedded column. `app/src/api/costs.ts` spells the order as
+      # `purchase(occurred_at)`; the tempting alternative,
+      # `.order('occurred_at', { referencedTable: 'purchase' })`, sets the query
+      # key `purchase.order` and sorts the embedded row INSIDE each parent —
+      # which on a to-one embed is nothing at all. **200, typechecked, and the
+      # chart's points left in planner order**, redrawn differently on a re-plan
+      # with nothing going red. A node suite can only read the string.
+      # ⚠️ It also proves the embed resolves over a COMPOSITE foreign key
+      # (`purchase_line_header_fk` is three columns), that the `::text` cast is
+      # still there — measured off the WIRE, because without it the price is a
+      # double and `parseDecimal` refuses one — and that BOTH halves of a void
+      # come back, so dropping them is provably the client's job.
+      # ⚠️ And that §2.9's own `product_purchases_daily` still has no
+      # `provider_id`, which is the whole reason this read goes to
+      # `purchase_line`: the day somebody widens that view, this goes red and
+      # says the decision can be revisited.
+      - "docs/checks/5g-iii-costs-contract.sh"
+      - "docs/checks/5g-iii-costs-contract-falsify.sh"
+
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
   group: db-${{ github.ref }}
@@ -487,6 +508,25 @@ jobs:
       # runs on every exit path.
       - name: Contract — can the purchase check still fail (its own eleven fixtures)
         run: bash docs/checks/5g-i-purchase-contract-falsify.sh
+
+      # ⚠️⚠️ THE ONLY THING ANYWHERE THAT CAN SEE A SORT SPELLING WHICH IS A
+      # SILENT NO-OP. See the path filter above for why that matters. It drives
+      # the right spelling AND the wrong one in the same run, so it does not
+      # merely confirm the right answer — it exhibits the wrong one.
+      - name: Contract — does app/src/api/costs.ts still describe the schema (plan 5g-iii)
+        run: bash docs/checks/5g-iii-costs-contract.sh
+
+      # ⚠️ Ten fixtures: two green controls (one at each end, so the last one
+      # proves the policy restore took), seven mutated copies of the app's own
+      # contract module, and one that puts back the manager fence `0040`
+      # removed — because a policy that allows less breaks no test and a policy
+      # that allows more breaks no test either. ⚠️⚠️ Its OWN first run found three
+      # defects in the check rather than in the app, which is recorded in its
+      # header: one fixture went green, one was red for the wrong reason, and one
+      # was vacuous and is deleted. ⚠️ The restore is in a `trap` on every exit
+      # path, and it is read out of `pg_policies` rather than remembered.
+      - name: Contract — can the costs check still fail (its own ten fixtures)
+        run: bash docs/checks/5g-iii-costs-contract-falsify.sh
 
       - name: Stop
         if: always()
