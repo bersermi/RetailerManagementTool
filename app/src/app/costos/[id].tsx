@@ -98,8 +98,12 @@ import { Vacio } from '@/ui/Vacio';
 // Whether a 160 pt plot is a *small line chart* or a smear; whether five lines
 // in a shop's worth of suppliers reads as information or as spaghetti; whether
 // the matrix's columns are scrollable in a way a thumb discovers; whether a PDF
-// rendered by a web view on a five-year-old Android looks like this screen at
-// all. **The instrument is the owner's phone.** The half that is checkable —
+// rendered by a web view on a five-year-old Android is *nice*. ⚠️⚠️ **AND THAT
+// LAST ONE IS NOT HYPOTHETICAL — IT IS THE ONE THIS SCREEN ALREADY GOT WRONG.**
+// `5g-iii` shipped a chart inside the shared document with twenty-two green
+// assertions over it, and the owner's answer from his own phone was *"The Chart
+// doesn't survive the Web view."* `5g-iii-a` made the document a table.
+// **The instrument is the owner's phone.** The half that is checkable —
 // every price, every date, every state, the geometry and the whole document —
 // is in `@/api/costs` and `@/export/costsPdf` on purpose, and
 // `docs/checks/5g-iii-costs-contract.sh` puts the read in front of a real
@@ -331,12 +335,15 @@ function Grafica({ costs }: { costs: Costs }) {
 /**
  * One provider's dots and the runs between them.
  *
- * ⚠️⚠️ THE Y FLIP HAPPENS HERE, ONCE. `plotted` answers in the coordinates a
- * PERSON means — origin bottom-left, `y` rising with price — and both React
- * Native and CSS measure `top` downwards. So each `y` becomes `1 - y` on this
- * line and on the matching line in `@/export/costsPdf`, and never in `plotted`:
- * flipping there would force whichever renderer wanted the human orientation to
- * undo it, which is the same bug with more steps.
+ * ⚠️⚠️ THE Y FLIP HAPPENS HERE, ONCE — AND AS OF 2026-09-25 *HERE* IS THE ONLY
+ * PLACE IT HAPPENS. `plotted` answers in the coordinates a PERSON means — origin
+ * bottom-left, `y` rising with price — and React Native measures `top` downwards.
+ * So each `y` becomes `1 - y` on this line, and never in `plotted`: flipping
+ * there would force whichever renderer wanted the human orientation to undo it,
+ * which is the same bug with more steps. ⚠️ `@/export/costsPdf` used to make the
+ * same subtraction on its own line; `5g-iii-a` removed that renderer when the
+ * owner turned the shared document into a table, so this screen is now the only
+ * thing in the app that draws this chart at all.
  *
  * ⚠️ `atan2` AND NOT `atan(dy / dx)`: two deliveries at the identical instant
  * give `dx === 0`, and `atan` of infinity is a right angle drawn by accident.
@@ -494,9 +501,17 @@ function Leyenda({ series }: { series: readonly CostSeries[] }) {
  * ⚠️ IT SCROLLS SIDEWAYS AND THE PROVIDER COLUMN DOES NOT PIN, which is a named
  * limitation rather than an oversight: a pinned first column in React Native is
  * two synchronised `ScrollView`s, and a shop with more than a handful of
- * delivery days has a `5g-iii` follow-up rather than a clever component. **What
- * a phone does with twelve columns is an `R9` reading**, and the PDF — where the
- * whole table is laid out at A4 width — is the answer for a long history.
+ * delivery days has a follow-up rather than a clever component. **What a phone
+ * does with twelve columns is an `R9` reading**, and the PDF is the answer for a
+ * long history.
+ *
+ * ⚠️⚠️ AND WHAT THE PDF DOES WITH TWELVE COLUMNS IS NOT WHAT THIS COMMENT SAID
+ * UNTIL 2026-09-25 — *"the whole table is laid out at A4 width"* was wrong twice.
+ * `expo-print` renders at **612 × 792, US Letter at 72 PPI**, which is 564 px of
+ * page after the margins; and `5g-iii-a` cuts the days into blocks of six so no
+ * table runs off it. **Two media, two answers, one set of rows** — a phone
+ * scrolls sideways because it can, and paper repeats the stub because it
+ * cannot.
  *
  * ⚠️ A CELL WITH NO DELIVERY IS C3.12's DASH AND NEVER `$0.00`. *A gap is not a
  * zero* — `0032` says it about a day spine, `0008` says it about an absent
@@ -614,7 +629,7 @@ function Celda({ text, head = false }: { text: string; head?: boolean }) {
  * nothing was lost and the rows are still on the screen behind the message.
  *
  * ⚠️ THE CONTROL IS DISABLED WHILE THE FILE IS BEING MADE AND SAYS SO. On a
- * low-end Android a web view rendering an A4 page is not instant, and a second
+ * low-end Android a web view rendering a US Letter page is not instant, and a second
  * tap would start a second render.
  *
  * ⚠️ `new Date()` IS READ HERE AND PASSED IN, which is `R3` observed at the

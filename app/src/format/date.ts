@@ -132,3 +132,64 @@ export function formatWaiting(iso: string | null | undefined, now: Date = new Da
   if (days === 1) return ES.dates.waiting.yesterday;
   return ES.dates.waiting.daysAgo(days);
 }
+
+/**
+ * A LEDGER DAY, SPLIT INTO THE THREE PIECES A TABLE HEADING PUTS ON THREE
+ * LINES — `24`, `septiembre`, `2026`. Plan task `5g-iii-a`.
+ *
+ * ⚠️⚠️ IT TAKES A `YYYY-MM-DD` STRING AND NEVER TOUCHES `Date`, AND THAT IS THE
+ * WHOLE REASON IT IS A SECOND FUNCTION RATHER THAN A FLAG ON `formatExpiry`.
+ * `CostPoint.day` is `occurred_at.slice(0, 10)` — a label Postgres already chose,
+ * in UTC, for a row the database already assigned to a day. Handing it to
+ * `new Date(…)` reinterprets it: `new Date('2026-09-24').getDate()` is **23** on
+ * this project's Mac (UTC−6) and **24** on `ubuntu-latest` (UTC), **measured, not
+ * argued** — so a `Date` here would print a column heading that disagrees with
+ * the ledger, for a reader holding a PDF who can check neither.
+ * ⚠️ `formatExpiry` above wants the opposite and says so: it renders a
+ * `timestamptz` for the person holding the phone, so the DEVICE's timezone is
+ * right there and wrong here. **Two values, two rules, one file.**
+ *
+ * ⚠️ IT IS ALSO WHY THIS IS TZ-INDEPENDENT BY CONSTRUCTION RATHER THAN BY A
+ * PINNED `TZ`. A suite that fixed `process.env.TZ` would prove the assertion and
+ * not the code — the shape [[local-time-tests-need-a-pinned-tz]] records, met by
+ * removing the dependency instead of by pinning the machine.
+ *
+ * ⚠️ THE MONTH NAME IS `ES.dates.months`, WHICH ALREADY EXISTED. `R4` would
+ * require it anyway, and the point worth writing down is that this needed no new
+ * Spanish word at all: the app has one answer to *what is this month called* and
+ * a second table of abbreviations would have been a second one.
+ *
+ * ⚠️ THE DAY IS NOT ZERO-PADDED — `formatExpiry`'s rule, for its reason: nobody
+ * writes *el 05 de mayo*. The YEAR is returned as the four characters the ledger
+ * sent, untouched.
+ *
+ * ⚠️ `null` FOR ANYTHING IT CANNOT READ, and the caller falls back to the raw
+ * label rather than to a rendered `NaN` — `formatExpiry`'s rule again.
+ */
+export interface LedgerDay {
+  /** The day of the month, unpadded, as a string ready to print. */
+  readonly day: string;
+  /** The month's own name, from `ES.dates.months`. */
+  readonly month: string;
+  /** Four characters, verbatim from the ledger's label. */
+  readonly year: string;
+}
+
+export function formatLedgerDay(day: string | null | undefined): LedgerDay | null {
+  if (typeof day !== 'string') return null;
+  // ⚠️ THE SHAPE IS CHECKED BEFORE ANY SLICE IS TRUSTED. `'2026-9-4'` slices
+  // into pieces that all look plausible and name the wrong month.
+  if (!/^\d{4}-\d{2}-\d{2}/.test(day)) return null;
+
+  const year = day.slice(0, 4);
+  const month = Number(day.slice(5, 7));
+  const numeral = Number(day.slice(8, 10));
+
+  const name = ES.dates.months[month - 1];
+  if (name === undefined) return null;
+  // ⚠️ A ZERO MONTH INDEXES `months[-1]`, which is `undefined` and caught above;
+  // a zero DAY indexes nothing, so it is refused here on its own.
+  if (numeral < 1 || numeral > 31) return null;
+
+  return { day: String(numeral), month: name, year };
+}

@@ -197,10 +197,14 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
 // five members in `PALETTE_ROLES` that no screen can ever pick by name, and
 // would make the table's own design sentence false.
 //
-// `Costos` is the only reader (`app/src/app/costos/[id].tsx` and
-// `@/export/costsPdf`), and `@/api/costs` hands it an INDEX — `CostSeries.hue` —
-// so no data module ever holds a colour. `R11` skips this file and only this
-// file, which is why the ring belongs here and not beside the screen.
+// ⚠️ `Costos`'s SCREEN is the only reader — `app/src/app/costos/[id].tsx`, and
+// as of 2026-09-25 nothing else. `@/export/costsPdf` read it too until `5g-iii-a`
+// took the chart out of the shared document on the owner's ruling; the PDF is a
+// table now and `app/test/costs-pdf.test.ts` asserts that **not one of these
+// hexes appears in it**. `@/api/costs` hands the screen an INDEX —
+// `CostSeries.hue` — so no data module ever holds a colour. `R11` skips this file
+// and only this file, which is why the ring belongs here and not beside the
+// screen.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ WHAT THESE COLOURS CANNOT DO, MEASURED AND SAID OUT LOUD

@@ -15,10 +15,15 @@
 // arithmetic is the half that can be wrong in a way nobody sees — a y-axis that
 // silently clips the highest price still draws a perfectly plausible line. The
 // screen multiplies fractions by pixels it has measured and decides nothing.
-// ⚠️ It is also what lets the PDF be the SAME chart rather than a second drawing
-// of it: `@/export/costsPdf` calls this function and emits `<div>`s where the
-// screen emits `<View>`s. Two geometries for one picture is how the file a
-// shopkeeper shares stops matching the screen she shared it from.
+// ⚠️⚠️ AND `plotted` NOW HAS EXACTLY ONE READER, WHICH IT DID NOT WHEN THIS
+// HEADER WAS WRITTEN. Until 2026-09-25 `@/export/costsPdf` called it too and
+// emitted `<div>`s where the screen emits `<View>`s, so one geometry served both
+// and neither could drift. **The owner then took the chart out of the document**
+// — *"A chart in PDF doesn't make a lot of sense"* — and `5g-iii-a` removed that
+// renderer. The PDF is a TABLE built from `matrixOf`, the chart is the screen's
+// alone, and the two can no longer disagree about a picture because only one of
+// them draws one. ⚠️ The argument above still stands for the day a second
+// renderer appears: geometry lives here, not in whatever draws it.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ §2.9's PRICE-OVER-TIME VIEW IS APPLIED AND IT CANNOT SERVE THIS SCREEN
@@ -628,6 +633,22 @@ export interface MatrixCell {
 export interface MatrixRow {
   readonly providerId: string;
   readonly name: string;
+  /**
+   * ⚠️⚠️ CARRIED SO A RENDERER WITH NO LEGEND CAN STILL SAY WHICH ROW IS THE
+   * MARKET — ADDED 2026-09-25 BY `5g-iii-a`. The owner took the chart out of the
+   * PDF, and the legend went with it: a legend exists to pair a HUE with a name,
+   * and there are no hues left in that document. So `ES.costs.generic`
+   * (*compra directa*) has to ride on the row's own stub instead.
+   *
+   * ⚠️ IT IS A FIELD AND NOT A LOOKUP AT THE CALL SITE FOR ONE REASON: reading
+   * `isGeneric` off `costs.series` by INDEX pairs two arrays positionally, and
+   * this function's order is an implementation detail somebody may reasonably
+   * change. A field pairs them structurally.
+   *
+   * ⚠️ It is `CostSeries.isGeneric` verbatim, never a second opinion, and it is
+   * still **not a sort key** — `costsFrom`'s header records why.
+   */
+  readonly isGeneric: boolean;
   readonly cells: readonly MatrixCell[];
 }
 
@@ -638,6 +659,7 @@ export function matrixOf(costs: Costs): readonly MatrixRow[] {
     return {
       providerId: one.providerId,
       name: one.name,
+      isGeneric: one.isGeneric,
       cells: costs.days.map((day) => ({ day, price: byDay.get(day) ?? null })),
     };
   });
