@@ -584,13 +584,46 @@ amendment — all off one letter of instruction.
 ⚠️⚠️ **THE SIZING WAS RIGHT ABOUT WHERE THE COST WAS AND WRONG ABOUT HOW MUCH OF IT A GREP WOULD
 FIND, WHICH IS THE FINDING WORTH KEEPING.** The row predicted two places — `05_location_isolation_reads.sql`
 and the purchase contract check — and a `grep` for `purchase_select` found three more in
-`supabase/checks/`. ⚠️⚠️ **FOUR MORE WERE FOUND ONLY BY RUNNING THE SUITES**, because they assert
-BEHAVIOUR and never name a policy: `0008`'s own suite (*"a STAFF member at loc_a1 sees zero rows"*),
+`supabase/checks/`. ⚠️⚠️ **FIVE MORE WERE FOUND ONLY BY RUNNING THE SUITES AND THE CHECKS**, because they assert
+BEHAVIOUR and never name a policy — and **the fifth was not a test at all but a defect** (see below): `0008`'s own suite (*"a STAFF member at loc_a1 sees zero rows"*),
 `0031` (*"a cashier reads ZERO purchase rows"*), `0032` (*"ZERO rows of the purchases view"*) and
 `0033` (*"1 040 ROWS OF ONE KIND"*). **A grep finds none of them, and each one went red the first time
 the migration was applied** — which is the best argument for behavioural checks this project has
 produced, and it is the reason the estimate's *"the invisible half"* was the right call even though
 it under-counted.
+
+⚠️⚠️⚠️ **AND CI FOUND THE REAL DEFECT, WHICH WAS NOT A TEST TO FLIP: `product_waste_daily` BEGAN
+TELLING AN EMPLEADA THE SHOP WASTES NOTHING.** `0011`'s view takes its numerator from
+`stock_movement` (still manager-gated) and its denominator from `purchase_line` (now member-level),
+so `security_invoker` inheritance started failing **OPEN**. ⚠️ **Measured on a reset database as the
+seed's cashier: 468 rows, `waste_cost_net` summing to 0 and `purchases_net` to $260,423.43** — the
+app stating that the shop bought a quarter of a million pesos of stock and threw away none of it.
+**A false sentence assembled from two true halves.**
+
+⚠️⚠️ **`0011` HAD WRITTEN DOWN WHY IT NEEDED NO PREDICATE, AND `0040` INVALIDATED THAT PREMISE IN ONE
+LINE:** *"NO `has_role` PREDICATE, AND THAT IS A DECISION, NOT AN OMISSION… Both aggregates here are
+gated at the source."* ✅ **So `0040` gives the view the predicate `0009` carries**, and it is in
+`0040` rather than in an `0041` **deliberately: splitting them would create a schema state in which
+that sentence is what the view says.** ⚠️ **The owner's ruling is untouched** — he traded the cost of
+a DELIVERY, not the cost of waste — and **a cashier read zero rows of this view before `0040` and
+reads zero after it.** What was repaired is a row that should never have appeared.
+
+⚠️⚠️ **THE BODY IS READ OUT OF THE CATALOG AND NOT RE-TYPED.** `0011`'s definition is eighty lines of
+two CTEs, a full outer join and twelve coalesced columns; a `create or replace view` that retyped it
+would be the transcription risk this repository names on every `create or replace`. **`pg_get_viewdef`
+is fetched and WRAPPED**, which makes the column names, order and types byte-identical by construction
+and means the migration cannot silently alter the arithmetic it is fencing.
+
+⚠️⚠️ **AND `0009` PREDICTED THE FIRST DRAFT'S FAILURE A MONTH IN ADVANCE, IN WRITING.** Section 4
+shipped at first with `has_role` alone and **`0011` went from 3 failures to 23**, because that file
+reads the view as `postgres` for all of its arithmetic. `0009`'s own margin view carries a second
+clause and explains it at length: *"`row_security_active` is false exactly for the callers RLS does not
+filter: the superuser, and `service_role`… gating them on `has_role` would only make the view LIE TO
+THEM… and every check in `supabase/checks/`, which runs as the superuser."* ✅ **The answer was already
+in the repository and was found by reading it rather than by reasoning it out twice.**
+⚠️ **`0011`'s three access checks and its `_waste_half_gated` fixture are inverted with it** — the
+fixture now demonstrates the gated-numerator shape, **which is the shape the view itself had for the
+minutes between section 1 and section 4**, and the numbers in it are the ones measured then.
 
 ⚠️ **THE MIGRATION IS `alter policy` AND NOT `drop`+`create`**, which cannot change the command or the
 roles by accident — asserted anyway (`1.6`), because *"it cannot"* is a claim about a statement I did
