@@ -20,6 +20,7 @@ import { parsePesos } from '@/api/catalogWrite';
 import { useCatalog, useMyRole, useProviders, useUnitFactors, useWorkspace } from '@/api/hooks';
 import {
   canReadMemory,
+  costNote,
   costShown,
   defaultProvider,
   memoryFor,
@@ -104,12 +105,14 @@ import { Vacio } from '@/ui/Vacio';
 // ⚠️⚠️ AND A FOURTH STATE THE ADR DOES NOT LIST, WHICH `5g-i` FOUND AND MEASURED:
 // `unreadable`. `provider_price_memory` is manager-and-above (`0003:558`) while
 // `record_purchase` fences nobody (`0018:165`), so a cashier reads **200 and an
-// empty array** — identical on the wire to a pairing that really is new. **This
-// screen renders the two the same and adds NO sentence**, which is the honest
-// default rather than a decision: she types the cost off the note, the delivery
-// records, and nothing on screen tells her anything false. ⚠️ **What she should
-// be TOLD, if anything, is the owner's to rule and it is parked in ⛔ DECISIONS
-// OWED** — inventing a sentence here is the one thing this file may not do.
+// empty array** — identical on the wire to a pairing that really is new.
+//
+// ⚠️⚠️ IT RENDERS AS AN EMPTY REQUIRED BOX WITH **NO SENTENCE AT ALL**, and that
+// is the owner's ruling of 2026-09-25 taking effect rather than a style choice:
+// *"Comprar should be for any role for now."* Once an Empleada may use this
+// screen, `Primera vez con este proveedor` is **false on every row her shop has
+// bought before** — see `Costo`, where the whole argument lives. `5g-ii` shipped
+// the other way and one sentence from him overturned it.
 //
 // ⚠️ `unknown` IS NOT DRAWN AS A MISSING COST. A read still in flight gets an
 // empty box with no marker and no sentence: *not back yet* must never render as
@@ -884,17 +887,48 @@ function Costo({
   };
 
   // ⚠️⚠️ THE SENTENCE UNDER THE BOX IS THE STATE, AND IT IS NEVER A COLOUR ALONE
-  // (`R11`). `remembered` gets where the figure came from; the middle state gets
-  // §2.8's own question in words; ⚠️ **`unreadable` gets the SAME sentence as
-  // `new-pairing` and nothing extra**, because what a cashier should be told is
-  // the owner's to rule and is parked — and ⚠️ `unknown` gets nothing at all,
-  // since *not back yet* must not read as *there is nothing*.
+  // (`R11`). `remembered` gets where the figure came from; `new-pairing` gets
+  // §2.8's own question in words; ⚠️ `unknown` gets nothing at all, since *not
+  // back yet* must not read as *there is nothing*.
   // ⚠️⚠️ AND NONE OF IT IS SAID ON A ROW NOBODY IS RECEIVING — see `live`.
-  const note = !live
-    ? null
-    : state === 'remembered' && remembered !== null
+  //
+  // ----------------------------------------------------------------------------
+  // ⚠️⚠️ `unreadable` IS SILENT, AND THAT CHANGED ON 2026-09-25 BECAUSE OF A RULING
+  // ----------------------------------------------------------------------------
+  // `5g-ii` shipped it rendering the SAME sentence as `new-pairing`, on the
+  // argument that a cashier must type the cost either way and nothing on screen
+  // would be false. ⚠️⚠️ **THE OWNER THEN RULED *"Comprar should be for any role
+  // for now"*, AND THAT MADE THE SENTENCE A LIE RATHER THAN A SIMPLIFICATION.**
+  //
+  // `provider_price_memory` is manager-and-above (`0003:558`), so an Empleada's
+  // read is **200 and an empty array on every row** — including rows this shop
+  // HAS bought from this provider many times. Telling her *Primera vez con este
+  // proveedor* there is the app asserting something it knows to be untrue, and
+  // the whole point of §2.8's three states is that a screen must not answer a
+  // question nobody asked.
+  //
+  // ⚠️ SO IT SAYS NOTHING, AND THE BOX IS STILL EMPTY AND REQUIRED — which is
+  // true for her: **the app genuinely cannot tell her what this cost.** Silence is
+  // the one rendering that is accurate for both halves of a state the screen
+  // cannot resolve.
+  //
+  // ⚠️ AND IT DOES NOT EXPLAIN THE FENCE TO HER EITHER. *"No puedes ver los
+  // precios anteriores"* is a role boundary she did not ask about and cannot
+  // change ([[users-dont-do-bookkeeping]]) — and it would be wrong on the rows
+  // that really are new, which nothing here can distinguish.
+  //
+  // ⚠️⚠️ WHAT IS STILL OPEN IS NOT THIS LINE: it is whether the VIEW should be
+  // widened so she gets the prefill at all. That is a migration and it puts every
+  // cost this shop has ever paid in front of a cashier, so it is in
+  // ⛔ DECISIONS OWED rather than taken here.
+  // ⚠️ THE CHOICE IS `costNote`'s AND THE WORDS ARE `ES.buy`'s — this file holds
+  // neither (`R3`, `R4`), which is what lets `app/test/api-providers.test.ts` pin
+  // the ruling above instead of a reviewer having to spot it in a ternary.
+  const which = live ? costNote(state, remembered) : null;
+  const note =
+    which === 'last-paid' && remembered !== null
       ? ES.buy.lastPaid(remembered.price)
-      : state === 'new-pairing' || state === 'unreadable'
+      : which === 'new-pairing'
         ? ES.buy.newPairing
         : null;
 
