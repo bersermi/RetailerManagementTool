@@ -237,6 +237,40 @@ jobs:
       - name: Conventions — can that gate still fail (its own fixtures)
         run: bash docs/checks/conventions-gate-falsify.sh
 
+  # ============================================================================
+  # ⚠️⚠️ SPLIT OUT OF THE `vitest` JOB ON 2026-09-25, BECAUSE THAT JOB WAS
+  # CANCELLED AT ITS OWN 10-MINUTE TIMEOUT — TWICE, ON CONSECUTIVE COMMITS.
+  # ============================================================================
+  # `5g-iii` took it from 9m28s to 10m15s and the cap did the rest: the run on
+  # PR #208 passed at 9m28s, **47 seconds of headroom**, and the very next commit
+  # crossed it. ⚠️ **Both cancellations landed on the LAST step** — the handbook
+  # falsifier — **so every assertion before it had already passed and the job
+  # still reported failure.** A cancelled job is not a red assertion, and telling
+  # them apart takes reading `--json jobs`; the tick says neither.
+  #
+  # ⚠️ IT IS A SPLIT AND NOT A RAISED TIMEOUT, WHICH IS THIS REPOSITORY'S OWN
+  # PRECEDENT: `db.yml`'s `5R-g` job was cancelled the same way and was SPLIT
+  # rather than given more minutes. A cap that moves every time the work grows is
+  # not a cap, and the thing it protects — a run somebody will actually wait for
+  # — is lost either way.
+  #
+  # ⚠️⚠️ AND THE SEAM IS FREE HERE, WHICH IS WHY IT IS THE RIGHT ONE: **not one
+  # document guard needs `node_modules`.** They are bash and python over
+  # `docs/`. So this job checks out and runs — no `setup-node`, no `npm ci` —
+  # and it takes the install off the critical path of the half that grew.
+  # ⚠️ The two halves also fail for different reasons: the job above says *the
+  # code is wrong*, and this one says *the documents disagree with each other*.
+  # Reading one tick for both is how a stale plan and a broken suite looked
+  # alike.
+  documents:
+    name: the documents still agree (plan + handbook)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+
       # ⚠️⚠️ THE TWO PLAN GUARDS, WIRED IN 2026-09-13 (plan task 5a-iv-c-1).
       #
       # They are not new — `5a-split-coverage.sh` has been catching real defects
