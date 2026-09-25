@@ -61,49 +61,59 @@ conversation and go again.
 
 ### Your main prompt
 
+⚠️ **Deliberately free of numbers.** An earlier version of this block said *"it is eleven
+checks"* and told an anecdote about a question that went missing — both true, both
+destined to rot in the one text you paste daily. **Anything countable now lives in the
+files, and the prompt points at them.**
+
 ```
 Read docs/PLAN.md and take the next open task.
 
-Start with `bash docs/checks/plan-handover.sh`. It names the next task, refuses
-one that is blocked on a question I owe you, and says if the plan has grown too
-big to read. It is eleven checks, not a summary.
+Start with `bash docs/checks/plan-handover.sh` — it names the next task and refuses
+one that is blocked on a question I owe you. Trust it over your own reading.
 
 Estimate difficulty first and write down what the estimate found. An M or an L is
 one sitting — build the whole row. Split only an XL, a row that is gated, or one
 whose mistakes would be invisible in half of it.
 
-Use graphify to find WHERE things are. For what we DECIDED, search the plan and
-its archive instead — grep the corpus. ADR-035 is authoritative: if the plan and
-the ADR disagree, stop and tell me rather than guessing.
+Use graphify to find WHERE things are; search the plan corpus for what we DECIDED.
+ADR-035 is authoritative — if it and the plan disagree, stop and tell me.
 
-Respect the gates. If a row says the decision is in the decisions block, open
-that block and read it — a question fell out of it once and no check noticed.
+Respect the gates. If a row says its decision sits in the decisions block, open the
+block and read it rather than trusting the row.
 
-When done, verify it properly and name the check that looked at it — not "the
-file exists", and not a green tick on a run that had nothing to do. If what you
-built is something only a person can see, say so plainly and tell me exactly what
-to look at on my phone, rather than calling it verified.
+Verify properly and name the check that looked at it — never "the file exists", and
+never a green tick on a run that had nothing to do. If only a person can judge it,
+say so and tell me exactly what to look at on my phone.
 
-If it merged a migration, deploy it: `supabase db push`, then
-`bash docs/checks/5R-f-schema-deployed.sh`. Merging changes no database.
+A merged migration is not a deployed one: `supabase db push`, then
+`bash docs/checks/5R-f-schema-deployed.sh`.
 
-Finish with what's next, what you decided on my behalf, and what you need from
-me. When you need something, recommend one option with your reasoning — not a
-menu. If the question is about what a shopkeeper actually does, walk me through
-the situations first rather than handing me a design.
+Any number you put in a document, take from the thing that runs — a test runner's
+tally, a job log, the database — never from a grep, and say where it came from. If
+you find a claim in the plan, CLAUDE.md or this handbook that is no longer true, fix
+it in the same PR and tell me which.
+
+Don't wait on me. If a decision is needed, park it in ⛔ DECISIONS OWED with a
+recommendation and take the next unblocked task.
+
+Finish with what's next, what you decided on my behalf, and what you need from me —
+one recommendation with your reasoning, not a menu. If the question is about what a
+shopkeeper actually does, walk me through the situations before showing me a design.
 ```
 
-⚠️ **Six of those nine paragraphs were added or rewritten because a session got it
-wrong first.** What each one is buying:
+⚠️ **Nearly every line is there because a session got it wrong first.** What each buys:
 
 | The line | Why it is there |
 |---|---|
-| `plan-handover.sh` **first** | The plan is 5,267 lines. The check reads it for you: it names the one row marked next, and it **refuses** to let a task blocked on you be taken. Reading for the next task by eye is how a blocked one gets built on a guess |
+| `plan-handover.sh` **first**, trusted over its own reading | The plan is thousands of lines. The check names the one row marked next and **refuses** a task blocked on you. Picking by eye is how a blocked row gets built on a guess |
 | **An M or an L is one sitting** | Your amendment of 2026-09-24 — *"we have enough usage and space to do it"*. The old rule split them to survive a context clear, which was a budget argument, and the budget changed |
-| **graphify for where, the plan for what we decided** | The map is structural: it finds files and functions fast and cannot tell you what a paragraph means. Asking it *"what did we decide about X"* wastes a session |
-| **Open the decisions block and read it** | ⚠️ **On 2026-09-25 a question of yours was lost.** It was struck out of its own table on 21 September with the words *"read it there, not here"* and never written into the block, and the block then emptied. No check can catch that — the guard checks the block's shape, not that a question belonging in it is present |
-| **Name the check, and admit what no check can see** | The rule the project rests on. ⚠️ **And its honest other half, learned on 2026-09-25: the PDF this app makes was green on every check and wrong on your phone**, because nothing in the repository can look at a rendered page. A session that cannot name a check has verified nothing; one that names a check for work only your eyes can judge is worse |
-| **If it merged a migration, deploy it** | ⚠️⚠️ **New on 2026-09-25, because merging is not deploying and this is the step that goes missing.** Two merged migrations were sitting undeployed when this was written — see *Where Claude is likely to be wrong* |
+| **graphify for where, the corpus for what we decided** | The map is structural: fast at finding a file or a function, useless on what a paragraph means. Asking it *"what did we decide about X"* wastes a session |
+| **Open the block, don't trust the row** | A question of yours was struck out of its own table with the words *"read it there, not here"* — and was never written where it pointed. No check can catch that: the guard tests the block's shape, not whether a question that belongs in it is present |
+| **Name the check — and admit what no check can see** | The rule the project rests on, plus its honest other half: the `Costos` PDF passed every check and was wrong on your phone, because nothing here can look at a rendered page. A session naming a check for work only your eyes can judge is worse than one naming none |
+| **A merged migration is not a deployed one** | The step that goes missing. It cost this project a day when the hosted database turned out to have no schema at all, and two migrations were sitting undeployed the day this line was written |
+| **Numbers from what runs; fix stale claims in the same PR** | Three counts were wrong in one day — jobs off the YAML, tests off a grep, migrations off the highest number. The second half is what stops this handbook drifting again between the times you read it |
+| **Don't wait on me** | The decisions block re-offers a parked question every session automatically, so a question never has to stop the work — and you answer when you are holding the phone, not when a session happens to be running |
 | **A recommendation, not a menu** | Yours, repeatedly. A list of options hands the decision back with extra reading attached |
 | **Walk me through the situations** | Yours, 2026-09-25: *"Let's address Area 6 with a back and forth set of simulations to get to the best option for this pilot."* It is now how the one open question gets answered |
 
