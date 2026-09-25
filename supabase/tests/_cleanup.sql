@@ -140,6 +140,15 @@ begin
   -- re-run instead of sitting beside it.
   drop function if exists public._src(text);
 
+  -- ⚠️ ADDED 2026-09-25 (task `5g-ii-b`), on the day the suite lands, and for the
+  -- reason the paragraph above gives: `0040`'s suite creates ONE helper of its own —
+  -- `_qual`, which returns a POLICY's applied predicate from `pg_policies`, so the
+  -- fence is read out of the catalog rather than out of the migration file
+  -- (ADR-035 §9). ⚠️ **It was found by a re-run dying on *"function _qual already
+  -- exists"*** rather than on the defect being injected — which is exactly the
+  -- failure `_as` is documented above for, hit a second time eleven days later.
+  drop function if exists public._qual(text, text);
+
   drop function if exists public._rep(uuid);
   drop function if exists public._pload(uuid, jsonb, timestamptz, boolean);
   drop function if exists public._pload_p(uuid, uuid, jsonb, timestamptz, boolean);

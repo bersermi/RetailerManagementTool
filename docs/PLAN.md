@@ -33,7 +33,6 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **ADR-035 §2.7's CAPABILITY MATRIX SAYS *See cost and margin — Staff: —*, AND YOUR RULING OF 2026-09-25 REVERSES IT. I need to know HOW FAR.** ⚠️⚠️ **THIS IS THE ONE CASE YOUR STANDING PROMPT NAMES — *"if the plan and the ADR disagree, stop and tell me rather than guessing"* — AND IT IS THE FIRST TIME A RULING HAS LANDED ON THAT MATRIX.** Your words: *"Empleada should be able to see the both the purchase records and the prices."* ⚠️ §2.7 does not merely omit this; **it argues the other way by name**: *"Cost visibility is a real commercial exposure in small retail, and separating it after the fact means rewriting every query."* **The reverse direction is cheap today and it is a one-way door in the commercial sense, not the technical one** — once she has seen your margins you cannot un-see it, and that is a staffing judgement only you can make | ⛔ **`5g-ii-b`** — the migration, and nothing else. ⚠️ **The task marked next is deliberately not named in this cell**: `plan-handover.sh` assertion 7c READS this column, and a cell that says *"it does not block X"* blocks X. **That is the defect `4.6b` shipped and this row hit on its first run** — the sixth instance of *never spell a check's sentinel in the file it reads*, and the second where the fix was the SENTENCE rather than the check | **Two readings of your sentence, and they are different sizes.** ⚠️ **(a) THE WIDE ONE, which is what your words most plainly say:** drop the role clause from `purchase_select` and `purchase_line_select`, so she reads **every delivery document this shop has ever recorded** and the Comprar prefill with it. **One migration, two policies, the location wall untouched.** ⚠️ **(b) THE NARROW ONE:** give her the **prefill only** — the last price paid for the product in her hands — and leave the purchase documents manager-only. That is a `security definer` read over the memory view rather than a policy change, it keeps §2.7's matrix row intact for everything except Comprar, and **it is the smaller door.** ⚠️⚠️ **WHAT NEITHER OF THEM TOUCHES, said so you are not choosing blind:** `stock_batch` and `stock_movement` carry cost and are separately role-gated (`0004`), and Números' margin is step 7 — **so neither reading opens your margin reporting**, only deliveries. ⚠️ **Recommendation: (a), because it is what you said and because (b) puts a second access path over one table** — the shape `0008` refused when it deleted the price cache. **Say which and it ships.** |
 ✅✅ **THE TWENTY-FIFTH RULING — 2026-09-25, AND IT IS A *NO* TO THE AMENDMENT I ASKED FOR:
 *"We'll leave the expiry input latent until we have some feedback from the pilot."*** ⚠️⚠️ **SO
 §2.8's *optional expiry* IS NOT STRUCK — IT IS MARKED LATENT, WHICH IS A THIRD ANSWER AND NEITHER
@@ -62,9 +61,29 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
-⚠️⚠️ **ONE IS OWED AS OF 2026-09-25, IT DOES NOT BLOCK THE TASK MARKED NEXT, AND IT IS THE FIRST
-ROW THIS BLOCK HAS EVER CARRIED THAT IS A DISAGREEMENT WITH ADR-035 ITSELF — the file `CLAUDE.md`
-says WINS.** ⚠️ **The two before it were against a migration (`Genérico`) and against a lagging ADR
+✅✅✅ **NOTHING IS OWED AS OF 2026-09-25, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE
+THIRTEENTH TIME IN THIS PROJECT'S LIFE.** ⚠️ **TWENTY-SIX decisions have now been parked and cleared
+here, and FOUR of them were parked and ruled on 2026-09-25 alone** — the busiest day this block has
+had, because the owner was holding the phone and answering inside the hour.
+
+✅✅ **THE TWENTY-SIXTH RULING — *"a"*. ONE LETTER, AND IT AMENDED ADR-035 §2.7's CAPABILITY MATRIX.**
+⚠️⚠️ **IT IS THE FIRST RULING THAT EVER REVERSED A ROW OF THAT MATRIX, AND THE FIRST MIGRATION IN
+THIS SCHEMA TO WIDEN A COST FENCE.** The question was how far *"Empleada should be able to see the
+both the purchase records and the prices"* went: **(a)** the delivery documents and the prefill, or
+**(b)** the prefill alone. **He took (a), the wide one, which is what his words plainly said** — and
+the brief recommended (a) for the reason that (b) puts two ways of reading one table.
+⚠️ **The one-way door was named to him before anything was written**: the policies can be
+re-narrowed, what somebody has already read cannot be unread. **He ruled anyway, which is his to
+do, and it is recorded here so nobody re-litigates it as an oversight.**
+✅ **Shipped the same day as `0040`.** ⚠️ **What he did NOT trade, measured rather than asserted:**
+`stock_batch` and `stock_movement` keep their gate (cost on the SHELF), `waste_line` keeps its (the
+cost of waste), and `product_margin_daily` states its own predicate inside the view — **so margin
+reporting never moved**, and `0032`'s seed check now asserts that her margin read is still zero rows.
+
+~~⚠️⚠️ one is owed as of 2026-09-25, it does not block the task marked next, and it is the first
+row this block has ever carried that is a disagreement with adr-035 itself — the file `claude.md`
+says wins.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records:
+`plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ **The two before it were against a migration (`Genérico`) and against a lagging ADR
 cell (expiry); this one is against §2.7's capability matrix, which is a DECISION the ADR records
 rather than a description that fell behind.** ⚠️⚠️ **AND IT IS THE FIRST TIME THE ANSWER TO A ROW
 HERE OPENED A BIGGER ROW RATHER THAN CLOSING THE BLOCK:** the twenty-fourth ruling closed *what is
@@ -557,6 +576,83 @@ falsification table beneath it and refused a legitimate task. **Every table-read
 assertion in this file now bounds its region.**
 
 
+✅✅✅ **`5g-ii-b` IS DONE AS OF 2026-09-25 — `0040` IS APPLIED, AND IT IS THE FIRST MIGRATION IN THIS
+SCHEMA EVER TO WIDEN A COST FENCE. `5g-iii` IS STILL THE NEXT TASK.** Two `alter policy` statements,
+**24 new behavioural checks**, **seven assertions in six existing files inverted**, and an ADR
+amendment — all off one letter of instruction.
+
+⚠️⚠️ **THE SIZING WAS RIGHT ABOUT WHERE THE COST WAS AND WRONG ABOUT HOW MUCH OF IT A GREP WOULD
+FIND, WHICH IS THE FINDING WORTH KEEPING.** The row predicted two places — `05_location_isolation_reads.sql`
+and the purchase contract check — and a `grep` for `purchase_select` found three more in
+`supabase/checks/`. ⚠️⚠️ **FOUR MORE WERE FOUND ONLY BY RUNNING THE SUITES**, because they assert
+BEHAVIOUR and never name a policy: `0008`'s own suite (*"a STAFF member at loc_a1 sees zero rows"*),
+`0031` (*"a cashier reads ZERO purchase rows"*), `0032` (*"ZERO rows of the purchases view"*) and
+`0033` (*"1 040 ROWS OF ONE KIND"*). **A grep finds none of them, and each one went red the first time
+the migration was applied** — which is the best argument for behavioural checks this project has
+produced, and it is the reason the estimate's *"the invisible half"* was the right call even though
+it under-counted.
+
+⚠️ **THE MIGRATION IS `alter policy` AND NOT `drop`+`create`**, which cannot change the command or the
+roles by accident — asserted anyway (`1.6`), because *"it cannot"* is a claim about a statement I did
+not write. ⚠️ **The location wall is KEPT on both policies** and that is the half a careless `alter`
+would have dropped: a cashier reads **her own store's** deliveries. ⚠️ **`0003`'s table comment said
+*"which is why its RLS policy is manager-and-above"*, and the clause after the comma is now false** —
+replaced, because `\d+` shows it and a comment explaining a fence that no longer exists is the
+stale-copy defect this repository has recorded ten of.
+
+⚠️⚠️ **AND THE CHANGE MADE A TEST SUITE STRONGER, WHICH NOBODY ASKED FOR.**
+`05_location_isolation_reads.sql` stated flatly that *"there is no actor in the schema who is
+simultaneously manager-enough to read a purchase and location-restricted enough to be refused one."*
+✅ **There is now**, and the store wall on a delivery is measured directly for the first time — in
+`0003`'s inverted RLS block, in `0040`'s section 3, and as the difference between **11 and 12** in
+`0008`'s checks 34 and 35, where the one pair a cashier cannot see is the one at the other store.
+⚠️⚠️ **THE SUITE NEEDED NO EDIT AT ALL AND ITS PROSE NEEDED A REWRITE**: `role_gated` is derived from
+`p.qual like '%has_role%'` and the plan is computed, so `purchase` and `purchase_line` reclassified
+themselves from 5/5 to **7/3** and picked up four assertions each instead of two. **Verified against
+the applied catalog rather than assumed.** **Nothing checks prose, which is why that was the expensive
+half.**
+
+⚠️ **WHAT HE DID NOT TRADE, ASSERTED AND NOT ASSUMED:** `stock_batch` and `stock_movement` keep their
+gate (cost on the SHELF), `waste_line` keeps its (the cost of waste), `failed_write` is still
+owner-only, and **`product_margin_daily` states its own predicate INSIDE the view** — so margin
+reporting could not be reached by a policy change and `0032` now asserts her margin read is still
+zero rows. ⚠️ **One consequence worth naming because it is concrete: the unfenced-export
+counterfactual in `0033` went from 1 040 rows of one kind to 1 508 of two.** The document she can
+actually open is unchanged — `transaction_export` states its own fence — but **an unfenced export
+would now leak deliveries as well as sales, and still not waste**. The check's numbers moved and its
+conclusion did not.
+
+⚠️⚠️ **AND A HARNESS WOULD HAVE SILENTLY RE-NARROWED THE DATABASE.**
+`5g-i-purchase-contract-falsify.sh` kept **hardcoded copies of `0002` and `0003`'s policies** to
+restore after each fixture. That was safe for a month and stopped being safe today: **it would have
+put the manager-only policies back on any machine that ran it, with nothing to say so.** ⚠️ **It is
+worse than the `P2`/`P3` staleness of an hour earlier** — that one went red, this one would not have.
+✅ **The restores now read `pg_policies` and build the `create policy` from the catalog**, and the
+harness **refuses to mutate a policy it cannot read back** rather than risking a `drop` with no
+`create` after it.
+
+⚠️ **AND ONE CHECK READ ANOTHER CHECK'S LABEL.** `0033`'s check 17 matched
+`'%FENCED view gives her nothing%'`; re-wording that label to *"STILL gives her nothing"* made it
+match nothing and the check went red over something perfectly fine. **The fifth instance today of
+*never spell a sentinel in the text it reads*, and the first one inside a single SQL file.**
+
+⚠️⚠️ **VERIFIED AGAINST A REAL DATABASE, NOT A FILE.** `supabase db reset` applies `0040` from
+scratch and every seed still loads. **25 behavioural suites: all green** — `0040` **24/24**, `0003`
+**41/41**, `0008` **46/46**. **Three seed checks green** — `0031` 48, `0032` 48, `0033` 42.
+`05_location_isolation_reads.sql` **88 assertions, no failures**, with the 7/3 split confirmed by
+querying `pg_policies` afterwards. ⚠️⚠️ **AND THE LIVE-HTTP HALF SAYS IT IN ONE LINE:** *"a cashier
+reads 2 providers, **1 memory row(s)**, WRITES a delivery and reads **3** back (0040)"* — where it read
+*0 memories, reads 0 back* this morning. **Its falsifier's eleven fixtures all behave, with `P9`
+inverted from widening to NARROWING** — because the widening is the shipped state now, and the thing
+worth catching is the migration being undone.
+
+⚠️ **Vitest 1,107**; typecheck clean; `conventions-gate.sh` 16 groups over 75 source and 38 test
+files. ⚠️ **`canReadMemory` answers `true` for every KNOWN role and still refuses `null`**, so
+`memoryState`'s `unreadable` is now unreachable — **named as dead rather than deleted**, because the
+fence is one `alter policy` away in either direction and `MemoryState` is the type that would have to
+grow it back.
+
+
 ✅✅ **`5g-ii-c` IS DONE AS OF 2026-09-25 — THREE CONTROLS OFF THE OWNER'S OWN ROUND ON HIS OWN
 PHONE, AND IT IS THE FIRST PILOT-SHAPED FEEDBACK THIS PROJECT HAS HAD. `5g-iii` IS THE NEXT TASK
 AGAIN — `5g-ii-b` CAME OUT OF THE SAME MESSAGE AND IS GATED ON AN ADR AMENDMENT, SO THE MARKER GOES
@@ -1034,164 +1130,7 @@ task is not blocked by any open decision*; `handbook-agreement.sh` agrees on `5g
 being owed. **No app code changed in the sizing itself, so no suite could have.**
 
 
-✅✅✅ **`5R-g` IS DONE AS OF 2026-09-24 — `db.yml`'s BIGGEST JOB IS SPLIT, THE STOPGAP CAP IS
-GONE, AND THE WHOLE WORKFLOW NOW FINISHES IN ABOUT TEN MINUTES INSTEAD OF NEARLY SIXTEEN.
-`5g` IS THE NEXT TASK: COMPRAR.** ⚠️ **It ships no migration and touches no app code.**
 
-⚠️⚠️ **THE OWNER RULED ON `5R-f`'s OPEN QUESTION THE SAME DAY — *"keep it local"* — AND ON
-THE ORDER WITH IT: *"take 5R-g next."*** **Both confirmed what was already built and marked**,
-so nothing changed; it is recorded because a confirmation is evidence and the next session
-should not re-litigate either.
-
-⚠️⚠️ **THE ESTIMATE, WRITTEN BEFORE THE WORK. Sized `S` and `S` is right** — one workflow
-file. **Four measurements, and the first one is why this was not guesswork:**
-
-**(1) THE JOB WAS MEASURED STEP BY STEP RATHER THAN ESTIMATED** (run `36050875005`): **941s
-total, 15m41s.** Setup 171s · the seed and schema block **322s** · node and the two-connection
-suite 28s · `Stop` 23s · **and the contract block 397s (6m37s)**. ⚠️ **That is what made the
-cap meaningless**: the job was doing 15m41s of work against a 15-minute cap, so whether it
-passed depended on runner weather.
-
-**(2) ⚠️⚠️ THE SPLIT DOES NOT COST WALL-CLOCK, IT SAVES IT — AND THE ROW UNDERSTATED ITS OWN
-CASE.** The row argued the move was *free* because jobs run in parallel. **It is better than
-free: the two halves come out near-equal** — `reset` ~544s (9m04s) and `api-contracts` ~590s
-(9m50s) — so `db` finishes in about **ten minutes instead of nearly sixteen**. **A split is
-usually neutral; this one is a speed-up because the block that moved was almost half the job.**
-
-**(3) THE ROW SAYS "ELEVEN CONTRACT CHECKS" AND THERE ARE THIRTEEN.** Counted, not assumed:
-twenty-six steps, thirteen checks and thirteen harnesses. ⚠️ **Nothing is corrected upstream
-and nothing depended on the number** — but it is the SECOND count in two sittings that the
-plan carried slightly wrong (`5R-f` found "thirty-eight migrations" against 36 files), and
-**two is a pattern rather than a slip: a number written in prose is not re-counted when the
-thing it counts grows.**
-
-**(4) ⚠️⚠️ THE CONTRACT BLOCK NEEDS NO NODE AND NO `npm ci`, WHICH WAS MEASURED RATHER THAN
-ASSUMED.** Every one of the thirteen is bash driving live HTTP. **Two of the scripts mention
-`node` — and both mentions are in a COMMENT** explaining why they cannot use it
-(`@/lib/outboxDb` imports a native module). ✅ **So `setup-node` and `npm ci` stayed behind in
-`reset`, where the two-connection Vitest suite genuinely needs them.** ⚠️ **A copy-paste of
-the job would have carried them across and nothing would ever have gone red** — 22s a run,
-for ever, for nothing.
-
-✅ **THE CAP IS 15 AGAIN ON BOTH JOBS, AND THE NUMBER IS NOW A MEASUREMENT.** ~9m04s and
-~9m50s against 15 is about **1.65x and 1.5x headroom, where the cancelled runs had 1.0x**.
-⚠️ **A cap still catches a HANG, which is what a cap is for; it no longer catches a job doing
-its work.**
-
-⚠️⚠️ **VERIFIED LOCALLY IN THE NEW JOB'S EXACT SHAPE BEFORE IT WAS PUSHED, BECAUSE THE REAL
-RISK WAS INVISIBLE IN THE DIFF.** A contract check that quietly depended on state the seed
-steps left behind would have split green and failed later, or worse, passed for the wrong
-reason. **So the shape was reproduced on this machine** — `supabase start` with the reduced
-service list, `db reset`, then the thirteen checks with nothing in between — **and all
-thirteen passed**, followed by the thirteen harnesses. ⚠️ **The exclusion list is
-`catalog-write`'s and is unchanged**: these checks sign people up through GoTrue and post rows
-through PostgREST, both via Kong, and every excluded container is one none of them touches.
-
-⚠️ **THE STEP MULTISET WAS DIFFED BEFORE AND AFTER**, which is the check that no contract step
-was lost or silently duplicated by a 353-line move: **every `Contract —` step count is
-identical**, and the only differences are the five setup steps the new job legitimately adds
-(checkout, CLI, start, reset, `Stop`).
-
-✅✅ **MEASURED AFTER THE SPLIT, AND THE PREDICTION WAS RIGHT ON ONE HALF AND PESSIMISTIC ON
-THE OTHER.** Predicted ~9m04s and ~9m50s; **actual `reset` 9.5m and `api-contracts` 7.2m.**
-⚠️ **The new job came in 2.6 minutes under** because the reduced service list starts faster
-than `reset`'s full `supabase start` — a saving the estimate did not think to claim.
-⚠️⚠️ **THE WORKFLOW'S WALL-CLOCK IS NOW SET BY `auth-session` AT 10.4m, NOT BY `reset`**, so
-`db` finishes in about **ten and a half minutes against nearly sixteen** — and the next
-minute saved is in a job this task did not touch. ✅ **Both split halves sit at 1.6x and 2.1x
-headroom against their 15-minute cap**, which is the property that was missing.
-
-⚠️⚠️ **AND CI CAUGHT THE ONE THING THIS SESSION DID NOT — THE HANDBOOK'S NEXT-WORK MARKER,
-SPELLED WITH THE FULL STOP INSIDE THE BOLD RUN.** `handbook-agreement.sh` was GREEN, because
-it greps the sentence; `handbook-agreement-falsify.sh` went red on **four fixtures at once**,
-every one reporting *"anchor not present in the 5g row"*. ⚠️⚠️ **THE SAME DEFECT, FROM THE
-SAME CAUSE, HAPPENED ON 2026-09-23 IN `5e-ii` — AND THE HARNESS ITSELF CARRIES THE PARAGRAPH
-SAYING SO.** ⚠️ **A harness that cannot find the row it is supposed to break reads exactly
-like a guard that has lost its teeth**, which is why it is red rather than quiet. ✅ **Nothing
-was loosened**: the handbook sentence was reworded so the period sits outside the bold, which
-is what that paragraph says to do and is the cheaper half of *never spell a check's sentinel
-differently in the file it reads*. ⚠️ **The lesson is the one already written down and not
-followed here — run the FALSIFIER after editing what it reads, not just the guard.**
-
-⚠️ **TWO COMMENTS ELSEWHERE IN THE FILE WENT STALE AND WERE AMENDED RATHER THAN REWRITTEN.**
-`auth-session`'s header and `catalog-write`'s both argue *do not bolt this onto `reset`* and
-cite its 12-13 minute runtime. ⚠️⚠️ **That paragraph made this task's case twice before
-anybody acted on it**, so the reasoning is kept verbatim and dated instead of being restated
-in the past tense.
-
-✅✅✅ **`5R-f` IS DONE AS OF 2026-09-24 — THIS REPOSITORY CAN NOW ASK THE HOSTED DATABASE
-WHETHER IT IS CARRYING THE SCHEMA, AND `5R-g` IS THE NEXT TASK.** ⚠️ **It ships no migration**
-and it is in **no workflow**, which was the first thing the row said to decide.
-
-⚠️⚠️ **THE ESTIMATE, WRITTEN BEFORE THE WORK AND WHAT IT FOUND.** Sized `S` on the row and
-`S` is right — one sitting, two files and a paragraph. **Four measurements changed the shape
-of it, and every one was cheaper to take than to reason about:**
-
-**(1) `supabase migration list --linked` works from this machine with NO PASSWORD AND NO
-SERVICE KEY**, exactly as the row hoped, **and it emits JSON on a non-TTY** — so the guard
-parses a payload instead of scraping a table. ⚠️ **The pooler URL's password still does not
-work and nothing here needs it.**
-
-**(2) THE HOSTED PROJECT IS CURRENTLY IN SYNC — ALL 36 MIGRATIONS APPLIED.** ⚠️⚠️ **That is
-the finding that decided how this task was built.** A guard whose real answer is green today
-and green every time anybody runs it has never been tested by running it. **So the harness is
-not an extra here, it is the only evidence the thing works**, and it is the larger half of the
-diff.
-
-**(3) THE PLAN SAYS "THIRTY-EIGHT MIGRATIONS" AND THERE ARE 36 FILES.** Numbering reaches
-`0038` and `0006`/`0007` have never existed. **Not a defect and nothing is corrected** — but a
-check that trusted the high number instead of counting files would report a phantom
-divergence forever, so it counts files.
-
-**(4) ⚠️⚠️ THE PROJECT REF LIVES ONLY IN `supabase/.temp/`, WHICH IS GITIGNORED.** So until
-this task, **nothing committed to this repository said which database the schema belongs to** —
-the ref appears in this plan and in a status archive, and nowhere a tool would look. **A check
-that did not pin it would pass vacuously against whatever project a laptop happened to be
-linked to**, which is the same shape as running an isolation test as `postgres`: green, and
-about nothing. ✅ `supabase/README.md` now names it, and assertion 2 compares the two.
-
-⚠️⚠️ **THE DECISION THE ROW SAID TO MAKE FIRST — LOCAL CHECK, NOT A REPOSITORY SECRET — AND
-IT WAS TAKEN ON THE OWNER'S BEHALF, SO IT IS NAMED HERE AND IN THE PR BODY.** Two reasons,
-and the second is this repository's own history rather than a general principle:
-
-**(a) A Supabase access token is ACCOUNT-WIDE; there is no project-scoped one.** A repository
-secret would hand every workflow run the owner's whole Supabase account in order to guard
-against a forgotten `db push` — **a blast radius far larger than the thing being guarded.**
-
-**(b) ⚠️⚠️ THIS CHECK'S ANSWER DEPENDS ON THE WORLD, NOT ON THE DIFF.** Once a migration
-merges it is red **until a person deploys** — so in CI it would redden pull requests that
-neither caused it nor can fix it. **`5R-g`'s row already records what that does**: a red that
-is not yours is how people learn to stop reading the result, and *read the job log by name* is
-the one habit the automated-merge agreement rests on. ⚠️ **If the owner would rather have it
-in CI, that is one sentence and a secret** — the guard itself needs no change.
-
-⚠️⚠️ **AND THE HARNESS EARNED ITS KEEP INSIDE THE HOUR — IT FOUND A REAL BUG IN THE GUARD,
-AND THE EXIT CODE HAD HIDDEN IT.** The normalised rows were tab-delimited, **a tab is IFS
-whitespace, and bash collapses a run of IFS whitespace into one delimiter** — so a
-remote-only row, whose middle field is empty, arrived as two fields and was read as an
-*undeployed* migration instead of a *hand-run* one. ⚠️ **Both are red, so `D2` passed on exit
-code and failed on REASON**, which is the only assertion that could have caught it. ✅ The
-delimiter is `|`. ⚠️ **This is the same family as [[bash-cannot-hold-a-nul-sentinel]]: the
-error named the wrong column.**
-
-⚠️ **`D8` is the fixture that justifies an assertion rather than testing one.** It hands back
-a listing that is **internally consistent** — every row it mentions is applied — while
-silently omitting a migration that is on disk. Groups 5 and 6 walk the CLI's rows, so **both
-pass while looking at almost nothing**; only the group that walks the DISK catches it.
-**Delete assertion 4 and that fixture goes green.**
-
-⚠️ **Verified, and named rather than ticked:** `5R-f-schema-deployed.sh` **6/6 against the
-real hosted project** (`hweutzjhzvioswnjzqki`, 36 rows), and
-`5R-f-schema-deployed-falsify.sh` **10/10** — the guard goes red on a remote that is behind,
-a remote that is ahead, a partial listing, a failed command, a wrong link, an unlinked copy,
-an undocumented target and unparseable output. ⚠️ **The stub is on PATH and the guard has no
-env var or flag that reads a file instead of the network**, so the harness leaves no backdoor
-in the thing it tests.
-
-⚠️ **What it does NOT do, said plainly: it compares VERSION NUMBERS, not schema.** A migration
-edited after it was applied would list as present on both sides. **Migrations are append-only
-once applied**, so that is the rule holding it rather than this check — and `supabase db push`
-would not re-apply it either.
 
 
 
@@ -1302,6 +1241,19 @@ lines, and an `XL` sizing entry is longer than that, so the choice was to cut fi
 go red on a document while the work being reported was fine. ⚠️ **Twelve of the thirteen
 cuts have now been taken by a session that wanted to be writing something else**, which
 is the argument assertion 7 makes in its own failure text.
+⚠️⚠️ **AND THE TWENTY-THIRD AND TWENTY-FOURTH WENT IN AS `5g-ii-b` CLOSED — `5R-f` AND `5R-g`, THE
+TWO RELEASE-PATH ROWS.** `## Position` reached **1,468 of 1,400** on the fourth status-log entry of one
+working day, and the twenty-third cleared it to 1,395 — **five lines, which is a rounding error rather
+than headroom** — so the twenty-fourth followed immediately. ⚠️⚠️ **THE SIZE GUARD REFUSED THE FIRST
+ATTEMPT AT THE TWENTY-THIRD TOO, WHICH IS THE THIRD TIME IN ONE DAY AND ALWAYS THE SAME SHAPE:** the
+mover reaches for *"the next entry head"* as a bound, the entry being cut is the LAST in the region,
+and the proposal runs into the archive bookkeeping — **297 lines, then 234, then 270.** ✅ **Each time
+the fix was to name the entry's real last line, and each time the guard caught it in seconds.**
+⚠️ **The rule generalises and is worth stating once: a bound derived from what comes AFTER cannot work
+at the end of a list.** ⚠️ **SIX CUTS ON 2026-09-25** — four status-log entries and four rulings in one
+day, because the owner was holding the phone and answering inside the hour. **The ceiling is sized for
+one entry per session and the answer is to cut more often, not to raise it.**
+
 ⚠️⚠️ **THE TWENTY-FIRST AND TWENTY-SECOND WENT IN AS `5g-ii-c` CLOSED, AND THE TWENTY-FIRST WAS
 ATTEMPTED DESTRUCTIVELY FIRST — WHICH IS THE ONLY REASON THIS PARAGRAPH IS LONG.** The mover bounded
 the block by looking for the NEXT entry head; `5f-iii-b` was the last entry in the region, so there
@@ -3110,7 +3062,7 @@ free today and stay free until the first task merges.
 | **5g** | ⚠️⚠️ **SIZED `XL` AND SPLIT THREE WAYS 2026-09-24, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-24, and this file carried it as an `M`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Comprar.** ⚠️⚠️ **THE ROW NAMED SEVEN DELIVERABLES; THE SIZING FOUND EIGHTEEN, AND THE THREE IT DID NOT NAME ARE THE THREE THAT CHANGE WHAT GETS BUILT.** **Eighteen deliverables, all of which land in exactly one child below:** the **provider list read**, an applied table no line in `app/` touches; the **price memory read** over `provider_price_memory` (`0008`), per (provider, variant) and never across providers; the prefill that is stored per BASE and read **per PRICE UNIT**, which is arithmetic and not a rename; **`last_qty_display_unit`**, the denomination she typed last time and which need not be the variant's price unit today; the **provider on the purchase payload** — `draftOf` builds `location_id` and `lines` and nothing else, while `record_purchase` raises on a null **`p_provider_id`**; the **typed price, persisted with the basket**, because a purchase price is entered rather than looked up and §2.11 persists the basket it belongs to; **the live round trip** that proves Postgres accepts a purchase, which nothing in this repository has ever performed; the **cashier asymmetry**, measured rather than inferred; **`Comprando a:`** — the provider chosen FIRST, in the header (C3.11); **changing the provider re-prices every row** already on screen (C3.11); the **three price states** §2.8 requires to look different, the middle one *empty and required* and visibly not a prefill; **C3.12**'s dash, never `$0.00`; **C3.13** — the slide blocked while any row has no price, and the banner that says so; setting that missing price **fast from where** the shopkeeper already is; the sheet, the slide and the confirmation, **the shape 5f-iii shipped**; **no 50-centavo rounding here** (**C12.3**); **what Costos shows**, the word deferred onto this row on 2026-09-22; and the button `5d-iii` **drew dead on La Familia**, which is the surface that word lands on | `XL` — **split, an `M`, an `M/L` and an `S`** | ✅ **UNGATED when it was taken.** ⚠️ **One of the three children is not: `5g-iii` is blocked on the word the owner owes, and it is the only one that is** |
 | **5g-i** | ✅✅ **DONE 2026-09-24 — THIS APP HAS RECORDED ITS FIRST DELIVERY, AND A GUARD REFUSED THE FIRST DESIGN OF ITS OWN CHECK.** ~~this is the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **It is the half of `5g` a machine can hold.** **Everything Comprar needs from Postgres, and NO SCREEN.** The **provider list read** — `provider`'s named columns behind `src/api/providers.ts` and one hook (`R12`, `R13`), the generic row first, because F6 makes it the default and it is a ROW rather than a blank. The **price memory read** over `provider_price_memory` (`0008`), per (provider, variant), **never across providers**: §2.8's middle state exists because a supplier price is a fact about a relationship, and a prefill borrowed from another provider is a guess wearing a memory's clothes. ⚠️⚠️ **THE FIGURE IS STORED PER BASE AND THE SHOPKEEPER READS IT per PRICE UNIT** — a `numeric(14,6)` per base against `$8.50 / kg` — which is the conversion `priceCentavos` already makes in the other direction, made once here rather than twice on a screen. ⚠️ **And `last_qty_display_unit` is the denomination she typed LAST TIME, which need not be the variant's price unit today**, so it is offered and never assumed. The **provider on the purchase payload**: `draftOf` builds `location_id` and `lines` today, and `record_purchase` raises `22023` on a null **`p_provider_id`** (`0018:200`) — so the buy side cannot commit at all until this lands, which is a change to SHIPPED code and not a new module. The **typed price, persisted with the basket** — `Quotes` is the map `5f-i` built and nothing fills, and §2.11 persists the basket for the same reason a half-keyed delivery must not lose the figures somebody has already read off a note. ⚠️⚠️ **THE INSTRUMENT IS `docs/checks/5g-i-purchase-contract.sh` AND ITS FALSIFIER: the live round trip, over real HTTP against a reset database.** `5f-i`'s row named it as this one's, and nothing in this repository has ever sent `record_purchase` anything. ⚠️⚠️ **IT ALSO PINS THE cashier asymmetry, MEASURED 2026-09-24 AND NOT INFERRED**: a cashier reads the provider list (200, one row), reads **zero** rows of the memory (200 and an empty array, never a 403), **records a delivery successfully** (200 — the RPC carries the location wall and no role fence at all) and then reads **zero** purchases back. ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED** |
 | **5g-ii** | ✅✅✅ **DONE 2026-09-25 — THIS APP CAN RECEIVE A DELIVERY, AND `src/ui/` EXISTS AT LAST.** ~~this is the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Comprar itself, and nothing in this repository can say whether it looks right.** **`Comprando a:`** in the header — the provider is chosen FIRST and the screen is about a relationship before it is about products (C3.11) — and **changing the provider re-prices every row** already on screen, which is the half of C3.11 a session would leave out because the basket looks unchanged. The **three price states** §2.8 requires to look different, and **the middle one is the one that matters**: *you have bought this, but never from THIS provider* renders **empty and required**, visibly not a prefill — *"an empty required field asks a question; a wrong prefill answers one nobody asked"*. **C3.12**'s dash for no memory, never `$0.00`. **C3.13** — the slide is BLOCKED while any row has no price, a banner says so, and setting the missing price is **fast from where** she already is, which is the opposite of Vender's C3.14 and is the owner's own rule. The search, the row, the quantity control, the sticky bar, the sheet, the slide and the two confirmation animations are **the shape 5f-iii shipped**, and this is the THIRD drawing of a search box — §2.8's *"three capture screens sharing one engine underneath"* is the sentence that makes the extraction due here rather than a tidy-up, and `src/ui/` is built across `5d`–`5h` while `5h.5` writes its conventions after. ⚠️ **No 50-centavo rounding here** (**C12.3**): it is a selling convenience and a delivery is paid to the centavo. ⚠️⚠️ **`R9` AND §2.11: THE OWNER'S PHONE IS THE WHOLE INSTRUMENT.** Every judgement left in this child is rendering, navigation or layout, and no check here will ever say it is wrong. ⚠️ **It ships no migration.** ⚠️⚠️ **WHAT IT SHIPPED:** `app/src/app/(tabs)/comprar.tsx` — **9 lines of `Pendiente` became 1,733** — and **`app/src/ui/`, minted by this row**: `Buscador`, `Cantidad` (§2.11's `QtyInput`), `Deslizador` (its `PrimaryAction`), `Separador`, `TecladoListo` and `Vacio` (its `Empty`). ⚠️ **NOT ONE WAS INVENTED and that was measured rather than argued** — Productos' and Vender's search boxes were **identical character for character**, and `Vacio`'s three copies **had already drifted**: two centred their text and Vender's did not, which nobody decided and nothing could see. **`vender.tsx` is 1,792 → 1,330 lines** and draws none of it twice. ⚠️ `ES.sell` split into **`ES.counter`** (what both counters say) and `ES.sell`/`ES.buy` (what genuinely differs), which is §2.8's sentence applied to the words. ⚠️⚠️ **AND `vender.tsx` CARRIED A SENTENCE THIS ROW OVERRULED** — *"a session that folds these into `src/ui/` before `5h` closes is taking that row's decision for it"*, written at `5f-ii` — **corrected in that file rather than left to disagree**, and `docs/CONVENTIONS.md`'s *"there is no `app/src/ui/`"* struck with it: **the tenth stale-copy defect, and the first in that file.** ⚠️ **Two things went into `@/api/providers` rather than into the screen** (`R3`): **`canReadMemory`** — `memoryState` took a boolean nothing supplied — and **`costShown`**, the exact inverse of `typedPerBase`. **1,091 assertions (up from 1,082), and the round trip between those two is the claim.** | `M/L` | ✅ **CLOSED** — it raised one question and answered none of it on his behalf: what a cashier is told when her price memory comes back empty because she may not read one. **It is in ⛔ DECISIONS OWED, with the ADR amendment this row also found** |
-| **5g-ii-b** | ⚠️⚠️ **ANY ROLE MAY READ WHAT THE SHOP PAID — RULED BY THE OWNER 2026-09-25, AND IT IS AN ADR AMENDMENT BEFORE IT IS A MIGRATION.** *"Empleada should be able to see the both the purchase records and the prices."* **The two policies are `purchase_select` and `purchase_line_select` (`0003:558`, `0003:564`)**, both `workspace ∧ location ∧ has_role(…,'manager')`; the fix drops the role clause and **keeps the location wall** (§2.6). ⚠️ **The memory view joins exactly those two tables and nothing else** — read out of `0008` rather than assumed — so widening them is the whole data change ([[security-invoker-view-is-fenced-by-every-join]]: a view's fence is every join's, and a fixture over a half-widened view passes vacuously). ⚠️⚠️ **IT IS GATED, AND NOT ON THE MIGRATION: ADR-035 §2.7's CAPABILITY MATRIX SAYS *See cost and margin — Staff: —*, and its prose calls cost visibility *"a real commercial exposure in small retail"* BY NAME.** The owner's ruling reverses that row, which is his to do — **but the ADR is amended only by a deliberate decision and the scope of this one is genuinely ambiguous**, so it is in ⛔ DECISIONS OWED rather than read into a one-line instruction. ⚠️⚠️ **WHAT IT COSTS BEYOND THE MIGRATION, AND THIS IS WHY IT IS ITS OWN ROW: IT INVALIDATES THE PREMISE OF A pgTAP SUITE.** `05_location_isolation_reads.sql` is built around a 5/5 split — *"NOT role-gated … a cashier reads these, so the cashier IS the measurement"* against *"ALSO role-gated: purchase, purchase_line, waste_line, stock_batch, stock_movement … a cashier reads ZERO rows here for a reason that has nothing to do with locations"* — and states flatly that **"there is no actor in the schema who is simultaneously manager-enough to read a purchase and location-restricted enough to be refused one."** ✅ **After this, there is**: purchase and purchase_line move to the other half and **the cashier becomes a live instrument for the location wall on them**, which is a gain and not a chore — but the file's own prose becomes false and its assertions move. ⚠️ **And `docs/checks/5g-i-purchase-contract.sh`'s assertion 10 inverts**: it measures over real HTTP that *a cashier reads 2 providers, 0 memories, WRITES a delivery, reads 0 back*, and it is **the only thing in this repository that would catch the widening not working.** ⚠️ **`canReadMemory` becomes true for every KNOWN role and still refuses `null`**, so `memoryState`'s `unreadable` goes unreachable rather than deleted — named, because a dead branch nobody names is a dead branch somebody revives. | `L` | ⛔ **GATED on the ADR §2.7 amendment above.** ⚠️ **It is a migration and merging is automated, so a guess here is DEPLOYED rather than reviewed** — the reason this block has teeth |
+| **5g-ii-b** | ✅✅✅ **DONE 2026-09-25 — `0040` IS APPLIED, AND IT IS THE FIRST MIGRATION EVER TO WIDEN A COST FENCE IN THIS SCHEMA.** ⚠️⚠️ **ANY ROLE MAY READ WHAT THE SHOP PAID — RULED BY THE OWNER 2026-09-25, AND IT IS AN ADR AMENDMENT BEFORE IT IS A MIGRATION.** *"Empleada should be able to see the both the purchase records and the prices."* **The two policies are `purchase_select` and `purchase_line_select` (`0003:558`, `0003:564`)**, both `workspace ∧ location ∧ has_role(…,'manager')`; the fix drops the role clause and **keeps the location wall** (§2.6). ⚠️ **The memory view joins exactly those two tables and nothing else** — read out of `0008` rather than assumed — so widening them is the whole data change ([[security-invoker-view-is-fenced-by-every-join]]: a view's fence is every join's, and a fixture over a half-widened view passes vacuously). ⚠️⚠️ **IT IS GATED, AND NOT ON THE MIGRATION: ADR-035 §2.7's CAPABILITY MATRIX SAYS *See cost and margin — Staff: —*, and its prose calls cost visibility *"a real commercial exposure in small retail"* BY NAME.** The owner's ruling reverses that row, which is his to do — **but the ADR is amended only by a deliberate decision and the scope of this one is genuinely ambiguous**, so it is in ⛔ DECISIONS OWED rather than read into a one-line instruction. ⚠️⚠️ **WHAT IT COSTS BEYOND THE MIGRATION, AND THIS IS WHY IT IS ITS OWN ROW: IT INVALIDATES THE PREMISE OF A pgTAP SUITE.** `05_location_isolation_reads.sql` is built around a 5/5 split — *"NOT role-gated … a cashier reads these, so the cashier IS the measurement"* against *"ALSO role-gated: purchase, purchase_line, waste_line, stock_batch, stock_movement … a cashier reads ZERO rows here for a reason that has nothing to do with locations"* — and states flatly that **"there is no actor in the schema who is simultaneously manager-enough to read a purchase and location-restricted enough to be refused one."** ✅ **After this, there is**: purchase and purchase_line move to the other half and **the cashier becomes a live instrument for the location wall on them**, which is a gain and not a chore — but the file's own prose becomes false and its assertions move. ⚠️ **And `docs/checks/5g-i-purchase-contract.sh`'s assertion 10 inverts**: it measures over real HTTP that *a cashier reads 2 providers, 0 memories, WRITES a delivery, reads 0 back*, and it is **the only thing in this repository that would catch the widening not working.** ⚠️ **`canReadMemory` becomes true for every KNOWN role and still refuses `null`**, so `memoryState`'s `unreadable` goes unreachable rather than deleted — named, because a dead branch nobody names is a dead branch somebody revives. | `L` | ✅ **UNGATED AND CLOSED — he answered *(a)*, the wide reading, on 2026-09-25**, and ADR-035 §2.7's matrix row is amended with a revision entry. ⚠️ **The sizing was RIGHT about where the cost was and WRONG about how much of it a grep would find**: the row predicted the pgTAP suite and the contract check, and **four more assertions turned out to drive a cashier rather than read a policy** — `0008`'s own suite, and `0031`/`0032`/`0033`. **A grep for `purchase_select` finds none of them**, which is the best argument for behavioural checks this project has produced |
 | **5g-ii-c** | ✅✅ **DONE 2026-09-25 — ALL THREE BUILT AS STATED, AND ONE OF THEM WAS A PRIMITIVE THAT EXISTED AND WAS NEVER CONNECTED.** ~~this is the next task, as of 2026-09-25~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Three controls, off the owner's own round on his own phone the day Comprar shipped — and the first pilot-shaped feedback this project has had.** ⚠️ **(1) A TAP ON THE SLIDE MUST NOT CLOSE THE CARRITO, IN EITHER SCREEN:** *"When a carrito is open both in Vender and Comprar and someone taps in the slider to finish the transaction, do not close the carrito. In both cases make a small animation, showing that the slider was touched sliding a bit and bouncing."* **The same nudge plays with the carrito CLOSED and there it also opens it** — so the gesture acquires a *tap acknowledged* state it did not have, and `5f-iii-b`'s *"a tap opens the basket"* becomes *a tap answers, and opens only when there is something to open.* ⚠️ **It is ONE change because `Deslizador` is a primitive** (`5g-ii`), which is the extraction paying for itself in its first week. ⚠️ **(2) COMPRAR OPENS ON A PROVIDER PICKER, THE HEADER BECOMES A REAL DROP-DOWN, AND THE LIST GETS PILL SORTERS:** *"show a small menu that let's you pick the Proveedor, the list can be short or long so adapt it… a small window with a scrim… You can also change the Proveedor from the drop-down at the top… Enable also small pill 'sorters' at the top, the preselected sorter is 'Recientes' but you can also pick 'A-Z'. These sorters are hidden when typing to search."* ⚠️ **`Recientes` has a data source already on the phone and it is `provider_price_memory.last_purchased_at`** (`0008`), so it needs no new read — **but it is THIS provider's recency**, which means a brand-new provider sorts as the catalog does and the pill looks inert. **That wart is named rather than discovered**, and the alternative — the shop's recency across every provider — costs a wider memory read and gives up the rule `5g-i` wrote into `memoryKey`. ⚠️ **(3) THE NUMBER PAD NEEDS A WAY OUT:** *"The numerical Keypad isn't easy to hide when you're done typing. Can we replace it with one that has the 'Hide' or 'Done' control?"* ⚠️⚠️ **THE BAR EXISTS AND VENDER HAS NONE** — `TecladoListo` shipped with `5g-ii` and is wired to Comprar's two pads only, so the screen he uses four hundred times a day still has no exit. **`decimal-pad` draws no return key on either platform**, which is the measurement `nuevo.tsx` recorded. ⚠️ **iOS gets `InputAccessoryView`; Android has the platform's own dismiss control and gets `undefined`**, which is the honest half of that rule rather than a gap in it. ⚠️⚠️ **`R9` AND §2.11: EVERY ONE OF THESE IS RENDERING OR GESTURE AND HIS PHONE IS THE WHOLE INSTRUMENT.** The one checkable half is the sort, which lands in `@/api/providers` where a suite reads it. ⚠️ **It ships no migration.** ⚠️ **The sorters are NOT built for Vender** — *"we're also analyzing if we'll enable these sorters for the Vender screen but that will be for a future version of the app"* | `L` | ✅ **UNGATED** — nothing is owed that touches it, and it is deliberately independent of `5g-ii-b`: `Recientes` reads the memory, so **the pill is empty for an Empleada until that row lands**, and that is a consequence rather than a dependency |
 | **5g-iii** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-25 — the marker comes back to it because `5g-ii-c` closed and `5g-ii-b` is GATED.** ⚠️⚠️ **RE-SIZED `S` → `L` ON 2026-09-24, THE DAY ITS GATE CLEARED AND BEFORE A LINE OF IT WAS WRITTEN — the ruling asked for more than the question offered.** **`Costos` — the button `5d-iii` drew dead on La Familia and this is what wakes it.** ⚠️ **The 2026-09-22 ruling said WHEN and never WHAT**, so **what Costos shows** was owed; it was answered on 2026-09-24 and the answer took the option the brief recommended DEFERRING and folded the one it recommended splitting out INTO it: *"a small line chart with the time and the price that each provider (colors) is charging you for that product. As a collapsable you can get the matrix that shows this data. You can share the view as a PDF."* **So it is three surfaces over one read** — a per-provider series through time, a collapsible matrix of the same rows, and an export. ⚠️⚠️ **AND THE EXPORT IS A DEPENDENCY §2.11's STACK TABLE DOES NOT NAME.** Nothing in this app has ever produced a file; **the ADR row naming whatever library does it is a DELIVERABLE of this task rather than a task of its own** — the arrangement `5c-ii-b-2` used for `expo-network`, and for its reason: a stack-table row describing a module the same sitting builds is a sentence somebody can check. ⚠️ **It must carry its BOUND as well as its name** — whether a phone can render and share this is an `R9` reading on a real device, not a claim a suite here can make. ⚠️⚠️ **THE TIME AXIS IS THE HALF THE BRIEF ARGUED AGAINST AND HE TOOK ANYWAY, AND THAT IS RECORDED RATHER THAN RE-LITIGATED:** a chart over three deliveries says very little, so **the empty and thin states are most of this screen's real work** — one delivery is a dot, and *a gap is not a zero* is as true of a series as it is of a row. ⚠️ **Genérico is a series like any other** — *"You can also look at it in Costos if there are records"* — which is what makes an unplanned market run visible beside the suppliers rather than hidden in them. ⚠️ **And the screen it lands on is not Comprar**: `familia/[id].tsx` is where the dead button is, so this child touches a file the other two never open. ⚠️ **It ships no migration** — the series comes off `purchase_line`, applied since `0003`, and the read that already exists gives the latest point on it. | `L` | ✅ **UNGATED as of 2026-09-24, and `5g-ii` CLOSED on 2026-09-25 — so the reason it waited is now spent.** ⚠️ **It needed Comprar first for a reason that is not sequencing**: the deferral test's second question is whether the state it draws is reachable, and **nothing in this app had recorded a delivery a shopkeeper made** until Comprar existed. ⚠️ **It also arrives to five primitives rather than to none** (`src/ui/`, minted by `5g-ii`), which is the first time a screen on this project has |
 | **5g.5** | ✅✅ **DONE 2026-09-24 — `0039` IS APPLIED AND EVERY SHOP'S CATCH-ALL PROVIDER IS CALLED `Genérico`, INCLUDING THE ONES THAT ALREADY EXISTED.** **The word a shopkeeper reads in `Comprando a:`, and the rows that already carried the other one.** ⚠️⚠️ **IT IS ITS OWN ROW AND NOT A DELIVERABLE OF `5g-ii`, WHICH `5g.split` PREDICTED IN WRITING**: that spec asserts *it ships no migration* of all three children positively, and said so — *"it is the thing the `Genérico` ruling would change, which is exactly why that question is parked in front of this split rather than inside it."* **The guard's design paid for itself the day the ruling arrived.** ⚠️ **Numbered in the shape of `4.5`, `5b.5` and `5h.5`**: an interstitial obligation that fell out of a ruling, not a build step. ⚠️⚠️ **THE `update` IS THE HALF THAT COULD ONLY GET DEARER** — a seed changed alone leaves every shop created before today pointing its deliveries at a word the header no longer says, and nothing anywhere would disagree. ⚠️ **Scoped by `is_generic` rather than by the old name**, so a shop that had renamed its own row is brought into line too; and it **skips any workspace where a NAMED supplier already holds the word**, because `provider_name_unique` would raise and **a migration that fails on one tenant's data is a deployment that stops for everybody.** ✅ **18 behavioural checks in `supabase/tests/0039_generic_provider_name.sql`**, seven of them a transcription guard over what did NOT move. | `S` | ✅ **UNGATED — ruled 2026-09-24, built the same day** |

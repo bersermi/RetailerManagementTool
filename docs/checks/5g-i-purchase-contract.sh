@@ -406,12 +406,27 @@ else
   echo "      an operator precisely because it looks like a memory."
 fi
 
-# --- 10. the cashier asymmetry ---------------------------------------------
-# ⚠️⚠️ THIS IS WHY `5g` SPLIT, AND IT IS THE ONLY INSTRUMENT THAT CAN SEE IT.
-# `provider_select` admits any member; `provider_price_memory` is manager-and
-# -above through `security_invoker`; `record_purchase` fences neither. So a
-# cashier's Comprar draws §2.8's *new pairing* on every row — which is the
-# CORRECT rendering of an empty memory — and nothing on screen can say why.
+# --- 10. what a cashier reads, and it CHANGED SIDES on 2026-09-25 -----------
+# ⚠️⚠️ THIS IS WHY `5g` SPLIT, AND IT IS STILL THE ONLY INSTRUMENT THAT CAN SEE IT.
+# Every claim here is a POLICY rather than a column, and a policy that allows more
+# breaks no other test in this repository — which is precisely why the numbers are
+# asserted and not the intent.
+#
+# ⚠️⚠️ WHAT IT USED TO ASSERT, because the inversion is the point: until `0040` a
+# cashier read the provider list, **ZERO** rows of `provider_price_memory` (200 and
+# an empty array, never a 403), recorded a delivery that SUCCEEDED, and read **zero**
+# purchases back. That asymmetry is what `5g.split` was written around, and Comprar's
+# `unreadable` price state existed for it.
+#
+# ✅ `0040` ENDED IT ON THE DECISION MAKER'S INSTRUCTION — *"Empleada should be able
+# to see the both the purchase records and the prices."* So the memory is no longer
+# empty for her and the purchases read back. ⚠️ **The assertion is INVERTED rather
+# than deleted**: it is the only thing anywhere that would notice the fence being put
+# back, and a migration that narrowed these two policies would otherwise show up as
+# a screen quietly asking her to type a price the app already knows.
+#
+# ⚠️ THE LOCATION WALL IS STILL ASSERTED THROUGH HER: she is invited to ONE location,
+# so what she reads is her store's deliveries and not the workspace's.
 STAFF_EMAIL="purchase-staff-$STAMP@example.com"
 STAFF_INVITE_JSON="$(python3 -c '
 import json, sys
@@ -433,20 +448,23 @@ note
 SP_N="$(python3 -c "import sys,json;r=json.load(sys.stdin);print(len(r) if isinstance(r,list) else -1)" <<< "$(body "$STAFF_PROVIDERS")" 2>/dev/null)"
 SM_N="$(python3 -c "import sys,json;r=json.load(sys.stdin);print(len(r) if isinstance(r,list) else -1)" <<< "$(body "$STAFF_MEMORY")" 2>/dev/null)"
 SQ_N="$(python3 -c "import sys,json;r=json.load(sys.stdin);print(len(r) if isinstance(r,list) else -1)" <<< "$(body "$STAFF_PURCHASES")" 2>/dev/null)"
-if [[ "$(status "$STAFF_MEMORY")" == "200" && "$SM_N" == "0" \
+if [[ "$(status "$STAFF_MEMORY")" == "200" && "$SM_N" -ge 1 \
       && "$SP_N" == "2" \
       && "$(status "$STAFF_BUY")" == "200" \
-      && "$(status "$STAFF_PURCHASES")" == "200" && "$SQ_N" == "0" ]]; then
-  ok "a cashier reads 2 providers, 0 memories (200, not 403), WRITES a delivery, reads 0 back"
+      && "$(status "$STAFF_PURCHASES")" == "200" && "$SQ_N" -ge 1 ]]; then
+  ok "a cashier reads 2 providers, $SM_N memory row(s), WRITES a delivery and reads $SQ_N back (0040)"
 else
-  fail "the cashier asymmetry has changed and Comprar's design rests on it:"
+  fail "what a cashier reads has changed, and Comprar's design rests on it:"
   echo "      providers  $(status "$STAFF_PROVIDERS") / $SP_N rows  (expected 200 / 2)"
-  echo "      memory     $(status "$STAFF_MEMORY") / $SM_N rows  (expected 200 / 0 — an"
-  echo "                 empty ARRAY, because a 403 would be a state a screen could name)"
+  echo "      memory     $(status "$STAFF_MEMORY") / $SM_N rows  (expected 200 / at least 1"
+  echo "                 since 0040 — ZERO here means the role gate is back on"
+  echo "                 purchase_select or purchase_line_select, and Comprar would ask"
+  echo "                 her to type a price the app already knows)"
   echo "      record     $(status "$STAFF_BUY")              (expected 200 — no role fence)"
-  echo "      purchases  $(status "$STAFF_PURCHASES") / $SQ_N rows  (expected 200 / 0)"
-  echo "      If a migration has fenced record_purchase, memoryState's 'unreadable' branch"
-  echo "      and 5g-ii's whole design of the empty price box need re-deciding."
+  echo "      purchases  $(status "$STAFF_PURCHASES") / $SQ_N rows  (expected 200 / at least 1"
+  echo "                 since 0040 — she may now read back what she recorded)"
+  echo "      If a migration has fenced record_purchase itself, canReadMemory and 5g-ii's"
+  echo "      empty price box need re-deciding rather than repairing."
 fi
 
 # --- 11. the shop next door -------------------------------------------------

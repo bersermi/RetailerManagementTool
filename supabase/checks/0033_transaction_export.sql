@@ -282,18 +282,36 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'caja.centro@tienda.mx')), true);
 set local role authenticated;
 
-select chk('⚠️⚠️ UNFENCED, A CASHIER''S "ALL TRANSACTIONS AND WASTE" IS 1 040 ROWS OF ONE KIND',
-           (select count(*) from _export_unfenced) = 1040
-       and (select count(distinct kind) from _export_unfenced) = 1
-       and (select min(kind) from _export_unfenced) = 'sale'
-       and (select sum(line_net) from _export_unfenced) = 65549.43,
+-- ⚠️⚠️ THE NUMBERS MOVED WITH `0040` (2026-09-25) AND THE ARGUMENT DID NOT — IT GOT
+-- SHARPER. Until then a cashier's unfenced export was 1 040 rows of ONE kind: sales
+-- only, with every delivery and every write-off silently absent. She now reads
+-- deliveries too, so it is 1 508 rows of TWO kinds — **and waste is still missing,
+-- because `waste_line` kept its role gate.**
+--
+-- ⚠️ SO THE POINT STANDS WHERE IT STOOD: a document headed *"all transactions and
+-- waste"* that quietly contains neither all transactions nor any waste is worse than
+-- no document, and it is worse in the same way it was before — just by one kind less.
+-- **A check whose numbers changed and whose conclusion did not is the one worth
+-- re-reading rather than re-writing.**
+--
+-- ⚠️ THIS IS ONE OF THE THREE ASSERTIONS THAT CAUGHT `0040` BY DRIVING A CASHIER
+-- INSTEAD OF READING A POLICY. A grep for `purchase_select` finds none of them.
+select chk('⚠️⚠️ UNFENCED, A CASHIER''S "ALL TRANSACTIONS AND WASTE" IS 1 508 ROWS OF TWO KINDS (0040)',
+           (select count(*) from _export_unfenced) = 1508
+       and (select count(distinct kind) from _export_unfenced) = 2
+       and (select count(*) from _export_unfenced where kind = 'waste') = 0,
            (select 'she would download ' || count(*) || ' rows, kinds: '
                 || string_agg(distinct kind, ', ') || ', $' || sum(line_net)
-                || ' — headed "all transactions and waste", with every delivery '
-                || 'and every write-off silently absent'
+                || ' — headed "all transactions and waste", with every write-off '
+                || 'silently absent. 0040 let the deliveries in; waste_line kept its '
+                || 'gate, so the document is still incomplete and still misleading'
               from _export_unfenced));
 
-select chk('and the FENCED view gives her nothing at all, which is the decision',
+-- ⚠️⚠️ AND THIS IS THE ONE THAT SHOWS `0040` DID NOT REACH THE EXPORT SHE CAN
+-- ACTUALLY OPEN. `transaction_export` states its own predicate rather than inheriting
+-- one, so widening two table policies left it exactly where it was — **she reads
+-- deliveries through the base tables and still cannot download the document.**
+select chk('and the FENCED view STILL gives her nothing at all, after 0040 — which is the decision',
            (select count(*) from transaction_export) = 0,
            'a partial export is worse than no export: it is a document somebody '
         || 'reconciles against a notebook, and the app loses that argument while '
@@ -303,11 +321,21 @@ commit;
 
 drop view public._export_unfenced;
 
+-- ⚠️⚠️ THE SECOND HALF MATCHES THE LABELS OF THE TWO CHECKS ABOVE, WHICH MAKES THIS
+-- A CHECK READING ANOTHER CHECK'S PROSE — and `0040` broke it by inserting one word.
+-- The pattern was `'%FENCED view gives her nothing%'`; re-wording that label to
+-- *"STILL gives her nothing"* made it match nothing, and this check went red while the
+-- thing it guards was perfectly fine.
+-- ⚠️ **It is the same rule three scripts in `docs/checks/` already record — never
+-- spell a check's sentinel in the text it reads — met inside one SQL file.** ✅ The
+-- pattern is now loose about the adverbs and strict about the two words that carry
+-- the meaning, which is the narrowest fix that survives a re-wording.
 select chk('the counterfactual left nothing behind, and this file kept both of its results',
            (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
              where n.nspname='public' and c.relname = '_export_unfenced') = 0
        and (select count(*) from public._verify
-                 where label like '%UNFENCED%' or label like '%FENCED view gives her nothing%') = 2,
+                 where label like '%UNFENCED%'
+                    or (label like '%FENCED view%' and label like '%nothing%')) = 2,
            'the second half is not decoration: a `rollback` here would take the two '
         || 'rows above with it, and the report would be short by its loudest '
         || 'measurement without a single FAIL');
@@ -327,7 +355,13 @@ select chk('the fence is IN THE BODY, and it is 0009''s sentence — not a polic
         || 'and for the same reason: a member-level half that would be left '
         || 'standing when the gated half disappears');
 
-select chk('⚠️ the three fences it reads across really are different — measured from pg_policies',
+-- ⚠️⚠️ IT READS ACROSS **TWO** COMBINATIONS NOW AND NOT THREE — `0040`, 2026-09-25.
+-- `purchase_line` moved from the manager family to the member family on the decision
+-- maker's instruction, so the sentence *"waste_line and purchase_line are manager,
+-- because those two carry cost"* is half false: **both still carry cost, and only one
+-- is still fenced for it.** ⚠️ The view's own written fence is unaffected and still
+-- required — `waste_line` is what needs it.
+select chk('⚠️ the fences it reads across are now TWO combinations, not three — measured from pg_policies',
            (select qual::text from pg_policies where schemaname='public'
              and tablename='sale_line' and policyname='sale_line_select') !~* 'has_role'
        and (select qual::text from pg_policies where schemaname='public'
@@ -335,18 +369,26 @@ select chk('⚠️ the three fences it reads across really are different — mea
        and (select qual::text from pg_policies where schemaname='public'
              and tablename='waste_line' and policyname='waste_line_select') ~* 'has_role'
        and (select qual::text from pg_policies where schemaname='public'
-             and tablename='purchase_line' and policyname='purchase_line_select') ~* 'has_role',
-           'sale and waste HEADERS are member-level; waste_line and purchase_line '
-        || 'are manager, because those two carry cost. Three combinations in one '
-        || 'view, which is why one fence had to be written down');
+             and tablename='purchase_line' and policyname='purchase_line_select') !~* 'has_role',
+           'sale and waste HEADERS are member-level, and purchase_line JOINED them in '
+        || '0040; waste_line is still manager because the cost of waste did not move. '
+        || 'Two combinations in one view, which is why the fence still has to be '
+        || 'written down — for waste_line alone now');
 
-select chk('and the sentinel is safe: BOTH gated tables still have RLS enabled',
+-- ⚠️ THE SENTENCE MOVED WITH `0040` AND THE ASSERTION DID NOT. RLS is still on both
+-- tables, so this stays green — but *"BOTH gated tables"* is now wrong about
+-- `purchase_line`, which is member-level since 2026-09-25. **What the sentinel really
+-- stands for is RLS being ENABLED**, which is a different property from being
+-- role-gated and is the one this check needs.
+select chk('and the sentinel is safe: both tables the view spans still have RLS enabled',
            (select count(*) from pg_class c join pg_namespace n on n.oid=c.relnamespace
              where n.nspname='public' and c.relname in ('purchase_line','waste_line')
                and c.relrowsecurity) = 2,
            'row_security_active is a property of the CALLER, so one sentinel is '
-        || 'enough — but only while every gated table it stands for is still '
-        || 'fenced. This is what stops the sentinel becoming the last one');
+        || 'enough — but only while every table it stands for still has RLS ON. '
+        || '⚠️ 0040 took the ROLE gate off purchase_line and left RLS in place, '
+        || 'which is why this reads relrowsecurity and not the policy text. This '
+        || 'is what stops the sentinel becoming the last one');
 
 begin;
 select set_config('request.jwt.claims',

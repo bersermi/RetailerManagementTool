@@ -829,3 +829,199 @@ still the reason to think twice on the next sheet.
 typecheck clean; `conventions-gate.sh` **16/16 over 68 source files**. **Photographed on the
 simulator before it reached his phone**, which is how (1), (3) and (4) were confirmed and how
 the `Pressable` mistake in (2) was caught by reading rather than by him finding it.
+
+
+---
+
+## Appended 2026-09-25 — the twenty-third cut, off the FOOT as `5g-ii-b` closed
+
+⚠️ **`## Position` reached 1,468 of 1,400** with the fourth status-log entry of one working day in it.
+**`5R-f` went out** — the schema-deploy guard, the row that first taught this repository to ask the
+hosted database what it is carrying. ⚠️ **A MOVE and never a copy**, unedited.
+
+⚠️⚠️ **THE GUARD ADDED BY THE TWENTY-FIRST CUT REFUSED THIS ONE'S FIRST ATTEMPT TOO — THE THIRD TIME
+IN ONE DAY, AND ALWAYS THE SAME SHAPE.** The mover keeps reaching for *"the next entry head"* as a
+bound, and the entry being cut keeps being the LAST one in the region, so the proposal runs into the
+archive-bookkeeping section: **297 lines, then 234, then 270**, each one refused. ✅ **Each time the fix
+was to name the entry's real last line.** ⚠️ **The lesson is not that the mover is wrong — it is that a
+bound derived from what comes AFTER cannot work at the end of a list, and three refusals in a day is
+the guard earning its place three times over.**
+
+⚠️ **Five cuts on 2026-09-25.** Four status-log entries and four rulings in one day, because the owner
+was holding the phone and answering inside the hour. **The 1,400 ceiling is sized for one entry per
+session**; the honest response is to cut more often rather than raise it, because the ceiling is what
+keeps `## Position` readable by a cleared session.
+
+✅✅✅ **`5R-f` IS DONE AS OF 2026-09-24 — THIS REPOSITORY CAN NOW ASK THE HOSTED DATABASE
+WHETHER IT IS CARRYING THE SCHEMA, AND `5R-g` IS THE NEXT TASK.** ⚠️ **It ships no migration**
+and it is in **no workflow**, which was the first thing the row said to decide.
+
+⚠️⚠️ **THE ESTIMATE, WRITTEN BEFORE THE WORK AND WHAT IT FOUND.** Sized `S` on the row and
+`S` is right — one sitting, two files and a paragraph. **Four measurements changed the shape
+of it, and every one was cheaper to take than to reason about:**
+
+**(1) `supabase migration list --linked` works from this machine with NO PASSWORD AND NO
+SERVICE KEY**, exactly as the row hoped, **and it emits JSON on a non-TTY** — so the guard
+parses a payload instead of scraping a table. ⚠️ **The pooler URL's password still does not
+work and nothing here needs it.**
+
+**(2) THE HOSTED PROJECT IS CURRENTLY IN SYNC — ALL 36 MIGRATIONS APPLIED.** ⚠️⚠️ **That is
+the finding that decided how this task was built.** A guard whose real answer is green today
+and green every time anybody runs it has never been tested by running it. **So the harness is
+not an extra here, it is the only evidence the thing works**, and it is the larger half of the
+diff.
+
+**(3) THE PLAN SAYS "THIRTY-EIGHT MIGRATIONS" AND THERE ARE 36 FILES.** Numbering reaches
+`0038` and `0006`/`0007` have never existed. **Not a defect and nothing is corrected** — but a
+check that trusted the high number instead of counting files would report a phantom
+divergence forever, so it counts files.
+
+**(4) ⚠️⚠️ THE PROJECT REF LIVES ONLY IN `supabase/.temp/`, WHICH IS GITIGNORED.** So until
+this task, **nothing committed to this repository said which database the schema belongs to** —
+the ref appears in this plan and in a status archive, and nowhere a tool would look. **A check
+that did not pin it would pass vacuously against whatever project a laptop happened to be
+linked to**, which is the same shape as running an isolation test as `postgres`: green, and
+about nothing. ✅ `supabase/README.md` now names it, and assertion 2 compares the two.
+
+⚠️⚠️ **THE DECISION THE ROW SAID TO MAKE FIRST — LOCAL CHECK, NOT A REPOSITORY SECRET — AND
+IT WAS TAKEN ON THE OWNER'S BEHALF, SO IT IS NAMED HERE AND IN THE PR BODY.** Two reasons,
+and the second is this repository's own history rather than a general principle:
+
+**(a) A Supabase access token is ACCOUNT-WIDE; there is no project-scoped one.** A repository
+secret would hand every workflow run the owner's whole Supabase account in order to guard
+against a forgotten `db push` — **a blast radius far larger than the thing being guarded.**
+
+**(b) ⚠️⚠️ THIS CHECK'S ANSWER DEPENDS ON THE WORLD, NOT ON THE DIFF.** Once a migration
+merges it is red **until a person deploys** — so in CI it would redden pull requests that
+neither caused it nor can fix it. **`5R-g`'s row already records what that does**: a red that
+is not yours is how people learn to stop reading the result, and *read the job log by name* is
+the one habit the automated-merge agreement rests on. ⚠️ **If the owner would rather have it
+in CI, that is one sentence and a secret** — the guard itself needs no change.
+
+⚠️⚠️ **AND THE HARNESS EARNED ITS KEEP INSIDE THE HOUR — IT FOUND A REAL BUG IN THE GUARD,
+AND THE EXIT CODE HAD HIDDEN IT.** The normalised rows were tab-delimited, **a tab is IFS
+whitespace, and bash collapses a run of IFS whitespace into one delimiter** — so a
+remote-only row, whose middle field is empty, arrived as two fields and was read as an
+*undeployed* migration instead of a *hand-run* one. ⚠️ **Both are red, so `D2` passed on exit
+code and failed on REASON**, which is the only assertion that could have caught it. ✅ The
+delimiter is `|`. ⚠️ **This is the same family as [[bash-cannot-hold-a-nul-sentinel]]: the
+error named the wrong column.**
+
+⚠️ **`D8` is the fixture that justifies an assertion rather than testing one.** It hands back
+a listing that is **internally consistent** — every row it mentions is applied — while
+silently omitting a migration that is on disk. Groups 5 and 6 walk the CLI's rows, so **both
+pass while looking at almost nothing**; only the group that walks the DISK catches it.
+**Delete assertion 4 and that fixture goes green.**
+
+⚠️ **Verified, and named rather than ticked:** `5R-f-schema-deployed.sh` **6/6 against the
+real hosted project** (`hweutzjhzvioswnjzqki`, 36 rows), and
+`5R-f-schema-deployed-falsify.sh` **10/10** — the guard goes red on a remote that is behind,
+a remote that is ahead, a partial listing, a failed command, a wrong link, an unlinked copy,
+an undocumented target and unparseable output. ⚠️ **The stub is on PATH and the guard has no
+env var or flag that reads a file instead of the network**, so the harness leaves no backdoor
+in the thing it tests.
+
+⚠️ **What it does NOT do, said plainly: it compares VERSION NUMBERS, not schema.** A migration
+edited after it was applied would list as present on both sides. **Migrations are append-only
+once applied**, so that is the rule holding it rather than this check — and `supabase db push`
+would not re-apply it either.
+
+
+---
+
+## Appended 2026-09-25 — the twenty-fourth cut, taken to PAY FORWARD
+
+⚠️ **The twenty-third left `## Position` at 1,395 of 1,400 — five lines**, which is not headroom, it is
+a rounding error. **`5R-g` goes out with its measurement paragraph** — `db.yml`'s biggest job split in
+two, and the cap turned back into a number somebody had measured. ⚠️ **A MOVE and never a copy**,
+unedited.
+
+⚠️ **Six cuts on 2026-09-25**, and the pattern across them is worth one line: **every forced cut this
+day was followed by a pre-emptive one**, because clearing a ceiling by single digits hands the next
+session a red on its opening move for a ceiling it had no part in spending. That argument is written
+out in full in the fifteenth cut above and it held four more times today.
+
+✅✅✅ **`5R-g` IS DONE AS OF 2026-09-24 — `db.yml`'s BIGGEST JOB IS SPLIT, THE STOPGAP CAP IS
+GONE, AND THE WHOLE WORKFLOW NOW FINISHES IN ABOUT TEN MINUTES INSTEAD OF NEARLY SIXTEEN.
+`5g` IS THE NEXT TASK: COMPRAR.** ⚠️ **It ships no migration and touches no app code.**
+
+⚠️⚠️ **THE OWNER RULED ON `5R-f`'s OPEN QUESTION THE SAME DAY — *"keep it local"* — AND ON
+THE ORDER WITH IT: *"take 5R-g next."*** **Both confirmed what was already built and marked**,
+so nothing changed; it is recorded because a confirmation is evidence and the next session
+should not re-litigate either.
+
+⚠️⚠️ **THE ESTIMATE, WRITTEN BEFORE THE WORK. Sized `S` and `S` is right** — one workflow
+file. **Four measurements, and the first one is why this was not guesswork:**
+
+**(1) THE JOB WAS MEASURED STEP BY STEP RATHER THAN ESTIMATED** (run `36050875005`): **941s
+total, 15m41s.** Setup 171s · the seed and schema block **322s** · node and the two-connection
+suite 28s · `Stop` 23s · **and the contract block 397s (6m37s)**. ⚠️ **That is what made the
+cap meaningless**: the job was doing 15m41s of work against a 15-minute cap, so whether it
+passed depended on runner weather.
+
+**(2) ⚠️⚠️ THE SPLIT DOES NOT COST WALL-CLOCK, IT SAVES IT — AND THE ROW UNDERSTATED ITS OWN
+CASE.** The row argued the move was *free* because jobs run in parallel. **It is better than
+free: the two halves come out near-equal** — `reset` ~544s (9m04s) and `api-contracts` ~590s
+(9m50s) — so `db` finishes in about **ten minutes instead of nearly sixteen**. **A split is
+usually neutral; this one is a speed-up because the block that moved was almost half the job.**
+
+**(3) THE ROW SAYS "ELEVEN CONTRACT CHECKS" AND THERE ARE THIRTEEN.** Counted, not assumed:
+twenty-six steps, thirteen checks and thirteen harnesses. ⚠️ **Nothing is corrected upstream
+and nothing depended on the number** — but it is the SECOND count in two sittings that the
+plan carried slightly wrong (`5R-f` found "thirty-eight migrations" against 36 files), and
+**two is a pattern rather than a slip: a number written in prose is not re-counted when the
+thing it counts grows.**
+
+**(4) ⚠️⚠️ THE CONTRACT BLOCK NEEDS NO NODE AND NO `npm ci`, WHICH WAS MEASURED RATHER THAN
+ASSUMED.** Every one of the thirteen is bash driving live HTTP. **Two of the scripts mention
+`node` — and both mentions are in a COMMENT** explaining why they cannot use it
+(`@/lib/outboxDb` imports a native module). ✅ **So `setup-node` and `npm ci` stayed behind in
+`reset`, where the two-connection Vitest suite genuinely needs them.** ⚠️ **A copy-paste of
+the job would have carried them across and nothing would ever have gone red** — 22s a run,
+for ever, for nothing.
+
+✅ **THE CAP IS 15 AGAIN ON BOTH JOBS, AND THE NUMBER IS NOW A MEASUREMENT.** ~9m04s and
+~9m50s against 15 is about **1.65x and 1.5x headroom, where the cancelled runs had 1.0x**.
+⚠️ **A cap still catches a HANG, which is what a cap is for; it no longer catches a job doing
+its work.**
+
+⚠️⚠️ **VERIFIED LOCALLY IN THE NEW JOB'S EXACT SHAPE BEFORE IT WAS PUSHED, BECAUSE THE REAL
+RISK WAS INVISIBLE IN THE DIFF.** A contract check that quietly depended on state the seed
+steps left behind would have split green and failed later, or worse, passed for the wrong
+reason. **So the shape was reproduced on this machine** — `supabase start` with the reduced
+service list, `db reset`, then the thirteen checks with nothing in between — **and all
+thirteen passed**, followed by the thirteen harnesses. ⚠️ **The exclusion list is
+`catalog-write`'s and is unchanged**: these checks sign people up through GoTrue and post rows
+through PostgREST, both via Kong, and every excluded container is one none of them touches.
+
+⚠️ **THE STEP MULTISET WAS DIFFED BEFORE AND AFTER**, which is the check that no contract step
+was lost or silently duplicated by a 353-line move: **every `Contract —` step count is
+identical**, and the only differences are the five setup steps the new job legitimately adds
+(checkout, CLI, start, reset, `Stop`).
+
+✅✅ **MEASURED AFTER THE SPLIT, AND THE PREDICTION WAS RIGHT ON ONE HALF AND PESSIMISTIC ON
+THE OTHER.** Predicted ~9m04s and ~9m50s; **actual `reset` 9.5m and `api-contracts` 7.2m.**
+⚠️ **The new job came in 2.6 minutes under** because the reduced service list starts faster
+than `reset`'s full `supabase start` — a saving the estimate did not think to claim.
+⚠️⚠️ **THE WORKFLOW'S WALL-CLOCK IS NOW SET BY `auth-session` AT 10.4m, NOT BY `reset`**, so
+`db` finishes in about **ten and a half minutes against nearly sixteen** — and the next
+minute saved is in a job this task did not touch. ✅ **Both split halves sit at 1.6x and 2.1x
+headroom against their 15-minute cap**, which is the property that was missing.
+
+⚠️⚠️ **AND CI CAUGHT THE ONE THING THIS SESSION DID NOT — THE HANDBOOK'S NEXT-WORK MARKER,
+SPELLED WITH THE FULL STOP INSIDE THE BOLD RUN.** `handbook-agreement.sh` was GREEN, because
+it greps the sentence; `handbook-agreement-falsify.sh` went red on **four fixtures at once**,
+every one reporting *"anchor not present in the 5g row"*. ⚠️⚠️ **THE SAME DEFECT, FROM THE
+SAME CAUSE, HAPPENED ON 2026-09-23 IN `5e-ii` — AND THE HARNESS ITSELF CARRIES THE PARAGRAPH
+SAYING SO.** ⚠️ **A harness that cannot find the row it is supposed to break reads exactly
+like a guard that has lost its teeth**, which is why it is red rather than quiet. ✅ **Nothing
+was loosened**: the handbook sentence was reworded so the period sits outside the bold, which
+is what that paragraph says to do and is the cheaper half of *never spell a check's sentinel
+differently in the file it reads*. ⚠️ **The lesson is the one already written down and not
+followed here — run the FALSIFIER after editing what it reads, not just the guard.**
+
+⚠️ **TWO COMMENTS ELSEWHERE IN THE FILE WENT STALE AND WERE AMENDED RATHER THAN REWRITTEN.**
+`auth-session`'s header and `catalog-write`'s both argue *do not bolt this onto `reset`* and
+cite its 12-13 minute runtime. ⚠️⚠️ **That paragraph made this task's case twice before
+anybody acted on it**, so the reasoning is kept verbatim and dated instead of being restated
+in the past tense.

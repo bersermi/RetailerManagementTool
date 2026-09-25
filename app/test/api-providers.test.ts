@@ -309,10 +309,18 @@ describe('who may read the price memory', () => {
   // ⚠️⚠️ IT IS A CLAIM ABOUT `0003:558`, NOT A PREFERENCE.
   // `provider_price_memory` is `security_invoker` over `purchase` and
   // `purchase_line`, and both policies are `has_role(workspace_id, 'manager')`.
-  it('is manager and above, which is what the view inherits', () => {
+  // ⚠️⚠️ INVERTED BY `0040` ON 2026-09-25. It read *manager and above* from the day
+  // it was written; the decision maker ruled *"Empleada should be able to see the
+  // both the purchase records and the prices"*, `0040` dropped the role gate from
+  // `purchase_select` and `purchase_line_select`, and **this predicate follows the
+  // applied policy rather than leading it.**
+  // ⚠️ `docs/checks/5g-i-purchase-contract.sh` assertion 10 is what proves the
+  // DATABASE agrees — it drives a real cashier over HTTP. This asserts only that the
+  // app stopped fencing her.
+  it('is every known role, which is what the view inherits since 0040', () => {
     expect(canReadMemory('owner')).toBe(true);
     expect(canReadMemory('manager')).toBe(true);
-    expect(canReadMemory('staff')).toBe(false);
+    expect(canReadMemory('staff')).toBe(true);
   });
 
   // ⚠️ `null` IS *NOT KNOWN* AND IS LOAD-BEARING HERE RATHER THAN DEFENSIVE.
@@ -334,10 +342,14 @@ describe('who may read the price memory', () => {
   // ⚠️ So the claim lives in the function's own header, which is `R9`'s
   // convention — an unseeable deliverable gets written down — and the ONE half a
   // test can hold is asserted above: `null` is refused.
-  it('refuses the role that is not known, which is the half a test can hold', () => {
+  // ⚠️⚠️ AND `null` IS STILL REFUSED, WHICH IS NOW THE WHOLE OF WHAT THIS FUNCTION
+  // DECIDES. *Not known yet* must not answer `true`: `memoryState` would report
+  // `new-pairing` on every row of a phone that has simply not been told who is
+  // holding it, and Comprar would draw *Primera vez con este proveedor* over a
+  // catalog the shop buys weekly — the exact falsehood the 2026-09-25 rulings
+  // removed, arriving through a membership read instead of through a fence.
+  it('still refuses the role that is not known, which is now the only thing it decides', () => {
     expect(canReadMemory(null)).toBe(false);
-    expect(canReadMemory('staff')).toBe(false);
-    expect(canReadMemory('manager')).toBe(true);
   });
 });
 

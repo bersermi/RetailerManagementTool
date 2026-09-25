@@ -396,21 +396,35 @@ export function memoryState(
  * first caller, and without this the comparison would sit in a ternary inside a
  * screen no instrument in this repository can look at (`R9`).
  *
- * ⚠️ IT IS A CLAIM ABOUT `0003:558` AND NOT A PREFERENCE.
- * `provider_price_memory` is a `security_invoker` view over `purchase` and
- * `purchase_line`, and both of those policies are
- * `has_role(workspace_id, 'manager')` — so the predicate is *manager and above*,
- * and it is here rather than in the screen precisely so
- * `app/test/api-providers.test.ts` reads it.
+ * ⚠️⚠️ IT IS A CLAIM ABOUT THE APPLIED POLICY AND NOT A PREFERENCE, AND THE POLICY
+ * MOVED ON 2026-09-25. `provider_price_memory` is a `security_invoker` view over
+ * `purchase` and `purchase_line`; both were `has_role(workspace_id, 'manager')`
+ * from `0003` until **`0040` dropped the role gate from both** on the decision
+ * maker's instruction — *"Empleada should be able to see the both the purchase
+ * records and the prices."* **So the answer is now yes for every role**, and this
+ * function exists to make that a single line a test can read rather than a ternary
+ * inside a screen no instrument can reach.
  *
- * ⚠️ IT IS NOT AN ALIAS OF `canWriteCatalog` AND MUST NOT BECOME ONE, which is
- * that function's own recorded argument made a third time. Both answer *manager
- * and above* today and both are different questions; a migration that loosened
- * one would move one, and an alias is how the wrong one moves.
- * ⚠️⚠️ AND HERE THE LOOSENING IS THE LIKELY DIRECTION RATHER THAN A HYPOTHETICAL:
- * `record_purchase` has NO role check at all (`0018:165`), so a shop that decided
- * a cashier may receive a delivery would widen this view and leave the catalog
- * exactly where it is.
+ * ⚠️⚠️ IT IS NOT DELETED, AND THE REASON IS THE REASON IT WAS WRITTEN. The fence
+ * is one `alter policy` away in either direction; `memoryState` still needs an
+ * answer to *may this person read a purchase at all*, and a caller that hard-coded
+ * `true` would be a screen asserting something about RLS. ⚠️ **`docs/checks/5g-i-purchase-contract.sh`
+ * assertion 10 is what keeps this honest** — it drives a real cashier over HTTP and
+ * counts the rows she gets back.
+ *
+ * ⚠️ THE LOCATION WALL IS UNTOUCHED AND IS NOT THIS FUNCTION'S BUSINESS. `0040`
+ * kept `my_locations()` on both policies, so a cashier reads HER store's deliveries
+ * — which is a row filter and not a permission, and nothing here models it.
+ *
+ * ⚠️⚠️ IT WAS NOT AN ALIAS OF `canWriteCatalog` AND THE PREDICTION CAME TRUE IN
+ * FOUR DAYS. That function's recorded argument was that both answered *manager and
+ * above* today, were different questions, and *"a migration that loosened one would
+ * move one."* ⚠️ **It did**: `0040` loosened this one and left `canWriteCatalog`
+ * exactly where it was, so the catalog is still manager-and-above and the deliveries
+ * are not. **Had they been aliased, editing a shop's products would have opened with
+ * it.** ⚠️ The loosening was also predicted as the LIKELY direction, and the reason
+ * given was the right one: `record_purchase` has no role check at all (`0018:165`),
+ * so a cashier could already record a delivery she could not read back.
  *
  * ⚠️ `null` IS "NOT KNOWN" AND IS FENCED OUT, `roleOf`'s own distinction — and
  * here it is load-bearing rather than defensive. Answering `true` while the
@@ -420,7 +434,12 @@ export function memoryState(
  */
 export function canReadMemory(role: Role | null): boolean {
   if (role === null) return false;
-  return ROLES.indexOf(role) <= ROLES.indexOf('manager');
+  // ⚠️⚠️ EVERY KNOWN ROLE, SINCE `0040` (2026-09-25). This read
+  // `ROLES.indexOf(role) <= ROLES.indexOf('manager')` from the day it was written
+  // until the decision maker ruled *"Empleada should be able to see the both the
+  // purchase records and the prices."* **The predicate follows the applied policy
+  // and never leads it**, which is this function's whole job.
+  return true;
 }
 
 /**
@@ -472,8 +491,17 @@ export function costShown(
  * important living in a ternary inside a 1,700-line screen is a rule the next
  * session can undo without anything going red.
  *
- * ⚠️ `null` FOR `unreadable` IS THE RULING, AND IT IS THE WHOLE POINT OF THIS
- * FUNCTION. The box is still empty and still required — that much is TRUE for
+ * ⚠️⚠️ `unreadable` IS UNREACHABLE SINCE `0040` (2026-09-25) AND THE BRANCH STAYS.
+ * `canReadMemory` now answers `true` for every known role, so `memoryState` cannot
+ * return it — **the state is dead, not wrong.** It is kept because the fence is one
+ * `alter policy` away in either direction and because `MemoryState` is the type that
+ * would have to grow it back; deleting a branch to celebrate a ruling is how the
+ * next ruling costs more than it should. ⚠️ **Its assertion is kept for the same
+ * reason and is now asserting over an input the app cannot currently produce**,
+ * which is said here rather than left for somebody to discover as a gap.
+ *
+ * ⚠️ `null` FOR `unreadable` IS THE RULING OF 2026-09-25 THAT PRECEDED IT, AND IT
+ * IS WHY THIS FUNCTION EXISTS AT ALL. The box is still empty and still required — that much is TRUE for
  * her, because the app genuinely cannot tell her what this cost — but the screen
  * says nothing about why. ⚠️ **Not *"no puedes ver los precios anteriores"*
  * either**: that is a role boundary she did not ask about and cannot change

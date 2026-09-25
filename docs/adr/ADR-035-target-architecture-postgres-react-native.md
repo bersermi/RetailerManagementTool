@@ -285,6 +285,18 @@
   unreviewed and move a historical daily total. **No schema change here, but step 4.5
   OWES A MARKER** — nothing distinguishes a replayed document today, so
   `void_transaction` cannot enforce this yet and does not pretend to.
+- **Revised:** 2026-09-25 — **§2.7's capability matrix and its cost paragraph, on the
+  decision maker's instruction**, and it is the first ruling ever to reverse a row of
+  that matrix: *"Empleada should be able to see the both the purchase records and the
+  prices."* ⚠️ **`See cost and margin` split in two.** The cost of a DELIVERY is now
+  member-level at a member's own locations (`0040` drops the role gate from
+  `purchase_select` and `purchase_line_select`, keeping `my_locations()`); the cost of
+  stock (`stock_batch`, `stock_movement`), the cost of waste (`waste_line`) and margin
+  reporting (`product_margin_daily`) are unchanged and still manager-and-above.
+  ⚠️⚠️ **The original paragraph is kept and is still correct** — it argues about the
+  cost of adding the separation later, not about removing one — and **the one-way
+  door was named to him before the migration was written**: the policies can be
+  re-narrowed, what somebody has already read cannot be unread.
 - **Revised:** 2026-09-25 — **§2.8's Comprar row, on the decision maker's instruction.** The
   phrase *optional expiry* is marked **LATENT** rather than struck: *"We'll leave the expiry input
   latent until we have some feedback from the pilot."* ⚠️ **It is an annotation and not a
@@ -1182,7 +1194,8 @@ access to their own operation; *Viewer* would be null forever.
 | Void own transaction < 15 min | ● | ● | ● |
 | Void any transaction, any time | — | ● | ● |
 | Edit catalog and prices | — | ● | ● |
-| See cost and margin | — | ● | ● |
+| ~~See cost and margin~~ **See MARGIN, and the cost of stock and waste** | — | ● | ● |
+| **See what a DELIVERY cost** — ⚠️⚠️ **AMENDED 2026-09-25** | **● assigned locations** | ● all | ● all |
 | See quantity sold and revenue (Números) | ● assigned locations | ● all | ● all |
 | Stock counts and adjustments | — | ● | ● |
 | Transfer stock between locations | — | ● | ● |
@@ -1190,6 +1203,40 @@ access to their own operation; *Viewer* would be null forever.
 
 Cost visibility is a real commercial exposure in small retail, and separating it
 after the fact means rewriting every query.
+
+⚠️⚠️ **AMENDED 2026-09-25 ON THE DECISION MAKER'S INSTRUCTION, AND IT IS THE FIRST
+TIME A RULING HAS REVERSED A ROW OF THE MATRIX ABOVE.** His words: ***"Empleada
+should be able to see the both the purchase records and the prices."*** Asked
+whether he meant the Comprar prefill only or the delivery documents as well, he
+answered the wide reading. **`0040` drops `has_role(workspace_id, 'manager')` from
+`purchase_select` and `purchase_line_select` and keeps the location wall**, so a
+cashier reads the deliveries at **her own stores** and the price memory Comprar
+prefills from.
+
+⚠️ **THE PARAGRAPH ABOVE IS NOT WITHDRAWN AND IS NOT WRONG.** *"Separating it after
+the fact means rewriting every query"* is an argument about the cost of ADDING the
+separation later; it says nothing about removing one that is already there, which is
+two `alter policy` statements. **What he traded is the exposure itself**, and that is
+a judgement about the people in his shop rather than about the schema.
+
+⚠️⚠️ **WHAT DID NOT MOVE, because the matrix row above now needs reading carefully:**
+`stock_batch` and `stock_movement` keep their `has_role` from `0004`, so **cost on
+the shelf is still manager-and-above**; `waste_line` keeps its gate from `0003`, so
+**the cost of what was thrown away is too**; and `product_margin_daily` states its own
+predicate inside the view (`0009`), so **margin reporting is untouched**. Only the
+cost of a delivery moved.
+
+⚠️⚠️ **AND IT IS A ONE-WAY DOOR IN THE COMMERCIAL SENSE RATHER THAN THE TECHNICAL
+ONE.** Re-narrowing the two policies is one more migration; what cannot be undone is
+that somebody has already read the numbers. **That was put to him in those words
+before `0040` was written**, and he ruled anyway — which is his to do and is recorded
+here so nobody re-litigates it as an oversight.
+
+⚠️ **The claim is now measured in three places rather than asserted here**:
+`supabase/tests/0040_…` under `set role authenticated`,
+`supabase/tests/0003_transactions.sql`'s inverted RLS block, and
+`docs/checks/5g-i-purchase-contract.sh` assertion 10, which drives a real cashier
+over HTTP.
 
 **How cost is actually hidden** (settled 2026-08-14). Not column `GRANT`s —
 **manager-only views**. Staff hold `select` on views only, never on the base tables

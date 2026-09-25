@@ -21,11 +21,12 @@
 #
 #   * `P8`  narrows `provider_select` to manager-and-above — the cashier's
 #           header picker goes empty and Comprar has no provider to buy from.
-#   * `P9`  widens BOTH `purchase_select` and `purchase_line_select` to any
-#           member — the view joins them and is `security_invoker`, so either
-#           one alone leaves the join empty. The cashier's memory
-#           stops being empty, `memoryState`'s `unreadable` branch becomes dead
-#           code, and nothing else anywhere would notice.
+#   * `P9`  ⚠️⚠️ INVERTED BY `0040` (2026-09-25). It used to WIDEN both
+#           `purchase_select` and `purchase_line_select`; that widening is now the
+#           SHIPPED STATE, on the decision maker's instruction, so the fixture
+#           NARROWS them back to `0003`'s manager-and-above instead. The cashier's
+#           memory goes empty, Comprar starts asking her to type a price the app
+#           already knows, and nothing else anywhere would notice.
 #   * `P10` renames the seeded generic provider — the word `0039` settled. It
 #           proves the check is really reading the NAME off the wire rather than
 #           carrying its own copy of it.
@@ -55,21 +56,53 @@ fi
 
 sql() { docker exec -i "$DB_CONTAINER" psql -U postgres -q >/dev/null 2>&1; }
 
-# ⚠️ QUOTED FROM THE MIGRATIONS: the restore re-creates exactly this, not
-# "something equivalent". `0002:522` and `0003:564`.
-ORIGINAL_PROVIDER_POLICY="create policy provider_select on public.provider
-  for select to authenticated
-  using (workspace_id in (select public.my_workspaces()));"
-ORIGINAL_LINE_POLICY="create policy purchase_line_select on public.purchase_line
-  for select to authenticated
-  using (workspace_id in (select public.my_workspaces())
-     and location_id  in (select public.my_locations())
-     and public.has_role(workspace_id, 'manager'));"
-ORIGINAL_PURCHASE_POLICY="create policy purchase_select on public.purchase
-  for select to authenticated
-  using (workspace_id in (select public.my_workspaces())
-     and location_id  in (select public.my_locations())
-     and public.has_role(workspace_id, 'manager'));"
+# One value out of the database, trimmed. Used only to build the restores below.
+ask() { docker exec -i "$DB_CONTAINER" psql -U postgres -At -c "$1" 2>/dev/null | tr -d '\r'; }
+
+# ----------------------------------------------------------------------------
+# ⚠️⚠️ THE RESTORES ARE READ OUT OF THE APPLIED CATALOG, AND THEY USED TO BE
+# HARDCODED COPIES OF `0002` AND `0003`
+# ----------------------------------------------------------------------------
+# That was safe for a month and stopped being safe on 2026-09-25, when `0040`
+# widened `purchase_select` and `purchase_line_select` on the decision maker's
+# instruction. **A harness carrying its own copy of a policy does not fail when the
+# policy moves — it QUIETLY PUTS THE OLD ONE BACK**, and this one would have left
+# every delivery manager-only again on any machine that ran it, with nothing to say
+# so. It is the same defect class as `P2`/`P3` anchoring on a constant's last
+# element, one layer more dangerous: that one went red, this one would not have.
+#
+# ⚠️ SO THE DEFINITION IS ASKED FOR RATHER THAN REMEMBERED. `pg_policies` carries
+# the command, the roles and the predicate, which is everything a `create policy`
+# needs — and a policy this harness has never heard of restores correctly by
+# construction.
+#
+# ⚠️ AND IT FAILS LOUDLY IF THE READ COMES BACK EMPTY, because a restore that is
+# the empty string is a `drop policy` with no `create` after it: the table would be
+# left with RLS on and no SELECT policy at all, which reads as a total outage rather
+# than as a broken fixture.
+policy_def() { # table policy -> a create-policy statement
+  ask "select format('create policy %I on public.%I for select to %s using (%s);',
+                     policyname, tablename, array_to_string(roles, ', '), qual)
+         from pg_policies
+        where schemaname = 'public' and tablename = '$1' and policyname = '$2';"
+}
+
+ORIGINAL_PROVIDER_POLICY="$(policy_def provider provider_select)"
+ORIGINAL_LINE_POLICY="$(policy_def purchase_line purchase_line_select)"
+ORIGINAL_PURCHASE_POLICY="$(policy_def purchase purchase_select)"
+
+for pair in "provider_select:$ORIGINAL_PROVIDER_POLICY" \
+            "purchase_line_select:$ORIGINAL_LINE_POLICY" \
+            "purchase_select:$ORIGINAL_PURCHASE_POLICY"; do
+  name="${pair%%:*}"; def="${pair#*:}"
+  case "$def" in
+    "create policy $name on public."*"using ("*) ;;
+    *) echo "FAIL: could not read $name out of pg_policies, so no fixture below could"
+       echo "      be put back. Refusing to mutate a policy this harness cannot restore."
+       echo "      got: ${def:-<empty>}"
+       exit 1 ;;
+  esac
+done
 
 provider_policy_restored=yes
 line_policy_restored=yes
@@ -82,7 +115,7 @@ drop policy if exists provider_select on public.provider;
 $ORIGINAL_PROVIDER_POLICY
 SQL
   provider_policy_restored=yes
-  echo "        (provider_select restored to 0002's definition)"
+  echo "        (provider_select restored to the definition read off the applied catalog)"
 }
 restore_line_policy() {
   [[ "$line_policy_restored" == yes ]] && return 0
@@ -93,7 +126,7 @@ drop policy if exists purchase_select on public.purchase;
 $ORIGINAL_PURCHASE_POLICY
 SQL
   line_policy_restored=yes
-  echo "        (purchase_select and purchase_line_select restored to 0003's definitions)"
+  echo "        (purchase_select and purchase_line_select restored to the definitions read off the applied catalog)"
 }
 # ⚠️ P10 RENAMES THE SEED INSIDE AN APPLIED FUNCTION, so the restore is a
 # `replace` of the literal rather than a re-create of the whole body: the
@@ -244,32 +277,40 @@ SQL
 expect P8 'cashier asymmetry has changed|providers  200 / 0' "$SOURCE"
 restore_provider_policy
 
-# ⚠️⚠️ P9 IS THE SUBTLER HALF AND IT IS THE ONE `5g` SPLIT OVER. Widen the fence
-# and the cashier's memory STOPS being empty — which is an improvement nobody
-# asked for, makes `memoryState`'s `unreadable` branch dead code, and puts every
-# supplier's cost in front of the person at the counter. A policy that allows
-# more breaks no test anywhere else in this repository.
+# ⚠️⚠️ P9 IS THE SUBTLER HALF, IT IS THE ONE `5g` SPLIT OVER, AND IT CHANGED
+# DIRECTION ON 2026-09-25. It used to WIDEN the fence and expect the check to
+# notice; `0040` made that widening the shipped state on the decision maker's
+# instruction — *"Empleada should be able to see the both the purchase records and
+# the prices."* **So the mutation is now the NARROWING**, which is the migration
+# being undone, and that is the thing nothing else in this repository would see.
 #
-# ⚠️⚠️ AND IT TAKES BOTH POLICIES, WHICH THIS FIXTURE LEARNED ON ITS FIRST RUN
-# AND IS WORTH KEEPING: `provider_price_memory` JOINS `purchase_line` to
-# `purchase`, and the view is `security_invoker`, so BOTH tables apply their own
-# policy to the caller. Widening `purchase_line_select` alone leaves the join
-# empty and the fixture green — a falsification that proved nothing and looked
-# like one that did. **The memory is fenced twice, and that is now measured.**
+# ⚠️ WHAT GOES WRONG WHEN IT IS UNDONE, in the shop rather than in the schema: the
+# cashier's `provider_price_memory` read returns 200 and an empty array, Comprar
+# draws §2.8's *new pairing* on every row — the CORRECT rendering of an empty
+# memory — and **asks her to type a cost the app already knows.** A policy that
+# allows less breaks no other test here.
+#
+# ⚠️⚠️ AND IT TAKES BOTH POLICIES, WHICH THIS FIXTURE LEARNED ON ITS FIRST RUN AND
+# IS STILL WORTH KEEPING NOW THE DIRECTION IS REVERSED: `provider_price_memory`
+# JOINS `purchase_line` to `purchase` and the view is `security_invoker`, so BOTH
+# tables apply their own policy. **Narrowing either one alone empties the join** —
+# which is why `0040` had to widen both, and why this fixture still touches both.
 line_policy_restored=no
 sql <<'SQL'
 drop policy if exists purchase_line_select on public.purchase_line;
 create policy purchase_line_select on public.purchase_line
   for select to authenticated
   using (workspace_id in (select public.my_workspaces())
-     and location_id  in (select public.my_locations()));
+     and location_id  in (select public.my_locations())
+     and public.has_role(workspace_id, 'manager'));
 drop policy if exists purchase_select on public.purchase;
 create policy purchase_select on public.purchase
   for select to authenticated
   using (workspace_id in (select public.my_workspaces())
-     and location_id  in (select public.my_locations()));
+     and location_id  in (select public.my_locations())
+     and public.has_role(workspace_id, 'manager'));
 SQL
-expect P9 'cashier asymmetry has changed|memory     200 / [1-9]' "$SOURCE"
+expect P9 'what a cashier reads has changed|memory     200 / 0' "$SOURCE"
 restore_line_policy
 
 # ⚠️⚠️ P10 — THE NAME. It was the owner's open question when this fixture was
