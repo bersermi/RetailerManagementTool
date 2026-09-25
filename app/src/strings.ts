@@ -1621,37 +1621,50 @@ export const ES = {
      * the owner, because `canWriteCatalog` keeps a cashier from seeing a control
      * she would be refused silently.
      *
-     * ⚠️ `Costos` AND `Editar` ARE STILL DRAWN DEAD, and that is two rulings
-     * rather than an omission: *"leave Costos dead until `5g`"* (2026-09-22),
-     * because nothing writes a purchase until Comprar exists, and `Editar` is
-     * `5e-iii`. ⚠️ Deleting them was refused for `5d-iv-b`'s Proveedores reason
-     * — an affordance a shop has seen and then seen vanish reads as an app
-     * getting smaller.
+     * ⚠️⚠️ ALL THREE ARE LIVE AS OF `5g-iii` (2026-09-25), AND `Costos` WAS THE
+     * LAST ONE. *"Leave Costos dead until `5g`"* (2026-09-22) was a ruling about
+     * WHEN — nothing wrote a purchase until Comprar existed, so a costs view
+     * built earlier would have shown an empty list on every product in the shop,
+     * for ever. Comprar shipped with `5g-ii` on 2026-09-25 and this is the row
+     * that spends the ruling. ⚠️ Deleting the dead ones was refused all along for
+     * `5d-iv-b`'s Proveedores reason — an affordance a shop has seen and then
+     * seen vanish reads as an app getting smaller — and none of them had to be.
+     *
+     * ⚠️⚠️ `Costos` CARRIES THE **VARIANT** AND NOT THE FAMILY, SO IT FOLLOWS
+     * `edit`'s ABSENCE RULE RATHER THAN `addVariant`'S. §2.9 measures price over
+     * time *per variant*, the owner said *"for that product"*, and a family
+     * mixes base units — `product_purchases_daily`'s own comment says a price
+     * across them is *"money over a meaningless total"*. So *costs of which
+     * one?* has no answer until a row is marked, exactly as *edit which one?*
+     * has none, and the control is absent rather than disabled.
+     *
+     * ⚠️ AND IT IS THE ONE OF THE THREE THAT IS **NOT** FENCED TO A MANAGER.
+     * `addVariant` and `edit` both WRITE and stay behind `canWriteCatalog`;
+     * `Costos` only READS, and `0040` dropped the role gate from
+     * `purchase_select` and `purchase_line_select` on the owner's ruling of
+     * 2026-09-25. **A cashier sees Costos and sees neither of the others**,
+     * which is three states on one row and is the reason that row wraps.
      */
     addVariant: 'Agregar Variante',
     costs: 'Costos',
     edit: 'Editar',
     /**
-     * ⚠️ THE ONE SENTENCE THAT KEEPS THE DEAD ONES FROM LOOKING BROKEN — the
-     * shape `ES.approvals.notYet` had at `5b-iii-d-1`, and it is deleted by the
-     * task that makes them work, exactly as that one was.
+     * ⚠️⚠️ `notYet` IS DELETED HERE, BY THE ROW THAT MADE THE LAST DEAD BUTTON
+     * WORK — AND ITS HISTORY IS KEPT BECAUSE IT IS THE CLEANEST RECORD OF A
+     * DEFECT THIS REPOSITORY KEEPS PRODUCING. It said *"solo puedes ver;
+     * todavía no se puede agregar ni editar"* at `5d-iii` (three dead buttons),
+     * dropped *agregar* at `5e-ii`, dropped *editar* at `5e-iii-b`, and read
+     * *"Todavía no puedes ver los costos de un producto"* until today. **Each
+     * rewording was due because a sentence naming a control that works is false
+     * while still rendering green**, and nothing in this repository can see that
+     * — no check reads a Spanish sentence against a button's handler.
      *
-     * ⚠️⚠️ IT WAS REWORDED AT `5e-ii` AND IT HAD TO BE. It used to read *"solo
-     * puedes ver; todavía no se puede agregar ni editar"*, which stopped being
-     * true the moment `Agregar Variante` opened a form — a sentence naming three
-     * dead buttons, sitting under two dead ones and one live one. It now names
-     * only what is still missing, and `5e-iii` and `5g` are the rows that delete
-     * the halves they finish.
+     * ⚠️ IT IS DELETED AND NOT REWORDED, which is what `ES.approvals.notYet`
+     * did at `5b-iii-d-1` and is the only ending this shape has: there is no
+     * fourth control to be still-missing about. ⚠️ **The line under the row is
+     * gone from the screen too** — a paragraph explaining three working buttons
+     * is furniture, and §2.8's argument against dialogs is the same argument.
      */
-    /**
-     * ⚠️⚠️ REWORDED AGAIN AT `5e-iii-b`, AND IT NOW NAMES ONE BUTTON. It
-     * said *"costos ni editar"* while `Editar` was dead; that half went live with
-     * this task, and a sentence describing a control that works is false while
-     * still rendering green — the same defect `5e-ii` fixed in the other half.
-     * ⚠️ `5g` is the row that deletes what is left of it, by the ruling that
-     * left `Costos` dead until purchase cost exists to fill it.
-     */
-    notYet: 'Todavía no puedes ver los costos de un producto.',
 
     /**
      * ⚠️⚠️ TWO STATES AND THEY ARE NOT THE SAME FACT. This screen is reached by
@@ -1661,6 +1674,130 @@ export const ES = {
      */
     loading: 'Cargando…',
     missing: 'Este producto ya no está en el catálogo.',
+  },
+
+  /**
+   * COSTOS — what each provider has charged for one product, through time. Plan
+   * task `5g-iii`, and the screen behind the button `5d-iii` drew dead.
+   *
+   * ⚠️⚠️ THE OWNER SPECIFIED THIS SCREEN IN ONE SENTENCE AND IT ASKED FOR MORE
+   * THAN THE QUESTION OFFERED: *"I'm picturing a small Costos History, that
+   * shows a small line chart with the time and the price that each provider
+   * (colors) is charging you for that product. As a collapsable you can get the
+   * matrix that shows this data. You can share the 'view' as a PDF."* Three
+   * surfaces over one read, and the brief had recommended DEFERRING the time
+   * axis. ⚠️ **He did not dispute that a chart over three deliveries says
+   * little — he decided the screen is worth having anyway**, so the thin and
+   * empty states below are the deliverable rather than a caveat on it.
+   *
+   * ⚠️ NO SENTENCE HERE NAMES A ROLE OR A FENCE. `0040` widened
+   * `purchase_select` and `purchase_line_select` to every member on his ruling
+   * of 2026-09-25 — *"Empleada should be able to see the both the purchase
+   * records and the prices"* — so there is no *you may not see this* state to
+   * word, and inventing one would be the boundary `costNote` refuses to
+   * mention for [[users-dont-do-bookkeeping]]'s reason.
+   */
+  costs: {
+    /** The banda. ⚠️ The PRODUCT's name sits beside it — see the screen. */
+    title: 'Costos',
+    /** ⚠️ *Volver* and not *Cerrar*, `ES.family.back`'s rule: you went INTO it. */
+    back: 'Volver',
+
+    /**
+     * ⚠️ WHAT THE CHART IS OF, ABOVE IT. A chart with no sentence is a picture
+     * whose units a reader has to infer, and the one thing this picture must
+     * not be confused with is the SHELF price — which is the number on every
+     * other screen in this app.
+     */
+    subtitle: 'Lo que has pagado, por proveedor',
+
+    /**
+     * ⚠️⚠️ THE EMPTY STATE IS THE COMMON CASE IN THE PILOT'S FIRST WEEK AND IT
+     * MUST NOT READ AS BROKEN. C8.2 has the owner seeding the catalog
+     * deliberately short and `5g-ii` shipped Comprar days ago, so most products
+     * have no delivery behind them yet. ⚠️ It says what would FILL the screen —
+     * a purchase — rather than apologising, because the shopkeeper is the one
+     * who can fill it and the next delivery does.
+     */
+    nothing: 'Todavía no has registrado compras de este producto.',
+
+    /**
+     * ⚠️⚠️ ONE DELIVERY IS A DOT AND THIS IS THE SENTENCE THAT KEEPS IT FROM
+     * LOOKING LIKE A FLAT PRICE. A single point drawn in the middle of a box is
+     * indistinguishable from a price that has not moved, and *it has not moved*
+     * is a claim a shopkeeper would act on. ⚠️ It names the number so she can
+     * see the gap closing: two deliveries make a line.
+     */
+    single: 'Una sola compra. Con la segunda verás cómo se mueve el precio.',
+
+    /**
+     * ⚠️ SEVERAL DELIVERIES AND STILL NO LINE, BECAUSE NO SUPPLIER HAS TWO. It
+     * is a different fact from `single` and a more interesting one — she has
+     * shopped around — and it is why a segment is not drawn: a line between two
+     * providers would draw a negotiation that never happened.
+     */
+    unlinked: 'Cada proveedor te ha vendido esto una vez. Aún no hay una línea que trazar.',
+
+    /** The collapsible, shut. ⚠️ A word and never a glyph alone (C12.1). */
+    showMatrix: 'Ver la tabla',
+    /** The collapsible, open. */
+    hideMatrix: 'Ocultar la tabla',
+    /** The matrix's corner cell — what its rows are. */
+    providerColumn: 'Proveedor',
+
+    /**
+     * ⚠️ THE EXPORT, IN HIS WORDS' TERMS: *"You can share the 'view' as a
+     * PDF."* The control says what LEAVES the phone and not what happens
+     * inside it — *Compartir* is the share sheet she already knows from every
+     * other app, and *Exportar* is a word a shopkeeper has no use for.
+     */
+    share: 'Compartir en PDF',
+    /** While the PDF is being made. ⚠️ It is not instant on a low-end Android. */
+    sharing: 'Preparando el PDF…',
+    /**
+     * ⚠️ WHEN THE SHARE SHEET CANNOT OPEN AT ALL. `expo-sharing` answers
+     * `isAvailableAsync() === false` on a platform with no share sheet, and
+     * this app's own web target is one of them. ⚠️ It says what she can still
+     * do — read the table — rather than naming a library or a platform.
+     */
+    cannotShare: 'Este teléfono no puede compartir archivos. La tabla de abajo tiene los mismos datos.',
+    /**
+     * ⚠️ AND WHEN MAKING THE FILE FAILS. ⚠️⚠️ **NO `error_code` AND NO
+     * *avísanos***: §2.8 fences the dead-letter receipt to Inicio and this is
+     * not a failed WRITE — nothing was lost, a file was not made, and the rows
+     * are still on the screen behind the message.
+     */
+    shareFailed: 'No se pudo crear el PDF. Vuelve a intentarlo.',
+
+    /**
+     * ⚠️ THE PDF'S OWN HEADING LINE, WHICH IS NOT THE SCREEN'S. A shared file
+     * is read away from the phone and away from the banda that named the
+     * product, so the document has to name itself. `costsHtml` builds it.
+     */
+    fileTitle: 'Historial de costos',
+    /** ⚠️ The day the file was made, so a PDF found in a folder can be placed. */
+    fileMadeOn: 'Generado el',
+    /** The PDF's filename stem. ⚠️ ASCII only — it becomes a path. */
+    fileName: 'costos',
+
+    /**
+     * ⚠️ A PROVIDER THE DIRECTORY CANNOT NAME. `costsFrom` builds the legend
+     * from the LEDGER and names it from the provider read, so a delivery whose
+     * supplier row is slow, retired or unreadable still draws — and a line with
+     * no name at all would be a colour nobody can match to anything.
+     * ⚠️ It is NOT *Genérico*: that is a real row with a real name (`0039`), and
+     * borrowing its word here would put the market run and an unnameable
+     * supplier under one label.
+     */
+    unnamedProvider: 'Proveedor sin nombre',
+    /**
+     * ⚠️ HOW THE CATCH-ALL ROW IS MARKED IN THE LEGEND, beside its own name and
+     * never instead of it. *"Genérico is fine, that means we don't have a
+     * Provider for that purchase so we buy it from a generic provider"*
+     * (2026-09-24) — and on this screen that is worth one word, because a market
+     * run and a supplier relationship are different kinds of line.
+     */
+    generic: 'compra directa',
   },
 
   /**

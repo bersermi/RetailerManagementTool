@@ -1025,3 +1025,206 @@ followed here — run the FALSIFIER after editing what it reads, not just the gu
 cite its 12-13 minute runtime. ⚠️⚠️ **That paragraph made this task's case twice before
 anybody acted on it**, so the reasoning is kept verbatim and dated instead of being restated
 in the past tense.
+
+
+---
+
+## Seventh cut — appended 2026-09-25, as `5g-iii` closed
+
+⚠️⚠️ **TWO ENTRIES OF THIS DAY WERE STILL IN THE LIVE PLAN AFTER SIX CUTS, AND
+NOBODY HAD NOTICED.** `5g.5` and `5g-i` both closed on 2026-09-24 and both were left
+behind by every cut taken that day — legitimately, because each cut took what it
+needed and stopped, but the effect was a day that read as closed while 182 of its
+lines were still in `## Position`. ⚠️ **It was found the way `5g-ii` found the
+`CLAUDE.md` table's two missing rows: by listing the region and comparing, rather
+than by any check.** `grep -c '2026-09-24' docs/PLAN.md` is the four-second version,
+and this is the second time that exact remedy has been the answer.
+
+⚠️ **This is an APPEND and not a second file**, which is the rule
+`status-log-2026-09-22.md` established and this file has now obeyed seven times.
+
+---
+
+
+✅✅ **`5g.5` IS DONE AS OF 2026-09-24 — `0039` IS APPLIED, EVERY SHOP'S CATCH-ALL PROVIDER IS
+CALLED `Genérico`, AND BOTH OF THE DAY'S PARKED QUESTIONS ARE RULED. `5g-ii` IS STILL THE NEXT
+TASK.** One migration, **18 behavioural checks**, and two rulings recorded — **both of which
+reversed the recommendation.**
+
+⚠️⚠️ **THE RULING THAT SHIPPED CODE: *"Genérico is fine, that means we don't have a Provider for
+that purchase so we buy it from a generic provider."*** **The brief argued for `Compra directa`
+because it names WHAT SHE DID. That was true and beside the point** — the row is not a
+description of an act, it is the **ABSENCE of a counterparty** made into something the ledger can
+point at, and his own next sentence is the case that proves it: *"a way to allow the user to make
+purchases from a non-recurrent provider if he wants."* ⚠️ **`0039` does BOTH halves**: the seed
+inside `onboard_workspace`, and an `update` over rows that already exist — **the half that could
+only get dearer**, because a seed changed alone leaves every shop created before today pointing
+its deliveries at a word the header no longer says and nothing anywhere would disagree.
+⚠️⚠️ **TWO DECISIONS IN THE MIGRATION AND BOTH ARE ABOUT NOT TAKING A DEPLOYMENT DOWN.** It is
+scoped by **`is_generic` and not by the old name**, so a shop that had renamed its own row is
+brought into line too; and it **skips any workspace where a NAMED supplier already holds the
+word**, because `provider_name_unique` is `(workspace_id, normalized_name)` over a generated
+column and would raise — **and a migration that fails on one tenant's data stops the deployment
+for everybody.** Those shops are listed by a `notice` rather than guessed a second name for.
+
+⚠️⚠️ **AND `5g.split` PREDICTED THIS ROW IN WRITING, WHICH IS THE CHEAPEST EVIDENCE A GUARD'S
+DESIGN HAS EVER GIVEN ON THIS PROJECT.** That spec asserts *it ships no migration* of all three
+children **positively**, and said why: *"it is the thing the `Genérico` ruling would change,
+which is exactly why that question is parked in front of this split rather than inside it."* **So
+the rename could not quietly become a deliverable of `5g-ii`** — it had to be its own row, and
+`5g.5` is that row.
+
+⚠️ **THE OTHER RULING SHIPPED NO CODE AND RE-SIZED A ROW: `Costos` IS `S` → `L`.** *"A small line
+chart with the time and the price that each provider (colors) is charging you… as a collapsable
+you can get the matrix… you can share the 'view' as a PDF."* ⚠️⚠️ **It is NONE of the three
+options as posed** — it takes the one the brief recommended **deferring** and folds the one it
+recommended **splitting out** into it, as one picture, then adds a matrix and an export nobody
+had named. ⚠️ **The PDF has no precedent in this app**, so §2.11's stack table gains a row naming
+whatever library does it, **as a deliverable of `5g-iii`** rather than a task of its own.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `supabase/tests/0039_generic_provider_name.sql` reports
+**18 checks**, seven of them a transcription guard over what did NOT move — including *the owner
+still arrives NAMED*, which is the rule `0036` wrote down after shipping its opposite. ⚠️ **Two
+of its own checks were RED on the first run and both were the test's fault rather than the
+migration's**: one asserted *every* generic provider carries the word and contradicted its
+neighbour, which proves the shop the migration deliberately skips; **a check that contradicts its
+neighbour has not decided what it is asserting.** `5g-i`'s contract check is green with assertion
+3 now pinning `Genérico`, and its falsifier's eleven fixtures all still behave — **the assertion
+was KEPT rather than retired with the question**, because it is the only thing in this repository
+that reads the word a shopkeeper sees.
+
+
+✅✅✅ **`5g-i` IS DONE AS OF 2026-09-24 — THIS APP HAS RECORDED ITS FIRST DELIVERY, AND
+A GUARD REFUSED THE FIRST DESIGN OF ITS OWN CHECK. `5g-ii` IS THE NEXT TASK: COMPRAR
+ITSELF.** 33 new assertions (**1,082 over 38 files**, up from 1,049), a new contract check of
+**10 assertion groups over real HTTP** with **eleven falsification fixtures**, and **no
+migration**, as the row promised.
+
+⚠️⚠️ **THE FINDING, AND IT IS A DISAGREEMENT WITH ADR-035 IN SHIPPED CODE: `quoted` READ
+`prices_include_tax` ON BOTH SIDES OF THE COUNTER, AND §2.5 RULE 2 SCOPES IT TO THE SALE IN
+ITS OWN PARENTHESIS** — *"`prices_include_tax` is a workspace flag, so the earlier wording
+read as though it governed deliveries too; it does not."* ⚠️ **`0018`'s header is binding on
+the same point and has been since 2026-08-26**: *"a shelf price is agreed gross and a supplier
+invoice is quoted net"*, and the payload key it reads is `unit_price_net_per_base` — **the
+INVOICE net**. ⚠️⚠️ **WHAT IT COST, AND IT IS NOT WHAT IT LOOKED LIKE: THE FLAG IS TRUE BY
+`0001`'s DEFAULT AND TRUE IN EVERY SHOP THAT EXISTS, SO THE BUY SIDE COULD NEVER BE PRICED AT
+ALL.** `5f-i` recorded that as *"the buy side is priceless until `5g` hands a figure in"* —
+**the figure was never the missing half.** ✅ A purchase quote is now sent verbatim, and the
+two assertions that pinned the old reading were REWRITTEN rather than deleted, with the
+parenthesis quoted above them.
+
+⚠️⚠️ **AND THE FALSIFIER FOUND TWO HOLES IN THIS SESSION'S OWN CHECK, WHICH IS THE WHOLE
+REASON RULE 4 EXISTS.** ⚠️ **(1) `P6` walked straight past the banned-column assertion**,
+because the first version compared the response to the columns the app had ASKED for — so a
+contract that asked for `phone` was consistent with itself and green. **It was measuring the
+wrong thing**: the question is not whether the read got what it wanted, it is whether a column
+Comprar never draws reached a phone. It now carries a named BANNED list and reads it off the
+wire, which is `5d-i`'s `enforce_stock` assertion one table over. ⚠️⚠️ **(2) `P9` was GREEN on
+a widened fence, and the reason is worth keeping: `provider_price_memory` JOINS `purchase_line`
+to `purchase` and the view is `security_invoker`, so BOTH tables apply their own policy.**
+Widening one leaves the join empty and the fixture proves nothing while looking like it proved
+something. **The memory is fenced twice, and that is now measured rather than assumed.**
+
+⚠️⚠️ **THE CASHIER ASYMMETRY IS NOW A STANDING CHECK RATHER THAN A PARAGRAPH.** Driven against
+a reset database with a publishable key: she reads **2** providers, **0** rows of the memory
+(**200 and an empty array, never a 403**), **records a delivery that SUCCEEDS**, and reads
+**0** purchases back. ⚠️ **`memoryState` is this app's answer**: it takes what the caller
+already knows — *may this person read a purchase at all* — and names which of the two states
+this is, rather than guessing from `length === 0`. **None of its four values is a Spanish
+sentence** (`R4`), because what a cashier is TOLD is a screen decision the owner has not been
+asked for, and `5g-ii` is the row that asks.
+
+⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL CHEAP TO REVERSE AND ALL NAMED HERE.**
+⚠️ **(1) The generic provider is kept in the picker even when `is_active` is false** —
+`provider_protect_generic` refuses a DELETE and a DEMOTION and stops there, so one editable
+boolean would otherwise leave a shop with no default and `record_purchase` refusing every
+delivery. ⚠️ **(2) Changing the provider clears the typed prices and KEEPS the lines**, which
+is C3.11 read exactly — what arrived is what arrived, whoever it came from. ⚠️ **(3)
+`CART_KEY` moved to `v2`**, which is the store's own rule obeyed rather than a version bump: a
+`v1` blob restored into the new shape leaves `typed` undefined and every reducer throws on the
+first tap. **A shape change strands the old basket.** ⚠️ **The cost is a basket half-rung when
+this ships, and that is seconds.**
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/5g-i-purchase-contract.sh` reports **10
+assertion groups over real HTTP**, including *record_purchase accepts the payload draftOf
+builds*, *the invoice net is stored verbatim and the quantity re-derives to 3000 g*, *the
+memory offers it back as a JSON STRING*, *two providers, one variant, two prices — and neither
+read sees the other's*, and *a cashier reads 2 providers, 0 memories, WRITES a delivery, reads
+0 back*. Its falsifier runs **eleven fixtures — a green control, seven mutated contracts and
+three that move applied SQL and put it back** — and every one is red for the reason it is named
+for. `conventions-gate.sh` passes **16 groups over 69 source and 38 test files** and its
+falsifier **30 fixtures**. The suite is **1,082 assertions**, the typecheck is clean, and
+`5d-i`'s own check is still green on the shared module. ⚠️ **`db.yml` now watches both new
+files**, because a check edited to loosen an assertion must re-run itself.
+
+⚠️ **WHAT IT DOES NOT PROVE, SAID RATHER THAN IMPLIED:** nothing here has been looked at. There
+is no screen, `§2.11` fences every judgement about one out of this repository, and **the row
+that draws `Comprando a:` is `5g-ii`.**
+
+
+⚠️⚠️ **`5g` WAS SIZED ON 2026-09-24, THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS
+WRITTEN, AND IT SPLIT THREE WAYS. `5g-i` IS THE NEXT TASK: EVERYTHING COMPRAR NEEDS FROM
+POSTGRES, WITH NO SCREEN ON IT.** The row said `M`; it is an `XL`. **This entry is a sizing,
+three findings the row did not carry, one measurement taken against a live database, two
+questions parked and the seventeenth split spec.**
+
+⚠️⚠️ **THE SIZE IS THE WEAKEST OF THE THREE REASONS IT SPLIT, AND IT IS NAMED LAST ON PURPOSE.**
+The working agreement was amended by the owner the same day — an `M` or an `L` is one sitting —
+so a session reaching for a size argument at `M` is asking for the old rule back. **All three of
+the agreement's surviving reasons apply here independently**, and the strong one is reason 2.
+
+⚠️⚠️ **REASON 2, AND IT WAS MEASURED RATHER THAN ARGUED: A CASHIER'S COMPRAR IS BROKEN AND
+LOOKS EXACTLY LIKE A WORKING ONE.** `provider_select` admits any member (`0002:522`);
+`provider_price_memory` is manager-and-above, inherited through `security_invoker` from
+`purchase` and `purchase_line`; and **`record_purchase` fences neither** — it is `security
+definer` carrying §2.6's location wall and no role check at all. Driven against a reset database
+on 2026-09-24 with a publishable key: **she reads the provider list (200, one row), reads ZERO
+rows of the memory (200 and an empty array, NEVER a 403), records a delivery that SUCCEEDS
+(200), and then reads ZERO purchases back.** ⚠️⚠️ **Every symptom of the broken case is a
+DESIGNED state of the working one** — §2.8's *new pairing: empty and required* is what an empty
+memory renders as, and it is the correct rendering when the pairing really is new. **Nothing on
+that screen can tell the two apart, and the screen is not the instrument for either.**
+
+⚠️ **REASON 1 IS THE GATE:** `5g-iii` is blocked on a word the owner owes and the other two are
+not — the `5f-i`/`5f-ii` arrangement, one split later. ⚠️ **Reason 3 is size, and it is real
+too**: Comprar is Vender plus a provider in the header, an editable price per line, three price
+states that must look different and a commit that BLOCKS. `vender.tsx` is **1,792 lines** and
+took four sessions.
+
+⚠️⚠️ **THREE THINGS WERE NOT IN THE ROW, AND ALL THREE CHANGE WHAT GETS BUILT.**
+
+| | The finding | Why it changes the work |
+|---|---|---|
+| **1** | **THE PURCHASE PAYLOAD HAS NO PROVIDER IN IT** | `draftOf` builds `location_id` and `lines`; `record_purchase` raises `22023` — *"a delivery has a counterparty"* — without one (`0018:200`). **The buy side of a module that already SHIPPED cannot commit at all**, so this is a change to live code and not a new screen's problem |
+| **2** | **A TYPED PURCHASE PRICE HAS NOWHERE TO LIVE** | C3.13 makes the price something a person ENTERS, and `Quotes` is the map `5f-i` built for it and left empty. §2.11 persists the basket because a phone rings mid-sale — **and a delivery note's figures are worse to re-key than a basket, because she has to find the note again** |
+| **3** | **THE PREFILL IS STORED PER BASE AND READ PER PRICE UNIT** | `unit_price_net_per_base` is a `numeric(14,6)` per base; she reads `$8.50 / kg`. And `last_qty_display_unit` is the denomination she typed **last time**, which need not be the variant's `price_unit_code` today. That is arithmetic, and none of it is in `app/` |
+
+⚠️⚠️ **AND ONE DISAGREEMENT WITH A MIGRATION CI HAS APPLIED, WHICH IS A FIRST FOR THE DECISIONS
+BLOCK.** F6 requires a provider named **`Genérico`** in every workspace. `onboard_workspace` has
+seeded one since `0002` on 2026-08-26 — carried through `0027` and `0034` untouched — **and it
+is named `Compra directa`.** ⚠️ **F6's SUBSTANCE is satisfied and no child owns it**: what F6
+really requires is that the ROW exist, because `purchase.provider_id` is `not null`. **What is in
+dispute is a string she reads in `Comprando a:` on every delivery**, and it is free to choose
+today and a fix-forward migration plus an `update` over live rows tomorrow. **Parked, with a
+recommendation: keep `Compra directa`, because `Genérico` names the row and `Compra directa`
+names what she did.**
+
+⚠️ **ONE MORE MEASUREMENT, RECORDED SO IT IS NOT RE-DISCOVERED:** `unit_price_net_per_base`
+comes off the wire as a **JSON number** (`0.018000`), which is a double, and `parseDecimal`
+refuses a number argument outright — so the read must cast `::text`, exactly as `PRICE_COLUMNS`
+already does one table over.
+
+⚠️ **VERIFIED, AND NOT BY A TICK.** `docs/checks/split-coverage.sh` on the new spec reports
+**18/18 deliverables landing in exactly one child, the assigned one**, eleven required sentences
+surviving and every child carrying *it ships no migration*; `--all` is green over all seventeen
+specs; `plan-handover.sh` passes eleven groups with **two** open decisions, including *the next
+task is not blocked by any open decision*; `handbook-agreement.sh` agrees on `5g-i` and on two
+being owed. **No app code changed in the sizing itself, so no suite could have.**
+
+
+
+
+
+
+
+

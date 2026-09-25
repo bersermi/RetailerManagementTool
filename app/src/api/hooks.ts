@@ -38,6 +38,7 @@ import {
   type CreateOutcome,
   type ProductDraft,
 } from '@/api/catalogWrite';
+import { costsFrom, costsKey, type Costs } from '@/api/costs';
 import {
   PROVIDERS_KEY,
   memoryKey,
@@ -79,6 +80,7 @@ import {
   redeemInvite,
   requestAccess,
   shopProviders,
+  variantCosts,
   setMyDisplayName,
   workspaceInvites,
   workspaceLocations,
@@ -1224,4 +1226,64 @@ export function useUnitFactors(): UnitFactors {
     staleTime: Infinity,
   });
   return unitFactorsFrom(units.data);
+}
+
+// ============================================================================
+// WHAT ONE PRODUCT HAS COST, PER PROVIDER, THROUGH TIME. Plan task `5g-iii`.
+// ============================================================================
+
+/**
+ * `Costos`' single read, already turned into everything the screen draws.
+ *
+ * ⚠️⚠️ THE PRICE UNIT AND THE FACTORS COME FROM THE CATALOG READ THIS PHONE
+ * ALREADY HOLDS, NOT FROM A SECOND ONE. `useCatalog()` is the round trip
+ * Productos and La Familia both made, and TanStack has it cached — so opening
+ * `Costos` from a family costs exactly ONE new request. ⚠️ That matters for the
+ * reason `familia/[id].tsx` gives about its own read: the pilot store is offline
+ * half the day, and a screen that needed the catalog again would work at the
+ * counter and spin in the stockroom.
+ *
+ * ⚠️ THE FAILURE OF THE COST READ IS REPORTED SEPARATELY, `useProviders`'
+ * arrangement of 2026-09-22: `data === undefined` after a FAILED read looks
+ * exactly like one still in flight, and `costsFrom` answers `unknown` for both —
+ * which is correct for the state and useless for the sentence. The screen needs
+ * to know which one so it does not sit on a spinner for ever.
+ *
+ * ⚠️⚠️ AND THE PROVIDER LIST IS FETCHED WITH NO PROVIDER, WHICH IS DELIBERATE
+ * AND IS THE WHOLE `useProviders` CONTRACT READ BACKWARDS. `useProviders(null)`
+ * reads the directory and **skips the memory query entirely** (`enabled` is
+ * false on a null provider), so this screen never touches
+ * `provider_price_memory` — it does not need last-price-paid, it needs every
+ * price paid, which is `purchase_line`. ⚠️ **Nothing here writes `memoryKey`'s
+ * cache**, so `Costos` cannot poison the prefill Comprar reads.
+ */
+export function useCosts(variantId: string | null): Costs & {
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const { entries } = useCatalog();
+  const factors = useUnitFactors();
+  const { providers } = useProviders(null);
+
+  const rows = useQuery({
+    queryKey: costsKey(variantId),
+    queryFn: () => variantCosts(variantId as string),
+    enabled: ready && session !== null && variantId !== null && variantId !== '',
+    // ⚠️ A MINUTE, LIKE THE MEMORY READ AND UNLIKE THE CATALOG'S FIVE. A
+    // delivery recorded on this phone minutes ago should appear here — this is
+    // the screen somebody opens BECAUSE they just bought something and want to
+    // see where it sits.
+    staleTime: 60_000,
+  });
+
+  // ⚠️ THE VARIANT'S OWN PRICE UNIT, out of the catalog — `null` while the read
+  // is out, and `costsFrom` then finds no factor and answers `unknown` rather
+  // than drawing a chart of prices it cannot denominate. See `CostsState`.
+  const entry = entries.find((one) => one.id === variantId);
+  const priceUnit = entry?.priceUnit ?? '';
+
+  return {
+    ...costsFrom(rows.data, providers, priceUnit, factors),
+    failed: rows.error ? apiErrorKey(rows.error) : null,
+  };
 }

@@ -195,9 +195,21 @@ describe('a door with no room is drawn dead rather than drawn live', () => {
   // The sentence under a dead door is what keeps it from looking broken — the
   // shape `ES.approvals.notYet` had at `5b-iii-d-1` and `ES.family.notYet` at
   // `5d-iii`, and it is deleted by the task that makes the door work.
+  //
+  // ⚠️⚠️ `ES.family.notYet` IS NOW GONE, WHICH IS THIS ASSERTION'S OWN ARGUMENT
+  // ARRIVING. It used to read `expect(ES.home.notYet).not.toBe(ES.family.notYet)`
+  // — two dead-door sentences, kept distinct so one screen's wording could not be
+  // pasted onto another's. `5g-iii` made `Costos` work and DELETED the family's
+  // copy, exactly as the comment above predicted, so the pair is down to one.
+  // ⚠️ **The surviving half is the one that matters and it is kept**: Proveedores
+  // is still an unbuilt door on Inicio (`6b`), so `ES.home.notYet` is still load
+  // -bearing. The day `6b` ships, this whole assertion goes with it.
   it('has a sentence to put under a dead door', () => {
     expect(ES.home.notYet.length).toBeGreaterThan(0);
-    expect(ES.home.notYet).not.toBe(ES.family.notYet);
+    // ⚠️ AND IT IS NOT THE PLACEHOLDER EITHER, which is the substance of the
+    // original comparison: a door that is not built yet says something about
+    // WHEN, and an unbuilt SCREEN says something about itself.
+    expect(ES.home.notYet).not.toBe(ES.placeholder.pending);
   });
 });
 

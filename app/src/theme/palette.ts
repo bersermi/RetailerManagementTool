@@ -183,3 +183,92 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
   'accionSuave',
   'atencionSuave',
 ];
+
+// ============================================================================
+// THE SERIES RING — `5g-iii`, 2026-09-25, AND IT IS THIS FILE'S FIRST
+// CATEGORICAL SCALE.
+//
+// ⚠️⚠️ IT IS DELIBERATELY *NOT* A SET OF ROLES, AND THAT IS THE WHOLE REASON IT
+// SITS BELOW `Palette` RATHER THAN INSIDE IT. The rule at the top of this file
+// is that a role has ONE JOB and you pick it by matching its sentence to what
+// you are building — `atencion` is the unpriced row and nothing else. A series
+// colour's job is *"the third provider on this chart"*, which is not a meaning
+// at all: it is an INDEX wearing a colour. Adding these to `Palette` would put
+// five members in `PALETTE_ROLES` that no screen can ever pick by name, and
+// would make the table's own design sentence false.
+//
+// `Costos` is the only reader (`app/src/app/costos/[id].tsx` and
+// `@/export/costsPdf`), and `@/api/costs` hands it an INDEX — `CostSeries.hue` —
+// so no data module ever holds a colour. `R11` skips this file and only this
+// file, which is why the ring belongs here and not beside the screen.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ WHAT THESE COLOURS CANNOT DO, MEASURED AND SAID OUT LOUD
+// ----------------------------------------------------------------------------
+// Every one clears the 3:1 WCAG non-text floor against all five grounds — the
+// worst is `tres` at **3.26:1** on `accionSuave`, and `uno` and `dos` clear
+// 5.5:1, so a legend may put a WORD in these colours as well as a swatch.
+//
+// ⚠️ THEY DO NOT SEPARATE FROM EACH OTHER BY BRIGHTNESS, AND FIVE CATEGORICAL
+// COLOURS ON A LIGHT GROUND CANNOT. Mutual ratios run **1.19:1 to 2.65:1**: the
+// worst pairs are `dos`/`cuatro` (plum against violet) and `tres`/`cinco` (teal
+// against slate), both 1.19 — two greys of the same brightness to a monochrome
+// reader, which is precisely the confession this file already makes about
+// `accion` and `atencion` at 1.18. ⚠️ A search WAS run for a ring that separated
+// in brightness too; it produced three near-identical navies and a garish
+// magenta, because optimising adjacent pairs lets the distant ones collapse.
+// **The honest version is a tasteful ring plus a structural fallback, and both
+// halves of the fallback already exist because the owner asked for them:**
+//
+//   * the legend pairs every colour with the PROVIDER'S NAME — so the chart
+//     obeys *no state is ever announced by colour alone* on its own terms; and
+//   * the collapsible MATRIX is the same rows with no colour in it at all
+//     (`matrixOf` in `@/api/costs`), which is the complete reading for somebody
+//     who cannot use hue — *"As a collapsable you can get the matrix that shows
+//     this data"*, 2026-09-24.
+//
+// ⚠️ SO A WRAPPED RING IS A WART AND NOT A LIE. A product bought from six or
+// more suppliers reuses `uno` for the sixth line; the legend still names it and
+// the matrix still carries it. Nothing in the pilot is expected to reach five
+// suppliers for ONE product — and if a shop does, the picture degrades into the
+// table, which is the right direction for it to degrade in.
+//
+// ⚠️ THE HUES AVOID THE THREE STATE COLOURS ON PURPOSE — nothing near `error`'s
+// red (~6°), `atencion`'s amber (~33°) or `accion`'s green (~150°). A chart line
+// in the destroy colour would be announcing something about a delivery that went
+// perfectly well. ⚠️ `uno` is 1.00:1 against `accion` — the same brightness as
+// the action green, a different hue — which matters not at all here because
+// `accion` never draws inside the plot, and is recorded so nobody discovers it
+// as a surprise.
+// ============================================================================
+
+/**
+ * One line per provider, in the order `costsFrom` assigns — which is **most
+ * recent delivery first**, so the supplier a shop bought from this morning is
+ * always `uno` and a one-supplier shop always draws the same colour.
+ *
+ * ⚠️ THE ORDER OF THIS ARRAY IS PART OF THE DESIGN. The first two entries are
+ * the common cases (one or two suppliers for a product) and they are the pair
+ * furthest apart in both hue and brightness — 1.32:1, blue against plum. The
+ * least distinguishable pairs are pushed to positions only a four- or
+ * five-supplier product ever reaches.
+ */
+export const SERIE: readonly string[] = [
+  '#1F5FA8', // uno    — blue
+  '#7E2E67', // dos    — plum
+  '#3E8E99', // tres   — teal
+  '#53307D', // cuatro — violet
+  '#6E7787', // cinco  — slate
+];
+
+/**
+ * The colour for the `n`th series, wrapping. ⚠️ **It wraps rather than throwing
+ * or returning a fallback grey**: a sixth supplier's line must still be drawn,
+ * and the legend and the matrix are what tell it apart. See the header.
+ */
+export function serieColour(hue: number): string {
+  const ring = SERIE;
+  if (ring.length === 0) return PALETTE.tinta;
+  const at = ((hue % ring.length) + ring.length) % ring.length;
+  return ring[at] as string;
+}
