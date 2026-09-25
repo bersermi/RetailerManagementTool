@@ -141,8 +141,11 @@ question sits adds to a directory whose conventions nobody has ruled on**, and `
 row calls itself *"the last moment this is cheap"*.
 
 ⚠️ ~~Neither CI workflow watches an app directory~~ — **THERE ARE THREE WORKFLOW FILES AND
-`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-25 THEY ARE SIX JOBS, WHICH IS
-WHAT *"confirm the checks by name in the log"* NOW MEANS:**
+`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-25 THEY ARE SIX JOB DEFINITIONS
+THAT RENDER AS EIGHT NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
+log"* NOW MEANS.** Counted off a real run rather than off the YAML (the merge of #213, runs
+`36172686917` / `36172686952` / `36172687093`, all eight green): `money.yml`'s single job is
+**matrixed**, so it appears twice, and a count taken from `jobs:` keys alone is short by one.
 
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
