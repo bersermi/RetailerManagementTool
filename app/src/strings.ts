@@ -754,6 +754,33 @@ export const ES = {
     done: 'Listo',
 
     /**
+     * ⚠️⚠️ ADR-035 §2.8's THIRD GUARD — THE MAGNITUDE WARNING (`5f.5`). The amber
+     * word beside a line whose quantity or cost is beyond ~3× what this shop
+     * usually buys. Which of the three applies is `magnitudeNote`'s
+     * (`@/api/magnitude`), never a ternary in a screen.
+     *
+     * ⚠️ THEY ARE IN `counter` BECAUSE BOTH CAPTURE SCREENS DRAW THEM — the
+     * quantity half on Vender and Comprar, the price half on Comprar alone,
+     * because a sale has no typed price to get wrong (see that module's header).
+     *
+     * ⚠️⚠️ *habitual* AND DELIBERATELY NOT *normal*, WHICH IS THE ONE WORD CHOICE
+     * HERE THAT IS NOT TASTE. In Spanish *fuera de lo normal* carries a shade of
+     * *not right*; *habitual* is purely about how often — it says **this is not
+     * what you usually buy** and stops, which is all this guard knows. §2.8 is
+     * explicit that the warning never blocks, and C3.9 is why: *precision is the
+     * shop's, not ours*. A shopkeeper who really did take three cases this month
+     * must not be told she made a mistake.
+     *
+     * ⚠️ SHORT ENOUGH TO SIT BESIDE A PRICE ON ONE LINE. The rows that carry
+     * these are `numberOfLines={1}`, so a sentence would truncate into a
+     * half-warning — worse than none.
+     */
+    outsizedQty: 'Más de lo habitual',
+    outsizedPrice: 'Más caro de lo habitual',
+    /** Both at once — one cause more often than two (`Outsized`). */
+    outsizedBoth: 'Fuera de lo habitual',
+
+    /**
      * ⚠️ C3.5's BASKET SHEET (`5f-iii-a`) — the review before the commit, and
      * one of the three guards §2.8 calls *Error prevention*. Comprar's sheet is
      * the same sheet, which is why these words are here rather than in `sell`.

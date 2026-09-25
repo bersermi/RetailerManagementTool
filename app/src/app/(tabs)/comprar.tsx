@@ -17,7 +17,15 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { parsePesos } from '@/api/catalogWrite';
-import { useCatalog, useMyRole, useProviders, useUnitFactors, useWorkspace } from '@/api/hooks';
+import {
+  useCatalog,
+  useMagnitude,
+  useMyRole,
+  useProviders,
+  useUnitFactors,
+  useWorkspace,
+} from '@/api/hooks';
+import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import {
   DEFAULT_SORT,
   canReadMemory,
@@ -183,6 +191,11 @@ export default function Comprar() {
   // `Total` fall every time she typed a different product's name.
   const { loading, entries, failed, locationId } = useCatalog('');
   const factors = useUnitFactors();
+  // ⚠️⚠️ ADR-035 §2.8's THIRD GUARD, AND COMPRAR IS THE SCREEN THAT GETS BOTH
+  // HALVES OF IT — a delivery is the one place in this app where a person types
+  // both a quantity and a price. See `@/api/magnitude`'s header for why Vender
+  // gets the quantity half alone.
+  const typicals = useMagnitude();
   const workspace = useWorkspace();
   const role = useMyRole();
 
@@ -456,6 +469,7 @@ export default function Comprar() {
           <Fila
             entry={item}
             factors={factors}
+            typical={typicals[item.id]}
             memory={memory}
             providerId={providerId}
             canRead={canRead}
@@ -489,6 +503,7 @@ export default function Comprar() {
         review={review}
         entries={entries}
         factors={factors}
+        typicals={typicals}
         memory={memory}
         providerId={providerId}
         canRead={canRead}
@@ -933,6 +948,7 @@ function Proveedores({
 function Fila({
   entry,
   factors,
+  typical,
   memory,
   providerId,
   canRead,
@@ -940,6 +956,9 @@ function Fila({
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
+  /** What this product usually arrives as — `undefined` when the shop has never
+   *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
+  typical: Typical | undefined;
   memory: readonly MemoryRow[] | null;
   providerId: string | null;
   canRead: boolean;
@@ -967,6 +986,16 @@ function Fila({
   // `5d-ii`'s *"the alarm nobody can silence"* in miniature.
   const alarm = base > 0 && state !== 'unknown' && typeof stored !== 'string';
 
+  // ⚠️⚠️ §2.8's MAGNITUDE WARNING, WITH BOTH HALVES LIVE — `stored` IS THE FIGURE
+  // SHE TYPED, net per base at scale 6, which is the denomination the median is
+  // in. Nothing converts on the way (`@/api/providers`' header): the cart already
+  // holds what `record_purchase` will be sent.
+  // ⚠️ IT IS NOT GATED ON `state !== 'unknown'` the way `alarm` above is. That
+  // gate exists because a MISSING cost is normal for the instant before the
+  // prefill lands; an outsized one is not a state this screen passes through on
+  // the way to being correct, and `outsized` is silent on a `null` anyway.
+  const big = magnitudeNote(outsized(typical, base, typeof stored === 'string' ? stored : null));
+
   return (
     <View
       style={{
@@ -989,6 +1018,20 @@ function Fila({
             style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
           >
             {entry.familyName}
+          </Text>
+        )}
+        {/* ⚠️ ON THE NAME LINE BECAUSE THE LINE BELOW IS FULL — the cost box and
+            the stepper take the whole of it on this screen, which Vender's row
+            does not. ⚠️ AND IT NEVER TINTS THE ROW: `alarm` above does, because
+            C3.13 blocks the commit on a missing cost, and §2.8 is explicit that
+            this one does not block. Two amber rows meaning *you cannot send
+            this* and *have a look at this* would make the first one furniture. */}
+        {big === '' ? null : (
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+          >
+            {big}
           </Text>
         )}
       </View>
@@ -1394,6 +1437,7 @@ function Carrito({
   review,
   entries,
   factors,
+  typicals,
   memory,
   providerId,
   canRead,
@@ -1412,6 +1456,10 @@ function Carrito({
   review: Review | null;
   entries: readonly CatalogEntry[];
   factors: UnitFactors;
+  /** ⚠️ THE SAME MAP THE LIST BEHIND THIS SHEET IS USING, passed down rather
+   *  than read again: `useMagnitude` inside the sheet would be a second
+   *  subscriber to one cache entry and a second answer to the same question. */
+  typicals: Typicals;
   memory: readonly MemoryRow[] | null;
   providerId: string | null;
   canRead: boolean;
@@ -1502,6 +1550,7 @@ function Carrito({
                   row={item}
                   entry={entries.find((e) => e.id === item.variantId)}
                   factors={factors}
+                  typical={typicals[item.variantId]}
                   memory={memory}
                   providerId={providerId}
                   canRead={canRead}
@@ -1556,6 +1605,7 @@ function Renglon({
   row,
   entry,
   factors,
+  typical,
   memory,
   providerId,
   canRead,
@@ -1563,6 +1613,7 @@ function Renglon({
   row: ReviewRow;
   entry: CatalogEntry | undefined;
   factors: UnitFactors;
+  typical: Typical | undefined;
   memory: readonly MemoryRow[] | null;
   providerId: string | null;
   canRead: boolean;
@@ -1578,6 +1629,12 @@ function Renglon({
       ? null
       : memoryFor(memory, providerId, entry.id, entry.priceUnit, factors);
   const alarm = !gone && state !== 'unknown' && typeof stored !== 'string';
+
+  // ⚠️⚠️ THE WARNING IS ON THE SHEET **AS WELL AS** ON THE LIST, AND THAT IS NOT
+  // A DUPLICATE. §2.8's three guards compound and review-before-commit is the
+  // second of them; the sheet is the last surface before the slide, and it is
+  // where the delivery note is actually being read against the screen.
+  const big = magnitudeNote(outsized(typical, row.base, typeof stored === 'string' ? stored : null));
 
   return (
     <View
@@ -1613,6 +1670,17 @@ function Renglon({
         >
           {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
         </Text>
+        {/* ⚠️ THE MISSING COST WINS WHEN BOTH APPLY, which is not arbitrary:
+            C3.13 makes it the thing that decides whether this delivery can be
+            sent at all, and §2.8 makes this one advisory. */}
+        {big === '' || alarm ? null : (
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+          >
+            {big}
+          </Text>
+        )}
         {alarm ? (
           <Text
             style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}

@@ -118,6 +118,14 @@ import {
   type CostLineRow,
 } from '@/api/costs';
 import {
+  MAGNITUDE_COLUMNS,
+  MAGNITUDE_LIMIT,
+  MAGNITUDE_ORDER,
+  MAGNITUDE_ORDER_ASCENDING,
+  MAGNITUDE_TABLE,
+  type MagnitudeRow,
+} from '@/api/magnitude';
+import {
   MEMORY_COLUMNS,
   MEMORY_PROVIDER_COLUMN,
   MEMORY_TABLE,
@@ -883,6 +891,40 @@ export async function variantCosts(variantId: string): Promise<CostLineRow[]> {
     .order(COSTS_ORDER, { ascending: COSTS_ORDER_ASCENDING });
   if (error) throw reported(error);
   return (data ?? []) as unknown as CostLineRow[];
+}
+
+/**
+ * The shop's most recent purchase lines, for §2.8's magnitude warning.
+ *
+ * ⚠️⚠️ NO FILTER AT ALL, WHICH IS THE ONE THING THAT LOOKS LIKE A MISSING
+ * ARGUMENT AND IS THE DESIGN. `variantCosts` above takes a variant because
+ * `Costos` is a per-product screen; this read backs a guard that fires while a
+ * BASKET is being keyed, so a per-variant read would be one round trip per line
+ * added — on the screen where a thumb moves fastest and, in the pilot store, the
+ * signal is worst. One read, one cache key, every product's median out of it.
+ *
+ * ⚠️ `limit(MAGNITUDE_LIMIT)` IS WHAT MAKES *trailing* MEAN ANYTHING, and it is
+ * only meaningful because of the `.order` above it: the limit slices whatever
+ * order the response is in, so an unordered read would take an arbitrary 400
+ * lines out of the shop's whole history and call them recent. That order is on
+ * an EMBEDDED column over a composite foreign key — see `MAGNITUDE_ORDER`, and
+ * `docs/checks/5f.5-magnitude-contract.sh` for the round trip that proves the
+ * two compose.
+ *
+ * ⚠️ NO LOCATION FILTER, for `variantCosts`' reason: `0040` kept
+ * `my_locations()` on both purchase policies, so a cashier's typical figures are
+ * her own store's by policy rather than by a setting anyone can get wrong.
+ */
+export async function shopMagnitude(): Promise<MagnitudeRow[]> {
+  const { data, error } = await supabase
+    .from(MAGNITUDE_TABLE)
+    .select(MAGNITUDE_COLUMNS)
+    // ⚠️ THE COLUMN-EXPRESSION SPELLING AND NEVER `{ referencedTable }` — see
+    // `MAGNITUDE_ORDER`, and `COSTS_ORDER` for the measurement behind it.
+    .order(MAGNITUDE_ORDER, { ascending: MAGNITUDE_ORDER_ASCENDING })
+    .limit(MAGNITUDE_LIMIT);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as MagnitudeRow[];
 }
 
 /**

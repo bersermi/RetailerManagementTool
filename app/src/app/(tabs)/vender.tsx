@@ -16,7 +16,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
-import { useCatalog, useUnitFactors, useWorkspace } from '@/api/hooks';
+import { useCatalog, useMagnitude, useUnitFactors, useWorkspace } from '@/api/hooks';
+import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { useCart, useCartStore } from '@/cart/store';
@@ -208,6 +209,10 @@ export default function Vender() {
   // the argument it is NOT being given is the point.
   const { loading, entries, failed, locationId } = useCatalog('');
   const factors = useUnitFactors();
+  // ⚠️⚠️ ADR-035 §2.8's THIRD GUARD, AND IT IS ONE READ FOR THE WHOLE SCREEN —
+  // never one per row. See `@/api/magnitude`'s header for why this hook takes no
+  // argument where `useCosts` takes a variant.
+  const typicals = useMagnitude();
   const workspace = useWorkspace();
 
   const [typed, setTyped] = useState('');
@@ -385,6 +390,7 @@ export default function Vender() {
           <Fila
             entry={item}
             factors={factors}
+            typical={typicals[item.id]}
             onEdit={(on) => {
               editing.current = on ? index : null;
             }}
@@ -422,6 +428,7 @@ export default function Vender() {
         review={review}
         entries={entries}
         factors={factors}
+        typicals={typicals}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
         canSell={basketful !== null && canCommit(basketful)}
@@ -477,10 +484,14 @@ export default function Vender() {
 function Fila({
   entry,
   factors,
+  typical,
   onEdit,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
+  /** What this product usually arrives as — `undefined` when the shop has never
+   *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
+  typical: Typical | undefined;
   onEdit: (editing: boolean) => void;
 }) {
   const { scale } = useDensity();
@@ -492,6 +503,13 @@ function Fila({
   // ⚠️ THE AMBER CONDITION, IN ONE LINE — see this file's header for the whole
   // argument. A priceless product nobody is selling is not a problem.
   const alarm = entry.centavos === null && base > 0;
+
+  // ⚠️⚠️ §2.8's MAGNITUDE WARNING — `null` FOR THE PRICE, BECAUSE A SALE HAS NO
+  // TYPED ONE. `quoteFor` takes the shelf figure off the catalog on the sell
+  // side, so there is no keystroke to get wrong and nothing to compare a COST
+  // median against. `@/api/magnitude`'s header has the argument; C3.15's counter
+  // price change (`5f-iv`) is what would change this one argument.
+  const big = magnitudeNote(outsized(typical, base, null));
 
   return (
     <View
@@ -538,6 +556,19 @@ function Fila({
               {ES.sell.noPrice}
             </Text>
           ) : null}
+          {/* ⚠️ IT IS A WORD IN THE AMBER ROLE AND NOT A COLOURED ROW (`R11`
+              again, and §2.8's *none blocking*). A row that changed colour under
+              a thumb mid-sale reads as a refusal; `Sin precio` above does tint
+              the row because C3.13 really does block a commit on it, and this
+              one never does. */}
+          {big === '' ? null : (
+            <Text
+              numberOfLines={1}
+              style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            >
+              {big}
+            </Text>
+          )}
         </View>
       </View>
 
@@ -749,6 +780,7 @@ function Carrito({
   review,
   entries,
   factors,
+  typicals,
   onCommit,
   onEmpty,
   canSell,
@@ -763,6 +795,10 @@ function Carrito({
   review: Review | null;
   entries: readonly CatalogEntry[];
   factors: UnitFactors;
+  /** ⚠️ THE SAME MAP THE LIST BEHIND THIS SHEET IS USING, passed down rather
+   *  than read again: `useMagnitude` inside the sheet would be a second
+   *  subscriber to one cache entry and a second answer to the same question. */
+  typicals: Typicals;
   onCommit: () => void;
   onEmpty: () => void;
   canSell: boolean;
@@ -863,6 +899,7 @@ function Carrito({
                       row={item}
                       entry={entries.find((e) => e.id === item.variantId)}
                       factors={factors}
+                      typical={typicals[item.variantId]}
                     />
                   )}
                   ItemSeparatorComponent={Separador}
@@ -951,14 +988,23 @@ function Renglon({
   row,
   entry,
   factors,
+  typical,
 }: {
   row: ReviewRow;
   entry: CatalogEntry | undefined;
   factors: UnitFactors;
+  typical: Typical | undefined;
 }) {
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
   const gone = entry === undefined;
+
+  // ⚠️⚠️ THE WARNING IS ON THE SHEET **AS WELL AS** ON THE LIST, AND THAT IS NOT
+  // A DUPLICATE. §2.8's three guards compound — review-before-commit is the
+  // second of them — and the sheet is the last surface before the slide. A line
+  // flagged on a row that has since scrolled away would otherwise be committed
+  // having been flagged to nobody.
+  const big = magnitudeNote(outsized(typical, row.base, null));
 
   return (
     <View
@@ -1000,6 +1046,17 @@ function Renglon({
             {ES.sell.noPrice}
           </Text>
         ) : null}
+        {/* ⚠️ THE PRICELESS LINE WINS WHEN BOTH APPLY, which is not arbitrary:
+            C3.13/C3.14 make a missing price the thing that decides whether this
+            basket can be committed at all, and §2.8 makes this one advisory. */}
+        {big === '' || (row.centavos === null && !gone) ? null : (
+          <Text
+            numberOfLines={1}
+            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+          >
+            {big}
+          </Text>
+        )}
       </View>
 
       {/* The controls, on their own line — see this component's header. */}

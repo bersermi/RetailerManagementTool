@@ -337,6 +337,21 @@ on:
       - "docs/checks/5g-iii-costs-contract.sh"
       - "docs/checks/5g-iii-costs-contract-falsify.sh"
 
+      # ⚠️⚠️ AND THE MAGNITUDE GUARD'S READ, as of plan task `5f.5`. ADR-035
+      # §2.8's third error-prevention guard compares a keyed quantity or cost
+      # against the trailing median for that product, and its read is the first
+      # in this app to ask `purchase_line` for a QUANTITY — so `qty_base::text`
+      # is a cast nothing here had yet proved. ⚠️ **Its failure is silent**:
+      # without the cast the figure arrives as a double, `parseDecimal` refuses a
+      # number argument, every sample is dropped and the warning simply never
+      # appears. No exception, no red test, and a shopkeeper told nothing is
+      # unusual. ⚠️ It also proves `order` and `limit` COMPOSE over the composite
+      # foreign key — *trailing* is not a column, it is a slice of an order — and
+      # that an Empleada reads the whole history, which is what `0040` made true
+      # and what §2.8's own paragraph about a cashier depends on.
+      - "docs/checks/5f.5-magnitude-contract.sh"
+      - "docs/checks/5f.5-magnitude-contract-falsify.sh"
+
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
   group: db-${{ github.ref }}
@@ -527,6 +542,27 @@ jobs:
       # path, and it is read out of `pg_policies` rather than remembered.
       - name: Contract — can the costs check still fail (its own ten fixtures)
         run: bash docs/checks/5g-iii-costs-contract-falsify.sh
+
+      # ⚠️⚠️ THE ONLY THING ANYWHERE THAT CAN SEE `qty_base` ARRIVING AS A DOUBLE,
+      # and the failure it catches is the silent kind — the guard stops speaking
+      # rather than speaking wrongly. It also drives the `{ referencedTable }`
+      # spelling in the same run to show the order really is being applied to the
+      # parent, because here the order is what `limit` slices.
+      - name: Contract — does app/src/api/magnitude.ts still describe the schema (plan 5f.5)
+        run: bash docs/checks/5f.5-magnitude-contract.sh
+
+      # ⚠️ Eight fixtures: a green control, six mutated copies of the app's own
+      # contract module, and one that puts back the manager fence `0040` removed
+      # — because with it back a cashier reads 200 and an EMPTY ARRAY, never a
+      # 403, so §2.8's guard is silently dead for the one role the ADR names and
+      # nothing else in this repository goes red. ⚠️⚠️ `F4` is a defect the live
+      # check found in the app on its first run, kept: PostgREST refuses to order
+      # a parent by an embedded column that is not in the embed's select list,
+      # and `occurred_at` is the one column in that contract nothing reads.
+      # ⚠️ The restore is in a `trap` on every exit path, read out of
+      # `pg_policies` rather than remembered.
+      - name: Contract — can the magnitude check still fail (its own eight fixtures)
+        run: bash docs/checks/5f.5-magnitude-contract-falsify.sh
 
       - name: Stop
         if: always()
