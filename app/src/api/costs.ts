@@ -90,7 +90,7 @@
 // §2.9's and is not built here.**
 // ============================================================================
 
-import { priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
+import { isoDay, priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
 import { ES } from '@/strings';
@@ -407,11 +407,30 @@ export function costsFrom(
     if (typeof doc.provider_id !== 'string' || doc.provider_id === '') continue;
     if (typeof doc.occurred_at !== 'string' || doc.occurred_at === '') continue;
 
+    // ⚠️⚠️ AND IT MUST PARSE, NOT MERELY BE A NON-EMPTY STRING — added 2026-09-26 with
+    // the local-day fix below. `slice(0, 10)` never cared whether the value was an
+    // instant; `isoDay(new Date(…))` does, and an unparseable one would render
+    // `NaN-NaN-NaN` as a chart label rather than dropping the point.
+    const when = new Date(doc.occurred_at);
+    if (!Number.isFinite(when.getTime())) continue;
+
     const centavos =
       factor === undefined ? null : priceCentavos(row.unit_price_net_per_base, factor);
     const point: CostPoint = {
       at: doc.occurred_at,
-      day: doc.occurred_at.slice(0, 10),
+      // ⚠️⚠️ THE DEVICE'S DAY AND NOT THE UTC ONE — `5g-iii-b`, 2026-09-26, ON THE
+      // OWNER'S RULING, AND IT IS A BUG FIX RATHER THAN A PREFERENCE. This read
+      // `doc.occurred_at.slice(0, 10)` from the day `Costos` shipped, which is the UTC
+      // calendar date: in a UTC−6 shop **a delivery keyed at 19:30 on the 25th was
+      // labelled `26 de septiembre`** on this chart and in the PDF, while Inicio's
+      // window counted it on the 25th. ⚠️ `today.ts`'s header says this app must not
+      // have *"two answers to what day is it"* — and it had two for a day.
+      // ⚠️ `isoDay` IS THE ONE ANSWER, and it is `catalog.ts`'s rather than a fourth
+      // copy: *"On the device the local day IS the shop's day, so this needs no table
+      // and no `Intl`"* (`R10`). `@/api/documents`' `dayOf` delegates to it too.
+      // **Found by `5h-ii-a`, which had to answer the same question and answered it
+      // the other way.**
+      day: isoDay(when),
       perBase: row.unit_price_net_per_base,
       centavos,
       price: priceLabel(centavos, priceUnit),

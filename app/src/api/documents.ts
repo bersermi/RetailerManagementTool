@@ -87,16 +87,17 @@
 // `Intl.DateTimeFormat`, which `R10` does not admit. `dayOf` below is that same
 // answer.
 //
-// ⚠️⚠️ **`costsFrom` TAKES THE OTHER ONE.** It buckets on
-// `doc.occurred_at.slice(0, 10)` — the **UTC** calendar date — so in a UTC−6
-// shop a delivery keyed at 19:30 on the 25th is labelled *26 de septiembre* on
-// the `Costos` chart and belongs to the 25th by Inicio's window. **Measured, not
+// ⚠️⚠️ ~~**`costsFrom` TAKES THE OTHER ONE.**~~ **IT DID, FOR ONE DAY, AND THE OWNER
+// RULED IT FIXED THE SAME EVENING — `5g-iii-b`, 2026-09-26: *"fix the Costos date."***
+// It bucketed on `doc.occurred_at.slice(0, 10)`, the **UTC** calendar date, so in a
+// UTC−6 shop a delivery keyed at 19:30 on the 25th was labelled *26 de septiembre* on
+// the `Costos` chart and belonged to the 25th by Inicio's window. **Measured, not
 // inferred**: `2026-09-26T01:30:00+00:00` slices to `2026-09-26` and is local
-// `2026-09-25`. That is the *"two answers to what day is it"* `today.ts`'s own
-// header says this app must not have, and **it is a defect in a shipped screen
-// rather than in this file** — reported to the owner in `5h-ii-a`'s closing
-// message, and left for a task that owns `Costos` rather than fixed here, where
-// it would silently move every date on a chart and a PDF he is holding.
+// `2026-09-25`. ✅ **`costsFrom` now calls `isoDay` too, and `dayOf` below delegates to
+// it rather than spelling the arithmetic a fourth time** — so *what day is it* has
+// exactly one answer in this app, which is what `today.ts`'s header asked for.
+// ⚠️ **It was found here rather than there**, by a row that had to answer the same
+// question and answered it the other way.
 //
 // ----------------------------------------------------------------------------
 // ⚠️ EVERY FIGURE IS AN INTEGER AND EVERY WIRE FIELD IS CAST — `R5`
@@ -110,6 +111,7 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import { isoDay } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
 import { formatMXN } from '@/format/mxn';
@@ -704,11 +706,14 @@ function grossOf(net: string, tax: string): number | null {
 function dayOf(at: string): string | null {
   if (typeof at !== 'string' || at === '') return null;
   const when = new Date(at);
-  const stamp = when.getTime();
-  if (!Number.isFinite(stamp)) return null;
-  const month = String(when.getMonth() + 1).padStart(2, '0');
-  const day = String(when.getDate()).padStart(2, '0');
-  return `${when.getFullYear()}-${month}-${day}`;
+  if (!Number.isFinite(when.getTime())) return null;
+  // ⚠️⚠️ `isoDay` AND NOT A FOURTH COPY OF THIS ARITHMETIC — collapsed into it on
+  // 2026-09-26 by `5g-iii-b`, hours after this function was written. It had padded the
+  // parts by hand, which is `catalog.ts`'s `isoDay` spelled again; **one answer to
+  // *what day is it* is the whole point of that row**, so introducing a second SPELLING
+  // while fixing a second ANSWER would have been the same defect one layer down. What
+  // stays here is the PARSE guard, which `isoDay` does not do.
+  return isoDay(when);
 }
 
 /** What `documentsLine` is given — the state, and whether the read failed. */

@@ -140,9 +140,10 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   `product_variant(name)`, sorted by the database through a NESTED embedded column.
 - A palette and a density scale in `app/src/theme/`, a cart in `app/src/cart/`, an outbox
   in `app/src/offline/`, and **a PDF this app hands a shopkeeper** in `app/src/export/`.
-- **A Vitest suite of 1,285 tests across 42 files** in `app/test/` — ⚠️ **that number
+- **A Vitest suite of 1,288 tests across 42 files** in `app/test/` — ⚠️ **that number
   is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-a` added
-  `api-documents.test.ts`; it was 1,219 across 41 the day before), and the one before it (1,189 across 40) came out of CI run
+  `api-documents.test.ts` and `5g-iii-b` added three day cases; it was 1,219 across 41
+  the day before), and the one before it (1,189 across 40) came out of CI run
   `36176282598` after correcting a count taken by grepping the files an hour earlier
   (1,119). **A count off a file is a claim about the file.** ⚠️ This entry said
   *"nearly 700 assertions"* until 2026-09-25.

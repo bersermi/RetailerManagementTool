@@ -222,22 +222,67 @@ describe('the days are headings a person reads, and they are the ledger’s own 
     for (const day of COSTS.days) expect(HTML).not.toContain(`<th>${day}</th>`);
   });
 
-  // ⚠️⚠️ MEASURED, NOT ARGUED: `new Date('2026-09-24').getDate()` IS **23** ON
-  // THIS PROJECT'S MAC (UTC−6) AND **24** ON `ubuntu-latest` (UTC). `CostPoint.day`
-  // is `occurred_at.slice(0, 10)` — a day Postgres already chose — so a heading
-  // built through a `Date` would disagree with the ledger for a reader holding a
-  // PDF who can check neither. `formatLedgerDay` slices the string, so this is
-  // TZ-independent by construction rather than by a pinned `TZ`
-  // ([[local-time-tests-need-a-pinned-tz]], answered by removing the dependency).
-  it('names the day the ledger named, whatever timezone the machine is in', () => {
+  // ⚠️⚠️ THIS TEST USED TO ASSERT THE DEFECT, AND ITS OWN COMMENT WAS THE ARGUMENT
+  // THAT PRODUCED IT — REWRITTEN 2026-09-26 BY `5g-iii-b` ON THE OWNER'S RULING
+  // (*"fix the Costos date"*). It read:
+  //
+  //   *"`CostPoint.day` is `occurred_at.slice(0, 10)` — a day Postgres already chose
+  //   — so a heading built through a `Date` would disagree with the ledger"*
+  //
+  // ⚠️⚠️ **POSTGRES CHOSE NO DAY.** `purchase.occurred_at` is a `timestamptz`: an
+  // INSTANT, with no calendar day in it. Slicing its UTC rendering picks a day, and
+  // it picks the WRONG one for a UTC−6 shop after 18:00 — the old fixture below
+  // asserted that a delivery keyed at **8pm on the 23rd** is labelled the **24th**,
+  // which is the bug the owner found on his own phone. **A guard was defending it.**
+  //
+  // ✅ `costsFrom` now calls `isoDay`, which is `catalog.ts`'s one answer to *what day
+  // is it* and is the same one `today.ts` and `@/api/documents` use.
+  //
+  // ⚠️ AND THE TZ PROBLEM THE OLD COMMENT WAS RIGHT ABOUT IS REAL — this machine is
+  // UTC−6 and CI is UTC ([[local-time-tests-need-a-pinned-tz]]). It is answered by
+  // building the fixture from a LOCAL instant rather than from a UTC string: `new
+  // Date(y, m, d, h)` is local by construction, so both runners agree about which day
+  // it is on without a pinned `TZ`.
+  it('keeps a late-evening delivery on its own day, in any timezone', () => {
+    // 8pm local on the 23rd. In UTC−6 that is 02:00 UTC on the 24th — the instant the
+    // old fixture spelled by hand and labelled the 24th.
+    const evening = new Date(2026, 8, 23, 20, 0, 0, 0);
     const late = costsFrom(
-      [line(CENTRO.id, '0.020000', '2026-09-24T02:00:00+00:00') as CostLineRow],
+      [line(CENTRO.id, '0.020000', evening.toISOString()) as CostLineRow],
       PROVIDERS,
       'kg',
       FACTORS,
     );
-    expect(late.days).toEqual(['2026-09-24']);
-    expect(headings(costsHtml(late, 'x', '2026-09-25'))).toEqual([`24 ${ES.dates.months[8]} 2026`]);
+    expect(late.days).toEqual(['2026-09-23']);
+    expect(headings(costsHtml(late, 'x', '2026-09-25'))).toEqual([`23 ${ES.dates.months[8]} 2026`]);
+  });
+
+  // ⚠️ AND THE CONVERSE, so the fix is not just an off-by-one in the other direction:
+  // a MORNING delivery keeps its day too, which the old behaviour also got right and
+  // which is the case every other fixture in this file exercises.
+  it('keeps a morning delivery on its own day', () => {
+    const morning = new Date(2026, 8, 24, 9, 0, 0, 0);
+    const early = costsFrom(
+      [line(CENTRO.id, '0.020000', morning.toISOString()) as CostLineRow],
+      PROVIDERS,
+      'kg',
+      FACTORS,
+    );
+    expect(early.days).toEqual(['2026-09-24']);
+  });
+
+  // ⚠️ A DOCUMENT WHOSE INSTANT DOES NOT PARSE IS DROPPED RATHER THAN LABELLED
+  // `NaN-NaN-NaN`. `slice(0, 10)` never cared whether the value was an instant;
+  // `isoDay(new Date(…))` does, so the guard is new and is asserted.
+  it('drops a point whose instant cannot be read', () => {
+    const broken = costsFrom(
+      [line(CENTRO.id, '0.020000', 'not-an-instant') as CostLineRow],
+      PROVIDERS,
+      'kg',
+      FACTORS,
+    );
+    expect(broken.days).toEqual([]);
+    expect(broken.state).toBe('nothing');
   });
 
   it('falls back to the label itself rather than to a rendered NaN', () => {
