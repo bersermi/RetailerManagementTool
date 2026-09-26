@@ -170,10 +170,15 @@ log"* NOW MEANS.** `money.yml`'s single job is **matrixed**, so it appears twice
 taken from `jobs:` keys alone is short by one. ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
 OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
 eighth.** 2 (`app.yml`) + 5 (`db.yml`) + 1 (`money.yml`) = 8, and the table below is the
-arithmetic. ⚠️ **The nine NAMES are confirmed against this PR's own run log before merge**,
-which is the rule rather than a courtesy — the earlier count was taken off the merge of
-#213 (runs `36172686917` / `36172686952` / `36172687093`, all eight green) and was right
-about the names while the sentence above it was wrong about the definitions.
+arithmetic. ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
+checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
+filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
+two are simply absent — not skipped, not failed, **absent**. `5h-ii-a`'s own PR (#222) is
+exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **So the
+count to check against a log is the count of jobs that COULD fire for the paths that
+changed**, and a reader expecting nine on every run will read a normal PR as missing two.
+The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
+`36172686952` / `36172687093`).
 
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
