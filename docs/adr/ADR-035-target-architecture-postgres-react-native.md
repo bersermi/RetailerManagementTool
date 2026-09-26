@@ -12,6 +12,31 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-26 — **§2.8's HOME row gains a SIXTH door, by plan task `5h-ii-a`, and
+  this entry is the amendment being DECLARED rather than requested.** The row enumerates five —
+  *"Vender, Comprar and Desperdicio as large cards, plus rows to Productos and Proveedores"*,
+  bought by the 2026-09-17 amendment because *"the tab bar is capped at four by C12.1"* — and the
+  app now draws a sixth: **`Lo último`, the list of recent documents.** ⚠️⚠️ **THE ADR NEITHER
+  AUTHORISED NOR REFUSED IT, WHICH IS WHY THIS IS AN AMENDMENT AND NOT A CORRECTION.** The row's
+  governing sentence is *"the way into every module"*, and `Lo último` is **not a module** — it is
+  a LOOK, and it exists because the área 6 simulation round of 2026-09-26 found the owner reaching
+  for one: *"Most likely the user will realize if he looks at his purchase history for the last
+  week/couple of days."* Nothing in this app listed DOCUMENTS; `Costos` is per product and
+  `Números` is not built. ⚠️ **`5h-ii-b`'s corrections are reached from nothing else**, so the door
+  is what makes that row possible at all.
+  ⚠️⚠️ **IT IS A DECISION TAKEN ON THE OWNER'S BEHALF AND IT IS PARKED IN THE PLAN'S
+  ⛔ DECISIONS OWED, WHICH IS THE HONEST SHAPE OF IT**: a screen reached from nowhere cannot be
+  judged on a phone, and §2.11 (`R9`) makes his phone the only instrument for placement — so the
+  row ships to be looked at, and the question is re-offered every session until he rules.
+  **Reversing it is three deletions and no migration**: a row in `app/src/navigation/inicio.ts`, a
+  line in `app/test/inicio.test.ts`, and this entry.
+  ⚠️ **What is unchanged is the half the 2026-09-17 amendment kept deliberately: STATE COMES
+  FIRST.** The takings still sit above anything tappable, `INICIO_BLOCKS` still reads `estado`
+  first, and that suite still asserts it.
+  ⚠️ **And the count is now pinned at SIX in two places rather than one** — the ADR here and
+  `app/test/inicio.test.ts`, which had pinned five *"because a sixth door is a decision about what
+  Inicio is for, not a tidy-up"*. **That guard is what turned this from an edit into an
+  amendment**, and it now says a SEVENTH is a decision.
 - **Revised:** 2026-09-22 — **§2.8's HOME row, both halves, on the decision maker's
   instruction.** (1) *"Let's drop it for the pilot then."* — **Home no longer shows anything
   expiring within 48 hours.** The row had a working data path (`0018`'s tier 2 seeds a batch's
@@ -1406,7 +1431,7 @@ Three capture screens that *feel* like distinct modes, sharing one engine undern
 
 | Surface | Job | Notes |
 |---------|-----|-------|
-| **Home** | Today's sales total and count, ~~anything expiring within 48h~~, **and the way into every module** — plus **the dead-letter banner, and it is the only screen that carries it** | ⚠️⚠️ **AMENDED AGAIN 2026-09-22, BOTH HALVES, ON THE DECISION MAKER'S INSTRUCTION — see the revision entry.** The 48-hour expiry block is **withdrawn for the pilot** (*"let's drop it for the pilot then"*): nothing fills it, because expiry dates are not captured and no family carries a lifespan. And the sentence at the end of this cell reversed: *"deliberately not a place where sync failures surface"* became **Home only** (*"let's keep it Home Only"*), which is where C11.9's banner now draws and the only place it does. ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. ~~Deliberately *not* a place where sync failures surface~~ — **reversed 2026-09-22; see below** |
+| **Home** | Today's sales total and count, ~~anything expiring within 48h~~, **and the way into every module** — plus **the dead-letter banner, and it is the only screen that carries it** | ⚠️⚠️ **AMENDED AGAIN 2026-09-22, BOTH HALVES, ON THE DECISION MAKER'S INSTRUCTION — see the revision entry.** The 48-hour expiry block is **withdrawn for the pilot** (*"let's drop it for the pilot then"*): nothing fills it, because expiry dates are not captured and no family carries a lifespan. And the sentence at the end of this cell reversed: *"deliberately not a place where sync failures surface"* became **Home only** (*"let's keep it Home Only"*), which is where C11.9's banner now draws and the only place it does. ⚠️ **AMENDED 2026-09-17.** Was *"Shows state, not just doors. No nav panel here — redundant."* **State still comes first and that half is unchanged** — the takings and the expiries sit above anything tappable. What changed is the prohibition: Inicio carries **Vender, Comprar and Desperdicio as large cards**, plus rows to **Productos and Proveedores**, because the tab bar is capped at four by C12.1 (icon *and* word, and five Spanish words do not fit 390 px). The redundancy the original sentence feared is real and is paid for on purpose: it buys a fifth and sixth destination that otherwise have no home. ⚠️⚠️ **AMENDED AGAIN 2026-09-26 — THERE IS A SIXTH DOOR AND IT IS NOT A MODULE: `Lo último`, the list of recent documents (`5h-ii-a`), drawn as a THIRD ROW between Productos and Proveedores.** It is how `5h-ii-b`'s `Corregir` and `Eliminar` are reached at all, and it came out of the área 6 round rather than out of this document — *"Most likely the user will realize if he looks at his purchase history for the last week/couple of days."* ⚠️ **This sentence's own claim still governs and is why the door is legitimate: *the way into every module* is a FLOOR and not a ceiling.** ⚠️ **The placement is a decision taken on the owner's behalf and is parked in the plan's ⛔ DECISIONS OWED** — see the revision entry, and `app/test/inicio.test.ts`, which pins the count at six and says a seventh is a decision. ~~Deliberately *not* a place where sync failures surface~~ — **reversed 2026-09-22; see below** |
 | **Vender** | The dominant loop; persistent primary action, thumb-reachable everywhere | One tap from cold open; two taps to a committed single-item sale |
 | **Comprar** | Provider context, price prefill from history, **optional expiry — ⚠️⚠️ LATENT, NOT BUILT, ON THE DECISION MAKER'S INSTRUCTION OF 2026-09-25** | Episodic — not tap-optimised. ⚠️⚠️ **THE EXPIRY INPUT IS DELIBERATELY UNBUILT AND THIS CELL IS WHAT STOPS THE NEXT READER BUILDING IT.** His words, 2026-09-25: ***"We'll leave the expiry input latent until we have some feedback from the pilot."*** ⚠️ **He was asked whether to STRIKE the phrase and said neither** — not struck, not deferred to a date, **latent pending an event**, which is the shape `Costos` carried (*"we will need to understand the interactions"*). The ruling behind it is 2026-09-21's: *"we will not capture expiry date for now"*, because shelf life is to be DERIVED — see the plan's `7e`. ⚠️⚠️ **NOTHING IS BROKEN AND NOTHING IS MISSING DOWNSTREAM: `purchase_line.expiry_date` is applied (`0003:197`) and `record_purchase` carries ADR-017's three tiers (`0018:112`), so a delivery that sends no date still gets one wherever a family has a lifespan.** Tier 1 — the date read off the box by a person — is the only tier that needs a control, and it is the one that is latent. ⚠️ **This cell lagged that ruling for four days** while the Home row above was struck for its sibling on 2026-09-22, and `5g-ii` found it by reading rather than by any check — **the tenth stale-copy defect in this repository and the first in this file** |
 | **Desperdicio** | Reason-first waste entry | Feeds the analytics asset |

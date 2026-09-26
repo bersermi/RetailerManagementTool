@@ -1828,6 +1828,82 @@ export const ES = {
   },
 
   /**
+   * LO ÚLTIMO — what the shop bought and sold lately, as a list you can open.
+   * Plan task `5h-ii-a`.
+   *
+   * ⚠️⚠️ THE WORDS EXIST BECAUSE OF A SENTENCE THE OWNER SAID IN `5h-i`: *"Most
+   * likely the user will realize if he looks at his purchase history for the
+   * last week/couple of days."* This screen is that look, and `5h-ii-b` hangs
+   * `Corregir` and `Eliminar` off its rows.
+   *
+   * ⚠️⚠️ NOTHING HERE SAYS *cancelar*, *reversa*, *anular* OR *documento*, AND
+   * THAT IS [[users-dont-do-bookkeeping]] APPLIED TO THE VOCABULARY BEFORE A
+   * BUTTON EXISTS TO NEED IT. A shopkeeper looks at *what she bought*; she does
+   * not audit a ledger. ⚠️ The word for the thing is `compra` and `venta` — the
+   * two the tabs already use — and never a third noun for the same object.
+   */
+  documents: {
+    /** The banda. ⚠️ Not *Historial*: it is what just happened, not an archive. */
+    title: 'Lo último',
+    /** ⚠️ *Volver* and not *Cerrar*, `ES.costs.back`'s rule: you went INTO it. */
+    back: 'Volver',
+
+    /**
+     * ⚠️⚠️ THE TWO-WAY SWITCH, AND ITS WORDS ARE `ES.tabs`' OWN RATHER THAN NEW
+     * ONES. A screen that says *Compras* over a tab that says *Comprar* is this
+     * repository's stale-duplicate defect in its cheapest form — but these are
+     * not the same part of speech: the tab is *what you do*, this is *what you
+     * did*. So they are spelled here, once, as the nouns.
+     */
+    purchases: 'Compras',
+    sales: 'Ventas',
+
+    /**
+     * ⚠️ WHAT THE LIST IS OF, under the banda. It names the WINDOW, because a
+     * list with a silent bound is one a shopkeeper reads as complete — and the
+     * delivery she is looking for may be eight days old.
+     */
+    subtitle: 'Los últimos siete días',
+
+    /**
+     * ⚠️ IN FLIGHT, AND IT IS THE `Cargando productos…` SHAPE THE OWNER FOUND ON
+     * HIS OWN PHONE ON 2026-09-22 — so it says what it is waiting for and never
+     * sits there looking like an answer.
+     */
+    loading: 'Buscando…',
+
+    /**
+     * ⚠️⚠️ TWO EMPTY STATES AND NOT ONE, BECAUSE THEY ARE DIFFERENT FACTS. In
+     * the pilot's first week a shop has deliveries and few sales, or the
+     * reverse, and *no hay nada* under the wrong tab reads as the app having
+     * lost the thing she keyed an hour ago.
+     *
+     * ⚠️ NEITHER APOLOGISES AND NEITHER SUGGESTS A FIX, `ES.costs.nothing`'s
+     * rule: the shopkeeper is the one who fills this screen and the next
+     * delivery does it.
+     */
+    noPurchases: 'No hay compras de los últimos siete días.',
+    noSales: 'No hay ventas de los últimos siete días.',
+
+    /**
+     * ⚠️ A PRODUCT THIS PHONE CANNOT NAME — the plain embed's branch in
+     * `@/api/documents`. The LINE still shows, because a delivery quietly
+     * missing a row is worse than one with a row it cannot name, and a uuid on
+     * screen is not a name.
+     */
+    unknownProduct: 'Producto sin nombre',
+
+    /**
+     * ⚠️ A FIGURE THIS PHONE COULD NOT READ — `ES.home.noFigure`'s rule, and its
+     * reason: a peso amount that went through a float is the one thing `R5`
+     * forbids near the ledger, so an unparseable total is withheld rather than
+     * approximated. ⚠️ The ROW still stands: this list has no sum to spoil, and
+     * dropping it would hide the delivery somebody came here to find.
+     */
+    noFigure: 'Sin dato',
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.
