@@ -140,10 +140,13 @@ gitignored, which is why no workflow compiles it.
 `app/` is written, and `R2` keeps the suite in `app/test/` as `.ts` reaching no component.
 ⚠️⚠️ **`app/src/ui/` NOW EXISTS AND `5h.5` STILL OWNS IT.** Six primitives — `Buscador`,
 `Cantidad`, `Deslizador`, `Separador`, `TecladoListo`, `Vacio` — were built across `5d`–`5g`
-**with no written rule**, and `5h.5`, the row that writes one, is gated on `5h`, which is
-gated on área 6 in ⛔ DECISIONS OWED. **So every session that ships a primitive while that
-question sits adds to a directory whose conventions nobody has ruled on**, and `5h.5`'s own
-row calls itself *"the last moment this is cheap"*.
+**with no written rule**, and `5h.5`, the row that writes one, is gated on `5h-ii-c` —
+re-pointed twice in two days as `5h` and then `5h-ii` were each split, because a gate naming a row
+that is no longer takeable is a gate nobody can clear. ⚠️ **Área 6 is no longer the blocker: it was
+RULED on 2026-09-26** by `5h-i`, a simulation round run with the owner — **so what stands
+between here and `5h.5` is now three rows of build rather than a question**. ⚠️ **Every session that
+ships a primitive before it adds to a directory whose conventions nobody has written**, and
+`5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
 ⚠️ ~~Neither CI workflow watches an app directory~~ — **THERE ARE THREE WORKFLOW FILES AND
 `app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-25 THEY ARE SIX JOB DEFINITIONS

@@ -48,7 +48,11 @@
 #      `42501 permission denied for table purchase`). Every write goes through
 #      `record_purchase`, which is `security definer` — and **no function in this
 #      schema writes a reversal**: `0021` describes the shape and nothing creates
-#      one. So a void is **not reachable through the API at all today**, and the
+#      one. ⚠️⚠️ THIS LINE SAID a void is not reachable through the API at all today
+#      AND THAT WAS FALSE — corrected 2026-09-26 by `5h-i`, which measured it: `0021:448`
+#      grants execute on `void_transaction` to `authenticated`, and `proacl` on the applied
+#      schema reads `authenticated=X/postgres`. What is TRUE is the narrower claim this
+#      fixture actually rests on — no client inserts a reversal ROW — and the
 #      fixture is inserted as the superuser inside the container.
 #      ⚠️ THAT IS SOUND HERE AND WOULD NOT BE ELSEWHERE: the superuser writes the
 #      FIXTURE, and the assertion is the READ, which is made as a real user over
@@ -451,7 +455,9 @@ verdict "the order is real, and the tempting spelling is shown not to be" \
 # THAN A CONVENIENCE — see this file's header, assertion 7. `purchase` carries a
 # SELECT policy and nothing else, so an `authenticated` insert is `42501`; and no
 # function in this schema writes a reversal, so there is no RPC to call either.
-# **A void is not reachable through the API today.** The superuser writes the two
+# **No client inserts a reversal ROW** — `void_transaction` is granted to `authenticated`
+# (`0021:448`), so the RPC path is open and this comment used to deny it; what has no client
+# path is a direct INSERT. The superuser writes the two
 # rows; every assertion below is still a read made as a real user over real HTTP.
 #
 # ⚠️ `docker exec` AND NOT `psql` — there is no psql on this machine, which is

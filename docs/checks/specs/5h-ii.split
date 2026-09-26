@@ -1,0 +1,119 @@
+# 5h-ii — the undo. Re-scoped and split THREE ways on 2026-09-26 by `5h-i`, the
+# área 6 simulation round, before a line of it was written. THE ROW SAID "one
+# undo on the document just committed". The round made it something else.
+#
+# ⚠️⚠️ THIS IS THE NINETEENTH SPLIT SPEC AND THE FIRST WHOSE PARENT WAS RE-SCOPED
+# BY A CONVERSATION RATHER THAN BY A SIZING. `5h-i` built nothing — that was its
+# deliverable — and what it produced is this file plus four rulings.
+#
+# WHAT THE ROUND CHANGED, because the parent row no longer says what it said:
+#   * NOT ON THE CONFIRMATION. The brief's opening position was to put the undo
+#     on the confirmation animation. Situation 1 retired it: "She fixes the money
+#     by hand and never touches the app. We won't want to add more noise to the
+#     app now, it's a small error in the overall flow that won't have material
+#     consequences." ⚠️ AND A MEASUREMENT KILLED IT INDEPENDENTLY — Vendido and
+#     Registrada run 260ms in, 520ms hold, 220ms out, and both carry
+#     pointerEvents="none". The confirmation is a flash, not a control.
+#   * TWO AFFORDANCES, NOT ONE. "We should be able to adjust that, correct the
+#     amount or price" — and, separately, "yes, delete for a duplicate."
+#   * BOTH SCREENS. "Mirror it for Vender… Make the functionality for both for
+#     now, amend it and then I'll polish it both in terms of roles/permissions
+#     and interface."
+#   * REACHED FROM A LIST THAT DOES NOT EXIST. "Most likely the user will realize
+#     if he looks at his purchase history for the last week/couple of days."
+#     Costos is per PRODUCT; nothing in this app lists DOCUMENTS.
+#
+# WHY IT SPLITS. Size is real here — an XL by any reading: a new read module, a
+# new screen, two RPCs wired from the client for the first time, a second store
+# to reason about, and changes to both capture screens. But size is named SECOND,
+# because the owner amended the agreement on 2026-09-24 so an M or an L is one
+# sitting and a session reaching for a size argument is asking for the old rule
+# back. The agreement's reason (2) applies independently and is the stronger one:
+#
+#   1. TWO FAILURE CLASSES, AND ONE OF THEM IS INVISIBLE FROM THE SCREEN. A
+#      document still in the OUTBOX has no row in the database. The pilot store
+#      is offline half the day (§2.6, 5c), so this is not the edge case — it is
+#      half the deliveries. void_transaction takes an id and cancels a DOCUMENT;
+#      a QueuedWrite has a client-generated id and nothing behind it. Cancelling
+#      an unsent write is dropping it from the outbox and touches no server at
+#      all; correcting one is replacing its payload before it goes. ⚠️ ONE ROW
+#      WOULD LET THE QUEUE HALF SHIP ON THE BACK OF THE HALF A PERSON CAN LOOK
+#      AT, which is precisely what the agreement's reason (2) names. The outbox
+#      is the part no screen shows and app/test/ is its only instrument.
+#      ⚠️⚠️ AND THE QUESTION WAS PUT TO THE OWNER TWICE DURING 5h-i AND NOT
+#      ANSWERED — should she be able to fix a queued write, or wait until it
+#      lands? 5h-ii-c's first job is to ask it again, which is the deferral test
+#      honoured rather than a guess taken.
+#   2. AND THEN SIZE, as above.
+#
+# WHAT WAS MEASURED DURING THE ROUND RATHER THAN ASSUMED, recorded here so no
+# child re-discovers it:
+#   * void_transaction(p_kind text, p_id uuid, p_reason text) IS GRANTED TO
+#     authenticated. 0021:448 revokes from public and grants to authenticated,
+#     and proacl on the applied schema reads authenticated=X/postgres. ⚠️ THE
+#     PLAN SAID THE OPPOSITE FOR A DAY — 5g-iii wrote "no function in this schema
+#     writes a reversal, so a void is not reachable through the API at all
+#     today". The narrower half was true: purchase and purchase_line carry a
+#     SELECT policy and nothing else, so no client INSERTs a reversal directly.
+#     The security definer RPC is the whole path and it is open. This error would
+#     have put a migration nobody needs into the next sizing.
+#   * sale AND purchase CARRY THE IDENTICAL QUARTET the list and the buttons
+#     need: reversal_of, reversal_reason, created_by, recorded_offline. So one
+#     read module serves both kinds and mirroring to Vender is the same build
+#     rather than a second one.
+#   * sale_select AND sale_line_select ADMIT ANY MEMBER at their own location
+#     with NO ROLE GATE (0003), and 0040 made purchase_select and
+#     purchase_line_select match. The list needs no canRead predicate.
+#   * void_window_minutes IS ONE NUMBER FOR ALL THREE KINDS, lives on
+#     workspace_setting, is capped at 1440 by workspace_setting_void_window_sane
+#     (0001:283) and is writable by OWNERS today (workspace_setting_update). The
+#     owner refused a per-kind split — "It's fine to keep both things tied
+#     together for now in our back end" — so the VALUE is parked in ⛔ DECISIONS
+#     OWED and no child owns it.
+#
+# ⚠️ WHAT THIS SPLIT DELIBERATELY DOES NOT COVER, named so no session reads it as
+# a gap: WHERE the list is reached from, and what it looks like. The owner bounded
+# that himself — "if we can add these functionalities easily reachable and usable
+# let's do so. We'll polish the interface later" — and R9 fences the judgement out
+# of this repository anyway. 5h.5 is where the polish lands, and its gate is now
+# 5h-ii-c.
+#
+# ⚠️ THIS GUARDS NO MIGRATION, and EACH_CHILD_SAYS asserts it POSITIVELY in all
+# three rows because merging is automated: a child that quietly grows one is
+# repaired by a fix-forward migration, never by an edit. Measured rather than
+# hoped — void_transaction (0021), record_sale (0016), record_purchase (0018),
+# sale, sale_line, purchase, purchase_line (0003) and 0040's widened policies are
+# all applied and all carry what these three children need.
+SPLIT_ID="5h-ii"
+SPLIT_GROUPS=( "5h-ii|5h-ii-a 5h-ii-b 5h-ii-c" )
+DELIVERABLES=(
+  # ⚠️ ONE SPELLING PER ROW, and never an alternation: a bare pipe in the regex
+  # field truncates the entry and it fails downstream as a DROPPED deliverable.
+  #
+  # ⚠️ NO BACKTICKS IN A REGEX. This file is SOURCED by bash, so a backtick is
+  # command substitution. Match the words INSIDE the backticks instead.
+  #
+  # ⚠️ EVERY REGEX MUST ALSO MATCH THE PARENT ROW — assertion 3 refuses a
+  # deliverable the parent stopped promising.
+  "the list of recent documents nothing in this app has ever drawn|list of recent documents|5h-ii-a"
+  "both kinds in one read, because the two documents are the same shape|One read serves both kinds|5h-ii-a"
+  "a cancelled document and the one it cancels both drop from the list|Corregir|5h-ii-b"
+  "correcting a delivery, which is a void and a re-record and never an edit|a void and a re-record|5h-ii-b"
+  "deleting a document recorded twice|Eliminar|5h-ii-b"
+  "the same two affordances on Vender|Mirror it for Vender|5h-ii-b"
+  "a write that has not been sent has no document to cancel|OUTBOX|5h-ii-c"
+)
+PHRASES=(
+  "5h-ii-a|F|writes nothing|The whole point of taking it first. A list that only reads can be looked at, corrected and shipped before anything in this app has ever cancelled a document — and it is the surface both other children are reached from."
+  "5h-ii-a|F|ships no migration|A POSITIVE assertion because merging is automated. sale, sale_line, purchase and purchase_line are applied since 0003 and 0040 widened the last two; nothing here needs a policy or a column that does not exist."
+  "5h-ii-b|F|never sees the word cancel|This ledger has never changed a row, so Corregir is void-then-re-record and the shopkeeper is shown a correction. users-dont-do-bookkeeping: we handle the edge case silently. The ledger keeps all three documents and the back end is where the movement is read."
+  "5h-ii-b|F|granted to|void_transaction is reachable TODAY — 0021:448, and proacl on the applied schema reads authenticated=X/postgres. The plan claimed the opposite for a day, and believing it would have put a migration nobody needs into this row."
+  "5h-ii-b|F|TD003|The refusal a cashier outside the window gets, and it must render as a sentence rather than a code. R12 puts that mapping in the layer and not in a screen."
+  "5h-ii-b|F|ships no migration|A POSITIVE assertion because merging is automated. void_transaction, record_sale and record_purchase are all applied and all granted; the role fence is the database's and this row only renders it."
+  "5h-ii-c|F|OUTBOX|The second failure class, and the reason this is its own row rather than a paragraph. A queued write has a client-generated id and no row behind it, so void_transaction has nothing to take and 5h-ii-b's buttons would refuse or appear to work."
+  "5h-ii-c|I|not answered|The owner was asked twice during 5h-i whether a queued write should be fixable before it lands, and did not answer. The row asks again rather than choosing, which is the deferral test honoured and not a gap."
+  "5h-ii-c|F|ships no migration|A POSITIVE assertion because merging is automated. Nothing in this child touches the server at all — dropping or replacing a queued write is entirely app/src/api/outbox.ts and its state machine."
+)
+EACH_CHILD_SAYS=(
+  "I|ships no migration|void_transaction (0021), record_sale (0016), record_purchase (0018), sale, sale_line, purchase and purchase_line (0003) and 0040's widened policies are all applied and all carry what these three children need — measured on 2026-09-26, not assumed. A POSITIVE assertion because merging is automated. ⚠️ AND IT IS WHAT THE per-kind void WINDOW WOULD HAVE CHANGED: the owner refused that split, so the window stays one number and the VALUE is parked in the decisions block rather than built into any child."
+)
