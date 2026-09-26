@@ -42,7 +42,7 @@ reads first:
 | `docs/plan/archive/status-log-2026-09-22.md` | **The 2026-09-22 working day, FIRST CUT** — ⚠️ the first archive taken from a day still running, because there was no older day left to take. **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
 | `docs/plan/archive/status-log-2026-09-23.md` | The whole 2026-09-23 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-24.md` | **The 2026-09-24 working day** — the second file ever opened for a day still running, and the busiest day this project had had at the time (2026-09-25 has since passed it). ⚠️ **SEVEN cuts have been appended to it** — the seventh on 2026-09-25, when `5g-iii` found that `5g.5` and `5g-i` had been left in the live plan by all six earlier cuts, which is the rule above being obeyed | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-25.md` | **The 2026-09-25 working day, FIRST CUT** — the busiest day this project has had. The cut holds its first four entries and the 23rd–26th owner rulings, including the first migration to widen a cost fence and the day `Comprar` shipped. ⚠️ **The third file ever opened for a day still running — and the day RAN ON PAST THE CUT**: `5g-iii-a`, the parked `R9` reading and the 27th and 28th rulings stand in the LIVE plan and belong in a later cut of THIS file | Only to move an entry back, or to append a later cut of the same day |
+| `docs/plan/archive/status-log-2026-09-25.md` | **The 2026-09-25 working day, NOW WHOLE — two cuts.** The busiest day this project has had. The first cut held its first four entries and the 23rd–26th owner rulings, including the first migration to widen a cost fence and the day `Comprar` shipped. ✅✅ **THE SECOND CUT LANDED 2026-09-26, APPENDED, AND IT IS THIS TABLE'S OWN PREDICTION COMING TRUE**: the row used to warn that the day *"RAN ON PAST THE CUT"* and named `5g-iii-a`, the parked `R9` reading and the 27th and 28th rulings as still live. ⚠️ **It was right about the need and short by three blocks about the size** — `5f.5` and `5g-iii` closed that day too, so **six blocks / 415 lines** came out rather than three. ⚠️ **Appended, never a second file for one date** | Only to move an entry back, or to append a later cut of the same day |
 
 ⚠️⚠️ **THIS TABLE IS READ BY NO CHECK, AND ON 2026-09-25 IT WAS MISSING TWO FILES** —
 `status-log-2026-09-23.md` and `status-log-2026-09-24.md`, both of which had existed for a
@@ -118,17 +118,31 @@ described. **Ids only in that column; the reasoning goes in the column no check 
 IT HAD GONE ON MISLEADING THE ONE FILE EVERY SESSION READS FIRST.** `app/` is a real Expo
 app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
 
-- **16 screens** under `app/src/app/` — four tabs (Inicio, Comprar, Vender, Desperdicio)
-  plus `productos.tsx`, `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`,
+- ⚠️⚠️ **15 ROUTE SCREENS plus 2 `_layout.tsx` = 17 `.tsx` FILES under `app/src/app/`,
+  measured 2026-09-26** — `find app/src/app -name '*.tsx' | wc -l`, and the route count is
+  that less the two layouts. ⚠️ **This entry said *16 screens* and ENUMERATED FOURTEEN**:
+  the number counted the layouts as screens and the list did not, so neither half said
+  what it was counting. **A layout is not a screen** — say which you mean.
+  Four tabs (Inicio, Comprar, Vender, Desperdicio) plus `productos.tsx`,
+  `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`, **`documentos.tsx`
+  (`5h-ii-a`, *Lo último* — the recent-document list every correction is reached from)**,
   `ajustes`, `solicitudes`, `entrar`, `bienvenida` and `auth/callback`.
-- **22 modules in `app/src/api/`** — the data layer, each one a claim about the applied
-  schema (which is why `db.yml` watches it; see below). ⚠️ The newest is `magnitude.ts`
-  (`5f.5`), whose read is what ADR-035 §2.8's magnitude warning compares against.
+- **23 modules in `app/src/api/`** — the data layer, each one a claim about the applied
+  schema (which is why `db.yml` watches it; see below). Measured 2026-09-26:
+  `ls app/src/api | wc -l` (22 `.ts` plus `QueryProvider.tsx`). ⚠️ The newest is
+  **`documents.ts` (`5h-ii-a`)**, and it is the first read in this app to start at a
+  DOCUMENT and ask for its LINES — **a to-many embed over a composite foreign key**,
+  where every other embed here is to-one and read from the line. ⚠️⚠️ **Its four wire
+  claims are 200-and-wrong rather than red** and only
+  `docs/checks/5h-ii-a-documents-contract.sh` can see any of them; the sharpest is that
+  **nothing in this schema records the order a shopkeeper keyed a document's lines in** —
+  no ordinal column, and `created_at` is identical across every line — so the order is
+  `product_variant(name)`, sorted by the database through a NESTED embedded column.
 - A palette and a density scale in `app/src/theme/`, a cart in `app/src/cart/`, an outbox
   in `app/src/offline/`, and **a PDF this app hands a shopkeeper** in `app/src/export/`.
-- **A Vitest suite of 1,219 tests across 41 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-25, after `5f.5` added
-  `api-magnitude.test.ts`), and the one before it (1,189 across 40) came out of CI run
+- **A Vitest suite of 1,285 tests across 42 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-a` added
+  `api-documents.test.ts`; it was 1,219 across 41 the day before), and the one before it (1,189 across 40) came out of CI run
   `36176282598` after correcting a count taken by grepping the files an hour earlier
   (1,119). **A count off a file is a claim about the file.** ⚠️ This entry said
   *"nearly 700 assertions"* until 2026-09-25.
@@ -144,21 +158,32 @@ gitignored, which is why no workflow compiles it.
 re-pointed twice in two days as `5h` and then `5h-ii` were each split, because a gate naming a row
 that is no longer takeable is a gate nobody can clear. ⚠️ **Área 6 is no longer the blocker: it was
 RULED on 2026-09-26** by `5h-i`, a simulation round run with the owner — **so what stands
-between here and `5h.5` is now three rows of build rather than a question**. ⚠️ **Every session that
+between here and `5h.5` is build rather than a question**, and as of 2026-09-26 it is
+**two rows**: `5h-ii-a` closed that day, leaving `5h-ii-b` and `5h-ii-c`. ⚠️ **Every session that
 ships a primitive before it adds to a directory whose conventions nobody has written**, and
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
 ⚠️ ~~Neither CI workflow watches an app directory~~ — **THERE ARE THREE WORKFLOW FILES AND
-`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-25 THEY ARE SIX JOB DEFINITIONS
-THAT RENDER AS EIGHT NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
-log"* NOW MEANS.** Counted off a real run rather than off the YAML (the merge of #213, runs
-`36172686917` / `36172686952` / `36172687093`, all eight green): `money.yml`'s single job is
-**matrixed**, so it appears twice, and a count taken from `jobs:` keys alone is short by one.
+`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-26 THEY ARE EIGHT JOB DEFINITIONS
+THAT RENDER AS NINE NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
+log"* NOW MEANS.** `money.yml`'s single job is **matrixed**, so it appears twice, and a count
+taken from `jobs:` keys alone is short by one. ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
+OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
+eighth.** 2 (`app.yml`) + 5 (`db.yml`) + 1 (`money.yml`) = 8, and the table below is the
+arithmetic. ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
+checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
+filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
+two are simply absent — not skipped, not failed, **absent**. `5h-ii-a`'s own PR (#222) is
+exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **So the
+count to check against a log is the count of jobs that COULD fire for the paths that
+changed**, and a reader expecting nine on every run will read a normal PR as missing two.
+The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
+`36172686952` / `36172687093`).
 
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
 | `app.yml` | `app/**`, `packages/money/**`, `docs/PLAN.md`, `docs/plan/archive/**`, `docs/CONVENTIONS.md`, `docs/HANDBOOK.md`, ADR-035, and each plan/handbook guard by name | `app (node 22)` — typecheck, Vitest, conventions gate — **and** `the documents still agree (plan + handbook)`. ⚠️⚠️ **SPLIT 2026-09-25 BECAUSE IT WAS TIMING OUT.** The seam is free because no document guard needs `node_modules`, and the two halves fail for different reasons: *the code is wrong* vs *the documents disagree with each other* |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `packages/money/cases.json`, and every contract check and falsifier by name | four: `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`. ⚠️ **The biggest job was split by `5R-g`** |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `packages/money/cases.json`, and every contract check and falsifier by name | **five**: `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from`** (`5h-ii-a`, 2026-09-26). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated |
 | `money.yml` | `packages/**` | one job, matrixed: `packages/money (node 22)` and `(node 24)` |
 
 ⚠️⚠️ **`db.yml` IS NOT ONLY `supabase/**`**, because a module in `app/src/api/` is a claim

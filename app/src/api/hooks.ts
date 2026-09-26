@@ -40,6 +40,12 @@ import {
 } from '@/api/catalogWrite';
 import { costsFrom, costsKey, type Costs } from '@/api/costs';
 import {
+  documentsFrom,
+  documentsKey,
+  type DocumentKind,
+  type Documents,
+} from '@/api/documents';
+import {
   MAGNITUDE_KEY,
   NOTHING_TYPICAL,
   typicalFrom,
@@ -81,6 +87,7 @@ import {
   patchVariant,
   pendingAccessRequests,
   providerMemory,
+  recentDocuments,
   redeemInvite,
   requestAccess,
   setMyDisplayName,
@@ -1333,4 +1340,56 @@ export function useMagnitude(): Typicals {
     staleTime: 5 * 60_000,
   });
   return rows.data === undefined ? NOTHING_TYPICAL : typicalFrom(rows.data);
+}
+
+// ============================================================================
+// WHAT THE SHOP BOUGHT AND SOLD LATELY — the list every correction is reached
+// from. Plan task `5h-ii-a`.
+// ============================================================================
+
+/**
+ * One kind's recent documents, with their lines, newest first.
+ *
+ * ⚠️⚠️ IT TAKES A KIND AND FIRES ONE QUERY, WHICH IS WHY A SCREEN SHOWING BOTH
+ * CALLS IT TWICE AND CACHES THEM SEPARATELY. PostgREST reads one table per
+ * request and there is no union over `purchase` and `sale`; `documentsKey` puts
+ * the kind in the key so the two answers can never be served for each other —
+ * which on this screen would be a wrong list under a correction button.
+ *
+ * ⚠️ THE PROVIDERS COME FROM `useProviders(null)`, `useCosts`' arrangement: the
+ * directory read alone, with the memory query skipped entirely on a null
+ * provider, so nothing here can poison the prefill Comprar reads. A purchase's
+ * counterparty is resolved from it rather than embedded — see `ShopDocument`.
+ *
+ * ⚠️ A MINUTE, LIKE `useCosts` AND UNLIKE THE CATALOG'S FIVE. This is the screen
+ * somebody opens BECAUSE they just keyed something and want to look at it, and
+ * `5h-ii-b` will invalidate this key the moment it voids a document.
+ *
+ * ⚠️⚠️ IT REPORTS ITS FAILURE, WHICH IS THE OPPOSITE OF `useMagnitude` AND IS
+ * DELIBERATE. That guard is silent because a screen cannot tell a warning it
+ * withheld from one it had no reason to give. **This screen is nothing but the
+ * read**: a list that cannot say *this phone could not ask* would show *no hay
+ * compras* to a shopkeeper who keyed one an hour ago, which is the one sentence
+ * on this screen that must never be wrong.
+ */
+export function useDocuments(kind: DocumentKind): Documents & {
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const { providers } = useProviders(null);
+
+  const rows = useQuery({
+    queryKey: documentsKey(kind),
+    queryFn: () => recentDocuments(kind),
+    enabled: ready && session !== null,
+    staleTime: 60_000,
+  });
+
+  return {
+    // ⚠️ `documentsFrom` IS HANDED `undefined` UNCHANGED, and that is the point
+    // of its first line: a read in flight and a read that failed are both
+    // `unknown` rather than a confident empty list.
+    ...documentsFrom(kind, rows.data, providers),
+    failed: rows.error ? apiErrorKey(rows.error) : null,
+  };
 }

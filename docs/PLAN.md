@@ -33,6 +33,8 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| **⚠️⚠️ `Costos` AND INICIO DISAGREE ABOUT WHAT DAY IT IS, AND ONE OF THEM IS WRONG ON YOUR PHONE NOW** | `5g-iii-b` | ⚠️⚠️ **`today.ts`'s OWN HEADER SAYS THIS APP MUST NOT HAVE *"two answers to what day is it"*, AND IT HAS TWO.** It settles the principle too: **the phone is in the shop, so the device's day is the shop's day** — because turning `location.timezone` into an instant needs `Intl.DateTimeFormat`, and `R10` admits only `format` and `resolvedOptions`, the two names measured on both runtimes. `dayStartISO` therefore uses LOCAL midnight, and `5h-ii-a`'s `dayOf` follows it. ⚠️⚠️ **`costsFrom` DOES NOT: it buckets on `doc.occurred_at.slice(0, 10)`, WHICH IS THE UTC DATE.** **Measured rather than inferred:** `2026-09-26T01:30:00+00:00` slices to `2026-09-26` and is local `2026-09-25`. So in this UTC−6 shop **every document keyed after 18:00 is labelled the NEXT DAY on the `Costos` chart and in the PDF** — an evening delivery reads as tomorrow's, and Inicio's takings put it today. ⚠️ **It is pre-existing and it is not `5h-ii-a`'s to fix**, which is why this is parked rather than done: the fix moves every date on a chart and a document you are holding, and C3.19's whole argument is that a shopkeeper must be able to trust what a screen tells her about her own week. ⚠️ **Nothing is broken in the ledger** — `occurred_at` is stored correctly and `product_margin_daily` buckets on the location's timezone server-side. This is a LABEL on a client screen. ⚠️ **RECOMMENDATION, because a menu is not what you want: FIX IT** — make `costsFrom` use the device's day, the same three lines `dayOf` already is, so the two screens agree and `Costos` stops naming the wrong day. **What it costs:** a `S` row, no migration, and a `Costos` chart whose x-axis labels shift by one day for evening deliveries — which is the point. **What leaving it costs:** the chart keeps saying *26 de septiembre* about a delivery you took on the 25th, and the first person to notice is you, in the shop, with the paper note in your hand. |
+| **⚠️ `Lo último` IS ON INICIO AS A SIXTH DOOR, AND ADR-035 §2.8 ENUMERATED FIVE** | `5h.5` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND IT IS REPORTED RATHER THAN ASKED FIRST, BECAUSE A SCREEN REACHED FROM NOWHERE CANNOT BE JUDGED ON A PHONE** — and judging it is `R9`'s whole arrangement. `5h-ii-a` shipped the list every correction is reached from, and §2.8's Home row names *the way into every module*: Vender, Comprar and Desperdicio as cards, Productos and Proveedores as rows, *"a fifth and sixth destination that otherwise have no home"*. **`Lo último` is not a module** — it is a LOOK — so the ADR neither authorises nor refuses it. ✅ **ADR-035 §2.8 now carries a revision entry saying six**, because leaving it enumerating five would make the authoritative document false, which is this repository's most-repeated defect. ⚠️ **`app/test/inicio.test.ts` pinned the count at five on purpose** — *"a sixth door is a decision about what Inicio is for, not a tidy-up"* — **so the guard worked**; it now pins six and says a SEVENTH is a decision. ⚠️ **The alternatives, named so this is a real question:** a header button on Comprar and Vender (closer to where a mistake is made, and it edits both capture screens, which is the next row's territory); or a row inside Ajustes (out of the way, and nobody would find it). ⚠️ **RECOMMENDATION: LEAVE IT ON INICIO** — it is a thing you go and look at between customers, which is the same reading that put Productos there, and it is one tap from the screen you open first. **Reversing it is three deletions: a row in `@/navigation/inicio`, a line in that suite, and the ADR entry — no migration, no data.** ⚠️ **It blocks nothing takeable**; it is filed against the polish row because that is where a placement ruling lands. |
 
 ⚠️⚠️ **THE MACHINERY EXISTS AND HAS NEVER BEEN CALLED. `void_transaction` (`0021`) has been applied since 2026-09-04** — it answers a void by INSERTING a mirror-image document rather than editing or deleting anything, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **AND THE CLAIM THAT USED TO SIT HERE WAS FALSE — CORRECTED 2026-09-26 BY `5h-i`, WHICH MEASURED IT.** ~~`5g-iii` measured something about it that changes the question: `purchase` and `purchase_line` carry a SELECT policy and NOTHING ELSE, and no function in this schema writes a reversal — so a void is not reachable through the API at all today, for any of the three kinds.~~ **`0021` BOTH WRITES THE REVERSAL AND GRANTS IT**: `0021:448` revokes from `public` and grants `execute` to `authenticated`, and `proacl` on the applied schema reads `authenticated=X/postgres`. ⚠️ **The narrower half was true and is worth keeping**: `purchase` and `purchase_line` carry a SELECT policy and nothing else, so no client INSERTs a reversal *directly* — the `security definer` RPC is the whole path, **and it is open.** ⚠️ **The cost of the error would have been a migration nobody needs**, written into the next sizing as a certainty.
 
@@ -67,7 +69,7 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
-✅✅✅ **NOTHING IS OWED AS OF 2026-09-26, AND THE EMPTY TABLE ABOVE IS DELIBERATE — FOR THE FOURTEENTH TIME.** ⚠️⚠️ **THE ROW THAT STOOD HERE FOR ABOUT AN HOUR WAS NOT RULED, IT WAS *ACTIONED* — AND IT IS THE FIRST TIME THIS PROJECT HAS CHANGED LIVE SHOP DATA OUTSIDE A MIGRATION.** `workspace_setting.void_window_minutes` on `hweutzjhzvioswnjzqki` is **1440**, set 2026-09-26 20:46:24 UTC by the owner running the statement in-session. ⚠️ **Verified by reading it back rather than by the write's own output**: an `update` with no `returning` reports zero rows whether it matched or not, so the evidence is the row — `void_window_minutes = 1440` with `updated_at` seven seconds old, stamped by `workspace_setting_set_updated_at`. ⚠️⚠️ **THIS IS A CLAIM ABOUT THE SHOP AND NOT ABOUT THE SCHEMA OR THE CODE** — no migration, no deploy, nothing in this repository changed, and a second shop would still start at 15 because `0001`'s default is untouched (deliberately; it only matters at shop number two). ⚠️ **What it buys:** Rosa can undo her own document for 24 hours instead of 15 minutes, which is what *the next morning* needed. **What it costs is what he accepted:** the window is one number for all three kinds, so she also has 24 hours on her own SALES. **Reversing it is the same statement with 15.**
+⚠️⚠️ **TWO ARE OWED AS OF 2026-09-26, AND NEITHER BLOCKS THE TASK MARKED NEXT** — see the table above. **One of them is a defect in a screen he is holding** (`Costos` naming the wrong day for an evening delivery), and the other is a decision `5h-ii-a` TOOK and is reporting (a sixth door on Inicio). ~~nothing is owed as of 2026-09-26, and the empty table above is deliberate — for the fourteenth time.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ **It was true for a few hours and `5h-ii-a` ended it**, which is what this block is for. **TWENTY-NINE decisions have now been parked here in total.** ⚠️⚠️ **THE ROW THAT STOOD HERE FOR ABOUT AN HOUR WAS NOT RULED, IT WAS *ACTIONED* — AND IT IS THE FIRST TIME THIS PROJECT HAS CHANGED LIVE SHOP DATA OUTSIDE A MIGRATION.** `workspace_setting.void_window_minutes` on `hweutzjhzvioswnjzqki` is **1440**, set 2026-09-26 20:46:24 UTC by the owner running the statement in-session. ⚠️ **Verified by reading it back rather than by the write's own output**: an `update` with no `returning` reports zero rows whether it matched or not, so the evidence is the row — `void_window_minutes = 1440` with `updated_at` seven seconds old, stamped by `workspace_setting_set_updated_at`. ⚠️⚠️ **THIS IS A CLAIM ABOUT THE SHOP AND NOT ABOUT THE SCHEMA OR THE CODE** — no migration, no deploy, nothing in this repository changed, and a second shop would still start at 15 because `0001`'s default is untouched (deliberately; it only matters at shop number two). ⚠️ **What it buys:** Rosa can undo her own document for 24 hours instead of 15 minutes, which is what *the next morning* needed. **What it costs is what he accepted:** the window is one number for all three kinds, so she also has 24 hours on her own SALES. **Reversing it is the same statement with 15.**
 
 ✅✅ **ÁREA 6 IS RULED, 2026-09-26 — `5h-i` RAN AS A SIMULATION ROUND WITH HIM IN THE ROOM AND ANSWERED ALL FOUR QUESTIONS.** *Where the control lives*: not on the confirmation — it is a list of recent documents you go to, and the confirmation was measured at **one second and `pointerEvents="none"`** besides. *Who may*: Rosa fixes her own, and the window stays one number for all three kinds at his instruction — **the value is what is left, and it is the row above**. *What `Costos` shows afterwards*: ***"Just one line, clean"***, which is what `costsFrom` already does, so that screen needs no change. *Whether Comprar is a retrofit*: **both screens, now** — ***"Mirror it for Vender… Make the functionality for both for now."*** ⚠️ **TWENTY-SEVEN decisions have now been parked and cleared in this block.** ⚠️⚠️ **AND THE ROW THIS ONE REPLACES WAS THE ONE THE BLOCK HAD LOST AND RE-FOUND** — parked 2026-09-21, gone by 2026-09-25, restored by `5g-iii` reading a gate cell against the block. **It is closed by being ANSWERED rather than by emptying, which is the first time that has happened to a row this block had already dropped once.**
 
@@ -616,8 +618,103 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅✅ **`5h-ii-a` IS DONE, 2026-09-26 — THIS APP CAN SHOW A SHOPKEEPER WHAT SHE BOUGHT AND SOLD
+LATELY, WHICH IT HAS NEVER BEEN ABLE TO DO. It writes nothing, and that was the point of taking it
+first.** `Lo último` is `app/src/app/documentos.tsx` (the seventeenth screen) over
+`app/src/api/documents.ts` (the **twenty-third** module of `src/api/`), reached from a new row on
+Inicio. **It ships no migration.**
+
+⚠️⚠️ **THE ESTIMATE WAS THE MEASUREMENT, AND IT FOUND FOUR THINGS ABOUT THE WIRE AND THREE ABOUT THE
+SCHEMA — ALL SEVEN DRIVEN AGAINST A REAL POSTGREST BEFORE A LINE OF THE MODULE WAS WRITTEN.** Sized
+`M/L`, one sitting, no split. Every one of these is a claim that would have been **200 and wrong**
+rather than red:
+
+| | What was asked | What the database said |
+|---|---|---|
+| **1** | Does a **to-many** embed over a **composite** foreign key resolve at all? | **200.** Every embed in this app until now is to-ONE and read FROM the line (`purchase!inner(…)`, `family(…)`); this one starts at the DOCUMENT over `purchase_line_header_fk` = `(purchase_id, workspace_id, location_id)`. A 400 about an ambiguous relationship was the likelier answer |
+| **2** | Does `::text` survive **inside** that embed? | **Yes** — every money and quantity field arrives as a JSON string. ⚠️ Nothing in this app had read a cast column out of a nested array, and on `qty_display` the failure is **nearly invisible**: the double `3` renders as `3 kg` and only a fractional quantity gives it away |
+| **3** | Does a parent `limit` truncate the lines? | **No — it counts DOCUMENTS.** `limit=1` over a three-line delivery answers one document carrying all three. The other reading would have `DOCUMENTS_LIMIT` rendering a delivery with some of its lines, which is the one failure here a shopkeeper would act on and could not detect |
+| **4** | ⚠️⚠️ **What order do the lines come back in?** | **THE ONE THAT CHANGED THE DESIGN.** **Nothing in this schema records the order she keyed them in**: there is no ordinal column and `created_at` is **identical across every line of one document** (one statement, one `now()` — measured: three lines, one microsecond). Unordered they come back in heap order, which today *happens* to equal the keyed order and is guaranteed by nothing. ✅ **PostgREST will sort a to-many embed by a NESTED column** — `purchase_line.order=product_variant(name).asc` answers 200, alphabetical — so the order is the database's, meaningful, and needs no second sort in Hermes |
+| **5** | — | **`record_sale` takes `unit_price_gross_per_base`**, not the NET spelling `record_purchase` takes (`0016:59`). The fixture reused the wrong one and got `400 / 22023` |
+| **6** | — | ⚠️⚠️ **`0018:222` CLAMPS `occurred_at` TO SEVENTY-TWO HOURS.** A fixture keyed as *nine days old* lands at three days — **inside** a seven-day window, with a 200 and no complaint. **Nothing this app writes is ever outside `DOCUMENTS_DAYS` on the day it is written**, so the window is falsified with a NARROW read instead |
+| **7** | — | ⚠️ **`0021:316` stamps a reversal at the moment of the VOID**, not of the document it cancels — so the newest `purchase` in a shop is the void written seconds ago. The check asserted the 2-hour delivery and **went red on correct behaviour** |
+
+⚠️⚠️ **THE `{ referencedTable }` SPELLING `COSTS_ORDER` DOCUMENTS AS A TRAP IS THE CORRECT ONE HERE,
+AND THE TWO FILES NOW USE OPPOSITE SPELLINGS ON PURPOSE.** That constant's paragraph is right: the
+option form sets `<table>.order`, sorts the embedded rows *inside* each parent, and **on a to-one
+embed is a silent no-op.** This embed is to-MANY, and sorting inside each parent is exactly the job.
+✅ The document order, meanwhile, is a **plain column** — this read starts at the document, so
+`COSTS_ORDER`'s ceremony would be a 400. **Both shapes are asserted, and asserted to be opposite**,
+because a reader who has just learned one lesson would apply it in the wrong place.
+
+⚠️ **WHAT IT DELIBERATELY DOES NOT ASK FOR, AND ALL THREE ABSENCES ARE DECISIONS PINNED BY THE
+SUITE:** `unit_price_net_per_base` (**`5h-ii-b` adds it** to prefill a re-record; this row renders a
+line total, and a 10× price error shows in it), `created_by` (the fence is *a cashier undoes her
+OWN document*, so **`5h-ii-b` gets to argue for showing it** — `today.ts` refuses it for §2.7's
+reason) and `recorded_offline` (an internal state, [[users-dont-do-bookkeeping]]). **A tidying pass
+that adds any of them turns a test red and has to say why.**
+
+⚠️⚠️ **AND IT FOUND A DEFECT IN A SHIPPED SCREEN THAT IS NOT THIS ROW'S TO FIX: `Costos` AND INICIO
+DISAGREE ABOUT WHAT DAY IT IS.** `today.ts`'s own header says this app must not have *"two answers
+to what day is it"* and settles the principle — **the phone is in the shop, so the device's day is
+the shop's day** — because turning `location.timezone` into an instant needs `Intl.DateTimeFormat`,
+which `R10` does not admit. **`costsFrom` buckets on `doc.occurred_at.slice(0, 10)`, the UTC date.**
+Measured rather than inferred: `2026-09-26T01:30:00+00:00` slices to `2026-09-26` and is local
+`2026-09-25`, so in this UTC−6 shop **a delivery keyed at 19:30 is labelled the NEXT DAY on the
+chart and the PDF.** ✅ `dayOf` in the new module takes the device's day, which is the side
+`today.ts` argues for. ⚠️ **It is parked in ⛔ DECISIONS OWED and given its own row (`5g-iii-b`)
+rather than fixed here**, because the fix silently moves every date on a chart and a document he is
+holding — see that block.
+
+✅ **CHECKED BY `docs/checks/5h-ii-a-documents-contract.sh` — 16 assertion groups, live HTTP against
+a real PostgREST** with a real shop, a real catalog, two unit dimensions, five documents, a void and
+three real people — **its falsifier (10 fixtures: a green control, eight mutated contracts and one
+that puts `0040`'s manager gate back, 18.7 s measured)**, and **`app/test/api-documents.test.ts`,
+65 of the suite's 1,285 tests.** ⚠️ Both numbers are the RUNNER's: `npm --prefix app test` says
+**1,285 across 42 files** (was 1,219 across 41), and the check prints its own group count.
+
+⚠️⚠️ **THREE DECISIONS TAKEN ON HIS BEHALF, AND THE FIRST IS THE ONLY ONE THAT COSTS ANYTHING TO
+REVERSE.** **(1)** ⚠️ **A SIXTH DOOR ON INICIO, AND ADR-035 §2.8's HOME ROW ENUMERATED FIVE.** A
+screen reached from nowhere cannot be judged on a phone, and judging it is `R9`'s whole arrangement
+— so the row ships, §2.8 carries a revision entry saying six, and **the placement is parked in
+⛔ DECISIONS OWED** so he is re-offered it every session. ⚠️ `app/test/inicio.test.ts` pinned the
+count at five *"because a sixth door is a decision about what Inicio is for, not a tidy-up"* — **so
+the guard worked**, and it now pins six and says a SEVENTH is a decision. **Reversing it is three
+deletions: a table row, a test line and an ADR entry.** **(2)** **One kind at a time, with a
+switch**, rather than one interleaved list — and the reason is arithmetic rather than taste: a shop
+rings far more sales than it takes deliveries, so sixty documents of a busy week are sixty sales and
+Tuesday's mis-keyed delivery sits below all of them. **Reversing it is an edit to one screen.**
+**(3)** `DOCUMENTS_DAYS` = 7 (his *"last week/couple of days"*, the wider of the two) and
+`DOCUMENTS_LIMIT` = 60 — **ADR-035 §7 lists thresholds of this shape under Reversible**, and both
+are one-line edits.
+
+⚠️ **THE JOB IS ITS OWN, WHICH IS THE THIRD TIME `db.yml` HAS SPLIT RATHER THAN APPEND.** These two
+steps were written into `catalog-write` and taken back out: that job runs 12-13 minutes against a
+15-minute cap by its own header and was cancelled three times on `main` before `5R-g` split it, and
+⚠️ **a cancelled job is neither a pass nor a failure**
+([[a-cancelled-ci-job-is-not-a-failed-assertion]]). ⚠️⚠️ **`db.yml` NOW RENDERS FIVE JOB NAMES, NOT
+FOUR** — `CLAUDE.md`'s workflow table is corrected in this PR, and so is its screen count (16 → 17),
+its module count (22 → 23) and its test tally.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE, AND IT IS THE WHOLE OF THE INTERFACE (`R9`, §2.11).** Whether a
+delivery reads at a glance as *that one*; whether the lines under a document earn their room or want
+collapsing; whether the switch is discoverable at *Letra grande*; whether seven days is the window
+he expects when he scrolls to the bottom and stops. ⚠️ **He bounded all of it himself** — *"if we
+can add these functionalities easily reachable and usable let's do so. We'll polish the interface
+later"* — and `5h.5` is where the polish lands. **The build on his phone has to be rebuilt before he
+can open this.**
+
+⚠️⚠️ **`5h-ii-b` IS THE NEXT TASK, AND IT IS UNGATED** — the gate was *there is nothing to correct
+from until there is a list to correct from*, and the list is shipped. ⚠️ It inherits every
+measurement above rather than re-taking any of it, and what it must WIDEN is named in its own row:
+two column strings, plus a re-run of this row's contract check and its falsifier, whose `F7` fixture
+asserts `created_by` is absent today and will need inverting.
+
 ✅✅✅ **`5h-i` IS DONE, 2026-09-26 — ÁREA 6 IS RULED, AND THE ROUND CHANGED THE ANSWER THE WAY
-BOTH EARLIER ROUNDS DID. `5h-ii` IS RE-SCOPED, SPLIT THREE WAYS, AND `5h-ii-a` IS THE NEXT TASK.**
+BOTH EARLIER ROUNDS DID. `5h-ii` IS RE-SCOPED AND SPLIT THREE WAYS.** ~~and `5h-ii-a` is the next
+task~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: a strikethrough
+is only a rendering, and `plan-handover.sh` reads the raw line. `5h-ii-a` closed the same day; the
+marker is on `5h-ii-b`.**
 The owner asked for this round in his own words — *"Let's address Area 6 with a back and forth set
 of simulations to get to the best option for this pilot before we start 5h"* — and it ran with him
 in the room. ⚠️ **It built nothing, which was the deliverable.**
@@ -713,422 +810,25 @@ the three a session can finish without the others. ⚠️ **`5h.5`'s gate is re-
 takeable is a gate nobody can clear* — the trap `5h`'s own split recorded one day earlier.
 
 
-✅✅ **`5f.5` IS DONE, 2026-09-25 — ADR-035 §2.8's THIRD GUARD EXISTS, AND STEP 5 HAS NOTHING
-UNGATED LEFT IN IT. `5h-i` IS THE NEXT TASK AND IT NEEDS HIM IN THE ROOM.** The magnitude
-warning ships: one shop-wide read of the trailing purchase history, a median per product, and an
-amber word on a line whose quantity or cost is beyond ~3× it. **It ships no migration.**
-
-⚠️⚠️ **THE ESTIMATE WAS WRITTEN FIRST AND ITS ONE REAL QUESTION WAS THE FAN-OUT THE ROW NAMED —
-AND THE ANSWER IS *DO NOT FAN OUT*.** The row asked this to be sized rather than assumed:
-*"`costsKey` is per VARIANT and a warning fires while a basket is being keyed, so a median for the
-row she is typing may mean a read per product."* ✅ **It does not, because the read is not
-per-variant.** `@/api/costs` keys per product because `Costos` is a per-product screen; this guard
-fires over a BASKET, so `MAGNITUDE_KEY` takes **no argument at all** — one read, cached like the
-catalog's, and every product's median comes out of it at once. ⚠️ **What that costs is a bound
-rather than a round trip**: `MAGNITUDE_LIMIT` is 400, so *trailing* means *within this shop's most
-recent 400 purchase lines*, and a product that falls out of that window is not warned about. **The
-`M` was correct and no split was taken** — nothing here is gated, there is one failure class and it
-is on screen, and the read is SELECT-only.
-
-⚠️⚠️ **THE SECOND FINDING IS THAT §2.8's PRICE HALF CAN ONLY BE BUILT ON COMPRAR, AND IT IS NOT A
-SCOPE CUT.** The ADR says *"any quantity or unit price"*. **Vender has no typed price** — `quoteFor`
-takes a sale's figure off the catalog — so there is no keystroke to get wrong, and comparing a SHELF
-price against a purchase COST median would flag every product in the shop **by exactly the margin**,
-which is the furniture §2.8 refuses arrived at by being thorough. ✅ **Quantity on both screens,
-price on Comprar alone**, and `outsized` takes a `null` price so C3.15's counter price change
-(`5f-iv`, out of the pilot) needs one argument passed and no new rule.
-
-⚠️⚠️ **THE THIRD IS THAT `0040` IS WHAT MAKES THIS GUARD REACH THE PERSON §2.8 IS WRITTEN ABOUT, AND
-IT LANDED HOURS BEFORE THIS ROW WAS SIZED.** The ADR's error is *"a cashier meaning 1.5 kg who types
-15"*. Until 2026-09-25 `purchase_line_select` carried `has_role(…, 'manager')`, so an Empleada's read
-was **200 and an EMPTY ARRAY** — never a 403 — every median absent, every comparison `none`, **the
-guard silently dead for the only role the ADR names, with nothing going red.** `docs/checks/5f.5-magnitude-contract.sh`
-asserts her read rather than trusting a comment, and the falsifier puts the manager gate back to prove
-the assertion can fail.
-
-⚠️⚠️ **AND THE LIVE CHECK FOUND A DEFECT IN THE APP ON ITS FIRST RUN, WHICH IS THE BEST THING THAT
-HAPPENED TODAY.** `@/api/magnitude` shipped its first draft with `purchase!inner(id,reversal_of)` —
-the guard reads the id and the reversal link and genuinely nothing else off the document — and the
-first live run answered **400, `42703: column purchase_line_purchase_1.occurred_at does not exist`.**
-⚠️ **PostgREST will only order a PARENT by an embedded column that is in the embed's select list.**
-`COSTS_COLUMNS` never met this because `Costos` renders the date; this read does not, so it is the
-first in the app to order by a column it does not want. ⚠️⚠️ **Nothing in TypeScript, in Vitest or in
-`MagnitudeRow` can see that rule** — the column is deliberately absent from the interface, so no code
-starts depending on a field that is there to satisfy the planner — **and both capture screens would
-have 400'd on open.** It is `F4` in the falsifier, kept.
-
-⚠️⚠️ **AND THE FALSIFIER FOUND A SECOND ONE, IN THE CHECK RATHER THAN THE APP — THE SHAPE `5g-iii`'s
-HARNESS RECORDED, ARRIVING AGAIN ONE ROW LATER.** `F1` drops the `qty_base::text` cast and came back
-**red for the wrong reason**: the live check opened with a string assertion that the module carries
-that cast, so the fixture died on the string and **the wire assertion the whole file exists for was
-never once exercised.** ✅ The string guard is removed — it bought nothing, because a missing cast
-answers **200 with a number in it** rather than 400, which is precisely what a live read can see and
-nothing else can. The string-level claim lives in `app/test/api-magnitude.test.ts` where it belongs.
-⚠️ **A green meaning *a string was present*, dressed as a green meaning *the database answered
-correctly*, is this repository's most-repeated defect wearing a check's clothes.**
-
-⚠️ **TWO THINGS WERE DECIDED ON HIS BEHALF AND BOTH ARE ONE-LINE CONSTANTS.** ADR-035 §7 lists
-*"magnitude thresholds"* under **Reversible** by name, which is why they were taken rather than
-parked. **(1)** `MAGNITUDE_SAMPLES = 3` — the guard says nothing about a product with fewer than
-three standing deliveries, because *a median of two is not a median*: with one sample the median IS
-that delivery, and with two it is their mean, which is not robust and robustness is the whole reason
-§2.8 says median rather than average. **The cost is the honest half of *"works from day one"***, and
-ADR-035's own *Weakest points* already names it — in week one most products have fewer than three
-deliveries and this guard is silent about them. **Silence was chosen over an amber that fires on
-ordinary deliveries in the one week a shopkeeper is deciding whether to believe this app**, which is
-§2.8's own confirmation-dialog argument relocated. **(2)** `MAGNITUDE_LIMIT = 400`, above.
-
-⚠️⚠️ **NOTHING WAS PARKED IN ⛔ DECISIONS OWED, AND THAT IS A DECISION WORTH STATING RATHER THAN A
-QUIET OMISSION.** The one open question this work leaves is **whether Vender's quantity guard earns
-its place at all**: it is seeded from PURCHASE quantities, a shop buys in bigger lots than it sells,
-and three times a purchase median is a threshold a sale will rarely cross. **It is not a question a
-brief can answer and it is not a look-question either** — it needs a week of the pilot — so it is
-recorded as **latent on `5f.5`'s own row**, which is the shape he himself chose for the expiry input
-on this same day (*"we'll leave the expiry input latent until we have some feedback from the
-pilot"*). ⚠️ **A question that can only be answered by an event does not belong in a block whose job
-is to re-offer it every session.**
-
-⚠️⚠️ **AND THE REAL NEWS IS THE MARKER. `5h-i` IS NOW THE NEXT TASK, AND THE OBJECTION THAT KEPT IT
-FROM BEING MARKED YESTERDAY HAS RUN OUT OF ALTERNATIVES.** `5g-iii` wrote that the marker should not
-go to the área 6 round because *"a marker pointing at a task no session can finish on its own is a
-marker that stalls this file"* — **true, and it was an argument for taking `5f.5` first, which has now
-been done.** What is left in step 5 is `5h-i` (ungated, `S`, **needs the owner in the room**),
-`5h-ii` (gated on área 6), `5h.5` (gated on `5h-ii`), `5f-iv` (out of the pilot) and `5i` (deferred to
-v2). ⚠️⚠️ **So step 5 has no ungated, session-completable row left in it, and that is the single
-thing this entry exists to tell him**: the build is not waiting on a session, it is waiting on a
-conversation.
 
 
-✅✅ **`5g-iii-a` IS DONE, 2026-09-25 — THE PDF IS A TABLE, AND IT WAS OPEN FOR ABOUT AN HOUR.
-`5f.5` IS THE NEXT TASK: THE MAGNITUDE WARNING.** The owner rejected a deliverable that had shipped
-green; this is the correction, and **the row that asked for it is the shortest-lived row in this
-file's history.**
-
-⚠️⚠️ **THE ESTIMATE WAS WRITTEN FIRST, AND WHAT IT FOUND PAID FOR ITSELF IN THE FIRST TEN MINUTES:
-THE PAGE IS 612 × 792 — US LETTER AT 72 PPI — AND NOT A4.** `expo-print`'s `PrintOptions` documents
-both defaults and `@/export/share` passes neither `width` nor `height`. `5g-iii` had sized its plot
-at **660 px** on a comment reading *"A4 at 96 dpi is ~794 px; this leaves the margins room"*, and
-with `PAGE.edge` at 24 a side the drawable width is **564 px** — so **the chart was about 130 px
-wider than the page it was printed on, before its axis column.** ⚠️ *"The Chart doesn't survive the
-Web view"* may well have been arithmetic rather than taste. **Nothing in this repository had that
-number right**, and three comments repeated the wrong one.
-
-⚠️⚠️ **WHICH FORCED THE ONE DECISION TAKEN ON HIS BEHALF, AND IT IS CHEAP TO REVERSE BECAUSE IT IS A
-CONSTANT: THE DAYS ARE CUT INTO PAGE-WIDTH BLOCKS OF SIX.** A matrix is one column per delivery DAY;
-a product bought weekly for three months is twelve of them, and there is no legible type size at
-which twelve price columns and a provider stub fit in 564 px. A web view printing a too-wide table
-either clips it or shrinks the whole page, it differs by platform, and **neither is a document a
-person can read** — the row's criterion was *"carries the reading on its own"*. ✅ **For the pilot's
-ordinary case — six deliveries or fewer — it emits exactly ONE table and is indistinguishable from
-the naive version**, which is the property that makes it safe rather than clever. ⚠️ **The screen
-solves the same problem differently and that is now written in both places**: a phone scrolls
-sideways because it can, paper repeats the stub because it cannot.
-
-⚠️⚠️ **AND ONE THING WAS REFUSED RATHER THAN QUIETLY DONE, BECAUSE IT WOULD HAVE COST THE PROPERTY
-`matrixOf` EXISTS FOR.** `MatrixCell.price` is C3.10's whole sentence — `$18.50 / kg` — and stripping
-the unit clause to state it once above the table would buy two more day columns a page. **It was
-refused because that sentence is what the SCREEN's matrix draws**, and a second rendering of it here
-would be a second answer to *what did this cost* in the one document a shopkeeper forwards to
-somebody who cannot ask. ⚠️ **The cell wraps before the unit instead** — a money figure contains no
-space, so it can never break itself — and the whole of `DAYS_PER_BLOCK`'s arithmetic depends on that
-one CSS property, which is why a `nowrap` creeping back in has an assertion of its own.
-
-⚠️⚠️ **A DEFECT WAS FOUND BY RENDERING THE DOCUMENT AND LOOKING AT IT, NOT BY THE SUITE — WHICH IS
-`R9` POINTING THE OTHER WAY.** The blocking fixture built its fourteen days ASCENDING. `COSTS_ORDER`
-answers `occurred_at` DESCENDING and `costsFrom` reverses that once, so the fixture came out
-newest-first and the sample document led with *14 agosto*. **Every assertion still passed, because
-they compared the rendered document against `costs.days` — the same array it was built from.** ⚠️ **A
-fixture that disagrees with the wire makes a whole block of assertions self-consistent and wrong.**
-The fixture is now newest-first, the ordering claim is a CALENDAR claim, and it was falsified by
-reversing `blocks()` and watching two tests go red.
-
-⚠️⚠️ **AND A LATENT GUARD TRAP WAS FOUND AND FIXED WHILE PICKING THE NEXT TASK — THE THIRD INSTANCE
-IN THIS REPOSITORY AND THE FIRST WHERE THE WARNING AND THE DEFECT WERE THE SAME SENTENCE.** ÁREA 6's
-row in ⛔ DECISIONS OWED said, in its machine-read *Blocks* cell, that `4.6b` had once written a
-next-task id into a *Blocks* cell and that assertion 7c read the name and refused the task — **and it
-wrote two more ids into that same cell while saying so.** Extracting the cell the way 7c does
-returned three ids, so marking the área 6 ROUND as the next task would have been refused by a guard
-reading the very sentence that says it is not blocked. ✅ **The cell now names one task and the prose
-moved to the column no check parses.** ⚠️ **Nothing could have caught this**: 7c only fires when a
-named task is actually marked next, so the trap is invisible until somebody walks into it.
-
-⚠️ **The marker goes to `5f.5` and not to the área 6 round, and the reason is scheduling rather than
-priority:** that round builds nothing, its whole output is rulings, and **it needs the owner in the
-room** — a next-task marker pointing at something no session can finish on its own is a marker that
-stalls this file. `5h` itself is still gated on área 6.
-
-✅ **WHAT LOOKED AT IT, BY NAME:** `app/test/costs-pdf.test.ts` — **31 assertions, up from 22** —
-plus `app/test/format-date.test.ts` (29, up from 22) and `app/test/api-costs.test.ts` (44, up from
-42); **1,189 assertions over the app workspace boundary, up from 1,171 on `main`** — ⚠️ **that is the figure the CI STEP PRINTS AND GATES ON, and it is not the one vitest's terminal summary shows (1,188): the JSON reporter `app.yml` reads counts one entry the default reporter does not.** ⚠️⚠️ **THE FIRST VERSION OF THIS ENTRY SAID *1,188, up from 1,161* AND THE BASELINE WAS DERIVED RATHER THAN READ** — subtraction from a local terminal summary, not a number anybody had looked at. **The real baseline is 1,171, printed by the last three `app.yml` runs on `main`.** Corrected before the merge, and recorded because a later session comparing counts would have chased a ten-assertion gap that never existed. **The gated line is `N assertions ran over the app workspace boundary`; read that, never the summary**; `docs/checks/conventions-gate.sh` green over 79
-source and 40 test files; `docs/checks/plan-handover.sh`, `split-coverage.sh --all` and
-`handbook-agreement.sh` green. ⚠️ **The strongest new assertion is the one `5g-iii` could not make:
-not one `SERIE` hex appears in the document at all** — the claim that catches a chart creeping back
-in. ⚠️ **And `R6` was obeyed rather than argued with one more time**: `width: 100%` is a size, the
-gate was right to flag it, and it is named in `PAGE` like every other size in that file.
-
-⚠️⚠️ **THE *nice* READING IS WITHDRAWN BY THE OWNER, WITHIN THE HOUR, AND IT IS THE FIRST `R9`
-READING THIS PROJECT HAS OFFERED AND HAD DECLINED.** Three rendered sample documents went to him —
-the ordinary case, a fourteen-day history that blocks three ways, and a one-delivery product — and
-his answer was ***"I don't see the files but let's hold this part for a moment, you created the
-screen and the functionality. Leave the PDF export parked since the chart embeded in the app and the
-collapsable table already look fine for the moment."***
-
-⚠️ **SO NOTHING IS OWED ON THE PDF AND NO SESSION MAY RE-OFFER IT.** The document is a table, it is
-green, its 31 assertions stand, and **the question of whether it reads as *nice* is parked — not
-open.** ⚠️⚠️ **THAT DISTINCTION IS THE WHOLE POINT OF WRITING THIS DOWN: an `R9` reading nobody has
-answered looks exactly like one somebody has declined**, and this file re-offers open questions every
-session by design. A paragraph left saying *still outside* would have put three sample documents in
-front of him again next session, and the session after.
-
-✅✅ **AND HE CONFIRMED THE TWO THINGS HE DID LOOK AT, WHICH IS EVIDENCE AND NOT A COURTESY: the
-chart on the screen and the collapsible table *"already look fine for the moment"*.** That closes
-`5g-iii`'s own outstanding `R9` ask about the screen — **recorded here because a confirmation is
-evidence and the next session must not re-litigate it**, the rule the twenty-first ruling's second
-clause established. ⚠️ **What it does NOT close** is whether a cancelled delivery should be drawn
-crossed out rather than vanishing from the chart; that is a separate question, it is still his, and
-`5g-iii`'s row is where it lives.
-
-⚠️ **The files did not reach him** — *"I don't see the files"* — and that is recorded as a fact
-rather than chased, because he parked the thing they were evidence for in the same sentence. **If a
-later session needs him to look at a rendered artefact, the delivery channel is the unproven half.**
-
-
-✅✅ **THE TWENTY-SEVENTH AND TWENTY-EIGHTH RULINGS — 2026-09-25, BOTH OFF THE OWNER'S OWN ROUND ON
-HIS OWN PHONE MINUTES AFTER `5g-iii` MERGED, AND THE FIRST ONE REJECTS A DELIVERABLE THAT SHIPPED
-GREEN. `5g-iii-a` IS THE NEXT TASK: THE PDF BECOMES A TABLE.** *"1. The Chart doesn't survive the Web view. Let's turn the PDF export into a nice tabular
-view. A chart in PDF doesn't make a lot of sense. 2. The chart reads fine. We can trial it later
-with some tests."*
-
-⚠️⚠️ **THE TWENTY-SEVENTH IS THE SHARPEST VINDICATION OF `R9` THIS PROJECT HAS PRODUCED, AND IT COST
-NOTHING TO FIND BECAUSE THE RULE WAS OBEYED.** §2.11 fences rendering out of this repository and
-`5g-iii` said so in four places: the ADR's new stack row, the module header, the plan row and the
-closing message all named *whether a phone can render and share this* as an `R9` reading rather than
-a claim any check could make. **Twenty-two assertions proved the document was CORRECT — every figure,
-every date, every name, the escaping, and that the cheapest delivery is drawn lowest — and the
-document was still wrong.** ⚠️ **Nothing in it was false. It was simply not what a PDF is for.** A
-check that had claimed otherwise would have been the expensive kind of green.
-
-⚠️ **AND HE GAVE THE REASON RATHER THAN ONLY THE VERDICT, WHICH IS WHAT MAKES IT CHEAP TO OBEY:** *"A
-chart in PDF doesn't make a lot of sense."* **A document is read away from the phone, printed, or
-forwarded to somebody who cannot tap it** — the interactions a chart earns its place with are all
-absent on paper, and the rows underneath it are the thing a person actually wants to check a notebook
-against. ✅ **So the PDF becomes the table, properly made**, and `5g-iii-a` is that row. ⚠️ **It is
-NOT a revert**: `plotted` stays exactly where it is and keeps serving the screen; what leaves is the
-`<div>`-and-rotation renderer inside `@/export/costsPdf` and the four assertions that read it.
-
-✅ **THE TWENTY-EIGHTH CONFIRMS THE ON-SCREEN CHART AND IS RECORDED BECAUSE A CONFIRMATION IS
-EVIDENCE.** *"The chart reads fine."* **Nothing changes** — and the thin states, which were most of
-the row's work and were built against the ADR's argument rather than against a look, are the half he
-did not object to. ⚠️ **His own note on how to settle it properly is kept in his words:** *"We can
-trial it later with some tests"* — a pilot reading and not a suite here, which is `R9` again.
-
-✅✅ **AND A THIRD RULING, ON HOW TO ANSWER ÁREA 6 RATHER THAN ON WHAT THE ANSWER IS:** *"Let's
-address Area 6 with a back and forth set of simulations to get to the best option for this pilot
-before we start 5h."* ⚠️⚠️ **THIS IS THE FIRST TIME THE OWNER HAS SPECIFIED THE METHOD FOR A DECISION
-INSTEAD OF MAKING IT**, and it is the right instinct for this one: the four questions in
-⛔ DECISIONS OWED are about *what a person does when she has just made a mistake in front of a
-customer*, and that is not answerable from a table of options. **A simulation is the interview format
-this project has used twice before** — the UI/UX grill of 2026-09-07 and the área 9 round of
-2026-09-14, both of which reversed a recommendation — **so it has a shape, and `5h-i` is it.**
-⚠️ **`5h` IS SPLIT IN TWO because of it**, and the reason is exception (1) of the working agreement
-rather than size: the round is ungated and the build cannot start until the round has answered.
-
-⚠️⚠️⚠️ **AND THIS SESSION MERGED A RED PR, WHICH IS THE PROCESS FAILURE OF THE DAY AND IS RECORDED
-HERE RATHER THAN QUIETLY FIXED.** `#209` — the documentation-only row recording the install — was
-merged while `gh pr checks` printed **`fail   app (node 22)`**. **The output was read and the merge
-was run anyway.** The working agreement has exactly two sentences that survived the removal of the
-approval gate, and the first is *never merge red, and never merge on a green tick alone*.
-
-⚠️⚠️ **WHAT MAKES IT WORTH A PARAGRAPH RATHER THAN AN APOLOGY IS THAT THE UNDERLYING FAILURE WAS
-REAL AND WOULD HAVE GONE UNNOTICED FOR LONGER: `app.yml`'s ONE JOB HAD BEEN RUNNING AT 9m28s AGAINST
-A 10-MINUTE CAP.** `5g-iii` added two suites, ~1,100 lines to `docs/PLAN.md` and a long row to
-`docs/HANDBOOK.md`; **the run on `#208` passed with 47 seconds of headroom and the very next commit
-crossed it.** ⚠️ **Both cancellations landed on the LAST step**, the handbook falsifier — so every
-assertion before it had already passed, and *a cancelled job* and *a failed assertion* look identical
-until somebody reads `gh run view --json jobs`. **`main` was left with a cancelled `app` run on
-`1ae5a9d` before `#209` existed**, which is the part the merge-red mistake obscured rather than
-caused.
-
-✅ **FIXED BY SPLITTING THE JOB, WHICH IS THIS REPOSITORY'S OWN PRECEDENT** — `db.yml`'s `5R-g` job
-was cancelled the same way and was split rather than given more minutes, because a cap that moves
-whenever the work grows is not a cap. **`app.yml` now has two jobs**: `app (node 22)` for the code,
-and `the documents still agree (plan + handbook)` for the guards. ⚠️⚠️ **THE SEAM IS FREE AND THAT WAS
-MEASURED RATHER THAN ASSUMED: not one document guard needs `node_modules`.** All four were run in a
-fresh clone with no install at all — `plan-handover`, `4.6a-split-coverage`, `handbook-agreement` and
-`split-coverage --all`, every one exit 0 — so the documents job checks out and runs, with no
-`setup-node` and no `npm ci` on the critical path of the half that grew. ⚠️ **And the two halves now
-fail for different reasons**, which the single tick had been hiding: one says *the code is wrong* and
-the other says *the documents disagree with each other*.
-
-✅✅✅ **`5g-iii` IS DONE AS OF 2026-09-25 — `Costos` EXISTS, AND THIS APP CAN NOW HAND A
-SHOPKEEPER A FILE. STEP `5g` IS COMPLETE.** ~~and `5f.5` is the next task~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **IT WAS TRUE FOR ABOUT AN HOUR AND THE OWNER'S OWN ROUND ON HIS PHONE SUPERSEDED IT — see the entry above: `5g-iii-a` is the next task, because he rejected this row's PDF by looking at it.** ⚠️⚠️ **THE MARKER DOES NOT GO TO `5h`, AND WHY NOT IS THIS SESSION'S SECOND FINDING — SEE THE END OF THIS ENTRY.** One screen of 560 lines,
-a data module of 560, a pure PDF builder, **80 new assertions (1,171 up from 1,091)**, a live
-contract check with 11 assertion groups, and §2.11's first new stack row since `expo-network`.
-
-⚠️⚠️ **THE ESTIMATE'S SHARPEST FINDING WAS THAT §2.9's PRICE-OVER-TIME VIEW IS APPLIED AND
-CANNOT SERVE THIS SCREEN.** `product_purchases_daily` (`0031`, `0032`) already answers *"How have
-my prices moved?"* with four price columns per variant per day, an ordered `array_agg` and a
-three-deep tiebreak — and it has **no `provider_id`**, read off the WIRE rather than off the
-migration. It groups by (workspace, location, variant, day), which is §2.9's question — *what is
-this SHOP paying* — while the owner's is *"the price that each provider (colors) is charging
-you"*. **The view's grain is wrong by exactly the dimension the screen is about.** ✅ The plan
-row's *"the series comes off `purchase_line`"* was right, and assertion 8 of the new check now
-asks the database every run, so the day somebody widens that view they are told the decision can
-be revisited rather than discovering the duplication.
-
-⚠️⚠️ **AND THE EXPENSIVE FINDING WAS A SORT SPELLING THAT IS A SILENT NO-OP.** `purchase_line`
-has no instant of its own — only `created_at`, the WRITE moment, which `recorded_offline` makes
-differ from the trading moment by up to 72 hours (`0010` is the migration that exists because an
-allocator confused the two). So the sort key lives on the embedded document, and `postgrest-js`
-offers two spellings whose own doc-comments say they differ: `.order('occurred_at',
-{ referencedTable: 'purchase' })` sets the query key **`purchase.order`** and sorts the embedded
-row INSIDE each parent, while `.order('purchase(occurred_at)')` sets plain `order` and sorts the
-parent. ⚠️⚠️ **`purchase` IS A TO-ONE EMBED, SO THE FIRST ONE IS A NO-OP: 200, typechecked, and
-the chart's points strung together in whatever order the planner chose — redrawn differently on a
-re-plan with nothing anywhere going red.** ✅ **Read off the installed library rather than
-remembered**, and both spellings are now driven in the same run of the check: the right one is
-asserted and **the wrong one is exhibited**.
-
-⚠️⚠️ **THE FALSIFIER PAID FOR ITSELF ON ITS FIRST RUN, THREE TIMES, AND ALL THREE FINDINGS WERE
-IN THE CHECK RATHER THAN IN THE APP.** (1) **`F5` WENT GREEN** — sorting by the LINE's
-`created_at` was undetectable, because the check recorded its five deliveries in chronological
-order so the two sort keys agreed. **The fixture data now disagrees with itself on purpose, which
-is also the faithful case**: an outbox flushes in whatever order it holds. (2) **`F3` WAS RED FOR
-THE WRONG REASON** — it failed at *the read answers 200*, which is true and has nothing to do
-with the order; the check now asserts the SHAPE of `COSTS_ORDER` before it builds a URL. (3)
-**`F4` WAS VACUOUS AND IS DELETED** — the check reads the direction out of the app and compares
-against it, so a flip is self-consistently green. **There is no second source for *which way
-round* on the wire**, and it is pinned where one exists: the node suite holds both
-`COSTS_ORDER_ASCENDING === false` and *points come out oldest first*. ⚠️ **A fourth finding was a
-bug in the check's own failure text** — backticks inside a double-quoted `echo` ran as a command
-substitution (`purchase_line_header_fk: command not found`), which is
-[[apostrophe-breaks-heredoc-in-subshell]]'s cousin and the reason `bash -n` is not enough.
-
-⚠️ **AND A FIFTH THING THE FALSIFIER TAUGHT, SMALL AND WORTH KEEPING: ORDERING A PARENT BY AN
-EMBEDDED COLUMN REQUIRES THAT COLUMN TO BE IN THE EMBED'S SELECT LIST.** `purchase(recorded_at)`
-answers `42703 column purchase_line_purchase_1.recorded_at does not exist` even though the column
-is plainly on the table. `purchase(occurred_at)` works because `occurred_at` is selected. The
-check's failure text now says so.
-
-⚠️⚠️ **A VOID IS TWO DOCUMENTS AND NEITHER OF THEM IS A POINT, AND WRITING ONE TOOK ITS OWN
-FINDING: `purchase` AND `purchase_line` HAVE SELECT POLICIES AND NOTHING ELSE.** A direct insert
-answers `42501 permission denied`, every write goes through `record_purchase` (`security
-definer`), and **no client can INSERT a reversal directly**. ⚠️⚠️ **THIS PARAGRAPH ALSO SAID *no function in this schema writes a reversal at all* AND *a void is not reachable
-through the API today*. BOTH ARE FALSE AND WERE CORRECTED 2026-09-26 BY `5h-i`** — `0021` grants
-`execute` on `void_transaction` to `authenticated` (`0021:448`; `proacl` reads
-`authenticated=X/postgres` on the applied schema). **What stands is the reason the check's
-FIXTURE is written as the superuser** — there is no client path that inserts a reversal *row*, and
-check's fixture goes in as the superuser inside the container while every assertion stays a read
-made as a real user over real HTTP. ⚠️ `0032` says *"the price survives it — negative money over
-negative quantity is the price it always was"*, which is **true of a sum and wrong of a series**:
-a chart would draw the reversal as a second point at the same price on the day the void was
-recorded. `costsFrom` drops both halves, `takingsFrom`'s rule applied to a series, and the check
-proves both come back on the wire so the client really is the only thing doing it.
-
-⚠️⚠️ **`R9` AND §2.11: MOST OF THIS SCREEN IS THE OWNER'S PHONE'S TO JUDGE, AND THE SPLIT THAT
-MOVED THE PDF BACK INSIDE IS THE DESIGN DECISION OF THE SESSION.** *"Share the view as a PDF"*
-looks like exactly what §2.11 fences out. **`@/export/costsPdf` is PURE and returns a string**, so
-`app/test/costs-pdf.test.ts` asserts every figure, every date, every provider name, the escaping
-of a `Ferretería "El Águila" & Hijos` a shopkeeper really types, that nothing is fetched over the
-network (a `<link>` would come back missing in a shop that is offline half the day), and — the one
-that matters — **that the cheapest delivery is drawn LOWEST**, because a flipped axis is the only
-geometry bug that still looks like a working chart. ✅ **Both were falsified**: breaking the
-escaping reddens two assertions and dropping the y-flip reddens that one. **What is left outside
-is two native calls** in `@/export/share`.
-
-⚠️⚠️ **THE CHART IS HAND-ROLLED FROM `View`s AND ONE GEOMETRY SERVES BOTH RENDERERS.** There is
-no `react-native-svg` in this app and adding one to draw five lines would be a native module on a
-project where **no workflow compiles the app at all**. `plotted` answers in fractions of a unit
-box with the origin bottom-left — the one a person means — and the screen emits `<View>`s where
-the PDF emits `<div>`s. **Two geometries for one picture is how the file a shopkeeper shares stops
-matching the screen she shared it from.**
-
-⚠️⚠️ **AND THE Y AXIS DOES NOT START AT ZERO, WHICH IS THE ONE THING ABOUT THIS PICTURE THAT
-COULD MISLEAD HER — SO THE FIX IS A LABEL RATHER THAN AN ARGUMENT.** Purchase prices for one
-product cluster, so a zero-based axis draws three deliveries as one flat line and the screen says
-nothing; a range-based axis exaggerates unless the reader can see the range. **`Costs` carries
-`lowLabel` and `highLabel` and the screen prints both beside the plot.** ⚠️ Their exact wording is
-asserted, because C12.2 hides centavos at zero and the axis reads `$16 / kg` rather than
-`$16.00 / kg` — these two strings are the whole defence of the chart, so what they actually say is
-load-bearing.
-
-⚠️⚠️ **`palette.ts` GAINS ITS FIRST CATEGORICAL SCALE, AND IT IS NOT A SET OF ROLES.** A series
-colour's job is *"the third provider on this chart"*, which is an INDEX wearing a colour — putting
-those in `Palette` would make that table's own *a role has ONE job* sentence false. `SERIE` sits
-below it with its bound measured: all five clear WCAG's 3:1 non-text floor on every ground (worst
-3.26), and **they separate by hue and NOT by brightness — 1.19:1 at worst**, which is two
-identical greys to a monochrome reader. ⚠️ **A search WAS run for a ring that separated in
-brightness too and it produced three near-identical navies and a garish magenta**, because
-optimising adjacent pairs lets the distant ones collapse. **The structural fallback is what the
-owner already asked for**: the legend pairs every colour with a NAME, and the collapsible matrix
-is the same rows with no colour at all — so §2.11's *never colour alone* is satisfied twice, the
-second time by construction. ⚠️ **An assertion pins the LIMITATION** rather than the property, the
-shape `palette.test.ts` already uses for `accion`/`atencion`.
-
-⚠️⚠️ **FIVE STATES, AND FOUR OF THEM ARE THE THIN ONES — WHICH THE ROW PREDICTED BEFORE A LINE
-WAS WRITTEN.** `nothing`, `single` (a dot and never a flat line), `unlinked` (dots, because a
-segment between two providers draws a negotiation that never happened), `series`, and `unknown`.
-⚠️ **`unknown` ALSO ABSORBS DELIVERIES THIS PHONE CANNOT PRICE**, which is not an obvious fold and
-is the honest one: `priceCentavos` needs the unit factor off the SAME catalog read, so it is
-missing for the whole screen or for none of it — and a chart with no dots plus a matrix of dashes
-would report *this shop pays nothing* when what happened is *this phone has not been told what a
-kilo is*. `stepOf`'s rule.
-
-⚠️⚠️ **THREE CONVENTIONS-GATE RULES WERE OBEYED RATHER THAN AMENDED, AND ONE OF THEM WAS
-TEMPTING.** `R5` flagged `Math.round(v * 100) / 100` in the PDF's pixel rounding — the rule bans
-division outright and does not know these are pixels. **Integer pixels are the honest precision
-for a 96 dpi page** and the first draft was simply wrong to want hundredths. `R6` flagged the
-document's CSS sizes, and **the exemption was NOT taken**: a `PAGE` table names every size once,
-which is `density.ts`'s actual argument applied to a medium that **can be zoomed** — C3.18's two
-modes exist because a React Native screen cannot be. `R12` flagged the screen importing
-`@/api/errors`, so the sentence moved into `costsLine` in the data layer, which is
-`catalogLine`/`familyLine`'s own arrangement.
-
-⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL THREE CHEAP TO REVERSE AND NAMED IN THE PR
-BODY.** (1) **`Costos` carries the VARIANT and is therefore ABSENT when no row is marked** —
-`Editar`'s rule, because §2.9 measures per variant, he said *"for that product"*, and a family
-mixes base units. (2) **It is NOT fenced to a manager** — `0040` opened both policies four hours
-earlier, so a cashier sees `Costos` and neither of the other two controls. (3) **The matrix's
-provider column does not pin when it scrolls sideways** — two synchronised `ScrollView`s is more
-machinery than a shop with a handful of delivery days needs, and the PDF is the answer for a long
-history.
-
-✅ **VERIFIED, AND NAMED:** `npm run typecheck --workspace @tienda/app` clean; **1,171 assertions
-in 40 files, all green**; `conventions-gate.sh` **all 16 groups over 79 source and 40 test files**;
-`docs/checks/5g-iii-costs-contract.sh` **11 assertion groups against a real PostgREST** — the
-embed over the composite FK, the `::text` cast read off the wire, the order proven on the parent
-with the wrong spelling exhibited beside it, both halves of a void, §2.9's view still having no
-`provider_id`, an Empleada reading six deliveries, and another shop reading none; and
-`5g-iii-costs-contract-falsify.sh` **all 10 fixtures**, each red for its stated reason and green
-at both ends. ⚠️ **`plan-handover.sh` and `split-coverage.sh` both read the corpus** and resolve
-every archived row unchanged.
-
-⚠️⚠️ **AND THE SECOND FINDING OF THE SESSION CAME FROM TRYING TO MARK THE NEXT TASK: `5h`'s ROW WAS
-STALE IN BOTH ITS HALVES, AND ⛔ DECISIONS OWED HAD LOST A QUESTION.** `5h` read *"**Vender.** `price_list`
-prefill, the `$0.00` amber path, the 50-centavo ceiling, `record_sale`"* — **all four shipped in `5f`**, so
-the cell described finished work and nothing could see it (the eleventh stale-copy defect here, the second
-in this file). What is actually left is **the undo**, and its gate cell said *"areas 5 and 6"*. ⚠️ **Área 5,
-*finishing a sale*, is closed in substance** by the twenty-first ruling of 2026-09-24 — the bar, the fill
-that follows the finger, the fixed-height carrito, the centred confirmation, the slide inside the sheet.
-⚠️⚠️ **ÁREA 6, *Mistakes*, IS NOT — AND THE THIRD-ROUND TABLE SAYS IT WAS MOVED TO ⛔ DECISIONS OWED ON
-2026-09-21 WITH THE WORDS *"read it there, not here"*. IT WAS NOT THERE.** The block emptied for the
-thirteenth time and the question went with it. **That is the first time the one block whose entire purpose
-is to re-offer open decisions every session has lost one**, and `plan-handover.sh` cannot see it: it checks
-the block is present, singular, and that every row names what it blocks — **there is no check that a
-question belonging in it is there, because there is no list of what belongs.** ✅ **Re-parked with the brief
-written**, and it turned out to be four questions rather than one, only the first of which is a preference.
-⚠️ **So the marker goes to `5f.5`** — the magnitude warning, `S/M`, whose gate was `5g` and whose own
-argument was *"nothing in this app has ever read a purchase"*. **`5g-iii` is the row that made that
-sentence false**, which is the cleanest possible handover: the next task is unblocked by this one's work
-rather than merely after it.
-
-⚠️⚠️ **WHAT IS NOT VERIFIED AND IS THE ROW'S OWN BOUND: NOBODY HAS COMPILED THIS.** `expo-print`
-and `expo-sharing` are two new native modules, `app/ios/` is gitignored, and `app.yml` is a
-typecheck plus a suite plus the document guards — so **every check above is green on a native
-change no machine has built** ([[no-ci-compiles-the-native-app]]). `5c-ii-b-2` proved what that
-costs. **The evidence this row still owes is a device build**, and the 2026-09-27 re-deploy is due
-in two days anyway.
-
+⚠️⚠️ **AND THE 2026-09-25 FILE TOOK ITS SECOND CUT ON 2026-09-26, IN THE EIGHTEENTH CUT
+OVERALL — APPENDED, NEVER A SECOND FILE FOR ONE DAY.**
+[`docs/plan/archive/status-log-2026-09-25.md`](plan/archive/status-log-2026-09-25.md) now
+holds the whole of that working day: **six blocks, 415 lines** — `5f.5`, `5g-iii-a`, the
+two things the owner confirmed by looking, the 27th and 28th rulings, the área-6 method
+ruling and `5g-iii`'s own closing entry. ⚠️ **`CLAUDE.md` PREDICTED THIS CUT IN WORDS** —
+its archive table already said the day *"RAN ON PAST THE CUT"* and named three of the
+blocks; it was right about the need and short by three blocks about the size, because
+`5f.5` and `5g-iii` both closed that day too.
+⚠️⚠️ **THE BOUND WAS TAKEN FROM THE ARCHIVE BOOKKEEPING AND NOT FROM *"the next entry
+head"*, WHICH IS THE TRAP THIS BLOCK RECORDS THREE INSTANCES OF IN ONE DAY** — the last
+entry in the region is `5g-iii`'s and what sits under it is this bookkeeping, so a mover
+reaching for the next entry head walks into it. ✅ **Both ends were found by CONTENT, and
+the first attempt — which hardcoded line numbers — asserted itself wrong and refused to
+write.** `## Position` stood at **1,394 of 1,400** with two decisions-block rows still to
+add, and the cut left it at **979**.
+⚠️ **The fourteenth cut taken by a session that wanted to be writing something else.**
 
 ⚠️⚠️ **AND 2026-09-24 NOW HAS ITS OWN FILE TOO —
 [`docs/plan/archive/status-log-2026-09-24.md`](plan/archive/status-log-2026-09-24.md)**,
@@ -3033,6 +2733,7 @@ free today and stay free until the first task merges.
 | **5f-iii-a** | ✅✅ **DONE 2026-09-24 — THE SHOP CAN READ ITS OWN BASKET BACK, AND THE SHEET AND THE BAR ARE ONE ARITHMETIC BY CONSTRUCTION.** ~~this is the next task, as of 2026-09-24 — the review surface~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **IT STILL COMMITS NOTHING.** **The basket sheet (C3.5):** only the rows carrying a quantity, each with the same field and the same control as the list behind it, a per-line removal and a `Vaciar` for the lot. ⚠️⚠️ **WHAT THE SIZING FOUND, AND IT IS WHY THIS CHILD IS NOT A PURE RENDERING TASK: THE SHEET IS THE ONE SCREEN A CUSTOMER CHECKS THE ARITHMETIC ON BY HAND.** §2.5 rule 5 is written about exactly this surface — *"the displayed lines fail to sum to the displayed total on the review screen"* — and `basketOf` (`5f-i`) returns a TOTAL AND NO LINES AT ALL, so a sheet that priced its own rows would be a **second arithmetic over one basket**, agreeing in the pilot and disagreeing by a centavo the first time a rate rounds. **One function returns both**, the total being the sum of the very figures the rows draw, and a node suite reads that identity rather than a person hoping for it. ✅ **`Quitar` removes a line IMMEDIATELY — no undo, no confirmation** (ruled 2026-09-17). The recovery is re-adding the item, two taps on the list behind the sheet; a timed *Deshacer* fails the users C3.18 exists for, and a dialog on every removal is book-keeping handed to a shopkeeper. ⚠️ **`Vaciar carrito` KEEPS its confirmation** — emptying is a different act from removing one line. ⚠️⚠️ **AND IT OWES THE FIRST OF THE OWNER'S TWO ANIMATIONS, the one he asked for on 2026-09-21** — *"another one if we empty the carrito"* — under §2.11's motion rule, `transform` and `opacity` ONLY, which is a performance rule and not a taste one because C1.1 puts two low-end Androids among the pilot's four phones. ⚠️ **It is started in an effect and not in the handler that mounts the view**, which on the native driver fails silently. ⚠️⚠️ **THE SLIDE, THE ENQUEUE AND THE SALE'S OWN CONFIRMATION ARE `5f-iii-b`'s, AND THAT IS THE SPLIT RATHER THAN AN OMISSION** — this child draws no commit control, so C3.4's sticky bar still commits nothing and this app still writes nothing. ⚠️ **Above the arithmetic, the owner's phone is the whole instrument** (`R9`, §2.11). **It ships no migration** | `M` | ✅ **Ungated 2026-09-24** — `5f-i` and `5f-ii` are both done |
 | **5f-iii-b** | ✅✅✅ **DONE 2026-09-24 — THIS APP HAS WRITTEN ITS FIRST SALE, AND `5f-iii` IS CLOSED.** ~~gated on the bar arrangement the owner asked for proposals on~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **THE SLIDE-TO-COMMIT, AND THE FIRST WRITE THIS APP HAS EVER PUT IN THE QUEUE.** **Commit is a gesture and not a tap (C3.6):** the control in C3.4's sticky bar becomes the slide-to-commit and the gesture commits. ⚠️⚠️ **THAT IS NOT A FLOURISH: `5c`'s FOUR CHILDREN HAVE NEVER HAD A CALLER.** Nothing in this app enqueues anything today, so the outbox, the flush, the dead-letter path and the banner have all been built against fixtures — and this child is where they first meet a shopkeeper. ⚠️⚠️ **THE SLIDE MUST CALL `queued()` FROM `@/lib/connectivityMonitor` AFTER `queueWrite`, AND THIS IS THE LINE `5f` SAID NOTHING COULD SEE UNTIL IT WAS WRITTEN.** `5c-ii-b-2` shipped that function with **no caller**, deliberately, because there was no screen to call it from. ⚠️ **Without the call the ONLINE path is the worse of the two**: a reconnect drains and an app-state wake drains, but a sale rung up on a working connection by a cashier who never leaves the app has nothing to trigger a drain and would sit in the queue until the link flapped. ⚠️ `queueWrite` returns a ROW rather than a promise (C10.3), so the trigger is TOLD rather than awaited, and calling it offline or before the monitor starts is a safe no-op — the screen never has to ask. ⚠️⚠️ **AND THE SECOND OF THE OWNER'S TWO ANIMATIONS — *"a simple confirmation animation if the sale is done"* — WHOSE ONE HARD RULE IS THAT IT fires on ENQUEUE, never on the server's reply**: an animation that awaits Postgres is the offline path looking different, undone in the one place nobody would test it. ⚠️ Same motion rule as its sibling — `transform` and `opacity` only, started in an effect. ⚠️⚠️ **AND IT CARRIES THE FIRST LOOK AT `5c-iv-b`'s DEAD-LETTER BANNER, which is a review riding along rather than code**: **(b) its size and weight** — three lines of `bodySize` in a pill, no state colour — against the room Inicio now reserves for it unconditionally (`bannerRoom`, which clears the pill's MINIMUM and no more, so three lines in `Letra grande` may overlap the takings until a short scroll); and **(c) the words**. ⚠️ **The cheapest way to ask both is to ring up a sale in airplane mode against a shop code that no longer resolves** — the one path that puts a `dead` row on a device without a migration or a fixture, **and it does not exist until this child ships**. **It ships no migration** | `M` | ✅ **Ungated and closed 2026-09-24** — the ruling arrived and the whole row shipped in one sitting, which is the amended working agreement's first outing |
 | **5f-iv** | ⚠️⚠️ **OUT OF THE PILOT — RULED 2026-09-24, AND THE ANSWER TO THE QUESTION THIS CHILD EXISTED TO ASK IS *NO*.** ~~gated on a decision the owner owes~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** *"Let's not do those discount controls part of the pilot yet, we will need to understand the interactions before creating anything like that. Any money 'knock-off' happens in her head and is out of the scope of the app for now."* ⚠️⚠️ **IT KILLED MORE THAN THE QUESTION ASKED, AND THE OWNER MAY NOT HAVE NOTICED — SO IT IS WRITTEN DOWN HERE RATHER THAN ACTED ON QUIETLY: C3.16's SETTING IS THE SAME AFFORDANCE.** *Reset-after-each-transaction* is a sale-only override expressed as a switch rather than as a tap, so *"any money knock-off happens in her head"* answers both, and **the discreet Home banner goes with it** — it existed only to announce that setting. ⚠️ **What survives untouched:** a price change persists, because there is now no other kind; `Editar` is where one is made; and C3.17's manager fence is unchanged. ⚠️⚠️ **THE ROW IS NOT DELETED, AND THAT IS `5d-iv-b`'s AND PROVEEDORES' REASON:** *"we will need to understand the interactions"* is a deferral with a condition on it, and the condition is watching the shop use Vender. **This row is what the answer comes back to**, and it opens by owing the word — the shape `Costos` already has. ⚠️ **Nothing is drawn for it**, and `5f-ii` draws no `...` rather than a dead one, because nobody has seen this affordance and there is nothing to preserve. **Deferred, not dropped.** ~~**The `...` quick actions: the price change and its persistence setting.** C3.15 — *prices are changed from the `...`, in two taps, at the counter, on both screens* — and **C3.16**, which is the half that reaches the shop rather than the screen: **a price change PERSISTS BY DEFAULT**, so the change made at the counter becomes the shop's price; a setting flips it to reset-after-each-transaction; and **while that setting is off, Inicio carries a discreet banner saying so**, because a shopkeeper who changed a price on Monday is otherwise surprised on Tuesday. ⚠️ **That banner is the SECOND thing Inicio has been asked to carry conditionally** — `5d-iv-b` already reserves room for the first — and two banners arguing about the top of one screen is the shape §2.8's Home ruling exists to prevent. ⚠️⚠️ **AND THE QUESTION THIS CHILD EXISTS TO ASK BEFORE IT DRAWS ANYTHING: does the `...` offer a cashier a price override FOR THIS SALE ONLY — one that never writes `price_list`?** The C3.17 ruling of 2026-09-23, *"leave the fence as is"*, settled who may change the SHOP's price and deliberately said nothing about a discount on one line. ⚠️ **A child that drew the control without asking would ship a button a cashier taps while nothing happens**, and not visibly: her PATCH is not refused, the row is simply invisible to her, so PostgREST answers **200 with an empty array** — measured by `5e-iii-a`, not inferred. ⚠️ **The write itself is already built and is not this child's**: `5e-iii-a`'s `editPlan` closes the row in force and opens the new one, in that order, because `price_list_no_overlap` allows no other. **It ships no migration** — widening the fence WOULD be one, and an append-only migration that merges automatically is exactly why this question was parked in front of the work rather than inside it~~ | `M` | ⏸️ **Deferred out of the pilot 2026-09-24** — it returns on the owner's word, after he has watched the shop use Vender |
+| **5g-iii-b** | ⚠️⚠️ **`Costos` NAMES THE WRONG DAY FOR AN EVENING DELIVERY — FOUND 2026-09-26 BY `5h-ii-a`, WHICH HAD TO ANSWER THE SAME QUESTION AND ANSWERED IT THE OTHER WAY.** `costsFrom` buckets a point on `doc.occurred_at.slice(0, 10)`, the **UTC** calendar date; `today.ts` uses the DEVICE's local midnight and its header says this app must not have *"two answers to what day is it"*. **Measured:** `2026-09-26T01:30:00+00:00` slices to `2026-09-26` and is local `2026-09-25`, so in a UTC−6 shop everything keyed after 18:00 is labelled a day late on the chart **and in the PDF he is holding**. ⚠️ **`dayOf` in `@/api/documents` is the three lines this needs**, already written and already under test. ⚠️ **The ledger is fine** — `occurred_at` is stored correctly and `product_margin_daily` buckets server-side on `location.timezone`. This is a LABEL, and it ships no migration. ⚠️ **What it touches beyond the one function:** `matrixOf`'s `days` and `plotted`'s x-axis both read `CostPoint.day`, so the change is one derivation and two renderers that already agree; `app/test/api-costs.test.ts` has day fixtures that will need re-dating, and `docs/checks/5g-iii-costs-contract.sh` asserts the series against instants it controls. ⚠️⚠️ **IT IS NOT A TIDY-UP AND MUST NOT BE TAKEN AS ONE: it changes what a shopkeeper reads on a shipped screen**, so it is gated on his ruling rather than on a session's judgement | `S` | ⛔ **GATED — the decision is in ⛔ DECISIONS OWED**, with the recommendation to fix it. ⚠️ **Read the block against this cell rather than trusting it**: a gate saying *see the decisions block* is exactly the pair that went out of step on 2026-09-25 and was found only because a session was about to mark the gated task next |
 | **5g-iii-a** | ✅✅ **DONE 2026-09-25 — THE PDF IS A TABLE, AND THIS ROW WAS OPEN FOR ABOUT AN HOUR.** ~~this is the next task, as of 2026-09-25~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **IT IS THE FIRST ROW IN THIS FILE CREATED BY THE OWNER REJECTING A DELIVERABLE THAT SHIPPED GREEN.** **The PDF becomes a TABLE.** His words, minutes after `5g-iii` merged and from his own phone: *"The Chart doesn't survive the Web view. Let's turn the PDF export into a nice tabular view. A chart in PDF doesn't make a lot of sense."* ⚠️⚠️ **NOTHING IN THE DOCUMENT WAS FALSE AND THAT IS THE POINT — `R9` WORKED.** `app/test/costs-pdf.test.ts` proved the figures, the dates, the names, the HTML escaping and that the cheapest delivery was drawn lowest; **all twenty-two assertions were right and the artefact was wrong**, because a PDF is read away from the phone, printed, or forwarded to somebody who cannot tap it. **The interactions a chart earns its place with are all absent on paper.** ⚠️ **IT IS NOT A REVERT AND `plotted` DOES NOT MOVE**: the geometry stays in `@/api/costs` and keeps serving the screen, which he confirmed reads fine. What leaves is the `<div>`-and-rotation renderer inside `@/export/costsPdf` — `segments()`, the `.plot`/`.seg`/`.dot` CSS, the axis column — and the four assertions that read it. ⚠️⚠️ **THE WORD *nice* IS THE WHOLE BRIEF AND IT IS NOT A STYLE NOTE: the table currently in that document is a bare grid built to sit UNDER a picture**, so what this row owes is the version that carries the reading on its own — the provider column readable as a stub, the days as real headings, C3.12's dash where a supplier did not deliver, and the thin-state sentence still present because a one-delivery product is still a document somebody may share. ⚠️ **ADR-035 §2.11's Export row must be amended with it** — that row currently says the file carries the same chart as the screen, and after this it does not: the eleventh stale-copy defect is avoided by fixing it in the same sitting rather than noticing it later. ⚠️ **It shipped no migration, added no dependency and changed no screen BEHAVIOUR** — but four comments in `costos/[id].tsx`, `@/api/costs` and `@/theme/palette` were corrected because this change made them false, which is this row's own stale-copy paragraph obeyed rather than rediscovered. ✅ **SHIPPED:** `segments()`, the `.plot`/`.seg`/`.dot`/`.axis` CSS, the legend and the axis column are gone; the document is provider rows against day columns in blocks of six days, with a three-line heading (`24` / *septiembre* / `2026`), C3.12's dash muted as absence, a quiet zebra in two roles that already existed, and the thin-state sentence moved ABOVE the table. **`formatLedgerDay` in `@/format/date`** renders a ledger day without touching `Date`; **`MatrixRow.isGeneric`** carries *compra directa* onto the stub now that there is no legend to carry it. **The document's suite went 22 → 31 assertions and the gated workspace count went 1,171 → 1,189** — the figure `app.yml`'s own step prints, not vitest's terminal summary (1,188); see the status-log entry, where the first draft of this row had the baseline wrong, and the strongest new one is that **not one `SERIE` hex appears in the file at all** — a claim `5g-iii` could not make. ⚠️⚠️ **AND IT MEASURED THE PAGE, WHICH IS THE FINDING: `expo-print` DEFAULTS TO 612 × 792 — US LETTER AT 72 PPI — AND THIS APP PASSES NEITHER.** `5g-iii` had sized its plot at 660 px against a comment claiming *A4 at 96 dpi is ~794 px*, so **the chart was about 130 px wider than the page it was printed on**; *"The Chart doesn't survive the Web view"* may well have been arithmetic rather than taste. The drawable width is **564 px**, and that number is why the days block. ⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF, CHEAP TO REVERSE (IT IS A CONSTANT): the blocking itself.** A twelve-day matrix has no legible size that fits 564 px and a table running off a page loses data silently; for a product with six deliveries or fewer the document is a single table and indistinguishable from the naive version. ⚠️ **ONE THING REFUSED AND NAMED:** stripping `/ kg` out of the cells and stating the unit once would buy two more columns a page, and it was refused because `MatrixCell.price` is the sentence the SCREEN's matrix draws — re-rendering it here would be a second answer to *what did this cost* in the one document a shopkeeper forwards to somebody who cannot ask. **The cell wraps before the unit instead**, and a money figure has no space in it so it can never break itself. ⚠️⚠️ **AND ONE DEFECT WAS FOUND BY RENDERING THE FILE RATHER THAN BY THE SUITE:** the blocking fixture built its fourteen days ASCENDING, which is not the order `COSTS_ORDER` answers in, so `costsFrom` reversed it and the sample document led with *14 agosto*. **Every assertion still passed, because they compared the document against `costs.days` instead of against a calendar.** The fixture is now newest-first and the ordering claim is a calendar claim — and it was falsified by reversing `blocks()` and watching two tests go red. | `S` | ✅✅ **WAS UNGATED, AND IS CLOSED — INCLUDING ITS `R9` READING, WHICH THE OWNER DECLINED RATHER THAN ANSWERED.** *"Leave the PDF export parked since the chart embeded in the app and the collapsable table already look fine for the moment."* ⚠️ **So *nice* is PARKED, not open, and nothing may re-offer it** — see the status-log entry, which spells out why a declined reading and an unanswered one must not look the same in this file |
 | **5f.5** | ✅✅ **DONE 2026-09-25 — ADR-035 §2.8's THIRD GUARD EXISTS. `app/src/api/magnitude.ts` is the twenty-second module of `src/api/`: one shop-wide read of the trailing purchase history, a median per product, and `outsized`. It ships no migration.** ⚠️⚠️ **THE FAN-OUT THIS ROW ASKED TO BE SIZED IS ANSWERED, AND THE ANSWER IS *DO NOT FAN OUT*: `MAGNITUDE_KEY` TAKES NO ARGUMENT.** One read for a whole basket, cached like the catalog's, bounded at `MAGNITUDE_LIMIT` = 400 lines — so *trailing* means *within this shop's most recent 400 purchase lines*, and a product outside that window is not warned about. ⚠️⚠️ **THE PRICE HALF IS COMPRAR'S ALONE AND THAT IS NOT A SCOPE CUT: Vender has no typed price.** `quoteFor` takes a sale's figure off the catalog, so there is no keystroke to get wrong, and a SHELF price against a purchase COST median would flag every product in the shop by exactly the margin. **Quantity on both screens, price on Comprar.** ⚠️⚠️ **LATENT, PENDING THE PILOT — AND IT IS THE ONE QUESTION THIS ROW COULD NOT ANSWER: does Vender's quantity guard earn its place at all?** It is seeded from PURCHASE quantities, a shop buys in bigger lots than it sells, and three times a purchase median is a threshold a sale will rarely cross. **It was deliberately NOT parked in ⛔ DECISIONS OWED**: a question only a week of trading can answer does not belong in a block whose job is to re-offer it every session — this is the shape the owner himself chose for the expiry input on 2026-09-25. ⚠️ **Two constants were decided on his behalf, both one-line edits, because ADR-035 §7 lists *magnitude thresholds* under Reversible by name**: `MAGNITUDE_SAMPLES` = 3 (a median of two is not a median, so the guard is silent on a product with fewer than three standing deliveries — the honest half of *works from day one*, which the ADR's own *Weakest points* already names) and `MAGNITUDE_LIMIT` = 400. ⚠️⚠️ **AND THE LIVE CHECK FOUND A DEFECT IN THE APP ON ITS FIRST RUN: PostgREST refuses to order a PARENT by an embedded column that is not in the embed's select list.** The first draft embedded `purchase!inner(id,reversal_of)` — everything the guard reads — and answered **400, `42703`**. `MAGNITUDE_COLUMNS` now selects `occurred_at`, which **nothing reads and which is absent from `MagnitudeRow` on purpose**; it is `F4` in the falsifier, kept, because a tidying pass trusting the types would delete it and 400 both capture screens. ⚠️ **Checked by `docs/checks/5f.5-magnitude-contract.sh` (**9** groups, live HTTP against a real PostgREST — the number is the RUNNER's, off CI run `36192213099`; a local run said 10 before the vacuous string guard was removed, and that stale count reached this row), its falsifier (8 fixtures, one of which puts `0040`'s manager gate back), and `app/test/api-magnitude.test.ts` (30 of the suite's 1,219 tests).** ~~this is the next task, as of 2026-09-25 — the marker comes back here now that `5g-iii-a` has closed~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ~~ungated and takeable, and no longer the marked next task — the marker moved to `5g-iii-a` later on 2026-09-25~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ~~it does not go to the área 6 round, and the reason is not priority: that round needs the OWNER IN THE ROOM — it builds nothing and its whole output is rulings — so it is a scheduling dependency, and a marker pointing at a task no session can finish on its own is a marker that stalls this file. And `5h` itself is still gated on área 6.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **IT WAS TRUE WHILE THIS ROW WAS TAKEABLE AND IT STOPPED BEING TRUE WHEN THIS ROW CLOSED: the marker went to `5h-i` on 2026-09-25 because there was nowhere else for it to go.** The argument was never that the round is low priority — it was that a takeable row existed. See `5h-i`, which carries the whole of it. ~~this is the next task, as of 2026-09-25 — its gate was `5g`, and `5g` closed today~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **IT WAS PASSED OVER FOR A REASON WORTH STATING: THE OWNER REJECTED A SHIPPED DELIVERABLE BY LOOKING AT IT.** A correction to work he is holding in his hand outranks a new guard he has not asked about — and the PDF is wrong on his phone right now. **This row's own gate is still clear and nothing about it changed.** ⚠️ **Its gate was `5g`, and `5g` closed on 2026-09-25.** ⚠️ **The marker comes here rather than to `5h` because `5h` IS GATED and the gate is real: área 6, *Mistakes*, is back in ⛔ DECISIONS OWED — see that block and `5h`'s own row.** ⚠️⚠️ **AND THE GATE THIS ROW WAITED BEHIND IS NOW NOT MERELY CLEARED BUT FILLED: `5g-iii` BUILT THE PURCHASE-HISTORY READ IT NEEDS.** The row's argument was *"§2.8 seeds it from PURCHASE history so it works from day one, and nothing in this app has ever read a purchase"* — `app/src/api/costs.ts` now reads every delivery of a variant with its date and its counterparty, over one round trip, with a live contract check behind it. ⚠️ **What this row still owes is the MEDIAN and the comparison, not the read.** ⚠️⚠️ **ONE THING TO SIZE RATHER THAN ASSUME: `costsKey` is per VARIANT and a warning fires while a basket is being keyed**, so a median for the row she is typing may mean a read per product rather than the one this screen makes — which is a fan-out question and is exactly what a sizing is for. **PROMOTED OUT OF THE ADR ON 2026-09-24 BY `5f`'s SIZING, BECAUSE §2.8 REQUIRES IT AND NO ROW IN THIS FILE HELD IT.** ADR-035 §2.8's *Error prevention* names **three** guards on the capture screens, *"none blocking"*: unit-aware input, review before commit — the sheet and the slide — and ⚠️⚠️ **the MAGNITUDE WARNING: *"flag any quantity or unit price beyond ~3× the trailing median for that product"*, WHICH APPEARS NOWHERE IN THIS PLAN.** Measured 2026-09-24: the phrase and its wording return nothing from the plan corpus and nothing from `app/src/`, and §6 does not defer it either. ⚠️ **What that search bounds is the PLAN and this app's modules — not the shop** — but the guard is a client behaviour, so those two are the whole of where it could have lived. ⚠️⚠️ **AND IT SITS AFTER `5g` FOR A REASON THAT IS NOT ORDERING TASTE: §2.8 seeds it from PURCHASE history *"so it works from day one"*, and nothing in this app has ever read a purchase.** `record_purchase` has no caller, `purchase_line` has no client read, and a median over an empty table warns about everything or about nothing. **`5g` is the row that creates the history this one reads** — the same shape as `Costos` being deferred to the row that can answer it rather than dropped. ⚠️ **The error it prevents is the expensive one and the ADR states it in full**: *"a cashier meaning 1.5 kg who types 15 produces a transaction that is syntactically perfect, prices plausibly, and silently corrupts stock, margin and waste analytics."* ⚠️ **It is a WARNING and never a block** — §2.8 says so, and C3.9 is why: *"precision is the shop's, not ours"*, so 2 kg on a scale reading 2.050 is correct behaviour and nothing may reconcile it. **It ships no migration**; the median is a read | `S/M` | ✅ **UNGATED as of 2026-09-25 — `5g` closed, and `5g-iii` shipped the purchase read this row's own argument said did not exist** |
 | **5g** | ✅✅✅ **`5g` IS DONE AS OF 2026-09-25 — all three children closed, plus `5g-ii`'s own three, in two working days.** ⚠️ **Spelled *IS DONE AS OF* rather than *complete*, which is not pedantry: `handbook-agreement.sh` matches `✅ **DONE` or `IS DONE AS OF` and nothing else, so the first wording left the plan silent about a step the handbook was calling finished — caught the same sitting.** ⚠️⚠️ **SIZED `XL` AND SPLIT THREE WAYS 2026-09-24, ON THE DAY IT WAS TAKEN AND BEFORE A LINE OF IT WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-24, and this file carried it as an `M`~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **Comprar.** ⚠️⚠️ **THE ROW NAMED SEVEN DELIVERABLES; THE SIZING FOUND EIGHTEEN, AND THE THREE IT DID NOT NAME ARE THE THREE THAT CHANGE WHAT GETS BUILT.** **Eighteen deliverables, all of which land in exactly one child below:** the **provider list read**, an applied table no line in `app/` touches; the **price memory read** over `provider_price_memory` (`0008`), per (provider, variant) and never across providers; the prefill that is stored per BASE and read **per PRICE UNIT**, which is arithmetic and not a rename; **`last_qty_display_unit`**, the denomination she typed last time and which need not be the variant's price unit today; the **provider on the purchase payload** — `draftOf` builds `location_id` and `lines` and nothing else, while `record_purchase` raises on a null **`p_provider_id`**; the **typed price, persisted with the basket**, because a purchase price is entered rather than looked up and §2.11 persists the basket it belongs to; **the live round trip** that proves Postgres accepts a purchase, which nothing in this repository has ever performed; the **cashier asymmetry**, measured rather than inferred; **`Comprando a:`** — the provider chosen FIRST, in the header (C3.11); **changing the provider re-prices every row** already on screen (C3.11); the **three price states** §2.8 requires to look different, the middle one *empty and required* and visibly not a prefill; **C3.12**'s dash, never `$0.00`; **C3.13** — the slide blocked while any row has no price, and the banner that says so; setting that missing price **fast from where** the shopkeeper already is; the sheet, the slide and the confirmation, **the shape 5f-iii shipped**; **no 50-centavo rounding here** (**C12.3**); **what Costos shows**, the word deferred onto this row on 2026-09-22; and the button `5d-iii` **drew dead on La Familia**, which is the surface that word lands on | `XL` — **split, an `M`, an `M/L` and an `S`** | ✅ **UNGATED when it was taken.** ⚠️ **One of the three children is not: `5g-iii` is blocked on the word the owner owes, and it is the only one that is** |
@@ -3045,8 +2746,8 @@ free today and stay free until the first task merges.
 | **5h** | ⚠️⚠️ **GATED, AND THIS ROW IS STALE — CORRECTED 2026-09-25 BY `5g-iii`, WHICH FOUND BOTH HALVES BY TRYING TO MARK IT NEXT.** ~~**Vender.** `price_list` prefill, the `$0.00` amber path, the **50-centavo ceiling on the basket total and nowhere else** (C12.3), `record_sale`.~~ — ⚠️⚠️ **EVERY ONE OF THOSE FOUR SHIPPED IN `5f`** (`5f-i` the prefill and the ceiling, `5f-ii` the amber path, `5f-iii-b` `record_sale`), so this cell described finished work for a day and nothing could see it: **the eleventh stale-copy defect in this repository and the second in `docs/PLAN.md` itself.** ⚠️⚠️ **WHAT IS ACTUALLY LEFT IS THE UNDO, AND IT IS THE WHOLE ROW NOW.** ⚠️⚠️ **AND THE UNDO, RULED BY THE OWNER 2026-09-22.** One *undo* on the document just committed, over `void_transaction` (`0021`) — applied since 2026-09-04 and **never called by anything**. ⚠️ **Nothing is edited or deleted**: a mirror-image document cancels the first, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **TWO THINGS A SCREEN MUST NOT INVENT:** the window is read from `workspace_setting.void_window_minutes` (`0001:561` — *"the client reads it to render correctly"*), so **hardcoding 15 is wrong the first time a shop changes it**; and the fence is a **role boundary, not a deadline** — a cashier undoes their OWN document inside the window, a manager or owner undoes ANYTHING at any time with no window. ⚠️ `void_transaction` takes `purchase`, `sale` and `waste`, so this is one affordance for three screens: `5h` builds it, `5g` and `6a` reuse it. ⚠️ **`5g` has now shipped without it**, so this row owes Comprar a retrofit as well as Vender a build | `M` — **SPLIT IN TWO 2026-09-25** | ⛔ **NO LONGER TAKEABLE — SPLIT ON THE OWNER'S RULING THAT THE DECISION COMES OUT OF A SIMULATION ROUND.** *"Let's address Area 6 with a back and forth set of simulations to get to the best option for this pilot before we start 5h."* **So `5h-i` is the round and `5h-ii` is the build**, and the seam is exception (1) of the working agreement rather than size: **the round is UNGATED and the build cannot start until the round has answered.** ⚠️ Splitting on a reason that is not size is what that agreement asks for, and this is the cleanest instance of it yet — one half is a conversation and the other is code. ⚠️ **BLOCKED ON ÁREA 6 — *Mistakes* — AND THE BLOCK HAD LOST IT.** ~~⚠️ areas 5 and 6~~ — ⚠️⚠️ **ÁREA 5 IS CLOSED IN SUBSTANCE and área 6 is NOT, which is two corrections in one cell.** *Finishing a sale* was answered by the twenty-first ruling of 2026-09-24 — arrangement A, the fill that follows the finger, the fixed-height carrito, the centred emptying confirmation and the slide inside the sheet — all of it from him looking at the running app. **Área 6 was MOVED to ⛔ DECISIONS OWED on 2026-09-21 and is not there**: the block emptied for the thirteenth time on 2026-09-25 and this row's question went with it. ⚠️⚠️ **That is the first time the one block whose entire purpose is to re-offer open decisions every session has LOST one**, and nothing could see it — `plan-handover.sh` checks that the block exists, that it is singular and that every row names what it blocks; **it cannot check that a question which belongs in it is there.** ✅ **Re-parked 2026-09-25 by `5g-iii`, with the brief written** |
 | **5h-i** | ✅✅✅ **DONE 2026-09-26 — THE ROUND RAN WITH HIM IN THE ROOM AND ÁREA 6 IS RULED. IT BUILT NOTHING, WHICH WAS THE DELIVERABLE.** Its output is the four rulings recorded in the status log and in ⛔ DECISIONS OWED, a re-scoped and three-way-split `5h-ii`, and one value left open. ⚠️⚠️ **THE THIRD INTERVIEW ROUND, AND IT IS THREE FOR THREE ON REVERSING THE BRIEF'S OWN RECOMMENDATION**: the opening position was *put the undo on the confirmation*, and situation 1 retired it in one sentence — *"She fixes the money by hand and never touches the app."* ⚠️ **A measurement killed it independently**: the confirmation is on screen **one second** and carries `pointerEvents="none"`, so it is a flash and not a control. ⚠️⚠️ **AND IT CORRECTED A CLAIM THIS FILE HAD CARRIED FOR A DAY** — `void_transaction` **is** granted to `authenticated` (`0021:448`, confirmed in `proacl` on the applied schema), so the correction affordance needs **no migration**; `5g-iii` had written that a void was *"not reachable through the API at all today"*. ~~this is the next task, as of 2026-09-25 — and the objection that kept the marker off this row yesterday has run out of alternatives rather than been overruled~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** `5g-iii` wrote that the marker must not come here because *"a marker pointing at a task no session can finish on its own is a marker that stalls this file"* — **which was an argument for taking `5f.5` first, and `5f.5` closed on 2026-09-25.** ⚠️⚠️ **WHAT IS LEFT IN STEP 5 IS THIS ROW AND FOUR THAT CANNOT BE TAKEN**: the undo is gated on área 6, the `src/ui/` conventions are gated on the undo, the discount controls are out of the pilot and Facebook is deferred to v2. **So the build is not waiting on a session, it is waiting on a conversation** — which is the honest thing for this marker to say, and a marker pointing at nothing would say less. ⚠️ **A session that reaches this row with no owner available should say so and stop, not invent work.** ⚠️⚠️ **THE SIMULATION ROUND FOR ÁREA 6 — *Mistakes* — AND THE OWNER SPECIFIED THE METHOD RATHER THAN THE ANSWER.** *"Let's address Area 6 with a back and forth set of simulations to get to the best option for this pilot before we start 5h."* ⚠️ **It is the third interview round in this project and both earlier ones REVERSED a recommendation** — the UI/UX grill of 2026-09-07 and the área 9 round of 2026-09-14 — **so the format has a track record of being worth more than the brief it replaces.** ⚠️⚠️ **WHAT A SIMULATION MEANS HERE, AND IT IS NOT A LIST OF OPTIONS: walk a named person through a named mistake at a named moment**, out loud, and see what she reaches for. The four questions in ⛔ DECISIONS OWED are the material — where *undo* lives, who may undo what, what `Costos` shows afterwards, and whether Comprar is retrofitted — and **the register this project runs on is that a shop question is answered by shop truth** ([[tienda-decisions-need-shop-truth]]). ⚠️ **The rule for the round itself is his own recurring one: ask, do not propose.** A recommendation presented as settled is what [[proposal-must-not-look-decided]] records him refusing, and the session's opening position is already written in the decisions block so it does not have to be re-derived mid-conversation. ⚠️⚠️ **IT BUILDS NOTHING AND THAT IS THE DELIVERABLE** — its output is rulings in ⛔ DECISIONS OWED and a re-scoped `5h-ii`, which is exactly what `4.6c` produced when it cancelled its own subject. ⚠️ **It may also find that `void_transaction`'s 15-minute window or its role fence is wrong for this shop**, which would make it a schema question rather than a screen one — and better found in a conversation than in a migration. | `S` | ✅ **UNGATED** — it is the vehicle for the decision, not a thing waiting on one. ⚠️ **It needs the OWNER in the room**, which is a schedule dependency and not a code one |
 | **5h-ii** | ⚠️⚠️ **RE-SCOPED AND SPLIT THREE WAYS 2026-09-26 BY `5h-i`, BEFORE A LINE WAS WRITTEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ⚠️⚠️ **THE ROUND CHANGED WHAT THIS ROW IS.** It was *one undo on the document just committed*; it is now **`Corregir` and `Eliminar`, on BOTH capture screens, reached from a list of recent documents that does not yet exist** — *"Mirror it for Vender… Make the functionality for both for now, amend it and then I'll polish it both in terms of roles/permissions and interface."* ⚠️ **`XL`, and it splits on size AND on the agreement's reason (2)**: a document still in the OUTBOX has no row to cancel, which is a second failure class invisible from the screen. See the sizing below. ⚠️ **Its children are `5h-ii-a` (the read and the list), `5h-ii-b` (the two affordances over `void_transaction`) and `5h-ii-c` (the queued case).** ⚠️ **One read serves both kinds** — `sale` and `purchase` are the same document shape — and the correction is **a void and a re-record**, never an edit. ⚠️ **It ships no migration** — `void_transaction` is applied and granted. ~~The undo itself.~~ One *undo* on the document just committed, over `void_transaction` (`0021`) — applied since 2026-09-04 and **never called by anything**. ⚠️ **Nothing is edited or deleted**: a mirror-image document cancels the first, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **AND `5g-iii` MEASURED SOMETHING THAT CHANGES THIS ROW'S SHAPE: `purchase` AND `purchase_line` CARRY A SELECT POLICY AND NOTHING ELSE, AND NO FUNCTION IN THIS SCHEMA WRITES A REVERSAL.** A direct insert is `42501` and there is no RPC to call — **so a void is not reachable through the API today for ANY of the three kinds**, and this row is a write path and not only a button. ⚠️ **TWO THINGS A SCREEN MUST NOT INVENT** and both survive whatever `5h-i` rules: the window is read from `workspace_setting.void_window_minutes` (`0001:561` — *"the client reads it to render correctly"*), so **hardcoding 15 is wrong the first time a shop changes it**; and the fence is a **role boundary, not a deadline**. ⚠️ `void_transaction` takes `purchase`, `sale` and `waste`, so this is one affordance for three screens — and **`5g` shipped without it**, so Comprar owes a retrofit whose scheduling is one of `5h-i`'s four questions. | `M` | ⛔ **BLOCKED ON `5h-i`** — every judgement in it is one the simulation round is being run to settle, and building first would be answering on the owner's behalf the one question he has asked to be walked through |
-| **5h-ii-a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-26 — UNGATED, AND THE ONLY ONE OF THE THREE A SESSION CAN FINISH WITHOUT THE OTHERS.** **What you bought and sold lately, as a list you can open — the list of recent documents this app has never had.** ⚠️ **One read serves both kinds**, because `sale` and `purchase` are the same document shape. ⚠️⚠️ **IT EXISTS BECAUSE OF HOW HE SAID HE FINDS MISTAKES**: *"Most likely the user will realize if he looks at his purchase history for the last week/couple of days."* **Nothing in this app lists DOCUMENTS** — `Costos` is per product, `today.ts` is a total and a count, and `Números` is not built. **This is the surface every correction is reached from**, so it comes first and it writes nothing. ⚠️ **A read module, a hook and a screen**: recent `purchase` and `sale` documents with their lines, newest first, both kinds, bounded — the `@/api/costs` shape one table over, and the same `purchase!inner` composite-embed and `::text` cast questions, which `5f.5` has now measured. ⚠️ **Standing documents only**: a reversal and the document it cancels both drop, which is `costsFrom`'s rule and is what makes *"just one line, clean"* true. ⚠️⚠️ **THE FENCE IS ALREADY RIGHT AND IS NOT THIS ROW'S TO CHANGE**: `sale_select` and `sale_line_select` admit any member at their own location with no role gate (`0003`), and `0040` made `purchase_select` match — so a cashier sees her own store's documents and nobody else's. ⚠️ **Measured 2026-09-26, not assumed: `sale` and `purchase` carry the identical `reversal_of`, `reversal_reason`, `created_by`, `recorded_offline` quartet**, so one module reads both. ⚠️ **Where the list is reached FROM is a look-question and he has already bounded it** — *"if we can add these functionalities easily reachable and usable let's do so. We'll polish the interface later."* ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED** |
-| **5h-ii-b** | **`Corregir` and `Eliminar`, over `void_transaction`.** ⚠️⚠️ **`Corregir` IS NOT AN EDIT AND CANNOT BE: this ledger has never changed a row.** It is **a void and a re-record** — `void_transaction` followed by a re-record with the old lines prefilled into the cart — **and the shopkeeper never sees the word cancel** ([[users-dont-do-bookkeeping]]). `Eliminar` is the void alone, for the delivery recorded twice — *"yes, delete for a duplicate."* ⚠️ **Both screens, at his instruction — *Mirror it for Vender*, and the sale side is the same build because `record_sale` and `void_transaction` already take it.** ⚠️ **It ships no migration.** ⚠️⚠️ **IT SHIPS NO MIGRATION, AND THAT IS THE FINDING `5h-i` PAID FOR**: `void_transaction(p_kind, p_id, p_reason)` is applied (`0021`) and **granted to `authenticated`** — `proacl` reads `authenticated=X/postgres`, confirmed on the applied schema 2026-09-26. The plan said otherwise for a day. ⚠️ **The RPC is idempotent on the original's id** and `<kind>_one_reversal_idx` makes a document reversible at most once, so a double-tap is answered rather than duplicated. ⚠️⚠️ **THE REFUSAL IS `TD003` AND IT MUST RENDER AS A SENTENCE, NOT A CODE** — a cashier outside the window gets *ask a manager*, and `@/api/errors` is where that mapping belongs (`R12`). ⚠️⚠️ **ROSA'S OWN CASE ALREADY WORKS AND THIS ROW DID NOT MAKE IT WORK:** `void_window_minutes` was set to **1440** on the pilot shop on 2026-09-26, before a line of this child existed. **The client renders the fence and never sets it**, so there is nothing here to build for it — but the refusal path is still real for anything older than 24 hours and `TD003` must still render as a sentence. ⚠️ **`reversal_reason` is stored**, which is the audit trail he asked for: *"Of course we will have a history of any of these changes for audit reasons."* | `M` | ⏳ **Gated on `5h-ii-a`** — there is nothing to correct from until there is a list to correct from |
+| **5h-ii-a** | ✅✅✅ **DONE 2026-09-26 — THIS APP CAN SHOW WHAT THE SHOP BOUGHT AND SOLD LATELY, AND IT WRITES NOTHING.** `Lo último` is `app/src/app/documentos.tsx` (the seventeenth screen) over `app/src/api/documents.ts` (the **twenty-third** module of `src/api/`), reached from a **sixth door on Inicio** — which ADR-035 §2.8 enumerated five of, so that file carries a revision entry and the placement is parked in ⛔ DECISIONS OWED. **It ships no migration.** ⚠️⚠️ **THE SIZING WAS THE MEASUREMENT AND IT FOUND SEVEN THINGS, FOUR ABOUT THE WIRE AND THREE ABOUT THE SCHEMA** — the full table is in the status log. The load-bearing one: **nothing in this schema records the order a shopkeeper keyed her lines in** — no ordinal column, and `created_at` is identical across every line of one document — so an unordered embed returns heap order and reshuffles on a re-plan with nothing going red. ✅ **PostgREST sorts a to-many embed by a NESTED column**, so the order is `product_variant(name)` and is the database's. ⚠️ **That is the `{ referencedTable }` spelling `COSTS_ORDER` calls a trap, correct here for exactly the reason it is wrong there: this embed is to-MANY.** ⚠️ Three absences are decisions the suite pins: `unit_price_net_per_base` and `created_by` belong to `5h-ii-b`, and `recorded_offline` to nobody. ⚠️⚠️ **AND IT FOUND A DEFECT IN A SHIPPED SCREEN: `costsFrom` buckets on the UTC date while `today.ts` uses the device's**, so a 19:30 delivery is labelled the next day on the `Costos` chart. **`5g-iii-b` is that row and it is parked.** ✅ **Checked by `docs/checks/5h-ii-a-documents-contract.sh` (16 groups, live HTTP), its falsifier (10 fixtures, 18.7 s) and `app/test/api-documents.test.ts` (65 of the suite's 1,285 tests).** ~~this is the next task, as of 2026-09-26 — ungated, and the only one of the three a session can finish without the others.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** **What you bought and sold lately, as a list you can open — the list of recent documents this app has never had.** ⚠️ **One read serves both kinds**, because `sale` and `purchase` are the same document shape. ⚠️⚠️ **IT EXISTS BECAUSE OF HOW HE SAID HE FINDS MISTAKES**: *"Most likely the user will realize if he looks at his purchase history for the last week/couple of days."* **Nothing in this app lists DOCUMENTS** — `Costos` is per product, `today.ts` is a total and a count, and `Números` is not built. **This is the surface every correction is reached from**, so it comes first and it writes nothing. ⚠️ **A read module, a hook and a screen**: recent `purchase` and `sale` documents with their lines, newest first, both kinds, bounded — the `@/api/costs` shape one table over, and the same `purchase!inner` composite-embed and `::text` cast questions, which `5f.5` has now measured. ⚠️ **Standing documents only**: a reversal and the document it cancels both drop, which is `costsFrom`'s rule and is what makes *"just one line, clean"* true. ⚠️⚠️ **THE FENCE IS ALREADY RIGHT AND IS NOT THIS ROW'S TO CHANGE**: `sale_select` and `sale_line_select` admit any member at their own location with no role gate (`0003`), and `0040` made `purchase_select` match — so a cashier sees her own store's documents and nobody else's. ⚠️ **Measured 2026-09-26, not assumed: `sale` and `purchase` carry the identical `reversal_of`, `reversal_reason`, `created_by`, `recorded_offline` quartet**, so one module reads both. ⚠️ **Where the list is reached FROM is a look-question and he has already bounded it** — *"if we can add these functionalities easily reachable and usable let's do so. We'll polish the interface later."* ⚠️ **It ships no migration.** | `M` | ✅ **UNGATED** |
+| **5h-ii-b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-26 — ITS GATE CLEARED WHEN `5h-ii-a` CLOSED, AND THERE IS NOW A LIST TO CORRECT FROM.** ⚠️ **What it inherits, so it does not re-measure any of it:** `void_transaction` is granted to `authenticated` (`0021:448`); a reversal is stamped at the moment of the **VOID**, not of the document it cancels (`0021:316`), so it lands at the top of `Lo último`; `documentsFrom` already drops both halves of a reversal, so a corrected document reads *"just one line, clean"* with no further work; and `<kind>_one_reversal_idx` means anything still standing in that list has not been corrected, so a double-tap cannot be one. ⚠️ **What it must WIDEN, named by `5h-ii-a` rather than discovered here:** `DOCUMENTS_LINE_COLUMNS` needs `unit_price_net_per_base` to prefill a re-record, and `DOCUMENTS_HEAD_COLUMNS` needs `created_by` to render the role fence — **both are one string each plus a re-run of `docs/checks/5h-ii-a-documents-contract.sh` and its falsifier**, whose `F7` fixture currently asserts `created_by` is absent and will need inverting. **`Corregir` and `Eliminar`, over `void_transaction`.** ⚠️⚠️ **`Corregir` IS NOT AN EDIT AND CANNOT BE: this ledger has never changed a row.** It is **a void and a re-record** — `void_transaction` followed by a re-record with the old lines prefilled into the cart — **and the shopkeeper never sees the word cancel** ([[users-dont-do-bookkeeping]]). `Eliminar` is the void alone, for the delivery recorded twice — *"yes, delete for a duplicate."* ⚠️ **Both screens, at his instruction — *Mirror it for Vender*, and the sale side is the same build because `record_sale` and `void_transaction` already take it.** ⚠️ **It ships no migration.** ⚠️⚠️ **IT SHIPS NO MIGRATION, AND THAT IS THE FINDING `5h-i` PAID FOR**: `void_transaction(p_kind, p_id, p_reason)` is applied (`0021`) and **granted to `authenticated`** — `proacl` reads `authenticated=X/postgres`, confirmed on the applied schema 2026-09-26. The plan said otherwise for a day. ⚠️ **The RPC is idempotent on the original's id** and `<kind>_one_reversal_idx` makes a document reversible at most once, so a double-tap is answered rather than duplicated. ⚠️⚠️ **THE REFUSAL IS `TD003` AND IT MUST RENDER AS A SENTENCE, NOT A CODE** — a cashier outside the window gets *ask a manager*, and `@/api/errors` is where that mapping belongs (`R12`). ⚠️⚠️ **ROSA'S OWN CASE ALREADY WORKS AND THIS ROW DID NOT MAKE IT WORK:** `void_window_minutes` was set to **1440** on the pilot shop on 2026-09-26, before a line of this child existed. **The client renders the fence and never sets it**, so there is nothing here to build for it — but the refusal path is still real for anything older than 24 hours and `TD003` must still render as a sentence. ⚠️ **`reversal_reason` is stored**, which is the audit trail he asked for: *"Of course we will have a history of any of these changes for audit reasons."* | `M` | ✅ **UNGATED as of 2026-09-26** — ~~gated on `5h-ii-a`: there is nothing to correct from until there is a list to correct from~~. ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** `5h-ii-a` shipped the list, and this row's own argument is why it was first |
 | **5h-ii-c** | **The document that has not been sent yet.** ⚠️⚠️ **ITS OWN ROW FOR THE AGREEMENT'S REASON (2) AND NOT FOR SIZE: a write still in the OUTBOX is a second failure class and it is invisible from the screen.** The pilot store is offline half the day ([[pilot-store-is-offline-a-lot]]), so a delivery keyed with no signal is a `QueuedWrite` with a client-generated id and **no row in the database** — `void_transaction` has nothing to take, and `5h-ii-b`'s buttons would refuse or, worse, appear to work. ⚠️ **The honest answer is that this is not a void at all**: cancelling an unsent write is dropping it from the outbox, and correcting one is replacing its payload before it goes. **Neither touches the server.** ⚠️⚠️ **AND THAT IS EXACTLY WHY IT MUST NOT RIDE INSIDE `5h-ii-b`**: one row would let the queue half ship on the back of the half a person can look at, and the outbox is the part no screen shows. `@/api/outbox`'s state machine and `app/test/` are the instruments. ⚠️⚠️ **THE QUESTION WAS PUT TO THE OWNER TWICE IN `5h-i` AND NOT ANSWERED** — *should she be able to fix it while it is queued, or wait until it lands?* — **so this row's first job is to ask it again**, and it is cheap to answer once there is something to look at. ⚠️ **It ships no migration.** | `S/M` | ⏳ **Gated on `5h-ii-b`** — it is the same two affordances against a different store |
 | **5h.5** | ⚠️⚠️ **ITS GATE IS NOW `5h-ii-c`, RE-POINTED 2026-09-26 — AND THIS IS THE SECOND TIME IN TWO DAYS, WHICH IS THE POINT.** `5h`'s split of 2026-09-25 moved it from `5h` to `5h-ii`; `5h-ii`'s own split of 2026-09-26 made `5h-ii` a parent in turn, and **a gate naming a row that is no longer takeable is a gate nobody can clear.** ⚠️ **`5h-ii-c` is the LAST child**, so the gate still means *after all of the undo work*, which is what it meant when it was written. ~~its gate is now `5h-ii` rather than `5h`, which `5h`'s split of 2026-09-25 made necessary~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **THE `src/ui/` HALF OF THE CONVENTIONS, RE-HOMED HERE 2026-09-18 WHEN `5b.5` CLOSED — a decision taken on the owner's behalf, named in that session's closing message and in its PR.** `CONVENTIONS.md`, third pass: the shared-component conventions, written once `5d`–`5h` have produced real primitives. ⚠️ **`5b.5` could not write them and did not pretend to** — there is no `app/src/ui/` and there was none on the day it ran; the only shared component in the app is `src/scaffolding/Pendiente.tsx`, which exists to say a screen is not built yet. Describing primitives that do not exist is precisely what the owner refused on 2026-09-13 (*"rather than ten primitives guessed at against screens nobody has drawn"*), and ADR-035 §2.10 says the claim is **order relative to step 6**, not the letter of the task. ⚠️ **This row owes `docs/CONVENTIONS.md` a pass, and `docs/checks/conventions-gate.sh` reads that sentence** — the page names this task in its own heading and the gate compares the two, so neither copy can go quiet alone. Numbered in the shape of `4.5`/`5b.5`: an interstitial obligation, not a build step. ✅✅ **AND ADR-035 §3 NAMES IT, AS OF THE OWNER'S RULING OF 2026-09-18** — *"amend ADR-035 §3 to say 5h.5"* — so this row is no longer the only place the third pass exists, and `docs/checks/conventions-gate.sh` asserts the ADR still names it. | `S` | ⚠️⚠️ **GATED ON `5h` CLOSING, AND IT IS THE LAST MOMENT THIS IS CHEAP.** `src/ui/` is built across `5d`–`5h` (ADR-035 §2.11 names ~10 primitives; §3 requires them before step 6), so this is the first day a real pattern exists and the last day before step 6's four screens arrive to one. ⚠️ **If step 6 is reached with this row open, the four screens arrive to nothing** — which is the outcome §2.10 and §3 were both written to prevent, and the reason `5b.5` existed at all |
 | **5i** | ⚠️ **DEFERRED OUT OF `5a-iii` ON 2026-09-11 — THE v2 PILOT'S SIGN-IN.** **Facebook.** One `signInWithOAuth({provider:'facebook'})` on the shell `5a-iii` already built, **plus the `linkIdentity()` path for the accounts that exist by then** and `enable_manual_linking` (`supabase/config.toml:188`, `false` today). ⚠️ **The code is the smallest part of this task.** | `S` code, `M` everything else | ⚠️⚠️ **A PUBLIC `aviso de privacidad` PAGE.** Facebook Live mode needs it, Google publishing needs it, and LFPDPPP owes it regardless — **one page unblocks all three.** Plus the Facebook app and a Business portfolio ⚠️⚠️ **AND TWO PILOT-DAY INSTALL FINDINGS, PROMOTED FROM PROSE 2026-09-13 — neither is about sign-in, both block getting the app ONTO a pilot phone.** ⚠️ **Samsung's Auto Blocker can refuse a sideloaded install**, and C1.1 puts a Samsung among the four devices while there is no Play listing until this step — measured on a borrowed Galaxy Z Flip 8, where it also held the USB-debugging toggle shut. ⚠️ **The Release APK is signed with Expo's DEBUG keystore**; an app later signed with a real one cannot update an install made with this one — it must be uninstalled first, which costs a shop its local data. **Same family as the provisional bundle id: free now, not free once a pilot phone holds an outbox.** |

@@ -352,6 +352,23 @@ on:
       - "docs/checks/5f.5-magnitude-contract.sh"
       - "docs/checks/5f.5-magnitude-contract-falsify.sh"
 
+      # ⚠️⚠️ AND THE LIST EVERY CORRECTION IS REACHED FROM, as of plan task
+      # `5h-ii-a`. `app/src/api/documents.ts` is the first read in this app to
+      # start at a DOCUMENT and ask for its LINES — a **to-many** embed over a
+      # **composite** foreign key, where every other embed here is to-one and read
+      # from the line. Four of its claims are 200-and-wrong rather than red, and
+      # nothing but a real PostgREST can see any of them: that the embed resolves
+      # at all; that `::text` survives INSIDE it (without the cast `3.000` arrives
+      # as the number `3` and the screen still looks right); that a parent `limit`
+      # counts DOCUMENTS rather than joined rows, so `DOCUMENTS_LIMIT` never cuts a
+      # delivery in half; and that PostgREST will sort the lines by a NESTED
+      # embedded column — which it must, because **nothing in this schema records
+      # the order a shopkeeper keyed them in.** ⚠️ It also asserts an Empleada
+      # reads both kinds, headers AND lines: she is the person who keys the
+      # deliveries, and before `0040` her read was 200 and an empty array.
+      - "docs/checks/5h-ii-a-documents-contract.sh"
+      - "docs/checks/5h-ii-a-documents-contract-falsify.sh"
+
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
   group: db-${{ github.ref }}
@@ -456,6 +473,113 @@ jobs:
   # family. And the price written TODAY must be on TODAY's catalog read, byte
   # for byte, through `5d-i`'s own window — the only place `pricePerBase` and
   # `priceCentavos` meet over a real `numeric(14,6)`.
+  # ===========================================================================
+  # ⚠️⚠️ ITS OWN JOB, AND IT IS THE SAME MEASUREMENT `catalog-write` MADE —
+  # ADDED BY `5h-ii-a` ON 2026-09-26, WHICH IS THE THIRD TIME THIS WORKFLOW HAS
+  # SPLIT RATHER THAN APPEND. These two steps were written into `catalog-write`
+  # first and taken back out: **that job was already running 12-13 minutes against
+  # its `timeout-minutes: 15` cap**, by its own header, and it had been cancelled
+  # three times on `main` before `5R-g` split it. Appending to a job that close to
+  # its cap is how a cancellation becomes deterministic — and ⚠️ **a cancelled job
+  # is neither a pass nor a failure, and it is the worst of the three to merge on**
+  # ([[a-cancelled-ci-job-is-not-a-failed-assertion]]: `gh pr checks` prints
+  # "fail" for both, and this repository merged red once on that confusion).
+  # ⚠️ Jobs run in parallel, so this costs wall-clock nothing.
+  #
+  # ⚠️⚠️ WHAT IT GUARDS (plan task `5h-ii-a`): THE FIRST **TO-MANY** EMBED OVER A
+  # **COMPOSITE** FOREIGN KEY IN THIS APP. Every other embed here is to-ONE and read
+  # FROM the line — `purchase!inner(…)`, `family(…)`. `app/src/api/documents.ts`
+  # starts at the DOCUMENT and asks for its LINES, and four of its claims are
+  # **200-and-wrong rather than red**, with nothing but a real PostgREST able to see
+  # any of them:
+  #
+  #   * the embed resolving at all, rather than 400-ing on an ambiguous relationship;
+  #   * `::text` surviving INSIDE it — and on `qty_display` that failure is nearly
+  #     invisible, because the double `3` renders as `3 kg` and only a fractional
+  #     quantity gives it away;
+  #   * a parent `limit` counting DOCUMENTS rather than joined rows, so
+  #     `DOCUMENTS_LIMIT` never renders a delivery with some of its lines — the one
+  #     failure on this screen a shopkeeper would act on and could not detect;
+  #   * and PostgREST sorting the lines by a NESTED embedded column, which it MUST,
+  #     because **nothing in this schema records the order she keyed them in**: there
+  #     is no ordinal column and `created_at` is identical across every line of one
+  #     document, so an unordered embed returns heap order and reshuffles on a
+  #     re-plan with nothing going red.
+  #
+  # ⚠️ It also asserts an Empleada reads both kinds, HEADERS AND LINES. She is the
+  # person who keys the deliveries, and before `0040` her purchase read was **200
+  # and an empty array** — never a 403 — which on this screen is every document
+  # present and every one apparently empty.
+  # ===========================================================================
+  # ⚠️ THE KEY IS `recent-documents` AND NOT `documents`, WHICH IS NOT FUSSINESS:
+  # `app.yml` ALREADY HAS A JOB KEYED `documents` — *the documents still agree (plan
+  # + handbook)* — and two jobs of that name mean completely unrelated things. The
+  # working agreement says to **confirm the checks by name in the log**, and two
+  # identically-keyed jobs is exactly how that reading goes wrong.
+  recent-documents:
+    name: the list every correction is reached from
+    runs-on: ubuntu-latest
+    # ⚠️⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE, AND THE NUMBER BEHIND IT IS MEASURED
+    # RATHER THAN GUESSED — because the first version of this comment said *roughly
+    # seven minutes* and set the cap to twenty, and that was a guess off the fixture
+    # count. **Measured on 2026-09-26: the ten-fixture harness runs in 18.7 seconds
+    # and the check itself in about ten**, even though the harness drives the whole
+    # live check ten times, because each run reuses a warm GoTrue.
+    # ⚠️ WHAT CAN MAKE IT SLOW IS NOT THE FIXTURES, IT IS SIGNUP: GoTrue rate-limits
+    # and answers with an EMPTY BODY rather than a 429, so the retry loop inside the
+    # check sleeps ten seconds a try, six tries, three people per run. A cold or
+    # throttled runner is where the minutes would come from, and fifteen leaves room
+    # for it.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned for `reset`'s reason: a CLI release must not turn a green
+          # schema red without a commit saying why.
+          version: 2.114.0
+
+      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS — the check signs
+      # three people up through GoTrue and reads through PostgREST, both via Kong.
+      # The exclusion list is `catalog-write`'s, for its reason.
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      # ⚠️⚠️ THE ONLY THING ANYWHERE THAT CAN SEE A TO-MANY EMBED OVER A COMPOSITE
+      # FOREIGN KEY RESOLVING — the first of either in this app — and the only
+      # thing that can see `::text` surviving inside one. ⚠️ On `qty_display` that
+      # failure is nearly invisible: the double `3` renders as `3 kg` and only a
+      # fractional quantity gives it away. ⚠️ It also drives a read with NO line
+      # order in the same run and shows it answers a DIFFERENT order, so
+      # "alphabetical" is a measurement rather than a coincidence of the planner.
+      - name: Contract — does app/src/api/documents.ts still describe the schema (plan 5h-ii-a)
+        run: bash docs/checks/5h-ii-a-documents-contract.sh
+
+      # ⚠️ Ten fixtures: a green control, eight mutated copies of the app's own
+      # contract module, and one that puts back the manager fence `0040` removed.
+      # ⚠️⚠️ `F1` and `F5` are the two it exists for — the cast inside the embed,
+      # and the line order spelled as a bare column, which is the edit a reader who
+      # has just learned `COSTS_ORDER`'s lesson would make and is the WRONG lesson
+      # for a to-many embed. ⚠️ The live check paid for itself three times before
+      # this harness existed: `record_sale` takes `unit_price_gross_per_base`,
+      # `0018:222` clamps `occurred_at` to 72 hours (so no fixture can be outside a
+      # seven-day window), and `0021:316` stamps a reversal at the moment of the
+      # VOID rather than of the document it cancels.
+      # ⚠️ The restore is in a `trap` on every exit path, read out of `pg_policies`
+      # rather than remembered.
+      - name: Contract — can the documents check still fail (its own ten fixtures)
+        run: bash docs/checks/5h-ii-a-documents-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
   # ===========================================================================
   catalog-write:
     name: the catalog write, and the manager fence on it

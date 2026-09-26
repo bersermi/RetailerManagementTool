@@ -53,6 +53,14 @@ const VOCABULARY = new Set<string>([
   ...Object.values(ES.tabs),
   ES.catalog.title,
   ES.providers.title,
+  // ⚠️ ADDED 2026-09-26 BY `5h-ii-a`, AND IT IS THE FIRST DOOR WHOSE WORD IS NOT
+  // ALSO A TAB OR A MODULE NAME. `Lo último` is a LOOK rather than a room — it
+  // is what the owner reaches for to find a mistake (*"if he looks at his
+  // purchase history for the last week/couple of days"*) — so there is no
+  // existing name for it to match. **That is the one case this set was written
+  // to catch**, so it is widened deliberately and named here rather than by
+  // loosening the assertion.
+  ES.documents.title,
 ]);
 
 describe('§2.8 — state comes first, and the checks below are not vacuous', () => {
@@ -94,16 +102,25 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   });
 });
 
-describe('§2.8 — the five doors, three as cards and two as rows', () => {
-  it('carries five doors and no more', () => {
-    // Pinned rather than "> 0": a sixth door is a decision about what Inicio is
-    // for, not a tidy-up, and it should stop here.
-    expect(INICIO_DOORS).toHaveLength(5);
+describe('§2.8 — the six doors, three as cards and three as rows', () => {
+  // ⚠️⚠️ IT WAS FIVE UNTIL 2026-09-26, AND THIS ASSERTION IS WHAT MADE THE SIXTH
+  // A DECISION RATHER THAN A TIDY-UP — which is exactly what its own comment
+  // said it was for, so it worked. `5h-ii-a` added `documentos`, and the
+  // reasoning is in `@/navigation/inicio`'s row, in that task's plan entry and
+  // in a revision entry on ADR-035 §2.8's Home row, **which enumerated five**.
+  // ⚠️ The placement is parked in ⛔ DECISIONS OWED: a screen nobody can reach
+  // cannot be judged on a phone, and judging it is `R9`'s whole arrangement — so
+  // the door ships and the question is re-offered until he rules on it.
+  it('carries six doors and no more', () => {
+    // Still pinned rather than "> 0": a SEVENTH door is a decision about what
+    // Inicio is for, not a tidy-up, and it should stop here.
+    expect(INICIO_DOORS).toHaveLength(6);
     expect(INICIO_DOORS.map((d) => d.key)).toEqual([
       'vender',
       'comprar',
       'desperdicio',
       'productos',
+      'documentos',
       'proveedores',
     ]);
   });
@@ -116,8 +133,16 @@ describe('§2.8 — the five doors, three as cards and two as rows', () => {
     ]);
   });
 
-  it('draws Productos and Proveedores as rows, in §2.8s order', () => {
-    expect(doorsOfShape('fila').map((d) => d.key)).toEqual(['productos', 'proveedores']);
+  // ⚠️ `documentos` SITS BETWEEN THEM AND NOT AT THE END, which is a decision
+  // about order rather than an accident: Proveedores is the only door on this
+  // screen with no room behind it (`6b`), and a LIVE door below a dead one reads
+  // as the live one being the afterthought.
+  it('draws Productos, Lo último and Proveedores as rows, in order', () => {
+    expect(doorsOfShape('fila').map((d) => d.key)).toEqual([
+      'productos',
+      'documentos',
+      'proveedores',
+    ]);
   });
 
   it('accounts for every door in one shape or the other', () => {

@@ -118,6 +118,22 @@ import {
   type CostLineRow,
 } from '@/api/costs';
 import {
+  DOCUMENTS_COLUMNS,
+  DOCUMENTS_DAYS,
+  DOCUMENTS_LIMIT,
+  DOCUMENTS_LINE_ORDER,
+  DOCUMENTS_LINE_ORDER_ASCENDING,
+  DOCUMENTS_LINE_TABLE,
+  DOCUMENTS_ORDER,
+  DOCUMENTS_ORDER_ASCENDING,
+  DOCUMENTS_SINCE_COLUMN,
+  DOCUMENTS_TABLE,
+  DOCUMENTS_TIEBREAK,
+  sinceISO,
+  type DocumentKind,
+  type DocumentRow,
+} from '@/api/documents';
+import {
   MAGNITUDE_COLUMNS,
   MAGNITUDE_LIMIT,
   MAGNITUDE_ORDER,
@@ -925,6 +941,63 @@ export async function shopMagnitude(): Promise<MagnitudeRow[]> {
     .limit(MAGNITUDE_LIMIT);
   if (error) throw reported(error);
   return (data ?? []) as unknown as MagnitudeRow[];
+}
+
+/**
+ * ONE KIND'S RECENT DOCUMENTS, WITH THEIR LINES — the list `5h-i` found the
+ * owner reaching for and this app has never had. Plan task `5h-ii-a`.
+ *
+ * ⚠️⚠️ THE EMBED IS **TO-MANY** AND OVER A **COMPOSITE** FOREIGN KEY, WHICH IS
+ * THE FIRST OF EITHER IN THIS APP. `purchase_line_header_fk` is `(purchase_id,
+ * workspace_id, location_id)` → `purchase (id, workspace_id, location_id)`, read
+ * from the PARENT this time rather than from the line. Driven against a real
+ * PostgREST on 2026-09-26 it answers **200** with the lines as a nested array,
+ * every cast field a JSON string, and the parent `limit` counting DOCUMENTS
+ * rather than truncating them — `docs/checks/5h-ii-a-documents-contract.sh` is
+ * the round trip, and all three of those could have gone the other way.
+ *
+ * ⚠️⚠️ TWO `.order` CALLS IN TWO DIFFERENT SPELLINGS, AND THAT IS NOT AN
+ * INCONSISTENCY. The parent is sorted by its OWN column, so a plain
+ * `.order('occurred_at')` is right and `COSTS_ORDER`'s column-expression
+ * ceremony is unnecessary. The LINES are sorted with `{ referencedTable }` —
+ * the spelling that constant forbids — because that is the one that sorts rows
+ * *inside* each parent, which is a silent no-op on a to-one embed and is exactly
+ * the job on a to-many one. **See `DOCUMENTS_LINE_ORDER` for why the lines need
+ * an order at all: nothing in this schema records the order they were keyed in.**
+ *
+ * ⚠️ ONE FILTER AND NO UPPER BOUND, `todaySales`' reason: `0003` clamps
+ * `occurred_at` to `[now() - 72h, now()]`, so no row is in the future and `gte`
+ * alone is the whole window.
+ *
+ * ⚠️ NO `location_id` FILTER, AND THAT IS THE POLICY'S DECISION RATHER THAN THIS
+ * FILE'S. `sale_select` / `sale_line_select` admit any member at their own
+ * locations with no role gate (`0003`), and `0040` made the purchase pair match
+ * — so a cashier reads her own store's documents and nobody else's, **by policy
+ * and not by a predicate anyone here can get wrong.**
+ *
+ * ⚠️ THE WINDOW IS COMPUTED HERE AND NOT IN THE KEY — `documentsKey`'s
+ * paragraph: `sinceISO` reads the clock, and a clock in a cache key re-fetches
+ * this list on every render.
+ */
+export async function recentDocuments(kind: DocumentKind): Promise<DocumentRow[]> {
+  const { data, error } = await supabase
+    .from(DOCUMENTS_TABLE[kind])
+    .select(DOCUMENTS_COLUMNS[kind])
+    .gte(DOCUMENTS_SINCE_COLUMN, sinceISO(new Date(), DOCUMENTS_DAYS))
+    // ⚠️ THE PARENT'S OWN COLUMN, so the plain spelling is the correct one here.
+    .order(DOCUMENTS_ORDER, { ascending: DOCUMENTS_ORDER_ASCENDING })
+    // ⚠️ THE TIEBREAK, so `5h-ii-b` acts on the row a thumb actually landed on.
+    .order(DOCUMENTS_TIEBREAK, { ascending: DOCUMENTS_ORDER_ASCENDING })
+    // ⚠️⚠️ `{ referencedTable }` ON PURPOSE — see this function's header and
+    // `DOCUMENTS_LINE_ORDER`. This is the spelling `COSTS_ORDER` documents as a
+    // trap, and it is the right one for a to-many embed.
+    .order(DOCUMENTS_LINE_ORDER, {
+      referencedTable: DOCUMENTS_LINE_TABLE[kind],
+      ascending: DOCUMENTS_LINE_ORDER_ASCENDING,
+    })
+    .limit(DOCUMENTS_LIMIT);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as DocumentRow[];
 }
 
 /**

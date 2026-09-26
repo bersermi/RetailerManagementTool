@@ -55,10 +55,15 @@ export interface InicioDoor {
   readonly key: string;
   readonly shape: InicioShape;
   /**
-   * The word on the door. ⚠️ READ FROM `ES.tabs` AND `ES.catalog` RATHER THAN
-   * RESPELLED: Inicio is a SECOND door onto rooms that already have names, and
-   * a card that says one word above a tab that says another is this
-   * repository's stale-duplicate defect in its cheapest form.
+   * The word on the door. ⚠️ READ FROM `ES.tabs`, `ES.catalog`, `ES.providers`
+   * AND `ES.documents` RATHER THAN RESPELLED: Inicio is a SECOND door onto rooms
+   * that already have names, and a card that says one word above a tab that says
+   * another is this repository's stale-duplicate defect in its cheapest form.
+   *
+   * ⚠️⚠️ `ES.documents` IS THE EXCEPTION THAT PROVES THE RULE, ADDED 2026-09-26:
+   * `Lo último` names no tab and no module, because it is a LOOK rather than a
+   * room. `app/test/inicio.test.ts`'s `VOCABULARY` was widened for it
+   * deliberately rather than loosened — see that file.
    */
   readonly label: string;
   /** C12.1 — every one of these has a word beside it, and never appears alone. */
@@ -87,14 +92,24 @@ export interface InicioDoor {
 }
 
 /**
- * The five doors §2.8 puts on Inicio, in the order it puts them.
+ * The doors on Inicio, in order — ⚠️⚠️ **SIX SINCE 2026-09-26, AND FIVE OF THEM
+ * ARE §2.8's.**
  *
  * ⚠️ THE THREE CARDS GO WHERE THE TABS GO, AND THAT IS THE REDUNDANCY THE
  * AMENDMENT BOUGHT ON PURPOSE. §2.8's original sentence refused a nav panel
- * here as *"redundant"*; the amendment overrides it in one line — *"the
- * redundancy the original sentence feared is real and is paid for on purpose:
- * it buys a fifth and sixth destination that otherwise have no home."* Those
- * two are Productos and Proveedores, the rows below.
+ * here as *"redundant"*; the amendment of 2026-09-17 overrides it in one line —
+ * *"the redundancy the original sentence feared is real and is paid for on
+ * purpose: it buys a fifth and sixth destination that otherwise have no home."*
+ * Those two are Productos and Proveedores, the rows below.
+ *
+ * ⚠️⚠️ **`documentos` IS THE ONE §2.8 DOES NOT NAME**, added by `5h-ii-a` because
+ * `5h-i` found the owner reaching for a screen that did not exist and
+ * `5h-ii-b`'s corrections are reached from nothing else. **ADR-035 §2.8's Home
+ * row enumerated five doors and now carries a revision entry saying six** — the
+ * ADR is authoritative, so it was amended rather than left to disagree with this
+ * table. ⚠️ **Whether Inicio is the right home for it is parked in
+ * ⛔ DECISIONS OWED**: the row ships so the screen can be reached and judged on a
+ * phone (`R9`), and the question is re-offered every session until he rules.
  */
 export const INICIO_DOORS: readonly InicioDoor[] = [
   {
@@ -134,14 +149,36 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
       'already sees every variant and its price on Vender (C3.1).',
   },
   {
+    key: 'documentos',
+    shape: 'fila',
+    label: ES.documents.title,
+    icon: 'clipboard-text-clock-outline',
+    route: '/documentos',
+    why:
+      'THE SIXTH DOOR, AND THE ONLY ONE §2.8 DOES NOT NAME — it is ' +
+      "the owner's own from 5h-i: *\"Most likely the user will realize if he " +
+      'looks at his purchase history for the last week/couple of days."* ' +
+      '5h-ii-a builds it and 5h-ii-b hangs Corregir and Eliminar off its rows, ' +
+      'so this row is how a correction is reached at all. ⚠️ A row and not a ' +
+      'card: it is a thing you go and look at between customers, which is the ' +
+      'same reading that put Productos here. ⚠️ The glyph is the CLIPBOARD WITH ' +
+      'A CLOCK and not a receipt or a history arrow: this is what happened ' +
+      'lately, and the only other clock in the app is the offline banner. ' +
+      '⚠️ It is drawn OPEN from the day it lands, unlike Proveedores — the room ' +
+      'exists.',
+  },
+  {
     key: 'proveedores',
     shape: 'fila',
     label: ES.providers.title,
     icon: 'account-tie-outline',
     route: null,
     why:
-      'THE SIXTH DESTINATION, and the only door on this screen with no room ' +
-      'behind it. 6b builds Proveedores; until then it is drawn and drawn dead, ' +
+      "THE SIXTH DESTINATION IN §2.8's OWN COUNT, and still the only door on " +
+      'this screen with no room behind it — it is LAST in the table rather than ' +
+      'fifth because a live door below a dead one reads as the live one being ' +
+      'the afterthought (5h-ii-a, 2026-09-26). ' +
+      '6b builds Proveedores; until then it is drawn and drawn dead, ' +
       'with ES.home.notYet under it. ⚠️ A row and not a card: §2.8 lists it ' +
       'beside Productos, which is a room you visit, not a thing you do all day. ' +
       '⚠️ The glyph is the PERSON and not the truck: truck-delivery is already ' +

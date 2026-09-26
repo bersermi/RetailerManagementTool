@@ -571,8 +571,12 @@ guessed at against screens nobody has drawn.
 `R13` above, and the row added to `R3`.** `5b-i` produced the real pattern the
 ruling was waiting for. ⚠️⚠️ **The `src/ui/` half is STILL unchanged by that, and
 the directory existing does not change it either**: the ruling was about *"ten
-primitives guessed at against screens nobody has drawn"*, and the five that now
-exist were all extracted from drawn screens. **Describing their conventions is a
+primitives guessed at against screens nobody has drawn"*, and the **six** that now
+exist were all extracted from drawn screens. ⚠️ **This said *five* until 2026-09-26**
+— `ls app/src/ui | wc -l` returns six (`Buscador`, `Cantidad`, `Deslizador`,
+`Separador`, `TecladoListo`, `Vacio`), and `CLAUDE.md` has said six since `5g-ii`
+minted the directory. **Two files counting the same directory and disagreeing** is
+the defect this page's own guard exists for, and no check reads this number. **Describing their conventions is a
 separate act and it needs the LAST such screen**, which is `5h`'s. So the
 obligation stays exactly where it was — at **`5h.5`**,
 after the last screen that builds a primitive and **before step 6**, which is
