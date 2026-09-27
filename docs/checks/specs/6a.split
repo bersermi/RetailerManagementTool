@@ -62,5 +62,17 @@ EACH_CHILD_SAYS=(
   # ⚠️⚠️ AND THAT ABSENCE IS THE POINT OF THIS SPLIT: `5d-iv.split` could assert it of
   # BOTH children because neither shipped one. Here one child does, so a spec that
   # demanded the sentence of both would force `6a-ii` to carry a claim that is false.
-  "I|Desperdicio|Both halves must name the module they belong to, because step 6 is the first step whose rows are four independent screens and a child row that does not say which screen it is about is a row a cleared session cannot place."
+  #
+  # ⚠️⚠️ THE FIRST SPELLING WAS `Desperdicio` AND IT WAS A SENTINEL THE FALSIFIER COULD
+  # NOT REMOVE — caught by `S9` on the first CI run, which is that harness doing exactly
+  # its job. Mode `I` matches case-insensitively, `6a-i`'s row says `desperdicio.tsx`
+  # twice, and stripping the one capitalised `Desperdicio` left the check green. **A
+  # required statement whose phrase also occurs inside a filename is a statement nothing
+  # can prove is load-bearing.**
+  #
+  # ⚠️ `waste_line_select` IS THE RIGHT ONE FOR A SECOND REASON BESIDES BEING UNIQUE: it
+  # is the fence that caused this split. `6a-i` must say why it reads nothing back, and
+  # `6a-ii` must say what it is working around — **so a session holding either row alone
+  # knows the other exists and why.**
+  "I|waste_line_select|The manager gate on waste_line that waste_select does not carry (0003:596) is the whole reason this row is two rows. A child that does not name it reads as a screen that simply forgot a list, and the next session would write the view without anybody ruling on who may read it."
 )
