@@ -898,16 +898,27 @@ with `unavailable` means the Mac cannot see the phone at all**, and a retry loop
 lock will spin on it for ever. ⚠️ **The earlier note that *`unavailable` was read for the first ten
 minutes* on 2026-09-25 describes a transient; this was not one.**
 ⚠️ **WHAT HE HAS TO DO, AND IT IS THE ONLY THING WAITING ON A PERSON HERE:** get the phone and this
-Mac onto the same network (or plug the phone in), and say so — **the build is already made**, so the
-install is two commands and about a minute. ⚠️ **`docs/checks/5a-iv-a-runsheet.md` §2 steps 2 and 3
-are those commands**, and the built app is at
+Mac onto the same network (or plug the phone in), and say so. ⚠️ **`docs/checks/5a-iv-a-runsheet.md`
+§2 steps 2 and 3 are the install commands**, and the built app is at
 `~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app`.
+
+⚠️⚠️ **AND THE SENTENCE THIS REPLACES IS ALREADY STALE — CORRECTED BY `6a-ii-b` THE SAME DAY.**
+~~the build is already made, so the install is two commands and about a minute~~. **That build is
+`6a-ii-a`'s**, and `6a-ii-b` shipped after it: installing it now would hand him a phone carrying the
+write-off LIST and not the two controls on it, **which is precisely the state the `6a-ii-a` row above
+describes as deliberate and which is no longer true.** ✅ **So the order is REBUILD, then install** —
+one more command in front of the two, and the runsheet's step 1 is it. ⚠️ **Re-measured 2026-09-27
+after `6a-ii-b`: nothing has changed on the machine side.** `devicectl list devices` still reads
+**`unavailable`**, the hostname still does not resolve, and `networksetup -getairportnetwork en0`
+still answers *"You are not associated with an AirPort network"* — **so the blocker is this Mac's
+Wi-Fi rather than the phone**, and no retry loop can fix it.
 
 ⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS A SHORT LIST THIS TIME.** Whether **three
 buttons fit on one row** — *Desperdicio* is eleven characters where *Compras* is seven. Whether a
 write-off row **with no peso figure at all** reads as finished or as broken. And whether the cause
 belongs **under the date**, where a supplier's name sits on a delivery, or on each line.
-**None of it can be looked at until the install lands.**
+**None of it can be looked at until the install lands.** ⚠️⚠️ **AND `6a-ii-b` HAS ADDED TO THAT
+LIST RATHER THAN CLEARING IT** — two rows of Desperdicio work are now waiting on one install.
 
 
 ⚠️⚠️ **AND 2026-09-27 NOW HAS A FILE OF ITS OWN —
@@ -917,8 +928,8 @@ line**, with `## Position` at **1,290 of 1,400**: 110 lines of headroom against 
 40–130, which is enough to pass and not enough to write with. ⚠️ **It is `6a-ii-a`'s note in
 `CLAUDE.md` being obeyed rather than a ceiling being hit** — *the next session should expect to take a
 cut before it can write its own.* **263 lines out**, the day's two oldest entries taken oldest-first:
-`6a-ii`'s sizing and split, and `6a-i`'s closing entry. ⚠️ **`## Position` came back at 1,144 with this
-row's entry in place, which is 256 lines of room — the first time in four sessions that the next one
+`6a-ii`'s sizing and split, and `6a-i`'s closing entry. ⚠️ **`## Position` came back at 1,155 with this
+row's entry in place, which is 245 lines of room — the first time in four sessions that the next one
 does not open by archiving.**
 ⚠️⚠️ **AND THE RUNNING CUT ORDINAL IS THIS BLOCK'S AND `CLAUDE.md`'s NO LONGER.** That file carried
 *twenty-one cuts* while the paragraphs below already named a twenty-fourth — **two counters for one

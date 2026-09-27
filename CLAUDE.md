@@ -87,9 +87,9 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6a-ii-b`: 5,353 lines
-total, 1,144 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
-prints both numbers and the next task id). ⚠️ **That is 256 lines of headroom, which is the first
+at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6a-ii-b`: 5,364 lines
+total, 1,155 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
+prints both numbers and the next task id). ⚠️ **That is 245 lines of headroom, which is the first
 time in four sessions this line has been able to say the next one need not archive first** — the
 twenty-third cut went out oldest-first before a word of the entry was written, which is the advice
 `5h-ii-c` left here, `6a-ii-a` obeyed, and `6a-ii-b` obeyed again. **The cap is a tripwire and the
