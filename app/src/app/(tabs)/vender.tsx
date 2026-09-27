@@ -305,7 +305,7 @@ export default function Vender() {
           cart,
           entries,
           factors,
-          kind: 'sell',
+          scope: 'sell',
           pricesIncludeTax: workspace.pricesIncludeTax,
           workspaceId: workspace.id,
           locationId,
@@ -578,7 +578,7 @@ function Fila({
         entry={entry}
         base={base}
         factors={factors}
-        kind="sell"
+        scope="sell"
         onEdit={onEdit}
         padId={PAD_ID}
       />
@@ -1063,7 +1063,7 @@ function Renglon({
 
       {/* The controls, on their own line — see this component's header. */}
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} kind="sell" padId={PAD_ID} />}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="sell" padId={PAD_ID} />}
 
         {/* ⚠️ A WORD AND NOT A GLYPH, and the width is the reason as much as the
             clarity: an icon plus its word does not fit beside the stepper at

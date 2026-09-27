@@ -36,11 +36,10 @@
 // disk drains a queue that does not yet contain the sale.
 // ============================================================================
 
-import type { Kind } from '@tienda/money';
-
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 import type { QueuedWrite, QueueRefusal, Stamp } from '@/api/outbox';
 import { queueWrite } from '@/api/outbox';
+import type { WasteReason } from '@/api/waste';
 import {
   draftOf,
   NO_QUOTES,
@@ -48,6 +47,7 @@ import {
   type DraftRefusal,
   type Cart,
   type Quotes,
+  type Scope,
   type TaxRates,
 } from '@/cart/cart';
 
@@ -63,7 +63,17 @@ export interface Basketful {
   readonly cart: Cart;
   readonly entries: readonly CatalogEntry[];
   readonly factors: UnitFactors;
-  readonly kind: Kind;
+  /**
+   * Which capture screen this basket belongs to.
+   *
+   * ⚠️ RENAMED FROM `kind` BY `6a-i`, AND IT IS THE ONE BREAKING EDIT IN THAT
+   * TASK. `Scope` is `'sell' | 'buy' | 'waste'` where `Kind` was two members of
+   * arithmetic — see `@/cart/cart`'s block on the difference. **A field called
+   * `kind` holding a `Scope` beside a `kind` field on `WriteDraft` holding a
+   * `WriteKind` is three meanings of one word in one call chain**, which is how
+   * `providerId` came to be sent as a workspace once.
+   */
+  readonly scope: Scope;
   readonly pricesIncludeTax: boolean;
   readonly workspaceId: string;
   /** The store this phone is standing in — `useCatalog`'s, never re-derived. */
@@ -80,6 +90,21 @@ export interface Basketful {
    * suite reads it rather than in a type that cannot say *only when buying*.
    */
   readonly providerId?: string | null;
+  /**
+   * WHY the stock is being written off. Ignored on a sale and on a delivery, and
+   * required on a waste.
+   *
+   * ⚠️ OPTIONAL IN THE TYPE AND NOT OPTIONAL IN FACT — `providerId`'s own
+   * arrangement, for `providerId`'s own reason: the other two screens have no
+   * counterpart at all, so a required field would make every Vender and Comprar
+   * caller write `reason: null` and mean nothing by it. `draftOf` refuses
+   * `no-reason` on the waste side, which is where the suite reads it.
+   *
+   * ⚠️⚠️ ONE PER DOCUMENT AND NOT ONE PER LINE — see `CartLine` in
+   * `@/cart/cart`, which is where that decision and its reversal cost are
+   * written down.
+   */
+  readonly reason?: WasteReason | null;
 }
 
 /** Why a basket could not become a queued write. Never shown to anybody. */
@@ -103,13 +128,14 @@ export function commitOf(b: Basketful, stamp: Stamp): Committed {
     b.cart,
     b.entries,
     b.factors,
-    b.kind,
+    b.scope,
     b.pricesIncludeTax,
     b.workspaceId,
     b.locationId,
     b.rates ?? NO_TAX_RATES,
     b.quotes ?? NO_QUOTES,
     b.providerId ?? null,
+    b.reason ?? null,
   );
   if (!drafted.ok) return { ok: false, why: drafted.why };
 

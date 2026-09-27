@@ -36,7 +36,10 @@ import { RECORD_RPC, sendArgs } from '@/api/flush';
 import {
   EMPTY_BASKET,
   EMPTY_CART,
+  MONEY_KIND,
   PRICE_KEY,
+  SCOPES,
+  UNPRICED_WASTE,
   WRITE_KIND,
   NO_QUOTES,
   basketOf,
@@ -56,6 +59,7 @@ import {
   type Cart,
 } from '@/cart/cart';
 import { CART_KEY, useCartStore } from '@/cart/store';
+import { WASTE_REASONS, WASTE_REASON_KEY } from '@/api/waste';
 
 // ---------------------------------------------------------------------------
 // The shop. `0001`'s own ten units, and the pollería the interview described.
@@ -683,10 +687,11 @@ describe('the store — §2.11s one piece of local state', () => {
   // it is the same path a phone with a full disk takes.
   beforeEach(() => {
     useCartStore.setState({
-      carts: { sell: EMPTY_CART, buy: EMPTY_CART },
-      typed: { sell: {}, buy: {} },
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART },
+      typed: { sell: {}, buy: {}, waste: {} },
       workspaceId: null,
       providerId: null,
+      reason: null,
     });
   });
 
@@ -818,8 +823,300 @@ describe('the store — §2.11s one piece of local state', () => {
 
   it('persists under a new key, because the shape changed', () => {
     // ⚠️⚠️ A `v1` blob restored into the new shape leaves `typed` undefined and
-    // every reducer reading `s.typed[kind]` throws on the first tap. The
+    // every reducer reading `s.typed[scope]` throws on the first tap. The
     // module's own rule: a shape change STRANDS the old basket.
-    expect(CART_KEY).toBe('tienda.cart.v2');
+    //
+    // ⚠️⚠️ `v3` SINCE `6a-i`, AND THIS ASSERTION IS WHAT CAUGHT THE BUMP BEING
+    // OWED — it was the only red in 1,358 when `Carts` grew a third key. The new
+    // symptom is worse than `v1`'s: a `v2` blob leaves `carts.waste` UNDEFINED,
+    // and `setQty('waste', …)` iterates it on the first `+` on Desperdicio. **On
+    // every phone that had the previous build**, which is every phone in the
+    // pilot.
+    expect(CART_KEY).toBe('tienda.cart.v3');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DESPERDICIO — the third document, and the two things about it that are not a
+// sale. Plan task `6a-i`.
+//
+// ⚠️⚠️ EVERYTHING HERE IS A CLAIM ABOUT WHAT REACHES POSTGRES, which is the half
+// of `6a` a machine can hold. What the screen LOOKS like is `R9`'s and §2.11's.
+// ---------------------------------------------------------------------------
+
+/** A product the shop stocks and has never priced — C8.2's short catalog. */
+const SERVILLETAS = '66666666-6666-4666-8666-666666666666';
+const WASTE_ROWS: readonly VariantRow[] = [
+  ...ROWS,
+  variant(SERVILLETAS, 'Servilletas', 'pza', 'pza', null),
+];
+const WASTE_CATALOG = catalogFrom(WASTE_ROWS, FACTORS, null);
+const wasteEntry = (id: string) => WASTE_CATALOG.find((e) => e.id === id)!;
+
+describe('a write-off is a third scope and not a third arithmetic', () => {
+  it('names three scopes, where `@tienda/money` names two kinds', () => {
+    expect([...SCOPES]).toEqual(['sell', 'buy', 'waste']);
+  });
+
+  it('prices waste on the SALE shape, which is the owners ruling of 2026-08-26', () => {
+    // ⚠️ BINDING ON `0019` BY NAME: *"`record_waste` follows the sale shape."*
+    // The figure is what the shop failed to EARN — a shelf price — and a shelf
+    // price is agreed gross.
+    expect(MONEY_KIND.waste).toBe('sell');
+    expect(MONEY_KIND.sell).toBe('sell');
+    expect(MONEY_KIND.buy).toBe('buy');
+  });
+
+  it('sends the GROSS price key, because that is what the sale shape means', () => {
+    expect(PRICE_KEY[MONEY_KIND.waste]).toBe('unit_price_gross_per_base');
+  });
+
+  it('queues under `waste`, the kind `@/api/outbox` has held since `5c-i`', () => {
+    expect(WRITE_KIND.waste).toBe('waste');
+    expect(isWriteKind(WRITE_KIND.waste)).toBe(true);
+  });
+
+  it('reaches `record_waste` and not `record_sale`, through the map `5c-ii-a` wrote', () => {
+    // ⚠️⚠️ THE ONE ASSERTION THAT WOULD HAVE CAUGHT THE WHOLE TASK BEING WIRED TO
+    // THE WRONG FUNCTION. `MONEY_KIND.waste` is `'sell'`, so every peso in this
+    // module takes the sale's path — and a `WRITE_KIND` that followed it there
+    // would send a write-off to `record_sale`, which would SUCCEED: the payload
+    // is the same shape and `record_sale` ignores an extra key. **Stock would
+    // leave the shelf as a sale, revenue would rise, and Números would report a
+    // loss as a good day.**
+    expect(RECORD_RPC[WRITE_KIND.waste]).toBe('record_waste');
+    expect(RECORD_RPC[WRITE_KIND.waste]).not.toBe(RECORD_RPC[WRITE_KIND.sell]);
+  });
+});
+
+describe('the cause rides on every line, and the screen asks once', () => {
+  const cart: Cart = setQty(setQty(EMPTY_CART, PECHUGA, 750_000), HUEVO, 3_000);
+
+  it('writes one answer onto each line, because `0019` has no document argument', () => {
+    // ⚠️ `0019` READS `(e.l->>'reason')::public.waste_reason` PER LINE. The screen
+    // asks once (§2.8, *reason-first*); `draftOf` is what fans that answer out.
+    const draft = mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, 'caducado',
+      ),
+    );
+    const lines = draft.payload.lines as readonly Record<string, unknown>[];
+    expect(lines).toHaveLength(2);
+    for (const line of lines) expect(line[WASTE_REASON_KEY]).toBe('caducado');
+  });
+
+  it('refuses a basket with no cause, which is `no-provider`s mirror', () => {
+    // ⚠️ REFUSED HERE RATHER THAN SENT AND REFUSED THERE. `0019` answers `22023`
+    // for a line with no reason, which arrives at a shopkeeper as *algo salió
+    // mal* over a question she could have answered in one tap.
+    const d = draftOf(
+      cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+      undefined, undefined, null, null,
+    );
+    expect(d.ok).toBe(false);
+    if (!d.ok) expect(d.why).toBe('no-reason');
+  });
+
+  it('accepts all five causes, so no legal value is refused by the client', () => {
+    for (const reason of WASTE_REASONS) {
+      const draft = mustDraft(
+        draftOf(
+          cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+          undefined, undefined, null, reason,
+        ),
+      );
+      const lines = draft.payload.lines as readonly Record<string, unknown>[];
+      expect(lines[0][WASTE_REASON_KEY]).toBe(reason);
+    }
+  });
+
+  it('puts NO cause on a sale or on a delivery, even when one is handed in', () => {
+    // ⚠️⚠️ THE FAILURE THIS PINS IS A 400 ON THE HIGHEST-TRAFFIC SCREEN IN THE
+    // APP. `@/api/flush` builds its arguments as `p_` plus the payload's own
+    // keys, and a `reason` leaking onto a sale line would reach `record_sale`,
+    // which has no such key — so it is asserted absent from BOTH other scopes
+    // rather than merely present on this one.
+    for (const scope of ['sell', 'buy'] as const) {
+      const draft = mustDraft(
+        draftOf(
+          cart, WASTE_CATALOG, FACTORS, scope, true, WORKSPACE, LOCATION,
+          undefined, scope === 'buy' ? { [PECHUGA]: '0.100000', [HUEVO]: '2.000000' } : undefined,
+          scope === 'buy' ? PROVIDER : null,
+          'caducado',
+        ),
+      );
+      const lines = draft.payload.lines as readonly Record<string, unknown>[];
+      for (const line of lines) expect(WASTE_REASON_KEY in line).toBe(false);
+    }
+  });
+
+  it('carries no counterparty, because `record_waste` takes no provider', () => {
+    const draft = mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, PROVIDER, 'dañado',
+      ),
+    );
+    // ⚠️ A `provider_id` HERE WOULD REACH THE RPC AS `p_provider_id`, which
+    // `record_waste` does not take — a 404/`PGRST202` on every write-off. The
+    // provider is IGNORED rather than refused, because the sale side ignores one
+    // too and one rule for both is what `draftOf`'s fork already says.
+    expect('provider_id' in draft.payload).toBe(false);
+    expect(draft.payload.location_id).toBe(LOCATION);
+  });
+
+  it('sends the same arguments the queue sends a sale, plus nothing', () => {
+    // ⚠️ THE WHOLE POINT OF THE THIRD SCOPE BEING A SCOPE: a write-off drains
+    // through the same `sendArgs`, the same idempotency and the same
+    // classification as a sale. `p_provider_id` is absent and `p_lines` is there.
+    const draft = mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, 'caducado',
+      ),
+    );
+    const queued = queueWrite(draft, { id: '77777777-7777-4777-8777-777777777777', now: '2026-09-27T12:00:00.000Z' });
+    expect(queued.ok).toBe(true);
+    if (!queued.ok) return;
+    const args = sendArgs(queued.write);
+    expect(Object.keys(args).sort()).toEqual(
+      ['p_id', 'p_lines', 'p_location_id', 'p_occurred_at', 'p_recorded_offline'].sort(),
+    );
+  });
+});
+
+describe('an unpriced product is still a loss', () => {
+  const cart: Cart = setQty(EMPTY_CART, SERVILLETAS, 4_000);
+
+  it('has nothing to quote, which the catalog says with a dash (C3.12)', () => {
+    expect(wasteEntry(SERVILLETAS).centavos).toBeNull();
+    expect(quoteFor(wasteEntry(SERVILLETAS), 'sell', NO_QUOTES)).toBeNull();
+  });
+
+  it('is sent at ZERO rather than refused, and that is the opposite of a sale', () => {
+    // ⚠️⚠️ MEASURED BEFORE IT WAS DECIDED: `unit_price_gross_per_base` is REQUIRED
+    // by `0019` — omitting it is an HTTP 400 `22023` — so silence is not one of
+    // the options. And a loss not recorded destroys the only record of it, which
+    // is `record_waste`'s own argument for recording unconditionally.
+    const line = lineSent(
+      cart[0], wasteEntry(SERVILLETAS), FACTORS, 'waste', true, null, NO_QUOTES, 'caducado',
+    );
+    expect(line).not.toBeNull();
+    expect(line![PRICE_KEY.sell]).toBe(formatDecimal(UNPRICED_WASTE, SCALE.unitPrice));
+    expect(line![WASTE_REASON_KEY]).toBe('caducado');
+    // ⚠️⚠️ THE QUANTITY IS EXACT, AND IT IS THE PRICE-UNIT SPELLING — `4 pza`,
+    // not `4000` of anything. That is the number área 9 ruled this screen
+    // reports, and nothing about the missing price touches it. ⚠️ The assertion
+    // is written against `qtySent`'s own answer for the same line, so it reads
+    // the RULE rather than a digit somebody typed here.
+    expect(line!.qty_display).toBe('4');
+    expect(line!.qty_display_unit).toBe('pza');
+    expect(serverBase('4', 'pza')).toBe(4_000);
+  });
+
+  it('refuses the same line on a SALE, which is the fence on the zero', () => {
+    // ⚠️⚠️ THE ZERO IS SCOPED TO WASTE AND THIS IS WHAT SAYS SO. A sale at a
+    // price nobody set is money a customer did not agree to; `5h` owns C3.14 and
+    // whatever it decides, it must not inherit this.
+    expect(
+      lineSent(cart[0], wasteEntry(SERVILLETAS), FACTORS, 'sell', true, null, NO_QUOTES, null),
+    ).toBeNull();
+    expect(
+      lineSent(cart[0], wasteEntry(SERVILLETAS), FACTORS, 'buy', true, null, NO_QUOTES, null),
+    ).toBeNull();
+  });
+
+  it('commits a whole basket where one line has no price', () => {
+    const mixed: Cart = setQty(setQty(EMPTY_CART, PECHUGA, 250_000), SERVILLETAS, 4_000);
+    const draft = mustDraft(
+      draftOf(
+        mixed, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, 'dañado',
+      ),
+    );
+    const lines = draft.payload.lines as readonly Record<string, unknown>[];
+    expect(lines).toHaveLength(2);
+    expect(lines[1][PRICE_KEY.sell]).toBe(formatDecimal(UNPRICED_WASTE, SCALE.unitPrice));
+  });
+
+  it('still tells the SCREEN the price is unknown, and does not call it zero', () => {
+    // ⚠️⚠️ THE ASYMMETRY THAT IS THE WHOLE DECISION: what is SENT is a zero and
+    // what is SHOWN is *unknown*. `reviewOf` answers `centavos: null` and
+    // `complete: false`, so C3.12's dash survives and nothing on any surface can
+    // tell a shopkeeper the thing she threw away was worth nothing — which área 9
+    // called the one outcome worse than a number that is missing.
+    const review = reviewOf(cart, WASTE_CATALOG, 'waste', true);
+    expect(review.rows[0].centavos).toBeNull();
+    expect(review.basket.complete).toBe(false);
+    expect(review.basket.centavos).toBe(0);
+    expect(review.basket.lines).toBe(1);
+  });
+});
+
+describe('the waste basket is its own, and its cause lives beside the provider', () => {
+  beforeEach(() => {
+    useCartStore.setState({
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART },
+      typed: { sell: {}, buy: {}, waste: {} },
+      workspaceId: null,
+      providerId: null,
+      reason: null,
+    });
+  });
+
+  it('keeps three baskets apart, because they are three documents', () => {
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().setQty('sell', PECHUGA, 2_000);
+    useCartStore.getState().setQty('buy', PECHUGA, 3_000);
+    expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
+    expect(qtyOf(useCartStore.getState().carts.sell, PECHUGA)).toBe(2_000);
+    expect(qtyOf(useCartStore.getState().carts.buy, PECHUGA)).toBe(3_000);
+  });
+
+  it('opens with no cause chosen, because `0019` refuses a default', () => {
+    // ⚠️ *"an enum with a default would quietly file every unlabelled loss under
+    // one cause."* This is that sentence as a fact about the store.
+    expect(useCartStore.getState().reason).toBeNull();
+  });
+
+  it('changing the cause keeps the basket, which is NOT what `openProvider` does', () => {
+    // ⚠️⚠️ THE ONE PLACE COPYING COMPRAR WOULD HAVE BEEN WRONG. A supplier price
+    // is a fact about a relationship, so changing the provider clears the typed
+    // costs (C3.11). **A cause is a fact about the LOSS and not about the stock**
+    // — the same three kilos are the same three kilos whichever label they get —
+    // so wiping the basket would punish her for correcting it.
+    useCartStore.getState().openReason('caducado');
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().openReason('dañado');
+    expect(useCartStore.getState().reason).toBe('dañado');
+    expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
+  });
+
+  it('`Vaciar carrito` empties the basket and LEAVES the cause standing', () => {
+    // ⚠️ EMPTYING IS *I KEYED THE WRONG PRODUCTS*, not *I picked the wrong
+    // cause*. Putting the opening question back in front of somebody who has just
+    // answered it is the one thing `5g-ii`'s picker was measured not to do.
+    useCartStore.getState().openReason('caducado');
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().clear('waste');
+    expect(useCartStore.getState().carts.waste).toHaveLength(0);
+    expect(useCartStore.getState().reason).toBe('caducado');
+  });
+
+  it('drops the cause with the shop, because the basket it labelled is gone', () => {
+    useCartStore.getState().openShop(WORKSPACE);
+    useCartStore.getState().openReason('caducado');
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().openShop('99999999-9999-4999-8999-999999999999');
+    expect(useCartStore.getState().reason).toBeNull();
+    expect(useCartStore.getState().carts.waste).toHaveLength(0);
+  });
+
+  it('does not touch the other two baskets when the waste one is emptied', () => {
+    useCartStore.getState().setQty('sell', PECHUGA, 2_000);
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().clear('waste');
+    expect(qtyOf(useCartStore.getState().carts.sell, PECHUGA)).toBe(2_000);
   });
 });

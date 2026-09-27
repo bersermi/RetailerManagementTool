@@ -99,6 +99,29 @@ import {
 
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 import type { WriteDraft, WriteKind } from '@/api/outbox';
+import { WASTE_REASON_KEY, type WasteReason } from '@/api/waste';
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THREE DOCUMENTS, TWO MONEY SHAPES — AND `Scope` IS WHAT KEEPS THEM APART
+// ----------------------------------------------------------------------------
+// Added by `6a-i`. `@tienda/money`'s `Kind` is `'sell' | 'buy'` and it is a
+// claim about ARITHMETIC: which side of the IVA split a figure is anchored on
+// (§2.5 rule 2). **Desperdicio is a third document and not a third arithmetic**
+// — `0019`'s header is explicit that waste follows the SALE shape, gross-first,
+// *"because a retail value is a shelf price"* — so widening `Kind` would put a
+// third member on a type whose whole job is to name two directions of tax, in a
+// published package with its own `cases.json`.
+//
+// ⚠️ SO THERE ARE TWO TYPES AND `MONEY_KIND` IS THE ONE-WAY DOOR BETWEEN THEM.
+// `Scope` names WHICH BASKET and WHICH RPC; `Kind` names HOW THE MONEY WORKS.
+// Everything in this file that touches a peso still takes a `Kind`.
+//
+// ⚠️⚠️ AND `Scope` IS A SUPERSET OF `Kind` AS A STRING UNION, WHICH IS WHY NO
+// EXISTING CALL SITE CHANGED. `reviewOf(cart, entries, 'sell', …)` type-checks
+// against a `Scope` exactly as it did against a `Kind`, so Vender's and
+// Comprar's 1,400 and 2,000 lines are untouched by this — a property worth
+// naming, because the alternative was a rename across two screens nobody has a
+// check for (`R9`, §2.11).
 
 /** `unit.factor_to_base` is `numeric(14,6)`. Spelled here as in `@/api/catalog`. */
 const FACTOR_SCALE = 6;
@@ -107,10 +130,91 @@ const FACTOR_SCALE = 6;
 const FACTOR_TO_QUANTITY = 10 ** (FACTOR_SCALE - SCALE.quantity);
 
 /**
+ * Which of the three capture screens a basket belongs to — see the block above
+ * for why this is not `Kind` and why `Kind` was not widened.
+ *
+ * ⚠️ THE ORDER IS THE TAB BAR'S (§2.8, C12.1), which is the order a shopkeeper
+ * meets them in and the order `WRITE_KIND` and `MONEY_KIND` are written in below.
+ */
+export const SCOPES = ['sell', 'buy', 'waste'] as const;
+export type Scope = (typeof SCOPES)[number];
+
+/**
+ * How each document's money works, which is the ONLY thing `@tienda/money`
+ * needs to know about it.
+ *
+ * ⚠️⚠️ `waste` IS `'sell'` AND THAT IS A RULING RATHER THAN A CONVENIENCE,
+ * settled by the owner on 2026-08-26 and binding on `0019` by name: *"The tax
+ * split: `record_sale` gross-first, `record_purchase` net-first, tax the
+ * residual on both. `record_waste` follows the sale shape."* The figure on a
+ * waste line is **what the shop failed to EARN** — a shelf price — and a shelf
+ * price is agreed gross.
+ *
+ * ⚠️ WHICH ALSO SETTLES `prices_include_tax`: it scopes the sale side (§2.5
+ * rule 2), so it scopes waste too, and a shop that answered *no* cannot price a
+ * write-off any more than it can price a sale. That is `5f-i`'s trade inherited
+ * rather than a new one — see `quoted`.
+ */
+export const MONEY_KIND: Readonly<Record<Scope, Kind>> = {
+  sell: 'sell',
+  buy: 'buy',
+  waste: 'sell',
+};
+
+/**
+ * What an unpriced WASTE line is sent at, and **this is the one decision in this
+ * file that writes a number into the ledger nobody typed.**
+ *
+ * ⚠️⚠️ IT IS ZERO BECAUSE SILENCE IS NOT AVAILABLE — measured, not assumed.
+ * `unit_price_gross_per_base` is REQUIRED by `0019`: omitting it answers **HTTP
+ * 400 `22023` — "record_waste: line 1 — unit_price_gross_per_base is
+ * required"**. So the three options are a zero, a guess, or no row at all.
+ *
+ * ⚠️⚠️ AND NO ROW AT ALL IS THE WORST OF THE THREE, WHICH IS WHY THIS IS THE
+ * OPPOSITE OF WHAT VENDER AND COMPRAR DO. C3.13 blocks a purchase on a missing
+ * price and C3.14 lets a sale through loudly — but **a sale not rung costs the
+ * shop nothing, and a loss not recorded destroys the only record of it.** That
+ * is `record_waste`'s own argument, owner-ruled on 2026-09-04 for the
+ * availability check: *"the loss already happened, and refusing it discards the
+ * only record of it."* This is the same argument about the price.
+ *
+ * ⚠️ AND IT COSTS THE REPORT NOTHING, WHICH IS WHY IT IS DEFENSIBLE RATHER THAN
+ * MERELY CONVENIENT. Área 9's ruling of 2026-09-14 already fixed what
+ * Desperdicio and Números may show: **waste as QUANTITY, never as cost and
+ * never as a rate**, until something repairs `0011`. The quantity on this line
+ * is exact. The peso figure it would have carried is one the screen is not
+ * allowed to report anyway.
+ *
+ * ⚠️⚠️ WHAT IT IS **NOT**: it is not a price rendered as `$0.00`. C3.12 is
+ * untouched — `reviewOf` still answers `centavos: null` for this line, the row
+ * still reads a DASH and the basket still reports `complete: false`, so the
+ * screen says `Sin precio` out loud (`R11`). **What is sent and what is shown
+ * are deliberately different here**, and that asymmetry is the whole of this
+ * decision: the shopkeeper is told, and the loss is still recorded.
+ */
+export const UNPRICED_WASTE = 0;
+
+/**
  * One line of the basket. **A line exists because its quantity is greater than
  * zero** — C3.3, *"there is no add-to-basket step and no product-detail screen
  * between the list and the line"* — so this type has no `present` flag and no
  * zero-quantity state to represent.
+ *
+ * ⚠️⚠️ AND IT CARRIES NO REASON, WHICH IS `6a-i`'s LOUDEST DECISION. The
+ * database puts `reason` on `waste_line`, so a document CAN mix causes —
+ * measured: the same variant twice under `caducado` and `dañado` is **two rows,
+ * HTTP 200**. §2.8 nevertheless calls Desperdicio *reason-first*, *"the column
+ * the screen asks for BEFORE the product"*, and the shape that sentence
+ * describes is **one cause per document, chosen before the catalog is even
+ * shown** — which is exactly what `Comprando a:` is to Comprar.
+ *
+ * ⚠️ SO THE REASON LIVES ON THE STORE BESIDE `providerId` AND NOT ON THE LINE,
+ * and two shapes of loss are two documents rather than one mixed one. **That is
+ * also the honest shape at a bin**: a shopkeeper clearing expired stock is doing
+ * one thing, and a screen that asked her to label each product separately would
+ * be the book-keeping C3.18 refuses. ⚠️ **Reversing it is a `reason` on this
+ * interface and a key on the line identity — no migration, because the schema
+ * already allows both.**
  */
 export interface CartLine {
   readonly variantId: string;
@@ -450,16 +554,24 @@ export interface Review {
 export function reviewOf(
   cart: Cart,
   entries: readonly CatalogEntry[],
-  kind: Kind,
+  scope: Scope,
   pricesIncludeTax: boolean,
   rates: TaxRates = NO_TAX_RATES,
   quotes: Quotes = NO_QUOTES,
 ): Review {
+  const kind = MONEY_KIND[scope];
   const rows: ReviewRow[] = [];
   let centavos = 0;
   let complete = true;
   for (const line of cart) {
     const entry = entries.find((e) => e.id === line.variantId);
+    // ⚠️⚠️ A WASTE LINE WITH NO SHELF PRICE IS `null` HERE AND A ZERO AT THE
+    // WIRE — see `UNPRICED_WASTE`. This function reports what is KNOWN, so the
+    // row keeps C3.12's dash and the basket reports `complete: false`;
+    // `lineSent` is where the zero is decided. **Substituting the zero here
+    // instead would make the screen tell a shopkeeper the thing she threw away
+    // was worth nothing**, which is the one outcome área 9 named as worse than
+    // a missing number.
     const price =
       entry === undefined
         ? null
@@ -493,12 +605,12 @@ export function reviewOf(
 export function basketOf(
   cart: Cart,
   entries: readonly CatalogEntry[],
-  kind: Kind,
+  scope: Scope,
   pricesIncludeTax: boolean,
   rates: TaxRates = NO_TAX_RATES,
   quotes: Quotes = NO_QUOTES,
 ): Basket {
-  return reviewOf(cart, entries, kind, pricesIncludeTax, rates, quotes).basket;
+  return reviewOf(cart, entries, scope, pricesIncludeTax, rates, quotes).basket;
 }
 
 /**
@@ -515,29 +627,58 @@ export const PRICE_KEY = {
   buy: 'unit_price_net_per_base',
 } as const satisfies Readonly<Record<Kind, string>>;
 
-/** The write kind each document is queued under. `@/api/outbox` owns the list. */
-export const WRITE_KIND: Readonly<Record<Kind, WriteKind>> = {
+/**
+ * The write kind each document is queued under. `@/api/outbox` owns the list.
+ *
+ * ⚠️ `waste` ADDED BY `6a-i`, AND NOTHING IN THE QUEUE NEEDED WIDENING FOR IT:
+ * `WRITE_KINDS` has held all four since `5c-i`, and `RECORD_RPC` has named
+ * `record_waste` since `5c-ii-a`. **This map is the last link that was
+ * missing**, which is why a write-off reaches Postgres through the same drain,
+ * the same dead-letter classification and the same idempotency as a sale.
+ *
+ * ⚠️ IT IS NOW OVER `Scope` AND `@/api/corrections`' `CART_KIND` IS **NOT** ITS
+ * FULL INVERSE ANY MORE — it is the inverse restricted to `DocumentKind`, which
+ * is `'purchase' | 'sale'` because `Lo último` cannot show a waste yet (`6a-ii`).
+ * `app/test/api-corrections.test.ts` asserts that correspondence and it now
+ * asserts it **one way**, with the third entry named. See that test.
+ */
+export const WRITE_KIND: Readonly<Record<Scope, WriteKind>> = {
   sell: 'sale',
   buy: 'purchase',
+  waste: 'waste',
 };
 
 export function lineSent(
   line: CartLine,
   entry: CatalogEntry,
   factors: UnitFactors,
-  kind: Kind,
+  scope: Scope,
   pricesIncludeTax: boolean,
   rate: number | null = null,
   quotes: Quotes = NO_QUOTES,
+  reason: WasteReason | null = null,
 ): Readonly<Record<string, unknown>> | null {
+  const kind = MONEY_KIND[scope];
   const qty = qtySent(line.base, entry, factors);
-  const price = quoted(quoteFor(entry, kind, quotes), kind, pricesIncludeTax, rate);
-  if (qty === null || price === null) return null;
+  if (qty === null) return null;
+  const known = quoted(quoteFor(entry, kind, quotes), kind, pricesIncludeTax, rate);
+  // ⚠️⚠️ THE ONLY PLACE A PRICE IS INVENTED IN THIS APP, AND IT IS FENCED TO
+  // WASTE BY THE LINE ABOVE IT. See `UNPRICED_WASTE` for the whole argument:
+  // `0019` requires the key, a loss not recorded is worse than a loss valued at
+  // nothing, and área 9 has already ruled that Desperdicio reports quantity.
+  const price = known === null && scope === 'waste' ? UNPRICED_WASTE : known;
+  if (price === null) return null;
   return {
     variant_id: line.variantId,
     qty_display: qty.qty_display,
     qty_display_unit: qty.qty_display_unit,
     [PRICE_KEY[kind]]: formatDecimal(price, SCALE.unitPrice),
+    // ⚠️ THE CAUSE RIDES ON THE LINE BECAUSE `waste_line` IS WHERE THE COLUMN IS
+    // (`0003:451`), even though the SCREEN asks it once per document — see
+    // `CartLine`. `0019` reads `(e.l->>'reason')::public.waste_reason` per line
+    // and has no document-level argument for it, so one answer is written onto
+    // every line here rather than sent once.
+    ...(scope === 'waste' && reason !== null ? { [WASTE_REASON_KEY]: reason } : {}),
   };
 }
 
@@ -546,6 +687,12 @@ export type DraftRefusal =
   | 'empty-cart'
   | 'no-location'
   | 'no-provider'
+  /**
+   * ⚠️ `6a-i`, AND IT IS `no-provider`'s MIRROR ON THE THIRD SCREEN. `0019`
+   * refuses a line with no cause as `22023`; refused here it is a slide that was
+   * never drawn, which is `canCommit`'s whole argument in `@/cart/commit`.
+   */
+  | 'no-reason'
   | 'line-cannot-be-priced'
   | 'variant-not-in-catalog';
 
@@ -593,18 +740,22 @@ export function draftOf(
   cart: Cart,
   entries: readonly CatalogEntry[],
   factors: UnitFactors,
-  kind: Kind,
+  scope: Scope,
   pricesIncludeTax: boolean,
   workspaceId: string,
   locationId: string | null,
   rates: TaxRates = NO_TAX_RATES,
   quotes: Quotes = NO_QUOTES,
   providerId: string | null = null,
+  reason: WasteReason | null = null,
 ): Drafted {
   if (cart.length === 0) return { ok: false, why: 'empty-cart' };
   if (locationId === null || locationId === '') return { ok: false, why: 'no-location' };
-  if (kind === 'buy' && (providerId === null || providerId === ''))
+  if (scope === 'buy' && (providerId === null || providerId === ''))
     return { ok: false, why: 'no-provider' };
+  // ⚠️ REASON-FIRST, ENFORCED WHERE THE SUITE READS IT (§2.8, `0019`). The
+  // picker has no way past it either, and this is the brace to that belt.
+  if (scope === 'waste' && reason === null) return { ok: false, why: 'no-reason' };
   const lines: Readonly<Record<string, unknown>>[] = [];
   for (const line of cart) {
     const entry = entries.find((e) => e.id === line.variantId);
@@ -613,10 +764,11 @@ export function draftOf(
       line,
       entry,
       factors,
-      kind,
+      scope,
       pricesIncludeTax,
       rates[line.variantId] ?? null,
       quotes,
+      reason,
     );
     if (sent === null) return { ok: false, why: 'line-cannot-be-priced' };
     lines.push(sent);
@@ -625,9 +777,14 @@ export function draftOf(
     ok: true,
     draft: {
       workspaceId,
-      kind: WRITE_KIND[kind],
+      kind: WRITE_KIND[scope],
+      // ⚠️ WASTE TAKES THE SALE'S PAYLOAD — `location_id` and `lines`, no
+      // counterparty. Measured against a real PostgREST rather than read off
+      // `0019`: `record_waste` has no `p_provider_id`, and `@/api/flush` builds
+      // its arguments as `p_` plus the payload's own keys, so a `provider_id`
+      // here would reach the RPC as an argument it does not take.
       payload:
-        kind === 'buy'
+        scope === 'buy'
           ? { location_id: locationId, provider_id: providerId, lines }
           : { location_id: locationId, lines },
     },

@@ -72,7 +72,7 @@ function basketful(over: Partial<Basketful> = {}): Basketful {
     cart,
     entries: CATALOG,
     factors: FACTORS,
-    kind: 'sell',
+    scope: 'sell',
     pricesIncludeTax: true,
     workspaceId: WORKSPACE,
     locationId: LOCATION,

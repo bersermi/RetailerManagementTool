@@ -227,3 +227,214 @@ agreement's split reason (2), not size, and it is why `5h-ii-c` exists as its ow
 the three a session can finish without the others. ⚠️ **`5h.5`'s gate is re-pointed from `5h-ii` to
 `5h-ii-c`**, because `5h-ii` is now a split parent and *a gate naming a row that is no longer
 takeable is a gate nobody can clear* — the trap `5h`'s own split recorded one day earlier.
+
+---
+
+## The 2026-09-26 working day — SECOND CUT, appended 2026-09-27
+
+⚠️⚠️ **APPENDED AND NOT A SECOND FILE FOR ONE DATE, WHICH IS THIS DIRECTORY'S OWN RULE** —
+`CLAUDE.md` states it for the 2026-09-22 and 2026-09-24 rows, and `plan-corpus.sh` globs
+`*.md` so a new file would need no wiring and would still be wrong: the plan's own history
+names these files, and two files for one day makes a recorded statement false.
+
+⚠️⚠️ **THE TWENTIETH CUT OVERALL, TAKEN BY `6a-i` — AND IT IS THE FIRST ONE THIS FILE'S OWN
+PREDICTION CALLED FOR.** The first cut's header said *a later session APPENDS to this file*,
+and this is that session. ⚠️ **`## Position` stood at 1,385 of 1,400 with `6a-i`'s closing
+entry already written** — **15 lines of headroom against an entry that runs 40–130** — so
+this is a cut taken to make the file writable for the NEXT session rather than to make this
+one pass. **That is the nineteenth cut's argument inherited**: the remedy costs the session
+already holding the context, and costs the next one a cold start.
+
+⚠️ **182 lines, the day's two oldest remaining blocks** — `5h-ii-b` (`Corregir` and
+`Eliminar`, the first write in this app that cancels anything) and `5g-iii-b` (the `Costos`
+date, ruled and shipped within the hour it was parked). ⚠️⚠️ **`5h-ii-b`'s block carries the
+finding `6a-i` then confirmed a third time**: `0021` measures its void window from
+`recorded_at` on an offline write, so a cashier can void her own hours-old document — and
+`6a-i` measured the same thing about a WASTE.
+
+⚠️⚠️ **EVERY LINE BELOW IS MOVED, NOT COPIED.** Two homes for one claim is the defect this
+repository has recorded ten of, and `split-coverage.sh` fails on *"row appears 2 times"*
+because it reads the corpus, which includes this file.
+
+✅✅✅ **`5h-ii-b` IS DONE, 2026-09-26 — THIS APP CAN CANCEL A DOCUMENT, AND IT HAD NEVER
+CANCELLED ANYTHING.** `Corregir` and `Eliminar` sit under every standing row of `Lo último`, over
+`void_transaction` (`0021`), on both kinds at the owner's instruction — *"Mirror it for Vender…
+Make the functionality for both for now."* `app/src/api/corrections.ts` is the **twenty-fourth**
+module of `src/api/`. **It ships no migration**, exactly as the row promised: the RPC has been
+applied since 2026-09-04 and granted to `authenticated` all along.
+
+⚠️⚠️ **THE SIZING WAS THE MEASUREMENT AGAIN, AND IT REVERSED HALF OF WHAT THE ROW PREDICTED.** The
+row named two columns to widen and an argument for showing `created_by`; six probes against a real
+PostgREST changed the shape of the whole fence. **Every one of these was driven before a line of
+the module was written:**
+
+| # | The question | What the database said |
+|---|---|---|
+| **1** | Do `qty_base::text` and `unit_price_net_per_base::text` survive inside the to-many embed? | **200, both as JSON strings.** `5h-ii-a` had proved the cast survives for the columns it asked for; this is the same claim for two more, and it is what `prefillOf` stands on |
+| **2** | ⚠️⚠️ **What does `TD003` look like from the client?** | **HTTP 400, `{"code":"TD003"}`** — **not a 403.** A custom SQLSTATE is not a privilege error to PostgREST, so it would have fallen straight through to `unknown` and told a cashier *algo salió mal*. **She taps again.** This one assertion is what `@/api/errors`' new entry rests on |
+| **3** | ⚠️⚠️ **Can a cashier void her own five-hour-old delivery against a fifteen-minute window?** | **YES, 200 — AND THE ROW HAD ASSUMED NO.** `0021` measures the window from `recorded_at` on an offline write and `occurred_at` otherwise (§2.6, amended 2026-09-04), and `record_purchase` stamps `occurred_at := now()` on an ONLINE write (`0018:221`). **So the clock starts when the document LANDS, never when the delivery happened**, and the window can only bite as real time passes |
+| **4** | What does a replay answer? | **A SHORTER BODY.** A first void carries `{kind, voided, void_id, lines, movements, already_recorded}`; a replay carries four of the six. A parser requiring the counts would turn the idempotent success into a failure **on exactly the tap somebody makes when the first response was lost** |
+| **5** | Does re-recording a voided delivery collide on `payload_hash`? | **No — `record_purchase` is idempotent on the CLIENT-GENERATED id** (`0018:455`), and the hash only guards that id. A correction mints a fresh one. ⚠️ **If this had been a `TD001`, `Corregir` would have cancelled a delivery and refused to put it back**, and nothing in the suite or the typecheck could have seen it |
+| **6** | Does a cashier read `workspace_setting`? | **Yes** — `workspace_setting_select` admits every member (`0001:563`), and its own comment says the client reads `void_window_minutes` *"to render correctly"*. ⚠️ **The row then decided the client should NOT.** See below |
+
+⚠️⚠️ **FINDING 3 IS THE ONE THAT DECIDED THE DESIGN, AND IT ARGUES AGAINST THE SCHEMA'S OWN
+COMMENT.** To draw the window on this side the client needs `recorded_at`, `recorded_offline`, the
+shop's setting **and a TypeScript copy of `0021`'s basis rule** — a second answer to *may she void
+this*, in the one place where a wrong answer **hides a button she is allowed to press**, which is
+undiagnosable from a shop floor. ✅ **So `mayCorrect` answers only the half that involves no clock**
+— *is this person a manager, or is this her own document* — and the database answers the rest as
+`TD003`, rendered as a sentence. ⚠️ **And it fails OPEN**: a role still in flight, a failed
+membership read or an absent `created_by` all answer *yes*, into a `security definer` fence that
+fails closed. A screen that hid its buttons whenever a second query was slow would be 2026-09-22's
+`Cargando productos…` wearing a permission badge.
+
+⚠️ **`created_by` WAS ADDED AS THE ROW PREDICTED AND NOTHING RENDERS IT**, which is the opposite of
+the argument the row made for it — the argument is the FENCE rather than the display, so
+`today.ts`'s §2.7 refusal is untouched. ⚠️ **`qty_base` is a THIRD column the row did not name**: a
+cart line is `{ variantId, base }` where `base` is an integer in THOUSANDTHS of a base unit, and
+deriving it from `qty_display` × `factor_to_base` would be a second answer to a quantity the
+database already holds, in the one place a wrong answer re-writes the ledger.
+
+⚠️⚠️ **TWO GUARDS WENT RED AND BOTH WERE WORKING.** `api-documents.test.ts` pinned *asks for
+neither `created_by` nor `recorded_offline`* and `api-errors.test.ts` pinned the exact set of codes
+the map knows. **Both are INVERTED rather than deleted**, and each says what changed and why:
+`created_by` is now required and never rendered, `recorded_at` joins `recorded_offline` on the
+banned list with the basis rule as its reason, and `TD003` is named as the only entry in that map
+that means *you may not* rather than *something broke*. ⚠️ `5h-ii-a`'s falsifier fixture `F7` moved
+from adding `created_by` to adding `recorded_offline` — **a column a check stops banning must start
+being required**, or the assertion quietly becomes *anything goes*.
+
+⚠️⚠️ **AND THE FALSIFIER CAUGHT A NON-FALSIFICATION IN ITS OWN FIRST RUN, WHICH IS THE CHEAPEST
+LESSON HERE.** `F4` mutated `reasonDeleted` in `src/strings.ts` and the check went **GREEN** —
+correctly, because the check READS that file to build its payload, so both halves of the comparison
+moved together. **Output compared against its own input is self-consistent and blind**
+([[assert-against-a-calendar-not-the-array]]). ✅ `F4` is now a trigger that strips accents from
+`reversal_reason` on the way in, so what the assertion really holds — **that the audit trail
+survives the transport byte for byte** — is the thing that can be broken. The claim it *used* to
+pretend to hold (that the app sends what `src/strings.ts` says) lives in
+`app/test/api-corrections.test.ts`, which is its right home.
+
+✅ **CHECKED BY `docs/checks/5h-ii-b-corrections-contract.sh` — 21 assertion groups, live HTTP
+against a real PostgREST** with a real shop, a real catalog, a supplier, an owner and an Empleada:
+the RPC's three `p_` names, `TD003` on a 400, the idempotent replay and its shorter body, the fence
+in **all four** of its cases (so a client fence drawn too WIDE goes red as loudly as one drawn too
+narrow), ⚠️⚠️ **the window narrowed to 0 and widened back to 15 on the same document and the same
+cashier — the one assertion the app cannot make, because the app never reads that table** — the
+re-record with no hash collision, and a final read through the app's own column list showing *"just
+one line, clean"* with the prefill columns round-tripping to the digit. **Its falsifier: 9 fixtures,
+all behaving** — a green control, five contract mutations and three schema-level ones, each restored
+in a `trap` on every exit path. ⚠️ **`5h-ii-a`'s check and falsifier were both re-run because
+`documents.ts` changed: 16 groups and 10/10.** ⚠️ **The suite is 1,326 tests across 43 files**
+(the runner's, `npm --prefix app test`, up from 1,291), of which `api-corrections.test.ts` is 35;
+`conventions-gate.sh` is **16 groups over 83 source and 43 test files**.
+
+⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL CHEAP TO REVERSE AND NONE OF THEM A
+MIGRATION.** **(1)** ⚠️ **A CORRECTED SALE IS RE-PRICED AT THE SHELF.** `sale_line` stores the NET
+while `record_sale` takes the **GROSS** (`0016:59`), and `quoted` reads a typed sell quote as gross
+whenever `prices_include_tax` — true by `0001`'s default and true in every shop that exists — so
+handing the stored figure back would undercharge by the IVA. Recovering the gross needs `tax_rate`
+and `grossFromNet`, a third answer to *what is this sale worth*. `quoteFor` already falls back to
+the catalog's own price for a sale, which is what Vender does every time it rings one. **The cost is
+a shelf price that moved between the sale and the correction; the reversal is one column and one
+function call.** ⚠️ The buy side is exact and unaffected. **(2)** ⚠️⚠️ **`Corregir` VOIDS FIRST AND
+LOADS THE CART AFTER.** The alternative — prefill, and void when she commits — has two writes to
+keep together and the second goes through the OUTBOX, so a correction keyed with no signal would
+queue a fresh delivery while the wrong one still stood. **That is a DUPLICATE rather than a
+correction**, and it is `5h-ii-c`'s territory; this ordering is what kept the queue out of this row.
+⚠️ **What it costs: an abandoned correction leaves the document gone.** She asked for that and the
+question said it would happen, `Lo último` shows it removed, and she can key it again — **nothing
+is silently wrong, the ledger says exactly what she asserted.** **(3)** **The cart is REPLACED and
+not merged**, with a second line on the question when the cart it is about to replace is not empty.
+Two documents in one cart is not a thing anybody asked for, and the only work this can lose is a
+delivery she started and never committed — **so she is told before it happens rather than after.**
+
+⚠️⚠️ **AND ONE DEFECT THIS ROW WROTE AND THEN FOUND, BEFORE CI FINISHED — WORTH RECORDING
+BECAUSE NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT.** TanStack keeps a mutation's `error`
+until the **next** `mutate`, and the confirmation box renders the refusal whenever `failed` is
+non-null. So a `TD003` on one document was still set when the shopkeeper opened the question on
+the NEXT one: **she would have read *pídele a un gerente* where the question belongs, about a
+document nobody had refused her** — and `Sí, corregir` would not have been on screen at all.
+✅ The hook now exports `forget` (`mutation.reset`) and the screen routes **every** open and close
+through one `ask()` so no path can be the one that forgets. ⚠️ **`R2` keeps the suite off
+components, so no test in `app/test/` can see this, and the contract checks are about the wire** —
+it was found by re-reading the screen's state lifecycle, which is the only instrument there is.
+**`5h.5` owns `src/ui/` and this is an argument for a single confirmation primitive** rather than a
+fourth local copy of one.
+
+⚠️ **ONE THING FIXED IN PASSING, AND IT WAS A PRE-EXISTING BUG THIS ROW WOULD HAVE TRIPPED OVER.**
+Comprar's price-memory effect seeds a line's price from `provider_price_memory` unless a ref says it
+already did — **and that ref lives on the SCREEN, so it is empty on every mount.** A prefilled cart
+would have had its prices overwritten by the supplier's memory before they were ever seen. ✅ The
+effect now leaves a line alone when it already carries a typed quote, **which also fixes the case
+nobody had noticed: a persisted cart restored across an app restart had its typed prices silently
+replaced.**
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE, AND IT IS THE WHOLE OF THE INTERFACE (`R9`, §2.11).** Whether two
+buttons under every row is the right weight or too much furniture; whether *¿Corregir esta nota? Se
+va a borrar y la vuelves a capturar* says what actually happens; whether landing on Comprar with the
+cart already full is a relief or a surprise; and whether `Eliminar` in red is enough to keep a thumb
+off it. **The build on his phone has to be rebuilt before he can open this.**
+
+~~⚠️ `5h.5` is the next task, and it is ungated as of 2026-09-26 — its gate was `5h` closing,
+and `5h-ii-c` closed the last row of it. ⚠️ Its own row calls it *"the last moment this is
+cheap"*, and it is now right: `src/ui/` holds six primitives built across `5d`–`5g` with no written
+rule, `5h-ii-b` added four more that are LOCAL to `documentos.tsx` (`Boton`, `Confirmacion`, `Frase`,
+`Control`), and the last of those is a full-width button that is *nearly* the first. ⚠️ Step 6's
+four screens are what arrive to one convention or to none. ⚠️ Two `Blocks` cells were re-pointed
+away from it the same day so it would be takeable at all — see ⛔ DECISIONS OWED, and `5h-ii-c`'s
+entry for the reasoning.~~ — ⚠️ **struck in lower case deliberately, the rule
+`5b.8-i`'s row records.** ✅ **`5h.5` CLOSED THE SAME DAY — see the entry above, and the
+marker is now on `6a`.**
+
+~~⚠️⚠️ `5h-ii-c` is the next task, and it is ungated — the gate was `5h-ii-b`, and it is shipped.
+⚠️ it inherits `prefillOf`, `mayCorrect`, `staleAfterVoid`, the two buttons and the confirmation
+box, and its first job is still to ask the question `5h-i` put to the owner twice and never got an
+answer to: *should she be able to fix a delivery while it is still queued, or wait until it lands?*
+that is cheap to answer now, because there is finally something on screen to look at.~~ — ⚠️ **struck
+in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line
+and a strikethrough is only a rendering.** ✅ **The question was asked and RULED on 2026-09-26, and it
+was the row's first act** — she fixes it now; see the entry above.
+
+✅✅ **`5g-iii-b` IS DONE, 2026-09-26 — THE `Costos` DATE IS FIXED, RULED AND SHIPPED WITHIN THE
+HOUR IT WAS PARKED: *"fix the Costos date, and build it to my phone."*** `costsFrom` calls
+**`isoDay`** (`@/api/catalog`), so the chart and the PDF name the day the shopkeeper was standing
+in. **It ships no migration.**
+
+⚠️⚠️ **AND THE FIX FOUND SOMETHING WORSE THAN THE BUG: THE WRONG ANSWER WAS WRITTEN DOWN IN THREE
+PLACES AND TWO OF THEM WERE TESTS DEFENDING IT.** `costs-pdf.test.ts` asserted that a delivery
+keyed at **8pm on the 23rd** is labelled the **24th**, under a comment calling `slice(0, 10)` *"a
+day Postgres already chose"*. `api-costs.test.ts` was blunter: *"THE DAY IS THE ISO PREFIX AND NOT
+A `Date`'s LOCAL DAY, which is a **deliberate disagreement with `today.ts`**."*
+
+⚠️⚠️ **POSTGRES CHOSE NO DAY.** `purchase.occurred_at` is a `timestamptz` — an INSTANT — so the
+*ISO prefix* is the UTC calendar day, which is a choice and is the wrong one after 18:00 in a UTC−6
+shop. ✅ **So this was not an oversight; it was a decision, recorded three times, and that is
+exactly why nothing went red for a day.** The lesson is not about timezones: **a comment saying *this
+disagreement is deliberate* is the strongest thing in a repository, and this one was wrong** — a
+session reading it would have left the bug alone twice over. **A claim about the database belongs to
+the database**, and `occurred_at` being an instant is readable from `0003` in ten seconds.
+
+✅ **Both fixtures are rewritten to assert the fix, and BUILT FROM LOCAL INSTANTS** so they hold on
+this Mac (UTC−6) and on CI (UTC) without a pinned `TZ` — the old comment's TZ worry was real and is
+now answered by construction rather than by a slice. ⚠️ **The other day-bearing fixtures in those
+files are UTC strings at 09:00–23:30Z, every one inside its own day under BOTH readings**, so they
+agree either way and were deliberately left alone; a note in the file says a NEW day fixture must be
+built locally.
+
+✅ **AND `@/api/documents`' OWN `dayOf` WAS COLLAPSED INTO `isoDay` IN THE SAME PASS**, hours after
+`5h-ii-a` wrote it. It had padded the parts by hand — a second SPELLING — and shipping that while
+fixing a second ANSWER would have been the same defect one layer down. **`isoDay` is now the one
+answer to *what day is it*, used by `catalog.ts`, `today.ts`, `costs.ts` and `documents.ts`.**
+
+✅ **A PARSE GUARD IS NEW AND IS ASSERTED IN BOTH SUITES.** `slice(0, 10)` never cared whether the
+value was an instant; `isoDay(new Date(…))` would render `NaN-NaN-NaN` as a chart label, so a point
+whose instant cannot be read is dropped.
+
+✅ **VERIFIED, AND NAMED:** `npm --prefix app run typecheck` clean; **1,288 tests across 42 files**
+(the runner's, up from 1,285); `conventions-gate.sh` **16 groups over 82 source and 42 test files**;
+`docs/checks/5g-iii-costs-contract.sh` **11 groups against a real PostgREST** — unaffected, because
+it asserts the wire and the ORDER rather than the label — and its falsifier **10/10**;
+`5h-ii-a-documents-contract.sh` **16 groups** and its falsifier **10/10**, both re-run because
+`documents.ts` changed. ⚠️ **What no check can see is the picture**: the x-axis labels and the PDF
+headings now read one day earlier for evening deliveries, and only his phone says whether that looks
+right (`R9`).

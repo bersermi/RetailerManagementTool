@@ -378,6 +378,16 @@ on:
       # of `Corregir`.
       - "docs/checks/5h-ii-b-corrections-contract.sh"
       - "docs/checks/5h-ii-b-corrections-contract-falsify.sh"
+      # ⚠️⚠️ AND DESPERDICIO'S, as of plan task `6a-i`. `app/src/api/waste.ts` is
+      # already covered by `app/src/api/**` above, but the two check files are not
+      # — and this one watches `app/src/cart/cart.ts` too, which NO path filter here
+      # has ever named. That module is where `PRICE_KEY`, `MONEY_KIND` and
+      # `UNPRICED_WASTE` live: the price key a write-off is anchored on, and the
+      # zero an unpriced loss is sent at. **Both are claims about `0019` rather than
+      # about a basket**, so a change to either must run against a real database.
+      - "app/src/cart/cart.ts"
+      - "docs/checks/6a-i-waste-contract.sh"
+      - "docs/checks/6a-i-waste-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -625,6 +635,81 @@ jobs:
       # compared against its own input is self-consistent and blind.
       - name: Contract — can the corrections check still fail (its own nine fixtures)
         run: bash docs/checks/5h-ii-b-corrections-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # ⚠️⚠️ THE SIXTH JOB, ADDED BY `6a-i` (2026-09-27) — AND IT IS A NEW JOB RATHER
+  # THAN TWO MORE STEPS ON `recent-documents`, WHICH IS THE OPPOSITE OF WHAT
+  # `5h-ii-b` DID. That row appended to an existing job because it was measured
+  # well under the cap and because a correction is *the thing you reach from the
+  # list* — one concern. **This is a WRITE and that job is a READ**: they fail for
+  # different reasons (*this app cannot record a loss* vs *this app cannot read a
+  # document back*), and `5h-ii-b`'s own entry records the cost of the alternative
+  # — it had to RENAME the job it joined, because *a job whose name describes half
+  # of what it runs is the stale-claim defect.*
+  waste:
+    name: the loss, and the cause it is filed under
+    runs-on: ubuntu-latest
+    # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE, AND THE NUMBER BEHIND IT IS MEASURED
+    # RATHER THAN GUESSED. **Measured 2026-09-27: the check itself in about 12
+    # seconds and the ten-fixture harness in 105**, because the harness drives the
+    # whole live check twelve times (ten fixtures plus two controls) and each run
+    # signs two people up.
+    # ⚠️ WHAT MAKES IT SLOW IS NOT THE FIXTURES, IT IS SIGNUP: GoTrue rate-limits
+    # and answers with an EMPTY BODY rather than a 429, so the retry loop inside the
+    # check sleeps ten seconds a try, six tries, two people per run. A cold or
+    # throttled runner is where the minutes would come from, and fifteen leaves room.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned for `reset`'s reason: a CLI release must not turn a green
+          # schema red without a commit saying why.
+          version: 2.114.0
+
+      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS — the check signs
+      # two people up through GoTrue and reads through PostgREST, both via Kong.
+      # The exclusion list is `catalog-write`'s, for its reason.
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      # ⚠️⚠️ `record_waste` (`0019`) WAS APPLIED ON 2026-09-05 AND CALLED BY NOTHING
+      # IN `app/` FOR TWENTY-TWO DAYS. This is the first thing anywhere that drives
+      # it from the app's own contract, and three of its claims were 200-and-wrong
+      # until they were measured: **the enum's order is DECLARATION order and not
+      # alphabetical**, so the picker's order and a reason breakdown's are the same
+      # order or nothing can see that they differ; **the default `qty_display_unit`
+      # is the SELL unit**, so `2` with no unit became two KILOS of a gram-based
+      # variant; and **an Empleada reading her own waste document gets an HTTP 200
+      # with an empty `waste_line` array**, because `waste_line_select` carries a
+      # manager gate that `waste_select` does not — the only asymmetric pair in this
+      # schema, and the reason `6a-ii` needs a migration rather than a patch.
+      - name: Contract — can this app record a loss (plan 6a-i)
+        run: bash docs/checks/6a-i-waste-contract.sh
+
+      # ⚠️ Ten fixtures: two green controls, seven mutated copies of the app's own
+      # contract modules, and one that DROPS `waste_line_select`'s role gate.
+      # ⚠️⚠️ `F2` and `F8` are the two it exists for. `F2` sorts `WASTE_REASONS`
+      # alphabetically — every cause still legal, every write still landing, and the
+      # only thing wrong is an order the database will never sort into, which
+      # nothing else here can see. `F8` publishes `unit_cost_net_per_base` to every
+      # member, which is the migration somebody would write to "fix" a cashier
+      # seeing a waste document with no products; `0040` kept that fence
+      # manager-and-above BY NAME.
+      # ⚠️ The policy restore is read out of `pg_policies` rather than remembered,
+      # runs in a `trap` on every exit path, and is re-proved by a second control.
+      - name: Contract — can the waste check still fail (its own ten fixtures)
+        run: bash docs/checks/6a-i-waste-contract-falsify.sh
 
       - name: Stop
         if: always()

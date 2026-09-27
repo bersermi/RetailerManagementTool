@@ -1059,6 +1059,128 @@ export const ES = {
      */
     done: 'Listo',
   },
+
+  /**
+   * ==========================================================================
+   * DESPERDICIO — the third capture screen. Plan task `6a-i`.
+   * ==========================================================================
+   * ⚠️⚠️ IT BORROWS `ES.counter` FOR THE BASKET AND SAYS SO, WHICH IS `5g-ii`'s
+   * SPLIT APPLIED A THIRD TIME. `Carrito`, `Vaciar carrito`, `Quitar`, `Cerrar`
+   * and `N productos` are all `ES.counter`'s, and *"carrito"* over a bin round is
+   * not the word somebody would pick from scratch. **It is kept anyway**: a
+   * shopkeeper who has learned one control on two screens has learned it on the
+   * third, and a third word for one control is the drift `ES.counter` was split
+   * out to end. ⚠️ What is HERE is only what genuinely differs — the cause, the
+   * verb and the confirmation.
+   */
+  waste: {
+    /**
+     * ⚠️⚠️ THE HEADER, AND THE COLON DOES THE SAME WORK `Comprando a:` DOES:
+     * §2.8 makes Desperdicio *reason-first*, so the cause is a sentence with a
+     * blank in it rather than a label over a picker.
+     *
+     * ⚠️ `Motivo` AND NOT `Tirando por` OR ANY VERB ABOUT A BIN, and that was
+     * decided rather than defaulted: **two of the five causes are not things
+     * thrown away.** `robo o faltante` is stock that walked, and `error de
+     * captura` is a loss that only ever existed in the data. A header reading
+     * *Tirando por: robo* would be false on the screen that records it.
+     */
+    reasonFor: 'Motivo:',
+    /** The picker's heading once it is REOPENED, where something is chosen. */
+    pickReason: 'Motivo',
+    /**
+     * ⚠️⚠️ THE PICKER'S HEADING ON THE WAY IN — Comprar's `pickFirst` shape, and
+     * the same reason: C3.11 put the provider first and §2.8 puts the cause
+     * first, so the screen says so rather than leaving it to a header a thumb may
+     * never touch.
+     *
+     * ⚠️ IT IS HOW A SHOPKEEPER WOULD ASK IT, not how a form would. *¿Cuál es el
+     * motivo?* is the same question in the register of a government office, and
+     * it also excludes the two causes that are not losses off a shelf. **`¿Qué
+     * pasó?` covers all five** and is what somebody actually says when a crate
+     * comes back short.
+     */
+    pickFirst: '¿Qué pasó?',
+    /** Under it, so the window says why it is in the way. One line, no jargon. */
+    pickWhy: 'Así sabemos qué se puede evitar.',
+    /** ⚠️ *Cerrar* and not *Cancelar*: closing the picker chooses nothing. */
+    pickClose: 'Cerrar',
+
+    /**
+     * ⚠️⚠️ THE FIVE CAUSES AS A SHOPKEEPER READS THEM, KEYED BY THE WIRE VALUE.
+     * `@/api/waste`'s header has the whole argument: `public.waste_reason` is the
+     * one enum in this schema whose values are Spanish (`0004:49` records the
+     * exception), so these keys LOOK like the sentences and are not — they are
+     * wire values, the way `'staff'` is.
+     *
+     * ⚠️ AND THE DIFFERENCE IS VISIBLE IN ALL FIVE: every value is lower-case in
+     * the database and every label is capitalised here. **A picker that rendered
+     * the enum would show a column of lower-case rows**, which is the smallest
+     * possible demonstration of why the indirection is written rather than
+     * skipped.
+     */
+    reason: {
+      caducado: 'Caducado',
+      'dañado': 'Dañado',
+      'merma de preparación': 'Merma de preparación',
+      'robo o faltante': 'Robo o faltante',
+      'error de captura': 'Error de captura',
+    },
+
+    /**
+     * ⚠️⚠️ TWO OF THE FIVE CARRY A LINE AND THREE DO NOT — see
+     * `@/api/waste`'s `reasonHint`. `0003` argues these two at length in its own
+     * comments and leaves the other three to speak for themselves, and that is
+     * the right split on a picker too: a hint under an obvious row is furniture.
+     */
+    hint: {
+      /**
+       * ⚠️ WHY THEFT AND A MISCOUNT ARE **ONE** VALUE, in `0003`'s own words:
+       * *"a count cannot distinguish theft from a miscount, and forcing the
+       * operator to guess produces a fiction."* So the row says what it means
+       * rather than making her decide which of the two happened.
+       */
+      'robo o faltante': 'No sabemos a dónde se fue',
+      /** ⚠️ THE ONE CAUSE THAT IS NOT A LOSS OFF A SHELF. `0003`: *"the loss is
+       *  in the data, not on the shelf."* */
+      'error de captura': 'La pérdida está en los datos, no en el estante',
+    },
+
+    /**
+     * ⚠️⚠️ THE BAR COUNTS PRODUCTS AND SHOWS NO PESO FIGURE, AND THAT IS ÁREA
+     * 9's RULING APPLIED RATHER THAN A SIMPLIFICATION — 2026-09-14: *"Números
+     * and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS COST OR AS A RATE, until
+     * something fixes `0011`."*
+     *
+     * ⚠️ SO THERE IS NO `Total` HERE AND NO `Falta un precio` EITHER, which is
+     * the half a session would leave in by copying Vender's bar. **A shop in the
+     * pilot has a deliberately short catalog (C8.2)**, so a peso total on this
+     * screen would read `$0.00` for exactly the products most likely to spoil —
+     * the one outcome the ruling names as worse than a missing number.
+     * ⚠️ The retail value IS still recorded (`waste.total_net`); what is refused
+     * is reporting it here.
+     */
+    counted: 'Se va a registrar',
+
+    slide: {
+      /** ⚠️ THE VERB, `Registrar` — Comprar's, because a write-off is a document
+       *  being recorded and not money changing hands. `Cobrar` would be absurd
+       *  and *Tirar* names a bin two of the five causes do not involve. */
+      word: 'Registrar',
+      label: 'Registrar — desliza para confirmar la merma, o toca para ver el carrito',
+      /** ⚠️ NO `toca para ver el carrito`: inside the sheet a tap navigates
+       *  nowhere (ruled 2026-09-25), and a screen reader is the one user for whom
+       *  the two surfaces are otherwise indistinguishable (C12.1). */
+      labelInCart: 'Registrar — desliza para confirmar la merma',
+    },
+
+    /**
+     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Vendido`'s rule
+     * and C10.3's: the slide must look identical offline.
+     */
+    recorded: 'Merma registrada',
+  },
+
   units: {
     kg: 'kg',
     g: 'gr',

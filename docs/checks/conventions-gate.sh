@@ -365,16 +365,60 @@ else fail "R2  $r2 violation(s) of the test boundary"; fi
 # The same family as the bash 3.2 trap two other checks here already recorded:
 # a check that only works on one of the two machines that matter is not one.
 ACCENTS='á|é|í|ó|ú|Á|É|Í|Ó|Ú|ñ|Ñ|¿|¡'
+
+# ⚠️⚠️ THE SECOND EXEMPTION, AND IT IS BOUNDED TO FIVE LINES RATHER THAN TO A
+# FILE — added by `6a-i`, 2026-09-27. `public.waste_reason` is the ONE enum in
+# this schema whose values are Spanish; `0004:49` records that exception in the
+# migration, and `0003:415` gives the reason — the vocabulary is compared across
+# shops, so it is global and it is written in the language the shops speak.
+#
+# ⚠️ SO `WASTE_REASONS` IS SPANISH TEXT THAT IS NOT A WORD A SHOPKEEPER READS.
+# It is a wire value, the way `'staff'` and `'manager'` are, and the LABEL it
+# maps to is in `src/strings.ts` with every other sentence (`ES.waste.reason`).
+# R4 governs the label; this rule cannot tell the two apart because it reads a
+# file and not a meaning.
+#
+# ⚠️⚠️ WHY THE BLOCK AND NOT THE FILE, WHICH IS THE WHOLE POINT OF THIS
+# ARRANGEMENT. Exempting `waste.ts` outright would make it the one module in
+# `src/` where a Spanish SENTENCE could be typed in place for ever with nothing
+# watching. So the accented lines in that file are compared against the accented
+# lines INSIDE the `WASTE_REASONS` declaration, and any accented literal
+# anywhere else in it still fails. **The exemption is five wire values, and it
+# says so by construction.**
+#
+# ⚠️ AND IT IS `grep -c` AND NEVER `grep -q`: under `set -o pipefail` a `-q`
+# exits on the first match, the producer dies of SIGPIPE, and the pipeline
+# returns 141 — so the assertion would depend on FILE SIZE. `5h.5` shipped that
+# bug in `R14` and measured it.
+WASTE_CONTRACT="$SRC/api/waste.ts"
+WASTE_VALUES_FROM='^export const WASTE_REASONS = \['
+WASTE_VALUES_TO='^\] as const;'
+
 note
 r4=0
 for f in $(src_files); do
   [[ "$f" == "$SRC/strings.ts" ]] && continue
+  if [[ "$f" == "$WASTE_CONTRACT" ]]; then
+    # Every accented literal in the file, and the ones inside the declaration.
+    all_hits="$(code "$f" | grep -E "$ACCENTS" | grep -c -E "['\"\`]")"
+    in_block="$(sed -n "/$WASTE_VALUES_FROM/,/$WASTE_VALUES_TO/p" "$f" \
+                  | grep -E "$ACCENTS" | grep -c -E "['\"\`]")"
+    # ⚠️ THE DECLARATION MUST EXIST AND MUST STILL HOLD THEM. A renamed constant
+    # makes `in_block` zero, `all_hits` five, and this fails — which is the
+    # correct answer: the exemption is for THAT declaration and nothing else.
+    if [[ "$all_hits" != "$in_block" ]]; then
+      r4=$((r4 + all_hits - in_block))
+      offend "$f" "$((all_hits - in_block)) accented literal(s) outside WASTE_REASONS — the exemption is that declaration only"
+    fi
+    continue
+  fi
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     r4=$((r4+1)); offend "$f" "$line"
   done < <(code "$f" | grep -E "$ACCENTS" | grep -E "['\"\`]")
 done
-if (( r4 == 0 )); then ok "R4  src/strings.ts is the only module with Spanish in it"
+if (( r4 == 0 )); then
+  ok "R4  src/strings.ts is the only module with Spanish in it, and api/waste.ts's $(sed -n "/$WASTE_VALUES_FROM/,/$WASTE_VALUES_TO/p" "$WASTE_CONTRACT" | grep -E "$ACCENTS" | grep -c -E "['\"\`]") accented enum value(s)"
 else fail "R4  $r4 Spanish literal(s) outside src/strings.ts"; fi
 
 # --- R5. money is integer centavos; money computes, mxn.ts renders --------
