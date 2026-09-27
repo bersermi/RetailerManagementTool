@@ -777,6 +777,21 @@ it is working around, **so a session holding either row alone knows the other ex
 ⚠️ **A required statement whose phrase also occurs inside a filename is a statement nothing can
 prove is load-bearing** — the same shape as `F31` above, one layer further out.
 
+⚠️⚠️ **AND A FOURTH, ALSO CI's AND ALSO A HARNESS RATHER THAN A GUARD: THE HANDBOOK'S NEXT-WORK
+MARKER WAS WRITTEN IN A SHAPE `handbook-agreement-falsify.sh` COULD NOT ANCHOR ON.** This row wrote
+it as `**…next piece of work is, and nothing is waiting on you for it.**`, with the whole sentence
+inside the bold run. `handbook-agreement.sh` was **green — it greps the sentence and not the
+markup** — and the harness failed on THREE fixtures: `H3` and `H8` died at setup with the bare
+message *"fixture setup failed"*, and **`H9`'s first mutation silently did nothing so its second
+ADDED a marker**, which made the run report *"2 handbook rows say where the next piece of work is"*
+— a failure about the handbook's CONTENT when the cause was the harness's anchor.
+⚠️⚠️ **THAT FILE ALREADY DOCUMENTED THIS EXACT TRAP FOR ITS OTHER ANCHOR** — *"the anchor needs the
+BOLD SPAN TO END AT THE PRONOUN"* — **so the rule was written down and the MESSAGE was not.**
+✅ **The handbook sentence is reworded (nothing loosened) AND `MARK_ANCHOR` now has the same
+explanatory guard `WAIT_ANCHOR` has**, naming the shape it wants and the two spellings it refuses.
+**A guard that knows what it wants and will not say so is the expensive kind, and this one cost an
+hour twice in four days.**
+
 ⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** **`docs/checks/6a-i-waste-contract.sh` — 17 assertion groups
 over live HTTP against a reset database**, and its falsifier **10 fixtures, two green controls and
 eight red**, the eighth of which **drops `waste_line_select`'s role gate and is restored from

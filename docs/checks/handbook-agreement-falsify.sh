@@ -76,6 +76,33 @@ MARK_TASK="$(sed -n "${MARK_NO}p" "$BOOK" | sed 's/^| \*\*`\{0,1\}//; s/`\{0,1\}
 # trailing period is a change to the harness and needs a fixture of its own; it is
 # routed to the next task that touches either file.
 MARK_ANCHOR="⚠️ **This is where the next piece of work is**"
+# ⚠️⚠️ AND IT IS CONFIRMED PRESENT HERE, WITH THE SHAPE NAMED — ADDED 2026-09-27 BY
+# `6a-i`, AFTER CI CAUGHT IT FOR THE SECOND TIME IN FOUR DAYS. That row wrote the
+# marker as `**…next piece of work is, and nothing is waiting on you for it.**`, with
+# the whole sentence INSIDE the bold run. `handbook-agreement.sh` was green — it greps
+# the sentence and not the markup — and this file failed on THREE fixtures: `H3` and
+# `H8` died at setup with the bare message *"fixture setup failed"*, and `H9`'s first
+# mutation silently did nothing so its second ADDED a marker, making the run report
+# *"2 handbook rows say where the next piece of work is"* — a failure about the
+# handbook's content when the cause was this harness's anchor.
+#
+# ⚠️⚠️ THIS IS THE **SAME LESSON AS `WAIT_ANCHOR`'s BELOW, AND THAT BLOCK ALREADY
+# SPELLS IT OUT**: the bold span must END at the word the anchor ends at. What was
+# missing here is not the rule but the MESSAGE — `WAIT_ANCHOR` explains the shape when
+# it cannot find its row and this one said nothing at all, so the same trap cost an hour
+# twice. **A guard that knows what it wants and will not say so is the expensive kind.**
+if ! grep -qF "$MARK_ANCHOR" "$BOOK"; then
+  echo "FAIL: the next-work marker in $BOOK is not spelled the way this harness"
+  echo "      anchors on, so H3, H8 and H9 have nothing to mutate."
+  echo "      ⚠️ THE ROW EXISTS AND STILL DOES NOT MATCH, which is the whole point of"
+  echo "      this message: the anchor needs the BOLD SPAN TO END AT THE WORD \"is\" —"
+  echo "         ⚠️ **This is where the next piece of work is** — and the rest in plain prose"
+  echo "      never"
+  echo "         ⚠️ **This is where the next piece of work is, and the rest inside the bold.**"
+  echo "      ⚠️ A leading ⚠️⚠️ is fine; a full stop or a comma inside the bold is not."
+  echo "      Found: $(grep -c 'This is where the next piece of work is' "$BOOK") line(s) with the sentence."
+  exit 1
+fi
 
 # The row after it, for H9's "both files point, and they disagree". Its anchor is
 # the first bold run in its third cell, whatever that row happens to say.
