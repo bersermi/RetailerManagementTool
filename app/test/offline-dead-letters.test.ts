@@ -34,6 +34,7 @@ import {
   NOTHING_DEAD,
   NO_UNIT_FACTORS,
   PRICE_KEY,
+  baseUnits,
   canSeeDeadLetters,
   deadLetters,
   lineCentavos,
@@ -198,6 +199,60 @@ describe('a line is priced the way the document is priced', () => {
   it('prices a transfer line at nothing, and says so as a number', () => {
     expect(lineCentavos('transfer', { variant_id: uuid(), qty_display: '5.000' }, FACTORS)).toBe(0);
     expect(lineCentavos('transfer', null, FACTORS)).toBe(0);
+  });
+});
+
+// ============================================================================
+// ⚠️⚠️ THE CONVERSION ON ITS OWN — EXTRACTED OUT OF `lineCentavos` BY `5h-ii-c`,
+// WHICH NEEDS THE SAME `round(qty_display * factor_to_base, 3)` FOR A DIFFERENT
+// PURPOSE. That row shows a queued note in `Lo último` and rebuilds the cart from
+// it, so it needs the base units to make a `CartLine` out of; this file needs them
+// to anchor a price on. **Two spellings of that arithmetic is the defect this
+// repository has recorded ten times**, and the half that would have gone wrong is
+// invisible: a cart rebuilt a thousandth out records a delivery that disagrees
+// with the one it replaced in the third decimal.
+//
+// ⚠️ THE ASSERTIONS BELOW ARE THE SAME RULES `lineCentavos` ALREADY HAD, read at
+// the level the other module consumes them — so a change to one cannot be green
+// here and wrong there.
+// ============================================================================
+describe('the unit conversion, which two modules now share', () => {
+  it('converts through factor_to_base, half-up away from zero', () => {
+    // 12 kg is 12,000 g, in thousandths of a gram.
+    expect(baseUnits({ qty_display: '12.000', qty_display_unit: 'kg' }, FACTORS)).toBe(12_000_000);
+    expect(baseUnits({ qty_display: '1.500', qty_display_unit: 'kg' }, FACTORS)).toBe(1_500_000);
+    expect(baseUnits({ qty_display: '3.000', qty_display_unit: 'pza' }, FACTORS)).toBe(3_000);
+  });
+
+  // ⚠️ THE ONE CASE THAT NEEDS NO MAP AND NO SERVER READ — `0001`'s
+  // `unit_base_is_identity` makes a base unit's factor exactly 1.
+  it('reads an absent unit as the variant\u2019s base unit', () => {
+    expect(baseUnits({ qty_display: '5.000' }, NO_UNIT_FACTORS)).toBe(5_000);
+    expect(baseUnits({ qty_display: '5.000', qty_display_unit: '' }, NO_UNIT_FACTORS)).toBe(5_000);
+  });
+
+  // ⚠️ AN UNKNOWN UNIT IS `null`, NEVER A GUESS OF 1: reading `kg` as a gram
+  // divides a quantity by a thousand and looks entirely plausible on screen.
+  it('refuses a unit it has no factor for rather than guessing', () => {
+    expect(baseUnits({ qty_display: '3.000', qty_display_unit: 'arroba' }, FACTORS)).toBeNull();
+    expect(baseUnits({ qty_display: '3.000', qty_display_unit: 'kg' }, NO_UNIT_FACTORS)).toBeNull();
+  });
+
+  it('answers null for anything that is not a line with a readable quantity', () => {
+    expect(baseUnits(null, FACTORS)).toBeNull();
+    expect(baseUnits([], FACTORS)).toBeNull();
+    expect(baseUnits({ qty_display: 12 }, FACTORS)).toBeNull();
+    expect(baseUnits({ qty_display: '1e3', qty_display_unit: 'kg' }, FACTORS)).toBeNull();
+    expect(baseUnits({}, FACTORS)).toBeNull();
+  });
+
+  // ⚠️ IT CONVERTS AND DOES NOT VALIDATE, WHICH IS THE SPLIT ITS OWN DOC NAMES.
+  // A cart line must be greater than zero, and that rule belongs to the caller —
+  // `@/offline/unsent` applies it, `@/api/documents`' `baseOf` applies it to a
+  // server row, and neither is this function's business.
+  it('does not refuse a zero or a negative — that is the caller\u2019s rule', () => {
+    expect(baseUnits({ qty_display: '0.000', qty_display_unit: 'kg' }, FACTORS)).toBe(0);
+    expect(baseUnits({ qty_display: '-1.000', qty_display_unit: 'kg' }, FACTORS)).toBe(-1_000_000);
   });
 });
 

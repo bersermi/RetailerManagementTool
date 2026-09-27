@@ -84,6 +84,31 @@ export const OUTBOX_STATES = ['pending', 'flushing', 'dead'] as const;
 export type OutboxState = (typeof OUTBOX_STATES)[number];
 
 /**
+ * The one state a SHOPKEEPER may take a row out of. Plan task `5h-ii-c`.
+ *
+ * ⚠️⚠️ IT LIVES HERE BECAUSE THIS FILE IS WHERE THE STATES MEAN SOMETHING, AND
+ * BECAUSE IT IS READ BY TWO MODULES THAT MUST NOT DISAGREE: `@/lib/outboxDb`'s
+ * `drop` binds it as the SQL predicate's parameter, and `@/offline/unsent`'s
+ * `droppable` is what decides whether the screen believes the row can go. **Two
+ * spellings of the word `pending` — one in a `.sql` string and one in a
+ * component — is a fence that opens on the day somebody renames a state**, and
+ * the failure would be a delivery removed from a phone while its RPC was in
+ * flight.
+ *
+ * ⚠️ WHY `pending` AND NOTHING ELSE, in the two other cases' own words.
+ * A `flushing` row has a call in the air whose reply has not arrived: the server
+ * may already hold the document, so deleting the row destroys the only record
+ * this device has of a write that LANDED. A `dead` row is §2.6's — *"replay is
+ * manual, never automatic"* — and `advance` already refuses every event on one;
+ * this is the second lock on that door.
+ *
+ * ⚠️ IT IS NOT A FOURTH STATE AND IT IS NOT A PERMISSION. Who may drop a row is
+ * a different question, and the owner ruled it on 2026-09-26: anybody signed in
+ * on the phone the row is sitting on. See `@/offline/unsent`.
+ */
+export const DROPPABLE_STATE: OutboxState = 'pending';
+
+/**
  * The RPC's arguments, keyed by argument name, in `0026`'s spelling — see the
  * header. An OBJECT, because `failed_write_payload_is_object` refuses anything
  * else and `replay_failed_write` could not re-run a bare array.

@@ -201,10 +201,11 @@ describe('the library has exactly one caller', () => {
     expect(listeners).toEqual(['lib/connectivityMonitor.ts', 'lib/supabase.ts']);
   });
 
-  // ⚠️⚠️ AND THE QUEUE HAS EXACTLY THREE MODULES, WHICH ARE THREE VERBS —
-  // ADDED AT 5c-iv-b AS TWO, AND MADE THREE AT `5f-iii-b` BY THE FIRST THING
-  // THAT EVER FILLED IT. `flushRunner` DRAINS the queue, `DeadLetterBanner`
-  // COUNTS it, and `commitRunner` FILLS it. ⚠️⚠️ THE GUARD FIRED ON THE WAY
+  // ⚠️⚠️ AND THE QUEUE HAS EXACTLY FOUR MODULES, WHICH ARE FOUR VERBS —
+  // ADDED AT 5c-iv-b AS TWO, MADE THREE AT `5f-iii-b` BY THE FIRST THING
+  // THAT EVER FILLED IT, AND FOUR AT `5h-ii-c` BY THE FIRST THING THAT EVER
+  // SHOWED IT TO A SHOPKEEPER. `flushRunner` DRAINS the queue, `DeadLetterBanner`
+  // COUNTS it, `commitRunner` FILLS it, and `useUnsent` SHOWS it. ⚠️⚠️ THE GUARD FIRED ON THE WAY
   // THERE AND IT WAS RIGHT: `5f-iii-b` first had `app/(tabs)/vender.tsx` call
   // `enqueue(outboxDb())` itself, and this assertion refused it in exactly the
   // words below. **The property being pinned was never *two* — it is that NONE
@@ -214,14 +215,22 @@ describe('the library has exactly one caller', () => {
   // that go through it. The flusher DRAINS the queue and the dead-letter banner
   // COUNTS it, and neither is a screen.
   //
-  // ⚠️ A THIRD ENTRY IS THE FAILURE §2.6 CANNOT SURVIVE: the outbox is the only
-  // write path, so a route that opened it for itself would be a sale written by
-  // a file that never learned about `pending`, `flushing` or `dead`. ⚠️ The
-  // banner is `src/offline/`, deliberately not `src/app/` — a reader that
+  // ⚠️ AN ENTRY UNDER `src/app/` IS THE FAILURE §2.6 CANNOT SURVIVE: the outbox is
+  // the only write path, so a route that opened it for itself would be a sale
+  // written by a file that never learned about `pending`, `flushing` or `dead`.
+  // ⚠️ The banner is `src/offline/`, deliberately not `src/app/` — a reader that
   // appears under `src/app/` is the shape this pins against even though the
   // path alone would still satisfy the equality, so the list is read with its
   // directory attached.
-  it('reads the outbox from the flusher and the dead-letter banner only', () => {
+  //
+  // ⚠️⚠️ `offline/useUnsent.ts` IS THE FOURTH AND IT EXISTS BECAUSE OF THIS
+  // ASSERTION. `5h-ii-c` shows queued notes in `Lo último` and lets a shopkeeper
+  // drop one; the obvious place for that is `app/documentos.tsx`, which is a
+  // SCREEN — so the read and the delete were put in a module and the route was
+  // given a hook. ⚠️ The DROP is why this matters more than it did: a screen that
+  // opened the queue for itself could delete a `flushing` row, and the fence
+  // against that is one SQL predicate in `lib/outboxDb.ts`.
+  it('reads the outbox from four modules, and not one of them is a screen', () => {
     const readers = sources()
       .filter(([, text]) => /from '@\/lib\/outboxDb'/.test(text))
       .map(([rel]) => rel);
@@ -229,7 +238,9 @@ describe('the library has exactly one caller', () => {
       'lib/commitRunner.ts',
       'lib/flushRunner.ts',
       'offline/DeadLetterBanner.tsx',
+      'offline/useUnsent.ts',
     ]);
+    for (const rel of readers) expect(rel.startsWith('app/')).toBe(false);
   });
 
   // ⚠️ AND THE QUEUE HAS EXACTLY ONE TRIGGER. `lib/flushRunner.ts` holds the

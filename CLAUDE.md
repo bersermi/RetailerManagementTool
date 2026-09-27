@@ -85,9 +85,15 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-26: 5,384 lines total,
-1,179 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
-prints both numbers and the next task id). Position reached 5,484 lines at one or two
+at 1,400 — and names the remedy in the failure. **Measured 2026-09-26 after `5h-ii-c`: 5,536 lines total,
+1,331 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
+prints both numbers and the next task id). ⚠️⚠️ **THAT LEAVES 69 LINES OF HEADROOM IN
+`## Position` AND A STATUS-LOG ENTRY IS 40–130 LINES, SO THE NEXT SESSION SHOULD EXPECT TO
+TAKE AN ARCHIVE CUT BEFORE IT CAN WRITE ITS OWN.** ⚠️ **There is no
+`docs/plan/archive/status-log-2026-09-26.md` yet** — that day is entirely live, and it already
+holds four entries — so the cut is a NEW file for a day still running, which the 2026-09-22
+and 2026-09-24 rows below record as normal. **`5h-ii-c` left it deliberately**: the cap is a
+tripwire and the cheapest moment to trip it is the start of a session, not the middle of one. Position reached 5,484 lines at one or two
 status-log entries per session, with nobody deciding to; **seventeen cuts have now been
 taken across those nine archive files, thirteen of them by a session that wanted to be
 writing something else.** ⚠️ **The cap is the SECOND assertion numbered 7 in that script** —
@@ -150,10 +156,26 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   `product_variant(name)`, sorted by the database through a NESTED embedded column.
 - A palette and a density scale in `app/src/theme/`, a cart in `app/src/cart/`, an outbox
   in `app/src/offline/`, and **a PDF this app hands a shopkeeper** in `app/src/export/`.
-- **A Vitest suite of 1,326 tests across 43 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-b` added
-  `api-corrections.test.ts` and INVERTED two guards that had pinned the opposite claim; it
-  was 1,288 across 42 earlier the same day and 1,219 across 41 the day before), and the one before it (1,189 across 40) came out of CI run
+  ⚠️ **`app/src/offline/` is SIX modules as of 2026-09-26** (`ls app/src/offline | wc -l`), and
+  the two newest are `5h-ii-c`'s: **`unsent.ts`, which turns a write still in the device's
+  SQLite queue into the same `ShopDocument` `Lo último` already draws, and `useUnsent.ts`,
+  which opens the queue and takes a row out of it.** ⚠️⚠️ **THE FINDING IN THEM WORTH
+  INHERITING: A QUEUED NOTE HAS NO ROW IN POSTGRES, SO `Lo último` SHOWED NOTHING AT ALL
+  OFFLINE** — `useDocuments` asks the server, the read fails, and `documentsLine` answers the
+  `ES.api` failure sentence — **and a shopkeeper who cannot find the delivery she just keyed
+  keys it again.** Two client ids, both land, and `record_purchase`'s idempotency cannot help
+  because they are genuinely two documents. ⚠️ **Dropping a queued write is NOT a void**: it
+  reaches no server, leaves nothing in the ledger, and has no cache to invalidate — the fence
+  is one SQL predicate in `@/lib/outboxDb`'s `drop`, bound to `DROPPABLE_STATE`, and **the
+  delete's own `changes` count is the evidence** because a read-then-delete has a window the
+  drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
+  pins that none of them is a screen** — that assertion has now directed three designs.
+- **A Vitest suite of 1,358 tests across 44 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-c` added
+  `unsent.test.ts` (27) and took `offline-dead-letters.test.ts` from 32 to 37 to pin an
+  extracted function directly; it was 1,326 across 43 earlier the same day, after `5h-ii-b` added
+  `api-corrections.test.ts` and INVERTED two guards that had pinned the opposite claim, and
+  1,288 across 42 and 1,219 across 41 before that), and the one before those (1,189 across 40) came out of CI run
   `36176282598` after correcting a count taken by grepping the files an hour earlier
   (1,119). **A count off a file is a claim about the file.** ⚠️ This entry said
   *"nearly 700 assertions"* until 2026-09-25.
@@ -165,12 +187,21 @@ gitignored, which is why no workflow compiles it.
 `app/` is written, and `R2` keeps the suite in `app/test/` as `.ts` reaching no component.
 ⚠️⚠️ **`app/src/ui/` NOW EXISTS AND `5h.5` STILL OWNS IT.** Six primitives — `Buscador`,
 `Cantidad`, `Deslizador`, `Separador`, `TecladoListo`, `Vacio` — were built across `5d`–`5g`
-**with no written rule**, and `5h.5`, the row that writes one, is gated on `5h-ii-c` —
+**with no written rule**, and `5h.5` is the row that writes one. ~~it is gated on `5h-ii-c` —
 re-pointed twice in two days as `5h` and then `5h-ii` were each split, because a gate naming a row
-that is no longer takeable is a gate nobody can clear. ⚠️ **Área 6 is no longer the blocker: it was
-RULED on 2026-09-26** by `5h-i`, a simulation round run with the owner — **so what stands
-between here and `5h.5` is build rather than a question**, and as of 2026-09-26 it is
-**one row**: `5h-ii-a` and `5h-ii-b` both closed that day, leaving `5h-ii-c`. ⚠️⚠️ **AND `5h-ii-b` PUT FOUR MORE UNGOVERNED COMPONENTS INTO A ROUTE RATHER THAN INTO `src/ui/`** — `Boton`, `Confirmacion`, `Frase` and `Control`, all local to `documentos.tsx`, and the last of them is a full-width button that is *nearly* the first one. **That near-duplicate is what `5h.5` is for**, and it is named here so the row has something concrete to collapse. ⚠️ **Every session that
+nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENCE CARRIED
+`handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
+WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
+prose about one task's gate made another read as a split parent. **It is harmless in this file,
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **NOTHING STANDS BETWEEN HERE AND `5h.5` ANY MORE — IT IS THE NEXT TASK AND IT IS
+UNGATED, AS OF 2026-09-26.** Área 6 was RULED that day by `5h-i`, a simulation round run with
+the owner, and then **all three children of `5h-ii` closed on the same date** — `5h-ii-a` the
+list, `5h-ii-b` the two controls, `5h-ii-c` the note that has not been sent. ~~as of
+2026-09-26 it is one row: `5h-ii-a` and `5h-ii-b` both closed that day, leaving
+`5h-ii-c`.~~ ⚠️⚠️ **AND TAKING `5h.5` NEEDED TWO `Blocks` CELLS RE-POINTED FIRST**: both open
+decisions had been filed against it as a convenience, with the words *it blocks nothing
+takeable* — which expired the instant it became takeable, because `plan-handover.sh`'s
+assertion 7c reads that column and refuses a next task named in it. ⚠️⚠️ **AND `5h-ii-b` PUT FOUR MORE UNGOVERNED COMPONENTS INTO A ROUTE RATHER THAN INTO `src/ui/`** — `Boton`, `Confirmacion`, `Frase` and `Control`, all local to `documentos.tsx`, and the last of them is a full-width button that is *nearly* the first one. **That near-duplicate is what `5h.5` is for**, and it is named here so the row has something concrete to collapse. ⚠️ **Every session that
 ships a primitive before it adds to a directory whose conventions nobody has written**, and
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
