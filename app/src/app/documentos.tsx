@@ -7,6 +7,7 @@ import {
   CART_KIND,
   CORRECTION_ROUTE,
   mayCorrect,
+  prefillOf,
   type Correction,
 } from '@/api/corrections';
 import {
@@ -20,6 +21,8 @@ import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatLedgerDay } from '@/format/date';
+import { correctionAsk } from '@/offline/unsent';
+import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -40,6 +43,26 @@ import { Vacio } from '@/ui/Vacio';
 // is why it ships alone and writes nothing. A list that only reads can be looked
 // at on a phone and corrected before anything in this app has ever cancelled a
 // document — the seam that split is: read / ledger-write / queue.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ AND `5h-ii-c` ADDED THE THIRD OF THOSE: THE NOTE THAT HAS NOT BEEN SENT
+// ----------------------------------------------------------------------------
+// This screen used to show NOTHING at all with no signal — `useDocuments` asks
+// the server, the read fails, and `documentsLine` answers the failure sentence —
+// so the delivery she had just keyed was absent from the one screen built for
+// finding it, and keying it a second time was the obvious thing to do. **The
+// invisibility manufactured a duplicate.** The unsent group above the list is
+// that fixed, and the owner ruled on 2026-09-26 that she may correct one where it
+// sits rather than waiting for it to land.
+//
+// ⚠️ THE TWO HALVES FAIL SEPARATELY AND THAT IS WHY `Cuerpo` DID NOT CHANGE. The
+// unsent group is this device's own SQLite and works with no signal; the list
+// below it is the server's seven days and says so when it could not be asked. A
+// shopkeeper offline now sees her own note AND an honest sentence where the
+// history would be, which is two facts rather than one failure.
+//
+// ⚠️ NOTHING ABOUT THE UNSENT PATH IS A WRITE TO POSTGRES, so there is no cache
+// to invalidate and no `staleAfterVoid` on it — see `@/offline/unsent`.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ ONE KIND AT A TIME, AND THAT IS A DECISION THIS SCREEN TAKES RATHER THAN
@@ -100,6 +123,16 @@ export default function Documentos() {
   // ⚠️ WHAT THE CONFIRMATION BOX IS ASKING ABOUT, or `null`. `5h-ii-b`.
   const [asking, setAsking] = useState<Asking | null>(null);
 
+  // ⚠️⚠️ THE ONE REFUSAL THE UNSENT PATH CAN PRODUCE, AND IT IS LOCAL STATE
+  // RATHER THAN A MUTATION'S `error` BECAUSE THERE IS NO MUTATION. Dropping a
+  // queued row is a synchronous SQLite delete with no network in it, so there is
+  // nothing to be pending and nothing to reject — the only thing that can happen
+  // is that the drain claimed the row first, which `remove` reports as `false`.
+  // ⚠️ It is cleared by `ask` for exactly the reason the mutation's `error` is:
+  // a refusal about one note must never still be on screen over the question
+  // about the next one. `5h-ii-b` shipped that bug and found it before CI did.
+  const [gone, setGone] = useState<string | null>(null);
+
   // ⚠️ THE HALF OF `0021`'s FENCE THIS PHONE CAN KNOW — and this screen decides
   // none of it: `mayCorrect` (`@/api/corrections`) does, and the database
   // decides the half that involves a clock.
@@ -109,6 +142,12 @@ export default function Documentos() {
 
   const { correct, working, failed, forget } = useCorrectDocument();
 
+  // ⚠️ THE QUEUE ON THIS PHONE, FOR THE KIND ON SCREEN — and `shown.documents` is
+  // the dedupe rather than a second opinion: a row that has landed leaves the
+  // unsent group the moment the server list carries it, because the client uuid
+  // IS the server row's id. See `@/offline/useUnsent`.
+  const unsent = useUnsent(kind, shown.documents);
+
   // ⚠️⚠️ OPENING OR CLOSING THE QUESTION FORGETS THE LAST REFUSAL, and it is one
   // function rather than two `setAsking` calls so neither path can be the one that
   // forgets. TanStack keeps a mutation's `error` until the next `mutate`, so
@@ -117,6 +156,7 @@ export default function Documentos() {
   // belongs, about a document nobody had refused her.
   function ask(next: Asking | null): void {
     forget();
+    setGone(null);
     setAsking(next);
   }
 
@@ -127,6 +167,30 @@ export default function Documentos() {
   const load = useCartStore((state) => state.load);
 
   async function run(target: Asking): Promise<void> {
+    // ⚠️⚠️ THE UNSENT PATH IS A DIFFERENT ACT AND NOT A DIFFERENT ENDPOINT. There
+    // is no void, no reversal document and no window — the note never reached the
+    // ledger, so removing it is a delete on this phone and nothing else.
+    // ⚠️⚠️ AND THE ORDER IS `5h-ii-b`'s, KEPT FOR ITS REASON: the row leaves the
+    // queue BEFORE the cart is loaded. The other way round, a correction keyed
+    // with no signal would queue a fresh delivery while the wrong one was still
+    // waiting to be sent — **two deliveries rather than one corrected**, which is
+    // precisely the duplicate this whole row exists to prevent.
+    if (target.unsent) {
+      if (!unsent.remove(target.document.id)) {
+        // ⚠️ THE BOX STAYS OPEN ON A REFUSAL, `5h-ii-b`'s rule: closing here would
+        // take the sentence off the screen before she read it. Nothing was removed
+        // and nothing was loaded, so the note is exactly where it was — on its way.
+        setGone(ES.documents.unsentGone);
+        return;
+      }
+      ask(null);
+      if (target.how === 'eliminar') return;
+      const prefill = prefillOf(target.document);
+      load(prefill.kind, prefill.lines, prefill.quotes, prefill.providerId);
+      router.push(CORRECTION_ROUTE[target.document.kind]);
+      return;
+    }
+
     const done = await correct(target.document, target.how);
     // ⚠️⚠️ A `null` IS A REFUSAL AND THE BOX STAYS OPEN. `failed` is the
     // sentence, and closing here would take it off the screen before she read
@@ -152,6 +216,39 @@ export default function Documentos() {
         }}
       >
         <Interruptor kind={kind} onPick={setKind} />
+        {/* ⚠️⚠️ THE UNSENT GROUP IS ABOVE THE WINDOW'S SUBTITLE AND NOT INSIDE IT,
+            because `ES.documents.subtitle` names the SEVEN-DAY WINDOW, which
+            describes the server's list — and these notes are not in it yet.
+            ⚠️ Quoting that sentence here rather than naming it is what turns the
+            conventions gate red: a JSX comment is code to `R4`, which reads the
+            file and not the AST. */}
+        {/* ⚠️ It is absent rather than empty when the
+            queue is clear, which is the ordinary state in a shop with signal: a
+            permanent heading over nothing would teach her to stop reading it.
+            ⚠️ **Whether the heading alone is enough to tell the two groups apart
+            once she scrolls is a look-question and it is `R9`'s** — the owner's
+            phone decides, and `5h.5` is where a per-row mark would land. */}
+        {unsent.documents.length > 0 ? (
+          <View style={{ gap: scale.rowGap }}>
+            <Text
+              style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}
+            >
+              {ES.documents.unsent}
+            </Text>
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.documents.unsentNote}
+            </Text>
+            {unsent.documents.map((one) => (
+              <Documento
+                key={one.id}
+                document={one}
+                canCorrect={mayCorrect(one, role, userId)}
+                onAsk={(document, how) => ask({ document, how, unsent: true })}
+              />
+            ))}
+            <Separador />
+          </View>
+        ) : null}
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
           {ES.documents.subtitle}
         </Text>
@@ -159,13 +256,17 @@ export default function Documentos() {
           kind={kind}
           documents={shown}
           canCorrect={(document) => mayCorrect(document, role, userId)}
-          onAsk={(document, how) => ask({ document, how })}
+          onAsk={(document, how) => ask({ document, how, unsent: false })}
         />
       </ScrollView>
       <Confirmacion
         asking={asking}
         working={working}
-        failed={failed}
+        /* ⚠️ ONE SENTENCE SLOT AND TWO SOURCES: the mutation's refusal on a note
+           that landed, and this screen's own on one the drain took first. They can
+           never both be set — `ask` clears both, and only one of the two paths
+           runs. */
+        failed={asking !== null && asking.unsent ? gone : failed}
         busy={
           asking !== null &&
           (CART_KIND[asking.document.kind] === 'buy' ? buy : sell).length > 0
@@ -183,6 +284,13 @@ export default function Documentos() {
 interface Asking {
   readonly document: ShopDocument;
   readonly how: Correction;
+  /**
+   * ⚠️⚠️ IS THIS NOTE STILL ON THE PHONE? It picks the question, the act and the
+   * refusal, and it is carried on what the box is ASKING about rather than looked
+   * up again when she confirms — the two lists are drawn from different sources
+   * and a row can move between them while the box is open.
+   */
+  readonly unsent: boolean;
 }
 
 /** The module's word, and the way back to wherever you came from. */
@@ -604,7 +712,7 @@ function Confirmacion({
             </>
           ) : (
             <>
-              <Frase text={correcting ? ES.documents.correctAsk : ES.documents.removeAsk} />
+              <Frase text={correctionAsk(asking.how, asking.unsent)} />
               {/* ⚠️ THE SECOND LINE ONLY WHEN THERE IS SOMETHING TO LOSE — see
                   `ES.documents.correctBusy`. An `Eliminar` touches no cart. */}
               {correcting && busy ? <Frase text={ES.documents.correctBusy} /> : null}

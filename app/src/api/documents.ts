@@ -688,7 +688,7 @@ function lineOf(row: DocumentLineRow): DocumentLine {
     id: typeof row.id === 'string' ? row.id : '',
     variantId: typeof row.variant_id === 'string' ? row.variant_id : '',
     name: typeof name === 'string' && name !== '' ? name : ES.documents.unknownProduct,
-    quantity: quantityOf(row.qty_display, row.qty_display_unit),
+    quantity: lineQuantity(row.qty_display, row.qty_display_unit),
     amount: amountOf(row.line_net, row.tax_amount),
     base: baseOf(row.qty_base),
     perBase:
@@ -738,8 +738,19 @@ function providerIdOf(kind: DocumentKind, row: DocumentRow): string | null {
   return typeof id === 'string' && id !== '' ? id : null;
 }
 
-/** `3 kg` — the figure as keyed, and its unit's own word. */
-function quantityOf(figure: string, unitCode: string): string {
+/**
+ * `3 kg` — the figure as keyed, and its unit's own word.
+ *
+ * ⚠️⚠️ EXPORTED BY `5h-ii-c`, WHICH DRAWS A QUEUED DOCUMENT IN THE SAME LIST.
+ * A write still in the outbox carries `qty_display` and `qty_display_unit` under
+ * the very same names (`0016`/`0018`'s `p_lines` spelling, which is what the
+ * queue stores), so **the only difference between a queued line and a landed one
+ * is where the two strings came from.** A second copy of this function in
+ * `@/offline/unsent` would be two answers to *how is a quantity written on this
+ * screen*, and the drift would be silent: `750.000` reading `750` on one row and
+ * `750.000` on the one above it.
+ */
+export function lineQuantity(figure: string, unitCode: string): string {
   const word = unitWord(unitCode);
   const shown = trimmed(figure);
   if (shown === null) return word === '' ? ES.documents.noFigure : word;
@@ -772,8 +783,23 @@ function trimmed(figure: string): string | null {
 
 /** Gross of IVA, rendered — or `ES.documents.noFigure` when either half is unreadable. */
 function amountOf(net: string, tax: string): string {
-  const gross = grossOf(net, tax);
-  return gross === null ? ES.documents.noFigure : formatMXN(gross);
+  return shownAmount(grossOf(net, tax));
+}
+
+/**
+ * A peso figure this list may show, or the sentence that says it could not be
+ * read.
+ *
+ * ⚠️⚠️ EXPORTED BY `5h-ii-c` FOR THE SAME REASON AS `lineQuantity`: a queued
+ * document's centavos come from `writeCentavos` (`@/offline/deadLetters`) rather
+ * than from `total_net` and `total_tax`, so the ARITHMETIC differs and the
+ * WITHHOLDING must not. ⚠️ **The rule being shared is the one that matters**:
+ * `null` is never rendered as `$0.00`, because a delivery worth nothing and a
+ * delivery this phone could not price look identical to a shopkeeper and are
+ * opposites.
+ */
+export function shownAmount(centavos: number | null): string {
+  return centavos === null ? ES.documents.noFigure : formatMXN(centavos);
 }
 
 /**

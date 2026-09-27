@@ -1988,6 +1988,62 @@ export const ES = {
      * -------------------------------------------------------------------- */
     reasonCorrected: 'Corregida desde Lo último',
     reasonDeleted: 'Eliminada desde Lo último',
+
+    /* ----------------------------------------------------------------------
+     * THE DOCUMENT THAT HAS NOT BEEN SENT YET — plan task `5h-ii-c`, ruled by
+     * the owner on 2026-09-26: she fixes it now rather than waiting for it to
+     * land.
+     *
+     * ⚠️⚠️ NOT ONE OF THESE WORDS IS *cola*, *outbox*, *pendiente*, *sincronizar*
+     * OR *estado*, AND THAT IS THE RULE RATHER THAN A PREFERENCE. The queue is
+     * ours; what she has is a note that is still on her phone because there was
+     * no signal. **She is never handed our internal state**
+     * ([[users-dont-do-bookkeeping]]) — and she is never told a delivery failed,
+     * because it has not.
+     * -------------------------------------------------------------------- */
+
+    /**
+     * ⚠️ THE GROUP'S HEADING, ABOVE THE SERVER'S LIST. *Sin enviar* and not
+     * *Sin conexión*: the notice at the bottom of the screen already says
+     * whether there is signal, and these rows are about the NOTES rather than
+     * about the link — they are still here after the signal comes back, for the
+     * second it takes to drain.
+     */
+    unsent: 'Sin enviar',
+
+    /**
+     * ⚠️⚠️ WHAT IT MEANS, IN ONE LINE, AND IT PROMISES WHAT THE APP ACTUALLY
+     * DOES. The drain is automatic — a reconnect, an app wake or the next commit
+     * triggers it — so there is nothing for her to press and the sentence must
+     * not imply there is. ⚠️ *Solas* rather than a time: nothing in this app can
+     * honestly say WHEN, because that is the shop's signal and not ours.
+     */
+    unsentNote: 'Todavía están en este teléfono. Se envían solas cuando vuelve la señal.',
+
+    /**
+     * ⚠️⚠️ TWO QUESTIONS OF THEIR OWN AND NOT THE LANDED ONES REWORDED, BECAUSE
+     * THE ANSWER IS GENUINELY DIFFERENT. `removeAsk` says a note *ya no va a
+     * aparecer aquí* — true of a voided document, which stays in the ledger
+     * behind a mirror image of itself. An unsent note was never sent, so
+     * **nothing is recorded at all**, and that is the one fact this pair exists
+     * to say out loud: it is the difference the owner was shown before he ruled.
+     *
+     * ⚠️ NEITHER MENTIONS THE QUEUE and neither apologises. *Todavía no se
+     * envía* is a fact about her phone that she can already see at the bottom of
+     * the screen.
+     */
+    unsentCorrectAsk: '¿Corregir esta nota? Todavía no se envía, así que la borramos y la vuelves a capturar.',
+    unsentRemoveAsk: '¿Eliminar esta nota? Todavía no se envía, así que no va a quedar registrada.',
+
+    /**
+     * ⚠️⚠️ THE ONE REFUSAL ON THIS PATH, AND IT IS GOOD NEWS DRESSED AS A
+     * REFUSAL. Between her tap and the delete, the drain claimed the row and sent
+     * it — so the note is fine, it is in the shop's records, and the thing to do
+     * is correct it the way every landed note is corrected. **It tells her where
+     * it went rather than that something failed**, and the list below it is
+     * already the place it names.
+     */
+    unsentGone: 'Esta nota ya se envió. Corrígela en la lista de abajo.',
   },
 
   /**

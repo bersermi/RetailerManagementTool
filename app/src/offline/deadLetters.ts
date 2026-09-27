@@ -191,8 +191,51 @@ export function lineCentavos(
   if (!isWritePayload(line)) return null;
 
   const priceText = line[key];
+  if (typeof priceText !== 'string') return null;
+
+  const base = baseUnits(line, factors);
+  if (base === null) return null;
+
+  // ⚠️ EVERY THROW THE MONEY PATH RAISES IS CAUGHT HERE AND BECOMES `null`.
+  // `parseDecimal` refuses a number, an exponent, a value with more decimals
+  // than the column holds; `lineAnchorCentavos` refuses anything past 2^53.
+  // Each of those is a corrupt payload rather than a shop's problem, and a
+  // banner that crashes the app is worse than one that shows a count.
+  try {
+    return lineAnchorCentavos(parseDecimal(priceText, SCALE.unitPrice), base);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * One queued line's quantity in THOUSANDTHS OF A BASE UNIT — the integer a
+ * `CartLine` holds — or `null` when this device cannot convert it exactly.
+ *
+ * ⚠️⚠️ IT WAS EXTRACTED OUT OF `lineCentavos` BY `5h-ii-c` AND THE REASON IS
+ * NOT TIDINESS. That row shows a QUEUED document in `Lo último` and lets a
+ * shopkeeper re-key it, so it needs the same conversion for a different purpose:
+ * the money path needs the base units to anchor a price on, and the correction
+ * path needs them to rebuild the cart. **Two spellings of
+ * `round(qty_display * factor_to_base, 3)` is the defect this repository has
+ * recorded ten times**, and the half that would have gone wrong is invisible:
+ * a cart rebuilt with a quantity off by a thousandth records a delivery that
+ * disagrees with the one it replaced in the third decimal.
+ *
+ * ⚠️ THE RULES ARE `lineCentavos`' OWN AND ARE DOCUMENTED THERE — the server's
+ * half-up-away-from-zero rounding, an absent unit meaning the variant's base
+ * unit (factor exactly `1`), and an unknown unit answering `null` rather than
+ * guessing `1`.
+ *
+ * ⚠️ IT DOES NOT REFUSE A ZERO OR A NEGATIVE, and that is deliberate: this is
+ * the conversion and not the validation. `@/offline/unsent` is where a cart line
+ * must be greater than zero, which is `baseOf`'s rule in `@/api/documents` — the
+ * same split that file already makes.
+ */
+export function baseUnits(line: unknown, factors: UnitFactors): number | null {
+  if (!isWritePayload(line)) return null;
   const qtyText = line.qty_display;
-  if (typeof priceText !== 'string' || typeof qtyText !== 'string') return null;
+  if (typeof qtyText !== 'string') return null;
 
   const unit = line.qty_display_unit;
   let factor: number;
@@ -210,15 +253,8 @@ export function lineCentavos(
     }
   }
 
-  // ⚠️ EVERY THROW THE MONEY PATH RAISES IS CAUGHT HERE AND BECOMES `null`.
-  // `parseDecimal` refuses a number, an exponent, a value with more decimals
-  // than the column holds; `lineAnchorCentavos` refuses anything past 2^53.
-  // Each of those is a corrupt payload rather than a shop's problem, and a
-  // banner that crashes the app is worse than one that shows a count.
   try {
-    const qty = parseDecimal(qtyText, SCALE.quantity);
-    const base = divRoundHalfUpAwayFromZero(qty * factor, FACTOR_ONE);
-    return lineAnchorCentavos(parseDecimal(priceText, SCALE.unitPrice), base);
+    return divRoundHalfUpAwayFromZero(parseDecimal(qtyText, SCALE.quantity) * factor, FACTOR_ONE);
   } catch {
     return null;
   }

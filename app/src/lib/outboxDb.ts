@@ -31,6 +31,7 @@
 import * as SQLite from 'expo-sqlite';
 
 import {
+  DROPPABLE_STATE,
   isOutboxState,
   isWriteKind,
   isWritePayload,
@@ -198,4 +199,44 @@ export function settle(
 /** A row that landed on the server. See `advance` — there is no `sent` state. */
 export function forget(db: SQLite.SQLiteDatabase, id: string): void {
   db.runSync('delete from queued_write where id = ?', id);
+}
+
+/**
+ * One row taken out of the queue by a SHOPKEEPER rather than by a flush. Plan
+ * task `5h-ii-c`. Answers whether it actually happened.
+ *
+ * ⚠️⚠️ `and state = ?` IS THE WHOLE FENCE AND IT IS IN THE STATEMENT
+ * RATHER THAN IN A BRANCH ABOVE IT. A read-then-delete has a window: the drain
+ * can claim the row between the two, and this app's drain runs on a reconnect
+ * the shopkeeper did not ask for and cannot see. Deleting a `flushing` row would
+ * destroy the phone's only record of a write whose RPC is in flight — the reply
+ * may be a success — so she would be told her delivery was removed while it
+ * landed. **One statement, and the state is part of the predicate.**
+ *
+ * ⚠️ THE WORD ITSELF IS `DROPPABLE_STATE` FROM `@/api/outbox` AND IS BOUND AS A
+ * PARAMETER RATHER THAN TYPED INTO THE SQL, so the client's reading of this fence
+ * (`droppable`, in `@/offline/unsent`) and the statement that enforces it are one
+ * constant and cannot drift apart.
+ *
+ * ⚠️⚠️ `changes` IS THE EVIDENCE AND NOT AN OPTIMISATION. `false` here means the
+ * row was not `pending` when the delete ran, which is exactly what the screen
+ * must tell her instead of confirming. A void's equivalent of this is a 400 with
+ * `TD003` on it; this one has no server to ask, so the row count is the answer.
+ *
+ * ⚠️ A `dead` ROW IS REFUSED BY THE SAME PREDICATE, and that is §2.6 kept rather
+ * than re-argued: replay is ours, by hand, one row at a time — `advance` says so
+ * in `@/api/outbox` and this is the second lock on that door.
+ *
+ * ⚠️ NOTHING ON THE SERVER IS TOUCHED AND THERE IS NOTHING TO INVALIDATE. A
+ * queued write never reached Postgres, so no cached read of this shop is made
+ * wrong by dropping it — which is the one structural difference between this and
+ * `void_transaction`, and the reason `staleAfterVoid` has no counterpart here.
+ */
+export function drop(db: SQLite.SQLiteDatabase, id: string): boolean {
+  const done = db.runSync(
+    `delete from queued_write where id = ? and state = ?`,
+    id,
+    DROPPABLE_STATE,
+  );
+  return done.changes > 0;
 }
