@@ -27,9 +27,11 @@ import { newWriteId, nowIso } from '@/lib/ids';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Boton } from '@/ui/Boton';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { Deslizador } from '@/ui/Deslizador';
+import { Frase } from '@/ui/Frase';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
@@ -1250,34 +1252,23 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
   const { scale } = useDensity();
   return (
     <>
-      <Text
-        style={{
-          fontSize: scale.bodySize,
-          fontWeight: '600',
-          color: PALETTE.tinta,
-          textAlign: 'center',
-        }}
-      >
-        {ES.counter.cart.emptyAsk}
-      </Text>
+      <Frase text={ES.counter.cart.emptyAsk} />
       <View style={{ gap: scale.rowGap }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.emptyConfirm}
+        {/* ⚠️ `5h.5` MOVED THIS ONE INTO `src/ui/Boton` AND DELIBERATELY LEFT THE
+            NEXT ONE ALONE. This button's style was byte-identical to
+            `documentos.tsx`'s — it is the third drawing that made `Boton` a
+            primitive under `R14`, and the swap changes nothing a person sees.
+            **`Cancelar` below is a different shape**: filled `accionSuave`, no
+            border, weight 600. That one is drawn NINE times across EIGHT files and
+            has already drifted — seven carry `borderWidth: 1` and this one and
+            Comprar's do not — so collapsing it decides what a person sees on eight
+            screens at once. It is named in `docs/CONVENTIONS.md` with the count
+            and in `5h.5`'s entry, rather than smuggled in here. */}
+        <Boton
+          label={ES.counter.cart.emptyConfirm}
+          tone={PALETTE.error}
           onPress={onConfirm}
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: PALETTE.error,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.error }}>
-            {ES.counter.cart.emptyConfirm}
-          </Text>
-        </Pressable>
+        />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={ES.counter.cart.emptyCancel}

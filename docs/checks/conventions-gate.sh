@@ -44,9 +44,15 @@
 # `plan-handover.sh` both recorded, hit again by the next script written.
 #
 # ⚠️ WHEN YOU ADD OR CHANGE A RULE HERE, RE-FALSIFY IT.
-# `docs/checks/conventions-gate-falsify.sh` is the harness — twenty-six
-# fixtures, twenty-five of which must turn this file RED and one of which must
-# leave it GREEN.
+# `docs/checks/conventions-gate-falsify.sh` is the harness — all but one of its
+# fixtures must turn this file RED, and `F13` must leave it GREEN.
+# ⚠️⚠️ THE COUNT USED TO BE SPELLED HERE IN WORDS — *"twenty-six fixtures,
+# twenty-five of which"* — AND IT WAS WRONG BY FOUR WHEN `5h.5` READ IT ON
+# 2026-09-26: the harness ran THIRTY. Nothing checks this file, so the number had
+# been decaying since `F27`. **It is deleted rather than corrected**, which is the
+# same move assertion 0d made on the page's own English count and for the same
+# reason: the harness carries `EXPECTED_FIXTURES`, which is the number that
+# actually refuses to run.
 # It is the only falsification harness committed in this repository, and its
 # header says why. A new rule with no fixture is a rule nobody has shown can
 # fail, which is rule 4 of this repository exactly.
@@ -67,8 +73,8 @@ TESTS="$ROOT/app/test"
 
 # ⚠️ THE TWO LISTS THE PAGE IS CHECKED AGAINST. Adding a rule to the page
 # without adding it here is a FAILURE, not an omission — see assertion 0.
-ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13"
-STATED="R3 R9"
+ENFORCED="R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13 R14 R15"
+STATED="R3 R9 R16"
 
 fails=0
 ran=0
@@ -604,6 +610,98 @@ done
 if (( r8 == 0 )); then ok "R8  every module outside src/app/ says why it exists"
 else fail "R8  $r8 module(s) with no header"; fi
 
+# --- R14. a component in src/ui/ is one at least two other modules draw ----
+# ⚠️⚠️ ADDED 2026-09-26 AT `5h.5`, AND IT IS THE FIRST RULE HERE WHOSE SUBJECT IS
+# A DIRECTORY'S MEMBERSHIP RATHER THAN A LINE OF CODE.
+#
+# The page's rule is *"a component enters `src/ui/` when a SECOND FILE draws
+# it"* — the owner's refusal of 2026-09-13 (*"rather than ten primitives guessed
+# at against screens nobody has drawn"*) written as something a machine can hold.
+#
+# ⚠️ *ALREADY DRAWN TWICE* IS A FACT ABOUT THE PAST AND NOTHING CAN CHECK IT.
+# *Reached from two or more other modules* is the same claim in the present
+# tense, and it is what this counts. A primitive extracted from one call site
+# turns this red on the commit that moves it — which is the only moment the
+# author still remembers why.
+#
+# ⚠️ IMPORTERS ARE COUNTED ANYWHERE UNDER `src/`, NOT ONLY IN `src/app/`. Today
+# every importer is a route, and writing `src/app/` into the pattern would make
+# the first composed primitive — a `Confirmacion` built from `Boton` and
+# `Frase` — fail for being used by another primitive. The rule is about a
+# SECOND CALLER, not about what kind of file it is.
+#
+# ⚠️ IT READS `@/ui/<Name>` AND NOT THE FILE PATH, because `R1` already
+# guarantees that is the only spelling an import can have.
+note
+r14=0
+r14_seen=0
+if [[ -d "$SRC/ui" ]]; then
+  while IFS= read -r f; do
+    r14_seen=$((r14_seen+1))
+    name="$(basename "$f")"; name="${name%.tsx}"
+    # Every OTHER module that asks for it by name. Comments stripped, so a
+    # header explaining why a primitive exists never counts as a caller.
+    callers=0
+    while IFS= read -r g; do
+      [[ "$g" == "$f" ]] && continue
+      # ⚠️⚠️ `grep -c` AND NOT `grep -q`, AND THE FIRST SPELLING OF THIS WAS A
+      # SEVENTH SHAPE OF MISLEADING GREEN — ONE THAT DEPENDED ON FILE SIZE.
+      # This script runs under `set -o pipefail`. `grep -q` exits the instant it
+      # matches, `code`'s own grep then dies of SIGPIPE with 141, and pipefail
+      # makes THE PIPELINE fail — so a caller was counted only when the file was
+      # small enough for `code` to finish writing first. `documentos.tsx` (750
+      # lines) counted; `vender.tsx` and `comprar.tsx` (~1,900) did not, and R14
+      # reported "reached from 0 modules" about two imports that were right
+      # there. ⚠️ **A guard whose answer depends on how long a file is** is new
+      # to this repository, and it would have been read as a bad rule rather
+      # than a bad pipeline. `grep -c` reads to EOF, so there is no early exit.
+      if (( $(code "$g" | grep -cE "from '@/ui/$name'") > 0 )); then
+        callers=$((callers+1))
+      fi
+    done < <(src_files)
+    if (( callers < 2 )); then
+      r14=$((r14+1))
+      offend "$f" "reached from $callers module(s) — R14 wants two before it moves here"
+    fi
+  done < <(find "$SRC/ui" -type f -name '*.tsx' | sort)
+fi
+if (( r14_seen == 0 )); then
+  fail "R14 app/src/ui/ holds no component — either the directory moved or this"
+  echo "      assertion is looping over nothing, which is a silent green"
+elif (( r14 == 0 )); then
+  ok "R14 every one of the $r14_seen component(s) in src/ui/ has two or more callers"
+else
+  fail "R14 $r14 component(s) in src/ui/ that only one module draws"
+fi
+
+# --- R15. one component per file in src/ui/, named after the file -----------
+# ⚠️⚠️ ADDED 2026-09-26 AT `5h.5`. `src/ui/Botones.tsx` holding three buttons is
+# how a directory stops predicting its own contents, and a `export default` in
+# here is how you have to open a file to find out how to import it.
+#
+# ⚠️ A PRIVATE HELPER IS FINE AND MUST STAY FINE: `Cantidad.tsx` keeps `Paso` to
+# itself. So this counts EXPORTS, not functions — the first spelling counted
+# `^function` and would have been red on the file that got it right, which is
+# this script's oldest recorded trap wearing a third hat.
+note
+r15=0
+if [[ -d "$SRC/ui" ]]; then
+  while IFS= read -r f; do
+    name="$(basename "$f")"; name="${name%.tsx}"
+    exports="$(code "$f" | grep -cE '^export ')"
+    if (( exports != 1 )); then
+      r15=$((r15+1)); offend "$f" "$exports export(s) — R15 wants exactly one, named $name"
+      continue
+    fi
+    if ! code "$f" | grep -qE "^export function $name\b"; then
+      r15=$((r15+1))
+      offend "$f" "its one export is not 'export function $name' — $(code "$f" | grep -m1 -E '^export ')"
+    fi
+  done < <(find "$SRC/ui" -type f -name '*.tsx' | sort)
+fi
+if (( r15 == 0 )); then ok "R15 every file in src/ui/ exports one component, named after the file"
+else fail "R15 $r15 file(s) in src/ui/ that do not export exactly one component of their own name"; fi
+
 echo
 if (( fails > 0 )); then
   echo "$ran assertion groups ran, $fails failed — docs/CONVENTIONS.md is describing"
@@ -618,8 +716,9 @@ fi
 # TWELVE groups ran, so one group could have been deleted and the guard would
 # still have passed. `5b.6` added two groups and tightened it to the real
 # number at the same time: a floor one below the truth is a floor with one
-# free deletion in it. ⚠️ **16 as of `5b.5`**, which added `R12` and `R13`.
-note_expected=16
+# free deletion in it. ⚠️ **16 as of `5b.5`**, which added `R12` and `R13`;
+# **18 as of `5h.5`**, which added `R14` and `R15` — the `src/ui/` half.
+note_expected=18
 if (( ran < note_expected )); then
   echo "FAIL: only $ran assertion groups ran, expected $note_expected — this check"
   echo "      asserted almost nothing and was about to report success."
