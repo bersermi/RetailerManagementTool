@@ -368,6 +368,16 @@ on:
       # deliveries, and before `0040` her read was 200 and an empty array.
       - "docs/checks/5h-ii-a-documents-contract.sh"
       - "docs/checks/5h-ii-a-documents-contract-falsify.sh"
+      # ⚠️⚠️ `5h-ii-b`. `app/src/api/corrections.ts` is the first module in this app
+      # that CANCELS anything, and four of its claims are invisible to every other
+      # instrument here: that `void_transaction`'s three `p_` argument names match
+      # `0021` (a mismatch is a 404, not a bad call); that `TD003` arrives as the
+      # code on an HTTP **400** so `@/api/errors` can turn it into a sentence; that
+      # a replay's body is SHORTER than a first void's; and that a voided delivery
+      # can be re-recorded without colliding on `payload_hash`, which is the whole
+      # of `Corregir`.
+      - "docs/checks/5h-ii-b-corrections-contract.sh"
+      - "docs/checks/5h-ii-b-corrections-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -516,8 +526,18 @@ jobs:
   # + handbook)* — and two jobs of that name mean completely unrelated things. The
   # working agreement says to **confirm the checks by name in the log**, and two
   # identically-keyed jobs is exactly how that reading goes wrong.
+  # ⚠️⚠️ `5h-ii-b` APPENDED TWO STEPS HERE ON 2026-09-26 RATHER THAN OPENING A
+  # SIXTH JOB, AND THE JOB'S NAME MOVED WITH THEM. The split precedent in this
+  # workflow is about the CAP — `catalog-write` was running 12-13 minutes against
+  # fifteen — and this job was measured at well under a minute for its two steps.
+  # ⚠️ **But a job whose name describes half of what it runs is the stale-claim
+  # defect**, and the working agreement says to confirm the checks BY NAME in the
+  # log, so the name says both. The KEY is unchanged, so nothing that addresses
+  # this job by key moves.
+  # ⚠️ They also share every fixture this job already pays for — a shop, a catalog,
+  # a supplier, and people signed up through a rate-limited GoTrue.
   recent-documents:
-    name: the list every correction is reached from
+    name: the list every correction is reached from, and the correction
     runs-on: ubuntu-latest
     # ⚠️⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE, AND THE NUMBER BEHIND IT IS MEASURED
     # RATHER THAN GUESSED — because the first version of this comment said *roughly
@@ -575,6 +595,36 @@ jobs:
       # rather than remembered.
       - name: Contract — can the documents check still fail (its own ten fixtures)
         run: bash docs/checks/5h-ii-a-documents-contract-falsify.sh
+
+      # ⚠️⚠️ THE FIRST WRITE IN THIS APP THAT CANCELS ANYTHING (plan `5h-ii-b`), and
+      # every claim in it is one no node suite and no typecheck can make: the RPC's
+      # three `p_` names against the applied `0021` (a mismatch is a **404**, not a
+      # bad call); `TD003` arriving as the code on an HTTP **400**, which is what
+      # `@/api/errors` turns into *pídele a un gerente*; a replay answering a
+      # SHORTER body than a first void, which is why `voidedFrom` reads three keys;
+      # the fence in all four of its cases, so a client fence drawn too WIDE goes
+      # red as loudly as one drawn too narrow; the window read live out of
+      # `workspace_setting` rather than hardcoded; and ⚠️⚠️ **a voided delivery
+      # re-recording without a `payload_hash` collision, which is the whole of
+      # `Corregir`** — if that were a `TD001` this app would cancel a delivery and
+      # refuse to put it back, with nothing able to see it until a shopkeeper stood
+      # in it.
+      - name: Contract — does app/src/api/corrections.ts still describe the schema (plan 5h-ii-b)
+        run: bash docs/checks/5h-ii-b-corrections-contract.sh
+
+      # ⚠️ Nine fixtures: a green control, five mutated copies of the app's own
+      # contract, and three that break the DATABASE — an accent-stripping trigger,
+      # a trigger that pins the void window so narrowing it is a silent no-op, and
+      # `void_transaction`'s grant revoked. All three are schema-level and restored
+      # in a `trap` on every exit path, which is forced rather than stylistic: the
+      # check builds its own shop INSIDE the run, so a mutation to a ROW would be a
+      # mutation to a shop the run never sees.
+      # ⚠️⚠️ `F4`'s FIRST VERSION WAS NOT A FALSIFICATION AND THE FILE SAYS SO: it
+      # mutated `src/strings.ts`, which the check READS to build its payload, so
+      # both halves of the comparison moved and the check stayed green. Output
+      # compared against its own input is self-consistent and blind.
+      - name: Contract — can the corrections check still fail (its own nine fixtures)
+        run: bash docs/checks/5h-ii-b-corrections-contract-falsify.sh
 
       - name: Stop
         if: always()

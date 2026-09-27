@@ -165,13 +165,16 @@ export const DOCUMENTS_LINE_TABLE: Readonly<Record<DocumentKind, string>> = {
  * `unit_price_net_per_base`, `tax_rate`, `created_at` and — on a purchase —
  * `expiry_date`, and this list draws none of them.
  *
- * ⚠️⚠️ `unit_price_net_per_base` IS DELIBERATELY ABSENT AND `5h-ii-b` WILL ADD
- * IT. That row re-records a corrected document *"with the old lines prefilled
- * into the cart"*, which needs the price; **this row renders a line total and a
- * keyed quantity, and a 10× price error shows in the total.** Carrying a field
- * nothing renders is what C8.8 refuses, and the cost of the honest version is
- * one string in this constant plus a re-run of that row's own contract check —
- * named here so it is expected rather than discovered.
+ * ⚠️⚠️ `unit_price_net_per_base` AND `qty_base` WERE ADDED BY `5h-ii-b`, AND THE
+ * ROW PREDICTED ONE OF THEM. It re-records a corrected document *"with the old
+ * lines prefilled into the cart"*, and a cart line is `{ variantId, base }` —
+ * **an integer in THOUSANDTHS of a base unit**, which is what `qty_base` is and
+ * what `qty_display` is not. Deriving the base from `qty_display` ×
+ * `factor_to_base` would be a SECOND answer to a quantity the database already
+ * holds, in the one place a wrong answer re-writes the ledger. ⚠️ **They are the
+ * exception C8.8 allows and not a breach of it**: the rule bans a column nothing
+ * uses, and `prefillOf` (`@/api/corrections`) is what uses these two. Neither is
+ * rendered.
  *
  * ⚠️ `qty_display` AND NOT `qty_base`, WHICH IS THE WHOLE POINT OF THAT COLUMN:
  * `0003` keeps it so *"the review screen can show back the number that was
@@ -191,7 +194,7 @@ export const DOCUMENTS_LINE_TABLE: Readonly<Record<DocumentKind, string>> = {
  * it), so `variant_id` is not a key and a renderer needs one.
  */
 export const DOCUMENTS_LINE_COLUMNS =
-  'id,variant_id,qty_display::text,qty_display_unit,line_net::text,tax_amount::text,product_variant(name)';
+  'id,variant_id,qty_base::text,qty_display::text,qty_display_unit,unit_price_net_per_base::text,line_net::text,tax_amount::text,product_variant(name)';
 
 /**
  * The columns each kind's documents are read with, embed included.
@@ -203,12 +206,23 @@ export const DOCUMENTS_LINE_COLUMNS =
  * columns is not a stale copy; **two constants claiming to be the same read
  * would be.**
  *
- * ⚠️⚠️ `created_by` AND `recorded_offline` ARE ABSENT, AND BOTH ABSENCES ARE
- * DECISIONS. `recorded_offline` is an internal state and a shopkeeper does not
- * do bookkeeping ([[users-dont-do-bookkeeping]]); `created_by` is who rang it
- * up, which `today.ts` refuses for §2.7's reason. ⚠️ **`5h-ii-b` needs
- * `created_by`** — the fence is *a cashier undoes her OWN document* — and it
- * belongs to the row that renders the refusal, with the argument for showing it.
+ * ⚠️⚠️ `created_by` WAS ADDED BY `5h-ii-b` AND IT IS NEVER RENDERED — it is read
+ * so `mayCorrect` (`@/api/corrections`) can hide a button a cashier cannot use.
+ * `today.ts` refuses the column for §2.7's reason, which is about SHOWING who
+ * rang a sale up; nothing on this screen shows it, and the argument for reading
+ * it is the fence rather than the display.
+ *
+ * ⚠️⚠️ `recorded_offline` AND `recorded_at` ARE STILL ABSENT, AND `5h-ii-b`
+ * MEASURED WHY THAT IS RIGHT RATHER THAN INHERITING IT. `0021`'s window is
+ * measured from `recorded_at` on an offline write and from `occurred_at`
+ * otherwise, so a client that wanted to render the WINDOW half of the fence
+ * would need both columns **and a TypeScript copy of that rule** — a second
+ * answer to *may she void this*, in the one place a wrong answer hides a button
+ * she is allowed to press. **So the client renders only the half it can know for
+ * certain and the database answers the rest**, as `TD003`. See `mayCorrect`.
+ *
+ * ⚠️ `recorded_offline` is an internal state besides, and a shopkeeper does not
+ * do bookkeeping ([[users-dont-do-bookkeeping]]).
  *
  * ⚠️ `reversal_reason` IS ABSENT TOO: only STANDING documents survive
  * `documentsFrom`, so nothing in this list has a reason to show.
@@ -219,7 +233,7 @@ export const DOCUMENTS_LINE_COLUMNS =
  * hand-written pair would be two claims about one read.
  */
 export const DOCUMENTS_HEAD_COLUMNS =
-  'id,occurred_at,total_net::text,total_tax::text,reversal_of';
+  'id,occurred_at,total_net::text,total_tax::text,reversal_of,created_by';
 
 /**
  * The one column the two kinds do NOT share.
@@ -408,9 +422,15 @@ export interface DocumentVariantRow {
 export interface DocumentLineRow {
   readonly id: string;
   readonly variant_id: string;
+  /** ⚠️ THOUSANDTHS OF A BASE UNIT, cast to text — `numeric(14,3)`. Never
+   *  rendered; `baseOf` turns it into the integer a cart line holds. */
+  readonly qty_base: string;
   /** In `qty_display_unit`, a decimal string at scale 3. See the columns. */
   readonly qty_display: string;
   readonly qty_display_unit: string;
+  /** ⚠️ NET, per base unit, scale 6 — the spelling `record_purchase` takes
+   *  (`0018`). Never rendered; it prefills a re-recorded delivery's price box. */
+  readonly unit_price_net_per_base: string;
   /** Net of IVA, a decimal string at scale 2. */
   readonly line_net: string;
   readonly tax_amount: string;
@@ -432,6 +452,8 @@ export interface DocumentRow {
   readonly occurred_at: string;
   readonly total_net: string;
   readonly total_tax: string;
+  /** ⚠️ WHO KEYED IT. Never rendered — `mayCorrect` is the only reader. */
+  readonly created_by: string | null;
   /** Set when this document VOIDS another one. */
   readonly reversal_of: string | null;
   /** Purchases only — who the shop bought from. */
@@ -451,6 +473,22 @@ export interface DocumentLine {
   readonly quantity: string;
   /** Gross of IVA, rendered — `$55.50`. */
   readonly amount: string;
+  /**
+   * ⚠️ THE CART'S OWN INTEGER — thousandths of a base unit — or `null` when
+   * `qty_base` did not parse. **Nothing draws it.** `CartLine.base` is this
+   * number, which is why it is carried rather than re-derived from `quantity`:
+   * that string has already been trimmed for reading (`trimmed`) and is in a
+   * DISPLAY unit, so turning it back would need the unit table and would be a
+   * second answer to a quantity the database already gave.
+   */
+  readonly base: number | null;
+  /**
+   * ⚠️ THE NET UNIT PRICE AS STORED, verbatim — or `null` when the column was
+   * unreadable. **Nothing draws it.** It is handed straight back to
+   * `setPrice('buy', …)`, which is why it is not parsed here: `quoted` parses it
+   * at scale 6 and a round trip through a number would be a second rounding.
+   */
+  readonly perBase: string | null;
 }
 
 /** One document, ready to draw. */
@@ -467,9 +505,24 @@ export interface ShopDocument {
    * ⚠️ IT IS RESOLVED FROM `@/api/providers` AND NOT EMBEDDED, which is
    * `costsFrom`'s arrangement and is what keeps the two kinds' reads identical:
    * a `provider(name)` embed would exist on one table and not the other, and
-   * `5h-ii-b` would inherit two column lists to widen instead of one.
+   * `5h-ii-b` would inherit two column lists to widen instead of one. ✅ **It
+   * did, and it widened one.**
    */
   readonly counterparty: string | null;
+  /**
+   * ⚠️ THE SUPPLIER'S ID, or `null` on a sale and on a purchase whose
+   * `provider_id` was unreadable. `counterparty` is the WORD and this is the
+   * KEY: a corrected delivery is re-recorded against the SAME supplier, and
+   * `openProvider` takes an id. ⚠️ It is `null` on a sale for the same reason
+   * `counterparty` is — a sale has no counterparty in this schema.
+   */
+  readonly providerId: string | null;
+  /**
+   * ⚠️ WHO KEYED IT, or `null`. **Never rendered** — see
+   * `DOCUMENTS_HEAD_COLUMNS` for why it is read at all. `mayCorrect` compares
+   * it with the signed-in person to hide a button a cashier cannot use.
+   */
+  readonly createdBy: string | null;
   /** Gross of IVA, rendered. */
   readonly amount: string;
   /** Gross of IVA in integer centavos, or `null` when a figure was unreadable. */
@@ -566,6 +619,9 @@ export function documentsFrom(
       at: row.occurred_at,
       day,
       counterparty: counterpartyOf(kind, row, named),
+      providerId: providerIdOf(kind, row),
+      createdBy:
+        typeof row.created_by === 'string' && row.created_by !== '' ? row.created_by : null,
       amount: amountOf(row.total_net, row.total_tax),
       grossCentavos: grossOf(row.total_net, row.total_tax),
       lines: linesOf(kind, row).map(lineOf),
@@ -634,7 +690,52 @@ function lineOf(row: DocumentLineRow): DocumentLine {
     name: typeof name === 'string' && name !== '' ? name : ES.documents.unknownProduct,
     quantity: quantityOf(row.qty_display, row.qty_display_unit),
     amount: amountOf(row.line_net, row.tax_amount),
+    base: baseOf(row.qty_base),
+    perBase:
+      typeof row.unit_price_net_per_base === 'string' && row.unit_price_net_per_base !== ''
+        ? row.unit_price_net_per_base
+        : null,
   };
+}
+
+/**
+ * `"2000.000"` → `2000000`, the integer a cart line holds.
+ *
+ * ⚠️ `SCALE.quantity` AND NOT A LITERAL 3 — `qty_base` is `numeric(14,3)` and
+ * `@tienda/money` is where that scale is written down.
+ *
+ * ⚠️⚠️ A `null` IS A QUANTITY THIS APP WILL NOT GUESS, and `prefillOf` DROPS the
+ * line rather than substituting one. A delivery re-recorded with a quantity
+ * nobody keyed is a wrong number in the ledger; a delivery re-recorded with a
+ * line missing is something she can see on the screen she is standing on.
+ * ⚠️ Zero and negative are refused for the same reason: `setQty` would take
+ * either, and a reversal's lines are NEGATIVE (`0021`) — a reversal never
+ * reaches this function because `documentsFrom` drops it, and this is the
+ * second lock on that door.
+ */
+function baseOf(figure: string): number | null {
+  try {
+    const base = parseDecimal(figure, SCALE.quantity);
+    return Number.isInteger(base) && base > 0 ? base : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * The supplier's id on a purchase, `null` on a sale.
+ *
+ * ⚠️ IT IS SEPARATE FROM `counterpartyOf` BECAUSE THEY ANSWER DIFFERENT
+ * QUESTIONS AND FAIL DIFFERENTLY. That one resolves a NAME and answers `null`
+ * when the directory has not arrived, or when the provider is the generic
+ * bucket it renames; this one is the key as stored, and **the generic provider
+ * keeps its id here** — a re-recorded *compra directa* is filed against the
+ * generic provider exactly as the original was.
+ */
+function providerIdOf(kind: DocumentKind, row: DocumentRow): string | null {
+  if (kind !== 'purchase') return null;
+  const id = row.provider_id;
+  return typeof id === 'string' && id !== '' ? id : null;
 }
 
 /** `3 kg` — the figure as keyed, and its unit's own word. */

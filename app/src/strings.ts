@@ -246,6 +246,25 @@ export const ES = {
        *  can take, so it names it. */
       sessionEnded: 'Tu sesión se cerró. Entra de nuevo.',
       offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      /**
+       * ⚠️⚠️ `TD003` — THE VOID FENCE, AND IT IS THE FIRST API ERROR IN THIS APP
+       * THAT MEANS *you may not*, RATHER THAN *something broke* (`5h-ii-b`).
+       * `0021` raises it in three places and this one sentence covers the two a
+       * shopkeeper can reach: she is a cashier and the document is not hers, or
+       * it is hers and older than `workspace_setting.void_window_minutes`. **The
+       * third — voiding a reversal — cannot be reached from `Lo último`**,
+       * because `documentsFrom` drops a reversal and the document it cancels.
+       *
+       * ⚠️ IT NAMES THE NEXT STEP, which is `sessionEnded`'s rule and the only
+       * reason this is not the catch-all: *ask a manager* is something she can
+       * actually do, and `0021`'s own message says it in English.
+       *
+       * ⚠️ NO MINUTES IN THE SENTENCE. The window is a shop setting the owner can
+       * change (it is **1440** on the pilot shop, not `0001`'s default 15), so a
+       * number written here would be wrong the moment he moves it, and this app
+       * does not read the setting — see `@/api/corrections`.
+       */
+      notAllowed: 'Esta nota ya no la puedes corregir tú. Pídele a un gerente.',
       unknown: 'Algo salió mal. Intenta de nuevo.',
     },
   },
@@ -1901,6 +1920,74 @@ export const ES = {
      * dropping it would hide the delivery somebody came here to find.
      */
     noFigure: 'Sin dato',
+
+    /* ----------------------------------------------------------------------
+     * PUTTING A DOCUMENT RIGHT — plan task `5h-ii-b`, ruled by the owner in
+     * `5h-i`'s simulation round on 2026-09-26.
+     *
+     * ⚠️⚠️ NOT ONE OF THESE WORDS IS *cancelar*, *anular*, *reversa* OR
+     * *nota de crédito*, AND THAT IS THE RULE RATHER THAN A PREFERENCE. The
+     * ledger cancels a document by writing a mirror image of it; the shopkeeper
+     * corrects a mistake. **She is never handed our internal state**
+     * ([[users-dont-do-bookkeeping]]).
+     * -------------------------------------------------------------------- */
+
+    /**
+     * ⚠️ THE TWO BUTTONS. `Corregir` because it takes her somewhere to fix it,
+     * and `Eliminar` because the case he named is a delivery keyed twice —
+     * *"yes, delete for a duplicate"* — where there is nothing to fix.
+     */
+    correct: 'Corregir',
+    remove: 'Eliminar',
+
+    /**
+     * ⚠️⚠️ TWO DIFFERENT QUESTIONS AND NOT ONE WITH A NOUN SWAPPED IN, because
+     * the two acts end in different places. `Corregir` says where she is going,
+     * so the capture screen opening is expected rather than startling;
+     * `Eliminar` says the thing is going away, which is the whole of it.
+     *
+     * ⚠️ NEITHER PROMISES THAT NOTHING IS WRITTEN, because something is: the
+     * ledger keeps both halves for ever. They describe what she will SEE.
+     */
+    correctAsk: '¿Corregir esta nota? Se va a borrar y la vuelves a capturar.',
+    removeAsk: '¿Eliminar esta nota? Ya no va a aparecer aquí.',
+
+    /** ⚠️ THE CONFIRM WORD IS THE VERB AND NOT *Sí*, C3.16's rule: a person
+     *  reading only the button must know what it does. */
+    correctConfirm: 'Sí, corregir',
+    removeConfirm: 'Sí, eliminar',
+    cancel: 'Cancelar',
+
+    /** ⚠️ THE WRITE IS IN FLIGHT. It is a sentence and not a spinner alone,
+     *  `loading`'s rule: it says what it is waiting for. */
+    working: 'Un momento…',
+
+    /**
+     * ⚠️⚠️ A SECOND LINE ON THE `Corregir` QUESTION, AND ONLY WHEN THE CART IT IS
+     * ABOUT TO REPLACE IS NOT EMPTY. `load` replaces rather than merges — two
+     * documents in one cart is not a thing anybody asked for — so the one way
+     * this loses work is a delivery she started, walked away from and never
+     * committed. **She is told before it happens rather than after.**
+     */
+    correctBusy: 'Lo que tienes sin terminar en esa pantalla se va a perder.',
+
+    /** ⚠️ WHAT CLOSES A REFUSAL. Not `Cancelar`: there is nothing left to
+     *  cancel, and the only thing to do is read it and go. */
+    gotIt: 'Entendido',
+
+    /* ----------------------------------------------------------------------
+     * ⚠️⚠️ THE AUDIT TRAIL, AND THESE TWO ARE THE ONLY STRINGS IN THIS FILE THE
+     * SHOPKEEPER NEVER SEES. They land in `reversal_reason` on the compensating
+     * document and they are the only record of WHY it was written — *"Of course
+     * we will have a history of any of these changes for audit reasons."*
+     *
+     * ⚠️ THEY LIVE HERE RATHER THAN IN `@/api/corrections` SO THE TRAIL AND THE
+     * BUTTON THAT WRITES IT CANNOT DRIFT: rename the button and the reason is
+     * one line away, not one module away. The OWNER is the reader, so they are
+     * in Spanish like everything else on this page.
+     * -------------------------------------------------------------------- */
+    reasonCorrected: 'Corregida desde Lo último',
+    reasonDeleted: 'Eliminada desde Lo último',
   },
 
   /**

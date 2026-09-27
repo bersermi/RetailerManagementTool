@@ -44,6 +44,7 @@ import {
   documentsKey,
   type DocumentKind,
   type Documents,
+  type ShopDocument,
 } from '@/api/documents';
 import {
   MAGNITUDE_KEY,
@@ -99,8 +100,15 @@ import {
   variantSettingsRow,
   workspaceInvites,
   workspaceLocations,
+  voidDocument,
   workspaceMembers,
 } from '@/api/calls';
+import {
+  prefillOf,
+  staleAfterVoid,
+  type Correction,
+  type Prefill,
+} from '@/api/corrections';
 import { nameErrorMessage } from '@/api/displayName';
 import {
   PENDING_REQUESTS_KEY,
@@ -1391,5 +1399,84 @@ export function useDocuments(kind: DocumentKind): Documents & {
     // `unknown` rather than a confident empty list.
     ...documentsFrom(kind, rows.data, providers),
     failed: rows.error ? apiErrorKey(rows.error) : null,
+  };
+}
+
+// ============================================================================
+// PUTTING A DOCUMENT RIGHT — `Corregir` and `Eliminar`. Plan task `5h-ii-b`.
+// ============================================================================
+
+/** What a correction ended in. */
+export interface Corrected {
+  /** ⚠️ `null` FOR AN `Eliminar`, and the cart for a `Corregir`. */
+  readonly prefill: Prefill | null;
+}
+
+/**
+ * Cancels a document, and — for a `Corregir` — hands back the cart to re-key it
+ * into.
+ *
+ * ⚠️⚠️ THE VOID HAPPENS FIRST AND THE CART IS TOUCHED ONLY ON SUCCESS, which is
+ * the whole of the ordering. A screen that loaded the cart and voided on commit
+ * would have two writes to keep together, the second of them through the OUTBOX
+ * — so a correction keyed with no signal would queue a fresh delivery while the
+ * wrong one still stood, which is a DUPLICATE rather than a correction. That is
+ * `5h-ii-c`'s territory, and this ordering is what keeps it out of this row.
+ *
+ * ⚠️ AND IT MEANS AN ABANDONED CORRECTION LEAVES THE DOCUMENT GONE. She voided
+ * it, which is what she asked for and what the question said would happen; if
+ * she then walks away from the capture screen, `Lo último` shows the delivery
+ * removed and she can key it again. **Nothing is silently wrong** — the ledger
+ * says exactly what she asserted.
+ *
+ * ⚠️ THE CACHES ARE INVALIDATED BEFORE THE PROMISE RESOLVES, so the list the
+ * screen is standing on cannot serve a row for a document that no longer
+ * stands. Which caches is `staleAfterVoid`'s answer, not this hook's.
+ *
+ * ⚠️⚠️ `failed` IS THE SENTENCE AND NOT THE KEY, WHICH IS THE OPPOSITE OF EVERY
+ * READ HOOK IN THIS FILE AND IS `R12` RATHER THAN A PREFERENCE. A route may not
+ * import `@/api/errors` — the conventions gate reads `src/app/**` for exactly
+ * that — and the reads get away with a key because `documentsLine`,
+ * `costsLine` and their kin turn it into words inside `src/api/`. There is no
+ * such pure renderer on a write path, so the hook does what
+ * `useSetMyDisplayName` does: `apiErrorMessage` chooses, and the screen prints.
+ * ⚠️ WHICH sentence is still a decision `app/test/api-errors.test.ts` pins —
+ * `TD003` is `notAllowed`, the one API error here that means *you may not*.
+ */
+export function useCorrectDocument(): {
+  readonly correct: (document: ShopDocument, how: Correction) => Promise<Corrected | null>;
+  readonly working: boolean;
+  readonly failed: string | null;
+} {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: async ({
+      document,
+      how,
+    }: {
+      document: ShopDocument;
+      how: Correction;
+    }): Promise<Corrected> => {
+      await voidDocument(document.kind, document.id, how);
+      await Promise.all(
+        staleAfterVoid(document).map((queryKey) => queries.invalidateQueries({ queryKey })),
+      );
+      return { prefill: how === 'corregir' ? prefillOf(document) : null };
+    },
+  });
+
+  return {
+    // ⚠️ IT RESOLVES `null` ON A FAILURE RATHER THAN REJECTING, so the screen
+    // has one branch and no `.catch` — `useSetMyDisplayName`'s arrangement. The
+    // sentence is in `failed`.
+    correct: async (document, how) => {
+      try {
+        return await mutation.mutateAsync({ document, how });
+      } catch {
+        return null;
+      }
+    },
+    working: mutation.isPending,
+    failed: mutation.error ? apiErrorMessage(mutation.error) : null,
   };
 }

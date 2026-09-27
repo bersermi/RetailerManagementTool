@@ -118,6 +118,13 @@ import {
   type CostLineRow,
 } from '@/api/costs';
 import {
+  VOID_TRANSACTION,
+  voidArgs,
+  voidedFrom,
+  type Correction,
+  type Voided,
+} from '@/api/corrections';
+import {
   DOCUMENTS_COLUMNS,
   DOCUMENTS_DAYS,
   DOCUMENTS_LIMIT,
@@ -998,6 +1005,40 @@ export async function recentDocuments(kind: DocumentKind): Promise<DocumentRow[]
     .limit(DOCUMENTS_LIMIT);
   if (error) throw reported(error);
   return (data ?? []) as unknown as DocumentRow[];
+}
+
+/**
+ * Cancels a document by writing its mirror image. `5h-ii-b`.
+ *
+ * ⚠️⚠️ NOTHING IS EDITED AND NOTHING IS DELETED, whatever the button said.
+ * `void_transaction` (`0021`) inserts a compensating document with negated
+ * lines, negated totals and `reversal_of` set, plus one compensating stock
+ * movement per original movement against the SAME batch. Both documents stand
+ * in the ledger for ever and `documentsFrom` is what makes the pair vanish from
+ * `Lo último`.
+ *
+ * ⚠️ IT IS `security definer` AND THE FENCE IS ITS OWN. A refusal arrives as
+ * **`TD003` on an HTTP 400** — measured 2026-09-26 — and `@/api/errors` turns it
+ * into *pídele a un gerente*. `mayCorrect` keeps the button off the screen in
+ * the one case that needs no clock; everything else is answered here.
+ *
+ * ⚠️ A REPLAY IS A SUCCESS. `<kind>_one_reversal_idx` makes a document
+ * reversible at most once, and a second call answers 200 with
+ * `already_recorded: true` and a SHORTER body — which is why `voidedFrom` reads
+ * three keys and not five.
+ */
+export async function voidDocument(
+  kind: DocumentKind,
+  id: string,
+  how: Correction,
+): Promise<Voided> {
+  const { data, error } = await supabase.rpc(VOID_TRANSACTION, voidArgs(kind, id, how));
+  if (error) throw reported(error);
+  const voided = voidedFrom(data);
+  if (voided === null) {
+    throw new Error(`${VOID_TRANSACTION} answered a shape this app does not recognise`);
+  }
+  return voided;
 }
 
 /**

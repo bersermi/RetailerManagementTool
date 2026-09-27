@@ -74,8 +74,30 @@ describe('the codes that were measured', () => {
     expect(apiErrorKey('a string somebody threw')).toBe('unknown');
   });
 
+  // ⚠️⚠️ `TD003` IS THE ONLY ENTRY IN THIS MAP THAT MEANS *you may not* RATHER
+  // THAN *something broke*, and it is the one the catch-all would have been
+  // actively harmful for: a cashier told *algo salió mal* taps again, and one
+  // told to ask a manager stops. Added by `5h-ii-b`.
+  //
+  // ⚠️ IT ARRIVES ON AN HTTP **400** AND NOT A 403 — measured against a real
+  // PostgREST on 2026-09-26. A custom SQLSTATE is not a privilege error to
+  // PostgREST, so nothing else in this file would have caught it.
+  it('reads the void fence as a refusal and not as a breakage', () => {
+    expect(apiErrorKey({ code: 'TD003' })).toBe('notAllowed');
+    expect(apiErrorMessage({ code: 'TD003' })).toBe(ES.api.errors.notAllowed);
+    expect(apiErrorKey({ code: 'TD003' })).not.toBe('unknown');
+  });
+
+  // ⚠️ AND THE SENTENCE NAMES NO NUMBER OF MINUTES. The window is a shop setting
+  // the owner can change — it is 1440 on the pilot shop and 15 by `0001`'s
+  // default — and this app never reads it, so a figure in the words would be
+  // wrong the day he moves it.
+  it('does not put the void window in the sentence', () => {
+    expect(ES.api.errors.notAllowed).not.toMatch(/[0-9]/);
+  });
+
   it('knows exactly the codes it claims to know', () => {
-    expect([...KNOWN_API_CODES].sort()).toEqual(['23514', '42501', 'PGRST301']);
+    expect([...KNOWN_API_CODES].sort()).toEqual(['23514', '42501', 'PGRST301', 'TD003']);
   });
 });
 

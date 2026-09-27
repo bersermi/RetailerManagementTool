@@ -197,12 +197,17 @@ expect "F6  product_variant removed from the line's columns" \
   'answered 400' \
   "$(mutate F6 's/,product_variant(name)//')"
 
-# F7 — a column nobody reads. C8.8 and `R13`. ⚠️ `created_by` is the sharpest one to
-# add: it is who rang the document up, `today.ts` refuses it for §2.7's reason, and
-# `5h-ii-b` is the row that gets to argue for it.
-expect "F7  created_by added to the document's columns" \
-  '(created_by|reached the phone)' \
-  "$(mutate F7 "s/,reversal_of';/,reversal_of,created_by';/")"
+# F7 — a column nobody reads. C8.8 and `R13`.
+#
+# ⚠️⚠️ THIS FIXTURE USED TO ADD `created_by` AND `5h-ii-b` ADDED IT FOR REAL, so the
+# mutation moved to `recorded_offline` rather than being deleted. **It is the sharper
+# of the two now**: `created_by` is read to hide a button and never rendered, while
+# `recorded_offline` and `recorded_at` are what a client would need to draw the WINDOW
+# half of `0021`'s fence — a second answer to *may she void this*, and the one this
+# app must never hold. A tidying pass that "completes" the column list lands here.
+expect "F7  recorded_offline added to the document's columns" \
+  '(recorded_offline|reached the phone)' \
+  "$(mutate F7 "s/,created_by';/,created_by,recorded_offline';/")"
 
 # ⚠️⚠️ F8 — THE LIMIT, AND IT IS WHAT KEEPS THE NUMBER ON THE WIRE THE MODULE'S
 # RATHER THAN THE CHECK'S. Narrowed to one, the read comes back with the reversal
