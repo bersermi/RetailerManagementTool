@@ -308,14 +308,43 @@ describe('the series, the legend and the order they come in', () => {
     expect(costs.days).toEqual(['2026-09-10', '2026-09-20', '2026-09-24']);
   });
 
-  // ⚠️ THE DAY IS THE ISO PREFIX AND NOT A `Date`'s LOCAL DAY, which is a
-  // deliberate disagreement with `today.ts` and the smaller claim: that module
-  // decides which rows belong to today, this one only LABELS a row the database
-  // already chose. Converting would move a 19:00 Mexico City delivery onto the
-  // previous column on a phone set to UTC.
-  it('labels a day off the instant Postgres sent, with no timezone arithmetic', () => {
-    const late = [line(KG.id, '0.020000', '2026-09-24T23:30:00+00:00')];
-    expect(costsFrom(late, PROVIDERS, 'kg', FACTORS).days).toEqual(['2026-09-24']);
+  // ⚠️⚠️ THIS IS THE THIRD PLACE THE OLD ANSWER WAS WRITTEN DOWN, AND THE MOST
+  // EXPLICIT — REWRITTEN 2026-09-26 BY `5g-iii-b` ON THE OWNER'S RULING (*"fix the
+  // Costos date"*). It read:
+  //
+  //   *"THE DAY IS THE ISO PREFIX AND NOT A `Date`'s LOCAL DAY, which is a **deliberate
+  //   disagreement with `today.ts`** … this one only LABELS a row the database already
+  //   chose."*
+  //
+  // ⚠️⚠️ **THE DATABASE CHOSE NO DAY.** `purchase.occurred_at` is a `timestamptz` — an
+  // INSTANT — so "the ISO prefix" is the UTC calendar day, which is a choice and not a
+  // fact. **In a UTC−6 shop it is the wrong one after 18:00**, and the owner found it
+  // on his own phone: a delivery keyed at 19:30 on the 25th was labelled *26 de
+  // septiembre* on this chart and in the PDF. ⚠️ The disagreement was DELIBERATE and
+  // documented in three places (this comment, `costs-pdf.test.ts`'s, and the module's)
+  // — **which is why nothing went red for a day.**
+  // ✅ `costsFrom` now calls `isoDay`, `catalog.ts`'s one answer, and `today.ts`'s
+  // header is honoured rather than disagreed with.
+  //
+  // ⚠️ THE FIXTURE IS BUILT FROM A **LOCAL** INSTANT so this holds on this Mac (UTC−6)
+  // and on CI (UTC) without a pinned `TZ` ([[local-time-tests-need-a-pinned-tz]]).
+  // ⚠️ **The other day-bearing fixtures in this file are UTC strings at 09:00–23:30Z**,
+  // every one of which falls inside its own day in both UTC−6 and UTC — so they agree
+  // under either rule and were left alone. **A NEW day fixture should be built
+  // locally**, not spelled as a UTC string.
+  it('keeps a late-evening delivery on its own day, in any timezone', () => {
+    // 7:30pm local on the 25th — the owner's own case. In UTC−6 that is 01:30 UTC on
+    // the 26th, which is exactly what the old rule labelled the 26th.
+    const evening = new Date(2026, 8, 25, 19, 30, 0, 0);
+    const late = [line(KG.id, '0.020000', evening.toISOString())];
+    expect(costsFrom(late, PROVIDERS, 'kg', FACTORS).days).toEqual(['2026-09-25']);
+  });
+
+  // ⚠️ AND A POINT WHOSE INSTANT DOES NOT PARSE IS DROPPED rather than labelled
+  // `NaN-NaN-NaN`. `slice(0, 10)` never cared whether the value was an instant.
+  it('drops a point whose instant cannot be read', () => {
+    const broken = [line(KG.id, '0.020000', 'not-an-instant')];
+    expect(costsFrom(broken, PROVIDERS, 'kg', FACTORS).days).toEqual([]);
   });
 });
 
