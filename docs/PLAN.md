@@ -734,6 +734,19 @@ not merged**, with a second line on the question when the cart it is about to re
 Two documents in one cart is not a thing anybody asked for, and the only work this can lose is a
 delivery she started and never committed — **so she is told before it happens rather than after.**
 
+⚠️⚠️ **AND ONE DEFECT THIS ROW WROTE AND THEN FOUND, BEFORE CI FINISHED — WORTH RECORDING
+BECAUSE NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT.** TanStack keeps a mutation's `error`
+until the **next** `mutate`, and the confirmation box renders the refusal whenever `failed` is
+non-null. So a `TD003` on one document was still set when the shopkeeper opened the question on
+the NEXT one: **she would have read *pídele a un gerente* where the question belongs, about a
+document nobody had refused her** — and `Sí, corregir` would not have been on screen at all.
+✅ The hook now exports `forget` (`mutation.reset`) and the screen routes **every** open and close
+through one `ask()` so no path can be the one that forgets. ⚠️ **`R2` keeps the suite off
+components, so no test in `app/test/` can see this, and the contract checks are about the wire** —
+it was found by re-reading the screen's state lifecycle, which is the only instrument there is.
+**`5h.5` owns `src/ui/` and this is an argument for a single confirmation primitive** rather than a
+fourth local copy of one.
+
 ⚠️ **ONE THING FIXED IN PASSING, AND IT WAS A PRE-EXISTING BUG THIS ROW WOULD HAVE TRIPPED OVER.**
 Comprar's price-memory effect seeds a line's price from `provider_price_memory` unless a ref says it
 already did — **and that ref lives on the SCREEN, so it is empty on every mount.** A prefilled cart

@@ -1447,6 +1447,7 @@ export function useCorrectDocument(): {
   readonly correct: (document: ShopDocument, how: Correction) => Promise<Corrected | null>;
   readonly working: boolean;
   readonly failed: string | null;
+  readonly forget: () => void;
 } {
   const queries = useQueryClient();
   const mutation = useMutation({
@@ -1478,5 +1479,12 @@ export function useCorrectDocument(): {
     },
     working: mutation.isPending,
     failed: mutation.error ? apiErrorMessage(mutation.error) : null,
+    // ⚠️⚠️ THE SCREEN MUST CALL THIS WHENEVER IT OPENS OR CLOSES THE QUESTION, and
+    // it is exported rather than handled here because only the screen knows when
+    // the question changed. **TanStack keeps `error` until the NEXT `mutate`**, so
+    // without it a refusal on one document is still on screen when she asks about
+    // the next one — and the box would show *pídele a un gerente* where the
+    // question should be, about a document nobody had refused her.
+    forget: mutation.reset,
   };
 }

@@ -107,7 +107,18 @@ export default function Documentos() {
   const { session } = useAuth();
   const userId = session?.user.id ?? null;
 
-  const { correct, working, failed } = useCorrectDocument();
+  const { correct, working, failed, forget } = useCorrectDocument();
+
+  // ⚠️⚠️ OPENING OR CLOSING THE QUESTION FORGETS THE LAST REFUSAL, and it is one
+  // function rather than two `setAsking` calls so neither path can be the one that
+  // forgets. TanStack keeps a mutation's `error` until the next `mutate`, so
+  // without this a `TD003` on one document would still be on screen when she asks
+  // about the NEXT one — she would read *pídele a un gerente* where the question
+  // belongs, about a document nobody had refused her.
+  function ask(next: Asking | null): void {
+    forget();
+    setAsking(next);
+  }
 
   // ⚠️ THE CART `Corregir` IS ABOUT TO REPLACE, read so the question can say so
   // BEFORE it happens. `load` replaces and does not merge.
@@ -122,7 +133,7 @@ export default function Documentos() {
     // it. **Nothing was voided on this path**, so the row is still in the list
     // and the cart is untouched.
     if (done === null) return;
-    setAsking(null);
+    ask(null);
     if (done.prefill === null) return;
     // ⚠️ THE CART IS LOADED ONLY AFTER THE VOID SUCCEEDED — `useCorrectDocument`'s
     // ordering, and the reason a correction cannot become a duplicate.
@@ -148,7 +159,7 @@ export default function Documentos() {
           kind={kind}
           documents={shown}
           canCorrect={(document) => mayCorrect(document, role, userId)}
-          onAsk={(document, how) => setAsking({ document, how })}
+          onAsk={(document, how) => ask({ document, how })}
         />
       </ScrollView>
       <Confirmacion
@@ -162,7 +173,7 @@ export default function Documentos() {
         onConfirm={() => {
           if (asking !== null) void run(asking);
         }}
-        onCancel={() => setAsking(null)}
+        onCancel={() => ask(null)}
       />
     </View>
   );
