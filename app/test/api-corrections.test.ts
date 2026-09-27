@@ -19,6 +19,7 @@ import { SCALE, parseDecimal } from '@tienda/money';
 
 import {
   CART_KIND,
+  CORRECTABLE,
   CORRECTIONS,
   CORRECTION_REASON,
   CORRECTION_ROUTE,
@@ -44,6 +45,14 @@ import { TODAY_KEY } from '@/api/today';
 import { WRITE_KIND } from '@/cart/cart';
 import { ES } from '@/strings';
 
+/**
+ * The three kinds `void_transaction` takes (`0021`), spelled here because this
+ * file is where the RPC's argument is asserted and `@/api/documents`' union is
+ * about a LIST rather than about a void. ⚠️ They are equal today and they are
+ * not the same claim: `0021` would still take a `transfer` nobody lists.
+ */
+const VOIDABLE: readonly string[] = ['purchase', 'sale', 'waste'];
+
 let serial = 0;
 
 function line(overrides: Partial<DocumentLine> = {}): DocumentLine {
@@ -55,6 +64,7 @@ function line(overrides: Partial<DocumentLine> = {}): DocumentLine {
     quantity: '2 kg',
     amount: '$60.00',
     base: 2000000,
+    reason: null,
     perBase: '0.030000',
     ...overrides,
   };
@@ -69,6 +79,7 @@ function document(overrides: Partial<ShopDocument> = {}): ShopDocument {
     counterparty: 'Bodega Hernández',
     providerId: 'prov-1',
     createdBy: 'rosa',
+    cause: null,
     amount: '$60.00',
     grossCentavos: 6000,
     lines: [line()],
@@ -94,11 +105,32 @@ describe('the RPC, written once', () => {
   // ⚠️ `p_kind` IS THE DOCUMENT'S AND NEVER THE CART'S. `0021` refuses anything
   // outside purchase/sale/waste with `22023`, and `'buy'` is exactly the
   // plausible wrong value — the cart speaks it one module over.
-  it('sends the document kind and never the cart kind', () => {
+  it('sends the document kind, which is one of the three 0021 takes', () => {
     for (const kind of DOCUMENT_KINDS) {
       expect(voidArgs(kind, 'doc-1', 'eliminar').p_kind).toBe(kind);
-      expect(voidArgs(kind, 'doc-1', 'eliminar').p_kind).not.toBe(CART_KIND[kind]);
+      expect(VOIDABLE).toContain(voidArgs(kind, 'doc-1', 'eliminar').p_kind);
     }
+  });
+
+  // ⚠️⚠️ THE *never the cart kind* HALF NARROWED IN `6a-ii-a`, AND THE REASON IS
+  // A REAL FINDING RATHER THAN A CONCESSION: **the two vocabularies genuinely
+  // coincide on exactly one member.** `CART_KIND` answers `'buy'` for a purchase
+  // and `'sell'` for a sale — both different from the document kind, which is
+  // what made the old blanket assertion discriminate — but a write-off's cart
+  // scope IS `'waste'`, the same word as its document kind (`WRITE_KIND.waste`,
+  // `@/cart/cart`). Asserting `p_kind !== CART_KIND[kind]` of all three is
+  // therefore asserting something FALSE of the third.
+  //
+  // ⚠️ So the discriminating pairs are named, and the waste case is stated as
+  // the coincidence it is rather than dropped silently — a guard that quietly
+  // stops covering a member is how the next one stops covering two.
+  it('is the document word and not the cart word, wherever the two differ', () => {
+    expect(CART_KIND.purchase).not.toBe('purchase');
+    expect(CART_KIND.sale).not.toBe('sale');
+    expect(voidArgs('purchase', 'doc-1', 'eliminar').p_kind).not.toBe(CART_KIND.purchase);
+    expect(voidArgs('sale', 'doc-1', 'eliminar').p_kind).not.toBe(CART_KIND.sale);
+    // ⚠️ AND THE ONE PLACE THEY AGREE, pinned so the agreement is deliberate.
+    expect(CART_KIND.waste).toBe('waste');
   });
 });
 
@@ -434,5 +466,75 @@ describe('the two kinds are the two the screen has', () => {
     }
     expect(Object.keys(CART_KIND).sort()).toEqual([...DOCUMENT_KINDS].sort());
     expect(Object.keys(CORRECTION_ROUTE).sort()).toEqual([...DOCUMENT_KINDS].sort());
+  });
+});
+
+// ----------------------------------------------------------------------------
+describe('what this app yet knows how to put right', () => {
+  // ⚠️⚠️ THREE DIFFERENT REASONS A CONTROL IS ABSENT, AND THIS IS THE THIRD.
+  // `mayCorrect` is *may she*, `void_transaction` is the fence, and `CORRECTABLE`
+  // is *is it built*. The screen asks two of them separately so a reader can tell
+  // which one they are looking at.
+  it('names every kind, so a fourth cannot arrive unanswered', () => {
+    expect(Object.keys(CORRECTABLE).sort()).toEqual([...DOCUMENT_KINDS].sort());
+  });
+
+  it('is built for a delivery and a sale, which 5h-ii-b shipped', () => {
+    expect(CORRECTABLE.purchase).toBe(true);
+    expect(CORRECTABLE.sale).toBe(true);
+  });
+
+  // ⚠️⚠️ AND NOT YET FOR A WRITE-OFF — WHICH THE DATABASE WOULD ALLOW TODAY.
+  // Measured 2026-09-27: a cashier voided her own one-hour-old write-off and got
+  // a 200, because `void_transaction` has taken all three kinds since `0021` and
+  // a void needs only the header. So this `false` is `5d-iii`'s ruling and not a
+  // capability: `Corregir` cannot work until a cart can carry a cause, and a
+  // control that looks live and refuses silently is worse than one that is
+  // obviously not built. **`6a-ii-b` flips it.**
+  it('is NOT yet built for a write-off, and that is a decision rather than a fence', () => {
+    expect(CORRECTABLE.waste).toBe(false);
+  });
+
+  // ⚠️ THE ROUTE EXISTS ANYWAY, because the map is total over the union and a
+  // missing entry would be a TypeScript error rather than a considered absence.
+  it('still knows where a corrected write-off would go', () => {
+    expect(CORRECTION_ROUTE.waste).toBe('/desperdicio');
+    expect(new Set(Object.values(CORRECTION_ROUTE)).size).toBe(DOCUMENT_KINDS.length);
+  });
+});
+
+// ----------------------------------------------------------------------------
+describe('what a void of a write-off makes stale', () => {
+  const writeOff = document({ kind: 'waste', cause: 'Caducado', amount: null, grossCentavos: null });
+
+  it('invalidates all three lists and nothing else', () => {
+    const keys = staleAfterVoid(writeOff);
+    expect(keys).toHaveLength(3);
+    for (const kind of DOCUMENT_KINDS) {
+      expect(keys).toContainEqual(documentsKey(kind));
+    }
+  });
+
+  // ⚠️⚠️ MEASURED RATHER THAN ASSUMED, AND IT IS WHY THE BRANCH IS A `switch` AND
+  // NO LONGER AN `if/else` WHOSE `else` MEANT *purchase*. `takingsFrom` counts
+  // SALES, so Inicio is untouched; `costsFrom` and `magnitude` both read
+  // `purchase_line`; `provider_price_memory` reads deliveries. A void of a
+  // write-off moves STOCK, and this app caches no stock read at all — **so the
+  // day `Números` ships, this is the function its key goes into.**
+  it('touches neither the day’s takings nor the cost series nor the price memory', () => {
+    const keys = staleAfterVoid(writeOff).map((one) => JSON.stringify(one));
+    expect(keys).not.toContain(JSON.stringify(TODAY_KEY));
+    expect(keys).not.toContain(JSON.stringify(MAGNITUDE_KEY));
+    for (const line_ of writeOff.lines) {
+      expect(keys).not.toContain(JSON.stringify(costsKey(line_.variantId)));
+    }
+  });
+
+  // ⚠️ THE CONTROL: a delivery must still drag its cost series with it, or the
+  // assertion above is about a function that stopped invalidating anything.
+  it('still drags a delivery’s cost series and price memory along', () => {
+    const keys = staleAfterVoid(document({ kind: 'purchase' })).map((one) => JSON.stringify(one));
+    expect(keys).toContain(JSON.stringify(MAGNITUDE_KEY));
+    expect(keys.length).toBeGreaterThan(3);
   });
 });

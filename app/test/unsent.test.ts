@@ -148,6 +148,42 @@ function sale(over: Partial<QueuedWrite> = {}): QueuedWrite {
   };
 }
 
+/**
+ * A queued WRITE-OFF — the shape `6a-i`'s cart puts in the outbox.
+ *
+ * ⚠️ ONE CAUSE ON EVERY LINE, because that is what `6a-i` sends: the cause is
+ * chosen BEFORE the catalog and is the document's, while `0019` stores it on
+ * each LINE. The mixed shape is reachable through `record_waste` and not through
+ * this app, and the test below builds it by hand for exactly that reason.
+ *
+ * ⚠️ `unit_price_gross_per_base` AND NOT THE NET SPELLING — `0019` takes gross
+ * (`PRICE_KEY.waste`), which is the sale side's, because `MONEY_KIND.waste` is
+ * `'sell'`.
+ */
+function wasteWrite(over: Partial<QueuedWrite> = {}): QueuedWrite {
+  return {
+    id: 'cccccccc-0000-4000-8000-000000000003',
+    workspaceId: SHOP,
+    kind: 'waste',
+    state: 'pending',
+    attempts: 0,
+    queuedAt: new Date(2026, 8, 25, 16, 0, 0).toISOString(),
+    payload: {
+      location_id: STORE,
+      lines: [
+        {
+          variant_id: TOMATE,
+          qty_display: '4.000',
+          qty_display_unit: 'kg',
+          unit_price_gross_per_base: '0.035000',
+          reason: 'caducado',
+        },
+      ],
+    },
+    ...over,
+  };
+}
+
 function shown(queue: readonly QueuedWrite[], kind = DOCUMENT_KINDS[0], landed: readonly ShopDocument[] = []) {
   return unsentDocuments({
     queue,
@@ -469,3 +505,109 @@ describe('what she is asked before it happens', () => {
     expect(ES.documents.unsentGone).toContain('abajo');
   });
 });
+
+// ----------------------------------------------------------------------------
+describe('a write-off that has not been sent — the gap 5h-ii-c named, closing', () => {
+  // ⚠️⚠️ THIS IS THE ASSERTION `5h-ii-c` WROTE ITS OWN GAP PARAGRAPH FOR: *"a
+  // queued waste is therefore invisible here… it closes when `6a` gets a list of
+  // its own."* It closed by `DocumentKind` gaining a member and NOT by an edit
+  // to `unsentDocuments` — the kind filter is a comparison rather than a guard,
+  // which is what made it free.
+  it('appears in the unsent list now that waste is a document kind', () => {
+    const list = shown([wasteWrite()], 'waste');
+    expect(list).toHaveLength(1);
+    expect(list[0]?.kind).toBe('waste');
+    expect(list[0]?.lines[0]?.quantity).toBe('4 kg');
+  });
+
+  it('stays out of the other two tabs', () => {
+    expect(shown([wasteWrite()], 'purchase')).toHaveLength(0);
+    expect(shown([wasteWrite()], 'sale')).toHaveLength(0);
+  });
+
+  // ⚠️⚠️ THE QUEUED ROW AND THE LANDED ROW MUST WITHHOLD MONEY THE SAME WAY, OR
+  // THE SAME DOCUMENT CHANGES SHAPE THE MOMENT IT SYNCS. The arithmetic differs
+  // — this path reads the payload, `documentsFrom` reads `total_net` — and the
+  // WITHHOLDING is the part that has to agree. Área 9's ruling.
+  it('shows no peso figure, exactly as the landed one does not', () => {
+    const [document] = shown([wasteWrite()], 'waste');
+    expect(document?.amount).toBeNull();
+    expect(document?.grossCentavos).toBeNull();
+    expect(document?.lines[0]?.amount).toBeNull();
+  });
+
+  // ⚠️ AND A QUEUED DELIVERY STILL SHOWS ITS FIGURE, which is the control: the
+  // nulls above must be about the kind rather than about a path that stopped
+  // pricing anything.
+  it('leaves a queued delivery’s figure alone', () => {
+    const [document] = shown([purchase()], 'purchase');
+    expect(document?.amount).not.toBeNull();
+    expect(document?.grossCentavos).not.toBeNull();
+  });
+
+  it('carries the cause, off the payload key 0019 reads it under', () => {
+    const [document] = shown([wasteWrite()], 'waste');
+    expect(document?.cause).toBe(ES.waste.reason.caducado);
+    expect(document?.lines[0]?.reason).toBe(ES.waste.reason.caducado);
+  });
+
+  // ⚠️ A CAUSE A BUILD NO LONGER KNOWS — the restored-basket case `isWasteReason`
+  // exists for. It says nothing rather than rendering the stored string.
+  it('says nothing for a cause this build does not know', () => {
+    const [document] = shown(
+      [
+        wasteWrite({
+          payload: {
+            location_id: STORE,
+            lines: [
+              {
+                variant_id: TOMATE,
+                qty_display: '4.000',
+                qty_display_unit: 'kg',
+                unit_price_gross_per_base: '0.035000',
+                reason: 'se lo comió el gato',
+              },
+            ],
+          },
+        }),
+      ],
+      'waste',
+    );
+    expect(document?.lines[0]?.reason).toBeNull();
+    expect(document?.cause).toBeNull();
+  });
+
+  it('answers null for the document’s cause when its lines disagree', () => {
+    const [document] = shown(
+      [
+        wasteWrite({
+          payload: {
+            location_id: STORE,
+            lines: [
+              { variant_id: TOMATE, qty_display: '4.000', qty_display_unit: 'kg',
+                unit_price_gross_per_base: '0.035000', reason: 'caducado' },
+              { variant_id: CEBOLLA, qty_display: '1.000', qty_display_unit: 'kg',
+                unit_price_gross_per_base: '0.035000', reason: 'dañado' },
+            ],
+          },
+        }),
+      ],
+      'waste',
+    );
+    expect(document?.cause).toBeNull();
+    expect(document?.lines.map((one) => one.reason)).toEqual([
+      ES.waste.reason.caducado,
+      ES.waste.reason['dañado'],
+    ]);
+  });
+
+  // ⚠️ A TRANSFER IS STILL DROPPED, by the same one comparison — it has no list
+  // and no counterparty. Asserted so the third kind arriving does not read as
+  // *every WriteKind now shows*.
+  it('still drops a transfer, which has no list at all', () => {
+    for (const kind of DOCUMENT_KINDS) {
+      expect(shown([wasteWrite({ kind: 'transfer' } as Partial<QueuedWrite>)], kind)).toHaveLength(0);
+    }
+  });
+});
+

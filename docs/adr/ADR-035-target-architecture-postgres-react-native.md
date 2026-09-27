@@ -12,6 +12,38 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-27 — **§2.7's cost paragraph, on the decision maker's ruling of the
+  same day, by plan task `6a-ii-a`: *"Go with (a), and build it to my phone."*** ⚠️⚠️ **IT IS
+  THE FIRST TIME THIS DOCUMENT HAS ADMITTED A VIEW THAT IS NOT `security_invoker`, AND THE
+  SENTENCE IT AMENDS WAS MADE FALSE BY HIS OWN RULING RATHER THAN BY DRIFT.** The paragraph
+  said *"Staff hold `select` on views only, never on the base tables carrying cost; the views
+  are `security_invoker = true` so RLS still governs rows."*
+  ⚠️⚠️ **THAT MECHANISM CANNOT WORK FOR `waste_line` AND THE REASON IS MEASURED.** `0003`
+  fences `waste_line` at the ROW level — `waste_line_select` carries
+  `has_role(…, 'manager')` where `waste_select` does not, the only asymmetric pair in this
+  schema — so a `security_invoker` view over it **answers a cashier ZERO rows**, driven under
+  `set role authenticated` on 2026-09-27 against a definer view's ONE. ⚠️ **And the first half
+  of the sentence was never true of this schema either**: staff and managers are the same
+  Postgres role (`authenticated`), `0003:620` grants it `select` on `waste_line`, and the role
+  boundary lives entirely inside the RLS predicate. **There is no grant to withhold.**
+  ✅ **So a staff-facing view over a ROLE-FENCED table is `security definer` and states its own
+  tenancy predicate** — `0041`'s `waste_reason_line`, and it carries reason, quantity, product,
+  document and date and **no money column of any kind**, so no projection of it yields a cost.
+  ⚠️ `waste_line_select` is UNCHANGED and still manager-and-above: reading (a) works AROUND
+  that fence rather than opening it, which is what separates it from the reading that would
+  have widened the policy.
+  ⚠️⚠️ **THE RULE DID NOT BECOME *any view may be definer*, AND THE BOUND IS WRITTEN INTO A
+  CHECK RATHER THAN INTO A SENTENCE**: `supabase/tests/0041_waste_reason_line.sql` asserts that
+  `waste_reason_line` is the **only** view in `public` that is not `security_invoker`, so a
+  second one needs a ruling. **Nothing else could see it** — `supabase/pgtap/01_rls_coverage.sql`
+  joins `relkind = 'r'`, so a view is invisible to the RLS guard by construction, and this
+  document's rule had gone unenforced since it was written.
+  ⚠️ **The precedent is not new, only the spelling is**: `my_access_requests()` (`0029`) is
+  already a `security definer` function *"so the joiner can see a row no policy can ever show
+  them."* ⚠️ **A one-way door in the commercial sense**, named to him before the migration was
+  written: dropping the view is one more migration; what somebody has already read cannot be
+  unread. What he accepted is that she can infer rough costs from quantities plus the delivery
+  prices `0040` already shows her.
 - **Revised:** 2026-09-26 — **§2.8's HOME row gains a SIXTH door, by plan task `5h-ii-a`, and
   this entry is the amendment being DECLARED rather than requested.** The row enumerates five —
   *"Vender, Comprar and Desperdicio as large cards, plus rows to Productos and Proveedores"*,
@@ -1309,9 +1341,39 @@ here so nobody re-litigates it as an oversight.
 `docs/checks/5g-i-purchase-contract.sh` assertion 10, which drives a real cashier
 over HTTP.
 
-**How cost is actually hidden** (settled 2026-08-14). Not column `GRANT`s —
-**manager-only views**. Staff hold `select` on views only, never on the base tables
-carrying cost; the views are `security_invoker = true` so RLS still governs rows.
+**How cost is actually hidden** (settled 2026-08-14; ⚠️ **the mechanism sentence
+amended 2026-09-27 — see the revision log**). Not column `GRANT`s — **manager-only
+views**. ~~Staff hold `select` on views only, never on the base tables carrying cost;
+the views are `security_invoker = true` so RLS still governs rows.~~
+
+⚠️⚠️ **THAT SENTENCE DESCRIBED A MECHANISM THIS SCHEMA DOES NOT HAVE, AND IT WAS
+MEASURED WRONG ON BOTH HALVES, SO IT IS REPLACED RATHER THAN QUALIFIED.** Staff and
+managers are **the same Postgres role** — `authenticated` — and `0003:620` grants it
+`select` on `waste_line`. There is no grant to withhold from staff and never was; the
+role boundary lives entirely inside the RLS predicate.
+
+**The two shapes this schema actually uses, and which one applies is decided by WHERE
+the fence is:**
+
+| The fence on the base table | The view | Why |
+|---|---|---|
+| **Columns only** — the policy admits every member and the view simply omits what they may not see | `security_invoker = true`, and it may state a `has_role` FLOOR of its own | RLS still governs rows; the floor exists only because inheritance across a mixed-visibility join produces a **wrong number** rather than no rows (`product_margin_daily`, `0009`) |
+| **A ROW-level role gate** — `has_role(…, 'manager')` in the policy itself | ⚠️ **`security definer`, stating its own tenancy predicate** | An invoker view is fenced by **every** table it joins, so one over a role-gated table is **empty for the person it exists for** — measured 2026-09-27: zero rows for a cashier against a definer view's one |
+
+⚠️ **Only `waste_line` is in the second row today**, and only `waste_reason_line`
+(`0041`) is a definer view. **The bound is a check and not a sentence**:
+`supabase/tests/0041_waste_reason_line.sql` asserts that it is the ONLY view in
+`public` that is not `security_invoker`, so a second one has to be ruled on.
+⚠️⚠️ **That check exists because nothing else can see this**:
+`supabase/pgtap/01_rls_coverage.sql` joins `relkind = 'r'`, so a view is invisible to
+the RLS guard by construction — which is why the original sentence went unenforced
+from the day it was written.
+
+⚠️ **A definer view is not a new trust level here.** It is owned by `postgres` and
+bypasses RLS exactly as every `security definer` RPC in this schema does, and
+`my_access_requests()` (`0029`) already exists for this precise shape of problem —
+*"so the joiner can see a row no policy can ever show them."* What is new is the
+spelling.
 
 RLS filters rows, not columns, so "gated on `has_role`" was never a thing Postgres
 does. Column grants are the closest built-in, and they fail here for a specific

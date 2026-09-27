@@ -42,6 +42,7 @@ reads first:
 | `docs/plan/archive/status-log-2026-09-22.md` | **The 2026-09-22 working day, FIRST CUT** — ⚠️ the first archive taken from a day still running, because there was no older day left to take. **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
 | `docs/plan/archive/status-log-2026-09-23.md` | The whole 2026-09-23 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-24.md` | **The 2026-09-24 working day** — the second file ever opened for a day still running, and the busiest day this project had had at the time (2026-09-25 has since passed it). ⚠️ **SEVEN cuts have been appended to it** — the seventh on 2026-09-25, when `5g-iii` found that `5g.5` and `5g-i` had been left in the live plan by all six earlier cuts, which is the rule above being obeyed | Only to move an entry back, or to append a later cut of the same day |
+| `docs/plan/archive/status-log-2026-09-26.md` | **The 2026-09-26 working day, NOW WHOLE — three cuts.** ⚠️⚠️ **THIS ROW DID NOT EXIST UNTIL 2026-09-27 AND THE PARAGRAPH BELOW SAID IN WORDS THAT THE FILE DID NOT EITHER** — *"There is no `docs/plan/archive/status-log-2026-09-26.md` yet"* — true when written that evening and false by 02:41 the next morning. **`6a-ii-a` found it by listing the directory**, which is the third time this table has been corrected that way and is exactly what the warning under it asks for. The first cut held four entries, the second took `5h-ii-b` and `5g-iii-b`, and the third (`6a-ii-a`, 225 lines) took `5h.5` and `5h-ii-c` and emptied the day out of the live plan | Only to move an entry back, or to append a later cut of the same day |
 | `docs/plan/archive/status-log-2026-09-25.md` | **The 2026-09-25 working day, NOW WHOLE — two cuts.** The busiest day this project has had. The first cut held its first four entries and the 23rd–26th owner rulings, including the first migration to widen a cost fence and the day `Comprar` shipped. ✅✅ **THE SECOND CUT LANDED 2026-09-26, APPENDED, AND IT IS THIS TABLE'S OWN PREDICTION COMING TRUE**: the row used to warn that the day *"RAN ON PAST THE CUT"* and named `5g-iii-a`, the parked `R9` reading and the 27th and 28th rulings as still live. ⚠️ **It was right about the need and short by three blocks about the size** — `5f.5` and `5g-iii` closed that day too, so **six blocks / 415 lines** came out rather than three. ⚠️ **Appended, never a second file for one date** | Only to move an entry back, or to append a later cut of the same day |
 
 ⚠️⚠️ **THIS TABLE IS READ BY NO CHECK, AND ON 2026-09-25 IT WAS MISSING TWO FILES** —
@@ -85,18 +86,18 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-26 after `5h-ii-c`: 5,536 lines total,
-1,331 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
-prints both numbers and the next task id). ⚠️⚠️ **THAT LEAVES 69 LINES OF HEADROOM IN
-`## Position` AND A STATUS-LOG ENTRY IS 40–130 LINES, SO THE NEXT SESSION SHOULD EXPECT TO
-TAKE AN ARCHIVE CUT BEFORE IT CAN WRITE ITS OWN.** ⚠️ **There is no
-`docs/plan/archive/status-log-2026-09-26.md` yet** — that day is entirely live, and it already
-holds four entries — so the cut is a NEW file for a day still running, which the 2026-09-22
-and 2026-09-24 rows below record as normal. **`5h-ii-c` left it deliberately**: the cap is a
-tripwire and the cheapest moment to trip it is the start of a session, not the middle of one. Position reached 5,484 lines at one or two
-status-log entries per session, with nobody deciding to; **seventeen cuts have now been
-taken across those nine archive files, thirteen of them by a session that wanted to be
-writing something else.** ⚠️ **The cap is the SECOND assertion numbered 7 in that script** —
+at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6a-ii-a`: 5,476 lines
+total, 1,267 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
+prints both numbers and the next task id). ⚠️ **That is 133 lines of headroom against an entry
+that runs 40–130, so the next session should expect to take a cut before it can write its own** —
+which is the note `5h-ii-c` left here and `6a-ii-a` then obeyed. **The cap is a tripwire and the
+cheapest moment to trip it is the start of a session, not the middle of one.**
+⚠️⚠️ **THE PARAGRAPH THIS REPLACES SAID `status-log-2026-09-26.md` DID NOT EXIST, AND IT HAD
+EXISTED SINCE 02:41 THAT MORNING** — the stale-claim defect in the file that spends its whole
+length warning about it, which is why the table above now carries a row for that day.
+Position reached 5,484 lines at one or two status-log entries per session, with nobody deciding
+to; **twenty-one cuts have now been taken across those ten archive files, fifteen of them by a
+session that wanted to be writing something else.** ⚠️ **The cap is the SECOND assertion numbered 7 in that script** —
 there are two, so `grep -n READABLE docs/checks/plan-handover.sh` finds it and the number
 does not.
 
@@ -129,9 +130,10 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   that less the two layouts. ⚠️ **This entry said *16 screens* and ENUMERATED FOURTEEN**:
   the number counted the layouts as screens and the list did not, so neither half said
   what it was counting. **A layout is not a screen** — say which you mean.
-  ⚠️⚠️ **MEASURED AGAIN 2026-09-27 AFTER `6a-i` AND IT IS STILL 17** — that row turned
-  `desperdicio.tsx` from a nine-line `Pendiente` into 1,079 lines, and **filling a placeholder adds
-  no file.** `6a-i`'s own entry said *the eighteenth screen* before the command was run, which is
+  ⚠️⚠️ **MEASURED AGAIN 2026-09-27 AFTER `6a-i` AND AFTER `6a-ii-a`, AND IT IS STILL 17 BOTH
+  TIMES** — `6a-i` turned `desperdicio.tsx` from a nine-line `Pendiente` into 1,079 lines (**filling
+  a placeholder adds no file**), and `6a-ii-a` added a third TAB to `documentos.tsx` rather than a
+  screen (**a switch inside one route is not a route**). `6a-i`'s own entry said *the eighteenth screen* before the command was run, which is
   the stale-count defect committed by the row correcting this very line.
   Four tabs (Inicio, Comprar, **Vender, and Desperdicio — a real screen since `6a-i`, 2026-09-27**) plus `productos.tsx`,
   `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`, **`documentos.tsx`
@@ -139,8 +141,12 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   `ajustes`, `solicitudes`, `entrar`, `bienvenida` and `auth/callback`.
 - **25 modules in `app/src/api/`** — the data layer, each one a claim about the applied
   schema (which is why `db.yml` watches it; see below). Measured 2026-09-27:
-  `ls app/src/api | wc -l` (24 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **The newest is
-  `waste.ts` (`6a-i`), and it is the first CONTRACT module here that calls nothing** — the five
+  `ls app/src/api | wc -l` (24 `.ts` plus `QueryProvider.tsx`). ⚠️ **`6a-ii-a` ADDED NO MODULE
+  EITHER** — it widened `documents.ts`, `corrections.ts` and `unsent.ts` — so the count is
+  unchanged and is asserted positively here rather than left to be recounted. ⚠️⚠️ **The newest is
+  `waste.ts` (`6a-i`), and it is the first CONTRACT module here that calls nothing** (⚠️ **it is
+    called now — `documents.ts` reads `isWasteReason` and `reasonLabel` off it as of `6a-ii-a`, so
+    *calls nothing* describes the day it shipped and not today**) — the five
   causes of `public.waste_reason` and the payload key `0019` reads them under, because
   `record_waste` has been in `RECORD_RPC` since `5c-ii-a` and what was missing was the
   vocabulary. ⚠️⚠️ **THE THREE FINDINGS IN IT A SESSION WILL OTHERWISE RE-DISCOVER, all measured
@@ -187,8 +193,13 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   delete's own `changes` count is the evidence** because a read-then-delete has a window the
   drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
   pins that none of them is a screen** — that assertion has now directed three designs.
-- **A Vitest suite of 1,394 tests across 45 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6a-i` added
+- **A Vitest suite of 1,424 tests across 45 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6a-ii-a` took
+  `api-documents.test.ts` and `unsent.test.ts` up and **INVERTED two guards and NARROWED a
+  third** — the narrowed one is a finding: *"sends the document kind and never the cart kind"*
+  asserted `p_kind !== CART_KIND[kind]` of every kind, which held only because `buy ≠ purchase`
+  and `sell ≠ sale`; **a write-off's cart scope IS `'waste'`**, so the blanket form was asserting
+  something FALSE of the third member. It was 1,394 across 45 after `6a-i` added
   `api-waste.test.ts` (30) and a waste section to `cart.test.ts`; **the one red in that run was the
   guard pinning `CART_KEY` at `v2`**, which is how the version bump was found to be owed at all.
   It was 1,358 across 44 the day before, after `5h-ii-c` added
@@ -228,7 +239,14 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6a-i` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6b` — PROVEEDORES.** ⚠️⚠️ **`6a` SPLIT
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6a-ii-a` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6a-ii-b` — THE TWO CONTROLS ON A
+WRITE-OFF, AND IT IS UNGATED.** ~~`6a-i` closed 2026-09-27 and the next task is now `6b` —
+Proveedores.~~ ⚠️ **That was true for the hour between `6a-i` merging and `6a-ii` being sized**;
+`6a-ii` then split `XL` into `6a-ii-a` and `6a-ii-b`, the first shipped the same day, and the marker
+is the sibling's. ⚠️⚠️ **`6a-ii` SPLIT ON SIZE, WHICH IS THE FIRST TIME SINCE THE 2026-09-24
+AMENDMENT THAT A SPLIT'S REASON HAS PLAINLY BEEN SIZE** — the agreement allows it for exactly one
+letter, and the calibration is `5h-ii`: that row did this same work for `purchase` and `sale` and
+was split THREE ways. ⚠️⚠️ **`6a` SPLIT
 IN TWO ON THE DAY IT WAS TAKEN, AND THE REASON IS THAT APPLIED SQL PUT A MIGRATION IN THAT ROW AND
 THE PLAN NEVER CARRIED IT** — `0003:589` (*"the reason-and-quantity view for Desperdicio ships with
 that screen"*) and `0011:68` (*"it belongs with the Desperdicio screen (step 6)"*). **`6a-i` is the
@@ -256,9 +274,16 @@ ships a primitive before it adds to a directory whose conventions nobody has wri
 THAT RENDER AS TEN NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
 log"* NOW MEANS.** `money.yml`'s single job is **matrixed**, so it appears twice, and a count
 taken from `jobs:` keys alone is short by one. ⚠️ **`6a-i` added the ninth** — `db.yml`'s
-`waste`, *the loss, and the cause it is filed under* — **as a new job rather than two more steps
-on `recent-documents`, which is the opposite of what `5h-ii-b` did**: that row appended because a
-correction is *the thing you reach from the list*, and this is a WRITE where that job is a READ.
+`waste` — **as a new job rather than two more steps on `recent-documents`, which is the opposite of
+what `5h-ii-b` did**: that row appended because a correction is *the thing you reach from the list*,
+and this is a WRITE where that job is a READ. ⚠️⚠️ **AND `6a-ii-a` APPENDED TO THAT SAME JOB RATHER
+THAN OPENING A TENTH, SO THE COUNT IS STILL NINE — RENAMING IT TO *the loss, the cause it is filed
+under, and reading it back*.** `6a-ii-a` is a READ, so `6a-i`'s own argument pointed at
+`recent-documents`; **two measured things decided otherwise** — the two checks build the IDENTICAL
+fixture (one subject, Desperdicio over the wire, where `recent-documents` never touches a cause), and
+a tenth job would re-pay `supabase start` + `db reset`, the dominant cost, to run seconds of new
+assertions. ⚠️ **The KEY stayed `waste`** and the NAME moved, which is `5h-ii-b`'s lesson: *a job
+whose name describes half of what it runs is the stale-claim defect.*
 ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
 OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
 eighth.** 2 (`app.yml`) + 6 (`db.yml`) + 1 (`money.yml`) = 9, and the table below is the
@@ -329,11 +354,24 @@ Never cite it as current. Read it only for history, and say so when you do.
   code, or the shop.**
 - **Migrations are append-only once applied.** Fix forward with a new numbered
   migration. Numbering is fixed in [`supabase/README.md`](supabase/README.md).
-  **Measured 2026-09-25: 38 files, `0040` the highest, so the next is `0041`** — `0006`
-  and `0007` are permanent holes (`supabase/README.md` settles why), so never infer the
+  **Measured 2026-09-27 after `6a-ii-a`: 39 files, `0041` the highest, so the next is `0042`** —
+  `0006` and `0007` are permanent holes (`supabase/README.md` settles why), so never infer the
   count from the highest number (`ls supabase/migrations/*.sql | wc -l`).
+  ⚠️⚠️ **AND `supabase/README.md`'s TABLE HAD NO ROW FOR `0040` FOR TWO DAYS — NOTHING CHECKS IT
+  FOR COMPLETENESS.** `6a-ii-a` found it by listing the directory against the table, which is the
+  same move that keeps the archive table above honest. **Both rows are written now, and every
+  migration on disk has one.**
 - **RLS is bypassed by the `postgres` superuser.** Any isolation check run as
   superuser passes vacuously. Test under `set role authenticated`.
+- ⚠️⚠️ **A VIEW IS INVISIBLE TO THE RLS GUARD BY CONSTRUCTION** — `supabase/pgtap/01_rls_coverage.sql`
+  joins `relkind = 'r'` — **and since `0041` one view in this schema is `security definer`**, so its
+  `where` clause IS its policy and nothing in Postgres complains if it is missing. **Measured
+  2026-09-27: SEVEN views in `public`, six `security_invoker = true` and `waste_reason_line` not**,
+  and that count is the DATABASE's (`relkind = 'v'`) — a `grep` of the migrations answers fourteen
+  because four were re-issued with `create or replace`. ⚠️ **ADR-035 §2.7 now keys the choice on
+  WHERE the fence is** (columns → invoker; a ROW-level `has_role` → definer), and
+  `supabase/tests/0041_waste_reason_line.sql` asserts `waste_reason_line` is the ONLY non-invoker
+  one, so a second needs a ruling.
 - ⚠️ **An RLS *UPDATE* refusal arrives as a 200 with zero rows**, not as a 403 — the row
   goes invisible rather than forbidden, and `.single()` is what surfaces it (PGRST116).
 - **Never edit `graphify-out/`** — it is generated.

@@ -388,6 +388,15 @@ on:
       - "app/src/cart/cart.ts"
       - "docs/checks/6a-i-waste-contract.sh"
       - "docs/checks/6a-i-waste-contract-falsify.sh"
+      # ⚠️⚠️ AND READING A WRITE-OFF BACK, as of plan task `6a-ii-a` — `0041`, the
+      # first `security definer` view in this schema. It is the ONLY instrument
+      # anywhere that can see whether that view works: the pgTAP suite reads it in
+      # SQL, where a correct-but-unembeddable view passes; the Vitest suite reads
+      # the app's constants against fixtures it wrote itself; and
+      # `supabase/pgtap/01_rls_coverage.sql` joins `relkind = 'r'`, so **a view is
+      # invisible to the RLS guard by construction.**
+      - "docs/checks/6a-ii-a-waste-list-contract.sh"
+      - "docs/checks/6a-ii-a-waste-list-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -650,14 +659,44 @@ jobs:
   # document back*), and `5h-ii-b`'s own entry records the cost of the alternative
   # — it had to RENAME the job it joined, because *a job whose name describes half
   # of what it runs is the stale-claim defect.*
+  # ⚠️⚠️ RENAMED BY `6a-ii-a` (2026-09-27) WHEN IT APPENDED TWO STEPS, WHICH IS
+  # `5h-ii-b`'s OWN LESSON OBEYED: *a job whose name describes half of what it runs
+  # is the stale-claim defect.* ⚠️ **The KEY stays `waste`**, so anything addressing
+  # this job by key is unbroken — `recent-documents` did exactly this when it was
+  # renamed the day it was created.
+  #
+  # ⚠️⚠️ AND APPENDING RATHER THAN OPENING A SEVENTH JOB IS A MEASURED DECISION AND
+  # NOT A PREFERENCE, WHICH IS THE ARGUMENT THIS COMMENT BLOCK MAKES ONE WAY AND
+  # THEN THE OTHER. `6a-i` opened this job rather than joining `recent-documents`
+  # because a WRITE and a READ fail for different reasons. `6a-ii-a` is a READ —
+  # so by that argument it belonged with `recent-documents` — **and the two things
+  # that decided it are a shared fixture and the clock.**
+  #
+  # The two checks build the IDENTICAL fixture: sign up an owner, onboard a shop,
+  # create a family and variants, stock them through `record_purchase`, invite an
+  # Empleada, and call `record_waste`. That is one subject — Desperdicio over the
+  # wire — where `recent-documents` builds deliveries and sales and never touches a
+  # cause. ⚠️ **And a seventh job would re-pay `supabase start` + `db reset`, which
+  # is the DOMINANT cost here** (minutes) to run seconds of new assertions.
+  #
+  # ⚠️ MEASURED LOCALLY 2026-09-27, which is what turned that into a decision:
+  # `6a-i`'s pair runs 3s + 19s and `6a-ii-a`'s runs 3s + 35s. The falsifiers are
+  # what cost, because each one drives the whole live check a dozen times and every
+  # run signs two or three people up through a rate-limited GoTrue.
   waste:
-    name: the loss, and the cause it is filed under
+    name: the loss, the cause it is filed under, and reading it back
     runs-on: ubuntu-latest
     # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE, AND THE NUMBER BEHIND IT IS MEASURED
-    # RATHER THAN GUESSED. **Measured 2026-09-27: the check itself in about 12
-    # seconds and the ten-fixture harness in 105**, because the harness drives the
-    # whole live check twelve times (ten fixtures plus two controls) and each run
-    # signs two people up.
+    # RATHER THAN GUESSED. **Measured 2026-09-27: `6a-i`'s check in about 12 seconds
+    # and its ten-fixture harness in 105**, because a harness drives the whole live
+    # check a dozen times and each run signs two people up.
+    # ⚠️⚠️ **`6a-ii-a` ADDED A SECOND PAIR THE SAME DAY and it is the slower of the
+    # two**: locally 3s + 35s against `6a-i`'s 3s + 19s, because its harness runs
+    # eleven fixtures and each one signs THREE people up. Scaling the local ratio
+    # puts the four steps at roughly five minutes of assertions, so the cap still
+    # has real headroom — **and the reason to say so is `catalog-write`, which runs
+    # 12-13 minutes against this same fifteen and was CANCELLED three times on
+    # `main` before it was split. A cancelled job is neither a pass nor a failure.**
     # ⚠️ WHAT MAKES IT SLOW IS NOT THE FIXTURES, IT IS SIGNUP: GoTrue rate-limits
     # and answers with an EMPTY BODY rather than a 429, so the retry loop inside the
     # check sleeps ten seconds a try, six tries, two people per run. A cold or
@@ -710,6 +749,39 @@ jobs:
       # runs in a `trap` on every exit path, and is re-proved by a second control.
       - name: Contract — can the waste check still fail (its own ten fixtures)
         run: bash docs/checks/6a-i-waste-contract-falsify.sh
+
+      # ⚠️⚠️ AND THE OTHER HALF, `6a-ii-a`: CAN THE PERSON WHO RECORDED THE LOSS
+      # READ IT BACK? Until `0041` she could not — `waste_select` admits every
+      # member and `waste_line_select` carries `has_role(…, 'manager')`, so her own
+      # write-off came back as **HTTP 200 with `"waste_line": []`**, a document with
+      # no products rather than a refusal. `0041` is a `security definer` view that
+      # reaches AROUND that fence, and the step above is what keeps the fence honest
+      # while this one exists beside it.
+      #
+      # ⚠️⚠️ THE CLAIMS ONLY THIS CAN MAKE, because a definer view has no policy and
+      # `supabase/pgtap/01_rls_coverage.sql` joins `relkind = 'r'`: that the view's
+      # `where` clause really is its tenancy wall (a DIFFERENT shop's owner reads
+      # ZERO), that no projection of it yields a cost (every money column is a
+      # `42703`, not a value), that `::text` survives an embed on a VIEW, and that a
+      # to-many embed can be ordered on TWO keys — which one document holding the
+      # same product under two causes needs, and which was unmeasured when the row
+      # was written.
+      - name: Contract — can a cashier read the loss she recorded (plan 6a-ii-a)
+        run: bash docs/checks/6a-ii-a-waste-list-contract.sh
+
+      # ⚠️ Eleven fixtures: two green controls, six mutated copies of
+      # `app/src/api/documents.ts`, and THREE that break `0041` itself.
+      # ⚠️⚠️ `D1` is the one this pair exists for — the view flipped to
+      # `security_invoker = true`, which is the edit a reader makes to bring it
+      # "into line with §2.7" and which leaves it EMPTY for the only person it
+      # exists for. `D2` drops the tenancy predicate, which hands every write-off in
+      # the database to any signed-in user with nothing in Postgres objecting.
+      # `D3` puts `unit_cost_net_per_base` back, which is one line and reads like a
+      # feature.
+      # ⚠️ The view restore is read out of `pg_get_viewdef` rather than remembered,
+      # runs in a `trap` on every exit path, and is re-proved by a second control.
+      - name: Contract — can the list check still fail (its own eleven fixtures)
+        run: bash docs/checks/6a-ii-a-waste-list-contract-falsify.sh
 
       - name: Stop
         if: always()

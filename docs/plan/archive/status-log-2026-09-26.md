@@ -438,3 +438,253 @@ it asserts the wire and the ORDER rather than the label — and its falsifier **
 `documents.ts` changed. ⚠️ **What no check can see is the picture**: the x-axis labels and the PDF
 headings now read one day earlier for evening deliveries, and only his phone says whether that looks
 right (`R9`).
+
+
+---
+
+## ⚠️⚠️ THIRD CUT — APPENDED 2026-09-27 BY `6a-ii-a`, AND IT TOOK THE WHOLE OF WHAT 2026-09-26 HAD LEFT
+
+⚠️⚠️ **`## Position` STOOD AT 1,294 OF 1,400 WITH NOTHING WRITTEN YET, AND `CLAUDE.md`
+PREDICTED THIS CUT BY NAME** — *"the next session should expect to take an archive cut
+before it can write its own."* **106 lines of headroom against an entry that runs 40–130**
+is the same arithmetic the first cut was taken on, one day later. ⚠️ **It is the
+TWENTY-FIRST cut overall and the FIFTEENTH taken by a session that wanted to be writing
+something else.**
+
+⚠️⚠️ **AND IT EMPTIES 2026-09-26 OUT OF THE LIVE PLAN ENTIRELY — the two blocks below are
+the day's last two, so this file is now WHOLE at three cuts.** The first cut held four
+entries, the second took `5h-ii-b` and `5g-iii-b` (182 lines), and this one takes `5h.5`
+and `5h-ii-c` (**225 lines**). ⚠️ **`CLAUDE.md`'s archive table had NO ROW FOR THIS FILE
+and said in words that it did not exist** — *"There is no `docs/plan/archive/status-log-2026-09-26.md`
+yet"* — **which was true when written on 2026-09-26 and false by 02:41 the next morning.**
+The row is added in the same PR, and the lesson is the one that file spends its length on:
+**nothing checks `CLAUDE.md`, so list `docs/plan/archive/` when you cite it.**
+
+⚠️⚠️ **EVERY LINE BELOW IS MOVED, NOT COPIED.** `split-coverage.sh` reads the corpus, which
+includes this file, and fails on *"row appears 2 times"*.
+
+✅✅✅ **`5h.5` IS DONE, 2026-09-26 — `app/src/ui/` HAS RULES, AND THE ROW WAS POINTED AT A
+DUPLICATE THAT TURNED OUT TO BE A TRIPLE.** `R14`, `R15` and `R16` are in
+[`docs/CONVENTIONS.md`](CONVENTIONS.md) — *when a component moves there*, *what the file looks
+like*, *what to do with the differences between the copies* — and **the page now defers nothing
+for the first time since it was written at `5a-iv-b`.** `conventions-gate.sh` reads the first two
+(**18 assertion groups over 87 source and 44 test files**, up from 16 groups over the 85 source
+files that existed before this row added two — ⚠️ **the *82 and 42* in `5g-iii-b`'s entry was true
+when it was written and went stale the same afternoon**, when `5h-ii-b` and `5h-ii-c` landed after
+it; this pair is the runner's, taken from the run above rather than from the last entry that quoted
+one) and its falsifier runs **33 fixtures, 32 red
+and `F13` deliberately green**, up from 30. **It ships no
+migration and touches no schema.**
+
+⚠️⚠️ **`6a` — DESPERDICIO — IS THE NEXT TASK, AND THE MARKER HAS LEFT STEP 5 FOR THE FIRST TIME.**
+Step 5 has no takeable build row left: `5f-iv` is out of the pilot, `5i` is deferred to v2,
+`5a`/`5b.8-iii`/`5h-ii` are split parents, and **`5P-a` and `5P-c` are both named in ⛔ DECISIONS
+OWED** — which assertion 7c reads, so neither could be marked next even if it were ready. `6a`'s
+own gate was `5f` and `5f` closed on 2026-09-25. ⚠️ **It is reordered ahead of its step on the
+owner's own instruction of 2026-09-21** — waste is the acquisition hook — so this is his sequencing
+being obeyed rather than a session choosing what to do next.
+
+~~⚠️⚠️ `5h.5` is the next task, and it is ungated as of 2026-09-26 — its gate was `5h` closing, and
+`5h-ii-c` closed the last row of it.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s
+row records: `plan-handover.sh` reads the raw line for `IS THE NEXT TASK` and a strikethrough is only
+a rendering.**
+
+⚠️⚠️ **THE ESTIMATE HELD AT `S` AND FOUND FOUR THINGS, AND THE FIRST ONE WOULD HAVE MADE THE ROW
+BREAK ITS OWN RULE ON THE DAY IT WROTE IT.**
+
+| # | What the estimate went looking for | What it found |
+|---|---|---|
+| **1** | ⚠️⚠️ **Is the `Boton`/`Control` pair really the duplicate the row names?** | **It is a TRIPLE, and the third drawing is in another file.** `vender.tsx`'s `Vaciar carrito` confirm is **byte-identical in style** to `documentos.tsx`'s `Control` — which `Boton`'s own doc comment had half-noticed (*"which is `Vaciar carrito`'s own arrangement one screen over"*) without following up. ⚠️ **It matters because the machine-readable form of *already drawn twice* is *reached from two or more modules*, and two components in ONE route file fail it.** Found by grepping for the shape, not by reading the row |
+| **2** | What do the copies actually disagree about? | **A corner radius nobody decided.** `Boton` rounded by `scale.rowGap` (8 / 12) and the other two by `scale.space / 2` (6 / 8). ⚠️ **`scale.space / 2` is 42 of the 61 `borderRadius` spellings under `src/app/` and `src/ui/`, in 12 of the 13 route files**; `scale.rowGap` appears three times and all three are in `documentos.tsx`, the newest file. **This is `Vacio`'s centring one task later, with a bigger count behind it** |
+| **3** | ⚠️⚠️ **Can the rules be the ones ADR-035 §2.11 implies?** | **No — two of them would have been FALSE of the code.** *`src/ui/` reaches no data layer* and *`src/ui/` holds no words* both read well and are both wrong: `Cantidad` imports `@/api/catalog` (a type) and `Buscador` and `Cantidad` import `@/strings`. **The page's own standard is *every rule below is already true of `app/` today*, so the rules are the three that are** |
+| **4** | What does closing the last deferral do to the instruments? | **It weakens two of them, and one silently.** 0b's *empty on both sides* is a legitimate pass, so a fourth pass this page forgets to announce is no longer caught; **0c's *the ADR names the task* half is DISARMED outright** (`if [[ -n "$PAGE_OWES" ]]`). ⚠️ **And it broke four fixtures at once** — see below |
+
+⚠️⚠️ **AND R14's FIRST SPELLING WAS A SEVENTH SHAPE OF MISLEADING GREEN IN THIS REPOSITORY — THE
+FIRST ONE THAT DEPENDED ON HOW LONG A FILE IS.** The count used `code "$g" | grep -q`, and this
+script runs under `set -o pipefail`: `grep -q` exits the instant it matches, `code`'s own grep dies
+of SIGPIPE with 141, and **pipefail hands the pipeline that failure** — so a caller was counted only
+when the file was small enough for `code` to finish writing first. `documentos.tsx` (750 lines)
+counted; **`vender.tsx` and `comprar.tsx` (~1,900) did not**, and R14 reported *"reached from 0
+modules"* about two imports sitting in plain sight. ⚠️ **It reads as a bad RULE rather than a bad
+pipeline, which is what makes it worth recording**: the obvious next move is to weaken the rule to
+one caller. **`grep -c` reads to EOF and has no early exit.** ✅ **The regression fixture is the
+BASELINE itself** — `Cantidad`'s only two callers are both big files, so the unbroken tree goes red
+if this ever comes back, and the harness refuses to run at all on a red baseline.
+
+⚠️⚠️ **FOUR FIXTURES WERE RE-ANCHORED BECAUSE CLOSING THE DEFERRAL LEFT THEM EDITING NOTHING.**
+`F14`, `F15` and `F27` all worked by BREAKING a live deferral; with none left, their `sed`s matched a
+row that had changed, a heading that was gone and a phrase that no longer existed — **three
+`FIXTURE EDITED NOTHING` reports at once, and the gate was never wrong.** They now BUILD a deferral
+instead, one side at a time, through two helpers — **a shape that survives the next pass too**, since
+a task writing `R17` will simply be adding what the helpers already add. ⚠️ **`F28` had to arm 0b's
+agreement first**, because the half of 0c it falsifies is the half that goes quiet when nothing is
+deferred. ⚠️ **`owe_row` appends a row rather than editing `5h.5`'s**, so no fixture is pinned to
+that row's wording — which is the expiry date that had just fired, for the fourth time in this file.
+
+✅ **SHIPPED:** `app/src/ui/Boton.tsx` and `app/src/ui/Frase.tsx` — the **seventh and eighth**
+primitives, each with two callers; four local components removed from `documentos.tsx` (`Boton`,
+`Control` and `Frase` collapsed into two, with `Confirmacion` staying put because it has one caller,
+which is `R14`'s corollary); `vender.tsx`'s `Pregunta` rewired to both; `R14`/`R15`/`R16` and a
+rewritten closing section on the page; two assertion groups and three fixtures.
+⚠️ **The suite is unchanged at 1,358 tests across 44 files** — the runner's number, and `R2` is why:
+the suite is `.ts` and reaches no component, so **nothing in `app/test/` can see any of this.**
+
+⚠️⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL CHEAP, AND THE FIRST ONE IS THE ONLY THING
+HERE A PERSON CAN SEE.**
+**(1) The corner radius is settled at `scale.space / 2`, so the `Corregir` and `Eliminar` buttons
+under a document lose 2 px of corner** (6 instead of 8 normally, 8 instead of 12 in *Letra grande*).
+Decided by count rather than taste, per the rule it was used to write. **Reversing it is one line in
+`src/ui/Boton.tsx`.**
+**(2) Three shapes were deliberately NOT extracted, with their counts written onto the page** so the
+next session argues with a number: the **filled button** (9 drawings across 8 files, **seven with a
+border and two without** — already drifted), the **scrim** (7 across 3) and the **chosen pill** (5
+across 3, and one of the five spells the prop `isChosen`). **Each one decides what a shopkeeper sees
+on six-plus screens at once, which is a row of its own and not a footnote to an `S`.**
+**(3) `R16` is declared unenforceable rather than given a weak check.** A machine that could tell a
+decided difference from an accidental one would be a machine that knows what the screen is for; the
+page names *a person, at extraction* and *the status-log entry of the task that extracted it* as its
+instrument — which is this paragraph.
+
+⚠️ **WHAT NO CHECK CAN SEE (`R9`), AND IT IS SMALL FOR ONCE:** the 2 px above, and the fact that
+`vender.tsx`'s confirm button should look **exactly** as it did — the swap was style-for-style
+identical, so anything different there is a defect rather than a decision.
+
+⚠️⚠️ **THREE STALE CLAIMS FOUND AND FIXED IN THE SAME PR, ALL IN FILES THAT EXIST TO PREVENT STALE
+CLAIMS.** **(a)** `conventions-gate.sh`'s header said the harness had *"twenty-six fixtures,
+twenty-five of which"* — it ran **thirty**, and had been decaying since `F27`; the count is now
+deleted rather than corrected, pointing at `EXPECTED_FIXTURES`, which is the same move assertion 0d
+made on the page's English count. **(b)** The page said `src/ui/` held **five** components in one
+sentence and **six** in the next-but-one, having already been corrected from *"there is no
+`app/src/ui/`"*. **(c)** `CLAUDE.md` said `5h.5` was next and ungated, and that `src/ui/` was built
+*"with no written rule"* — both true when written that morning and both false now.
+
+
+
+
+✅✅✅ **`5h-ii-c` IS DONE, 2026-09-26 — AND WITH IT `5h-ii`, `5h` AND THE LAST BUILD ROW OF
+STEP 5's UNDO.** A note still sitting on the phone now appears in `Lo último` under *Sin enviar*
+with the same two controls, and **`Corregir` and `Eliminar` on one of those are not voids at all** —
+they are a delete on this device. `app/src/offline/unsent.ts` is the pure half and
+`app/src/offline/useUnsent.ts` the half that opens SQLite. ⚠️ **It ships no migration and it makes
+no server call whatsoever**, which is the first row in this project true of.
+
+⚠️⚠️ **THE OWNER RULED THE QUESTION `5h-i` PUT TO HIM TWICE AND NEVER GOT AN ANSWER TO — 2026-09-26,
+AND IT IS THE THIRTIETH RULING.** *Should she be able to fix a delivery while it is still queued, or
+wait until it lands?* **She fixes it now**, and the second question of the same breath — who may,
+given that the outbox records no author — **anybody signed in on the phone the row is sitting on.**
+Both were taken as recommended, after being walked through the five situations rather than shown a
+design.
+
+⚠️⚠️ **THE ESTIMATE FOUND THAT THE ROW WAS DESCRIBING THE SMALLER HALF OF THE DEFECT.** The row said
+the two buttons *"would refuse or, worse, appear to work"* on a queued note. **Measured: there was
+no queued note on the screen at all, and neither was anything else.** `useDocuments` asks the
+server, the read fails with no signal, and `documentsLine` answers the `ES.api` failure sentence —
+so offline, the one screen built for finding a mistake was a spinner over *could not connect*. ⚠️ **And
+the second-order failure is the expensive one**: she cannot find the delivery she just keyed, so she
+keys it again. Two rows in the queue with two client ids, both land, and the shop has two
+deliveries — **`record_purchase`'s idempotency is by ID and cannot help, because these are genuinely
+two documents.** *The invisibility manufactured the duplicate.*
+
+⚠️⚠️ **AND THE OTHER HALF OF THE ESTIMATE IS WHY THIS WAS AN `M` AND NOT MORE: THE ARITHMETIC WAS
+ALREADY BUILT AND ALREADY UNDER TEST.** `writeCentavos` and `lineCentavos` (`@/offline/deadLetters`,
+`5c-iv-b`) already price a queued payload to the centavo with the server's own half-up-away-from-zero
+rounding — built for the dead-letter banner, two tasks before anything could enqueue. **So the peso
+figure on an unsent note needed no new money path at all**, which is the cost this row looked like it
+carried.
+
+⚠️ **ONE FUNCTION WAS EXTRACTED RATHER THAN RE-SPELLED, AND THAT WAS THE WHOLE OF THE REFACTOR.**
+`baseUnits` came out of `lineCentavos`: the money path needs `round(qty_display * factor_to_base, 3)`
+to anchor a price on and the correction path needs the same integer to rebuild a `CartLine`, and
+**two spellings of that conversion is the defect this repository has recorded ten times.** The half
+that would have gone wrong is invisible — a cart rebuilt a thousandth out records a delivery that
+disagrees with the one it replaced in the third decimal.
+
+⚠️⚠️ **THE DESIGN DECISION THAT MADE THE ROW SMALL: AN UNSENT NOTE IS A `ShopDocument`.** A queued
+write and a landed one are the same document seen from two sides, so `unsentDocuments` hands the
+screen the type it already draws — and three things followed that would each otherwise have been a
+second implementation. **`Documento` renders an unsent row with no new branch. `prefillOf` rebuilds
+the cart from one UNCHANGED**, prices included, because the queue stores the very string
+`record_purchase` takes. **And `mayCorrect` answers `true` by construction** — `createdBy` is `null`
+and that function fails open on an author it does not know — ⚠️ **so the owner's ruling about who may
+is held by the DATA rather than by a branch**, and `app/test/unsent.test.ts` pins it so a later
+tightening of `mayCorrect` cannot quietly fence this list.
+
+⚠️⚠️ **THE FENCE IS ONE SQL PREDICATE AND THE CLIENT'S OPINION IS NOT ALLOWED TO BE THE THING THAT
+DECIDES.** `drop` is `delete from queued_write where id = ? and state = ?`, bound to
+`DROPPABLE_STATE` — a new constant in `@/api/outbox`, where the states already mean something — and
+**the delete's own `changes` count is the evidence.** A read-then-delete has a window the drain walks
+through: this app's drain runs on a reconnect nobody asked for, and deleting a `flushing` row would
+destroy the phone's only record of a write whose RPC is in the air and **may already have
+succeeded** — so she would be told her delivery was removed while it landed. ⚠️ `dead` is refused by
+the same predicate, which is §2.6's *"replay is manual, never automatic"* kept rather than re-argued.
+⚠️ **And the word lives in ONE place**: two spellings of `pending`, one in a SQL string and one in a
+component, is a fence that opens the day somebody renames a state.
+
+⚠️ **THREE THINGS THIS PATH DOES **NOT** HAVE, EACH NAMED SO NOBODY LOOKS FOR THEM.** No cache to
+invalidate — `staleAfterVoid` exists because a void changes what the server would answer, and a drop
+changes nothing on it. No `working` state — the delete is synchronous SQLite with no network in it,
+so there is nothing to be pending. And **no trace afterwards**: a void leaves two documents in the
+ledger for ever, a dropped note leaves nothing. ⚠️ **That last one was put to the owner before he
+ruled** rather than discovered later — it is correct rather than a loss, because as far as the shop is
+concerned the note never happened, exactly like backing out of the cart before sliding.
+
+⚠️⚠️ **AND THE SUITE CAUGHT A REAL BUG THAT NOTHING ELSE IN THIS REPOSITORY COULD HAVE SEEN.** The
+first draft of `unsentDocuments` NARROWED the kind and never COMPARED it — `isDocumentKind(write.kind)`
+where it needed `write.kind !== input.kind` — so **`Compras` listed queued sales and `Ventas` listed
+queued deliveries.** It typechecked perfectly, the conventions gate was green, and there is no server
+read to disagree with it. ✅ The guard is now ONE comparison doing both jobs, with a comment saying so:
+it keeps each kind to its tab **and** excludes `waste` and `transfer` by construction, because neither
+can ever equal a `DocumentKind` — and a separate guard for the second job would be a branch nothing
+could reach.
+
+✅ **CHECKED BY `app/test/unsent.test.ts` — 27 tests, the RUNNER's number, and it is the ONLY
+instrument these rules will ever have.** Every claim in this row is about a write that exists solely on a phone with no
+signal, so there is no wire to drive, no fixture a database can hold and **no live contract check
+that is even possible** — which is the exact opposite of `5h-ii-a` and `5h-ii-b`, whose every claim
+was about the wire. ⚠️ **The one wire claim this row could have made is already asserted**: that the
+scale-6 price string the queue stores round-trips into `purchase_line` to the digit, which
+`5h-ii-b`'s check drives for a string of identical shape (`formatDecimal(price, SCALE.unitPrice)` and
+a `numeric(14,6)::text` are the same spelling). **Saying that is cheaper than a sixth `db.yml` job
+asserting it twice.**
+
+⚠️ **The suite is 1,358 tests across 44 files** (the runner's, `npm --prefix app test`, up from 1,326
+across 43), of which `unsent.test.ts` is **27** and `offline-dead-letters.test.ts` went from 32 to **37** to pin
+the extracted `baseUnits` directly — all three numbers off the runner, not off a grep
+([[counts-belong-to-the-runner]]).
+`conventions-gate.sh` is **16 groups over 85 source and 44 test files**. ⚠️⚠️ **AND
+`auth-errors.test.ts`'s OUTBOX-READERS ASSERTION WENT RED ON THE WAY, WHICH IS THE THIRD TIME IT HAS
+DIRECTED A DESIGN.** Its comment says the property is not *how many* but that **none of the entries
+is a screen** — so the queue read and the delete were put in a module and `documentos.tsx` was given
+a hook. **The queue now has four verbs**: `commitRunner` FILLS it, `flushRunner` DRAINS it,
+`DeadLetterBanner` COUNTS it, `useUnsent` SHOWS it. The assertion now also asserts the property
+directly rather than only by the equality.
+
+⚠️ **AND `R4` WENT RED FOR THE REASON IT ALWAYS DOES** ([[jsx-comments-are-code-to-the-gate]]): a
+`{/* */}` comment quoting a Spanish sentence is a Spanish literal to the gate, which reads the file
+and not the AST. The comment now NAMES `ES.documents.subtitle` instead of quoting it, and says why.
+
+⚠️⚠️ **TWO `Blocks` CELLS WERE RE-POINTED AND IT IS A DECISION TAKEN ON THE OWNER'S BEHALF —
+REPORTED HERE AND IN THE PR.** Both open decisions were filed against `5h.5` with the words *"it
+blocks nothing takeable… because that is the last row of `5h`"*, and **that premise expired the
+instant this row closed and made `5h.5` the next task.** Assertion 7c pulls every id out of that
+column and refuses a next task named in it, so the plan would have refused the one row `CLAUDE.md`
+calls *"the last moment this is cheap"*. ✅ **They are re-pointed at rows they genuinely stand in
+front of rather than at a new convenience**: the corrected-sale price to **`5P-c`**, the tally the
+pilot is graded on, because a sale recorded at a price the customer did not pay is exactly a
+discrepancy that tally surfaces; and `Lo último`'s placement to **`5P-a`**, because §5's overlay
+counts taps per transaction and abandonment against a fixed inventory of doors and a sixth one
+changes what is being measured. **Reversing either is one word in one cell.**
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS THE PLACEMENT RATHER THAN THE BEHAVIOUR.**
+Whether a heading and one line above the seven-day list is enough to tell an unsent note from a sent
+one **once she has scrolled** — there is no per-row mark, deliberately, because a redundant label is
+furniture and `5h.5` is where one would land. Whether *Sin enviar* is the right word over *Todavía
+están en este teléfono*. And whether landing on Comprar with a re-keyed queued delivery already in
+the cart reads the same as it does for a landed one. **The build on his phone has to be rebuilt
+before he can open this.**
+
+⚠️⚠️ **ONE GAP NAMED RATHER THAN LEFT TO BE FOUND: A QUEUED **WASTE** IS STILL INVISIBLE.**
+`WriteKind` has four members and this list has two — Desperdicio is `6a` and has no document list at
+all — so a waste keyed with no signal is in the outbox and on no screen. **That is the same gap `5g`
+had for its undo**, it is not a regression, and it closes when `6a` gets a list of its own.
+
