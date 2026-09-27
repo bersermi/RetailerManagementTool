@@ -222,6 +222,22 @@ export default function Desperdicio() {
   // so the first render of a restored basket cannot race the first tap.
   const [picking, setPicking] = useState(() => reason === null);
 
+  // ⚠️⚠️ AND IT FOLLOWS THE CAUSE AFTERWARDS, WHICH `6a-ii-b` HAD TO ADD BECAUSE
+  // THIS IS A **TAB**. Mount-once was right while the only thing that could set
+  // the cause was the picker on this screen. `Corregir` on a write-off sets it
+  // from `documentos.tsx` — and this screen may have been mounted for an hour by
+  // then, so its `picking` is whatever she left it as. ⚠️ The two failures are
+  // opposite and both bad: she arrives at a picker asking a question the
+  // correction already answered, or she arrives at a header reading *pickFirst*
+  // with no window open, one tap from a commit the schema will refuse.
+  //
+  // ⚠️ IT DOES NOT REPLACE `chooseReason`'s OWN `setPicking(false)` AND MUST NOT.
+  // `openReason` is a no-op on an unchanged value, so re-choosing the cause
+  // already standing changes nothing here and the window would stay open.
+  useEffect(() => {
+    setPicking(reason === null);
+  }, [reason]);
+
   // ⚠️ THE SHEET'S OPEN STATE LIVES HERE AND NOT IN THE ROUTER —
   // `vender.tsx`'s decision and its reasons: the basket is this place zoomed,
   // priced against a catalog this screen has already read.

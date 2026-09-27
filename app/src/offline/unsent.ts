@@ -214,6 +214,10 @@ export function unsentDocuments(input: UnsentInput): readonly ShopDocument[] {
     const providerId = providerIdOf(write);
     const centavos = writeCentavos(write, input.factors);
     const lines = linesOf(write, input.factors, products);
+    // ⚠️ THE CAUSE OF A QUEUED WRITE-OFF, WHEN ITS LINES AGREE — the same rule
+    // `causeOf` applies to a landed one, and it is read off the lines this
+    // function has just built rather than off the payload a second time.
+    const cause = causeOf(write.kind, lines);
 
     out.push({
       id: write.id,
@@ -222,10 +226,13 @@ export function unsentDocuments(input: UnsentInput): readonly ShopDocument[] {
       day,
       counterparty: counterpartyOf(providerId, named),
       providerId,
-      // ⚠️ THE CAUSE OF A QUEUED WRITE-OFF, WHEN ITS LINES AGREE — the same rule
-      // `causeOf` applies to a landed one, and it is read off the lines this
-      // function has just built rather than off the payload a second time.
-      cause: causeOf(write.kind, lines),
+      cause: cause === null ? null : reasonLabel(cause),
+      // ⚠️⚠️ AND THE WIRE VALUE BESIDE IT, `6a-ii-b`. It is what `prefillOf` puts
+      // back on the waste basket when she corrects a note that has not been sent
+      // — **the one path where the cause has never been near a server**, so if
+      // this were the label rather than the value the re-recorded write-off would
+      // be a dead letter rather than an error she could see.
+      causeValue: cause,
       // ⚠️⚠️ `null`, AND IT IS THE OWNER'S RULING RATHER THAN A MISSING FIELD.
       // The outbox records no author at all — `QueuedWrite` is an id, a
       // workspace, a kind, a payload, a state, an attempt count and an instant —
@@ -395,6 +402,10 @@ function lineOf(
     // is the same wire value the server would have stored**, because `lineSent`
     // put it there, so `isWasteReason` and `reasonLabel` are the identical pair
     // `@/api/documents` uses on a landed line and the two lists cannot drift.
+    // ⚠️ THE VALUE AND THE WORD, ONE GUARD — `lineOf`'s shape in
+    // `@/api/documents`, kept identical so a queued line and a landed one
+    // cannot disagree about whether this app knows the cause.
+    reasonValue: isWasteReason(fields[WASTE_REASON_KEY]) ? fields[WASTE_REASON_KEY] : null,
     reason: isWasteReason(fields[WASTE_REASON_KEY])
       ? reasonLabel(fields[WASTE_REASON_KEY])
       : null,

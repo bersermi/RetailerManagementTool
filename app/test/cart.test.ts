@@ -1120,3 +1120,100 @@ describe('the waste basket is its own, and its cause lives beside the provider',
     expect(qtyOf(useCartStore.getState().carts.sell, PECHUGA)).toBe(2_000);
   });
 });
+
+// ---------------------------------------------------------------------------
+// ⚠️⚠️ `load` — THE WHOLE BASKET IN ONE `set()`, AND `6a-ii-b` GAVE IT A FIFTH
+// FIELD. `Corregir` voids a document and then hands the capture screen its lines
+// back; on a write-off it has to hand back the CAUSE as well, because a waste
+// basket carries one for the whole document.
+//
+// ⚠️ THE TWO ASSERTIONS THAT MATTER ARE THE ONES ABOUT THE SIDE NOT BEING
+// LOADED. `providerId` and `reason` both live beside the baskets rather than in
+// one, so a correction on the wrong side would blank a fact about a document
+// somebody is halfway through keying on another screen.
+describe('loading a corrected document back into a basket', () => {
+  beforeEach(() => {
+    useCartStore.setState({
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART },
+      typed: { sell: {}, buy: {}, waste: {} },
+      workspaceId: null,
+      providerId: null,
+      reason: null,
+    });
+  });
+
+  it('puts the products and the cause back on the waste basket', () => {
+    useCartStore.getState().load({
+      scope: 'waste',
+      lines: [{ variantId: PECHUGA, base: 1_000 }],
+      quotes: {},
+      providerId: null,
+      reason: 'caducado',
+    });
+    expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
+    expect(useCartStore.getState().reason).toBe('caducado');
+  });
+
+  it('replaces the basket rather than merging into it', () => {
+    useCartStore.getState().setQty('waste', HUEVO, 5_000);
+    useCartStore.getState().load({
+      scope: 'waste',
+      lines: [{ variantId: PECHUGA, base: 1_000 }],
+      quotes: {},
+      providerId: null,
+      reason: 'dañado',
+    });
+    expect(useCartStore.getState().carts.waste.map((l) => l.variantId)).toEqual([PECHUGA]);
+  });
+
+  // ⚠️⚠️ THE CLAIM THIS BLOCK EXISTS FOR. A corrected DELIVERY carries no cause,
+  // and writing its `null` over the store's would put Desperdicio's opening
+  // question back in front of a shopkeeper halfway through a bin round — the
+  // basket that survives on the phone precisely BECAUSE she walked away from it.
+  it('leaves the waste cause standing when a delivery is loaded', () => {
+    useCartStore.getState().openReason('caducado');
+    useCartStore.getState().setQty('waste', PECHUGA, 1_000);
+    useCartStore.getState().load({
+      scope: 'buy',
+      lines: [{ variantId: HUEVO, base: 30_000 }],
+      quotes: { [HUEVO]: '0.018000' },
+      providerId: PROVIDER,
+      reason: null,
+    });
+    expect(useCartStore.getState().reason).toBe('caducado');
+    expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
+    expect(useCartStore.getState().providerId).toBe(PROVIDER);
+  });
+
+  // ⚠️ AND THE SAME FACT THE OTHER WAY ROUND, which is `5h-ii-b`'s rule and the
+  // reason `6a-ii-b` could copy it: a corrected write-off must not empty the
+  // supplier Comprar is pointed at.
+  it('leaves the provider standing when a write-off is loaded', () => {
+    useCartStore.getState().openProvider(PROVIDER);
+    useCartStore.getState().load({
+      scope: 'waste',
+      lines: [{ variantId: PECHUGA, base: 1_000 }],
+      quotes: {},
+      providerId: null,
+      reason: 'caducado',
+    });
+    expect(useCartStore.getState().providerId).toBe(PROVIDER);
+  });
+
+  // ⚠️⚠️ A WRITE-OFF WHOSE LINES DISAGREED COMES BACK WITH NO CAUSE, AND THE
+  // STORE WRITES THAT `null` ON PURPOSE. One basket holds one cause, so there is
+  // nothing faithful to prefill — she is asked again rather than having four
+  // lines silently refiled under whichever cause happened to be first.
+  it('clears the cause when the corrected write-off has none to give', () => {
+    useCartStore.getState().openReason('caducado');
+    useCartStore.getState().load({
+      scope: 'waste',
+      lines: [{ variantId: PECHUGA, base: 1_000 }],
+      quotes: {},
+      providerId: null,
+      reason: null,
+    });
+    expect(useCartStore.getState().reason).toBeNull();
+    expect(useCartStore.getState().carts.waste).toHaveLength(1);
+  });
+});
