@@ -20,6 +20,7 @@ import {
 } from '@/api/documents';
 import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
+import type { Cart, Scope } from '@/cart/cart';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatLedgerDay } from '@/format/date';
 import { correctionAsk } from '@/offline/unsent';
@@ -169,8 +170,22 @@ export default function Documentos() {
 
   // ⚠️ THE CART `Corregir` IS ABOUT TO REPLACE, read so the question can say so
   // BEFORE it happens. `load` replaces and does not merge.
-  const buy = useCart('buy');
-  const sell = useCart('sell');
+  // ⚠️⚠️ ALL THREE SINCE `6a-ii-b`, AND THE TWO-WAY VERSION WAS A REAL DEFECT
+  // RATHER THAN AN OMISSION. The warning used to pick its basket with
+  // `CART_KIND[kind] === 'buy' ? buy : sell`, which TYPECHECKS over a
+  // three-member union and reads the SELL cart for a write-off — so a shopkeeper
+  // correcting a write-off with a half-rung sale open was told she would lose
+  // work she was not about to lose, and one with a half-keyed bin round was told
+  // nothing at all. A ternary over a union is how a third member arrives
+  // unnoticed; `Record<Scope, Cart>` makes a fourth a build error.
+  const buyCart = useCart('buy');
+  const sellCart = useCart('sell');
+  const wasteCart = useCart('waste');
+  const carts: Readonly<Record<Scope, Cart>> = {
+    buy: buyCart,
+    sell: sellCart,
+    waste: wasteCart,
+  };
   const load = useCartStore((state) => state.load);
 
   async function run(target: Asking): Promise<void> {
@@ -192,8 +207,7 @@ export default function Documentos() {
       }
       ask(null);
       if (target.how === 'eliminar') return;
-      const prefill = prefillOf(target.document);
-      load(prefill.kind, prefill.lines, prefill.quotes, prefill.providerId);
+      load(prefillOf(target.document));
       router.push(CORRECTION_ROUTE[target.document.kind]);
       return;
     }
@@ -208,7 +222,7 @@ export default function Documentos() {
     if (done.prefill === null) return;
     // ⚠️ THE CART IS LOADED ONLY AFTER THE VOID SUCCEEDED — `useCorrectDocument`'s
     // ordering, and the reason a correction cannot become a duplicate.
-    load(done.prefill.kind, done.prefill.lines, done.prefill.quotes, done.prefill.providerId);
+    load(done.prefill);
     router.push(CORRECTION_ROUTE[target.document.kind]);
   }
 
@@ -274,10 +288,7 @@ export default function Documentos() {
            never both be set — `ask` clears both, and only one of the two paths
            runs. */
         failed={asking !== null && asking.unsent ? gone : failed}
-        busy={
-          asking !== null &&
-          (CART_KIND[asking.document.kind] === 'buy' ? buy : sell).length > 0
-        }
+        busy={asking !== null && carts[CART_KIND[asking.document.kind]].length > 0}
         onConfirm={() => {
           if (asking !== null) void run(asking);
         }}
@@ -587,10 +598,10 @@ function Documento({
 
       {/* ⚠️⚠️ `CORRECTABLE` IS *IS IT BUILT* AND `canCorrect` IS *MAY SHE* — two
           different reasons a control is absent, and they are two conditions so a
-          reader can tell which one they are looking at. A write-off is
-          `false` for exactly one row: the database would take the void today
-          (measured, a 200), and `Corregir` cannot work until a cart can carry a
-          cause. `6a-ii-b`. */}
+          reader can tell which one they are looking at. ⚠️ **Every kind is
+          correctable since `6a-ii-b`**, so the first condition is true for all
+          three today and stays because a fourth kind is listable before it is
+          correctable — see that constant. */}
       {CORRECTABLE[document.kind] && canCorrect ? (
         <>
           <Separador />

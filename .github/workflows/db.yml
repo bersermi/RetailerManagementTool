@@ -397,6 +397,16 @@ on:
       # invisible to the RLS guard by construction.**
       - "docs/checks/6a-ii-a-waste-list-contract.sh"
       - "docs/checks/6a-ii-a-waste-list-contract-falsify.sh"
+      # ⚠️⚠️ AND PUTTING ONE RIGHT, as of plan task `6a-ii-b`. It watches
+      # `app/src/api/corrections.ts` for the `p_`-name 404 every contract check
+      # here watches for — and for something none of the others has: **a claim that
+      # one string can be sent back.** `@/api/documents` renders a cause through
+      # `reasonLabel`, a one-way door, and `Corregir` re-records from the WIRE value
+      # beside it. The two differ by a capital letter, both are strings, and no
+      # typecheck or Vitest fixture can tell them apart — only a real
+      # `record_waste` refusing the word (`22P02`) can.
+      - "docs/checks/6a-ii-b-waste-correction-contract.sh"
+      - "docs/checks/6a-ii-b-waste-correction-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -684,7 +694,11 @@ jobs:
   # what cost, because each one drives the whole live check a dozen times and every
   # run signs two or three people up through a rate-limited GoTrue.
   waste:
-    name: the loss, the cause it is filed under, and reading it back
+    # ⚠️⚠️ THE NAME MOVED AGAIN WITH `6a-ii-b` AND THE **KEY** DID NOT — `5h-ii-b`'s
+    # rule, twice applied now: *a job whose name describes half of what it runs is
+    # the stale-claim defect.* This job now also puts a write-off right, so the name
+    # says so and everything addressing it by key is untouched.
+    name: the loss, the cause it is filed under, reading it back and putting it right
     runs-on: ubuntu-latest
     # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE, AND THE NUMBER BEHIND IT IS MEASURED
     # RATHER THAN GUESSED. **Measured 2026-09-27: `6a-i`'s check in about 12 seconds
@@ -697,6 +711,10 @@ jobs:
     # has real headroom — **and the reason to say so is `catalog-write`, which runs
     # 12-13 minutes against this same fifteen and was CANCELLED three times on
     # `main` before it was split. A cancelled job is neither a pass nor a failure.**
+    # ⚠️ **`6a-ii-b` ADDED A THIRD PAIR (2026-09-27) AND IT IS THE CHEAPEST OF THE
+    # THREE**: locally 2.5s + 16s, because its harness runs eight fixtures rather
+    # than eleven and each run signs only TWO people up — the outsider `6a-ii-a`
+    # needs for its tenancy wall is not a fixture this one has any use for.
     # ⚠️ WHAT MAKES IT SLOW IS NOT THE FIXTURES, IT IS SIGNUP: GoTrue rate-limits
     # and answers with an EMPTY BODY rather than a 429, so the retry loop inside the
     # check sleeps ten seconds a try, six tries, two people per run. A cold or
@@ -782,6 +800,37 @@ jobs:
       # runs in a `trap` on every exit path, and is re-proved by a second control.
       - name: Contract — can the list check still fail (its own eleven fixtures)
         run: bash docs/checks/6a-ii-a-waste-list-contract-falsify.sh
+
+      # ⚠️⚠️ AND PUTTING ONE RIGHT — plan task `6a-ii-b`, APPENDED to this job for
+      # `6a-ii-a`'s reason rather than opened as a tenth: the two build the same
+      # fixture (one shop, one Empleada, Desperdicio over the wire) and a job of its
+      # own would re-pay `supabase start` + `db reset` — the dominant cost — to run
+      # seconds of new assertions.
+      #
+      # ⚠️⚠️ THE TWO CLAIMS THAT LIVE ONLY HERE. **`void_transaction` takes
+      # `'waste'`** — applied since 2026-09-04 and never once sent that argument,
+      # and it matters more on this kind than the other two because a cashier cannot
+      # read her own waste LINES at all, so a void that touched them would refuse
+      # her. And **the cause that comes back is a cause that can go back**: the view
+      # hands over an enum member, `record_waste` refuses the capitalised word with
+      # `22P02`, and that refusal is what makes the app carrying both `cause` and
+      # `causeValue` a measured requirement rather than a preference.
+      - name: Contract — can a cashier put her own write-off right (plan 6a-ii-b)
+        run: bash docs/checks/6a-ii-b-waste-correction-contract.sh
+
+      # ⚠️ Eight fixtures: two green controls, five mutated copies of the app's
+      # contract modules, and one that revokes `execute` on `void_transaction` from
+      # `authenticated`.
+      # ⚠️⚠️ `F5` is the one it exists for — the cause dropped from the line list.
+      # The read stays a 200, every quantity is right, and `causeValue` is `null` on
+      # every write-off, so `Corregir` lands her on Desperdicio with the opening
+      # question unanswered. ⚠️ `D1` is the other: `0021:448` grants execute, the
+      # plan spent a day believing no path to a void existed, and **no pgTAP suite
+      # asserts a function's ACL.**
+      # ⚠️ The grant is restored from `pg_proc` rather than remembered, runs in a
+      # `trap` on every exit path, and is re-proved by a second control.
+      - name: Contract — can the correction check still fail (its own eight fixtures)
+        run: bash docs/checks/6a-ii-b-waste-correction-contract-falsify.sh
 
       - name: Stop
         if: always()

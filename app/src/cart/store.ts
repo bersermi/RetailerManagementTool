@@ -100,6 +100,7 @@ import {
   setQty,
   step,
   type Cart,
+  type Loaded,
   type Quotes,
   type Scope,
 } from '@/cart/cart';
@@ -243,13 +244,13 @@ export interface CartState {
    * ⚠️ IT REPLACES AND DOES NOT MERGE. Two documents in one cart is not a thing
    * a shopkeeper asked for, and the screen warns her when the cart it is about
    * to replace is not empty (`ES.documents.correctBusy`).
+   *
+   * ⚠️⚠️ ONE OBJECT SINCE `6a-ii-b`, AND IT IS NOT A TIDY-UP — a write-off
+   * carries a CAUSE, so the positional form would have grown a fifth parameter
+   * beside `providerId` with the same type and the opposite meaning. `Loaded`
+   * (`@/cart/cart`) carries the argument.
    */
-  readonly load: (
-    scope: Scope,
-    lines: Cart,
-    quotes: Quotes,
-    providerId: string | null,
-  ) => void;
+  readonly load: (loaded: Loaded) => void;
 }
 
 /**
@@ -368,7 +369,7 @@ export const useCartStore = create<CartState>()(
           carts: { ...s.carts, [scope]: EMPTY_CART },
           typed: { ...s.typed, [scope]: NO_QUOTES },
         })),
-      load: (scope, lines, quotes, providerId) =>
+      load: ({ scope, lines, quotes, providerId, reason }) =>
         set((s) => ({
           carts: { ...s.carts, [scope]: lines },
           typed: { ...s.typed, [scope]: quotes },
@@ -376,6 +377,13 @@ export const useCartStore = create<CartState>()(
           // writing `null` over it on a sale correction would empty Comprar's
           // supplier the next time she opened it.
           ...(scope === 'buy' ? { providerId } : {}),
+          // ⚠️⚠️ AND THE CAUSE ONLY ON THE WASTE SIDE, WHICH IS THE LINE ABOVE
+          // ASKED AGAIN OF `6a-ii-b`. A corrected DELIVERY would otherwise write
+          // `null` over the cause of a bin round she is halfway through — and
+          // that basket survives on the phone precisely because she walked away
+          // from it, so the two are far more likely to overlap than a provider
+          // and a sale ever were.
+          ...(scope === 'waste' ? { reason } : {}),
         })),
     }),
     {

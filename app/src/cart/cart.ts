@@ -492,6 +492,43 @@ export type Quotes = Readonly<Record<string, string>>;
 
 export const NO_QUOTES: Quotes = {};
 
+/**
+ * A whole basket, ready to be put in the store in one `set()` — what `Corregir`
+ * hands back after it has voided a document. Plan task `5h-ii-b`, widened by
+ * `6a-ii-b`.
+ *
+ * ⚠️⚠️ IT IS AN OBJECT AND NOT FOUR ARGUMENTS, AND THE THIRD CART IS WHY.
+ * `load` took `(scope, lines, quotes, providerId)` until `6a-ii-b`, and a
+ * write-off has to carry its CAUSE as well — a fifth positional parameter, the
+ * second of them nullable and the two adjacent. **`load(scope, lines, quotes,
+ * null, reason)` and `load(scope, lines, quotes, reason, null)` both typecheck
+ * the day `WasteReason` and a provider id are both strings**, and the symptom
+ * is a delivery filed against no supplier rather than a compiler error. One
+ * object has no order.
+ *
+ * ⚠️ IT LIVES HERE AND NOT IN `@/api/corrections` SO THE STORE CAN NAME IT.
+ * `@/cart/store` may not import the data layer — the dependency runs the other
+ * way, and `corrections.ts` already reads `CartLine` and `Quotes` off this file.
+ * `Prefill` is this plus what the correction DROPPED.
+ */
+export interface Loaded {
+  /** ⚠️ WHICH CART, and that is `Scope` and never `@tienda/money`'s `Kind` —
+   *  `MONEY_KIND` above is the difference, and it is not a renaming. */
+  readonly scope: Scope;
+  readonly lines: Cart;
+  readonly quotes: Quotes;
+  /** ⚠️ `null` OFF THE BUY SIDE, and the store writes it on the buy side ONLY. */
+  readonly providerId: string | null;
+  /**
+   * ⚠️ `null` OFF THE WASTE SIDE — **and on a write-off whose lines disagree**,
+   * which is a document a cart cannot represent: one basket holds one cause.
+   * The store writes it on the waste side only, which is `providerId`'s rule a
+   * second time and for the same reason: a corrected DELIVERY must not blank
+   * the cause standing over a half-keyed bin round.
+   */
+  readonly reason: WasteReason | null;
+}
+
 export function quoteFor(entry: CatalogEntry, kind: Kind, quotes: Quotes): string | null {
   const given = quotes[entry.id];
   if (typeof given === 'string') return given;

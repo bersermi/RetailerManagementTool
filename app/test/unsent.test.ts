@@ -398,7 +398,7 @@ describe('re-keying an unsent note', () => {
   it('rebuilds the delivery exactly, prices and all', () => {
     const [one] = shown([purchase()]);
     const prefill = prefillOf(one);
-    expect(prefill.kind).toBe('buy');
+    expect(prefill.scope).toBe('buy');
     expect(prefill.providerId).toBe(JUAN);
     expect(prefill.dropped).toBe(0);
     // 12 kg in thousandths of a gram — the integer a `CartLine` holds.
@@ -551,6 +551,32 @@ describe('a write-off that has not been sent — the gap 5h-ii-c named, closing'
     expect(document?.lines[0]?.reason).toBe(ES.waste.reason.caducado);
   });
 
+  // ⚠️⚠️ AND THE WIRE VALUE BESIDE THE WORD — `6a-ii-b`, AND THIS PATH IS THE ONE
+  // WHERE IT MATTERS MOST. A queued note's cause has never been near a server, so
+  // correcting one re-records from THIS field: if it were the label, the
+  // re-recorded write-off would reach Postgres as `22P02` and become a dead
+  // letter rather than anything she could see. The two differ by a capital.
+  it('carries the enum member beside the word, and they are not the same string', () => {
+    const [document] = shown([wasteWrite()], 'waste');
+    expect(document?.causeValue).toBe('caducado');
+    expect(document?.lines[0]?.reasonValue).toBe('caducado');
+    expect(document?.causeValue).not.toBe(document?.cause);
+  });
+
+  // ⚠️ AND IT SURVIVES THE ROUND TRIP THROUGH `prefillOf`, which is what puts it
+  // back on the waste basket. `5h-ii-c`'s rule 5 asked this of a delivery's
+  // price; this is the same question asked of a write-off's cause.
+  it('rebuilds the write-off with its cause, ready for the basket', () => {
+    const [one] = shown([wasteWrite()], 'waste');
+    const prefill = prefillOf(one);
+    expect(prefill.scope).toBe('waste');
+    expect(prefill.reason).toBe('caducado');
+    expect(prefill.lines).toEqual([{ variantId: TOMATE, base: 4_000_000 }]);
+    // ⚠️ AND NO PRICE — `0019` takes a GROSS and `waste_line` stores a NET, so
+    // there is no figure to hand back; `quoteFor` re-prices at the shelf.
+    expect(prefill.quotes).toEqual({});
+  });
+
   // ⚠️ A CAUSE A BUILD NO LONGER KNOWS — the restored-basket case `isWasteReason`
   // exists for. It says nothing rather than rendering the stored string.
   it('says nothing for a cause this build does not know', () => {
@@ -575,6 +601,10 @@ describe('a write-off that has not been sent — the gap 5h-ii-c named, closing'
     );
     expect(document?.lines[0]?.reason).toBeNull();
     expect(document?.cause).toBeNull();
+    // ⚠️ THE VALUE GOES WITH THE WORD. One guard answers both, so a cause this
+    // build cannot name is also one it will not send back.
+    expect(document?.lines[0]?.reasonValue).toBeNull();
+    expect(document?.causeValue).toBeNull();
   });
 
   it('answers null for the document’s cause when its lines disagree', () => {

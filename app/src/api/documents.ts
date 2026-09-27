@@ -114,7 +114,7 @@ import { SCALE, parseDecimal } from '@tienda/money';
 import { isoDay } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
-import { isWasteReason, reasonLabel } from '@/api/waste';
+import { isWasteReason, reasonLabel, type WasteReason } from '@/api/waste';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 
@@ -650,6 +650,26 @@ export interface DocumentLine {
    */
   readonly reason: string | null;
   /**
+   * ⚠️ THE SAME CAUSE AS THE WIRE VALUE — the enum member `record_waste` takes,
+   * or `null` wherever `reason` is. **Nothing draws it**, exactly like `base`
+   * and `perBase` beside it.
+   *
+   * ⚠️⚠️ IT IS HERE BECAUSE A LABEL CANNOT BE SENT BACK, AND THAT IS THE WHOLE
+   * OF `6a-ii-b`. `reason` above went through `reasonLabel`, which is a one-way
+   * door by construction (`@/api/waste`): the day somebody renames the word a
+   * shopkeeper reads, the label moves and the enum cannot. So a `Corregir` that
+   * re-recorded the document from `reason` would send Postgres a display string
+   * and get **HTTP 400 `22P02`, invalid input value for enum
+   * public.waste_reason** — on the one path where the original has already been
+   * voided.
+   *
+   * ⚠️ IT IS THE SAME WORD/KEY PAIR AS `counterparty` AND `providerId` ON A
+   * DELIVERY, for the same reason: one of the two is read by a person and the
+   * other is written back to the database, and collapsing them makes the
+   * rendering decide the write.
+   */
+  readonly reasonValue: WasteReason | null;
+  /**
    * ⚠️ THE NET UNIT PRICE AS STORED, verbatim — or `null` when the column was
    * unreadable. **Nothing draws it.** It is handed straight back to
    * `setPrice('buy', …)`, which is why it is not parsed here: `quoted` parses it
@@ -708,6 +728,23 @@ export interface ShopDocument {
    * which is one rule rather than two states to keep in step.
    */
   readonly cause: string | null;
+  /**
+   * ⚠️ THE SAME CAUSE AS THE WIRE VALUE — what `record_waste` takes — or `null`
+   * wherever `cause` is, which includes the mixed document. **Nothing draws
+   * it**: `prefillOf` (`@/api/corrections`) is the only reader, and it is what
+   * puts the cause back on the waste basket when she corrects a write-off.
+   *
+   * ⚠️⚠️ `null` ON A MIXED DOCUMENT IS LOAD-BEARING A SECOND TIME, AND THIS IS
+   * THE HALF THAT IS NOT ABOUT RENDERING. A cart holds ONE cause for the whole
+   * document (`@/cart/store`'s `reason`), so a write-off whose lines disagree
+   * **cannot be represented** — and `Corregir` lands her on Desperdicio with the
+   * products and the opening question unanswered rather than filing four lines
+   * under whichever cause happened to be first. See `prefillOf`.
+   *
+   * ⚠️ See `DocumentLine.reasonValue` for why the word and the value are two
+   * fields and not one.
+   */
+  readonly causeValue: WasteReason | null;
   /**
    * Gross of IVA, rendered — or `null` on a write-off.
    *
@@ -805,6 +842,7 @@ export function documentsFrom(
     if (day === null) continue;
 
     const lines = linesOf(kind, row).map(lineOf);
+    const causeValue = causeOf(kind, lines);
     documents.push({
       id: row.id,
       kind,
@@ -812,7 +850,9 @@ export function documentsFrom(
       day,
       counterparty: counterpartyOf(kind, row, named),
       providerId: providerIdOf(kind, row),
-      cause: causeOf(kind, lines),
+      // ⚠️ ONE UNIFORMITY RULE, TWO FIELDS — see `causeOf` and `causeValue`.
+      cause: causeValue === null ? null : reasonLabel(causeValue),
+      causeValue,
       createdBy:
         typeof row.created_by === 'string' && row.created_by !== '' ? row.created_by : null,
       // ⚠️⚠️ A WRITE-OFF SHOWS NO MONEY AT ALL — not a withheld figure, an
@@ -851,7 +891,14 @@ function linesOf(kind: DocumentKind, row: DocumentRow): readonly DocumentLineRow
 }
 
 /**
- * The one cause a write-off was filed under, or `null`.
+ * The one cause a write-off was filed under, **as the wire value**, or `null`.
+ *
+ * ⚠️⚠️ IT ANSWERS THE ENUM MEMBER AND NOT THE WORD, AND IT CHANGED SHAPE IN
+ * `6a-ii-b`. ~~it answered the LABEL~~ — which was enough while the cause was
+ * only ever rendered, and stopped being enough the moment `Corregir` had to send
+ * one back. **The uniformity rule is one function**, so the caller derives the
+ * word with `reasonLabel` rather than a second copy of *do these lines agree*
+ * existing for the value.
  *
  * ⚠️⚠️ `null` MEANS TWO DIFFERENT THINGS AND BOTH WANT THE SAME RENDERING: *this
  * is not a write-off*, and *this write-off mixes causes*. In the second case the
@@ -874,11 +921,11 @@ function linesOf(kind: DocumentKind, row: DocumentRow): readonly DocumentLineRow
  * is cheaper than a cast there, and the function answers `null` for anything
  * that is not a write-off anyway.
  */
-export function causeOf(kind: string, lines: readonly DocumentLine[]): string | null {
+export function causeOf(kind: string, lines: readonly DocumentLine[]): WasteReason | null {
   if (kind !== 'waste' || lines.length === 0) return null;
-  const first = lines[0]?.reason ?? null;
+  const first = lines[0]?.reasonValue ?? null;
   if (first === null) return null;
-  return lines.every((line) => line.reason === first) ? first : null;
+  return lines.every((line) => line.reasonValue === first) ? first : null;
 }
 
 /**
@@ -939,6 +986,9 @@ function lineOf(row: DocumentLineRow): DocumentLine {
     quantity: lineQuantity(row.qty_display, row.qty_display_unit),
     amount: priced ? amountOf(row.line_net, row.tax_amount) : null,
     base: baseOf(row.qty_base),
+    // ⚠️ THE VALUE FIRST AND THE WORD FROM IT — one guard, so the label and the
+    // wire value can never disagree about whether this app knows the cause.
+    reasonValue: isWasteReason(row.reason) ? row.reason : null,
     reason: isWasteReason(row.reason) ? reasonLabel(row.reason) : null,
     perBase:
       typeof row.unit_price_net_per_base === 'string' && row.unit_price_net_per_base !== ''

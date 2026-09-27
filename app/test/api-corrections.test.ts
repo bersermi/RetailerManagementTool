@@ -42,6 +42,7 @@ import { MAGNITUDE_KEY } from '@/api/magnitude';
 import { ROLES } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
+import { WASTE_REASONS, reasonLabel } from '@/api/waste';
 import { WRITE_KIND } from '@/cart/cart';
 import { ES } from '@/strings';
 
@@ -65,6 +66,7 @@ function line(overrides: Partial<DocumentLine> = {}): DocumentLine {
     amount: '$60.00',
     base: 2000000,
     reason: null,
+    reasonValue: null,
     perBase: '0.030000',
     ...overrides,
   };
@@ -80,6 +82,7 @@ function document(overrides: Partial<ShopDocument> = {}): ShopDocument {
     providerId: 'prov-1',
     createdBy: 'rosa',
     cause: null,
+    causeValue: null,
     amount: '$60.00',
     grossCentavos: 6000,
     lines: [line()],
@@ -281,8 +284,8 @@ describe('the half of the fence this phone can know', () => {
 
 describe('the document, as a cart', () => {
   it('sends a purchase to the buy cart and a sale to the sell cart', () => {
-    expect(prefillOf(document({ kind: 'purchase' })).kind).toBe('buy');
-    expect(prefillOf(document({ kind: 'sale', providerId: null })).kind).toBe('sell');
+    expect(prefillOf(document({ kind: 'purchase' })).scope).toBe('buy');
+    expect(prefillOf(document({ kind: 'sale', providerId: null })).scope).toBe('sell');
   });
 
   // ⚠️⚠️ `CART_KIND` IS THE INVERSE OF `WRITE_KIND` AND THIS IS WHAT SAYS SO.
@@ -297,6 +300,14 @@ describe('the document, as a cart', () => {
   it('routes each kind to its own capture screen', () => {
     expect(CORRECTION_ROUTE.purchase).toBe('/comprar');
     expect(CORRECTION_ROUTE.sale).toBe('/vender');
+    expect(CORRECTION_ROUTE.waste).toBe('/desperdicio');
+  });
+
+  // ⚠️ THE THIRD CART, `6a-ii-b`. It is asserted beside the other two rather
+  // than in the waste section below because the claim is `CART_KIND`'s totality
+  // and not anything about a cause.
+  it('sends a write-off to the waste cart', () => {
+    expect(prefillOf(document({ kind: 'waste', providerId: null })).scope).toBe('waste');
   });
 
   // ⚠️ THE CART'S INTEGER IS `qty_base` AT SCALE 3 — the same arithmetic
@@ -484,22 +495,99 @@ describe('what this app yet knows how to put right', () => {
     expect(CORRECTABLE.sale).toBe(true);
   });
 
-  // ⚠️⚠️ AND NOT YET FOR A WRITE-OFF — WHICH THE DATABASE WOULD ALLOW TODAY.
-  // Measured 2026-09-27: a cashier voided her own one-hour-old write-off and got
-  // a 200, because `void_transaction` has taken all three kinds since `0021` and
-  // a void needs only the header. So this `false` is `5d-iii`'s ruling and not a
-  // capability: `Corregir` cannot work until a cart can carry a cause, and a
-  // control that looks live and refuses silently is worse than one that is
-  // obviously not built. **`6a-ii-b` flips it.**
-  it('is NOT yet built for a write-off, and that is a decision rather than a fence', () => {
-    expect(CORRECTABLE.waste).toBe(false);
+  // ⚠️⚠️ THIS GUARD IS INVERTED BY `6a-ii-b` AND THE OLD ONE WAS RIGHT WHEN IT
+  // WAS WRITTEN. ~~is NOT yet built for a write-off~~ pinned `false` for the one
+  // day between `6a-ii-a` and this row, on the argument that a control which
+  // looks live and refuses silently is worse than one obviously not built. The
+  // database was never the obstacle — measured 2026-09-27, a cashier voided her
+  // own one-hour-old write-off and got a 200 — **the cart was**, and it can carry
+  // a cause now.
+  it('is built for a write-off too, since the cart can carry a cause', () => {
+    expect(CORRECTABLE.waste).toBe(true);
   });
 
-  // ⚠️ THE ROUTE EXISTS ANYWAY, because the map is total over the union and a
-  // missing entry would be a TypeScript error rather than a considered absence.
-  it('still knows where a corrected write-off would go', () => {
-    expect(CORRECTION_ROUTE.waste).toBe('/desperdicio');
+  // ⚠️ AND EVERY ROUTE IS DISTINCT, because the map is total over the union and
+  // two kinds sharing a screen would send a corrected sale to Comprar.
+  it('sends each kind somewhere of its own', () => {
     expect(new Set(Object.values(CORRECTION_ROUTE)).size).toBe(DOCUMENT_KINDS.length);
+  });
+});
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ THE CAUSE GOES BACK ON THE BASKET — `6a-ii-b`, AND IT IS THE HALF OF THIS
+// ROW THAT IS NOT A `true`. A waste basket holds ONE cause for the whole
+// document, so a prefill that carried only the lines would land a shopkeeper on
+// Desperdicio with her products and the screen's opening question unanswered —
+// and the document she was correcting already voided.
+describe('a write-off, as a cart', () => {
+  function wasted(overrides: Partial<ShopDocument> = {}): ShopDocument {
+    return document({
+      kind: 'waste',
+      counterparty: null,
+      providerId: null,
+      amount: null,
+      grossCentavos: null,
+      ...overrides,
+    });
+  }
+
+  it('carries the cause the document was filed under', () => {
+    const one = prefillOf(
+      wasted({ cause: 'Caducado', causeValue: 'caducado', lines: [line({ reason: 'Caducado', reasonValue: 'caducado' })] }),
+    );
+    expect(one.reason).toBe('caducado');
+  });
+
+  // ⚠️⚠️ THE WIRE VALUE AND NOT THE WORD, AND THIS IS THE ASSERTION THAT CAN
+  // TELL THEM APART. `record_waste` takes the enum member `caducado`; the
+  // shopkeeper reads `Caducado`. They differ only in a capital letter, which is
+  // exactly the kind of difference a fixture built from one field cannot see —
+  // so the label is named here explicitly and refused.
+  it('sends the enum member and never the word she reads', () => {
+    const one = prefillOf(
+      wasted({ cause: 'Caducado', causeValue: 'caducado', lines: [line({ reason: 'Caducado', reasonValue: 'caducado' })] }),
+    );
+    expect(one.reason).not.toBe(reasonLabel('caducado'));
+    expect(WASTE_REASONS).toContain(one.reason);
+  });
+
+  // ⚠️⚠️ A DOCUMENT WHOSE LINES DISAGREE COMES BACK WITH NO CAUSE, AND THE LINES
+  // STILL COME BACK. The two alternatives are both worse than an unanswered
+  // question: taking the first line's cause refiles every other line under it in
+  // the ledger where she cannot see it, and hiding `Corregir` hides a control she
+  // is allowed to press. She arrives at Desperdicio and is asked.
+  it('carries NO cause when the document mixes two, and keeps the products', () => {
+    const mixed = prefillOf(
+      wasted({
+        cause: null,
+        causeValue: null,
+        lines: [
+          line({ variantId: 'v1', base: 1_000_000, reason: 'Caducado', reasonValue: 'caducado' }),
+          line({ variantId: 'v2', base: 2_000_000, reason: 'Dañado', reasonValue: 'dañado' }),
+        ],
+      }),
+    );
+    expect(mixed.reason).toBeNull();
+    expect(mixed.lines).toHaveLength(2);
+  });
+
+  // ⚠️⚠️ AND THE OTHER TWO KINDS CARRY NONE, WHICH IS WHAT KEEPS `load` FROM
+  // BLANKING A HALF-KEYED BIN ROUND. The store writes `reason` on the waste side
+  // only — this is the same fact one module earlier, so the two cannot drift.
+  it('is null on a delivery and on a sale', () => {
+    expect(prefillOf(document({ kind: 'purchase' })).reason).toBeNull();
+    expect(prefillOf(document({ kind: 'sale', providerId: null })).reason).toBeNull();
+  });
+
+  // ⚠️ A WRITE-OFF PREFILLS NO PRICE. `waste_line` stores the NET and
+  // `record_waste` takes the GROSS (`0019`) — `sale_line`'s mismatch exactly —
+  // so `quoteFor` re-prices it at the shelf, and `prefillOf`'s quote map is
+  // written on the buy side alone.
+  it('leaves a write-off to the shelf price, as a sale is left', () => {
+    const one = prefillOf(
+      wasted({ lines: [line({ variantId: 'v1', perBase: '0.030000', reasonValue: 'caducado' })] }),
+    );
+    expect(one.quotes).toEqual({});
   });
 });
 

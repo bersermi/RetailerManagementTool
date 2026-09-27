@@ -883,6 +883,11 @@ describe('a write-off, which is the third kind and the one that shows no money',
     ]);
     expect(read.documents[0]?.lines[0]?.reason).toBeNull();
     expect(read.documents[0]?.cause).toBeNull();
+    // ⚠️ AND IT WILL NOT SEND IT BACK EITHER. One guard answers the word and the
+    // wire value, so a cause this build cannot name is also one `Corregir`
+    // refuses to re-record — `6a-ii-b`.
+    expect(read.documents[0]?.lines[0]?.reasonValue).toBeNull();
+    expect(read.documents[0]?.causeValue).toBeNull();
   });
 
   it('names the cause once on the document when every line agrees', () => {
@@ -893,6 +898,34 @@ describe('a write-off, which is the third kind and the one that shows no money',
       ]),
     ]);
     expect(read.documents[0]?.cause).toBe(ES.waste.reason.caducado);
+  });
+
+  // ⚠️⚠️ THE WORD AND THE WIRE VALUE ARE TWO FIELDS, AND THIS IS THE ASSERTION
+  // THAT CAN TELL THEM APART — `6a-ii-b`. `cause` has been through `reasonLabel`
+  // and cannot be sent back; `causeValue` is the enum member `record_waste`
+  // takes. They differ by a capital letter, which is precisely the difference a
+  // suite reading one field cannot see, and getting it wrong is HTTP 400 `22P02`
+  // on the one path where the original is already voided.
+  it('carries the enum member beside the word, and they are not the same string', () => {
+    const read = documentsFrom('waste', [
+      waste('w1', AT, [wline('Jitomate', '3.000', 'kg', 'caducado')]),
+    ]);
+    expect(read.documents[0]?.causeValue).toBe('caducado');
+    expect(read.documents[0]?.lines[0]?.reasonValue).toBe('caducado');
+    expect(read.documents[0]?.causeValue).not.toBe(read.documents[0]?.cause);
+  });
+
+  // ⚠️ AND THE OTHER TWO KINDS CARRY NEITHER, which is what keeps a corrected
+  // delivery from putting a cause on the waste basket.
+  it('has no cause at all on a delivery or a sale', () => {
+    for (const read of [
+      documentsFrom('purchase', [purchase('p1', AT, '100.00', [line('Jitomate', '3.000', 'kg', '100.00')])]),
+      documentsFrom('sale', [sale('s1', AT, '100.00', [line('Jitomate', '3.000', 'kg', '100.00')])]),
+    ]) {
+      expect(read.documents[0]?.cause).toBeNull();
+      expect(read.documents[0]?.causeValue).toBeNull();
+      expect(read.documents[0]?.lines[0]?.reasonValue).toBeNull();
+    }
   });
 
   // ⚠️⚠️ THE MIXED DOCUMENT IS REACHABLE AND IT IS WHAT MAKES THE PER-LINE CAUSE
@@ -907,9 +940,16 @@ describe('a write-off, which is the third kind and the one that shows no money',
       ]),
     ]);
     expect(read.documents[0]?.cause).toBeNull();
+    expect(read.documents[0]?.causeValue).toBeNull();
     expect(read.documents[0]?.lines.map((one) => one.reason)).toEqual([
       ES.waste.reason.caducado,
       ES.waste.reason['dañado'],
+    ]);
+    // ⚠️ THE LINES KEEP THEIR OWN WIRE VALUES — the document has no single one,
+    // which is a fact about the DOCUMENT and never about the lines.
+    expect(read.documents[0]?.lines.map((one) => one.reasonValue)).toEqual([
+      'caducado',
+      'dañado',
     ]);
   });
 

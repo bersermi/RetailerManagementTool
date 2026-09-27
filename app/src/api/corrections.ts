@@ -104,6 +104,32 @@
 // `purchase_line` stores it, and `quoted` passes a buy quote through unchanged
 // (§2.5 rule 2, as `5g-i` corrected it) — so the figure goes back exactly as it
 // came.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ AND SINCE `6a-ii-b` THERE IS A THIRD DOCUMENT, WHICH CARRIES SOMETHING
+// THE OTHER TWO HAVE NO EQUIVALENT OF
+// ----------------------------------------------------------------------------
+// A write-off is filed under a CAUSE, and a waste basket holds one cause for the
+// whole document — so a prefill has to put the cause back as well as the lines.
+// `Loaded.reason` is that field, and `prefillOf` reads it off
+// `ShopDocument.causeValue`: **the wire value, never the word.** `cause` has
+// already been through `reasonLabel`, and `reasonLabel` is a one-way door by
+// design — sending a label back is HTTP 400 `22P02` on the one path where the
+// original is already voided.
+//
+// ⚠️⚠️ A WRITE-OFF IS RE-PRICED AT THE SHELF FOR THE SALE'S REASON AND COSTS
+// LESS THAN A SALE DOES. `waste_line` stores the NET and `record_waste` takes
+// the GROSS (`0019`) — `sale_line`'s mismatch exactly — so the stored figure
+// cannot be handed back, and `quoteFor` quotes from the catalog with
+// `MONEY_KIND.waste = 'sell'`. ⚠️ **What that costs on a sale is a customer
+// charged the old price; on a write-off nobody was charged anything**, so the
+// only consequence is which shelf price the loss is valued at. It is named here
+// so it is not re-discovered as a bug, and it is the same open question
+// `5P-c` already carries for sales.
+//
+// ⚠️ A PRODUCT WITH NO SHELF PRICE IS WRITTEN OFF AT AN EXPLICIT ZERO
+// (`UNPRICED_WASTE`, `@/cart/cart`) rather than refused — `6a-i`'s rule, because
+// a loss not recorded destroys the only record of it.
 // ============================================================================
 
 
@@ -113,7 +139,7 @@ import { MAGNITUDE_KEY } from '@/api/magnitude';
 import type { Role } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
-import type { CartLine, Quotes, Scope } from '@/cart/cart';
+import type { CartLine, Loaded, Quotes, Scope } from '@/cart/cart';
 import { ES } from '@/strings';
 
 /**
@@ -282,36 +308,38 @@ export const CORRECTION_ROUTE: Readonly<
  * are three different reasons a button might be absent and a reader deserves to
  * know which one they are looking at.
  *
- * ⚠️⚠️ `waste` IS `false` FOR EXACTLY ONE ROW, AND THE DATABASE WOULD ALLOW IT
- * TODAY. Measured 2026-09-27: a cashier voided her own one-hour-old write-off
- * and got a **200** — `void_transaction` has taken all three kinds since `0021`
- * and a void needs only the header. So this is a `5d-iii` decision and not a
- * capability: **a control that looks live and refuses silently is worse than one
- * that is obviously not built**, and `Corregir` on a write-off cannot work yet
- * at all. `prefillOf` would hand `load` a waste cart **with no cause** — the
- * schema requires one per line and `6a-i` writes one per document — so the
- * shopkeeper would arrive at Desperdicio with her products and no answer to the
- * question that screen asks FIRST.
+ * ⚠️⚠️ ALL THREE ARE `true` SINCE `6a-ii-b`, AND THE CONSTANT STAYS. ~~`waste`
+ * is `false` for exactly one row~~ — it was, for the single day between
+ * `6a-ii-a` and this one, and the thing that was missing was never the void:
+ * measured 2026-09-27, a cashier voided her own one-hour-old write-off and got a
+ * **200**, because `void_transaction` has taken all three kinds since `0021` and
+ * a void needs only the header. **What was missing is that `prefillOf` would
+ * have handed `load` a waste cart with no cause**, landing her on Desperdicio
+ * with her products and the screen's FIRST question unanswered. `Loaded.reason`
+ * is that fixed.
  *
- * ⚠️ **`6a-ii-b` FLIPS IT**, and flipping it is deliberately the smallest part
- * of that row: the cart has to learn to carry a cause first.
+ * ⚠️ A `Record` THAT IS ALL `true` IS NOT DEAD — it is the third axis written
+ * down, and `DocumentKind` has gained a member twice. A fourth kind that is
+ * listable before it is correctable is a line here rather than a `&&` somewhere
+ * in a screen, which is how the three reasons collapse into one again.
  */
 export const CORRECTABLE: Readonly<Record<DocumentKind, boolean>> = {
   purchase: true,
   sale: true,
-  waste: false,
+  waste: true,
 };
 
-/** A cart, ready to be loaded. */
-export interface Prefill {
-  /** ⚠️ WHICH CART, and that is `Scope` rather than `@tienda/money`'s `Kind` —
-   *  see `CART_KIND` for why the two are not the same thing and why only a third
-   *  document kind made the difference visible. */
-  readonly kind: Scope;
-  readonly lines: readonly CartLine[];
-  readonly quotes: Quotes;
-  /** ⚠️ `null` ON A SALE, and on a delivery whose provider did not read back. */
-  readonly providerId: string | null;
+/**
+ * A cart, ready to be loaded.
+ *
+ * ⚠️⚠️ IT IS `Loaded` PLUS WHAT WAS LOST, AND THAT SPLIT IS `6a-ii-b`'s. The
+ * store takes `Loaded` (`@/cart/cart`) — five fields, no order — and `dropped`
+ * is a fact about the CORRECTION that the store has no use for. ~~`kind`~~ is
+ * `scope` there for the reason its own comment already gave: it was never
+ * `@tienda/money`'s `Kind`, and the two only stopped coinciding when a third
+ * document kind arrived (see `CART_KIND`).
+ */
+export interface Prefill extends Loaded {
   /**
    * ⚠️⚠️ HOW MANY LINES WERE DROPPED FOR AN UNREADABLE QUANTITY. Nothing on the
    * screen uses it yet and the suite is what reads it — it exists so a silent
@@ -331,6 +359,27 @@ export interface Prefill {
  * `CartLine` is keyed by variant. **The quantities are added** — which is what
  * the delivery actually was — and the LAST line's price wins, because `setPrice`
  * holds one quote per variant and a cart cannot represent two.
+ *
+ * ⚠️⚠️ AND ON A WRITE-OFF THE CAUSE COMES BACK WITH THE LINES, WHICH IS THE
+ * WHOLE OF `6a-ii-b`. It is `document.causeValue` — the **wire** value and never
+ * `cause`, which has already been through `reasonLabel` and cannot be sent back
+ * (`@/api/documents`).
+ *
+ * ⚠️⚠️ A WRITE-OFF WHOSE LINES DISAGREE COMES BACK WITH **NO** CAUSE, AND THAT
+ * IS A DECISION RATHER THAN A GAP. The schema puts `reason` on the LINE, so a
+ * document mixing two causes is legal and measured — but a cart holds ONE cause
+ * for the whole basket, so there is nothing faithful to prefill. The two
+ * alternatives are both worse: taking the first line's cause **silently refiles
+ * every other line under it**, in the ledger, where the shopkeeper cannot see
+ * that it happened; and hiding `Corregir` on such a document hides a control she
+ * is allowed to press, which is `5d-iii`'s own ruling read backwards. **So she
+ * arrives at Desperdicio with her products and the screen's opening question
+ * open**, which is the one state that screen is built to handle — `picking`
+ * starts `true` when the cause is `null` (`6a-i`).
+ *
+ * ⚠️ NOTHING IN THIS APP CAN WRITE A MIXED DOCUMENT — Desperdicio sends one
+ * cause per document — so this is the branch for what a future screen, an import
+ * or another client could leave in the ledger.
  */
 export function prefillOf(document: ShopDocument): Prefill {
   const totals = new Map<string, number>();
@@ -354,10 +403,13 @@ export function prefillOf(document: ShopDocument): Prefill {
   for (const [variantId, base] of totals) lines.push({ variantId, base });
 
   return {
-    kind: CART_KIND[document.kind],
+    scope: CART_KIND[document.kind],
     lines,
     quotes,
     providerId: document.providerId,
+    // ⚠️ THE DOCUMENT'S OWN CAUSE, AND `null` WHENEVER IT HAS NO SINGLE ONE —
+    // see the paragraph in this function's doc comment.
+    reason: document.causeValue,
     dropped,
   };
 }
