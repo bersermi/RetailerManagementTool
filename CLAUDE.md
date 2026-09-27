@@ -185,23 +185,42 @@ gitignored, which is why no workflow compiles it.
 
 ⚠️ **What is still true and still matters:** `docs/CONVENTIONS.md` governs how a file in
 `app/` is written, and `R2` keeps the suite in `app/test/` as `.ts` reaching no component.
-⚠️⚠️ **`app/src/ui/` NOW EXISTS AND `5h.5` STILL OWNS IT.** Six primitives — `Buscador`,
-`Cantidad`, `Deslizador`, `Separador`, `TecladoListo`, `Vacio` — were built across `5d`–`5g`
-**with no written rule**, and `5h.5` is the row that writes one. ~~it is gated on `5h-ii-c` —
+⚠️⚠️ **`app/src/ui/` NOW HAS RULES — `5h.5` WROTE THEM ON 2026-09-26, AND `docs/CONVENTIONS.md`
+DEFERS NOTHING FOR THE FIRST TIME SINCE IT EXISTED.** **Eight primitives** — `Boton`, `Buscador`,
+`Cantidad`, `Deslizador`, `Frase`, `Separador`, `TecladoListo`, `Vacio` (`ls app/src/ui | wc -l`,
+2026-09-26) — and three rules over them: **`R14`** a component moves there only once a SECOND file
+draws it (checked as *reached from two or more modules*, because *already drawn twice* is a fact
+about the past that nothing can check); **`R15`** one component per file, named after the file,
+never `export default`; **`R16`** the difference between the copies becomes a PROP, and the
+difference nobody decided becomes a DECISION — settled by a count and written into the closing
+message, because making it configurable moves the drift rather than ending it. ⚠️⚠️ **THE FINDING
+WORTH INHERITING: `R14`'s FIRST SPELLING WAS A SEVENTH SHAPE OF MISLEADING GREEN AND IT DEPENDED ON
+FILE SIZE.** `code "$f" | grep -q` under `set -o pipefail` — `grep -q` exits on the first match,
+`code`'s grep dies of SIGPIPE, and pipefail hands the pipeline that failure — so a caller counted
+only in files small enough for `code` to finish writing: `documentos.tsx` (750 lines) yes,
+`vender.tsx` and `comprar.tsx` (~1,900) no. **`grep -c` reads to EOF.** ⚠️ **And closing the last
+deferral WEAKENED two assertions**: 0b's *empty on both sides* is a legitimate pass, and 0c's *the
+ADR names the task* half is disarmed outright — **the next row that writes a rule must put the
+deferral heading back in the shape 0b greps for**, or nobody is watching. ~~Six primitives were
+built across `5d`–`5g` **with no written rule**, and `5h.5` is the row that writes one.~~ ~~it is gated on `5h-ii-c` —
 re-pointed twice in two days as `5h` and then `5h-ii` were each split, because a gate naming a row
 nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENCE CARRIED
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **NOTHING STANDS BETWEEN HERE AND `5h.5` ANY MORE — IT IS THE NEXT TASK AND IT IS
-UNGATED, AS OF 2026-09-26.** Área 6 was RULED that day by `5h-i`, a simulation round run with
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`5h.5` CLOSED 2026-09-26 AND THE NEXT TASK IS NOW `6a` — DESPERDICIO — WHICH IS THE
+FIRST TIME THE MARKER HAS LEFT STEP 5.** Step 5 has no takeable build row left (`5f-iv` out of
+the pilot, `5i` deferred to v2, three split parents, and **`5P-a` and `5P-c` both named in
+⛔ DECISIONS OWED**, which assertion 7c reads); `6a`'s own gate was `5f`, closed 2026-09-25, and
+the owner reordered it ahead of its step on 2026-09-21. ~~nothing stands between here and `5h.5`
+any more — it is the next task and it is ungated, as of 2026-09-26.~~ Área 6 was RULED that day by `5h-i`, a simulation round run with
 the owner, and then **all three children of `5h-ii` closed on the same date** — `5h-ii-a` the
 list, `5h-ii-b` the two controls, `5h-ii-c` the note that has not been sent. ~~as of
 2026-09-26 it is one row: `5h-ii-a` and `5h-ii-b` both closed that day, leaving
 `5h-ii-c`.~~ ⚠️⚠️ **AND TAKING `5h.5` NEEDED TWO `Blocks` CELLS RE-POINTED FIRST**: both open
 decisions had been filed against it as a convenience, with the words *it blocks nothing
 takeable* — which expired the instant it became takeable, because `plan-handover.sh`'s
-assertion 7c reads that column and refuses a next task named in it. ⚠️⚠️ **AND `5h-ii-b` PUT FOUR MORE UNGOVERNED COMPONENTS INTO A ROUTE RATHER THAN INTO `src/ui/`** — `Boton`, `Confirmacion`, `Frase` and `Control`, all local to `documentos.tsx`, and the last of them is a full-width button that is *nearly* the first one. **That near-duplicate is what `5h.5` is for**, and it is named here so the row has something concrete to collapse. ⚠️ **Every session that
+assertion 7c reads that column and refuses a next task named in it. ⚠️⚠️ **`5h-ii-b`'s FOUR LOCAL COMPONENTS ARE NOW TWO PRIMITIVES AND ONE LOCAL, AND `5h.5` FOUND A THIRD DRAWING THE PLAN HAD NOT SEEN.** `Boton` and `Control` collapsed into `src/ui/Boton.tsx` **together with `vender.tsx`'s `Vaciar carrito` confirm, which was byte-identical in style** — three drawings across two files, and that third one is what made the extraction legal under `R14`, since two components in ONE route would have failed it. `Frase` is `src/ui/Frase.tsx`; **`Confirmacion` has one caller and stays in its route**, which is `R14`'s corollary. ⚠️ **Three shapes are still un-extracted ON PURPOSE with their counts on the page** — the filled button (**9 drawings, 8 files, seven with a border and two without**), the scrim (**7 across 3**) and the chosen pill (**5 across 3**) — because each decides what a shopkeeper sees on six-plus screens at once. ⚠️ **Every session that
 ships a primitive before it adds to a directory whose conventions nobody has written**, and
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 

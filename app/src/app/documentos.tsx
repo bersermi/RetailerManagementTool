@@ -26,6 +26,8 @@ import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Boton } from '@/ui/Boton';
+import { Frase } from '@/ui/Frase';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 
@@ -550,11 +552,13 @@ function Documento({
           <Separador />
           <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
             <Boton
+              inRow
               label={ES.documents.correct}
               tone={PALETTE.accion}
               onPress={() => onAsk(document, 'corregir')}
             />
             <Boton
+              inRow
               label={ES.documents.remove}
               tone={PALETTE.error}
               onPress={() => onAsk(document, 'eliminar')}
@@ -563,45 +567,6 @@ function Documento({
         </>
       ) : null}
     </View>
-  );
-}
-
-/**
- * One of the two controls under a document.
- *
- * ⚠️ THEY ARE THE SAME WIDTH AND NOT WEIGHTED TOWARDS EITHER, because the round
- * gave no reason to think one is commoner: `Corregir` is the mis-keyed quantity
- * and `Eliminar` is the delivery recorded twice, and the owner named both.
- * ⚠️ `PALETTE.error` ON `Eliminar` IS THE ONLY THING THAT DISTINGUISHES THEM at
- * a glance, which is `Vaciar carrito`'s own arrangement one screen over.
- */
-function Boton({
-  label,
-  tone,
-  onPress,
-}: {
-  label: string;
-  tone: string;
-  onPress: () => void;
-}) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={{
-        flex: 1,
-        minHeight: scale.tapTarget,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: scale.rowGap,
-        borderWidth: 1,
-        borderColor: tone,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone }}>{label}</Text>
-    </Pressable>
   );
 }
 
@@ -704,7 +669,7 @@ function Confirmacion({
           ) : failed !== null ? (
             <>
               <Frase text={failed} />
-              <Control
+              <Boton
                 label={ES.documents.gotIt}
                 tone={PALETTE.accion}
                 onPress={onCancel}
@@ -717,12 +682,12 @@ function Confirmacion({
                   `ES.documents.correctBusy`. An `Eliminar` touches no cart. */}
               {correcting && busy ? <Frase text={ES.documents.correctBusy} /> : null}
               <View style={{ gap: scale.rowGap }}>
-                <Control
+                <Boton
                   label={correcting ? ES.documents.correctConfirm : ES.documents.removeConfirm}
                   tone={correcting ? PALETTE.accion : PALETTE.error}
                   onPress={onConfirm}
                 />
-                <Control
+                <Boton
                   label={ES.documents.cancel}
                   tone={PALETTE.tintaApagada}
                   onPress={onCancel}
@@ -733,59 +698,5 @@ function Confirmacion({
         </View>
       </View>
     </View>
-  );
-}
-
-/** One sentence in the box, centred. */
-function Frase({ text }: { text: string }) {
-  const { scale } = useDensity();
-  return (
-    <Text
-      style={{
-        fontSize: scale.bodySize,
-        fontWeight: '600',
-        color: PALETTE.tinta,
-        textAlign: 'center',
-      }}
-    >
-      {text}
-    </Text>
-  );
-}
-
-/**
- * One full-width control in the box.
- *
- * ⚠️ IT IS NOT `Boton` ABOVE, and the two are deliberately separate: that one is
- * half a row under a document and this one is a full-width answer to a question.
- * ⚠️ **Whether they should become one primitive in `src/ui/` is `5h.5`'s**, which
- * is the row that writes that directory's conventions — see `CLAUDE.md`.
- */
-function Control({
-  label,
-  tone,
-  onPress,
-}: {
-  label: string;
-  tone: string;
-  onPress: () => void;
-}) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: tone,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone }}>{label}</Text>
-    </Pressable>
   );
 }

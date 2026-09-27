@@ -25,7 +25,7 @@ this page is the bug** — the same rule `docs/PLAN.md` carries.
 | **How to write the file in front of you** | here |
 
 ```bash
-bash docs/checks/conventions-gate.sh     # reads R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13 against app/
+bash docs/checks/conventions-gate.sh     # reads R1 R2 R4 R5 R6 R7 R8 R10 R11 R12 R13 R14 R15 against app/
 ```
 
 ---
@@ -38,6 +38,8 @@ app/
     (auth)/           the signed-out side of the door
     (tabs)/           the signed-in side
   src/api/            the data layer — one wrapper per RPC (R12, R13)
+  src/ui/             the shared components — markup only, and only once a
+                      second file draws it (R14, R15, R16)
   src/<area>/         everything that decides something: auth, format,
                       navigation, theme, lib, scaffolding
   test/               the whole suite, .ts only, never beside the source
@@ -495,6 +497,109 @@ have caught.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R13.
 
+### R14 — A component enters `src/ui/` when a **second file** draws it, and not before
+
+Draw it in the screen that needs it. Draw it again in the next screen. **Then**
+move it here — and not one screen earlier.
+
+⚠️⚠️ **THIS IS THE OWNER'S RULING OF 2026-09-13 WRITTEN AS A RULE**, and it was
+a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
+build them he said the pattern gets described *"once `5b` has produced a real
+one"* — never *"ten primitives guessed at against screens nobody has drawn."*
+Every one of the eight components in `src/ui/` was extracted from drawings that
+already existed, and **two of them were extracted from drawings that had already
+silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
+did not) and `Boton`'s two (see `R16`).
+
+⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
+is a fact about the past that nothing can check. *Reached from two or more other
+modules* is the same claim in the present tense, and it is what the gate counts —
+so a component moved here on the strength of one call site turns the gate red on
+the commit that moves it, not on some later reading.
+
+⚠️⚠️ **AND IT BIT ON THE ROW THAT WROTE IT.** `5h.5` was handed one named
+duplicate — `Boton` and `Control`, **both local to `documentos.tsx`** — and two
+components in one route file would have broken this rule the day it was written.
+The third drawing (`vender.tsx`'s `Vaciar carrito` confirm, **byte-identical in
+style**) is what made the extraction legitimate, and it was found by grepping for
+the shape rather than by reading the row. **If you cannot find the second file,
+the primitive is not due yet — leave it in the screen.**
+
+⚠️ **The corollary, and it is the one that keeps this directory small:** a
+component with one caller belongs *in* that caller. `documentos.tsx`'s
+`Confirmacion` has one, and stays there; the scrim it draws is drawn **seven
+times across three files** and is the strongest candidate this rule has left
+open. **Counted, in `5h.5`'s entry, so the next session argues with a number.**
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R14.
+
+### R15 — One component per file in `src/ui/`, named after the file, exported by name
+
+`src/ui/Vacio.tsx` exports `Vacio` and nothing else. A private helper is fine and
+is not exported — `Cantidad.tsx` keeps `Paso` to itself.
+
+⚠️ **NO `export default` IN HERE, AND THE ASYMMETRY IS THE POINT.** A route is a
+default export because Expo Router requires one; a primitive is named because its
+name is how the six route files
+that import from here ask for it. A directory where both spellings appear
+is one where you must open the file to find out how to import it.
+
+⚠️ **`src/ui/Botones.tsx` HOLDING THREE BUTTONS IS HOW THIS DIRECTORY BECOMES A
+JUNK DRAWER**, and the file name stops predicting the contents — which is the
+whole reason `src/app/` is a routing table made of files.
+
+⚠️ **THE NAME IS THE SPANISH DOMAIN WORD, AND THE PROPS ARE ENGLISH.** `Buscador`,
+`Cantidad`, `Deslizador`, `Separador`, `TecladoListo`, `Vacio`, `Boton`, `Frase` —
+taking `line`, `kind`, `label`, `tone`, `padId`, `inRow`. The component is a thing
+in the shop and is named as one (see `CLAUDE.md`'s domain vocabulary); a prop is a
+wire inside the file and is named like the rest of the code around it. **The gate
+reads the file name against the export**, and nothing reads the props' language —
+so that half is here because it is true, not because it is enforced.
+
+**Checked by:** `docs/checks/conventions-gate.sh`, R15.
+
+### R16 — The difference between the copies becomes a **prop**; the difference nobody decided becomes a **decision**
+
+When you extract, you will find two kinds of difference. **Sort them, and never
+carry the second kind into the primitive.**
+
+- **Decided differences are props.** `Cantidad`'s `kind` (Vender hard-coded
+  `'sell'` at three call sites; Comprar needs `'buy'`), `Deslizador`'s verb,
+  `TecladoListo`'s `padId` and word, `Boton`'s `inRow`. ⚠️ **A prop, never a
+  second component** — a second copy of `Deslizador` would be a second answer to
+  *how far is far enough* on the gesture that moves money.
+- **Undecided differences are drift, and the extraction is where they get
+  settled.** `Vacio`'s copies disagreed about centring; nobody decided that and
+  nothing could see it. `Boton`'s two disagreed about the corner radius — 8 / 12
+  against 6 / 8 — and that had to be answered rather than made configurable.
+
+⚠️⚠️ **THE TIE-BREAK IS A COUNT, NOT A TASTE, AND BOTH TIMES IT HAS BEEN ONE.**
+`Vacio` centred because it was *"two files against one"*. `Boton` rounds by
+`scale.space / 2` because that is **42 of the 61 `borderRadius` spellings** under
+`src/app/` and `src/ui/`, in **12 of the 13 route files**, while `scale.rowGap`
+appears three times and all three are in `documentos.tsx` — the newest file in the
+app. **Measure it, write the number down, and say what a person will see change.**
+
+⚠️⚠️ **AND THAT LAST HALF IS AN OBLIGATION, NOT A COURTESY.** Settling drift
+changes what a shopkeeper sees, on a screen she has already learned. It is
+cheap to reverse — one line — and invisible in every check this repository has,
+so **it goes in the closing message and in the status-log entry by name** (`R9`,
+and the working agreement's *report every decision made on the owner's behalf*).
+`Boton`'s 2 px is recorded that way. ⚠️ **What must NOT happen is the radius
+becoming a prop so that nobody has to choose**: that is two homes for one claim,
+which is the defect this repository has recorded ten of, arriving as an API.
+
+⚠️ **Making a drifted difference configurable is the one move that looks like
+diligence and is not.** If both spellings survive into the primitive, the
+extraction has moved the drift rather than ended it — and the next screen picks
+whichever it likes.
+
+**Checked by:** a person, at extraction — and by the status-log entry of the task
+that extracted it, which is where the count and the visible change are written
+down. ⚠️ **No machine can see this**: a check that could tell a decided
+difference from an accidental one would be a check that knows what the screen is
+for.
+
 ### R9 — A deliverable no check can see is written down as such, and routed to the task that can see it
 
 When you build something this repository's checks cannot reach — a label that is
@@ -535,90 +640,63 @@ named task ends up.
 
 ---
 
-## ⚠️ What this page does not cover yet — the `src/ui/` conventions, owed at `5h.5`
+## ✅ Every pass this page owed is written — and what is deliberately still loose
 
-⚠️⚠️ **`app/src/ui/` NOW EXISTS — `5g-ii` MINTED IT ON 2026-09-25 — AND THE
-CONVENTIONS ARE STILL OWED AT `5h.5`. Those are two different claims and this
-section used to be able to make them with one sentence.**
+⚠️⚠️ **THE `src/ui/` HALF LANDED AT `5h.5` ON 2026-09-26, AND THIS SECTION USED
+TO BE A DEFERRAL.** It said *"there is no rule here yet, so the standard is what
+the five files there already do"* — five, then six, and the sentence outlived two
+corrections before the rule arrived. **The rules are now `R14`, `R15` and `R16`
+above**; `docs/checks/conventions-gate.sh` reads the first two, and assertion 0b
+now asserts that **nothing is owed** rather than that a named task owes it.
 
-~~There are no `src/ui/` conventions here, because there is no `app/src/ui/`.~~
-**Struck because it is now false**, and the correction is the point of this
-page: it went on saying *there is no `app/src/ui/`* for as long as it took
-somebody to read it, and no assertion in `conventions-gate.sh` could see the
-difference. ⚠️ **That is the tenth stale-copy defect recorded in this
-repository and the first one in this file.**
+⚠️ **THAT ASSERTION IS WEAKER THAN IT WAS, AND SAYING SO IS THE POINT.** 0b
+compares two lists — what this page defers, and what `docs/PLAN.md` says it owes —
+and *empty on both sides* is a legitimate pass. **A third pass that this page
+forgot to announce would therefore not be caught here.** The instrument for that
+is the next row that writes a rule: it must add the heading back, in the exact
+shape `## … owed at ` + the task id, or 0b never looks again.
 
-**What is there, measured rather than assumed** — five components, each one
-lifted from screens that had already drawn it two or more times:
-`Buscador.tsx`, `Cantidad.tsx` (§2.11's `QtyInput`), `Deslizador.tsx` (its
-`PrimaryAction`), `Separador.tsx`, `TecladoListo.tsx` and `Vacio.tsx` (its
-`Empty`). `src/scaffolding/Pendiente.tsx` is still separate and still exists to
-say a screen is not built yet.
+⚠️ **WHAT IS STILL LOOSE, WITH THE COUNTS, SO THE NEXT SESSION ARGUES WITH A
+NUMBER RATHER THAN A FEELING.** `R14` says a component moves here when a second
+file draws it; three shapes now satisfy that and were deliberately left where they
+are, because each one changes what a shopkeeper looks at on screens she has
+already learned:
 
-⚠️ **NONE OF THEM WAS INVENTED, WHICH IS THE OWNER'S 2026-09-13 REFUSAL
-HONOURED RATHER THAN WORKED AROUND.** Two were byte-identical copies in two
-files; `Vacio`'s three copies had **already drifted** — two centred their text
-and Vender's did not, which nobody decided and nothing could see. **That drift
-is the argument, and it was found by looking.**
+| Drawn | Where | Why `5h.5` left it |
+|---|---|---|
+| **The filled button** — `PALETTE.accionSuave` ground, weight `600` | **9 drawings across 8 files**: `solicitudes`, `ajustes` ×2, `producto/nuevo`, `producto/[id]`, `costos/[id]`, `familia/[id]`, `vender`, `comprar` | ⚠️⚠️ **IT HAS ALREADY DRIFTED AND THE DRIFT IS THE WORK: SEVEN OF THE NINE HAVE `borderWidth: 1` AND TWO DO NOT** — Vender's and Comprar's fill with no outline at all. `R16` says that gets decided rather than parameterised, and deciding it changes what a person sees **on eight screens at once**, which is why it is a row of its own and not a footnote to this one |
+| **The scrim** — `PALETTE.velo`, full-bleed, `pointerEvents` | **7 drawings across 3 files**: `documentos`, `vender` ×2, `comprar` ×4 | Some are animated and some are not. Collapsing it means deciding one translucency for every sheet in the app. ⚠️ **This count read 8 for an hour**, because the first grep caught `vender.tsx`'s own comment ABOUT the scrim — the repository's own rule arriving from the inside: a grep of a file counts prose too, so take the count from the code |
+| **The chosen/unchosen pill** — `borderWidth: chosen ? 2 : 1` | **5 drawings across 3 files**: `ajustes` ×2, `producto/nuevo` ×2, `solicitudes` | The closest to free of the three — and the one real question is that `producto/nuevo` spells the same prop `isChosen` in one of its two, so the extraction has a naming decision in it as well as a shape |
 
-ADR-035 §3 put `src/api/` and `src/ui/` in step `5a` so that *"step 6's four
-screens arrive to a pattern"*; this build spread them across `5d`–`5h`, and
-**the owner ruled on 2026-09-13 that the re-sequencing stands and the pattern
-gets described once `5b` has produced a real one** — rather than ten primitives
-guessed at against screens nobody has drawn.
+⚠️ **`documentos.tsx`'s `Confirmacion` has ONE caller and stays in its route**,
+which is `R14`'s corollary rather than an oversight. `src/scaffolding/Pendiente.tsx`
+is still separate and still exists to say a screen is not built yet.
 
-✅ **THE `src/api/` HALF IS WRITTEN, AT `5b.5` ON 2026-09-18 — see `R12` and
-`R13` above, and the row added to `R3`.** `5b-i` produced the real pattern the
-ruling was waiting for. ⚠️⚠️ **The `src/ui/` half is STILL unchanged by that, and
-the directory existing does not change it either**: the ruling was about *"ten
-primitives guessed at against screens nobody has drawn"*, and the **six** that now
-exist were all extracted from drawn screens. ⚠️ **This said *five* until 2026-09-26**
-— `ls app/src/ui | wc -l` returns six (`Buscador`, `Cantidad`, `Deslizador`,
-`Separador`, `TecladoListo`, `Vacio`), and `CLAUDE.md` has said six since `5g-ii`
-minted the directory. **Two files counting the same directory and disagreeing** is
-the defect this page's own guard exists for, and no check reads this number. **Describing their conventions is a
-separate act and it needs the LAST such screen**, which is `5h`'s. So the
-obligation stays exactly where it was — at **`5h.5`**,
-after the last screen that builds a primitive and **before step 6**, which is
-all ADR-035 §2.10 ever asked for (*"the claim here is about order relative to
-step 6"*). ✅✅ **AND ADR-035 §3 SAYS SO IN ITS OWN WORDS, AS OF THE OWNER'S
-RULING OF 2026-09-18** — a `5b.5.` entry for `src/api/` and a `5h.5.` entry for
-`src/ui/`. **The ADR is not merely compatible with this page; it names the same
-task**, and the gate asserts it still does.
+⚠️ **THE MOTION RULE IS STILL ONLY PROSE, AND IT IS THE ONE GAP `R14`–`R16` DO NOT
+TOUCH**: one staggered entrance per screen, `transform` and `opacity` only, because
+those two run on the compositor and animating layout, colour, shadow or blur does
+not — C1.1 puts two low-end Androids in the pilot. ADR-035 §2.11 carries it as a
+row; `Deslizador` and Vender's two confirmations obey it; **no check can see it**,
+and the trap that has actually bitten is that a native-driver animation started in
+the handler that mounts the view fails **silently** — start it in an effect.
 
-⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 — see `R11` above.**
+⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 — see `R11`.**
 `app/src/theme/palette.ts` holds the eleven roles and the gate reads them.
-⚠️ **The MOTION rule is still only prose**: one staggered entrance per screen,
-`transform` and `opacity` only, because those two run on the compositor and
-animating layout, colour, shadow or blur does not — C1.1 puts two low-end
-Androids in the pilot. ADR-035 §2.11 carries it as a row. **No check can see it,
-and no screen animates yet**; the first one that does is `5d`'s, and the plan
-says to measure the Inicio morph on the owner's own device before it.
 
-So if you are about to write **the second RPC wrapper**: the pattern is `R12`
-and `R13` above, and `app/src/api/workspace.ts`'s header is where the reasoning
-is. If you are about to add to **`src/ui/`**: there is no rule here yet, so the
-standard is what the five files there already do — a `// =====` header saying
-why the component exists (`R8`), no decision in it that a `.ts` module could
-hold (`R3`, `R2`), and **no component that has not already been drawn twice.**
-⚠️ **Write the rule down at `5h.5` rather than inventing it in four screens**,
-which is the exact accident §3 wrote this page to prevent.
-
-⚠️ **This section is checked, not merely written.**
-`docs/checks/conventions-gate.sh` reads the task named in the heading above,
-finds that row in [`docs/PLAN.md`](PLAN.md), and fails if it is closed, missing,
-or if the plan owes this page a pass the heading does not name. ⚠️ **The task id
-is READ rather than hardcoded, as of `5b.5`** — the earlier spelling named
-`5b.5` in the script, and a deferral that moves to a task the script has never
-heard of is a check that goes quietly green on both halves at once. A deferral
-is the most perishable claim in this repository, which is why this one is the
-only kind that has an instrument.
+So if you are about to write **the second RPC wrapper**: the pattern is `R12` and
+`R13`, and `app/src/api/workspace.ts`'s header is where the reasoning is. If you
+are about to add to **`src/ui/`**: `R14` says whether it is due at all, `R15` says
+what the file looks like, and `R16` says what to do with the differences you find
+between the copies — **which is the half that has twice turned out to be a
+decision nobody had made.**
 
 ---
 
 *Written at `5a-iv-b`; second pass — the `src/api/` rules — at `5b.5`;
-`src/ui/` corrected from absent to present at `5g-ii`, with its conventions
-still owed at `5h.5`. Every
+`src/ui/` corrected from absent to present at `5g-ii`; **third and last pass — the
+`src/ui/` rules `R14`, `R15` and `R16` — at `5h.5` on 2026-09-26, which is the
+obligation ADR-035 §3 has carried since 2026-09-13 and the one this page was
+written to discharge before step 6.** Every
 rule here was read out of `app/src` rather than proposed for it: if one of them
 surprises you, the code is what it describes, and
 `docs/checks/conventions-gate.sh` is what keeps that true.*

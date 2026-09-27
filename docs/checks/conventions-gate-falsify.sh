@@ -253,19 +253,45 @@ run F11 red "assertion 0 — R3's page claim flipped to 'enforced'"
 mk; find "$WORK/app/src" \( -name '*.ts' -o -name '*.tsx' \) | tail -n +4 | xargs rm -f
 run F12 red "anti-vacuity — all but three of src/ removed, every loop goes quiet"
 
-# --- 0b's three. ⚠️ THE TASK ID IS NO LONGER `5b.5`, AND THAT IS THE POINT:
-# `5b.5` wrote the `src/api/` half and moved the `src/ui/` half to `5h.5`. The
-# assertion now reads the id off the page instead of carrying it, so these three
-# fixtures survive the NEXT move too — which the two they replace would not have.
-mk; sedi 's/^| \*\*5h\.5\*\* | /| **5h.5** | ✅ **DONE 2026-11-01** /' "$WORK/docs/PLAN.md"
-run F14 red "0b — the task the page defers to is closed in the plan"
+# --- 0b's three. ⚠️⚠️ RE-ANCHORED 2026-09-26 AT `5h.5`, AND ALL THREE HAD JUST
+# STOPPED WORKING — WHICH IS THE THING THIS HARNESS EXISTS TO CATCH ABOUT ITSELF.
+#
+# `5h.5` wrote the `src/ui/` rules, so the page now DEFERS NOTHING and the plan
+# OWES NOTHING. That is assertion 0b's legitimate *empty on both sides* branch —
+# and every fixture below used to work by BREAKING a live deferral. With no
+# deferral left, F14's `sed` matched a row that had changed, F15's matched a
+# heading that was gone, and F27's matched a phrase that no longer existed:
+# **three fixtures reporting `FIXTURE EDITED NOTHING` at once.** ⚠️ The gate was
+# never wrong — only the fixtures — which is the fourth time a fixture here has
+# been pinned to text another task owned.
+#
+# ⚠️⚠️ SO THEY NOW BUILD THE DEFERRAL RATHER THAN BREAK ONE. The two helpers put
+# the fixture tree into a state where something IS owed, one side at a time, and
+# the assertion is falsified from the empty side out. **This shape survives the
+# next pass too**: a task that writes `R17` will make the page defer again, and
+# these helpers will simply be adding what is already there.
+#
+# ⚠️ `owe_row` APPENDS A ROW RATHER THAN EDITING `5h.5`'s. Editing the real row
+# would pin these fixtures to that row's wording — the exact expiry date that
+# just fired — and the id `5y.8` exists nowhere else in this repository.
+page_defers() {
+  sedi "s|^## ✅ Every pass this page owed is written.*\$|## ⚠️ owed at \`$1\`|" \
+    "$WORK/docs/CONVENTIONS.md"
+}
+owe_row() {
+  printf '%s\n' "| **$1** | a fixture row that owes \`docs/CONVENTIONS.md\` a pass | \`S\` | ungated |" \
+    >> "$WORK/docs/PLAN.md"
+}
 
-mk; sedi 's/^## ⚠️ What this page does not cover yet.*$/## Everything is covered/' "$WORK/docs/CONVENTIONS.md"
-run F15 red "0b — the page drops its deferral while the plan still owes it a pass"
+mk; page_defers 5h.5
+run F14 red "0b — the page defers to a task the plan has already closed"
+
+mk; owe_row 5y.8
+run F15 red "0b — the plan owes this page a pass and the page defers nothing"
 
 # ⚠️ THE THIRD BRANCH, AND IT IS THE ONE THE OLD HARDCODED SPELLING COULD NOT
 # HAVE: page and plan both naming a task, and not the same one.
-mk; sedi 's/owed at `5h\.5`/owed at `5z.9`/' "$WORK/docs/CONVENTIONS.md"
+mk; page_defers 5z.9; owe_row 5y.8
 run F27 red "0b — the page defers to one task and the plan owes another"
 
 mk; sedi 's|const positive = SHAPE.format(1);|const positive = SHAPE.formatToParts(1);|' "$WORK/app/src/format/mxn.ts"
@@ -320,7 +346,15 @@ run F26 red "R13 — select('*'), which ships every column of the row to a phone
 # rule nobody has shown can fail.
 ADR_MD="docs/adr/ADR-035-target-architecture-postgres-react-native.md"
 
-mk; sedi 's/5h\.5/5x.9/g' "$WORK/$ADR_MD"
+# ⚠️⚠️ RE-ANCHORED 2026-09-26 AT `5h.5` TOO, AND FOR A SHARPER REASON THAN 0b's
+# THREE: **0c's first half is DISARMED when nothing is deferred.** The guard reads
+# `if [[ -n "$PAGE_OWES" ]] && ! grep …`, so with an empty deferral the ADR can
+# stop naming any task at all and 0c still goes green — its step-5a half keeps
+# biting (F29, F30) and its *the ADR names the task* half does not. **That is a
+# real weakening of this repository's instruments and it is named in `5h.5`'s row
+# rather than left here.** This fixture therefore arms 0b's agreement first — page
+# and plan both naming `5z.9` — and then takes the name out of the ADR.
+mk; page_defers 5z.9; owe_row 5z.9; sedi 's/5z\.9/5x.9/g' "$WORK/$ADR_MD"
 run F28 red "0c — the ADR stops naming the task the page defers to"
 
 # ⚠️ THE REVERSION THE AMENDMENT EXISTS TO PREVENT: step 5a's DELIVERABLE LIST
@@ -385,6 +419,28 @@ run F20 red "0d — the page's quick-start line forgets a rule the script enforc
 mk; sedi 's|^bash docs/checks/conventions-gate\.sh .*# reads .*$|bash docs/checks/conventions-gate.sh|' "$WORK/docs/CONVENTIONS.md"
 run F21 red "0d — the quick-start line loses its '# reads …' claim entirely"
 
+# ⚠️⚠️ R14 AND R15's, ADDED 2026-09-26 AT `5h.5` WITH THE `src/ui/` RULES.
+#
+# ⚠️ THE BASELINE IS R14's REAL REGRESSION FIXTURE AND THAT IS WORTH SAYING ONCE.
+# R14's first spelling used `grep -q` under `set -o pipefail`, which made the
+# count depend on how LONG a file was — a caller in `vender.tsx` (~1,900 lines)
+# went uncounted while one in `documentos.tsx` (750) counted. `Cantidad`'s only
+# two callers are both big files, so **the unbroken tree is red if that bug ever
+# comes back**, and this harness refuses to run at all on a red baseline.
+mk; sedi "/^import { Boton } from '@\/ui\/Boton';\$/d" "$WORK/app/src/app/documentos.tsx"
+run F31 red "R14 — a primitive left with a single caller"
+
+mk; cat >> "$WORK/app/src/ui/Vacio.tsx" <<'EOF'
+
+export function VacioCentrado({ line }: { line: string }) {
+  return <Vacio line={line} />;
+}
+EOF
+run F32 red "R15 — a second component exported from one file in src/ui/"
+
+mk; sedi 's/^export function Separador()/export default function Separador()/' "$WORK/app/src/ui/Separador.tsx"
+run F33 red "R15 — a default export in src/ui/, where the name is the interface"
+
 echo
 echo "=== the reverse one: the comment-stripping guard must NOT fire ==="
 mk
@@ -414,7 +470,7 @@ echo
 # a run that executed no fixtures looks like — the eighth check here to need
 # one, and the first where the thing that could empty it is this file's own
 # fixture list being edited down.
-EXPECTED_FIXTURES=30
+EXPECTED_FIXTURES=33
 if (( ran < EXPECTED_FIXTURES )); then
   echo "FAIL: only $ran fixtures ran, expected $EXPECTED_FIXTURES — this harness"
   echo "      proved almost nothing and was about to report success."
