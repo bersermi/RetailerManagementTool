@@ -4,6 +4,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  CORRECTABLE,
   CART_KIND,
   CORRECTION_ROUTE,
   mayCorrect,
@@ -120,7 +121,11 @@ export default function Documentos() {
   // store, where half the day has no signal. Two keys, both warm.
   const purchases = useDocuments('purchase');
   const sales = useDocuments('sale');
-  const shown = kind === 'purchase' ? purchases : sales;
+  // ⚠️ THE THIRD, `6a-ii-a`. The paragraph above is why all of them are
+  // subscribed rather than only the visible one, and it holds harder with three:
+  // a switch that re-fetched would do it twice as often in a shop with no signal.
+  const waste = useDocuments('waste');
+  const shown = kind === 'purchase' ? purchases : kind === 'sale' ? sales : waste;
 
   // ⚠️ WHAT THE CONFIRMATION BOX IS ASKING ABOUT, or `null`. `5h-ii-b`.
   const [asking, setAsking] = useState<Asking | null>(null);
@@ -385,7 +390,7 @@ function Interruptor({
                 color: picked ? PALETTE.accion : PALETTE.tintaApagada,
               }}
             >
-              {one === 'purchase' ? ES.documents.purchases : ES.documents.sales}
+              {ES.documents.tab[one]}
             </Text>
           </Pressable>
         );
@@ -505,19 +510,37 @@ function Documento({
               has no supplier, so an empty line under the date would read as a
               name this phone failed to load. `@/api/documents` answers `null`
               for both *a sale* and *a provider not yet resolved*, and neither
-              wants a row. */}
-          {document.counterparty === null ? null : (
+              wants a row.
+              ⚠️⚠️ AND ON A WRITE-OFF THIS SLOT HOLDS THE CAUSE — `6a-ii-a`. They
+              are the same question asked of different documents: a delivery's
+              second line is WHO and a write-off's is WHY. They are two fields on
+              `ShopDocument` and one slot here, and they can never both be set.
+              ⚠️ `cause` is `null` on a document whose lines disagree, and THAT is
+              what makes the per-line cause below appear — one rule, not two. */}
+          {(document.counterparty ?? document.cause) === null ? null : (
             <Text
               numberOfLines={1}
               style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}
             >
-              {document.counterparty}
+              {document.counterparty ?? document.cause}
             </Text>
           )}
         </View>
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-          {document.amount}
-        </Text>
+        {/* ⚠️⚠️ A WRITE-OFF CARRIES NO PESO FIGURE AND THE SLOT IS ABSENT RATHER
+            THAN EMPTY — the area-9 ruling of 2026-09-14, reaching a third
+            screen. (⚠️ The accent is dropped from that word deliberately: R4
+            reads this FILE and not the AST, so an accented character beside an
+            apostrophe in a JSX comment is a Spanish literal to the gate —
+            [[jsx-comments-are-code-to-the-gate]], third instance.)
+            `@/api/documents` answers `null` for *this kind shows no money* and
+            `ES.documents.noFigure` for *this phone could not read it*; drawing
+            the first as a blank `Text` would leave a gap that reads like the
+            second. See `DOCUMENTS_WASTE_HEAD_COLUMNS`. */}
+        {document.amount === null ? null : (
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+            {document.amount}
+          </Text>
+        )}
       </View>
 
       <Separador />
@@ -542,12 +565,33 @@ function Documento({
             <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
               {line.quantity}
             </Text>
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{line.amount}</Text>
+            {/* ⚠️⚠️ THE CAUSE APPEARS ON A LINE ONLY WHEN THE DOCUMENT'S LINES
+                DISAGREE, which `@/api/documents` decides by answering `null` for
+                the document's own `cause`. `6a-i` writes one cause per document,
+                so the ordinary write-off says the word ONCE, up in the header
+                where the supplier goes — and repeating it on every line of a
+                five-line document is noise she has to read past. The mixed
+                document is reachable (the schema allows it, measured) and it is
+                the only one that needs the word twice. */}
+            {document.cause === null && line.reason !== null ? (
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                {line.reason}
+              </Text>
+            ) : null}
+            {line.amount === null ? null : (
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{line.amount}</Text>
+            )}
           </View>
         ))}
       </View>
 
-      {canCorrect ? (
+      {/* ⚠️⚠️ `CORRECTABLE` IS *IS IT BUILT* AND `canCorrect` IS *MAY SHE* — two
+          different reasons a control is absent, and they are two conditions so a
+          reader can tell which one they are looking at. A write-off is
+          `false` for exactly one row: the database would take the void today
+          (measured, a 200), and `Corregir` cannot work until a cart can carry a
+          cause. `6a-ii-b`. */}
+      {CORRECTABLE[document.kind] && canCorrect ? (
         <>
           <Separador />
           <View style={{ flexDirection: 'row', gap: scale.rowGap }}>

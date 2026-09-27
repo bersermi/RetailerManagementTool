@@ -106,7 +106,6 @@
 // came.
 // ============================================================================
 
-import type { Kind } from '@tienda/money';
 
 import { costsKey } from '@/api/costs';
 import { documentsKey, type DocumentKind, type ShopDocument } from '@/api/documents';
@@ -114,7 +113,7 @@ import { MAGNITUDE_KEY } from '@/api/magnitude';
 import type { Role } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
-import type { CartLine, Quotes } from '@/cart/cart';
+import type { CartLine, Quotes, Scope } from '@/cart/cart';
 import { ES } from '@/strings';
 
 /**
@@ -248,21 +247,67 @@ export function mayCorrect(
  * hand-written maps of one correspondence is the stale-duplicate defect; a
  * hand-written map with a test that walks both is the same correspondence with
  * something watching it, and it keeps the direction readable at the call site.
+ *
+ * ⚠️⚠️ THE ANNOTATION WAS `Kind` UNTIL `6a-ii-a` AND IT WAS WRONG THE WHOLE TIME,
+ * WHICH ONLY BECAME VISIBLE WHEN A THIRD KIND ARRIVED. `Kind` is `@tienda/money`'s
+ * and names two directions of TAX (`'buy' | 'sell'`); what this map actually
+ * answers is *which CART*, which is `Scope` — and `Scope` has a third member,
+ * `waste`, because a write-off is a third DOCUMENT rather than a third
+ * arithmetic (`MONEY_KIND.waste` is `'sell'`). The two types coincided on their
+ * first two members, so nothing could see the difference until there was a
+ * third. **The inverse claim is now true in the types and not only in the
+ * suite.**
  */
-export const CART_KIND: Readonly<Record<DocumentKind, Kind>> = {
+export const CART_KIND: Readonly<Record<DocumentKind, Scope>> = {
   purchase: 'buy',
   sale: 'sell',
+  waste: 'waste',
 };
 
 /** Where `Corregir` goes after the void. Typed so a renamed route is a build error. */
-export const CORRECTION_ROUTE: Readonly<Record<DocumentKind, '/comprar' | '/vender'>> = {
+export const CORRECTION_ROUTE: Readonly<
+  Record<DocumentKind, '/comprar' | '/vender' | '/desperdicio'>
+> = {
   purchase: '/comprar',
   sale: '/vender',
+  waste: '/desperdicio',
+};
+
+/**
+ * Does this app yet know how to put a document of this kind right?
+ *
+ * ⚠️⚠️ IT IS NOT A PERMISSION AND IT IS NOT A FENCE — `mayCorrect` is the first
+ * and `void_transaction` is the second. **This is *is it built*,** and it is a
+ * named constant rather than a `kind !== 'waste'` inside a screen because those
+ * are three different reasons a button might be absent and a reader deserves to
+ * know which one they are looking at.
+ *
+ * ⚠️⚠️ `waste` IS `false` FOR EXACTLY ONE ROW, AND THE DATABASE WOULD ALLOW IT
+ * TODAY. Measured 2026-09-27: a cashier voided her own one-hour-old write-off
+ * and got a **200** — `void_transaction` has taken all three kinds since `0021`
+ * and a void needs only the header. So this is a `5d-iii` decision and not a
+ * capability: **a control that looks live and refuses silently is worse than one
+ * that is obviously not built**, and `Corregir` on a write-off cannot work yet
+ * at all. `prefillOf` would hand `load` a waste cart **with no cause** — the
+ * schema requires one per line and `6a-i` writes one per document — so the
+ * shopkeeper would arrive at Desperdicio with her products and no answer to the
+ * question that screen asks FIRST.
+ *
+ * ⚠️ **`6a-ii-b` FLIPS IT**, and flipping it is deliberately the smallest part
+ * of that row: the cart has to learn to carry a cause first.
+ */
+export const CORRECTABLE: Readonly<Record<DocumentKind, boolean>> = {
+  purchase: true,
+  sale: true,
+  waste: false,
 };
 
 /** A cart, ready to be loaded. */
 export interface Prefill {
-  readonly kind: Kind;
+  /** ⚠️ WHICH CART, and that is `Scope` rather than `@tienda/money`'s `Kind` —
+   *  see `CART_KIND` for why the two are not the same thing and why only a third
+   *  document kind made the difference visible. */
+  readonly kind: Scope;
   readonly lines: readonly CartLine[];
   readonly quotes: Quotes;
   /** ⚠️ `null` ON A SALE, and on a delivery whose provider did not read back. */
@@ -342,7 +387,24 @@ export function prefillOf(document: ShopDocument): Prefill {
  * the shopkeeper happens to have open.
  */
 export function staleAfterVoid(document: ShopDocument): readonly (readonly unknown[])[] {
-  const keys: (readonly unknown[])[] = [documentsKey('purchase'), documentsKey('sale')];
+  // ⚠️ ALL THREE LISTS, ALWAYS — the screen holds every kind at once and a
+  // switch between tabs must not serve a list taken before the void. `waste`
+  // joined them in `6a-ii-a`.
+  const keys: (readonly unknown[])[] = [
+    documentsKey('purchase'),
+    documentsKey('sale'),
+    documentsKey('waste'),
+  ];
+
+  // ⚠️⚠️ A WRITE-OFF ADDS NOTHING BEYOND THE THREE LISTS, AND THAT IS MEASURED
+  // RATHER THAN ASSUMED — it is also why this is a `switch` and no longer an
+  // `if/else` whose `else` meant *purchase*. `takingsFrom` counts SALES, so
+  // Inicio is untouched; `costsFrom` and `magnitude` both read `purchase_line`,
+  // so the cost series and the typical-quantity guard are untouched;
+  // `provider_price_memory` reads deliveries. **A void of a write-off moves
+  // stock and this app caches no stock read at all** — so the day `Números`
+  // ships, this function is where its key goes.
+  if (document.kind === 'waste') return keys;
 
   if (document.kind === 'sale') {
     // ⚠️ THE DAY'S TAKINGS, AND ONLY ON A SALE. `takingsFrom` counts sales and

@@ -114,36 +114,54 @@ import { SCALE, parseDecimal } from '@tienda/money';
 import { isoDay } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
+import { isWasteReason, reasonLabel } from '@/api/waste';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 
 /**
- * The two kinds of document this list holds.
+ * The three kinds of document this list holds.
  *
- * ⚠️⚠️ `waste` IS ABSENT AND IT IS NOT AN OVERSIGHT. `void_transaction` takes
- * all three kinds (`0021`), but Desperdicio is `6a` and there is no waste
- * capture screen to be corrected from — a list of documents a shopkeeper cannot
- * yet create would be drawn dead, which is `5d-iii`'s ruling. **The shape below
- * is a `Record` over this union precisely so `6a` adds a kind and not a
- * module**: `waste` carries the identical header quartet (`0003`).
+ * ⚠️⚠️ `waste` ARRIVED IN `6a-ii-a` AND THE PREDICTION `5h-ii-a` WROTE HERE CAME
+ * TRUE: *"the shape below is a `Record` over this union precisely so `6a` adds a
+ * kind and not a module."* **It did** — every constant in this file was already
+ * keyed by kind, so the third member cost a row in each rather than a second
+ * module. ~~`waste` is absent and it is not an oversight.~~
+ *
+ * ⚠️⚠️ WHAT THAT PREDICTION GOT WRONG, AND IT IS THE INTERESTING HALF: it said
+ * *"`waste` carries the identical header quartet (`0003`)."* **The header
+ * COLUMNS are identical and almost nothing else is.** A waste document's lines
+ * come off a VIEW rather than a table, carry a CAUSE nothing else has, and carry
+ * **no money at all** — so `DOCUMENTS_WASTE_LINE_COLUMNS`,
+ * `DOCUMENTS_WASTE_HEAD_COLUMNS` and `DOCUMENTS_WASTE_LINE_ORDER` are their own
+ * constants beside the shared ones rather than a third value inside them. **Two
+ * reads that genuinely differ want two spellings; one spelling with a branch
+ * inside it is how they drift.**
  */
-export type DocumentKind = 'purchase' | 'sale';
+export type DocumentKind = 'purchase' | 'sale' | 'waste';
 
 /**
- * Both kinds, in the order a screen offers them.
+ * All three kinds, in the order a screen offers them.
  *
  * ⚠️ PURCHASES FIRST, AND THAT IS THE OWNER'S OWN PRIORITY RATHER THAN
  * ALPHABETICAL: *"Compras is completely addressable due to the volume and
  * criticality of it"*, and the situation that produced this whole row was a
  * mis-keyed DELIVERY. A cashier finding a wrong sale is the case he said she
  * fixes by hand and never opens the app for.
+ *
+ * ⚠️ AND WASTE IS LAST, WHICH IS NOT A JUDGEMENT ABOUT ITS IMPORTANCE. It is the
+ * newest and the rarest — a shop keys a handful of write-offs a week against
+ * dozens of sales — and the leftmost position is the one a thumb finds without
+ * looking. ⚠️ **Whether three buttons fit on one row on a real phone is a
+ * look-question and it is `R9`'s**: *Desperdicio* is eleven characters where
+ * *Compras* is seven, and the owner's phone decides it.
  */
-export const DOCUMENT_KINDS: readonly DocumentKind[] = ['purchase', 'sale'];
+export const DOCUMENT_KINDS: readonly DocumentKind[] = ['purchase', 'sale', 'waste'];
 
 /** The table each kind's documents come off. Spelled once (`R13`). */
 export const DOCUMENTS_TABLE: Readonly<Record<DocumentKind, string>> = {
   purchase: 'purchase',
   sale: 'sale',
+  waste: 'waste',
 };
 
 /**
@@ -156,6 +174,13 @@ export const DOCUMENTS_TABLE: Readonly<Record<DocumentKind, string>> = {
 export const DOCUMENTS_LINE_TABLE: Readonly<Record<DocumentKind, string>> = {
   purchase: 'purchase_line',
   sale: 'sale_line',
+  // ⚠️⚠️ A VIEW, AND THE ONLY ENTRY HERE THAT IS NOT A TABLE — `0041`. The name
+  // is still both facts at once, because PostgREST nests an embedded view under
+  // its own name exactly as it does a table, so `linesOf` reads this key
+  // unchanged. ⚠️ **`waste_line` is deliberately NOT named anywhere in this
+  // file**: a cashier's embed on it answers `200` with `[]`, so the write-off
+  // would render with no products rather than as an error somebody would chase.
+  waste: 'waste_reason_line',
 };
 
 /**
@@ -197,6 +222,38 @@ export const DOCUMENTS_LINE_COLUMNS =
   'id,variant_id,qty_base::text,qty_display::text,qty_display_unit,unit_price_net_per_base::text,line_net::text,tax_amount::text,product_variant(name)';
 
 /**
+ * What one WASTE line carries — off `waste_reason_line` (`0041`), and it shares
+ * not one money column with the two above.
+ *
+ * ⚠️⚠️ NO `line_net`, NO `tax_amount`, NO `unit_price_net_per_base`, AND THEY
+ * ARE NOT MERELY UNSELECTED — **the view does not have them**, so this is a
+ * property of the schema rather than of this string. `0041` carries no money
+ * column of any kind, and asking for one is a `42703` rather than a leak.
+ * ⚠️ The cost is the owner's ruling; the RETAIL figures are área 9's ruling of
+ * 2026-09-14 — *"Desperdicio shows waste as QUANTITY and not as cost or as a
+ * rate"* — and the reason bites hardest exactly here: `UNPRICED_WASTE` sends a
+ * zero for a product with no shelf price, so a peso column would read `$0.00`
+ * beside the products most likely to spoil.
+ *
+ * ⚠️ `reason` IS THE COLUMN NOTHING ELSE HAS, and it is the wire value rather
+ * than a word — `reasonLabel` (`@/api/waste`) is the one-way door to what a
+ * shopkeeper reads (`R4`).
+ *
+ * ⚠️⚠️ `variant_name` IS A PLAIN COLUMN AND NOT `product_variant(name)`, WHICH
+ * IS THE ONE DIFFERENCE A READER WILL TRIP OVER. `0041` denormalises the name
+ * into the view, for the reason its own header gives at length: a nested embed
+ * is a SECOND read with its own fence, on the one list that must not come back
+ * empty. **A nested embed also answers 200 here** — it was driven — and it is
+ * refused anyway.
+ *
+ * ⚠️ `qty_base::text` EARNS ITS PLACE THE SAME WAY IT DOES ABOVE: `6a-ii-b`
+ * re-records a corrected write-off, and a cart line is an integer in
+ * thousandths. It is read and never drawn (C8.8's exception, not a breach).
+ */
+export const DOCUMENTS_WASTE_LINE_COLUMNS =
+  'id,variant_id,qty_base::text,qty_display::text,qty_display_unit,reason,variant_name';
+
+/**
  * The columns each kind's documents are read with, embed included.
  *
  * ⚠️ IT IS `SALE_COLUMNS` (`@/api/today`) PLUS `occurred_at` PLUS THE LINES, and
@@ -236,6 +293,30 @@ export const DOCUMENTS_HEAD_COLUMNS =
   'id,occurred_at,total_net::text,total_tax::text,reversal_of,created_by';
 
 /**
+ * A WASTE document's header — the same columns MINUS the two money ones.
+ *
+ * ⚠️⚠️ `total_net` AND `total_tax` EXIST ON `waste` AND A CASHIER MAY READ THEM
+ * (`waste_select` has no role gate, and `0003` says in words that she sees
+ * *"what it was worth on the shelf"*). **They are not asked for anyway**, and
+ * that is a decision this row takes and reports rather than a fence.
+ *
+ * ⚠️ THE ARGUMENT IS ÁREA 9's OWN, APPLIED TO A THIRD SCREEN. Its ruling names
+ * *Números and Desperdicio*; `Lo último` is neither — **but the ruling's REASON
+ * carries straight over.** `UNPRICED_WASTE` (`@/cart/cart`) sends a zero for a
+ * product with no shelf price, so `waste.total_net` is genuinely `0.00` for
+ * exactly the products a shop throws away most, and `$0.00` beside twenty kilos
+ * of tomatoes in the list she opened to check her own work is worse than no
+ * figure at all. **A quantity is what a write-off is worth reading.**
+ *
+ * ⚠️ REVERSING IT IS THIS CONSTANT AND ONE BRANCH IN `documentsFrom` — no
+ * migration, no data, and the retail total is still on the row in Postgres.
+ *
+ * ⚠️ `created_by` AND `reversal_of` STAY, and neither is rendered: the first is
+ * `mayCorrect`'s, the second is what drops a cancelled pair from the list.
+ */
+export const DOCUMENTS_WASTE_HEAD_COLUMNS = 'id,occurred_at,reversal_of,created_by';
+
+/**
  * The one column the two kinds do NOT share.
  *
  * ⚠️ IT IS ITS OWN CONSTANT SO THE DIFFERENCE BETWEEN A PURCHASE AND A SALE IS
@@ -250,6 +331,9 @@ export const DOCUMENTS_PROVIDER_COLUMN = 'provider_id';
 export const DOCUMENTS_COLUMNS: Readonly<Record<DocumentKind, string>> = {
   purchase: `${DOCUMENTS_HEAD_COLUMNS},${DOCUMENTS_PROVIDER_COLUMN},${DOCUMENTS_LINE_TABLE.purchase}(${DOCUMENTS_LINE_COLUMNS})`,
   sale: `${DOCUMENTS_HEAD_COLUMNS},${DOCUMENTS_LINE_TABLE.sale}(${DOCUMENTS_LINE_COLUMNS})`,
+  // ⚠️ COMPOSED FROM ITS OWN TWO PARTS, the same way — so the contract check can
+  // rebuild this exact string out of the app's constants rather than retyping it.
+  waste: `${DOCUMENTS_WASTE_HEAD_COLUMNS},${DOCUMENTS_LINE_TABLE.waste}(${DOCUMENTS_WASTE_LINE_COLUMNS})`,
 };
 
 /**
@@ -328,6 +412,39 @@ export const DOCUMENTS_LINE_ORDER = 'product_variant(name)';
 
 /** Ascending: A before Z, which is the only direction a name list has. */
 export const DOCUMENTS_LINE_ORDER_ASCENDING = true;
+
+/**
+ * The order the database applies to a WASTE document's lines — **two keys**.
+ *
+ * ⚠️⚠️ ONE KEY IS NOT ENOUGH HERE AND THAT IS A FACT ABOUT THE SCHEMA RATHER
+ * THAN A PREFERENCE: `reason` lives on the LINE (`0003`), so one document may
+ * legitimately carry **the same product twice under two causes** — measured, the
+ * same variant twice is two rows and a 200. Ordered on the name alone those two
+ * lines are tied, and a tie falls back to heap order, which reshuffles on a
+ * `VACUUM` with nothing anywhere going red. That is `DOCUMENTS_LINE_ORDER`'s own
+ * argument arriving a second time and arriving worse.
+ *
+ * ⚠️⚠️ WHETHER POSTGREST COULD ORDER A TO-MANY EMBED ON TWO KEYS AT ALL WAS
+ * UNMEASURED WHEN THIS ROW WAS WRITTEN, AND IT IS MEASURED NOW: it can.
+ * `waste_reason_line.order=variant_name.asc,reason.asc` sorted a four-line
+ * document correctly, the `desc,desc` spelling inverted it, and heap order
+ * equalled neither — which is what makes the middle result evidence rather than
+ * a coincidence. **Two `.order()` calls naming the same `referencedTable` append
+ * to one parameter**, which is postgrest-js's documented behaviour and is what
+ * `recentDocuments` relies on.
+ *
+ * ⚠️ BOTH KEYS ARE THE VIEW'S **OWN** COLUMNS and neither is a nested embedded
+ * expression — that is what `0041` denormalising `variant_name` buys, and it is
+ * the third reason that column exists.
+ *
+ * ⚠️⚠️ AND THE SECOND KEY SORTS BY **DECLARATION** AND NOT ALPHABETICALLY,
+ * because `reason` is an enum ([[postgres-enum-sorts-by-declaration]]). That is
+ * wanted: it is the order `WASTE_REASONS` offers the causes in on the capture
+ * screen, so the picker and this list agree. Measured on the applied enum —
+ * `merma de preparación` sorts BEFORE `error de captura`, and the alphabet puts
+ * them the other way round.
+ */
+export const DOCUMENTS_WASTE_LINE_ORDER: readonly string[] = ['variant_name', 'reason'];
 
 /**
  * How far back the list reaches, in days.
@@ -428,14 +545,36 @@ export interface DocumentLineRow {
   /** In `qty_display_unit`, a decimal string at scale 3. See the columns. */
   readonly qty_display: string;
   readonly qty_display_unit: string;
-  /** ⚠️ NET, per base unit, scale 6 — the spelling `record_purchase` takes
-   *  (`0018`). Never rendered; it prefills a re-recorded delivery's price box. */
-  readonly unit_price_net_per_base: string;
-  /** Net of IVA, a decimal string at scale 2. */
-  readonly line_net: string;
-  readonly tax_amount: string;
+  /**
+   * ⚠️ NET, per base unit, scale 6 — the spelling `record_purchase` takes
+   * (`0018`). Never rendered; it prefills a re-recorded delivery's price box.
+   *
+   * ⚠️⚠️ OPTIONAL SINCE `6a-ii-a`, AND THE THREE MONEY FIELDS BELOW WITH IT —
+   * **because `0041` genuinely does not have them.** Making them required was a
+   * claim that every line of every kind carries money, which stopped being true
+   * the moment a write-off became a document; leaving them required and sending
+   * `''` from a fixture would have been the test lying about the wire on behalf
+   * of the type. `lineOf` reads their ABSENCE and answers `null`, which is a
+   * different silence from *this phone could not read it*.
+   */
+  readonly unit_price_net_per_base?: string;
+  /** Net of IVA, a decimal string at scale 2. ⚠️ Absent on a waste line. */
+  readonly line_net?: string;
+  /** ⚠️ Absent on a waste line — see above. */
+  readonly tax_amount?: string;
   /** `null` when this phone may not read the variant — see the columns. */
   readonly product_variant?: DocumentVariantRow | null;
+  /**
+   * ⚠️ WASTE ONLY — the wire value of `public.waste_reason` (`0003:419`), not a
+   * word. `reasonLabel` turns it into one. Absent on the other two kinds.
+   */
+  readonly reason?: string | null;
+  /**
+   * ⚠️ WASTE ONLY — the product's name as a plain column on `0041`, where the
+   * other two kinds carry it under the nested `product_variant` embed. `lineOf`
+   * prefers whichever is present, which is what lets ONE mapper serve all three.
+   */
+  readonly variant_name?: string | null;
 }
 
 /**
@@ -450,8 +589,10 @@ export interface DocumentLineRow {
 export interface DocumentRow {
   readonly id: string;
   readonly occurred_at: string;
-  readonly total_net: string;
-  readonly total_tax: string;
+  /** ⚠️ ABSENT ON A WASTE DOCUMENT — `DOCUMENTS_WASTE_HEAD_COLUMNS` does not ask
+   *  for it, so the two money fields are optional rather than empty strings. */
+  readonly total_net?: string;
+  readonly total_tax?: string;
   /** ⚠️ WHO KEYED IT. Never rendered — `mayCorrect` is the only reader. */
   readonly created_by: string | null;
   /** Set when this document VOIDS another one. */
@@ -460,6 +601,8 @@ export interface DocumentRow {
   readonly provider_id?: string | null;
   readonly purchase_line?: readonly DocumentLineRow[] | null;
   readonly sale_line?: readonly DocumentLineRow[] | null;
+  /** ⚠️ NAMED AFTER THE VIEW `0041` CREATES, not after `waste_line`. */
+  readonly waste_reason_line?: readonly DocumentLineRow[] | null;
 }
 
 /** One line, ready to draw. */
@@ -471,8 +614,18 @@ export interface DocumentLine {
   readonly name: string;
   /** What was keyed and in what — `3 kg`, `1.500 kg`, `12 pza`. */
   readonly quantity: string;
-  /** Gross of IVA, rendered — `$55.50`. */
-  readonly amount: string;
+  /**
+   * Gross of IVA, rendered — `$55.50`.
+   *
+   * ⚠️⚠️ `null` ON A WASTE LINE, AND THAT IS NOT THE SAME AS
+   * `ES.documents.noFigure`. This app now has two different silences about
+   * money and they must not collapse into one: `noFigure` means *a figure
+   * existed and this phone could not read it*, and `null` here means **no money
+   * is shown for this kind of document at all** — área 9's ruling, see
+   * `DOCUMENTS_WASTE_HEAD_COLUMNS`. A screen renders nothing for `null` and
+   * renders the sentence for the other.
+   */
+  readonly amount: string | null;
   /**
    * ⚠️ THE CART'S OWN INTEGER — thousandths of a base unit — or `null` when
    * `qty_base` did not parse. **Nothing draws it.** `CartLine.base` is this
@@ -482,6 +635,20 @@ export interface DocumentLine {
    * second answer to a quantity the database already gave.
    */
   readonly base: number | null;
+  /**
+   * ⚠️ THE CAUSE, AS A WORD A SHOPKEEPER READS — or `null` on a purchase, a sale
+   * and a waste line whose `reason` this app does not recognise.
+   *
+   * ⚠️⚠️ `isWasteReason` GUARDS IT AND THE UNKNOWN CASE ANSWERS `null` RATHER
+   * THAN THE RAW STRING, which is the opposite of what `lineOf` does with a
+   * unit code — and the two differ for a reason. A unit code this app does not
+   * know is still legible to a person (`kg`, `pza`); a `waste_reason` this app
+   * does not know would be a Spanish phrase rendered straight off the wire,
+   * which is exactly the thing `R4` and `reasonLabel` exist to prevent. **It can
+   * only happen if a migration adds a sixth cause**, and then the honest answer
+   * on this screen is to say nothing rather than to leak the enum.
+   */
+  readonly reason: string | null;
   /**
    * ⚠️ THE NET UNIT PRICE AS STORED, verbatim — or `null` when the column was
    * unreadable. **Nothing draws it.** It is handed straight back to
@@ -523,9 +690,33 @@ export interface ShopDocument {
    * it with the signed-in person to hide a button a cashier cannot use.
    */
   readonly createdBy: string | null;
-  /** Gross of IVA, rendered. */
-  readonly amount: string;
-  /** Gross of IVA in integer centavos, or `null` when a figure was unreadable. */
+  /**
+   * ⚠️ THE CAUSE OF A WRITE-OFF, when every line of it shares one — or `null`
+   * on a purchase, on a sale, and on a waste document whose lines disagree.
+   *
+   * ⚠️⚠️ IT IS THE HEADER'S `counterparty` SLOT FOR A WRITE-OFF, and the two are
+   * the same question asked of different documents: a delivery's second line is
+   * WHO, a write-off's is WHY. They are separate fields rather than one
+   * overloaded string because a test that reads `counterparty` on a waste row
+   * should get `null` and not a cause wearing a supplier's name.
+   *
+   * ⚠️⚠️ AND `null` ON A MIXED DOCUMENT IS WHAT MAKES THE PER-LINE CAUSE APPEAR.
+   * `6a-i`'s capture screen sends ONE cause per document, so the common case is
+   * uniform and the word is said once; but the database permits a mix (measured)
+   * and `6a-ii-b`'s corrections will re-record one, so the rare case has to
+   * render. **The screen draws the per-line cause exactly when this is `null`**,
+   * which is one rule rather than two states to keep in step.
+   */
+  readonly cause: string | null;
+  /**
+   * Gross of IVA, rendered — or `null` on a write-off.
+   *
+   * ⚠️ SEE `DocumentLine.amount`: `null` is *this kind shows no money*, and
+   * `ES.documents.noFigure` is *this phone could not read the figure*.
+   */
+  readonly amount: string | null;
+  /** Gross of IVA in integer centavos, or `null` when a figure was unreadable
+   *  and on every write-off, which carries no money at all. */
   readonly grossCentavos: number | null;
   readonly lines: readonly DocumentLine[];
 }
@@ -613,6 +804,7 @@ export function documentsFrom(
     const day = dayOf(row.occurred_at);
     if (day === null) continue;
 
+    const lines = linesOf(kind, row).map(lineOf);
     documents.push({
       id: row.id,
       kind,
@@ -620,11 +812,16 @@ export function documentsFrom(
       day,
       counterparty: counterpartyOf(kind, row, named),
       providerId: providerIdOf(kind, row),
+      cause: causeOf(kind, lines),
       createdBy:
         typeof row.created_by === 'string' && row.created_by !== '' ? row.created_by : null,
-      amount: amountOf(row.total_net, row.total_tax),
-      grossCentavos: grossOf(row.total_net, row.total_tax),
-      lines: linesOf(kind, row).map(lineOf),
+      // ⚠️⚠️ A WRITE-OFF SHOWS NO MONEY AT ALL — not a withheld figure, an
+      // ABSENT one. `DOCUMENTS_WASTE_HEAD_COLUMNS` does not even ask for the
+      // totals, so there is nothing here to withhold; see that constant for
+      // área 9's ruling and why the reason bites hardest on this screen.
+      amount: kind === 'waste' ? null : amountOf(row.total_net, row.total_tax),
+      grossCentavos: kind === 'waste' ? null : grossOf(row.total_net, row.total_tax),
+      lines,
     });
   }
 
@@ -641,8 +838,47 @@ export function documentsFrom(
  * white screen in a shop.
  */
 function linesOf(kind: DocumentKind, row: DocumentRow): readonly DocumentLineRow[] {
-  const lines = kind === 'purchase' ? row.purchase_line : row.sale_line;
+  const lines =
+    kind === 'purchase'
+      ? row.purchase_line
+      : kind === 'sale'
+        ? row.sale_line
+        : // ⚠️ THE VIEW'S NAME, which is `DOCUMENTS_LINE_TABLE.waste` and never
+          // `waste_line` — a cashier's embed on the base table answers `[]`, and
+          // this branch would then hand back a write-off with no products.
+          row.waste_reason_line;
   return Array.isArray(lines) ? lines : [];
+}
+
+/**
+ * The one cause a write-off was filed under, or `null`.
+ *
+ * ⚠️⚠️ `null` MEANS TWO DIFFERENT THINGS AND BOTH WANT THE SAME RENDERING: *this
+ * is not a write-off*, and *this write-off mixes causes*. In the second case the
+ * screen falls back to drawing the cause on each line, which is the only honest
+ * thing it can do — **there is no single word that describes a document holding
+ * two.** A document with no readable cause at all answers `null` too, and gets
+ * the same treatment.
+ *
+ * ⚠️ IT READS THE MAPPED LINES AND NOT THE ROWS, so it agrees with what is drawn
+ * by construction: a cause `isWasteReason` refused is `null` on the line and
+ * therefore cannot be the document's uniform one either.
+ *
+ * ⚠️⚠️ EXPORTED, AND THE ARGUMENT IS `lineQuantity`'s AND `shownAmount`'s A THIRD
+ * TIME: `@/offline/unsent` draws a QUEUED write-off in the same list, off a
+ * payload rather than off a view, and *does this document have one cause* must
+ * have one answer or the row changes shape the moment it lands.
+ *
+ * ⚠️ THE PARAMETER IS `string` AND NOT `DocumentKind` FOR THAT CALLER'S SAKE — a
+ * `QueuedWrite.kind` is a `WriteKind`, which has a fourth member. Widening here
+ * is cheaper than a cast there, and the function answers `null` for anything
+ * that is not a write-off anyway.
+ */
+export function causeOf(kind: string, lines: readonly DocumentLine[]): string | null {
+  if (kind !== 'waste' || lines.length === 0) return null;
+  const first = lines[0]?.reason ?? null;
+  if (first === null) return null;
+  return lines.every((line) => line.reason === first) ? first : null;
 }
 
 /**
@@ -683,14 +919,27 @@ function counterpartyOf(
  * the branch that keeps a future unit legible instead of silently unitless.
  */
 function lineOf(row: DocumentLineRow): DocumentLine {
-  const name = row.product_variant?.name;
+  // ⚠️⚠️ TWO PLACES THE NAME CAN BE, AND ONE MAPPER FOR ALL THREE KINDS. A
+  // purchase and a sale carry it under the nested `product_variant` embed; a
+  // waste line carries it as `variant_name`, a plain column on `0041` (see
+  // `DOCUMENTS_WASTE_LINE_COLUMNS` for why it is denormalised). Reading both and
+  // preferring whichever is present is what keeps this one function rather than
+  // three — **and the fall-through to `unknownProduct` is unchanged**, which is
+  // what a waste line whose view row lost its join would get.
+  const name = row.product_variant?.name ?? row.variant_name;
+  // ⚠️ MONEY IS ABSENT RATHER THAN ZERO ON A WASTE LINE. The view has no
+  // `line_net`, so `amountOf` would answer `ES.documents.noFigure` — *we could
+  // not read it* — which is the wrong sentence for *there is nothing to read*.
+  const priced =
+    typeof row.line_net === 'string' && typeof row.tax_amount === 'string';
   return {
     id: typeof row.id === 'string' ? row.id : '',
     variantId: typeof row.variant_id === 'string' ? row.variant_id : '',
     name: typeof name === 'string' && name !== '' ? name : ES.documents.unknownProduct,
     quantity: lineQuantity(row.qty_display, row.qty_display_unit),
-    amount: amountOf(row.line_net, row.tax_amount),
+    amount: priced ? amountOf(row.line_net, row.tax_amount) : null,
     base: baseOf(row.qty_base),
+    reason: isWasteReason(row.reason) ? reasonLabel(row.reason) : null,
     perBase:
       typeof row.unit_price_net_per_base === 'string' && row.unit_price_net_per_base !== ''
         ? row.unit_price_net_per_base
@@ -782,7 +1031,7 @@ function trimmed(figure: string): string | null {
 }
 
 /** Gross of IVA, rendered — or `ES.documents.noFigure` when either half is unreadable. */
-function amountOf(net: string, tax: string): string {
+function amountOf(net: string | undefined, tax: string | undefined): string {
   return shownAmount(grossOf(net, tax));
 }
 
@@ -809,7 +1058,8 @@ export function shownAmount(centavos: number | null): string {
  * column in `DOCUMENTS_COLUMNS` carries `::text` and why this returns `null`
  * rather than a plausible figure if one ever stops.
  */
-function grossOf(net: string, tax: string): number | null {
+function grossOf(net: string | undefined, tax: string | undefined): number | null {
+  if (typeof net !== 'string' || typeof tax !== 'string') return null;
   try {
     return parseDecimal(net, SCALE.money) + parseDecimal(tax, SCALE.money);
   } catch {
@@ -862,7 +1112,11 @@ export function documentsLine(kind: DocumentKind, input: DocumentsLineInput): st
   if (input.failed !== null) return ES.api.errors[input.failed];
   if (input.state === 'unknown') return ES.documents.loading;
   if (input.state === 'nothing') {
-    return kind === 'purchase' ? ES.documents.noPurchases : ES.documents.noSales;
+    // ⚠️ THREE SENTENCES AND NOT A TEMPLATE. `ES.documents`' own note says why
+    // there are two rather than one, and the third arrives for the same reason:
+    // *no hay nada* under the wrong tab reads as the app having lost the
+    // write-off she keyed an hour ago.
+    return ES.documents.nothing[kind];
   }
   return '';
 }

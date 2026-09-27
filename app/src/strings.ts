@@ -1990,14 +1990,30 @@ export const ES = {
     back: 'Volver',
 
     /**
-     * ⚠️⚠️ THE TWO-WAY SWITCH, AND ITS WORDS ARE `ES.tabs`' OWN RATHER THAN NEW
-     * ONES. A screen that says *Compras* over a tab that says *Comprar* is this
+     * ⚠️⚠️ THE SWITCH — TWO-WAY UNTIL `6a-ii-a` AND NOW THREE — AND ITS WORDS
+     * ARE `ES.tabs`' OWN RATHER THAN NEW ONES. ⚠️ **It is a `Record` keyed by
+     * `DocumentKind` since that row**, so a fourth kind is a TypeScript error
+     * rather than a button rendering `undefined`; it was two flat keys and a
+     * ternary in the screen, and a third would have nested that ternary. A screen that says *Compras* over a tab that says *Comprar* is this
      * repository's stale-duplicate defect in its cheapest form — but these are
      * not the same part of speech: the tab is *what you do*, this is *what you
      * did*. So they are spelled here, once, as the nouns.
      */
-    purchases: 'Compras',
-    sales: 'Ventas',
+    tab: {
+      purchase: 'Compras',
+      sale: 'Ventas',
+      /**
+       * ⚠️⚠️ THE THIRD, AND IT IS THE ONE WORD THAT IS THE SAME AS ITS TAB.
+       * *Comprar → Compras* and *Vender → Ventas* are a verb and its noun; the
+       * module above `desperdicio.tsx` is called **Desperdicio**, which is
+       * already a noun, so there is no second form to reach for. **Inventing
+       * one — *Mermas*, *Pérdidas* — would be this screen teaching a fourth
+       * word for a thing the shop already has a word for**, and `0003` chose
+       * `merma de preparación` as one CAUSE among five, so *Mermas* here would
+       * name the whole after a part.
+       */
+      waste: 'Desperdicio',
+    },
 
     /**
      * ⚠️ WHAT THE LIST IS OF, under the banda. It names the WINDOW, because a
@@ -2023,8 +2039,23 @@ export const ES = {
      * rule: the shopkeeper is the one who fills this screen and the next
      * delivery does it.
      */
-    noPurchases: 'No hay compras de los últimos siete días.',
-    noSales: 'No hay ventas de los últimos siete días.',
+    /**
+     * ⚠️⚠️ A `Record` OVER `DocumentKind` SINCE `6a-ii-a`, AND IT IS KEYED BY THE
+     * WIRE WORD RATHER THAN BY A SPANISH ONE — so a fourth kind is a TypeScript
+     * error in `documentsLine` rather than a screen that renders `undefined`.
+     * ~~noPurchases / noSales~~ were two flat keys and a ternary picked between
+     * them; a third would have made that ternary a nested one in `@/api/documents`.
+     */
+    nothing: {
+      purchase: 'No hay compras de los últimos siete días.',
+      sale: 'No hay ventas de los últimos siete días.',
+      /**
+       * ⚠️ IT DOES NOT SAY *nada que reportar* OR CONGRATULATE HER. A week with
+       * no write-offs is a good week AND a week where nobody keyed one, and this
+       * screen cannot tell which — so it states the fact and stops.
+       */
+      waste: 'No hay desperdicio de los últimos siete días.',
+    },
 
     /**
      * ⚠️ A PRODUCT THIS PHONE CANNOT NAME — the plain embed's branch in

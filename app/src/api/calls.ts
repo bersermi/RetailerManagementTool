@@ -136,6 +136,7 @@ import {
   DOCUMENTS_SINCE_COLUMN,
   DOCUMENTS_TABLE,
   DOCUMENTS_TIEBREAK,
+  DOCUMENTS_WASTE_LINE_ORDER,
   sinceISO,
   type DocumentKind,
   type DocumentRow,
@@ -987,24 +988,51 @@ export async function shopMagnitude(): Promise<MagnitudeRow[]> {
  * this list on every render.
  */
 export async function recentDocuments(kind: DocumentKind): Promise<DocumentRow[]> {
-  const { data, error } = await supabase
+  let query = supabase
     .from(DOCUMENTS_TABLE[kind])
     .select(DOCUMENTS_COLUMNS[kind])
     .gte(DOCUMENTS_SINCE_COLUMN, sinceISO(new Date(), DOCUMENTS_DAYS))
     // ⚠️ THE PARENT'S OWN COLUMN, so the plain spelling is the correct one here.
     .order(DOCUMENTS_ORDER, { ascending: DOCUMENTS_ORDER_ASCENDING })
     // ⚠️ THE TIEBREAK, so `5h-ii-b` acts on the row a thumb actually landed on.
-    .order(DOCUMENTS_TIEBREAK, { ascending: DOCUMENTS_ORDER_ASCENDING })
-    // ⚠️⚠️ `{ referencedTable }` ON PURPOSE — see this function's header and
-    // `DOCUMENTS_LINE_ORDER`. This is the spelling `COSTS_ORDER` documents as a
-    // trap, and it is the right one for a to-many embed.
-    .order(DOCUMENTS_LINE_ORDER, {
+    .order(DOCUMENTS_TIEBREAK, { ascending: DOCUMENTS_ORDER_ASCENDING });
+
+  // ⚠️⚠️ ONE `.order` PER KEY, AND A WRITE-OFF NEEDS TWO — `6a-ii-a`. postgrest-js
+  // APPENDS to the existing `<relation>.order` parameter when the same
+  // `referencedTable` is named again, so this loop produces
+  // `waste_reason_line.order=variant_name.asc,reason.asc` in one request.
+  // **That behaviour was driven against a real PostgREST rather than read**: the
+  // `desc,desc` spelling inverted the result and heap order equalled neither, so
+  // the parameter is doing the work. See `DOCUMENTS_WASTE_LINE_ORDER` for why a
+  // single key is not enough on waste and is enough on the other two.
+  //
+  // ⚠️⚠️ `{ referencedTable }` ON PURPOSE — see this function's header and
+  // `DOCUMENTS_LINE_ORDER`. This is the spelling `COSTS_ORDER` documents as a
+  // trap, and it is the right one for a to-many embed.
+  for (const key of lineOrderFor(kind)) {
+    query = query.order(key, {
       referencedTable: DOCUMENTS_LINE_TABLE[kind],
       ascending: DOCUMENTS_LINE_ORDER_ASCENDING,
-    })
-    .limit(DOCUMENTS_LIMIT);
+    });
+  }
+
+  const { data, error } = await query.limit(DOCUMENTS_LIMIT);
   if (error) throw reported(error);
   return (data ?? []) as unknown as DocumentRow[];
+}
+
+/**
+ * The line-order keys for one kind, in the order they are applied.
+ *
+ * ⚠️ IT IS A FUNCTION AND NOT A FOURTH `Record`, because the two answers come
+ * from two constants that are shaped differently on purpose — a single string
+ * for the kinds whose order is an embedded expression, a list for the one whose
+ * keys are the view's own columns. Flattening them into one `Record<…, string[]>`
+ * would make `DOCUMENTS_LINE_ORDER` a one-element array everywhere and break the
+ * check that reads it as a string.
+ */
+function lineOrderFor(kind: DocumentKind): readonly string[] {
+  return kind === 'waste' ? DOCUMENTS_WASTE_LINE_ORDER : [DOCUMENTS_LINE_ORDER];
 }
 
 /**

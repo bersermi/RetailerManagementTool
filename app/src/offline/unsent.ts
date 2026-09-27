@@ -80,6 +80,7 @@
 import { isoDay } from '@/api/catalog';
 import type { CatalogEntry } from '@/api/catalog';
 import {
+  causeOf,
   lineQuantity,
   shownAmount,
   type DocumentKind,
@@ -88,6 +89,7 @@ import {
 } from '@/api/documents';
 import { DROPPABLE_STATE, isWritePayload, type OutboxState, type QueuedWrite } from '@/api/outbox';
 import type { Provider } from '@/api/providers';
+import { WASTE_REASON_KEY, isWasteReason, reasonLabel } from '@/api/waste';
 import { PRICE_KEY, baseUnits, lineCentavos, writeCentavos, type UnitFactors } from '@/offline/deadLetters';
 import { ES } from '@/strings';
 
@@ -160,12 +162,23 @@ export const NOTHING_UNSENT: readonly ShopDocument[] = Object.freeze(
  * two documents queued in the same millisecond are ordered by id so the answer is
  * total rather than merely sorted ([[assert-against-a-calendar-not-the-array]]).
  *
- * ⚠️ `waste` AND `transfer` ARE DROPPED BY THE KIND FILTER AND NOT BY AN OMISSION.
- * `WriteKind` has four members and `DocumentKind` has two: Desperdicio is `6a` and
- * has no list, and a transfer between two of a shop's own stores is not a document
- * with a counterparty or a value (`0020`, and `PRICE_KEY.transfer` is `null`).
- * **A queued waste is therefore invisible here**, which is the same gap `5g` has
- * for its undo and is named rather than left to be discovered.
+ * ⚠️⚠️ ~~`waste` AND `transfer` ARE DROPPED BY THE KIND FILTER~~ — **`waste` IS NOW
+ * DRAWN, AND THIS IS THE GAP `5h-ii-c` NAMED CLOSING EXACTLY WHERE IT SAID IT
+ * WOULD**: *"a queued waste is therefore invisible here… it closes when `6a` gets
+ * a list of its own."* `DocumentKind` gained `waste` in `6a-ii-a`, so **the kind
+ * filter below admits it with no edit at all** — which is what the comparison
+ * being a comparison rather than a guard bought.
+ *
+ * ⚠️ `transfer` IS STILL DROPPED, by the same one comparison and for its own
+ * reason: a transfer between two of a shop's own stores is not a document with a
+ * counterparty or a value (`0020`, and `PRICE_KEY.transfer` is `null`), and it has
+ * no screen to be corrected from.
+ *
+ * ⚠️⚠️ AND THE REASON THIS MATTERED IS WORTH KEEPING: a shopkeeper who keys a
+ * write-off with no signal and then cannot find it keys it again. `record_waste`
+ * is idempotent on the client uuid, and that cannot help — two taps mint two
+ * uuids, so they are genuinely two write-offs and the ledger is right to keep
+ * both.
  *
  * ⚠️ A ROW WHOSE `queuedAt` IS NOT AN INSTANT IS DROPPED, which is `documentsFrom`'s
  * own rule for `occurred_at`: a document with no day cannot be placed in a list
@@ -200,6 +213,7 @@ export function unsentDocuments(input: UnsentInput): readonly ShopDocument[] {
 
     const providerId = providerIdOf(write);
     const centavos = writeCentavos(write, input.factors);
+    const lines = linesOf(write, input.factors, products);
 
     out.push({
       id: write.id,
@@ -208,6 +222,10 @@ export function unsentDocuments(input: UnsentInput): readonly ShopDocument[] {
       day,
       counterparty: counterpartyOf(providerId, named),
       providerId,
+      // ⚠️ THE CAUSE OF A QUEUED WRITE-OFF, WHEN ITS LINES AGREE — the same rule
+      // `causeOf` applies to a landed one, and it is read off the lines this
+      // function has just built rather than off the payload a second time.
+      cause: causeOf(write.kind, lines),
       // ⚠️⚠️ `null`, AND IT IS THE OWNER'S RULING RATHER THAN A MISSING FIELD.
       // The outbox records no author at all — `QueuedWrite` is an id, a
       // workspace, a kind, a payload, a state, an attempt count and an instant —
@@ -217,9 +235,15 @@ export function unsentDocuments(input: UnsentInput): readonly ShopDocument[] {
       // ruling holds by construction and not by a branch.** Storing one would be
       // a device SQLite v3 and is available if he ever wants the fence.
       createdBy: null,
-      amount: shownAmount(centavos),
-      grossCentavos: centavos,
-      lines: linesOf(write, input.factors, products),
+      // ⚠️⚠️ A QUEUED WRITE-OFF SHOWS NO PESO FIGURE EITHER, AND THE TWO LISTS
+      // HAVE TO AGREE OR THE SAME DOCUMENT CHANGES SHAPE WHEN IT LANDS. The
+      // arithmetic differs — `writeCentavos` reads the payload where
+      // `documentsFrom` reads `total_net` — **and the withholding must not**,
+      // which is `shownAmount`'s own argument one module over. Área 9's ruling,
+      // see `DOCUMENTS_WASTE_HEAD_COLUMNS`.
+      amount: write.kind === 'waste' ? null : shownAmount(centavos),
+      grossCentavos: write.kind === 'waste' ? null : centavos,
+      lines,
     });
   }
 
@@ -361,8 +385,19 @@ function lineOf(
     // amount is what she recognises, and it survives.
     name: name === undefined || name === '' ? ES.documents.unknownProduct : name,
     quantity: lineQuantity(text(fields.qty_display), text(fields.qty_display_unit)),
-    amount: shownAmount(lineCentavos(write.kind, fields, factors)),
+    // ⚠️ `null` ON A WRITE-OFF — no money is shown for that kind, which is not
+    // the same silence as a figure this phone could not read. See
+    // `DocumentLine.amount` in `@/api/documents`.
+    amount: write.kind === 'waste' ? null : shownAmount(lineCentavos(write.kind, fields, factors)),
     base: base !== null && Number.isInteger(base) && base > 0 ? base : null,
+    // ⚠️⚠️ THE CAUSE COMES OFF THE PAYLOAD UNDER `WASTE_REASON_KEY` — `0019`'s own
+    // spelling and `@/api/waste`'s constant, never the literal. **A queued cause
+    // is the same wire value the server would have stored**, because `lineSent`
+    // put it there, so `isWasteReason` and `reasonLabel` are the identical pair
+    // `@/api/documents` uses on a landed line and the two lists cannot drift.
+    reason: isWasteReason(fields[WASTE_REASON_KEY])
+      ? reasonLabel(fields[WASTE_REASON_KEY])
+      : null,
     perBase: write.kind === 'purchase' ? nonEmpty(fields[PRICE_KEY.purchase]) : null,
   };
 }
