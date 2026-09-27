@@ -185,6 +185,28 @@ run F3 red "R2 — a test import that resolves to a .tsx"
 mk; sedi "s|{ES.buy.genericHint}|{'Recepción de mercancía'}|" "$WORK/app/src/app/(tabs)/comprar.tsx"
 run F4 red "R4 — a Spanish sentence typed into a route"
 
+# ⚠️⚠️ F4a AND F4b — R4's SECOND EXEMPTION, AND THEY ARE HERE BECAUSE AN
+# EXEMPTION WITH NO FIXTURE IS A HOLE WITH A COMMENT OVER IT. `6a-i` gave
+# `src/api/waste.ts` a bounded pass for `WASTE_REASONS`, whose five values are
+# Spanish IN THE DATABASE (`0003:419`, `0004:49`) and are wire values rather than
+# words a shopkeeper reads. **The exemption is that ONE declaration and these two
+# fixtures are what say so**, in the two directions it could be widened.
+#
+# ⚠️ F4a: A SENTENCE ELSEWHERE IN THE EXEMPT FILE. If the pass were per-FILE this
+# would be green, and `waste.ts` would be the one module in `src/` where Spanish
+# could be typed in place for ever with nothing watching.
+mk; sedi "s|^export const WASTE_REASON_KEY = 'reason';|export const WASTE_REASON_KEY = 'reason';\\nexport const OOPS = '¿Qué pasó con la mercancía?';|" "$WORK/app/src/api/waste.ts"
+run F4a red "R4 — a Spanish sentence in the one file with a bounded exemption"
+
+# ⚠️ F4b: THE DECLARATION RENAMED. The gate finds the block by name, so a rename
+# leaves five accented literals with no block to be inside — and the right answer
+# is RED, because the exemption was granted to that declaration and not to those
+# five strings wherever they happen to sit. ⚠️ It is also the alarm for the
+# likelier accident: somebody moving the values into a different constant and
+# taking the pass with them by accident.
+mk; sedi "s|^export const WASTE_REASONS = \\[|export const WASTE_CAUSES = [|" "$WORK/app/src/api/waste.ts"
+run F4b red "R4 — WASTE_REASONS renamed, so the exempt block no longer exists"
+
 mk; sedi "s|const grouped = PESOS.format(pesos);|const grouped = String(pesos).toFixed(0);|" "$WORK/app/src/format/mxn.ts"
 run F5 red "R5 — toFixed, in the one file exempt from the division rule"
 
@@ -427,8 +449,34 @@ run F21 red "0d — the quick-start line loses its '# reads …' claim entirely"
 # went uncounted while one in `documentos.tsx` (750) counted. `Cantidad`'s only
 # two callers are both big files, so **the unbroken tree is red if that bug ever
 # comes back**, and this harness refuses to run at all on a red baseline.
-mk; sedi "/^import { Boton } from '@\/ui\/Boton';\$/d" "$WORK/app/src/app/documentos.tsx"
-run F31 red "R14 — a primitive left with a single caller"
+# ⚠️⚠️ REWRITTEN BY `6a-i` (2026-09-27) BECAUSE ORDINARY WORK DISARMED IT — THE
+# FIFTH STALE MECHANISM IN THIS FILE AND THE SECOND OF THAT EXACT SHAPE.
+# ~~It deleted `Boton`'s import from `documentos.tsx`, leaving `vender.tsx` as its
+# only caller.~~ `desperdicio.tsx` draws `Boton` too, so removing one caller now
+# leaves TWO and the fixture went **green while claiming red** — it proved nothing
+# and was counted as evidence. ⚠️ **A fixture that subtracts a caller has an
+# expiry date nobody wrote down: the next screen to draw that primitive.**
+#
+# ⚠️ SO IT ADDS A PRIMITIVE WITH **NO** CALLERS INSTEAD OF SUBTRACTING ONE FROM A
+# PRIMITIVE THAT HAS THEM. Zero callers is un-disarmable by construction — no
+# screen anybody writes later can accidentally satisfy it — where *exactly one*
+# is a fact about the rest of the tree.
+#
+# ⚠️ AND IT IS WRITTEN TO PASS R15 AND R8 SO THAT **ONLY R14** GOES RED: one
+# component per file, named after the file, exported by name, with a header. A
+# fixture that trips three rules at once cannot say which one bit.
+mk
+cat > "$WORK/app/src/ui/Ninguno.tsx" <<'EOF'
+// ⚠️ A FIXTURE, NOT A COMPONENT ANYBODY DRAWS. It exists inside
+// `conventions-gate-falsify.sh`'s temporary tree only, to prove R14 fires on a
+// primitive that no other module reaches. See the fixture's comment.
+import { View } from 'react-native';
+
+export function Ninguno() {
+  return <View />;
+}
+EOF
+run F31 red "R14 — a primitive in src/ui/ that nothing reaches"
 
 mk; cat >> "$WORK/app/src/ui/Vacio.tsx" <<'EOF'
 
@@ -470,7 +518,7 @@ echo
 # a run that executed no fixtures looks like — the eighth check here to need
 # one, and the first where the thing that could empty it is this file's own
 # fixture list being edited down.
-EXPECTED_FIXTURES=33
+EXPECTED_FIXTURES=35
 if (( ran < EXPECTED_FIXTURES )); then
   echo "FAIL: only $ran fixtures ran, expected $EXPECTED_FIXTURES — this harness"
   echo "      proved almost nothing and was about to report success."

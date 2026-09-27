@@ -24,7 +24,7 @@
 // is not built** — `5f-ii`'s row records that reading.
 //
 // ----------------------------------------------------------------------------
-// ⚠️⚠️ WHY IT IS A PRIMITIVE NOW: FOUR DRAWINGS, AND `kind` IS THE ONLY
+// ⚠️⚠️ WHY IT IS A PRIMITIVE NOW: FOUR DRAWINGS, AND `scope` IS THE ONLY
 // DIFFERENCE BETWEEN THEM
 // ----------------------------------------------------------------------------
 // `vender.tsx` drew it twice — on the list row and inside the basket sheet —
@@ -32,6 +32,16 @@
 // call sites into the store; that is the whole delta, so it is a PROP rather
 // than a second component. ⚠️ **A second copy would be a second set of rules
 // about what a tap of `+` adds**, and C3.8 is exacting about that.
+//
+// ⚠️⚠️ SIX DRAWINGS AS OF `6a-i`, AND THE PROP WAS **RENAMED** RATHER THAN
+// WIDENED. Desperdicio draws it twice more and counts into a third basket, so
+// this prop's type is now `Scope` (`@/cart/cart`) and not `@tienda/money`'s
+// `Kind`. ⚠️ **The rename is the load-bearing half**: `Scope` is a superset of
+// `Kind` as a string union, so leaving the name alone would have type-checked
+// on every call site and left a prop called `kind` holding something that is not
+// a `Kind` — in a file whose only job is to know which basket it is counting
+// into. `R16`'s *the difference between the copies becomes a prop* is satisfied
+// either way; naming it correctly is what keeps the sixth caller readable.
 //
 // ⚠️ WHICH UNIT THE BOX SPEAKS IN IS `@/cart/quantity`'s DECISION, never this
 // file's, and `app/test/cart-quantity.test.ts` reads it (`R3`). Nothing here
@@ -42,10 +52,8 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useState } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
-import type { Kind } from '@tienda/money';
-
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
-import { stepOf } from '@/cart/cart';
+import { stepOf, type Scope } from '@/cart/cart';
 import { baseFromShown, qtyShown, shownUnitOf } from '@/cart/quantity';
 import { useCartStore } from '@/cart/store';
 import { ES } from '@/strings';
@@ -56,16 +64,16 @@ export function Cantidad({
   entry,
   base,
   factors,
-  kind,
+  scope,
   onEdit,
   padId,
 }: {
   entry: CatalogEntry;
   base: number;
   factors: UnitFactors;
-  /** Which basket this box is counting into. The only thing Vender and Comprar
-   *  disagree about — see this file's header. */
-  kind: Kind;
+  /** Which basket this box is counting into. The only thing the three capture
+   *  screens disagree about — see this file's header. */
+  scope: Scope;
   // ⚠️ OPTIONAL BECAUSE THE SHEET HAS NO LIST TO SCROLL. On the list this tells
   // the screen which row the keyboard is about to cover; inside the sheet there
   // are only the lines already in the basket, and nothing virtualises them.
@@ -100,11 +108,11 @@ export function Cantidad({
   const typeInto = (text: string) => {
     setDraft(text);
     if (text.trim() === '') {
-      setQty(kind, entry.id, 0);
+      setQty(scope, entry.id, 0);
       return;
     }
     const next = baseFromShown(text, unit, factors);
-    if (next !== null) setQty(kind, entry.id, next);
+    if (next !== null) setQty(scope, entry.id, next);
   };
 
   // ⚠️ THE UNIT'S WORD IS `ES.units`' AND NEVER THE CODE (`R4`): `250g` is what
@@ -122,7 +130,7 @@ export function Cantidad({
         disabled={by === null || base === 0}
         onPress={() => {
           setDraft(null);
-          bump(kind, entry.id, by, -1);
+          bump(scope, entry.id, by, -1);
         }}
       />
 
@@ -177,7 +185,7 @@ export function Cantidad({
         disabled={by === null}
         onPress={() => {
           setDraft(null);
-          bump(kind, entry.id, by, 1);
+          bump(scope, entry.id, by, 1);
         }}
       />
     </View>

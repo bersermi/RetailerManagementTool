@@ -33,6 +33,7 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
+| **⛔ MAY A CASHIER SEE WHAT THE SHOP LOST, WITHOUT SEEING WHAT IT COST?** | `6a-ii` | ⚠️⚠️ **THIS ONE IS ASKED AND NOT TAKEN, BECAUSE IT IS A MIGRATION AND A RULE ABOUT WHO MAY SEE WHAT — two of the four one-way doors.** `6a-i` shipped Desperdicio on 2026-09-27 and an Empleada can now record a loss. **She cannot read one back.** ⚠️ **MEASURED, not inferred:** she asks for her own waste document with its lines and gets **HTTP 200 and `"waste_line": []`** — a header with no products, not a refusal. `waste_select` admits every member; `waste_line_select` carries `has_role(…, 'manager')` (`0003:596`), because the LINE holds `unit_cost_net_per_base` — what the shop PAID for what it threw away. **It is the only asymmetric pair in this schema**, and `0040` kept it manager-and-above BY NAME while widening `purchase` on your instruction. ⚠️⚠️ **THE SCHEMA ITSELF ASKED FOR THE ANSWER AND NOBODY HAS RULED ON IT. `0003:589`: *"the reason-and-quantity view for Desperdicio ships with that screen."*** So the intent was always a view exposing **reason and quantity and NOT cost** — but a view that publishes half a fenced table is a visibility decision, and the only person who can make it is you. ⚠️ **WHAT IT COSTS TO LEAVE PARKED, said plainly:** `6a-ii` is blocked, so **a cashier who writes off the wrong thing cannot find it to undo it** — `Lo último` shows purchases and sales and no losses, and the gap `5h-ii-a` named stays open. ⚠️ **`Eliminar` alone would work for her today** (a void needs only the header, and she passed one in a probe) — it is held back because half an undo on the one screen with no history is a button that cancels something she cannot see. ⚠️ **THE THREE READINGS, so this is a real question:** **(a)** a definer view over `waste_line` carrying reason, quantity, product and date and **never the cost column** — she sees *3 kg de jitomate, caducado*, never *que costó $90*; **(b)** the list is manager-and-above, so she records losses and only you review them — no migration at all, and she cannot undo her own mistake; **(c)** widen `waste_line_select` outright, which publishes the cost of waste to every member and is the thing `0040` deliberately did not do. ⚠️⚠️ **RECOMMENDATION: (a).** It is what `0003` already promised, it is the reading that matches what you ruled about deliveries — *"Empleada should be able to see the both the purchase records and the prices"* was about a delivery's PRICE, and a waste line's cost is the shelf's cost, which you have kept closed twice — and **it is the only one of the three that lets her fix her own mistake.** ⚠️ **What (a) costs: she can infer cost from quantity over time if she also reads Comprar's prices, which she can.** That is a real leak and it is small; refusing it means (b). ⚠️ **Reversing (a) after the fact is a `drop view` and a fix-forward migration, not an edit — which is why it is asked now.** ⚠️ **(b) needs no migration and no ruling from you at all**, so if you would rather not decide this yet, say *(b) for now* and `6a-ii` becomes takeable this week. |
 | **⚠️ A CORRECTED **SALE** IS RE-PRICED AT TODAY'S SHELF PRICE, NOT AT THE PRICE IT WAS SOLD AT** | `5P-c` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND REPORTED RATHER THAN ASKED FIRST, BECAUSE IT IS MONEY IN THE LEDGER AND YOU SHOULD SEE IT NAMED.** `5h-ii-b` shipped `Corregir`, and on a DELIVERY it puts the old prices straight back — exact, because `purchase_line` stores the very figure `record_purchase` takes. ⚠️⚠️ **On a SALE it cannot, and the reason is a spelling mismatch in the schema rather than a choice about shopkeepers**: `sale_line` stores the **NET** unit price, `record_sale` takes the **GROSS** (`0016:59`), and `quoted` reads a typed sell quote as gross whenever `prices_include_tax` — which is `0001`'s default and true in your shop. **Handing the stored figure back would quote a net as a gross and undercharge by the IVA.** ✅ **So a corrected sale takes the price on the shelf right now**, which is what `quoteFor` already does for every sale Vender has ever rung. ⚠️ **What it costs, said plainly: if you changed that product's price between the sale and the correction, the corrected sale is recorded at the NEW price and the customer paid the old one.** Over a seven-day window that is a real, if uncommon, case. ⚠️ **The alternative, and why it was not just done:** recovering the gross needs `tax_rate` on the line and a call to `grossFromNet` — **a third answer in this app to *what is a sale worth***, in a module that should not have one, and every price a shopkeeper sees would then depend on which of the three ran. ⚠️ **RECOMMENDATION: LEAVE IT.** A correction is a sale you are making again, now; the shelf is what *now* means, and it is the same figure Vender would show her if she keyed it by hand — which is what she did before this button existed. **Reversing it is one column in `DOCUMENTS_LINE_COLUMNS`, one branch in `prefillOf` and a re-run of two contract checks — no migration, no data.** ⚠️⚠️ **RE-POINTED FROM `5h.5` TO `5P-c` ON 2026-09-26 BY `5h-ii-c`, AND THE REASON IS THIS COLUMN BEING MACHINE-READ.** ~~it blocks nothing takeable; it is filed against `5h.5` because that is the last row of `5h`, and a ruling that arrives before it closes is still cheap.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** That filing was a CONVENIENCE and it expired the moment `5h-ii-c` closed and made `5h.5` takeable: assertion 7c pulls every id out of this cell and refuses a next task named in it, so *blocks nothing* written as `5h.5` would have refused the one row `CLAUDE.md` calls *"the last moment this is cheap."* ⚠️ **`5P-c` is not another convenience — it is the row this genuinely stands in front of.** That task is the manual-tally comparison the pilot is GRADED on (*"five consecutive days within 5%"*), and **a corrected sale recorded at a price the customer did not pay is exactly a discrepancy that tally would surface and somebody would then explain away.** A ruling is owed before that number is trusted, and not before. |
 | **⚠️ `Lo último` IS ON INICIO AS A SIXTH DOOR, AND ADR-035 §2.8 ENUMERATED FIVE** | `5P-a` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND IT IS REPORTED RATHER THAN ASKED FIRST, BECAUSE A SCREEN REACHED FROM NOWHERE CANNOT BE JUDGED ON A PHONE** — and judging it is `R9`'s whole arrangement. `5h-ii-a` shipped the list every correction is reached from, and §2.8's Home row names *the way into every module*: Vender, Comprar and Desperdicio as cards, Productos and Proveedores as rows, *"a fifth and sixth destination that otherwise have no home"*. **`Lo último` is not a module** — it is a LOOK — so the ADR neither authorises nor refuses it. ✅ **ADR-035 §2.8 now carries a revision entry saying six**, because leaving it enumerating five would make the authoritative document false, which is this repository's most-repeated defect. ⚠️ **`app/test/inicio.test.ts` pinned the count at five on purpose** — *"a sixth door is a decision about what Inicio is for, not a tidy-up"* — **so the guard worked**; it now pins six and says a SEVENTH is a decision. ⚠️ **The alternatives, named so this is a real question:** a header button on Comprar and Vender (closer to where a mistake is made, and it edits both capture screens, which is the next row's territory); or a row inside Ajustes (out of the way, and nobody would find it). ⚠️ **RECOMMENDATION: LEAVE IT ON INICIO** — it is a thing you go and look at between customers, which is the same reading that put Productos there, and it is one tap from the screen you open first. **Reversing it is three deletions: a row in `@/navigation/inicio`, a line in that suite, and the ADR entry — no migration, no data.** ⚠️⚠️ **RE-POINTED FROM `5h.5` TO `5P-a` ON 2026-09-26 BY `5h-ii-c`, FOR THE REASON THE ROW ABOVE GIVES AT LENGTH** — this cell is machine-read, `5h.5` is now the next task, and *blocks nothing* spelled as a takeable id refuses it. ~~it blocks nothing takeable; it is filed against the polish row because that is where a placement ruling lands.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **`5P-a` is the row that actually depends on it**: §5's overlay measures **taps per transaction against a ceiling of 5** and **abandonment — capture screens opened with no commit**, and both of those are counted against a fixed inventory of doors. **A sixth destination on Inicio changes the navigation being measured**, so the placement wants to be settled before the instrument is built rather than after it has a baseline. |
 
@@ -642,6 +643,153 @@ assertion in this file now bounds its region.**
 
 
 
+✅✅✅ **`6a-i` IS DONE, 2026-09-27 — THIS APP CAN RECORD A LOSS, AND `record_waste` HAD BEEN
+APPLIED AND CALLERLESS FOR TWENTY-TWO DAYS.** `app/src/app/(tabs)/desperdicio.tsx` is **nine lines
+of `Pendiente` become 1,079**, over **`app/src/api/waste.ts`, the twenty-fifth module of
+`src/api/`** — `ls app/src/api | wc -l`, 24 before. ⚠️⚠️ **AND IT ADDS NO SCREEN, WHICH THE FIRST
+WRITING OF THIS ENTRY GOT WRONG BY CALLING IT *the eighteenth*.** The route has existed since
+`5a-ii` as a `Pendiente` placeholder, so `find app/src/app -name '*.tsx' | wc -l` reads **17 before
+and after** — 15 routes and 2 layouts, and `CLAUDE.md` is explicit that a layout is not a screen.
+**A count off a file is a claim about the file** ([[counts-belong-to-the-runner]]), and this one was
+caught by running the command rather than by reading the last entry that quoted one. `0019` was applied on 2026-09-05 with 67 behavioural checks and
+ten falsifications against it, and **nothing in `app/` had ever called it.** Everything the write
+needed was already here: `WRITE_KINDS` has held `waste` since `5c-i`, `RECORD_RPC` has named the
+function since `5c-ii-a`, and `classify` has known how to dead-letter it since `5c-iii`. **What was
+missing was a basket, a cause and a screen.** ⚠️ **It ships no migration.**
+
+⚠️⚠️ **`6a` SPLIT IN TWO ON THE DAY IT WAS TAKEN, AND THE REASON IS NOT SIZE — IT IS THAT APPLIED
+SQL PUT A MIGRATION IN THAT ROW AND THE PLAN NEVER CARRIED IT.** Two comments, both in migrations
+CI has applied: **`0003:589`** — *"the reason-and-quantity view for Desperdicio **ships with that
+screen**"* — and **`0011:68`** — *"a reason breakdown is a second view over `waste_line` alone…
+**it belongs with the Desperdicio screen (step 6)**"*. ⚠️ **Neither is in `docs/PLAN.md`, and `6c`'s
+row still claimed to be *"the first thing in step 6 that ships a migration"* — corrected in this
+PR.** So the seam is **exception (1) of the working agreement**: the capture screen needs no
+migration and no ruling, and the view is both.
+
+⚠️⚠️ **`6b` — PROVEEDORES — IS THE NEXT TASK, AND IT IS UNGATED.** `6a-ii` cannot be, because it is
+named in ⛔ DECISIONS OWED and assertion 7c refuses a next task named in that column — which is
+correct here rather than inconvenient: it ships `0041` and a rule about who may see what. `6b`'s own
+gate was `5g` and `5g` closed on 2026-09-25. ⚠️ **`6c` is the other ungated row in step 6 and it is
+left where the owner put it** — he has said the prebuilt catalog is indicative and not to hold up the
+front end, and *"he cannot delete anything at all until it ships"* is the sentence that moves it, on
+his word rather than on a session's.
+
+~~⚠️⚠️ `6a` — Desperdicio — is the next task, and the marker has left step 5 for the first time.~~ —
+⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the
+raw line for `IS THE NEXT TASK` and a strikethrough is only a rendering.**
+
+⚠️⚠️ **AND TWO GATE CELLS WERE RE-POINTED BEFORE THIS ROW COULD CLOSE, WHICH IS THE TRAP `5h` AND
+`5h.5` BOTH RECORDED, ARRIVING A THIRD TIME.** `7c` (*what am I throwing away*) and `7e` (*what is at
+risk of becoming waste*) were both gated on **`6a`** — now a split parent, so **a gate naming a row
+nobody can take is a gate nobody can clear.** `7c`'s is CLEARED (the screen exists) and `7e`'s is
+re-pointed to `6a-i` and now contains only time: **a derived shelf life needs weeks of waste
+records, and that clock started today.**
+
+⚠️⚠️ **THE ESTIMATE WAS THE MEASUREMENT AGAIN AND IT RAN TWELVE PROBES AGAINST A REAL POSTGREST
+BEFORE A LINE WAS WRITTEN. Three of the twelve changed the design; two of those three were
+200-and-wrong rather than red.**
+
+| # | The question | What the database said |
+|---|---|---|
+| **1** | ⚠️⚠️ **Can an Empleada read back the loss she just recorded?** | **NO — and it is an HTTP 200 with `"waste_line": []`.** A header with no products, not a refusal. `waste_select` admits every member and `waste_line_select` carries `has_role(…, 'manager')` (`0003:596`), because the LINE holds `unit_cost_net_per_base`. ⚠️ **The only asymmetric pair in this schema**, and `0040` kept it closed BY NAME while widening `purchase`. **This one assertion is the whole reason `6a-ii` exists and is blocked** |
+| **2** | ⚠️⚠️ **Does the same variant twice, under two causes, collapse?** | **NO — two rows, 200. And under the SAME cause it is also two rows.** `record_waste` dedupes nothing, and neither does `record_sale`; the existing cart's `variantId` key is the only thing preventing it there. **So the cart must key on something, and this is what settled *one cause per document*** — the alternative is a `(variantId, reason)` line identity through `@/cart`'s whole surface |
+| **3** | ⚠️⚠️ **Is `unit_price_gross_per_base` optional?** | **NO — omitting it is 400 / `22023`, *"unit_price_gross_per_base is required"*.** So for a product with no shelf price the options are a zero, a guess, or no row at all. ⚠️ **An explicit `"0"` is accepted and stores `line_net` of `0.00`** — which is what `UNPRICED_WASTE` is |
+| **4** | What does an invalid cause look like? | **400 / `22P02`, and the message leaks a Postgres type name** — *invalid input value for enum public.waste_reason*. It must never reach a shopkeeper, which is what `isWasteReason` guards a restored basket against |
+| **5** | A line with no cause? | **400 / `22023`, with a sentence quoting §2.8.** So *reason-first* has a server-side lock and the client's two are braces, not the only thing holding it |
+| **6** | ⚠️ **What is the default `qty_display_unit`?** | **The SELL unit, as `0019` documents — and the cart holds BASE units.** `qty_display: 500` with no unit against a `g`-based, `kg`-sold variant stored **`qty_base: 500000` — five hundred KILOS.** Nothing was wrong; the point is that the client must send the unit every time, which `qtySent` already does |
+| **7** | ⚠️ **What order does the enum sort in?** | **DECLARATION order, not alphabetical.** `?order=reason` returns `caducado, dañado, merma de preparación, robo o faltante, error de captura`. **So the picker's order and a reason breakdown's must be the same order, and nothing else in this repository could see them differ** |
+| **8** | Can a cashier void her own write-off? | **YES, 200, on a one-hour-old document against a fifteen-minute window** — `5h-ii-b`'s finding a third time: `0021` measures the window from `recorded_at` on an offline write. **So `Eliminar` would work for her today; `Corregir` needs the lines and therefore the view** |
+| **9** | Waste beyond what the shelf holds? | **200, recorded, and the shelf goes negative** — the owner's ruling of 2026-09-04 holding. ⚠️ **And `unit_cost_net_per_base` comes back `0` for the shortfall**, which is C8.6 live and is why área 9's ruling exists |
+| **10** | Accents through the round trip? | **Verbatim.** `dañado` and `merma de preparación` are two of the five, so the vocabulary assertion is a UTF-8 one as well |
+
+⚠️⚠️ **FOUR DECISIONS TAKEN ON THE OWNER'S BEHALF, AND THEY ARE IN THE PR BODY TOO. THE FIRST TWO
+CHANGE WHAT A SHOPKEEPER SEES.**
+
+**(1) ONE CAUSE PER DOCUMENT, CHOSEN BEFORE THE CATALOG IS SHOWN.** §2.8's whole row for this
+module is six words — *"Reason-first waste entry | Feeds the analytics asset"* — and the shape that
+sentence describes is `Comprando a:` with a cause in it. The schema permits a mixed-cause document
+(finding 2) and the screen does not produce one; **two shapes of loss are two documents, which is
+also the honest shape at a bin.** **Reversing it is a `reason` on `CartLine` and a composite line
+key — no migration, because the schema already allows both.**
+
+**(2) NO PESO TOTAL ANYWHERE ON THE SCREEN.** This is **área 9's ruling of 2026-09-14 applied**, and
+it names this screen: *"Números and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS COST OR AS A RATE,
+until something fixes `0011`."* The sticky bar counts products where Vender's sums pesos, and the
+sheet's rows carry no line total. ⚠️ **C8.2's deliberately short catalog is what makes the
+alternative wrong**: a peso figure here would read `$0.00` for exactly the products most likely to
+spoil, which the ruling calls the one thing worse than a number that is missing. **The retail value
+is still recorded in `waste.total_net`.** ⚠️⚠️ **AND IT IS WHAT MAKES DECISION (3) INVISIBLE TO A
+SHOPKEEPER RATHER THAN SOMETHING SHE HAS TO UNDERSTAND.**
+
+**(3) AN UNPRICED PRODUCT'S LOSS IS SENT AT ZERO RATHER THAN REFUSED** — `UNPRICED_WASTE`, and it is
+**the opposite of what Vender and Comprar do.** Finding 3 removed *say nothing* from the table; the
+remaining choice is a zero or no row, and **a sale not rung costs the shop nothing while a loss not
+recorded destroys the only record of it** — which is `record_waste`'s own argument, owner-ruled on
+2026-09-04 about the availability check. ⚠️ **What is SENT and what is SHOWN are deliberately
+different**: `reviewOf` still answers `centavos: null`, so C3.12's dash survives and nothing tells
+her the thing was worth nothing. **Reversing it is one constant and one branch in `lineSent`; the
+rows already written keep their zero.**
+
+**(4) THE CAUSE IS FORGOTTEN ON COMMIT AND KEPT ON `Vaciar carrito`** — a pair that is the opposite
+way round from copying either screen. A cause left standing after a commit **is the default `0019`
+refuses**, created by the screen instead of by the schema; emptying the basket is *I keyed the wrong
+products*, and re-asking there is the one thing `5g-ii`'s picker was measured not to do.
+
+⚠️⚠️ **AND A FIFTH THING WAS FOUND AND NOT FIXED, BECAUSE IT IS ANOTHER SCREEN'S: C3.14 HAS NO
+OWNER ANY MORE.** `5f-iii-b`'s entry recorded *"an unpriced line now blocks the whole sale, and
+C3.14 says it should not"* and routed it to **`5h`, which was then narrowed to the undo and closed**
+— so the deliverable went with the narrowing. ⚠️ **Still live, verified rather than assumed:
+`draftOf` refuses `line-cannot-be-priced` on a sale, so Vender's slide is absent on a basket holding
+`Servilletas`.** It is NOT fixed here — Desperdicio's answer is scoped to waste by one condition and
+`cart.test.ts` pins that a sale and a purchase are still refused — **and it wants a row of its own
+rather than a session's guess about what C3.14 means now.**
+
+⚠️⚠️ **TWO INSTRUMENTS WERE STRENGTHENED AND ONE OF THEM HAD BEEN DISARMED BY THIS VERY TASK.**
+`conventions-gate.sh`'s `R4` gained its **second exemption in its life** — `WASTE_REASONS`, because
+`public.waste_reason` is the one enum in this schema whose values are Spanish (`0003:419` argues it,
+`0004:49` records the exception) and they are wire values rather than words. ⚠️ **It is bounded to
+that ONE declaration and not to the file**: the gate counts accented literals in `waste.ts` against
+accented literals inside the declaration, so a Spanish sentence anywhere else in it still fails.
+**Two fixtures say so** — `F4a` a sentence elsewhere in the same file, `F4b` the declaration renamed
+— and both are red. ⚠️⚠️ **AND `F31` WENT GREEN WHILE CLAIMING RED**: it deleted `Boton`'s import
+from `documentos.tsx` to leave one caller, and `desperdicio.tsx` is now a third caller, so removing
+one left TWO. **A fixture that SUBTRACTS a caller has an expiry date nobody wrote down — the next
+screen to draw that primitive** — and it now ADDS a primitive with zero callers instead, which no
+screen anybody writes later can satisfy. **The fifth stale mechanism in that harness and the second
+of exactly that shape.**
+
+⚠️ **The harness itself had a bug worth recording: `local a="$1" b="$2" c="$(basename "$b")"` does
+NOT see `b`.** Bash expands every word on the line before `local` assigns anything, so under `set
+-u` the substitution ran with the variable unset, printed *unbound variable* from the subshell and
+yielded the empty string. **Ten fixtures still went red for the right reasons, by luck**, because
+each label kept the paths distinct — and the next two fixtures to share a label prefix would have
+shared a file.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** **`docs/checks/6a-i-waste-contract.sh` — 17 assertion groups
+over live HTTP against a reset database**, and its falsifier **10 fixtures, two green controls and
+eight red**, the eighth of which **drops `waste_line_select`'s role gate and is restored from
+`pg_policies` in a `trap` on every exit path**, with a second control proving the restore. `F2`
+sorts the vocabulary alphabetically — every cause still legal, every write still landing, and the
+only thing wrong is an order the database will never sort into. **`npm --prefix app test`: 1,394
+over 45 files, up from 1,358 over 44** — `api-waste.test.ts` (30) plus a waste section in
+`cart.test.ts`. **`conventions-gate.sh` 18/18 over 88 source and 45 test files**, and its falsifier
+**35 fixtures, 34 red and `F13` deliberately green**, up from 33. ⚠️ **`db.yml` gains a SIXTH job**
+— *the loss, and the cause it is filed under* — **a new job rather than two steps on
+`recent-documents`, which is the opposite of what `5h-ii-b` did**: that one appended because a
+correction is *the thing you reach from the list*, and this is a WRITE where that job is a READ.
+⚠️ **And `app/src/cart/cart.ts` is now in a `paths:` filter for the first time**, because
+`PRICE_KEY`, `MONEY_KIND` and `UNPRICED_WASTE` are claims about `0019` rather than about a basket.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS THE OPENING QUESTION.** Whether **`¿Qué
+pasó?`** in a window with no way out reads as *the app is helping* or as *the app is in the way* —
+it is the only modal in this app a thumb cannot dismiss on first open, and `0019` is why. Whether
+**`Motivo:`** is the right word over the drop-down (it was chosen over any verb about a bin because
+two of the five causes are not things thrown away). Whether **a bar that counts products and shows
+no money** reads as a screen that is finished. And whether **the cause going away after each commit**
+is right or is one tap too many when she is clearing a whole shelf. **The build on his phone has to
+be rebuilt before he can open this.**
+
+
 ✅✅✅ **`5h.5` IS DONE, 2026-09-26 — `app/src/ui/` HAS RULES, AND THE ROW WAS POINTED AT A
 DUPLICATE THAT TURNED OUT TO BE A TRIPLE.** `R14`, `R15` and `R16` are in
 [`docs/CONVENTIONS.md`](CONVENTIONS.md) — *when a component moves there*, *what the file looks
@@ -867,191 +1015,17 @@ before he can open this.**
 all — so a waste keyed with no signal is in the outbox and on no screen. **That is the same gap `5g`
 had for its undo**, it is not a regression, and it closes when `6a` gets a list of its own.
 
-✅✅✅ **`5h-ii-b` IS DONE, 2026-09-26 — THIS APP CAN CANCEL A DOCUMENT, AND IT HAD NEVER
-CANCELLED ANYTHING.** `Corregir` and `Eliminar` sit under every standing row of `Lo último`, over
-`void_transaction` (`0021`), on both kinds at the owner's instruction — *"Mirror it for Vender…
-Make the functionality for both for now."* `app/src/api/corrections.ts` is the **twenty-fourth**
-module of `src/api/`. **It ships no migration**, exactly as the row promised: the RPC has been
-applied since 2026-09-04 and granted to `authenticated` all along.
 
-⚠️⚠️ **THE SIZING WAS THE MEASUREMENT AGAIN, AND IT REVERSED HALF OF WHAT THE ROW PREDICTED.** The
-row named two columns to widen and an argument for showing `created_by`; six probes against a real
-PostgREST changed the shape of the whole fence. **Every one of these was driven before a line of
-the module was written:**
+⚠️⚠️ **AND 2026-09-26 HAS BEEN CUT TWICE — THE TENTH ARCHIVE FILE, AND THE TWENTIETH CUT
+OVERALL LANDED 2026-09-27.** ⚠️ **The second cut is `6a-i`'s and it took the day's two oldest
+remaining blocks, 182 lines** — `5h-ii-b` and `5g-iii-b` — **appended to the same file, never a
+second one for one date.** `## Position` stood at **1,385 of 1,400 with `6a-i`'s closing entry
+already written**, which is 15 lines of headroom against an entry that runs 40–130: **enough to
+pass, and not enough for the next session to write with.** ⚠️⚠️ **THAT IS THE FIRST CUT'S OWN
+PREDICTION COMING TRUE** — its header says *a later session APPENDS to this file* — and it is the
+nineteenth cut's argument inherited rather than re-derived.
 
-| # | The question | What the database said |
-|---|---|---|
-| **1** | Do `qty_base::text` and `unit_price_net_per_base::text` survive inside the to-many embed? | **200, both as JSON strings.** `5h-ii-a` had proved the cast survives for the columns it asked for; this is the same claim for two more, and it is what `prefillOf` stands on |
-| **2** | ⚠️⚠️ **What does `TD003` look like from the client?** | **HTTP 400, `{"code":"TD003"}`** — **not a 403.** A custom SQLSTATE is not a privilege error to PostgREST, so it would have fallen straight through to `unknown` and told a cashier *algo salió mal*. **She taps again.** This one assertion is what `@/api/errors`' new entry rests on |
-| **3** | ⚠️⚠️ **Can a cashier void her own five-hour-old delivery against a fifteen-minute window?** | **YES, 200 — AND THE ROW HAD ASSUMED NO.** `0021` measures the window from `recorded_at` on an offline write and `occurred_at` otherwise (§2.6, amended 2026-09-04), and `record_purchase` stamps `occurred_at := now()` on an ONLINE write (`0018:221`). **So the clock starts when the document LANDS, never when the delivery happened**, and the window can only bite as real time passes |
-| **4** | What does a replay answer? | **A SHORTER BODY.** A first void carries `{kind, voided, void_id, lines, movements, already_recorded}`; a replay carries four of the six. A parser requiring the counts would turn the idempotent success into a failure **on exactly the tap somebody makes when the first response was lost** |
-| **5** | Does re-recording a voided delivery collide on `payload_hash`? | **No — `record_purchase` is idempotent on the CLIENT-GENERATED id** (`0018:455`), and the hash only guards that id. A correction mints a fresh one. ⚠️ **If this had been a `TD001`, `Corregir` would have cancelled a delivery and refused to put it back**, and nothing in the suite or the typecheck could have seen it |
-| **6** | Does a cashier read `workspace_setting`? | **Yes** — `workspace_setting_select` admits every member (`0001:563`), and its own comment says the client reads `void_window_minutes` *"to render correctly"*. ⚠️ **The row then decided the client should NOT.** See below |
-
-⚠️⚠️ **FINDING 3 IS THE ONE THAT DECIDED THE DESIGN, AND IT ARGUES AGAINST THE SCHEMA'S OWN
-COMMENT.** To draw the window on this side the client needs `recorded_at`, `recorded_offline`, the
-shop's setting **and a TypeScript copy of `0021`'s basis rule** — a second answer to *may she void
-this*, in the one place where a wrong answer **hides a button she is allowed to press**, which is
-undiagnosable from a shop floor. ✅ **So `mayCorrect` answers only the half that involves no clock**
-— *is this person a manager, or is this her own document* — and the database answers the rest as
-`TD003`, rendered as a sentence. ⚠️ **And it fails OPEN**: a role still in flight, a failed
-membership read or an absent `created_by` all answer *yes*, into a `security definer` fence that
-fails closed. A screen that hid its buttons whenever a second query was slow would be 2026-09-22's
-`Cargando productos…` wearing a permission badge.
-
-⚠️ **`created_by` WAS ADDED AS THE ROW PREDICTED AND NOTHING RENDERS IT**, which is the opposite of
-the argument the row made for it — the argument is the FENCE rather than the display, so
-`today.ts`'s §2.7 refusal is untouched. ⚠️ **`qty_base` is a THIRD column the row did not name**: a
-cart line is `{ variantId, base }` where `base` is an integer in THOUSANDTHS of a base unit, and
-deriving it from `qty_display` × `factor_to_base` would be a second answer to a quantity the
-database already holds, in the one place a wrong answer re-writes the ledger.
-
-⚠️⚠️ **TWO GUARDS WENT RED AND BOTH WERE WORKING.** `api-documents.test.ts` pinned *asks for
-neither `created_by` nor `recorded_offline`* and `api-errors.test.ts` pinned the exact set of codes
-the map knows. **Both are INVERTED rather than deleted**, and each says what changed and why:
-`created_by` is now required and never rendered, `recorded_at` joins `recorded_offline` on the
-banned list with the basis rule as its reason, and `TD003` is named as the only entry in that map
-that means *you may not* rather than *something broke*. ⚠️ `5h-ii-a`'s falsifier fixture `F7` moved
-from adding `created_by` to adding `recorded_offline` — **a column a check stops banning must start
-being required**, or the assertion quietly becomes *anything goes*.
-
-⚠️⚠️ **AND THE FALSIFIER CAUGHT A NON-FALSIFICATION IN ITS OWN FIRST RUN, WHICH IS THE CHEAPEST
-LESSON HERE.** `F4` mutated `reasonDeleted` in `src/strings.ts` and the check went **GREEN** —
-correctly, because the check READS that file to build its payload, so both halves of the comparison
-moved together. **Output compared against its own input is self-consistent and blind**
-([[assert-against-a-calendar-not-the-array]]). ✅ `F4` is now a trigger that strips accents from
-`reversal_reason` on the way in, so what the assertion really holds — **that the audit trail
-survives the transport byte for byte** — is the thing that can be broken. The claim it *used* to
-pretend to hold (that the app sends what `src/strings.ts` says) lives in
-`app/test/api-corrections.test.ts`, which is its right home.
-
-✅ **CHECKED BY `docs/checks/5h-ii-b-corrections-contract.sh` — 21 assertion groups, live HTTP
-against a real PostgREST** with a real shop, a real catalog, a supplier, an owner and an Empleada:
-the RPC's three `p_` names, `TD003` on a 400, the idempotent replay and its shorter body, the fence
-in **all four** of its cases (so a client fence drawn too WIDE goes red as loudly as one drawn too
-narrow), ⚠️⚠️ **the window narrowed to 0 and widened back to 15 on the same document and the same
-cashier — the one assertion the app cannot make, because the app never reads that table** — the
-re-record with no hash collision, and a final read through the app's own column list showing *"just
-one line, clean"* with the prefill columns round-tripping to the digit. **Its falsifier: 9 fixtures,
-all behaving** — a green control, five contract mutations and three schema-level ones, each restored
-in a `trap` on every exit path. ⚠️ **`5h-ii-a`'s check and falsifier were both re-run because
-`documents.ts` changed: 16 groups and 10/10.** ⚠️ **The suite is 1,326 tests across 43 files**
-(the runner's, `npm --prefix app test`, up from 1,291), of which `api-corrections.test.ts` is 35;
-`conventions-gate.sh` is **16 groups over 83 source and 43 test files**.
-
-⚠️ **THREE DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL CHEAP TO REVERSE AND NONE OF THEM A
-MIGRATION.** **(1)** ⚠️ **A CORRECTED SALE IS RE-PRICED AT THE SHELF.** `sale_line` stores the NET
-while `record_sale` takes the **GROSS** (`0016:59`), and `quoted` reads a typed sell quote as gross
-whenever `prices_include_tax` — true by `0001`'s default and true in every shop that exists — so
-handing the stored figure back would undercharge by the IVA. Recovering the gross needs `tax_rate`
-and `grossFromNet`, a third answer to *what is this sale worth*. `quoteFor` already falls back to
-the catalog's own price for a sale, which is what Vender does every time it rings one. **The cost is
-a shelf price that moved between the sale and the correction; the reversal is one column and one
-function call.** ⚠️ The buy side is exact and unaffected. **(2)** ⚠️⚠️ **`Corregir` VOIDS FIRST AND
-LOADS THE CART AFTER.** The alternative — prefill, and void when she commits — has two writes to
-keep together and the second goes through the OUTBOX, so a correction keyed with no signal would
-queue a fresh delivery while the wrong one still stood. **That is a DUPLICATE rather than a
-correction**, and it is `5h-ii-c`'s territory; this ordering is what kept the queue out of this row.
-⚠️ **What it costs: an abandoned correction leaves the document gone.** She asked for that and the
-question said it would happen, `Lo último` shows it removed, and she can key it again — **nothing
-is silently wrong, the ledger says exactly what she asserted.** **(3)** **The cart is REPLACED and
-not merged**, with a second line on the question when the cart it is about to replace is not empty.
-Two documents in one cart is not a thing anybody asked for, and the only work this can lose is a
-delivery she started and never committed — **so she is told before it happens rather than after.**
-
-⚠️⚠️ **AND ONE DEFECT THIS ROW WROTE AND THEN FOUND, BEFORE CI FINISHED — WORTH RECORDING
-BECAUSE NOTHING IN THIS REPOSITORY COULD HAVE CAUGHT IT.** TanStack keeps a mutation's `error`
-until the **next** `mutate`, and the confirmation box renders the refusal whenever `failed` is
-non-null. So a `TD003` on one document was still set when the shopkeeper opened the question on
-the NEXT one: **she would have read *pídele a un gerente* where the question belongs, about a
-document nobody had refused her** — and `Sí, corregir` would not have been on screen at all.
-✅ The hook now exports `forget` (`mutation.reset`) and the screen routes **every** open and close
-through one `ask()` so no path can be the one that forgets. ⚠️ **`R2` keeps the suite off
-components, so no test in `app/test/` can see this, and the contract checks are about the wire** —
-it was found by re-reading the screen's state lifecycle, which is the only instrument there is.
-**`5h.5` owns `src/ui/` and this is an argument for a single confirmation primitive** rather than a
-fourth local copy of one.
-
-⚠️ **ONE THING FIXED IN PASSING, AND IT WAS A PRE-EXISTING BUG THIS ROW WOULD HAVE TRIPPED OVER.**
-Comprar's price-memory effect seeds a line's price from `provider_price_memory` unless a ref says it
-already did — **and that ref lives on the SCREEN, so it is empty on every mount.** A prefilled cart
-would have had its prices overwritten by the supplier's memory before they were ever seen. ✅ The
-effect now leaves a line alone when it already carries a typed quote, **which also fixes the case
-nobody had noticed: a persisted cart restored across an app restart had its typed prices silently
-replaced.**
-
-⚠️⚠️ **WHAT ONLY HE CAN JUDGE, AND IT IS THE WHOLE OF THE INTERFACE (`R9`, §2.11).** Whether two
-buttons under every row is the right weight or too much furniture; whether *¿Corregir esta nota? Se
-va a borrar y la vuelves a capturar* says what actually happens; whether landing on Comprar with the
-cart already full is a relief or a surprise; and whether `Eliminar` in red is enough to keep a thumb
-off it. **The build on his phone has to be rebuilt before he can open this.**
-
-~~⚠️ `5h.5` is the next task, and it is ungated as of 2026-09-26 — its gate was `5h` closing,
-and `5h-ii-c` closed the last row of it. ⚠️ Its own row calls it *"the last moment this is
-cheap"*, and it is now right: `src/ui/` holds six primitives built across `5d`–`5g` with no written
-rule, `5h-ii-b` added four more that are LOCAL to `documentos.tsx` (`Boton`, `Confirmacion`, `Frase`,
-`Control`), and the last of those is a full-width button that is *nearly* the first. ⚠️ Step 6's
-four screens are what arrive to one convention or to none. ⚠️ Two `Blocks` cells were re-pointed
-away from it the same day so it would be takeable at all — see ⛔ DECISIONS OWED, and `5h-ii-c`'s
-entry for the reasoning.~~ — ⚠️ **struck in lower case deliberately, the rule
-`5b.8-i`'s row records.** ✅ **`5h.5` CLOSED THE SAME DAY — see the entry above, and the
-marker is now on `6a`.**
-
-~~⚠️⚠️ `5h-ii-c` is the next task, and it is ungated — the gate was `5h-ii-b`, and it is shipped.
-⚠️ it inherits `prefillOf`, `mayCorrect`, `staleAfterVoid`, the two buttons and the confirmation
-box, and its first job is still to ask the question `5h-i` put to the owner twice and never got an
-answer to: *should she be able to fix a delivery while it is still queued, or wait until it lands?*
-that is cheap to answer now, because there is finally something on screen to look at.~~ — ⚠️ **struck
-in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line
-and a strikethrough is only a rendering.** ✅ **The question was asked and RULED on 2026-09-26, and it
-was the row's first act** — she fixes it now; see the entry above.
-
-✅✅ **`5g-iii-b` IS DONE, 2026-09-26 — THE `Costos` DATE IS FIXED, RULED AND SHIPPED WITHIN THE
-HOUR IT WAS PARKED: *"fix the Costos date, and build it to my phone."*** `costsFrom` calls
-**`isoDay`** (`@/api/catalog`), so the chart and the PDF name the day the shopkeeper was standing
-in. **It ships no migration.**
-
-⚠️⚠️ **AND THE FIX FOUND SOMETHING WORSE THAN THE BUG: THE WRONG ANSWER WAS WRITTEN DOWN IN THREE
-PLACES AND TWO OF THEM WERE TESTS DEFENDING IT.** `costs-pdf.test.ts` asserted that a delivery
-keyed at **8pm on the 23rd** is labelled the **24th**, under a comment calling `slice(0, 10)` *"a
-day Postgres already chose"*. `api-costs.test.ts` was blunter: *"THE DAY IS THE ISO PREFIX AND NOT
-A `Date`'s LOCAL DAY, which is a **deliberate disagreement with `today.ts`**."*
-
-⚠️⚠️ **POSTGRES CHOSE NO DAY.** `purchase.occurred_at` is a `timestamptz` — an INSTANT — so the
-*ISO prefix* is the UTC calendar day, which is a choice and is the wrong one after 18:00 in a UTC−6
-shop. ✅ **So this was not an oversight; it was a decision, recorded three times, and that is
-exactly why nothing went red for a day.** The lesson is not about timezones: **a comment saying *this
-disagreement is deliberate* is the strongest thing in a repository, and this one was wrong** — a
-session reading it would have left the bug alone twice over. **A claim about the database belongs to
-the database**, and `occurred_at` being an instant is readable from `0003` in ten seconds.
-
-✅ **Both fixtures are rewritten to assert the fix, and BUILT FROM LOCAL INSTANTS** so they hold on
-this Mac (UTC−6) and on CI (UTC) without a pinned `TZ` — the old comment's TZ worry was real and is
-now answered by construction rather than by a slice. ⚠️ **The other day-bearing fixtures in those
-files are UTC strings at 09:00–23:30Z, every one inside its own day under BOTH readings**, so they
-agree either way and were deliberately left alone; a note in the file says a NEW day fixture must be
-built locally.
-
-✅ **AND `@/api/documents`' OWN `dayOf` WAS COLLAPSED INTO `isoDay` IN THE SAME PASS**, hours after
-`5h-ii-a` wrote it. It had padded the parts by hand — a second SPELLING — and shipping that while
-fixing a second ANSWER would have been the same defect one layer down. **`isoDay` is now the one
-answer to *what day is it*, used by `catalog.ts`, `today.ts`, `costs.ts` and `documents.ts`.**
-
-✅ **A PARSE GUARD IS NEW AND IS ASSERTED IN BOTH SUITES.** `slice(0, 10)` never cared whether the
-value was an instant; `isoDay(new Date(…))` would render `NaN-NaN-NaN` as a chart label, so a point
-whose instant cannot be read is dropped.
-
-✅ **VERIFIED, AND NAMED:** `npm --prefix app run typecheck` clean; **1,288 tests across 42 files**
-(the runner's, up from 1,285); `conventions-gate.sh` **16 groups over 82 source and 42 test files**;
-`docs/checks/5g-iii-costs-contract.sh` **11 groups against a real PostgREST** — unaffected, because
-it asserts the wire and the ORDER rather than the label — and its falsifier **10/10**;
-`5h-ii-a-documents-contract.sh` **16 groups** and its falsifier **10/10**, both re-run because
-`documents.ts` changed. ⚠️ **What no check can see is the picture**: the x-axis labels and the PDF
-headings now read one day earlier for evening deliveries, and only his phone says whether that looks
-right (`R9`).
-
-⚠️⚠️ **AND 2026-09-26 NOW HAS ITS OWN FILE — THE TENTH ARCHIVE FILE AND THE NINETEENTH CUT
-OVERALL, TAKEN BY `5h.5` BEFORE IT WROTE A LINE.**
+⚠️⚠️ **THE FIRST CUT — THE NINETEENTH OVERALL, TAKEN BY `5h.5` BEFORE IT WROTE A LINE.**
 [`docs/plan/archive/status-log-2026-09-26.md`](plan/archive/status-log-2026-09-26.md) holds
 the day's **two oldest blocks, 190 lines** — `5h-i` (área 6 ruled, in a simulation round with
 the owner) and `5h-ii-a` (`Lo último`, and the finding that nothing records a document's line
@@ -5286,7 +5260,7 @@ so what genuinely remains here is two screens.
 
 ⚠️⚠️ **AND A THIRD ROW AS OF 2026-09-23, WHICH IS NOT A SCREEN: `6c`, THE PREBUILT
 CATALOG.** It arrived as an owner's ruling rather than out of §3, it is C8.4 promoted
-from *later* to a row, and it is **the first thing in step 6 that ships a migration**.
+from *later* to a row, and ~~it is **the first thing in step 6 that ships a migration**~~ — ⚠️⚠️ **FALSE SINCE 2026-09-27, CORRECTED BY `6a-i`'s SIZING: `6a-ii` SHIPS `0041` AND COMES FIRST.** Two applied migrations put a view in `6a`'s lap by name (`0003:589`, `0011:68`) and the plan had never carried either, so this sentence was true only because nobody had read the SQL. ⚠️ **It is the shape this repository calls the stale-claim defect, arriving from applied SQL rather than from a document** — which is the harder direction, because no check reads a migration's prose.
 It is placed here rather than in step 5 because `5e` is closed and because a catalog
 nothing can sell through is one nobody can test — ⚠️ **but that placement is a
 recommendation and the owner's to overrule**: if the pilot is to open on a prebuilt
@@ -5294,8 +5268,10 @@ catalog, it goes ahead of `5f`.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **6a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-26 — AND IT IS THE FIRST TIME THE MARKER HAS LEFT STEP 5.** `5h.5` closed that day and **step 5 has no takeable build row left**: `5f-iv` is out of the pilot, `5i` is deferred to v2, `5a`/`5b.8-iii`/`5h-ii` are split parents, and `5P-a` and `5P-c` are both named in ⛔ DECISIONS OWED — which assertion 7c reads, so neither could be marked next even if it were ready. ⚠️ **Its own gate was `5f` and `5f` closed on 2026-09-25**, so nothing stands in front of it. ⚠️⚠️ **DESPERDICIO, AND IT IS REORDERED AHEAD OF ITS STEP ON THE OWNER'S INSTRUCTION, 2026-09-21.** `record_waste` (`0019`) has been applied and callerless since 2026-09-05 and `desperdicio.tsx` is a NINE-LINE placeholder. **The reorder is a business decision, not an engineering one:** waste is the acquisition hook, and until this screen exists the tier-2 investigation has no input at all. It reuses `5f`'s shared surface, so taken straight after `5f` it is cheap; taken in step order it is the last thing built before Números needs its data | `M` | `5f` — the shared transaction surface |
-| **6b** | **Proveedores.** The provider list and its editing, behind `5g`'s selector and `provider_price_memory`'s prefill | `M` | `5g` |
+| **6a** | ⚠️⚠️ **SIZED `L` AND SPLIT IN TWO 2026-09-27, ON THE DAY IT WAS TAKEN — THE PARENT ROW, AND IT IS NO LONGER TAKEABLE.** ~~this was the next task, as of 2026-09-26 — and it is the first time the marker has left step 5~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **WHY IT SPLIT, AND SIZE IS THE SMALLEST PART OF THE ARGUMENT: THIS ROW SHIPS A MIGRATION AND SAID NOTHING ABOUT ONE.** Two pieces of APPLIED SQL put one in this row by name and neither is in the plan: **`0003:589`** — *"the reason-and-quantity view for Desperdicio **ships with that screen**"* — and **`0011:68`** — *"a reason breakdown is a second view over `waste_line` alone, with no denominator — **it belongs with the Desperdicio screen (step 6)**"*. ⚠️ **And `0040` confirmed the fence it is needed for stays**: *"`waste_line` keeps its gate (`0003`), so the cost of what was thrown away stays manager-and-above."* ⚠️⚠️ **SO THE SEAM IS EXCEPTION (1) OF THE WORKING AGREEMENT AND NOT SIZE: one half is gated on a decision the owner owes and the other is not.** The capture screen needs no migration and no ruling; **the view is a migration AND a rule about who may see what**, which is two of the four one-way doors the working prompt names. ⚠️ **MEASURED, which is what turned a suspicion into a split**: an Empleada reading her own waste document gets **HTTP 200 and `"waste_line": []`** — a header with no products, not a refusal. `waste_line_select` carries `has_role(…, 'manager')` (`0003:596`) and `waste_select` does not, **the only asymmetric pair in this schema.** ⚠️⚠️ **DESPERDICIO, AND IT IS REORDERED AHEAD OF ITS STEP ON THE OWNER'S INSTRUCTION, 2026-09-21.** `record_waste` (`0019`) had been applied and callerless since 2026-09-05 and `desperdicio.tsx` was a NINE-LINE placeholder. **The reorder is a business decision, not an engineering one:** waste is the acquisition hook, and until this screen exists the tier-2 investigation has no input at all. ⚠️ **`7c` and `7e` are both gated on it, and `7e` needs WEEKS of records before it says anything** — so the pilot's clock on that signal started the day `6a-i` shipped. ⚠️⚠️ **THE INVENTORY, so that neither child can quietly drop a piece of it:** the capture screen itself — **nine lines** of `Pendiente` become a real one; **reason-first**, the cause asked BEFORE the catalog, which is all §2.8 specifies; the five causes as data and the payload key `0019` reads them under (**`waste.ts`**); **ONE CAUSE PER DOCUMENT** rather than one per line; **a third cart scope**, because a write-off is a third DOCUMENT and not a third arithmetic; **NO PESO TOTAL** anywhere on the screen, which is área 9's ruling of 2026-09-14; an unpriced product's loss sent at zero rather than refused (**`UNPRICED_WASTE`**); and the contract check over real HTTP (**`6a-i-waste-contract`**), the only instrument the wire gets — then **`0041`**, the reason-and-quantity view that carries no cost column; **`DocumentKind`** gaining a third member, which `@/api/documents` was written to accept; waste in **`Lo último`**, which closes the gap `5h-ii-a` named; **`Eliminar`** over `void_transaction`, which already works for a cashier today; and **`Corregir`**, which needs the lines and therefore needs the view | `L` — **split, an `M` and an `S/M`** | ✅ **UNGATED when it was taken** — `5f` closed 2026-09-25. ⚠️ **One of the two children is not: `6a-ii` is blocked on the visibility decision parked in ⛔ DECISIONS OWED on 2026-09-27** |
+| **6a-i** | ✅✅✅ **DONE 2026-09-27 — THIS APP CAN RECORD A LOSS, AND `record_waste` HAD BEEN APPLIED AND CALLERLESS FOR TWENTY-TWO DAYS.** `desperdicio.tsx` is **nine lines become 1,079** over **`app/src/api/waste.ts`, the twenty-fifth module of `src/api/`** (`ls app/src/api | wc -l`). ⚠️ **It adds NO screen and the first writing of this row said *the eighteenth*** — the route has existed since `5a-ii` as a `Pendiente` placeholder, so `find app/src/app -name '*.tsx' | wc -l` is **17 before and after**, which is 15 routes and 2 layouts. **A count off a file is a claim about the file** ([[counts-belong-to-the-runner]]), and **it ships no migration** — asserted POSITIVELY because the SIBLING ships one, so *this step has no schema change* has stopped being true of the parent and only a child can say it. ~~this was the next task, as of 2026-09-27~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️⚠️ **THE CAPTURE SCREEN AND NOTHING THAT READS A LOSS BACK.** It is **reason-first** (§2.8), on the shared catalog list (C3.1), the quantity control, the review sheet, the slide and the two animations — every one of them `5f`/`5g`'s, with **not one new primitive invented**, which is `R14` read from the other end and the dividend `5h.5` bought the day before. ⚠️⚠️ **ONE CAUSE PER DOCUMENT, CHOSEN BEFORE THE CATALOG IS SHOWN — A DECISION TAKEN ON THE OWNER'S BEHALF AND THE LOUDEST ONE HERE.** The database puts `reason` on `waste_line`, so a document CAN mix causes (**measured: the same variant twice under two causes is two rows and a 200**); §2.8 nevertheless calls this screen *reason-first*, *"the column the screen asks for BEFORE the product"*, and **the shape that sentence describes is `Comprando a:` with a cause in it.** Two shapes of loss are two documents. **Reversing it is a `reason` on `CartLine` and a composite line key — no migration.** ⚠️⚠️ **AND THERE IS NO PESO TOTAL ON THE SCREEN, WHICH IS ÁREA 9's RULING OF 2026-09-14 APPLIED RATHER THAN A SIMPLIFICATION:** *"Números and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS COST OR AS A RATE, until something fixes `0011`."* **The sticky bar counts products where Vender's sums pesos**, and the sheet's rows carry no line total. ⚠️ **That is the half a session would leave in by copying `vender.tsx`**, and C8.2's deliberately short catalog is what makes it wrong: a peso figure here would read `$0.00` for exactly the products most likely to spoil. **The retail value is still recorded in `waste.total_net`; what is refused is reporting it here.** ⚠️⚠️ **AND THAT IS WHAT MAKES THE ONE NUMBER THIS ROW INVENTS INVISIBLE TO A SHOPKEEPER: `UNPRICED_WASTE` SENDS A ZERO FOR A PRODUCT WITH NO SHELF PRICE.** Measured: `unit_price_gross_per_base` is REQUIRED by `0019`, so silence is not available — the choice is a zero or no row, and **a sale not rung costs the shop nothing while a loss not recorded destroys the only record of it.** ⚠️ What is SENT and what is SHOWN are deliberately different: `reviewOf` still answers `centavos: null`, so C3.12's dash survives. ⚠️ **A third cart scope**, because `@tienda/money`'s `Kind` names two directions of TAX and a write-off is a third DOCUMENT, not a third arithmetic — `MONEY_KIND.waste = 'sell'`, the owner's ruling of 2026-08-26 binding on `0019` by name. `CART_KEY` is `v3`, and **the guard that pinned `v2` is what caught the bump being owed.** ✅ **Checked by `docs/checks/6a-i-waste-contract.sh` (17 groups, live HTTP), its falsifier (10 fixtures, 2 green controls) and `app/test/api-waste.test.ts` + `app/test/cart.test.ts` — 1,394 tests over 45 files, up from 1,358 over 44.** ⚠️ **It also gave `R4` its second exemption in `conventions-gate.sh`, bounded to five lines and falsified both ways** (`F4a`, `F4b`) | `M` | ✅ **Ungated** |
+| **6a-ii** | ⚠️⚠️ **THE REASON-AND-QUANTITY VIEW, AND THE LIST EVERY WRITE-OFF IS READ FROM. IT SHIPS `0041` AND IT IS BLOCKED.** ⚠️⚠️ **APPLIED SQL ASKED FOR THIS ROW TWICE AND THE PLAN NEVER CARRIED IT.** `0003:589` promises *"the reason-and-quantity view for Desperdicio ships with that screen"*; `0011:68` says *"a reason breakdown is a second view over `waste_line` alone, with no denominator — it belongs with the Desperdicio screen (step 6)… **Nothing in the schema is missing for it**"*. ⚠️ **That last clause is the one thing in both comments that is now false**: a view is missing, and it is the whole of this row. ⚠️⚠️ **WHY IT CANNOT BE A `security_invoker` VIEW, WHICH IS THE TRAP AND IS MEASURED**: such a view is fenced by EVERY join ([[security-invoker-view-is-fenced-by-every-join]]), so one over `waste_line` is **empty for the person it exists for.** The shape that works is `product_margin_daily`'s (`0009`) — a definer view stating its own predicate — and **choosing it is choosing what a cashier may see.** ⚠️ **WHAT IT WOULD DELIVER:** the view (reason, quantity, product, document, date — and **never `unit_cost_net_per_base`**); `DocumentKind` gaining a third member, which `@/api/documents` was written to accept (*"a `Record` over this union precisely so `6a` adds a kind"*); waste in `Lo último`; and **`Eliminar`** over `void_transaction`, which **already works for a cashier today** — measured, she voided her own 1-hour-old write-off and got a 200 — because a void needs only the header. ⚠️ **`Corregir` needs the lines and therefore needs the view**, which is why the two are not split again: half an undo on the one screen with no history is a button that cancels something she cannot see. ⚠️⚠️ **AND ONE FURTHER FINDING FOR WHOEVER TAKES IT, SO IT IS NOT RE-DISCOVERED: `product_variant(name)` IS NOT A DETERMINISTIC LINE ORDER FOR A WASTE DOCUMENT.** `5h-ii-a` found that nothing records the order a shopkeeper keyed her lines in; on waste it is worse, because **one document can hold the same product twice under two causes** — so the order needs `product_variant(name)` AND `reason`, and whether PostgREST can order a to-many embed on two keys is unmeasured. ⚠️ **It closes the gap `5h-ii-a` named** — *"a queued waste is still invisible… it closes when `6a` gets a list of its own"* — **which is still open and is not a regression.** ⚠️ **SIZE IT AGAIN WHEN IT IS TAKEN**: the estimate below is `S/M` for the view and the list, and it does not include an onboarding for a cost question nobody has ruled on | **`S/M`, size it again** | ⛔ **BLOCKED on the visibility decision parked in ⛔ DECISIONS OWED 2026-09-27** — *may a cashier read what the shop lost, in quantity, without reading what it cost?* A migration and a rule about who may see what are two of the four one-way doors, so this one is ASKED rather than taken |
+| **6b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-27.** `6a-i` closed that day and **`6a-ii` cannot be next** — it is named in ⛔ DECISIONS OWED, which assertion 7c reads, because it ships a migration and a rule about who may see what. ⚠️ **Its own gate was `5g` and `5g` closed on 2026-09-25**, so nothing stands in front of it. ⚠️ **`6c` is the other ungated row in this step** and it is left where the owner put it — *recommended after `5g`*, and he has said that part is indicative and not to hold up the front end — **but he cannot delete a product at all until it ships**, so it moves on his word rather than on a session's. **Proveedores.** The provider list and its editing, behind `5g`'s selector and `provider_price_memory`'s prefill. ⚠️⚠️ **AND IT DELETES A SENTENCE `5d-iv-b` SHIPPED ON PURPOSE:** Inicio draws Proveedores **dead** — `route: null`, disabled, with `ES.home.notYet` under it — because `5d` was the step that removed scaffolding and a placeholder route would have been new scaffolding. **This row is what makes that door live**, and `app/test/inicio.test.ts` is what pins the count. ⚠️ **SIZE IT AGAIN WHEN IT IS TAKEN**: `provider` is a table no module in `app/` writes today, `@/api/providers` performs only the memory READ, and whether provider editing needs its own fence is unmeasured | `M` | ✅ **UNGATED** — `5g` closed 2026-09-25 |
 | **6c** | ⚠️⚠️ **IT HELD THE MARKER FOR ABOUT FOUR HOURS ON 2026-09-24 AND HANDED IT STRAIGHT BACK, WHICH IS THE HOLDING MOVE WORKING RATHER THAN FAILING.** ~~this is the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** The row that took it said *the moment the quantity control is ruled on, `5f-ii` is next again*; it was ruled that evening and **`5f-ii` is next again**. ⚠️ **What the four hours bought is recorded rather than shrugged off**: the marker moved because `plan-handover.sh` refuses to let a blocked task be next, so the plan could not quietly sit on a row nobody could start — **the check turned a stall into a visible question**, and the question was answered. ⚠️ **SIZE IT FIRST** when it IS taken, as its own cell below asks. ⚠️⚠️ **WHERE A PRODUCT CAME FROM, AND THE DELETE THAT DEPENDS ON IT — NEW 2026-09-23, REWRITTEN TWICE THE SAME DAY.** *"The user can only Retirar or Eliminar things he created"*, then *"why am I still seeing the button for the already existing products?"*, then the ruling that settled it. ⚠️⚠️ **THE OWNER'S PURPOSE, IN HIS OWN WORDS, AND IT IS WHAT THIS ROW IS FOR: *"when we start developing that onboarding step where each user can select the nature of his shop and therefore import a set of products that he can also look at offline we need to make that distinction to avoid them from deleting a product they didn't create."*** So the distinction is not a tidiness — **it is the thing that makes an imported catalog safe to hand somebody**, and C8.3's four store types (pollería, carnicería, cremería/salchichonería, recaudería) are what *the nature of his shop* selects between. ⚠️⚠️ **THIS ROW RESTORES A CAPABILITY RATHER THAN ADDING A FENCE.** `Editar`'s retire control is **drawn on nothing** as of 2026-09-23, because `product_family` and `product_variant` record no origin and the screen could not tell one kind of row from the other. Drawn-on-none was the honest interim; **this is what gives deleting back, on his own rows only.** ⚠️ **THE BACKFILL IS RULED (2026-09-24): everything present when the marker ships is NOT the shopkeeper's; everything created through `Agregar` afterwards is.** It costs nothing today — the rows in his shop are *"merely indicative for us to keep progressing on our Front End"*. ⚠️⚠️ **FINDING 1, AND IT IS THE ONE THAT WOULD HAVE SHIPPED WRONG: THE FENCE IS ON DEACTIVATION, NOT ON UPDATE.** The obvious move is to add `origin = 'shop'` to `product_variant_update`'s predicate — **and that would stop him PRICING and RENAMING an imported product, which is the entire reason for importing one.** He must be able to set his own prices on our catalog; he must not be able to remove it. A `using` clause cannot say *this column may not change in this direction*, so it is a **trigger** on `is_active` going true→false, the shape `product_variant_units_same_dimension_trg` already establishes in `0002`. ⚠️ A policy predicate here is a migration that looks right, merges automatically and breaks the catalog it was written to protect. ⚠️⚠️ **FINDING 2, AND IT IS THE HALF OF *look at it offline* NOTHING OWNS YET: THE QUERY CACHE DOES NOT SURVIVE A COLD START.** `app/src/api/QueryProvider.tsx` builds a plain `QueryClient` with **no persister** — measured 2026-09-24 — so the catalog lives in memory only. **A shop that imports a catalog, kills the app and reopens it with no signal sees no catalog at all**, which is precisely the condition §2.6 and C10.3 exist for and precisely what he asked for. ⚠️ It is a separate concern from the marker and may want a row of its own; it is recorded HERE because this is the row whose sentence promises it. ⚠️ **THE MARKER'S SHAPE:** on BOTH catalog tables — he creates Familias as well as Productos — with a DEFAULT meaning *the shop made this*, so `5e-i`'s `VARIANT_INSERT_COLUMNS` needs no new column and every product made through `Agregar` is correctly his without the app saying so. ⚠️ **The rows are COPIED INTO a workspace and never shared across tenants** — every line table's foreign key is composite on `(id, workspace_id)`. ADR-035's catalog section carries the rule. ⚠️⚠️ **WHAT THIS ROW IS NOT: THE ONBOARDING ITSELF.** *"Once we wrap up the full app we will polish many parts, one of them is the onboarding to import a catalog."* The shop-type question, the import and the screens around it are that later job; **what is here is the marker, the fence and the restored delete**, which is what the app needs before any of it can be safe. Splitting them is the difference between a migration that can be reviewed and one that cannot. ⚠️ **Size it before building it.** | **size it** | ✅ **UNGATED as of 2026-09-24** — the backfill was the only open word and it is ruled. ⚠️ **Recommended after `5g`**, and the owner has said this part is indicative and not to hold up the front end — **but he cannot delete anything at all until it ships**, so it moves on his word |
 
 ---
@@ -5313,9 +5289,9 @@ sophisticated for now"* — so this is three questions, not thirty.
 |---|---|---|---|
 | **7a** | **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` | `5h`, and a shop with real rows in it |
 | **7b** | **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
-| **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | `6a` — there is no waste data until that screen exists |
+| **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | ✅ **UNGATED as of 2026-09-27** — ~~`6a` — there is no waste data until that screen exists~~. ⚠️ **Re-pointed from `6a` to `6a-i` and then cleared, because `6a` split that day and *a gate naming a row nobody can take is a gate nobody can clear*** — the trap `5h`'s and `5h.5`'s splits both recorded. `6a-i` closed 2026-09-27, so the screen exists. ⚠️ **What it still wants is DATA rather than a row**: a pilot shop that has actually thrown things away for a while |
 | **7d** | **The raw rows.** `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his | `S` | `7a` |
-| **7e** | ⚠️⚠️ **WHAT IS AT RISK OF BECOMING WASTE — DERIVED, NOT TYPED IN. REWRITTEN 2026-09-21 WHEN THE OWNER RULED OUT CAPTURING EXPIRY DATES.** ~~stock inside its last days, read from a captured `expiry_date`~~. **Three numbers per variant, all of them computed from records the shop already produces:** **shelf age** (how long the stock on hand has been sitting — `stock_batch.received_at`, which is `not null` and always present, against `batch_balance`); **days of cover** (what is on hand ÷ recent daily velocity, over `product_velocity_daily`, which `0013`/`0014` already ship); and **observed time-to-waste** (for each variant, how many days typically pass between receiving and writing off — read from `waste` against the batches it consumed). ⚠️ **A variant with more days of cover than its own observed time-to-waste is the buy-it-now candidate**, and that is the tier-2 signal without a single new field. ⚠️⚠️ **WHAT IT COSTS, AND IT IS THE REASON THE DEFERRED DECISION IS NOT FREE: a derived shelf life NEEDS WEEKS OF WASTE RECORDS BEFORE IT SAYS ANYTHING.** A typed expiry date answers on day one; this answers once the pilot has run long enough to have thrown things away. **That is a pilot-duration cost, not an engineering one**, and it is the owner's deliberate trade — see ⛔ DECISIONS OWED, área 7 | `M` | `6a` and `5g` — it reads waste and purchases, so both screens must exist and have run for a while |
+| **7e** | ⚠️⚠️ **WHAT IS AT RISK OF BECOMING WASTE — DERIVED, NOT TYPED IN. REWRITTEN 2026-09-21 WHEN THE OWNER RULED OUT CAPTURING EXPIRY DATES.** ~~stock inside its last days, read from a captured `expiry_date`~~. **Three numbers per variant, all of them computed from records the shop already produces:** **shelf age** (how long the stock on hand has been sitting — `stock_batch.received_at`, which is `not null` and always present, against `batch_balance`); **days of cover** (what is on hand ÷ recent daily velocity, over `product_velocity_daily`, which `0013`/`0014` already ship); and **observed time-to-waste** (for each variant, how many days typically pass between receiving and writing off — read from `waste` against the batches it consumed). ⚠️ **A variant with more days of cover than its own observed time-to-waste is the buy-it-now candidate**, and that is the tier-2 signal without a single new field. ⚠️⚠️ **WHAT IT COSTS, AND IT IS THE REASON THE DEFERRED DECISION IS NOT FREE: a derived shelf life NEEDS WEEKS OF WASTE RECORDS BEFORE IT SAYS ANYTHING.** A typed expiry date answers on day one; this answers once the pilot has run long enough to have thrown things away. **That is a pilot-duration cost, not an engineering one**, and it is the owner's deliberate trade — see ⛔ DECISIONS OWED, área 7 | `M` | ⚠️ **`6a-i` and `5g` — RE-POINTED 2026-09-27**, because `6a` split that day and a gate naming a split parent is one nobody can clear. ✅ **Both screens now exist** (`5g-ii` 2026-09-25, `6a-i` 2026-09-27). ⚠️⚠️ **What is left in this gate is TIME and it cannot be hurried**: a derived shelf life needs weeks of waste records, and the clock started 2026-09-27 |
 
 ---
 

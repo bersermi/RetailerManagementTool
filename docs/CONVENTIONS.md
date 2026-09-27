@@ -146,6 +146,28 @@ Spanish by its accents, and every *sentence* this app says has one. A single
 unaccented word typed in place — `'Entrar'` — is invisible to it. A narrow guard
 that says what it misses is worth more than a broad one that is believed.
 
+⚠️⚠️ **THERE IS A SECOND EXEMPTION AS OF `6a-i` (2026-09-27), AND IT IS FIVE LINES
+RATHER THAN A FILE.** `public.waste_reason` is the one enum in this schema whose
+values are **Spanish in the database** — `0003:419` argues it (the vocabulary is
+compared across shops, so it is global and written in the language the shops
+speak) and `0004:49` records the exception beside the English enums. So
+`WASTE_REASONS` in `src/api/waste.ts` holds accented Spanish that is **not a word
+a shopkeeper reads**: it is a wire value, the way `'staff'` and `'manager'` are.
+The label it maps to is `ES.waste.reason`, in `src/strings.ts` with every other
+sentence, and `reasonLabel` is the one-way door between them.
+
+⚠️ **The pass is bounded to the `WASTE_REASONS` declaration and not to the
+file**, which is the difference between an exemption and a hole: the gate counts
+the accented literals in that file and the accented literals inside that
+declaration, and **any accented literal anywhere else in it still fails.** Two
+fixtures say so — `F4a`, a Spanish sentence elsewhere in the same file, and
+`F4b`, the declaration renamed so the block no longer exists. Both are red.
+⚠️ **The visible consequence is that four of the five labels are the wire value
+capitalised**, which is exactly why the indirection is written rather than
+skipped: a picker that rendered the enum would show a column of lower-case rows,
+and the day somebody prefers *Se echó a perder* to *Caducado* the label moves and
+the enum cannot.
+
 ⚠️⚠️ **And it reads JSX comments as code — found at `5b.7`, 2026-09-18.** The
 gate strips full-line comments before applying any rule, precisely so that prose
 explaining a trap is not reported AS the trap. That stripper recognises `//`,

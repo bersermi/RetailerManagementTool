@@ -32,10 +32,16 @@
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ TWO SCOPES, AND BOTH WERE DECIDED HERE RATHER THAN INHERITED
 // ----------------------------------------------------------------------------
-//   * ONE CART PER `Kind`. Vender and Comprar share the screen (`5f`) and do
-//     NOT share a basket: a delivery half-keyed in the back room must not be
-//     wiped by ringing up a customer at the front, and the two documents go to
-//     different RPCs. §2.11 says *cart only*, not *one cart*.
+//   * ⚠️ ONE CART PER `Scope` — **and the type was `Kind` until `6a-i`**, which
+//     is the correction rather than a widening: `Kind` is `@tienda/money`'s and
+//     names two directions of TAX, so it could never have held a third document.
+//     `@/cart/cart`'s `Scope` block has the argument. Vender, Comprar and now
+//     Desperdicio share the screen (`5f`) and do NOT share a basket: a delivery
+//     half-keyed in the back room must not be wiped by ringing up a customer at
+//     the front, and the three documents go to three different RPCs. §2.11 says
+//     *cart only*, not *one cart*. ⚠️ **THREE scopes now, and this heading still
+//     says two because the two it names are the two DECISIONS** — per-document
+//     baskets and dropping on a shop switch — not the number of baskets.
 //   * A RESTORED CART IS DROPPED WHEN THE SHOP HAS CHANGED. It fails safe
 //     without this — `draftOf` refuses a variant that is not in the catalog it
 //     was priced against — but *fails safe* and *is not baffling* are different
@@ -65,20 +71,38 @@
 // untouched**: what arrived is what arrived, whoever it turns out to have come
 // from.
 //
-// ⚠️ THE MAPS ARE PER `Kind` LIKE THE CARTS, even though only `buy` has a writer
+// ⚠️ THE MAPS ARE PER `Scope` LIKE THE CARTS, even though only `buy` has a writer
 // today. `quoteFor(entry, kind, quotes)` is already a per-kind question one
 // module over, so mirroring the cart's own shape costs a key and avoids a
 // special case in every reducer here. ⚠️ **`5f-iv` is the row that would have
 // filled the sell side and it is OUT of the pilot**, so nothing writes it and
-// nothing pretends otherwise.
+// nothing pretends otherwise — and `waste` has no writer either, because a
+// write-off is valued at the shelf price the catalog already carries.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ AND A FOURTH THING IS KEPT HERE AS OF `6a-i`: THE **CAUSE** OF A WASTE
+// ----------------------------------------------------------------------------
+// It is not a basket and not a price — it is Desperdicio's opening question, and
+// it sits beside `providerId` because it is the same shape of fact: one answer
+// per document, chosen before the catalog is shown, persisted because §2.11
+// persists a half-keyed document. ⚠️ **What it is NOT is `providerId`'s
+// behaviour**: changing it clears nothing. See `openReason`.
 // ============================================================================
 
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import type { Kind } from '@tienda/money';
-
-import { EMPTY_CART, NO_QUOTES, remove, setQty, step, type Cart, type Quotes } from '@/cart/cart';
+import { isWasteReason, type WasteReason } from '@/api/waste';
+import {
+  EMPTY_CART,
+  NO_QUOTES,
+  remove,
+  setQty,
+  step,
+  type Cart,
+  type Quotes,
+  type Scope,
+} from '@/cart/cart';
 import { deviceStore, readKey, removeKey, writeKey } from '@/lib/store';
 
 /**
@@ -87,27 +111,56 @@ import { deviceStore, readKey, removeKey, writeKey } from '@/lib/store';
  * ⚠️⚠️ BUMPED TO `v2` BY `5g-i`, WHICH IS THIS MODULE'S OWN RULE BEING OBEYED
  * RATHER THAN A VERSION NUMBER GOING UP. `Persisted` grew `typed` and
  * `providerId`; a `v1` blob restored into the new shape would leave `typed`
- * undefined and every reducer here reading `s.typed[kind]` would throw on the
+ * undefined and every reducer here reading `s.typed[scope]` would throw on the
  * first tap. **A shape change strands the old basket** — see `Persisted` below
  * — and the honest way to strand it is a key nothing reads again, not a
  * migration that half-rebuilds a half-rung sale.
+ *
+ * ⚠️⚠️ BUMPED TO `v3` BY `6a-i`, FOR EXACTLY THE SAME REASON AND WITH A SHARPER
+ * SYMPTOM. `Carts` and `Typed` grew a third key. A `v2` blob restored into this
+ * shape leaves `carts.waste` UNDEFINED, and `setQty('waste', …)` reads
+ * `s.carts.waste` and hands `undefined` to a function that iterates it — **a
+ * crash on the first `+` on Desperdicio, on a phone that had the old build**,
+ * which is every phone in the pilot. ⚠️ The cost is one stranded basket per
+ * device on the upgrade, which is seconds of re-keying; the alternative is a
+ * blank screen at a counter.
  */
-export const CART_KEY = 'tienda.cart.v2';
+export const CART_KEY = 'tienda.cart.v3';
 
 interface Carts {
   readonly sell: Cart;
   readonly buy: Cart;
+  /**
+   * ⚠️ DESPERDICIO'S OWN BASKET (`6a-i`), AND IT IS SEPARATE FOR THE REASON THE
+   * OTHER TWO ARE: *a delivery half-keyed in the back room must not be wiped by
+   * ringing up a customer at the front.* The same is true a third time and it is
+   * the worst of the three — **a bin round is the one task a shopkeeper walks
+   * away from mid-way**, because she is holding the stock rather than standing
+   * at a till.
+   */
+  readonly waste: Cart;
 }
 
-const NO_CARTS: Carts = { sell: EMPTY_CART, buy: EMPTY_CART };
+const NO_CARTS: Carts = { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART };
 
 /** What somebody TYPED, per side of the counter. See the header. */
 interface Typed {
   readonly sell: Quotes;
   readonly buy: Quotes;
+  /**
+   * ⚠️⚠️ WASTE HAS A MAP AND NOTHING WRITES IT, WHICH IS DELIBERATE AND IS THE
+   * SAME CALL `5g-i` MADE ABOUT THE SELL SIDE. A write-off is valued at the
+   * SHELF price, which `quoteFor` takes off the catalog — there is no figure for
+   * a person to enter, so there is nothing to persist. ⚠️ **The key exists
+   * because every reducer below is written over `Scope`**, and a `Typed` missing
+   * one member would make `setPrice` and `clear` need a branch that says *except
+   * on this screen* — three shapes of one map is how the `undefined` above
+   * happens again.
+   */
+  readonly waste: Quotes;
 }
 
-const NOTHING_TYPED: Typed = { sell: NO_QUOTES, buy: NO_QUOTES };
+const NOTHING_TYPED: Typed = { sell: NO_QUOTES, buy: NO_QUOTES, waste: NO_QUOTES };
 
 export interface CartState {
   readonly carts: Carts;
@@ -117,6 +170,22 @@ export interface CartState {
   readonly workspaceId: string | null;
   /** Who the buy basket is being bought FROM, or `null` before one is chosen. */
   readonly providerId: string | null;
+  /**
+   * WHY the waste basket is being written off, or `null` before a cause is
+   * chosen — which is how Desperdicio opens, every time.
+   *
+   * ⚠️⚠️ IT IS THE SCREEN'S FIRST QUESTION AND NOT A SETTING (§2.8,
+   * *reason-first*). It sits here beside `providerId` because it is the same kind
+   * of thing: a fact about the whole document, chosen before the catalog is
+   * shown, and persisted with the basket because §2.11 persists a half-keyed
+   * document and a bin round with its products and without its cause is the
+   * promise half-kept.
+   *
+   * ⚠️ AND UNLIKE `providerId` IT HAS NO OPENING DEFAULT — `@/api/waste`'s
+   * header has the argument, and it is `0019`'s: *"an enum with a default would
+   * quietly file every unlabelled loss under one cause."*
+   */
+  readonly reason: WasteReason | null;
   /** Point the store at a shop, dropping baskets that belonged to another. */
   readonly openShop: (workspaceId: string | null) => void;
   /**
@@ -128,16 +197,38 @@ export interface CartState {
    * would wipe a price the moment after it was typed.
    */
   readonly openProvider: (providerId: string | null) => void;
-  readonly setQty: (kind: Kind, variantId: string, base: number) => void;
-  readonly step: (kind: Kind, variantId: string, by: number | null, sign: 1 | -1) => void;
-  readonly remove: (kind: Kind, variantId: string) => void;
+  /**
+   * The cause this write-off is being recorded under.
+   *
+   * ⚠️⚠️ IT DOES **NOT** CLEAR THE BASKET, WHICH IS THE OPPOSITE OF
+   * `openProvider` AND IS DECIDED RATHER THAN COPIED. Changing the provider
+   * clears the typed prices because *"a supplier price is a fact about a
+   * relationship"* (C3.11) — a figure entered against one provider is not a
+   * figure about the next. **A cause is a fact about the LOSS and not about the
+   * stock**: the same three kilos of tomato are the same three kilos whether she
+   * files them as `caducado` or as `dañado`, and wiping the basket would punish
+   * her for correcting the label. ⚠️ Nothing on a waste line is derived from the
+   * reason, so there is nothing that could go stale.
+   */
+  readonly openReason: (reason: WasteReason | null) => void;
+  readonly setQty: (scope: Scope, variantId: string, base: number) => void;
+  readonly step: (scope: Scope, variantId: string, by: number | null, sign: 1 | -1) => void;
+  readonly remove: (scope: Scope, variantId: string) => void;
   /**
    * The price a person entered for this line, per BASE unit — or `null` to
    * forget it, which is what an emptied box means rather than a zero.
    */
-  readonly setPrice: (kind: Kind, variantId: string, perBase: string | null) => void;
-  /** `Vaciar carrito` — the one removal that keeps its confirmation (`5f-iii`). */
-  readonly clear: (kind: Kind) => void;
+  readonly setPrice: (scope: Scope, variantId: string, perBase: string | null) => void;
+  /**
+   * `Vaciar carrito` — the one removal that keeps its confirmation (`5f-iii`).
+   *
+   * ⚠️⚠️ IT LEAVES THE WASTE BASKET'S **REASON** STANDING, and that is the same
+   * call `openProvider` makes in reverse: emptying is *I keyed the wrong
+   * products*, not *I picked the wrong cause*. Clearing the cause as well would
+   * put the opening question back in front of a shopkeeper who has just answered
+   * it, which is the one thing `5g-ii`'s picker was measured not to do.
+   */
+  readonly clear: (scope: Scope) => void;
   /**
    * ⚠️ `5h-ii-b` — THE WHOLE CART, THE WHOLE QUOTE MAP AND THE PROVIDER, SET IN
    * ONE `set()`. A correction is *this delivery, again*: `Corregir` voids the
@@ -154,7 +245,7 @@ export interface CartState {
    * to replace is not empty (`ES.documents.correctBusy`).
    */
   readonly load: (
-    kind: Kind,
+    scope: Scope,
     lines: Cart,
     quotes: Quotes,
     providerId: string | null,
@@ -174,6 +265,7 @@ interface Persisted {
   readonly typed: Typed;
   readonly workspaceId: string | null;
   readonly providerId: string | null;
+  readonly reason: WasteReason | null;
 }
 
 /**
@@ -211,6 +303,7 @@ export const useCartStore = create<CartState>()(
       typed: NOTHING_TYPED,
       workspaceId: null,
       providerId: null,
+      reason: null,
       openShop: (workspaceId) =>
         set((s) =>
           s.workspaceId === workspaceId
@@ -226,6 +319,14 @@ export const useCartStore = create<CartState>()(
                   // `record_purchase` refuses a provider from another workspace
                   // by composite foreign key (`0018:205`).
                   providerId: null,
+                  // ⚠️ AND THE CAUSE GOES WITH THE SHOP TOO, which is a weaker
+                  // argument than the provider's and lands the same way:
+                  // `waste_reason` is workspace-GLOBAL (`0003`), so the value
+                  // would still be legal in the new shop. **But the basket it
+                  // labelled is gone**, and a cause standing over an empty
+                  // basket is Desperdicio's opening question already answered
+                  // for a write-off nobody has started.
+                  reason: null,
                 },
         ),
       openProvider: (providerId) =>
@@ -234,42 +335,47 @@ export const useCartStore = create<CartState>()(
             ? s
             : { providerId, typed: { ...s.typed, buy: NO_QUOTES } },
         ),
-      setQty: (kind, variantId, base) =>
-        set((s) => ({ carts: { ...s.carts, [kind]: setQty(s.carts[kind], variantId, base) } })),
-      step: (kind, variantId, by, sign) =>
-        set((s) => ({ carts: { ...s.carts, [kind]: step(s.carts[kind], variantId, by, sign) } })),
-      remove: (kind, variantId) =>
+      // ⚠️ NO BASKET IS TOUCHED — see the action's declaration for why this is
+      // deliberately NOT `openProvider`'s shape. ⚠️ And it is a no-op on an
+      // unchanged value for `openProvider`'s other reason: the screen calls it
+      // from a handler today and an effect is one refactor away.
+      openReason: (reason) => set((s) => (s.reason === reason ? s : { reason })),
+      setQty: (scope, variantId, base) =>
+        set((s) => ({ carts: { ...s.carts, [scope]: setQty(s.carts[scope], variantId, base) } })),
+      step: (scope, variantId, by, sign) =>
+        set((s) => ({ carts: { ...s.carts, [scope]: step(s.carts[scope], variantId, by, sign) } })),
+      remove: (scope, variantId) =>
         set((s) => ({
-          carts: { ...s.carts, [kind]: remove(s.carts[kind], variantId) },
+          carts: { ...s.carts, [scope]: remove(s.carts[scope], variantId) },
           // ⚠️ A REMOVED LINE FORGETS ITS PRICE. Leaving it would make the same
           // product re-added later arrive carrying a figure nobody typed for it,
           // which is C3.11's borrowed prefill produced by the basket instead of
           // by a provider.
-          typed: { ...s.typed, [kind]: withoutPrice(s.typed[kind], variantId) },
+          typed: { ...s.typed, [scope]: withoutPrice(s.typed[scope], variantId) },
         })),
-      setPrice: (kind, variantId, perBase) =>
+      setPrice: (scope, variantId, perBase) =>
         set((s) => ({
           typed: {
             ...s.typed,
-            [kind]:
+            [scope]:
               perBase === null || perBase === ''
-                ? withoutPrice(s.typed[kind], variantId)
-                : { ...s.typed[kind], [variantId]: perBase },
+                ? withoutPrice(s.typed[scope], variantId)
+                : { ...s.typed[scope], [variantId]: perBase },
           },
         })),
-      clear: (kind) =>
+      clear: (scope) =>
         set((s) => ({
-          carts: { ...s.carts, [kind]: EMPTY_CART },
-          typed: { ...s.typed, [kind]: NO_QUOTES },
+          carts: { ...s.carts, [scope]: EMPTY_CART },
+          typed: { ...s.typed, [scope]: NO_QUOTES },
         })),
-      load: (kind, lines, quotes, providerId) =>
+      load: (scope, lines, quotes, providerId) =>
         set((s) => ({
-          carts: { ...s.carts, [kind]: lines },
-          typed: { ...s.typed, [kind]: quotes },
+          carts: { ...s.carts, [scope]: lines },
+          typed: { ...s.typed, [scope]: quotes },
           // ⚠️ THE PROVIDER MOVES ONLY ON THE BUY SIDE. A sale has none, and
           // writing `null` over it on a sale correction would empty Comprar's
           // supplier the next time she opened it.
-          ...(kind === 'buy' ? { providerId } : {}),
+          ...(scope === 'buy' ? { providerId } : {}),
         })),
     }),
     {
@@ -280,7 +386,25 @@ export const useCartStore = create<CartState>()(
         typed: s.typed,
         workspaceId: s.workspaceId,
         providerId: s.providerId,
+        reason: s.reason,
       }),
+      // ⚠️⚠️ THE RESTORED CAUSE IS **VALIDATED** AND THE RESTORED BASKET IS NOT,
+      // AND THAT ASYMMETRY IS THE POINT. A restored LINE fails safe on its own:
+      // `draftOf` refuses `variant-not-in-catalog` for a product that has left
+      // the shop. **A restored REASON has nothing checking it** — the string goes
+      // straight into `p_lines` — so a value written by a build before somebody
+      // renames one of the five reaches Postgres as `22P02` and becomes a dead
+      // letter, which is §2.6's *replay is manual* over a write-off a shopkeeper
+      // believes she recorded. `isWasteReason` is one `includes` and it turns that
+      // into the opening question being asked again.
+      merge: (restored, current) => {
+        const from = (restored ?? {}) as Partial<Persisted>;
+        return {
+          ...current,
+          ...from,
+          reason: isWasteReason(from.reason) ? from.reason : null,
+        };
+      },
     },
   ),
 );
@@ -293,16 +417,21 @@ export const useCartStore = create<CartState>()(
  * keystroke anywhere in the app — on the screen C1.1 puts two low-end Androids
  * in front of.
  */
-export function useCart(kind: Kind): Cart {
-  return useCartStore((s) => s.carts[kind]);
+export function useCart(scope: Scope): Cart {
+  return useCartStore((s) => s.carts[scope]);
 }
 
 /** What somebody typed on this side of the counter, as `draftOf` wants it. */
-export function useTyped(kind: Kind): Quotes {
-  return useCartStore((s) => s.typed[kind]);
+export function useTyped(scope: Scope): Quotes {
+  return useCartStore((s) => s.typed[scope]);
 }
 
 /** Who the buy basket is being bought from. */
 export function useProviderId(): string | null {
   return useCartStore((s) => s.providerId);
+}
+
+/** Why the waste basket is being written off, or `null` before she has said. */
+export function useReason(): WasteReason | null {
+  return useCartStore((s) => s.reason);
 }

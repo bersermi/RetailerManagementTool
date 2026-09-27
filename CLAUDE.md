@@ -129,15 +129,32 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   that less the two layouts. ⚠️ **This entry said *16 screens* and ENUMERATED FOURTEEN**:
   the number counted the layouts as screens and the list did not, so neither half said
   what it was counting. **A layout is not a screen** — say which you mean.
-  Four tabs (Inicio, Comprar, Vender, Desperdicio) plus `productos.tsx`,
+  ⚠️⚠️ **MEASURED AGAIN 2026-09-27 AFTER `6a-i` AND IT IS STILL 17** — that row turned
+  `desperdicio.tsx` from a nine-line `Pendiente` into 1,079 lines, and **filling a placeholder adds
+  no file.** `6a-i`'s own entry said *the eighteenth screen* before the command was run, which is
+  the stale-count defect committed by the row correcting this very line.
+  Four tabs (Inicio, Comprar, **Vender, and Desperdicio — a real screen since `6a-i`, 2026-09-27**) plus `productos.tsx`,
   `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`, **`documentos.tsx`
   (`5h-ii-a`, *Lo último* — the recent-document list every correction is reached from)**,
   `ajustes`, `solicitudes`, `entrar`, `bienvenida` and `auth/callback`.
-- **24 modules in `app/src/api/`** — the data layer, each one a claim about the applied
-  schema (which is why `db.yml` watches it; see below). Measured 2026-09-26:
-  `ls app/src/api | wc -l` (23 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **The newest is
-  `corrections.ts` (`5h-ii-b`), and it is the first module in this app that CANCELS
-  anything** — `Corregir` and `Eliminar` over `void_transaction` (`0021`), applied and
+- **25 modules in `app/src/api/`** — the data layer, each one a claim about the applied
+  schema (which is why `db.yml` watches it; see below). Measured 2026-09-27:
+  `ls app/src/api | wc -l` (24 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **The newest is
+  `waste.ts` (`6a-i`), and it is the first CONTRACT module here that calls nothing** — the five
+  causes of `public.waste_reason` and the payload key `0019` reads them under, because
+  `record_waste` has been in `RECORD_RPC` since `5c-ii-a` and what was missing was the
+  vocabulary. ⚠️⚠️ **THE THREE FINDINGS IN IT A SESSION WILL OTHERWISE RE-DISCOVER, all measured
+  against a real PostgREST: (1) an ENUM SORTS BY DECLARATION AND NOT ALPHABETICALLY**, so the
+  picker's order and a reason breakdown's are the same order or nothing can see that they differ;
+  **(2) `record_waste` DEDUPES NOTHING** — the same variant twice under the same cause is two
+  rows and a 200, which is what settled *one cause per document*; and **(3)
+  `unit_price_gross_per_base` IS REQUIRED**, so a product with no shelf price is written off at an
+  explicit ZERO rather than at nothing (`UNPRICED_WASTE` in `@/cart/cart`), because a loss not
+  recorded destroys the only record of it. ⚠️ **`app/src/cart/` gained a third scope for it** —
+  `Scope` is `sell | buy | waste` and is NOT `@tienda/money`'s `Kind`, which names two directions
+  of tax; `CART_KEY` is `v3`. ⚠️ The one before it is
+  `corrections.ts` (`5h-ii-b`), the first module in this app that CANCELS
+  anything — `Corregir` and `Eliminar` over `void_transaction` (`0021`), applied and
   granted since 2026-09-04 and **never once called** until that row. ⚠️⚠️ **THE FINDING IN
   IT A SESSION WILL OTHERWISE RE-DISCOVER: `0021` MEASURES ITS WINDOW FROM `recorded_at` ON
   AN OFFLINE WRITE AND `occurred_at` OTHERWISE, so the clock starts when a document LANDS,
@@ -170,8 +187,11 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   delete's own `changes` count is the evidence** because a read-then-delete has a window the
   drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
   pins that none of them is a screen** — that assertion has now directed three designs.
-- **A Vitest suite of 1,358 tests across 44 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-c` added
+- **A Vitest suite of 1,394 tests across 45 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6a-i` added
+  `api-waste.test.ts` (30) and a waste section to `cart.test.ts`; **the one red in that run was the
+  guard pinning `CART_KEY` at `v2`**, which is how the version bump was found to be owed at all.
+  It was 1,358 across 44 the day before, after `5h-ii-c` added
   `unsent.test.ts` (27) and took `offline-dead-letters.test.ts` from 32 to 37 to pin an
   extracted function directly; it was 1,326 across 43 earlier the same day, after `5h-ii-b` added
   `api-corrections.test.ts` and INVERTED two guards that had pinned the opposite claim, and
@@ -208,8 +228,15 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`5h.5` CLOSED 2026-09-26 AND THE NEXT TASK IS NOW `6a` — DESPERDICIO — WHICH IS THE
-FIRST TIME THE MARKER HAS LEFT STEP 5.** Step 5 has no takeable build row left (`5f-iv` out of
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6a-i` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6b` — PROVEEDORES.** ⚠️⚠️ **`6a` SPLIT
+IN TWO ON THE DAY IT WAS TAKEN, AND THE REASON IS THAT APPLIED SQL PUT A MIGRATION IN THAT ROW AND
+THE PLAN NEVER CARRIED IT** — `0003:589` (*"the reason-and-quantity view for Desperdicio ships with
+that screen"*) and `0011:68` (*"it belongs with the Desperdicio screen (step 6)"*). **`6a-i` is the
+capture screen and it shipped; `6a-ii` is the view and the list, and it is BLOCKED** on a question
+in ⛔ DECISIONS OWED about what a cashier may see. ⚠️ **So `6c`'s claim to be *the first thing in
+step 6 that ships a migration* is false and is struck in the plan.** ~~`5h.5` closed 2026-09-26 and
+the next task is now `6a` — Desperdicio — which is the first time the marker has left step 5.~~
+⚠️ **The marker leaving step 5 happened on 2026-09-26 and that part stands.** Step 5 has no takeable build row left (`5f-iv` out of
 the pilot, `5i` deferred to v2, three split parents, and **`5P-a` and `5P-c` both named in
 ⛔ DECISIONS OWED**, which assertion 7c reads); `6a`'s own gate was `5f`, closed 2026-09-25, and
 the owner reordered it ahead of its step on 2026-09-21. ~~nothing stands between here and `5h.5`
@@ -220,17 +247,21 @@ list, `5h-ii-b` the two controls, `5h-ii-c` the note that has not been sent. ~~a
 `5h-ii-c`.~~ ⚠️⚠️ **AND TAKING `5h.5` NEEDED TWO `Blocks` CELLS RE-POINTED FIRST**: both open
 decisions had been filed against it as a convenience, with the words *it blocks nothing
 takeable* — which expired the instant it became takeable, because `plan-handover.sh`'s
-assertion 7c reads that column and refuses a next task named in it. ⚠️⚠️ **`5h-ii-b`'s FOUR LOCAL COMPONENTS ARE NOW TWO PRIMITIVES AND ONE LOCAL, AND `5h.5` FOUND A THIRD DRAWING THE PLAN HAD NOT SEEN.** `Boton` and `Control` collapsed into `src/ui/Boton.tsx` **together with `vender.tsx`'s `Vaciar carrito` confirm, which was byte-identical in style** — three drawings across two files, and that third one is what made the extraction legal under `R14`, since two components in ONE route would have failed it. `Frase` is `src/ui/Frase.tsx`; **`Confirmacion` has one caller and stays in its route**, which is `R14`'s corollary. ⚠️ **Three shapes are still un-extracted ON PURPOSE with their counts on the page** — the filled button (**9 drawings, 8 files, seven with a border and two without**), the scrim (**7 across 3**) and the chosen pill (**5 across 3**) — because each decides what a shopkeeper sees on six-plus screens at once. ⚠️ **Every session that
+assertion 7c reads that column and refuses a next task named in it. ⚠️⚠️ **`5h-ii-b`'s FOUR LOCAL COMPONENTS ARE NOW TWO PRIMITIVES AND ONE LOCAL, AND `5h.5` FOUND A THIRD DRAWING THE PLAN HAD NOT SEEN.** `Boton` and `Control` collapsed into `src/ui/Boton.tsx` **together with `vender.tsx`'s `Vaciar carrito` confirm, which was byte-identical in style** — three drawings across two files, and that third one is what made the extraction legal under `R14`, since two components in ONE route would have failed it. `Frase` is `src/ui/Frase.tsx`; **`Confirmacion` has one caller and stays in its route**, which is `R14`'s corollary. ⚠️ **Three shapes are still un-extracted ON PURPOSE with their counts on the page** — the filled button (**9 drawings, 8 files, seven with a border and two without**), the scrim (**7 across 3**) and the chosen pill (**5 across 3**) — because each decides what a shopkeeper sees on six-plus screens at once. ⚠️⚠️ **THOSE THREE NUMBERS ARE `5h.5`'s AND ARE NOW STALE, AND THEY ARE LEFT ALONE DELIBERATELY RATHER THAN GUESSED AT.** `6a-i` (2026-09-27) added **one** drawing of the filled button and **one** of the scrim in `desperdicio.tsx`, so the totals have moved — **but `5h.5` counted a SHAPE (a fill, a border, a weight) and not a palette token**, and this session could not reproduce that predicate: a plain `grep -c PALETTE.velo` answers *4 files* where the page says 3, and `PALETTE.accionSuave` answers *14 files* where the page says 8, because both tokens do more than one job. ⚠️ **Re-measuring them with the page's own predicate is the next `src/ui/` row's**, and a number derived a different way and written here would be the exact defect this file spends its length warning about. **`desperdicio.tsx` names what it added in its own `Pregunta` comment.** ⚠️ **Every session that
 ships a primitive before it adds to a directory whose conventions nobody has written**, and
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
 ⚠️ ~~Neither CI workflow watches an app directory~~ — **THERE ARE THREE WORKFLOW FILES AND
-`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-26 THEY ARE EIGHT JOB DEFINITIONS
-THAT RENDER AS NINE NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
+`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-27 THEY ARE NINE JOB DEFINITIONS
+THAT RENDER AS TEN NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
 log"* NOW MEANS.** `money.yml`'s single job is **matrixed**, so it appears twice, and a count
-taken from `jobs:` keys alone is short by one. ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
+taken from `jobs:` keys alone is short by one. ⚠️ **`6a-i` added the ninth** — `db.yml`'s
+`waste`, *the loss, and the cause it is filed under* — **as a new job rather than two more steps
+on `recent-documents`, which is the opposite of what `5h-ii-b` did**: that row appended because a
+correction is *the thing you reach from the list*, and this is a WRITE where that job is a READ.
+⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
 OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
-eighth.** 2 (`app.yml`) + 5 (`db.yml`) + 1 (`money.yml`) = 8, and the table below is the
+eighth.** 2 (`app.yml`) + 6 (`db.yml`) + 1 (`money.yml`) = 9, and the table below is the
 arithmetic. ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
 checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
 filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
@@ -244,7 +275,7 @@ The two `money.yml` names were last confirmed on the merge of #213 (runs `361726
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
 | `app.yml` | `app/**`, `packages/money/**`, `docs/PLAN.md`, `docs/plan/archive/**`, `docs/CONVENTIONS.md`, `docs/HANDBOOK.md`, ADR-035, and each plan/handbook guard by name | `app (node 22)` — typecheck, Vitest, conventions gate — **and** `the documents still agree (plan + handbook)`. ⚠️⚠️ **SPLIT 2026-09-25 BECAUSE IT WAS TIMING OUT.** The seam is free because no document guard needs `node_modules`, and the two halves fail for different reasons: *the code is wrong* vs *the documents disagree with each other* |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `packages/money/cases.json`, and every contract check and falsifier by name | **five**: `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from, and the correction`** (`5h-ii-a` 2026-09-26, ⚠️ **renamed the same day when `5h-ii-b` appended two steps rather than opening a sixth job** — the split precedent here is about the CAP and this job was measured well under it, but **a job whose name describes half of what it runs is the stale-claim defect**). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated. ⚠️ **The KEY did not move when the NAME did**, so nothing addressing this job by key broke |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, **`app/src/cart/cart.ts`** (new 2026-09-27 — `PRICE_KEY`, `MONEY_KIND` and `UNPRICED_WASTE` are claims about `0019` rather than about a basket, and it is the first file under `app/src/cart/` any workflow has watched), `packages/money/cases.json`, and every contract check and falsifier by name | **six** (`waste` added by `6a-i`, *the loss, and the cause it is filed under* — the first thing anywhere to call `record_waste`, applied and callerless for 22 days): `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from, and the correction`** (`5h-ii-a` 2026-09-26, ⚠️ **renamed the same day when `5h-ii-b` appended two steps rather than opening a sixth job** — the split precedent here is about the CAP and this job was measured well under it, but **a job whose name describes half of what it runs is the stale-claim defect**). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated. ⚠️ **The KEY did not move when the NAME did**, so nothing addressing this job by key broke |
 | `money.yml` | `packages/**` | one job, matrixed: `packages/money (node 22)` and `(node 24)` |
 
 ⚠️⚠️ **`db.yml` IS NOT ONLY `supabase/**`**, because a module in `app/src/api/` is a claim

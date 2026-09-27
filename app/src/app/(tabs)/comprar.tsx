@@ -402,7 +402,7 @@ export default function Comprar() {
           cart,
           entries,
           factors,
-          kind: 'buy',
+          scope: 'buy',
           pricesIncludeTax: workspace.pricesIncludeTax,
           workspaceId: workspace.id,
           locationId,
@@ -1071,7 +1071,7 @@ function Fila({
           entry={entry}
           base={base}
           factors={factors}
-          kind="buy"
+          scope="buy"
           onEdit={onEdit}
           padId={PAD_ID}
         />
@@ -1726,7 +1726,7 @@ function Renglon({
             entry={entry}
             base={row.base}
             factors={factors}
-            kind="buy"
+            scope="buy"
             padId={PAD_ID}
           />
         )}
