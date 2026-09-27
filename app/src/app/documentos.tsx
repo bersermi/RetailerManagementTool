@@ -4,13 +4,21 @@ import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  CART_KIND,
+  CORRECTION_ROUTE,
+  mayCorrect,
+  type Correction,
+} from '@/api/corrections';
+import {
   DOCUMENT_KINDS,
   documentsLine,
   type DocumentKind,
   type DocumentsLineInput,
   type ShopDocument,
 } from '@/api/documents';
-import { useDocuments } from '@/api/hooks';
+import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
+import { useAuth } from '@/auth/AuthProvider';
+import { useCart, useCartStore } from '@/cart/store';
 import { formatLedgerDay } from '@/format/date';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -89,6 +97,50 @@ export default function Documentos() {
   const sales = useDocuments('sale');
   const shown = kind === 'purchase' ? purchases : sales;
 
+  // ⚠️ WHAT THE CONFIRMATION BOX IS ASKING ABOUT, or `null`. `5h-ii-b`.
+  const [asking, setAsking] = useState<Asking | null>(null);
+
+  // ⚠️ THE HALF OF `0021`'s FENCE THIS PHONE CAN KNOW — and this screen decides
+  // none of it: `mayCorrect` (`@/api/corrections`) does, and the database
+  // decides the half that involves a clock.
+  const role = useMyRole();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+
+  const { correct, working, failed, forget } = useCorrectDocument();
+
+  // ⚠️⚠️ OPENING OR CLOSING THE QUESTION FORGETS THE LAST REFUSAL, and it is one
+  // function rather than two `setAsking` calls so neither path can be the one that
+  // forgets. TanStack keeps a mutation's `error` until the next `mutate`, so
+  // without this a `TD003` on one document would still be on screen when she asks
+  // about the NEXT one — she would read *pídele a un gerente* where the question
+  // belongs, about a document nobody had refused her.
+  function ask(next: Asking | null): void {
+    forget();
+    setAsking(next);
+  }
+
+  // ⚠️ THE CART `Corregir` IS ABOUT TO REPLACE, read so the question can say so
+  // BEFORE it happens. `load` replaces and does not merge.
+  const buy = useCart('buy');
+  const sell = useCart('sell');
+  const load = useCartStore((state) => state.load);
+
+  async function run(target: Asking): Promise<void> {
+    const done = await correct(target.document, target.how);
+    // ⚠️⚠️ A `null` IS A REFUSAL AND THE BOX STAYS OPEN. `failed` is the
+    // sentence, and closing here would take it off the screen before she read
+    // it. **Nothing was voided on this path**, so the row is still in the list
+    // and the cart is untouched.
+    if (done === null) return;
+    ask(null);
+    if (done.prefill === null) return;
+    // ⚠️ THE CART IS LOADED ONLY AFTER THE VOID SUCCEEDED — `useCorrectDocument`'s
+    // ordering, and the reason a correction cannot become a duplicate.
+    load(done.prefill.kind, done.prefill.lines, done.prefill.quotes, done.prefill.providerId);
+    router.push(CORRECTION_ROUTE[target.document.kind]);
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
@@ -103,10 +155,34 @@ export default function Documentos() {
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
           {ES.documents.subtitle}
         </Text>
-        <Cuerpo kind={kind} documents={shown} />
+        <Cuerpo
+          kind={kind}
+          documents={shown}
+          canCorrect={(document) => mayCorrect(document, role, userId)}
+          onAsk={(document, how) => ask({ document, how })}
+        />
       </ScrollView>
+      <Confirmacion
+        asking={asking}
+        working={working}
+        failed={failed}
+        busy={
+          asking !== null &&
+          (CART_KIND[asking.document.kind] === 'buy' ? buy : sell).length > 0
+        }
+        onConfirm={() => {
+          if (asking !== null) void run(asking);
+        }}
+        onCancel={() => ask(null)}
+      />
     </View>
   );
+}
+
+/** What the confirmation box is asking about. */
+interface Asking {
+  readonly document: ShopDocument;
+  readonly how: Correction;
 }
 
 /** The module's word, and the way back to wherever you came from. */
@@ -224,9 +300,13 @@ function Interruptor({
 function Cuerpo({
   kind,
   documents,
+  canCorrect,
+  onAsk,
 }: {
   kind: DocumentKind;
   documents: DocumentsLineInput;
+  canCorrect: (document: ShopDocument) => boolean;
+  onAsk: (document: ShopDocument, how: Correction) => void;
 }) {
   const { scale } = useDensity();
   const line = documentsLine(kind, documents);
@@ -249,7 +329,7 @@ function Cuerpo({
   return (
     <View style={{ gap: scale.rowGap }}>
       {documents.documents.map((one) => (
-        <Documento key={one.id} document={one} />
+        <Documento key={one.id} document={one} canCorrect={canCorrect(one)} onAsk={onAsk} />
       ))}
     </View>
   );
@@ -258,10 +338,19 @@ function Cuerpo({
 /**
  * One document — when, who, how much, and what was in it.
  *
- * ⚠️⚠️ IT IS NOT PRESSABLE AND THAT IS `5d-iii`'s RULING RATHER THAN AN
- * OMISSION: *a control that looks live and refuses silently is worse than one
- * that is obviously not built.* `5h-ii-b` is what gives a row something to do,
- * and until then this is a thing to read.
+ * ⚠️⚠️ THE ROW IS STILL NOT PRESSABLE AND THE **BUTTONS** ARE — `5h-ii-b`, and
+ * it is `5d-iii`'s ruling kept rather than dropped: *a control that looks live
+ * and refuses silently is worse than one that is obviously not built.* A
+ * whole-card tap would have to mean one of `Corregir` and `Eliminar`, and
+ * guessing which is exactly that defect. Two labelled controls say what they do.
+ *
+ * ⚠️⚠️ AND THEY ARE ABSENT RATHER THAN DISABLED WHERE `mayCorrect` SAYS NO. A
+ * greyed button is a promise about a permission she does not have and cannot
+ * get by tapping; the row simply reads, which is what it did before this task.
+ * ⚠️ **It hides only the case that is CERTAIN** — she is a cashier and the
+ * document is somebody else's. A document of her own that is too old still
+ * carries both buttons and is refused by the database in words, because the
+ * window is the database's to know (`@/api/corrections`).
  *
  * ⚠️ THE LINES ARE ALWAYS OPEN. A collapsed document would hide the row a
  * shopkeeper came here to check — the quantity or the amount that is wrong — and
@@ -269,7 +358,15 @@ function Cuerpo({
  * look-question and it is `R9`'s**: the owner's phone decides, and `5h.5` is
  * where a collapse would land.
  */
-function Documento({ document }: { document: ShopDocument }) {
+function Documento({
+  document,
+  canCorrect,
+  onAsk,
+}: {
+  document: ShopDocument;
+  canCorrect: boolean;
+  onAsk: (document: ShopDocument, how: Correction) => void;
+}) {
   const { scale } = useDensity();
   return (
     <View
@@ -339,7 +436,64 @@ function Documento({ document }: { document: ShopDocument }) {
           </View>
         ))}
       </View>
+
+      {canCorrect ? (
+        <>
+          <Separador />
+          <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+            <Boton
+              label={ES.documents.correct}
+              tone={PALETTE.accion}
+              onPress={() => onAsk(document, 'corregir')}
+            />
+            <Boton
+              label={ES.documents.remove}
+              tone={PALETTE.error}
+              onPress={() => onAsk(document, 'eliminar')}
+            />
+          </View>
+        </>
+      ) : null}
     </View>
+  );
+}
+
+/**
+ * One of the two controls under a document.
+ *
+ * ⚠️ THEY ARE THE SAME WIDTH AND NOT WEIGHTED TOWARDS EITHER, because the round
+ * gave no reason to think one is commoner: `Corregir` is the mis-keyed quantity
+ * and `Eliminar` is the delivery recorded twice, and the owner named both.
+ * ⚠️ `PALETTE.error` ON `Eliminar` IS THE ONLY THING THAT DISTINGUISHES THEM at
+ * a glance, which is `Vaciar carrito`'s own arrangement one screen over.
+ */
+function Boton({
+  label,
+  tone,
+  onPress,
+}: {
+  label: string;
+  tone: string;
+  onPress: () => void;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{
+        flex: 1,
+        minHeight: scale.tapTarget,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: scale.rowGap,
+        borderWidth: 1,
+        borderColor: tone,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone }}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -361,4 +515,169 @@ function dayWord(day: string): string {
   const parts = formatLedgerDay(day);
   if (parts === null) return day;
   return ES.dates.dayOfMonth(Number(parts.day), parts.month);
+}
+
+/**
+ * The question, the wait and the refusal — one box, three states.
+ *
+ * ⚠️⚠️ IT IS A CENTRED CARD WITH ITS OWN SCRIM, WHICH IS THE OWNER'S OWN RULING
+ * AND NOT A CHOICE MADE HERE. 2026-09-24, about the cart-emptying confirmation:
+ * *"it should be a separate box in the center of the screen with it's scrim with
+ * a confirmation message."* **Vender already draws exactly this**, so a second
+ * shape for the same act — *are you sure* — would be this app teaching two
+ * gestures for one idea.
+ *
+ * ⚠️⚠️ AND THE REFUSAL IS SHOWN **HERE** RATHER THAN AS A BANNER, because this
+ * is where her thumb already is and because the box is what she must dismiss.
+ * A sentence at the top of a scrolled list is a sentence she never sees.
+ *
+ * ⚠️ THE WAIT HAS NO BUTTONS AT ALL. A second tap on `Sí, corregir` would be a
+ * second void — answered idempotently by `0021` rather than duplicated, so it is
+ * safe — but a control that does nothing visible is what makes a person tap
+ * harder. ⚠️ **`Cancelar` GOES TOO, and that is the honest half**: the write is
+ * in flight and there is nothing left to cancel.
+ */
+function Confirmacion({
+  asking,
+  working,
+  failed,
+  busy,
+  onConfirm,
+  onCancel,
+}: {
+  asking: Asking | null;
+  working: boolean;
+  failed: string | null;
+  busy: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const { scale } = useDensity();
+  if (asking === null) return null;
+
+  const correcting = asking.how === 'corregir';
+
+  return (
+    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          opacity: 0.4,
+          backgroundColor: PALETTE.velo,
+        }}
+      />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: scale.space * 2,
+        }}
+      >
+        <View
+          style={{
+            width: '100%',
+            borderRadius: scale.space,
+            backgroundColor: PALETTE.fondo,
+            padding: scale.space * 1.5,
+            gap: scale.space,
+          }}
+        >
+          {working ? (
+            <>
+              <ActivityIndicator color={PALETTE.accion} />
+              <Frase text={ES.documents.working} />
+            </>
+          ) : failed !== null ? (
+            <>
+              <Frase text={failed} />
+              <Control
+                label={ES.documents.gotIt}
+                tone={PALETTE.accion}
+                onPress={onCancel}
+              />
+            </>
+          ) : (
+            <>
+              <Frase text={correcting ? ES.documents.correctAsk : ES.documents.removeAsk} />
+              {/* ⚠️ THE SECOND LINE ONLY WHEN THERE IS SOMETHING TO LOSE — see
+                  `ES.documents.correctBusy`. An `Eliminar` touches no cart. */}
+              {correcting && busy ? <Frase text={ES.documents.correctBusy} /> : null}
+              <View style={{ gap: scale.rowGap }}>
+                <Control
+                  label={correcting ? ES.documents.correctConfirm : ES.documents.removeConfirm}
+                  tone={correcting ? PALETTE.accion : PALETTE.error}
+                  onPress={onConfirm}
+                />
+                <Control
+                  label={ES.documents.cancel}
+                  tone={PALETTE.tintaApagada}
+                  onPress={onCancel}
+                />
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
+
+/** One sentence in the box, centred. */
+function Frase({ text }: { text: string }) {
+  const { scale } = useDensity();
+  return (
+    <Text
+      style={{
+        fontSize: scale.bodySize,
+        fontWeight: '600',
+        color: PALETTE.tinta,
+        textAlign: 'center',
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+/**
+ * One full-width control in the box.
+ *
+ * ⚠️ IT IS NOT `Boton` ABOVE, and the two are deliberately separate: that one is
+ * half a row under a document and this one is a full-width answer to a question.
+ * ⚠️ **Whether they should become one primitive in `src/ui/` is `5h.5`'s**, which
+ * is the row that writes that directory's conventions — see `CLAUDE.md`.
+ */
+function Control({
+  label,
+  tone,
+  onPress,
+}: {
+  label: string;
+  tone: string;
+  onPress: () => void;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={onPress}
+      style={{
+        minHeight: scale.tapTarget,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: scale.space / 2,
+        borderWidth: 1,
+        borderColor: tone,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone }}>{label}</Text>
+    </Pressable>
+  );
 }

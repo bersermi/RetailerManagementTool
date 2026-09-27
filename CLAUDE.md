@@ -85,8 +85,8 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-25: 5,267 lines total,
-1,110 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
+at 1,400 — and names the remedy in the failure. **Measured 2026-09-26: 5,384 lines total,
+1,179 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
 prints both numbers and the next task id). Position reached 5,484 lines at one or two
 status-log entries per session, with nobody deciding to; **seventeen cuts have now been
 taken across those nine archive files, thirteen of them by a session that wanted to be
@@ -127,10 +127,20 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`, **`documentos.tsx`
   (`5h-ii-a`, *Lo último* — the recent-document list every correction is reached from)**,
   `ajustes`, `solicitudes`, `entrar`, `bienvenida` and `auth/callback`.
-- **23 modules in `app/src/api/`** — the data layer, each one a claim about the applied
+- **24 modules in `app/src/api/`** — the data layer, each one a claim about the applied
   schema (which is why `db.yml` watches it; see below). Measured 2026-09-26:
-  `ls app/src/api | wc -l` (22 `.ts` plus `QueryProvider.tsx`). ⚠️ The newest is
-  **`documents.ts` (`5h-ii-a`)**, and it is the first read in this app to start at a
+  `ls app/src/api | wc -l` (23 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **The newest is
+  `corrections.ts` (`5h-ii-b`), and it is the first module in this app that CANCELS
+  anything** — `Corregir` and `Eliminar` over `void_transaction` (`0021`), applied and
+  granted since 2026-09-04 and **never once called** until that row. ⚠️⚠️ **THE FINDING IN
+  IT A SESSION WILL OTHERWISE RE-DISCOVER: `0021` MEASURES ITS WINDOW FROM `recorded_at` ON
+  AN OFFLINE WRITE AND `occurred_at` OTHERWISE, so the clock starts when a document LANDS,
+  never when the delivery happened** — measured, by a cashier voiding her own five-hour-old
+  delivery against a fifteen-minute window and getting a 200. **So the client renders only
+  the half of the fence that involves no clock, and the database answers the rest as
+  `TD003` — which arrives on an HTTP 400 and NOT a 403**, because a custom SQLSTATE is not a
+  privilege error to PostgREST. ⚠️ The one before it is **`documents.ts` (`5h-ii-a`)**, the
+  first read in this app to start at a
   DOCUMENT and ask for its LINES — **a to-many embed over a composite foreign key**,
   where every other embed here is to-one and read from the line. ⚠️⚠️ **Its four wire
   claims are 200-and-wrong rather than red** and only
@@ -140,10 +150,10 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   `product_variant(name)`, sorted by the database through a NESTED embedded column.
 - A palette and a density scale in `app/src/theme/`, a cart in `app/src/cart/`, an outbox
   in `app/src/offline/`, and **a PDF this app hands a shopkeeper** in `app/src/export/`.
-- **A Vitest suite of 1,288 tests across 42 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-a` added
-  `api-documents.test.ts` and `5g-iii-b` added three day cases; it was 1,219 across 41
-  the day before), and the one before it (1,189 across 40) came out of CI run
+- **A Vitest suite of 1,326 tests across 43 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-26, after `5h-ii-b` added
+  `api-corrections.test.ts` and INVERTED two guards that had pinned the opposite claim; it
+  was 1,288 across 42 earlier the same day and 1,219 across 41 the day before), and the one before it (1,189 across 40) came out of CI run
   `36176282598` after correcting a count taken by grepping the files an hour earlier
   (1,119). **A count off a file is a claim about the file.** ⚠️ This entry said
   *"nearly 700 assertions"* until 2026-09-25.
@@ -160,7 +170,7 @@ re-pointed twice in two days as `5h` and then `5h-ii` were each split, because a
 that is no longer takeable is a gate nobody can clear. ⚠️ **Área 6 is no longer the blocker: it was
 RULED on 2026-09-26** by `5h-i`, a simulation round run with the owner — **so what stands
 between here and `5h.5` is build rather than a question**, and as of 2026-09-26 it is
-**two rows**: `5h-ii-a` closed that day, leaving `5h-ii-b` and `5h-ii-c`. ⚠️ **Every session that
+**one row**: `5h-ii-a` and `5h-ii-b` both closed that day, leaving `5h-ii-c`. ⚠️⚠️ **AND `5h-ii-b` PUT FOUR MORE UNGOVERNED COMPONENTS INTO A ROUTE RATHER THAN INTO `src/ui/`** — `Boton`, `Confirmacion`, `Frase` and `Control`, all local to `documentos.tsx`, and the last of them is a full-width button that is *nearly* the first one. **That near-duplicate is what `5h.5` is for**, and it is named here so the row has something concrete to collapse. ⚠️ **Every session that
 ships a primitive before it adds to a directory whose conventions nobody has written**, and
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
@@ -184,7 +194,7 @@ The two `money.yml` names were last confirmed on the merge of #213 (runs `361726
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
 | `app.yml` | `app/**`, `packages/money/**`, `docs/PLAN.md`, `docs/plan/archive/**`, `docs/CONVENTIONS.md`, `docs/HANDBOOK.md`, ADR-035, and each plan/handbook guard by name | `app (node 22)` — typecheck, Vitest, conventions gate — **and** `the documents still agree (plan + handbook)`. ⚠️⚠️ **SPLIT 2026-09-25 BECAUSE IT WAS TIMING OUT.** The seam is free because no document guard needs `node_modules`, and the two halves fail for different reasons: *the code is wrong* vs *the documents disagree with each other* |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `packages/money/cases.json`, and every contract check and falsifier by name | **five**: `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from`** (`5h-ii-a`, 2026-09-26). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `packages/money/cases.json`, and every contract check and falsifier by name | **five**: `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from, and the correction`** (`5h-ii-a` 2026-09-26, ⚠️ **renamed the same day when `5h-ii-b` appended two steps rather than opening a sixth job** — the split precedent here is about the CAP and this job was measured well under it, but **a job whose name describes half of what it runs is the stale-claim defect**). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated. ⚠️ **The KEY did not move when the NAME did**, so nothing addressing this job by key broke |
 | `money.yml` | `packages/**` | one job, matrixed: `packages/money (node 22)` and `(node 24)` |
 
 ⚠️⚠️ **`db.yml` IS NOT ONLY `supabase/**`**, because a module in `app/src/api/` is a claim

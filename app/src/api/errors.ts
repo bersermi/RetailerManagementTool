@@ -7,14 +7,24 @@
 // rather than a second copy of a sentence nobody notices drifting. 5a-ii's F9
 // is the defect that argument comes from.
 //
-// ⚠️ THE CODES ARE POSTGRES'S AND POSTGREST'S, AND ALL THREE WERE MEASURED
-// against the applied schema on 2026-09-14 rather than recalled:
+// ⚠️ THE CODES ARE POSTGRES'S AND POSTGREST'S, AND EVERY ONE OF THEM WAS
+// MEASURED against a real PostgREST rather than recalled — the first four on
+// 2026-09-14 and `TD003` on 2026-09-26. ⚠️ **This line said *all three* while
+// listing four**, which is the stale-count defect this repository keeps finding
+// in its own prose; the remedy is to say WHEN rather than HOW MANY:
 //
 //     23514      check_violation     — `0027` raises it on a blank shop name
 //     42501      insufficient_privilege — the grant is to `authenticated`, so
 //                this is what an expired or absent session looks like from the
 //                other side. HTTP 401.
 //     PGRST202   the function was not FOUND — a wrong argument name, 404
+//     TD003      the void fence (`0021`) — a cashier voiding somebody else's
+//                document, or her own one outside the shop's window. ⚠️ IT
+//                ARRIVES AS **HTTP 400**, not 403: measured against a real
+//                PostgREST on 2026-09-26, `{"code":"TD003", …}`. A custom
+//                SQLSTATE is not a privilege error to PostgREST, so nothing else
+//                in this map would have caught it and `unknown` would have told
+//                a cashier that something broke.
 //     PGRST301   "JWT cryptographic operation failed" — the token the phone
 //                still holds is no longer one this project will accept. 401,
 //                and the same sentence as 42501 because it is the same event
@@ -38,6 +48,11 @@ export type ApiMessageKey = keyof typeof ES.api.errors;
 const BY_CODE: Readonly<Record<string, ApiMessageKey>> = {
   '23514': 'nameMissing',
   '42501': 'sessionEnded',
+  // ⚠️⚠️ THE ONLY ENTRY HERE THAT MEANS *you may not* RATHER THAN *something
+  // broke*, and the reason it must not fall through to `unknown`: a cashier who
+  // is told *algo salió mal* taps again. One who is told to ask a manager stops.
+  // `5h-ii-b`; the sentence is in `ES.api.errors.notAllowed`.
+  TD003: 'notAllowed',
   PGRST301: 'sessionEnded',
 };
 

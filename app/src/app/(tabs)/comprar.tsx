@@ -321,6 +321,20 @@ export default function Comprar() {
     for (const line of cart) {
       const key = `${providerId}|${line.variantId}`;
       if (seeded.current.has(key)) continue;
+      // ⚠️⚠️ A LINE THAT ALREADY CARRIES A TYPED QUOTE IS LEFT ALONE, AND THIS
+      // ARRIVED WITH `5h-ii-b`. `seeded` is a ref on the SCREEN, so it is empty
+      // on every mount — which means a cart that came from somewhere other than
+      // this render had its prices overwritten by the provider's memory before
+      // they were ever seen. **Two ways in:** `Corregir` loads a voided
+      // delivery's own prices and pushes straight here, and a persisted cart
+      // (`CART_KEY`) restores typed prices across an app restart. In both the
+      // memory read is a STALER answer than the one already in hand.
+      // ⚠️ It is marked seeded, not merely skipped, so this does not re-decide
+      // every render.
+      if (quotes[line.variantId] !== undefined) {
+        seeded.current.add(key);
+        continue;
+      }
       const entry = entries.find((e) => e.id === line.variantId);
       if (entry === undefined) continue;
       // ⚠️⚠️ `unknown` RETURNS WITHOUT MARKING THE LINE SEEDED, and that is the
@@ -333,7 +347,7 @@ export default function Comprar() {
       const remembered = memoryFor(memory, providerId, entry.id, entry.priceUnit, factors);
       if (remembered !== null) setPrice('buy', entry.id, remembered.perBase);
     }
-  }, [cart, entries, memory, providerId, canRead, factors, setPrice]);
+  }, [cart, entries, memory, providerId, canRead, factors, quotes, setPrice]);
 
   // ⚠️ THE TOTAL IS WITHHELD RATHER THAN GUESSED WHILE THE SHOP IS UNKNOWN —
   // `reviewOf` needs `prices_include_tax`, and a `?? true` here would be right

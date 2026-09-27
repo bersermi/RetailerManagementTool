@@ -56,20 +56,32 @@ import { ES } from '@/strings';
 
 let serial = 0;
 
-/** One line of a document. `qty` is as keyed, in `unit`; the money is net + tax. */
+/**
+ * One line of a document. `qty` is as keyed, in `unit`; the money is net + tax.
+ *
+ * ⚠️ `5h-ii-b` ADDED `qty_base` AND `unit_price_net_per_base`, AND THEY DEFAULT
+ * TO FIGURES THAT DISAGREE WITH `qty` ON PURPOSE. Nothing renders either one —
+ * `prefillOf` is the only reader — so a fixture that made them consistent with
+ * the display quantity would let a renderer quietly start using the wrong one
+ * and stay green. The cases that care pass their own.
+ */
 function line(
   name: string | null,
   qty: string,
   unit: string,
   net: string,
   tax = '0.00',
+  base = '1.000',
+  perBase = '0.010000',
 ): DocumentLineRow {
   serial += 1;
   return {
     id: `line-${serial}`,
     variant_id: `variant-${serial}`,
+    qty_base: base,
     qty_display: qty,
     qty_display_unit: unit,
+    unit_price_net_per_base: perBase,
     line_net: net,
     tax_amount: tax,
     product_variant: name === null ? null : { name },
@@ -84,6 +96,7 @@ function purchase(
   lines: readonly DocumentLineRow[],
   providerId: string | null = 'prov-1',
   tax = '0.00',
+  createdBy: string | null = 'person-1',
 ): DocumentRow {
   return {
     id,
@@ -91,6 +104,7 @@ function purchase(
     total_net: net,
     total_tax: tax,
     reversal_of: null,
+    created_by: createdBy,
     provider_id: providerId,
     purchase_line: lines,
   };
@@ -103,8 +117,17 @@ function sale(
   net: string,
   lines: readonly DocumentLineRow[],
   tax = '0.00',
+  createdBy: string | null = 'person-1',
 ): DocumentRow {
-  return { id, occurred_at: at, total_net: net, total_tax: tax, reversal_of: null, sale_line: lines };
+  return {
+    id,
+    occurred_at: at,
+    total_net: net,
+    total_tax: tax,
+    reversal_of: null,
+    created_by: createdBy,
+    sale_line: lines,
+  };
 }
 
 /** The mirror-image document `void_transaction` writes — negated, and pointing back. */
@@ -114,6 +137,7 @@ function reversalOf(row: DocumentRow, kind: DocumentKind, id = 'void-1'): Docume
   const flipped = lines.map((one) => ({
     ...one,
     id: `${one.id}-void`,
+    qty_base: negate(one.qty_base),
     qty_display: negate(one.qty_display),
     line_net: negate(one.line_net),
     tax_amount: negate(one.tax_amount),
@@ -124,6 +148,7 @@ function reversalOf(row: DocumentRow, kind: DocumentKind, id = 'void-1'): Docume
     total_net: negate(row.total_net),
     total_tax: negate(row.total_tax),
     reversal_of: row.id,
+    created_by: row.created_by,
   };
   return kind === 'purchase'
     ? { ...base, provider_id: row.provider_id ?? null, purchase_line: flipped }
@@ -205,14 +230,29 @@ describe('the contract is written once, and the two kinds are the same shape', (
     );
   });
 
-  // ⚠️⚠️ THE TWO ABSENCES ARE DECISIONS AND ARE PINNED AS SUCH. `5h-ii-b` adds
-  // `created_by` with the argument for showing it; `recorded_offline` is an
-  // internal state and [[users-dont-do-bookkeeping]]. A tidying pass that adds
-  // either "for completeness" turns these red and has to say why.
-  it('asks for neither created_by nor recorded_offline', () => {
+  // ⚠️⚠️ THIS PAIR WAS PINNED THE OTHER WAY BY `5h-ii-a` AND `5h-ii-b` TURNED IT
+  // RED, WHICH IS THE GUARD WORKING. It read *asks for neither `created_by` nor
+  // `recorded_offline`*, on the argument that `5h-ii-b` would add the first
+  // "with the argument for showing it". **It added it and shows it nowhere**:
+  // `mayCorrect` is the only reader, and the argument is the FENCE rather than
+  // the display, so `today.ts`'s §2.7 refusal is untouched.
+  it('asks for created_by, which nothing renders', () => {
     for (const kind of DOCUMENT_KINDS) {
-      expect(DOCUMENTS_COLUMNS[kind]).not.toContain('created_by');
+      expect(DOCUMENTS_COLUMNS[kind]).toContain('created_by');
+    }
+  });
+
+  // ⚠️⚠️ AND THESE TWO ARE STILL ABSENT, WHICH `5h-ii-b` MEASURED RATHER THAN
+  // INHERITED. They are what a client would need to draw the WINDOW half of
+  // `0021`'s fence — it is measured from `recorded_at` on an offline write and
+  // `occurred_at` otherwise — and drawing it here would be a second answer to
+  // *may she void this*, in the one place a wrong answer hides a button she is
+  // allowed to press. The database answers it, as `TD003`. A tidying pass that
+  // adds either turns this red and has to say why.
+  it('asks for neither recorded_offline nor recorded_at', () => {
+    for (const kind of DOCUMENT_KINDS) {
       expect(DOCUMENTS_COLUMNS[kind]).not.toContain('recorded_offline');
+      expect(DOCUMENTS_COLUMNS[kind]).not.toContain('recorded_at');
     }
   });
 
@@ -568,7 +608,7 @@ describe('the lines — what was keyed, in the unit it was keyed in', () => {
 
   it('is an empty list when the embed is absent, and never a crash', () => {
     const read = documentsFrom('purchase', [
-      { id: 'p1', occurred_at: middayOf('2026-09-25'), total_net: '10.00', total_tax: '0.00', reversal_of: null },
+      { id: 'p1', occurred_at: middayOf('2026-09-25'), total_net: '10.00', total_tax: '0.00', reversal_of: null, created_by: 'person-1' },
     ]);
     expect(read.documents[0]?.lines).toEqual([]);
   });

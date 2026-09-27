@@ -44,7 +44,11 @@
 #   3. ⚠️⚠️ EVERY MONEY AND QUANTITY FIELD COMES BACK AS A JSON **STRING**, read
 #      off the wire — on the document AND inside the embed.
 #   4. ⚠️ A column the app never asks for never reaches a phone (C8.8, `R13`) —
-#      `created_by` and `recorded_offline` by name, because both are decisions.
+#      `recorded_at` and `recorded_offline` by name, because that pair is the
+#      decision `5h-ii-b` measured: they are what drawing `0021`'s WINDOW on the
+#      client would need, and the database is what answers it instead.
+#      ⚠️ `created_by`, `qty_base` and `unit_price_net_per_base` were on that list
+#      until 2026-09-26 and are now REQUIRED rather than merely permitted.
 #   5. ⚠️⚠️ `limit` COUNTS DOCUMENTS: `limit=1` over a three-line delivery answers
 #      one document carrying all three.
 #   6. ⚠️ The documents come back NEWEST FIRST, by the app's own order.
@@ -467,19 +471,32 @@ else
 fi
 SALES_FILE="$(stash sales "$SALES")"
 
-BANNED='created_by,recorded_offline,reversal_reason,payload_hash,recorded_at,workspace_id,location_id'
-LINE_BANNED='qty_base,unit_price_net_per_base,tax_rate,expiry_date,created_at,purchase_id,sale_id,workspace_id,location_id'
+# ⚠️⚠️ THREE NAMES LEFT THESE LISTS ON 2026-09-26 WHEN `5h-ii-b` WIDENED THE READ,
+# AND EVERY ONE OF THEM MOVED TO `wanted_*` RATHER THAN SIMPLY GOING. `created_by`
+# is read so `mayCorrect` can hide a button a cashier cannot use — it is never
+# rendered, so `today.ts`'s §2.7 refusal is untouched — and `qty_base` and
+# `unit_price_net_per_base` are what `prefillOf` puts back in the cart. **A column
+# this check stops banning must start being required**, or the assertion becomes
+# *anything goes*.
+#
+# ⚠️ `recorded_at` AND `recorded_offline` ARE STILL BANNED AND THAT IS THE
+# SHARPEST PAIR HERE: they are exactly what a client would need to draw the WINDOW
+# half of `0021`'s fence, and drawing it on this side would be a second answer to
+# *may she void this*. The database answers it, as `TD003`.
+BANNED='recorded_offline,reversal_reason,payload_hash,recorded_at,workspace_id,location_id'
+LINE_BANNED='tax_rate,expiry_date,created_at,purchase_id,sale_id,workspace_id,location_id'
 
 cat > "$SCRATCH/shape.py" <<'PY'
 import json, sys
 path, kind, line_key, banned, line_banned = sys.argv[1:6]
 banned = banned.split(',')
 line_banned = line_banned.split(',')
-wanted_doc = {'id', 'occurred_at', 'total_net', 'total_tax', 'reversal_of', line_key}
+wanted_doc = {'id', 'occurred_at', 'total_net', 'total_tax', 'reversal_of',
+              'created_by', line_key}
 if kind == 'purchase':
     wanted_doc.add('provider_id')
-wanted_line = {'id', 'variant_id', 'qty_display', 'qty_display_unit',
-               'line_net', 'tax_amount', 'product_variant'}
+wanted_line = {'id', 'variant_id', 'qty_base', 'qty_display', 'qty_display_unit',
+               'unit_price_net_per_base', 'line_net', 'tax_amount', 'product_variant'}
 
 try:
     rows = json.load(open(path))
@@ -499,10 +516,13 @@ for row in rows:
     reached = [c for c in banned if c in row]
     if reached:
         print('%s reached the phone on a %s — a column the app never asks for is a '
-              'column that never reaches a phone (C8.8, R13). ⚠️ created_by and '
-              'recorded_offline are DECISIONS: 5h-ii-b adds created_by with the argument '
-              'for showing it, and recorded_offline is an internal state a shopkeeper '
-              'never does bookkeeping over' % (reached, kind)); raise SystemExit
+              'column that never reaches a phone (C8.8, R13). ⚠️⚠️ recorded_at and '
+              'recorded_offline are the DECISION here and 5h-ii-b measured it: they '
+              'are what a client would need to draw the WINDOW half of 0021\'s fence, '
+              'which is measured from recorded_at on an offline write and occurred_at '
+              'otherwise — a second answer to "may she void this", wrong in the '
+              'direction of hiding a button she is allowed to press' % (reached, kind))
+        raise SystemExit
 
     # ⚠️⚠️ ASSERTION 3 — THE CASTS ON THE DOCUMENT, READ OFF THE WIRE.
     for field in ('total_net', 'total_tax'):
@@ -529,14 +549,21 @@ for row in rows:
                   % (sorted(one), sorted(wanted_line))); raise SystemExit
         reached = [c for c in line_banned if c in one]
         if reached:
-            print('%s reached the phone on a line (C8.8, R13). ⚠️ '
-                  'unit_price_net_per_base is DELIBERATELY absent: 5h-ii-b adds it to '
-                  'prefill a re-record, and this row renders a line total instead'
-                  % reached); raise SystemExit
+            print('%s reached the phone on a line (C8.8, R13). ⚠️ tax_rate and '
+                  'expiry_date are the live decisions now that 5h-ii-b has taken '
+                  'qty_base and unit_price_net_per_base: tax_rate is what recovering a '
+                  'sale\'s GROSS price would need, and that row decided a corrected '
+                  'sale is re-priced at the shelf instead' % reached); raise SystemExit
 
         # ⚠️⚠️ ASSERTION 3, INSIDE THE EMBED — THE CLAIM THIS WHOLE CHECK EXISTS
         # FOR. Nothing in this app had read a cast column out of a nested array.
-        for field in ('qty_display', 'line_net', 'tax_amount'):
+        # ⚠️ `qty_base` AND `unit_price_net_per_base` JOINED THIS LIST WITH
+        # `5h-ii-b`, AND THEY ARE THE TWO THE SUITE CANNOT SEE AT ALL: nothing
+        # renders either, so an uncast `qty_base` would arrive as a double and
+        # `prefillOf` would put a rounded quantity into a cart about to be
+        # re-recorded — a wrong number in the ledger, with no symptom on screen.
+        for field in ('qty_base', 'qty_display', 'unit_price_net_per_base',
+                      'line_net', 'tax_amount'):
             value = one[field]
             if not isinstance(value, str):
                 print('%s arrived as %s (%r) INSIDE THE EMBED rather than as a string — '

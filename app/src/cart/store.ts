@@ -138,6 +138,27 @@ export interface CartState {
   readonly setPrice: (kind: Kind, variantId: string, perBase: string | null) => void;
   /** `Vaciar carrito` — the one removal that keeps its confirmation (`5f-iii`). */
   readonly clear: (kind: Kind) => void;
+  /**
+   * ⚠️ `5h-ii-b` — THE WHOLE CART, THE WHOLE QUOTE MAP AND THE PROVIDER, SET IN
+   * ONE `set()`. A correction is *this delivery, again*: `Corregir` voids the
+   * document and then hands the capture screen its lines back.
+   *
+   * ⚠️⚠️ IT IS ONE ACTION AND NOT THREE CALLS, AND THE REASON IS `openProvider`.
+   * That action CLEARS `typed.buy` whenever the provider changes (C3.11), so
+   * `openProvider` then `setPrice` × n would work and `setPrice` × n then
+   * `openProvider` would silently drop every price — an ordering trap with no
+   * symptom but an empty price box. Setting all three at once has no order.
+   *
+   * ⚠️ IT REPLACES AND DOES NOT MERGE. Two documents in one cart is not a thing
+   * a shopkeeper asked for, and the screen warns her when the cart it is about
+   * to replace is not empty (`ES.documents.correctBusy`).
+   */
+  readonly load: (
+    kind: Kind,
+    lines: Cart,
+    quotes: Quotes,
+    providerId: string | null,
+  ) => void;
 }
 
 /**
@@ -240,6 +261,15 @@ export const useCartStore = create<CartState>()(
         set((s) => ({
           carts: { ...s.carts, [kind]: EMPTY_CART },
           typed: { ...s.typed, [kind]: NO_QUOTES },
+        })),
+      load: (kind, lines, quotes, providerId) =>
+        set((s) => ({
+          carts: { ...s.carts, [kind]: lines },
+          typed: { ...s.typed, [kind]: quotes },
+          // ⚠️ THE PROVIDER MOVES ONLY ON THE BUY SIDE. A sale has none, and
+          // writing `null` over it on a sale correction would empty Comprar's
+          // supplier the next time she opened it.
+          ...(kind === 'buy' ? { providerId } : {}),
         })),
     }),
     {
