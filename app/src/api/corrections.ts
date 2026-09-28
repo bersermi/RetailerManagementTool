@@ -98,7 +98,8 @@
 // it has ever rung, so a corrected sale is a sale made now at the price on the
 // shelf now. ⚠️ The cost is a shelf price that moved between the sale and the
 // correction; the reversal is one column (`tax_rate::text`) and one call to
-// `grossFromNet`.
+// `grossFromNet`. ✅ **RULED 2026-09-28 by the owner — *"Leave the corrected sale
+// price as recommended."*** It was parked against `5P-c`; it is now settled.
 //
 // ⚠️ THE BUY SIDE IS EXACT: `record_purchase` takes `unit_price_net_per_base`,
 // `purchase_line` stores it, and `quoted` passes a buy quote through unchanged
