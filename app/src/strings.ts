@@ -1195,17 +1195,241 @@ export const ES = {
   },
 
   /**
-   * PROVEEDORES — the module word, and today nothing else. Plan task `6b`.
+   * PROVEEDORES — WHO THE SHOP BUYS FROM. Plan task `6b`, and this block held
+   * exactly one key until that row was taken: §2.8 put a row to Proveedores on
+   * Inicio in `5d-iv-b` and drew it DEAD, so the module's word was needed a step
+   * before its room was.
    *
-   * ⚠️ IT IS ITS OWN BLOCK WITH ONE KEY, AND THAT IS DELIBERATE. §2.8 puts a
-   * row to Proveedores on Inicio and `6b` builds the screen behind it, so the
-   * word is needed a step before the room is. Folding it into `ES.home` would
-   * put a MODULE NAME inside a SCREEN's block — the arrangement `displayName`
-   * refused for exactly this reason one task earlier — and `6b` would then have
-   * to move it, which is a rename nobody would notice was due.
+   * ⚠️⚠️ THE CREATE DOOR IS A ROW AND NOT A BUTTON, AND THAT IS THE OWNER'S
+   * RULING OF 2026-09-23 APPLIED A SECOND TIME RATHER THAN A DESIGN THIS TASK
+   * INVENTED. He removed `Agregar` from Productos in his own words — *"this
+   * allows us to discard partially duplicate product creation"* — and a provider
+   * directory has the SAME failure and a harder version of it:
+   * `provider_name_unique` is on `normalized_name` (`0002`), so *Bodega Centro*
+   * and *Bodega del Centro* are two rows the database is perfectly happy with,
+   * and a shop that accumulates both has two price memories for one supplier and
+   * `provider_price_memory` splits down the middle. **He searches, he is shown
+   * every supplier he already has under that name, and only then does the typed
+   * name become a row with `create.row` under it.**
+   *
+   * ⚠️⚠️ THERE IS NO *Eliminar* IN THIS BLOCK AND THERE CANNOT BE ONE: `0002`
+   * gives `provider` no DELETE policy at all, and `provider_protect_generic`
+   * additionally raises `restrict_violation` on the generic row. So the word is
+   * `edit.retire` — *Quitar proveedor* — and it is `is_active` false, which is
+   * `producto/[id]`'s treatment of the identical absence one table over.
+   *
+   * ⚠️ AND THE WORDS A CASHIER WOULD NEED FOR A REFUSED WRITE DO EXIST HERE,
+   * unlike `ES.catalog.create`, which deliberately has none. `canWriteProviders`
+   * keeps the controls off her screen — but it does NOT keep her off the screen,
+   * because `provider_select` admits every member of the shop (`0002`) and she is
+   * the person who may need to ring a supplier. `errors.notAllowed` is what a
+   * manager demoted mid-shift sees on a form she had already opened.
    */
   providers: {
     title: 'Proveedores',
+    /** ⚠️ *Volver* and not *Cerrar*: a pushed screen, `ES.catalog.back`'s word
+     *  for `productos.tsx`'s reason — this is somewhere you went into. */
+    back: 'Volver',
+    /**
+     * The placeholder in the box above the list.
+     *
+     * ⚠️⚠️ IT EXISTS BECAUSE `Buscador` USED TO SPELL `ES.catalog.search` INSIDE
+     * ITSELF, and this is `R16` rather than a tidy-up: the difference between the
+     * copies becomes a PROP. Four screens search the catalog and pass that word;
+     * this one searches suppliers. ⚠️ The prop is REQUIRED and carries no default
+     * — a default of *Buscar producto* on a box drawn over a list of suppliers is
+     * the stale-word defect with nothing able to see it.
+     */
+    search: 'Buscar proveedor',
+
+    /**
+     * ⚠️ THE LINE UNDER THE GENERIC ROW, AND IT IS THE ONLY ROW ON THIS SCREEN
+     * THAT CARRIES ONE. `0039` seeds it as *Genérico* and F6 makes it Comprar's
+     * default; its NAME therefore comes from the database like every other row's,
+     * and what needs saying is what it is FOR. Without this line it reads as a
+     * supplier somebody named badly.
+     */
+    genericNote: 'Para lo que compras sin proveedor fijo',
+
+    create: {
+      /** ⚠️⚠️ THE LEGEND UNDER THE CREATE ROW — the only door into this form, and
+       *  `ES.catalog.create.row`'s ruling applied to suppliers. ⚠️ Title case is
+       *  the owner's own spelling, like `Crear Nuevo Producto`. */
+      row: 'Crear Nuevo Proveedor',
+      /** The room's name. */
+      title: 'Nuevo proveedor',
+      /** ⚠️ *Cancelar* and not *Volver*, `ES.catalog.create.cancel`'s reason:
+       *  this screen holds typing that will be thrown away. */
+      cancel: 'Cancelar',
+      submit: 'Guardar proveedor',
+      working: 'Guardando…',
+      /** The way off the keyboard. `ES.catalog.create.done`'s word. */
+      done: 'Listo',
+    },
+
+    edit: {
+      /** The room's name. ⚠️ The supplier's own name is the subtitle under it,
+       *  because *Editar* alone does not say WHICH supplier is open — exactly
+       *  `ES.catalog.edit.title`'s arrangement. */
+      title: 'Editar proveedor',
+      cancel: 'Cancelar',
+      submit: 'Guardar cambios',
+      working: 'Guardando…',
+      done: 'Listo',
+
+      /**
+       * ⚠️⚠️ *Quitar* AND NOT *Eliminar*, AND THE WORD IS THE TRUTH RATHER THAN A
+       * SOFTENING. `0002` gives `provider` no delete policy, so nothing is
+       * deleted: the row leaves the directory and Comprar's picker, and every
+       * delivery ever recorded against it stays in the ledger and in
+       * `provider_price_memory`. *Eliminar* would promise a removal the database
+       * refuses to perform.
+       */
+      retire: 'Quitar proveedor',
+      /**
+       * ⚠️⚠️ IT GETS A CONFIRMATION AND `Guardar cambios` DOES NOT, which is
+       * `producto/[id]`'s rule: a rename is re-typed in two taps, and a supplier
+       * removed by a mis-tap looks exactly like a deletion to the person who made
+       * it. ⚠️ The two sentences say the two halves separately — what goes, and
+       * what stays — because *"se quitará"* alone is the sentence a shopkeeper
+       * reads as *my purchase history is gone*.
+       */
+      retireAsk: '¿Quitar este proveedor?',
+      retireOnce: 'Ya no aparecerá al registrar una compra. Las compras que ya registraste no cambian.',
+      /** ⚠️ NO WAY BACK, STATED RATHER THAN APOLOGISED FOR — the owner's ruling
+       *  of 2026-09-23 about a retired product, and this screen offers no
+       *  *Reactivar* for the same reason it offers no *Eliminar*: see
+       *  `providerDirectory.ts`'s header, which parks the question for him. */
+      retireConfirm: 'Quitar',
+      retireWorking: 'Quitando…',
+      retireKeep: 'Conservar',
+
+      /**
+       * ⚠️ WHAT AN UNTOUCHED FORM DOES, SAID ONCE — `ES.catalog.edit.priceKeep`'s
+       * arrangement. Every box on this form starts holding what the shop already
+       * has, so *save with nothing changed* is a legitimate gesture and it must
+       * not look like a failure.
+       */
+      nothing: 'No cambiaste nada.',
+    },
+
+    /**
+     * ⚠️ ONE SET OF LABELS FOR BOTH FORMS, WHICH IS THE OPPOSITE OF
+     * `ES.catalog`'s ARRANGEMENT AND IS DELIBERATE. Over there the create form
+     * and the edit form ask for genuinely different things — a family and a unit
+     * on one, a new price on the other — so two sets of labels carry two
+     * different meanings. Here the four fields are the same four columns in the
+     * same order, and two spellings of *Teléfono* would be the stale-duplicate
+     * defect waiting for one of them to be edited.
+     */
+    fields: {
+      nameLabel: 'Nombre',
+      /** ⚠️ AN INSTRUCTION AND NOT AN EXAMPLE, which is the hint ruling of
+       *  2026-09-23: a real supplier name sitting in the box is indistinguishable
+       *  from a supplier name somebody typed. */
+      nameHint: 'Escribe el nombre del proveedor',
+
+      contactLabel: 'Contacto',
+      contactHint: 'Escribe con quién hablas ahí',
+
+      phoneLabel: 'Teléfono',
+      phoneHint: 'Escribe el teléfono',
+
+      addressLabel: 'Dirección',
+      addressHint: 'Escribe la dirección',
+
+      /**
+       * ⚠️⚠️ THREE OF THE FOUR COLUMNS ARE NULLABLE IN `0002` AND THE FORM SAYS
+       * SO, because the alternative is a shopkeeper inventing a phone number to
+       * get past a box. Only `name` is `not null` — and it also carries
+       * `provider_name_not_blank`, so a name of spaces is refused by the database
+       * as well as by `checkProvider`.
+       */
+      optional: 'Opcional',
+      /** ⚠️ WHAT AN EMPTY COLUMN READS AS ON THE DETAIL SCREEN. C3.12's dash,
+       *  pointed at a contact rather than at a price: *nothing here* and *not
+       *  loaded yet* must not look the same, and the loading state is a sentence
+       *  of its own in `empty`. */
+      blank: '—',
+    },
+
+    /**
+     * What this screen refuses BEFORE it asks the database — keys and never
+     * Spanish at the call site (`R4`, `ES.catalog.editIssues`' shape).
+     */
+    issues: {
+      /** `provider_name_not_blank` says the same thing in SQL. A form that let
+       *  this through would trade a sentence for a `23514` nobody can act on. */
+      nameBlank: 'Escribe el nombre del proveedor.',
+      /**
+       * ⚠️⚠️ THE LOCAL CHECK AND `errors.duplicate` ARE THE SAME SENTENCE ON
+       * PURPOSE, `ES.catalog.errors.duplicate`'s argument: it is one fact
+       * arriving from two sides, and the local half CANNOT be complete — it
+       * cannot see a supplier added on another phone, nor a RETIRED one, which
+       * `providersFrom` drops and the unique index still counts.
+       */
+      duplicate: 'Ya tienes un proveedor con ese nombre. Usa otro.',
+    },
+
+    errors: {
+      /** `23505` on `provider_name_unique` — and the constraint is on
+       *  `normalized_name`, so this fires on a name that merely FOLDS to one she
+       *  already has. `issues.duplicate`'s sentence, for its reason. */
+      duplicate: 'Ya tienes un proveedor con ese nombre. Usa otro.',
+      /**
+       * ⚠️⚠️ `42501`, AND IT IS NOT *"tu sesión se cerró"* — `ES.catalog.errors.notAllowed`'s
+       * measured argument one table over. `provider_insert` is
+       * `has_role(…, 'manager')`, so this is a cashier being refused and sending
+       * her to sign in again would be a loop with no end in it.
+       * ⚠️⚠️ AND ON AN **UPDATE** IT IS NOT A 42501 AT ALL: `provider_update`'s
+       * `using` clause makes the row INVISIBLE, so PostgREST answers **200 with
+       * `[]`** and only `.single()` turns that into something an app can act on
+       * ([[rls-update-refusal-is-a-200]]). `patchProvider` asks for the row back
+       * for exactly that reason, and this is the sentence it maps the empty
+       * answer to.
+       */
+      notAllowed: 'Solo el dueño o un gerente puede cambiar los proveedores.',
+      /**
+       * ⚠️ `restrict_violation` FROM `provider_protect_generic` — the generic row
+       * being demoted or deleted. `canRetire` makes it unreachable, so reaching
+       * it is OUR mistake deployed, and this says so rather than dressing it up.
+       */
+      generic: 'Este proveedor no se puede quitar.',
+      /** ⚠️ THE HONEST CATCH-ALL FOR A ROW WE SHOULD NEVER HAVE SENT — `23514`
+       *  from the blank-name check, a `23503` from a workspace that is not hers.
+       *  `checkProvider` makes both unreachable; dressing a deployed mistake in a
+       *  helpful sentence hides the one class of failure that must be fixed
+       *  rather than retried. `ES.catalog.errors.rejected`'s argument. */
+      rejected: 'No pudimos guardar este proveedor. Inténtalo de nuevo.',
+      /** ⚠️ THE DETAIL READ CAME BACK EMPTY — a supplier retired on another phone
+       *  while this one held the row, which is not an error and must not read as
+       *  one. */
+      missing: 'Este proveedor ya no está.',
+    },
+
+    /**
+     * The one line the list shows when it has no rows — three different facts
+     * kept apart, `ES.catalog`'s `catalogLine` arrangement.
+     */
+    empty: {
+      loading: 'Cargando proveedores…',
+      /**
+       * ⚠️⚠️ IT IS UNREACHABLE IN A SHOP `onboard_workspace` CREATED, AND IT IS KEPT
+       * DELIBERATELY — the *dead, not wrong* argument `@/api/providers` makes about
+       * `MemoryState.unreadable`. The generic row is seeded and `providersFrom` keeps
+       * it whatever `is_active` says, so an empty box always matches at least one
+       * supplier. ⚠️ **What it is NOT is the sentence a broken read shows**:
+       * `providerLine` puts `failed` first, precisely so that *we could not ask* never
+       * wears the words *there are none*. It exists because *always at least one* is a
+       * claim about the SEED, and a list that trusted the seed would render nothing at
+       * all the day a shop somehow had none.
+       */
+      none: 'Todavía no tienes proveedores.',
+      /** ⚠️ NO *Crear Nuevo Proveedor* IS DRAWN FOR A CASHIER, so she is the only
+       *  person who can reach this line: for a manager, a search that matches
+       *  nothing IS the create row. */
+      noMatch: 'Ningún proveedor con ese nombre.',
+    },
   },
 
   /**

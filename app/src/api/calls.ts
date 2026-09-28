@@ -159,6 +159,15 @@ import {
   type ProviderRow,
 } from '@/api/providers';
 import {
+  DETAIL_COLUMNS,
+  DETAIL_ID_COLUMN,
+  DIRECTORY_TABLE,
+  WRITE_RETURNING,
+  type ProviderDetailRow,
+  type ProviderInsert,
+  type ProviderPatch,
+} from '@/api/providerDirectory';
+import {
   INSERT_RETURNING,
   WRITE_ORDER,
   familyRow,
@@ -1067,6 +1076,70 @@ export async function voidDocument(
     throw new Error(`${VOID_TRANSACTION} answered a shape this app does not recognise`);
   }
   return voided;
+}
+
+/**
+ * ONE supplier, with the three columns Comprar never asks for. Plan task `6b`.
+ *
+ * ⚠️⚠️ `maybeSingle` AND NOT `single`, WHICH IS THE OPPOSITE CHOICE FROM EVERY
+ * WRITE IN THIS FILE AND IS RIGHT FOR THE OPPOSITE REASON. On a PATCH an empty
+ * answer IS the fence and `.single()` is what surfaces it. On this READ an empty
+ * answer is a supplier retired on another phone — `provider_select` admits every
+ * member of the shop, so zero rows here cannot mean *you may not* — and a
+ * `PGRST116` for that would be an error thrown at a shopkeeper for a legitimate
+ * state. `detailFrom` turns the `null` into the sentence.
+ *
+ * ⚠️ NO `is_active` FILTER. A retired supplier is unreachable from the list, but a
+ * phone holding this screen when another one retires the row must be able to see
+ * that it happened rather than read an empty answer as a broken connection.
+ */
+export async function providerDetail(id: string): Promise<ProviderDetailRow | null> {
+  const { data, error } = await supabase
+    .from(DIRECTORY_TABLE)
+    .select(DETAIL_COLUMNS)
+    .eq(DETAIL_ID_COLUMN, id)
+    .maybeSingle();
+  if (error) throw reported(error);
+  return (data ?? null) as unknown as ProviderDetailRow | null;
+}
+
+/**
+ * A new supplier. One row, one statement — `createProduct`'s three-table dance has
+ * no analogue here, because `provider` is one flat table with no price beside it.
+ *
+ * ⚠️ IT RETURNS THE ID BECAUSE THE LIST SCROLLS TO IT AND BLINKS IT, which is the
+ * `?nuevo=` arrangement `producto/nuevo` established and the owner asked for in
+ * his own words — *"an intermitent animation"*, and nothing else.
+ */
+export async function createProvider(row: ProviderInsert): Promise<string> {
+  const { data, error } = await supabase
+    .from(DIRECTORY_TABLE)
+    .insert(row)
+    .select(WRITE_RETURNING)
+    .single();
+  if (error) throw reported(error);
+  return (data as { id: string }).id;
+}
+
+/**
+ * A rename, the three contact columns, or a retirement — one PATCH either way.
+ *
+ * ⚠️⚠️ `.select().single()` IS LOAD-BEARING AND IS NOT THERE TO RETURN ANYTHING.
+ * `provider_update` refuses a cashier through its `using` clause, which makes the
+ * row INVISIBLE rather than forbidden: PostgREST answers **200 with `[]`** and a
+ * PATCH that asked for nothing back would report success for a write that never
+ * happened ([[rls-update-refusal-is-a-200]]). `.single()` turns the empty answer
+ * into `PGRST116`, and `providerWriteErrorMessage` maps it. `patchVariant` above
+ * carries the identical arrangement for the identical reason.
+ */
+export async function patchProvider(id: string, patch: ProviderPatch): Promise<void> {
+  const { error } = await supabase
+    .from(DIRECTORY_TABLE)
+    .update(patch)
+    .eq(DETAIL_ID_COLUMN, id)
+    .select(WRITE_RETURNING)
+    .single();
+  if (error) throw reported(error);
 }
 
 /**

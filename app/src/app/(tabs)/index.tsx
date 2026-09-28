@@ -228,15 +228,22 @@ function Tarjeta({ door }: { door: InicioDoor }) {
 }
 
 /**
- * THE TWO ROOMS THE TAB BAR HAD NO SPACE FOR — §2.8's rows, and the fifth and
- * sixth destinations the amendment bought.
+ * THE ROOMS THE TAB BAR HAD NO SPACE FOR — §2.8's rows.
  *
- * ⚠️⚠️ PROVEEDORES IS DRAWN AND IS DRAWN DEAD. `6b` builds the screen behind
- * it; until then the row is here because a shopkeeper should see what is coming,
- * and it carries `ES.home.notYet` because a door that looks live and opens onto
- * nothing is worse than one that is obviously not built. That is `5d-iii`'s
- * ruling applied to a door rather than to a button, and `ES.approvals.notYet`
- * before it — both deleted by the task that makes the thing work.
+ * ⚠️ THERE ARE THREE OF THEM AND THIS COMMENT SAID *TWO* UNTIL `6b`. Productos
+ * and Proveedores are §2.8's fifth and sixth destinations, the ones the 2026-09-17
+ * amendment bought; `Lo último` is `5h-ii-a`'s and the ADR carries a revision entry
+ * for it. ⚠️ The count is not written as a number anywhere a machine reads —
+ * `doorsOfShape('fila')` is, and `app/test/inicio.test.ts` pins it.
+ *
+ * ⚠️⚠️ AND EVERY DOOR ON THIS SCREEN IS NOW OPEN — `6b` (2026-09-27) built
+ * Proveedores, which had been drawn DEAD since `5d-iv-b` shipped it. So the
+ * `isOpen` branch below and `ES.home.notYet` are both **unreachable today, and
+ * both are kept deliberately** — the `unreadable` argument `@/api/providers` makes
+ * about a dead `MemoryState`: the state is dead, not wrong, and deleting the branch
+ * to celebrate a room being built is how the NEXT dead door costs more than it
+ * should. ⚠️ Saying so here is the alternative to somebody finding an unused string
+ * and treating it as a leftover.
  */
 function Filas() {
   const { scale } = useDensity();

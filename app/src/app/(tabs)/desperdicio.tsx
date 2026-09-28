@@ -353,7 +353,7 @@ export default function Desperdicio() {
     >
       <Encabezado reason={reason} onPress={() => setPicking(true)} />
 
-      <Buscador value={typed} onChange={setTyped} box={box} />
+      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
         ref={list}

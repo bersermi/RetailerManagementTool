@@ -134,9 +134,13 @@ describe('§2.8 — the six doors, three as cards and three as rows', () => {
   });
 
   // ⚠️ `documentos` SITS BETWEEN THEM AND NOT AT THE END, which is a decision
-  // about order rather than an accident: Proveedores is the only door on this
-  // screen with no room behind it (`6b`), and a LIVE door below a dead one reads
-  // as the live one being the afterthought.
+  // about order rather than an accident. ⚠️⚠️ **THE REASON IT WAS MADE HAS EXPIRED
+  // AND THE ORDER IS KEPT**: Proveedores was the only door with no room behind it
+  // when `5h-ii-a` placed `documentos` above it, and a LIVE door below a dead one
+  // reads as the live one being the afterthought. `6b` built that room on
+  // 2026-09-27, so nothing on this screen is dead any more — and the order stays
+  // because moving it now would reorder a screen the owner has held, which is a
+  // decision and not a tidy-up.
   it('draws Productos, Lo último and Proveedores as rows, in order', () => {
     expect(doorsOfShape('fila').map((d) => d.key)).toEqual([
       'productos',
@@ -200,15 +204,17 @@ describe('C12.1 — never an icon without its word, and never a word we invented
   });
 });
 
-describe('a door with no room is drawn dead rather than drawn live', () => {
-  // ⚠️⚠️ PROVEEDORES IS THE ONE. §2.8 puts the row on Inicio and `6b` builds
-  // the screen; `5d-iii`'s ruling is that it is drawn because a shopkeeper
-  // should see what is coming and drawn PLAINLY dead because a control that
-  // looks live and refuses silently is worse than one that is obviously not
-  // built.
-  it('has exactly one door with no route, and it is Proveedores', () => {
+describe('every door on Inicio now has a room, and the dead-door machinery is kept', () => {
+  // ⚠️⚠️ THIS BLOCK ASSERTED THE OPPOSITE UNTIL `6b` (2026-09-27), AND THE
+  // INVERSION IS THE PREVIOUS VERSION'S OWN PREDICTION ARRIVING. It used to read
+  // *"has exactly one door with no route, and it is Proveedores"*, with a comment
+  // ending **"The day `6b` ships, this whole assertion goes with it."** It has, and
+  // the assertion is inverted rather than deleted: *no door is dead* is a claim
+  // worth holding, because the next unbuilt door added to this table would
+  // otherwise ship with nothing watching whether it was drawn dead at all.
+  it('has no door with no route', () => {
     const shut = INICIO_DOORS.filter((door) => !isOpen(door));
-    expect(shut.map((d) => d.key)).toEqual(['proveedores']);
+    expect(shut.map((d) => d.key)).toEqual([]);
   });
 
   it('agrees with itself about which doors are open', () => {
@@ -217,23 +223,22 @@ describe('a door with no room is drawn dead rather than drawn live', () => {
     }
   });
 
-  // The sentence under a dead door is what keeps it from looking broken — the
-  // shape `ES.approvals.notYet` had at `5b-iii-d-1` and `ES.family.notYet` at
-  // `5d-iii`, and it is deleted by the task that makes the door work.
+  // ⚠️⚠️ THE SENTENCE IS UNREACHABLE TODAY AND IT IS KEPT, which is the argument
+  // `@/api/providers` makes about its dead `MemoryState`: **the state is dead, not
+  // wrong.** `ES.home.notYet` renders nowhere now that every door is open —
+  // `index.tsx`'s `Filas` still has the branch, and its header says so — and
+  // deleting the string to celebrate Proveedores being built is how the next dead
+  // door costs more than it should.
   //
-  // ⚠️⚠️ `ES.family.notYet` IS NOW GONE, WHICH IS THIS ASSERTION'S OWN ARGUMENT
-  // ARRIVING. It used to read `expect(ES.home.notYet).not.toBe(ES.family.notYet)`
-  // — two dead-door sentences, kept distinct so one screen's wording could not be
-  // pasted onto another's. `5g-iii` made `Costos` work and DELETED the family's
-  // copy, exactly as the comment above predicted, so the pair is down to one.
-  // ⚠️ **The surviving half is the one that matters and it is kept**: Proveedores
-  // is still an unbuilt door on Inicio (`6b`), so `ES.home.notYet` is still load
-  // -bearing. The day `6b` ships, this whole assertion goes with it.
-  it('has a sentence to put under a dead door', () => {
+  // ⚠️ `ES.family.notYet` IS THE ONE THAT REALLY WENT: it was deleted by `5g-iii`
+  // when `Costos` started working, which is what the old comment here predicted
+  // would happen to both. It was right about that one and the judgement differs
+  // here — `ES.approvals.notYet` and `ES.family.notYet` each belonged to ONE
+  // screen's one control, and this sentence belongs to a TABLE that will grow.
+  it('still has a sentence to put under a dead door', () => {
     expect(ES.home.notYet.length).toBeGreaterThan(0);
-    // ⚠️ AND IT IS NOT THE PLACEHOLDER EITHER, which is the substance of the
-    // original comparison: a door that is not built yet says something about
-    // WHEN, and an unbuilt SCREEN says something about itself.
+    // ⚠️ AND IT IS NOT THE PLACEHOLDER EITHER: a door that is not built yet says
+    // something about WHEN, and an unbuilt SCREEN says something about itself.
     expect(ES.home.notYet).not.toBe(ES.placeholder.pending);
   });
 });

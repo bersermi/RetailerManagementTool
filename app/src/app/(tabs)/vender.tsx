@@ -379,7 +379,7 @@ export default function Vender() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
     >
-      <Buscador value={typed} onChange={setTyped} box={box} />
+      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
         ref={list}

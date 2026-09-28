@@ -172,17 +172,21 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
     shape: 'fila',
     label: ES.providers.title,
     icon: 'account-tie-outline',
-    route: null,
+    route: '/proveedores',
     why:
-      "THE SIXTH DESTINATION IN §2.8's OWN COUNT, and still the only door on " +
-      'this screen with no room behind it — it is LAST in the table rather than ' +
-      'fifth because a live door below a dead one reads as the live one being ' +
-      'the afterthought (5h-ii-a, 2026-09-26). ' +
-      '6b builds Proveedores; until then it is drawn and drawn dead, ' +
-      'with ES.home.notYet under it. ⚠️ A row and not a card: §2.8 lists it ' +
-      'beside Productos, which is a room you visit, not a thing you do all day. ' +
-      '⚠️ The glyph is the PERSON and not the truck: truck-delivery is already ' +
-      'Comprar, and a proveedor is who you ring, not the delivery arriving.',
+      "THE SIXTH DESTINATION IN §2.8's OWN COUNT, and LIVE SINCE 6b " +
+      '(2026-09-27) — the last door on this screen to get a room, and the only ' +
+      'one that was ever drawn dead. ⚠️ IT IS STILL LAST IN THE TABLE, which is ' +
+      'now a choice rather than a consequence: it was put here so that no live ' +
+      'door sat below a dead one (5h-ii-a, 2026-09-26), and moving it up to ' +
+      "§2.8's fifth place would reorder a screen the owner has held. " +
+      '⚠️ ES.home.notYet no longer renders under it. ⚠️ A row and not a card: ' +
+      '§2.8 lists it beside Productos, which is a room you visit, not a thing ' +
+      'you do all day. ⚠️ The glyph is the PERSON and not the truck: ' +
+      'truck-delivery is already Comprar, and a proveedor is who you ring, not ' +
+      'the delivery arriving. ⚠️ No fence on it, catalogRows\' treatment: ' +
+      'provider_select admits any member of the shop (0002), and the create row ' +
+      'and the edit controls are what canWriteProviders hides from a cashier.',
   },
 ];
 

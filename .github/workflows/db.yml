@@ -407,6 +407,18 @@ on:
       # `record_waste` refusing the word (`22P02`) can.
       - "docs/checks/6a-ii-b-waste-correction-contract.sh"
       - "docs/checks/6a-ii-b-waste-correction-contract-falsify.sh"
+      # ⚠️⚠️ AND THE PROVIDER DIRECTORY, as of plan task `6b` — the first thing in
+      # this app that WRITES a `provider` row, twenty-five days after it started
+      # reading them. It is the only instrument anywhere that can see any of three
+      # things: that a cashier is refused an INSERT with `42501` on a 403 **and an
+      # UPDATE with a 200 and an empty array**, because `provider_update`'s `using`
+      # clause makes the row invisible rather than refusing the write; that
+      # `normalize_name` folds case and whitespace and **NOT accents**, which is
+      # what makes `checkProvider` deliberately stricter than its own schema; and
+      # that **the generic row can still be DEACTIVATED**, which nothing in Postgres
+      # prevents and `canRetire` is therefore the only fence there is.
+      - "docs/checks/6b-provider-directory-contract.sh"
+      - "docs/checks/6b-provider-directory-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -831,6 +843,114 @@ jobs:
       # `trap` on every exit path, and is re-proved by a second control.
       - name: Contract — can the correction check still fail (its own eight fixtures)
         run: bash docs/checks/6a-ii-b-waste-correction-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # ⚠️⚠️ THE SEVENTH JOB, ADDED BY `6b` (2026-09-27) — AND IT IS A NEW JOB RATHER
+  # THAN TWO MORE STEPS, WHICH IS THE OPPOSITE OF WHAT `6a-ii-a` AND `6a-ii-b` BOTH
+  # DID. Both of those appended, and the argument each made was that it shared the
+  # IDENTICAL fixture with the steps already in its job. This one does not, and the
+  # two candidates fail the test for different reasons:
+  #
+  #   * `catalog-write` is where the manager-fence precedent lives and where
+  #     `5g-i`'s provider fixture already is — and **it runs 12-13 minutes against
+  #     its own `timeout-minutes: 15` and was CANCELLED THREE TIMES on `main`**
+  #     before `5R-g` split it. Appending to a job that close to its cap is how a
+  #     cancellation becomes deterministic, and ⚠️ **a cancelled job is neither a
+  #     pass nor a failure, and it is the worst of the three to merge on**
+  #     ([[a-cancelled-ci-job-is-not-a-failed-assertion]]: `gh pr checks` prints
+  #     "fail" for both, and this repository merged red once on that confusion).
+  #   * `recent-documents` builds a shop, a catalog, a supplier and two people —
+  #     genuinely close — but its NAME already covers two unrelated things, and the
+  #     working agreement says to confirm the checks BY NAME in the log. A third
+  #     subject would make that name describe a third of what it runs, which is the
+  #     stale-claim defect `5h-ii-b` named when it renamed `waste`.
+  #
+  # ⚠️ Jobs run in parallel, so this costs wall-clock nothing — `5R-g` measured that
+  # the split was better than free.
+  #
+  # ⚠️⚠️ WHAT IT GUARDS (plan task `6b`): THE FIRST `provider` WRITE THIS APP HAS
+  # EVER MADE, twenty-five days after it started reading them. Three of its claims
+  # exist nowhere else in this repository:
+  #
+  #   * **A CASHIER IS REFUSED TWO DIFFERENT WAYS AND ONLY ONE OF THEM IS AN ERROR.**
+  #     `provider_insert` refuses her outright — HTTP 403 `42501`. `provider_update`
+  #     makes the row INVISIBLE through its `using` clause, so her PATCH is **200
+  #     with `[]`** and `.select().single()` is the only thing that turns it into
+  #     something an app can act on ([[rls-update-refusal-is-a-200]]). No typecheck,
+  #     suite or bundler has ever read a policy, `CREATE POLICY` is not in the
+  #     knowledge graph, and RLS is bypassed by the `postgres` superuser — so a
+  #     check run as superuser would pass vacuously.
+  #   * **`normalize_name` FOLDS CASE AND WHITESPACE AND NOT ACCENTS**, driven both
+  #     ways: `bodega   DEL centro` is refused `23505` and `Abarrotes Pena` beside
+  #     `Abarrotes Peña` is **accepted**. The second half is why `checkProvider` is
+  #     deliberately STRICTER than its own schema, and if the database ever started
+  #     refusing it, that comment would have become false with nothing to say so.
+  #   * **THE GENERIC ROW CAN STILL BE DEACTIVATED.**
+  #     `provider_protect_generic` refuses a DELETE and a demotion and **stops
+  #     there** — so `canRetire` in the client is the only fence there is, and a
+  #     client-only fence nobody has written down is a control the next session
+  #     deletes. ⚠️ The check switches it back on immediately.
+  #
+  # ⚠️ MEASURED LOCALLY 2026-09-27 rather than guessed: the check runs in about 12
+  # seconds and its ten-fixture harness in about 140, because a harness drives the
+  # whole live check a dozen times and every run signs THREE people up through a
+  # rate-limited GoTrue. Scaling that puts the two steps well inside the cap.
+  providers:
+    name: the provider directory, and the manager fence on it
+    runs-on: ubuntu-latest
+    # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE. ⚠️ WHAT MAKES A JOB LIKE THIS SLOW IS
+    # NOT THE FIXTURES, IT IS SIGNUP: GoTrue rate-limits and answers with an EMPTY
+    # BODY rather than a 429, so the retry loop inside the check sleeps ten seconds a
+    # try, six tries, three people per run. A cold or throttled runner is where the
+    # minutes would come from, and fifteen leaves room.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned for `reset`'s reason: a CLI release must not turn a green
+          # schema red without a commit saying why.
+          version: 2.114.0
+
+      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS — the check signs
+      # three people up through GoTrue and reads and writes through PostgREST, both
+      # via Kong. The exclusion list is `catalog-write`'s, for its reason.
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      # ⚠️⚠️ `provider` HAS BEEN IN THIS SCHEMA SINCE `0002` (2026-09-02) AND NOTHING
+      # IN `app/` HAD EVER WRITTEN A ROW TO IT. `5g-i` reads the list for Comprar's
+      # picker; `5g-iii` reads a name onto a cost chart; this is the first insert and
+      # the first patch, so `provider_insert` and `provider_update` have never been
+      # exercised from the app's own constants at all.
+      # ⚠️ It also asserts the OTHER side of `5g-i`'s banned-column boundary: those
+      # three directory columns must be on `DETAIL_COLUMNS` and must NOT be on
+      # `PROVIDER_COLUMNS`, so a session widening the list read to save a query goes
+      # red in two checks rather than shipping a decision about who sees what.
+      - name: Contract — does app/src/api/providerDirectory.ts still describe the schema (plan 6b)
+        run: bash docs/checks/6b-provider-directory-contract.sh
+
+      # ⚠️⚠️ AND THE HARNESS, WHICH FOUND TWO OF ITS OWN FIXTURES UNCATCHABLE ON ITS
+      # FIRST RUN AND SAID SO. One added `is_generic` to the insert body, which
+      # Postgres accepts happily; one made `optional()` return `''` instead of
+      # `null`, and **no shell script can call a TypeScript function.** Both claims
+      # belong to `app/test/api-provider-directory.test.ts`, the check gained an
+      # assertion about the CONSEQUENCE of the second, and the replacements break
+      # something on the wire. ⚠️ Its two database fixtures re-create
+      # `provider_select` and `provider_update` from `pg_policy` rather than from a
+      # copy in the harness, and put them back in a `trap` on every exit path.
+      - name: Contract — can the provider check still fail (its own ten fixtures)
+        run: bash docs/checks/6b-provider-directory-contract-falsify.sh
 
       - name: Stop
         if: always()
