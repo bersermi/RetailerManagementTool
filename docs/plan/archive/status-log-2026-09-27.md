@@ -521,3 +521,238 @@ second file; both rows are written now and every migration on disk has one. **(b
 fourteen views are `security_invoker`"* was a `grep` of the migrations and the database says
 **six**, because four of the six were re-issued with `create or replace`
 ([[counts-belong-to-the-runner]]). It was wrong in three files for about an hour.
+
+---
+
+## ⚠️⚠️ THIRD CUT — APPENDED 2026-09-27 BY `6d`, AND IT IS THE TWENTY-SIXTH CUT OVERALL
+
+⚠️⚠️ **APPENDED, NEVER A SECOND FILE FOR ONE DATE.** This is the same working day the two
+cuts above hold; one working day per file is the rule, and a `status-log-2026-09-27b.md`
+would break it. **This is the third time one date has been cut three times.**
+
+⚠️⚠️ **TAKEN BECAUSE `## Position` STOOD AT 1,318 OF 1,400 ONCE `6d` HAD WRITTEN ITS
+ENTRY — 82 LINES OF HEADROOM AGAINST AN ENTRY THAT RUNS 40–130.** That is below the whole
+range rather than merely inside it, so the next session could not have written at all.
+⚠️ The calibration either side of it: `6b` inherited 245 and spent 82 without cutting;
+`6c` cut at 163 and called it *enough to pass and not enough to write with*. **82 is not a
+judgement call.** **200 lines out**, the day's two oldest remaining closing entries taken
+oldest-first: `6c`'s (with its deploy note) and `6b`'s (with its look-question).
+
+⚠️⚠️ **EVERY LINE BELOW IS MOVED, NOT COPIED.** `split-coverage.sh` reads the corpus,
+which includes this file, and fails on *"row appears 2 times"*.
+
+⚠️⚠️ **AND THE RULE THE SECOND CUT STATED WAS BROKEN AND REPAIRED INSIDE THIS ONE, WHICH
+IS WHY IT IS WRITTEN DOWN RATHER THAN QUIETLY FIXED: A CUT TAKES CLOSED HISTORY AND MUST
+NOT TAKE AN OPEN OBLIGATION.** The first pass of this cut ran to a line boundary and
+swallowed the **install block** — *the build is made and signed and is NOT on his phone*,
+the `devicectl` `unavailable` / `CoreDeviceError 1011` finding, and the correction under
+it. That block is the ONLY place the blocker is written down, and **four rows of work are
+now queued behind one install**. It was moved back into `## Position` before this file was
+written. ⚠️ **The second cut left it behind deliberately and said so in one sentence; this
+one had to be told by re-reading that sentence.** A line range is not a semantic boundary,
+and the check that would have caught it does not exist.
+
+⚠️ **`6b`'s LOOK-QUESTION IS TAKEN AND THAT IS NOT THE SAME THING**: `docs/HANDBOOK.md`'s
+`## ⏸ THE CATCH-UP` indexes it, along with the other seven closed rows' looks, so
+archiving the entry does not stop it being re-offered. The install block has no such index.
+
+✅✅✅ **`6c` IS DONE, 2026-09-27 — THE SHOPKEEPER CAN DELETE A PRODUCT AGAIN, AND `Editar`'s RETIRE
+CONTROL HAD BEEN DRAWN ON NOTHING SINCE 2026-09-23.** `0042` mints `is_prebuilt` on `product_family`
+and `product_variant`, `catalog_prebuilt_stays()` fences the one transition that matters, and
+`producto/[id].tsx` draws the control on his own rows only. **Step 6's last planned row is closed and
+step 6 has a new one.**
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `L`, ONE SITTING — AND THE CLIENT HALF IS SMALLER THAN THE ROW
+IMPLIED.** Three measurements the row did not carry. **(1) THERE IS NO FAMILY EDIT SCREEN AT ALL** —
+`familia/[id]`'s `Editar` pushes to `producto/[id]` — so the marker goes on BOTH tables because the
+FENCE has to, and exactly ONE screen gains a control. **(2) THE RETIRE MACHINERY ALREADY EXISTED AND
+HAD NEVER BEEN CALLED**: `activePatch` and `ACTIVE_PATCH_COLUMNS` have been in `@/api/catalogEdit` and
+pinned in `api-catalog-edit.test.ts:352` since `5e-iii-a`, with zero callers — the `void_transaction`
+shape again. **(3) THE STRINGS ALREADY EXISTED**, kept for this row by `5e-iii-b` in as many words.
+
+⚠️⚠️ **THE MARKER'S SHAPE WAS ASKED AND RULED THE SAME DAY: A BOOLEAN `is_prebuilt`, NOT THE `origin`
+ENUM THE PLAN HAD CALLED IT SINCE 2026-09-23.** Both were put to him with their costs, and the boolean
+won on a measured argument two days old — **an enum crossing the wire as a LABEL rather than as its
+member is a bug no typecheck and no Vitest fixture can see**, which is what `6a-ii-b` found in
+`reasonLabel` and paid for in `DocumentLine.reasonValue`. A boolean has no label to get wrong, and it
+matches `provider.is_generic`, this schema's existing answer to the same question. ⚠️ **What it costs
+was named before he chose**: a third provenance is a new nullable column later, not an
+`alter type … add value`.
+
+⚠️⚠️ **FINDING 1 HELD, AND IT IS NOW A FIXTURE RATHER THAN A WARNING.** The fence is a trigger on
+`is_active` going true→false; **no policy in this schema moved**, and `supabase/tests/0042` §3.4
+asserts that neither update policy so much as mentions the column. The falsifier's `D1` **is** the
+policy-predicate version of `0042` — and it goes red on *"RENAMING A PREBUILT PRODUCT WAS REFUSED"*,
+which is exactly the damage the row predicted a year of reading could not have proved.
+
+⚠️⚠️ **THREE THINGS ONLY DRIVING IT COULD HAVE FOUND, AND THE FIRST IS A REAL DEFECT IN THE FIRST
+WRITING OF `0042`.** **(1) FENCING BOTH DIRECTIONS OF THE MARKER MAKES IT UNSETTABLE AFTER INSERT** —
+not by the seed, not by a fixture, not by a `service_role` job, not by a later migration without
+disabling the trigger. ⚠️ **The defect is invisible in the one case anybody tests**, an import that
+INSERTS its rows, and a shopkeeper could never reveal it. The fix is `provider_protect_generic`'s own
+asymmetry: refuse a demotion, permit a promotion. **(2) `restrict_violation` IS AN HTTP 400 WITH CODE
+`23001`** — measured off a real PostgREST, and neither a 403 nor a 409 ([[custom-sqlstate-arrives-as-400]]).
+`catalogEditErrorMessage` now maps it to a sentence that is **not** `notAllowedEdit`, because the same
+manager may rename and reprice this product: *"Este producto vino con la app, así que no se puede
+quitar. Sí puedes cambiarle el nombre y el precio."* **(3) A READ IN THE SAME STATEMENT AS THE WRITE
+SEES THE PRE-STATEMENT SNAPSHOT** — the pgTAP suite's first writing had `_try(update …)` and
+`select is_active` inside one `chk` call and **reported a working fence as broken**; read-backs are now
+separate statements and say so.
+
+⚠️⚠️ **AND THE FALSIFIER CAUGHT A DEFECT IN ITSELF, WHICH IS THE ONLY THING THAT COULD HAVE.** Its
+restore fed `pg_get_functiondef`'s output through an UNQUOTED heredoc, where `$function$` expands to a
+bare `$`: psql failed, `-v ON_ERROR_STOP=1` **aborted before the `create trigger` on the next line**,
+and `D3` then measured a database with no trigger at all — **red for the wrong reason, and it said so.**
+Every write in that restore had its output sent to `/dev/null`. It now pipes the body, issues each
+statement through its own `ask`, and **verifies the function and both triggers are back**, stopping the
+whole harness if they are not: a restore that puts the database back WRONG accuses the next fixture.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** **`supabase/tests/0042_catalog_origin.sql` — 25 behavioural
+checks**, every write in §4 under `set local role authenticated`. ⚠️ **Its §2 is the only place the
+owner's backfill ruling of 2026-09-24 is visible**: `0042` writes no `update` — an `update` reaches the
+same state and stamps `updated_at` on every row in every shop, destroying the only record of when a
+product was last really edited — so no ROW in a fresh database witnesses it and
+**`pg_attribute.attmissingval` is what records it**, `{t}` on both tables. ✅
+**`docs/checks/6c-catalog-origin-contract.sh` — 12 assertion groups over live HTTP**, plus its
+**7-fixture falsifier, all behaving**. ✅ **`app/test/api-catalog-edit.test.ts` — 1,513 tests across 46
+files**, the runner's tally (`npm --prefix app test`), +10 and **no new file**; the one red in the first
+run was the guard pinning `VARIANT_EDIT_COLUMNS` to three columns, **which was right when it was
+written** and is widened to an exact ordered list of four rather than relaxed. ✅ Typecheck clean,
+`conventions-gate.sh` 18 of 18 over 93 source and 46 test files, `handbook-agreement.sh` 5 of 5.
+
+⚠️ **`db.yml` GAINS AN EIGHTH JOB — `catalog-origin`, *the prebuilt catalog, and the delete that depends
+on it*.** ⚠️⚠️ **A NEW JOB AND NOT TWO STEPS ON `catalog-write`, WHICH IS THE RIGHT HOME ON EVERY OTHER
+TEST THIS WORKFLOW USES**: that job already runs `5e-iii-a-catalog-edit-contract.sh` against the very
+file `6c` widens and builds the identical fixture. **It runs 12-13 minutes against its own
+`timeout-minutes: 15` and was cancelled three times on `main` before `5R-g` split it**, and a cancelled
+job is neither a pass nor a failure ([[a-cancelled-ci-job-is-not-a-failed-assertion]]). So the seam is
+the CAP, not the subject. ⚠️ **The SQL suite is deliberately NOT in that job**: the `reset` job's
+*Behavioural checks* step runs the whole of `supabase/tests/` in name order, so a new suite costs no
+workflow edit — running it twice would re-pay `supabase start` plus two resets to assert what the same
+run already asserts. **That makes 11 job definitions across three workflows, rendering as 12 names** — and ⚠️ **this PR
+renders TEN of them, counted off `gh pr checks 236` rather than derived**: it touches no `packages/**`,
+so `money.yml`'s two are absent, and **the PR body said NINE before the log was read.** 2 (`app.yml`)
++ 8 (`db.yml`) is the sum, and `CLAUDE.md`'s own figure for this — *seven* — had been stale since
+`db.yml` had five jobs.
+
+⚠️ **ONE RENAME WITH A REASON RATHER THAN A TIDY-UP**: `producto/[id]`'s local filled button is now
+`Guardar`, because the file imports the OUTLINE `Boton` from `@/ui/Boton` for the retire control and two
+different buttons under one name in one file is a typecheck error at best. **`proveedor/[id].tsx`
+reached the identical arrangement and picked the identical name on 2026-09-27**, so this is the second
+file to agree rather than a new spelling.
+
+⚠️⚠️ **AND `Confirmacion` IS THE THIRD LOCAL COPY OF A CONFIRMATION BOX AND IS DELIBERATELY NOT
+EXTRACTED — THE COUNT IS ON THE PAGE SO THE NEXT `src/ui/` ROW INHERITS A NUMBER RATHER THAN A HUNCH.**
+`documentos.tsx` takes a SHAPE (two acts), `proveedor/[id]` takes a BOOLEAN with two sentences, this
+takes a boolean with THREE — and the third sentence is load-bearing, because dropping `retireWhy`
+leaves *this cannot be undone* attached to a word a shopkeeper reads as *my sales are gone*. ⚠️ `R14`
+reads *reached from two or more modules* and a local component is reached from one, so the gate is green
+either way; **`R16`'s *the difference nobody decided becomes a DECISION* is not a call to make inside a
+migration row**, and `5h.5` left `Confirmacion` in its route for exactly this reason when there was one
+copy.
+
+⚠️⚠️ **THE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS CHEAP TO REVERSE: A PREBUILT PRODUCT GETS NO
+SENTENCE, NO DISABLED BUTTON AND NO EXPLANATION — THE CONTROL IS SIMPLY ABSENT.** It is what he asked
+for in his own words — *"why am I still seeing the button for the already existing products?"* — and
+where a row came from is ours to know ([[users-dont-do-bookkeeping]]). ⚠️ **The one place
+`ES.catalog.errors.notYours` can ever appear is the stale-read window inside `retire`**, which is why it
+is mapped at all. Reversing it is a line of JSX.
+
+✅✅ **DEPLOYED THE SAME SESSION, AND THE SHOP WAS READ RATHER THAN ASSUMED.** `supabase db push`
+applied `0042` to `hweutzjhzvioswnjzqki` and `docs/checks/5R-f-schema-deployed.sh` is **6 of 6 over 40
+migrations**. ⚠️ **That guard compares VERSION NUMBERS and never schema**, so two things were asked of
+the real database directly: **both triggers are standing** (`catalog_prebuilt_stays_trg` on
+`product_family` and on `product_variant`, out of `pg_trigger`), and **the backfill landed exactly as
+he ruled — all 11 families and all 28 variants in his shop are marked OURS.** ⚠️⚠️ **SO THE NUMBER HE
+WILL SEE IS ZERO: the red *Retirar del catálogo* appears on none of the 28 products he has**, and the
+first place it can appear is a product he adds through `Agregar` after the phone is rebuilt. That is
+his own ruling arriving on a screen, and it is stated as a count because *merely indicative* was the
+reason he gave for it costing nothing.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS SHORT: NOTHING IN HIS SHOP TODAY CAN BE RETIRED.**
+That is his own backfill ruling arriving on a screen — every one of those rows is marked ours — so the
+capability is only visible on a product he adds through `Agregar` after the build lands. ⚠️ **The two
+things to look at are whether a red *Retirar del catálogo* under *Guardar cambios* reads as dangerous
+enough, and whether three stacked sentences in the confirmation is one too many on a small phone.**
+⚠️⚠️ **AND NONE OF IT CAN BE LOOKED AT UNTIL THE INSTALL LANDS — THIS IS THE THIRD ROW OF DESPERDICIO-ERA
+WORK QUEUED BEHIND ONE.** The blocker is this Mac's Wi-Fi, not the phone.
+
+
+✅✅✅ **`6b` IS DONE, 2026-09-27 — PROVEEDORES IS A ROOM, AND `provider` HAD BEEN IN THIS SCHEMA SINCE
+`0002` WITH NOTHING IN `app/` EVER WRITING A ROW TO IT.** Twenty-five days of a table this app could read
+and not change. Three routes shipped — `/proveedores` (the directory), `/proveedor/nuevo`, `/proveedor/[id]`
+— **and Inicio's sixth door is live**, which deletes the `route: null` sentence `5d-iv-b` shipped on purpose.
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `M` → `L`, AND THE THREE THINGS THE ROW CALLED UNMEASURED ALL CAME BACK
+BIGGER.** `L` is one sitting under the 2026-09-24 amendment and it held. **(1)** The directory needs
+`contact_name`, `phone` and `address_line1` — and **`docs/checks/5g-i-purchase-contract.sh` bans all three
+from reaching a phone, by name, off the wire.** **(2)** `providersFrom` DROPS retired suppliers, so a
+directory could not reuse it blindly and could not ignore it either. **(3)** *Whether provider editing
+needs its own fence* turned out to be **two** fences with **two different wire shapes**.
+
+⚠️⚠️ **THE DECISION THAT SHRANK IT BACK, AND IT IS A CORRECTNESS PROPERTY RATHER THAN A SAVING: THE LIST IS
+`useProviders(null)`'s READ AND NOT A DIRECTORY QUERY OF ITS OWN.** The obvious shape was `provider` with
+every column ordered by name. A second query with a filter of its own would be **two answers to *which
+suppliers exist*** — a supplier the directory hides and Comprar still offers, or the reverse — **and nothing
+in this repository could see the disagreement.** So the screen draws `PROVIDERS_KEY`, the same cache the
+delivery picker holds, and opening Proveedores after Comprar costs **no round trip at all**.
+
+⚠️⚠️ **THE BOUNDARY IS THE FINDING WORTH INHERITING, AND `5g-i`'s OWN COMMENT PREDICTED IT.** That check
+says the three directory columns *"belong to Proveedores, which is step 6's own screen"* — so this row is the
+**other side** of that assertion rather than an exception to it. They arrive through `DETAIL_COLUMNS`, on ONE
+supplier, on a screen reached by tapping her. ✅ **`6b`'s own check asserts BOTH halves in one place**: the
+three must be on the detail read and must NOT be on `PROVIDER_COLUMNS`, so a session widening the list read
+to put a phone number on a row goes red in two checks rather than shipping a decision about who sees what.
+
+⚠️⚠️ **AND THE ONE THE DATABASE DOES NOT HOLD, NOW MEASURED: THE GENERIC ROW CAN BE DEACTIVATED, AND
+`provider_protect_generic` DOES NOTHING ABOUT IT.** That trigger refuses a DELETE and refuses a demotion and
+**stops there.** A shop whose catch-all supplier was switched off opens Comprar **with no default at all** and
+`record_purchase` refuses every delivery for want of a counterparty — produced by one editable boolean.
+`providersFrom` compensates on the read side, so the damage would be a row the directory hides and the picker
+still offers. **`canRetire` is the only fence there is**, the check drives the deactivation against a real
+PostgREST to prove so, and puts the row straight back.
+
+⚠️ **THE OTHER TWO WIRE FINDINGS, both measured 2026-09-27.** **A cashier is refused TWO different ways and
+only one of them is an error**: `provider_insert` gives her **HTTP 403 `42501`**, and `provider_update` makes
+the row **invisible** — **200 with `[]`** — so `.select().single()` is the only thing that turns it into
+something an app can act on ([[rls-update-refusal-is-a-200]]). And **`normalize_name` folds case and
+whitespace and NOT accents**: `bodega   DEL centro` is refused `23505`, `Abarrotes Pena` beside
+`Abarrotes Peña` is **accepted**. That second half is why `checkProvider` is deliberately **stricter than its
+own schema** — wider is the safe direction, because refusing with a sentence beats a `23505` on a name the
+screen had just shown as available.
+
+⚠️⚠️ **AND THE HARNESS FOUND TWO OF ITS OWN FIXTURES UNCATCHABLE ON ITS FIRST RUN, WHICH IS RULE 4 WORKING
+RATHER THAN FAILING.** One added `is_generic` to the insert body — Postgres accepts `false` happily, so no
+wire assertion can see it. One made `optional()` return `''` instead of `null` — **no shell script can call a
+TypeScript function.** ✅ Both claims are `app/test/api-provider-directory.test.ts`'s, the check gained an
+assertion about the **consequence** of the second (Postgres keeps `''` and `null` apart on `contact_name`, so
+the decision matters), and the two replacements break something on the wire. ⚠️ **The division is written into
+both files**, because a fixture the check cannot catch is a gap in the fixture and not always a gap in the check
+— and finding out which is the whole reason the harness exists.
+
+⚠️ **ONE PRIMITIVE AND ONE PROP, both `R14`/`R16` rather than tidying.** `@/ui/Destello` is the ninth component
+in `src/ui/` — the blink that says *this one is new*, inline in `productos.tsx` since `5d-ii`, extracted the day
+`proveedores.tsx` became the second file to draw it. And **`Buscador` spelled `ES.catalog.search` inside
+itself**, which was true while every caller searched the catalog and false the moment one searched suppliers:
+`placeholder` is now a **required** prop with no default, at five call sites. ⚠️ `Campo`, `Caja` and `Iniciales`
+are drawn again here and **deliberately NOT extracted** — their counts are on the page for the next `src/ui/` row.
+
+✅ **VERIFIED BY NAME.** `docs/checks/6b-provider-directory-contract.sh` — **23 of 23 against a real local
+PostgREST**; its harness `…-falsify.sh` — **10 of 10 fixtures, both controls green**;
+`npm --prefix app test` — **1,503 tests across 46 files** (the runner's tally, not a grep);
+`npm --prefix app run typecheck` — clean after the typed-route regeneration;
+`bash docs/checks/conventions-gate.sh` — **18 of 18 over 93 source and 46 test files**. ⚠️ **`R4` and `R8`
+were RED first**: a JSX comment quoting the seeded generic name tripped the Spanish-literal rule
+([[jsx-comments-are-code-to-the-gate]]) and `Destello.tsx` shipped without a header.
+
+⚠️ **NO MIGRATION, so nothing is owed a `supabase db push`** — every column, policy and trigger this row needs
+has been applied since `0002`. `docs/checks/5R-f-schema-deployed.sh` was green 6 of 6 at the start of the
+session and this row does not move it.
+
+⚠️⚠️ **WHAT ONLY A PHONE CAN JUDGE (`R9`, §2.11): whether a list of BARE NAMES reads as a directory or as an
+unfinished screen.** A row carries a name and nothing else — the phone number is one tap away, on the detail
+page — and that is the deliberate consequence of not widening Comprar's read. **It is the first thing likely to
+be asked for and it is parked in ⛔ DECISIONS OWED with its cost attached**, because doing it quietly would
+amend `5g-i`'s assertion about who sees what.
+
+
