@@ -253,10 +253,18 @@ screen would have to choose between them.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R6.
 
-### R7 — Two environment variables, both `EXPO_PUBLIC_`, spelled out in full
+### R7 — Three environment variables, all `EXPO_PUBLIC_`, spelled out in full
 
-`process.env` is read in `src/lib/supabase.ts` and nowhere else, as two member
-expressions written out in full.
+`process.env` is read in `src/lib/supabase.ts` — two member expressions written
+out in full — and in `src/lib/pilotFlag.ts`, which reads ONE: `EXPO_PUBLIC_PILOT`.
+Nowhere else.
+
+⚠️ **The third was added by `5P-a` on 2026-09-28** and it lives in its own module
+on purpose: `lib/supabase.ts` creates the live client at module scope and its
+importers are pinned at two, so a flag read through it would have made the
+recorder, the hook and the panel three more. Set when the bundle is made, it turns
+on §5's readings and names the build they are filed under; unset, no reading is
+taken — which is how every build not meant for the pilot is made.
 
 Expo's babel plugin **inlines** `process.env.EXPO_PUBLIC_FOO` where it is
 written; it does not build a populated `process.env` for the bundle. So

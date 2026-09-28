@@ -143,6 +143,30 @@ select gen_random_uuid(),
        a.user_id
 from iso_actor a;
 
+-- ⚠️ AND `pilot_reading`, ADDED 2026-09-28 WITH `0043` (plan `5P-a`) — the THIRD
+-- tenant table the seed leaves empty, and F7 went red naming it on the first CI
+-- run after the migration, exactly as it did for `failed_write`. Owner-gated
+-- (`pilot_reading_select` is has_role(...,'owner')), which both actors are.
+-- `member_id` is the actor's own membership, because `0043`'s composite key
+-- ties it to the workspace; `location_id` is null, which `0043` allows.
+create temp table iso_pilot_reading_before as
+select count(*)::int as n from public.pilot_reading;
+
+insert into public.pilot_reading
+  (id, workspace_id, member_id, device_id, kind, screen, value, occurred_at, build)
+select gen_random_uuid(),
+       a.ws_id,
+       wm.id,
+       gen_random_uuid(),
+       'taps',
+       'vender',
+       3,
+       now(),
+       'pgtap-3.2a-' || a.tag
+from iso_actor a
+join public.workspace_member wm
+  on wm.workspace_id = a.ws_id and wm.user_id = a.user_id;
+
 -- ---------------------------------------------------------------------------
 -- Classification, stated so that a new table cannot slip through unmeasured
 --
@@ -291,7 +315,7 @@ $$;
 -- what stops that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  11
+  12
   + 4 * (select count(*)::int from iso_read)
   + (select count(*)::int from iso_anon)
 );
@@ -384,6 +408,10 @@ select is(current_user::name, session_user::name,
 -- wanted, rather than the suite silently measuring somebody else's rows.
 select is((select n from iso_failed_write_before), 0,
   'F11 failed_write was empty in the seed; this suite supplied its own rows');
+
+-- F12. THE THIRD EMPTY TENANT TABLE, F11's argument for `0043`'s `pilot_reading`.
+select is((select n from iso_pilot_reading_before), 0,
+  'F12 pilot_reading was empty in the seed; this suite supplied its own rows');
 
 -- ---------------------------------------------------------------------------
 -- Per tenant table, both directions

@@ -57,7 +57,7 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   branch in `(tabs)/index.tsx` are **unreachable and deliberately kept** — the *dead, not wrong*
   argument `@/api/providers` makes about `MemoryState.unreadable`, and `inicio.test.ts`'s own
   assertion block was INVERTED rather than deleted.
-- **30 entries in `app/src/api/`, measured 2026-09-28 after `7b`** (`ls app/src/api | wc -l` — `7a`'s
+- **31 entries in `app/src/api/`, measured 2026-09-28 after `5P-a`** (`pilot.ts`, the pilot readings' contract; the recorder, hook and panel live in the new `app/src/pilot/`, and the flag in `app/src/lib/pilotFlag.ts` — `R7`'s second reader). ~~30 entries, after `7b`~~ (`ls app/src/api | wc -l` — `7a`'s
   `sales.ts`, `7d`'s `monthExport.ts`, `7b`'s `prices.ts`). ~~27 modules in `app/src/api/`~~ — the data layer, each one a claim about the applied
   schema (which is why `db.yml` watches it; see below). Measured 2026-09-27 after **`6d`**:
   `ls app/src/api | wc -l` (26 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **THE NEWEST IS `persist.ts`
@@ -156,7 +156,7 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   delete's own `changes` count is the evidence** because a read-then-delete has a window the
   drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
   pins that none of them is a screen** — that assertion has now directed three designs.
-- **A Vitest suite of 1,669 tests across 50 files, the runner's tally 2026-09-28 after `7b`**
+- **A Vitest suite of 1,719 tests across 52 files, the runner's tally 2026-09-28 after `5P-a`** (`pilot-readings.test.ts` 28, `api-pilot.test.ts` 22). ~~1,669 across 50 after `7b`~~
   (`api-prices.test.ts`, 47). ~~A Vitest suite of 1,542 tests across 47 files~~ in `app/test/` — ⚠️ **that number
   is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6d` added
   `api-persist.test.ts` (29) and **inverted nothing and widened nothing** — the first new suite in a
@@ -230,7 +230,7 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`7b` CLOSED 2026-09-28 AND THE NEXT TASK IS `5P-a` — the dev-build overlay, ungated.** `7a`, `7d`
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`5P-a` CLOSED 2026-09-28 — the pilot build's readings; `plan-handover.sh` names what is next.** ~~`7b` closed 2026-09-28 and the next task is `5P-a`~~ — `7a`, `7d`
 and `7b` all closed that day; `bash docs/checks/plan-handover.sh` names it and is the authority, not
 this line. ~~`6d` closed 2026-09-27 and the next task is now `7a` — NÚMEROS, AND IT IS THE FIRST TIME THE
 MARKER HAS LEFT STEP 6.~~ Step 6 has no takeable row left: `6a` and `6a-ii` are split parents and the

@@ -29,6 +29,7 @@ import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { useCart, useCartStore, useReason } from '@/cart/store';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
+import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -248,6 +249,12 @@ export default function Desperdicio() {
   const [asking, setAsking] = useState(false);
   const [emptied, setEmptied] = useState(false);
   const [recorded, setRecorded] = useState(false);
+  // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
+  // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
+  const pilot = usePilotVisit('desperdicio', workspace?.id ?? null, locationId);
+  useEffect(() => {
+    if (recorded) pilot.confirmed();
+  }, [recorded, pilot]);
   const bloom = useRef(new Animated.Value(0)).current;
 
   // ⚠️⚠️ `reviewOf` IS CALLED FOR THE ROWS AND ITS TOTAL IS DELIBERATELY UNUSED —
@@ -314,6 +321,7 @@ export default function Desperdicio() {
 
   const commit = useCallback(() => {
     if (basketful === null) return;
+    pilot.committed();
     const done = commitOf(basketful, { id: newWriteId(), now: nowIso() });
     // ⚠️ EVERY REFUSAL IS A PROGRAMMING ERROR AND NONE HAS A SENTENCE (`R4`) —
     // and none can happen here, because `canCommit` is what decided the control
@@ -332,7 +340,7 @@ export default function Desperdicio() {
     setPicking(true);
     setCartOpen(false);
     setRecorded(true);
-  }, [basketful, clear, openReason]);
+  }, [basketful, clear, openReason, pilot]);
 
   const chooseReason = useCallback(
     (next: WasteReason) => {
@@ -344,6 +352,7 @@ export default function Desperdicio() {
 
   return (
     <KeyboardAvoidingView
+      onTouchStart={pilot.onTouchStart}
       // ⚠️ NO `paddingTop: insets.top` — the tab navigator already draws a header
       // below the notch, and counting the inset again is the dead space the owner
       // reported on Vender on 2026-09-24.

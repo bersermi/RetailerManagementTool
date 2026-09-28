@@ -565,7 +565,7 @@ done
 if (( r13 == 0 )); then ok "R13 an RPC's name, arguments and columns are written once, in the contract"
 else fail "R13 $r13 place(s) where an RPC's contract is spelled at the call site"; fi
 
-# --- R7. two environment variables, EXPO_PUBLIC_, spelled out in full -----
+# --- R7. three environment variables, EXPO_PUBLIC_, spelled out in full ---
 # Expo's babel plugin INLINES `process.env.EXPO_PUBLIC_FOO` where it is
 # written; it does not build a populated `process.env`. So a second reader, or
 # a spread, typechecks and runs in node and hands the phone nothing.
@@ -573,6 +573,16 @@ note
 r7=0
 for f in $(src_files); do
   [[ "$f" == "$SRC/lib/supabase.ts" ]] && continue
+  # ⚠️ THE SECOND READER, ADDED BY `5P-a` (2026-09-28), AND IT MAY READ ONE
+  # VARIABLE: `EXPO_PUBLIC_PILOT`, spelled out in full. Anything else in it —
+  # a second variable, a spread — is still a finding.
+  if [[ "$f" == "$SRC/lib/pilotFlag.ts" ]]; then
+    while IFS= read -r line; do
+      [[ -z "$line" ]] && continue
+      r7=$((r7+1)); offend "$f" "$line"
+    done < <(code "$f" | grep -E "process\.env" | grep -vE "process\.env\.EXPO_PUBLIC_PILOT\)")
+    continue
+  fi
   while IFS= read -r line; do
     [[ -z "$line" ]] && continue
     r7=$((r7+1)); offend "$f" "$line"
@@ -584,7 +594,7 @@ for f in $(src_files) $(test_files); do
     r7=$((r7+1)); offend "$f" "$line"
   done < <(code "$f" | grep -E "process\.env\.NEXT_PUBLIC_")
 done
-if (( r7 == 0 )); then ok "R7  process.env is read in src/lib/supabase.ts and nowhere else"
+if (( r7 == 0 )); then ok "R7  process.env is read in src/lib/supabase.ts and src/lib/pilotFlag.ts and nowhere else"
 else fail "R7  $r7 place(s) reading the environment outside the one module that may"; fi
 
 # --- R10. Intl is limited to what has been measured on a phone ------------

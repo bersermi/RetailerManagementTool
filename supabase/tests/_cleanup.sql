@@ -215,6 +215,11 @@ begin
   -- `chk_raises_like`, `_as`, `_src`, `_state`, `_pair`, `_differs` — is at the
   -- EXACT signature an earlier suite gave it and is already dropped above.
   drop function if exists public._status(text);
+  -- ⚠️ ADDED 2026-09-28 (task 5P-a). `0042` and `0043` both define `_try` with
+  -- `create or replace`, so neither dies on the other's — but nothing dropped it,
+  -- and a helper that outlives its suite is the shape the note at 4e-ii-a names.
+  drop function if exists public._try(text);
+  drop function if exists public._state_is(text, text, text);
 
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every

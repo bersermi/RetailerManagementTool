@@ -31,6 +31,18 @@ import { supabase } from '@/lib/supabase';
 import { RECORD_FAILED_WRITE } from '@/api/deadletter';
 import { isContractMismatch } from '@/api/errors';
 import { RECORD_RPC } from '@/api/flush';
+import {
+  PILOT_COLUMNS,
+  PILOT_PAGE,
+  PILOT_TABLE,
+  PILOT_TIEBREAK,
+  PILOT_TIME_COLUMN,
+  PILOT_WORKSPACE_COLUMN,
+  RECORD_PILOT_READINGS,
+  sendArgs as pilotSendArgs,
+  type PilotRow,
+} from '@/api/pilot';
+import type { Reading } from '@/pilot/readings';
 import { type WriteKind } from '@/api/outbox';
 import {
   APPROVE_REQUEST,
@@ -1282,6 +1294,50 @@ export async function patchProvider(id: string, patch: ProviderPatch): Promise<v
     .select(WRITE_RETURNING)
     .single();
   if (error) throw reported(error);
+}
+
+/**
+ * A batch of §5's readings, filed for the caller (`0043`). Plan task `5P-a`.
+ * Answers how many landed — `0` for a batch the server already had.
+ *
+ * ⚠️ IT THROWS the PostgREST error as it came, so `@/api/pilot`'s `droppable`
+ * can tell a refusal (a code) from the network (none).
+ */
+export async function sendPilotReadings(
+  workspaceId: string,
+  readings: readonly Reading[],
+  deviceId: string,
+  build: string,
+): Promise<number> {
+  const { data, error } = await supabase.rpc(
+    RECORD_PILOT_READINGS,
+    pilotSendArgs(workspaceId, readings, deviceId, build),
+  );
+  if (error) throw reported(error);
+  return typeof data === 'number' ? data : 0;
+}
+
+/**
+ * Every reading filed in one shop since an instant, for the owner's panel.
+ * ⚠️ PAGED over a TOTAL order, `monthRows`' reason: PostgREST truncates at
+ * `max_rows` and says nothing.
+ */
+export async function pilotReadingsSince(workspaceId: string, since: string): Promise<PilotRow[]> {
+  const rows: PilotRow[] = [];
+  for (let at = 0; ; at += PILOT_PAGE) {
+    const { data, error } = await supabase
+      .from(PILOT_TABLE)
+      .select(PILOT_COLUMNS)
+      .eq(PILOT_WORKSPACE_COLUMN, workspaceId)
+      .gte(PILOT_TIME_COLUMN, since)
+      .order(PILOT_TIME_COLUMN, { ascending: true })
+      .order(PILOT_TIEBREAK, { ascending: true })
+      .range(at, at + PILOT_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as PilotRow[];
+    rows.push(...page);
+    if (page.length < PILOT_PAGE) return rows;
+  }
 }
 
 /**

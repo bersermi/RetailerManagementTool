@@ -20,6 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -55,6 +56,7 @@ import {
 } from '@/api/magnitude';
 import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
 import { pricesFrom, pricesKey, type Prices } from '@/api/prices';
+import { canRead, pilotKey, pilotSince, type PilotRow } from '@/api/pilot';
 import {
   canExport,
   exportFrom,
@@ -105,6 +107,7 @@ import {
   patchProvider,
   patchVariant,
   pendingAccessRequests,
+  pilotReadingsSince,
   providerDetail,
   providerMemory,
   recentDocuments,
@@ -1749,5 +1752,40 @@ export function useCorrectDocument(): {
     // the next one — and the box would show *pídele a un gerente* where the
     // question should be, about a document nobody had refused her.
     forget: mutation.reset,
+  };
+}
+
+/**
+ * §5's readings, read back for the owner's panel. Plan task `5P-a`.
+ *
+ * ⚠️ ASKED ONLY WHILE THE PANEL IS OPEN AND ONLY FOR THE OWNER — ruling 45,
+ * and `@/api/pilot`'s `canRead`. `pilot_reading_select` answers anybody else
+ * with zero rows and no error, which a panel would draw as *no readings yet*.
+ *
+ * ⚠️ `since` IS FIXED WHEN THE PANEL OPENS, not per render: a key that moved
+ * every render would refetch in a loop. Not persisted — `pilotKey` is not in
+ * `PERSISTED_KEYS`, and this is looked at with a signal.
+ */
+export function usePilotReadings(open: boolean): {
+  readonly rows: readonly PilotRow[] | null;
+  readonly failed: ApiMessageKey | null;
+  readonly allowed: boolean;
+} {
+  const { session, ready } = useAuth();
+  const workspace = useWorkspace();
+  const role = useMyRole();
+  const allowed = canRead(role);
+  const since = useMemo(() => pilotSince(new Date()), [open]);
+  const workspaceId = workspace?.id ?? null;
+  const rows = useQuery({
+    queryKey: pilotKey(workspaceId, since),
+    queryFn: () => pilotReadingsSince(workspaceId as string, since),
+    enabled: open && ready && session !== null && allowed && workspaceId !== null,
+    staleTime: 0,
+  });
+  return {
+    rows: rows.data ?? null,
+    failed: rows.error ? apiErrorKey(rows.error) : null,
+    allowed,
   };
 }
