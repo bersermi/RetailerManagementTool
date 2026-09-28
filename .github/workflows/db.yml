@@ -431,6 +431,8 @@ on:
       # before the trigger can ever fire.
       - "docs/checks/6c-catalog-origin-contract.sh"
       - "docs/checks/6c-catalog-origin-contract-falsify.sh"
+      - "docs/checks/7a-sales-contract.sh"
+      - "docs/checks/7a-sales-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -1946,6 +1948,29 @@ jobs:
       # takings is a decision no client-side edit can falsify.
       - name: Contract — can the takings check still fail (its own eleven fixtures)
         run: bash docs/checks/5d-iv-a-takings-contract-falsify.sh
+
+      # ⚠️⚠️ NÚMEROS, AND IT IS APPENDED HERE RATHER THAN OPENED AS A NINTH JOB (`7a`,
+      # 2026-09-28). The takings check above is its nearest neighbour — real sales, a
+      # void that nets, a cashier's read — and this job's NAME already describes it,
+      # so nothing is renamed ([[counts-belong-to-the-runner]]: the job count stays
+      # eight in this file). Measured: this job ran 9m31s of its 15 on `main`'s last
+      # run, and the two steps below take ~3s and ~10s locally.
+      #
+      # It is the only instrument for: the headline being GROSS (a taxed product keyed
+      # at $180.00 must read back $180.00, not the net beside it); the view being a
+      # SPINE that `line_count` filters down to sales (a product bought and never sold
+      # must not come back); a same-day void netting to nothing; paging over a TOTAL
+      # order reassembling the whole read below `max_rows`, which truncates silently;
+      # a CASHIER reading the owner's rows — the owner's ruling of 2026-09-28, that
+      # every role sees Números; and another shop reading none.
+      - name: Contract — does app/src/api/sales.ts still describe the schema (plan 7a)
+        run: bash docs/checks/7a-sales-contract.sh
+
+      # And its four fixtures — each a copy of `sales.ts` with one constant broken and
+      # the database untouched, so exactly one side of the comparison moves, and each
+      # asserted red for its OWN reason rather than for any reason.
+      - name: Contract — can the sales check still fail (its own four fixtures)
+        run: bash docs/checks/7a-sales-contract-falsify.sh
 
       - name: Stop
         if: always()

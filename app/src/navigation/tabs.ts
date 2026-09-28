@@ -23,8 +23,13 @@ import { ES } from '@/strings';
 // ⚠️ FOUR TABS, NOT §2.8's EIGHT — a decision taken on the owner's behalf, in
 // docs/PLAN.md under 5a-ii. These four need no role: a cashier and an owner
 // both sell, both receive, both throw things away. Catálogo, Proveedores and
-// Números are manager+, and there is no session yet that knows who is holding
-// the phone (that is `5a-iii`). Ajustes is a sheet, not a tab — §2.8 said so.
+// Números were manager+ when this was written, and there was no session yet that
+// knew who is holding the phone (that is `5a-iii`). Ajustes is a sheet, not a tab
+// — §2.8 said so. ⚠️ **NONE OF THE THREE IS MANAGER+ ANY MORE — corrected
+// 2026-09-28 by `7a`**: Productos and Proveedores are open to every member with
+// their writes fenced (`6b`), and Números is every role's by the owner's ruling
+// of that day. All three are rows on Inicio (`@/navigation/inicio`), not tabs,
+// because this bar is capped at four.
 // ============================================================================
 
 /**

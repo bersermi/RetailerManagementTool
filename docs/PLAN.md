@@ -72,6 +72,22 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
+✅✅ **THE THIRTY-FIRST AND THIRTY-SECOND RULINGS — 2026-09-28, ASKED BY `7a` BEFORE A LINE WAS
+BUILT, AND BOTH TAKEN AS RECOMMENDED.** They were ASKED rather than parked because the working prompt
+names both kinds as stop-and-ask: *a rule about who may see what*, and *what a shopkeeper sees*.
+**(31) WHO SEES NÚMEROS: EVERY ROLE.** ⚠️⚠️ **ADR-035 DISAGREED WITH ITSELF**: §2.7's matrix said
+*"See quantity sold and revenue (Números) — ● assigned locations"* for staff, and §2.8's screen table
+said *"Números — Manager+"*. **The database already sided with the matrix** — `product_velocity_daily`
+is `security_invoker` over `sale_line`, whose policy has no `has_role` (`0003`), and `0031`'s header
+measured a cashier reading it — so a cashier sees her own stores' sales **by RLS**, the app carries
+no role for it, and **§2.8's cell is corrected with a revision entry.** ⚠️ **Reversing it** is one
+predicate on the door — a client fence over a grant the database hands out freely, which is the
+shape the Proveedores row above argues against. **(32) WHERE THE DOOR GOES: A SEVENTH ROW ON INICIO,
+LAST.** The tab bar is capped at four and full, and `app/test/inicio.test.ts` pinned six with the
+comment *"a SEVENTH door is a decision"* — so the guard did its job a second time. ⚠️ **Reversing
+it** is one row in `@/navigation/inicio`, one line in that suite and the ADR entry — no migration,
+no data. ⚠️ **Neither was parked, so the open rows in the table above are unchanged.**
+
 ✅✅ **THE THIRTIETH RULING — 2026-09-27, AND IT ARRIVED IN FIVE WORDS THE SAME DAY THE QUESTION
 WAS PARKED: *"Go with (a), and build it to my phone."*** ⚠️⚠️ **SO A CASHIER MAY SEE WHAT THE SHOP
 LOST AND NOT WHAT IT COST, AND `6a-ii` IS UNBLOCKED.** The shape is reading **(a)**: a definer view
@@ -671,8 +687,67 @@ assertion in this file now bounds its region.**
 
 
 
-⚠️⚠️ **`7a` IS THE NEXT TASK, AS OF 2026-09-27 — NÚMEROS, AND IT IS THE FIRST TIME THE MARKER HAS
-LEFT STEP 6.** *What am I selling, and what did it bring in* over `product_velocity_daily` — a view
+⚠️⚠️ **`7d` IS THE NEXT TASK, AS OF 2026-09-28 — THE RAW ROWS, AND IT IS `S`.** `0033`'s month
+export, handed over as a download from Números — the screen now exists for it to hang off. ⚠️ **Its
+gate was `7a` alone, closed today.** ⚠️ **Why not `7b`, which sits above it**: `7b` is named in
+⛔ DECISIONS OWED (*`Quitar proveedor` is one-way*) and `plan-handover.sh` refuses a blocked next
+task — **and a chart naming a supplier Proveedores cannot show is exactly that row's question.**
+⚠️ **`7c` is ungated by id and still wants DATA** — a shop that has thrown things away for a while —
+which is the prose half `7a`'s gate had and which `7a` could measure; `7c`'s cannot be yet.
+
+✅✅✅ **`7a` IS DONE, 2026-09-28 — NÚMEROS EXISTS, AND IT ANSWERS THE FIRST OF §2.9's THREE
+QUESTIONS.** *What am I selling, and what did it bring in*: a Día / Semana / Mes switch, one bar per
+period of **gross** revenue, and under it the table for the tapped period — per product or per
+family, each quantity in the unit the product is sold by. **Reached by a seventh row on Inicio, and
+by every role** — the thirty-first and thirty-second rulings above. **It ships no migration.**
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `M`, AND IT HELD — BUT THREE THINGS THE ROW DID NOT SAY DECIDED THE
+SHAPE.** **(1) The view is a SPINE, not a list of sales**: `0014` gives every stocked product a row
+for every day, sold or not, so an unfiltered six months is products × days of zeros. `line_count
+> 0` is the filter, and it keeps a day whose only line is a void, which is what lets a void NET.
+**(2) PostgREST truncates at `max_rows` (1000) WITHOUT AN ERROR**, and this is the first read in the
+app that can exceed it — so `shopSales` pages at 500 over the view's own grain (`day, variant_id,
+location_id`), a TOTAL order, and stops at the first short page. **(3) ADR-035 disagreed with itself
+about who sees the screen** — asked, not decided (ruling 31). ⚠️ **And the prose half of the gate —
+*"a shop with real rows in it"* — was MEASURED on the hosted project rather than assumed**: 22 sales
+over 3 trading days (2026-09-24 → 2026-09-27), 13 products, read with `supabase db query --linked`.
+Enough to look at; not enough to judge a trend on.
+
+✅ **SHIPPED:** `app/src/api/sales.ts` (the **twenty-eighth** module of `src/api/`, `ls app/src/api |
+wc -l`) — the read contract, Monday-first week bucketing, the bars and the table, all pure;
+`shopSales` in `@/api/calls` and `useSales` in `@/api/hooks`; `app/src/app/numeros.tsx`; `ES.numbers`;
+the door in `@/navigation/inicio`. ⚠️ **`src/ui/Interruptor` is the TENTH primitive** — `R14`, because
+Números is the second file to need `Lo último`'s kind switch. **Extracted byte-for-byte, so `R16` had
+no drift to settle and nothing on `Lo último` changed.**
+
+✅ **CHECKED BY:** `app/test/api-sales.test.ts` — **26 tests**, and **1,571 across 48 files** green
+(the runner's tally); `docs/checks/7a-sales-contract.sh` — **11 groups** over live HTTP, ~3 s: the
+headline is gross (a taxed product keyed at $180.00 reads back $180.00), the unsold product is
+filtered out AND is present unfiltered (so the filter did it), a same-day void nets, paging one row
+at a time reassembles the read, a **cashier reads exactly the owner's rows**, and another shop reads
+none; its falsifier — **4 fixtures**, each a copy of `sales.ts` with one constant broken, each red
+for its own reason, ~10 s; `docs/checks/conventions-gate.sh` — **18 of 18**, R14 counting 10.
+⚠️ **Both new checks are APPENDED to `db.yml`'s `api-contracts` job** beside the takings contract
+rather than opening a ninth — its name already describes them, and it ran **9m31s of its 15** on
+`main`'s last run. **So the job count is still eight in `db.yml` and eleven definitions in all.**
+
+⚠️ **THREE SMALL DECISIONS TAKEN ON THE OWNER'S BEHALF, ALL ONE LINE TO REVERSE:** **(a)** the
+screen opens on **Semana**, because Inicio already shows today's takings and *Día* would repeat it;
+**(b)** a week starts on **Monday**, the Mexican calendar, which keeps a Saturday and a Sunday in
+one bar; **(c)** no location filter — C1.5 puts each pilot shop at one store, the `Costos` argument.
+⚠️ **And one fact the screen now shows that nothing showed before**: a sale voided the NEXT day is a
+plus on one day's bar and a minus on the next, because `0021` stamps a reversal at the void moment.
+Every week and month containing both is right; a lone day can read low. **That is the ledger's truth
+and is drawn as it is.**
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`), AND IT NEEDS A REBUILD FIRST:** whether fourteen day-bars read
+as a fortnight or a comb; whether the tapped bar is findable with a thumb; whether Semana is the
+right switch to open on; whether a family row reading a dash for quantity (C8.5 — kilos and pieces
+in one family) is understood. **The build on his phone predates this and the install path is still
+blocked on the Wi-Fi reachability recorded below.**
+
+~~`7a` is the next task, as of 2026-09-27 — números, and it is the first time the marker has
+left step 6.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** *What am I selling, and what did it bring in* over `product_velocity_daily` — a view
 `0013`/`0014` created and `0031` replaced, and which **no module in `app/src/api/` queries**: the
 only mention of it anywhere under `app/src/` is a COMMENT in `@/api/today` about timezone
 bucketing, which is a sentence and not a read. ⚠️ **Its gate is `5h`, closed 2026-09-26** —
@@ -5210,10 +5285,10 @@ sophisticated for now"* — so this is three questions, not thirty.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **7a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-27 — AND IT IS THE FIRST TIME THE MARKER HAS LEFT STEP 6.** Step 6 has no takeable row left: `6a` and `6a-ii` are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all closed. ⚠️ **Its gate `5h` closed 2026-09-26, so it is ungated by id** — but the other half of the Gate cell is prose and is the thing to weigh before starting: *"and a shop with real rows in it"*. ⚠️ **`product_velocity_daily` has existed since `0013`/`0014` and was replaced by `0031`, and NO module in `app/src/api/` queries it** — the only mention under `app/src/` is a comment in `@/api/today` about timezone bucketing, which is a sentence and not a read. ⚠️ **SIZE IT FIRST** when it is taken. **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` | `5h`, and a shop with real rows in it |
+| **7a** | ✅✅✅ **DONE 2026-09-28 — NÚMEROS EXISTS: WHAT YOU SOLD AND WHAT IT BROUGHT IN, BY DAY, WEEK OR MONTH.** `app/src/app/numeros.tsx` over `app/src/api/sales.ts`, reached by a **seventh row on Inicio** and by **every role** — rulings 31 and 32, both asked before a line was built. Gross revenue per period as bars; under them the tapped period per product or per family, each quantity in the unit it is sold by, and a family that mixes kilos and pieces reads a dash for quantity rather than a meaningless sum (C8.5). ⚠️ **It ships no migration.** ⚠️⚠️ **The sizing found the view is a SPINE** (every stocked product, every day) **and that PostgREST truncates at `max_rows` silently** — so the read filters on `line_count` and pages over a total order. ✅ **Checked by `app/test/api-sales.test.ts` (26 tests), `docs/checks/7a-sales-contract.sh` (11 groups, live HTTP) and its falsifier (4 fixtures)** — see the status log. **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` — held | ✅ **WAS UNGATED** — `5h` closed 2026-09-26, and the prose half was MEASURED on the hosted project: 22 sales over 3 trading days |
 | **7b** | **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
 | **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | ✅ **UNGATED as of 2026-09-27** — ~~`6a` — there is no waste data until that screen exists~~. ⚠️ **Re-pointed from `6a` to `6a-i` and then cleared, because `6a` split that day and *a gate naming a row nobody can take is a gate nobody can clear*** — the trap `5h`'s and `5h.5`'s splits both recorded. `6a-i` closed 2026-09-27, so the screen exists. ⚠️ **What it still wants is DATA rather than a row**: a pilot shop that has actually thrown things away for a while |
-| **7d** | **The raw rows.** `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his | `S` | `7a` |
+| **7d** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — Números exists for it to hang off. **The raw rows.** `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his | `S` | ✅ **UNGATED as of 2026-09-28** — ~~`7a`~~, closed that day |
 | **7e** | ⚠️⚠️ **WHAT IS AT RISK OF BECOMING WASTE — DERIVED, NOT TYPED IN. REWRITTEN 2026-09-21 WHEN THE OWNER RULED OUT CAPTURING EXPIRY DATES.** ~~stock inside its last days, read from a captured `expiry_date`~~. **Three numbers per variant, all of them computed from records the shop already produces:** **shelf age** (how long the stock on hand has been sitting — `stock_batch.received_at`, which is `not null` and always present, against `batch_balance`); **days of cover** (what is on hand ÷ recent daily velocity, over `product_velocity_daily`, which `0013`/`0014` already ship); and **observed time-to-waste** (for each variant, how many days typically pass between receiving and writing off — read from `waste` against the batches it consumed). ⚠️ **A variant with more days of cover than its own observed time-to-waste is the buy-it-now candidate**, and that is the tier-2 signal without a single new field. ⚠️⚠️ **WHAT IT COSTS, AND IT IS THE REASON THE DEFERRED DECISION IS NOT FREE: a derived shelf life NEEDS WEEKS OF WASTE RECORDS BEFORE IT SAYS ANYTHING.** A typed expiry date answers on day one; this answers once the pilot has run long enough to have thrown things away. **That is a pilot-duration cost, not an engineering one**, and it is the owner's deliberate trade — see ⛔ DECISIONS OWED, área 7 | `M` | ⚠️ **`6a-i` and `5g` — RE-POINTED 2026-09-27**, because `6a` split that day and a gate naming a split parent is one nobody can clear. ✅ **Both screens now exist** (`5g-ii` 2026-09-25, `6a-i` 2026-09-27). ⚠️⚠️ **What is left in this gate is TIME and it cannot be hurried**: a derived shelf life needs weeks of waste records, and the clock started 2026-09-27 |
 
 ---

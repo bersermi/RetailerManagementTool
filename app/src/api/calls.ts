@@ -118,6 +118,15 @@ import {
   type CostLineRow,
 } from '@/api/costs';
 import {
+  SALES_ACTIVE_COLUMN,
+  SALES_COLUMNS,
+  SALES_DAY_COLUMN,
+  SALES_PAGE,
+  SALES_TIEBREAK,
+  SALES_VIEW,
+  type SalesRow,
+} from '@/api/sales';
+import {
   VOID_TRANSACTION,
   voidArgs,
   voidedFrom,
@@ -924,6 +933,39 @@ export async function variantCosts(variantId: string): Promise<CostLineRow[]> {
     .order(COSTS_ORDER, { ascending: COSTS_ORDER_ASCENDING });
   if (error) throw reported(error);
   return (data ?? []) as unknown as CostLineRow[];
+}
+
+/**
+ * Every product's daily sales since `since`, for Números. Plan task `7a`.
+ *
+ * ⚠️⚠️ IT PAGES, AND IT IS THE FIRST READ IN THIS APP THAT HAS TO. Every other
+ * read here is bounded by what a screen shows — a week of documents, one
+ * product's deliveries, `MAGNITUDE_LIMIT` lines. Six months of products × days
+ * is not, and PostgREST **truncates at `max_rows` without saying so**: a single
+ * request would draw the newest thousand rows as though they were six months.
+ * So it asks in `SALES_PAGE`s over a TOTAL order — the view's own grain — and
+ * stops at the first short page. See both constants.
+ *
+ * ⚠️ NO LOCATION FILTER AND NO ROLE, `variantCosts`' reason: `sale_line_select`
+ * keeps `my_locations()` and carries no `has_role` (`0003`), so a cashier reads
+ * her own stores' sales by policy — which is what the owner ruled on 2026-09-28.
+ */
+export async function shopSales(since: string): Promise<SalesRow[]> {
+  const rows: SalesRow[] = [];
+  for (let from = 0; ; from += SALES_PAGE) {
+    let query = supabase
+      .from(SALES_VIEW)
+      .select(SALES_COLUMNS)
+      .gte(SALES_DAY_COLUMN, since)
+      .gt(SALES_ACTIVE_COLUMN, 0)
+      .order(SALES_DAY_COLUMN, { ascending: false });
+    for (const column of SALES_TIEBREAK) query = query.order(column, { ascending: true });
+    const { data, error } = await query.range(from, from + SALES_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as SalesRow[];
+    rows.push(...page);
+    if (page.length < SALES_PAGE) return rows;
+  }
 }
 
 /**

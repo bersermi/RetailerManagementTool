@@ -30,6 +30,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Boton } from '@/ui/Boton';
 import { Frase } from '@/ui/Frase';
+import { Interruptor } from '@/ui/Interruptor';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 
@@ -236,7 +237,12 @@ export default function Documentos() {
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
       >
-        <Interruptor kind={kind} onPick={setKind} />
+        <Interruptor
+          options={DOCUMENT_KINDS}
+          labels={ES.documents.tab}
+          picked={kind}
+          onPick={setKind}
+        />
         {/* ⚠️⚠️ THE UNSENT GROUP IS ABOVE THE WINDOW'S SUBTITLE AND NOT INSIDE IT,
             because `ES.documents.subtitle` names the SEVEN-DAY WINDOW, which
             describes the server's list — and these notes are not in it yet.
@@ -350,62 +356,6 @@ function Banda() {
           {ES.documents.back}
         </Text>
       </Pressable>
-    </View>
-  );
-}
-
-/**
- * Compras or Ventas.
- *
- * ⚠️ THE SELECTED SIDE IS SAID BY A FILL **AND** BY `accessibilityState`, never
- * by colour alone — §2.11: *"No state is ever announced by colour ALONE."* Two
- * of the pilot's four phones are low-end Android and the shop is bright.
- *
- * ⚠️ `tapTarget` AND NOT `bodySize` FOR THE HEIGHT: this is the control a thumb
- * hits first on the screen, and C3.18's argument about taller rows applies to
- * the thing above them too.
- */
-function Interruptor({
-  kind,
-  onPick,
-}: {
-  kind: DocumentKind;
-  onPick: (kind: DocumentKind) => void;
-}) {
-  const { scale } = useDensity();
-  return (
-    <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
-      {DOCUMENT_KINDS.map((one) => {
-        const picked = one === kind;
-        return (
-          <Pressable
-            key={one}
-            accessibilityRole="button"
-            accessibilityState={{ selected: picked }}
-            onPress={() => onPick(one)}
-            style={{
-              flex: 1,
-              minHeight: scale.tapTarget,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRadius: scale.rowGap,
-              borderWidth: 1,
-              borderColor: picked ? PALETTE.accion : PALETTE.linea,
-              backgroundColor: picked ? PALETTE.accionSuave : PALETTE.superficie,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: scale.bodySize,
-                fontWeight: picked ? '700' : '600',
-                color: picked ? PALETTE.accion : PALETTE.tintaApagada,
-              }}
-            >
-              {ES.documents.tab[one]}
-            </Text>
-          </Pressable>
-        );
-      })}
     </View>
   );
 }

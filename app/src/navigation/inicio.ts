@@ -92,8 +92,8 @@ export interface InicioDoor {
 }
 
 /**
- * The doors on Inicio, in order — ⚠️⚠️ **SIX SINCE 2026-09-26, AND FIVE OF THEM
- * ARE §2.8's.**
+ * The doors on Inicio, in order — ⚠️⚠️ **SEVEN SINCE 2026-09-28 (`7a`, `numeros`),
+ * SIX SINCE 2026-09-26, AND FIVE OF THEM ARE §2.8's HOME ROW'S.**
  *
  * ⚠️ THE THREE CARDS GO WHERE THE TABS GO, AND THAT IS THE REDUNDANCY THE
  * AMENDMENT BOUGHT ON PURPOSE. §2.8's original sentence refused a nav panel
@@ -187,6 +187,23 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
       'the delivery arriving. ⚠️ No fence on it, catalogRows\' treatment: ' +
       'provider_select admits any member of the shop (0002), and the create row ' +
       'and the edit controls are what canWriteProviders hides from a cashier.',
+  },
+  {
+    key: 'numeros',
+    shape: 'fila',
+    label: ES.numbers.title,
+    icon: 'chart-bar',
+    route: '/numeros',
+    why:
+      "THE SEVENTH DOOR, RULED BY THE OWNER ON 2026-09-28 — §2.8 names the reports " +
+      'screen and never gave it a door, because the tab bar is capped at ' +
+      'four and full. A row and not a card, and for the reason that put ' +
+      'Productos and the recent-documents list here: a thing you look at between ' +
+      'customers, not a thing you do all day. ⚠️ LAST, so no door a shopkeeper ' +
+      'has already learned moves. ⚠️ No fence on it: the same ruling made it ' +
+      "every role's, which is §2.7's matrix — sale_line_select has no has_role " +
+      '(0003), so a cashier sees her own stores by RLS. ⚠️ The glyph is the BAR ' +
+      'CHART because a bar chart is what the screen opens on.',
   },
 ];
 
