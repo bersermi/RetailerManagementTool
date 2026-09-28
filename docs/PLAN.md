@@ -36,6 +36,7 @@ let a blocked task be marked as the next task.**
 | **⚠️ A CORRECTED **SALE** IS RE-PRICED AT TODAY'S SHELF PRICE, NOT AT THE PRICE IT WAS SOLD AT** | `5P-c` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND REPORTED RATHER THAN ASKED FIRST, BECAUSE IT IS MONEY IN THE LEDGER AND YOU SHOULD SEE IT NAMED.** `5h-ii-b` shipped `Corregir`, and on a DELIVERY it puts the old prices straight back — exact, because `purchase_line` stores the very figure `record_purchase` takes. ⚠️⚠️ **On a SALE it cannot, and the reason is a spelling mismatch in the schema rather than a choice about shopkeepers**: `sale_line` stores the **NET** unit price, `record_sale` takes the **GROSS** (`0016:59`), and `quoted` reads a typed sell quote as gross whenever `prices_include_tax` — which is `0001`'s default and true in your shop. **Handing the stored figure back would quote a net as a gross and undercharge by the IVA.** ✅ **So a corrected sale takes the price on the shelf right now**, which is what `quoteFor` already does for every sale Vender has ever rung. ⚠️ **What it costs, said plainly: if you changed that product's price between the sale and the correction, the corrected sale is recorded at the NEW price and the customer paid the old one.** Over a seven-day window that is a real, if uncommon, case. ⚠️ **The alternative, and why it was not just done:** recovering the gross needs `tax_rate` on the line and a call to `grossFromNet` — **a third answer in this app to *what is a sale worth***, in a module that should not have one, and every price a shopkeeper sees would then depend on which of the three ran. ⚠️ **RECOMMENDATION: LEAVE IT.** A correction is a sale you are making again, now; the shelf is what *now* means, and it is the same figure Vender would show her if she keyed it by hand — which is what she did before this button existed. **Reversing it is one column in `DOCUMENTS_LINE_COLUMNS`, one branch in `prefillOf` and a re-run of two contract checks — no migration, no data.** ⚠️⚠️ **RE-POINTED FROM `5h.5` TO `5P-c` ON 2026-09-26 BY `5h-ii-c`, AND THE REASON IS THIS COLUMN BEING MACHINE-READ.** ~~it blocks nothing takeable; it is filed against `5h.5` because that is the last row of `5h`, and a ruling that arrives before it closes is still cheap.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** That filing was a CONVENIENCE and it expired the moment `5h-ii-c` closed and made `5h.5` takeable: assertion 7c pulls every id out of this cell and refuses a next task named in it, so *blocks nothing* written as `5h.5` would have refused the one row `CLAUDE.md` calls *"the last moment this is cheap."* ⚠️ **`5P-c` is not another convenience — it is the row this genuinely stands in front of.** That task is the manual-tally comparison the pilot is GRADED on (*"five consecutive days within 5%"*), and **a corrected sale recorded at a price the customer did not pay is exactly a discrepancy that tally would surface and somebody would then explain away.** A ruling is owed before that number is trusted, and not before. |
 | **⚠️⚠️ A SUPPLIER'S PHONE AND ADDRESS NOW REACH A CASHIER'S PHONE — AND A LIST ROW STILL SHOWS ONLY A NAME** | `5R-d` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND REPORTED RATHER THAN ASKED FIRST, BECAUSE A SCREEN NOBODY CAN REACH CANNOT BE JUDGED ON A PHONE** — `R9`'s whole arrangement. `6b` shipped Proveedores, and **`provider_select` in `0002` admits every member of the shop with no role in it at all** — measured over real HTTP on 2026-09-27: an Empleada reads a supplier's `contact_name`, `phone` and `address_line1` and gets a 200. **Until `6b` those three columns had never reached any phone**, because `PROVIDER_COLUMNS` does not ask for them. ✅ **So the client now exercises a grant the database already gave**, which is `canReadMemory`'s own rule — *the predicate follows the applied policy and never leads it* — and the direction you have been moving in (`0040`: *"Empleada should be able to see the both the purchase records and the prices"*). ⚠️ **The WRITES are fenced and drawn as fenced**: `provider_insert` and `provider_update` are `has_role(…, 'manager')`, so she gets a read-only page with no create row and no controls. ⚠️⚠️ **AND THE SECOND HALF IS THE ONE YOU ARE MOST LIKELY TO ASK FOR: A LIST ROW CARRIES A NAME AND NOTHING ELSE.** No phone number until you tap. A `Sin teléfono` string was written for it and then **deleted rather than left unused**, because putting the number on the row means widening `PROVIDER_COLUMNS` — and that is the constant `docs/checks/5g-i-purchase-contract.sh` bans those three columns from **by name**, with its own comment saying they *"belong to Proveedores"*. **It is a check to amend and an argument to make, not a field to add.** ⚠️ **The alternatives, named so this is a real question:** hide contact details from an Empleada in the client (a second fence nothing can check, over a column the database hands out freely — and it would be the first place this app fenced something RLS does not); or widen the list read so every row shows a number, which puts every supplier's details on every phone that opens Comprar. ⚠️ **RECOMMENDATION: LEAVE BOTH AS SHIPPED.** A supplier's phone number is a business contact, not a customer's data; she is the person most likely to be standing there when a delivery is wrong; and a client fence over a column RLS grants is the kind that looks real and is not. **Reversing the first is one predicate on the detail screen; reversing the second is one string plus an amendment to `5g-i`'s check — no migration, no data, either way.** ⚠️ **Filed against `5R-d` and it is not a convenience**: that row ships the `aviso de privacidad` at a public URL, and **who inside a shop can see a third party's contact details is exactly what that notice has to state.** A ruling is owed before the document is written, not after. |
 | **⚠️⚠️ `Quitar proveedor` IS ONE-WAY — THERE IS NO `Reactivar`, AND A RETIRED SUPPLIER IS UNREACHABLE** | `7b` | ⚠️⚠️ **THIS IS YOUR OWN RULING OF 2026-09-23 APPLIED TO A SECOND TABLE, AND IT IS REPORTED BECAUSE IT MAY NOT TRANSFER.** You described retiring a PRODUCT in your own words — it *"leaves the catalog and stays in the transactions and the history"* — and asked for no way back; `ES.catalog.edit.retireOnce` states that rather than apologising for it. `6b` gave a supplier the same treatment: `0002` gives `provider` **no DELETE policy at all**, so retiring is `is_active` false, `providersFrom` drops her, and **nothing in the app can reach a retired supplier to switch her back on.** ⚠️ **What stays is real and the confirmation says so in two sentences**: she leaves the delivery picker, and every purchase ever recorded against her keeps its counterparty — measured, the row is still there with `is_active` false. ⚠️⚠️ **WHY IT MAY NOT TRANSFER, AND THIS IS THE WHOLE QUESTION: A SUPPLIER IS A THING A SHOP STOPS AND RESTARTS.** A product retired in the wrong family is a mistake you fix by making it again; **a seasonal supplier you stop buying from in April and ring again in October is not a mistake at all**, and making her again is a NEW row — which means `provider_price_memory` starts empty and Comprar offers no prefill for a relationship the shop has had for years. ⚠️ **The database permits the reversal in both directions**: `provider_update` grants `is_active` true as readily as false. ⚠️ **The alternatives:** a `Reactivar` control on a retired supplier's page, which needs the directory to SHOW retired rows (a section, or a pill) and therefore a second transform beside `providersFrom` — the very thing `6b` refused in order to keep the directory and the picker from disagreeing; or leaving it one-way and treating a regretted retirement as a support call. ⚠️ **RECOMMENDATION: LEAVE IT ONE-WAY FOR THE PILOT AND REVISIT ON A REAL COMPLAINT.** Three or four suppliers per shop is a list where a mis-tap is noticed in the same minute, the confirmation is explicit about what happens, and a *Reactivar* path is the first place the directory and Comprar could start disagreeing about who exists. **Reversing it costs a control, one filter and one string — no migration, no data.** ⚠️ **Filed against `7b` and it is not a convenience**: that row plots purchase price per variant over `0032`, **which names the supplier on every point.** A chart that names a supplier the shopkeeper cannot find anywhere in Proveedores is a question about what a report is allowed to know, and it wants settling before the chart is drawn rather than after. |
+| **⚠️⚠️ A CATALOG RESTORED FROM THE PHONE'S DISK HAS NO EXPIRY — A PRICE FROM ANY DAY IS SOLD FROM RATHER THAN NO PRICE AT ALL** | `5P-c` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND REPORTED RATHER THAN ASKED FIRST, BECAUSE `6d`'s OWN ROW SAID TO PARK IT WITH A RECOMMENDATION** — *"the candidate answer to park rather than ask up front: no staleness fence at all on the catalog"*. `6d` shipped that: `CACHE_MAX_AGE` is `Infinity`. ⚠️⚠️ **THE LIBRARY'S OWN DEFAULT IS TWENTY-FOUR HOURS, AND TAKING IT WOULD HAVE MADE THE ROW POINTLESS** — measured in `@tanstack/query-persist-client-core`'s `persistQueryClientRestore`, `maxAge = 864e5`: **a shop that closes on Saturday and opens on Monday with no signal would find the catalog gone**, which is the exact condition the row was written for. ⚠️ **What it costs, said plainly: a phone that has been offline for three weeks sells at three-week-old prices, and `record_sale` stores the figure it is given — so a stale price becomes a row in the ledger, not just a wrong number on a screen.** ⚠️ **What it buys: she can sell.** Without the cache a cold start with no signal cannot ring up anything at all — `locationId` is unresolved, `draftOf` answers `no-location`, and the commit control is not drawn. ⚠️ **The alternatives, named so this is a real question:** a hard expiry (the catalog empties after N days and she is back to a screen that cannot sell); or a VISIBLE staleness line — *precios del 24 de septiembre* — which tells her without deciding for her, and is the only option that adds a thing a shopkeeper reads. ⚠️ **RECOMMENDATION: LEAVE IT UNFENCED FOR THE PILOT, AND ADD THE VISIBLE LINE ONLY IF HE ASKS.** A price a shopkeeper can see and override beats an empty screen, [[users-dont-do-bookkeeping]] argues against handing her a cache state to reason about, and the pilot store is offline as its normal condition rather than as an exception. **Reversing it is one constant — `CACHE_MAX_AGE` in `@/api/persist` — plus a re-run of `api-persist.test.ts`. No migration, no data, and nothing on a phone to undo.** ⚠️ **Filed against `5P-c` and it is not a convenience**: that row is the manual-tally comparison the pilot is GRADED on — *"five consecutive days within 5%"* — and **a day sold from a stale catalog is exactly a discrepancy that tally would surface and somebody would then explain away.** It is the same argument the corrected-sale row above makes, about the same number. A ruling is owed before that tally is trusted, and not before. |
 | **⚠️ `Lo último` IS ON INICIO AS A SIXTH DOOR, AND ADR-035 §2.8 ENUMERATED FIVE** | `5P-a` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND IT IS REPORTED RATHER THAN ASKED FIRST, BECAUSE A SCREEN REACHED FROM NOWHERE CANNOT BE JUDGED ON A PHONE** — and judging it is `R9`'s whole arrangement. `5h-ii-a` shipped the list every correction is reached from, and §2.8's Home row names *the way into every module*: Vender, Comprar and Desperdicio as cards, Productos and Proveedores as rows, *"a fifth and sixth destination that otherwise have no home"*. **`Lo último` is not a module** — it is a LOOK — so the ADR neither authorises nor refuses it. ✅ **ADR-035 §2.8 now carries a revision entry saying six**, because leaving it enumerating five would make the authoritative document false, which is this repository's most-repeated defect. ⚠️ **`app/test/inicio.test.ts` pinned the count at five on purpose** — *"a sixth door is a decision about what Inicio is for, not a tidy-up"* — **so the guard worked**; it now pins six and says a SEVENTH is a decision. ⚠️ **The alternatives, named so this is a real question:** a header button on Comprar and Vender (closer to where a mistake is made, and it edits both capture screens, which is the next row's territory); or a row inside Ajustes (out of the way, and nobody would find it). ⚠️ **RECOMMENDATION: LEAVE IT ON INICIO** — it is a thing you go and look at between customers, which is the same reading that put Productos there, and it is one tap from the screen you open first. **Reversing it is three deletions: a row in `@/navigation/inicio`, a line in that suite, and the ADR entry — no migration, no data.** ⚠️⚠️ **RE-POINTED FROM `5h.5` TO `5P-a` ON 2026-09-26 BY `5h-ii-c`, FOR THE REASON THE ROW ABOVE GIVES AT LENGTH** — this cell is machine-read, `5h.5` is now the next task, and *blocks nothing* spelled as a takeable id refuses it. ~~it blocks nothing takeable; it is filed against the polish row because that is where a placement ruling lands.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **`5P-a` is the row that actually depends on it**: §5's overlay measures **taps per transaction against a ceiling of 5** and **abandonment — capture screens opened with no commit**, and both of those are counted against a fixed inventory of doors. **A sixth destination on Inicio changes the navigation being measured**, so the placement wants to be settled before the instrument is built rather than after it has a baseline. |
 
 ⚠️⚠️ **THE MACHINERY EXISTS AND HAS NEVER BEEN CALLED. `void_transaction` (`0021`) has been applied since 2026-09-04** — it answers a void by INSERTING a mirror-image document rather than editing or deleting anything, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **AND THE CLAIM THAT USED TO SIT HERE WAS FALSE — CORRECTED 2026-09-26 BY `5h-i`, WHICH MEASURED IT.** ~~`5g-iii` measured something about it that changes the question: `purchase` and `purchase_line` carry a SELECT policy and NOTHING ELSE, and no function in this schema writes a reversal — so a void is not reachable through the API at all today, for any of the three kinds.~~ **`0021` BOTH WRITES THE REVERSAL AND GRANTS IT**: `0021:448` revokes from `public` and grants `execute` to `authenticated`, and `proacl` on the applied schema reads `authenticated=X/postgres`. ⚠️ **The narrower half was true and is worth keeping**: `purchase` and `purchase_line` carry a SELECT policy and nothing else, so no client INSERTs a reversal *directly* — the `security definer` RPC is the whole path, **and it is open.** ⚠️ **The cost of the error would have been a migration nobody needs**, written into the next sizing as a certainty.
@@ -670,215 +671,145 @@ assertion in this file now bounds its region.**
 
 
 
-⚠️⚠️ **`6d` IS THE NEXT TASK, AS OF 2026-09-27 — THE CATALOG THAT SURVIVES A COLD START, AND IT IS
-UNGATED.** It is `6c`'s Finding 2, given the row `6c`'s own sentence promised it: `QueryProvider.tsx`
-builds a plain `QueryClient` with **no persister**, so a shop that opens the app with no signal sees no
-catalog at all — the other half of the owner's *"a set of products that he can also look at offline"*.
-⚠️ **It ships no migration**, and the one thing in it that is the owner's is a shop question rather than
-a cache question: *how stale is too stale to sell from*. A recommendation is written into the row.
-~~`6c` is the next task, as of 2026-09-27 — the prebuilt catalog, and it is ungated~~ — ⚠️ **struck in lower case
+⚠️⚠️ **`7a` IS THE NEXT TASK, AS OF 2026-09-27 — NÚMEROS, AND IT IS THE FIRST TIME THE MARKER HAS
+LEFT STEP 6.** *What am I selling, and what did it bring in* over `product_velocity_daily` — a view
+`0013`/`0014` created and `0031` replaced, and which **no module in `app/src/api/` queries**: the
+only mention of it anywhere under `app/src/` is a COMMENT in `@/api/today` about timezone
+bucketing, which is a sentence and not a read. ⚠️ **Its gate is `5h`, closed 2026-09-26** —
+so it is ungated by id; the other half of that cell is prose and is the thing to weigh before
+starting: *"and a shop with real rows in it"*. **Step 6 has no takeable row left**: `6a` and `6a-ii`
+are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all closed.
+~~`6d` is the next task, as of 2026-09-27 — the catalog that survives a cold start, and it is ungated~~ — ⚠️ **struck in lower case
 deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough
 is only a rendering.**
 
-✅✅✅ **`6c` IS DONE, 2026-09-27 — THE SHOPKEEPER CAN DELETE A PRODUCT AGAIN, AND `Editar`'s RETIRE
-CONTROL HAD BEEN DRAWN ON NOTHING SINCE 2026-09-23.** `0042` mints `is_prebuilt` on `product_family`
-and `product_variant`, `catalog_prebuilt_stays()` fences the one transition that matters, and
-`producto/[id].tsx` draws the control on his own rows only. **Step 6's last planned row is closed and
-step 6 has a new one.**
+✅✅✅ **`6d` IS DONE, 2026-09-27 — THE CATALOG SURVIVES A COLD START, AND THE ROW TURNED OUT TO BE
+ABOUT SELLING RATHER THAN ABOUT LOOKING.** `app/src/api/persist.ts` is the **twenty-seventh module of
+`src/api/`** (`ls app/src/api | wc -l`) and it decides six things; `QueryProvider.tsx` binds them, and
+`AuthProvider.signOut` forgets them. **Step 6 is out of takeable rows.**
 
-⚠️⚠️ **WHAT THE ESTIMATE FOUND: `L`, ONE SITTING — AND THE CLIENT HALF IS SMALLER THAN THE ROW
-IMPLIED.** Three measurements the row did not carry. **(1) THERE IS NO FAMILY EDIT SCREEN AT ALL** —
-`familia/[id]`'s `Editar` pushes to `producto/[id]` — so the marker goes on BOTH tables because the
-FENCE has to, and exactly ONE screen gains a control. **(2) THE RETIRE MACHINERY ALREADY EXISTED AND
-HAD NEVER BEEN CALLED**: `activePatch` and `ACTIVE_PATCH_COLUMNS` have been in `@/api/catalogEdit` and
-pinned in `api-catalog-edit.test.ts:352` since `5e-iii-a`, with zero callers — the `void_transaction`
-shape again. **(3) THE STRINGS ALREADY EXISTED**, kept for this row by `5e-iii-b` in as many words.
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `L`, ONE SITTING — AND THE ROW UNDERSTATED ITS OWN SUBJECT BY A LONG
+WAY. WITHOUT THIS, A COLD START WITH NO SIGNAL COULD NOT RING UP A SALE AT ALL.** The row was written
+as a READ problem — *"a shop that opens the app with no signal sees no catalog"*. Traced through
+before a line was written, it is a WRITE problem too, and the write side is the half everybody
+believes is finished:
 
-⚠️⚠️ **THE MARKER'S SHAPE WAS ASKED AND RULED THE SAME DAY: A BOOLEAN `is_prebuilt`, NOT THE `origin`
-ENUM THE PLAN HAD CALLED IT SINCE 2026-09-23.** Both were put to him with their costs, and the boolean
-won on a measured argument two days old — **an enum crossing the wire as a LABEL rather than as its
-member is a bug no typecheck and no Vitest fixture can see**, which is what `6a-ii-b` found in
-`reasonLabel` and paid for in `DocumentLine.reasonValue`. A boolean has no label to get wrong, and it
-matches `provider.is_generic`, this schema's existing answer to the same question. ⚠️ **What it costs
-was named before he chose**: a third provenance is a new nullable column later, not an
-`alter type … add value`.
+- `useCatalog` resolves `locationId` out of `LOCATIONS_KEY` alone. With no signal that read fails,
+  `locationsFrom(undefined)` is `[]`, and `locationId` is `null`.
+- `draftOf` answers a null location with `no-location` (`@/cart/cart:790`), so **`canCommit` is false
+  and the commit slider is not drawn** — on Vender, Comprar **and** Desperdicio.
+- `useWorkspace()` reads `MY_WORKSPACES_KEY`; with no signal it is `null`, and every capture screen
+  builds `basketful` as `null`, so there is nothing to commit even if the slider were there.
 
-⚠️⚠️ **FINDING 1 HELD, AND IT IS NOW A FIXTURE RATHER THAN A WARNING.** The fence is a trigger on
-`is_active` going true→false; **no policy in this schema moved**, and `supabase/tests/0042` §3.4
-asserts that neither update policy so much as mentions the column. The falsifier's `D1` **is** the
-policy-predicate version of `0042` — and it goes red on *"RENAMING A PREBUILT PRODUCT WAS REFUSED"*,
-which is exactly the damage the row predicted a year of reading could not have proved.
+⚠️⚠️ **SO THE SQLITE OUTBOX `5c` BUILT, THE DRAIN `5c-ii` BUILT AND THE QUEUED-NOTE LIST `5h-ii-c`
+BUILT WERE ALL REACHABLE ONLY BY AN APP THAT WAS ALREADY RUNNING WHEN THE SIGNAL DIED.** A phone put
+down at 9 p.m. and picked up at 7 a.m. in a shop with no signal was a phone that could not sell — and
+**nothing in this repository could see it**: no suite mounts a screen, and every contract check has a
+database. [[pilot-store-is-offline-a-lot]] makes that the normal path, not the edge.
 
-⚠️⚠️ **THREE THINGS ONLY DRIVING IT COULD HAVE FOUND, AND THE FIRST IS A REAL DEFECT IN THE FIRST
-WRITING OF `0042`.** **(1) FENCING BOTH DIRECTIONS OF THE MARKER MAKES IT UNSETTABLE AFTER INSERT** —
-not by the seed, not by a fixture, not by a `service_role` job, not by a later migration without
-disabling the trigger. ⚠️ **The defect is invisible in the one case anybody tests**, an import that
-INSERTS its rows, and a shopkeeper could never reveal it. The fix is `provider_protect_generic`'s own
-asymmetry: refuse a demotion, permit a promotion. **(2) `restrict_violation` IS AN HTTP 400 WITH CODE
-`23001`** — measured off a real PostgREST, and neither a 403 nor a 409 ([[custom-sqlstate-arrives-as-400]]).
-`catalogEditErrorMessage` now maps it to a sentence that is **not** `notAllowedEdit`, because the same
-manager may rename and reprice this product: *"Este producto vino con la app, así que no se puede
-quitar. Sí puedes cambiarle el nombre y el precio."* **(3) A READ IN THE SAME STATEMENT AS THE WRITE
-SEES THE PRE-STATEMENT SNAPSHOT** — the pgTAP suite's first writing had `_try(update …)` and
-`select is_active` inside one `chk` call and **reported a working fence as broken**; read-backs are now
-separate statements and say so.
+⚠️ **THAT is why the allow-list is six keys and not `['catalog', …]`.** Four are what the COMMIT
+needs — `['workspace','mine']`, `['workspace','locations']`, `['catalog','variants']`,
+`['catalog','units']` — and two are what Comprar needs: `['providers','list']` and
+`['providers','memory']`, without which every row is C3.12's dash and C3.13 blocks the delivery.
 
-⚠️⚠️ **AND THE FALSIFIER CAUGHT A DEFECT IN ITSELF, WHICH IS THE ONLY THING THAT COULD HAVE.** Its
-restore fed `pg_get_functiondef`'s output through an UNQUOTED heredoc, where `$function$` expands to a
-bare `$`: psql failed, `-v ON_ERROR_STOP=1` **aborted before the `create trigger` on the next line**,
-and `D3` then measured a database with no trigger at all — **red for the wrong reason, and it said so.**
-Every write in that restore had its output sent to `/dev/null`. It now pipes the body, issues each
-statement through its own `ask`, and **verifies the function and both triggers are back**, stopping the
-whole harness if they are not: a restore that puts the database back WRONG accuses the next fixture.
+⚠️⚠️ **THE RULE THE ALLOW-LIST ENCODES, BECAUSE A SEVENTH ENTRY WILL BE PROPOSED: A READ IS PERSISTED
+WHEN A STALE ANSWER BEATS NO ANSWER, AND REFUSED WHEN A STALE ANSWER IS A FALSE STATEMENT.** Persisting
+the whole cache is this library's default shape and it is wrong here, because half of what this app
+reads is money that moved today. **Refused, each for its own reason:** `['today','takings']` — a figure
+labelled *today* restored from yesterday's disk is not stale, it is false; `['documents','recent',…]` —
+`5h-ii-c` already gave `Lo último` an offline answer that is TRUE, and a restored server list beside a
+live queue is two sources disagreeing about what this shop recorded; `['costs','history',…]` and
+`['magnitude','typical']` — both derived from the ledger, and `@/api/costs` already calls a borrowed
+series *"a lie that looks exactly like a fact"*; the four `workspace`/request keys — they answer *who
+may do what*, and the real fence is RLS on a server this phone cannot reach; and `['catalog','prices']`
+and `['catalog','settings']` — `Editar` has no outbox, so it could not save offline anyway.
+**Nothing derived from the ledger is persisted** is the sentence to hold.
 
-⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** **`supabase/tests/0042_catalog_origin.sql` — 25 behavioural
-checks**, every write in §4 under `set local role authenticated`. ⚠️ **Its §2 is the only place the
-owner's backfill ruling of 2026-09-24 is visible**: `0042` writes no `update` — an `update` reaches the
-same state and stamps `updated_at` on every row in every shop, destroying the only record of when a
-product was last really edited — so no ROW in a fresh database witnesses it and
-**`pg_attribute.attmissingval` is what records it**, `{t}` on both tables. ✅
-**`docs/checks/6c-catalog-origin-contract.sh` — 12 assertion groups over live HTTP**, plus its
-**7-fixture falsifier, all behaving**. ✅ **`app/test/api-catalog-edit.test.ts` — 1,513 tests across 46
-files**, the runner's tally (`npm --prefix app test`), +10 and **no new file**; the one red in the first
-run was the guard pinning `VARIANT_EDIT_COLUMNS` to three columns, **which was right when it was
-written** and is widened to an exact ordered list of four rather than relaxed. ✅ Typecheck clean,
-`conventions-gate.sh` 18 of 18 over 93 source and 46 test files, `handbook-agreement.sh` 5 of 5.
+⚠️⚠️ **FINDING 1, AND IT WOULD HAVE SHIPPED GREEN AND DONE NOTHING: `gcTime` EVICTS A QUERY FROM THE
+CACHE, AND ONLY WHAT IS IN THE CACHE IS EVER WRITTEN TO DISK.** Dehydration walks the LIVE cache, and
+TanStack's default `gcTime` is **five minutes** — so a catalog browsed and then left is collected, and
+the next save writes a cache with no catalog in it. ⚠️ **The failure is invisible in the only way a
+person would test it**: kill the app straight after browsing Productos and it works; put the phone
+down for ten minutes first and the catalog is gone. `withPersistedDefaults` sets `gcTime` on the six
+**from the same list the dehydrate predicate reads**, because two hand-maintained lists is how the
+seventh key gets added to one of them.
 
-⚠️ **`db.yml` GAINS AN EIGHTH JOB — `catalog-origin`, *the prebuilt catalog, and the delete that depends
-on it*.** ⚠️⚠️ **A NEW JOB AND NOT TWO STEPS ON `catalog-write`, WHICH IS THE RIGHT HOME ON EVERY OTHER
-TEST THIS WORKFLOW USES**: that job already runs `5e-iii-a-catalog-edit-contract.sh` against the very
-file `6c` widens and builds the identical fixture. **It runs 12-13 minutes against its own
-`timeout-minutes: 15` and was cancelled three times on `main` before `5R-g` split it**, and a cancelled
-job is neither a pass nor a failure ([[a-cancelled-ci-job-is-not-a-failed-assertion]]). So the seam is
-the CAP, not the subject. ⚠️ **The SQL suite is deliberately NOT in that job**: the `reset` job's
-*Behavioural checks* step runs the whole of `supabase/tests/` in name order, so a new suite costs no
-workflow edit — running it twice would re-pay `supabase start` plus two resets to assert what the same
-run already asserts. **That makes 11 job definitions across three workflows, rendering as 12 names** — and ⚠️ **this PR
-renders TEN of them, counted off `gh pr checks 236` rather than derived**: it touches no `packages/**`,
-so `money.yml`'s two are absent, and **the PR body said NINE before the log was read.** 2 (`app.yml`)
-+ 8 (`db.yml`) is the sum, and `CLAUDE.md`'s own figure for this — *seven* — had been stale since
-`db.yml` had five jobs.
+⚠️⚠️ **FINDING 2, AND IT IS THE ONE THAT DECIDED THE WHOLE IDENTITY DESIGN: THE OBVIOUS USE OF
+`buster` DOES NOT WORK, AND THE OBVIOUS FIX FOR IT WOULD DESTROY THIS ROW.** Stamping the signed-in
+user's id as the buster is the documented way to keep one shopkeeper's rows off the next one's screen.
+It cannot work here, and the reason is in `PersistQueryClientProvider`'s own source: `didRestore` is a
+ref, so the restore runs **once per mount** and the save options are frozen the moment restoring
+finishes — at which point `AuthProvider` is still reading the stored session and `session` is `null`.
+**The buster would be captured as the signed-out value and every save would carry it.** ⚠️⚠️ **And
+clearing on `session === null` is worse than useless: `onAuthStateChange` nulls the session on a FAILED
+TOKEN REFRESH as well as on a log-out, and a failed refresh is what a shop with no signal has all day —
+the cache would be wiped at the precise moment it is the only catalog there is.** ✅ **So `buster` is a
+SHAPE VERSION** — `@/lib/outboxDb`'s `PRAGMA user_version` argument, for the same reason — and identity
+is handled by `forgetCache` in `AuthProvider.signOut`, beside `forgetLastScreen`, which is the one
+deliberate *"I am done"* act in this app and is not reached by an expiry.
 
-⚠️ **ONE RENAME WITH A REASON RATHER THAN A TIDY-UP**: `producto/[id]`'s local filled button is now
-`Guardar`, because the file imports the OUTLINE `Boton` from `@/ui/Boton` for the retire control and two
-different buttons under one name in one file is a typecheck error at best. **`proveedor/[id].tsx`
-reached the identical arrangement and picked the identical name on 2026-09-27**, so this is the second
-file to agree rather than a new spelling.
+⚠️ **ONE PRE-EXISTING GAP IS NAMED RATHER THAN WIDENED OR FIXED:** the `QueryClient` is mounted once
+for the app's life, so **a sign-out has never cleared the in-memory cache** — `QueryProvider`'s own
+header argues for one client per mount and the mount outlives the sign-out. Every query is
+`enabled: session !== null`, so nothing refetches while signed out; the exposure is the frames between
+the next sign-in and the first refetch. It is older than this row, it is not made worse by it, and
+fixing it is a decision about where a `client.clear()` belongs rather than a line to slip in here.
 
-⚠️⚠️ **AND `Confirmacion` IS THE THIRD LOCAL COPY OF A CONFIRMATION BOX AND IS DELIBERATELY NOT
-EXTRACTED — THE COUNT IS ON THE PAGE SO THE NEXT `src/ui/` ROW INHERITS A NUMBER RATHER THAN A HUNCH.**
-`documentos.tsx` takes a SHAPE (two acts), `proveedor/[id]` takes a BOOLEAN with two sentences, this
-takes a boolean with THREE — and the third sentence is load-bearing, because dropping `retireWhy`
-leaves *this cannot be undone* attached to a word a shopkeeper reads as *my sales are gone*. ⚠️ `R14`
-reads *reached from two or more modules* and a local component is reached from one, so the gate is green
-either way; **`R16`'s *the difference nobody decided becomes a DECISION* is not a call to make inside a
-migration row**, and `5h.5` left `Confirmacion` in its route for exactly this reason when there was one
-copy.
+⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF AND PARKED IN ⛔ DECISIONS OWED AGAINST `5P-c`:
+THERE IS NO STALENESS FENCE — `CACHE_MAX_AGE` IS `Infinity`.** The row's own text said to park this
+rather than ask. ⚠️ **The library's default is 24 hours**, measured in `persistQueryClientRestore`
+(`maxAge = 864e5`), **and taking it would have made this row pointless**: a shop that closes on
+Saturday and opens on Monday with no signal would find the catalog gone. **Reversing it is one
+constant — no migration, no data.**
 
-⚠️⚠️ **THE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS CHEAP TO REVERSE: A PREBUILT PRODUCT GETS NO
-SENTENCE, NO DISABLED BUTTON AND NO EXPLANATION — THE CONTROL IS SIMPLY ABSENT.** It is what he asked
-for in his own words — *"why am I still seeing the button for the already existing products?"* — and
-where a row came from is ours to know ([[users-dont-do-bookkeeping]]). ⚠️ **The one place
-`ES.catalog.errors.notYours` can ever appear is the stale-read window inside `retire`**, which is why it
-is mapped at all. Reversing it is a line of JSX.
+⚠️ **TWO SMALLER DECISIONS, REPORTED BECAUSE NOTHING ELSE WOULD SAY THEM.** **(1) The cache shares the
+device's key-value store with the Supabase session** rather than opening a third SQLite file: the queue
+keeps its own file because losing a queued sale is unrecoverable, and **losing this cache costs a
+refetch** — which is the whole reason it may live beside something that matters more. A third store
+would be the trade `@/lib/supabase` refused by name when it declined AsyncStorage. **(2)
+`createSyncStoragePersister` is marked `@deprecated`** by the library in favour of the async one, and
+it is still the right call: `@/lib/store` is synchronous by construction, so promises would move no
+work off the JS thread and would buy a second storage abstraction to keep in step. `CACHE_THROTTLE_MS`
+is **3 s** rather than the library's 1 s, because `persistQueryClientSubscribe` fires on every cache
+event and each fire is a `JSON.stringify` plus a synchronous SQLite write — C1.1 puts two low-end
+Androids in this pilot.
 
-✅✅ **DEPLOYED THE SAME SESSION, AND THE SHOP WAS READ RATHER THAN ASSUMED.** `supabase db push`
-applied `0042` to `hweutzjhzvioswnjzqki` and `docs/checks/5R-f-schema-deployed.sh` is **6 of 6 over 40
-migrations**. ⚠️ **That guard compares VERSION NUMBERS and never schema**, so two things were asked of
-the real database directly: **both triggers are standing** (`catalog_prebuilt_stays_trg` on
-`product_family` and on `product_variant`, out of `pg_trigger`), and **the backfill landed exactly as
-he ruled — all 11 families and all 28 variants in his shop are marked OURS.** ⚠️⚠️ **SO THE NUMBER HE
-WILL SEE IS ZERO: the red *Retirar del catálogo* appears on none of the 28 products he has**, and the
-first place it can appear is a product he adds through `Agregar` after the phone is rebuilt. That is
-his own ruling arriving on a screen, and it is stated as a count because *merely indicative* was the
-reason he gave for it costing nothing.
+⚠️ **VERIFIED:** `app/test/api-persist.test.ts` — **29 assertions**, and **1,542 tests across 47 files**
+from the runner (`npm --prefix app test`), +6 files' worth of nothing: **one new file, no guard
+inverted, none widened.** ⚠️⚠️ **EIGHT FALSIFICATIONS, AND ONE OF THEM CAUGHT A BROKEN FIXTURE RATHER
+THAN A BROKEN CHECK** — F6 came back GREEN and the reason was a `sed` pattern with a trailing comma
+against a line ending in a brace, so **the mutation never applied**; re-cut, it turns exactly its own
+assertion red ([[a-green-guard-with-a-red-harness-is-your-anchor]]). The other seven: a renamed root
+(red), `gcTime` below `maxAge` (red), the status check dropped (red), an empty root added (red, nine
+assertions), the `gcTime` loop deleted (red), a second `forgetCache` caller (red) — and **F8, the
+control: the same call written inside a COMMENT must leave it GREEN, and does**, which is what the
+comment-stripper in that block exists for.
 
-⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS SHORT: NOTHING IN HIS SHOP TODAY CAN BE RETIRED.**
-That is his own backfill ruling arriving on a screen — every one of those rows is marked ours — so the
-capability is only visible on a product he adds through `Agregar` after the build lands. ⚠️ **The two
-things to look at are whether a red *Retirar del catálogo* under *Guardar cambios* reads as dangerous
-enough, and whether three stacked sentences in the confirmation is one too many on a small phone.**
-⚠️⚠️ **AND NONE OF IT CAN BE LOOKED AT UNTIL THE INSTALL LANDS — THIS IS THE THIRD ROW OF DESPERDICIO-ERA
-WORK QUEUED BEHIND ONE.** The blocker is this Mac's Wi-Fi, not the phone.
+⚠️⚠️ **THE LAST BLOCK OF THAT SUITE READS `QueryProvider.tsx` AS TEXT, AND IT IS THERE BECAUSE NOTHING
+ELSE IN THIS REPOSITORY CAN SEE THE WIRING.** `R2` and `vitest.config.ts` both keep that file out of
+the suite, so every policy assertion would stay green while the binding reimplemented the predicate
+inline or dropped the `gcTime` loop — **and nothing would be written to the phone.** It asserts the
+consequence it can reach (the binding NAMES the policy) and leaves the behaviour to a phone in
+airplane mode ([[a-shell-check-cannot-see-a-pure-function]], applied to a suite).
 
+⚠️ **NO CONTRACT CHECK AND NO WORKFLOW JOB, AND THAT IS NOT AN OMISSION: THERE IS NOTHING OVER THE
+WIRE IN THIS ROW.** No migration, no RPC, no column, no policy. `db.yml` fires anyway because its
+`paths:` filter names `app/src/api/`, and every contract check passes unchanged — **which is a real
+cost (12-13 minutes) paid for a file that makes no schema claim**, and is worth knowing before
+somebody reads the run as evidence about this row. **No job is added.** ⚠️⚠️ **AND RE-MEASURING THAT COUNT FOUND `CLAUDE.md` STALE BY ONE, FIXED IN THIS
+PR: it said *ten job definitions rendering as eleven names* and the workflow files hold **ELEVEN**
+definitions and **TWELVE** names** — `db.yml` has eight jobs, not seven; the line went stale the
+moment `6c` opened `catalog-origin` and the table beneath it disagreed with the prose above it.
+⚠️⚠️ **AND THIS PR FALSIFIED A SECOND CLAIM IN THAT SAME PARAGRAPH, OFF ITS OWN LOG: *no single PR
+ever shows all twelve*. `gh pr checks 240` printed TWELVE.** `money.yml`'s `paths:` filter is not only
+`packages/**` — it names **`package.json` and `package-lock.json` at the ROOT**, and this row added two
+dependencies. **Adding a dependency is one of the paths**, which is the rule the flat sentence hid.
 
-✅✅✅ **`6b` IS DONE, 2026-09-27 — PROVEEDORES IS A ROOM, AND `provider` HAD BEEN IN THIS SCHEMA SINCE
-`0002` WITH NOTHING IN `app/` EVER WRITING A ROW TO IT.** Twenty-five days of a table this app could read
-and not change. Three routes shipped — `/proveedores` (the directory), `/proveedor/nuevo`, `/proveedor/[id]`
-— **and Inicio's sixth door is live**, which deletes the `route: null` sentence `5d-iv-b` shipped on purpose.
-
-⚠️⚠️ **WHAT THE ESTIMATE FOUND: `M` → `L`, AND THE THREE THINGS THE ROW CALLED UNMEASURED ALL CAME BACK
-BIGGER.** `L` is one sitting under the 2026-09-24 amendment and it held. **(1)** The directory needs
-`contact_name`, `phone` and `address_line1` — and **`docs/checks/5g-i-purchase-contract.sh` bans all three
-from reaching a phone, by name, off the wire.** **(2)** `providersFrom` DROPS retired suppliers, so a
-directory could not reuse it blindly and could not ignore it either. **(3)** *Whether provider editing
-needs its own fence* turned out to be **two** fences with **two different wire shapes**.
-
-⚠️⚠️ **THE DECISION THAT SHRANK IT BACK, AND IT IS A CORRECTNESS PROPERTY RATHER THAN A SAVING: THE LIST IS
-`useProviders(null)`'s READ AND NOT A DIRECTORY QUERY OF ITS OWN.** The obvious shape was `provider` with
-every column ordered by name. A second query with a filter of its own would be **two answers to *which
-suppliers exist*** — a supplier the directory hides and Comprar still offers, or the reverse — **and nothing
-in this repository could see the disagreement.** So the screen draws `PROVIDERS_KEY`, the same cache the
-delivery picker holds, and opening Proveedores after Comprar costs **no round trip at all**.
-
-⚠️⚠️ **THE BOUNDARY IS THE FINDING WORTH INHERITING, AND `5g-i`'s OWN COMMENT PREDICTED IT.** That check
-says the three directory columns *"belong to Proveedores, which is step 6's own screen"* — so this row is the
-**other side** of that assertion rather than an exception to it. They arrive through `DETAIL_COLUMNS`, on ONE
-supplier, on a screen reached by tapping her. ✅ **`6b`'s own check asserts BOTH halves in one place**: the
-three must be on the detail read and must NOT be on `PROVIDER_COLUMNS`, so a session widening the list read
-to put a phone number on a row goes red in two checks rather than shipping a decision about who sees what.
-
-⚠️⚠️ **AND THE ONE THE DATABASE DOES NOT HOLD, NOW MEASURED: THE GENERIC ROW CAN BE DEACTIVATED, AND
-`provider_protect_generic` DOES NOTHING ABOUT IT.** That trigger refuses a DELETE and refuses a demotion and
-**stops there.** A shop whose catch-all supplier was switched off opens Comprar **with no default at all** and
-`record_purchase` refuses every delivery for want of a counterparty — produced by one editable boolean.
-`providersFrom` compensates on the read side, so the damage would be a row the directory hides and the picker
-still offers. **`canRetire` is the only fence there is**, the check drives the deactivation against a real
-PostgREST to prove so, and puts the row straight back.
-
-⚠️ **THE OTHER TWO WIRE FINDINGS, both measured 2026-09-27.** **A cashier is refused TWO different ways and
-only one of them is an error**: `provider_insert` gives her **HTTP 403 `42501`**, and `provider_update` makes
-the row **invisible** — **200 with `[]`** — so `.select().single()` is the only thing that turns it into
-something an app can act on ([[rls-update-refusal-is-a-200]]). And **`normalize_name` folds case and
-whitespace and NOT accents**: `bodega   DEL centro` is refused `23505`, `Abarrotes Pena` beside
-`Abarrotes Peña` is **accepted**. That second half is why `checkProvider` is deliberately **stricter than its
-own schema** — wider is the safe direction, because refusing with a sentence beats a `23505` on a name the
-screen had just shown as available.
-
-⚠️⚠️ **AND THE HARNESS FOUND TWO OF ITS OWN FIXTURES UNCATCHABLE ON ITS FIRST RUN, WHICH IS RULE 4 WORKING
-RATHER THAN FAILING.** One added `is_generic` to the insert body — Postgres accepts `false` happily, so no
-wire assertion can see it. One made `optional()` return `''` instead of `null` — **no shell script can call a
-TypeScript function.** ✅ Both claims are `app/test/api-provider-directory.test.ts`'s, the check gained an
-assertion about the **consequence** of the second (Postgres keeps `''` and `null` apart on `contact_name`, so
-the decision matters), and the two replacements break something on the wire. ⚠️ **The division is written into
-both files**, because a fixture the check cannot catch is a gap in the fixture and not always a gap in the check
-— and finding out which is the whole reason the harness exists.
-
-⚠️ **ONE PRIMITIVE AND ONE PROP, both `R14`/`R16` rather than tidying.** `@/ui/Destello` is the ninth component
-in `src/ui/` — the blink that says *this one is new*, inline in `productos.tsx` since `5d-ii`, extracted the day
-`proveedores.tsx` became the second file to draw it. And **`Buscador` spelled `ES.catalog.search` inside
-itself**, which was true while every caller searched the catalog and false the moment one searched suppliers:
-`placeholder` is now a **required** prop with no default, at five call sites. ⚠️ `Campo`, `Caja` and `Iniciales`
-are drawn again here and **deliberately NOT extracted** — their counts are on the page for the next `src/ui/` row.
-
-✅ **VERIFIED BY NAME.** `docs/checks/6b-provider-directory-contract.sh` — **23 of 23 against a real local
-PostgREST**; its harness `…-falsify.sh` — **10 of 10 fixtures, both controls green**;
-`npm --prefix app test` — **1,503 tests across 46 files** (the runner's tally, not a grep);
-`npm --prefix app run typecheck` — clean after the typed-route regeneration;
-`bash docs/checks/conventions-gate.sh` — **18 of 18 over 93 source and 46 test files**. ⚠️ **`R4` and `R8`
-were RED first**: a JSX comment quoting the seeded generic name tripped the Spanish-literal rule
-([[jsx-comments-are-code-to-the-gate]]) and `Destello.tsx` shipped without a header.
-
-⚠️ **NO MIGRATION, so nothing is owed a `supabase db push`** — every column, policy and trigger this row needs
-has been applied since `0002`. `docs/checks/5R-f-schema-deployed.sh` was green 6 of 6 at the start of the
-session and this row does not move it.
-
-⚠️⚠️ **WHAT ONLY A PHONE CAN JUDGE (`R9`, §2.11): whether a list of BARE NAMES reads as a directory or as an
-unfinished screen.** A row carries a name and nothing else — the phone number is one tap away, on the detail
-page — and that is the deliberate consequence of not widening Comprar's read. **It is the first thing likely to
-be asked for and it is parked in ⛔ DECISIONS OWED with its cost attached**, because doing it quietly would
-amend `5g-i`'s assertion about who sees what.
-
+⚠️⚠️ **WHAT ONLY A PERSON CAN JUDGE, AND IT NEEDS A REBUILD FIRST:** open Wera with signal, tap
+Productos so the catalog loads, **wait more than five minutes** (that is Finding 1 — a shorter wait
+tests nothing), force-quit, put the phone in **airplane mode**, and reopen. Productos should list the
+catalog, and **Vender's commit slider should be there and complete**. Before this row it was a screen
+that could not sell.
 
 ⚠️⚠️ **THE BUILD IS MADE AND SIGNED AND IS **NOT** ON HIS PHONE, BECAUSE THE PHONE IS NOT
 REACHABLE FROM THIS MAC — AND THAT IS A DIFFERENT FAILURE FROM THE ONE THIS PROJECT HAS ON RECORD.**
@@ -937,6 +868,28 @@ belongs **under the date**, where a supplier's name sits on a delivery, or on ea
 **None of it can be looked at until the install lands.** ⚠️⚠️ **AND `6a-ii-b` HAS ADDED TO THAT
 LIST RATHER THAN CLEARING IT** — two rows of Desperdicio work are now waiting on one install.
 
+
+⚠️⚠️ **AND 2026-09-27 HAS NOW BEEN CUT THREE TIMES — THE TWENTY-SIXTH CUT OVERALL, APPENDED BY `6d`
+AFTER IT WROTE ITS ENTRY.** `## Position` stood at **1,318 of 1,400** with the entry in: **82 lines of
+headroom against an entry that runs 40–130**, which is BELOW the whole range rather than inside it —
+so the next session could not have written at all. ⚠️ **The calibration either side of it**: `6b`
+inherited 245 and spent 82 without cutting; `6c` cut at 163 and called it *enough to pass and not
+enough to write with*. **82 is not a judgement call.** **200 lines out**, the day's two oldest
+remaining closing entries taken oldest-first: `6c`'s with its deploy note, and `6b`'s with its
+look-question. **Position stands at 1,118.**
+
+⚠️⚠️ **AND THE RULE THE CUT ABOVE STATED WAS BROKEN AND REPAIRED INSIDE THIS ONE, RECORDED RATHER THAN
+QUIETLY FIXED.** The first pass ran to a LINE boundary and swallowed the install block below — *the
+build is made and signed and is NOT on his phone*, the `devicectl` `unavailable` / `CoreDeviceError
+1011` finding and its correction. **That block is the only place the blocker is written down**, and
+four rows of work are now queued behind one install; it was moved back before the archive file was
+written, and the corpus carries exactly one copy of it. ⚠️⚠️ **A LINE RANGE IS NOT A SEMANTIC
+BOUNDARY, AND NOTHING CHECKS THIS** — `plan-handover.sh` counts lines and blocks, and would have
+passed either way. The cut above left the same block behind on purpose and said so in one sentence;
+this one had to be told by re-reading that sentence. ⚠️ **`6b`'s look-question WAS taken and that is
+not the same thing**: `docs/HANDBOOK.md`'s `## ⏸ THE CATCH-UP` indexes it, so archiving it does not
+stop it being re-offered. **The install block has no such index — which is the test to apply before a
+cut, not after it.**
 
 ⚠️⚠️ **AND 2026-09-27 HAS NOW BEEN CUT TWICE — THE TWENTY-FIFTH CUT OVERALL, APPENDED BY `6c`
 BEFORE IT WROTE A LINE.** `## Position` stood at **1,237 of 1,400**: 163 lines of headroom against an
@@ -5242,7 +5195,7 @@ of 10 — and the harness is what caught it**, reporting *"the mutation changed 
 to that list does not break them again; 12 of 12 behave.
 
 ⚠️ **VERIFIED:** `supabase/tests/0042_catalog_origin.sql` — **25 behavioural checks**, §2 reading `pg_attribute.attmissingval` because `0042` writes no `update` and no ROW in a fresh database can witness the backfill ruling; `docs/checks/6c-catalog-origin-contract.sh` — **12 assertion groups over live HTTP**; its falsifier — **7 fixtures, all behaving**; `app/test/api-catalog-edit.test.ts` — **1,513 tests across 46 files** from the runner, +10 and no new file, with **one guard widened and it was right when it was written** (`VARIANT_EDIT_COLUMNS` as an exact ordered list). ⚠️ **`db.yml` gains an EIGHTH job, `catalog-origin`** — a new job and not two steps on `catalog-write`, which is the right home on every other test and **runs 12-13 minutes against its own fifteen and was cancelled three times on `main`**. ⚠️ **The SQL suite is deliberately NOT in that job**: the `reset` job runs the whole of `supabase/tests/` in name order, so a new suite costs no workflow edit. ⚠️ **ONE RENAME WITH A REASON**: `producto/[id]`'s local filled button is now `Guardar`, because the file imports the OUTLINE `Boton` from `@/ui/Boton` and two buttons under one name in one file is a typecheck error at best — `proveedor/[id].tsx` reached the identical arrangement and the identical name the same day. ⚠️ **And `Confirmacion` is the THIRD local copy of a confirmation box and is deliberately NOT extracted**, with the count on the page for the next `src/ui/` row: `documentos.tsx` takes a shape, `proveedor/[id]` takes a boolean with two sentences, this takes a boolean with three. `R14` reads *reached from two or more modules* and a local component is reached from one, so the gate is green either way; `5h.5` left `Confirmacion` in its route for this reason when there was one copy. ⚠️⚠️ **FINDING 2 IS NOT IN THIS ROW AND HAS A ROW OF ITS OWN NOW — `6d`.** ~~this is the next task, as of 2026-09-27 — and it is the second time this row has held the marker, but the first time it holds it on its own merits~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️ The last time, it held the marker for four hours because `5f-ii` was blocked and handed it straight back; nothing was standing in for anything. ⚠️ **It was ungated** — the owner put it *recommended after `5g`*, which closed 2026-09-25, and he has said that part is indicative and not to hold up the front end. ⚠️⚠️ **AND IT IS THE FIRST ROW IN STEP 6 THAT REALLY DOES SHIP A MIGRATION**: `6a-ii` shipped `0041` first, so the struck claim below is corrected and this one is the *only remaining* row here that needs one. **`0042` is next** (39 files on disk, `0041` the highest — `0006` and `0007` are permanent holes, so never infer the count from the number). ⚠️⚠️ **STOP AND ASK BEFORE WRITING IT: a marker column on `product_variant` is a one-way door and the seed bakes it in.** ⚠️⚠️ **IT HELD THE MARKER FOR ABOUT FOUR HOURS ON 2026-09-24 AND HANDED IT STRAIGHT BACK, WHICH IS THE HOLDING MOVE WORKING RATHER THAN FAILING.** ~~this is the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** The row that took it said *the moment the quantity control is ruled on, `5f-ii` is next again*; it was ruled that evening and **`5f-ii` is next again**. ⚠️ **What the four hours bought is recorded rather than shrugged off**: the marker moved because `plan-handover.sh` refuses to let a blocked task be next, so the plan could not quietly sit on a row nobody could start — **the check turned a stall into a visible question**, and the question was answered. ⚠️ **SIZE IT FIRST** when it IS taken, as its own cell below asks. ⚠️⚠️ **WHERE A PRODUCT CAME FROM, AND THE DELETE THAT DEPENDS ON IT — NEW 2026-09-23, REWRITTEN TWICE THE SAME DAY.** *"The user can only Retirar or Eliminar things he created"*, then *"why am I still seeing the button for the already existing products?"*, then the ruling that settled it. ⚠️⚠️ **THE OWNER'S PURPOSE, IN HIS OWN WORDS, AND IT IS WHAT THIS ROW IS FOR: *"when we start developing that onboarding step where each user can select the nature of his shop and therefore import a set of products that he can also look at offline we need to make that distinction to avoid them from deleting a product they didn't create."*** So the distinction is not a tidiness — **it is the thing that makes an imported catalog safe to hand somebody**, and C8.3's four store types (pollería, carnicería, cremería/salchichonería, recaudería) are what *the nature of his shop* selects between. ⚠️⚠️ **THIS ROW RESTORES A CAPABILITY RATHER THAN ADDING A FENCE.** `Editar`'s retire control is **drawn on nothing** as of 2026-09-23, because `product_family` and `product_variant` record no origin and the screen could not tell one kind of row from the other. Drawn-on-none was the honest interim; **this is what gives deleting back, on his own rows only.** ⚠️ **THE BACKFILL IS RULED (2026-09-24): everything present when the marker ships is NOT the shopkeeper's; everything created through `Agregar` afterwards is.** It costs nothing today — the rows in his shop are *"merely indicative for us to keep progressing on our Front End"*. ⚠️⚠️ **FINDING 1, AND IT IS THE ONE THAT WOULD HAVE SHIPPED WRONG: THE FENCE IS ON DEACTIVATION, NOT ON UPDATE.** The obvious move is to add `origin = 'shop'` to `product_variant_update`'s predicate — **and that would stop him PRICING and RENAMING an imported product, which is the entire reason for importing one.** He must be able to set his own prices on our catalog; he must not be able to remove it. A `using` clause cannot say *this column may not change in this direction*, so it is a **trigger** on `is_active` going true→false, the shape `product_variant_units_same_dimension_trg` already establishes in `0002`. ⚠️ A policy predicate here is a migration that looks right, merges automatically and breaks the catalog it was written to protect. ⚠️⚠️ **FINDING 2, AND IT IS THE HALF OF *look at it offline* NOTHING OWNS YET: THE QUERY CACHE DOES NOT SURVIVE A COLD START.** `app/src/api/QueryProvider.tsx` builds a plain `QueryClient` with **no persister** — measured 2026-09-24 — so the catalog lives in memory only. **A shop that imports a catalog, kills the app and reopens it with no signal sees no catalog at all**, which is precisely the condition §2.6 and C10.3 exist for and precisely what he asked for. ⚠️ It is a separate concern from the marker and may want a row of its own; it is recorded HERE because this is the row whose sentence promises it. ⚠️ **THE MARKER'S SHAPE:** on BOTH catalog tables — he creates Familias as well as Productos — with a DEFAULT meaning *the shop made this*, so `5e-i`'s `VARIANT_INSERT_COLUMNS` needs no new column and every product made through `Agregar` is correctly his without the app saying so. ⚠️ **The rows are COPIED INTO a workspace and never shared across tenants** — every line table's foreign key is composite on `(id, workspace_id)`. ADR-035's catalog section carries the rule. ⚠️⚠️ **WHAT THIS ROW IS NOT: THE ONBOARDING ITSELF.** *"Once we wrap up the full app we will polish many parts, one of them is the onboarding to import a catalog."* The shop-type question, the import and the screens around it are that later job; **what is here is the marker, the fence and the restored delete**, which is what the app needs before any of it can be safe. Splitting them is the difference between a migration that can be reviewed and one that cannot. ⚠️ **Size it before building it.** | `L` — **sized 2026-09-27, one sitting** | ✅ **WAS UNGATED, and it shipped** — the backfill was the only open word and it was ruled 2026-09-24; the marker's SHAPE was asked and answered the same day it was built |
-| **6d** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-27 — AND IT IS `6c`'s FINDING 2 GETTING THE ROW ITS OWN SENTENCE PROMISED IT.** `6c`'s row said the query cache *"is a separate concern from the marker and may want a row of its own; it is recorded HERE because this is the row whose sentence promises it."* It shipped without it, deliberately, and this is that row. ⚠️⚠️ **THE CATALOG DOES NOT SURVIVE A COLD START, AND IT IS THE OTHER HALF OF THE OWNER'S OWN SENTENCE.** He asked for an imported set of products *"that he can also look at offline"*; `6c` made an imported catalog safe to hand somebody and **`app/src/api/QueryProvider.tsx` builds a plain `QueryClient` with no persister** — measured 2026-09-24 and re-measured 2026-09-27 — so every catalog read lives in memory only. **A shop that opens the app with no signal sees no catalog at all**, which is precisely the condition §2.6 and C10.3 exist for. ⚠️ **IT IS THE READ SIDE OF A PROBLEM WHOSE WRITE SIDE IS SOLVED.** `app/src/offline/` is six modules and a real SQLite outbox: a delivery keyed with no signal lands, queues, drains and is now even readable back in `Lo último` (`5h-ii-c`). **Nothing does the same for a READ.** ⚠️ **WHAT IT IS NOT: A SECOND DATA LAYER.** The `@tanstack/react-query` persister contract is one adapter plus one storage binding; `app/src/lib/outboxDb` already owns a SQLite handle, so the decision is whether the cache shares it or takes its own file — and that is a decision this row must NAME rather than absorb. ⚠️ **AND IT DECIDES WHAT A SHOPKEEPER SEES, WHICH MAKES A PIECE OF IT THE OWNER'S**: a catalog restored from disk is by definition STALE, and *how stale is too stale to sell from* is a shop question, not a cache question ([[tienda-decisions-need-shop-truth]]). ⚠️ **The candidate answer to park with a recommendation rather than ask up front: no staleness fence at all on the catalog** — a price from this morning beats an empty screen, and `Vender` already refuses to commit a basket it cannot price. **Size it first.** | **size it** | ✅ **UNGATED** — nothing is owed on it, and both halves of the deferral test are yes: the cache can be looked at on a phone in airplane mode, and `5a-iv`'s instrument already exists |
+| **6d** | ✅✅✅ **DONE 2026-09-27 — THE CATALOG SURVIVES A COLD START, AND THE ROW TURNED OUT TO BE ABOUT SELLING RATHER THAN ABOUT LOOKING.** `app/src/api/persist.ts` is the twenty-seventh module of `src/api/`; `QueryProvider.tsx` binds it and `AuthProvider.signOut` forgets it. ⚠️⚠️ **THE ROW UNDERSTATED ITS OWN SUBJECT: WITHOUT THIS, A COLD START WITH NO SIGNAL COULD NOT RING UP A SALE AT ALL.** `useCatalog` resolves `locationId` from `LOCATIONS_KEY` alone, `draftOf` answers a null location with `no-location`, so **`canCommit` was false and the commit slider was not drawn** on Vender, Comprar or Desperdicio; `useWorkspace()` was `null`, so `basketful` was `null` too. **The outbox `5c` built was reachable only by an app already running when the signal died**, and nothing here could see it — no suite mounts a screen and every contract check has a database. ⚠️ **SIZED `L` AND BUILT IN ONE SITTING**, which the 2026-09-24 amendment asks for. ⚠️ **The allow-list is SIX keys and the rule it encodes is one line: a read is persisted when a stale answer beats no answer, and refused when a stale answer is a false statement.** Nothing derived from the ledger is persisted — `today`, `documents`, `costs`, `magnitude` and the four permission reads are all refused by name and by test. ⚠️⚠️ **FINDING 1: `gcTime` EVICTS A QUERY FROM THE CACHE AND ONLY WHAT IS IN THE CACHE IS WRITTEN TO DISK** — TanStack's default is five minutes, so a catalog browsed and left is collected and the next save writes a cache with no catalog in it. **Invisible in the only way a person would test it.** ⚠️⚠️ **FINDING 2: THE BUSTER CANNOT BE THE PERSON SIGNED IN** — `PersistQueryClientProvider` restores once per mount and freezes its options before `AuthProvider` has read the stored session — **and clearing on `session === null` would wipe the catalog on a failed token refresh, which is what a shop with no signal has all day.** So the buster is a shape version and `forgetCache` is called from `signOut`. ⚠️ **ONE DECISION PARKED in ⛔ DECISIONS OWED against `5P-c`: no staleness fence (`CACHE_MAX_AGE` is `Infinity`).** The library's default is 24 hours and would have made this row pointless. **Reversing it is one constant.** ⚠️ **VERIFIED:** `app/test/api-persist.test.ts` — **29 assertions**, **1,542 tests across 47 files** from the runner; **eight falsifications**, one of which (F6) came back green and turned out to be a broken FIXTURE rather than a broken check. ⚠️ **No contract check and no workflow job, and that is not an omission — there is nothing over the wire in this row.** ~~this is the next task, as of 2026-09-27 — and it is `6c`'s Finding 2 getting the row its own sentence promised it~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** `6c`'s row said the query cache *"is a separate concern from the marker and may want a row of its own; it is recorded HERE because this is the row whose sentence promises it."* It shipped without it, deliberately, and this is that row. ⚠️⚠️ **THE CATALOG DOES NOT SURVIVE A COLD START, AND IT IS THE OTHER HALF OF THE OWNER'S OWN SENTENCE.** He asked for an imported set of products *"that he can also look at offline"*; `6c` made an imported catalog safe to hand somebody and **`app/src/api/QueryProvider.tsx` builds a plain `QueryClient` with no persister** — measured 2026-09-24 and re-measured 2026-09-27 — so every catalog read lives in memory only. **A shop that opens the app with no signal sees no catalog at all**, which is precisely the condition §2.6 and C10.3 exist for. ⚠️ **IT IS THE READ SIDE OF A PROBLEM WHOSE WRITE SIDE IS SOLVED.** `app/src/offline/` is six modules and a real SQLite outbox: a delivery keyed with no signal lands, queues, drains and is now even readable back in `Lo último` (`5h-ii-c`). **Nothing does the same for a READ.** ⚠️ **WHAT IT IS NOT: A SECOND DATA LAYER.** The `@tanstack/react-query` persister contract is one adapter plus one storage binding; `app/src/lib/outboxDb` already owns a SQLite handle, so the decision is whether the cache shares it or takes its own file — and that is a decision this row must NAME rather than absorb. ⚠️ **AND IT DECIDES WHAT A SHOPKEEPER SEES, WHICH MAKES A PIECE OF IT THE OWNER'S**: a catalog restored from disk is by definition STALE, and *how stale is too stale to sell from* is a shop question, not a cache question ([[tienda-decisions-need-shop-truth]]). ⚠️ **The candidate answer to park with a recommendation rather than ask up front: no staleness fence at all on the catalog** — a price from this morning beats an empty screen, and `Vender` already refuses to commit a basket it cannot price. **Size it first.** | **size it** | ✅ **UNGATED** — nothing is owed on it, and both halves of the deferral test are yes: the cache can be looked at on a phone in airplane mode, and `5a-iv`'s instrument already exists |
 
 ---
 
@@ -5257,7 +5210,7 @@ sophisticated for now"* — so this is three questions, not thirty.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **7a** | **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` | `5h`, and a shop with real rows in it |
+| **7a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-27 — AND IT IS THE FIRST TIME THE MARKER HAS LEFT STEP 6.** Step 6 has no takeable row left: `6a` and `6a-ii` are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all closed. ⚠️ **Its gate `5h` closed 2026-09-26, so it is ungated by id** — but the other half of the Gate cell is prose and is the thing to weigh before starting: *"and a shop with real rows in it"*. ⚠️ **`product_velocity_daily` has existed since `0013`/`0014` and was replaced by `0031`, and NO module in `app/src/api/` queries it** — the only mention under `app/src/` is a comment in `@/api/today` about timezone bucketing, which is a sentence and not a read. ⚠️ **SIZE IT FIRST** when it is taken. **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` | `5h`, and a shop with real rows in it |
 | **7b** | **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
 | **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | ✅ **UNGATED as of 2026-09-27** — ~~`6a` — there is no waste data until that screen exists~~. ⚠️ **Re-pointed from `6a` to `6a-i` and then cleared, because `6a` split that day and *a gate naming a row nobody can take is a gate nobody can clear*** — the trap `5h`'s and `5h.5`'s splits both recorded. `6a-i` closed 2026-09-27, so the screen exists. ⚠️ **What it still wants is DATA rather than a row**: a pilot shop that has actually thrown things away for a while |
 | **7d** | **The raw rows.** `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his | `S` | `7a` |

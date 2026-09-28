@@ -6,6 +6,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { authErrorMessage } from '@/auth/errors';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
+import { cacheMemory, forgetCache } from '@/api/persist';
 import { forgetLastScreen, routeMemory } from '@/navigation/lastScreen';
 import { ES } from '@/strings';
 import { supabase } from '@/lib/supabase';
@@ -195,6 +196,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // this and does not clear it.
   const signOut = useCallback(async () => {
     forgetLastScreen(routeMemory());
+    // ⚠️⚠️ AND IT FORGETS THE PERSISTED QUERY CACHE (`6d`). Since that row the
+    // phone's disk holds this shop's catalog, its supplier list and what each
+    // supplier last charged — and the argument is `forgetLastScreen`'s exactly:
+    // the realistic next person to hold this phone is a different one.
+    //
+    // ⚠️ IT IS HERE AND NOT ON `session === null`, WHICH IS THE WHOLE DESIGN.
+    // `onAuthStateChange` nulls the session on a failed token refresh as well
+    // as on a log-out, and a failed refresh is what a shop with no signal has
+    // all day — clearing there would wipe the offline catalog at the one moment
+    // it is the only catalog there is. `@/api/persist` carries the full note.
+    forgetCache(cacheMemory());
     await supabase.auth.signOut();
   }, []);
 
