@@ -12,6 +12,17 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-28 — **§5's measurement sentence, on four rulings of the decision maker
+  that day, by plan task `5P-a`, all asked before a line was built.** (42) the overlay is
+  **hidden** — no capture screen changes; the owner opens a readings panel by a long press on
+  Ajustes' title. (43) the readings are **sent to the server** (`0043`, `pilot_reading`) rather
+  than kept on the phone — recommended against, taken. (44) a reading **names the member** who
+  was signed in — recommended against, taken: it is behavioural data on a named employee, so
+  **the *aviso de privacidad* (`5R-d`) must say so before a shop the owner does not run is
+  instrumented.** (45) **the owner alone** reads them back. ⚠️ **What still holds of *"not with
+  instrumentation shipped to production"***: only a build made with `EXPO_PUBLIC_PILOT` writes a
+  reading; a store build takes none. §2.7 gains one table, owner-read, written only through a
+  `security definer` function that stamps the member.
 - **Revised:** 2026-09-28 — **§2.9's *How have my prices moved?* row, on the decision maker's
   ruling of the same day, by plan task `7b`: ONE CHART, BOTH LINES WITH IVA.** Asked before a line
   was built; the recommendation had been two panels, the purchase side WITHOUT IVA so it agreed with
@@ -2057,8 +2068,12 @@ total on the device, so nothing about the confirmation waits on Postgres. The th
 is new and is the one most likely to fail on modest hardware: §2.8 promises "one tap
 from cold open", and a tap you wait three seconds to make is not one tap.
 
-Measured with a dev-build overlay during the pilot, not with instrumentation shipped
-to production.
+~~Measured with a dev-build overlay during the pilot, not with instrumentation shipped
+to production.~~ ⚠️ **AMENDED 2026-09-28 by the decision maker's rulings 42–45 (see the revision
+entry):** measured by a **pilot build** — one made with `EXPO_PUBLIC_PILOT`, because the pilot's
+phones run Release builds and a `__DEV__` overlay would be absent from all of them — which files
+each reading to `pilot_reading` (`0043`), naming the member, for **the owner alone** to read back
+on a hidden panel. A build made without the flag takes no reading at all.
 
 **Success, defined in advance:** five consecutive days where recorded transactions
 match the independent tally within 5%, with no intervention.

@@ -117,8 +117,8 @@ select public.chk('2.4 failed_write is still owner-only',
 -- ⚠️ THE COUNT IS THE ANTI-COLLATERAL ASSERTION: `alter policy` replaces a
 -- predicate and creates nothing, so the total must not have moved. `0032`'s seed
 -- check pins the same number independently.
-select public.chk('2.5 still exactly 41 policies — 0040 created and dropped none',
-  (select count(*) from pg_policies where schemaname = 'public') = 41,
+select public.chk('2.5 exactly 42 policies — 0040 created and dropped none (41 then; 0043 added pilot_reading_select)',
+  (select count(*) from pg_policies where schemaname = 'public') = 42,
   format('found %s', (select count(*) from pg_policies where schemaname = 'public')));
 
 -- ⚠️ AND THE VIEW WAS NOT TOUCHED. `provider_price_memory` reaches a cashier

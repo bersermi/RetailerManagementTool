@@ -67,6 +67,21 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
+✅✅ **THE FORTY-SECOND TO FORTY-FIFTH RULINGS — 2026-09-28, ASKED BY `5P-a` BEFORE A LINE WAS
+BUILT, AND TWO OF THE FOUR TAKEN AGAINST THE RECOMMENDATION.** Asked rather than parked because the
+working prompt names all of them as stop-and-ask: what a shopkeeper sees, a migration, and who may
+see what. **(42) THE OVERLAY IS HIDDEN** — as recommended: no capture screen changes, and the owner
+opens a readings panel by a long press on Ajustes' title. **(43) THE READINGS GO TO THE SERVER** —
+**against** the recommendation to keep them on the phone; that is `0043` and a one-way door.
+**(44) A READING NAMES THE MEMBER** — **against** the recommendation of the phone only. ⚠️⚠️ **What
+he accepted, named in the question before he answered: it is behavioural data on a named employee,
+so the *aviso de privacidad* `5R-d` ships must say so before a shop he does not run is
+instrumented** — written into `5R-d`'s row. **(45) THE OWNER ALONE READS THEM BACK** — as
+recommended; a manager reads zero rows. ⚠️ **ADR-035 §5's *"not with instrumentation shipped to
+production"* is amended with a revision entry**: what still holds is that only a build made with
+`EXPO_PUBLIC_PILOT` writes a reading. ⚠️ **Reversing (43)–(45) after the merge is a migration**; (42)
+is one line in `ajustes.tsx`. **Never parked, so the block above stays empty.**
+
 ✅✅ **THE FORTY-FIRST RULING — 2026-09-28, ASKED BY `7b` BEFORE A LINE WAS BUILT, AND TAKEN AGAINST
 THE RECOMMENDATION: *one chart, both lines with IVA*.** The brief recommended two panels — sale WITH
 IVA as on the shelf, purchase WITHOUT as typed in Comprar and shown on `Costos` — so the gap between
@@ -739,12 +754,63 @@ assertion in this file now bounds its region.**
 
 
 
-⚠️⚠️ **`5P-a` IS THE NEXT TASK, AS OF 2026-09-28 — THE DEV-BUILD OVERLAY §5 GRADES THE PILOT WITH,
-AND IT IS UNGATED.** Its gate `5h` closed 2026-09-26 and the last decision naming it was ruled this
-morning (the fortieth). ⚠️ **Why not `7c`**: it is ungated by id and still wants DATA — a shop that has
-thrown things away for a while; `7e` wants weeks of it. ⚠️ **§5 says a dev-build overlay and NOT
-instrumentation shipped to production** — that is the answer that needs no privacy notice, and the
-sizing should hold it.
+⚠️⚠️ **`5P-c` IS THE NEXT TASK, AS OF 2026-09-28 — COMPLETENESS, THE NUMBER THE PILOT IS GRADED ON,
+AND IT IS UNGATED.** Its gate `5P-a` closed the same day, below. ⚠️ **What it inherits**: §5's
+*five consecutive days within 5%* is a comparison against a MANUAL tally, so the first question in
+its sizing is where that tally is typed and by whom — a shopkeeper question, to be walked through
+with the owner before anything is designed. ⚠️ **Why not `7c`**: ungated by id and still wants DATA.
+
+✅✅✅ **`5P-a` IS DONE, 2026-09-28 — THE PILOT'S INSTRUMENT: HOW FAST, HOW MANY TAPS, AND WHAT GETS
+LEFT.** A build made with `EXPO_PUBLIC_PILOT` measures §5's four budgets and its abandonment on
+Vender, Comprar and Desperdicio, files each reading to **`pilot_reading` (`0043`)**, and the OWNER
+reads them back on a panel opened by a **long press on Ajustes' title** — *Hoy* or *Últimos 7 días*,
+one block per screen, each measure against its budget as *Dentro*, *Fuera* or *Sin lecturas*. **A
+build without the flag takes no reading at all.** ⚠️ **It ships a migration**, the first since `6c`.
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `M` → `L`, ONE SITTING, AND FOUR QUESTIONS ASKED FIRST (rulings
+42–45).** **(1) THE PILOT'S PHONES RUN RELEASE BUILDS**, so §5's *dev-build overlay* read as
+`__DEV__` would be absent from every phone it exists for — the flag is a build-time variable
+instead, and `R7` is amended to three. **(2) `R7` AND `auth-errors.test.ts` BOTH SHAPED WHERE THE
+FLAG IS READ**: `lib/supabase.ts` has two pinned importers, so the flag lives in `lib/pilotFlag.ts`
+and the gate names it. **(3) THE CONFIRMATION FIRES ON ENQUEUE** (`5f-iii-b`), so *commit →
+confirmation* is a render budget with no network in it, stamped on the frame after the
+confirmation mounts. **(4) THE ROUND TRIP HAS ONE HOME** — `flushRunner`'s `send`, timed only on a
+reply that landed. **(5) A NEW POLICY MOVED A COUNT FOUR FILES PINNED** at 41 — two pgTAP suites and
+two seed checks, all re-pinned at 42.
+
+✅ **SHIPPED:** `supabase/migrations/0043_pilot_reading.sql` — one table, one owner-only SELECT
+policy, one `security definer` function that stamps the member off `auth.uid()` and is idempotent on
+the client's id; `app/src/pilot/readings.ts` (the pure half: kinds, budgets, nearest-rank
+percentile, the visit machine that turns finger-downs into taps and abandonment, the panel's
+summary), `recorder.ts` (the effects, a no-op on its first line without the flag, readings held on
+the phone's disk until sent), `usePilotVisit.ts`, `Lecturas.tsx` (the panel); `app/src/api/pilot.ts`
+(the contract); `lib/pilotFlag.ts`; two calls in `@/api/calls`, `usePilotReadings` in `@/api/hooks`,
+`ES.pilot`; the three capture screens each gained the hook, a root `onTouchStart`, one line first in
+`commit` and one effect. **No shopkeeper-visible change.**
+
+⚠️ **DECIDED ON THE OWNER'S BEHALF, EACH CHEAP TO REVERSE:** **(a)** the slide counts as one of a
+sale's taps — *a product and the slide* is two; **(b)** a visit with no commit is abandoned even at
+zero taps, and the panel splits *started and left* from *passing through*; **(c)** the cold open is
+filed only when nothing was touched before Vender drew — a launch through Inicio measures a person;
+**(d)** a percentile is nearest-rank, never interpolated; **(e)** a send refused with a code is
+DROPPED, the network is retried. ⚠️ **KNOWN LIMITS, written into `recorder.ts`'s header**: the cold
+open starts at React Native's own mark and so slightly under-reports; a launch sent to the
+background before Vender drew is not detected; the round trip does not know whether it was on wifi.
+
+✅ **CHECKED BY:** `supabase/tests/0043_pilot_reading.sql` — **31 checks, 31 pass**, every read and
+write under `set role authenticated`: owner reads 4, manager 0, cashier 0, another shop's owner 0; the
+member stamped; a re-send lands 0; eleven refusals each by SQLSTATE. ⚠️ **Its first run was 5 red
+with `42601`** — a stray parenthesis in the TEST, which a bare *did it raise* would have read as the
+fence working; the assertions now record the state they got. **Falsified**: the policy widened to
+manager turned 1.3 and 3.5 red. `app/test/pilot-readings.test.ts` (28) and `app/test/api-pilot.test.ts`
+(22) — the kinds and screens read off `0043`'s CHECK constraints as text, the budgets off ADR §5, and
+the wiring of all three screens, the flusher and Ajustes read as text; three source mutations each
+turned one red. **1,719 tests across 52 files** green (the runner's tally). `docs/checks/conventions-gate.sh`
+**18 of 18**, its R7 amendment falsified by a second variable in `pilotFlag.ts`, and its own falsifier
+**35 fixtures as expected**. `supabase/checks/0032` (48) and `0033` (42) green over the seed at 42 policies.
+⚠️ **What no check can see is a person's to look at** — the handbook's catch-up names it: whether
+taps inside the basket's `Modal` are counted, and whether *Abrir la app → Vender* agrees with a
+stopwatch.
 
 ✅✅✅ **`7b` IS DONE, 2026-09-28 — PRECIOS: WHAT ONE PRODUCT SOLD FOR AND WHAT IT COST, DAY BY DAY,
 AND HOW FAR EACH HAS MOVED.** Tap a product on Números (a new **›** on each product row) and `Precios`
@@ -5233,7 +5299,7 @@ also says something true: §2.11 puts the release path *"running in parallel fro
 | **5R-a** | **The accounts, and the one-way door inside them.** Apple Developer Program enrolment and Google Play Console. ⚠️⚠️ **SUBMISSION IS WHAT MAKES THE BUNDLE ID PERMANENT** — `mx.bserafin.wera` has been provisional since `5a-iii-a` and stops being so the day a store accepts it. Anything about the name, the vendor prefix or the Spanish/English spelling is free today and a new app listing afterwards | `S` | ⚠️ **Nothing technical. Enrolment latency is outside our control, which is why it is first** |
 | **5R-b** | **EAS Build, and the update channel proven end to end.** A cloud build replacing the local Xcode + free-provisioning path, installed on a phone that is not the owner's, plus §2.11's acceptance test: **a JS-only fix shipped over the air in under an hour**. ⚠️ **This also retires the 7-day provisioning treadmill** currently sitting in ⏳ DATES OWED | `M` | `5R-a` |
 | **5R-c** | ⚠️⚠️ **ACCOUNT DELETION — A STORE GATE THAT EXISTS IN NO DOCUMENT AND NO LINE OF CODE.** Both stores require an app that creates accounts to offer in-app deletion; Google additionally requires a web-reachable request path. **Found 2026-09-21 by grepping for it and finding nothing.** ⚠️⚠️ **AND IT IS NOT A BUTTON: `sale.created_by` and `failed_write.reported_by` are `not null` references to `auth.users`, so a hard delete is REFUSED BY THE LEDGER.** The design question — anonymise the actor, transfer the workspace, or refuse deletion to an owner who still has a shop — is a real one and it touches the append-only ledger | `M/L` | ⚠️ **Needs a decision before code. Unsized until that decision; `M/L` is a placeholder** |
-| **5R-d** | **The listing, and the law.** `aviso de privacidad` at a public URL (LFPDPPP, §2.2's cross-border disclosure), Apple privacy labels, Google Data Safety, screenshots, descriptions, age rating, test credentials for review. ⚠️ **One risk checked and probably already retired**: Apple requires *Sign in with Apple* only where an app uses third-party login **exclusively** — `5a-iii-a` shipped email sign-in beside Google, which is what should exempt us. **Verify against the current guideline before submitting rather than discovering it in review** | `M` | `5R-a` |
+| **5R-d** | **The listing, and the law.** `aviso de privacidad` at a public URL (LFPDPPP, §2.2's cross-border disclosure), ⚠️⚠️ **and, since rulings 43–44 of 2026-09-28, the pilot's readings: `pilot_reading` (`0043`) stores what each named member did on Vender, Comprar and Desperdicio — times, taps and screens left — and the notice must say so before a shop the owner does not run carries a pilot build**, Apple privacy labels, Google Data Safety, screenshots, descriptions, age rating, test credentials for review. ⚠️ **One risk checked and probably already retired**: Apple requires *Sign in with Apple* only where an app uses third-party login **exclusively** — `5a-iii-a` shipped email sign-in beside Google, which is what should exempt us. **Verify against the current guideline before submitting rather than discovering it in review** | `M` | `5R-a` |
 | **5R-e** | **Submit, survive review, and be listed in both stores.** | `S` | `5R-b`–`5R-d`, and a build worth reviewing |
 | **5R-f** | ✅✅ **DONE 2026-09-24 — `docs/checks/5R-f-schema-deployed.sh` CAN ASK THE HOSTED DATABASE WHETHER IT IS CARRYING THE SCHEMA, AND IT ANSWERED: ALL 36 MIGRATIONS APPLIED TO `hweutzjhzvioswnjzqki`.** ~~this was the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **THE DECISION THE ROW SAID TO MAKE FIRST WAS MADE ON THE OWNER'S BEHALF AND IS REVERSIBLE IN ONE SENTENCE: IT IS A LOCAL CHECK, NOT A REPOSITORY SECRET.** A Supabase access token is ACCOUNT-WIDE — there is no project-scoped one — so a secret would hand every workflow run the whole account to guard against a forgotten `db push`. ⚠️ **And its answer depends on the WORLD rather than on the diff**: once a migration merges it is red until a person deploys, so in CI it would redden pull requests that neither caused it nor can fix it — which is the argument `5R-g`'s own row makes about a red that is not yours. ⚠️⚠️ **AND IT PINS THE PROJECT REF, WHICH NOTHING COMMITTED TO THIS REPOSITORY DID BEFORE**: `supabase/.temp/` is gitignored, so a check that did not compare the link against `supabase/README.md`'s named target would pass vacuously against whatever project a laptop happened to be linked to. ⚠️ **Ten fixtures, and one of them found a real bug in the guard** — a tab-delimited empty field collapsed under IFS whitespace and a hand-run migration read as an undeployed one; both are red, so only the fixture asserting the REASON caught it. ⚠️ **It compares version numbers, not schema**, and append-only is what holds the rest. **THE SCHEMA DEPLOY PATH, AND THE GUARD THAT WOULD HAVE CAUGHT 2026-09-22.** On that day the hosted project the owner's phone signs in to was found to have **no schema at all** — thirty-eight migrations applied in CI's throwaway Postgres and nowhere else — and it was found by **him tapping Productos**, not by any check. ⚠️ **The migrations are innocent and the contract checks are not wrong**: every one of them builds its own database, asserts against it and deletes it, which is the right design for proving a migration APPLIES and says nothing about whether it WAS applied. **What this row builds is the other half:** a check that reads `supabase migration list` — local against remote, one command, **no password and no service key** — and goes red when they diverge, plus the one paragraph in `supabase/README.md` naming the hosted project as the deploy target and `supabase db push` as how it gets there. ⚠️⚠️ **IT CANNOT LIVE IN `db.yml` AS THE OTHER CHECKS DO**: CI has no access token for the owner's account, so this is either a local check a session runs, or it needs a repository secret — **and deciding which is the first thing this row does.** ⚠️ **It ships no migration.** | `S` | ✅ **UNGATED.** ⚠️ Nothing is waiting on the owner for it — the deploy itself is already done |
 | **5R-g** | ✅✅ **DONE 2026-09-24 — `db.yml`'s BIGGEST JOB IS SPLIT AND THE STOPGAP CAP IS GONE.** ~~this was the next task, as of 2026-09-24~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough is only a rendering.** ⚠️⚠️ **THE ORDER WAS RULED BY THE OWNER — *"take 5R-g next"* — CONFIRMING WHAT WAS ALREADY MARKED.** The thirteen `app/src/api/**` contract checks and their harnesses moved to a new `api-contracts` job; `setup-node` and `npm ci` did NOT go with them, because **measured rather than assumed**, not one of the thirteen uses node — the two scripts that mention it do so in a comment. ⚠️⚠️ **AND THE SPLIT SAVES WALL-CLOCK RATHER THAN COSTING NONE, WHICH IS MORE THAN THIS ROW CLAIMED**: measured on run `36050875005` the job was **941s (15m41s)** against a 15-minute cap — the contract block **397s** of it — so the halves come out ~9m04s and ~9m50s and `db` finishes in about ten minutes instead of nearly sixteen. ✅ **Both caps are 15 again and the number is a measurement**: ~1.65x and ~1.5x headroom where the cancelled runs had 1.0x. ⚠️ **The row said ELEVEN contract checks and there are THIRTEEN** — the second count in two sittings the plan carried slightly wrong, which is a pattern rather than a slip. ⚠️ **Verified locally in the new job's exact shape before it was pushed** — reduced service list, `db reset`, the thirteen checks with nothing in between, all green — because a check depending on state the seed steps left behind would not have shown in the diff. ⚠️ **The step multiset was diffed before and after**, so nothing was lost or duplicated by a 353-line move. **THE `db` WORKFLOW'S BIGGEST JOB RAN AT ITS OWN TIMEOUT AND WAS BEING CANCELLED AT IT — FOUND 2026-09-22 BY `5e-i`'s CI, AND IT HAD BEEN HAPPENING ON `main` FOR HOURS.** Run `35813212086`: **every step succeeded** and `supabase db reset` was killed 15m07s into a `timeout-minutes: 15` cap with the last falsifier about 23 seconds from finishing. Three runs on `main` the same day went the same way (`35802822473`, `35792354993`, `35783706860`); two others landed at 12m01s and 13m22s. ⚠️⚠️ **A CANCELLED JOB IS NEITHER A PASS NOR A FAILURE, AND THE WORKING AGREEMENT SAYS NEVER MERGE ON ONE** — so a cap firing on a healthy job turns *wait for CI* into a coin flip, and the cheap way out of a coin flip is to stop reading the result. ⚠️ **The cap is raised to 25 as a stopgap and that is NOT the fix**: the number will need raising again every few tasks, because the job does ~5m12s of seed checks and then runs **eleven contract checks with their harnesses back to back**, and every one is an `app/src/api/**` claim of exactly the shape `5e-i` gave its own job. ⚠️ **The fix is the split this file already argues for twice** — `auth-session`'s header and now `catalog-write`'s: jobs run in parallel, so moving the contract block out costs wall-clock nothing and takes the seed checks off the same clock as the app's contracts. ⚠️ **It ships no migration and touches no app code.** | `S` | ✅ **Ungated** |
@@ -5307,9 +5373,9 @@ same instrument.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5P-a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `7b` closed, and the last decision naming this row was ruled that morning (the fortieth). **The dev-build overlay §5 specifies**: p95 commit-gesture-to-confirmation against a **300 ms** budget, p95 `record_sale` round trip against **1 s**, p95 cold-open-to-Vender against **2 s**, taps per transaction against a ceiling of **5**, and **abandonment** — capture screens opened with no commit, the silent non-use detector. ⚠️ **§5 says measured with a dev-build overlay, NOT with instrumentation shipped to production**, which is also the answer that costs no privacy notice | `M` | `5h` |
+| **5P-a** | ✅✅✅ **DONE 2026-09-28 — THE PILOT'S INSTRUMENT.** A build made with `EXPO_PUBLIC_PILOT` files §5's readings to `pilot_reading` (`0043`), naming the member, for the owner alone to read on a panel behind a long press on Ajustes' title — rulings 42–45, asked before a line was built. ✅ **Checked by `supabase/tests/0043_pilot_reading.sql` (31), `app/test/pilot-readings.test.ts` (28) and `app/test/api-pilot.test.ts` (22)** — see the status log. ~~`7b` closed, and the last decision naming this row was ruled that morning (the fortieth).~~ **The dev-build overlay §5 specifies**: p95 commit-gesture-to-confirmation against a **300 ms** budget, p95 `record_sale` round trip against **1 s**, p95 cold-open-to-Vender against **2 s**, taps per transaction against a ceiling of **5**, and **abandonment** — capture screens opened with no commit, the silent non-use detector. ~~⚠️ **§5 says measured with a dev-build overlay, NOT with instrumentation shipped to production**, which is also the answer that costs no privacy notice~~ — ⚠️ **false since rulings 43 and 44: the readings reach the server and name the member, so `5R-d` owes a sentence for them** | `M` → `L` — held | `5h` |
 | **5P-b** | ⚠️⚠️ **ENGAGEMENT ACROSS SHOPS THE OWNER IS NOT STANDING IN — and it is a DECISION before it is a task.** §5's overlay works because the schema owner is in the room; two or three shops over weeks is a different question. ⚠️ **The cheap answer needs no telemetry at all**: recording *is* engagement, so `sale`, `purchase` and `waste` row counts per shop per day already measure it, from the server, with nothing added to the client and nothing to disclose. ⚠️⚠️ **Anything beyond that — screen opens, session length, feature taps — is behavioural telemetry on identified merchants and engages LFPDPPP and the `aviso de privacidad` `5R-d` ships.** The recommendation is the server-side read, and the decision is the owner's | `S` for the read; unsized if telemetry is wanted | `5h`, and a shop with rows |
-| **5P-c** | **Completeness, the number the pilot is graded on.** The manual-tally comparison §5 requires, and the daily read that shows it — *"five consecutive days within 5%"* is a query, and running it by hand each evening is how a bad day gets explained away | `S` | `5P-a` |
+| **5P-c** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `5P-a` closed that day. **Completeness, the number the pilot is graded on.** The manual-tally comparison §5 requires, and the daily read that shows it — *"five consecutive days within 5%"* is a query, and running it by hand each evening is how a bad day gets explained away | `S` | `5P-a` |
 
 ---
 

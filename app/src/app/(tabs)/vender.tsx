@@ -24,6 +24,7 @@ import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
+import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -297,6 +298,12 @@ export default function Vender() {
   // queue. `5c`'s four children have been built entirely against fixtures.
   const clear = useCartStore((state) => state.clear);
   const [sold, setSold] = useState(false);
+  // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
+  // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
+  const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);
+  useEffect(() => {
+    if (sold) pilot.confirmed();
+  }, [sold, pilot]);
 
   const basketful: Basketful | null =
     workspace === null
@@ -349,6 +356,7 @@ export default function Vender() {
 
   const commit = useCallback(() => {
     if (basketful === null) return;
+    pilot.committed();
     const done = commitOf(basketful, { id: newWriteId(), now: nowIso() });
     // ⚠️ EVERY REFUSAL IS A PROGRAMMING ERROR AND NONE HAS A SENTENCE (`R4`) —
     // and none can happen here, because `canCommit` is what decided the control
@@ -362,10 +370,11 @@ export default function Vender() {
     clear('sell');
     setCartOpen(false);
     setSold(true);
-  }, [basketful, clear]);
+  }, [basketful, clear, pilot]);
 
   return (
     <KeyboardAvoidingView
+      onTouchStart={pilot.onTouchStart}
       // ⚠️⚠️ NO `paddingTop: insets.top`, AND IT WAS HERE UNTIL 2026-09-24 —
       // *"The search bar is too low and we have a lot of dead space above the
       // product catalog."* **The safe area was being counted twice**: the tab

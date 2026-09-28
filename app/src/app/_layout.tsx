@@ -13,8 +13,10 @@ import {
   routeMemory,
 } from '@/navigation/lastScreen';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
+import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
+import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
@@ -56,7 +58,14 @@ export default function RootLayout() {
               notice inside each screen would have cost: every screen having to
               remember. ⚠️ They are AFTER the Stack deliberately: a sibling
               earlier in the tree renders underneath it. */}
-          <View style={{ flex: 1 }}>
+          {/* ⚠️ `onTouchStart` IS §5's AND ONLY ON A PILOT BUILD (plan `5P-a`):
+              any finger-down before Vender has drawn means the launch went
+              through a person, so it is not a cold open. `undefined` on every
+              other build, so this view carries no handler at all. */}
+          <View
+            style={{ flex: 1 }}
+            onTouchStart={PILOT_BUILD === null ? undefined : touchedApp}
+          >
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
               <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
@@ -176,6 +185,9 @@ function Drain() {
 
   useEffect(() => {
     if (session === null) return;
+    // §5's readings left waiting by the last launch go up first (plan `5P-a`);
+    // a no-op on any build without the pilot flag.
+    void sendReadings();
     return startConnectivity();
   }, [session]);
 

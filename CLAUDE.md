@@ -260,7 +260,7 @@ Never cite it as current. Read it only for history, and say so when you do.
   code, or the shop.**
 - **Migrations are append-only once applied.** Fix forward with a new numbered
   migration. Numbering is fixed in [`supabase/README.md`](supabase/README.md).
-  **Measured 2026-09-27 after `6c`: 40 files, `0042` the highest, so the next is `0043`** —
+  **Measured 2026-09-28 after `5P-a`: 41 files, `0043` the highest, so the next is `0044`** —
   `0006` and `0007` are permanent holes (`supabase/README.md` settles why), so never infer the
   count from the highest number (`ls supabase/migrations/*.sql | wc -l`).
   ⚠️⚠️ **AND `supabase/README.md`'s TABLE IS COMPLETE — CHECKED 2026-09-27 BY LISTING THE
@@ -383,9 +383,9 @@ Rules:
   and line.
 - ⚠️ **`create policy` is still NOT indexed** — re-checked 2026-09-25: querying a policy
   name returns the falsifier that mutates it and the README section that describes the
-  shape, never the policy. On this project that is the gap that matters: **41 policies** are
+  shape, never the policy. On this project that is the gap that matters: **42 policies** (the database's count, 2026-09-28 after `0043`) are
   the subject of most current work, and names like `sale_line_select` or `provider_update`
   resolve to nothing. **For RLS policy questions, read `supabase/migrations/**` directly, or
-  ask the database.** ⚠️⚠️ **AND GREP CASE-INSENSITIVELY: all 41 are written lower-case, so
+  ask the database.** ⚠️⚠️ **AND GREP CASE-INSENSITIVELY: all 42 are written lower-case, so
   `grep -rn 'CREATE POLICY' supabase/migrations/` returns ZERO** — a silent, confident
   *there are no policies here*. Everything else in SQL, query first.

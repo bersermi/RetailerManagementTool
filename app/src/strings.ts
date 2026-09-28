@@ -2617,6 +2617,49 @@ export const ES = {
   },
 
   /**
+   * ⚠️ §5's READINGS, FOR THE OWNER ALONE — plan task `5P-a`. Reached by a long
+   * press on Ajustes' title, on a build made with `EXPO_PUBLIC_PILOT`, by the
+   * owner; nobody else can open it (rulings 42 and 45). No shopkeeper reads
+   * any word in this block.
+   */
+  pilot: {
+    title: 'Lecturas del piloto',
+    close: 'Cerrar',
+    build: (label: string) => `Versión ${label}`,
+    period: {
+      hoy: 'Hoy',
+      semana: 'Últimos 7 días',
+    } as Readonly<Record<'hoy' | 'semana', string>>,
+    screen: {
+      vender: 'Vender',
+      comprar: 'Comprar',
+      desperdicio: 'Desperdicio',
+    } as Readonly<Record<'vender' | 'comprar' | 'desperdicio', string>>,
+    measure: {
+      commit_ms: 'Deslizar → confirmación',
+      round_trip_ms: 'Envío al servidor',
+      open_ms: 'Abrir la app → Vender',
+      taps: 'Toques por registro',
+    } as Readonly<Record<'commit_ms' | 'round_trip_ms' | 'open_ms' | 'taps', string>>,
+    /** A time against its budget: the p95, the ceiling, and how many readings. */
+    ms: (value: number, ceiling: number, n: number) =>
+      `${value} ms (p95) · meta ${ceiling} ms · ${n} ${n === 1 ? 'lectura' : 'lecturas'}`,
+    /** Taps against theirs: the median. */
+    count: (value: number, ceiling: number, n: number) =>
+      `${value} (mediana) · meta ${ceiling} · ${n} ${n === 1 ? 'lectura' : 'lecturas'}`,
+    verdict: {
+      within: 'Dentro',
+      over: 'Fuera',
+      none: 'Sin lecturas',
+    } as Readonly<Record<'within' | 'over' | 'none', string>>,
+    /** Abandonment: started and left, out of every start. The rate arrives in tenths of a percent. */
+    gaveUp: (gaveUp: number, whole: number, rate: string) =>
+      `Abandonos: ${gaveUp} de ${whole} (${rate} %)`,
+    passedThrough: (n: number) => `Solo de paso, sin tocar nada: ${n}`,
+    loading: 'Leyendo…',
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

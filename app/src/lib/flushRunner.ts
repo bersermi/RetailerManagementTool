@@ -27,6 +27,7 @@
 import { reportFailedWrite, sendQueuedWrite } from '@/api/calls';
 import { createFlusher, type Flusher } from '@/api/flush';
 import { forget, outboxDb, readQueue, settle } from '@/lib/outboxDb';
+import { landed } from '@/pilot/recorder';
 
 let instance: Flusher | undefined;
 
@@ -37,7 +38,15 @@ export function flusher(): Flusher {
       read: () => readQueue(outboxDb()),
       settle: (id, state, attempts) => settle(outboxDb(), id, state, attempts),
       forget: (id) => forget(outboxDb(), id),
-      send: sendQueuedWrite,
+      // ⚠️ TIMED FOR §5 (plan `5P-a`), and only a reply that LANDED is a
+      // reading: a throw is the network or a refusal, neither of which is the
+      // round trip the budget is about. `landed` is a no-op without the flag.
+      send: async (kind, args) => {
+        const from = performance.now();
+        const data = await sendQueuedWrite(kind, args);
+        landed(kind, performance.now() - from);
+        return data;
+      },
       report: reportFailedWrite,
     });
   }

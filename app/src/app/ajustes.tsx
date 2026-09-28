@@ -29,6 +29,9 @@ import {
 import { groupedCode, shareText, type Role, type RosterEntry } from '@/api/members';
 import { useAuth } from '@/auth/AuthProvider';
 import { formatExpiry } from '@/format/date';
+import { canRead } from '@/api/pilot';
+import { PILOT_BUILD } from '@/lib/pilotFlag';
+import { Lecturas } from '@/pilot/Lecturas';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
@@ -85,10 +88,17 @@ export default function Ajustes() {
   const insets = useSafeAreaInsets();
   const workspace = useWorkspace();
   const roster = useRoster();
+  // ⚠️ §5's panel (plan `5P-a`): a long press on the title, on a pilot build,
+  // by the OWNER — rulings 42 and 45. For anybody else, and on every other
+  // build, the title is exactly the word it was.
+  const role = useMyRole();
+  const [readings, setReadings] = useState(false);
+  const canOpen = PILOT_BUILD !== null && canRead(role);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda />
+      <Banda onLongPress={canOpen ? () => setReadings(true) : undefined} />
+      {canOpen && <Lecturas open={readings} onClose={() => setReadings(false)} />}
 
       <ScrollView
         contentContainerStyle={{
@@ -180,7 +190,7 @@ export default function Ajustes() {
  * apart, so nothing needing attention may ever be placed inside this strip.
  * Nothing here does — it is a word and a way out.
  */
-function Banda() {
+function Banda({ onLongPress }: { onLongPress: (() => void) | undefined }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   return (
@@ -198,7 +208,10 @@ function Banda() {
         gap: scale.space,
       }}
     >
-      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+      <Text
+        onLongPress={onLongPress}
+        style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+      >
         {ES.settings.title}
       </Text>
       <Pressable

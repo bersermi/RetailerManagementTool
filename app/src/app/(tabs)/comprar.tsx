@@ -48,6 +48,7 @@ import { useCart, useCartStore, useProviderId, useTyped } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
+import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -394,6 +395,12 @@ export default function Comprar() {
   const [emptied, setEmptied] = useState(false);
   const bloom = useRef(new Animated.Value(0)).current;
   const [recorded, setRecorded] = useState(false);
+  // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
+  // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
+  const pilot = usePilotVisit('comprar', workspace?.id ?? null, locationId);
+  useEffect(() => {
+    if (recorded) pilot.confirmed();
+  }, [recorded, pilot]);
 
   const basketful: Basketful | null =
     workspace === null
@@ -442,6 +449,7 @@ export default function Comprar() {
 
   const commit = useCallback(() => {
     if (basketful === null) return;
+    pilot.committed();
     const done = commitOf(basketful, { id: newWriteId(), now: nowIso() });
     // ⚠️ EVERY REFUSAL IS A PROGRAMMING ERROR AND NONE HAS A SENTENCE (`R4`).
     // None can happen here, because `canCommit` is what decided the control was
@@ -452,10 +460,11 @@ export default function Comprar() {
     clear('buy');
     setCartOpen(false);
     setRecorded(true);
-  }, [basketful, clear]);
+  }, [basketful, clear, pilot]);
 
   return (
     <KeyboardAvoidingView
+      onTouchStart={pilot.onTouchStart}
       // ⚠️ NO `paddingTop: insets.top` — the tab navigator already draws a header
       // below the notch, and counting the inset again is the dead space the owner
       // reported on Vender on 2026-09-24.

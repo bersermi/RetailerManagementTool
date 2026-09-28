@@ -205,8 +205,8 @@ select public.chk('2.3 stock_batch and stock_movement keep their gates — cost 
 -- ⚠️ A VIEW CARRIES NO POLICY, so this migration cannot have created one — and
 -- `0040`'s suite pins the same number independently, which is what makes a change
 -- in either direction visible.
-select public.chk('2.4 still exactly 41 policies — a view creates none',
-  (select count(*) from pg_policies where schemaname = 'public') = 41,
+select public.chk('2.4 exactly 42 policies — a view creates none (41 then; 0043 added pilot_reading_select)',
+  (select count(*) from pg_policies where schemaname = 'public') = 42,
   format('found %s', (select count(*) from pg_policies where schemaname = 'public')));
 
 -- ⚠️ AND THE COST VIEW NOBODY MAY READ IS UNTOUCHED: `waste_share_of_purchases`
