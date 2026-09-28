@@ -284,6 +284,28 @@ select gen_random_uuid(),
        a.user_id
 from iso_actor a;
 
+-- ⚠️ AND `pilot_reading`, ADDED 2026-09-28 WITH `0043` (plan `5P-a`) — the THIRD
+-- tenant table the seed leaves empty; 02's F7 went red naming it on the first CI
+-- run and this file's F7 did the same locally. `member_id` is the actor's own
+-- membership (`0043`'s composite key); `location_id` is null, which it allows.
+create temp table iso_pilot_reading_before as
+select count(*)::int as n from public.pilot_reading;
+
+insert into public.pilot_reading
+  (id, workspace_id, member_id, device_id, kind, screen, value, occurred_at, build)
+select gen_random_uuid(),
+       a.ws_id,
+       wm.id,
+       gen_random_uuid(),
+       'taps',
+       'vender',
+       3,
+       now(),
+       'pgtap-3.2b-' || a.tag
+from iso_actor a
+join public.workspace_member wm
+  on wm.workspace_id = a.ws_id and wm.user_id = a.user_id;
+
 -- ---------------------------------------------------------------------------
 -- Classification — 02's, plus the two columns a WRITE suite needs
 --
@@ -639,7 +661,7 @@ $$;
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  20
+  21
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
@@ -746,6 +768,10 @@ select is((select n from iso_invite_before), 0,
 -- folded into F10 so the failure names which table the seed started populating.
 select is((select n from iso_failed_write_before), 0,
   'F10b failed_write was empty in the seed; this suite supplied its own rows');
+
+-- F10c. THE SAME, FOR THE TABLE `0043` ADDED.
+select is((select n from iso_pilot_reading_before), 0,
+  'F10c pilot_reading was empty in the seed; this suite supplied its own rows');
 
 -- F11. NO MEASUREMENT ANYWHERE CAME BACK `unclassified`. THIS IS THE ONE THAT
 -- GUARDS THE OTHER SIXTEEN. Two of the three refusals share sqlstate 42501 and

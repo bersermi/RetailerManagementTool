@@ -808,6 +808,14 @@ the wiring of all three screens, the flusher and Ajustes read as text; three sou
 turned one red. **1,719 tests across 52 files** green (the runner's tally). `docs/checks/conventions-gate.sh`
 **18 of 18**, its R7 amendment falsified by a second variable in `pilotFlag.ts`, and its own falsifier
 **35 fixtures as expected**. `supabase/checks/0032` (48) and `0033` (42) green over the seed at 42 policies.
+⚠️⚠️ **THE FIRST CI RUN WAS RED AND IT WAS RIGHT: `02_rls_isolation_reads`' F7 — *every tenant table
+held rows in BOTH workspaces* — named `pilot_reading`**, the third tenant table the seed leaves empty
+(after `workspace_invite` and `failed_write`). **And the loop stops at the first red suite, so 03–07
+and every `supabase/tests/` file had not run at all.** Both isolation suites now supply their own rows,
+with F12 (02) and F10c (03) asserting the seed still holds none — `failed_write`'s pattern. **Measured
+locally before the re-push**: pgTAP 01–06 at 97/118/159/43/88/99 ok, all 30 `supabase/tests/` suites
+and all 11 `supabase/checks/` green. ⚠️ **The lesson is `failed_write`'s, re-learned: a new tenant
+table is born invisible to the isolation suites until somebody gives it rows**, and only CI's F7 said so.
 ⚠️ **What no check can see is a person's to look at** — the handbook's catch-up names it: whether
 taps inside the basket's `Modal` are counted, and whether *Abrir la app → Vender* agrees with a
 stopwatch.
