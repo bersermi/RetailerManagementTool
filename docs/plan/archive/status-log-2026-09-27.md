@@ -290,3 +290,234 @@ two of the five causes are not things thrown away). Whether **a bar that counts 
 no money** reads as a screen that is finished. And whether **the cause going away after each commit**
 is right or is one tap too many when she is clearing a whole shelf. **The build on his phone has to
 be rebuilt before he can open this.**
+
+---
+
+## ⚠️⚠️ SECOND CUT — APPENDED 2026-09-27 BY `6c`, AND IT IS THE TWENTY-FIFTH CUT OVERALL
+
+⚠️⚠️ **TAKEN BEFORE A LINE OF `6c` WAS WRITTEN, FOR THE REASON EVERY CUT HERE IS TAKEN:
+`## Position` STOOD AT 1,237 OF 1,400.** That is **163 lines of headroom against an entry
+that runs 40–130** — enough to pass `plan-handover.sh` assertion 7 and not enough to write
+with, which is the same arithmetic the first cut of this file was opened on. ⚠️ **`6b` did
+not cut**, because the 245 lines it inherited were enough; it spent 82 and left the tripwire
+for this session, and `CLAUDE.md` said so in as many words.
+
+⚠️⚠️ **EVERY LINE BELOW IS MOVED, NOT COPIED.** `split-coverage.sh` reads the corpus, which
+includes this file, and fails on *"row appears 2 times"*.
+
+⚠️⚠️ **WHAT IT TOOK, AND ONE BLOCK WAS DELIBERATELY LEFT BEHIND.** The two blocks below are
+the day's oldest two **closing entries** — `6a-ii-b` and `6a-ii-a`. ⚠️ **The install block that
+sat between `6a-ii-a`'s entry and the archive bookkeeping — *the build is made and signed and
+is NOT on his phone* — STAYS IN `## Position` ON PURPOSE**, because it is the only place a live
+obligation is written down: the Mac's Wi-Fi is the blocker, the R9 looks of three separate rows
+are queued behind one install, and archiving it would bury the one thing waiting on a person.
+**A cut takes closed history; it must not take an open obligation.**
+
+⚠️ **The entries are in the order they stood in `## Position`, newest first within the cut** —
+`6a-ii-b` then `6a-ii-a` — which is this file's own convention and not a global sort across cuts.
+
+✅✅✅ **`6a-ii-b` IS DONE, 2026-09-27 — A CASHIER CAN PUT HER OWN WRITE-OFF RIGHT, AND
+`void_transaction` HAD TAKEN `'waste'` FOR TWENTY-THREE DAYS WITH NOBODY EVER SENDING IT.**
+`Corregir` and `Eliminar` now draw on a write-off in `Lo último`, and `Corregir` is a void plus a
+re-record that carries the CAUSE back to Desperdicio along with the products. ~~this is the next
+task, as of 2026-09-27~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row
+records.**
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND, AND IT IS NOT WHAT THE ROW PREDICTED. The row called flipping
+`CORRECTABLE.waste` *"deliberately the smallest part"* and it was right; what it did NOT name is
+that the app had no way to send a cause back at all.** `@/api/documents` renders a write-off's
+cause through `reasonLabel` — **a one-way door by construction**, and `R4`'s whole point — so the
+only cause this app held was the WORD a shopkeeper reads. `record_waste` takes the enum member.
+**They differ by one capital letter, they are both strings, and nothing in TypeScript could have
+told them apart.** ✅ So `DocumentLine` and `ShopDocument` gained the wire value beside the word —
+`reasonValue` and `causeValue` — which is exactly the pair `counterparty`/`providerId` already is
+on a delivery: one is read by a person, the other is written back to the database. **Sized `M`,
+built in one sitting, no migration.**
+
+⚠️⚠️ **AND THE ESTIMATE FOUND A LIVE DEFECT IN `5h-ii-b`'s SCREEN THAT NOTHING COULD SEE.**
+`documentos.tsx` chose which basket to warn about with `CART_KIND[kind] === 'buy' ? buy : sell` —
+**a two-way ternary over a three-member union, which typechecks and reads the SELL cart for a
+write-off.** So a shopkeeper correcting a write-off with a half-rung sale open was warned she would
+lose work she was not about to lose, and one with a half-keyed bin round was warned of nothing at
+all. ✅ It is a `Record<Scope, Cart>` now, so a fourth scope is a build error.
+
+⚠️⚠️ **THE THIRD THING THE BUILD FOUND, AND IT IS THE ONE A PERSON WOULD HAVE REPORTED AS *the app
+forgot*: DESPERDICIO IS A **TAB**, AND ITS PICKER STATE WAS READ ONCE AT MOUNT.** `picking` was
+`useState(() => reason === null)`, which was right while the only thing that could set a cause was
+the picker on that screen. `Corregir` sets it from another screen — and that tab may have been
+mounted for an hour. **The two failures are opposite and both bad**: she arrives at a picker asking
+a question the correction already answered, or at a header reading *pickFirst* with no window open,
+one tap from a commit the schema refuses. ✅ `picking` follows the cause now, and
+`chooseReason`'s own `setPicking(false)` stays — `openReason` is a no-op on an unchanged value, so
+re-choosing the cause already standing would otherwise leave the window open.
+
+⚠️ **`load` TAKES ONE OBJECT NOW AND NOT FOUR ARGUMENTS** (`Loaded`, `@/cart/cart`). The fifth
+field would have been `reason` sitting beside `providerId`: **both nullable, both strings at
+runtime, adjacent** — `load(scope, lines, quotes, null, reason)` and
+`load(scope, lines, quotes, reason, null)` both typecheck, and the symptom is a delivery filed
+against no supplier. One object has no order. ⚠️ **And the store writes the cause on the waste side
+ONLY**, which is `providerId`'s own rule a second time: a corrected delivery must not blank the
+cause standing over a bin round somebody walked away from.
+
+⚠️⚠️ **THE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS CHEAP TO REVERSE: A WRITE-OFF WHOSE
+LINES DISAGREE IS CORRECTED WITH **NO** CAUSE, AND SHE IS ASKED AGAIN.** The schema puts `reason`
+on the LINE, so a document mixing two causes is legal and measured — but a cart holds ONE cause, so
+there is nothing faithful to prefill. **The two alternatives are both worse.** Taking the first
+line's cause *silently refiles every other line under it, in the ledger, where she cannot see it
+happen*. Hiding `Corregir` on such a document *hides a control she is allowed to press*, which is
+`5d-iii`'s own ruling read backwards. ⚠️ **Nothing in this app can write a mixed document** —
+Desperdicio sends one cause — so this is the branch for what an import or another client could
+leave behind. **Reversing it is one line in `prefillOf` and one test; no migration, no data.**
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** ✅ **`docs/checks/6a-ii-b-waste-correction-contract.sh` — 15
+assertion groups over live HTTP against a real PostgREST**, and two of them exist nowhere else.
+**A cashier voided her OWN write-off and got a 200** — the kind `0021` had never been sent, and it
+matters more here than on the other two because she cannot read her own waste LINES at all, so a
+void that touched them would have refused her. And **the cause round trip, with its negative
+control**: the view hands back `caducado`, `record_waste` refuses `Caducado` with **HTTP 400
+`22P02`**, and the value read off the wire re-records cleanly. ⚠️ **Without that refusal the
+positive half proves nothing** — it is the only instrument anywhere that can tell `cause` from
+`causeValue`.
+
+✅ **Also measured in that run and worth inheriting: the void reported `2` compensating movements**
+— a write-off put right puts the stock back — **and the replay's body is genuinely SHORTER**, four
+keys against six (`already_recorded, kind, void_id, voided` against those plus `lines, movements`),
+which is the claim `voidedFrom` is built on. ✅ **A cashier voiding somebody else's write-off is
+`TD003` on an HTTP 400 and not a 403**, and the refused void left no mirror behind.
+
+✅ **`docs/checks/6a-ii-b-waste-correction-contract-falsify.sh` — 8 fixtures, all behaved**: two
+green controls, five mutated copies of the app's contract modules, and one that revokes `execute` on
+`void_transaction` from `authenticated`. ⚠️ **`F5` is the one it exists for** — the cause dropped
+from the line list, which stays a 200 with every quantity right while `causeValue` goes `null` on
+every write-off. ⚠️ **`D1` is the other**: `0021:448` grants that execute, the plan spent a day
+believing no path to a void existed, and **no pgTAP suite asserts a function's ACL.** The grant is
+restored from `pg_proc` rather than remembered, in a `trap` on every exit path, and re-proved by a
+second control.
+
+✅ **`npm --prefix app test` — 1,439 tests across 45 files, the RUNNER's own tally**, up from 1,424.
+`api-corrections.test.ts` gained a `a write-off, as a cart` block, `cart.test.ts` gained the first
+tests `load` has ever had, and `api-documents.test.ts` and `unsent.test.ts` gained the
+word-versus-value pair on both the landed and the queued path. ⚠️ **One guard was INVERTED and it
+was right when it was written**: `is NOT yet built for a write-off` pinned `CORRECTABLE.waste` at
+`false` for the one day between `6a-ii-a` and this row.
+✅ **`docs/checks/conventions-gate.sh` — 18 groups over 88 source and 45 test files.**
+
+⚠️ **THE HARNESS BUG WORTH INHERITING, because it is green here and red on CI or the reverse:
+BSD `sed` HAS NO `\|`.** The first spelling of this check read `CORRECTABLE.waste` with
+`s/^  waste: \(true\|false\),.*/\1/p`, which matches nothing on the owner's Mac and everything on
+Ubuntu — **a check that is green in one place and red in the other, which is worse than either.**
+`\([a-z]*\)` is portable and says the same thing.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND THE PHONE MUST BE REBUILT FIRST.** Whether
+`Corregir` on a write-off landing back on Desperdicio **with the cause already filled in** reads as
+the app remembering or as the app having decided something; whether two buttons under a write-off
+are one control too many on a screen where the row carries no money; and whether *¿Corregir esta
+nota?* is the right question for a loss rather than for a delivery — the sentences are shared with
+`purchase` and `sale` on purpose, and that is a choice rather than an accident.
+
+✅✅✅ **`6a-ii-a` IS DONE, 2026-09-27 — A CASHIER CAN READ BACK THE WRITE-OFF SHE RECORDED, AND
+`0041` IS THE FIRST `security definer` VIEW THIS SCHEMA HAS EVER HAD.** `Lo último` has a third
+button and a write-off reads like a delivery does: the day, the CAUSE where a supplier's name sits,
+then the products and how much of each. ~~this is the next task, as of 2026-09-27~~ — ⚠️ **struck in
+lower case deliberately, the rule `5b.8-i`'s row records.**
+
+⚠️⚠️ **WHAT WAS ACTUALLY BROKEN, MEASURED RATHER THAN INFERRED: HER OWN WRITE-OFF CAME BACK AS AN
+HTTP 200 WITH `"waste_line": []`.** A document with no products, not a refusal —
+[[embed-on-a-fenced-table-is-a-200-with-an-empty-array]] — because `waste_line_select` carries
+`has_role(…, 'manager')` where `waste_select` does not, the only asymmetric pair in this schema.
+**`0041` reaches AROUND that fence and does not open it**: `waste_line_select` is untouched and
+`supabase/tests/0041_waste_reason_line.sql` assertion 2.1 is what says so.
+
+⚠️⚠️ **THE DECISION TAKEN ON THE OWNER'S BEHALF, AND IT IS THE LOUDEST THING IN THIS ENTRY:
+ADR-035 §2.7's COST PARAGRAPH IS AMENDED, BECAUSE HIS OWN RULING MADE ITS MECHANISM SENTENCE
+FALSE.** It said *"Staff hold `select` on views only, never on the base tables carrying cost; the
+views are `security_invoker = true` so RLS still governs rows."* ⚠️ **Both halves were measured
+wrong.** Staff and managers are **the same Postgres role** (`authenticated`) and `0003:620` grants
+it `select` on `waste_line` — **there is no grant to withhold and never was**, the role boundary
+lives entirely inside the RLS predicate. And an invoker view over a row-gated table answers the
+person it exists for **zero rows**. ✅ **§2.7 now carries a two-row table keyed on WHERE the fence
+is** — columns-only stays invoker with an optional `has_role` floor (`0009`); a ROW-level role gate
+takes a definer view stating its own predicate — **and the bound is a CHECK rather than a sentence**:
+the suite asserts `waste_reason_line` is the ONLY non-invoker view in `public`, so a second one
+needs a ruling. ⚠️ **It was reported rather than asked because he ruled the substance this morning**
+— *"Go with (a)"*, where (a) was put to him as a definer view — and re-asking a settled question is
+not a gate. **Reversing it costs a `drop view` and a fix-forward migration, not an edit.**
+
+⚠️⚠️ **AND THE PLAN'S OWN DESCRIPTION OF THE SHAPE WAS WRONG, WHICH THE SIZING CAUGHT: `0009` IS NOT
+A DEFINER VIEW.** The row called `product_margin_daily` *"a definer view stating its own predicate"*;
+it is `security_invoker = true` with `has_role` inside the body as a FLOOR, which is the opposite
+mechanism. **The half that was right — *state your own predicate* — is kept and credited.**
+
+⚠️⚠️ **THERE IS NO PESO FIGURE ON A WRITE-OFF, AND IT IS A DECISION TAKEN ON HIS BEHALF TOO —
+ÁREA 9's RULING OF 2026-09-14 REACHING A THIRD SCREEN.** That ruling names *Números and
+Desperdicio*; `Lo último` is neither. **The ruling's REASON carries over exactly**: `UNPRICED_WASTE`
+sends a zero for a product with no shelf price, so `waste.total_net` is genuinely `0.00` for the
+products a shop throws away most, and `$0.00` beside twenty kilos of tomatoes on the screen she
+opened to check her own work is what that ruling refuses. ⚠️ **The app does not even ASK for the
+column** — `DOCUMENTS_WASTE_HEAD_COLUMNS` — and the contract check's fifteenth group is what holds
+it. **Reversing it is one constant and one branch.**
+
+⚠️⚠️ **THE CLIENT COST ONE ROW IN EACH OF SIX CONSTANTS AND NOT A SECOND MODULE, WHICH IS
+`5h-ii-a`'s OWN PREDICTION COMING TRUE** — *"a `Record` over this union precisely so `6a` adds a kind
+and not a module."* ⚠️ **What that prediction got wrong is the interesting half**: it said waste
+*"carries the identical header quartet"*. The header COLUMNS are identical and almost nothing else
+is — the lines come off a VIEW, carry a cause nothing else has and carry **no money at all** — so
+`DOCUMENTS_WASTE_LINE_COLUMNS`, `DOCUMENTS_WASTE_HEAD_COLUMNS` and `DOCUMENTS_WASTE_LINE_ORDER` are
+their own constants beside the shared ones. **Two reads that genuinely differ want two spellings.**
+
+⚠️⚠️ **AND THE GAP `5h-ii-c` NAMED CLOSED WITH NO EDIT TO THE MODULE THAT HAD IT.** Its own words:
+*"a queued waste is therefore invisible here… it closes when `6a` gets a list of its own."*
+`DocumentKind` gained a member and `unsentDocuments`' kind filter admitted it — **because that line
+is a COMPARISON rather than a guard**, which is exactly the property its comment claimed was
+load-bearing. `transfer` is still excluded by the same one comparison, and a test pins it.
+
+⚠️⚠️ **TWO GUARDS WERE INVERTED AND ONE NARROWED, WHICH IS THE `5h-ii-b` SHAPE AGAIN — AND THE
+NARROWED ONE IS A REAL FINDING.** `api-corrections`' *"sends the document kind and never the cart
+kind"* asserted `p_kind !== CART_KIND[kind]` of every kind; that held only because `buy ≠ purchase`
+and `sell ≠ sale`. **A write-off's cart scope IS `'waste'`, the same word as its document kind**, so
+the blanket form was asserting something FALSE of the third member. It now names the two
+discriminating pairs and pins the coincidence as a coincidence. ⚠️ **The same discovery corrected a
+TYPE**: `CART_KIND` was annotated `Record<DocumentKind, Kind>` — `@tienda/money`'s two directions of
+TAX — where what it answers is `Scope`, the cart's. **The two coincided on their first two members,
+so nothing could see the difference until there was a third.**
+
+⚠️ **THE OTHER TWO INVERSIONS ARE HONEST WIDENINGS, NOT LOOSENINGS**: the money-cast loop now runs
+over the two PRICED kinds and the claim it used to make of waste is made in the OPPOSITE direction
+two tests below — *no money column at all, on the header or on the line* — and `PRICED_KINDS` is
+DERIVED from `DOCUMENT_KINDS` so a fourth kind joins the money assertions by default.
+
+⚠️⚠️ **VERIFIED, AND NOT BY A TICK.** **`supabase/tests/0041_waste_reason_line.sql` — 33 behavioural
+checks, every read in section 3 under `set role authenticated`** (as `postgres` they pass without the
+predicate existing), and **eight falsifications**, of which two are worth inheriting. **`F1` removed
+the `my_workspaces()` predicate and only ONE assertion went red — the structural one** — because
+`my_locations()` already implies membership, exactly as `0003`'s own comment says; **the comment on
+assertion 3.15 had claimed more than that and is corrected in the file**
+([[a-test-can-defend-a-bug]]). **`F6` dropped a column and produced ZERO `FAIL` lines with
+`EXIT=3`** — `ON_ERROR_STOP` aborts before the report prints — **so the verdict on that file is its
+exit code and never a count of `FAIL` lines**, and the suite now says so in its header.
+✅ **`docs/checks/6a-ii-a-waste-list-contract.sh` — 21 assertion groups over live HTTP**, plus an
+**eleven-fixture falsifier (2 green controls, 9 red)** whose `D1` is the whole row: the view flipped
+to `security_invoker = true`, which is the edit a reader makes to bring it *"into line with §2.7"*.
+✅ **`app/test/api-documents.test.ts`, `api-corrections.test.ts` and `unsent.test.ts` — 1,424 tests
+over 45 files, up from 1,394**, the RUNNER's tally. ✅ **All 28 SQL suites green together** (1,570
+checks), **`conventions-gate.sh` 18 groups over 88 source and 45 test files**, and the two
+neighbouring contract checks re-run because this row edited the modules they read: `5h-ii-a` 16
+groups, `5h-ii-b` 21.
+
+⚠️⚠️ **THE TWO MEASUREMENTS THAT WOULD OTHERWISE BE RE-DISCOVERED.** **(1) A TO-MANY EMBED CAN BE
+ORDERED ON TWO KEYS**, which the row listed as unmeasured: two `.order()` calls naming the same
+`referencedTable` APPEND to one parameter, and the `desc,desc` spelling inverts a four-line document
+where heap order equals neither — **the reversed read is what makes the sorted read evidence**
+([[assert-against-a-calendar-not-the-array]]). **(2) AN UNENCODED `+00:00` IN A QUERY STRING IS AN
+HTTP 400 `22007`** — *invalid input syntax for type timestamp with time zone* — because `+` is an
+encoded space. It reads exactly like a bad column and cost this session one run;
+`5h-ii-a-documents-contract.sh` already did `.replace("+00:00", "Z")` and did not say why.
+
+⚠️ **TWO STALE CLAIMS FIXED IN THE SAME PR, BOTH FOUND BY LISTING A DIRECTORY AGAINST A TABLE.**
+**(a) `supabase/README.md` HAD NO ROW FOR `0040`** — a migration that had been applied for two days
+— found because this row needed to know whether the waste fence had moved with the purchase one.
+**Nothing checks that table for completeness**, which is `CLAUDE.md`'s archive-table lesson in a
+second file; both rows are written now and every migration on disk has one. **(b) The count *"all
+fourteen views are `security_invoker`"* was a `grep` of the migrations and the database says
+**six**, because four of the six were re-issued with `create or replace`
+([[counts-belong-to-the-runner]]). It was wrong in three files for about an hour.

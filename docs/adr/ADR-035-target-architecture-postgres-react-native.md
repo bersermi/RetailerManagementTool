@@ -1638,13 +1638,46 @@ tenants: every line table's composite foreign key is `(id, workspace_id)` and ev
 policy is `workspace_id`-scoped, so shared rows owned by nobody are not representable
 here and are not what this means. The catalog still belongs to the merchant.
 
-⚠️ **Nothing implements it yet, and that is deliberate rather than pending.** No
-migration seeds a catalog, and `product_family`/`product_variant` carry no column
-saying where a row came from — so **every product in every shop today is one somebody
-made, and every one is deletable**, which is correct under this rule rather than in
-spite of it. The marker and the fence go in **with the migration that first seeds a
-catalog, never after it**: a shop seeded before the marker exists has rows that can
-never be told apart again. `docs/PLAN.md` `6c` owns it.
+✅✅ **THE MARKER AND THE FENCE ARE APPLIED AS OF `0042`, 2026-09-27** —
+`product_family.is_prebuilt` and `product_variant.is_prebuilt`, both `not null`,
+defaulting to **false** so every row the app inserts is the shop's without the app
+saying so. ⚠️ **A BOOLEAN AND NOT AN `origin` ENUM**, ruled by the owner that day: an
+enum crossing the wire as a label rather than a member is a bug no typecheck can see,
+and this matches `provider.is_generic`, the schema's existing answer to the same
+question. The seed is still a later job — `docs/PLAN.md` `6c` shipped the marker, the
+fence and the restored delete, and named the onboarding as out of scope.
+
+⚠️⚠️ **THE FENCE IS A TRIGGER ON A TRANSITION AND NOT A POLICY PREDICATE ON A ROW, AND
+THAT IS THE LOAD-BEARING SENTENCE OF THIS SECTION.** `catalog_prebuilt_stays()` refuses
+`is_active` going **true→false** on a prebuilt row, and refuses the marker being handed
+back to the shop. It does **not** touch anything else, so a prebuilt product is renamed
+and repriced freely — which is the whole reason for importing one. ⚠️ Putting
+`is_prebuilt = false` into `product_variant_update`'s `using` clause reads correctly,
+refuses the retire, and also stops the shopkeeper pricing an imported product —
+**silently, as a 200 with an empty array**, because a `using` clause makes the row
+invisible rather than refusing the write. **No policy in this schema changed for this.**
+
+⚠️ **The refusal is `restrict_violation` — SQLSTATE 23001, an HTTP 400 over PostgREST**,
+neither a 403 nor a 409. ⚠️ **And the fence is one-directional**: prebuilt→shop is
+refused, shop→prebuilt is allowed, because nothing can mark a row prebuilt except an
+insert that says so or that update — fencing both ways leaves a future import no way
+in. `provider_protect_generic`'s own asymmetry, for the same reason.
+
+⚠️⚠️ **THE MARKER WENT IN BEFORE ANY SEED, WHICH IS THE SAFE ORDER AND NOT THE ONE THIS
+PARAGRAPH USED TO REQUIRE.** ~~The marker and the fence go in **with the migration that
+first seeds a catalog, never after it**~~ — the stated reason was that *a shop seeded
+before the marker exists has rows that can never be told apart again*, which forbids
+marker-AFTER-seed and says nothing against marker-BEFORE-seed. The literal wording was
+stricter than its own reason and would have read as forbidding `6c`; **corrected
+2026-09-27 by the row the sentence itself named as the owner.**
+
+⚠️ **What the existing rows became is the owner's ruling of 2026-09-24, not an
+inference:** *everything present when the marker ships is NOT the shopkeeper's;
+everything created through `Agregar` afterwards is.* `0042` writes no `update` to
+achieve it — an `update` would stamp `updated_at` on every row in every shop — so
+`pg_attribute.attmissingval` is the only record that a row predating the column is ours.
+⚠️ **It means nothing already in the pilot shop can be retired from the app**, which he
+accepted on the ground that those rows are *"merely indicative"*.
 
 **Cross-workspace benchmarking.** The eventual insight product needs to read across
 tenants, which is what RLS forbids. Resolution is one deliberate door, never a

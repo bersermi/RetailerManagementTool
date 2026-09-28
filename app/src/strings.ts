@@ -1976,6 +1976,21 @@ export const ES = {
        */
       overlap: 'Alguien más cambió este precio. Vuelve a abrir el producto.',
       /**
+       * ⚠️⚠️ `23001` — `0042`'s FENCE, AND IT IS THE ONE SENTENCE IN THIS BLOCK A
+       * SHOPKEEPER SHOULD NEVER SEE. `canRetireProduct` keeps the control off a
+       * product he did not create; this is what he gets if the read under the screen
+       * went stale between drawing the button and his tapping it.
+       *
+       * ⚠️⚠️ AND IT SAYS WHAT HE *CAN* STILL DO, WHICH IS THE HALF THAT STOPS IT
+       * READING AS A PERMISSION PROBLEM. `notAllowedEdit` above says *only an owner or
+       * a manager can change a product* — true of a role and FALSE here, because the
+       * same manager may rename this product and reprice it and may not remove it.
+       * ⚠️ AND IT NEVER SAYS *prebuilt*, *is_prebuilt* OR *catalog we maintain*: where
+       * a row came from is ours to know ([[users-dont-do-bookkeeping]]). *"Vino con la
+       * app"* is the shortest true thing a person recognises.
+       */
+      notYours: 'Este producto vino con la app, así que no se puede quitar. Sí puedes cambiarle el nombre y el precio.',
+      /**
        * ⚠️⚠️ THE OLD PRICE WAS REMOVED AND THE NEW ONE NEVER LANDED, WHICH IS
        * THE WORST PARTIAL STATE THIS APP HAS. `price_list` is a dated range
        * table, the old row must be CLOSED before the new one is opened, and
