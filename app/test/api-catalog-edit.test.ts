@@ -14,6 +14,7 @@ import {
   VARIANT_EDIT_COLUMNS,
   VARIANT_TABLE,
   activePatch,
+  canRetireProduct,
   catalogEditErrorMessage,
   checkEdit,
   editLine,
@@ -34,6 +35,7 @@ import {
   type PriceChangeFailed,
   type PriceInForce,
   type VariantEdit,
+  type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import { catalogFrom, priceCentavos, unitFactorsFrom, type UnitRow, type VariantRow } from '@/api/catalog';
 import { pricePerBase } from '@/api/catalogWrite';
@@ -533,9 +535,114 @@ describe('the two figures shown beside the boxes that change them', () => {
     expect(packSizeOf('not a number')).toBe('');
   });
 
-  it('the read asks for both columns as text, and never for enforce_stock', () => {
-    expect(VARIANT_EDIT_COLUMNS.split(',')).toEqual(['id', 'tax_rate::text', 'pack_size::text']);
+  it('the read asks for both FIGURES as text, the marker as a boolean, and never for enforce_stock', () => {
+    // ⚠️⚠️ WIDENED BY `6c`, 2026-09-27 — AND IT WAS RIGHT WHEN IT WAS WRITTEN.
+    // `is_prebuilt` is the third column and it decides whether the retire control
+    // is drawn at all. The assertion is kept as an exact ordered list rather than
+    // relaxed to `toContain`, because that is what makes a column added by accident
+    // a red rather than a shrug.
+    expect(VARIANT_EDIT_COLUMNS.split(',')).toEqual([
+      'id',
+      'tax_rate::text',
+      'pack_size::text',
+      'is_prebuilt',
+    ]);
     expect(VARIANT_EDIT_COLUMNS).not.toContain('enforce_stock');
+  });
+
+  it('⚠️⚠️ the marker is NOT cast to text, because the string `false` is truthy', () => {
+    // The two figures are `::text` because `numeric` arrives as a JSON double and
+    // `parseDecimal` refuses one outright. A boolean has no such problem, and a
+    // cast one would reach `canRetireProduct` as `'false'` — which passes `!settings
+    // .is_prebuilt` as FALSE and hides the control on every product the shop made.
+    expect(VARIANT_EDIT_COLUMNS).toContain('is_prebuilt');
+    expect(VARIANT_EDIT_COLUMNS).not.toContain('is_prebuilt::text');
+  });
+});
+
+// ============================================================================
+// WHOSE PRODUCT IS IT — `6c`, and the control that was drawn on nothing for four days
+// ============================================================================
+describe('may this product be retired', () => {
+  const his: VariantSettingsRow = {
+    id: 'aaaaaaaa-0000-4000-8000-000000000001',
+    tax_rate: '0.0000',
+    pack_size: '1.000',
+    is_prebuilt: false,
+  };
+  const ours: VariantSettingsRow = { ...his, is_prebuilt: true };
+
+  it('a product the shop created can be retired', () => {
+    expect(canRetireProduct(his, true)).toBe(true);
+  });
+
+  it('⚠️⚠️ a product that came with the app cannot — the whole of `0042`', () => {
+    // The owner's rule, 2026-09-23: *"the user can only Retirar or Eliminar things
+    // he created"*. Before `6c` this screen could not tell, so it offered the
+    // control on every product in the shop and he found it on his phone.
+    expect(canRetireProduct(ours, true)).toBe(false);
+  });
+
+  it('⚠️ a read that has not landed draws nothing, rather than guessing', () => {
+    // `null` is *the one-variant settings read is still out*. Drawing on a guess is
+    // how the defect above happened, and an optimistic default would reproduce it
+    // for exactly as long as the read takes.
+    expect(canRetireProduct(null, true)).toBe(false);
+  });
+
+  it('⚠️⚠️ the two reasons are kept apart: not allowed, and not yours', () => {
+    // Folding them into one boolean would make *you may not write the catalog* and
+    // *this row is not yours* indistinguishable — and they need different sentences,
+    // which is why `catalogEditErrorMessage` maps `23001` away from `notAllowedEdit`.
+    expect(canRetireProduct(his, false)).toBe(false);
+    expect(canRetireProduct(ours, false)).toBe(false);
+  });
+
+  it('⚠️ the marker is never consulted for anything but the retire control', () => {
+    // A prebuilt product must stay renameable and repriceable — that is `0042`'s
+    // Finding 1, and a policy predicate on `is_prebuilt` would have broken it. So
+    // nothing that builds a WRITE may read the marker.
+    expect(namePatch('Jitomate', 'Jitomate bola')).toEqual({ name: 'Jitomate bola' });
+    expect(
+      variantSettings({ name: 'Jitomate', taxPercent: '16', packSize: '' }),
+    ).toEqual({ tax_rate: '0.1600' });
+    expect(Object.keys(activePatch(false))).not.toContain('is_prebuilt');
+  });
+});
+
+// ============================================================================
+// `23001` — `0042`'s FENCE, ARRIVING AS AN HTTP 400
+// ============================================================================
+describe('a refusal that means the row is not yours', () => {
+  it('⚠️⚠️ `23001` gets its own sentence and not the permission one', () => {
+    // Measured over a real PostgREST on 2026-09-27:
+    //   400 {"code":"23001","message":"a prebuilt product_variant cannot be retired: …"}
+    // NOT a 403 and NOT a 409 ([[custom-sqlstate-arrives-as-400]]). The sentence must
+    // not be `notAllowedEdit`, because the same manager MAY rename and reprice this
+    // product — saying *only an owner or a manager can change a product* would be
+    // false about the person and about the row at once.
+    expect(catalogEditErrorMessage({ code: '23001', message: 'a prebuilt product_variant cannot be retired: Jitomate' }))
+      .toBe(ES.catalog.errors.notYours);
+    expect(catalogEditErrorMessage({ code: '23001' })).not.toBe(ES.catalog.errors.notAllowedEdit);
+  });
+
+  it('⚠️ and it never says `prebuilt`, `is_prebuilt` or anything about a catalog we maintain', () => {
+    // Where a row came from is ours to know ([[users-dont-do-bookkeeping]]).
+    const said = ES.catalog.errors.notYours;
+    for (const internal of ['prebuilt', 'is_prebuilt', 'catálogo que', '23001', 'product_variant']) {
+      expect(said).not.toContain(internal);
+    }
+  });
+
+  it('⚠️ it says what he CAN still do, which is the half that stops it reading as a refusal of him', () => {
+    expect(ES.catalog.errors.notYours).toContain('nombre');
+    expect(ES.catalog.errors.notYours).toContain('precio');
+  });
+
+  it('the other refusals on this path are untouched', () => {
+    expect(catalogEditErrorMessage({ code: '42501' })).toBe(ES.catalog.errors.notAllowedEdit);
+    expect(catalogEditErrorMessage({ code: 'PGRST116' })).toBe(ES.catalog.errors.notAllowedEdit);
+    expect(catalogEditErrorMessage({ code: '23P01' })).toBe(ES.catalog.errors.overlap);
   });
 });
 

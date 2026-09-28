@@ -18,6 +18,9 @@ import { useCatalog, useEditProduct, useMyRole, useWorkspace } from '@/api/hooks
 import { catalogLine, isoDay } from '@/api/catalog';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
+  activePatch,
+  canRetireProduct,
+  catalogEditErrorMessage,
   checkEdit,
   editLine,
   editPlan,
@@ -28,6 +31,8 @@ import {
   type VariantEdit,
 } from '@/api/catalogEdit';
 import { ES } from '@/strings';
+import { Boton } from '@/ui/Boton';
+import { Frase } from '@/ui/Frase';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 
@@ -149,6 +154,12 @@ export default function EditarProducto() {
   const [issue, setIssue] = useState<EditIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  /**
+   * ⚠️ THE CONFIRMATION IS A PIECE OF SCREEN STATE AND NOT A NAVIGATION, which is
+   * `proveedor/[id]`'s shape: a retire is one act on the row already open, and a
+   * route for it would put a back button on a question that has two answers.
+   */
+  const [asking, setAsking] = useState(false);
 
   const working = saving || busy;
 
@@ -213,6 +224,43 @@ export default function EditarProducto() {
     // looking at, one screen back, with its new name and its new price on it.
     // ⚠️ `R9`: whether that is confirmation enough, or wants the blink `Agregar`
     // got, is a question for the owner's phone and is in this task's row.
+    router.back();
+  }
+
+  /**
+   * RETIRING THE PRODUCT — `is_active` false, and never a DELETE.
+   *
+   * ⚠️⚠️ IT DOES NOT GO THROUGH `save`, AND THAT IS THE DIFFERENCE BETWEEN THIS AND
+   * EVERY OTHER WRITE ON THIS SCREEN. `save` walks `EDIT_ORDER` — name, settings,
+   * price — and a retirement is none of the three: it must not be able to carry a
+   * half-typed rename or an unfinished price along with it. `edit` is the one-patch
+   * door `useEditProduct` already exposed for `ActivePatch`, applied and tested
+   * since `5e-iii-a` and **never once called until this row**.
+   *
+   * ⚠️ SO THE REFUSAL IS `catalogEditErrorMessage` DIRECTLY AND NOT `editLine`.
+   * `editLine` names WHICH STEP of a plan failed, and there is no plan here.
+   */
+  async function retire() {
+    if (entry === undefined) return;
+    setFailure(null);
+    setSaving(true);
+    try {
+      await edit(activePatch(false));
+    } catch (thrown) {
+      setSaving(false);
+      // ⚠️⚠️ THE ONE SENTENCE THIS PATH CAN PRODUCE THAT NOTHING ELSE CAN IS
+      // `23001` — `0042`'s trigger, arriving as an HTTP 400. It means the read
+      // under this screen went stale and the row is not his after all.
+      setFailure(catalogEditErrorMessage(thrown));
+      return;
+    }
+    setSaving(false);
+    setAsking(false);
+    Keyboard.dismiss();
+    // ⚠️⚠️ BACK TO LA FAMILIA, AND THE PRODUCT IS GONE FROM IT — `catalogFrom` drops
+    // `is_active` false, so the empty row he was looking at IS the confirmation.
+    // That is `proveedor/[id]`'s argument and the same one an edit makes one
+    // function up.
     router.back();
   }
 
@@ -364,31 +412,56 @@ export default function EditarProducto() {
               </Text>
             )}
 
-            <Boton
+            <Guardar
               label={working ? ES.catalog.edit.working : ES.catalog.edit.submit}
               busy={working}
               onPress={() => void submit()}
             />
 
-            {/* ⚠️⚠️ THE RETIRE CONTROL IS NOT DRAWN, AND ITS ABSENCE IS THE
-                OWNER'S CORRECTION OF 2026-09-23 RATHER THAN AN OMISSION.
-                His rule: *a shopkeeper may delete only the products HE CREATED*;
-                a product that came with the catalog is not his to remove.
-                ⚠️⚠️ NOTHING IN THE DATABASE RECORDS WHERE A ROW CAME FROM —
-                `product_family` and `product_variant` carry no origin column —
-                so this screen **cannot tell one from the other**, and it was
-                offering the control on every product in the shop. He found it
-                on his phone, which is `R9` doing exactly what it is for.
-                ⚠️ DRAWN ON NONE IS THE HONEST STATE WHILE IT CANNOT TELL, and it
-                is `canWriteCatalog`'s argument applied to a ROW instead of a role:
-                plainly absent beats looking live and doing the wrong thing. It
-                costs him deleting products he really did make, which is the price
-                of not deleting ones he did not. ⚠️ `6c` mints the marker, fences
-                it in the database, and brings this control back on his own rows
-                only. `ES.catalog.edit.retire*` is kept for it. */}
+            {/* ⚠️⚠️ THE RETIRE CONTROL IS BACK AS OF `6c`, 2026-09-27, AND IT IS
+                DRAWN ON HIS OWN ROWS ONLY — which is the whole of what `0042`
+                bought. It was drawn on NOTHING from 2026-09-23 to 2026-09-27: the
+                owner's rule is *a shopkeeper may delete only the products HE
+                CREATED*, the database recorded no origin, and so this screen could
+                not tell one kind of row from the other. He found it offering the
+                control on every product in his shop, on his phone, which is `R9`
+                doing exactly what it is for.
+                ⚠️⚠️ `canRetireProduct` IS THE DECISION AND IT IS NOT HERE (`R3`) —
+                two reasons the control can be absent, kept as two things, and
+                `app/test/api-catalog-edit.test.ts` is what pins them.
+                ⚠️ `canWriteCatalog(role)` IS ALREADY TRUE ON THIS LINE, because the
+                guard above returns null for a cashier. It is passed anyway and it
+                is not decoration: the day that guard is softened to show her a
+                read-only form, the row fence is still standing rather than
+                silently gone.
+                ⚠️⚠️ AND A PREBUILT ROW GETS NO SENTENCE, NO DISABLED BUTTON AND NO
+                EXPLANATION. Plainly absent is what he asked for in as many words —
+                *"why am I still seeing the button for the already existing
+                products?"* — and where a row came from is ours to know
+                ([[users-dont-do-bookkeeping]]). The only place `ES.catalog.errors.notYours`
+                can ever appear is the stale-read window inside `retire`. */}
+            {canRetireProduct(settings, canWriteCatalog(role)) ? (
+              <Boton
+                label={ES.catalog.edit.retire}
+                tone={PALETTE.error}
+                onPress={() => {
+                  Keyboard.dismiss();
+                  setFailure(null);
+                  setAsking(true);
+                }}
+              />
+            ) : null}
           </>
         )}
       </ScrollView>
+
+      <Confirmacion
+        asking={asking}
+        working={working}
+        failed={failure}
+        onConfirm={() => void retire()}
+        onCancel={() => setAsking(false)}
+      />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE THE SCROLL VIEW, `nuevo.tsx`'s call:
           `InputAccessoryView` renders into the keyboard rather than into the
@@ -410,6 +483,117 @@ export default function EditarProducto() {
  * EQUALITY, so two spellings is a bar that renders and never appears.
  */
 const PAD_ID = 'wera.edit.pad';
+
+/**
+ * *¿Retirar este producto del catálogo?* — the question, and the one place on this
+ * screen where a tap is irreversible.
+ *
+ * ⚠️⚠️ THIS IS THE **THIRD** LOCAL COPY OF A CONFIRMATION BOX IN THIS APP AND IT IS
+ * DELIBERATELY NOT EXTRACTED — the count is on the page so the next `src/ui/` row
+ * inherits a number rather than a hunch. `documentos.tsx` has one (two acts,
+ * `Corregir` and `Eliminar`, so it takes a SHAPE), `proveedor/[id].tsx` has one (one
+ * act, so it takes a BOOLEAN), and this one is the boolean shape with THREE
+ * sentences where that has two. ⚠️ `R14` reads *reached from two or more modules*
+ * and a local component is reached from one, so the gate is green either way; `R16`
+ * is the rule that actually applies, and *the difference nobody decided becomes a
+ * DECISION* is not a call to make inside a migration row. **`5h.5` left
+ * `Confirmacion` in its route for exactly this reason when there was one copy.**
+ *
+ * ⚠️⚠️ THREE SENTENCES AND NOT TWO, AND THE MIDDLE ONE IS THE WHOLE REASON THIS IS
+ * SAFE TO BE IRREVERSIBLE. `retireAsk` is the question, `retireWhy` says what goes
+ * AND that the sales already taken stay where they are, and `retireOnce` says it
+ * cannot be undone. Dropping `retireWhy` leaves *this cannot be undone* attached to
+ * a word a shopkeeper reads as *my sales are gone* ([[users-dont-do-bookkeeping]]).
+ *
+ * ⚠️ THE FAILURE REPLACES THE QUESTION RATHER THAN SITTING UNDER IT, so the box is
+ * never asking and refusing at the same time — `proveedor/[id]`'s trade and
+ * `documentos.tsx`'s before it.
+ */
+function Confirmacion({
+  asking,
+  working,
+  failed,
+  onConfirm,
+  onCancel,
+}: {
+  asking: boolean;
+  working: boolean;
+  failed: string | null;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const { scale } = useDensity();
+  if (!asking) return null;
+
+  return (
+    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
+      <View
+        pointerEvents="none"
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          top: 0,
+          bottom: 0,
+          opacity: 0.4,
+          backgroundColor: PALETTE.velo,
+        }}
+      />
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: scale.space * 2,
+        }}
+      >
+        <View
+          style={{
+            width: '100%',
+            borderRadius: scale.space,
+            backgroundColor: PALETTE.fondo,
+            padding: scale.space * 1.5,
+            gap: scale.space,
+          }}
+        >
+          {working ? (
+            <>
+              <ActivityIndicator color={PALETTE.accion} />
+              <Frase text={ES.catalog.edit.working} />
+            </>
+          ) : failed !== null ? (
+            <>
+              <Frase text={failed} />
+              <Boton
+                label={ES.catalog.edit.retireNo}
+                tone={PALETTE.accion}
+                onPress={onCancel}
+              />
+            </>
+          ) : (
+            <>
+              <Frase text={ES.catalog.edit.retireAsk} />
+              <Frase text={ES.catalog.edit.retireWhy} />
+              <Frase text={ES.catalog.edit.retireOnce} />
+              <View style={{ gap: scale.rowGap }}>
+                <Boton
+                  label={ES.catalog.edit.retireYes}
+                  tone={PALETTE.error}
+                  onPress={onConfirm}
+                />
+                <Boton
+                  label={ES.catalog.edit.retireNo}
+                  tone={PALETTE.tintaApagada}
+                  onPress={onCancel}
+                />
+              </View>
+            </>
+          )}
+        </View>
+      </View>
+    </View>
+  );
+}
 
 /**
  * *Listo*, above the number pads — the keyboards in this app with no return key.
@@ -588,8 +772,20 @@ function Aviso({ line }: { line: string }) {
   );
 }
 
-/** `Invitar`'s button. ⚠️ A tick and a word, never a glyph alone (C12.1). */
-function Boton({
+/**
+ * The filled button. ⚠️ A tick and a word, never a glyph alone (C12.1).
+ *
+ * ⚠️⚠️ NAMED `Guardar` SINCE `6c` AND IT USED TO BE `Boton`, WHICH IS A RENAME WITH A
+ * REASON RATHER THAN A TIDY-UP: this file now imports the OUTLINE `Boton` from
+ * `@/ui/Boton` for the retire control, and two different buttons under one name in
+ * one file is a typecheck error at best and the wrong shape on screen at worst.
+ * ⚠️ `proveedor/[id].tsx` reached the identical arrangement on 2026-09-27 and picked
+ * the identical name, so this is the second file to agree rather than a new spelling.
+ * ⚠️ IT IS STILL NOT EXTRACTED — the filled button is one of the three shapes `5h.5`
+ * left in place on purpose, because it decides what a shopkeeper sees on six-plus
+ * screens at once.
+ */
+function Guardar({
   label,
   onPress,
   busy = false,

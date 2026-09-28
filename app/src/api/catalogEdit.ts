@@ -187,14 +187,62 @@ export const PRICE_EDIT_COLUMNS = 'id,price_per_base::text,location_id,effective
  * in this module is a column a screen cannot draw by accident — which is what
  * that constraint needs, since C8.6 guarantees permanent drift in both
  * directions and this is the one pilot screen that would have offered the switch.
+ *
+ * ⚠️⚠️ AND `is_prebuilt` IS THE THIRD COLUMN SINCE `6c`, WHICH IS NOT A FIGURE AND
+ * IS HERE FOR THIS READ'S OWN STATED REASON. It decides whether the retire control
+ * is drawn at all, and the alternative was `VARIANT_COLUMNS` in `@/api/catalog` —
+ * paid for on every load of Productos for ~100 products (C8.3) to answer a question
+ * exactly one screen asks. ⚠️ **It is NOT `::text`**: the other two are cast because
+ * `numeric` arrives as a JSON double and `parseDecimal` refuses one outright; a
+ * boolean has no such problem and casting it would hand `canRetireProduct` the
+ * string `'false'`, which is truthy.
  */
-export const VARIANT_EDIT_COLUMNS = 'id,tax_rate::text,pack_size::text';
+export const VARIANT_EDIT_COLUMNS = 'id,tax_rate::text,pack_size::text,is_prebuilt';
 
-/** One variant's two set-once figures, as `VARIANT_EDIT_COLUMNS` returns them. */
+/**
+ * One variant's two set-once figures and where it came from, as
+ * `VARIANT_EDIT_COLUMNS` returns them.
+ *
+ * ⚠️ THE KEYS ARE POSTGRES SPELLINGS AND NOT THIS APP'S, which is every row
+ * interface in this module: a renamed column is then a typecheck failure rather
+ * than an `undefined` that reads as `false`.
+ */
 export interface VariantSettingsRow {
   readonly id: string;
   readonly tax_rate: string;
   readonly pack_size: string;
+  readonly is_prebuilt: boolean;
+}
+
+/**
+ * May THIS product be retired?
+ *
+ * ⚠️⚠️ TWO REASONS A CONTROL CAN BE ABSENT, KEPT AS TWO THINGS — `canRetire`'s
+ * shape in `@/api/providerDirectory`, which took it from this screen's own ruling.
+ * `mayWrite` is a question about the PERSON (`canWriteCatalog`, and an RLS UPDATE
+ * refusal here is SILENT) and `is_prebuilt` is a question about the ROW. Folding
+ * them into one boolean would make *you are not allowed* and *this one is not
+ * yours* indistinguishable in a log.
+ *
+ * ⚠️⚠️ AND A READ THAT HAS NOT LANDED IS `false` RATHER THAN OPTIMISTIC. `null`
+ * here means the one-variant settings read is still out, and drawing the control on
+ * a guess is how this screen came to be offering it on every product in the shop —
+ * the defect the owner found on his own phone on 2026-09-23. **Absent until the
+ * database has said so.**
+ *
+ * ⚠️ THERE IS NO *already retired* BRANCH, WHICH IS WHERE THIS DIFFERS FROM
+ * `canRetire`'s three. A retired product is not reachable: `catalogFrom` drops
+ * `is_active` false, so Productos never lists one and this screen is only ever
+ * opened from Productos. The branch would be unreachable code asserting a state
+ * nothing can produce — and `VARIANT_EDIT_COLUMNS` does not read `is_active` for
+ * that reason rather than by omission.
+ */
+export function canRetireProduct(
+  settings: VariantSettingsRow | null,
+  mayWrite: boolean,
+): boolean {
+  if (settings === null || !mayWrite) return false;
+  return !settings.is_prebuilt;
 }
 
 /**
@@ -749,6 +797,23 @@ const REJECTED: readonly string[] = ['23514', '23503'];
  * turns that into a **406** an app can act on. See the header.
  */
 const NO_ROWS = 'PGRST116';
+/**
+ * ⚠️⚠️ `23001` — `restrict_violation`, AND IT IS `0042`'s FENCE ARRIVING AS AN HTTP
+ * **400**. Measured over a real PostgREST on 2026-09-27: retiring a row whose
+ * `is_prebuilt` is true answers
+ * `400 {"code":"23001","message":"a prebuilt product_variant cannot be retired: …"}`.
+ * **Not a 403 and not a 409** — a trigger's exception is not a privilege error and
+ * not a uniqueness conflict, so nothing in this app would have recognised it
+ * ([[custom-sqlstate-arrives-as-400]]).
+ *
+ * ⚠️⚠️ AND THE APP IS NOT SUPPOSED TO BE ABLE TO SEND IT, WHICH IS WHY MAPPING IT
+ * MATTERS RATHER THAN WHY IT DOES NOT. `canRetireProduct` keeps the control off a
+ * prebuilt row, so the only way here is a `settings` read that went stale under the
+ * screen — the same window `23P01` exists for. Unmapped it would reach a shopkeeper
+ * as `apiErrorMessage`'s fallback, which says nothing she could act on about a
+ * product she is not allowed to remove.
+ */
+const NOT_HERS = '23001';
 
 function codeOf(error: unknown): string | null {
   if (typeof error !== 'object' || error === null) return null;
@@ -780,6 +845,12 @@ function messageOf(error: unknown): string {
  * reprice. Measured on both tables, 2026-09-23. A cashier who was told *"listo"*
  * about a price that did not move is worse off than one who was told no.
  *
+ * ⚠️⚠️ `23001` IS `6c`'s AND IT IS THE FIRST SQLSTATE IN THIS APP THAT MEANS *THIS
+ * ROW IS NOT YOURS* RATHER THAN *YOU ARE NOT ALLOWED*. The distinction is the whole
+ * of `0042`: the same manager who may rename and reprice this product may not remove
+ * it, so `notAllowedEdit`'s sentence about permission would be false. `canRetireProduct`
+ * is the fence and this is the belt to it.
+ *
  * ⚠️ `23P01` IS NEW ON THIS PATH AND EXISTS NOWHERE ELSE IN THIS APP.
  * `price_list_no_overlap` is the constraint the whole table was designed around,
  * and the only way a correctly planned change reaches it is a read that went
@@ -793,6 +864,7 @@ export function catalogEditErrorMessage(error: unknown): string {
   const code = codeOf(error);
   if (code === FORBIDDEN || code === NO_ROWS) return ES.catalog.errors.notAllowedEdit;
   if (code === OVERLAP) return ES.catalog.errors.overlap;
+  if (code === NOT_HERS) return ES.catalog.errors.notYours;
   if (code === DUPLICATE) {
     const message = messageOf(error);
     for (const constraint of Object.keys(CATALOG_WRITE_REFUSALS)) {

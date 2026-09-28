@@ -147,13 +147,22 @@ mutated && fixture "F8 the tax rate and pack size are renamed" red "the tax rate
 # `taxPercentOf` answers `''` and the screen simply draws no `Actual:` line. It
 # compiles, it bundles, it passes Vitest, and the only thing that changes is that
 # a shopkeeper can no longer see the IVA he is deciding whether to leave alone.
+# ⚠️⚠️ BOTH ANCHORS BELOW WERE RE-CUT BY `6c` (2026-09-27) AND THEY HAD SILENTLY STOPPED
+# MATCHING, WHICH IS WHY THEY NAME ONLY THE PART THEY MUTATE NOW. `6c` appended
+# `is_prebuilt` to `VARIANT_EDIT_COLUMNS`, so the full-string anchors
+# `'id,tax_rate::text,pack_size::text'` found nothing, `sed` copied the file unchanged,
+# and **both fixtures were testing the base file** — caught by this harness's own
+# `mutated` guard reporting *"the mutation changed nothing"*, which is the one thing
+# that could have caught it ([[run-the-falsifier-after-editing-what-it-reads]]).
+# ⚠️ **The anchors are now the SUBSTRING each fixture actually changes**, so a column
+# appended to that list in future does not break them again.
 fresh
-edit "'id,tax_rate::text,pack_size::text'" "'id,tax_rate,pack_size'"
+edit "tax_rate::text,pack_size::text" "tax_rate,pack_size"
 mutated && fixture "F10 the two set-once figures come back as doubles" red "did not come back as text at their column scales"
 
 # --- F11. the form's read asks for a column the database does not have -----
 fresh
-edit "'id,tax_rate::text,pack_size::text'" "'id,iva::text,pack_size::text'"
+edit "tax_rate::text,pack_size::text" "iva::text,pack_size::text"
 mutated && fixture "F11 the form reads a column that is not there" red "did not come back as text at their column scales"
 
 # --- F9. ⚠️ THE VACUITY CASE — a contract the check cannot read ------------

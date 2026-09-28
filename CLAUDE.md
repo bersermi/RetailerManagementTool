@@ -136,7 +136,12 @@ IT HAD GONE ON MISLEADING THE ONE FILE EVERY SESSION READS FIRST.** `app/` is a 
 app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
 
 - ⚠️⚠️ **18 ROUTE SCREENS plus 2 `_layout.tsx` = 20 `.tsx` FILES under `app/src/app/`,
-  measured 2026-09-27 after `6b`** (`find app/src/app -name '*.tsx' | wc -l`) — **`6b` added THREE
+  measured 2026-09-27 after `6c` AND STILL 20 — `6c` ADDED NO ROUTE**, it gave
+  `producto/[id].tsx` back a control that had been drawn on nothing since 2026-09-23 (a filled
+  placeholder adds no file, and neither does a restored button). ⚠️ **`app/src/ui/` is still NINE
+  primitives too**: `Confirmacion` is the THIRD local copy of a confirmation box and was
+  deliberately left in its route, with the count written on the page for the next `src/ui/` row.
+  The count after `6b` (`find app/src/app -name '*.tsx' | wc -l`) — **`6b` added THREE
   routes at once**, which is the largest jump since `5d`: `proveedores.tsx` (the directory),
   `proveedor/nuevo.tsx` and `proveedor/[id]`. ⚠️ **A new route needs the typed-route declarations
   regenerated or the LOCAL typecheck rejects it while CI goes green**
@@ -161,8 +166,10 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   argument `@/api/providers` makes about `MemoryState.unreadable`, and `inicio.test.ts`'s own
   assertion block was INVERTED rather than deleted.
 - **26 modules in `app/src/api/`** — the data layer, each one a claim about the applied
-  schema (which is why `db.yml` watches it; see below). Measured 2026-09-27 after `6b`:
-  `ls app/src/api | wc -l` (25 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **THE NEWEST IS
+  schema (which is why `db.yml` watches it; see below). Measured 2026-09-27 after **`6c`**:
+  `ls app/src/api | wc -l` (25 `.ts` plus `QueryProvider.tsx`). ⚠️ **`6c` ADDED NO MODULE** — it
+  widened `catalogEdit.ts` with `is_prebuilt` on `VARIANT_EDIT_COLUMNS`, `canRetireProduct` and the
+  `23001` mapping, which is asserted here rather than left to be recounted. ⚠️⚠️ **THE NEWEST IS
   `providerDirectory.ts` (`6b`), AND IT IS THE FIRST MODULE HERE THAT WRITES A `provider` ROW** —
   that table has been applied since `0002` (2026-09-02) and nothing in `app/` had ever changed one.
   ⚠️⚠️ **THE THREE FINDINGS IN IT A SESSION WILL OTHERWISE RE-DISCOVER, all measured against a real
@@ -303,14 +310,31 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6b` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6c` — THE PREBUILT CATALOG, AND IT IS
-UNGATED.** ⚠️ **It is the LAST row in step 6**: `6a` is closed in all three parts and `6b` shipped
-Proveedores that evening. ⚠️⚠️ **AND IT IS THE FIRST ROW IN A WHILE THAT MUST STOP AND ASK BEFORE
-WRITING SQL** — it mints a marker column on `product_variant` saying where a product came from,
-which is a one-way door the seed bakes in. **`0042` is next.** ⚠️ **It is the second time `6c` has
-held the marker and the first time on its own merits**: it held it for four hours on 2026-09-24
-while `5f-ii` was blocked. ~~`6a-ii-b` closed 2026-09-27 and the next task is now `6b` —
-Proveedores, and it is ungated.~~
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6c` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6d` — THE CATALOG THAT SURVIVES A COLD
+START, AND IT IS UNGATED.** ⚠️⚠️ **`6d` IS A ROW THAT DID NOT EXIST THIS MORNING**: it is `6c`'s
+Finding 2, and `6c`'s own row had promised it one — *"it is a separate concern from the marker and
+may want a row of its own."* `QueryProvider.tsx` builds a plain `QueryClient` with **no persister**,
+so a shop that opens the app with no signal sees **no catalog at all**, which is the other half of
+the owner's *"a set of products that he can also look at offline"*. **It ships no migration.**
+~~`6b` closed 2026-09-27 and the next task is now `6c` — the prebuilt catalog, and it is ungated~~
+⚠️ **`6c` was the second time that row held the marker and the first time on its own merits**: it
+held it for four hours on 2026-09-24 while `5f-ii` was blocked. ⚠️⚠️ **AND THE THING IT ASKED
+BEFORE WRITING SQL WAS ANSWERED THE SAME DAY: the marker is a BOOLEAN `is_prebuilt` and not the
+`origin` ENUM this file and the plan had both called it since 2026-09-23.** The owner ruled it on a
+measured argument two days old — an enum crossing the wire as a LABEL is a bug no typecheck and no
+Vitest fixture can see (`6a-ii-b`'s `reasonLabel`) — and it matches `provider.is_generic`. ⚠️⚠️
+**THE THREE FINDINGS IN `0042` A SESSION WILL OTHERWISE RE-DISCOVER: (1) FENCING BOTH DIRECTIONS OF
+THE MARKER MAKES IT UNSETTABLE AFTER INSERT** — not by the seed, a fixture, a `service_role` job or
+a later migration — and the defect is invisible in the one case anybody tests, an import that
+INSERTS its rows; `provider_protect_generic`'s asymmetry (refuse a demotion, permit a promotion) is
+the answer. **(2) `restrict_violation` IS AN HTTP 400 WITH CODE `23001`**, not a 403 and not a 409,
+and it maps to a sentence that is deliberately NOT `notAllowedEdit` because the same manager may
+rename and reprice the product he cannot remove. **(3) A READ IN THE SAME STATEMENT AS THE WRITE
+SEES THE PRE-STATEMENT SNAPSHOT** — a pgTAP `chk` holding `_try(update …)` and `select is_active`
+together reports a working fence as broken. ⚠️ **And `0042`'s backfill is recorded in
+`pg_attribute.attmissingval` rather than in any row**, because the file writes no `update`: an
+`update` would stamp `updated_at` on every row in every shop. ~~`6a-ii-b` closed 2026-09-27 and the
+next task is now `6b` — Proveedores, and it is ungated.~~
 ~~`6a-ii-a` closed 2026-09-27 and the next task is now `6a-ii-b` — the two controls on a
 write-off, and it is ungated.~~ ~~`6a-i` closed 2026-09-27 and the next task is now `6b` —
 Proveedores.~~ ⚠️ **That was true for the hour between `6a-i` merging and `6a-ii` being sized**;
@@ -370,15 +394,17 @@ assertions. ⚠️ **The KEY stayed `waste`** and the NAME moved, which is `5h-i
 whose name describes half of what it runs is the stale-claim defect.*
 ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
 OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
-eighth.** 2 (`app.yml`) + **7** (`db.yml`) + 1 (`money.yml`) = **10**, and the table below is the
-arithmetic. ⚠️ **It read `2 + 6 + 1 = 9` until `6b` opened the seventh `db.yml` job on 2026-09-27.** ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
+eighth.** 2 (`app.yml`) + **8** (`db.yml`) + 1 (`money.yml`) = **11**, and the table below is the
+arithmetic. ⚠️ **It read `2 + 7 + 1 = 10` until `6c` opened the eighth `db.yml` job on 2026-09-27, and
+`2 + 6 + 1 = 9` until `6b` opened the seventh earlier the same day.** ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL TWELVE, WHICH IS THE PART THAT MAKES *"confirm the
 checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
 filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
 two are simply absent — not skipped, not failed, **absent**. `5h-ii-a`'s own PR (#222) is
 exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **`6b`'s own PR is
-the same shape with one more name**, because it opened a `db.yml` job and touched no `packages/**`. ⚠️ **So the
+the same shape with one more name**, because it opened a `db.yml` job and touched no `packages/**`;
+**`6c`'s is the same shape with one more again — NINE names**, for the identical reason. ⚠️ **So the
 count to check against a log is the count of jobs that COULD fire for the paths that
-changed**, and a reader expecting nine on every run will read a normal PR as missing two.
+changed**, and a reader expecting eleven on every run will read a normal PR as missing two.
 The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
 `36172686952` / `36172687093`).
 
@@ -439,9 +465,13 @@ Never cite it as current. Read it only for history, and say so when you do.
   code, or the shop.**
 - **Migrations are append-only once applied.** Fix forward with a new numbered
   migration. Numbering is fixed in [`supabase/README.md`](supabase/README.md).
-  **Measured 2026-09-27 after `6a-ii-a`: 39 files, `0041` the highest, so the next is `0042`** —
+  **Measured 2026-09-27 after `6c`: 40 files, `0042` the highest, so the next is `0043`** —
   `0006` and `0007` are permanent holes (`supabase/README.md` settles why), so never infer the
   count from the highest number (`ls supabase/migrations/*.sql | wc -l`).
+  ⚠️⚠️ **AND `supabase/README.md`'s TABLE IS COMPLETE — CHECKED 2026-09-27 BY LISTING THE
+  DIRECTORY AGAINST IT, AND THE NAIVE GREP LIES.** `0013` and `0014` are the only two rows whose
+  filename is wrapped in a markdown LINK to a CI run, so ``grep '^| `00' `` reports two missing
+  rows that are both there. Match on the backticked filename anywhere in the line.
   ⚠️⚠️ **AND `supabase/README.md`'s TABLE HAD NO ROW FOR `0040` FOR TWO DAYS — NOTHING CHECKS IT
   FOR COMPLETENESS.** `6a-ii-a` found it by listing the directory against the table, which is the
   same move that keeps the archive table above honest. **Both rows are written now, and every

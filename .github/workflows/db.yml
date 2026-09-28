@@ -419,6 +419,18 @@ on:
       # prevents and `canRetire` is therefore the only fence there is.
       - "docs/checks/6b-provider-directory-contract.sh"
       - "docs/checks/6b-provider-directory-contract-falsify.sh"
+      # ⚠️⚠️ AND THE PREBUILT-CATALOG MARKER, as of plan task `6c` — `0042`, and the
+      # only instrument anywhere that can see any of these: that a refused retire is an
+      # HTTP **400 with code `23001`** rather than a 403 or a 409, which is the string
+      # `catalogEditErrorMessage` keys on; that a prebuilt product is **still renamed
+      # and repriced** (the fence is a trigger on a TRANSITION and not a policy
+      # predicate on a ROW, and the policy version would have merged green while
+      # breaking the catalog it protects); that `is_prebuilt` arrives as a **JSON
+      # boolean** and not as the truthy string `'false'`; and that a cashier's retire is
+      # **silent** rather than the trigger's error, because the policy excludes her row
+      # before the trigger can ever fire.
+      - "docs/checks/6c-catalog-origin-contract.sh"
+      - "docs/checks/6c-catalog-origin-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -951,6 +963,120 @@ jobs:
       # copy in the harness, and put them back in a `trap` on every exit path.
       - name: Contract — can the provider check still fail (its own ten fixtures)
         run: bash docs/checks/6b-provider-directory-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # ⚠️⚠️ THE EIGHTH JOB, ADDED BY `6c` (2026-09-27) — AND IT IS A NEW JOB FOR THE
+  # NARROWEST REASON OF ANY OF THEM: THE OBVIOUS HOME IS ALREADY AT ITS CAP.
+  #
+  # `catalog-write` is not merely a plausible home, it is the RIGHT one on every test
+  # this workflow has ever used — it already runs
+  # `docs/checks/5e-iii-a-catalog-edit-contract.sh` against the very file `6c` widens,
+  # `app/src/api/catalogEdit.ts`, and it builds the identical fixture (a shop, a
+  # manager, a cashier, a family, a variant). `6a-ii-a` and `6a-ii-b` both appended on
+  # exactly that argument.
+  #
+  # ⚠️⚠️ AND IT CANNOT BE USED, BECAUSE IT RUNS 12-13 MINUTES AGAINST ITS OWN
+  # `timeout-minutes: 15` AND WAS CANCELLED THREE TIMES ON `main` BEFORE `5R-g` SPLIT
+  # IT. Appending a check and a seven-fixture harness to a job that close to its cap is
+  # how a cancellation becomes deterministic — and ⚠️ **a cancelled job is neither a
+  # pass nor a failure, and it is the worst of the three to merge on**
+  # ([[a-cancelled-ci-job-is-not-a-failed-assertion]]: `gh pr checks` prints "fail" for
+  # both, and this repository merged red once on that confusion).
+  #
+  # ⚠️ So the seam is the CAP and not the subject, which is `5R-g`'s own reason and
+  # the fifth job's. Jobs run in parallel, so this costs wall-clock nothing.
+  #
+  # ⚠️⚠️ WHAT IT GUARDS (plan task `6c`): `0042`, WHICH MINTS THE ONE COLUMN THAT SAYS
+  # WHETHER A PRODUCT IS THE SHOP'S TO REMOVE. Five of its claims exist nowhere else
+  # in this repository:
+  #
+  #   * **`restrict_violation` IS AN HTTP 400 WITH CODE `23001`** — not a 403 and not a
+  #     409. A trigger's exception is neither a privilege error nor a uniqueness
+  #     conflict, and `catalogEditErrorMessage` keys on that string. The SQL suite
+  #     `supabase/tests/0042_catalog_origin.sql` sees SQLSTATE 23001 and no HTTP status
+  #     at all ([[custom-sqlstate-arrives-as-400]]).
+  #   * **FINDING 1, DRIVEN: A PREBUILT PRODUCT IS STILL RENAMED AND REPRICED.** The
+  #     obvious spelling of `0042` puts `is_prebuilt = false` into
+  #     `product_variant_update`'s `using` clause. It reads correctly, it refuses the
+  #     retire, and it also stops the shopkeeper PRICING an imported product — which is
+  #     the entire reason for importing one. It would have merged automatically, and
+  #     nothing in `app/` would have gone red, because a `using` clause makes the row
+  #     INVISIBLE rather than refusing the write ([[rls-update-refusal-is-a-200]]).
+  #     The harness's `D1` is that migration, as a fixture.
+  #   * **`is_prebuilt` ARRIVES AS A JSON BOOLEAN.** The two figures beside it in
+  #     `VARIANT_EDIT_COLUMNS` are `::text` casts; a cast added to this one for
+  #     consistency hands `canRetireProduct` the string `'false'`, which is TRUTHY, and
+  #     hides the retire control on every product the shop made. No typecheck and no
+  #     Vitest fixture can read a JSON type off the wire.
+  #   * **THE ASYMMETRY: A PROMOTION IS ALLOWED AND A DEMOTION IS NOT.** Nothing can
+  #     mark a row prebuilt except an INSERT that says so or that PATCH, so fencing both
+  #     directions leaves the onboarding this whole row exists for with no way in —
+  #     which is what the first writing of `0042` did, found by driving it.
+  #   * **A CASHIER'S RETIRE IS SILENT AND NOT `23001`.** Her PATCH never reaches the
+  #     trigger, because `product_variant_update` excludes the row. RLS is bypassed by
+  #     the `postgres` superuser, so a check run as superuser passes this vacuously.
+  #
+  # ⚠️ MEASURED LOCALLY 2026-09-27 rather than guessed: the check runs in about 15
+  # seconds and its seven-fixture harness in about 150, because the harness drives the
+  # whole live check eight times and every run signs TWO people up through a
+  # rate-limited GoTrue. Scaling that puts both steps well inside the cap — which is
+  # the measurement that says this job is nowhere near the cliff `catalog-write` is on.
+  catalog-origin:
+    name: the prebuilt catalog, and the delete that depends on it
+    runs-on: ubuntu-latest
+    # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE — and `providers`' note applies verbatim:
+    # what makes a job like this slow is not the fixtures, it is GoTrue's signup rate
+    # limit answering with an EMPTY BODY rather than a 429.
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          # Pinned for `reset`'s reason: a CLI release must not turn a green
+          # schema red without a commit saying why.
+          version: 2.114.0
+
+      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS. The exclusion list
+      # is `catalog-write`'s, for its reason.
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      # ⚠️⚠️ AND `supabase/tests/0042_catalog_origin.sql` IS **NOT** RUN HERE, WHICH IS
+      # THE CONVENTION AND NOT AN OMISSION: the `reset` job's *Behavioural checks* step
+      # runs the whole of `supabase/tests/` in name order, each suite preceded by
+      # `_cleanup.sql`, so a new suite costs no edit to this workflow at all — which is
+      # what the header at the top of this file means by *"a third suite costs no edit
+      # here"*. Running it here too would re-pay
+      # `supabase start` plus TWO `db reset`s — `_cleanup.sql` truncates the seed the
+      # live check needs — to assert something already asserted in the same run.
+      #
+      # ⚠️ ITS §2 IS WORTH NAMING ANYWAY, BECAUSE IT IS THE ONLY PLACE THE OWNER'S
+      # BACKFILL RULING OF 2026-09-24 IS VISIBLE: `0042` writes no `update` — an
+      # `update` would stamp `updated_at` on every row in every shop — so no ROW in a
+      # fresh database witnesses it, and `pg_attribute.attmissingval` is what records
+      # that a row predating the column is OURS.
+      - name: Contract — is the fence on a prebuilt product real over HTTP (plan 6c)
+        run: bash docs/checks/6c-catalog-origin-contract.sh
+
+      # ⚠️⚠️ AND THE HARNESS, WHICH CAUGHT A DEFECT IN ITSELF ON ITS FIRST RUN. Its
+      # restore used to feed `pg_get_functiondef`'s output through an UNQUOTED heredoc,
+      # where `$function$` expands to `$` — psql failed, `ON_ERROR_STOP=1` aborted
+      # before the `create trigger` on the next line, and `D3` then measured a database
+      # with no trigger at all and went red for the wrong reason. **It said so, which is
+      # the only thing that could have found it.** The restore now pipes the body,
+      # issues each statement separately, and VERIFIES the database went back.
+      - name: Contract — can the fence check still fail (its own seven fixtures)
+        run: bash docs/checks/6c-catalog-origin-contract-falsify.sh
 
       - name: Stop
         if: always()
