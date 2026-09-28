@@ -933,9 +933,14 @@ STATE BEFORE: A CUT TAKES CLOSED HISTORY AND MUST NOT TAKE AN OPEN OBLIGATION.**
 *the build is made and signed and is NOT on his phone* — sits between `6a-ii-a`'s entry and this
 bookkeeping and is chronologically older than `6b`'s. **It stays live**, because it is the only place
 the blocker is written down: the Mac's Wi-Fi, and **three rows of work now queued behind one install**.
-Archiving it would have buried the one thing waiting on a person. ⚠️ **`## Position` came back at **1,170**
-with this row's entry and its deploy record in place — 230 lines of room, so the next session need not
-open by archiving.**
+Archiving it would have buried the one thing waiting on a person. ⚠️⚠️ **AND THE LINE THAT USED TO STATE `## Position`'s SIZE HERE IS DELIBERATELY GONE RATHER THAN
+CORRECTED, BECAUSE IT CANNOT BE RIGHT.** It said *1,170*, the file was 1,171; corrected to 1,171 and the
+correction made it 1,176. **A number describing the file it is written in is stale the moment it is
+saved** — three times in one session, each time by the act of writing it. ✅ **What the figure was FOR
+is the only thing worth keeping: does the next session have to archive before it can write? It does
+not — there are well over two hundred lines of room.** ⚠️ **The exact figure is
+`bash docs/checks/plan-handover.sh`'s, which measures it after the edit rather than before**, and that
+is the one number here nobody has to maintain.
 
 ⚠️⚠️ **AND 2026-09-27 NOW HAS A FILE OF ITS OWN —
 [`docs/plan/archive/status-log-2026-09-27.md`](plan/archive/status-log-2026-09-27.md), THE ELEVENTH,
