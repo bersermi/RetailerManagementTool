@@ -10,6 +10,123 @@ right and this file is out of date.
 
 ---
 
+## ⏸ THE CATCH-UP — written 27 September, for the evening you get home with the laptop
+
+⚠️ **This section exists because you asked for it, and it is an INDEX rather than a
+second copy of anything.** Every question below lives somewhere else that a machine
+already checks; what was missing was one ordered list, because the things only you can
+look at had spread across eight finished jobs, the live plan and its archive, and nothing
+gathered them. ⚠️ **It goes stale like any other list** — when you have worked through
+it, say so and it gets deleted rather than edited, because a half-done checklist is
+worse than none.
+
+### 1. First, get the app onto the phone — everything else waits behind this
+
+⚠️⚠️ **FOUR JOBS HAVE SHIPPED SCREENS THAT ARE NOT ON YOUR PHONE, AND TWO ARE ALREADY
+THERE — THE DIFFERENCE MATTERS AND I CHECKED IT AGAINST THE COMMIT ORDER RATHER THAN
+ASSUMING.** The build you installed on 27 September carries everything up to and
+including the Desperdicio capture screen. **What is NOT on it:** the write-off list and
+its two controls, **Proveedores**, and **the delete**. ⚠️ **So two of the five screens
+in section 2 — *Lo último* and *Desperdicio* itself — you can already open**; those looks
+have simply never been taken, and the plan rows for them still say *the phone has to be
+rebuilt first*, which stopped being true the moment that build landed.
+
+⚠️⚠️ **CHECK THESE THREE THINGS BEFORE SPENDING TEN MINUTES ON A BUILD.** Each one cost
+this project a wasted build on 27 September:
+
+```
+export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # ⚠️ FIRST, ALWAYS
+xcrun devicectl list devices                 # must read: available (paired)
+ping -c1 iPhone-de-Bernie.coredevice.local   # must answer
+security find-identity -v -p codesigning     # must list a signing identity
+```
+
+⚠️⚠️ **THE `export` IS THE FIRST LINE FOR A MEASURED REASON: WITHOUT IT `xcrun` ANSWERS
+*"unable to find utility devicectl, not a developer tool or in PATH"***, which reads
+exactly like Xcode not being installed and is not. `xcode-select` on this Mac points at
+the Command Line Tools, and every `xcrun` line in the runsheet is under that same export.
+
+✅ **I RAN ALL THREE ON 27 SEPTEMBER SO YOU DO NOT HAVE TO GUESS WHICH ONE WILL BITE:**
+
+| Checked | Answer |
+|---|---|
+| **The signing identity** | ✅ **Present and valid** — *Apple Development: bersermi@gmail.com (MRY6366V8C)*. Nothing to do |
+| **The profile on disk** | ✅ **Exactly one**, `ad8112ec-3960-41a1-a69b-11bbd0c146fb.mobileprovision`, written 27 September 08:28 — which is the one expiring 4 October |
+| **The phone** | ❌ **`unavailable`** — the only thing standing in the way. Its CoreDevice UUID is `D15192C1-E028-59CD-B90D-3A1CFBD87860`, which is what every `devicectl` command wants |
+| **An Apple ID in Xcode** (needed on 4 October, not today) | ✅ **It must be there, because this morning's renewal worked** — renewing talks to Apple. ⚠️ **Do not check it with `defaults read com.apple.dt.Xcode IDEProvisioningTeams`**: that key does not exist on this Mac and answering *"does not exist"* would look like the account being missing. **A successful renewal is the evidence** |
+
+⚠️ **The phone was unreachable all of 27 September and the blocker was this Mac's
+Wi-Fi, not the phone** — `networksetup -getairportnetwork en0` answered *"You are not
+associated with an AirPort network"*. Plug the phone in or get both onto the same
+network first. ⚠️⚠️ **AND `devicectl`'s ERROR FOR *not reachable* IS NOT ITS ERROR FOR
+*locked*:** unreachable is `CoreDeviceError 1011`, the passcode is
+`kAMDMobileImageMounterDeviceLocked`. A retry loop written for the lock spins on 1011
+for ever, which is what twenty attempts over five minutes proved.
+
+**Then: rebuild, install, and tap Trust.** The commands are
+[`docs/checks/5a-iv-a-runsheet.md`](checks/5a-iv-a-runsheet.md) §2 — **step 1 builds,
+step 2 installs, step 3 launches.** ⚠️ **`--configuration Release` is not optional**: a
+Debug build asks a server on this Mac for its JavaScript and cannot open with the laptop
+out of the room. ⚠️ **And the two identifiers in that section are not interchangeable** —
+`xcodebuild` wants the device UDID, every `devicectl` command wants the CoreDevice UUID. ⚠️ **REBUILD FIRST, always.** The build sitting on this Mac is
+`6a-ii-a`'s, from before `6a-ii-b`, `6b` and `6c` shipped — installing it would hand you
+the write-off list without its two controls, Proveedores missing entirely, and no delete.
+
+⚠️ **You must tap Trust afterwards** — *Settings → General → VPN & Device Management* —
+**every time, even when the certificate has not changed.** That is the 27 September
+correction and it is not optional.
+
+⚠️⚠️ **TODAY'S BUILD WILL NOT RENEW YOUR SEVEN DAYS AND THAT IS FINE.** Profile
+`ad8112ec` is still valid until **4 October, 14:28 UTC**, and `-allowProvisioningUpdates`
+**reuses** a valid profile rather than renewing it. So today you get the latest app and
+the same expiry date. ⚠️ **The renewal build has to run ON or AFTER 4 October, and it
+needs an Apple ID signed into Xcode** (*Xcode → Settings → Accounts*) — renewing talks
+to Apple, reusing does not. Both facts were learned the expensive way across eight
+re-deploys. **It is in the plan's dates block, which fails a check if it passes
+unanswered.**
+
+### 2. Then open these five screens — this is the whole backlog of what only you can judge
+
+⚠️ **Gathered from EIGHT finished jobs, in the order you would walk the app.** None of
+it blocks any work; all of it is *the polish you said you wanted to do later*, and this
+is the list of what *later* now contains.
+
+| Open this | What I could not check, and would change if you say so |
+|---|---|
+| **Inicio** | **Is a sixth door right?** *Lo último* sits beside the five the architecture planned. It is the way into every correction, so it had to be reachable from somewhere — **and if you would rather it lived inside another screen, saying so costs one line.** This is one of the four parked decisions below |
+| **Lo último** (the recent-document list) | **Does a delivery read at a glance as *that one*?** Do the product lines under a document earn their room or want collapsing? Is the switch between kinds discoverable at *Letra grande*? **Is seven days the window you expect** when you scroll to the bottom and stop? — Then: **are two buttons under every row the right weight or too much furniture?** Does *¿Corregir esta nota? Se va a borrar y la vuelves a capturar* say what actually happens? **Is landing on Comprar with the cart already full a relief or a surprise?** Is `Eliminar` in red enough to keep a thumb off it? — And for a note that has not been sent yet: **once you have scrolled, is a heading and one line enough to tell it from a sent one?** There is no per-row mark, deliberately. Is *Sin enviar* the right word over *Todavía están en este teléfono*? |
+| **Desperdicio** | **Does `¿Qué pasó?` in a window you cannot dismiss read as the app helping or as the app in the way?** It is the only modal in the app a thumb cannot close on first open. Is **`Motivo:`** the right word over the drop-down — it was chosen over any verb about a bin, because two of the five causes are not things thrown away. **Does a bar that counts products and shows no money read as finished?** And **is the cause clearing after each entry one tap too many** when she is working through a whole shelf? — Then, on the list: **do three buttons fit on one row** (*Desperdicio* is eleven characters where *Compras* is seven)? **Does a row with no peso figure at all read as finished or as broken?** Does the cause belong **under the date**, where a supplier's name sits on a delivery, or on each line? — And on a correction: **does landing back on Desperdicio with the cause already filled in read as the app remembering or as the app having decided?** |
+| **Proveedores** | **Does a list of bare names read as a directory or as an unfinished screen?** A row carries a name and nothing else; the phone number is one tap away. That is the deliberate consequence of not widening what the delivery screen reads — **it is the first thing likely to be asked for, and it is parked below with its cost attached** |
+| **Productos → tap a product → *Editar*** | ⚠️⚠️ **THE RED BUTTON WILL BE ON NONE OF THEM, AND THAT IS YOUR OWN RULING** — all 11 families and all 28 products in your shop are marked ours, read off your real database on 27 September. **Add one through *Agregar* first**, then open it. Then: **does a red *Retirar del catálogo* under *Guardar cambios* read as dangerous enough?** And **is three lines in the confirmation box one too many on a small phone?** |
+
+### 3. Then the four parked decisions — they are in one place and they re-offer themselves
+
+⚠️ **Do not work from this section.** The rows live in `docs/PLAN.md`'s ⛔ DECISIONS
+OWED block and in the *four things* row further down this file, both of which a check
+holds in agreement; a third copy here is exactly the defect this repository has
+recorded six times. **What belongs here is only the shape of them, so you know what you
+are walking into:**
+
+- **All four are calls I already made and reported, not work I am blocked on.** Each
+  one names what reversing it costs, and three of the four cost one line.
+- **Two came from Proveedores on 27 September**: whether a cashier should see a
+  supplier's phone and address, and whether *Quitar proveedor* should have a way back.
+- **Two are older**: whether a corrected sale should be re-priced at today's shelf price,
+  and whether *Lo último* belongs on Inicio as a sixth door.
+- ⚠️ **The one that would cost a database change if you disagree** is the re-priced
+  sale, because it is money already written into the ledger. Read that one first.
+
+### 4. And two things a calendar owes, not a person
+
+- **4 October** — re-deploy to the phone or it stops launching in your hand. Section 1
+  explains why today's build does not move this date.
+- **13 October** — the day-30 session reading, on the sealed Android emulator. ⚠️ **Do
+  not open Wera on `wera-reading-5a-iv-d`**; opening it restarts the clock. The iPhone
+  half of that measurement was spent deliberately on 22 September when you said you
+  wanted to keep working from your own phone.
+
+---
+
 ## What you are building
 
 A retail management app for small shops in Mexico — buying, selling, catalog,

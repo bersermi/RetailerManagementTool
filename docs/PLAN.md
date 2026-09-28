@@ -913,6 +913,23 @@ after `6a-ii-b`: nothing has changed on the machine side.** `devicectl list devi
 still answers *"You are not associated with an AirPort network"* — **so the blocker is this Mac's
 Wi-Fi rather than the phone**, and no retry loop can fix it.
 
+⚠️⚠️ **AND THE WHOLE `R9` BACKLOG IS NOW ASSEMBLED IN ONE PLACE — `docs/HANDBOOK.md`'s
+`## ⏸ THE CATCH-UP`, WRITTEN 2026-09-27 BECAUSE THE OWNER ASKED FOR IT BEFORE A CONTEXT CLEAR.** It is
+an INDEX and not a second copy: the install prerequisites, the five screens to open with the specific
+question on each, a pointer at ⛔ DECISIONS OWED, and the two dated obligations. ⚠️ **It gathers the
+looks of EIGHT closed rows** — `5h-ii-a`, `5h-ii-b`, `5h-ii-c`, `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`,
+`6c` — **which had spread across this file and four archive files with nothing collecting them.**
+
+⚠️⚠️ **AND ASSEMBLING IT FOUND A STALE CLAIM THE ARCHIVE WILL KEEP CARRYING, SO IT IS RECORDED HERE
+RATHER THAN EDITED THERE.** The `5h-ii-*` and `6a-i` entries each end *"the build on his phone has to
+be rebuilt before he can open this"* — **true when written and FALSE since the 2026-09-27 re-deploy**,
+which landed everything up to and including `6a-i`. ⚠️ **They are NOT corrected in
+`docs/plan/archive/`**, because that directory is this system's history and every line there was true
+when written; the correction belongs where it is actionable. ✅ **Checked against the commit order
+rather than assumed**: the re-deploy (#231) sits between `6a-i` (#229) and `6a-ii-a` (#232), so **two of
+the five screens are already on his phone and four rows' worth of work is not** — `6a-ii-a`,
+`6a-ii-b`, `6b` and `6c`.
+
 ⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS A SHORT LIST THIS TIME.** Whether **three
 buttons fit on one row** — *Desperdicio* is eleven characters where *Compras* is seven. Whether a
 write-off row **with no peso figure at all** reads as finished or as broken. And whether the cause
