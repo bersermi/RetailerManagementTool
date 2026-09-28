@@ -705,7 +705,71 @@ assertion in this file now bounds its region.**
 
 
 
-⚠️⚠️ **`7d` IS THE NEXT TASK, AS OF 2026-09-28 — THE RAW ROWS, AND IT IS `S`.** `0033`'s month
+⚠️⚠️ **`7b` IS THE NEXT TASK, AS OF 2026-09-28 — HOW HAVE MY PRICES MOVED, AND IT IS UNGATED.**
+Purchase and sale unit price per variant over `0032`, with the %-change cards. Its gate `7a` closed
+today, and the decision filed against it (*`Quitar proveedor` is one-way*) was ruled the same day —
+ruling 34 — so a point may name a supplier Proveedores no longer lists, drawn as history. ⚠️ **`7c`
+is ungated by id and still wants DATA**, a shop that has thrown things away for a while.
+
+✅✅✅ **`7d` IS DONE, 2026-09-28 — A MONTH OF THE LEDGER LEAVES THE PHONE, AS A SPREADSHEET OR A
+PAGE.** On Números, under the chart, a manager or the owner picks a month (‹ septiembre 2026 ›) and
+taps **Hoja de cálculo (CSV)** or **PDF**; the phone's share sheet takes it from there. **It ships no
+migration**: `0033`'s `transaction_export` has been applied since 2026-09-14 and this is its first
+caller.
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `S` → `M`, ONE SITTING, AND THREE QUESTIONS HAD TO BE ASKED FIRST.**
+**(1) `0033` fences the view in its own BODY to `has_role('manager')`** — *"a partial export is worse
+than no export"* — so a cashier reads ZERO rows, while ruling 31 had just put her into Números.
+**(2) The format was never ruled**; `0033` was written for a CSV and the app's only file was a PDF.
+**(3) Which month.** ✅ **ALL THREE ASKED BEFORE A LINE WAS BUILT, AND ANSWERED: THE THIRTY-FIFTH TO
+THIRTY-SEVENTH RULINGS.** **(35) BOTH FORMATS** — against the recommendation of CSV alone. **(36) NO
+DOWNLOAD FOR A CASHIER** — as recommended: the control is not drawn for her, `canExport` follows
+`0033`'s applied fence, and widening it would be a migration he has not asked for. **(37) A SEPARATE
+MONTH PICKER** — against the recommendation of *the month on screen*. ⚠️ **Reversing any of them** is
+a component or a predicate — no migration, no data.
+
+✅ **SHIPPED:** `app/src/api/monthExport.ts` (the **twenty-ninth** entry of `src/api/`, `ls app/src/api
+| wc -l`) — the read contract, the month arithmetic, the parse, `canExport`, `whoOf`; `monthRows` in
+`@/api/calls` (pages at 500 over a TOTAL order, `7a`'s reason) and `useMonthExport` in `@/api/hooks`
+(nothing read until the tap; `exportKey` is not in `PERSISTED_KEYS`, so no month lands on the disk);
+`app/src/export/monthFile.ts` — `monthCsv` and `monthHtml`, pure; `shareCsv` in `@/export/share`;
+the `Descarga` section on `numeros.tsx`; `ES.monthExport`. ⚠️⚠️ **`expo-file-system` IS NOW A DECLARED
+DEPENDENCY, AND TWO SENTENCES SAID IT WAS DELIBERATELY ABSENT** — `@/export/share`'s header and ADR-035
+§2.11's Export row, both corrected here. **It adds no native code**: `expo` already depends on it and
+`ExpoFileSystem` was in `Podfile.lock` before this row declared it — *measured* in that file, and still
+no workflow compiles the app.
+
+⚠️ **FOUR THINGS DECIDED ON THE OWNER'S BEHALF, EACH ONE LINE OR ONE CONSTANT TO REVERSE:** **(a)** the
+file carries **no cost** (`unit_cost_net_per_base` is never asked for — área 9, waste is never a cost)
+and **no per-base-unit price** (it is per GRAM on a kilo product); **(b)** the PDF's write-off section
+shows **quantity and cause and no money**, while the CSV carries the figures the document stored;
+**(c)** `created_by` becomes the member's NAME, a departed one included, never the uuid; **(d)** the
+CSV opens with a **byte-order mark** (Excel reads every accent wrong without one), writes money as
+plain `1234.50` so a spreadsheet can sum it, carries **no total row**, and prefixes a name starting
+`=`, `+`, `-` or `@` with `'` so a product name cannot become a live formula in someone's copy.
+
+✅ **CHECKED BY:** `app/test/api-month-export.test.ts` — **51 tests**, and **1,622 across 49 files**
+green (the runner's tally), falsified three ways by breaking the source: formula guard off, BOM off,
+money back on the write-off section — each red. ⚠️⚠️ **THE SECOND FALSIFICATION CAME BACK GREEN THE
+FIRST TIME, AND THE FIXTURE WAS WHAT WAS BROKEN**: the file held the BOM as a literal invisible
+character rather than the `\uFEFF` escape, so the `sed` matched nothing. The source now spells the
+escape, and the mutation went red. `docs/checks/7d-month-export-contract.sh` — **10 groups** over
+live HTTP, ~2.5 s: every column the app names exists and every figure is a string; the cost never
+comes back; all three kinds in one month with the void flagged and negated, the supplier's accents and
+comma intact, the cause the enum's own word; the neighbouring months read `[]`; paging reassembles;
+**a cashier who reads her store's sales reads ZERO export rows**; another shop reads none. Its
+falsifier — **5 fixtures**, each red for its own reason. `docs/checks/conventions-gate.sh` — **18 of
+18**. ⚠️ **Both new checks are APPENDED to `db.yml`'s `api-contracts` job** beside `7a`'s — it ran
+**10m08s of its 15** on `main` (run `36443364209`). **So the job count is unchanged: eight in `db.yml`,
+eleven definitions in all.** ⚠️ **The root lockfile moved (one line), so `money.yml` fires on this PR
+too** — twelve names in the log, not ten.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`), AND IT NEEDS A REBUILD FIRST:** that the share sheet offers the
+CSV to WhatsApp, Files and a spreadsheet app, and it opens with its accents intact; that the PDF is
+readable at a month's length; that ‹ › is findable. **Nothing here has been on a device.**
+
+~~`7d` is the next task, as of 2026-09-28 — the raw rows, and it is `s`.~~ — ⚠️ **struck in lower
+case deliberately, the rule `5b.8-i`'s row records.** `0033`'s month
 export, handed over as a download from Números — the screen now exists for it to hang off. ⚠️ **Its
 gate was `7a` alone, closed today.** ⚠️ **Why not `7b`, which sits above it**: `7b` is named in
 ⛔ DECISIONS OWED (*`Quitar proveedor` is one-way*) and `plan-handover.sh` refuses a blocked next
@@ -5304,9 +5368,9 @@ sophisticated for now"* — so this is three questions, not thirty.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **7a** | ✅✅✅ **DONE 2026-09-28 — NÚMEROS EXISTS: WHAT YOU SOLD AND WHAT IT BROUGHT IN, BY DAY, WEEK OR MONTH.** `app/src/app/numeros.tsx` over `app/src/api/sales.ts`, reached by a **seventh row on Inicio** and by **every role** — rulings 31 and 32, both asked before a line was built. Gross revenue per period as bars; under them the tapped period per product or per family, each quantity in the unit it is sold by, and a family that mixes kilos and pieces reads a dash for quantity rather than a meaningless sum (C8.5). ⚠️ **It ships no migration.** ⚠️⚠️ **The sizing found the view is a SPINE** (every stocked product, every day) **and that PostgREST truncates at `max_rows` silently** — so the read filters on `line_count` and pages over a total order. ✅ **Checked by `app/test/api-sales.test.ts` (26 tests), `docs/checks/7a-sales-contract.sh` (11 groups, live HTTP) and its falsifier (4 fixtures)** — see the status log. **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` — held | ✅ **WAS UNGATED** — `5h` closed 2026-09-26, and the prose half was MEASURED on the hosted project: 22 sales over 3 trading days |
-| **7b** | ✅ **UNBLOCKED 2026-09-28 by the thirty-fourth ruling** — `Quitar proveedor` stays one-way, so a point on the purchase-price chart can name a supplier Proveedores no longer lists: **that is history and is drawn as history**, the way a retired product stays in the transactions. **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
+| **7b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `7d` closed. ✅ **UNBLOCKED 2026-09-28 by the thirty-fourth ruling** — `Quitar proveedor` stays one-way, so a point on the purchase-price chart can name a supplier Proveedores no longer lists: **that is history and is drawn as history**, the way a retired product stays in the transactions. **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
 | **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | ✅ **UNGATED as of 2026-09-27** — ~~`6a` — there is no waste data until that screen exists~~. ⚠️ **Re-pointed from `6a` to `6a-i` and then cleared, because `6a` split that day and *a gate naming a row nobody can take is a gate nobody can clear*** — the trap `5h`'s and `5h.5`'s splits both recorded. `6a-i` closed 2026-09-27, so the screen exists. ⚠️ **What it still wants is DATA rather than a row**: a pilot shop that has actually thrown things away for a while |
-| **7d** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — Números exists for it to hang off. **The raw rows.** `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his | `S` | ✅ **UNGATED as of 2026-09-28** — ~~`7a`~~, closed that day |
+| **7d** | ✅✅✅ **DONE 2026-09-28 — A MONTH OF THE LEDGER, AS A CSV OR A PDF, FROM NÚMEROS.** A month picker and two buttons under the chart, **drawn for a manager and the owner only** — rulings 35–37, all asked before a line was built. Every sale, delivery and write-off line of the month over `0033`'s `transaction_export`, read on the tap and paged below `max_rows`; **no cost column, ever**. ⚠️ **It ships no migration**; it declares `expo-file-system`, which was already compiled in. ✅ **Checked by `app/test/api-month-export.test.ts` (51 tests), `docs/checks/7d-month-export-contract.sh` (10 groups, live HTTP) and its falsifier (5 fixtures)** — see the status log. ~~The raw rows. `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his~~ | `S` → `M` — held | ✅ **WAS UNGATED** — ~~`7a`~~, closed that day |
 | **7e** | ⚠️⚠️ **WHAT IS AT RISK OF BECOMING WASTE — DERIVED, NOT TYPED IN. REWRITTEN 2026-09-21 WHEN THE OWNER RULED OUT CAPTURING EXPIRY DATES.** ~~stock inside its last days, read from a captured `expiry_date`~~. **Three numbers per variant, all of them computed from records the shop already produces:** **shelf age** (how long the stock on hand has been sitting — `stock_batch.received_at`, which is `not null` and always present, against `batch_balance`); **days of cover** (what is on hand ÷ recent daily velocity, over `product_velocity_daily`, which `0013`/`0014` already ship); and **observed time-to-waste** (for each variant, how many days typically pass between receiving and writing off — read from `waste` against the batches it consumed). ⚠️ **A variant with more days of cover than its own observed time-to-waste is the buy-it-now candidate**, and that is the tier-2 signal without a single new field. ⚠️⚠️ **WHAT IT COSTS, AND IT IS THE REASON THE DEFERRED DECISION IS NOT FREE: a derived shelf life NEEDS WEEKS OF WASTE RECORDS BEFORE IT SAYS ANYTHING.** A typed expiry date answers on day one; this answers once the pilot has run long enough to have thrown things away. **That is a pilot-duration cost, not an engineering one**, and it is the owner's deliberate trade — see ⛔ DECISIONS OWED, área 7 | `M` | ⚠️ **`6a-i` and `5g` — RE-POINTED 2026-09-27**, because `6a` split that day and a gate naming a split parent is one nobody can clear. ✅ **Both screens now exist** (`5g-ii` 2026-09-25, `6a-i` 2026-09-27). ⚠️⚠️ **What is left in this gate is TIME and it cannot be hurried**: a derived shelf life needs weeks of waste records, and the clock started 2026-09-27 |
 
 ---

@@ -2483,6 +2483,76 @@ export const ES = {
   },
 
   /**
+   * THE MONTH, AS A FILE — plan task `7d`, on Números. ⚠️ Drawn for a manager
+   * and the owner only: `0033` gives a cashier zero rows (ruled 2026-09-28).
+   */
+  monthExport: {
+    heading: 'Descargar un mes',
+    /** Under the heading — what is in the file, said once so nobody has to guess. */
+    subtitle: 'Todas las ventas, compras y desperdicio del mes, línea por línea.',
+    previous: 'Mes anterior',
+    next: 'Mes siguiente',
+    /** The two marks the picker draws; the words above are what a screen reader says. */
+    previousMark: '‹',
+    nextMark: '›',
+    csv: 'Hoja de cálculo (CSV)',
+    pdf: 'PDF',
+    preparing: 'Preparando…',
+    /** ⚠️ The month is passed in, the grammar lives here (`members.shareMessage`'s rule). */
+    nothing: (month: string) => `No hubo movimientos en ${month}.`,
+    cannotShare: 'Este teléfono no puede compartir archivos.',
+    failed: 'No se pudo preparar el archivo. Intenta de nuevo.',
+    /** ⚠️ Lower case, no accent — it becomes a filename on somebody else's computer. */
+    fileStem: 'movimientos',
+    fileTitle: 'Movimientos del mes',
+    /** The share sheet's title. */
+    shareTitle: 'Movimientos',
+    kind: {
+      sale: 'Venta',
+      purchase: 'Compra',
+      waste: 'Desperdicio',
+    },
+    section: {
+      sale: 'Ventas',
+      purchase: 'Compras',
+      waste: 'Desperdicio',
+    },
+    noneOfKind: {
+      sale: 'No hubo ventas este mes.',
+      purchase: 'No hubo compras este mes.',
+      waste: 'No se tiró nada este mes.',
+    },
+    /** ⚠️ *con IVA*, `numbers.total`'s rule — it is the gross, and the ruling is to say so. */
+    kindTotal: 'Total, con IVA:',
+    /** The mark on a line a correction wrote. */
+    reversalMark: 'Cancelación',
+    yes: 'Sí',
+    /**
+     * ⚠️ THE CSV'S HEADER ROW, IN THIS ORDER — `monthCsv` writes each row in the
+     * same order, and the suite asserts the lengths agree.
+     */
+    columns: {
+      day: 'Fecha',
+      hour: 'Hora',
+      store: 'Tienda',
+      kind: 'Tipo',
+      document: 'Documento',
+      product: 'Producto',
+      family: 'Familia',
+      qty: 'Cantidad',
+      unit: 'Unidad',
+      net: 'Sin IVA',
+      tax: 'IVA',
+      gross: 'Total',
+      provider: 'Proveedor',
+      reason: 'Motivo',
+      expiry: 'Caducidad',
+      reversal: 'Cancelación',
+      who: 'Quién',
+    },
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

@@ -3,7 +3,15 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useSales } from '@/api/hooks';
+import { useMonthExport, useSales } from '@/api/hooks';
+import {
+  exportFileName,
+  exportLine,
+  isLatestMonth,
+  monthOf,
+  monthShift,
+  monthTitle,
+} from '@/api/monthExport';
 import {
   GROUPINGS,
   PERIODS,
@@ -20,6 +28,9 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { monthCsv, monthHtml } from '@/export/monthFile';
+import { shareCsv, shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
+import { Boton } from '@/ui/Boton';
 import { Interruptor } from '@/ui/Interruptor';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
@@ -119,6 +130,7 @@ export default function Numeros() {
             />
           </>
         )}
+        <Descarga today={today} />
       </ScrollView>
     </View>
   );
@@ -311,6 +323,138 @@ function Tabla({
           ))}
         </View>
       )}
+    </View>
+  );
+}
+
+/**
+ * THE MONTH, AS A FILE — plan task `7d`. A month picker of its own and two
+ * buttons, one per format.
+ *
+ * ⚠️ NOT DRAWN AT ALL FOR A CASHIER (ruled 2026-09-28): `0033` hands her zero
+ * rows, and a control that can only produce an empty file is a control she
+ * should not be shown. `allowed` is `canExport` in `@/api/monthExport`.
+ *
+ * ⚠️ OUTSIDE THE SALES STATE, ON PURPOSE. A shop with no sales in six months can
+ * still have deliveries and write-offs to hand over, so the section is drawn
+ * whether the chart above it is a spinner, a sentence or bars.
+ *
+ * ⚠️ THE PICKER STARTS ON THE CURRENT MONTH AND STOPS THERE — a month that has
+ * not begun has nothing in it. It is its own state and not the chart's bar,
+ * which is the owner's ruling (a separate picker).
+ *
+ * ⚠️ THE ROWS ARE READ ON THE TAP AND NOT BEFORE — see `useMonthExport`.
+ */
+function Descarga({ today }: { today: string }) {
+  const { scale } = useDensity();
+  const { allowed, members, fetch } = useMonthExport();
+  const [month, setMonth] = useState(() => monthOf(today));
+  const [busy, setBusy] = useState<'csv' | 'pdf' | null>(null);
+  const [note, setNote] = useState('');
+
+  if (!allowed) return null;
+  const latest = isLatestMonth(month, today);
+
+  function step(by: number): void {
+    if (busy !== null) return;
+    setMonth((current) => monthShift(current, by));
+    setNote('');
+  }
+
+  async function go(format: 'csv' | 'pdf'): Promise<void> {
+    if (busy !== null) return;
+    setBusy(format);
+    setNote('');
+    const got = await fetch(month);
+    const line = exportLine(got.state, got.failed, month);
+    if (line !== '') {
+      setNote(line);
+      setBusy(null);
+      return;
+    }
+    // ⚠️ `new Date()` IS READ HERE AND PASSED IN — `R3` at the boundary, the
+    // arrangement `Compartir` on `costos/[id].tsx` uses.
+    const madeOn = new Date().toISOString().slice(0, 10);
+    const outcome: ShareOutcome =
+      format === 'csv'
+        ? await shareCsv(
+            monthCsv(got.lines, members),
+            exportFileName(month, 'csv'),
+            ES.monthExport.shareTitle,
+          )
+        : await shareHtmlAsPdf(monthHtml(got.lines, month, madeOn), ES.monthExport.shareTitle);
+    if (outcome === 'unavailable') setNote(ES.monthExport.cannotShare);
+    if (outcome === 'failed') setNote(ES.monthExport.failed);
+    setBusy(null);
+  }
+
+  return (
+    <View style={{ gap: scale.rowGap, marginTop: scale.space }}>
+      <Separador />
+      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+        {ES.monthExport.heading}
+      </Text>
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+        {ES.monthExport.subtitle}
+      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.monthExport.previous}
+          onPress={() => step(-1)}
+          style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.accion }}>
+            {ES.monthExport.previousMark}
+          </Text>
+        </Pressable>
+        <Text
+          style={{
+            flex: 1,
+            textAlign: 'center',
+            fontSize: scale.bodySize,
+            fontWeight: '700',
+            color: PALETTE.tinta,
+          }}
+        >
+          {monthTitle(month)}
+        </Text>
+        {/* ⚠️ The forward mark is DRAWN at the latest month, and muted, so the row
+            does not shift sideways when it appears — but it does nothing. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.monthExport.next}
+          accessibilityState={{ disabled: latest }}
+          disabled={latest}
+          onPress={() => step(1)}
+          style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text
+            style={{
+              fontSize: scale.titleSize,
+              fontWeight: '700',
+              color: latest ? PALETTE.linea : PALETTE.accion,
+            }}
+          >
+            {ES.monthExport.nextMark}
+          </Text>
+        </Pressable>
+      </View>
+      <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+        <Boton
+          inRow
+          label={busy === 'csv' ? ES.monthExport.preparing : ES.monthExport.csv}
+          tone={busy === null ? PALETTE.accion : PALETTE.tintaApagada}
+          onPress={() => void go('csv')}
+        />
+        <Boton
+          inRow
+          label={busy === 'pdf' ? ES.monthExport.preparing : ES.monthExport.pdf}
+          tone={busy === null ? PALETTE.accion : PALETTE.tintaApagada}
+          onPress={() => void go('pdf')}
+        />
+      </View>
+      {note === '' ? null : <Vacio line={note} />}
     </View>
   );
 }

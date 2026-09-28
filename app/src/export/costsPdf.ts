@@ -189,8 +189,11 @@ const STUB_PERCENT = 24;
  * "El Águila" & Hijos` carries three characters that end a document early or
  * silently swallow the rest of a row. ⚠️ `&` goes first, or the escapes escape
  * each other.
+ *
+ * ⚠️ EXPORTED SINCE `7d`, because `@/export/monthFile` is the second document
+ * that puts shopkeeper-typed names into HTML — one escape, not two.
  */
-function safe(text: string): string {
+export function safe(text: string): string {
   return text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')

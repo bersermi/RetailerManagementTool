@@ -127,6 +127,15 @@ import {
   type SalesRow,
 } from '@/api/sales';
 import {
+  EXPORT_COLUMNS,
+  EXPORT_DAY_COLUMN,
+  EXPORT_PAGE,
+  EXPORT_TIEBREAK,
+  EXPORT_VIEW,
+  monthRange,
+  type ExportRow,
+} from '@/api/monthExport';
+import {
   VOID_TRANSACTION,
   voidArgs,
   voidedFrom,
@@ -965,6 +974,37 @@ export async function shopSales(since: string): Promise<SalesRow[]> {
     const page = (data ?? []) as unknown as SalesRow[];
     rows.push(...page);
     if (page.length < SALES_PAGE) return rows;
+  }
+}
+
+/**
+ * Every line of every sale, delivery and write-off in one month, for the file
+ * Números hands over. Plan task `7d`.
+ *
+ * ⚠️⚠️ IT PAGES, `shopSales`' reason: a month is not bounded by what a screen
+ * shows, and PostgREST truncates at `max_rows` without saying so. `EXPORT_PAGE`
+ * over a TOTAL order, stopping at the first short page.
+ *
+ * ⚠️ A CASHIER GETS ZERO ROWS AND NO ERROR — `0033`'s body predicate. The screen
+ * never asks on her behalf (`canExport`), so an empty answer here means the month
+ * really was empty.
+ */
+export async function monthRows(month: string): Promise<ExportRow[]> {
+  const { from, to } = monthRange(month);
+  const rows: ExportRow[] = [];
+  for (let at = 0; ; at += EXPORT_PAGE) {
+    let query = supabase
+      .from(EXPORT_VIEW)
+      .select(EXPORT_COLUMNS)
+      .gte(EXPORT_DAY_COLUMN, from)
+      .lt(EXPORT_DAY_COLUMN, to)
+      .order(EXPORT_DAY_COLUMN, { ascending: true });
+    for (const column of EXPORT_TIEBREAK) query = query.order(column, { ascending: true });
+    const { data, error } = await query.range(at, at + EXPORT_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as ExportRow[];
+    rows.push(...page);
+    if (page.length < EXPORT_PAGE) return rows;
   }
 }
 
