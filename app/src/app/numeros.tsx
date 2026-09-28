@@ -24,6 +24,7 @@ import {
   type Grouping,
   type Period,
   type Report,
+  type ReportRow,
 } from '@/api/sales';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -127,6 +128,7 @@ export default function Numeros() {
               report={reportOf(sales.days, period, start, grouping, entries, factors)}
               grouping={grouping}
               onGroup={setGrouping}
+              opens={(key) => grouping === 'producto' && entries.some((one) => one.id === key)}
             />
           </>
         )}
@@ -255,11 +257,14 @@ function Tabla({
   report,
   grouping,
   onGroup,
+  opens,
 }: {
   title: string;
   report: Report;
   grouping: Grouping;
   onGroup: (grouping: Grouping) => void;
+  /** Whether a row is a door into `Precios` — see `Fila`. */
+  opens: (key: string) => boolean;
 }) {
   const { scale } = useDensity();
   return (
@@ -297,33 +302,66 @@ function Tabla({
           {report.rows.map((row, index) => (
             <View key={row.key}>
               {index === 0 ? null : <Separador />}
-              <View
-                style={{
-                  minHeight: scale.rowHeight,
-                  paddingHorizontal: scale.space,
-                  paddingVertical: scale.rowGap,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: scale.space,
-                }}
-              >
-                <View style={{ flex: 1 }}>
-                  <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-                    {row.name}
-                  </Text>
-                  <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                    {row.quantity}
-                  </Text>
-                </View>
-                <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-                  {row.amount}
-                </Text>
-              </View>
+              <Fila row={row} opens={opens(row.key)} />
             </View>
           ))}
         </View>
       )}
     </View>
+  );
+}
+
+/**
+ * One row of the table — and, per product, the door into `Precios` (`7b`).
+ *
+ * ⚠️⚠️ A DOOR ONLY WHERE THE ANSWER EXISTS. Per FAMILY there is no price to
+ * show: a family mixes kilos and pieces, and `0032`'s own comment calls a price
+ * across them *"money over a meaningless total"*. And a product the catalog no
+ * longer lists has no price UNIT on this phone, so `Precios` could not say
+ * *por kilo* or *por pieza* — its sales still count here, and its row is simply
+ * not a door. ⚠️ So the row is drawn identically either way except for the
+ * chevron, which is the one thing that says *this opens*.
+ */
+function Fila({ row, opens }: { row: ReportRow; opens: boolean }) {
+  const { scale } = useDensity();
+  const body = (
+    <View
+      style={{
+        minHeight: scale.rowHeight,
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.space,
+      }}
+    >
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+          {row.name}
+        </Text>
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {row.quantity}
+        </Text>
+      </View>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+        {row.amount}
+      </Text>
+      {opens ? (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {ES.numbers.opens}
+        </Text>
+      ) : null}
+    </View>
+  );
+  if (!opens) return body;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityHint={ES.numbers.opensHint}
+      onPress={() => router.push({ pathname: '/precios/[id]', params: { id: row.key } })}
+    >
+      {body}
+    </Pressable>
   );
 }
 

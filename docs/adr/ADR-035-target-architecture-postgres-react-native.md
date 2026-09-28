@@ -12,6 +12,13 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Revised:** 2026-09-28 — **§2.9's *How have my prices moved?* row, on the decision maker's
+  ruling of the same day, by plan task `7b`: ONE CHART, BOTH LINES WITH IVA.** Asked before a line
+  was built; the recommendation had been two panels, the purchase side WITHOUT IVA so it agreed with
+  Comprar and `Costos`. He chose one axis, so the gap between the lines is sale less purchase per
+  unit with tax on both. ⚠️ **So one delivery reads ~16% higher on `Precios` than on `Costos`**, which
+  still shows the invoice net, and `Precios` says so in words. It is reached by tapping a product on
+  Números; §2.7 is unchanged — the purchase side reaches staff because `0040` already does.
 - **Revised:** 2026-09-28 — **§2.8's Home row: `Lo último`'s place on Inicio is RULED, no longer
   parked.** The decision maker: *"Leave Lo último on Inicio as recommended."* Nothing else moves.
 - **Revised:** 2026-09-28 — **§2.11's Export row, by plan task `7d`.** It said *"`expo-file-system`
@@ -1600,7 +1607,7 @@ doesn't have to be very robust nor sophisticated for now."*
 | Question | Measure | Why this one |
 |----------|---------|--------------|
 | What am I selling, and what did it bring in? | **Quantity sold** in the variant's own unit, and **GROSS revenue**, per **variant** and per **family**, daily | The two numbers he named first. Quantity is the one measure C8.6 cannot corrupt: it has no cost in it |
-| How have my prices moved? | **Purchase and sale unit price over time, per variant**, with a **% change** card over the current month, 1, 3, 6, 9 months and **YTD** | Both sides of the price, because a shop this size negotiates its purchases and re-marks its shelf in the same week. Read from the **ledger**, not from `price_list` — that table holds the *intended* price |
+| How have my prices moved? | **Purchase and sale unit price over time, per variant**, with a **% change** card over the current month, 1, 3, 6, 9 months and **YTD**. ⚠️ **Both sides WITH IVA on one chart** — ruled 2026-09-28 (`7b`); the price is the last one typed on each day, not the day's average | Both sides of the price, because a shop this size negotiates its purchases and re-marks its shelf in the same week. Read from the **ledger**, not from `price_list` — that table holds the *intended* price |
 | What am I throwing away? | Waste **quantity** by product. ⚠️⚠️ **Its COST half is broken under C8.6** — see the warning below | The reorder-quantity signal. Kept as a question, and it gets **its own visual** rather than being folded into any other number |
 | ~~What made me money?~~ | ~~Gross margin by product, net of tax~~ | ⚠️⚠️ **RETIRED 2026-09-14.** *"We won't derive the profit so let's ignore margins for now."* Not a preference alone: **under C8.6 the app cannot attribute a piece's cost to the whole item it was cut from**, so per-piece profit is **not derivable from anything the ledger stores**, and `product_margin_daily` (`0009`) returns **100 % margin** on a despiece line while the whole item's cost never enters COGS at all |
 | ~~What stopped selling?~~ | ~~Velocity vs trailing average~~ | **Not retired — absorbed.** `product_velocity_daily` (`0013`/`0014`) is the view behind row 1, and its trailing columns still answer this. It survived C8.6 for the reason row 1 does: *"there is no cost column for it to fail open on"* |

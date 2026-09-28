@@ -142,7 +142,9 @@ described. **Ids only in that column; the reasoning goes in the column no check 
 IT HAD GONE ON MISLEADING THE ONE FILE EVERY SESSION READS FIRST.** `app/` is a real Expo
 app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
 
-- ⚠️⚠️ **18 ROUTE SCREENS plus 2 `_layout.tsx` = 20 `.tsx` FILES under `app/src/app/`,
+- ⚠️⚠️ **20 ROUTE SCREENS plus 2 `_layout.tsx` = 22 `.tsx` FILES, MEASURED 2026-09-28 AFTER `7b`** —
+  `7a` added `numeros.tsx` and `7b` added `precios/[id].tsx` (reached from Números, not Inicio).
+  ~~18 ROUTE SCREENS plus 2 `_layout.tsx` = 20 `.tsx` FILES under `app/src/app/`,~~
   measured 2026-09-27 after `6c` AND STILL 20 — `6c` ADDED NO ROUTE**, it gave
   `producto/[id].tsx` back a control that had been drawn on nothing since 2026-09-23 (a filled
   placeholder adds no file, and neither does a restored button). ⚠️ **`app/src/ui/` is still NINE
@@ -172,7 +174,8 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   branch in `(tabs)/index.tsx` are **unreachable and deliberately kept** — the *dead, not wrong*
   argument `@/api/providers` makes about `MemoryState.unreadable`, and `inicio.test.ts`'s own
   assertion block was INVERTED rather than deleted.
-- **27 modules in `app/src/api/`** — the data layer, each one a claim about the applied
+- **30 entries in `app/src/api/`, measured 2026-09-28 after `7b`** (`ls app/src/api | wc -l` — `7a`'s
+  `sales.ts`, `7d`'s `monthExport.ts`, `7b`'s `prices.ts`). ~~27 modules in `app/src/api/`~~ — the data layer, each one a claim about the applied
   schema (which is why `db.yml` watches it; see below). Measured 2026-09-27 after **`6d`**:
   `ls app/src/api | wc -l` (26 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **THE NEWEST IS `persist.ts`
   (`6d`), AND IT IS THE FIRST MODULE HERE THAT MAKES NO CLAIM ABOUT THE SCHEMA AT ALL** — no RPC, no
@@ -270,7 +273,8 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   delete's own `changes` count is the evidence** because a read-then-delete has a window the
   drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
   pins that none of them is a screen** — that assertion has now directed three designs.
-- **A Vitest suite of 1,542 tests across 47 files** in `app/test/` — ⚠️ **that number
+- **A Vitest suite of 1,669 tests across 50 files, the runner's tally 2026-09-28 after `7b`**
+  (`api-prices.test.ts`, 47). ~~A Vitest suite of 1,542 tests across 47 files~~ in `app/test/` — ⚠️ **that number
   is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6d` added
   `api-persist.test.ts` (29) and **inverted nothing and widened nothing** — the first new suite in a
   week that only added. ⚠️ **Its last block reads `QueryProvider.tsx` as TEXT**, because `R2` and
@@ -313,7 +317,8 @@ gitignored, which is why no workflow compiles it.
 ⚠️ **What is still true and still matters:** `docs/CONVENTIONS.md` governs how a file in
 `app/` is written, and `R2` keeps the suite in `app/test/` as `.ts` reaching no component.
 ⚠️⚠️ **`app/src/ui/` NOW HAS RULES — `5h.5` WROTE THEM ON 2026-09-26, AND `docs/CONVENTIONS.md`
-DEFERS NOTHING FOR THE FIRST TIME SINCE IT EXISTED.** **NINE primitives as of 2026-09-27** — `Boton`, `Buscador`,
+DEFERS NOTHING FOR THE FIRST TIME SINCE IT EXISTED.** **ELEVEN primitives as of 2026-09-28** — `7a` extracted `Interruptor` and `7b` `Grafica` (the gate printed
+11). ~~NINE primitives as of 2026-09-27~~ — `Boton`, `Buscador`,
 `Cantidad`, `Deslizador`, **`Destello`**, `Frase`, `Separador`, `TecladoListo`, `Vacio`
 (`bash docs/checks/conventions-gate.sh` prints the count its `R14` counted, which is the number to
 take — a `ls` answers a different question) — and three rules over them:
@@ -342,8 +347,10 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6d` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `7a` — NÚMEROS, AND IT IS THE FIRST TIME THE
-MARKER HAS LEFT STEP 6.** Step 6 has no takeable row left: `6a` and `6a-ii` are split parents and the
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`7b` CLOSED 2026-09-28 AND THE NEXT TASK IS `5P-a` — the dev-build overlay, ungated.** `7a`, `7d`
+and `7b` all closed that day; `bash docs/checks/plan-handover.sh` names it and is the authority, not
+this line. ~~`6d` closed 2026-09-27 and the next task is now `7a` — NÚMEROS, AND IT IS THE FIRST TIME THE
+MARKER HAS LEFT STEP 6.~~ Step 6 has no takeable row left: `6a` and `6a-ii` are split parents and the
 other six are closed. ⚠️ **`7a`'s gate `5h` closed 2026-09-26, so it is ungated by id** — the other
 half of that Gate cell is prose and is the thing to weigh: *"and a shop with real rows in it"*.
 ⚠️ **`product_velocity_daily` has existed since `0013`/`0014` and NO module in `app/src/api/` queries

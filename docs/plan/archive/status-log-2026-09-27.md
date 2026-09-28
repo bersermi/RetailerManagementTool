@@ -756,3 +756,199 @@ be asked for and it is parked in ⛔ DECISIONS OWED with its cost attached**, be
 amend `5g-i`'s assertion about who sees what.
 
 
+## ⚠️⚠️ FOURTH CUT — APPENDED 2026-09-28 BY `7b`, AND IT IS THE TWENTY-SEVENTH CUT OVERALL
+
+⚠️⚠️ **TAKEN AT THE END OF `7b`, AFTER ITS ENTRY WAS WRITTEN — `6d`'s ORDER, FOR `6d`'s REASON.**
+`## Position` stood at **1,403 of 1,400** with the entry in: over the cap, not merely short of room.
+**184 lines out: `6d`'s whole closing entry**, the last 2026-09-27 entry in the live plan, so **this
+day is now WHOLE in this file.** ⚠️⚠️ **IT CARRIES THE INSTALL BLOCK THE THIRD CUT DELIBERATELY LEFT
+BEHIND, AND THAT IS NOW RIGHT RATHER THAN A REPEAT OF ITS MISTAKE**: the test that cut wrote down — *is
+this block indexed anywhere else?* — now answers yes twice. `7b` installed the build on 2026-09-28
+(`devicectl` read the phone `available (paired)`), its own entry in the live plan records that, and
+`docs/HANDBOOK.md`'s catch-up section 1 says it is done. **The look-questions below are indexed by the
+same handbook section 2.**
+
+✅✅✅ **`6d` IS DONE, 2026-09-27 — THE CATALOG SURVIVES A COLD START, AND THE ROW TURNED OUT TO BE
+ABOUT SELLING RATHER THAN ABOUT LOOKING.** `app/src/api/persist.ts` is the **twenty-seventh module of
+`src/api/`** (`ls app/src/api | wc -l`) and it decides six things; `QueryProvider.tsx` binds them, and
+`AuthProvider.signOut` forgets them. **Step 6 is out of takeable rows.**
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `L`, ONE SITTING — AND THE ROW UNDERSTATED ITS OWN SUBJECT BY A LONG
+WAY. WITHOUT THIS, A COLD START WITH NO SIGNAL COULD NOT RING UP A SALE AT ALL.** The row was written
+as a READ problem — *"a shop that opens the app with no signal sees no catalog"*. Traced through
+before a line was written, it is a WRITE problem too, and the write side is the half everybody
+believes is finished:
+
+- `useCatalog` resolves `locationId` out of `LOCATIONS_KEY` alone. With no signal that read fails,
+  `locationsFrom(undefined)` is `[]`, and `locationId` is `null`.
+- `draftOf` answers a null location with `no-location` (`@/cart/cart:790`), so **`canCommit` is false
+  and the commit slider is not drawn** — on Vender, Comprar **and** Desperdicio.
+- `useWorkspace()` reads `MY_WORKSPACES_KEY`; with no signal it is `null`, and every capture screen
+  builds `basketful` as `null`, so there is nothing to commit even if the slider were there.
+
+⚠️⚠️ **SO THE SQLITE OUTBOX `5c` BUILT, THE DRAIN `5c-ii` BUILT AND THE QUEUED-NOTE LIST `5h-ii-c`
+BUILT WERE ALL REACHABLE ONLY BY AN APP THAT WAS ALREADY RUNNING WHEN THE SIGNAL DIED.** A phone put
+down at 9 p.m. and picked up at 7 a.m. in a shop with no signal was a phone that could not sell — and
+**nothing in this repository could see it**: no suite mounts a screen, and every contract check has a
+database. [[pilot-store-is-offline-a-lot]] makes that the normal path, not the edge.
+
+⚠️ **THAT is why the allow-list is six keys and not `['catalog', …]`.** Four are what the COMMIT
+needs — `['workspace','mine']`, `['workspace','locations']`, `['catalog','variants']`,
+`['catalog','units']` — and two are what Comprar needs: `['providers','list']` and
+`['providers','memory']`, without which every row is C3.12's dash and C3.13 blocks the delivery.
+
+⚠️⚠️ **THE RULE THE ALLOW-LIST ENCODES, BECAUSE A SEVENTH ENTRY WILL BE PROPOSED: A READ IS PERSISTED
+WHEN A STALE ANSWER BEATS NO ANSWER, AND REFUSED WHEN A STALE ANSWER IS A FALSE STATEMENT.** Persisting
+the whole cache is this library's default shape and it is wrong here, because half of what this app
+reads is money that moved today. **Refused, each for its own reason:** `['today','takings']` — a figure
+labelled *today* restored from yesterday's disk is not stale, it is false; `['documents','recent',…]` —
+`5h-ii-c` already gave `Lo último` an offline answer that is TRUE, and a restored server list beside a
+live queue is two sources disagreeing about what this shop recorded; `['costs','history',…]` and
+`['magnitude','typical']` — both derived from the ledger, and `@/api/costs` already calls a borrowed
+series *"a lie that looks exactly like a fact"*; the four `workspace`/request keys — they answer *who
+may do what*, and the real fence is RLS on a server this phone cannot reach; and `['catalog','prices']`
+and `['catalog','settings']` — `Editar` has no outbox, so it could not save offline anyway.
+**Nothing derived from the ledger is persisted** is the sentence to hold.
+
+⚠️⚠️ **FINDING 1, AND IT WOULD HAVE SHIPPED GREEN AND DONE NOTHING: `gcTime` EVICTS A QUERY FROM THE
+CACHE, AND ONLY WHAT IS IN THE CACHE IS EVER WRITTEN TO DISK.** Dehydration walks the LIVE cache, and
+TanStack's default `gcTime` is **five minutes** — so a catalog browsed and then left is collected, and
+the next save writes a cache with no catalog in it. ⚠️ **The failure is invisible in the only way a
+person would test it**: kill the app straight after browsing Productos and it works; put the phone
+down for ten minutes first and the catalog is gone. `withPersistedDefaults` sets `gcTime` on the six
+**from the same list the dehydrate predicate reads**, because two hand-maintained lists is how the
+seventh key gets added to one of them.
+
+⚠️⚠️ **FINDING 2, AND IT IS THE ONE THAT DECIDED THE WHOLE IDENTITY DESIGN: THE OBVIOUS USE OF
+`buster` DOES NOT WORK, AND THE OBVIOUS FIX FOR IT WOULD DESTROY THIS ROW.** Stamping the signed-in
+user's id as the buster is the documented way to keep one shopkeeper's rows off the next one's screen.
+It cannot work here, and the reason is in `PersistQueryClientProvider`'s own source: `didRestore` is a
+ref, so the restore runs **once per mount** and the save options are frozen the moment restoring
+finishes — at which point `AuthProvider` is still reading the stored session and `session` is `null`.
+**The buster would be captured as the signed-out value and every save would carry it.** ⚠️⚠️ **And
+clearing on `session === null` is worse than useless: `onAuthStateChange` nulls the session on a FAILED
+TOKEN REFRESH as well as on a log-out, and a failed refresh is what a shop with no signal has all day —
+the cache would be wiped at the precise moment it is the only catalog there is.** ✅ **So `buster` is a
+SHAPE VERSION** — `@/lib/outboxDb`'s `PRAGMA user_version` argument, for the same reason — and identity
+is handled by `forgetCache` in `AuthProvider.signOut`, beside `forgetLastScreen`, which is the one
+deliberate *"I am done"* act in this app and is not reached by an expiry.
+
+⚠️ **ONE PRE-EXISTING GAP IS NAMED RATHER THAN WIDENED OR FIXED:** the `QueryClient` is mounted once
+for the app's life, so **a sign-out has never cleared the in-memory cache** — `QueryProvider`'s own
+header argues for one client per mount and the mount outlives the sign-out. Every query is
+`enabled: session !== null`, so nothing refetches while signed out; the exposure is the frames between
+the next sign-in and the first refetch. It is older than this row, it is not made worse by it, and
+fixing it is a decision about where a `client.clear()` belongs rather than a line to slip in here.
+
+⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF AND PARKED IN ⛔ DECISIONS OWED AGAINST `5P-c`:
+THERE IS NO STALENESS FENCE — `CACHE_MAX_AGE` IS `Infinity`.** ✅ **RULED 2026-09-28, AS RECOMMENDED — the thirty-third ruling; the row is closed.** The row's own text said to park this
+rather than ask. ⚠️ **The library's default is 24 hours**, measured in `persistQueryClientRestore`
+(`maxAge = 864e5`), **and taking it would have made this row pointless**: a shop that closes on
+Saturday and opens on Monday with no signal would find the catalog gone. **Reversing it is one
+constant — no migration, no data.**
+
+⚠️ **TWO SMALLER DECISIONS, REPORTED BECAUSE NOTHING ELSE WOULD SAY THEM.** **(1) The cache shares the
+device's key-value store with the Supabase session** rather than opening a third SQLite file: the queue
+keeps its own file because losing a queued sale is unrecoverable, and **losing this cache costs a
+refetch** — which is the whole reason it may live beside something that matters more. A third store
+would be the trade `@/lib/supabase` refused by name when it declined AsyncStorage. **(2)
+`createSyncStoragePersister` is marked `@deprecated`** by the library in favour of the async one, and
+it is still the right call: `@/lib/store` is synchronous by construction, so promises would move no
+work off the JS thread and would buy a second storage abstraction to keep in step. `CACHE_THROTTLE_MS`
+is **3 s** rather than the library's 1 s, because `persistQueryClientSubscribe` fires on every cache
+event and each fire is a `JSON.stringify` plus a synchronous SQLite write — C1.1 puts two low-end
+Androids in this pilot.
+
+⚠️ **VERIFIED:** `app/test/api-persist.test.ts` — **29 assertions**, and **1,542 tests across 47 files**
+from the runner (`npm --prefix app test`), +6 files' worth of nothing: **one new file, no guard
+inverted, none widened.** ⚠️⚠️ **EIGHT FALSIFICATIONS, AND ONE OF THEM CAUGHT A BROKEN FIXTURE RATHER
+THAN A BROKEN CHECK** — F6 came back GREEN and the reason was a `sed` pattern with a trailing comma
+against a line ending in a brace, so **the mutation never applied**; re-cut, it turns exactly its own
+assertion red ([[a-green-guard-with-a-red-harness-is-your-anchor]]). The other seven: a renamed root
+(red), `gcTime` below `maxAge` (red), the status check dropped (red), an empty root added (red, nine
+assertions), the `gcTime` loop deleted (red), a second `forgetCache` caller (red) — and **F8, the
+control: the same call written inside a COMMENT must leave it GREEN, and does**, which is what the
+comment-stripper in that block exists for.
+
+⚠️⚠️ **THE LAST BLOCK OF THAT SUITE READS `QueryProvider.tsx` AS TEXT, AND IT IS THERE BECAUSE NOTHING
+ELSE IN THIS REPOSITORY CAN SEE THE WIRING.** `R2` and `vitest.config.ts` both keep that file out of
+the suite, so every policy assertion would stay green while the binding reimplemented the predicate
+inline or dropped the `gcTime` loop — **and nothing would be written to the phone.** It asserts the
+consequence it can reach (the binding NAMES the policy) and leaves the behaviour to a phone in
+airplane mode ([[a-shell-check-cannot-see-a-pure-function]], applied to a suite).
+
+⚠️ **NO CONTRACT CHECK AND NO WORKFLOW JOB, AND THAT IS NOT AN OMISSION: THERE IS NOTHING OVER THE
+WIRE IN THIS ROW.** No migration, no RPC, no column, no policy. `db.yml` fires anyway because its
+`paths:` filter names `app/src/api/`, and every contract check passes unchanged — **which is a real
+cost (12-13 minutes) paid for a file that makes no schema claim**, and is worth knowing before
+somebody reads the run as evidence about this row. **No job is added.** ⚠️⚠️ **AND RE-MEASURING THAT COUNT FOUND `CLAUDE.md` STALE BY ONE, FIXED IN THIS
+PR: it said *ten job definitions rendering as eleven names* and the workflow files hold **ELEVEN**
+definitions and **TWELVE** names** — `db.yml` has eight jobs, not seven; the line went stale the
+moment `6c` opened `catalog-origin` and the table beneath it disagreed with the prose above it.
+⚠️⚠️ **AND THIS PR FALSIFIED A SECOND CLAIM IN THAT SAME PARAGRAPH, OFF ITS OWN LOG: *no single PR
+ever shows all twelve*. `gh pr checks 240` printed TWELVE.** `money.yml`'s `paths:` filter is not only
+`packages/**` — it names **`package.json` and `package-lock.json` at the ROOT**, and this row added two
+dependencies. **Adding a dependency is one of the paths**, which is the rule the flat sentence hid.
+
+⚠️⚠️ **WHAT ONLY A PERSON CAN JUDGE, AND IT NEEDS A REBUILD FIRST:** open Wera with signal, tap
+Productos so the catalog loads, **wait more than five minutes** (that is Finding 1 — a shorter wait
+tests nothing), force-quit, put the phone in **airplane mode**, and reopen. Productos should list the
+catalog, and **Vender's commit slider should be there and complete**. Before this row it was a screen
+that could not sell.
+
+⚠️⚠️ **THE BUILD IS MADE AND SIGNED AND IS **NOT** ON HIS PHONE, BECAUSE THE PHONE IS NOT
+REACHABLE FROM THIS MAC — AND THAT IS A DIFFERENT FAILURE FROM THE ONE THIS PROJECT HAS ON RECORD.**
+`BUILD SUCCEEDED`, `main.jsbundle` is **4,060,902 bytes** written at 11:10 and **all fourteen of the
+new screen's words are in it — nine as 1-byte strings and five as UTF-16LE**, Hermes' own split
+([[hermes-bundle-stores-accents-utf16]]). The bundle carries profile `ad8112ec` to
+**2026-10-04T14:28:16Z**, read off `embedded.mobileprovision` — **reused, not renewed, exactly as
+the rule predicts for a build before the expiry.**
+⚠️⚠️ **`devicectl` ANSWERS `unavailable` AND EVERY INSTALL IS `com.apple.dt.CoreDeviceError 1011` —
+*CoreDeviceService was unable to locate a device matching the requested device identifier* — AND
+THAT IS **REACHABILITY** RATHER THAN THE PASSCODE.** Twenty attempts over five minutes, no change;
+`iPhone-de-Bernie.coredevice.local` does not answer a ping; the phone is not on USB; and this Mac's
+Wi-Fi is powered on but **associated with no network** (`networksetup -getairportnetwork en0`).
+⚠️ **The lesson already on record is the OTHER one** — `kAMDMobileImageMounterDeviceLocked` and
+`CoreDeviceError 3`, which mean *the screen is locked* and are fixed by keeping it awake. **`1011`
+with `unavailable` means the Mac cannot see the phone at all**, and a retry loop written for the
+lock will spin on it for ever. ⚠️ **The earlier note that *`unavailable` was read for the first ten
+minutes* on 2026-09-25 describes a transient; this was not one.**
+⚠️ **WHAT HE HAS TO DO, AND IT IS THE ONLY THING WAITING ON A PERSON HERE:** get the phone and this
+Mac onto the same network (or plug the phone in), and say so. ⚠️ **`docs/checks/5a-iv-a-runsheet.md`
+§2 steps 2 and 3 are the install commands**, and the built app is at
+`~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app`.
+
+⚠️⚠️ **AND THE SENTENCE THIS REPLACES IS ALREADY STALE — CORRECTED BY `6a-ii-b` THE SAME DAY.**
+~~the build is already made, so the install is two commands and about a minute~~. **That build is
+`6a-ii-a`'s**, and `6a-ii-b` shipped after it: installing it now would hand him a phone carrying the
+write-off LIST and not the two controls on it, **which is precisely the state the `6a-ii-a` row above
+describes as deliberate and which is no longer true.** ✅ **So the order is REBUILD, then install** —
+one more command in front of the two, and the runsheet's step 1 is it. ⚠️ **Re-measured 2026-09-27
+after `6a-ii-b`: nothing has changed on the machine side.** `devicectl list devices` still reads
+**`unavailable`**, the hostname still does not resolve, and `networksetup -getairportnetwork en0`
+still answers *"You are not associated with an AirPort network"* — **so the blocker is this Mac's
+Wi-Fi rather than the phone**, and no retry loop can fix it.
+
+⚠️⚠️ **AND THE WHOLE `R9` BACKLOG IS NOW ASSEMBLED IN ONE PLACE — `docs/HANDBOOK.md`'s
+`## ⏸ THE CATCH-UP`, WRITTEN 2026-09-27 BECAUSE THE OWNER ASKED FOR IT BEFORE A CONTEXT CLEAR.** It is
+an INDEX and not a second copy: the install prerequisites, the five screens to open with the specific
+question on each, a pointer at ⛔ DECISIONS OWED, and the two dated obligations. ⚠️ **It gathers the
+looks of EIGHT closed rows** — `5h-ii-a`, `5h-ii-b`, `5h-ii-c`, `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`,
+`6c` — **which had spread across this file and four archive files with nothing collecting them.**
+
+⚠️⚠️ **AND ASSEMBLING IT FOUND A STALE CLAIM THE ARCHIVE WILL KEEP CARRYING, SO IT IS RECORDED HERE
+RATHER THAN EDITED THERE.** The `5h-ii-*` and `6a-i` entries each end *"the build on his phone has to
+be rebuilt before he can open this"* — **true when written and FALSE since the 2026-09-27 re-deploy**,
+which landed everything up to and including `6a-i`. ⚠️ **They are NOT corrected in
+`docs/plan/archive/`**, because that directory is this system's history and every line there was true
+when written; the correction belongs where it is actionable. ✅ **Checked against the commit order
+rather than assumed**: the re-deploy (#231) sits between `6a-i` (#229) and `6a-ii-a` (#232), so **two of
+the five screens are already on his phone and four rows' worth of work is not** — `6a-ii-a`,
+`6a-ii-b`, `6b` and `6c`.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS A SHORT LIST THIS TIME.** Whether **three
+buttons fit on one row** — *Desperdicio* is eleven characters where *Compras* is seven. Whether a
+write-off row **with no peso figure at all** reads as finished or as broken. And whether the cause
+belongs **under the date**, where a supplier's name sits on a delivery, or on each line.
+**None of it can be looked at until the install lands.** ⚠️⚠️ **AND `6a-ii-b` HAS ADDED TO THAT
+LIST RATHER THAN CLEARING IT** — two rows of Desperdicio work are now waiting on one install.

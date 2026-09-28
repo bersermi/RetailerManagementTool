@@ -529,7 +529,7 @@ move it here — and not one screen earlier.
 a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
 build them he said the pattern gets described *"once `5b` has produced a real
 one"* — never *"ten primitives guessed at against screens nobody has drawn."*
-Every one of the **ten** components in `src/ui/` was extracted from drawings that
+Every one of the **eleven** components in `src/ui/` was extracted from drawings that
 already existed, and **two of them were extracted from drawings that had already
 silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
 did not) and `Boton`'s two (see `R16`).
@@ -544,6 +544,11 @@ from `5d-ii`, and `proveedores.tsx` became the second file to need it.
 `documentos.tsx` drew locally since `5h-ii-a`; `numeros.tsx` was the second file to need it.
 Extracted byte-for-byte, so `R16` had no drift to settle — the two copies differed only in
 which choices and which words, and those are its props. **The gate printed 10.**
+⚠️ **AND `7b` ADDED THE ELEVENTH (2026-09-28), `Grafica`** — the small line chart `costos/[id].tsx`
+drew locally since `5g-iii`; `precios/[id].tsx` was the second file to need it. Byte-for-byte again:
+the lines, their colours and the two axis labels are the props, and the height, dot, stroke and card
+stayed `Costos`' own, so nothing on that screen changed. ⚠️ **Its line type is NOT exported** — the
+gate's `R15` counted it as a second export the first time. **The gate printed 11.**
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other

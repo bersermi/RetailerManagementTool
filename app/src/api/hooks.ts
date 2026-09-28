@@ -54,6 +54,7 @@ import {
   type Typicals,
 } from '@/api/magnitude';
 import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
+import { pricesFrom, pricesKey, type Prices } from '@/api/prices';
 import {
   canExport,
   exportFrom,
@@ -116,6 +117,7 @@ import {
   shopProviders,
   todaySales,
   variantCosts,
+  variantPriceHistory,
   variantPrices,
   variantSettingsRow,
   workspaceInvites,
@@ -1534,6 +1536,39 @@ export function useSales(): {
     today,
     entries,
     factors: unitFactorsFrom(units.data),
+  };
+}
+
+/**
+ * One product's prices on both sides, ready to draw. Plan task `7b`.
+ *
+ * ⚠️ `useCosts`' arrangement: the price unit and the factors come off the
+ * catalog and units reads this phone already holds, so opening `Precios` from
+ * Números costs ONE new query (two requests, side by side). ⚠️ The failure is
+ * reported separately so a failed read does not spin for ever.
+ *
+ * ⚠️ `today` IS READ HERE, ONCE PER RENDER — the pure functions take it as an
+ * argument so the suite can stand on a month boundary (`R3`).
+ *
+ * ⚠️ NOT PERSISTED — `pricesKey` is not in `PERSISTED_KEYS`; a report is looked
+ * at with a signal, `useSales`' reason.
+ */
+export function usePrices(variantId: string | null): Prices & {
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const { entries } = useCatalog();
+  const factors = useUnitFactors();
+  const rows = useQuery({
+    queryKey: pricesKey(variantId),
+    queryFn: () => variantPriceHistory(variantId as string),
+    enabled: ready && session !== null && variantId !== null && variantId !== '',
+    staleTime: 60_000,
+  });
+  const entry = entries.find((one) => one.id === variantId);
+  return {
+    ...pricesFrom(rows.data, entry?.priceUnit ?? '', factors, isoDay(new Date())),
+    failed: rows.error ? apiErrorKey(rows.error) : null,
   };
 }
 
