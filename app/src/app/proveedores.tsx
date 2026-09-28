@@ -36,7 +36,7 @@ import { Vacio } from '@/ui/Vacio';
 // detail screen, because `PROVIDER_COLUMNS` deliberately does not ask for them and
 // `docs/checks/5g-i-purchase-contract.sh` asserts by name that they never reach a
 // phone through Comprar's read. Putting a number on the row means amending that
-// check; it is parked in ⛔ DECISIONS OWED rather than done quietly.
+// check. ✅ RULED 2026-09-28 by the owner: the row stays a name.
 //
 // ⚠️⚠️ THE SEARCH IS THE WAY A SUPPLIER GETS CREATED, AND THERE IS NO `Agregar`
 // BUTTON — the owner's ruling of 2026-09-23 about Productos, applied here rather
