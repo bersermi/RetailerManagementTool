@@ -184,8 +184,8 @@ describe('the two durations, and the relationship between them', () => {
   it('trusts a restored cache for ever, which is a decision and not the default', () => {
     // ⚠️⚠️ THE LIBRARY'S OWN DEFAULT IS 86_400_000 — TWENTY-FOUR HOURS — and
     // taking it would empty the catalog of a shop that spent a weekend without
-    // signal, which is the condition this row was written for. Parked in
-    // ⛔ DECISIONS OWED with the reasoning; reversing it is this constant.
+    // signal, which is the condition this row was written for. ✅ Ruled by the
+    // owner 2026-09-28 (the thirty-third ruling); reversing it is this constant.
     expect(CACHE_MAX_AGE).toBe(Infinity);
     expect(CACHE_MAX_AGE).not.toBe(86_400_000);
   });

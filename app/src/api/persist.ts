@@ -147,8 +147,9 @@ export const CACHE_SHAPE = 'v1';
  * How long a restored cache is trusted. ⚠️ `Infinity` — there is no staleness
  * fence, and that is a DECISION rather than a default: the library's own
  * default is 24 hours, which would empty the catalog of a shop that spent a
- * weekend without signal. It is parked in ⛔ DECISIONS OWED with the reasoning;
- * reversing it is this one constant.
+ * weekend without signal. ✅ RULED 2026-09-28 by the owner — *"Leave the catalog
+ * unfenced, as recommended"* (the thirty-third ruling). Reversing it is this one
+ * constant.
  */
 export const CACHE_MAX_AGE = Infinity;
 
