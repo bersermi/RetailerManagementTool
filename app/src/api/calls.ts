@@ -118,6 +118,20 @@ import {
   type CostLineRow,
 } from '@/api/costs';
 import {
+  PRICE_DAY_COLUMN,
+  PRICE_PAGE,
+  PRICE_TIEBREAK,
+  PRICE_VARIANT_COLUMN,
+  PURCHASE_PRICE_COLUMNS,
+  PURCHASE_PRICE_TRADED_COLUMN,
+  PURCHASE_PRICE_VIEW,
+  SALE_PRICE_COLUMNS,
+  SALE_PRICE_TRADED_COLUMN,
+  SALE_PRICE_VIEW,
+  type PriceRow,
+  type PriceRows,
+} from '@/api/prices';
+import {
   SALES_ACTIVE_COLUMN,
   SALES_COLUMNS,
   SALES_DAY_COLUMN,
@@ -975,6 +989,52 @@ export async function shopSales(since: string): Promise<SalesRow[]> {
     rows.push(...page);
     if (page.length < SALES_PAGE) return rows;
   }
+}
+
+/**
+ * One side of one product's price history — every day it traded, oldest first.
+ * Plan task `7b`.
+ *
+ * ⚠️ IT PAGES, `shopSales`' reason, over `(day, location_id)` — the view's whole
+ * grain once the variant is fixed, so the order is total. ⚠️ THE WHOLE HISTORY,
+ * NOT A WINDOW: a card's baseline is the last price on or before its window
+ * opened, however long ago that was (`asOfDay` in `@/api/prices`). A product
+ * trades at most once a day per store, so a year is at most a page.
+ *
+ * ⚠️ `gt.0` ON THE QUANTITY, NOT ON `line_count`: the sale view is a spine, and a
+ * day holding only a reversal nets negative and is not a price (see the header of
+ * `@/api/prices`). No role and no location filter — RLS scopes both views.
+ */
+async function priceSide(
+  view: string,
+  columns: string,
+  traded: string,
+  variantId: string,
+): Promise<PriceRow[]> {
+  const rows: PriceRow[] = [];
+  for (let from = 0; ; from += PRICE_PAGE) {
+    let query = supabase
+      .from(view)
+      .select(columns)
+      .eq(PRICE_VARIANT_COLUMN, variantId)
+      .gt(traded, 0)
+      .order(PRICE_DAY_COLUMN, { ascending: true });
+    for (const column of PRICE_TIEBREAK) query = query.order(column, { ascending: true });
+    const { data, error } = await query.range(from, from + PRICE_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as PriceRow[];
+    rows.push(...page);
+    if (page.length < PRICE_PAGE) return rows;
+  }
+}
+
+/** Both sides of one product's prices, read side by side. Plan task `7b`. */
+export async function variantPriceHistory(variantId: string): Promise<PriceRows> {
+  const [venta, compra] = await Promise.all([
+    priceSide(SALE_PRICE_VIEW, SALE_PRICE_COLUMNS, SALE_PRICE_TRADED_COLUMN, variantId),
+    priceSide(PURCHASE_PRICE_VIEW, PURCHASE_PRICE_COLUMNS, PURCHASE_PRICE_TRADED_COLUMN, variantId),
+  ]);
+  return { venta, compra };
 }
 
 /**

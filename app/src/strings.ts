@@ -2208,6 +2208,63 @@ export const ES = {
   },
 
   /**
+   * PRECIOS — how one product's prices have moved. Plan task `7b`.
+   *
+   * ⚠️ BOTH LINES ARE WITH IVA — the forty-first ruling, 2026-09-28 — so the
+   * screen says so, and says where the net figure lives.
+   */
+  prices: {
+    /** The banda's fallback — the PRODUCT's name sits there when the catalog has it. */
+    title: 'Precios',
+    /** ⚠️ *Volver* and not *Cerrar*, `ES.costs.back`'s rule: you went INTO it. */
+    back: 'Volver',
+    subtitle: 'Cómo se han movido tus precios, con IVA',
+    /** The legend's words, beside each colour — never the colour alone (§2.11). */
+    side: {
+      venta: 'Venta',
+      compra: 'Compra',
+    } as Readonly<Record<'venta' | 'compra', string>>,
+    /** A side with no traded day at all. */
+    noSide: {
+      venta: 'Sin ventas todavía',
+      compra: 'Sin compras todavía',
+    } as Readonly<Record<'venta' | 'compra', string>>,
+    /** ⚠️ The grammar lives here, not at the call site — `members.shareMessage`'s rule. */
+    lastOn: (day: string) => `último: ${day}`,
+    /** Under the chart, left and right. */
+    from: (day: string) => `desde el ${day}`,
+    to: (day: string) => `hasta el ${day}`,
+    /** Área 9's six cards: the current month, 1, 3, 6, 9 months and the year so far. */
+    window: {
+      mes: 'Este mes',
+      m1: '1 mes',
+      m3: '3 meses',
+      m6: '6 meses',
+      m9: '9 meses',
+      anio: 'En el año',
+    } as Readonly<Record<'mes' | 'm1' | 'm3' | 'm6' | 'm9' | 'anio', string>>,
+    /**
+     * ⚠️ WORDS AND NOT A SIGN — a rising sale price is good news and a rising
+     * purchase price is not, so neither a colour nor an arrow can carry it.
+     */
+    rises: (figure: string) => `Sube ${figure} %`,
+    falls: (figure: string) => `Baja ${figure} %`,
+    same: 'Sin cambio',
+    /**
+     * ⚠️ WHAT THE DASH MEANS, SAID ONCE UNDER THE CARDS. In the pilot's first
+     * months most cards are a dash, and a dash nobody explains reads as broken.
+     */
+    dash: '— quiere decir que todavía no hay un precio de antes para comparar.',
+    /**
+     * ⚠️⚠️ THE SAME DELIVERY READS ~16% LOWER ON `Costos`, which shows the invoice
+     * NET to agree with Comprar. Said here so the two screens are not two
+     * answers with nothing to reconcile them.
+     */
+    costsNote: 'En Costos, lo que pagas se ve sin IVA y por proveedor.',
+    nothing: 'Todavía no hay ventas ni compras de este producto.',
+  },
+
+  /**
    * LO ÚLTIMO — what the shop bought and sold lately, as a list you can open.
    * Plan task `5h-ii-a`.
    *
@@ -2480,6 +2537,13 @@ export const ES = {
     nothing: 'Todavía no hay ventas que contar. Aparecerán aquí en cuanto vendas.',
     /** The period on screen holds none, but others do. */
     emptyPeriod: 'No hubo ventas en este periodo.',
+    /**
+     * ⚠️ THE MARK ON A PRODUCT ROW THAT OPENS `Precios` (`7b`) — `monthExport.nextMark`'s
+     * glyph, so the app has one way of saying *there is more this way*. A family
+     * row carries none: it opens nothing. The hint is what a screen reader says.
+     */
+    opens: '›',
+    opensHint: 'Ver cómo se han movido sus precios',
   },
 
   /**

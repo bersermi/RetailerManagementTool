@@ -435,6 +435,8 @@ on:
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
       - "docs/checks/7d-month-export-contract-falsify.sh"
+      - "docs/checks/7b-prices-contract.sh"
+      - "docs/checks/7b-prices-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -1991,6 +1993,26 @@ jobs:
       # And its five fixtures, each red for its OWN reason.
       - name: Contract — can the month export check still fail (its own five fixtures)
         run: bash docs/checks/7d-month-export-contract-falsify.sh
+
+      # ⚠️⚠️ PRECIOS, APPENDED HERE TOO (`7b`, 2026-09-28) — Números is its door and
+      # `7a` reads one of its two views. Measured: this job ran 9m35s of its 15 on
+      # `main` (run 36457025459); the check takes ~2.7s locally and its falsifier
+      # ~17s, running it seven times.
+      #
+      # It is the only instrument for: `0032`'s price WITH IVA arriving at TEN
+      # decimals, which `parseDecimal` refuses and `perBaseText` rounds once; a
+      # sale's rebuilt gross landing on the keyed shelf price ($120.00/kg with 16%
+      # IVA reads back exactly $120.00); the day's price being the LAST one typed
+      # and not the average; the quantity filter dropping both the spine's empty
+      # days and a day holding only a voided delivery (`line_count` would keep it);
+      # a CASHIER reading the owner's rows on BOTH sides — `0040`, the owner's ruling
+      # of 2026-09-25; and another shop reading none.
+      - name: Contract — does app/src/api/prices.ts still describe the schema (plan 7b)
+        run: bash docs/checks/7b-prices-contract.sh
+
+      # And its six fixtures, each red for its OWN reason.
+      - name: Contract — can the prices check still fail (its own six fixtures)
+        run: bash docs/checks/7b-prices-contract-falsify.sh
 
       - name: Stop
         if: always()

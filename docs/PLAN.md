@@ -67,6 +67,14 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
+✅✅ **THE FORTY-FIRST RULING — 2026-09-28, ASKED BY `7b` BEFORE A LINE WAS BUILT, AND TAKEN AGAINST
+THE RECOMMENDATION: *one chart, both lines with IVA*.** The brief recommended two panels — sale WITH
+IVA as on the shelf, purchase WITHOUT as typed in Comprar and shown on `Costos` — so the gap between
+two lines could not be read as margin plus tax. **He chose one axis**, reached by tapping a product on
+Números. ⚠️ **What he accepted**: the same delivery reads ~16% higher on `Precios` than on `Costos`,
+and `Precios` says so in a sentence. ⚠️ **Reversing it** is two constants in `@/api/prices` and a
+panel split in one screen — no migration, no data. **Never parked, so the block above stays empty.**
+
 ✅✅ **THE FORTIETH RULING — 2026-09-28: *"Leave Lo último on Inicio as recommended."*** The row
 `5h-ii-a` parked against `5P-a` is CLOSED and removed from the table above. `Lo último` stays a row
 on Inicio between Productos and Proveedores — the only way into `Corregir` and `Eliminar` — and
@@ -731,11 +739,77 @@ assertion in this file now bounds its region.**
 
 
 
-⚠️⚠️ **`7b` IS THE NEXT TASK, AS OF 2026-09-28 — HOW HAVE MY PRICES MOVED, AND IT IS UNGATED.**
-Purchase and sale unit price per variant over `0032`, with the %-change cards. Its gate `7a` closed
-today, and the decision filed against it (*`Quitar proveedor` is one-way*) was ruled the same day —
-ruling 34 — so a point may name a supplier Proveedores no longer lists, drawn as history. ⚠️ **`7c`
-is ungated by id and still wants DATA**, a shop that has thrown things away for a while.
+⚠️⚠️ **`5P-a` IS THE NEXT TASK, AS OF 2026-09-28 — THE DEV-BUILD OVERLAY §5 GRADES THE PILOT WITH,
+AND IT IS UNGATED.** Its gate `5h` closed 2026-09-26 and the last decision naming it was ruled this
+morning (the fortieth). ⚠️ **Why not `7c`**: it is ungated by id and still wants DATA — a shop that has
+thrown things away for a while; `7e` wants weeks of it. ⚠️ **§5 says a dev-build overlay and NOT
+instrumentation shipped to production** — that is the answer that needs no privacy notice, and the
+sizing should hold it.
+
+✅✅✅ **`7b` IS DONE, 2026-09-28 — PRECIOS: WHAT ONE PRODUCT SOLD FOR AND WHAT IT COST, DAY BY DAY,
+AND HOW FAR EACH HAS MOVED.** Tap a product on Números (a new **›** on each product row) and `Precios`
+draws **one chart, two lines, both with IVA** — the forty-first ruling, above — the latest price of
+each side in words with its day, and área 9's six cards (*este mes, 1/3/6/9 meses, en el año*), each
+*Sube x %*, *Baja x %*, *Sin cambio* or C3.12's dash. **It ships no migration.**
+
+⚠️⚠️ **WHAT THE ESTIMATE FOUND: `M` → `L`, ONE SITTING, AND ONE QUESTION ASKED FIRST (ruling 41).**
+**(1) `0040` already opened the purchase side to every role**, and `Costos` already opens for a
+cashier, so *who sees cost* was settled rather than asked. **(2) `product_purchases_daily` has no
+supplier column**, so ruling 34's *"a point may name a supplier Proveedores no longer lists"* never
+arises on this chart — `Costos` is the per-supplier view and is unchanged. **(3) THE ONE THAT WOULD
+HAVE SHIPPED GREEN AND DRAWN NOTHING: `*_price_last_gross` IS `numeric(14,6) × (1 + numeric(5,4))`, SO
+IT ARRIVES AT SCALE 10, AND `parseDecimal` AT THE UNIT-PRICE SCALE THROWS ON IT** — every point dropped,
+an empty chart, nothing red. `perBaseText` rounds once, half-up, to scale 6; the contract check asserts
+the ten places off the wire. **(4) A SALE STORES A DERIVED NET** (`round(line_net / qty_base, 6)`,
+`0016`), so its gross is rebuilt — and **measured**: $120.00/kg keyed with 16% IVA reads back exactly
+$120.00. **(5) The chart extracts `Costos`' plot into `src/ui/Grafica.tsx`** — `R14`'s second drawing,
+byte-for-byte, the eleventh primitive; nothing on `Costos` changed.
+
+✅ **SHIPPED:** `app/src/api/prices.ts` (the **thirtieth** entry of `src/api/`, `ls app/src/api | wc -l`
+= 30, `QueryProvider.tsx` among them) — the read contract, `perBaseText`, `pointsFrom`, `asOfDay`,
+`changeOf` (in TENTHS of a percent, rounded once), `pricesFrom`, `plottedPrices`; `variantPriceHistory`
+in `@/api/calls` (both sides side by side, paged at 500 over `(day, location_id)`, the WHOLE history
+because a card's baseline is the last price before its window however old); `usePrices` in
+`@/api/hooks` (not persisted); `app/src/app/precios/[id].tsx` (**route 20** — `find app/src/app -name
+'*.tsx' | wc -l` = 22, less two layouts); the door in `numeros.tsx`; `ES.prices`, `ES.numbers.opens`.
+
+⚠️ **FIVE THINGS DECIDED ON THE OWNER'S BEHALF, EACH ONE LINE TO REVERSE:** **(a)** a day's price is
+the **last one typed**, not the day's average — `0032`'s own column comment calls that *the price as a
+state*; **(b)** a card needs a price INSIDE its window and one on or before its baseline, else it is a
+**dash, never *Sin cambio***; **(c)** the cards carry **words and no colour**, because up is good on one
+side and bad on the other; **(d)** the chart spans exactly what the cards speak about (nine months or the
+year, whichever reaches further), older prices feeding baselines only; **(e)** a **family row and a
+retired product's row are not doors** — no single price, and no unit on the phone. ⚠️ **One known limit,
+written into the module's header**: a day with sales AND a late void of an older sale keeps the last
+line's price, which may be the voided one's — the view cannot say which line was the reversal.
+
+✅ **CHECKED BY:** `app/test/api-prices.test.ts` — **47 tests**, and **1,669 across 50 files** green
+(the runner's tally), falsified three ways by breaking the source — a percent scale, the baseline day
+excluded, a missing unit read as *no trades* — each red. ⚠️⚠️ **Writing those tests found a DOUBLE
+ROUNDING in the first draft**: basis points then tenths turned $11.00 → $12.60 (14.545…%) into *14.6*.
+`docs/checks/7b-prices-contract.sh` — **11 groups** over live HTTP, ~2.7 s: ten decimals; $120.00/kg
+rebuilt exactly and $92.80/kg bought; the LAST sale price ($3.50 after $3.00, not $3.1666…); the spine's
+empty days AND a reversal-only day dropped, each proven present unfiltered; paging reassembles; **a
+cashier reads the owner's rows on BOTH sides**; another shop reads none. Its falsifier — **6 fixtures**,
+each red for its own reason, ~17 s. `docs/checks/conventions-gate.sh` — **18 of 18** (it caught
+`Grafica.tsx` exporting its line type beside the component, `R15`). ⚠️ **Both checks are APPENDED to
+`db.yml`'s `api-contracts` job**, which ran **9m35s of its 15** on `main` (run `36457025459`) — **so the
+job count is unchanged: eight in `db.yml`, eleven definitions in all.**
+
+✅✅ **AND THE INSTALL THAT HAD BEEN BLOCKED SINCE 2026-09-27 LANDED.** `devicectl` read the phone
+**`available (paired)`** — although `networksetup` still says this Mac is on no Wi-Fi network, so the
+blocker recorded below was not the whole story. `BUILD SUCCEEDED` from this branch, `main.jsbundle`
+**4,264,937 bytes** carrying `Precios`' strings (accented ones as UTF-16LE), profile `ad8112ec` still
+**2026-10-04T14:28:16Z** — reused, not renewed. `devicectl device info apps` lists Wera; the launch
+was refused only because the phone was **locked**. **So every row from `6a-ii-a` to `7b` is on his
+phone**, and the looks `7a`, `7d` and the catch-up list gathered need no rebuild.
+
+⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`), AND NO REBUILD IS NEEDED:** whether two lines on a 160 pt plot
+read as a margin or a tangle; whether *Compra con IVA* confuses someone who just typed the net into
+Comprar; whether six cards of mostly dashes read as *not yet* or as *broken*.
+
+~~`7b` is the next task, as of 2026-09-28 — how have my prices moved, and it is ungated.~~ — ⚠️
+**struck in lower case deliberately, the rule `5b.8-i`'s row records.**
 
 ✅✅✅ **`7d` IS DONE, 2026-09-28 — A MONTH OF THE LEDGER LEAVES THE PHONE, AS A SPREADSHEET OR A
 PAGE.** On Números, under the chart, a manager or the owner picks a month (‹ septiembre 2026 ›) and
@@ -866,191 +940,12 @@ are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all
 deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough
 is only a rendering.**
 
-✅✅✅ **`6d` IS DONE, 2026-09-27 — THE CATALOG SURVIVES A COLD START, AND THE ROW TURNED OUT TO BE
-ABOUT SELLING RATHER THAN ABOUT LOOKING.** `app/src/api/persist.ts` is the **twenty-seventh module of
-`src/api/`** (`ls app/src/api | wc -l`) and it decides six things; `QueryProvider.tsx` binds them, and
-`AuthProvider.signOut` forgets them. **Step 6 is out of takeable rows.**
-
-⚠️⚠️ **WHAT THE ESTIMATE FOUND: `L`, ONE SITTING — AND THE ROW UNDERSTATED ITS OWN SUBJECT BY A LONG
-WAY. WITHOUT THIS, A COLD START WITH NO SIGNAL COULD NOT RING UP A SALE AT ALL.** The row was written
-as a READ problem — *"a shop that opens the app with no signal sees no catalog"*. Traced through
-before a line was written, it is a WRITE problem too, and the write side is the half everybody
-believes is finished:
-
-- `useCatalog` resolves `locationId` out of `LOCATIONS_KEY` alone. With no signal that read fails,
-  `locationsFrom(undefined)` is `[]`, and `locationId` is `null`.
-- `draftOf` answers a null location with `no-location` (`@/cart/cart:790`), so **`canCommit` is false
-  and the commit slider is not drawn** — on Vender, Comprar **and** Desperdicio.
-- `useWorkspace()` reads `MY_WORKSPACES_KEY`; with no signal it is `null`, and every capture screen
-  builds `basketful` as `null`, so there is nothing to commit even if the slider were there.
-
-⚠️⚠️ **SO THE SQLITE OUTBOX `5c` BUILT, THE DRAIN `5c-ii` BUILT AND THE QUEUED-NOTE LIST `5h-ii-c`
-BUILT WERE ALL REACHABLE ONLY BY AN APP THAT WAS ALREADY RUNNING WHEN THE SIGNAL DIED.** A phone put
-down at 9 p.m. and picked up at 7 a.m. in a shop with no signal was a phone that could not sell — and
-**nothing in this repository could see it**: no suite mounts a screen, and every contract check has a
-database. [[pilot-store-is-offline-a-lot]] makes that the normal path, not the edge.
-
-⚠️ **THAT is why the allow-list is six keys and not `['catalog', …]`.** Four are what the COMMIT
-needs — `['workspace','mine']`, `['workspace','locations']`, `['catalog','variants']`,
-`['catalog','units']` — and two are what Comprar needs: `['providers','list']` and
-`['providers','memory']`, without which every row is C3.12's dash and C3.13 blocks the delivery.
-
-⚠️⚠️ **THE RULE THE ALLOW-LIST ENCODES, BECAUSE A SEVENTH ENTRY WILL BE PROPOSED: A READ IS PERSISTED
-WHEN A STALE ANSWER BEATS NO ANSWER, AND REFUSED WHEN A STALE ANSWER IS A FALSE STATEMENT.** Persisting
-the whole cache is this library's default shape and it is wrong here, because half of what this app
-reads is money that moved today. **Refused, each for its own reason:** `['today','takings']` — a figure
-labelled *today* restored from yesterday's disk is not stale, it is false; `['documents','recent',…]` —
-`5h-ii-c` already gave `Lo último` an offline answer that is TRUE, and a restored server list beside a
-live queue is two sources disagreeing about what this shop recorded; `['costs','history',…]` and
-`['magnitude','typical']` — both derived from the ledger, and `@/api/costs` already calls a borrowed
-series *"a lie that looks exactly like a fact"*; the four `workspace`/request keys — they answer *who
-may do what*, and the real fence is RLS on a server this phone cannot reach; and `['catalog','prices']`
-and `['catalog','settings']` — `Editar` has no outbox, so it could not save offline anyway.
-**Nothing derived from the ledger is persisted** is the sentence to hold.
-
-⚠️⚠️ **FINDING 1, AND IT WOULD HAVE SHIPPED GREEN AND DONE NOTHING: `gcTime` EVICTS A QUERY FROM THE
-CACHE, AND ONLY WHAT IS IN THE CACHE IS EVER WRITTEN TO DISK.** Dehydration walks the LIVE cache, and
-TanStack's default `gcTime` is **five minutes** — so a catalog browsed and then left is collected, and
-the next save writes a cache with no catalog in it. ⚠️ **The failure is invisible in the only way a
-person would test it**: kill the app straight after browsing Productos and it works; put the phone
-down for ten minutes first and the catalog is gone. `withPersistedDefaults` sets `gcTime` on the six
-**from the same list the dehydrate predicate reads**, because two hand-maintained lists is how the
-seventh key gets added to one of them.
-
-⚠️⚠️ **FINDING 2, AND IT IS THE ONE THAT DECIDED THE WHOLE IDENTITY DESIGN: THE OBVIOUS USE OF
-`buster` DOES NOT WORK, AND THE OBVIOUS FIX FOR IT WOULD DESTROY THIS ROW.** Stamping the signed-in
-user's id as the buster is the documented way to keep one shopkeeper's rows off the next one's screen.
-It cannot work here, and the reason is in `PersistQueryClientProvider`'s own source: `didRestore` is a
-ref, so the restore runs **once per mount** and the save options are frozen the moment restoring
-finishes — at which point `AuthProvider` is still reading the stored session and `session` is `null`.
-**The buster would be captured as the signed-out value and every save would carry it.** ⚠️⚠️ **And
-clearing on `session === null` is worse than useless: `onAuthStateChange` nulls the session on a FAILED
-TOKEN REFRESH as well as on a log-out, and a failed refresh is what a shop with no signal has all day —
-the cache would be wiped at the precise moment it is the only catalog there is.** ✅ **So `buster` is a
-SHAPE VERSION** — `@/lib/outboxDb`'s `PRAGMA user_version` argument, for the same reason — and identity
-is handled by `forgetCache` in `AuthProvider.signOut`, beside `forgetLastScreen`, which is the one
-deliberate *"I am done"* act in this app and is not reached by an expiry.
-
-⚠️ **ONE PRE-EXISTING GAP IS NAMED RATHER THAN WIDENED OR FIXED:** the `QueryClient` is mounted once
-for the app's life, so **a sign-out has never cleared the in-memory cache** — `QueryProvider`'s own
-header argues for one client per mount and the mount outlives the sign-out. Every query is
-`enabled: session !== null`, so nothing refetches while signed out; the exposure is the frames between
-the next sign-in and the first refetch. It is older than this row, it is not made worse by it, and
-fixing it is a decision about where a `client.clear()` belongs rather than a line to slip in here.
-
-⚠️⚠️ **ONE DECISION TAKEN ON THE OWNER'S BEHALF AND PARKED IN ⛔ DECISIONS OWED AGAINST `5P-c`:
-THERE IS NO STALENESS FENCE — `CACHE_MAX_AGE` IS `Infinity`.** ✅ **RULED 2026-09-28, AS RECOMMENDED — the thirty-third ruling; the row is closed.** The row's own text said to park this
-rather than ask. ⚠️ **The library's default is 24 hours**, measured in `persistQueryClientRestore`
-(`maxAge = 864e5`), **and taking it would have made this row pointless**: a shop that closes on
-Saturday and opens on Monday with no signal would find the catalog gone. **Reversing it is one
-constant — no migration, no data.**
-
-⚠️ **TWO SMALLER DECISIONS, REPORTED BECAUSE NOTHING ELSE WOULD SAY THEM.** **(1) The cache shares the
-device's key-value store with the Supabase session** rather than opening a third SQLite file: the queue
-keeps its own file because losing a queued sale is unrecoverable, and **losing this cache costs a
-refetch** — which is the whole reason it may live beside something that matters more. A third store
-would be the trade `@/lib/supabase` refused by name when it declined AsyncStorage. **(2)
-`createSyncStoragePersister` is marked `@deprecated`** by the library in favour of the async one, and
-it is still the right call: `@/lib/store` is synchronous by construction, so promises would move no
-work off the JS thread and would buy a second storage abstraction to keep in step. `CACHE_THROTTLE_MS`
-is **3 s** rather than the library's 1 s, because `persistQueryClientSubscribe` fires on every cache
-event and each fire is a `JSON.stringify` plus a synchronous SQLite write — C1.1 puts two low-end
-Androids in this pilot.
-
-⚠️ **VERIFIED:** `app/test/api-persist.test.ts` — **29 assertions**, and **1,542 tests across 47 files**
-from the runner (`npm --prefix app test`), +6 files' worth of nothing: **one new file, no guard
-inverted, none widened.** ⚠️⚠️ **EIGHT FALSIFICATIONS, AND ONE OF THEM CAUGHT A BROKEN FIXTURE RATHER
-THAN A BROKEN CHECK** — F6 came back GREEN and the reason was a `sed` pattern with a trailing comma
-against a line ending in a brace, so **the mutation never applied**; re-cut, it turns exactly its own
-assertion red ([[a-green-guard-with-a-red-harness-is-your-anchor]]). The other seven: a renamed root
-(red), `gcTime` below `maxAge` (red), the status check dropped (red), an empty root added (red, nine
-assertions), the `gcTime` loop deleted (red), a second `forgetCache` caller (red) — and **F8, the
-control: the same call written inside a COMMENT must leave it GREEN, and does**, which is what the
-comment-stripper in that block exists for.
-
-⚠️⚠️ **THE LAST BLOCK OF THAT SUITE READS `QueryProvider.tsx` AS TEXT, AND IT IS THERE BECAUSE NOTHING
-ELSE IN THIS REPOSITORY CAN SEE THE WIRING.** `R2` and `vitest.config.ts` both keep that file out of
-the suite, so every policy assertion would stay green while the binding reimplemented the predicate
-inline or dropped the `gcTime` loop — **and nothing would be written to the phone.** It asserts the
-consequence it can reach (the binding NAMES the policy) and leaves the behaviour to a phone in
-airplane mode ([[a-shell-check-cannot-see-a-pure-function]], applied to a suite).
-
-⚠️ **NO CONTRACT CHECK AND NO WORKFLOW JOB, AND THAT IS NOT AN OMISSION: THERE IS NOTHING OVER THE
-WIRE IN THIS ROW.** No migration, no RPC, no column, no policy. `db.yml` fires anyway because its
-`paths:` filter names `app/src/api/`, and every contract check passes unchanged — **which is a real
-cost (12-13 minutes) paid for a file that makes no schema claim**, and is worth knowing before
-somebody reads the run as evidence about this row. **No job is added.** ⚠️⚠️ **AND RE-MEASURING THAT COUNT FOUND `CLAUDE.md` STALE BY ONE, FIXED IN THIS
-PR: it said *ten job definitions rendering as eleven names* and the workflow files hold **ELEVEN**
-definitions and **TWELVE** names** — `db.yml` has eight jobs, not seven; the line went stale the
-moment `6c` opened `catalog-origin` and the table beneath it disagreed with the prose above it.
-⚠️⚠️ **AND THIS PR FALSIFIED A SECOND CLAIM IN THAT SAME PARAGRAPH, OFF ITS OWN LOG: *no single PR
-ever shows all twelve*. `gh pr checks 240` printed TWELVE.** `money.yml`'s `paths:` filter is not only
-`packages/**` — it names **`package.json` and `package-lock.json` at the ROOT**, and this row added two
-dependencies. **Adding a dependency is one of the paths**, which is the rule the flat sentence hid.
-
-⚠️⚠️ **WHAT ONLY A PERSON CAN JUDGE, AND IT NEEDS A REBUILD FIRST:** open Wera with signal, tap
-Productos so the catalog loads, **wait more than five minutes** (that is Finding 1 — a shorter wait
-tests nothing), force-quit, put the phone in **airplane mode**, and reopen. Productos should list the
-catalog, and **Vender's commit slider should be there and complete**. Before this row it was a screen
-that could not sell.
-
-⚠️⚠️ **THE BUILD IS MADE AND SIGNED AND IS **NOT** ON HIS PHONE, BECAUSE THE PHONE IS NOT
-REACHABLE FROM THIS MAC — AND THAT IS A DIFFERENT FAILURE FROM THE ONE THIS PROJECT HAS ON RECORD.**
-`BUILD SUCCEEDED`, `main.jsbundle` is **4,060,902 bytes** written at 11:10 and **all fourteen of the
-new screen's words are in it — nine as 1-byte strings and five as UTF-16LE**, Hermes' own split
-([[hermes-bundle-stores-accents-utf16]]). The bundle carries profile `ad8112ec` to
-**2026-10-04T14:28:16Z**, read off `embedded.mobileprovision` — **reused, not renewed, exactly as
-the rule predicts for a build before the expiry.**
-⚠️⚠️ **`devicectl` ANSWERS `unavailable` AND EVERY INSTALL IS `com.apple.dt.CoreDeviceError 1011` —
-*CoreDeviceService was unable to locate a device matching the requested device identifier* — AND
-THAT IS **REACHABILITY** RATHER THAN THE PASSCODE.** Twenty attempts over five minutes, no change;
-`iPhone-de-Bernie.coredevice.local` does not answer a ping; the phone is not on USB; and this Mac's
-Wi-Fi is powered on but **associated with no network** (`networksetup -getairportnetwork en0`).
-⚠️ **The lesson already on record is the OTHER one** — `kAMDMobileImageMounterDeviceLocked` and
-`CoreDeviceError 3`, which mean *the screen is locked* and are fixed by keeping it awake. **`1011`
-with `unavailable` means the Mac cannot see the phone at all**, and a retry loop written for the
-lock will spin on it for ever. ⚠️ **The earlier note that *`unavailable` was read for the first ten
-minutes* on 2026-09-25 describes a transient; this was not one.**
-⚠️ **WHAT HE HAS TO DO, AND IT IS THE ONLY THING WAITING ON A PERSON HERE:** get the phone and this
-Mac onto the same network (or plug the phone in), and say so. ⚠️ **`docs/checks/5a-iv-a-runsheet.md`
-§2 steps 2 and 3 are the install commands**, and the built app is at
-`~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app`.
-
-⚠️⚠️ **AND THE SENTENCE THIS REPLACES IS ALREADY STALE — CORRECTED BY `6a-ii-b` THE SAME DAY.**
-~~the build is already made, so the install is two commands and about a minute~~. **That build is
-`6a-ii-a`'s**, and `6a-ii-b` shipped after it: installing it now would hand him a phone carrying the
-write-off LIST and not the two controls on it, **which is precisely the state the `6a-ii-a` row above
-describes as deliberate and which is no longer true.** ✅ **So the order is REBUILD, then install** —
-one more command in front of the two, and the runsheet's step 1 is it. ⚠️ **Re-measured 2026-09-27
-after `6a-ii-b`: nothing has changed on the machine side.** `devicectl list devices` still reads
-**`unavailable`**, the hostname still does not resolve, and `networksetup -getairportnetwork en0`
-still answers *"You are not associated with an AirPort network"* — **so the blocker is this Mac's
-Wi-Fi rather than the phone**, and no retry loop can fix it.
-
-⚠️⚠️ **AND THE WHOLE `R9` BACKLOG IS NOW ASSEMBLED IN ONE PLACE — `docs/HANDBOOK.md`'s
-`## ⏸ THE CATCH-UP`, WRITTEN 2026-09-27 BECAUSE THE OWNER ASKED FOR IT BEFORE A CONTEXT CLEAR.** It is
-an INDEX and not a second copy: the install prerequisites, the five screens to open with the specific
-question on each, a pointer at ⛔ DECISIONS OWED, and the two dated obligations. ⚠️ **It gathers the
-looks of EIGHT closed rows** — `5h-ii-a`, `5h-ii-b`, `5h-ii-c`, `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`,
-`6c` — **which had spread across this file and four archive files with nothing collecting them.**
-
-⚠️⚠️ **AND ASSEMBLING IT FOUND A STALE CLAIM THE ARCHIVE WILL KEEP CARRYING, SO IT IS RECORDED HERE
-RATHER THAN EDITED THERE.** The `5h-ii-*` and `6a-i` entries each end *"the build on his phone has to
-be rebuilt before he can open this"* — **true when written and FALSE since the 2026-09-27 re-deploy**,
-which landed everything up to and including `6a-i`. ⚠️ **They are NOT corrected in
-`docs/plan/archive/`**, because that directory is this system's history and every line there was true
-when written; the correction belongs where it is actionable. ✅ **Checked against the commit order
-rather than assumed**: the re-deploy (#231) sits between `6a-i` (#229) and `6a-ii-a` (#232), so **two of
-the five screens are already on his phone and four rows' worth of work is not** — `6a-ii-a`,
-`6a-ii-b`, `6b` and `6c`.
-
-⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS A SHORT LIST THIS TIME.** Whether **three
-buttons fit on one row** — *Desperdicio* is eleven characters where *Compras* is seven. Whether a
-write-off row **with no peso figure at all** reads as finished or as broken. And whether the cause
-belongs **under the date**, where a supplier's name sits on a delivery, or on each line.
-**None of it can be looked at until the install lands.** ⚠️⚠️ **AND `6a-ii-b` HAS ADDED TO THAT
-LIST RATHER THAN CLEARING IT** — two rows of Desperdicio work are now waiting on one install.
-
+⚠️⚠️ **AND 2026-09-27 HAS NOW BEEN CUT FOUR TIMES AND IS WHOLE IN ITS ARCHIVE — THE TWENTY-SEVENTH CUT
+OVERALL, APPENDED BY `7b` AFTER IT WROTE ITS ENTRY.** Position stood at **1,403 of 1,400** — over the
+cap. **184 lines out**: `6d`'s closing entry, including the install block the cut below kept back on
+purpose. ⚠️ **It could go this time because the test that cut wrote down now passes**: the install
+LANDED on 2026-09-28 and `7b`'s entry above says so, and the handbook's catch-up indexes every
+look-question in it. **2026-09-28 has no archive file yet; the next cut opens one.**
 
 ⚠️⚠️ **AND 2026-09-27 HAS NOW BEEN CUT THREE TIMES — THE TWENTY-SIXTH CUT OVERALL, APPENDED BY `6d`
 AFTER IT WROTE ITS ENTRY.** `## Position` stood at **1,318 of 1,400** with the entry in: **82 lines of
@@ -5394,7 +5289,7 @@ sophisticated for now"* — so this is three questions, not thirty.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **7a** | ✅✅✅ **DONE 2026-09-28 — NÚMEROS EXISTS: WHAT YOU SOLD AND WHAT IT BROUGHT IN, BY DAY, WEEK OR MONTH.** `app/src/app/numeros.tsx` over `app/src/api/sales.ts`, reached by a **seventh row on Inicio** and by **every role** — rulings 31 and 32, both asked before a line was built. Gross revenue per period as bars; under them the tapped period per product or per family, each quantity in the unit it is sold by, and a family that mixes kilos and pieces reads a dash for quantity rather than a meaningless sum (C8.5). ⚠️ **It ships no migration.** ⚠️⚠️ **The sizing found the view is a SPINE** (every stocked product, every day) **and that PostgREST truncates at `max_rows` silently** — so the read filters on `line_count` and pages over a total order. ✅ **Checked by `app/test/api-sales.test.ts` (26 tests), `docs/checks/7a-sales-contract.sh` (11 groups, live HTTP) and its falsifier (4 fixtures)** — see the status log. **What am I selling, and what did it bring in.** Quantity in the variant's own unit and **GROSS** revenue, per variant and per family, over `product_velocity_daily`. Daily grain with the client rolling up to the Daily/Weekly/Monthly switch | `M` — held | ✅ **WAS UNGATED** — `5h` closed 2026-09-26, and the prose half was MEASURED on the hosted project: 22 sales over 3 trading days |
-| **7b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `7d` closed. ✅ **UNBLOCKED 2026-09-28 by the thirty-fourth ruling** — `Quitar proveedor` stays one-way, so a point on the purchase-price chart can name a supplier Proveedores no longer lists: **that is history and is drawn as history**, the way a retired product stays in the transactions. **How have my prices moved.** Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD | `M` | `7a` |
+| **7b** | ✅✅✅ **DONE 2026-09-28 — PRECIOS: HOW ONE PRODUCT'S PRICES HAVE MOVED, BOTH SIDES, WITH IVA.** `app/src/app/precios/[id].tsx` over `app/src/api/prices.ts`, reached by tapping a product row on Números (a family row and a retired product's row are not doors). **One chart, both lines with IVA** — the forty-first ruling, asked before a line was built and taken AGAINST the recommendation of two panels — and área 9's six cards. ⚠️ **It ships no migration**; both views have been applied since `0032`, and the purchase side reaches every role because `0040` already does. ⚠️⚠️ **The sizing found the price with IVA arrives at TEN decimals, which `parseDecimal` refuses** — a naive read draws an empty chart with nothing red. ✅ **Checked by `app/test/api-prices.test.ts` (47 tests), `docs/checks/7b-prices-contract.sh` (11 groups, live HTTP) and its falsifier (6 fixtures)** — see the status log. ~~How have my prices moved. Purchase and sale unit price per variant over `0032`, with the %-change cards over the month, 1/3/6/9 months and YTD~~ | `M` → `L` — held | ✅ **WAS UNGATED** — `7a` closed that day, and ruling 34 cleared the decision filed against it |
 | **7c** | ⚠️⚠️ **WHAT AM I THROWING AWAY — and the honest half is QUANTITY.** §2.9 records the cost half as broken under C8.6: on a despiece the numerator reads a shortfall lot's cost of **zero** and the denominator is purchases of a product the shop buys whole, so **the headline is 0 over 0**. Quantity by product is sound and is what ships. ⚠️ **Pricing waste properly is its own modelling decision and is not folded in here** | `M` | ✅ **UNGATED as of 2026-09-27** — ~~`6a` — there is no waste data until that screen exists~~. ⚠️ **Re-pointed from `6a` to `6a-i` and then cleared, because `6a` split that day and *a gate naming a row nobody can take is a gate nobody can clear*** — the trap `5h`'s and `5h.5`'s splits both recorded. `6a-i` closed 2026-09-27, so the screen exists. ⚠️ **What it still wants is DATA rather than a row**: a pilot shop that has actually thrown things away for a while |
 | **7d** | ✅✅✅ **DONE 2026-09-28 — A MONTH OF THE LEDGER, AS A CSV OR A PDF, FROM NÚMEROS.** A month picker and two buttons under the chart, **drawn for a manager and the owner only** — rulings 35–37, all asked before a line was built. Every sale, delivery and write-off line of the month over `0033`'s `transaction_export`, read on the tap and paged below `max_rows`; **no cost column, ever**. ⚠️ **It ships no migration**; it declares `expo-file-system`, which was already compiled in. ✅ **Checked by `app/test/api-month-export.test.ts` (51 tests), `docs/checks/7d-month-export-contract.sh` (10 groups, live HTTP) and its falsifier (5 fixtures)** — see the status log. ~~The raw rows. `0033`'s month export, handed over as a download — often the thing that convinces a shopkeeper the numbers are his~~ | `S` → `M` — held | ✅ **WAS UNGATED** — ~~`7a`~~, closed that day |
 | **7e** | ⚠️⚠️ **WHAT IS AT RISK OF BECOMING WASTE — DERIVED, NOT TYPED IN. REWRITTEN 2026-09-21 WHEN THE OWNER RULED OUT CAPTURING EXPIRY DATES.** ~~stock inside its last days, read from a captured `expiry_date`~~. **Three numbers per variant, all of them computed from records the shop already produces:** **shelf age** (how long the stock on hand has been sitting — `stock_batch.received_at`, which is `not null` and always present, against `batch_balance`); **days of cover** (what is on hand ÷ recent daily velocity, over `product_velocity_daily`, which `0013`/`0014` already ship); and **observed time-to-waste** (for each variant, how many days typically pass between receiving and writing off — read from `waste` against the batches it consumed). ⚠️ **A variant with more days of cover than its own observed time-to-waste is the buy-it-now candidate**, and that is the tier-2 signal without a single new field. ⚠️⚠️ **WHAT IT COSTS, AND IT IS THE REASON THE DEFERRED DECISION IS NOT FREE: a derived shelf life NEEDS WEEKS OF WASTE RECORDS BEFORE IT SAYS ANYTHING.** A typed expiry date answers on day one; this answers once the pilot has run long enough to have thrown things away. **That is a pilot-duration cost, not an engineering one**, and it is the owner's deliberate trade — see ⛔ DECISIONS OWED, área 7 | `M` | ⚠️ **`6a-i` and `5g` — RE-POINTED 2026-09-27**, because `6a` split that day and a gate naming a split parent is one nobody can clear. ✅ **Both screens now exist** (`5g-ii` 2026-09-25, `6a-i` 2026-09-27). ⚠️⚠️ **What is left in this gate is TIME and it cannot be hurried**: a derived shelf life needs weeks of waste records, and the clock started 2026-09-27 |
@@ -5412,7 +5307,7 @@ same instrument.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **5P-a** | **The dev-build overlay §5 specifies**: p95 commit-gesture-to-confirmation against a **300 ms** budget, p95 `record_sale` round trip against **1 s**, p95 cold-open-to-Vender against **2 s**, taps per transaction against a ceiling of **5**, and **abandonment** — capture screens opened with no commit, the silent non-use detector. ⚠️ **§5 says measured with a dev-build overlay, NOT with instrumentation shipped to production**, which is also the answer that costs no privacy notice | `M` | `5h` |
+| **5P-a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `7b` closed, and the last decision naming this row was ruled that morning (the fortieth). **The dev-build overlay §5 specifies**: p95 commit-gesture-to-confirmation against a **300 ms** budget, p95 `record_sale` round trip against **1 s**, p95 cold-open-to-Vender against **2 s**, taps per transaction against a ceiling of **5**, and **abandonment** — capture screens opened with no commit, the silent non-use detector. ⚠️ **§5 says measured with a dev-build overlay, NOT with instrumentation shipped to production**, which is also the answer that costs no privacy notice | `M` | `5h` |
 | **5P-b** | ⚠️⚠️ **ENGAGEMENT ACROSS SHOPS THE OWNER IS NOT STANDING IN — and it is a DECISION before it is a task.** §5's overlay works because the schema owner is in the room; two or three shops over weeks is a different question. ⚠️ **The cheap answer needs no telemetry at all**: recording *is* engagement, so `sale`, `purchase` and `waste` row counts per shop per day already measure it, from the server, with nothing added to the client and nothing to disclose. ⚠️⚠️ **Anything beyond that — screen opens, session length, feature taps — is behavioural telemetry on identified merchants and engages LFPDPPP and the `aviso de privacidad` `5R-d` ships.** The recommendation is the server-side read, and the decision is the owner's | `S` for the read; unsized if telemetry is wanted | `5h`, and a shop with rows |
 | **5P-c** | **Completeness, the number the pilot is graded on.** The manual-tally comparison §5 requires, and the daily read that shows it — *"five consecutive days within 5%"* is a query, and running it by hand each evening is how a bad day gets explained away | `S` | `5P-a` |
 
