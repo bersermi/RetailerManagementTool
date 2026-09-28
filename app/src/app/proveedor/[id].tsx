@@ -54,7 +54,7 @@ import { TecladoListo } from '@/ui/TecladoListo';
 // `canWriteProviders` draws boxes for a manager and plain lines for her.
 //
 // ⚠️⚠️ AND THE CONTACT DETAILS REACHING HER PHONE IS A DECISION TAKEN ON THE
-// OWNER'S BEHALF, parked in ⛔ DECISIONS OWED. RLS already grants it; what this
+// OWNER'S BEHALF, and ✅ RULED 2026-09-28 — it stands. RLS already grants it; what this
 // screen decides is whether the app exercises the grant. Reversing it is one
 // predicate here — no migration, no data.
 //

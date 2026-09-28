@@ -43,8 +43,9 @@ import { ES } from '@/strings';
 // string was written for it and then DELETED rather than left unused: putting the
 // number on the row means widening `PROVIDER_COLUMNS`, which is the constant
 // `docs/checks/5g-i-purchase-contract.sh` bans those three columns from BY NAME —
-// so it is a check to amend and an argument to make, not a field to add. It is
-// parked in ⛔ DECISIONS OWED with that cost attached.
+// so it is a check to amend and an argument to make, not a field to add.
+// ✅ **RULED 2026-09-28 by the owner — *"Leave Rosa seeing supplier phones as recommended."*** It
+// stands as shipped.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ WHAT A CASHIER SEES HERE, AND IT IS THE APPLIED POLICY AND NOT A NEW RULE
@@ -69,7 +70,7 @@ import { ES } from '@/strings';
 // follows the applied policy and never leads it (`canReadMemory`'s own rule), and
 // `provider_select` admits her. ⚠️ **It does mean a supplier's `phone` and
 // `address_line1` reach a cashier's phone**, which is a decision this task took
-// on the owner's behalf and parked in ⛔ DECISIONS OWED. Reversing it is one
+// on the owner's behalf; ✅ RULED 2026-09-28 — it stands. Reversing it is one
 // predicate on the detail screen: no migration, no data.
 //
 // ----------------------------------------------------------------------------
