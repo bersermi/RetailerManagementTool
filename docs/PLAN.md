@@ -800,6 +800,10 @@ somebody reads the run as evidence about this row. **No job is added.** ⚠️�
 PR: it said *ten job definitions rendering as eleven names* and the workflow files hold **ELEVEN**
 definitions and **TWELVE** names** — `db.yml` has eight jobs, not seven; the line went stale the
 moment `6c` opened `catalog-origin` and the table beneath it disagreed with the prose above it.
+⚠️⚠️ **AND THIS PR FALSIFIED A SECOND CLAIM IN THAT SAME PARAGRAPH, OFF ITS OWN LOG: *no single PR
+ever shows all twelve*. `gh pr checks 240` printed TWELVE.** `money.yml`'s `paths:` filter is not only
+`packages/**` — it names **`package.json` and `package-lock.json` at the ROOT**, and this row added two
+dependencies. **Adding a dependency is one of the paths**, which is the rule the flat sentence hid.
 
 ⚠️⚠️ **WHAT ONLY A PERSON CAN JUDGE, AND IT NEEDS A REBUILD FIRST:** open Wera with signal, tap
 Productos so the catalog loads, **wait more than five minutes** (that is Finding 1 — a shorter wait

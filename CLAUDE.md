@@ -441,7 +441,7 @@ OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which a
 eighth.** 2 (`app.yml`) + **8** (`db.yml`) + 1 (`money.yml`) = **11** definitions and **12** names, because
 `money.yml`'s one job is matrixed; the table below is the arithmetic. ⚠️ **It read `2 + 7 + 1 = 10` until `6c` opened the eighth `db.yml` job on 2026-09-27, and
 `2 + 6 + 1 = 9` until `6b` opened the seventh earlier the same day. `6d` opened none and CORRECTED the
-sentence above it, which had not been re-derived when `catalog-origin` landed.** ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL TWELVE, WHICH IS THE PART THAT MAKES *"confirm the
+sentence above it, which had not been re-derived when `catalog-origin` landed.** ⚠️⚠️ **AND A PR SHOWS ALL TWELVE ONLY WHEN IT MOVES THE ROOT LOCKFILE — WHICH IS THE PART THAT MAKES *"confirm the
 checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
 filter, so a PR that does not touch `packages/**` renders **TEN** names as of `6c` and `money.yml`'s
 two are simply absent — not skipped, not failed, **absent**. ⚠️⚠️ **THAT NUMBER IS `6c`'s AND IT IS
@@ -453,6 +453,14 @@ own PR (#222) is that shape, seven names all green and `money.yml` never fired �
 twice on 2026-09-27 as `6b` and `6c` each opened a job.** ⚠️ **So the
 count to check against a log is the count of jobs that COULD fire for the paths that
 changed**, and a reader expecting twelve on every run will read a normal PR as missing two.
+⚠️⚠️ **AND THE FLAT CLAIM THAT USED TO OPEN THIS PARAGRAPH — *no single PR ever shows all twelve* —
+WAS FALSIFIED BY `6d`'s OWN PR (#240), WHICH RENDERED TWELVE.** `money.yml`'s `paths:` filter is not
+only `packages/**`: it also names **`package.json` and `package-lock.json` at the ROOT**, and `6d`
+added two dependencies. **So the rule is not *a PR never shows twelve* — it is that `money.yml` fires
+for a dependency change anywhere in the workspace, because a moved lockfile can move the money path's
+own transitive deps.** ⚠️ **The practical form is unchanged and is the one to hold**: the number to
+check a log against is the count of jobs that COULD fire for the paths that changed — **and adding a
+dependency is one of the paths.**
 The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
 `36172686952` / `36172687093`).
 
