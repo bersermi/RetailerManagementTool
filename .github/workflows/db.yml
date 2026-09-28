@@ -433,6 +433,8 @@ on:
       - "docs/checks/6c-catalog-origin-contract-falsify.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
+      - "docs/checks/7d-month-export-contract.sh"
+      - "docs/checks/7d-month-export-contract-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -1971,6 +1973,24 @@ jobs:
       # asserted red for its OWN reason rather than for any reason.
       - name: Contract — can the sales check still fail (its own four fixtures)
         run: bash docs/checks/7a-sales-contract-falsify.sh
+
+      # ⚠️⚠️ THE MONTH DOWNLOAD, AND IT IS APPENDED HERE TOO (`7d`, 2026-09-28) —
+      # Números is its screen and `7a` is its neighbour. Measured: this job ran
+      # 10m08s of its 15 on `main` (run 36443364209); the check takes ~2.5s locally
+      # and its falsifier runs it six times.
+      #
+      # It is the only instrument for: `transaction_export` (`0033`) answering the
+      # app's named columns with every figure a STRING; the cost of a write-off
+      # never reaching the phone; all three kinds in one month with the void flagged
+      # and negated; the month filter choosing the month (its neighbours read `[]`);
+      # paging reassembling below `max_rows`; and a CASHIER reading ZERO rows — the
+      # fence the owner's ruling of 2026-09-28 (no download for her) rests on.
+      - name: Contract — does app/src/api/monthExport.ts still describe the schema (plan 7d)
+        run: bash docs/checks/7d-month-export-contract.sh
+
+      # And its five fixtures, each red for its OWN reason.
+      - name: Contract — can the month export check still fail (its own five fixtures)
+        run: bash docs/checks/7d-month-export-contract-falsify.sh
 
       - name: Stop
         if: always()

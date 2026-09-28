@@ -55,6 +55,12 @@ import {
 } from '@/api/magnitude';
 import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
 import {
+  canExport,
+  exportFrom,
+  exportKey,
+  type MonthExport,
+} from '@/api/monthExport';
+import {
   PROVIDERS_KEY,
   memoryKey,
   providersFrom,
@@ -106,6 +112,7 @@ import {
   setMyDisplayName,
   shopMagnitude,
   shopSales,
+  monthRows,
   shopProviders,
   todaySales,
   variantCosts,
@@ -157,6 +164,7 @@ import {
   nameOf,
   roleOf,
   rosterFrom,
+  type MemberRow,
   type Role,
   type RosterEntry,
 } from '@/api/members';
@@ -1526,6 +1534,47 @@ export function useSales(): {
     today,
     entries,
     factors: unitFactorsFrom(units.data),
+  };
+}
+
+/**
+ * The month download on Números. Plan task `7d`.
+ *
+ * ⚠️ `allowed` IS `canExport` OVER THE CALLER'S ROLE, and the screen draws
+ * nothing when it is false — `0033` gives a cashier zero rows (ruled 2026-09-28).
+ *
+ * ⚠️⚠️ NOTHING IS READ UNTIL A TAP. `fetch` goes through the query cache so a
+ * second tap on the same month inside a minute re-uses the answer, but a month
+ * of the ledger is never read on the way into Números — the screen is opened
+ * for its chart, and most visits never download anything. ⚠️ `exportKey` is not
+ * in `PERSISTED_KEYS`, so none of it reaches the phone's disk.
+ *
+ * ⚠️ `members` RIDES `useWorkspaceMembers`, which `useMyRole` already has out —
+ * the names the file resolves `created_by` to cost no read of their own.
+ */
+export function useMonthExport(): {
+  readonly allowed: boolean;
+  readonly members: readonly MemberRow[] | null;
+  readonly fetch: (month: string) => Promise<MonthExport & { readonly failed: ApiMessageKey | null }>;
+} {
+  const queries = useQueryClient();
+  const role = useMyRole();
+  const { data } = useWorkspaceMembers();
+  return {
+    allowed: canExport(role),
+    members: data ?? null,
+    fetch: async (month: string) => {
+      try {
+        const rows = await queries.fetchQuery({
+          queryKey: exportKey(month),
+          queryFn: () => monthRows(month),
+          staleTime: 60_000,
+        });
+        return { ...exportFrom(rows), failed: null };
+      } catch (error) {
+        return { ...exportFrom(null), failed: apiErrorKey(error) };
+      }
+    },
   };
 }
 

@@ -42,10 +42,18 @@
 //
 // ⚠️ NOTHING IS PERSISTED. `printToFileAsync` writes into the CACHE directory,
 // which the OS may reclaim, and that is correct: the document is derived from the
-// ledger on every tap, so a stale copy is worse than no copy. **This app stores
-// no file of its own** and `expo-file-system` is therefore not a dependency.
+// ledger on every tap, so a stale copy is worse than no copy.
+//
+// ⚠️⚠️ `expo-file-system` IS A DEPENDENCY SINCE `7d` — THIS HEADER SAID IT WAS
+// NOT, AND WHY. A PDF is written by `expo-print`; a CSV is text, and text needs a
+// file to be shared as one. It writes into the same CACHE directory, under a
+// readable name, and **it added no native code to the build**: `expo` itself
+// depends on `expo-file-system`, so `ExpoFileSystem` was already in
+// `Podfile.lock` before this row declared it. The dependency is declared so the
+// import is honest, not because the build changed.
 // ============================================================================
 
+import { File, Paths } from 'expo-file-system';
 import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 
@@ -108,6 +116,37 @@ export async function shareHtmlAsPdf(html: string, name: string): Promise<ShareO
     // mismatch of ours, it is a phone that could not do a thing. There is
     // nothing here for a developer to read that the shopkeeper's retry does not
     // settle.
+    return 'failed';
+  }
+}
+
+/**
+ * Write this CSV into the cache under `fileName` and offer it to whatever the
+ * phone can send it with. Plan task `7d`.
+ *
+ * ⚠️ `isAvailableAsync` FIRST, `shareHtmlAsPdf`'s order and for its reason.
+ *
+ * ⚠️ THE NAME IS THE CALLER'S AND IS READABLE — `movimientos-2026-09.csv` —
+ * which the PDF cannot have: `printToFileAsync` picks its own random stem.
+ * `overwrite` because a second tap for the same month is the same file.
+ *
+ * ⚠️ `text/csv` AND `public.comma-separated-values-text`, both, for the reason
+ * the PDF passes both: Android reads the MIME type and iOS the UTI.
+ */
+export async function shareCsv(csv: string, fileName: string, title: string): Promise<ShareOutcome> {
+  try {
+    const can = await Sharing.isAvailableAsync();
+    if (!can) return 'unavailable';
+    const file = new File(Paths.cache, fileName);
+    file.create({ overwrite: true });
+    file.write(csv);
+    await Sharing.shareAsync(file.uri, {
+      mimeType: 'text/csv',
+      UTI: 'public.comma-separated-values-text',
+      dialogTitle: title,
+    });
+    return 'shared';
+  } catch {
     return 'failed';
   }
 }
