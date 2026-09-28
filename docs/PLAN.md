@@ -782,6 +782,17 @@ where a row came from is ours to know ([[users-dont-do-bookkeeping]]). ⚠️ **
 `ES.catalog.errors.notYours` can ever appear is the stale-read window inside `retire`**, which is why it
 is mapped at all. Reversing it is a line of JSX.
 
+✅✅ **DEPLOYED THE SAME SESSION, AND THE SHOP WAS READ RATHER THAN ASSUMED.** `supabase db push`
+applied `0042` to `hweutzjhzvioswnjzqki` and `docs/checks/5R-f-schema-deployed.sh` is **6 of 6 over 40
+migrations**. ⚠️ **That guard compares VERSION NUMBERS and never schema**, so two things were asked of
+the real database directly: **both triggers are standing** (`catalog_prebuilt_stays_trg` on
+`product_family` and on `product_variant`, out of `pg_trigger`), and **the backfill landed exactly as
+he ruled — all 11 families and all 28 variants in his shop are marked OURS.** ⚠️⚠️ **SO THE NUMBER HE
+WILL SEE IS ZERO: the red *Retirar del catálogo* appears on none of the 28 products he has**, and the
+first place it can appear is a product he adds through `Agregar` after the phone is rebuilt. That is
+his own ruling arriving on a screen, and it is stated as a count because *merely indicative* was the
+reason he gave for it costing nothing.
+
 ⚠️⚠️ **WHAT ONLY HE CAN JUDGE (`R9`, §2.11), AND IT IS SHORT: NOTHING IN HIS SHOP TODAY CAN BE RETIRED.**
 That is his own backfill ruling arriving on a screen — every one of those rows is marked ours — so the
 capability is only visible on a product he adds through `Agregar` after the build lands. ⚠️ **The two
@@ -922,8 +933,9 @@ STATE BEFORE: A CUT TAKES CLOSED HISTORY AND MUST NOT TAKE AN OPEN OBLIGATION.**
 *the build is made and signed and is NOT on his phone* — sits between `6a-ii-a`'s entry and this
 bookkeeping and is chronologically older than `6b`'s. **It stays live**, because it is the only place
 the blocker is written down: the Mac's Wi-Fi, and **three rows of work now queued behind one install**.
-Archiving it would have buried the one thing waiting on a person. ⚠️ **`## Position` came back at **1,155**
-with this row's entry in place — 245 lines of room, so the next session need not open by archiving.**
+Archiving it would have buried the one thing waiting on a person. ⚠️ **`## Position` came back at **1,170**
+with this row's entry and its deploy record in place — 230 lines of room, so the next session need not
+open by archiving.**
 
 ⚠️⚠️ **AND 2026-09-27 NOW HAS A FILE OF ITS OWN —
 [`docs/plan/archive/status-log-2026-09-27.md`](plan/archive/status-log-2026-09-27.md), THE ELEVENTH,
