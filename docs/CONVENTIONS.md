@@ -529,7 +529,7 @@ move it here — and not one screen earlier.
 a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
 build them he said the pattern gets described *"once `5b` has produced a real
 one"* — never *"ten primitives guessed at against screens nobody has drawn."*
-Every one of the **nine** components in `src/ui/` was extracted from drawings that
+Every one of the **ten** components in `src/ui/` was extracted from drawings that
 already existed, and **two of them were extracted from drawings that had already
 silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
 did not) and `Boton`'s two (see `R16`).
@@ -540,6 +540,10 @@ many it counted, so `bash docs/checks/conventions-gate.sh` re-measures it and a 
 of the directory does not ([[counts-belong-to-the-runner]]). The ninth is
 `Destello`, the blink that says *this one is new*: `productos.tsx` had it inline
 from `5d-ii`, and `proveedores.tsx` became the second file to need it.
+⚠️ **AND `7a` ADDED THE TENTH (2026-09-28), `Interruptor`** — the side-by-side switch
+`documentos.tsx` drew locally since `5h-ii-a`; `numeros.tsx` was the second file to need it.
+Extracted byte-for-byte, so `R16` had no drift to settle — the two copies differed only in
+which choices and which words, and those are its props. **The gate printed 10.**
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other

@@ -2439,6 +2439,50 @@ export const ES = {
   },
 
   /**
+   * NÚMEROS — WHAT AM I SELLING, AND WHAT DID IT BRING IN (`7a`).
+   *
+   * ⚠️ `Números` IS THE MODULE'S NAME AND NOT A TRANSLATION — the header of
+   * this file. Área 9, 2026-09-14: *"charts and tables about their
+   * transactions … it doesn't have to be very robust nor sophisticated for
+   * now."* So the words are few and plain.
+   */
+  numbers: {
+    title: 'Números',
+    /** ⚠️ *Volver* and not *Cerrar*, `ES.costs.back`'s rule: you went INTO it. */
+    back: 'Volver',
+    /** The question the screen answers, under its name. §2.9's first row. */
+    subtitle: 'Qué vendiste y cuánto te dejó',
+    /** Día / Semana / Mes — the switch the owner named. */
+    period: {
+      dia: 'Día',
+      semana: 'Semana',
+      mes: 'Mes',
+    },
+    grouping: {
+      producto: 'Por producto',
+      familia: 'Por familia',
+    },
+    /** The heading when the period on screen is the one happening now. */
+    current: {
+      dia: 'Hoy',
+      semana: 'Esta semana',
+      mes: 'Este mes',
+    },
+    /** ⚠️ The grammar lives here, not at the call site — `members.shareMessage`'s rule. */
+    weekOf: (day: string) => `Semana del ${day}`,
+    /**
+     * ⚠️ *CON IVA* IS SAID, because it is the ruling and a shopkeeper who has
+     * kept a notebook will check it against one: §2.9, 2026-09-14 — revenue is
+     * GROSS, the number that reconciles against the cash in the till.
+     */
+    total: 'Ventas, con IVA',
+    /** The window holds no sale at all — six months, not only the period on screen. */
+    nothing: 'Todavía no hay ventas que contar. Aparecerán aquí en cuanto vendas.',
+    /** The period on screen holds none, but others do. */
+    emptyPeriod: 'No hubo ventas en este periodo.',
+  },
+
+  /**
    * ⚠️ SCAFFOLDING, AND IT IS DELETED BY THE TASK THAT BUILDS EACH SCREEN.
    * 5a-ii ships the shell — the tab bar, the scale and the formatter — and
    * three of its four routes are empty rooms with the right name on the door.

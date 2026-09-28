@@ -61,6 +61,9 @@ const VOCABULARY = new Set<string>([
   // to catch**, so it is widened deliberately and named here rather than by
   // loosening the assertion.
   ES.documents.title,
+  // ⚠️ `7a`, 2026-09-28. Números IS a module name — §2.8 lists it — it simply had
+  // no tab to borrow the word from, because the bar is capped at four.
+  ES.numbers.title,
 ]);
 
 describe('§2.8 — state comes first, and the checks below are not vacuous', () => {
@@ -102,7 +105,7 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   });
 });
 
-describe('§2.8 — the six doors, three as cards and three as rows', () => {
+describe('§2.8 — the seven doors, three as cards and four as rows', () => {
   // ⚠️⚠️ IT WAS FIVE UNTIL 2026-09-26, AND THIS ASSERTION IS WHAT MADE THE SIXTH
   // A DECISION RATHER THAN A TIDY-UP — which is exactly what its own comment
   // said it was for, so it worked. `5h-ii-a` added `documentos`, and the
@@ -111,10 +114,13 @@ describe('§2.8 — the six doors, three as cards and three as rows', () => {
   // ⚠️ The placement is parked in ⛔ DECISIONS OWED: a screen nobody can reach
   // cannot be judged on a phone, and judging it is `R9`'s whole arrangement — so
   // the door ships and the question is re-offered until he rules on it.
-  it('carries six doors and no more', () => {
-    // Still pinned rather than "> 0": a SEVENTH door is a decision about what
+  // ⚠️⚠️ AND IT WAS SIX UNTIL 2026-09-28, AND THE PIN WORKED A SECOND TIME: `7a`
+  // needed a door for Números, stopped here, and ASKED. The owner ruled a seventh
+  // row, last, on Inicio. The reasoning is `@/navigation/inicio`'s `numeros` row.
+  it('carries seven doors and no more', () => {
+    // Still pinned rather than "> 0": an EIGHTH door is a decision about what
     // Inicio is for, not a tidy-up, and it should stop here.
-    expect(INICIO_DOORS).toHaveLength(6);
+    expect(INICIO_DOORS).toHaveLength(7);
     expect(INICIO_DOORS.map((d) => d.key)).toEqual([
       'vender',
       'comprar',
@@ -122,6 +128,7 @@ describe('§2.8 — the six doors, three as cards and three as rows', () => {
       'productos',
       'documentos',
       'proveedores',
+      'numeros',
     ]);
   });
 
@@ -141,11 +148,12 @@ describe('§2.8 — the six doors, three as cards and three as rows', () => {
   // 2026-09-27, so nothing on this screen is dead any more — and the order stays
   // because moving it now would reorder a screen the owner has held, which is a
   // decision and not a tidy-up.
-  it('draws Productos, Lo último and Proveedores as rows, in order', () => {
+  it('draws Productos, Lo último, Proveedores and Números as rows, in order', () => {
     expect(doorsOfShape('fila').map((d) => d.key)).toEqual([
       'productos',
       'documentos',
       'proveedores',
+      'numeros',
     ]);
   });
 

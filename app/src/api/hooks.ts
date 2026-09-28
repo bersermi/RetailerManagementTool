@@ -27,6 +27,7 @@ import {
   CATALOG_KEY,
   UNITS_KEY,
   catalogFrom,
+  isoDay,
   search,
   unitBasesFrom,
   unitFactorsFrom,
@@ -52,6 +53,7 @@ import {
   typicalFrom,
   type Typicals,
 } from '@/api/magnitude';
+import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
 import {
   PROVIDERS_KEY,
   memoryKey,
@@ -103,6 +105,7 @@ import {
   requestAccess,
   setMyDisplayName,
   shopMagnitude,
+  shopSales,
   shopProviders,
   todaySales,
   variantCosts,
@@ -1467,6 +1470,63 @@ export function useMagnitude(): Typicals {
     staleTime: 5 * 60_000,
   });
   return rows.data === undefined ? NOTHING_TYPICAL : typicalFrom(rows.data);
+}
+
+// ============================================================================
+// NÚMEROS — WHAT AM I SELLING, AND WHAT DID IT BRING IN. Plan task `7a`.
+// ============================================================================
+
+/**
+ * Six months of daily sales, parsed, with everything the screen needs to say
+ * each quantity in its own unit.
+ *
+ * ⚠️ `today` IS READ HERE, ONCE PER RENDER, AND HANDED DOWN. The pure functions
+ * in `@/api/sales` take it as an argument (`R3`) so the suite can stand on a
+ * month boundary; this is the one place the clock is looked at. It is the
+ * phone's local date, which `isoDay` records is the shop's own day.
+ *
+ * ⚠️ A MINUTE OF STALENESS, `useToday`'s figure and its reason: a sale rung up
+ * a minute ago belongs in *Hoy*. Switching period or grouping never re-fetches —
+ * one read covers every bar (see `@/api/sales`).
+ *
+ * ⚠️ THE UNITS ARE `UNITS_KEY`'s CACHED READ, the one Vender already made, so
+ * opening Números costs ONE new request — `useCosts`' arrangement. The catalog
+ * is `useCatalog()`'s, for the same reason.
+ *
+ * ⚠️ NOT PERSISTED TO THE PHONE'S DISK. `@/api/persist` admits the reads a
+ * shop needs to SELL with no signal; a report is something you look at when
+ * you have one, and six months of rows is the largest thing this app reads.
+ */
+export function useSales(): {
+  readonly sales: Sales;
+  readonly failed: ApiMessageKey | null;
+  readonly today: string;
+  readonly entries: readonly CatalogEntry[];
+  readonly factors: UnitFactors;
+} {
+  const { session, ready } = useAuth();
+  const { entries } = useCatalog();
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    enabled: ready && session !== null,
+    staleTime: Infinity,
+  });
+  const today = isoDay(new Date());
+  const since = salesSince(today);
+  const rows = useQuery({
+    queryKey: salesKey(since),
+    queryFn: () => shopSales(since),
+    enabled: ready && session !== null,
+    staleTime: 60_000,
+  });
+  return {
+    sales: salesFrom(rows.data, unitBasesFrom(units.data)),
+    failed: rows.error ? apiErrorKey(rows.error) : null,
+    today,
+    entries,
+    factors: unitFactorsFrom(units.data),
+  };
 }
 
 // ============================================================================
