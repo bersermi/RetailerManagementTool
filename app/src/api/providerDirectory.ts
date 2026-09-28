@@ -86,9 +86,11 @@ import { ES } from '@/strings';
 // asked for no way back. `providersFrom` drops a retired supplier, so nothing in
 // this app can reach one to reactivate it, and `ES.providers.edit.retireOnce`
 // states that rather than apologising for it. ⚠️ **Whether a SUPPLIER deserves
-// the same answer as a PRODUCT is a real question and it is parked in
-// ⛔ DECISIONS OWED**: a seasonal supplier is a thing a shop stops and restarts,
-// where a product retired in the wrong family is not. **Reversing it costs a
+// the same answer as a PRODUCT was a real question — a seasonal supplier is a
+// thing a shop stops and restarts, where a product retired in the wrong family
+// is not.** ✅ **RULED 2026-09-28 by the owner, the thirty-fourth ruling: *"Leave
+// Quitar proveedor one-way, as recommended."*** A regretted retirement is a
+// support call during the pilot, revisited on a real complaint. **Reversing it costs a
 // `Reactivar` control and one filter, not a migration** — `provider_update`
 // already grants the write in both directions.
 //

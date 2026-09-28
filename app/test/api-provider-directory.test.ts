@@ -43,8 +43,8 @@ import { ES } from '@/strings';
 //
 // ⚠️⚠️ AND THE ONE CLAIM NEITHER INSTRUMENT CAN MAKE IS NAMED HERE RATHER THAN
 // LEFT OUT: that `Quitar proveedor` is the RIGHT answer for a supplier rather
-// than merely the same answer as for a product. That is a question for the owner
-// and it is parked in ⛔ DECISIONS OWED.
+// than merely the same answer as for a product. ✅ The owner ruled it on
+// 2026-09-28 (the thirty-fourth ruling): one-way, as recommended.
 // ============================================================================
 
 const GENERIC: Provider = { id: 'g1', name: 'Genérico', isGeneric: true };
