@@ -469,7 +469,7 @@ export default function Comprar() {
         onPress={() => setPicking(true)}
       />
 
-      <Buscador value={typed} onChange={setTyped} box={box} />
+      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       {/* ⚠️ HIDDEN WHILE TYPING, which is his instruction and also the only
           honest rendering: the list is ranked by the search then, not by a pill. */}

@@ -30,9 +30,12 @@
 //
 // ⚠️ NO SUITE CAN LOAD THIS FILE (`R2`: the suite is `.ts` and reaches no
 // component), so the extraction moves MARKUP ONLY. Every decision this box
-// obeys already lives in a `.ts` module the suite reads — the sentence is
-// `ES.catalog`'s (`R4`), the sizes are `useDensity`'s (`R6`), the colours are
-// the palette's (`R11`), and what a typed term MATCHES is `@/api/catalog`'s.
+// obeys already lives in a `.ts` module the suite reads — the sizes are
+// `useDensity`'s (`R6`), the colours are the palette's (`R11`), and what a typed
+// term MATCHES is `@/api/catalog`'s. ⚠️ THE SENTENCE USED TO BE NAMED HERE AS
+// `ES.catalog`'s AND IS NOW THE CALLER'S, since `6b`: it is the `placeholder`
+// prop, and a component that spelled one screen's word inside itself was a
+// component that could not be drawn over anything else (`R16`).
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -54,10 +57,25 @@ export function Buscador({
   value,
   onChange,
   box,
+  placeholder,
 }: {
   value: string;
   onChange: (text: string) => void;
   box: RefObject<TextInput | null>;
+  /**
+   * The word inside the box, and what a screen reader announces it as.
+   *
+   * ⚠️⚠️ A PROP SINCE `6b`, AND IT IS `R16` RATHER THAN A TIDY-UP: this component
+   * spelled `ES.catalog.search` inside itself, which was correct while every
+   * caller searched the catalog and became a false claim the moment one searched
+   * suppliers. The difference between the copies becomes a prop.
+   *
+   * ⚠️ IT IS REQUIRED AND CARRIES NO DEFAULT. A default of *Buscar producto* on a
+   * box drawn over a list of suppliers is exactly the stale-word defect with
+   * nothing able to see it — and `R16`'s second half says the difference nobody
+   * decided becomes a DECISION, which a default would hide.
+   */
+  placeholder: string;
 }) {
   const { scale } = useDensity();
   return (
@@ -92,7 +110,7 @@ export function Buscador({
           ref={box}
           value={value}
           onChangeText={onChange}
-          placeholder={ES.catalog.search}
+          placeholder={placeholder}
           placeholderTextColor={PALETTE.tintaApagada}
           // ⚠️ NO AUTOCORRECT AND NO CAPITALS. A till types `pechuga` and a
           // keyboard that "helps" turns a product search into a guessing game;
@@ -106,7 +124,7 @@ export function Buscador({
           // out of the way, and now it says so.
           returnKeyType="done"
           onSubmitEditing={() => Keyboard.dismiss()}
-          accessibilityLabel={ES.catalog.search}
+          accessibilityLabel={placeholder}
           style={{
             flex: 1,
             paddingVertical: scale.rowGap,

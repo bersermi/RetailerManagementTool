@@ -1,17 +1,17 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
-import { pulseSequence } from '@/theme/pulse';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Buscador } from '@/ui/Buscador';
+import { Destello } from '@/ui/Destello';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 
@@ -174,7 +174,7 @@ export default function Productos() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
-      <Buscador value={typed} onChange={setTyped} box={box} />
+      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
         ref={list}
@@ -282,36 +282,13 @@ function Banda() {
 function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
   const { scale } = useDensity();
 
-  // ⚠️⚠️ THE BLINK, AND EVERY DECISION IN IT IS `@/theme/pulse`'s RATHER THAN
-  // THIS FILE'S (`R3`). How many times, how far down, how long, and that it rests
-  // at full opacity are all values `app/test/pulse.test.ts` reads; what is here is
-  // the `Animated` call, which no suite in this repository may load.
-  //
-  // ⚠️ `useNativeDriver` IS TRUE AND THAT IS §2.11's MOTION RULE, not a tuning
-  // knob: opacity on the native driver runs on the compositor, and C1.1 puts two
-  // low-end Androids among the pilot's phones. A JS-driven opacity would stutter
-  // on exactly those two and on nobody's development machine.
-  const fade = useRef(new Animated.Value(1)).current;
-  useEffect(() => {
-    if (!nuevo) return;
-    // ⚠️ IT IS RESET BEFORE IT RUNS. The row can be recycled by the virtualiser
-    // mid-blink, and a value left at `PULSE_DIM` would leave some OTHER product
-    // looking dimmed for no reason.
-    fade.setValue(1);
-    const blink = Animated.sequence(
-      pulseSequence().map((step) =>
-        Animated.timing(fade, { ...step, useNativeDriver: true }),
-      ),
-    );
-    blink.start();
-    return () => {
-      blink.stop();
-      fade.setValue(1);
-    };
-  }, [nuevo, fade]);
+  // ⚠️⚠️ THE BLINK IS `@/ui/Destello`'s SINCE `6b` AND WAS TWENTY LINES HERE
+  // BEFORE IT. Every decision in it is still `@/theme/pulse`'s, where
+  // `app/test/pulse.test.ts` reads them (`R3`); what moved is the `Animated` call,
+  // when `proveedores.tsx` became the second screen to need it (`R14`).
 
   return (
-    <Animated.View style={{ opacity: fade }}>
+    <Destello on={nuevo}>
     <Pressable
       // ⚠️ THE WHOLE ROW IS ONE THING TO A SCREEN READER, in the order a person
       // reads it: the product, then the family it belongs to, then what it
@@ -378,7 +355,7 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
         {entry.price}
       </Text>
     </Pressable>
-    </Animated.View>
+    </Destello>
   );
 }
 

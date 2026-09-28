@@ -60,6 +60,13 @@ import {
   type MemoryRow,
   type Provider,
 } from '@/api/providers';
+import {
+  detailFrom,
+  providerKey,
+  type ProviderDetail,
+  type ProviderInsert,
+  type ProviderPatch,
+} from '@/api/providerDirectory';
 import type { Quotes } from '@/cart/cart';
 import {
   EDIT_ORDER,
@@ -82,11 +89,14 @@ import {
   changePrice,
   createInvite,
   createProduct,
+  createProvider,
   myAccessRequests,
   myWorkspaces,
   onboardWorkspace,
+  patchProvider,
   patchVariant,
   pendingAccessRequests,
+  providerDetail,
   providerMemory,
   recentDocuments,
   redeemInvite,
@@ -977,6 +987,115 @@ export function useProviders(providerId: string | null = null): {
     memory: memory.data ?? null,
     failed: thrown ? apiErrorKey(thrown) : null,
   };
+}
+
+// ============================================================================
+// PROVEEDORES — ONE SUPPLIER, AND THE TWO THINGS THAT CHANGE HER. Plan task
+// `6b`, and the hooks `proveedor/nuevo.tsx` and `proveedor/[id].tsx` call.
+//
+// ⚠️⚠️ THERE IS NO `useProviderDirectory` AND THAT IS THE ONE STRUCTURAL
+// DECISION HERE. The list screen calls `useProviders(null)` — the read Comprar
+// already makes and TanStack already holds — because a directory with a filter of
+// its own would be a second answer to *which suppliers exist*. See
+// `@/api/providerDirectory`'s header; the consequence is that opening Proveedores
+// costs no round trip at all when Comprar has been opened in the last five minutes.
+// ============================================================================
+
+/**
+ * ONE supplier, for the detail screen.
+ *
+ * ⚠️⚠️ `null` MEANS TWO DIFFERENT THINGS AND `loading` IS WHAT PARTS THEM. A read
+ * in flight and a supplier that is gone are the same `null` here, and
+ * `ES.providers.errors.missing` on the first of those is a screen accusing the
+ * shop of having deleted something while the request is still open.
+ *
+ * ⚠️ IT IS NOT `staleTime`d LIKE THE LIST. `PROVIDERS_KEY` holds for five minutes
+ * because a picker's contents rarely move mid-delivery; this row is the subject of
+ * a form somebody is about to save into, and a stale `name` is what
+ * `providerPatch` compares against to decide whether anything changed.
+ */
+export function useProviderDetail(id: string | null): {
+  readonly loading: boolean;
+  readonly provider: ProviderDetail | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null && id !== null && id !== '';
+
+  const detail = useQuery({
+    queryKey: providerKey(id),
+    queryFn: () => providerDetail(id as string),
+    enabled,
+  });
+
+  return {
+    loading: enabled && detail.data === undefined && detail.error === null,
+    provider: detailFrom(detail.data),
+    failed: detail.error ? apiErrorKey(detail.error) : null,
+  };
+}
+
+/**
+ * Making a supplier. One row, one round trip — so it THROWS rather than returning
+ * an outcome, which is `useCreateInvite`'s shape and not `useCreateProduct`'s.
+ *
+ * ⚠️ THE DIFFERENCE IS THE MISSING TRANSACTION, AND HERE THERE IS NOTHING FOR IT
+ * TO GO WRONG WITH. `createProduct` returns an outcome because it writes three
+ * rows over three calls and can half-happen; `provider` is one flat table, so the
+ * call either landed or did not, and an outcome shape would be ceremony around a
+ * boolean.
+ *
+ * ⚠️⚠️ IT INVALIDATES `PROVIDERS_KEY`, WHICH IS **COMPRAR'S** CACHE AS WELL AS THE
+ * DIRECTORY'S — and that is the point of sharing the read rather than a cost of
+ * it. A supplier created here is in the delivery picker on the next tap, with no
+ * five-minute `staleTime` between making her and buying from her.
+ */
+export function useCreateProvider() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (row: ProviderInsert) => createProvider(row),
+  });
+
+  async function create(row: ProviderInsert): Promise<string> {
+    const id = await mutation.mutateAsync(row);
+    await queries.invalidateQueries({ queryKey: PROVIDERS_KEY });
+    return id;
+  }
+
+  return { create, busy: mutation.isPending };
+}
+
+/**
+ * Saving a supplier, or retiring her. One PATCH either way.
+ *
+ * ⚠️ ONE FUNCTION AND NOT TWO, WHICH IS THE OPPOSITE OF `useEditProduct`'s three
+ * patches and is right for the opposite reason: those are three TABLES, and a
+ * `23505` on a product's name must not be shown to somebody who changed the IVA.
+ * All four columns and the retirement are on `provider`, so the caller's choice of
+ * `providerPatch` or `retirePatch` is the whole difference and the transport is
+ * identical.
+ *
+ * ⚠️⚠️ BOTH CACHES ARE INVALIDATED AND THE ORDER DOES NOT MATTER, BUT MISSING
+ * EITHER ONE DOES. `providerKey(id)` is this form's own subject — without it a
+ * second save compares the new draft against the OLD name and reports *no
+ * cambiaste nada*. `PROVIDERS_KEY` is the list and Comprar's picker — without it a
+ * renamed supplier keeps her old name in the delivery picker for five minutes, and
+ * a RETIRED one stays offered there entirely.
+ */
+export function useEditProvider(id: string | null) {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (patch: ProviderPatch) => patchProvider(id as string, patch),
+  });
+
+  async function save(patch: ProviderPatch): Promise<void> {
+    if (id === null) return;
+    await mutation.mutateAsync(patch);
+    await queries.invalidateQueries({ queryKey: providerKey(id) });
+    await queries.invalidateQueries({ queryKey: PROVIDERS_KEY });
+  }
+
+  return { save, busy: mutation.isPending };
 }
 
 // ============================================================================

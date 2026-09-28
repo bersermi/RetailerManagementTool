@@ -528,10 +528,17 @@ move it here — and not one screen earlier.
 a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
 build them he said the pattern gets described *"once `5b` has produced a real
 one"* — never *"ten primitives guessed at against screens nobody has drawn."*
-Every one of the eight components in `src/ui/` was extracted from drawings that
+Every one of the **nine** components in `src/ui/` was extracted from drawings that
 already existed, and **two of them were extracted from drawings that had already
 silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
 did not) and `Boton`'s two (see `R16`).
+
+⚠️ **THIS SAID *eight* UNTIL 2026-09-27 AND `6b` ADDED THE NINTH — and the number
+is the gate's rather than this page's**: `conventions-gate.sh`'s `R14` prints how
+many it counted, so `bash docs/checks/conventions-gate.sh` re-measures it and a grep
+of the directory does not ([[counts-belong-to-the-runner]]). The ninth is
+`Destello`, the blink that says *this one is new*: `productos.tsx` had it inline
+from `5d-ii`, and `proveedores.tsx` became the second file to need it.
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other
@@ -549,9 +556,20 @@ the primitive is not due yet — leave it in the screen.**
 
 ⚠️ **The corollary, and it is the one that keeps this directory small:** a
 component with one caller belongs *in* that caller. `documentos.tsx`'s
-`Confirmacion` has one, and stays there; the scrim it draws is drawn **seven
-times across three files** and is the strongest candidate this rule has left
-open. **Counted, in `5h.5`'s entry, so the next session argues with a number.**
+`Confirmacion` has one, and stays there; `proveedor/[id].tsx` has a second
+`Confirmacion` with one caller of its own, and it stays there for the same reason.
+The scrim they draw was counted at **seven times across three files** by `5h.5` and
+is the strongest candidate this rule has left open. **Counted, in `5h.5`'s entry, so
+the next session argues with a number.**
+
+⚠️⚠️ **THAT NUMBER IS `5h.5`'s AND IS NO LONGER CURRENT, AND IT IS LEFT ALONE
+DELIBERATELY RATHER THAN GUESSED AT.** `6a-i` added one drawing of the scrim and
+`6b` added another (`proveedor/[id].tsx`), so the total has moved twice — **but
+`5h.5` counted a SHAPE and not a palette token**, and a plain `grep -c PALETTE.velo`
+answers a different question because that token does more than one job.
+**Re-measuring with the page's own predicate is the next `src/ui/` row's**, and a
+number derived a different way and written here would be the stale-claim defect this
+page's `R16` spends a paragraph forbidding.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R14.
 

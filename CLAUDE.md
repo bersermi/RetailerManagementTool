@@ -43,7 +43,7 @@ reads first:
 | `docs/plan/archive/status-log-2026-09-23.md` | The whole 2026-09-23 working day | Only to move an entry back |
 | `docs/plan/archive/status-log-2026-09-24.md` | **The 2026-09-24 working day** — the second file ever opened for a day still running, and the busiest day this project had had at the time (2026-09-25 has since passed it). ⚠️ **SEVEN cuts have been appended to it** — the seventh on 2026-09-25, when `5g-iii` found that `5g.5` and `5g-i` had been left in the live plan by all six earlier cuts, which is the rule above being obeyed | Only to move an entry back, or to append a later cut of the same day |
 | `docs/plan/archive/status-log-2026-09-26.md` | **The 2026-09-26 working day, NOW WHOLE — three cuts.** ⚠️⚠️ **THIS ROW DID NOT EXIST UNTIL 2026-09-27 AND THE PARAGRAPH BELOW SAID IN WORDS THAT THE FILE DID NOT EITHER** — *"There is no `docs/plan/archive/status-log-2026-09-26.md` yet"* — true when written that evening and false by 02:41 the next morning. **`6a-ii-a` found it by listing the directory**, which is the third time this table has been corrected that way and is exactly what the warning under it asks for. The first cut held four entries, the second took `5h-ii-b` and `5g-iii-b`, and the third (`6a-ii-a`, 225 lines) took `5h.5` and `5h-ii-c` and emptied the day out of the live plan | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-27.md` | **The 2026-09-27 working day, FIRST CUT — the fifth file ever opened for a day still running.** Taken by `6a-ii-b` before it wrote a line, because `## Position` stood at **1,290 of 1,400** — *110 lines of headroom against an entry that runs 40–130*, which is enough to pass and not enough to write with. ⚠️ **It is `6a-ii-a`'s own note in this file being obeyed**: *the next session should expect to take a cut before it can write its own.* It holds the day's two oldest entries — `6a-ii`'s sizing and split, and `6a-i`'s closing entry — **263 lines**. ⚠️ **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
+| `docs/plan/archive/status-log-2026-09-27.md` | **The 2026-09-27 working day, FIRST CUT — the fifth file ever opened for a day still running.** Taken by `6a-ii-b` before it wrote a line, because `## Position` stood at **1,290 of 1,400** — *110 lines of headroom against an entry that runs 40–130*, which is enough to pass and not enough to write with. ⚠️ **It is `6a-ii-a`'s own note in this file being obeyed**: *the next session should expect to take a cut before it can write its own.* It holds the day's two oldest entries — `6a-ii`'s sizing and split, and `6a-i`'s closing entry — **263 lines**. ⚠️ **A later session APPENDS to it; never a second file for the same date.** ⚠️⚠️ **`6b` DID NOT APPEND, AND THAT IS RECORDED HERE SO THE NEXT SESSION KNOWS THE DAY IS STILL RUNNING IN THE LIVE PLAN**: it inherited 245 lines of headroom, spent 82, and left Position at **1,237 of 1,400** — 163 lines, which is enough to pass and probably not enough to write with. **The next cut appends to THIS file** | Only to move an entry back, or to append a later cut of the same day |
 | `docs/plan/archive/status-log-2026-09-25.md` | **The 2026-09-25 working day, NOW WHOLE — two cuts.** The busiest day this project has had. The first cut held its first four entries and the 23rd–26th owner rulings, including the first migration to widen a cost fence and the day `Comprar` shipped. ✅✅ **THE SECOND CUT LANDED 2026-09-26, APPENDED, AND IT IS THIS TABLE'S OWN PREDICTION COMING TRUE**: the row used to warn that the day *"RAN ON PAST THE CUT"* and named `5g-iii-a`, the parked `R9` reading and the 27th and 28th rulings as still live. ⚠️ **It was right about the need and short by three blocks about the size** — `5f.5` and `5g-iii` closed that day too, so **six blocks / 415 lines** came out rather than three. ⚠️ **Appended, never a second file for one date** | Only to move an entry back, or to append a later cut of the same day |
 
 ⚠️⚠️ **THIS TABLE IS READ BY NO CHECK, AND ON 2026-09-25 IT WAS MISSING TWO FILES** —
@@ -87,19 +87,22 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6a-ii-b`: 5,364 lines
-total, 1,155 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
-prints both numbers and the next task id). ⚠️ **That is 245 lines of headroom, which is the first
-time in four sessions this line has been able to say the next one need not archive first** — the
-twenty-third cut went out oldest-first before a word of the entry was written, which is the advice
-`5h-ii-c` left here, `6a-ii-a` obeyed, and `6a-ii-b` obeyed again. **The cap is a tripwire and the
-cheapest moment to trip it is the start of a session, not the middle of one.**
+at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6b`: 5,446 lines
+total, 1,237 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
+prints both numbers and the next task id). ⚠️⚠️ **THAT IS 163 LINES OF HEADROOM AGAINST AN ENTRY
+THAT RUNS 40–130, SO THE NEXT SESSION SHOULD EXPECT TO TAKE A CUT BEFORE IT CAN WRITE ITS OWN** —
+which is exactly the sentence `6a-ii-a` left here and `6a-ii-b` acted on. ⚠️ **`6b` did NOT cut**,
+because the 245 lines it inherited were enough to write with; it spent 82 of them. **The cap is a
+tripwire and the cheapest moment to trip it is the start of a session, not the middle of one.**
+~~245 lines of headroom, the first time in four sessions this line has been able to say the next one
+need not archive first.~~
 ⚠️⚠️ **THE PARAGRAPH THIS REPLACES SAID `status-log-2026-09-26.md` DID NOT EXIST, AND IT HAD
 EXISTED SINCE 02:41 THAT MORNING** — the stale-claim defect in the file that spends its whole
 length warning about it, which is why the table above now carries a row for that day.
 Position reached 5,484 lines at one or two status-log entries per session, with nobody deciding
 to; **cuts have now been taken across ELEVEN archive files** — `ls docs/plan/archive/*.md | wc -l`,
-2026-09-27 — **and the great majority by a session that wanted to be writing something else.**
+re-measured 2026-09-27 after `6b` and **still eleven, because `6b` took no cut** — **and the great
+majority by a session that wanted to be writing something else.**
 ⚠️⚠️ **THE RUNNING TOTAL THAT USED TO SIT HERE IS DELIBERATELY GONE RATHER THAN BUMPED.** It said
 *twenty-one across ten*, and the plan's own bookkeeping already named a TWENTY-FOURTH — **two counters
 for one thing, and the one nothing checks was the one that was wrong.** The ordinal belongs to the
@@ -132,8 +135,14 @@ described. **Ids only in that column; the reasoning goes in the column no check 
 IT HAD GONE ON MISLEADING THE ONE FILE EVERY SESSION READS FIRST.** `app/` is a real Expo
 app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
 
-- ⚠️⚠️ **15 ROUTE SCREENS plus 2 `_layout.tsx` = 17 `.tsx` FILES under `app/src/app/`,
-  measured 2026-09-26** — `find app/src/app -name '*.tsx' | wc -l`, and the route count is
+- ⚠️⚠️ **18 ROUTE SCREENS plus 2 `_layout.tsx` = 20 `.tsx` FILES under `app/src/app/`,
+  measured 2026-09-27 after `6b`** (`find app/src/app -name '*.tsx' | wc -l`) — **`6b` added THREE
+  routes at once**, which is the largest jump since `5d`: `proveedores.tsx` (the directory),
+  `proveedor/nuevo.tsx` and `proveedor/[id]`. ⚠️ **A new route needs the typed-route declarations
+  regenerated or the LOCAL typecheck rejects it while CI goes green**
+  ([[new-route-needs-typed-route-regen]]) — and that regenerated file is also the only evidence in
+  this repository that expo-router discovered the screen at all. ~~15 route screens plus 2
+  `_layout.tsx` = 17 `.tsx` files, measured 2026-09-26~~ — `find app/src/app -name '*.tsx' | wc -l`, and the route count is
   that less the two layouts. ⚠️ **This entry said *16 screens* and ENUMERATED FOURTEEN**:
   the number counted the layouts as screens and the list did not, so neither half said
   what it was counting. **A layout is not a screen** — say which you mean.
@@ -145,12 +154,30 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   Four tabs (Inicio, Comprar, **Vender, and Desperdicio — a real screen since `6a-i`, 2026-09-27**) plus `productos.tsx`,
   `producto/[id]`, `producto/nuevo`, `familia/[id]`, `costos/[id]`, **`documentos.tsx`
   (`5h-ii-a`, *Lo último* — the recent-document list every correction is reached from)**,
-  `ajustes`, `solicitudes`, `entrar`, `bienvenida` and `auth/callback`.
-- **25 modules in `app/src/api/`** — the data layer, each one a claim about the applied
-  schema (which is why `db.yml` watches it; see below). Measured 2026-09-27:
-  `ls app/src/api | wc -l` (24 `.ts` plus `QueryProvider.tsx`). ⚠️ **`6a-ii-a` ADDED NO MODULE
-  EITHER** — it widened `documents.ts`, `corrections.ts` and `unsent.ts` — so the count is
-  unchanged and is asserted positively here rather than left to be recounted. ⚠️⚠️ **NOR DID
+  **`proveedores.tsx`, `proveedor/nuevo` and `proveedor/[id]` (`6b`, 2026-09-27 — Proveedores, and
+  the row that makes Inicio's sixth door live)**, `ajustes`, `solicitudes`, `entrar`, `bienvenida`
+  and `auth/callback`. ⚠️⚠️ **EVERY DOOR ON INICIO IS NOW OPEN**, so `ES.home.notYet` and the dead-door
+  branch in `(tabs)/index.tsx` are **unreachable and deliberately kept** — the *dead, not wrong*
+  argument `@/api/providers` makes about `MemoryState.unreadable`, and `inicio.test.ts`'s own
+  assertion block was INVERTED rather than deleted.
+- **26 modules in `app/src/api/`** — the data layer, each one a claim about the applied
+  schema (which is why `db.yml` watches it; see below). Measured 2026-09-27 after `6b`:
+  `ls app/src/api | wc -l` (25 `.ts` plus `QueryProvider.tsx`). ⚠️⚠️ **THE NEWEST IS
+  `providerDirectory.ts` (`6b`), AND IT IS THE FIRST MODULE HERE THAT WRITES A `provider` ROW** —
+  that table has been applied since `0002` (2026-09-02) and nothing in `app/` had ever changed one.
+  ⚠️⚠️ **THE THREE FINDINGS IN IT A SESSION WILL OTHERWISE RE-DISCOVER, all measured against a real
+  PostgREST: (1) A CASHIER IS REFUSED TWO DIFFERENT WAYS AND ONLY ONE OF THEM IS AN ERROR** —
+  `provider_insert` gives her **403 `42501`** and `provider_update` makes the row **invisible**, so
+  her PATCH is **200 with `[]`** and `.select().single()` is the only thing that turns it into
+  something an app can act on; **(2) `normalize_name` FOLDS CASE AND WHITESPACE AND NOT ACCENTS**,
+  so `Abarrotes Pena` beside `Abarrotes Peña` is two legal rows and `checkProvider` is deliberately
+  **stricter than its own schema**; and **(3) THE GENERIC ROW CAN BE DEACTIVATED** —
+  `provider_protect_generic` refuses a DELETE and a demotion and **stops there**, so `canRetire` in
+  the client is the only thing between a mis-tap and a shop that opens Comprar with no default at
+  all. ⚠️ **It has NO directory read of its own and that is the structural decision**: the list is
+  `useProviders(null)`'s, so the directory and Comprar's picker cannot disagree about which
+  suppliers exist. ⚠️ **`6a-ii-a` ADDED NO MODULE** — it widened `documents.ts`,
+  `corrections.ts` and `unsent.ts` — ⚠️⚠️ **NOR DID
   `6a-ii-b`, WHICH WIDENED THE SAME THREE PLUS `@/cart/cart` AND `@/cart/store`.** ⚠️ **The
   finding in it worth inheriting: `@/api/documents` RENDERS A WASTE CAUSE THROUGH `reasonLabel`,
   WHICH IS A ONE-WAY DOOR BY CONSTRUCTION — so until that row the app held no cause it could
@@ -211,8 +238,14 @@ app and the fourth workspace (`@tienda/app`). **Measured 2026-09-25:**
   delete's own `changes` count is the evidence** because a read-then-delete has a window the
   drain walks through. ⚠️ **The queue now has FOUR reader modules and `auth-errors.test.ts`
   pins that none of them is a screen** — that assertion has now directed three designs.
-- **A Vitest suite of 1,439 tests across 45 files** in `app/test/` — ⚠️ **that number
-  is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6a-ii-b` added a
+- **A Vitest suite of 1,503 tests across 46 files** in `app/test/` — ⚠️ **that number
+  is the RUNNER's** (`npm --prefix app test`, 2026-09-27, after `6b` added
+  `api-provider-directory.test.ts` (64) and **INVERTED a whole `describe` block in
+  `inicio.test.ts`** — *"has exactly one door with no route, and it is Proveedores"* became *"has no
+  door with no route"*, which is that block's own comment coming true: it ended **"The day `6b`
+  ships, this whole assertion goes with it."** ⚠️ It was inverted rather than deleted, because *no
+  door is dead* is worth holding for the next unbuilt door somebody adds to that table.
+  It was 1,439 across 45 after `6a-ii-b` added a
   `a write-off, as a cart` block to `api-corrections.test.ts`, **the first tests `load` has
   ever had** to `cart.test.ts`, and the word-versus-value pair to `api-documents.test.ts` and
   `unsent.test.ts` — ⚠️ **INVERTING one guard that was right when it was written**: *"is NOT
@@ -241,9 +274,16 @@ gitignored, which is why no workflow compiles it.
 ⚠️ **What is still true and still matters:** `docs/CONVENTIONS.md` governs how a file in
 `app/` is written, and `R2` keeps the suite in `app/test/` as `.ts` reaching no component.
 ⚠️⚠️ **`app/src/ui/` NOW HAS RULES — `5h.5` WROTE THEM ON 2026-09-26, AND `docs/CONVENTIONS.md`
-DEFERS NOTHING FOR THE FIRST TIME SINCE IT EXISTED.** **Eight primitives** — `Boton`, `Buscador`,
-`Cantidad`, `Deslizador`, `Frase`, `Separador`, `TecladoListo`, `Vacio` (`ls app/src/ui | wc -l`,
-2026-09-26) — and three rules over them: **`R14`** a component moves there only once a SECOND file
+DEFERS NOTHING FOR THE FIRST TIME SINCE IT EXISTED.** **NINE primitives as of 2026-09-27** — `Boton`, `Buscador`,
+`Cantidad`, `Deslizador`, **`Destello`**, `Frase`, `Separador`, `TecladoListo`, `Vacio`
+(`bash docs/checks/conventions-gate.sh` prints the count its `R14` counted, which is the number to
+take — a `ls` answers a different question) — and three rules over them:
+⚠️⚠️ **`Destello` IS `6b`'s AND IT IS THE RULE BEING OBEYED RATHER THAN A TIDY-UP**: the blink that
+says *this one is new* was inline in `productos.tsx` from `5d-ii`, and it moved the day
+`proveedores.tsx` became the SECOND file to draw it. ⚠️ **`6b` also turned `Buscador`'s placeholder
+into a REQUIRED prop with no default** — it spelled `ES.catalog.search` inside itself, which was
+true while every caller searched the catalog and false the moment one searched suppliers (`R16`), and
+a default would have been the stale-word defect with nothing able to see it. **`R14`** a component moves there only once a SECOND file
 draws it (checked as *reached from two or more modules*, because *already drawn twice* is a fact
 about the past that nothing can check); **`R15`** one component per file, named after the file,
 never `export default`; **`R16`** the difference between the copies becomes a PROP, and the
@@ -263,11 +303,14 @@ nobody can take is a gate nobody can clear.~~ ⚠️⚠️ **THAT STRUCK SENTENC
 `handbook-agreement.sh`'s SPLIT SENTINEL VERBATIM UNTIL 2026-09-26, AND IN `docs/PLAN.md` THE SAME
 WORDING BROKE THE GUARD** — assertion 3 greps a plan row for it to decide a task was split, so
 prose about one task's gate made another read as a split parent. **It is harmless in this file,
-which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6a-ii-b` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6b` — PROVEEDORES, AND IT IS
-UNGATED.** ⚠️ **`6a` is closed in all three of its parts**, and `6b` is the row that makes Inicio's
-greyed-out sixth door live. ⚠️⚠️ **IT IS THE SECOND TIME TODAY THAT ROW HAS HELD THE MARKER, WHICH
-IS THE HOLDING MOVE FINISHING RATHER THAN REPEATING** — it held it for about an hour this morning
-while `6a-ii` was blocked, and handed it back when the owner ruled the same day.
+which no check parses, and it is reworded here anyway so nobody copies it back into one that is.** ⚠️⚠️ **`6b` CLOSED 2026-09-27 AND THE NEXT TASK IS NOW `6c` — THE PREBUILT CATALOG, AND IT IS
+UNGATED.** ⚠️ **It is the LAST row in step 6**: `6a` is closed in all three parts and `6b` shipped
+Proveedores that evening. ⚠️⚠️ **AND IT IS THE FIRST ROW IN A WHILE THAT MUST STOP AND ASK BEFORE
+WRITING SQL** — it mints a marker column on `product_variant` saying where a product came from,
+which is a one-way door the seed bakes in. **`0042` is next.** ⚠️ **It is the second time `6c` has
+held the marker and the first time on its own merits**: it held it for four hours on 2026-09-24
+while `5f-ii` was blocked. ~~`6a-ii-b` closed 2026-09-27 and the next task is now `6b` —
+Proveedores, and it is ungated.~~
 ~~`6a-ii-a` closed 2026-09-27 and the next task is now `6a-ii-b` — the two controls on a
 write-off, and it is ungated.~~ ~~`6a-i` closed 2026-09-27 and the next task is now `6b` —
 Proveedores.~~ ⚠️ **That was true for the hour between `6a-i` merging and `6a-ii` being sized**;
@@ -299,9 +342,16 @@ ships a primitive before it adds to a directory whose conventions nobody has wri
 `5h.5`'s own row calls itself *"the last moment this is cheap"*.
 
 ⚠️ ~~Neither CI workflow watches an app directory~~ — **THERE ARE THREE WORKFLOW FILES AND
-`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-27 THEY ARE NINE JOB DEFINITIONS
-THAT RENDER AS TEN NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
-log"* NOW MEANS.** `money.yml`'s single job is **matrixed**, so it appears twice, and a count
+`app.yml` SHIPPED WITH `5a-i`.** ⚠️⚠️ **AND AS OF 2026-09-27 THEY ARE **TEN** JOB DEFINITIONS
+THAT RENDER AS **ELEVEN** NAMES IN THE LOG — WHICH IS WHAT *"confirm the checks by name in the
+log"* NOW MEANS.** ⚠️ **`6b` ADDED THE TENTH — `db.yml`'s `providers`, *the provider directory, and
+the manager fence on it* — AND IT IS A NEW JOB RATHER THAN TWO MORE STEPS, WHICH IS THE OPPOSITE OF
+WHAT `6a-ii-a` AND `6a-ii-b` BOTH DID.** Both of those appended because they shared the IDENTICAL
+fixture; this one shares no fixture with either candidate, and the two candidates fail for different
+reasons: `catalog-write` (where the manager-fence precedent and `5g-i`'s provider fixture live) runs
+**12-13 minutes against its own fifteen and was cancelled three times on `main`**, and
+`recent-documents`' NAME already covers two unrelated things. ⚠️ **The count in this line is
+re-measurable**: parse `jobs:` out of all three workflow files and multiply the matrixed one. `money.yml`'s single job is **matrixed**, so it appears twice, and a count
 taken from `jobs:` keys alone is short by one. ⚠️ **`6a-i` added the ninth** — `db.yml`'s
 `waste` — **as a new job rather than two more steps on `recent-documents`, which is the opposite of
 what `5h-ii-b` did**: that row appended because a correction is *the thing you reach from the list*,
@@ -320,12 +370,13 @@ assertions. ⚠️ **The KEY stayed `waste`** and the NAME moved, which is `5h-i
 whose name describes half of what it runs is the stale-claim defect.*
 ⚠️⚠️ **THIS LINE SAID *SIX DEFINITIONS* AND ITS
 OWN TABLE BELOW ADDED UP TO SEVEN — corrected 2026-09-26 by `5h-ii-a`, which added the
-eighth.** 2 (`app.yml`) + 6 (`db.yml`) + 1 (`money.yml`) = 9, and the table below is the
-arithmetic. ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
+eighth.** 2 (`app.yml`) + **7** (`db.yml`) + 1 (`money.yml`) = **10**, and the table below is the
+arithmetic. ⚠️ **It read `2 + 6 + 1 = 9` until `6b` opened the seventh `db.yml` job on 2026-09-27.** ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL NINE, WHICH IS THE PART THAT MAKES *"confirm the
 checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
 filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
 two are simply absent — not skipped, not failed, **absent**. `5h-ii-a`'s own PR (#222) is
-exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **So the
+exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **`6b`'s own PR is
+the same shape with one more name**, because it opened a `db.yml` job and touched no `packages/**`. ⚠️ **So the
 count to check against a log is the count of jobs that COULD fire for the paths that
 changed**, and a reader expecting nine on every run will read a normal PR as missing two.
 The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
@@ -334,7 +385,7 @@ The two `money.yml` names were last confirmed on the merge of #213 (runs `361726
 | Workflow | Fires on | Job names in the log |
 |---|---|---|
 | `app.yml` | `app/**`, `packages/money/**`, `docs/PLAN.md`, `docs/plan/archive/**`, `docs/CONVENTIONS.md`, `docs/HANDBOOK.md`, ADR-035, and each plan/handbook guard by name | `app (node 22)` — typecheck, Vitest, conventions gate — **and** `the documents still agree (plan + handbook)`. ⚠️⚠️ **SPLIT 2026-09-25 BECAUSE IT WAS TIMING OUT.** The seam is free because no document guard needs `node_modules`, and the two halves fail for different reasons: *the code is wrong* vs *the documents disagree with each other* |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, **`app/src/cart/cart.ts`** (new 2026-09-27 — `PRICE_KEY`, `MONEY_KIND` and `UNPRICED_WASTE` are claims about `0019` rather than about a basket, and it is the first file under `app/src/cart/` any workflow has watched), `packages/money/cases.json`, and every contract check and falsifier by name | **six** (`waste` added by `6a-i`, *the loss, and the cause it is filed under* — the first thing anywhere to call `record_waste`, applied and callerless for 22 days): `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from, and the correction`** (`5h-ii-a` 2026-09-26, ⚠️ **renamed the same day when `5h-ii-b` appended two steps rather than opening a sixth job** — the split precedent here is about the CAP and this job was measured well under it, but **a job whose name describes half of what it runs is the stale-claim defect**). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated. ⚠️ **The KEY did not move when the NAME did**, so nothing addressing this job by key broke |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, **`app/src/cart/cart.ts`** (new 2026-09-27 — `PRICE_KEY`, `MONEY_KIND` and `UNPRICED_WASTE` are claims about `0019` rather than about a basket, and it is the first file under `app/src/cart/` any workflow has watched), `packages/money/cases.json`, and every contract check and falsifier by name | **seven** (`providers` added by `6b` 2026-09-27, *the provider directory, and the manager fence on it* — **the first thing anywhere to WRITE a `provider` row**, applied since `0002` and never changed by this app; and `waste` added by `6a-i`, *the loss, and the cause it is filed under* — the first thing anywhere to call `record_waste`, applied and callerless for 22 days): `supabase db reset`, `the app's data layer against a real database`, `session survives a lost refresh reply`, `the catalog write, and the manager fence on it`, and **`the list every correction is reached from, and the correction`** (`5h-ii-a` 2026-09-26, ⚠️ **renamed the same day when `5h-ii-b` appended two steps rather than opening a sixth job** — the split precedent here is about the CAP and this job was measured well under it, but **a job whose name describes half of what it runs is the stale-claim defect**). ⚠️ **The biggest job was split by `5R-g`**, and the fifth was split off for the same measured reason: `catalog-write` runs 12-13 minutes against a 15-minute cap and had been cancelled three times on `main`, and ⚠️ **a cancelled job is neither a pass nor a failure.** ⚠️ **Its key is `recent-documents` and NOT `documents`**, because `app.yml` already has a job keyed `documents` meaning something unrelated. ⚠️ **The KEY did not move when the NAME did**, so nothing addressing this job by key broke |
 | `money.yml` | `packages/**` | one job, matrixed: `packages/money (node 22)` and `(node 24)` |
 
 ⚠️⚠️ **`db.yml` IS NOT ONLY `supabase/**`**, because a module in `app/src/api/` is a claim
