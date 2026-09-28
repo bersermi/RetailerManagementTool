@@ -107,9 +107,9 @@ export interface InicioDoor {
  * `5h-ii-b`'s corrections are reached from nothing else. **ADR-035 §2.8's Home
  * row enumerated five doors and now carries a revision entry saying six** — the
  * ADR is authoritative, so it was amended rather than left to disagree with this
- * table. ⚠️ **Whether Inicio is the right home for it is parked in
- * ⛔ DECISIONS OWED**: the row ships so the screen can be reached and judged on a
- * phone (`R9`), and the question is re-offered every session until he rules.
+ * table. ✅ **Whether Inicio is the right home for it was parked in
+ * ⛔ DECISIONS OWED and RULED 2026-09-28 by the owner — *"Leave Lo último on
+ * Inicio as recommended."*** It stays here.
  */
 export const INICIO_DOORS: readonly InicioDoor[] = [
   {

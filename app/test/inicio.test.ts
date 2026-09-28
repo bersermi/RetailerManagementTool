@@ -111,9 +111,8 @@ describe('§2.8 — the seven doors, three as cards and four as rows', () => {
   // said it was for, so it worked. `5h-ii-a` added `documentos`, and the
   // reasoning is in `@/navigation/inicio`'s row, in that task's plan entry and
   // in a revision entry on ADR-035 §2.8's Home row, **which enumerated five**.
-  // ⚠️ The placement is parked in ⛔ DECISIONS OWED: a screen nobody can reach
-  // cannot be judged on a phone, and judging it is `R9`'s whole arrangement — so
-  // the door ships and the question is re-offered until he rules on it.
+  // ✅ The placement was parked in ⛔ DECISIONS OWED and was RULED 2026-09-28:
+  // *"Leave Lo último on Inicio as recommended."*
   // ⚠️⚠️ AND IT WAS SIX UNTIL 2026-09-28, AND THE PIN WORKED A SECOND TIME: `7a`
   // needed a door for Números, stopped here, and ASKED. The owner ruled a seventh
   // row, last, on Inicio. The reasoning is `@/navigation/inicio`'s `numeros` row.

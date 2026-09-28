@@ -33,7 +33,6 @@ let a blocked task be marked as the next task.**
 
 | Decision | Blocks | The brief, already written |
 |---|---|---|
-| **⚠️ `Lo último` IS ON INICIO AS A SIXTH DOOR, AND ADR-035 §2.8 ENUMERATED FIVE** | `5P-a` | ⚠️⚠️ **THIS IS A DECISION TAKEN ON YOUR BEHALF AND IT IS REPORTED RATHER THAN ASKED FIRST, BECAUSE A SCREEN REACHED FROM NOWHERE CANNOT BE JUDGED ON A PHONE** — and judging it is `R9`'s whole arrangement. `5h-ii-a` shipped the list every correction is reached from, and §2.8's Home row names *the way into every module*: Vender, Comprar and Desperdicio as cards, Productos and Proveedores as rows, *"a fifth and sixth destination that otherwise have no home"*. **`Lo último` is not a module** — it is a LOOK — so the ADR neither authorises nor refuses it. ✅ **ADR-035 §2.8 now carries a revision entry saying six**, because leaving it enumerating five would make the authoritative document false, which is this repository's most-repeated defect. ⚠️ **`app/test/inicio.test.ts` pinned the count at five on purpose** — *"a sixth door is a decision about what Inicio is for, not a tidy-up"* — **so the guard worked**; it now pins six and says a SEVENTH is a decision. ⚠️ **The alternatives, named so this is a real question:** a header button on Comprar and Vender (closer to where a mistake is made, and it edits both capture screens, which is the next row's territory); or a row inside Ajustes (out of the way, and nobody would find it). ⚠️ **RECOMMENDATION: LEAVE IT ON INICIO** — it is a thing you go and look at between customers, which is the same reading that put Productos there, and it is one tap from the screen you open first. **Reversing it is three deletions: a row in `@/navigation/inicio`, a line in that suite, and the ADR entry — no migration, no data.** ⚠️⚠️ **RE-POINTED FROM `5h.5` TO `5P-a` ON 2026-09-26 BY `5h-ii-c`, FOR THE REASON THE ROW ABOVE GIVES AT LENGTH** — this cell is machine-read, `5h.5` is now the next task, and *blocks nothing* spelled as a takeable id refuses it. ~~it blocks nothing takeable; it is filed against the polish row because that is where a placement ruling lands.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** ⚠️ **`5P-a` is the row that actually depends on it**: §5's overlay measures **taps per transaction against a ceiling of 5** and **abandonment — capture screens opened with no commit**, and both of those are counted against a fixed inventory of doors. **A sixth destination on Inicio changes the navigation being measured**, so the placement wants to be settled before the instrument is built rather than after it has a baseline. |
 
 ⚠️⚠️ **THE MACHINERY EXISTS AND HAS NEVER BEEN CALLED. `void_transaction` (`0021`) has been applied since 2026-09-04** — it answers a void by INSERTING a mirror-image document rather than editing or deleting anything, both stand in the ledger, and `<kind>_one_reversal_idx` already makes a document reversible AT MOST ONCE. ⚠️⚠️ **AND THE CLAIM THAT USED TO SIT HERE WAS FALSE — CORRECTED 2026-09-26 BY `5h-i`, WHICH MEASURED IT.** ~~`5g-iii` measured something about it that changes the question: `purchase` and `purchase_line` carry a SELECT policy and NOTHING ELSE, and no function in this schema writes a reversal — so a void is not reachable through the API at all today, for any of the three kinds.~~ **`0021` BOTH WRITES THE REVERSAL AND GRANTS IT**: `0021:448` revokes from `public` and grants `execute` to `authenticated`, and `proacl` on the applied schema reads `authenticated=X/postgres`. ⚠️ **The narrower half was true and is worth keeping**: `purchase` and `purchase_line` carry a SELECT policy and nothing else, so no client INSERTs a reversal *directly* — the `security definer` RPC is the whole path, **and it is open.** ⚠️ **The cost of the error would have been a migration nobody needs**, written into the next sizing as a certainty.
 
@@ -68,6 +67,15 @@ box stays empty and required, which IS true for her — and the rule moved into 
 screen no instrument can read. ⚠️ **What he did NOT settle is in the table above**: whether to
 widen the view so she gets a prefill at all, which is a migration and a one-way door.
 
+✅✅ **THE FORTIETH RULING — 2026-09-28: *"Leave Lo último on Inicio as recommended."*** The row
+`5h-ii-a` parked against `5P-a` is CLOSED and removed from the table above. `Lo último` stays a row
+on Inicio between Productos and Proveedores — the only way into `Corregir` and `Eliminar` — and
+ADR-035 §2.8's Home row now says ruled rather than parked. **Nothing changed in code.**
+⚠️⚠️ **THE BLOCK ABOVE IS EMPTY** — five rulings in one day (33 and 34 that morning, then 38, 39 and 40)
+cleared every row. ⚠️ **It stays, empty**: `plan-handover.sh` requires exactly
+one, because the next question has to have somewhere to go. **`5P-a` and `5P-c` are no longer named
+by any open decision.**
+
 ✅✅ **THE THIRTY-NINTH RULING — 2026-09-28: *"Leave Rosa seeing supplier phones as recommended."***
 The row `6b` parked against `5R-d` is CLOSED and removed from the table above. **Both halves stand as
 shipped**: an Empleada opens a supplier and reads `contact_name`, `phone` and `address_line1` — the
@@ -76,7 +84,7 @@ still carries a NAME only**, because putting the number on it means widening `PR
 `docs/checks/5g-i-purchase-contract.sh` bans those columns from by name. ⚠️ **What he accepted**: every
 cashier's phone can show every supplier's contact details, one tap at a time. **Nothing changed in
 code.** ⚠️ **`5R-d` should still carry it**: the *aviso de privacidad* describes what reaches whose
-phone, and this is now part of that. **Only the `Lo último` row (`5P-a`) is left open.**
+phone, and this is now part of that. ~~only the `lo último` row (`5p-a`) is left open~~ — ⚠️ **closed the same day by the fortieth ruling.**
 
 ✅✅ **THE THIRTY-EIGHTH RULING — 2026-09-28: *"Leave the corrected sale price as recommended."***
 The row `5h-ii-b` parked against `5P-c` is CLOSED and removed from the table above. **A corrected SALE
@@ -86,7 +94,7 @@ every sale Vender rings; a corrected DELIVERY keeps putting the stored price str
 corrected sale is recorded at the NEW price and the customer paid the old one — so the manual tally
 `5P-c` grades on can show that difference, and it is a known cause rather than a defect to explain
 away. **Nothing changed in code**; the ruling confirms what `5h-ii-b` shipped. ⚠️ **`5P-c` is no
-longer named by any open decision** — its gate is `5P-a` by id, which the *`Lo último`* row still names.
+longer named by any open decision** — its gate is `5P-a` by id. ⚠️ **And since the fortieth ruling `5P-a` is not named by one either.**
 
 ✅✅ **THE THIRTY-FOURTH RULING — 2026-09-28: *"Leave Quitar proveedor one-way, as recommended."***
 The row `6b` parked against `7b` is CLOSED and removed from the table above. A retired supplier leaves
@@ -147,7 +155,7 @@ whole difference between reading (a) and reading (c) — and `6a-i-waste-contrac
 assertion is what keeps the fence honest while the view exists beside it.
 
 ⚠️⚠️ **THIRTY decisions have now been parked here in total, and twenty-nine are closed.** ⚠️ **The
-block is NOT empty**: `5P-a` and `5P-c` are still open and neither blocks the next task. ⚠️ **As of 2026-09-28 only `5P-a` is named there** — `5P-c`'s row was closed by the thirty-eighth ruling and `5R-d`'s by the thirty-ninth.
+block is NOT empty**: `5P-a` and `5P-c` are still open and neither blocks the next task. ⚠️ **As of 2026-09-28 the block is EMPTY** — `5P-c`'s row was closed by the thirty-eighth ruling, `5R-d`'s by the thirty-ninth and `5P-a`'s by the fortieth.
 
 ✅✅ **THE TWENTY-NINTH RULING — 2026-09-26, AND IT IS THE FASTEST THIS BLOCK HAS EVER TURNED
 ONE ROUND: *"fix the Costos date, and build it to my phone."*** The row was parked in `5h-ii-a`'s
