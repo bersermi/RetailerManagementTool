@@ -753,7 +753,11 @@ job is neither a pass nor a failure ([[a-cancelled-ci-job-is-not-a-failed-assert
 the CAP, not the subject. ⚠️ **The SQL suite is deliberately NOT in that job**: the `reset` job's
 *Behavioural checks* step runs the whole of `supabase/tests/` in name order, so a new suite costs no
 workflow edit — running it twice would re-pay `supabase start` plus two resets to assert what the same
-run already asserts. **That makes 11 job definitions across three workflows, rendering as 12 names.**
+run already asserts. **That makes 11 job definitions across three workflows, rendering as 12 names** — and ⚠️ **this PR
+renders TEN of them, counted off `gh pr checks 236` rather than derived**: it touches no `packages/**`,
+so `money.yml`'s two are absent, and **the PR body said NINE before the log was read.** 2 (`app.yml`)
++ 8 (`db.yml`) is the sum, and `CLAUDE.md`'s own figure for this — *seven* — had been stale since
+`db.yml` had five jobs.
 
 ⚠️ **ONE RENAME WITH A REASON RATHER THAN A TIDY-UP**: `producto/[id]`'s local filled button is now
 `Guardar`, because the file imports the OUTLINE `Boton` from `@/ui/Boton` for the retire control and two

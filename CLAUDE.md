@@ -398,13 +398,16 @@ eighth.** 2 (`app.yml`) + **8** (`db.yml`) + 1 (`money.yml`) = **11**, and the t
 arithmetic. ⚠️ **It read `2 + 7 + 1 = 10` until `6c` opened the eighth `db.yml` job on 2026-09-27, and
 `2 + 6 + 1 = 9` until `6b` opened the seventh earlier the same day.** ⚠️⚠️ **AND NO SINGLE PR EVER SHOWS ALL TWELVE, WHICH IS THE PART THAT MAKES *"confirm the
 checks by name in the log"* HARDER THAN IT SOUNDS.** Each workflow has its own `paths:`
-filter, so a PR that does not touch `packages/**` renders **seven** names and `money.yml`'s
-two are simply absent — not skipped, not failed, **absent**. `5h-ii-a`'s own PR (#222) is
-exactly that shape: seven names, all seven green, and `money.yml` never fired. ⚠️ **`6b`'s own PR is
-the same shape with one more name**, because it opened a `db.yml` job and touched no `packages/**`;
-**`6c`'s is the same shape with one more again — NINE names**, for the identical reason. ⚠️ **So the
+filter, so a PR that does not touch `packages/**` renders **TEN** names as of `6c` and `money.yml`'s
+two are simply absent — not skipped, not failed, **absent**. ⚠️⚠️ **THAT NUMBER IS `6c`'s AND IT IS
+COUNTED OFF A REAL LOG (`gh pr checks 236`), BECAUSE THE ARITHMETIC IN THIS PARAGRAPH WAS DERIVED WRONG
+FIRST: `6c`'s PR body said NINE and the log printed TEN.** 2 (`app.yml`) + 8 (`db.yml`) is the sum, and
+the number to check a log against is *the count of jobs that COULD fire for the paths that changed*.
+⚠️ **The figure this replaces said *seven*, which was true when `db.yml` had five jobs** — `5h-ii-a`'s
+own PR (#222) is that shape, seven names all green and `money.yml` never fired — **and it went stale
+twice on 2026-09-27 as `6b` and `6c` each opened a job.** ⚠️ **So the
 count to check against a log is the count of jobs that COULD fire for the paths that
-changed**, and a reader expecting eleven on every run will read a normal PR as missing two.
+changed**, and a reader expecting twelve on every run will read a normal PR as missing two.
 The two `money.yml` names were last confirmed on the merge of #213 (runs `36172686917` /
 `36172686952` / `36172687093`).
 
