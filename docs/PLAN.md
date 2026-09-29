@@ -734,27 +734,22 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
+⚠️⚠️ **`8a` IS THE NEXT TASK, AS OF 2026-09-29 — THE OWNER TURNED THE PROJECT FROM *BUILD* TO *BETA*,
+AND 2026-09-29 IS A CLEANING DAY.** His words, after midnight: *"We have an Alpha already then, I want
+to start improving the App design and the overall UI … to get to a beta and publish our MVP afterwards
+both in iOS and Android"* — design work is booked for **Wednesday 2026-09-30**, and *"for this whole day
+(September 29th) let's focus on cleaning our progress and leave everything ready for our next moves."*
+⚠️ **`5P-c` IS DEFERRED BY HIM, NOT CANCELLED**: asked who keeps the pilot's hand tally, he answered
+*"I'm not concerned on this at all. At this point my main interest is to improve the user experience."*
+Its row keeps its size and gate; it simply stopped being next. ⚠️ **The plan for the day, the diagnosis
+it rests on and the prompt he pastes are in `## Step 8`** — this entry is the pointer, not a copy.
+✅ **Measured before writing, from the things that run:** `npm --prefix app test` **1,719 tests across 52
+files**, green; `5R-f-schema-deployed.sh` **6 of 6** (41 migrations on the hosted project); the hosted
+shop holds **24 sales, 10 deliveries, 2 write-offs, 28 products** (`supabase db query --linked`), so every
+screen reads and writes the real database. ⚠️ **This entry also removed twenty blank lines** a
+previous cut had left here.
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-⚠️⚠️ **`5P-c` IS THE NEXT TASK, AS OF 2026-09-28 — COMPLETENESS, THE NUMBER THE PILOT IS GRADED ON,
+⚠️⚠️ ~~**`5p-c` is the next task, as of 2026-09-28**~~ (deferred 2026-09-29, see above) **— COMPLETENESS, THE NUMBER THE PILOT IS GRADED ON,
 AND IT IS UNGATED.** Its gate `5P-a` closed the same day, below. ⚠️ **What it inherits**: §5's
 *five consecutive days within 5%* is a comparison against a MANUAL tally, so the first question in
 its sizing is where that tally is typed and by whom — a shopkeeper question, to be walked through
@@ -5383,7 +5378,78 @@ same instrument.
 |---|---|---|---|
 | **5P-a** | ✅✅✅ **DONE 2026-09-28 — THE PILOT'S INSTRUMENT.** A build made with `EXPO_PUBLIC_PILOT` files §5's readings to `pilot_reading` (`0043`), naming the member, for the owner alone to read on a panel behind a long press on Ajustes' title — rulings 42–45, asked before a line was built. ✅ **Checked by `supabase/tests/0043_pilot_reading.sql` (31), `app/test/pilot-readings.test.ts` (28) and `app/test/api-pilot.test.ts` (22)** — see the status log. ~~`7b` closed, and the last decision naming this row was ruled that morning (the fortieth).~~ **The dev-build overlay §5 specifies**: p95 commit-gesture-to-confirmation against a **300 ms** budget, p95 `record_sale` round trip against **1 s**, p95 cold-open-to-Vender against **2 s**, taps per transaction against a ceiling of **5**, and **abandonment** — capture screens opened with no commit, the silent non-use detector. ~~⚠️ **§5 says measured with a dev-build overlay, NOT with instrumentation shipped to production**, which is also the answer that costs no privacy notice~~ — ⚠️ **false since rulings 43 and 44: the readings reach the server and name the member, so `5R-d` owes a sentence for them** | `M` → `L` — held | `5h` |
 | **5P-b** | ⚠️⚠️ **ENGAGEMENT ACROSS SHOPS THE OWNER IS NOT STANDING IN — and it is a DECISION before it is a task.** §5's overlay works because the schema owner is in the room; two or three shops over weeks is a different question. ⚠️ **The cheap answer needs no telemetry at all**: recording *is* engagement, so `sale`, `purchase` and `waste` row counts per shop per day already measure it, from the server, with nothing added to the client and nothing to disclose. ⚠️⚠️ **Anything beyond that — screen opens, session length, feature taps — is behavioural telemetry on identified merchants and engages LFPDPPP and the `aviso de privacidad` `5R-d` ships.** The recommendation is the server-side read, and the decision is the owner's | `S` for the read; unsized if telemetry is wanted | `5h`, and a shop with rows |
-| **5P-c** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-28** — `5P-a` closed that day. **Completeness, the number the pilot is graded on.** The manual-tally comparison §5 requires, and the daily read that shows it — *"five consecutive days within 5%"* is a query, and running it by hand each evening is how a bad day gets explained away | `S` | `5P-a` |
+| **5P-c** | ⏸ **DEFERRED BY THE OWNER 2026-09-29** — *"I'm not concerned on this at all"*; the project turned to the beta (`## Step 8`). ~~this is the next task, as of 2026-09-28~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** **Completeness, the number the pilot is graded on.** The manual-tally comparison §5 requires, and the daily read that shows it — *"five consecutive days within 5%"* is a query, and running it by hand each evening is how a bad day gets explained away | `S` | `5P-a` |
+
+---
+
+## Step 8 — from alpha to beta: the cleaning day (2026-09-29) and the design day (2026-09-30)
+
+**Written 2026-09-29, after midnight, at the owner's request** — *"make a diagnosis of the current
+status of the way you're progressing, the graph and any other thing we leverage. And establish a one
+day plan for us to tidy it along with its own Cleaning Prompt."* The prompt is in `docs/HANDBOOK.md`,
+beside the main prompt, because that is the file he reads. **This section is the plan; the handbook
+holds only the prompt and the pointer.**
+
+### The diagnosis — every number measured 2026-09-29 00:30 CST, and the tool that gave it
+
+**What is healthy — the product.**
+- `npm --prefix app test`: **1,719 tests across 52 files, all green.** The last 40 CI runs
+  (`gh run list`) were all green except one `db` failure on the `5P-a` branch, fixed before merge.
+- `5R-f-schema-deployed.sh`: **6 of 6** — all 41 migrations applied to the hosted project.
+- The hosted shop (`supabase db query --linked`): **24 sales, 10 deliveries, 2 write-offs,
+  1 supplier, 28 products.** Every screen reads and writes that database; no screen runs on sample
+  data (checked by searching `app/src/app` for mock, fake, sample or TODO: none).
+- **The owner calls it an alpha, and that is accurate.** Selling, buying, waste, catalog, suppliers,
+  corrections, Números, Precios, the month export and offline selling are built and connected.
+
+**What is unhealthy — the process has outgrown the product** ([[process-must-not-outgrow-product]]
+in the assistant's memory says he trades rigor for speed when a guard protects a document, not a shop).
+- **The documents** (`wc -lc`): `docs/PLAN.md` **5,517 lines / 821 KB** — about 200k tokens, more than
+  a session can read; `## Position` was at **1,298 of its 1,400 cap**. The archive is **11 files /
+  18,955 lines**. `docs/HANDBOOK.md` is **1,193 lines / 263 KB** for a reader who is not a developer,
+  and its catch-up contradicts itself (§2 mentions *"one of the four parked decisions"*, §3 says there
+  are none; *What you are building* still calls Desperdicio an empty tab). `CLAUDE.md` **35 KB** +
+  `app/CLAUDE.md` **29 KB** load into sessions, and most of it is the history of corrections to its own
+  numbers. The warning sign appears **994 times** in the plan, **186** in the handbook and **70** in
+  `CLAUDE.md` (`grep -c`) — when everything is flagged, nothing is.
+- **The checks**: **75 shell scripts, 27,177 lines** in `docs/checks/`, against **42,483** lines of
+  app source and **18,554** of app tests. A large share hold documents in agreement with each other,
+  and `split-coverage` with its falsifier takes about six minutes.
+- **The graph** (`graphify-out/graph.json`): **4,349 nodes, 8,592 edges, every one `_origin: ast`**,
+  current as of `8d8758c` (built the same minute it merged). **1,500 of the nodes are `docs/`** —
+  headings of the plan, mostly noise for a code question. No semantic layer (no API key), so it answers
+  *where*, never *what was decided*. **34 dated snapshot folders, 105 MB**, nothing reads them.
+- **Git**: **198 remote branches** — squash-merged PR heads nobody deleted — and **9 stale local**.
+- **The assistant's memory**: **85 files**. Some describe one-off instruments (the sealed emulator,
+  the 8-day reading) that expire with the dates block.
+
+**What actually stands between the alpha and a beta — distribution, not code.**
+- The app is installed with a free Apple account: **it stops opening every 7 days** (next: 4 October,
+  14:28 UTC) and only this Mac can reinstall it. A second person's phone cannot live like that.
+  `5R-a` (Apple Developer Program + Play Console, **his** action) and `5R-b` (EAS / TestFlight) fix it.
+- `5R-c` account deletion (a store requirement, still needs a decision) and `5R-d` the *aviso de
+  privacidad* are the other two store gates. **No CI compiles the native app.**
+- **Design readiness is unmeasured** — nobody has counted where colours, type sizes and animations
+  live, or what the conventions gate will refuse when they change. That is `8e`.
+
+### The day, in order — one row per session, the Cleaning Prompt takes the next one
+
+⚠️ **Nothing a shopkeeper sees changes today**: no migration, no screen, no access rule. Each row
+comes out **smaller** and says by how much. **Order matters**: `handbook-agreement.sh` looks up the
+handbook's task rows in `docs/PLAN.md` itself, NOT in the corpus, so the handbook sheds its rows
+before the plan archives them.
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **8a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The handbook, rewritten for its reader.** One short file: what the app does today, what is on his phone, what is waiting on him, how a session goes (both prompts), the dates. The stale catch-up goes; the history moves to `docs/plan/archive/handbook-through-2026-09-29.md` — a MOVE. Keep `handbook-agreement.sh` green (its three sentinels stay, each exactly once). **Target: under 300 lines.** | `S/M` | — |
+| **8b** | **The live plan, cut to what is live.** Take the 2026-09-27 and 2026-09-28 status-log days out of `## Position` (APPEND to `status-log-2026-09-27.md`; open `status-log-2026-09-28.md`), and move closed step prose (4.6, the closed parts of 5, 5R-f/g, 6, 7a/b/d) to an archive file. Keep the two obligation blocks, every open row, Step 8 and the working agreement. `plan-corpus.sh`, `split-coverage.sh` and their falsifiers stay green. **Then list every guard that protects only a document from another document, with its runtime, and park ONE recommendation in ⛔ DECISIONS OWED about which to retire — retire nothing yet.** **Target: under 2,000 lines, Position under 600.** Update `CLAUDE.md`'s archive table by listing the directory | `M` | `8a` |
+| **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only.** Keep what a session must obey (the non-negotiables, migrations, deploy, merge rule, domain words, graphify rules) and the pointers; drop the story of each number's corrections. Numbers that decay are replaced by the one-liner that measures them. **Target: each under 12 KB.** | `S` | `8b` |
+| **8d** | **Housekeeping outside the documents.** Delete remote branches whose PR is MERGED (from `gh pr list --state merged`, never a guess) and the stale local ones; prune `graphify-out/` snapshot folders; run `graphify update .` and record the node count; read the assistant's memory index and delete or correct memories that are no longer true. **List first, then delete only what was listed.** | `S` | `8c` |
+| **8e** | **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
+| **8f** | **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`, not now** | **size it** | `8e` |
+
+⚠️ **Not in the day, and on purpose**: `5R-a` is the owner's to do (enrolment), and the
+**4 October re-deploy** in ⏳ DATES OWED still stands — with `5R-a`/`5R-b` done it disappears for good.
 
 ---
 
