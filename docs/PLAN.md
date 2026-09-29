@@ -62,26 +62,16 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **`8d` IS DONE, 2026-09-29 — `8e` IS THE NEXT TASK, AND IT IS UNGATED.** Listed first, then only the
-list deleted. **Remote branches 10** (every one's tip = its merged PR's head): `0004-inventory`,
-`0005-allocation`, `5d-ii-productos`, `5e-ii-agregar`, `5e-ii-search-first`, `5f-iii-b-slide-and-first-write`,
-`ci-cleanup-not-reset`, `docs-handbook-looking-around`, `task-4e-ii-void-fence`,
-`working-agreement-automerge`; **local 7**, the same names that existed here. ⚠️ **Kept on purpose**:
-`5e-iii-a-catalog-edit` — its tip `cb0e29a` (*Editar is drawn*) is closed PR #185's head, not merged #184's,
-so it holds work `main` never took — and `docs/adr-035-client-stack-review`, which has no PR (it is an
-ancestor of `main`, so deleting it would lose nothing; the owner's call). **Graph backups 34 of 35**
-(`graphify-out/2026-08-14`…`2026-09-28`, 50 MB, written by graphify before each rebuild and read by
-nothing); today's kept as the restore point. **Graph: 4,352 nodes, 8,580 edges, 1,500 from `docs/`**
-(`graph.json`, current, no node from a deleted file). **Memory 85 → 84**: deleted
-`fixture-must-edit-the-non-owning-row` (its only subject was a retired harness); corrected seven that
-named retired checks or stale numbers. The 2026-09-29 ruling and `8b` entries moved to the day's archive.
-
-✅ **`8c` IS DONE, 2026-09-29 — `8d` was next.** `CLAUDE.md` **28,876 →
-9,336 bytes**, `app/CLAUDE.md` **29,433 → 4,713** (`wc -c`; target 12 KB each): rules and pointers only,
-and every count replaced by the command that measures it (a new one lists CI jobs by name). ⚠️ **Two
-stale claims found and not carried over**: *no module queries `product_velocity_daily`* (`sales.ts` and
-`prices.ts` both do) and `db.yml`'s filter as described (it also fires on root `package*.json` and
-`app/src/lib/supabase.ts`). The day's two oldest entries moved to `status-log-2026-09-29.md`.
+✅ **`8e` IS DONE, 2026-09-29 — `8f` IS THE NEXT TASK, AND IT IS UNGATED.** The map is a private page:
+https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **Healthy**: no screen types its own colour, size or spacing (108 files scanned, comments
+stripped). **For Wednesday**: sign-in and bienvenida are outside the palette; the active tab is iOS blue
+(no tint set); two header styles; **a bug — `Precios`' period cards break words ("cambi / o")**; no dark
+palette although `app.json` says `automatic`; the three drifted shapes; an unnamed small size
+(`bodySize * 0.85`, 33 uses); busy opacity 0.6 vs 0.5; cart timings typed per screen. **`8f` sized `L`,
+`XL` if dark mode is built — decide that Wednesday and build it separately.** ⚠️ **Screenshots came from a
+Release simulator build pointed at a LOCAL copy of the seed shop** (an HTTPS proxy, build-time env only; no
+source changed, production untouched). The iPhone 17 simulator now carries that build, and the local
+seed owner has a password until the next `supabase db reset`.
 
 ## Steps 0 through 4.5 — closed, and moved out of this file ✅
 
@@ -265,8 +255,8 @@ before the plan archives them.
 | **8b** | ✅ **DONE 2026-09-29** — 5,573 lines to 420, Position 1,283 to 71; see the status log. **The live plan, cut to what is live.** ⚠️ **The handbook still names `5b-ii-b-2`, `5b.8` and `5b.8-iii`** because `handbook-agreement-falsify.sh` hard-codes them, and `handbook-agreement.sh` looks them up in `docs/PLAN.md`, not the corpus — **archive those three rows and it goes red**; keep them, or make the retargeting of that falsifier part of the recommendation. Take the 2026-09-27 and 2026-09-28 status-log days out of `## Position` (APPEND to `status-log-2026-09-27.md`; open `status-log-2026-09-28.md`), and move closed step prose (4.6, the closed parts of 5, 5R-f/g, 6, 7a/b/d) to an archive file. Keep the two obligation blocks, every open row, Step 8 and the working agreement. `plan-corpus.sh`, `split-coverage.sh` and their falsifiers stay green. **Then list every guard that protects only a document from another document, with its runtime, and park ONE recommendation in ⛔ DECISIONS OWED about which to retire — retire nothing yet.** **Target: under 2,000 lines, Position under 600.** Update `CLAUDE.md`'s archive table by listing the directory | `M` | `8a` |
 | **8c** | ✅ **DONE 2026-09-29** — 57 KB to 14 KB across both files. **`CLAUDE.md` and `app/CLAUDE.md`, rules only.** Keep what a session must obey (the non-negotiables, migrations, deploy, merge rule, domain words, graphify rules) and the pointers; drop the story of each number's corrections. Numbers that decay are replaced by the one-liner that measures them. **Target: each under 12 KB.** | `S` | `8b` |
 | **8d** | ✅ **DONE 2026-09-29** — 17 branches, 34 graph backups (50 MB), 1 memory; see the log. **Housekeeping outside the documents.** Delete remote branches whose PR is MERGED (from `gh pr list --state merged`, never a guess) and the stale local ones; prune `graphify-out/` snapshot folders; run `graphify update .` and record the node count; read the assistant's memory index and delete or correct memories that are no longer true. **List first, then delete only what was listed.** | `S` | `8c` |
-| **8e** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
-| **8f** | **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`, not now** | **size it** | `8e` |
+| **8e** | ✅ **DONE 2026-09-29** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
+| **8f** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`** (its entry) | `L`; `XL` with dark mode | `8e` |
 
 ⚠️ **Not in the day, and on purpose**: `5R-a` is the owner's to do (enrolment), and the
 **4 October re-deploy** in ⏳ DATES OWED still stands — with `5R-a`/`5R-b` done it disappears for good.

@@ -44,3 +44,30 @@ the live plan or one of three new archives (checked by line multiset, zero missi
 append**: it was already whole in its archive. ⚠️ **One guard edited, not weakened**:
 `4.6a-split-coverage-falsify.sh` copied `docs/PLAN.md` and mutated Step 4.6's text; it now copies the
 corpus, and its eleven fixtures behave. The one decision it parked was ruled the same day (above).
+
+---
+
+⚠️ **Third cut, appended by `8e`** — `8c`'s closing entry, unedited.
+
+✅ **`8c` IS DONE, 2026-09-29 — `8d` was next.** `CLAUDE.md` **28,876 →
+9,336 bytes**, `app/CLAUDE.md` **29,433 → 4,713** (`wc -c`; target 12 KB each): rules and pointers only,
+and every count replaced by the command that measures it (a new one lists CI jobs by name). ⚠️ **Two
+stale claims found and not carried over**: *no module queries `product_velocity_daily`* (`sales.ts` and
+`prices.ts` both do) and `db.yml`'s filter as described (it also fires on root `package*.json` and
+`app/src/lib/supabase.ts`). The day's two oldest entries moved to `status-log-2026-09-29.md`.
+
+⚠️ **And `8d`'s closing entry, in the same cut.**
+
+✅ **`8d` IS DONE, 2026-09-29 — `8e` was next.** Listed first, then only the
+list deleted. **Remote branches 10** (every one's tip = its merged PR's head): `0004-inventory`,
+`0005-allocation`, `5d-ii-productos`, `5e-ii-agregar`, `5e-ii-search-first`, `5f-iii-b-slide-and-first-write`,
+`ci-cleanup-not-reset`, `docs-handbook-looking-around`, `task-4e-ii-void-fence`,
+`working-agreement-automerge`; **local 7**, the same names that existed here. ⚠️ **Kept on purpose**:
+`5e-iii-a-catalog-edit` — its tip `cb0e29a` (*Editar is drawn*) is closed PR #185's head, not merged #184's,
+so it holds work `main` never took — and `docs/adr-035-client-stack-review`, which has no PR (it is an
+ancestor of `main`, so deleting it would lose nothing; the owner's call). **Graph backups 34 of 35**
+(`graphify-out/2026-08-14`…`2026-09-28`, 50 MB, written by graphify before each rebuild and read by
+nothing); today's kept as the restore point. **Graph: 4,352 nodes, 8,580 edges, 1,500 from `docs/`**
+(`graph.json`, current, no node from a deleted file). **Memory 85 → 84**: deleted
+`fixture-must-edit-the-non-owning-row` (its only subject was a retired harness); corrected seven that
+named retired checks or stale numbers. The 2026-09-29 ruling and `8b` entries moved to the day's archive.
