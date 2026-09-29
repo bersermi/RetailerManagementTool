@@ -295,10 +295,8 @@
   `docs/PLAN.md` rather than edited here**, because this document is amended by decision
   and a sizing session is not one; the decision maker then instructed the amendment.
   ⚠️ **No schema is applied by this revision**, and the eight rulings are unchanged — only
-  where each of them becomes append-only. ✅ **The claim is now GUARDED across three
-  files** (`docs/checks/4.6a-split-coverage.sh`): this document, `docs/PLAN.md` and
-  `supabase/README.md` must agree on which task owns `0027`–`0031`, so the next split
-  cannot leave this sentence behind a second time.
+  where each of them becomes append-only. The three-file guard over it
+  (`4.6a-split-coverage.sh`) was retired by the owner 2026-09-29, with `4.6a` closed.
 - **Revised:** 2026-09-13 (second entry this date) — **§2.7 and decision register
   #9 amended, on the decision maker's instruction**, to carry **C11.5 / C11.6**: the
   joiner enters a **workspace code**, **requests** access, and is **approved**, and an

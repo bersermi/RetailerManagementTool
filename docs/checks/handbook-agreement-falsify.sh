@@ -324,6 +324,20 @@ fixture() {
   fi
 }
 
+# ⚠️ H1, H2, H4 AND H10 BUILD THEIR OWN ROWS (id `8z`, which exists nowhere else) rather than
+# anchoring on real ones: until 2026-09-29 they read the `5b.8` and `5b-ii-b-2` rows,
+# which kept seven closed rows in the live plan for this harness alone (`8b`).
+split_parent() {  # $1 = the handbook's state cell for the split parent
+  printf '%s\n' "| **8z** | a fixture parent, and it is NO LONGER TAKEABLE | \`S\` | — |" >> "$WORK/plan.md"
+  printf '%s\n' "| **8z** | a fixture job | $1 |" >> "$WORK/book.md"
+}
+done_chain() {    # $1 = the grandchild's state; the parent is credited only through it
+  printf '%s\n' "| **8z** | a fixture parent, split | \`S\` | — |" \
+                "| **8z-i** | ✅ **DONE 2026-01-02** | \`S\` | — |" \
+                "| **8z-ii** | a fixture child, split again | \`S\` | — |" \
+                "| **8z-ii-a** | $1 | \`S\` | — |" >> "$WORK/plan.md"
+  printf '%s\n' "| **8z** | a fixture job | ✅ **Done 2 January** |" >> "$WORK/book.md"
+}
 fresh() { cp "$PLAN" "$WORK/plan.md"; cp "$BOOK" "$WORK/book.md"; }
 guard() { [[ $? -eq 0 ]] || { echo "FAIL: fixture setup failed"; fails=$((fails+1)); }; }
 
@@ -338,7 +352,7 @@ fixture "H0 control, both files unedited" green ""
 
 # --- H1. a handbook row the plan has never heard of ------------------------
 fresh
-mutate_row book.md "5b.8-iii" "| **5b.8-iii** |" "| **5b.9-zz** |"
+printf '%s\n' "| **8y** | a fixture job | **Coming** |" >> "$WORK/book.md"
 guard
 fixture "H1 a handbook row for a task not in the plan" red "neither a row nor a step"
 
@@ -346,7 +360,8 @@ fixture "H1 a handbook row for a task not in the plan" red "neither a row nor a 
 # ⚠️ THE DEFECT OF 2026-09-14 TO 2026-09-18, EXACTLY: `5b-ii-b-2`'s row told the
 # owner his next job was a task that had already shipped.
 fresh
-mutate_row book.md "5b-ii-b-2" "✅ **Done 2026-09-18**" "**Coming up next**"
+printf '%s\n' "| **8z** | ✅ **DONE 2026-01-02** | \`S\` | — |" >> "$WORK/plan.md"
+printf '%s\n' "| **8z** | a fixture job | **Coming up next** |" >> "$WORK/book.md"
 guard
 fixture "H2 the plan says done, the handbook does not" red "is DONE and the handbook does not"
 
@@ -360,7 +375,11 @@ fixture "H3 the handbook claims done and the plan does not" red "crediting him"
 
 # --- H4. a split parent presented as one job ------------------------------
 fresh
-mutate_row book.md "5b.8" "**Split into three on 2026-09-18**" "**Coming after inviting works**"
+split_parent "**Split in two**"
+guard
+fixture "H4a a split parent described as split" green ""
+fresh
+split_parent "**Coming after the rest**"
 guard
 fixture "H4 a split parent not described as split" red "no longer takeable"
 
@@ -408,33 +427,21 @@ guard
 fixture "H9 the two files point at different next tasks" red "and the handbook points at"
 
 # --- H10. ⚠️⚠️ THE RECURSION FIXTURE -------------------------------------
-# `5b-ii-b` is done ONLY because both its children are; `5b-ii` is done only
-# because `5b-ii-b` is. Un-done ONE grandchild — in the row AND in the status
-# log, because the guard consults both — and the whole chain above it must stop
-# counting as finished, which turns the handbook's two "Done" rows into the worse
-# direction. ⚠️ IF THE CHILD WALK EVER STOPS RECURSING THIS FIXTURE GOES GREEN
-# while the guard still passes its control, which is exactly how a check rots
-# into a no-op.
+# `8z` is done only because `8z-i` and `8z-ii` are, and `8z-ii` only because
+# `8z-ii-a` is. Un-done that grandchild and the handbook's "Done" row for `8z` must
+# go red. ⚠️ IF THE CHILD WALK EVER STOPS RECURSING, H10 GOES GREEN.
 fresh
-python3 - "$WORK/plan.md" <<'PY'
-import io,sys
-p=sys.argv[1]
-lines=io.open(p,encoding="utf-8").readlines()
-hits=0
-for n,l in enumerate(lines):
-    if l.startswith("| **5b-ii-b-2** |") or "`5b-ii-b-2` IS DONE AS OF" in l:
-        before=l
-        l=l.replace("IS DONE AS OF","IS UNDERWAY AS OF").replace("✅ **DONE","**UNDERWAY")
-        if l!=before: lines[n]=l; hits+=1
-assert hits>0, "no 5b-ii-b-2 done-claim found to break — fixture void"
-io.open(p,"w",encoding="utf-8").writelines(lines)
-PY
+done_chain "✅ **DONE 2026-01-02**"
+guard
+fixture "H10a a closed chain, parent credited through its children" green ""
+fresh
+done_chain "**UNDERWAY 2026-01-02**"
 guard
 fixture "H10 one grandchild un-done breaks the whole chain" red "crediting him"
 
 echo
-if (( fails == 0 && ran < 11 )); then
-  echo "FAIL: only $ran fixtures ran, expected 11 — this harness proved almost nothing."
+if (( fails == 0 && ran < 13 )); then
+  echo "FAIL: only $ran fixtures ran, expected 13 — this harness proved almost nothing."
   exit 1
 fi
 if (( fails == 0 )); then
