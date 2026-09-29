@@ -99,8 +99,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8a** | **The handbook, rewritten short** — this file | ✅ **Done 29 September** — 1,229 lines down to this; the rest moved to the archive |
 | **8b** | **The live plan, cut to what is live** | ✅ **Done 29 September** — 5,573 lines to 420 |
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ✅ **Done 29 September** — 57 KB to 14 KB |
-| **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ⚠️ **This is where the next piece of work is** — listed first, then deleted |
-| **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | **Read-only**, published as a page you can open on your phone |
+| **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
+| **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ⚠️ **This is where the next piece of work is** — read-only |
 | **8f** | **The design pass, with you** | **Wednesday 30 September** — sized by `8e`, and every choice about what a shopkeeper sees is yours |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
