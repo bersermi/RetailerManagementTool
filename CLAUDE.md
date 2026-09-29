@@ -22,29 +22,21 @@ bash docs/checks/plan-handover.sh
 status board, and a task id here is exactly that — it would be one more claim nothing checks
 (see below), going stale the day the task closes.
 
-## The plan is eleven files, and only one of them is live
+## The plan is fifteen files, and only one of them is live
 
-⚠️ **`docs/PLAN.md` is the LIVE plan and the only one you edit.** On 2026-09-19 it had
-reached 14,998 lines / ~313k tokens — **larger than a context window** — so closed work
-moved to `docs/plan/archive/`, unedited and verified byte-identical on reconstruction.
-⚠️ **This heading said *three files* until 2026-09-25, while the table under it listed
-ten** — the same defect as the two missing rows below, in the line a cleared session
-reads first:
+⚠️ **`docs/PLAN.md` is the LIVE plan and the only one you edit.** Closed work moves to
+`docs/plan/archive/`, unedited. **Listed 2026-09-29 by `8b`** (`ls docs/plan/archive/*.md` — the
+`handbook/` subfolder is deliberately outside the glob, so its old rows are not read as second copies):
 
 | File | Status | Edit it? |
 |---|---|---|
-| `docs/PLAN.md` | **LIVE** — `## Position` (the two obligation blocks and the current day's status log), the ADR-disagreement gate, Step 4.6, **Step 5 — the client, which is the live step** — then 5R, 6, 7, 5P and *The other edges*, and the working agreement | Yes |
+| `docs/PLAN.md` | **LIVE** — `## Position` (the two obligation blocks and the current day's status log), the open rows of Steps 5, 5R, 7 and 5P, Step 8, *The other edges*, and the working agreement | Yes |
 | `docs/plan/archive/steps-0-to-4.5.md` | Closed steps 0–4.5 | Only to move a section back |
+| `docs/plan/archive/steps-4.6-to-7.md` | Step 4.6, Step 5's prose and closed rows, Step 6, and the closed rows of 5R, 7 and 5P (`8b`, 2026-09-29) | Only to move a section back |
+| `docs/plan/archive/position-history-through-2026-09-29.md` | Rulings 1–45 with their briefs, the ticked dates, and archive cuts 1–27 | Only to move an entry back |
 | `docs/plan/archive/status-log-through-2026-09-18.md` | Status-log entries for 2026-09-18 and earlier | Only to move an entry back |
-| `docs/plan/archive/status-log-2026-09-19.md` | The whole 2026-09-19 working day | Only to move an entry back |
-| `docs/plan/archive/status-log-2026-09-20.md` | The whole 2026-09-20 working day | Only to move an entry back |
-| `docs/plan/archive/status-log-2026-09-21.md` | The whole 2026-09-21 working day — the `5a-iv-d` day-8 reading | Only to move an entry back |
-| `docs/plan/archive/status-log-2026-09-22.md` | **The 2026-09-22 working day, FIRST CUT** — ⚠️ the first archive taken from a day still running, because there was no older day left to take. **A later session APPENDS to it; never a second file for the same date** | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-23.md` | The whole 2026-09-23 working day | Only to move an entry back |
-| `docs/plan/archive/status-log-2026-09-24.md` | **The 2026-09-24 working day** — the second file ever opened for a day still running, and the busiest day this project had had at the time (2026-09-25 has since passed it). ⚠️ **SEVEN cuts have been appended to it** — the seventh on 2026-09-25, when `5g-iii` found that `5g.5` and `5g-i` had been left in the live plan by all six earlier cuts, which is the rule above being obeyed | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-26.md` | **The 2026-09-26 working day, NOW WHOLE — three cuts.** ⚠️⚠️ **THIS ROW DID NOT EXIST UNTIL 2026-09-27 AND THE PARAGRAPH BELOW SAID IN WORDS THAT THE FILE DID NOT EITHER** — *"There is no `docs/plan/archive/status-log-2026-09-26.md` yet"* — true when written that evening and false by 02:41 the next morning. **`6a-ii-a` found it by listing the directory**, which is the third time this table has been corrected that way and is exactly what the warning under it asks for. The first cut held four entries, the second took `5h-ii-b` and `5g-iii-b`, and the third (`6a-ii-a`, 225 lines) took `5h.5` and `5h-ii-c` and emptied the day out of the live plan | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-27.md` | **The 2026-09-27 working day, FIRST CUT — the fifth file ever opened for a day still running.** Taken by `6a-ii-b` before it wrote a line, because `## Position` stood at **1,290 of 1,400** — *110 lines of headroom against an entry that runs 40–130*, which is enough to pass and not enough to write with. ⚠️ **It is `6a-ii-a`'s own note in this file being obeyed**: *the next session should expect to take a cut before it can write its own.* It holds the day's two oldest entries — `6a-ii`'s sizing and split, and `6a-i`'s closing entry — **263 lines**. ⚠️ **A later session APPENDS to it; never a second file for the same date.** ⚠️⚠️ **`6b` DID NOT APPEND, AND THAT IS RECORDED HERE SO THE NEXT SESSION KNOWS THE DAY IS STILL RUNNING IN THE LIVE PLAN**: it inherited 245 lines of headroom, spent 82, and left Position at **1,237 of 1,400** — 163 lines, which is enough to pass and probably not enough to write with. **The next cut appends to THIS file** | Only to move an entry back, or to append a later cut of the same day |
-| `docs/plan/archive/status-log-2026-09-25.md` | **The 2026-09-25 working day, NOW WHOLE — two cuts.** The busiest day this project has had. The first cut held its first four entries and the 23rd–26th owner rulings, including the first migration to widen a cost fence and the day `Comprar` shipped. ✅✅ **THE SECOND CUT LANDED 2026-09-26, APPENDED, AND IT IS THIS TABLE'S OWN PREDICTION COMING TRUE**: the row used to warn that the day *"RAN ON PAST THE CUT"* and named `5g-iii-a`, the parked `R9` reading and the 27th and 28th rulings as still live. ⚠️ **It was right about the need and short by three blocks about the size** — `5f.5` and `5g-iii` closed that day too, so **six blocks / 415 lines** came out rather than three. ⚠️ **Appended, never a second file for one date** | Only to move an entry back, or to append a later cut of the same day |
+| `docs/plan/archive/status-log-<date>.md` | One working day per file, **2026-09-19 through 2026-09-28** (ten files). A later cut of the same day **APPENDS**; never a second file for one date, never a rename | Only to move an entry back, or to append a later cut of the same day |
+
 
 ⚠️⚠️ **THIS TABLE IS READ BY NO CHECK, AND ON 2026-09-25 IT WAS MISSING TWO FILES** —
 `status-log-2026-09-23.md` and `status-log-2026-09-24.md`, both of which had existed for a
@@ -87,36 +79,10 @@ defect this repository has had six of; `split-coverage.sh` fails on *"row appear
 times"*, and it reads the corpus, so it sees both copies.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
-at 1,400 — and names the remedy in the failure. **Measured 2026-09-27 after `6d` TOOK A CUT: 5,359 lines
-total, 1,140 in Position, all 11 assertion groups green** (`bash docs/checks/plan-handover.sh`
-prints both numbers and the next task id). ⚠️⚠️ **THAT IS 260 LINES OF HEADROOM AGAINST AN ENTRY
-THAT RUNS 40–130, SO THE NEXT SESSION NEED NOT ARCHIVE FIRST** — the first time in three sessions this
-line has been able to say so. ⚠️⚠️ **`6d` TOOK THE CUT AT THE END RATHER THAN THE START, AND THAT IS
-WORTH INHERITING: it wrote its entry, measured 1,318 of 1,400 — 82 lines, BELOW the whole 40–130 range
-rather than inside it — and cut then.** Cutting at the start would have been cheaper to reason about;
-cutting at the end is what the arithmetic actually demanded, because the entry is what consumed the
-room. ⚠️⚠️ **AND THAT CUT SWALLOWED AN OPEN OBLIGATION ON ITS FIRST PASS AND HAD TO BE REPAIRED** —
-the install block naming the Wi-Fi blocker, which the previous cut had deliberately left behind and
-said so in one sentence. **A line range is not a semantic boundary and nothing checks this.** The test
-to apply before a cut: *is this block indexed anywhere else?* A closed row's look-question is (the
-handbook's catch-up); an open blocker is not. **The cap is a
-tripwire and the cheapest moment to trip it is the start of a session, not the middle of one.**
-~~245 lines of headroom, the first time in four sessions this line has been able to say the next one
-need not archive first.~~
-⚠️⚠️ **THE PARAGRAPH THIS REPLACES SAID `status-log-2026-09-26.md` DID NOT EXIST, AND IT HAD
-EXISTED SINCE 02:41 THAT MORNING** — the stale-claim defect in the file that spends its whole
-length warning about it, which is why the table above now carries a row for that day.
-Position reached 5,484 lines at one or two status-log entries per session, with nobody deciding
-to; **cuts have now been taken across ELEVEN archive files** — `ls docs/plan/archive/*.md | wc -l`,
-re-measured 2026-09-27 after `6b` and **still eleven, because `6b` took no cut** — **and the great
-majority by a session that wanted to be writing something else.**
-⚠️⚠️ **THE RUNNING TOTAL THAT USED TO SIT HERE IS DELIBERATELY GONE RATHER THAN BUMPED.** It said
-*twenty-one across ten*, and the plan's own bookkeeping already named a TWENTY-FOURTH — **two counters
-for one thing, and the one nothing checks was the one that was wrong.** The ordinal belongs to the
-archive bookkeeping in `## Position`, which is where each cut writes itself down; the FILE count belongs
-here because a one-liner re-measures it. ⚠️ **The cap is the SECOND assertion numbered 7 in that script** —
-there are two, so `grep -n READABLE docs/checks/plan-handover.sh` finds it and the number
-does not.
+at 1,400 — and names the remedy in the failure. `bash docs/checks/plan-handover.sh` prints both
+numbers; **do not copy them here** — they decay, and this file is read by no check. ⚠️ Before a cut,
+ask *is this block indexed anywhere else?* A line range is not a semantic boundary. The cap is the
+second assertion numbered 7: `grep -n READABLE docs/checks/plan-handover.sh`.
 
 ⚠️ **Never archive the `⛔ DECISIONS OWED` or `⏳ DATES OWED` blocks**: the same check
 requires exactly one of each in the LIVE plan.
