@@ -952,3 +952,19 @@ write-off row **with no peso figure at all** reads as finished or as broken. And
 belongs **under the date**, where a supplier's name sits on a delivery, or on each line.
 **None of it can be looked at until the install lands.** ⚠️⚠️ **AND `6a-ii-b` HAS ADDED TO THAT
 LIST RATHER THAN CLEARING IT** — two rows of Desperdicio work are now waiting on one install.
+
+---
+
+**FIFTH CUT of 2026-09-27 — appended by `8a` on 2026-09-29.** The two struck next-task headers below were left in `## Position` when the day was otherwise archived whole; moved unedited.
+
+~~`7a` is the next task, as of 2026-09-27 — números, and it is the first time the marker has
+left step 6.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** *What am I selling, and what did it bring in* over `product_velocity_daily` — a view
+`0013`/`0014` created and `0031` replaced, and which **no module in `app/src/api/` queries**: the
+only mention of it anywhere under `app/src/` is a COMMENT in `@/api/today` about timezone
+bucketing, which is a sentence and not a read. ⚠️ **Its gate is `5h`, closed 2026-09-26** —
+so it is ungated by id; the other half of that cell is prose and is the thing to weigh before
+starting: *"and a shop with real rows in it"*. **Step 6 has no takeable row left**: `6a` and `6a-ii`
+are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all closed.
+~~`6d` is the next task, as of 2026-09-27 — the catalog that survives a cold start, and it is ungated~~ — ⚠️ **struck in lower case
+deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough
+is only a rendering.**
