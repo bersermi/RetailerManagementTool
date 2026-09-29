@@ -23,7 +23,8 @@
 set -uo pipefail
 
 CHECK="docs/checks/4.6a-split-coverage.sh"
-PLAN="docs/PLAN.md"
+# The corpus, not docs/PLAN.md: Step 4.6 moved to docs/plan/archive/ on 2026-09-29 (8b).
+PLAN="$(bash docs/checks/plan-corpus.sh)" || { echo "FAIL: could not assemble the plan corpus"; exit 1; }
 DBDOC="supabase/README.md"
 # ⚠️ THE THIRD FILE, ADDED 2026-09-13 when the owner amended ADR-035 and the guard
 # grew an assertion over it. A harness that only copies two of the three files the
@@ -187,5 +188,5 @@ if (( ran < 11 )); then
   echo "FAIL: only $ran fixtures ran, expected 11."
   exit 1
 fi
-echo "all $ran fixtures behaved as recorded in docs/PLAN.md — the guard fails on each"
+echo "all $ran fixtures behaved as recorded — the guard fails on each"
 echo "defect it claims to catch, and each failure names that defect."
