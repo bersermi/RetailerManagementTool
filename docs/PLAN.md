@@ -734,7 +734,9 @@ caution, it is the defect assertion 7c shipped with: the unbounded version swall
 falsification table beneath it and refused a legitimate task. **Every table-reading
 assertion in this file now bounds its region.**
 
-⚠️⚠️ **`8a` IS THE NEXT TASK, AS OF 2026-09-29 — THE OWNER TURNED THE PROJECT FROM *BUILD* TO *BETA*,
+✅ **`8a` IS DONE, 2026-09-29 — `8b` IS THE NEXT TASK.** The handbook is **299 lines / 15.9 KB, from 1,229 / 265 KB** (`wc -lc`): what the app does, what is on his phone, the screens only he can judge, the day's jobs, the dates, both prompts verbatim. The old file moved **whole** to `docs/plan/archive/handbook/` (see the `8a` row for why a subfolder). `handbook-agreement.sh` 5 of 5 and its falsifier 11 of 11. Two struck 2026-09-27 headers went to that day's archive.
+
+⚠️⚠️ **`8a` was the next task, AS OF 2026-09-29 — THE OWNER TURNED THE PROJECT FROM *BUILD* TO *BETA*,
 AND 2026-09-29 IS A CLEANING DAY.** His words, after midnight: *"We have an Alpha already then, I want
 to start improving the App design and the overall UI … to get to a beta and publish our MVP afterwards
 both in iOS and Android"* — design work is booked for **Wednesday 2026-09-30**, and *"for this whole day
@@ -996,18 +998,6 @@ as a fortnight or a comb; whether the tapped bar is findable with a thumb; wheth
 right switch to open on; whether a family row reading a dash for quantity (C8.5 — kilos and pieces
 in one family) is understood. **The build on his phone predates this and the install path is still
 blocked on the Wi-Fi reachability recorded below.**
-
-~~`7a` is the next task, as of 2026-09-27 — números, and it is the first time the marker has
-left step 6.~~ — ⚠️ **struck in lower case deliberately, the rule `5b.8-i`'s row records.** *What am I selling, and what did it bring in* over `product_velocity_daily` — a view
-`0013`/`0014` created and `0031` replaced, and which **no module in `app/src/api/` queries**: the
-only mention of it anywhere under `app/src/` is a COMMENT in `@/api/today` about timezone
-bucketing, which is a sentence and not a read. ⚠️ **Its gate is `5h`, closed 2026-09-26** —
-so it is ungated by id; the other half of that cell is prose and is the thing to weigh before
-starting: *"and a shop with real rows in it"*. **Step 6 has no takeable row left**: `6a` and `6a-ii`
-are split parents, and `6a-i`, `6a-ii-a`, `6a-ii-b`, `6b`, `6c` and `6d` are all closed.
-~~`6d` is the next task, as of 2026-09-27 — the catalog that survives a cold start, and it is ungated~~ — ⚠️ **struck in lower case
-deliberately, the rule `5b.8-i`'s row records: `plan-handover.sh` reads the raw line and a strikethrough
-is only a rendering.**
 
 ⚠️⚠️ **AND 2026-09-27 HAS NOW BEEN CUT FOUR TIMES AND IS WHOLE IN ITS ARCHIVE — THE TWENTY-SEVENTH CUT
 OVERALL, APPENDED BY `7b` AFTER IT WROTE ITS ENTRY.** Position stood at **1,403 of 1,400** — over the
@@ -5441,8 +5431,8 @@ before the plan archives them.
 
 | Task | What it is | Size | Gate |
 |---|---|---|---|
-| **8a** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The handbook, rewritten for its reader.** One short file: what the app does today, what is on his phone, what is waiting on him, how a session goes (both prompts), the dates. The stale catch-up goes; the history moves to `docs/plan/archive/handbook-through-2026-09-29.md` — a MOVE. Keep `handbook-agreement.sh` green (its three sentinels stay, each exactly once). **Target: under 300 lines.** | `S/M` | — |
-| **8b** | **The live plan, cut to what is live.** Take the 2026-09-27 and 2026-09-28 status-log days out of `## Position` (APPEND to `status-log-2026-09-27.md`; open `status-log-2026-09-28.md`), and move closed step prose (4.6, the closed parts of 5, 5R-f/g, 6, 7a/b/d) to an archive file. Keep the two obligation blocks, every open row, Step 8 and the working agreement. `plan-corpus.sh`, `split-coverage.sh` and their falsifiers stay green. **Then list every guard that protects only a document from another document, with its runtime, and park ONE recommendation in ⛔ DECISIONS OWED about which to retire — retire nothing yet.** **Target: under 2,000 lines, Position under 600.** Update `CLAUDE.md`'s archive table by listing the directory | `M` | `8a` |
+| **8a** | ✅ **DONE 2026-09-29** — 1,229 lines / 265 KB to 299 / 16 KB; the old file moved whole to `docs/plan/archive/handbook/handbook-through-2026-09-29.md` (a subfolder: in `docs/plan/archive/` itself `plan-corpus.sh` would read its task rows as second copies and `split-coverage` goes red — measured). **The handbook, rewritten for its reader.** One short file: what the app does today, what is on his phone, what is waiting on him, how a session goes (both prompts), the dates. The stale catch-up goes; the history moves to `docs/plan/archive/handbook-through-2026-09-29.md` — a MOVE. Keep `handbook-agreement.sh` green (its three sentinels stay, each exactly once). **Target: under 300 lines.** | `S/M` | — |
+| **8b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The live plan, cut to what is live.** ⚠️ **The handbook still names `5b-ii-b-2`, `5b.8` and `5b.8-iii`** because `handbook-agreement-falsify.sh` hard-codes them, and `handbook-agreement.sh` looks them up in `docs/PLAN.md`, not the corpus — **archive those three rows and it goes red**; keep them, or make the retargeting of that falsifier part of the recommendation. Take the 2026-09-27 and 2026-09-28 status-log days out of `## Position` (APPEND to `status-log-2026-09-27.md`; open `status-log-2026-09-28.md`), and move closed step prose (4.6, the closed parts of 5, 5R-f/g, 6, 7a/b/d) to an archive file. Keep the two obligation blocks, every open row, Step 8 and the working agreement. `plan-corpus.sh`, `split-coverage.sh` and their falsifiers stay green. **Then list every guard that protects only a document from another document, with its runtime, and park ONE recommendation in ⛔ DECISIONS OWED about which to retire — retire nothing yet.** **Target: under 2,000 lines, Position under 600.** Update `CLAUDE.md`'s archive table by listing the directory | `M` | `8a` |
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only.** Keep what a session must obey (the non-negotiables, migrations, deploy, merge rule, domain words, graphify rules) and the pointers; drop the story of each number's corrections. Numbers that decay are replaced by the one-liner that measures them. **Target: each under 12 KB.** | `S` | `8b` |
 | **8d** | **Housekeeping outside the documents.** Delete remote branches whose PR is MERGED (from `gh pr list --state merged`, never a guess) and the stale local ones; prune `graphify-out/` snapshot folders; run `graphify update .` and record the node count; read the assistant's memory index and delete or correct memories that are no longer true. **List first, then delete only what was listed.** | `S` | `8c` |
 | **8e** | **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
