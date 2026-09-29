@@ -100,8 +100,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8b** | **The live plan, cut to what is live** | ✅ **Done 29 September** — 5,573 lines to 420 |
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ✅ **Done 29 September** — 57 KB to 14 KB |
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
-| **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ⚠️ **This is where the next piece of work is** — read-only |
-| **8f** | **The design pass, with you** | **Wednesday 30 September** — sized by `8e`, and every choice about what a shopkeeper sees is yours |
+| **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
+| **8f** | **The design pass, with you** | ⚠️ **This is where the next piece of work is** — Wednesday |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
