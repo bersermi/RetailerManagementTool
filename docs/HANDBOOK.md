@@ -97,12 +97,12 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | Job | What | State |
 |---|---|---|
 | **8a** | **The handbook, rewritten short** — this file | ✅ **Done 29 September** — 1,229 lines down to this; the rest moved to the archive |
-| **8b** | **The live plan, cut to what is live** | ⚠️ **This is where the next piece of work is** — paste the Cleaning Prompt below |
-| **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | **After the plan** — the story of each number's corrections goes |
+| **8b** | **The live plan, cut to what is live** | ✅ **Done 29 September** — 5,573 lines to 420 |
+| **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ⚠️ **This is where the next piece of work is** — paste the Cleaning Prompt |
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | **After `CLAUDE.md`** — listed first, then deleted |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | **Read-only**, published as a page you can open on your phone |
 | **8f** | **The design pass, with you** | **Wednesday 30 September** — sized by `8e`, and every choice about what a shopkeeper sees is yours |
-| **—** | ✅ **Nothing is waiting on YOU** — as of 28 September, when you answered the last five questions in one day. A new one would appear here and in the plan's ⛔ DECISIONS OWED block | — |
+| **—** | ⚠️ **One question is waiting on YOU**: may the checks that only keep old plan splits consistent be retired? I recommend yes; `8d` waits on it | ⛔ DECISIONS OWED |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
