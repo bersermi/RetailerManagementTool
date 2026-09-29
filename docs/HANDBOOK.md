@@ -102,7 +102,7 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | **After `CLAUDE.md`** — listed first, then deleted |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | **Read-only**, published as a page you can open on your phone |
 | **8f** | **The design pass, with you** | **Wednesday 30 September** — sized by `8e`, and every choice about what a shopkeeper sees is yours |
-| **—** | ⚠️ **One question is waiting on YOU**: may the checks that only keep old plan splits consistent be retired? I recommend yes; `8d` waits on it | ⛔ DECISIONS OWED |
+| **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -111,15 +111,6 @@ the alpha is declared, and the work turns to design toward a beta and the stores
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program + Play Console — your action), `5R-b` (TestFlight), `5R-c` account deletion
 (a store requirement) and `5R-d` the *aviso de privacidad*.
-
-Three finished jobs stay listed here only because the handbook check tests itself
-by editing them (`handbook-agreement-falsify.sh`):
-
-| Job | What | State |
-|---|---|---|
-| **5b-ii-b-2** | Them joining: typing the code on their own phone | ✅ **Done 2026-09-18** |
-| **5b.8** | Showing the name in the list of people | ✅ **Done 2026-09-19** — **Split into three on 2026-09-18** |
-| **5b.8-iii** | Letting somebody fix their own name | ✅ **Done 2026-09-19** — split in two |
 
 ---
 

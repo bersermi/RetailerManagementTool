@@ -69,14 +69,12 @@ policy to hold them.
 grep -n '<task-id>' "$(bash docs/checks/plan-corpus.sh)"
 ```
 
-`plan-corpus.sh` assembles live + archive into one file, and it is what every split guard
-already reads — so a task row resolves from the archive exactly as it did before the cut.
-Every plan lookup here is **content-addressed** (`| **task** |`), never by line number,
-which is the property that made archiving possible at all.
+`plan-corpus.sh` assembles live + archive into one file, so a task row resolves from the
+archive by content (`| **task** |`), never by line number.
 
 ⚠️ **Moving something back is a MOVE, never a copy.** Two homes for one claim is the
-defect this repository has had six of; `split-coverage.sh` fails on *"row appears 2
-times"*, and it reads the corpus, so it sees both copies.
+defect this repository has had six of, and **since the split guards were retired
+(2026-09-29) nothing checks it** — grep the corpus for the row before and after a move.
 
 ⚠️ **`plan-handover.sh` caps the size** — `docs/PLAN.md` at 6,000 lines and `## Position`
 at 1,400 — and names the remedy in the failure. `bash docs/checks/plan-handover.sh` prints both

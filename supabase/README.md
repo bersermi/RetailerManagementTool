@@ -351,9 +351,7 @@ it:**
   still being where they are handed out from. **Found 2026-09-13 by the session that had to
   hand out three of them**, and it is the SEVENTH stale-copy defect recorded in this
   repository: the first outside `docs/`, and the first in a file no check had ever read.
-  ✅ **The correction below is GUARDED rather than trusted** —
-  `docs/checks/4.6a-split-coverage.sh` reads this list and fails if it slips back to
-  claiming the schema is finished
+  The guard that read this list (`4.6a-split-coverage.sh`) was retired 2026-09-29
 - ~~`0027` — `workspace.code`, the `workspace_invite` re-shape and the three membership
   helpers (**4.6a-i**)~~ — **APPLIED 2026-09-13**, see the table above, and it is the
   FIRST migration of step 4.6. ⚠️⚠️ **`4.6a` WAS SIZED `L` AND SPLIT THREE WAYS ON 2026-09-13,
@@ -442,7 +440,7 @@ it:**
   belongs to **step 5b, the client step**, because the column is what a roster screen needs
   and no earlier step knew a name existed. ✅ **That is not a sixth stale-copy defect
   repeating** — `0033`'s entry is DATED rather than called final, exactly so that a later
-  number does not make it a lie, which is the shape `4.6a-split-coverage.sh` refuses.
+  number does not make it a lie, which is the shape `4.6a-split-coverage.sh` refused.
   ⚠️ **The number was taken on the day it was written, not reserved**: `5b.8-iii` ships
   `set_my_display_name` and takes whatever is free when it is taken, because this file has
   twice recorded a reserved number that was never used. ✅ **It took `0035` on 2026-09-19,
