@@ -24,8 +24,8 @@ npm --prefix app test                     # the test tally — the RUNNER's, nev
 - **`app/src/ui/` primitives** (`R14`–`R16`): a component moves there only once a second module
   draws it; one component per file, named after the file, never `export default`; a difference
   between copies becomes a prop, and a difference nobody decided becomes a decision reported
-  to the owner. Three shapes are deliberately un-extracted (the filled button, the scrim, the
-  chosen pill) — their counts and why are in `docs/CONVENTIONS.md`; re-measure with its
+  to the owner. The filled button and the veil are `BotonLleno` and `Velo` since `8f`; the
+  chosen pill is still un-extracted — why is in `docs/CONVENTIONS.md`; re-measure with its
   predicate before extracting.
 - **A module in `app/src/api/` is a claim about the applied schema**, which is why `db.yml` fires
   on it. Its wire behaviour is proven only by the matching `docs/checks/*-contract.sh` against a
