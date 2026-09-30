@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useApproveRequest, useLocations, usePendingRequests } from '@/api/hooks';
@@ -16,6 +16,7 @@ import { formatWaiting } from '@/format/date';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
 // SOLICITUDES — WHO IS WAITING TO BE LET IN. Plan task `5b-iii-d-1`, and the
@@ -382,51 +383,15 @@ function Solicitud({
   );
 }
 
-/** A filled control with its word beside its icon (C12.1). `ajustes`' `Boton`,
- *  which is local to that file for the reason every component here is: §2.11
- *  puts rendering out of scope, so a shared component library is a thing no
- *  suite could check and no screen asked for yet. */
-function Boton({
-  icon,
-  label,
-  onPress,
-  busy = false,
-}: {
+/** A filled control with its word beside its icon (C12.1) — `src/ui/BotonLleno`
+ *  since `8f`; the icon is this screen's to choose. */
+function Boton(props: {
   icon: 'account-check' | 'check';
   label: string;
   onPress: () => void;
   busy?: boolean;
 }) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        backgroundColor: PALETTE.accionSuave,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        opacity: busy ? 0.6 : 1,
-      }}
-    >
-      {busy ? (
-        <ActivityIndicator color={PALETTE.accion} />
-      ) : (
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.accion} />
-      )}
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
+  return <BotonLleno {...props} />;
 }
 
 /**

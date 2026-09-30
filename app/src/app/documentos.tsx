@@ -33,6 +33,7 @@ import { Frase } from '@/ui/Frase';
 import { Interruptor } from '@/ui/Interruptor';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // LO ÚLTIMO — WHAT THE SHOP BOUGHT AND SOLD LATELY. Plan task `5h-ii-a`, and
@@ -637,18 +638,7 @@ function Confirmacion({
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          opacity: 0.4,
-          backgroundColor: PALETTE.velo,
-        }}
-      />
+      <Velo />
       <View
         style={{
           flex: 1,

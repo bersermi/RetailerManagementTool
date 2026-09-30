@@ -28,7 +28,9 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { Boton } from '@/ui/Boton';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { Deslizador } from '@/ui/Deslizador';
@@ -36,6 +38,7 @@ import { Frase } from '@/ui/Frase';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -329,7 +332,7 @@ export default function Vender() {
     bloom.setValue(0);
     const run = Animated.timing(bloom, {
       toValue: 1,
-      duration: 420,
+      duration: EMPTIED_BLOOM_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
@@ -544,7 +547,7 @@ function Fila({
         {entry.familyName === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
           >
             {entry.familyName}
           </Text>
@@ -563,7 +566,7 @@ function Fila({
           </Text>
           {/* ⚠️ `R11`: the hue never travels alone. */}
           {alarm ? (
-            <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
               {ES.sell.noPrice}
             </Text>
           ) : null}
@@ -575,7 +578,7 @@ function Fila({
           {big === '' ? null : (
             <Text
               numberOfLines={1}
-              style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
             >
               {big}
             </Text>
@@ -676,7 +679,7 @@ function Barra({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
             <Text
               style={{
-                fontSize: scale.bodySize * 0.85,
+                fontSize: scale.smallSize,
                 fontWeight: live ? '600' : '400',
                 color: live ? PALETTE.accion : PALETTE.tintaApagada,
               }}
@@ -702,7 +705,7 @@ function Barra({
             {basket === null ? ES.catalog.noPrice : formatMXN(basket.centavos)}
           </Text>
           {basket !== null && !basket.complete ? (
-            <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
               {ES.sell.someUnpriced}
             </Text>
           ) : null}
@@ -841,28 +844,9 @@ function Carrito({
             thumb reaching past the sheet for a row it can still see would
             dismiss it. He has the app in his hand and took the trade —
             tap-outside is what a sheet does, and `Cerrar` is still there.
-            ⚠️ THE VELO IS A SEPARATE VIEW UNDER AN `opacity` RATHER THAN A
-            TRANSLUCENT FILL ON THE CONTAINER: `opacity` on a parent dims its
-            children, so painting it on the wrapper would put the sheet itself
-            behind the dimming. ⚠️ And `R11` forbids a translucent literal by
-            name — the hue is a role, `PALETTE.velo`, and the translucency is a
-            number. The spelling is NOT repeated here: `conventions-gate.sh`
-            reads this file, and a comment quoting a check's sentinel turns it
-            red. */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.close}
-          onPress={onClose}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.4,
-            backgroundColor: PALETTE.velo,
-          }}
-        />
+            The veil itself is `src/ui/Velo` since `8f`; its header says why it
+            is a separate view. */}
+        <Velo label={ES.counter.cart.close} onPress={onClose} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}
@@ -1048,12 +1032,12 @@ function Renglon({
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
         >
           {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
         </Text>
         {row.centavos === null && !gone ? (
-          <Text style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}>
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
             {ES.sell.noPrice}
           </Text>
         ) : null}
@@ -1063,7 +1047,7 @@ function Renglon({
         {big === '' || (row.centavos === null && !gone) ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
           >
             {big}
           </Text>
@@ -1204,18 +1188,7 @@ function Confirmacion({
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          opacity: 0.4,
-          backgroundColor: PALETTE.velo,
-        }}
-      />
+      <Velo />
       <View
         style={{
           flex: 1,
@@ -1267,33 +1240,14 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
             NEXT ONE ALONE. This button's style was byte-identical to
             `documentos.tsx`'s — it is the third drawing that made `Boton` a
             primitive under `R14`, and the swap changes nothing a person sees.
-            **`Cancelar` below is a different shape**: filled `accionSuave`, no
-            border, weight 600. That one is drawn NINE times across EIGHT files and
-            has already drifted — seven carry `borderWidth: 1` and this one and
-            Comprar's do not — so collapsing it decides what a person sees on eight
-            screens at once. It is named in `docs/CONVENTIONS.md` with the count
-            and in `5h.5`'s entry, rather than smuggled in here. */}
+            `Cancelar` below is `src/ui/BotonLleno` since `8f`, which gave it the
+            border the other ten drawings had. */}
         <Boton
           label={ES.counter.cart.emptyConfirm}
           tone={PALETTE.error}
           onPress={onConfirm}
         />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.emptyCancel}
-          onPress={onCancel}
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: scale.space / 2,
-            backgroundColor: PALETTE.accionSuave,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.counter.cart.emptyCancel}
-          </Text>
-        </Pressable>
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
       </View>
     </>
   );
@@ -1364,14 +1318,14 @@ function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
     const run = Animated.sequence([
       Animated.timing(bloom, {
         toValue: 1,
-        duration: 260,
+        duration: DONE_IN_MS,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.delay(520),
+      Animated.delay(DONE_HOLD_MS),
       Animated.timing(bloom, {
         toValue: 0,
-        duration: 220,
+        duration: DONE_OUT_MS,
         easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),

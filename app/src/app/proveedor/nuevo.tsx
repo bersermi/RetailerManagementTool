@@ -1,8 +1,6 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
   Keyboard,
   Pressable,
   ScrollView,
@@ -25,6 +23,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { TecladoListo } from '@/ui/TecladoListo';
 
 // ============================================================================
@@ -397,43 +396,6 @@ function Nota({ line }: { line: string }) {
 
 /** The filled button. ⚠️ A tick and a word, never a glyph alone (C12.1). ⚠️ It is
  *  one of the NINE drawings `5h.5` left un-extracted on purpose — see that row. */
-function Guardar({
-  label,
-  onPress,
-  busy = false,
-}: {
-  label: string;
-  onPress: () => void;
-  busy?: boolean;
-}) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        backgroundColor: PALETTE.accionSuave,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        opacity: busy ? 0.6 : 1,
-      }}
-    >
-      {busy ? (
-        <ActivityIndicator color={PALETTE.accion} />
-      ) : (
-        <MaterialCommunityIcons name="check" size={scale.iconSize} color={PALETTE.accion} />
-      )}
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
+function Guardar(props: { label: string; onPress: () => void; busy?: boolean }) {
+  return <BotonLleno icon="check" {...props} />;
 }

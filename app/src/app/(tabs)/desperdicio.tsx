@@ -33,7 +33,9 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { Boton } from '@/ui/Boton';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { Deslizador } from '@/ui/Deslizador';
@@ -41,6 +43,7 @@ import { Frase } from '@/ui/Frase';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // DESPERDICIO — what the shop lost, and why. Plan task `6a-i`.
@@ -291,7 +294,7 @@ export default function Desperdicio() {
     bloom.setValue(0);
     const run = Animated.timing(bloom, {
       toValue: 1,
-      duration: 420,
+      duration: EMPTIED_BLOOM_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
@@ -467,7 +470,7 @@ function Encabezado({
   const unknown = reason === null;
   return (
     <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space, gap: scale.rowGap / 2 }}>
-      <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
         {ES.waste.reasonFor}
       </Text>
       <Pressable
@@ -551,33 +554,9 @@ function Motivos({
     >
       <View style={{ flex: 1 }}>
         {opening ? (
-          <View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              opacity: 0.4,
-              backgroundColor: PALETTE.velo,
-            }}
-          />
+          <Velo />
         ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ES.waste.pickClose}
-            onPress={onClose}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              opacity: 0.4,
-              backgroundColor: PALETTE.velo,
-            }}
-          />
+          <Velo label={ES.waste.pickClose} onPress={onClose} />
         )}
 
         <View
@@ -634,7 +613,7 @@ function Motivos({
               {/* ⚠️ IT SAYS WHY IT IS IN THE WAY, and only on the way in: a window
                   she opened herself needs no explanation. */}
               {opening ? (
-                <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+                <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
                   {ES.waste.pickWhy}
                 </Text>
               ) : null}
@@ -681,7 +660,7 @@ function Motivos({
                         {reasonLabel(item)}
                       </Text>
                       {hint === '' ? null : (
-                        <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+                        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
                           {hint}
                         </Text>
                       )}
@@ -769,7 +748,7 @@ function Fila({
         {entry.familyName === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
           >
             {entry.familyName}
           </Text>
@@ -791,7 +770,7 @@ function Fila({
           {big === '' ? null : (
             <Text
               numberOfLines={1}
-              style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
             >
               {big}
             </Text>
@@ -992,20 +971,7 @@ function Carrito({
             container, because `opacity` on a parent dims its children and would
             put the sheet itself behind the dimming. The hue is a role and the
             translucency is a number (`R11`). */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.close}
-          onPress={onClose}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.4,
-            backgroundColor: PALETTE.velo,
-          }}
-        />
+        <Velo label={ES.counter.cart.close} onPress={onClose} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}
@@ -1190,7 +1156,7 @@ function Renglon({
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
         >
           {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
         </Text>
@@ -1198,7 +1164,7 @@ function Renglon({
         {big === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
           >
             {big}
           </Text>
@@ -1294,18 +1260,7 @@ function Confirmacion({
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          opacity: 0.4,
-          backgroundColor: PALETTE.velo,
-        }}
-      />
+      <Velo />
       <View
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale.space * 2 }}
       >
@@ -1343,34 +1298,10 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
       <Frase text={ES.counter.cart.emptyAsk} />
       <View style={{ gap: scale.rowGap }}>
         {/* ⚠️ `Boton` IS `src/ui/`'s — `5h.5` made it a primitive off THREE
-            drawings, and this is the fourth. ⚠️ **`Cancelar` below is deliberately
-            NOT collapsed into it**: that shape is the filled `accionSuave` one,
-            drawn nine times across eight files and already drifted (seven carry a
-            border, two do not), and `docs/CONVENTIONS.md` names the count because
-            collapsing it decides what a person sees on eight screens at once.
-            ⚠️⚠️ **This file adds ONE drawing of that shape and deliberately does NOT
-            restate the total.** `5h.5` counted a SHAPE — a fill, a border and a weight —
-            and a plain grep for `PALETTE.accionSuave` answers FOURTEEN files, because
-            that token does more than one job. **A total re-derived by a different
-            predicate is worse than a stale one**, so the delta is recorded here and the
-            count is left to the row that owns the page. */}
+            drawings, and this is the fourth. `Cancelar` below is `src/ui/BotonLleno`
+            since `8f`, which gave it the border the other ten drawings had. */}
         <Boton label={ES.counter.cart.emptyConfirm} tone={PALETTE.error} onPress={onConfirm} />
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.emptyCancel}
-          onPress={onCancel}
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: scale.space / 2,
-            backgroundColor: PALETTE.accionSuave,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.counter.cart.emptyCancel}
-          </Text>
-        </Pressable>
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
       </View>
     </>
   );
@@ -1437,14 +1368,14 @@ function Registrada({ shown, onDone }: { shown: boolean; onDone: () => void }) {
     const run = Animated.sequence([
       Animated.timing(bloom, {
         toValue: 1,
-        duration: 260,
+        duration: DONE_IN_MS,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.delay(520),
+      Animated.delay(DONE_HOLD_MS),
       Animated.timing(bloom, {
         toValue: 0,
-        duration: 220,
+        duration: DONE_OUT_MS,
         easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),

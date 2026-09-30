@@ -1,4 +1,3 @@
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import {
@@ -29,8 +28,10 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { Boton } from '@/ui/Boton';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // ONE SUPPLIER — WHAT WE KNOW ABOUT HER, AND THE TWO THINGS THAT CHANGE IT.
@@ -541,45 +542,8 @@ function Aviso({ line }: { line: string }) {
 }
 
 /** The filled button. ⚠️ A tick and a word, never a glyph alone (C12.1). */
-function Guardar({
-  label,
-  onPress,
-  busy = false,
-}: {
-  label: string;
-  onPress: () => void;
-  busy?: boolean;
-}) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        backgroundColor: PALETTE.accionSuave,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        opacity: busy ? 0.6 : 1,
-      }}
-    >
-      {busy ? (
-        <ActivityIndicator color={PALETTE.accion} />
-      ) : (
-        <MaterialCommunityIcons name="check" size={scale.iconSize} color={PALETTE.accion} />
-      )}
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
+function Guardar(props: { label: string; onPress: () => void; busy?: boolean }) {
+  return <BotonLleno icon="check" {...props} />;
 }
 
 /**
@@ -616,18 +580,7 @@ function Confirmacion({
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          opacity: 0.4,
-          backgroundColor: PALETTE.velo,
-        }}
-      />
+      <Velo />
       <View
         style={{
           flex: 1,

@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -36,6 +36,7 @@ import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
 // AJUSTES — THE APP'S FIRST NON-TAB SURFACE, AND ITS FIRST COLOURED SCREEN.
@@ -485,32 +486,14 @@ function MiNombre() {
  * `app/test/api-members.test.ts`; that it leaves the phone is the owner's.
  */
 function Compartir({ shopName, code }: { shopName: string; code: string }) {
-  const { scale } = useDensity();
   return (
-    <Pressable
-      accessibilityRole="button"
+    <BotonLleno
+      icon="share-variant"
+      label={ES.settings.share}
       onPress={() => {
         void Share.share({ message: shareText(shopName, code) }).catch(() => {});
       }}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        backgroundColor: PALETTE.accionSuave,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-      }}
-    >
-      {/* C12.1 — the icon NEVER appears without its word. */}
-      <MaterialCommunityIcons name="share-variant" size={scale.iconSize} color={PALETTE.accion} />
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {ES.settings.share}
-      </Text>
-    </Pressable>
+    />
   );
 }
 
@@ -877,47 +860,13 @@ function Sucursal({
 }
 
 /** A filled control with its word beside its icon (C12.1). */
-function Boton({
-  icon,
-  label,
-  onPress,
-  busy = false,
-}: {
+function Boton(props: {
   icon: 'account-plus' | 'check' | 'pencil' | 'share-variant';
   label: string;
   onPress: () => void;
   busy?: boolean;
 }) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      disabled={busy}
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        backgroundColor: PALETTE.accionSuave,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        opacity: busy ? 0.6 : 1,
-      }}
-    >
-      {busy ? (
-        <ActivityIndicator color={PALETTE.accion} />
-      ) : (
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.accion} />
-      )}
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
+  return <BotonLleno {...props} />;
 }
 
 /**

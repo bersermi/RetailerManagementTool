@@ -294,7 +294,7 @@ function Fila({
           {generic ? (
             <Text
               numberOfLines={1}
-              style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+              style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
             >
               {ES.providers.genericNote}
             </Text>
@@ -372,7 +372,7 @@ function Crear({ name }: { name: string }) {
         </Text>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.accion }}
+          style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}
         >
           {ES.providers.create.row}
         </Text>

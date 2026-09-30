@@ -38,6 +38,12 @@ export interface DensityScale {
   readonly tapTarget: number;
   /** Ordinary text: product names, provider names, labels. */
   readonly bodySize: number;
+  /**
+   * The line under a name: a unit, a date, a hint. `8f` named it — it was
+   * `bodySize * 0.85`, written out 33 times in 7 files, a size nobody chose but
+   * everybody used. The same value, so nothing a person sees moved.
+   */
+  readonly smallSize: number;
   /** Screen and section headings. */
   readonly titleSize: number;
   /**
@@ -68,6 +74,7 @@ const normal: DensityScale = {
   space: 12,
   tapTarget: 48,
   bodySize: 16,
+  smallSize: 13.6,
   titleSize: 22,
   moneySize: 20,
   iconSize: 24,
@@ -92,6 +99,7 @@ const elder: DensityScale = {
   space: 16,
   tapTarget: 60,
   bodySize: 20,
+  smallSize: 17,
   titleSize: 28,
   moneySize: 30,
   iconSize: 32,

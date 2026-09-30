@@ -44,9 +44,10 @@ real database; none runs on sample data.
 
 ## What is on your phone
 
-**Everything up to and including Precios** (installed 28 September). The one thing
-not on it is the **pilot build** — the measuring version (`5P-a`), which needs a
-rebuild with the pilot switch on.
+**Everything up to and including Precios** (installed 28 September). Not on it: the
+**pilot build** — the measuring version (`5P-a`), which needs a rebuild with the
+pilot switch on — and **`8f`'s design changes** (30 September), which arrive with the
+next rebuild, the 4 October one at the latest.
 
 ⚠️ **The app stops opening on 4 October, 14:28 UTC.** It is installed with a free
 Apple account, which signs it for seven days. The rebuild has to run **on or after**
@@ -101,7 +102,9 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ✅ **Done 29 September** — 57 KB to 14 KB |
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
-| **8f** | **The design pass, with you** | ⚠️ **This is where the next piece of work is** — Wednesday |
+| **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. Not on your phone yet |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you | ⚠️ **This is where the next piece of work is** |
+| **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point

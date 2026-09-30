@@ -19,6 +19,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
 import { Grafica } from '@/ui/Grafica';
 import { Separador } from '@/ui/Separador';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
@@ -373,25 +374,11 @@ function Tabla({ costs }: { costs: Costs }) {
 
   return (
     <View style={{ gap: scale.rowGap }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ expanded: open }}
+      <BotonLleno
+        hug
+        label={open ? ES.costs.hideMatrix : ES.costs.showMatrix}
         onPress={() => setOpen(!open)}
-        style={{
-          minHeight: scale.tapTarget,
-          justifyContent: 'center',
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: PALETTE.accion,
-          backgroundColor: PALETTE.accionSuave,
-          alignSelf: 'flex-start',
-        }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-          {open ? ES.costs.hideMatrix : ES.costs.showMatrix}
-        </Text>
-      </Pressable>
+      />
 
       {!open ? null : (
         <ScrollView
@@ -497,32 +484,12 @@ function Compartir({ costs, title }: { costs: Costs; title: string }) {
 
   return (
     <View style={{ gap: scale.rowGap }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: busy }}
-        disabled={busy}
+      <BotonLleno
+        hug
+        busy={busy}
+        label={busy ? ES.costs.sharing : ES.costs.share}
         onPress={go}
-        style={{
-          minHeight: scale.tapTarget,
-          justifyContent: 'center',
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: busy ? PALETTE.linea : PALETTE.accion,
-          backgroundColor: busy ? PALETTE.fondo : PALETTE.accionSuave,
-          alignSelf: 'flex-start',
-        }}
-      >
-        <Text
-          style={{
-            fontSize: scale.bodySize,
-            fontWeight: '600',
-            color: busy ? PALETTE.tintaApagada : PALETTE.accion,
-          }}
-        >
-          {busy ? ES.costs.sharing : ES.costs.share}
-        </Text>
-      </Pressable>
+      />
       {outcome === 'unavailable' ? <Nota line={ES.costs.cannotShare} /> : null}
       {outcome === 'failed' ? <Nota line={ES.costs.shareFailed} /> : null}
     </View>

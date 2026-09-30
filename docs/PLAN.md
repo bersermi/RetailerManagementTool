@@ -62,16 +62,19 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **`8e` IS DONE, 2026-09-29 — `8f` IS THE NEXT TASK, AND IT IS UNGATED.** The map is a private page:
-https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **Healthy**: no screen types its own colour, size or spacing (108 files scanned, comments
-stripped). **For Wednesday**: sign-in and bienvenida are outside the palette; the active tab is iOS blue
-(no tint set); two header styles; **a bug — `Precios`' period cards break words ("cambi / o")**; no dark
-palette although `app.json` says `automatic`; the three drifted shapes; an unnamed small size
-(`bodySize * 0.85`, 33 uses); busy opacity 0.6 vs 0.5; cart timings typed per screen. **`8f` sized `L`,
-`XL` if dark mode is built — decide that Wednesday and build it separately.** ⚠️ **Screenshots came from a
-Release simulator build pointed at a LOCAL copy of the seed shop** (an HTTPS proxy, build-time env only; no
-source changed, production untouched). The iPhone 17 simulator now carries that build, and the local
-seed owner has a password until the next `supabase db reset`.
+✅ **`8f` IS DONE, 2026-09-30 — `8g` IS THE NEXT TASK, AND IT IS UNGATED, BUT IT IS THE OWNER'S: he reviews
+screen by screen.** His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
+the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
+**are his, screen by screen** — so `8f` did not touch them. Built: `src/ui/BotonLleno` (**13** hand-drawn
+filled buttons in 11 files, not the 9 on record — the three *Cancelar* gained the border the other ten had)
+and `src/ui/Velo` (**13** veils in 6 files, now always fading in — six used to appear at once); the chosen
+pill's 3 on bienvenida is 2 like the other five (Familia had none — the map was wrong there); busy fades 0.6
+everywhere; `smallSize` names the 33 `bodySize * 0.85`; the cart timings live in `theme/pulse.ts`.
+⚠️ **The empty band above *Hoy* was NOT removed, though the question offered it** — it is the dead-letter
+banner's reserved room (`bannerRoom`), a ruling of its own. **Vitest 1719/1719 in 52 files;
+`conventions-gate.sh` 18 groups, R14 counting 13 components; its falsifier 35/35.** **Looked at** on the iPhone 17
+simulator (Release, local seed shop, production untouched): Precios at both sizes — no word breaks — and
+Ajustes' filled buttons. The veil's fade and the *Cancelar* border are the owner's phone's to judge. No migration.
 
 ## Steps 0 through 4.5 — closed, and moved out of this file ✅
 
@@ -256,7 +259,9 @@ before the plan archives them.
 | **8c** | ✅ **DONE 2026-09-29** — 57 KB to 14 KB across both files. **`CLAUDE.md` and `app/CLAUDE.md`, rules only.** Keep what a session must obey (the non-negotiables, migrations, deploy, merge rule, domain words, graphify rules) and the pointers; drop the story of each number's corrections. Numbers that decay are replaced by the one-liner that measures them. **Target: each under 12 KB.** | `S` | `8b` |
 | **8d** | ✅ **DONE 2026-09-29** — 17 branches, 34 graph backups (50 MB), 1 memory; see the log. **Housekeeping outside the documents.** Delete remote branches whose PR is MERGED (from `gh pr list --state merged`, never a guess) and the stale local ones; prune `graphify-out/` snapshot folders; run `graphify update .` and record the node count; read the assistant's memory index and delete or correct memories that are no longer true. **List first, then delete only what was listed.** | `S` | `8c` |
 | **8e** | ✅ **DONE 2026-09-29** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
-| **8f** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-29.** **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`** (its entry) | `L`; `XL` with dark mode | `8e` |
+| **8f** | ✅ **DONE 2026-09-30** — see the status entry above. **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`** (its entry) | `L`; `XL` with dark mode | `8e` |
+| **8g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-30.** **The owner's screen-by-screen review** — *"I will address this separately, will review screen by screen."* Carries what `8f` left for him: **one header style or two** (the four tabs draw iOS's white centred header, every other screen the cream `banda` with the title left); **the active tab's colour** (iOS blue — no tint is set in `(tabs)/_layout.tsx`); **sign-in and bienvenida outside the palette**; the chosen pill's subtitle, which drifted 1–1 (`ajustes`: body size, `tintaApagada`; `producto/nuevo`: `smallSize`, 600, `tinta`) so no count settles it; the veil inside the three **slide** sheets (carrito, Comprar's and Desperdicio's), which still rises with the sheet; and `bodySize * 0.9`, twice (`comprar`, `Deslizador`). ⚠️ **Walk him through each screen's situation before showing a design** | `M` | `8f` |
+| **8h** | ⏸️ **Deferred 2026-09-30 by the owner — *"Light only, for now."*** **A dark palette**: all twelve roles and the five chart colours, re-held to the 4.5:1 contrast test, and `app.json`'s `userInterfaceStyle` back to `automatic`. Returns on his word | `XL` | `8f` |
 
 ⚠️ **Not in the day, and on purpose**: `5R-a` is the owner's to do (enrolment), and the
 **4 October re-deploy** in ⏳ DATES OWED still stands — with `5R-a`/`5R-b` done it disappears for good.
