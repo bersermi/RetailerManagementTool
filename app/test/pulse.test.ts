@@ -98,9 +98,16 @@ describe('the banner that says the family was let go', () => {
     expect(Object.keys(pulse).sort()).toEqual([
       'BANNER_FADE_MS',
       'BANNER_HOLD_MS',
+      // `8f`: the cart's confirmations and the veil — none of them the catalog's.
+      'DONE_HOLD_MS',
+      'DONE_IN_MS',
+      'DONE_OUT_MS',
+      'EMPTIED_BLOOM_MS',
       'NEW_PRODUCT_BLINKS',
       'PULSE_DIM',
       'PULSE_HALF_MS',
+      'VEIL_FADE_MS',
+      'VEIL_OPACITY',
       'bannerSequence',
       'pulseSequence',
       'pulseTotalMs',

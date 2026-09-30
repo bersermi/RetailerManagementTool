@@ -537,10 +537,10 @@ move it here — and not one screen earlier.
 a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
 build them he said the pattern gets described *"once `5b` has produced a real
 one"* — never *"ten primitives guessed at against screens nobody has drawn."*
-Every one of the **eleven** components in `src/ui/` was extracted from drawings that
-already existed, and **two of them were extracted from drawings that had already
+Every one of the **thirteen** components in `src/ui/` was extracted from drawings that
+already existed, and **four of them were extracted from drawings that had already
 silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
-did not) and `Boton`'s two (see `R16`).
+did not), `Boton`'s two, and `8f`'s `BotonLleno` and `Velo` (see `R16`).
 
 ⚠️ **THIS SAID *eight* UNTIL 2026-09-27 AND `6b` ADDED THE NINTH — and the number
 is the gate's rather than this page's**: `conventions-gate.sh`'s `R14` prints how
@@ -557,6 +557,9 @@ drew locally since `5g-iii`; `precios/[id].tsx` was the second file to need it. 
 the lines, their colours and the two axis labels are the props, and the height, dot, stroke and card
 stayed `Costos`' own, so nothing on that screen changed. ⚠️ **Its line type is NOT exported** — the
 gate's `R15` counted it as a second export the first time. **The gate printed 11.**
+⚠️ **AND `8f` ADDED THE TWELFTH AND THIRTEENTH (2026-09-30), `BotonLleno` and `Velo`** — the filled
+button (13 drawings in 11 files) and the veil (13 in 6), each drifted, each settled by count on the
+owner's ruling *"majority wins"*; their headers list what moved. **The gate printed 13.**
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other
@@ -576,18 +579,7 @@ the primitive is not due yet — leave it in the screen.**
 component with one caller belongs *in* that caller. `documentos.tsx`'s
 `Confirmacion` has one, and stays there; `proveedor/[id].tsx` has a second
 `Confirmacion` with one caller of its own, and it stays there for the same reason.
-The scrim they draw was counted at **seven times across three files** by `5h.5` and
-is the strongest candidate this rule has left open. **Counted, in `5h.5`'s entry, so
-the next session argues with a number.**
-
-⚠️⚠️ **THAT NUMBER IS `5h.5`'s AND IS NO LONGER CURRENT, AND IT IS LEFT ALONE
-DELIBERATELY RATHER THAN GUESSED AT.** `6a-i` added one drawing of the scrim and
-`6b` added another (`proveedor/[id].tsx`), so the total has moved twice — **but
-`5h.5` counted a SHAPE and not a palette token**, and a plain `grep -c PALETTE.velo`
-answers a different question because that token does more than one job.
-**Re-measuring with the page's own predicate is the next `src/ui/` row's**, and a
-number derived a different way and written here would be the stale-claim defect this
-page's `R16` spends a paragraph forbidding.
+The scrim they draw is `src/ui/Velo` since `8f`.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R14.
 
@@ -716,15 +708,12 @@ shape `## … owed at ` + the task id, or 0b never looks again.
 
 ⚠️ **WHAT IS STILL LOOSE, WITH THE COUNTS, SO THE NEXT SESSION ARGUES WITH A
 NUMBER RATHER THAN A FEELING.** `R14` says a component moves here when a second
-file draws it; three shapes now satisfy that and were deliberately left where they
-are, because each one changes what a shopkeeper looks at on screens she has
-already learned:
+file draws it; `5h.5` left three shapes that satisfied it, and `8f` extracted two
+(`BotonLleno`, `Velo`). One is left:
 
 | Drawn | Where | Why `5h.5` left it |
 |---|---|---|
-| **The filled button** — `PALETTE.accionSuave` ground, weight `600` | **9 drawings across 8 files**: `solicitudes`, `ajustes` ×2, `producto/nuevo`, `producto/[id]`, `costos/[id]`, `familia/[id]`, `vender`, `comprar` | ⚠️⚠️ **IT HAS ALREADY DRIFTED AND THE DRIFT IS THE WORK: SEVEN OF THE NINE HAVE `borderWidth: 1` AND TWO DO NOT** — Vender's and Comprar's fill with no outline at all. `R16` says that gets decided rather than parameterised, and deciding it changes what a person sees **on eight screens at once**, which is why it is a row of its own and not a footnote to this one |
-| **The scrim** — `PALETTE.velo`, full-bleed, `pointerEvents` | **7 drawings across 3 files**: `documentos`, `vender` ×2, `comprar` ×4 | Some are animated and some are not. Collapsing it means deciding one translucency for every sheet in the app. ⚠️ **This count read 8 for an hour**, because the first grep caught `vender.tsx`'s own comment ABOUT the scrim — the repository's own rule arriving from the inside: a grep of a file counts prose too, so take the count from the code |
-| **The chosen/unchosen pill** — `borderWidth: chosen ? 2 : 1` | **5 drawings across 3 files**: `ajustes` ×2, `producto/nuevo` ×2, `solicitudes` | The closest to free of the three — and the one real question is that `producto/nuevo` spells the same prop `isChosen` in one of its two, so the extraction has a naming decision in it as well as a shape |
+| **The chosen/unchosen pill** — `borderWidth: chosen ? 2 : 1` | **5 drawings across 3 files**: `ajustes` ×2, `producto/nuevo` ×2, `solicitudes` | ⚠️ **`8f` settled its border (bienvenida's 3 is now 2) and left the rest to the owner's `8g`**: the two copies with a second line drift 1–1 (`ajustes`: body size, `tintaApagada`; `producto/nuevo`: `smallSize`, 600, `tinta`), so no count settles it — and `producto/nuevo` spells the prop `isChosen` in one of its two |
 
 ⚠️ **`documentos.tsx`'s `Confirmacion` has ONE caller and stays in its route**,
 which is `R14`'s corollary rather than an oversight. `src/scaffolding/Pendiente.tsx`

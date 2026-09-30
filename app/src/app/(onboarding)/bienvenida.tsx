@@ -164,8 +164,8 @@ export default function Bienvenida() {
       justifyContent: 'center',
       paddingHorizontal: scale.space,
       borderRadius: scale.space / 2,
-      borderWidth: selected ? 3 : 1,
-      opacity: busy ? 0.5 : 1,
+      borderWidth: selected ? 2 : 1,
+      opacity: busy ? 0.6 : 1,
       flex: 1,
     }) as const;
 
@@ -246,7 +246,7 @@ export default function Bienvenida() {
           borderRadius: scale.space / 2,
           borderWidth: 2,
           marginTop: scale.space,
-          opacity: busy ? 0.5 : 1,
+          opacity: busy ? 0.6 : 1,
         }}
       >
         {busy ? (
@@ -316,7 +316,7 @@ export default function Bienvenida() {
           justifyContent: 'center',
           borderRadius: scale.space / 2,
           borderWidth: 2,
-          opacity: joining ? 0.5 : 1,
+          opacity: joining ? 0.6 : 1,
         }}
       >
         {joining ? (

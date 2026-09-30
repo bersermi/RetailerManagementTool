@@ -10,7 +10,7 @@
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "mx.bserafin.wera",
-    "userInterfaceStyle": "automatic",
+    "userInterfaceStyle": "light",
     "ios": {
       "bundleIdentifier": "mx.bserafin.wera",
       "icon": "./assets/expo.icon"

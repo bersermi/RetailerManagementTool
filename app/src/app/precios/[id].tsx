@@ -240,7 +240,12 @@ function Leyenda({ one }: { one: SidePrices }) {
 
 /**
  * Área 9's six cards — este mes, 1, 3, 6 y 9 meses, en el año — each with both
- * sides' change. Two to a row at *Letra normal*; they wrap at *Letra grande*.
+ * sides' change. Three to a row at *Letra normal*, two at *Letra grande*.
+ *
+ * ⚠️ THE CHANGE SITS UNDER ITS SIDE'S WORD, NOT BESIDE IT — `8f`, ruled
+ * 2026-09-30. Beside it, a third of a phone's width broke *Sin cambio* into
+ * *cambi / o* and *5.8 %* into *5.8 / %*; under it, the value has the card's
+ * whole width. No check can see a wrapped word (`R9`); the owner's phone can.
  */
 function Tarjetas({ prices }: { prices: Prices }) {
   const { scale } = useDensity();
@@ -264,23 +269,14 @@ function Tarjetas({ prices }: { prices: Prices }) {
             {ES.prices.window[window]}
           </Text>
           {SIDES.map((side) => (
-            <View
-              key={side}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}
-            >
-              <Muestra side={side} />
-              <Text style={{ fontSize: scale.tabLabelSize, color: PALETTE.tintaApagada }}>
-                {ES.prices.side[side]}
-              </Text>
-              <Text
-                style={{
-                  flex: 1,
-                  textAlign: 'right',
-                  fontSize: scale.bodySize,
-                  fontWeight: '600',
-                  color: PALETTE.tinta,
-                }}
-              >
+            <View key={side}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
+                <Muestra side={side} />
+                <Text style={{ fontSize: scale.tabLabelSize, color: PALETTE.tintaApagada }}>
+                  {ES.prices.side[side]}
+                </Text>
+              </View>
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
                 {prices.sides[side].changes[window]}
               </Text>
             </View>

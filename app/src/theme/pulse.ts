@@ -130,3 +130,36 @@ export function bannerSequence(): readonly PulseStep[] {
     { toValue: 0, duration: BANNER_FADE_MS },
   ];
 }
+
+// ----------------------------------------------------------------------------
+// THE VEIL — the dimming behind a sheet or a question, `src/ui/Velo`
+// ----------------------------------------------------------------------------
+
+/**
+ * How long the veil takes to arrive. `8f`, ruled 2026-09-30: *"majority wins"* —
+ * it always fades in, where six of its thirteen drawings used to appear at once.
+ * The banner's fade, because it is the same gesture: something arriving over the
+ * screen you were looking at.
+ */
+export const VEIL_FADE_MS = BANNER_FADE_MS;
+
+/** How dark it gets: `PALETTE.velo` at this opacity. Every drawing already agreed. */
+export const VEIL_OPACITY = 0.4;
+
+// ----------------------------------------------------------------------------
+// THE CART'S TWO CONFIRMATIONS — Vender, Comprar and Desperdicio, spelled once
+// ----------------------------------------------------------------------------
+// `8f` moved these here from the three screens, which each typed them out; two
+// of them were already this file's numbers under another name. Nothing moved.
+
+/** The emptied basket's bloom, in the box that asked *¿Vaciar?*. */
+export const EMPTIED_BLOOM_MS = 420;
+
+/** `Vendido` and the two `Registrada`s arriving — the blink's half. */
+export const DONE_IN_MS = PULSE_HALF_MS;
+
+/** How long it stays readable. */
+export const DONE_HOLD_MS = 520;
+
+/** And leaving — the banner's fade. */
+export const DONE_OUT_MS = BANNER_FADE_MS;

@@ -176,7 +176,7 @@ export function Cantidad({
         />
         {/* ⚠️ THE UNIT IS RENDERED BESIDE THE FIELD AND ALWAYS — the half of
             §2.8's *Unit-aware input* row that was never in question. */}
-        <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>{word}</Text>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{word}</Text>
       </View>
 
       <Paso

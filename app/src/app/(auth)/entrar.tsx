@@ -204,7 +204,7 @@ export default function Entrar() {
           borderRadius: scale.space / 2,
           borderWidth: 2,
           marginTop: scale.space,
-          opacity: busy ? 0.5 : 1,
+          opacity: busy ? 0.6 : 1,
         }}
       >
         {busy ? (
@@ -225,7 +225,7 @@ export default function Entrar() {
           minHeight: scale.tapTarget,
           alignItems: 'center',
           justifyContent: 'center',
-          opacity: busy ? 0.5 : 1,
+          opacity: busy ? 0.6 : 1,
         }}
       >
         <Text style={{ fontSize: scale.bodySize }}>
@@ -247,7 +247,7 @@ export default function Entrar() {
           borderRadius: scale.space / 2,
           borderWidth: 1,
           marginTop: scale.space,
-          opacity: busy ? 0.5 : 1,
+          opacity: busy ? 0.6 : 1,
         }}
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{ES.auth.google}</Text>

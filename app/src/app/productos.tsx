@@ -326,7 +326,7 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
         {entry.familyName === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
           >
             {entry.familyName}
           </Text>
@@ -431,7 +431,7 @@ function Crear({ name }: { name: string }) {
         </Text>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.accion }}
+          style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}
         >
           {ES.catalog.create.row}
         </Text>

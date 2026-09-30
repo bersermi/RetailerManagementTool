@@ -71,3 +71,16 @@ nothing); today's kept as the restore point. **Graph: 4,352 nodes, 8,580 edges, 
 (`graph.json`, current, no node from a deleted file). **Memory 85 → 84**: deleted
 `fixture-must-edit-the-non-owning-row` (its only subject was a retired harness); corrected seven that
 named retired checks or stale numbers. The 2026-09-29 ruling and `8b` entries moved to the day's archive.
+
+⚠️ **Fourth cut, appended by `8f`** — `8e`'s closing entry, unedited.
+
+✅ **`8e` IS DONE, 2026-09-29 — `8f` IS THE NEXT TASK, AND IT IS UNGATED.** The map is a private page:
+https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **Healthy**: no screen types its own colour, size or spacing (108 files scanned, comments
+stripped). **For Wednesday**: sign-in and bienvenida are outside the palette; the active tab is iOS blue
+(no tint set); two header styles; **a bug — `Precios`' period cards break words ("cambi / o")**; no dark
+palette although `app.json` says `automatic`; the three drifted shapes; an unnamed small size
+(`bodySize * 0.85`, 33 uses); busy opacity 0.6 vs 0.5; cart timings typed per screen. **`8f` sized `L`,
+`XL` if dark mode is built — decide that Wednesday and build it separately.** ⚠️ **Screenshots came from a
+Release simulator build pointed at a LOCAL copy of the seed shop** (an HTTPS proxy, build-time env only; no
+source changed, production untouched). The iPhone 17 simulator now carries that build, and the local
+seed owner has a password until the next `supabase db reset`.

@@ -9,6 +9,7 @@ import { canWriteCatalog } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
@@ -445,26 +446,7 @@ function Acciones({
 }
 
 /** One of the controls that works. ⚠️ A word and never a glyph alone (C12.1). */
-function Accion({ label, onPress }: { label: string; onPress: () => void }) {
-  const { scale } = useDensity();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={onPress}
-      style={{
-        minHeight: scale.tapTarget,
-        justifyContent: 'center',
-        paddingHorizontal: scale.space,
-        borderRadius: scale.space / 2,
-        borderWidth: 1,
-        borderColor: PALETTE.accion,
-        backgroundColor: PALETTE.accionSuave,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-        {label}
-      </Text>
-    </Pressable>
-  );
+function Accion(props: { label: string; onPress: () => void }) {
+  return <BotonLleno {...props} />;
 }
 

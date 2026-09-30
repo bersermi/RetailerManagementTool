@@ -52,12 +52,15 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { Deslizador } from '@/ui/Deslizador';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Vacio } from '@/ui/Vacio';
+import { Velo } from '@/ui/Velo';
 
 // ============================================================================
 // COMPRAR — RECEIVING A DELIVERY. Plan task `5g-ii`, and the third of §2.8's
@@ -425,7 +428,7 @@ export default function Comprar() {
     bloom.setValue(0);
     const run = Animated.timing(bloom, {
       toValue: 1,
-      duration: 420,
+      duration: EMPTIED_BLOOM_MS,
       easing: Easing.out(Easing.cubic),
       useNativeDriver: true,
     });
@@ -615,7 +618,7 @@ function Encabezado({
   const unknown = provider === null;
   return (
     <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space, gap: scale.rowGap / 2 }}>
-      <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
         {ES.buy.buyingFrom}
       </Text>
       <Pressable
@@ -719,7 +722,7 @@ function Ordenar({
           >
             <Text
               style={{
-                fontSize: scale.bodySize * 0.85,
+                fontSize: scale.smallSize,
                 fontWeight: on ? '700' : '400',
                 color: on ? PALETTE.accion : PALETTE.tintaApagada,
               }}
@@ -792,33 +795,9 @@ function Proveedores({
     <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
       <View style={{ flex: 1 }}>
         {opening ? (
-          <View
-            pointerEvents="none"
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              opacity: 0.4,
-              backgroundColor: PALETTE.velo,
-            }}
-          />
+          <Velo />
         ) : (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ES.buy.pickClose}
-            onPress={onClose}
-            style={{
-              position: 'absolute',
-              left: 0,
-              top: 0,
-              right: 0,
-              bottom: 0,
-              opacity: 0.4,
-              backgroundColor: PALETTE.velo,
-            }}
-          />
+          <Velo label={ES.buy.pickClose} onPress={onClose} />
         )}
 
         <View
@@ -885,7 +864,7 @@ function Proveedores({
               {/* ⚠️ IT SAYS WHY IT IS IN THE WAY, and only on the way in: a window
                   she opened herself needs no explanation. */}
               {opening ? (
-                <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+                <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
                   {ES.buy.pickWhy}
                 </Text>
               ) : null}
@@ -927,7 +906,7 @@ function Proveedores({
                       </Text>
                       {item.isGeneric ? (
                         <Text
-                          style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+                          style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
                         >
                           {ES.buy.genericHint}
                         </Text>
@@ -1038,7 +1017,7 @@ function Fila({
         {entry.familyName === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
           >
             {entry.familyName}
           </Text>
@@ -1052,7 +1031,7 @@ function Fila({
         {big === '' ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
           >
             {big}
           </Text>
@@ -1249,7 +1228,7 @@ function Costo({
         />
         {/* ⚠️ WHAT THE COST IS PER, IN C3.10's OWN SEPARATOR. A money box with no
             unit beside it is the one figure a shopkeeper could read two ways. */}
-        <Text style={{ fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
           {`${ES.catalog.per} ${entry.priceUnit}`}
         </Text>
       </View>
@@ -1258,7 +1237,7 @@ function Costo({
         <Text
           numberOfLines={1}
           style={{
-            fontSize: scale.bodySize * 0.85,
+            fontSize: scale.smallSize,
             fontWeight: alarm ? '600' : '400',
             color: alarm ? PALETTE.atencion : PALETTE.tintaApagada,
           }}
@@ -1330,7 +1309,7 @@ function Barra({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 4 }}>
             <Text
               style={{
-                fontSize: scale.bodySize * 0.85,
+                fontSize: scale.smallSize,
                 fontWeight: live ? '600' : '400',
                 color: live ? PALETTE.accion : PALETTE.tintaApagada,
               }}
@@ -1507,20 +1486,7 @@ function Carrito({
             under an `opacity` rather than a translucent fill on the container,
             because `opacity` on a parent dims its children and would put the
             sheet itself behind the dimming. The hue is a role (`R11`). */}
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.close}
-          onPress={onClose}
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: 0,
-            right: 0,
-            bottom: 0,
-            opacity: 0.4,
-            backgroundColor: PALETTE.velo,
-          }}
-        />
+        <Velo label={ES.counter.cart.close} onPress={onClose} />
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           style={{ flex: 1, justifyContent: 'flex-end' }}
@@ -1689,7 +1655,7 @@ function Renglon({
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.bodySize * 0.85, color: PALETTE.tintaApagada }}
+          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
         >
           {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
         </Text>
@@ -1699,14 +1665,14 @@ function Renglon({
         {big === '' || alarm ? null : (
           <Text
             numberOfLines={1}
-            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
           >
             {big}
           </Text>
         )}
         {alarm ? (
           <Text
-            style={{ fontSize: scale.bodySize * 0.85, fontWeight: '600', color: PALETTE.atencion }}
+            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
           >
             {ES.buy.costMissing}
           </Text>
@@ -1852,18 +1818,7 @@ function Confirmacion({
 
   return (
     <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <View
-        pointerEvents="none"
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          bottom: 0,
-          opacity: 0.4,
-          backgroundColor: PALETTE.velo,
-        }}
-      />
+      <Velo />
       <View
         style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale.space * 2 }}
       >
@@ -1928,22 +1883,7 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
             {ES.counter.cart.emptyConfirm}
           </Text>
         </Pressable>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.emptyCancel}
-          onPress={onCancel}
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: scale.space / 2,
-            backgroundColor: PALETTE.accionSuave,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-            {ES.counter.cart.emptyCancel}
-          </Text>
-        </Pressable>
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
       </View>
     </>
   );
@@ -2003,14 +1943,14 @@ function Registrada({ shown, onDone }: { shown: boolean; onDone: () => void }) {
     const run = Animated.sequence([
       Animated.timing(bloom, {
         toValue: 1,
-        duration: 260,
+        duration: DONE_IN_MS,
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.delay(520),
+      Animated.delay(DONE_HOLD_MS),
       Animated.timing(bloom, {
         toValue: 0,
-        duration: 220,
+        duration: DONE_OUT_MS,
         easing: Easing.in(Easing.quad),
         useNativeDriver: true,
       }),
