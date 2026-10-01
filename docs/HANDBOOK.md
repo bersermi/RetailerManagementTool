@@ -66,8 +66,9 @@ security find-identity -v -p codesigning     # must list a signing identity
 
 ⚠️ **Since 1 October the app's id is `mx.wera.app`.** The next build installs as a
 **second** Wera beside the old one: open the old one with signal first so nothing is
-waiting to send, then sign in on the new one. Before using Google sign-in on it, add
-`mx.wera.app://**` to Supabase → Authentication → URL Configuration → Redirect URLs.
+waiting to send, then sign in on the new one. ✅ Supabase already accepts the new id
+(you added `mx.wera.app://**` to Redirect URLs on 1 October; the project is now named
+*Wera Project*).
 
 The build commands are [`docs/checks/5a-iv-a-runsheet.md`](checks/5a-iv-a-runsheet.md)
 §2, always `--configuration Release`. The seven-day limit ends for good with the
