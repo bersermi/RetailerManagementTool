@@ -87,7 +87,7 @@ set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 APP="$REPO/app"
-PKG="mx.bserafin.wera"
+PKG="mx.wera.app"
 ACTIVITY=".MainActivity"
 APK="${APK:-$APP/android/app/build/outputs/apk/release/app-release.apk}"
 # How long the app must stay up. The iOS crash was an uncaught exception at

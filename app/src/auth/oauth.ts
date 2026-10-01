@@ -30,11 +30,11 @@
  * as the bundle identifier — `app/test/oauth.test.ts` reads `app.json` and
  * refuses to let the two drift, which is `5a-iii-a`'s K13 one level up.
  */
-export const DEEP_LINK_SCHEME = 'mx.bserafin.wera';
+export const DEEP_LINK_SCHEME = 'mx.wera.app';
 
 /**
  * ⚠️⚠️ THE OTHER COPY OF THIS STRING IS IN THE SUPABASE DASHBOARD, under
- * Authentication → URL Configuration → Redirect URLs, as `mx.bserafin.wera://**`.
+ * Authentication → URL Configuration → Redirect URLs, as `mx.wera.app://**`.
  * It is not in this repository, no check here can read it, and when it is
  * missing GoTrue does not error — it silently sends the browser to the project's
  * Site URL instead, so the app waits for a callback that was delivered to a web
@@ -126,7 +126,7 @@ export function parseOAuthReturn(url: string): OAuthReturn {
  *
  * ⚠️ HAND-ROLLED, FOR THE REASON `env.ts`'s base64 decoder is: this runs under
  * Hermes on the phone and node in CI, and `new URL()` over a NON-SPECIAL scheme
- * — which `mx.bserafin.wera://` is — is the part of the WHATWG spec
+ * — which `mx.wera.app://` is — is the part of the WHATWG spec
  * implementations disagree about most. A `URL` that parsed the path but not the
  * query would leave this function returning nothing and the app reporting "no
  * code" for a sign-in that succeeded. Twenty lines that behave the same

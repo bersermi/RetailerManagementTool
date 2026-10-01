@@ -9,14 +9,14 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mx.bserafin.wera",
+    "scheme": "mx.wera.app",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "mx.bserafin.wera",
+      "bundleIdentifier": "mx.wera.app",
       "icon": "./assets/expo.icon"
     },
     "android": {
-      "package": "mx.bserafin.wera",
+      "package": "mx.wera.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",

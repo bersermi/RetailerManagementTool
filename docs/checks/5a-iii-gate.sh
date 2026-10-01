@@ -34,7 +34,7 @@ ran=0
 # this is the third copy, and it is here because this is the only instrument
 # that can send it to the live project. If they ever disagree, the phone is the
 # one that finds out.
-REDIRECT_URI='mx.bserafin.wera://auth/callback'
+REDIRECT_URI='mx.wera.app://auth/callback'
 
 fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 ok()   { echo "  ok    $*"; }
@@ -167,10 +167,10 @@ fi
 
 # ⚠️⚠️ WHAT THIS CHECK DELIBERATELY DOES NOT ASSERT, AND THE MEASUREMENT THAT
 # SETTLED IT. Supabase's Redirect URLs allow-list must contain
-# `mx.bserafin.wera://**`, and that is the single most likely cause of
+# `mx.wera.app://**`, and that is the single most likely cause of
 # 5a-iii-b's characteristic failure — the browser opens and never comes back.
 # An assertion over it was WRITTEN AND THEN DELETED: `/auth/v1/authorize`
-# returns the SAME 302 to Google for `redirect_to=mx.bserafin.wera://...` and
+# returns the SAME 302 to Google for `redirect_to=mx.wera.app://...` and
 # for `redirect_to=https://evil.example.com/steal`. GoTrue validates the
 # redirect at the CALLBACK step, after the provider returns, and a disallowed
 # one is not an error — the browser is quietly sent to the project's Site URL

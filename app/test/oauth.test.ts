@@ -19,7 +19,7 @@ import {
 // browser is opened, and nothing here can prove that the browser comes back.
 //
 // ⚠️ WHAT STAYS GREEN WHILE SIGN-IN IS BROKEN, NAMED: the Supabase dashboard's
-// Redirect URLs list missing `mx.bserafin.wera://**`. That half is in someone
+// Redirect URLs list missing `mx.wera.app://**`. That half is in someone
 // else's web page, GoTrue does NOT report it as an error — it silently sends
 // the browser to the project's Site URL instead — and `5a-iv` is the
 // instrument. See docs/PLAN.md: an attempt to assert it over the public API was
@@ -42,7 +42,7 @@ describe('the redirect URI is the string the dashboard also holds', () => {
   });
 
   it('is the exact value that must appear in Supabase’s Redirect URLs', () => {
-    expect(OAUTH_REDIRECT_URI).toBe('mx.bserafin.wera://auth/callback');
+    expect(OAUTH_REDIRECT_URI).toBe('mx.wera.app://auth/callback');
   });
 
   // ⚠️ A CUSTOM SCHEME, NOT AN `exp://` OR `https://` ONE. `makeRedirectUri()`
@@ -229,7 +229,7 @@ describe('the two lines the round trip rests on are where they must be', () => {
   });
 
   // ⚠️ THE SECURITY ONE. Without it GoTrue sends the access AND refresh tokens
-  // back through `mx.bserafin.wera://`, a scheme any app on the phone may also
+  // back through `mx.wera.app://`, a scheme any app on the phone may also
   // register — and a refresh token does not expire. Same shape as the secret
   // key `env.ts` refuses: removing this line does not break sign-in, it works.
   it('keeps the client in PKCE mode', () => {
