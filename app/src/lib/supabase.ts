@@ -58,7 +58,7 @@ export const supabase = createClient(env.url, env.publishableKey, {
     // ⚠️⚠️ PKCE, AND THE DEFAULT IS `implicit` — THIS LINE IS THE WHOLE
     // DIFFERENCE. Added in 5a-iii-b. Under the implicit flow GoTrue sends the
     // ACCESS AND REFRESH TOKENS THEMSELVES back in the callback URL, and the
-    // callback here is a custom scheme — `mx.bserafin.wera://` — which any app
+    // callback here is a custom scheme — `mx.wera.app://` — which any app
     // on the phone may also register. A refresh token does not expire; handing
     // one to the OS's URL router is the same class of mistake as the secret key
     // `env.ts` refuses, and it has the same property: it WORKS. PKCE sends a

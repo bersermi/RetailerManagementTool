@@ -87,5 +87,5 @@ an emulator smoke test to real hardware.
 ## Afterwards
 
 - ⚠️ **Write the opinions down before you hand the phone back**, not tomorrow.
-- Uninstall: `adb uninstall mx.bserafin.wera`. It is not your phone.
+- Uninstall: `adb uninstall mx.wera.app`. It is not your phone.
 - ⚠️ **Offer to turn USB debugging back off.** It was on for you, not for them.

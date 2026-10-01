@@ -15,18 +15,22 @@ import { describe, expect, it } from 'vitest';
 //     that id holds data on a device, and permanent at submission. `5a-iv` puts
 //     a build on the owner's own iPhone, which is the moment it sets.
 //   * `scheme` — the redirect target `5a-iii-b` must add to the Supabase
-//     dashboard's allow-list as `mx.bserafin.wera://**`. ⚠️ THE COPY IN THE
+//     dashboard's allow-list as `mx.wera.app://**`. ⚠️ THE COPY IN THE
 //     DASHBOARD IS NOT IN THIS REPOSITORY AND NO FILE HERE CAN SEE IT. A
 //     scheme quietly edited to something tidier is a Google sign-in where the
 //     browser opens and never comes back — the exact failure the plan names as
 //     `5a-iii-b`'s whole risk, and it looks identical to a hang.
+//
+// ⚠️ CHANGED 2026-10-01 from `mx.bserafin.wera` to `mx.wera.app`, by the owner,
+// BEFORE any store upload — the last day it was free. A phone that held the old
+// id keeps it as a separate app; the dashboard needs `mx.wera.app://**` added.
 //
 // So the scheme and the bundle id are asserted to be THE SAME STRING. They do
 // not have to be; making them so means there is one value to keep in step with
 // the dashboard instead of two, and a check that can notice.
 // ============================================================================
 
-const BUNDLE_ID = 'mx.bserafin.wera';
+const BUNDLE_ID = 'mx.wera.app';
 
 const app = JSON.parse(
   readFileSync(fileURLToPath(new URL('../app.json', import.meta.url)), 'utf8'),

@@ -6,7 +6,9 @@ import { useEffect } from 'react';
 // OAUTH REDIRECT TWICE. Plan task 5a-iv-c-3, measured on a borrowed Samsung
 // Galaxy Z Flip 8 (Android 17 / One UI 9) on 2026-09-13.
 //
-// ⚠️⚠️ WHAT WAS ACTUALLY SEEN, BY A PERSON, ON A PHONE:
+// ⚠️⚠️ WHAT WAS ACTUALLY SEEN, BY A PERSON, ON A PHONE (quoted verbatim, so it
+// carries the app id of the day, `mx.bserafin.wera` — `mx.wera.app` since
+// 2026-10-01):
 //
 //     Unmatched Route
 //     Page could not be found.

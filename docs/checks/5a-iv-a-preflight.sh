@@ -221,8 +221,8 @@ fi
 # Release-on-simulator build needs NO provisioning at all, so it proves nothing
 # about signing. The first real device build of the 2026-09-13 sitting failed:
 #
-#   No profiles for 'mx.bserafin.wera' were found: Xcode couldn't find any iOS
-#   App Development provisioning profiles matching 'mx.bserafin.wera'.
+#   No profiles for 'mx.wera.app' were found: Xcode couldn't find any iOS
+#   App Development provisioning profiles matching 'mx.wera.app'.
 #   Automatic signing is disabled and unable to generate a profile.
 #
 # A free personal team has no profile until something asks for one, and
@@ -234,13 +234,13 @@ matching=0
 if [[ -d "$profiles_dir" ]]; then
   while IFS= read -r prof; do
     [[ -z "$prof" ]] && continue
-    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.bserafin\.wera'; then
+    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.wera\.app'; then
       matching=$((matching+1))
     fi
   done < <(find "$profiles_dir" -name '*.mobileprovision' 2>/dev/null)
 fi
 assert "$([[ "$matching" -gt 0 ]] && echo true || echo false)" \
-  "a provisioning profile exists for mx.bserafin.wera ($matching found)"
+  "a provisioning profile exists for mx.wera.app ($matching found)"
 if [[ "$matching" -eq 0 ]]; then
   note "⚠️ expo run:ios CANNOT create the first one. Run this once:"
   note "    cd app/ios && xcodebuild -workspace Wera.xcworkspace -scheme Wera \\"
@@ -251,7 +251,7 @@ else
   # so the expiry is not a detail — it is the measurement's deadline.
   while IFS= read -r prof; do
     [[ -z "$prof" ]] && continue
-    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.bserafin\.wera'; then
+    if security cms -D -i "$prof" 2>/dev/null | grep -q 'mx\.wera\.app'; then
       exp="$(security cms -D -i "$prof" 2>/dev/null | plutil -extract ExpirationDate raw -o - - 2>/dev/null)"
       [[ -n "$exp" ]] && note "profile expires: $exp  ⚠️ re-deploy before reading after this"
     fi

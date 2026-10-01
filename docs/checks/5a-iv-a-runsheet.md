@@ -67,7 +67,7 @@ xcrun devicectl device install app --device <CORE-DEVICE-UUID> \
 
 # 3. LAUNCH. Add --console to see JS exceptions; without it a crash is silent.
 xcrun devicectl device process launch --console --terminate-existing \
-  --device <CORE-DEVICE-UUID> mx.bserafin.wera
+  --device <CORE-DEVICE-UUID> mx.wera.app
 ```
 
 ⚠️⚠️ **THERE ARE TWO DIFFERENT IDENTIFIERS AND THEY ARE NOT INTERCHANGEABLE.**
@@ -184,7 +184,8 @@ Sign out. Tap **Entrar con Google**.
 
 ⚠️ **(c) IS THE ONLY MEASUREMENT THIS PROJECT WILL EVER HAVE OF THE SUPABASE
 REDIRECT ALLOW-LIST.** The owner added `mx.bserafin.wera://**` to the dashboard on
-2026-09-12 and **no check in this repository can confirm it** — an assertion over
+2026-09-12 (⚠️ the id became `mx.wera.app` on 2026-10-01, so the list must ALSO hold
+`mx.wera.app://**`) and **no check in this repository can confirm it** — an assertion over
 it was written, measured and deleted, because `/auth/v1/authorize` returns the
 same 302 for the right redirect and for `evil.example.com`, and `/auth/v1/settings`
 exposes thirty-two fields of which none is the allow-list. The gate script was
@@ -208,7 +209,7 @@ that looks like it worked.
    ```bash
    xcrun devicectl device install app --device <CORE-DEVICE-UUID> \
      ~/Library/Developer/Xcode/DerivedData/Wera-*/Build/Products/Release-iphoneos/Wera.app
-   xcrun devicectl device process launch --device <CORE-DEVICE-UUID> mx.bserafin.wera
+   xcrun devicectl device process launch --device <CORE-DEVICE-UUID> mx.wera.app
    ```
    ⚠️ **If the profile has expired, step 1's `xcodebuild … -allowProvisioningUpdates`
    has to run first** — that is the whole mechanism `5a-iv-d` depends on.
