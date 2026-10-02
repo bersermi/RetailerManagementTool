@@ -55,7 +55,8 @@ import { stepOf } from '@/cart/cart';
  * litro**, **tres piezas** — and never **tres cuartos** for 750 g, which is the
  * spelling C3.8 refuses by name.
  *
- * ⚠️ ALL FIVE ARE `0001`'s, and the five that are deliberately absent are
+ * ⚠️ FIVE ARE `0001`'s and `manojo` is `0047`'s — a bunch is counted, never a
+ * pack (`9f`). The five that are deliberately absent are
  * `500g`, `250g`, `100g`, `500ml` and `100ml` — every one of them a pack.
  * ⚠️ THE BASE UNITS ARE IN IT AND THAT IS NOT REDUNDANT: a variant priced per
  * gram would otherwise fall through to the fallback and reach the same answer
@@ -65,7 +66,7 @@ import { stepOf } from '@/cart/cart';
  * added after this file was written is a pack until somebody says otherwise,
  * which fails as a bigger number rather than as a wrong one.
  */
-export const MEASURED_IN: ReadonlySet<string> = new Set(['kg', 'g', 'l', 'ml', 'pza']);
+export const MEASURED_IN: ReadonlySet<string> = new Set(['kg', 'g', 'l', 'ml', 'pza', 'manojo']);
 
 /** Which unit this variant's quantity field reads in. See `MEASURED_IN`. */
 export function shownUnitOf(entry: CatalogEntry): string {

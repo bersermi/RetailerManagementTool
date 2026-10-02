@@ -70,7 +70,7 @@ const CERDO = '22222222-2222-4222-8222-222222222222';
 const SHOP = '99999999-9999-4999-8999-999999999999';
 const VARIANT_ID = '44444444-4444-4444-8444-444444444444';
 
-/** The ten rows `0001` seeds, as PostgREST sends them with `::text`. */
+/** The ten rows `0001` seeds and `0047`'s `manojo`, as PostgREST sends them with `::text`. */
 const UNITS: readonly UnitRow[] = [
   { code: 'kg', dimension: 'mass', base_code: 'g', factor_to_base: '1000.000000', display_order: 10 },
   { code: 'g', dimension: 'mass', base_code: 'g', factor_to_base: '1.000000', display_order: 40 },
@@ -82,6 +82,7 @@ const UNITS: readonly UnitRow[] = [
   { code: '500ml', dimension: 'volume', base_code: 'ml', factor_to_base: '500.000000', display_order: 20 },
   { code: '100ml', dimension: 'volume', base_code: 'ml', factor_to_base: '100.000000', display_order: 30 },
   { code: 'pza', dimension: 'count', base_code: 'pza', factor_to_base: '1.000000', display_order: 10 },
+  { code: 'manojo', dimension: 'count', base_code: 'pza', factor_to_base: '1.000000', display_order: 15 },
 ];
 
 const FACTORS = unitFactorsFrom(UNITS);
@@ -307,7 +308,7 @@ describe('the price, inverted — the exact inverse of what 5d-i shipped', () =>
   // ⚠️⚠️ THE ASSERTION THAT MATTERS: what a shopkeeper types is what Productos
   // reads back a second later. `priceCentavos` is `@/api/catalog`'s and this is
   // the only place the two are put back to back.
-  it('round-trips through priceCentavos for all ten units and a spread of prices', () => {
+  it('round-trips through priceCentavos for every unit and a spread of prices', () => {
     for (const unit of UNITS) {
       for (const centavos of [0, 1, 5, 99, 100, 200, 900, 3500, 3535, 99999, 123450]) {
         const perBase = pricePerBase(centavos, unit.factor_to_base);
@@ -824,7 +825,7 @@ describe('C8.5 — the unit and the family policing each other', () => {
 
   // ⚠️⚠️ ALL TEN UNITS, ALWAYS — WHICH REVERSES WHAT THIS MODULE DID YESTERDAY.
   // The owner replaced a narrowed picker with a rule he can see.
-  it('offers all ten units whatever the family is', () => {
+  it('offers every unit whatever the family is', () => {
     expect(unitOrder(UNITS)).toHaveLength(UNITS.length);
   });
 
@@ -833,7 +834,7 @@ describe('C8.5 — the unit and the family policing each other', () => {
   it('puts the picker in the same order however the read arrives', () => {
     expect(unitOrder([...UNITS].reverse())).toEqual(unitOrder(UNITS));
     expect(unitOrder(UNITS)).toEqual([
-      'kg', 'l', 'pza', '500g', '500ml', '250g', '100g', '100ml', 'g', 'ml',
+      'kg', 'l', 'pza', 'manojo', '500g', '500ml', '250g', '100g', '100ml', 'g', 'ml',
     ]);
   });
 
