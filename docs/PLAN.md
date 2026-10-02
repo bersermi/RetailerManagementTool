@@ -62,6 +62,24 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
+✅ **2026-10-02 — `9g` IS DONE AND `9h` IS THE NEXT TASK, WITH THE OWNER (Abarrotes, the Catalog Prompt).**
+**`9g`, the Frutería session: `0049_catalogo_fruteria.sql`**, **46 new products** in 2 new families: *Frutas* 37, by the kilo,
+and *Frutas por pieza* 9, by the piece. **6 newly tagged** Frutería: *Limón* ×3 and *Aguacate*, plus *Jícama* and *Pepino*. That makes
+177 products in all, plus 1 new category tag, *Frutas*. No new unit. ⚠️⚠️ **HIS RULINGS, 2026-10-02:** (1) **Melón, Sandía,
+Papaya maradol, Piña and Pitaya are each TWO products**: the plain name is sold by the kilo, and *… por pieza* is sold by the piece. He accepted that naming
+(it follows *Verdolaga en manojo*). (2) **Three pears**: *Bartlett*, *Bosc*, *roja*. He dropped the other two the draft proposed.
+(3) **Fruta picada is not included for now.** The other prepared items (jugos, cocteles) were proposed for parking and went unchallenged.
+(4) Coco, Frambuesa, Zarzamora and Arándano are by the piece only; Fresa is by the kilo. *Naranja para jugo* is its own row.
+**Decisions taken for him:** the family names and the *Frutas* category. The six tagged rows keep their *Verduras*
+category; they get the giro tag only. ⚠️ **The berry names went in WITHOUT the draft's "(charola)"** (*Frambuesa*,
+not *Frambuesa (charola)*), because the unit already says it is counted. A rename is a `name` edit, and the code stays the same.
+**Guessed and kept unchanged:** Fresa by the kilo and berries by the piece; *Naranja para jugo* as a separate row; Jícama and
+Pepino tagged; the variety lists (plátano ×3, manzana ×3, mango ×3, uva ×2); IVA 0 on everything.
+**Parked:** fruta picada, jugos and cocteles. A cup of fruit is a recipe, and a jugo by the litro needs an `l` family.
+**Measured locally:** `build.test.mjs` 20 of 20 after `0049`; `--check` matches; `supabase db reset` applies it (177
+template rows, 46 in the fruit families, 6 others carrying `giro-fruteria`); every behavioural suite in `supabase/tests/`
+green, each run after `_cleanup.sql`.
+
 ✅ **2026-10-02 — `9f` IS DONE AND `9g` IS THE NEXT TASK, WITH THE OWNER (Frutería, the Catalog Prompt).**
 **`9f`, the Verdulería session: `0047_unit_manojo.sql` and `0048_catalogo_verduleria.sql`**, **53 new products** in 4 new
 families: *Verduras* 29 and *Chiles* 9, by the kilo; *Verduras por pieza* 6, by the piece; *Hierbas* 9, by the **manojo**.
@@ -403,8 +421,8 @@ this step adds the column and nothing else.
 | **9d** | ✅ **DONE 2026-10-01** — see the status entry. **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
 | **9e** | ✅ **DONE 2026-10-01** — `0046`, 54 new products and 2 newly tagged; see the status entry. **Content session — Carnicería, with the owner** | `M` | `9b` — the generator the content goes through |
 | **9f** | ✅ **DONE 2026-10-02** — `0047` (`manojo`) and `0048`, 53 new products; see the status entry. **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
-| **9g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-02 — with the owner, using the handbook's Catalog Prompt.** **Content session — Frutería** — *Limón* ×3 and *Aguacate* are already Verdulería's, so TAG them | `M` | `9b` — the generator the content goes through |
-| **9h** | **Content session — Abarrotes** — the giro where IVA at 16% is common | `M` | `9b` — the generator the content goes through |
+| **9g** | ✅ **DONE 2026-10-02** — `0049`, 46 new products and 6 newly tagged; see the status entry. **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
+| **9h** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-02 — with the owner, using the handbook's Catalog Prompt.** **Content session — Abarrotes** — the giro where IVA at 16% is common; the four dried chiles (*ancho, guajillo, pasilla, de árbol*) are already tagged Abarrotes | `M` | `9b` — the generator the content goes through |
 | **9i** | **Content session — Cremería** | `M` | `9b` — the generator the content goes through |
 | **9j** | **Content session — Materias Primas** — ⚠️ what the word means (supplies for fondas and bakeries, or bulk dry goods) is the session's first question | `M` | `9b` — the generator the content goes through |
 
