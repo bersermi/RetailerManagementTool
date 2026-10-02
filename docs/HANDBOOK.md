@@ -115,7 +115,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
 | **9c** | **Pollería, with you** — the first giro, product by product. Paste the **Catalog Prompt** | ✅ **Done 1 October** — 24 products, by the kilo, in *Pollo* and *Huevo* |
 | **9d** | **The import, in the app** — choose giros, untick what you don't sell, *Importar*; and *Agregar del catálogo* on Productos for later | ✅ **Done 1 October** — on your phone with the next rebuild |
-| **9e** | **Carnicería, with you** — the next giro. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
+| **9e** | **Carnicería, with you** | ✅ **Done 1 October** — 54 new products in *Res*, *Cerdo* and *Tuétano*; the eggs tagged too |
+| **9f** | **Verdulería, with you** — the next giro. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point

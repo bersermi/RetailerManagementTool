@@ -1,0 +1,55 @@
+code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
+molida-de-res-90-10,res,Molida de res 90/10,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-res-85-15,res,Molida de res 85/15,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-res-80-20,res,Molida de res 80/20,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-res-75-25,res,Molida de res 75/25,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-res-70-30,res,Molida de res 70/30,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+bistec-de-res-de-primera,res,Bistec de res de primera,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+bistec-de-res-de-segunda,res,Bistec de res de segunda,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+milanesa-de-res-de-primera,res,Milanesa de res de primera,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+milanesa-de-res-de-segunda,res,Milanesa de res de segunda,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+arrachera,res,Arrachera,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+diezmillo,res,Diezmillo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+aguayon,res,Aguayón,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+cuete,res,Cuete,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+pulpa-de-res,res,Pulpa de res,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+chambarete,res,Chambarete,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+falda-de-res,res,Falda de res,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+costilla-de-res,res,Costilla de res,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+agujas-de-res,res,Agujas de res,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+suadero,res,Suadero,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+sirloin,res,Sirloin,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+rib-eye,res,Rib eye,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+retazo-de-res,res,Retazo de res,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+higado-de-res,res,Hígado de res,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+lengua-de-res,res,Lengua de res,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+pancita-de-res,res,Pancita de res,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+pata-de-res,res,Pata de res,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+arrachera-marinada,res,Arrachera marinada,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+cecina-de-res,res,Cecina de res,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+hamburguesa-de-res,res,Hamburguesa de res,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+tuetano,tuetano,Tuétano,pza,pza,pza,pza,,0,giro-carniceria cat-menudencia
+molida-de-cerdo-90-10,cerdo,Molida de cerdo 90/10,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-cerdo-85-15,cerdo,Molida de cerdo 85/15,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-cerdo-80-20,cerdo,Molida de cerdo 80/20,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-cerdo-75-25,cerdo,Molida de cerdo 75/25,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+molida-de-cerdo-70-30,cerdo,Molida de cerdo 70/30,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+bistec-de-cerdo-de-primera,cerdo,Bistec de cerdo de primera,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+bistec-de-cerdo-de-segunda,cerdo,Bistec de cerdo de segunda,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+milanesa-de-cerdo-de-primera,cerdo,Milanesa de cerdo de primera,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+milanesa-de-cerdo-de-segunda,cerdo,Milanesa de cerdo de segunda,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+chuleta-de-cerdo,cerdo,Chuleta de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+lomo-de-cerdo,cerdo,Lomo de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+pierna-de-cerdo,cerdo,Pierna de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+maciza-de-cerdo,cerdo,Maciza de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+costilla-de-cerdo,cerdo,Costilla de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+espinazo-de-cerdo,cerdo,Espinazo de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+chamorro-de-cerdo,cerdo,Chamorro de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-cortes
+manitas-de-cerdo,cerdo,Manitas de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+cuero-de-cerdo,cerdo,Cuero de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-menudencia
+carne-enchilada,cerdo,Carne enchilada,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+carne-al-pastor,cerdo,Carne al pastor,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+cecina-enchilada,cerdo,Cecina enchilada,g,kg,kg,kg,,0,giro-carniceria cat-preparados
+chorizo,cerdo,Chorizo,g,kg,kg,kg,,0,giro-carniceria cat-embutidos
+longaniza,cerdo,Longaniza,g,kg,kg,kg,,0,giro-carniceria cat-embutidos
+manteca-de-cerdo,cerdo,Manteca de cerdo,g,kg,kg,kg,,0,giro-carniceria cat-manteca

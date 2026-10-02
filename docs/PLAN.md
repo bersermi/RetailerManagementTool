@@ -62,7 +62,7 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **2026-10-01 — `9a`–`9d` ARE DONE AND `9e` IS THE NEXT TASK, WITH THE OWNER (Carnicería, the Catalog Prompt): the starter catalog by giro, `## Step 9`.** The owner parked `8g`
+✅ **2026-10-01 — `9a`–`9e` ARE DONE AND `9f` IS THE NEXT TASK, WITH THE OWNER (Verdulería, the Catalog Prompt): the starter catalog by giro, `## Step 9`.** The owner parked `8g`
 (*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
 for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
 offline, tagged, each product to carry a picture some day. Planned with him the same hour; the rows are
@@ -122,6 +122,20 @@ productos*; Lupe's Productos shows the entry; her picker offers 23, because one 
 looked at: the untick list itself.** Reaching it takes a tap, and macOS refuses synthetic input to this terminal, so it
 is **the owner's phone, R9**, together with the list's length and whether *Volver* should ask before discarding a choice.
 No migration. **It reaches his phone with the next rebuild**: 4 October, or the paid-team build.
+**`9e`, the Carnicería session with the owner, the same day: `0046_catalogo_carniceria.sql`**, generated, **54 new products**
+in 3 new families (*Res* 29 and *Cerdo* 24, by the kilo; *Tuétano* 1, by the piece) plus *Huevo blanco* and *Huevo rojo*
+**newly tagged** Carnicería. That makes 78 in the template, and 3 new category tags (*Cortes*, *Embutidos*, *Manteca*). ⚠️⚠️ **HIS RULINGS, 2026-10-01:**
+(1) **A carnicería sells eggs, not chicken.** (2) **Grades are products**: *Molida de res* and *Molida de cerdo* each in
+**90/10, 85/15, 80/20, 75/25, 70/30, lean first**, and *Bistec* and *Milanesa* of both animals *de primera* and *de segunda*.
+They replace the plain rows. (3) **IVA 0 on everything**, the marinated and *embutidos* included. (4) **Tuétano is sold by the
+piece, so it is a family of its own**, because C8.5 keeps one measure per family. *Pata de res* and *Manitas de cerdo* are by the kilo.
+(5) Chorizo and Longaniza go under *Embutidos*, and *Manteca de cerdo* has a category of its own. ⚠️ **Names carry the animal**
+(*Hígado de res*, *Pierna de cerdo*) because `product_variant_name_unique` is shop-wide, and Pollería already holds *Hígado*,
+*Pierna*, *Retazo*. **Guessed and kept unchanged:** *Sirloin* and *Rib eye* as names, and every unit except Tuétano's.
+**Left out:** carnero, borrego and other meats (*"not by the moment"*). Lifespans are blank. **Measured locally:** a fresh
+shop imports 56 of 56, then 0 a second time (56 skipped); Pollería afterwards imports 22 and skips only the 2 eggs, so no
+name collides across giros; `cat-embutidos` alone finds its 2 already in. All 31 behavioural suites pass with the
+content present; `build.test.mjs` is 20 of 20 after the new migration.
 
 ☑️ **`8f` IS DONE, 2026-09-30** — and `8g` was then the next task, the owner's screen-by-screen review. His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
 the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
@@ -364,8 +378,8 @@ this step adds the column and nothing else.
 | **9b** | ✅ **DONE 2026-10-01** — see the status entry. **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
 | **9c** | ✅ **DONE 2026-10-01** — `0045`, 24 products; see the status entry. **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
 | **9d** | ✅ **DONE 2026-10-01** — see the status entry. **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
-| **9e** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
-| **9f** | **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
+| **9e** | ✅ **DONE 2026-10-01** — `0046`, 54 new products and 2 newly tagged; see the status entry. **Content session — Carnicería, with the owner** | `M` | `9b` — the generator the content goes through |
+| **9f** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Verdulería** — ⚠️ count units (*manojo*, *pieza*) are likely here | `M` | `9b` — the generator the content goes through |
 | **9g** | **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
 | **9h** | **Content session — Abarrotes** — the giro where IVA at 16% is common | `M` | `9b` — the generator the content goes through |
 | **9i** | **Content session — Cremería** | `M` | `9b` — the generator the content goes through |
