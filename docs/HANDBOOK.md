@@ -112,7 +112,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you | ⏸️ Parked by you on 1 October — a designer may take it |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
-| **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ⚠️ **This is where the next piece of work is** |
+| **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
+| **9c** | **Pollería, with you** — the first giro, product by product. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
@@ -203,6 +204,43 @@ End every session the same way, so I can read it in twenty seconds:
   - the next task, and whether it is gated
 If the question is about what a shopkeeper actually does, walk me through the
 situations before showing me a design.
+```
+
+### The Catalog Prompt — for each giro of the starter catalog
+
+Use it for the content rows of `## Step 9` (`9c` Pollería, then `9e`–`9j`), one giro per
+session, clearing between them. For the build rows (`9d`), use the main prompt.
+
+```
+Today is one giro of the starter catalog: docs/PLAN.md, ## Step 9. Take the row
+`bash docs/checks/plan-handover.sh` names. If it is a content session, it is ONE
+giro, with me, and then stop.
+
+First check nothing was left behind: an open PR, a merged migration not deployed.
+
+How the session goes:
+- Draft first, then walk me through it. Read supabase/catalog/README.md and every
+  existing CSV before drafting: a product another giro already has is TAGGED,
+  never added twice.
+- Show the draft as a table in the chat, grouped by family: name, how it is
+  bought, how it is sold, how it is priced, pack size, IVA, tags.
+- I correct it row by row. Nothing goes into the CSV that I have not seen.
+- Never invent what a shop does. If you are unsure whether it is sold by the
+  kilo or by the piece, or whether it carries IVA, ask me. Say which rows you
+  guessed.
+- A unit the app does not have (docena, manojo, caja) is a migration. Stop and
+  ask me — do not work around it.
+- No prices, no pictures, no brands.
+
+Then build: the CSV goes through `supabase/catalog/build.mjs`, which must pass,
+into one numbered migration. Merge on a green CI run read by job name, then
+`supabase db push` and `bash docs/checks/5R-f-schema-deployed.sh`.
+
+End with, in twenty seconds of reading:
+  - how many products, how many new, how many only newly tagged
+  - the rows you guessed and I did not correct
+  - anything parked for a later giro
+  - the next row, and whether it is gated
 ```
 
 ### The Cleaning Prompt — for 29 September only
