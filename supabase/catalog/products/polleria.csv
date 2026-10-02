@@ -1,1 +1,25 @@
 code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
+pollo-entero,pollo,Pollo entero,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+pechuga-entera,pollo,Pechuga entera,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+pechuga-deshuesada,pollo,Pechuga deshuesada,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+milanesa-de-pollo,pollo,Milanesa de pollo,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+pierna,pollo,Pierna,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+muslo,pollo,Muslo,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+pierna-con-muslo,pollo,Pierna con muslo,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+alitas,pollo,Alitas,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+huacal,pollo,Huacal,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+retazo,pollo,Retazo,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+rabadilla,pollo,Rabadilla,g,kg,kg,kg,,0,giro-polleria cat-pollo-fresco
+pescuezo,pollo,Pescuezo,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+patas,pollo,Patas,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+molleja,pollo,Molleja,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+higado,pollo,Hígado,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+corazon,pollo,Corazón,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+piel-de-pollo,pollo,Piel de pollo,g,kg,kg,kg,,0,giro-polleria cat-menudencia
+pechuga-adobada,pollo,Pechuga adobada,g,kg,kg,kg,,0,giro-polleria cat-preparados
+pechuga-empanizada,pollo,Pechuga empanizada,g,kg,kg,kg,,0,giro-polleria cat-preparados
+fajitas-de-pollo,pollo,Fajitas de pollo,g,kg,kg,kg,,0,giro-polleria cat-preparados
+nuggets-de-pollo,pollo,Nuggets de pollo,g,kg,kg,kg,,0,giro-polleria cat-preparados
+hamburguesa-de-pollo,pollo,Hamburguesa de pollo,g,kg,kg,kg,,0,giro-polleria cat-preparados
+huevo-blanco,huevo,Huevo blanco,g,kg,kg,kg,,0,giro-polleria cat-huevo
+huevo-rojo,huevo,Huevo rojo,g,kg,kg,kg,,0,giro-polleria cat-huevo

@@ -62,7 +62,7 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **2026-10-01 — `9a` AND `9b` ARE DONE AND `9c` IS THE NEXT TASK, WITH THE OWNER: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
+✅ **2026-10-01 — `9a`, `9b` AND `9c` ARE DONE AND `9d` IS THE NEXT TASK: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
 (*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
 for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
 offline, tagged, each product to carry a picture some day. Planned with him the same hour; the rows are
@@ -87,6 +87,20 @@ nothing**. It is fixed with real paths. **20 of 20 in `build.test.mjs`**, each r
 generated snapshots were applied to the local database and rolled back: a rename onto a removed product's name, a
 family move and a family deletion all landed, and a picture path survived the second snapshot. In CI it runs as the
 first step of `supabase db reset`. **The Catalog Prompt** is in the handbook, beside the main prompt.
+**`9c`, the Pollería session with the owner, the same night: `0045_catalogo_polleria.sql`**, generated, with 24 products in
+2 families (*Pollo* 22, *Huevo* 2), every one by the kilo and at IVA 0, plus 4 category tags. ⚠️⚠️ **HIS RULINGS, 2026-10-01:**
+(1) ***"Agree on families"*: a FAMILY IS WHAT THE PRODUCT IS** (*Pollo*, *Huevo*) and keeps one measure (C8.5); the
+section a shop browses by (*Pollo fresco*, *Menudencia*, *Preparados*) is a **category tag**. ⚠️ His pilot shop uses
+Familia as a section, and its *Pollo* and *Verduras* each mix pieces and kilos, so **importing Pollería into the pilot
+shop would land only the 2 eggs**. Every chicken row would be skipped by the C8.5 rule; his rows are untouched either
+way. (2) **Pollo entero by the kilo; Huevo by the kilo.** (3) **Every guessed row kept as drafted**, including *Nuggets* and
+*Hamburguesa de pollo* by the kilo, and IVA 0 on the marinated ones. **Left out:** *Pollo rostizado* (16%, a rosticería's),
+*Gallina*, and turkey cold cuts. Lifespans are blank, since he was not asked. **Measured locally:** a fresh shop imports
+24 of 24; a second import imports 0 and skips 24; an import by `cat-menudencia` alone finds its 6 already in;
+`0044`'s and `0042`'s suites still pass with the content present; `01_rls_coverage` is 97 ok.
+(4) ⚠️⚠️ **`9d`'s import screen, ruled the same night: PICK GIROS, THEN AN UNTICK LIST, THEN *Importar*.** Products are
+grouped by family and all ticked, and unticking sends `p_exclude`. He chose it over giro-only and over loosening `0042`'s
+fence, because an imported product can never be retired.
 
 ☑️ **`8f` IS DONE, 2026-09-30** — and `8g` was then the next task, the owner's screen-by-screen review. His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
 the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
@@ -327,8 +341,8 @@ this step adds the column and nothing else.
 |---|---|---|---|
 | **9a** | ✅ **DONE 2026-10-01** — see the status entry. **`0044`: the template schema and the import.** `catalogo.tag`, `.family`, `.product` (with `image_path`, nullable), `.product_tag`; one dimension per template family, enforced by trigger (C8.5, which the shop's own tables do not enforce); `product_variant.template_code` with a per-workspace partial unique index; `catalog_template()` and `import_catalog(workspace, tags, exclude)`; a behavioural suite (an import as manager, the staff refusal under `set local role authenticated`, a second import importing nothing, a name collision skipped, a second workspace untouched); the ADR §2.9 paragraph and the README row. **No content** — the template is empty until `9c` | `M` | Nothing — the design was planned with the owner |
 | **9b** | ✅ **DONE 2026-10-01** — see the status entry. **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
-| **9c** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
-| **9d** | **The app, minimum controls.** A giro picker after the shop is created (*Importar* / *Omitir*), one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ⚠️ **Owed to the owner first: an imported product can never be retired** (`0042`'s fence), so whether the picker needs a preview with unticking before *Importar* is his call | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
+| **9c** | ✅ **DONE 2026-10-01** — `0045`, 24 products; see the status entry. **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
+| **9d** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01.** **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
 | **9e** | **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
 | **9f** | **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
 | **9g** | **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
