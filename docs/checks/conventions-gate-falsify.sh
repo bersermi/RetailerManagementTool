@@ -33,9 +33,9 @@
 # NOTHING rather than passing — the trap `5a-i` recorded, where a fixture whose
 # `sed` silently matched no line went green and was counted as evidence.
 #
-# ⚠️ ONE FIXTURE EXPECTS **GREEN**, AND IT IS THE MOST IMPORTANT ONE. `F13`
-# adds a comment naming every banned token at once. The first spelling of the
-# gate was RED on it — red on the files that got it right — because this
+# ⚠️ TWO FIXTURES EXPECT **GREEN**. `F34` is R15's regression (see it). `F13`
+# IS THE MOST IMPORTANT ONE: it adds a comment naming every banned token at
+# once. The first spelling of the gate was RED on it — red on the files that got it right — because this
 # codebase documents its traps in prose next to the code that avoids them. A
 # guard that fires on the explanation makes deleting the explanation the
 # cheapest way to green, and would strip this repository of the comments that
@@ -489,6 +489,18 @@ run F32 red "R15 — a second component exported from one file in src/ui/"
 mk; sedi 's/^export function Separador()/export default function Separador()/' "$WORK/app/src/ui/Separador.tsx"
 run F33 red "R15 — a default export in src/ui/, where the name is the interface"
 
+# ⚠️⚠️ F34 EXPECTS GREEN, AND IT IS R15's REGRESSION FIXTURE (2026-10-02). R15
+# spelled `code | grep -q` under pipefail, R14's trap from `5h.5` a second time,
+# and CI reported a correct `SelectorCatalogo.tsx` as red ONCE, on a PR that
+# never touched it. ~~A flake~~ is the wrong word: past the 64 KB pipe buffer it
+# is red EVERY run (measured 3 of 3), because `grep -q` matches the export in
+# the first chunk and leaves `code` blocked writing the rest. So this pads a
+# correct component well past the buffer, AFTER its export, with code lines
+# (comments would be stripped before the pipe and pad nothing). Unexported
+# consts trip no other rule, so a red here names R15's pipeline alone.
+mk; { echo; for i in $(seq 1 4000); do echo "const relleno$i = $i;"; done; } >> "$WORK/app/src/ui/Separador.tsx"
+run F34 green "R15 — a correct component past the pipe buffer stays green"
+
 echo
 echo "=== the reverse one: the comment-stripping guard must NOT fire ==="
 mk
@@ -518,7 +530,7 @@ echo
 # a run that executed no fixtures looks like — the eighth check here to need
 # one, and the first where the thing that could empty it is this file's own
 # fixture list being edited down.
-EXPECTED_FIXTURES=35
+EXPECTED_FIXTURES=36
 if (( ran < EXPECTED_FIXTURES )); then
   echo "FAIL: only $ran fixtures ran, expected $EXPECTED_FIXTURES — this harness"
   echo "      proved almost nothing and was about to report success."
@@ -529,5 +541,5 @@ if (( bad > 0 )); then
   echo "biting what this file says it bites."
   exit 1
 fi
-echo "$ran fixtures, all as expected ($((ran - 1)) red, 1 deliberately green) —"
+echo "$ran fixtures, all as expected ($((ran - 2)) red, 2 deliberately green) —"
 echo "conventions-gate.sh has teeth."
