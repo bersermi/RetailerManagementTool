@@ -9,7 +9,7 @@ papa-cambray,verduras,Papa cambray,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 zanahoria,verduras,Zanahoria,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 calabacita,verduras,Calabacita,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 chayote,verduras,Chayote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-pepino,verduras,Pepino,g,kg,kg,kg,,0,giro-verduleria cat-verduras
+pepino,verduras,Pepino,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
 ejote,verduras,Ejote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 chicharo,verduras,Chícharo,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 brocoli,verduras,Brócoli,g,kg,kg,kg,,0,giro-verduleria cat-verduras
@@ -18,15 +18,15 @@ col-blanca,verduras,Col blanca,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 col-morada,verduras,Col morada,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 betabel,verduras,Betabel,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 camote,verduras,Camote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-jicama,verduras,Jícama,g,kg,kg,kg,,0,giro-verduleria cat-verduras
+jicama,verduras,Jícama,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
 pimiento-morron,verduras,Pimiento morrón,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 berenjena,verduras,Berenjena,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 champinon,verduras,Champiñón,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 nopal,verduras,Nopal,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-limon-con-semilla,verduras,Limón con semilla,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-limon-sin-semilla,verduras,Limón sin semilla,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-limon-amarillo,verduras,Limón amarillo,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-aguacate,verduras,Aguacate,g,kg,kg,kg,,0,giro-verduleria cat-verduras
+limon-con-semilla,verduras,Limón con semilla,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
+limon-sin-semilla,verduras,Limón sin semilla,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
+limon-amarillo,verduras,Limón amarillo,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
+aguacate,verduras,Aguacate,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
 verdolaga,verduras,Verdolaga,g,kg,kg,kg,,0,giro-verduleria cat-verduras
 chile-serrano,chiles,Chile serrano,g,kg,kg,kg,,0,giro-verduleria cat-chiles
 chile-jalapeno,chiles,Chile jalapeño,g,kg,kg,kg,,0,giro-verduleria cat-chiles

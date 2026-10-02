@@ -117,7 +117,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9d** | **The import, in the app** — choose giros, untick what you don't sell, *Importar*; and *Agregar del catálogo* on Productos for later | ✅ **Done 1 October** — on your phone with the next rebuild |
 | **9e** | **Carnicería, with you** | ✅ **Done 1 October** — 54 new products in *Res*, *Cerdo* and *Tuétano*; the eggs tagged too |
 | **9f** | **Verdulería, with you** | ✅ **Done 2 October** — 53 new products; herbs sold by the new unit *manojo*. *Caja* parked by you as an idea, not a task |
-| **9g** | **Frutería, with you** — the next giro. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
+| **9g** | **Frutería, with you** | ✅ **Done 2 October** — 46 new products; melón, sandía, papaya, piña and pitaya both by the kilo and by the piece. Fruta picada left out for now |
+| **9h** | **Abarrotes, with you** — the next giro. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
