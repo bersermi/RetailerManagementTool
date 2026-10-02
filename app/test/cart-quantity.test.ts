@@ -65,6 +65,7 @@ function variant(id: string, priceUnit: string, baseUnit: string): VariantRow {
     price_unit_code: priceUnit,
     base_unit_code: baseUnit,
     is_active: true,
+    template_code: null,
     product_family: { id: FAMILY, name: 'Pollo' },
     price_list: [{ price_per_base: '0.180000', location_id: null }],
   };

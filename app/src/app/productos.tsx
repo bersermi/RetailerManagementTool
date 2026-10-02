@@ -175,6 +175,23 @@ export default function Productos() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+      {/* `9d`: the starter catalog's second door — the first is onboarding. Drawn for
+          whoever may write the catalog, which is who `import_catalog` admits. */}
+      {mayCreate && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/catalogo')}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+            paddingHorizontal: scale.space,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+            {ES.starter.entry}
+          </Text>
+        </Pressable>
+      )}
 
       <FlatList
         ref={list}

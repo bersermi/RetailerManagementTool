@@ -62,7 +62,7 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **2026-10-01 — `9a`, `9b` AND `9c` ARE DONE AND `9d` IS THE NEXT TASK: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
+✅ **2026-10-01 — `9a`–`9d` ARE DONE AND `9e` IS THE NEXT TASK, WITH THE OWNER (Carnicería, the Catalog Prompt): the starter catalog by giro, `## Step 9`.** The owner parked `8g`
 (*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
 for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
 offline, tagged, each product to carry a picture some day. Planned with him the same hour; the rows are
@@ -101,6 +101,27 @@ way. (2) **Pollo entero by the kilo; Huevo by the kilo.** (3) **Every guessed ro
 (4) ⚠️⚠️ **`9d`'s import screen, ruled the same night: PICK GIROS, THEN AN UNTICK LIST, THEN *Importar*.** Products are
 grouped by family and all ticked, and unticking sends `p_exclude`. He chose it over giro-only and over loosening `0042`'s
 fence, because an imported product can never be retired.
+**`9d`, the import in the app, built the same night.** `@/api/starterCatalog` (pure: the RPC names and `p_` args, the
+wire shape, the giros offered, the untick list by family, "already in your shop" by `template_code` or folded name, and
+`choiceFrom`), two `calls.ts` wrappers, `useStarterCatalog` and `useImportCatalog`, `src/ui/SelectorCatalogo` (drawn by
+two files, R14), and *¿Qué vendes?* as the third question on `bienvenida`. **The import runs inside the create mutation,
+BEFORE the membership read is invalidated**, so the guard moves her to Inicio only once the products exist. The route
+`catalogo.tsx` is reached from Productos (*Agregar del catálogo*, for managers and the owner). `VARIANT_COLUMNS` gains
+`template_code`, and `CACHE_SHAPE` goes from `v1` to `v2`. ⚠️ **What the estimate found:** (1) **a picker screen after
+*Crear* would RACE the guard**, which moves a new member out of onboarding on its own, so the picker lives ON the onboarding
+screen. (2) **The template is NOT persisted**, a change from the plan: the import needs signal, so a stored picker could
+only offer a button that fails. Offline, it says so. (3) The `5d-i` check reads `VARIANT_COLUMNS` with a one-line `sed`,
+so the constant must stay on one line. ⚠️ **Decisions for the owner:** a failed import at onboarding does not fail the shop
+and shows no error, because *Agregar del catálogo* is the same import. On the onboarding screen the shop's own *Crear mi
+tienda* is the import button: no giro chosen means *Omitir*. After a later import the route goes back, and Productos is
+the confirmation. **Evidence:** Vitest **1741/1741 in 53 files** (the runner's tally); `conventions-gate.sh` 18 of 18;
+`9d-starter-catalog-contract.sh` **10 of 10** over HTTP, run after `6c` the way CI orders them; its falsifier **4 of 4**,
+each red for its reason; typecheck clean after regenerating the typed routes. **Looked at** on the iPhone 17 simulator
+(Release, local shop, bundle checked to hold the local URL and no production ref): onboarding offers *Pollería · 24
+productos*; Lupe's Productos shows the entry; her picker offers 23, because one product is already hers by name. ⚠️ **NOT
+looked at: the untick list itself.** Reaching it takes a tap, and macOS refuses synthetic input to this terminal, so it
+is **the owner's phone, R9**, together with the list's length and whether *Volver* should ask before discarding a choice.
+No migration. **It reaches his phone with the next rebuild**: 4 October, or the paid-team build.
 
 ☑️ **`8f` IS DONE, 2026-09-30** — and `8g` was then the next task, the owner's screen-by-screen review. His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
 the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
@@ -342,8 +363,8 @@ this step adds the column and nothing else.
 | **9a** | ✅ **DONE 2026-10-01** — see the status entry. **`0044`: the template schema and the import.** `catalogo.tag`, `.family`, `.product` (with `image_path`, nullable), `.product_tag`; one dimension per template family, enforced by trigger (C8.5, which the shop's own tables do not enforce); `product_variant.template_code` with a per-workspace partial unique index; `catalog_template()` and `import_catalog(workspace, tags, exclude)`; a behavioural suite (an import as manager, the staff refusal under `set local role authenticated`, a second import importing nothing, a name collision skipped, a second workspace untouched); the ADR §2.9 paragraph and the README row. **No content** — the template is empty until `9c` | `M` | Nothing — the design was planned with the owner |
 | **9b** | ✅ **DONE 2026-10-01** — see the status entry. **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
 | **9c** | ✅ **DONE 2026-10-01** — `0045`, 24 products; see the status entry. **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
-| **9d** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01.** **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
-| **9e** | **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
+| **9d** | ✅ **DONE 2026-10-01** — see the status entry. **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
+| **9e** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
 | **9f** | **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
 | **9g** | **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
 | **9h** | **Content session — Abarrotes** — the giro where IVA at 16% is common | `M` | `9b` — the generator the content goes through |

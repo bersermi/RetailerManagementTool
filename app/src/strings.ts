@@ -130,6 +130,29 @@ export const ES = {
   },
 
   /**
+   * THE STARTER CATALOG — choose giros, untick what the shop does not sell,
+   * bring the rest. Plan task `9d`, the owner's ruling of 2026-10-01.
+   *
+   * ⚠️ THE HINT SAYS THE ONE THING THAT CANNOT BE UNDONE, IN THE SHOPKEEPER'S
+   * WORDS: a product that comes from here can be renamed and priced but never
+   * removed (`0042`). It says so BEFORE the tap, because after it there is
+   * nothing to say.
+   */
+  starter: {
+    question: '¿Qué vendes?',
+    hint: 'Te ponemos los productos de tu giro. Quita los que no vendes: después puedes cambiarles el nombre y el precio, pero no quitarlos.',
+    count: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
+    add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
+    none: 'No elegiste ningún producto.',
+    nothingLeft: 'Ya tienes todos los productos de nuestro catálogo.',
+    needsSignal: 'Para traer productos del catálogo necesitas conexión.',
+    loading: 'Cargando el catálogo…',
+    added: (n: number) => (n === 1 ? 'Se agregó 1 producto.' : `Se agregaron ${n} productos.`),
+    title: 'Agregar del catálogo',
+    entry: 'Agregar del catálogo',
+  },
+
+  /**
    * THE OTHER HALF OF THE SAME LANDING — SHE WAS INVITED, AND SHE IS NOT HERE TO
    * CREATE A SHOP AT ALL. Plan task 5b-ii-b-2.
    *
