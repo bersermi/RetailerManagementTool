@@ -62,6 +62,30 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
+✅ **2026-10-02 — `9h` IS DONE AND `9i` IS THE NEXT TASK, WITH THE OWNER (Cremería, the Catalog Prompt).**
+**`9h`, the Abarrotes session: `0050_catalogo_abarrotes.sql`**, **1,017 new products** in 24 new families and 22 new category tags,
+plus **10 newly tagged** Abarrotes: *Huevo blanco/rojo*, and *Jitomate saladet, Cebolla blanca, Papa blanca, Limón con semilla,
+Chile serrano, Chile jalapeño, Ajo, Aguacate*. The 4 dried chiles were already tagged. That makes 1,195 products in all. ⚠️⚠️ **HIS RULINGS, 2026-10-02:**
+(1) ⚠️⚠️ **ABARROTES CARRIES BRANDS: the Catalog Prompt's no-brands rule is lifted for this giro**, because *"Abarrotes is very brand
+sensitive"*. A product is brand + product + presentation (*Coca-Cola lata 355 ml*, *Marías Gamesa tubo*). Bulk goods stay generic and by the
+kilo (*Arroz a granel*). Pollería, Carnicería, Verdulería and Frutería stay generic. (2) **No IVA on anything for now**: every row is 0, and the
+16% question is deferred, not answered. (3) He asked for **every presentation** in Refrescos, Pan (Oroweat included), Galletas, Botanas,
+Enlatados and Cerveza/licores. (4) **He accepted the last proposal whole** (*"close enough"*) without row edits. ⚠️ **The review page could
+not save**: it was opened through `/artifacts`, on the artifact's own host, where the `db` capability resolves `null`. The page showed
+*Connecting…* for ever and kept his edits only in the tab. A review page must be opened on claude.ai, and it must say *not saving* rather than *connecting*.
+(5) **Frutería correction, in the same snapshot**: *Fresa por charola* is new, and *Frambuesa, Zarzamora, Arándano* are renamed *… por charola* (codes unchanged).
+**Decisions taken for him (his "accept" covers them, but they were mine):** the 24 family names and 22 category labels; bulk *croquetas*
+tagged *Mascotas* and bulk sugar tagged *Azúcar*; naming *X a granel* / *X en bolsa* (which breaks Frutería's plain-name-is-kilo rule, because *Arroz
+por pieza* reads wrong); presentations written as words (*individual*, *grande*, *tubo*, *Familiar*) where the grammage was not known.
+⚠️⚠️ **661 OF THE 1,017 ROWS WERE MARKED GUESS IN THE DRAFT AND SHIPPED UNCORRECTED** — mostly presentations and sizes, not brands.
+A wrong size is a `name` edit in a later snapshot, and the code stays. ⚠️ **Cheap now, expensive later:** each code bakes in the presentation
+(`coca-cola-lata-355-ml`), and a shop's copy remembers it for ever. A rename keeps a code that no longer matches its name.
+⚠️ **Found, not fixed: the import's untick list (`app/src/app/catalogo.tsx`) renders every product in a plain `ScrollView`.** That was fine at 177;
+at 1,031 Abarrotes rows it is unvirtualized, and every tick re-renders all of them. **Not measured on a phone** — it belongs to whoever next looks at that
+screen on a device.
+**Measured locally:** `build.test.mjs` 20 of 20 after `0050`; `--check` matches (41 tags, 35 families, 1,195 products); `supabase db reset`
+applies it (1,031 rows carry `giro-abarrotes`); every behavioural suite in `supabase/tests/` passes, each run after `_cleanup.sql`.
+
 ✅ **2026-10-02 — `9g` IS DONE AND `9h` IS THE NEXT TASK, WITH THE OWNER (Abarrotes, the Catalog Prompt).**
 **`9g`, the Frutería session: `0049_catalogo_fruteria.sql`**, **46 new products** in 2 new families: *Frutas* 37, by the kilo,
 and *Frutas por pieza* 9, by the piece. **6 newly tagged** Frutería: *Limón* ×3 and *Aguacate*, plus *Jícama* and *Pepino*. That makes
@@ -422,8 +446,8 @@ this step adds the column and nothing else.
 | **9e** | ✅ **DONE 2026-10-01** — `0046`, 54 new products and 2 newly tagged; see the status entry. **Content session — Carnicería, with the owner** | `M` | `9b` — the generator the content goes through |
 | **9f** | ✅ **DONE 2026-10-02** — `0047` (`manojo`) and `0048`, 53 new products; see the status entry. **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
 | **9g** | ✅ **DONE 2026-10-02** — `0049`, 46 new products and 6 newly tagged; see the status entry. **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
-| **9h** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-02 — with the owner, using the handbook's Catalog Prompt.** **Content session — Abarrotes** — the giro where IVA at 16% is common; the four dried chiles (*ancho, guajillo, pasilla, de árbol*) are already tagged Abarrotes | `M` | `9b` — the generator the content goes through |
-| **9i** | **Content session — Cremería** | `M` | `9b` — the generator the content goes through |
+| **9h** | ✅ **DONE 2026-10-02** — `0050`, 1,017 new products with brands, 14 tagged, and the Frutería berry correction; see the status entry. **Content session — Abarrotes** | `M` | `9b` — the generator the content goes through |
+| **9i** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-02 — with the owner, using the handbook's Catalog Prompt.** **Content session — Cremería** — `9h` already wrote branded dairy (*Lala*, *Alpura*, *Philadelphia*…) and packaged cold cuts, so Cremería TAGS those; ⚠️ whether Cremería is brand-driven like Abarrotes is its first question | `M` | `9b` — the generator the content goes through |
 | **9j** | **Content session — Materias Primas** — ⚠️ what the word means (supplies for fondas and bakeries, or bulk dry goods) is the session's first question | `M` | `9b` — the generator the content goes through |
 
 **Questions the content sessions will raise, not this plan:** which products carry 16% IVA; count units the
