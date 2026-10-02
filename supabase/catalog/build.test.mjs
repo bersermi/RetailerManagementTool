@@ -178,8 +178,13 @@ test('--check passes on a matching snapshot and fails, saying why, on a CSV edit
   const migrations = join(root, 'migrations');
   mkdirSync(join(catalog, 'products'), { recursive: true });
   mkdirSync(migrations);
-  // The fixture CLI reads units from the real migrations, so they are copied in.
-  for (const f of readdirSync(MIGRATIONS)) writeFileSync(join(migrations, f), readFileSync(join(MIGRATIONS, f)));
+  // The fixture CLI reads units from the real migrations, so they are copied in —
+  // ⚠️ EVERY ONE BUT THE CATALOG SNAPSHOTS. Copying `0045_catalogo_polleria.sql`
+  // too made this fixture's "no catalog migration yet" false the day real content
+  // landed, and CI went red on `9c` while the suite had last run before `0045`.
+  for (const f of readdirSync(MIGRATIONS).filter((name) => !/_catalogo_/.test(name))) {
+    writeFileSync(join(migrations, f), readFileSync(join(MIGRATIONS, f)));
+  }
   writeFileSync(join(catalog, 'build.mjs'), readFileSync(join(HERE, 'build.mjs')));
   writeFileSync(join(catalog, 'tags.csv'), TAGS);
   writeFileSync(join(catalog, 'families.csv'), FAMILIES);

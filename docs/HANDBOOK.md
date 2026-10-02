@@ -234,7 +234,8 @@ How the session goes:
 - No prices, no pictures, no brands.
 
 Then build: the CSV goes through `supabase/catalog/build.mjs`, which must pass,
-into one numbered migration. Merge on a green CI run read by job name, then
+into one numbered migration — then run `node --test supabase/catalog/build.test.mjs`
+AGAIN, because the new migration is something that suite reads. Merge on a green CI run read by job name, then
 `supabase db push` and `bash docs/checks/5R-f-schema-deployed.sh`.
 
 End with, in twenty seconds of reading:
