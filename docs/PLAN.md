@@ -62,7 +62,7 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **2026-10-01 — `9a` IS DONE AND `9b` IS THE NEXT TASK: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
+✅ **2026-10-01 — `9a` AND `9b` ARE DONE AND `9c` IS THE NEXT TASK, WITH THE OWNER: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
 (*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
 for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
 offline, tagged, each product to carry a picture some day. Planned with him the same hour; the rows are
@@ -76,6 +76,17 @@ template names identically, so it is **reused, not copied**. **36 checks in `sup
 falsified twice** (role fence weakened to staff → 4.15 red; C8.5 skip removed → 4.8, 4.10, 4.17 red). All 31 behavioural
 suites, all 7 pgTAP suites (`01_rls_coverage` untouched) and the `5d-i`/`6c` contract checks are green locally. No content
 yet: the template is empty until `9c`.
+**`9b` built the authoring path the same night**: `supabase/catalog/` (`tags.csv` holding the seven giros he named,
+`families.csv`, `products/polleria.csv` with a header only, a README) and `build.mjs` with `--write` and `--check`.
+⚠️ **What the estimate found:** (1) **each content migration has to be a SNAPSHOT of the whole catalog**, because a
+later giro TAGS a row an earlier giro's file holds, and a per-giro insert would miss that tag. (2) **Units are parsed
+out of the migrations**, never copied, so there is no second list. (3) **`--check` comes almost free** because the
+output is deterministic, and it catches a CSV edited without regenerating. ⚠️ **A defect found by its own suite:** on
+macOS `/var` is `/private/var`, so the entry-point test never matched, and **the CLI exited 0 having checked
+nothing**. It is fixed with real paths. **20 of 20 in `build.test.mjs`**, each refusal asserted by its reason. Two
+generated snapshots were applied to the local database and rolled back: a rename onto a removed product's name, a
+family move and a family deletion all landed, and a picture path survived the second snapshot. In CI it runs as the
+first step of `supabase db reset`. **The Catalog Prompt** is in the handbook, beside the main prompt.
 
 ☑️ **`8f` IS DONE, 2026-09-30** — and `8g` was then the next task, the owner's screen-by-screen review. His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
 the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
@@ -315,8 +326,8 @@ this step adds the column and nothing else.
 | Task | What it is | Size | Gate |
 |---|---|---|---|
 | **9a** | ✅ **DONE 2026-10-01** — see the status entry. **`0044`: the template schema and the import.** `catalogo.tag`, `.family`, `.product` (with `image_path`, nullable), `.product_tag`; one dimension per template family, enforced by trigger (C8.5, which the shop's own tables do not enforce); `product_variant.template_code` with a per-workspace partial unique index; `catalog_template()` and `import_catalog(workspace, tags, exclude)`; a behavioural suite (an import as manager, the staff refusal under `set local role authenticated`, a second import importing nothing, a name collision skipped, a second workspace untouched); the ADR §2.9 paragraph and the README row. **No content** — the template is empty until `9c` | `M` | Nothing — the design was planned with the owner |
-| **9b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01.** **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
-| **9c** | **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
+| **9b** | ✅ **DONE 2026-10-01** — see the status entry. **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
+| **9c** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
 | **9d** | **The app, minimum controls.** A giro picker after the shop is created (*Importar* / *Omitir*), one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ⚠️ **Owed to the owner first: an imported product can never be retired** (`0042`'s fence), so whether the picker needs a preview with unticking before *Importar* is his call | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
 | **9e** | **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
 | **9f** | **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |

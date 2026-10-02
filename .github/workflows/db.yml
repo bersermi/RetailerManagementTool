@@ -1236,6 +1236,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # THE STARTER CATALOG (docs/PLAN.md 9b), FIRST BECAUSE IT NEEDS NO DATABASE.
+      # The generator's own suite, then `--check`: the newest catalog migration
+      # must be exactly what supabase/catalog/*.csv generate today. A CSV edited
+      # without regenerating would otherwise merge green and never reach a shop.
+      # Whether the generated SQL APPLIES is the reset below, like any migration.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Starter catalog — the generator's suite, and the CSVs agree with the newest snapshot
+        run: |
+          node --test supabase/catalog/build.test.mjs
+          node supabase/catalog/build.mjs --check
+
       - name: Install Supabase CLI
         uses: supabase/setup-cli@v1
         with:
