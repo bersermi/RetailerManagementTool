@@ -56,7 +56,7 @@
 #      is where it is measured, and if a later migration narrows those policies
 #      this is the only thing in the repository that goes red.
 #  10. Another shop reads zero of this shop's products.
-#  11. The ten units read back, every factor a decimal string at scale 6 — the
+#  11. The eleven units read back (0001's ten, 0047's manojo), every factor a decimal string at scale 6 — the
 #      map `5c-iv-b` refused to hard-code.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: the arithmetic. What a price in centavos comes to
@@ -458,8 +458,8 @@ cat > "$SCRATCH/units.py" <<'PY'
 import json, re, sys
 rows = json.load(open(sys.argv[1]))
 cols = [c.split('::')[0] for c in sys.argv[2].split(',')]
-if not isinstance(rows, list) or len(rows) != 10:
-    print('the unit table read back %r rows, and 0001 seeds ten'
+if not isinstance(rows, list) or len(rows) != 11:
+    print('the unit table read back %r rows, and 0001 seeds ten and 0047 one'
           % (len(rows) if isinstance(rows, list) else rows)); raise SystemExit
 for row in rows:
     missing = [c for c in cols if c not in row]
@@ -470,9 +470,9 @@ for row in rows:
         print('factor_to_base came back as %r — it must be a decimal string at scale 6, '
               'because it is multiplied into a price' % (factor,)); raise SystemExit
 codes = sorted(r['code'] for r in rows)
-if 'kg' not in codes or '250g' not in codes:
-    print('the ten units are %r' % (codes,)); raise SystemExit
-print('ok — ten units, every factor a decimal string at scale 6, read by a cashier')
+if 'kg' not in codes or '250g' not in codes or 'manojo' not in codes:
+    print('the eleven units are %r' % (codes,)); raise SystemExit
+print('ok — eleven units, every factor a decimal string at scale 6, read by a cashier')
 PY
 verdict "the unit table reads back as the factors map" "$SCRATCH/units.py" "$UNITS_READ" "$UNIT_COLUMNS"
 

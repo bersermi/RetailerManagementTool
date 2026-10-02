@@ -110,12 +110,12 @@ describe('which unit the quantity box speaks in', () => {
     expect(shownUnitOf(entry(POR_GRAMO))).toBe('g');
   });
 
-  // ⚠️ THE FIVE PACKS `0001` SEEDS, NAMED — the list this decision drew.
+  // ⚠️ THE FIVE PACKS `0001` SEEDS, NAMED — the list this decision drew. `manojo` (`0047`) is a measure: a bunch is counted.
   it('treats every seeded pack as a pack and every measure as a measure', () => {
     for (const code of ['500g', '250g', '100g', '500ml', '100ml']) {
       expect(MEASURED_IN.has(code)).toBe(false);
     }
-    for (const code of ['kg', 'g', 'l', 'ml', 'pza']) {
+    for (const code of ['kg', 'g', 'l', 'ml', 'pza', 'manojo']) {
       expect(MEASURED_IN.has(code)).toBe(true);
     }
   });

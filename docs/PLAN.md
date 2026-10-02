@@ -62,6 +62,29 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
+✅ **2026-10-02 — `9f` IS DONE AND `9g` IS THE NEXT TASK, WITH THE OWNER (Frutería, the Catalog Prompt).**
+**`9f`, the Verdulería session: `0047_unit_manojo.sql` and `0048_catalogo_verduleria.sql`**, **53 new products** in 4 new
+families: *Verduras* 29 and *Chiles* 9, by the kilo; *Verduras por pieza* 6, by the piece; *Hierbas* 9, by the **manojo**.
+Nothing was newly tagged, because no Verdulería product was already in the template. That makes 131 in all, plus 4 new
+category tags (*Verduras*, *Chiles*, *Chiles secos*, *Hierbas*). ⚠️⚠️ **HIS RULINGS, 2026-10-02:** (1) **Herbs are sold by the
+manojo, so `0047` adds the unit `manojo`** (count, factor 1 to `pza`, display order 15). Stock counts bunches. (2) **Verdolaga
+is two products**: *Verdolaga* by the kilo and *Verdolaga en manojo* (the wording is the assistant's). (3) **Ajo is sold by the
+head**, under *Verduras por pieza*. (4) **Limón is three products**: *con semilla*, *sin semilla*, *amarillo*. (5) **Dried chiles
+are tagged Verdulería AND Abarrotes** (*ancho, guajillo, pasilla, de árbol*), so `9h` tags them and never adds them again.
+(6) ⚠️⚠️ **`caja` WAS ASKED FOR AND IS PARKED, NOT AS A TASK BUT AS CONTEXT, by the owner, until there is feedback.** What
+was measured: `record_purchase` (`0018`/`0025`) converts by `unit.factor_to_base` alone and **never reads `pack_size`**,
+which the app only shows and edits. So a box of 24 recorded as *2 cajas* would add 2 to stock, not 48. A `caja` unit would
+also need one weight for every product, and a box from the Central varies by product and by delivery. **Every purchase unit
+here stays `kg` or `pza`.** ⚠️ **Two migrations, not one**: the generator writes the whole catalog file and `--check`
+compares it byte for byte, so the unit cannot live inside it. ⚠️ **What `manojo` touched outside the catalog:** `ES.units`
+(*manojo*), `MEASURED_IN` (a bunch is counted, never a pack, so the field reads *3 manojo*, not *3 pza*), the unit
+fixtures in `api-catalog-write`/`cart-quantity`, and `5d-i-catalog-contract.sh`'s unit count, which goes from 10 to 11. ⚠️ **And `07_money_and_units`, found by CI, not locally:** its U-block asserted *factor 1 if and only if base*, which is stricter than `0001`'s constraint. It now asserts one direction only (a base is at 1), with `manojo` named; the F-block's *exactly three bases* still refuses a fourth. 193 of 193.
+**Decisions taken for him:** the *Chiles secos* category; family names; display order 15. **Guessed and kept unchanged:**
+Brócoli, Coliflor and Nopal by the kilo; Lechuga orejona, Apio and Poro by the piece; *Limón amarillo* as the third limón;
+IVA 0 on everything, dried chiles included. **For `9g`:** *Limón* ×3 and *Aguacate* already exist, so Frutería TAGS them.
+**Measured locally:** `build.test.mjs` 20 of 20 after `0048`; the `0042` (25), `0044` (36) and `0018` (82) suites pass;
+`5d-i` 12 of 12 with eleven units; Vitest 1741/1741 in 53 files; typecheck clean.
+
 ✅ **2026-10-01 — `9a`–`9e` ARE DONE AND `9f` IS THE NEXT TASK, WITH THE OWNER (Verdulería, the Catalog Prompt): the starter catalog by giro, `## Step 9`.** The owner parked `8g`
 (*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
 for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
@@ -379,15 +402,16 @@ this step adds the column and nothing else.
 | **9c** | ✅ **DONE 2026-10-01** — `0045`, 24 products; see the status entry. **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
 | **9d** | ✅ **DONE 2026-10-01** — see the status entry. **The app, minimum controls.** A giro picker after the shop is created, ✅ **then the untick list the owner ruled on 2026-10-01** (grouped by family, all ticked, unticking sends `p_exclude`), then *Importar* / *Omitir*, one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ~~owed to the owner first: whether the picker needs a preview with unticking~~ — ✅ **ruled 2026-10-01: it does** | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
 | **9e** | ✅ **DONE 2026-10-01** — `0046`, 54 new products and 2 newly tagged; see the status entry. **Content session — Carnicería, with the owner** | `M` | `9b` — the generator the content goes through |
-| **9f** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01 — with the owner, using the handbook's Catalog Prompt.** **Content session — Verdulería** — ⚠️ count units (*manojo*, *pieza*) are likely here | `M` | `9b` — the generator the content goes through |
-| **9g** | **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
+| **9f** | ✅ **DONE 2026-10-02** — `0047` (`manojo`) and `0048`, 53 new products; see the status entry. **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
+| **9g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-02 — with the owner, using the handbook's Catalog Prompt.** **Content session — Frutería** — *Limón* ×3 and *Aguacate* are already Verdulería's, so TAG them | `M` | `9b` — the generator the content goes through |
 | **9h** | **Content session — Abarrotes** — the giro where IVA at 16% is common | `M` | `9b` — the generator the content goes through |
 | **9i** | **Content session — Cremería** | `M` | `9b` — the generator the content goes through |
 | **9j** | **Content session — Materias Primas** — ⚠️ what the word means (supplies for fondas and bakeries, or bulk dry goods) is the session's first question | `M` | `9b` — the generator the content goes through |
 
 **Questions the content sessions will raise, not this plan:** which products carry 16% IVA; count units the
 `unit` table lacks (*docena*, *manojo*, *caja* — a case of 24 is already `pza` × `pack_size` 24, and a new unit
-is a migration, so each gets a ruling); and what Materias Primas means.
+is a migration, so each gets a ruling); and what Materias Primas means. ✅ *manojo* ruled and added in `0047` (`9f`).
+⚠️ **`caja` is parked by the owner as context, not a task** (2026-10-02): purchases ignore `pack_size` today; see `9f`'s status entry.
 
 ---
 

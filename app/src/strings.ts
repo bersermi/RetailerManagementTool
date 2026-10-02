@@ -1215,6 +1215,7 @@ export const ES = {
     '500ml': '500 ml',
     '100ml': '100 ml',
     pza: 'pza',
+    manojo: 'manojo',
   },
 
   /**
