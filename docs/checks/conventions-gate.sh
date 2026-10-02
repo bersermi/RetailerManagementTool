@@ -747,7 +747,12 @@ if [[ -d "$SRC/ui" ]]; then
       r15=$((r15+1)); offend "$f" "$exports export(s) — R15 wants exactly one, named $name"
       continue
     fi
-    if ! code "$f" | grep -qE "^export function $name\b"; then
+    # ⚠️⚠️ `grep -c` AND NOT `grep -q`, R14's trap a second time, found by CI
+    # on 2026-10-02 (`9f`'s PR, a file this PR never touched). Under pipefail
+    # `grep -q` exits on the export, `code` dies of SIGPIPE with 141, and the
+    # `!` read that as "no such export": a correct file reported red, only when
+    # it was large enough to outrun the pipe. The falsifier's F34 pins it.
+    if (( $(code "$f" | grep -cE "^export function $name\b") == 0 )); then
       r15=$((r15+1))
       offend "$f" "its one export is not 'export function $name' — $(code "$f" | grep -m1 -E '^export ')"
     fi
