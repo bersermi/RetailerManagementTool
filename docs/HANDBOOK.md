@@ -109,16 +109,23 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. Not on your phone yet |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you | ⚠️ **This is where the next piece of work is** |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you | ⏸️ Parked by you on 1 October — a designer may take it |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
+| **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
+| **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
 the alpha is declared, and the work turns to design toward a beta and the stores.
 
+**1 October — the starter catalog.** You asked for a default catalog by giro (Pollería,
+Carnicería, Verdulería, Frutería, Abarrotes, Cremería, Materias Primas), imported at
+onboarding and later. `9a`–`9b` build where it lives; `9c` and `9e`–`9j` are one session
+with you per giro, choosing families and units product by product; `9d` is the app.
+
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
-Program + Play Console — your action), `5R-b` (TestFlight), `5R-c` account deletion
+Program — you enrolled on 1 October — and Play Console), `5R-b` (TestFlight), `5R-c` account deletion
 (a store requirement) and `5R-d` the *aviso de privacidad*.
 
 ---

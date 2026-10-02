@@ -62,8 +62,22 @@ before** today (UTC), so a due-today row is never a false red on a timezone.
 ⚠️ **The ticked rows (2026-09-20, -21, -27) and this block's notes moved 2026-09-29 to the same
 position-history archive.** A row leaves the table once its Done cell is written.
 
-✅ **`8f` IS DONE, 2026-09-30 — `8g` IS THE NEXT TASK, AND IT IS UNGATED, BUT IT IS THE OWNER'S: he reviews
-screen by screen.** His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
+✅ **2026-10-01 — `9a` IS DONE AND `9b` IS THE NEXT TASK: the starter catalog by giro, `## Step 9`.** The owner parked `8g`
+(*"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign"*) and asked
+for the default catalog he described on 2026-09-23 — seven giros, imported in bulk at onboarding and later,
+offline, tagged, each product to carry a picture some day. Planned with him the same hour; the rows are
+`9a`–`9j`. The same day `5R-a` closed its accounts half in another session: both store accounts exist, and the app id is now `mx.wera.app` (see its row).
+**`9a` built `0044` the same day**: the `catalogo` schema, `template_code`, `catalog_template()` and `import_catalog()`.
+⚠️ **What the estimate found that the plan had not said:** (1) `_cleanup.sql` sweeps `public` only, so template rows
+**survive between suites**. The suite therefore owns a `zz0044-` fixture, and no suite may count the whole template.
+(2) `0042`'s fence means **an imported product can never be retired**, so `p_exclude` is not a nicety; it is the only
+way to say no to a product. That question is now on `9d`'s row. (3) The shop's dimension trigger reads only columns the
+template names identically, so it is **reused, not copied**. **36 checks in `supabase/tests/0044_starter_catalog.sql`,
+falsified twice** (role fence weakened to staff → 4.15 red; C8.5 skip removed → 4.8, 4.10, 4.17 red). All 31 behavioural
+suites, all 7 pgTAP suites (`01_rls_coverage` untouched) and the `5d-i`/`6c` contract checks are green locally. No content
+yet: the template is empty until `9c`.
+
+☑️ **`8f` IS DONE, 2026-09-30** — and `8g` was then the next task, the owner's screen-by-screen review. His four rulings (asked, not decided): **light only** (`app.json`); **majority wins** for
 the drifted pieces; **Precios' value under its word**; and headers, the tab colour and the first two screens
 **are his, screen by screen** — so `8f` did not touch them. Built: `src/ui/BotonLleno` (**13** hand-drawn
 filled buttons in 11 files, not the 9 on record — the three *Cancelar* gained the border the other ten had)
@@ -260,11 +274,60 @@ before the plan archives them.
 | **8d** | ✅ **DONE 2026-09-29** — 17 branches, 34 graph backups (50 MB), 1 memory; see the log. **Housekeeping outside the documents.** Delete remote branches whose PR is MERGED (from `gh pr list --state merged`, never a guess) and the stale local ones; prune `graphify-out/` snapshot folders; run `graphify update .` and record the node count; read the assistant's memory index and delete or correct memories that are no longer true. **List first, then delete only what was listed.** | `S` | `8c` |
 | **8e** | ✅ **DONE 2026-09-29** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ. **The design inventory for Wednesday — READ-ONLY.** Where every colour, font size, spacing value, radius and animation lives (`app/src/ui/` and every literal outside it), how many screens use each, what `conventions-gate.sh` refuses, light/dark handling, and a screenshot of every screen from the iOS Simulator. Published as a private page he can open on his phone. **It changes no code** — it is the map Wednesday starts from | `M` | `8d` |
 | **8f** | ✅ **DONE 2026-09-30** — see the status entry above. **The design pass — Wednesday 2026-09-30, with the owner.** Colours, layout, animations and details, taken screen by screen from `8e`'s map. ⚠️ **What a shopkeeper sees is his call** — so the session walks him through the situations first, asks, then builds. **Sized by `8e`** (its entry) | `L`; `XL` with dark mode | `8e` |
-| **8g** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-09-30.** **The owner's screen-by-screen review** — *"I will address this separately, will review screen by screen."* Carries what `8f` left for him: **one header style or two** (the four tabs draw iOS's white centred header, every other screen the cream `banda` with the title left); **the active tab's colour** (iOS blue — no tint is set in `(tabs)/_layout.tsx`); **sign-in and bienvenida outside the palette**; the chosen pill's subtitle, which drifted 1–1 (`ajustes`: body size, `tintaApagada`; `producto/nuevo`: `smallSize`, 600, `tinta`) so no count settles it; the veil inside the three **slide** sheets (carrito, Comprar's and Desperdicio's), which still rises with the sheet; and `bodySize * 0.9`, twice (`comprar`, `Deslizador`). ⚠️ **Walk him through each screen's situation before showing a design** | `M` | `8f` |
+| **8g** | ⏸️ **PARKED 2026-10-01 by the owner** — *"I'm in talks with a Graphic and UI designer that might be able to help me with the redesign of my screens."* Returns on his word, possibly as the designer's brief. **The owner's screen-by-screen review** — *"I will address this separately, will review screen by screen."* Carries what `8f` left for him: **one header style or two** (the four tabs draw iOS's white centred header, every other screen the cream `banda` with the title left); **the active tab's colour** (iOS blue — no tint is set in `(tabs)/_layout.tsx`); **sign-in and bienvenida outside the palette**; the chosen pill's subtitle, which drifted 1–1 (`ajustes`: body size, `tintaApagada`; `producto/nuevo`: `smallSize`, 600, `tinta`) so no count settles it; the veil inside the three **slide** sheets (carrito, Comprar's and Desperdicio's), which still rises with the sheet; and `bodySize * 0.9`, twice (`comprar`, `Deslizador`). ⚠️ **Walk him through each screen's situation before showing a design** | `M` | `8f` |
 | **8h** | ⏸️ **Deferred 2026-09-30 by the owner — *"Light only, for now."*** **A dark palette**: all twelve roles and the five chart colours, re-held to the 4.5:1 contrast test, and `app.json`'s `userInterfaceStyle` back to `automatic`. Returns on his word | `XL` | `8f` |
 
 ⚠️ **Not in the day, and on purpose**: `5R-a` is the owner's to do (enrolment), and the
 **4 October re-deploy** in ⏳ DATES OWED still stands — with `5R-a`/`5R-b` done it disappears for good.
+
+---
+
+## Step 9 — the starter catalog by giro (planned 2026-10-01, with the owner)
+
+**The ask, in his words:** *"create a default catalog that the users can get access to depending on the
+business they run, this will allow them to import products in bulk depending on which business or
+categories they're interested in … for both the onboarding stage and the additional steps"*, for **Pollería,
+Carnicería, Verdulería, Frutería, Abarrotes, Cremería and Materias Primas**. *"There might be intersections
+between catalogs and each product could have tags … each product is intended to have it's picture at some
+point and once the user imports the products, he should be able to have access to them offline as well. We
+don't need to enrich the front end for now in terms of filters or tags, but the feature should be enabled with
+minimum controls to design UI later on."*
+
+**What is already settled and not reopened:** ADR-035 §2.9 — a shop STARTS from a catalog we maintain, the
+rows are COPIED into the workspace, never referenced across tenants; `0042` minted `is_prebuilt` and the fence
+for exactly this import. **Offline is already solved for imported rows**: they are ordinary `product_variant`
+rows and reach the phone through the persisted `['catalog','variants']` read. **Pictures stay C8.14/C8.15**:
+this step adds the column and nothing else.
+
+**The design, and the decisions made for the owner** (each reported in its PR):
+1. **The template lives in a schema of its own, `catalogo`, that PostgREST does not expose**, reached only through
+   two `security definer` RPCs in `public` — `catalog_template()` (read) and `import_catalog()` (copy). Putting it
+   in `public` would widen the RLS guard's ONE exemption (`unit`, F3/F5); a private schema leaves the guard as it is.
+2. **Giro is a tag kind, not a table.** Overlaps are one product carrying several tags (*Huevo*: Abarrotes,
+   Cremería, Pollería), so a later giro's session tags an existing code rather than duplicating it.
+3. ⚠️ **`product_variant.template_code` — cheap now, expensive later.** Without it an imported row can never be
+   traced to its template again: no picture assignment, no tags on a shop's products, no "already imported".
+4. **No prices in the template.** An imported product reads *sin precio* until the shop prices it.
+5. **A re-import, or a name the shop already has, is skipped silently** (users don't do bookkeeping).
+6. **Content is authored as one CSV per giro and GENERATED into a numbered migration** (`9b`); corrections are new
+   migrations, so the append-only rule holds.
+
+| Task | What it is | Size | Gate |
+|---|---|---|---|
+| **9a** | ✅ **DONE 2026-10-01** — see the status entry. **`0044`: the template schema and the import.** `catalogo.tag`, `.family`, `.product` (with `image_path`, nullable), `.product_tag`; one dimension per template family, enforced by trigger (C8.5, which the shop's own tables do not enforce); `product_variant.template_code` with a per-workspace partial unique index; `catalog_template()` and `import_catalog(workspace, tags, exclude)`; a behavioural suite (an import as manager, the staff refusal under `set local role authenticated`, a second import importing nothing, a name collision skipped, a second workspace untouched); the ADR §2.9 paragraph and the README row. **No content** — the template is empty until `9c` | `M` | Nothing — the design was planned with the owner |
+| **9b** | ⚠️⚠️ **THIS IS THE NEXT TASK, AS OF 2026-10-01.** **The authoring format and its generator.** `supabase/catalog/<giro>.csv` and `build.mjs`: refuses an unknown unit, a family across two dimensions, a duplicate code or name, an undeclared tag — with the reason — and writes the upsert migration | `S` | `9a` — the generator writes into its tables |
+| **9c** | **Content session — Pollería, with the owner.** First because the pilot shop sells chicken. Drafted by the assistant, corrected by him row by row: family, name, units, IVA, tags | `M` | `9b` — the generator the content goes through |
+| **9d** | **The app, minimum controls.** A giro picker after the shop is created (*Importar* / *Omitir*), one entry on Productos to import more, the template persisted for offline, `CACHE_SHAPE` bumped, a contract check over both RPCs, screenshots against a local shop. ⚠️ **Owed to the owner first: an imported product can never be retired** (`0042`'s fence), so whether the picker needs a preview with unticking before *Importar* is his call | `M` | `9a` — the RPCs it calls, and `9c` — something to import |
+| **9e** | **Content session — Carnicería** | `M` | `9b` — the generator the content goes through |
+| **9f** | **Content session — Verdulería** | `M` | `9b` — the generator the content goes through |
+| **9g** | **Content session — Frutería** | `M` | `9b` — the generator the content goes through |
+| **9h** | **Content session — Abarrotes** — the giro where IVA at 16% is common | `M` | `9b` — the generator the content goes through |
+| **9i** | **Content session — Cremería** | `M` | `9b` — the generator the content goes through |
+| **9j** | **Content session — Materias Primas** — ⚠️ what the word means (supplies for fondas and bakeries, or bulk dry goods) is the session's first question | `M` | `9b` — the generator the content goes through |
+
+**Questions the content sessions will raise, not this plan:** which products carry 16% IVA; count units the
+`unit` table lacks (*docena*, *manojo*, *caja* — a case of 24 is already `pza` × `pack_size` 24, and a new unit
+is a migration, so each gets a ruling); and what Materias Primas means.
 
 ---
 

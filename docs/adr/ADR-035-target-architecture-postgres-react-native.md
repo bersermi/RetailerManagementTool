@@ -1715,6 +1715,23 @@ achieve it — an `update` would stamp `updated_at` on every row in every shop �
 ⚠️ **It means nothing already in the pilot shop can be retired from the app**, which he
 accepted on the ground that those rows are *"merely indicative"*.
 
+✅ **THE CATALOG WE MAINTAIN LIVES IN ITS OWN SCHEMA, `catalogo`, AS OF `0044`, 2026-10-01**
+(`docs/PLAN.md` Step 9). Four tables: `tag` (a **giro** or a **categoria**), `family`,
+`product`, `product_tag`. **A giro is a tag, not a table**, because the giros overlap: *Huevo* is
+one product tagged Abarrotes, Cremería and Pollería, never three rows that drift apart.
+⚠️ **The schema is outside `public` on purpose**: the template belongs to no workspace, and the
+RLS guard admits exactly one unscoped table in `public` (`unit`). `catalogo` is not exposed to
+PostgREST, and no client role holds USAGE on it. Its only doors are two `security definer` RPCs:
+**`catalog_template()`**, which reads the whole template as one JSON object for the phone to
+persist, and **`import_catalog(workspace, tags, exclude)`**, which is fenced at manager and
+copies rows in with `is_prebuilt = true`. **Copied, never referenced, still**: nothing in
+`public` holds a key into `catalogo`. An imported product records only
+**`product_variant.template_code`**, a code that is set once. That code is how a picture
+assigned later (C8.14) finds its way to every shop's copy. A product the shop already has by name,
+or whose family there holds another dimension, is **skipped and counted, never merged**.
+**The template carries no price.** The template enforces two rules the shop's own tables cannot:
+**one dimension per family (C8.5)**, and **a base unit that is a base**.
+
 **Cross-workspace benchmarking.** The eventual insight product needs to read across
 tenants, which is what RLS forbids. Resolution is one deliberate door, never a
 weakened policy: a scheduled `service_role` job writes de-identified aggregates into
