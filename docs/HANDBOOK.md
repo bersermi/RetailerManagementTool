@@ -125,7 +125,7 @@ onboarding and later. `9a`–`9b` build where it lives; `9c` and `9e`–`9j` are
 with you per giro, choosing families and units product by product; `9d` is the app.
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
-Program — you enrolled on 1 October — and Play Console), `5R-b` (TestFlight), `5R-c` account deletion
+Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
 (a store requirement) and `5R-d` the *aviso de privacidad*.
 
 ---
