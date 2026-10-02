@@ -416,10 +416,14 @@ select u.code,
        u.dimension,
        u.base_code,
        u.factor_to_base,
-       -- integral, positive, and the base of its own dimension is itself at 1
+       -- integral, positive, and the base of its own dimension is itself at 1.
+       -- ⚠️ ONE DIRECTION ONLY, as 0001's `unit_base_is_identity` has it: a base
+       -- is at 1, but a unit at 1 need not be a base. `0047`'s `manojo` is one
+       -- `pza` under the word a verdulería uses (plan `9f`). The F-block's
+       -- "exactly three bases" check is what still refuses a fourth base.
        (u.factor_to_base = trunc(u.factor_to_base))                as integral,
        (u.factor_to_base > 0)                                      as positive,
-       ((u.code = u.base_code) = (u.factor_to_base = 1))           as identity_iff_base,
+       ((u.code <> u.base_code) or (u.factor_to_base = 1))         as base_is_identity,
        (b.dimension = u.dimension and b.code = b.base_code)        as base_is_base,
        -- one display unit of this denomination, expressed in base and put back
        (round(round(1 * u.factor_to_base, 3) / u.factor_to_base, 3) = 1)
@@ -1044,7 +1048,7 @@ select ok(
 -- ===========================================================================
 -- U-BLOCK — the unit table, one test per denomination
 -- ===========================================================================
-select ok(integral and positive and identity_iff_base and base_is_base and round_trips,
+select ok(integral and positive and base_is_identity and base_is_base and round_trips,
   'U ' || code || ' — ' || factor_to_base::text || ' ' || base_code
        || ' exactly, and one ' || code || ' converts to base and back')
 from mu_unit order by dimension, factor_to_base desc;

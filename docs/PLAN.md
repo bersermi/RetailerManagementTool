@@ -78,7 +78,7 @@ also need one weight for every product, and a box from the Central varies by pro
 here stays `kg` or `pza`.** ⚠️ **Two migrations, not one**: the generator writes the whole catalog file and `--check`
 compares it byte for byte, so the unit cannot live inside it. ⚠️ **What `manojo` touched outside the catalog:** `ES.units`
 (*manojo*), `MEASURED_IN` (a bunch is counted, never a pack, so the field reads *3 manojo*, not *3 pza*), the unit
-fixtures in `api-catalog-write`/`cart-quantity`, and `5d-i-catalog-contract.sh`'s unit count, which goes from 10 to 11.
+fixtures in `api-catalog-write`/`cart-quantity`, and `5d-i-catalog-contract.sh`'s unit count, which goes from 10 to 11. ⚠️ **And `07_money_and_units`, found by CI, not locally:** its U-block asserted *factor 1 if and only if base*, which is stricter than `0001`'s constraint. It now asserts one direction only (a base is at 1), with `manojo` named; the F-block's *exactly three bases* still refuses a fourth. 193 of 193.
 **Decisions taken for him:** the *Chiles secos* category; family names; display order 15. **Guessed and kept unchanged:**
 Brócoli, Coliflor and Nopal by the kilo; Lechuga orejona, Apio and Poro by the piece; *Limón amarillo* as the third limón;
 IVA 0 on everything, dried chiles included. **For `9g`:** *Limón* ×3 and *Aguacate* already exist, so Frutería TAGS them.
