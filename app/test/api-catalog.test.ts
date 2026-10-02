@@ -93,6 +93,7 @@ function variant(
     price_unit_code,
     base_unit_code,
     is_active,
+    template_code: null,
     product_family: { id: FAMILY, name: familyName },
     price_list: prices,
   };

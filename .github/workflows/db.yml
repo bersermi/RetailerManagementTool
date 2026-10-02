@@ -431,6 +431,8 @@ on:
       # before the trigger can ever fire.
       - "docs/checks/6c-catalog-origin-contract.sh"
       - "docs/checks/6c-catalog-origin-contract-falsify.sh"
+      - "docs/checks/9d-starter-catalog-contract.sh"
+      - "docs/checks/9d-starter-catalog-contract-falsify.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
@@ -1083,6 +1085,18 @@ jobs:
       # issues each statement separately, and VERIFIES the database went back.
       - name: Contract — can the fence check still fail (its own seven fixtures)
         run: bash docs/checks/6c-catalog-origin-contract-falsify.sh
+
+      # THE STARTER CATALOG'S IMPORT (docs/PLAN.md 9d), over the same reset: the
+      # app's two RPC names and three `p_` arguments against `0044`, the template
+      # holding `0045`'s Pollería, the schema closed (406 PGRST106), the import
+      # landing once minus what was unticked, and a cashier refused (403 42501).
+      - name: The starter catalog's import, against the app's own names (9d)
+        run: bash docs/checks/9d-starter-catalog-contract.sh
+
+      # Each fixture hands the check a broken COPY of an app module and must turn
+      # it red FOR ITS REASON — a check that can only pass asserts nothing.
+      - name: Falsify it — four broken copies, each red for its reason
+        run: bash docs/checks/9d-starter-catalog-contract-falsify.sh
 
       - name: Stop
         if: always()

@@ -6,8 +6,11 @@ import {
   useOnboardWorkspace,
   useRedeemInvite,
   useRequestAccess,
+  useStarterCatalog,
 } from '@/api/hooks';
 import { checkCredential, classifyCredential } from '@/api/redeem';
+import { choiceFrom, toggled } from '@/api/starterCatalog';
+import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -105,6 +108,16 @@ export default function Bienvenida() {
   const [pricesIncludeTax, setPricesIncludeTax] = useState(true);
   const [problem, setProblem] = useState<string | null>(null);
 
+  // ⚠️⚠️ THE THIRD QUESTION, `9d`: WHAT THE SHOP SELLS. The owner's ruling of
+  // 2026-10-01 — choose giros, untick what you don't sell, and the rest arrives
+  // with the shop. Nothing chosen is *Omitir*: the shop is created empty and
+  // Productos' *Agregar del catálogo* is the same import later. ⚠️ Without
+  // signal the catalog cannot be read, and the shop can still be created — the
+  // section says so instead of spinning (`useStarterCatalog`).
+  const starter = useStarterCatalog();
+  const [giros, setGiros] = useState<ReadonlySet<string>>(new Set());
+  const [excluded, setExcluded] = useState<ReadonlySet<string>>(new Set());
+
   const [credential, setCredential] = useState('');
   const [joinProblem, setJoinProblem] = useState<string | null>(null);
 
@@ -121,7 +134,8 @@ export default function Bienvenida() {
     }
     // ⚠️ IT NAVIGATES NOWHERE ON SUCCESS. The guard sends them to Inicio the
     // moment the membership read comes back — see `@/api/hooks`.
-    setProblem(await create({ displayName: checked.displayName, pricesIncludeTax }));
+    const choice = choiceFrom(starter.template, giros, excluded, starter.holding);
+    setProblem(await create({ displayName: checked.displayName, pricesIncludeTax }, choice));
   }
 
   // The joining half. ⚠️ IT NAVIGATES NOWHERE EITHER, and here that is the whole
@@ -229,6 +243,23 @@ export default function Bienvenida() {
             {ES.onboarding.ivaNo}
           </Text>
         </Pressable>
+      </View>
+
+      <View style={{ marginTop: scale.space }}>
+        {starter.template !== null ? (
+          <SelectorCatalogo
+            template={starter.template}
+            holding={starter.holding}
+            chosen={giros}
+            excluded={excluded}
+            onToggleGiro={(code) => setGiros((now) => toggled(now, code))}
+            onToggleProduct={(code) => setExcluded((now) => toggled(now, code))}
+          />
+        ) : (
+          <Text style={{ fontSize: scale.smallSize }}>
+            {starter.failed !== null ? ES.starter.needsSignal : ES.starter.loading}
+          </Text>
+        )}
       </View>
 
       {problem !== null && (

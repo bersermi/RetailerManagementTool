@@ -97,6 +97,7 @@ function variant(id: string, name: string, familyId: string, familyName: string)
     price_unit_code: 'kg',
     base_unit_code: 'g',
     is_active: true,
+    template_code: null,
     product_family: { id: familyId, name: familyName },
     price_list: [],
   };

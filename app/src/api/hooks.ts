@@ -95,12 +95,14 @@ import {
 } from '@/api/catalogEdit';
 import {
   approveRequest,
+  catalogTemplate,
   catalogUnits,
   catalogVariants,
   changePrice,
   createInvite,
   createProduct,
   createProvider,
+  importCatalog,
   myAccessRequests,
   myWorkspaces,
   onboardWorkspace,
@@ -180,6 +182,16 @@ import {
   type OnboardInput,
   type Workspace,
 } from '@/api/workspace';
+import {
+  NOTHING_HELD,
+  TEMPLATE_KEY,
+  holdingFrom,
+  importArgs,
+  type ImportChoice,
+  type ImportResult,
+  type ShopHolding,
+  type Template,
+} from '@/api/starterCatalog';
 import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
 
 /**
@@ -266,15 +278,35 @@ export function useWorkspace(): Workspace | null {
 export function useOnboardWorkspace() {
   const queries = useQueryClient();
   const mutation = useMutation({
-    mutationFn: onboardWorkspace,
+    // ⚠️⚠️ THE IMPORT RUNS INSIDE THE SAME MUTATION, BEFORE THE INVALIDATION, AND
+    // THE ORDER IS THE MECHANISM (`9d`). The guard moves her to Inicio the moment
+    // the membership read comes back `member`, so the products must already be
+    // in the shop by then — or Inicio opens on an empty Productos and fills a
+    // moment later. ⚠️ AND A FAILED IMPORT DOES NOT FAIL THE SHOP: the shop
+    // exists by then, and `Agregar del catálogo` on Productos is the same import
+    // with nothing lost. She is not shown an error about a step that has a
+    // second door (users don't do bookkeeping).
+    mutationFn: async ({ input, choice }: { input: OnboardInput; choice: ImportChoice | null }) => {
+      const workspaceId = await onboardWorkspace(input);
+      const args = choice === null ? null : importArgs(workspaceId, choice);
+      if (args !== null) {
+        try {
+          await importCatalog(args);
+        } catch {
+          // The second door is Productos; see above.
+        }
+      }
+      return workspaceId;
+    },
     onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: CATALOG_KEY });
       await queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY });
     },
   });
 
-  async function create(input: OnboardInput): Promise<string | null> {
+  async function create(input: OnboardInput, choice: ImportChoice | null = null): Promise<string | null> {
     try {
-      await mutation.mutateAsync(input);
+      await mutation.mutateAsync({ input, choice });
       return null;
     } catch (thrown) {
       return apiErrorMessage(thrown);
@@ -938,6 +970,85 @@ export function useCatalog(typed: string = ''): {
     failed: thrown ? apiErrorKey(thrown) : null,
     locationId,
   };
+}
+
+// ============================================================================
+// THE STARTER CATALOG. Plan task `9d`, and `@/api/starterCatalog` decides all of
+// it: these two hooks only fetch and send.
+// ============================================================================
+
+/**
+ * The template, and what this shop already holds of it.
+ *
+ * ⚠️ THE HOLDING IS READ FROM THE SAME `CATALOG_KEY` QUERY PRODUCTOS USES, so
+ * the picker and the list can never disagree about what is in the shop, and an
+ * import's invalidation updates both. It is the WHOLE read, retired rows
+ * included — `holdingFrom` says why.
+ *
+ * ⚠️ `offline` IS ITS OWN FIELD. The template is not persisted (see
+ * `TEMPLATE_KEY`), so with no signal there is nothing to draw and nothing the
+ * import could do — and *Cargando* for ever is the 2026-09-22 defect again.
+ */
+export function useStarterCatalog(): {
+  readonly loading: boolean;
+  readonly failed: ApiMessageKey | null;
+  readonly template: Template | null;
+  readonly holding: ShopHolding;
+} {
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null;
+  const template = useQuery({
+    queryKey: TEMPLATE_KEY,
+    queryFn: catalogTemplate,
+    enabled,
+    staleTime: 60 * 60_000,
+  });
+  const variants = useQuery({
+    queryKey: CATALOG_KEY,
+    queryFn: catalogVariants,
+    enabled,
+    staleTime: 5 * 60_000,
+  });
+  const holding = useMemo(
+    () => (variants.data === undefined ? NOTHING_HELD : holdingFrom(variants.data)),
+    [variants.data],
+  );
+  return {
+    loading: template.data === undefined && template.error === null,
+    failed: template.error ? apiErrorKey(template.error) : null,
+    template: template.data ?? null,
+    holding,
+  };
+}
+
+/**
+ * Importing more, from Productos.
+ *
+ * Returns what arrived, or a Spanish sentence, never a PostgREST error (`R12`).
+ * ⚠️ It invalidates `CATALOG_KEY`, which is what refreshes Productos AND this
+ * picker's holding — the products just imported stop being offered.
+ */
+export function useImportCatalog() {
+  const queries = useQueryClient();
+  const workspace = useWorkspace();
+  const mutation = useMutation({
+    mutationFn: importCatalog,
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: CATALOG_KEY });
+    },
+  });
+
+  async function add(choice: ImportChoice): Promise<{ result: ImportResult | null; error: string | null }> {
+    const args = workspace === null ? null : importArgs(workspace.id, choice);
+    if (args === null) return { result: null, error: null };
+    try {
+      return { result: await mutation.mutateAsync(args), error: null };
+    } catch (thrown) {
+      return { result: null, error: apiErrorMessage(thrown) };
+    }
+  }
+
+  return { add, busy: mutation.isPending };
 }
 
 // ============================================================================

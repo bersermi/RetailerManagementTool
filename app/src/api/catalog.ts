@@ -78,8 +78,16 @@ import { ES } from '@/strings';
  * and nothing more, so a discontinued product comes back like any other. The
  * filtering is `catalogFrom`'s, below, where the suite can read it — the same
  * arrangement `members.ts` made for a deactivated colleague.
+ *
+ * ⚠️ `template_code` (`0044`, plan `9d`) is which starter-catalog row a product
+ * was imported from — null for the shop's own. The import picker reads it to
+ * offer only what the shop does not hold yet (`@/api/starterCatalog`), and it is
+ * the link a picture assigned later will travel by (C8.14). A short code, never
+ * a figure, so it widens this read by one word. ⚠️ ONE LINE, because
+ * `docs/checks/5d-i-catalog-contract.sh` reads this constant with a one-line
+ * `sed`, and a wrapped declaration would read as nothing.
  */
-export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active';
+export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code';
 
 /**
  * The columns a client may ask `product_family` for, as an EMBEDDED resource.
@@ -188,6 +196,8 @@ export interface VariantRow {
    */
   readonly base_unit_code: string;
   readonly is_active: boolean;
+  /** `0044`: the starter-catalog row this was imported from, or null — the shop's own. */
+  readonly template_code: string | null;
   readonly product_family: FamilyRow | null;
   readonly price_list: readonly PriceRow[] | null;
 }

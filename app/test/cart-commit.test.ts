@@ -52,6 +52,7 @@ function variant(id: string, name: string, priceUnit: string, base: string, perB
     price_unit_code: priceUnit,
     base_unit_code: base,
     is_active: true,
+    template_code: null,
     product_family: { id: FAMILY, name: 'Pollo' },
     price_list: perBase === null ? [] : [{ price_per_base: perBase, location_id: null }],
   };

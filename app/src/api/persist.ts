@@ -141,7 +141,8 @@ export const CACHE_KEY = 'wera.query-cache';
  * A phone holding `v1` then discards it on the next launch instead of hydrating
  * rows the new code will read fields off that were never written.
  */
-export const CACHE_SHAPE = 'v1';
+// ⚠️ `v2` SINCE `9d` (2026-10-01): `['catalog', 'variants']` gained `template_code`.
+export const CACHE_SHAPE = 'v2';
 
 /**
  * How long a restored cache is trusted. ⚠️ `Infinity` — there is no staleness

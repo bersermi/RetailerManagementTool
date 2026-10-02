@@ -232,6 +232,15 @@ import {
   type Workspace,
   type WorkspaceRow,
 } from '@/api/workspace';
+import {
+  CATALOG_TEMPLATE,
+  IMPORT_CATALOG,
+  importResultFrom,
+  templateFrom,
+  type ImportArgs,
+  type ImportResult,
+  type Template,
+} from '@/api/starterCatalog';
 
 /**
  * The shops the caller is an active member of. An empty array is the answer,
@@ -253,6 +262,20 @@ export async function onboardWorkspace(input: OnboardInput): Promise<string> {
     throw new Error(`${ONBOARD_WORKSPACE} returned ${typeof data}, expected a workspace id`);
   }
   return data;
+}
+
+/** The starter catalog Wera maintains (`0044`), by giro. Readable by anyone signed in. */
+export async function catalogTemplate(): Promise<Template> {
+  const { data, error } = await supabase.rpc(CATALOG_TEMPLATE);
+  if (error) throw reported(error);
+  return templateFrom(data);
+}
+
+/** Copies the chosen giros, minus the unticked products, into one shop (`0044`). */
+export async function importCatalog(args: ImportArgs): Promise<ImportResult> {
+  const { data, error } = await supabase.rpc(IMPORT_CATALOG, args);
+  if (error) throw reported(error);
+  return importResultFrom(data);
 }
 
 /**
