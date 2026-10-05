@@ -24,6 +24,7 @@ cat-mascotas,categoria,Mascotas
 cat-refrescos,categoria,Refrescos
 cat-aguas,categoria,"Agua, jugos y bebidas"
 cat-lacteos,categoria,Lácteos
+cat-quesos,categoria,Quesos
 cat-pan,categoria,Pan y tortillas
 cat-galletas,categoria,Galletas
 cat-botanas,categoria,Botanas
@@ -31,7 +32,8 @@ cat-dulces,categoria,Dulces y chocolates
 cat-basicos,categoria,"Arroz, harinas y pastas"
 cat-aceites,categoria,Aceites y grasas
 cat-enlatados,categoria,Enlatados y conservas
-cat-salsas,categoria,Salsas y condimentos
+cat-salsas-moles,categoria,Salsas y moles
+cat-salsas,categoria,Condimentos y especias
 cat-cafe,categoria,"Café, chocolate y cereales"
 cat-higiene,categoria,Higiene personal
 cat-bebe,categoria,Bebé
