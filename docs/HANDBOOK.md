@@ -119,7 +119,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9f** | **Verdulería, with you** | ✅ **Done 2 October** — 53 new products; herbs sold by the new unit *manojo*. *Caja* parked by you as an idea, not a task |
 | **9g** | **Frutería, with you** | ✅ **Done 2 October** — 46 new products; melón, sandía, papaya, piña and pitaya both by the kilo and by the piece. Fruta picada left out for now |
 | **9h** | **Abarrotes, with you** | ✅ **Done 2 October** — 1,017 products **with brands and presentations**, IVA 0 for now; the berries now say *por charola* |
-| **9i** | **Cremería, with you** — the next giro. Paste the **Catalog Prompt** | ⚠️ **This is where the next piece of work is** |
+| **9i** | **Cremería, with you** | ✅ **Done 5 October** — 79 new products: cheese and cold cuts by the kilo, cream by the litro, branded butter and cheese; a new category *Salsas y moles* shared with Abarrotes, Pollería and Carnicería |
+| **9j** | **Materias Primas, with you** — the last giro. Paste the **Catalog Prompt**; its first question is what *Materias Primas* means | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
@@ -237,7 +238,8 @@ How the session goes:
 - A unit the app does not have (docena, manojo, caja) is a migration. Stop and
   ask me — do not work around it.
 - No prices, no pictures. No brands, unless I rule the giro brand-driven
-  (Abarrotes is, 2 October): then brand + product + presentation.
+  (Abarrotes is, 2 October; Cremería for its packaged goods, 5 October): then
+  brand + product + presentation.
 
 Then build: the CSV goes through `supabase/catalog/build.mjs`, which must pass,
 into one numbered migration — then run `node --test supabase/catalog/build.test.mjs`

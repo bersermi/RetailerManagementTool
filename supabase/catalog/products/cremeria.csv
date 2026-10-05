@@ -1,0 +1,80 @@
+code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
+queso-oaxaca,quesos-a-granel,Queso Oaxaca,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-panela,quesos-a-granel,Queso panela,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-fresco,quesos-a-granel,Queso fresco,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-chihuahua,quesos-a-granel,Queso Chihuahua,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-manchego,quesos-a-granel,Queso manchego,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-asadero,quesos-a-granel,Queso asadero,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-cotija,quesos-a-granel,Queso cotija,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-anejo,quesos-a-granel,Queso añejo,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-doble-crema,quesos-a-granel,Queso doble crema,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-canasta,quesos-a-granel,Queso canasta,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-amarillo,quesos-a-granel,Queso amarillo,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+queso-de-cabra,quesos-a-granel,Queso de cabra,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+requeson,quesos-a-granel,Requesón,g,kg,kg,kg,,0,giro-cremeria cat-quesos
+crema,cremas-a-granel,Crema,ml,l,l,l,,0,giro-cremeria cat-lacteos
+crema-acida,cremas-a-granel,Crema ácida,ml,l,l,l,,0,giro-cremeria cat-lacteos
+crema-de-rancho,cremas-a-granel,Crema de rancho,ml,l,l,l,,0,giro-cremeria cat-lacteos
+jocoque,cremas-a-granel,Jocoque,ml,l,l,l,,0,giro-cremeria cat-lacteos
+mantequilla-gloria-sin-sal-90-g,lacteos,Mantequilla Gloria sin sal 90 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+mantequilla-gloria-225-g,lacteos,Mantequilla Gloria 225 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+mantequilla-lala-225-g,lacteos,Mantequilla Lala 225 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+mantequilla-alpura-90-g,lacteos,Mantequilla Alpura 90 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+mantequilla-president-200-g,lacteos,Mantequilla Président 200 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+mantequilla-lyncott-225-g,lacteos,Mantequilla Lyncott 225 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
+queso-oaxaca-lala,lacteos,Queso Oaxaca Lala,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-panela-lala,lacteos,Queso panela Lala,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-manchego-lala,lacteos,Queso manchego Lala,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-chihuahua-lala,lacteos,Queso Chihuahua Lala,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-oaxaca-esmeralda,lacteos,Queso Oaxaca Esmeralda,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-panela-esmeralda,lacteos,Queso panela Esmeralda,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-oaxaca-noche-buena,lacteos,Queso Oaxaca Noche Buena,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-manchego-noche-buena,lacteos,Queso manchego Noche Buena,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-panela-caperucita,lacteos,Queso panela Caperucita,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-crema-philadelphia-light-190-g,lacteos,Queso crema Philadelphia light 190 g,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+queso-parmesano-galbani,lacteos,Queso parmesano Galbani,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos cat-quesos
+jamon-de-pierna,carnes-frias-a-granel,Jamón de pierna,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+jamon-de-pavo,carnes-frias-a-granel,Jamón de pavo,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+jamon-virginia,carnes-frias-a-granel,Jamón Virginia,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+jamon-serrano,carnes-frias-a-granel,Jamón serrano,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+pechuga-de-pavo,carnes-frias-a-granel,Pechuga de pavo,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+salchicha-de-pavo,carnes-frias-a-granel,Salchicha de pavo,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+salchicha-viena,carnes-frias-a-granel,Salchicha Viena,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+salami,carnes-frias-a-granel,Salami,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+pepperoni,carnes-frias-a-granel,Pepperoni,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+mortadela,carnes-frias-a-granel,Mortadela,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+queso-de-puerco,carnes-frias-a-granel,Queso de puerco,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+chicharron-prensado,carnes-frias-a-granel,Chicharrón prensado,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+tocino,carnes-frias-a-granel,Tocino,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+chuleta-ahumada,carnes-frias-a-granel,Chuleta ahumada,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+pastel-de-pollo,carnes-frias-a-granel,Pastel de pollo,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+pate,carnes-frias-a-granel,Paté,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
+mole-rojo-a-granel,granel,Mole rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-poblano-a-granel,granel,Mole poblano a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-negro-a-granel,granel,Mole negro a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-verde-a-granel,granel,Mole verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-almendrado-a-granel,granel,Mole almendrado a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-coloradito-a-granel,granel,Mole coloradito a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+pipian-rojo-a-granel,granel,Pipián rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+pipian-verde-a-granel,granel,Pipián verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+adobo-a-granel,granel,Adobo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+pasta-de-achiote-a-granel,granel,Pasta de achiote a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+chiles-en-vinagre-a-granel,granel,Chiles en vinagre a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+aceitunas-a-granel,granel,Aceitunas a granel,g,kg,kg,kg,,0,giro-cremeria cat-enlatados
+mole-dona-maria-adobo-vaso,salsas,Mole Doña María Adobo vaso,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-poblano-la-costena-lata,salsas,Mole poblano La Costeña lata,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-rojo-teloloapan,salsas,Mole rojo Teloloapan,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-rojo-rogelio-bueno,salsas,Mole rojo Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+pipian-rogelio-bueno,salsas,Pipián Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-negro-mayordomo,salsas,Mole negro Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-coloradito-mayordomo,salsas,Mole coloradito Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-negro-guelaguetza,salsas,Mole negro Guelaguetza,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-verde-la-costena,salsas,Salsa Verde La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-roja-la-costena,salsas,Salsa Roja La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-botanera-clemente-jacques,salsas,Salsa botanera Clemente Jacques,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-habanero-verde-el-yucateco,salsas,Salsa habanero verde El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-habanero-roja-el-yucateco,salsas,Salsa habanero roja El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-habanero-negra-el-yucateco,salsas,Salsa habanero negra El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+recado-rojo-el-yucateco,salsas,Recado rojo El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-macha,salsas,Salsa macha,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-tamazula,salsas,Salsa Tamazula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
