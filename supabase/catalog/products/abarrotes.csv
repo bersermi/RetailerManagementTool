@@ -1,18 +1,18 @@
 code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
-arroz-a-granel,granel,Arroz a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-frijol-negro-a-granel,granel,Frijol negro a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-frijol-pinto-a-granel,granel,Frijol pinto a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-frijol-bayo-a-granel,granel,Frijol bayo a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-frijol-flor-de-mayo-a-granel,granel,Frijol flor de mayo a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-lenteja-a-granel,granel,Lenteja a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-garbanzo-a-granel,granel,Garbanzo a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-haba-seca-a-granel,granel,Haba seca a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-maiz-pozolero-a-granel,granel,Maíz pozolero a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-avena-a-granel,granel,Avena a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-azucar-estandar-a-granel,granel,Azúcar estándar a granel,g,kg,kg,kg,,0,giro-abarrotes cat-azucar
-azucar-refinada-a-granel,granel,Azúcar refinada a granel,g,kg,kg,kg,,0,giro-abarrotes cat-azucar
-cacahuate-a-granel,granel,Cacahuate a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
-pepita-a-granel,granel,Pepita a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
+arroz-a-granel,granel,Arroz a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+frijol-negro-a-granel,granel,Frijol negro a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+frijol-pinto-a-granel,granel,Frijol pinto a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+frijol-bayo-a-granel,granel,Frijol bayo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+frijol-flor-de-mayo-a-granel,granel,Frijol flor de mayo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+lenteja-a-granel,granel,Lenteja a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+garbanzo-a-granel,granel,Garbanzo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+haba-seca-a-granel,granel,Haba seca a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+maiz-pozolero-a-granel,granel,Maíz pozolero a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+avena-a-granel,granel,Avena a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+azucar-estandar-a-granel,granel,Azúcar estándar a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-azucar
+azucar-refinada-a-granel,granel,Azúcar refinada a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-azucar
+cacahuate-a-granel,granel,Cacahuate a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
+pepita-a-granel,granel,Pepita a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
 alpiste-a-granel,granel,Alpiste a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
 croquetas-para-perro-a-granel,granel,Croquetas para perro a granel,g,kg,kg,kg,,0,giro-abarrotes cat-mascotas
 croquetas-para-gato-a-granel,granel,Croquetas para gato a granel,g,kg,kg,kg,,0,giro-abarrotes cat-mascotas
@@ -216,8 +216,8 @@ leche-nido-360-g,lacteos,Leche Nido 360 g,pza,pza,pza,pza,,0,giro-abarrotes cat-
 leche-nido-800-g,lacteos,Leche Nido 800 g,pza,pza,pza,pza,,0,giro-abarrotes cat-lacteos
 leche-nido-kinder-1-360-g,lacteos,Leche Nido Kinder 1+ 360 g,pza,pza,pza,pza,,0,giro-abarrotes cat-lacteos
 leche-nido-kinder-1-800-g,lacteos,Leche Nido Kinder 1+ 800 g,pza,pza,pza,pza,,0,giro-abarrotes cat-lacteos
-leche-evaporada-carnation-clavel-360-g,lacteos,Leche evaporada Carnation Clavel 360 g,pza,pza,pza,pza,,0,giro-abarrotes cat-lacteos
-leche-condensada-la-lechera-375-g,lacteos,Leche condensada La Lechera 375 g,pza,pza,pza,pza,,0,giro-abarrotes cat-lacteos
+leche-evaporada-carnation-clavel-360-g,lacteos,Leche evaporada Carnation Clavel 360 g,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-lacteos
+leche-condensada-la-lechera-375-g,lacteos,Leche condensada La Lechera 375 g,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-lacteos
 leche-lala-saborizada-fresa-250-ml,lacteos,Leche Lala saborizada Fresa 250 ml,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 leche-lala-saborizada-chocolate-250-ml,lacteos,Leche Lala saborizada Chocolate 250 ml,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 leche-lala-saborizada-vainilla-250-ml,lacteos,Leche Lala saborizada Vainilla 250 ml,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
@@ -566,19 +566,19 @@ frijol-pinto-verde-valle,basicos,Frijol pinto Verde Valle,pza,pza,pza,pza,,0,gir
 lenteja-verde-valle,basicos,Lenteja Verde Valle,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 avena-quaker-400-g,basicos,Avena Quaker 400 g,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 avena-3-minutos,basicos,Avena 3 Minutos,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-harina-de-maiz-maseca-1-kg,basicos,Harina de maíz Maseca 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-harina-de-maiz-minsa-1-kg,basicos,Harina de maíz Minsa 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-harina-de-trigo-tres-estados-1-kg,basicos,Harina de trigo Tres Estados 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-harina-de-trigo-selecta-1-kg,basicos,Harina de trigo Selecta 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
+harina-de-maiz-maseca-1-kg,basicos,Harina de maíz Maseca 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
+harina-de-maiz-minsa-1-kg,basicos,Harina de maíz Minsa 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
+harina-de-trigo-tres-estados-1-kg,basicos,Harina de trigo Tres Estados 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
+harina-de-trigo-selecta-1-kg,basicos,Harina de trigo Selecta 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
 harina-para-hot-cakes-gamesa,basicos,Harina para hot cakes Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 harina-para-hot-cakes-pronto,basicos,Harina para hot cakes Pronto,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 maizena-natural,basicos,Maizena Natural,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 maizena-fresa,basicos,Maizena Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 maizena-vainilla,basicos,Maizena Vainilla,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 maizena-chocolate,basicos,Maizena Chocolate,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-polvo-para-hornear-royal,basicos,Polvo para hornear Royal,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-gelatina-jell-o,basicos,Gelatina Jell-O,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-gelatina-d-gari,basicos,Gelatina D'Gari,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
+polvo-para-hornear-royal,basicos,Polvo para hornear Royal,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
+gelatina-jell-o,basicos,Gelatina Jell-O,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
+gelatina-d-gari,basicos,Gelatina D'Gari,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
 flan-royal,basicos,Flan Royal,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 pasta-la-moderna-fideo,basicos,Pasta La Moderna Fideo,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 pasta-la-moderna-codito,basicos,Pasta La Moderna Codito,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
@@ -597,10 +597,10 @@ maruchan-camaron-con-chile-vaso,basicos,Maruchan Camarón con chile vaso,pza,pza
 maruchan-habanero-vaso,basicos,Maruchan Habanero vaso,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 nissin-cup-noodles,basicos,Nissin Cup Noodles,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 sopa-knorr-pasta,basicos,Sopa Knorr Pasta,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-azucar-estandar-1-kg,azucar,Azúcar estándar 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
-azucar-refinada-zulka-1-kg,azucar,Azúcar refinada Zulka 1 kg,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
-azucar-mascabado-zulka,azucar,Azúcar mascabado Zulka,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
-piloncillo,azucar,Piloncillo,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
+azucar-estandar-1-kg,azucar,Azúcar estándar 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
+azucar-refinada-zulka-1-kg,azucar,Azúcar refinada Zulka 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
+azucar-mascabado-zulka,azucar,Azúcar mascabado Zulka,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
+piloncillo,azucar,Piloncillo,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
 splenda,azucar,Splenda,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 canderel,azucar,Canderel,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 miel-carlota,azucar,Miel Carlota,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
@@ -610,13 +610,13 @@ mermelada-mccormick-pina,azucar,Mermelada McCormick Piña,pza,pza,pza,pza,,0,gir
 mermelada-smucker-s,azucar,Mermelada Smucker's,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 cajeta-coronado,azucar,Cajeta Coronado,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 crema-de-cacahuate-aladino-s,azucar,Crema de cacahuate Aladino's,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
-aceite-nutrioli,aceites,Aceite Nutrioli,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-aceite-1-2-3,aceites,Aceite 1-2-3,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-aceite-capullo,aceites,Aceite Capullo,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-aceite-la-patrona,aceites,Aceite La Patrona,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-aceite-mazola,aceites,Aceite Mazola,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-aceite-de-oliva-carbonell,aceites,Aceite de oliva Carbonell,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
-manteca-vegetal-inca,aceites,Manteca vegetal Inca,pza,pza,pza,pza,,0,giro-abarrotes cat-aceites
+aceite-nutrioli,aceites,Aceite Nutrioli,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+aceite-1-2-3,aceites,Aceite 1-2-3,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+aceite-capullo,aceites,Aceite Capullo,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+aceite-la-patrona,aceites,Aceite La Patrona,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+aceite-mazola,aceites,Aceite Mazola,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+aceite-de-oliva-carbonell,aceites,Aceite de oliva Carbonell,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
+manteca-vegetal-inca,aceites,Manteca vegetal Inca,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-aceites
 atun-dolores-en-agua-140-g,enlatados,Atún Dolores en agua 140 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-dolores-en-agua-295-g,enlatados,Atún Dolores en agua 295 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-dolores-en-aceite-140-g,enlatados,Atún Dolores en aceite 140 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -695,27 +695,27 @@ pure-de-tomate-del-fuerte-1-kg,enlatados,Puré de tomate Del Fuerte 1 kg,pza,pza
 pure-de-tomate-condimentado-del-fuerte,enlatados,Puré de tomate condimentado Del Fuerte,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 pure-de-tomate-la-costena,enlatados,Puré de tomate La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 pure-de-tomate-herdez,enlatados,Puré de tomate Herdez,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-salsa-casera-herdez-chica,enlatados,Salsa casera Herdez chica,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-casera-herdez-grande,enlatados,Salsa casera Herdez grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-verde-herdez,enlatados,Salsa verde Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-taquera-herdez,enlatados,Salsa taquera Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-ranchera-herdez,enlatados,Salsa ranchera Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-original-vaso-chico,enlatados,Mole Doña María Original vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-original-vaso-grande,enlatados,Mole Doña María Original vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-verde-vaso-chico,enlatados,Mole Doña María Verde vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-verde-vaso-grande,enlatados,Mole Doña María Verde vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-pipian-vaso-chico,enlatados,Mole Doña María Pipián vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-dona-maria-pipian-vaso-grande,enlatados,Mole Doña María Pipián vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-en-polvo-dona-maria,enlatados,Mole en polvo Doña María,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-casera-herdez-chica,enlatados,Salsa casera Herdez chica,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-casera-herdez-grande,enlatados,Salsa casera Herdez grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-verde-herdez,enlatados,Salsa verde Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-taquera-herdez,enlatados,Salsa taquera Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-ranchera-herdez,enlatados,Salsa ranchera Herdez,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-original-vaso-chico,enlatados,Mole Doña María Original vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-original-vaso-grande,enlatados,Mole Doña María Original vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-verde-vaso-chico,enlatados,Mole Doña María Verde vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-verde-vaso-grande,enlatados,Mole Doña María Verde vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-pipian-vaso-chico,enlatados,Mole Doña María Pipián vaso chico,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-dona-maria-pipian-vaso-grande,enlatados,Mole Doña María Pipián vaso grande,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-en-polvo-dona-maria,enlatados,Mole en polvo Doña María,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 sopa-campbell-s-crema-de-champinones,enlatados,Sopa Campbell's Crema de champiñones,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 sopa-campbell-s-crema-de-elote,enlatados,Sopa Campbell's Crema de elote,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 sopa-campbell-s-pollo-con-fideo,enlatados,Sopa Campbell's Pollo con fideo,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-salsa-valentina-etiqueta-amarilla,salsas,Salsa Valentina Etiqueta amarilla,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-valentina-etiqueta-negra,salsas,Salsa Valentina Etiqueta negra,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-bufalo-clasica,salsas,Salsa Búfalo clásica,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-tapatio,salsas,Salsa Tapatío,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-cholula,salsas,Salsa Cholula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-huichol,salsas,Salsa Huichol,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-valentina-etiqueta-amarilla,salsas,Salsa Valentina Etiqueta amarilla,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-valentina-etiqueta-negra,salsas,Salsa Valentina Etiqueta negra,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-bufalo-clasica,salsas,Salsa Búfalo clásica,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-tapatio,salsas,Salsa Tapatío,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-cholula,salsas,Salsa Cholula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-huichol,salsas,Salsa Huichol,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-maggi-jugo-sazonador,salsas,Salsa Maggi (jugo sazonador),pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 salsa-inglesa-lea-perrins,salsas,Salsa inglesa Lea & Perrins,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 salsa-de-soya-kikkoman,salsas,Salsa de soya Kikkoman,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
@@ -731,19 +731,19 @@ knorr-suiza-caldo-de-pollo-cubos,salsas,Knorr Suiza caldo de pollo cubos,pza,pza
 knorr-suiza-caldo-de-pollo-polvo,salsas,Knorr Suiza caldo de pollo polvo,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 knorr-caldo-de-tomate,salsas,Knorr caldo de tomate,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 consome-maggi,salsas,Consomé Maggi,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-sal-la-fina,salsas,Sal La Fina,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-sal-elefante,salsas,Sal Elefante,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
+sal-la-fina,salsas,Sal La Fina,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+sal-elefante,salsas,Sal Elefante,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 tajin,salsas,Tajín,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 chamoy-miguelito,salsas,Chamoy Miguelito,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 chamoy-mega,salsas,Chamoy Mega,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-salsa-lucas,salsas,Salsa Lucas,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-pimienta-mccormick,salsas,Pimienta McCormick,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-especias-mccormick-comino,salsas,Especias McCormick Comino,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-especias-mccormick-oregano,salsas,Especias McCormick Orégano,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-especias-mccormick-laurel,salsas,Especias McCormick Laurel,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-especias-mccormick-clavo,salsas,Especias McCormick Clavo,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-especias-mccormick-canela,salsas,Especias McCormick Canela,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-achiote-la-anita,salsas,Achiote La Anita,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+salsa-lucas,salsas,Salsa Lucas,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+pimienta-mccormick,salsas,Pimienta McCormick,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+especias-mccormick-comino,salsas,Especias McCormick Comino,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+especias-mccormick-oregano,salsas,Especias McCormick Orégano,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+especias-mccormick-laurel,salsas,Especias McCormick Laurel,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+especias-mccormick-clavo,salsas,Especias McCormick Clavo,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+especias-mccormick-canela,salsas,Especias McCormick Canela,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
+achiote-la-anita,salsas,Achiote La Anita,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 nescafe-clasico-42-g,cafe,Nescafé Clásico 42 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-clasico-120-g,cafe,Nescafé Clásico 120 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-clasico-225-g,cafe,Nescafé Clásico 225 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
@@ -753,8 +753,8 @@ cafe-legal,cafe,Café Legal,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 cafe-oro,cafe,Café Oro,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 cafe-combate,cafe,Café Combate,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 coffee-mate,cafe,Coffee mate,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-chocolate-abuelita,cafe,Chocolate Abuelita,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-chocolate-ibarra,cafe,Chocolate Ibarra,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
+chocolate-abuelita,cafe,Chocolate Abuelita,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-cafe
+chocolate-ibarra,cafe,Chocolate Ibarra,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-cafe
 choco-milk,cafe,Choco Milk,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nesquik,cafe,Nesquik,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 chocolate-express,cafe,Chocolate Express,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
@@ -857,16 +857,16 @@ recogedor,limpieza,Recogedor,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 cubeta,limpieza,Cubeta,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 bolsas-para-basura,limpieza,Bolsas para basura,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 guantes-de-hule,limpieza,Guantes de hule,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
-vasos-desechables,desechables,Vasos desechables,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-platos-desechables,desechables,Platos desechables,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-cucharas-desechables,desechables,Cucharas desechables,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-tenedores-desechables,desechables,Tenedores desechables,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-servilletas,desechables,Servilletas,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-papel-aluminio,desechables,Papel aluminio,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-plastico-autoadherente,desechables,Plástico autoadherente,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-bolsas-de-plastico,desechables,Bolsas de plástico,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-popotes,desechables,Popotes,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
-contenedores-desechables,desechables,Contenedores desechables,pza,pza,pza,pza,,0,giro-abarrotes cat-desechables
+vasos-desechables,desechables,Vasos desechables,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+platos-desechables,desechables,Platos desechables,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+cucharas-desechables,desechables,Cucharas desechables,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+tenedores-desechables,desechables,Tenedores desechables,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+servilletas,desechables,Servilletas,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+papel-aluminio,desechables,Papel aluminio,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+plastico-autoadherente,desechables,Plástico autoadherente,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+bolsas-de-plastico,desechables,Bolsas de plástico,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+popotes,desechables,Popotes,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
+contenedores-desechables,desechables,Contenedores desechables,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-desechables
 veladora,hogar,Veladora,pza,pza,pza,pza,,0,giro-abarrotes cat-hogar
 velas,hogar,Velas,pza,pza,pza,pza,,0,giro-abarrotes cat-hogar
 cerillos-la-central,hogar,Cerillos La Central,pza,pza,pza,pza,,0,giro-abarrotes cat-hogar

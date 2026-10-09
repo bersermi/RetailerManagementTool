@@ -44,16 +44,13 @@ real database; none runs on sample data.
 
 ## What is on your phone
 
-**Everything up to and including Precios** (installed 28 September). Not on it: the
-**pilot build** — the measuring version (`5P-a`), which needs a rebuild with the
-pilot switch on — and **`8f`'s design changes** (30 September), which arrive with the
-next rebuild, the 4 October one at the latest.
+**Everything merged up to 9 October**, installed that day as **`mx.wera.app`**: Precios,
+`8f`'s design changes and the starter-catalog import. Not on it: the **pilot build**,
+the measuring version (`5P-a`), which needs a rebuild with the pilot switch on.
 
-⚠️ **The app stops opening on 4 October, 14:28 UTC.** It is installed with a free
-Apple account, which signs it for seven days. The rebuild has to run **on or after**
-that date (an earlier one reuses the old signature and moves nothing), and it needs
-your Apple ID signed into Xcode. Afterwards, **tap Trust** — *Settings → General →
-VPN & Device Management* — every time.
+✅ **The seven-day limit is gone.** Your paid Apple Developer account signed the 9 October
+build, and it is good until **9 October 2027**. The old `mx.bserafin.wera` icon can no longer
+open; delete it. A later rebuild is only for new code, never for the calendar.
 
 Before spending ten minutes on a build, check these answer:
 
@@ -64,15 +61,9 @@ ping -c1 iPhone-de-Bernie.coredevice.local   # must answer
 security find-identity -v -p codesigning     # must list a signing identity
 ```
 
-⚠️ **Since 1 October the app's id is `mx.wera.app`.** The next build installs as a
-**second** Wera beside the old one: open the old one with signal first so nothing is
-waiting to send, then sign in on the new one. ✅ Supabase already accepts the new id
-(you added `mx.wera.app://**` to Redirect URLs on 1 October; the project is now named
-*Wera Project*).
-
-The build commands are [`docs/checks/5a-iv-a-runsheet.md`](checks/5a-iv-a-runsheet.md)
-§2, always `--configuration Release`. The seven-day limit ends for good with the
-Apple Developer Program (`5R-a`, yours to enrol in) and TestFlight (`5R-b`).
+**Keep the phone unlocked during the install.** A locked phone fails as *"the developer disk
+image could not be mounted"*. The build commands are
+[`docs/checks/5a-iv-a-runsheet.md`](checks/5a-iv-a-runsheet.md) §2, always `--configuration Release`.
 
 ---
 
@@ -120,7 +111,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9g** | **Frutería, with you** | ✅ **Done 2 October** — 46 new products; melón, sandía, papaya, piña and pitaya both by the kilo and by the piece. Fruta picada left out for now |
 | **9h** | **Abarrotes, with you** | ✅ **Done 2 October** — 1,017 products **with brands and presentations**, IVA 0 for now; the berries now say *por charola* |
 | **9i** | **Cremería, with you** | ✅ **Done 5 October** — 79 new products: cheese and cold cuts by the kilo, cream by the litro, branded butter and cheese; a new category *Salsas y moles* shared with Abarrotes, Pollería and Carnicería |
-| **9j** | **Materias Primas, with you** — the last giro. Paste the **Catalog Prompt**; its first question is what *Materias Primas* means | ⚠️ **This is where the next piece of work is** |
+| **9j** | **Materias Primas, with you** | ✅ **Done 9 October** — 139 new products: baking supplies, nuts and seeds, spices and sweets by the kilo, and 57 desechables by the package. **The starter catalog is complete: 1,413 products across seven giros** |
+| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall. Chosen as next on 9 October because nothing gates it; tell me if you want something else first | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
