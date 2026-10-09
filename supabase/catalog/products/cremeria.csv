@@ -49,32 +49,32 @@ tocino,carnes-frias-a-granel,Tocino,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
 chuleta-ahumada,carnes-frias-a-granel,Chuleta ahumada,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
 pastel-de-pollo,carnes-frias-a-granel,Pastel de pollo,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
 pate,carnes-frias-a-granel,Paté,g,kg,kg,kg,,0,giro-cremeria cat-embutidos
-mole-rojo-a-granel,granel,Mole rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-poblano-a-granel,granel,Mole poblano a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-negro-a-granel,granel,Mole negro a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-verde-a-granel,granel,Mole verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-almendrado-a-granel,granel,Mole almendrado a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-coloradito-a-granel,granel,Mole coloradito a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-pipian-rojo-a-granel,granel,Pipián rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-pipian-verde-a-granel,granel,Pipián verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-adobo-a-granel,granel,Adobo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-pasta-de-achiote-a-granel,granel,Pasta de achiote a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-chiles-en-vinagre-a-granel,granel,Chiles en vinagre a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-rojo-a-granel,granel,Mole rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-poblano-a-granel,granel,Mole poblano a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-negro-a-granel,granel,Mole negro a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-verde-a-granel,granel,Mole verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-almendrado-a-granel,granel,Mole almendrado a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-coloradito-a-granel,granel,Mole coloradito a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+pipian-rojo-a-granel,granel,Pipián rojo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+pipian-verde-a-granel,granel,Pipián verde a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+adobo-a-granel,granel,Adobo a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+pasta-de-achiote-a-granel,granel,Pasta de achiote a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+chiles-en-vinagre-a-granel,granel,Chiles en vinagre a granel,g,kg,kg,kg,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 aceitunas-a-granel,granel,Aceitunas a granel,g,kg,kg,kg,,0,giro-cremeria cat-enlatados
-mole-dona-maria-adobo-vaso,salsas,Mole Doña María Adobo vaso,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-poblano-la-costena-lata,salsas,Mole poblano La Costeña lata,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-rojo-teloloapan,salsas,Mole rojo Teloloapan,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-rojo-rogelio-bueno,salsas,Mole rojo Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-pipian-rogelio-bueno,salsas,Pipián Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-negro-mayordomo,salsas,Mole negro Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-coloradito-mayordomo,salsas,Mole coloradito Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-mole-negro-guelaguetza,salsas,Mole negro Guelaguetza,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-verde-la-costena,salsas,Salsa Verde La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-roja-la-costena,salsas,Salsa Roja La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-botanera-clemente-jacques,salsas,Salsa botanera Clemente Jacques,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-habanero-verde-el-yucateco,salsas,Salsa habanero verde El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-habanero-roja-el-yucateco,salsas,Salsa habanero roja El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-habanero-negra-el-yucateco,salsas,Salsa habanero negra El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-recado-rojo-el-yucateco,salsas,Recado rojo El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-macha,salsas,Salsa macha,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
-salsa-tamazula,salsas,Salsa Tamazula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria cat-salsas-moles
+mole-dona-maria-adobo-vaso,salsas,Mole Doña María Adobo vaso,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-poblano-la-costena-lata,salsas,Mole poblano La Costeña lata,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-rojo-teloloapan,salsas,Mole rojo Teloloapan,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-rojo-rogelio-bueno,salsas,Mole rojo Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+pipian-rogelio-bueno,salsas,Pipián Rogelio Bueno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-negro-mayordomo,salsas,Mole negro Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-coloradito-mayordomo,salsas,Mole coloradito Mayordomo,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+mole-negro-guelaguetza,salsas,Mole negro Guelaguetza,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-verde-la-costena,salsas,Salsa Verde La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-roja-la-costena,salsas,Salsa Roja La Costeña,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-botanera-clemente-jacques,salsas,Salsa botanera Clemente Jacques,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-habanero-verde-el-yucateco,salsas,Salsa habanero verde El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-habanero-roja-el-yucateco,salsas,Salsa habanero roja El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-habanero-negra-el-yucateco,salsas,Salsa habanero negra El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+recado-rojo-el-yucateco,salsas,Recado rojo El Yucateco,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-macha,salsas,Salsa macha,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
+salsa-tamazula,salsas,Salsa Tamazula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles

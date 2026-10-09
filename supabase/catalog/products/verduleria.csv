@@ -33,10 +33,10 @@ chile-jalapeno,chiles,Chile jalapeño,g,kg,kg,kg,,0,giro-verduleria giro-abarrot
 chile-poblano,chiles,Chile poblano,g,kg,kg,kg,,0,giro-verduleria cat-chiles
 chile-habanero,chiles,Chile habanero,g,kg,kg,kg,,0,giro-verduleria cat-chiles
 chile-guero,chiles,Chile güero,g,kg,kg,kg,,0,giro-verduleria cat-chiles
-chile-ancho,chiles,Chile ancho,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles-secos
-chile-guajillo,chiles,Chile guajillo,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles-secos
-chile-pasilla,chiles,Chile pasilla,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles-secos
-chile-de-arbol,chiles,Chile de árbol,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles-secos
+chile-ancho,chiles,Chile ancho,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-guajillo,chiles,Chile guajillo,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-pasilla,chiles,Chile pasilla,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-de-arbol,chiles,Chile de árbol,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
 ajo,verduras-por-pieza,Ajo,pza,pza,pza,pza,,0,giro-verduleria giro-abarrotes cat-verduras
 lechuga-romana,verduras-por-pieza,Lechuga romana,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
 lechuga-orejona,verduras-por-pieza,Lechuga orejona,pza,pza,pza,pza,,0,giro-verduleria cat-verduras

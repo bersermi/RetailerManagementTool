@@ -1,0 +1,140 @@
+code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
+harina-de-trigo-a-granel,reposteria-a-granel,Harina de trigo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+harina-integral-a-granel,reposteria-a-granel,Harina integral a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+harina-de-maiz-a-granel,reposteria-a-granel,Harina de maíz a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+azucar-glass-a-granel,reposteria-a-granel,Azúcar glass a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+azucar-mascabado-a-granel,reposteria-a-granel,Azúcar mascabado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+manteca-vegetal-a-granel,reposteria-a-granel,Manteca vegetal a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+fecula-de-maiz-a-granel,reposteria-a-granel,Fécula de maíz a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+polvo-para-hornear-a-granel,reposteria-a-granel,Polvo para hornear a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+bicarbonato-a-granel,reposteria-a-granel,Bicarbonato a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+grenetina-a-granel,reposteria-a-granel,Grenetina a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+cocoa-a-granel,reposteria-a-granel,Cocoa a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+chocolate-cobertura-oscuro-a-granel,reposteria-a-granel,Chocolate cobertura oscuro a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+chocolate-cobertura-blanco-a-granel,reposteria-a-granel,Chocolate cobertura blanco a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+chispas-de-chocolate-a-granel,reposteria-a-granel,Chispas de chocolate a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+chochitos-a-granel,reposteria-a-granel,Chochitos a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+coco-rallado-a-granel,reposteria-a-granel,Coco rallado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+leche-en-polvo-a-granel,reposteria-a-granel,Leche en polvo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+levadura-seca-a-granel,reposteria-a-granel,Levadura seca a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+mejorante-para-pan-a-granel,reposteria-a-granel,Mejorante para pan a granel,g,kg,kg,kg,,0,giro-materias-primas cat-reposteria
+nuez-entera-a-granel,frutos-secos,Nuez entera a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+nuez-en-mitades-a-granel,frutos-secos,Nuez en mitades a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+nuez-picada-a-granel,frutos-secos,Nuez picada a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+nuez-de-la-india-a-granel,frutos-secos,Nuez de la India a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+nuez-de-castilla-a-granel,frutos-secos,Nuez de Castilla a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+nuez-de-macadamia-a-granel,frutos-secos,Nuez de macadamia a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+almendra-entera-a-granel,frutos-secos,Almendra entera a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+almendra-pelada-a-granel,frutos-secos,Almendra pelada a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+almendra-fileteada-a-granel,frutos-secos,Almendra fileteada a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+avellana-a-granel,frutos-secos,Avellana a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pistache-con-cascara-a-granel,frutos-secos,Pistache con cáscara a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pistache-pelado-a-granel,frutos-secos,Pistache pelado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+cacahuate-con-cascara-a-granel,frutos-secos,Cacahuate con cáscara a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+cacahuate-salado-a-granel,frutos-secos,Cacahuate salado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+cacahuate-enchilado-a-granel,frutos-secos,Cacahuate enchilado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pepita-con-cascara-a-granel,frutos-secos,Pepita con cáscara a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+semilla-de-girasol-a-granel,frutos-secos,Semilla de girasol a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+ajonjoli-blanco-a-granel,frutos-secos,Ajonjolí blanco a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+ajonjoli-negro-a-granel,frutos-secos,Ajonjolí negro a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+amaranto-a-granel,frutos-secos,Amaranto a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+linaza-dorada-a-granel,frutos-secos,Linaza dorada a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+linaza-cafe-a-granel,frutos-secos,Linaza café a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+chia-a-granel,frutos-secos,Chía a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pasas-morenas-a-granel,frutos-secos,Pasas morenas a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pasas-doradas-a-granel,frutos-secos,Pasas doradas a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+arandano-deshidratado-a-granel,frutos-secos,Arándano deshidratado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+ciruela-pasa-a-granel,frutos-secos,Ciruela pasa a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+datil-a-granel,frutos-secos,Dátil a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+higo-seco-a-granel,frutos-secos,Higo seco a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+chabacano-deshidratado-a-granel,frutos-secos,Chabacano deshidratado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+mango-deshidratado-a-granel,frutos-secos,Mango deshidratado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+pina-deshidratada-a-granel,frutos-secos,Piña deshidratada a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+mezcla-de-frutos-secos-a-granel,frutos-secos,Mezcla de frutos secos a granel,g,kg,kg,kg,,0,giro-materias-primas cat-frutos-secos
+canela-en-raja-a-granel,especias-a-granel,Canela en raja a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+comino-a-granel,especias-a-granel,Comino a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+oregano-a-granel,especias-a-granel,Orégano a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+pimienta-negra-a-granel,especias-a-granel,Pimienta negra a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+clavo-a-granel,especias-a-granel,Clavo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+laurel-a-granel,especias-a-granel,Laurel a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+ajo-en-polvo-a-granel,especias-a-granel,Ajo en polvo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+cebolla-en-polvo-a-granel,especias-a-granel,Cebolla en polvo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+paprika-a-granel,especias-a-granel,Paprika a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+consome-de-pollo-a-granel,especias-a-granel,Consomé de pollo a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+sal-de-grano-a-granel,especias-a-granel,Sal de grano a granel,g,kg,kg,kg,,0,giro-materias-primas cat-salsas
+chile-mulato,chiles,Chile mulato,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-morita,chiles,Chile morita,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-chipotle-seco,chiles,Chile chipotle seco,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-cascabel,chiles,Chile cascabel,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-puya,chiles,Chile puya,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-piquin-seco,chiles,Chile piquín seco,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+gomitas-a-granel,dulces-a-granel,Gomitas a granel,g,kg,kg,kg,,0,giro-materias-primas cat-dulces
+dulce-surtido-para-pinata-a-granel,dulces-a-granel,Dulce surtido para piñata a granel,g,kg,kg,kg,,0,giro-materias-primas cat-dulces
+tamarindo-con-chile-a-granel,dulces-a-granel,Tamarindo con chile a granel,g,kg,kg,kg,,0,giro-materias-primas cat-dulces
+cacahuate-garapinado-a-granel,dulces-a-granel,Cacahuate garapiñado a granel,g,kg,kg,kg,,0,giro-materias-primas cat-dulces
+cacahuate-japones-a-granel,dulces-a-granel,Cacahuate japonés a granel,g,kg,kg,kg,,0,giro-materias-primas cat-dulces
+levadura-tradi-pan,basicos,Levadura Tradi-Pan,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+levadura-fresca-nevada,basicos,Levadura fresca Nevada,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+fecula-de-maiz-maizena,basicos,Fécula de maíz Maizena,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+grenetina-duche,basicos,Grenetina Duché,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+esencia-de-vainilla-deiman,basicos,Esencia de vainilla Deiman,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+colorante-vegetal-deiman,basicos,Colorante vegetal Deiman,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+bicarbonato-arm-hammer,basicos,Bicarbonato Arm & Hammer,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+cocoa-hershey-s,basicos,Cocoa Hershey's,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-reposteria
+vaso-de-unicel-4-paquete,desechables,Vaso de unicel #4 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-unicel-6-paquete,desechables,Vaso de unicel #6 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-unicel-8-paquete,desechables,Vaso de unicel #8 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-unicel-10-paquete,desechables,Vaso de unicel #10 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-unicel-12-paquete,desechables,Vaso de unicel #12 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-unicel-16-paquete,desechables,Vaso de unicel #16 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-plastico-transparente-10-oz-paquete,desechables,Vaso de plástico transparente 10 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-plastico-transparente-12-oz-paquete,desechables,Vaso de plástico transparente 12 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vaso-de-plastico-transparente-16-oz-paquete,desechables,Vaso de plástico transparente 16 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tapa-para-vaso-10-oz-paquete,desechables,Tapa para vaso 10 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tapa-para-vaso-12-oz-paquete,desechables,Tapa para vaso 12 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tapa-para-vaso-16-oz-paquete,desechables,Tapa para vaso 16 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vasito-gelatinero-1-oz-paquete,desechables,Vasito gelatinero 1 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+vasito-gelatinero-2-oz-paquete,desechables,Vasito gelatinero 2 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+plato-de-unicel-6-pastelero-paquete,desechables,Plato de unicel #6 pastelero paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+plato-de-unicel-9-paquete,desechables,Plato de unicel #9 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+plato-de-unicel-10-trinchero-paquete,desechables,Plato de unicel #10 trinchero paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tazon-de-unicel-12-oz-paquete,desechables,Tazón de unicel 12 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tazon-de-unicel-16-oz-paquete,desechables,Tazón de unicel 16 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+contenedor-de-unicel-con-bisagra-6-6-paquete,desechables,Contenedor de unicel con bisagra 6×6 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+contenedor-de-unicel-con-bisagra-8-8-paquete,desechables,Contenedor de unicel con bisagra 8×8 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+contenedor-de-unicel-con-bisagra-9-9-paquete,desechables,Contenedor de unicel con bisagra 9×9 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-unicel-2-paquete,desechables,Charola de unicel #2 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-unicel-4-paquete,desechables,Charola de unicel #4 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-unicel-6-paquete,desechables,Charola de unicel #6 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-aluminio-chica-paquete,desechables,Charola de aluminio chica paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-aluminio-mediana-paquete,desechables,Charola de aluminio mediana paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+charola-de-aluminio-grande-paquete,desechables,Charola de aluminio grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+salsero-de-plastico-con-tapa-1-oz-paquete,desechables,Salsero de plástico con tapa 1 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+salsero-de-plastico-con-tapa-2-oz-paquete,desechables,Salsero de plástico con tapa 2 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+salsero-de-plastico-con-tapa-4-oz-paquete,desechables,Salsero de plástico con tapa 4 oz paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-camiseta-chica-paquete,desechables,Bolsa camiseta chica paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-camiseta-mediana-paquete,desechables,Bolsa camiseta mediana paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-camiseta-grande-paquete,desechables,Bolsa camiseta grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-camiseta-jumbo-paquete,desechables,Bolsa camiseta jumbo paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-papel-estraza-1-paquete,desechables,Bolsa de papel estraza #1 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-papel-estraza-2-paquete,desechables,Bolsa de papel estraza #2 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-papel-estraza-4-paquete,desechables,Bolsa de papel estraza #4 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-papel-estraza-6-paquete,desechables,Bolsa de papel estraza #6 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-papel-estraza-8-paquete,desechables,Bolsa de papel estraza #8 paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-celofan-chica-paquete,desechables,Bolsa de celofán chica paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-celofan-mediana-paquete,desechables,Bolsa de celofán mediana paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+bolsa-de-celofan-grande-paquete,desechables,Bolsa de celofán grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+capacillo-mini-paquete,desechables,Capacillo mini paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+capacillo-panque-paquete,desechables,Capacillo panqué paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+capacillo-cupcake-paquete,desechables,Capacillo cupcake paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+domo-para-pastel-chico-paquete,desechables,Domo para pastel chico paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+domo-para-pastel-mediano-paquete,desechables,Domo para pastel mediano paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+domo-para-pastel-grande-paquete,desechables,Domo para pastel grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+base-de-carton-para-pastel-chica-paquete,desechables,Base de cartón para pastel chica paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+base-de-carton-para-pastel-mediana-paquete,desechables,Base de cartón para pastel mediana paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+base-de-carton-para-pastel-grande-paquete,desechables,Base de cartón para pastel grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+cuchara-de-plastico-chica-paquete,desechables,Cuchara de plástico chica paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+cuchara-de-plastico-grande-paquete,desechables,Cuchara de plástico grande paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+tenedor-de-plastico-paquete,desechables,Tenedor de plástico paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+cuchillo-de-plastico-paquete,desechables,Cuchillo de plástico paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables
+papel-encerado-paquete,desechables,Papel encerado paquete,pza,pza,pza,pza,,0,giro-materias-primas cat-desechables

@@ -19,6 +19,7 @@ cat-chiles-secos,categoria,Chiles secos
 cat-hierbas,categoria,Hierbas
 cat-frutas,categoria,Frutas
 cat-granos,categoria,Granos y semillas
+cat-frutos-secos,categoria,Frutos secos
 cat-azucar,categoria,Azúcar y endulzantes
 cat-mascotas,categoria,Mascotas
 cat-refrescos,categoria,Refrescos
@@ -30,6 +31,7 @@ cat-galletas,categoria,Galletas
 cat-botanas,categoria,Botanas
 cat-dulces,categoria,Dulces y chocolates
 cat-basicos,categoria,"Arroz, harinas y pastas"
+cat-reposteria,categoria,Repostería
 cat-aceites,categoria,Aceites y grasas
 cat-enlatados,categoria,Enlatados y conservas
 cat-salsas-moles,categoria,Salsas y moles
