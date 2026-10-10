@@ -82,6 +82,7 @@ file above, section 2 of its catch-up.
 | **Números** | Do fourteen day-bars read as a fortnight or a comb? Does *Descargar un mes* open in WhatsApp and a spreadsheet with its accents intact? |
 | **Números → a product → Precios** | Do two lines read as your margin or a tangle? Does *Compra* with IVA confuse you, when you typed it without? |
 | **Entrar → crear una cuenta con correo** | Nobody has ever signed up by email on the live project; all three users came through Google. Create one with a second email address and a password. It should let you straight in with no confirmation email, which is what you asked for. Then sign out and sign back in with it |
+| **Entrar → *¿Olvidaste tu contraseña?*** | Signed out, type an email and tap the link under *Entrar*. WhatsApp should open a chat **with you**, with *"Hola, olvidé mi contraseña de Wera. Mi correo es …"* already written. Is the link easy enough to find, and is the message what you want to receive? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **A pilot build** | Sell three things, one from inside the Carrito sheet, then hold *Ajustes*' title: does *Toques por registro* count the taps inside the sheet? |
 
@@ -114,8 +115,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9i** | **Cremería, with you** | ✅ **Done 5 October** — 79 new products: cheese and cold cuts by the kilo, cream by the litro, branded butter and cheese; a new category *Salsas y moles* shared with Abarrotes, Pollería and Carnicería |
 | **9j** | **Materias Primas, with you** | ✅ **Done 9 October** — 139 new products: baking supplies, nuts and seeds, spices and sweets by the kilo, and 57 desechables by the package. **The starter catalog is complete: 1,413 products across seven giros** |
 | **5R-c** | **Deleting an account, inside the app** — a store requirement. Ruled by you on 9 October: the person's login goes, and **the shop keeps their name** on what they did, shown as *"María (ex-miembro)"*. A sole owner's deletion deletes the shop, after a warning and an offer to download the month first. Immediate, with nothing kept for analytics | ✅ **Done 9 October** — *Tu cuenta → Eliminar mi cuenta*, at the bottom of Ajustes. On your phone with the next rebuild |
-| **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ⚠️ **This is where the next piece of work is** |
-| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | After `5R-h` |
+| **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ✅ **Done 9 October** — the link under *Entrar*, and the script below, *If somebody forgot their password*. On your phone with the next rebuild |
+| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ⚠️ **This is where the next piece of work is** |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
@@ -129,7 +130,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password), `5R-b`, `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b`, `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -137,10 +138,9 @@ Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c`
 
 | Date | What | If it is missed |
 |---|---|---|
-| **4 October** | Rebuild and reinstall on your phone, **on or after** this date | The app stops opening in your hand |
 | **13 October** | The day-30 session reading on the sealed Android emulator. ⚠️ **Do not open Wera on `wera-reading-5a-iv-d`** — it restarts the clock | The reading can only be restarted, not recovered |
 
-Both are in the plan's ⏳ DATES OWED block, which turns the checks red if one passes.
+It is in the plan's ⏳ DATES OWED block, which turns the checks red if it passes. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
 
 ---
 
@@ -302,6 +302,28 @@ reads the job log (not the green tick) and merges on green, database changes
 included. Merging touches no database: a merged change reaches your shop only when
 somebody runs `supabase db push`. Saying *no, I want to read it first* always costs
 nothing.
+
+---
+
+## If somebody forgot their password
+
+They tap *¿Olvidaste tu contraseña?* on *Entrar* and a WhatsApp chat opens with you, naming
+their email. **Before you change anything, make sure the person writing is the person who owns
+that account** — a voice note, a call, or someone you know by sight. Anyone can type someone
+else's email.
+
+Then, from the repository folder on the Mac:
+
+```
+bash docs/runbooks/reset-a-password.sh their@email.com
+```
+
+It prints a new password like `wera-k7mq-3xtp`. Send it to them; they sign in with it. It changes
+nothing and tells you why when the email has no account, or when the account signs in with
+Google (tell them to tap *Entrar con Google*). To try it safely first, add `--local`.
+
+There is no *Cambiar contraseña* in the app yet, so the password you send is theirs until they
+ask for another.
 
 ---
 

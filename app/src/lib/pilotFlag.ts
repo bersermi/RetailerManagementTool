@@ -1,5 +1,6 @@
 // ============================================================================
-// THE THIRD ENVIRONMENT VARIABLE, AND THE ONLY OTHER MODULE THAT READS ONE.
+// THE THIRD ENVIRONMENT VARIABLE, AND ONE OF TWO SMALL MODULES THAT READ ONE
+// (`supportWhatsapp.ts`, `5R-h`, is the other).
 // Plan task `5P-a`; `R7`, amended the same day.
 //
 // `EXPO_PUBLIC_PILOT` set when the bundle is made turns on §5's readings and
