@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   useCreateInvite,
+  useDeleteMyAccount,
   useLocations,
   useMyDisplayName,
   useMyRole,
@@ -13,6 +14,7 @@ import {
   useSetMyDisplayName,
   useWorkspace,
 } from '@/api/hooks';
+import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
   INVITABLE_ROLES,
@@ -178,6 +180,8 @@ export default function Ajustes() {
           </Text>
           <Letra />
         </Section>
+
+        <Cuenta />
 
         <Salir />
       </ScrollView>
@@ -550,6 +554,167 @@ function Letra() {
         );
       })}
     </View>
+  );
+}
+
+/**
+ * DELETING ONE'S OWN ACCOUNT. Plan task `5R-c`, the owner's rulings of
+ * 2026-10-09, and `0053`'s `delete_my_account`.
+ *
+ * ⚠️ TWO WARNINGS, AND WHICH ONE IS `deletionFrom`'s ANSWER, NOT THIS FILE'S.
+ * Anybody who is not the shop's only owner is told their login goes and their
+ * name stays on what they recorded. The only owner is told the SHOP goes, shown
+ * who loses access, offered the month's export first, and asked to type the
+ * shop's name — which the server compares again (`TD007`), so this screen can
+ * be wrong about the warning but cannot delete a shop nobody confirmed.
+ *
+ * ⚠️ NOTHING IS OFFERED UNTIL THE ROSTER IS IN. A sheet that offered the mild
+ * warning while it did not yet know she was the only owner would be offering
+ * the wrong one at exactly the moment it matters.
+ *
+ * ⚠️ `error` AND NOT A FILLED SLAB, `Salir`'s argument: it destroys, and it is
+ * the last thing anybody came here to do.
+ */
+function Cuenta() {
+  const { scale } = useDensity();
+  const workspace = useWorkspace();
+  const roster = useRoster();
+  const { remove, busy } = useDeleteMyAccount();
+  const [open, setOpen] = useState(false);
+  const [typed, setTyped] = useState('');
+  const [failure, setFailure] = useState<string | null>(null);
+
+  const deletion = deletionFrom(roster.entries, roster.loading);
+  if (workspace === null || deletion.kind === 'unknown') return null;
+
+  const takesShop = deletion.kind === 'deletesShop';
+  const ready = !takesShop || shopNameMatches(typed, workspace.displayName);
+
+  async function confirm() {
+    setFailure(null);
+    const problem = await remove(deleteArgs(deletion, typed));
+    if (problem !== null) setFailure(problem);
+  }
+
+  function close() {
+    setOpen(false);
+    setTyped('');
+    setFailure(null);
+  }
+
+  return (
+    <Section title={ES.account.section}>
+      {!open && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => setOpen(true)}
+          style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+            {ES.account.open}
+          </Text>
+        </Pressable>
+      )}
+
+      {open && (
+        <View style={{ gap: scale.rowGap }}>
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+            {takesShop ? ES.account.shopWarning(workspace.displayName) : ES.account.leavesWarning}
+          </Text>
+
+          {deletion.kind === 'deletesShop' && (
+            <>
+              {deletion.losesAccess.length === 0 ? (
+                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                  {ES.account.nobodyElse}
+                </Text>
+              ) : (
+                <View>
+                  <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+                    {ES.account.losesAccess}
+                  </Text>
+                  {deletion.losesAccess.map((who) => (
+                    <Text key={who} style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+                      {`• ${who}`}
+                    </Text>
+                  ))}
+                </View>
+              )}
+
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => router.push('/numeros')}
+                style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+              >
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                  {ES.account.exportOffer}
+                </Text>
+              </Pressable>
+
+              <Campo label={ES.account.typeShopName(workspace.displayName)}>
+                <TextInput
+                  value={typed}
+                  onChangeText={setTyped}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  editable={!busy}
+                  style={{
+                    fontSize: scale.bodySize,
+                    minHeight: scale.tapTarget,
+                    color: PALETTE.tinta,
+                    backgroundColor: PALETTE.fondo,
+                    borderWidth: 1,
+                    borderColor: PALETTE.linea,
+                    borderRadius: scale.space / 2,
+                    paddingHorizontal: scale.space,
+                  }}
+                />
+              </Campo>
+            </>
+          )}
+
+          {failure !== null && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{failure}</Text>
+          )}
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ disabled: !ready || busy }}
+            disabled={!ready || busy}
+            onPress={() => void confirm()}
+            style={{
+              minHeight: scale.tapTarget,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: ready ? PALETTE.error : PALETTE.linea,
+              borderRadius: scale.space / 2,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: scale.bodySize,
+                fontWeight: '600',
+                color: ready ? PALETTE.error : PALETTE.tintaApagada,
+              }}
+            >
+              {busy ? ES.account.working : takesShop ? ES.account.confirmShop : ES.account.confirm}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={close}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.account.cancel}
+            </Text>
+          </Pressable>
+        </View>
+      )}
+    </Section>
   );
 }
 

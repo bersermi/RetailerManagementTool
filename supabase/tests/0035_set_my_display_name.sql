@@ -600,12 +600,14 @@ select chk('5.5 workspace_member still has exactly FOUR policies — 0035 added 
 -- row naming two of four. Nothing pinned the UPDATERs, and the owner's ruling
 -- of 2026-09-18 lives entirely in those.
 
-select chk('6.1 EXACTLY FOUR functions in public UPDATE workspace_member, and they are these four',
+-- ⚠️ FIVE SINCE 0053 (5R-c): `delete_my_account` freezes a departing member's
+-- name — with a `coalesce`, so it only fills a hole — and ends the membership.
+select chk('6.1 EXACTLY FIVE functions in public UPDATE workspace_member, and they are these five',
            (select coalesce(array_agg(proname::text order by proname), '{}')
               from pg_proc
              where pronamespace = 'public'::regnamespace
                and prosrc ~ 'update\s+public\.workspace_member')
-           = array['approve_request', 'redeem_invite', 'request_access',
+           = array['approve_request', 'delete_my_account', 'redeem_invite', 'request_access',
                    'set_my_display_name']::text[],
            coalesce((select string_agg(proname, ', ' order by proname)
                        from pg_proc

@@ -721,16 +721,17 @@ select chk('1.4 the stamp is three columns on failed_write — replayed_at, '
                and column_name in ('replayed_at','replayed_by','replay_result')),
            'stamp columns');
 
-select chk('1.5 replayed_by references auth.users, so a stamp names a real '
-           'person rather than a uuid nobody can be asked about',
-           (select count(*) = 1 from pg_constraint c
+-- ⚠️ AMENDED BY 0053 (5R-c). This check asserted a foreign key to auth.users;
+-- account deletion drops every such key and keeps the uuid, so a stamp still
+-- names a person through `workspace_member` after their login is gone.
+select chk('1.5 replayed_by is a uuid with no foreign key to auth.users (0053)',
+           (select data_type from information_schema.columns
+             where table_schema='public' and table_name='failed_write'
+               and column_name='replayed_by') = 'uuid'
+       and not exists (select 1 from pg_constraint c
              where c.conrelid = 'public.failed_write'::regclass
                and c.contype = 'f'
-               and c.confrelid = 'auth.users'::regclass
-               and 'replayed_by' = any (
-                     select a.attname from pg_attribute a
-                      where a.attrelid = c.conrelid
-                        and a.attnum = any (c.conkey))),
+               and c.confrelid = 'auth.users'::regclass),
            'replayed_by fk');
 
 select chk('1.6 the unreplayed index is PARTIAL — §2.10 asks the pile what is '

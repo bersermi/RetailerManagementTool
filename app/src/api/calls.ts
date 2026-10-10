@@ -28,6 +28,7 @@
 // ============================================================================
 
 import { supabase } from '@/lib/supabase';
+import { DELETE_MY_ACCOUNT, deletedFrom, type DeleteArgs, type Deleted } from '@/api/account';
 import { RECORD_FAILED_WRITE } from '@/api/deadletter';
 import { isContractMismatch } from '@/api/errors';
 import { RECORD_RPC } from '@/api/flush';
@@ -504,6 +505,16 @@ export async function setMyDisplayName(workspaceId: string, typed: string): Prom
   );
   if (error) throw reported(error);
   return storedNameFrom(data);
+}
+
+/**
+ * Deletes the caller's account (`5R-c`, `0053`). ⚠️ The arguments arrive built
+ * by `deleteArgs`, which decides whether the typed shop name travels.
+ */
+export async function deleteMyAccount(args: DeleteArgs): Promise<Deleted> {
+  const { data, error } = await supabase.rpc(DELETE_MY_ACCOUNT, args);
+  if (error) throw reported(error);
+  return deletedFrom(data);
 }
 
 /**

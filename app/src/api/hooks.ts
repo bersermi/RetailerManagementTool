@@ -94,6 +94,7 @@ import {
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
+  deleteMyAccount,
   approveRequest,
   catalogTemplate,
   catalogUnits,
@@ -136,6 +137,7 @@ import {
   type Correction,
   type Prefill,
 } from '@/api/corrections';
+import { deleteErrorMessage, type DeleteArgs } from '@/api/account';
 import { nameErrorMessage } from '@/api/displayName';
 import {
   PENDING_REQUESTS_KEY,
@@ -424,6 +426,36 @@ export function useSetMyDisplayName() {
   }
 
   return { rename, busy: mutation.isPending };
+}
+
+/**
+ * Deleting one's own account (`5R-c`). On success the session is ended through
+ * `useAuth().signOut`, the one log-out path — it also forgets the last screen
+ * and the persisted cache, which is what this phone must not keep after the
+ * person is gone. Returns a Spanish sentence or `null`, `useSetMyDisplayName`'s
+ * shape.
+ *
+ * ⚠️ `signOut` asks the server to end a session whose user no longer exists.
+ * supabase-js removes the local session whatever the server answers, so the
+ * guard sends her to the sign-in screen either way.
+ */
+export function useDeleteMyAccount() {
+  const { signOut } = useAuth();
+  const mutation = useMutation({
+    mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
+  });
+
+  async function remove(args: DeleteArgs): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(args);
+    } catch (thrown) {
+      return deleteErrorMessage(thrown);
+    }
+    await signOut();
+    return null;
+  }
+
+  return { remove, busy: mutation.isPending };
 }
 
 /**

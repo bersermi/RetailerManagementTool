@@ -529,15 +529,20 @@ select chk(
                 and prosrc like '%TD006%'), 'NONE — TD006 IS RAISED NOWHERE'));
 
 -- ⚠️ AND THE NEXT ONE IS FREE, stated here because the next session to mint a
--- code will read this file's siblings and not `supabase/README.md`. `TD007` is
--- the next slot; if this ever goes red, somebody has minted one without saying so.
+-- code will read this file's siblings and not `supabase/README.md`. `TD007` was
+-- minted by `0053` (5R-c) for `delete_my_account`'s shop-name refusal, and only
+-- there; `TD008` is the next slot. If this goes red, somebody has minted one
+-- without saying so.
 select chk(
-  '7.2 TD007 is still free — the next slot, asserted rather than assumed',
-  (select count(*) from pg_proc where pronamespace = 'public'::regnamespace
-     and prosrc like '%TD007%') = 0,
+  '7.2 TD007 is delete_my_account''s alone, and TD008 is still free',
+  (select coalesce(array_agg(proname::text order by proname), '{}') from pg_proc
+    where pronamespace = 'public'::regnamespace and prosrc like '%TD007%')
+    = array['delete_my_account']::text[]
+  and (select count(*) from pg_proc where pronamespace = 'public'::regnamespace
+     and prosrc like '%TD008%') = 0,
   coalesce((select string_agg(proname, ', ' order by proname)
               from pg_proc where pronamespace = 'public'::regnamespace
-                and prosrc like '%TD007%'), 'free'));
+                and prosrc like '%TD00[78]%'), 'free'));
 
 -- ⚠️ THE FIVE EARLIER CODES ARE UNTOUCHED. `0038` replaced one function; if a
 -- transcription had swept up `TD003`, section 4 would catch it — but TD001,

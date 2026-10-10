@@ -433,6 +433,8 @@ on:
       - "docs/checks/6c-catalog-origin-contract-falsify.sh"
       - "docs/checks/9d-starter-catalog-contract.sh"
       - "docs/checks/9d-starter-catalog-contract-falsify.sh"
+      - "docs/checks/5R-c-account-deletion-contract.sh"
+      - "docs/checks/5R-c-account-deletion-contract-falsify.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
@@ -1097,6 +1099,16 @@ jobs:
       # it red FOR ITS REASON — a check that can only pass asserts nothing.
       - name: Falsify it — four broken copies, each red for its reason
         run: bash docs/checks/9d-starter-catalog-contract-falsify.sh
+
+      # ACCOUNT DELETION (docs/PLAN.md 5R-c), over the same reset: the app's RPC
+      # name, its one `p_` argument and its refusal code against `0053`; a cashier
+      # leaving a named former member behind; her token reading no shop; and a
+      # shop deleted only with its name typed (400 TD007 otherwise).
+      - name: Account deletion, against the app's own names (5R-c)
+        run: bash docs/checks/5R-c-account-deletion-contract.sh
+
+      - name: Falsify it — three broken copies, each red for its reason
+        run: bash docs/checks/5R-c-account-deletion-contract-falsify.sh
 
       - name: Stop
         if: always()
