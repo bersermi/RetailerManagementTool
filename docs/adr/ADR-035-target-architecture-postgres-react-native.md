@@ -616,7 +616,7 @@ months (confirmed 2026-08-14) and `location_id` on the ledger is a one-way door
 |-------|-----------------|-------------|
 | `workspace` | `display_name`, `prices_include_tax`, `currency` (MXN), `is_active` | — |
 | `location` | `workspace_id`, `name`, `is_active` | unique (workspace, lower(name)); unique (id, workspace) for composite FKs |
-| `workspace_member` | `user_id` → `auth.users`, `role` (staff/manager/owner), `is_active`, **`display_name`** | unique (workspace, user); unique (id, workspace); `display_name` not blank when present |
+| `workspace_member` | `user_id` (a login's uuid — **no foreign key since `0053`**, see below), `role` (staff/manager/owner), `is_active`, **`display_name`**, **`left_at`** | unique (workspace, user); unique (id, workspace); `display_name` not blank when present |
 | `member_location` | `workspace_id`, `member_id`, `location_id` | pk (member, location); **composite** FKs on (id, workspace) both sides |
 | `workspace_setting` | `use_last_sell_price`, `void_window_minutes` (15), `enforce_stock_default` (false) | unique (workspace) |
 
@@ -725,6 +725,23 @@ a duplicate primary key is an error, not a no-op.
 Lines carry `qty_base` alongside `qty_display` and `qty_display_unit`, plus
 `unit_price_net_per_base`, `tax_amount` and `line_net`. Waste lines additionally
 carry `reason` and a cost snapshot.
+
+⚠️⚠️ **AMENDED 2026-10-09 — THE ACTOR IS A UUID, NOT A CONSTRAINT (`0053`, plan task
+`5R-c`, the decision maker's rulings of that day).** `created_by` on every document,
+lot and movement, `failed_write.reported_by`/`replayed_by`, the three actor columns of
+`workspace_invite`, and `workspace_member.user_id` **no longer reference
+`auth.users`.** A person may delete their account: the LOGIN goes (email, password,
+Google link, sessions), and the shop keeps a **former member** — the
+`workspace_member` row with `is_active` false, `left_at` stamped, and `display_name`
+and `role` kept — so every row they wrote still names them, as *"María
+(ex-miembro)"*. The shop is the data controller of its own staff records (LFPDPPP),
+and the books are the merchant's. **No ledger row is rewritten**: the uuid stays and
+the membership turns it into a name. ⚠️ **This is a one-way door**: after the first
+real deletion the constraints can never return, because the ids they would point at
+are gone. The half of `user_id`'s key worth keeping — a NEW membership must name a
+living login — is a trigger, because an access token outlives its deleted account by
+up to an hour. A former member passes no fence: every fence already reads
+`is_active`.
 
 **Inventory**
 
@@ -840,6 +857,15 @@ select sum(qty_base) from stock_movement where batch_id = $1
 
 Property-tested in CI against randomised sequences, re-checked nightly in production.
 The projection is disposable and rebuildable from the ledger.
+
+⚠️ **ONE EXCEPTION TO "NOTHING IS DELETED", AMENDED 2026-10-09 (`0053`, `5R-c`).** A
+shop's **only owner** deleting their account deletes the shop with everything in it,
+ledger included — the decision maker's ruling: *nothing is kept, not even
+aggregates*. It happens only inside `delete_my_account()`, after the shop's name is
+typed and compared on the server, for one workspace at a time, behind a
+transaction-local setting the three delete-refusing triggers consult. No client can
+set it, and no client holds a DELETE grant on the ledger, so a correction is still
+only ever a reversal.
 
 **Opening balances.** `adjust_stock` lets a manager count real shelf stock and write
 the difference as adjustment movements. Without it every batch figure in the first

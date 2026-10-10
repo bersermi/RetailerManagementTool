@@ -47,6 +47,7 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import { formerMemberName } from '@/api/account';
 import type { ApiMessageKey } from '@/api/errors';
 import { ROLES, type MemberRow, type Role } from '@/api/members';
 import { isWasteReason, reasonLabel, type WasteReason } from '@/api/waste';
@@ -327,12 +328,18 @@ export function exportLine(state: ExportState, failed: ApiMessageKey | null, mon
  * in*, wrong for history: the cashier who left in August still rang up August's
  * sales. ⚠️ `''` and never the uuid: a raw id is a string a shopkeeper cannot
  * read and would have to ask about.
+ *
+ * ⚠️ A FORMER MEMBER IS MARKED (`5R-c`, the owner's ruling of 2026-10-09):
+ * *"Beto (ex-miembro)"*, and *"Ex-miembro"* alone when no name was ever stored —
+ * an account deleted with no name still wrote the sale, and the reader should
+ * know a person did. `formerMemberName` is the one spelling of it.
  */
 export function whoOf(members: readonly MemberRow[] | null | undefined, userId: string | null): string {
   if (members === null || members === undefined || userId === null) return '';
   const row = members.find((one) => one.user_id === userId);
-  const name = row?.display_name?.trim() ?? '';
-  return name;
+  if (row === undefined) return '';
+  if (!row.is_active) return formerMemberName(row.display_name);
+  return row.display_name?.trim() ?? '';
 }
 
 /** The unit's word — `ES.units`, or the code itself when the table has none. */

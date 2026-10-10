@@ -230,9 +230,14 @@ describe('the small parts', () => {
     expect(plainAmount(-3600)).toBe('-36.00');
   });
 
-  it('names a member who has since left — this is history', () => {
-    expect(whoOf(MEMBERS, GONE)).toBe('Beto');
+  it('names a member who has since left — this is history — and marks them (5R-c)', () => {
+    expect(whoOf(MEMBERS, GONE)).toBe('Beto (ex-miembro)');
     expect(whoOf(MEMBERS, ANA)).toBe('Ana');
+  });
+
+  it('still says a person wrote it when a former member left no name', () => {
+    const nameless: MemberRow[] = [{ user_id: GONE, role: 'staff', is_active: false, display_name: null }];
+    expect(whoOf(nameless, GONE)).toBe('Ex-miembro');
   });
 
   it('never writes a uuid in place of a name', () => {
@@ -319,7 +324,7 @@ describe('the CSV', () => {
   it('marks a cancellation, keeps its negative figures as numbers, and names who has left', () => {
     expect(rows[3]).toContain(',-1.500,');
     expect(rows[3]).toContain(',-155.17,-24.83,-180.00,');
-    expect(rows[3]?.endsWith(',Sí,Beto')).toBe(true);
+    expect(rows[3]?.endsWith(',Sí,Beto (ex-miembro)')).toBe(true);
   });
 
   it('writes a write-off\'s cause in words, not the wire value', () => {

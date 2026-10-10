@@ -381,6 +381,43 @@ export const ES = {
   },
 
   /**
+   * DELETING YOUR OWN ACCOUNT. Plan task `5R-c`, the owner's rulings of
+   * 2026-10-09: the login goes, the shop keeps the person's name on what they
+   * recorded, and a SOLE owner's deletion takes the shop with it — after a
+   * warning naming who loses access, an offer of the month's export, and the
+   * shop's name typed to confirm.
+   *
+   * ⚠️ ITS OWN BLOCK FOR `myName`'s REASON: it is a write, by everybody.
+   */
+  account: {
+    section: 'Tu cuenta',
+    open: 'Eliminar mi cuenta',
+    /** Everybody who is not the shop's only owner. */
+    leavesWarning:
+      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google. ' +
+      'Tu nombre se queda en las ventas y movimientos que registraste en la tienda.',
+    /** ⚠️ The shop's name is passed in, the grammar lives here (`members.shareMessage`'s rule). */
+    shopWarning: (shop: string) =>
+      `Eres la única persona dueña de ${shop}. Si eliminas tu cuenta, se borra la tienda ` +
+      'completa: productos, ventas, compras y desperdicio. No se puede deshacer.',
+    losesAccess: 'Perderán el acceso:',
+    nobodyElse: 'Nadie más tiene acceso a esta tienda.',
+    /** Opens Números, where the month's file is made. */
+    exportOffer: 'Antes, descarga tus movimientos',
+    typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
+    confirm: 'Eliminar mi cuenta',
+    confirmShop: 'Eliminar mi cuenta y la tienda',
+    working: 'Eliminando…',
+    cancel: 'Cancelar',
+    /** How the shop's records name somebody who has left (`whoOf`). */
+    former: (name: string) => `${name} (ex-miembro)`,
+    formerAlone: 'Ex-miembro',
+    errors: {
+      nameMismatch: 'El nombre no coincide con el de tu tienda.',
+    },
+  },
+
+  /**
    * Inviting somebody, and the code that comes back once. Plan task 5b-ii-b-1.
    *
    * ⚠️ THE WORD IS `invitar` AND NEVER `agregar`. Adding somebody is what an

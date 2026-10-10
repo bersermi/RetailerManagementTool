@@ -414,13 +414,14 @@ select chk('7.2 decided_by exists and is nullable',
 -- `workspace_invite_invited_by_fkey`, which is the name a later session reads out
 -- of an error message. Six of this repository's seven recorded defects are a
 -- stale copy nobody re-read.
-select chk('7.3 the foreign key is named for the column it is now on',
-           exists (select 1 from pg_constraint
+-- ⚠️ AMENDED BY 0053 (5R-c): the key itself is gone — account deletion drops
+-- every foreign key to auth.users and keeps the uuid. What still matters is
+-- that the stale name never comes back.
+select chk('7.3 neither the old nor the renamed foreign key survives 0053',
+           not exists (select 1 from pg_constraint
                     where conrelid = 'public.workspace_invite'::regclass
-                      and conname = 'workspace_invite_decided_by_fkey')
-       and not exists (select 1 from pg_constraint
-                    where conrelid = 'public.workspace_invite'::regclass
-                      and conname = 'workspace_invite_invited_by_fkey'),
+                      and conname in ('workspace_invite_decided_by_fkey',
+                                      'workspace_invite_invited_by_fkey')),
            (select string_agg(conname, ' ') from pg_constraint
              where conrelid = 'public.workspace_invite'::regclass and contype = 'f'));
 
