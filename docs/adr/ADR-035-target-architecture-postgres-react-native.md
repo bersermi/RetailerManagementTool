@@ -1930,9 +1930,11 @@ runs an update on its second cold start after publishing, and never waits for th
 to open (`EXUpdatesLaunchWaitMs` 0), which is what a shop that is often offline needs.
 ✅ **The acceptance test passed 2026-10-10 (`5R-b-ii`)**, on a pilot member's Android with an
 EAS-built `preview` APK: **merge → seen in 4 min 43 s**, and `update:roll-back-to-embedded`
-→ seen in 1 min 55 s. ⚠️ **iOS is not yet on this path** (`5R-b-iii`): the first ad hoc
-signing setup needs an interactive terminal, and TestFlight would create the App Store
-record that fixes the bundle id, so that waits for the listing.
+→ seen in 1 min 55 s. **iOS joined the same day (`5R-b-iii`)**: an EAS ad hoc build on the
+decision maker's iPhone took a test update and its rollback. The pilot's iPhones are **ad hoc**
+(his ruling), each registered once. TestFlight waits for the listing, because it creates the
+App Store record that fixes the bundle id. ⚠️ **The first iOS signing setup needs an interactive
+terminal**, so it is the one step the decision maker runs by hand.
 
 ---
 
