@@ -43,6 +43,16 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "ed795fe7-4300-4437-877c-1ea75571d844"
+      }
+    },
+    "owner": "wera-app",
+    "updates": {
+      "url": "https://u.expo.dev/ed795fe7-4300-4437-877c-1ea75571d844"
     }
   }
 }
