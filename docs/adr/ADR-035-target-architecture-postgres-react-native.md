@@ -1914,6 +1914,21 @@ channel **proven end-to-end before pilot day**, with a JS-only fix shipped in un
 an hour as the acceptance test. Discovering provisioning friction during the pilot
 burns the one thing §5 cannot buy again.
 
+⚠️ **AMENDED 2026-10-10 — WHICH BUILD AN UPDATE REACHES (`expo-updates`, plan task `5R-b-i`).**
+The runtime is a **fingerprint** of everything native, never a version string: a version
+does not change when a native module is added, so an update needing that module would
+land on a build without it, and no workflow compiles this app to notice. ⚠️ **The hash
+must come out the same on the Mac that runs `eas` as on EAS's fresh install** — the cloud
+build fails when they differ, and an update computed wrong publishes to a runtime no phone
+has while reporting success. Measured that day: version numbers, a manifest a local
+Android build rewrites inside `node_modules`, and Kotlin's `.kotlin/` session files each
+moved it, and `app/fingerprint.config.js` skips or ignores exactly those three. Two
+channels, `preview` (installed from a link) and `production` (the stores), each bundled
+from the EAS environment of the same name. **An update is shipped only by
+`docs/runbooks/ship-an-update.sh`**, which refuses one that would reach no phone. A phone
+runs an update on its second cold start after publishing, and never waits for the network
+to open (`EXUpdatesLaunchWaitMs` 0), which is what a shop that is often offline needs.
+
 ---
 
 ## 3. Build order

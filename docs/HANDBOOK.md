@@ -52,6 +52,10 @@ the measuring version (`5P-a`), which needs a rebuild with the pilot switch on.
 build, and it is good until **9 October 2027**. The old `mx.bserafin.wera` icon can no longer
 open; delete it. A later rebuild is only for new code, never for the calendar.
 
+**Updates over the air do not reach this build.** It was made before the update library
+existed, so a fix published later never arrives on it. The first cloud build (`5R-b-ii`)
+replaces it, and from then on a fix arrives the second time you open Wera after it ships.
+
 Before spending ten minutes on a build, check these answer:
 
 ```
@@ -116,8 +120,11 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9j** | **Materias Primas, with you** | ✅ **Done 9 October** — 139 new products: baking supplies, nuts and seeds, spices and sweets by the kilo, and 57 desechables by the package. **The starter catalog is complete: 1,413 products across seven giros** |
 | **5R-c** | **Deleting an account, inside the app** — a store requirement. Ruled by you on 9 October: the person's login goes, and **the shop keeps their name** on what they did, shown as *"María (ex-miembro)"*. A sole owner's deletion deletes the shop, after a warning and an offer to download the month first. Immediate, with nothing kept for analytics | ✅ **Done 9 October** — *Tu cuenta → Eliminar mi cuenta*, at the bottom of Ajustes. On your phone with the next rebuild |
 | **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ✅ **Done 9 October** — the link under *Entrar*, and the script below, *If somebody forgot their password*. On your phone with the next rebuild |
-| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ⚠️ **This is where the next piece of work is** |
-| **—** | ✅ **Nothing is waiting on YOU** — as of 29 September, when you retired the split checks. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
+| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ✂️ **Split on 10 October** into the two rows below, because the second half needs you |
+| **5R-b-i** | **Everything that needs no Expo account** — the update library, the build settings, and the one command that ships a fix | ✅ **Done 10 October** — both phones' builds compile the way EAS will build them; the command is `docs/runbooks/ship-an-update.sh`. Nothing changed on screen |
+| **5R-b-ii** | **The cloud builds, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a phone that is not yours | Needs you first — see the next row |
+| **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ⚠️ **This is where the next piece of work is** |
+| **—** | ⚠️ **One thing is waiting on YOU** — for `5R-b-ii`: **log in to Expo** (in a session, type `! npx eas-cli login`; make the free account at expo.dev first if you have none) and **say whose phone gets the first cloud build**. My recommendation is the Android of somebody in the pilot, because it installs from a link with nothing to register. The full brief is in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -130,7 +137,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b`, `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (half done; the other half waits for your Expo login), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
