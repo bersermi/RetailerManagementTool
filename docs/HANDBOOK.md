@@ -326,9 +326,10 @@ after it was published.**
 `docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
 installed with. That took 1 min 55 s on the Android and about 5 minutes on your iPhone.
 
-⚠️ **One thing to do once:** download a copy of the Android signing key. In Terminal.app,
-`cd` into `app` and run `npx eas-cli credentials -p android`. A phone accepts an update to
-Wera only if it is signed with the same key, and EAS holds the only copy today.
+⏸️ **On hold by you (10 October): a copy of the Android signing key.** EAS holds the only
+copy. A phone accepts an update to Wera only if it is signed with the same key, so losing it
+would mean uninstalling. When you want the copy: in Terminal.app, `cd` into `app` and run
+`npx eas-cli credentials -p android`.
 
 ---
 
