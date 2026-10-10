@@ -19,7 +19,7 @@
 export const ES = {
   /** Tab-bar labels. C12.1: the icon NEVER appears without its word. */
   tabs: {
-    inicio: 'Inicio',
+    inicio: 'Inicio ✓',
     vender: 'Vender',
     comprar: 'Comprar',
     desperdicio: 'Desperdicio',
