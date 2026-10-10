@@ -53,8 +53,9 @@ build, and it is good until **9 October 2027**. The old `mx.bserafin.wera` icon 
 open; delete it. A later rebuild is only for new code, never for the calendar.
 
 **Updates over the air do not reach this build.** It was made before the update library
-existed, so a fix published later never arrives on it. The first cloud build (`5R-b-ii`)
+existed, so a fix published later never arrives on it. The iPhone cloud build (`5R-b-iii`)
 replaces it, and from then on a fix arrives the second time you open Wera after it ships.
+**The pilot member's Android has the cloud build** (`preview`) and does receive them.
 
 Before spending ten minutes on a build, check these answer:
 
@@ -120,11 +121,12 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9j** | **Materias Primas, with you** | ✅ **Done 9 October** — 139 new products: baking supplies, nuts and seeds, spices and sweets by the kilo, and 57 desechables by the package. **The starter catalog is complete: 1,413 products across seven giros** |
 | **5R-c** | **Deleting an account, inside the app** — a store requirement. Ruled by you on 9 October: the person's login goes, and **the shop keeps their name** on what they did, shown as *"María (ex-miembro)"*. A sole owner's deletion deletes the shop, after a warning and an offer to download the month first. Immediate, with nothing kept for analytics | ✅ **Done 9 October** — *Tu cuenta → Eliminar mi cuenta*, at the bottom of Ajustes. On your phone with the next rebuild |
 | **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ✅ **Done 9 October** — the link under *Entrar*, and the script below, *If somebody forgot their password*. On your phone with the next rebuild |
-| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ✂️ **Split on 10 October** into the two rows below, because the second half needs you |
+| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ✂️ **Split on 10 October** into the three rows below, because parts of it need you |
 | **5R-b-i** | **Everything that needs no Expo account** — the update library, the build settings, and the one command that ships a fix | ✅ **Done 10 October** — both phones' builds compile the way EAS will build them; the command is `docs/runbooks/ship-an-update.sh`. Nothing changed on screen |
-| **5R-b-ii** | **The cloud builds, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a phone that is not yours | Needs you first — see the next row |
+| **5R-b-ii** | **The cloud build, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a pilot member's Android | ✅ **Done 10 October** — a change merged at 07:33:56 UTC was on that Android at 07:38:39, **4 min 43 s**; sent back in **1 min 55 s**. See *Shipping a fix to the phones*, below |
+| **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone and any other pilot iPhone, so a fix reaches them like the Android | Needs you first — see the next row |
 | **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ⚠️ **This is where the next piece of work is** |
-| **—** | ⚠️ **One thing is waiting on YOU** — for `5R-b-ii`: **log in to Expo** (in a session, type `! npx eas-cli login`; make the free account at expo.dev first if you have none) and **say whose phone gets the first cloud build**. My recommendation is the Android of somebody in the pilot, because it installs from a link with nothing to register. The full brief is in the plan's ⛔ DECISIONS OWED block | — |
+| **—** | ⚠️ **One thing is waiting on YOU** — for `5R-b-iii`: **which iPhones besides yours are in the pilot, and 15 minutes at Terminal.app on this Mac.** The first iPhone build asks questions in a terminal (your Apple ID and its code), and no session here has one. My recommendation is to register each iPhone and install from a link, like the Android, rather than TestFlight, which would create the App Store record for `mx.wera.app` before the listing is ready. The full brief is in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -137,7 +139,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (half done; the other half waits for your Expo login), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (the cloud build and updates proven on an Android; the iPhones wait for you), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -309,6 +311,30 @@ reads the job log (not the green tick) and merges on green, database changes
 included. Merging touches no database: a merged change reaches your shop only when
 somebody runs `supabase db push`. Saying *no, I want to read it first* always costs
 nothing.
+
+---
+
+## Shipping a fix to the phones
+
+A change that is only JavaScript reaches the phones in minutes, without the stores and
+without reinstalling. Once the fix has merged green, from this Mac:
+
+```
+bash docs/runbooks/ship-an-update.sh preview "what the fix does"
+```
+
+It refuses, and sends nothing, if the fix is not on `main`, if EAS is missing one of the
+app's three settings, or if no phone could run it (a fix that needs a new build). On the
+phone: close Wera completely, open it, close it, open it again. **Measured 10 October: 4 min
+43 s from merge to seen on a pilot Android.**
+
+**If a fix turns out to be bad, undo it first.** The undo command is at the top of
+`docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
+installed with. That took 1 min 55 s on the same phone.
+
+⚠️ **One thing to do once:** download a copy of the Android signing key. In Terminal.app,
+`cd` into `app` and run `npx eas-cli credentials -p android`. A phone accepts an update to
+Wera only if it is signed with the same key, and EAS holds the only copy today.
 
 ---
 

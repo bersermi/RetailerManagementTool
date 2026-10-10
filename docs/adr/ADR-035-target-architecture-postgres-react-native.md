@@ -1928,6 +1928,11 @@ from the EAS environment of the same name. **An update is shipped only by
 `docs/runbooks/ship-an-update.sh`**, which refuses one that would reach no phone. A phone
 runs an update on its second cold start after publishing, and never waits for the network
 to open (`EXUpdatesLaunchWaitMs` 0), which is what a shop that is often offline needs.
+✅ **The acceptance test passed 2026-10-10 (`5R-b-ii`)**, on a pilot member's Android with an
+EAS-built `preview` APK: **merge → seen in 4 min 43 s**, and `update:roll-back-to-embedded`
+→ seen in 1 min 55 s. ⚠️ **iOS is not yet on this path** (`5R-b-iii`): the first ad hoc
+signing setup needs an interactive terminal, and TestFlight would create the App Store
+record that fixes the bundle id, so that waits for the listing.
 
 ---
 

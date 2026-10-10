@@ -12,6 +12,20 @@
 # update the next time Wera opens and RUNS it the time after that: close Wera
 # completely (swipe it away) and open it again, twice.
 #
+# Measured 2026-10-10 (`5R-b-ii`), on a pilot Android: merge → seen on the phone
+# in 4 min 43 s.
+#
+# ⚠️ IF AN UPDATE IS BAD, UNDO IT FIRST AND FIX IT AFTER. This sends every phone
+# on the channel back to the version its install carried, with no CI and no
+# build; seen on the same phone 1 min 55 s after it was sent. `<runtime>` is the
+# one this script printed when it published:
+#
+#   (cd app && npx eas-cli update:roll-back-to-embedded --channel preview \
+#     --platform android --runtime-version <runtime> --message "…" --non-interactive)
+#
+# Then revert the bad commit on `main`. The next update shipped from `main`
+# replaces the rollback.
+#
 # ⚠️ IT REFUSES, AND PUBLISHES NOTHING, WHEN:
 #   - the tree has uncommitted changes, or HEAD is not on origin/main. What
 #     reaches a shop has passed CI, and an update names the commit it came from;
