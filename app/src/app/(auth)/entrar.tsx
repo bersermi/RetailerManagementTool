@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from 'react-native';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { forgotPasswordUrl } from '@/auth/support';
+import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 
@@ -50,6 +52,11 @@ import { useDensity } from '@/theme/DensityProvider';
 // ⚠️ FACEBOOK IS NOT HERE AND IS NOT AN OVERSIGHT — deferred to `5i` by the
 // owner on 2026-09-11. It is one more button on this screen and a `linkIdentity`
 // path that is not.
+//
+// ⚠️ `5R-h`'S LINK LEAVES THE APP TOO, AND IT IS NOT A RESET. It opens WhatsApp
+// to the owner, who sets a new password by hand — his ruling, 2026-10-09. It
+// is on the sign-in half only (a person creating an account has nothing to
+// forget) and absent on a build without his number.
 // ============================================================================
 export default function Entrar() {
   const { scale } = useDensity();
@@ -103,6 +110,8 @@ export default function Entrar() {
     setProblem(null);
     setCreating(!creating);
   }
+
+  const supportNumber = SUPPORT_WHATSAPP;
 
   const field = {
     fontSize: scale.bodySize,
@@ -215,6 +224,26 @@ export default function Entrar() {
           </Text>
         )}
       </Pressable>
+
+      {/* 5R-h. Under the button it rescues, and only where there is a
+          password to have forgotten. */}
+      {!creating && supportNumber !== null && (
+        <Pressable
+          accessibilityRole="link"
+          disabled={busy}
+          onPress={() => void Linking.openURL(forgotPasswordUrl(supportNumber, email))}
+          style={{
+            minHeight: scale.tapTarget,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: busy ? 0.6 : 1,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, textDecorationLine: 'underline' }}>
+            {ES.auth.forgotPassword}
+          </Text>
+        </Pressable>
+      )}
 
       {/* And the way to the other half. */}
       <Pressable

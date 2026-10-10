@@ -253,11 +253,17 @@ screen would have to choose between them.
 
 **Checked by:** `docs/checks/conventions-gate.sh`, R6.
 
-### R7 — Three environment variables, all `EXPO_PUBLIC_`, spelled out in full
+### R7 — Four environment variables, all `EXPO_PUBLIC_`, spelled out in full
 
 `process.env` is read in `src/lib/supabase.ts` — two member expressions written
-out in full — and in `src/lib/pilotFlag.ts`, which reads ONE: `EXPO_PUBLIC_PILOT`.
+out in full — in `src/lib/pilotFlag.ts`, which reads ONE: `EXPO_PUBLIC_PILOT`, and
+in `src/lib/supportWhatsapp.ts`, which reads ONE: `EXPO_PUBLIC_SUPPORT_WHATSAPP`.
 Nowhere else.
+
+⚠️ **The fourth was added by `5R-h` on 2026-10-09**, in its own module for the
+same reason as the third. It is the WhatsApp number *¿Olvidaste tu contraseña?*
+opens; the repository is public, so the value lives only in the gitignored
+`app/.env.local`, and a build without it draws no link.
 
 ⚠️ **The third was added by `5P-a` on 2026-09-28** and it lives in its own module
 on purpose: `lib/supabase.ts` creates the live client at module scope and its

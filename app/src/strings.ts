@@ -70,6 +70,16 @@ export const ES = {
      */
     toSignUp: '¿No tienes cuenta? Crear una',
     toSignIn: '¿Ya tienes cuenta? Entrar',
+    /**
+     * ⚠️ `5R-h`: THE LINK OPENS WHATSAPP TO THE OWNER, NOT AN EMAIL. His ruling
+     * of 2026-10-09 — he resets the password by hand. Shown on the sign-in half
+     * only, and only on a build that carries his number (`@/auth/support`).
+     * The two messages are what lands, prefilled, in the chat he receives.
+     */
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    forgotMessage: 'Hola, olvidé mi contraseña de Wera.',
+    forgotMessageWithEmail: (email: string) =>
+      `Hola, olvidé mi contraseña de Wera. Mi correo es ${email}`,
     signOut: 'Cerrar sesión',
     working: 'Un momento…',
     /** After a sign-up when the project has confirmations on. Off today. */
