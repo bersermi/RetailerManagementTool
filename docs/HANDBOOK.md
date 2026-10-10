@@ -44,31 +44,24 @@ real database; none runs on sample data.
 
 ## What is on your phone
 
-**Everything merged up to 9 October**, installed that day as **`mx.wera.app`**: Precios,
-`8f`'s design changes and the starter-catalog import. Not on it: the **pilot build**,
-the measuring version (`5P-a`), which needs a rebuild with the pilot switch on.
+**Everything merged up to 10 October**, built by EAS in the cloud and installed that day over
+the 9 October build, which kept your session and your shop's data. New on it: **account
+deletion** (`5R-c`, *Tu cuenta* at the bottom of Ajustes) and **¿Olvidaste tu contraseña?**
+(`5R-h`, under *Entrar* when signed out). Not on it: the **pilot build**, the measuring version
+(`5P-a`), which needs a build with the pilot switch on.
 
-✅ **The seven-day limit is gone.** Your paid Apple Developer account signed the 9 October
-build, and it is good until **9 October 2027**. The old `mx.bserafin.wera` icon can no longer
-open; delete it. A later rebuild is only for new code, never for the calendar.
+✅ **It takes fixes over the air**: a fix arrives the second time you open Wera after it ships.
+It is signed until **10 October 2027**. The old `mx.bserafin.wera` icon can no longer open;
+delete it. **The pilot member's Android has the same kind of build** and takes the same fixes.
 
-**Updates over the air do not reach this build.** It was made before the update library
-existed, so a fix published later never arrives on it. The iPhone cloud build (`5R-b-iii`)
-replaces it, and from then on a fix arrives the second time you open Wera after it ships.
-**The pilot member's Android has the cloud build** (`preview`) and does receive them.
+⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
+update channel, so the phone would stop taking fixes. A change that needs a new build (a new
+native library) goes through EAS: `npx eas-cli build -p ios --profile preview`, from `app/`.
 
-Before spending ten minutes on a build, check these answer:
-
-```
-export DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer   # first, always
-xcrun devicectl list devices                 # must read: available (paired)
-ping -c1 iPhone-de-Bernie.coredevice.local   # must answer
-security find-identity -v -p codesigning     # must list a signing identity
-```
-
-**Keep the phone unlocked during the install.** A locked phone fails as *"the developer disk
-image could not be mounted"*. The build commands are
-[`docs/checks/5a-iv-a-runsheet.md`](checks/5a-iv-a-runsheet.md) §2, always `--configuration Release`.
+**Another iPhone in the pilot** has to be registered before it can install, and then needs a
+new build. In Terminal.app, from `app/`, run `npx eas-cli device:create` and choose *Website*.
+Send its owner the link (they open it on the iPhone and install a profile), then run the iOS
+build again and send them its install link.
 
 ---
 
@@ -119,14 +112,14 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **9h** | **Abarrotes, with you** | ✅ **Done 2 October** — 1,017 products **with brands and presentations**, IVA 0 for now; the berries now say *por charola* |
 | **9i** | **Cremería, with you** | ✅ **Done 5 October** — 79 new products: cheese and cold cuts by the kilo, cream by the litro, branded butter and cheese; a new category *Salsas y moles* shared with Abarrotes, Pollería and Carnicería |
 | **9j** | **Materias Primas, with you** | ✅ **Done 9 October** — 139 new products: baking supplies, nuts and seeds, spices and sweets by the kilo, and 57 desechables by the package. **The starter catalog is complete: 1,413 products across seven giros** |
-| **5R-c** | **Deleting an account, inside the app** — a store requirement. Ruled by you on 9 October: the person's login goes, and **the shop keeps their name** on what they did, shown as *"María (ex-miembro)"*. A sole owner's deletion deletes the shop, after a warning and an offer to download the month first. Immediate, with nothing kept for analytics | ✅ **Done 9 October** — *Tu cuenta → Eliminar mi cuenta*, at the bottom of Ajustes. On your phone with the next rebuild |
-| **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ✅ **Done 9 October** — the link under *Entrar*, and the script below, *If somebody forgot their password*. On your phone with the next rebuild |
-| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ✂️ **Split on 10 October** into the three rows below, because parts of it need you |
+| **5R-c** | **Deleting an account, inside the app** — a store requirement. Ruled by you on 9 October: the person's login goes, and **the shop keeps their name** on what they did, shown as *"María (ex-miembro)"*. A sole owner's deletion deletes the shop, after a warning and an offer to download the month first. Immediate, with nothing kept for analytics | ✅ **Done 9 October** — *Tu cuenta → Eliminar mi cuenta*, at the bottom of Ajustes. On your phone since 10 October |
+| **5R-h** | ***¿Olvidaste tu contraseña?*** — opens WhatsApp to you, and you set a new password by hand. Your number stays out of the public repository | ✅ **Done 9 October** — the link under *Entrar*, and the script below, *If somebody forgot their password*. On your phone since 10 October |
+| **5R-b** | **The cloud build, and updates over the air** — a build made by EAS instead of this Mac, and a JavaScript fix reaching your phone in under an hour without a reinstall | ✅ **Done 10 October** — split into the three rows below, all three finished the same day |
 | **5R-b-i** | **Everything that needs no Expo account** — the update library, the build settings, and the one command that ships a fix | ✅ **Done 10 October** — both phones' builds compile the way EAS will build them; the command is `docs/runbooks/ship-an-update.sh`. Nothing changed on screen |
 | **5R-b-ii** | **The cloud build, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a pilot member's Android | ✅ **Done 10 October** — a change merged at 07:33:56 UTC was on that Android at 07:38:39, **4 min 43 s**; sent back in **1 min 55 s**. See *Shipping a fix to the phones*, below |
-| **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone and any other pilot iPhone, so a fix reaches them like the Android | Needs you first — see the next row |
+| **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone, so a fix reaches it like the Android | ✅ **Done 10 October** — on your iPhone, still signed in; a test fix appeared and was undone. See *What is on your phone* |
 | **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ⚠️ **This is where the next piece of work is** |
-| **—** | ⚠️ **One thing is waiting on YOU** — for `5R-b-iii`: **which iPhones besides yours are in the pilot, and 15 minutes at Terminal.app on this Mac.** The first iPhone build asks questions in a terminal (your Apple ID and its code), and no session here has one. My recommendation is to register each iPhone and install from a link, like the Android, rather than TestFlight, which would create the App Store record for `mx.wera.app` before the listing is ready. The full brief is in the plan's ⛔ DECISIONS OWED block | — |
+| **—** | ✅ **Nothing is waiting on YOU** — as of 10 October, when you chose ad hoc for the iPhones. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -139,7 +132,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (the cloud build and updates proven on an Android; the iPhones wait for you), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -326,11 +319,12 @@ bash docs/runbooks/ship-an-update.sh preview "what the fix does"
 It refuses, and sends nothing, if the fix is not on `main`, if EAS is missing one of the
 app's three settings, or if no phone could run it (a fix that needs a new build). On the
 phone: close Wera completely, open it, close it, open it again. **Measured 10 October: 4 min
-43 s from merge to seen on a pilot Android.**
+43 s from merge to seen on a pilot Android; on your iPhone a test fix appeared about 3 minutes
+after it was published.**
 
 **If a fix turns out to be bad, undo it first.** The undo command is at the top of
 `docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
-installed with. That took 1 min 55 s on the same phone.
+installed with. That took 1 min 55 s on the Android and about 5 minutes on your iPhone.
 
 ⚠️ **One thing to do once:** download a copy of the Android signing key. In Terminal.app,
 `cd` into `app` and run `npx eas-cli credentials -p android`. A phone accepts an update to
