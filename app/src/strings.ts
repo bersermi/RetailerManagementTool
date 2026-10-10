@@ -43,7 +43,7 @@ export const ES = {
    * typecheck failure rather than a second copy nobody notices.
    */
   auth: {
-    title: 'Wera',
+    title: 'Wera (prueba)', // 5R-b-ii: the over-the-air test marker; shipped back the same hour
     emailLabel: 'Correo',
     passwordLabel: 'Contraseña',
     /**

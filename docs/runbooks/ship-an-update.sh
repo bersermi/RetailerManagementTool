@@ -62,7 +62,9 @@ if ! eas whoami >/dev/null 2>&1; then
   echo "REFUSED: this Mac is not logged in to Expo. Run: npx eas-cli login" >&2
   exit 1
 fi
-if ! env_out="$(eas env:list --environment "$channel" --format short --non-interactive 2>&1)"; then
+# ⚠️ `env:list` takes no `--non-interactive` (eas-cli 24.12.1): passing one fails
+# every run, which is how the first version of this script refused everything.
+if ! env_out="$(eas env:list --environment "$channel" --format short 2>&1)"; then
   echo "REFUSED: could not read EAS's '$channel' environment:" >&2
   echo "$env_out" >&2
   exit 1
@@ -71,7 +73,7 @@ env_names="$(sed -E 's/\x1b\[[0-9;]*m//g' <<<"$env_out" | cut -d= -f1)"
 for name in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP; do
   if ! grep -qx "$name" <<<"$env_names"; then
     echo "REFUSED: EAS's '$channel' environment has no $name." >&2
-    echo "  eas env:create --environment $channel --name $name --value <value> --visibility plaintext" >&2
+    echo "  (cd app && npx eas-cli env:set --environment $channel --name $name --value <value> --visibility plaintext)" >&2
     exit 1
   fi
 done
