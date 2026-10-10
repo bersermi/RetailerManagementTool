@@ -80,8 +80,8 @@ is the sole owner's: *"Eres la única persona dueña de {tienda}. Si eliminas tu
 and removing a member is not built. When it is, his ruling says it is the tombstone (`is_active` false), and that is the moment to narrow the policy.
 ⚠️ **An unsent sale on the phone of somebody deleting their account** is not handled: deletion needs the network, and the network drains the outbox first.
 **Evidence:** `supabase/tests/0053_account_deletion.sql` **45 of 45**, after seven falsifications. One falsification found **the suite's own defect**: checks recorded inside a rolled-back
-transaction vanished, and the report still said "all passed". It now refuses a short count. Four older suites keep inventories that `0053` correctly changed, and they are updated:
-`0026` 1.5, `0027` 7.3, `0035` 6.1, `0037` 5.3 and `0038` 7.2. After a clean `supabase db reset`, all **31** behavioural suites, the **7** pgTAP suites and the **11** seed checks pass (the runners' tallies).
+transaction vanished, and the report still said "all passed". It now refuses a short count. Five older suites keep inventories that `0053` correctly changed, and they are updated:
+`0026` 1.5, `0027` 7.3, `0035` 6.1, `0037` 5.3 and `0038` 7.2. After a clean `supabase db reset`, all **32** behavioural suites (the `db.yml` log), the **7** pgTAP suites and the **11** seed checks pass (the runners' tallies).
 `docs/checks/5R-c-account-deletion-contract.sh` **7 of 7** over HTTP, and its falsifier **3 of 3**. Vitest **1758/1758 in 54 files**, typecheck clean, `conventions-gate.sh` 18 of 18.
 ⚠️ **Not looked at:** the section itself on a phone (R9). It reaches his phone with the next rebuild.
 
