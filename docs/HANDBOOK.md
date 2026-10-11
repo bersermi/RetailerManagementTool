@@ -118,7 +118,12 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-b-i** | **Everything that needs no Expo account** — the update library, the build settings, and the one command that ships a fix | ✅ **Done 10 October** — both phones' builds compile the way EAS will build them; the command is `docs/runbooks/ship-an-update.sh`. Nothing changed on screen |
 | **5R-b-ii** | **The cloud build, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a pilot member's Android | ✅ **Done 10 October** — a change merged at 07:33:56 UTC was on that Android at 07:38:39, **4 min 43 s**; sent back in **1 min 55 s**. See *Shipping a fix to the phones*, below |
 | **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone, so a fix reaches it like the Android | ✅ **Done 10 October** — on your iPhone, still signed in; a test fix appeared and was undone. See *What is on your phone* |
-| **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ⚠️ **This is where the next piece of work is** |
+| **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ✂️ **Split on 10 October** into the four rows below, after your rulings that night |
+| **5R-d-i** | **The aviso, written in Spanish for your lawyer** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps | ⚠️ **This is where the next piece of work is** |
+| **5R-d-ii** | **The site at tuwera.mx** — the aviso, the deletion page, and privacidad@tuwera.mx forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers | After the lawyer has read the aviso, and once you have bought **tuwera.mx** |
+| **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | After the site is up; it reaches phones over the air |
+| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up |
+| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 10 October, when you chose ad hoc for the iPhones. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
@@ -132,7 +137,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d`, then submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** buy **tuwera.mx**, find the privacy lawyer, and collect **12 Gmail addresses** for the Android test. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -326,9 +331,10 @@ after it was published.**
 `docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
 installed with. That took 1 min 55 s on the Android and about 5 minutes on your iPhone.
 
-⚠️ **One thing to do once:** download a copy of the Android signing key. In Terminal.app,
-`cd` into `app` and run `npx eas-cli credentials -p android`. A phone accepts an update to
-Wera only if it is signed with the same key, and EAS holds the only copy today.
+⏸️ **On hold by you (10 October): a copy of the Android signing key.** EAS holds the only
+copy. A phone accepts an update to Wera only if it is signed with the same key, so losing it
+would mean uninstalling. When you want the copy: in Terminal.app, `cd` into `app` and run
+`npx eas-cli credentials -p android`.
 
 ---
 
