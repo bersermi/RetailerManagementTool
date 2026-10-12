@@ -119,11 +119,14 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-b-ii** | **The cloud build, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a pilot member's Android | ✅ **Done 10 October** — a change merged at 07:33:56 UTC was on that Android at 07:38:39, **4 min 43 s**; sent back in **1 min 55 s**. See *Shipping a fix to the phones*, below |
 | **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone, so a fix reaches it like the Android | ✅ **Done 10 October** — on your iPhone, still signed in; a test fix appeared and was undone. See *What is on your phone* |
 | **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ✂️ **Split on 10 October** into the four rows below, after your rulings that night |
-| **5R-d-i** | **The aviso, written in Spanish for your lawyer** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps | ⚠️ **This is where the next piece of work is** |
-| **5R-d-ii** | **The site at tuwera.mx** — the aviso, the deletion page, and privacidad@tuwera.mx forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers | After the lawyer has read the aviso, and once you have bought **tuwera.mx** |
+| **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ⚠️ **This is where the next piece of work is** |
+| **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page, and privacidad@tu-wera.com forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers | After the aviso is written; needs you at GoDaddy and Google Cloud for a few minutes |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | After the site is up; it reaches phones over the air |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
+| **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | After the site is up (the aviso must be public first) |
+| **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | Ruled by you on 12 October; a small query you run |
+| **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
 | **—** | ✅ **Nothing is waiting on YOU** — as of 10 October, when you chose ad hoc for the iPhones. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
@@ -137,7 +140,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** buy **tuwera.mx**, find the privacy lawyer, and collect **12 Gmail addresses** for the Android test. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). **Order to the pilot** (12 October): the aviso, the site, the checkbox, the pilot's readings on, the engagement count; then the listings, Apple sign-in and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
