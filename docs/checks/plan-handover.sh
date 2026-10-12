@@ -254,7 +254,10 @@ else
     while IFS= read -r r; do
       [[ -n "$r" ]] || continue
       blocks="$(awk -F'|' '{print $3}' <<< "$r")"
-      for t in $(grep -oE '`[0-9][0-9a-z.-]*`' <<< "$blocks" | tr -d '`'); do
+      # ⚠️ UPPER CASE TOO. This read `[0-9a-z.-]` until 2026-10-12, so every
+      # `5R-x` and `5P-x` id slipped through it: a decision blocking `5R-d-i`
+      # left `5R-d-i` takeable, measured with a fixture row before the fix.
+      for t in $(grep -oE '`[0-9][0-9A-Za-z.-]*`' <<< "$blocks" | tr -d '`'); do
         [[ "$t" == "$ROW_TASK" ]] && CLASH="$t"
       done
     done <<< "$DEC_BODY"

@@ -119,15 +119,15 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-b-ii** | **The cloud build, and a fix reaching a phone in under an hour, timed** — with you: your Expo login, and a pilot member's Android | ✅ **Done 10 October** — a change merged at 07:33:56 UTC was on that Android at 07:38:39, **4 min 43 s**; sent back in **1 min 55 s**. See *Shipping a fix to the phones*, below |
 | **5R-b-iii** | **The iPhones on updates too** — a cloud build for your iPhone, so a fix reaches it like the Android | ✅ **Done 10 October** — on your iPhone, still signed in; a test fix appeared and was undone. See *What is on your phone* |
 | **5R-d** | **The store listing, and the *aviso de privacidad*** — the privacy notice, the store forms, screenshots, and the page Google wants for deletion requests | ✂️ **Split on 10 October** into the four rows below, after your rulings that night |
-| **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ⚠️ **This is where the next piece of work is** |
-| **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page, and privacidad@tu-wera.com forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers | After the aviso is written; needs you at GoDaddy and Google Cloud for a few minutes |
+| **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ✅ **Done 12 October** — the aviso and the deletion page are in `site/`, with blanks where your name and address go, filled in only when they are published. Also a script for deleting an account somebody asks for by email (below) |
+| **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page, and privacidad@tu-wera.com forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers. **One switch is yours first:** Supabase → Authentication → *Write audit logs to the database*, off (deleting an account otherwise leaves the person's email in a log) | ⚠️ **This is where the next piece of work is** — needs you at GoDaddy, Google Cloud and Supabase for a few minutes |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | After the site is up; it reaches phones over the air |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
-| **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | After the site is up (the aviso must be public first) |
+| **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | After the site is up (the aviso must be public first), and after your answer on the database's region |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | Ruled by you on 12 October; a small query you run |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ✅ **Nothing is waiting on YOU** — as of 10 October, when you chose ad hoc for the iPhones. A new question would appear here and in the plan's ⛔ DECISIONS OWED block | — |
+| **—** | ⚠️ **Two questions are waiting on YOU**, both in the plan's ⛔ DECISIONS OWED block. (1) **Your database is in Oregon (`us-west-2`), not Virginia** as the architecture document says. My recommendation: keep it and correct the document; moving costs a new project and everybody signing in again, and it is cheapest before the pilot shops. (2) **Somebody whose first sign-in is *Entrar con Google* never sees the *Crear cuenta* checkbox.** My recommendation: one line under that button, *"Al continuar, aceptas el Aviso de privacidad"* | (1) before the pilot's measurements; (2) before the checkbox |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -149,8 +149,9 @@ Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c`
 | Date | What | If it is missed |
 |---|---|---|
 | **13 October** | The day-30 session reading on the sealed Android emulator. ⚠️ **Do not open Wera on `wera-reading-5a-iv-d`** — it restarts the clock | The reading can only be restarted, not recovered |
+| **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
-It is in the plan's ⏳ DATES OWED block, which turns the checks red if it passes. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
+Both are in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
 
 ---
 
@@ -360,6 +361,28 @@ Google (tell them to tap *Entrar con Google*). To try it safely first, add `--lo
 
 There is no *Cambiar contraseña* in the app yet, so the password you send is theirs until they
 ask for another.
+
+---
+
+## If somebody asks to delete their account
+
+Most people do it themselves: *Inicio → Ajustes → Tu cuenta → Eliminar mi cuenta*. The page at
+`tu-wera.com/eliminar-cuenta` also offers email, because Google requires a way that does not need
+the app. **Act only on a request sent from the account's own address**; if it comes from another
+one, ask the person to prove who they are first.
+
+From the repository folder on the Mac:
+
+```
+bash docs/runbooks/delete-an-account.sh their@email.com
+```
+
+It does exactly what the app's button does. Their login goes, and the shop keeps their name as
+*(ex-miembro)*. **If they are the only owner of a shop, it stops and prints the shop's name**,
+because deleting them deletes the shop. Write back, make sure they understand, then run it again
+with `--shop "the name it printed"`. It changes nothing when the email has no account or the
+name is wrong. To try it safely first, add `--local`. Then reply that it is done; the page
+promises an answer within 20 business days.
 
 ---
 
