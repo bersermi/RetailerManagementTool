@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="wera-mark-title">
+  <title id="wera-mark-title">Wera</title>
+  <!--
+    The Wera mark: a Highland cow's face in one colour, a W in its fringe.
+    Chosen by the owner on 2026-10-13 (option A of the first round; plan row 5R-m).
+    It takes the colour of whatever it sits in (currentColor). The W and the two
+    nostrils are real holes, cut by the mask, so the ground shows through.
+    The silhouette is ONE path: its mirrored pieces (right horn, right ear, the
+    cowlick) are written backwards on purpose, or their overlap with the head
+    cancels to a pale sliver under the default fill rule.
+  -->
+  <defs>
+    <mask id="wera-mark-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="512">
+      <rect width="512" height="512" fill="#fff"/>
+      <path fill="none" stroke="#000" stroke-width="13" stroke-linecap="round" stroke-linejoin="round" d="M188 294C198 310 210 322 224 330C230 308 240 292 254 280C262 304 276 324 296 336C300 312 312 292 330 280"/>
+      <ellipse fill="#000" cx="226" cy="398" rx="14" ry="9.5" transform="rotate(-22 226 398)"/>
+      <ellipse fill="#000" cx="286" cy="398" rx="14" ry="9.5" transform="rotate(22 286 398)"/>
+    </mask>
+  </defs>
+  <g transform="rotate(-6 256 270)" fill="currentColor" mask="url(#wera-mark-cut)">
+    <path d="M190 178C152 184 114 172 92 140C78 120 70 96 68 68C50 120 60 176 98 206C122 224 152 230 178 224Z M334 224C360 230 390 224 414 206C452 176 462 120 444 68C442 96 434 120 420 140C398 172 360 184 322 178Z M176 232C142 220 108 234 92 264C120 284 152 286 176 276Z M256 128C206 128 168 154 160 202C150 240 152 286 170 318C162 344 164 398 192 426C214 446 298 446 320 426C348 398 350 344 342 318C360 286 362 240 352 202C344 154 306 128 256 128Z M284 144C284 124 294 108 314 96C284 90 250 104 238 138Z M336 276C360 286 392 284 420 264C404 234 370 220 336 232Z"/>
+  </g>
+</svg>
