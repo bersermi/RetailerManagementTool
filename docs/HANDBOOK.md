@@ -94,6 +94,7 @@ file above, section 2 of its catch-up.
 | **Entrar → *¿Olvidaste tu contraseña?*** | Signed out, type an email and tap the link under *Entrar*. WhatsApp should open a chat **with you**, with *"Hola, olvidé mi contraseña de Wera. Mi correo es …"* already written. Is the link easy enough to find, and is the message what you want to receive? |
 | **Ajustes → Tu cuenta → *Aviso de privacidad*** | New on 13 October, once the update reaches your phone. It should open tu-wera.com/privacidad over the app, and closing it should bring you back to Ajustes |
 | **Entrar → *¿No tienes cuenta? Crear una*** | New on 13 October. Signed out, the box *Acepto el Aviso de privacidad* sits above *Crear cuenta*. Tap *Crear cuenta* without ticking it: it should say *"Para crear tu cuenta, acepta el Aviso de privacidad."* Tap the underlined words: the page opens over the app and closing it keeps what you typed. Is the box easy to hit with *Letra grande*? Is it OK that the message stays on screen after you tick until the next tap of *Crear cuenta*, as every message on that screen does? Under *Entrar con Google* there is now one line, *Al continuar, aceptas el Aviso de privacidad*. To look you have to sign out; with signal, signing back in with Google brings your shop back |
+| **The listing your testers will see** | New on 13 October, and not in the app: `store/google-play.md`, section 2 — the short and the long description — and the five pictures in `store/google-play/`. Is this how you would describe Wera to a shopkeeper? It says nothing about *inventario*, because no screen shows how much stock there is. Only your testers see it, and every word can change |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
@@ -135,13 +136,16 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ✅ **Done 12 October** — the aviso and the deletion page are in `site/`, with blanks where your name and address go, filled in only when they are published. Also a script for deleting an account somebody asks for by email (below) |
 | **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page and a home page with `ayuda@tu-wera.com`; privacidad@ and ayuda@ forward to your Gmail through ImprovMX. Your name and address are GitHub secrets, never in the repository | ✅ **Done 12 October** — published from GitHub; the steps you did are under *Putting tu-wera.com up*, below. HTTPS on, and your test email arrived. Left for you, whenever suits: Google's consent screen (step 7), so pilot members stop needing the test-user list, and the domain check in step 2 |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
-| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ⚠️ **This is where the next piece of work is** — a session can write the descriptions and the answers to both stores' privacy forms without you. The screenshots wait for your review and the logo; **the 14-day Android test does not** (only its testers see that listing), but it cannot start until you have 12 testers, and you have handed over 1 |
-| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
+| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ✂️ **Split on 13 October** into the three rows below: what a session could do without you, what needs your hands in Play Console, and what waits for your review and the logo |
+| **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`, and the app file is in your Downloads folder. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
+| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, whenever you are ready** — six steps, under *Putting Wera on Google Play's closed test*. You have handed over **1 of 12** testers. Tell a session the day the twelfth joins |
+| **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | After your review (`8g`) and the logo (`5R-m`), so they are made once |
+| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ⚠️ **This is where the next piece of work is** — ruled by you on 10 October. It needs a key from your Apple developer account, and it ships in a new build, the same one that will carry your logo |
 | **5R-m** | **Your logo, on the app icon and the site** — the logo is yours (or your designer's); then the icon, the splash and a restyle of the three web pages | When the logo exists and after your review. **The icon needs a new build, not an over-the-air fix**, so it ships in the same build as Apple sign-in: each pilot phone reinstalls once, keeping its data |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ⚠️ **One question is waiting on YOU**, in the plan's ⛔ DECISIONS OWED block. The daily count reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises | Before the store submission (`5R-e`). Nothing before that waits on it |
+| **—** | ⚠️ **One question is waiting on YOU**, in the plan's ⛔ DECISIONS OWED block. The daily count reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises. **The Android test does not wait for it:** its testers are on a test version too, Google's, so the sentence still holds for them. If you read the aviso more strictly than that, answer this before the first tester installs | Before the store submission (`5R-e`). Nothing before that waits on it |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -154,7 +158,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). **Order to the pilot** (12 October): the aviso, the site, the checkbox, the pilot's readings on, the engagement count; then the listings, Apple sign-in and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far), **and the Android test's six steps in Play Console**, which can start with the one you have. **Order to the pilot** (12 October): the aviso, the site, the checkbox, the pilot's readings on, the engagement count; then the listings, Apple sign-in and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -492,6 +496,58 @@ about deleted accounts that is true only once 3 is done.
    *Audience → Publish app*. After that nobody has to be added as a test user. Google's
    screen will still name the *supabase.co* address rather than *Wera*; showing the name is
    Google's brand verification, which the pilot does not need.
+
+---
+
+## Putting Wera on Google Play's closed test
+
+Google will not let a personal account publish an app until **12 people have been opted in to a
+closed test for 14 days in a row**. Nothing about it is public: only the people on your list
+can see the listing or install the app. Everything you paste is in
+[`store/google-play.md`](../store/google-play.md), in the order Play Console asks, and the
+pictures are in `store/google-play/`.
+
+**Start now, with the one tester you have.** Google reviews the first release before anybody
+can join (hours, sometimes up to seven days), and that wait can run while you collect the
+other eleven addresses. Each tester's 14 days start the day they join.
+
+⚠️ **Three things to know before you start:**
+
+- **The icon your testers and Google will see is still Expo's blue "A".** Your logo is `5R-m`.
+  Starting anyway is your ruling of 12 October. If you would rather nobody saw that icon, wait
+  for the logo and say so.
+- **Uploading the app in step 4 makes `mx.wera.app` permanent** on Google's side. A package
+  name can never be changed, deleted or used again.
+- **A pilot phone must not install the Play version.** It is the same app to Android, so the
+  phone would have to uninstall the pilot build first, and the Play version does not take the
+  pilot's measurements. A pilot member can be a tester on a different phone.
+
+1. **Google sign-in for everybody** — step 7 of *Putting tu-wera.com up*, above, if you have
+   not done it. Until then a tester who taps *Entrar con Google* is refused.
+2. **Make the demo account**, which Google's reviewers sign in with. On your iPhone, with
+   signal: *Ajustes → Cerrar sesión*, then *¿No tienes cuenta? Crear una* with an address you
+   can read (your Gmail with `+wera` before the `@` works) and a password you will give to
+   Google. Create a shop called *Tienda Demo*, take a giro's products, record two sales. Sign
+   out and back in with Google: your own shop comes back. This is also the first email
+   sign-up anybody has made on the live project, which *What only you can judge* asks you to
+   try.
+3. **Play Console → Create app**, then *Dashboard → Set up your app*. Paste sections 1 to 4
+   of `store/google-play.md`: the listing, the store settings and every *App content* form.
+   The demo account's email and password go in *App access*.
+4. **Closed testing → Create new release.** Upload
+   `~/Downloads/wera-tienda-1.0.0-2.aab` (the store build of 13 October; it is also on
+   expo.dev under *Builds*, the Android one marked `production`, until 12 November). Accept
+   *Play App Signing*. Countries: **Mexico** only. Testers: a list with the Gmail addresses.
+5. **Send for review.** When Google approves it, *Closed testing → Testers* shows a link:
+   *Copy link*, and send it to each tester. They open it signed in to the Gmail on your list,
+   tap *Become a tester*, and install Wera from Google Play.
+6. **Tell a session the day the twelfth tester joins.** The 14 days end two weeks after that,
+   and the date goes into the plan so nobody has to remember it. Then *Dashboard → Apply for
+   production* opens, and Google asks how the test went: section 7 of the same file lists the
+   questions, so keep a note of what the testers tell you.
+
+Add a tester later in *Closed testing → Testers*; nothing restarts for the others. A tester
+who leaves and comes back starts their own 14 days again.
 
 ---
 
