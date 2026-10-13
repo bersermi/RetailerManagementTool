@@ -6,9 +6,10 @@ This file restates ADR-035 for someone working in this directory. Where the two
 disagree, the ADR wins and this file is the bug. Every decision below was settled on
 2026-08-14; the full list, with the reasoning, is the decisions table in ADR-035 §8.
 
-**Project region is `us-east-1`** — fixed at creation, one-way door. Mexican ISP
-traffic transits Dallas and Miami eastward, so the map answer (`us-west-1`) was the
-wrong one.
+**Project region is `us-west-2` (Oregon)** — fixed at creation, one-way door. This line
+said `us-east-1` until 2026-10-12, when `5R-d-i` measured the hosted project and the owner
+ruled to keep it rather than move (ADR-035 §2.2). Latency to either coast lands on the
+confirmation, never on the sale.
 
 ## The rule
 
@@ -55,7 +56,7 @@ Productos on his phone**, not by any check.
 
 **Deploy target — project ref:** `hweutzjhzvioswnjzqki`
 
-That is the one database the app talks to; its region is `us-east-1`, fixed at
+That is the one database the app talks to; its region is `us-west-2`, fixed at
 creation. ⚠️ **`config.toml`'s `project_id` is not this** — that names the local
 stack, not the hosted project.
 

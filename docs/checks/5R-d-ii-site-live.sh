@@ -22,6 +22,14 @@
 #   8. tu-wera.com has MX records, so privacidad@ and ayuda@ can receive mail.
 #      ⚠️ It cannot prove the mail is FORWARDED — only a test email can.
 #
+# ⚠️ IT ASKS A PUBLIC RESOLVER (1.1.1.1), NOT THIS MAC'S. Measured 2026-10-13: an
+# hour after the owner changed the records, this Mac's resolver still answered
+# GoDaddy's old address — even for a query aimed at GoDaddy's own nameservers,
+# with a TTL counting down, so something on the path caches port 53 — while
+# 1.1.1.1, 8.8.8.8 and 9.9.9.9 all had the new records. A check that read the
+# stale cache went red on a domain the world could already reach. Every curl
+# below is pinned to the address the public resolver gives.
+#
 # --before-dns asks GitHub's servers directly (tu-wera.com pinned to
 # 185.199.108.153, over http) and asserts only 3–6. It proves the deploy, never
 # the domain; say so when you report it.
@@ -32,6 +40,7 @@
 set -uo pipefail
 
 DOMAIN="tu-wera.com"
+RESOLVER="1.1.1.1"
 PAGES_IPS="185.199.108.153 185.199.109.153 185.199.110.153 185.199.111.153"
 MODE="${1:-}"
 
@@ -50,16 +59,17 @@ if [[ "$MODE" == "--before-dns" ]]; then
   echo "Before DNS: asking GitHub's servers directly. This proves the deploy, not the domain."
 else
   BASE="https://$DOMAIN"
-  PIN=()
+  first="$(dig @"$RESOLVER" +short "$DOMAIN" A | head -1)"
+  PIN=(--resolve "$DOMAIN:443:${first:-0.0.0.0}" --resolve "$DOMAIN:80:${first:-0.0.0.0}")
 
   # 1. The apex.
-  got="$(dig +short "$DOMAIN" A | sort | tr '\n' ' ' | sed 's/ $//')"
+  got="$(dig @"$RESOLVER" +short "$DOMAIN" A | sort | tr '\n' ' ' | sed 's/ $//')"
   want="$(echo $PAGES_IPS | tr ' ' '\n' | sort | tr '\n' ' ' | sed 's/ $//')"
   if [[ "$got" == "$want" ]]; then ok "$DOMAIN resolves to GitHub Pages' four addresses"
   else fail "$DOMAIN resolves to [$got], not GitHub Pages' [$want]"; fi
 
   # 2. www.
-  cname="$(dig +short "www.$DOMAIN" CNAME)"
+  cname="$(dig @"$RESOLVER" +short "www.$DOMAIN" CNAME)"
   if [[ "$cname" == "bersermi.github.io." ]]; then ok "www.$DOMAIN is a CNAME to bersermi.github.io"
   else fail "www.$DOMAIN's CNAME is [${cname:-none}], not bersermi.github.io."; fi
 fi
@@ -69,7 +79,7 @@ for path in / /privacidad/ /eliminar-cuenta/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
-    fail "$BASE$path answered ${code:-nothing} $(head -c 200 "$TMP/$name.err")"
+    fail "$BASE$path answered ${code:-nothing}: $(head -1 "$TMP/$name.err")"
     continue
   fi
   if grep -qi '^server: GitHub.com' "$TMP/$name.head"; then ok "$BASE$path answers 200, served by GitHub"
@@ -89,12 +99,12 @@ fi
 
 if [[ "$MODE" != "--before-dns" ]]; then
   # 7. http → https.
-  loc="$(curl -sS -o /dev/null -w '%{http_code} %{redirect_url}' "http://$DOMAIN/" 2>/dev/null)"
+  loc="$(curl -sS "${PIN[@]}" -o /dev/null -w '%{http_code} %{redirect_url}' "http://$DOMAIN/" 2>/dev/null)"
   if [[ "$loc" == 301\ https://$DOMAIN/* ]]; then ok "http:// redirects to https://"
   else fail "http://$DOMAIN/ answered [$loc], not a 301 to https:// — tick Enforce HTTPS once the certificate exists"; fi
 
   # 8. Mail.
-  mx="$(dig +short "$DOMAIN" MX | tr '\n' ' ')"
+  mx="$(dig @"$RESOLVER" +short "$DOMAIN" MX | tr '\n' ' ')"
   if [[ -n "$mx" ]]; then ok "$DOMAIN has MX records ($mx) — send a test email to privacidad@ to prove the forwarding"
   else fail "$DOMAIN has no MX records, so privacidad@$DOMAIN cannot receive mail"; fi
 fi
