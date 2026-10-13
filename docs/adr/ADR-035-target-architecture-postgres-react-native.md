@@ -584,7 +584,7 @@ understanding.
 | Choice | Value | Note |
 |--------|-------|------|
 | Database | Supabase Cloud, Pro tier | PITR required before real data |
-| Region | `us-east-1` | **Settled 2026-08-14 without measurement.** Mexican ISP traffic overwhelmingly transits Dallas and Miami eastward, so network proximity and map proximity diverge — `us-west-1` was the map answer. The cost of being wrong is tens of milliseconds on RPC round-trip, which §2.6 already absorbs by computing the customer-facing total on the device: region latency lands on the confirmation, never on the sale. That is what made this cheap enough to decide rather than test |
+| Region | **`us-west-2` (Oregon) — AMENDED 2026-10-12.** ~~`us-east-1`~~ | ⚠️ **The hosted project was created in `us-west-2`, and this row said `us-east-1` for two months.** Measured by `5R-d-i` on 2026-10-12 two ways: the database host resolves into AWS's published `us-west-2` range, and the session pooler is `aws-0-us-west-2`. **The owner ruled to keep it** (2026-10-12): moving means a new project, the data copied, every person signing in again and Google's redirect settings redone, and the argument below holds for either coast. **Settled 2026-08-14 without measurement.** Mexican ISP traffic overwhelmingly transits Dallas and Miami eastward, so network proximity and map proximity diverge — `us-west-1` was the map answer. The cost of being wrong is tens of milliseconds on RPC round-trip, which §2.6 already absorbs by computing the customer-facing total on the device: region latency lands on the confirmation, never on the sale. That is what made this cheap enough to decide rather than test |
 | Residency | Cross-border permitted under LFPDPPP | Disclosed in the *aviso de privacidad* |
 | Client | React Native (Expo) | iOS first — the pilot store's device. Android follows |
 | Client detail | See §2.11 | Router, data layer, state, components, release path |
@@ -2030,7 +2030,7 @@ invisible until the second store opens, which is the week it is most expensive.
 | Ledger as source of truth | Retrofitting onto stored balances means reconstructing the past |
 | Tax stored as net + tax | The split cannot be recovered from a blended historical amount |
 | RLS via function, not JWT claim | Touches every table and every query |
-| Region | Fixed at project creation. Settled as `us-east-1` (§2.2) |
+| Region | Fixed at project creation. **`us-west-2`** — the project as created; amended 2026-10-12 from `us-east-1` (§2.2) |
 | Client-UUID idempotency | The identity of every transaction |
 | **`location_id` on the ledger** | Backfilling it means inventing a historical value that is genuinely unknowable |
 
@@ -2232,7 +2232,7 @@ answered one is just a decision.
 
 | # | Question | Settled as | Where |
 |---|----------|-----------|-------|
-| 1 | Region | `us-east-1`, **without measurement**. Mexican traffic transits Dallas and Miami eastward; being wrong costs tens of ms on a path the device never waits on | §2.2 |
+| 1 | Region | **`us-west-2`**, as the project was created (measured and kept by the owner 2026-10-12; this row said `us-east-1`), **without measurement** of latency. Mexican traffic transits Dallas and Miami eastward; being wrong costs tens of ms on a path the device never waits on | §2.2 |
 | 2 | PITR cost | Enable at shortest retention, **on the first real operator transaction** — not before. Everything prior is regenerable seed data. Fallback if prohibitive: daily `pg_dump` to object storage | §8 checklist |
 | 3 | Rounding | Integer centavos; gross authoritative; **per line**; tax as residual; document = sum of rounded lines; **half-up** | §2.5 |
 | 4 | `price_list` overlap | Dissolved rather than fixed: provider prices left `price_list` entirely, so the NULL that made the constraint inert is gone. Remaining nullable `location_id` coalesced to a sentinel in a `btree_gist` exclusion | §2.3 |
