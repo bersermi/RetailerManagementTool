@@ -929,6 +929,12 @@ it possible: it does not fire row triggers, so the append-only guards that corre
 refuse a DELETE do not stand in the way, and no row is ever deleted — tables are
 emptied wholesale between suites and never during one.
 
+**One suite carries no migration number, because no migration is behind it:**
+`supabase/tests/runbook_engagement.sql` (plan task `5P-b`). It tests a FILE,
+`docs/runbooks/engagement.sql` — the read the owner runs against every shop at once —
+which it loads client-side the way `07` loads `cases.json`. It sorts after every
+numbered suite and runs as the superuser on purpose: that is how the runbook runs.
+
 The full reset still runs **once**, before any suite. That is the run proving the
 migrations apply from scratch, and it is not traded for anything. The cleanup's table
 sweep reads `pg_tables` rather than naming tables, so a table added by a later

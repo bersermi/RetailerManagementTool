@@ -220,6 +220,9 @@ begin
   -- and a helper that outlives its suite is the shape the note at 4e-ii-a names.
   drop function if exists public._try(text);
   drop function if exists public._state_is(text, text, text);
+  -- ADDED 2026-10-13 (task 5P-b): `runbook_engagement.sql`'s two helpers.
+  drop function if exists public._at(uuid, integer, time);
+  drop function if exists public._cell(text, integer, uuid);
 
   -- 3. Every business table. `unit` is excluded because it is reference data
   --    seeded by migration 0001, not fixture — emptying it would break every
