@@ -97,6 +97,11 @@ on:
       # one file whose job is to stop a stale claim must not be the one edit CI
       # never looks at.
       - "docs/adr/ADR-035-target-architecture-postgres-react-native.md"
+      # ⚠️ AND THE UPDATE RUNBOOK WITH ITS REHEARSAL, ADDED 2026-10-13 (`5P-d`).
+      # `ship-an-update.sh` is run by hand, on the owner's Mac, and until this
+      # line no workflow read it: an edit that dropped a refusal merged green.
+      - "docs/runbooks/ship-an-update.sh"
+      - "docs/checks/5P-d-ship-rehearsal.sh"
 
 concurrency:
   group: app-${{ github.ref }}
@@ -194,6 +199,19 @@ jobs:
       # silently dead until a session ran it by hand.
       - name: Conventions — can that gate still fail (its own fixtures)
         run: bash docs/checks/conventions-gate-falsify.sh
+
+      # ⚠️ THE ONE COMMAND THAT PUTS JAVASCRIPT ON A SHOP'S PHONE. Plan task
+      # `5P-d`. It must refuse a `production` update while that environment
+      # holds the pilot's switch (ADR-035 §5: no readings in a store build), and
+      # it must clear the bundler's cache, which otherwise carries one channel's
+      # `EXPO_PUBLIC_` values into the next export (measured 2026-10-13).
+      #
+      # ⚠️ NOTHING HERE REACHES EAS OR RUNS METRO: `npx` is a stub, in a scratch
+      # repository. It reads the runbook's decisions, in seconds, with no install.
+      - name: Runbook — does ship-an-update.sh still refuse what it must (plan 5P-d)
+        run: bash docs/checks/5P-d-ship-rehearsal.sh
+      - name: Runbook — can that rehearsal still fail (its own fixtures)
+        run: bash docs/checks/5P-d-ship-rehearsal.sh --falsify
 
   # ============================================================================
   # ⚠️⚠️ SPLIT OUT OF THE `vitest` JOB ON 2026-09-25, BECAUSE THAT JOB WAS

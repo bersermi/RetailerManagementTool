@@ -32,6 +32,10 @@
 #   - EAS does not hold the three `EXPO_PUBLIC_` values for that environment.
 #     `eas update --environment` sets `EXPO_NO_DOTENV=1`, so `app/.env.local` is
 #     NOT read, and a bundle without the Supabase URL throws on the first launch;
+#   - the channel is `production` and its environment holds `EXPO_PUBLIC_PILOT`
+#     (plan `5P-d`). That value is what makes a bundle take the pilot's readings
+#     (`app/src/lib/pilotFlag.ts`), and ADR-035 §5 keeps them out of the store
+#     builds. It lives in EAS's `preview` environment only;
 #   - no finished build on that channel has this tree's runtime, on either
 #     platform. ⚠️ `eas update` publishes to a runtime no phone has and reports
 #     success: measured in eas-cli 24.12.1's source, it prints the runtime and
@@ -39,6 +43,15 @@
 #     added since the last build (build again first), or a hand edit inside
 #     `node_modules` (run `npm ci` at the root) — see `app/fingerprint.config.js`.
 # A platform with no matching build is left out and named; the others ship.
+#
+# ⚠️ IT CLEARS THE BUNDLER'S CACHE EVERY TIME (`--clear-cache`), AND THAT IS NOT
+# OPTIONAL. Metro caches each file as it was transformed, with the `EXPO_PUBLIC_`
+# values already written into it, and does not notice when a value changes.
+# Measured 2026-10-13 (`5P-d`), three exports of one commit: with the cache kept,
+# a bundle made with a new label and a new Supabase address carried the address
+# of the export before it and no label. So without this a `production` update
+# shipped after a `preview` one would carry preview's values, readings included,
+# while EAS's `production` environment looked clean.
 # ============================================================================
 set -euo pipefail
 
@@ -92,6 +105,19 @@ for name in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_P
   fi
 done
 
+# --- 2b. the pilot's readings ride `preview`, and never a store build -------
+pilot="$(sed -E 's/\x1b\[[0-9;]*m//g' <<<"$env_out" | sed -n 's/^EXPO_PUBLIC_PILOT=//p')"
+if grep -qx "EXPO_PUBLIC_PILOT" <<<"$env_names"; then
+  if [[ "$channel" == "production" ]]; then
+    echo "REFUSED: EAS's 'production' environment holds EXPO_PUBLIC_PILOT, so this update would take the pilot's readings in a store build." >&2
+    echo "  (cd app && npx eas-cli env:delete production --variable-name EXPO_PUBLIC_PILOT --non-interactive)" >&2
+    exit 1
+  fi
+  echo "  readings: ON — this update files the pilot's readings under \"$pilot\""
+else
+  echo "  readings: off — EAS's '$channel' environment has no EXPO_PUBLIC_PILOT"
+fi
+
 # --- 3. a phone on this channel can run it ---------------------------------
 platforms=()
 for platform in ios android; do
@@ -128,6 +154,6 @@ if [[ "$mode" == "--check" ]]; then
 fi
 
 eas update --channel "$channel" --environment "$channel" --platform "$target" \
-  --message "$message" --non-interactive
+  --message "$message" --clear-cache --non-interactive
 echo
 echo "Published $commit to '$channel' for $target. On the phone: open Wera, close it completely, open it again."

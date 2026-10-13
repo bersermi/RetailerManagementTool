@@ -56,7 +56,7 @@ ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["
 
 | Workflow | Fires on |
 |---|---|
-| `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the plan, handbook, conventions page, ADR-035 and their checks. Two jobs: the app (typecheck, Vitest, conventions gate) and *the documents still agree* |
+| `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the plan, handbook, conventions page, ADR-035 and their checks, and the update runbook with its rehearsal. Two jobs: the app (typecheck, Vitest, conventions gate, the runbook's rehearsal) and *the documents still agree* |
 | `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `packages/money/cases.json`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema |
 | `money.yml` | `packages/**` and root `package*.json` |
 | `site.yml` | `site/**` and its two build checks. On a pull request it only builds; on `main` it **publishes `site/` to tu-wera.com** (GitHub Pages). The aviso's name and address come from the repository secrets `RESPONSABLE` and `DOMICILIO`, never from a commit. The only workflow that deploys anything |

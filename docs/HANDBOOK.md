@@ -47,12 +47,23 @@ real database; none runs on sample data.
 **Everything merged up to 10 October**, built by EAS in the cloud and installed that day over
 the 9 October build, which kept your session and your shop's data. New on it: **account
 deletion** (`5R-c`, *Tu cuenta* at the bottom of Ajustes) and **¿Olvidaste tu contraseña?**
-(`5R-h`, under *Entrar* when signed out). Not on it: the **pilot build**, the measuring version
-(`5P-a`), which needs a build with the pilot switch on.
+(`5R-h`, under *Entrar* when signed out).
+
+✅ **On 13 October a fix went out over the air to that build** (`5P-d`). It carries the aviso's
+box and links (`5R-d-iii`), and it **switches the pilot's measurements on**: from then on your
+phone files how long a sale takes to commit, how long Vender takes to open and how many taps a
+record costs. Nothing on a shopkeeper's screen changes. It arrives the second time you open
+Wera: close it completely, open it, close it, open it again. Then hold the title *Ajustes*:
+the panel should say *Versión piloto-1*.
 
 ✅ **It takes fixes over the air**: a fix arrives the second time you open Wera after it ships.
 It is signed until **10 October 2027**. The old `mx.bserafin.wera` icon can no longer open;
 delete it. **The pilot member's Android has the same kind of build** and takes the same fixes.
+
+**A new Android in the pilot installs the 13 October build**, not the 10 October one. The first
+time Wera opens it runs what its install carried, and only the 13 October build carries the
+aviso's box and the measurements. Its link is on expo.dev, under *Builds*: the newest Android
+one marked `preview`. The link is not written here because this repository is public.
 
 ⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
 update channel, so the phone would stop taking fixes. A change that needs a new build (a new
@@ -84,7 +95,7 @@ file above, section 2 of its catch-up.
 | **Ajustes → Tu cuenta → *Aviso de privacidad*** | New on 13 October, once the update reaches your phone. It should open tu-wera.com/privacidad over the app, and closing it should bring you back to Ajustes |
 | **Entrar → *¿No tienes cuenta? Crear una*** | New on 13 October. Signed out, the box *Acepto el Aviso de privacidad* sits above *Crear cuenta*. Tap *Crear cuenta* without ticking it: it should say *"Para crear tu cuenta, acepta el Aviso de privacidad."* Tap the underlined words: the page opens over the app and closing it keeps what you typed. Is the box easy to hit with *Letra grande*? Is it OK that the message stays on screen after you tick until the next tap of *Crear cuenta*, as every message on that screen does? Under *Entrar con Google* there is now one line, *Al continuar, aceptas el Aviso de privacidad*. To look you have to sign out; with signal, signing back in with Google brings your shop back |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
-| **A pilot build** | Sell three things, one from inside the Carrito sheet, then hold *Ajustes*' title: does *Toques por registro* count the taps inside the sheet? |
+| **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
 ---
 
@@ -127,8 +138,8 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up. The screenshots wait for your review and the logo; **the 14-day Android test does not** (only its testers see that listing), so it starts once you have 12 testers |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
 | **5R-m** | **Your logo, on the app icon and the site** — the logo is yours (or your designer's); then the icon, the splash and a restyle of the three web pages | When the logo exists and after your review. **The icon needs a new build, not an over-the-air fix**, so it ships in the same build as Apple sign-in: each pilot phone reinstalls once, keeping its data |
-| **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ⚠️ **This is where the next piece of work is** — ready: the aviso is public, and you ruled to keep the database in Oregon (12 October). ⚠️ **Found on 13 October:** a phone runs the version its install carried the first time Wera opens, and the update only from the second time. So before a new pilot member installs, the Android build gets made again from today's version, or their first sign-up has no checkbox |
-| **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | Ruled by you on 12 October; a small query you run |
+| **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
+| **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ⚠️ **This is where the next piece of work is** — ruled by you on 12 October; a small query you run |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
 | **—** | ✅ **Nothing is waiting on YOU** in the plan's ⛔ DECISIONS OWED block. On 12 October you kept the database in Oregon (the architecture document now says so) and chose one line under *Entrar con Google* | — |
 
@@ -329,7 +340,9 @@ bash docs/runbooks/ship-an-update.sh preview "what the fix does"
 ```
 
 It refuses, and sends nothing, if the fix is not on `main`, if EAS is missing one of the
-app's three settings, or if no phone could run it (a fix that needs a new build). On the
+app's three settings, or if no phone could run it (a fix that needs a new build). It also says
+whether the fix carries the pilot's measurements, and it refuses to send them to the store
+versions (`production`). On the
 phone: close Wera completely, open it, close it, open it again. **Measured 10 October: 4 min
 43 s from merge to seen on a pilot Android; on your iPhone a test fix appeared about 3 minutes
 after it was published.**
@@ -337,6 +350,14 @@ after it was published.**
 **If a fix turns out to be bad, undo it first.** The undo command is at the top of
 `docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
 installed with. That took 1 min 55 s on the Android and about 5 minutes on your iPhone.
+
+**To switch the pilot's measurements off**, take the setting away and ship once more. Phones
+stop measuring the second time they open Wera after that:
+
+```
+(cd app && npx eas-cli env:delete preview --variable-name EXPO_PUBLIC_PILOT --non-interactive)
+bash docs/runbooks/ship-an-update.sh preview "Apaga las lecturas del piloto"
+```
 
 ⏸️ **On hold by you (10 October): a copy of the Android signing key.** EAS holds the only
 copy. A phone accepts an update to Wera only if it is signed with the same key, so losing it
