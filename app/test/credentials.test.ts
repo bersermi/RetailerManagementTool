@@ -118,7 +118,7 @@ describe('the sign-up half asks for a name, and the sign-in half never does', ()
 
   for (const [name, first, last, key] of refusals) {
     it(`refuses ${name}, in Spanish`, () => {
-      const checked = checkSignUp(...GOOD, first, last);
+      const checked = checkSignUp(...GOOD, first, last, true);
       expect(checked.ok).toBe(false);
       if (!checked.ok) {
         expect(checked.key).toBe(key);
@@ -132,11 +132,11 @@ describe('the sign-up half asks for a name, and the sign-in half never does', ()
   // that is the topmost empty box — a message naming a field further down the
   // form is a person hunting for what they did wrong.
   it('refuses the address and the password before it looks at the name', () => {
-    const noEmail = checkSignUp('', 'secreto', '', '');
+    const noEmail = checkSignUp('', 'secreto', '', '', false);
     expect(noEmail.ok).toBe(false);
     if (!noEmail.ok) expect(noEmail.key).toBe('emailMissing');
 
-    const shortPassword = checkSignUp('tienda@ejemplo.mx', 'abc', '', '');
+    const shortPassword = checkSignUp('tienda@ejemplo.mx', 'abc', '', '', false);
     expect(shortPassword.ok).toBe(false);
     if (!shortPassword.ok) expect(shortPassword.key).toBe('passwordShort');
   });
@@ -147,13 +147,13 @@ describe('the sign-up half asks for a name, and the sign-in half never does', ()
   // ordinary here. `Rodríguez Gómez` in the apellido box is one surname to this
   // code and two to the person, which is exactly the right amount of opinion.
   it('accepts a name with two surnames, and joins it in the order typed', () => {
-    const checked = checkSignUp(...GOOD, 'María del Carmen', 'Rodríguez Gómez');
+    const checked = checkSignUp(...GOOD, 'María del Carmen', 'Rodríguez Gómez', true);
     expect(checked.ok).toBe(true);
     if (checked.ok) expect(checked.fullName).toBe('María del Carmen Rodríguez Gómez');
   });
 
   it('accepts one word in each box', () => {
-    const checked = checkSignUp(...GOOD, 'Wera', 'Ramírez');
+    const checked = checkSignUp(...GOOD, 'Wera', 'Ramírez', true);
     expect(checked.ok).toBe(true);
     if (checked.ok) expect(checked.fullName).toBe('Wera Ramírez');
   });

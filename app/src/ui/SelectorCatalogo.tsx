@@ -20,7 +20,6 @@
 // the owner's phone to judge, and no check here can see it.
 // ============================================================================
 
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import {
@@ -32,6 +31,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { Casilla } from '@/ui/Casilla';
 
 export function SelectorCatalogo({
   template,
@@ -121,24 +121,12 @@ export function SelectorCatalogo({
           {group.products.map((product) => {
             const ticked = !excluded.has(product.code);
             return (
-              <Pressable
+              <Casilla
                 key={product.code}
-                accessibilityRole="checkbox"
-                accessibilityState={{ checked: ticked }}
-                accessibilityLabel={product.name}
-                onPress={() => onToggleProduct(product.code)}
-                style={{
-                  minHeight: scale.tapTarget,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: scale.rowGap,
-                }}
+                ticked={ticked}
+                onToggle={() => onToggleProduct(product.code)}
+                label={product.name}
               >
-                <MaterialCommunityIcons
-                  name={ticked ? 'checkbox-marked' : 'checkbox-blank-outline'}
-                  size={scale.iconSize}
-                  color={ticked ? PALETTE.accion : PALETTE.tintaApagada}
-                />
                 <Text
                   style={{
                     fontSize: scale.bodySize,
@@ -147,7 +135,7 @@ export function SelectorCatalogo({
                 >
                   {product.name}
                 </Text>
-              </Pressable>
+              </Casilla>
             );
           })}
         </View>

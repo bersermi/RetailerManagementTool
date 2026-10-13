@@ -76,6 +76,18 @@ export const ES = {
      * only, and only on a build that carries his number (`@/auth/support`).
      * The two messages are what lands, prefilled, in the chat he receives.
      */
+    /**
+     * ⚠️ `5R-d-iii`: THE AVISO DE PRIVACIDAD, AND EACH LEAD ENDS IN A SPACE ON
+     * PURPOSE. The screen draws `lead` and then `aviso` as a separate link, so
+     * the sentence is two strings that read as one; a lead without its space
+     * prints *"Acepto elAviso"*. The checkbox is the owner's ruling of
+     * 2026-10-10; the Google line, which needs no box because Google creates
+     * the account on its own button, his of 2026-10-12. `aviso` is also the
+     * link's whole label in Ajustes.
+     */
+    aviso: 'Aviso de privacidad',
+    avisoAcceptLead: 'Acepto el ',
+    avisoGoogleLead: 'Al continuar, aceptas el ',
     forgotPassword: '¿Olvidaste tu contraseña?',
     forgotMessage: 'Hola, olvidé mi contraseña de Wera.',
     forgotMessageWithEmail: (email: string) =>
@@ -97,6 +109,8 @@ export const ES = {
        *  either of these — a person coming back does not type their name. */
       nameMissing: 'Escribe tu nombre.',
       surnameMissing: 'Escribe tu apellido.',
+      /** ⚠️ SIGN-UP ONLY (`5R-d-iii`): the box above the button is unticked. */
+      avisoMissing: 'Para crear tu cuenta, acepta el Aviso de privacidad.',
       notConfirmed: 'Todavía falta confirmar tu correo.',
       tooMany: 'Demasiados intentos. Espera un minuto y vuelve a intentar.',
       offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',

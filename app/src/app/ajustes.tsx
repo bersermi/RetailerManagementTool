@@ -1,5 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
+import * as WebBrowser from 'expo-web-browser';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -30,6 +31,7 @@ import {
 } from '@/api/invites';
 import { groupedCode, shareText, type Role, type RosterEntry } from '@/api/members';
 import { useAuth } from '@/auth/AuthProvider';
+import { AVISO_URL } from '@/auth/aviso';
 import { formatExpiry } from '@/format/date';
 import { canRead } from '@/api/pilot';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
@@ -574,6 +576,12 @@ function Letra() {
  *
  * ⚠️ `error` AND NOT A FILLED SLAB, `Salir`'s argument: it destroys, and it is
  * the last thing anybody came here to do.
+ *
+ * ⚠️ `5R-d-iii`: THE SECTION ALSO HOLDS THE AVISO DE PRIVACIDAD, FIRST, AND THE
+ * LINK DOES NOT WAIT FOR THE ROSTER. Reading the aviso decides nothing about
+ * anybody's account, so it is drawn before the deletion knows which warning it
+ * owes, and it stays while the deletion is open. *Ajustes → Tu cuenta* is the
+ * path the published pages already give (`site/privacidad/`), so it stays true.
  */
 function Cuenta() {
   const { scale } = useDensity();
@@ -585,10 +593,10 @@ function Cuenta() {
   const [failure, setFailure] = useState<string | null>(null);
 
   const deletion = deletionFrom(roster.entries, roster.loading);
-  if (workspace === null || deletion.kind === 'unknown') return null;
+  const known = workspace !== null && deletion.kind !== 'unknown';
 
   const takesShop = deletion.kind === 'deletesShop';
-  const ready = !takesShop || shopNameMatches(typed, workspace.displayName);
+  const ready = !takesShop || (workspace !== null && shopNameMatches(typed, workspace.displayName));
 
   async function confirm() {
     setFailure(null);
@@ -604,7 +612,17 @@ function Cuenta() {
 
   return (
     <Section title={ES.account.section}>
-      {!open && (
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => void WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {})}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.auth.aviso}
+        </Text>
+      </Pressable>
+
+      {known && !open && (
         <Pressable
           accessibilityRole="button"
           onPress={() => setOpen(true)}
@@ -616,7 +634,7 @@ function Cuenta() {
         </Pressable>
       )}
 
-      {open && (
+      {known && open && (
         <View style={{ gap: scale.rowGap }}>
           <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
             {takesShop ? ES.account.shopWarning(workspace.displayName) : ES.account.leavesWarning}

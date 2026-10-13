@@ -144,23 +144,32 @@ export function joinName(rawFirst: string, rawLast: string): string {
 }
 
 /**
- * Sign-up's four rules: `checkCredentials`' two pairs, and then the name.
+ * Sign-up's five rules: `checkCredentials`' two pairs, then the name, then the
+ * aviso's checkbox.
  *
  * ⚠️ THE ORDER IS THE SCREEN'S ORDER. The address and the password are the
  * fields both halves share and they sit above; the two name boxes are appended
  * below, so the first refusal a person reads names the topmost empty field.
+ *
+ * ⚠️ THE CHECKBOX IS LAST BECAUSE IT SITS LAST, directly above the button
+ * (`5R-d-iii`, the owner's ruling of 2026-10-10: ticked before the account is
+ * made). An unticked box is a refusal with a sentence, not a greyed-out button:
+ * a button that silently does nothing tells a slow reader nothing, and the
+ * screen already answers every other missing thing in words.
  */
 export function checkSignUp(
   rawEmail: string,
   rawPassword: string,
   rawFirst: string,
   rawLast: string,
+  acceptedAviso: boolean,
 ): SignUpCheck {
   const checked = checkCredentials(rawEmail, rawPassword);
   if (!checked.ok) return checked;
 
   if (rawFirst.trim() === '') return refuse('nameMissing');
   if (rawLast.trim() === '') return refuse('surnameMissing');
+  if (!acceptedAviso) return refuse('avisoMissing');
 
   return {
     ok: true,

@@ -544,7 +544,7 @@ move it here — and not one screen earlier.
 a refusal of the opposite: ADR-035 §2.11 lists ~10 primitives, and rather than
 build them he said the pattern gets described *"once `5b` has produced a real
 one"* — never *"ten primitives guessed at against screens nobody has drawn."*
-Every one of the **thirteen** components in `src/ui/` was extracted from drawings that
+Every component in `src/ui/` was extracted from drawings that
 already existed, and **four of them were extracted from drawings that had already
 silently disagreed**: `Vacio`'s three copies (two centred their text, Vender's
 did not), `Boton`'s two, and `8f`'s `BotonLleno` and `Velo` (see `R16`).
@@ -567,6 +567,12 @@ gate's `R15` counted it as a second export the first time. **The gate printed 11
 ⚠️ **AND `8f` ADDED THE TWELFTH AND THIRTEENTH (2026-09-30), `BotonLleno` and `Velo`** — the filled
 button (13 drawings in 11 files) and the veil (13 in 6), each drifted, each settled by count on the
 owner's ruling *"majority wins"*; their headers list what moved. **The gate printed 13.**
+⚠️ **`9d` ADDED THE FOURTEENTH (2026-10-01), `SelectorCatalogo`**, drawn by onboarding and by
+`catalogo.tsx` — and this page went on saying *thirteen* until `5R-d-iii` read the gate.
+⚠️ **AND `5R-d-iii` ADDED THE FIFTEENTH (2026-10-13), `Casilla`** — the tick box `SelectorCatalogo`
+drew for each product; `Entrar` was the second file to need it (*Acepto el Aviso de privacidad*).
+Byte-for-byte: the words beside the box are `children` and `Entrar`'s busy state is `disabled`,
+so nothing on the starter catalog changed. **The gate printed 15.**
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other
