@@ -137,11 +137,11 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page and a home page with `ayuda@tu-wera.com`; privacidad@ and ayuda@ forward to your Gmail through ImprovMX. Your name and address are GitHub secrets, never in the repository | ✅ **Done 12 October** — published from GitHub; the steps you did are under *Putting tu-wera.com up*, below. HTTPS on, and your test email arrived. Left for you, whenever suits: Google's consent screen (step 7), so pilot members stop needing the test-user list, and the domain check in step 2 |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ✂️ **Split on 13 October** into the three rows below: what a session could do without you, what needs your hands in Play Console, and what waits for your review and the logo |
-| **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`, and the app file is in your Downloads folder. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
-| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, whenever you are ready** — six steps, under *Putting Wera on Google Play's closed test*. You have handed over **1 of 12** testers. Tell a session the day the twelfth joins |
+| **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`. The store version built that day will not be the one uploaded: you ruled the same evening to wait for the build with the cow. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
+| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | ⏸️ **Waits for the build with the cow** — your ruling of 13 October. Nothing is uploaded to Google until that build exists. **What you can do meanwhile:** steps 1 and 2 under *Putting Wera on Google Play's closed test*, and the other eleven Gmail addresses (you have handed over **1 of 12**) |
 | **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | After your review (`8g`) and the logo (`5R-m`), so they are made once |
-| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ⚠️ **This is where the next piece of work is** — ruled by you on 10 October. It needs a key from your Apple developer account, and it ships in a new build, the same one that will carry your logo |
-| **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** It goes on the icon and the site after your review. **The icon needs a new build, not an over-the-air fix**, so it ships in the same build as Apple sign-in: each pilot phone reinstalls once, keeping its data |
+| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ⚠️ **This is where the next piece of work is** — ruled by you on 10 October. It needs a key from your Apple developer account. **Its build is the build with the cow**: the icon goes in with it, each pilot phone reinstalls once, and the Android test's first upload is that build. The session will ask you one thing before it builds: the icon as a cream cow on a rust tile, as on the canvas |
+| **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon goes in with the Apple sign-in build (`5R-k`)**, since you ruled that the Android test waits for it; each pilot phone reinstalls once, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
@@ -507,15 +507,17 @@ can see the listing or install the app. Everything you paste is in
 [`store/google-play.md`](../store/google-play.md), in the order Play Console asks, and the
 pictures are in `store/google-play/`.
 
-**Start now, with the one tester you have.** Google reviews the first release before anybody
-can join (hours, sometimes up to seven days), and that wait can run while you collect the
-other eleven addresses. Each tester's 14 days start the day they join.
+⏸️ **The upload waits for the build with the cow** — your ruling of 13 October, so that neither
+Google nor your testers ever see Expo's blue "A". That build is made with Apple sign-in
+(`5R-k`). **Steps 1 and 2 do not wait, and neither do the eleven addresses.** Step 3's text
+and forms can be pasted any time; its pictures, and steps 4 to 6, wait for the build.
 
-⚠️ **Three things to know before you start:**
+Once it is uploaded, Google reviews the first release before anybody can join (hours,
+sometimes up to seven days). You do not need all twelve testers to upload: each tester's 14
+days start the day they join.
 
-- **The icon your testers and Google will see is still Expo's blue "A".** Your logo is `5R-m`.
-  Starting anyway is your ruling of 12 October. If you would rather nobody saw that icon, wait
-  for the logo and say so.
+⚠️ **Two things to know before you upload:**
+
 - **Uploading the app in step 4 makes `mx.wera.app` permanent** on Google's side. A package
   name can never be changed, deleted or used again.
 - **A pilot phone must not install the Play version.** It is the same app to Android, so the
@@ -533,10 +535,11 @@ other eleven addresses. Each tester's 14 days start the day they join.
    try.
 3. **Play Console → Create app**, then *Dashboard → Set up your app*. Paste sections 1 to 4
    of `store/google-play.md`: the listing, the store settings and every *App content* form.
-   The demo account's email and password go in *App access*.
-4. **Closed testing → Create new release.** Upload
-   `~/Downloads/wera-tienda-1.0.0-2.aab` (the store build of 13 October; it is also on
-   expo.dev under *Builds*, the Android one marked `production`, until 12 November). Accept
+   The demo account's email and password go in *App access*. ⚠️ **Leave the pictures for
+   later**: the icon in `store/google-play/` is still Expo's until the build with the cow.
+4. ⏸️ **Closed testing → Create new release — when the build with the cow exists.** The
+   session that makes it puts the file in your Downloads folder and tells you its name. (The
+   13 October file was removed from there so it cannot be uploaded by mistake.) Accept
    *Play App Signing*. Countries: **Mexico** only. Testers: a list with the Gmail addresses.
 5. **Send for review.** When Google approves it, *Closed testing → Testers* shows a link:
    *Copy link*, and send it to each tester. They open it signed in to the Gmail on your list,
