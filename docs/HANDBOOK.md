@@ -135,13 +135,13 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ✅ **Done 12 October** — the aviso and the deletion page are in `site/`, with blanks where your name and address go, filled in only when they are published. Also a script for deleting an account somebody asks for by email (below) |
 | **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page and a home page with `ayuda@tu-wera.com`; privacidad@ and ayuda@ forward to your Gmail through ImprovMX. Your name and address are GitHub secrets, never in the repository | ✅ **Done 12 October** — published from GitHub; the steps you did are under *Putting tu-wera.com up*, below. HTTPS on, and your test email arrived. Left for you, whenever suits: Google's consent screen (step 7), so pilot members stop needing the test-user list, and the domain check in step 2 |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
-| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up. The screenshots wait for your review and the logo; **the 14-day Android test does not** (only its testers see that listing), so it starts once you have 12 testers |
+| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ⚠️ **This is where the next piece of work is** — a session can write the descriptions and the answers to both stores' privacy forms without you. The screenshots wait for your review and the logo; **the 14-day Android test does not** (only its testers see that listing), but it cannot start until you have 12 testers, and you have handed over 1 |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
 | **5R-m** | **Your logo, on the app icon and the site** — the logo is yours (or your designer's); then the icon, the splash and a restyle of the three web pages | When the logo exists and after your review. **The icon needs a new build, not an over-the-air fix**, so it ships in the same build as Apple sign-in: each pilot phone reinstalls once, keeping its data |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
-| **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ⚠️ **This is where the next piece of work is** — ruled by you on 12 October; a small query you run |
+| **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ✅ **Nothing is waiting on YOU** in the plan's ⛔ DECISIONS OWED block. On 12 October you kept the database in Oregon (the architecture document now says so) and chose one line under *Entrar con Google* | — |
+| **—** | ⚠️ **One question is waiting on YOU**, in the plan's ⛔ DECISIONS OWED block. The daily count reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises | Before the store submission (`5R-e`). Nothing before that waits on it |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -363,6 +363,47 @@ bash docs/runbooks/ship-an-update.sh preview "Apaga las lecturas del piloto"
 copy. A phone accepts an update to Wera only if it is signed with the same key, so losing it
 would mean uninstalling. When you want the copy: in Terminal.app, `cd` into `app` and run
 `npx eas-cli credentials -p android`.
+
+---
+
+## Seeing how much each shop uses Wera
+
+From this Mac, in the project folder. It reads and changes nothing:
+
+```
+supabase db query --linked -o table -f docs/runbooks/engagement.sql
+```
+
+One row per shop per day, newest first, for the last 14 days: how many **sales**, **purchases**
+and **write-offs** (Desperdicio) were recorded that day. It counts records, not pesos. Swap
+`-o table` for `-o csv` and add `> uso.csv` to get a file a spreadsheet opens.
+
+How to read it:
+
+- **A row of zeros is a day nothing was recorded.** That is the point of the read: a shop that
+  stops using Wera shows up as zeros, and a shop that signed up and never recorded anything is
+  listed too, from the day it signed up.
+- **A zero from the last few days can still change.** A phone with no signal keeps its sales and
+  sends them when it reconnects, and each one counts on the day it was made. So a recent zero
+  means *nothing has arrived*, which is not always *nothing was sold*. Wera cannot tell those
+  apart from here; ask the shop.
+- **The day is the shop's own day**, midnight to midnight where the shop is.
+- **A cancelled sale still counts** on the day it was recorded. The cancellation itself does not.
+- **A shop with two stores gets a row per store**, named *shop · store*.
+- It counts shops, never people. The aviso promises that (*"conteos por tienda, no por
+  persona"*), so adding a column about a person means changing the aviso first.
+
+To look further back, change the one number at the top of the query (`14`).
+
+**Is a phone measuring?** The pilot's measurements are a different read:
+
+```
+supabase db query --linked -o table "select build, count(*) from public.pilot_reading group by build"
+```
+
+A row named `piloto-1` means a phone on the test channel has measured. **On 13 October there was
+none yet.** To make one on your phone: close Wera completely, open it, close it, open it again,
+then record one sale. Run the line above a minute later.
 
 ---
 

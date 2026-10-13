@@ -441,6 +441,13 @@ on:
       - "docs/checks/7d-month-export-contract-falsify.sh"
       - "docs/checks/7b-prices-contract.sh"
       - "docs/checks/7b-prices-contract-falsify.sh"
+      # ⚠️ AND ONE RUNBOOK, as of plan task 5P-b. `docs/runbooks/engagement.sql` is
+      # the read the owner runs against every shop at once, and
+      # `supabase/tests/runbook_engagement.sql` reads that file client-side the way
+      # 07 reads cases.json. The suite is under `supabase/**` already; the file it
+      # tests is not, so without this line an edit to the query would merge having
+      # run nothing.
+      - "docs/runbooks/engagement.sql"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
