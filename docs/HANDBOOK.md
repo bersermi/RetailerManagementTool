@@ -51,30 +51,38 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
-**Everything merged up to 10 October**, built by EAS in the cloud and installed that day over
-the 9 October build, which kept your session and your shop's data. New on it: **account
-deletion** (`5R-c`, *Tu cuenta* at the bottom of Ajustes) and **¿Olvidaste tu contraseña?**
-(`5R-h`, under *Entrar* when signed out).
+⚠️ **A new build with the cow on its icon is ready for both pilot phones (13 October, night),
+and neither phone has it yet.**
 
-✅ **On 13 October a fix went out over the air to that build** (`5P-d`). It carries the aviso's
-box and links (`5R-d-iii`), and it **switches the pilot's measurements on**: from then on your
-phone files how long a sale takes to commit, how long Vender takes to open and how many taps a
-record costs. Nothing on a shopkeeper's screen changes. It arrives the second time you open
-Wera: close it completely, open it, close it, open it again. Then hold the title *Ajustes*:
-the panel should say *Versión piloto-1*.
+- **Your iPhone.** The build is on this Mac and installs over Wi-Fi in about a minute, **but
+  only while the phone is unlocked**: it stayed locked through every attempt that night. Unlock
+  it, leave it on the home screen and tell a session. Or do it from the phone: open expo.dev,
+  the project, *Builds*, the newest iOS one, *Install*. It installs over the Wera you have:
+  your session and your shop's data stay.
+- **The pilot member's Android.** Its owner opens the newest Android build marked `preview` on
+  expo.dev and installs it over the one they have. The file is also on this Mac, in
+  `~/RetailerToolDev/wera-builds/`.
 
-✅ **It takes fixes over the air**: a fix arrives the second time you open Wera after it ships.
-It is signed until **10 October 2027**. The old `mx.bserafin.wera` icon can no longer open;
-delete it. **The pilot member's Android has the same kind of build** and takes the same fixes.
+⚠️ **Until a phone installs the new build, no fix reaches it over the air.** The icon is part
+of the app itself, so fixes are now made for the new builds and the old ones cannot take them.
 
-**A new Android in the pilot installs the 13 October build**, not the 10 October one. The first
-time Wera opens it runs what its install carried, and only the 13 October build carries the
-aviso's box and the measurements. Its link is on expo.dev, under *Builds*: the newest Android
-one marked `preview`. The link is not written here because this repository is public.
-⚠️ **EAS lists that file as expiring on 27 October** (and your iPhone's build file on 24
-October). Copies of both are on this Mac, in `~/RetailerToolDev/wera-builds/`, saved on 13
-October: an Android installs from the `.apk` file itself. The phones that already have Wera
-are not affected, and the build with the cow replaces both files.
+**What both phones run until then:** everything merged up to 10 October, built by EAS, plus
+the fix that went out over the air on 13 October (`5P-d`): the aviso's box and links, and the
+pilot's measurements. The new build carries all of that from its first launch; hold the title
+*Ajustes* and the panel should say *Versión piloto-1*.
+
+✅ **Once installed, it takes fixes over the air**: a fix arrives the second time you open Wera
+after it ships. It is signed until **10 October 2027**. The old `mx.bserafin.wera` icon can no
+longer open; delete it.
+
+**A new Android in the pilot installs the newest `preview` build**, the one with the cow. Its
+link is on expo.dev, under *Builds*; it is not written here because this repository is public.
+⚠️ **EAS lists a build's file as expiring two weeks after it is made** (these: 27 October), so
+every build's file is also kept on this Mac, in `~/RetailerToolDev/wera-builds/`. An Android
+installs from the `.apk` file itself. A phone that already has Wera is not affected.
+
+⚠️ **Each pilot phone installs once more after Apple sign-in** (`5R-k`), which you accepted on
+13 October when you asked for the icon at once.
 
 ⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
 update channel, so the phone would stop taking fixes. A change that needs a new build (a new
@@ -152,7 +160,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ✂️ **Split on 13 October** into the three rows below: what a session could do without you, what needs your hands in Play Console, and what waits for your review and the logo |
 | **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`. The store version built that day will not be the one uploaded: you ruled the same evening to wait for the build with the cow. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
-| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, as soon as the store file with the cow is in your Downloads folder** — it is built from the icon's own change of 13 October, and no longer waits for Apple sign-in. Six steps, under *Putting Wera on Google Play's closed test*. You have handed over **1 of 12** testers; tell a session the day the twelfth joins |
+| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, now** — the store file with the cow is in your Downloads folder since the night of 13 October, and nothing waits for Apple sign-in any more. Six steps, under *Putting Wera on Google Play's closed test*. You have handed over **1 of 12** testers; tell a session the day the twelfth joins |
 | **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | After your review (`8g`) and the logo (`5R-m`), so they are made once |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ⚠️ **This is where the next piece of work is** — ruled by you on 10 October. It needs a key from your Apple developer account. Its build is the second install on each pilot phone; the first was the icon's, on 13 October |
 | **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon is in since 13 October: a cream cow on a rust square**, with builds of its own, because you asked for it on your phone at once. Each pilot phone installs again after Apple sign-in, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
@@ -173,7 +181,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fixes over the air; TestFlight comes with the App Store listing), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). In Play Console all six steps can go once the store file with the cow is in your Downloads folder. **The order now** (13 October, night): the icon is in; the Android test is yours once the store file is in your Downloads folder; then Apple sign-in (`5R-k`), the pilot's start list and, with you, your review; then the public listings and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). In Play Console all six steps can go: the store file with the cow is in your Downloads folder. **The order now** (13 October, night): the icon is in; the Android test is yours, the store file is in your Downloads folder; then Apple sign-in (`5R-k`), the pilot's start list and, with you, your review; then the public listings and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -536,8 +544,8 @@ pictures are in `store/google-play/`.
 
 **The build with the cow is the icon's own**, made the night of 13 October because you asked
 for the logo on your phone at once; it does not wait for Apple sign-in any more. Neither
-Google nor your testers ever see Expo's blue "A". **Steps 1 to 3 can start now; step 4 needs
-the store file**, which a session puts in your Downloads folder and names for you.
+Google nor your testers ever see Expo's blue "A". **All six steps can start now**: the store
+file is in your Downloads folder, and step 4 names it.
 
 Once it is uploaded, Google reviews the first release before anybody can join (hours,
 sometimes up to seven days). You do not need all twelve testers to upload: each tester's 14
@@ -564,9 +572,10 @@ days start the day they join.
    of `store/google-play.md`: the listing, the store settings and every *App content* form.
    The demo account's email and password go in *App access*. The icon and the wide picture
    in `store/google-play/` are the cow's since 13 October.
-4. **Closed testing → Create new release.** Upload the store file with the cow: the session
-   that made it put it in your Downloads folder and told you its name. (The first file of 13
-   October, with Expo's icon, was removed from there so it cannot be uploaded by mistake.) Accept
+4. **Closed testing → Create new release.** Upload
+   `~/Downloads/wera-tienda-1.0.0-3-con-la-vaca.aab`, the store build with the cow (it is
+   also on expo.dev under *Builds*, the newest Android one marked `production`, until 12
+   November). Accept
    *Play App Signing*. Countries: **Mexico** only. Testers: a list with the Gmail addresses.
 5. **Send for review.** When Google approves it, *Closed testing → Testers* shows a link:
    *Copy link*, and send it to each tester. They open it signed in to the Gmail on your list,
