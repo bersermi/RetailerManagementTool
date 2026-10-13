@@ -23,6 +23,8 @@ real database; none runs on sample data.
 
 - **Getting in** — sign in by email or Google, create the shop, invite somebody by
   their email (Wera shows a code once and you send it to them), let in somebody who asks.
+  **Apple's sign-in is built for iPhone and is not switched on yet**: see *Turning on Entrar
+  con Apple*, below.
 - **Productos** — the catalog: search, add, edit, open a family, and retire a
   product you created (products that were there before 24 September, and products
   from the starter catalog, stay, by your ruling).
@@ -81,8 +83,10 @@ link is on expo.dev, under *Builds*; it is not written here because this reposit
 every build's file is also kept on this Mac, in `~/RetailerToolDev/wera-builds/`. An Android
 installs from the `.apk` file itself. A phone that already has Wera is not affected.
 
-⚠️ **Each pilot phone installs once more after Apple sign-in** (`5R-k`), which you accepted on
-13 October when you asked for the icon at once.
+⚠️ **Each pilot phone installs once more for Apple sign-in**, which you accepted on 13 October
+when you asked for the icon at once. That work merged the same day (`5R-k-a`), and from then
+**no fix reaches a phone over the air until it installs a build made after it**: the builds
+on both phones are older. The iPhone's build is your step 5 in *Turning on Entrar con Apple*.
 
 ⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
 update channel, so the phone would stop taking fixes. A change that needs a new build (a new
@@ -118,6 +122,10 @@ file above, section 2 of its catch-up.
 | **Entrar → *¿No tienes cuenta? Crear una*** | New on 13 October. Signed out, the box *Acepto el Aviso de privacidad* sits above *Crear cuenta*. Tap *Crear cuenta* without ticking it: it should say *"Para crear tu cuenta, acepta el Aviso de privacidad."* Tap the underlined words: the page opens over the app and closing it keeps what you typed. Is the box easy to hit with *Letra grande*? Is it OK that the message stays on screen after you tick until the next tap of *Crear cuenta*, as every message on that screen does? Under *Entrar con Google* there is now one line, *Al continuar, aceptas el Aviso de privacidad*. To look you have to sign out; with signal, signing back in with Google brings your shop back |
 | **The listing your testers will see** | New on 13 October, and not in the app: `store/google-play.md`, section 2 — the short and the long description — and the five pictures in `store/google-play/`. Is this how you would describe Wera to a shopkeeper? It says nothing about *inventario*, because no screen shows how much stock there is. Only your testers see it, and every word can change |
 | **The icon and the first screen** | New on 13 October, on your iPhone. Is the cow the right size inside the square next to your other apps? The first screen at launch is the cow in rust on cream, not on the rust square: is that the one you want? Both need a new build to change, so say so before Apple sign-in's build |
+| **Entrar → Apple's button** | Only after your five steps in *Turning on Entrar con Apple*. Signed out, there is a button under *Entrar con Google*. It is Apple's own, so it is white with a black outline and says *Continuar con Apple*; Apple does not allow *Entrar con Apple*. Is it the right size beside Google's? Would you rather have Apple's black one? Both can change without a new build |
+| **The first screen after signing in, with no shop** | New on 13 October, once a build made after it is on your phone. At the very bottom of *Crea tu tienda* there are two grey lines: *Cerrar sesión* and *Eliminar mi cuenta*. Until now somebody who signed in with the wrong account was stuck there. Are they easy enough to find without getting in the way of a new shopkeeper? In Ajustes the same two are red; here they are grey on purpose, and you can say otherwise |
+| **Deleting an account made with Apple** | Do it with a throwaway, never your own: step 6 of *Turning on Entrar con Apple* walks you through it. Apple's sheet appears once more before the account goes. Does that read as a normal confirmation or as something broken? |
+| **Solicitudes → a request from a hidden address** | Somebody who hid their email with Apple and typed your shop's code. Their **name** is on top and *Correo oculto con Apple* under it, as you ruled. Is the name enough to know who it is? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
@@ -163,13 +171,15 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`. The store version built that day will not be the one uploaded: you ruled the same evening to wait for the build with the cow. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
 | **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, now** — the store file with the cow is in your Downloads folder since the night of 13 October, and nothing waits for Apple sign-in any more. Six steps, under *Putting Wera on Google Play's closed test*. You have handed over **1 of 12** testers; tell a session the day the twelfth joins |
 | **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | After your review (`8g`) and the logo (`5R-m`), so they are made once |
-| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ⚠️ **This is where the next piece of work is** — ruled by you on 10 October. It needs a key from your Apple developer account. Its build is the second install on each pilot phone; the first was the icon's, on 13 October |
+| **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ✂️ **Split on 13 October** into the two rows below: what a session could build and check without a phone, and what only your iPhone can show |
+| **5R-k-a** | **Apple sign-in, built** — Apple's button on Entrar, the name Apple hands over, and telling Apple when such an account is deleted. Four things you ruled that day: a small server function that stores nothing; a hidden email shows the person's name in *Solicitudes*; you send the aviso's notice yourself; and the first screen gets *Cerrar sesión* and *Eliminar mi cuenta* | ✅ **Done 13 October** — in the app's code, on the site (the aviso and the deletion page now name Apple) and in the architecture record. **Not on any phone, and not switched on**: that takes your five steps |
+| **5R-k-b** | **Apple sign-in, working on your iPhone** — your five steps, then a session reads the result with you holding the phone | ⚠️ **This is where the next piece of work is** — and it starts with you: *Turning on Entrar con Apple*, below. Do the steps in order and tell a session when they are done; it checks each one and tells you if one is missing |
 | **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon is in since 13 October: a cream cow on a rust square**, with builds of its own, because you asked for it on your phone at once. Each pilot phone installs again after Apple sign-in, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | New on 13 October, from the review; until then no job owned the pilot's start. It waits on questions (1), (2) and (3) below |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ⚠️ **Five questions are waiting on YOU**, in the plan's ⛔ DECISIONS OWED block, each with its brief and my recommendation. Four are new from the review of 13 October. **(1) The live database has no backups.** The architecture asks for them from the first real sale, and your shop has been recording since 22 September. I recommend the paid plan (about $25 a month) before the first shop that is not yours signs up: a daily backup kept 7 days, which is also what the aviso already says. A copy of your shop's records as of 13 October is on this Mac meanwhile. **(2) Two doors in the database that nothing uses are open.** Through one, a manager could make somebody an owner of the shop; through the other, an owner could erase a staff member's record, which your ruling of 9 October keeps. I recommend one small database change that closes both. Nobody can use either today: you are the only member of the only shop. **(3) An invitation is taken by whoever signs up with that email address**, because Wera never checks that an address belongs to the person. I recommend that only a Google sign-in is let straight in; somebody who signed up with email and password asks to join, and the owner approves them by name. **(4) Your name and a work email are in the old Power Apps files** in this public repository, since April. Your address is nowhere. I recommend removing them from the files and leaving the history alone, because the aviso publishes the same name. **(5) The daily count.** It reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises. **The Android test does not wait for it:** its testers are on a test version too, Google's, so the sentence still holds for them. If you read the aviso more strictly than that, answer this before the first tester installs | (1), (2) and (3) before the pilot's first shop (`5P-e`). (4) whenever you like. (5) before the store submission (`5R-e`) |
+| **—** | ⚠️ **Five questions are waiting on YOU**, in the plan's ⛔ DECISIONS OWED block, each with its brief and my recommendation. Four are new from the review of 13 October. **(1) The live database has no backups.** The architecture asks for them from the first real sale, and your shop has been recording since 22 September. I recommend the paid plan (about $25 a month) before the first shop that is not yours signs up: a daily backup kept 7 days, which is also what the aviso already says. A copy of your shop's records as of 13 October is on this Mac meanwhile. **(2) Two doors in the database that nothing uses are open.** Through one, a manager could make somebody an owner of the shop; through the other, an owner could erase a staff member's record, which your ruling of 9 October keeps. I recommend one small database change that closes both. Nobody can use either today: you are the only member of the only shop. **(3) An invitation is taken by whoever signs up with that email address**, because Wera never checks that an address belongs to the person. I recommend that only a Google or Apple sign-in is let straight in; somebody who signed up with email and password asks to join, and the owner approves them by name. **(4) Your name and a work email are in the old Power Apps files** in this public repository, since April. Your address is nowhere. I recommend removing them from the files and leaving the history alone, because the aviso publishes the same name. **(5) The daily count.** It reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises. **The Android test does not wait for it:** its testers are on a test version too, Google's, so the sentence still holds for them. If you read the aviso more strictly than that, answer this before the first tester installs | (1), (2) and (3) before the pilot's first shop (`5P-e`). (4) whenever you like. (5) before the store submission (`5R-e`) |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -182,7 +192,7 @@ with you per giro, choosing families and units product by product; `9d` is the a
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
 Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fixes over the air; TestFlight comes with the App Store listing), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). In Play Console all six steps can go: the store file with the cow is in your Downloads folder. **The order now** (13 October, night): the icon is in; the Android test is yours, the store file is in your Downloads folder; then Apple sign-in (`5R-k`), the pilot's start list and, with you, your review; then the public listings and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). In Play Console all six steps can go: the store file with the cow is in your Downloads folder. **The order now** (13 October): the icon is in and Apple sign-in is built; the Android test is yours; switching Apple sign-in on is yours too (`5R-k-b`); then the pilot's start list and, with you, your review; then the public listings and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -484,6 +494,13 @@ with `--shop "the name it printed"`. It changes nothing when the email has no ac
 name is wrong. To try it safely first, add `--local`. Then reply that it is done; the page
 promises an answer within 20 business days.
 
+**If they signed in with Apple and hid their email**, their account is under an address Apple
+invented, not the one they write from, so the script finds nothing. Ask them for the shop's
+name and tell a session: it can find the account's address, and you run the script with that.
+⚠️ The script does not tell Apple, which only the app can do. In your reply, add: *"Para que
+Wera deje de aparecer en tu cuenta de Apple: en tu iPhone, Configuración → tu nombre → Iniciar
+sesión con Apple → Wera → Eliminar."*
+
 ---
 
 ## Putting tu-wera.com up
@@ -532,6 +549,97 @@ about deleted accounts that is true only once 3 is done.
    *Audience → Publish app*. After that nobody has to be added as a test user. Google's
    screen will still name the *supabase.co* address rather than *Wera*; showing the name is
    Google's brand verification, which the pilot does not need.
+
+---
+
+## Turning on Entrar con Apple
+
+The code is merged (`5R-k-a`, 13 October). **Nothing works until these five steps are done**,
+and they are yours because each needs your Apple account, your Supabase account or your mail.
+About half an hour in all. Do them in this order, then tell a session; it checks each one.
+
+⚠️ I have not seen Apple's or Supabase's consoles: the names below are from their help pages,
+and a label may read a little differently.
+
+**1. The key, on Apple's developer site** (developer.apple.com/account → *Certificates, IDs &
+Profiles*).
+- *Identifiers* → `mx.wera.app` → tick **Sign In with Apple** → *Save*. Skip this if it is
+  already ticked.
+- *Keys* → **+** → name it `Wera Sign in with Apple` → tick **Sign in with Apple** →
+  *Configure* → Primary App ID `mx.wera.app` → *Save* → *Continue* → *Register* → **Download**.
+- ⚠️ **The file downloads once and never again.** It is called `AuthKey_XXXXXXXXXX.p8`; the ten
+  characters are its **Key ID**. Keep it outside the repository, for example in
+  `~/RetailerToolDev/wera-keys/`. Never paste it into a chat or a commit.
+
+**2. Give the key to the function** (Terminal, from the repository folder; put your Key ID in
+both places):
+
+```
+supabase secrets set APPLE_TEAM_ID=RGWA74UM3G APPLE_KEY_ID=XXXXXXXXXX APPLE_PRIVATE_KEY="$(cat ~/RetailerToolDev/wera-keys/AuthKey_XXXXXXXXXX.p8)"
+bash docs/checks/5R-k-function-deployed.sh
+```
+
+The second line should end *all … assertion groups passed*. If it says **NOT DEPLOYED**, run
+`supabase functions deploy apple-revoke` first and try again.
+
+**3. Supabase's switch** (supabase.com/dashboard → your project → *Authentication* → *Sign In /
+Providers* → **Apple**). Turn it on. In **Client IDs** type `mx.wera.app`. Leave *Secret Key*
+empty: that is for a website's sign-in, which Wera does not have. *Save*.
+
+**4. The notice.** The aviso promises an email before a change to what data is used. Send this
+from your own mail to every account that is not yours, before step 5. There are three accounts
+today; a session can tell you which are not yours.
+
+> **Asunto:** Cambio al aviso de privacidad de Wera
+>
+> Hola:
+>
+> Te escribimos porque tienes una cuenta en Wera. El 13 de octubre de 2026 actualizamos
+> nuestro aviso de privacidad: tu-wera.com/privacidad
+>
+> Qué cambia: en iPhone, Wera ahora también permite entrar con Apple. Quien elige entrar así
+> nos comparte, a través de Apple, su nombre y su correo (o una dirección que lo oculta, si
+> así lo prefiere). Cuando esa persona elimina su cuenta, le avisamos a Apple para que retire
+> el acceso.
+>
+> Para ti no cambia nada. Tu cuenta y tu forma de entrar siguen igual, y no usamos tus datos
+> para nada nuevo. Esto solo aplica a quien decide entrar con Apple.
+>
+> Si tienes dudas o no estás de acuerdo, responde a este correo o escribe a
+> privacidad@tu-wera.com.
+>
+> Wera: tu tienda
+
+**5. The iPhone's build** (Terminal.app itself, not a `!` line: it asks you questions).
+
+```
+cd ~/RetailerToolDev/RetailerManagementTool/app && npx eas-cli build -p ios --profile preview
+```
+
+It asks for your Apple ID and a six-digit code, because the build has to add *Sign in with
+Apple* to the app's signing profile. Say yes when it offers to. About ten minutes later
+expo.dev shows the build with an install link; open it on the iPhone, or tell a session and it
+installs over Wi-Fi. It installs over the Wera you have; your session and your shop stay.
+
+**6. Then look, with a session if you like.** In this order, because Apple asks *share or hide
+my email* only once:
+- Sign out (*Ajustes → Cerrar sesión*). Tap Apple's button and choose **Ocultar mi correo**.
+  You land on *Crea tu tienda*, in a new and empty account. That is expected.
+- At the bottom, tap *Eliminar mi cuenta* and confirm. **Apple's sheet appears once more**; go
+  through it. You are back on Entrar.
+- ✅ **The proof it worked:** on the iPhone, *Configuración → your name → Iniciar sesión con
+  Apple* no longer lists Wera, and tapping Apple's button again asks for your name and email
+  as if for the first time.
+- This time choose **Compartir mi correo**. If your Apple account uses the same address as
+  your Google sign-in, you should land in your own shop. If you land on *Crea tu tienda*
+  instead, tap *Cerrar sesión*, sign in with Google as always, and tell a session: that is
+  something it needs to know.
+- ⚠️ **Never delete your own account to test this.** You are the only owner, so it deletes the
+  shop.
+
+⚠️ **What this does not cover:** somebody who makes their account with Apple and later moves
+to an Android phone cannot get in there. Apple's button is on iPhone only, as you ruled. It
+can be added later without touching anybody's account.
 
 ---
 

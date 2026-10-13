@@ -379,6 +379,13 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# The one Edge Function (plan task 5R-k, ADR-035's amendment of 2026-10-13).
+# verify_jwt is off on purpose: the function asks the auth server who the
+# caller is, which also refuses the token of an account already deleted, and
+# its GET must answer without a session for 5R-k-function-deployed.sh.
+[functions.apple-revoke]
+verify_jwt = false
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.

@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 
+import { deleteArgs } from '@/api/account';
 import {
+  useDeleteMyAccount,
   useMyAccessRequests,
   useOnboardWorkspace,
   useRedeemInvite,
@@ -12,6 +14,7 @@ import { checkCredential, classifyCredential } from '@/api/redeem';
 import { choiceFrom, toggled } from '@/api/starterCatalog';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
+import { useAuth } from '@/auth/AuthProvider';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -120,6 +123,29 @@ export default function Bienvenida() {
 
   const [credential, setCredential] = useState('');
   const [joinProblem, setJoinProblem] = useState<string | null>(null);
+
+  // ⚠️⚠️ THE WAY OUT, `5R-k`, the owner's ruling of 2026-10-13. Until it, this
+  // screen had none: *Cerrar sesión* and *Eliminar mi cuenta* live in Ajustes,
+  // and Ajustes needs a shop. Somebody who came in by the wrong door — a second
+  // Google account, or Apple with the address hidden, which makes a NEW login —
+  // was held here until they created a shop they did not want. And an account
+  // this app made could not be deleted inside it, which Apple's rule 5.1.1(v)
+  // requires of every one.
+  //
+  // ⚠️ NO NAME TO TYPE AND NO ROSTER TO WAIT FOR, unlike Ajustes' sheet. A
+  // login on this screen belongs to no shop, so `deleteArgs` sends `null` and
+  // `0053` has nothing to refuse it over. Apple's sheet still comes first for
+  // a login with an Apple link: that is `useDeleteMyAccount`'s, not this file's.
+  const { signOut } = useAuth();
+  const { remove, busy: removing } = useDeleteMyAccount();
+  const [leaving, setLeaving] = useState(false);
+  const [leaveProblem, setLeaveProblem] = useState<string | null>(null);
+
+  async function confirmLeave() {
+    if (removing) return;
+    setLeaveProblem(null);
+    setLeaveProblem(await remove(deleteArgs({ kind: 'leaves' }, '')));
+  }
 
   // The same discipline as the way in: the message is cleared when the next
   // attempt starts, not when a field changes. A message that disappears on the
@@ -384,6 +410,79 @@ export default function Bienvenida() {
           <Text style={{ fontSize: scale.bodySize }}>{ES.join.pending.body}</Text>
         </View>
       )}
+
+      {/* 5R-k. Last on the screen and quiet: neither is what anybody came here
+          for, and this is the first screen a new shopkeeper reads. So both are
+          the muted ink, where Ajustes draws the same two acts in the error
+          colour; only the confirmation is. That difference is reported to the
+          owner (R16) and is his to settle at his review. */}
+      <View style={{ marginTop: scale.space * 2, gap: scale.rowGap }}>
+        <Pressable
+          accessibilityRole="button"
+          disabled={removing}
+          onPress={() => void signOut()}
+          style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+        >
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+            {ES.auth.signOut}
+          </Text>
+        </Pressable>
+
+        {!leaving ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setLeaving(true)}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.account.open}
+            </Text>
+          </Pressable>
+        ) : (
+          <View style={{ gap: scale.rowGap }}>
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+              {ES.account.aloneWarning}
+            </Text>
+
+            {leaveProblem !== null && (
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{leaveProblem}</Text>
+            )}
+
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: removing }}
+              disabled={removing}
+              onPress={() => void confirmLeave()}
+              style={{
+                minHeight: scale.tapTarget,
+                justifyContent: 'center',
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: PALETTE.error,
+                borderRadius: scale.space / 2,
+              }}
+            >
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+                {removing ? ES.account.working : ES.account.confirm}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              accessibilityRole="button"
+              disabled={removing}
+              onPress={() => {
+                setLeaving(false);
+                setLeaveProblem(null);
+              }}
+              style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+            >
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                {ES.account.cancel}
+              </Text>
+            </Pressable>
+          </View>
+        )}
+      </View>
     </ScrollView>
   );
 }

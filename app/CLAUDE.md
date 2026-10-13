@@ -77,3 +77,7 @@ Each was measured against a real PostgREST or device.
   the OLD one, silently. `ship-an-update.sh` passes `--clear-cache`; a local export or release
   build after a changed value needs `--clear`. EAS's own builds start with no cache.
 - **`grep -q` under `pipefail` fails on big files** (SIGPIPE) — use `grep -c` in any check.
+- **No check can drive Sign in with Apple**: it needs a token Apple signed, on a signed build.
+  The nonce's HASH goes to Apple and the RAW string to Supabase; the other way round typechecks
+  and refuses every sign-in. `app/test/apple.test.ts` reads the provider as text for that.
+  Apple sends the name on the first sign-in only, and never in the token.

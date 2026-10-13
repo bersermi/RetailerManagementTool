@@ -218,6 +218,38 @@ describe('the two lines of an entry', () => {
     const [entry] = pendingFrom([row({ requester_name: null })]);
     expect(linesOf(entry)).toEqual({ header: 'juan@example.com', subtitle: null });
   });
+
+  // ⚠️⚠️ THE ONE EXCEPTION, RULED 2026-10-13 (`5R-k`). An address Apple invented
+  // was read out to nobody, so there is nothing to verify it against: the name
+  // heads the entry and a sentence stands where the address would.
+  it('heads a hidden Apple address with the NAME, and says the address is hidden', () => {
+    const [entry] = pendingFrom([row({ email: 'q7x2k9mf4d@privaterelay.appleid.com' })]);
+    expect(linesOf(entry)).toEqual({ header: 'Juan Pérez', subtitle: ES.approvals.hiddenEmail });
+    expect(ES.approvals.hiddenEmail).toBe('Correo oculto con Apple');
+  });
+
+  it('never draws the hidden address itself, name or no name', () => {
+    const hidden = 'q7x2k9mf4d@privaterelay.appleid.com';
+    for (const requester_name of ['Juan Pérez', null]) {
+      const [entry] = pendingFrom([row({ email: hidden, requester_name })]);
+      const lines = linesOf(entry);
+      expect(lines.header).not.toContain('privaterelay');
+      expect(String(lines.subtitle)).not.toContain('privaterelay');
+    }
+  });
+
+  it('is the sentence alone when Apple gave no name either', () => {
+    const [entry] = pendingFrom([
+      row({ email: 'q7x2k9mf4d@privaterelay.appleid.com', requester_name: null }),
+    ]);
+    expect(linesOf(entry)).toEqual({ header: ES.approvals.hiddenEmail, subtitle: null });
+  });
+
+  // The fence on the exception: an ordinary Apple address is an address.
+  it('leaves an iCloud address exactly as the ruling of 2026-09-19 draws it', () => {
+    const [entry] = pendingFrom([row({ email: 'juan@icloud.com' })]);
+    expect(linesOf(entry)).toEqual({ header: 'juan@icloud.com', subtitle: 'Juan Pérez' });
+  });
 });
 
 // ============================================================================

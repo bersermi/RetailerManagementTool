@@ -20,7 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -95,6 +95,7 @@ import {
 } from '@/api/catalogEdit';
 import {
   deleteMyAccount,
+  revokeApple,
   approveRequest,
   catalogTemplate,
   catalogUnits,
@@ -138,6 +139,7 @@ import {
   type Prefill,
 } from '@/api/corrections';
 import { deleteErrorMessage, type DeleteArgs } from '@/api/account';
+import { releaseStep } from '@/auth/apple';
 import { nameErrorMessage } from '@/api/displayName';
 import {
   PENDING_REQUESTS_KEY,
@@ -439,24 +441,48 @@ export function useSetMyDisplayName() {
  * ⚠️ `signOut` asks the server to end a session whose user no longer exists.
  * supabase-js removes the local session whatever the server answers, so the
  * guard sends her to the sign-in screen either way.
+ *
+ * ⚠️⚠️ `5R-k`: A LOGIN WITH AN APPLE LINK STOPS AT APPLE'S SHEET FIRST, and
+ * `releaseStep` (`@/auth/apple`) is every decision about what the sheet's
+ * answer means. Closing the sheet is backing out: nothing is deleted and
+ * `null` comes back, so the screen shows no message and stays as it was.
+ * Everything else ends in the deletion. ⚠️ APPLE IS TOLD BEFORE THE ACCOUNT
+ * GOES, because the function has to read whose Apple link it is, and after the
+ * deletion there is no login to read it from.
+ *
+ * ⚠️ `busy` COVERS THE SHEET TOO. The mutation is not pending while Apple's
+ * sheet is up, and a second tap then would open a second one.
  */
 export function useDeleteMyAccount() {
-  const { signOut } = useAuth();
+  const { signOut, askAppleAgain } = useAuth();
+  const [leaving, setLeaving] = useState(false);
   const mutation = useMutation({
     mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
   });
 
   async function remove(args: DeleteArgs): Promise<string | null> {
+    setLeaving(true);
     try {
-      await mutation.mutateAsync(args);
-    } catch (thrown) {
-      return deleteErrorMessage(thrown);
+      const step = releaseStep(await askAppleAgain());
+      if (step.kind === 'stop') return null;
+      if (step.kind === 'revoke') {
+        await revokeApple(step.code).catch((thrown: unknown) => {
+          console.warn(`[api] apple was not told about a deletion: ${String(thrown)}`);
+        });
+      }
+      try {
+        await mutation.mutateAsync(args);
+      } catch (thrown) {
+        return deleteErrorMessage(thrown);
+      }
+      await signOut();
+      return null;
+    } finally {
+      setLeaving(false);
     }
-    await signOut();
-    return null;
   }
 
-  return { remove, busy: mutation.isPending };
+  return { remove, busy: mutation.isPending || leaving };
 }
 
 /**

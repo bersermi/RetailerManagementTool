@@ -1,14 +1,24 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import type { Session } from '@supabase/supabase-js';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 
-import { authErrorMessage } from '@/auth/errors';
+import {
+  APPLE_PROVIDER,
+  appleOutcome,
+  appleThrown,
+  asksAppleFirst,
+  nameToStore,
+  type AppleReturn,
+} from '@/auth/apple';
+import { authErrorKey, authErrorMessage } from '@/auth/errors';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
 import { cacheMemory, forgetCache } from '@/api/persist';
 import { forgetLastScreen, routeMemory } from '@/navigation/lastScreen';
 import { ES } from '@/strings';
+import { newNoncePair } from '@/lib/ids';
 import { supabase } from '@/lib/supabase';
 
 // ============================================================================
@@ -56,6 +66,20 @@ interface Auth {
    * See `@/auth/oauth`.
    */
   readonly signInWithGoogle: () => Promise<string | null>;
+  /**
+   * Whether this phone can show Apple's sheet (`5R-k`). `false` on Android,
+   * and `false` until the phone has been asked — so the button appears a
+   * moment late on an iPhone and never appears where it cannot work.
+   */
+  readonly appleAvailable: boolean;
+  /** Apple's way in (`5R-k`). `null` is success or a closed sheet, as Google's. */
+  readonly signInWithApple: () => Promise<string | null>;
+  /**
+   * Apple, asked once more, for a deletion (`5R-k`). `null` when there is
+   * nothing to ask: no Apple link on this login, or no sheet on this phone.
+   * What each answer means for the deletion is `releaseStep`'s, not the caller's.
+   */
+  readonly askAppleAgain: () => Promise<AppleReturn | null>;
   readonly signOut: () => Promise<void>;
 }
 
@@ -68,12 +92,30 @@ const AuthContext = createContext<Auth>({
   signIn: async () => null,
   signUp: async () => null,
   signInWithGoogle: async () => null,
+  appleAvailable: false,
+  signInWithApple: async () => null,
+  askAppleAgain: async () => null,
   signOut: async () => {},
 });
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [ready, setReady] = useState(false);
+  const [appleAvailable, setAppleAvailable] = useState(false);
+
+  // `5R-k`. Asked once. ⚠️ A REJECTION LEAVES IT `false`, which hides a button
+  // rather than showing one that cannot work.
+  useEffect(() => {
+    let cancelled = false;
+    void AppleAuthentication.isAvailableAsync()
+      .then((available) => {
+        if (!cancelled) setAppleAvailable(available);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -200,6 +242,88 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  // ==========================================================================
+  // ⚠️ APPLE'S WAY IN, AND EVERY DECISION IN IT IS IN `@/auth/apple`. Plan task
+  // `5R-k`. No browser and no callback: the system sheet returns a token Apple
+  // signed, and Supabase checks that signature itself.
+  //
+  // ⚠️ THE NONCE'S HASH GOES TO APPLE AND THE RAW STRING TO SUPABASE. See
+  // `newNoncePair`: the other way round is refused, every time.
+  //
+  // ⚠️⚠️ THE NAME IS WRITTEN HERE OR NOWHERE. Apple sends it on the first
+  // sign-in only and Supabase never sees it, so this is the one moment it can
+  // reach `raw_user_meta_data` — under the key the email door and Google
+  // already use. A failed write is not a failed sign-in: the person is in, and
+  // *Ajustes → Tu nombre* is where a missing name is put right.
+  // ==========================================================================
+  const signInWithApple = useCallback(async () => {
+    let asked: AppleReturn;
+    let rawNonce = '';
+    try {
+      const nonce = await newNoncePair();
+      rawNonce = nonce.raw;
+      asked = appleOutcome(
+        await AppleAuthentication.signInAsync({
+          requestedScopes: [
+            AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+            AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          ],
+          nonce: nonce.hashed,
+        }),
+      );
+    } catch (thrown) {
+      asked = appleThrown(thrown);
+    }
+
+    // They closed the sheet. They know.
+    if (asked.kind === 'cancelled') return null;
+    if (asked.kind === 'failed') {
+      // The detail names a build or an account problem: the console's, not hers.
+      console.warn(`[auth] apple sign-in failed: ${asked.detail}`);
+      return ES.auth.errors.appleFailed;
+    }
+
+    try {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: APPLE_PROVIDER,
+        token: asked.identityToken,
+        nonce: rawNonce,
+      });
+      if (error) {
+        // ⚠️ ONLY A REFUSAL THIS APP HAS A SENTENCE FOR KEEPS IT. Anything else
+        // — the provider switched off, a nonce refused — names the button and
+        // the way in that still works, as Google's failure does.
+        console.warn(`[auth] supabase refused apple's token: ${error.message}`);
+        const key = authErrorKey(error);
+        return key === 'unknown' ? ES.auth.errors.appleFailed : ES.auth.errors[key];
+      }
+
+      const name = nameToStore(asked.fullName, data.user?.user_metadata?.[FULL_NAME_KEY]);
+      if (name !== null) {
+        const { error: nameError } = await supabase.auth.updateUser({
+          data: { [FULL_NAME_KEY]: name },
+        });
+        if (nameError) console.warn(`[auth] apple's name was not stored: ${nameError.message}`);
+      }
+      return null;
+    } catch (thrown) {
+      return authErrorMessage(thrown);
+    }
+  }, []);
+
+  // ⚠️ THE SAME SHEET, ASKED AGAIN, AND ONLY A DELETION ASKS (`5R-k`). Apple
+  // will not be told a person has left without a code that is five minutes
+  // old at most, and nothing here keeps one. No scopes and no nonce: the token
+  // that comes back is not used, only the code beside it.
+  const askAppleAgain = useCallback(async (): Promise<AppleReturn | null> => {
+    if (!asksAppleFirst(session?.user, appleAvailable)) return null;
+    try {
+      return appleOutcome(await AppleAuthentication.signInAsync());
+    } catch (thrown) {
+      return appleThrown(thrown);
+    }
+  }, [session, appleAvailable]);
+
   // ⚠️ THE ONLY THING THAT ENDS A SESSION (C1.4). Nothing else in this app may
   // call `supabase.auth.signOut()`, and no failure path may: "nobody logs out
   // at 9 p.m., the phone is simply put down."
@@ -225,14 +349,34 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<Auth>(
-    () => ({ session, ready, signIn, signUp, signInWithGoogle, signOut }),
-    [session, ready, signIn, signUp, signInWithGoogle, signOut],
+    () => ({
+      session,
+      ready,
+      signIn,
+      signUp,
+      signInWithGoogle,
+      appleAvailable,
+      signInWithApple,
+      askAppleAgain,
+      signOut,
+    }),
+    [
+      session,
+      ready,
+      signIn,
+      signUp,
+      signInWithGoogle,
+      appleAvailable,
+      signInWithApple,
+      askAppleAgain,
+      signOut,
+    ],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
-/** The session in force, and the four things that change it. */
+/** The session in force, and the things that change it. */
 export function useAuth(): Auth {
   return useContext(AuthContext);
 }

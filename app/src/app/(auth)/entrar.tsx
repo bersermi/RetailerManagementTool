@@ -1,6 +1,19 @@
+import {
+  AppleAuthenticationButton,
+  AppleAuthenticationButtonStyle,
+  AppleAuthenticationButtonType,
+} from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput } from 'react-native';
+import {
+  ActivityIndicator,
+  Linking,
+  Pressable,
+  ScrollView,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
@@ -78,11 +91,24 @@ import { Casilla } from '@/ui/Casilla';
 // crowded display size: without them the title sat under the clock).
 // ⚠️ `keyboardShouldPersistTaps="handled"` is what keeps one tap on the button
 // one tap: without it, a tap with the keyboard up only closes the keyboard.
+//
+// ⚠️⚠️ `5R-k`: APPLE'S BUTTON, ON AN iPHONE ONLY, AND IT IS THE ONE CONTROL ON
+// THIS SCREEN THIS APP DOES NOT DRAW. Apple's guideline 4.8 asks for it beside
+// Google (the owner, 2026-10-10). It is the system's own button, so its words
+// are Apple's, in the PHONE's language and not from `ES`: Apple approves three
+// titles and *Entrar con Apple* is not one of them. `CONTINUE` because, like
+// Google, it both makes the account and comes back to it — and the aviso's
+// line under the two buttons already begins *Al continuar*. Its colours are
+// Apple's too (`R11` has nothing to say about a control it cannot style): the
+// outlined one, so it sits as Google's peer rather than above *Entrar*.
+// ⚠️ IT HAS NO `disabled`, so `busy` is a wrapper that stops touches.
+// ⚠️ WHETHER IT LOOKS RIGHT IS NOT CHECKED BY ANYTHING (`R9`): no workflow
+// compiles the native app. The owner's iPhone is the instrument.
 // ============================================================================
 export default function Entrar() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
-  const { signIn, signUp, signInWithGoogle } = useAuth();
+  const { signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple } = useAuth();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -126,6 +152,10 @@ export default function Entrar() {
   // The same discipline, for the button that belongs to neither half.
   async function attemptGoogle() {
     await attempt(() => signInWithGoogle());
+  }
+
+  async function attemptApple() {
+    await attempt(() => signInWithApple());
   }
 
   // ⚠️ SWITCHING HALVES CLEARS THE MESSAGE. A refusal that named a field the
@@ -340,10 +370,24 @@ export default function Entrar() {
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{ES.auth.google}</Text>
       </Pressable>
 
-      {/* 5R-d-iii, the owner's ruling of 2026-10-12. Directly under the button
-          it speaks for, on both halves, because Google makes an account from
-          either. The whole line is the target; the underline says where the
-          link is. */}
+      {/* 5R-k. Under the other provider and as tall as it, on a phone that
+          has the sheet. The header says why its words and colours are not ours. */}
+      {appleAvailable && (
+        <View pointerEvents={busy ? 'none' : 'auto'} style={{ opacity: busy ? 0.6 : 1 }}>
+          <AppleAuthenticationButton
+            buttonType={AppleAuthenticationButtonType.CONTINUE}
+            buttonStyle={AppleAuthenticationButtonStyle.WHITE_OUTLINE}
+            cornerRadius={scale.space / 2}
+            onPress={() => void attemptApple()}
+            style={{ width: '100%', height: scale.tapTarget }}
+          />
+        </View>
+      )}
+
+      {/* 5R-d-iii, the owner's ruling of 2026-10-12. Directly under the buttons
+          it speaks for, on both halves, because a provider makes an account
+          from either. The whole line is the target; the underline says where
+          the link is. */}
       <Pressable
         accessibilityRole="link"
         disabled={busy}
