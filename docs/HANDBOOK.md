@@ -100,7 +100,7 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. Not on your phone yet |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you | ⏸️ Parked by you on 1 October — a designer may take it |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ▶️ **Back on 12 October, by you** — after the pilot path, in sessions with you. It settles the look before the logo goes in and before the store screenshots |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
@@ -122,8 +122,9 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-d-i** | **The aviso, written in Spanish** — under the new 2025 privacy law; your name and home address as the responsible party; what a deleted account keeps. No lawyer for the pilot (your call, 12 October) | ✅ **Done 12 October** — the aviso and the deletion page are in `site/`, with blanks where your name and address go, filled in only when they are published. Also a script for deleting an account somebody asks for by email (below) |
 | **5R-d-ii** | **The site at tu-wera.com** (bought 12 October, GoDaddy) — the aviso, the deletion page, and privacidad@tu-wera.com forwarding to your Gmail; then Google sign-in stops needing a hand-made list of testers. **One switch is yours first:** Supabase → Authentication → *Write audit logs to the database*, off (deleting an account otherwise leaves the person's email in a log) | ⚠️ **This is where the next piece of work is** — needs you at GoDaddy, Google Cloud and Supabase for a few minutes |
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | After the site is up; it reaches phones over the air |
-| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up |
+| **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | After the site is up. The screenshots wait for your review and the logo; **the 14-day Android test does not** (only its testers see that listing), so it starts once you have 12 testers |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | Ruled by you on 10 October; can be built any time |
+| **5R-m** | **Your logo, on the app icon and the site** — the logo is yours (or your designer's); then the icon, the splash and a restyle of the three web pages | When the logo exists and after your review. **The icon needs a new build, not an over-the-air fix**, so it ships in the same build as Apple sign-in: each pilot phone reinstalls once, keeping its data |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | After the site is up (the aviso must be public first), and after your answer on the database's region |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | Ruled by you on 12 October; a small query you run |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
@@ -383,6 +384,50 @@ because deleting them deletes the shop. Write back, make sure they understand, t
 with `--shop "the name it printed"`. It changes nothing when the email has no account or the
 name is wrong. To try it safely first, add `--local`. Then reply that it is done; the page
 promises an answer within 20 business days.
+
+---
+
+## Putting tu-wera.com up
+
+The pages are in `site/` and GitHub publishes them every time a change to them merges. Your
+name and address are **never in the repository**: GitHub keeps them as two secrets and fills
+them in when it builds the site. Seven steps, in this order — **1 and 2 first**, because
+nothing can build without them, and **3 before 4**, because the pages promise something
+about deleted accounts that is true only once 3 is done.
+
+1. **GitHub — your name and address.** github.com/bersermi/RetailerManagementTool →
+   *Settings → Secrets and variables → Actions → New repository secret*, twice:
+   `RESPONSABLE` = your full legal name as the aviso should print it; `DOMICILIO` = your
+   address on one line (street and number, interior, colonia, alcaldía, C.P., Ciudad de
+   México). GitHub never shows them again. To change one later, overwrite it, then
+   *Actions → site → Run workflow*.
+2. **GitHub — switch the site on.** Same repository → *Settings → Pages*: *Source* =
+   **GitHub Actions**; *Custom domain* = `tu-wera.com` → Save (it says the DNS check failed
+   until step 4). Then github.com/settings/pages → *Add a domain* → `tu-wera.com`: it shows
+   a TXT record for step 4, and after step 4 you come back and press *Verify*. That stops
+   anybody else's GitHub site from claiming the domain.
+3. **Supabase — the audit log.** Your project → *Authentication* → turn **off** *Write audit
+   logs to the database*. Then *SQL Editor*: `delete from auth.audit_log_entries;` → Run.
+   Without this, a deleted account leaves its email behind in that log.
+4. **GoDaddy — the records.** *My Products → tu-wera.com → DNS*. **Delete** the `A` record
+   for `@` (it says *Parked*) and the `CNAME` for `www`; if *Forwarding* is on, remove it.
+   **Add:** four `A` records named `@` — `185.199.108.153`, `185.199.109.153`,
+   `185.199.110.153`, `185.199.111.153`; a `CNAME` named `www` → `bersermi.github.io`; the
+   `TXT` from step 2; and for email, `MX` `@` → `mx1.improvmx.com` (priority 10), `MX` `@` →
+   `mx2.improvmx.com` (priority 20), and `TXT` `@` → `v=spf1 include:spf.improvmx.com ~all`.
+5. **ImprovMX — the email** (free; GoDaddy stopped including forwarding with new domains).
+   improvmx.com → sign up with your Gmail → add `tu-wera.com` → aliases `privacidad` and
+   `ayuda`, both to your Gmail. Then send a test email to privacidad@tu-wera.com from another
+   address. Your replies go out from your Gmail address, which is fine for the pilot.
+6. **When tu-wera.com opens** (minutes, at most an hour after step 4): GitHub → *Settings →
+   Pages* → tick **Enforce HTTPS**. Then a session runs `bash docs/checks/5R-d-ii-site-live.sh`,
+   which checks every page, that nothing sets a cookie, and the email records.
+7. **Google Cloud — Google sign-in for everybody.** console.cloud.google.com → the project
+   with Wera's sign-in → *Google Auth Platform → Branding*: home page `https://tu-wera.com/`,
+   privacy policy `https://tu-wera.com/privacidad/`, authorized domain `tu-wera.com`. Then
+   *Audience → Publish app*. After that nobody has to be added as a test user. Google's
+   screen will still name the *supabase.co* address rather than *Wera*; showing the name is
+   Google's brand verification, which the pilot does not need.
 
 ---
 
