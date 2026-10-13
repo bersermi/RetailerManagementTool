@@ -5,11 +5,10 @@
 // Vitest, asserting equality to the centavo. Not two copies of the same
 // expectations."
 //
-// ⚠️ THIS IS HALF OF THAT SENTENCE, AND THE PLAN SAYS SO. As of 3.6a this file
-// is the FIRST reader; `supabase/pgtap/07_money_and_units.sql` still carries
-// the hand-written fork the expectations were lifted from, by id. Moving 07
-// onto this same file is task 3.6b, and until it lands the drift window is
-// narrowed, not closed. A green here is not yet the §2.10 claim.
+// ⚠️ THIS WAS HALF OF THAT SENTENCE UNTIL 3.6b LANDED. As of 3.6a this file
+// was the FIRST reader; `supabase/pgtap/07_money_and_units.sql` has since been
+// moved onto this same file (task 3.6b, done), so both sides read one set of
+// cases. A green here together with a green 07 IS the §2.10 claim.
 //
 // ⚠️ THE ORDER OF THE BLOCKS BELOW IS DELIBERATE. M8 and B6 come first because
 // they are the only two cases in the table that can fail for the reason this

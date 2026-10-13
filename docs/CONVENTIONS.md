@@ -6,7 +6,7 @@ arriving before it does will write the conventions themselves, by accident, in
 four places."*
 
 Every rule below is **already true of `app/` today** — none of it is aspiration.
-Most are read by a machine on every pull request, and the two that are not say so
+Most are read by a machine on every pull request, and the three that are not (`R3`, `R9`, `R16`) say so
 in their own words. ⚠️ **This sentence used to carry the counts — *"nine rules;
 seven of them"* — and it was stale from the day `R10` was added.** A number nothing
 checks is a claim nothing keeps; the list in the command below is the count, and
@@ -603,7 +603,7 @@ is not exported — `Cantidad.tsx` keeps `Paso` to itself.
 
 ⚠️ **NO `export default` IN HERE, AND THE ASYMMETRY IS THE POINT.** A route is a
 default export because Expo Router requires one; a primitive is named because its
-name is how the six route files
+name is how the route files
 that import from here ask for it. A directory where both spellings appear
 is one where you must open the file to find out how to import it.
 
@@ -730,7 +730,7 @@ file draws it; `5h.5` left three shapes that satisfied it, and `8f` extracted tw
 
 ⚠️ **`documentos.tsx`'s `Confirmacion` has ONE caller and stays in its route**,
 which is `R14`'s corollary rather than an oversight. `src/scaffolding/Pendiente.tsx`
-is still separate and still exists to say a screen is not built yet.
+is still separate; since every screen is built, nothing imports it and it can be deleted.
 
 ⚠️ **THE MOTION RULE IS STILL ONLY PROSE, AND IT IS THE ONE GAP `R14`–`R16` DO NOT
 TOUCH**: one staggered entrance per screen, `transform` and `opacity` only, because
@@ -741,7 +741,7 @@ and the trap that has actually bitten is that a native-driver animation started 
 the handler that mounts the view fails **silently** — start it in an effect.
 
 ⚠️ **THE COLOURS LANDED AT `5b.6` ON 2026-09-17 — see `R11`.**
-`app/src/theme/palette.ts` holds the eleven roles and the gate reads them.
+`app/src/theme/palette.ts` holds the twelve roles and the gate reads them.
 
 So if you are about to write **the second RPC wrapper**: the pattern is `R12` and
 `R13`, and `app/src/api/workspace.ts`'s header is where the reasoning is. If you

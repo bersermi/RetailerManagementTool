@@ -22,10 +22,13 @@ Wera is an **alpha** — your word, and accurate. Every screen reads and writes 
 real database; none runs on sample data.
 
 - **Getting in** — sign in by email or Google, create the shop, invite somebody by
-  name with a code you read out, let in somebody who asks.
+  their email (Wera shows a code once and you send it to them), let in somebody who asks.
 - **Productos** — the catalog: search, add, edit, open a family, and retire a
-  product you created (products that were there before 24 September stay, by your
-  ruling).
+  product you created (products that were there before 24 September, and products
+  from the starter catalog, stay, by your ruling).
+- **The starter catalog** — choose your giros when you create the shop, or *Agregar
+  del catálogo* in Productos later. A product brought in this way can be renamed and
+  repriced, never removed.
 - **Vender** — the counter: a stepper and a keypad on every row, a basket, a slide
   that commits the sale. **Works with no signal**, and sends what it held when the
   signal comes back.
@@ -39,6 +42,10 @@ real database; none runs on sample data.
 - **Números** — what sold, by day, week or month, with IVA; **Precios** for how one
   product's buying and selling prices have moved; and **Descargar un mes** as a
   spreadsheet or PDF.
+
+⚠️ **Not there: how much stock you have.** Every sale, delivery and write-off moves the
+stock in the database, and no screen shows the result (found 13 October). So the store
+listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ---
 
@@ -64,6 +71,10 @@ delete it. **The pilot member's Android has the same kind of build** and takes t
 time Wera opens it runs what its install carried, and only the 13 October build carries the
 aviso's box and the measurements. Its link is on expo.dev, under *Builds*: the newest Android
 one marked `preview`. The link is not written here because this repository is public.
+⚠️ **EAS lists that file as expiring on 27 October** (and your iPhone's build file on 24
+October). Copies of both are on this Mac, in `~/RetailerToolDev/wera-builds/`, saved on 13
+October: an Android installs from the `.apk` file itself. The phones that already have Wera
+are not affected, and the build with the cow replaces both files.
 
 ⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
 update channel, so the phone would stop taking fixes. A change that needs a new build (a new
@@ -79,7 +90,7 @@ build again and send them its install link.
 ## What only you can judge — the screens to open
 
 None of this blocks work. It is the polish you said you wanted to do later, and it
-is the starting list for the design day. The full questions are in the archive
+is the starting list for your screen-by-screen review (`8g`). The full questions are in the archive
 file above, section 2 of its catch-up.
 
 | Open this | The question |
@@ -87,7 +98,10 @@ file above, section 2 of its catch-up.
 | **Lo último** | Does a delivery read at a glance as *that one*? Are two buttons under every row too much? Is landing on Comprar with the cart already full a relief or a surprise? |
 | **Desperdicio** | Does `¿Qué pasó?` in a window you cannot dismiss help or get in the way? Does a write-off with no peso figure read as finished? |
 | **Proveedores** | Does a list of bare names read as a directory or as unfinished? |
-| **Productos → a product → Editar** | Add one through *Agregar* first (yours are all protected). Does the red *Retirar del catálogo* read as dangerous enough? |
+| **Productos → a product → Editar** | Make one first: in Productos, type a name nothing matches and tap *Crear Nuevo Producto* (yours are all protected, and so is anything from *Agregar del catálogo*). Does the red *Retirar del catálogo* read as dangerous enough? |
+| **Inicio — *Una operación no se guardó*** | Found 13 October: one delivery you recorded on the night of 24 September never reached the database. It hit a unit problem that was fixed the next day, and it is still listed as not saved. Does Inicio tell you so? Did you record that delivery again? Tell a session either way |
+| **Ajustes → Tu cuenta → *Eliminar mi cuenta*** | On your phone since 10 October and never looked at. Open it, read the warning, tap *Cancelar*. **Do not confirm.** Is the warning clear about the shop being deleted with you? |
+| **Agregar del catálogo → the list you untick** | Never looked at on a phone. With *Abarrotes* it is about a thousand rows in one list: does it scroll smoothly? Should *Volver* ask before throwing away what you unticked? |
 | **Números** | Do fourteen day-bars read as a fortnight or a comb? Does *Descargar un mes* open in WhatsApp and a spreadsheet with its accents intact? |
 | **Números → a product → Precios** | Do two lines read as your margin or a tangle? Does *Compra* with IVA confuse you, when you typed it without? |
 | **Entrar → crear una cuenta con correo** | Nobody has ever signed up by email on the live project; all three users came through Google. Create one with a second email address and a password. It should let you straight in with no confirmation email, which is what you asked for. Then sign out and sign back in with it |
@@ -102,9 +116,9 @@ file above, section 2 of its catch-up.
 
 ## Where we are
 
-**29 September is the cleaning day** — five jobs, `8a` to `8e`, that make the
-documents smaller and change nothing a shopkeeper sees. **30 September is the
-design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
+**29 September was the cleaning day** (`8a` to `8e`) **and 30 September the design day**
+(`8f`); both are done. What is left of that step is your review, `8g`. Since then: the
+starter catalog, the release path, the aviso and the site, and on 13 October the logo.
 
 | Job | What | State |
 |---|---|---|
@@ -113,13 +127,13 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ✅ **Done 29 September** — 57 KB to 14 KB |
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
-| **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. Not on your phone yet |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ▶️ **Back on 12 October, by you** — after the pilot path, in sessions with you. It settles the look before the logo goes in and before the store screenshots |
+| **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ▶️ **Back on 12 October, by you** — after the pilot path, in sessions with you. It settles the look before the logo goes on the website and before the public listings' screenshots (the app icon goes in earlier, with `5R-k`) |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
 | **9c** | **Pollería, with you** — the first giro, product by product. Paste the **Catalog Prompt** | ✅ **Done 1 October** — 24 products, by the kilo, in *Pollo* and *Huevo* |
-| **9d** | **The import, in the app** — choose giros, untick what you don't sell, *Importar*; and *Agregar del catálogo* on Productos for later | ✅ **Done 1 October** — on your phone with the next rebuild |
+| **9d** | **The import, in the app** — choose giros, untick what you don't sell, *Agregar N productos*; and *Agregar del catálogo* on Productos for later | ✅ **Done 1 October** — on your phone since 10 October |
 | **9e** | **Carnicería, with you** | ✅ **Done 1 October** — 54 new products in *Res*, *Cerdo* and *Tuétano*; the eggs tagged too |
 | **9f** | **Verdulería, with you** | ✅ **Done 2 October** — 53 new products; herbs sold by the new unit *manojo*. *Caja* parked by you as an idea, not a task |
 | **9g** | **Frutería, with you** | ✅ **Done 2 October** — 46 new products; melón, sandía, papaya, piña and pitaya both by the kilo and by the piece. Fruta picada left out for now |
@@ -144,8 +158,9 @@ design day, with you.** The whole day is `docs/PLAN.md`, `## Step 8`.
 | **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon goes in with the Apple sign-in build (`5R-k`)**, since you ruled that the Android test waits for it; each pilot phone reinstalls once, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
+| **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | New on 13 October, from the review; until then no job owned the pilot's start. It waits on questions (1), (2) and (3) below and on the build with the cow |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ⚠️ **One question is waiting on YOU**, in the plan's ⛔ DECISIONS OWED block. The daily count reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises. **The Android test does not wait for it:** its testers are on a test version too, Google's, so the sentence still holds for them. If you read the aviso more strictly than that, answer this before the first tester installs | Before the store submission (`5R-e`). Nothing before that waits on it |
+| **—** | ⚠️ **Six questions are waiting on YOU**, in the plan's ⛔ DECISIONS OWED block, each with its brief and my recommendation. Five are new from the review of 13 October. **(1) The live database has no backups.** The architecture asks for them from the first real sale, and your shop has been recording since 22 September. I recommend the paid plan (about $25 a month) before the first shop that is not yours signs up: a daily backup kept 7 days, which is also what the aviso already says. A copy of your shop's records as of 13 October is on this Mac meanwhile. **(2) Two doors in the database that nothing uses are open.** Through one, a manager could make somebody an owner of the shop; through the other, an owner could erase a staff member's record, which your ruling of 9 October keeps. I recommend one small database change that closes both. Nobody can use either today: you are the only member of the only shop. **(3) An invitation is taken by whoever signs up with that email address**, because Wera never checks that an address belongs to the person. I recommend that only a Google sign-in is let straight in; somebody who signed up with email and password asks to join, and the owner approves them by name. **(4) The app icon as a cream cow on a rust square**, as the canvas shows it. I recommend yes. **(5) Your name and a work email are in the old Power Apps files** in this public repository, since April. Your address is nowhere. I recommend removing them from the files and leaving the history alone, because the aviso publishes the same name. **(6) The daily count.** It reads every shop in the database, and the aviso describes it as part of the **pilot**. That is true while every shop is on a test version, and stops being true for the first shop that installs from a store. **My recommendation:** when the store versions ship, reword that one purpose in the aviso so it covers every shop. A count per shop names nobody, and it is how you will know whether a shop you never met uses Wera. It costs an edit to the page, a new date, and the email to every account the aviso promises. **The Android test does not wait for it:** its testers are on a test version too, Google's, so the sentence still holds for them. If you read the aviso more strictly than that, answer this before the first tester installs | (1), (2) and (3) before the pilot's first shop (`5P-e`). (4) before the build with the cow, so answering it now saves a stop. (5) whenever you like. (6) before the store submission (`5R-e`) |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -157,8 +172,8 @@ onboarding and later. `9a`–`9b` build where it lives; `9c` and `9e`–`9j` are
 with you per giro, choosing families and units product by product; `9d` is the app.
 
 **Between the alpha and a beta is distribution, not code:** `5R-a` (Apple Developer
-Program and Play Console — both opened 1 October), `5R-b` (TestFlight), `5R-c` account deletion
-(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far), **and the Android test's six steps in Play Console**, which can start with the one you have. **Order to the pilot** (12 October): the aviso, the site, the checkbox, the pilot's readings on, the engagement count; then the listings, Apple sign-in and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
+Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fixes over the air; TestFlight comes with the App Store listing), `5R-c` account deletion
+(a store requirement, ruled and built 9 October) and `5R-d` the *aviso de privacidad*. Order: `5R-c` (done), `5R-h` (forgotten password, done), `5R-b` (done: cloud builds and fixes over the air, on both phones), `5R-d` (split four ways on 10 October), `5R-k` (Apple sign-in), then submission. **Yours, with lead time:** ✅ tu-wera.com bought; ⏸️ the lawyer after the pilot; **12 Gmail addresses** for the Android test (**1 of 12** so far). In Play Console only steps 1 to 3 can start now; the upload waits for the build with the cow. **The order now** (13 October): Apple sign-in and the icon in one build (`5R-k`); then the Android test and, with you, the pilot's start list and your review; then the public listings and submission. Parked by you: phone verification (`5R-i`) and email verification (`5R-j`).
 
 ---
 
@@ -239,6 +254,8 @@ situations before showing me a design.
 
 ### The Catalog Prompt — for each giro of the starter catalog
 
+*Finished: all seven giros are in (`9c`–`9j`). Kept for a future giro.*
+
 Use it for the content rows of `## Step 9` (`9c` Pollería, then `9e`–`9j`), one giro per
 session, clearing between them. For the build rows (`9d`), use the main prompt.
 
@@ -259,7 +276,7 @@ How the session goes:
 - Never invent what a shop does. If you are unsure whether it is sold by the
   kilo or by the piece, or whether it carries IVA, ask me. Say which rows you
   guessed.
-- A unit the app does not have (docena, manojo, caja) is a migration. Stop and
+- A unit the app does not have (docena, caja) is a migration. Stop and
   ask me — do not work around it.
 - No prices, no pictures. No brands, unless I rule the giro brand-driven
   (Abarrotes is, 2 October; Cremería for its packaged goods, 5 October): then
@@ -278,6 +295,8 @@ End with, in twenty seconds of reading:
 ```
 
 ### The Cleaning Prompt — for 29 September only
+
+*Finished on 29 September. Kept as the record.*
 
 Paste it once per job (`8a`–`8e`), clearing between jobs. **When `8f` is next, the
 cleaning is over — go back to the main prompt.**
@@ -313,12 +332,13 @@ End with, in twenty seconds of reading:
 
 | The prompt says | Who enforces it |
 |---|---|
-| Take the task the plan marks next; not a gated one | **A machine** — `plan-handover.sh` refuses, on every pull request |
+| Take the task the plan marks next; not a gated one | **A machine, in part** — on every pull request that touches the app, the plan or this handbook, `plan-handover.sh` checks that the plan names exactly one next task and that no open question of yours blocks it. Whether the session took THAT task is its word |
+| Stop and ask before a one-way door | ⚠️ **Nobody** — it is a sentence in your prompt, and since 13 October in `CLAUDE.md` |
 | Answer a dated obligation | **A machine** — a date passing unanswered turns the checks red |
 | This handbook agrees with the plan | **A machine** — `handbook-agreement.sh` |
 | Estimate first; name the check that looked | ⚠️ **Nobody** |
 | Say what only a person can judge | ⚠️ **Nobody** — the `Costos` PDF passed every check and was wrong on your phone |
-| Tell you the phone needs a rebuild | ⚠️ **Nobody** — but the date is in the dates block |
+| Tell you the phone needs a rebuild | ⚠️ **Nobody** — and no rebuild is dated any more: the build on your iPhone is signed until 10 October 2027 |
 | Deploy a merged database change | ⚠️ **Nobody automatically** — `supabase db push`, then `bash docs/checks/5R-f-schema-deployed.sh` |
 | Report what was decided on your behalf | ⚠️ **Nobody** — a session that decides and says nothing passes every check |
 
@@ -352,8 +372,10 @@ phone: close Wera completely, open it, close it, open it again. **Measured 10 Oc
 after it was published.**
 
 **If a fix turns out to be bad, undo it first.** The undo command is at the top of
-`docs/runbooks/ship-an-update.sh`. It sends every phone back to the version it was
-installed with. That took 1 min 55 s on the Android and about 5 minutes on your iPhone.
+`docs/runbooks/ship-an-update.sh`. ⚠️ **Run it twice**: as written for the Android, then
+with `--platform ios` and the iPhone's runtime (the script prints both runtimes when it
+ships). Each sends those phones back to the version they were installed with. That took 1
+min 55 s on the Android and about 5 minutes on your iPhone.
 
 **To switch the pilot's measurements off**, take the setting away and ship once more. Phones
 stop measuring the second time they open Wera after that:
@@ -406,7 +428,7 @@ supabase db query --linked -o table "select build, count(*) from public.pilot_re
 ```
 
 A row named `piloto-1` means a phone on the test channel has measured. **On 13 October there was
-none yet.** To make one on your phone: close Wera completely, open it, close it, open it again,
+none yet** (the row `8d8758c` is the 28 September build; ignore it). To make one on your phone: close Wera completely, open it, close it, open it again,
 then record one sale. Run the line above a minute later.
 
 ---
@@ -414,7 +436,7 @@ then record one sale. Run the line above a minute later.
 ## If somebody forgot their password
 
 They tap *¿Olvidaste tu contraseña?* on *Entrar* and a WhatsApp chat opens with you, naming
-their email. **Before you change anything, make sure the person writing is the person who owns
+their email if they had typed it (otherwise ask them for it). **Before you change anything, make sure the person writing is the person who owns
 that account** — a voice note, a call, or someone you know by sight. Anyone can type someone
 else's email.
 
@@ -457,9 +479,14 @@ promises an answer within 20 business days.
 
 ## Putting tu-wera.com up
 
-The pages are in `site/` and GitHub publishes them every time a change to them merges. Your
-name and address are **never in the repository**: GitHub keeps them as two secrets and fills
-them in when it builds the site. Seven steps, in this order — **1 and 2 first**, because
+✅ **Done on 12 and 13 October, and kept as the record.** Still yours: step 7, and pressing
+*Verify* in step 2.
+
+The pages are in `site/` and GitHub publishes them every time a change to them merges. The
+aviso's copy of your name and address is **never in the repository**: GitHub keeps them as
+two secrets and fills them in when it builds the site. ⚠️ Your address is nowhere in it. Your
+name is, once: in an old file of the abandoned Power Apps version (see the questions waiting
+on you). Seven steps, in this order — **1 and 2 first**, because
 nothing can build without them, and **3 before 4**, because the pages promise something
 about deleted accounts that is true only once 3 is done.
 
@@ -591,7 +618,7 @@ another's data. The database enforces it, so a bug in a screen cannot leak it.
 parallel copy for work in progress; `main` is the real one.
 
 **Pull request (PR) / merge** — asking to fold a branch into `main`, with the
-checks' verdict attached / accepting it. Merging deploys nothing.
+checks' verdict attached / accepting it. Merging deploys nothing to the app or the database; the website is the exception, and a merged change to `site/` is published.
 
 **CI** — the automated checks GitHub runs on every push. The independent referee.
 

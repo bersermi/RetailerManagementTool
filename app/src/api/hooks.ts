@@ -217,8 +217,9 @@ import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
  * DEFECT AND IS WORTH SAYING BEFORE `5f` MAKES IT VISIBLE. This is a SERVER read;
  * a sale rung up offline lives in the device's outbox until the link comes back
  * (`5c`), so Inicio can honestly show less than the cashier remembers taking.
- * Reconciling the two is `5f`'s question — it is the task that creates the
- * queued sale — and pricing the outbox here would be a second answer to *what
+ * Reconciling the two was `5f`'s question — it is the task that creates the
+ * queued sale — and `5f` closed without asking it. Since 2026-10-13 it is on
+ * `8g`'s row, the owner's review. Pricing the outbox here would be a second answer to *what
  * did we take*, on the one screen that must not have two.
  */
 export function useToday(): Takings & {

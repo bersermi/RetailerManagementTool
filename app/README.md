@@ -1,20 +1,19 @@
 # `@tienda/app` — the Expo client
 
-The fourth workspace. **`app/**` is the juniors' side of the seam** (ADR-035 §2.10):
+**`app/**` is the juniors' side of the seam** (ADR-035 §2.10):
 screens, components, navigation. The money path is deliberately *not* here — it lives
 in `@tienda/money`, owned by the schema owner, for the reason that section gives.
 
 **Read [`docs/CONVENTIONS.md`](../docs/CONVENTIONS.md) before adding a file here.**
-Nine rules, seven of them read by `app.yml` on every pull request — where a file
+Its rules — most of them read by `app.yml` on every pull request — say where a file
 goes, how it imports, where the words live, why no number on a screen is a
 literal. It describes this directory as it is, not as it should be.
 
-**Read `docs/PLAN.md` step 5 before adding anything.** Every screen in this app is
-specified there and traced to the question in the 2026-09-07 interview that produced
-it. ⚠️ **None of them has been built yet.** What `src/app/` holds today is the shell
-`5a-i`–`5a-iii` shipped — the sign-in screen, the tab bar, and three placeholder
-routes that exist so the shell is a real shell. `src/scaffolding/Pendiente.tsx` is
-what stands behind them, and the task that builds each screen deletes it.
+**The screens are built.** Each was specified in the plan's step 5 and traced to the
+question in the 2026-09-07 interview that produced it; that step is closed and its
+record is in `docs/plan/archive/steps-4.6-to-7.md`. What the app does today is in
+`docs/HANDBOOK.md`. `src/scaffolding/Pendiente.tsx` is a leftover of the first shell:
+nothing imports it, and the next task that touches `app/` may delete it.
 
 | | |
 |---|---|
