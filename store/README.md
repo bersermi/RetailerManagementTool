@@ -50,7 +50,7 @@ against the code: this table is the only link, as `site/README.md` is for the av
 | No ads, no advertising id | No ad library in `app/package.json`; the store build's manifest has no `AD_ID` permission (measured below) |
 | An account can be deleted in the app and by a web page | `5R-c` (*Ajustes → Tu cuenta → Eliminar mi cuenta*) and `tu-wera.com/eliminar-cuenta/` |
 | Sign-up by *username and password* and by *OAuth* | `Entrar`: email and password, and *Entrar con Google* through a browser tab (`signInWithOAuth` + `openAuthSessionAsync`). No Google library is in the build, so Play re-signing the app changes nothing about sign-in |
-| References to alcohol and tobacco: yes, mild | `supabase/catalog/products/abarrotes.csv` — the categories *Cigarros* and *Cerveza y licores* |
+| References to alcohol and tobacco: yes, mild | `supabase/catalog/tags.csv` names the categories *Cigarros* (`cat-tabaco`) and *Cerveza y licores* (`cat-alcohol`); `products/abarrotes.csv` carries products tagged with them |
 | No financial features | Wera records a shop's cash sales. Nothing in the schema or the app moves money |
 | The listing does not say *inventario* | ⚠️ **No screen shows stock on hand** (measured 2026-10-13: `app/src/strings.ts` has no such word, and no screen reads `batch_balance`). The ledger keeps it; nothing draws it. `site/index.html` and the aviso still describe Wera as keeping *inventario* |
 | The description's feature list | The handbook's *What the app does today*, checked against `app/src/strings.ts` on 2026-10-13 |
@@ -65,13 +65,13 @@ manifest, its `assets/`, and the ELF headers of its libraries), not off `app.jso
 |---|---|
 | Package, version | `mx.wera.app`, 1.0.0, version code 2 |
 | Target / minimum Android | API 36 / API 24. Play asks new apps for 36 since 31 August 2026 |
-| Permissions | `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE`, `SYSTEM_ALERT_WINDOW`, and `READ_`/`WRITE_EXTERNAL_STORAGE` up to Android 12 only. No location, camera, microphone, contacts or `AD_ID`. ⚠️ The last three come from Expo's template and Wera uses none of them; removing them is on `5R-k`'s row, because it needs a new build |
+| Permissions | Eight in the manifest: the app's own internal receiver permission, and `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE`, `SYSTEM_ALERT_WINDOW`, and `READ_`/`WRITE_EXTERNAL_STORAGE` up to Android 12 only. No location, camera, microphone, contacts or `AD_ID`. ⚠️ The last three come from Expo's template and Wera uses none of them; removing them is on `5R-k`'s row, because it needs a new build |
 | Cleartext traffic | Not allowed: the manifest sets neither `usesCleartextTraffic` nor a network security config, and Android's default for this target is off |
 | Update channel | `production`, checked on every launch |
 | Runtime | `b7937647…`, the same as the `preview` Android builds — an over-the-air fix can reach it |
 | Pilot's measurements | Off: the bundle holds no `piloto-1`. It holds `tu-wera.com/privacidad` and the hosted project's address |
 | 16 KB pages | All 50 of its 64-bit libraries are aligned to 16 KB |
-| Icon | ⚠️ Expo's template icon. The logo is `5R-m` |
+| Icon | ⚠️ Expo's template icon. The icon is `5R-k`'s, drawn from `brand/wera-mark.svg` |
 
 ⚠️ **This build is NOT the one that goes to Play.** The owner ruled on 2026-10-13 that the
 closed test waits for the build with the cow, which is `5R-k`'s. EAS keeps this one until
@@ -106,9 +106,12 @@ was taken as the seed's cashier of one store. A shop made in the app has one sto
 
 ## When something changes
 
-- **`8g` and `5R-m`** (the review and the logo): new screenshots, a new icon and feature
-  graphic, and the descriptions read again. That is `5R-d-iv-c`.
-- **`5R-k`** (Sign in with Apple): the reviewer's notes in `app-store.md` already assume it.
+- **`5R-k`** (Sign in with Apple, and the build with the cow): the Play listing's icon and
+  feature graphic are redrawn from `brand/wera-mark.svg`, and this file's section on the
+  store build is replaced by what the new bundle says. The reviewer's notes in `app-store.md`
+  already assume Apple sign-in.
+- **`8g`** (the owner's review): new screenshots, and the descriptions read again. That is
+  `5R-d-iv-c`.
   Google's *account creation methods* stay *OAuth*.
 - **The ⛔ question about the daily count**: ruled the other way, *Analytics* comes off the
   purchase history in both stores' forms.

@@ -8,7 +8,7 @@ named **Wera**; the repo and `@tienda/*` packages stay Tienda.
 
 | File | Authority |
 |------|-----------|
-| [`docs/PLAN.md`](docs/PLAN.md) | Where the build is. **Read `## Position` first** — the two obligation blocks and today's status log |
+| [`docs/PLAN.md`](docs/PLAN.md) | Where the build is. **Read `## Position` first** — the two obligation blocks and the status log, newest entry first |
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. **If anything disagrees with the ADR, the ADR wins and the other file is the bug** |
 | [`docs/HANDBOOK.md`](docs/HANDBOOK.md) | **The file the owner reads** — a task that closes usually edits it too. `handbook-agreement.sh` holds it to the plan on done, split, next and whether anything waits on him |
 | [`app/CLAUDE.md`](app/CLAUDE.md) | Rules for `app/` — loads when a session touches it |
@@ -57,7 +57,7 @@ ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["
 | Workflow | Fires on |
 |---|---|
 | `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the plan, handbook, conventions page, ADR-035 and their checks, and the update runbook with its rehearsal. Two jobs: the app (typecheck, Vitest, conventions gate, the runbook's rehearsal) and *the documents still agree* |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `packages/money/cases.json`, `docs/runbooks/engagement.sql`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema, and so is that runbook |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `app/src/strings.ts`, `packages/money/cases.json`, `docs/runbooks/engagement.sql`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema, and so is that runbook |
 | `money.yml` | `packages/**` and root `package*.json` |
 | `site.yml` | `site/**` and its two build checks. On a pull request it only builds; on `main` it **publishes `site/` to tu-wera.com** (GitHub Pages). The aviso's name and address come from the repository secrets `RESPONSABLE` and `DOMICILIO`, never from a commit. The only workflow that deploys anything |
 
@@ -65,6 +65,8 @@ Adding a dependency moves the root lockfile, so it fires the first three.
 
 - **The number to check a log against is the jobs that COULD fire for the paths changed** —
   each workflow has its own `paths:` filter, and an absent job is not a skipped one.
+- **Those filters are for pull requests.** Every push to `main` runs `app.yml`, `db.yml` and
+  `money.yml` in full, whatever changed; only `site.yml` filters its push.
 - A red `db.yml` whose steps read `skipped` after *Start Postgres* is a **registry throttle**,
   not a migration defect. **A cancelled job is not a failed assertion** — `gh pr checks`
   prints *fail* for both.
@@ -84,6 +86,10 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   supabase db push                            # applies what the remote is missing
   bash docs/checks/5R-f-schema-deployed.sh    # proves it landed — compares version numbers, not schema
   ```
+- **The site deploys itself on merge** (`site.yml`). `bash docs/checks/5R-d-ii-site-live.sh`
+  proves what tu-wera.com is serving; nothing runs it but a person.
+- **`store/` and `brand/` are read by no workflow**: the text a person pastes into the two
+  stores' consoles, and the mark. `store/README.md` ties each store answer to what backs it.
 - **Migrations are append-only once applied.** Fix forward with a new numbered migration;
   numbering is fixed in [`supabase/README.md`](supabase/README.md). The newest is
   `ls supabase/migrations/*.sql | tail -1`. `0006` and `0007` are permanent holes, so never
@@ -116,8 +122,14 @@ what the estimate found.** Update `docs/PLAN.md` (and usually the handbook) when
   must name a non-size reason in its row: half is gated on an owner decision, the row carries
   two failure classes one of which is invisible here, or the deferral test separates
   look-questions not yet answerable. Full argument: the plan's `## Working agreement`.
+- **Stop and ask before a one-way door** — a migration or anything else that changes the
+  database's shape, a rule about who may see or do what, anything the seed bakes in, anything
+  that changes what a shopkeeper sees or types. When he cannot answer, park it in
+  ⛔ DECISIONS OWED with a recommendation and carry on with what does not depend on it. (The
+  owner's standing prompt; written here on 2026-10-13, because a session he starts without
+  that prompt is bound by this file alone.)
 - **Merging is automated.** Push, open the PR, wait for CI, **read the job log**, and on green
-  run `gh pr merge` without asking — migrations included.
+  run `gh pr merge` without asking — a migration he has ruled on included.
 - **Never merge red, and never on a green tick alone** — a tick is also what a silently
   skipped step looks like. Confirm the checks by name in the log.
 - **Report every decision made on the owner's behalf**, in the closing message and the PR body.
@@ -131,7 +143,7 @@ to bring up only what a migration reset needs.
 
 ## graphify
 
-A knowledge graph lives in `graphify-out/` over Markdown, SQL and shell. It is **AST-only** —
+A knowledge graph lives in `graphify-out/` over TypeScript, Markdown, SQL and shell. It is **AST-only** —
 no semantic layer, since no `GEMINI_API_KEY` / `GOOGLE_API_KEY` is set — so it tells you
 **where** something is, never what it means. Read the node count from `graphify-out/graph.json`
 if it matters; never quote one here.

@@ -12,6 +12,48 @@
   as ADR-036 because this document had not yet been committed and splitting a
   one-day-old decision across two files makes the thing juniors must read twice as
   hard to read.
+- **Reviewed:** 2026-10-13 — **A LIST, NOT AN AMENDMENT. Rulings of the decision maker that
+  `docs/PLAN.md` records and this document's body does not yet carry**, compiled by a review
+  that read this file against the plan and the code. ⚠️ **Until a section is rewritten, the
+  recorded ruling wins over the sentence it replaces**; a session that finds the two
+  disagreeing follows the ruling and says so. The body below was NOT edited: each rewrite is
+  the decision maker's, section by section.
+  - **2026-09-21 — the app ships to both public stores** (the plan's Step 5R, opening). Stale
+    here: §6's *"Android release path | iOS-first … wait until the second store's hardware is
+    chosen"*, and §3's treatment of the release path as blocking nothing.
+  - **2026-09-25 — ruling 24, *"Comprar should be for any role for now."*** §2.8's row was
+    amended that day (below); a sentence elsewhere still says *"receiving is not a staff
+    capability"*.
+  - **2026-09-28 — ruling 33, *"Leave the catalog unfenced, as recommended."*** With the
+    persisted cache (`6d`): `app/src/api/persist.ts` sets `CACHE_MAX_AGE = Infinity` and no
+    screen draws staleness. Stale: §2.6's *"Reads serve from cache with visible staleness."*
+  - **2026-09-29 — the completeness check set aside** (*"At this point my main interest is to
+    improve the user experience."*); his pilot is two or three shops and engagement. Stale: §5,
+    which binds *"One store. Three days physically present"* and a manual tally.
+  - **2026-10-01 and 2026-10-12 — the app is Wera, its id `mx.wera.app`, its domain
+    `tu-wera.com`.** This document names none of the three.
+  - **2026-10-09 — a forgotten password is reset by hand over WhatsApp; email and phone
+    verification are parked** (*"sometime in the future we'll need to perform verification, for
+    now we're fine."*). §2.7's D7 rests on an email identifying its holder: see the plan's
+    decisions block, where that is an open question since 2026-10-13.
+  - **2026-10-10 — Sign in with Apple** (plan task `5R-k`). §2.3's deletion paragraph lists
+    *"Google link, sessions"*; `5R-k`'s row owns that edit.
+  - **2026-10-12 — engagement is counted from the server**: `docs/runbooks/engagement.sql`
+    reads every shop by name as the database owner, and two more runbooks write the same way.
+    §2.9's *"one deliberate door"* does not describe them.
+  - **2026-10-13 — a bundle id is fixed by the first build uploaded**, not by the App Store
+    record, as §2.11 still says.
+  - **`CLAUDE.md`'s working agreement — merging is automated on a green run, migrations
+    included.** Stale: §2.10's *"no migration merges without them reading it"*.
+  - ⚠️⚠️ **Safeguards stated here in the present tense that do not exist, measured
+    2026-10-13.** Point-in-time recovery and backups: the hosted project has neither, and a
+    real shop has recorded since 2026-09-22 (§2.2 *"PITR required before real data"*; §8).
+    The nightly production check (§2.4, §2.10): no workflow has a schedule and no migration
+    has `pg_cron`. CODEOWNERS and generated TypeScript types in CI (§2.10): neither exists.
+    The first two are open questions and a row in the plan (`5P-e`).
+  - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
+    ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
+    §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
 - **Revised:** 2026-09-28 — **§5's measurement sentence, on four rulings of the decision maker
   that day, by plan task `5P-a`, all asked before a line was built.** (42) the overlay is
   **hidden** — no capture screen changes; the owner opens a readings panel by a long press on

@@ -158,8 +158,9 @@ import { Velo } from '@/ui/Velo';
 // *"we will not capture expiry date for now"*, intending to DERIVE shelf life
 // instead (`7e` was rewritten for it). `purchase_line.expiry_date` exists and
 // `record_purchase` has a three-tier policy for it (`0018:112`), so sending
-// nothing takes tier 2/3 — the automated default. ⚠️ **The ADR's own cell lags
-// that ruling and the one-line amendment is parked in ⛔ DECISIONS OWED.**
+// nothing takes tier 2/3 — the automated default. ⚠️ **The ADR's own cell lagged
+// that ruling; it has since been marked LATENT in the ADR and the question is no
+// longer in the plan's decisions block (corrected 2026-10-13).**
 //
 // ----------------------------------------------------------------------------
 // ⚠️ WHAT IS SHARED WITH VENDER AND WHY IT IS NOT COPIED

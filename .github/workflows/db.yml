@@ -378,6 +378,11 @@ on:
       # of `Corregir`.
       - "docs/checks/5h-ii-b-corrections-contract.sh"
       - "docs/checks/5h-ii-b-corrections-contract-falsify.sh"
+      # ⚠️ ADDED 2026-10-13 BY THE REVIEW. That check reads the correction's reason
+      # OUT OF `app/src/strings.ts` (its second argument's default) and sends it to
+      # the database as the app would. Until this line a pull request that changed
+      # only the copy never ran it before merging; the push to `main` did, after.
+      - "app/src/strings.ts"
       # ⚠️⚠️ AND DESPERDICIO'S, as of plan task `6a-i`. `app/src/api/waste.ts` is
       # already covered by `app/src/api/**` above, but the two check files are not
       # — and this one watches `app/src/cart/cart.ts` too, which NO path filter here

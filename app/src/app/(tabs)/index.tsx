@@ -147,7 +147,7 @@ function Bloque({ block }: { block: InicioBlock }) {
  *
  * ⚠️ IT WILL LAG THE TILL BY WHATEVER THE QUEUE IS HOLDING. This is a SERVER
  * read; a sale rung up offline waits in the device's outbox (`5c`). That is not
- * a defect and it is `5f`'s question — see `useToday`.
+ * a defect; the question is on `8g`'s row since 2026-10-13 — see `useToday`.
  */
 function Estado() {
   const { scale } = useDensity();

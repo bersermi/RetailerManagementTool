@@ -345,7 +345,8 @@ export interface Prefill extends Loaded {
    * ⚠️⚠️ HOW MANY LINES WERE DROPPED FOR AN UNREADABLE QUANTITY. Nothing on the
    * screen uses it yet and the suite is what reads it — it exists so a silent
    * short cart is a fact this module STATES rather than one a shopkeeper has to
-   * notice. `5h.5` is where a sentence for it would land.
+   * notice. `5h.5` closed without giving it a sentence; since 2026-10-13 it is
+   * on `8g`'s row, the owner's review.
    */
   readonly dropped: number;
 }

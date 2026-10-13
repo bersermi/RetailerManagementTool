@@ -6,12 +6,11 @@ catalog, providers, waste and reports, over an append-only inventory ledger.
 **Stack:** PostgreSQL via Supabase, React Native (Expo) client. MXN and IVA;
 LFPDPPP rather than GDPR; CFDI out of scope.
 
-**Status:** the database layer is applied and verified, and the client has
-started. `app/` is an Expo project with a session, a sign-in, a tab shell and a
-money formatter — checked as far as a machine here can reach, and not yet
-watched running on a phone. See [`docs/PLAN.md`](docs/PLAN.md) for which piece
-is next; this file deliberately does not name it, because a second copy of that
-claim is how it goes stale.
+**Status:** an alpha. The app is named **Wera**; it runs on the owner's phones
+against a hosted database, and every screen reads and writes real data. What it
+does today is in [`docs/HANDBOOK.md`](docs/HANDBOOK.md), *What the app does today*.
+See [`docs/PLAN.md`](docs/PLAN.md) for which piece is next; this file deliberately
+does not name it, because a second copy of that claim is how it goes stale.
 
 ## Where things are
 
@@ -21,7 +20,13 @@ claim is how it goes stale.
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. Authoritative — where anything disagrees, this wins |
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | How code in `app/` is written. Read before adding a file to the client |
 | [`supabase/`](supabase/) | Migrations, schema conventions, verification status |
-| [`app/`](app/README.md) | The Expo client, `@tienda/app` — the fourth workspace |
+| [`docs/HANDBOOK.md`](docs/HANDBOOK.md) | The file the owner reads: what the app does, what is on the phones, how to ship a fix |
+| [`app/`](app/README.md) | The Expo client, `@tienda/app` |
+| [`packages/money/`](packages/money/) | `@tienda/money`: the MXN and IVA arithmetic the app and the database are both held to |
+| [`docs/runbooks/`](docs/runbooks/) | What the owner runs by hand: shipping a fix, the usage read, a password reset, a deletion |
+| [`site/`](site/README.md) | The pages at tu-wera.com: the privacy notice, account deletion, support |
+| [`store/`](store/README.md) | What is pasted into Google Play and the App Store |
+| [`brand/`](brand/) | The mark |
 | [`.github/workflows/db.yml`](.github/workflows/db.yml) | Applies every migration from scratch on any PR touching `supabase/**` |
 | [`.github/workflows/app.yml`](.github/workflows/app.yml) | Typecheck, suite and conventions gate on any PR touching `app/**` |
 | [`archive/power-platform/`](archive/power-platform/README.md) | Superseded Canvas/Dataverse era — history only |

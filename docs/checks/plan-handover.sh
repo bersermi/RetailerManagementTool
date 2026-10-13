@@ -387,7 +387,8 @@ if (( pos > POS_MAX )); then
   fail "## Position is $pos lines (ceiling $POS_MAX). It is the FIRST thing every"
   echo "      session reads, so every line here is a tax paid before any work starts."
   echo "      REMEDY: move the oldest status-log entries to"
-  echo "      docs/plan/archive/status-log-through-<date>.md. ⚠️ NEVER move the"
+  echo "      docs/plan/archive/status-log-<date>.md, one file per working day (a later"
+  echo "      cut of the same day APPENDS; never a second file, never a rename). ⚠️ NEVER move the"
   echo "      DECISIONS OWED or DATES OWED blocks — assertions 4 and 5 above require"
   echo "      exactly one of each in the LIVE plan, and a second copy is a second home."
   size_bad=1

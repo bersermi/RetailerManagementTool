@@ -4,7 +4,7 @@ Loads when a session touches `app/`. The root `CLAUDE.md` holds what is not app-
 migrations, deploy, the working agreement and graphify. **Nothing checks this file**, so it
 carries commands, never counts. Editing it fires `app.yml`.
 
-`app/` is the fourth workspace (`@tienda/app`). **Read [`docs/CONVENTIONS.md`](../docs/CONVENTIONS.md)
+`app/` is the third workspace (`@tienda/app`). **Read [`docs/CONVENTIONS.md`](../docs/CONVENTIONS.md)
 before writing a file here** — it governs how every file is written, and
 `bash docs/checks/conventions-gate.sh` enforces it (and prints the counts it measured).
 

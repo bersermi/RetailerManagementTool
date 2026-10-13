@@ -1980,7 +1980,7 @@ claim here is about two calls *in flight at once*, so a one-connection version p
 green with the mechanism deleted — the same trap that made
 `supabase/tests/0005_allocation_concurrency.sh` a `.sh` rather than a `.sql`.
 
-**TWO SUITES, AND ONLY ONE OF THEM IS §2.10's.** `idempotency.test.ts` is §2.10's
+**FOUR SUITES (`ls supabase/vitest/test/`: `allocation-race`, `availability-race`, `idempotency`, `transfer-resend-race`), AND ONLY ONE OF THEM IS §2.10's.** ⚠️ *What follows was written when there were two and describes those two.* `idempotency.test.ts` is §2.10's
 concurrency row (task 3.7a, below). `allocation-race.test.ts` is task **1.3b**'s claim
 about `allocate_fefo()` — *"two concurrent allocations cannot oversell one batch"* —
 which ran as the `.sh` named above until **3.7b** ported it here and retired the file.
@@ -2066,7 +2066,7 @@ nobody consults while changing `allocate_fefo()`, which is what step 4 does next
 
 **One directory, one contract: these files run against the SEEDED database.** They
 have their own step in `.github/workflows/db.yml`, and **it must stay between
-`supabase db reset` and the suite loop.** Four files live here now — the §2.4
+`supabase db reset` and the suite loop.** More files live here than this paragraph names (`ls supabase/checks/`; it was four when this was written) — the §2.4
 invariant (1.7), the margin view's reconciliation (2.1), the waste view's (2.2) and
 the timezone column's (2.4) — and the step runs the
 directory in name order rather than naming files, so a fifth costs no workflow edit.
