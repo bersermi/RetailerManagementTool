@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  APPLE_REVOKE,
+  APPLE_REVOKE_REGION,
+  APPLE_REVOKE_TIMEOUT_MS,
   DELETE_MY_ACCOUNT,
   NAME_MISMATCH_CODE,
   deleteArgs,
@@ -8,6 +11,7 @@ import {
   deletedFrom,
   deletionFrom,
   formerMemberName,
+  revokeBody,
   shopNameMatches,
 } from '@/api/account';
 import type { RosterEntry } from '@/api/members';
@@ -83,6 +87,30 @@ describe('what is sent', () => {
   it('reads the answer, and zeros for anything that is not it', () => {
     expect(deletedFrom({ shops_deleted: 1, shops_left: 0 })).toEqual({ shopsDeleted: 1, shopsLeft: 0 });
     expect(deletedFrom(null)).toEqual({ shopsDeleted: 0, shopsLeft: 0 });
+  });
+});
+
+// `5R-k`. The one call that is not to Postgres. This pins what the app SENDS;
+// that the function reads the same key is
+// `docs/checks/5R-k-apple-revoke-contract.sh`, against the real edge runtime.
+describe('telling Apple', () => {
+  it('names the function the repository deploys', () => {
+    expect(APPLE_REVOKE).toBe('apple-revoke');
+  });
+
+  it('sends the code under the one key the function reads', () => {
+    expect(revokeBody('c0de')).toEqual({ code: 'c0de' });
+  });
+
+  // The aviso says data is handled in the United States, and the database is
+  // in us-west-2. An unpinned function runs wherever is nearest the phone.
+  it('runs where the database is', () => {
+    expect(APPLE_REVOKE_REGION).toBe('us-west-2');
+  });
+
+  it('does not hold a deletion up for long', () => {
+    expect(APPLE_REVOKE_TIMEOUT_MS).toBeGreaterThan(0);
+    expect(APPLE_REVOKE_TIMEOUT_MS).toBeLessThanOrEqual(20000);
   });
 });
 

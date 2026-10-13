@@ -19,7 +19,7 @@ does not name it, because a second copy of that claim is how it goes stale.
 | [`docs/PLAN.md`](docs/PLAN.md) | Build plan and current position |
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. Authoritative — where anything disagrees, this wins |
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | How code in `app/` is written. Read before adding a file to the client |
-| [`supabase/`](supabase/) | Migrations, schema conventions, verification status |
+| [`supabase/`](supabase/) | Migrations, schema conventions, verification status; and the one Edge Function, `functions/apple-revoke` |
 | [`docs/HANDBOOK.md`](docs/HANDBOOK.md) | The file the owner reads: what the app does, what is on the phones, how to ship a fix |
 | [`app/`](app/README.md) | The Expo client, `@tienda/app` |
 | [`packages/money/`](packages/money/) | `@tienda/money`: the MXN and IVA arithmetic the app and the database are both held to |

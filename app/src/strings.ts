@@ -121,6 +121,9 @@ export const ES = {
        *  closing the browser or backing out of Google's chooser produces no
        *  message at all, because the person already knows what they did. */
       googleFailed: 'No se pudo entrar con Google. Intenta de nuevo, o entra con tu correo.',
+      /** `5R-k`. Google's sentence with the other name, for the same reason.
+       *  ⚠️ Never shown for a closed sheet. */
+      appleFailed: 'No se pudo entrar con Apple. Intenta de nuevo, o entra con tu correo.',
       /** ⚠️ THE CATCH-ALL, AND IT SAYS NOTHING ABOUT THE CAUSE ON PURPOSE. An
        *  unmapped error is one we have not seen; guessing at it in Spanish is
        *  worse than admitting it, and the developer reads the real one in the
@@ -418,8 +421,16 @@ export const ES = {
     open: 'Eliminar mi cuenta',
     /** Everybody who is not the shop's only owner. */
     leavesWarning:
-      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google. ' +
+      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google o con Apple. ' +
       'Tu nombre se queda en las ventas y movimientos que registraste en la tienda.',
+    /**
+     * `5R-k`: a login that belongs to no shop, deleting itself from the welcome
+     * screen. ⚠️ It promises nothing about a name staying, because no shop has
+     * one of this person's to keep.
+     */
+    aloneWarning:
+      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google o con Apple. ' +
+      'No se puede deshacer.',
     /** ⚠️ The shop's name is passed in, the grammar lives here (`members.shareMessage`'s rule). */
     shopWarning: (shop: string) =>
       `Eres la única persona dueña de ${shop}. Si eliminas tu cuenta, se borra la tienda ` +
@@ -662,6 +673,13 @@ export const ES = {
     empty: 'Nadie está esperando entrar.',
     /** The role she asked for. ⚠️ The grammar is here; the label comes off `members.roles`. */
     askedFor: (role: string) => `Quiere entrar como ${role}`,
+    /**
+     * `5R-k`, the owner's ruling of 2026-10-13. A person who hid their address
+     * with Apple reaches the queue as random letters nobody could have read
+     * out, so the request is headed by the NAME and this line stands where the
+     * address would. `linesOf` decides when; no other request changes.
+     */
+    hiddenEmail: 'Correo oculto con Apple',
 
     /**
      * LETTING HER IN. Plan task `5b-iii-d-2`.

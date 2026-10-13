@@ -28,3 +28,17 @@ export function newWriteId(): string {
 export function nowIso(): string {
   return new Date().toISOString();
 }
+
+/**
+ * A nonce for Apple's sheet, and its SHA-256 (`5R-k`). ⚠️ THE TWO GO TO
+ * DIFFERENT PLACES. Apple is given the HASH and signs it into the token;
+ * Supabase is given the RAW string, hashes it itself and compares (GoTrue's
+ * `token_oidc.go` formats that hash as lower-case hex, which is what this
+ * digest returns). Swap them and every sign-in is refused as a nonce mismatch,
+ * on a path no check here can drive: it needs a token Apple signed.
+ */
+export async function newNoncePair(): Promise<{ readonly raw: string; readonly hashed: string }> {
+  const raw = `${Crypto.randomUUID()}${Crypto.randomUUID()}`;
+  const hashed = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, raw);
+  return { raw, hashed };
+}

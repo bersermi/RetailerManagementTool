@@ -49,6 +49,9 @@ first. Nothing checks these pages against the schema: this table is the only lin
 | The pages say | It stands on |
 |---|---|
 | Account data: name and surname, email, hashed password, Google id + name + email + photo URL, sign-up and last sign-in dates, IP and device per session | `app/src/auth/AuthProvider.tsx` (`full_name` on sign-up); GoTrue's `auth.users`, `auth.identities`, `auth.sessions.ip`/`user_agent` (measured on the local stack, GoTrue v2.197.0). ⚠️ The hosted rows were **not** read: that read was refused in-session |
+| Apple: its identifier, the name, and the email or the relay address that hides it; never Apple's password | `signInWithApple` in `AuthProvider.tsx` asks Apple for the name and email scopes and nothing else, and writes the name to `full_name` (`5R-k`). ⚠️ **Not measured on a real account**: what GoTrue stores from Apple's token was read in its source, not off a row, because a sign-in needs a token Apple signed. Read `auth.identities` after the first real one |
+| Deleting from the app tells Apple; nothing of that confirmation is kept; a deletion by email does not | `supabase/functions/apple-revoke` and `docs/checks/5R-k-apple-revoke-contract.sh` (it stores nothing: it has no table and no database credential); `docs/runbooks/delete-an-account.sh` never calls it. ⚠️ **True on the hosted project only while `docs/checks/5R-k-function-deployed.sh` is green** |
+| The iPhone path *Configuración → tu nombre → Iniciar sesión con Apple → Wera → Eliminar* | Apple's own page in Mexican Spanish, read 2026-10-13: support.apple.com/es-mx/102571 |
 | A shop's records: display name, role, stores, joined/left; who recorded each operation; invites and requests with email, role, stores, who invited/approved | `workspace_member` (`0001`, `0034`, `0053`), `member_location`, `created_by` on every document (`0003`), `workspace_invite` (`0002`, `0029`) |
 | Suppliers: name, contact, phone, address, visible to all staff | `provider` (`0002`); the owner's ruling recorded when `6b` closed — every cashier can open a supplier and read its contact |
 | No customer data; no location, contacts, photos, camera or microphone | `sale` has no customer column (`0003`); `app.json` declares no permission plugin |
@@ -68,9 +71,8 @@ first. Nothing checks these pages against the schema: this table is the only lin
 
 - **`5R-e` (the listings go live)** adds the App Store and Google Play links to `index.html`.
 
-- **`5R-k` (Sign in with Apple)** adds Apple's identifier and, when a person hides their
-  address, Apple's relay email to *Qué datos tratamos*, and the Apple link to both lists of
-  what a deletion erases.
+- **Apple sign-in on Android**, if it is ever built, needs Apple's web flow: say so under
+  *Con quién los compartimos*, where today's sentence describes the iPhone's sheet only.
 - **`5R-i` (phone verification)**, if it returns, adds the phone number to the account data
   and to what a deletion erases.
 - **A change that affects which data is used, or for what**, is announced by email to every

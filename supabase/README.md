@@ -89,6 +89,41 @@ the merge agreement rests on.
 sixth assertion goes red if the remote ever carries a migration this repository
 does not have.
 
+## The one Edge Function — `functions/apple-revoke/`
+
+⚠️⚠️ **The only thing under this directory that is not SQL, and `db push` does not
+deploy it** (plan task `5R-k`; ADR-035 §2.2, *Server code outside Postgres*, the
+owner's ruling of 2026-10-13). When a person who signed in with Apple deletes their
+account, the app hands this function the code Apple's sheet just gave; it trades the
+code, checks it belongs to that login's Apple account, and revokes. **It stores
+nothing and has no database credential.** A second function needs a ruling.
+
+**How a merged change to it gets there, and how to know it did:**
+
+```
+supabase functions deploy apple-revoke        # the code; raise BUILD in index.ts with every change
+bash docs/checks/5R-k-function-deployed.sh    # the hosted build is the merged one, and it holds its key
+```
+
+**Its three secrets are the owner's, set once and never committed** (the key file comes
+from his Apple developer account; `docs/HANDBOOK.md`, *Turning on Entrar con Apple*):
+
+```
+supabase secrets set APPLE_TEAM_ID=<team id> APPLE_KEY_ID=<key id> \
+  APPLE_PRIVATE_KEY="$(cat <path to AuthKey_….p8>)"
+```
+
+**What runs it before a person deploys it:** `db.yml`'s job *the function that tells
+Apple, in the runtime it deploys to* serves it in the real edge runtime and plays
+Apple with a stand-in holding the matching public key
+(`docs/checks/5R-k-apple-revoke-contract.sh`). No typecheck reads the function and no
+suite can load it. ⚠️ **`verify_jwt` is off for it in `config.toml`, on purpose**: it
+asks the auth server who the caller is, which also refuses the token of an account
+already deleted, and its `GET` has to answer the deployed check without a session.
+⚠️ **What no check here can say: that Apple accepts what it sends.** The stand-in is
+this repository's reading of Apple's documentation. A real deletion from an iPhone is
+the instrument; the plan's row for it says what to look at.
+
 
 ## Migrations
 

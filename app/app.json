@@ -15,10 +15,19 @@
     "scheme": "mx.wera.app",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "mx.wera.app"
+      "bundleIdentifier": "mx.wera.app",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "mx.wera.app",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "adaptiveIcon": {
         "backgroundColor": "#B5561F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -28,6 +37,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-apple-authentication",
       [
         "expo-splash-screen",
         {

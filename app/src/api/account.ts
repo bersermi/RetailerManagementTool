@@ -35,6 +35,39 @@ export interface DeleteArgs {
   readonly p_shop_name: string | null;
 }
 
+/**
+ * ⚠️⚠️ THE ONE THING THIS APP REACHES THAT IS NOT POSTGRES (`5R-k`, the owner's
+ * ruling of 2026-10-13, ADR-035's amendment of that day). Apple asks to be
+ * told when a person who signed in with Apple deletes their account, and only
+ * something holding Apple's private key can tell it. That is the Edge Function
+ * `supabase/functions/apple-revoke`: it is handed the code Apple's sheet just
+ * gave, trades it and revokes, and keeps nothing.
+ *
+ * Its name, the one key of its body and where it runs are written here for
+ * `R13`'s reason, and `docs/checks/5R-k-apple-revoke-contract.sh` reads them
+ * out of this file and puts them in front of the real function.
+ */
+export const APPLE_REVOKE = 'apple-revoke';
+
+/**
+ * ⚠️ PINNED TO THE DATABASE'S REGION. An Edge Function otherwise runs wherever
+ * is nearest the phone, and the aviso tells people their data is handled in
+ * the United States (`site/privacidad/`, section 5).
+ */
+export const APPLE_REVOKE_REGION = 'us-west-2';
+
+/** A deletion waits this long for Apple and then goes ahead without it. */
+export const APPLE_REVOKE_TIMEOUT_MS = 15000;
+
+/** The function's body, by the key it reads. */
+export interface RevokeBody {
+  readonly code: string;
+}
+
+export function revokeBody(code: string): RevokeBody {
+  return { code };
+}
+
 /** What the server answers: how many shops went, and how many were left. */
 export interface Deleted {
   readonly shopsDeleted: number;

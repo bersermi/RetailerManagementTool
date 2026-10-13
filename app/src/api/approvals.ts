@@ -36,6 +36,7 @@ import {
   type LocationChoice,
 } from '@/api/invites';
 import { ROLES, nonBlank, type Role } from '@/api/members';
+import { isAppleRelay } from '@/auth/apple';
 import { ES } from '@/strings';
 
 /** The RPC's name, written once (`R13`). */
@@ -212,11 +213,24 @@ export function pendingFrom(rows: readonly PendingRequestRow[] | undefined): Pen
  * entry is an address with nothing under it; a shopkeeper is never handed an
  * explanation of why, because it is the identity ladder's own floor and it is
  * ours to absorb, not hers to read.
+ *
+ * ⚠️⚠️ ONE EXCEPTION, RULED 2026-10-13 (`5R-k`): AN ADDRESS APPLE INVENTED.
+ * Somebody who hid their email with Apple arrives as random letters at Apple's
+ * relay domain. Nobody read that out to the owner, so there is nothing to
+ * verify it against, and the ruling above loses its reason for that one entry:
+ * the NAME is the header and *Correo oculto con Apple* stands under it. With no
+ * name either, that sentence is all there is and it is the header. Every other
+ * request is drawn exactly as before.
  */
 export function linesOf(entry: PendingRequest): {
   readonly header: string;
   readonly subtitle: string | null;
 } {
+  if (isAppleRelay(entry.email)) {
+    return entry.name === null
+      ? { header: ES.approvals.hiddenEmail, subtitle: null }
+      : { header: entry.name, subtitle: ES.approvals.hiddenEmail };
+  }
   return { header: entry.email, subtitle: entry.name };
 }
 

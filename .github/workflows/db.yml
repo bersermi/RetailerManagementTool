@@ -453,6 +453,19 @@ on:
       # tests is not, so without this line an edit to the query would merge having
       # run nothing.
       - "docs/runbooks/engagement.sql"
+      # ⚠️⚠️ AND THE ONE THING HERE THAT IS NOT POSTGRES, as of plan task `5R-k`.
+      # `supabase/functions/apple-revoke/` is the first Edge Function (ADR-035's
+      # amendment of 2026-10-13), and `supabase/**` above already re-runs this
+      # workflow when it changes. These lines are its instruments: the contract
+      # check serves the function in the real edge runtime and plays Apple with
+      # a stand-in that holds the matching public key. ⚠️ No typecheck reads
+      # the function and no suite can load it, so that job is the only place
+      # its code runs before a person deploys it.
+      - "docs/checks/5R-k-apple-revoke-contract.sh"
+      - "docs/checks/5R-k-apple-revoke-contract-falsify.sh"
+      - "docs/checks/lib/5R-k-apple-stand-in.mjs"
+      - "docs/checks/5R-k-function-deployed.sh"
+      - "docs/checks/5R-k-function-deployed-falsify.sh"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -2065,6 +2078,53 @@ jobs:
       # And its six fixtures, each red for its OWN reason.
       - name: Contract — can the prices check still fail (its own six fixtures)
         run: bash docs/checks/7b-prices-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ⚠️⚠️ ITS OWN JOB, AND THE ONLY ONE THAT RUNS THE EDGE RUNTIME (`5R-k`). Every
+  # other job here starts the stack with `-x …,edge-runtime,…`; this one does
+  # too, and then `supabase functions serve` brings the runtime up itself with
+  # the check's own secrets. ⚠️ The function reaches the stand-in for Apple at
+  # `host.docker.internal`, which the CLI gives its containers on Linux.
+  #
+  # ⚠️ WHAT A GREEN RUN HERE DOES NOT SAY: that the function is DEPLOYED, or
+  # that Apple accepts what it sends. `5R-k-function-deployed.sh` reads the
+  # first against the hosted project and is in no workflow, for
+  # `5R-f-schema-deployed.sh`'s reasons; its falsifier needs no network, so it
+  # runs here.
+  apple-revoke:
+    name: the function that tells Apple, in the runtime it deploys to
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does the app's call reach the function, and does it sign and revoke as Apple asks (plan 5R-k)
+        run: bash docs/checks/5R-k-apple-revoke-contract.sh
+
+      - name: Contract — can the function check still fail (its own five fixtures)
+        run: bash docs/checks/5R-k-apple-revoke-contract-falsify.sh
+
+      - name: Deployed check — can it still fail (five canned replies, no network)
+        run: bash docs/checks/5R-k-function-deployed-falsify.sh
 
       - name: Stop
         if: always()

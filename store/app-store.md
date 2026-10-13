@@ -2,8 +2,9 @@
 
 Written by plan task `5R-d-iv-a` (2026-10-13). **Nothing here has been entered anywhere**: no
 app record exists yet. The record, the screenshots and the submission are `5R-d-iv-c` and
-`5R-e`, after your review (`8g`), the logo (`5R-m`) and Sign in with Apple (`5R-k`). Why each
-answer is what it is: [`README.md`](README.md), *What each answer stands on*.
+`5R-e`, after your review (`8g`) and the site (`5R-m`). Sign in with Apple (`5R-k`) is built;
+it works on a phone once the steps in the handbook's *Turning on Entrar con Apple* are done. Why
+each answer is what it is: [`README.md`](README.md), *What each answer stands on*.
 
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters; `<!-- max-bytes:N -->` is
 counted in bytes, where an accented letter is two.
@@ -148,8 +149,9 @@ What each one is in Wera is the same as Google's table ([`google-play.md`](googl
 *Data safety*). *Device ID* is the random id each install sends to Expo when it checks for an
 update; nothing ties it to an account, so it is not linked. ⚠️ *Analytics* is the daily count
 per shop, and comes off if the open question in the plan's ⛔ DECISIONS OWED is ruled the other
-way. ⚠️ **`5R-k` changes nothing in this table**: Apple's identifier is a User ID and its relay
-address is an Email Address.
+way. ⚠️ **`5R-k` changed nothing in this table**: Apple's identifier is a User ID and its relay
+address is an Email Address. The code Apple hands over at a deletion is spent in one request
+and never stored, so it is not *collected*.
 
 **Not declared, and why:** *Usage Data* and *Diagnostics* — the pilot's measurements are not
 in the store build and there is no crash library. *Contacts* means the phone's address book,
@@ -176,12 +178,19 @@ Wera processes no payments: it only records sales a shop made in cash. There are
 
 Account deletion is in the app: Inicio > Ajustes > Tu cuenta > Eliminar mi cuenta. Please do not delete the demo account; create a new one with "Crear una" on the sign-in screen to test deletion.
 
-"Entrar con Google" opens Google's sign-in in the system browser sheet. "Entrar con Apple" is offered beside it.
+"Entrar con Google" opens Google's sign-in in the system browser sheet. Sign in with Apple is the system button directly under it.
+
+Deleting an account that was made with Sign in with Apple shows Apple's sheet once more, so the app can revoke its Sign in with Apple tokens through Apple's REST API before the account is deleted.
 ```
 
-⚠️ The last line is true only once `5R-k` ships. Until then Apple's guideline 4.8 is not met.
+⚠️ The last two paragraphs are true only on a build made after `5R-k` merged, **and** once
+Supabase's Apple provider is on and the function `apple-revoke` is deployed with its key
+(`bash docs/checks/5R-k-function-deployed.sh`). Until then Apple's guideline 4.8 is not met.
+⚠️ The button's words are Apple's and follow the phone's language: *Continuar con Apple* on a
+phone in Spanish, *Continue with Apple* on a reviewer's.
 
 ## 8. Export compliance
 
-*Does your app use encryption?* It uses only HTTPS and hashing, which are exempt. `5R-e` sets
-`ITSAppUsesNonExemptEncryption: false` in the build so the question is not asked again.
+*Does your app use encryption?* It uses only HTTPS and hashing, which are exempt.
+`ITSAppUsesNonExemptEncryption: false` is in `app/app.json` since `5R-k`, so a build made after
+it is not asked the question again.

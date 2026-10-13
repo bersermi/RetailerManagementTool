@@ -254,4 +254,24 @@ describe('the library has exactly one caller', () => {
       .map(([rel]) => rel);
     expect(callers).toEqual(['lib/connectivityMonitor.ts']);
   });
+
+  // ⚠️ APPLE'S LIBRARY, PINNED THE SAME WAY — ADDED AT `5R-k`. Two importers
+  // and they are different halves of it: the provider opens the sheet, the
+  // sign-in screen draws the system's own button. A third is a screen asking
+  // Apple for a credential itself, past `@/auth/apple`'s rules about what a
+  // closed sheet and a missing name mean.
+  it('reaches expo-apple-authentication from the provider and the sign-in screen only', () => {
+    const importers = sources()
+      .filter(([, text]) => /from 'expo-apple-authentication'/.test(text))
+      .map(([rel]) => rel);
+    expect(importers).toEqual(['app/(auth)/entrar.tsx', 'auth/AuthProvider.tsx']);
+  });
+
+  // ⚠️ AND THE ONE EDGE FUNCTION HAS ONE CALLER, beside the RPCs (`5R-k`).
+  it('calls `supabase.functions` in api/calls.ts and nowhere else', () => {
+    const callers = sources()
+      .filter(([rel, text]) => rel !== 'lib/supabase.ts' && /supabase\.functions\./.test(text))
+      .map(([rel]) => rel);
+    expect(callers).toEqual(['api/calls.ts']);
+  });
 });

@@ -107,9 +107,9 @@ was taken as the seed's cashier of one store. A shop made in the app has one sto
 
 ## When something changes
 
-- **`5R-k`** (Sign in with Apple): a new bundle replaces the one on Play's closed track, and
-  this file's section on the store build is replaced by what that bundle says. The reviewer's
-  notes in `app-store.md` already assume Apple sign-in.
+- **A new Android store bundle** (the one after `5R-k` drops three permissions, see the plan's
+  status log): it replaces the one on Play's closed track, and this file's section on the store
+  build is replaced by what that bundle says.
 - **The mark or a colour**: edit `brand/wera-mark.svg` or `brand/render-icons.sh`, run the
   script, and make new builds; an icon cannot go over the air.
 - **`8g`** (the owner's review): new screenshots, and the descriptions read again. That is

@@ -36,8 +36,6 @@
     verification are parked** (*"sometime in the future we'll need to perform verification, for
     now we're fine."*). §2.7's D7 rests on an email identifying its holder: see the plan's
     decisions block, where that is an open question since 2026-10-13.
-  - **2026-10-10 — Sign in with Apple** (plan task `5R-k`). §2.3's deletion paragraph lists
-    *"Google link, sessions"*; `5R-k`'s row owns that edit.
   - **2026-10-12 — engagement is counted from the server**: `docs/runbooks/engagement.sql`
     reads every shop by name as the database owner, and two more runbooks write the same way.
     §2.9's *"one deliberate door"* does not describe them.
@@ -54,6 +52,23 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-13 — **§2.2 and §2.3, on the decision maker's rulings of 2026-10-10 and
+  2026-10-13, by plan task `5R-k`: SIGN IN WITH APPLE, AND THE FIRST SERVER CODE OUTSIDE
+  POSTGRES.** Apple's guideline 4.8 asks an app with Google sign-in for a login that lets a
+  person keep their email private; he ruled to add Apple's on 2026-10-10. It is on iPhone only,
+  through the system sheet and `signInWithIdToken`, so it needs no Services ID, no web flow and
+  no secret that expires. ⚠️⚠️ **Asked on 2026-10-13, before a line was built, and ruled as
+  recommended:** (1) deleting an account tells Apple, through **one Supabase Edge Function that
+  stores nothing** (§2.2's new row); the alternatives were no server at all, with the person
+  sent to their iPhone's settings, and a table of Apple tokens. (2) A request to join from an
+  address Apple invented is headed by the person's **name**, with *Correo oculto con Apple*
+  under it: the one exception to his ruling of 2026-09-19 that the email heads a request.
+  (3) The aviso's change is announced by an email he sends himself. (4) The welcome screen,
+  where a login with no shop lands, gains *Cerrar sesión* and *Eliminar mi cuenta*: it had
+  neither, so a login made by the wrong door could not leave and could not be deleted inside
+  the app, which Apple's rule 5.1.1(v) asks of every account. ⚠️ **What this document
+  now permits and did not: an Edge Function.** §6 and §8 had already named one twice, for
+  work nobody has started; this is the first that exists.
 - **Revised:** 2026-09-28 — **§5's measurement sentence, on four rulings of the decision maker
   that day, by plan task `5P-a`, all asked before a line was built.** (42) the overlay is
   **hidden** — no capture screen changes; the owner opens a readings panel by a long press on
@@ -631,6 +646,7 @@ understanding.
 | Client | React Native (Expo) | iOS first — the pilot store's device. Android follows |
 | Client detail | See §2.11 | Router, data layer, state, components, release path |
 | Schema changes | Reviewed migration files only | No change reaches production by hand |
+| Server code outside Postgres | **One Edge Function, `apple-revoke` — ADDED 2026-10-13** (plan task `5R-k`, the decision maker's ruling of that day) | ⚠️⚠️ **The only code in this system that runs on a server and is not SQL, and it exists for one reason: Apple's revoke call is signed with a private key, and a key cannot ship inside an app.** When a person who signed in with Apple deletes their account, the phone asks Apple's sheet for a fresh code and hands it to the function, which trades it and revokes, then the app calls `delete_my_account` as before. **It stores nothing and holds no database credential**: it asks the auth server who the caller is, with the caller's own token. A deletion never waits on it: unreachable, unconfigured or refused, the account is still deleted. ⚠️ **It is a second deploy surface.** `supabase db push` does not carry it; `supabase functions deploy apple-revoke` does, and `docs/checks/5R-k-function-deployed.sh` reads the hosted project for the build and for whether the three secrets are set. Its evidence under §9 is `db.yml`'s job that serves it in the real edge runtime against a stand-in for Apple. **A second function needs a ruling**, as a second `security definer` view does (§2.7). To undo this one: delete the function and the key; no data is held anywhere |
 
 **Why native rather than a web app.** The pilot runs on one fixed counter with
 measured, stable wifi, and v1 ships no scanner (§6) — so nothing about the *screens*
@@ -773,7 +789,8 @@ carry `reason` and a cost snapshot.
 lot and movement, `failed_write.reported_by`/`replayed_by`, the three actor columns of
 `workspace_invite`, and `workspace_member.user_id` **no longer reference
 `auth.users`.** A person may delete their account: the LOGIN goes (email, password,
-Google link, sessions), and the shop keeps a **former member** — the
+Google and Apple links, sessions — and Apple is told, §2.2, *Server code outside
+Postgres*, 2026-10-13), and the shop keeps a **former member** — the
 `workspace_member` row with `is_active` false, `left_at` stamped, and `display_name`
 and `role` kept — so every row they wrote still names them, as *"María
 (ex-miembro)"*. The shop is the data controller of its own staff records (LFPDPPP),

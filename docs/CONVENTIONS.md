@@ -100,6 +100,7 @@ structural half.**
 | `src/api/requests.ts` — the two RPCs, the four statuses, which one she may see | `src/app/(onboarding)/bienvenida.tsx` — draws the wait, or draws nothing |
 | `src/api/approvals.ts` — the RPC, the six columns, who may look, **and the order of the two lines** | `src/app/solicitudes.tsx` — draws the queue, or draws the empty room |
 | `src/theme/densityMemory.ts` — what a stored mode means | `src/theme/DensityProvider.tsx` — reads it, writes it |
+| `src/auth/apple.ts` — what Apple's sheet meant, which name is stored, and what a deletion does after it | `src/auth/AuthProvider.tsx` — opens the sheet; `src/api/hooks.ts` — deletes, or does not |
 
 The left column is importable by a node suite; the right column is not, and by
 §2.11 must not be. So **the decision is where the assertion can reach it.**

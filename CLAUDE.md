@@ -86,6 +86,16 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   supabase db push                            # applies what the remote is missing
   bash docs/checks/5R-f-schema-deployed.sh    # proves it landed — compares version numbers, not schema
   ```
+- **The one Edge Function deploys separately** — `supabase/functions/apple-revoke` (ADR-035
+  §2.2: it tells Apple when an account made with Apple is deleted, and stores nothing).
+  `db push` does not carry it, and nothing fails when it is missing:
+
+  ```
+  supabase functions deploy apple-revoke        # raise BUILD in its index.ts with every change
+  bash docs/checks/5R-k-function-deployed.sh    # the hosted build is the merged one, and it holds its key
+  ```
+
+  Its three secrets are the owner's (`supabase/README.md`). **A second function needs a ruling.**
 - **The site deploys itself on merge** (`site.yml`). `bash docs/checks/5R-d-ii-site-live.sh`
   proves what tu-wera.com is serving; nothing runs it but a person.
 - **`store/` and `brand/` are read by no workflow**: the text a person pastes into the two
@@ -135,7 +145,8 @@ what the estimate found.** Update `docs/PLAN.md` (and usually the handbook) when
 - **Report every decision made on the owner's behalf**, in the closing message and the PR body.
   Flag loudly the ones cheap now and expensive later — anything a migration or the seed bakes in.
 - **Merging is not deploying.** A session that merges a migration owes `supabase db push` and
-  a green `5R-f-schema-deployed.sh`, or a sentence to the owner saying why not.
+  a green `5R-f-schema-deployed.sh`, or a sentence to the owner saying why not. A change to
+  the Edge Function owes its own deploy and `5R-k-function-deployed.sh`, the same way.
 
 Local database: `supabase start` then `supabase db reset`. Add
 `-x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor`

@@ -27,8 +27,19 @@
 // to unpack, and the one that forgets gets a cached success holding a failure.
 // ============================================================================
 
+import type { FunctionRegion } from '@supabase/supabase-js';
+
 import { supabase } from '@/lib/supabase';
-import { DELETE_MY_ACCOUNT, deletedFrom, type DeleteArgs, type Deleted } from '@/api/account';
+import {
+  APPLE_REVOKE,
+  APPLE_REVOKE_REGION,
+  APPLE_REVOKE_TIMEOUT_MS,
+  DELETE_MY_ACCOUNT,
+  deletedFrom,
+  revokeBody,
+  type DeleteArgs,
+  type Deleted,
+} from '@/api/account';
 import { RECORD_FAILED_WRITE } from '@/api/deadletter';
 import { isContractMismatch } from '@/api/errors';
 import { RECORD_RPC } from '@/api/flush';
@@ -515,6 +526,23 @@ export async function deleteMyAccount(args: DeleteArgs): Promise<Deleted> {
   const { data, error } = await supabase.rpc(DELETE_MY_ACCOUNT, args);
   if (error) throw reported(error);
   return deletedFrom(data);
+}
+
+/**
+ * Tells Apple a person is leaving (`5R-k`). ⚠️ THE ONLY CALL IN THIS FILE THAT
+ * IS NOT TO POSTGRES: it goes to the Edge Function `@/api/account` names, with
+ * the caller's own session, and the function keeps nothing.
+ *
+ * ⚠️ IT THROWS LIKE EVERY WRAPPER HERE, AND ITS ONE CALLER CATCHES. A deletion
+ * is never refused because Apple, or the function, could not be reached.
+ */
+export async function revokeApple(code: string): Promise<void> {
+  const { error } = await supabase.functions.invoke(APPLE_REVOKE, {
+    body: revokeBody(code),
+    region: APPLE_REVOKE_REGION as FunctionRegion,
+    timeout: APPLE_REVOKE_TIMEOUT_MS,
+  });
+  if (error) throw error;
 }
 
 /**
