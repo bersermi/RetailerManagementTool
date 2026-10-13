@@ -1,11 +1,15 @@
+import * as WebBrowser from 'expo-web-browser';
 import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
+import { AVISO_URL } from '@/auth/aviso';
 import { forgotPasswordUrl } from '@/auth/support';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
+import { Casilla } from '@/ui/Casilla';
 
 // ============================================================================
 // THE WAY IN THAT NEEDS NO DEEP LINK (C1.4). Plan task 5a-iii-a, and the screen
@@ -57,9 +61,27 @@ import { useDensity } from '@/theme/DensityProvider';
 // to the owner, who sets a new password by hand — his ruling, 2026-10-09. It
 // is on the sign-in half only (a person creating an account has nothing to
 // forget) and absent on a build without his number.
+//
+// ⚠️ `5R-d-iii`: THE AVISO DE PRIVACIDAD, IN THE TWO PLACES AN ACCOUNT IS MADE.
+// The sign-up half ends in a box, *"Acepto el Aviso de privacidad"*, that must
+// be ticked before `Crear cuenta` makes anything (the owner, 2026-10-10). Google
+// makes an account without passing that half, so a line under its button says
+// *"Al continuar, aceptas el Aviso de privacidad"* (the owner, 2026-10-12: no
+// second box). Both open the page in `@/auth/aviso`.
+//
+// ⚠️ AND SO THE SCREEN SCROLLS. The sign-up half grew two rows, and at the large
+// density on a small phone the column is taller than the screen; a centred
+// `View` would cut the title and the Google line off with no way to reach them.
+// The `ScrollView` centres exactly as before whenever everything fits, and its
+// padding is the device's own insets, so a column that does scroll starts below
+// the status bar and ends above the home indicator (measured on an Android at a
+// crowded display size: without them the title sat under the clock).
+// ⚠️ `keyboardShouldPersistTaps="handled"` is what keeps one tap on the button
+// one tap: without it, a tap with the keyboard up only closes the keyboard.
 // ============================================================================
 export default function Entrar() {
   const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
   const { signIn, signUp, signInWithGoogle } = useAuth();
 
   const [email, setEmail] = useState('');
@@ -69,6 +91,10 @@ export default function Entrar() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [creating, setCreating] = useState(false);
+  // `5R-d-iii`. ⚠️ IT STARTS UNTICKED AND ONLY THE PERSON TICKS IT — a box that
+  // arrived ticked would be the app agreeing on their behalf. It survives a
+  // switch to the other half and back, like the names, because they ticked it.
+  const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
 
@@ -94,7 +120,7 @@ export default function Entrar() {
   }
 
   async function attemptSignUp() {
-    await attempt(() => signUp(email, password, firstName, lastName));
+    await attempt(() => signUp(email, password, firstName, lastName, accepted));
   }
 
   // The same discipline, for the button that belongs to neither half.
@@ -111,6 +137,14 @@ export default function Entrar() {
     setCreating(!creating);
   }
 
+  // ⚠️ A FAILURE TO OPEN SAYS NOTHING. The likely one is a second tap while the
+  // page is already up, and the person can see the page; there is nothing a
+  // sentence on this screen could add.
+  function openAviso() {
+    if (busy) return;
+    WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {});
+  }
+
   const supportNumber = SUPPORT_WHATSAPP;
 
   const field = {
@@ -122,11 +156,14 @@ export default function Entrar() {
   } as const;
 
   return (
-    <View
-      style={{
-        flex: 1,
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{
+        flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: scale.space * 2,
+        paddingTop: scale.space * 2 + insets.top,
+        paddingBottom: scale.space * 2 + insets.bottom,
         gap: scale.rowGap,
       }}
     >
@@ -194,6 +231,27 @@ export default function Entrar() {
             editable={!busy}
             style={field}
           />
+
+          {/* 5R-d-iii. The last thing before the button, so a refusal for it
+              is the last one `checkSignUp` gives. The words inside open the
+              page; a tap anywhere else on the row ticks the box. */}
+          <Casilla
+            ticked={accepted}
+            onToggle={() => setAccepted(!accepted)}
+            label={`${ES.auth.avisoAcceptLead}${ES.auth.aviso}`}
+            disabled={busy}
+          >
+            <Text style={{ fontSize: scale.bodySize, flexShrink: 1 }}>
+              {ES.auth.avisoAcceptLead}
+              <Text
+                accessibilityRole="link"
+                onPress={openAviso}
+                style={{ textDecorationLine: 'underline', fontWeight: '600' }}
+              >
+                {ES.auth.aviso}
+              </Text>
+            </Text>
+          </Casilla>
         </>
       )}
 
@@ -281,6 +339,29 @@ export default function Entrar() {
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{ES.auth.google}</Text>
       </Pressable>
-    </View>
+
+      {/* 5R-d-iii, the owner's ruling of 2026-10-12. Directly under the button
+          it speaks for, on both halves, because Google makes an account from
+          either. The whole line is the target; the underline says where the
+          link is. */}
+      <Pressable
+        accessibilityRole="link"
+        disabled={busy}
+        onPress={openAviso}
+        style={{
+          minHeight: scale.tapTarget,
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: busy ? 0.6 : 1,
+        }}
+      >
+        <Text style={{ fontSize: scale.bodySize, textAlign: 'center' }}>
+          {ES.auth.avisoGoogleLead}
+          <Text style={{ textDecorationLine: 'underline', fontWeight: '600' }}>
+            {ES.auth.aviso}
+          </Text>
+        </Text>
+      </Pressable>
+    </ScrollView>
   );
 }

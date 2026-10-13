@@ -39,14 +39,16 @@ interface Auth {
   /** `null` on success, otherwise the Spanish sentence to show. */
   readonly signIn: (email: string, password: string) => Promise<string | null>;
   /**
-   * ⚠️ FOUR ARGUMENTS, AND THE LAST TWO ARE WHY THIS IS NOT `signIn` (5b.7).
-   * The name is asked for once, when the account is made, and never again.
+   * ⚠️ FIVE ARGUMENTS, AND THE LAST THREE ARE WHY THIS IS NOT `signIn`. The
+   * name is asked for once, when the account is made, and never again (5b.7);
+   * the aviso's checkbox is ticked once, there, too (`5R-d-iii`).
    */
   readonly signUp: (
     email: string,
     password: string,
     firstName: string,
     lastName: string,
+    acceptedAviso: boolean,
   ) => Promise<string | null>;
   /**
    * C1.4's other provider (5a-iii-b). ⚠️ `null` ALSO MEANS "THEY CHANGED THEIR
@@ -124,9 +126,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   //
   // ⚠️ AND NOTHING READS IT YET. The display is `5b.8` — a column on
   // `workspace_member`, which is the table another person's phone can read.
+  //
+  // ⚠️ THE AVISO'S TICK IS CHECKED HERE AND NOT SENT (`5R-d-iii`). No account
+  // reaches this call without it, so the account existing is the record. Which
+  // version of the aviso a person accepted is not stored, and whether it should
+  // be is a question for the lawyer (`5R-l`): storing it is a new item in the
+  // aviso's own list of what is kept.
   const signUp = useCallback(
-    async (email: string, password: string, firstName: string, lastName: string) => {
-      const checked = checkSignUp(email, password, firstName, lastName);
+    async (
+      email: string,
+      password: string,
+      firstName: string,
+      lastName: string,
+      acceptedAviso: boolean,
+    ) => {
+      const checked = checkSignUp(email, password, firstName, lastName, acceptedAviso);
       if (!checked.ok) return checked.message;
       const { error } = await supabase.auth.signUp({
         email: checked.email,
