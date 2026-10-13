@@ -51,27 +51,27 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
-⚠️ **A new build with the cow on its icon is ready for both pilot phones (13 October, night),
-and neither phone has it yet.**
+✅ **Your iPhone has the build with the cow on its icon since 13 October** (installed over
+Wi-Fi at 19:04 UTC, over the Wera you had; your session and your shop's data stay). ⚠️ **The
+pilot member's Android does not have it yet.**
 
-- **Your iPhone.** The build is on this Mac and installs over Wi-Fi in about a minute, **but
-  only while the phone is unlocked**: it stayed locked through every attempt that night. Unlock
-  it, leave it on the home screen and tell a session. Or do it from the phone: open expo.dev,
-  the project, *Builds*, the newest iOS one, *Install*. It installs over the Wera you have:
-  your session and your shop's data stay.
+- **Your iPhone.** Look at the home screen: the icon is a cream cow on a rust square. Open
+  Wera: the first screen is the cow in rust on cream, then your shop, still signed in. An
+  install like this needs the phone unlocked; it took thirty attempts because it was locked
+  for the first twenty-nine.
 - **The pilot member's Android.** Its owner opens the newest Android build marked `preview` on
   expo.dev and installs it over the one they have. The file is also on this Mac, in
   `~/RetailerToolDev/wera-builds/`.
 
-⚠️ **Until a phone installs the new build, no fix reaches it over the air.** The icon is part
-of the app itself, so fixes are now made for the new builds and the old ones cannot take them.
+⚠️ **Until the Android installs the new build, no fix reaches it over the air.** The icon is
+part of the app itself, so fixes are now made for the new builds and the old ones cannot take
+them. Until then it runs everything merged up to 10 October plus the fix of 13 October.
 
-**What both phones run until then:** everything merged up to 10 October, built by EAS, plus
-the fix that went out over the air on 13 October (`5P-d`): the aviso's box and links, and the
-pilot's measurements. The new build carries all of that from its first launch; hold the title
-*Ajustes* and the panel should say *Versión piloto-1*.
+**What the new build carries from its first launch:** everything merged up to 13 October,
+with the aviso's box and links and the pilot's measurements (`5P-d`). Hold the title *Ajustes*
+and the panel should say *Versión piloto-1*.
 
-✅ **Once installed, it takes fixes over the air**: a fix arrives the second time you open Wera
+✅ **It takes fixes over the air**: a fix arrives the second time you open Wera
 after it ships. It is signed until **10 October 2027**. The old `mx.bserafin.wera` icon can no
 longer open; delete it.
 
@@ -117,6 +117,7 @@ file above, section 2 of its catch-up.
 | **Ajustes → Tu cuenta → *Aviso de privacidad*** | New on 13 October, once the update reaches your phone. It should open tu-wera.com/privacidad over the app, and closing it should bring you back to Ajustes |
 | **Entrar → *¿No tienes cuenta? Crear una*** | New on 13 October. Signed out, the box *Acepto el Aviso de privacidad* sits above *Crear cuenta*. Tap *Crear cuenta* without ticking it: it should say *"Para crear tu cuenta, acepta el Aviso de privacidad."* Tap the underlined words: the page opens over the app and closing it keeps what you typed. Is the box easy to hit with *Letra grande*? Is it OK that the message stays on screen after you tick until the next tap of *Crear cuenta*, as every message on that screen does? Under *Entrar con Google* there is now one line, *Al continuar, aceptas el Aviso de privacidad*. To look you have to sign out; with signal, signing back in with Google brings your shop back |
 | **The listing your testers will see** | New on 13 October, and not in the app: `store/google-play.md`, section 2 — the short and the long description — and the five pictures in `store/google-play/`. Is this how you would describe Wera to a shopkeeper? It says nothing about *inventario*, because no screen shows how much stock there is. Only your testers see it, and every word can change |
+| **The icon and the first screen** | New on 13 October, on your iPhone. Is the cow the right size inside the square next to your other apps? The first screen at launch is the cow in rust on cream, not on the rust square: is that the one you want? Both need a new build to change, so say so before Apple sign-in's build |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
