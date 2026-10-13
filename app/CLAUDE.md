@@ -72,4 +72,8 @@ Each was measured against a real PostgREST or device.
   is the evidence. No screen reads the queue directly (`auth-errors.test.ts`).
 - **A tab screen keeps stale mount state** — `useState(() => …)` never sees a store change made
   from another screen.
+- **Metro's cache keeps an `EXPO_PUBLIC_` value.** A file is cached with the value already
+  written into it, and a changed value does not invalidate it: an export after a change carries
+  the OLD one, silently. `ship-an-update.sh` passes `--clear-cache`; a local export or release
+  build after a changed value needs `--clear`. EAS's own builds start with no cache.
 - **`grep -q` under `pipefail` fails on big files** (SIGPIPE) — use `grep -c` in any check.
