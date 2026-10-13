@@ -11,7 +11,8 @@ pictures Google asks for.
 | [`app-store.md`](app-store.md) | Every App Store Connect field: the record, the listing text, the age rating, the privacy labels, the review notes. **Nothing in it has been entered anywhere** |
 | `limits.py` | Measures every pasted field against its store's limit |
 
-**Where each stands.** Google Play's closed test is ready to be clicked through: the handbook's
+**Where each stands.** Google Play's closed test has its text and forms ready; its first upload
+waits for the build with the cow (`5R-k`), by the owner's ruling of 2026-10-13. The handbook's
 *Putting Wera on Google Play's closed test* has the steps (`5R-d-iv-b`, the owner's hands). The
 public listings — final text, final screenshots, the App Store record — are `5R-d-iv-c`, after
 the owner's review (`8g`) and the logo (`5R-m`).
@@ -72,8 +73,10 @@ manifest, its `assets/`, and the ELF headers of its libraries), not off `app.jso
 | 16 KB pages | All 50 of its 64-bit libraries are aligned to 16 KB |
 | Icon | ⚠️ Expo's template icon. The logo is `5R-m` |
 
-A copy is in the owner's `~/Downloads/wera-tienda-1.0.0-2.aab`. EAS keeps the original until
-2026-11-12. ⚠️ **The build after `5R-k` and `5R-m` replaces it** on the same closed track.
+⚠️ **This build is NOT the one that goes to Play.** The owner ruled on 2026-10-13 that the
+closed test waits for the build with the cow, which is `5R-k`'s. EAS keeps this one until
+2026-11-12; its copy was removed from his Downloads folder. Read the next bundle the same way
+before it is uploaded, and replace this section with what that one says.
 
 ## The pictures
 
