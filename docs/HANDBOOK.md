@@ -386,6 +386,50 @@ promises an answer within 20 business days.
 
 ---
 
+## Putting tu-wera.com up
+
+The pages are in `site/` and GitHub publishes them every time a change to them merges. Your
+name and address are **never in the repository**: GitHub keeps them as two secrets and fills
+them in when it builds the site. Seven steps, in this order — **1 and 2 first**, because
+nothing can build without them, and **3 before 4**, because the pages promise something
+about deleted accounts that is true only once 3 is done.
+
+1. **GitHub — your name and address.** github.com/bersermi/RetailerManagementTool →
+   *Settings → Secrets and variables → Actions → New repository secret*, twice:
+   `RESPONSABLE` = your full legal name as the aviso should print it; `DOMICILIO` = your
+   address on one line (street and number, interior, colonia, alcaldía, C.P., Ciudad de
+   México). GitHub never shows them again. To change one later, overwrite it, then
+   *Actions → site → Run workflow*.
+2. **GitHub — switch the site on.** Same repository → *Settings → Pages*: *Source* =
+   **GitHub Actions**; *Custom domain* = `tu-wera.com` → Save (it says the DNS check failed
+   until step 4). Then github.com/settings/pages → *Add a domain* → `tu-wera.com`: it shows
+   a TXT record for step 4, and after step 4 you come back and press *Verify*. That stops
+   anybody else's GitHub site from claiming the domain.
+3. **Supabase — the audit log.** Your project → *Authentication* → turn **off** *Write audit
+   logs to the database*. Then *SQL Editor*: `delete from auth.audit_log_entries;` → Run.
+   Without this, a deleted account leaves its email behind in that log.
+4. **GoDaddy — the records.** *My Products → tu-wera.com → DNS*. **Delete** the `A` record
+   for `@` (it says *Parked*) and the `CNAME` for `www`; if *Forwarding* is on, remove it.
+   **Add:** four `A` records named `@` — `185.199.108.153`, `185.199.109.153`,
+   `185.199.110.153`, `185.199.111.153`; a `CNAME` named `www` → `bersermi.github.io`; the
+   `TXT` from step 2; and for email, `MX` `@` → `mx1.improvmx.com` (priority 10), `MX` `@` →
+   `mx2.improvmx.com` (priority 20), and `TXT` `@` → `v=spf1 include:spf.improvmx.com ~all`.
+5. **ImprovMX — the email** (free; GoDaddy stopped including forwarding with new domains).
+   improvmx.com → sign up with your Gmail → add `tu-wera.com` → aliases `privacidad` and
+   `ayuda`, both to your Gmail. Then send a test email to privacidad@tu-wera.com from another
+   address. Your replies go out from your Gmail address, which is fine for the pilot.
+6. **When tu-wera.com opens** (minutes, at most an hour after step 4): GitHub → *Settings →
+   Pages* → tick **Enforce HTTPS**. Then a session runs `bash docs/checks/5R-d-ii-site-live.sh`,
+   which checks every page, that nothing sets a cookie, and the email records.
+7. **Google Cloud — Google sign-in for everybody.** console.cloud.google.com → the project
+   with Wera's sign-in → *Google Auth Platform → Branding*: home page `https://tu-wera.com/`,
+   privacy policy `https://tu-wera.com/privacidad/`, authorized domain `tu-wera.com`. Then
+   *Audience → Publish app*. After that nobody has to be added as a test user. Google's
+   screen will still name the *supabase.co* address rather than *Wera*; showing the name is
+   Google's brand verification, which the pilot does not need.
+
+---
+
 ## What only you can decide
 
 - **Anything a shopkeeper sees or types** — wording, taps, what a cashier may change.

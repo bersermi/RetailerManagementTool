@@ -48,7 +48,7 @@ is given instead.
 
 ## CI, and what a green run means
 
-Three workflows. **List every job by name** (count `money.yml`'s twice — it is matrixed):
+Four workflows. **List every job by name** (count `money.yml`'s twice — it is matrixed):
 
 ```
 ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["jobs"].each{|k,v| puts "#{File.basename f}  #{v["name"]||k}"}}'
@@ -59,8 +59,9 @@ ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["
 | `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the plan, handbook, conventions page, ADR-035 and their checks. Two jobs: the app (typecheck, Vitest, conventions gate) and *the documents still agree* |
 | `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `packages/money/cases.json`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema |
 | `money.yml` | `packages/**` and root `package*.json` |
+| `site.yml` | `site/**` and its two build checks. On a pull request it only builds; on `main` it **publishes `site/` to tu-wera.com** (GitHub Pages). The aviso's name and address come from the repository secrets `RESPONSABLE` and `DOMICILIO`, never from a commit. The only workflow that deploys anything |
 
-Adding a dependency moves the root lockfile, so it fires all three.
+Adding a dependency moves the root lockfile, so it fires the first three.
 
 - **The number to check a log against is the jobs that COULD fire for the paths changed** —
   each workflow has its own `paths:` filter, and an absent job is not a skipped one.
@@ -77,7 +78,7 @@ Adding a dependency moves the root lockfile, so it fires all three.
 - **A green CI run is not a deploy.** Each check builds and deletes its own Postgres; the
   database a phone talks to is reached only by hand. **Say which you have evidence about: the
   schema, the code, or the shop.**
-- **Deploying** — in no workflow on purpose, because the only token is account-wide:
+- **Deploying the database** — in no workflow on purpose, because the only token is account-wide:
 
   ```
   supabase db push                            # applies what the remote is missing

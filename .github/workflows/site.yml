@@ -1,0 +1,74 @@
+name: site
+
+# THE FOURTH WORKFLOW (plan task 5R-d-ii): it publishes site/ to tu-wera.com
+# through GitHub Pages. It is the only workflow that DEPLOYS anything, and it
+# deploys only a static site — the database is still deployed by hand.
+#
+# ⚠️ THE AVISO NAMES THE OWNER AND HIS HOME ADDRESS, AND THIS REPOSITORY IS PUBLIC.
+# They live only in the repository secrets RESPONSABLE and DOMICILIO and are
+# filled in at build time by docs/checks/5R-d-ii-site-build.sh, so no commit ever
+# holds them. GitHub masks both in this workflow's logs.
+#
+# A pull request builds with the real values (proving the secrets are set and
+# the pages are fit to publish) but uploads and deploys nothing. Only a push to
+# main, or a run by hand, publishes.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "site/**"
+      - "docs/checks/5R-d-ii-site-build.sh"
+      - "docs/checks/5R-d-ii-site-build-falsify.sh"
+      - ".github/workflows/site.yml"
+  pull_request:
+    paths:
+      - "site/**"
+      - "docs/checks/5R-d-ii-site-build.sh"
+      - "docs/checks/5R-d-ii-site-build-falsify.sh"
+      - ".github/workflows/site.yml"
+  # After a secret changes, re-publish without a commit: Actions → site → Run workflow.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: the pages are fit to publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: the build refuses what it should (falsifier, no secrets)
+        run: bash docs/checks/5R-d-ii-site-build-falsify.sh
+
+      - name: build site/ with the responsable filled in
+        env:
+          RESPONSABLE: ${{ secrets.RESPONSABLE }}
+          DOMICILIO: ${{ secrets.DOMICILIO }}
+        run: bash docs/checks/5R-d-ii-site-build.sh _site
+
+      - name: hand the built site to Pages
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: publish to tu-wera.com
+    if: github.event_name != 'pull_request'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5
