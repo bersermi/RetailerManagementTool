@@ -55,28 +55,29 @@ against the code: this table is the only link, as `site/README.md` is for the av
 | The listing does not say *inventario* | ⚠️ **No screen shows stock on hand** (measured 2026-10-13: `app/src/strings.ts` has no such word, and no screen reads `batch_balance`). The ledger keeps it; nothing draws it. `site/index.html` and the aviso still describe Wera as keeping *inventario* |
 | The description's feature list | The handbook's *What the app does today*, checked against `app/src/strings.ts` on 2026-10-13 |
 
-## The store build of 2026-10-13
+## The store build — the one that goes to Play
 
-EAS build `bb189fea` — Android, profile `production`, from commit `1803044`, finished
-15:11 UTC. Each line below was read off the bundle itself (`aapt2 dump xmltree` on its
-manifest, its `assets/`, and the ELF headers of its libraries), not off `app.json`.
+EAS build `018e0e33` — Android, profile `production`, from commit `01b250f` (the icon),
+finished 2026-10-13 18:52 UTC. Each line below was read off the bundle itself (`aapt2 dump
+xmltree` on its manifest, its `assets/`, the ELF headers of its libraries, and its launcher
+icon pulled out and looked at), not off `app.json`.
 
 | | |
 |---|---|
-| Package, version | `mx.wera.app`, 1.0.0, version code 2 |
+| Package, version | `mx.wera.app`, 1.0.0, version code 3 |
 | Target / minimum Android | API 36 / API 24. Play asks new apps for 36 since 31 August 2026 |
 | Permissions | Eight in the manifest: the app's own internal receiver permission, and `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE`, `SYSTEM_ALERT_WINDOW`, and `READ_`/`WRITE_EXTERNAL_STORAGE` up to Android 12 only. No location, camera, microphone, contacts or `AD_ID`. ⚠️ The last three come from Expo's template and Wera uses none of them; removing them is on `5R-k`'s row, because it needs a new build |
 | Cleartext traffic | Not allowed: the manifest sets neither `usesCleartextTraffic` nor a network security config, and Android's default for this target is off |
 | Update channel | `production`, checked on every launch |
-| Runtime | `b7937647…`, the same as the `preview` Android builds — an over-the-air fix can reach it |
+| Runtime | `6738a537…`, the same as the `preview` Android build made with it (`3cd8c36a`) — an over-the-air fix can reach it |
 | Pilot's measurements | Off: the bundle holds no `piloto-1`. It holds `tu-wera.com/privacidad` and the hosted project's address |
 | 16 KB pages | All 50 of its 64-bit libraries are aligned to 16 KB |
-| Icon | ⚠️ Expo's template icon — which is why this bundle is not the one for Play |
+| Icon | The cow: a cream mark on a rust ground, as an adaptive icon |
 
-⚠️ **This build is NOT the one that goes to Play.** The owner ruled on 2026-10-13 that the
-closed test waits for the build with the cow, which is `5R-k`'s. EAS keeps this one until
-2026-11-12; its copy was removed from his Downloads folder. Read the next bundle the same way
-before it is uploaded, and replace this section with what that one says.
+It is in the owner's `~/Downloads/wera-tienda-1.0.0-3-con-la-vaca.aab`, with a copy in
+`~/RetailerToolDev/wera-builds/`; EAS keeps the original until 2026-11-12. ⚠️ The morning's
+bundle (`bb189fea`, version code 2, Expo's icon) was never uploaded. ⚠️ **`5R-k`'s bundle
+replaces this one** on the same closed track; read it the same way and rewrite this section.
 
 ## The pictures
 
