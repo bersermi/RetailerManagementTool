@@ -6,7 +6,7 @@ Google Play's closed test* says which screen each block goes on. Why each answer
 
 **This is the listing for the CLOSED TEST.** Only the testers you add can see it. The text and
 the screenshots are today's look and are replaced before production is requested (`5R-d-iv-c`).
-⚠️ **The first upload waits for the build with the cow** (the owner's ruling of 2026-10-13).
+⚠️ **The first upload is the bundle built with the cow on its icon** (the owner's rulings of 2026-10-13); `store/README.md` says which one.
 
 ⚠️ A block marked `<!-- max:N -->` has a limit of N characters in Play Console. After editing
 one, run `python3 store/limits.py`.
@@ -83,8 +83,8 @@ Aviso de privacidad: https://tu-wera.com/privacidad/
 
 | Play asks for | File | What it is |
 |---|---|---|
-| App icon, 512 × 512 PNG | `icono-512.png` | ⚠️ **Still Expo's blue "A". Do not upload it.** `5R-k`'s build redraws it with the cow (`brand/wera-mark.svg`), and the feature graphic with it |
-| Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The word *Wera* in the app's colours. Its source is `grafico.html` |
+| App icon, 512 × 512 PNG | `icono-512.png` | The app's icon since 2026-10-13: a cream cow on a rust square, drawn by `brand/render-icons.sh` |
+| Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The mark and the word *Wera*, in rust on cream. Its source is `grafico.html` |
 | Phone screenshots (2 to 8) | `captura-1-inicio.jpg` … `captura-5-productos.jpg`, in that order | 1080 × 1920, from an Android emulator on the invented seed shop *Tienda Doña Lupe*. No real shop's data |
 
 Leave the tablet, Chromebook and video fields empty.
