@@ -11,8 +11,8 @@ pictures Google asks for.
 | [`app-store.md`](app-store.md) | Every App Store Connect field: the record, the listing text, the age rating, the privacy labels, the review notes. **Nothing in it has been entered anywhere** |
 | `limits.py` | Measures every pasted field against its store's limit |
 
-**Where each stands.** Google Play's closed test has its text and forms ready; its first upload
-waits for the build with the cow (`5R-k`), by the owner's ruling of 2026-10-13. The handbook's
+**Where each stands.** Google Play's closed test has its text, forms and pictures ready; its
+first upload is the bundle built with the cow on its icon, by the owner's rulings of 2026-10-13. The handbook's
 *Putting Wera on Google Play's closed test* has the steps (`5R-d-iv-b`, the owner's hands). The
 public listings — final text, final screenshots, the App Store record — are `5R-d-iv-c`, after
 the owner's review (`8g`) and the logo (`5R-m`).
@@ -71,7 +71,7 @@ manifest, its `assets/`, and the ELF headers of its libraries), not off `app.jso
 | Runtime | `b7937647…`, the same as the `preview` Android builds — an over-the-air fix can reach it |
 | Pilot's measurements | Off: the bundle holds no `piloto-1`. It holds `tu-wera.com/privacidad` and the hosted project's address |
 | 16 KB pages | All 50 of its 64-bit libraries are aligned to 16 KB |
-| Icon | ⚠️ Expo's template icon. The icon is `5R-k`'s, drawn from `brand/wera-mark.svg` |
+| Icon | ⚠️ Expo's template icon — which is why this bundle is not the one for Play |
 
 ⚠️ **This build is NOT the one that goes to Play.** The owner ruled on 2026-10-13 that the
 closed test waits for the build with the cow, which is `5R-k`'s. EAS keeps this one until
@@ -106,10 +106,11 @@ was taken as the seed's cashier of one store. A shop made in the app has one sto
 
 ## When something changes
 
-- **`5R-k`** (Sign in with Apple, and the build with the cow): the Play listing's icon and
-  feature graphic are redrawn from `brand/wera-mark.svg`, and this file's section on the
-  store build is replaced by what the new bundle says. The reviewer's notes in `app-store.md`
-  already assume Apple sign-in.
+- **`5R-k`** (Sign in with Apple): a new bundle replaces the one on Play's closed track, and
+  this file's section on the store build is replaced by what that bundle says. The reviewer's
+  notes in `app-store.md` already assume Apple sign-in.
+- **The mark or a colour**: edit `brand/wera-mark.svg` or `brand/render-icons.sh`, run the
+  script, and make new builds; an icon cannot go over the air.
 - **`8g`** (the owner's review): new screenshots, and the descriptions read again. That is
   `5R-d-iv-c`.
   Google's *account creation methods* stay *OAuth*.

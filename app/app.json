@@ -15,15 +15,13 @@
     "scheme": "mx.wera.app",
     "userInterfaceStyle": "light",
     "ios": {
-      "bundleIdentifier": "mx.wera.app",
-      "icon": "./assets/expo.icon"
+      "bundleIdentifier": "mx.wera.app"
     },
     "android": {
       "package": "mx.wera.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
+        "backgroundColor": "#B5561F",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false
@@ -33,9 +31,9 @@
       [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
+          "backgroundColor": "#FFFCF6",
           "image": "./assets/images/splash-icon.png",
-          "imageWidth": 76
+          "imageWidth": 140
         }
       ],
       "expo-sharing"
