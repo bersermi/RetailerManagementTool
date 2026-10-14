@@ -57,27 +57,29 @@ against the code: this table is the only link, as `site/README.md` is for the av
 
 ## The store build — the one that goes to Play
 
-EAS build `018e0e33` — Android, profile `production`, from commit `01b250f` (the icon),
-finished 2026-10-13 18:52 UTC. Each line below was read off the bundle itself (`aapt2 dump
-xmltree` on its manifest, its `assets/`, the ELF headers of its libraries, and its launcher
-icon pulled out and looked at), not off `app.json`.
+EAS build `1d8b5921` — Android, profile `production`, from commit `3843a66` (Apple sign-in,
+`5R-k-a`), finished 2026-10-13 22:42 UTC. Each line below was read off the bundle itself
+(`aapt2 dump xmltree` on its manifest, its `assets/`, the ELF headers of its libraries), not
+off `app.json`.
 
 | | |
 |---|---|
-| Package, version | `mx.wera.app`, 1.0.0, version code 3 |
+| Package, version | `mx.wera.app`, 1.0.0, version code 4 |
 | Target / minimum Android | API 36 / API 24. Play asks new apps for 36 since 31 August 2026 |
-| Permissions | Eight in the manifest: the app's own internal receiver permission, and `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE`, `SYSTEM_ALERT_WINDOW`, and `READ_`/`WRITE_EXTERNAL_STORAGE` up to Android 12 only. No location, camera, microphone, contacts or `AD_ID`. ⚠️ The last three come from Expo's template and Wera uses none of them; removing them is on `5R-k`'s row, because it needs a new build |
+| Permissions | Five in the manifest: the app's own internal receiver permission, and `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE` and `VIBRATE`. No location, camera, microphone, contacts, storage or `AD_ID`. The bundle before this one also declared `SYSTEM_ALERT_WINDOW` and the two external-storage permissions; `app.json` blocks them since `5R-k-a` |
 | Cleartext traffic | Not allowed: the manifest sets neither `usesCleartextTraffic` nor a network security config, and Android's default for this target is off |
 | Update channel | `production`, checked on every launch |
-| Runtime | `6738a537…`, the same as the `preview` Android build made with it (`3cd8c36a`) — an over-the-air fix can reach it |
+| Runtime | `4cb086fe…`, the same as the `preview` Android build made with it (`9c62c2f4`) — an over-the-air fix can reach it |
 | Pilot's measurements | Off: the bundle holds no `piloto-1`. It holds `tu-wera.com/privacidad` and the hosted project's address |
 | 16 KB pages | All 50 of its 64-bit libraries are aligned to 16 KB |
-| Icon | The cow: a cream mark on a rust ground, as an adaptive icon |
+| Icon | The cow, unchanged since the bundle before (`018e0e33`), where it was pulled out and looked at. This bundle's icon was not looked at again |
+| Sign in with Apple | Not on Android: the button is drawn on an iPhone only. The bundle carries the code and never reaches it |
 
-It is in the owner's `~/Downloads/wera-tienda-1.0.0-3-con-la-vaca.aab`, with a copy in
-`~/RetailerToolDev/wera-builds/`; EAS keeps the original until 2026-11-12. ⚠️ The morning's
-bundle (`bb189fea`, version code 2, Expo's icon) was never uploaded. ⚠️ **`5R-k`'s bundle
-replaces this one** on the same closed track; read it the same way and rewrite this section.
+It is in the owner's `~/Downloads/wera-tienda-1.0.0-4-entrar-con-apple.aab`, with a copy in
+`~/RetailerToolDev/wera-builds/`; EAS keeps the original until 2026-11-12. ⚠️ **It replaces
+`018e0e33`** (version code 3, three more permissions), whose file is still beside it in
+Downloads; if that one was uploaded, this is a new release on the same closed track. ⚠️ The
+first bundle (`bb189fea`, version code 2, Expo's icon) was never uploaded.
 
 ## The pictures
 
@@ -107,9 +109,8 @@ was taken as the seed's cashier of one store. A shop made in the app has one sto
 
 ## When something changes
 
-- **A new Android store bundle** (the one after `5R-k` drops three permissions, see the plan's
-  status log): it replaces the one on Play's closed track, and this file's section on the store
-  build is replaced by what that bundle says.
+- **A new Android store bundle**: it replaces the one on Play's closed track, and this file's
+  section on the store build is replaced by what that bundle says, read the same way.
 - **The mark or a colour**: edit `brand/wera-mark.svg` or `brand/render-icons.sh`, run the
   script, and make new builds; an icon cannot go over the air.
 - **`8g`** (the owner's review): new screenshots, and the descriptions read again. That is

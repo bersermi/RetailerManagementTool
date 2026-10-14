@@ -91,7 +91,7 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   `db push` does not carry it, and nothing fails when it is missing:
 
   ```
-  supabase functions deploy apple-revoke        # raise BUILD in its index.ts with every change
+  supabase functions deploy apple-revoke --use-api   # raise BUILD in its index.ts with every change
   bash docs/checks/5R-k-function-deployed.sh    # the hosted build is the merged one, and it holds its key
   ```
 

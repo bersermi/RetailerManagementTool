@@ -80,7 +80,7 @@ if [[ "$STATUS" == "200" && "$(pick function "$BODY")" == "$NAME" ]]; then
 else
   fail "the hosted function answered $STATUS $(head -c 160 <<< "$BODY") — it is NOT DEPLOYED."
   echo "      Until it is, an account made with Apple is deleted without Apple being told."
-  echo "      REMEDY: supabase functions deploy $NAME"
+  echo "      REMEDY: supabase functions deploy $NAME --use-api"
   echo
   echo "$ran group(s) ran, $fails failed."
   exit 1
@@ -92,7 +92,7 @@ if [[ "$HOSTED_BUILD" == "$BUILD" ]]; then
   ok "it is build $BUILD, the one merged"
 else
   fail "the hosted function is build $HOSTED_BUILD and the repository declares $BUILD — it is STALE."
-  echo "      REMEDY: supabase functions deploy $NAME"
+  echo "      REMEDY: supabase functions deploy $NAME --use-api"
 fi
 
 note

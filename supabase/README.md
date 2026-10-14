@@ -101,9 +101,12 @@ nothing and has no database credential.** A second function needs a ruling.
 **How a merged change to it gets there, and how to know it did:**
 
 ```
-supabase functions deploy apple-revoke        # the code; raise BUILD in index.ts with every change
+supabase functions deploy apple-revoke --use-api   # the code; raise BUILD in index.ts with every change
 bash docs/checks/5R-k-function-deployed.sh    # the hosted build is the merged one, and it holds its key
 ```
+
+⚠️ **`--use-api` is not optional on this Mac.** Without it the CLI bundles with Docker, and on
+2026-10-13 that ran 28 minutes without printing a line. With it Supabase bundles, in seconds.
 
 **Its three secrets are the owner's, set once and never committed** (the key file comes
 from his Apple developer account; `docs/HANDBOOK.md`, *Turning on Entrar con Apple*):
