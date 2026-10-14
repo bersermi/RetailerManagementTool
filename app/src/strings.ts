@@ -167,7 +167,11 @@ export const ES = {
    */
   starter: {
     question: '¿Qué vendes?',
-    hint: 'Te ponemos los productos de tu giro. Quita los que no vendes: después puedes cambiarles el nombre y el precio, pero no quitarlos.',
+    /** Over the untick list, on *Agregar del catálogo* (`catalogo.tsx`). ⚠️ It no
+     *  longer says *pero no quitarlos*: since `0054` they can be removed later. */
+    hint: 'Te ponemos los productos de tu giro. Quita los que no vendes; también puedes quitarlos después desde Productos.',
+    /** At onboarding, where there is no list since 2026-10-14 (the owner's ruling). */
+    hintGiros: 'Te ponemos todos los productos de tu giro. Después puedes quitar los que no vendes desde Productos.',
     count: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
     add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
     none: 'No elegiste ningún producto.',
@@ -981,6 +985,22 @@ export const ES = {
      * a delivery note in somebody's hand — and only one of the two blocks.
      */
     noPrice: 'Sin precio',
+    /**
+     * ⚠️ `5R-k`'s day, the owner's ruling of 2026-10-14: *Sin precio* becomes this
+     * for the owner and a manager, who can fix it from the counter. A cashier
+     * still reads *Sin precio*: `price_list` is manager-and-above (2026-09-23).
+     */
+    setPrice: 'Poner precio',
+    /** The sheet a tap on a row's price opens, over Vender, for the same two roles. */
+    priceSheet: {
+      title: (name: string) => `Precio de ${name}`,
+      now: (price: string) => `Ahora: ${price}`,
+      save: 'Guardar',
+      saving: 'Guardando…',
+      cancel: 'Cancelar',
+      loading: 'Un momento…',
+      needsSignal: 'Para cambiar el precio necesitas conexión.',
+    },
     /** The same fact about the basket, beside the total the bar is withholding part of. */
     someUnpriced: 'Falta un precio',
 

@@ -230,6 +230,13 @@ export interface VariantSettingsRow {
  * the defect the owner found on his own phone on 2026-09-23. **Absent until the
  * database has said so.**
  *
+ * ⚠️⚠️ SINCE `0054` (THE OWNER, 2026-10-14) THE ROW NO LONGER DECIDES IT. Onboarding
+ * stopped offering a per-product list and brings every product of a giro, so a
+ * product that came with the app is retired like the shop's own. `is_prebuilt` is
+ * still READ — the settings read landing is what the control waits for — and it no
+ * longer says no. The two reasons above remain two things in the database, where
+ * the marker still refuses a demotion and a delete.
+ *
  * ⚠️ THERE IS NO *already retired* BRANCH, WHICH IS WHERE THIS DIFFERS FROM
  * `canRetire`'s three. A retired product is not reachable: `catalogFrom` drops
  * `is_active` false, so Productos never lists one and this screen is only ever
@@ -242,7 +249,7 @@ export function canRetireProduct(
   mayWrite: boolean,
 ): boolean {
   if (settings === null || !mayWrite) return false;
-  return !settings.is_prebuilt;
+  return true;
 }
 
 /**

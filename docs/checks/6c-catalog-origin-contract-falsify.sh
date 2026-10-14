@@ -229,7 +229,42 @@ restore
 restored=no
 ask "drop trigger if exists catalog_prebuilt_stays_trg on public.product_variant;" >/dev/null
 expect "D2  the trigger dropped from product_variant" \
-  "RETIRING A PREBUILT PRODUCT ANSWERED|23001" "$CONTRACT"
+  "a demotion answered" "$CONTRACT"
+restore
+
+# ⚠️⚠️ D4 IS `0042`'s FENCE PUT BACK, which is what `0054` (the owner, 2026-10-14)
+# took away: a shop that picked a giro could then never remove what it does not sell.
+# The function is the applied one with its retire branch restored.
+restored=no
+docker exec -i "$DB_CONTAINER" psql -U postgres -q -v ON_ERROR_STOP=1 >/dev/null 2>&1 <<'SQLD4'
+create or replace function public.catalog_prebuilt_stays()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if tg_op = 'DELETE' and old.is_prebuilt
+     and not public.purging_workspace(old.workspace_id) then
+    raise exception 'a prebuilt % cannot be deleted: %',
+      tg_table_name, coalesce(old.name, '(unnamed)')
+      using errcode = 'restrict_violation';
+  end if;
+  if tg_op = 'UPDATE' and old.is_prebuilt and old.is_active and not new.is_active then
+    raise exception 'a prebuilt % cannot be retired: %',
+      tg_table_name, coalesce(old.name, '(unnamed)')
+      using errcode = 'restrict_violation';
+  end if;
+  if tg_op = 'UPDATE' and old.is_prebuilt and not new.is_prebuilt then
+    raise exception 'a prebuilt % cannot be reassigned to the shop: %',
+      tg_table_name, coalesce(old.name, '(unnamed)')
+      using errcode = 'restrict_violation';
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+SQLD4
+expect "D4  0042's retire fence put back, which 0054 lifted" \
+  "RETIRING A PREBUILT PRODUCT WAS REFUSED" "$CONTRACT"
 restore
 
 # ⚠️⚠️ D3 IS WHAT THE FIRST WRITING OF `0042` ACTUALLY DID, and it is here because
@@ -281,5 +316,5 @@ if (( bad > 0 )); then
   exit 1
 fi
 echo "all $fixtures fixtures behaved — the check goes red on three ways the app can"
-echo "stop describing this table and three ways 0042 can be wrong, and stays green on"
-echo "the tree as it is."
+echo "stop describing this table and four ways 0042 and 0054 can be wrong, and stays"
+echo "green on the tree as it is."

@@ -25,15 +25,15 @@ real database; none runs on sample data.
   their email (Wera shows a code once and you send it to them), let in somebody who asks.
   **Apple's sign-in is built for iPhone and is not switched on yet**: see *Turning on Entrar
   con Apple*, below.
-- **Productos** — the catalog: search, add, edit, open a family, and retire a
-  product you created (products that were there before 24 September, and products
-  from the starter catalog, stay, by your ruling).
-- **The starter catalog** — choose your giros when you create the shop, or *Agregar
-  del catálogo* in Productos later. A product brought in this way can be renamed and
-  repriced, never removed.
+- **Productos** — the catalog: search, add, edit, open a family, and retire any
+  product, including the ones that came with the app (your ruling of 14 October, which
+  replaced *"only what you created"*). Nothing brings a retired product back.
+- **The starter catalog** — creating the shop asks for your giros only and brings all
+  their products (14 October); *Agregar del catálogo* in Productos brings more later and
+  still lets you untick. A product brought in can be renamed, repriced and retired.
 - **Vender** — the counter: a stepper and a keypad on every row, a basket, a slide
   that commits the sale. **Works with no signal**, and sends what it held when the
-  signal comes back.
+  signal comes back. For you and a manager, a tap on a price changes it there.
 - **Comprar** — a delivery from a supplier, and **Costos**: what you have paid for a
   product over time, as a chart and a PDF.
 - **Desperdicio** — what was thrown away, and why. Rosa never sees what it cost.
@@ -129,6 +129,9 @@ file above, section 2 of its catch-up.
 | **The first screen after signing in, with no shop** | New on 13 October, once a build made after it is on your phone. At the very bottom of *Crea tu tienda* there are two grey lines: *Cerrar sesión* and *Eliminar mi cuenta*. Until now somebody who signed in with the wrong account was stuck there. Are they easy enough to find without getting in the way of a new shopkeeper? In Ajustes the same two are red; here they are grey on purpose, and you can say otherwise |
 | **Deleting an account made with Apple** | Do it with a throwaway, never your own: step 6 of *Turning on Entrar con Apple* walks you through it. Apple's sheet appears once more before the account goes. Does that read as a normal confirmation or as something broken? |
 | **Solicitudes → a request from a hidden address** | Somebody who hid their email with Apple and typed your shop's code. Their **name** is on top and *Correo oculto con Apple* under it, as you ruled. Is the name enough to know who it is? |
+| **Creating a shop: just the giros** | New on 14 October, on a build made after it (your iPhone's step 5; the Android's next install). *Crea tu tienda* shows the giros and no list of products: picking Abarrotes brings all 1,017. Then, in Productos, a product you don't sell: *Editar → Retirar del catálogo*. Is retiring one at a time bearable with a thousand? |
+| **Productos → Refrescos** | Fixed 14 October. *Agregar Variante*, *Editar* and *Costos* were under the 126th product; now they sit in a bar at the bottom, and the list opens at the one you tapped. Do they read as belonging to the marked product? |
+| **Vender → tap a price** | New on 14 October, for you and a manager, not a cashier. Tap the underlined price on a row: a sheet asks the new price, *Guardar*, and you are back in the sale. A product with no price in the basket says *Poner precio*. Does the underline read as something to tap? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
