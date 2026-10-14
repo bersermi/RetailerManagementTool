@@ -1,5 +1,5 @@
 import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -147,28 +147,50 @@ export default function Familia() {
   const family = familyView(entries, id, tapped ?? variante);
   const mayWrite = canWriteCatalog(useMyRole());
 
+  // ⚠️⚠️ THE LIST OPENS AT THE ROW HE TAPPED, ONCE (2026-10-14). On a family of
+  // 126 the marked row is otherwise off-screen, and so, until that day, were the
+  // controls. Scrolled on arrival only: a later tap moves the mark and leaves the
+  // list where his thumb put it.
+  const scroller = useRef<ScrollView>(null);
+  const listTop = useRef<number | null>(null);
+  const arrived = useRef(false);
+
+  function scrollToArrival(rowY: number) {
+    if (arrived.current || listTop.current === null) return;
+    arrived.current = true;
+    scroller.current?.scrollTo({
+      y: Math.max(0, listTop.current + rowY - scale.space),
+      animated: false,
+    });
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda title={family.title} />
 
       <ScrollView
-        // ⚠️ A `ScrollView` AND NOT A `FlatList`, WHICH IS THE OPPOSITE CALL
-        // FROM PRODUCTOS AND THE SAME ARGUMENT. There the list is ~100 rows on
-        // two low-end Androids (C8.3, C1.1) and virtualising is the difference
-        // between a scroll and a stutter; a family is a handful of sizes of one
-        // product, and the three affordances below have to scroll WITH them
-        // rather than float over them — which still holds now that two of the
-        // three are live: a button that floated would cover a variant's price.
+        // ⚠️ A `ScrollView` AND NOT A `FlatList`. A family was taken to be a
+        // handful of sizes of one product; the starter catalog made it anything up
+        // to 126 (`Refrescos`, 2026-10-14), which a `ScrollView` still draws.
+        // ⚠️⚠️ AND THE THREE CONTROLS ARE NO LONGER INSIDE IT — the owner found
+        // them *missing* on `Refrescos`: they were under the 126th row. They are
+        // a bar below the list now, which takes its own height rather than
+        // floating over a variant's price.
+        ref={scroller}
+        style={{ flex: 1 }}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
-          paddingBottom: scale.space * 2 + insets.bottom,
+          paddingBottom: scale.space * 2,
         }}
       >
         {family.variants.length === 0 ? (
           <Vacio line={familyLine(loading, failed)} />
         ) : (
           <View
+            onLayout={(event) => {
+              listTop.current = event.nativeEvent.layout.y;
+            }}
             style={{
               borderWidth: 1,
               borderColor: PALETTE.linea,
@@ -178,7 +200,14 @@ export default function Familia() {
             }}
           >
             {family.variants.map((entry, index) => (
-              <View key={entry.id}>
+              <View
+                key={entry.id}
+                onLayout={
+                  entry.id === variante
+                    ? (event) => scrollToArrival(event.nativeEvent.layout.y)
+                    : undefined
+                }
+              >
                 {index === 0 ? null : (
                   <View style={{ borderBottomWidth: 1, borderBottomColor: PALETTE.linea }} />
                 )}
@@ -192,9 +221,20 @@ export default function Familia() {
             ))}
           </View>
         )}
-
-        <Acciones familyId={id} variantId={family.selectedId} mayWrite={mayWrite} />
       </ScrollView>
+
+      <View
+        style={{
+          borderTopWidth: 1,
+          borderTopColor: PALETTE.linea,
+          backgroundColor: PALETTE.superficie,
+          paddingHorizontal: scale.space,
+          paddingTop: scale.space,
+          paddingBottom: scale.space + insets.bottom,
+        }}
+      >
+        <Acciones familyId={id} variantId={family.selectedId} mayWrite={mayWrite} />
+      </View>
     </View>
   );
 }

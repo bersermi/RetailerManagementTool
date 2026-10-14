@@ -19,6 +19,8 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 
+const NOTHING_EXCLUDED: ReadonlySet<string> = new Set();
+
 // ============================================================================
 // THE NO-WORKSPACE LANDING. Plan task 5b-i.
 //
@@ -119,7 +121,10 @@ export default function Bienvenida() {
   // section says so instead of spinning (`useStarterCatalog`).
   const starter = useStarterCatalog();
   const [giros, setGiros] = useState<ReadonlySet<string>>(new Set());
-  const [excluded, setExcluded] = useState<ReadonlySet<string>>(new Set());
+  // ⚠️ NOTHING IS UNTICKED HERE SINCE 2026-10-14 (the owner: *"just let the user
+  // pick one giro or more"*): the list is `Agregar del catálogo`'s alone, and a
+  // product a shop does not sell is retired from Productos afterwards (`0054`).
+  const excluded = NOTHING_EXCLUDED;
 
   const [credential, setCredential] = useState('');
   const [joinProblem, setJoinProblem] = useState<string | null>(null);
@@ -279,7 +284,8 @@ export default function Bienvenida() {
             chosen={giros}
             excluded={excluded}
             onToggleGiro={(code) => setGiros((now) => toggled(now, code))}
-            onToggleProduct={(code) => setExcluded((now) => toggled(now, code))}
+            onToggleProduct={() => {}}
+            products={false}
           />
         ) : (
           <Text style={{ fontSize: scale.smallSize }}>

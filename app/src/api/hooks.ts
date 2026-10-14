@@ -1507,6 +1507,10 @@ export function useEditProduct(variantId: string | null) {
     // boxes, and a form that waited for them would be a form that will not open
     // in the stockroom.
     loading: prices.isPending && enabled,
+    /** The price rows could not be read — no signal, as a rule. A plan built
+     *  without them would take the `open` branch on a priced product (2026-10-14,
+     *  Vender's price sheet, which offers no Guardar then). */
+    pricesFailed: prices.isError,
     prices: (prices.data ?? []) as readonly PriceInForce[],
     settings: (settings.data ?? null) as VariantSettingsRow | null,
     factors: unitFactorsFrom(units.data),

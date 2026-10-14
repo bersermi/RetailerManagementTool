@@ -15,8 +15,17 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
-import { useCatalog, useMagnitude, useUnitFactors, useWorkspace } from '@/api/hooks';
+import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
+import { canWriteCatalog } from '@/api/catalogWrite';
+import {
+  useCatalog,
+  useEditProduct,
+  useMagnitude,
+  useMyRole,
+  useUnitFactors,
+  useWorkspace,
+} from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
@@ -279,6 +288,14 @@ export default function Vender() {
   // *"two taps on the list behind the sheet"*. A route would re-read the
   // catalog, the unit factors and the workspace to show a subset of what is
   // already on screen.
+  // ⚠️⚠️ THE PRICE SHEET, the owner's ruling of 2026-10-14: *"set price directly
+  // from there without having to go back to the Productos screen."* A tap on a
+  // row's price opens it, for the owner and a manager only — `price_list` is
+  // theirs (2026-09-23) and a cashier is shown nothing to tap. It is a `Modal`
+  // over this screen, so the sale, the basket and the scroll stay where they are.
+  const mayPrice = canWriteCatalog(useMyRole());
+  const [pricing, setPricing] = useState<CatalogEntry | null>(null);
+
   const [cartOpen, setCartOpen] = useState(false);
   const closeCart = useCallback(() => setCartOpen(false), []);
   const openCart = useCallback(() => setCartOpen(true), []);
@@ -408,6 +425,7 @@ export default function Vender() {
             onEdit={(on) => {
               editing.current = on ? index : null;
             }}
+            onPrice={mayPrice ? setPricing : null}
           />
         )}
         ItemSeparatorComponent={Separador}
@@ -435,6 +453,16 @@ export default function Vender() {
         onEmpty={() => setAsking(true)}
         canSell={basketful !== null && canCommit(basketful)}
       />
+
+      {pricing !== null && workspace !== null ? (
+        <PrecioRapido
+          entry={pricing}
+          entries={entries}
+          workspaceId={workspace.id}
+          locationId={locationId}
+          onClose={() => setPricing(null)}
+        />
+      ) : null}
 
       <Carrito
         open={cartOpen}
@@ -500,6 +528,7 @@ function Fila({
   factors,
   typical,
   onEdit,
+  onPrice,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
@@ -507,6 +536,8 @@ function Fila({
    *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
   typical: Typical | undefined;
   onEdit: (editing: boolean) => void;
+  /** Opens the price sheet; `null` for a cashier, who sees nothing to tap. */
+  onPrice: ((entry: CatalogEntry) => void) | null;
 }) {
   const { scale } = useDensity();
   const base = useCartStore((state) => {
@@ -553,22 +584,40 @@ function Fila({
           </Text>
         )}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-          {/* C3.10's sentence, computed by `5d-i` and never assembled here. */}
-          <Text
-            numberOfLines={1}
-            style={{
-              fontSize: scale.bodySize,
-              fontWeight: '600',
-              color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta,
-            }}
+          {/* C3.10's sentence, computed by `5d-i` and never assembled here.
+              ⚠️ 2026-10-14: for the owner and a manager it is also the way into
+              the price sheet, underlined so it reads as something to tap. */}
+          <Pressable
+            accessibilityRole={onPrice === null ? undefined : 'button'}
+            accessibilityLabel={onPrice === null ? undefined : ES.sell.priceSheet.title(entry.name)}
+            disabled={onPrice === null}
+            hitSlop={scale.rowGap}
+            onPress={() => onPrice?.(entry)}
           >
-            {entry.price}
-          </Text>
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: scale.bodySize,
+                fontWeight: '600',
+                color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta,
+                textDecorationLine: onPrice === null ? 'none' : 'underline',
+              }}
+            >
+              {entry.price}
+            </Text>
+          </Pressable>
           {/* ⚠️ `R11`: the hue never travels alone. */}
           {alarm ? (
-            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
-              {ES.sell.noPrice}
-            </Text>
+            <Pressable
+              accessibilityRole={onPrice === null ? undefined : 'button'}
+              disabled={onPrice === null}
+              hitSlop={scale.rowGap}
+              onPress={() => onPrice?.(entry)}
+            >
+              <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
+                {onPrice === null ? ES.sell.noPrice : ES.sell.setPrice}
+              </Text>
+            </Pressable>
           ) : null}
           {/* ⚠️ IT IS A WORD IN THE AMBER ROLE AND NOT A COLOURED ROW (`R11`
               again, and §2.8's *none blocking*). A row that changed colour under
@@ -1376,3 +1425,168 @@ function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
   );
 }
 
+/**
+ * THE PRICE SHEET — the owner's ruling of 2026-10-14, opened by a tap on a row's
+ * price, for the owner and a manager.
+ *
+ * ⚠️⚠️ IT WRITES THROUGH THE EDIT SCREEN'S OWN PATH, NEVER A SECOND ONE.
+ * `checkEdit`, `editPlan` and `save` are `producto/[id].tsx`'s, with the name
+ * unchanged and the two figures left blank, so *close today's price and open a
+ * new one* is decided in one place (`@/api/catalogEdit`) for both screens.
+ *
+ * ⚠️ IT OFFERS NO GUARDAR UNTIL THE PRICE ROWS HAVE LANDED, and none at all when
+ * they could not be read. A plan built without them would open a second price on
+ * a priced product, which the database refuses (`23P01`). A price is not one of
+ * the writes Wera queues offline, so without signal the sheet says so and does
+ * nothing.
+ *
+ * ⚠️ R9: whether a tap on the price reads as an invitation at the counter, and
+ * whether the keyboard covers the box on a small phone, are the owner's phone's.
+ */
+function PrecioRapido({
+  entry,
+  entries,
+  workspaceId,
+  locationId,
+  onClose,
+}: {
+  entry: CatalogEntry;
+  entries: readonly CatalogEntry[];
+  workspaceId: string;
+  locationId: string | null;
+  onClose: () => void;
+}) {
+  const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
+  const { prices, factors, save, loading, pricesFailed, busy } = useEditProduct(entry.id);
+
+  const [typed, setTyped] = useState('');
+  const [issue, setIssue] = useState<EditIssue | null>(null);
+  const [failure, setFailure] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const working = saving || busy;
+  const ready = !loading && !pricesFailed;
+
+  async function guardar() {
+    if (!ready || working) return;
+    const form = { name: entry.name, taxPercent: '', packSize: '' };
+    const problem = checkEdit(entry.id, form, typed, entries, factors, entry.priceUnit);
+    setIssue(problem);
+    setFailure(null);
+    if (problem !== null) return;
+    const plan = editPlan(
+      {
+        workspaceId,
+        variantId: entry.id,
+        name: entry.name,
+        priceUnit: entry.priceUnit,
+        locationId,
+        factors,
+        today: isoDay(new Date()),
+      },
+      form,
+      typed,
+      prices,
+    );
+    if (!editTouches(plan)) {
+      Keyboard.dismiss();
+      onClose();
+      return;
+    }
+    setSaving(true);
+    const outcome = await save(plan);
+    setSaving(false);
+    if (!outcome.ok) {
+      setFailure(editLine(outcome));
+      return;
+    }
+    Keyboard.dismiss();
+    onClose();
+  }
+
+  const line =
+    issue !== null
+      ? ES.catalog.editIssues[issue]
+      : failure ?? (pricesFailed ? ES.sell.priceSheet.needsSignal : null);
+
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      <View style={{ flex: 1 }}>
+        <Velo label={ES.sell.priceSheet.cancel} onPress={onClose} />
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{ flex: 1, justifyContent: 'flex-end' }}
+        >
+          <View
+            style={{
+              borderTopLeftRadius: scale.space,
+              borderTopRightRadius: scale.space,
+              backgroundColor: PALETTE.fondo,
+              padding: scale.space * 1.5,
+              paddingBottom: scale.space * 1.5 + insets.bottom,
+              gap: scale.rowGap,
+            }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+              {ES.sell.priceSheet.title(entry.name)}
+            </Text>
+            <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+              {ES.sell.priceSheet.now(entry.price)}
+            </Text>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>$</Text>
+              <TextInput
+                value={typed}
+                onChangeText={setTyped}
+                keyboardType="decimal-pad"
+                autoFocus
+                editable={!working}
+                style={{
+                  flex: 1,
+                  fontSize: scale.bodySize,
+                  minHeight: scale.tapTarget,
+                  color: PALETTE.tinta,
+                  backgroundColor: PALETTE.superficie,
+                  borderWidth: 1,
+                  borderColor: PALETTE.linea,
+                  borderRadius: scale.space / 2,
+                  paddingHorizontal: scale.space,
+                }}
+              />
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                {`${ES.catalog.per} ${entry.priceUnit}`}
+              </Text>
+            </View>
+
+            {line !== null ? (
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{line}</Text>
+            ) : null}
+
+            <BotonLleno
+              label={
+                working
+                  ? ES.sell.priceSheet.saving
+                  : ready
+                    ? ES.sell.priceSheet.save
+                    : ES.sell.priceSheet.loading
+              }
+              onPress={() => void guardar()}
+              busy={working}
+            />
+            <Pressable
+              accessibilityRole="button"
+              disabled={working}
+              onPress={onClose}
+              style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+            >
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                {ES.sell.priceSheet.cancel}
+              </Text>
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
+      </View>
+    </Modal>
+  );
+}

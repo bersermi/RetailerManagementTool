@@ -111,6 +111,7 @@ export default function Catalogo() {
             excluded={excluded}
             onToggleGiro={(code) => setGiros((now) => toggled(now, code))}
             onToggleProduct={(code) => setExcluded((now) => toggled(now, code))}
+            products
           />
         ) : (
           <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>

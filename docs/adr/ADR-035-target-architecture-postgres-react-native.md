@@ -52,6 +52,12 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-14 — **§2.9's prebuilt fence, on the decision maker's ruling of that
+  day, by `0054`: a product that came with the app CAN be retired.** He found onboarding's
+  per-product checklist on his phone and ruled giros alone; asked what then happens to the
+  products a shop does not sell, he chose that they are retired later, which reverses his
+  choice of 2026-10-01 (the list, over loosening `0042`). A delete and a demotion stay
+  refused.
 - **Revised:** 2026-10-13 — **§2.2 and §2.3, on the decision maker's rulings of 2026-10-10 and
   2026-10-13, by plan task `5R-k`: SIGN IN WITH APPLE, AND THE FIRST SERVER CODE OUTSIDE
   POSTGRES.** Apple's guideline 4.8 asks an app with Google sign-in for a login that lets a
@@ -1768,9 +1774,15 @@ and this matches `provider.is_generic`, the schema's existing answer to the same
 question. The seed is still a later job — `docs/PLAN.md` `6c` shipped the marker, the
 fence and the restored delete, and named the onboarding as out of scope.
 
+⚠️⚠️ **AMENDED 2026-10-14 (`0054`, the decision maker's ruling of that day): A PREBUILT
+ROW CAN BE RETIRED.** Onboarding stopped offering a per-product list (*"just let the
+user pick one giro or more"*), so a shop brings every product of a giro and retires
+what it does not sell afterwards, as it retires its own. The marker still refuses a
+DELETE and a demotion to the shop's; the retire branch below is struck.
+
 ⚠️⚠️ **THE FENCE IS A TRIGGER ON A TRANSITION AND NOT A POLICY PREDICATE ON A ROW, AND
-THAT IS THE LOAD-BEARING SENTENCE OF THIS SECTION.** `catalog_prebuilt_stays()` refuses
-`is_active` going **true→false** on a prebuilt row, and refuses the marker being handed
+THAT IS THE LOAD-BEARING SENTENCE OF THIS SECTION.** `catalog_prebuilt_stays()` ~~refuses
+`is_active` going **true→false** on a prebuilt row, and~~ refuses the marker being handed
 back to the shop. It does **not** touch anything else, so a prebuilt product is renamed
 and repriced freely — which is the whole reason for importing one. ⚠️ Putting
 `is_prebuilt = false` into `product_variant_update`'s `using` clause reads correctly,

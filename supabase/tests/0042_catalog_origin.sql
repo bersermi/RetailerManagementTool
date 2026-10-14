@@ -257,15 +257,20 @@ select public.chk('4.1 the manager CAN retire a product the shop created',
 select public.chk('4.1b and the row really is off the catalog afterwards',
   not (select is_active from public.product_variant where id = :'var_his'));
 
--- 4.2 THE FENCE.
-select public.chk('4.2 and CANNOT retire one that came with the app — 23001',
-  public._try(format('update public.product_variant set is_active = false where id = %L',
-                     :'var_ours')) = '23001',
-  public._try(format('update public.product_variant set is_active = false where id = %L',
-                     :'var_ours')));
+-- 4.2 ⚠️⚠️ THE FENCE THIS FILE WAS WRITTEN FOR IS GONE SINCE `0054` (the owner,
+-- 2026-10-14): a product that came with the app CAN be retired, like his own.
+-- Asserted here because this suite runs against the newest schema, and a later
+-- migration putting the refusal back must turn it red.
+select public._try(format('update public.product_variant set is_active = false where id = %L',
+                          :'var_ours')) as r42 \gset
+select public.chk('4.2 since 0054 he CAN retire one that came with the app', :'r42' = 'ok', :'r42');
+select public.chk('4.2b and it really is off the catalog afterwards',
+  not (select is_active from public.product_variant where id = :'var_ours'));
 
-select public.chk('4.3 the prebuilt product is still active afterwards',
-  (select is_active from public.product_variant where id = :'var_ours'));
+-- 4.3 Put back (no screen does) — the assertions below need the row active.
+select public.chk('4.3 and the row can be made active again',
+  public._try(format('update public.product_variant set is_active = true where id = %L',
+                     :'var_ours')) = 'ok');
 
 -- 4.4 ⚠️⚠️ FINDING 1, DRIVEN. This is the assertion that would have caught the
 -- policy-predicate version of this migration, and nothing else would have.
@@ -296,13 +301,14 @@ select public.chk('4.7 a prebuilt row cannot be DEMOTED to the shop — 23001',
   public._try(format('update public.product_variant set is_prebuilt = false where id = %L',
                      :'var_ours')));
 
--- 4.8 THE SAME ON THE FAMILY, which no screen draws yet and which the fence must
--- still hold: he creates Familias as well as Productos.
-select public.chk('4.8 a prebuilt FAMILY cannot be retired either — 23001',
+-- 4.8 THE SAME ON THE FAMILY since `0054`: a prebuilt family can be retired too,
+-- and put back for what follows.
+select public.chk('4.8 since 0054 a prebuilt FAMILY can be retired as well',
   public._try(format('update public.product_family set is_active = false where id = %L',
-                     :'fam_ours')) = '23001',
-  public._try(format('update public.product_family set is_active = false where id = %L',
-                     :'fam_ours')));
+                     :'fam_ours')) = 'ok');
+select public.chk('4.8b and made active again',
+  public._try(format('update public.product_family set is_active = true where id = %L',
+                     :'fam_ours')) = 'ok');
 
 select public.chk('4.9 and a family the shop created can be',
   public._try(format('update public.product_family set is_active = false where id = %L',

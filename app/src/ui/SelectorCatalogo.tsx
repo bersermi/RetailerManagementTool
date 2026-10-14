@@ -2,6 +2,13 @@
 // THE STARTER-CATALOG PICKER. Plan task `9d`, the owner's ruling of 2026-10-01:
 // choose giros, then an untick list, then import.
 //
+// ⚠️⚠️ AND SINCE 2026-10-14 THE LIST IS `catalogo.tsx`'s ONLY. The owner found it
+// at onboarding on his own phone — *"we shouldn't do that, just let the user pick
+// one giro or more"* — so `bienvenida.tsx` passes `products={false}`: giros alone,
+// every product of each brought in, and a shop retires what it does not sell
+// later from Productos, which `0054` made possible for a product that came with
+// the app. `Agregar del catálogo` keeps the list, for bringing more later.
+//
 // Drawn by two files, which is why it is here (`R14`): the onboarding screen,
 // where it is the third question before *Crear mi tienda*, and `catalogo.tsx`,
 // opened from Productos to bring more later.
@@ -40,6 +47,7 @@ export function SelectorCatalogo({
   excluded,
   onToggleGiro,
   onToggleProduct,
+  products,
 }: {
   template: Template;
   holding: ShopHolding;
@@ -47,10 +55,12 @@ export function SelectorCatalogo({
   excluded: ReadonlySet<string>;
   onToggleGiro: (code: string) => void;
   onToggleProduct: (code: string) => void;
+  /** Whether the untick list is drawn under the chosen giros. */
+  products: boolean;
 }) {
   const { scale } = useDensity();
   const giros = giroChoices(template, holding);
-  const groups = offeredGroups(template, chosen, holding);
+  const groups = products ? offeredGroups(template, chosen, holding) : [];
 
   if (giros.length === 0) {
     return (
@@ -66,7 +76,7 @@ export function SelectorCatalogo({
         {ES.starter.question}
       </Text>
       <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-        {ES.starter.hint}
+        {products ? ES.starter.hint : ES.starter.hintGiros}
       </Text>
 
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>

@@ -4,6 +4,10 @@
 #
 # ⚠️⚠️ FIVE CLAIMS LIVE HERE AND NOWHERE ELSE IN THIS REPOSITORY.
 #
+#   0. ⚠️⚠️ **SINCE `0054` (the owner, 2026-10-14) A PREBUILT PRODUCT CAN BE RETIRED**
+#      by the app's own patch, like the shop's own. This file used to assert the
+#      opposite; the refusal is now what its falsifier puts back (`D4`).
+#
 #   1. ⚠️⚠️ **`restrict_violation` IS AN HTTP 400 WITH CODE `23001`.** Not a 403, not
 #      a 409. A trigger's exception is neither a privilege error nor a uniqueness
 #      conflict, so PostgREST's mapping is the only thing that decides what a
@@ -339,32 +343,30 @@ else
   echo "      the app never sends and PostgREST would accept without complaint."
 fi
 
-# --- 1. THE FENCE, AND THE NUMBER THE CLIENT MAPS --------------------------
-REFUSED="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$OURS_ID&select=$UPDATE_RETURNING" \
+# --- 0. SINCE 0054, A PREBUILT PRODUCT IS RETIRED BY THE APP'S OWN PATCH -----
+# The owner's ruling of 2026-10-14: onboarding brings a giro's every product, and a
+# shop removes what it does not sell afterwards, like its own.
+RETIRED_OURS="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$OURS_ID&select=$UPDATE_RETURNING" \
   "$(patch_body "$ACTIVE_PATCH_COLUMNS" false)")"
 note
-if [[ "$(status "$REFUSED")" == "400" && "$(code_of "$(body "$REFUSED")")" == "23001" ]]; then
-  ok "retiring a prebuilt product is refused HTTP 400 code 23001, the code the app maps"
+if [[ "$(status "$RETIRED_OURS")" == "200" && "$(rows_of "$(body "$RETIRED_OURS")")" == "1" ]]; then
+  ok "since 0054 a prebuilt product is retired by the app's own patch — 200, one row"
 else
-  fail "RETIRING A PREBUILT PRODUCT ANSWERED $(status "$REFUSED") code '$(code_of "$(body "$REFUSED")")'"
-  echo "      Body: $(body "$REFUSED")"
-  echo "      catalogEditErrorMessage keys on the STRING '23001' and gives"
-  echo "      ES.catalog.errors.notYours. A 403 would be read as notAllowedEdit — a"
-  echo "      sentence about permission, which is FALSE here: the same manager may"
-  echo "      rename and reprice this product. A 409 or an unmapped code falls"
-  echo "      through to @/api/errors and says nothing she could act on."
-  echo "      ⚠️ If the mapping moved, amend the code in app/src/api/catalogEdit.ts —"
-  echo "      do not widen this check."
+  fail "RETIRING A PREBUILT PRODUCT WAS REFUSED: $(status "$RETIRED_OURS") $(body "$RETIRED_OURS")"
+  echo "      0054 lifted 0042's fence on retiring (the owner, 2026-10-14). A refusal"
+  echo "      here means the fence is back, and a shop that picked a giro can never"
+  echo "      remove what it does not sell."
 fi
 
-# ⚠️ AND THE ROW IS STILL THERE. A fence that refused and deactivated anyway is the
-# worst of both, and a 400 alone cannot see it.
+# ⚠️ AND IT IS REALLY OFF THE CATALOG, then put back: the groups below rename it.
 STILL="$(api GET "/rest/v1/$VARIANT_TABLE?select=id,is_active&id=eq.$OURS_ID")"
+BACK="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$OURS_ID&select=$UPDATE_RETURNING" \
+  "$(patch_body "$ACTIVE_PATCH_COLUMNS" true)")"
 note
-if [[ "$(first is_active "$(body "$STILL")")" == "True" ]]; then
-  ok "and the prebuilt product is still in the catalog afterwards"
+if [[ "$(first is_active "$(body "$STILL")")" == "False" && "$(status "$BACK")" == "200" ]]; then
+  ok "and it really is off the catalog afterwards (put back for what follows)"
 else
-  fail "the refusal did not roll the row back: $(body "$STILL")"
+  fail "after the retire the row read $(body "$STILL"); putting it back answered $(status "$BACK")"
 fi
 
 # --- 3. FINDING 1: a prebuilt product is still renamed and repriced ---------
@@ -445,5 +447,5 @@ if (( fails > 0 )); then
   echo "way app/src/api/catalogEdit.ts says it does."
   exit 1
 fi
-echo "all $ran assertion groups passed — a prebuilt product cannot be retired (400"
-echo "23001), can still be renamed and repriced, and the shop's own products can go."
+echo "all $ran assertion groups passed — since 0054 a prebuilt product can be retired,"
+echo "never demoted (400 23001), and is still renamed and repriced like the shop's own."

@@ -576,11 +576,11 @@ describe('may this product be retired', () => {
     expect(canRetireProduct(his, true)).toBe(true);
   });
 
-  it('⚠️⚠️ a product that came with the app cannot — the whole of `0042`', () => {
-    // The owner's rule, 2026-09-23: *"the user can only Retirar or Eliminar things
-    // he created"*. Before `6c` this screen could not tell, so it offered the
-    // control on every product in the shop and he found it on his phone.
-    expect(canRetireProduct(ours, true)).toBe(false);
+  it('⚠️⚠️ since `0054` a product that came with the app can be retired too', () => {
+    // The owner's rule of 2026-09-23 (*"the user can only Retirar or Eliminar things
+    // he created"*) gave way on 2026-10-14, when onboarding stopped offering a
+    // per-product list: a shop removes what it does not sell afterwards, from here.
+    expect(canRetireProduct(ours, true)).toBe(true);
   });
 
   it('⚠️ a read that has not landed draws nothing, rather than guessing', () => {
