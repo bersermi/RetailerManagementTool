@@ -64,10 +64,11 @@ Android's is ready below, the iPhone's is your step 5 in *Turning on Entrar con 
   install like this needs the phone unlocked; it took thirty attempts because it was locked
   for the first twenty-nine.
 - **The pilot member's Android.** Its owner opens the newest Android build marked `preview` on
-  expo.dev and installs it over the one they have. Since the evening of 13 October that is the
-  build made after Apple sign-in, which has the cow too, **so this phone installs once and not
-  twice**. The file is also on this Mac, in `~/RetailerToolDev/wera-builds/` (the `.apk`
-  ending in `9c62c2f4`). Nothing changes on its screens: Apple's button is for iPhones.
+  expo.dev and installs it over the one they have. Since 14 October that is the build with
+  the cow, Apple sign-in's code and the three fixes of that day (giros only, the family
+  buttons, prices from Vender), **so this phone installs once and not twice**. The file is
+  also on this Mac, in `~/RetailerToolDev/wera-builds/` (the `.apk` ending in `f3fa55be`).
+  Apple's button is for iPhones and does not show on it.
 
 ⚠️ **Until the Android installs the new build, no fix reaches it over the air.** Fixes are
 made for the newest builds and the old ones cannot take them. Until then it runs everything
@@ -175,7 +176,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5R-d-iii** | **The checkbox on *Crear cuenta*** — *"Acepto el Aviso de privacidad"*, ticked before the account is made; the same link in Ajustes | ✅ **Done 13 October** — the box, the line under *Entrar con Google* (your ruling of 12 October), and *Ajustes → Tu cuenta → Aviso de privacidad*. Each opens tu-wera.com/privacidad over the app. What to look at is in *What only you can judge* |
 | **5R-d-iv** | **Both listings, as "Wera: tu tienda"**, Mexico only — descriptions, screenshots, the privacy forms; then the Android test: **12 people for 14 days** before the public listing | ✂️ **Split on 13 October** into the three rows below: what a session could do without you, what needs your hands in Play Console, and what waits for your review and the logo |
 | **5R-d-iv-a** | **Everything for the Android test that needs no hands of yours** — the text and the answers to every form for both stores, the pictures Google asks for, and the store version of the app, built | ✅ **Done 13 October** — it is all in `store/`. The store version built that day will not be the one uploaded: you ruled the same evening to wait for the build with the cow. The steps are under *Putting Wera on Google Play's closed test*, below. Found on the way: nothing in Wera shows how much stock a shop has, so the listing does not say *inventario* (the home page of tu-wera.com still does); and the app's icon is still Expo's blue "A" |
-| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, now** — the store file is in your Downloads folder, and nothing waits for Apple sign-in. ⚠️ Since the evening of 13 October there are two there: upload the one whose name has **`-4-`**. It has the cow and asks for three fewer permissions; the `-3-` one is the older build. Six steps, under *Putting Wera on Google Play's closed test*. You have **all 12** testers since 14 October: their addresses go straight into Play Console. Tell a session the day the twelfth joins |
+| **5R-d-iv-b** | **The Android test itself** — you make the demo account, paste the listing, upload the app and send it to Google; then 12 testers for 14 days | **Yours, now** — the store file is in your Downloads folder, and nothing waits for Apple sign-in. ⚠️ There are three there since 14 October: upload the one whose name has **`-5-`** (`…-5-giros.aab`). It has the cow, three fewer permissions and the fixes of 14 October, so a tester's very first screen asks only for giros; the `-3-` and `-4-` ones are older builds. Six steps, under *Putting Wera on Google Play's closed test*. You have **all 12** testers since 14 October: their addresses go straight into Play Console. Tell a session the day the twelfth joins |
 | **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | **No longer waits for your review** (your call, 14 October): made from today's screens, and retaken after your review as an update |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ✂️ **Split on 13 October** into the two rows below: what a session could build and check without a phone, and what only your iPhone can show |
 | **5R-k-a** | **Apple sign-in, built** — Apple's button on Entrar, the name Apple hands over, and telling Apple when such an account is deleted. Four things you ruled that day: a small server function that stores nothing; a hidden email shows the person's name in *Solicitudes*; you send the aviso's notice yourself; and the first screen gets *Cerrar sesión* and *Eliminar mi cuenta* | ✅ **Done 13 October** — in the app's code, on the site (the aviso and the deletion page now name Apple) and in the architecture record. **Not on any phone, and not switched on**: that takes your five steps |
@@ -692,10 +693,10 @@ days start the day they join.
    The demo account's email and password go in *App access*. The icon and the wide picture
    in `store/google-play/` are the cow's since 13 October.
 4. **Closed testing → Create new release.** Upload
-   `~/Downloads/wera-tienda-1.0.0-4-entrar-con-apple.aab`, the newest store build (it is
-   also on expo.dev under *Builds*, the newest Android one marked `production`, until 12
-   November). ⚠️ Not the `-3-` file beside it, which is the older build; if you already
-   uploaded that one, make a new release with this one. Accept
+   `~/Downloads/wera-tienda-1.0.0-5-giros.aab`, the newest store build (it is also on
+   expo.dev under *Builds*, the newest Android one marked `production`, until 13
+   November). ⚠️ Not the `-3-` or `-4-` files beside it, which are older builds; if you
+   already uploaded one of them, make a new release with this one. Accept
    *Play App Signing*. Countries: **Mexico** only. Testers: a list with the Gmail addresses.
 5. **Send for review.** When Google approves it, *Closed testing → Testers* shows a link:
    *Copy link*, and send it to each tester. They open it signed in to the Gmail on your list,
