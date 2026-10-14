@@ -148,8 +148,8 @@ messaging or chat, no advertising.
 What each one is in Wera is the same as Google's table ([`google-play.md`](google-play.md),
 *Data safety*). *Device ID* is the random id each install sends to Expo when it checks for an
 update; nothing ties it to an account, so it is not linked. ⚠️ *Analytics* is the daily count
-per shop, and comes off if the open question in the plan's ⛔ DECISIONS OWED is ruled the other
-way. ⚠️ **`5R-k` changed nothing in this table**: Apple's identifier is a User ID and its relay
+per shop, which covers every version since the owner's ruling of 2026-10-14 (the aviso's
+finalidad 9). ⚠️ **`5R-k` changed nothing in this table**: Apple's identifier is a User ID and its relay
 address is an Email Address. The code Apple hands over at a deletion is spent in one request
 and never stored, so it is not *collected*.
 

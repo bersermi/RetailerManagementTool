@@ -199,8 +199,8 @@ Sign in with email and password on the first screen (Entrar). No second factor. 
 | Device or other IDs | App functionality |
 
 ⚠️ ***Analytics* on Purchase history is the daily count per shop** (`docs/runbooks/engagement.sql`),
-which today counts every shop in the database. It comes off if the open question in the plan's
-⛔ DECISIONS OWED is ruled the other way (pilot shops only).
+which counts every shop in the database. It stays: on 2026-10-14 the owner ruled that the count
+covers every version, store builds included, and the aviso says so (finalidad 9).
 
 **Not ticked, and why:** location, contacts, photos, files, messages, health, web browsing —
 Wera reads none of them and sends none off the phone. *App interactions*, *Crash logs* and

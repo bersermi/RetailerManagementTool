@@ -6,7 +6,7 @@
 # ============================================================================
 
 # AUTH SECTION (same for all scripts)
-$tenantId      = "ba2f0bec-9a6d-479e-97a2-949b76e957eb"
+$tenantId      = "00000000-0000-0000-0000-000000000000"
 $appId         = "e760e845-8cb5-43dd-9dfb-bce983be97e7"
 $clientSecret  = "5-j8Q~tmCGfrG3Iq2T~qt-JYyriEI4tt6_Of3cQm"
 $resource      = "https://orgf47c632c.crm.dynamics.com"
