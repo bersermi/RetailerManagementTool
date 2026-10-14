@@ -53,16 +53,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
-✅ **Your iPhone has the build with the cow on its icon since 13 October** (installed over
-Wi-Fi at 19:04 UTC, over the Wera you had; your session and your shop's data stay). ⚠️ **The
-pilot member's Android does not have it yet.** ⚠️ **And neither phone has a build made after
-Apple sign-in merged that evening**, so no fix reaches either over the air until it does: the
-Android's is ready below, the iPhone's is your step 5 in *Turning on Entrar con Apple*.
+✅ **Your iPhone has the build of 14 October** (EAS `5f9a384f`, which you built in
+Terminal.app and installed from its QR code): the cow, Apple sign-in's code and that day's
+three fixes. **Fixes reach it over the air again.** ⚠️ **The pilot member's Android does not
+have its new build yet**, and no fix reaches it until it does.
 
-- **Your iPhone.** Look at the home screen: the icon is a cream cow on a rust square. Open
-  Wera: the first screen is the cow in rust on cream, then your shop, still signed in. An
-  install like this needs the phone unlocked; it took thirty attempts because it was locked
-  for the first twenty-nine.
+- **Your iPhone.** Apple's button shows on Entrar when you are signed out, but it cannot sign
+  anybody in until your steps 1 to 3 in *Turning on Entrar con Apple* are done.
 - **The pilot member's Android.** Its owner opens the newest Android build marked `preview` on
   expo.dev and installs it over the one they have. Since 14 October that is the build with
   the cow, Apple sign-in's code and the three fixes of that day (giros only, the family
@@ -88,9 +85,6 @@ link is on expo.dev, under *Builds*; it is not written here because this reposit
 every build's file is also kept on this Mac, in `~/RetailerToolDev/wera-builds/`. An Android
 installs from the `.apk` file itself. A phone that already has Wera is not affected.
 
-⚠️ **Your iPhone installs once more for Apple sign-in**, which you accepted on 13 October when
-you asked for the icon at once. Its build is your step 5 in *Turning on Entrar con Apple*,
-because it needs your Apple login.
 
 ⚠️ **Do not reinstall it from Xcode on this Mac any more.** A build made here carries no
 update channel, so the phone would stop taking fixes. A change that needs a new build (a new
@@ -621,7 +615,8 @@ today; a session can tell you which are not yours.
 >
 > Wera: tu tienda
 
-**5. The iPhone's build** (Terminal.app itself, not a `!` line: it asks you questions).
+**5. The iPhone's build** — ✅ **done 14 October** (EAS `5f9a384f`, installed from its QR
+code). For the next time (Terminal.app itself, not a `!` line: it asks you questions).
 
 ```
 cd ~/RetailerToolDev/RetailerManagementTool/app && npx eas-cli build -p ios --profile preview
