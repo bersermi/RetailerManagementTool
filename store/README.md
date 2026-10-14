@@ -40,7 +40,7 @@ against the code: this table is the only link, as `site/README.md` is for the av
 | Name, email, user id are collected, for the app to work and to manage the account | `site/README.md`'s first row (sign-up in `app/src/auth/AuthProvider.tsx`; GoTrue's `auth.users` and `auth.identities`) |
 | *Developer communications* on the email | The aviso's section 9: a change to which data is used is announced to the account's email |
 | The ledger as *Purchase history* and *Other financial info* | `sale`, `purchase`, `waste` and their lines; `price_list` and unit costs. The owner's ruling of 2026-10-10 (*the ledger as purchase/financial history*) |
-| *Analytics* on purchase history | `docs/runbooks/engagement.sql` (`5P-b`), which counts every shop's records per day. ⚠️ Tied to the open question in the plan's ⛔ DECISIONS OWED |
+| *Analytics* on purchase history | `docs/runbooks/engagement.sql` (`5P-b`), which counts every shop's records per day. Covers every version since the owner's ruling of 2026-10-14, and the aviso's finalidad 9 says so |
 | The catalog and the suppliers as *Other user-generated content* | `product_family`, `product_variant`, `provider` (name, contact, phone, address). Google's *Contacts* and Apple's *Contacts* both mean the phone's address book, which the app never reads |
 | A *Device or other ID* is collected (Apple: *Device ID*, not linked) | `expo-updates` sends a random per-install id to Expo on every update check; the aviso's *Datos técnicos de las actualizaciones* already says so. Google's definition names a *Firebase installation ID* as an example of the type |
 | Nothing is *shared* | Supabase and Expo process data on Wera's behalf (the aviso's section 5). Google: a transfer to a service provider is not sharing |
