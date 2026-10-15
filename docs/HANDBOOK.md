@@ -146,7 +146,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — your order of 15 October: the review first, with you, on your iPhone, starting with the first day. Paste the review prompt (below, *How a working session goes*), not your main prompt. It settles the look before the logo goes on the website and before the public listings' screenshots |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — your order of 15 October: the review first, with you, on your iPhone. It opens with a brainstorm about how Wera should look, move and feel, and the starting point is decided there. Paste the review prompt (below, *How a working session goes*), not your main prompt. It settles the look before the logo goes on the website and before the public listings' screenshots |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
@@ -272,31 +272,35 @@ If the question is about what a shopkeeper actually does, walk me through the
 situations before showing me a design.
 ```
 
-### The Review Prompt — for your screen-by-screen review (`8g`)
+### The Review Prompt — for your design review (`8g`)
 
-Use it instead of the main prompt while we review the app together: many small rounds, you
-deciding what shopkeepers see, on your iPhone. Clear context between days, not between rounds.
+Use it instead of the main prompt for the design review. It opens with a brainstorm in which
+the session interviews you about how Wera should look, move and feel, with pictures to react
+to, and only then decides with you where to start: a screen, a set of motifs or geometries, or
+the animations. Clear context between days, not between rounds.
 
 ```
-We are doing 8g, my screen-by-screen review, together and live. Read docs/PLAN.md's
-## Position and the 8g row, and run bash docs/checks/plan-handover.sh. Check nothing was
-left behind: an unmerged PR, a migration merged and not deployed.
+We are doing 8g, the design review, together and live. Before anything, read docs/PLAN.md's
+## Position and the 8g row, run bash docs/checks/plan-handover.sh, and check nothing was left
+behind (an unmerged PR, a migration merged and not deployed).
 
-How we work:
-- Start with the first day: sign out, create an account, create the shop with its giros,
-  the first sale. Then each tab, then Ajustes and the rest. The 8g row lists what is known.
-- I look on my iPhone and tell you or send screenshots. For anything I have to choose,
-  show me the options side by side (a preview or screenshots) with your recommendation.
-- Batch changes by area. Each batch: tests and the conventions gate, a PR, CI read by name,
-  merge, then bash docs/runbooks/ship-an-update.sh preview "<what changed>" so it reaches my
-  iPhone (I reopen Wera twice). Check the same screens on the Android emulator and tell me
-  what differs.
-- Stay in JavaScript. If something needs a new build or a migration, stop and ask me first.
-- Record every ruling in the plan's status log as we go, and fix the handbook when it
-  stops being true.
+Start by grilling me. Interview me about how I want Wera to look, move and feel: one question
+at a time, each with your recommendation and the reason, and keep going until we share a
+clear picture of who it is for and how it should feel at a counter; its visual language
+(motifs, geometries, colour, type, density); how things move (transitions, feedback,
+animations); and what to keep from today. Show, don't only ask: use whichever visual tools
+fit the question (a claude.ai canvas with options side by side that I can mark up, motion
+studies I can play, real screenshots of today's screens from the simulator or the emulator
+against a local test shop). Don't change the app until we have agreed where to start and
+why.
 
-End each sitting with: what changed and the check that looked at it; what to look at on
-my phone; what you decided on my behalf; what is waiting on me; what is next.
+Then work in rounds: change, put it on my iPhone (PR, CI read by name, merge, then
+docs/runbooks/ship-an-update.sh preview), check Android on the emulator, and record each
+ruling in the plan's status log. Stay in JavaScript: a new build, a migration, or a change
+to who may see or do what is mine to decide first.
+
+End each sitting with: what we decided, what changed and the check that looked at it, what
+to look at on my phone, what you decided on my behalf, and what is next.
 ```
 
 ### The Catalog Prompt — for each giro of the starter catalog
