@@ -112,7 +112,18 @@ insert into auth.users (id, email) values
   ('66666666-6666-6666-6666-666666666666', 'invitada@example.mx'),
   ('77777777-7777-7777-7777-777777777777', 'invitado.staff@example.mx'),
   ('88888888-8888-8888-8888-888888888888', 'otro.que.pide@example.mx'),
-  ('99999999-9999-9999-9999-999999999999', 'nadie@example.mx');
+  ('99999999-9999-9999-9999-999999999999', 'nadie@example.mx'),
+  ('aaaaaaaa-0029-4000-8000-000000000001', 'por.correo@example.mx');
+
+-- ⚠️ SINCE `0055` (the owner, 2026-10-15) D7 lets an invited person straight in
+-- only when GOOGLE OR APPLE vouched for the address, so the two invitees of §4
+-- carry the identity a Google sign-in writes. `por.correo` carries none: she
+-- signed up with an email and a password, and §4b is what happens to her.
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) values
+  ('google-0029-invitada', '66666666-6666-6666-6666-666666666666',
+   '{"sub":"google-0029-invitada","email":"invitada@example.mx","email_verified":true}'::jsonb, 'google', now(), now(), now()),
+  ('google-0029-invitado', '77777777-7777-7777-7777-777777777777',
+   '{"sub":"google-0029-invitado","email":"invitado.staff@example.mx","email_verified":true}'::jsonb, 'google', now(), now(), now());
 
 \set owner_a  '''11111111-1111-1111-1111-111111111111'''
 \set mgr_a    '''22222222-2222-2222-2222-222222222222'''
@@ -123,6 +134,7 @@ insert into auth.users (id, email) values
 \set inv_st   '''77777777-7777-7777-7777-777777777777'''
 \set asker2   '''88888888-8888-8888-8888-888888888888'''
 \set nobody   '''99999999-9999-9999-9999-999999999999'''
+\set by_mail  '''aaaaaaaa-0029-4000-8000-000000000001'''
 
 select public._as(:owner_a);
 select onboard_workspace('Tienda A') as ws_a \gset
@@ -388,6 +400,40 @@ select chk('4.6 a staff invite absorbed the same way brings its locations with i
            and (select array_agg(l) = array[:'loc_a2']::uuid[] from public.my_locations() l),
            format('locations=%s', (select count(*) from public.my_locations())));
 
+-- ============================================================================
+-- 4b. `0055`: AN ADDRESS NOTHING VERIFIED DOES NOT TAKE THE INVITATION
+-- ============================================================================
+-- The owner's ruling of 2026-10-15. With email confirmation off, anybody who
+-- knows the shop's code and an invited person's address could make that login
+-- first; so an email-and-password login files an ordinary request instead, and
+-- the invitation is superseded rather than left to be taken.
+select public._as(:owner_a);
+select public.create_invite(:'ws_a', 'por.correo@example.mx', 'manager', '{}'::uuid[]) as i4b \gset
+select (:'i4b'::jsonb->>'invite_id') as inv_mail \gset
+
+select public._as(:by_mail);
+select public.request_access(:'code_a') as r4b \gset
+
+select chk('4b.1 an email-and-password login with a pending invite ASKS — requested, not joined',
+           (:'r4b'::jsonb->>'status') = 'requested',
+           :'r4b');
+
+select chk('4b.2 and is NOT a member — not as the invite''s manager, not at all',
+           not exists (select 1 from public.workspace_member
+                        where workspace_id = :'ws_a'::uuid and user_id = :by_mail::uuid));
+
+select chk('4b.3 the invitation is superseded, not accepted, so nobody can take it later',
+           (select superseded_at is not null and accepted_at is null
+              from public.workspace_invite where id = :'inv_mail'::uuid));
+
+select chk('4b.4 and her request is the one pending row for that address',
+           (select count(*) = 1 from public.workspace_invite
+             where workspace_id = :'ws_a'::uuid and requested_by = :by_mail::uuid
+               and source = 'request' and accepted_at is null and superseded_at is null));
+
+select chk('4b.5 a second ask returns that same request rather than writing another',
+           (public.request_access(:'code_a')->>'status') = 'already_requested');
+
 -- ⚠️ AN EXPIRED INVITE IS NOT ABSORBED, AND D3′ IS WHY IT DOES NOT BLOCK EITHER.
 -- Before 0027 the lapsed row held the one-pending slot forever, so the person it
 -- was issued to could never ask.
@@ -635,9 +681,11 @@ select public._as(null);
 -- 9. What 0029 did NOT add
 -- ============================================================================
 
-select chk('9.1 workspace_invite still has exactly its three policies from 0002',
+-- ⚠️ ONE SINCE `0055` (2026-10-15): its INSERT and DELETE policies went with the
+-- grants they served, so `workspace_invite_select` is the whole of it.
+select chk('9.1 workspace_invite has only its select policy since 0055 — this file added none',
            (select count(*) from pg_policy
-             where polrelid = 'public.workspace_invite'::regclass) = 3,
+             where polrelid = 'public.workspace_invite'::regclass) = 1,
            (select string_agg(polname, ' ') from pg_policy
              where polrelid = 'public.workspace_invite'::regclass));
 
@@ -672,10 +720,11 @@ select chk_raises('9.5 a REQUEST row with no requester is refused',
 -- A section that silently did not run prints nothing and fails nothing. The
 -- literal is deliberately a literal.
 
--- 7 + 9 + 10 + 8 + 8 + 9 + 3 + 7 + 5 = 66, and this one makes 67.
-select chk('10.1 ALL 67 CHECKS IN THIS FILE ACTUALLY RAN',
-           (select count(*) from public._verify) = 66,
-           format('recorded=%s of 66 before this one',
+-- 7 + 9 + 10 + 8 + 8 + 9 + 3 + 7 + 5 = 66, plus §4b's five since `0055` = 71, and
+-- this one makes 72.
+select chk('10.1 ALL 72 CHECKS IN THIS FILE ACTUALLY RAN',
+           (select count(*) from public._verify) = 71,
+           format('recorded=%s of 71 before this one',
                   (select count(*) from public._verify)));
 
 drop function public.chk_raises(text, text, text);

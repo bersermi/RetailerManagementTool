@@ -34,8 +34,8 @@
     `tu-wera.com`.** This document names none of the three.
   - **2026-10-09 — a forgotten password is reset by hand over WhatsApp; email and phone
     verification are parked** (*"sometime in the future we'll need to perform verification, for
-    now we're fine."*). §2.7's D7 rests on an email identifying its holder: see the plan's
-    decisions block, where that is an open question since 2026-10-13.
+    now we're fine."*). §2.7's D7 rested on an email identifying its holder; ✅ **narrowed by
+    `0055` on his ruling of 2026-10-15**, see §2.7's D7 row.
   - **2026-10-12 — engagement is counted from the server**: `docs/runbooks/engagement.sql`
     reads every shop by name as the database owner, and two more runbooks write the same way.
     §2.9's *"one deliberate door"* does not describe them.
@@ -46,6 +46,10 @@
   - ⚠️⚠️ **Safeguards stated here in the present tense that do not exist, measured
     2026-10-13.** Point-in-time recovery and backups: the hosted project has neither, and a
     real shop has recorded since 2026-09-22 (§2.2 *"PITR required before real data"*; §8).
+    ✅ **Ruled 2026-10-15:** a nightly copy of every table from the owner's Mac
+    (`docs/runbooks/nightly-copy.sh`, scheduled) until the pilot's kick-off, and Supabase Pro
+    — daily backups kept seven days, no point-in-time add-on — before the first real shop.
+    Less than §2.2 asks, on his word.
     The nightly production check (§2.4, §2.10): no workflow has a schedule and no migration
     has `pg_cron`. CODEOWNERS and generated TypeScript types in CI (§2.10): neither exists.
     The first two are open questions and a row in the plan (`5P-e`).
@@ -1584,7 +1588,7 @@ table and one lifecycle, not two.
 | **D4** | ⚠️⚠️ **`invited_by` is renamed `decided_by`** — nullable, set at creation for an invite and at approval for a request — and **`accepted_by` keeps its one meaning: who actually joined.** As written, `accepted_by` meant the **invitee** on one path and the **owner** on the other: a semantic overload that reads as correct until someone asks who approved a membership, and then the answer is not in the schema |
 | **D5** | The join code is **8 characters, Crockford base32** (no `I`, `L`, `O`, `U`), normalised case-insensitively, `unique`, generated with retry-on-collision. It is read aloud over WhatsApp and typed by someone standing up |
 | **D6** | A code is resolved by a **`security definer` RPC taking the WHOLE code**, and **no policy permits a scan** (C11.6 — workspaces are never listed). ⚠️ Such an RPC is an **enumeration oracle by construction**; 8 Crockford characters are what make guessing impractical, and that — not aesthetics — is the reason for the length |
-| **D7** | **The two paths may collide on one person**, and the request path **absorbs the invite rather than erroring**: if a pending invite exists for that email, entering the code **accepts it**. An invite is a pre-approved request, so someone already invited who then types the code is simply let in, and is told none of it |
+| **D7** | **The two paths may collide on one person**, and the request path **absorbs the invite rather than erroring**: if a pending invite exists for that email, entering the code **accepts it**. An invite is a pre-approved request, so someone already invited who then types the code is simply let in, and is told none of it. ⚠️⚠️ **AMENDED 2026-10-15 (`0055`, the decision maker's ruling of that day): only when Google or Apple verified the address.** An email sign-up needs no confirmation on the live project, so anybody who knew the code and an invited person's address could take the invitation; an email-and-password login now has the invite superseded and files an ordinary request, which the owner approves by name. Redeeming the invite's own token is unchanged |
 | **D8** | ⚠️⚠️ **The approval RPC takes `location_ids` and refuses an empty array for `role = 'staff'`.** Staff write only where `member_location` puts them and **RLS enforces it silently** — an approved joiner with no locations opens the app and every write is refused with no message, which looks exactly like the app being broken |
 
 ⚠️ **`workspace` gains the join code**; it has no such column today and no migration

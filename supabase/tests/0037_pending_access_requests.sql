@@ -837,9 +837,11 @@ select chk('6.4 workspace_invite carries NO person-name column — the refused a
 -- ⚠️ NOTHING MOVED. This migration adds a function and touches no policy, and
 -- the cheapest-looking alternative to it — widening `workspace_invite_select`,
 -- or adding a policy for non-members — is exactly what `D6` forbids.
+-- ⚠️ ONE POLICY SINCE `0055` (2026-10-15), which dropped the insert and delete
+-- policies with their grants; the select policy is the one this test is about.
 select chk('6.5 workspace_invite_select is UNCHANGED at manager-and-above, and no policy was added',
            (select count(*) from pg_policies
-             where schemaname = 'public' and tablename = 'workspace_invite') = 3
+             where schemaname = 'public' and tablename = 'workspace_invite') = 1
        and (select qual from pg_policies
              where schemaname = 'public' and tablename = 'workspace_invite'
                and policyname = 'workspace_invite_select') ~ 'manager',

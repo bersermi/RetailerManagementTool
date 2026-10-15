@@ -145,6 +145,16 @@ insert into auth.users (id, email, raw_user_meta_data) values
   ('bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb', 'otra.llave@example.mx',
      jsonb_build_object('name', 'Bajo Otra Llave', 'display_name', 'Tampoco'));
 
+-- ⚠️ SINCE `0055` (2026-10-15) D7 honours an invitation on the address only for a
+-- login Google or Apple vouched for, so the two people this file has absorbed by
+-- D7 carry the identity a Google sign-in writes. What happens to an email-only
+-- login is `0029`'s suite, §4b.
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) values
+  ('google-0034-absorbida', '33333333-3333-3333-3333-333333333333',
+   '{"sub":"google-0034-absorbida","email":"absorbida@example.mx","email_verified":true}'::jsonb, 'google', now(), now(), now()),
+  ('google-0034-vuelve-dos', '88888888-8888-8888-8888-888888888888',
+   '{"sub":"google-0034-vuelve-dos","email":"vuelve.dos@example.mx","email_verified":true}'::jsonb, 'google', now(), now(), now());
+
 \set u_owner   '''11111111-1111-1111-1111-111111111111'''
 \set u_inv     '''22222222-2222-2222-2222-222222222222'''
 \set u_abs     '''33333333-3333-3333-3333-333333333333'''

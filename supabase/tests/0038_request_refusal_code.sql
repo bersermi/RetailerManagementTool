@@ -195,6 +195,12 @@ insert into auth.users (id, email, raw_user_meta_data) values
   -- no phone auth in v1, so nothing else in this repository drives it.
   ('88888888-8888-8888-8888-888888888888', null, '{}'::jsonb);
 
+-- ⚠️ SINCE `0055` (2026-10-15) D7 honours the invitation only for an address
+-- Google or Apple vouched for, so the invited person signed in with Google.
+insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) values
+  ('google-0038-invitada', '44444444-4444-4444-4444-444444444444',
+   '{"sub":"google-0038-invitada","email":"la.invitada@example.mx","email_verified":true}'::jsonb, 'google', now(), now(), now());
+
 \set u_duena  '''11111111-1111-1111-1111-111111111111'''
 \set u_duenab '''22222222-2222-2222-2222-222222222222'''
 \set u_duenac '''77777777-7777-7777-7777-777777777777'''

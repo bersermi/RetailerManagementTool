@@ -585,9 +585,11 @@ select chk('5.4 the manager''s name and role survived 5.2 and 5.3 unchanged',
            format('%L / %s', coalesce(public._name(:'ws_a', :u_ger), 'NULL'),
                   public._role(:'ws_a', :u_ger)));
 
-select chk('5.5 workspace_member still has exactly FOUR policies — 0035 added none',
+-- ⚠️ THREE SINCE `0055` (2026-10-15): `workspace_member_delete` went with its
+-- grant, so an owner can no longer erase a membership past the tombstone.
+select chk('5.5 workspace_member has exactly THREE policies since 0055 — 0035 added none',
            (select count(*) from pg_policies
-             where schemaname = 'public' and tablename = 'workspace_member') = 4,
+             where schemaname = 'public' and tablename = 'workspace_member') = 3,
            format('%s polic(ies)',
                   (select count(*) from pg_policies
                     where schemaname = 'public' and tablename = 'workspace_member')));

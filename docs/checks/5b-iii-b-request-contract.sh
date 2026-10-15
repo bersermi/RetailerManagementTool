@@ -235,6 +235,7 @@ signup() { # email -> sets TOKEN and USER_ID
 OWNER_EMAIL="ask-owner-$STAMP@example.com"
 ASKER_EMAIL="ask-asker-$STAMP@example.com"
 INVITEE_EMAIL="ask-invitee-$STAMP@example.com"
+VOUCHED_EMAIL="ask-vouched-$STAMP@example.com"
 OWNER2_EMAIL="ask-owner2-$STAMP@example.com"
 
 signup "$OWNER_EMAIL"; OWNER_TOKEN="$TOKEN"
@@ -344,7 +345,10 @@ else
   echo "      would be two things for an owner to approve."
 fi
 
-# --- 7. D7: an invited person who types the shop code is let straight in ----
+# --- 7. 0055: an invited EMAIL sign-up who types the shop code ASKS ----------
+# The owner's ruling of 2026-10-15. Nothing has confirmed an email-and-password
+# login's address, so the invitation is not taken on the address alone: she files
+# an ordinary request, which the app already draws as the pending block.
 signup "$INVITEE_EMAIL"; INVITEE_TOKEN="$TOKEN"
 
 TOKEN="$OWNER_TOKEN"
@@ -354,18 +358,46 @@ MINTED="$(stash minted "$(api POST "/rest/v1/rpc/$CREATE_INVITE" \
 
 note
 TOKEN="$INVITEE_TOKEN"
+ASKED="$(stash asked "$(api POST "/rest/v1/rpc/$REQUEST_ACCESS" "$(ask_body "$SHOP_CODE")")")"
+ASKED_STATUS="$(jfield "$ASKED" status)"
+SEES_NONE="$(stash sees_none "$(api GET "/rest/v1/workspace?select=$WORKSPACE_COLUMNS")")"
+if [[ "$ASKED_STATUS" == "requested" ]] && has_status "$ASKED_STATUS" \
+   && [[ "$(rows "$SEES_NONE")" == "0" ]]; then
+  ok "since 0055 an invited EMAIL sign-up typing the shop code answered '$ASKED_STATUS' and is not in"
+else
+  fail "the invited email sign-up answered '$ASKED_STATUS' and reads $(rows "$SEES_NONE") shop(s)"
+  echo "      0055 (the owner, 2026-10-15): an address nothing verified does not take"
+  echo "      the invitation. 'joined' here means anybody who knows the code and an"
+  echo "      invited person's address can be let in as them."
+fi
+
+# --- 7b. D7: an invited person whose address GOOGLE vouched for is let in ----
+# The identity a Google sign-in writes, given to an ordinary sign-up: a check
+# cannot hold a token Google signed, and request_access reads only this row.
+signup "$VOUCHED_EMAIL"; VOUCHED_TOKEN="$TOKEN"; VOUCHED_ID="$USER_ID"
+supabase db query --local "insert into auth.identities (provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at) values ('google-$VOUCHED_ID', '$VOUCHED_ID', jsonb_build_object('sub', 'google-$VOUCHED_ID', 'email', '$VOUCHED_EMAIL', 'email_verified', true), 'google', now(), now(), now())" > /dev/null 2>&1 \
+  || { echo "FAIL: could not give $VOUCHED_EMAIL a Google identity"; exit 1; }
+
+TOKEN="$OWNER_TOKEN"
+MINTED_V="$(stash minted_v "$(api POST "/rest/v1/rpc/$CREATE_INVITE" \
+  "$(invite_body "$VOUCHED_EMAIL" staff "[\"$CENTRO\"]")")")"
+[[ -n "$(jfield "$MINTED_V" token)" ]] || { echo "FAIL: could not mint the vouched invite — $(cat "$MINTED_V")"; exit 1; }
+
+note
+TOKEN="$VOUCHED_TOKEN"
 ABSORBED="$(stash absorbed "$(api POST "/rest/v1/rpc/$REQUEST_ACCESS" "$(ask_body "$SHOP_CODE")")")"
 ABSORBED_STATUS="$(jfield "$ABSORBED" status)"
 SEES="$(stash sees "$(api GET "/rest/v1/workspace?select=$WORKSPACE_COLUMNS")")"
 if [[ "$ABSORBED_STATUS" == "joined" ]] && has_status "$ABSORBED_STATUS" \
    && [[ "$(rows "$SEES")" == "1" ]]; then
-  ok "D7 absorbed: an invited person typing the SHOP code answered '$ABSORBED_STATUS' and is in"
+  ok "D7 absorbed: an invited person Google vouched for, typing the SHOP code, answered '$ABSORBED_STATUS' and is in"
 else
   fail "the D7 path answered '$ABSORBED_STATUS' and she reads $(rows "$SEES") shop(s)"
   echo "      §2.7: \"someone already invited who then types the code is simply let"
-  echo "      in, and is told none of it.\" The app cannot know this happened from"
-  echo "      the outside, which is why useRequestAccess invalidates the"
-  echo "      membership read on EVERY success and not only on the ones it expects."
+  echo "      in, and is told none of it\" — since 0055 when Google or Apple vouched"
+  echo "      for the address. The app cannot know this happened from the outside,"
+  echo "      which is why useRequestAccess invalidates the membership read on EVERY"
+  echo "      success and not only on the ones it expects."
 fi
 
 # --- 8. asking again from inside -------------------------------------------

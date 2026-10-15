@@ -178,7 +178,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon is in since 13 October: a cream cow on a rust square**, with builds of its own, because you asked for it on your phone at once. Each pilot phone installs again after Apple sign-in, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
-| **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | Your three answers are in (15 October), so a session can build it. ✅ **Your phone is already measuring**: 37 readings from your iPhone's new build that morning |
+| **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
 | **—** | ✅ **Nothing is waiting on YOU** in the plan's decisions block. You answered the last three on 15 October: a nightly copy from this Mac until the pilot starts, then Supabase Pro (the same database, upgraded, not moved); both database doors closed; an invitation honoured straight away only for a Google or Apple sign-in. The pilot's start list (`5P-e`) builds them | — |
 
@@ -450,6 +450,23 @@ supabase db query --linked -o table "select build, count(*) from public.pilot_re
 A row named `piloto-1` means a phone on the test channel has measured. **On 13 October there was
 none yet** (the row `8d8758c` is the 28 September build; ignore it). To make one on your phone: close Wera completely, open it, close it, open it again,
 then record one sale. Run the line above a minute later.
+
+---
+
+## The nightly copy
+
+Until the pilot starts, the live database is copied onto this Mac every night at 03:30, your
+ruling of 15 October: every table, into `~/RetailerToolDev/wera-backups/`, one folder per
+night, seven nights kept. Supabase's free plan keeps no backups at all. **The day before the
+first real shop signs up, move the project to Supabase Pro** (dashboard → *Billing*): it is the
+same database upgraded, not moved, and the app does not change.
+
+- **Did it run?** `~/RetailerToolDev/wera-backups/nightly-copy.log` ends with *22 tables, 0
+  failed* for each night. The Mac has to be on and awake at 03:30; a night it was asleep is
+  simply missing.
+- **One now, by hand:** `bash docs/runbooks/nightly-copy.sh` from the repository folder.
+- ⚠️ **It is a copy of the shops' records, not of the logins.** If it is ever needed, a
+  session puts the rows back by hand and everybody signs in again.
 
 ---
 

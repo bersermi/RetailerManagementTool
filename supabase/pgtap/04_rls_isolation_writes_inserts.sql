@@ -354,18 +354,10 @@ begin
       (w.tag, 'price_list', format(
         'insert into public.price_list (workspace_id, variant_id, location_id, '
         || 'price_per_base, effective_from) values (%L, %L, %L, 1.500000, %L)',
-        w.ws_id, v_variant, v_price_loc, '2099-01-01')),
-
-      -- workspace_invite_insert: has_role(workspace_id, 'manager').
-      -- ⚠️ `decided_by` was `invited_by` until `0027` (register #9 D4); re-signed
-      -- with the migration, since the rename breaks the INSERT, not the claim.
-      -- `token_hash` is globally unique, so it carries the workspace id — which
-      -- is a uuid, and therefore masked away by F8 along with the others.
-      (w.tag, 'workspace_invite', format(
-        'insert into public.workspace_invite (workspace_id, email, role, decided_by, token_hash) '
-        || 'values (%L, %L, %L, %L, %L)',
-        w.ws_id, 'invitee.3.2b-ii@pgtap.invalid', 'staff', v_owner_user,
-        'pgtap-3.2b-ii-' || w.ws_id));
+        w.ws_id, v_variant, v_price_loc, '2099-01-01'));
+      -- ⚠️ `workspace_invite` HAD A PAYLOAD HERE UNTIL `0055` (2026-10-15), which
+      -- revoked INSERT on it: a manager could write an owner invite straight into
+      -- the table past `create_invite`. It is on 03's grant wall now.
   end loop;
 end;
 $$;
@@ -387,7 +379,7 @@ $$;
 -- ---------------------------------------------------------------------------
 -- The measurements — every statement, run by both owners
 --
--- 32 of them: 8 tables × 2 target workspaces × 2 callers. `actor = target` is
+-- 28 of them: 7 tables × 2 target workspaces × 2 callers (8 until `0055`). `actor = target` is
 -- the positive control and must insert exactly one row; `actor <> target` is the
 -- cross-wall attempt and must be refused by the policy. The statement text is
 -- carried into the result table so F7 can assert from the MEASUREMENTS that the
@@ -485,17 +477,17 @@ select ok(
 select is(
   (select coalesce(array_agg(distinct role_seen), '{}') from ins_result),
   array['authenticated']::name[],
-  'F3 every one of the 32 measurements ran under set role authenticated'
+  'F3 every one of the 28 measurements ran under set role authenticated'
 );
 
 -- F4. THE FLOOR. Every per-row test below is generated from `ins_result`, so an
 -- empty one is a plan of eleven passing tests and a green that asserted no
 -- isolation at all.
 select ok(
-  (select count(*)::int from ins_result) = 32
-  and (select count(*)::int from ins_result where actor <> target) = 16
-  and (select count(*)::int from ins_result where actor =  target) = 16,
-  'F4 eight tables were each measured in both directions, refused and accepted'
+  (select count(*)::int from ins_result) = 28
+  and (select count(*)::int from ins_result where actor <> target) = 14
+  and (select count(*)::int from ins_result where actor =  target) = 14,
+  'F4 seven tables were each measured in both directions, refused and accepted'
 );
 
 -- F5. NO MEASUREMENT CAME BACK `unclassified`. ⚠️ THIS IS THE ONE THAT CATCHES A
@@ -592,7 +584,7 @@ select ok(
 select is_empty(
   $$ select b.tbl from ins_before b join ins_after a on a.tbl = b.tbl
       where b.n is distinct from a.n $$,
-  'F11 every insert was undone: the eight tables hold what they held before'
+  'F11 every insert was undone: the seven tables hold what they held before'
 );
 
 -- ---------------------------------------------------------------------------
