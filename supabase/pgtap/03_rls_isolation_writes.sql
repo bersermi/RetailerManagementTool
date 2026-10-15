@@ -716,13 +716,16 @@ select ok(
 
 -- F5. THE FLOOR. Every per-row test below is generated from a measurement table,
 -- so empty ones are a plan of seventeen passing tests and a green that asserted
--- no isolation at all. These are what 0001–0004 applied.
+-- no isolation at all. These are what 0001–0004 applied, less what `0055` took
+-- away (the owner, 2026-10-15): DELETE on `workspace_invite` and on
+-- `workspace_member` left the cross-tenant register for the grant wall, so the
+-- runner measured 20 cross, 20 own and 10 staff probes where it had 24, 24, 12.
 select ok(
   (select count(*)::int from iso_grant)  >= 40
-  and (select count(*)::int from iso_cross) >= 24
-  and (select count(*)::int from iso_own)   >= 24
+  and (select count(*)::int from iso_cross) >= 20
+  and (select count(*)::int from iso_own)   >= 20
   and (select count(*)::int from iso_move)  >= 16
-  and (select count(*)::int from iso_role)  >= 12
+  and (select count(*)::int from iso_role)  >= 10
   and (select count(*)::int from iso_append) >= 16,
   'F5 the grant wall, both tenant walls and the triggers were all actually measured'
 );
@@ -845,9 +848,13 @@ select is_empty(
 -- count is kept rather than deleted because it is the cheaper of the two to
 -- read, and because both files must be visited when a ninth arrives: 04 needs a
 -- payload written by hand, and this number needs moving to nine.
+-- ⚠️ SEVEN SINCE `0055` (2026-10-15): INSERT on `workspace_invite` was revoked —
+-- a manager could write an owner invite straight into the table past
+-- `create_invite` — so it left this register for the grant wall, and 04 lost its
+-- payload the same day.
 select is(
-  (select count(*)::int from iso_pair where disposition = 'deferred-3.2b-ii'), 8,
-  'F17 eight insert-granted tables, whose payloads are in 04 — a ninth turns this and 04 red');
+  (select count(*)::int from iso_pair where disposition = 'deferred-3.2b-ii'), 7,
+  'F17 seven insert-granted tables, whose payloads are in 04 — an eighth turns this and 04 red');
 
 -- F18. THE ATTRIBUTION BEHIND T-move, ASSERTED RATHER THAN ASSUMED. T-move says
 -- "refused by a policy" and not "refused by the WITH CHECK" because on this
@@ -876,15 +883,15 @@ select is_empty(
 -- table staff cannot read: "the write matched no rows" and "there were no rows"
 -- are the same green, and the SELECT policy would be doing the work again. So
 -- the visible count is asserted, and the exceptions are NAMED rather than
--- excluded. ⚠️ `workspace_invite` is the expected one — its SELECT policy is
--- `has_role(workspace_id,'manager')`, so staff cannot see invites at all and its
--- two T-role rows are carried as known-vacuous. A THIRD name appearing here is a
--- table that quietly stopped being observable.
+-- excluded. ⚠️ `workspace_invite` WAS the expected one, its rows carried as
+-- known-vacuous because staff cannot read invites at all; since `0055` its DELETE
+-- grant is gone, so it has no T-role row and the list is EMPTY. Any name appearing
+-- here is a table that quietly stopped being observable.
 select is(
   (select coalesce(array_agg(distinct tbl order by tbl), '{}')
      from iso_role where coalesce(n_visible, 0) = 0),
-  array['workspace_invite']::name[],
-  'F19 staff could see the rows it was refused, everywhere but workspace_invite'
+  array[]::name[],
+  'F19 staff could see the rows it was refused, on every table probed'
 );
 
 -- ---------------------------------------------------------------------------

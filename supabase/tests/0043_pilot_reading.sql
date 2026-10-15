@@ -92,8 +92,8 @@ select public.chk('1.7 it takes no member argument — decision 1, the member is
   (select pg_get_function_identity_arguments('public.record_pilot_readings(uuid, jsonb)'::regprocedure))
     = 'p_workspace_id uuid, p_readings jsonb');
 
-select public.chk('1.8 exactly 42 policies in public — 0043 adds one',
-  (select count(*) from pg_policies where schemaname = 'public') = 42,
+select public.chk('1.8 exactly 39 policies in public — 0043 adds one, 0055 drops three',
+  (select count(*) from pg_policies where schemaname = 'public') = 39,
   format('found %s', (select count(*) from pg_policies where schemaname = 'public')));
 
 -- ----------------------------------------------------------------------------

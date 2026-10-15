@@ -724,9 +724,11 @@ select public._as(null);
 -- 8. What 0028 did NOT add, and the premise of decision 1
 -- ============================================================================
 
-select chk('8.1 workspace_invite still has exactly its three policies from 0002',
+-- ⚠️ ONE SINCE `0055` (2026-10-15): its INSERT and DELETE policies went with the
+-- grants they served, so `workspace_invite_select` is the whole of it.
+select chk('8.1 workspace_invite has only its select policy since 0055 — this file added none',
            (select count(*) from pg_policy
-             where polrelid = 'public.workspace_invite'::regclass) = 3,
+             where polrelid = 'public.workspace_invite'::regclass) = 1,
            (select string_agg(polname, ' ') from pg_policy
              where polrelid = 'public.workspace_invite'::regclass));
 
