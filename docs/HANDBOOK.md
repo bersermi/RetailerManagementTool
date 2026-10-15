@@ -146,7 +146,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ▶️ **Back on 12 October, by you** — after the pilot path, in sessions with you. It settles the look before the logo goes on the website and before the public listings' screenshots (the app icon is already in) |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — your order of 15 October: the review first, with you, on your iPhone, starting with the first day. Paste the review prompt (below, *How a working session goes*), not your main prompt. It settles the look before the logo goes on the website and before the public listings' screenshots |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |
@@ -174,7 +174,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5R-d-iv-c** | **The public listings** — the screenshots and final text for both stores, and the App Store's record | **No longer waits for your review** (your call, 14 October): made from today's screens, and retaken after your review as an update |
 | **5R-k** | **Entrar con Apple** on iPhone — Apple asks for it beside Google | ✂️ **Split on 13 October** into the two rows below: what a session could build and check without a phone, and what only your iPhone can show |
 | **5R-k-a** | **Apple sign-in, built** — Apple's button on Entrar, the name Apple hands over, and telling Apple when such an account is deleted. Four things you ruled that day: a small server function that stores nothing; a hidden email shows the person's name in *Solicitudes*; you send the aviso's notice yourself; and the first screen gets *Cerrar sesión* and *Eliminar mi cuenta* | ✅ **Done 13 October** — in the app's code, on the site (the aviso and the deletion page now name Apple) and in the architecture record. **Not on any phone, and not switched on**: that takes your five steps |
-| **5R-k-b** | **Apple sign-in, working on your iPhone** — your five steps, then a session reads the result with you holding the phone | ⚠️ **This is where the next piece of work is** — and it starts with you: *Turning on Entrar con Apple*, below. Do the steps in order and tell a session when they are done; it checks each one and tells you if one is missing |
+| **5R-k-b** | **Apple sign-in, working on your iPhone** — your five steps, then a session reads the result with you holding the phone | **After your review** (your order of 15 October), and it starts with you: *Turning on Entrar con Apple*, below — steps 1 to 3 can be done in any break. Tell a session when they are done; it checks each one and tells you if one is missing |
 | **5R-m** | **Your logo, on the app icon and the site** — the icon, the splash and a restyle of the three web pages | ✅ **You chose the mark on 13 October: the cow's face, option A**, with the W in its fringe. It is the file `brand/wera-mark.svg`, and the three options are still on the canvas: https://claude.ai/artifact/DQFB1T7w62t6DYUnTyJDch. **And its colour the same day: rust, on cream.** **The icon is in since 13 October: a cream cow on a rust square**, with builds of its own, because you asked for it on your phone at once. Each pilot phone installs again after Apple sign-in, keeping its data. What is left for this row is the site: the mark and a restyle of the three pages, after your review |
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
@@ -270,6 +270,33 @@ End every session the same way, so I can read it in twenty seconds:
   - the next task, and whether it is gated
 If the question is about what a shopkeeper actually does, walk me through the
 situations before showing me a design.
+```
+
+### The Review Prompt — for your screen-by-screen review (`8g`)
+
+Use it instead of the main prompt while we review the app together: many small rounds, you
+deciding what shopkeepers see, on your iPhone. Clear context between days, not between rounds.
+
+```
+We are doing 8g, my screen-by-screen review, together and live. Read docs/PLAN.md's
+## Position and the 8g row, and run bash docs/checks/plan-handover.sh. Check nothing was
+left behind: an unmerged PR, a migration merged and not deployed.
+
+How we work:
+- Start with the first day: sign out, create an account, create the shop with its giros,
+  the first sale. Then each tab, then Ajustes and the rest. The 8g row lists what is known.
+- I look on my iPhone and tell you or send screenshots. For anything I have to choose,
+  show me the options side by side (a preview or screenshots) with your recommendation.
+- Batch changes by area. Each batch: tests and the conventions gate, a PR, CI read by name,
+  merge, then bash docs/runbooks/ship-an-update.sh preview "<what changed>" so it reaches my
+  iPhone (I reopen Wera twice). Check the same screens on the Android emulator and tell me
+  what differs.
+- Stay in JavaScript. If something needs a new build or a migration, stop and ask me first.
+- Record every ruling in the plan's status log as we go, and fix the handbook when it
+  stops being true.
+
+End each sitting with: what changed and the check that looked at it; what to look at on
+my phone; what you decided on my behalf; what is waiting on me; what is next.
 ```
 
 ### The Catalog Prompt — for each giro of the starter catalog
