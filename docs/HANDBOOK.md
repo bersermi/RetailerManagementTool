@@ -38,8 +38,10 @@ real database; none runs on sample data.
   sends what it held when the signal comes back. For you and a manager the price is a chip with a
   pencil, and a tap changes it. **A product with no price never goes in the basket**: your `+`
   asks its price first and adds it; a cashier's `+` says who can price it.
-- **Comprar** — a delivery from a supplier, and **Costos**: what you have paid for a
-  product over time, as a chart and a PDF.
+- **Comprar** — a delivery from a supplier, in its own blue: each product shows what
+  that supplier charged last time and the margin it leaves, and a product with no cost
+  asks its cost first. And **Costos**: what you have paid for a product over time, as a
+  chart and a PDF.
 - **Desperdicio** — what was thrown away, and why. Rosa never sees what it cost.
 - **Proveedores** — the supplier directory: add, rename, look up, remove.
 - **Lo último** — the last seven days of purchases, sales and write-offs, each with
@@ -56,6 +58,18 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 ---
 
 ## What is on your phone
+
+✅ **16 October, afternoon: the new Comprar went out over the air** (*Comprar nuevo y un solo
+carrito (8g ronda 4)*). Open Wera, close it completely, open it again. **What to look at:** in
+Comprar, the blue card with your supplier and *Cambiar*; the cards two across; **a product you
+have bought from that supplier shows his last price already in the box**, with *Anterior · hace
+N días* under it, and a margin pill (red when the cost is above your shelf price); change the
+price and it says *Antes $…*. A product you never bought from him asks *¿Cuánto te costó?* on
+`+`. Open the Carrito from the bar: name and total, price and quantity to correct, the Total at
+the foot. **And in all three counters the Carrito is now one design** — Desperdicio's has the
+title and count Vender's got in round 1. ⚠️ **On Android, the number pad in the cost and price
+questions comes up when you tap the box** (on the emulator it did not open by itself); tell me
+if your Android does the same.
 
 ✅ **16 October: your shop's *giro principal* went out over the air** (*Giro principal de la tienda*),
 with the change to the database it needs, already on the live project. **Your shop has none yet**: open
@@ -171,7 +185,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is. Next: the screens one at a time, starting with the first day (Entrar and *Tu tienda*)** — decided once on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then the next screen. Paste the review prompt (below, *How a working session goes*), not your main prompt |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is.** ✅ **Round 4 (16 October): Comprar as your card grid in blue, a cost first, and one Carrito for all three counters. Next: Desperdicio** — your order, the daily screens first (then Inicio, then the rest) — decided on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then built. Paste the review prompt (below, *How a working session goes*), not your main prompt |
 | **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
