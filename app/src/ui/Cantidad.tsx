@@ -68,6 +68,7 @@ export function Cantidad({
   onEdit,
   padId,
   refusal = null,
+  fill = false,
 }: {
   entry: CatalogEntry;
   base: number;
@@ -96,6 +97,14 @@ export function Cantidad({
    * obeys. Comprar and Desperdicio never pass it.
    */
   refusal?: { readonly dim: boolean; readonly onTap: () => void } | null;
+  /**
+   * ⚠️ ROUND 4 OF `8g` (2026-10-16): A COMPRAR CARD'S STEPPER — the two round
+   * buttons at the card's edges and the box taking what is between them. The
+   * buttons, the box's height, edge and words are every other stepper's: the
+   * owner's *"make sure the geometries in common are the same."* Only the box's
+   * WIDTH gives, because two cards side by side are narrower than Vender's row.
+   */
+  fill?: boolean;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -136,7 +145,14 @@ export function Cantidad({
     // and two half-gaps. Comprar draws this beside its cost box, and 13 points
     // wider cut its amber *Primera vez con este proveedor* to an ellipsis on the
     // emulator; a warning with its end missing is a warning half given.
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap / 2,
+        alignSelf: fill ? 'stretch' : undefined,
+      }}
+    >
       <Paso
         label={ES.counter.less}
         glyph="minus"
@@ -164,7 +180,8 @@ export function Cantidad({
         accessibilityLabel={refusal === null ? undefined : `${ES.counter.qty} ${word}`}
         onPress={refusal === null ? () => input.current?.focus() : refusal.onTap}
         style={{
-          width: scale.tapTarget * 1.5,
+          width: fill ? undefined : scale.tapTarget * 1.5,
+          flex: fill ? 1 : undefined,
           minHeight: scale.tapTarget,
           flexDirection: 'row',
           alignItems: 'center',

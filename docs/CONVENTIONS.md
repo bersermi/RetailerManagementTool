@@ -574,6 +574,16 @@ owner's ruling *"majority wins"*; their headers list what moved. **The gate prin
 drew for each product; `Entrar` was the second file to need it (*Acepto el Aviso de privacidad*).
 Byte-for-byte: the words beside the box are `children` and `Entrar`'s busy state is `disabled`,
 so nothing on the starter catalog changed. **The gate printed 15.**
+⚠️ **AND ROUND 4 OF `8g` (2026-10-16) ADDED SEVEN AND FOLDED ONE — the gate printed 21.** The owner,
+building Comprar: *"make sure the geometries in common are the same."* Vender, Comprar and Desperdicio
+each drew the Carrito's furniture and it had drifted (round 1 had moved Vender's alone), so it became
+`HojaCarrito` (the sheet's frame and heading), `CierreCarrito` (`Vaciar carrito` and the slide),
+`VaciarCarrito` (the emptying question), `Hecho` (*… registrada*) and `TotalCarrito`; Comprar's card
+made `Retrato` the second drawing, and its cost question made Vender's price sheet `HojaPrecio`.
+⚠️ **`Deslizador` left the directory the same day**, and this rule is why: once every slide was drawn
+through `CierreCarrito` it had one caller, so it lives inside that file now, unchanged. The drift each
+extraction settled — by the owner's round-1 rulings rather than by count — is listed in each file's
+header and in the plan's status log.
 
 ⚠️ **WHAT MAKES THIS MACHINE-READABLE RATHER THAN A MOOD.** *Already drawn twice*
 is a fact about the past that nothing can check. *Reached from two or more other
@@ -613,7 +623,7 @@ JUNK DRAWER**, and the file name stops predicting the contents — which is the
 whole reason `src/app/` is a routing table made of files.
 
 ⚠️ **THE NAME IS THE SPANISH DOMAIN WORD, AND THE PROPS ARE ENGLISH.** `Buscador`,
-`Cantidad`, `Deslizador`, `Separador`, `TecladoListo`, `Vacio`, `Boton`, `Frase` —
+`Cantidad`, `CierreCarrito`, `Separador`, `TecladoListo`, `Vacio`, `Boton`, `Frase` —
 taking `line`, `kind`, `label`, `tone`, `padId`, `inRow`. The component is a thing
 in the shop and is named as one (see `CLAUDE.md`'s domain vocabulary); a prop is a
 wire inside the file and is named like the rest of the code around it. **The gate

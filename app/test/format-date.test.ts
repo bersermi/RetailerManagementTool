@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatExpiry, formatLedgerDay, formatWaiting } from '@/format/date';
+import { formatExpiry, formatLastBought, formatLedgerDay, formatWaiting } from '@/format/date';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -173,6 +173,36 @@ describe('formatWaiting', () => {
 
   it('reads the real shape 0037 returns, offset and all', () => {
     expect(formatWaiting('2026-09-19T18:00:00+00:00', localAt(2026, 8, 20))).not.toBeNull();
+  });
+});
+
+// ⚠️ ROUND 4 OF `8g` (2026-10-16): THE OWNER'S *"Anterior · hace N días"* UNDER
+// A COMPRAR CARD'S PREFILLED COST. `formatWaiting`'s arithmetic, shared, so the
+// two can never count a day differently.
+describe('formatLastBought', () => {
+  it('says hoy, ayer, and how many days past that', () => {
+    expect(formatLastBought(localAt(2026, 9, 16, 8).toISOString(), localAt(2026, 9, 16, 18))).toBe('Anterior · hoy');
+    expect(formatLastBought(localAt(2026, 9, 15).toISOString(), localAt(2026, 9, 16))).toBe('Anterior · ayer');
+    expect(formatLastBought(localAt(2026, 9, 4).toISOString(), localAt(2026, 9, 16))).toBe(
+      'Anterior · hace 12 días',
+    );
+  });
+
+  it('crosses midnight the way a person does', () => {
+    expect(formatLastBought(localAt(2026, 9, 15, 23, 50).toISOString(), localAt(2026, 9, 16, 0, 10))).toBe(
+      'Anterior · ayer',
+    );
+  });
+
+  it('absorbs a clock behind the database as hoy', () => {
+    expect(formatLastBought(localAt(2026, 9, 17).toISOString(), localAt(2026, 9, 16))).toBe('Anterior · hoy');
+  });
+
+  // ⚠️ NOT `null`: the box still holds the last cost, so the line still says so.
+  it('says Anterior alone for a date it cannot read', () => {
+    for (const input of ['', 'nope', null, undefined]) {
+      expect(formatLastBought(input, localAt(2026, 9, 16))).toBe(ES.buy.lastBought.undated);
+    }
   });
 });
 

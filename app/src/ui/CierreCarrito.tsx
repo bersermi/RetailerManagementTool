@@ -1,4 +1,87 @@
 // ============================================================================
+// THE ROW THAT CLOSES A BASKET — `Vaciar carrito` on the left, the slide on the
+// right. Drawn twice per counter: under the sticky bar's summary, and in the
+// Carrito's foot. Ruled 2026-09-24: *"Include Vaciar carrito in the closed
+// Carrito as well"* — **the two rows are deliberately the same shape**, so the
+// thumb that learns one has learned the other.
+//
+// ⚠️ `R14`: SIX DRAWINGS IN THREE FILES, byte-identical but for the verb, which
+// is the screen's (`word`, `label`), and for what stands in the slide's place
+// when it cannot be committed — Comprar's banner, nothing elsewhere (`blocked`).
+//
+// ⚠️ `Vaciar carrito` IS DRAWN EVEN WHEN NOTHING CAN BE COMMITTED: a basket
+// that cannot be sent still has to be emptiable, and that is when a shopkeeper
+// most wants to.
+//
+// ⚠️⚠️ THE SLIDE ITSELF LIVES IN THIS FILE SINCE ROUND 4, AND `R14` PUT IT HERE:
+// once every counter drew it through this row, this row was its only caller,
+// and *a component with one caller belongs in that caller*. It is `Deslizador`,
+// moved whole with its own header below — one control, one answer to *how far
+// is far enough* (`releaseCommits`).
+//
+// ⚠️ `onTap` ONLY ON THE BAR: a tap on the track opens the Carrito. In the open
+// Carrito there is none — the 2026-09-25 ruling, *"do not close the carrito"* —
+// and the `Deslizador` still nudges, so the touch is answered.
+// ============================================================================
+
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useRef, useState, type ReactNode } from 'react';
+import { Animated, Easing, PanResponder, Pressable, Text, View } from 'react-native';
+
+import { releaseCommits, releaseTaps } from '@/cart/commit';
+import { ES } from '@/strings';
+import { useDensity } from '@/theme/DensityProvider';
+import { PALETTE } from '@/theme/palette';
+
+export function CierreCarrito({
+  onEmpty,
+  word,
+  label,
+  onCommit,
+  canCommit,
+  onTap,
+  compact = false,
+  blocked = null,
+}: {
+  onEmpty: () => void;
+  word: string;
+  label: string;
+  onCommit: () => void;
+  canCommit: boolean;
+  onTap?: () => void;
+  /** The Carrito's own, shorter track. */
+  compact?: boolean;
+  /** What stands where the slide would, when it cannot be committed. */
+  blocked?: ReactNode;
+}) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={ES.counter.cart.empty}
+        onPress={onEmpty}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+          {ES.counter.cart.empty}
+        </Text>
+      </Pressable>
+
+      {/* ⚠️ `flex: 1` GIVES THE TRACK EVERY POINT `Vaciar carrito` DOES NOT USE —
+          the short track by construction, which keeps it honest at `Letra grande`. */}
+      {canCommit ? (
+        <View style={{ flex: 1 }}>
+          <Deslizador compact={compact} word={word} label={label} onCommit={onCommit} onTap={onTap} />
+        </View>
+      ) : (
+        blocked
+      )}
+    </View>
+  );
+}
+
+// ============================================================================
 // C3.6's SLIDE — §2.11's `PrimaryAction`, and the only commit gesture in this
 // app. Plan task `5g-ii`, and see `src/ui/Buscador.tsx` for why this directory
 // exists now.
@@ -19,14 +102,6 @@
 // `app/test/cart-commit.test.ts` reads them (`R3`). This file holds where the
 // thumb IS, which no instrument in this repository can look at (`R9`).
 // ============================================================================
-
-import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRef, useState } from 'react';
-import { Animated, Easing, PanResponder, Text, View } from 'react-native';
-
-import { releaseCommits, releaseTaps } from '@/cart/commit';
-import { useDensity } from '@/theme/DensityProvider';
-import { PALETTE } from '@/theme/palette';
 
 /**
  * ⚠️⚠️ C3.6's SLIDE — *"commit is a SLIDE, not a tap. The button becomes a
@@ -62,7 +137,7 @@ import { PALETTE } from '@/theme/palette';
  * and a native surface this app has never exercised, **on a build no CI
  * compiles.** Core RN costs a JS-driven drag and no new wiring.
  */
-export function Deslizador({
+function Deslizador({
   word,
   label,
   compact = false,
