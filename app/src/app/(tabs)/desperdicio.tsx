@@ -1300,8 +1300,9 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
         {/* ⚠️ `Boton` IS `src/ui/`'s — `5h.5` made it a primitive off THREE
             drawings, and this is the fourth. `Cancelar` below is `src/ui/BotonLleno`
             since `8f`, which gave it the border the other ten drawings had. */}
-        <Boton label={ES.counter.cart.emptyConfirm} tone={PALETTE.error} onPress={onConfirm} />
-        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
+        <Boton label={ES.counter.cart.emptyConfirm} tone={PALETTE.error} onPress={onConfirm} lleno />
+        {/* ⚠️ `8g`, *option 2* — the same box as Vender's and Comprar's. */}
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
       </View>
     </>
   );

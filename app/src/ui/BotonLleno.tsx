@@ -23,6 +23,14 @@
 //
 // ⚠️ WHAT NO CHECK CAN SEE (`R9`): the border arriving on the three `Cancelar`
 // answers. The instrument is the owner's phone — empty a basket on Vender.
+//
+// ⚠️⚠️ `variante` SINCE `8g`, THE OWNER'S RULING OF 2026-10-16 — *option 2*:
+// **only the main action is solid.** `principal` is the one button that is THE
+// thing to do on its screen (`accion` ground, `superficie` word); `discreto` is
+// the quiet way out (`superficie` ground, a `linea` border, a `tinta` word);
+// `suave` — the default, every drawing before this — stays everything else.
+// Which button is a screen's main one is decided screen by screen, as the review
+// reaches it, and said to him each time.
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
@@ -38,14 +46,21 @@ export function BotonLleno({
   icon,
   busy = false,
   hug = false,
+  variante = 'suave',
 }: {
   label: string;
   onPress: () => void;
   icon?: ComponentProps<typeof MaterialCommunityIcons>['name'];
   busy?: boolean;
   hug?: boolean;
+  variante?: 'suave' | 'principal' | 'discreto';
 }) {
   const { scale } = useDensity();
+  const ground =
+    variante === 'principal' ? PALETTE.accion : variante === 'discreto' ? PALETTE.superficie : PALETTE.accionSuave;
+  const edge = variante === 'discreto' ? PALETTE.linea : PALETTE.accion;
+  const ink =
+    variante === 'principal' ? PALETTE.superficie : variante === 'discreto' ? PALETTE.tinta : PALETTE.accion;
   return (
     <Pressable
       accessibilityRole="button"
@@ -62,19 +77,25 @@ export function BotonLleno({
         paddingHorizontal: scale.space,
         borderRadius: scale.space / 2,
         borderWidth: 1,
-        borderColor: PALETTE.accion,
-        backgroundColor: PALETTE.accionSuave,
+        borderColor: edge,
+        backgroundColor: ground,
         alignSelf: hug ? 'flex-start' : undefined,
         opacity: busy ? 0.6 : 1,
       }}
     >
       {busy ? (
-        <ActivityIndicator color={PALETTE.accion} />
+        <ActivityIndicator color={ink} />
       ) : icon ? (
         // C12.1 — the icon NEVER appears without its word.
-        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={PALETTE.accion} />
+        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
       ) : null}
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+      <Text
+        style={{
+          fontSize: scale.bodySize,
+          fontWeight: variante === 'principal' ? '700' : '600',
+          color: ink,
+        }}
+      >
         {label}
       </Text>
     </Pressable>

@@ -1871,6 +1871,7 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
           accessibilityRole="button"
           accessibilityLabel={ES.counter.cart.emptyConfirm}
           onPress={onConfirm}
+          // ⚠️ `8g`, *option 2*: SOLID, the same box as Vender's and Desperdicio's.
           style={{
             minHeight: scale.tapTarget,
             alignItems: 'center',
@@ -1878,13 +1879,14 @@ function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: ()
             borderRadius: scale.space / 2,
             borderWidth: 1,
             borderColor: PALETTE.error,
+            backgroundColor: PALETTE.error,
           }}
         >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.error }}>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.superficie }}>
             {ES.counter.cart.emptyConfirm}
           </Text>
         </Pressable>
-        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
       </View>
     </>
   );
