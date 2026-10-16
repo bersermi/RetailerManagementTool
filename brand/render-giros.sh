@@ -48,5 +48,5 @@ for src in brand/giros/*.svg; do
   count=$((count + 1))
 done
 
-[[ "$count" -eq 8 ]] || { echo "FAIL: drew $count drawings, expected 8 (one per giro and the storefront)"; exit 1; }
+[[ "$count" -eq 7 ]] || { echo "FAIL: drew $count drawings, expected 7 (one per giro)"; exit 1; }
 echo "drew $count drawings into $OUT"

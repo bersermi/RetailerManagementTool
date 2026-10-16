@@ -165,12 +165,29 @@ export const ES = {
    * removed (`0042`). It says so BEFORE the tap, because after it there is
    * nothing to say.
    */
+  /**
+   * ⚠️ `8g`: THE SEVEN GIROS' NAMES, by `catalogo.tag` code, for Ajustes' main
+   * giro — the onboarding reads the same names off the template, and these are
+   * `0045`–`0052`'s labels written once more because Ajustes must not read the
+   * whole template to say one word.
+   */
+  giros: {
+    'giro-polleria': 'Pollería',
+    'giro-carniceria': 'Carnicería',
+    'giro-verduleria': 'Verdulería',
+    'giro-fruteria': 'Frutería',
+    'giro-abarrotes': 'Abarrotes',
+    'giro-cremeria': 'Cremería',
+    'giro-materias-primas': 'Materias Primas',
+  } as Readonly<Record<string, string>>,
   starter: {
     question: '¿Qué vendes?',
     /** Over the untick list, on *Agregar del catálogo* (`catalogo.tsx`). ⚠️ It no
      *  longer says *pero no quitarlos*: since `0054` they can be removed later. */
     hint: 'Te ponemos los productos de tu giro. Quita los que no vendes; también puedes quitarlos después desde Productos.',
     /** At onboarding, where there is no list since 2026-10-14 (the owner's ruling). */
+    /** `8g`: under the first giro picked, beside its star (the owner's wording). */
+    principal: 'Tu giro principal',
     hintGiros: 'Te ponemos todos los productos de tu giro. Después puedes quitar los que no vendes desde Productos.',
     count: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
     add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
@@ -341,6 +358,17 @@ export const ES = {
     shopSection: 'Tu tienda',
     ivaIncluded: 'Los precios ya incluyen IVA',
     ivaExcluded: 'El IVA se agrega aparte',
+    /**
+     * ⚠️ `8g` (`0056`): THE SHOP'S MAIN GIRO, read back in Tu tienda — the first
+     * giro picked when the shop was created. The owner changes it here; it picks
+     * the drawing in the tabs' band. Everybody else reads it.
+     */
+    mainGiro: {
+      label: 'Giro principal',
+      none: 'Sin elegir',
+      change: 'Cambiar',
+      done: 'Listo',
+    },
     /** C11.7's section. "Not a protagonist at all in our UI." */
     codeSection: 'Código de tu tienda',
     codeHint: 'Compártelo con quien quieras que entre a tu tienda.',

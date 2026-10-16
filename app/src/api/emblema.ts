@@ -1,31 +1,25 @@
 // ============================================================================
 // WHICH DRAWING A SHOP WEARS IN ITS BAND — `8g`, the owner's option C,
-// 2026-10-15: *"a small watermark at the top based on the giro of the store."*
+// 2026-10-15, and his main giro of 2026-10-16.
 //
-// ⚠️⚠️ NOTHING RECORDS A SHOP'S GIRO, SO IT IS READ OFF WHAT THE SHOP HOLDS.
-// `import_catalog` (`0044`) copies products, not a choice: each copied variant
-// keeps its `template_code`, and the template says which giros each product
-// belongs to. So a giro is the shop's when the shop holds **at least half** of
-// that giro's products — the threshold that keeps *Huevo*, which Abarrotes,
-// Cremería and Pollería all carry, from making every abarrotes a pollería.
+// ⚠️⚠️ THE SHOP SAYS, AND NOTHING IS WORKED OUT. *"I'd rather have a main giro
+// selected explicitly than making weights and calculations at a product
+// level."* The first giro picked when the shop is created carries a star and is
+// stored on the shop (`workspace.giro_principal`, `0056`); the owner changes it
+// in Ajustes. This module only maps that code to a drawing. The rule it
+// replaced — *a giro is the shop's when it holds half its products* — and the
+// storefront for several giros are gone with it: *"there's always a Main Giro
+// regardless if the person picks one or many."*
 //
-// ⚠️ ONE GIRO DRAWS ITS OWN PICTURE; NONE, OR SEVERAL, DRAWS THE STOREFRONT.
-// Decided on the owner's behalf, as recommended to him: a shop that sells
-// fruit, vegetables and groceries is a *tienda*, and a shop that imported
-// nothing is one too.
+// ⚠️ NO MAIN GIRO, NO DRAWING. A shop made before `0056`, or with no giro at
+// all, shows its name alone until the owner picks one.
 //
-// ⚠️ THE TAG CODES ARE A CLAIM ABOUT `0044`'s CONTENT MIGRATIONS (`0045`–`0052`),
-// which is why this lives in `src/api/` and `db.yml` fires on it. A giro added
-// later with no drawing here simply never wins — its shops get the storefront.
-//
-// ⚠️ THE ANSWER IS REMEMBERED ON THE PHONE, PER SHOP (`@/lib/store`), because
-// the template is a large read and the pilot store is offline a lot: the band
-// must draw the same picture on a cold start without signal.
+// ⚠️ THE CODES ARE A CLAIM ABOUT `0045`–`0052`'s CONTENT, which is why this
+// lives in `src/api/` and `db.yml` fires on it. A giro added later with no
+// drawing here draws nothing rather than a wrong one.
 // ============================================================================
-import type { ShopHolding, Template } from '@/api/starterCatalog';
-import { readKey, writeKey, type DeviceStore } from '@/lib/store';
 
-/** The eight drawings: one per giro, and the storefront. */
+/** The seven drawings, one per giro. */
 export type Emblema =
   | 'polleria'
   | 'carniceria'
@@ -33,8 +27,7 @@ export type Emblema =
   | 'fruteria'
   | 'abarrotes'
   | 'cremeria'
-  | 'materias'
-  | 'tienda';
+  | 'materias';
 
 /** `catalogo.tag.code` → the drawing, for every giro `0045`–`0052` define. */
 export const GIRO_EMBLEMA: Readonly<Record<string, Emblema>> = {
@@ -47,54 +40,30 @@ export const GIRO_EMBLEMA: Readonly<Record<string, Emblema>> = {
   'giro-materias-primas': 'materias',
 };
 
-const EMBLEMAS: readonly Emblema[] = [
-  'polleria',
-  'carniceria',
-  'verduleria',
-  'fruteria',
-  'abarrotes',
-  'cremeria',
-  'materias',
-  'tienda',
-];
+/** The main giros a shop may name, in the order Ajustes offers them. */
+export const GIROS: readonly string[] = Object.keys(GIRO_EMBLEMA);
 
-export function isEmblema(value: string | null): value is Emblema {
-  return value !== null && (EMBLEMAS as readonly string[]).includes(value);
+/**
+ * The drawing for a shop's main giro, or `null` for none. ⚠️ `undefined` is
+ * accepted on purpose: a shop restored from the cache written before `0056`
+ * has no field at all (`persist.ts`).
+ */
+export function emblemaDe(giroPrincipal: string | null | undefined): Emblema | null {
+  if (giroPrincipal === null || giroPrincipal === undefined) return null;
+  return GIRO_EMBLEMA[giroPrincipal] ?? null;
 }
 
 /**
- * The shop's drawing, or `null` when the template has nothing in it to read
- * (not loaded, or empty) — never a guess.
+ * The order the giros were picked in, with `code` toggled: a new pick goes to
+ * the end, an unpick leaves the others in their order. ⚠️ The FIRST is the main
+ * giro (`principalDe`), so unpicking the starred one passes the star to the
+ * next one picked.
  */
-export function emblemaDe(template: Template, holding: ShopHolding): Emblema | null {
-  if (template.products.length === 0) return null;
-  const total = new Map<string, number>();
-  const held = new Map<string, number>();
-  for (const product of template.products) {
-    const mine = holding.templateCodes.has(product.code);
-    for (const tag of product.tags) {
-      if (GIRO_EMBLEMA[tag] === undefined) continue;
-      total.set(tag, (total.get(tag) ?? 0) + 1);
-      if (mine) held.set(tag, (held.get(tag) ?? 0) + 1);
-    }
-  }
-  const giros = [...total.keys()].filter((tag) => (held.get(tag) ?? 0) * 2 >= (total.get(tag) ?? 0));
-  if (giros.length !== 1) return 'tienda';
-  return GIRO_EMBLEMA[giros[0] as string] ?? 'tienda';
+export function toggledInOrder(order: readonly string[], code: string): string[] {
+  return order.includes(code) ? order.filter((c) => c !== code) : [...order, code];
 }
 
-const keyOf = (workspaceId: string) => `wera.emblema.${workspaceId}`;
-
-/** What this phone last worked out for this shop, or `null`. */
-export function readEmblema(store: DeviceStore | undefined, workspaceId: string): Emblema | null {
-  const stored = readKey(store, keyOf(workspaceId));
-  return isEmblema(stored) ? stored : null;
-}
-
-export function rememberEmblema(
-  store: DeviceStore | undefined,
-  workspaceId: string,
-  emblema: Emblema,
-): void {
-  writeKey(store, keyOf(workspaceId), emblema);
+/** The main giro of a pick order: the first one picked, or `null`. */
+export function principalDe(order: readonly string[]): string | null {
+  return order[0] ?? null;
 }

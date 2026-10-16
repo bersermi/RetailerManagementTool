@@ -36,6 +36,7 @@ const ROW: WorkspaceRow = {
   display_name: 'Abarrotes La Probe',
   prices_include_tax: true,
   code: 'NFFABMNA',
+  giro_principal: 'giro-abarrotes',
 };
 
 describe('the names PostgREST matches an RPC by', () => {
@@ -54,7 +55,8 @@ describe('the names PostgREST matches an RPC by', () => {
 
   it('names the function and the columns it reads', () => {
     expect(ONBOARD_WORKSPACE).toBe('onboard_workspace');
-    expect(WORKSPACE_COLUMNS).toBe('id,display_name,prices_include_tax,code');
+    // `8g` (`0056`): the shop's main giro, which picks the band's drawing.
+    expect(WORKSPACE_COLUMNS).toBe('id,display_name,prices_include_tax,code,giro_principal');
   });
 
   // A `select=*` ships every column a later migration adds to a phone, and
@@ -124,8 +126,17 @@ describe('the row, renamed once', () => {
       displayName: 'Abarrotes La Probe',
       pricesIncludeTax: true,
       code: 'NFFABMNA',
+      giroPrincipal: 'giro-abarrotes',
     };
     expect(toWorkspace(ROW)).toEqual(expected);
+  });
+
+  // ⚠️ `8g`: a shop restored from the cache written before `0056` has no field,
+  // and `persist.ts` deliberately did not throw that cache away for it.
+  it('reads a row with no main giro as a shop that has not chosen one', () => {
+    const { giro_principal: _dropped, ...before } = ROW;
+    expect(toWorkspace(before).giroPrincipal).toBeNull();
+    expect(toWorkspace({ ...ROW, giro_principal: null }).giroPrincipal).toBeNull();
   });
 
   // The column list and the parser are two copies of one claim four lines

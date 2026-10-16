@@ -12,9 +12,11 @@ import {
   useMyDisplayName,
   useMyRole,
   useRoster,
+  useSetMainGiro,
   useSetMyDisplayName,
   useWorkspace,
 } from '@/api/hooks';
+import { GIROS } from '@/api/emblema';
 import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
@@ -125,6 +127,11 @@ export default function Ajustes() {
             <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
               {workspace.pricesIncludeTax ? ES.settings.ivaIncluded : ES.settings.ivaExcluded}
             </Text>
+            <GiroPrincipal
+              workspaceId={workspace.id}
+              current={workspace.giroPrincipal ?? null}
+              mayChange={role === 'owner'}
+            />
           </Section>
         )}
 
@@ -1026,6 +1033,81 @@ function Opcion({
         )}
       </View>
     </Pressable>
+  );
+}
+
+/**
+ * ⚠️ `8g` (`0056`): THE SHOP'S MAIN GIRO — the first giro picked when the shop
+ * was created, which picks the drawing in the tabs' band. The owner's ruling of
+ * 2026-10-16: *"I'll let you figure out how to edit that afterwards … but it
+ * shouldn't be so complicated."* So: one line, *Cambiar*, the seven giros as
+ * this sheet's own choices, one tap saves and closes.
+ *
+ * ⚠️ THE OWNER'S ALONE, as the shop's name is (`workspace_update`, `0001`). A
+ * manager or a cashier reads the line and is offered nothing to tap — the
+ * database would refuse them anyway (`supabase/tests/0056_workspace_main_giro.sql`).
+ */
+function GiroPrincipal({
+  workspaceId,
+  current,
+  mayChange,
+}: {
+  workspaceId: string;
+  current: string | null;
+  mayChange: boolean;
+}) {
+  const { scale } = useDensity();
+  const { save, busy } = useSetMainGiro();
+  const [open, setOpen] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  const name = current === null ? ES.settings.mainGiro.none : ES.giros[current] ?? current;
+
+  async function pick(code: string) {
+    if (busy) return;
+    setProblem(null);
+    const failed = await save(workspaceId, code);
+    if (failed !== null) {
+      setProblem(failed);
+      return;
+    }
+    setOpen(false);
+  }
+
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: scale.space }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+            {ES.settings.mainGiro.label}
+          </Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{name}</Text>
+        </View>
+        {mayChange ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setOpen((now) => !now)}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+              {open ? ES.settings.mainGiro.done : ES.settings.mainGiro.change}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {open
+        ? GIROS.map((code) => (
+            <Opcion
+              key={code}
+              chosen={code === current}
+              title={ES.giros[code] ?? code}
+              onPress={() => void pick(code)}
+            />
+          ))
+        : null}
+      {problem !== null ? (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text>
+      ) : null}
+    </View>
   );
 }
 

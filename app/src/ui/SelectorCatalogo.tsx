@@ -27,6 +27,7 @@
 // the owner's phone to judge, and no check here can see it.
 // ============================================================================
 
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { Pressable, Text, View } from 'react-native';
 
 import {
@@ -48,6 +49,7 @@ export function SelectorCatalogo({
   onToggleGiro,
   onToggleProduct,
   products,
+  principal = null,
 }: {
   template: Template;
   holding: ShopHolding;
@@ -57,6 +59,12 @@ export function SelectorCatalogo({
   onToggleProduct: (code: string) => void;
   /** Whether the untick list is drawn under the chosen giros. */
   products: boolean;
+  /**
+   * ⚠️ `8g`: THE MAIN GIRO, starred — the first one picked when a shop is
+   * created (the owner, 2026-10-16). Only the welcome screen passes it;
+   * `Agregar del catálogo` adds giros to a shop that already has its main one.
+   */
+  principal?: string | null;
 }) {
   const { scale } = useDensity();
   const giros = giroChoices(template, holding);
@@ -82,12 +90,13 @@ export function SelectorCatalogo({
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
         {giros.map((giro) => {
           const on = chosen.has(giro.code);
+          const star = on && principal === giro.code;
           return (
             <Pressable
               key={giro.code}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: on }}
-              accessibilityLabel={`${giro.label}, ${ES.starter.count(giro.count)}`}
+              accessibilityLabel={`${giro.label}, ${ES.starter.count(giro.count)}${star ? `, ${ES.starter.principal}` : ''}`}
               onPress={() => onToggleGiro(giro.code)}
               style={{
                 minHeight: scale.tapTarget,
@@ -99,18 +108,30 @@ export function SelectorCatalogo({
                 backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
               }}
             >
-              <Text
-                style={{
-                  fontSize: scale.bodySize,
-                  fontWeight: on ? '700' : '600',
-                  color: on ? PALETTE.accion : PALETTE.tintaApagada,
-                }}
-              >
-                {giro.label}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
+                {star ? (
+                  <MaterialCommunityIcons name="star" size={scale.bodySize} color={PALETTE.accion} />
+                ) : null}
+                <Text
+                  style={{
+                    fontSize: scale.bodySize,
+                    fontWeight: on ? '700' : '600',
+                    color: on ? PALETTE.accion : PALETTE.tintaApagada,
+                  }}
+                >
+                  {giro.label}
+                </Text>
+              </View>
               <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
                 {ES.starter.count(giro.count)}
               </Text>
+              {/* ⚠️ THE STAR NEVER TRAVELS ALONE (`R11`'s rule, for a glyph): the
+                  words say what it means. */}
+              {star ? (
+                <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>
+                  {ES.starter.principal}
+                </Text>
+              ) : null}
             </Pressable>
           );
         })}

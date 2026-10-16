@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteArgs } from '@/api/account';
 import {
@@ -11,7 +12,8 @@ import {
   useStarterCatalog,
 } from '@/api/hooks';
 import { checkCredential, classifyCredential } from '@/api/redeem';
-import { choiceFrom, toggled } from '@/api/starterCatalog';
+import { principalDe, toggledInOrder } from '@/api/emblema';
+import { choiceFrom } from '@/api/starterCatalog';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
 import { useAuth } from '@/auth/AuthProvider';
@@ -99,6 +101,7 @@ const NOTHING_EXCLUDED: ReadonlySet<string> = new Set();
 // ============================================================================
 export default function Bienvenida() {
   const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
   const { create, busy } = useOnboardWorkspace();
 
   const { redeem, busy: redeeming } = useRedeemInvite();
@@ -120,7 +123,12 @@ export default function Bienvenida() {
   // signal the catalog cannot be read, and the shop can still be created — the
   // section says so instead of spinning (`useStarterCatalog`).
   const starter = useStarterCatalog();
-  const [giros, setGiros] = useState<ReadonlySet<string>>(new Set());
+  // ⚠️ `8g` (`0056`): THE ORDER THE GIROS WERE PICKED IN, AND NOT JUST WHICH —
+  // the owner's ruling of 2026-10-16: *"the first giro a user picks is the 'Main'
+  // giro, marked with a star."* The first is stored on the shop; it picks the
+  // drawing in the tabs' band. `@/api/emblema` keeps the order.
+  const [orden, setOrden] = useState<readonly string[]>([]);
+  const giros: ReadonlySet<string> = new Set(orden);
   // ⚠️ NOTHING IS UNTICKED HERE SINCE 2026-10-14 (the owner: *"just let the user
   // pick one giro or more"*): the list is `Agregar del catálogo`'s alone, and a
   // product a shop does not sell is retired from Productos afterwards (`0054`).
@@ -166,7 +174,9 @@ export default function Bienvenida() {
     // ⚠️ IT NAVIGATES NOWHERE ON SUCCESS. The guard sends them to Inicio the
     // moment the membership read comes back — see `@/api/hooks`.
     const choice = choiceFrom(starter.template, giros, excluded, starter.holding);
-    setProblem(await create({ displayName: checked.displayName, pricesIncludeTax }, choice));
+    setProblem(
+      await create({ displayName: checked.displayName, pricesIncludeTax }, choice, principalDe(orden)),
+    );
   }
 
   // The joining half. ⚠️ IT NAVIGATES NOWHERE EITHER, and here that is the whole
@@ -220,7 +230,11 @@ export default function Bienvenida() {
         flexGrow: 1,
         justifyContent: 'center',
         paddingHorizontal: scale.space * 2,
-        paddingVertical: scale.space * 2,
+        // ⚠️ `8g`: THE DEVICE'S OWN INSETS. With nothing setting them the title
+        // ran under the clock — invisible while the status bar's icons were white
+        // on white, plain once round 1 made them dark (emulator, 2026-10-16).
+        paddingTop: scale.space * 2 + insets.top,
+        paddingBottom: scale.space * 2 + insets.bottom,
         gap: scale.rowGap,
       }}
       keyboardShouldPersistTaps="handled"
@@ -283,7 +297,8 @@ export default function Bienvenida() {
             holding={starter.holding}
             chosen={giros}
             excluded={excluded}
-            onToggleGiro={(code) => setGiros((now) => toggled(now, code))}
+            onToggleGiro={(code) => setOrden((now) => toggledInOrder(now, code))}
+            principal={principalDe(orden)}
             onToggleProduct={() => {}}
             products={false}
           />

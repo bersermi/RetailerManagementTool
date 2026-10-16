@@ -3,7 +3,8 @@ import { Tabs } from 'expo-router/js-tabs';
 import { Image, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useShopEmblem, useWorkspace } from '@/api/hooks';
+import { emblemaDe } from '@/api/emblema';
+import { useWorkspace } from '@/api/hooks';
 import { DIBUJOS } from '@/marca/dibujos';
 
 import { TABS } from '@/navigation/tabs';
@@ -96,14 +97,16 @@ const SELLO_OPACITY = 0.14;
  * ⚠️ THE TABS ONLY. A pushed screen keeps its own band with *Volver* or
  * *Cerrar* where the drawing would sit.
  *
- * ⚠️ NO PICTURE UNTIL ONE IS KNOWN (`useShopEmblem`), and the name alone until
- * the shop is: nothing here is drawn from a guess.
+ * ⚠️ THE DRAWING IS THE SHOP'S MAIN GIRO (`workspace.giro_principal`, `0056`):
+ * the first giro picked when the shop was created, changed by the owner in
+ * Ajustes. A shop that has none shows its name alone — nothing is guessed.
  */
 function Banda({ title }: { title: string }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   const workspace = useWorkspace();
-  const emblema = useShopEmblem(workspace?.id ?? null);
+  // ⚠️ `?? null` INSIDE `emblemaDe`: a shop restored from before `0056` has no field.
+  const emblema = emblemaDe(workspace?.giroPrincipal);
   return (
     <View
       style={{
@@ -122,10 +125,16 @@ function Banda({ title }: { title: string }) {
           source={DIBUJOS[emblema]}
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
+          // ⚠️ ANCHORED TO THE BAND'S FOOT AND NOT ITS TOP: the band is shorter
+          // than the drawing, and hung from the top it showed only the upper
+          // half — Carnicería's cow with no pig, which is the pair the owner
+          // asked for. From the foot it rises into the band's own status-bar
+          // ground, faint enough for the clock to read over it. Measured on the
+          // emulator, 2026-10-16.
           style={{
             position: 'absolute',
-            right: -scale.space * 1.5,
-            top: insets.top,
+            right: -scale.space,
+            bottom: -scale.rowGap,
             width: scale.selloSize,
             height: scale.selloSize,
             opacity: SELLO_OPACITY,

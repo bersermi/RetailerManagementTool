@@ -20,7 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -98,6 +98,7 @@ import {
   revokeApple,
   approveRequest,
   catalogTemplate,
+  setMainGiro,
   catalogUnits,
   catalogVariants,
   changePrice,
@@ -197,8 +198,7 @@ import {
   type Template,
 } from '@/api/starterCatalog';
 import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
-import { emblemaDe, readEmblema, rememberEmblema, type Emblema } from '@/api/emblema';
-import { deviceStore } from '@/lib/store';
+
 
 /**
  * What the shop has taken today, and how many sales stand behind it — the two
@@ -293,7 +293,15 @@ export function useOnboardWorkspace() {
     // exists by then, and `Agregar del catálogo` on Productos is the same import
     // with nothing lost. She is not shown an error about a step that has a
     // second door (users don't do bookkeeping).
-    mutationFn: async ({ input, choice }: { input: OnboardInput; choice: ImportChoice | null }) => {
+    mutationFn: async ({
+      input,
+      choice,
+      principal,
+    }: {
+      input: OnboardInput;
+      choice: ImportChoice | null;
+      principal: string | null;
+    }) => {
       const workspaceId = await onboardWorkspace(input);
       const args = choice === null ? null : importArgs(workspaceId, choice);
       if (args !== null) {
@@ -301,6 +309,16 @@ export function useOnboardWorkspace() {
           await importCatalog(args);
         } catch {
           // The second door is Productos; see above.
+        }
+      }
+      // ⚠️ `8g` (`0056`): THE MAIN GIRO, THE FIRST ONE PICKED. Set as the owner
+      // she now is, and like the import it does not fail the shop: Ajustes is
+      // its second door, and a shop without one draws its name alone.
+      if (principal !== null) {
+        try {
+          await setMainGiro(workspaceId, principal);
+        } catch {
+          // The second door is Ajustes; see above.
         }
       }
       return workspaceId;
@@ -311,9 +329,13 @@ export function useOnboardWorkspace() {
     },
   });
 
-  async function create(input: OnboardInput, choice: ImportChoice | null = null): Promise<string | null> {
+  async function create(
+    input: OnboardInput,
+    choice: ImportChoice | null = null,
+    principal: string | null = null,
+  ): Promise<string | null> {
     try {
-      await mutation.mutateAsync({ input, choice });
+      await mutation.mutateAsync({ input, choice, principal });
       return null;
     } catch (thrown) {
       return apiErrorMessage(thrown);
@@ -1083,47 +1105,31 @@ export function useStarterCatalog(): {
 }
 
 /**
- * The drawing this shop wears in the tab screens' band — `8g`, the owner's
- * option C. `@/api/emblema` has the rule; this is the read.
+ * Changing the shop's main giro from Ajustes — the owner's, `0056`.
  *
- * ⚠️⚠️ THE TEMPLATE IS READ ONLY WHILE THIS PHONE HAS NO ANSWER FOR THE SHOP.
- * It is the whole starter catalog, a large read, and the answer rarely moves;
- * once worked out it is remembered on the phone and drawn on every cold start,
- * with or without signal. ⚠️ It is still RE-worked whenever the template is in
- * the cache for another reason — `Agregar del catálogo` reads it — so a shop
- * that imports a second giro gets the storefront the next time it does.
- *
- * ⚠️ `null` WHILE NOTHING IS KNOWN, and the band then draws the name alone:
- * no picture is better than a wrong one that changes under the shopkeeper.
+ * Returns `null` or a Spanish sentence, never a PostgREST error (`R12`). It
+ * invalidates the shop read, which is what redraws the band's drawing.
  */
-export function useShopEmblem(workspaceId: string | null): Emblema | null {
-  const { session, ready } = useAuth();
-  const store = deviceStore();
-  const remembered = workspaceId === null ? null : readEmblema(store, workspaceId);
-  const enabled = ready && session !== null && workspaceId !== null;
-  const template = useQuery({
-    queryKey: TEMPLATE_KEY,
-    queryFn: catalogTemplate,
-    enabled: enabled && remembered === null,
-    staleTime: 60 * 60_000,
+export function useSetMainGiro() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ workspaceId, giro }: { workspaceId: string; giro: string | null }) =>
+      setMainGiro(workspaceId, giro),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY });
+    },
   });
-  const variants = useQuery({
-    queryKey: CATALOG_KEY,
-    queryFn: catalogVariants,
-    enabled,
-    staleTime: 5 * 60_000,
-  });
-  const worked = useMemo(
-    () =>
-      template.data === undefined || variants.data === undefined
-        ? null
-        : emblemaDe(template.data, holdingFrom(variants.data)),
-    [template.data, variants.data],
-  );
-  useEffect(() => {
-    if (worked !== null && workspaceId !== null) rememberEmblema(store, workspaceId, worked);
-  }, [worked, workspaceId, store]);
-  return worked ?? remembered;
+
+  async function save(workspaceId: string, giro: string | null): Promise<string | null> {
+    try {
+      await mutation.mutateAsync({ workspaceId, giro });
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { save, busy: mutation.isPending };
 }
 
 /**

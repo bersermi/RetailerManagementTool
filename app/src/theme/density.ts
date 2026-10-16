@@ -94,7 +94,7 @@ const normal: DensityScale = {
   tabLabelSize: 12,
   tabBarHeight: 56,
   retratoSize: 80,
-  selloSize: 120,
+  selloSize: 110,
 };
 
 /**
@@ -121,7 +121,7 @@ const elder: DensityScale = {
   tabLabelSize: 15,
   tabBarHeight: 76,
   retratoSize: 100,
-  selloSize: 150,
+  selloSize: 140,
 };
 
 export const DENSITIES = { normal, elder } as const;

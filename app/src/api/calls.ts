@@ -265,6 +265,24 @@ export async function myWorkspaces(): Promise<Workspace[]> {
   return ((data ?? []) as WorkspaceRow[]).map(toWorkspace);
 }
 
+/**
+ * The shop's main giro (`0056`, `8g`) — set by its owner when the shop is
+ * created and changed in Ajustes; `null` clears it.
+ *
+ * ⚠️ `.select().single()` AND NOT A BARE UPDATE: an RLS UPDATE refusal is a 200
+ * with zero rows, not a 403, so a manager's or a cashier's attempt would
+ * otherwise come back looking saved. `.single()` turns it into PGRST116.
+ */
+export async function setMainGiro(workspaceId: string, giro: string | null): Promise<void> {
+  const { error } = await supabase
+    .from('workspace')
+    .update({ giro_principal: giro })
+    .eq('id', workspaceId)
+    .select('id')
+    .single();
+  if (error) throw reported(error);
+}
+
 /** Creates the shop, its owner membership, its settings, its first location and
  *  its generic provider — five rows, one statement (`0027`). Returns its id. */
 export async function onboardWorkspace(input: OnboardInput): Promise<string> {

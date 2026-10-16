@@ -1,5 +1,5 @@
 // ============================================================================
-// THE EIGHT DRAWINGS, AS THE APP LOADS THEM — `8g`, the owner's option C,
+// THE SEVEN DRAWINGS, ONE PER GIRO, AS THE APP LOADS THEM — `8g`, the owner's option C,
 // 2026-10-15: the shop's watermark in the tab screens' band.
 //
 // ⚠️ THE PNGs ARE DRAWN FROM `brand/giros/*.svg` BY `brand/render-giros.sh`, by
@@ -22,5 +22,4 @@ export const DIBUJOS: Readonly<Record<Emblema, ImageSourcePropType>> = {
   abarrotes: require('@/marca/giros/abarrotes.png') as ImageSourcePropType,
   cremeria: require('@/marca/giros/cremeria.png') as ImageSourcePropType,
   materias: require('@/marca/giros/materias.png') as ImageSourcePropType,
-  tienda: require('@/marca/giros/tienda.png') as ImageSourcePropType,
 };
