@@ -1,44 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { emblemaDe, GIRO_EMBLEMA, readEmblema, rememberEmblema } from '@/api/emblema';
-import type { ShopHolding, Template, TemplateProduct } from '@/api/starterCatalog';
-import type { DeviceStore } from '@/lib/store';
+import { emblemaDe, GIRO_EMBLEMA, GIROS, principalDe, toggledInOrder } from '@/api/emblema';
 
-// `8g`, the owner's option C (2026-10-15): the tab screens' band wears a drawing
-// of the shop's giro. See `@/api/emblema` for the rule.
+// `8g`: the tab screens' band wears the drawing of the shop's MAIN giro — the
+// first one picked when the shop was created, stored on the shop (`0056`).
 
-const product = (code: string, ...tags: string[]): TemplateProduct => ({
-  code,
-  family: 'f',
-  name: code,
-  tags,
-});
-
-// A small template shaped like the real one: eggs are shared by three giros.
-const TEMPLATE: Template = {
-  tags: [],
-  families: [],
-  products: [
-    product('pollo-entero', 'giro-polleria'),
-    product('pechuga', 'giro-polleria'),
-    product('huevo', 'giro-polleria', 'giro-abarrotes', 'giro-cremeria'),
-    product('arroz', 'giro-abarrotes'),
-    product('frijol', 'giro-abarrotes'),
-    product('azucar', 'giro-abarrotes'),
-    product('queso', 'giro-cremeria'),
-    product('crema', 'giro-cremeria'),
-    product('manzana', 'giro-fruteria'),
-    product('platano', 'giro-fruteria'),
-  ],
-};
-
-const holding = (...codes: string[]): ShopHolding => ({
-  templateCodes: new Set(codes),
-  names: new Set(),
-});
-
-describe('8g — the drawing a shop wears in its band', () => {
+describe('8g — the drawing comes from the shop’s main giro', () => {
   it('names a drawing for every giro the content migrations define', () => {
-    expect(Object.keys(GIRO_EMBLEMA).sort()).toEqual([
+    expect([...GIROS].sort()).toEqual([
       'giro-abarrotes',
       'giro-carniceria',
       'giro-cremeria',
@@ -47,61 +15,49 @@ describe('8g — the drawing a shop wears in its band', () => {
       'giro-polleria',
       'giro-verduleria',
     ]);
+    expect(new Set(Object.values(GIRO_EMBLEMA)).size).toBe(7);
   });
 
-  it('draws the giro a single-giro shop imported', () => {
-    expect(emblemaDe(TEMPLATE, holding('pollo-entero', 'pechuga', 'huevo'))).toBe('polleria');
+  it('maps the stored code to its drawing', () => {
+    expect(emblemaDe('giro-polleria')).toBe('polleria');
+    expect(emblemaDe('giro-materias-primas')).toBe('materias');
   });
 
-  it('does not let a product two giros share make a second giro', () => {
-    // An abarrotes holds the eggs, which are a third of the pollería: not half.
-    expect(emblemaDe(TEMPLATE, holding('arroz', 'frijol', 'azucar', 'huevo'))).toBe('abarrotes');
+  it('draws nothing for a shop that has not chosen', () => {
+    expect(emblemaDe(null)).toBeNull();
   });
 
-  it('counts a giro at exactly half of its products', () => {
-    expect(emblemaDe(TEMPLATE, holding('manzana'))).toBe('fruteria');
+  it('draws nothing for a shop restored from the cache before 0056', () => {
+    expect(emblemaDe(undefined)).toBeNull();
   });
 
-  it('draws the storefront for a shop of several giros', () => {
-    expect(emblemaDe(TEMPLATE, holding('arroz', 'frijol', 'azucar', 'manzana', 'platano'))).toBe(
-      'tienda',
-    );
-  });
-
-  it('draws the storefront for a shop that imported nothing', () => {
-    expect(emblemaDe(TEMPLATE, holding())).toBe('tienda');
-  });
-
-  it('says nothing rather than guess when the template is not there', () => {
-    expect(emblemaDe({ tags: [], families: [], products: [] }, holding('arroz'))).toBeNull();
+  it('draws nothing for a giro it has no drawing for, rather than a wrong one', () => {
+    expect(emblemaDe('giro-pescaderia')).toBeNull();
   });
 });
 
-describe('8g — the drawing is remembered on the phone, per shop', () => {
-  const memory = (): DeviceStore => {
-    const map = new Map<string, string>();
-    return {
-      getItem: (k) => map.get(k) ?? null,
-      setItem: (k, v) => void map.set(k, v),
-      removeItem: (k) => void map.delete(k),
-    };
-  };
-
-  it('reads back what it wrote, for that shop only', () => {
-    const store = memory();
-    rememberEmblema(store, 'shop-a', 'cremeria');
-    expect(readEmblema(store, 'shop-a')).toBe('cremeria');
-    expect(readEmblema(store, 'shop-b')).toBeNull();
+describe('8g — the first giro picked is the main one', () => {
+  it('keeps the order things were picked in', () => {
+    let order: string[] = [];
+    order = toggledInOrder(order, 'giro-fruteria');
+    order = toggledInOrder(order, 'giro-abarrotes');
+    order = toggledInOrder(order, 'giro-verduleria');
+    expect(order).toEqual(['giro-fruteria', 'giro-abarrotes', 'giro-verduleria']);
+    expect(principalDe(order)).toBe('giro-fruteria');
   });
 
-  it('refuses a stored word that is not a drawing', () => {
-    const store = memory();
-    store.setItem('wera.emblema.shop-a', 'pescaderia');
-    expect(readEmblema(store, 'shop-a')).toBeNull();
+  it('passes the star to the next one picked when the starred one is unpicked', () => {
+    const order = toggledInOrder(['giro-fruteria', 'giro-abarrotes', 'giro-verduleria'], 'giro-fruteria');
+    expect(order).toEqual(['giro-abarrotes', 'giro-verduleria']);
+    expect(principalDe(order)).toBe('giro-abarrotes');
   });
 
-  it('is a no-op with no store, as under node', () => {
-    rememberEmblema(undefined, 'shop-a', 'tienda');
-    expect(readEmblema(undefined, 'shop-a')).toBeNull();
+  it('puts a re-picked giro at the end, not back in its old place', () => {
+    const order = toggledInOrder(['giro-abarrotes', 'giro-verduleria'], 'giro-fruteria');
+    expect(principalDe(order)).toBe('giro-abarrotes');
+  });
+
+  it('has no main giro when nothing is picked', () => {
+    expect(principalDe([])).toBeNull();
   });
 });

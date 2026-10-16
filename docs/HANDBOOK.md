@@ -21,7 +21,8 @@ explanations of the tools. Nothing was lost; it was moved.
 Wera is an **alpha** — your word, and accurate. Every screen reads and writes your
 real database; none runs on sample data.
 
-- **Getting in** — sign in by email or Google, create the shop, invite somebody by
+- **Getting in** — sign in by email or Google, create the shop (the first giro you pick is its
+  *giro principal*, starred; it picks the drawing at the top of the tabs), invite somebody by
   their email (Wera shows a code once and you send it to them), let in somebody who asks.
   **Apple's sign-in is built for iPhone and is not switched on yet**: see *Turning on Entrar
   con Apple*, below.
@@ -142,7 +143,9 @@ file above, section 2 of its catch-up.
 | **Vender → `+` on a product with no price** | Your `+` opens *¿A cómo lo vendes?*; type it, *Guardar y agregar al carrito*, and it is in the sale. Without signal it cannot save yet (`8i`). A cashier's `+` is grey and says who can price it — to see it, sign in as somebody you invited as *Empleado* |
 | **Vender → the price chip** | For you and a manager the price sits on a green chip with a pencil (grey outline when there is none). Tap it: the sheet shows *Ahora: $45 / pza* above an empty box. Does the chip read as something to tap? |
 | **Vender → the Carrito** | Open it from *N productos ›*. Each line reads like a ticket; *Carrito* and the count are on top; **the Total is now on the sheet**, above *Vaciar carrito* and the slide. Tap a line's price chip: the same sheet opens over the Carrito. *Vaciar carrito* now says how many products it takes |
-| **The four tabs' header (round 2)** | The cream band now, as on every other screen, with your shop's name in small rust capitals under the title and a faint drawing of its giro cut off at the right. A shop with one giro gets its drawing (the hen, the cow and pig…); yours, with several, gets the little storefront. Do you notice it, and does it stay quiet? |
+| **The four tabs' header (round 2)** | The cream band now, as on every other screen, with your shop's name in small rust capitals under the title and a faint drawing of your **main giro** at the right. Do you notice it, and does it stay quiet? |
+| **Ajustes → Tu tienda → Giro principal** | New on 16 October. **Your shop has none yet** (it was made before), so the band shows only its name: tap *Cambiar* and pick yours; the drawing appears. Only the owner sees *Cambiar* |
+| **Creating a shop → *¿Qué vendes?*** | The first giro you tap gets ★ and *Tu giro principal*; the others don't. Untap it and the star moves to the next one you picked. To see it you need a new account (sign out, sign up with another email) |
 | **Comprar and Desperdicio** | They share the `−` / box / `+` with Vender, so they got the round buttons too; their rows are unchanged until their turn in the review. Does the mix bother you until then? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |

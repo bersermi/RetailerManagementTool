@@ -40,7 +40,7 @@ export const ONBOARD_WORKSPACE = 'onboard_workspace';
  * later migration adds, and it ships every column of the row to a phone —
  * including ones added for a report nobody on this screen is allowed to see.
  */
-export const WORKSPACE_COLUMNS = 'id,display_name,prices_include_tax,code';
+export const WORKSPACE_COLUMNS = 'id,display_name,prices_include_tax,code,giro_principal';
 
 /** The query key `useMyWorkspaces` caches under, and `onboard` invalidates. */
 export const MY_WORKSPACES_KEY = ['workspace', 'mine'] as const;
@@ -51,6 +51,14 @@ export interface Workspace {
   readonly displayName: string;
   readonly pricesIncludeTax: boolean;
   readonly code: string;
+  /**
+   * The shop's main giro, a `catalogo.tag` code (`giro-polleria`…), or `null`
+   * when the owner has not chosen one — `0056`, the owner's ruling of 2026-10-16.
+   * ⚠️ READ IT WITH `?? null`: a phone restoring the cache written before `0056`
+   * holds shops without the field, and `persist.ts` says why that cache was not
+   * thrown away for it.
+   */
+  readonly giroPrincipal: string | null;
 }
 
 /** The row as PostgREST sends it — snake_case, because Postgres is. */
@@ -59,6 +67,7 @@ export interface WorkspaceRow {
   readonly display_name: string;
   readonly prices_include_tax: boolean;
   readonly code: string;
+  readonly giro_principal?: string | null;
 }
 
 /** One row, renamed. The only place in this app that knows both spellings. */
@@ -68,6 +77,7 @@ export function toWorkspace(row: WorkspaceRow): Workspace {
     displayName: row.display_name,
     pricesIncludeTax: row.prices_include_tax,
     code: row.code,
+    giroPrincipal: row.giro_principal ?? null,
   };
 }
 

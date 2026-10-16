@@ -142,6 +142,13 @@ export const CACHE_KEY = 'wera.query-cache';
  * rows the new code will read fields off that were never written.
  */
 // ⚠️ `v2` SINCE `9d` (2026-10-01): `['catalog', 'variants']` gained `template_code`.
+// ⚠️⚠️ AND STILL `v2` AFTER `0056` (`8g`, 2026-10-16) ADDED `giro_principal` TO
+// `['workspace', 'mine']` — ON PURPOSE, AND IT IS THE ONE EXCEPTION TO THE RULE
+// ABOVE. A bump throws away the whole cache on the first launch after the
+// update, catalog included; in the pilot store, offline a lot, that is a shop
+// that cannot sell until it finds signal. The new field is the band's drawing
+// and nothing else, every reader takes it with `?? null`, and a restored shop
+// without it draws the name alone until the first online read brings it.
 export const CACHE_SHAPE = 'v2';
 
 /**
