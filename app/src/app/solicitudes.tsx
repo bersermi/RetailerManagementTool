@@ -16,6 +16,7 @@ import { formatWaiting } from '@/format/date';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -189,7 +190,7 @@ function Banda() {
         gap: scale.space,
       }}
     >
-      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
         {ES.approvals.title}
       </Text>
       <Pressable

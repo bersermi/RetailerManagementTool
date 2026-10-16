@@ -27,6 +27,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
@@ -379,7 +380,7 @@ function Banda({ subtitle, mayWrite }: { subtitle: string; mayWrite: boolean }) 
       <View style={{ flex: 1 }}>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+          style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
         >
           {ES.providers.edit.title}
         </Text>

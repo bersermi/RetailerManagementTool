@@ -1,4 +1,5 @@
 import { Stack, router, usePathname, useSegments } from 'expo-router';
+import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
@@ -19,6 +20,7 @@ import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
+import { FUENTES } from '@/theme/letra';
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
 // of every screen, it puts the session there too, it puts TanStack Query — the
@@ -46,6 +48,11 @@ import { DensityProvider } from '@/theme/DensityProvider';
 // on. ⚠️ Neither is in `RESTORABLE_ROUTES`: C1.3 reopens the screen a person was
 // WORKING on, and a modal over Inicio is not that.
 export default function RootLayout() {
+  // ⚠️ `8g`: THE TITLES' FACE IS LOADED BEFORE ANY SCREEN DRAWS, so no title
+  // paints in the system face and jumps. It is a file inside the update, not a
+  // download (`@/theme/letra`), so this wait is a few milliseconds, offline too.
+  const [fontsReady] = useFonts(FUENTES);
+  if (!fontsReady) return null;
   return (
     <AuthProvider>
       <QueryProvider>

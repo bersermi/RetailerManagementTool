@@ -29,6 +29,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { monthCsv, monthHtml } from '@/export/monthFile';
 import { shareCsv, shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
 import { Boton } from '@/ui/Boton';
@@ -159,7 +160,7 @@ function Banda() {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {ES.numbers.title}
       </Text>

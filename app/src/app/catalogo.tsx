@@ -8,6 +8,7 @@ import { choiceFrom, importCount, offeredGroups, toggled } from '@/api/starterCa
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 
@@ -76,7 +77,7 @@ export default function Catalogo() {
       >
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+          style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
         >
           {ES.starter.title}
         </Text>

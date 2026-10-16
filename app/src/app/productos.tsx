@@ -10,6 +10,7 @@ import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrit
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { Buscador } from '@/ui/Buscador';
 import { Destello } from '@/ui/Destello';
 import { Separador } from '@/ui/Separador';
@@ -258,7 +259,7 @@ function Banda() {
         style={{
           flex: 1,
           fontSize: scale.titleSize,
-          fontWeight: '700',
+          ...TITULO,
           color: PALETTE.tinta,
         }}
       >

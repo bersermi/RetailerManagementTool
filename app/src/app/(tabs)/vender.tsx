@@ -38,6 +38,7 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -1219,7 +1220,7 @@ function Encabezado({ onClose, lines }: { onClose: () => void; lines: number }) 
       }}
     >
       <View style={{ gap: scale.rowGap / 4 }}>
-        <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
           {ES.counter.cart.title}
         </Text>
         <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
@@ -1903,7 +1904,9 @@ function PrecioRapido({
             </View>
           </View>
 
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+          {/* ⚠️ `8g`: THE SHEET'S ONE QUESTION IS ITS TITLE — in the titles' face, at
+              `titleSize` (the owner's lettering ruling of 2026-10-16). */}
+          <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
             {entry.centavos === null ? ES.sell.priceSheet.ask : ES.sell.priceSheet.askAgain}
           </Text>
 

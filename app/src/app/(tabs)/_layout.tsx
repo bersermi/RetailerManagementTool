@@ -10,6 +10,7 @@ import { DIBUJOS } from '@/marca/dibujos';
 import { TABS } from '@/navigation/tabs';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 
 // ============================================================================
 // THE TAB SHELL. Plan task 5a-ii. The tabs themselves are `src/navigation/
@@ -144,7 +145,7 @@ function Banda({ title }: { title: string }) {
       <Text
         accessibilityRole="header"
         numberOfLines={1}
-        style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {title}
       </Text>
