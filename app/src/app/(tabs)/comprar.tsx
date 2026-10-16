@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -12,10 +12,11 @@ import {
   Text,
   TextInput,
   View,
+  useWindowDimensions,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { catalogLine, initials, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { parsePesos } from '@/api/catalogWrite';
 import {
   useCatalog,
@@ -27,9 +28,7 @@ import {
 } from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import {
-  DEFAULT_SORT,
   canReadMemory,
-  costNote,
   costShown,
   defaultProvider,
   lastPurchasedFor,
@@ -38,28 +37,36 @@ import {
   providerById,
   sortedForBuying,
   typedPerBase,
-  type CatalogSort,
   type MemoryRow,
   type Provider,
 } from '@/api/providers';
-import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
+import { cardCost, cardNote, marginOf } from '@/cart/buying';
+import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
+import { buyGate } from '@/cart/gate';
 import { useCart, useCartStore, useProviderId, useTyped } from '@/cart/store';
+import { formatLastBought } from '@/format/date';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
+import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
-import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS } from '@/theme/pulse';
+import { EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
-import { Deslizador } from '@/ui/Deslizador';
+import { CierreCarrito } from '@/ui/CierreCarrito';
+import { Hecho } from '@/ui/Hecho';
+import { HojaCarrito } from '@/ui/HojaCarrito';
+import { HojaPrecio } from '@/ui/HojaPrecio';
+import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
-import { BotonLleno } from '@/ui/BotonLleno';
+import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
+import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
 
 // ============================================================================
@@ -81,6 +88,42 @@ import { Velo } from '@/ui/Velo';
 // three have suites under `app/test/`.
 //
 // ----------------------------------------------------------------------------
+// ⚠️⚠️ ROUND 4 OF `8g` (2026-10-16) — THE OWNER'S CARD GRID, IN COMPRAR'S BLUE
+// ----------------------------------------------------------------------------
+// He chose it off the canvas (*"Colors are amazing"*, *"Looks good. Proceed"*)
+// over four arrangements, and it supersedes the row this file drew since `5g-ii`:
+//
+//   * **WHO IS DELIVERING IS A BLUE CARD AT THE TOP** — *TE ENTREGA · Don Chuy*,
+//     a magnifier that opens the search under it, and `Cambiar`. The drop-down
+//     field and its *Comprando a:* label are gone; the picker it opened is the
+//     same centred window (`Proveedores`, his ruling of 2026-09-25).
+//   * **THE CATALOG IS CARDS, TWO ACROSS** — one across at `Letra grande`, and on
+//     a phone too narrow for two of Vender's steppers side by side. Each card: the
+//     product's square, its name, the cost box, the caption, the stepper, and the
+//     margin pill.
+//   * **EVERY CARD'S BOX HOLDS THIS PROVIDER'S LAST COST**, his ruling: *"The
+//     price gets prefilled by the previous price"* — `Anterior · hace N días`,
+//     and once changed, `Antes $X` with a blue edge. The rules are
+//     `@/cart/buying`'s. ⚠️ This reverses `5g-ii`'s *say it only on a row in the
+//     delivery*: he drew *Primera vez con Don Chuy* on cards nobody was receiving.
+//   * **A COST COMES FIRST** — *"Same behaviour as Vender: to add something to
+//     the carrito, a price must be entered first."* `+` on a card with no cost
+//     opens *¿Cuánto te costó?* (`CostoPrimero`), Vender's price sheet's frame.
+//     C3.13's banner stays, for a cost emptied after the line went in.
+//   * **THE ORDER IS ONE ORDER** — bought from this provider, most recent first,
+//     then the rest; no sections. ⚠️ So the *Recientes / A-Z* pills are gone, a
+//     decision taken on his behalf: his drawing had none, and the search finds
+//     by name.
+//   * **THE CARRITO IS THE SIMPLE ONE** — *"editable fields for both price and
+//     quantity … and few insights."* Each line: name and total, the cost box, the
+//     stepper and `Quitar`. Its frame, foot and questions are Vender's
+//     (`src/ui/`), on *"make sure the geometries in common are the same."*
+//
+// ⚠️ R9: whether two cards read at a glance on a small Android, whether the
+// prefilled box reads as last time's figure rather than as today's, and whether
+// the blue card is noticed as the way to change provider are his phone's.
+//
+// ----------------------------------------------------------------------------
 // ⚠️⚠️ THE PROVIDER IS CHOSEN FIRST, AND CHANGING IT RE-PRICES EVERY ROW
 // ----------------------------------------------------------------------------
 // C3.11, and the second half is the one a session would leave out because the
@@ -92,7 +135,7 @@ import { Velo } from '@/ui/Velo';
 // ⚠️ THE CLEARING IS `openProvider`'s AND NOT THIS FILE'S (`@/cart/store`), so
 // `app/test/cart.test.ts`' neighbour reads the rule rather than a reviewer
 // hoping for it. What this screen owns is the RE-SEEDING afterwards — see
-// `Fila`, where the one subtle piece of state in this file lives.
+// `Comprar`'s seeding effect, where the one subtle piece of state in this file lives.
 //
 // ⚠️ `Comprando a:` OPENS ON THE GENERIC ROW AND NOT ON *the first one*
 // (`defaultProvider`, F6). A market run has no counterparty, and a shop that
@@ -127,7 +170,7 @@ import { Velo } from '@/ui/Velo';
 // is the owner's ruling of 2026-09-25 taking effect rather than a style choice:
 // *"Comprar should be for any role for now."* Once an Empleada may use this
 // screen, `Primera vez con este proveedor` is **false on every row her shop has
-// bought before** — see `Costo`, where the whole argument lives. `5g-ii` shipped
+// bought before** — `@/cart/buying`'s `cardNote` says nothing to her. `5g-ii` shipped
 // the other way and one sentence from him overturned it.
 //
 // ⚠️ `unknown` IS NOT DRAWN AS A MISSING COST. A read still in flight gets an
@@ -188,8 +231,9 @@ import { Velo } from '@/ui/Velo';
 const PAD_ID = 'wera.buy.pad';
 
 export default function Comprar() {
-  const { scale } = useDensity();
+  const { scale, mode } = useDensity();
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
 
   // ⚠️ THE CATALOG IS READ UNFILTERED AND NARROWED FOR THE LIST ONLY — Vender's
   // own measurement: pricing a basket against the MATCHING rows would make the
@@ -206,8 +250,35 @@ export default function Comprar() {
 
   const [typed, setTyped] = useState('');
   const box = useRef<TextInput>(null);
-  const [sort, setSort] = useState<CatalogSort>(DEFAULT_SORT);
   const searching = typed.trim() !== '';
+  // ⚠️ ROUND 4: THE SEARCH IS BEHIND THE BLUE CARD'S MAGNIFIER, and closing it
+  // forgets what was typed — a list still filtered by a box nobody can see is a
+  // catalog that has silently lost its products.
+  const [lookingUp, setLookingUp] = useState(false);
+  const toggleSearch = useCallback(() => {
+    setLookingUp((open) => {
+      if (open) {
+        setTyped('');
+        Keyboard.dismiss();
+      }
+      return !open;
+    });
+  }, []);
+  useEffect(() => {
+    if (lookingUp) box.current?.focus();
+  }, [lookingUp]);
+
+  // ⚠️⚠️ TWO CARDS ACROSS ONLY WHERE TWO OF VENDER'S STEPPERS FIT — the round
+  // buttons are `tapTarget` and stay so (*"the geometries in common are the
+  // same"*), so a card needs two of them and a box at least one wide. At
+  // `Letra grande`, or on a phone narrower than that, it is one card across.
+  // ⚠️ Layout, not a rule with a right answer, so it is here and untested (§2.11).
+  const across =
+    mode === 'elder' ||
+    (width - scale.space * 2 - scale.rowGap) / 2 - scale.rowGap * 2 < scale.tapTarget * 3 + scale.rowGap
+      ? 1
+      : 2;
+  const cardWidth = (width - scale.space * 2 - scale.rowGap * (across - 1)) / across;
 
   const list = useRef<FlatList<CatalogEntry>>(null);
   const editing = useRef<number | null>(null);
@@ -219,10 +290,12 @@ export default function Comprar() {
     const up = Keyboard.addListener('keyboardDidShow', () => {
       const at = editing.current;
       if (at === null || at < 0) return;
-      list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
+      // ⚠️ A ROW OF CARDS, NOT A CARD: with `numColumns` the list's index is the
+      // row's, so the card's own index is divided down to it.
+      list.current?.scrollToIndex({ index: Math.floor(at / across), viewPosition: 0.5, animated: true });
     });
     return () => up.remove();
-  }, []);
+  }, [across]);
 
   const cart = useCart('buy');
   const quotes = useTyped('buy');
@@ -371,9 +444,8 @@ export default function Comprar() {
   // name; running a sort over its result would throw away the ranking, and running
   // it before would be sorted then re-ranked. ⚠️ **So the pills are hidden while
   // typing** (his instruction) and the two orders are never on screen together.
-  const rows = searching
-    ? search(entries, typed)
-    : sortedForBuying(entries, sort, lastPurchasedFor(memory, providerId));
+  const bought = useMemo(() => lastPurchasedFor(memory, providerId), [memory, providerId]);
+  const rows = searching ? search(entries, typed) : sortedForBuying(entries, 'recent', bought);
 
   // ⚠️ HOW MANY ROWS HAVE NO COST — the banner's own figure, counted off the very
   // rows the total is the sum of (`reviewOf`), so the sentence and the arithmetic
@@ -394,6 +466,20 @@ export default function Comprar() {
   const [cartOpen, setCartOpen] = useState(false);
   const closeCart = useCallback(() => setCartOpen(false), []);
   const openCart = useCallback(() => setCartOpen(true), []);
+
+  // ⚠️⚠️ ROUND 4: `+` ON A CARD WITH NO COST OPENS THE COST QUESTION, and saving
+  // it puts the cost in the cart's typed map and one step in the delivery — in
+  // that order, so `seeded` above finds a quote and leaves it (`5h-ii-b`'s rule).
+  const [costing, setCosting] = useState<CatalogEntry | null>(null);
+  const bump = useCartStore((state) => state.step);
+  const costed = useCallback(
+    (entry: CatalogEntry, perBase: string) => {
+      setPrice('buy', entry.id, perBase);
+      bump('buy', entry.id, stepOf(entry.priceUnit, factors), 1);
+      setCosting(null);
+    },
+    [setPrice, bump, factors],
+  );
 
   const [asking, setAsking] = useState(false);
   const [emptied, setEmptied] = useState(false);
@@ -472,44 +558,53 @@ export default function Comprar() {
       // ⚠️ NO `paddingTop: insets.top` — the tab navigator already draws a header
       // below the notch, and counting the inset again is the dead space the owner
       // reported on Vender on 2026-09-24.
-      style={{ flex: 1, backgroundColor: PALETTE.fondo }}
+      style={{ flex: 1, backgroundColor: PALETTE.compraFondo }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
     >
-      <Encabezado
+      <Proveedor
         provider={provider}
         loading={providersOut}
-        onPress={() => setPicking(true)}
+        lookingUp={lookingUp}
+        onSearch={toggleSearch}
+        onChange={() => setPicking(true)}
       />
 
-      <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
-
-      {/* ⚠️ HIDDEN WHILE TYPING, which is his instruction and also the only
-          honest rendering: the list is ranked by the search then, not by a pill. */}
-      {searching ? null : <Ordenar sort={sort} onSort={setSort} />}
+      {lookingUp ? (
+        <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+      ) : null}
 
       <FlatList
         ref={list}
+        // ⚠️ `key` CHANGES WITH THE COLUMN COUNT: a `FlatList` cannot change
+        // `numColumns` in place, and `Letra grande` switched on mid-delivery is
+        // exactly that.
+        key={across}
+        numColumns={across}
         data={rows}
         keyExtractor={(entry) => entry.id}
         renderItem={({ item, index }) => (
-          <Fila
+          <Tarjeta
             entry={item}
+            width={cardWidth}
             factors={factors}
             typical={typicals[item.id]}
             memory={memory}
             providerId={providerId}
+            provider={provider}
+            boughtAt={bought[item.id]}
             canRead={canRead}
             onEdit={(on) => {
               editing.current = on ? index : null;
             }}
+            onCostFirst={setCosting}
           />
         )}
-        ItemSeparatorComponent={Separador}
+        columnWrapperStyle={across > 1 ? { gap: scale.rowGap } : undefined}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
-        contentContainerStyle={{ paddingBottom: scale.space }}
+        contentContainerStyle={{ padding: scale.space, gap: scale.rowGap }}
         onScrollToIndexFailed={({ index }) => {
-          list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
+          list.current?.scrollToOffset({ offset: index * scale.retratoSize * 3, animated: true });
         }}
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="handled"
@@ -533,6 +628,7 @@ export default function Comprar() {
         typicals={typicals}
         memory={memory}
         providerId={providerId}
+        provider={provider}
         canRead={canRead}
         missing={missing}
         onCommit={commit}
@@ -551,12 +647,24 @@ export default function Comprar() {
           `Modal` over the first is what this avoids: nested modals on iOS animate
           against each other. */}
       {!cartOpen ? (
-        <Confirmacion
+        <VaciarCarrito
           asking={asking}
           emptied={emptied}
           bloom={bloom}
+          count={cart.length}
           onConfirm={emptyCart}
           onCancel={() => setAsking(false)}
+        />
+      ) : null}
+
+      {costing !== null ? (
+        <CostoPrimero
+          entry={costing}
+          factors={factors}
+          provider={provider}
+          first={memoryState(memory, providerId, costing.id, canRead) === 'new-pairing'}
+          onSave={costed}
+          onClose={() => setCosting(null)}
         />
       ) : null}
 
@@ -575,7 +683,7 @@ export default function Comprar() {
         }}
       />
 
-      <Registrada shown={recorded} onDone={() => setRecorded(false)} />
+      <Hecho shown={recorded} word={ES.buy.recorded} onDone={() => setRecorded(false)} />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the keyboard rather than into the layout, so where it sits
@@ -587,152 +695,136 @@ export default function Comprar() {
 }
 
 /**
- * ⚠️⚠️ `Comprando a:` — THE HEADER, AND SINCE 2026-09-25 IT LOOKS LIKE THE
- * CONTROL IT IS. The owner: *"You can also change the Proveedor from the
- * drop-down at the top of the screen, make it look more like a drop-down
- * control."*
+ * ⚠️⚠️ WHO IS DELIVERING — ROUND 4's BLUE CARD (2026-10-16), and it replaced the
+ * drop-down field of 2026-09-25. *TE ENTREGA* over the provider's name in the
+ * titles' face, a magnifier, and `Cambiar`.
  *
- * ⚠️ WHAT CHANGED IS AFFORDANCE AND NOT FUNCTION. It was a bare row of text with
- * a chevron after it — tappable, and not visibly so. It is now a bordered,
- * filled field with the chevron inside it, which is the same shape `Buscador`
- * uses one row below: **a box means you can act on it, and this screen now has
- * two boxes that both do.**
+ * ⚠️ `Cambiar` OPENS THE SAME CENTRED WINDOW THE FIELD DID (`Proveedores`), and a
+ * word on a button is the affordance the field's border used to be (C12.1).
  *
- * ⚠️ THE LABEL STAYS OUTSIDE THE BOX. C3.11 makes this a sentence with a blank in
- * it — the provider is who this document is WITH, not a setting — so
- * `Comprando a:` reads as prose and only the ANSWER is a field.
+ * ⚠️ THE MAGNIFIER HAS NO WORD BESIDE IT, AND C12.1 IS BENT ONCE, KNOWINGLY: the
+ * owner drew it bare. Its screen-reader label is the word, and pressed it is
+ * filled, so open and closed are not a colour alone.
  *
- * ⚠️ IT SITS ABOVE THE SEARCH BOX AND DOES NOT SCROLL, for the search box's own
- * reason: a shop with a hundred products is exactly the shop where a
- * scrolled-away provider would be a delivery recorded against the wrong one.
+ * ⚠️ IT DOES NOT SCROLL, for the old header's reason: a shop with a hundred
+ * products is the shop where a scrolled-away provider is a delivery recorded
+ * against the wrong one.
  */
-function Encabezado({
+function Proveedor({
   provider,
   loading,
-  onPress,
+  lookingUp,
+  onSearch,
+  onChange,
 }: {
   provider: Provider | null;
   loading: boolean;
-  onPress: () => void;
+  lookingUp: boolean;
+  onSearch: () => void;
+  onChange: () => void;
 }) {
   const { scale } = useDensity();
   const unknown = provider === null;
   return (
-    <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space, gap: scale.rowGap / 2 }}>
-      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-        {ES.buy.buyingFrom}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${ES.buy.buyingFrom} ${unknown ? '' : provider.name}`}
-        accessibilityState={{ disabled: loading }}
-        disabled={loading}
-        onPress={onPress}
+    <View
+      style={{
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        marginHorizontal: scale.space,
+        marginTop: scale.space,
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap,
+        borderRadius: scale.space * 1.5,
+        backgroundColor: PALETTE.compra,
+      }}
+    >
+      {/* ⚠️ `flexWrap` AND NOT A BRANCH ON THE MODE — Vender's row's rule: where
+          the name and both buttons do not fit (`Letra grande`, a narrow phone),
+          the buttons drop under the name, which keeps the provider readable. */}
+      <View
         style={{
+          flexGrow: 1,
+          flexBasis: scale.tapTarget * 3.5,
           flexDirection: 'row',
           alignItems: 'center',
           gap: scale.rowGap,
-          minHeight: scale.tapTarget,
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: unknown ? PALETTE.linea : PALETTE.accion,
-          backgroundColor: PALETTE.superficie,
         }}
       >
-        <Text
-          numberOfLines={1}
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
           style={{
-            flex: 1,
-            fontSize: scale.bodySize,
-            fontWeight: '700',
-            color: unknown ? PALETTE.tintaApagada : PALETTE.tinta,
+            width: scale.tapTarget,
+            height: scale.tapTarget,
+            borderRadius: scale.tapTarget / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: PALETTE.compraSuave,
           }}
         >
-          {unknown ? ES.buy.loadingProviders : provider.name}
-        </Text>
-        {/* ⚠️ THE GLYPH IS INSIDE THE FIELD, which is what makes it read as a
-            drop-down rather than as a link. It carries no word of its own and
-            needs none: the provider's name is right beside it (C12.1). */}
-        {loading ? null : (
-          <MaterialCommunityIcons
-            name="chevron-down"
-            size={scale.iconSize}
-            color={PALETTE.accion}
-          />
-        )}
-      </Pressable>
-    </View>
-  );
-}
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '800', color: PALETTE.compra }}>
+            {unknown ? '' : initials(provider.name)}
+          </Text>
+        </View>
 
-/**
- * ⚠️⚠️ THE SORTER PILLS — the owner, 2026-09-25: *"small pill sorters at the top,
- * the preselected sorter is Recientes but you can also pick A-Z."*
- *
- * ⚠️ TWO PILLS AND NO MORE, and the chosen one is filled **and** bolder — never
- * colour alone (`R11`). A segmented control was the alternative and pills are what
- * he asked for; they also degrade better at `Letra grande`, where two segments of a
- * fixed-width control would clip their own words.
- *
- * ⚠️ THEY ARE NOT DRAWN AT ALL WHILE SHE IS TYPING — see `Comprar`. The search is a
- * third order and a pill claiming to own the list while `search` ranks it would be
- * a control that looks live and does nothing, which is the shape this repository
- * refuses by name.
- */
-function Ordenar({
-  sort,
-  onSort,
-}: {
-  sort: CatalogSort;
-  onSort: (next: CatalogSort) => void;
-}) {
-  const { scale } = useDensity();
-  const pills: readonly { readonly key: CatalogSort; readonly word: string }[] = [
-    { key: 'recent', word: ES.buy.sort.recent },
-    { key: 'az', word: ES.buy.sort.az },
-  ];
-  return (
-    <View
-      accessibilityRole="radiogroup"
-      accessibilityLabel={ES.buy.sort.label}
-      style={{
-        flexDirection: 'row',
-        gap: scale.rowGap,
-        paddingHorizontal: scale.space,
-        paddingBottom: scale.rowGap,
-      }}
-    >
-      {pills.map((pill) => {
-        const on = pill.key === sort;
-        return (
-          <Pressable
-            key={pill.key}
-            accessibilityRole="radio"
-            accessibilityState={{ selected: on }}
-            accessibilityLabel={pill.word}
-            onPress={() => onSort(pill.key)}
-            style={{
-              paddingHorizontal: scale.space,
-              paddingVertical: scale.rowGap / 2,
-              borderRadius: scale.tapTarget / 2,
-              borderWidth: 1,
-              borderColor: on ? PALETTE.accion : PALETTE.linea,
-              backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
-            }}
+        <View style={{ flex: 1 }}>
+          <Text
+            style={{ fontSize: scale.smallSize * 0.8, fontWeight: '700', color: PALETTE.superficie, opacity: 0.8 }}
           >
-            <Text
-              style={{
-                fontSize: scale.smallSize,
-                fontWeight: on ? '700' : '400',
-                color: on ? PALETTE.accion : PALETTE.tintaApagada,
-              }}
-            >
-              {pill.word}
-            </Text>
-          </Pressable>
-        );
-      })}
+            {ES.buy.supplier.label}
+          </Text>
+          <Text numberOfLines={1} style={{ fontSize: scale.titleSize * 0.9, ...TITULO, color: PALETTE.superficie }}>
+            {unknown ? ES.buy.loadingProviders : provider.name}
+          </Text>
+        </View>
+      </View>
+
+      <View style={{ flexGrow: 1, flexDirection: 'row', justifyContent: 'flex-end', gap: scale.rowGap }}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={lookingUp ? ES.buy.supplier.searchClose : ES.buy.supplier.search}
+          accessibilityState={{ expanded: lookingUp }}
+          onPress={onSearch}
+          style={{
+            width: scale.tapTarget,
+            height: scale.tapTarget,
+            borderRadius: scale.tapTarget / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 1,
+            borderColor: PALETTE.superficie,
+            backgroundColor: lookingUp ? PALETTE.superficie : undefined,
+          }}
+        >
+          <MaterialCommunityIcons
+            name={lookingUp ? 'close' : 'magnify'}
+            size={scale.iconSize}
+            color={lookingUp ? PALETTE.compra : PALETTE.superficie}
+          />
+        </Pressable>
+
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${ES.buy.supplier.change} ${unknown ? '' : provider.name}`}
+          accessibilityState={{ disabled: loading }}
+          disabled={loading}
+          onPress={onChange}
+          style={{
+            minHeight: scale.tapTarget,
+            justifyContent: 'center',
+            paddingHorizontal: scale.space,
+            borderRadius: scale.tapTarget / 2,
+            borderWidth: 1,
+            borderColor: PALETTE.superficie,
+          }}
+        >
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.superficie }}>
+            {ES.buy.supplier.change}
+          </Text>
+        </Pressable>
+      </View>
     </View>
   );
 }
@@ -746,14 +838,14 @@ function Ordenar({
  * ⚠️ A WINDOW AND NOT A SHEET, AND THE DIFFERENCE IS WHAT IT IS FOR. A bottom
  * sheet is a drawer on the surface behind it — the basket is that, correctly. This
  * asks a question the screen cannot proceed without, so it belongs in the middle
- * where `Confirmacion` already puts one, and it has the same shape for that
+ * where `VaciarCarrito` already puts one, and it has the same shape for that
  * reason: a thumb that has learned one has learned the other.
  *
  * ⚠️⚠️ *"THE LIST CAN BE SHORT OR LONG SO ADAPT IT"* IS A `maxHeight` AND NOT A
  * `height`, WHICH IS THE WHOLE OF IT. Three providers get a window three rows
  * tall; thirty get a window that stops at 70% and scrolls. ⚠️ **This is the one
  * place in this app where a card is NOT fixed**, and it is the opposite of the
- * basket sheet's ruling on purpose: the basket is fixed so `Vaciar` and the slide
+ * basket sheet's ruling on purpose: the basket is fixed so `Vaciar carrito` and the slide
  * never move, and nothing in here is a control a thumb reaches for blind.
  *
  * ⚠️ ONE TAP CONFIRMS. *"when confirming the Proveedor you can see the Catalog"* —
@@ -932,40 +1024,48 @@ function Proveedores({
 }
 
 /**
- * ⚠️⚠️ ONE ROW, AND IT CARRIES A BOX VENDER'S ROW DOES NOT. The variant name,
- * the family beneath it, **the cost — editable** — and the quantity control.
+ * ⚠️⚠️ ONE PRODUCT, AS A CARD — round 4's grid. The square and the name, the
+ * cost box, the line under it, the stepper, and the margin.
  *
- * ⚠️ THERE IS NO `Pressable` ON THE ROW AND NO DETAIL SCREEN BEHIND IT (C3.3):
- * a quantity greater than zero IS the line. And the row does NOT open La Familia
- * the way Productos' row does — a tap that navigated away mid-delivery would lose
- * her place in the list.
+ * ⚠️ THERE IS NO `Pressable` ON THE CARD AND NO DETAIL SCREEN BEHIND IT (C3.3): a
+ * quantity greater than zero IS the line, and a tap that navigated away
+ * mid-delivery would lose her place. What a tap on the product or the provider
+ * should do is deferred by the owner (2026-10-16).
  *
- * ⚠️ THE LINE TOTAL IS DELIBERATELY ABSENT (C3.4). It appears in the sheet and in
- * the sticky bar; this row already carries a cost, a quantity and two buttons.
+ * ⚠️ IN THE DELIVERY IT WEARS `accion`'s EDGE, two points wide, and never the
+ * colour alone (`R11`): the stepper beside it shows the quantity.
  *
  * ⚠️ THE PREFILL IS NOT WRITTEN HERE AND MUST NOT BE — see `Comprar`'s own
- * effect, and the bug that put it there: a `FlatList` unmounts rows outside its
- * render window, so a row cannot remember whether it has already been seeded.
- * This component READS the store and never seeds it.
+ * effect: a `FlatList` unmounts cards outside its render window, so a card
+ * cannot remember whether it has already been seeded. This READS the store.
  */
-function Fila({
+function Tarjeta({
   entry,
+  width,
   factors,
   typical,
   memory,
   providerId,
+  provider,
+  boughtAt,
   canRead,
   onEdit,
+  onCostFirst,
 }: {
   entry: CatalogEntry;
+  width: number;
   factors: UnitFactors;
   /** What this product usually arrives as — `undefined` when the shop has never
    *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
   typical: Typical | undefined;
   memory: readonly MemoryRow[] | null;
   providerId: string | null;
+  provider: Provider | null;
+  /** When this provider last delivered it — `lastPurchasedFor`'s, read once. */
+  boughtAt: string | undefined;
   canRead: boolean;
-  onEdit?: (editing: boolean) => void;
+  onEdit: (editing: boolean) => void;
+  onCostFirst: (entry: CatalogEntry) => void;
 }) {
   const { scale } = useDensity();
   const base = useCartStore((state) => {
@@ -973,164 +1073,150 @@ function Fila({
     return 0;
   });
   const stored = useCartStore((state) => state.typed.buy[entry.id]);
+  const inBasket = base > 0;
 
   const state = memoryState(memory, providerId, entry.id, canRead);
   const remembered = memoryFor(memory, providerId, entry.id, entry.priceUnit, factors);
+  const note = cardNote(state, remembered, stored, inBasket, entry, factors);
+  const shown = cardCost(stored, remembered, inBasket);
+  const margin = marginOf(entry, shown, factors);
 
-  // ⚠️ THE ALARM IS ON A ROW THAT IS IN THE DELIVERY AND NOT BEFORE, which is
-  // `vender.tsx`'s condition and `5d-ii`'s argument: a product with no cost that
-  // nobody is receiving is not a problem, and **the same product with a quantity
-  // on it is about to be recorded for nothing.** ⚠️ Here it is also the reason a
-  // control is missing, so it has to be on the row she must act on.
-  //
-  // ⚠️⚠️ AND IT WAITS FOR THE MEMORY TO LAND. Without `state !== 'unknown'` every
-  // row would flash amber on the tap that creates it and go quiet a moment later
-  // when the prefill arrives — an alarm that fires on the normal path, which is
-  // `5d-ii`'s *"the alarm nobody can silence"* in miniature.
-  const alarm = base > 0 && state !== 'unknown' && typeof stored !== 'string';
-
-  // ⚠️⚠️ §2.8's MAGNITUDE WARNING, WITH BOTH HALVES LIVE — `stored` IS THE FIGURE
-  // SHE TYPED, net per base at scale 6, which is the denomination the median is
-  // in. Nothing converts on the way (`@/api/providers`' header): the cart already
-  // holds what `record_purchase` will be sent.
-  // ⚠️ IT IS NOT GATED ON `state !== 'unknown'` the way `alarm` above is. That
-  // gate exists because a MISSING cost is normal for the instant before the
-  // prefill lands; an outsized one is not a state this screen passes through on
-  // the way to being correct, and `outsized` is silent on a `null` anyway.
+  // ⚠️ §2.8's MAGNITUDE WARNING, WITH BOTH HALVES LIVE — `stored` is the figure
+  // she typed, net per base at scale 6, the denomination the median is in.
   const big = magnitudeNote(outsized(typical, base, typeof stored === 'string' ? stored : null));
+
+  const gate = buyGate(state, remembered !== null, typeof stored === 'string', inBasket);
+  const refusal = gate === 'open' ? null : { dim: false, onTap: () => onCostFirst(entry) };
+
+  const alarm = note === 'missing';
+  const caption =
+    note === 'last-bought'
+      ? formatLastBought(boughtAt)
+      : note === 'changed' && remembered !== null
+        ? ES.buy.lastPaid(remembered.price)
+        : note === 'first-time'
+          ? provider === null || provider.isGeneric
+            ? ES.buy.newPairing
+            : ES.buy.newPairingWith(provider.name)
+          : note === 'missing'
+            ? ES.buy.costMissing
+            : null;
 
   return (
     <View
       style={{
-        gap: scale.rowGap / 2,
-        paddingVertical: scale.rowGap,
-        paddingHorizontal: scale.space,
+        width,
+        gap: scale.rowGap,
+        padding: scale.rowGap,
+        borderRadius: scale.space,
+        borderWidth: inBasket ? 2 : 1,
+        borderColor: alarm ? PALETTE.atencion : inBasket ? PALETTE.accion : PALETTE.linea,
         backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
-        <Text
-          numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}
-        >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+        <Retrato name={entry.name} small ground={PALETTE.compraSuave} ink={PALETTE.compra} />
+        <Text numberOfLines={2} style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
           {entry.name}
         </Text>
-        {entry.familyName === '' ? null : (
+      </View>
+
+      <View style={{ gap: scale.rowGap / 4 }}>
+        <CajaCosto
+          entry={entry}
+          factors={factors}
+          shown={shown}
+          changed={note === 'changed'}
+          alarm={alarm}
+          onEdit={onEdit}
+        />
+        {caption === null ? null : (
           <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
+            numberOfLines={2}
+            style={{
+              fontSize: scale.smallSize,
+              fontWeight: note === 'last-bought' || note === 'changed' ? '400' : '600',
+              color: alarm ? PALETTE.atencion : note === 'first-time' ? PALETTE.compra : PALETTE.tintaApagada,
+            }}
           >
-            {entry.familyName}
+            {caption}
           </Text>
         )}
-        {/* ⚠️ ON THE NAME LINE BECAUSE THE LINE BELOW IS FULL — the cost box and
-            the stepper take the whole of it on this screen, which Vender's row
-            does not. ⚠️ AND IT NEVER TINTS THE ROW: `alarm` above does, because
-            C3.13 blocks the commit on a missing cost, and §2.8 is explicit that
-            this one does not block. Two amber rows meaning *you cannot send
-            this* and *have a look at this* would make the first one furniture. */}
+        {/* ⚠️ A WORD IN THE AMBER ROLE AND NEVER A TINTED CARD: §2.8 is explicit
+            that this guard does not block, and C3.13's missing cost does. */}
         {big === '' ? null : (
-          <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-          >
+          <Text numberOfLines={2} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
             {big}
           </Text>
         )}
       </View>
 
-      <View
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          gap: scale.rowGap,
-        }}
-      >
-        <Costo
-          entry={entry}
-          factors={factors}
-          stored={stored}
-          remembered={remembered}
-          state={state}
-          alarm={alarm}
-          live={base > 0}
-        />
-        <Cantidad
-          entry={entry}
-          base={base}
-          factors={factors}
-          scope="buy"
-          onEdit={onEdit}
-          padId={PAD_ID}
-        />
-      </View>
+      <Cantidad
+        entry={entry}
+        base={base}
+        factors={factors}
+        scope="buy"
+        onEdit={onEdit}
+        padId={PAD_ID}
+        refusal={refusal}
+        fill
+      />
+
+      {margin === null ? null : <Margen margin={margin} entry={entry} />}
     </View>
   );
 }
 
 /**
- * ⚠️⚠️ THE COST BOX — §2.8's three price states, and the only control in this app
- * where a shopkeeper types money into a list row.
+ * ⚠️⚠️ THE COST BOX — §2.8's price states, and the one control in this app where a
+ * shopkeeper types money into the list. Drawn on every card and on every
+ * Carrito line.
  *
- * ⚠️ WHAT IT DISPLAYS IS DERIVED FROM THE STORE ON EVERY RENDER (`costShown`) AND
- * IS NEVER ITS OWN COPY OF THE FIGURE. The store holds net-per-base at scale 6
- * and she reads pesos per price unit, so `costShown` and `typedPerBase` are exact
- * inverses — and `app/test/api-providers.test.ts` reads the ROUND TRIP, because
- * a one-centavo disagreement between them would show her a figure the ledger did
- * not get, with nothing anywhere to say so.
+ * ⚠️ WHAT IT DISPLAYS IS DERIVED ON EVERY RENDER (`costShown` over `cardCost`'s
+ * figure) AND IS NEVER ITS OWN COPY. The store holds net-per-base at scale 6 and
+ * she reads pesos per price unit; `costShown` and `typedPerBase` are exact
+ * inverses, and `app/test/api-providers.test.ts` reads the round trip.
  *
- * ⚠️ THE DRAFT IS KEPT WHILE SHE IS TYPING, for `Cantidad`'s reason: `8.` is not
- * a price, so committing on every keystroke would forget the line the instant a
- * thumb reached the decimal point. ⚠️ A PARSEABLE keystroke DOES commit, because
- * the `Total` above and the banner beside it must not lag what she can see.
+ * ⚠️ THE DRAFT IS KEPT WHILE SHE IS TYPING: `8.` is not a price, so committing on
+ * every keystroke would forget the line at the decimal point. A PARSEABLE
+ * keystroke does commit, because the Total must not lag what she can see.
  *
- * ⚠️⚠️ AN EMPTY BOX IS A FORGOTTEN PRICE AND NOT A ZERO — `setPrice(…, null)`.
- * C3.12 is about the dash and this is the same fact about the store: a zero is a
- * cost somebody decided, and nobody decided this one.
+ * ⚠️⚠️ AN EMPTY BOX IS A FORGOTTEN PRICE AND NOT A ZERO — `setPrice(…, null)`. On a
+ * card off the delivery that brings back the provider's last cost, which is what
+ * the box said before she touched it; on a line in the delivery it stays empty,
+ * and C3.13 says so.
  *
- * ⚠️ AND A FIGURE THAT WILL NOT CONVERT IS REFUSED RATHER THAN ROUNDED.
- * `typedPerBase` answers `null` when the unit is not on this phone —
- * *"a null is a unit this phone has not read"*, `stepOf`'s rule — so the line
- * stays unpriced and C3.13 blocks the commit, loudly, instead of sending
- * something.
+ * ⚠️ A FIGURE THAT WILL NOT CONVERT IS REFUSED RATHER THAN ROUNDED (`typedPerBase`
+ * answers `null` for a unit this phone has not read).
+ *
+ * ⚠️ ITS EDGE: blue and two points once she changed the provider's figure — the
+ * owner's drawing, and `Antes $X` says it in words (`R11`); amber with C3.13's
+ * missing cost; a hairline otherwise.
  */
-function Costo({
+function CajaCosto({
   entry,
   factors,
-  stored,
-  remembered,
-  state,
+  shown,
+  changed,
   alarm,
-  live,
+  onEdit,
+  compact = false,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
-  stored: string | undefined;
-  remembered: ReturnType<typeof memoryFor>;
-  state: ReturnType<typeof memoryState>;
+  shown: string | null;
+  changed: boolean;
   alarm: boolean;
-  /**
-   * Is this row actually IN the delivery — a quantity greater than zero (C3.3)?
-   *
-   * ⚠️⚠️ IT GATES THE SENTENCE UNDER THE BOX AND NOTHING ELSE, and the reason is
-   * `5d-ii`'s, applied to language instead of to colour: *"an alarm on a hundred
-   * rows is the alarm nobody can silence."* On day one a shop has bought almost
-   * nothing from anybody, so `Primera vez con este proveedor` under **every row
-   * in the catalog** is a screen shouting a true thing a hundred times.
-   * ⚠️ **The BOX itself is drawn on every row regardless**, which is the opposite
-   * trade and is deliberate: a box that appeared on the first `+` would reflow the
-   * row under a thumb that has just left a button, which is the objection
-   * `vender.tsx`'s sticky bar already records about its own second line.
-   */
-  live: boolean;
+  onEdit?: (editing: boolean) => void;
+  /** The Carrito's line: a box three targets wide rather than the card's. */
+  compact?: boolean;
 }) {
   const { scale } = useDensity();
   const setPrice = useCartStore((s) => s.setPrice);
-  const settled = costShown(stored, entry.priceUnit, factors);
+  const settled = costShown(shown, entry.priceUnit, factors);
 
   const [draft, setDraft] = useState<string | null>(null);
-  const shown = draft ?? settled;
+  const value = draft ?? settled;
 
   const typeInto = (text: string) => {
     setDraft(text);
@@ -1138,114 +1224,98 @@ function Costo({
       setPrice('buy', entry.id, null);
       return;
     }
-    const centavos = parsePesos(text);
-    const perBase = typedPerBase(centavos, entry.priceUnit, factors);
+    const perBase = typedPerBase(parsePesos(text), entry.priceUnit, factors);
     if (perBase !== null) setPrice('buy', entry.id, perBase);
   };
 
-  // ⚠️⚠️ THE SENTENCE UNDER THE BOX IS THE STATE, AND IT IS NEVER A COLOUR ALONE
-  // (`R11`). `remembered` gets where the figure came from; `new-pairing` gets
-  // §2.8's own question in words; ⚠️ `unknown` gets nothing at all, since *not
-  // back yet* must not read as *there is nothing*.
-  // ⚠️⚠️ AND NONE OF IT IS SAID ON A ROW NOBODY IS RECEIVING — see `live`.
-  //
-  // ----------------------------------------------------------------------------
-  // ⚠️⚠️ `unreadable` IS SILENT, AND THAT CHANGED ON 2026-09-25 BECAUSE OF A RULING
-  // ----------------------------------------------------------------------------
-  // `5g-ii` shipped it rendering the SAME sentence as `new-pairing`, on the
-  // argument that a cashier must type the cost either way and nothing on screen
-  // would be false. ⚠️⚠️ **THE OWNER THEN RULED *"Comprar should be for any role
-  // for now"*, AND THAT MADE THE SENTENCE A LIE RATHER THAN A SIMPLIFICATION.**
-  //
-  // `provider_price_memory` is manager-and-above (`0003:558`), so an Empleada's
-  // read is **200 and an empty array on every row** — including rows this shop
-  // HAS bought from this provider many times. Telling her *Primera vez con este
-  // proveedor* there is the app asserting something it knows to be untrue, and
-  // the whole point of §2.8's three states is that a screen must not answer a
-  // question nobody asked.
-  //
-  // ⚠️ SO IT SAYS NOTHING, AND THE BOX IS STILL EMPTY AND REQUIRED — which is
-  // true for her: **the app genuinely cannot tell her what this cost.** Silence is
-  // the one rendering that is accurate for both halves of a state the screen
-  // cannot resolve.
-  //
-  // ⚠️ AND IT DOES NOT EXPLAIN THE FENCE TO HER EITHER. *"No puedes ver los
-  // precios anteriores"* is a role boundary she did not ask about and cannot
-  // change ([[users-dont-do-bookkeeping]]) — and it would be wrong on the rows
-  // that really are new, which nothing here can distinguish.
-  //
-  // ⚠️⚠️ WHAT IS STILL OPEN IS NOT THIS LINE: it is whether the VIEW should be
-  // widened so she gets the prefill at all. That is a migration and it puts every
-  // cost this shop has ever paid in front of a cashier, so it is in
-  // ⛔ DECISIONS OWED rather than taken here.
-  // ⚠️ THE CHOICE IS `costNote`'s AND THE WORDS ARE `ES.buy`'s — this file holds
-  // neither (`R3`, `R4`), which is what lets `app/test/api-providers.test.ts` pin
-  // the ruling above instead of a reviewer having to spot it in a ternary.
-  const which = live ? costNote(state, remembered) : null;
-  const note =
-    which === 'last-paid' && remembered !== null
-      ? ES.buy.lastPaid(remembered.price)
-      : which === 'new-pairing'
-        ? ES.buy.newPairing
-        : null;
-
   return (
-    <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-      <View
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap / 2,
+        width: compact ? scale.tapTarget * 3 : undefined,
+        minHeight: scale.tapTarget,
+        paddingHorizontal: scale.rowGap,
+        borderRadius: scale.space / 2,
+        borderWidth: changed ? 2 : 1,
+        borderColor: alarm ? PALETTE.atencion : changed ? PALETTE.compra : PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>$</Text>
+      <TextInput
+        value={value}
+        onChangeText={typeInto}
+        onFocus={() => {
+          setDraft(value);
+          onEdit?.(true);
+        }}
+        onBlur={() => {
+          setDraft(null);
+          onEdit?.(false);
+        }}
+        placeholder={ES.buy.costHint}
+        placeholderTextColor={PALETTE.tintaApagada}
+        // ⚠️ `decimal-pad` AND NOT `numeric`: C12.2 puts the point in `35.50`, and
+        // `numeric` carries a minus sign on some Android keyboards. `parsePesos`
+        // is still what READS it — a pad is a convenience, never a validator.
+        keyboardType="decimal-pad"
+        inputAccessoryViewID={PAD_ID}
+        accessibilityLabel={`${ES.buy.cost} ${entry.name}`}
         style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: scale.rowGap / 2,
+          flex: 1,
           minHeight: scale.tapTarget,
-          paddingHorizontal: scale.rowGap,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: alarm ? PALETTE.atencion : PALETTE.accion,
-          backgroundColor: PALETTE.superficie,
+          fontSize: scale.bodySize,
+          fontWeight: '700',
+          color: PALETTE.tinta,
+        }}
+      />
+      {/* ⚠️ WHAT THE COST IS PER, IN C3.10's OWN SEPARATOR. */}
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {`${ES.catalog.per} ${entry.priceUnit}`}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * ⚠️⚠️ THE MARGIN, IN PESOS PER PRICE UNIT — the owner's *"margin in pesos"*, and
+ * `@/cart/buying` says what it is (the shelf price less this cost, both as she
+ * sees them) and what it is not.
+ *
+ * ⚠️⚠️ SOLID RED BELOW ZERO, AND THAT GIVES `error` A SECOND SENTENCE — flagged to
+ * him with the drawing and approved (*"Looks good. Proceed"*): *you lose money on
+ * this*. The minus sign travels with it, so it is never a colour alone (`R11`).
+ * ⚠️ Above zero it wears `accion`'s pair, as drawn: green means *good* here, and
+ * nothing on the pill can be pressed.
+ */
+function Margen({ margin, entry }: { margin: number | 'no-sale-price'; entry: CatalogEntry }) {
+  const { scale } = useDensity();
+  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
+  const none = margin === 'no-sale-price';
+  const loss = !none && margin < 0;
+  return (
+    <View
+      style={{
+        alignSelf: 'flex-start',
+        paddingHorizontal: scale.rowGap,
+        paddingVertical: scale.rowGap / 4,
+        borderRadius: scale.tapTarget / 2,
+        backgroundColor: none ? PALETTE.fondo : loss ? PALETTE.error : PALETTE.accionSuave,
+        borderWidth: none ? 1 : 0,
+        borderColor: PALETTE.linea,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: scale.smallSize,
+          fontWeight: '700',
+          color: none ? PALETTE.tintaApagada : loss ? PALETTE.superficie : PALETTE.accion,
         }}
       >
-        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>$</Text>
-        <TextInput
-          value={shown}
-          onChangeText={typeInto}
-          onFocus={() => setDraft(shown)}
-          onBlur={() => setDraft(null)}
-          placeholder={ES.buy.costHint}
-          placeholderTextColor={PALETTE.tintaApagada}
-          // ⚠️ `decimal-pad` AND NOT `numeric`: C12.2 puts the point in `35.50`,
-          // and `numeric` carries a minus sign and an exponent on some Android
-          // keyboards. Neither is a cost. ⚠️ `parsePesos` is still what READS it —
-          // a pad is a convenience, never a validator.
-          keyboardType="decimal-pad"
-          inputAccessoryViewID={PAD_ID}
-          accessibilityLabel={`${ES.buy.cost} ${entry.name}`}
-          style={{
-            flex: 1,
-            minHeight: scale.tapTarget,
-            fontSize: scale.bodySize,
-            fontWeight: '600',
-            color: PALETTE.tinta,
-          }}
-        />
-        {/* ⚠️ WHAT THE COST IS PER, IN C3.10's OWN SEPARATOR. A money box with no
-            unit beside it is the one figure a shopkeeper could read two ways. */}
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-          {`${ES.catalog.per} ${entry.priceUnit}`}
-        </Text>
-      </View>
-
-      {note === null ? null : (
-        <Text
-          numberOfLines={1}
-          style={{
-            fontSize: scale.smallSize,
-            fontWeight: alarm ? '600' : '400',
-            color: alarm ? PALETTE.atencion : PALETTE.tintaApagada,
-          }}
-        >
-          {note}
-        </Text>
-      )}
+        {none ? ES.buy.noSalePrice : ES.buy.margin(formatMXN(margin), unit)}
+      </Text>
     </View>
   );
 }
@@ -1339,38 +1409,16 @@ function Barra({
       </Strip>
 
       {live ? (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: scale.space,
-            paddingHorizontal: scale.space,
-            paddingBottom: scale.space,
-          }}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ES.counter.cart.empty}
-            onPress={onEmpty}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-              {ES.counter.cart.empty}
-            </Text>
-          </Pressable>
-
-          {canBuy ? (
-            <View style={{ flex: 1 }}>
-              <Deslizador
-                word={ES.buy.slide.word}
-                label={ES.buy.slide.label}
-                onCommit={onCommit}
-                onTap={onOpen}
-              />
-            </View>
-          ) : (
-            <Bloqueo missing={missing} />
-          )}
+        <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}>
+          <CierreCarrito
+            onEmpty={onEmpty}
+            word={ES.buy.slide.word}
+            label={ES.buy.slide.label}
+            onCommit={onCommit}
+            canCommit={canBuy}
+            onTap={onOpen}
+            blocked={<Bloqueo missing={missing} />}
+          />
         </View>
       ) : null}
     </View>
@@ -1421,17 +1469,18 @@ function Bloqueo({ missing }: { missing: number }) {
 }
 
 /**
- * ⚠️⚠️ C3.5's SHEET — the review before the commit, one of §2.8's three
- * *Error prevention* guards, and on this counter it is also **where the missing
- * costs get typed**: the row here carries the same `Costo` box the list does,
- * because C3.13 requires the fix to be fast from where she already is.
+ * ⚠️⚠️ C3.5's SHEET — the review before the commit, and on this counter also
+ * **where a cost is corrected**: every line carries the same cost box the card
+ * does. Its frame, heading, foot and question are Vender's since round 4
+ * (`src/ui/HojaCarrito`); the heading names the provider — *Don Chuy · 3
+ * productos* — because a delivery is a document WITH somebody.
  *
- * ⚠️ A FIXED HEIGHT, RULED 2026-09-24 — *"let's just make the height of the
- * carrito fixed."* The reason it is better is muscle memory rather than tidiness:
- * `Vaciar carrito` and the slide are in the SAME PLACE on every delivery.
+ * ⚠️ ROUND 4, THE OWNER: *"a simpler version with editable fields for both
+ * price and quantity … and few insights."* So no `Antes` and no margin here —
+ * the card behind it carries both. §2.8's guards stay: they are not insights.
  *
- * ⚠️ AN `RN` `Modal` AND NOT A ROUTE — a route would re-read the catalog, the
- * unit factors, the workspace and the provider memory to show a subset of what is
+ * ⚠️ AN `RN` `Modal` AND NOT A ROUTE — a route would re-read the catalog, the unit
+ * factors, the workspace and the provider memory to show a subset of what is
  * already on screen.
  */
 function Carrito({
@@ -1443,6 +1492,7 @@ function Carrito({
   typicals,
   memory,
   providerId,
+  provider,
   canRead,
   missing,
   onCommit,
@@ -1465,6 +1515,7 @@ function Carrito({
   typicals: Typicals;
   memory: readonly MemoryRow[] | null;
   providerId: string | null;
+  provider: Provider | null;
   canRead: boolean;
   missing: number;
   onCommit: () => void;
@@ -1476,120 +1527,76 @@ function Carrito({
   onConfirmEmpty: () => void;
   onCancelEmpty: () => void;
 }) {
-  const { scale } = useDensity();
-  const insets = useSafeAreaInsets();
   const rows = review === null ? [] : review.rows;
 
   return (
-    <Modal visible={open} animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1 }}>
-        {/* ⚠️ THE VELO CLOSES THE SHEET — ruled 2026-09-24. It is a separate view
-            under an `opacity` rather than a translucent fill on the container,
-            because `opacity` on a parent dims its children and would put the
-            sheet itself behind the dimming. The hue is a role (`R11`). */}
-        <Velo label={ES.counter.cart.close} onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
-        >
-          <View
-            style={{
-              height: '72%',
-              borderTopLeftRadius: scale.space,
-              borderTopRightRadius: scale.space,
-              backgroundColor: PALETTE.fondo,
-              paddingBottom: insets.bottom,
-            }}
-          >
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                paddingHorizontal: scale.space,
-                paddingVertical: scale.space,
-                borderBottomWidth: 1,
-                borderBottomColor: PALETTE.linea,
-              }}
-            >
-              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-                {ES.counter.cart.title}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={ES.counter.cart.close}
-                onPress={onClose}
-                style={{
-                  minHeight: scale.tapTarget,
-                  justifyContent: 'center',
-                  paddingHorizontal: scale.rowGap,
-                }}
-              >
-                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-                  {ES.counter.cart.close}
-                </Text>
-              </Pressable>
-            </View>
-
-            <FlatList
-              style={{ flex: 1 }}
-              data={rows}
-              keyExtractor={(row) => row.variantId}
-              renderItem={({ item }) => (
-                <Renglon
-                  row={item}
-                  entry={entries.find((e) => e.id === item.variantId)}
-                  factors={factors}
-                  typical={typicals[item.variantId]}
-                  memory={memory}
-                  providerId={providerId}
-                  canRead={canRead}
-                />
-              )}
-              ItemSeparatorComponent={Separador}
-              ListEmptyComponent={<Vacio line={ES.counter.emptyCart} />}
-              keyboardShouldPersistTaps="handled"
+    <HojaCarrito
+      open={open}
+      onClose={onClose}
+      lines={rows.length}
+      detail={provider === null ? null : provider.name}
+      foot={
+        rows.length === 0 || review === null ? null : (
+          <>
+            <TotalCarrito centavos={review.basket.centavos} />
+            <CierreCarrito
+              onEmpty={onEmpty}
+              word={ES.buy.slide.word}
+              label={ES.buy.slide.labelInCart}
+              onCommit={onCommit}
+              canCommit={canBuy}
+              compact
+              blocked={<Bloqueo missing={missing} />}
             />
-
-            {rows.length === 0 ? null : (
-              <Vaciar canBuy={canBuy} missing={missing} onCommit={onCommit} onAsk={onEmpty} />
-            )}
-          </View>
-        </KeyboardAvoidingView>
-
-        <Confirmacion
+          </>
+        )
+      }
+      over={
+        <VaciarCarrito
           asking={asking}
           emptied={emptied}
           bloom={bloom}
+          count={rows.length}
           onConfirm={onConfirmEmpty}
           onCancel={onCancelEmpty}
         />
-      </View>
-    </Modal>
+      }
+    >
+      <FlatList
+        style={{ flex: 1 }}
+        data={rows}
+        keyExtractor={(row) => row.variantId}
+        renderItem={({ item }) => (
+          <Renglon
+            row={item}
+            entry={entries.find((e) => e.id === item.variantId)}
+            factors={factors}
+            typical={typicals[item.variantId]}
+            memory={memory}
+            providerId={providerId}
+            canRead={canRead}
+          />
+        )}
+        ItemSeparatorComponent={Separador}
+        ListEmptyComponent={<Vacio line={ES.counter.emptyCart} />}
+        keyboardShouldPersistTaps="handled"
+      />
+    </HojaCarrito>
   );
 }
 
 /**
- * One line of the delivery, as the sheet draws it.
- *
- * ⚠️⚠️ IT CARRIES THE COST BOX AND VENDER'S ROW DOES NOT, which is C3.13's
- * *"fast from where she already is"* honoured on the surface she is most likely
- * to be on when the banner stops her: the sheet is where she checks the delivery
- * note against the screen.
+ * One line of the delivery, as the sheet draws it — Vender's line with the cost
+ * box where Vender has the unit price: the name and the line's figure, then the
+ * cost, then the stepper and `Quitar`. *"The geometries in common are the
+ * same"* (round 4): the first and last rows ARE Vender's.
  *
  * ⚠️ A ROW WHOSE PRODUCT HAS LEFT THE CATALOG IS DRAWN AND NOT HIDDEN — see
- * `reviewOf`. `draftOf` refuses the whole basket for it, and this sheet is the
- * only surface that can remove it, because the list behind it is the catalog and
- * the catalog no longer has the row. It keeps its `Quitar` and loses both
+ * `reviewOf`. `draftOf` refuses the whole delivery for it, and this sheet is the
+ * only surface that can remove it. It keeps its `Quitar` and loses both
  * controls: there is no price unit to step in and none to cost per.
  *
- * ⚠️ THE LINE TOTAL IS A DASH WHEN IT COULD NOT BE PRICED, never `$0.00` (C3.12).
- *
- * ⚠️ FOUR LINES AND NOT ONE, for `vender.tsx`'s measured reason: at `Letra
- * grande` on a 393 pt iPhone the stepper alone is 222 pt, and this row adds a
- * money box the sale's does not have. A review screen is the one place a product
- * name may not be squeezed — it is what the delivery note is being checked
- * against.
+ * ⚠️ THE LINE'S FIGURE IS A DASH WHEN IT COULD NOT BE PRICED, never `$0.00` (C3.12).
  */
 function Renglon({
   row,
@@ -1614,30 +1621,21 @@ function Renglon({
   const gone = entry === undefined;
 
   const state = memoryState(memory, providerId, row.variantId, canRead);
-  const remembered =
-    entry === undefined
-      ? null
-      : memoryFor(memory, providerId, entry.id, entry.priceUnit, factors);
   const alarm = !gone && state !== 'unknown' && typeof stored !== 'string';
-
-  // ⚠️⚠️ THE WARNING IS ON THE SHEET **AS WELL AS** ON THE LIST, AND THAT IS NOT
-  // A DUPLICATE. §2.8's three guards compound and review-before-commit is the
-  // second of them; the sheet is the last surface before the slide, and it is
-  // where the delivery note is actually being read against the screen.
   const big = magnitudeNote(outsized(typical, row.base, typeof stored === 'string' ? stored : null));
 
   return (
     <View
       style={{
-        gap: scale.rowGap / 2,
-        paddingVertical: scale.rowGap,
+        gap: scale.rowGap,
+        paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
+        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
       }}
     >
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.space }}>
         <Text
-          numberOfLines={1}
+          numberOfLines={2}
           style={{
             flex: 1,
             fontSize: scale.bodySize,
@@ -1647,79 +1645,52 @@ function Renglon({
         >
           {row.name ?? ES.counter.cart.goneName}
         </Text>
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+        <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
           {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
         </Text>
       </View>
 
-      {/* ⚠️ `R11`: the state never travels as a colour alone. */}
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
-        <Text
-          numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
-        >
-          {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
-        </Text>
-        {/* ⚠️ THE MISSING COST WINS WHEN BOTH APPLY, which is not arbitrary:
-            C3.13 makes it the thing that decides whether this delivery can be
-            sent at all, and §2.8 makes this one advisory. */}
-        {big === '' || alarm ? null : (
-          <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-          >
+      {/* ⚠️ `R11`: the state never travels as a colour alone. THE MISSING COST
+          WINS WHEN BOTH APPLY: C3.13 decides whether this can be sent at all,
+          and §2.8 makes the magnitude warning advisory. */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: scale.rowGap }}>
+        {gone || entry === undefined ? (
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.counter.cart.gone}</Text>
+        ) : (
+          <CajaCosto
+            entry={entry}
+            factors={factors}
+            shown={typeof stored === 'string' ? stored : null}
+            changed={false}
+            alarm={alarm}
+            compact
+          />
+        )}
+        {alarm ? (
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
+            {ES.buy.costMissing}
+          </Text>
+        ) : big === '' ? null : (
+          <Text numberOfLines={2} style={{ flex: 1, fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
             {big}
           </Text>
         )}
-        {alarm ? (
-          <Text
-            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-          >
-            {ES.buy.costMissing}
-          </Text>
-        ) : null}
       </View>
-
-      {gone || entry === undefined ? null : (
-        <Costo
-          entry={entry}
-          factors={factors}
-          stored={stored}
-          remembered={remembered}
-          state={state}
-          alarm={alarm}
-          // ⚠️ ALWAYS, because every row in the sheet is a line by construction —
-          // `reviewOf` has already narrowed the basket to the lines that exist.
-          live
-        />
-      )}
 
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         {gone || entry === undefined ? (
           <View />
         ) : (
-          <Cantidad
-            entry={entry}
-            base={row.base}
-            factors={factors}
-            scope="buy"
-            padId={PAD_ID}
-          />
+          <Cantidad entry={entry} base={row.base} factors={factors} scope="buy" padId={PAD_ID} />
         )}
 
-        {/* ⚠️ A WORD AND NOT A GLYPH — an icon plus its word does not fit beside
-            the stepper at `Letra grande`, and an icon alone on the one control
-            that destroys something is what C12.1 refuses. `error` is the
-            palette's own sentence for this role: it names `Quitar` first. */}
+        {/* ⚠️ A WORD AND NOT A GLYPH — an icon alone on the one control that
+            destroys something is what C12.1 refuses. */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${ES.counter.cart.remove} ${row.name ?? ES.counter.cart.goneName}`}
           onPress={() => remove('buy', row.variantId)}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.rowGap,
-          }}
+          style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
             {ES.counter.cart.remove}
@@ -1731,275 +1702,76 @@ function Renglon({
 }
 
 /**
- * ⚠️ THE SHEET'S FOOT — `Vaciar carrito`, and the second slide, ruled by the
- * owner 2026-09-24: *"The slide bar should also be present in the check out if we
- * open the Carrito."* It is the same `Deslizador`, narrower, so there is one
- * answer to *how far is far enough* and `COMMIT_AT` is where it lives.
+ * ⚠️⚠️ *¿CUÁNTO TE COSTÓ?* — ROUND 4's COST-FIRST QUESTION, the owner's *"to add
+ * something to the carrito, a price must be entered first"* (2026-10-16). Opened
+ * by `+` on a card whose box is empty; `Agregar al carrito` puts the cost in the
+ * delivery and the product in the Carrito, one step of it.
  *
- * ⚠️ AND HERE TOO IT MAY BE THE BANNER INSTEAD (C3.13). ⚠️ **That is the whole
- * reason the cost box is on the row above**: the sheet is the surface she is on
- * when the block stops her, so the fix has to be reachable without closing it.
- */
-function Vaciar({
-  onAsk,
-  onCommit,
-  canBuy,
-  missing,
-}: {
-  onAsk: () => void;
-  onCommit: () => void;
-  canBuy: boolean;
-  missing: number;
-}) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.space,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.space,
-        borderTopWidth: 1,
-        borderTopColor: PALETTE.linea,
-        backgroundColor: PALETTE.banda,
-      }}
-    >
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={ES.counter.cart.empty}
-        onPress={onAsk}
-        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-          {ES.counter.cart.empty}
-        </Text>
-      </Pressable>
-
-      {canBuy ? (
-        <View style={{ flex: 1 }}>
-          {/* ⚠️⚠️ NO `onTap`, AND THAT IS THE 2026-09-25 RULING. It shipped as
-              `onOpen={onClose}` — a tap on the track CLOSED the review screen — and
-              he refused it: *"when a carrito is open … do not close the carrito."*
-              The `Deslizador` still nudges, so the touch is answered. */}
-          <Deslizador
-            compact
-            word={ES.buy.slide.word}
-            label={ES.buy.slide.labelInCart}
-            onCommit={onCommit}
-          />
-        </View>
-      ) : (
-        <Bloqueo missing={missing} />
-      )}
-    </View>
-  );
-}
-
-/**
- * ⚠️ THE EMPTYING QUESTION AND ITS ANSWER — a centred box with its own scrim, the
- * owner's specification of 2026-09-24, and ONE component with ONE state rendered
- * from two places. Two copies would be two questions that drift apart.
- */
-function Confirmacion({
-  asking,
-  emptied,
-  bloom,
-  onConfirm,
-  onCancel,
-}: {
-  asking: boolean;
-  emptied: boolean;
-  bloom: Animated.Value;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const { scale } = useDensity();
-  if (!asking && !emptied) return null;
-
-  return (
-    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <Velo />
-      <View
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale.space * 2 }}
-      >
-        <View
-          style={{
-            width: '100%',
-            // ⚠️ NO `maxWidth` — `R6`, and the gate caught it once on Vender. A
-            // cap in points is a size `Letra grande` cannot change; the wrapper's
-            // own padding keeps the box off the edges, and that scales.
-            borderRadius: scale.space,
-            backgroundColor: PALETTE.fondo,
-            padding: scale.space * 1.5,
-            gap: scale.space,
-          }}
-        >
-          {emptied ? (
-            <Vaciado bloom={bloom} />
-          ) : (
-            <Pregunta onConfirm={onConfirm} onCancel={onCancel} />
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/**
- * ⚠️ THE QUESTION, IN A BOX OF ITS OWN — the owner's wording of 2026-09-24.
- * `Cancelar` is drawn in `accion` and `Sí, vaciar` in `error`, which is the
- * palette's own sentence applied: `error` is *what DESTROYS*, and the way out of
- * a destructive question is not itself destructive.
- */
-function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
-  const { scale } = useDensity();
-  return (
-    <>
-      <Text
-        style={{
-          fontSize: scale.bodySize,
-          fontWeight: '600',
-          color: PALETTE.tinta,
-          textAlign: 'center',
-        }}
-      >
-        {ES.counter.cart.emptyAsk}
-      </Text>
-      <View style={{ gap: scale.rowGap }}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel={ES.counter.cart.emptyConfirm}
-          onPress={onConfirm}
-          // ⚠️ `8g`, *option 2*: SOLID, the same box as Vender's and Desperdicio's.
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: PALETTE.error,
-            backgroundColor: PALETTE.error,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.superficie }}>
-            {ES.counter.cart.emptyConfirm}
-          </Text>
-        </Pressable>
-        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
-      </View>
-    </>
-  );
-}
-
-/**
- * ⚠️ THE EMPTYING CONFIRMATION. `opacity` and `scale` and nothing else (§2.11),
- * driven from `Comprar`'s effect — see the argument there for why it is not
- * started where the tap happens. ⚠️ AND IT CARRIES A WORD: motion with no
- * language is a state announced on the one channel a person can miss by looking
- * away.
- */
-function Vaciado({ bloom }: { bloom: Animated.Value }) {
-  const { scale } = useDensity();
-  return (
-    <View style={{ alignItems: 'center', gap: scale.rowGap, padding: scale.space * 2 }}>
-      <Animated.View
-        style={{
-          opacity: bloom,
-          transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
-          alignItems: 'center',
-          gap: scale.rowGap,
-        }}
-      >
-        <MaterialCommunityIcons
-          name="check-circle-outline"
-          size={scale.iconSize * 2}
-          color={PALETTE.accion}
-        />
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-          {ES.counter.cart.emptied}
-        </Text>
-      </Animated.View>
-    </View>
-  );
-}
-
-/**
- * ⚠️⚠️ THE DELIVERY'S OWN CONFIRMATION, AND IT FIRES ON **ENQUEUE** RATHER THAN
- * ON THE SERVER'S REPLY. C10.3 says the slide looks identical offline, and `5c-i`
- * made that structural by having `queueWrite` return a ROW rather than a promise.
- * An animation that awaited Postgres would be the offline path looking different
- * in the one place nobody tests, because every desk this was written at has a
- * working connection.
+ * ⚠️ IT IS VENDER'S PRICE SHEET'S FRAME (`src/ui/HojaPrecio`) AND WRITES NOTHING
+ * TO THE CATALOG: a cost is a fact about this delivery, and it reaches the ledger
+ * when the slide does, offline like every other line (§2.6).
  *
- * ⚠️ `transform` AND `opacity` ONLY (§2.11), and started in an effect rather than
- * in the handler that mounts it — on the native driver the other way round fails
- * silently: no error, no motion.
+ * ⚠️ *Primera vez con …* ONLY WHEN THE MEMORY SAYS SO (`first`): to a cashier,
+ * who cannot read it, the same words would be false on every product her shop has
+ * bought before — `5g-ii`'s ruling of 2026-09-25, kept.
+ *
+ * ⚠️ THE MARGIN UPDATES AS SHE TYPES — his drawing, and the one place a cost can
+ * be checked against the shelf before it is in the delivery at all.
  */
-function Registrada({ shown, onDone }: { shown: boolean; onDone: () => void }) {
-  const { scale } = useDensity();
-  const bloom = useRef(new Animated.Value(0)).current;
+function CostoPrimero({
+  entry,
+  factors,
+  provider,
+  first,
+  onSave,
+  onClose,
+}: {
+  entry: CatalogEntry;
+  factors: UnitFactors;
+  provider: Provider | null;
+  first: boolean;
+  onSave: (entry: CatalogEntry, perBase: string) => void;
+  onClose: () => void;
+}) {
+  const [typed, setTyped] = useState('');
+  const [line, setLine] = useState<string | null>(null);
+  const perBase = typed.trim() === '' ? null : typedPerBase(parsePesos(typed), entry.priceUnit, factors);
+  const margin = marginOf(entry, perBase, factors);
+  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
 
-  useEffect(() => {
-    if (!shown) return;
-    bloom.setValue(0);
-    const run = Animated.sequence([
-      Animated.timing(bloom, {
-        toValue: 1,
-        duration: DONE_IN_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.delay(DONE_HOLD_MS),
-      Animated.timing(bloom, {
-        toValue: 0,
-        duration: DONE_OUT_MS,
-        easing: Easing.in(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]);
-    run.start(({ finished }) => {
-      if (finished) onDone();
-    });
-    return () => run.stop();
-  }, [shown, bloom, onDone]);
-
-  if (!shown) return null;
+  const sells = entry.centavos === null ? ES.buy.costSheet.unpriced : ES.buy.costSheet.sells(entry.price);
+  const detail =
+    first && provider !== null && !provider.isGeneric
+      ? `${ES.buy.newPairingWith(provider.name)} · ${sells}`
+      : sells;
 
   return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
+    <HojaPrecio
+      name={entry.name}
+      detail={detail}
+      question={ES.buy.costSheet.ask}
+      value={typed}
+      onChange={(text) => {
+        setTyped(text);
+        setLine(null);
       }}
-    >
-      <Animated.View
-        style={{
-          alignItems: 'center',
-          gap: scale.rowGap,
-          paddingHorizontal: scale.space * 2,
-          paddingVertical: scale.space * 1.5,
-          borderRadius: scale.space,
-          backgroundColor: PALETTE.fondo,
-          opacity: bloom,
-          transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
-        }}
-      >
-        <MaterialCommunityIcons
-          name="check-circle-outline"
-          size={scale.iconSize * 2}
-          color={PALETTE.accion}
-        />
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-          {ES.buy.recorded}
-        </Text>
-      </Animated.View>
-    </View>
+      per={ES.sell.per(unit)}
+      inputLabel={`${ES.buy.cost} ${entry.name}`}
+      note={margin === null ? null : <Margen margin={margin} entry={entry} />}
+      line={line}
+      act={ES.buy.costSheet.add}
+      onAct={() => {
+        if (perBase === null) {
+          setLine(ES.buy.costSheet.needsCost);
+          return;
+        }
+        Keyboard.dismiss();
+        onSave(entry, perBase);
+      }}
+      cancel={ES.buy.costSheet.cancel}
+      onClose={onClose}
+      tone={PALETTE.compra}
+      tile={{ ground: PALETTE.compraSuave, ink: PALETTE.compra }}
+    />
   );
 }

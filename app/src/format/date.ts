@@ -117,6 +117,33 @@ export function formatExpiry(iso: string | null | undefined): string | null {
  * which is `mxn.ts`'s recorded standard for anything with a right answer.
  */
 export function formatWaiting(iso: string | null | undefined, now: Date = new Date()): string | null {
+  const days = calendarDaysSince(iso, now);
+  if (days === null) return null;
+  if (days <= 0) return ES.dates.waiting.today;
+  if (days === 1) return ES.dates.waiting.yesterday;
+  return ES.dates.waiting.daysAgo(days);
+}
+
+/**
+ * When Comprar's prefilled cost was paid — `Anterior · hoy`, `Anterior · ayer`,
+ * `Anterior · hace 12 días`. Round 4 of `8g`, the owner's card grid of
+ * 2026-10-16. `formatWaiting`'s rules, word for word: calendar days in the
+ * device's timezone, a clock behind the server's reads as `hoy`, and the phone's
+ * clock is safe because nothing is decided by the sentence.
+ *
+ * ⚠️ AN UNREADABLE OR MISSING DATE IS `Anterior` ALONE AND NOT `null`: the box
+ * still holds the last cost, and the caption still says where it came from.
+ */
+export function formatLastBought(iso: string | null | undefined, now: Date = new Date()): string {
+  const days = calendarDaysSince(iso, now);
+  if (days === null) return ES.buy.lastBought.undated;
+  if (days <= 0) return ES.buy.lastBought.today;
+  if (days === 1) return ES.buy.lastBought.yesterday;
+  return ES.buy.lastBought.daysAgo(days);
+}
+
+/** Whole calendar days from `iso` to `now` in the device's timezone, or `null`. */
+function calendarDaysSince(iso: string | null | undefined, now: Date): number | null {
   if (typeof iso !== 'string' || iso.trim() === '') return null;
 
   const at = new Date(iso);
@@ -126,11 +153,7 @@ export function formatWaiting(iso: string | null | undefined, now: Date = new Da
   // calendar days and never fractions of one.
   const then = new Date(at.getFullYear(), at.getMonth(), at.getDate()).getTime();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const days = Math.round((today - then) / 86400000);
-
-  if (days <= 0) return ES.dates.waiting.today;
-  if (days === 1) return ES.dates.waiting.yesterday;
-  return ES.dates.waiting.daysAgo(days);
+  return Math.round((today - then) / 86400000);
 }
 
 /**

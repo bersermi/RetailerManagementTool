@@ -941,6 +941,8 @@ export const ES = {
     cart: {
       /** The sheet's own heading. One word, because the total is right there. */
       title: 'Carrito',
+      /** `8g` round 4: the line under it on Comprar — *Don Chuy · 3 productos*. */
+      withDetail: (detail: string, count: string) => `${detail} · ${count}`,
       /**
        * ⚠️ WHAT OPENS IT, WRITTEN ON THE BAR RATHER THAN LEFT TO A GUESS. The
        * whole sticky bar is the tap target — a strip the width of the screen —
@@ -1100,13 +1102,6 @@ export const ES = {
    * that REFUSES.
    */
   buy: {
-    /**
-     * ⚠️⚠️ THE HEADER, AND THE COLON IS DOING WORK. C3.11 chooses the provider
-     * FIRST, because the screen is about a relationship before it is about
-     * products — so the header is a sentence with a blank in it rather than a
-     * label over a picker.
-     */
-    buyingFrom: 'Comprando a:',
     /** The picker's own heading, once it is open. */
     pickProvider: 'Comprando a',
     /** ⚠️ *Cerrar* and not *Cancelar*: closing the picker chooses nothing. */
@@ -1132,22 +1127,9 @@ export const ES = {
     /** Under it, so the window says why it is in the way. One line, no jargon. */
     pickWhy: 'Los costos que verás son los de este proveedor.',
 
-    /**
-     * ⚠️⚠️ THE SORTER PILLS — his words: *"small pill sorters at the top, the
-     * preselected sorter is Recientes but you can also pick A-Z. These sorters are
-     * hidden when typing to search."*
-     *
-     * ⚠️ `Recientes` IS THIS PROVIDER'S RECENCY and `sortedForBuying` records what
-     * that costs on a brand-new provider. ⚠️ The pills are HIDDEN while typing
-     * rather than disabled, because `search` is already a third order and two
-     * orders on screen at once is a screen that cannot say which one it is in.
-     */
-    sort: {
-      recent: 'Recientes',
-      az: 'A-Z',
-      /** To a screen reader, which cannot see that one pill is filled (C12.1). */
-      label: 'Ordenar el catálogo',
-    },
+    // ⚠️ THE SORTER PILLS (*Recientes / A-Z*, 2026-09-25) WENT WITH ROUND 4's
+    // CARD GRID (2026-10-16): one order — this provider's, most recent first —
+    // and the search for anything else. `sortedForBuying` keeps both orders.
 
     /**
      * ⚠️ THE COST BOX, TO A SCREEN READER AND AS ITS LABEL. *Costo* and not
@@ -1174,6 +1156,54 @@ export const ES = {
      * one.
      */
     newPairing: 'Primera vez con este proveedor',
+    /**
+     * ⚠️ ROUND 4 OF `8g` (2026-10-16): THE SAME SENTENCE WITH THE PROVIDER'S NAME,
+     * as the owner's card grid drew it — *Primera vez con Don Chuy*. The generic
+     * row keeps `newPairing`: *Primera vez con Genérico* names nobody.
+     */
+    newPairingWith: (provider: string) => `Primera vez con ${provider}`,
+    /**
+     * ⚠️ WHEN THE PREFILLED COST WAS PAID — the owner's *"Anterior · hace N días"*,
+     * 2026-10-16. `hoy` and `ayer` are not *hace 0 días* and *hace 1 días*, for
+     * `dates.waiting`'s reason; `@/format/date` picks which.
+     */
+    lastBought: {
+      today: 'Anterior · hoy',
+      yesterday: 'Anterior · ayer',
+      daysAgo: (days: number) => `Anterior · hace ${days} días`,
+      /** A memory row with no date on it — rare, and still the last cost. */
+      undated: 'Anterior',
+    },
+    /**
+     * ⚠️ THE MARGIN PILL — round 4, the owner's *"margin in pesos"*: the shelf
+     * price less this cost, per price unit. Solid red when it is below zero, and
+     * the minus sign travels with the colour (`R11`).
+     */
+    margin: (amount: string, unit: string) => `Margen ${amount} / ${unit}`,
+    /** A product with no shelf price has no margin to show — said, not hidden. */
+    noSalePrice: 'Sin precio de venta',
+    /** The supplier card — who is delivering, in its own blue. */
+    supplier: {
+      label: 'TE ENTREGA',
+      change: 'Cambiar',
+      /** The magnifier, to a screen reader: it opens and closes the search. */
+      search: 'Buscar producto',
+      searchClose: 'Cerrar la búsqueda',
+    },
+    /**
+     * ⚠️ THE COST QUESTION — round 4's *"to add something to the carrito, a price
+     * must be entered first"*. Its frame is Vender's price sheet (`HojaPrecio`);
+     * what it saves is the delivery's cost, never the catalog's price.
+     */
+    costSheet: {
+      ask: '¿Cuánto te costó?',
+      sells: (price: string) => `Lo vendes a ${price}`,
+      unpriced: 'Sin precio de venta todavía',
+      add: 'Agregar al carrito',
+      cancel: 'Cancelar',
+      /** Pressed with nothing readable in the box. */
+      needsCost: 'Escribe cuánto te costó.',
+    },
     /**
      * ⚠️ WHERE A PREFILLED FIGURE CAME FROM, KEPT BESIDE THE BOX RATHER THAN
      * REPLACING IT. It stays true after she edits the box, which a label reading
@@ -1217,7 +1247,7 @@ export const ES = {
       labelInCart: 'Registrar — desliza para confirmar la entrada',
     },
     /**
-     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Vendido`'s own
+     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Hecho`'s own
      * rule, and C10.3 is why: the slide must look identical offline.
      */
     recorded: 'Compra registrada',
@@ -1346,7 +1376,7 @@ export const ES = {
     },
 
     /**
-     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Vendido`'s rule
+     * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Hecho`'s rule
      * and C10.3's: the slide must look identical offline.
      */
     recorded: 'Merma registrada',

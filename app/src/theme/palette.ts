@@ -63,7 +63,12 @@ export interface Palette {
   readonly tintaApagada: string;
   /** 1 px separators. ⚠️ Structure, not text: see the note below. */
   readonly linea: string;
-  /** What ACTS: cobrar, recibir, the active tab, the `+` on a row. */
+  /**
+   * What ACTS: cobrar, recibir, the active tab, the `+` on a row. ⚠️ Comprar's
+   * own tab is `compra` since round 4 of `8g` (2026-10-16). ⚠️ AND A SECOND JOB
+   * FROM THAT ROUND, approved with the drawing: Comprar's margin pill above
+   * zero, on `accionSuave`. Green reads *good* there, and nothing on it presses.
+   */
   readonly accion: string;
   /** The resting fill behind an action, so it reads as tappable at rest. */
   readonly accionSuave: string;
@@ -71,7 +76,12 @@ export interface Palette {
   readonly atencion: string;
   /** The ground of a row that needs attention. Pairs with `atencion`. */
   readonly atencionSuave: string;
-  /** What DESTROYS: `Quitar`, cancelling a sale, registering merma. */
+  /**
+   * What DESTROYS: `Quitar`, cancelling a sale, registering merma.
+   * ⚠️ AND, SINCE ROUND 4 OF `8g` (2026-10-16), A SECOND SENTENCE THE OWNER
+   * APPROVED WITH THE DRAWING: a margin below zero on Comprar's cards — *you lose
+   * money on this* — solid, with `superficie` words and always its minus sign.
+   */
   readonly error: string;
   /**
    * ⚠️ THE TWELFTH ROLE, ADDED 2026-09-24 BY `5f-iii-a`: **the screen a sheet
@@ -112,6 +122,24 @@ export interface Palette {
    * icon keeps its own.
    */
   readonly marca: string;
+  /**
+   * ⚠️ THE FIFTEENTH ROLE, ROUND 4 OF `8g` (2026-10-16): **Comprar's own blue** —
+   * the card that says who is delivering, the edge of a cost a person types or
+   * changed, *Primera vez con…*, and Comprar's tab while it is open. The owner:
+   * *"Colors are amazing."* ⚠️ **It never ACTS** — the `+`, the slide and every
+   * main button on Comprar stay `accion`, so green still means *do it* on all
+   * three counters. It is an ink AND the card's ground: `superficie` is written
+   * on it at 9.6:1, asserted beside the filled action.
+   */
+  readonly compra: string;
+  /**
+   * The ground of a product's square on Comprar (`Retrato`'s `ground`), its
+   * initials in `compra`. ⚠️ ONE STEP LIGHTER THAN THE DRAWING'S `#E3EAF2`,
+   * which put `marca` at 4.50:1 on it — `retrato`'s own story, one role over.
+   */
+  readonly compraSuave: string;
+  /** Comprar's screen behind its cards — the drawing's blue-grey, `#F2F5F8`. */
+  readonly compraFondo: string;
 }
 
 /**
@@ -161,6 +189,9 @@ export const PALETTE: Palette = {
   velo: '#15130E',
   retrato: '#F3EAD9',
   marca: '#A9501C',
+  compra: '#24476B',
+  compraSuave: '#E6ECF3',
+  compraFondo: '#F2F5F8',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -185,6 +216,9 @@ export const PALETTE_ROLES: readonly PaletteRole[] = [
   'velo',
   'retrato',
   'marca',
+  'compra',
+  'compraSuave',
+  'compraFondo',
 ];
 
 /**
@@ -200,6 +234,7 @@ export const INK_ROLES: readonly PaletteRole[] = [
   'atencion',
   'error',
   'marca',
+  'compra',
 ];
 
 /**
@@ -217,6 +252,8 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
   'accionSuave',
   'atencionSuave',
   'retrato',
+  'compraSuave',
+  'compraFondo',
 ];
 
 // ============================================================================

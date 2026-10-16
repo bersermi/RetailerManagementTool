@@ -6,7 +6,6 @@ import {
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   Pressable,
   Text,
@@ -15,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, initials, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
@@ -38,18 +37,19 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
-import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
-import { Boton } from '@/ui/Boton';
-import { BotonLleno } from '@/ui/BotonLleno';
+import { EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
-import { Deslizador } from '@/ui/Deslizador';
-import { Frase } from '@/ui/Frase';
+import { CierreCarrito } from '@/ui/CierreCarrito';
+import { Hecho } from '@/ui/Hecho';
+import { HojaCarrito } from '@/ui/HojaCarrito';
+import { HojaPrecio } from '@/ui/HojaPrecio';
+import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
-import { Velo } from '@/ui/Velo';
+import { VaciarCarrito } from '@/ui/VaciarCarrito';
 
 // ============================================================================
 // VENDER — the counter. Plan tasks `5f-ii` (the list, the row, the quantity
@@ -482,7 +482,7 @@ export default function Vender() {
 
       {/* ⚠️ OVER THE SCREEN ONLY WHILE THE CARRITO IS CLOSED; with it open the
           sheet is drawn inside the Carrito's own `Modal` (`hoja` below), the
-          arrangement `Confirmacion` already uses — a second `Modal` over the
+          arrangement `VaciarCarrito` already uses — a second `Modal` over the
           first is two iOS presentations animating against each other. */}
       {pricing !== null && workspace !== null && !cartOpen ? (
         <PrecioRapido
@@ -533,7 +533,7 @@ export default function Vender() {
           `Modal`. See the state's comment above for why it is not a second
           modal. */}
       {!cartOpen ? (
-        <Confirmacion
+        <VaciarCarrito
           asking={asking}
           emptied={emptied}
           bloom={bloom}
@@ -543,7 +543,7 @@ export default function Vender() {
         />
       ) : null}
 
-      <Vendido shown={sold} onDone={() => setSold(false)} />
+      <Hecho shown={sold} word={ES.sell.sold} onDone={() => setSold(false)} />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the KEYBOARD rather than into the layout, so where it sits
@@ -698,46 +698,6 @@ function Fila({
           />
         </View>
       </View>
-    </View>
-  );
-}
-
-/**
- * The square a product's picture sits in — and, until it has one, its initials
- * (C8.14: a finished state, never *pending photo*). `8g`, the owner's row B.
- *
- * ⚠️ NOT IN `src/ui/` YET, AND `R14` IS WHY: `productos.tsx` and
- * `proveedores.tsx` each draw initials too, smaller and on `accionSuave`, and
- * neither screen has had its turn in the review. When Productos is redrawn in
- * this shape, this is its second drawing and moves.
- *
- * ⚠️ HIDDEN FROM THE SCREEN READER: the name beside it already says it.
- */
-function Retrato({ name, small = false }: { name: string; small?: boolean }) {
-  const { scale } = useDensity();
-  const side = small ? scale.tapTarget : scale.retratoSize;
-  return (
-    <View
-      accessibilityElementsHidden
-      importantForAccessibility="no-hide-descendants"
-      style={{
-        width: side,
-        height: side,
-        borderRadius: small ? scale.space : scale.space * 1.5,
-        backgroundColor: PALETTE.retrato,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text
-        style={{
-          fontSize: small ? scale.bodySize : scale.titleSize,
-          fontWeight: '700',
-          color: PALETTE.tintaApagada,
-        }}
-      >
-        {initials(name)}
-      </Text>
     </View>
   );
 }
@@ -981,36 +941,15 @@ function Barra({
           a basket with an unpriced line still has to be emptiable, and that is
           the case where a shopkeeper is most likely to want to. */}
       {live ? (
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: scale.space,
-            paddingHorizontal: scale.space,
-            paddingBottom: scale.space,
-          }}
-        >
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={ES.counter.cart.empty}
-            onPress={onEmpty}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-              {ES.counter.cart.empty}
-            </Text>
-          </Pressable>
-
-          {canSell ? (
-            <View style={{ flex: 1 }}>
-              <Deslizador
-                word={ES.sell.slide.word}
-                label={ES.sell.slide.label}
-                onCommit={onCommit}
-                onTap={onOpen}
-              />
-            </View>
-          ) : null}
+        <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}>
+          <CierreCarrito
+            onEmpty={onEmpty}
+            word={ES.sell.slide.word}
+            label={ES.sell.slide.label}
+            onCommit={onCommit}
+            canCommit={canSell}
+            onTap={onOpen}
+          />
         </View>
       ) : null}
     </View>
@@ -1018,34 +957,16 @@ function Barra({
 }
 
 /**
- * ⚠️⚠️ C3.5's BASKET SHEET — the review before the commit, and one of the three
- * guards ADR-035 §2.8 calls *Error prevention*, *"none blocking"*. Plan task
- * `5f-iii-a`.
+ * ⚠️⚠️ C3.5's SHEET — the review before the commit, one of §2.8's three
+ * *Error prevention* guards. Its frame is `src/ui/HojaCarrito` since round 4 of
+ * `8g` (2026-10-16), shared with Comprar and Desperdicio; what is Vender's is the
+ * line (`Renglon`) and the foot's Total.
  *
- * ⚠️ IT LISTS ONLY THE ROWS CARRYING A QUANTITY, which is C3.3 read from the
- * other end: a quantity greater than zero IS the line, so the basket IS the
- * list. `reviewOf` has already narrowed it; this component narrows nothing.
+ * ⚠️ IT IS NOT A ROUTE, and that is a decision recorded in `Vender`: the basket
+ * is this place, zoomed, priced against the catalog this screen already read.
  *
- * ⚠️ THE SAME FIELD AND THE SAME STEPPER AS THE LIST BEHIND IT — `Cantidad`,
- * the one this file already draws. A second quantity control on the review
- * screen would be a second set of rules about what a tap of `+` adds, and C3.8
- * is exacting about that. ⚠️ **It is also why the line total is here and not on
- * the list's row** (C3.4): this is the one surface where a customer is reading
- * the arithmetic over the shopkeeper's shoulder.
- *
- * ⚠️⚠️ AND THE ROWS SUM TO THE BAR BECAUSE THEY ARE THE BAR'S OWN ADDENDS,
- * not because two functions agree — see `reviewOf`. §2.5 rule 5 is written
- * about this screen by name.
- *
- * ⚠️ AN `RN` `Modal` AND NOT A ROUTE, decided here and recorded in `Vender`.
- *
- * ⚠️⚠️ `Quitar` REMOVES A LINE IMMEDIATELY — NO UNDO AND NO DIALOG, ruled by
- * the owner on 2026-09-17 against a session's own recommendation of a timed
- * *Deshacer*. The recovery is re-adding the item, two taps on the list behind
- * this sheet. ⚠️ **`Vaciar carrito` KEEPS its confirmation** and it is not an
- * inconsistency: emptying is a different act, and its recovery is not two taps.
- * The confirm word differs from the word that opens it, which is
- * `solicitudes.tsx`'s arrangement and its reason.
+ * ⚠️ THE EMPTYING QUESTION AND THE PRICE SHEET ARE DRAWN INSIDE ITS `Modal`
+ * (`over`) — a sibling of the `Modal` would be behind it.
  */
 function Carrito({
   open,
@@ -1087,157 +1008,53 @@ function Carrito({
   /** The price sheet, drawn inside this `Modal` while it is open — see `Vender`. */
   hoja: ReactNode;
 }) {
-  const { scale } = useDensity();
-  const insets = useSafeAreaInsets();
-
   const rows = review === null ? [] : review.rows;
 
   return (
-    <Modal
-      visible={open}
-      animationType="slide"
-      transparent
-      // ⚠️ ANDROID'S HARDWARE BACK CLOSES IT. Without this the button does
-      // nothing on the one platform C1.1 puts two of in the pilot.
-      onRequestClose={onClose}
+    <HojaCarrito
+      open={open}
+      onClose={onClose}
+      lines={rows.length}
+      foot={
+        rows.length === 0 || review === null ? null : (
+          <Pie basket={review.basket} canSell={canSell} onCommit={onCommit} onAsk={onEmpty} />
+        )
+      }
+      over={
+        <>
+          <VaciarCarrito
+            asking={asking}
+            emptied={emptied}
+            bloom={bloom}
+            count={rows.length}
+            onConfirm={onConfirmEmpty}
+            onCancel={onCancelEmpty}
+          />
+          {hoja}
+        </>
+      }
     >
-      <View style={{ flex: 1 }}>
-        {/* ⚠️⚠️ THE VELO CLOSES THE SHEET WHEN TAPPED — ruled 2026-09-24:
-            *"Make the Carrito close if the user taps in the scrim outside the
-            carrito, not only in the Cerrar button."* ⚠️ **It shipped
-            deliberately inert and the argument for that is now overruled**: a
-            thumb reaching past the sheet for a row it can still see would
-            dismiss it. He has the app in his hand and took the trade —
-            tap-outside is what a sheet does, and `Cerrar` is still there.
-            The veil itself is `src/ui/Velo` since `8f`; its header says why it
-            is a separate view. */}
-        <Velo label={ES.counter.cart.close} onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
-        >
-          {/* ⚠️⚠️ A FIXED HEIGHT, RULED BY THE OWNER 2026-09-24 — *"let's just make
-              the height of the carrito fixed and we just display the items there
-              regardless of the number of items."* It shipped as `maxHeight`, so
-              the sheet grew and shrank with the basket.
-              ⚠️ **The reason it is better is muscle memory, not tidiness**: with
-              a fixed card, `Vaciar carrito` and the slide are in the SAME PLACE
-              on every sale, and the thumb that reaches for them at a counter does
-              not have to look first. A sheet that resized put the commit control
-              somewhere new on every basket.
-              ⚠️ The cost is a mostly-empty card on a one-line basket, and that is
-              the trade he took. */}
-          <View
-            style={{
-              height: '72%',
-              borderTopLeftRadius: scale.space,
-              borderTopRightRadius: scale.space,
-              backgroundColor: PALETTE.fondo,
-              paddingBottom: insets.bottom,
-            }}
-          >
-            <Encabezado onClose={onClose} lines={rows.length} />
-
-            {/* ⚠️⚠️ THE SHEET STAYS PUT WHILE THE DIALOG IS UP. It shipped with
-                the emptying confirmation REPLACING the sheet's body, and the
-                owner refused that on 2026-09-24: the question and its answer
-                belong in a box of their own, over everything, with its own
-                scrim. See `Pregunta` below. */}
-            <>
-              <>
-                <FlatList
-                  // ⚠️ `flex: 1` NOW THAT THE CARD IS A FIXED HEIGHT. It was
-                  // `flexGrow: 0 / flexShrink: 1` while the sheet sized to its
-                  // content; with a fixed card the list takes the room the
-                  // header and the foot do not, which is what pins the controls
-                  // to the same place on every basket.
-                  style={{ flex: 1 }}
-                  data={rows}
-                  keyExtractor={(row) => row.variantId}
-                  renderItem={({ item }) => (
-                    <Renglon
-                      row={item}
-                      entry={entries.find((e) => e.id === item.variantId)}
-                      factors={factors}
-                      typical={typicals[item.variantId]}
-                      onPrice={onPrice}
-                    />
-                  )}
-                  ItemSeparatorComponent={Separador}
-                  ListEmptyComponent={<Vacio line={ES.counter.emptyCart} />}
-                  keyboardShouldPersistTaps="handled"
-                />
-
-                {rows.length === 0 || review === null ? null : (
-                  <Vaciar
-                    basket={review.basket}
-                    canSell={canSell}
-                    onCommit={onCommit}
-                    onAsk={onEmpty}
-                  />
-                )}
-              </>
-            </>
-          </View>
-        </KeyboardAvoidingView>
-
-        {/* ⚠️ THE SAME QUESTION AS THE BAR ASKS, rendered inside this `Modal`
-            because a sibling of the `Modal` would be behind it. `Vender` owns
-            the state; `cartOpen` makes the two mount points exclusive. */}
-        <Confirmacion
-          asking={asking}
-          emptied={emptied}
-          bloom={bloom}
-          count={rows.length}
-          onConfirm={onConfirmEmpty}
-          onCancel={onCancelEmpty}
-        />
-
-        {hoja}
-      </View>
-    </Modal>
-  );
-}
-
-/**
- * The sheet's heading, and the way out that is not a gesture.
- *
- * ⚠️ `8g`: THE COUNT SITS UNDER THE WORD — *Carrito* / *5 productos* — because
- * the bar that said it is under the sheet now, and the total moved to the foot.
- */
-function Encabezado({ onClose, lines }: { onClose: () => void; lines: number }) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.space,
-        borderBottomWidth: 1,
-        borderBottomColor: PALETTE.linea,
-      }}
-    >
-      <View style={{ gap: scale.rowGap / 4 }}>
-        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
-          {ES.counter.cart.title}
-        </Text>
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-          {ES.counter.lines(lines)}
-        </Text>
-      </View>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={ES.counter.cart.close}
-        onPress={onClose}
-        style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-          {ES.counter.cart.close}
-        </Text>
-      </Pressable>
-    </View>
+      <FlatList
+        // ⚠️ `flex: 1` BECAUSE THE CARD IS A FIXED HEIGHT: the list takes the
+        // room the header and the foot do not, which pins the controls to the
+        // same place on every basket.
+        style={{ flex: 1 }}
+        data={rows}
+        keyExtractor={(row) => row.variantId}
+        renderItem={({ item }) => (
+          <Renglon
+            row={item}
+            entry={entries.find((e) => e.id === item.variantId)}
+            factors={factors}
+            typical={typicals[item.variantId]}
+            onPrice={onPrice}
+          />
+        )}
+        ItemSeparatorComponent={Separador}
+        ListEmptyComponent={<Vacio line={ES.counter.emptyCart} />}
+        keyboardShouldPersistTaps="handled"
+      />
+    </HojaCarrito>
   );
 }
 
@@ -1419,25 +1236,18 @@ function Unitario({
 }
 
 /**
- * ⚠️⚠️ THE SHEET'S FOOT — `Vaciar carrito`, and **the second slide**.
+ * ⚠️⚠️ THE SHEET'S FOOT — the Total, then `Vaciar carrito` and **the second
+ * slide** (`src/ui/CierreCarrito`, the same row the bar draws).
  *
  * ⚠️ THE SLIDE HERE IS THE OWNER'S, RULED 2026-09-24: *"The slide bar should
- * also be present in the check out if we open the Carrito, to the right of the
- * Vaciar Carrito option, of course it will be shorter than the big one in the
- * default version but it should also show there to confirm the transaction."*
- * **So the review screen can complete the sale without being closed first** —
- * which is what makes the sheet a step in the sale rather than a detour from it.
+ * also be present in the check out if we open the Carrito."* So the review
+ * screen can complete the sale without being closed first.
  *
- * ⚠️ IT IS THE SAME `Deslizador`, NARROWER — one control, one set of rules about
- * what counts as a completed gesture. Two would be two answers to *how far is
- * far enough*, and `COMMIT_AT` exists so there is one.
- *
- * ⚠️ `Vaciar carrito` KEEPS ITS CONFIRMATION and `Quitar` does not: emptying is
- * a different act from removing one line, and its recovery is not two taps.
- * ⚠️ **The question itself is not here** — it is a centred box with its own
- * scrim, which is `Pregunta`, and the owner's specification.
+ * ⚠️⚠️ `8g`, THE OWNER'S *BOARD 1*: THE TOTAL IS ON THE SHEET, and it is the
+ * bar's own figure (`reviewOf`'s `basket`), so the foot and the bar are one
+ * object in two places and the lines above still sum to it (§2.5 rule 5).
  */
-function Vaciar({
+function Pie({
   basket,
   onAsk,
   onCommit,
@@ -1448,328 +1258,25 @@ function Vaciar({
   onCommit: () => void;
   canSell: boolean;
 }) {
-  const { scale } = useDensity();
-  return (
-    <View
-      style={{
-        gap: scale.space,
-        paddingHorizontal: scale.space,
-        paddingVertical: scale.space,
-        borderTopWidth: 1,
-        borderTopColor: PALETTE.linea,
-        backgroundColor: PALETTE.banda,
-      }}
-    >
-      {/* ⚠️⚠️ `8g`, THE OWNER'S *BOARD 1*: THE TOTAL IS ON THE SHEET. Until now
-          the open Carrito showed every line's figure and not their sum — the bar
-          that carried it is under the sheet. ⚠️ **It is the bar's own figure**
-          (`reviewOf`'s `basket`), so the foot and the bar are one object in two
-          places, and the lines above still sum to it (§2.5 rule 5). */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-          {ES.counter.total}
-        </Text>
-        <View style={{ alignItems: 'flex-end', gap: scale.rowGap / 4 }}>
-          <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
-            {formatMXN(basket.centavos)}
-          </Text>
-          {!basket.complete ? (
-            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
-              {ES.sell.someUnpriced}
-            </Text>
-          ) : null}
-        </View>
-      </View>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={ES.counter.cart.empty}
-        onPress={onAsk}
-        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-          {ES.counter.cart.empty}
-        </Text>
-      </Pressable>
-
-      {/* ⚠️ `flex: 1` GIVES THE TRACK EVERY POINT `Vaciar carrito` DOES NOT USE.
-          It is the short track by construction rather than by a fixed width,
-          which is what keeps it honest at `Letra grande`, where the words are
-          wider and the track is correspondingly shorter. */}
-      {canSell ? (
-        <View style={{ flex: 1 }}>
-          {/* ⚠️⚠️ NO `onTap`, AND THAT IS THE 2026-09-25 RULING. It shipped as
-              `onOpen={onClose}` — a tap on the track CLOSED the review screen — and
-              he refused it: *"when a carrito is open … do not close the carrito."*
-              The `Deslizador` still nudges, so the touch is answered. */}
-          <Deslizador
-            compact
-            word={ES.sell.slide.word}
-            label={ES.sell.slide.labelInCart}
-            onCommit={onCommit}
-          />
-        </View>
-      ) : null}
-      </View>
-    </View>
-  );
-}
-
-/**
- * ⚠️⚠️ THE EMPTYING QUESTION AND ITS ANSWER — a centred box with its own scrim,
- * the owner's specification of 2026-09-24.
- *
- * ⚠️ IT IS RENDERED FROM TWO PLACES AND IS ONE COMPONENT WITH ONE STATE: the
- * bar asks it when the basket is closed, the sheet asks it when the basket is
- * open, and `Vender` owns `asking`/`emptied` so the two can never disagree.
- * **Two copies of this would be two questions that drift apart**, which is the
- * defect this repository has recorded six of in its own documents.
- *
- * ⚠️ ITS OWN SCRIM IS A SECOND `velo`, so the sheet behind it dims the way the
- * list behind the sheet does — the depth reads as depth.
- */
-function Confirmacion({
-  asking,
-  emptied,
-  bloom,
-  count,
-  onConfirm,
-  onCancel,
-}: {
-  asking: boolean;
-  emptied: boolean;
-  bloom: Animated.Value;
-  /** How many lines *Sí, vaciar* takes — `8g`'s line under the question. */
-  count: number;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const { scale } = useDensity();
-  if (!asking && !emptied) return null;
-
-  return (
-    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <Velo />
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: scale.space * 2,
-        }}
-      >
-        <View
-          style={{
-            width: '100%',
-            // ⚠️ NO `maxWidth` — `R6`, and the gate caught it once. A cap in
-            // points is a size `Letra grande` cannot change; the wrapper's own
-            // padding is what keeps the box off the edges, and that scales.
-            borderRadius: scale.space,
-            backgroundColor: PALETTE.fondo,
-            padding: scale.space * 1.5,
-            gap: scale.space,
-          }}
-        >
-          {emptied ? (
-            <Vaciado bloom={bloom} />
-          ) : (
-            <Pregunta count={count} onConfirm={onConfirm} onCancel={onCancel} />
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/**
- * ⚠️⚠️ THE QUESTION, IN A BOX OF ITS OWN — the owner's specification of
- * 2026-09-24, replacing the inline strip that shipped with `5f-iii-a`:
- * *"¿Seguro de que quieres vaciar el carrito? Si, vaciar / Cancelar."*
- *
- * ⚠️ THE CONFIRM WORD IS NOT THE WORD THAT OPENED IT — `solicitudes.tsx`'s
- * arrangement: two taps that read the same are two taps a shopkeeper cannot
- * tell apart once she has made the first one.
- *
- * ⚠️ `Cancelar` IS DRAWN IN `accion` AND `Sí, vaciar` IN `error`, which is the
- * palette's own sentence applied rather than a preference: `error` is *what
- * DESTROYS*, and the way out of a destructive question is not itself
- * destructive.
- */
-function Pregunta({
-  count,
-  onConfirm,
-  onCancel,
-}: {
-  count: number;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const { scale } = useDensity();
   return (
     <>
-      <Frase text={ES.counter.cart.emptyAsk} />
-      {/* ⚠️ `8g`: WHAT THE ANSWER WILL TAKE, said under the question. */}
-      {count > 0 ? (
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
-          {ES.counter.cart.emptyCount(count)}
-        </Text>
-      ) : null}
-      <View style={{ gap: scale.rowGap }}>
-        {/* ⚠️ `5h.5` MOVED THIS ONE INTO `src/ui/Boton` AND DELIBERATELY LEFT THE
-            NEXT ONE ALONE. This button's style was byte-identical to
-            `documentos.tsx`'s — it is the third drawing that made `Boton` a
-            primitive under `R14`, and the swap changes nothing a person sees.
-            `Cancelar` below is `src/ui/BotonLleno` since `8f`, which gave it the
-            border the other ten drawings had. */}
-        <Boton
-          label={ES.counter.cart.emptyConfirm}
-          tone={PALETTE.error}
-          onPress={onConfirm}
-          lleno
-        />
-        {/* ⚠️ `8g`, *option 2*: the destructive answer solid, the way out quiet. */}
-        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
-      </View>
+      <TotalCarrito centavos={basket.centavos} note={basket.complete ? null : ES.sell.someUnpriced} />
+      <CierreCarrito
+        onEmpty={onAsk}
+        word={ES.sell.slide.word}
+        label={ES.sell.slide.labelInCart}
+        onCommit={onCommit}
+        canCommit={canSell}
+        compact
+      />
     </>
   );
 }
 
 /**
- * ⚠️⚠️ THE CONFIRMATION THE OWNER ASKED FOR WHEN THE BASKET IS EMPTIED. The
- * animation is driven from `Carrito`'s effect — see the argument there for why
- * it is not started where the tap happens.
- *
- * ⚠️ `opacity` AND `scale` AND NOTHING ELSE (§2.11). ⚠️ AND IT CARRIES A WORD:
- * motion with no language is a state announced on the one channel a person can
- * miss by looking away, which is `R11`'s argument about colour applied where
- * there is no text at all.
- */
-function Vaciado({ bloom }: { bloom: Animated.Value }) {
-  const { scale } = useDensity();
-  return (
-    <View style={{ alignItems: 'center', gap: scale.rowGap, padding: scale.space * 2 }}>
-      <Animated.View
-        style={{
-          opacity: bloom,
-          transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
-          alignItems: 'center',
-          gap: scale.rowGap,
-        }}
-      >
-        <MaterialCommunityIcons
-          name="check-circle-outline"
-          size={scale.iconSize * 2}
-          color={PALETTE.accion}
-        />
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-          {ES.counter.cart.emptied}
-        </Text>
-      </Animated.View>
-    </View>
-  );
-}
-
-/**
- * ⚠️⚠️ THE SALE'S OWN CONFIRMATION — the first of the two animations the owner
- * asked for on 2026-09-21 in place of the change calculation he deferred:
- * *"a simple confirmation animation if the sale is done."*
- *
- * ⚠️⚠️ IT FIRES ON **ENQUEUE**, NEVER ON THE SERVER'S REPLY. C10.3 says the
- * slide looks identical offline, and `5c-i` made that structural by having
- * `queueWrite` return a ROW rather than a promise. **An animation that awaited
- * Postgres would be the offline path looking different — the one thing that
- * design exists to prevent, undone in the place nobody would test it**, because
- * every desk this was written at has a working connection.
- *
- * ⚠️ `transform` AND `opacity` ONLY (§2.11), and **started in an effect rather
- * than in the handler that mounts it** — on the native driver the other way
- * round fails silently: no error, no motion.
- *
- * ⚠️ IT SITS OVER THE WHOLE SCREEN AND TAKES NO TOUCHES. The basket is already
- * gone by the time it draws, so there is nothing behind it to protect — but a
- * shopkeeper mid-reach for the next product must not have this swallow the tap.
- */
-function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
-  const { scale } = useDensity();
-  const bloom = useRef(new Animated.Value(0)).current;
-
-  useEffect(() => {
-    if (!shown) return;
-    bloom.setValue(0);
-    const run = Animated.sequence([
-      Animated.timing(bloom, {
-        toValue: 1,
-        duration: DONE_IN_MS,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.delay(DONE_HOLD_MS),
-      Animated.timing(bloom, {
-        toValue: 0,
-        duration: DONE_OUT_MS,
-        easing: Easing.in(Easing.quad),
-        useNativeDriver: true,
-      }),
-    ]);
-    run.start(({ finished }) => {
-      if (finished) onDone();
-    });
-    return () => run.stop();
-  }, [shown, bloom, onDone]);
-
-  if (!shown) return null;
-
-  return (
-    <View
-      pointerEvents="none"
-      style={{
-        position: 'absolute',
-        left: 0,
-        right: 0,
-        top: 0,
-        bottom: 0,
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Animated.View
-        style={{
-          alignItems: 'center',
-          gap: scale.rowGap,
-          paddingHorizontal: scale.space * 2,
-          paddingVertical: scale.space * 1.5,
-          borderRadius: scale.space,
-          // ⚠️ `superficie` AND AN EDGE SINCE `8g`: the rows are `fondo` now (the
-          // owner's row B), and a `fondo` card over them was words floating on
-          // the list — seen on the emulator the first time a sale went through.
-          borderWidth: 1,
-          borderColor: PALETTE.linea,
-          backgroundColor: PALETTE.superficie,
-          elevation: 6,
-          shadowColor: PALETTE.velo,
-          shadowOpacity: 0.18,
-          shadowRadius: scale.space,
-          opacity: bloom,
-          transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
-        }}
-      >
-        <MaterialCommunityIcons
-          name="check-circle-outline"
-          size={scale.iconSize * 2}
-          color={PALETTE.accion}
-        />
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-          {ES.sell.sold}
-        </Text>
-      </Animated.View>
-    </View>
-  );
-}
-
-/**
  * THE PRICE SHEET — the owner's ruling of 2026-10-14, opened by a tap on a row's
- * price, for the owner and a manager.
+ * price, for the owner and a manager. Its frame is `src/ui/HojaPrecio` since
+ * round 4 of `8g`, shared with Comprar's cost question.
  *
  * ⚠️⚠️ IT WRITES THROUGH THE EDIT SCREEN'S OWN PATH, NEVER A SECOND ONE.
  * `checkEdit`, `editPlan` and `save` are `producto/[id].tsx`'s, with the name
@@ -1804,14 +1311,9 @@ function PrecioRapido({
   /** Called once the price has landed, before the sheet closes. */
   onSaved: () => void;
   onClose: () => void;
-  /**
-   * Drawn inside a `Modal` that is already up (the Carrito's) rather than as a
-   * `Modal` of its own — `Confirmacion`'s arrangement, and the same reason.
-   */
+  /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
   bare?: boolean;
 }) {
-  const { scale } = useDensity();
-  const insets = useSafeAreaInsets();
   const { prices, factors, save, loading, pricesFailed, busy } = useEditProduct(entry.id);
 
   const [typed, setTyped] = useState('');
@@ -1868,121 +1370,30 @@ function PrecioRapido({
       : failure ?? (pricesFailed ? ES.sell.priceSheet.needsSignal : null);
   const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
 
-  const sheet = (
-    <View style={{ flex: 1 }}>
-      <Velo label={ES.sell.priceSheet.cancel} onPress={onClose} />
-      {/* ⚠️⚠️ `padding` ON BOTH PLATFORMS, AND ANDROID'S `undefined` WAS A
-          DEFECT FROM 2026-10-14 UNTIL `8g` FOUND IT ON THE EMULATOR: the number
-          pad covered the whole sheet, box and *Guardar* included. Vender's own
-          `undefined` is right for Vender — Expo's `resize` shortens the WINDOW —
-          but a `Modal` is a window of its own that nothing resizes, so here the
-          sheet has to make the room itself. */}
-      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: 'flex-end' }}>
-        <View
-          style={{
-            borderTopLeftRadius: scale.space * 2,
-            borderTopRightRadius: scale.space * 2,
-            backgroundColor: PALETTE.fondo,
-            padding: scale.space * 1.5,
-            paddingBottom: scale.space * 1.5 + insets.bottom,
-            gap: scale.space,
-          }}
-        >
-          {/* ⚠️ `8g`: THE PRODUCT FIRST, THEN THE QUESTION. The name is beside its
-              tile so the sheet says which product before it asks anything. */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
-            <Retrato name={entry.name} small />
-            <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-                {entry.name}
-              </Text>
-              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-                {entry.centavos === null
-                  ? ES.sell.priceSheet.first
-                  : ES.sell.priceSheet.now(entry.price)}
-              </Text>
-            </View>
-          </View>
-
-          {/* ⚠️ `8g`: THE SHEET'S ONE QUESTION IS ITS TITLE — in the titles' face, at
-              `titleSize` (the owner's lettering ruling of 2026-10-16). */}
-          <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
-            {entry.centavos === null ? ES.sell.priceSheet.ask : ES.sell.priceSheet.askAgain}
-          </Text>
-
-          {/* ⚠️ THE BOX IS EMPTY AND THE PRICE NOW IS SAID ABOVE IT — the owner's
-              standing ruling that a proposal must not look decided: a mirror,
-              never a pre-fill. */}
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: scale.rowGap,
-              minHeight: scale.tapTarget * 1.4,
-              paddingHorizontal: scale.space,
-              borderRadius: scale.space,
-              borderWidth: 2,
-              borderColor: PALETTE.accion,
-              backgroundColor: PALETTE.superficie,
-            }}
-          >
-            <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>$</Text>
-            <TextInput
-              value={typed}
-              onChangeText={setTyped}
-              keyboardType="decimal-pad"
-              autoFocus
-              editable={!working}
-              accessibilityLabel={ES.sell.priceSheet.title(entry.name)}
-              style={{
-                flex: 1,
-                fontSize: scale.titleSize,
-                fontWeight: '700',
-                color: PALETTE.tinta,
-              }}
-            />
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.sell.per(unit)}
-            </Text>
-          </View>
-
-          {line !== null ? (
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{line}</Text>
-          ) : null}
-
-          <BotonLleno
-            label={
-              working
-                ? ES.sell.priceSheet.saving
-                : ready
-                  ? adding
-                    ? ES.sell.priceSheet.saveAndAdd
-                    : ES.sell.priceSheet.save
-                  : ES.sell.priceSheet.loading
-            }
-            onPress={() => void guardar()}
-            busy={working}
-            // ⚠️ `8g`, *option 2*: THE sheet's one act, solid.
-            variante="principal"
-          />
-          <BotonLleno
-            label={ES.sell.priceSheet.cancel}
-            onPress={() => {
-              if (!working) onClose();
-            }}
-            variante="discreto"
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </View>
-  );
-
-  if (bare) {
-    return <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>{sheet}</View>;
-  }
   return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      {sheet}
-    </Modal>
+    <HojaPrecio
+      bare={bare}
+      name={entry.name}
+      detail={entry.centavos === null ? ES.sell.priceSheet.first : ES.sell.priceSheet.now(entry.price)}
+      question={entry.centavos === null ? ES.sell.priceSheet.ask : ES.sell.priceSheet.askAgain}
+      value={typed}
+      onChange={setTyped}
+      per={ES.sell.per(unit)}
+      inputLabel={ES.sell.priceSheet.title(entry.name)}
+      line={line}
+      act={
+        working
+          ? ES.sell.priceSheet.saving
+          : ready
+            ? adding
+              ? ES.sell.priceSheet.saveAndAdd
+              : ES.sell.priceSheet.save
+            : ES.sell.priceSheet.loading
+      }
+      onAct={() => void guardar()}
+      busy={working}
+      cancel={ES.sell.priceSheet.cancel}
+      onClose={onClose}
+    />
   );
 }

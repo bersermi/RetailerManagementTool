@@ -62,13 +62,14 @@ function contrast(a: string, b: string): number {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-describe('área 13 — the palette is a table with fourteen complete rows', () => {
+describe('área 13 — the palette is a table with seventeen complete rows', () => {
   it('has roles to iterate, so every loop below is not vacuous', () => {
     // ⚠️ RULE 4. Empty arrays make every `for` below pass having asserted
     // nothing — the shape of misleading green this repository keeps hitting.
     // ⚠️ FOURTEEN SINCE `8g` (2026-10-15): `retrato`, the picture's square, and
-    // `marca`, the shop's watermark.
-    expect(PALETTE_ROLES).toHaveLength(14);
+    // `marca`, the shop's watermark. ⚠️ SEVENTEEN SINCE ROUND 4 (2026-10-16):
+    // `compra`, `compraSuave` and `compraFondo`, Comprar's blue.
+    expect(PALETTE_ROLES).toHaveLength(17);
     expect(INK_ROLES.length, 'no inks to check').toBeGreaterThan(3);
     expect(GROUND_ROLES.length, 'no grounds to check').toBeGreaterThan(3);
   });
@@ -86,7 +87,7 @@ describe('área 13 — the palette is a table with fourteen complete rows', () =
     }
   });
 
-  it('gives every role its own value — fourteen roles, fourteen colours', () => {
+  it('gives every role its own value — seventeen roles, seventeen colours', () => {
     // Two roles sharing a value is one role wearing two hats, and the second
     // hat is the one nobody remembers to change.
     const values = PALETTE_ROLES.map((r) => PALETTE[r]);
@@ -122,6 +123,8 @@ describe('área 13 — every word is legible on every ground it can land on', ()
     );
     expect(contrast(PALETTE.superficie, PALETTE.accion)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
     expect(contrast(PALETTE.superficie, PALETTE.error)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
+    // ⚠️ Comprar's supplier card: white words on `compra` (round 4).
+    expect(contrast(PALETTE.superficie, PALETTE.compra)).toBeGreaterThanOrEqual(AA_NORMAL_TEXT);
   });
 
   it('does NOT separate the three state colours by brightness, which is the point', () => {

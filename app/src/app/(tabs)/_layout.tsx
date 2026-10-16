@@ -61,6 +61,10 @@ export default function TabsLayout() {
             // The header title and the tab label are the same Spanish word on
             // purpose: the door and the room are called the same thing.
             title: tab.label,
+            // ⚠️ ROUND 4 OF `8g` (2026-10-16): COMPRAR'S TAB IS BLUE WHILE IT IS
+            // OPEN — the owner's drawing, and `compra`'s own sentence. The other
+            // three stay `accion`.
+            tabBarActiveTintColor: tab.route === 'comprar' ? PALETTE.compra : PALETTE.accion,
             header: () => <Banda title={tab.label} />,
             tabBarIcon: ({ color }) => (
               <MaterialCommunityIcons
