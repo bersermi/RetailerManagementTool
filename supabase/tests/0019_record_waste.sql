@@ -804,8 +804,15 @@ select record_waste(:w_old::uuid, :'loc_1'::uuid, public._wl(:'var_zero'::uuid, 
                     now() - interval '400 days', true) as r \gset
 commit;
 
-select chk('8.1 ONLINE the server OVERRIDES the client''s occurred_at',
-           (select occurred_at from waste where id = :w_on::uuid) > now() - interval '1 hour');
+-- ⚠️ 0057 CHANGED THIS ANSWER, ON THE OWNER'S NEW DESPERDICIO: the day she
+-- picks is kept online too, inside the same 72 hours offline always had. Until
+-- 0057 an online write was overridden to now(); ten days back now lands on the
+-- window's floor, exactly as the offline 8.3 below does.
+select chk('8.1 ONLINE a time older than 72h is CLAMPED to the floor (0057; it '
+           'was overridden to now() before)',
+           (select occurred_at from waste where id = :w_on::uuid)
+             between now() - interval '72 hours 1 minute'
+                 and now() - interval '71 hours 59 minutes');
 
 select chk('8.2 OFFLINE a time inside the window is KEPT',
            (select occurred_at from waste where id = :w_off::uuid)
