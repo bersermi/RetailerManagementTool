@@ -185,7 +185,7 @@ select gen_random_uuid(),
        a.ws_id,
        (select l.id from public.location l
          where l.workspace_id = a.ws_id order by l.created_at, l.id limit 1),
-       current_date + 1, time '09:00', time '10:00',
+       current_date + 1, time '09:00', time '09:15',
        'Calle pgtap-3.2a', '1', 'Ciudad de México', '06400',
        jsonb_build_array(jsonb_build_object('variant_id', gen_random_uuid(),
                                             'qty_display', 1)),

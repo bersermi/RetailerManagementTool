@@ -130,7 +130,7 @@ LINES="$(python3 -c '
 import json,sys
 print(json.dumps([{"variant_id":sys.argv[1],"qty_display":"2.5","qty_display_unit":"kg",
   "condition":"por caducar","packaging":"cerrado","keeping":"refrigerado","expiry_date":None}]))' "$VAR")"
-REQUEST_BODY="$(by_names "$REQUEST_ARGS" "\"$REQ_ID\"" "\"$LOC\"" "\"$TOMORROW\"" '"09:00"' '"10:30"' "$LINES" '[]' 'null')"
+REQUEST_BODY="$(by_names "$REQUEST_ARGS" "\"$REQ_ID\"" "\"$LOC\"" "\"$TOMORROW\"" '"09:00"' '"09:15"' "$LINES" '[]' 'null')"
 
 # ---- 1. the area's door -------------------------------------------------------
 note
@@ -212,7 +212,7 @@ fi
 # one — so it is driven from SQL, the way the owner moves it in the dashboard.
 note
 REQ2="$(python3 -c 'import uuid;print(uuid.uuid4())')"
-REQUEST_BODY2="$(by_names "$REQUEST_ARGS" "\"$REQ2\"" "\"$LOC\"" "\"$TOMORROW\"" '"11:00"' '"12:00"' "$LINES" '[]' '"Tocar el timbre"')"
+REQUEST_BODY2="$(by_names "$REQUEST_ARGS" "\"$REQ2\"" "\"$LOC\"" "\"$TOMORROW\"" '"11:00"' '"11:15"' "$LINES" '[]' '"Tocar el timbre"')"
 api POST "/rest/v1/rpc/$REQUEST" "$REQUEST_BODY2" > /dev/null
 DB_URL="$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' <<< "$STATUS")"
 if command -v psql > /dev/null; then
