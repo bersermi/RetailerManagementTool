@@ -75,6 +75,13 @@
 // `draftOf`'s `no-reason` are the braces, and the braces exist because a
 // `22023` reaching a shopkeeper is `@/api/errors`' `unknown` — *algo salió
 // mal* — over a question she could have answered in one tap.
+//
+// ⚠️⚠️ SUPERSEDED ON THE SCREEN BY THE OWNER, 2026-10-16 (`8l`): *Tirar* opens
+// with `caducado` ALREADY CHOSEN, in the cart's foot beside the day, and a tap
+// changes it. He was shown the conflict with the paragraphs above and ruled it.
+// ⚠️ **The database still has no default** — `0019` is unchanged and `draftOf`
+// still refuses `no-reason`: the default is `DEFAULT_WASTE_REASON` below, which
+// the SCREEN shows as a chosen chip before it sends it. ADR-035 §2.8 records it.
 // ============================================================================
 
 import { ES } from '@/strings';
@@ -158,3 +165,60 @@ export function reasonHint(reason: WasteReason): string {
   const hints: Readonly<Record<string, string>> = ES.waste.hint;
   return hints[reason] ?? '';
 }
+
+/**
+ * ⚠️ `8l`, THE OWNER'S: the cause *Tirar* opens on — shown as the chosen chip
+ * in the cart's foot, never sent unseen. See this file's header.
+ */
+export const DEFAULT_WASTE_REASON: WasteReason = 'caducado';
+
+/**
+ * ⚠️ `8l`: THE TWO CAUSES ON THE CART'S FOOT, as the owner drew it — the other
+ * three are behind *Otro*. The two a shopkeeper meets most, first in `0003`'s
+ * own order.
+ */
+export const FOOT_REASONS: readonly WasteReason[] = [WASTE_REASONS[0], WASTE_REASONS[1]];
+
+/** The cause the screen shows and sends: the one chosen, else the owner's default. */
+export function wasteReasonOf(chosen: WasteReason | null): WasteReason {
+  return chosen ?? DEFAULT_WASTE_REASON;
+}
+
+/**
+ * The key one waste line carries its expiry under — `0057`'s spelling. ⚠️ A
+ * misspelling is no error at all: `record_waste` reads this key by name and a
+ * line without it is simply *sin fecha*. `docs/checks/6a-i-waste-contract.sh`
+ * reads the stored column back.
+ */
+export const WASTE_EXPIRY_KEY = 'expiry_date';
+
+/**
+ * ⚠️ `8l`: *¿Cuándo lo tiraste?* — today, yesterday or the day before, as days
+ * back. Three and not more: `record_waste` clamps `occurred_at` to the last 72
+ * hours (`0057`), so a fourth chip would be a day the ledger silently moves.
+ */
+export const WASTE_DAYS = [0, 1, 2] as const;
+export type WasteDay = (typeof WASTE_DAYS)[number];
+
+export function isWasteDay(value: unknown): value is WasteDay {
+  return typeof value === 'number' && (WASTE_DAYS as readonly number[]).includes(value);
+}
+
+/**
+ * When a write-off sent at `now` happened, for `payload.occurred_at` — or
+ * `null` for today, which leaves the queue's own stamp (`@/api/flush`).
+ *
+ * ⚠️ WHOLE DAYS OF 24 HOURS BACK FROM THE MOMENT OF THE SLIDE, not midnight:
+ * *ayer* at 09:00 is yesterday at 09:00, inside the same local day in Mexico
+ * (no daylight saving since 2022), and two days back is 48 hours — inside
+ * `0057`'s 72 with a day to spare for a phone that stays offline.
+ */
+export function wasteOccurredAt(now: string, day: WasteDay): string | null {
+  if (day === 0) return null;
+  const at = Date.parse(now);
+  if (Number.isNaN(at)) return null;
+  return new Date(at - day * 86_400_000).toISOString();
+}
+
+/** A date as `0057` takes it, `YYYY-MM-DD`. */
+export const EXPIRY_SHAPE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;

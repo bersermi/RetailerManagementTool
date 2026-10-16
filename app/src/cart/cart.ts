@@ -99,7 +99,7 @@ import {
 
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 import type { WriteDraft, WriteKind } from '@/api/outbox';
-import { WASTE_REASON_KEY, type WasteReason } from '@/api/waste';
+import { WASTE_EXPIRY_KEY, WASTE_REASON_KEY, type WasteReason } from '@/api/waste';
 
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THREE DOCUMENTS, TWO MONEY SHAPES — AND `Scope` IS WHAT KEEPS THEM APART
@@ -493,6 +493,46 @@ export type Quotes = Readonly<Record<string, string>>;
 export const NO_QUOTES: Quotes = {};
 
 /**
+ * ⚠️ `8l`: WHEN EACH LINE OF A WRITE-OFF EXPIRED, `YYYY-MM-DD`, keyed by
+ * variant — the owner's *caducidad por producto*. A variant with no key is
+ * *sin fecha*, which is the honest default: nobody read a date. Waste only.
+ */
+export type Expiries = Readonly<Record<string, string>>;
+
+export const NO_EXPIRIES: Expiries = {};
+
+/** The map with this line's date set — or forgotten, for `null`. */
+export function withExpiry(expiries: Expiries, variantId: string, day: string | null): Expiries {
+  if (day === null) {
+    if (!(variantId in expiries)) return expiries;
+    const next: Record<string, string> = {};
+    for (const [id, d] of Object.entries(expiries)) if (id !== variantId) next[id] = d;
+    return next;
+  }
+  return expiries[variantId] === day ? expiries : { ...expiries, [variantId]: day };
+}
+
+/**
+ * The map holding only lines still in the basket. ⚠️ A NEW OBJECT ONLY WHEN
+ * SOMETHING LEFT — `withoutPrice`'s rule in `@/cart/store`. A line stepped down
+ * to nothing forgets its date, so the same product added again arrives *sin
+ * fecha* rather than carrying a date nobody read for it.
+ */
+export function expiriesIn(expiries: Expiries, cart: Cart): Expiries {
+  let stale = false;
+  for (const id of Object.keys(expiries)) {
+    if (!cart.some((line) => line.variantId === id)) stale = true;
+  }
+  if (!stale) return expiries;
+  const next: Record<string, string> = {};
+  for (const line of cart) {
+    const day = expiries[line.variantId];
+    if (day !== undefined) next[line.variantId] = day;
+  }
+  return next;
+}
+
+/**
  * A whole basket, ready to be put in the store in one `set()` — what `Corregir`
  * hands back after it has voided a document. Plan task `5h-ii-b`, widened by
  * `6a-ii-b`.
@@ -694,6 +734,7 @@ export function lineSent(
   rate: number | null = null,
   quotes: Quotes = NO_QUOTES,
   reason: WasteReason | null = null,
+  expiry: string | null = null,
 ): Readonly<Record<string, unknown>> | null {
   const kind = MONEY_KIND[scope];
   const qty = qtySent(line.base, entry, factors);
@@ -716,6 +757,9 @@ export function lineSent(
     // and has no document-level argument for it, so one answer is written onto
     // every line here rather than sent once.
     ...(scope === 'waste' && reason !== null ? { [WASTE_REASON_KEY]: reason } : {}),
+    // ⚠️ `8l` (`0057`): THE EXPIRY RIDES ON ITS OWN LINE, and only when one was
+    // read — an absent key is `0057`'s *sin fecha*, never an empty string.
+    ...(scope === 'waste' && expiry !== null ? { [WASTE_EXPIRY_KEY]: expiry } : {}),
   };
 }
 
@@ -772,6 +816,11 @@ export type Drafted =
  * write that arrives with a null `occurred_at` is stamped with the moment of
  * the FLUSH, so a sale rung up at 09:00 and drained at 14:00 would count on the
  * wrong day. One answer to *when did this happen*, and it is the queue's.
+ *
+ * ⚠️⚠️ EXCEPT ON A WRITE-OFF DATED *AYER* OR *ANTIER* (`8l`, the owner's
+ * *¿Cuándo lo tiraste?*): there the shopkeeper answered the question, so
+ * `occurredAt` goes in the payload and `@/api/flush` sends it instead of the
+ * queue's stamp. `null` — *hoy* — leaves the key out, and the rule above holds.
  */
 export function draftOf(
   cart: Cart,
@@ -785,6 +834,8 @@ export function draftOf(
   quotes: Quotes = NO_QUOTES,
   providerId: string | null = null,
   reason: WasteReason | null = null,
+  expiries: Expiries = NO_EXPIRIES,
+  occurredAt: string | null = null,
 ): Drafted {
   if (cart.length === 0) return { ok: false, why: 'empty-cart' };
   if (locationId === null || locationId === '') return { ok: false, why: 'no-location' };
@@ -806,6 +857,7 @@ export function draftOf(
       rates[line.variantId] ?? null,
       quotes,
       reason,
+      scope === 'waste' ? (expiries[line.variantId] ?? null) : null,
     );
     if (sent === null) return { ok: false, why: 'line-cannot-be-priced' };
     lines.push(sent);
@@ -823,7 +875,9 @@ export function draftOf(
       payload:
         scope === 'buy'
           ? { location_id: locationId, provider_id: providerId, lines }
-          : { location_id: locationId, lines },
+          : scope === 'waste' && occurredAt !== null
+            ? { location_id: locationId, lines, occurred_at: occurredAt }
+            : { location_id: locationId, lines },
     },
   };
 }

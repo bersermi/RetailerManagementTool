@@ -1,6 +1,19 @@
 import { describe, expect, it } from 'vitest';
 
-import { formatExpiry, formatLastBought, formatLedgerDay, formatWaiting } from '@/format/date';
+import {
+  addDays,
+  calendarMonths,
+  daysFrom,
+  weekdayInitials,
+  formatClock,
+  formatDayTile,
+  formatExpiry,
+  formatExpiryDay,
+  formatLastBought,
+  formatLedgerDay,
+  formatPickupDay,
+  formatWaiting,
+} from '@/format/date';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -275,5 +288,64 @@ describe('formatLedgerDay', () => {
   // otherwise get `null` for a value that is perfectly readable.
   it('reads the first ten characters of a full timestamp', () => {
     expect(formatLedgerDay('2026-09-24T09:00:00+00:00')?.day).toBe('24');
+  });
+});
+
+// ⚠️ `8l`: SHOP-DAY LABELS, read at noon UTC — the same answer on this Mac
+// (UTC−6) and on CI (UTC) with no pinned `TZ`. 2026-10-16 is a Friday.
+describe('8l — Desperdicio\'s days', () => {
+  it('moves a label by calendar days, across a month and a year', () => {
+    expect(addDays('2026-10-31', 1)).toBe('2026-11-01');
+    expect(addDays('2026-12-31', 1)).toBe('2027-01-01');
+    expect(addDays('2026-10-16', -2)).toBe('2026-10-14');
+    expect(addDays('16/10/2026', 1)).toBeNull();
+    expect(daysFrom('2026-10-16', '2026-10-14')).toBe(-2);
+  });
+
+  it('draws a pickup tile and a pickup day as the drawing does', () => {
+    expect(formatDayTile('2026-10-16', '2026-10-16')).toEqual({ top: 'HOY', num: '16' });
+    expect(formatDayTile('2026-10-17', '2026-10-16')).toEqual({ top: 'MAÑ', num: '17' });
+    expect(formatDayTile('2026-10-21', '2026-10-16')).toEqual({ top: 'MIÉ', num: '21' });
+    expect(formatPickupDay('2026-10-17', '2026-10-16', true)).toBe('Mañana sábado 17');
+    expect(formatPickupDay('2026-10-19', '2026-10-16')).toBe('Lun 19');
+    expect(formatPickupDay('2026-10-19', '2026-10-16', true)).toBe('Lunes 19');
+  });
+
+  it('writes a clock without its leading zero', () => {
+    expect(formatClock('09:45')).toBe('9:45');
+    expect(formatClock('18:45')).toBe('18:45');
+  });
+
+  it('names an expiry by the day a shopkeeper says, and dates the rest', () => {
+    const today = '2026-10-16';
+    expect(formatExpiryDay(null, today)).toBe(ES.dates.noDate);
+    expect(formatExpiryDay('2026-10-16', today)).toBe('Hoy');
+    expect(formatExpiryDay('2026-10-15', today)).toBe('Ayer');
+    expect(formatExpiryDay('2026-10-14', today)).toBe('Antier');
+    expect(formatExpiryDay('2026-10-17', today)).toBe('Mañana');
+    expect(formatExpiryDay('2026-10-20', today)).toBe('20 oct');
+    expect(ES.waste.expires('Hoy')).toBe('Caduca hoy');
+  });
+});
+
+describe('8l — Otra…\'s calendar, Monday first', () => {
+  it('puts each month\'s first day under its weekday, and draws no day outside the range', () => {
+    const months = calendarMonths('2026-10-14', '2026-11-03');
+    expect(months.map((m) => m.title)).toEqual(['octubre 2026', 'noviembre 2026']);
+    // 2026-10-14 is a Wednesday: two blanks, Monday and Tuesday.
+    expect(months[0]!.cells.slice(0, 3)).toEqual([null, null, '2026-10-14']);
+    expect(months[0]!.cells[months[0]!.cells.length - 1]).toBe('2026-10-31');
+    // 2026-11-01 is a Sunday: six blanks.
+    expect(months[1]!.cells.slice(0, 7)).toEqual([null, null, null, null, null, null, '2026-11-01']);
+    expect(months[1]!.cells[months[1]!.cells.length - 1]).toBe('2026-11-03');
+  });
+
+  it('reads nothing it cannot read', () => {
+    expect(calendarMonths('2026-11-03', '2026-10-14')).toEqual([]);
+    expect(calendarMonths('ayer', '2026-10-14')).toEqual([]);
+  });
+
+  it('heads the columns L M M J V S D', () => {
+    expect(weekdayInitials()).toEqual(['L', 'M', 'M', 'J', 'V', 'S', 'D']);
   });
 });

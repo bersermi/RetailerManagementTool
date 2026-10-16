@@ -1,44 +1,105 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { router } from 'expo-router';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   Easing,
   FlatList,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
-import { useCatalog, useMagnitude, useUnitFactors, useWorkspace } from '@/api/hooks';
+import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import {
+  CONDITIONS,
+  KEEPINGS,
+  PACKAGINGS,
+  QUARTERS,
+  addressComplete,
+  draftReady,
+  formatSlot,
+  partsOf,
+  pickupDays,
+  pickupHours,
+  prefillFrom,
+  productAmount,
+  requestTitle,
+  sentToday,
+  slotPassed,
+  slotValid,
+  startAt,
+  storeAddressLine,
+  whatsappMessage,
+  type CollectionPrefill,
+  type CollectionRequest,
+  type CollectionStatus,
+  type Condition,
+  type Keeping,
+  type Packaging,
+  type StoreAddress,
+} from '@/api/collection';
+import { canWriteCatalog } from '@/api/catalogWrite';
+import {
+  useCancelCollection,
+  useCatalog,
+  useCollectionReaches,
+  useCollectionRequests,
+  useMagnitude,
+  useMyRole,
+  useRequestCollection,
+  useStoreAddresses,
+  useUnitFactors,
+  useWorkspace,
+} from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import {
+  FOOT_REASONS,
+  WASTE_DAYS,
   WASTE_REASONS,
   reasonHint,
   reasonLabel,
+  wasteOccurredAt,
+  wasteReasonOf,
+  type WasteDay,
   type WasteReason,
 } from '@/api/waste';
-import { reviewOf, type Review, type ReviewRow } from '@/cart/cart';
+import { whatsappUrl } from '@/auth/support';
+import { qtySent, reviewOf, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
-import { useCart, useCartStore, useReason } from '@/cart/store';
+import { useCart, useCartStore, useExpiries, useReason, useWasteDay } from '@/cart/store';
+import {
+  addDays,
+  calendarMonths,
+  formatDayTile,
+  formatExpiryDay,
+  weekdayInitials,
+} from '@/format/date';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
+import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
+import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { EMPTIED_BLOOM_MS } from '@/theme/pulse';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
 import { Hecho } from '@/ui/Hecho';
 import { HojaCarrito } from '@/ui/HojaCarrito';
+import { Interruptor } from '@/ui/Interruptor';
+import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
@@ -46,139 +107,355 @@ import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
 
 // ============================================================================
-// DESPERDICIO — what the shop lost, and why. Plan task `6a-i`.
+// DESPERDICIO — what the shop lost, and what it asks Wera to collect. Plan task
+// `6a-i`, redrawn by `8l` from the owner's brief and rulings of 2026-10-16.
 //
-// ⚠️⚠️ IT IS THE THIRD CAPTURE SCREEN AND THE FIRST CALLER `record_waste` HAS
-// EVER HAD. `0019` was applied on 2026-09-05 with 67 behavioural checks and ten
-// falsifications against it, and **nothing in this app called it for
-// twenty-two days** — the tab has been nine lines of `Pendiente` since `5a-ii`.
-// Everything the write needs was already here: `WRITE_KINDS` has held `waste`
-// since `5c-i`, `RECORD_RPC` has named the function since `5c-ii-a`, and
-// `classify` has known how to dead-letter it since `5c-iii`. **What was missing
-// is a basket, a cause and a screen.**
-//
-// ⚠️ THE OWNER REORDERED THIS AHEAD OF ITS STEP ON 2026-09-21, and the reason is
-// commercial rather than technical: waste is the acquisition hook, and until
-// this screen exists the tier-2 investigation has no input at all. `7c` (*what
-// am I throwing away*) and `7e` (*what is at RISK of becoming waste*) are both
-// gated on it, and `7e` needs **weeks** of records before it says anything — so
-// the pilot's clock on that signal starts the day this ships.
+// ⚠️⚠️ TWO DOORS, THE OWNER'S: *"There are essentially 2 versions of waste"* —
+// **Tirar**, what the shop throws away, *"for his benefit, for analytics and to
+// provide insights"*; and **Te lo compro**, what the shop asks Wera to collect
+// and, if it can, buy. The doors are the screen's first question; a switch at
+// the top moves between the two once inside. ⚠️ **A cashier never sees either**
+// — *"Allow to owners and managers only"* — so she lands on Tirar, which is the
+// screen she had before `8l`.
 //
 // ----------------------------------------------------------------------------
-// ⚠️⚠️ REASON-FIRST, AND IT IS THE ONE THING ABOUT THIS SCREEN THE ADR ACTUALLY
-// SPECIFIES
+// ⚠️⚠️ TIRAR IS NO LONGER REASON-FIRST, AND THAT IS HIS RULING OVER §2.8
 // ----------------------------------------------------------------------------
-// §2.8's whole row for this module is six words: *"Reason-first waste entry |
-// Feeds the analytics asset."* So the cause is asked BEFORE the catalog is
-// shown, which is exactly what C3.11 does to Comprar with the provider — and
-// this screen is deliberately built as that screen's shape rather than as a new
-// one.
+// §2.8 said *"Reason-first waste entry"* and `0019`'s header refused a default
+// cause. He was shown both and ruled, 2026-10-16: *"by simply throwing something
+// away the user should be able to log easily the waste with basic data … with
+// some default values that can simplify the recording."* So Tirar opens on the
+// catalog; **`caducado` and *hoy* are ALREADY CHOSEN, and drawn as chosen**, in
+// the bar and in the cart's foot, where a tap changes either before the slide.
+// ⚠️ A DEFAULT SHOWN IS NOT A DEFAULT HIDDEN — the cause is on the bar beside
+// the count every moment the slide can be reached. ADR-035 §2.8 records the
+// ruling; `@/api/waste`'s header says what the database still refuses.
 //
-// ⚠️⚠️ ONE CAUSE PER DOCUMENT, WHICH IS A DECISION AND NOT A READING OF THE
-// SCHEMA. `reason` is a column on `waste_line`, so a document CAN mix causes —
-// measured, against a real PostgREST: the same variant twice under `caducado`
-// and `dañado` is **two rows and an HTTP 200**, and so is the same variant twice
-// under the SAME cause. The database dedupes nothing. **The screen asks once**,
-// because *reason-first* describes a question in front of the catalog and not a
-// field on every row, and because a bin round is one act. ⚠️ Two shapes of loss
-// are two documents. See `CartLine` in `@/cart/cart` for what reversing costs.
-//
-// ⚠️⚠️ AND THERE IS NO OPENING DEFAULT, WHICH IS WHERE THIS DIVERGES FROM
-// COMPRAR ON PURPOSE. `5g-ii`'s picker opens with the generic provider already
-// marked, one tap away, because *"I bought this at the market this morning"* is a
-// real answer. **There is no generic cause**, and `0019` says why in its own
-// header: *"an enum with a default would quietly file every unlabelled loss
-// under one cause."* So the window opens on nothing chosen and has no `Cerrar`.
+// ⚠️ EACH LINE CARRIES ITS OWN EXPIRY (*caducidad por producto*), `sin fecha`
+// until somebody reads one, and the write-off its day — hoy, ayer or antier, the
+// three `0057`'s 72-hour clamp can hold. Both are in the cart (`@/cart/store`).
 //
 // ----------------------------------------------------------------------------
-// ⚠️⚠️ THERE IS NO PESO TOTAL ON THIS SCREEN, AND THAT IS ÁREA 9's RULING RATHER
-// THAN A SIMPLIFICATION
+// ⚠️⚠️ THERE IS NO PESO TOTAL ON TIRAR, AND THAT IS ÁREA 9's RULING
 // ----------------------------------------------------------------------------
-// Ruled 2026-09-14 and written into the plan as a constraint on the session that
-// builds this: ***"Números and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS
-// COST OR AS A RATE, until something fixes `0011`."***
-//
-// ⚠️ SO C3.4's STICKY BAR COUNTS PRODUCTS WHERE VENDER'S SUMS PESOS, and the
-// sheet's rows carry no line total. **That is the half a session would leave in
-// by copying `vender.tsx`**, and it would be wrong in the specific way the
-// ruling names: C8.2 has the owner seeding this catalog DELIBERATELY SHORT, so a
-// peso figure here would read `$0.00` for exactly the products most likely to
-// spoil — *"a screen that tells a shopkeeper her waste cost her nothing"*, which
-// the ruling calls the one thing worse than a number that is missing.
-//
-// ⚠️ THE RETAIL VALUE IS STILL RECORDED. `waste.total_net` carries it and
-// `waste_line.line_net` carries it per line; what is refused is REPORTING it
-// here. When somebody decides it should be shown, the data is already there.
-//
-// ⚠️⚠️ AND IT IS WHAT MAKES THE UNPRICED LINE INVISIBLE TO A SHOPKEEPER RATHER
-// THAN SOMETHING SHE HAS TO UNDERSTAND. `@/cart/cart`'s `UNPRICED_WASTE` sends a
-// zero for a product with no shelf price, because `0019` REQUIRES the price key
-// and a loss not recorded destroys the only record of it. With no money on
-// screen there is no `$0.00` to mislead her and no `Falta un precio` to explain
-// — the quantity, which is the number the report reads, is exact either way.
-// **The row still shows the catalog's own dash (C3.12), because that is the
-// catalog's label and not this screen's arithmetic.**
+// Ruled 2026-09-14: ***"Números and Desperdicio SHOW WASTE AS QUANTITY AND NOT AS
+// COST OR AS A RATE, until something fixes `0011`."*** C8.2 seeds the pilot's
+// catalog deliberately short, so a peso figure here would read `$0.00` for the
+// products most likely to spoil. The retail value IS still recorded
+// (`waste.total_net`); what is refused is reporting it. `UNPRICED_WASTE` in
+// `@/cart/cart` is what makes an unpriced line invisible to a shopkeeper.
 //
 // ----------------------------------------------------------------------------
-// ⚠️ WHAT IS DELIBERATELY NOT HERE, AND IT IS `6a-ii`
+// ⚠️⚠️ TE LO COMPRO: ONE PRODUCT, ONE QUARTER OF AN HOUR, THE PREVIOUS ANSWERS
 // ----------------------------------------------------------------------------
-// **No list of past write-offs, and no `Corregir` / `Eliminar`.** `5h-ii-a` named
-// that gap when it shipped `Lo último` — *"a queued waste is still invisible… it
-// closes when `6a` gets a list of its own"* — and the split found why it cannot
-// close here: **`waste_line_select` is manager-and-above (`0003:596`) while
-// `waste_select` is not**, the only asymmetric pair in this schema. Measured: an
-// Empleada reading her own waste document gets **HTTP 200 and
-// `"waste_line": []`** — a header with no products, not a refusal. `0003:589`
-// already says what fixes it (*"the reason-and-quantity view for Desperdicio
-// ships with that screen"*) and that is a MIGRATION and a ruling about who may
-// see what, so it is its own row and its own question.
+// *"The user will record only 1 product per Te lo compro entry, that allows me
+// to promote each product easier … prefill each entry with the equivalent values
+// of the previous one."* And: *"If the user picks 9:45 then he should be able to
+// dispatch the waste from 9:45 to 10:00."* `0060` holds both; `@/api/collection`
+// computes them. ⚠️ **A prefilled answer says so** in a band above it — his
+// standing rule that a proposal must not look decided.
 //
-// ⚠️ `Eliminar` ALONE WOULD WORK TODAY — `void_transaction` takes `waste` and a
-// cashier passed it in a probe — because voiding needs only the header. It is
-// held back with `Corregir` rather than shipped alone: half an undo on the one
-// screen with no history is a button that cancels something she cannot see.
+// ⚠️ THE DOOR OPENS ONLY FOR A STORE WITH AN ADDRESS INSIDE THE AREA (`0058`,
+// 06400 and 06470 today). Closed, it is drawn and says why — never hidden, so the
+// service is discoverable by the shop it does not reach yet.
+//
+// ⚠️ NO PHOTO YET. `0060` made the private bucket and the fence; the camera is a
+// native module and needs a new build, which is the owner's to install (`8l`'s
+// second half).
 //
 // ----------------------------------------------------------------------------
-// ⚠️ THE OWNER'S PHONE IS THE WHOLE INSTRUMENT (`R9`, §2.11). Every judgement
-// left in this file is rendering, navigation or layout, and no check in this
-// repository will ever say it is wrong. The half that IS checkable was pushed
-// out: the vocabulary is `@/api/waste`, the arithmetic and the payload are
-// `@/cart/cart`, and the wire is `docs/checks/6a-i-waste-contract.sh`.
-//
-// ⚠️ THE KEYBOARD, THE SEARCH, THE SHEET, THE SLIDE AND THE TWO ANIMATIONS ARE
-// `vender.tsx`'s, primitive for primitive — `Buscador`, `Cantidad`,
-// `Separador`, `TecladoListo`, `Vacio` and, since round 4 of `8g` (2026-10-16),
-// the Carrito's whole furniture: `HojaCarrito`, `CierreCarrito` (the slide is
-// inside it), `VaciarCarrito` and `Hecho`. **Nothing new was invented for this
-// screen**, which is `R14` read from the other end.
+// ⚠️ THE OWNER'S PHONE IS THE WHOLE INSTRUMENT (`R9`, §2.11). What is checkable
+// was pushed out: the vocabulary and the defaults are `@/api/waste`, the payload
+// `@/cart/cart`, the pickup's arithmetic `@/api/collection`, the days
+// `@/format/date`; the wires are `docs/checks/6a-i-waste-contract.sh` and
+// `docs/checks/8k-collection-contract.sh`.
 // ============================================================================
 
 /**
- * The bar carrying *Listo* above the quantity pad.
- *
- * ⚠️ ITS OWN ID AND NOT VENDER'S: `InputAccessoryView` matches an input to a bar
- * by STRING EQUALITY, and a shared spelling across two mounted screens is a bar
- * that attaches to whichever mounted last.
+ * The bar carrying *Listo* above the quantity pad. ⚠️ ITS OWN ID AND NOT
+ * VENDER'S: `InputAccessoryView` matches by string, and a shared spelling across
+ * two mounted screens is a bar that attaches to whichever mounted last.
  */
 const PAD_ID = 'wera.waste.pad';
+
+type Modo = 'puertas' | 'tirar' | 'compro';
+const MODOS = ['tirar', 'compro'] as const;
+
+/** Where Te lo compro stands for this store — the door's four faces. */
+type Acceso =
+  | { readonly kind: 'checking' }
+  | { readonly kind: 'noAddress' }
+  | { readonly kind: 'outside'; readonly postalCode: string }
+  | { readonly kind: 'open'; readonly address: StoreAddress };
+
+function useAcceso(): Acceso {
+  const { data } = useStoreAddresses();
+  const address = data === undefined || data.length === 0 ? null : data[0];
+  const complete = addressComplete(address);
+  const reaches = useCollectionReaches(complete && address !== null ? address.postalCode : '');
+  if (data === undefined) return { kind: 'checking' };
+  if (address === null || !complete) return { kind: 'noAddress' };
+  if (reaches === undefined) return { kind: 'checking' };
+  return reaches ? { kind: 'open', address } : { kind: 'outside', postalCode: address.postalCode };
+}
+
+/** The device's `HH:MM` — the shop's own clock, for which quarters have begun. */
+function nowClock(): string {
+  const now = new Date();
+  return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+}
 
 export default function Desperdicio() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
+  const role = useMyRole();
+  const mayCollect = canWriteCatalog(role);
+  const acceso = useAcceso();
 
-  // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER, READ A THIRD TIME — C3.1, *"there
-  // are no buy-only or sell-only subsets"*, which holds a third time: anything
-  // the shop sells is something the shop can lose. ⚠️ UNFILTERED, and narrowed
-  // for the LIST only — `vender.tsx`'s own measurement.
+  // ⚠️ A RESTORED BIN ROUND OPENS ON TIRAR, and so does a write-off handed back
+  // by `Corregir` (`documentos.tsx`) while this tab was already mounted — the
+  // basket going from empty to full is the signal, read on the change.
+  const cart = useCart('waste');
+  const [modo, setModo] = useState<Modo>(() => (cart.length > 0 ? 'tirar' : 'puertas'));
+  const had = useRef(cart.length);
+  useEffect(() => {
+    if (had.current === 0 && cart.length > 0) setModo('tirar');
+    had.current = cart.length;
+  }, [cart.length]);
+
+  // ⚠️ `role === null` IS *NOT KNOWN YET*, and the doors are drawn meanwhile:
+  // only an answer of `staff` sends her straight to Tirar.
+  const shown: Modo = role === 'staff' ? 'tirar' : modo;
+
+  return (
+    <KeyboardAvoidingView
+      // ⚠️ NO `paddingTop: insets.top` — the tab navigator draws a header below
+      // the notch already (the owner's report on Vender, 2026-09-24).
+      style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+    >
+      {shown === 'puertas' || !mayCollect ? null : (
+        <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space }}>
+          <Interruptor
+            options={MODOS}
+            labels={{ tirar: ES.waste.doors.tirar, compro: ES.waste.doors.compro }}
+            picked={shown}
+            onPick={setModo}
+            ink={PALETTE.desperdicio}
+            soft={PALETTE.desperdicioSuave}
+          />
+        </View>
+      )}
+
+      {shown === 'puertas' ? (
+        <Puertas
+          acceso={acceso}
+          isOwner={role === 'owner'}
+          onTirar={() => setModo('tirar')}
+          onCompro={() => setModo('compro')}
+        />
+      ) : shown === 'tirar' ? (
+        <Tirar />
+      ) : (
+        <TeLoCompro acceso={acceso} isOwner={role === 'owner'} />
+      )}
+
+      {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
+          renders into the KEYBOARD rather than into the layout. */}
+      <TecladoListo padId={PAD_ID} label={ES.counter.done} />
+    </KeyboardAvoidingView>
+  );
+}
+
+// ============================================================================
+// The doors
+// ============================================================================
+
+function Puertas({
+  acceso,
+  isOwner,
+  onTirar,
+  onCompro,
+}: {
+  acceso: Acceso;
+  isOwner: boolean;
+  onTirar: () => void;
+  onCompro: () => void;
+}) {
+  const { scale } = useDensity();
+  const { data } = useCollectionRequests();
+  const recent = newestFirst(data ?? []).slice(0, 3);
+  return (
+    <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+        {ES.waste.doors.question}
+      </Text>
+
+      <Puerta
+        icon="delete-outline"
+        title={ES.waste.doors.tirar}
+        hint={ES.waste.doors.tirarHint}
+        tone="claro"
+        onPress={onTirar}
+      />
+
+      <PuertaCompro acceso={acceso} isOwner={isOwner} onOpen={onCompro} />
+
+      {recent.length === 0 ? null : <Solicitudes requests={recent} mayCancel={false} />}
+    </ScrollView>
+  );
+}
+
+/** The Te lo compro door in whichever of its four faces the store is in. */
+function PuertaCompro({
+  acceso,
+  isOwner,
+  onOpen,
+}: {
+  acceso: Acceso;
+  isOwner: boolean;
+  onOpen: () => void;
+}) {
+  if (acceso.kind === 'open') {
+    return (
+      <Puerta
+        icon="truck-outline"
+        title={ES.waste.doors.compro}
+        hint={ES.waste.doors.comproHint}
+        tag={ES.waste.doors.inZone(acceso.address.postalCode)}
+        tone="lleno"
+        onPress={onOpen}
+      />
+    );
+  }
+  if (acceso.kind === 'noAddress') {
+    // ⚠️ THE OWNER'S DOOR LEADS TO THE ONE PLACE HE CAN FIX IT — Ajustes'
+    // *Domicilio*, which is his alone; a manager is told who can.
+    return (
+      <Puerta
+        icon="truck-outline"
+        title={ES.waste.doors.compro}
+        hint={isOwner ? ES.waste.doors.noAddressOwner : ES.waste.doors.noAddressManager}
+        tone="cerrado"
+        onPress={isOwner ? () => router.push('/ajustes') : undefined}
+      />
+    );
+  }
+  return (
+    <Puerta
+      icon="truck-outline"
+      title={ES.waste.doors.compro}
+      hint={acceso.kind === 'outside' ? ES.waste.doors.comproClosedHint : ES.waste.doors.comproHint}
+      tag={acceso.kind === 'outside' ? ES.waste.doors.outOfZone(acceso.postalCode) : ES.waste.doors.checking}
+      tone="cerrado"
+    />
+  );
+}
+
+/**
+ * One door. ⚠️ `cerrado` IS DRAWN AND INERT, never hidden — and it carries its
+ * reason as words, so the grey is never the only thing saying *closed* (`R11`).
+ * A closed door with somewhere to go (the owner's Ajustes) keeps its chevron.
+ */
+function Puerta({
+  icon,
+  title,
+  hint,
+  tag,
+  tone,
+  onPress,
+}: {
+  icon: 'delete-outline' | 'truck-outline';
+  title: string;
+  hint: string;
+  tag?: string;
+  tone: 'claro' | 'lleno' | 'cerrado';
+  onPress?: () => void;
+}) {
+  const { scale } = useDensity();
+  const lleno = tone === 'lleno';
+  const cerrado = tone === 'cerrado';
+  const ground = lleno ? PALETTE.desperdicio : cerrado ? PALETTE.fondo : PALETTE.superficie;
+  const ink = lleno ? PALETTE.superficie : cerrado ? PALETTE.tintaApagada : PALETTE.desperdicio;
+  const sub = lleno ? PALETTE.superficie : PALETTE.tintaApagada;
+  const Frame = onPress === undefined ? View : Pressable;
+  return (
+    <Frame
+      {...(onPress === undefined
+        ? {}
+        : { accessibilityRole: 'button' as const, accessibilityLabel: `${title}. ${hint}`, onPress })}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.space,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: lleno ? PALETTE.desperdicio : PALETTE.linea,
+        backgroundColor: ground,
+      }}
+    >
+      <View
+        style={{
+          width: scale.tapTarget * 1.25,
+          height: scale.tapTarget * 1.25,
+          borderRadius: scale.tapTarget,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: lleno ? PALETTE.desperdicio : cerrado ? PALETTE.linea : PALETTE.desperdicioSuave,
+          borderWidth: lleno ? 1 : 0,
+          borderColor: PALETTE.desperdicioSuave,
+        }}
+      >
+        <MaterialCommunityIcons name={icon} size={scale.iconSize} color={ink} />
+      </View>
+      <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
+        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: ink }}>{title}</Text>
+        <Text style={{ fontSize: scale.smallSize, color: sub }}>{hint}</Text>
+        {tag === undefined ? null : (
+          <View
+            style={{
+              alignSelf: 'flex-start',
+              paddingHorizontal: scale.rowGap,
+              paddingVertical: scale.rowGap / 4,
+              borderRadius: scale.space,
+              backgroundColor: lleno ? PALETTE.superficie : PALETTE.linea,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: scale.smallSize,
+                fontWeight: '600',
+                color: lleno ? PALETTE.desperdicio : PALETTE.tintaApagada,
+              }}
+            >
+              {tag}
+            </Text>
+          </View>
+        )}
+      </View>
+      {onPress === undefined ? null : (
+        <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={ink} />
+      )}
+    </Frame>
+  );
+}
+
+// ============================================================================
+// Tirar
+// ============================================================================
+
+function Tirar() {
+  const { scale } = useDensity();
+
+  // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
+  // sell-only subsets"*: anything the shop sells is something it can lose.
   const { loading, entries, failed, locationId } = useCatalog('');
   const factors = useUnitFactors();
-  // ⚠️⚠️ §2.8's THIRD GUARD, AND IT EARNS ITS PLACE HERE MORE THAN ON EITHER
-  // OTHER SCREEN. `outsized` compares a quantity against what this shop usually
-  // buys, and a write-off is the one document with **nobody on the other side of
-  // it**: a customer queries a sale and a supplier queries a delivery, and
-  // `9999 kg` of tomato going in the bin is queried by no one. `null` for the
-  // price, because a write-off has no typed figure — `quoteFor` takes the shelf
-  // price off the catalog, exactly as on a sale.
+  // ⚠️ §2.8's THIRD GUARD EARNS ITS PLACE HERE MORE THAN ANYWHERE: a write-off
+  // has nobody on the other side of it, and `9999 kg` in the bin is queried by
+  // no one.
   const typicals = useMagnitude();
   const workspace = useWorkspace();
 
@@ -189,9 +466,8 @@ export default function Desperdicio() {
   const list = useRef<FlatList<CatalogEntry>>(null);
   const editing = useRef<number | null>(null);
 
-  // ⚠️ IT WAITS FOR THE KEYBOARD TO BE UP rather than firing on focus, which is
-  // `vender.tsx`'s measurement: scrolling on focus centres the row in a viewport
-  // that is about to shrink, and the resize pushes it back down.
+  // ⚠️ IT WAITS FOR THE KEYBOARD TO BE UP rather than firing on focus —
+  // `vender.tsx`'s measurement.
   useEffect(() => {
     const up = Keyboard.addListener('keyboardDidShow', () => {
       const at = editing.current;
@@ -202,49 +478,24 @@ export default function Desperdicio() {
   }, []);
 
   const cart = useCart('waste');
-  const reason = useReason();
+  const chosen = useReason();
+  const reason = wasteReasonOf(chosen);
+  const day = useWasteDay();
+  const expiries = useExpiries();
   const openShop = useCartStore((state) => state.openShop);
   const openReason = useCartStore((state) => state.openReason);
+  const setWasteDay = useCartStore((state) => state.setWasteDay);
   const clear = useCartStore((state) => state.clear);
 
-  // ⚠️ THE GUARD IS THE WHOLE POINT AND NOT DEFENSIVE — `vender.tsx`'s note:
-  // `openShop(null)` on a store restored from disk means *the shop changed* and
-  // drops the basket, and `useWorkspace` answers `null` on every cold start.
+  // ⚠️ THE GUARD IS THE WHOLE POINT: `openShop(null)` on a restored store means
+  // *the shop changed* and drops the basket, and `useWorkspace` answers `null`
+  // on every cold start.
   useEffect(() => {
     if (workspace !== null) openShop(workspace.id);
   }, [workspace, openShop]);
 
-  // ⚠️⚠️ THE PICKER OPENS THE SCREEN WHENEVER NO CAUSE IS CHOSEN, AND THE TEST IS
-  // THE **REASON** RATHER THAN THE BASKET. Comprar asks `cart.length === 0`
-  // because its question can be answered by a default and re-asking it over a
-  // priced basket would discard work. Here the question has no default, so
-  // *answered or not* is the honest condition — and a restored basket always has
-  // one, because a basket cannot be built until the window has been closed.
-  //
-  // ⚠️ READ ONCE ON MOUNT, AND THE STORE IS ALREADY HYDRATED BY THEN:
-  // `@/lib/store` is synchronous (`expo-sqlite/localStorage`), which `5f-i` chose
-  // so the first render of a restored basket cannot race the first tap.
-  const [picking, setPicking] = useState(() => reason === null);
+  const today = isoDay(new Date());
 
-  // ⚠️⚠️ AND IT FOLLOWS THE CAUSE AFTERWARDS, WHICH `6a-ii-b` HAD TO ADD BECAUSE
-  // THIS IS A **TAB**. Mount-once was right while the only thing that could set
-  // the cause was the picker on this screen. `Corregir` on a write-off sets it
-  // from `documentos.tsx` — and this screen may have been mounted for an hour by
-  // then, so its `picking` is whatever she left it as. ⚠️ The two failures are
-  // opposite and both bad: she arrives at a picker asking a question the
-  // correction already answered, or she arrives at a header reading *pickFirst*
-  // with no window open, one tap from a commit the schema will refuse.
-  //
-  // ⚠️ IT DOES NOT REPLACE `chooseReason`'s OWN `setPicking(false)` AND MUST NOT.
-  // `openReason` is a no-op on an unchanged value, so re-choosing the cause
-  // already standing changes nothing here and the window would stay open.
-  useEffect(() => {
-    setPicking(reason === null);
-  }, [reason]);
-
-  // ⚠️ THE SHEET'S OPEN STATE LIVES HERE AND NOT IN THE ROUTER —
-  // `vender.tsx`'s decision and its reasons: the basket is this place zoomed,
-  // priced against a catalog this screen has already read.
   const [cartOpen, setCartOpen] = useState(false);
   const closeCart = useCallback(() => setCartOpen(false), []);
   const openCart = useCallback(() => setCartOpen(true), []);
@@ -253,22 +504,15 @@ export default function Desperdicio() {
   const [emptied, setEmptied] = useState(false);
   const [recorded, setRecorded] = useState(false);
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
-  // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
+  // `EXPO_PUBLIC_PILOT`.
   const pilot = usePilotVisit('desperdicio', workspace?.id ?? null, locationId);
   useEffect(() => {
     if (recorded) pilot.confirmed();
   }, [recorded, pilot]);
   const bloom = useRef(new Animated.Value(0)).current;
 
-  // ⚠️⚠️ `reviewOf` IS CALLED FOR THE ROWS AND ITS TOTAL IS DELIBERATELY UNUSED —
-  // see this file's header. It is still the right function: it is the one that
-  // knows a line whose variant has left the catalog is a ROW and not a gap, and
-  // this sheet is the only surface that can remove such a row.
-  // ⚠️ IT NEEDS `prices_include_tax` even though nothing here renders a peso,
-  // because `waste` prices on the SALE shape (`MONEY_KIND`) and that flag is what
-  // says whether the shelf figure is already gross. A `?? true` would be right on
-  // every phone in the pilot and would understate IVA in the ledger for the first
-  // shop that answered no — `5f-i`'s refusal, not to be reintroduced here.
+  // ⚠️ `reviewOf` FOR THE ROWS, ITS TOTAL DELIBERATELY UNUSED — área 9. It still
+  // needs `prices_include_tax`: waste prices on the SALE shape (`MONEY_KIND`).
   const review: Review | null =
     workspace === null ? null : reviewOf(cart, entries, 'waste', workspace.pricesIncludeTax);
 
@@ -284,11 +528,11 @@ export default function Desperdicio() {
           workspaceId: workspace.id,
           locationId,
           reason,
+          expiries,
         };
 
-  // ⚠️ THE EMPTYING ANIMATION — `transform` and `opacity` only (§2.11), and
-  // **started in an effect rather than in the handler that sets the state**,
-  // which on the native driver is the difference between motion and silence.
+  // ⚠️ THE EMPTYING ANIMATION — started in an effect, never in the handler that
+  // sets the state: on the native driver that is motion versus silence.
   useEffect(() => {
     if (!emptied) return;
     bloom.setValue(0);
@@ -306,16 +550,12 @@ export default function Desperdicio() {
     return () => run.stop();
   }, [emptied, bloom]);
 
-  // ⚠️ A QUESTION LEFT HALF-ASKED IS FORGOTTEN WHEN THE BASKET EMPTIES.
   useEffect(() => {
     if (cart.length === 0) setAsking(false);
   }, [cart.length]);
 
-  // ⚠️⚠️ `Vaciar carrito` LEAVES THE CAUSE STANDING, AND `commit` BELOW CLEARS
-  // IT. That pair is a decision and it is the opposite way round from what
-  // copying either screen would give. **Emptying is *I keyed the wrong
-  // products*** — putting the opening question back in front of somebody who has
-  // just answered it is the one thing `5g-ii`'s picker was measured not to do.
+  // ⚠️ `Vaciar carrito` LEAVES THE CAUSE AND THE DAY STANDING: emptying is *I
+  // keyed the wrong products*, not *I picked the wrong day*.
   const emptyCart = useCallback(() => {
     setAsking(false);
     clear('waste');
@@ -325,52 +565,31 @@ export default function Desperdicio() {
   const commit = useCallback(() => {
     if (basketful === null) return;
     pilot.committed();
-    const done = commitOf(basketful, { id: newWriteId(), now: nowIso() });
+    const now = nowIso();
+    const done = commitOf({ ...basketful, occurredAt: wasteOccurredAt(now, day) }, { id: newWriteId(), now });
     // ⚠️ EVERY REFUSAL IS A PROGRAMMING ERROR AND NONE HAS A SENTENCE (`R4`) —
-    // and none can happen here, because `canCommit` is what decided the control
-    // was drawn at all. `no-reason` is the one this screen adds, and the picker
-    // is what makes it unreachable. This branch is the belt to that brace.
+    // `canCommit` is what decided the slide was drawn at all.
     if (!done.ok) return;
     commitToQueue(done.write);
     clear('waste');
-    // ⚠️⚠️ THE CAUSE IS FORGOTTEN WITH THE DOCUMENT, AND THE WINDOW COMES BACK.
-    // A cause left standing after a commit is exactly the DEFAULT `0019` refuses
-    // — *"an enum with a default would quietly file every unlabelled loss under
-    // one cause"* — created by this screen instead of by the schema. The next
-    // write-off is a different document and may be a different cause, and the
-    // cost of asking again is one tap on a window already in front of her.
+    // ⚠️ THE NEXT WRITE-OFF STARTS FROM THE OWNER'S DEFAULTS AGAIN — caducado and
+    // hoy — never from the cause and day the last one happened to carry.
     openReason(null);
-    setPicking(true);
+    setWasteDay(0);
     setCartOpen(false);
     setRecorded(true);
-  }, [basketful, clear, openReason, pilot]);
+  }, [basketful, clear, openReason, setWasteDay, pilot, day]);
 
-  const chooseReason = useCallback(
-    (next: WasteReason) => {
-      openReason(next);
-      setPicking(false);
-    },
-    [openReason],
-  );
+  const canRecord = basketful !== null && canCommit(basketful);
 
   return (
-    <KeyboardAvoidingView
-      onTouchStart={pilot.onTouchStart}
-      // ⚠️ NO `paddingTop: insets.top` — the tab navigator already draws a header
-      // below the notch, and counting the inset again is the dead space the owner
-      // reported on Vender on 2026-09-24.
-      style={{ flex: 1, backgroundColor: PALETTE.fondo }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
-    >
-      <Encabezado reason={reason} onPress={() => setPicking(true)} />
-
+    <View style={{ flex: 1 }} onTouchStart={pilot.onTouchStart}>
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
         ref={list}
-        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: C8.3 puts ~100 products in
-        // the pilot catalog and C1.1 puts two low-end Androids among its phones.
+        // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: ~100 products (C8.3) on
+        // two low-end Androids (C1.1).
         data={rows}
         keyExtractor={(entry) => entry.id}
         renderItem={({ item, index }) => (
@@ -378,6 +597,7 @@ export default function Desperdicio() {
             entry={item}
             factors={factors}
             typical={typicals[item.id]}
+            today={today}
             onEdit={(on) => {
               editing.current = on ? index : null;
             }}
@@ -395,10 +615,12 @@ export default function Desperdicio() {
 
       <Barra
         lines={cart.length}
+        day={day}
+        reason={reason}
         onOpen={openCart}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
-        canRecord={basketful !== null && canCommit(basketful)}
+        canRecord={canRecord}
       />
 
       <Carrito
@@ -408,9 +630,14 @@ export default function Desperdicio() {
         entries={entries}
         factors={factors}
         typicals={typicals}
+        today={today}
+        day={day}
+        reason={reason}
+        onDay={setWasteDay}
+        onReason={openReason}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
-        canRecord={basketful !== null && canCommit(basketful)}
+        canRecord={canRecord}
         asking={asking}
         emptied={emptied}
         bloom={bloom}
@@ -418,9 +645,9 @@ export default function Desperdicio() {
         onCancelEmpty={() => setAsking(false)}
       />
 
-      {/* ⚠️ THE SAME QUESTION, ASKED FROM THE BAR — rendered here only while the
-          sheet is CLOSED, because the sheet renders its own copy inside its
-          `Modal`. Nested modals on iOS animate against each other. */}
+      {/* ⚠️ THE SAME QUESTION, ASKED FROM THE BAR — only while the sheet is
+          CLOSED: the sheet renders its own copy inside its `Modal`, and nested
+          modals on iOS animate against each other. */}
       {!cartOpen ? (
         <VaciarCarrito
           asking={asking}
@@ -432,105 +659,18 @@ export default function Desperdicio() {
         />
       ) : null}
 
-      <Motivos
-        open={picking}
-        chosen={reason}
-        onChoose={chooseReason}
-        onClose={() => setPicking(false)}
-      />
-
       <Hecho shown={recorded} word={ES.waste.recorded} onDone={() => setRecorded(false)} />
-
-      {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
-          renders into the KEYBOARD rather than into the layout. */}
-      <TecladoListo padId={PAD_ID} label={ES.counter.done} />
-    </KeyboardAvoidingView>
-  );
-}
-
-/**
- * ⚠️⚠️ THE CAUSE, AT THE TOP, AS A DROP-DOWN — §2.8's *reason-first* made
- * visible, and `Comprando a:`'s shape character for character.
- *
- * ⚠️ IT IS NEVER `loading`, WHICH IS THE ONE WAY IT DIFFERS FROM COMPRAR'S
- * HEADER. That one is disabled while the provider list is in flight, because
- * providers are ROWS and a read can fail. **The five causes are an enum in a
- * TypeScript tuple** — no query, no cache, no failure mode — so there is no
- * state in which this control cannot be opened, and no `Cargando…` for it to
- * show. ⚠️ That is also why the placeholder below is a question rather than a
- * progress word.
- */
-function Encabezado({
-  reason,
-  onPress,
-}: {
-  reason: WasteReason | null;
-  onPress: () => void;
-}) {
-  const { scale } = useDensity();
-  const unknown = reason === null;
-  return (
-    <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space, gap: scale.rowGap / 2 }}>
-      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-        {ES.waste.reasonFor}
-      </Text>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`${ES.waste.reasonFor} ${unknown ? '' : reasonLabel(reason)}`}
-        onPress={onPress}
-        style={{
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: scale.rowGap,
-          minHeight: scale.tapTarget,
-          paddingHorizontal: scale.space,
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          borderColor: unknown ? PALETTE.linea : PALETTE.accion,
-          backgroundColor: PALETTE.superficie,
-        }}
-      >
-        <Text
-          numberOfLines={1}
-          style={{
-            flex: 1,
-            fontSize: scale.bodySize,
-            fontWeight: '700',
-            color: unknown ? PALETTE.tintaApagada : PALETTE.tinta,
-          }}
-        >
-          {unknown ? ES.waste.pickFirst : reasonLabel(reason)}
-        </Text>
-        {/* ⚠️ THE GLYPH IS INSIDE THE FIELD, which is what makes it read as a
-            drop-down rather than as a link. It carries no word of its own and
-            needs none: the cause is right beside it (C12.1). */}
-        <MaterialCommunityIcons name="chevron-down" size={scale.iconSize} color={PALETTE.accion} />
-      </Pressable>
     </View>
   );
 }
 
 /**
- * ⚠️⚠️ THE FIVE CAUSES — Comprar's provider window, with two differences that
- * are both rulings rather than taste.
+ * ⚠️ THE FIVE CAUSES — reached from the cart's *Otro* chip since `8l`. Two are
+ * on the foot already (caducado, dañado); this window holds all five so the
+ * chosen one is always findable, in the ENUM's order (`WASTE_REASONS`, `0003`'s
+ * declaration order, which is the order a reason breakdown comes back in).
  *
- * ⚠️ **NO WAY OUT ON THE WAY IN, AND NO DEFAULT TO FALL BACK ON.** Comprar's
- * window has no `Cerrar` on the way in either, but it opens with the generic
- * provider already marked — so a thumb that wants past it has one tap. Here
- * `0019` refuses a default in its own words, so the only way past is an answer.
- * ⚠️ That makes this the one modal in this app with no dismissal at all on first
- * open: Android's back is wired to `onRequestClose` and it is a **no-op** while
- * `opening`, deliberately, because the alternative is a screen priced against a
- * cause nobody chose.
- *
- * ⚠️ **THE ORDER IS THE ENUM'S** and not this file's — `WASTE_REASONS`, which is
- * `0003`'s declaration order, which is also the order a reason breakdown will
- * come back in. `@/api/waste` has the argument and
- * `docs/checks/6a-i-waste-contract.sh` asserts it against the database.
- *
- * ⚠️ TWO ROWS CARRY A LINE UNDER THE NAME AND THREE DO NOT — `reasonHint`, and
- * its reason: a hint under an obvious row is furniture, and the two that are not
- * obvious are the two `0003` argues at length.
+ * ⚠️ TWO ROWS CARRY A LINE UNDER THE NAME AND THREE DO NOT — `reasonHint`.
  */
 function Motivos({
   open,
@@ -539,37 +679,21 @@ function Motivos({
   onClose,
 }: {
   open: boolean;
-  chosen: WasteReason | null;
+  chosen: WasteReason;
   onChoose: (reason: WasteReason) => void;
   onClose: () => void;
 }) {
   const { scale } = useDensity();
-  const opening = chosen === null;
   return (
-    <Modal
-      visible={open}
-      animationType="fade"
-      transparent
-      // ⚠️ ANDROID'S BACK CLOSES IT ONLY ONCE A CAUSE IS CHOSEN — see the header.
-      onRequestClose={opening ? () => {} : onClose}
-    >
+    <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
       <View style={{ flex: 1 }}>
-        {opening ? (
-          <Velo />
-        ) : (
-          <Velo label={ES.waste.pickClose} onPress={onClose} />
-        )}
-
+        <Velo label={ES.waste.pickClose} onPress={onClose} />
         <View
           style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale.space * 2 }}
         >
           <View
             style={{
               width: '100%',
-              // ⚠️ `maxHeight` AND NOT `height`, and no `maxWidth` — `R6`, and the
-              // gate caught that once on Vender. A cap in points is a size `Letra
-              // grande` cannot change; the wrapper's padding keeps the window off
-              // the edges, and that scales.
               maxHeight: '70%',
               borderRadius: scale.space,
               backgroundColor: PALETTE.fondo,
@@ -578,54 +702,30 @@ function Motivos({
           >
             <View
               style={{
-                gap: scale.rowGap / 2,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: scale.rowGap,
                 paddingHorizontal: scale.space,
                 paddingVertical: scale.space,
                 borderBottomWidth: 1,
                 borderBottomColor: PALETTE.linea,
               }}
             >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: scale.rowGap,
-                }}
+              <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                {ES.waste.pickReason}
+              </Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={ES.waste.pickClose}
+                onPress={onClose}
+                style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
               >
-                <Text
-                  style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}
-                >
-                  {opening ? ES.waste.pickFirst : ES.waste.pickReason}
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                  {ES.waste.pickClose}
                 </Text>
-                {opening ? null : (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={ES.waste.pickClose}
-                    onPress={onClose}
-                    style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-                  >
-                    <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-                      {ES.waste.pickClose}
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-              {/* ⚠️ IT SAYS WHY IT IS IN THE WAY, and only on the way in: a window
-                  she opened herself needs no explanation. */}
-              {opening ? (
-                <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-                  {ES.waste.pickWhy}
-                </Text>
-              ) : null}
+              </Pressable>
             </View>
-
-            {/* ⚠️ A `FlatList` OVER FIVE ROWS IS DELIBERATE AND IT IS NOT ABOUT
-                VIRTUALISATION. It is the same component, the same separator and the
-                same row geometry as Comprar's provider window, so the two windows
-                are one thing a thumb has learned rather than two that resemble each
-                other. Five rows fit; `maxHeight` is what makes that a fact rather
-                than an assumption at `Letra grande`. */}
             <FlatList
               data={WASTE_REASONS}
               keyExtractor={(one) => one}
@@ -646,34 +746,23 @@ function Motivos({
                       minHeight: scale.rowHeight,
                       paddingHorizontal: scale.space,
                       paddingVertical: scale.rowGap,
-                      backgroundColor: here ? PALETTE.accionSuave : PALETTE.superficie,
+                      backgroundColor: here ? PALETTE.desperdicioSuave : PALETTE.superficie,
                     }}
                   >
                     <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
                       <Text
                         numberOfLines={1}
-                        style={{
-                          fontSize: scale.bodySize,
-                          fontWeight: here ? '700' : '600',
-                          color: PALETTE.tinta,
-                        }}
+                        style={{ fontSize: scale.bodySize, fontWeight: here ? '700' : '600', color: PALETTE.tinta }}
                       >
                         {reasonLabel(item)}
                       </Text>
                       {hint === '' ? null : (
-                        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-                          {hint}
-                        </Text>
+                        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{hint}</Text>
                       )}
                     </View>
-                    {/* ⚠️ `R11`: the chosen row is filled AND ticked AND bolder,
-                        never colour alone. */}
+                    {/* ⚠️ `R11`: the chosen row is filled AND ticked AND bolder. */}
                     {here ? (
-                      <MaterialCommunityIcons
-                        name="check"
-                        size={scale.iconSize}
-                        color={PALETTE.accion}
-                      />
+                      <MaterialCommunityIcons name="check" size={scale.iconSize} color={PALETTE.desperdicio} />
                     ) : null}
                   </Pressable>
                 );
@@ -687,36 +776,26 @@ function Motivos({
 }
 
 /**
- * ⚠️⚠️ ONE ROW, AND IT IS THE WHOLE CONTROL — C3.2, and C3.3's *"there is no
- * add-to-basket step and no product-detail screen between the list and the
- * line."* A quantity greater than zero IS the line.
+ * ⚠️⚠️ ONE ROW, AND IT IS THE WHOLE CONTROL — C3.3: a quantity greater than zero
+ * IS the line. `8l` gave it the owner's drawing: the initials tile, and under
+ * the name the line's expiry once it is in the basket (*Caduca hoy*, *Sin
+ * fecha*), on a tinted ground. ⚠️ NO PRICE ON THE ROW — his drawing has none,
+ * and on this screen a price decides nothing a shopkeeper can act on.
  *
- * ⚠️⚠️ THERE IS NO AMBER HERE AND VENDER'S ROW HAS ONE, WHICH IS THE DIFFERENCE
- * WORTH READING TWICE. §2.11 fences the `atención` colour to C3.17's unpriced
- * row, and Vender paints it because a missing price is about to decide what a
- * customer pays. **On this screen the price decides nothing a shopkeeper can act
- * on**: there is no money on the bar to be wrong (see this file's header), and
- * the write goes through either way. An alarm on a row that needs no action is
- * `5d-ii`'s *"alarm on a hundred rows nobody can silence"*, and C8.2's
- * deliberately short catalog is exactly the condition that would produce one.
- *
- * ⚠️ THE PRICE IS STILL SHOWN, AND IT IS THE CATALOG'S OWN LABEL. C3.10 —
- * never without its unit — computed by `5d-i`, the same string Productos and
- * Vender draw. It helps her know she has the right product; it is not this
- * screen's arithmetic, and C3.12's dash is what a missing one reads as.
- *
- * ⚠️ THE MAGNITUDE WORD IS KEPT, and it is the one advisory that survives here:
- * `9999 kg` in the bin is the typo with nobody on the other side of it to catch.
+ * ⚠️ NO AMBER BUT THE MAGNITUDE WORD: `9999 kg` in the bin is the typo with
+ * nobody on the other side of it to catch.
  */
 function Fila({
   entry,
   factors,
   typical,
+  today,
   onEdit,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
   typical: Typical | undefined;
+  today: string;
   onEdit: (editing: boolean) => void;
 }) {
   const { scale } = useDensity();
@@ -724,7 +803,8 @@ function Fila({
     for (const line of state.carts.waste) if (line.variantId === entry.id) return line.base;
     return 0;
   });
-
+  const expiry = useCartStore((state) => state.expiries[entry.id] ?? null);
+  const counted = base > 0;
   const big = magnitudeNote(outsized(typical, base, null));
 
   return (
@@ -736,84 +816,67 @@ function Fila({
         minHeight: scale.rowHeight,
         paddingVertical: scale.rowGap,
         paddingHorizontal: scale.space,
-        backgroundColor: PALETTE.superficie,
+        backgroundColor: counted ? PALETTE.desperdicioSuave : PALETTE.superficie,
       }}
     >
+      <Retrato
+        name={entry.name}
+        ground={counted ? PALETTE.superficie : PALETTE.desperdicioSuave}
+        ink={PALETTE.desperdicio}
+      />
       <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
-        <Text
-          numberOfLines={1}
-          style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}
-        >
+        <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
           {entry.name}
         </Text>
-        {entry.familyName === '' ? null : (
-          <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
-          >
-            {entry.familyName}
-          </Text>
-        )}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-          {/* C3.10's sentence, computed by `5d-i` and never assembled here. */}
+        {counted ? (
           <Text
             numberOfLines={1}
             style={{
-              fontSize: scale.bodySize,
+              fontSize: scale.smallSize,
               fontWeight: '600',
-              color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta,
+              color: expiry === null ? PALETTE.tintaApagada : PALETTE.desperdicio,
             }}
           >
-            {entry.price}
+            {expiry === null ? ES.dates.noDate : ES.waste.expires(formatExpiryDay(expiry, today))}
           </Text>
-          {/* ⚠️ `R11`: the hue never travels alone, and this is the only amber
-              word on the screen. */}
-          {big === '' ? null : (
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-            >
-              {big}
-            </Text>
-          )}
-        </View>
+        ) : entry.familyName === '' ? null : (
+          <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+            {entry.familyName}
+          </Text>
+        )}
+        {/* ⚠️ `R11`: the hue never travels alone, and this is the only amber
+            word on the screen. */}
+        {big === '' ? null : (
+          <Text numberOfLines={1} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
+            {big}
+          </Text>
+        )}
       </View>
 
-      <Cantidad
-        entry={entry}
-        base={base}
-        factors={factors}
-        scope="waste"
-        onEdit={onEdit}
-        padId={PAD_ID}
-      />
+      <Cantidad entry={entry} base={base} factors={factors} scope="waste" onEdit={onEdit} padId={PAD_ID} />
     </View>
   );
 }
 
 /**
- * ⚠️⚠️ C3.4's STICKY BAR, ARRANGEMENT A — the owner's ruling of 2026-09-24,
- * *"We'll go with Option A with the barra"*: two rows, the summary reads and the
- * slide acts.
- *
- * ⚠️⚠️ AND IT COUNTS INSTEAD OF SUMMING, WHICH IS THE ONE STRUCTURAL DIFFERENCE
- * FROM VENDER'S BAR AND IS ÁREA 9's RULING — see this file's header. There is no
- * `Total`, no peso figure and no `Falta un precio`. ⚠️ **The two-row shape is
- * kept anyway, and that is deliberate**: the arithmetic that made two rows
- * necessary on Vender was about a total eating the track, and there is no total
- * here — but the thumb that has learned `Vaciar carrito` bottom-left and the
- * slide bottom-right on two screens must find them in the same place on the
- * third. Muscle memory is the argument, exactly as it was for the sheet's fixed
- * height.
+ * ⚠️⚠️ C3.4's STICKY BAR — and it COUNTS instead of summing (área 9). `8l` put
+ * the two defaults on it, as the owner drew them: the day and the cause, each a
+ * chip that opens the cart where they are changed. ⚠️ **So the default is in
+ * front of her every moment the slide can be reached** — that is what makes a
+ * default cause something she chose by not changing it.
  */
 function Barra({
   lines,
+  day,
+  reason,
   onOpen,
   onCommit,
   onEmpty,
   canRecord,
 }: {
   lines: number;
+  day: WasteDay;
+  reason: WasteReason;
   onOpen: () => void;
   onCommit: () => void;
   onEmpty: () => void;
@@ -826,11 +889,7 @@ function Barra({
     <View style={{ borderTopWidth: 1, borderTopColor: PALETTE.linea, backgroundColor: PALETTE.banda }}>
       <Strip
         {...(live
-          ? {
-              accessibilityRole: 'button' as const,
-              accessibilityLabel: ES.counter.cart.open,
-              onPress: onOpen,
-            }
+          ? { accessibilityRole: 'button' as const, accessibilityLabel: ES.counter.cart.open, onPress: onOpen }
           : {})}
         style={{
           flexDirection: 'row',
@@ -844,10 +903,6 @@ function Barra({
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
           {ES.waste.counted}
         </Text>
-
-        {/* ⚠️ THE COUNT SITS WHERE VENDER'S TOTAL SITS — right-aligned, in the
-            money weight — because it is the figure this screen is reporting. The
-            chevron is beside the word, so nothing becomes a bare icon (C12.1). */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
           <Text
             style={{
@@ -858,23 +913,16 @@ function Barra({
           >
             {live ? ES.counter.lines(lines) : ES.counter.emptyCart}
           </Text>
-          {live ? (
-            <MaterialCommunityIcons
-              name="chevron-right"
-              size={scale.iconSize}
-              color={PALETTE.accion}
-            />
-          ) : null}
+          {live ? <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.accion} /> : null}
         </View>
       </Strip>
 
-      {/* ⚠️ THE SECOND ROW, AND ONLY ONCE THERE IS A BASKET — `Vaciar carrito`
-          left, the slide right, which is the sheet's foot on the screen (ruled
-          2026-09-24). ⚠️ `Vaciar carrito` IS DRAWN EVEN WHEN THE WRITE-OFF CANNOT
-          BE COMMITTED: a basket carrying a retired product still has to be
-          emptiable, and that is the case where she is most likely to want to. */}
       {live ? (
-        <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.space }}>
+        <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.space, gap: scale.rowGap }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
+            <Opcion label={dayLabel(day)} on={false} drop onPress={onOpen} />
+            <Opcion label={reasonLabel(reason)} on={false} drop onPress={onOpen} />
+          </View>
           <CierreCarrito
             onEmpty={onEmpty}
             word={ES.waste.slide.word}
@@ -889,14 +937,15 @@ function Barra({
   );
 }
 
+function dayLabel(day: WasteDay): string {
+  return day === 0 ? ES.dates.relative.today : day === 1 ? ES.dates.relative.yesterday : ES.dates.relative.dayBefore;
+}
+
 /**
- * ⚠️⚠️ C3.5's SHEET, ON THE WASTE COUNTER — the review before the write-off.
- * Its frame is `src/ui/HojaCarrito` since round 4 of `8g` (2026-10-16), shared
- * with Vender and Comprar, which gave this one the titles' face and the count
- * under it; what is Desperdicio's is the line (`Renglon`).
- *
- * ⚠️ THERE IS NO TOTAL IN ITS FOOT: a write-off is counted, not charged — the
- * bar says how many products, and so does the heading.
+ * ⚠️⚠️ C3.5's SHEET — the review before the write-off, its frame
+ * `src/ui/HojaCarrito`. `8l` gave its foot the owner's two questions above the
+ * slide, *¿Cuándo lo tiraste?* and *Motivo*, and each line its *Caducidad*.
+ * ⚠️ THERE IS STILL NO TOTAL: a write-off is counted, not charged.
  */
 function Carrito({
   open,
@@ -905,6 +954,11 @@ function Carrito({
   entries,
   factors,
   typicals,
+  today,
+  day,
+  reason,
+  onDay,
+  onReason,
   onCommit,
   onEmpty,
   canRecord,
@@ -920,6 +974,11 @@ function Carrito({
   entries: readonly CatalogEntry[];
   factors: UnitFactors;
   typicals: Typicals;
+  today: string;
+  day: WasteDay;
+  reason: WasteReason;
+  onDay: (day: WasteDay) => void;
+  onReason: (reason: WasteReason) => void;
   onCommit: () => void;
   onEmpty: () => void;
   canRecord: boolean;
@@ -929,7 +988,18 @@ function Carrito({
   onConfirmEmpty: () => void;
   onCancelEmpty: () => void;
 }) {
+  const { scale } = useDensity();
   const rows = review === null ? [] : review.rows;
+  // ⚠️ TWO CAUSES ON THE FOOT AND THE OTHER THREE BEHIND *OTRO* — the owner's
+  // drawing. A cause chosen from the window shows its own name on that chip.
+  const elsewhere = !FOOT_REASONS.includes(reason);
+  const [dating, setDating] = useState<string | null>(null);
+  // ⚠️ THE FIVE CAUSES OPEN FROM THIS SHEET'S FOOT, so their window is drawn
+  // inside this sheet's `Modal` (`over`) — a sibling `Modal` is two iOS
+  // presentations animating against each other (`HojaCarrito`'s header).
+  const [picking, setPicking] = useState(false);
+  const datingExpiry = useCartStore((state) => (dating === null ? null : (state.expiries[dating] ?? null)));
+  const setExpiry = useCartStore((state) => state.setExpiry);
 
   return (
     <HojaCarrito
@@ -938,25 +1008,67 @@ function Carrito({
       lines={rows.length}
       foot={
         rows.length === 0 ? null : (
-          <CierreCarrito
-            onEmpty={onEmpty}
-            word={ES.waste.slide.word}
-            label={ES.waste.slide.labelInCart}
-            onCommit={onCommit}
-            canCommit={canRecord}
-            compact
-          />
+          <View style={{ gap: scale.rowGap }}>
+            <Pregunta title={ES.waste.when}>
+              {WASTE_DAYS.map((d) => (
+                <Opcion key={d} label={dayLabel(d)} on={d === day} onPress={() => onDay(d)} />
+              ))}
+            </Pregunta>
+            <Pregunta title={ES.waste.reasonTitle}>
+              {FOOT_REASONS.map((r) => (
+                <Opcion key={r} label={reasonLabel(r)} on={r === reason} onPress={() => onReason(r)} />
+              ))}
+              <Opcion
+                label={elsewhere ? reasonLabel(reason) : ES.waste.otherReason}
+                on={elsewhere}
+                drop
+                onPress={() => setPicking(true)}
+              />
+            </Pregunta>
+            <CierreCarrito
+              onEmpty={onEmpty}
+              word={ES.waste.slide.word}
+              label={ES.waste.slide.labelInCart}
+              onCommit={onCommit}
+              canCommit={canRecord}
+              compact
+            />
+          </View>
         )
       }
       over={
-        <VaciarCarrito
-          asking={asking}
-          emptied={emptied}
-          bloom={bloom}
-          count={rows.length}
-          onConfirm={onConfirmEmpty}
-          onCancel={onCancelEmpty}
-        />
+        <>
+          <VaciarCarrito
+            asking={asking}
+            emptied={emptied}
+            bloom={bloom}
+            count={rows.length}
+            onConfirm={onConfirmEmpty}
+            onCancel={onCancelEmpty}
+          />
+          <Calendario
+            open={dating !== null}
+            title={ES.waste.pickExpiry}
+            chosen={datingExpiry}
+            from={addDays(today, -30) ?? today}
+            to={addDays(today, 30) ?? today}
+            today={today}
+            onChoose={(d) => {
+              if (dating !== null) setExpiry(dating, d);
+              setDating(null);
+            }}
+            onClose={() => setDating(null)}
+          />
+          <Motivos
+            open={picking}
+            chosen={reason}
+            onChoose={(next) => {
+              onReason(next);
+              setPicking(false);
+            }}
+            onClose={() => setPicking(false)}
+          />
+        </>
       }
     >
       <FlatList
@@ -969,6 +1081,8 @@ function Carrito({
             entry={entries.find((e) => e.id === item.variantId)}
             factors={factors}
             typical={typicals[item.variantId]}
+            today={today}
+            onOtherDay={() => setDating(item.variantId)}
           />
         )}
         ItemSeparatorComponent={Separador}
@@ -980,47 +1094,36 @@ function Carrito({
 }
 
 /**
- * One line of the basket, as the sheet draws it.
+ * One line of the basket. ⚠️ NO LINE TOTAL — área 9 again, on the one surface
+ * where it is hardest to leave out. `8l` added the line's *Caducidad*: sin
+ * fecha, hoy, ayer, or a day from the calendar behind *Otra…*.
  *
- * ⚠️⚠️ NO LINE TOTAL, WHICH IS ÁREA 9's RULING REACHING THE ONE SURFACE WHERE IT
- * IS HARDEST TO LEAVE OUT. On Vender the line total is HERE and nowhere else
- * (C3.4), *"the one place a customer is reading the arithmetic over the
- * shopkeeper's shoulder."* **Nobody is reading a write-off over her shoulder**,
- * and the number she is checking is the quantity — which the control on this row
- * already shows and lets her fix.
- *
- * ⚠️ A ROW WHOSE PRODUCT HAS LEFT THE CATALOG IS DRAWN AND NOT HIDDEN — see
- * `reviewOf`, where the argument lives. `draftOf` refuses the whole basket for
- * it, and this sheet is the only surface that can remove it, because the list
- * behind it is the catalog and the catalog no longer has the row.
- *
- * ⚠️ TWO LINES AND NOT THREE. Vender's row needs three because the stepper, the
- * line total and `Quitar` measured 440 pt before the name got anything; with the
- * total gone the name and `Quitar` share one line and the control takes the
- * second. ⚠️ **That was arithmetic there and it is arithmetic here**: at `Letra
- * grande` on a 393 pt screen the stepper is 222 pt and `Quitar` 60, which is why
- * they still do not share a line with the name.
+ * ⚠️ A ROW WHOSE PRODUCT HAS LEFT THE CATALOG IS DRAWN AND NOT HIDDEN —
+ * `reviewOf` has the argument: this sheet is the only surface that can remove it.
  */
 function Renglon({
   row,
   entry,
   factors,
   typical,
+  today,
+  onOtherDay,
 }: {
   row: ReviewRow;
   entry: CatalogEntry | undefined;
   factors: UnitFactors;
   typical: Typical | undefined;
+  today: string;
+  onOtherDay: () => void;
 }) {
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
+  const expiry = useCartStore((state) => state.expiries[row.variantId] ?? null);
+  const setExpiry = useCartStore((state) => state.setExpiry);
   const gone = entry === undefined;
-
-  // ⚠️ THE WARNING IS ON THE SHEET AS WELL AS ON THE LIST AND THAT IS NOT A
-  // DUPLICATE — §2.8's guards compound, and the sheet is the last surface before
-  // the slide. A line flagged on a row that has since scrolled away would be
-  // committed having been flagged to nobody.
   const big = magnitudeNote(outsized(typical, row.base, null));
+  const yesterday = addDays(today, -1);
+  const named = expiry === null || expiry === today || expiry === yesterday;
 
   return (
     <View
@@ -1034,28 +1137,15 @@ function Renglon({
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
         <Text
           numberOfLines={1}
-          style={{
-            flex: 1,
-            fontSize: scale.bodySize,
-            fontWeight: '600',
-            color: gone ? PALETTE.tintaApagada : PALETTE.tinta,
-          }}
+          style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: gone ? PALETTE.tintaApagada : PALETTE.tinta }}
         >
           {row.name ?? ES.counter.cart.goneName}
         </Text>
-        {/* ⚠️ A WORD AND NOT A GLYPH — the width is the reason as much as the
-            clarity: an icon plus its word does not fit beside the stepper at
-            `Letra grande`, and an icon alone on the one control that destroys
-            something is the shape C12.1 refuses. */}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={`${ES.counter.cart.remove} ${row.name ?? ES.counter.cart.goneName}`}
           onPress={() => remove('waste', row.variantId)}
-          style={{
-            minHeight: scale.tapTarget,
-            justifyContent: 'center',
-            paddingHorizontal: scale.rowGap,
-          }}
+          style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
         >
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
             {ES.counter.cart.remove}
@@ -1063,31 +1153,1089 @@ function Renglon({
         </Pressable>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
+      {gone || big !== '' ? (
         <Text
           numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
+          style={{
+            fontSize: scale.smallSize,
+            fontWeight: big === '' ? '400' : '600',
+            color: big === '' ? PALETTE.tintaApagada : PALETTE.atencion,
+          }}
         >
-          {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
+          {gone ? ES.counter.cart.gone : big}
         </Text>
-        {/* ⚠️ `R11`: the state never travels as a colour alone. */}
-        {big === '' ? null : (
-          <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-          >
-            {big}
-          </Text>
-        )}
-      </View>
+      ) : null}
+
+      {gone ? null : (
+        <Pregunta title={ES.waste.expiry}>
+          <Opcion label={ES.dates.noDate} on={expiry === null} onPress={() => setExpiry(row.variantId, null)} />
+          <Opcion
+            label={ES.dates.relative.today}
+            on={expiry === today}
+            onPress={() => setExpiry(row.variantId, today)}
+          />
+          <Opcion
+            label={ES.dates.relative.yesterday}
+            on={expiry !== null && expiry === yesterday}
+            onPress={() => setExpiry(row.variantId, yesterday)}
+          />
+          <Opcion
+            label={named ? ES.waste.otherDay : formatExpiryDay(expiry, today)}
+            on={!named}
+            drop
+            onPress={onOtherDay}
+          />
+        </Pregunta>
+      )}
 
       <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-        {gone ? (
-          <View />
-        ) : (
-          <Cantidad entry={entry} base={row.base} factors={factors} scope="waste" padId={PAD_ID} />
-        )}
+        {gone ? <View /> : <Cantidad entry={entry} base={row.base} factors={factors} scope="waste" padId={PAD_ID} />}
       </View>
     </View>
+  );
+}
+
+// ============================================================================
+// Te lo compro
+// ============================================================================
+
+type Paso = 'que' | 'cuando' | 'revisar' | 'guardada';
+
+function TeLoCompro({ acceso, isOwner }: { acceso: Acceso; isOwner: boolean }) {
+  const { scale } = useDensity();
+  if (acceso.kind !== 'open') {
+    // ⚠️ THE SWITCH CAN REACH THIS SIDE WHEN THE DOOR IS SHUT, so the side says
+    // what the door says — the same card, the same reason, nothing to fill in.
+    return (
+      <ScrollView contentContainerStyle={{ padding: scale.space }}>
+        <PuertaCompro acceso={acceso} isOwner={isOwner} onOpen={() => {}} />
+      </ScrollView>
+    );
+  }
+  return <Solicitar address={acceso.address} />;
+}
+
+function Solicitar({ address }: { address: StoreAddress }) {
+  const { scale } = useDensity();
+  const { entries, loading, failed } = useCatalog('');
+  const factors = useUnitFactors();
+  const workspace = useWorkspace();
+  const requests = useCollectionRequests();
+  const { send, busy } = useRequestCollection();
+
+  const today = isoDay(new Date());
+
+  const [paso, setPaso] = useState<Paso>('que');
+  const [id, setId] = useState(newWriteId);
+  const [variantId, setVariantId] = useState<string | null>(null);
+  const [base, setBase] = useState(0);
+  const [condition, setCondition] = useState<Condition | null>(null);
+  const [packaging, setPackaging] = useState<Packaging | null>(null);
+  const [keeping, setKeeping] = useState<Keeping | null>(null);
+  const [expiryDate, setExpiryDate] = useState<string | null | undefined>(undefined);
+  const [day, setDay] = useState<string | null>(null);
+  const [hour, setHour] = useState<number | null>(null);
+  const [quarter, setQuarter] = useState<number | null>(null);
+  const [note, setNote] = useState('');
+  const [prefilled, setPrefilled] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [saved, setSaved] = useState<string | null>(null);
+  const [typed, setTyped] = useState('');
+  const [dating, setDating] = useState(false);
+  const box = useRef<TextInput>(null);
+
+  // ⚠️⚠️ THE PREVIOUS REQUEST'S ANSWERS, ONCE — the owner's *"prefill each entry
+  // with the equivalent values of the previous one."* Seeded the first time the
+  // list arrives and never again, so a read finishing late cannot overwrite
+  // what she has already changed.
+  const seeded = useRef(false);
+  useEffect(() => {
+    if (seeded.current || requests.data === undefined) return;
+    seeded.current = true;
+    const p: CollectionPrefill = prefillFrom(requests.data, today, nowClock());
+    if (p.condition === null) return;
+    setCondition(p.condition);
+    setPackaging(p.packaging);
+    setKeeping(p.keeping);
+    // ⚠️ AN EXPIRY ALREADY PAST IS NOT CARRIED: the next product is not the
+    // last one, and *caducó antier* copied forward would be a guess.
+    setExpiryDate(p.expiryDate === null || (p.expiryDate !== undefined && p.expiryDate >= today) ? p.expiryDate : undefined);
+    setDay(p.day);
+    const parts = p.at === null ? null : partsOf(p.at);
+    setHour(parts?.hour ?? null);
+    setQuarter(parts?.quarter ?? null);
+    setPrefilled(true);
+  }, [requests.data, today]);
+
+  const entry = variantId === null ? undefined : entries.find((e) => e.id === variantId);
+  const sent = entry === undefined || base <= 0 ? null : qtySent(base, entry, factors);
+  const at = hour === null || quarter === null ? null : startAt(hour, quarter);
+  const clock = nowClock();
+  const slotOk = day !== null && at !== null && slotValid(at) && !slotPassed(day, at, today, clock);
+  const ready = draftReady({ qty: sent?.qty_display ?? '', condition, packaging, keeping, expiryDate });
+
+  const save = async () => {
+    if (entry === undefined || sent === null || !slotOk || day === null || at === null) return;
+    if (condition === null || packaging === null || keeping === null || expiryDate === undefined) return;
+    setError(null);
+    const failure = await send({
+      id,
+      locationId: address.locationId,
+      day,
+      at,
+      line: {
+        variantId: entry.id,
+        qty: sent.qty_display,
+        unit: sent.qty_display_unit,
+        condition,
+        packaging,
+        keeping,
+        expiryDate,
+      },
+      photos: [],
+      note,
+    });
+    if (failure !== null) {
+      setError(failure);
+      return;
+    }
+    setSaved(
+      ES.collection.savedLine(
+        productAmount(entry.name, sent.qty_display, sent.qty_display_unit),
+        formatSlot(day, at, today),
+      ),
+    );
+    setPaso('guardada');
+  };
+
+  // ⚠️ *Otro producto, con los mismos datos* — everything but the product, its
+  // quantity and its note stays, and a new id makes it a new request.
+  const another = () => {
+    setId(newWriteId());
+    setVariantId(null);
+    setBase(0);
+    setNote('');
+    setTyped('');
+    setError(null);
+    setPrefilled(true);
+    setPaso('que');
+  };
+
+  const mine = newestFirst(requests.data ?? []);
+  const todays = sentToday(mine, today);
+
+  if (paso === 'guardada') {
+    return (
+      <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: scale.space,
+            padding: scale.space,
+            borderRadius: scale.space,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+          }}
+        >
+          <MaterialCommunityIcons name="check-circle-outline" size={scale.retratoSize} color={PALETTE.accion} />
+          <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+              {ES.collection.saved}
+            </Text>
+            <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{saved ?? ''}</Text>
+          </View>
+        </View>
+        <BotonLleno label={ES.collection.another} variante="principal" onPress={another} />
+        {SUPPORT_WHATSAPP === null || todays.length === 0 ? null : (
+          <View style={{ gap: scale.rowGap / 2 }}>
+            <BotonLleno
+              label={ES.collection.tell}
+              icon="whatsapp"
+              onPress={() => {
+                const text = whatsappMessage(todays, workspace?.displayName ?? '', address, today);
+                void Linking.openURL(whatsappUrl(SUPPORT_WHATSAPP ?? '', text));
+              }}
+            />
+            <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+              {ES.collection.tellHint}
+            </Text>
+          </View>
+        )}
+        <Solicitudes requests={mine} mayCancel />
+      </ScrollView>
+    );
+  }
+
+  const choosing = paso === 'que' && entry === undefined;
+
+  return (
+    <View style={{ flex: 1 }}>
+      <Pasos at={paso === 'que' ? 0 : paso === 'cuando' ? 1 : 2} />
+
+      {choosing ? (
+        <View style={{ flex: 1 }}>
+          {prefilled ? <Prefilled /> : null}
+          <Text
+            style={{
+              paddingHorizontal: scale.space,
+              paddingTop: scale.space,
+              fontSize: scale.titleSize,
+              ...TITULO,
+              color: PALETTE.tinta,
+            }}
+          >
+            {ES.collection.pickProduct}
+          </Text>
+          <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+          <FlatList
+            data={search(entries, typed)}
+            keyExtractor={(e) => e.id}
+            ItemSeparatorComponent={Separador}
+            ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+            keyboardShouldPersistTaps="handled"
+            renderItem={({ item }) => (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={item.name}
+                onPress={() => {
+                  setVariantId(item.id);
+                  setBase(0);
+                  Keyboard.dismiss();
+                }}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: scale.rowGap,
+                  minHeight: scale.rowHeight,
+                  paddingHorizontal: scale.space,
+                  paddingVertical: scale.rowGap,
+                  backgroundColor: PALETTE.superficie,
+                }}
+              >
+                <Retrato name={item.name} ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+                  <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+                    {item.name}
+                  </Text>
+                  {item.familyName === '' ? null : (
+                    <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+                      {item.familyName}
+                    </Text>
+                  )}
+                </View>
+                <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.desperdicio} />
+              </Pressable>
+            )}
+          />
+        </View>
+      ) : (
+        <ScrollView
+          style={{ flex: 1 }}
+          contentContainerStyle={{ padding: scale.space, gap: scale.space }}
+          keyboardShouldPersistTaps="handled"
+        >
+          {paso === 'que' && entry !== undefined ? (
+            <>
+              {prefilled ? <Prefilled inset={false} /> : null}
+              <Tarjeta>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+                  <Retrato name={entry.name} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                  <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+                    <Text numberOfLines={2} style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                      {entry.name}
+                    </Text>
+                    <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={ES.collection.changeProduct}
+                      onPress={() => {
+                        setVariantId(null);
+                        setBase(0);
+                      }}
+                      style={{ alignSelf: 'flex-start' }}
+                    >
+                      <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.accion }}>
+                        {ES.collection.changeProduct}
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+                <Cantidad
+                  entry={entry}
+                  base={base}
+                  factors={factors}
+                  scope="waste"
+                  padId={PAD_ID}
+                  onChange={setBase}
+                  fill
+                />
+              </Tarjeta>
+              <Tarjeta>
+                <Pregunta title={ES.collection.condition}>
+                  {CONDITIONS.map((c) => (
+                    <Opcion key={c} label={ES.collection.conditions[c]} on={c === condition} onPress={() => setCondition(c)} />
+                  ))}
+                </Pregunta>
+                <Pregunta title={ES.collection.packaging}>
+                  {PACKAGINGS.map((p) => (
+                    <Opcion key={p} label={ES.collection.packagings[p]} on={p === packaging} onPress={() => setPackaging(p)} />
+                  ))}
+                </Pregunta>
+                <Pregunta title={ES.collection.keeping}>
+                  {KEEPINGS.map((k) => (
+                    <Opcion key={k} label={ES.collection.keepings[k]} on={k === keeping} onPress={() => setKeeping(k)} />
+                  ))}
+                </Pregunta>
+                <Caduca today={today} value={expiryDate} onPick={setExpiryDate} onOther={() => setDating(true)} />
+              </Tarjeta>
+            </>
+          ) : null}
+
+          {paso === 'cuando' ? (
+            <Cuando
+              today={today}
+              clock={clock}
+              day={day}
+              hour={hour}
+              quarter={quarter}
+              onDay={(d) => setDay(d)}
+              onHour={setHour}
+              onQuarter={setQuarter}
+              slot={slotOk && day !== null && at !== null ? formatSlot(day, at, today, true) : null}
+            />
+          ) : null}
+
+          {paso === 'revisar' && entry !== undefined && sent !== null && day !== null && at !== null ? (
+            <>
+              <Tarjeta>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+                  <Retrato name={entry.name} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                  <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
+                    <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                      {productAmount(entry.name, sent.qty_display, sent.qty_display_unit)}
+                    </Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+                      {[
+                        condition === null ? '' : ES.collection.conditions[condition],
+                        packaging === null ? '' : ES.collection.packagings[packaging],
+                        keeping === null ? '' : ES.collection.keepings[keeping],
+                        expiryDate === undefined
+                          ? ''
+                          : expiryDate === null
+                            ? ES.dates.noDate
+                            : ES.collection.expiresTag(formatExpiryDay(expiryDate, today)),
+                      ]
+                        .filter((t) => t !== '')
+                        .map((t) => (
+                          <Etiqueta key={t} text={t} />
+                        ))}
+                    </View>
+                  </View>
+                </View>
+              </Tarjeta>
+              <Tarjeta>
+                <Rotulo text={ES.collection.when} />
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                  {formatSlot(day, at, today, true)}
+                </Text>
+              </Tarjeta>
+              <Tarjeta>
+                <Rotulo text={ES.collection.where} />
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+                  {storeAddressLine(address)}
+                </Text>
+              </Tarjeta>
+              <TextInput
+                value={note}
+                onChangeText={setNote}
+                placeholder={ES.collection.notePlaceholder}
+                placeholderTextColor={PALETTE.tintaApagada}
+                multiline
+                style={{
+                  minHeight: scale.tapTarget,
+                  paddingHorizontal: scale.space,
+                  paddingVertical: scale.rowGap,
+                  borderRadius: scale.space / 2,
+                  borderWidth: 1,
+                  borderColor: PALETTE.linea,
+                  backgroundColor: PALETTE.superficie,
+                  fontSize: scale.bodySize,
+                  color: PALETTE.tinta,
+                }}
+              />
+              {error === null ? null : (
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{error}</Text>
+              )}
+            </>
+          ) : null}
+        </ScrollView>
+      )}
+
+      {choosing ? null : (
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: scale.space,
+            padding: scale.space,
+            borderTopWidth: 1,
+            borderTopColor: PALETTE.linea,
+            backgroundColor: PALETTE.banda,
+          }}
+        >
+          {paso === 'que' ? null : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={ES.collection.back}
+              onPress={() => setPaso(paso === 'revisar' ? 'cuando' : 'que')}
+              style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+            >
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                {ES.collection.back}
+              </Text>
+            </Pressable>
+          )}
+          <View style={{ flex: 1 }}>
+            {paso === 'que' ? (
+              <BotonLleno label={ES.collection.next.que} variante="principal" off={!ready} onPress={() => setPaso('cuando')} />
+            ) : paso === 'cuando' ? (
+              <BotonLleno
+                label={ES.collection.next.cuando}
+                variante="principal"
+                off={!slotOk}
+                onPress={() => setPaso('revisar')}
+              />
+            ) : (
+              <BotonLleno
+                label={ES.collection.next.guardar}
+                variante="principal"
+                busy={busy}
+                off={!slotOk || !ready}
+                onPress={() => void save()}
+              />
+            )}
+          </View>
+        </View>
+      )}
+
+      <Calendario
+        open={dating}
+        title={ES.waste.pickExpiry}
+        chosen={expiryDate ?? null}
+        from={addDays(today, -30) ?? today}
+        to={addDays(today, 60) ?? today}
+        today={today}
+        onChoose={(d) => {
+          setExpiryDate(d);
+          setDating(false);
+        }}
+        onClose={() => setDating(false)}
+      />
+    </View>
+  );
+}
+
+/** *Caduca* — sin fecha, hoy, mañana, or a day from the calendar. */
+function Caduca({
+  today,
+  value,
+  onPick,
+  onOther,
+}: {
+  today: string;
+  value: string | null | undefined;
+  onPick: (day: string | null) => void;
+  onOther: () => void;
+}) {
+  const tomorrow = addDays(today, 1);
+  const named = value === undefined || value === null || value === today || value === tomorrow;
+  return (
+    <Pregunta title={ES.collection.expiry}>
+      <Opcion label={ES.dates.noDate} on={value === null} onPress={() => onPick(null)} />
+      <Opcion label={ES.dates.relative.today} on={value === today} onPress={() => onPick(today)} />
+      <Opcion label={ES.dates.relative.tomorrow} on={value !== undefined && value === tomorrow} onPress={() => onPick(tomorrow)} />
+      <Opcion
+        label={named ? ES.waste.otherDay : formatExpiryDay(value ?? null, today)}
+        on={!named}
+        drop
+        onPress={onOther}
+      />
+    </Pregunta>
+  );
+}
+
+/**
+ * *¿Qué día pasamos?* and *¿A qué hora?* — the owner's one quarter of an hour.
+ * ⚠️ A QUARTER THAT HAS ALREADY BEGUN TODAY IS NOT OFFERED (`slotPassed`), and
+ * an hour with none left is drawn inert; tomorrow every one is open.
+ */
+function Cuando({
+  today,
+  clock,
+  day,
+  hour,
+  quarter,
+  onDay,
+  onHour,
+  onQuarter,
+  slot,
+}: {
+  today: string;
+  clock: string;
+  day: string | null;
+  hour: number | null;
+  quarter: number | null;
+  onDay: (day: string) => void;
+  onHour: (hour: number) => void;
+  onQuarter: (quarter: number) => void;
+  slot: string | null;
+}) {
+  const { scale } = useDensity();
+  const hours = pickupHours();
+  const rows = [hours.slice(0, 6), hours.slice(6)];
+  const open = (h: number, q: number) => day === null || !slotPassed(day, startAt(h, q), today, clock);
+  const lastOfToday = hours[hours.length - 1] ?? 18;
+  const todayOpen = !slotPassed(today, startAt(lastOfToday, QUARTERS[QUARTERS.length - 1] ?? 45), today, clock);
+
+  return (
+    <>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichDay}</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: scale.rowGap }}>
+        {pickupDays(today).map((d) => {
+          const tile = formatDayTile(d, today);
+          const on = d === day;
+          const inert = d === today && !todayOpen;
+          if (tile === null) return null;
+          return (
+            <Pressable
+              key={d}
+              accessibilityRole="button"
+              accessibilityState={{ selected: on, disabled: inert }}
+              accessibilityLabel={`${tile.top} ${tile.num}`}
+              disabled={inert}
+              onPress={() => onDay(d)}
+              style={{
+                minWidth: scale.tapTarget * 1.25,
+                paddingVertical: scale.rowGap,
+                alignItems: 'center',
+                gap: scale.rowGap / 4,
+                borderRadius: scale.space,
+                borderWidth: on ? 2 : 1,
+                borderColor: on ? PALETTE.desperdicio : PALETTE.linea,
+                backgroundColor: on ? PALETTE.desperdicio : PALETTE.superficie,
+                opacity: inert ? 0.4 : 1,
+              }}
+            >
+              <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: on ? PALETTE.superficie : PALETTE.tintaApagada }}>
+                {tile.top}
+              </Text>
+              <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: on ? PALETTE.superficie : PALETTE.tinta }}>
+                {tile.num}
+              </Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichTime}</Text>
+      {rows.map((row) => (
+        <View key={row[0] ?? 0} style={{ flexDirection: 'row', gap: scale.rowGap }}>
+          {row.map((h) => {
+            const any = QUARTERS.some((q) => open(h, q));
+            return (
+              <Opcion
+                key={h}
+                label={String(h)}
+                on={h === hour}
+                grow
+                inert={!any}
+                onPress={() => onHour(h)}
+              />
+            );
+          })}
+        </View>
+      ))}
+      <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+        {QUARTERS.map((q) => (
+          <Opcion
+            key={q}
+            label={ES.collection.quarter(q)}
+            on={q === quarter}
+            grow
+            inert={hour !== null && !open(hour, q)}
+            onPress={() => onQuarter(q)}
+          />
+        ))}
+      </View>
+
+      {slot === null ? null : (
+        <View
+          style={{
+            gap: scale.rowGap / 4,
+            padding: scale.space,
+            borderRadius: scale.space,
+            backgroundColor: PALETTE.desperdicioSuave,
+          }}
+        >
+          <Rotulo text={ES.collection.weCome} ink={PALETTE.desperdicio} />
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio }}>{slot}</Text>
+        </View>
+      )}
+    </>
+  );
+}
+
+/** The three steps, as a bar over the form — the owner's drawing. */
+function Pasos({ at }: { at: number }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ flexDirection: 'row', gap: scale.rowGap, paddingHorizontal: scale.space, paddingTop: scale.space }}>
+      {ES.collection.steps.map((label, i) => (
+        <View key={label} style={{ flex: 1, gap: scale.rowGap / 2 }}>
+          <View
+            style={{
+              height: scale.rowGap / 2,
+              borderRadius: scale.rowGap / 4,
+              backgroundColor: i <= at ? PALETTE.desperdicio : PALETTE.linea,
+            }}
+          />
+          <Text
+            style={{
+              fontSize: scale.smallSize,
+              fontWeight: '700',
+              color: i <= at ? PALETTE.desperdicio : PALETTE.tintaApagada,
+            }}
+          >
+            {label}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/**
+ * ⚠️⚠️ THE BAND THAT SAYS THE ANSWERS BELOW ARE THE LAST REQUEST'S — the owner's
+ * standing rule that a proposal must not look decided.
+ */
+function Prefilled({ inset = true }: { inset?: boolean }) {
+  const { scale } = useDensity();
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        marginHorizontal: inset ? scale.space : 0,
+        marginTop: inset ? scale.space : 0,
+        paddingHorizontal: scale.space,
+        paddingVertical: scale.rowGap,
+        borderRadius: scale.space / 2,
+        backgroundColor: PALETTE.desperdicioSuave,
+      }}
+    >
+      <MaterialCommunityIcons name="history" size={scale.iconSize} color={PALETTE.desperdicio} />
+      <Text style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.desperdicio }}>{ES.collection.prefilled}</Text>
+    </View>
+  );
+}
+
+/**
+ * The shop's requests, newest first, with their status — and *Cancelar* on an
+ * `enviada` one, asked twice in place: a request called off cannot be sent
+ * again (`0059`), so the second tap is the confirmation.
+ */
+function Solicitudes({ requests, mayCancel }: { requests: readonly CollectionRequest[]; mayCancel: boolean }) {
+  const { scale } = useDensity();
+  const today = isoDay(new Date());
+  const { cancel, busy } = useCancelCollection();
+  const [asking, setAsking] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  if (requests.length === 0) return null;
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      <Rotulo text={ES.collection.yours} />
+      {requests.map((r) => (
+        <View
+          key={r.id}
+          style={{
+            gap: scale.rowGap / 2,
+            padding: scale.space,
+            borderRadius: scale.space,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+          }}
+        >
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+            <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{requestTitle(r)}</Text>
+              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+                {formatSlot(r.day, r.from, today)}
+              </Text>
+            </View>
+            <Estado status={r.status} />
+          </View>
+          {mayCancel && r.cancellable ? (
+            asking === r.id ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+                <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+                  {ES.collection.cancelAsk}
+                </Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={ES.collection.cancelNo}
+                  onPress={() => setAsking(null)}
+                  style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+                >
+                  <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                    {ES.collection.cancelNo}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={ES.collection.cancelYes}
+                  disabled={busy}
+                  onPress={() => {
+                    setError(null);
+                    void cancel(r.id).then((failure) => {
+                      setAsking(null);
+                      setError(failure);
+                    });
+                  }}
+                  style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+                >
+                  <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.error }}>
+                    {ES.collection.cancelYes}
+                  </Text>
+                </Pressable>
+              </View>
+            ) : (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${ES.collection.cancel} ${requestTitle(r)}`}
+                onPress={() => setAsking(r.id)}
+                style={{ alignSelf: 'flex-end', minHeight: scale.tapTarget, justifyContent: 'center' }}
+              >
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+                  {ES.collection.cancel}
+                </Text>
+              </Pressable>
+            )
+          ) : null}
+        </View>
+      ))}
+      {error === null ? null : (
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{error}</Text>
+      )}
+    </View>
+  );
+}
+
+/**
+ * A request's status. ⚠️ `R11`: THE WORD IS ALWAYS THERE — the colour only
+ * groups them: Wera's answers filled, the shop's own call grey, a refusal red.
+ */
+function Estado({ status }: { status: CollectionStatus }) {
+  const { scale } = useDensity();
+  const look: Readonly<Record<CollectionStatus, { ground: string; ink: string }>> = {
+    enviada: { ground: PALETTE.desperdicioSuave, ink: PALETTE.desperdicio },
+    confirmada: { ground: PALETTE.desperdicio, ink: PALETTE.superficie },
+    recogida: { ground: PALETTE.accionSuave, ink: PALETTE.accion },
+    cancelada: { ground: PALETTE.fondo, ink: PALETTE.tintaApagada },
+    rechazada: { ground: PALETTE.fondo, ink: PALETTE.error },
+  };
+  return (
+    <View
+      style={{
+        paddingHorizontal: scale.rowGap,
+        paddingVertical: scale.rowGap / 4,
+        borderRadius: scale.space,
+        backgroundColor: look[status].ground,
+      }}
+    >
+      <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: look[status].ink }}>
+        {ES.collection.statuses[status]}
+      </Text>
+    </View>
+  );
+}
+
+// ============================================================================
+// The furniture both halves draw
+// ============================================================================
+
+function newestFirst(requests: readonly CollectionRequest[]): readonly CollectionRequest[] {
+  return [...requests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
+}
+
+/** A white card on the screen's ground — the drawing's. */
+function Tarjeta({ children }: { children: ReactNode }) {
+  const { scale } = useDensity();
+  return (
+    <View
+      style={{
+        gap: scale.space,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      {children}
+    </View>
+  );
+}
+
+/** A small heading over a group — `¿CÓMO ESTÁ?`, `CUÁNDO`. */
+function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
+  const { scale } = useDensity();
+  return (
+    <Text
+      style={{
+        fontSize: scale.smallSize,
+        fontWeight: '700',
+        color: ink,
+        textTransform: 'uppercase',
+        letterSpacing: scale.rowGap / 8,
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+/** A heading and its chips, wrapped. */
+function Pregunta({ title, children }: { title: string; children: ReactNode }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ gap: scale.rowGap / 2 }}>
+      <Rotulo text={title} />
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>{children}</View>
+    </View>
+  );
+}
+
+/**
+ * One choice. ⚠️ `R11`: CHOSEN IS FILLED, BOLDER AND THICKER-EDGED, never a hue
+ * alone. `drop` adds the chevron of a chip that opens something; `inert` is a
+ * choice that cannot be made (a quarter already begun), drawn faded and said.
+ */
+function Opcion({
+  label,
+  on,
+  onPress,
+  drop = false,
+  grow = false,
+  inert = false,
+}: {
+  label: string;
+  on: boolean;
+  onPress: () => void;
+  drop?: boolean;
+  grow?: boolean;
+  inert?: boolean;
+}) {
+  const { scale } = useDensity();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityState={{ selected: on, disabled: inert }}
+      accessibilityLabel={label}
+      disabled={inert}
+      onPress={onPress}
+      style={{
+        flexGrow: grow ? 1 : 0,
+        flexBasis: grow ? 0 : undefined,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: scale.rowGap / 4,
+        minHeight: scale.tapTarget,
+        paddingHorizontal: grow ? scale.rowGap / 2 : scale.space,
+        borderRadius: scale.tapTarget / 2,
+        borderWidth: on ? 2 : 1,
+        borderColor: on ? PALETTE.desperdicio : PALETTE.linea,
+        backgroundColor: on ? PALETTE.desperdicio : PALETTE.superficie,
+        opacity: inert ? 0.4 : 1,
+      }}
+    >
+      <Text
+        numberOfLines={1}
+        style={{ fontSize: scale.smallSize, fontWeight: on ? '700' : '600', color: on ? PALETTE.superficie : PALETTE.tinta }}
+      >
+        {label}
+      </Text>
+      {drop ? (
+        <MaterialCommunityIcons
+          name="chevron-down"
+          size={scale.iconSize * 0.75}
+          color={on ? PALETTE.superficie : PALETTE.desperdicio}
+        />
+      ) : null}
+    </Pressable>
+  );
+}
+
+/** A tag on the review card — what she answered, read back. */
+function Etiqueta({ text }: { text: string }) {
+  const { scale } = useDensity();
+  return (
+    <View
+      style={{
+        paddingHorizontal: scale.rowGap,
+        paddingVertical: scale.rowGap / 4,
+        borderRadius: scale.space,
+        backgroundColor: PALETTE.desperdicioSuave,
+      }}
+    >
+      <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.desperdicio }}>{text}</Text>
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `Otra…`'s CALENDAR, MONDAY FIRST — both halves' *other day*: an expiry on
+ * Tirar's line, an expiry on Te lo compro's product. The grid is
+ * `calendarMonths`', so the arithmetic is a pure module's (`R3`); this only
+ * draws it. Closing chooses nothing.
+ */
+function Calendario({
+  open,
+  title,
+  chosen,
+  from,
+  to,
+  today,
+  onChoose,
+  onClose,
+}: {
+  open: boolean;
+  title: string;
+  chosen: string | null;
+  from: string;
+  to: string;
+  today: string;
+  onChoose: (day: string) => void;
+  onClose: () => void;
+}) {
+  const { scale } = useDensity();
+  const heads = weekdayInitials();
+  // ⚠️ IT OPENS ON THE MONTH OF THE DAY CHOSEN, OR OF TODAY — measured on the
+  // emulator: opened at the range's first month, *today* was two screens down.
+  const target = (chosen ?? today).slice(0, 7);
+  const scroller = useRef<ScrollView>(null);
+  return (
+    <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
+      <View style={{ flex: 1 }}>
+        <Velo label={ES.collection.close} onPress={onClose} />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: scale.space }}>
+          <View
+            style={{
+              width: '100%',
+              maxHeight: '80%',
+              borderRadius: scale.space,
+              backgroundColor: PALETTE.fondo,
+              overflow: 'hidden',
+            }}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: scale.rowGap,
+                padding: scale.space,
+                borderBottomWidth: 1,
+                borderBottomColor: PALETTE.linea,
+              }}
+            >
+              <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{title}</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={ES.collection.close}
+                onPress={onClose}
+                style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+              >
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                  {ES.collection.close}
+                </Text>
+              </Pressable>
+            </View>
+            <View style={{ flexDirection: 'row', paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>
+              {heads.map((h, i) => (
+                <Text
+                  key={`${h}${i}`}
+                  style={{ flex: 1, textAlign: 'center', fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tintaApagada }}
+                >
+                  {h}
+                </Text>
+              ))}
+            </View>
+            <ScrollView ref={scroller} contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+              {calendarMonths(from, to).map((month) => {
+                const weeks: (string | null)[][] = [];
+                for (let i = 0; i < month.cells.length; i += 7) {
+                  const week = month.cells.slice(i, i + 7);
+                  while (week.length < 7) week.push(null);
+                  weeks.push(week);
+                }
+                return (
+                  <View
+                    key={month.key}
+                    style={{ gap: scale.rowGap / 2 }}
+                    onLayout={
+                      month.key === target
+                        ? (e) => scroller.current?.scrollTo({ y: e.nativeEvent.layout.y, animated: false })
+                        : undefined
+                    }
+                  >
+                    <Rotulo text={month.title} />
+                    {weeks.map((week, w) => (
+                      <View key={w} style={{ flexDirection: 'row' }}>
+                        {week.map((d, i) =>
+                          d === null ? (
+                            <View key={i} style={{ flex: 1, minHeight: scale.tapTarget }} />
+                          ) : (
+                            <Pressable
+                              key={d}
+                              accessibilityRole="button"
+                              accessibilityState={{ selected: d === chosen }}
+                              accessibilityLabel={formatExpiryDay(d, today)}
+                              onPress={() => onChoose(d)}
+                              style={{
+                                flex: 1,
+                                minHeight: scale.tapTarget,
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                borderRadius: scale.tapTarget / 2,
+                                borderWidth: d === today ? 1 : 0,
+                                borderColor: PALETTE.desperdicio,
+                                backgroundColor: d === chosen ? PALETTE.desperdicio : PALETTE.fondo,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: scale.bodySize,
+                                  fontWeight: d === chosen || d === today ? '700' : '400',
+                                  color: d === chosen ? PALETTE.superficie : PALETTE.tinta,
+                                }}
+                              >
+                                {String(Number(d.slice(8, 10)))}
+                              </Text>
+                            </Pressable>
+                          ),
+                        )}
+                      </View>
+                    ))}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </View>
+    </Modal>
   );
 }

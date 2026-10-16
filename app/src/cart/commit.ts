@@ -46,6 +46,7 @@ import {
   NO_TAX_RATES,
   type DraftRefusal,
   type Cart,
+  type Expiries,
   type Quotes,
   type Scope,
   type TaxRates,
@@ -105,6 +106,13 @@ export interface Basketful {
    * written down.
    */
   readonly reason?: WasteReason | null;
+  /** ⚠️ `8l`: each write-off line's expiry, by variant. Waste only. */
+  readonly expiries?: Expiries;
+  /**
+   * ⚠️ `8l`: when the write-off happened, when it was not today —
+   * `wasteOccurredAt` in `@/api/waste`. Waste only; `null` is the queue's stamp.
+   */
+  readonly occurredAt?: string | null;
 }
 
 /** Why a basket could not become a queued write. Never shown to anybody. */
@@ -136,6 +144,8 @@ export function commitOf(b: Basketful, stamp: Stamp): Committed {
     b.quotes ?? NO_QUOTES,
     b.providerId ?? null,
     b.reason ?? null,
+    b.expiries,
+    b.occurredAt ?? null,
   );
   if (!drafted.ok) return { ok: false, why: drafted.why };
 

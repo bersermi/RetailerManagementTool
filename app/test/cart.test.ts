@@ -57,9 +57,18 @@ import {
   step,
   stepOf,
   type Cart,
+  NO_EXPIRIES,
+  expiriesIn,
+  withExpiry,
 } from '@/cart/cart';
 import { CART_KEY, useCartStore } from '@/cart/store';
-import { WASTE_REASONS, WASTE_REASON_KEY } from '@/api/waste';
+import {
+  WASTE_DAYS,
+  WASTE_EXPIRY_KEY,
+  WASTE_REASONS,
+  WASTE_REASON_KEY,
+  wasteOccurredAt,
+} from '@/api/waste';
 
 // ---------------------------------------------------------------------------
 // The shop. `0001`'s own ten units, and the pollería the interview described.
@@ -1216,5 +1225,123 @@ describe('loading a corrected document back into a basket', () => {
     });
     expect(useCartStore.getState().reason).toBeNull();
     expect(useCartStore.getState().carts.waste).toHaveLength(1);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// `8l` — *TIRAR*: the expiry on each line and the day it was thrown away, the
+// owner's 2026-10-16. `0057` reads both; the wire is
+// `docs/checks/6a-i-waste-contract.sh`'s.
+// ---------------------------------------------------------------------------
+describe('8l — each line its expiry, the write-off its day', () => {
+  const cart: Cart = setQty(setQty(EMPTY_CART, PECHUGA, 750_000), HUEVO, 3_000);
+  const waste = (expiries = {}, occurredAt: string | null = null) =>
+    mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, 'caducado', expiries, occurredAt,
+      ),
+    );
+
+  it('puts a read expiry on its own line under `0057`s key, and none on a line sin fecha', () => {
+    const lines = waste({ [PECHUGA]: '2026-10-15' }).payload.lines as readonly Record<string, unknown>[];
+    const byId = Object.fromEntries(lines.map((l) => [l.variant_id, l]));
+    expect(WASTE_EXPIRY_KEY).toBe('expiry_date');
+    expect(byId[PECHUGA]![WASTE_EXPIRY_KEY]).toBe('2026-10-15');
+    expect(WASTE_EXPIRY_KEY in byId[HUEVO]!).toBe(false);
+  });
+
+  it('never puts an expiry on a sale, even when one is handed in', () => {
+    const draft = mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'sell', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, null, { [PECHUGA]: '2026-10-15' }, '2026-10-15T09:00:00.000Z',
+      ),
+    );
+    const lines = draft.payload.lines as readonly Record<string, unknown>[];
+    for (const line of lines) expect(WASTE_EXPIRY_KEY in line).toBe(false);
+    expect('occurred_at' in draft.payload).toBe(false);
+  });
+
+  it('⚠️ a write-off dated ayer reaches record_waste with that moment, not the queue’s', () => {
+    const at = wasteOccurredAt('2026-10-16T15:00:00.000Z', 1);
+    expect(at).toBe('2026-10-15T15:00:00.000Z');
+    const queued = queueWrite(waste({}, at), {
+      id: '77777777-7777-4777-8777-777777777777',
+      now: '2026-10-16T15:00:00.000Z',
+    });
+    if (!queued.ok) throw new Error(`the queue refused the draft: ${queued.why}`);
+    const args = sendArgs(queued.write);
+    expect(args.p_occurred_at).toBe('2026-10-15T15:00:00.000Z');
+    expect('p_occurred_at' in args && !('p_occurred_at_' in args)).toBe(true);
+  });
+
+  it('a write-off dated hoy carries no occurred_at — the queue stamps it', () => {
+    expect(wasteOccurredAt('2026-10-16T15:00:00.000Z', 0)).toBeNull();
+    expect('occurred_at' in waste({}, null).payload).toBe(false);
+  });
+
+  it('antier is 48 hours back — inside 0057s 72 with a day to spare', () => {
+    expect(wasteOccurredAt('2026-10-16T15:00:00.000Z', 2)).toBe('2026-10-14T15:00:00.000Z');
+    expect([...WASTE_DAYS]).toEqual([0, 1, 2]);
+  });
+
+  it('a line that leaves forgets its date, and the same map comes back when nothing left', () => {
+    const dated = withExpiry(NO_EXPIRIES, PECHUGA, '2026-10-15');
+    expect(expiriesIn(dated, cart)).toBe(dated);
+    expect(expiriesIn(dated, remove(cart, PECHUGA))).toEqual({});
+    expect(withExpiry(dated, PECHUGA, null)).toEqual({});
+    expect(withExpiry(dated, PECHUGA, '2026-10-15')).toBe(dated);
+  });
+});
+
+describe('8l — the store keeps the day and the dates with the basket', () => {
+  beforeEach(() => {
+    useCartStore.setState({
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART },
+      typed: { sell: {}, buy: {}, waste: {} },
+      workspaceId: null,
+      providerId: null,
+      reason: null,
+      wasteDay: 0,
+      expiries: {},
+    });
+  });
+
+  it('forgets a line’s date when its quantity steps to nothing, and every date on Vaciar', () => {
+    const s = useCartStore.getState();
+    s.setQty('waste', PECHUGA, 750_000);
+    s.setQty('waste', HUEVO, 3_000);
+    s.setExpiry(PECHUGA, '2026-10-15');
+    s.setExpiry(HUEVO, '2026-10-16');
+    useCartStore.getState().setQty('waste', PECHUGA, 0);
+    expect(useCartStore.getState().expiries).toEqual({ [HUEVO]: '2026-10-16' });
+    useCartStore.getState().setWasteDay(2);
+    useCartStore.getState().clear('waste');
+    expect(useCartStore.getState().expiries).toEqual({});
+    // ⚠️ VACIAR KEEPS THE DAY, AS IT KEEPS THE CAUSE: *I keyed the wrong products*.
+    expect(useCartStore.getState().wasteDay).toBe(2);
+  });
+
+  it('a sale’s quantity touches no waste date', () => {
+    const s = useCartStore.getState();
+    s.setQty('waste', PECHUGA, 750_000);
+    s.setExpiry(PECHUGA, '2026-10-15');
+    useCartStore.getState().setQty('sell', HUEVO, 3_000);
+    expect(useCartStore.getState().expiries).toEqual({ [PECHUGA]: '2026-10-15' });
+  });
+
+  it('⚠️ restores a v3 basket written before 8l — today, and sin fecha', () => {
+    const merge = useCartStore.persist.getOptions().merge!;
+    const restored = merge(
+      { carts: { sell: [], buy: [], waste: [] }, typed: { sell: {}, buy: {}, waste: {} }, workspaceId: 'w', providerId: null, reason: 'dañado' },
+      useCartStore.getState(),
+    );
+    expect(restored.wasteDay).toBe(0);
+    expect(restored.expiries).toEqual({});
+    expect(restored.reason).toBe('dañado');
+    const odd = merge({ wasteDay: 9, expiries: { a: '15/10/2026', b: '2026-10-15', c: 3 } }, useCartStore.getState());
+    expect(odd.wasteDay).toBe(0);
+    expect(odd.expiries).toEqual({ b: '2026-10-15' });
   });
 });

@@ -140,6 +140,20 @@ export interface Palette {
   readonly compraSuave: string;
   /** Comprar's screen behind its cards — the drawing's blue-grey, `#F2F5F8`. */
   readonly compraFondo: string;
+  /**
+   * ⚠️ THE EIGHTEENTH ROLE, `8l` (2026-10-16): **Desperdicio's own colour,
+   * berenjena** — the owner chose it over carbón and barro, drawn beside today's
+   * Vender and Comprar: warm like the cream band and the brand's rust, and far
+   * from Vender's green and Comprar's blue. The *Te lo compro* door, the chosen
+   * chips, the tiles' initials, Desperdicio's tab while it is open. ⚠️ **It never
+   * ACTS** — the `+`, the slide and every main button stay `accion`, as on
+   * Comprar. An ink and a ground: `superficie` on it is 11.1:1.
+   */
+  readonly desperdicio: string;
+  /** The tint behind a chip, a tile, the door's switch — `desperdicio`'s light. */
+  readonly desperdicioSuave: string;
+  /** Desperdicio's screen behind its cards. */
+  readonly desperdicioFondo: string;
 }
 
 /**
@@ -192,6 +206,9 @@ export const PALETTE: Palette = {
   compra: '#24476B',
   compraSuave: '#E6ECF3',
   compraFondo: '#F2F5F8',
+  desperdicio: '#5B2B4E',
+  desperdicioSuave: '#F4E9F0',
+  desperdicioFondo: '#FBF7FA',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -219,6 +236,9 @@ export const PALETTE_ROLES: readonly PaletteRole[] = [
   'compra',
   'compraSuave',
   'compraFondo',
+  'desperdicio',
+  'desperdicioSuave',
+  'desperdicioFondo',
 ];
 
 /**
@@ -235,6 +255,7 @@ export const INK_ROLES: readonly PaletteRole[] = [
   'error',
   'marca',
   'compra',
+  'desperdicio',
 ];
 
 /**
@@ -254,6 +275,8 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
   'retrato',
   'compraSuave',
   'compraFondo',
+  'desperdicioSuave',
+  'desperdicioFondo',
 ];
 
 // ============================================================================
