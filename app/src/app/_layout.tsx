@@ -51,8 +51,12 @@ export default function RootLayout() {
   // ⚠️ `8g`: THE TITLES' FACE IS LOADED BEFORE ANY SCREEN DRAWS, so no title
   // paints in the system face and jumps. It is a file inside the update, not a
   // download (`@/theme/letra`), so this wait is a few milliseconds, offline too.
-  const [fontsReady] = useFonts(FUENTES);
-  if (!fontsReady) return null;
+  // ⚠️ AND A FAILED LOAD NEVER HOLDS THE APP: on an error the titles fall back
+  // to the phone's face and everything else draws. Waiting on `fontsReady`
+  // alone would leave a blank screen for ever — a shop that cannot sell
+  // because of a title's letters.
+  const [fontsReady, fontError] = useFonts(FUENTES);
+  if (!fontsReady && fontError === null) return null;
   return (
     <AuthProvider>
       <QueryProvider>
