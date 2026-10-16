@@ -56,6 +56,10 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **15 October, late night: round 2 went out over the air too** (*Encabezado crema con el sello
+de la tienda*): the four tabs' cream band with your shop's name and a faint drawing of its giro.
+Same as before: open Wera, close it completely, open it again.
+
 ✅ **15 October, night: Vender and the Carrito in your row B went out over the air** (*Vender y el
 Carrito nuevos (8g ronda 1)*). **Open Wera, close it completely (swipe it away), open it again.**
 The first open fetches the update and the second runs it. You will know it is there because each
