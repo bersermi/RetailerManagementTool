@@ -67,9 +67,11 @@ sale slid from the bar after a second product, or a second `+`, was saved with o
 basket held when the slide first appeared; the rest was dropped. It has been like that since the
 first slide (24 September), on Vender, Comprar and Desperdicio. **Sales and deliveries recorded
 on the pilot phones since then may be missing lines or units that were on the screen**, and
-nothing in the database says which. (2) **The new Desperdicio** (`8l`): the two doors, *Tirar*
-with its defaults, and *Te lo compro*. **What to look at** is in the table below. Open Wera,
-close it completely, open it again.
+nothing in the database says which (*Cobrar guarda todo lo que está en el carrito*). (2) **The new
+Desperdicio** (*Desperdicio nuevo: Tirar y Te lo compro (8l)*): the two doors, *Tirar* with its
+defaults, and *Te lo compro*. **What to look at** is in the table below. Open Wera, close it
+completely, open it again. ⚠️ **The aviso de privacidad does not mention Te lo compro yet**: the
+draft is pull request 327, waiting for you (it publishes on merge).
 
 ✅ **16 October, evening: your store's address went out over the air** (*Dirección de la tienda
 (8k)*). Open Wera, close it completely, open it again. **Then, please: Ajustes → Tu tienda →
