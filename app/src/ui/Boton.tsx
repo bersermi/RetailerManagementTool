@@ -56,6 +56,7 @@
 import { Pressable, Text } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
+import { PALETTE } from '@/theme/palette';
 
 /**
  * One outlined button.
@@ -64,6 +65,11 @@ import { useDensity } from '@/theme/DensityProvider';
  * arrangement all three drawings already had: `PALETTE.error` on a destructive
  * answer is the only thing that distinguishes it at a glance, and it is the
  * distinction `Vaciar carrito` uses one screen over.
+ *
+ * ⚠️ `lleno` SINCE `8g` (the owner's *option 2*, 2026-10-16): the destructive
+ * answer to a question that destroys — *Sí, vaciar* — is SOLID in its tone, so
+ * it is unmistakably the dangerous act; the way out beside it is
+ * `BotonLleno`'s `discreto`.
  *
  * ⚠️ `accessibilityLabel` IS THE VISIBLE WORD rather than a second sentence —
  * a label that disagrees with the text is a screen reader saying something the
@@ -74,11 +80,13 @@ export function Boton({
   tone,
   onPress,
   inRow = false,
+  lleno = false,
 }: {
   label: string;
   tone: string;
   onPress: () => void;
   inRow?: boolean;
+  lleno?: boolean;
 }) {
   const { scale } = useDensity();
   return (
@@ -94,9 +102,12 @@ export function Boton({
         borderRadius: scale.space / 2,
         borderWidth: 1,
         borderColor: tone,
+        backgroundColor: lleno ? tone : undefined,
       }}
     >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone }}>{label}</Text>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: lleno ? PALETTE.superficie : tone }}>
+        {label}
+      </Text>
     </Pressable>
   );
 }

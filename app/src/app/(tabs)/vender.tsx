@@ -1625,8 +1625,10 @@ function Pregunta({
           label={ES.counter.cart.emptyConfirm}
           tone={PALETTE.error}
           onPress={onConfirm}
+          lleno
         />
-        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} />
+        {/* ⚠️ `8g`, *option 2*: the destructive answer solid, the way out quiet. */}
+        <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
       </View>
     </>
   );
@@ -1957,17 +1959,16 @@ function PrecioRapido({
             }
             onPress={() => void guardar()}
             busy={working}
+            // ⚠️ `8g`, *option 2*: THE sheet's one act, solid.
+            variante="principal"
           />
-          <Pressable
-            accessibilityRole="button"
-            disabled={working}
-            onPress={onClose}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.sell.priceSheet.cancel}
-            </Text>
-          </Pressable>
+          <BotonLleno
+            label={ES.sell.priceSheet.cancel}
+            onPress={() => {
+              if (!working) onClose();
+            }}
+            variante="discreto"
+          />
         </View>
       </KeyboardAvoidingView>
     </View>
