@@ -57,6 +57,11 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October: your shop's *giro principal* went out over the air** (*Giro principal de la tienda*),
+with the change to the database it needs, already on the live project. **Your shop has none yet**: open
+Ajustes → *Tu tienda* → *Giro principal* → *Cambiar*, and pick it; the drawing appears at the top of
+the tabs.
+
 ✅ **15 October, late night: round 2 went out over the air too** (*Encabezado crema con el sello
 de la tienda*): the four tabs' cream band with your shop's name and a faint drawing of its giro.
 Same as before: open Wera, close it completely, open it again.
