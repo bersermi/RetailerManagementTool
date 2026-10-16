@@ -59,6 +59,14 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October, evening: your store's address went out over the air** (*Dirección de la tienda
+(8k)*). Open Wera, close it completely, open it again. **Then, please: Ajustes → Tu tienda →
+*Dirección* → *Cambiar*,** and type your store's street, number, ciudad and código postal (the
+colonia is optional). Every shop made before today has none, and *Te lo compro* will need it. A new
+shop is asked for it when it is created. **The database for Desperdicio's redesign is on the live
+project** (06400 and 06470 are the service area); the screen itself comes next, after you rule on the
+canvas.
+
 ✅ **16 October, afternoon: the new Comprar went out over the air** (*Comprar nuevo y un solo
 carrito (8g ronda 4)*). Open Wera, close it completely, open it again. **What to look at:** in
 Comprar, the blue card with your supplier and *Cambiar*; the cards two across; **a product you
