@@ -412,6 +412,10 @@ on:
       # `record_waste` refusing the word (`22P02`) can.
       - "docs/checks/6a-ii-b-waste-correction-contract.sh"
       - "docs/checks/6a-ii-b-waste-correction-contract-falsify.sh"
+      # ⚠️ AND TE LO COMPRO, as of plan task `8k` (`0058`, `0059`) — the store's
+      # address, the service area and a request, against the app's own names.
+      - "docs/checks/8k-collection-contract.sh"
+      - "docs/checks/8k-collection-contract-falsify.sh"
       # ⚠️⚠️ AND THE PROVIDER DIRECTORY, as of plan task `6b` — the first thing in
       # this app that WRITES a `provider` row, twenty-five days after it started
       # reading them. It is the only instrument anywhere that can see any of three
@@ -890,6 +894,17 @@ jobs:
       # `trap` on every exit path, and is re-proved by a second control.
       - name: Contract — can the correction check still fail (its own eight fixtures)
         run: bash docs/checks/6a-ii-b-waste-correction-contract-falsify.sh
+
+      # ⚠️⚠️ AND TE LO COMPRO — plan task `8k`, APPENDED to this job for the reason
+      # `6a-ii-b` was: it is Desperdicio's, and a new job would re-pay `supabase
+      # start` + `db reset` for one check. It reads the app's names out of
+      # `app/src/api/collection.ts` and sends them to `0058`'s area and address
+      # and `0059`'s request: TD008, TD009, TD010, a retry, a cancel.
+      - name: Contract — can a shop ask Wera to collect, against the app's own names (plan 8k)
+        run: bash docs/checks/8k-collection-contract.sh
+
+      - name: Falsify it — four broken copies, each red for its reason
+        run: bash docs/checks/8k-collection-contract-falsify.sh
 
       - name: Stop
         if: always()

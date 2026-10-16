@@ -154,6 +154,38 @@ export const ES = {
     ivaYes: 'Sí, ya lo incluyen',
     ivaNo: 'No, se agrega aparte',
     create: 'Crear mi tienda',
+    /** `8k`: the store's address, asked when the shop is made — the owner's four. */
+    addressTitle: '¿Dónde está tu tienda?',
+    addressHint: 'Así sabemos a dónde ir cuando nos pidas recoger algo.',
+  },
+
+  /**
+   * ⚠️ `8k` (`0058`): THE STORE'S ADDRESS — the owner, 2026-10-16: *"the store
+   * address as part of the required fields. At least Street, number, ciudad and
+   * Código Postal."* Asked on the shop form and in Ajustes; the colonia is
+   * offered and may stay empty. One block, because the two forms are one form.
+   */
+  address: {
+    street: 'Calle',
+    number: 'Número',
+    colonia: 'Colonia (opcional)',
+    city: 'Ciudad o alcaldía',
+    postalCode: 'Código postal',
+    label: 'Dirección',
+    none: 'Sin dirección',
+    change: 'Cambiar',
+    save: 'Guardar dirección',
+    cancel: 'Cancelar',
+    /** Under the store's name in Ajustes, read back in one line. */
+    line: (street: string, number: string, colonia: string, city: string, cp: string) =>
+      [`${street} ${number}`, colonia, city, `C.P. ${cp}`].filter((part) => part.trim() !== '').join(', '),
+    /** The first thing wrong — `checkAddress`'s answer, as a sentence. */
+    issues: {
+      street: 'Escribe la calle.',
+      number: 'Escribe el número.',
+      city: 'Escribe la ciudad o alcaldía.',
+      postalCode: 'El código postal son cinco números.',
+    },
   },
 
   /**
@@ -1380,6 +1412,43 @@ export const ES = {
      * and C10.3's: the slide must look identical offline.
      */
     recorded: 'Merma registrada',
+  },
+
+  /**
+   * ⚠️ `8k` (`0059`): *TE LO COMPRO* — what the shop asks Wera to collect, and
+   * perhaps buy. The wire values are `@/api/collection`'s; these are the words.
+   * ⚠️ `magullado` is the owner's *mayugado*, spelled as the dictionary does.
+   */
+  collection: {
+    name: 'Te lo compro',
+    conditions: {
+      bueno: 'Bueno',
+      'por caducar': 'Por caducar',
+      caducado: 'Caducado',
+      magullado: 'Magullado',
+    },
+    packagings: {
+      cerrado: 'Empaque cerrado',
+      abierto: 'Empaque abierto',
+    },
+    keepings: {
+      ambiente: 'Al ambiente',
+      refrigerado: 'Refrigerado',
+      congelado: 'Congelado',
+    },
+    statuses: {
+      enviada: 'Enviada',
+      confirmada: 'Confirmada',
+      recogida: 'Recogida',
+      cancelada: 'Cancelada',
+    },
+    outsideArea: 'Todavía no llegamos a tu zona.',
+    /** The refusals `0059` names (`TD008`–`TD010`). */
+    errors: {
+      noAddress: 'Falta la dirección de tu tienda. Agrégala en Ajustes.',
+      outsideArea: 'Todavía no recogemos en tu código postal.',
+      tooLateToCancel: 'Ya está confirmada. Para cancelarla escríbenos por WhatsApp.',
+    },
   },
 
   units: {

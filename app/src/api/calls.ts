@@ -29,6 +29,25 @@
 
 import type { FunctionRegion } from '@supabase/supabase-js';
 
+import {
+  CANCEL_COLLECTION,
+  COLLECTION_COLUMNS,
+  COLLECTION_REACHES,
+  REQUEST_COLLECTION,
+  STORE_ADDRESS_COLUMNS,
+  addressPatch,
+  cancelCollectionArgs,
+  reachesArgs,
+  requestCollectionArgs,
+  toCollectionRequest,
+  toStoreAddress,
+  type AddressForm,
+  type CollectionDraft,
+  type CollectionRequest,
+  type CollectionRow,
+  type StoreAddress,
+  type StoreAddressRow,
+} from '@/api/collection';
 import { supabase } from '@/lib/supabase';
 import {
   APPLE_REVOKE,
@@ -283,8 +302,95 @@ export async function setMainGiro(workspaceId: string, giro: string | null): Pro
   if (error) throw reported(error);
 }
 
+/**
+ * The caller's stores with their addresses (`0058`, `8k`). One row per store she
+ * may see — `location_select` is `my_locations()` — ordered so the first is the
+ * shop's first store, which is the pilot's only one.
+ */
+export async function storeAddresses(): Promise<StoreAddress[]> {
+  const { data, error } = await supabase
+    .from('location')
+    .select(STORE_ADDRESS_COLUMNS)
+    .eq('is_active', true)
+    .order('created_at')
+    .order('id');
+  if (error) throw reported(error);
+  return ((data ?? []) as StoreAddressRow[]).map(toStoreAddress);
+}
+
+/**
+ * Writes a store's address — the owner's, as every other write to the store row
+ * is (`location_update`, `0001`).
+ *
+ * ⚠️ `.select().single()` AND NOT A BARE UPDATE: an RLS UPDATE refusal is a 200
+ * with zero rows, so a manager's attempt would otherwise come back looking saved.
+ */
+export async function setStoreAddress(locationId: string, form: AddressForm): Promise<void> {
+  const { error } = await supabase
+    .from('location')
+    .update(addressPatch(form))
+    .eq('id', locationId)
+    .select('id')
+    .single();
+  if (error) throw reported(error);
+}
+
+/** The shop's first store, by the same order `storeAddresses` reads — onboarding's. */
+async function firstStoreOf(workspaceId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from('location')
+    .select('id')
+    .eq('workspace_id', workspaceId)
+    .order('created_at')
+    .order('id')
+    .limit(1);
+  if (error) throw reported(error);
+  const rows = (data ?? []) as { id: string }[];
+  return rows.length === 0 ? null : rows[0].id;
+}
+
+/** Does Te lo compro reach this código postal? (`0058`'s one door.) */
+export async function collectionReaches(postalCode: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc(COLLECTION_REACHES, reachesArgs(postalCode));
+  if (error) throw reported(error);
+  return data === true;
+}
+
+/** Sends one request (`0059`). Idempotent on the draft's id. */
+export async function requestCollection(draft: CollectionDraft): Promise<void> {
+  const { error } = await supabase.rpc(REQUEST_COLLECTION, requestCollectionArgs(draft));
+  if (error) throw reported(error);
+}
+
+/** The shop's requests, newest first — owners and managers only, by RLS. */
+export async function collectionRequests(): Promise<CollectionRequest[]> {
+  const { data, error } = await supabase
+    .from('collection_request')
+    .select(COLLECTION_COLUMNS)
+    .order('created_at', { ascending: false });
+  if (error) throw reported(error);
+  return ((data ?? []) as CollectionRow[]).map(toCollectionRequest);
+}
+
+/** Calls one off while it is still `enviada` (`TD010` after). */
+export async function cancelCollection(id: string): Promise<void> {
+  const { error } = await supabase.rpc(CANCEL_COLLECTION, cancelCollectionArgs(id));
+  if (error) throw reported(error);
+}
+
 /** Creates the shop, its owner membership, its settings, its first location and
  *  its generic provider — five rows, one statement (`0027`). Returns its id. */
+/**
+ * The new shop's first store gets the address its form asked for (`8k`).
+ * ⚠️ A SEPARATE CALL AFTER `onboard_workspace`, AND THAT IS DELIBERATE: the RPC
+ * is unchanged, so a phone on an older update still creates a shop.
+ */
+export async function setFirstStoreAddress(workspaceId: string, form: AddressForm): Promise<void> {
+  const locationId = await firstStoreOf(workspaceId);
+  if (locationId === null) throw new Error('the new shop has no store row');
+  await setStoreAddress(locationId, form);
+}
+
 export async function onboardWorkspace(input: OnboardInput): Promise<string> {
   const { data, error } = await supabase.rpc(ONBOARD_WORKSPACE, onboardArgs(input));
   if (error) throw reported(error);
