@@ -167,6 +167,31 @@ from iso_actor a
 join public.workspace_member wm
   on wm.workspace_id = a.ws_id and wm.user_id = a.user_id;
 
+-- ⚠️ AND `collection_request`, ADDED 2026-10-16 WITH `0059` (plan `8j`) — the
+-- FOURTH tenant table the seed leaves empty, and the same answer: this suite
+-- supplies one per workspace and asserts the seed held none. Manager-gated
+-- (`collection_request_select` is has_role(...,'manager')), which both actors
+-- are. Written as postgres, as the rows above are: the point is that they
+-- exist; `supabase/tests/0059_collection_request.sql` is where WRITING one is
+-- the claim. The line's variant id is a placeholder — `lines` is a JSON list
+-- with no key, and the isolation claim is about `workspace_id`.
+create temp table iso_collection_request_before as
+select count(*)::int as n from public.collection_request;
+
+insert into public.collection_request
+  (id, workspace_id, location_id, pickup_date, window_start, window_end,
+   street, street_number, city, postal_code, lines, created_by)
+select gen_random_uuid(),
+       a.ws_id,
+       (select l.id from public.location l
+         where l.workspace_id = a.ws_id order by l.created_at, l.id limit 1),
+       current_date + 1, time '09:00', time '10:00',
+       'Calle pgtap-3.2a', '1', 'Ciudad de México', '06400',
+       jsonb_build_array(jsonb_build_object('variant_id', gen_random_uuid(),
+                                            'qty_display', 1)),
+       a.user_id
+from iso_actor a;
+
 -- ---------------------------------------------------------------------------
 -- Classification, stated so that a new table cannot slip through unmeasured
 --
@@ -315,7 +340,7 @@ $$;
 -- what stops that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  12
+  13
   + 4 * (select count(*)::int from iso_read)
   + (select count(*)::int from iso_anon)
 );
@@ -412,6 +437,11 @@ select is((select n from iso_failed_write_before), 0,
 -- F12. THE THIRD EMPTY TENANT TABLE, F11's argument for `0043`'s `pilot_reading`.
 select is((select n from iso_pilot_reading_before), 0,
   'F12 pilot_reading was empty in the seed; this suite supplied its own rows');
+
+-- F13. THE FOURTH EMPTY TENANT TABLE, F11's argument for `0059`'s
+-- `collection_request`.
+select is((select n from iso_collection_request_before), 0,
+  'F13 collection_request was empty in the seed; this suite supplied its own rows');
 
 -- ---------------------------------------------------------------------------
 -- Per tenant table, both directions

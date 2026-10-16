@@ -162,7 +162,7 @@ select chk('⚠️⚠️ THE OWNER''S RULING, HELD AS A PROPERTY: the price seri
                and c.table_name not in ('product_purchases_daily','product_velocity_daily')
                and (c.column_name like '%\_price\_net' or c.column_name like '%\_price\_gross'
                     or c.column_name like '%\_price\_last\_%')) = 0
-       and (select count(*) from pg_policies where schemaname='public') = 39,  -- 42 until 0055 dropped three
+       and (select count(*) from pg_policies where schemaname='public') = 40,  -- 42 until 0055 dropped three; 40 since 0059 added collection_request_select
            (select string_agg(c.table_name || '.' || c.column_name, ', '
                               order by c.table_name, c.column_name)
               from information_schema.columns c
@@ -457,8 +457,8 @@ select chk('and the typed price of a reversed line is the price of the thing bei
 -- (2026-09-25). **`alter policy` replaces a predicate and creates nothing**, which is
 -- why 41 held until `0043` added `pilot_reading_select` (42) — and that is the assertion worth keeping here, because a
 -- `drop`+`create` pair that lost one would show up as 40.
-select chk('no policy was created or dropped by 0040: 42 since 0043 added pilot_reading_select, 39 since 0055 dropped three with their grants, and neither line table carries has_role (0040)',
-           (select count(*) from pg_policies where schemaname='public') = 39
+select chk('no policy was created or dropped by 0040: 42 since 0043 added pilot_reading_select, 39 since 0055 dropped three with their grants, 40 since 0059 added collection_request_select, and neither line table carries has_role (0040)',
+           (select count(*) from pg_policies where schemaname='public') = 40
        and (select qual::text from pg_policies
              where schemaname='public' and tablename='sale_line' and policyname='sale_line_select')
            !~* 'has_role'

@@ -350,7 +350,7 @@ select chk('the counterfactual view is gone',
 select chk('the fence is IN THE BODY, and it is 0009''s sentence — not a policy and not a grant',
            pg_get_viewdef('public.transaction_export'::regclass) ~* 'has_role'
        and pg_get_viewdef('public.transaction_export'::regclass) ~* 'row_security_active'
-       and (select count(*) from pg_policies where schemaname='public') = 39,  -- 42 until 0055 dropped three (2026-10-15)
+       and (select count(*) from pg_policies where schemaname='public') = 40,  -- 42 until 0055 dropped three (2026-10-15); 40 since 0059 added collection_request_select
            'the only other view in this schema that states its own fence is 0009, '
         || 'and for the same reason: a member-level half that would be left '
         || 'standing when the gated half disappears');

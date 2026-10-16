@@ -87,8 +87,8 @@ select public.chk('1.6 the login-exists trigger function is executable by no cli
   not has_function_privilege('authenticated', 'public.workspace_member_login_exists()', 'execute')
   and not has_function_privilege('anon', 'public.workspace_member_login_exists()', 'execute'));
 
-select public.chk('1.7 39 policies in public — 0053 adds none, 0055 dropped three',
-  (select count(*) from pg_policies where schemaname = 'public') = 39,
+select public.chk('1.7 40 policies in public — 0053 adds none, 0055 dropped three, 0059 added one',
+  (select count(*) from pg_policies where schemaname = 'public') = 40,
   format('found %s', (select count(*) from pg_policies where schemaname = 'public')));
 
 -- ----------------------------------------------------------------------------
