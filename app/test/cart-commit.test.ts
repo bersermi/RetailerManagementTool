@@ -14,6 +14,9 @@
 // writing. What is read here is the shape and the refusals.
 // ============================================================================
 
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+
 import { describe, expect, it } from 'vitest';
 
 import { catalogFrom, unitFactorsFrom, type UnitRow, type VariantRow } from '@/api/catalog';
@@ -244,5 +247,30 @@ describe('what counts as a completed gesture — C3.6', () => {
     expect(releaseCommits(at - 1, travel)).toBe(false);
     expect(releaseCommits(travel, travel)).toBe(true);
     expect(releaseCommits(0, travel)).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// ⚠️⚠️ THE GESTURE COMMITS THE BASKET ON THE SCREEN — read as text, because R2
+// keeps components out of this suite. Found 2026-10-16: `PanResponder` is built
+// ONCE, so a handler that called the closure's `onCommit` committed the basket
+// as it was when the slide first appeared. On the Android emulator the bar read
+// *2 pza, $90* and the ledger received *1 pza, $45*. The handlers must go
+// through refs that every render refreshes.
+// ---------------------------------------------------------------------------
+describe('the slide commits the basket it is drawn over, not the one it was built over', () => {
+  const SLIDE = readFileSync(resolve(__dirname, '../src/ui/CierreCarrito.tsx'), 'utf8');
+
+  it('hands every render\'s commit and tap to the gesture', () => {
+    expect(SLIDE).toMatch(/const commitNow = useRef\(onCommit\);\n\s+commitNow\.current = onCommit;/);
+    expect(SLIDE).toMatch(/const tapNow = useRef\(onTap\);\n\s+tapNow\.current = onTap;/);
+  });
+
+  it('never calls the closure\'s own handler from inside the gesture', () => {
+    const gesture = SLIDE.slice(SLIDE.indexOf('PanResponder.create('));
+    expect(gesture).toContain('commitNow.current();');
+    expect(gesture).toContain('tapNow.current?.();');
+    expect(gesture).not.toMatch(/\bonCommit\(\)/);
+    expect(gesture).not.toMatch(/\bonTap\?\.\(\)/);
   });
 });

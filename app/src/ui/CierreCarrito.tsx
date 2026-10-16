@@ -177,6 +177,18 @@ function Deslizador({
   const span = useRef(0);
   span.current = travel;
   const done = useRef(false);
+  // ⚠️⚠️ AND THE TWO HANDLERS ARE REFS FOR THE SAME REASON, WHICH IS A DEFECT
+  // FOUND 2026-10-16 AND NOT A TIDY-UP. The gesture called the `onCommit` of the
+  // render it was built in — the one where the slide FIRST APPEARED, i.e. the
+  // first product in the basket — so a sale slid from the bar after a second
+  // product, or a second tap of `+`, was written with only what the basket held
+  // then, and the rest was cleared. Measured on the Android emulator: the screen
+  // read *2 pza, $90* and the ledger received *1 pza, $45*. Every render now
+  // hands the gesture the commit that prices THIS basket.
+  const commitNow = useRef(onCommit);
+  commitNow.current = onCommit;
+  const tapNow = useRef(onTap);
+  tapNow.current = onTap;
 
   const settle = (to: number) => {
     Animated.timing(x, {
@@ -245,7 +257,7 @@ function Deslizador({
         // `onTap`. The bar passes a handler; the sheet passes none.
         if (releaseTaps(g.dx)) {
           nudge();
-          onTap?.();
+          tapNow.current?.();
           return;
         }
         const at = Math.min(Math.max(0, g.dx), span.current);
@@ -254,7 +266,8 @@ function Deslizador({
           settle(span.current);
           // ⚠️ THE SALE IS COMMITTED WHEN THE GESTURE COMPLETES, not when the
           // animation acknowledging it ends — the thumb has already said so.
-          onCommit();
+          // ⚠️ AND THROUGH THE REF — never the closure's `onCommit` (above).
+          commitNow.current();
         } else {
           settle(0);
         }
