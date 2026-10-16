@@ -540,12 +540,13 @@ select chk(
 -- there; `TD008` is the next slot. If this goes red, somebody has minted one
 -- without saying so.
 select chk(
-  '7.2 TD007 is delete_my_account''s alone, and TD008 is still free',
+  '7.2 TD007 is delete_my_account''s alone, and TD008 is request_collection''s (0059)',
   (select coalesce(array_agg(proname::text order by proname), '{}') from pg_proc
     where pronamespace = 'public'::regnamespace and prosrc like '%TD007%')
     = array['delete_my_account']::text[]
-  and (select count(*) from pg_proc where pronamespace = 'public'::regnamespace
-     and prosrc like '%TD008%') = 0,
+  and (select coalesce(array_agg(proname::text order by proname), '{}') from pg_proc
+    where pronamespace = 'public'::regnamespace and prosrc like '%TD008%')
+    = array['request_collection']::text[],
   coalesce((select string_agg(proname, ', ' order by proname)
               from pg_proc where pronamespace = 'public'::regnamespace
                 and prosrc like '%TD00[78]%'), 'free'));
