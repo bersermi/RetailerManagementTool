@@ -3,6 +3,7 @@ import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteArgs } from '@/api/account';
+import { EMPTY_ADDRESS, checkAddress, type AddressForm } from '@/api/collection';
 import {
   useDeleteMyAccount,
   useMyAccessRequests,
@@ -18,6 +19,7 @@ import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
 import { useAuth } from '@/auth/AuthProvider';
 import { ES } from '@/strings';
+import { Direccion } from '@/ui/Direccion';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
@@ -115,6 +117,10 @@ export default function Bienvenida() {
 
   const [name, setName] = useState('');
   const [pricesIncludeTax, setPricesIncludeTax] = useState(true);
+  // ⚠️ `8k` (`0058`): THE STORE'S ADDRESS, REQUIRED — the owner, 2026-10-16:
+  // *"at least Street, number, ciudad and Código Postal."* It is where Te lo
+  // compro goes, and its código postal decides whether it is offered at all.
+  const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
   const [problem, setProblem] = useState<string | null>(null);
 
   // ⚠️⚠️ THE THIRD QUESTION, `9d`: WHAT THE SHOP SELLS. The owner's ruling of
@@ -172,11 +178,21 @@ export default function Bienvenida() {
       setProblem(checked.message);
       return;
     }
+    const addressIssue = checkAddress(address);
+    if (addressIssue !== null) {
+      setProblem(ES.address.issues[addressIssue]);
+      return;
+    }
     // ⚠️ IT NAVIGATES NOWHERE ON SUCCESS. The guard sends them to Inicio the
     // moment the membership read comes back — see `@/api/hooks`.
     const choice = choiceFrom(starter.template, giros, excluded, starter.holding);
     setProblem(
-      await create({ displayName: checked.displayName, pricesIncludeTax }, choice, principalDe(orden)),
+      await create(
+        { displayName: checked.displayName, pricesIncludeTax },
+        choice,
+        principalDe(orden),
+        address,
+      ),
     );
   }
 
@@ -290,6 +306,12 @@ export default function Bienvenida() {
           </Text>
         </Pressable>
       </View>
+
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', marginTop: scale.space }}>
+        {ES.onboarding.addressTitle}
+      </Text>
+      <Text style={{ fontSize: scale.bodySize }}>{ES.onboarding.addressHint}</Text>
+      <Direccion value={address} onChange={setAddress} editable={!busy} />
 
       <View style={{ marginTop: scale.space }}>
         {starter.template !== null ? (

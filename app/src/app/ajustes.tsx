@@ -13,10 +13,13 @@ import {
   useMyRole,
   useRoster,
   useSetMainGiro,
+  useSetStoreAddress,
+  useStoreAddress,
   useSetMyDisplayName,
   useWorkspace,
 } from '@/api/hooks';
 import { GIROS } from '@/api/emblema';
+import { addressComplete, addressForm, checkAddress, type AddressForm } from '@/api/collection';
 import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
@@ -44,6 +47,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Direccion } from '@/ui/Direccion';
 
 // ============================================================================
 // AJUSTES — THE APP'S FIRST NON-TAB SURFACE, AND ITS FIRST COLOURED SCREEN.
@@ -133,6 +137,7 @@ export default function Ajustes() {
               current={workspace.giroPrincipal ?? null}
               mayChange={role === 'owner'}
             />
+            <Domicilio mayChange={role === 'owner'} />
           </Section>
         )}
 
@@ -1107,6 +1112,80 @@ function GiroPrincipal({
         : null}
       {problem !== null ? (
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text>
+      ) : null}
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `8k` (`0058`): THE STORE'S ADDRESS — the owner's four required fields and
+ * an optional colonia. Asked when a shop is created; every shop made before that
+ * has none, and this is where it gives one. Te lo compro will not go without it.
+ *
+ * ⚠️ THE OWNER'S ALONE, as every other write to the store row is
+ * (`location_update`, `0001`): a manager or a cashier reads the line and is
+ * offered nothing to tap. ⚠️ The pilot's shops have one store each, so this is
+ * the first store's; a second store's address waits for a second store.
+ */
+function Domicilio({ mayChange }: { mayChange: boolean }) {
+  const { scale } = useDensity();
+  const address = useStoreAddress();
+  const { save, busy } = useSetStoreAddress();
+  const [form, setForm] = useState<AddressForm | null>(null);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  const line =
+    address === null || !addressComplete(address)
+      ? ES.address.none
+      : ES.address.line(address.street, address.number, address.colonia, address.city, address.postalCode);
+
+  async function guardar() {
+    if (busy || form === null || address === null) return;
+    setProblem(null);
+    const issue = checkAddress(form);
+    if (issue !== null) {
+      setProblem(ES.address.issues[issue]);
+      return;
+    }
+    const failed = await save(address.locationId, form);
+    if (failed !== null) {
+      setProblem(failed);
+      return;
+    }
+    setForm(null);
+  }
+
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: scale.space }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.address.label}</Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{line}</Text>
+        </View>
+        {mayChange && address !== null && form === null ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              setProblem(null);
+              setForm(addressForm(address));
+            }}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+              {ES.address.change}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {form !== null ? (
+        <>
+          <Direccion value={form} onChange={setForm} editable={!busy} />
+          {problem !== null ? (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text>
+          ) : null}
+          <BotonLleno label={ES.address.save} onPress={() => void guardar()} busy={busy} variante="principal" />
+          <BotonLleno label={ES.address.cancel} onPress={() => setForm(null)} variante="discreto" />
+        </>
       ) : null}
     </View>
   );

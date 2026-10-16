@@ -94,6 +94,24 @@ import {
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
 import {
+  COLLECTION_KEY,
+  STORE_ADDRESS_KEY,
+  POSTAL_CODE_SHAPE,
+  collectionErrorMessage,
+  reachesKey,
+  type AddressForm,
+  type CollectionDraft,
+  type CollectionRequest,
+  type StoreAddress,
+} from '@/api/collection';
+import {
+  cancelCollection,
+  collectionReaches,
+  collectionRequests,
+  requestCollection,
+  setFirstStoreAddress,
+  setStoreAddress,
+  storeAddresses,
   deleteMyAccount,
   revokeApple,
   approveRequest,
@@ -297,12 +315,25 @@ export function useOnboardWorkspace() {
       input,
       choice,
       principal,
+      address = null,
     }: {
       input: OnboardInput;
       choice: ImportChoice | null;
       principal: string | null;
+      /** `8k`: the store's address, the owner's four required fields. */
+      address?: AddressForm | null;
     }) => {
       const workspaceId = await onboardWorkspace(input);
+      // ⚠️ `8k` (`0058`): THE STORE'S ADDRESS, written as the owner she now is,
+      // and like the import and the giro it does not fail the shop: Ajustes asks
+      // an existing shop for it, and Te lo compro will not go without it.
+      if (address !== null) {
+        try {
+          await setFirstStoreAddress(workspaceId, address);
+        } catch {
+          // The second door is Ajustes; see above.
+        }
+      }
       const args = choice === null ? null : importArgs(workspaceId, choice);
       if (args !== null) {
         try {
@@ -325,6 +356,7 @@ export function useOnboardWorkspace() {
     },
     onSuccess: async () => {
       await queries.invalidateQueries({ queryKey: CATALOG_KEY });
+      await queries.invalidateQueries({ queryKey: STORE_ADDRESS_KEY });
       await queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY });
     },
   });
@@ -333,9 +365,10 @@ export function useOnboardWorkspace() {
     input: OnboardInput,
     choice: ImportChoice | null = null,
     principal: string | null = null,
+    address: AddressForm | null = null,
   ): Promise<string | null> {
     try {
-      await mutation.mutateAsync({ input, choice, principal });
+      await mutation.mutateAsync({ input, choice, principal, address });
       return null;
     } catch (thrown) {
       return apiErrorMessage(thrown);
@@ -1130,6 +1163,117 @@ export function useSetMainGiro() {
   }
 
   return { save, busy: mutation.isPending };
+}
+
+/**
+ * `8k` (`0058`): the caller's stores and their addresses. The first is the
+ * shop's first store — the pilot's only one.
+ */
+export function useStoreAddresses() {
+  const { session, ready } = useAuth();
+  return useQuery<StoreAddress[]>({
+    queryKey: STORE_ADDRESS_KEY,
+    queryFn: storeAddresses,
+    enabled: ready && session !== null,
+  });
+}
+
+/** The shop's first store's address, or `null` while unknown or when there is none. */
+export function useStoreAddress(): StoreAddress | null {
+  const { data } = useStoreAddresses();
+  return data === undefined || data.length === 0 ? null : data[0];
+}
+
+/** Writing it — the owner's. Returns a Spanish sentence, or `null` when saved. */
+export function useSetStoreAddress() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ locationId, form }: { locationId: string; form: AddressForm }) =>
+      setStoreAddress(locationId, form),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: STORE_ADDRESS_KEY });
+    },
+  });
+
+  async function save(locationId: string, form: AddressForm): Promise<string | null> {
+    try {
+      await mutation.mutateAsync({ locationId, form });
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { save, busy: mutation.isPending };
+}
+
+/**
+ * Does Te lo compro reach this código postal? `undefined` while asking, and not
+ * asked at all for a code that is not five digits.
+ */
+export function useCollectionReaches(postalCode: string): boolean | undefined {
+  const { session, ready } = useAuth();
+  const code = postalCode.trim();
+  const { data } = useQuery({
+    queryKey: reachesKey(code),
+    queryFn: () => collectionReaches(code),
+    enabled: ready && session !== null && POSTAL_CODE_SHAPE.test(code),
+  });
+  return POSTAL_CODE_SHAPE.test(code) ? data : false;
+}
+
+/** The shop's requests, newest first — owners and managers only, by `0059`'s RLS. */
+export function useCollectionRequests() {
+  const { session, ready } = useAuth();
+  return useQuery<CollectionRequest[]>({
+    queryKey: COLLECTION_KEY,
+    queryFn: collectionRequests,
+    enabled: ready && session !== null,
+  });
+}
+
+/** Sending one. Returns a Spanish sentence, or `null` when it is recorded. */
+export function useRequestCollection() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (draft: CollectionDraft) => requestCollection(draft),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: COLLECTION_KEY });
+    },
+  });
+
+  async function send(draft: CollectionDraft): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(draft);
+      return null;
+    } catch (thrown) {
+      return collectionErrorMessage(thrown);
+    }
+  }
+
+  return { send, busy: mutation.isPending };
+}
+
+/** Calling one off while it is `enviada`. A sentence, or `null` when done. */
+export function useCancelCollection() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (id: string) => cancelCollection(id),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: COLLECTION_KEY });
+    },
+  });
+
+  async function cancel(id: string): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(id);
+      return null;
+    } catch (thrown) {
+      return collectionErrorMessage(thrown);
+    }
+  }
+
+  return { cancel, busy: mutation.isPending };
 }
 
 /**
