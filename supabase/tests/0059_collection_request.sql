@@ -84,7 +84,7 @@ grant execute on function public._cl(uuid, text, text) to authenticated;
 
 create function public._req(p_id text, p_loc uuid, p_lines jsonb,
                             p_day text default 'tomorrow', p_from text default '09:00',
-                            p_to text default '10:30', p_photos text default '{}')
+                            p_to text default '09:15', p_photos text default '{}')
 returns text language sql as $$
   select public._try(format(
     'select request_collection(%L, %L, %s, %L, %L, %L::jsonb, %L::text[])',
@@ -191,7 +191,7 @@ select public._req(:rx, :'loc', '[{"variant_id":"no-es-un-id","qty_display":"1",
 select public._req(:rx, :'loc', '[]'::jsonb) as no_lines \gset
 select public._req(:rx, :'loc', public._cl(:'var'), 'tomorrow', '09:00', '10:30',
                    '{otra-tienda/foto.jpg}') as bad_photo \gset
-select public._req(:rx, :'loc', public._cl(:'var'), 'tomorrow', '07:00', '19:00',
+select public._req(:rx, :'loc', public._cl(:'var'), 'tomorrow', '07:00', '07:15',
                    format('{%s/%s/uno.jpg}', :'ws', :rx)) as good_photo \gset
 reset role;
 
