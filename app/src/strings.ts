@@ -946,6 +946,8 @@ export const ES = {
        * `approvals.confirm`'s reason: two taps that read the same are two taps a
        * shopkeeper cannot tell apart afterwards.
        */
+      /** `8g`: the line under the question, so the box says what it will take. */
+      emptyCount: (n: number) => (n === 1 ? 'Se quita 1 producto.' : `Se quitan los ${n} productos.`),
       emptyConfirm: 'Sí, vaciar',
       emptyCancel: 'Cancelar',
       /**
@@ -995,12 +997,31 @@ export const ES = {
     priceSheet: {
       title: (name: string) => `Precio de ${name}`,
       now: (price: string) => `Ahora: ${price}`,
-      save: 'Guardar',
+      /** `8g`: the line under the name when the product has no price yet. */
+      first: 'Todavía sin precio',
+      /** `8g`: the question above the box — asked, never pre-filled. */
+      ask: '¿A cómo lo vendes?',
+      askAgain: '¿A cómo lo vendes ahora?',
+      save: 'Guardar precio',
+      /** `8g`: opened by `+` on an unpriced product, saving also puts one in the basket. */
+      saveAndAdd: 'Guardar y agregar al carrito',
       saving: 'Guardando…',
       cancel: 'Cancelar',
       loading: 'Un momento…',
       needsSignal: 'Para cambiar el precio necesitas conexión.',
     },
+    /**
+     * ⚠️ `8g`, THE OWNER'S RULING OF 2026-10-15: a cashier's `+` on a product
+     * with no price says why and who can fix it, and nothing goes in the basket.
+     */
+    refused: {
+      title: (name: string) => `${name} no tiene precio`,
+      body: 'Solo el dueño o un encargado le pone precio. Lo demás del carrito sí se cobra.',
+    },
+    /** `8g`: the word under a price on Vender's row — *$45* / *por pza*. */
+    per: (unit: string) => `por ${unit}`,
+    /** `8g`: the same place on a row with no price, under C3.12's dash. */
+    unpriced: 'sin precio',
     /** The same fact about the basket, beside the total the bar is withholding part of. */
     someUnpriced: 'Falta un precio',
 

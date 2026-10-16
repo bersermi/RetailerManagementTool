@@ -31,9 +31,12 @@ real database; none runs on sample data.
 - **The starter catalog** — creating the shop asks for your giros only and brings all
   their products (14 October); *Agregar del catálogo* in Productos brings more later and
   still lets you untick. A product brought in can be renamed, repriced and retired.
-- **Vender** — the counter: a stepper and a keypad on every row, a basket, a slide
-  that commits the sale. **Works with no signal**, and sends what it held when the
-  signal comes back. For you and a manager, a tap on a price changes it there.
+- **Vender** — the counter, **redrawn on 15 October as your row B**: each product with its
+  initials on the left (its photo's place, for when there are photos), the name, the price and a
+  round green `+`; a basket, and a slide that commits the sale. **Works with no signal**, and
+  sends what it held when the signal comes back. For you and a manager the price is a chip with a
+  pencil, and a tap changes it. **A product with no price never goes in the basket**: your `+`
+  asks its price first and adds it; a cashier's `+` says who can price it.
 - **Comprar** — a delivery from a supplier, and **Costos**: what you have paid for a
   product over time, as a chart and a PDF.
 - **Desperdicio** — what was thrown away, and why. Rosa never sees what it cost.
@@ -126,7 +129,11 @@ file above, section 2 of its catch-up.
 | **Solicitudes → a request from a hidden address** | Somebody who hid their email with Apple and typed your shop's code. Their **name** is on top and *Correo oculto con Apple* under it, as you ruled. Is the name enough to know who it is? |
 | **Creating a shop: just the giros** | New on 14 October, on a build made after it (your iPhone's step 5; the Android's next install). *Crea tu tienda* shows the giros and no list of products: picking Abarrotes brings all 1,017. Then, in Productos, a product you don't sell: *Editar → Retirar del catálogo*. Is retiring one at a time bearable with a thousand? |
 | **Productos → Refrescos** | Fixed 14 October. *Agregar Variante*, *Editar* and *Costos* were under the 126th product; now they sit in a bar at the bottom, and the list opens at the one you tapped. Do they read as belonging to the marked product? |
-| **Vender → tap a price** | New on 14 October, for you and a manager, not a cashier. Tap the underlined price on a row: a sheet asks the new price, *Guardar*, and you are back in the sale. A product with no price in the basket says *Poner precio*. Does the underline read as something to tap? |
+| **Vender, redrawn (round 1 of your review)** | New on 15 October, by an update. Does the list invite you at the counter? Are about four products on screen enough? Does the green `+` alone at rest read right, with `−` appearing only once a product is in the sale? Turn on *Letra grande* in Ajustes and look again |
+| **Vender → `+` on a product with no price** | Your `+` opens *¿A cómo lo vendes?*; type it, *Guardar y agregar al carrito*, and it is in the sale. Without signal it cannot save yet (`8i`). A cashier's `+` is grey and says who can price it — to see it, sign in as somebody you invited as *Empleado* |
+| **Vender → the price chip** | For you and a manager the price sits on a green chip with a pencil (grey outline when there is none). Tap it: the sheet shows *Ahora: $45 / pza* above an empty box. Does the chip read as something to tap? |
+| **Vender → the Carrito** | Open it from *N productos ›*. Each line reads like a ticket; *Carrito* and the count are on top; **the Total is now on the sheet**, above *Vaciar carrito* and the slide. Tap a line's price chip: the same sheet opens over the Carrito. *Vaciar carrito* now says how many products it takes |
+| **Comprar and Desperdicio** | They share the `−` / box / `+` with Vender, so they got the round buttons too; their rows are unchanged until their turn in the review. Does the mix bother you until then? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
@@ -146,7 +153,8 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8d** | **Housekeeping** — merged branches, old map snapshots, stale memories | ✅ **Done 29 September** — 17 branches, 50 MB of maps |
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
-| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — your order of 15 October: the review first, with you, on your iPhone. It opens with a brainstorm about how Wera should look, move and feel, and the starting point is decided there. Paste the review prompt (below, *How a working session goes*), not your main prompt. It settles the look before the logo goes on the website and before the public listings' screenshots |
+| **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is.** ✅ **Round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. **Round 2: the things every screen shares** — one header style or two, solid or soft buttons, the lettering, motion — decided once on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then the next screen. Paste the review prompt (below, *How a working session goes*), not your main prompt |
+| **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
 | **9b** | **The starter catalog, step 2** — the spreadsheet format we will fill together, one per giro, and the tool that checks it | ✅ **Done 1 October** — and the Catalog Prompt, below |

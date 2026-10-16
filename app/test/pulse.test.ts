@@ -106,6 +106,8 @@ describe('the banner that says the family was let go', () => {
       'NEW_PRODUCT_BLINKS',
       'PULSE_DIM',
       'PULSE_HALF_MS',
+      // `8g`: the cashier's note about a product with no price — not the catalog's.
+      'REFUSED_NOTE_MS',
       'VEIL_FADE_MS',
       'VEIL_OPACITY',
       'bannerSequence',

@@ -1,5 +1,5 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
   Easing,
@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { catalogLine, initials, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
@@ -27,8 +27,9 @@ import {
   useWorkspace,
 } from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
-import { reviewOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
+import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
+import { sellGate } from '@/cart/gate';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
@@ -37,7 +38,7 @@ import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS } from '@/theme/pulse';
+import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS, EMPTIED_BLOOM_MS, REFUSED_NOTE_MS } from '@/theme/pulse';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Buscador } from '@/ui/Buscador';
@@ -294,7 +295,22 @@ export default function Vender() {
   // theirs (2026-09-23) and a cashier is shown nothing to tap. It is a `Modal`
   // over this screen, so the sale, the basket and the scroll stay where they are.
   const mayPrice = canWriteCatalog(useMyRole());
-  const [pricing, setPricing] = useState<CatalogEntry | null>(null);
+  // ⚠️ `adding` SINCE `8g`: the sheet `+` opened on a product with no price,
+  // whose saving also puts one in the basket — the owner's *"a product gets its
+  // price the first time it is sold"*, 2026-10-15.
+  const [pricing, setPricing] = useState<{ entry: CatalogEntry; adding: boolean } | null>(null);
+  const openPricing = useCallback(
+    (entry: CatalogEntry, adding: boolean) => setPricing({ entry, adding }),
+    [],
+  );
+  const bump = useCartStore((state) => state.step);
+  const priced = useCallback(() => {
+    if (pricing === null || !pricing.adding) return;
+    bump('sell', pricing.entry.id, stepOf(pricing.entry.priceUnit, factors), 1);
+  }, [pricing, bump, factors]);
+  // The cashier's note, by the product's name — see `Nota`.
+  const [refused, setRefused] = useState<string | null>(null);
+  const forgetRefused = useCallback(() => setRefused(null), []);
 
   const [cartOpen, setCartOpen] = useState(false);
   const closeCart = useCallback(() => setCartOpen(false), []);
@@ -410,6 +426,9 @@ export default function Vender() {
     >
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
+      {/* ⚠️ A BOX AROUND THE LIST SO THE CASHIER'S NOTE SITS OVER ITS FOOT,
+          just above the bar, without moving a row under a thumb. */}
+      <View style={{ flex: 1 }}>
       <FlatList
         ref={list}
         // ⚠️ A `FlatList` FOR `productos.tsx`'s REASON: C8.3 puts ~100 products
@@ -425,7 +444,8 @@ export default function Vender() {
             onEdit={(on) => {
               editing.current = on ? index : null;
             }}
-            onPrice={mayPrice ? setPricing : null}
+            onPrice={mayPrice ? openPricing : null}
+            onRefused={(entry) => setRefused(entry.name)}
           />
         )}
         ItemSeparatorComponent={Separador}
@@ -436,7 +456,10 @@ export default function Vender() {
         // a thrown error on the till is a blank screen. `productos.tsx` carries
         // the same fallback for the same reason.
         onScrollToIndexFailed={({ index }) => {
-          list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
+          list.current?.scrollToOffset({
+            offset: index * (scale.retratoSize + scale.space * 2),
+            animated: true,
+          });
         }}
         // ⚠️ NOT `on-drag` ANY MORE, AND THAT IS PART OF THE SAME FIX. Dismissing
         // the keyboard the instant a thumb moves makes a mis-scroll cost the
@@ -445,6 +468,8 @@ export default function Vender() {
         keyboardDismissMode="none"
         keyboardShouldPersistTaps="handled"
       />
+      {refused !== null ? <Nota name={refused} onDone={forgetRefused} /> : null}
+      </View>
 
       <Barra
         basket={basket}
@@ -454,12 +479,18 @@ export default function Vender() {
         canSell={basketful !== null && canCommit(basketful)}
       />
 
-      {pricing !== null && workspace !== null ? (
+      {/* ⚠️ OVER THE SCREEN ONLY WHILE THE CARRITO IS CLOSED; with it open the
+          sheet is drawn inside the Carrito's own `Modal` (`hoja` below), the
+          arrangement `Confirmacion` already uses — a second `Modal` over the
+          first is two iOS presentations animating against each other. */}
+      {pricing !== null && workspace !== null && !cartOpen ? (
         <PrecioRapido
-          entry={pricing}
+          entry={pricing.entry}
+          adding={pricing.adding}
           entries={entries}
           workspaceId={workspace.id}
           locationId={locationId}
+          onSaved={priced}
           onClose={() => setPricing(null)}
         />
       ) : null}
@@ -479,6 +510,21 @@ export default function Vender() {
         bloom={bloom}
         onConfirmEmpty={emptyCart}
         onCancelEmpty={() => setAsking(false)}
+        onPrice={mayPrice ? openPricing : null}
+        hoja={
+          pricing !== null && workspace !== null && cartOpen ? (
+            <PrecioRapido
+              bare
+              entry={pricing.entry}
+              adding={pricing.adding}
+              entries={entries}
+              workspaceId={workspace.id}
+              locationId={locationId}
+              onSaved={priced}
+              onClose={() => setPricing(null)}
+            />
+          ) : null
+        }
       />
 
       {/* ⚠️ THE SAME QUESTION, ASKED FROM THE BAR — rendered here only while the
@@ -490,6 +536,7 @@ export default function Vender() {
           asking={asking}
           emptied={emptied}
           bloom={bloom}
+          count={basket?.lines ?? 0}
           onConfirm={emptyCart}
           onCancel={() => setAsking(false)}
         />
@@ -529,6 +576,7 @@ function Fila({
   typical,
   onEdit,
   onPrice,
+  onRefused,
 }: {
   entry: CatalogEntry;
   factors: UnitFactors;
@@ -536,8 +584,11 @@ function Fila({
    *  bought it, or when it fell out of `MAGNITUDE_LIMIT`'s window. */
   typical: Typical | undefined;
   onEdit: (editing: boolean) => void;
-  /** Opens the price sheet; `null` for a cashier, who sees nothing to tap. */
-  onPrice: ((entry: CatalogEntry) => void) | null;
+  /** Opens the price sheet — `adding` when it was `+` that asked; `null` for a
+   *  cashier, who sees nothing to tap. */
+  onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
+  /** A cashier's `+` on a product with no price: the note saying who can fix it. */
+  onRefused: (entry: CatalogEntry) => void;
 }) {
   const { scale } = useDensity();
   const base = useCartStore((state) => {
@@ -546,7 +597,9 @@ function Fila({
   });
 
   // ⚠️ THE AMBER CONDITION, IN ONE LINE — see this file's header for the whole
-  // argument. A priceless product nobody is selling is not a problem.
+  // argument. A priceless product nobody is selling is not a problem. ⚠️ Since
+  // `8g` it is reached only by a basket from before that rule: `@/cart/gate`
+  // keeps an unpriced product out of the basket in the first place.
   const alarm = entry.centavos === null && base > 0;
 
   // ⚠️⚠️ §2.8's MAGNITUDE WARNING — `null` FOR THE PRICE, BECAUSE A SALE HAS NO
@@ -556,94 +609,250 @@ function Fila({
   // price change (`5f-iv`) is what would change this one argument.
   const big = magnitudeNote(outsized(typical, base, null));
 
+  // ⚠️⚠️ `8g`, THE OWNER'S RULING OF 2026-10-15 — see `@/cart/gate`.
+  const gate = sellGate(entry.centavos, onPrice !== null, base > 0);
+  const refusal =
+    gate === 'open'
+      ? null
+      : gate === 'priceFirst'
+        ? { dim: false, onTap: () => onPrice?.(entry, true) }
+        : { dim: true, onTap: () => onRefused(entry) };
+
   return (
     <View
       style={{
         flexDirection: 'row',
-        alignItems: 'center',
-        gap: scale.rowGap,
-        minHeight: scale.rowHeight,
-        paddingVertical: scale.rowGap,
+        gap: scale.space,
+        paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.superficie,
+        backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
       }}
     >
-      <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+      <Retrato name={entry.name} />
+
+      {/* ⚠️⚠️ THE OWNER'S *B · MOSTRADOR*, 2026-10-15: the name on top with the
+          whole width, the price and the controls beneath it. ⚠️ **`flexWrap` and
+          not a branch on the mode**: at `Letra grande`, or with a long price,
+          the controls do not fit beside the price and drop under it, which is
+          the drawing's three tiers arrived at by measurement rather than by a
+          rule about which mode is on. ⚠️ The family line is gone — *"we don't
+          need a description per item at all."* */}
+      <View style={{ flex: 1, justifyContent: 'space-between', gap: scale.rowGap }}>
         <Text
-          numberOfLines={1}
+          numberOfLines={2}
           style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}
         >
           {entry.name}
         </Text>
-        {entry.familyName === '' ? null : (
-          <Text
-            numberOfLines={1}
-            style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
-          >
-            {entry.familyName}
-          </Text>
-        )}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-          {/* C3.10's sentence, computed by `5d-i` and never assembled here.
-              ⚠️ 2026-10-14: for the owner and a manager it is also the way into
-              the price sheet, underlined so it reads as something to tap. */}
-          <Pressable
-            accessibilityRole={onPrice === null ? undefined : 'button'}
-            accessibilityLabel={onPrice === null ? undefined : ES.sell.priceSheet.title(entry.name)}
-            disabled={onPrice === null}
-            hitSlop={scale.rowGap}
-            onPress={() => onPrice?.(entry)}
-          >
-            <Text
-              numberOfLines={1}
-              style={{
-                fontSize: scale.bodySize,
-                fontWeight: '600',
-                color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta,
-                textDecorationLine: onPrice === null ? 'none' : 'underline',
-              }}
-            >
-              {entry.price}
-            </Text>
-          </Pressable>
-          {/* ⚠️ `R11`: the hue never travels alone. */}
-          {alarm ? (
-            <Pressable
-              accessibilityRole={onPrice === null ? undefined : 'button'}
-              disabled={onPrice === null}
-              hitSlop={scale.rowGap}
-              onPress={() => onPrice?.(entry)}
-            >
-              <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
-                {onPrice === null ? ES.sell.noPrice : ES.sell.setPrice}
+
+        {/* ⚠️ `R11`: the hue never travels alone. */}
+        {alarm || big !== '' ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap }}>
+            {alarm ? (
+              <Pressable
+                accessibilityRole={onPrice === null ? undefined : 'button'}
+                disabled={onPrice === null}
+                hitSlop={scale.rowGap}
+                onPress={() => onPrice?.(entry, false)}
+              >
+                <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
+                  {onPrice === null ? ES.sell.noPrice : ES.sell.setPrice}
+                </Text>
+              </Pressable>
+            ) : null}
+            {/* ⚠️ IT IS A WORD IN THE AMBER ROLE AND NOT A COLOURED ROW (`R11`
+                again, and §2.8's *none blocking*). A row that changed colour under
+                a thumb mid-sale reads as a refusal; `Sin precio` above does tint
+                the row because C3.13 really does block a commit on it, and this
+                one never does. */}
+            {big === '' ? null : (
+              <Text
+                numberOfLines={1}
+                style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
+              >
+                {big}
               </Text>
-            </Pressable>
-          ) : null}
-          {/* ⚠️ IT IS A WORD IN THE AMBER ROLE AND NOT A COLOURED ROW (`R11`
-              again, and §2.8's *none blocking*). A row that changed colour under
-              a thumb mid-sale reads as a refusal; `Sin precio` above does tint
-              the row because C3.13 really does block a commit on it, and this
-              one never does. */}
-          {big === '' ? null : (
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
-            >
-              {big}
-            </Text>
-          )}
+            )}
+          </View>
+        ) : null}
+
+        <View
+          style={{
+            flexDirection: 'row',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: scale.rowGap,
+          }}
+        >
+          <Precio entry={entry} onPrice={onPrice === null ? null : () => onPrice(entry, false)} />
+          <Cantidad
+            entry={entry}
+            base={base}
+            factors={factors}
+            scope="sell"
+            onEdit={onEdit}
+            padId={PAD_ID}
+            refusal={refusal}
+          />
         </View>
       </View>
-
-      <Cantidad
-        entry={entry}
-        base={base}
-        factors={factors}
-        scope="sell"
-        onEdit={onEdit}
-        padId={PAD_ID}
-      />
     </View>
+  );
+}
+
+/**
+ * The square a product's picture sits in — and, until it has one, its initials
+ * (C8.14: a finished state, never *pending photo*). `8g`, the owner's row B.
+ *
+ * ⚠️ NOT IN `src/ui/` YET, AND `R14` IS WHY: `productos.tsx` and
+ * `proveedores.tsx` each draw initials too, smaller and on `accionSuave`, and
+ * neither screen has had its turn in the review. When Productos is redrawn in
+ * this shape, this is its second drawing and moves.
+ *
+ * ⚠️ HIDDEN FROM THE SCREEN READER: the name beside it already says it.
+ */
+function Retrato({ name, small = false }: { name: string; small?: boolean }) {
+  const { scale } = useDensity();
+  const side = small ? scale.tapTarget : scale.retratoSize;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{
+        width: side,
+        height: side,
+        borderRadius: small ? scale.space : scale.space * 1.5,
+        backgroundColor: PALETTE.retrato,
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      <Text
+        style={{
+          fontSize: small ? scale.bodySize : scale.titleSize,
+          fontWeight: '700',
+          color: PALETTE.tintaApagada,
+        }}
+      >
+        {initials(name)}
+      </Text>
+    </View>
+  );
+}
+
+/**
+ * The price on a row: the figure, and its unit beneath it (C3.10 — never one
+ * without the other).
+ *
+ * ⚠️⚠️ FOR THE OWNER AND A MANAGER IT IS A BUTTON AND IS DRAWN AS ONE — `8g`,
+ * his ruling of 2026-10-15, replacing the underline of 2026-10-14. A pencil on
+ * `accionSuave`, the palette's own sentence for *the resting fill behind an
+ * action*, so it reads as tappable at rest. ⚠️ A cashier gets the same words
+ * with nothing around them: there is nothing for them to tap.
+ *
+ * ⚠️ NO AMBER ON A ROW NOBODY IS SELLING. A new shop imports its giro with no
+ * prices, so on its first day nearly every row is unpriced, and a thousand
+ * amber rows is a shop that looks unfinished; C3.12's dash and *sin precio*
+ * say it in grey.
+ */
+function Precio({ entry, onPrice }: { entry: CatalogEntry; onPrice: (() => void) | null }) {
+  const { scale } = useDensity();
+  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
+  const priced = entry.centavos !== null;
+  const words = (
+    <>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
+        <Text
+          style={{
+            fontSize: scale.moneySize,
+            fontWeight: '700',
+            color: priced ? PALETTE.tinta : PALETTE.tintaApagada,
+          }}
+        >
+          {entry.centavos === null ? ES.catalog.noPrice : formatMXN(entry.centavos)}
+        </Text>
+        {onPrice === null ? null : (
+          <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
+        )}
+      </View>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {priced ? ES.sell.per(unit) : ES.sell.unpriced}
+      </Text>
+    </>
+  );
+  if (onPrice === null) return <View>{words}</View>;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={ES.sell.priceSheet.title(entry.name)}
+      hitSlop={scale.rowGap}
+      onPress={onPrice}
+      style={{
+        paddingHorizontal: scale.rowGap,
+        paddingVertical: scale.rowGap / 2,
+        borderRadius: scale.space,
+        // ⚠️ A PRODUCT WITH NO PRICE GETS THE CHIP'S OUTLINE AND NOT ITS FILL:
+        // on a new shop's first day that is nearly every row, and a list of green
+        // chips is a list of shouting. Measured on the emulator, 2026-10-15.
+        borderWidth: priced ? 0 : 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: priced ? PALETTE.accionSuave : undefined,
+      }}
+    >
+      {words}
+    </Pressable>
+  );
+}
+
+/**
+ * ⚠️ `8g`: THE NOTE A CASHIER'S `+` BRINGS UP ON A PRODUCT WITH NO PRICE. It
+ * says who can fix it and that the rest of the sale still goes through — the
+ * reason the rule is at the `+` and not at the slide. It sits over the foot of
+ * the list, goes by itself, and a tap sends it sooner.
+ */
+function Nota({ name, onDone }: { name: string; onDone: () => void }) {
+  const { scale } = useDensity();
+  useEffect(() => {
+    const t = setTimeout(onDone, REFUSED_NOTE_MS);
+    return () => clearTimeout(t);
+  }, [name, onDone]);
+  return (
+    <Pressable
+      accessibilityRole="alert"
+      accessibilityLiveRegion="polite"
+      onPress={onDone}
+      style={{
+        position: 'absolute',
+        left: scale.space,
+        right: scale.space,
+        bottom: scale.space,
+        flexDirection: 'row',
+        gap: scale.space,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+        // ⚠️ ANDROID'S ELEVATION AND iOS'S SHADOW, the second without an offset:
+        // an offset is a literal `R6` refuses, and the default casts it upward,
+        // away from the bar it floats over.
+        elevation: 6,
+        shadowColor: PALETTE.velo,
+        shadowOpacity: 0.18,
+        shadowRadius: scale.space,
+      }}
+    >
+      <MaterialCommunityIcons name="information-outline" size={scale.iconSize} color={PALETTE.atencion} />
+      <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+          {ES.sell.refused.title(name)}
+        </Text>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {ES.sell.refused.body}
+        </Text>
+      </View>
+    </Pressable>
   );
 }
 
@@ -852,6 +1061,8 @@ function Carrito({
   bloom,
   onConfirmEmpty,
   onCancelEmpty,
+  onPrice,
+  hoja,
 }: {
   open: boolean;
   onClose: () => void;
@@ -870,6 +1081,10 @@ function Carrito({
   bloom: Animated.Value;
   onConfirmEmpty: () => void;
   onCancelEmpty: () => void;
+  /** The price chip on each line, for the owner and a manager — `8g`. */
+  onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
+  /** The price sheet, drawn inside this `Modal` while it is open — see `Vender`. */
+  hoja: ReactNode;
 }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
@@ -920,7 +1135,7 @@ function Carrito({
               paddingBottom: insets.bottom,
             }}
           >
-            <Encabezado onClose={onClose} />
+            <Encabezado onClose={onClose} lines={rows.length} />
 
             {/* ⚠️⚠️ THE SHEET STAYS PUT WHILE THE DIALOG IS UP. It shipped with
                 the emptying confirmation REPLACING the sheet's body, and the
@@ -944,6 +1159,7 @@ function Carrito({
                       entry={entries.find((e) => e.id === item.variantId)}
                       factors={factors}
                       typical={typicals[item.variantId]}
+                      onPrice={onPrice}
                     />
                   )}
                   ItemSeparatorComponent={Separador}
@@ -951,8 +1167,13 @@ function Carrito({
                   keyboardShouldPersistTaps="handled"
                 />
 
-                {rows.length === 0 ? null : (
-                  <Vaciar canSell={canSell} onCommit={onCommit} onAsk={onEmpty} />
+                {rows.length === 0 || review === null ? null : (
+                  <Vaciar
+                    basket={review.basket}
+                    canSell={canSell}
+                    onCommit={onCommit}
+                    onAsk={onEmpty}
+                  />
                 )}
               </>
             </>
@@ -966,16 +1187,24 @@ function Carrito({
           asking={asking}
           emptied={emptied}
           bloom={bloom}
+          count={rows.length}
           onConfirm={onConfirmEmpty}
           onCancel={onCancelEmpty}
         />
+
+        {hoja}
       </View>
     </Modal>
   );
 }
 
-/** The sheet's heading, and the way out that is not a gesture. */
-function Encabezado({ onClose }: { onClose: () => void }) {
+/**
+ * The sheet's heading, and the way out that is not a gesture.
+ *
+ * ⚠️ `8g`: THE COUNT SITS UNDER THE WORD — *Carrito* / *5 productos* — because
+ * the bar that said it is under the sheet now, and the total moved to the foot.
+ */
+function Encabezado({ onClose, lines }: { onClose: () => void; lines: number }) {
   const { scale } = useDensity();
   return (
     <View
@@ -989,9 +1218,14 @@ function Encabezado({ onClose }: { onClose: () => void }) {
         borderBottomColor: PALETTE.linea,
       }}
     >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-        {ES.counter.cart.title}
-      </Text>
+      <View style={{ gap: scale.rowGap / 4 }}>
+        <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>
+          {ES.counter.cart.title}
+        </Text>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {ES.counter.lines(lines)}
+        </Text>
+      </View>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={ES.counter.cart.close}
@@ -1033,11 +1267,13 @@ function Renglon({
   entry,
   factors,
   typical,
+  onPrice,
 }: {
   row: ReviewRow;
   entry: CatalogEntry | undefined;
   factors: UnitFactors;
   typical: Typical | undefined;
+  onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
 }) {
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
@@ -1049,20 +1285,24 @@ function Renglon({
   // flagged on a row that has since scrolled away would otherwise be committed
   // having been flagged to nobody.
   const big = magnitudeNote(outsized(typical, row.base, null));
+  const unpriced = row.centavos === null && !gone;
 
   return (
     <View
       style={{
-        gap: scale.rowGap / 2,
-        paddingVertical: scale.rowGap,
+        gap: scale.rowGap,
+        paddingVertical: scale.space,
         paddingHorizontal: scale.space,
-        backgroundColor: PALETTE.superficie,
+        backgroundColor: PALETTE.fondo,
       }}
     >
-      {/* The name, and the figure the customer is checking it against. */}
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
+      {/* ⚠️ `8g`, THE OWNER'S *BOARD 1*: A LINE READS LIKE A TICKET — the name,
+          and the figure the customer is checking it against, on one line; the
+          unit price under the name, so the arithmetic is on the paper. The
+          family line went with the row's (*"we don't need a description"*). */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.space }}>
         <Text
-          numberOfLines={1}
+          numberOfLines={2}
           style={{
             flex: 1,
             fontSize: scale.bodySize,
@@ -1072,20 +1312,21 @@ function Renglon({
         >
           {row.name ?? ES.counter.cart.goneName}
         </Text>
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+        <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
           {row.centavos === null ? ES.catalog.noPrice : formatMXN(row.centavos)}
         </Text>
       </View>
 
       {/* ⚠️ `R11`: the state never travels as a colour alone. */}
-      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: scale.rowGap }}>
-        <Text
-          numberOfLines={1}
-          style={{ flex: 1, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
-        >
-          {gone ? ES.counter.cart.gone : (row.familyName ?? '')}
-        </Text>
-        {row.centavos === null && !gone ? (
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: scale.rowGap }}>
+        {gone ? (
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+            {ES.counter.cart.gone}
+          </Text>
+        ) : (
+          <Unitario entry={entry} onPrice={onPrice} />
+        )}
+        {unpriced ? (
           <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
             {ES.sell.noPrice}
           </Text>
@@ -1093,7 +1334,7 @@ function Renglon({
         {/* ⚠️ THE PRICELESS LINE WINS WHEN BOTH APPLY, which is not arbitrary:
             C3.13/C3.14 make a missing price the thing that decides whether this
             basket can be committed at all, and §2.8 makes this one advisory. */}
-        {big === '' || (row.centavos === null && !gone) ? null : (
+        {big === '' || unpriced ? null : (
           <Text
             numberOfLines={1}
             style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}
@@ -1132,6 +1373,51 @@ function Renglon({
 }
 
 /**
+ * A line's unit price — *$45 por pza* — under its name in the Carrito.
+ *
+ * ⚠️ THE SAME CHIP AS THE ROW'S, for the owner and a manager (`8g`): a pencil
+ * on `accionSuave`, and a tap opens the same price sheet, drawn inside this
+ * `Modal`. A cashier reads the words alone.
+ */
+function Unitario({
+  entry,
+  onPrice,
+}: {
+  entry: CatalogEntry;
+  onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
+}) {
+  const { scale } = useDensity();
+  const words = (
+    <Text style={{ fontSize: scale.smallSize, color: onPrice === null ? PALETTE.tintaApagada : PALETTE.tinta }}>
+      {entry.centavos === null
+        ? ES.catalog.noPrice
+        : `${formatMXN(entry.centavos)} ${ES.sell.per(ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit)}`}
+    </Text>
+  );
+  if (onPrice === null) return words;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={ES.sell.priceSheet.title(entry.name)}
+      hitSlop={scale.rowGap}
+      onPress={() => onPrice(entry, false)}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap / 2,
+        paddingHorizontal: scale.rowGap,
+        paddingVertical: scale.rowGap / 2,
+        borderRadius: scale.space,
+        backgroundColor: PALETTE.accionSuave,
+      }}
+    >
+      {words}
+      <MaterialCommunityIcons name="pencil-outline" size={scale.smallSize} color={PALETTE.accion} />
+    </Pressable>
+  );
+}
+
+/**
  * ⚠️⚠️ THE SHEET'S FOOT — `Vaciar carrito`, and **the second slide**.
  *
  * ⚠️ THE SLIDE HERE IS THE OWNER'S, RULED 2026-09-24: *"The slide bar should
@@ -1151,10 +1437,12 @@ function Renglon({
  * scrim, which is `Pregunta`, and the owner's specification.
  */
 function Vaciar({
+  basket,
   onAsk,
   onCommit,
   canSell,
 }: {
+  basket: Basket;
   onAsk: () => void;
   onCommit: () => void;
   canSell: boolean;
@@ -1163,8 +1451,6 @@ function Vaciar({
   return (
     <View
       style={{
-        flexDirection: 'row',
-        alignItems: 'center',
         gap: scale.space,
         paddingHorizontal: scale.space,
         paddingVertical: scale.space,
@@ -1173,6 +1459,28 @@ function Vaciar({
         backgroundColor: PALETTE.banda,
       }}
     >
+      {/* ⚠️⚠️ `8g`, THE OWNER'S *BOARD 1*: THE TOTAL IS ON THE SHEET. Until now
+          the open Carrito showed every line's figure and not their sum — the bar
+          that carried it is under the sheet. ⚠️ **It is the bar's own figure**
+          (`reviewOf`'s `basket`), so the foot and the bar are one object in two
+          places, and the lines above still sum to it (§2.5 rule 5). */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+          {ES.counter.total}
+        </Text>
+        <View style={{ alignItems: 'flex-end', gap: scale.rowGap / 4 }}>
+          <Text style={{ fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta }}>
+            {formatMXN(basket.centavos)}
+          </Text>
+          {!basket.complete ? (
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
+              {ES.sell.someUnpriced}
+            </Text>
+          ) : null}
+        </View>
+      </View>
+
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={ES.counter.cart.empty}
@@ -1202,6 +1510,7 @@ function Vaciar({
           />
         </View>
       ) : null}
+      </View>
     </View>
   );
 }
@@ -1223,12 +1532,15 @@ function Confirmacion({
   asking,
   emptied,
   bloom,
+  count,
   onConfirm,
   onCancel,
 }: {
   asking: boolean;
   emptied: boolean;
   bloom: Animated.Value;
+  /** How many lines *Sí, vaciar* takes — `8g`'s line under the question. */
+  count: number;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -1258,7 +1570,11 @@ function Confirmacion({
             gap: scale.space,
           }}
         >
-          {emptied ? <Vaciado bloom={bloom} /> : <Pregunta onConfirm={onConfirm} onCancel={onCancel} />}
+          {emptied ? (
+            <Vaciado bloom={bloom} />
+          ) : (
+            <Pregunta count={count} onConfirm={onConfirm} onCancel={onCancel} />
+          )}
         </View>
       </View>
     </View>
@@ -1279,11 +1595,25 @@ function Confirmacion({
  * DESTROYS*, and the way out of a destructive question is not itself
  * destructive.
  */
-function Pregunta({ onConfirm, onCancel }: { onConfirm: () => void; onCancel: () => void }) {
+function Pregunta({
+  count,
+  onConfirm,
+  onCancel,
+}: {
+  count: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
   const { scale } = useDensity();
   return (
     <>
       <Frase text={ES.counter.cart.emptyAsk} />
+      {/* ⚠️ `8g`: WHAT THE ANSWER WILL TAKE, said under the question. */}
+      {count > 0 ? (
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+          {ES.counter.cart.emptyCount(count)}
+        </Text>
+      ) : null}
       <View style={{ gap: scale.rowGap }}>
         {/* ⚠️ `5h.5` MOVED THIS ONE INTO `src/ui/Boton` AND DELIBERATELY LEFT THE
             NEXT ONE ALONE. This button's style was byte-identical to
@@ -1407,7 +1737,16 @@ function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
           paddingHorizontal: scale.space * 2,
           paddingVertical: scale.space * 1.5,
           borderRadius: scale.space,
-          backgroundColor: PALETTE.fondo,
+          // ⚠️ `superficie` AND AN EDGE SINCE `8g`: the rows are `fondo` now (the
+          // owner's row B), and a `fondo` card over them was words floating on
+          // the list — seen on the emulator the first time a sale went through.
+          borderWidth: 1,
+          borderColor: PALETTE.linea,
+          backgroundColor: PALETTE.superficie,
+          elevation: 6,
+          shadowColor: PALETTE.velo,
+          shadowOpacity: 0.18,
+          shadowRadius: scale.space,
           opacity: bloom,
           transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [0.85, 1] }) }],
         }}
@@ -1445,16 +1784,28 @@ function Vendido({ shown, onDone }: { shown: boolean; onDone: () => void }) {
  */
 function PrecioRapido({
   entry,
+  adding,
   entries,
   workspaceId,
   locationId,
+  onSaved,
   onClose,
+  bare = false,
 }: {
   entry: CatalogEntry;
+  /** `8g`: opened by `+` on a product with no price — saving also adds one. */
+  adding: boolean;
   entries: readonly CatalogEntry[];
   workspaceId: string;
   locationId: string | null;
+  /** Called once the price has landed, before the sheet closes. */
+  onSaved: () => void;
   onClose: () => void;
+  /**
+   * Drawn inside a `Modal` that is already up (the Carrito's) rather than as a
+   * `Modal` of its own — `Confirmacion`'s arrangement, and the same reason.
+   */
+  bare?: boolean;
 }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
@@ -1501,6 +1852,10 @@ function PrecioRapido({
       return;
     }
     Keyboard.dismiss();
+    // ⚠️ AFTER THE SAVE, AND THE SAVE HAS ALREADY RE-READ THE CATALOG
+    // (`useEditProduct` awaits the invalidation), so the line `onSaved` adds is
+    // priced the moment it lands — never an amber line for a frame.
+    onSaved();
     onClose();
   }
 
@@ -1508,85 +1863,122 @@ function PrecioRapido({
     issue !== null
       ? ES.catalog.editIssues[issue]
       : failure ?? (pricesFailed ? ES.sell.priceSheet.needsSignal : null);
+  const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
 
-  return (
-    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
-      <View style={{ flex: 1 }}>
-        <Velo label={ES.sell.priceSheet.cancel} onPress={onClose} />
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{ flex: 1, justifyContent: 'flex-end' }}
+  const sheet = (
+    <View style={{ flex: 1 }}>
+      <Velo label={ES.sell.priceSheet.cancel} onPress={onClose} />
+      {/* ⚠️⚠️ `padding` ON BOTH PLATFORMS, AND ANDROID'S `undefined` WAS A
+          DEFECT FROM 2026-10-14 UNTIL `8g` FOUND IT ON THE EMULATOR: the number
+          pad covered the whole sheet, box and *Guardar* included. Vender's own
+          `undefined` is right for Vender — Expo's `resize` shortens the WINDOW —
+          but a `Modal` is a window of its own that nothing resizes, so here the
+          sheet has to make the room itself. */}
+      <KeyboardAvoidingView behavior="padding" style={{ flex: 1, justifyContent: 'flex-end' }}>
+        <View
+          style={{
+            borderTopLeftRadius: scale.space * 2,
+            borderTopRightRadius: scale.space * 2,
+            backgroundColor: PALETTE.fondo,
+            padding: scale.space * 1.5,
+            paddingBottom: scale.space * 1.5 + insets.bottom,
+            gap: scale.space,
+          }}
         >
-          <View
-            style={{
-              borderTopLeftRadius: scale.space,
-              borderTopRightRadius: scale.space,
-              backgroundColor: PALETTE.fondo,
-              padding: scale.space * 1.5,
-              paddingBottom: scale.space * 1.5 + insets.bottom,
-              gap: scale.rowGap,
-            }}
-          >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-              {ES.sell.priceSheet.title(entry.name)}
-            </Text>
-            <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
-              {ES.sell.priceSheet.now(entry.price)}
-            </Text>
-
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>$</Text>
-              <TextInput
-                value={typed}
-                onChangeText={setTyped}
-                keyboardType="decimal-pad"
-                autoFocus
-                editable={!working}
-                style={{
-                  flex: 1,
-                  fontSize: scale.bodySize,
-                  minHeight: scale.tapTarget,
-                  color: PALETTE.tinta,
-                  backgroundColor: PALETTE.superficie,
-                  borderWidth: 1,
-                  borderColor: PALETTE.linea,
-                  borderRadius: scale.space / 2,
-                  paddingHorizontal: scale.space,
-                }}
-              />
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                {`${ES.catalog.per} ${entry.priceUnit}`}
+          {/* ⚠️ `8g`: THE PRODUCT FIRST, THEN THE QUESTION. The name is beside its
+              tile so the sheet says which product before it asks anything. */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+            <Retrato name={entry.name} small />
+            <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                {entry.name}
+              </Text>
+              <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+                {entry.centavos === null
+                  ? ES.sell.priceSheet.first
+                  : ES.sell.priceSheet.now(entry.price)}
               </Text>
             </View>
-
-            {line !== null ? (
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{line}</Text>
-            ) : null}
-
-            <BotonLleno
-              label={
-                working
-                  ? ES.sell.priceSheet.saving
-                  : ready
-                    ? ES.sell.priceSheet.save
-                    : ES.sell.priceSheet.loading
-              }
-              onPress={() => void guardar()}
-              busy={working}
-            />
-            <Pressable
-              accessibilityRole="button"
-              disabled={working}
-              onPress={onClose}
-              style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
-            >
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                {ES.sell.priceSheet.cancel}
-              </Text>
-            </Pressable>
           </View>
-        </KeyboardAvoidingView>
-      </View>
+
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {entry.centavos === null ? ES.sell.priceSheet.ask : ES.sell.priceSheet.askAgain}
+          </Text>
+
+          {/* ⚠️ THE BOX IS EMPTY AND THE PRICE NOW IS SAID ABOVE IT — the owner's
+              standing ruling that a proposal must not look decided: a mirror,
+              never a pre-fill. */}
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: scale.rowGap,
+              minHeight: scale.tapTarget * 1.4,
+              paddingHorizontal: scale.space,
+              borderRadius: scale.space,
+              borderWidth: 2,
+              borderColor: PALETTE.accion,
+              backgroundColor: PALETTE.superficie,
+            }}
+          >
+            <Text style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}>$</Text>
+            <TextInput
+              value={typed}
+              onChangeText={setTyped}
+              keyboardType="decimal-pad"
+              autoFocus
+              editable={!working}
+              accessibilityLabel={ES.sell.priceSheet.title(entry.name)}
+              style={{
+                flex: 1,
+                fontSize: scale.titleSize,
+                fontWeight: '700',
+                color: PALETTE.tinta,
+              }}
+            />
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.sell.per(unit)}
+            </Text>
+          </View>
+
+          {line !== null ? (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{line}</Text>
+          ) : null}
+
+          <BotonLleno
+            label={
+              working
+                ? ES.sell.priceSheet.saving
+                : ready
+                  ? adding
+                    ? ES.sell.priceSheet.saveAndAdd
+                    : ES.sell.priceSheet.save
+                  : ES.sell.priceSheet.loading
+            }
+            onPress={() => void guardar()}
+            busy={working}
+          />
+          <Pressable
+            accessibilityRole="button"
+            disabled={working}
+            onPress={onClose}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.sell.priceSheet.cancel}
+            </Text>
+          </Pressable>
+        </View>
+      </KeyboardAvoidingView>
+    </View>
+  );
+
+  if (bare) {
+    return <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>{sheet}</View>;
+  }
+  return (
+    <Modal visible animationType="slide" transparent onRequestClose={onClose}>
+      {sheet}
     </Modal>
   );
 }

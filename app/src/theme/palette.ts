@@ -83,6 +83,19 @@ export interface Palette {
    * `linea` is absent from `GROUND_ROLES` for exactly this reason.
    */
   readonly velo: string;
+  /**
+   * ⚠️ THE THIRTEENTH ROLE, ADDED 2026-10-15 BY `8g` WITH THE OWNER'S ROW:
+   * **the square a product's picture sits in**, and its initials while it has
+   * none (C8.14 — a finished state, never *pending photo*). He chose the row
+   * with a picture on the left (*B · Mostrador*) knowing no product has one yet,
+   * so every row draws this ground today.
+   *
+   * ⚠️ IT IS A GROUND AND THE INKS ARE HELD TO IT: `#F1E7D6`, the drawing's
+   * sand, put `atencion` at 4.47:1 on it, so it is one step lighter here and
+   * clears 4.5 with every ink. Nothing amber is written on it today; the
+   * matrix is asserted anyway, because a tile is where a badge would go.
+   */
+  readonly retrato: string;
 }
 
 /**
@@ -130,6 +143,7 @@ export const PALETTE: Palette = {
   atencionSuave: '#FCF1DE',
   error: '#A32218',
   velo: '#15130E',
+  retrato: '#F3EAD9',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -152,6 +166,7 @@ export const PALETTE_ROLES: readonly PaletteRole[] = [
   'atencionSuave',
   'error',
   'velo',
+  'retrato',
 ];
 
 /**
@@ -182,6 +197,7 @@ export const GROUND_ROLES: readonly PaletteRole[] = [
   'banda',
   'accionSuave',
   'atencionSuave',
+  'retrato',
 ];
 
 // ============================================================================
