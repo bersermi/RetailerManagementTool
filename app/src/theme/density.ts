@@ -64,6 +64,12 @@ export interface DensityScale {
    * row's height, so `Letra grande`'s larger words fit in the room it makes.
    */
   readonly retratoSize: number;
+  /**
+   * The side of the shop's watermark in the tab screens' band — `8g`, the
+   * owner's option C. Faint and cut by the band's edge, so its size is felt
+   * more than seen; larger at `Letra grande` only because the band is taller.
+   */
+  readonly selloSize: number;
 }
 
 /**
@@ -88,6 +94,7 @@ const normal: DensityScale = {
   tabLabelSize: 12,
   tabBarHeight: 56,
   retratoSize: 80,
+  selloSize: 120,
 };
 
 /**
@@ -114,6 +121,7 @@ const elder: DensityScale = {
   tabLabelSize: 15,
   tabBarHeight: 76,
   retratoSize: 100,
+  selloSize: 150,
 };
 
 export const DENSITIES = { normal, elder } as const;

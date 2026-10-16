@@ -96,6 +96,19 @@ export interface Palette {
    * matrix is asserted anyway, because a tile is where a badge would go.
    */
   readonly retrato: string;
+  /**
+   * ⚠️ THE FOURTEENTH ROLE, `8g` 2026-10-15: **the shop's watermark and its name
+   * in the tab screens' band, and nothing else** — the owner's option C, *"a
+   * nice detail in case someone pays attention, shouldn't be noisy."* Never a
+   * button, never a price, never a state: green acts, amber warns, red destroys,
+   * and this one only signs.
+   *
+   * ⚠️ IT IS THE ICON'S RUST, ONE STEP DARKER. `brand/wera-mark.svg` is
+   * `#B5561F`, which is 4.31:1 on `banda` — under 4.5 on the very ground the
+   * name is written on. `#A9501C` is the same hue and clears every ground; the
+   * icon keeps its own.
+   */
+  readonly marca: string;
 }
 
 /**
@@ -144,6 +157,7 @@ export const PALETTE: Palette = {
   error: '#A32218',
   velo: '#15130E',
   retrato: '#F3EAD9',
+  marca: '#A9501C',
 };
 
 /** `'fondo' | 'superficie' | …` — derived from the table so the two cannot drift. */
@@ -167,6 +181,7 @@ export const PALETTE_ROLES: readonly PaletteRole[] = [
   'error',
   'velo',
   'retrato',
+  'marca',
 ];
 
 /**
@@ -181,6 +196,7 @@ export const INK_ROLES: readonly PaletteRole[] = [
   'accion',
   'atencion',
   'error',
+  'marca',
 ];
 
 /**
