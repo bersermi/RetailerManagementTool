@@ -158,11 +158,22 @@ select set_config('request.jwt.claims', format('{"sub":"%s","role":"authenticate
 set role authenticated;
 select public._try(format('select record_waste(%L, %L, public._wl57(%L, %L))',
   '0057ffff-0000-4000-8000-000000000001', :'loc', :'var', '2026-10-13')) as by_staff \gset
+-- ⚠️⚠️ AND SHE CAN STILL UNDO IT. A write-off she dates *Ayer* lands with an
+-- occurred_at a day old; void_transaction's fifteen minutes run from when it
+-- LANDED (recorded_at), or the window would be closed before she could use it.
+select record_waste('0057ffff-0000-4000-8000-000000000002'::uuid, :'loc'::uuid,
+  public._wl57(:'var'::uuid), now() - interval '1 day', false) is not null as ayer_staff \gset
+select public._try(format('select void_transaction(%L, %L)', 'waste',
+  '0057ffff-0000-4000-8000-000000000002')) as void_ayer \gset
 reset role;
 select set_config('request.jwt.claims', null, false);
 select public.chk('4.1 a cashier at her store writes off with an expiry, as she wrote off before',
   :'by_staff' = 'ok' and (select expiry_date from public.waste_line
      where waste_id = '0057ffff-0000-4000-8000-000000000001') = date '2026-10-13', :'by_staff');
+select public.chk('4.2 ⚠️ a cashier''s write-off dated yesterday can still be undone by her — '
+                  'the fifteen minutes run from when it landed (0057, void_transaction)',
+  :'void_ayer' = 'ok' and exists (select 1 from public.waste
+     where reversal_of = '0057ffff-0000-4000-8000-000000000002'), :'void_ayer');
 
 -- ----------------------------------------------------------------------------
 -- The report
@@ -177,8 +188,8 @@ begin
   if v_failed > 0 then
     raise exception '% behavioural check(s) FAILED — see the table above', v_failed;
   end if;
-  if (select count(*) from public._verify) <> 12 then
-    raise exception 'expected 12 checks, % recorded — one was lost, not passed',
+  if (select count(*) from public._verify) <> 13 then
+    raise exception 'expected 13 checks, % recorded — one was lost, not passed',
       (select count(*) from public._verify);
   end if;
   raise notice 'all % checks passed', (select count(*) from public._verify);
