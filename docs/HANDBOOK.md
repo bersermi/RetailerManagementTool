@@ -56,6 +56,11 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **15 October, night: Vender and the Carrito in your row B went out over the air** (*Vender y el
+Carrito nuevos (8g ronda 1)*). **Open Wera, close it completely (swipe it away), open it again.**
+The first open fetches the update and the second runs it. You will know it is there because each
+product has its initials in a square on the left, and the active tab is green.
+
 ✅ **Your iPhone has the build of 14 October** (EAS `5f9a384f`, which you built in
 Terminal.app and installed from its QR code): the cow, Apple sign-in's code and that day's
 three fixes. **Fixes reach it over the air again.** ⚠️ **The pilot member's Android does not
