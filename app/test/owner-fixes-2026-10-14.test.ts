@@ -64,7 +64,11 @@ describe('a price set from Vender', () => {
 
   it('is offered to the owner and a manager only — the catalog fence', () => {
     expect(vender).toMatch(/const mayPrice = canWriteCatalog\(useMyRole\(\)\);/);
-    expect(vender).toMatch(/onPrice=\{mayPrice \? setPricing : null\}/);
+    // ⚠️ `8g` (2026-10-15): the sheet now also opens from the Carrito's price
+    // chip and from `+` on a product with no price — the same fence on both.
+    const fenced = vender.match(/onPrice=\{mayPrice \? openPricing : null\}/g) ?? [];
+    expect(fenced, 'the list and the Carrito each fence the price sheet').toHaveLength(2);
+    expect(vender).not.toMatch(/onPrice=\{openPricing\}/);
   });
 
   it('writes through the edit screen’s own path, never a second one', () => {

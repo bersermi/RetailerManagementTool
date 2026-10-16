@@ -57,6 +57,13 @@ export interface DensityScale {
   readonly tabLabelSize: number;
   /** Tab-bar height, excluding the device's safe-area inset. */
   readonly tabBarHeight: number;
+  /**
+   * The side of a product's picture square on Vender's row — `8g`, the owner's
+   * *B · Mostrador*, 2026-10-15. He traded rows on screen for it: *"I'm willing
+   * to sacrifice some of the canvas height per product."* It is what sets the
+   * row's height, so `Letra grande`'s larger words fit in the room it makes.
+   */
+  readonly retratoSize: number;
 }
 
 /**
@@ -80,6 +87,7 @@ const normal: DensityScale = {
   iconSize: 24,
   tabLabelSize: 12,
   tabBarHeight: 56,
+  retratoSize: 80,
 };
 
 /**
@@ -105,6 +113,7 @@ const elder: DensityScale = {
   iconSize: 32,
   tabLabelSize: 15,
   tabBarHeight: 76,
+  retratoSize: 100,
 };
 
 export const DENSITIES = { normal, elder } as const;

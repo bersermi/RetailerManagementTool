@@ -1,4 +1,5 @@
 import { Stack, router, usePathname, useSegments } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 
@@ -66,6 +67,11 @@ export default function RootLayout() {
             style={{ flex: 1 }}
             onTouchStart={PILOT_BUILD === null ? undefined : touchedApp}
           >
+            {/* ⚠️ `8g`: DARK ICONS, ALWAYS. Seen by `5R-d-iv-a` on 2026-10-13: with
+                nothing setting it, Android drew the clock and the icons WHITE on
+                Wera's white and cream headers. The app is light only (the owner,
+                2026-09-30), so there is no mode to follow. */}
+            <StatusBar style="dark" />
             <Stack screenOptions={{ headerShown: false }}>
               <Stack.Screen name="ajustes" options={{ presentation: 'modal' }} />
               <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />

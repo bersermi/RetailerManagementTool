@@ -163,3 +163,10 @@ export const DONE_HOLD_MS = 520;
 
 /** And leaving — the banner's fade. */
 export const DONE_OUT_MS = BANNER_FADE_MS;
+
+/**
+ * ⚠️ `8g`: how long a cashier's note about a product with no price stays up —
+ * two sentences read by somebody with a customer waiting, so long enough to read
+ * twice, and a tap sends it sooner.
+ */
+export const REFUSED_NOTE_MS = 4000;

@@ -49,7 +49,7 @@
 // ============================================================================
 
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
@@ -67,6 +67,7 @@ export function Cantidad({
   scope,
   onEdit,
   padId,
+  refusal = null,
 }: {
   entry: CatalogEntry;
   base: number;
@@ -86,10 +87,20 @@ export function Cantidad({
    * own dismiss control. `nuevo.tsx` established both halves of that.
    */
   padId?: string;
+  /**
+   * ⚠️⚠️ `8g`, THE OWNER'S RULING OF 2026-10-15: ON VENDER A PRODUCT WITH NO
+   * PRICE NEVER ENTERS THE BASKET. When set, `+` and the box count nothing: a
+   * tap on either calls `onTap` instead — the price sheet for somebody who may
+   * price it, a note for somebody who may not — and `dim` draws `+` as
+   * unavailable for the second. `@/cart/gate` decides which; this file only
+   * obeys. Comprar and Desperdicio never pass it.
+   */
+  refusal?: { readonly dim: boolean; readonly onTap: () => void } | null;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
   const bump = useCartStore((state) => state.step);
+  const input = useRef<TextInput>(null);
 
   const unit = shownUnitOf(entry);
   const by = stepOf(entry.priceUnit, factors);
@@ -118,114 +129,166 @@ export function Cantidad({
   // ⚠️ THE UNIT'S WORD IS `ES.units`' AND NEVER THE CODE (`R4`): `250g` is what
   // the database calls it and *250 gr* is what a shopkeeper reads.
   const word = ES.units[unit as keyof typeof ES.units] ?? unit;
+  const counted = base > 0;
 
   return (
+    // ⚠️ THE SAME FOOTPRINT AS BEFORE `8g` — two taps, a box half as wide again
+    // and two half-gaps. Comprar draws this beside its cost box, and 13 points
+    // wider cut its amber *Primera vez con este proveedor* to an ellipsis on the
+    // emulator; a warning with its end missing is a warning half given.
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
       <Paso
         label={ES.counter.less}
         glyph="minus"
-        // ⚠️ DISABLED RATHER THAN DEAD AT ZERO. Stepping down through zero
-        // removes a line that is not there; a control that looks live and does
-        // nothing is the shape this repository refuses by name.
-        disabled={by === null || base === 0}
+        // ⚠️⚠️ ABSENT AT ZERO, AND IT WAS *DISABLED* UNTIL `8g`. Stepping down
+        // through zero removes a line that is not there, and a control that
+        // looks live and does nothing is the shape this repository refuses by
+        // name; the owner's row B goes one further and draws nothing, so a row
+        // at rest carries one green `+` and the rows already in the sale are the
+        // ones with two buttons. ⚠️ The slot is KEPT, so the box does not move
+        // under a thumb when `−` appears.
+        hidden={!counted}
+        disabled={by === null || !counted}
         onPress={() => {
           setDraft(null);
           bump(scope, entry.id, by, -1);
         }}
       />
 
-      <View style={{ alignItems: 'center', minWidth: scale.tapTarget * 1.5 }}>
-        <TextInput
-          value={shown}
-          onChangeText={typeInto}
-          // ⚠️ THE ROW TELLS THE SCREEN IT IS THE ONE BEING TYPED INTO, and the
-          // screen scrolls it into view once the keyboard is actually up.
-          onFocus={() => onEdit?.(true)}
-          onBlur={() => {
-            onEdit?.(false);
-            setDraft(null);
-          }}
-          editable={by !== null}
-          // ⚠️ `decimal-pad` AND NOT `numeric`: `numeric` carries a minus sign
-          // and an exponent on some Android keyboards, and neither is a
-          // quantity. A comma is read as a decimal point one module over.
-          keyboardType="decimal-pad"
-          // ⚠️ KEPT FROM VENDER'S OWN COPY AND PROVABLY INERT ON THIS KEYBOARD:
-          // `decimal-pad` draws NO return key on either platform, which
-          // `nuevo.tsx` measured — so `onSubmitEditing` can never fire and the
-          // way off the pad is `padId`'s bar on iOS and the system's control on
-          // Android. It stays because the extraction moves markup unchanged, and
-          // it is named here so the next reader does not take it for the exit.
-          returnKeyType="done"
-          onSubmitEditing={() => Keyboard.dismiss()}
-          inputAccessoryViewID={padId}
-          accessibilityLabel={`${ES.counter.qty} ${word}`}
-          textAlign="center"
-          style={{
-            minWidth: scale.tapTarget * 1.5,
-            minHeight: scale.tapTarget,
-            paddingHorizontal: scale.rowGap / 2,
-            borderRadius: scale.space / 2,
-            borderWidth: 1,
-            borderColor: base === 0 ? PALETTE.linea : PALETTE.accion,
-            backgroundColor: PALETTE.superficie,
-            fontSize: scale.bodySize,
-            fontWeight: '600',
-            color: PALETTE.tinta,
-          }}
-        />
-        {/* ⚠️ THE UNIT IS RENDERED BESIDE THE FIELD AND ALWAYS — the half of
-            §2.8's *Unit-aware input* row that was never in question. */}
+      {/* ⚠️ THE UNIT IS RENDERED INSIDE THE BOX AND ALWAYS — the half of §2.8's
+          *Unit-aware input* row that was never in question. It moved inside on
+          `8g` (*2 pza*, *750 gr*), which is a sentence and saves the line under
+          the box. ⚠️ A tap anywhere on the box reaches the field. */}
+      <Pressable
+        accessibilityRole={refusal === null ? undefined : 'button'}
+        accessibilityLabel={refusal === null ? undefined : `${ES.counter.qty} ${word}`}
+        onPress={refusal === null ? () => input.current?.focus() : refusal.onTap}
+        style={{
+          width: scale.tapTarget * 1.5,
+          minHeight: scale.tapTarget,
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: scale.rowGap / 2,
+          paddingHorizontal: scale.rowGap / 2,
+          borderRadius: scale.space,
+          borderWidth: counted ? 2 : 1,
+          borderColor: counted ? PALETTE.accion : PALETTE.linea,
+          backgroundColor: refusal?.dim === true ? PALETTE.fondo : PALETTE.superficie,
+        }}
+      >
+        {refusal === null ? (
+          <TextInput
+            ref={input}
+            value={shown}
+            onChangeText={typeInto}
+            // ⚠️ THE ROW TELLS THE SCREEN IT IS THE ONE BEING TYPED INTO, and the
+            // screen scrolls it into view once the keyboard is actually up.
+            onFocus={() => onEdit?.(true)}
+            onBlur={() => {
+              onEdit?.(false);
+              setDraft(null);
+            }}
+            editable={by !== null}
+            // ⚠️ `decimal-pad` AND NOT `numeric`: `numeric` carries a minus sign
+            // and an exponent on some Android keyboards, and neither is a
+            // quantity. A comma is read as a decimal point one module over.
+            keyboardType="decimal-pad"
+            // ⚠️ KEPT FROM VENDER'S OWN COPY AND PROVABLY INERT ON THIS KEYBOARD:
+            // `decimal-pad` draws NO return key on either platform, which
+            // `nuevo.tsx` measured — so `onSubmitEditing` can never fire and the
+            // way off the pad is `padId`'s bar on iOS and the system's control on
+            // Android. It stays because the extraction moves markup unchanged, and
+            // it is named here so the next reader does not take it for the exit.
+            returnKeyType="done"
+            onSubmitEditing={() => Keyboard.dismiss()}
+            inputAccessoryViewID={padId}
+            accessibilityLabel={`${ES.counter.qty} ${word}`}
+            textAlign="right"
+            style={{
+              flexShrink: 1,
+              minWidth: scale.space,
+              fontSize: scale.bodySize,
+              fontWeight: '700',
+              color: PALETTE.tinta,
+            }}
+          />
+        ) : null}
         <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{word}</Text>
-      </View>
+      </Pressable>
 
       <Paso
         label={ES.counter.more}
         glyph="plus"
-        disabled={by === null}
-        onPress={() => {
-          setDraft(null);
-          bump(scope, entry.id, by, 1);
-        }}
+        filled
+        disabled={by === null || refusal?.dim === true}
+        // ⚠️ A DIMMED `+` STILL ANSWERS: the cashier's tap is what brings up the
+        // note saying why, so it is drawn unavailable and kept pressable.
+        pressable={refusal !== null}
+        onPress={
+          refusal !== null
+            ? refusal.onTap
+            : () => {
+                setDraft(null);
+                bump(scope, entry.id, by, 1);
+              }
+        }
       />
     </View>
   );
 }
 
-/** One half of the stepper. The glyph carries the word as its label (C12.1). */
+/**
+ * One half of the stepper. The glyph carries the word as its label (C12.1).
+ *
+ * ⚠️ ROUND SINCE `8g`, AND THE TWO HALVES ARE NO LONGER TWINS. `+` is filled in
+ * `accion` — the act the row exists for — and `−` is its outline, because
+ * taking one back is the lesser act and must not read as the main one.
+ */
 function Paso({
   label,
   glyph,
   disabled,
   onPress,
+  filled = false,
+  hidden = false,
+  pressable = false,
 }: {
   label: string;
   glyph: 'minus' | 'plus';
   disabled: boolean;
   onPress: () => void;
+  filled?: boolean;
+  /** Drawn as nothing, its room kept — see `−` above. */
+  hidden?: boolean;
+  /** Answers a tap while drawn as `disabled` — see `+` above. */
+  pressable?: boolean;
 }) {
   const { scale } = useDensity();
+  const ground = disabled ? PALETTE.fondo : filled ? PALETTE.accion : PALETTE.superficie;
+  const ink = disabled ? PALETTE.tintaApagada : filled ? PALETTE.superficie : PALETTE.accion;
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled }}
-      disabled={disabled}
+      accessibilityElementsHidden={hidden}
+      importantForAccessibility={hidden ? 'no-hide-descendants' : 'auto'}
+      disabled={hidden || (disabled && !pressable)}
       onPress={onPress}
       style={{
-        minWidth: scale.tapTarget,
-        minHeight: scale.tapTarget,
+        width: scale.tapTarget,
+        height: scale.tapTarget,
         alignItems: 'center',
         justifyContent: 'center',
-        borderRadius: scale.space / 2,
-        backgroundColor: disabled ? PALETTE.fondo : PALETTE.accionSuave,
+        borderRadius: scale.tapTarget / 2,
+        borderWidth: filled && !disabled ? 0 : 1.5,
+        borderColor: disabled ? PALETTE.linea : PALETTE.accion,
+        backgroundColor: ground,
+        opacity: hidden ? 0 : 1,
       }}
     >
-      <MaterialCommunityIcons
-        name={glyph}
-        size={scale.iconSize}
-        color={disabled ? PALETTE.tintaApagada : PALETTE.accion}
-      />
+      <MaterialCommunityIcons name={glyph} size={scale.iconSize} color={ink} />
     </Pressable>
   );
 }

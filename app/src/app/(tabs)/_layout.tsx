@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TABS } from '@/navigation/tabs';
 import { useDensity } from '@/theme/DensityProvider';
+import { PALETTE } from '@/theme/palette';
 
 // ============================================================================
 // THE TAB SHELL. Plan task 5a-ii. The tabs themselves are `src/navigation/
@@ -33,6 +34,12 @@ export default function TabsLayout() {
         // C12.1, stated rather than defaulted.
         tabBarShowLabel: true,
         tabBarLabelStyle: { fontSize: scale.tabLabelSize },
+        // ⚠️ `8g`, 2026-10-15: THE ACTIVE TAB IN `accion`, NOT iOS'S BLUE. `8f`
+        // left it for the owner's review; it was drawn green on every board he
+        // ruled on, and blue was the one hue on screen no role had chosen.
+        // `palette.ts` names *the active tab* in `accion`'s own sentence.
+        tabBarActiveTintColor: PALETTE.accion,
+        tabBarInactiveTintColor: PALETTE.tintaApagada,
         tabBarStyle: {
           height: scale.tabBarHeight + insets.bottom,
           paddingBottom: insets.bottom,

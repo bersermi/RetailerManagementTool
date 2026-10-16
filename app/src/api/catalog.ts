@@ -401,11 +401,33 @@ export function priceLabel(centavos: number | null, unitCode: string): string {
  * catalog contains.
  */
 export function initials(name: string): string {
-  const words = name.trim().split(/\s+/).filter((word) => word.length > 0);
+  const words = name.trim().split(/[\s-]+/).filter((word) => word.length > 0);
   if (words.length === 0) return '';
-  if (words.length === 1) return words[0].slice(0, 2).toUpperCase();
-  return (words[0][0] + words[1][0]).toUpperCase();
+  // ⚠️⚠️ `8g`, 2026-10-15: THE SECOND LETTER COMES FROM A WORD THAT NAMES THE
+  // THING. A catalog name carries sizes and units — *7Up 2 l*, *Atún en agua
+  // 140 g* — and the first-two-words rule drew `72` and `AE` on Vender's new
+  // tile, which read as codes. So the first word always gives its first
+  // character, and the second is the first letter of the next word that starts
+  // with a letter and is neither a unit nor a joining word; failing that, the
+  // first word's second character, as before. A hyphen separates words, so
+  // *Coca-Cola* is `CC`. Still no disambiguation: the same name always gives
+  // the same two letters.
+  const second = words
+    .slice(1)
+    .find((word) => /^\p{L}/u.test(word) && !SKIPPED_WORDS.has(word.toLowerCase()));
+  const pair = second === undefined ? words[0].slice(0, 2) : words[0][0] + second[0];
+  return pair.toUpperCase();
 }
+
+/**
+ * Words that never give an initial: the units a catalog name carries, and the
+ * joining words of a Spanish name. ⚠️ *sin* is not one of them — *Pechuga sin
+ * hueso* is `PS`, an assertion older than this list.
+ */
+const SKIPPED_WORDS: ReadonlySet<string> = new Set([
+  'l', 'lt', 'lts', 'ml', 'g', 'gr', 'grs', 'kg', 'kgs', 'pza', 'pzas', 'oz', 'cc',
+  'de', 'del', 'la', 'las', 'el', 'los', 'en', 'con', 'y', 'para', 'a', 'al',
+]);
 
 /**
  * A name as `0002`'s `normalize_name` folds it: lower case, trimmed, and every

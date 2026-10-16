@@ -291,6 +291,20 @@ describe('initials — C8.14’s two letters', () => {
   it('has nothing to say about nothing', () => {
     expect(initials('   ')).toBe('');
   });
+
+  // `8g`, 2026-10-15: Vender's tile drew `72` for *7Up 2 l*.
+  it('takes no initial from a size, a unit or a joining word', () => {
+    expect(initials('7Up 2 l')).toBe('7U');
+    expect(initials('7Up lata 355 ml')).toBe('7L');
+    expect(initials('Atún en agua 140 g')).toBe('AA');
+    expect(initials('Aceite 1-2-3')).toBe('AC');
+    expect(initials('Arroz súper extra 1 kg')).toBe('AS');
+    expect(initials('Juan de la Cruz')).toBe('JC');
+  });
+
+  it('reads a hyphen as a space', () => {
+    expect(initials('Coca-Cola 600 ml')).toBe('CC');
+  });
 });
 
 describe('searchKey — the database’s own folding, copied', () => {
