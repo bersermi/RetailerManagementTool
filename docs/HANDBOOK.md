@@ -42,7 +42,10 @@ real database; none runs on sample data.
   that supplier charged last time and the margin it leaves, and a product with no cost
   asks its cost first. And **Costos**: what you have paid for a product over time, as a
   chart and a PDF.
-- **Desperdicio** — what was thrown away, and why. Rosa never sees what it cost.
+- **Desperdicio** — two doors, in its own berenjena. **Tirar**: what was thrown away, with
+  *Hoy* and *Caducado* already chosen and changeable, and each product's expiry; Rosa never sees
+  what it cost. **Te lo compro**: one product at a time for Wera to collect at the store, in a
+  quarter of an hour she picks, for you and a manager, and only inside 06400 and 06470.
 - **Proveedores** — the supplier directory: add, rename, look up, remove.
 - **Lo último** — the last seven days of purchases, sales and write-offs, each with
   **Corregir** and **Eliminar**. Stock is a **ledger**, like a bank statement:
@@ -58,6 +61,15 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 ---
 
 ## What is on your phone
+
+✅ **16 October, night: two updates, over the air.** (1) ⚠️ **A fix you should know about:** a
+sale slid from the bar after a second product, or a second `+`, was saved with only what the
+basket held when the slide first appeared; the rest was dropped. It has been like that since the
+first slide (24 September), on Vender, Comprar and Desperdicio. **Sales and deliveries recorded
+on the pilot phones since then may be missing lines or units that were on the screen**, and
+nothing in the database says which. (2) **The new Desperdicio** (`8l`): the two doors, *Tirar*
+with its defaults, and *Te lo compro*. **What to look at** is in the table below. Open Wera,
+close it completely, open it again.
 
 ✅ **16 October, evening: your store's address went out over the air** (*Dirección de la tienda
 (8k)*). Open Wera, close it completely, open it again. **Then, please: Ajustes → Tu tienda →
@@ -146,7 +158,8 @@ file above, section 2 of its catch-up.
 | Open this | The question |
 |---|---|
 | **Lo último** | Does a delivery read at a glance as *that one*? Are two buttons under every row too much? Is landing on Comprar with the cart already full a relief or a surprise? |
-| **Desperdicio** | Does `¿Qué pasó?` in a window you cannot dismiss help or get in the way? Does a write-off with no peso figure read as finished? |
+| **Desperdicio → Tirar** | New on 16 October. Add two products: under each, *Sin fecha*. The bar says *Hoy* and *Caducado*; tap either and the Carrito opens with *Caducidad* per product, *¿Cuándo lo tiraste?* and *Motivo*. Is the default visible enough to count as chosen? Is the Carrito's foot too tall at *Letra grande*? |
+| **Desperdicio → Te lo compro** | New on 16 October, **once your store has its address** (Ajustes). Pick a product, answer the four questions, a day and a quarter of an hour, *Guardar solicitud*. Then *Otro producto, con los mismos datos*: the band says the answers came from the last one. *Avisar a Wera por WhatsApp* should open a chat with you with today's list written. ⚠️ On Android the keyboard covers *Guardar* while you type the note |
 | **Proveedores** | Does a list of bare names read as a directory or as unfinished? |
 | **Productos → a product → Editar** | Make one first: in Productos, type a name nothing matches and tap *Crear Nuevo Producto* (yours are all protected, and so is anything from *Agregar del catálogo*). Does the red *Retirar del catálogo* read as dangerous enough? |
 | **Inicio — *Una operación no se guardó*** | Found 13 October: one delivery you recorded on the night of 24 September never reached the database. It hit a unit problem that was fixed the next day, and it is still listed as not saved. Does Inicio tell you so? Did you record that delivery again? Tell a session either way |
@@ -173,7 +186,6 @@ file above, section 2 of its catch-up.
 | **The four tabs' header (round 2)** | The cream band now, as on every other screen, with your shop's name in small rust capitals under the title and a faint drawing of your **main giro** at the right. Do you notice it, and does it stay quiet? |
 | **Ajustes → Tu tienda → Giro principal** | New on 16 October. **Your shop has none yet** (it was made before), so the band shows only its name: tap *Cambiar* and pick yours; the drawing appears. Only the owner sees *Cambiar* |
 | **Creating a shop → *¿Qué vendes?*** | The first giro you tap gets ★ and *Tu giro principal*; the others don't. Untap it and the star moves to the next one you picked. To see it you need a new account (sign out, sign up with another email) |
-| **Comprar and Desperdicio** | They share the `−` / box / `+` with Vender, so they got the round buttons too; their rows are unchanged until their turn in the review. Does the mix bother you until then? |
 | **Airplane mode, from cold** | The one real test: open Productos with signal, **wait over five minutes**, force-quit, airplane mode, reopen. Productos should list and Vender should sell |
 | **The pilot's measurements** | On since 13 October, once the fix reaches your phone. Hold the title *Ajustes*: *Lecturas del piloto* should open and say *Versión piloto-1*. Then sell three things, one from inside the Carrito sheet, and open it again: does *Toques por registro* count the taps inside the sheet? |
 
@@ -194,6 +206,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
 | **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is.** ✅ **Round 4 (16 October): Comprar as your card grid in blue, a cost first, and one Carrito for all three counters. Next: Desperdicio** — your order, the daily screens first (then Inicio, then the rest) — decided on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then built. Paste the review prompt (below, *How a working session goes*), not your main prompt |
+| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | Waits on you: your approval of the drafts, and installing the builds |
 | **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |

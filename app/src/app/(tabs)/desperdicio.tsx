@@ -1050,7 +1050,7 @@ function Carrito({
             open={dating !== null}
             title={ES.waste.pickExpiry}
             chosen={datingExpiry}
-            from={addDays(today, -60) ?? today}
+            from={addDays(today, -30) ?? today}
             to={addDays(today, 30) ?? today}
             today={today}
             onChoose={(d) => {
@@ -2123,6 +2123,10 @@ function Calendario({
 }) {
   const { scale } = useDensity();
   const heads = weekdayInitials();
+  // ⚠️ IT OPENS ON THE MONTH OF THE DAY CHOSEN, OR OF TODAY — measured on the
+  // emulator: opened at the range's first month, *today* was two screens down.
+  const target = (chosen ?? today).slice(0, 7);
+  const scroller = useRef<ScrollView>(null);
   return (
     <Modal visible={open} animationType="fade" transparent onRequestClose={onClose}>
       <View style={{ flex: 1 }}>
@@ -2169,7 +2173,7 @@ function Calendario({
                 </Text>
               ))}
             </View>
-            <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+            <ScrollView ref={scroller} contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
               {calendarMonths(from, to).map((month) => {
                 const weeks: (string | null)[][] = [];
                 for (let i = 0; i < month.cells.length; i += 7) {
@@ -2178,7 +2182,15 @@ function Calendario({
                   weeks.push(week);
                 }
                 return (
-                  <View key={month.key} style={{ gap: scale.rowGap / 2 }}>
+                  <View
+                    key={month.key}
+                    style={{ gap: scale.rowGap / 2 }}
+                    onLayout={
+                      month.key === target
+                        ? (e) => scroller.current?.scrollTo({ y: e.nativeEvent.layout.y, animated: false })
+                        : undefined
+                    }
+                  >
                     <Rotulo text={month.title} />
                     {weeks.map((week, w) => (
                       <View key={w} style={{ flexDirection: 'row' }}>
