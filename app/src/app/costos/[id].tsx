@@ -17,6 +17,7 @@ import { shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { Grafica } from '@/ui/Grafica';
 import { Separador } from '@/ui/Separador';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -178,7 +179,7 @@ function Banda({ title }: { title: string }) {
           label where a name belongs. The module word is the fallback. */}
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {title}
       </Text>

@@ -28,6 +28,7 @@ import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
 import { Frase } from '@/ui/Frase';
 import { Interruptor } from '@/ui/Interruptor';
@@ -339,7 +340,7 @@ function Banda() {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {ES.documents.title}
       </Text>

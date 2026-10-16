@@ -9,6 +9,7 @@ import { canWriteCatalog } from '@/api/catalogWrite';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Vacio } from '@/ui/Vacio';
 
@@ -267,7 +268,7 @@ function Banda({ title }: { title: string }) {
         style={{
           flex: 1,
           fontSize: scale.titleSize,
-          fontWeight: '700',
+          ...TITULO,
           color: PALETTE.tinta,
         }}
       >

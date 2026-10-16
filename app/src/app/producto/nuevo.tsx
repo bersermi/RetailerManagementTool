@@ -35,6 +35,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { bannerSequence } from '@/theme/pulse';
 import { BotonLleno } from '@/ui/BotonLleno';
 
@@ -519,7 +520,7 @@ function Banda() {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {ES.catalog.create.title}
       </Text>

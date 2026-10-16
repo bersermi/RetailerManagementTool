@@ -35,6 +35,9 @@
 // top of `density.ts`. Type is the operating system's own face: no download,
 // no layout shift on first paint, native numerals. A shop that spends its day
 // without signal cannot afford a webfont, and a brand face is a download.
+// ⚠️ EXCEPT THE TITLES, SINCE `8g` (2026-10-16): the owner chose Nunito for a
+// screen's, a sheet's and a sheet's question, and it is NOT a download — the
+// file travels inside the update. `@/theme/letra` holds it and says why.
 //
 // ⚠️ THE KEYS ARE UNACCENTED SPANISH — `accion`, `atencion`, `linea`. The
 // domain language is Spanish (CLAUDE.md), and the accents are dropped so the

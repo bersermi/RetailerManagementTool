@@ -15,6 +15,7 @@ import {
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { Grafica } from '@/ui/Grafica';
 import { Vacio } from '@/ui/Vacio';
 
@@ -100,7 +101,7 @@ function Banda({ title }: { title: string }) {
     >
       <Text
         numberOfLines={1}
-        style={{ flex: 1, fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {title}
       </Text>

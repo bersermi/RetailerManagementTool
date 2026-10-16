@@ -36,6 +36,7 @@ import { Frase } from '@/ui/Frase';
 import { Velo } from '@/ui/Velo';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 
 // ============================================================================
 // EDITAR — EVERYTHING THE FOUR-FIELD CREATE FORM PUSHED BEHIND IT. Plan task
@@ -656,7 +657,7 @@ function Banda({ subtitle }: { subtitle: string }) {
       <View style={{ flex: 1 }}>
         <Text
           numberOfLines={1}
-          style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+          style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
         >
           {ES.catalog.edit.title}
         </Text>

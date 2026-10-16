@@ -42,6 +42,7 @@ import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 import { BotonLleno } from '@/ui/BotonLleno';
 
 // ============================================================================
@@ -224,7 +225,7 @@ function Banda({ onLongPress }: { onLongPress: (() => void) | undefined }) {
     >
       <Text
         onLongPress={onLongPress}
-        style={{ fontSize: scale.titleSize, fontWeight: '700', color: PALETTE.tinta }}
+        style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
         {ES.settings.title}
       </Text>

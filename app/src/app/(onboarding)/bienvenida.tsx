@@ -20,6 +20,7 @@ import { useAuth } from '@/auth/AuthProvider';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
+import { TITULO } from '@/theme/letra';
 
 const NOTHING_EXCLUDED: ReadonlySet<string> = new Set();
 
@@ -239,7 +240,7 @@ export default function Bienvenida() {
       }}
       keyboardShouldPersistTaps="handled"
     >
-      <Text style={{ fontSize: scale.titleSize, fontWeight: '700', marginBottom: scale.space }}>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, marginBottom: scale.space }}>
         {ES.onboarding.title}
       </Text>
 
