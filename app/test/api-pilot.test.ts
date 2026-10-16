@@ -170,14 +170,19 @@ describe('the wiring — read as text, because R2 keeps components out of this s
     }
   });
 
+  // ⚠️ `8l`: DESPERDICIO'S MEASURED ROOT IS TIRAR'S, not the screen's — the
+  // write-off is the half with a commit, and the doors and Te lo compro around
+  // it are not the visit §5 times.
+  const KAV_ROOT = /return \(\n    <KeyboardAvoidingView\n      onTouchStart=\{pilot\.onTouchStart\}/;
+  const TIRAR_ROOT = /return \(\n    <View style=\{\{ flex: 1 \}\} onTouchStart=\{pilot\.onTouchStart\}>/;
   it.each([
-    ['vender', "usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0)"],
-    ['comprar', "usePilotVisit('comprar', workspace?.id ?? null, locationId)"],
-    ['desperdicio', "usePilotVisit('desperdicio', workspace?.id ?? null, locationId)"],
-  ])('%s is measured: the hook, its root view, the commit and the confirmation', (screen, call) => {
+    ['vender', "usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0)", KAV_ROOT],
+    ['comprar', "usePilotVisit('comprar', workspace?.id ?? null, locationId)", KAV_ROOT],
+    ['desperdicio', "usePilotVisit('desperdicio', workspace?.id ?? null, locationId)", TIRAR_ROOT],
+  ])('%s is measured: the hook, its root view, the commit and the confirmation', (screen, call, root) => {
     const text = read(`app/src/app/(tabs)/${screen}.tsx`);
     expect(text).toContain(call);
-    expect(text).toMatch(/return \(\n    <KeyboardAvoidingView\n      onTouchStart=\{pilot\.onTouchStart\}/);
+    expect(text).toMatch(root);
     // ⚠️ FIRST in the commit, so the clock starts at the gesture.
     expect(text).toMatch(/const commit = useCallback\(\(\) => \{\n    if \(basketful === null\) return;\n    pilot\.committed\(\);/);
     expect(text).toMatch(/pilot\.confirmed\(\);/);

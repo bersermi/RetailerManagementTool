@@ -18,9 +18,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  DEFAULT_WASTE_REASON,
   WASTE_REASONS,
   WASTE_REASON_KEY,
+  isWasteDay,
   isWasteReason,
+  wasteReasonOf,
   reasonHint,
   reasonLabel,
   type WasteReason,
@@ -142,5 +145,19 @@ describe('the hint, which two causes get and three do not', () => {
 
   it('never returns undefined for any of the five', () => {
     for (const reason of WASTE_REASONS) expect(typeof reasonHint(reason)).toBe('string');
+  });
+});
+
+describe('8l — the owner\'s default cause, shown before it is sent', () => {
+  it('opens Tirar on caducado, and a chosen cause wins over it', () => {
+    expect(DEFAULT_WASTE_REASON).toBe('caducado');
+    expect(wasteReasonOf(null)).toBe('caducado');
+    expect(wasteReasonOf('dañado')).toBe('dañado');
+  });
+
+  it('takes three days back and nothing else — 0057 clamps to 72 hours', () => {
+    expect(isWasteDay(0) && isWasteDay(1) && isWasteDay(2)).toBe(true);
+    expect(isWasteDay(3)).toBe(false);
+    expect(isWasteDay('1')).toBe(false);
   });
 });

@@ -32,11 +32,19 @@ export function Interruptor<K extends string>({
   labels,
   picked,
   onPick,
+  ink = PALETTE.accion,
+  soft = PALETTE.accionSuave,
 }: {
   options: readonly K[];
   labels: Readonly<Record<K, string>>;
   picked: K;
   onPick: (key: K) => void;
+  /**
+   * ⚠️ `8l`: THE PICKED SIDE'S COLOUR, a module's own — Desperdicio's switch
+   * between *Tirar* and *Te lo compro* is its berenjena. Green elsewhere.
+   */
+  ink?: string;
+  soft?: string;
 }) {
   const { scale } = useDensity();
   return (
@@ -56,15 +64,15 @@ export function Interruptor<K extends string>({
               alignItems: 'center',
               borderRadius: scale.rowGap,
               borderWidth: 1,
-              borderColor: on ? PALETTE.accion : PALETTE.linea,
-              backgroundColor: on ? PALETTE.accionSuave : PALETTE.superficie,
+              borderColor: on ? ink : PALETTE.linea,
+              backgroundColor: on ? soft : PALETTE.superficie,
             }}
           >
             <Text
               style={{
                 fontSize: scale.bodySize,
                 fontWeight: on ? '700' : '600',
-                color: on ? PALETTE.accion : PALETTE.tintaApagada,
+                color: on ? ink : PALETTE.tintaApagada,
               }}
             >
               {labels[one]}

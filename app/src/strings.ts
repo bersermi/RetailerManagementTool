@@ -637,6 +637,28 @@ export const ES = {
       yesterday: 'Pidió ayer',
       daysAgo: (days: number) => `Pidió hace ${days} días`,
     },
+    /** ⚠️ `8l`: Sunday first, as `Date.getUTCDay` counts. Abbreviations are the
+     *  first three letters, cut where they are drawn — no second table. */
+    weekdays: [
+      'domingo',
+      'lunes',
+      'martes',
+      'miércoles',
+      'jueves',
+      'viernes',
+      'sábado',
+    ] as readonly string[],
+    /** ⚠️ `8l`: the days a shopkeeper names instead of dating. */
+    relative: {
+      today: 'Hoy',
+      tomorrow: 'Mañana',
+      yesterday: 'Ayer',
+      dayBefore: 'Antier',
+    },
+    /** ⚠️ `8l`: an expiry nobody read. */
+    noDate: 'Sin fecha',
+    /** ⚠️ `8l`: a month over `Otra…`'s calendar — `octubre 2026`. */
+    monthTitle: (month: string, year: string) => `${month} ${year}`,
   },
 
   /**
@@ -1307,35 +1329,10 @@ export const ES = {
    * verb and the confirmation.
    */
   waste: {
-    /**
-     * ⚠️⚠️ THE HEADER, AND THE COLON DOES THE SAME WORK `Comprando a:` DOES:
-     * §2.8 makes Desperdicio *reason-first*, so the cause is a sentence with a
-     * blank in it rather than a label over a picker.
-     *
-     * ⚠️ `Motivo` AND NOT `Tirando por` OR ANY VERB ABOUT A BIN, and that was
-     * decided rather than defaulted: **two of the five causes are not things
-     * thrown away.** `robo o faltante` is stock that walked, and `error de
-     * captura` is a loss that only ever existed in the data. A header reading
-     * *Tirando por: robo* would be false on the screen that records it.
-     */
-    reasonFor: 'Motivo:',
-    /** The picker's heading once it is REOPENED, where something is chosen. */
+    /** The cause window's heading — reached from the cart's *Otro* since `8l`. */
     pickReason: 'Motivo',
-    /**
-     * ⚠️⚠️ THE PICKER'S HEADING ON THE WAY IN — Comprar's `pickFirst` shape, and
-     * the same reason: C3.11 put the provider first and §2.8 puts the cause
-     * first, so the screen says so rather than leaving it to a header a thumb may
-     * never touch.
-     *
-     * ⚠️ IT IS HOW A SHOPKEEPER WOULD ASK IT, not how a form would. *¿Cuál es el
-     * motivo?* is the same question in the register of a government office, and
-     * it also excludes the two causes that are not losses off a shelf. **`¿Qué
-     * pasó?` covers all five** and is what somebody actually says when a crate
-     * comes back short.
-     */
-    pickFirst: '¿Qué pasó?',
-    /** Under it, so the window says why it is in the way. One line, no jargon. */
-    pickWhy: 'Así sabemos qué se puede evitar.',
+    // ⚠️ `8l` REMOVED `reasonFor`, `pickFirst` and `pickWhy` — the reason-first
+    // window's words. The owner ruled the cause a default on the cart's foot.
     /** ⚠️ *Cerrar* and not *Cancelar*: closing the picker chooses nothing. */
     pickClose: 'Cerrar',
 
@@ -1393,19 +1390,54 @@ export const ES = {
      * ⚠️ The retail value IS still recorded (`waste.total_net`); what is refused
      * is reporting it here.
      */
-    counted: 'Se va a registrar',
+    counted: 'Se va a tirar',
 
     slide: {
-      /** ⚠️ THE VERB, `Registrar` — Comprar's, because a write-off is a document
-       *  being recorded and not money changing hands. `Cobrar` would be absurd
-       *  and *Tirar* names a bin two of the five causes do not involve. */
-      word: 'Registrar',
-      label: 'Registrar — desliza para confirmar la merma, o toca para ver el carrito',
+      /** ⚠️⚠️ `Tirar` SINCE `8l` (2026-10-16) — the owner's approved drawings
+       *  name the door, the bar and the slide *Tirar*. It was `Registrar`,
+       *  because two of the five causes are not a bin; the door now carries the
+       *  word, and the cause beside the slide says which loss it is. */
+      word: 'Tirar',
+      label: 'Tirar — desliza para confirmar la merma, o toca para ver el carrito',
       /** ⚠️ NO `toca para ver el carrito`: inside the sheet a tap navigates
        *  nowhere (ruled 2026-09-25), and a screen reader is the one user for whom
        *  the two surfaces are otherwise indistinguishable (C12.1). */
-      labelInCart: 'Registrar — desliza para confirmar la merma',
+      labelInCart: 'Tirar — desliza para confirmar la merma',
     },
+
+    /**
+     * ⚠️ `8l` — THE OWNER'S TWO DOORS, 2026-10-16: *Tirar* is for his numbers,
+     * *Te lo compro* asks Wera to collect. A cashier never sees the doors: she
+     * goes straight to *Tirar* (*"Allow to owners and managers only"*).
+     */
+    doors: {
+      question: '¿Qué hacemos con lo que ya no se vende?',
+      tirar: 'Tirar',
+      tirarHint: 'Lo sacas y lo anotas. Es para tus números.',
+      compro: 'Te lo compro',
+      comproHint: 'Wera pasa a tu tienda por lo que ya no vendes y, si se puede, te lo compra.',
+      comproClosedHint: 'Wera recoge en tu tienda lo que ya no vendes.',
+      inZone: (cp: string) => `Llegamos a tu zona · C.P. ${cp}`,
+      outOfZone: (cp: string) => `Todavía no llegamos a tu zona · C.P. ${cp}`,
+      /** Ajustes' *Domicilio* is the owner's alone, so a manager is sent to him. */
+      noAddressOwner: 'Agrega la dirección de tu tienda en Ajustes',
+      noAddressManager: 'Falta la dirección de la tienda. El dueño la agrega en Ajustes.',
+      checking: 'Revisando tu zona…',
+      /** Back from either mode to the doors. */
+      back: 'Volver',
+    },
+
+    /** ⚠️ `8l`: a line's expiry, under its name — `Caduca hoy`, `Sin fecha`. */
+    expires: (day: string) => `Caduca ${day.charAt(0).toLowerCase()}${day.slice(1)}`,
+    /** ⚠️ `8l`: the cart's three new questions — per line, and in its foot. */
+    expiry: 'Caducidad',
+    otherDay: 'Otra…',
+    when: '¿Cuándo lo tiraste?',
+    reasonTitle: 'Motivo',
+    otherReason: 'Otro',
+    /** The calendar `Otra…` opens. */
+    pickExpiry: '¿Qué día caduca?',
+
 
     /**
      * ⚠️ IT FIRES ON **ENQUEUE**, never on the server's reply — `Hecho`'s rule
@@ -1427,9 +1459,10 @@ export const ES = {
       caducado: 'Caducado',
       magullado: 'Magullado',
     },
+    /** ⚠️ `8l`: under the heading *Empaque*, so the noun is not repeated. */
     packagings: {
-      cerrado: 'Empaque cerrado',
-      abierto: 'Empaque abierto',
+      cerrado: 'Cerrado',
+      abierto: 'Abierto',
     },
     keepings: {
       ambiente: 'Al ambiente',
@@ -1441,6 +1474,56 @@ export const ES = {
       confirmada: 'Confirmada',
       recogida: 'Recogida',
       cancelada: 'Cancelada',
+      /** ⚠️ `0060`, the owner's 2026-10-16: Wera looked and will not collect it. */
+      rechazada: 'Rechazada',
+    },
+    /** ⚠️ `8l`: the owner's three steps, and what each one asks. */
+    steps: ['1 · Qué', '2 · Cuándo', '3 · Guardar'] as readonly string[],
+    prefilled: 'Con los datos de tu solicitud anterior. Cambia lo que sea distinto.',
+    pickProduct: '¿Qué producto?',
+    changeProduct: 'Cambiar producto',
+    condition: '¿Cómo está?',
+    packaging: 'Empaque',
+    keeping: '¿Cómo se guarda?',
+    expiry: 'Caduca',
+    whichDay: '¿Qué día pasamos?',
+    whichTime: '¿A qué hora?',
+    weCome: 'Pasamos',
+    when: 'Cuándo',
+    where: 'Recogemos en tu tienda',
+    notePlaceholder: 'Algo que debamos saber (opcional)',
+    next: { que: 'Siguiente: cuándo', cuando: 'Siguiente: revisar', guardar: 'Guardar solicitud' },
+    back: 'Atrás',
+    saved: 'Solicitud guardada',
+    another: 'Otro producto, con los mismos datos',
+    tell: 'Avisar a Wera por WhatsApp',
+    tellHint: 'Un solo mensaje con todo lo de hoy.',
+    yours: 'Tus solicitudes',
+    cancel: 'Cancelar',
+    cancelAsk: '¿Cancelarla?',
+    cancelYes: 'Sí, cancelar',
+    cancelNo: 'No',
+    /** The quarter chips under the hours — `:00`, `:15`, `:30`, `:45`. */
+    quarter: (minutes: number) => `:${String(minutes).padStart(2, '0')}`,
+    /** A product and how much — `Alas de pollo · 2 kg`. */
+    amount: (name: string, qty: string, unit: string) => `${name} · ${qty} ${unit}`,
+    /** Under *Solicitud guardada* — `Alas de pollo · Mañana · 9:45 a 10:00`. */
+    savedLine: (title: string, slot: string) => `${title} · ${slot}`,
+    /** A request's three answers and its expiry, as tags on the review card. */
+    expiresTag: (day: string) => `Caduca ${day.charAt(0).toLowerCase()}${day.slice(1)}`,
+    /** ⚠️ The calendar's way out — closing it chooses nothing. */
+    close: 'Cerrar',
+    /** A pickup as one phrase — `Mañana · 9:45 a 10:00`. */
+    slotShort: (day: string, from: string, to: string) => `${day} · ${from} a ${to}`,
+    /** And in the box under the picker — `Mañana viernes 17, entre 9:45 y 10:00`. */
+    slotLong: (day: string, from: string, to: string) => `${day}, entre ${from} y ${to}`,
+    /** ⚠️ THE ONE MESSAGE, the owner's *"Un solo mensaje con todo lo de hoy"*. */
+    whatsapp: {
+      item: (title: string, condition: string, slot: string) => `• ${title} · ${condition} · ${slot}`,
+      message: (shop: string, items: readonly string[], where: string) =>
+        [`Hola Wera, soy de ${shop}. Hoy les pedí que recojan:`, ...items, where === '' ? '' : `En ${where}.`]
+          .filter((line) => line !== '')
+          .join('\n'),
     },
     outsideArea: 'Todavía no llegamos a tu zona.',
     /** The refusals `0059` names (`TD008`–`TD010`). */

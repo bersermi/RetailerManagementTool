@@ -92,14 +92,18 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-import { isWasteReason, type WasteReason } from '@/api/waste';
+import { EXPIRY_SHAPE, isWasteDay, isWasteReason, type WasteDay, type WasteReason } from '@/api/waste';
 import {
   EMPTY_CART,
+  NO_EXPIRIES,
   NO_QUOTES,
+  expiriesIn,
   remove,
   setQty,
   step,
+  withExpiry,
   type Cart,
+  type Expiries,
   type Loaded,
   type Quotes,
   type Scope,
@@ -185,8 +189,21 @@ export interface CartState {
    * ⚠️ AND UNLIKE `providerId` IT HAS NO OPENING DEFAULT — `@/api/waste`'s
    * header has the argument, and it is `0019`'s: *"an enum with a default would
    * quietly file every unlabelled loss under one cause."*
+   *
+   * ⚠️⚠️ `8l`: `null` NOW READS AS `caducado` ON THE SCREEN — the owner's
+   * default, drawn as the chosen chip (`wasteReasonOf` in `@/api/waste`). The
+   * store still holds `null` until a chip is tapped, so a correction's cause and
+   * a chosen one stay distinguishable from the default.
    */
   readonly reason: WasteReason | null;
+  /**
+   * ⚠️ `8l`: *¿Cuándo lo tiraste?* — days back, `0` for today. A fact about the
+   * whole write-off, like the cause, and kept by `Vaciar carrito` for the
+   * cause's reason. The screen puts it back to today after a commit.
+   */
+  readonly wasteDay: WasteDay;
+  /** ⚠️ `8l`: each waste line's expiry — `Expiries` in `@/cart/cart`. */
+  readonly expiries: Expiries;
   /** Point the store at a shop, dropping baskets that belonged to another. */
   readonly openShop: (workspaceId: string | null) => void;
   /**
@@ -212,6 +229,9 @@ export interface CartState {
    * reason, so there is nothing that could go stale.
    */
   readonly openReason: (reason: WasteReason | null) => void;
+  readonly setWasteDay: (day: WasteDay) => void;
+  /** One waste line's expiry, `YYYY-MM-DD` — or `null` for *sin fecha*. */
+  readonly setExpiry: (variantId: string, day: string | null) => void;
   readonly setQty: (scope: Scope, variantId: string, base: number) => void;
   readonly step: (scope: Scope, variantId: string, by: number | null, sign: 1 | -1) => void;
   readonly remove: (scope: Scope, variantId: string) => void;
@@ -267,6 +287,25 @@ interface Persisted {
   readonly workspaceId: string | null;
   readonly providerId: string | null;
   readonly reason: WasteReason | null;
+  /**
+   * ⚠️ `8l` ADDED THESE TWO WITHOUT BUMPING THE KEY, and that is this
+   * module's rule read carefully rather than broken: a `v3` blob restored
+   * without them falls back to `current`'s defaults in `merge` below — *today*
+   * and *sin fecha* — so no reducer can meet an `undefined`. A RENAMED or
+   * RESHAPED field still strands the basket.
+   */
+  readonly wasteDay: WasteDay;
+  readonly expiries: Expiries;
+}
+
+/** A restored map, keeping only well-formed dates. Anything else is *sin fecha*. */
+function restoredExpiries(value: unknown): Expiries {
+  if (typeof value !== 'object' || value === null) return NO_EXPIRIES;
+  const kept: Record<string, string> = {};
+  for (const [id, day] of Object.entries(value as Record<string, unknown>)) {
+    if (typeof day === 'string' && EXPIRY_SHAPE.test(day)) kept[id] = day;
+  }
+  return kept;
 }
 
 /**
@@ -305,6 +344,8 @@ export const useCartStore = create<CartState>()(
       workspaceId: null,
       providerId: null,
       reason: null,
+      wasteDay: 0,
+      expiries: NO_EXPIRIES,
       openShop: (workspaceId) =>
         set((s) =>
           s.workspaceId === workspaceId
@@ -328,6 +369,8 @@ export const useCartStore = create<CartState>()(
                   // basket is Desperdicio's opening question already answered
                   // for a write-off nobody has started.
                   reason: null,
+                  wasteDay: 0,
+                  expiries: NO_EXPIRIES,
                 },
         ),
       openProvider: (providerId) =>
@@ -341,13 +384,30 @@ export const useCartStore = create<CartState>()(
       // unchanged value for `openProvider`'s other reason: the screen calls it
       // from a handler today and an effect is one refactor away.
       openReason: (reason) => set((s) => (s.reason === reason ? s : { reason })),
+      setWasteDay: (wasteDay) => set((s) => (s.wasteDay === wasteDay ? s : { wasteDay })),
+      setExpiry: (variantId, day) =>
+        set((s) => ({ expiries: withExpiry(s.expiries, variantId, day) })),
+      // ⚠️ `8l`: A WASTE LINE THAT LEAVES TAKES ITS DATE WITH IT — `expiriesIn`.
       setQty: (scope, variantId, base) =>
-        set((s) => ({ carts: { ...s.carts, [scope]: setQty(s.carts[scope], variantId, base) } })),
+        set((s) => {
+          const cart = setQty(s.carts[scope], variantId, base);
+          return {
+            carts: { ...s.carts, [scope]: cart },
+            ...(scope === 'waste' ? { expiries: expiriesIn(s.expiries, cart) } : {}),
+          };
+        }),
       step: (scope, variantId, by, sign) =>
-        set((s) => ({ carts: { ...s.carts, [scope]: step(s.carts[scope], variantId, by, sign) } })),
+        set((s) => {
+          const cart = step(s.carts[scope], variantId, by, sign);
+          return {
+            carts: { ...s.carts, [scope]: cart },
+            ...(scope === 'waste' ? { expiries: expiriesIn(s.expiries, cart) } : {}),
+          };
+        }),
       remove: (scope, variantId) =>
         set((s) => ({
           carts: { ...s.carts, [scope]: remove(s.carts[scope], variantId) },
+          ...(scope === 'waste' ? { expiries: withExpiry(s.expiries, variantId, null) } : {}),
           // ⚠️ A REMOVED LINE FORGETS ITS PRICE. Leaving it would make the same
           // product re-added later arrive carrying a figure nobody typed for it,
           // which is C3.11's borrowed prefill produced by the basket instead of
@@ -368,6 +428,7 @@ export const useCartStore = create<CartState>()(
         set((s) => ({
           carts: { ...s.carts, [scope]: EMPTY_CART },
           typed: { ...s.typed, [scope]: NO_QUOTES },
+          ...(scope === 'waste' ? { expiries: NO_EXPIRIES } : {}),
         })),
       load: ({ scope, lines, quotes, providerId, reason }) =>
         set((s) => ({
@@ -384,6 +445,9 @@ export const useCartStore = create<CartState>()(
           // from it, so the two are far more likely to overlap than a provider
           // and a sale ever were.
           ...(scope === 'waste' ? { reason } : {}),
+          // ⚠️ `8l`: A CORRECTED WRITE-OFF ARRIVES *SIN FECHA* AND DATED TODAY —
+          // `Lo último` reads neither column back yet, so there is nothing to load.
+          ...(scope === 'waste' ? { expiries: NO_EXPIRIES, wasteDay: 0 as WasteDay } : {}),
         })),
     }),
     {
@@ -395,6 +459,8 @@ export const useCartStore = create<CartState>()(
         workspaceId: s.workspaceId,
         providerId: s.providerId,
         reason: s.reason,
+        wasteDay: s.wasteDay,
+        expiries: s.expiries,
       }),
       // ⚠️⚠️ THE RESTORED CAUSE IS **VALIDATED** AND THE RESTORED BASKET IS NOT,
       // AND THAT ASYMMETRY IS THE POINT. A restored LINE fails safe on its own:
@@ -411,6 +477,8 @@ export const useCartStore = create<CartState>()(
           ...current,
           ...from,
           reason: isWasteReason(from.reason) ? from.reason : null,
+          wasteDay: isWasteDay(from.wasteDay) ? from.wasteDay : 0,
+          expiries: restoredExpiries(from.expiries),
         };
       },
     },
@@ -442,4 +510,14 @@ export function useProviderId(): string | null {
 /** Why the waste basket is being written off, or `null` before she has said. */
 export function useReason(): WasteReason | null {
   return useCartStore((s) => s.reason);
+}
+
+/** ⚠️ `8l`: how many days back the write-off happened. */
+export function useWasteDay(): WasteDay {
+  return useCartStore((s) => s.wasteDay);
+}
+
+/** ⚠️ `8l`: each waste line's expiry. */
+export function useExpiries(): Expiries {
+  return useCartStore((s) => s.expiries);
 }

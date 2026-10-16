@@ -16,9 +16,18 @@
 // ⚠️ WHAT HAS A RIGHT ANSWER IS HERE AND IN `app/test/collection.test.ts` (`R3`):
 // whether an address is complete, the picker's fifteen-minute times from 7:00 to
 // 19:00, the days a pickup may be on, and the arguments a draft becomes.
+//
+// ⚠️⚠️ `0060` REDREW IT, THE OWNER'S RULINGS OF 2026-10-16 (`8l`): **one product
+// per request** — *"that allows me to promote each product easier"* — and **one
+// quarter of an hour**, not a from–till window: *"If the user picks 9:45 then he
+// should be able to dispatch the waste from 9:45 to 10:00."* So a draft carries
+// ONE line and ONE start; the end is the start plus fifteen minutes, computed
+// here and checked again by `0060`. And `rechazada`, the fifth status.
 // ============================================================================
 
 import { apiErrorMessage } from '@/api/errors';
+import { isoDay } from '@/api/catalog';
+import { addDays, formatClock, formatPickupDay } from '@/format/date';
 import { ES } from '@/strings';
 
 /** `0058`'s five columns, and the row's id to write them back by. */
@@ -208,31 +217,37 @@ export interface CollectionDraft {
   readonly locationId: string;
   /** `YYYY-MM-DD`. */
   readonly day: string;
-  /** `HH:MM`, one of `pickupTimes()`. */
-  readonly from: string;
-  readonly to: string;
-  readonly lines: readonly CollectionLineDraft[];
+  /** `HH:MM`, one of `pickupTimes()` — the quarter the pickup starts on. */
+  readonly at: string;
+  /** ⚠️ ONE PRODUCT (`0060`). */
+  readonly line: CollectionLineDraft;
   readonly photos: readonly string[];
   readonly note: string;
 }
 
 export function requestCollectionArgs(draft: CollectionDraft): RequestCollectionArgs {
   const note = draft.note.trim();
+  const line = draft.line;
   return {
     p_id: draft.id,
     p_location_id: draft.locationId,
     p_pickup_date: draft.day,
-    p_window_start: draft.from,
-    p_window_end: draft.to,
-    p_lines: draft.lines.map((line) => ({
-      variant_id: line.variantId,
-      qty_display: line.qty.trim(),
-      qty_display_unit: line.unit,
-      condition: line.condition,
-      packaging: line.packaging,
-      keeping: line.keeping,
-      expiry_date: line.expiryDate,
-    })),
+    p_window_start: draft.at,
+    // ⚠️ AN UNREADABLE START IS SENT AS ITS OWN END and `0060` refuses it
+    // (`22023`) — the screen offers only `pickupTimes()`, so this is the brace.
+    p_window_end: slotEnd(draft.at) ?? draft.at,
+    // ⚠️ STILL A LIST OF ONE: the shape `0059` stored does not change (`0060`).
+    p_lines: [
+      {
+        variant_id: line.variantId,
+        qty_display: line.qty.trim(),
+        qty_display_unit: line.unit,
+        condition: line.condition,
+        packaging: line.packaging,
+        keeping: line.keeping,
+        expiry_date: line.expiryDate,
+      },
+    ],
     p_photos: draft.photos,
     p_note: note === '' ? null : note,
   };
@@ -268,7 +283,12 @@ export const COLLECTION_COLUMNS =
 
 export const COLLECTION_KEY = ['collection', 'requests'] as const;
 
-export const STATUSES = ['enviada', 'confirmada', 'recogida', 'cancelada'] as const;
+/**
+ * ⚠️ `rechazada` IS `0060`'s, the owner's 2026-10-16: Wera looked and will not
+ * collect it. Like `confirmada` and `recogida` it is Wera's to set, from the
+ * dashboard; the shop sets only `cancelada`, and only from `enviada`.
+ */
+export const STATUSES = ['enviada', 'confirmada', 'recogida', 'cancelada', 'rechazada'] as const;
 export type CollectionStatus = (typeof STATUSES)[number];
 
 export interface CollectionLineRow {
@@ -325,10 +345,14 @@ export function toCollectionRequest(row: CollectionRow): CollectionRequest {
 }
 
 // ----------------------------------------------------------------------------
-// The owner's picker — fifteen minutes at a time, from 7:00 to 19:00
+// The owner's picker — one quarter of an hour, starting from 7:00 to 18:45
 // ----------------------------------------------------------------------------
 
-/** *"multiples of 15 minutes spanning from 7 a.m. to 7 p.m."* — `0059`'s CHECK. */
+/**
+ * *"multiples of 15 minutes spanning from 7 a.m. to 7 p.m."*, and since `0060`
+ * a pickup IS one of those quarters: the last one starts at 18:45 and ends at
+ * 19:00.
+ */
 export const PICKUP_OPENS_MINUTES = 7 * 60;
 export const PICKUP_CLOSES_MINUTES = 19 * 60;
 export const PICKUP_STEP_MINUTES = 15;
@@ -347,27 +371,64 @@ function minutesOf(time: string): number | null {
   return Number(match[1]) * 60 + Number(match[2]);
 }
 
-/** Every time the picker offers, `07:00` … `19:00`, forty-nine of them. */
+/** A start `0060` accepts: on the quarter, from 07:00 to 18:45. */
+export function slotValid(at: string): boolean {
+  const start = minutesOf(at);
+  if (start === null) return false;
+  return (
+    start >= PICKUP_OPENS_MINUTES &&
+    start + PICKUP_STEP_MINUTES <= PICKUP_CLOSES_MINUTES &&
+    start % PICKUP_STEP_MINUTES === 0
+  );
+}
+
+/** The end of the quarter that starts at `at` — `09:45` → `10:00` — or `null`. */
+export function slotEnd(at: string): string | null {
+  if (!slotValid(at)) return null;
+  return clock((minutesOf(at) ?? 0) + PICKUP_STEP_MINUTES);
+}
+
+/** Every start the picker offers, `07:00` … `18:45`, forty-eight of them. */
 export function pickupTimes(): readonly string[] {
   const times: string[] = [];
-  for (let t = PICKUP_OPENS_MINUTES; t <= PICKUP_CLOSES_MINUTES; t += PICKUP_STEP_MINUTES) {
+  for (let t = PICKUP_OPENS_MINUTES; t + PICKUP_STEP_MINUTES <= PICKUP_CLOSES_MINUTES; t += PICKUP_STEP_MINUTES) {
     times.push(clock(t));
   }
   return times;
 }
 
-/** A window `0059` accepts: inside the day, on the quarter hour, and not empty. */
-export function windowValid(from: string, to: string): boolean {
-  const start = minutesOf(from);
-  const end = minutesOf(to);
-  if (start === null || end === null) return false;
-  return (
-    start >= PICKUP_OPENS_MINUTES &&
-    end <= PICKUP_CLOSES_MINUTES &&
-    start < end &&
-    start % PICKUP_STEP_MINUTES === 0 &&
-    end % PICKUP_STEP_MINUTES === 0
-  );
+/** The drawing's hour chips, `7` … `18`. */
+export function pickupHours(): readonly number[] {
+  const hours: number[] = [];
+  for (let h = PICKUP_OPENS_MINUTES / 60; h < PICKUP_CLOSES_MINUTES / 60; h += 1) hours.push(h);
+  return hours;
+}
+
+/** The drawing's quarter chips. */
+export const QUARTERS = [0, 15, 30, 45] as const;
+
+/** An hour chip and a quarter chip as one start — `9` and `45` → `09:45`. */
+export function startAt(hour: number, quarter: number): string {
+  return clock(hour * 60 + quarter);
+}
+
+/** The hour and quarter a start is made of — the chips to light. */
+export function partsOf(at: string): { hour: number; quarter: number } | null {
+  const m = minutesOf(at);
+  if (m === null) return null;
+  return { hour: Math.floor(m / 60), quarter: m % 60 };
+}
+
+/**
+ * Has this quarter already begun? ⚠️ `0060` takes any start on today's date —
+ * a pickup at a time already past is not a refusal there — so the SCREEN does
+ * not offer one. `now` is the device's `HH:MM`, the shop's own clock.
+ */
+export function slotPassed(day: string, at: string, today: string, now: string): boolean {
+  if (day !== today) return day < today;
+  const start = minutesOf(at);
+  const current = minutesOf(now);
+  return start === null || current === null || start <= current;
 }
 
 /**
@@ -376,12 +437,141 @@ export function windowValid(from: string, to: string): boolean {
  * timezone and no daylight-saving change can move a day.
  */
 export function pickupDays(today: string): readonly string[] {
-  const match = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/.exec(today);
-  if (match === null) return [];
-  const base = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12);
   const days: string[] = [];
   for (let i = 0; i <= PICKUP_DAYS_AHEAD; i += 1) {
-    days.push(new Date(base + i * 86_400_000).toISOString().slice(0, 10));
+    const day = addDays(today, i);
+    if (day === null) return [];
+    days.push(day);
   }
   return days;
+}
+
+/** A pickup as one phrase — `Mañana · 9:45 a 10:00`, or the long form for a box. */
+export function formatSlot(day: string, at: string, today: string, long = false): string {
+  const end = slotEnd(at) ?? at;
+  return long
+    ? ES.collection.slotLong(formatPickupDay(day, today, true), formatClock(at), formatClock(end))
+    : ES.collection.slotShort(formatPickupDay(day, today), formatClock(at), formatClock(end));
+}
+
+// ----------------------------------------------------------------------------
+// The previous request's answers — the owner's *"prefill each entry with the
+// equivalent values of the previous one"*
+// ----------------------------------------------------------------------------
+
+/**
+ * What a new request starts with. ⚠️ EVERYTHING BUT THE PRODUCT AND ITS
+ * QUANTITY: the next request is a DIFFERENT product (*Otro producto, con los
+ * mismos datos*), and a quantity is in that product's unit.
+ */
+export interface CollectionPrefill {
+  readonly condition: Condition | null;
+  readonly packaging: Packaging | null;
+  readonly keeping: Keeping | null;
+  /** `undefined` is *not answered yet*; `null` is *sin fecha*, answered. */
+  readonly expiryDate: string | null | undefined;
+  readonly day: string | null;
+  readonly at: string | null;
+}
+
+export const NO_PREFILL: CollectionPrefill = {
+  condition: null,
+  packaging: null,
+  keeping: null,
+  expiryDate: undefined,
+  day: null,
+  at: null,
+};
+
+/**
+ * The newest request's answers, as the next one's starting point — or nothing
+ * chosen when there is none. ⚠️ A PICKUP THAT CAN NO LONGER BE BOOKED IS NOT
+ * CARRIED: a day gone by, or a quarter already begun today, comes back empty
+ * rather than as a choice `0060` or the screen would refuse.
+ *
+ * ⚠️⚠️ THE OWNER'S STANDING RULE IS THAT A PROPOSAL MUST NOT LOOK DECIDED, so
+ * the screen says these came from the previous request, in a band above them.
+ */
+export function prefillFrom(
+  requests: readonly CollectionRequest[],
+  today: string,
+  now: string,
+): CollectionPrefill {
+  const newest = [...requests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
+  const line = newest?.lines[0];
+  if (newest === undefined || line === undefined) return NO_PREFILL;
+  const bookable = newest.day >= today && !slotPassed(newest.day, newest.from, today, now) && slotValid(newest.from);
+  return {
+    condition: line.condition,
+    packaging: line.packaging,
+    keeping: line.keeping,
+    expiryDate: line.expiry_date,
+    day: bookable ? newest.day : null,
+    at: bookable ? newest.from : null,
+  };
+}
+
+/** Has every question a request needs been answered? */
+export function draftReady(p: {
+  readonly qty: string;
+  readonly condition: Condition | null;
+  readonly packaging: Packaging | null;
+  readonly keeping: Keeping | null;
+  readonly expiryDate: string | null | undefined;
+}): boolean {
+  return (
+    /^[0-9]+(\.[0-9]{1,3})?$/.test(p.qty.trim()) &&
+    Number(p.qty) > 0 &&
+    p.condition !== null &&
+    p.packaging !== null &&
+    p.keeping !== null &&
+    p.expiryDate !== undefined
+  );
+}
+
+// ----------------------------------------------------------------------------
+// *Avisar a Wera por WhatsApp* — one message with all of today's
+// ----------------------------------------------------------------------------
+
+/**
+ * The requests the message is about: sent today, on the device's day, and
+ * still `enviada`. ⚠️ A CALLED-OFF ONE IS NOT IN IT — Wera has nothing to
+ * collect — and nor is one Wera has already answered.
+ */
+export function sentToday(requests: readonly CollectionRequest[], today: string): readonly CollectionRequest[] {
+  return requests.filter((r) => r.status === 'enviada' && isoDay(new Date(r.createdAt)) === today);
+}
+
+/** A product and how much of it — `Alas de pollo · 2 kg`; the unit's word, never its code. */
+export function productAmount(name: string, qty: string, unitCode: string): string {
+  const unit = ES.units[unitCode as keyof typeof ES.units] ?? unitCode;
+  return ES.collection.amount(name, qty, unit);
+}
+
+/** The line a request is in the message and in the list — `Alas de pollo · 2 kg`. */
+export function requestTitle(r: CollectionRequest): string {
+  const line = r.lines[0];
+  if (line === undefined) return '';
+  return productAmount(line.variant_name, String(line.qty_display), line.qty_display_unit);
+}
+
+/** The whole message — the words are `ES.collection.whatsapp`'s. */
+export function whatsappMessage(
+  requests: readonly CollectionRequest[],
+  shop: string,
+  address: StoreAddress | null,
+  today: string,
+): string {
+  const lines = requests.map((r) => {
+    const line = r.lines[0];
+    const condition = line === undefined ? '' : ES.collection.conditions[line.condition];
+    return ES.collection.whatsapp.item(requestTitle(r), condition, formatSlot(r.day, r.from, today));
+  });
+  const where = address === null ? '' : storeAddressLine(address);
+  return ES.collection.whatsapp.message(shop, lines, where);
+}
+
+/** The store's address in one line — `Sabino 120, Santa María la Ribera, Ciudad de México, C.P. 06400`. */
+export function storeAddressLine(a: StoreAddress): string {
+  return ES.address.line(a.street, a.number, a.colonia, a.city, a.postalCode);
 }

@@ -216,3 +216,136 @@ export function formatLedgerDay(day: string | null | undefined): LedgerDay | nul
 
   return { day: String(numeral), month: name, year };
 }
+
+// ----------------------------------------------------------------------------
+// ⚠️ `8l` — DESPERDICIO'S DAYS: a pickup day, an expiry, the day something was
+// thrown away. All three are `YYYY-MM-DD` labels of the SHOP's day, so this is
+// `formatLedgerDay`'s rule: arithmetic on the label at noon UTC, never a `Date`
+// read in the device's timezone — TZ-independent by construction.
+// ----------------------------------------------------------------------------
+
+const DAY_SHAPE = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
+const DAY_MS = 86_400_000;
+
+function noonOf(day: string): number | null {
+  const match = DAY_SHAPE.exec(day);
+  if (match === null) return null;
+  const at = Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12);
+  return Number.isNaN(at) ? null : at;
+}
+
+/** `day` moved by `n` calendar days, or `null` for anything it cannot read. */
+export function addDays(day: string, n: number): string | null {
+  const at = noonOf(day);
+  if (at === null) return null;
+  return new Date(at + n * DAY_MS).toISOString().slice(0, 10);
+}
+
+/** Whole days from `today` to `day` — `1` is tomorrow, `-1` yesterday. */
+export function daysFrom(today: string, day: string): number | null {
+  const a = noonOf(today);
+  const b = noonOf(day);
+  if (a === null || b === null) return null;
+  return Math.round((b - a) / DAY_MS);
+}
+
+/** ⚠️ The weekday's own name — `ES.dates.weekdays`, Sunday first like `Date`. */
+function weekdayOf(day: string): string | null {
+  const at = noonOf(day);
+  if (at === null) return null;
+  return ES.dates.weekdays[new Date(at).getUTCDay()] ?? null;
+}
+
+function capitalised(word: string): string {
+  return word.charAt(0).toUpperCase() + word.slice(1);
+}
+
+/**
+ * A pickup-day tile, as the drawing has it — `HOY` over `16`, `MAÑ` over `17`,
+ * `SÁB` over `18`. ⚠️ THE THREE LETTERS ARE THE WORD'S OWN FIRST THREE, the
+ * months' rule above: no second table of abbreviations.
+ */
+export function formatDayTile(day: string, today: string): { top: string; num: string } | null {
+  const away = daysFrom(today, day);
+  const weekday = weekdayOf(day);
+  if (away === null || weekday === null) return null;
+  const top = away === 0 ? ES.dates.relative.today : away === 1 ? ES.dates.relative.tomorrow : weekday;
+  return { top: top.slice(0, 3).toUpperCase(), num: String(Number(day.slice(8, 10))) };
+}
+
+/**
+ * A pickup day in a sentence — `Mañana viernes 17` (`long`) or `Mañana`,
+ * `Lun 13` (short). Today and tomorrow by name, every other day by weekday.
+ */
+export function formatPickupDay(day: string, today: string, long = false): string {
+  const away = daysFrom(today, day);
+  const weekday = weekdayOf(day);
+  if (away === null || weekday === null) return day;
+  const num = String(Number(day.slice(8, 10)));
+  const near = away === 0 ? ES.dates.relative.today : away === 1 ? ES.dates.relative.tomorrow : null;
+  if (long) return near === null ? `${capitalised(weekday)} ${num}` : `${near} ${weekday} ${num}`;
+  return near ?? `${capitalised(weekday.slice(0, 3))} ${num}`;
+}
+
+/** `09:45` as a person writes it — `9:45`. */
+export function formatClock(time: string): string {
+  return /^0[0-9]:/.test(time) ? time.slice(1) : time;
+}
+
+/**
+ * An expiry as a chip or a row reads it — `Hoy`, `Ayer`, `Antier`, `Mañana`,
+ * else `20 oct`. ⚠️ `null` is *sin fecha*, and says so.
+ */
+export function formatExpiryDay(day: string | null, today: string): string {
+  if (day === null) return ES.dates.noDate;
+  const away = daysFrom(today, day);
+  if (away === 0) return ES.dates.relative.today;
+  if (away === 1) return ES.dates.relative.tomorrow;
+  if (away === -1) return ES.dates.relative.yesterday;
+  if (away === -2) return ES.dates.relative.dayBefore;
+  const ledger = formatLedgerDay(day);
+  return ledger === null ? day : `${ledger.day} ${ledger.month.slice(0, 3)}`;
+}
+
+/**
+ * One month of `Otra…`'s calendar — Monday first, as a Mexican wall calendar
+ * is printed. `cells` are days, `null` for a blank before the first day shown.
+ */
+export interface CalendarMonth {
+  readonly key: string;
+  readonly title: string;
+  readonly cells: readonly (string | null)[];
+}
+
+/**
+ * Every day from `from` to `to`, grouped by month, each month's first cell
+ * under its own weekday. ⚠️ A blank, never a day outside the range: what the
+ * calendar does not offer it does not draw.
+ */
+export function calendarMonths(from: string, to: string): readonly CalendarMonth[] {
+  const span = daysFrom(from, to);
+  if (span === null || span < 0) return [];
+  const months: { key: string; title: string; cells: (string | null)[] }[] = [];
+  for (let i = 0; i <= span; i += 1) {
+    const day = addDays(from, i);
+    const at = day === null ? null : noonOf(day);
+    if (day === null || at === null) return [];
+    const key = day.slice(0, 7);
+    let month = months[months.length - 1];
+    if (month === undefined || month.key !== key) {
+      const name = ES.dates.months[Number(day.slice(5, 7)) - 1] ?? '';
+      month = { key, title: ES.dates.monthTitle(name, day.slice(0, 4)), cells: [] };
+      const lead = (new Date(at).getUTCDay() + 6) % 7;
+      for (let b = 0; b < lead; b += 1) month.cells.push(null);
+      months.push(month);
+    }
+    month.cells.push(day);
+  }
+  return months;
+}
+
+/** The calendar's column heads, Monday first — `L M M J V S D`. */
+export function weekdayInitials(): readonly string[] {
+  const w = ES.dates.weekdays;
+  return [...w.slice(1), w[0] ?? ''].map((d) => d.charAt(0).toUpperCase());
+}

@@ -39,5 +39,14 @@ export function supportNumberOf(raw: string | undefined): string | null {
 export function forgotPasswordUrl(number: string, email: string): string {
   const typed = email.trim();
   const text = typed === '' ? ES.auth.forgotMessage : ES.auth.forgotMessageWithEmail(typed);
+  return whatsappUrl(number, text);
+}
+
+/**
+ * A chat with `number`, `text` already typed in it. ⚠️ `8l`: written once for
+ * both callers — the forgotten password above and Te lo compro's *Avisar a
+ * Wera* — so the `wa.me` spelling and its encoding live in one place.
+ */
+export function whatsappUrl(number: string, text: string): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }

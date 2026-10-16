@@ -81,6 +81,6 @@ export const TABS: readonly TabDefinition[] = [
     route: 'desperdicio',
     label: ES.tabs.desperdicio,
     icon: 'trash-can-outline',
-    why: 'Waste. The reason-first entry screen behind it feeds the analytics asset (§2.9).',
+    why: 'Waste. Two doors since `8l`: Tirar, which feeds the analytics asset (§2.9), and Te lo compro.',
   },
 ];

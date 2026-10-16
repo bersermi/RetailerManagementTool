@@ -69,6 +69,7 @@ export function Cantidad({
   padId,
   refusal = null,
   fill = false,
+  onChange,
 }: {
   entry: CatalogEntry;
   base: number;
@@ -105,6 +106,13 @@ export function Cantidad({
    * WIDTH gives, because two cards side by side are narrower than Vender's row.
    */
   fill?: boolean;
+  /**
+   * ⚠️ `8l`: A QUANTITY THAT IS NOT A BASKET LINE — Te lo compro's one product.
+   * When set, every change goes here as base units and the store is never
+   * touched; `base` is then the caller's state. `scope` is still read for the
+   * step, which is the waste side's.
+   */
+  onChange?: (base: number) => void;
 }) {
   const { scale } = useDensity();
   const setQty = useCartStore((state) => state.setQty);
@@ -125,14 +133,24 @@ export function Cantidad({
   const [draft, setDraft] = useState<string | null>(null);
   const shown = draft ?? settled;
 
+  // ⚠️ `8l`: ONE WRITE PATH, TWO OWNERS — the basket, or the caller's state.
+  const put = (next: number) => {
+    if (onChange !== undefined) onChange(Number.isFinite(next) && next > 0 ? Math.trunc(next) : 0);
+    else setQty(scope, entry.id, next);
+  };
+  const stepBy = (sign: 1 | -1) => {
+    if (onChange === undefined) bump(scope, entry.id, by, sign);
+    else if (by !== null && by > 0) put(base + sign * by);
+  };
+
   const typeInto = (text: string) => {
     setDraft(text);
     if (text.trim() === '') {
-      setQty(scope, entry.id, 0);
+      put(0);
       return;
     }
     const next = baseFromShown(text, unit, factors);
-    if (next !== null) setQty(scope, entry.id, next);
+    if (next !== null) put(next);
   };
 
   // ⚠️ THE UNIT'S WORD IS `ES.units`' AND NEVER THE CODE (`R4`): `250g` is what
@@ -167,7 +185,7 @@ export function Cantidad({
         disabled={by === null || !counted}
         onPress={() => {
           setDraft(null);
-          bump(scope, entry.id, by, -1);
+          stepBy(-1);
         }}
       />
 
@@ -247,7 +265,7 @@ export function Cantidad({
             ? refusal.onTap
             : () => {
                 setDraft(null);
-                bump(scope, entry.id, by, 1);
+                stepBy(1);
               }
         }
       />

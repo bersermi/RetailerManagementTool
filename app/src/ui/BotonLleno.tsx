@@ -47,6 +47,7 @@ export function BotonLleno({
   busy = false,
   hug = false,
   variante = 'suave',
+  off = false,
 }: {
   label: string;
   onPress: () => void;
@@ -54,6 +55,12 @@ export function BotonLleno({
   busy?: boolean;
   hug?: boolean;
   variante?: 'suave' | 'principal' | 'discreto';
+  /**
+   * ⚠️ `8l`: A STEP NOT YET ANSWERED — Te lo compro's *Siguiente*. Drawn faded
+   * and inert, and said to a screen reader; the question above it is what the
+   * thumb must answer first. `busy` is the other inert state, and spins.
+   */
+  off?: boolean;
 }) {
   const { scale } = useDensity();
   const ground =
@@ -65,8 +72,8 @@ export function BotonLleno({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      accessibilityState={{ disabled: busy }}
-      disabled={busy}
+      accessibilityState={{ disabled: busy || off }}
+      disabled={busy || off}
       onPress={onPress}
       style={{
         minHeight: scale.tapTarget,
@@ -80,7 +87,7 @@ export function BotonLleno({
         borderColor: edge,
         backgroundColor: ground,
         alignSelf: hug ? 'flex-start' : undefined,
-        opacity: busy ? 0.6 : 1,
+        opacity: busy ? 0.6 : off ? 0.4 : 1,
       }}
     >
       {busy ? (

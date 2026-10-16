@@ -1,21 +1,34 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  NO_PREFILL,
   PICKUP_DAYS_AHEAD,
+  STATUSES,
   addressComplete,
   addressPatch,
   cancelCollectionArgs,
   checkAddress,
   collectionErrorMessage,
+  draftReady,
+  formatSlot,
+  partsOf,
   pickupDays,
+  pickupHours,
   pickupTimes,
+  prefillFrom,
   reachesArgs,
   requestCollectionArgs,
+  sentToday,
+  slotEnd,
+  slotPassed,
+  slotValid,
+  startAt,
   toCollectionRequest,
   toStoreAddress,
-  windowValid,
+  whatsappMessage,
   type AddressForm,
   type CollectionDraft,
+  type CollectionRequest,
 } from '@/api/collection';
 import { ES } from '@/strings';
 
@@ -93,32 +106,46 @@ describe('8k — the store address the owner requires', () => {
   });
 });
 
-describe('8k — the owner\'s picker: fifteen minutes at a time, 7:00 to 19:00', () => {
+describe('8l — the owner\'s picker: one quarter of an hour, starting 7:00 to 18:45 (0060)', () => {
   const times = pickupTimes();
 
-  it('offers forty-nine times, from 07:00 to 19:00 inclusive', () => {
-    expect(times).toHaveLength(49);
+  it('offers forty-eight starts, from 07:00 to 18:45 — the last quarter ends at 19:00', () => {
+    expect(times).toHaveLength(48);
     expect(times[0]).toBe('07:00');
     expect(times[1]).toBe('07:15');
-    expect(times[times.length - 1]).toBe('19:00');
+    expect(times[times.length - 1]).toBe('18:45');
   });
 
   it('offers nothing off the quarter hour', () => {
     for (const t of times) expect(['00', '15', '30', '45']).toContain(t.slice(3));
   });
 
-  it('accepts a window inside the day, on the quarter hour, start before end', () => {
-    expect(windowValid('07:00', '19:00')).toBe(true);
-    expect(windowValid('09:15', '09:30')).toBe(true);
+  it('⚠️ the owner\'s example: 9:45 is 9:45 to 10:00', () => {
+    expect(slotEnd('09:45')).toBe('10:00');
+    expect(slotEnd('18:45')).toBe('19:00');
+    expect(slotEnd('07:00')).toBe('07:15');
   });
 
-  it('refuses what 0059 refuses', () => {
-    expect(windowValid('06:45', '08:00')).toBe(false);
-    expect(windowValid('18:00', '19:15')).toBe(false);
-    expect(windowValid('10:00', '10:00')).toBe(false);
-    expect(windowValid('11:00', '10:00')).toBe(false);
-    expect(windowValid('09:10', '10:00')).toBe(false);
-    expect(windowValid('9:00', '10:00')).toBe(false);
+  it('refuses what 0060 refuses', () => {
+    expect(slotValid('19:00')).toBe(false);
+    expect(slotValid('06:45')).toBe(false);
+    expect(slotValid('09:10')).toBe(false);
+    expect(slotValid('9:00')).toBe(false);
+    expect(slotEnd('19:00')).toBeNull();
+  });
+
+  it('draws twelve hour chips and four quarter chips, and they make every start', () => {
+    expect(pickupHours()).toEqual([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
+    const made = pickupHours().flatMap((h) => [0, 15, 30, 45].map((q) => startAt(h, q)));
+    expect(made).toEqual(times);
+    expect(partsOf('09:45')).toEqual({ hour: 9, quarter: 45 });
+  });
+
+  it('does not offer a quarter that has already begun today, and offers every one tomorrow', () => {
+    expect(slotPassed('2026-10-16', '09:45', '2026-10-16', '09:45')).toBe(true);
+    expect(slotPassed('2026-10-16', '10:00', '2026-10-16', '09:46')).toBe(false);
+    expect(slotPassed('2026-10-17', '07:00', '2026-10-16', '18:59')).toBe(false);
+    expect(slotPassed('2026-10-15', '18:45', '2026-10-16', '07:00')).toBe(true);
   });
 
   it('offers today and the fourteen days after it, across a month', () => {
@@ -133,6 +160,12 @@ describe('8k — the owner\'s picker: fifteen minutes at a time, 7:00 to 19:00',
     expect(pickupDays('2026-12-31')[1]).toBe('2027-01-01');
     expect(pickupDays('31/12/2026')).toEqual([]);
   });
+
+  it('says a pickup the way the drawing does', () => {
+    expect(formatSlot('2026-10-17', '09:45', '2026-10-16')).toBe('Mañana · 9:45 a 10:00');
+    expect(formatSlot('2026-10-17', '09:45', '2026-10-16', true)).toBe('Mañana sábado 17, entre 9:45 y 10:00');
+    expect(formatSlot('2026-10-19', '11:00', '2026-10-16')).toBe('Lun 19 · 11:00 a 11:15');
+  });
 });
 
 describe('8k — what a request sends, and how it reads back', () => {
@@ -140,25 +173,22 @@ describe('8k — what a request sends, and how it reads back', () => {
     id: 'req-1',
     locationId: 'loc-1',
     day: '2026-10-17',
-    from: '09:00',
-    to: '10:30',
-    lines: [
-      {
-        variantId: 'var-1', qty: ' 2.5 ', unit: 'kg', condition: 'por caducar',
-        packaging: 'cerrado', keeping: 'refrigerado', expiryDate: '2026-10-20',
-      },
-    ],
+    at: '09:45',
+    line: {
+      variantId: 'var-1', qty: ' 2.5 ', unit: 'kg', condition: 'por caducar',
+      packaging: 'cerrado', keeping: 'refrigerado', expiryDate: '2026-10-20',
+    },
     photos: [],
     note: '   ',
   };
 
-  it('sends 0059\'s argument names, the quantity trimmed, and a blank note as null', () => {
+  it('sends 0059\'s argument names, one line, the quarter\'s end, and a blank note as null', () => {
     expect(requestCollectionArgs(draft)).toEqual({
       p_id: 'req-1',
       p_location_id: 'loc-1',
       p_pickup_date: '2026-10-17',
-      p_window_start: '09:00',
-      p_window_end: '10:30',
+      p_window_start: '09:45',
+      p_window_end: '10:00',
       p_lines: [
         {
           variant_id: 'var-1', qty_display: '2.5', qty_display_unit: 'kg',
@@ -197,8 +227,94 @@ describe('8k — what a request sends, and how it reads back', () => {
     for (const c of ['bueno', 'por caducar', 'caducado', 'magullado'] as const) {
       expect(ES.collection.conditions[c].length).toBeGreaterThan(0);
     }
-    for (const s of ['enviada', 'confirmada', 'recogida', 'cancelada'] as const) {
+    for (const s of ['enviada', 'confirmada', 'recogida', 'cancelada', 'rechazada'] as const) {
       expect(ES.collection.statuses[s].length).toBeGreaterThan(0);
     }
+  });
+
+  it('⚠️ knows the five statuses 0060 allows — rechazada is the owner\'s fifth', () => {
+    expect([...STATUSES]).toEqual(['enviada', 'confirmada', 'recogida', 'cancelada', 'rechazada']);
+    const row = {
+      id: 'r', status: 'rechazada' as const, pickup_date: '2026-10-17', window_start: '09:00:00',
+      window_end: '09:15:00', lines: [], photos: [], note: null, created_at: '2026-10-16T18:00:00+00:00',
+    };
+    expect(toCollectionRequest(row).cancellable).toBe(false);
+  });
+});
+
+function req(over: Partial<CollectionRequest> & { createdAt: string }): CollectionRequest {
+  return {
+    id: 'r', status: 'enviada', day: '2026-10-17', from: '09:45', to: '10:00',
+    lines: [{
+      variant_id: 'v', variant_name: 'Alas de pollo', qty_display: '2', qty_display_unit: 'kg',
+      condition: 'magullado', packaging: 'abierto', keeping: 'congelado', expiry_date: '2026-10-18',
+    }],
+    photoCount: 0, note: null, cancellable: true, ...over,
+  };
+}
+
+describe('8l — the next request starts with the previous one\'s answers', () => {
+  it('carries how it is, its packaging, its keeping, its expiry and its pickup — never the product', () => {
+    const p = prefillFrom([req({ createdAt: '2026-10-16T15:00:00Z' })], '2026-10-16', '10:00');
+    expect(p).toEqual({
+      condition: 'magullado', packaging: 'abierto', keeping: 'congelado',
+      expiryDate: '2026-10-18', day: '2026-10-17', at: '09:45',
+    });
+  });
+
+  it('takes the NEWEST request, whatever order they arrive in', () => {
+    const older = req({ createdAt: '2026-10-15T15:00:00Z', lines: [{ ...req({ createdAt: '' }).lines[0]!, condition: 'bueno' }] });
+    const newer = req({ createdAt: '2026-10-16T15:00:00Z' });
+    expect(prefillFrom([older, newer], '2026-10-16', '10:00').condition).toBe('magullado');
+    expect(prefillFrom([newer, older], '2026-10-16', '10:00').condition).toBe('magullado');
+  });
+
+  it('⚠️ drops a pickup that can no longer be booked, and keeps the rest', () => {
+    const past = prefillFrom([req({ createdAt: '2026-10-14T15:00:00Z', day: '2026-10-15' })], '2026-10-16', '08:00');
+    expect(past.day).toBeNull();
+    expect(past.at).toBeNull();
+    expect(past.condition).toBe('magullado');
+    const begun = prefillFrom([req({ createdAt: '2026-10-16T13:00:00Z', day: '2026-10-16', from: '09:45' })], '2026-10-16', '10:30');
+    expect(begun.day).toBeNull();
+  });
+
+  it('starts with nothing chosen when there is no request yet', () => {
+    expect(prefillFrom([], '2026-10-16', '10:00')).toEqual(NO_PREFILL);
+  });
+
+  it('is ready only when every question has an answer — sin fecha is an answer', () => {
+    const answered = { qty: '2', condition: 'bueno' as const, packaging: 'cerrado' as const, keeping: 'ambiente' as const, expiryDate: null };
+    expect(draftReady(answered)).toBe(true);
+    expect(draftReady({ ...answered, expiryDate: undefined })).toBe(false);
+    expect(draftReady({ ...answered, condition: null })).toBe(false);
+    expect(draftReady({ ...answered, qty: '0' })).toBe(false);
+    expect(draftReady({ ...answered, qty: '2.5555' })).toBe(false);
+    expect(draftReady({ ...answered, qty: ' 2.5 ' })).toBe(true);
+  });
+});
+
+describe('8l — one WhatsApp with all of today\'s', () => {
+  const today = '2026-10-16';
+  // ⚠️ NOON UTC: the same calendar day on this Mac (UTC−6) and on CI (UTC).
+  const mine = [
+    req({ id: 'a', createdAt: '2026-10-16T18:00:00Z' }),
+    req({ id: 'b', createdAt: '2026-10-16T17:00:00Z', status: 'cancelada', cancellable: false }),
+    req({ id: 'c', createdAt: '2026-10-14T18:00:00Z' }),
+  ];
+
+  it('is about the requests sent today and still enviada', () => {
+    expect(sentToday(mine, today).map((r) => r.id)).toEqual(['a']);
+  });
+
+  it('names the shop, each product with its condition and pickup, and the address', () => {
+    const address = toStoreAddress({
+      id: 'l', name: 'Tienda', street: 'Sabino', street_number: '120',
+      colonia: 'Santa María la Ribera', city: 'Ciudad de México', postal_code: '06400',
+    });
+    expect(whatsappMessage(sentToday(mine, today), 'Pollería Doña Rosa', address, today)).toBe(
+      'Hola Wera, soy de Pollería Doña Rosa. Hoy les pedí que recojan:\n' +
+        '• Alas de pollo · 2 kg · Magullado · Mañana · 9:45 a 10:00\n' +
+        'En Sabino 120, Santa María la Ribera, Ciudad de México, C.P. 06400.',
+    );
   });
 });
