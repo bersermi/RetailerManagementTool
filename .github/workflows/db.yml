@@ -794,11 +794,13 @@ jobs:
           # schema red without a commit saying why.
           version: 2.114.0
 
-      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS — the check signs
-      # two people up through GoTrue and reads through PostgREST, both via Kong.
-      # The exclusion list is `catalog-write`'s, for its reason.
-      - name: Start Postgres, GoTrue and PostgREST
-        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      # ⚠️ `db`, `auth`, `rest`, THE GATEWAY — AND SINCE `8m` STORAGE: the check signs
+      # people up through GoTrue, reads through PostgREST, and puts Te lo compro's
+      # photos into `merma` through the Storage API, all via Kong. Otherwise the
+      # exclusion list is `catalog-write`'s, for its reason. ⚠️ Storage must be up
+      # BEFORE the reset, or `0060` finds no `storage.buckets` and skips the bucket.
+      - name: Start Postgres, GoTrue, PostgREST and Storage
+        run: supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Apply migrations from scratch
         run: supabase db reset

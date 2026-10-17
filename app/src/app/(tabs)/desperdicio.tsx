@@ -5,6 +5,7 @@ import {
   Animated,
   Easing,
   FlatList,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Linking,
@@ -22,6 +23,7 @@ import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from
 import {
   CONDITIONS,
   KEEPINGS,
+  MAX_PHOTOS,
   PACKAGINGS,
   addressComplete,
   dayBookable,
@@ -57,6 +59,7 @@ import {
   useStoreAddresses,
   useUnitFactors,
   useWorkspace,
+  type LocalPhoto,
 } from '@/api/hooks';
 import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magnitude';
 import {
@@ -72,6 +75,7 @@ import {
 } from '@/api/waste';
 import { whatsappUrl } from '@/auth/support';
 import { qtySent, reviewOf, type Review, type ReviewRow } from '@/cart/cart';
+import { takePhoto } from '@/capture/photo';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { useCart, useCartStore, useExpiries, useReason, useWasteDay } from '@/cart/store';
 import {
@@ -158,9 +162,10 @@ import { Velo } from '@/ui/Velo';
 // 06400 and 06470 today). Closed, it is drawn and says why — never hidden, so the
 // service is discoverable by the shop it does not reach yet.
 //
-// ⚠️ NO PHOTO YET. `0060` made the private bucket and the fence; the camera is a
-// native module and needs a new build, which is the owner's to install (`8l`'s
-// second half).
+// ⚠️ THE PHOTOS ARE `8m`'s: up to three, taken with the camera on step one
+// (the owner's canvas: a thumbnail each, then *📷 Otra foto*), uploaded under
+// the request's own id when it is saved (`useRequestCollection`). A native
+// module, so a phone without the new build cannot run this screen's update.
 //
 // ----------------------------------------------------------------------------
 // ⚠️ THE OWNER'S PHONE IS THE WHOLE INSTRUMENT (`R9`, §2.11). What is checkable
@@ -1235,6 +1240,8 @@ function Solicitar({ address }: { address: StoreAddress }) {
   const [day, setDay] = useState<string | null>(null);
   const [at, setAt] = useState<string | null>(null);
   const [note, setNote] = useState('');
+  const [photos, setPhotos] = useState<readonly LocalPhoto[]>([]);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
   const [prefilled, setPrefilled] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
@@ -1269,9 +1276,25 @@ function Solicitar({ address }: { address: StoreAddress }) {
   const slotOk = day !== null && at !== null && slotValid(at) && !slotTooSoon(day, at, today, clock);
   const ready = draftReady({ qty: sent?.qty_display ?? '', condition, packaging, keeping, expiryDate });
 
+  // ⚠️ A PHOTO IS NAMED ONCE, WHEN IT IS TAKEN, so a retry after a weak signal
+  // uploads to the same path and finds it already there (`alreadyStored`).
+  const addPhoto = async () => {
+    setPhotoNote(null);
+    const outcome = await takePhoto();
+    if (outcome.kind === 'taken') {
+      setPhotos((now) => (now.length >= MAX_PHOTOS ? now : [...now, { ...outcome.photo, fileId: newWriteId() }]));
+    } else if (outcome.kind === 'denied') {
+      setPhotoNote(ES.collection.photo.denied);
+    } else if (outcome.kind === 'failed') {
+      setPhotoNote(ES.collection.photo.failed);
+    }
+  };
+  const removePhoto = (fileId: string) => setPhotos((now) => now.filter((p) => p.fileId !== fileId));
+
   const save = async () => {
     if (entry === undefined || sent === null || !slotOk || day === null || at === null) return;
     if (condition === null || packaging === null || keeping === null || expiryDate === undefined) return;
+    if (workspace === null) return;
     setError(null);
     const failure = await send({
       id,
@@ -1289,7 +1312,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
       },
       photos: [],
       note,
-    });
+    }, photos, workspace.id);
     if (failure !== null) {
       setError(failure);
       return;
@@ -1310,6 +1333,8 @@ function Solicitar({ address }: { address: StoreAddress }) {
     setVariantId(null);
     setBase(0);
     setNote('');
+    setPhotos([]);
+    setPhotoNote(null);
     setTyped('');
     setError(null);
     setPrefilled(true);
@@ -1483,6 +1508,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
                   ))}
                 </Pregunta>
                 <Caduca today={today} value={expiryDate} onPick={setExpiryDate} onOther={() => setDating(true)} />
+                <Fotos photos={photos} note={photoNote} onAdd={addPhoto} onRemove={removePhoto} />
               </Tarjeta>
             </>
           ) : null}
@@ -1526,6 +1552,18 @@ function Solicitar({ address }: { address: StoreAddress }) {
                     </View>
                   </View>
                 </View>
+                {photos.length > 0 ? (
+                  <View style={{ flexDirection: 'row', gap: scale.rowGap / 2 }}>
+                    {photos.map((p, i) => (
+                      <Image
+                        key={p.fileId}
+                        source={{ uri: p.uri }}
+                        accessibilityLabel={ES.collection.photo.thumb(i + 1)}
+                        style={{ width: scale.space * 3, height: scale.space * 3, borderRadius: scale.space / 2 }}
+                      />
+                    ))}
+                  </View>
+                ) : null}
               </Tarjeta>
               <Tarjeta>
                 <Rotulo text={ES.collection.when} />
@@ -1630,6 +1668,77 @@ function Solicitar({ address }: { address: StoreAddress }) {
 }
 
 /** *Caduca* — sin fecha, hoy, mañana, or a day from the calendar. */
+/**
+ * *📷 Otra foto* — the owner's canvas: a thumbnail per photo, then the camera.
+ * ⚠️ A TAP ON A THUMBNAIL TAKES IT OUT, and the cross on it says so; it is one
+ * photo, retaken in a second. At `MAX_PHOTOS` the camera button goes away.
+ */
+function Fotos({
+  photos,
+  note,
+  onAdd,
+  onRemove,
+}: {
+  photos: readonly LocalPhoto[];
+  note: string | null;
+  onAdd: () => void;
+  onRemove: (fileId: string) => void;
+}) {
+  const { scale } = useDensity();
+  const side = scale.space * 4;
+  return (
+    <View style={{ gap: scale.rowGap / 2 }}>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: scale.rowGap }}>
+        {photos.map((p, i) => (
+          <Pressable
+            key={p.fileId}
+            accessibilityRole="button"
+            accessibilityLabel={`${ES.collection.photo.thumb(i + 1)}. ${ES.collection.photo.remove}`}
+            onPress={() => onRemove(p.fileId)}
+            style={{ width: side, height: side, borderRadius: scale.space * 0.75, overflow: 'hidden', borderWidth: 1, borderColor: PALETTE.linea }}
+          >
+            <Image source={{ uri: p.uri }} style={{ width: side, height: side }} />
+            <View
+              style={{
+                position: 'absolute',
+                top: scale.rowGap / 4,
+                right: scale.rowGap / 4,
+                borderRadius: scale.space,
+                backgroundColor: PALETTE.superficie,
+              }}
+            >
+              <MaterialCommunityIcons name="close" size={scale.iconSize * 0.7} color={PALETTE.desperdicio} />
+            </View>
+          </Pressable>
+        ))}
+        {photos.length < MAX_PHOTOS ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={onAdd}
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: scale.rowGap / 2,
+              minHeight: side,
+              paddingHorizontal: scale.space,
+              borderRadius: scale.space * 0.75,
+              borderWidth: 1,
+              borderColor: PALETTE.desperdicio,
+              backgroundColor: PALETTE.desperdicioSuave,
+            }}
+          >
+            <MaterialCommunityIcons name="camera-outline" size={scale.iconSize} color={PALETTE.desperdicio} />
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.desperdicio }}>
+              {photos.length === 0 ? ES.collection.photo.take : ES.collection.photo.another}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {note !== null ? <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{note}</Text> : null}
+    </View>
+  );
+}
+
 function Caduca({
   today,
   value,

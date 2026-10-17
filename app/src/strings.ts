@@ -1542,6 +1542,17 @@ export const ES = {
       tooLateToCancel: 'Ya está confirmada. Para cancelarla escríbenos por WhatsApp.',
       /** ⚠️ `0061` (`TD011`): the owner's five hours, said as the rule it is. */
       tooSoon: 'Pasamos al menos 5 horas después de tu solicitud. Elige una hora más tarde.',
+      /** ⚠️ `8m`: a photo did not reach Wera, so the request was not sent either. */
+      photoUpload: 'No se pudo enviar la foto. Revisa tu señal e intenta de nuevo.',
+    },
+    /** ⚠️ `8m`, the owner's canvas: a thumbnail per photo, then *📷 Otra foto*. */
+    photo: {
+      take: 'Tomar foto',
+      another: 'Otra foto',
+      remove: 'Quitar esta foto',
+      thumb: (n: number) => `Foto ${n}`,
+      denied: 'Para tomar fotos, permite la cámara en los ajustes del teléfono.',
+      failed: 'No se pudo tomar la foto. Intenta de nuevo.',
     },
   },
 

@@ -144,6 +144,8 @@ messaging or chat, no advertising.
 | Purchases → **Purchase History** | App Functionality · **Analytics** | Yes | No |
 | Financial Info → **Other Financial Info** | App Functionality | Yes | No |
 | User Content → **Other User Content** | App Functionality | Yes | No |
+| User Content → **Photos or Videos** | App Functionality | Yes | No |
+| Contact Info → **Physical Address** | App Functionality | Yes | No |
 
 What each one is in Wera is the same as Google's table ([`google-play.md`](google-play.md),
 *Data safety*). *Device ID* is the random id each install sends to Expo when it checks for an
@@ -156,8 +158,10 @@ and never stored, so it is not *collected*.
 **Not declared, and why:** *Usage Data* and *Diagnostics* — the pilot's measurements are not
 in the store build and there is no crash library. *Contacts* means the phone's address book,
 which Wera never reads; a supplier's phone is the shop's own record and sits under *Other
-User Content*. *Location*, *Photos*, *Health*, *Browsing History*, *Search History*,
-*Sensitive Info* — none.
+User Content*. *Location*, *Health*, *Browsing History*, *Search History*,
+*Sensitive Info* — none. ⚠️ **Since `8m`**, *Photos or Videos* is the photos a shop takes with the
+camera for *Te lo compro*, and *Physical Address* the store's address (a home, when the shop is
+in one); both apply from the first build that carries the camera.
 
 ## 7. App Review information
 

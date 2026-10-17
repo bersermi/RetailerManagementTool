@@ -106,6 +106,7 @@ import {
   STORE_ADDRESS_KEY,
   POSTAL_CODE_SHAPE,
   collectionErrorMessage,
+  photoPath,
   reachesKey,
   type AddressForm,
   type CollectionDraft,
@@ -117,6 +118,7 @@ import {
   collectionReaches,
   collectionRequests,
   requestCollection,
+  uploadMermaPhoto,
   setFirstStoreAddress,
   setStoreAddress,
   storeAddresses,
@@ -225,6 +227,7 @@ import {
   type Template,
 } from '@/api/starterCatalog';
 import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
+import { photoBytes, type TakenPhoto } from '@/capture/photo';
 import { onLanded } from '@/lib/landedWrites';
 
 
@@ -1302,15 +1305,26 @@ export function useCollectionRequests() {
 export function useRequestCollection() {
   const queries = useQueryClient();
   const mutation = useMutation({
-    mutationFn: (draft: CollectionDraft) => requestCollection(draft),
+    // ⚠️ `8m`: THE PHOTOS GO UP FIRST, under the request's own id, and the
+    // request carries their paths — `0060` refuses any other shape. A photo that
+    // fails stops the request: it is not sent without what she photographed.
+    mutationFn: async ({ draft, photos, workspaceId }: CollectionSend) => {
+      const paths: string[] = [];
+      for (const photo of photos) {
+        const path = photoPath(workspaceId, draft.id, photo.fileId);
+        await uploadMermaPhoto(path, await photoBytes(photo));
+        paths.push(path);
+      }
+      await requestCollection({ ...draft, photos: paths });
+    },
     onSuccess: async () => {
       await queries.invalidateQueries({ queryKey: COLLECTION_KEY });
     },
   });
 
-  async function send(draft: CollectionDraft): Promise<string | null> {
+  async function send(draft: CollectionDraft, photos: readonly LocalPhoto[], workspaceId: string): Promise<string | null> {
     try {
-      await mutation.mutateAsync(draft);
+      await mutation.mutateAsync({ draft, photos, workspaceId });
       return null;
     } catch (thrown) {
       return collectionErrorMessage(thrown);
@@ -1318,6 +1332,17 @@ export function useRequestCollection() {
   }
 
   return { send, busy: mutation.isPending };
+}
+
+/** A photo on the phone, named once when it is taken (`photoPath`'s `<file>`). */
+export interface LocalPhoto extends TakenPhoto {
+  readonly fileId: string;
+}
+
+interface CollectionSend {
+  readonly draft: CollectionDraft;
+  readonly photos: readonly LocalPhoto[];
+  readonly workspaceId: string;
 }
 
 /** Calling one off while it is `enviada`. A sentence, or `null` when done. */

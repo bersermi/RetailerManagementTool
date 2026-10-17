@@ -46,7 +46,15 @@
           "imageWidth": 140
         }
       ],
-      "expo-sharing"
+      "expo-sharing",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Wera usa la cámara solo para tomar fotos de los productos que pides que Wera recoja (Te lo compro).",
+          "photosPermission": false,
+          "microphonePermission": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

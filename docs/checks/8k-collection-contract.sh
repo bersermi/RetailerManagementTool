@@ -18,6 +18,10 @@
 # mid-morning from SQL, so the check does not depend on when it runs. And
 # `0062`'s `wera_paid` — what Wera paid, which the owner types in the dashboard —
 # read back through the app's column list as a STRING, and refused to the shop.
+# And `8m`'s photos, through the REAL Storage API: uploaded into `merma` under
+# the request's own folder, a second upload of the same file answered as a
+# duplicate (the app's retry takes that as done), the request carrying the
+# path, and another shop refused both the upload and the read.
 # ============================================================================
 set -uo pipefail
 
@@ -44,6 +48,8 @@ NO_ADDRESS="$(str NO_ADDRESS_CODE "$CONTRACT")"
 OUTSIDE="$(str OUTSIDE_AREA_CODE "$CONTRACT")"
 TOO_LATE="$(str TOO_LATE_TO_CANCEL_CODE "$CONTRACT")"
 TOO_SOON="$(str TOO_SOON_CODE "$CONTRACT")"
+MERMA="$(str MERMA_BUCKET "$CONTRACT")"
+PHOTO_TYPE="$(str PHOTO_CONTENT_TYPE "$CONTRACT")"
 REACHES_ARGS="$(args_of ReachesArgs)"
 REQUEST_ARGS="$(args_of RequestCollectionArgs)"
 CANCEL_ARGS="$(args_of CancelCollectionArgs)"
@@ -52,7 +58,7 @@ COLLECTION_COLUMNS="$(awk '/^export const COLLECTION_COLUMNS =/{f=1} f{print} f&
   | tr -d '\n' | sed -n "s/.*'\([^']*\)';.*/\1/p")"
 
 note
-for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS NO_ADDRESS OUTSIDE TOO_LATE TOO_SOON \
+for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS NO_ADDRESS OUTSIDE TOO_LATE TOO_SOON MERMA PHOTO_TYPE \
             REACHES_ARGS REQUEST_ARGS CANCEL_ARGS COLLECTION_COLUMNS; do
   if [[ -z "${!name}" ]]; then
     fail "could not read $name out of the app — this check would assert nothing"
@@ -283,15 +289,78 @@ else
   fail "a pickup two hours out answered $(status "$SOON") $(body "$SOON") — expected 400 $TOO_SOON"
 fi
 
+
+# ⚠️⚠️ `8m` — THE PHOTOS, OVER THE REAL STORAGE API. `0060` made the private
+# bucket and its fence (`merma_path_ok`) and `request_collection` refuses any
+# path that is not `<shop>/<request>/<file>`; the app uploads under the request's
+# own id before it sends the request (`useRequestCollection`). ⚠️ THIS NEEDS
+# STORAGE RUNNING — the job that runs this check starts `storage-api` for it.
+SCRATCH="$(mktemp -d)"
+trap 'rm -rf "$SCRATCH"' EXIT
+printf '\xff\xd8\xff\xe0 8k \xff\xd9' > "$SCRATCH/photo.jpg"
+upload() { # path -> body, then the HTTP status on the last line
+  curl -s -w $'\n%{http_code}' -X POST "$API_URL/storage/v1/object/$MERMA/$1" \
+    -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN" -H "Content-Type: $PHOTO_TYPE" \
+    --data-binary @"$SCRATCH/photo.jpg"
+}
+REQ5="$(python3 -c 'import uuid;print(uuid.uuid4())')"
+PHOTO="$WS/$REQ5/$(python3 -c 'import uuid;print(uuid.uuid4())').jpg"
+
+note
+UP="$(upload "$PHOTO")"
+DUP="$(upload "$PHOTO")"
+DUP_CODE="$(pick statusCode "$(body "$DUP")")"
+if [[ "$(status "$UP")" == "200" && "$DUP_CODE" == "409" ]]; then
+  ok "a photo goes into $MERMA under the request's folder; the same file again is a 409 duplicate"
+else
+  fail "the photo upload answered $(status "$UP") $(body "$UP" | head -c 200); again $(status "$DUP") $(body "$DUP" | head -c 200)"
+  echo '      A 400 "Bucket not found" is a bucket the app misnames, or Storage not started;'
+  echo '      a 403 is the fence refusing the shop its own folder.'
+fi
+
+# ⚠️ THE STORE'S TOMORROW, NOT THE RUNNER'S: the TD011 group above moved the store
+# to the zone where it is about ten in the morning, which at 23:00 UTC is already
+# the runner's tomorrow — so the runner's tomorrow at 12:00 is two hours out.
+# Found by CI on 2026-10-17, green on this Mac at another hour.
+STORE_TOMORROW="$(python3 -c 'import datetime,sys;print(datetime.date.fromisoformat(sys.argv[1])+datetime.timedelta(days=1))' "$STORE_TODAY")"
+note
+PHOTO_BODY="$(by_names "$REQUEST_ARGS" "\"$REQ5\"" "\"$LOC\"" "\"$STORE_TOMORROW\"" '"12:00"' '"12:15"' "$LINES" "[\"$PHOTO\"]" 'null')"
+WITH="$(api POST "/rest/v1/rpc/$REQUEST" "$PHOTO_BODY")"
+CARRIED="$(first photos "$(body "$(api GET "/rest/v1/collection_request?select=$COLLECTION_COLUMNS&id=eq.$REQ5")")")"
+BACK="$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/storage/v1/object/authenticated/$MERMA/$PHOTO" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN")"
+if [[ "$(status "$WITH")" == "200" && "$CARRIED" == "['$PHOTO']" && "$BACK" == "200" ]]; then
+  ok "the request carries the photo's path, and the shop reads the photo back"
+else
+  fail "a request with its photo answered $(status "$WITH") $(body "$WITH" | head -c 200); it carries $CARRIED; the read back $BACK"
+fi
+
+# ⚠️ AND ANOTHER SHOP GETS NEITHER — `merma_path_ok` reads the first folder.
+note
+OWNER_TOKEN="$TOKEN"
+signup "otro-recoger-$STAMP@example.com" "Otro Recoger"
+api POST /rest/v1/rpc/onboard_workspace \
+  '{"p_display_name":"Otra 8k","p_prices_include_tax":true,"p_location_name":null}' > /dev/null
+THEIRS="$(upload "$WS/$REQ5/ajena.jpg")"
+PEEK="$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/storage/v1/object/authenticated/$MERMA/$PHOTO" \
+  -H "apikey: $KEY" -H "Authorization: Bearer $TOKEN")"
+TOKEN="$OWNER_TOKEN"
+if [[ "$(status "$THEIRS")" =~ ^(400|403)$ && "$(body "$THEIRS")" == *"row-level security"* && "$PEEK" =~ ^(400|404)$ ]]; then
+  ok "another shop may not put a photo in this shop's folder ($(status "$THEIRS"), RLS) nor read one ($PEEK)"
+else
+  fail "another shop's upload answered $(status "$THEIRS") $(body "$THEIRS" | head -c 200); its read $PEEK"
+fi
+
 echo
-if (( fails == 0 && ran < 12 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 12 — this check asserted almost nothing."
+if (( fails == 0 && ran < 15 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 15 — this check asserted almost nothing."
   exit 1
 fi
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the app's names reach 0058 to 0062: the area,"
   echo "the address, a request sent, read back, retried and called off, the four refusals,"
-  echo "and what Wera paid — read as a string, and never written by the shop."
+  echo "what Wera paid — read as a string, and never written by the shop — and the photos,"
+  echo "uploaded into merma under the request, carried by it, and fenced from another shop."
   exit 0
 fi
 echo "$ran group(s) ran, $fails failed."

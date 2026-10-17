@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
   COLLECTION_COLUMNS,
+  MAX_PHOTOS,
+  MERMA_BUCKET,
   NO_PREFILL,
+  PHOTO_UPLOAD_FAILED,
+  alreadyStored,
+  photoPath,
   PICKUP_DAYS_AHEAD,
   STATUSES,
   addressComplete,
@@ -369,5 +374,26 @@ describe('8l — one WhatsApp with all of today\'s', () => {
         '• Alas de pollo · 2 kg · Mallugado · Mañana · 9:45 a 10:00\n' +
         'En Sabino 120, Santa María la Ribera, Ciudad de México, C.P. 06400.',
     );
+  });
+});
+
+describe('8m — the photos: up to three, under the request\'s own folder', () => {
+  it('names a photo <shop>/<request>/<file>.jpg — the only shape 0060 accepts', () => {
+    expect(photoPath('ws-1', 'req-9', 'f-3')).toBe('ws-1/req-9/f-3.jpg');
+    expect(MERMA_BUCKET).toBe('merma');
+    expect(MAX_PHOTOS).toBe(3);
+  });
+
+  it('⚠️ takes "already exists" as the photo already there — a retry\'s second upload', () => {
+    expect(alreadyStored({ statusCode: '409', message: 'Duplicate' })).toBe(true);
+    expect(alreadyStored({ message: 'The resource already exists' })).toBe(true);
+    expect(alreadyStored({ statusCode: '403', message: 'new row violates row-level security policy' })).toBe(false);
+    expect(alreadyStored(null)).toBe(false);
+  });
+
+  it('says a failed upload in words, and the request is not sent without it', () => {
+    expect(collectionErrorMessage({ code: PHOTO_UPLOAD_FAILED })).toBe(ES.collection.errors.photoUpload);
+    expect(ES.collection.photo.take).toBe('Tomar foto');
+    expect(ES.collection.photo.another).toBe('Otra foto');
   });
 });

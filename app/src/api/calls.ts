@@ -32,6 +32,10 @@ import type { FunctionRegion } from '@supabase/supabase-js';
 import {
   CANCEL_COLLECTION,
   COLLECTION_COLUMNS,
+  MERMA_BUCKET,
+  PHOTO_CONTENT_TYPE,
+  PHOTO_UPLOAD_FAILED,
+  alreadyStored,
   COLLECTION_REACHES,
   REQUEST_COLLECTION,
   STORE_ADDRESS_COLUMNS,
@@ -365,6 +369,20 @@ export async function collectionReaches(postalCode: string): Promise<boolean> {
 export async function requestCollection(draft: CollectionDraft): Promise<void> {
   const { error } = await supabase.rpc(REQUEST_COLLECTION, requestCollectionArgs(draft));
   if (error) throw reported(error);
+}
+
+/**
+ * ⚠️ `8m`: ONE PHOTO INTO `merma`, at the path `photoPath` built. Already there
+ * is a success — it is the retry of a request whose photo went up the first
+ * time (`alreadyStored`). Anything else throws `PHOTO_UPLOAD_FAILED`, so the
+ * request is not sent without the photo she took.
+ */
+export async function uploadMermaPhoto(path: string, bytes: Uint8Array): Promise<void> {
+  const { error } = await supabase.storage
+    .from(MERMA_BUCKET)
+    .upload(path, bytes, { contentType: PHOTO_CONTENT_TYPE, upsert: false });
+  if (error === null || alreadyStored(error)) return;
+  throw { code: PHOTO_UPLOAD_FAILED, cause: error };
 }
 
 /** The shop's requests, newest first — owners and managers only, by RLS. */
