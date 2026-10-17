@@ -33,22 +33,37 @@ import { ES } from '@/strings';
 // ============================================================================
 
 /**
- * The four bands of the screen, top to bottom.
+ * The bands of the screen, top to bottom — ⚠️ THE OWNER'S INICIO OF 2026-10-16
+ * (`8g`), the hooks he left switched on in the playable page: *Hoy* with the
+ * total that rolls and *tu mejor viernes*, *la racha*, option B's three
+ * coloured doors, *lo último en vivo*, the next pickup, and every other room in
+ * *Más*. The savings band (`ahorros`) joins when its read lands.
  *
- * ⚠️ `estado` IS FIRST AND THAT IS THE WHOLE ASSERTION. Every other member is
- * tappable; this one is not, and §2.8's *"state comes first"* is exactly the
- * claim that nothing tappable precedes it.
+ * ⚠️ `aviso` — the dead-letter banner — IS FIRST, AND IT IS STATE TOO: it draws
+ * only when a write was lost, and since the same ruling it PUSHES the screen
+ * down instead of floating over a room reserved for it. Then `hoy`, the
+ * takings: §2.8's *"state comes first"* still holds, nothing tappable precedes
+ * the figure but the banner's own dismissal.
  */
-export type InicioBlock = 'estado' | 'tarjetas' | 'filas' | 'cierre';
+export type InicioBlock = 'aviso' | 'hoy' | 'racha' | 'puertas' | 'ultimo' | 'recoleccion' | 'mas';
 
-/** §2.8's Home row, as amended 2026-09-17, in order. */
-export const INICIO_BLOCKS: readonly InicioBlock[] = ['estado', 'tarjetas', 'filas', 'cierre'];
+/** The owner's Inicio, in order. */
+export const INICIO_BLOCKS: readonly InicioBlock[] = [
+  'aviso',
+  'hoy',
+  'racha',
+  'puertas',
+  'ultimo',
+  'recoleccion',
+  'mas',
+];
 
 /**
  * Where a door sits and therefore how big it is drawn — §2.8's own two words.
  * *Tarjeta* is a large card for a work module; *fila* is a row for a room.
  */
-export type InicioShape = 'tarjeta' | 'fila';
+/** ⚠️ `8g`: the three coloured doors, and the grid of *Más* that holds the rest. */
+export type InicioShape = 'tarjeta' | 'mas';
 
 export interface InicioDoor {
   /** Stable key. Never shown; `app/test/inicio.test.ts` addresses rows by it. */
@@ -89,6 +104,11 @@ export interface InicioDoor {
   readonly route: Href | null;
   /** Why this door, and why this glyph — the reasoning, kept beside the choice. */
   readonly why: string;
+  /**
+   * ⚠️ `8g`: DRAWN FOR THE OWNER ONLY — Solicitudes, whose queue `0037`
+   * answers empty for anyone else. Absent for everybody else, not dead.
+   */
+  readonly ownerOnly?: boolean;
 }
 
 /**
@@ -138,7 +158,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'productos',
-    shape: 'fila',
+    shape: 'mas',
     label: ES.catalog.title,
     icon: 'package-variant-closed',
     route: '/productos',
@@ -149,27 +169,8 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
       'already sees every variant and its price on Vender (C3.1).',
   },
   {
-    key: 'documentos',
-    shape: 'fila',
-    label: ES.documents.title,
-    icon: 'clipboard-text-clock-outline',
-    route: '/documentos',
-    why:
-      'THE SIXTH DOOR, AND THE ONLY ONE §2.8 DOES NOT NAME — it is ' +
-      "the owner's own from 5h-i: *\"Most likely the user will realize if he " +
-      'looks at his purchase history for the last week/couple of days."* ' +
-      '5h-ii-a builds it and 5h-ii-b hangs Corregir and Eliminar off its rows, ' +
-      'so this row is how a correction is reached at all. ⚠️ A row and not a ' +
-      'card: it is a thing you go and look at between customers, which is the ' +
-      'same reading that put Productos here. ⚠️ The glyph is the CLIPBOARD WITH ' +
-      'A CLOCK and not a receipt or a history arrow: this is what happened ' +
-      'lately, and the only other clock in the app is the offline banner. ' +
-      '⚠️ It is drawn OPEN from the day it lands, unlike Proveedores — the room ' +
-      'exists.',
-  },
-  {
     key: 'proveedores',
-    shape: 'fila',
+    shape: 'mas',
     label: ES.providers.title,
     icon: 'account-tie-outline',
     route: '/proveedores',
@@ -190,7 +191,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
   },
   {
     key: 'numeros',
-    shape: 'fila',
+    shape: 'mas',
     label: ES.numbers.title,
     icon: 'chart-bar',
     route: '/numeros',
@@ -204,6 +205,49 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
       "every role's, which is §2.7's matrix — sale_line_select has no has_role " +
       '(0003), so a cashier sees her own stores by RLS. ⚠️ The glyph is the BAR ' +
       'CHART because a bar chart is what the screen opens on.',
+  },
+  {
+    key: 'documentos',
+    shape: 'mas',
+    label: ES.documents.title,
+    icon: 'clipboard-text-clock-outline',
+    route: '/documentos',
+    why:
+      'THE SIXTH DOOR, AND THE ONLY ONE §2.8 DOES NOT NAME — it is ' +
+      "the owner's own from 5h-i: *\"Most likely the user will realize if he " +
+      'looks at his purchase history for the last week/couple of days."* ' +
+      '5h-ii-a builds it and 5h-ii-b hangs Corregir and Eliminar off its rows, ' +
+      'so this row is how a correction is reached at all. ⚠️ A row and not a ' +
+      'card: it is a thing you go and look at between customers, which is the ' +
+      'same reading that put Productos here. ⚠️ The glyph is the CLIPBOARD WITH ' +
+      'A CLOCK and not a receipt or a history arrow: this is what happened ' +
+      'lately, and the only other clock in the app is the offline banner. ' +
+      '⚠️ It is drawn OPEN from the day it lands, unlike Proveedores — the room ' +
+      'exists.',
+  },
+  {
+    key: 'solicitudes',
+    shape: 'mas',
+    label: ES.approvals.bell,
+    icon: 'bell-outline',
+    route: '/solicitudes',
+    ownerOnly: true,
+    why:
+      "⚠️ `8g`, THE OWNER'S INICIO OF 2026-10-16: the bell moves from the screen's " +
+      'last band into the More grid, with the count of people waiting on it. Owner only, ' +
+      "useRoster's visible rule: 0037 answers anyone else with an empty list, so a " +
+      'manager is shown no door rather than an empty room.',
+  },
+  {
+    key: 'ajustes',
+    shape: 'mas',
+    label: ES.settings.title,
+    icon: 'cog-outline',
+    route: '/ajustes',
+    why:
+      "⚠️ `8g`, 2026-10-16: LAST in the More grid, as the owner's page drew it. Not a gear " +
+      'in the cream band: C12.1 forbids an icon without its word, and a header ' +
+      'corner has no room for one.',
   },
 ];
 

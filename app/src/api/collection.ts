@@ -606,3 +606,45 @@ export function whatsappMessage(
 export function storeAddressLine(a: StoreAddress): string {
   return ES.address.line(a.street, a.number, a.colonia, a.city, a.postalCode);
 }
+
+// ----------------------------------------------------------------------------
+// ⚠️ INICIO'S *PRÓXIMA RECOLECCIÓN* (`8g`, 2026-10-16)
+// ----------------------------------------------------------------------------
+
+/** Minutes from `now` until the quarter `at` on `day` begins — negative once it has. */
+export function minutesUntil(day: string, at: string, today: string, now: string): number | null {
+  const away = daysFrom(today, day);
+  const start = minutesOf(at);
+  const current = minutesOf(now);
+  if (away === null || start === null || current === null) return null;
+  return away * 24 * 60 + start - current;
+}
+
+/**
+ * The next pickup still to come — `enviada` or `confirmada`, its quarter not
+ * yet begun — or `null`, and then Inicio draws no card at all.
+ */
+export function nextPickup(
+  requests: readonly CollectionRequest[],
+  today: string,
+  now: string,
+): CollectionRequest | null {
+  let next: CollectionRequest | null = null;
+  let soonest = Number.POSITIVE_INFINITY;
+  for (const r of requests) {
+    if (r.status !== 'enviada' && r.status !== 'confirmada') continue;
+    const m = minutesUntil(r.day, r.from, today, now);
+    if (m === null || m <= 0 || m >= soonest) continue;
+    soonest = m;
+    next = r;
+  }
+  return next;
+}
+
+/** How long until a pickup, the way a person says it — *faltan 20 h*. */
+export function untilLabel(minutes: number): string {
+  if (minutes < 60) return ES.home.pickup.minutes(Math.max(1, minutes));
+  if (minutes < 48 * 60) return ES.home.pickup.hours(Math.round(minutes / 60));
+  return ES.home.pickup.days(Math.round(minutes / (24 * 60)));
+}
+

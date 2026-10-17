@@ -500,3 +500,69 @@ export function reportOf(
     }));
   return { total: shownAmount(total), totalCentavos: total, rows };
 }
+
+// ----------------------------------------------------------------------------
+// ⚠️ INICIO'S HOOKS (`8g`, the owner's set of 2026-10-16) — *tu mejor viernes*
+// and *la racha* — read off the SAME six months Números already holds, so they
+// cost no second read. Pure, and `app/test/inicio-ganchos.test.ts` reads them.
+// ----------------------------------------------------------------------------
+
+/** Each day's takings, summed over every product, in centavos. */
+export function dayTotals(days: readonly SoldDay[]): ReadonlyMap<string, number> {
+  const totals = new Map<string, number>();
+  for (const d of days) totals.set(d.day, (totals.get(d.day) ?? 0) + d.centavos);
+  return totals;
+}
+
+/**
+ * The best day with `today`'s weekday, BEFORE today — the owner's *tu mejor
+ * viernes*. `null` when the shop has never sold on that weekday.
+ */
+export function bestSameWeekday(days: readonly SoldDay[], today: string): number | null {
+  const now = dateOf(today);
+  if (now === null) return null;
+  let best: number | null = null;
+  for (const [day, centavos] of dayTotals(days)) {
+    const date = dateOf(day);
+    if (date === null || day >= today || date.getUTCDay() !== now.getUTCDay() || centavos <= 0) continue;
+    if (best === null || centavos > best) best = centavos;
+  }
+  return best;
+}
+
+/**
+ * Days in a row with at least one sale — the owner's *racha*. ⚠️ IT ENDS TODAY
+ * WHEN TODAY HAS SOLD, AND YESTERDAY OTHERWISE: at eight in the morning a streak
+ * is not broken because the first customer has not come yet. `soldToday` is
+ * `useToday`'s count, the server's own answer for today.
+ */
+export function salesStreak(days: readonly SoldDay[], today: string, soldToday: boolean): number {
+  const sold = new Set<string>();
+  for (const [day, centavos] of dayTotals(days)) if (centavos > 0) sold.add(day);
+  if (soldToday) sold.add(today);
+  let day = soldToday ? today : shifted(today, -1);
+  let streak = 0;
+  while (sold.has(day)) {
+    streak += 1;
+    day = shifted(day, -1);
+  }
+  return streak;
+}
+
+/** The last seven days, oldest first and today last: did each one sell? */
+export function lastSevenDays(days: readonly SoldDay[], today: string, soldToday: boolean): readonly boolean[] {
+  const totals = dayTotals(days);
+  const out: boolean[] = [];
+  for (let back = 6; back >= 0; back -= 1) {
+    const day = shifted(today, -back);
+    out.push(back === 0 ? soldToday || (totals.get(day) ?? 0) > 0 : (totals.get(day) ?? 0) > 0);
+  }
+  return out;
+}
+
+/** The streaks worth a celebration — the owner's drawing: 7, 30 and 100 days. */
+export const STREAK_MILESTONES = [7, 30, 100] as const;
+
+export function isStreakMilestone(streak: number): boolean {
+  return (STREAK_MILESTONES as readonly number[]).includes(streak);
+}

@@ -1865,6 +1865,39 @@ export const ES = {
      * and opens onto nothing is worse than one that is obviously not built.
      */
     notYet: 'Todavía no está lista.',
+
+    /**
+     * ⚠️⚠️ `8g`, THE OWNER'S INICIO OF 2026-10-16 — the hooks he left switched on
+     * in the playable page: the total that rolls, *tu mejor viernes*, *la racha*,
+     * *lo último en vivo*, the savings and the next pickup, over option B's
+     * three coloured doors, and every other room in *Más*.
+     */
+    seeNumbers: 'Ver Números',
+    record: {
+      /** *Tu mejor viernes: $3,450 · faltan $2,210* — the weekday is `ES.dates.weekdays`'. */
+      best: (weekday: string, amount: string, left: string) => `Tu mejor ${weekday}: ${amount} · faltan ${left}`,
+      broken: (weekday: string, before: string) => `¡Récord de ${weekday}! Antes era ${before}`,
+      toast: (weekday: string) => `¡Récord de ${weekday}!`,
+    },
+    streak: {
+      days: (n: number) => (n === 1 ? '1 día seguido' : `${n} días seguidos`),
+      sub: 'vendiendo con Wera',
+      milestone: (n: number) => `¡${n} días seguidos vendiendo con Wera!`,
+    },
+    feed: {
+      seeAll: 'Ver todo',
+      more: (name: string, n: number) => `${name} y ${n} más`,
+      none: 'Todavía no hay ventas esta semana.',
+    },
+    pickup: {
+      title: 'Próxima recolección',
+      minutes: (n: number) => `faltan ${n} min`,
+      hours: (n: number) => `faltan ${n} h`,
+      days: (n: number) => (n === 1 ? 'falta 1 día' : `faltan ${n} días`),
+      /** *Mañana · 9:45 a 10:00 · faltan 20 h*. */
+      line: (slot: string, until: string) => `${slot} · ${until}`,
+    },
+    more: 'Más',
   },
 
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */

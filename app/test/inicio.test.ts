@@ -9,7 +9,7 @@ import {
   isOpen,
   type InicioBlock,
 } from '@/navigation/inicio';
-import { bannerMinHeight, bannerRoom, bannerTop } from '@/offline/deadLetters';
+import { bannerMinHeight } from '@/offline/deadLetters';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 
@@ -64,38 +64,37 @@ const VOCABULARY = new Set<string>([
   // ⚠️ `7a`, 2026-09-28. Números IS a module name — §2.8 lists it — it simply had
   // no tab to borrow the word from, because the bar is capped at four.
   ES.numbers.title,
+  // ⚠️ `8g`, 2026-10-16: the bell and Ajustes became doors in *Más* — the words
+  // their own rooms already answer to.
+  ES.approvals.bell,
+  ES.settings.title,
 ]);
 
 describe('§2.8 — state comes first, and the checks below are not vacuous', () => {
-  it('carries the four bands the amended Home row describes', () => {
+  it('carries the owner\'s bands of 2026-10-16, in his order', () => {
     // ⚠️ RULE 4. An empty array passes every `for` below having asserted
     // nothing — the misleading green this repository has hit five times.
-    expect(INICIO_BLOCKS).toEqual(['estado', 'tarjetas', 'filas', 'cierre']);
+    expect(INICIO_BLOCKS).toEqual(['aviso', 'hoy', 'racha', 'puertas', 'ultimo', 'recoleccion', 'mas']);
   });
 
-  // ⚠️⚠️ THE ASSERTION THIS FILE IS FOR. §2.8's Home row was amended on
-  // 2026-09-17 to allow the cards and kept this half word for word: the takings
-  // sit ABOVE ANYTHING TAPPABLE. `estado` is the only band with nothing
-  // pressable in it, so the claim is that it comes first and that the claim is
-  // not vacuous — there is something tappable after it.
-  it('puts the state band above every tappable band', () => {
-    expect(INICIO_BLOCKS[0]).toBe('estado');
-    const tappable: readonly InicioBlock[] = ['tarjetas', 'filas', 'cierre'];
-    for (const band of tappable) {
-      expect(INICIO_BLOCKS.indexOf(band)).toBeGreaterThan(INICIO_BLOCKS.indexOf('estado'));
+  // ⚠️⚠️ THE ASSERTION THIS FILE IS FOR, KEPT THROUGH `8g`. The takings sit above
+  // every door; the only band before them is the dead-letter banner, which is
+  // state too and draws only when a write was lost.
+  it('puts the takings above every door, with only the banner before them', () => {
+    expect(INICIO_BLOCKS.slice(0, 2)).toEqual(['aviso', 'hoy']);
+    const doors: readonly InicioBlock[] = ['puertas', 'ultimo', 'recoleccion', 'mas'];
+    for (const band of doors) {
+      expect(INICIO_BLOCKS.indexOf(band)).toBeGreaterThan(INICIO_BLOCKS.indexOf('hoy'));
     }
   });
 
-  it('names the state band exactly once, so "first" means something', () => {
-    expect(INICIO_BLOCKS.filter((b) => b === 'estado')).toHaveLength(1);
+  it('names each band once, so "first" means something', () => {
     expect(new Set(INICIO_BLOCKS).size).toBe(INICIO_BLOCKS.length);
   });
 
-  // The bell and Ajustes are LAST — §2.8 places them after the doors, and the
-  // row's own words are *"placed at last rather than floating in the middle of
-  // a placeholder"*.
-  it('puts the bell and Ajustes after both kinds of door', () => {
-    expect(INICIO_BLOCKS[INICIO_BLOCKS.length - 1]).toBe('cierre');
+  // *Más* is LAST — every other room, the owner's page.
+  it('puts Más, with the bell and Ajustes, last', () => {
+    expect(INICIO_BLOCKS[INICIO_BLOCKS.length - 1]).toBe('mas');
   });
 
   it('found the shipped glyph map, so the icon checks mean something', () => {
@@ -105,7 +104,7 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   });
 });
 
-describe('§2.8 — the seven doors, three as cards and four as rows', () => {
+describe('§2.8 — the nine doors, three coloured and six in Más', () => {
   // ⚠️⚠️ IT WAS FIVE UNTIL 2026-09-26, AND THIS ASSERTION IS WHAT MADE THE SIXTH
   // A DECISION RATHER THAN A TIDY-UP — which is exactly what its own comment
   // said it was for, so it worked. `5h-ii-a` added `documentos`, and the
@@ -116,18 +115,23 @@ describe('§2.8 — the seven doors, three as cards and four as rows', () => {
   // ⚠️⚠️ AND IT WAS SIX UNTIL 2026-09-28, AND THE PIN WORKED A SECOND TIME: `7a`
   // needed a door for Números, stopped here, and ASKED. The owner ruled a seventh
   // row, last, on Inicio. The reasoning is `@/navigation/inicio`'s `numeros` row.
-  it('carries seven doors and no more', () => {
-    // Still pinned rather than "> 0": an EIGHTH door is a decision about what
+  // ⚠️⚠️ NINE SINCE `8g` (2026-10-16), AND THE PIN WORKED A THIRD TIME: the
+  // owner's Inicio moved the bell and Ajustes from the last band into *Más*,
+  // ruled on his playable page, so they are doors in this table now.
+  it('carries nine doors and no more', () => {
+    // Still pinned rather than "> 0": a TENTH door is a decision about what
     // Inicio is for, not a tidy-up, and it should stop here.
-    expect(INICIO_DOORS).toHaveLength(7);
+    expect(INICIO_DOORS).toHaveLength(9);
     expect(INICIO_DOORS.map((d) => d.key)).toEqual([
       'vender',
       'comprar',
       'desperdicio',
       'productos',
-      'documentos',
       'proveedores',
       'numeros',
+      'documentos',
+      'solicitudes',
+      'ajustes',
     ]);
   });
 
@@ -139,25 +143,22 @@ describe('§2.8 — the seven doors, three as cards and four as rows', () => {
     ]);
   });
 
-  // ⚠️ `documentos` SITS BETWEEN THEM AND NOT AT THE END, which is a decision
-  // about order rather than an accident. ⚠️⚠️ **THE REASON IT WAS MADE HAS EXPIRED
-  // AND THE ORDER IS KEPT**: Proveedores was the only door with no room behind it
-  // when `5h-ii-a` placed `documentos` above it, and a LIVE door below a dead one
-  // reads as the live one being the afterthought. `6b` built that room on
-  // 2026-09-27, so nothing on this screen is dead any more — and the order stays
-  // because moving it now would reorder a screen the owner has held, which is a
-  // decision and not a tidy-up.
-  it('draws Productos, Lo último, Proveedores and Números as rows, in order', () => {
-    expect(doorsOfShape('fila').map((d) => d.key)).toEqual([
+  // ⚠️ `8g`: THE OWNER'S ORDER IN *MÁS* — Productos, Proveedores, Números, Lo
+  // último, Solicitudes, Ajustes — three to a row, as his page drew it.
+  it('draws the other six in Más, in his order, Solicitudes for the owner alone', () => {
+    expect(doorsOfShape('mas').map((d) => d.key)).toEqual([
       'productos',
-      'documentos',
       'proveedores',
       'numeros',
+      'documentos',
+      'solicitudes',
+      'ajustes',
     ]);
+    expect(INICIO_DOORS.filter((d) => d.ownerOnly === true).map((d) => d.key)).toEqual(['solicitudes']);
   });
 
   it('accounts for every door in one shape or the other', () => {
-    expect(doorsOfShape('tarjeta').length + doorsOfShape('fila').length).toBe(INICIO_DOORS.length);
+    expect(doorsOfShape('tarjeta').length + doorsOfShape('mas').length).toBe(INICIO_DOORS.length);
   });
 
   it('gives every door a distinct key', () => {
@@ -250,35 +251,13 @@ describe('every door on Inicio now has a room, and the dead-door machinery is ke
   });
 });
 
-describe('the room at the top, and the banner it is for', () => {
+describe('the banner, in Inicio\'s flow since 8g', () => {
+  // ⚠️ THE RESERVED ROOM IS GONE (the owner's Inicio of 2026-10-16): the banner
+  // is drawn first in the screen and pushes it down, only when there is one.
+  // What is left to hold is the pill's floor, `R6`'s tap target.
   for (const mode of DENSITY_MODES) {
-    const scale = DENSITIES[mode];
-
-    // ⚠️⚠️ THE COLLISION THIS EXISTS TO STOP. The banner is absolutely
-    // positioned over Inicio and takes no taps, so a room smaller than the
-    // strip would not break anything — it would quietly HIDE the takings
-    // figure, which is the one number the screen is for.
-    it(`${mode}: the room clears where the banner's pill ends`, () => {
-      const inset = 47;
-      expect(bannerRoom(scale, inset)).toBeGreaterThanOrEqual(
-        bannerTop(scale, inset) + bannerMinHeight(scale),
-      );
-    });
-
-    it(`${mode}: the room leaves the device's own inset alone`, () => {
-      const inset = 47;
-      expect(bannerRoom(scale, inset) - bannerRoom(scale, 0)).toBe(inset);
-    });
-
     it(`${mode}: the pill clears the tap-target floor (R6)`, () => {
-      expect(bannerMinHeight(scale)).toBe(scale.tapTarget);
+      expect(bannerMinHeight(DENSITIES[mode])).toBe(DENSITIES[mode].tapTarget);
     });
   }
-
-  // ⚠️ C3.18's promise, at the top of the one screen that reserves space for
-  // something it cannot see: elder mode's room is LARGER, not merely different.
-  // A room that did not grow would put a bigger banner over a bigger figure.
-  it('reserves more room in Letra grande than in Normal', () => {
-    expect(bannerRoom(DENSITIES.elder, 0)).toBeGreaterThan(bannerRoom(DENSITIES.normal, 0));
-  });
 });
