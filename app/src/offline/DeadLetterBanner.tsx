@@ -1,7 +1,6 @@
 import { usePathname } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useMyRole, useUnitFactors } from '@/api/hooks';
 import { formatMXN } from '@/format/mxn';
@@ -9,7 +8,6 @@ import { outboxDb, readQueue } from '@/lib/outboxDb';
 import {
   NOTHING_DEAD,
   bannerMinHeight,
-  bannerTop,
   readsQueue,
   showsBanner,
   showsValue,
@@ -113,36 +111,18 @@ export function DeadLetterBanner() {
  * carry the whole message, so *"never colour alone"* is satisfied by
  * construction rather than by care.
  *
- * ⚠️ IT SITS AT THE TOP, AND THE REASON IS THE OTHER SURFACE. `OfflineSurfaces`
- * owns the bottom of every screen — the notice pill and the reconnect toast —
- * and two absolutely-positioned strips at one edge is a collision no check here
- * could see. ⚠️ `insets.top` because the root `Stack` draws no header.
+ * ⚠️⚠️ IT IS IN INICIO'S FLOW SINCE `8g` (2026-10-16), the owner's Inicio: it
+ * used to be mounted at the root and float, absolutely positioned, over a room
+ * Inicio reserved for it — a gap on every visit, and since round 2's cream
+ * header the strip drew over the header rather than in the room. Now Inicio
+ * renders it first and it PUSHES the screen down, only when there is one.
  */
 function Banner({ value, onDismiss }: { value: QueueValue; onDismiss: () => void }) {
   const { scale } = useDensity();
-  const insets = useSafeAreaInsets();
   const line = showsValue(value) ? ES.offline.deadLetters.value(formatMXN(value.centavos)) : null;
 
   return (
-    <View
-      // ⚠️ `box-none` IS WHAT KEEPS "LEAST INVASIVE" TRUE: the strip itself
-      // takes no taps, so only the pill inside it is pressable and the screen
-      // underneath keeps working.
-      pointerEvents="box-none"
-      style={{
-        position: 'absolute',
-        // ⚠️ THE OFFSET AND THE PILL'S FLOOR BOTH COME FROM
-        // `@/offline/deadLetters` AS OF `5d-iv-b`, and they used to be
-        // literals here. Inicio has to leave room for this strip — it is
-        // absolutely positioned and draws OVER the takings figure — and two
-        // copies of how tall the banner is would have gone stale by hiding the
-        // one number that screen exists to show. See `bannerRoom`.
-        top: bannerTop(scale, insets.top),
-        left: scale.space,
-        right: scale.space,
-        alignItems: 'center',
-      }}
-    >
+    <View>
       <Pressable
         onPress={onDismiss}
         accessibilityRole="button"

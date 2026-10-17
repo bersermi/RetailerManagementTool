@@ -1170,3 +1170,34 @@ export function documentsLine(kind: DocumentKind, input: DocumentsLineInput): st
   }
   return '';
 }
+
+// ----------------------------------------------------------------------------
+// ⚠️ INICIO'S *LO ÚLTIMO* (`8g`, 2026-10-16): the three newest sales, as rows
+// ----------------------------------------------------------------------------
+
+export interface FeedRow {
+  readonly id: string;
+  /** The device's own `HH:MM` for the sale. */
+  readonly time: string;
+  /** The first product, and how many more — `Pechuga y 2 más`. */
+  readonly title: string;
+  readonly grossCentavos: number | null;
+}
+
+/** The newest `n` sales, newest first. A voided one is already gone (`documentsFrom`). */
+export function latestSales(docs: readonly ShopDocument[], n = 3): readonly FeedRow[] {
+  return [...docs]
+    .filter((d) => d.kind === 'sale')
+    .sort((a, b) => Date.parse(b.at) - Date.parse(a.at))
+    .slice(0, n)
+    .map((d) => {
+      const at = new Date(d.at);
+      const time = Number.isNaN(at.getTime())
+        ? ''
+        : `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+      const first = d.lines[0]?.name ?? '';
+      const title = d.lines.length > 1 ? ES.home.feed.more(first, d.lines.length - 1) : first;
+      return { id: d.id, time, title, grossCentavos: d.grossCentavos };
+    });
+}
+

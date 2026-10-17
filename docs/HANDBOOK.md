@@ -62,6 +62,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October, late night: your new Inicio, over the air** (*Inicio nuevo: el total que sube, la
+racha y tu mejor viernes*). Sell something on Vender and come back to Inicio: the total rolls up and
+a green **+$** floats over it. Under it, a bar towards your best day of the week; beat it and there
+is confetti. Then your streak, the three coloured doors, your last three sales, the next Te lo compro
+pickup, and every other screen in **Más** (Ajustes is the last one). *Ahorro en compras* comes next.
+*Rescatado* waits for your answer in the plan's decisions block: what Wera paid, or an estimate.
+
 ✅ **16 October, late night: your picker, option A, over the air** (*El horario de Te lo compro en
 un toque*). In *Te lo compro → Cuándo*, pick the day and then one time: every time that can still
 be booked, under *En la mañana*, *En la tarde* and *Al atardecer*. Times less than five hours away
@@ -170,6 +177,7 @@ file above, section 2 of its catch-up.
 | Open this | The question |
 |---|---|
 | **Lo último** | Does a delivery read at a glance as *that one*? Are two buttons under every row too much? Is landing on Comprar with the cart already full a relief or a surprise? |
+| **Inicio** | New on 16 October. With real days behind it, your phone shows *Tu mejor viernes* (or whichever day it is) and your streak. Do the roll, the +$ and the confetti feel like a reward or like noise? Is *Más* easy to find for Ajustes? |
 | **Desperdicio → Tirar** | New on 16 October. Add two products: under each, *Sin fecha*. The bar says *Hoy* and *Caducado*; tap either and the Carrito opens with *Caducidad* per product, *¿Cuándo lo tiraste?* and *Motivo*. Is the default visible enough to count as chosen? Is the Carrito's foot too tall at *Letra grande*? |
 | **Desperdicio → Te lo compro** | New on 16 October, **once your store has its address** (Ajustes). Pick a product, answer the four questions, a day and a quarter of an hour, *Guardar solicitud*. Then *Otro producto, con los mismos datos*: the band says the answers came from the last one. *Avisar a Wera por WhatsApp* should open a chat with you with today's list written. ⚠️ On Android the keyboard covers *Guardar* while you type the note |
 | **Proveedores** | Does a list of bare names read as a directory or as unfinished? |
@@ -253,7 +261,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **—** | ✅ **Nothing is waiting on YOU** in the plan's decisions block. You answered the last three on 15 October: a nightly copy from this Mac until the pilot starts, then Supabase Pro (the same database, upgraded, not moved); both database doors closed; an invitation honoured straight away only for a Google or Apple sign-in. The pilot's start list (`5P-e`) builds them | — |
+| **8n** | ⚠️ **One thing is waiting on YOU** in the plan's decisions block: **Rescatado on Inicio** says *"Que la Wera te compró"*, and nothing records what Wera paid. My recommendation: when you mark a pickup *recogida* in the dashboard, you also type what you paid; that is one change to the database and one number you type, and then the jar tells the truth. The other way is an estimate at the shop's own shelf price, with a different sentence. Everything else on Inicio is built | Waits on you |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**

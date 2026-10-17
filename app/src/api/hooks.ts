@@ -20,7 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -216,6 +216,7 @@ import {
   type Template,
 } from '@/api/starterCatalog';
 import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
+import { onLanded } from '@/lib/landedWrites';
 
 
 /**
@@ -244,6 +245,29 @@ import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
  * `8g`'s row, the owner's review. Pricing the outbox here would be a second answer to *what
  * did we take*, on the one screen that must not have two.
  */
+/**
+ * ⚠️ `8g`: RE-READ INICIO'S FIGURES WHEN A WRITE LANDS — today's takings, the
+ * recent sales and the daily history after a sale; the recent deliveries after
+ * a purchase. Without it a sale reached Inicio only when the minute's cache aged
+ * out, and the total never rolled in front of anybody (`@/lib/landedWrites`).
+ */
+export function useFreshAfterWrites(): void {
+  const queries = useQueryClient();
+  useEffect(
+    () =>
+      onLanded((kind) => {
+        if (kind === 'sale') {
+          void queries.invalidateQueries({ queryKey: TODAY_KEY });
+          void queries.invalidateQueries({ queryKey: documentsKey('sale') });
+          void queries.invalidateQueries({ queryKey: ['sales', 'daily'] });
+        } else if (kind === 'purchase') {
+          void queries.invalidateQueries({ queryKey: documentsKey('purchase') });
+        }
+      }),
+    [queries],
+  );
+}
+
 export function useToday(): Takings & {
   readonly loading: boolean;
   readonly failed: ApiMessageKey | null;

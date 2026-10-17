@@ -16,7 +16,6 @@ import {
 } from '@/navigation/lastScreen';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
-import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
@@ -88,18 +87,11 @@ export default function RootLayout() {
               <Stack.Screen name="solicitudes" options={{ presentation: 'modal' }} />
             </Stack>
             <OfflineSurfaces />
-            {/* ⚠️ C11.9's banner is mounted here with the surfaces above, but
-                it DRAWS ON INICIO ONLY — ruled by the owner 2026-09-22,
-                replacing the every-screen placement 5c-iv-b shipped. It is
-                mounted at the root rather than inside that screen so the
-                dismissal survives selling for an hour and coming back; the
-                route is a condition in `@/offline/deadLetters`, not a
-                different mount point. ⚠️ It sits at the TOP while the
-                surfaces above own the bottom — two absolutely-positioned
-                strips at one edge is a collision nothing here could see.
-                ⚠️ It draws for a manager and above only, and fences before
-                it reads: a cashier's phone never opens the queue for it. */}
-            <DeadLetterBanner />
+            {/* ⚠️ C11.9's banner is drawn by Inicio itself since `8g` (the owner's
+                Inicio of 2026-10-16): in its flow, pushing the screen down, rather
+                than mounted here and floating over a reserved room. Inicio is a
+                tab and stays mounted, so a dismissal still survives selling for
+                an hour and coming back. */}
           </View>
         </DensityProvider>
       </QueryProvider>

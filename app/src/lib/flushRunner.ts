@@ -26,6 +26,7 @@
 
 import { reportFailedWrite, sendQueuedWrite } from '@/api/calls';
 import { createFlusher, type Flusher } from '@/api/flush';
+import { announceLanded } from '@/lib/landedWrites';
 import { forget, outboxDb, readQueue, settle } from '@/lib/outboxDb';
 import { landed } from '@/pilot/recorder';
 
@@ -45,6 +46,8 @@ export function flusher(): Flusher {
         const from = performance.now();
         const data = await sendQueuedWrite(kind, args);
         landed(kind, performance.now() - from);
+        // ⚠️ `8g`: AND INICIO RE-READS WHAT IT DRAWS (`@/lib/landedWrites`).
+        announceLanded(kind);
         return data;
       },
       report: reportFailedWrite,

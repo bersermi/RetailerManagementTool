@@ -447,17 +447,6 @@ export function showsBanner(
 // ----------------------------------------------------------------------------
 
 /**
- * Where the banner's strip begins, below the device's own top inset.
- *
- * ⚠️ THE INSET IS AN ARGUMENT AND NOT A HOOK CALL (`R3`). `useSafeAreaInsets`
- * is React; this is arithmetic, and `app/test/offline-dead-letters.test.ts`
- * reads it under plain Node.
- */
-export function bannerTop(scale: DensityScale, topInset: number): number {
-  return topInset + scale.space;
-}
-
-/**
  * The least vertical space the banner's pill can occupy — `R6`'s tap-target
  * floor, which is what makes *"easily dismissed means a thumb"* true in both
  * densities.
@@ -466,17 +455,3 @@ export function bannerMinHeight(scale: DensityScale): number {
   return scale.tapTarget;
 }
 
-/**
- * How much room a screen under this banner must leave above anything it draws.
- *
- * ⚠️ IT IS RESERVED UNCONDITIONALLY, WHICH IS A DECISION AND NOT AN OVERSIGHT.
- * Reserving it only while a banner is up would move Inicio's takings figure
- * DOWN the moment a write dead-lettered — a number jumping under the eye of
- * somebody already reading it, and the cards jumping under a thumb already
- * travelling towards Vender. The same reasoning `Solicitudes` records one file
- * over for not hiding the bell while its read is out: a control that arrives a
- * beat late is worse than a control that was always there.
- */
-export function bannerRoom(scale: DensityScale, topInset: number): number {
-  return bannerTop(scale, topInset) + bannerMinHeight(scale) + scale.space;
-}
