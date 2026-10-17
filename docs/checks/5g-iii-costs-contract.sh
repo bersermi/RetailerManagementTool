@@ -67,6 +67,14 @@
 #      never a 403 — and `Costos` would have been a chart of nothing for her, in a
 #      state indistinguishable from a product nobody has bought.
 #  10. Another shop reads none of this shop's deliveries.
+#  11. ⚠️ `8g` — INICIO'S *AHORRO EN COMPRAS* READS THE SAME LINES FOR EVERY
+#      PRODUCT AT ONCE, bounded on the DOCUMENT's instant through the inner embed
+#      (`SAVINGS_SINCE_COLUMN`), and paged. Asserted on the wire: the bound keeps
+#      exactly the lines whose delivery is on or after it and drops the rest (a
+#      dropped `!inner` would hand back every line with a `null` document), the
+#      quantity arrives as a string like the price, and two lines of ONE delivery
+#      — the same instant — come back in `SAVINGS_TIEBREAK` order, so pages read
+#      one at a time add up to the whole.
 #
 # ⚠️⚠️ WHAT IT CANNOT ASSERT, AND THE FALSIFIER IS WHAT ESTABLISHED IT: THE
 # DIRECTION. This check reads `COSTS_ORDER_ASCENDING` out of the app and then
@@ -116,10 +124,16 @@ COSTS_COLUMNS="$(sed -n "/^export const COSTS_COLUMNS =/,/;/p" "$CONTRACT" \
 # ⚠️ AND THE DIRECTION IS A BOOLEAN, so the wire spelling below is COMPOSED from
 # the app's own two values rather than being a third copy of the string.
 COSTS_ORDER_ASCENDING="$(sed -n "s/^export const COSTS_ORDER_ASCENDING = \(.*\);.*/\1/p" "$CONTRACT" | head -1)"
+# `8g`: Inicio's read, written over two lines the way `COSTS_COLUMNS` is.
+SAVINGS_COLUMNS="$(sed -n "/^export const SAVINGS_COLUMNS =/,/;/p" "$CONTRACT" \
+                   | sed -n "s/.*'\([^']*\)'.*/\1/p" | head -1)"
+SAVINGS_SINCE_COLUMN="$(str SAVINGS_SINCE_COLUMN)"
+SAVINGS_TIEBREAK="$(str SAVINGS_TIEBREAK)"
 
 note
 MISSING=""
-for name in COSTS_TABLE COSTS_VARIANT_COLUMN COSTS_ORDER COSTS_COLUMNS COSTS_ORDER_ASCENDING; do
+for name in COSTS_TABLE COSTS_VARIANT_COLUMN COSTS_ORDER COSTS_COLUMNS COSTS_ORDER_ASCENDING \
+            SAVINGS_COLUMNS SAVINGS_SINCE_COLUMN SAVINGS_TIEBREAK; do
   eval "value=\$$name"
   [[ -n "$value" ]] || MISSING="$MISSING $name"
 done
@@ -636,6 +650,124 @@ if rows:
 print('ok — another shop reads none of this shop`s deliveries')
 PY
 verdict "the tenancy wall holds over the embed too" "$SCRATCH/stranger.py" "$STRANGER_FILE"
+
+# --- 11. Inicio's savings read: every product, since a day, paged ----------
+# ⚠️ ONE MORE DELIVERY, OF BOTH VARIANTS AT ONCE, so two lines share an instant
+# and the tie-break is the only thing ordering them. Recorded here, after
+# groups 2–10 counted their lines, so their counts stay theirs.
+TOKEN="$OWNER_TOKEN"
+PAIR="$(python3 -c '
+import json, sys
+print(json.dumps({
+  "p_id": sys.argv[1], "p_location_id": sys.argv[2], "p_provider_id": sys.argv[3],
+  "p_occurred_at": sys.argv[4], "p_recorded_offline": True,
+  "p_lines": [{"variant_id": v, "qty_display": "2", "qty_display_unit": "kg",
+               "unit_price_net_per_base": "0.017000"} for v in sys.argv[5:7]]}))' \
+  "$(uuid)" "$LOCATION_ID" "$GENERIC_ID" "$(ago 20)" "$VARIANT_ID" "$OTHER_ID")"
+note
+PAIR_OUT="$(api POST /rest/v1/rpc/record_purchase "$PAIR")"
+if [[ "$(status "$PAIR_OUT")" == "200" ]]; then
+  ok "one delivery of two products — two lines at one instant"
+else
+  fail "record_purchase refused the two-line delivery: $(body "$PAIR_OUT" | head -c 300)"
+fi
+
+# ⚠️ THE BOUND IS SPELLED AS `Date.toISOString()` SPELLS IT — a `Z`, never a
+# `+00:00`, whose `+` a query string reads as a space. 35 hours back keeps the
+# deliveries at 30, 20, 10, 5 and 2 hours and drops the ones at 40 and 60.
+SINCE="$(python3 -c "import datetime;print((datetime.datetime.now(datetime.timezone.utc)-datetime.timedelta(hours=35)).strftime('%Y-%m-%dT%H:%M:%S.000Z'))")"
+SAVINGS_ORDER="$WIRE_ORDER,$SAVINGS_TIEBREAK.asc"
+SAVINGS_PATH="/rest/v1/$COSTS_TABLE?select=$SAVINGS_COLUMNS&$SAVINGS_SINCE_COLUMN=gte.$SINCE&order=$SAVINGS_ORDER"
+BOUNDED="$(api GET "$SAVINGS_PATH")"
+note
+if [[ "$(status "$BOUNDED")" == "200" ]]; then
+  ok "Inicio's read answers 200 — bounded through the embed and ordered on it"
+else
+  fail "Inicio's savings read answered $(status "$BOUNDED"): $(body "$BOUNDED" | head -c 300)"
+  echo '      `purchase_line` has no instant of its own: the bound is on the DOCUMENT,'
+  echo '      `purchase.occurred_at`, and it holds only over an `!inner` embed.'
+fi
+BOUNDED_FILE="$(stash bounded "$BOUNDED")"
+EVERY_FILE="$(stash every "$(api GET "/rest/v1/$COSTS_TABLE?select=$SAVINGS_COLUMNS&order=$SAVINGS_ORDER")")"
+# Pages of ONE, so every boundary falls somewhere — the shared instant included.
+: > "$SCRATCH/pages.txt"
+for offset in 0 1 2 3 4 5 6 7 8 9 10 11; do
+  stash "page$offset" "$(api GET "$SAVINGS_PATH&offset=$offset&limit=1")" >> "$SCRATCH/pages.txt"
+done
+
+cat > "$SCRATCH/savings.py" <<'PY'
+import json, sys
+from datetime import datetime
+bounded_path, every_path, pages_list, since, tiebreak = sys.argv[1:6]
+try:
+    bounded = json.load(open(bounded_path))
+    every = json.load(open(every_path))
+except Exception as exc:
+    print('unreadable: %s' % exc); raise SystemExit
+for name, rows in (('bounded', bounded), ('unbounded', every)):
+    if not isinstance(rows, list):
+        print('the %s savings read came back as an error: %r' % (name, rows)); raise SystemExit
+
+want = {'id', 'variant_id', 'qty_base', 'unit_price_net_per_base', 'purchase'}
+for row in bounded:
+    if set(row) != want:
+        print('the savings line carried %r; Inicio asks for %r' % (sorted(row), sorted(want)))
+        raise SystemExit
+    if not isinstance(row['purchase'], dict):
+        print('a line came back with its document as %r — the bound filtered the EMBED and '
+              'not the line, which is what a missing `!inner` does: every delivery ever, '
+              'eight weeks or not' % (row['purchase'],)); raise SystemExit
+    for col in ('qty_base', 'unit_price_net_per_base'):
+        if not isinstance(row[col], str):
+            print('%s arrived as %s (%r) rather than as a string — the ::text cast is gone '
+                  'and parseDecimal refuses a number' % (col, type(row[col]).__name__, row[col]))
+            raise SystemExit
+
+# ⚠️ THE BOUND, against the unbounded read of the same shop: exactly the lines
+# on or after it, and at least one line dropped, or the filter proved nothing.
+def at(r): return r['purchase']['occurred_at']
+def instant(s): return datetime.fromisoformat(s.replace('Z', '+00:00'))
+cut = instant(since)
+inside = [r['id'] for r in every if instant(at(r)) >= cut]
+outside = [r['id'] for r in every if instant(at(r)) < cut]
+got = [r['id'] for r in bounded]
+if sorted(got) != sorted(inside):
+    print('the bound kept %d lines and %d are on or after it — %s' % (len(got), len(inside),
+          'it let older deliveries through' if set(got) - set(inside) else 'it dropped lines it should keep'))
+    raise SystemExit
+if not outside:
+    print('every line of the fixture is after the bound, so this run cannot show it drops anything')
+    raise SystemExit
+
+# ⚠️ THE TIE-BREAK, where it is the only key: two lines of one delivery.
+ties = {}
+for r in bounded:
+    ties.setdefault(at(r), []).append(r[tiebreak])
+shared = [ids for ids in ties.values() if len(ids) > 1]
+if not shared:
+    print('no two lines shared an instant, so the tie-break was never the deciding key')
+    raise SystemExit
+for ids in shared:
+    if ids != sorted(ids):
+        print('two lines of one delivery came back as %r — not in %s order, so a page boundary '
+              'between them can repeat one and skip the other' % (ids, tiebreak)); raise SystemExit
+
+# ⚠️ AND THE PAGES, one line at a time, add up to the whole and in its order.
+paged = []
+for path in open(pages_list).read().split():
+    page = json.load(open(path))
+    if not isinstance(page, list):
+        print('a page came back as an error: %r' % (page,)); raise SystemExit
+    paged += [r['id'] for r in page]
+if paged != got:
+    print('read a line at a time, the pages gave %r and the whole read %r' % (paged, got))
+    raise SystemExit
+
+print('ok — %d lines on or after the bound, %d before it left out, the quantity as a string, '
+      'and %d pages of one that add up to the whole' % (len(got), len(outside), len(paged)))
+PY
+verdict "Inicio's savings read is bounded on the delivery, typed and paged" \
+  "$SCRATCH/savings.py" "$BOUNDED_FILE" "$EVERY_FILE" "$SCRATCH/pages.txt" "$SINCE" "$SAVINGS_TIEBREAK"
 
 echo
 if (( fails == 0 )); then

@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 # 5g-iii-costs-contract-falsify — can that check still fail?
 #
-# ⚠️ RULE 4 OF THIS REPOSITORY. `5g-iii-costs-contract.sh` prints "11 assertion
+# ⚠️ RULE 4 OF THIS REPOSITORY. `5g-iii-costs-contract.sh` prints "N assertion
 # groups held against a real PostgREST", and that sentence is ALSO what a check
-# which stopped reading anything prints. This is what distinguishes the two: TEN
-# fixtures — two controls that must stay green (one at each end), seven that break
-# the CONTRACT, and one that breaks the DATABASE.
+# which stopped reading anything prints. This is what distinguishes the two:
+# two controls that must stay green (one at each end), fixtures that break
+# Costos' CONTRACT (`F`) and Inicio's savings read (`S`, `8g`), and one that
+# breaks the DATABASE.
 #
 # ⚠️⚠️ EACH FIXTURE MATCHES THE MESSAGE, NOT THE EXIT CODE. *A fixture that is red
 # for the wrong reason is not a falsification, it is a coincidence* — the rule
@@ -247,6 +248,24 @@ expect "F6  reversal_of dropped from the embed" \
 expect "F7  the read pointed at sale_line" \
   'answered 40[0-9]|the costs read|five deliveries of this variant were recorded' \
   "$(mutate F7 "s/^export const COSTS_TABLE = 'purchase_line';/export const COSTS_TABLE = 'sale_line';/")"
+
+echo
+echo "== Inicio's savings read (8g), broken three ways =="
+
+# S1 — the inner embed made a plain one. The bound then filters the EMBEDDED row
+# and every line ever recorded comes back, older ones with a null document.
+expect "S1  the savings embed without !inner" \
+  'the bound filtered the EMBED and not the line' \
+  "$(mutate S1 "s/^  'id,variant_id,qty_base::text,unit_price_net_per_base::text,purchase!inner(/  'id,variant_id,qty_base::text,unit_price_net_per_base::text,purchase(/")"
+
+expect "S2  the ::text cast dropped from the quantity" \
+  'qty_base arrived as (float|int)' \
+  "$(mutate S2 's/^  .id,variant_id,qty_base::text,/  \x27id,variant_id,qty_base,/')"
+
+# S3 — the bound on the LINE, which has no instant of its own.
+expect "S3  the bound on a bare occurred_at" \
+  "Inicio's savings read answered 40" \
+  "$(mutate S3 "s|^export const SAVINGS_SINCE_COLUMN = 'purchase.occurred_at';|export const SAVINGS_SINCE_COLUMN = 'occurred_at';|")"
 
 echo
 echo "== the database, broken one way =="

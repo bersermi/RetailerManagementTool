@@ -40,7 +40,15 @@ import {
   type CreateOutcome,
   type ProductDraft,
 } from '@/api/catalogWrite';
-import { costsFrom, costsKey, type Costs } from '@/api/costs';
+import {
+  SAVINGS_WEEKS_BACK,
+  costsFrom,
+  costsKey,
+  savingsKey,
+  weekSavings,
+  weekStartOf,
+  type Costs,
+} from '@/api/costs';
 import {
   documentsFrom,
   documentsKey,
@@ -133,6 +141,7 @@ import {
   pilotReadingsSince,
   providerDetail,
   providerMemory,
+  purchaseLinesSince,
   recentDocuments,
   redeemInvite,
   requestAccess,
@@ -262,10 +271,29 @@ export function useFreshAfterWrites(): void {
           void queries.invalidateQueries({ queryKey: ['sales', 'daily'] });
         } else if (kind === 'purchase') {
           void queries.invalidateQueries({ queryKey: documentsKey('purchase') });
+          void queries.invalidateQueries({ queryKey: ['costs', 'savings'] });
         }
       }),
     [queries],
   );
+}
+
+/**
+ * ⚠️ `8g`: WHAT THIS WEEK'S DELIVERIES SAVED — Inicio's *Ahorro en compras*, in
+ * centavos, or `null` while the read is out. Eight weeks back is where a
+ * previous price is looked for (`SAVINGS_WEEKS_BACK`).
+ */
+export function useWeekSavings(): number | null {
+  const { session, ready } = useAuth();
+  const weekStart = weekStartOf(new Date());
+  const since = new Date(weekStart.getTime() - SAVINGS_WEEKS_BACK * 7 * 86_400_000).toISOString();
+  const query = useQuery({
+    queryKey: savingsKey(since),
+    queryFn: () => purchaseLinesSince(since),
+    enabled: ready && session !== null,
+    staleTime: 60_000,
+  });
+  return query.data === undefined ? null : weekSavings(query.data, weekStart);
 }
 
 export function useToday(): Takings & {

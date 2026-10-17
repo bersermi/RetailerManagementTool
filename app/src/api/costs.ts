@@ -90,6 +90,8 @@
 // §2.9's and is not built here.**
 // ============================================================================
 
+import { SCALE, lineAnchorCentavos, parseDecimal } from '@tienda/money';
+
 import { isoDay, priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
@@ -682,4 +684,93 @@ export function matrixOf(costs: Costs): readonly MatrixRow[] {
       cells: costs.days.map((day) => ({ day, price: byDay.get(day) ?? null })),
     };
   });
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️ `8g` — INICIO'S *AHORRO EN COMPRAS*, the owner's of 2026-10-16: *"Esta
+// semana, comprando más barato que la vez pasada."* The same lines Costos reads
+// — every product, since a day — and the pesos a delivery this week cost LESS
+// than the previous delivery of that product from that same supplier.
+// ----------------------------------------------------------------------------
+
+/** The read: `COSTS_COLUMNS`' embed, plus the product and the quantity. */
+export const SAVINGS_COLUMNS =
+  'id,variant_id,qty_base::text,unit_price_net_per_base::text,purchase!inner(id,occurred_at,provider_id,reversal_of)';
+
+/** The line's own id — the tie-break after `COSTS_ORDER`, so pages never overlap. */
+export const SAVINGS_TIEBREAK = 'id';
+
+/** The embedded column the read is bounded on — `.gte` through the inner embed. */
+export const SAVINGS_SINCE_COLUMN = 'purchase.occurred_at';
+
+/** How far back a previous price is looked for: eight weeks before this one. */
+export const SAVINGS_WEEKS_BACK = 8;
+
+/** A page of lines — PostgREST truncates at `max_rows` without saying so. */
+export const SAVINGS_PAGE = 500;
+
+export function savingsKey(since: string): readonly unknown[] {
+  return ['costs', 'savings', since];
+}
+
+export interface SavingsLineRow {
+  readonly id: string;
+  readonly variant_id: string;
+  /** Base units, a decimal string at scale 3. */
+  readonly qty_base: string;
+  /** Net, per BASE unit — a decimal string at scale 6. */
+  readonly unit_price_net_per_base: string;
+  readonly purchase: CostDocumentRow;
+}
+
+/**
+ * The Monday this week began, at the device's midnight, as an instant — the
+ * week `Números` counts in (`@/api/sales`' `bucketOf`: a week starts on Monday).
+ */
+export function weekStartOf(now: Date): Date {
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  start.setDate(start.getDate() - ((start.getDay() + 6) % 7));
+  return start;
+}
+
+/**
+ * What this week's deliveries cost LESS than the previous delivery of the same
+ * product from the same supplier — in centavos, net, as Comprar's price boxes.
+ *
+ * ⚠️ A VOIDED DELIVERY IS NEITHER A SAVING NOR A PREVIOUS PRICE, Costos' rule: a
+ * reversal document and the document it reverses are both dropped. ⚠️ A
+ * delivery that cost MORE saves nothing and subtracts nothing — the card counts
+ * what went well. ⚠️ A line that does not parse is skipped, never a zero.
+ */
+export function weekSavings(rows: readonly SavingsLineRow[], weekStart: Date): number {
+  const reversed = new Set<string>();
+  for (const r of rows) if (typeof r.purchase.reversal_of === 'string' && r.purchase.reversal_of !== '') reversed.add(r.purchase.reversal_of);
+  const kept = rows
+    .filter((r) => !(typeof r.purchase.reversal_of === 'string' && r.purchase.reversal_of !== '') && !reversed.has(r.purchase.id))
+    .slice()
+    .sort((a, b) => Date.parse(a.purchase.occurred_at) - Date.parse(b.purchase.occurred_at));
+  const last = new Map<string, number>();
+  const since = weekStart.getTime();
+  let saved = 0;
+  for (const r of kept) {
+    let price: number;
+    let qty: number;
+    try {
+      price = parseDecimal(r.unit_price_net_per_base, SCALE.unitPrice);
+      qty = parseDecimal(r.qty_base, SCALE.quantity);
+    } catch {
+      continue;
+    }
+    const key = `${r.variant_id}|${r.purchase.provider_id}`;
+    const before = last.get(key);
+    if (before !== undefined && before > price && Date.parse(r.purchase.occurred_at) >= since) {
+      try {
+        saved += lineAnchorCentavos(before - price, qty);
+      } catch {
+        // ⚠️ An amount the arithmetic refuses is left out rather than guessed.
+      }
+    }
+    last.set(key, price);
+  }
+  return saved;
 }
