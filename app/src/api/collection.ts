@@ -259,6 +259,37 @@ export function cancelCollectionArgs(id: string): CancelCollectionArgs {
   return { p_id: id };
 }
 
+// ----------------------------------------------------------------------------
+// ⚠️ `8m` — THE PHOTOS. `0060` made the private bucket `merma` and its fence
+// (`merma_path_ok`: the first folder is a shop the caller owns or manages), and
+// `request_collection` refuses a path that is not `<shop>/<request>/<file>`. So
+// a photo is uploaded under the request's own id BEFORE the request is sent,
+// and the request carries the paths.
+// ----------------------------------------------------------------------------
+
+export const MERMA_BUCKET = 'merma';
+/** At most three photos of one product — enough to judge it, few enough to send on a weak signal. */
+export const MAX_PHOTOS = 3;
+export const PHOTO_CONTENT_TYPE = 'image/jpeg';
+/** The code a failed upload carries to `collectionErrorMessage` — the client's, not the database's. */
+export const PHOTO_UPLOAD_FAILED = 'photo-upload';
+
+/** `<shop>/<request>/<file>.jpg` — `0060`'s shape, the file named once, when it is taken. */
+export function photoPath(workspaceId: string, requestId: string, fileId: string): string {
+  return `${workspaceId}/${requestId}/${fileId}.jpg`;
+}
+
+/**
+ * ⚠️ A RETRY UPLOADS THE SAME PATH AGAIN, and `merma` has no UPDATE policy, so
+ * Storage answers that it already exists — which is the photo, already there.
+ */
+export function alreadyStored(error: unknown): boolean {
+  if (typeof error !== 'object' || error === null) return false;
+  const { statusCode, message } = error as { statusCode?: unknown; message?: unknown };
+  if (statusCode === '409' || statusCode === 409) return true;
+  return typeof message === 'string' && /already exists|duplicate/i.test(message);
+}
+
 /** The refusals `0059` names. Everything else is `ES.api.errors`' business. */
 export const NO_ADDRESS_CODE = 'TD008';
 export const OUTSIDE_AREA_CODE = 'TD009';
@@ -276,6 +307,7 @@ export function collectionErrorMessage(error: unknown): string {
   if (code === OUTSIDE_AREA_CODE) return ES.collection.errors.outsideArea;
   if (code === TOO_LATE_TO_CANCEL_CODE) return ES.collection.errors.tooLateToCancel;
   if (code === TOO_SOON_CODE) return ES.collection.errors.tooSoon;
+  if (code === PHOTO_UPLOAD_FAILED) return ES.collection.errors.photoUpload;
   return apiErrorMessage(error);
 }
 

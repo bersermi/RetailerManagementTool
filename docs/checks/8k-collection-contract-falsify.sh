@@ -60,9 +60,14 @@ fixture paid-without-cast \
   "s/,wera_paid::text';/,wera_paid';/" \
   'wera_paid arrived as (float|int)'
 
+# `8m`: the bucket misnamed — every upload is a 400 "Bucket not found".
+fixture wrong-bucket \
+  "s/^export const MERMA_BUCKET = 'merma';/export const MERMA_BUCKET = 'fotos';/" \
+  'the photo upload answered 400'
+
 echo
-if (( failed == 0 && passed == 5 )); then
-  echo "all 5 fixtures behaved as recorded — the contract check goes red on every defect it names."
+if (( failed == 0 && passed == 6 )); then
+  echo "all 6 fixtures behaved as recorded — the contract check goes red on every defect it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."
