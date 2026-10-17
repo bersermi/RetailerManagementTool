@@ -62,6 +62,19 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **17 October: the camera's new install is built — waiting for the aviso.** Both phones need it,
+and **after it every update needs it**: until a phone has it, nothing new reaches that phone.
+Say *publish* first (the aviso has to be up before a photo is taken), then:
+- **Your iPhone:** open https://expo.dev/accounts/wera-app/projects/wera/builds/65530d87-e68c-4e5a-a259-9653bea39035
+  on the phone and tap *Install*. Your data stays.
+- **The pilot Android:** open https://expo.dev/accounts/wera-app/projects/wera/builds/24376f0a-0c73-4f5b-b42d-cd2202edf2cb
+  on it, download the file and open it. The same two files are kept on this Mac in
+  `~/RetailerToolDev/wera-builds/` (EAS lists both until 31 October).
+- **What to look at:** *Desperdicio → Te lo compro*, a product, the four answers, then *📷 Tomar foto*.
+  The phone asks once for the camera. Take one, then *Otra foto*; tap a photo to remove it. On
+  *Guardar solicitud* the photos go to Wera with the request. They show in the dashboard under
+  *Storage → merma*, in the shop's folder.
+
 ✅ **17 October: *Rescatado* on Inicio, over the air** (*Rescatado: lo que la Wera te compró*). When
 you mark a pickup *recogida* in the dashboard and type what you paid in `wera_paid`, the shop's
 owner and manager see it add up beside *Ahorro en compras*, and a coin drops into the jar. The
@@ -238,7 +251,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
 | **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is.** ✅ **Round 4 (16 October): Comprar as your card grid in blue, a cost first, and one Carrito for all three counters. Next: Desperdicio** — your order, the daily screens first (then Inicio, then the rest) — decided on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then built. Paste the review prompt (below, *How a working session goes*), not your main prompt |
-| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | ▶️ **Built 17 October with your answers** — up to three photos in *Te lo compro*'s first step, checked on the emulator. Next: the new install on both phones. ⚠️ **One thing is waiting on YOU** — say *publish* and the aviso goes up on tu-wera.com (pull request 327); it has to be there before the new build takes a photo |
+| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | ▶️ **Built 17 October with your answers, and both phones' installs are ready** (see *What is on your phone*). ⚠️ **One thing is waiting on YOU** — say *publish* and the aviso goes up on tu-wera.com (pull request 327); then install |
 | **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
