@@ -34,7 +34,7 @@ import {
   productAmount,
   requestTitle,
   sentToday,
-  slotPassed,
+  slotTooSoon,
   slotValid,
   startAt,
   storeAddressLine,
@@ -1271,7 +1271,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
   const sent = entry === undefined || base <= 0 ? null : qtySent(base, entry, factors);
   const at = hour === null || quarter === null ? null : startAt(hour, quarter);
   const clock = nowClock();
-  const slotOk = day !== null && at !== null && slotValid(at) && !slotPassed(day, at, today, clock);
+  const slotOk = day !== null && at !== null && slotValid(at) && !slotTooSoon(day, at, today, clock);
   const ready = draftReady({ qty: sent?.qty_display ?? '', condition, packaging, keeping, expiryDate });
 
   const save = async () => {
@@ -1667,8 +1667,9 @@ function Caduca({
 
 /**
  * *¿Qué día pasamos?* and *¿A qué hora?* — the owner's one quarter of an hour.
- * ⚠️ A QUARTER THAT HAS ALREADY BEGUN TODAY IS NOT OFFERED (`slotPassed`), and
- * an hour with none left is drawn inert; tomorrow every one is open.
+ * ⚠️ A QUARTER LESS THAN FIVE HOURS AWAY IS NOT OFFERED (`slotTooSoon`, the
+ * owner's rule of 2026-10-16, which `0061` enforces), and an hour with none left
+ * is drawn inert, as is today's tile once 18:45 is less than five hours off.
  */
 function Cuando({
   today,
@@ -1694,9 +1695,9 @@ function Cuando({
   const { scale } = useDensity();
   const hours = pickupHours();
   const rows = [hours.slice(0, 6), hours.slice(6)];
-  const open = (h: number, q: number) => day === null || !slotPassed(day, startAt(h, q), today, clock);
+  const open = (h: number, q: number) => day === null || !slotTooSoon(day, startAt(h, q), today, clock);
   const lastOfToday = hours[hours.length - 1] ?? 18;
-  const todayOpen = !slotPassed(today, startAt(lastOfToday, QUARTERS[QUARTERS.length - 1] ?? 45), today, clock);
+  const todayOpen = !slotTooSoon(today, startAt(lastOfToday, QUARTERS[QUARTERS.length - 1] ?? 45), today, clock);
 
   return (
     <>
@@ -1739,6 +1740,7 @@ function Cuando({
       </ScrollView>
 
       <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichTime}</Text>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.collection.leadHint}</Text>
       {rows.map((row) => (
         <View key={row[0] ?? 0} style={{ flexDirection: 'row', gap: scale.rowGap }}>
           {row.map((h) => {

@@ -1229,11 +1229,16 @@ export const ES = {
       undated: 'Anterior',
     },
     /**
-     * ⚠️ THE MARGIN PILL — round 4, the owner's *"margin in pesos"*: the shelf
-     * price less this cost, per price unit. Solid red when it is below zero, and
-     * the minus sign travels with the colour (`R11`).
+     * ⚠️ THE PRICE PILL — the owner's ruling of 2026-10-16 replaced round 4's
+     * *Margen $18 / kg*: *"Replace it with simply 'Tu Precio: ' … The user would
+     * read and understand himself what's the margin. Colour it depending if the
+     * margin is positive or negative, but the phrasing is the same."* So it
+     * shows the SHELF price, written exactly as he wrote it, and the margin is
+     * only its colour: solid red below the cost.
      */
-    margin: (amount: string, unit: string) => `Margen ${amount} / ${unit}`,
+    yourPrice: (amount: string, unit: string) => `Tu Precio: ${amount} / ${unit}`,
+    /** ⚠️ `R11`: the red never travels alone — a screen reader hears it said. */
+    belowCost: 'por debajo de lo que te costó',
     /** A product with no shelf price has no margin to show — said, not hidden. */
     noSalePrice: 'Sin precio de venta',
     /** The supplier card — who is delivering, in its own blue. */
@@ -1449,7 +1454,9 @@ export const ES = {
   /**
    * ⚠️ `8k` (`0059`): *TE LO COMPRO* — what the shop asks Wera to collect, and
    * perhaps buy. The wire values are `@/api/collection`'s; these are the words.
-   * ⚠️ `magullado` is the owner's *mayugado*, spelled as the dictionary does.
+   * ⚠️ `magullado` IS THE WIRE VALUE (`0059`) AND *Mallugado* THE WORD — the
+   * owner's ruling of 2026-10-16, the Mexican form a shopkeeper says. The
+   * database keeps its spelling; nobody reads it.
    */
   collection: {
     name: 'Te lo compro',
@@ -1457,7 +1464,7 @@ export const ES = {
       bueno: 'Bueno',
       'por caducar': 'Por caducar',
       caducado: 'Caducado',
-      magullado: 'Magullado',
+      magullado: 'Mallugado',
     },
     /** ⚠️ `8l`: under the heading *Empaque*, so the noun is not repeated. */
     packagings: {
@@ -1488,6 +1495,8 @@ export const ES = {
     expiry: 'Caduca',
     whichDay: '¿Qué día pasamos?',
     whichTime: '¿A qué hora?',
+    /** ⚠️ `0061`: under *¿A qué hora?*, so the faded hours explain themselves. */
+    leadHint: 'Pasamos al menos 5 horas después de tu solicitud.',
     weCome: 'Pasamos',
     when: 'Cuándo',
     where: 'Recogemos en tu tienda',
@@ -1531,6 +1540,8 @@ export const ES = {
       noAddress: 'Falta la dirección de tu tienda. Agrégala en Ajustes.',
       outsideArea: 'Todavía no recogemos en tu código postal.',
       tooLateToCancel: 'Ya está confirmada. Para cancelarla escríbenos por WhatsApp.',
+      /** ⚠️ `0061` (`TD011`): the owner's five hours, said as the rule it is. */
+      tooSoon: 'Pasamos al menos 5 horas después de tu solicitud. Elige una hora más tarde.',
     },
   },
 

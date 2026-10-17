@@ -86,12 +86,18 @@ create function public._req(p_id text, p_loc uuid, p_lines jsonb,
                             p_day text default 'tomorrow', p_from text default '09:00',
                             p_to text default '09:15', p_photos text default '{}')
 returns text language sql as $$
+  -- ⚠️ THE DAYS ARE THE STORE'S, NOT THE DATABASE'S UTC DATE — found 2026-10-16
+  -- at 18:14 in Mexico City, when UTC had already turned over: `current_date - 1`
+  -- was the store's TODAY, and *yesterday* passed the day check. `request_collection`
+  -- judges the day in `location.timezone`, so the fixture counts from there too.
   select public._try(format(
     'select request_collection(%L, %L, %s, %L, %L, %L::jsonb, %L::text[])',
     p_id, p_loc,
-    case p_day when 'tomorrow' then 'current_date + 1' when 'yesterday' then 'current_date - 1'
-               when 'far' then 'current_date + 15' else quote_literal(p_day) || '::date' end,
-    p_from, p_to, p_lines, p_photos));
+    case p_day when 'tomorrow' then '(' || d.today || ' + 1)' when 'yesterday' then '(' || d.today || ' - 1)'
+               when 'far' then '(' || d.today || ' + 15)' else quote_literal(p_day) || '::date' end,
+    p_from, p_to, p_lines, p_photos))
+  from (select format('(select (now() at time zone l.timezone)::date from public.location l where l.id = %L)',
+                      p_loc) as today) d;
 $$;
 grant execute on function public._req(text, uuid, jsonb, text, text, text, text) to authenticated;
 

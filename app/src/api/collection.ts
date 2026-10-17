@@ -27,7 +27,7 @@
 
 import { apiErrorMessage } from '@/api/errors';
 import { isoDay } from '@/api/catalog';
-import { addDays, formatClock, formatPickupDay } from '@/format/date';
+import { addDays, daysFrom, formatClock, formatPickupDay } from '@/format/date';
 import { ES } from '@/strings';
 
 /** `0058`'s five columns, and the row's id to write them back by. */
@@ -261,6 +261,8 @@ export function cancelCollectionArgs(id: string): CancelCollectionArgs {
 export const NO_ADDRESS_CODE = 'TD008';
 export const OUTSIDE_AREA_CODE = 'TD009';
 export const TOO_LATE_TO_CANCEL_CODE = 'TD010';
+/** ⚠️ `0061`: a pickup that starts less than five hours after the request. */
+export const TOO_SOON_CODE = 'TD011';
 
 /**
  * The Spanish sentence for a refused request or cancellation — `0059`'s three
@@ -271,6 +273,7 @@ export function collectionErrorMessage(error: unknown): string {
   if (code === NO_ADDRESS_CODE) return ES.collection.errors.noAddress;
   if (code === OUTSIDE_AREA_CODE) return ES.collection.errors.outsideArea;
   if (code === TOO_LATE_TO_CANCEL_CODE) return ES.collection.errors.tooLateToCancel;
+  if (code === TOO_SOON_CODE) return ES.collection.errors.tooSoon;
   return apiErrorMessage(error);
 }
 
@@ -358,6 +361,12 @@ export const PICKUP_CLOSES_MINUTES = 19 * 60;
 export const PICKUP_STEP_MINUTES = 15;
 /** Today and the fourteen days after it — `0059` refuses anything further. */
 export const PICKUP_DAYS_AHEAD = 14;
+/**
+ * ⚠️ `0061`, THE OWNER'S: *"request a pick up only 5 hours apart from the moment
+ * he is recording the waste."* The picker offers only starts this far out;
+ * `0061` refuses below four and a half hours (the half hour is her review time).
+ */
+export const PICKUP_LEAD_MINUTES = 5 * 60;
 
 function clock(minutes: number): string {
   const h = Math.floor(minutes / 60);
@@ -420,15 +429,17 @@ export function partsOf(at: string): { hour: number; quarter: number } | null {
 }
 
 /**
- * Has this quarter already begun? ⚠️ `0060` takes any start on today's date —
- * a pickup at a time already past is not a refusal there — so the SCREEN does
- * not offer one. `now` is the device's `HH:MM`, the shop's own clock.
+ * Is this quarter too soon to book — less than five hours from `now`, or gone?
+ * ⚠️ `0061`'s rule as the picker draws it, counted across midnight: at 22:00 the
+ * first open quarter is tomorrow's 07:00, at 05:00 it is today's 10:00. `now` is
+ * the device's `HH:MM`, the shop's own clock.
  */
-export function slotPassed(day: string, at: string, today: string, now: string): boolean {
-  if (day !== today) return day < today;
+export function slotTooSoon(day: string, at: string, today: string, now: string): boolean {
+  const away = daysFrom(today, day);
   const start = minutesOf(at);
   const current = minutesOf(now);
-  return start === null || current === null || start <= current;
+  if (away === null || start === null || current === null) return true;
+  return away * 24 * 60 + start < current + PICKUP_LEAD_MINUTES;
 }
 
 /**
@@ -500,7 +511,7 @@ export function prefillFrom(
   const newest = [...requests].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
   const line = newest?.lines[0];
   if (newest === undefined || line === undefined) return NO_PREFILL;
-  const bookable = newest.day >= today && !slotPassed(newest.day, newest.from, today, now) && slotValid(newest.from);
+  const bookable = !slotTooSoon(newest.day, newest.from, today, now) && slotValid(newest.from);
   return {
     condition: line.condition,
     packaging: line.packaging,
