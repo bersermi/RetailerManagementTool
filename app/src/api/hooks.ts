@@ -279,6 +279,20 @@ export function useFreshAfterWrites(): void {
 }
 
 /**
+ * ⚠️ `8n`: RE-READ THE PICKUPS WHEN INICIO COMES BACK INTO VIEW, once the
+ * minute's cache has aged. *Rescatado* and the next pickup change when the
+ * owner types in the dashboard — what Wera paid, a pickup confirmed — and no
+ * write on this phone announces that, so without it Inicio would hold the
+ * morning's figures until the app was closed.
+ */
+export function useFreshPickupsWhenShown(shown: boolean): void {
+  const queries = useQueryClient();
+  useEffect(() => {
+    if (shown) void queries.refetchQueries({ queryKey: COLLECTION_KEY, stale: true });
+  }, [shown, queries]);
+}
+
+/**
  * ⚠️ `8g`: WHAT THIS WEEK'S DELIVERIES SAVED — Inicio's *Ahorro en compras*, in
  * centavos, or `null` while the read is out. Eight weeks back is where a
  * previous price is looked for (`SAVINGS_WEEKS_BACK`).

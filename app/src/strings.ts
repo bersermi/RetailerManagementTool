@@ -1903,6 +1903,11 @@ export const ES = {
       title: 'Ahorro en compras',
       line: 'Esta semana, comprando más barato que la vez pasada.',
     },
+    /** ⚠️ `8n`, the owner's words of 2026-10-16, and his ruling of 10-17: what Wera PAID. */
+    rescued: {
+      title: 'Rescatado',
+      line: 'Que la Wera te compró.',
+    },
   },
 
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */

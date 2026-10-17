@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { minutesUntil, nextPickup, untilLabel, type CollectionRequest } from '@/api/collection';
+import { minutesUntil, nextPickup, rescued, untilLabel, type CollectionRequest } from '@/api/collection';
 import { weekSavings, weekStartOf, type SavingsLineRow } from '@/api/costs';
 import { latestSales, type ShopDocument } from '@/api/documents';
 import {
@@ -120,7 +120,7 @@ describe('8g — lo último, en vivo', () => {
 function req(over: Partial<CollectionRequest>): CollectionRequest {
   return {
     id: 'r', status: 'enviada', day: '2026-10-17', from: '09:45', to: '10:00', lines: [],
-    photoCount: 0, note: null, createdAt: '2026-10-16T18:00:00Z', cancellable: true, ...over,
+    photoCount: 0, note: null, createdAt: '2026-10-16T18:00:00Z', cancellable: true, paidCentavos: null, ...over,
   };
 }
 
@@ -226,5 +226,25 @@ describe('8g — ahorro en compras: this week, cheaper than the time before', ()
 
   it('says the owner\'s sentence, light and capitalised', () => {
     expect(ES.home.savings.line).toBe('Esta semana, comprando más barato que la vez pasada.');
+  });
+});
+
+describe('8n — Rescatado: what Wera paid, the owner\'s ruling of 2026-10-17', () => {
+  it('adds up every amount Wera paid, and nothing for a pickup it has not paid yet', () => {
+    expect(rescued([
+      req({ id: 'a', status: 'recogida', paidCentavos: 18000 }),
+      req({ id: 'b', status: 'recogida', paidCentavos: 9550 }),
+      req({ id: 'c', status: 'confirmada' }),
+    ])).toBe(27550);
+    expect(rescued([])).toBe(0);
+  });
+
+  it('⚠️ counts an amount whatever the status says — 0062 does not tie the two', () => {
+    expect(rescued([req({ status: 'confirmada', paidCentavos: 5000 })])).toBe(5000);
+  });
+
+  it('says the owner\'s sentence, light and capitalised like Ahorro\'s', () => {
+    expect(ES.home.rescued.title).toBe('Rescatado');
+    expect(ES.home.rescued.line).toBe('Que la Wera te compró.');
   });
 });

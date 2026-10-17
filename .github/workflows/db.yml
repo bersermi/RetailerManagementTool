@@ -903,7 +903,7 @@ jobs:
       - name: Contract — can a shop ask Wera to collect, against the app's own names (plan 8k)
         run: bash docs/checks/8k-collection-contract.sh
 
-      - name: Falsify it — four broken copies, each red for its reason
+      - name: Falsify it — broken copies, each red for its reason
         run: bash docs/checks/8k-collection-contract-falsify.sh
 
       - name: Stop
@@ -1137,7 +1137,7 @@ jobs:
 
       # Each fixture hands the check a broken COPY of an app module and must turn
       # it red FOR ITS REASON — a check that can only pass asserts nothing.
-      - name: Falsify it — four broken copies, each red for its reason
+      - name: Falsify it — broken copies, each red for its reason
         run: bash docs/checks/9d-starter-catalog-contract-falsify.sh
 
       # ACCOUNT DELETION (docs/PLAN.md 5R-c), over the same reset: the app's RPC

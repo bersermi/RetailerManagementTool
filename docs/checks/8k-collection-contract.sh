@@ -15,7 +15,9 @@
 # ⚠️ A CUSTOM SQLSTATE ARRIVES AS AN HTTP 400 (measured for TD003 on 2026-09-26),
 # so TD008, TD009 and TD010 are asserted as 400 with their code in the body —
 # and TD011, `0061`'s five hours ahead, on a store whose clock is set to
-# mid-morning from SQL, so the check does not depend on when it runs.
+# mid-morning from SQL, so the check does not depend on when it runs. And
+# `0062`'s `wera_paid` — what Wera paid, which the owner types in the dashboard —
+# read back through the app's column list as a STRING, and refused to the shop.
 # ============================================================================
 set -uo pipefail
 
@@ -234,6 +236,34 @@ else
   fail "cancelling a confirmed request answered $(status "$LATE") $(body "$LATE") — expected 400 $TOO_LATE"
 fi
 
+# ⚠️ `0062` — WHAT WERA PAID. The owner types it in the dashboard, so it is set
+# from SQL; the app reads it with its own column list, and it must arrive as a
+# STRING — a bare `numeric` is a JSON number, which `parseDecimal` refuses.
+note
+as_owner_of_db "update public.collection_request set status = 'recogida', wera_paid = 180.00 where id = '$REQ2'"
+PAID_LIST="$(api GET "/rest/v1/collection_request?select=$COLLECTION_COLUMNS&id=eq.$REQ2")"
+WIRE="$(python3 -c '
+import sys, json
+r = json.loads(sys.stdin.read())
+v = r[0].get("wera_paid", "<absent>") if isinstance(r, list) and r else "<no row>"
+print("%s:%s" % (type(v).__name__, v))' <<< "$(body "$PAID_LIST")" 2>/dev/null)"
+if [[ "$(status "$PAID_LIST")" == "200" && "$WIRE" == "str:180.00" ]]; then
+  ok "what Wera paid reaches the app as the string 180.00"
+else
+  fail "wera_paid arrived as $WIRE ($(status "$PAID_LIST")) — expected the string 180.00"
+fi
+
+# ⚠️ AND A SHOP CAN NEVER SAY WHAT WERA PAID: `0059` granted SELECT and nothing else.
+note
+WRITE="$(api PATCH "/rest/v1/collection_request?id=eq.$REQ2" '{"wera_paid":999}' 'Prefer: return=representation')"
+AFTER="$(api GET "/rest/v1/collection_request?select=$COLLECTION_COLUMNS&id=eq.$REQ2")"
+if [[ "$(status "$WRITE")" == "403" && "$(pick code "$(body "$WRITE")")" == "42501" \
+      && "$(first wera_paid "$(body "$AFTER")")" == "180.00" ]]; then
+  ok "the shop's owner writing wera_paid: 403 42501, and the amount unchanged"
+else
+  fail "a shop writing wera_paid answered $(status "$WRITE") $(body "$WRITE"); it now reads $(first wera_paid "$(body "$AFTER")")"
+fi
+
 # ⚠️ TD011 — `0061`: A PICKUP STARTS FIVE HOURS AFTER THE REQUEST, IN THE STORE'S
 # TIME. The store is moved to the `Etc/GMT` zone where it is about ten in the
 # morning right now, so today at 12:00 is two hours out whenever this runs.
@@ -254,13 +284,14 @@ else
 fi
 
 echo
-if (( fails == 0 && ran < 10 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 10 — this check asserted almost nothing."
+if (( fails == 0 && ran < 12 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 12 — this check asserted almost nothing."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all $ran assertion groups passed — the app's names reach 0058 to 0061: the area,"
-  echo "the address, a request sent, read back, retried and called off, and the four refusals."
+  echo "all $ran assertion groups passed — the app's names reach 0058 to 0062: the area,"
+  echo "the address, a request sent, read back, retried and called off, the four refusals,"
+  echo "and what Wera paid — read as a string, and never written by the shop."
   exit 0
 fi
 echo "$ran group(s) ran, $fails failed."

@@ -232,7 +232,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
 | **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is.** ✅ **Round 4 (16 October): Comprar as your card grid in blue, a cost first, and one Carrito for all three counters. Next: Desperdicio** — your order, the daily screens first (then Inicio, then the rest) — decided on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then built. Paste the review prompt (below, *How a working session goes*), not your main prompt |
-| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | Waits on you: your approval of the drafts, and installing the builds |
+| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | ▶️ **Your answers of 17 October are in:** the new install, photos removed within a month, buyers see the photos and the shop's name. ⚠️ **One thing is waiting on YOU:** say *publish* and the aviso goes up on tu-wera.com (pull request 327); it has to be there before the new build takes a photo |
 | **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |
@@ -267,7 +267,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
-| **8n** | ⚠️ **One thing is waiting on YOU** in the plan's decisions block: **Rescatado on Inicio** says *"Que la Wera te compró"*, and nothing records what Wera paid. My recommendation: when you mark a pickup *recogida* in the dashboard, you also type what you paid; that is one change to the database and one number you type, and then the jar tells the truth. The other way is an estimate at the shop's own shelf price, with a different sentence. Everything else on Inicio is built | Waits on you |
+| **8n** | **Rescatado on Inicio** — what Wera paid the shop, beside *Ahorro en compras* | ✅ **Done 17 October, your answer: what Wera paid.** When you mark a pickup *recogida* in the dashboard, type what you paid in the new `wera_paid` cell — see *Handling a Te lo compro request*, below. The shop's owner and manager see it add up, and a coin drops into the jar |
 
 **Set aside by you:** `5P-c`, the hand-count completeness check — *"At this point
 my main interest is to improve the user experience."* **Your call, 29 September:**
@@ -609,6 +609,21 @@ There is no *Cambiar contraseña* in the app yet, so the password you send is th
 ask for another.
 
 ---
+
+## Handling a Te lo compro request
+
+A request arrives as *enviada*, usually with a WhatsApp from the shop. Everything after that is
+yours, in the Supabase dashboard: *supabase.com/dashboard → your project → Table Editor →
+`collection_request`*, then the request's row.
+
+1. **You will go:** set `status` to `confirmada`. From then on the shop can no longer cancel it.
+2. **You will not take it:** set `status` to `rechazada`.
+3. **You picked it up:** set `status` to `recogida`, and type **what you paid** in `wera_paid`, in
+   pesos (`180`, or `95.50`). Leave it empty if you paid nothing. Either cell can go first.
+   That amount is what *Rescatado* adds up on the shop's Inicio (its owner and manager see it),
+   and a coin drops into the jar the next time they look. A negative amount is refused.
+
+The shop can cancel only while it is *enviada*.
 
 ## If somebody asks to delete their account
 
