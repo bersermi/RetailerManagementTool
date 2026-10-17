@@ -318,8 +318,13 @@ else
   echo '      a 403 is the fence refusing the shop its own folder.'
 fi
 
+# ⚠️ THE STORE'S TOMORROW, NOT THE RUNNER'S: the TD011 group above moved the store
+# to the zone where it is about ten in the morning, which at 23:00 UTC is already
+# the runner's tomorrow — so the runner's tomorrow at 12:00 is two hours out.
+# Found by CI on 2026-10-17, green on this Mac at another hour.
+STORE_TOMORROW="$(python3 -c 'import datetime,sys;print(datetime.date.fromisoformat(sys.argv[1])+datetime.timedelta(days=1))' "$STORE_TODAY")"
 note
-PHOTO_BODY="$(by_names "$REQUEST_ARGS" "\"$REQ5\"" "\"$LOC\"" "\"$TOMORROW\"" '"12:00"' '"12:15"' "$LINES" "[\"$PHOTO\"]" 'null')"
+PHOTO_BODY="$(by_names "$REQUEST_ARGS" "\"$REQ5\"" "\"$LOC\"" "\"$STORE_TOMORROW\"" '"12:00"' '"12:15"' "$LINES" "[\"$PHOTO\"]" 'null')"
 WITH="$(api POST "/rest/v1/rpc/$REQUEST" "$PHOTO_BODY")"
 CARRIED="$(first photos "$(body "$(api GET "/rest/v1/collection_request?select=$COLLECTION_COLUMNS&id=eq.$REQ5")")")"
 BACK="$(curl -s -o /dev/null -w '%{http_code}' "$API_URL/storage/v1/object/authenticated/$MERMA/$PHOTO" \
