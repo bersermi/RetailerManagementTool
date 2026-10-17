@@ -62,6 +62,11 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October, late night: your picker, option A, over the air** (*El horario de Te lo compro en
+un toque*). In *Te lo compro → Cuándo*, pick the day and then one time: every time that can still
+be booked, under *En la mañana*, *En la tarde* and *Al atardecer*. Times less than five hours away
+are not shown. Open Wera, close it completely, open it again.
+
 ✅ **16 October, late night: your three corrections went out over the air** (*Tu Precio, Mallugado y
 recolección a 5 horas*). In Comprar each card says *Tu Precio: $45 / pza* — red when what you
 paid is above it. *Te lo compro* says *Mallugado*, and offers only pickups at least five hours

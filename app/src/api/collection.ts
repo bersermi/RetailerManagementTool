@@ -406,26 +406,46 @@ export function pickupTimes(): readonly string[] {
   return times;
 }
 
-/** The drawing's hour chips, `7` … `18`. */
-export function pickupHours(): readonly number[] {
-  const hours: number[] = [];
-  for (let h = PICKUP_OPENS_MINUTES / 60; h < PICKUP_CLOSES_MINUTES / 60; h += 1) hours.push(h);
-  return hours;
+/**
+ * ⚠️ THE OWNER'S PICKER, OPTION A (2026-10-16): every start of the day that can
+ * still be booked, one tap each, in three parts of the day. A part with nothing
+ * left is not drawn, and a start inside the five hours is not drawn at all —
+ * the grid begins at the first one `0061` will take.
+ */
+export const PICKUP_BANDS = ['manana', 'tarde', 'atardecer'] as const;
+export type PickupBand = (typeof PICKUP_BANDS)[number];
+
+/** Where each part of the day begins, in minutes — 7:00, 12:00 and 16:00. */
+const BAND_STARTS: Readonly<Record<PickupBand, number>> = { manana: 7 * 60, tarde: 12 * 60, atardecer: 16 * 60 };
+
+function bandOf(minutes: number): PickupBand {
+  if (minutes >= BAND_STARTS.atardecer) return 'atardecer';
+  if (minutes >= BAND_STARTS.tarde) return 'tarde';
+  return 'manana';
 }
 
-/** The drawing's quarter chips. */
-export const QUARTERS = [0, 15, 30, 45] as const;
-
-/** An hour chip and a quarter chip as one start — `9` and `45` → `09:45`. */
-export function startAt(hour: number, quarter: number): string {
-  return clock(hour * 60 + quarter);
+export interface PickupBandSlots {
+  readonly band: PickupBand;
+  /** `HH:MM`, in order. */
+  readonly starts: readonly string[];
 }
 
-/** The hour and quarter a start is made of — the chips to light. */
-export function partsOf(at: string): { hour: number; quarter: number } | null {
-  const m = minutesOf(at);
-  if (m === null) return null;
-  return { hour: Math.floor(m / 60), quarter: m % 60 };
+/** The day's bookable starts, by part of the day — empty parts left out. */
+export function pickupBands(day: string, today: string, now: string): readonly PickupBandSlots[] {
+  const bands: { band: PickupBand; starts: string[] }[] = [];
+  for (const at of pickupTimes()) {
+    if (slotTooSoon(day, at, today, now)) continue;
+    const band = bandOf(minutesOf(at) ?? 0);
+    const last = bands[bands.length - 1];
+    if (last !== undefined && last.band === band) last.starts.push(at);
+    else bands.push({ band, starts: [at] });
+  }
+  return bands;
+}
+
+/** Can anything still be booked on this day? */
+export function dayBookable(day: string, today: string, now: string): boolean {
+  return pickupBands(day, today, now).length > 0;
 }
 
 /**

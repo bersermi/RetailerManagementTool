@@ -23,20 +23,18 @@ import {
   CONDITIONS,
   KEEPINGS,
   PACKAGINGS,
-  QUARTERS,
   addressComplete,
+  dayBookable,
   draftReady,
   formatSlot,
-  partsOf,
   pickupDays,
-  pickupHours,
+  pickupBands,
   prefillFrom,
   productAmount,
   requestTitle,
   sentToday,
   slotTooSoon,
   slotValid,
-  startAt,
   storeAddressLine,
   whatsappMessage,
   type CollectionPrefill,
@@ -79,6 +77,7 @@ import { useCart, useCartStore, useExpiries, useReason, useWasteDay } from '@/ca
 import {
   addDays,
   calendarMonths,
+  formatClock,
   formatDayTile,
   formatExpiryDay,
   weekdayInitials,
@@ -1234,8 +1233,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
   const [keeping, setKeeping] = useState<Keeping | null>(null);
   const [expiryDate, setExpiryDate] = useState<string | null | undefined>(undefined);
   const [day, setDay] = useState<string | null>(null);
-  const [hour, setHour] = useState<number | null>(null);
-  const [quarter, setQuarter] = useState<number | null>(null);
+  const [at, setAt] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [prefilled, setPrefilled] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1261,15 +1259,12 @@ function Solicitar({ address }: { address: StoreAddress }) {
     // last one, and *caducó antier* copied forward would be a guess.
     setExpiryDate(p.expiryDate === null || (p.expiryDate !== undefined && p.expiryDate >= today) ? p.expiryDate : undefined);
     setDay(p.day);
-    const parts = p.at === null ? null : partsOf(p.at);
-    setHour(parts?.hour ?? null);
-    setQuarter(parts?.quarter ?? null);
+    setAt(p.at);
     setPrefilled(true);
   }, [requests.data, today]);
 
   const entry = variantId === null ? undefined : entries.find((e) => e.id === variantId);
   const sent = entry === undefined || base <= 0 ? null : qtySent(base, entry, factors);
-  const at = hour === null || quarter === null ? null : startAt(hour, quarter);
   const clock = nowClock();
   const slotOk = day !== null && at !== null && slotValid(at) && !slotTooSoon(day, at, today, clock);
   const ready = draftReady({ qty: sent?.qty_display ?? '', condition, packaging, keeping, expiryDate });
@@ -1497,11 +1492,9 @@ function Solicitar({ address }: { address: StoreAddress }) {
               today={today}
               clock={clock}
               day={day}
-              hour={hour}
-              quarter={quarter}
+              at={at}
               onDay={(d) => setDay(d)}
-              onHour={setHour}
-              onQuarter={setQuarter}
+              onAt={setAt}
               slot={slotOk && day !== null && at !== null ? formatSlot(day, at, today, true) : null}
             />
           ) : null}
@@ -1667,37 +1660,31 @@ function Caduca({
 
 /**
  * *¿Qué día pasamos?* and *¿A qué hora?* — the owner's one quarter of an hour.
- * ⚠️ A QUARTER LESS THAN FIVE HOURS AWAY IS NOT OFFERED (`slotTooSoon`, the
- * owner's rule of 2026-10-16, which `0061` enforces), and an hour with none left
- * is drawn inert, as is today's tile once 18:45 is less than five hours off.
+ * ⚠️⚠️ OPTION A, HIS CHOICE OF 2026-10-16: every start of the chosen day that
+ * can still be booked, ONE TAP each, four to a row, under the part of the day it
+ * falls in. ⚠️ A START LESS THAN FIVE HOURS AWAY IS NOT DRAWN AT ALL
+ * (`pickupBands`, `0061`'s rule), and today's tile is inert once nothing is left
+ * of it. Nothing is chosen until she taps.
  */
 function Cuando({
   today,
   clock,
   day,
-  hour,
-  quarter,
+  at,
   onDay,
-  onHour,
-  onQuarter,
+  onAt,
   slot,
 }: {
   today: string;
   clock: string;
   day: string | null;
-  hour: number | null;
-  quarter: number | null;
+  at: string | null;
   onDay: (day: string) => void;
-  onHour: (hour: number) => void;
-  onQuarter: (quarter: number) => void;
+  onAt: (at: string) => void;
   slot: string | null;
 }) {
   const { scale } = useDensity();
-  const hours = pickupHours();
-  const rows = [hours.slice(0, 6), hours.slice(6)];
-  const open = (h: number, q: number) => day === null || !slotTooSoon(day, startAt(h, q), today, clock);
-  const lastOfToday = hours[hours.length - 1] ?? 18;
-  const todayOpen = !slotTooSoon(today, startAt(lastOfToday, QUARTERS[QUARTERS.length - 1] ?? 45), today, clock);
+  const bands = day === null ? [] : pickupBands(day, today, clock);
 
   return (
     <>
@@ -1706,7 +1693,7 @@ function Cuando({
         {pickupDays(today).map((d) => {
           const tile = formatDayTile(d, today);
           const on = d === day;
-          const inert = d === today && !todayOpen;
+          const inert = d === today && !dayBookable(d, today, clock);
           if (tile === null) return null;
           return (
             <Pressable
@@ -1741,35 +1728,32 @@ function Cuando({
 
       <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>{ES.collection.whichTime}</Text>
       <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.collection.leadHint}</Text>
-      {rows.map((row) => (
-        <View key={row[0] ?? 0} style={{ flexDirection: 'row', gap: scale.rowGap }}>
-          {row.map((h) => {
-            const any = QUARTERS.some((q) => open(h, q));
-            return (
-              <Opcion
-                key={h}
-                label={String(h)}
-                on={h === hour}
-                grow
-                inert={!any}
-                onPress={() => onHour(h)}
-              />
-            );
-          })}
-        </View>
-      ))}
-      <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
-        {QUARTERS.map((q) => (
-          <Opcion
-            key={q}
-            label={ES.collection.quarter(q)}
-            on={q === quarter}
-            grow
-            inert={hour !== null && !open(hour, q)}
-            onPress={() => onQuarter(q)}
-          />
-        ))}
-      </View>
+      {bands.map((b) => {
+        // ⚠️ FOUR TO A ROW, AND A SHORT LAST ROW IS PADDED so its chips keep
+        // the columns of the rows above rather than stretching across.
+        const rows: (string | null)[][] = [];
+        for (let i = 0; i < b.starts.length; i += 4) {
+          const row: (string | null)[] = b.starts.slice(i, i + 4);
+          while (row.length < 4) row.push(null);
+          rows.push(row);
+        }
+        return (
+          <View key={b.band} style={{ gap: scale.rowGap / 2 }}>
+            <Rotulo text={ES.collection.bands[b.band]} />
+            {rows.map((row) => (
+              <View key={row[0] ?? ''} style={{ flexDirection: 'row', gap: scale.rowGap }}>
+                {row.map((start, i) =>
+                  start === null ? (
+                    <View key={`hueco-${i}`} style={{ flex: 1 }} />
+                  ) : (
+                    <Opcion key={start} label={formatClock(start)} on={start === at} grow onPress={() => onAt(start)} />
+                  ),
+                )}
+              </View>
+            ))}
+          </View>
+        );
+      })}
 
       {slot === null ? null : (
         <View

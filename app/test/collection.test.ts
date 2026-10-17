@@ -11,9 +11,9 @@ import {
   collectionErrorMessage,
   draftReady,
   formatSlot,
-  partsOf,
   pickupDays,
-  pickupHours,
+  pickupBands,
+  dayBookable,
   pickupTimes,
   prefillFrom,
   reachesArgs,
@@ -24,7 +24,6 @@ import {
   TOO_SOON_CODE,
   PICKUP_LEAD_MINUTES,
   slotValid,
-  startAt,
   toCollectionRequest,
   toStoreAddress,
   whatsappMessage,
@@ -136,11 +135,32 @@ describe('8l — the owner\'s picker: one quarter of an hour, starting 7:00 to 1
     expect(slotEnd('19:00')).toBeNull();
   });
 
-  it('draws twelve hour chips and four quarter chips, and they make every start', () => {
-    expect(pickupHours()).toEqual([7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18]);
-    const made = pickupHours().flatMap((h) => [0, 15, 30, 45].map((q) => startAt(h, q)));
-    expect(made).toEqual(times);
-    expect(partsOf('09:45')).toEqual({ hour: 9, quarter: 45 });
+  it('⚠️ option A (the owner, 2026-10-16): a whole day is every start, in three parts', () => {
+    const bands = pickupBands('2026-10-17', '2026-10-16', '09:07');
+    expect(bands.map((b) => b.band)).toEqual(['manana', 'tarde', 'atardecer']);
+    expect(bands.flatMap((b) => b.starts)).toEqual(times);
+    expect(bands[0]!.starts[0]).toBe('07:00');
+    expect(bands[0]!.starts[bands[0]!.starts.length - 1]).toBe('11:45');
+    expect(bands[1]!.starts[0]).toBe('12:00');
+    expect(bands[2]!.starts[0]).toBe('16:00');
+    expect(bands[2]!.starts[bands[2]!.starts.length - 1]).toBe('18:45');
+  });
+
+  it('⚠️ and today draws nothing inside the five hours — the grid starts at the first it can book', () => {
+    // 9:07 → 14:15 is the first; the morning is gone entirely.
+    const bands = pickupBands('2026-10-16', '2026-10-16', '09:07');
+    expect(bands.map((b) => b.band)).toEqual(['tarde', 'atardecer']);
+    expect(bands[0]!.starts[0]).toBe('14:15');
+    // 14:00 → nothing left today, and the day says so.
+    expect(pickupBands('2026-10-16', '2026-10-16', '14:00')).toEqual([]);
+    expect(dayBookable('2026-10-16', '2026-10-16', '14:00')).toBe(false);
+    expect(dayBookable('2026-10-17', '2026-10-16', '14:00')).toBe(true);
+  });
+
+  it('has a word for each part of the day', () => {
+    for (const b of ['manana', 'tarde', 'atardecer'] as const) {
+      expect(ES.collection.bands[b].length).toBeGreaterThan(0);
+    }
   });
 
   it('⚠️ the owner\'s five hours (0061): nothing sooner is offered, counted across midnight', () => {

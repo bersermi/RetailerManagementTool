@@ -1495,8 +1495,10 @@ export const ES = {
     expiry: 'Caduca',
     whichDay: '¿Qué día pasamos?',
     whichTime: '¿A qué hora?',
-    /** ⚠️ `0061`: under *¿A qué hora?*, so the faded hours explain themselves. */
+    /** ⚠️ `0061`: under *¿A qué hora?*, so the missing hours explain themselves. */
     leadHint: 'Pasamos al menos 5 horas después de tu solicitud.',
+    /** ⚠️ Option A's three parts of the day (2026-10-16). */
+    bands: { manana: 'En la mañana', tarde: 'En la tarde', atardecer: 'Al atardecer' },
     weCome: 'Pasamos',
     when: 'Cuándo',
     where: 'Recogemos en tu tienda',
@@ -1512,8 +1514,6 @@ export const ES = {
     cancelAsk: '¿Cancelarla?',
     cancelYes: 'Sí, cancelar',
     cancelNo: 'No',
-    /** The quarter chips under the hours — `:00`, `:15`, `:30`, `:45`. */
-    quarter: (minutes: number) => `:${String(minutes).padStart(2, '0')}`,
     /** A product and how much — `Alas de pollo · 2 kg`. */
     amount: (name: string, qty: string, unit: string) => `${name} · ${qty} ${unit}`,
     /** Under *Solicitud guardada* — `Alas de pollo · Mañana · 9:45 a 10:00`. */
