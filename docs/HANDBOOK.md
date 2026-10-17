@@ -62,6 +62,11 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October, late night: your three corrections went out over the air** (*Tu Precio, Mallugado y
+recolección a 5 horas*). In Comprar each card says *Tu Precio: $45 / pza* — red when what you
+paid is above it. *Te lo compro* says *Mallugado*, and offers only pickups at least five hours
+away (the database refuses sooner ones too). Open Wera, close it completely, open it again.
+
 ✅ **16 October, night: two updates, over the air.** (1) ⚠️ **A fix you should know about:** a
 sale slid from the bar after a second product, or a second `+`, was saved with only what the
 basket held when the slide first appeared; the rest was dropped. It has been like that since the
