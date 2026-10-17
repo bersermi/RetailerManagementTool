@@ -1238,7 +1238,7 @@ jobs:
       # header: one fixture went green, one was red for the wrong reason, and one
       # was vacuous and is deleted. ⚠️ The restore is in a `trap` on every exit
       # path, and it is read out of `pg_policies` rather than remembered.
-      - name: Contract — can the costs check still fail (its own ten fixtures)
+      - name: Contract — can the costs check still fail (its own fixtures)
         run: bash docs/checks/5g-iii-costs-contract-falsify.sh
 
       # ⚠️⚠️ THE ONLY THING ANYWHERE THAT CAN SEE `qty_base` ARRIVING AS A DOUBLE,
