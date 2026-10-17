@@ -56,6 +56,10 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-17 — **§2.8's Home row: *Rescatado* is what Wera PAID** (plan `8n`), on the
+  decision maker's ruling of that day over an estimate at the shop's own price. `0062` adds
+  `collection_request.wera_paid`, which he types in the dashboard and no client writes; the card
+  sums it for owners and managers, beside *Ahorro en compras*.
 - **Revised:** 2026-10-16, night — **§2.8's Home row, on the decision maker's ruling of that day
   (`8g`): Inicio redrawn for engagement**, from the hooks he left switched on in a playable page
   — the rolling total with the best same weekday, the streak, three coloured doors, the newest

@@ -3,13 +3,14 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
 
-import { formatSlot, nextPickup, minutesUntil, untilLabel } from '@/api/collection';
+import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import { latestSales, type FeedRow } from '@/api/documents';
 import {
   useCollectionRequests,
   useDocuments,
   useFreshAfterWrites,
+  useFreshPickupsWhenShown,
   useMyRole,
   usePendingRequests,
   useSales,
@@ -111,12 +112,15 @@ function useHeldWhileHidden<T>(value: T, focused: boolean): T {
 
 /** The key under which the last streak celebrated is kept, so a milestone fires once. */
 const CELEBRATED_KEY = 'tienda.inicio.racha';
+/** What *Rescatado* last showed on this phone, so a new payment drops a coin once. */
+const RESCUED_SEEN_KEY = 'tienda.inicio.rescatado';
 
 export default function Inicio() {
   const { scale } = useDensity();
   // ⚠️ THE TOTAL ROLLS ONLY IF IT IS RE-READ WHEN A SALE LANDS — see the hook.
   useFreshAfterWrites();
   const focused = useFocused();
+  useFreshPickupsWhenShown(focused);
   const [burst, setBurst] = useState(0);
   const [cheer, setCheer] = useState<string | null>(null);
   const celebrate = useCallback((word: string) => {
@@ -160,7 +164,7 @@ function Bloque({
     case 'ultimo':
       return <Ultimo focused={focused} />;
     case 'ahorros':
-      return <Ahorros />;
+      return <Ahorros focused={focused} />;
     case 'recoleccion':
       return <Recoleccion />;
     case 'mas':
@@ -567,22 +571,132 @@ function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: b
 }
 
 /**
- * *Ahorro en compras* — what this week's deliveries cost less than the previous
- * one of the same product from the same supplier. ⚠️ NOT DRAWN AT ZERO: a card
- * reading *$0* every Monday morning is noise, and the card is there to report
- * something that went well. *Rescatado* joins it beside it once the owner rules
- * what Wera paid (plan `8n`).
+ * The savings band: *Ahorro en compras* and *Rescatado*, side by side, each
+ * drawn only when it has something to say. ⚠️ NEITHER IS DRAWN AT ZERO: a card
+ * reading *$0* every Monday morning is noise, and both are there to report
+ * something that went well. *Rescatado* is the owner's and the manager's (Te
+ * lo compro is theirs; `collection_request` is fenced to them).
  */
-function Ahorros() {
+function Ahorros({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
   const saved = useWeekSavings();
-  if (saved === null || saved <= 0) return null;
+  const role = useMyRole();
+  const { data } = useCollectionRequests();
+  const paid = canWriteCatalog(role) && data !== undefined ? rescued(data) : 0;
+  const showSaved = saved !== null && saved > 0;
+  if (!showSaved && paid <= 0) return null;
   return (
-    <View style={{ gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.compraSuave }}>
-      <Rotulo text={ES.home.savings.title} ink={PALETTE.compra} />
-      <Text style={{ fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.compra }}>{formatMXN(saved)}</Text>
-      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.savings.line}</Text>
+    <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+      {showSaved ? (
+        <View style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.compraSuave }}>
+          <Rotulo text={ES.home.savings.title} ink={PALETTE.compra} />
+          <Text style={{ fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.compra }}>{formatMXN(saved)}</Text>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.savings.line}</Text>
+        </View>
+      ) : null}
+      {paid > 0 ? <Rescatado paid={paid} focused={focused} /> : null}
     </View>
+  );
+}
+
+/**
+ * *Rescatado* — what Wera has paid the shop (`8n`, the owner's ruling of
+ * 2026-10-17: *"What Wera paid"*), with the jar. ⚠️ A COIN DROPS ONCE PER NEW
+ * PAYMENT, on this phone: the amount last shown is kept, and only a larger one,
+ * seen while Inicio is in front, drops it. The first sight of the card drops
+ * nothing — that would celebrate old news.
+ */
+function Rescatado({ paid, focused }: { paid: number; focused: boolean }) {
+  const { scale } = useDensity();
+  const reduce = useReduceMotion();
+  const [coin, setCoin] = useState(0);
+  useEffect(() => {
+    if (!focused) return;
+    const store = deviceStore();
+    const raw = readKey(store, RESCUED_SEEN_KEY);
+    writeKey(store, RESCUED_SEEN_KEY, String(paid));
+    if (raw !== null && paid > Number(raw) && !reduce) setCoin((k) => k + 1);
+  }, [paid, focused, reduce]);
+  const jarWidth = scale.iconSize * 0.9;
+  const jarHeight = scale.iconSize * 1.3;
+  return (
+    <View
+      accessible
+      accessibilityLabel={`${ES.home.rescued.title}, ${formatMXN(paid)}. ${ES.home.rescued.line}`}
+      style={{ flex: 1, gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.desperdicioSuave }}
+    >
+      <Rotulo text={ES.home.rescued.title} ink={PALETTE.desperdicio} />
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: scale.rowGap }}>
+        <Text style={{ flexShrink: 1, fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.desperdicio }}>{formatMXN(paid)}</Text>
+        <View style={{ width: jarWidth, height: jarHeight }} importantForAccessibility="no-hide-descendants">
+          <View
+            style={{
+              flex: 1,
+              overflow: 'hidden',
+              borderWidth: 2,
+              borderTopWidth: 4,
+              borderColor: PALETTE.desperdicio,
+              borderTopLeftRadius: jarWidth / 5,
+              borderTopRightRadius: jarWidth / 5,
+              borderBottomLeftRadius: jarWidth / 3,
+              borderBottomRightRadius: jarWidth / 3,
+            }}
+          >
+            <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: `${Math.round(jarShare(paid) * 100)}%`, backgroundColor: PALETTE.desperdicio, opacity: 0.55 }} />
+          </View>
+          {coin > 0 ? <Moneda key={coin} size={jarWidth * 0.7} drop={jarHeight} /> : null}
+        </View>
+      </View>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.rescued.line}</Text>
+    </View>
+  );
+}
+
+/**
+ * How full the jar is drawn: the amount against the next round step of 1, 2
+ * and 5 ($100, $200, $500, $1,000 …), so every payment raises it and it never
+ * overflows. Pure arithmetic on centavos.
+ */
+function jarShare(centavos: number): number {
+  const steps = [1, 2, 5] as const;
+  let base = 10_000;
+  let i = 0;
+  while (centavos > base * (steps[i] ?? 1)) {
+    i += 1;
+    if (i === steps.length) {
+      i = 0;
+      base *= 10;
+    }
+  }
+  return Math.max(0.12, Math.min(1, centavos / (base * (steps[i] ?? 1))));
+}
+
+/** The coin that falls into the jar — transform and opacity on the native driver. */
+function Moneda({ size, drop }: { size: number; drop: number }) {
+  const t = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const run = Animated.timing(t, { toValue: 1, duration: 800, easing: Easing.in(Easing.quad), useNativeDriver: true });
+    run.start();
+    return () => run.stop();
+  }, [t]);
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={{
+        position: 'absolute',
+        left: '50%',
+        top: 0,
+        width: size,
+        height: size,
+        marginLeft: -size / 2,
+        borderRadius: size / 2,
+        borderWidth: 2,
+        borderColor: PALETTE.atencionSuave,
+        backgroundColor: PALETTE.atencion,
+        opacity: t.interpolate({ inputRange: [0, 0.1, 0.85, 1], outputRange: [0, 1, 1, 0] }),
+        transform: [{ translateY: t.interpolate({ inputRange: [0, 1], outputRange: [-drop, drop * 0.45] }) }],
+      }}
+    />
   );
 }
 

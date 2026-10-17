@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  COLLECTION_COLUMNS,
   NO_PREFILL,
   PICKUP_DAYS_AHEAD,
   STATUSES,
@@ -239,7 +240,7 @@ describe('8k — what a request sends, and how it reads back', () => {
     const row = {
       id: 'req-1', status: 'enviada' as const, pickup_date: '2026-10-17',
       window_start: '09:00:00', window_end: '10:30:00', lines: [], photos: ['a', 'b'],
-      note: null, created_at: '2026-10-16T18:00:00+00:00',
+      note: null, created_at: '2026-10-16T18:00:00+00:00', wera_paid: null,
     };
     const read = toCollectionRequest(row);
     expect(read.from).toBe('09:00');
@@ -272,8 +273,22 @@ describe('8k — what a request sends, and how it reads back', () => {
     const row = {
       id: 'r', status: 'rechazada' as const, pickup_date: '2026-10-17', window_start: '09:00:00',
       window_end: '09:15:00', lines: [], photos: [], note: null, created_at: '2026-10-16T18:00:00+00:00',
+      wera_paid: null,
     };
     expect(toCollectionRequest(row).cancellable).toBe(false);
+  });
+
+  it('⚠️ reads what Wera paid (0062) as centavos, and an empty or broken amount as none, never $0', () => {
+    const row = {
+      id: 'r', status: 'recogida' as const, pickup_date: '2026-10-17', window_start: '09:00:00',
+      window_end: '09:15:00', lines: [], photos: [], note: null, created_at: '2026-10-16T18:00:00+00:00',
+      wera_paid: '180.00',
+    };
+    expect(toCollectionRequest(row).paidCentavos).toBe(18000);
+    expect(toCollectionRequest({ ...row, wera_paid: '95.5' }).paidCentavos).toBe(9550);
+    expect(toCollectionRequest({ ...row, wera_paid: null }).paidCentavos).toBeNull();
+    expect(toCollectionRequest({ ...row, wera_paid: 'mucho' }).paidCentavos).toBeNull();
+    expect(COLLECTION_COLUMNS.split(',')).toContain('wera_paid::text');
   });
 });
 
@@ -284,7 +299,7 @@ function req(over: Partial<CollectionRequest> & { createdAt: string }): Collecti
       variant_id: 'v', variant_name: 'Alas de pollo', qty_display: '2', qty_display_unit: 'kg',
       condition: 'magullado', packaging: 'abierto', keeping: 'congelado', expiry_date: '2026-10-18',
     }],
-    photoCount: 0, note: null, cancellable: true, ...over,
+    photoCount: 0, note: null, cancellable: true, paidCentavos: null, ...over,
   };
 }
 

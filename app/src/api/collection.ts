@@ -25,6 +25,8 @@
 // here and checked again by `0060`. And `rechazada`, the fifth status.
 // ============================================================================
 
+import { SCALE, parseDecimal } from '@tienda/money';
+
 import { apiErrorMessage } from '@/api/errors';
 import { isoDay } from '@/api/catalog';
 import { addDays, daysFrom, formatClock, formatPickupDay } from '@/format/date';
@@ -282,7 +284,7 @@ export function collectionErrorMessage(error: unknown): string {
 // ----------------------------------------------------------------------------
 
 export const COLLECTION_COLUMNS =
-  'id,status,pickup_date,window_start,window_end,lines,photos,note,created_at';
+  'id,status,pickup_date,window_start,window_end,lines,photos,note,created_at,wera_paid::text';
 
 export const COLLECTION_KEY = ['collection', 'requests'] as const;
 
@@ -315,6 +317,12 @@ export interface CollectionRow {
   readonly photos: readonly string[];
   readonly note: string | null;
   readonly created_at: string;
+  /**
+   * ⚠️ `0062`: what Wera paid, in pesos, as a decimal STRING (the `::text`
+   * cast — a bare `numeric` arrives as a JSON number). Typed by the owner in
+   * the dashboard; `null` until he does.
+   */
+  readonly wera_paid: string | null;
 }
 
 export interface CollectionRequest {
@@ -330,6 +338,8 @@ export interface CollectionRequest {
   readonly createdAt: string;
   /** Only an `enviada` request may be called off by the shop (`TD010`). */
   readonly cancellable: boolean;
+  /** What Wera paid for it, in centavos — `null` until the owner types it (`0062`). */
+  readonly paidCentavos: number | null;
 }
 
 export function toCollectionRequest(row: CollectionRow): CollectionRequest {
@@ -344,7 +354,30 @@ export function toCollectionRequest(row: CollectionRow): CollectionRequest {
     note: row.note,
     createdAt: row.created_at,
     cancellable: row.status === 'enviada',
+    paidCentavos: paidOf(row.wera_paid),
   };
+}
+
+/** ⚠️ An amount that will not parse is no amount, never a zero. */
+function paidOf(value: string | null | undefined): number | null {
+  if (typeof value !== 'string' || value === '') return null;
+  try {
+    return parseDecimal(value, SCALE.money);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Inicio's *Rescatado* (`8n`, the owner's ruling of 2026-10-17: *"What Wera
+ * paid"*) — every amount Wera has paid the shop, in centavos. ⚠️ EVERY AMOUNT
+ * THAT IS THERE, whatever the status says: `0062` deliberately does not tie
+ * the two, because the dashboard saves one cell at a time.
+ */
+export function rescued(requests: readonly CollectionRequest[]): number {
+  let total = 0;
+  for (const r of requests) if (r.paidCentavos !== null) total += r.paidCentavos;
+  return total;
 }
 
 // ----------------------------------------------------------------------------

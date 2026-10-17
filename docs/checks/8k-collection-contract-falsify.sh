@@ -55,9 +55,14 @@ fixture wrong-request-column \
   's/window_start,window_end,lines,photos/hora_inicio,window_end,lines,photos/' \
   'request 200 .*list 400'
 
+# `0062`: what Wera paid without its cast arrives as a JSON number.
+fixture paid-without-cast \
+  "s/,wera_paid::text';/,wera_paid';/" \
+  'wera_paid arrived as (float|int)'
+
 echo
-if (( failed == 0 && passed == 4 )); then
-  echo "all 4 fixtures behaved as recorded — the contract check goes red on every defect it names."
+if (( failed == 0 && passed == 5 )); then
+  echo "all 5 fixtures behaved as recorded — the contract check goes red on every defect it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."
