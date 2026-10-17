@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { minutesUntil, nextPickup, untilLabel, type CollectionRequest } from '@/api/collection';
+import { weekSavings, weekStartOf, type SavingsLineRow } from '@/api/costs';
 import { latestSales, type ShopDocument } from '@/api/documents';
 import {
   STREAK_MILESTONES,
@@ -145,5 +146,85 @@ describe('8g — la próxima recolección', () => {
     expect(untilLabel(20 * 60 + 5)).toBe('faltan 20 h');
     expect(untilLabel(45)).toBe('faltan 45 min');
     expect(untilLabel(3 * 24 * 60)).toBe('faltan 3 días');
+  });
+});
+
+function line(id: string, at: string, price: string, qty: string, over: Partial<SavingsLineRow['purchase']> = {}, variant = 'huevo'): SavingsLineRow {
+  return {
+    id, variant_id: variant, qty_base: qty, unit_price_net_per_base: price,
+    purchase: { id: `p-${id}`, occurred_at: at, provider_id: 'don-chuy', reversal_of: null, ...over },
+  };
+}
+
+describe('8g — ahorro en compras: this week, cheaper than the time before', () => {
+  // ⚠️ AN EXPLICIT INSTANT, so the suite reads the same on this Mac and on CI.
+  const monday = new Date('2026-10-12T06:00:00Z');
+
+  it('counts the pesos a delivery cost less than the previous one, per kilo times kilos', () => {
+    // $100/kg last week, $90/kg this week, 2 kg: $20.
+    const rows = [
+      line('a', '2026-10-08T15:00:00Z', '0.100000', '2000.000'),
+      line('b', '2026-10-14T15:00:00Z', '0.090000', '2000.000'),
+    ];
+    expect(weekSavings(rows, monday)).toBe(2000);
+  });
+
+  it('saves nothing when the price went up, or came from another supplier', () => {
+    expect(weekSavings([
+      line('a', '2026-10-08T15:00:00Z', '0.090000', '2000.000'),
+      line('b', '2026-10-14T15:00:00Z', '0.100000', '2000.000'),
+    ], monday)).toBe(0);
+    expect(weekSavings([
+      line('a', '2026-10-08T15:00:00Z', '0.100000', '2000.000', { provider_id: 'otro' }),
+      line('b', '2026-10-14T15:00:00Z', '0.090000', '2000.000'),
+    ], monday)).toBe(0);
+  });
+
+  it('counts a cheaper delivery after an earlier one THIS week too, and nothing before the week', () => {
+    expect(weekSavings([
+      line('a', '2026-10-13T15:00:00Z', '0.100000', '1000.000'),
+      line('b', '2026-10-15T15:00:00Z', '0.095000', '1000.000'),
+    ], monday)).toBe(500);
+    expect(weekSavings([
+      line('a', '2026-10-01T15:00:00Z', '0.100000', '1000.000'),
+      line('b', '2026-10-08T15:00:00Z', '0.050000', '1000.000'),
+    ], monday)).toBe(0);
+  });
+
+  it('⚠️ a voided delivery is neither a saving nor a previous price — Costos\' rule', () => {
+    const rows = [
+      line('a', '2026-10-08T15:00:00Z', '0.100000', '2000.000'),
+      line('b', '2026-10-14T15:00:00Z', '0.090000', '2000.000'),
+      line('v', '2026-10-14T16:00:00Z', '0.090000', '2000.000', { id: 'p-void', reversal_of: 'p-b' }),
+    ];
+    expect(weekSavings(rows, monday)).toBe(0);
+  });
+
+  it('reads the order off the instants, whatever order the rows come in', () => {
+    const rows = [
+      line('b', '2026-10-14T15:00:00Z', '0.090000', '2000.000'),
+      line('a', '2026-10-08T15:00:00Z', '0.100000', '2000.000'),
+    ];
+    expect(weekSavings(rows, monday)).toBe(2000);
+  });
+
+  it('skips a line that will not parse rather than counting it as zero', () => {
+    expect(weekSavings([
+      line('a', '2026-10-08T15:00:00Z', '0.100000', '2000.000'),
+      line('b', '2026-10-14T15:00:00Z', 'no', '2000.000'),
+    ], monday)).toBe(0);
+  });
+
+  it('starts the week on Monday at the phone\'s midnight', () => {
+    const start = weekStartOf(new Date(2026, 9, 16, 13, 40));
+    expect([start.getDay(), start.getDate(), start.getHours(), start.getMinutes()]).toEqual([1, 12, 0, 0]);
+    const sunday = weekStartOf(new Date(2026, 9, 18, 22, 0));
+    expect(sunday.getDate()).toBe(12);
+    const monday0 = weekStartOf(new Date(2026, 9, 19, 0, 5));
+    expect(monday0.getDate()).toBe(19);
+  });
+
+  it('says the owner\'s sentence, light and capitalised', () => {
+    expect(ES.home.savings.line).toBe('Esta semana, comprando más barato que la vez pasada.');
   });
 });

@@ -74,7 +74,7 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   it('carries the owner\'s bands of 2026-10-16, in his order', () => {
     // ⚠️ RULE 4. An empty array passes every `for` below having asserted
     // nothing — the misleading green this repository has hit five times.
-    expect(INICIO_BLOCKS).toEqual(['aviso', 'hoy', 'racha', 'puertas', 'ultimo', 'recoleccion', 'mas']);
+    expect(INICIO_BLOCKS).toEqual(['aviso', 'hoy', 'racha', 'puertas', 'ultimo', 'ahorros', 'recoleccion', 'mas']);
   });
 
   // ⚠️⚠️ THE ASSERTION THIS FILE IS FOR, KEPT THROUGH `8g`. The takings sit above
@@ -82,7 +82,7 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   // state too and draws only when a write was lost.
   it('puts the takings above every door, with only the banner before them', () => {
     expect(INICIO_BLOCKS.slice(0, 2)).toEqual(['aviso', 'hoy']);
-    const doors: readonly InicioBlock[] = ['puertas', 'ultimo', 'recoleccion', 'mas'];
+    const doors: readonly InicioBlock[] = ['puertas', 'ultimo', 'ahorros', 'recoleccion', 'mas'];
     for (const band of doors) {
       expect(INICIO_BLOCKS.indexOf(band)).toBeGreaterThan(INICIO_BLOCKS.indexOf('hoy'));
     }

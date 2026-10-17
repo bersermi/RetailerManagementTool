@@ -14,6 +14,7 @@ import {
   usePendingRequests,
   useSales,
   useToday,
+  useWeekSavings,
 } from '@/api/hooks';
 import {
   bestSameWeekday,
@@ -158,6 +159,8 @@ function Bloque({
       return <Puertas />;
     case 'ultimo':
       return <Ultimo focused={focused} />;
+    case 'ahorros':
+      return <Ahorros />;
     case 'recoleccion':
       return <Recoleccion />;
     case 'mas':
@@ -560,6 +563,26 @@ function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: b
         {row.grossCentavos === null ? ES.home.noFigure : formatMXN(row.grossCentavos)}
       </Text>
     </Animated.View>
+  );
+}
+
+/**
+ * *Ahorro en compras* — what this week's deliveries cost less than the previous
+ * one of the same product from the same supplier. ⚠️ NOT DRAWN AT ZERO: a card
+ * reading *$0* every Monday morning is noise, and the card is there to report
+ * something that went well. *Rescatado* joins it beside it once the owner rules
+ * what Wera paid (plan `8n`).
+ */
+function Ahorros() {
+  const { scale } = useDensity();
+  const saved = useWeekSavings();
+  if (saved === null || saved <= 0) return null;
+  return (
+    <View style={{ gap: scale.rowGap / 4, padding: scale.space, borderRadius: scale.space, backgroundColor: PALETTE.compraSuave }}>
+      <Rotulo text={ES.home.savings.title} ink={PALETTE.compra} />
+      <Text style={{ fontSize: scale.moneySize * 0.8, fontWeight: '700', color: PALETTE.compra }}>{formatMXN(saved)}</Text>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.savings.line}</Text>
+    </View>
   );
 }
 

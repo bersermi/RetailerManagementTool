@@ -1898,6 +1898,11 @@ export const ES = {
       line: (slot: string, until: string) => `${slot} · ${until}`,
     },
     more: 'Más',
+    /** ⚠️ The owner's words of 2026-10-16, light and capitalised, as on his page. */
+    savings: {
+      title: 'Ahorro en compras',
+      line: 'Esta semana, comprando más barato que la vez pasada.',
+    },
   },
 
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */

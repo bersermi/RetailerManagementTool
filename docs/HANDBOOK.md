@@ -62,6 +62,12 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **16 October, late night: *Ahorro en compras* on Inicio, over the air** (*Ahorro en compras en
+Inicio*). Under your last sales, a blue card: what this week's deliveries cost you LESS than the
+last delivery of the same product from the same supplier, with *Esta semana, comprando más barato
+que la vez pasada.* under it. It only appears once a delivery came in cheaper. Open Wera, close it
+completely, open it again.
+
 ✅ **16 October, late night: your new Inicio, over the air** (*Inicio nuevo: el total que sube, la
 racha y tu mejor viernes*). Sell something on Vender and come back to Inicio: the total rolls up and
 a green **+$** floats over it. Under it, a bar towards your best day of the week; beat it and there

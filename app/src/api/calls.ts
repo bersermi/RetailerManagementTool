@@ -158,7 +158,12 @@ import {
   COSTS_ORDER_ASCENDING,
   COSTS_TABLE,
   COSTS_VARIANT_COLUMN,
+  SAVINGS_COLUMNS,
+  SAVINGS_PAGE,
+  SAVINGS_SINCE_COLUMN,
+  SAVINGS_TIEBREAK,
   type CostLineRow,
+  type SavingsLineRow,
 } from '@/api/costs';
 import {
   PRICE_DAY_COLUMN,
@@ -1116,6 +1121,30 @@ export async function providerMemory(providerId: string): Promise<MemoryRow[]> {
     .eq(MEMORY_PROVIDER_COLUMN, providerId);
   if (error) throw reported(error);
   return (data ?? []) as unknown as MemoryRow[];
+}
+
+/**
+ * ⚠️ `8g`: EVERY DELIVERY LINE SINCE `since`, for Inicio's *Ahorro en compras* —
+ * Costos' read over every product at once, bounded on the delivery's day
+ * through the inner embed, newest first and paged, because eight weeks of lines
+ * is not a screenful and PostgREST truncates at `max_rows` without saying so.
+ * RLS scopes it as it scopes Costos (`0040`).
+ */
+export async function purchaseLinesSince(since: string): Promise<SavingsLineRow[]> {
+  const rows: SavingsLineRow[] = [];
+  for (let from = 0; ; from += SAVINGS_PAGE) {
+    const { data, error } = await supabase
+      .from(COSTS_TABLE)
+      .select(SAVINGS_COLUMNS)
+      .gte(SAVINGS_SINCE_COLUMN, since)
+      .order(COSTS_ORDER, { ascending: COSTS_ORDER_ASCENDING })
+      .order(SAVINGS_TIEBREAK)
+      .range(from, from + SAVINGS_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as SavingsLineRow[];
+    rows.push(...page);
+    if (page.length < SAVINGS_PAGE) return rows;
+  }
 }
 
 /**

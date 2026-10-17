@@ -37,7 +37,8 @@ import { ES } from '@/strings';
  * (`8g`), the hooks he left switched on in the playable page: *Hoy* with the
  * total that rolls and *tu mejor viernes*, *la racha*, option B's three
  * coloured doors, *lo último en vivo*, the next pickup, and every other room in
- * *Más*. The savings band (`ahorros`) joins when its read lands.
+ * *Más*. The savings band (`ahorros`) holds *Ahorro en compras*; *Rescatado*
+ * joins it when the owner rules what Wera paid (plan `8n`).
  *
  * ⚠️ `aviso` — the dead-letter banner — IS FIRST, AND IT IS STATE TOO: it draws
  * only when a write was lost, and since the same ruling it PUSHES the screen
@@ -45,7 +46,15 @@ import { ES } from '@/strings';
  * takings: §2.8's *"state comes first"* still holds, nothing tappable precedes
  * the figure but the banner's own dismissal.
  */
-export type InicioBlock = 'aviso' | 'hoy' | 'racha' | 'puertas' | 'ultimo' | 'recoleccion' | 'mas';
+export type InicioBlock =
+  | 'aviso'
+  | 'hoy'
+  | 'racha'
+  | 'puertas'
+  | 'ultimo'
+  | 'ahorros'
+  | 'recoleccion'
+  | 'mas';
 
 /** The owner's Inicio, in order. */
 export const INICIO_BLOCKS: readonly InicioBlock[] = [
@@ -54,6 +63,7 @@ export const INICIO_BLOCKS: readonly InicioBlock[] = [
   'racha',
   'puertas',
   'ultimo',
+  'ahorros',
   'recoleccion',
   'mas',
 ];
