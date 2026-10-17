@@ -1280,23 +1280,27 @@ function CajaCosto({
 }
 
 /**
- * ⚠️⚠️ THE MARGIN, IN PESOS PER PRICE UNIT — the owner's *"margin in pesos"*, and
- * `@/cart/buying` says what it is (the shelf price less this cost, both as she
- * sees them) and what it is not.
+ * ⚠️⚠️ *TU PRECIO*, COLOURED BY THE MARGIN — the owner's ruling of 2026-10-16
+ * replaced round 4's *Margen $18 / kg*: the pill shows the SHELF price and the
+ * margin is only its colour, *"the user would read and understand himself
+ * what's the margin."* `@/cart/buying`'s `marginOf` still decides the colour.
  *
- * ⚠️⚠️ SOLID RED BELOW ZERO, AND THAT GIVES `error` A SECOND SENTENCE — flagged to
- * him with the drawing and approved (*"Looks good. Proceed"*): *you lose money on
- * this*. The minus sign travels with it, so it is never a colour alone (`R11`).
- * ⚠️ Above zero it wears `accion`'s pair, as drawn: green means *good* here, and
- * nothing on the pill can be pressed.
+ * ⚠️⚠️ SOLID RED BELOW THE COST, green otherwise — a zero margin is green, as it
+ * was. ⚠️ `R11`: with the minus sign gone, the red is no longer the only thing
+ * saying *loss* because the fill is: a solid pill against a tint, and a screen
+ * reader hears `ES.buy.belowCost`. Nothing on the pill can be pressed.
  */
 function Margen({ margin, entry }: { margin: number | 'no-sale-price'; entry: CatalogEntry }) {
   const { scale } = useDensity();
   const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
   const none = margin === 'no-sale-price';
   const loss = !none && margin < 0;
+  const words =
+    none || entry.centavos === null ? ES.buy.noSalePrice : ES.buy.yourPrice(formatMXN(entry.centavos), unit);
   return (
     <View
+      accessible
+      accessibilityLabel={loss ? `${words}, ${ES.buy.belowCost}` : words}
       style={{
         alignSelf: 'flex-start',
         paddingHorizontal: scale.rowGap,
@@ -1314,7 +1318,7 @@ function Margen({ margin, entry }: { margin: number | 'no-sale-price'; entry: Ca
           color: none ? PALETTE.tintaApagada : loss ? PALETTE.superficie : PALETTE.accion,
         }}
       >
-        {none ? ES.buy.noSalePrice : ES.buy.margin(formatMXN(margin), unit)}
+        {words}
       </Text>
     </View>
   );

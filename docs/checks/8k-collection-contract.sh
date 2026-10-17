@@ -13,7 +13,9 @@
 #   bash docs/checks/8k-collection-contract.sh [collection.ts]
 #
 # ⚠️ A CUSTOM SQLSTATE ARRIVES AS AN HTTP 400 (measured for TD003 on 2026-09-26),
-# so TD008, TD009 and TD010 are asserted as 400 with their code in the body.
+# so TD008, TD009 and TD010 are asserted as 400 with their code in the body —
+# and TD011, `0061`'s five hours ahead, on a store whose clock is set to
+# mid-morning from SQL, so the check does not depend on when it runs.
 # ============================================================================
 set -uo pipefail
 
@@ -39,6 +41,7 @@ ADDRESS_COLUMNS="$(str STORE_ADDRESS_COLUMNS "$CONTRACT")"
 NO_ADDRESS="$(str NO_ADDRESS_CODE "$CONTRACT")"
 OUTSIDE="$(str OUTSIDE_AREA_CODE "$CONTRACT")"
 TOO_LATE="$(str TOO_LATE_TO_CANCEL_CODE "$CONTRACT")"
+TOO_SOON="$(str TOO_SOON_CODE "$CONTRACT")"
 REACHES_ARGS="$(args_of ReachesArgs)"
 REQUEST_ARGS="$(args_of RequestCollectionArgs)"
 CANCEL_ARGS="$(args_of CancelCollectionArgs)"
@@ -47,7 +50,7 @@ COLLECTION_COLUMNS="$(awk '/^export const COLLECTION_COLUMNS =/{f=1} f{print} f&
   | tr -d '\n' | sed -n "s/.*'\([^']*\)';.*/\1/p")"
 
 note
-for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS NO_ADDRESS OUTSIDE TOO_LATE \
+for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS NO_ADDRESS OUTSIDE TOO_LATE TOO_SOON \
             REACHES_ARGS REQUEST_ARGS CANCEL_ARGS COLLECTION_COLUMNS; do
   if [[ -z "${!name}" ]]; then
     fail "could not read $name out of the app — this check would assert nothing"
@@ -215,12 +218,15 @@ REQ2="$(python3 -c 'import uuid;print(uuid.uuid4())')"
 REQUEST_BODY2="$(by_names "$REQUEST_ARGS" "\"$REQ2\"" "\"$LOC\"" "\"$TOMORROW\"" '"11:00"' '"11:15"' "$LINES" '[]' '"Tocar el timbre"')"
 api POST "/rest/v1/rpc/$REQUEST" "$REQUEST_BODY2" > /dev/null
 DB_URL="$(sed -n 's/^DB_URL="\(.*\)"$/\1/p' <<< "$STATUS")"
-if command -v psql > /dev/null; then
-  psql "$DB_URL" -q -c "update public.collection_request set status = 'confirmada' where id = '$REQ2'" > /dev/null
-else
-  docker exec -i "$(docker ps --format '{{.Names}}' | grep -m1 '^supabase_db_')" \
-    psql -U postgres -q -c "update public.collection_request set status = 'confirmada' where id = '$REQ2'" > /dev/null
-fi
+as_owner_of_db() { # sql -> runs it as the database owner, the way the owner uses the dashboard
+  if command -v psql > /dev/null; then
+    psql "$DB_URL" -q -c "$1" > /dev/null
+  else
+    docker exec -i "$(docker ps --format '{{.Names}}' | grep -m1 '^supabase_db_')" \
+      psql -U postgres -q -c "$1" > /dev/null
+  fi
+}
+as_owner_of_db "update public.collection_request set status = 'confirmada' where id = '$REQ2'"
 LATE="$(api POST "/rest/v1/rpc/$CANCEL" "$(by_names "$CANCEL_ARGS" "\"$REQ2\"")")"
 if [[ "$(status "$LATE")" == "400" && "$(pick code "$(body "$LATE")")" == "$TOO_LATE" ]]; then
   ok "a request Wera has confirmed: 400 $TOO_LATE"
@@ -228,14 +234,33 @@ else
   fail "cancelling a confirmed request answered $(status "$LATE") $(body "$LATE") — expected 400 $TOO_LATE"
 fi
 
+# ⚠️ TD011 — `0061`: A PICKUP STARTS FIVE HOURS AFTER THE REQUEST, IN THE STORE'S
+# TIME. The store is moved to the `Etc/GMT` zone where it is about ten in the
+# morning right now, so today at 12:00 is two hours out whenever this runs.
+note
+read -r ZONE STORE_TODAY < <(python3 -c '
+import datetime
+now = datetime.datetime.now(datetime.timezone.utc)
+off = ((10 - now.hour + 12) % 24) - 12
+zone = ("Etc/GMT-%d" % off) if off >= 0 else ("Etc/GMT+%d" % -off)
+print(zone, (now + datetime.timedelta(hours=off)).date())')
+as_owner_of_db "update public.location set timezone = '$ZONE' where id = '$LOC'"
+REQ3="$(python3 -c 'import uuid;print(uuid.uuid4())')"
+SOON="$(api POST "/rest/v1/rpc/$REQUEST" "$(by_names "$REQUEST_ARGS" "\"$REQ3\"" "\"$LOC\"" "\"$STORE_TODAY\"" '"12:00"' '"12:15"' "$LINES" '[]' 'null')")"
+if [[ "$(status "$SOON")" == "400" && "$(pick code "$(body "$SOON")")" == "$TOO_SOON" ]]; then
+  ok "a pickup two hours out, in the store's own time ($ZONE): 400 $TOO_SOON"
+else
+  fail "a pickup two hours out answered $(status "$SOON") $(body "$SOON") — expected 400 $TOO_SOON"
+fi
+
 echo
-if (( fails == 0 && ran < 9 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 9 — this check asserted almost nothing."
+if (( fails == 0 && ran < 10 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 10 — this check asserted almost nothing."
   exit 1
 fi
 if (( fails == 0 )); then
-  echo "all $ran assertion groups passed — the app's names reach 0058 and 0059: the area,"
-  echo "the address, a request sent, read back, retried and called off, and the three refusals."
+  echo "all $ran assertion groups passed — the app's names reach 0058 to 0061: the area,"
+  echo "the address, a request sent, read back, retried and called off, and the four refusals."
   exit 0
 fi
 echo "$ran group(s) ran, $fails failed."

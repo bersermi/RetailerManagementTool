@@ -20,7 +20,9 @@ import {
   requestCollectionArgs,
   sentToday,
   slotEnd,
-  slotPassed,
+  slotTooSoon,
+  TOO_SOON_CODE,
+  PICKUP_LEAD_MINUTES,
   slotValid,
   startAt,
   toCollectionRequest,
@@ -141,11 +143,22 @@ describe('8l — the owner\'s picker: one quarter of an hour, starting 7:00 to 1
     expect(partsOf('09:45')).toEqual({ hour: 9, quarter: 45 });
   });
 
-  it('does not offer a quarter that has already begun today, and offers every one tomorrow', () => {
-    expect(slotPassed('2026-10-16', '09:45', '2026-10-16', '09:45')).toBe(true);
-    expect(slotPassed('2026-10-16', '10:00', '2026-10-16', '09:46')).toBe(false);
-    expect(slotPassed('2026-10-17', '07:00', '2026-10-16', '18:59')).toBe(false);
-    expect(slotPassed('2026-10-15', '18:45', '2026-10-16', '07:00')).toBe(true);
+  it('⚠️ the owner\'s five hours (0061): nothing sooner is offered, counted across midnight', () => {
+    expect(PICKUP_LEAD_MINUTES).toBe(300);
+    // 09:07 → the first open quarter is 14:15.
+    expect(slotTooSoon('2026-10-16', '14:00', '2026-10-16', '09:07')).toBe(true);
+    expect(slotTooSoon('2026-10-16', '14:15', '2026-10-16', '09:07')).toBe(false);
+    // Exactly five hours is enough.
+    expect(slotTooSoon('2026-10-16', '14:00', '2026-10-16', '09:00')).toBe(false);
+    // 14:00 → today is closed (18:45 is 4h45 away), tomorrow is open.
+    expect(slotTooSoon('2026-10-16', '18:45', '2026-10-16', '14:00')).toBe(true);
+    expect(slotTooSoon('2026-10-17', '07:00', '2026-10-16', '14:00')).toBe(false);
+    // 03:00 → tomorrow's 07:00 is 28 hours away; today's 07:00 is four.
+    expect(slotTooSoon('2026-10-16', '07:00', '2026-10-16', '03:00')).toBe(true);
+    expect(slotTooSoon('2026-10-16', '08:00', '2026-10-16', '03:00')).toBe(false);
+    // 23:30 → tomorrow's 07:00 is 7h30 away; a day gone is gone.
+    expect(slotTooSoon('2026-10-17', '07:00', '2026-10-16', '23:30')).toBe(false);
+    expect(slotTooSoon('2026-10-15', '18:45', '2026-10-16', '07:00')).toBe(true);
   });
 
   it('offers today and the fourteen days after it, across a month', () => {
@@ -216,10 +229,12 @@ describe('8k — what a request sends, and how it reads back', () => {
     expect(toCollectionRequest({ ...row, status: 'confirmada' }).cancellable).toBe(false);
   });
 
-  it('says 0059\'s three refusals in words, and leaves the rest to every other call\'s', () => {
+  it('says 0059\'s and 0061\'s refusals in words, and leaves the rest to every other call\'s', () => {
     expect(collectionErrorMessage({ code: 'TD008' })).toBe(ES.collection.errors.noAddress);
     expect(collectionErrorMessage({ code: 'TD009' })).toBe(ES.collection.errors.outsideArea);
     expect(collectionErrorMessage({ code: 'TD010' })).toBe(ES.collection.errors.tooLateToCancel);
+    expect(TOO_SOON_CODE).toBe('TD011');
+    expect(collectionErrorMessage({ code: 'TD011' })).toBe(ES.collection.errors.tooSoon);
     expect(collectionErrorMessage({ code: '42501' })).toBe(ES.api.errors.sessionEnded);
   });
 
@@ -276,6 +291,9 @@ describe('8l — the next request starts with the previous one\'s answers', () =
     expect(past.condition).toBe('magullado');
     const begun = prefillFrom([req({ createdAt: '2026-10-16T13:00:00Z', day: '2026-10-16', from: '09:45' })], '2026-10-16', '10:30');
     expect(begun.day).toBeNull();
+    // ⚠️ AND ONE NOW INSIDE THE FIVE HOURS (0061) — 13:00 is four hours from 09:00.
+    const near = prefillFrom([req({ createdAt: '2026-10-16T13:00:00Z', day: '2026-10-16', from: '13:00' })], '2026-10-16', '09:00');
+    expect(near.at).toBeNull();
   });
 
   it('starts with nothing chosen when there is no request yet', () => {
@@ -313,7 +331,7 @@ describe('8l — one WhatsApp with all of today\'s', () => {
     });
     expect(whatsappMessage(sentToday(mine, today), 'Pollería Doña Rosa', address, today)).toBe(
       'Hola Wera, soy de Pollería Doña Rosa. Hoy les pedí que recojan:\n' +
-        '• Alas de pollo · 2 kg · Magullado · Mañana · 9:45 a 10:00\n' +
+        '• Alas de pollo · 2 kg · Mallugado · Mañana · 9:45 a 10:00\n' +
         'En Sabino 120, Santa María la Ribera, Ciudad de México, C.P. 06400.',
     );
   });
