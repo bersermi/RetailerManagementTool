@@ -160,8 +160,9 @@ in the store build and there is no crash library. *Contacts* means the phone's a
 which Wera never reads; a supplier's phone is the shop's own record and sits under *Other
 User Content*. *Location*, *Health*, *Browsing History*, *Search History*,
 *Sensitive Info* — none. ⚠️ **Since `8m`**, *Photos or Videos* is the photos a shop takes with the
-camera for *Te lo compro*, and *Physical Address* the store's address (a home, when the shop is
-in one); both apply from the first build that carries the camera.
+camera for *Te lo compro* — **and since `8o` the photo an owner or manager takes of a product the
+shop created** (optional; its members see it) — and *Physical Address* the store's address (a home,
+when the shop is in one); both apply from the first build that carries the camera.
 
 ## 7. App Review information
 

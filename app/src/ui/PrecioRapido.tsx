@@ -136,6 +136,7 @@ export function PrecioRapido({
     <HojaPrecio
       bare={bare}
       name={entry.name}
+      picture={entry.picture}
       detail={entry.centavos === null ? ES.sell.priceSheet.first : ES.sell.priceSheet.now(entry.price)}
       question={entry.centavos === null ? ES.sell.priceSheet.ask : ES.sell.priceSheet.askAgain}
       value={typed}

@@ -629,7 +629,7 @@ function Fila({
         backgroundColor: alarm ? PALETTE.atencionSuave : PALETTE.fondo,
       }}
     >
-      <Retrato name={entry.name} />
+      <Retrato name={entry.name} picture={entry.picture} />
 
       {/* ⚠️⚠️ THE OWNER'S *B · MOSTRADOR*, 2026-10-15: the name on top with the
           whole width, the price and the controls beneath it. ⚠️ **`flexWrap` and

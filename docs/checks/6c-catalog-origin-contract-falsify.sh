@@ -107,21 +107,24 @@ restore() {
   # `or replace`.
   ask "drop trigger if exists catalog_prebuilt_stays_trg on public.product_variant;" >/dev/null
   ask "create trigger catalog_prebuilt_stays_trg before update or delete on public.product_variant for each row execute function public.catalog_prebuilt_stays();" >/dev/null
+  # ⚠️ `0063`'s lock on Wera's names, which only `D5` removes.
+  ask "drop trigger if exists product_variant_wera_keeps_trg on public.product_variant;" >/dev/null
+  ask "create trigger product_variant_wera_keeps_trg before update of name, image_path on public.product_variant for each row execute function public.product_variant_wera_keeps();" >/dev/null
   restored=yes
 
   # ⚠️⚠️ AND THE RESTORE IS VERIFIED RATHER THAN ASSUMED, which is the whole lesson of
   # the paragraph above: a harness that puts the database back WRONG accuses the next
   # fixture, and every one of these writes has its output sent to /dev/null.
   local back
-  back="$(ask "select (select count(*) from pg_proc where proname = 'catalog_prebuilt_stays' and prosrc ~ 'reassigned to the shop') || '/' || (select count(*) from pg_trigger where tgname = 'catalog_prebuilt_stays_trg' and not tgisinternal);")"
-  if [[ "$back" != "1/2" ]]; then
-    echo "FAIL: THE RESTORE DID NOT PUT THE DATABASE BACK — function/triggers = '$back',"
-    echo "      expected '1/2'. Every fixture after this one is measuring a database"
+  back="$(ask "select (select count(*) from pg_proc where proname = 'catalog_prebuilt_stays' and prosrc ~ 'reassigned to the shop') || '/' || (select count(*) from pg_trigger where tgname = 'catalog_prebuilt_stays_trg' and not tgisinternal) || '/' || (select count(*) from pg_trigger where tgname = 'product_variant_wera_keeps_trg' and not tgisinternal);")"
+  if [[ "$back" != "1/2/1" ]]; then
+    echo "FAIL: THE RESTORE DID NOT PUT THE DATABASE BACK — function/triggers/lock = '$back',"
+    echo "      expected '1/2/1'. Every fixture after this one is measuring a database"
     echo "      nobody restored, so their verdicts mean nothing. Stopping here."
     bad=$((bad+1))
     exit 1
   fi
-  echo "        (product_variant_update, catalog_prebuilt_stays() and the trigger put back, and verified)"
+  echo "        (product_variant_update, catalog_prebuilt_stays(), its triggers and 0063's lock put back, and verified)"
 }
 
 TMP="$(mktemp -d)"
@@ -208,7 +211,7 @@ expect "F3  the retire column misspelled" \
   "42703|ANSWERED|retiring the shop's own product answered" "$F3"
 
 echo
-echo "=== the database: three ways 0042 can be wrong and everything still look fine ==="
+echo "=== the database: five ways 0042, 0054 and 0063 can be wrong and everything still look fine ==="
 
 # ⚠️⚠️ D1 IS THE MIGRATION THAT WOULD HAVE SHIPPED. `6c`'s Finding 1, as a fixture:
 # the fence written as a policy predicate instead of a trigger. It refuses the retire
@@ -219,7 +222,7 @@ restored=no
 ask "drop policy if exists product_variant_update on public.product_variant;" >/dev/null
 ask "create policy product_variant_update on public.product_variant for update to authenticated using (($VARIANT_USING) and is_prebuilt = false) with check ($VARIANT_CHECK);" >/dev/null
 expect "D1  the fence moved into product_variant_update's using clause" \
-  "RENAMING A PREBUILT PRODUCT WAS REFUSED|using clause sees a ROW" "$CONTRACT"
+  "SETTINGS PATCH ON A PREBUILT PRODUCT DID NOT LAND|SILENTLY INVISIBLE" "$CONTRACT"
 restore
 
 # ⚠️⚠️ D2 IS THE TRIGGER GONE FROM THE VARIANT TABLE. Every screen still behaves,
@@ -309,6 +312,15 @@ expect "D3  the marker fenced in BOTH directions, so nothing can ever mark a row
   "PROMOTING A ROW TO PREBUILT WAS REFUSED|unsettable" "$CONTRACT"
 restore
 
+# ⚠️⚠️ D5 IS `0063`'s LOCK GONE — the owner's *"users won't be able to edit the name
+# on default products"* held only by the app, which hides the box. The rename then
+# lands, 200 with the new name, and every other group stays green.
+restored=no
+ask "drop trigger if exists product_variant_wera_keeps_trg on public.product_variant;" >/dev/null
+expect "D5  0063's lock on Wera's names dropped" \
+  "renaming a prebuilt product answered 200" "$CONTRACT"
+restore
+
 echo
 if (( bad > 0 )); then
   echo "$fixtures fixture(s) run, $bad behaved wrongly — $CHECK is not measuring what"
@@ -316,5 +328,5 @@ if (( bad > 0 )); then
   exit 1
 fi
 echo "all $fixtures fixtures behaved — the check goes red on three ways the app can"
-echo "stop describing this table and four ways 0042 and 0054 can be wrong, and stays"
-echo "green on the tree as it is."
+echo "stop describing this table and five ways 0042, 0054 and 0063 can be wrong, and"
+echo "stays green on the tree as it is."

@@ -177,7 +177,7 @@ Sign in with email and password on the first screen (Entrar). No second factor. 
 | Financial info | **Other financial info** | Prices, costs and the shop's takings |
 | App activity | **Other user-generated content** | The catalog, and each supplier's name, contact, phone and address |
 | Device or other IDs | **Device or other IDs** | The random id each install sends to Expo when it checks for an update |
-| Photos and videos | **Photos** | ⚠️ **Since `8m`:** the photos of a product a shop sends with *Te lo compro* |
+| Photos and videos | **Photos** | ⚠️ **Since `8m`:** the photos of a product a shop sends with *Te lo compro*; **since `8o`** also the photo a shop takes of a product it created, for its own list |
 | Personal info | **Address** | ⚠️ **Since `8k`:** the store's address, which is a home when the shop is in one; asked for *Te lo compro* |
 
 **For every one of the nine** — ⚠️ the two `8m` rows apply from the first store build that carries the camera:
@@ -208,7 +208,8 @@ covers every version, store builds included, and the aviso says so (finalidad 9)
 
 **Not ticked, and why:** location, contacts, files, messages, health, web browsing —
 Wera reads none of them and sends none off the phone. Photos are only the ones taken with the
-camera for *Te lo compro*; the phone's gallery is never read. *App interactions*, *Crash logs* and
+camera, for *Te lo compro* or (since `8o`) of a product the shop created; the phone's gallery is
+never read. *App interactions*, *Crash logs* and
 *Diagnostics* — the pilot's measurements are not in the store build, and there is no crash or
 analytics library. *Phone number* — a supplier's phone is the shop's record, not the user's.
 

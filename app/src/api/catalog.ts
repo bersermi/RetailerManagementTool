@@ -52,6 +52,7 @@ import {
 } from '@tienda/money';
 
 import type { ApiMessageKey } from '@/api/errors';
+import { pictureOf, type Picture } from '@/api/photos';
 import { formatMXN } from '@/format/mxn';
 import { ES } from '@/strings';
 
@@ -91,8 +92,14 @@ import { ES } from '@/strings';
  * keeps its name and its picture (the owner's ruling of 2026-10-17), so its page
  * offers *Ya no lo vendo* where the shop's own offers *Editar*. ⚠️ THE FLAG AND NOT
  * `template_code`: 28 prebuilt products on the hosted project carry no code.
+ *
+ * ⚠️ `image_path` and `catalog_image_path` (`0063`, plan `8o`): the shop's own
+ * photo, and Wera's through the row's `template_code` — the second is a
+ * COMPUTED column, a function PostgREST offers as one. Two short paths per row,
+ * persisted with it, so a picture's name is known offline. `@/api/photos`
+ * decides which one a row wears.
  */
-export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code,is_prebuilt';
+export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code,is_prebuilt,image_path,catalog_image_path';
 
 /**
  * The columns a client may ask `product_family` for, as an EMBEDDED resource.
@@ -205,6 +212,10 @@ export interface VariantRow {
   readonly template_code: string | null;
   /** `0042`: from Wera's catalog rather than made by the shop. */
   readonly is_prebuilt: boolean;
+  /** `0063`: the shop's own photo — absent on a row persisted before `8o`. */
+  readonly image_path?: string | null;
+  /** `0063`: Wera's photo, through `template_code` — absent before `8o`. */
+  readonly catalog_image_path?: string | null;
   readonly product_family: FamilyRow | null;
   readonly price_list: readonly PriceRow[] | null;
 }
@@ -548,6 +559,8 @@ export interface CatalogEntry {
   readonly term: string;
   /** From Wera's catalog (`is_prebuilt`): its name and picture are Wera's (`8g`). */
   readonly prebuilt: boolean;
+  /** `8o`: its photo, or `null` for its initials (C8.14). See `pictureOf`. */
+  readonly picture: Picture | null;
 }
 
 /**
@@ -596,6 +609,7 @@ export function catalogFrom(
       // until the next read: its page offers Editar, and Editar reads the flag
       // again for itself before it lets the name be touched.
       prebuilt: row.is_prebuilt === true,
+      picture: pictureOf(row),
     });
   }
   return entries;

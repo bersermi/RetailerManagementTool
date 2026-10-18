@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
+import type { Picture } from '@/api/photos';
 import { aislesOf, inAisle, type Aisle } from '@/api/productPage';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { ES } from '@/strings';
@@ -15,6 +16,7 @@ import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { Buscador } from '@/ui/Buscador';
 import { Destello } from '@/ui/Destello';
+import { Foto } from '@/ui/Foto';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 
@@ -403,7 +405,7 @@ function Fila({ entry, nuevo, showAisle }: { entry: CatalogEntry; nuevo: boolean
         backgroundColor: PALETTE.superficie,
       }}
     >
-      <Iniciales text={entry.initials} />
+      <Iniciales text={entry.initials} picture={entry.picture} />
 
       <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
         <Text
@@ -552,7 +554,7 @@ function Crear({ name, familyId }: { name: string; familyId: string | null }) {
  * and it says it in HUE, which is what direction B was chosen over direction A
  * for. ⚠️ The alternative was a chevron, and C12.1 refuses an icon with no word.
  */
-function Iniciales({ text }: { text: string }) {
+function Iniciales({ text, picture }: { text: string; picture: Picture | null }) {
   const { scale } = useDensity();
   const side = scale.tapTarget;
   return (
@@ -571,11 +573,14 @@ function Iniciales({ text }: { text: string }) {
         backgroundColor: PALETTE.accionSuave,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
       <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
         {text}
       </Text>
+      {/* ⚠️ `8o`: the photo over the letters once this phone has its file. */}
+      <Foto picture={picture} />
     </View>
   );
 }
@@ -606,12 +611,13 @@ function Pasillos({
       style={{ flexGrow: 0, flexShrink: 0 }}
       contentContainerStyle={{ gap: scale.rowGap, paddingHorizontal: scale.space, paddingBottom: scale.rowGap }}
     >
-      <Pasillo name={ES.products.all} initials="" on={chosen === null} onPress={() => onChoose(null)} />
+      <Pasillo name={ES.products.all} initials="" picture={null} on={chosen === null} onPress={() => onChoose(null)} />
       {aisles.map((one) => (
         <Pasillo
           key={one.familyId}
           name={one.name}
           initials={one.initials}
+          picture={one.picture}
           on={chosen === one.familyId}
           onPress={() => onChoose(chosen === one.familyId ? null : one.familyId)}
         />
@@ -620,7 +626,19 @@ function Pasillos({
   );
 }
 
-function Pasillo({ name, initials, on, onPress }: { name: string; initials: string; on: boolean; onPress: () => void }) {
+function Pasillo({
+  name,
+  initials,
+  picture,
+  on,
+  onPress,
+}: {
+  name: string;
+  initials: string;
+  picture: Picture | null;
+  on: boolean;
+  onPress: () => void;
+}) {
   const { scale } = useDensity();
   const side = scale.tapTarget * 1.25;
   return (
@@ -641,6 +659,7 @@ function Pasillo({ name, initials, on, onPress }: { name: string; initials: stri
           backgroundColor: initials === '' ? PALETTE.superficie : PALETTE.accionSuave,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
         }}
       >
         {initials === '' ? (
@@ -648,6 +667,7 @@ function Pasillo({ name, initials, on, onPress }: { name: string; initials: stri
         ) : (
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{initials}</Text>
         )}
+        <Foto picture={picture} />
       </View>
       <Text
         numberOfLines={2}
@@ -688,6 +708,9 @@ function Tarjeta({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
         >
           <View style={{ height: scale.tapTarget * 2.4, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>
             <Text style={{ fontSize: scale.titleSize * 1.4, fontWeight: '700', color: PALETTE.tinta }}>{entry.initials}</Text>
+            {/* ⚠️ `8o`: THE LARGE FILE — the card is too wide for 160 px to stay
+                sharp — standing whole in the middle of the band. */}
+            <Foto picture={entry.picture} size="large" fit="contain" />
           </View>
           <View style={{ padding: scale.rowGap, gap: scale.rowGap / 4 }}>
             <Text numberOfLines={2} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tinta }}>

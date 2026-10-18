@@ -1115,7 +1115,7 @@ function Tarjeta({
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-        <Retrato name={entry.name} small ground={PALETTE.compraSuave} ink={PALETTE.compra} />
+        <Retrato name={entry.name} picture={entry.picture} small ground={PALETTE.compraSuave} ink={PALETTE.compra} />
         <Text numberOfLines={2} style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
           {entry.name}
         </Text>
@@ -1752,6 +1752,7 @@ function CostoPrimero({
   return (
     <HojaPrecio
       name={entry.name}
+      picture={entry.picture}
       detail={detail}
       question={ES.buy.costSheet.ask}
       value={typed}

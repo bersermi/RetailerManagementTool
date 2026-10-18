@@ -52,7 +52,17 @@ import {
   type StoreAddress,
   type StoreAddressRow,
 } from '@/api/collection';
-import { supabase } from '@/lib/supabase';
+import {
+  PHOTO_PX,
+  PRODUCT_PHOTO_TYPE,
+  SHOP_PHOTO_BUCKET,
+  photoFile,
+  photoUrl,
+  type ImagePatch,
+  type Picture,
+  type PhotoSize,
+} from '@/api/photos';
+import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, supabase } from '@/lib/supabase';
 import {
   APPLE_REVOKE,
   APPLE_REVOKE_REGION,
@@ -384,6 +394,39 @@ export async function uploadMermaPhoto(path: string, bytes: Uint8Array): Promise
     .upload(path, bytes, { contentType: PHOTO_CONTENT_TYPE, upsert: false });
   if (error === null || alreadyStored(error)) return;
   throw { code: PHOTO_UPLOAD_FAILED, cause: error };
+}
+
+/**
+ * ⚠️ `8o`: ONE FILE OF THE SHOP'S OWN PRODUCT PHOTO into `producto`, at the path
+ * `newPhotoPath` built. Already there is a success — the retry of a save whose
+ * first attempt got this far (`alreadyStored`). Anything else throws
+ * `PHOTO_UPLOAD_FAILED`, so the row is not pointed at a file that is not there.
+ */
+export async function uploadProductPhoto(path: string, size: PhotoSize, bytes: Uint8Array): Promise<void> {
+  const file = photoFile({ bucket: SHOP_PHOTO_BUCKET, path }, size);
+  const { error } = await supabase.storage
+    .from(SHOP_PHOTO_BUCKET)
+    .upload(file, bytes, { contentType: PRODUCT_PHOTO_TYPE, upsert: false });
+  if (error === null || alreadyStored(error)) return;
+  throw { code: PHOTO_UPLOAD_FAILED, cause: error, px: PHOTO_PX[size] };
+}
+
+/**
+ * ⚠️ `8o`: WHERE ONE PICTURE'S FILE IS, AND THE HEADERS THAT OPEN IT — the
+ * person's own token, so Storage's policies decide (`0063`). Not a supabase-js
+ * call: the photo is downloaded straight to a file (`@/lib/photoStore`), which
+ * `storage.download()` cannot do. ⚠️ THE TOKEN IS HANDED IN, from `useAuth()`'s
+ * session: `supabase.auth` has exactly one caller (`auth-errors.test.ts`).
+ */
+export function photoRequest(
+  picture: Picture,
+  size: PhotoSize,
+  token: string,
+): { readonly url: string; readonly headers: Record<string, string> } {
+  return {
+    url: photoUrl(SUPABASE_URL, picture, size),
+    headers: { Authorization: `Bearer ${token}`, apikey: SUPABASE_PUBLISHABLE_KEY },
+  };
 }
 
 /** The shop's requests, newest first — owners and managers only, by RLS. */
@@ -1019,7 +1062,7 @@ export async function variantSettingsRow(variantId: string): Promise<VariantSett
  */
 export async function patchVariant(
   variantId: string,
-  patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch,
+  patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch,
 ): Promise<void> {
   const { error } = await supabase
     .from(VARIANT_TABLE)

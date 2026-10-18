@@ -23,13 +23,14 @@
 #      shop made.** A renamed or cast column compiles, bundles and passes all 1,513
 #      Vitest tests.
 #
-#   3. ⚠️⚠️ **FINDING 1, DRIVEN OVER THE WIRE: A PREBUILT PRODUCT IS STILL RENAMED AND
-#      REPRICED BY THE APP'S OWN PATCH BODIES.** `NAME_PATCH_COLUMNS` and
-#      `SETTINGS_PATCH_COLUMNS` are sent as the app builds them. This is the assertion
-#      that would have caught the version of `0042` that put `is_prebuilt = false`
-#      into `product_variant_update`'s `using` clause — a migration that reads
-#      correctly, merges automatically and breaks the catalog it was written to
-#      protect.
+#   3. ⚠️⚠️ **FINDING 1, DRIVEN OVER THE WIRE: A PREBUILT PRODUCT IS STILL REPRICED BY
+#      THE APP'S OWN PATCH BODY — AND SINCE `0063` IT IS NOT RENAMED (400 `23001`).**
+#      `NAME_PATCH_COLUMNS` and `SETTINGS_PATCH_COLUMNS` are sent as the app builds
+#      them. The reprice is the assertion that would have caught the version of
+#      `0042` that put `is_prebuilt = false` into `product_variant_update`'s `using`
+#      clause — a migration that reads correctly, merges automatically and breaks
+#      the catalog it was written to protect. The rename, until `0063`, asserted the
+#      same thing; the owner ruled on 2026-10-17 that Wera's names are Wera's.
 #
 #   4. ⚠️ **THE ASYMMETRY.** A shop row can be promoted to prebuilt and a prebuilt row
 #      cannot be demoted. The first is an import's only way in — nothing can mark a
@@ -369,32 +370,40 @@ else
   fail "after the retire the row read $(body "$STILL"); putting it back answered $(status "$BACK")"
 fi
 
-# --- 3. FINDING 1: a prebuilt product is still renamed and repriced ---------
+# --- 3. since 0063 a prebuilt product keeps its NAME; it is still repriced ---
+# ⚠️⚠️ REVERSED BY `0063` (the owner, 2026-10-17: *"users won't be able to edit the
+# name on default products"*). The refusal is `product_variant_wera_keeps`, a
+# TRIGGER, so it is a 400 23001 — never the 200-and-`[]` a `using` clause gives.
 RENAMED="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$OURS_ID&select=id,name" \
   "$(patch_body "$NAME_PATCH_COLUMNS" 'Jitomate bola')")"
 note
-if [[ "$(status "$RENAMED")" == "200" && "$(first name "$(body "$RENAMED")")" == "Jitomate bola" ]]; then
-  ok "FINDING 1 HOLDS: the shopkeeper can still RENAME a product that came with the app"
+if [[ "$(status "$RENAMED")" == "400" && "$(code_of "$(body "$RENAMED")")" == "23001" ]]; then
+  ok "since 0063 a product that came with the app keeps its name — the rename is 400 23001"
+elif [[ "$(status "$RENAMED")" == "200" && "$(rows_of "$(body "$RENAMED")")" == "0" ]]; then
+  fail "THE RENAME OF A PREBUILT PRODUCT WAS SILENTLY INVISIBLE (200 []) — a using clause sees a ROW."
+  echo "      0063's lock is a trigger. A 200 with zero rows means the fence moved into"
+  echo "      product_variant_update's using clause, which also hides the price and"
+  echo "      the IVA from him — the version of 0042 that would have shipped."
 else
-  fail "RENAMING A PREBUILT PRODUCT WAS REFUSED: $(status "$RENAMED") $(body "$RENAMED")"
-  echo "      This is the defect 6c's row calls out by name. The obvious spelling of"
-  echo "      0042 adds is_prebuilt = false to product_variant_update's using clause;"
-  echo "      it reads correctly, merges automatically, and stops him pricing and"
-  echo "      renaming an imported product — which is the entire reason for importing"
-  echo "      one. He must be able to set his own prices on our catalog; he must not"
-  echo "      be able to remove it. A using clause sees a ROW, never a TRANSITION, so"
-  echo "      the rule has to be a trigger."
-  exit 1
+  fail "renaming a prebuilt product answered $(status "$RENAMED") $(body "$RENAMED") — expected 400 23001 (0063)"
 fi
 
+# ⚠️⚠️ FINDING 1, DRIVEN OVER THE WIRE — AND SINCE `0063` THIS IS WHERE IT LIVES: a
+# `using` clause would answer the reprice 200 with ZERO rows, so one row back is
+# the assertion, not the status.
 REPRICED="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$OURS_ID&select=id,tax_rate::text,pack_size::text" \
   "$(settings_body "$SETTINGS_PATCH_COLUMNS" '0.1600' '24')")"
 note
-if [[ "$(status "$REPRICED")" == "200" ]]; then
-  ok "and can set his own IVA and pack size on it — the app's own settings body"
+if [[ "$(status "$REPRICED")" == "200" && "$(rows_of "$(body "$REPRICED")")" == "1" ]]; then
+  ok "FINDING 1 HOLDS: he can still set his own IVA and pack size on it — the app's own settings body"
 else
-  fail "the settings patch on a prebuilt product was refused: $(status "$REPRICED") $(body "$REPRICED")"
-  echo "      Same argument as the rename above, on the two figures Editar changes."
+  fail "THE SETTINGS PATCH ON A PREBUILT PRODUCT DID NOT LAND: $(status "$REPRICED") $(body "$REPRICED")"
+  echo "      This is the defect 6c's row calls out by name. The obvious spelling of"
+  echo "      0042 adds is_prebuilt = false to product_variant_update's using clause;"
+  echo "      it reads correctly, merges automatically, and stops him pricing an"
+  echo "      imported product — which is the entire reason for importing one. A using"
+  echo "      clause sees a ROW, never a TRANSITION, so the rule has to be a trigger."
+  exit 1
 fi
 
 # ⚠️ AND HIS OWN PRODUCT CAN STILL BE RETIRED, which is the capability this row
@@ -448,4 +457,5 @@ if (( fails > 0 )); then
   exit 1
 fi
 echo "all $ran assertion groups passed — since 0054 a prebuilt product can be retired,"
-echo "never demoted (400 23001), and is still renamed and repriced like the shop's own."
+echo "never demoted (400 23001), keeps its name since 0063 (400 23001), and is still"
+echo "repriced like the shop's own."

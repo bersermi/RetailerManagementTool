@@ -37,6 +37,7 @@ const UNITS: readonly UnitRow[] = [
 function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
     prebuilt: false,
+    picture: null,
     id: 'coca-600',
     name: 'Coca-Cola 600 ml',
     familyId: 'refrescos',

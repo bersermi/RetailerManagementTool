@@ -825,6 +825,7 @@ function Fila({
     >
       <Retrato
         name={entry.name}
+        picture={entry.picture}
         ground={counted ? PALETTE.superficie : PALETTE.desperdicioSuave}
         ink={PALETTE.desperdicio}
       />
@@ -1434,7 +1435,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
                   backgroundColor: PALETTE.superficie,
                 }}
               >
-                <Retrato name={item.name} ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                <Retrato name={item.name} picture={item.picture} ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
                 <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
                   <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
                     {item.name}
@@ -1461,7 +1462,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
               {prefilled ? <Prefilled inset={false} /> : null}
               <Tarjeta>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-                  <Retrato name={entry.name} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                  <Retrato name={entry.name} picture={entry.picture} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
                   <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
                     <Text numberOfLines={2} style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
                       {entry.name}
@@ -1529,7 +1530,7 @@ function Solicitar({ address }: { address: StoreAddress }) {
             <>
               <Tarjeta>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
-                  <Retrato name={entry.name} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
+                  <Retrato name={entry.name} picture={entry.picture} small ground={PALETTE.desperdicioSuave} ink={PALETTE.desperdicio} />
                   <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
                     <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
                       {productAmount(entry.name, sent.qty_display, sent.qty_display_unit)}

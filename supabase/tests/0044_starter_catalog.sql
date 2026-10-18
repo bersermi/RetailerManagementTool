@@ -318,9 +318,11 @@ set local role authenticated;
 select public.chk('5.1 re-pointing an imported product at another template row is refused (23001)',
   public._try(format('update public.product_variant set template_code = %L where workspace_id = %L and template_code = %L',
                      'zz0044-pierna', :'ws', 'zz0044-pechuga')) = '23001');
-select public.chk('5.2 the imported product can still be RENAMED — the reason to import one',
+-- ⚠️ REVERSED BY `0063` (the owner, 2026-10-17: *"users won't be able to edit the
+-- name on default products"*): an imported product keeps Wera's name.
+select public.chk('5.2 since 0063 the imported product can NOT be renamed — 23001',
   public._try(format('update public.product_variant set name = %L where workspace_id = %L and template_code = %L',
-                     'Pechuga sin hueso 0044', :'ws', 'zz0044-pechuga')) = 'ok');
+                     'Pechuga sin hueso 0044', :'ws', 'zz0044-pechuga')) = '23001');
 select public.chk('5.3 and, since 0054, an imported product CAN be retired — the shop removes what it does not sell',
   public._try(format('update public.product_variant set is_active = false where workspace_id = %L and template_code = %L',
                      :'ws', 'zz0044-pechuga')) = 'ok');

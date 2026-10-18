@@ -120,6 +120,8 @@ import {
   collectionRequests,
   requestCollection,
   uploadMermaPhoto,
+  uploadProductPhoto,
+  photoRequest,
   setFirstStoreAddress,
   setStoreAddress,
   storeAddresses,
@@ -228,8 +230,18 @@ import {
   type Template,
 } from '@/api/starterCatalog';
 import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
-import { photoBytes, type TakenPhoto } from '@/capture/photo';
+import { photoBytes, type ProductPhoto, type TakenPhoto } from '@/capture/photo';
+import {
+  SHOP_PHOTO_BUCKET,
+  imagePatch,
+  newPhotoPath,
+  photoKey,
+  type ImagePatch,
+  type Picture,
+  type PhotoSize,
+} from '@/api/photos';
 import { onLanded } from '@/lib/landedWrites';
+import { fetchPhoto, keepPhoto, keptPhoto, mayFetch } from '@/lib/photoStore';
 
 
 /**
@@ -1723,7 +1735,7 @@ export function useEditProduct(variantId: string | null) {
     await queries.invalidateQueries({ queryKey: VARIANT_EDIT_KEY });
   }
 
-  async function edit(patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch): Promise<void> {
+  async function edit(patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch | ImagePatch): Promise<void> {
     if (variantId === null) return;
     await patchVariant(variantId, patch);
     await refresh();
@@ -2252,4 +2264,86 @@ export function usePilotReadings(open: boolean): {
     failed: rows.error ? apiErrorKey(rows.error) : null,
     allowed,
   };
+}
+
+
+/**
+ * ⚠️ `8o`: THE FILE A PICTURE IS DRAWN FROM, ON THIS PHONE — or `null`, and the
+ * row wears its initials (C8.14). The owner's canvas: *"Cada foto se baja una
+ * vez y se queda en el teléfono … Sin señal se ve la que ya tienes; si nunca la
+ * viste, sus iniciales. Nunca una foto rota."*
+ *
+ * ⚠️ NOT A QUERY. The answer is a FILE on the phone, which `@/lib/photoStore`
+ * already keeps for ever under a name that never goes stale; a second copy of it
+ * in TanStack's cache would be one more thing to persist and one more answer to
+ * *is it there?*. A row that mounts asks once; a failure waits a minute.
+ */
+export function usePhoto(picture: Picture | null, size: PhotoSize): string | null {
+  const { session } = useAuth();
+  const token = session?.access_token ?? null;
+  const key = picture === null ? null : photoKey(picture, size);
+  const [uri, setUri] = useState<string | null>(() => (key === null ? null : keptPhoto(key)));
+  useEffect(() => {
+    if (key === null || picture === null) {
+      setUri(null);
+      return;
+    }
+    const kept = keptPhoto(key);
+    setUri(kept);
+    if (kept !== null || token === null || !mayFetch(key)) return;
+    let live = true;
+    const request = photoRequest(picture, size, token);
+    void fetchPhoto(key, request.url, request.headers).then((got) => {
+      if (live && got !== null) setUri(got);
+    });
+    return () => {
+      live = false;
+    };
+    // ⚠️ THE KEY IS THE PICTURE: its bucket, path and size — a new `picture`
+    // object for the same path must not ask again. And whether anyone is signed
+    // in: a cold open renders before the stored session is read.
+  }, [key, token === null]);
+  return uri;
+}
+
+/**
+ * ⚠️ `8o`: PUTS THE SHOP'S OWN PHOTO ON A PRODUCT IT MADE — both files into
+ * `producto`, then the one-column patch, then both files into this phone's
+ * store so it never downloads what it just took. `true` when the row carries it.
+ *
+ * ⚠️ THE PATH IS NAMED BY THE CALLER, ONCE, WHEN THE PHOTO IS TAKEN (`fileId`):
+ * a retry after a weak signal uploads to the same path and finds it already
+ * there, which is Te lo compro's arrangement (`useRequestCollection`).
+ *
+ * ⚠️ THE PRODUCT IS SAVED FIRST, ALWAYS, BY WHOEVER CALLS THIS. A photo that
+ * cannot go up leaves a product with its initials, which is a finished product
+ * (C8.14) — never one that could not be created.
+ *
+ * ⚠️ `CATALOG_KEY` IS INVALIDATED LAST, after the files are on the phone, so
+ * the row that comes back with its new path finds its picture already there.
+ */
+export function useProductPhotoSave() {
+  const queries = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  async function save(workspaceId: string, variantId: string, photo: ProductPhoto, fileId: string): Promise<boolean> {
+    const path = newPhotoPath(workspaceId, fileId);
+    setBusy(true);
+    try {
+      await uploadProductPhoto(path, 'large', await photoBytes(photo.large));
+      await uploadProductPhoto(path, 'thumb', await photoBytes(photo.thumb));
+      await patchVariant(variantId, imagePatch(path));
+      const picture: Picture = { bucket: SHOP_PHOTO_BUCKET, path };
+      await keepPhoto(photoKey(picture, 'large'), photo.large.uri);
+      await keepPhoto(photoKey(picture, 'thumb'), photo.thumb.uri);
+      return true;
+    } catch {
+      return false;
+    } finally {
+      await queries.invalidateQueries({ queryKey: CATALOG_KEY });
+      setBusy(false);
+    }
+  }
+
+  return { save, busy };
 }

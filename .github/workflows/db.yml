@@ -444,6 +444,10 @@ on:
       - "docs/checks/9d-starter-catalog-contract-falsify.sh"
       - "docs/checks/5R-c-account-deletion-contract.sh"
       - "docs/checks/5R-c-account-deletion-contract-falsify.sh"
+      # ⚠️ AND THE PRODUCT PHOTOS, as of plan task `8o` (`0063`) — the two buckets,
+      # the shop's own column and Wera's computed one, against the app's own names.
+      - "docs/checks/8o-photos-contract.sh"
+      - "docs/checks/8o-photos-contract-falsify.sh"
       - "docs/checks/7a-sales-contract.sh"
       - "docs/checks/7a-sales-contract-falsify.sh"
       - "docs/checks/7d-month-export-contract.sh"
@@ -1078,7 +1082,7 @@ jobs:
   # rate-limited GoTrue. Scaling that puts both steps well inside the cap — which is
   # the measurement that says this job is nowhere near the cliff `catalog-write` is on.
   catalog-origin:
-    name: the prebuilt catalog, and the delete that depends on it
+    name: the prebuilt catalog, its photos, and the delete that depends on it
     runs-on: ubuntu-latest
     # ⚠️ FIFTEEN, LIKE EVERY OTHER JOB HERE — and `providers`' note applies verbatim:
     # what makes a job like this slow is not the fixtures, it is GoTrue's signup rate
@@ -1095,10 +1099,12 @@ jobs:
           # schema red without a commit saying why.
           version: 2.114.0
 
-      # ⚠️ `db`, `auth`, `rest` AND THE GATEWAY ARE ALL THIS NEEDS. The exclusion list
-      # is `catalog-write`'s, for its reason.
-      - name: Start Postgres, GoTrue and PostgREST
-        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+      # ⚠️ `db`, `auth`, `rest`, THE GATEWAY — AND SINCE `8o` STORAGE: the photo
+      # contract puts files into `0063`'s two buckets through the Storage API.
+      # Otherwise the exclusion list is `catalog-write`'s, for its reason. ⚠️ Storage
+      # must be up BEFORE the reset, or `0063` finds no `storage.buckets` and skips them.
+      - name: Start Postgres, GoTrue, PostgREST and Storage
+        run: supabase start -x realtime,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Apply migrations from scratch
         run: supabase db reset
@@ -1127,7 +1133,7 @@ jobs:
       # with no trigger at all and went red for the wrong reason. **It said so, which is
       # the only thing that could have found it.** The restore now pipes the body,
       # issues each statement separately, and VERIFIES the database went back.
-      - name: Contract — can the fence check still fail (its own eight fixtures)
+      - name: Contract — can the fence check still fail (its own nine fixtures)
         run: bash docs/checks/6c-catalog-origin-contract-falsify.sh
 
       # THE STARTER CATALOG'S IMPORT (docs/PLAN.md 9d), over the same reset: the
@@ -1151,6 +1157,19 @@ jobs:
 
       - name: Falsify it — three broken copies, each red for its reason
         run: bash docs/checks/5R-c-account-deletion-contract-falsify.sh
+
+      # ⚠️⚠️ AND THE PRODUCT PHOTOS — plan task `8o`, `0063` — APPENDED to this job
+      # because it is the prebuilt catalog's: Wera's photo reaches every shop's
+      # imported copy through `template_code`, and the lock that keeps Wera's name
+      # also keeps Wera's photo. Its claims live nowhere else: a bucket is a STRING
+      # no typecheck reads; `catalog_image_path` is a COMPUTED column, invisible to
+      # `information_schema`; and the two buckets' policies are only real over the
+      # Storage API, never in a SQL suite that runs without it.
+      - name: Contract — the product photos, against the app's own names (plan 8o)
+        run: bash docs/checks/8o-photos-contract.sh
+
+      - name: Falsify it — four broken names and two broken policies, each red for its reason
+        run: bash docs/checks/8o-photos-contract-falsify.sh
 
       - name: Stop
         if: always()
