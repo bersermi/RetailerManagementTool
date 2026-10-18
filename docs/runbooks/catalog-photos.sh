@@ -12,7 +12,9 @@
 # (`LEEME.md` there); the file's name is the product's `codigo`, which is
 # `catalogo.product.code` and every shop's `template_code`.
 #
-# For each photo: the middle square, upright, 720 and 160 px, 70 % JPEG, NO
+# For each photo — JPG, PNG, HEIC, WebP or AVIF, all read by macOS itself, so
+# nothing needs converting first — the whole photo, upright, fitted into a
+# square on white, 720 and 160 px, 70 % JPEG, NO
 # METADATA (`catalog-photos.swift` — `sips` would carry where a photo was taken
 # into a bucket every shop reads); then both files into the bucket `catalogo` at
 # `<codigo>/<hash>/` with the service role; then `catalogo.product.image_path` set
@@ -23,7 +25,13 @@
 # phone that kept the old one can show it under the new name; a photo already
 # up under the same path is skipped. Run it as often as he adds photos.
 # ⚠️ A FILE WHOSE NAME IS NOT A `codigo` IN THE CATALOG IS LISTED AND SKIPPED,
-# never guessed at.
+# never guessed at — and so is a file in a format this does not read: until
+# 2026-10-18 a WebP or AVIF was skipped WITHOUT A WORD, which is how 92 of his
+# photos would have stayed initials with nothing saying why.
+# ⚠️ ONE PICTURE SAVED UNDER TWO CODES IS NAMED: one of the two is the wrong
+# product (measured 2026-10-18 — the same Fanta bottle as 2 L and as 600 ml).
+# ⚠️ A PHOTO WHOSE LONGER SIDE IS UNDER 720 PX GOES UP, AND IS NAMED: the lists
+# look fine, the product's page shows it soft. LEEME.md asks for 800.
 # ⚠️ `--linked` WRITES TO THE SHOP: Storage and `catalogo.product`. It is the
 # owner's to run, or a session's with his word.
 # ============================================================================
@@ -71,7 +79,13 @@ up() { # object-path file -> HTTP status; 409 (already there) counts as up
 }
 
 : > "$WORK/updates.sql"
-sent=0; same=0; unknown=0; failed=0
+sent=0; same=0; unknown=0; failed=0; small=0; unread=0
+while IFS= read -r -d '' other; do
+  echo "  ?     ${other#"$FOLDER"/} — not a photo format this reads (JPG, PNG, HEIC, WebP, AVIF); skipped"
+  unread=$((unread+1))
+done < <(find "$FOLDER" -type f ! -name '.*' ! -iname '*.csv' ! -iname '*.md' \
+           ! -iname '*.jpg' ! -iname '*.jpeg' ! -iname '*.png' ! -iname '*.heic' ! -iname '*.heif' \
+           ! -iname '*.webp' ! -iname '*.avif' -print0 | sort -z)
 while IFS= read -r -d '' photo; do
   name="$(basename "$photo")"
   code="$(tr '[:upper:]' '[:lower:]' <<< "${name%.*}")"
@@ -84,18 +98,27 @@ while IFS= read -r -d '' photo; do
   sizes="$("$WORK/scale" "$photo" "$out" 2>&1)" || { echo "  FAIL  $name — $sizes"; failed=$((failed+1)); continue; }
   hash="$(shasum -a 256 "$out/720.jpg" | cut -c1-8)"
   path="$code/$hash"
+  twin="$(grep -m1 " $hash\$" "$WORK/hashes" 2>/dev/null | cut -d' ' -f1)"
+  [[ -n "$twin" ]] && echo "  ⚠️    $code has the SAME picture as $twin — one of the two is probably the wrong product"
+  echo "$code $hash" >> "$WORK/hashes"
   if [[ "$current" == "$path" ]]; then same=$((same+1)); continue; fi
   a="$(up "$path/720.jpg" "$out/720.jpg")"; b="$(up "$path/160.jpg" "$out/160.jpg")"
   if [[ "$a" =~ ^(200|409)$ && "$b" =~ ^(200|409)$ ]]; then
     echo "('$code', '$path')" >> "$WORK/updates.sql"
-    read -r large thumb <<< "$sizes"
-    echo "  ok    $code → $path ($((large / 1024)) KB, $((thumb / 1024)) KB)"
+    read -r large thumb longer <<< "$sizes"
+    if (( longer < 720 )); then
+      echo "  ok    $code → $path ($((large / 1024)) KB, $((thumb / 1024)) KB) — ⚠️ only $longer px: soft on the product's page"
+      small=$((small+1))
+    else
+      echo "  ok    $code → $path ($((large / 1024)) KB, $((thumb / 1024)) KB)"
+    fi
     sent=$((sent+1))
   else
     echo "  FAIL  $code — upload answered $a and $b: $(head -c 160 "$WORK/up.body")"
     failed=$((failed+1))
   fi
-done < <(find "$FOLDER" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' \) -print0 | sort -z)
+done < <(find "$FOLDER" -type f \( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.heic' \
+           -o -iname '*.heif' -o -iname '*.webp' -o -iname '*.avif' \) -print0 | sort -z)
 
 if (( sent > 0 )); then
   # ⚠️ ONE STATEMENT, so every row lands or none does — and because the CLI
@@ -112,5 +135,5 @@ if (( sent > 0 )); then
   echo
   echo "catalogo.product now names $landed photo(s) on $TARGET."
 fi
-echo "$sent new, $same already up, $unknown not in the catalog, $failed failed."
+echo "$sent new ($small of them under 720 px), $same already up, $unknown not in the catalog, $unread in a format it does not read, $failed failed."
 (( failed == 0 ))
