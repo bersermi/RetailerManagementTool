@@ -94,6 +94,7 @@ function variant(
     base_unit_code,
     is_active,
     template_code: null,
+    is_prebuilt: false,
     product_family: { id: FAMILY, name: familyName },
     price_list: prices,
   };

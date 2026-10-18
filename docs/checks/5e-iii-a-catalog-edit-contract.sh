@@ -92,6 +92,7 @@ VARIANT_EDIT_COLUMNS="$(str VARIANT_EDIT_COLUMNS)"
 NAME_PATCH_COLUMNS="$(str NAME_PATCH_COLUMNS)"
 SETTINGS_PATCH_COLUMNS="$(str SETTINGS_PATCH_COLUMNS)"
 ACTIVE_PATCH_COLUMNS="$(str ACTIVE_PATCH_COLUMNS)"
+FAMILY_PATCH_COLUMNS="$(str FAMILY_PATCH_COLUMNS)"
 PRICE_CLOSE_COLUMNS="$(str PRICE_CLOSE_COLUMNS)"
 PRICE_REPRICE_COLUMNS="$(str PRICE_REPRICE_COLUMNS)"
 UPDATE_RETURNING="$(str UPDATE_RETURNING)"
@@ -113,7 +114,7 @@ PRICE_INSERT_COLUMNS="$(sed -n "/^export const PRICE_INSERT_COLUMNS =/,/;\$/p" a
 note
 MISSING=""
 for name in PRICE_EDIT_COLUMNS VARIANT_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
-            ACTIVE_PATCH_COLUMNS PRICE_CLOSE_COLUMNS PRICE_REPRICE_COLUMNS \
+            ACTIVE_PATCH_COLUMNS FAMILY_PATCH_COLUMNS PRICE_CLOSE_COLUMNS PRICE_REPRICE_COLUMNS \
             UPDATE_RETURNING VARIANT_TABLE FORBIDDEN_CODE OVERLAP_CODE \
             NO_ROWS_CODE REJECTED_CODES PRICE_TABLE PRICE_INSERT_COLUMNS; do
   eval "value=\$$name"
@@ -450,12 +451,47 @@ else
   echo "        $(status "$NEIGHBOUR_OUT") $(body "$NEIGHBOUR_OUT")"
 fi
 
+# --- 11. ⚠️ `8g`: THE SHOP'S OWN PRODUCT MOVES TO ANOTHER AISLE ---------------
+# Editar carries the aisle since the owner's ruling of 2026-10-17. The write is
+# one column on the variant, read out of the app; a cashier's is the silent
+# refusal every other UPDATE here is, and an aisle in the shop next door is
+# refused by the composite key `(family_id, workspace_id)` — never a product
+# filed into somebody else's shop.
+note
+TOKEN="$OWNER_TOKEN"
+AISLE_BODY="$(obj 'workspace_id,name' "$WORKSPACE_ID" 'Frutas')"
+AISLE_ID="$(first_id "$(body "$(api POST "/rest/v1/product_family?select=id" "$AISLE_BODY")")")"
+TOKEN="$NEIGHBOUR_TOKEN"
+THEIR_WS="$(first_id "$(body "$(api GET '/rest/v1/workspace?select=id')")")"
+THEIR_AISLE="$(first_id "$(body "$(api POST "/rest/v1/product_family?select=id" "$(obj 'workspace_id,name' "$THEIR_WS" 'Ajena')")")")"
+TOKEN="$STAFF_TOKEN"
+ACCEPT='application/vnd.pgrst.object+json'
+STAFF_MOVE="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$FAMILY_PATCH_COLUMNS" "$AISLE_ID")")"
+TOKEN="$OWNER_TOKEN"
+OWNER_MOVE="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$FAMILY_PATCH_COLUMNS" "$AISLE_ID")")"
+FOREIGN_MOVE="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$(obj "$FAMILY_PATCH_COLUMNS" "$THEIR_AISLE")")"
+ACCEPT='application/json'
+MOVED="$(field family_id "$(body "$(api GET "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=family_id")")")"
+if [[ -n "$AISLE_ID" && -n "$THEIR_AISLE" \
+      && "$(code_of "$(body "$STAFF_MOVE")")" == "$NO_ROWS_CODE" \
+      && "$(status "$OWNER_MOVE")" == "200" \
+      && "$(status "$FOREIGN_MOVE")" =~ ^(400|409)$ \
+      && "$MOVED" == "$AISLE_ID" ]]; then
+  ok "the owner moves his product to another aisle ($FAMILY_PATCH_COLUMNS); a cashier is refused ($NO_ROWS_CODE), and the shop next door's aisle is refused ($(status "$FOREIGN_MOVE"))"
+else
+  fail "moving a product between aisles did not behave:"
+  echo "        cashier: $(status "$STAFF_MOVE") $(body "$STAFF_MOVE")"
+  echo "        owner:   $(status "$OWNER_MOVE") $(body "$OWNER_MOVE")"
+  echo "        foreign: $(status "$FOREIGN_MOVE") $(body "$FOREIGN_MOVE")"
+  echo "        family afterwards: $MOVED (wanted $AISLE_ID)"
+fi
+
 echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything looks
 # like — and `5b-split-coverage.sh` shipped without one.
-if (( fails == 0 && ran < 9 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 9 — this check asserted almost"
+if (( fails == 0 && ran < 10 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 10 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

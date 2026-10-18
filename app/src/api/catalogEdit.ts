@@ -272,6 +272,8 @@ export function canRetireProduct(
 export const NAME_PATCH_COLUMNS = 'name';
 export const SETTINGS_PATCH_COLUMNS = 'tax_rate,pack_size';
 export const ACTIVE_PATCH_COLUMNS = 'is_active';
+/** ⚠️ `8g`: the shop's own product moved to another aisle — `FamilyPatch`. */
+export const FAMILY_PATCH_COLUMNS = 'family_id';
 
 /** The two `price_list` patches: closing a row, and correcting one in place. */
 export const PRICE_CLOSE_COLUMNS = 'effective_to';
@@ -437,6 +439,23 @@ export interface SettingsPatch {
 /** `{ is_active }`. `ACTIVE_PATCH_COLUMNS`. */
 export interface ActivePatch {
   readonly is_active: boolean;
+}
+
+/**
+ * `{ family_id }` — ⚠️ `8g`: the shop's own product moved to another aisle (the
+ * owner's ruling of 2026-10-17, *Editar* carries the aisle). ⚠️⚠️ ONE DIMENSION
+ * PER FAMILY (C8.5) IS NOT THE DATABASE'S TO HOLD, SO THE CHOICES ARE:
+ * `aislesFor` in `@/api/productPage` offers only aisles whose products are sold
+ * in the same kind of unit, and this is the write it makes.
+ */
+export interface FamilyPatch {
+  readonly family_id: string;
+}
+
+/** The move, or `null` when the aisle did not change. */
+export function familyPatch(current: string, chosen: string | null): FamilyPatch | null {
+  if (chosen === null || chosen === current) return null;
+  return { family_id: chosen };
 }
 
 /**

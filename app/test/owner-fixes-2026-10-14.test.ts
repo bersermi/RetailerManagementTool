@@ -44,23 +44,14 @@ describe('onboarding asks for giros, and only Agregar del catálogo shows the li
   });
 });
 
-describe('a family of any length shows its three controls', () => {
-  const familia = read('../src/app/familia/[id].tsx');
-
-  it('draws the controls after the scrolling list, not inside it', () => {
-    const scrollEnds = familia.indexOf('</ScrollView>');
-    const controls = familia.indexOf('<Acciones familyId');
-    expect(scrollEnds).toBeGreaterThan(0);
-    expect(controls).toBeGreaterThan(scrollEnds);
-  });
-
-  it('opens the list at the row he tapped', () => {
-    expect(familia).toMatch(/entry\.id === variante\s*\n?\s*\? \(event\) => scrollToArrival/);
-  });
-});
+// ⚠️ `8g`, 2026-10-17: la Familia is gone — a tap in Productos opens the
+// product's own page, and the family is its aisle (`app/test/product-page.test.ts`).
 
 describe('a price set from Vender', () => {
   const vender = read('../src/app/(tabs)/vender.tsx');
+  // ⚠️ `8g`, 2026-10-17: the sheet moved to `src/ui/` when the product page became
+  // its second door — the same code, read where it now lives.
+  const sheet = read('../src/ui/PrecioRapido.tsx');
 
   it('is offered to the owner and a manager only — the catalog fence', () => {
     expect(vender).toMatch(/const mayPrice = canWriteCatalog\(useMyRole\(\)\);/);
@@ -72,14 +63,14 @@ describe('a price set from Vender', () => {
   });
 
   it('writes through the edit screen’s own path, never a second one', () => {
-    expect(vender).toMatch(/checkEdit\(entry\.id, form, typed, entries, factors, entry\.priceUnit\)/);
-    expect(vender).toMatch(/editPlan\(/);
-    expect(vender).toMatch(/await save\(plan\)/);
+    expect(sheet).toMatch(/checkEdit\(entry\.id, form, typed, entries, factors, entry\.priceUnit\)/);
+    expect(sheet).toMatch(/editPlan\(/);
+    expect(sheet).toMatch(/await save\(plan\)/);
   });
 
   it('offers no Guardar until the price rows have landed, nor when they failed', () => {
-    expect(vender).toMatch(/const ready = !loading && !pricesFailed;/);
-    expect(vender).toMatch(/if \(!ready \|\| working\) return;/);
+    expect(sheet).toMatch(/const ready = !loading && !pricesFailed;/);
+    expect(sheet).toMatch(/if \(!ready \|\| working\) return;/);
   });
 
   it('says what a cashier still reads, and what the owner reads instead', () => {

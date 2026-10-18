@@ -92,6 +92,7 @@ import {
   PRICE_EDIT_KEY,
   VARIANT_EDIT_KEY,
   type ActivePatch,
+  type FamilyPatch,
   type EditOutcome,
   type EditPlan,
   type NamePatch,
@@ -1722,7 +1723,7 @@ export function useEditProduct(variantId: string | null) {
     await queries.invalidateQueries({ queryKey: VARIANT_EDIT_KEY });
   }
 
-  async function edit(patch: NamePatch | SettingsPatch | ActivePatch): Promise<void> {
+  async function edit(patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch): Promise<void> {
     if (variantId === null) return;
     await patchVariant(variantId, patch);
     await refresh();
@@ -1801,6 +1802,8 @@ export function useEditProduct(variantId: string | null) {
     prices: (prices.data ?? []) as readonly PriceInForce[],
     settings: (settings.data ?? null) as VariantSettingsRow | null,
     factors: unitFactorsFrom(units.data),
+    /** ⚠️ `8g`: the rows too, for each unit's dimension — `aislesFor`'s C8.5 fence. */
+    units: units.data ?? [],
     edit,
     reprice,
     save,

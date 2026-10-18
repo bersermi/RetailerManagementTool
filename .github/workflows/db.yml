@@ -1206,7 +1206,7 @@ jobs:
       # fence arrives as, and those are the ones worth reading: `A CASHIER IS
       # REFUSED` is now a claim about a 403 AND about a silent 200, and a harness
       # that could not break both would be watching half of it.
-      - name: Contract — can the catalog edit check still fail (its own ten fixtures)
+      - name: Contract — can the catalog edit check still fail (its own fixtures)
         run: bash docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh
 
       # ⚠️⚠️ THE FIRST ROUND TRIP THIS REPOSITORY HAS EVER MADE AGAINST

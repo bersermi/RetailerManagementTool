@@ -99,6 +99,7 @@ function variant(id: string, name: string, familyId: string, familyName: string)
     base_unit_code: 'g',
     is_active: true,
     template_code: null,
+    is_prebuilt: false,
     product_family: { id: familyId, name: familyName },
     price_list: [],
   };
