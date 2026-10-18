@@ -47,8 +47,10 @@ fixture wrong-rpc-name "$CONTRACT" \
 fixture renamed-argument "$CONTRACT" \
   's/^  readonly p_exclude:/  readonly p_excluded:/' \
   'ImportArgs names .*p_excluded'
+# ⚠️ `8g` put `is_prebuilt` after `template_code`; the mutation drops the code
+# wherever it sits in the list, not only at its end.
 fixture column-dropped "$CATALOG" \
-  's/,is_active,template_code'"'"';/,is_active'"'"';/' \
+  's/,is_active,template_code,/,is_active,/' \
   'no longer asks for template_code'
 fixture template-rpc-renamed "$CONTRACT" \
   "s/^export const CATALOG_TEMPLATE = 'catalog_template';/export const CATALOG_TEMPLATE = 'catalog_templates';/" \
