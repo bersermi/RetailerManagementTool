@@ -65,7 +65,8 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 ⏳ **17 October: the camera's new install is built, and the aviso that covers it is up on
 tu-wera.com.** Both phones need it, and **after it every update needs it**: until a phone has it,
 nothing new reaches that phone.
-- **Your iPhone:** open https://expo.dev/accounts/wera-app/projects/wera/builds/65530d87-e68c-4e5a-a259-9653bea39035
+- **Your iPhone:** ✅ **installed from this Mac on 17 October** (it waited until you unlocked it).
+  If it ever needs it again: open https://expo.dev/accounts/wera-app/projects/wera/builds/65530d87-e68c-4e5a-a259-9653bea39035
   on the phone and tap *Install*. Your data stays.
 - **The pilot Android:** open https://expo.dev/accounts/wera-app/projects/wera/builds/24376f0a-0c73-4f5b-b42d-cd2202edf2cb
   on it, download the file and open it. The same two files are kept on this Mac in

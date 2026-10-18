@@ -65,6 +65,7 @@ position-history archive.** A row leaves the table once its Done cell is written
 
 ✅ **2026-10-17, evening — `8m`: THE AVISO IS PUBLISHED, ON HIS WORD: *"Publish the aviso and install it on my iPhone"*.**
 **What changed:** pull request 327, merged as `b763251`: the aviso de privacidad covers *Te lo compro* — the store's address (a home, when the shop is in one), each request, the photos, the WhatsApp message, a tenth purpose (Wera's own), photos of a deleted shop removed by hand **within 30 days**, and in section 5 **buyers see the photos and the shop's name, never its address or who asked** — *part of the service the shop asks for*, the session's reading, to show the lawyer when `5R-l` returns. Dated 17 October. The decisions block is empty.
+**His iPhone has the camera build since 2026-10-18 00:24 UTC**: `devicectl` installed the unpacked iOS `65530d87` over WiFi on its 13th try — the first twelve answered *the device is locked*, wrapped as `CoreDeviceError 12040`. The pilot Android has not got `24376f0a` yet.
 **Evidence:** `site.yml` on `main`: *the pages are fit to publish* (the responsable and the domicilio filled from the secrets, two each; no `{{ }}` left) and *publish to tu-wera.com*, both green; `5R-d-ii-site-live.sh` — *every assertion holds*, the served aviso carrying *Última actualización: 17 de octubre de 2026*, and its new sentences read off the live page.
 
 ▶️ **2026-10-17 — `8m`: THE CAMERA FOR *TE LO COMPRO*, BUILT AND MEASURED ON THE EMULATOR; THE TWO PHONES' BUILDS FOLLOW THE MERGE.**
