@@ -149,6 +149,7 @@ import {
   VARIANT_EDIT_COLUMNS,
   VARIANT_TABLE,
   type ActivePatch,
+  type FamilyPatch,
   type NamePatch,
   type PriceChange,
   type PriceChangeOutcome,
@@ -1018,7 +1019,7 @@ export async function variantSettingsRow(variantId: string): Promise<VariantSett
  */
 export async function patchVariant(
   variantId: string,
-  patch: NamePatch | SettingsPatch | ActivePatch,
+  patch: NamePatch | SettingsPatch | ActivePatch | FamilyPatch,
 ): Promise<void> {
   const { error } = await supabase
     .from(VARIANT_TABLE)

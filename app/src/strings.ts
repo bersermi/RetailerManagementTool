@@ -1921,6 +1921,52 @@ export const ES = {
     },
   },
 
+  /**
+   * ⚠️ `8g`, Productos redrawn — the owner's rulings of 2026-10-17: option D (the
+   * aisles across the top, list or mosaic), a page for each product, and the one
+   * hook he kept, *what you would earn while you type a price*.
+   */
+  products: {
+    /** The first aisle, every product. */
+    all: 'Todo',
+    /** The switch in the band, to a screen reader. */
+    asList: 'Ver en lista',
+    asMosaic: 'Ver en mosaico',
+    /** Cambiar precio's line under the box. */
+    earns: (cost: string, amount: string, unit: string) => `Te cuesta ${cost} · ganarías ${amount} por ${unit}`,
+    loses: (cost: string, amount: string, unit: string) => `Te cuesta ${cost} · perderías ${amount} por ${unit}`,
+    page: {
+      /** *Refrescos · por pza*. */
+      sub: (aisle: string, unit: string) => `${aisle} · por ${unit}`,
+      noPrice: 'Sin precio',
+      changePrice: 'Cambiar precio',
+      costTitle: 'Te cuesta',
+      costWhen: (provider: string, day: string) => `${provider} · ${day}`,
+      costNone: 'Todavía no lo has comprado',
+      /** When it was last bought — Comprar's *Anterior* is a word for its box, not this one. */
+      when: { today: 'hoy', yesterday: 'ayer', daysAgo: (days: number) => `hace ${days} días` },
+      earnTitle: 'Ganas',
+      loseTitle: 'Pierdes',
+      perUnit: (amount: string, unit: string) => `${amount} por ${unit}`,
+      perHundred: (n: number) => `${n} de cada $100`,
+      weekTitle: 'Esta semana',
+      week: (quantity: string, amount: string) => `${quantity} · ${amount}`,
+      weekNone: 'No se ha vendido esta semana',
+      bestDay: (weekday: string) => `Tu mejor día: el ${weekday}`,
+      moreOf: (aisle: string) => `Más de ${aisle}`,
+      seeAll: (n: number) => `Ver los ${n}`,
+      prices: 'Precios',
+      costs: 'Costos',
+      edit: 'Editar',
+      /** Monday first: the seven bars' letters. */
+      days: ['L', 'M', 'M', 'J', 'V', 'S', 'D'],
+    },
+    /** Editar, for the shop's own product. */
+    aisleLabel: 'Pasillo',
+    aisleChange: 'Cambiar',
+    aisleAsk: '¿A qué pasillo va?',
+  },
+
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */
   catalog: {
     /**
@@ -2175,8 +2221,9 @@ export const ES = {
        * `product_family` and `product_variant` have no delete policy at all in
        * `0002`: *"a family with ledger history is deactivated, never deleted"*.
        */
-      retire: 'Retirar del catálogo',
-      retireAsk: '¿Retirar este producto del catálogo?',
+      /** ⚠️ `8g`: the owner's plainer words of 2026-10-17. */
+      retire: 'Ya no lo vendo',
+      retireAsk: '¿Ya no vendes este producto?',
       /**
        * ⚠️ WHAT IT COSTS, IN THE TWO HALVES A SHOPKEEPER CARES ABOUT: it goes
        * off the screens he uses, and the money he has already taken stays where it
@@ -2202,7 +2249,7 @@ export const ES = {
        * there is nothing yet to draw differently. See `6c`.
        */
       retireOnce: 'Esto no se puede deshacer.',
-      retireYes: 'Sí, retirarlo',
+      retireYes: 'Sí, ya no lo vendo',
       retireNo: 'Cancelar',
     },
 

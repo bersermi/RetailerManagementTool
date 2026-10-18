@@ -165,6 +165,11 @@ fresh
 edit "tax_rate::text,pack_size::text" "iva::text,pack_size::text"
 mutated && fixture "F11 the form reads a column that is not there" red "did not come back as text at their column scales"
 
+# --- F12. ⚠️ `8g`: the aisle move names a column the variant does not have --
+fresh
+edit "export const FAMILY_PATCH_COLUMNS = 'family_id';" "export const FAMILY_PATCH_COLUMNS = 'pasillo_id';"
+mutated && fixture "F12 the aisle move writes a column that is not there" red "moving a product between aisles did not behave"
+
 # --- F9. ⚠️ THE VACUITY CASE — a contract the check cannot read ------------
 # ⚠️ IT MUST REFUSE RATHER THAN RUN. A check that cannot find the strings it
 # asserts has nothing to assert, and this repository has recorded five shapes of
@@ -177,8 +182,8 @@ PY
 mutated && fixture "F9 a contract with no constants in it" red "could not read the catalog edit's contract"
 
 echo
-if (( fails == 0 && ran < 12 )); then
-  echo "FAIL: only $ran fixtures ran, expected 12 — this harness asserted almost"
+if (( fails == 0 && ran < 13 )); then
+  echo "FAIL: only $ran fixtures ran, expected 13 — this harness asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

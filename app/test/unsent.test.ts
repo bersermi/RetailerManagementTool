@@ -74,6 +74,7 @@ const PROVIDERS: readonly Provider[] = [
 
 function entry(id: string, name: string): CatalogEntry {
   return {
+    prebuilt: false,
     id,
     name,
     familyId: 'f',

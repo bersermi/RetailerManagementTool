@@ -62,6 +62,13 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **17 October, night: Productos redrawn, over the air** (*Productos nuevo: pasillos, ficha y
+cambiar precio*). Inicio → Más → Productos: the aisles along the top (one tap shows only that
+aisle, *Todo* shows everything), and ☰ / ▦ in the corner for list or mosaic. Tap a product for its
+page: price, what it costs you, what you earn, this week. *Cambiar precio* tells you what you'd earn
+as you type. Catalog products show *Ya no lo vendo* instead of *Editar*. Photos come in the next
+part (`8o`); until then, initials. Open Wera, close it completely, open it again.
+
 ⏳ **17 October: the camera's new install is built, and the aviso that covers it is up on
 tu-wera.com.** Both phones need it, and **after it every update needs it**: until a phone has it,
 nothing new reaches that phone.
@@ -252,7 +259,8 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **8e** | **The design map for Wednesday** — every colour, size and animation, and a screenshot of every screen | ✅ **Done 29 September** — https://claude.ai/artifact/4h59q1QEdc1q3ztYnN39EJ |
 | **8f** | **The design pass, with you** | ✅ **Done 30 September** — light only; one filled button and one dimmed backdrop everywhere; Precios' cards fixed. On your phone since 10 October |
 | **8g** | **Your screen-by-screen review** — headers, the tab colour, sign-in and welcome, and what `8f` left you. **Widened on 12 October to a real first day**: sign up, create the shop, import the starter catalog, first sale | ⚠️ **This is where the next piece of work is** — ✅ **round 1 done 15 October, with you: Vender and the Carrito in your row B**, and a product with no price gets its price on its first `+`. ✅ **Round 2 done the same night: one header, the cream band, on every screen; on the four tabs your shop's name and a faint drawing of its giro.** **Round 3 ✅ (16 October): only the main action solid, Nunito in the titles, motion as it is.** ✅ **Round 4 (16 October): Comprar as your card grid in blue, a cost first, and one Carrito for all three counters. Next: Desperdicio** — your order, the daily screens first (then Inicio, then the rest) — decided on the canvas (https://claude.ai/artifact/JcSTnTSZhMEY2hCHZo5zn9), then built. Paste the review prompt (below, *How a working session goes*), not your main prompt |
-| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence needs a new app build on both phones, and the aviso de privacidad and the stores' forms need your approval before they are published. Split off `8l` on 16 October | ✅ **The aviso is up on tu-wera.com since 17 October** (your word: *publish*), and both phones' installs are ready (see *What is on your phone*). **Nothing is waiting on YOU** — the pilot Android installs when its owner opens the link |
+| **8m** | **The camera and the aviso for *Te lo compro*** — a photo as evidence, a new app build on both phones, and the aviso de privacidad and the stores' forms. Split off `8l` on 16 October | ✅ **Done 17 October**: the aviso is up on tu-wera.com and the camera build is on your iPhone; the pilot Android installs it from its link (see *What is on your phone*). **Nothing is waiting on YOU** |
+| **8o** | **Photos in Productos** — Wera's photo on every catalog product (not changeable), your own photo on a product you create, or its initials; two small sizes kept on the phone | **Next after Productos' first part.** You approved the database change and the aviso line on 17 October. ⚠️ Wera's photos for the catalog's 1,000+ products still need a source — until then they show their initials |
 | **8i** | **Pricing at the counter with no signal** — your `+` asks a price, and today saving one needs signal | Split off round 1 on 15 October, with a recommendation in the plan's row; one way needs a database change, which is yours to say |
 | **8h** | **Dark mode** | ⏸️ Set aside by you — *"Light only, for now"* |
 | **9a** | **The starter catalog, step 1** — where the seven giros' products will live, and the import that copies them into a shop. `docs/PLAN.md`, `## Step 9` | ✅ **Done 1 October** — empty until your first giro session |

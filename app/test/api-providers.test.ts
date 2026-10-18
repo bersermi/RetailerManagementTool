@@ -461,6 +461,7 @@ describe('which sentence goes under the cost box', () => {
 
 function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
+    prebuilt: false,
     id: 'v-1',
     name: 'Manzana',
     familyId: 'f-1',

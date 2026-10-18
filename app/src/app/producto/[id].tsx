@@ -1,8 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import {
-  ActivityIndicator,
-  InputAccessoryView,
   Keyboard,
   Platform,
   Pressable,
@@ -24,21 +22,26 @@ import {
   editLine,
   editPlan,
   editTouches,
-  packSizeOf,
-  taxPercentOf,
+  familyPatch,
   type EditIssue,
   type VariantEdit,
 } from '@/api/catalogEdit';
+import { aislesFor } from '@/api/productPage';
 import { ES } from '@/strings';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
-import { Frase } from '@/ui/Frase';
-import { Velo } from '@/ui/Velo';
+import { RetiroProducto } from '@/ui/RetiroProducto';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 
 // ============================================================================
+// ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-17, AND THIS HEADER PREDATES THEM:
+// the price, IVA and pieces-per-pack boxes are GONE (the price is changed on the
+// product's page, `ficha/[id]`, with what it would earn); a product from Wera's
+// catalog keeps its name; and the shop's own product can change aisle. What the
+// notes below say about those three boxes is history.
+//
 // EDITAR — EVERYTHING THE FOUR-FIELD CREATE FORM PUSHED BEHIND IT. Plan task
 // `5e-iii-b`, and the second half of a split whose first half (`5e-iii-a`) is
 // the contract with Postgres this screen draws a box around.
@@ -138,7 +141,7 @@ export default function EditarProducto() {
   const role = useMyRole();
   const workspace = useWorkspace();
   const { loading, entries, failed, locationId } = useCatalog();
-  const { prices, settings, factors, edit, save, busy } = useEditProduct(id ?? null);
+  const { prices, settings, factors, units, edit, save, busy } = useEditProduct(id ?? null);
 
   const entry = entries.find((row) => row.id === id);
 
@@ -150,9 +153,12 @@ export default function EditarProducto() {
   const [typedName, setTypedName] = useState<string | null>(null);
   const name = typedName ?? entry?.name ?? '';
 
-  const [pricePesos, setPricePesos] = useState('');
-  const [taxPercent, setTaxPercent] = useState('');
-  const [packSize, setPackSize] = useState('');
+  // ⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-17: no price here (it is changed on
+  // the product's page), no IVA and no pieces per pack — *"We will not use IVA
+  // input for now"*, *"Piezas por paquete doesn't make sense either"* — and the
+  // aisle, for the shop's own product filed in the wrong one.
+  const [aisle, setAisle] = useState<string | null>(null);
+  const [choosing, setChoosing] = useState(false);
   const [issue, setIssue] = useState<EditIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -164,6 +170,12 @@ export default function EditarProducto() {
   const [asking, setAsking] = useState(false);
 
   const working = saving || busy;
+  // ⚠️ `8g`: A PRODUCT FROM WERA'S CATALOG KEEPS ITS NAME — *"users won't be able
+  // to edit the name on default products"*. Its page offers no Editar at all; this
+  // is the deep link's answer, read off the row itself as well as the list.
+  const locked = settings?.is_prebuilt === true || entry?.prebuilt === true;
+  const choices = entry === undefined ? [] : aislesFor(entries, entry, units);
+  const chosenAisle = choices.find((one) => one.familyId === (aisle ?? entry?.familyId));
 
   // ⚠️⚠️ THE FENCE, AND IT RENDERS NOTHING RATHER THAN A SENTENCE — `nuevo.tsx`'s
   // call and its reason. A cashier is never shown the control that gets here, so
@@ -175,8 +187,8 @@ export default function EditarProducto() {
 
   async function submit() {
     if (workspace === null || entry === undefined) return;
-    const form: VariantEdit = { name, taxPercent, packSize };
-    const problem = checkEdit(entry.id, form, pricePesos, entries, factors, entry.priceUnit);
+    const form: VariantEdit = { name: locked ? entry.name : name, taxPercent: '', packSize: '' };
+    const problem = checkEdit(entry.id, form, '', entries, factors, entry.priceUnit);
     setIssue(problem);
     setFailure(null);
     if (problem !== null) return;
@@ -196,14 +208,15 @@ export default function EditarProducto() {
         today: isoDay(new Date()),
       },
       form,
-      pricePesos,
+      '',
       prices,
     );
+    const move = familyPatch(entry.familyId, aisle);
 
     // ⚠️⚠️ A SAVE THAT CHANGES NOTHING MAKES NO ROUND TRIP AND STILL LEAVES.
     // `editTouches` is the decision (`R3`); what is here is that *he read it and
     // tapped Guardar* is a legitimate way to close this screen, not an error.
-    if (!editTouches(plan)) {
+    if (!editTouches(plan) && move === null) {
       Keyboard.dismiss();
       router.back();
       return;
@@ -211,11 +224,24 @@ export default function EditarProducto() {
 
     setSaving(true);
     const outcome = await save(plan);
-    setSaving(false);
     if (!outcome.ok) {
+      setSaving(false);
       setFailure(editLine(outcome));
       return;
     }
+    // ⚠️ THE MOVE AFTER THE RENAME, AND ON ITS OWN: a rename refused `23505`
+    // stops above, before the product changes aisle under a name he is about to
+    // abandon — `EDIT_ORDER`'s argument, one step further.
+    if (move !== null) {
+      try {
+        await edit(move);
+      } catch (thrown) {
+        setSaving(false);
+        setFailure(catalogEditErrorMessage(thrown));
+        return;
+      }
+    }
+    setSaving(false);
     // ⚠️ THE KEYBOARD GOES BEFORE THE SCREEN DOES — `nuevo.tsx`'s ruling of
     // 2026-09-23, and the same cause: a keyboard that survives the navigation
     // covers the bottom of the screen he is sent back to.
@@ -289,6 +315,11 @@ export default function EditarProducto() {
           <>
             <Campo label={ES.catalog.edit.nameLabel}>
               <Caja>
+                {locked ? (
+                  <Text style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta, paddingVertical: scale.rowGap }}>
+                    {entry.name}
+                  </Text>
+                ) : (
                 <TextInput
                   value={name}
                   onChangeText={setTypedName}
@@ -309,100 +340,66 @@ export default function EditarProducto() {
                     color: PALETTE.tinta,
                   }}
                 />
+                )}
               </Caja>
             </Campo>
 
-            <Campo label={ES.catalog.edit.priceLabel}>
-              <Caja>
-                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>$</Text>
-                <TextInput
-                  value={pricePesos}
-                  onChangeText={setPricePesos}
-                  placeholder={ES.catalog.edit.priceHint}
-                  placeholderTextColor={PALETTE.tintaApagada}
-                  // ⚠️ A DECIMAL PAD AND NOT A NUMERIC ONE: C12.2 puts the point
-                  // in `35.50`, and a keyboard with no point is a shopkeeper who
-                  // cannot type half a peso. `parsePesos` is still what reads it.
-                  keyboardType="decimal-pad"
-                  editable={!working}
-                  inputAccessoryViewID={PAD_ID}
-                  accessibilityLabel={ES.catalog.edit.priceLabel}
+            {locked ? null : (
+              <Campo label={ES.products.aisleLabel}>
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={() => setChoosing((open) => !open)}
                   style={{
-                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
                     minHeight: scale.tapTarget,
-                    fontSize: scale.moneySize,
-                    color: PALETTE.tinta,
+                    paddingHorizontal: scale.space,
+                    borderRadius: scale.space,
+                    borderWidth: 1,
+                    borderColor: PALETTE.linea,
+                    backgroundColor: PALETTE.superficie,
                   }}
-                />
-                {/* ⚠️ WHAT THE PRICE IS PER, IN C3.10's OWN SEPARATOR. A price
-                    box with no unit beside it is the one figure in this app a
-                    shopkeeper could read two ways. */}
-                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                  {`${ES.catalog.per} ${entry.priceUnit}`}
-                </Text>
-              </Caja>
-              {/* ⚠️⚠️ THE FIGURE THE SHOP HOLDS TODAY, BESIDE THE BOX AND NEVER
-                  IN IT. `entry.price` is C3.10's rendered sentence — the same
-                  `$35.00 / kg` Productos shows — or C3.12's dash, and the dash
-                  is a legitimate state rather than a missing read. */}
-              <Actual value={entry.price} />
-              {/* ⚠️ THE NO-PRICE SENTENCE IS THE CREATE FORM'S, and it is still
-                  true here: nothing on this form removes a price, so the only way
-                  to leave this screen priceless is to arrive priceless and leave
-                  the box alone. C3.12's consequence — Vender will stop and ask —
-                  is what the shopkeeper cannot see from here. */}
-              {entry.centavos === null ? <Nota line={ES.catalog.notice.noPrice} /> : null}
-              <Nota line={ES.catalog.edit.priceKeep} />
-            </Campo>
-
-            <Campo label={ES.catalog.edit.taxLabel}>
-              <Caja>
-                <TextInput
-                  value={taxPercent}
-                  onChangeText={setTaxPercent}
-                  placeholder={ES.catalog.edit.taxHint}
-                  placeholderTextColor={PALETTE.tintaApagada}
-                  keyboardType="decimal-pad"
-                  editable={!working}
-                  inputAccessoryViewID={PAD_ID}
-                  accessibilityLabel={ES.catalog.edit.taxLabel}
-                  style={{
-                    flex: 1,
-                    minHeight: scale.tapTarget,
-                    fontSize: scale.bodySize,
-                    color: PALETTE.tinta,
-                  }}
-                />
-                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>%</Text>
-              </Caja>
-              {/* ⚠️ `taxPercentOf` IS THE MODULE'S INVERSE OF `parseTaxRate`
-                  (`R3`) — `0.1600` is shown as `16`, because the column is a rate
-                  and the box is a percentage, and confusing them is a sixteen-fold
-                  error in the ledger. */}
-              <Actual value={settings === null ? '' : `${taxPercentOf(settings.tax_rate)}%`} />
-            </Campo>
-
-            <Campo label={ES.catalog.edit.packLabel}>
-              <Caja>
-                <TextInput
-                  value={packSize}
-                  onChangeText={setPackSize}
-                  placeholder={ES.catalog.edit.packHint}
-                  placeholderTextColor={PALETTE.tintaApagada}
-                  keyboardType="decimal-pad"
-                  editable={!working}
-                  inputAccessoryViewID={PAD_ID}
-                  accessibilityLabel={ES.catalog.edit.packLabel}
-                  style={{
-                    flex: 1,
-                    minHeight: scale.tapTarget,
-                    fontSize: scale.bodySize,
-                    color: PALETTE.tinta,
-                  }}
-                />
-              </Caja>
-              <Actual value={settings === null ? '' : packSizeOf(settings.pack_size)} />
-            </Campo>
+                >
+                  <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{chosenAisle?.name ?? entry.familyName}</Text>
+                  <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>{ES.products.aisleChange}</Text>
+                </Pressable>
+                {choosing ? (
+                  <View style={{ gap: scale.rowGap / 2 }}>
+                    <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.products.aisleAsk}</Text>
+                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: scale.rowGap / 2 }}>
+                      {choices.map((one) => {
+                        const on = one.familyId === (aisle ?? entry.familyId);
+                        return (
+                          <Pressable
+                            key={one.familyId}
+                            accessibilityRole="button"
+                            accessibilityState={{ selected: on }}
+                            onPress={() => {
+                              setAisle(one.familyId);
+                              setChoosing(false);
+                            }}
+                            style={{
+                              minHeight: scale.tapTarget * 0.8,
+                              justifyContent: 'center',
+                              paddingHorizontal: scale.space,
+                              borderRadius: scale.tapTarget,
+                              borderWidth: 1,
+                              borderColor: on ? PALETTE.accion : PALETTE.linea,
+                              backgroundColor: on ? PALETTE.accion : PALETTE.superficie,
+                            }}
+                          >
+                            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: on ? PALETTE.superficie : PALETTE.tinta }}>
+                              {one.name}
+                            </Text>
+                          </Pressable>
+                        );
+                      })}
+                    </View>
+                  </View>
+                ) : null}
+              </Campo>
+            )}
 
             {/* ⚠️ ONE PLACE FOR BOTH KINDS OF REFUSAL — the form's own and the
                 database's, which is `Agregar`'s arrangement and `Invitar`'s
@@ -457,7 +454,7 @@ export default function EditarProducto() {
         )}
       </ScrollView>
 
-      <Confirmacion
+      <RetiroProducto
         asking={asking}
         working={working}
         failed={failure}
@@ -465,167 +462,12 @@ export default function EditarProducto() {
         onCancel={() => setAsking(false)}
       />
 
-      {/* ⚠️ MOUNTED ONCE AND OUTSIDE THE SCROLL VIEW, `nuevo.tsx`'s call:
-          `InputAccessoryView` renders into the keyboard rather than into the
-          layout, so where it sits in the tree does not matter — but mounting it
-          inside the conditional branch would take the bar away exactly while the
-          catalog read is out. ⚠️ THREE BOXES SHARE IT HERE and one did there:
-          every `decimal-pad` on this form draws no return key, so all three point
-          at the same `nativeID`. */}
-      <TecladoListo />
     </View>
   );
 }
 
-/**
- * The id tying the three number pads to their accessory bar.
- *
- * ⚠️ A CONSTANT AND NOT A LITERAL AT FOUR CALL SITES, for `PRICE_PAD_ID`'s
- * recorded reason: `InputAccessoryView` matches an input to a bar by STRING
- * EQUALITY, so two spellings is a bar that renders and never appears.
- */
-const PAD_ID = 'wera.edit.pad';
 
-/**
- * *¿Retirar este producto del catálogo?* — the question, and the one place on this
- * screen where a tap is irreversible.
- *
- * ⚠️⚠️ THIS IS THE **THIRD** LOCAL COPY OF A CONFIRMATION BOX IN THIS APP AND IT IS
- * DELIBERATELY NOT EXTRACTED — the count is on the page so the next `src/ui/` row
- * inherits a number rather than a hunch. `documentos.tsx` has one (two acts,
- * `Corregir` and `Eliminar`, so it takes a SHAPE), `proveedor/[id].tsx` has one (one
- * act, so it takes a BOOLEAN), and this one is the boolean shape with THREE
- * sentences where that has two. ⚠️ `R14` reads *reached from two or more modules*
- * and a local component is reached from one, so the gate is green either way; `R16`
- * is the rule that actually applies, and *the difference nobody decided becomes a
- * DECISION* is not a call to make inside a migration row. **`5h.5` left
- * `Confirmacion` in its route for exactly this reason when there was one copy.**
- *
- * ⚠️⚠️ THREE SENTENCES AND NOT TWO, AND THE MIDDLE ONE IS THE WHOLE REASON THIS IS
- * SAFE TO BE IRREVERSIBLE. `retireAsk` is the question, `retireWhy` says what goes
- * AND that the sales already taken stay where they are, and `retireOnce` says it
- * cannot be undone. Dropping `retireWhy` leaves *this cannot be undone* attached to
- * a word a shopkeeper reads as *my sales are gone* ([[users-dont-do-bookkeeping]]).
- *
- * ⚠️ THE FAILURE REPLACES THE QUESTION RATHER THAN SITTING UNDER IT, so the box is
- * never asking and refusing at the same time — `proveedor/[id]`'s trade and
- * `documentos.tsx`'s before it.
- */
-function Confirmacion({
-  asking,
-  working,
-  failed,
-  onConfirm,
-  onCancel,
-}: {
-  asking: boolean;
-  working: boolean;
-  failed: string | null;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const { scale } = useDensity();
-  if (!asking) return null;
 
-  return (
-    <View style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}>
-      <Velo />
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: scale.space * 2,
-        }}
-      >
-        <View
-          style={{
-            width: '100%',
-            borderRadius: scale.space,
-            backgroundColor: PALETTE.fondo,
-            padding: scale.space * 1.5,
-            gap: scale.space,
-          }}
-        >
-          {working ? (
-            <>
-              <ActivityIndicator color={PALETTE.accion} />
-              <Frase text={ES.catalog.edit.working} />
-            </>
-          ) : failed !== null ? (
-            <>
-              <Frase text={failed} />
-              <Boton
-                label={ES.catalog.edit.retireNo}
-                tone={PALETTE.accion}
-                onPress={onCancel}
-              />
-            </>
-          ) : (
-            <>
-              <Frase text={ES.catalog.edit.retireAsk} />
-              <Frase text={ES.catalog.edit.retireWhy} />
-              <Frase text={ES.catalog.edit.retireOnce} />
-              <View style={{ gap: scale.rowGap }}>
-                <Boton
-                  label={ES.catalog.edit.retireYes}
-                  tone={PALETTE.error}
-                  onPress={onConfirm}
-                />
-                <Boton
-                  label={ES.catalog.edit.retireNo}
-                  tone={PALETTE.tintaApagada}
-                  onPress={onCancel}
-                />
-              </View>
-            </>
-          )}
-        </View>
-      </View>
-    </View>
-  );
-}
-
-/**
- * *Listo*, above the number pads — the keyboards in this app with no return key.
- *
- * ⚠️ iOS ONLY, AND THE `Platform` CHECK IS THE HONEST HALF OF THE RULING RATHER
- * THAN A GAP IN IT — `nuevo.tsx`'s own note: `InputAccessoryView` does not exist
- * on Android in React Native, and Android's keyboard draws a dismiss control the
- * platform owns. ⚠️ `R9`: both platforms need asking.
- */
-function TecladoListo() {
-  const { scale } = useDensity();
-  if (Platform.OS !== 'ios') return null;
-  return (
-    <InputAccessoryView nativeID={PAD_ID}>
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'flex-end',
-          paddingHorizontal: scale.space,
-          borderTopWidth: 1,
-          borderTopColor: PALETTE.linea,
-          backgroundColor: PALETTE.banda,
-        }}
-      >
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => Keyboard.dismiss()}
-          style={{
-            minHeight: scale.tapTarget,
-            paddingHorizontal: scale.space,
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
-            {ES.catalog.edit.done}
-          </Text>
-        </Pressable>
-      </View>
-    </InputAccessoryView>
-  );
-}
 
 /**
  * The room's name, the product under it, and the way out.
@@ -722,34 +564,7 @@ function Caja({ children }: { children: ReactNode }) {
   );
 }
 
-/** A quiet line under a field — never a refusal, which is `PALETTE.error`. */
-function Nota({ line }: { line: string }) {
-  const { scale } = useDensity();
-  return <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{line}</Text>;
-}
 
-/**
- * What the shop holds today, printed beside the box that would change it.
- *
- * ⚠️⚠️ IT IS THE HALF THAT MAKES AN EMPTY BOX HONEST. *Leave it alone* is only a
- * choice if the shopkeeper can see what he is leaving alone — and it is drawn as
- * a LABELLED FACT (*Actual: 16%*) rather than as a placeholder, because a bare
- * figure in hint ink inside the box is exactly the thing the owner ruled against
- * on 2026-09-23: indistinguishable from a value somebody typed.
- *
- * ⚠️ AN EMPTY VALUE DRAWS NOTHING RATHER THAN *Actual:*. The settings read can
- * still be in flight, and a label with nothing after it reads as a figure that
- * failed to load — which is worse than a line that is not there yet.
- */
-function Actual({ value }: { value: string }) {
-  const { scale } = useDensity();
-  if (value === '' || value === '%') return null;
-  return (
-    <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-      {`${ES.catalog.edit.current}: ${value}`}
-    </Text>
-  );
-}
 
 /** The catalog is not here yet, could not be asked, or no longer holds this. */
 function Aviso({ line }: { line: string }) {

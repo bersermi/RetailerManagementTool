@@ -1,12 +1,14 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
-import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import { FlatList, Keyboard, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
+import { aislesOf, inAisle, type Aisle } from '@/api/productPage';
+import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -99,6 +101,13 @@ import { Vacio } from '@/ui/Vacio';
 // match — is in `@/api/catalog` on purpose.
 // ============================================================================
 
+/** ⚠️ `8g`: list or mosaic, remembered by THIS phone — a way of looking, not the shop's. */
+const VISTA_KEY = 'tienda.productos.vista';
+type Vista = 'lista' | 'mosaico';
+/** A row, or the mosaic's empty half after an odd last card. */
+type Celda = CatalogRow | { readonly kind: 'hueco' };
+const HUECO: Celda = { kind: 'hueco' };
+
 export default function Productos() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
@@ -110,10 +119,26 @@ export default function Productos() {
   const { loading, entries, failed } = useCatalog(typed);
   const mayCreate = canWriteCatalog(useMyRole());
 
+  // ⚠️⚠️ `8g`, OPTION D — THE AISLES ACROSS THE TOP (the owner's ruling of
+  // 2026-10-17). An aisle is a FAMILY, read off the WHOLE catalog rather than
+  // the searched one, so typing never makes an aisle vanish from the row.
+  const everything = useCatalog('').entries;
+  const aisles = aislesOf(everything);
+  const [vista, setVista] = useState<Vista>(() => (readKey(deviceStore(), VISTA_KEY) === 'mosaico' ? 'mosaico' : 'lista'));
+  function verComo(next: Vista) {
+    setVista(next);
+    writeKey(deviceStore(), VISTA_KEY, next);
+  }
+
   // ⚠️ THE PRODUCT JUST CREATED ARRIVES AS A ROUTE PARAMETER, not as state this
   // screen kept: it was unmounted-or-not while the form was open, and a variable
   // here would be empty on the path where the form replaced it.
-  const { nuevo } = useLocalSearchParams<{ nuevo?: string }>();
+  const { nuevo, pasillo } = useLocalSearchParams<{ nuevo?: string; pasillo?: string }>();
+  // ⚠️ *Ver los 126* on a product's page comes back here with its aisle chosen.
+  const [aisle, setAisle] = useState<string | null>(pasillo ?? null);
+  useEffect(() => {
+    if (pasillo !== undefined) setAisle(pasillo);
+  }, [pasillo]);
 
   // ⚠️⚠️ THERE IS NO BANNER ON THIS SCREEN, AND ITS ABSENCE IS A RULING — 2026-09-23,
   // the same day it was added: *"«Una familia de productos debe tener la misma unidad
@@ -126,8 +151,18 @@ export default function Productos() {
   // ⚠️ A future session adding it back inherits both problems; `5f`'s confirmation
   // animation is the place that question reopens, not this screen.
 
-  const rows = catalogRows(entries, typed, mayCreate);
-  const list = useRef<FlatList<CatalogRow>>(null);
+  // ⚠️⚠️ THE CREATE ROW STILL NEEDS THE WHOLE SHOP TO HAVE NOTHING — the
+  // owner's anti-duplicate rule of 2026-09-23. So a search that finds nothing in
+  // the chosen aisle but something in another shows THOSE, never *Crear*: a
+  // product filed elsewhere is exactly the partial duplicate the rule exists for.
+  const inside = inAisle(entries, aisle);
+  const shown = inside.length > 0 || typed.trim() === '' ? inside : entries;
+  const rows = catalogRows(shown, typed, mayCreate);
+  const mosaic = vista === 'mosaico' && rows[0]?.kind !== 'create';
+  // ⚠️ AN ODD LAST CARD WOULD STRETCH ACROSS THE ROW, so the mosaic is padded
+  // with one empty half — seen on the emulator, 2026-10-17.
+  const cells: readonly Celda[] = mosaic && rows.length % 2 === 1 ? [...rows, HUECO] : rows;
+  const list = useRef<FlatList<Celda>>(null);
   // ⚠️ THE SEARCH BOX ITSELF, because dismissing the keyboard is not the same as
   // giving up focus — see the effect below.
   const box = useRef<TextInput>(null);
@@ -142,6 +177,9 @@ export default function Productos() {
   useEffect(() => {
     if (nuevo === undefined) return;
     setTyped('');
+    // ⚠️ AND NO AISLE: a product just created must come into sight, whatever
+    // aisle the list was showing when he went to create it.
+    setAisle(null);
     // ⚠️⚠️ THE BOX IS BLURRED AND NOT ONLY THE KEYBOARD DISMISSED, AND THAT IS THE
     // FIX FOR *"the keyboard is not hidding when redirecting to the Product
     // catalog"*. The cause was not the dismissal — it was that **this screen's search
@@ -169,13 +207,14 @@ export default function Productos() {
   useEffect(() => {
     if (nuevo === undefined || typed !== '' || at < 0 || scrolled.current === nuevo) return;
     scrolled.current = nuevo;
-    list.current?.scrollToIndex({ index: at, viewPosition: 0.5, animated: true });
-  }, [nuevo, typed, at]);
+    list.current?.scrollToIndex({ index: mosaic ? Math.floor(at / 2) : at, viewPosition: 0.5, animated: true });
+  }, [nuevo, typed, at, mosaic]);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda />
+      <Banda vista={vista} onVista={verComo} />
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
+      <Pasillos aisles={aisles} chosen={aisle} onChoose={setAisle} />
       {/* `9d`: the starter catalog's second door — the first is onboarding. Drawn for
           whoever may write the catalog, which is who `import_catalog` admits. */}
       {mayCreate && (
@@ -201,18 +240,26 @@ export default function Productos() {
         // catalog and C1.1 puts two LOW-END ANDROIDS among its four phones; a
         // ScrollView mounts every row at once, which is the scroll that stutters
         // on exactly those two devices and on nobody's development machine.
-        data={rows}
-        keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.entry.id)}
+        // ⚠️ A NEW KEY PER SHAPE: `numColumns` cannot change on a mounted list.
+        key={mosaic ? 'mosaico' : 'lista'}
+        numColumns={mosaic ? 2 : 1}
+        data={cells}
+        keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.kind === 'hueco' ? 'hueco' : row.entry.id)}
         renderItem={({ item }) =>
-          item.kind === 'create' ? (
-            <Crear name={item.name} />
+          item.kind === 'hueco' ? (
+            <View style={{ flex: 1 }} />
+          ) : item.kind === 'create' ? (
+            <Crear name={item.name} familyId={aisle} />
+          ) : mosaic ? (
+            <Tarjeta entry={item.entry} nuevo={item.entry.id === nuevo} />
           ) : (
-            <Fila entry={item.entry} nuevo={item.entry.id === nuevo} />
+            <Fila entry={item.entry} nuevo={item.entry.id === nuevo} showAisle={aisle === null || inside.length === 0} />
           )
         }
         // ⚠️ A SEPARATOR RATHER THAN A BORDER ON EVERY ROW: one line between two
-        // rows, never a line under the last one.
-        ItemSeparatorComponent={Separador}
+        // rows, never a line under the last one. The mosaic's cards carry their own.
+        ItemSeparatorComponent={mosaic ? null : Separador}
+        columnWrapperStyle={mosaic ? { gap: scale.rowGap, paddingHorizontal: scale.space } : undefined}
         ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, WHICH IS WHAT
         // MAKES `scrollToIndex` REACH A ROW IT HAS NOT DRAWN YET. Without it a
@@ -223,6 +270,8 @@ export default function Productos() {
           list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
         }}
         contentContainerStyle={{
+          paddingTop: mosaic ? scale.rowGap : undefined,
+          gap: mosaic ? scale.rowGap : undefined,
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
         // The keyboard closes when a thumb reaches the list, rather than the
@@ -236,7 +285,7 @@ export default function Productos() {
 
 /** The room's name and the way back. `solicitudes`' shape, one word different:
  *  this is a pushed screen, so the control says *Volver* and not *Cerrar*. */
-function Banda() {
+function Banda({ vista, onVista }: { vista: Vista; onVista: (next: Vista) => void }) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   return (
@@ -265,6 +314,33 @@ function Banda() {
       >
         {ES.catalog.title}
       </Text>
+
+      {/* ⚠️ `8g`: *"list and mosaic switch"* — two glyphs, each with its word
+          for a screen reader (C12.1's icon-and-word rule is met by the label). */}
+      <View style={{ flexDirection: 'row', borderRadius: scale.space / 2, borderWidth: 1, borderColor: PALETTE.linea, overflow: 'hidden' }}>
+        {(['lista', 'mosaico'] as const).map((one) => (
+          <Pressable
+            key={one}
+            accessibilityRole="button"
+            accessibilityLabel={one === 'lista' ? ES.products.asList : ES.products.asMosaic}
+            accessibilityState={{ selected: vista === one }}
+            onPress={() => onVista(one)}
+            style={{
+              width: scale.tapTarget,
+              height: scale.tapTarget * 0.8,
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: vista === one ? PALETTE.accion : PALETTE.superficie,
+            }}
+          >
+            <MaterialCommunityIcons
+              name={one === 'lista' ? 'view-list' : 'view-grid'}
+              size={scale.iconSize}
+              color={vista === one ? PALETTE.superficie : PALETTE.tintaApagada}
+            />
+          </Pressable>
+        ))}
+      </View>
 
       <Pressable
         accessibilityRole="button"
@@ -297,7 +373,7 @@ function Banda() {
  * ⚠️ `router.push` AND NOT `replace`, like the door on Inicio: you come back
  * from a screen you went into, and *Volver* is the control that does it.
  */
-function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
+function Fila({ entry, nuevo, showAisle }: { entry: CatalogEntry; nuevo: boolean; showAisle: boolean }) {
   const { scale } = useDensity();
 
   // ⚠️⚠️ THE BLINK IS `@/ui/Destello`'s SINCE `6b` AND WAS TWENTY LINES HERE
@@ -316,12 +392,7 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
       accessibilityLabel={[entry.name, entry.familyName, entry.price]
         .filter((part) => part !== '')
         .join('. ')}
-      onPress={() =>
-        router.push({
-          pathname: '/familia/[id]',
-          params: { id: entry.familyId, variante: entry.id },
-        })
-      }
+      onPress={() => router.push({ pathname: '/ficha/[id]', params: { id: entry.id } })}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -341,7 +412,9 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
         >
           {entry.name}
         </Text>
-        {entry.familyName === '' ? null : (
+        {/* ⚠️ `8g`: the aisle under the name only under *Todo* — inside an aisle
+            it would say the same word on every row. */}
+        {entry.familyName === '' || !showAisle ? null : (
           <Text
             numberOfLines={1}
             style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
@@ -398,7 +471,7 @@ function Fila({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
  * ⚠️ NO ICON WITHOUT A WORD (C12.1). The plus glyph sits beside *Crear Nuevo
  * Producto*, never alone.
  */
-function Crear({ name }: { name: string }) {
+function Crear({ name, familyId }: { name: string; familyId: string | null }) {
   const { scale } = useDensity();
   return (
     <Pressable
@@ -411,7 +484,11 @@ function Crear({ name }: { name: string }) {
         // its search box focused is what brings the keyboard back when the form pops
         // off again, however carefully the form dismisses it on the way out.
         Keyboard.dismiss();
-        router.push({ pathname: '/producto/nuevo', params: { nombre: name } });
+        // ⚠️ `8g`: CREATED IN THE AISLE HE IS LOOKING AT, when he is looking at one.
+        router.push({
+          pathname: '/producto/nuevo',
+          params: familyId === null ? { nombre: name } : { nombre: name, familia: familyId },
+        });
       }}
       style={{
         flexDirection: 'row',
@@ -503,3 +580,125 @@ function Iniciales({ text }: { text: string }) {
   );
 }
 
+/**
+ * ⚠️ `8g`, OPTION D: THE AISLES ACROSS THE TOP — *Todo* first, then every family
+ * the shop sells in, each with its picture (its two letters until `8g`'s second
+ * part), and one tap filters the list below. Chosen again, *Todo*.
+ */
+function Pasillos({
+  aisles,
+  chosen,
+  onChoose,
+}: {
+  aisles: readonly Aisle[];
+  chosen: string | null;
+  onChoose: (familyId: string | null) => void;
+}) {
+  const { scale } = useDensity();
+  if (aisles.length < 2) return null;
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      keyboardShouldPersistTaps="handled"
+      // ⚠️ NEITHER GROW NOR SHRINK: a ScrollView's own style shrinks, and the list
+      // under it squeezed the aisles' names away (seen on the emulator, 2026-10-17).
+      style={{ flexGrow: 0, flexShrink: 0 }}
+      contentContainerStyle={{ gap: scale.rowGap, paddingHorizontal: scale.space, paddingBottom: scale.rowGap }}
+    >
+      <Pasillo name={ES.products.all} initials="" on={chosen === null} onPress={() => onChoose(null)} />
+      {aisles.map((one) => (
+        <Pasillo
+          key={one.familyId}
+          name={one.name}
+          initials={one.initials}
+          on={chosen === one.familyId}
+          onPress={() => onChoose(chosen === one.familyId ? null : one.familyId)}
+        />
+      ))}
+    </ScrollView>
+  );
+}
+
+function Pasillo({ name, initials, on, onPress }: { name: string; initials: string; on: boolean; onPress: () => void }) {
+  const { scale } = useDensity();
+  const side = scale.tapTarget * 1.25;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={name}
+      accessibilityState={{ selected: on }}
+      onPress={onPress}
+      style={{ width: side + scale.rowGap, alignItems: 'center', gap: scale.rowGap / 3 }}
+    >
+      <View
+        style={{
+          width: side,
+          height: side,
+          borderRadius: scale.space,
+          borderWidth: on ? 3 : 1,
+          borderColor: on ? PALETTE.accion : PALETTE.linea,
+          backgroundColor: initials === '' ? PALETTE.superficie : PALETTE.accionSuave,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        {initials === '' ? (
+          <MaterialCommunityIcons name="view-grid-outline" size={scale.iconSize} color={PALETTE.tintaApagada} />
+        ) : (
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{initials}</Text>
+        )}
+      </View>
+      <Text
+        numberOfLines={2}
+        style={{
+          fontSize: scale.smallSize * 0.9,
+          textAlign: 'center',
+          fontWeight: on ? '800' : '600',
+          color: on ? PALETTE.accion : PALETTE.tinta,
+        }}
+      >
+        {name}
+      </Text>
+    </Pressable>
+  );
+}
+
+/**
+ * ⚠️ `8g`: ONE PRODUCT IN THE MOSAIC — the picture large (its two letters until
+ * the photos), the name and the price; a tap opens its page, as a row does.
+ */
+function Tarjeta({ entry, nuevo }: { entry: CatalogEntry; nuevo: boolean }) {
+  const { scale } = useDensity();
+  return (
+    <View style={{ flex: 1 }}>
+      <Destello on={nuevo}>
+        <Pressable
+          accessible
+          accessibilityRole="button"
+          accessibilityLabel={[entry.name, entry.price].filter((part) => part !== '').join('. ')}
+          onPress={() => router.push({ pathname: '/ficha/[id]', params: { id: entry.id } })}
+          style={{
+            borderRadius: scale.space,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+            overflow: 'hidden',
+          }}
+        >
+          <View style={{ height: scale.tapTarget * 2.4, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>
+            <Text style={{ fontSize: scale.titleSize * 1.4, fontWeight: '700', color: PALETTE.tinta }}>{entry.initials}</Text>
+          </View>
+          <View style={{ padding: scale.rowGap, gap: scale.rowGap / 4 }}>
+            <Text numberOfLines={2} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tinta }}>
+              {entry.name}
+            </Text>
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: entry.centavos === null ? PALETTE.tintaApagada : PALETTE.tinta }}>
+              {entry.price}
+            </Text>
+          </View>
+        </Pressable>
+      </Destello>
+    </View>
+  );
+}

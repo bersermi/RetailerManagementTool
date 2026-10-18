@@ -86,8 +86,13 @@ import { ES } from '@/strings';
  * a figure, so it widens this read by one word. ⚠️ ONE LINE, because
  * `docs/checks/5d-i-catalog-contract.sh` reads this constant with a one-line
  * `sed`, and a wrapped declaration would read as nothing.
+ *
+ * ⚠️ `is_prebuilt` (`0042`) since `8g`'s Productos: a product from Wera's catalog
+ * keeps its name and its picture (the owner's ruling of 2026-10-17), so its page
+ * offers *Ya no lo vendo* where the shop's own offers *Editar*. ⚠️ THE FLAG AND NOT
+ * `template_code`: 28 prebuilt products on the hosted project carry no code.
  */
-export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code';
+export const VARIANT_COLUMNS = 'id,name,family_id,price_unit_code,base_unit_code,is_active,template_code,is_prebuilt';
 
 /**
  * The columns a client may ask `product_family` for, as an EMBEDDED resource.
@@ -198,6 +203,8 @@ export interface VariantRow {
   readonly is_active: boolean;
   /** `0044`: the starter-catalog row this was imported from, or null — the shop's own. */
   readonly template_code: string | null;
+  /** `0042`: from Wera's catalog rather than made by the shop. */
+  readonly is_prebuilt: boolean;
   readonly product_family: FamilyRow | null;
   readonly price_list: readonly PriceRow[] | null;
 }
@@ -539,6 +546,8 @@ export interface CatalogEntry {
   readonly initials: string;
   /** What `matches` compares a typed search against — name AND family. */
   readonly term: string;
+  /** From Wera's catalog (`is_prebuilt`): its name and picture are Wera's (`8g`). */
+  readonly prebuilt: boolean;
 }
 
 /**
@@ -583,6 +592,10 @@ export function catalogFrom(
       price: priceLabel(centavos, row.price_unit_code),
       initials: initials(row.name),
       term: `${searchTerm(row.name)} ${searchTerm(familyName)}`,
+      // ⚠️ A ROW PERSISTED BEFORE `8g` HAS NO FLAG, and reads as the shop's own
+      // until the next read: its page offers Editar, and Editar reads the flag
+      // again for itself before it lets the name be touched.
+      prebuilt: row.is_prebuilt === true,
     });
   }
   return entries;
