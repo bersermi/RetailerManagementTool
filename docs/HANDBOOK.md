@@ -62,12 +62,19 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+✅ **18 October, evening: photos in Productos, over the air** (*Fotos en Productos: las de Wera y
+las tuyas*). In *Tienda Demo*: Inicio → Más → Productos → the aisle *A granel* or *Refrescos* —
+your 25 photos, in the list, the mosaic, the aisle's own picture and each product's page, and in
+Vender, Comprar and Desperdicio. On *Nuevo producto*, *Tomar foto* comes first; on *Editar* of a
+product you made, *Tomar otra foto* and *Quitar foto*. A product without a photo keeps its
+initials. Open Wera, close it completely, open it again. More photos in your folders reach the app
+with `bash docs/runbooks/catalog-photos.sh --linked`.
+
 ✅ **17 October, night: Productos redrawn, over the air** (*Productos nuevo: pasillos, ficha y
 cambiar precio*). Inicio → Más → Productos: the aisles along the top (one tap shows only that
 aisle, *Todo* shows everything), and ☰ / ▦ in the corner for list or mosaic. Tap a product for its
 page: price, what it costs you, what you earn, this week. *Cambiar precio* tells you what you'd earn
-as you type. Catalog products show *Ya no lo vendo* instead of *Editar*. Photos come in the next
-part (`8o`); until then, initials. Open Wera, close it completely, open it again.
+as you type. Catalog products show *Ya no lo vendo* instead of *Editar*.
 
 ⏳ **17 October: the camera's new install is built, and the aviso that covers it is up on
 tu-wera.com.** Both phones need it, and **after it every update needs it**: until a phone has it,
