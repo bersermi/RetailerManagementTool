@@ -42,6 +42,14 @@ const env = readSupabaseEnv({
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
 });
 
+/**
+ * ⚠️ `8o`: the project's address and its publishable key, for the one request
+ * supabase-js does not make — a product photo downloaded straight to a file
+ * (`photoRequest` in `@/api/calls`). Read by `calls.ts` only.
+ */
+export const SUPABASE_URL = env.url;
+export const SUPABASE_PUBLISHABLE_KEY = env.publishableKey;
+
 export const supabase = createClient(env.url, env.publishableKey, {
   auth: {
     // The SQLite-backed `localStorage` installed above. C1.4: the session

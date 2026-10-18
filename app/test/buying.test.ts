@@ -18,6 +18,7 @@ const FACTORS: UnitFactors = { g: '1.000000', kg: '1000.000000', pza: '1.000000'
 function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
   return {
     prebuilt: false,
+    picture: null,
     id: 'v-1',
     name: 'Pechuga sin hueso',
     familyId: 'f-1',

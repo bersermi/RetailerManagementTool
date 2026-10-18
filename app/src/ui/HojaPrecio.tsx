@@ -36,6 +36,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { BotonLleno } from '@/ui/BotonLleno';
+import type { Picture } from '@/api/photos';
 import { Retrato } from '@/ui/Retrato';
 import { Velo } from '@/ui/Velo';
 
@@ -56,10 +57,13 @@ export function HojaPrecio({
   onClose,
   tone = PALETTE.accion,
   tile,
+  picture = null,
   bare = false,
 }: {
   /** The product — the sheet says which before it asks anything. */
   name: string;
+  /** `8o`: its photo beside the name, or its initials. */
+  picture?: Picture | null;
   /** The line under the name: what the figure is now, or that there is none. */
   detail: string;
   /** The sheet's one question, in the titles' face. */
@@ -104,7 +108,7 @@ export function HojaPrecio({
           }}
         >
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
-            <Retrato name={name} small ground={tile?.ground} ink={tile?.ink} />
+            <Retrato name={name} picture={picture} small ground={tile?.ground} ink={tile?.ink} />
             <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
               <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{name}</Text>
               <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{detail}</Text>

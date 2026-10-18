@@ -22,6 +22,7 @@ import { daysFrom } from '@/format/date';
 import { ES } from '@/strings';
 import { searchTerm, type CatalogEntry, type UnitFactors, type UnitRow } from '@/api/catalog';
 import type { Costs } from '@/api/costs';
+import type { Picture } from '@/api/photos';
 
 /** One aisle — a family the shop sells something in. */
 export interface Aisle {
@@ -31,6 +32,8 @@ export interface Aisle {
   readonly count: number;
   /** Its two letters until it has a picture (C8.14). */
   readonly initials: string;
+  /** `8o`: one of its products' photos, or `null` — see `aislesOf`. */
+  readonly picture: Picture | null;
 }
 
 function initialsOf(name: string): string {
@@ -46,14 +49,20 @@ function initialsOf(name: string): string {
  * sells, so an emptied family simply stops being drawn.
  */
 export function aislesOf(entries: readonly CatalogEntry[]): readonly Aisle[] {
-  const byId = new Map<string, { name: string; count: number }>();
+  const byId = new Map<string, { name: string; count: number; picture: Picture | null }>();
   for (const entry of entries) {
     const known = byId.get(entry.familyId);
-    if (known === undefined) byId.set(entry.familyId, { name: entry.familyName, count: 1 });
-    else known.count += 1;
+    if (known === undefined) byId.set(entry.familyId, { name: entry.familyName, count: 1, picture: entry.picture });
+    else {
+      known.count += 1;
+      // ⚠️ `8o`: AN AISLE'S PICTURE IS ONE OF ITS PRODUCTS' — the first, in the
+      // database's order (by name), that has one. `0063` gives the aisle no
+      // column: the owner's folders hold a photo per product and none per aisle.
+      if (known.picture === null) known.picture = entry.picture;
+    }
   }
   return [...byId.entries()]
-    .map(([familyId, { name, count }]) => ({ familyId, name, count, initials: initialsOf(name) }))
+    .map(([familyId, { name, count, picture }]) => ({ familyId, name, count, initials: initialsOf(name), picture }))
     // ⚠️ `searchTerm` folds accents and case the way the search does — never
     // `normalize`, for the reason `@/api/catalog` gives.
     .sort((a, b) => (searchTerm(a.name) < searchTerm(b.name) ? -1 : searchTerm(a.name) > searchTerm(b.name) ? 1 : 0));

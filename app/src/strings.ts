@@ -1965,6 +1965,28 @@ export const ES = {
     aisleLabel: 'Pasillo',
     aisleChange: 'Cambiar',
     aisleAsk: '¿A qué pasillo va?',
+    /**
+     * ⚠️ `8o`: the photo on Crear and Editar — the owner's canvas (*Productos ·
+     * la final*, *"As proposed"*): the square, *📷 Tomar foto*, the line under
+     * it, and on Editar *Quitar foto*. A product from Wera's catalog has no
+     * Editar at all, so none of these is ever drawn on one.
+     */
+    photo: {
+      label: 'Foto',
+      take: 'Tomar foto',
+      retake: 'Tomar otra foto',
+      optional: 'Opcional. Sin foto, lleva sus iniciales.',
+      remove: 'Quitar foto',
+      /** The product is made; only its photo did not go up. Editar can try again. */
+      failedAfterCreate: 'El producto quedó creado, pero la foto no se pudo subir. Tómala otra vez en Editar.',
+      failed: 'No se pudo subir la foto. Revisa tu señal e intenta de nuevo.',
+      denied: 'Para tomar fotos, permite la cámara en los ajustes del teléfono.',
+      cameraFailed: 'No se pudo tomar la foto. Intenta de nuevo.',
+      /** The button while a product waits on its photo. */
+      saving: 'Subiendo la foto…',
+      /** After *El producto quedó creado…*: back to the list, where it blinks. */
+      toList: 'Ver en Productos',
+    },
   },
 
   /** Productos — the catalog, read. Plan tasks 5d-i to 5d-iii. */

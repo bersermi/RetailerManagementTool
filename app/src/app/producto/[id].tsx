@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useCatalog, useEditProduct, useMyRole, useWorkspace } from '@/api/hooks';
+import { useCatalog, useEditProduct, useMyRole, useProductPhotoSave, useWorkspace } from '@/api/hooks';
 import { catalogLine, isoDay } from '@/api/catalog';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
@@ -26,10 +26,14 @@ import {
   type EditIssue,
   type VariantEdit,
 } from '@/api/catalogEdit';
+import { imagePatch } from '@/api/photos';
 import { aislesFor } from '@/api/productPage';
+import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
+import { newWriteId } from '@/lib/ids';
 import { ES } from '@/strings';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { CampoFoto } from '@/ui/CampoFoto';
 import { RetiroProducto } from '@/ui/RetiroProducto';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -168,8 +172,14 @@ export default function EditarProducto() {
    * route for it would put a back button on a question that has two answers.
    */
   const [asking, setAsking] = useState(false);
+  // ⚠️ `8o`: THE SHOP'S OWN PRODUCT TAKES A PHOTO, A NEW ONE, OR NONE — the
+  // canvas's *Tomar otra foto* and *Quitar foto*. Nothing goes up until Guardar.
+  const [taken, setTaken] = useState<{ readonly photo: ProductPhoto; readonly fileId: string } | null>(null);
+  const [removed, setRemoved] = useState(false);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
+  const photos = useProductPhotoSave();
 
-  const working = saving || busy;
+  const working = saving || busy || photos.busy;
   // ⚠️ `8g`: A PRODUCT FROM WERA'S CATALOG KEEPS ITS NAME — *"users won't be able
   // to edit the name on default products"*. Its page offers no Editar at all; this
   // is the deep link's answer, read off the row itself as well as the list.
@@ -184,6 +194,16 @@ export default function EditarProducto() {
   // is *not known yet* and is fenced out with her, so the form appears when the
   // membership read lands rather than being snatched away after it.
   if (!canWriteCatalog(role) || workspace === null) return null;
+
+  async function addPhoto() {
+    setPhotoNote(null);
+    const outcome = await takeProductPhoto();
+    if (outcome.kind === 'taken') {
+      setTaken({ photo: outcome.photo, fileId: newWriteId() });
+      setRemoved(false);
+    } else if (outcome.kind === 'denied') setPhotoNote(ES.products.photo.denied);
+    else if (outcome.kind === 'failed') setPhotoNote(ES.products.photo.cameraFailed);
+  }
 
   async function submit() {
     if (workspace === null || entry === undefined) return;
@@ -213,10 +233,14 @@ export default function EditarProducto() {
     );
     const move = familyPatch(entry.familyId, aisle);
 
+    // ⚠️ `8o`: a photo taken, or one taken off. Only the shop's own product has
+    // this form at all (`locked`), and `0063` refuses either on Wera's.
+    const unphoto = removed && taken === null && entry.picture !== null;
+
     // ⚠️⚠️ A SAVE THAT CHANGES NOTHING MAKES NO ROUND TRIP AND STILL LEAVES.
     // `editTouches` is the decision (`R3`); what is here is that *he read it and
     // tapped Guardar* is a legitimate way to close this screen, not an error.
-    if (!editTouches(plan) && move === null) {
+    if (!editTouches(plan) && move === null && taken === null && !unphoto) {
       Keyboard.dismiss();
       router.back();
       return;
@@ -235,6 +259,25 @@ export default function EditarProducto() {
     if (move !== null) {
       try {
         await edit(move);
+      } catch (thrown) {
+        setSaving(false);
+        setFailure(catalogEditErrorMessage(thrown));
+        return;
+      }
+    }
+    // ⚠️ `8o`: THE PHOTO LAST, after the name and the aisle it belongs with. A
+    // second Guardar after a failed upload finds those two already saved, so it
+    // only sends the photo again — to the same path, named when it was taken.
+    if (taken !== null) {
+      const sent = await photos.save(workspace.id, entry.id, taken.photo, taken.fileId);
+      if (!sent) {
+        setSaving(false);
+        setFailure(ES.products.photo.failed);
+        return;
+      }
+    } else if (unphoto) {
+      try {
+        await edit(imagePatch(null));
       } catch (thrown) {
         setSaving(false);
         setFailure(catalogEditErrorMessage(thrown));
@@ -313,6 +356,23 @@ export default function EditarProducto() {
           <Aviso line={catalogLine(loading, '', failed)} />
         ) : (
           <>
+            {locked ? null : (
+              <Campo label={ES.products.photo.label}>
+                <CampoFoto
+                  name={name}
+                  takenUri={taken?.photo.thumb.uri ?? null}
+                  current={removed ? null : entry.picture}
+                  busy={working}
+                  note={photoNote}
+                  onTake={() => void addPhoto()}
+                  onRemove={() => {
+                    setTaken(null);
+                    setRemoved(true);
+                  }}
+                />
+              </Campo>
+            )}
+
             <Campo label={ES.catalog.edit.nameLabel}>
               <Caja>
                 {locked ? (

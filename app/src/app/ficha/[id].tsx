@@ -16,6 +16,7 @@ import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { RetiroProducto } from '@/ui/RetiroProducto';
+import { Foto } from '@/ui/Foto';
 import { Vacio } from '@/ui/Vacio';
 
 // ============================================================================
@@ -253,8 +254,8 @@ export default function Ficha() {
 }
 
 /**
- * The picture at the top — the product's initials on its ground until the
- * photos arrive (`8g`'s second part), and the way back over it.
+ * The picture at the top — its photo, the LARGE file, standing whole in the
+ * band (`8o`), or its initials on the band's ground; and the way back over it.
  */
 function Portada({ entry, top }: { entry: CatalogEntry; top: number }) {
   const { scale } = useDensity();
@@ -268,9 +269,6 @@ function Portada({ entry, top }: { entry: CatalogEntry; top: number }) {
         justifyContent: 'center',
       }}
     >
-      <View style={{ position: 'absolute', left: scale.space, top: top + scale.rowGap }}>
-        <Atras label={`‹ ${entry.familyName === '' ? ES.catalog.title : entry.familyName}`} />
-      </View>
       <Text
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
@@ -278,6 +276,13 @@ function Portada({ entry, top }: { entry: CatalogEntry; top: number }) {
       >
         {entry.initials}
       </Text>
+      {/* ⚠️ THE PHOTO BEFORE THE WAY BACK, so *‹ Refrescos* is drawn over it. */}
+      <View style={{ position: 'absolute', left: 0, right: 0, bottom: 0, top }}>
+        <Foto picture={entry.picture} size="large" fit="contain" />
+      </View>
+      <View style={{ position: 'absolute', left: scale.space, top: top + scale.rowGap }}>
+        <Atras label={`‹ ${entry.familyName === '' ? ES.catalog.title : entry.familyName}`} />
+      </View>
     </View>
   );
 }
@@ -344,6 +349,7 @@ function Vecino({ entry }: { entry: CatalogEntry }) {
     >
       <View style={{ height: side * 0.7, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tintaApagada }}>{entry.initials}</Text>
+        <Foto picture={entry.picture} fit="contain" />
       </View>
       <View style={{ padding: scale.rowGap / 2, gap: scale.rowGap / 4 }}>
         <Text numberOfLines={1} style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.tinta }}>{entry.name}</Text>

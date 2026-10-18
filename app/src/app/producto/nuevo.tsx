@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useCatalog, useCreateProduct, useMyRole, useWorkspace } from '@/api/hooks';
+import { useCatalog, useCreateProduct, useMyRole, useProductPhotoSave, useWorkspace } from '@/api/hooks';
 import { catalogLine } from '@/api/catalog';
 import {
   FAMILY_MIRROR,
@@ -32,12 +32,15 @@ import {
   type FamilyChoice,
   type ProductIssue,
 } from '@/api/catalogWrite';
+import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
+import { newWriteId } from '@/lib/ids';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { bannerSequence } from '@/theme/pulse';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { CampoFoto } from '@/ui/CampoFoto';
 
 // ============================================================================
 // AGREGAR — THE SHORTEST FORM THAT PRODUCES A USABLE PRODUCT. Plan task `5e-ii`,
@@ -137,6 +140,14 @@ export default function NuevoProducto() {
   const [query, setQuery] = useState('');
   const [issue, setIssue] = useState<ProductIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  // ⚠️ `8o`: THE PHOTO IS OPTIONAL AND GOES FIRST — the owner's canvas. It is
+  // named once, when it is taken (`fileId`), so a retry uploads to the same path.
+  const [taken, setTaken] = useState<{ readonly photo: ProductPhoto; readonly fileId: string } | null>(null);
+  const [photoNote, setPhotoNote] = useState<string | null>(null);
+  // ⚠️ THE PRODUCT IS MADE AND ONLY ITS PHOTO FAILED: the form must not create
+  // it a second time, so the button becomes the way to the list.
+  const [created, setCreated] = useState<string | null>(null);
+  const photos = useProductPhotoSave();
 
   // ⚠️ THE BANNER'S OPACITY IS THE ONLY ANIMATED THING ON THIS SCREEN, and its
   // timing is `@/theme/pulse`'s rather than this file's (`R3`).
@@ -209,6 +220,14 @@ export default function NuevoProducto() {
     return () => hidden.remove();
   }, []);
 
+  async function addPhoto() {
+    setPhotoNote(null);
+    const outcome = await takeProductPhoto();
+    if (outcome.kind === 'taken') setTaken({ photo: outcome.photo, fileId: newWriteId() });
+    else if (outcome.kind === 'denied') setPhotoNote(ES.products.photo.denied);
+    else if (outcome.kind === 'failed') setPhotoNote(ES.products.photo.cameraFailed);
+  }
+
   function pickUnit(code: string) {
     const outcome = chooseUnit(choice, code, entries, units);
     setFamily(outcome.family);
@@ -229,6 +248,11 @@ export default function NuevoProducto() {
 
   async function submit() {
     if (workspace === null) return;
+    if (created !== null) {
+      Keyboard.dismiss();
+      router.dismissTo({ pathname: '/productos', params: { nuevo: created } });
+      return;
+    }
     const problem = checkProduct(draft, entries, factors);
     setIssue(problem);
     setFailure(null);
@@ -246,6 +270,17 @@ export default function NuevoProducto() {
         setFamily({ kind: 'chosen', id: next.familyId, name: next.familyName });
       }
       return;
+    }
+    // ⚠️ `8o`: THE PRODUCT FIRST, ALWAYS, THEN ITS PHOTO. A photo that cannot go
+    // up leaves a product with its initials, which is a finished product (C8.14);
+    // she is told, and Editar can take it again.
+    if (taken !== null) {
+      const sent = await photos.save(workspace.id, outcome.variantId, taken.photo, taken.fileId);
+      if (!sent) {
+        setCreated(outcome.variantId);
+        setFailure(ES.products.photo.failedAfterCreate);
+        return;
+      }
     }
     // ⚠️ THE KEYBOARD GOES BEFORE THE SCREEN DOES — ruled 2026-09-23. A keyboard
     // that survives the navigation covers the bottom of the catalog he was sent
@@ -285,6 +320,18 @@ export default function NuevoProducto() {
           <Aviso line={catalogLine(loading, '', failed)} />
         ) : (
           <>
+            <Campo label={ES.products.photo.label}>
+              <CampoFoto
+                name={name}
+                takenUri={taken?.photo.thumb.uri ?? null}
+                current={null}
+                dashed
+                busy={busy || photos.busy || created !== null}
+                note={photoNote}
+                onTake={() => void addPhoto()}
+              />
+            </Campo>
+
             <Campo label={ES.catalog.create.nameLabel}>
               <Caja>
                 <TextInput
@@ -425,8 +472,16 @@ export default function NuevoProducto() {
             )}
 
             <Boton
-              label={busy ? ES.catalog.create.working : ES.catalog.create.submit}
-              busy={busy}
+              label={
+                photos.busy
+                  ? ES.products.photo.saving
+                  : busy
+                    ? ES.catalog.create.working
+                    : created !== null
+                      ? ES.products.photo.toList
+                      : ES.catalog.create.submit
+              }
+              busy={busy || photos.busy}
               onPress={() => void submit()}
             />
           </>

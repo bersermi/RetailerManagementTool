@@ -29,8 +29,10 @@
 // ============================================================================
 
 import { File } from 'expo-file-system';
-import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
+import { ImageManipulator, SaveFormat, type ImageRef } from 'expo-image-manipulator';
 import * as ImagePicker from 'expo-image-picker';
+
+import { PHOTO_PX } from '@/api/photos';
 
 /** At most this many pixels across — enough to judge a product by. */
 export const PHOTO_WIDTH = 1280;
@@ -78,4 +80,62 @@ export async function takePhoto(): Promise<PhotoOutcome> {
 /** The photo's bytes, for the upload. */
 export async function photoBytes(photo: TakenPhoto): Promise<Uint8Array> {
   return new File(photo.uri).bytes();
+}
+
+/**
+ * ⚠️ `8o`: A PRODUCT'S PHOTO — SQUARE, IN THE TWO SIZES `@/api/photos` NAMES,
+ * BOTH MADE HERE. The owner's canvas (*Las fotos · peso y origen*): *"Cuadradas
+ * las dos, y sin el lugar donde se tomó"*. The square is the middle of the
+ * frame, cut without asking — one tap, no crop screen to learn — and the photo
+ * is drawn through `renderAsync` first, so the cut is made on the picture the
+ * way it stands rather than the way the sensor stored it.
+ */
+export interface ProductPhoto {
+  /** 720 px on a side, for the product's page and the mosaic. */
+  readonly large: TakenPhoto;
+  /** 160 px on a side, for every list. */
+  readonly thumb: TakenPhoto;
+}
+
+export type ProductPhotoOutcome =
+  | { readonly kind: 'taken'; readonly photo: ProductPhoto }
+  | { readonly kind: 'cancelled' }
+  | { readonly kind: 'denied' }
+  | { readonly kind: 'failed' };
+
+export async function takeProductPhoto(): Promise<ProductPhotoOutcome> {
+  try {
+    const permission = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permission.granted) return { kind: 'denied' };
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 1,
+      exif: false,
+    });
+    if (result.canceled) return { kind: 'cancelled' };
+    const asset = result.assets[0];
+    if (asset === undefined) return { kind: 'cancelled' };
+    const upright = await ImageManipulator.manipulate(asset.uri).renderAsync();
+    const side = Math.min(upright.width, upright.height);
+    const square = await ImageManipulator.manipulate(upright)
+      .crop({
+        originX: Math.floor((upright.width - side) / 2),
+        originY: Math.floor((upright.height - side) / 2),
+        width: side,
+        height: side,
+      })
+      .renderAsync();
+    const large = await sized(square, PHOTO_PX.large);
+    const thumb = await sized(square, PHOTO_PX.thumb);
+    return { kind: 'taken', photo: { large, thumb } };
+  } catch {
+    return { kind: 'failed' };
+  }
+}
+
+async function sized(square: ImageRef, px: number): Promise<TakenPhoto> {
+  const image = await ImageManipulator.manipulate(square).resize({ width: px, height: px }).renderAsync();
+  const saved = await image.saveAsync({ compress: PHOTO_COMPRESS, format: SaveFormat.JPEG });
+  return { uri: saved.uri };
 }

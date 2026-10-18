@@ -11,21 +11,29 @@
 // with `compra` initials. Everything else about the square is one answer.
 //
 // ⚠️ HIDDEN FROM THE SCREEN READER: the name beside it already says it.
+//
+// ⚠️ `8o`: THE PHOTO IS LAID OVER THE INITIALS (`@/ui/Foto`) once this phone has
+// its file, so the square never shows anything but one of the two.
 // ============================================================================
 
 import { Text, View } from 'react-native';
 
 import { initials } from '@/api/catalog';
+import type { Picture } from '@/api/photos';
+import { Foto } from '@/ui/Foto';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 
 export function Retrato({
   name,
+  picture = null,
   small = false,
   ground = PALETTE.retrato,
   ink = PALETTE.tintaApagada,
 }: {
   name: string;
+  /** `8o`: the product's photo, or `null` for its initials alone. */
+  picture?: Picture | null;
   /** `tapTarget` square — a card, a sheet's heading — rather than the row's. */
   small?: boolean;
   ground?: string;
@@ -44,6 +52,7 @@ export function Retrato({
         backgroundColor: ground,
         alignItems: 'center',
         justifyContent: 'center',
+        overflow: 'hidden',
       }}
     >
       <Text
@@ -55,6 +64,7 @@ export function Retrato({
       >
         {initials(name)}
       </Text>
+      <Foto picture={picture} />
     </View>
   );
 }

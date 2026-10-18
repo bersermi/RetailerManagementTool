@@ -272,19 +272,26 @@ select public.chk('4.3 and the row can be made active again',
   public._try(format('update public.product_variant set is_active = true where id = %L',
                      :'var_ours')) = 'ok');
 
--- 4.4 ⚠️⚠️ FINDING 1, DRIVEN. This is the assertion that would have caught the
--- policy-predicate version of this migration, and nothing else would have.
-select public.chk('4.4 he CAN rename a prebuilt product — the reason for importing one',
+-- 4.4 ⚠️⚠️ SINCE `0063` (the owner, 2026-10-17: *"users won't be able to edit the
+-- name on default products"*) A PREBUILT PRODUCT KEEPS ITS NAME — refused by
+-- `product_variant_wera_keeps`, a trigger, so it is 23001 and never a silent 0 rows.
+-- This used to assert the opposite (Finding 1); the IVA below is what still does.
+select public.chk('4.4 since 0063 he CANNOT rename a prebuilt product — 23001',
   public._try(format('update public.product_variant set name = %L where id = %L',
-                     'Jitomate bola', :'var_ours')) = 'ok',
+                     'Jitomate bola', :'var_ours')) = '23001',
   public._try(format('update public.product_variant set name = %L where id = %L',
                      'Jitomate bola', :'var_ours')));
 
+-- 4.5 ⚠️⚠️ FINDING 1, DRIVEN — and since `0063` THIS is the assertion that would
+-- catch the policy-predicate version of `0042`: a `using` clause makes the row
+-- invisible, so the write is `ok` with zero rows and only the read-back, a
+-- separate statement (4.1's measured reason), can tell.
+select public._try(format('update public.product_variant set tax_rate = 0.1600, pack_size = 24 where id = %L',
+                          :'var_ours')) as r45 \gset
 select public.chk('4.5 and CAN set his own IVA and pack size on it',
-  public._try(format('update public.product_variant set tax_rate = 0.1600, pack_size = 24 where id = %L',
-                     :'var_ours')) = 'ok',
-  public._try(format('update public.product_variant set tax_rate = 0.1600 where id = %L',
-                     :'var_ours')));
+  :'r45' = 'ok'
+  and (select tax_rate = 0.1600 and pack_size = 24 from public.product_variant where id = :'var_ours'),
+  :'r45');
 
 -- 4.6 ⚠️⚠️ THE ASYMMETRY, AND THE FIRST WRITING OF `0042` GOT THIS WRONG. Fencing
 -- both directions made the marker unsettable by anything but an insert — no seed,
@@ -345,7 +352,7 @@ set local role authenticated;
 -- finding this assertion exists to make.
 with attempt as (
   update public.product_variant set is_active = false
-   where name = 'Jitomate bola'
+   where name = 'Jitomate'
   returning id
 )
 select public.chk('4.11 the cashier''s retire is SILENT — zero rows, not 23001',
@@ -354,7 +361,7 @@ select public.chk('4.11 the cashier''s retire is SILENT — zero rows, not 23001
 
 select public.chk('4.12 she can still READ the marker, which leaks nothing',
   (select count(*) from public.product_variant
-    where name = 'Jitomate bola' and is_prebuilt) = 1);
+    where name = 'Jitomate' and is_prebuilt) = 1);
 commit;
 
 reset role;
