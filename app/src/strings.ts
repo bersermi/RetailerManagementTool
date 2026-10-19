@@ -2984,6 +2984,23 @@ export const ES = {
      * second it takes to drain.
      */
     unsent: 'Sin enviar',
+    /**
+     * ⚠️ `8g` (2026-10-19), LO ÚLTIMO BY DAY: how many a day holds, beside its
+     * name in small capitals; what a closed line says under its title; and the
+     * empty week, said plainly with what will appear there.
+     */
+    count: {
+      sale: (n: number) => (n === 1 ? '1 venta' : `${n} ventas`),
+      purchase: (n: number) => (n === 1 ? '1 compra' : `${n} compras`),
+      waste: (n: number) => (n === 1 ? '1 registro' : `${n} registros`),
+    },
+    moreLines: (n: number) => (n === 1 ? 'y 1 producto más' : `y ${n} productos más`),
+    products: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
+    emptyWeek: {
+      sale: { title: 'Esta semana no hay ventas', hint: 'Lo que cobres en Vender aparece aquí durante siete días, para corregirlo si hace falta.' },
+      purchase: { title: 'Esta semana no hay compras', hint: 'Lo que registres en Comprar aparece aquí durante siete días, para corregirlo si hace falta.' },
+      waste: { title: 'Esta semana no se tiró nada', hint: 'Lo que registres en Desperdicio aparece aquí durante siete días, para corregirlo si hace falta.' },
+    },
 
     /**
      * ⚠️⚠️ WHAT IT MEANS, IN ONE LINE, AND IT PROMISES WHAT THE APP ACTUALLY

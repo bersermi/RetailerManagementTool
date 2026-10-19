@@ -155,7 +155,11 @@ export type DocumentKind = 'purchase' | 'sale' | 'waste';
  * look-question and it is `R9`'s**: *Desperdicio* is eleven characters where
  * *Compras* is seven, and the owner's phone decides it.
  */
-export const DOCUMENT_KINDS: readonly DocumentKind[] = ['purchase', 'sale', 'waste'];
+// ⚠️ `8g` (the owner, 2026-10-19): INICIO'S ORDER — *Ventas, Compras,
+// Desperdicio*, as its three doors run — over September's *Compras first*. So
+// Inicio's *Ver todo*, under the latest sales, opens on the sales, and Más's
+// door opens on the busiest list.
+export const DOCUMENT_KINDS: readonly DocumentKind[] = ['sale', 'purchase', 'waste'];
 
 /** The table each kind's documents come off. Spelled once (`R13`). */
 export const DOCUMENTS_TABLE: Readonly<Record<DocumentKind, string>> = {
@@ -1201,3 +1205,90 @@ export function latestSales(docs: readonly ShopDocument[], n = 3): readonly Feed
     });
 }
 
+// ============================================================================
+// ⚠️ `8g` (2026-10-19), THE OWNER'S OPTION A FOR LO ÚLTIMO: THE LIST BY DAY, ONE
+// LINE PER DOCUMENT, OPENED BY A TAP. What a day is called, how a day's group
+// adds up and what each line says are decided here, where
+// `app/test/lo-ultimo.test.ts` reads them; the screen only draws them (`R3`).
+// ============================================================================
+
+/** One day of the list: its documents, newest first, and what they add up to. */
+export interface DayGroup {
+  readonly day: string;
+  readonly documents: readonly ShopDocument[];
+  /**
+   * ⚠️ THE DAY'S TOTAL OF WHAT STILL STANDS, or `null` — a write-off carries no
+   * money, and a day holding a figure this phone could not read withholds the
+   * total rather than showing a smaller one (`takingsFrom`'s rule).
+   */
+  readonly grossCentavos: number | null;
+}
+
+/**
+ * The documents grouped by their day, in the order they arrive (newest first).
+ * ⚠️ Only STANDING documents ever reach here (`documentsFrom`), so a day's total
+ * is what that day sold after every correction to it.
+ */
+export function byDay(docs: readonly ShopDocument[]): readonly DayGroup[] {
+  const groups: { day: string; documents: ShopDocument[]; gross: number | null }[] = [];
+  for (const doc of docs) {
+    let group = groups.find((g) => g.day === doc.day);
+    if (group === undefined) {
+      group = { day: doc.day, documents: [], gross: 0 };
+      groups.push(group);
+    }
+    group.documents.push(doc);
+    group.gross = group.gross === null || doc.grossCentavos === null ? null : group.gross + doc.grossCentavos;
+  }
+  return groups.map((g) => ({ day: g.day, documents: g.documents, grossCentavos: g.gross }));
+}
+
+/**
+ * What a day is called above its group: *Hoy*, *Ayer*, the weekday and its
+ * number within the week (*jueves 16*), and the date beyond it.
+ */
+export function dayHeading(day: string, today: string): string {
+  const parts = /^(\d{4})-(\d{2})-(\d{2})/.exec(day);
+  if (parts === null) return day;
+  const noon = (iso: string) => Date.parse(`${iso.slice(0, 10)}T12:00:00Z`);
+  const ago = Math.round((noon(today) - noon(day)) / 86_400_000);
+  if (ago === 0) return ES.dates.relative.today;
+  if (ago === 1) return ES.dates.relative.yesterday;
+  const date = new Date(noon(day));
+  const dayNumber = Number(parts[3]);
+  if (ago > 1 && ago < 7) return `${ES.dates.weekdays[date.getUTCDay()] ?? ''} ${dayNumber}`;
+  return ES.dates.dayOfMonth(dayNumber, ES.dates.months[Number(parts[2]) - 1] ?? '');
+}
+
+function capitalised(text: string): string {
+  return text === '' ? text : `${text.charAt(0).toUpperCase()}${text.slice(1)}`;
+}
+
+/** The clock time a document happened at, on this phone: *20:11*. `''` if unreadable. */
+export function clockOf(at: string): string {
+  const when = new Date(at);
+  if (Number.isNaN(when.getTime())) return '';
+  return `${String(when.getHours()).padStart(2, '0')}:${String(when.getMinutes()).padStart(2, '0')}`;
+}
+
+/**
+ * What a closed line says. A sale: its first product, and how many more. A
+ * delivery: who brought it, and how many products — the supplier is what a
+ * shopkeeper looks for. A write-off: its first product, and why.
+ */
+export function rowTitle(doc: ShopDocument): { readonly title: string; readonly subtitle: string | null } {
+  const first = doc.lines[0]?.name ?? '';
+  const more = doc.lines.length - 1;
+  if (doc.kind === 'purchase') {
+    return {
+      // ⚠️ CAPITALISED HERE, where it heads a line: the generic supplier's
+      // *compra directa* is lower-case because Costos writes it BESIDE a name.
+      title: capitalised(doc.counterparty ?? first),
+      subtitle: doc.lines.length === 1 ? first : ES.documents.products(doc.lines.length),
+    };
+  }
+  if (doc.kind === 'waste') {
+    return { title: more > 0 ? ES.home.feed.more(first, more) : first, subtitle: doc.cause };
+  }
+  return { title: first, subtitle: more > 0 ? ES.documents.moreLines(more) : null };
+}
