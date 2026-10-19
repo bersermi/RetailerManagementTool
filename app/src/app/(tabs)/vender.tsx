@@ -29,7 +29,7 @@ import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magn
 import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
-import { useCart, useCartStore } from '@/cart/store';
+import { useCart, useCartStore, useCorrects } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
@@ -254,6 +254,8 @@ export default function Vender() {
   }, []);
 
   const cart = useCart('sell');
+  // ⚠️ `8p`: the sale this basket re-keys, so it counts on that sale's day.
+  const corrects = useCorrects('sell');
   const openShop = useCartStore((state) => state.openShop);
 
   // ⚠️⚠️ THE STORE IS POINTED AT A SHOP ONLY ONCE ONE IS KNOWN, AND THE GUARD IS
@@ -353,6 +355,7 @@ export default function Vender() {
           pricesIncludeTax: workspace.pricesIncludeTax,
           workspaceId: workspace.id,
           locationId,
+          corrects,
         };
 
   // ⚠️⚠️ THE OWNER'S EMPTYING ANIMATION — *"another one if we empty the

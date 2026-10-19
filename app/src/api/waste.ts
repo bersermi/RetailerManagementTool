@@ -220,5 +220,19 @@ export function wasteOccurredAt(now: string, day: WasteDay): string | null {
   return new Date(at - day * 86_400_000).toISOString();
 }
 
+/**
+ * ⚠️ `8p` — which chip a write-off dated `day` is, seen from `today` (both
+ * `YYYY-MM-DD`, local): `0`, `1` or `2` days back.
+ *
+ * ⚠️⚠️ ANYTHING OLDER, OR UNREADABLE, IS `0` — *hoy* — AND THAT IS A KNOWN LIE IN
+ * ONE PLACE: a manager correcting a write-off older than *antier*. The server
+ * still dates it at the original (`0064`, at any age); the three chips cannot
+ * show that day. Left for `8g`'s look at Desperdicio, which can see it.
+ */
+export function wasteDayOf(day: string, today: string): WasteDay {
+  const back = (Date.parse(`${today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 86_400_000;
+  return isWasteDay(back) ? back : 0;
+}
+
 /** A date as `0057` takes it, `YYYY-MM-DD`. */
 export const EXPIRY_SHAPE = /^[0-9]{4}-[0-9]{2}-[0-9]{2}$/;

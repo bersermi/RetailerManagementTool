@@ -211,20 +211,45 @@ describe('a void is two rows, not a deleted one', () => {
     expect(takings.grossCentavos).toBe(1_160);
   });
 
-  // ⚠️ A VOID THE NEXT MORNING LEAVES TODAY WHOLE, and that is not an
-  // approximation — it is what `product_margin_daily` does on the server, which
-  // buckets every row by its own `occurred_at`. The two agreeing is worth more
-  // than either being clever.
+  // ⚠️ A SALE WHOSE VOID HAS NOT HAPPENED YET STANDS WHOLE — the window holds the
+  // original and nothing undoes it today.
   it('leaves a document whole when its reversal is outside this window', () => {
     const takings = takingsFrom([original]);
     expect(takings.count).toBe(1);
     expect(takings.grossCentavos).toBe(11_600);
   });
 
-  it('takes the money off the day the void landed on', () => {
+  // ⚠️⚠️ `8p` — UNTIL 2026-10-19 THIS CASE READ *takes the money off the day the
+  // void landed on*, and it was the blind spot: Friday's $45 sale deleted on
+  // Monday put Inicio's *Hoy* at −$45 · 0 ventas. The owner's ruling is that a
+  // correction counts on the day of what it corrects, and `0064` moves the daily
+  // views the same way — so a void whose sale is not in today's window takes
+  // nothing off today.
+  it('takes nothing off today for a void of a sale from another day', () => {
     const takings = takingsFrom([reversal]);
-    expect(takings.grossCentavos).toBe(-11_600);
+    expect(takings.grossCentavos).toBe(0);
     expect(takings.count).toBe(0);
+    expect(takings.complete).toBe(true);
+  });
+
+  it('…while today\'s own void still nets today, beside one from another day', () => {
+    const friday = sale({
+      id: 'void-friday',
+      total_net: '-45.00',
+      total_tax: '0.00',
+      reversal_of: 'sale-friday',
+    });
+    const other = sale({ id: 'sale-2', total_net: '10.00', total_tax: '1.60' });
+    const takings = takingsFrom([original, reversal, friday, other]);
+    expect(takings.grossCentavos).toBe(1_160);
+    expect(takings.count).toBe(1);
+  });
+
+  it('withholds the figure for an unreadable row it would count, never for one it skips', () => {
+    const unreadable = sale({ id: 'void-x', total_net: 'n/a', reversal_of: 'sale-elsewhere' });
+    expect(takingsFrom([original, unreadable]).grossCentavos).toBe(11_600);
+    const counted = sale({ id: 'sale-3', total_net: 'n/a' });
+    expect(takingsFrom([original, counted]).grossCentavos).toBeNull();
   });
 
   it('does not count a reversal as a sale even with nothing to reverse in view', () => {

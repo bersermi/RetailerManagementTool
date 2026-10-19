@@ -64,6 +64,12 @@
 - **Revised:** 2026-10-17, night — **§2.8's Catálogo row: Productos redrawn** (plan `8g`) on the decision
   maker's rulings of that day — the aisles across the top, list or mosaic, a page per product, a
   shorter Editar, and a catalog product's name and picture kept as Wera's.
+- **Revised:** 2026-10-19 — **§2.6 and §2.9: a correction counts on the day of what it corrects**
+  (plan `8p`, `0064`), on the decision maker's ruling of that day over the blind spot `8g`'s audit
+  measured — Friday's $45 sale deleted on Monday put Monday at −$45. Every daily view reads a
+  reversal on its original's day; `record_sale`, `record_purchase` and `record_waste` take
+  `p_corrects`, and a re-keyed document takes the voided one's `occurred_at` when the caller is
+  who voided it. The ledger's own rows and `transaction_export` keep when each void was made.
 - **Revised:** 2026-10-17 — **§2.11's stack gains a *Camera* row** (plan `8m`): `expo-image-picker` and
   `expo-image-manipulator` behind one module, for *Te lo compro*'s photos — the decision maker's
   *"Do the new install"*.
@@ -1194,8 +1200,22 @@ audit needs the second.
   on the `failed_write` row, which was clamped at capture. Without this exemption
   every recovered sale is silently re-dated to the moment of recovery, which is the
   precise harm manual replay was chosen to avoid.
+- ⚠️ **A correction takes its original's `occurred_at`** (amended 2026-10-19, `0064`, on
+  the decision maker's ruling: *a correction counts on the day of what it corrects*).
+  `Corregir` voids a document and re-keys it; the re-keyed one is sent with
+  `p_corrects` naming the voided one, and when that names a document of the same
+  store which stands reversed **by the same caller**, the new document is stamped
+  with that document's `occurred_at` — read from the ledger, never from the client,
+  at any age. The fence is `void_transaction`'s, carried over: nobody can place a
+  document anywhere they could not already have undone one. A link that does not
+  match falls through to the rules above, silently — the shopkeeper did nothing
+  wrong.
 
-Daily totals read `occurred_at`, always — a sale counts on the day it was made.
+Daily totals read `occurred_at`, always — a sale counts on the day it was made. ⚠️ **A
+reversal counts on the day of the document it reverses** (amended 2026-10-19, `0064`):
+every daily view joins it to its original. Its own `occurred_at` stays the moment of
+the void, and `transaction_export` files it there — the real timeline is ours, the
+shop's days are the shopkeeper's.
 
 **The 15-minute void window reads `occurred_at`, EXCEPT on a write flagged
 `recorded_offline`, where it reads `recorded_at`** (settled 2026-09-04, on the
@@ -2358,7 +2378,7 @@ answered one is just a decision.
 | 6b | Shared catalog | **Shared.** One catalog per workspace; stock is already per location | §2.9 |
 | 6c | Números scope | **Consolidated by default**, location filter as drill-down | §2.9 |
 | 7 | Idempotency semantics | `on conflict do nothing` + `payload_hash`. Same payload → `already_recorded`. In flight → block on the lock. **Different lines → raise and dead-letter** | §2.6 |
-| 8 | `occurred_at` trust | Server overrides when online; clamped to `[now() − 72h, now()]` when `recorded_offline`; **`replay_failed_write` exempt** | §2.6 |
+| 8 | `occurred_at` trust | Server overrides when online; clamped to `[now() − 72h, now()]` when `recorded_offline`; **`replay_failed_write` exempt**; ⚠️ **a correction (`p_corrects`, `0064`) takes its voided original's** | §2.6 |
 | 9 | Staff invitation flow | ⚠️ **Amended 2026-09-13 (C11.5/C11.6): BOTH paths, one table.** The joiner enters a **workspace code**, **requests**, and is **approved**; an owner's invite is *a request that arrives pre-approved*. `source`, nullable `token_hash`, `invited_by` → **`decided_by`**, locations required at approval. Token still by WhatsApp; `auth.users` never exposed. **Eight rulings in §2.7** | §2.7 |
 | 10 | Schema review continuity | **No deputy.** Beyond 48 h unavailable, migrations wait. A junior is explicitly not the backup | §2.10 |
 | 11 | Who reads the nightly report | WhatsApp/Telegram to the owner's phone, **every day including green** | §2.10 |

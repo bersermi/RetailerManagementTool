@@ -40,6 +40,13 @@
 #     `prefillOf` puts them straight back into a cart that is about to re-record
 #     the ledger. Nothing renders either one, so a rounding here has no symptom.
 #
+#   * ⚠️⚠️ `8p` — **A CORRECTION COUNTS ON THE DAY OF WHAT IT CORRECTS** (the
+#     owner's ruling of 2026-10-19, `0064`). The re-keyed sale is sent with the
+#     key `@/cart/cart` writes — PostgREST matches by name, so a renamed key is a
+#     404 on every correction — and a sale rung up yesterday, deleted today and
+#     re-keyed online lands on YESTERDAY at the original's instant, while one from
+#     today stays today. The void itself keeps today's date: the real timeline.
+#
 # WHAT IT DOES NOT ASSERT: which buttons are drawn, what they say, and what a
 # cart does with a prefill. Those are `app/test/api-corrections.test.ts`'s and
 # `R9`'s. This file is about the WIRE: the name, the arguments, the codes, the
@@ -52,8 +59,12 @@ set -uo pipefail
 
 CONTRACT="${1:-app/src/api/corrections.ts}"
 WORDS="${2:-app/src/strings.ts}"
+# ⚠️ `8p`: the module that builds the re-keyed document's payload, where the key
+# that becomes `p_corrects` is written once.
+CART="${3:-app/src/cart/cart.ts}"
 [[ -r "$CONTRACT" ]] || { echo "FAIL: cannot read $CONTRACT"; exit 1; }
 [[ -r "$WORDS" ]] || { echo "FAIL: cannot read $WORDS"; exit 1; }
+[[ -r "$CART" ]] || { echo "FAIL: cannot read $CART"; exit 1; }
 
 fails=0
 ran=0
@@ -612,12 +623,108 @@ verdict "after three corrections the list reads clean, and the prefill columns r
   "$SCRATCH/after.py" "$AFTER_FILE" "$REDONE_ID" \
   "$OWNERS_ID,$STAFFS_ID,$NARROW_ID" "$OWNERS_SECOND"
 
+# --- 11. ⚠️⚠️ `8p` — A CORRECTION COUNTS ON THE DAY OF WHAT IT CORRECTS -----
+# The cashier rang a sale up yesterday (offline, as the pilot shop mostly is),
+# deletes it today from Lo último and re-keys it ONLINE — the case where the
+# server used to re-date the new sale to now() and move it to today.
+# ⚠️ THE KEY IS THE APP'S: `draftOf` writes it, `@/api/flush` prefixes `p_`.
+CORRECTS_KEY="$(sed -n 's/.*{ \([a-z_]*\): corrects\.id, occurred_at: corrects\.at }.*/\1/p' "$CART" | head -1)"
+note
+if [[ -n "$CORRECTS_KEY" ]]; then
+  ok "the re-keyed document names what it replaces as '$CORRECTS_KEY' (sent as p_$CORRECTS_KEY)"
+else
+  fail "could not read the correction's payload key out of $CART"
+  echo "      draftOf must write { <key>: corrects.id, occurred_at: corrects.at } — the"
+  echo "      line this check reads. Without it there is nothing to send."
+  exit 1
+fi
+
+SALE_LINES_JSON="$(python3 -c '
+import json, sys
+print(json.dumps([{"variant_id": sys.argv[1], "qty_display": "2", "qty_display_unit": "pza",
+                   "unit_price_gross_per_base": "5.00"}]))' "$BOLILLO")"
+
+sell() { # id hours-ago offline corrects-id original-at -> response
+  local payload
+  payload="$(python3 -c '
+import json, sys
+p = {"p_id": sys.argv[1], "p_location_id": sys.argv[2], "p_lines": json.loads(sys.argv[3]),
+     "p_occurred_at": sys.argv[4], "p_recorded_offline": sys.argv[5] == "true"}
+if sys.argv[6]:
+    p["p_" + sys.argv[7]] = sys.argv[6]
+    p["p_occurred_at"] = sys.argv[8]
+print(json.dumps(p))' \
+    "$1" "$LOCATION_ID" "$SALE_LINES_JSON" "$(ago "$2")" "$3" "$4" "$CORRECTS_KEY" "${5:-}")"
+  api POST /rest/v1/rpc/record_sale "$payload"
+}
+sale_at() { first "$2" "$(body "$(api GET "/rest/v1/sale?id=eq.$1&select=occurred_at,recorded_at")")"; }
+same_instant() { python3 -c '
+import datetime, sys
+a, b = (datetime.datetime.fromisoformat(x) for x in sys.argv[1:3])
+print("yes" if a == b else "no")' "$1" "$2" 2>/dev/null; }
+
+TOKEN="$STAFF_TOKEN"
+YESTERDAYS="$(uuid)"
+sell "$YESTERDAYS" 24 true "" > /dev/null
+YESTERDAY_AT="$(sale_at "$YESTERDAYS" occurred_at)"
+GONE="$(voidit sale "$YESTERDAYS" "$REASON_CORRECTED")"
+FIXED="$(uuid)"
+FIXED_OUT="$(sell "$FIXED" 0 false "$YESTERDAYS" "$YESTERDAY_AT")"
+note
+case "$(status "$FIXED_OUT")" in
+  200) ok "record_sale takes p_$CORRECTS_KEY — the re-keyed sale landed" ;;
+  404) fail "record_sale answered 404 to p_$CORRECTS_KEY: $(body "$FIXED_OUT")"
+       echo "      ⚠️⚠️ PostgREST MATCHES BY PARAMETER NAME. Every correction from the"
+       echo "      phone would fail like this and land in the dead letters — 0064 must be"
+       echo "      applied BEFORE an update carrying this key ships."
+       exit 1 ;;
+  *)   fail "record_sale answered $(status "$FIXED_OUT"): $(body "$FIXED_OUT")"; exit 1 ;;
+esac
+FIXED_AT="$(sale_at "$FIXED" occurred_at)"
+note
+if [[ -n "$YESTERDAY_AT" && "$(same_instant "$FIXED_AT" "$YESTERDAY_AT")" == "yes" \
+      && "$(status "$GONE")" == "200" ]]; then
+  ok "⚠️ yesterday's sale, deleted and re-keyed today online, lands on yesterday — $FIXED_AT"
+else
+  fail "the corrected sale is dated '$FIXED_AT'; the one it replaces was '$YESTERDAY_AT' (void: $(status "$GONE"))"
+  echo "      ⚠️⚠️ THE OWNER'S RULING OF 2026-10-19: a correction counts on the day of"
+  echo "      what it corrects. Dated now, it moves Friday's sale to Monday — the blind"
+  echo "      spot 8g's audit measured."
+fi
+
+VOID_AT="$(first occurred_at "$(body "$(api GET "/rest/v1/sale?reversal_of=eq.$YESTERDAYS&select=occurred_at")")")"
+note
+if python3 -c '
+import datetime, sys
+v = datetime.datetime.fromisoformat(sys.argv[1])
+now = datetime.datetime.now(datetime.timezone.utc)
+raise SystemExit(0 if abs((now - v).total_seconds()) < 600 else 1)' "$VOID_AT" 2>/dev/null; then
+  ok "…while the void keeps the moment it was made — our side's real timeline"
+else
+  fail "the void is dated '$VOID_AT', not now — the ledger must keep when it happened"
+fi
+
+# ⚠️ AND A CORRECTION OF TODAY'S SALE STAYS TODAY — the link moves nothing that
+# was already in the right place.
+TODAYS="$(uuid)"
+sell "$TODAYS" 0 false "" > /dev/null
+TODAY_AT="$(sale_at "$TODAYS" occurred_at)"
+voidit sale "$TODAYS" "$REASON_CORRECTED" > /dev/null
+FIXED_TODAY="$(uuid)"
+sell "$FIXED_TODAY" 0 false "$TODAYS" "$TODAY_AT" > /dev/null
+note
+if [[ -n "$TODAY_AT" && "$(same_instant "$(sale_at "$FIXED_TODAY" occurred_at)" "$TODAY_AT")" == "yes" ]]; then
+  ok "a correction of today's sale stays at today's sale — nothing moves that was right"
+else
+  fail "the correction of today's sale is dated '$(sale_at "$FIXED_TODAY" occurred_at)', not '$TODAY_AT'"
+fi
+
 # --- the verdict -----------------------------------------------------------
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository: a check that asserted
 # nothing must not be able to report success.
 echo
-if (( ran < 18 )); then
-  echo "FAIL: only $ran assertion group(s) ran; this check has at least 18. Something"
+if (( ran < 26 )); then
+  echo "FAIL: only $ran assertion group(s) ran; this check has at least 26. Something"
   echo "      exited early and a green here would be vacuous."
   exit 1
 fi
@@ -625,7 +732,8 @@ if (( fails == 0 )); then
   echo "all $ran assertion groups passed — app/src/api/corrections.ts still describes"
   echo "the database: the RPC and its three arguments, TD003 on a 400, an idempotent"
   echo "replay with a shorter body, the fence in all four of its cases, a live window,"
-  echo "and a voided delivery that can be re-recorded."
+  echo "a voided delivery that can be re-recorded, and a correction dated on the day"
+  echo "of what it corrects."
   exit 0
 fi
 echo "$fails assertion group(s) FAILED out of $ran."

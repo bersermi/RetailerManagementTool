@@ -156,27 +156,46 @@ select coalesce(a.ws, c.ws)   as ws,
        coalesce(c.p, 0)       as p,
        coalesce(c.pn, 0)      as pn
   from (select m.workspace_id ws, m.location_id loc, m.variant_id var,
-               date_trunc('month', (x.occurred_at at time zone lz.timezone))::date mo,
+               -- ⚠️ `0064`: a void is read in the month of what it cancels, as
+               -- the view reads it (the owner's ruling of 2026-10-19).
+               date_trunc('month', (coalesce(xo.occurred_at, x.occurred_at) at time zone lz.timezone))::date mo,
                sum(-m.qty_base * m.unit_cost_net_per_base) w
           from stock_movement m join waste x on x.id = m.waste_id
+          left join waste xo on xo.id = x.reversal_of
           join location lz on lz.id = m.location_id and lz.workspace_id = m.workspace_id
          where m.reason = 'waste' group by 1,2,3,4) a
   full outer join
        (select pl.workspace_id ws, pl.location_id loc, pl.variant_id var,
-               date_trunc('month', (p2.occurred_at at time zone lz.timezone))::date mo,
+               date_trunc('month', (coalesce(po.occurred_at, p2.occurred_at) at time zone lz.timezone))::date mo,
                sum(pl.line_net) p, count(*) pn
           from purchase_line pl join purchase p2 on p2.id = pl.purchase_id
+          left join purchase po on po.id = p2.reversal_of
           join location lz on lz.id = pl.location_id and lz.workspace_id = pl.workspace_id
          group by 1,2,3,4) c
     on c.ws = a.ws and c.loc = a.loc and c.var = a.var and c.mo = a.mo;
 
-select chk('seed present: all THREE denominator failures occur in the LEDGER at month grain',
+-- ⚠️ THE THIRD FAILURE IS ABOLISHED BY `0064`, AND THE PRE-FLIGHT NOW ASKS FOR
+-- WHAT IT CAME FROM: a void recorded in a LATER month than the delivery it
+-- cancels. Until 0064 that put negative purchases in the void's month; since
+-- the owner's ruling of 2026-10-19 a void counts in its delivery's month, so the
+-- seed must still hold the case for section 3's "abolished" to be a measurement
+-- rather than an absence.
+select chk('seed present: two denominator failures at month grain, and the void that used to make the third',
            (select count(*) from _led where w > 0 and pn = 0)  >= 1
        and (select count(*) from _led where pn > 0 and p = 0)  >= 1
-       and (select count(*) from _led where w > 0 and p < 0)   >= 1,
+       and (select count(*) from purchase r
+              join purchase o on o.id = r.reversal_of
+              join location lz on lz.id = r.location_id
+             where date_trunc('month', r.occurred_at at time zone lz.timezone)
+                <> date_trunc('month', o.occurred_at at time zone lz.timezone)) >= 1,
            (select (select count(*) from _led where w > 0 and pn = 0) || ' never-bought, '
                 || (select count(*) from _led where pn > 0 and p = 0) || ' bought-then-cancelled, '
-                || (select count(*) from _led where w > 0 and p < 0) || ' net-negative'));
+                || (select count(*) from purchase r
+                      join purchase o on o.id = r.reversal_of
+                      join location lz on lz.id = r.location_id
+                     where date_trunc('month', r.occurred_at at time zone lz.timezone)
+                        <> date_trunc('month', o.occurred_at at time zone lz.timezone))
+                || ' void(s) recorded in a later month than their delivery'));
 
 do $$
 declare v_failed integer;
@@ -328,6 +347,8 @@ select chk('the shop wastes a plausible fraction of what it buys',
 -- pinned — "a product wasted in a period it was not bought in". The seed has three
 -- distinct failures, only one of which is a zero, and the guard that survives all
 -- three is `sum(purchases_net) > 0` rather than `nullif(..., 0)`.
+-- ⚠️ SINCE `0064` THE THIRD (net negative) CANNOT OCCUR — a void counts in its
+-- delivery's month. It is kept below as a pinned abolition, not deleted.
 
 -- The view, rolled up to the month a report actually asks about. `_led` above is
 -- the same thing read straight off the base tables; the first check is that they
@@ -387,15 +408,32 @@ select chk('...and the two zeroes are distinguishable, which is the point of the
 
 -- --- failure 3: bought before the window, voided inside it ------------------
 -- ⚠️ THE ONE NEITHER THE PLAN NOR `nullif` ANTICIPATED. The void's negated lines
--- land in this window; the delivery they cancel does not.
-select ws, loc, var, mo from _led where w > 0 and p < 0 order by p limit 1 \gset neg_
+-- landed in this window; the delivery they cancel did not.
+-- ⚠️⚠️ ABOLISHED BY `0064` (the owner's ruling of 2026-10-19: a correction counts
+-- on the day of what it corrects). The seed's delivery of 2026-05-24, voided on
+-- 2026-06-02, used to put negative purchases in June beside June's waste. Its
+-- void's lines now count in May, beside the lines they cancel, so no month at any
+-- store is net negative. The case is pinned by the void that used to cause it.
+select pl.workspace_id ws, pl.location_id loc, pl.variant_id var,
+       date_trunc('month', r.occurred_at at time zone lz.timezone)::date mo,
+       date_trunc('month', o.occurred_at at time zone lz.timezone)::date orig_mo
+  from purchase r
+  join purchase o on o.id = r.reversal_of
+  join purchase_line pl on pl.purchase_id = r.id
+  join location lz on lz.id = r.location_id
+ where date_trunc('month', r.occurred_at at time zone lz.timezone)
+    <> date_trunc('month', o.occurred_at at time zone lz.timezone)
+ order by pl.line_net, pl.variant_id limit 1 \gset neg_
 
-select chk('denominator 3/3 — NET NEGATIVE: a void inside the window, its delivery outside it',
-           (select p from _mo where ws=:'neg_ws' and loc=:'neg_loc' and var=:'neg_var' and mo=:'neg_mo') < 0
-       and (select w from _mo where ws=:'neg_ws' and loc=:'neg_loc' and var=:'neg_var' and mo=:'neg_mo') > 0,
-           (select v.name || ' at ' || l.name || ' in ' || :'neg_mo' || ': purchases '
-                || (select p from _mo where ws=:'neg_ws' and loc=:'neg_loc'
-                                        and var=:'neg_var' and mo=:'neg_mo')
+select chk('denominator 3/3 — NET NEGATIVE — ABOLISHED BY 0064: the void counts in its delivery''s month',
+           (select count(*) from _mo where p < 0) = 0
+       and (select count(*) from _led where p < 0) = 0
+       and (select pn from _mo where ws=:'neg_ws' and loc=:'neg_loc'
+                                 and var=:'neg_var' and mo=:'neg_orig_mo') >= 2
+       and coalesce((select p from _mo where ws=:'neg_ws' and loc=:'neg_loc'
+                                       and var=:'neg_var' and mo=:'neg_mo'), 0) >= 0,
+           (select v.name || ' at ' || l.name || ': voided in ' || :'neg_mo'
+                || ', counted in ' || :'neg_orig_mo' || ' beside the delivery it cancels'
               from product_variant v, location l
              where v.id = :'neg_var' and l.id = :'neg_loc'));
 
@@ -549,12 +587,16 @@ select chk('reversals: a product whose only delivery was voided still has a row,
                            sum(purchase_line_count) n from product_waste_daily group by 1,2) v
              where v.p = 0 and v.n > 0));
 
--- ⚠️ THE DAY GRAIN IS WHERE A VOID BECOMES VISIBLE, and this is the assertion
+-- ⚠️ THE DAY GRAIN WAS WHERE A VOID BECAME VISIBLE, and this was the assertion
 -- 0009's seed could not make. Every void here lands on a later local day than its
--- original, so day-grain buckets do NOT agree with a pairs-never-happened ledger
--- even though the whole-window money does. That is not a defect — it is what
--- append-only means — and a report that windows tightly will see it.
-select chk('reversals: at DAY grain the buckets differ, because a void lands on its own day',
+-- original, so day-grain buckets did NOT agree with a pairs-never-happened ledger
+-- even though the whole-window money did.
+-- ⚠️⚠️ REVERSED BY `0064`, the owner's ruling of 2026-10-19: a correction counts on
+-- the day of what it corrects. The view now reads a void on its original's day,
+-- so at DAY grain it equals the ledger with every voided pair removed — the same
+-- query, now asserted to find nothing. The ledger is still append-only: the void
+-- keeps its own `occurred_at`, and `transaction_export` keeps that day.
+select chk('reversals: since 0064 the DAY-grain buckets equal a pairs-never-happened ledger — a void counts on its original''s day',
            (select count(*) from (
               select coalesce(v.ws,x.ws) ws
                 from (select workspace_id ws, variant_id var, day d,
@@ -586,8 +628,8 @@ select chk('reversals: at DAY grain the buckets differ, because a void lands on 
                          on c.ws = a.ws and c.var = a.var and c.d = a.d) x
                   on x.ws = v.ws and x.var = v.var and x.d = v.d
                where coalesce(v.w,0) is distinct from coalesce(x.w,0)
-                  or coalesce(v.p,0) is distinct from coalesce(x.p,0)) d) > 0,
-           'day buckets that move when the voided pairs are removed — the void has a day of its own');
+                  or coalesce(v.p,0) is distinct from coalesce(x.p,0)) d) = 0,
+           'day buckets that move when the voided pairs are removed — none since 0064');
 
 -- --- unit conversion: it is not in the query, and that is the finding --------
 select v.id as wid, v.name as wname
@@ -654,11 +696,17 @@ select chk('falsified: an inner join loses almost every write-off in the shop',
               from product_waste_daily where waste_movement_count > 0));
 
 -- --- wrong 2: nullif instead of the `> 0` guard ------------------------------
--- The guard the plan expected. It survives failure 1 and failure 2 and prints a
+-- The guard the plan expected. It survives failure 1 and failure 2 and printed a
 -- negative percentage on failure 3.
-select chk('falsified: `nullif(p, 0)` renders a NEGATIVE waste percentage where `> 0` renders none',
-           (select count(*) from _mo where w / nullif(p, 0) < 0) > 0
-       and (select count(*) from _mo where (case when p > 0 then w / p end) < 0) = 0,
+-- ⚠️ `0064` ABOLISHED FAILURE 3, so on this seed the two guards now AGREE on every
+-- bucket and this is no longer a falsification — pinned rather than deleted, the
+-- way 0031 pins what a seed cannot falsify. `> 0` stays: it costs nothing and is
+-- still the guard that cannot print a negative share if one ever arrives.
+select chk('⚠️ PINNED (0064): `nullif(p, 0)` and `> 0` now agree on every bucket — failure 3 is gone, so nothing here separates them',
+           (select count(*) from _mo where w / nullif(p, 0) < 0) = 0
+       and (select count(*) from _mo where (case when p > 0 then w / p end) < 0) = 0
+       and (select count(*) from _mo
+             where (w / nullif(p, 0)) is distinct from (case when p > 0 then w / p end)) = 0,
            (select count(*) || ' bucket(s) where nullif prints a negative share' from _mo
              where w / nullif(p, 0) < 0));
 

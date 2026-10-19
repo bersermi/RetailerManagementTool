@@ -194,20 +194,51 @@ select chk('line_gross is the two columns beside it, every row — 147 581.88 / 
 -- which is the claim that says the day rule in this view is the same day rule the
 -- four daily views use. A timezone or an occurred_at/created_at slip would leave
 -- the totals identical and move rows between months.
-select chk('⚠️⚠️ AND DAY FOR DAY against product_velocity_daily and product_purchases_daily — 0 mismatches',
+--
+-- ⚠️⚠️ SINCE `0064` THE TWO RULES DIFFER FOR ONE KIND OF ROW, ON PURPOSE. The owner
+-- ruled on 2026-10-19 that a correction counts on the day of what it corrects: the
+-- daily views read a reversal on its ORIGINAL's day. This export is our side's
+-- real timeline and keeps every row on the day it was recorded — and it carries
+-- `reversal_of`, so the views' day is one join away. The reconciliation below
+-- reads each reversal row on its original's day and must still find nothing; the
+-- check after it pins exactly which rows the export dates differently.
+create temp view _counted as
+select e.kind, coalesce(o.day, e.day) as day, e.line_net
+  from transaction_export e
+  left join (select distinct kind, document_id, day from transaction_export) o
+    on o.kind = e.kind and o.document_id = e.reversal_of;
+
+select chk('⚠️⚠️ AND DAY FOR DAY against product_velocity_daily and product_purchases_daily — 0 mismatches, '
+           'a reversal read on its original''s day (0064)',
            (select count(*) from
-              (select day, sum(line_net) n from transaction_export where kind='sale' group by 1) e
+              (select day, sum(line_net) n from _counted where kind='sale' group by 1) e
               full outer join
               (select day, sum(revenue_net) n from product_velocity_daily group by 1) v using (day)
              where coalesce(e.n,0) <> coalesce(v.n,0)) = 0
        and (select count(*) from
-              (select day, sum(line_net) n from transaction_export where kind='purchase' group by 1) e
+              (select day, sum(line_net) n from _counted where kind='purchase' group by 1) e
               full outer join
               (select day, sum(purchases_net) n from product_purchases_daily group by 1) p using (day)
              where coalesce(e.n,0) <> coalesce(p.n,0)) = 0,
-           'a month in this file is the same month those views report. The day '
-        || 'comes from the DOCUMENT in the STORE''s timezone (0012) — never from '
-        || 'the line''s created_at, which recorded_offline moves by up to 72 hours');
+           'a month in this file is the same month those views report, but for a '
+        || 'reversal recorded on a later day. The day comes from the DOCUMENT in the '
+        || 'STORE''s timezone (0012) — never from the line''s created_at, which '
+        || 'recorded_offline moves by up to 72 hours');
+
+select chk('⚠️ and the rows this file dates differently from the views are reversals and nothing else — '
+           '23 delivery lines and 3 waste lines, recorded after the day they correct',
+           (select count(*) from transaction_export e
+              join (select distinct kind, document_id, day from transaction_export) o
+                on o.kind = e.kind and o.document_id = e.reversal_of
+             where o.day <> e.day) = 26
+       and (select count(*) from transaction_export e
+              join (select distinct kind, document_id, day from transaction_export) o
+                on o.kind = e.kind and o.document_id = e.reversal_of
+             where o.day <> e.day and e.kind = 'purchase') = 23
+       and (select count(*) from transaction_export
+             where reversal_of is not null and not is_reversal) = 0,
+           'the seed''s three sale voids are same-day, so the sale side agrees '
+        || 'row for row; the real timeline is kept here and nowhere else');
 
 select chk('and the day is the store''s own, discovered from location.timezone rather than hardcoded',
            pg_get_viewdef('public.transaction_export'::regclass) !~* 'AT TIME ZONE ''[A-Za-z]+/'

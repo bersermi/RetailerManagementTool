@@ -291,8 +291,10 @@ select chk('and it still has no cost reach — 0014''s claim survives the replac
 -- view named for waste. It now has a name of its own, and the strongest thing that
 -- can be said about it is that it did not become a SECOND, disagreeing answer.
 
-select chk('the view exists at the variant-day grain: 1 048 rows over 509 pairs, 12 families',
-           (select count(*) from product_purchases_daily) = 1048
+-- ⚠️ 1 048 UNTIL `0064`: since then a void counts on its delivery's day, and the
+-- seed's three voided deliveries (23 lines) share their originals' buckets.
+select chk('the view exists at the variant-day grain: 1 025 rows over 509 pairs, 12 families',
+           (select count(*) from product_purchases_daily) = 1025
        and (select count(*) from (select workspace_id, location_id, variant_id
                                     from product_purchases_daily group by 1,2,3) x) = 509
        and (select count(distinct family_id) from product_purchases_daily) = 12);
@@ -329,11 +331,11 @@ select chk('⚠️ ROW FOR ROW identical to the copy inside product_waste_daily,
                  from product_purchases_daily)) x) = 0,
            'the same number in two views, asserted rather than assumed');
 
-select chk('purchases_gross is the row''s own arithmetic on EVERY row, and 550 buckets are IVA-exempt',
+select chk('purchases_gross is the row''s own arithmetic on EVERY row, and 547 buckets are IVA-exempt',
            (select count(*) from product_purchases_daily
              where purchases_gross is distinct from purchases_net + tax_paid) = 0
-       and (select count(*) from product_purchases_daily where tax_paid = 0) = 550
-       and (select count(*) from product_purchases_daily where tax_paid <> 0) = 498);
+       and (select count(*) from product_purchases_daily where tax_paid = 0) = 547
+       and (select count(*) from product_purchases_daily where tax_paid <> 0) = 478);
 
 -- Per FAMILY is a `group by`, which is the reason there is no second view for it.
 select chk('per-family is a group by: family_id and family_name on every row, never null',
@@ -373,14 +375,19 @@ select chk('⚠️ no day spine: one row per purchase bucket and not one silent 
            (select count(*) from product_purchases_daily) =
            (select count(*) from (
               select pl.workspace_id, pl.location_id, pl.variant_id,
-                     (p.occurred_at at time zone l.timezone)::date
+                     (coalesce(o.occurred_at, p.occurred_at) at time zone l.timezone)::date
                 from purchase_line pl
                 join purchase p on p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
                                                          and p.location_id  = pl.location_id
+                left join purchase o on o.id = p.reversal_of and o.workspace_id = p.workspace_id
                 join location l on l.id = pl.location_id and l.workspace_id = pl.workspace_id
                group by 1,2,3,4) x)
        and (select count(*) from product_purchases_daily where purchase_line_count = 0) = 0
-       and (select count(*) from product_purchases_daily where purchases_qty_base = 0) = 0,
+       -- ⚠️ `0064`: a zero is now a CANCELLED delivery and nothing else — its line
+       -- and its void's, on one day. 23 of them, every one two lines deep.
+       and (select count(*) from product_purchases_daily where purchases_qty_base = 0) = 23
+       and (select count(*) from product_purchases_daily
+             where purchases_qty_base = 0 and purchase_line_count = 2 and purchases_net = 0) = 23,
            'product_velocity_daily generates 91% silence because "it stopped selling" '
         || 'is an answer; "no delivery today" is not the same kind of fact');
 
@@ -399,15 +406,34 @@ select chk('no table, no function, no policy: 0031 is three view bodies and four
 -- A void is a negated document (0003) and this view is a SUM, so nothing needs
 -- excluding. But 0009's "it cancels itself" is a claim about a RANGE, and a sale is
 -- voided within 15 minutes while a delivery is corrected days later.
+--
+-- ⚠️⚠️ REVERSED BY `0064`, ON THE OWNER'S RULING OF 2026-10-19: *a correction
+-- counts on the day of what it corrects.* The argument above was right about the
+-- ledger and wrong about the shopkeeper — a delivery cancelled on Monday took its
+-- money off Monday's bar for a Friday delivery. The view now counts a void on its
+-- delivery's day, so the two cancel INSIDE that day; the ledger is unchanged and
+-- `transaction_export` keeps when each void was made. What still holds: nothing
+-- is EXCLUDED, and the sum is still the whole story.
 
-select chk('the view excludes no reversal — the word does not appear in its definition',
-           pg_get_viewdef('public.product_purchases_daily'::regclass) !~* 'reversal_of');
+select chk('the view excludes no reversal — since 0064 it names reversal_of once, to '
+           'date a void on its delivery''s day, and filters on it nowhere',
+           (select count(*) from regexp_matches(
+              pg_get_viewdef('public.product_purchases_daily'::regclass), 'reversal_of', 'g')) = 1
+       and pg_get_viewdef('public.product_purchases_daily'::regclass)
+           !~* 'reversal_of\s+is\s+(not\s+)?null');
 
-select chk('⚠️ 23 buckets are NEGATIVE, totalling -11 424.60 — a daily chart shows bars below zero',
-           (select count(*) from product_purchases_daily where purchases_net < 0) = 23
-       and (select sum(purchases_net) from product_purchases_daily where purchases_net < 0) = -11424.60,
-           'the correction is dated when it was RECORDED, which is the ledger being '
-        || 'honest rather than the view being wrong');
+-- ⚠️ UNTIL `0064` THIS READ *23 buckets are NEGATIVE, totalling -11 424.60*: the
+-- void's lines on the day it was recorded. The same 23 lines and the same money
+-- are still in the ledger; they now land on their deliveries' days.
+select chk('⚠️ since 0064 NO bucket is negative: the -11 424.60 of three cancelled deliveries '
+           'nets out on the days they were delivered',
+           (select count(*) from product_purchases_daily where purchases_net < 0) = 0
+       and (select sum(pl.line_net) from purchase_line pl
+              join purchase p on p.id = pl.purchase_id
+             where p.reversal_of is not null) = -11424.60
+       and (select count(*) from purchase where reversal_of is not null) = 3,
+           'a correction counts on the day of what it corrects (0064); the ledger '
+        || 'still dates the void when it was RECORDED, and so does transaction_export');
 
 select chk('⚠️ and the reason they cannot net within a day: the 3 reversals are 2, 2 and 9 days later',
            (select count(*) from purchase p join purchase o on o.id = p.reversal_of
@@ -461,8 +487,10 @@ set local role authenticated;
 -- **at exactly ONE location** — because the thing that still fences her is §2.6, and
 -- a count that only asserted *more than nothing* would go on passing if the store
 -- wall came off too.
-select chk('⚠️ access: a cashier reads HER STORE''s purchase rows since 0040 — 468, and one location',
-           (select count(*) from product_purchases_daily) = 468
+-- ⚠️ 468 LINES IN 453 BUCKETS since `0064`: 15 of her store's lines are a void's,
+-- sharing their delivery's day.
+select chk('⚠️ access: a cashier reads HER STORE''s purchase rows since 0040 — 468 lines in 453 buckets, and one location',
+           (select count(*) from product_purchases_daily) = 453
        and (select count(*) from purchase_line) = 468
        and (select count(distinct location_id) from product_purchases_daily) = 1,
            'the fence she may now pass, and the one she still may not: 0040 dropped '
@@ -486,8 +514,8 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'rosa.gerente@tienda.mx')), true);
 set local role authenticated;
 
-select chk('access: the MANAGER reads 863 purchase rows across both her stores, $562 630.18 gross',
-           (select count(*) from product_purchases_daily) = 863
+select chk('access: the MANAGER reads 848 purchase rows across both her stores, $562 630.18 gross',
+           (select count(*) from product_purchases_daily) = 848
        and (select count(distinct location_id) from product_purchases_daily) = 2
        and (select sum(purchases_gross) from product_purchases_daily) = 562630.18
        and (select sum(purchases_net)   from product_purchases_daily) = 529739.54
@@ -500,13 +528,13 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'roble.owner@tienda.mx')), true);
 set local role authenticated;
 
-select chk('⚠️ access: the OTHER workspace''s owner reads 185 rows and not one of Doña Lupe''s',
-           (select count(*) from product_purchases_daily) = 185
+select chk('⚠️ access: the OTHER workspace''s owner reads 177 rows and not one of Doña Lupe''s',
+           (select count(*) from product_purchases_daily) = 177
        and (select count(*) from product_purchases_daily
              where workspace_id = :'lupe_ws') = 0
        and (select sum(purchases_gross) from product_purchases_daily) = 97136.01,
            'a workspace fence on a view is only a fence if somebody stood on the '
-        || 'other side of it — 863 + 185 = 1 048, and neither sees the other''s');
+        || 'other side of it — 848 + 177 = 1 025, and neither sees the other''s');
 commit;
 
 
@@ -593,19 +621,36 @@ select chk('⚠️ the fence did not move: replay is still manager, failed_write
 -- 2.1, 2.2, 2.3 and 0014 all did this, and a falsification table with only
 -- successes in it is the more misleading artefact.
 --
--- Every purchase variant-day bucket in this seed holds EXACTLY ONE LINE. So
+-- Every purchase variant-day bucket in this seed held EXACTLY ONE LINE. So
 -- mutating `sum(pl.line_net)` to `min(...)` or `max(...)` in the purchases CTE
--- changes nothing, turns no check red, and is invisible. Confirmed by mutation, not
--- assumed. The precondition is pinned instead, at its exact shape: the day a
--- delivery splits one variant across two lines of one document, or two documents
--- land on one day, this goes red and someone reads this paragraph.
+-- changed nothing, turned no check red, and was invisible. Confirmed by mutation,
+-- not assumed. The precondition was pinned at its exact shape: *the day a delivery
+-- splits one variant across two lines of one document, or two documents land on
+-- one day, this goes red and someone reads this paragraph.*
+--
+-- ✅ `0064` IS THAT DAY. A void now counts on its delivery's day, so the seed's
+-- 23 voided lines each share a bucket with the line they cancel — two lines, +x
+-- and −x. There `sum` is 0, `max` is x and `min` is −x, so the mutation is no
+-- longer invisible: the reconciliation in section 4 (view against ledger) turns
+-- red on it. The check below proves that by running the mutation inline rather
+-- than asserting it.
 
-select chk('⚠️ cannot falsify: sum vs min vs max over purchase lines is invisible at 1 line per bucket',
-           (select max(purchase_line_count) from product_purchases_daily) = 1
-       and (select count(*) from product_purchases_daily where purchase_line_count > 1) = 0
-       and (select count(*) from purchase_line) = (select count(*) from product_purchases_daily),
-           '1 048 lines in 1 048 buckets — when the first number exceeds the second, '
-        || 'the aggregate starts being testable and this check starts failing');
+select chk('✅ NOW FALSIFIABLE (0064): 23 buckets hold a line and its void''s, and max() '
+           'instead of sum() would move the total',
+           (select max(purchase_line_count) from product_purchases_daily) = 2
+       and (select count(*) from product_purchases_daily where purchase_line_count > 1) = 23
+       and (select count(*) from purchase_line) = 1048
+       and (select sum(m) from (
+              select max(pl.line_net) m
+                from purchase_line pl
+                join purchase p on p.id = pl.purchase_id and p.workspace_id = pl.workspace_id
+                left join purchase o on o.id = p.reversal_of and o.workspace_id = p.workspace_id
+                join location l on l.id = pl.location_id and l.workspace_id = pl.workspace_id
+               group by pl.workspace_id, pl.location_id, pl.variant_id,
+                        (coalesce(o.occurred_at, p.occurred_at) at time zone l.timezone)::date) x)
+           <> (select sum(purchases_net) from product_purchases_daily),
+           '1 048 lines in 1 025 buckets — the mutated total differs from the view''s, '
+        || 'so sum(pl.line_net) is a real assertion now');
 
 -- ✅ The SALE side does not have that gap, which is the division of labour worth
 -- stating: the same mutation on `sum(sl.tax_amount)` IS caught, because sale buckets
@@ -618,7 +663,8 @@ select chk('✅ but the SALE side IS falsifiable — 2 263 lines in 2 139 bucket
                 join location l on l.id = sl.location_id and l.workspace_id = sl.workspace_id
                group by sl.workspace_id, sl.location_id, sl.variant_id,
                         (s.occurred_at at time zone l.timezone)::date) x) = 3,
-           'so sum(sl.tax_amount) is a real assertion and sum(pl.tax_amount) is not, yet');
+           'so sum(sl.tax_amount) is a real assertion — and since 0064 so is '
+        || 'sum(pl.tax_amount), in the 23 buckets a void now shares');
 
 
 -- ========== 10. THE FOURTH ANALYTICS VIEW, AND THE GUARD THAT COULD NOT SEE IT ==

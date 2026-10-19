@@ -535,13 +535,13 @@ select chk_raises('1.9 ⚠️ a marker naming a uuid that is NOT a dead letter i
 
 select chk('2.1 anon holds NO execute on record_sale/7',
            not has_function_privilege('anon',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
-select chk('2.2 anon holds NO execute on record_purchase/7',
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
+select chk('2.2 anon holds NO execute on record_purchase/8',
            not has_function_privilege('anon',
-             'public.record_purchase(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_purchase(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 select chk('2.3 anon holds NO execute on record_waste/7',
            not has_function_privilege('anon',
-             'public.record_waste(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_waste(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 select chk('2.4 anon holds NO execute on record_transfer/7',
            not has_function_privilege('anon',
              'public.record_transfer(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
@@ -549,13 +549,13 @@ select chk('2.4 anon holds NO execute on record_transfer/7',
 select chk('2.5 …and authenticated DOES on record_sale/7, which is what makes '
            '2.1 a claim rather than a description of a missing function',
            has_function_privilege('authenticated',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
-select chk('2.6 …and on record_purchase/7',
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
+select chk('2.6 …and on record_purchase/8',
            has_function_privilege('authenticated',
-             'public.record_purchase(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_purchase(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 select chk('2.7 …and on record_waste/7',
            has_function_privilege('authenticated',
-             'public.record_waste(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_waste(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 select chk('2.8 …and on record_transfer/7',
            has_function_privilege('authenticated',
              'public.record_transfer(uuid,uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));

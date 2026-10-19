@@ -70,7 +70,7 @@ fixture F3 'IS NOT BELOW max_rows' \
   "a page above the cap makes every page short and the read stop after one"
 fixture F4 'A DAY HOLDING ONLY A REVERSAL' \
   "s/^export const PURCHASE_PRICE_TRADED_COLUMN = '[a-z_]*';/export const PURCHASE_PRICE_TRADED_COLUMN = 'purchase_line_count';/" \
-  "line_count keeps a day whose only line is a reversal"
+  "line_count keeps a cancelled delivery's day, where a line and its void net to zero"
 fixture F5 'NOT THE LAST ONE TYPED' \
   "s/price:sale_price_last_gross::text/price:sale_price_gross::text/" \
   "the effective price is the day's average, and a card compares states"

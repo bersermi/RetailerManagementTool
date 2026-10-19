@@ -99,7 +99,7 @@ import {
 
 import type { CatalogEntry, UnitFactors } from '@/api/catalog';
 import type { WriteDraft, WriteKind } from '@/api/outbox';
-import { WASTE_EXPIRY_KEY, WASTE_REASON_KEY, type WasteReason } from '@/api/waste';
+import { WASTE_EXPIRY_KEY, WASTE_REASON_KEY, type WasteDay, type WasteReason } from '@/api/waste';
 
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THREE DOCUMENTS, TWO MONEY SHAPES — AND `Scope` IS WHAT KEEPS THEM APART
@@ -567,6 +567,34 @@ export interface Loaded {
    * the cause standing over a half-keyed bin round.
    */
   readonly reason: WasteReason | null;
+  /**
+   * ⚠️ `8p` — WHICH DOCUMENT THIS CART RE-KEYS, or `null` for a new one. See
+   * `Corrects`. The store keeps it beside the basket it belongs to.
+   */
+  readonly corrects: Corrects | null;
+  /**
+   * ⚠️ `8p` — *¿Cuándo lo tiraste?* already answered, for a corrected write-off:
+   * how many days back the original was. Read on the waste side only.
+   */
+  readonly wasteDay: WasteDay;
+}
+
+/**
+ * ⚠️⚠️ `8p` — THE DOCUMENT A CORRECTION REPLACES, AND WHEN IT HAPPENED.
+ *
+ * `Corregir` voids a document and hands its lines back to the capture screen;
+ * what is keyed there is sent with `corrects` naming the voided one, and the
+ * server dates it at THAT document's instant (`0064`) — the owner's ruling of
+ * 2026-10-19, *a correction counts on the day of what it corrects*. `at` is the
+ * original's own `occurred_at`, sent as the payload's `occurred_at` too, so a
+ * write that dies and is replayed by hand (`0026`, verbatim) lands there as
+ * well. ⚠️ The server takes the time from the LEDGER, never from `at`; `at` only
+ * matters on the replay path and when the link does not match (then the usual
+ * rules apply, and nothing is shown to anybody).
+ */
+export interface Corrects {
+  readonly id: string;
+  readonly at: string;
 }
 
 export function quoteFor(entry: CatalogEntry, kind: Kind, quotes: Quotes): string | null {
@@ -821,6 +849,12 @@ export type Drafted =
  * *¿Cuándo lo tiraste?*): there the shopkeeper answered the question, so
  * `occurredAt` goes in the payload and `@/api/flush` sends it instead of the
  * queue's stamp. `null` — *hoy* — leaves the key out, and the rule above holds.
+ *
+ * ⚠️⚠️ `8p` — AND A CORRECTION CARRIES THE DOCUMENT IT REPLACES. `corrects` goes
+ * in the payload as its id (`@/api/flush` sends it as `p_corrects`) and the
+ * original's own time goes in as `occurred_at`, over any day picked above: the
+ * server stamps the ledger's time when the link matches, and the payload's is
+ * what a hand replay of a dead letter keeps (`Corrects`).
  */
 export function draftOf(
   cart: Cart,
@@ -836,6 +870,7 @@ export function draftOf(
   reason: WasteReason | null = null,
   expiries: Expiries = NO_EXPIRIES,
   occurredAt: string | null = null,
+  corrects: Corrects | null = null,
 ): Drafted {
   if (cart.length === 0) return { ok: false, why: 'empty-cart' };
   if (locationId === null || locationId === '') return { ok: false, why: 'no-location' };
@@ -872,12 +907,14 @@ export function draftOf(
       // `0019`: `record_waste` has no `p_provider_id`, and `@/api/flush` builds
       // its arguments as `p_` plus the payload's own keys, so a `provider_id`
       // here would reach the RPC as an argument it does not take.
-      payload:
-        scope === 'buy'
+      payload: {
+        ...(scope === 'buy'
           ? { location_id: locationId, provider_id: providerId, lines }
           : scope === 'waste' && occurredAt !== null
             ? { location_id: locationId, lines, occurred_at: occurredAt }
-            : { location_id: locationId, lines },
+            : { location_id: locationId, lines }),
+        ...(corrects === null ? {} : { corrects: corrects.id, occurred_at: corrects.at }),
+      },
     },
   };
 }

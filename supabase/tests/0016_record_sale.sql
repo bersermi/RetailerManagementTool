@@ -378,13 +378,17 @@ commit;
 -- than by returning false, because `has_function_privilege` errors on a
 -- function that does not exist. That is the right failure mode and worth
 -- keeping: a renamed signature cannot make this check quietly pass.
+-- ⚠️ `0064` added `p_corrects` (a correction counts on the day of what it
+-- corrects) and turned this file and `0025_replay_marker.sql` red the same
+-- way — `0025`'s suite spells the signatures too, so "the ONLY place" above
+-- stopped being true when it was written.
 select chk('1.10 anon holds no execute privilege on record_sale',
            not has_function_privilege('anon',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 
 select chk('1.10 …and authenticated does, which is what makes the line above a claim',
            has_function_privilege('authenticated',
-             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid)', 'execute'));
+             'public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)', 'execute'));
 
 
 -- ===================================================== 2. idempotency =======

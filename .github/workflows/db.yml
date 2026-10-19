@@ -704,14 +704,16 @@ jobs:
       # re-recording without a `payload_hash` collision, which is the whole of
       # `Corregir`** — if that were a `TD001` this app would cancel a delivery and
       # refuse to put it back, with nothing able to see it until a shopkeeper stood
-      # in it.
+      # in it. ⚠️ `8p` ADDED: a correction re-keyed online lands on the day of the
+      # sale it replaces, sent under the key `@/cart/cart` writes (`0064`).
       - name: Contract — does app/src/api/corrections.ts still describe the schema (plan 5h-ii-b)
         run: bash docs/checks/5h-ii-b-corrections-contract.sh
 
-      # ⚠️ Nine fixtures: a green control, five mutated copies of the app's own
-      # contract, and three that break the DATABASE — an accent-stripping trigger,
-      # a trigger that pins the void window so narrowing it is a silent no-op, and
-      # `void_transaction`'s grant revoked. All three are schema-level and restored
+      # ⚠️ Eleven fixtures: a green control, six mutated copies of the app's own
+      # contract (`8p`'s renames the correction's payload key), and four that break
+      # the DATABASE — an accent-stripping trigger, a trigger that pins the void
+      # window so narrowing it is a silent no-op, `void_transaction`'s grant
+      # revoked, and (`8p`) a `record_sale` whose correction branch never matches. All three are schema-level and restored
       # in a `trap` on every exit path, which is forced rather than stylistic: the
       # check builds its own shop INSIDE the run, so a mutation to a ROW would be a
       # mutation to a shop the run never sees.
@@ -719,7 +721,7 @@ jobs:
       # mutated `src/strings.ts`, which the check READS to build its payload, so
       # both halves of the comparison moved and the check stayed green. Output
       # compared against its own input is self-consistent and blind.
-      - name: Contract — can the corrections check still fail (its own nine fixtures)
+      - name: Contract — can the corrections check still fail (its own eleven fixtures)
         run: bash docs/checks/5h-ii-b-corrections-contract-falsify.sh
 
       - name: Stop

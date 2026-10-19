@@ -1160,6 +1160,8 @@ describe('loading a corrected document back into a basket', () => {
       quotes: {},
       providerId: null,
       reason: 'caducado',
+      corrects: null,
+      wasteDay: 0,
     });
     expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
     expect(useCartStore.getState().reason).toBe('caducado');
@@ -1173,6 +1175,8 @@ describe('loading a corrected document back into a basket', () => {
       quotes: {},
       providerId: null,
       reason: 'dañado',
+      corrects: null,
+      wasteDay: 0,
     });
     expect(useCartStore.getState().carts.waste.map((l) => l.variantId)).toEqual([PECHUGA]);
   });
@@ -1190,6 +1194,8 @@ describe('loading a corrected document back into a basket', () => {
       quotes: { [HUEVO]: '0.018000' },
       providerId: PROVIDER,
       reason: null,
+      corrects: null,
+      wasteDay: 0,
     });
     expect(useCartStore.getState().reason).toBe('caducado');
     expect(qtyOf(useCartStore.getState().carts.waste, PECHUGA)).toBe(1_000);
@@ -1207,6 +1213,8 @@ describe('loading a corrected document back into a basket', () => {
       quotes: {},
       providerId: null,
       reason: 'caducado',
+      corrects: null,
+      wasteDay: 0,
     });
     expect(useCartStore.getState().providerId).toBe(PROVIDER);
   });
@@ -1223,6 +1231,8 @@ describe('loading a corrected document back into a basket', () => {
       quotes: {},
       providerId: null,
       reason: null,
+      corrects: null,
+      wasteDay: 0,
     });
     expect(useCartStore.getState().reason).toBeNull();
     expect(useCartStore.getState().carts.waste).toHaveLength(1);
@@ -1344,5 +1354,129 @@ describe('8l — the store keeps the day and the dates with the basket', () => {
     const odd = merge({ wasteDay: 9, expiries: { a: '15/10/2026', b: '2026-10-15', c: 3 } }, useCartStore.getState());
     expect(odd.wasteDay).toBe(0);
     expect(odd.expiries).toEqual({ b: '2026-10-15' });
+  });
+});
+
+// ============================================================================
+// `8p` (2026-10-19) — A CORRECTION COUNTS ON THE DAY OF WHAT IT CORRECTS. The
+// owner's ruling; `0064` dates a re-keyed document at the one it replaces when
+// it is told which that was. This block pins what the phone tells it, and how
+// long the store remembers.
+// ============================================================================
+
+describe('8p — the re-keyed document names what it replaces', () => {
+  const cart: Cart = setQty(EMPTY_CART, PECHUGA, 750_000);
+  const FRIDAY = { id: '99999999-9999-4999-8999-999999999999', at: '2026-10-16T20:07:00+00:00' };
+  const sale = (corrects: { id: string; at: string } | null) =>
+    mustDraft(
+      draftOf(
+        cart, CATALOG, FACTORS, 'sell', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, null, undefined, null, corrects,
+      ),
+    );
+
+  it('sends the voided document’s id and its own time — p_corrects and p_occurred_at', () => {
+    const queued = queueWrite(sale(FRIDAY), {
+      id: '77777777-7777-4777-8777-777777777777',
+      now: '2026-10-19T13:09:00.000Z',
+    });
+    if (!queued.ok) throw new Error(`the queue refused the draft: ${queued.why}`);
+    const args = sendArgs(queued.write);
+    expect(args.p_corrects).toBe(FRIDAY.id);
+    expect(args.p_occurred_at).toBe(FRIDAY.at);
+  });
+
+  it('a new sale carries neither key — every existing caller is unchanged', () => {
+    const payload = sale(null).payload;
+    expect('corrects' in payload).toBe(false);
+    expect('occurred_at' in payload).toBe(false);
+  });
+
+  it('⚠️ on a write-off the original’s time wins over a day computed from the chips', () => {
+    const draft = mustDraft(
+      draftOf(
+        cart, WASTE_CATALOG, FACTORS, 'waste', true, WORKSPACE, LOCATION,
+        undefined, undefined, null, 'caducado', {}, '2026-10-18T13:09:00.000Z', FRIDAY,
+      ),
+    );
+    expect(draft.payload.occurred_at).toBe(FRIDAY.at);
+    expect(draft.payload.corrects).toBe(FRIDAY.id);
+  });
+
+  it('a delivery keeps its provider beside the link', () => {
+    const draft = mustDraft(
+      draftOf(
+        setQty(EMPTY_CART, HUEVO, 30_000), CATALOG, FACTORS, 'buy', true, WORKSPACE, LOCATION,
+        undefined, { [HUEVO]: '0.018000' }, PROVIDER, null, undefined, null, FRIDAY,
+      ),
+    );
+    expect(draft.payload.provider_id).toBe(PROVIDER);
+    expect(draft.payload.corrects).toBe(FRIDAY.id);
+  });
+});
+
+describe('8p — the store keeps the link exactly as long as its basket', () => {
+  const FRIDAY = { id: '99999999-9999-4999-8999-999999999999', at: '2026-10-16T20:07:00+00:00' };
+  const loaded = (scope: 'sell' | 'buy' | 'waste', wasteDay: 0 | 1 | 2 = 0) => ({
+    scope,
+    lines: [{ variantId: PECHUGA, base: 1_000 }, { variantId: HUEVO, base: 3_000 }],
+    quotes: {},
+    providerId: scope === 'buy' ? PROVIDER : null,
+    reason: scope === 'waste' ? ('caducado' as const) : null,
+    corrects: FRIDAY,
+    wasteDay,
+  });
+
+  beforeEach(() => {
+    useCartStore.setState({
+      carts: { sell: EMPTY_CART, buy: EMPTY_CART, waste: EMPTY_CART },
+      typed: { sell: {}, buy: {}, waste: {} },
+      workspaceId: WORKSPACE,
+      providerId: null,
+      reason: null,
+      wasteDay: 0,
+      expiries: {},
+      corrections: { sell: null, buy: null, waste: null },
+    });
+  });
+
+  it('a loaded correction is remembered on its own side only', () => {
+    useCartStore.getState().load(loaded('sell'));
+    expect(useCartStore.getState().corrections).toEqual({ sell: FRIDAY, buy: null, waste: null });
+  });
+
+  it('⚠️ Vaciar, and the last line leaving, both forget it — the next sale is a new one', () => {
+    useCartStore.getState().load(loaded('sell'));
+    useCartStore.getState().clear('sell');
+    expect(useCartStore.getState().corrections.sell).toBeNull();
+
+    useCartStore.getState().load(loaded('sell'));
+    useCartStore.getState().remove('sell', PECHUGA);
+    expect(useCartStore.getState().corrections.sell).toEqual(FRIDAY);
+    useCartStore.getState().setQty('sell', HUEVO, 0);
+    expect(useCartStore.getState().corrections.sell).toBeNull();
+  });
+
+  it('another shop forgets every link', () => {
+    useCartStore.getState().load(loaded('buy'));
+    useCartStore.getState().openShop('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+    expect(useCartStore.getState().corrections.buy).toBeNull();
+  });
+
+  it('⚠️ a corrected write-off arrives on its own day, and another day is her answer', () => {
+    useCartStore.getState().load(loaded('waste', 1));
+    expect(useCartStore.getState().wasteDay).toBe(1);
+    useCartStore.getState().setWasteDay(1);
+    expect(useCartStore.getState().corrections.waste).toEqual(FRIDAY);
+    useCartStore.getState().setWasteDay(0);
+    expect(useCartStore.getState().corrections.waste).toBeNull();
+  });
+
+  it('restores a well-formed link and drops a malformed one rather than send it', () => {
+    const merge = useCartStore.persist.getOptions().merge!;
+    const kept = merge({ corrections: { sell: FRIDAY, buy: { id: 'nope', at: 'x' }, waste: 7 } }, useCartStore.getState());
+    expect(kept.corrections).toEqual({ sell: FRIDAY, buy: null, waste: null });
+    const before = merge({ carts: { sell: [], buy: [], waste: [] } }, useCartStore.getState());
+    expect(before.corrections).toEqual({ sell: null, buy: null, waste: null });
   });
 });
