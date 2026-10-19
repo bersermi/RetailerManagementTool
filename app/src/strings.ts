@@ -408,6 +408,33 @@ export const ES = {
     /** C3.18's control, finally on the surface it was always meant for. */
     densitySection: 'Tamaño de la letra',
     densityHint: 'Elige el tamaño que se lea mejor en este teléfono.',
+    /**
+     * ⚠️ `8g`, THE OWNER'S OPTION B OF 2026-10-19: Ajustes is a menu of squares,
+     * as Inicio's *Más* is, and each opens its own page inside the sheet. The
+     * squares' names, the line under each, and the way back to the menu.
+     */
+    menu: {
+      tienda: 'Tu tienda',
+      equipo: 'Tu equipo',
+      nombre: 'Tu nombre',
+      letra: 'Tamaño de la letra',
+      cuenta: 'Tu cuenta',
+      salir: 'Cerrar sesión',
+      /** From a page back to the menu — `Cerrar` stays the way out of Ajustes. */
+      back: 'Volver',
+      tiendaValue: (giro: string, street: string | null) => (street === null ? giro : `${giro} · ${street}`),
+      alone: 'Solo tú',
+      people: (n: number) => `${n} personas`,
+      cuentaValue: 'Privacidad y eliminar cuenta',
+      salirValue: 'En este teléfono',
+      /** The shop's card on the menu: who you are in it, and its code. */
+      you: (name: string, role: string) => `${name} · ${role}`,
+      code: 'Código',
+      shareCode: 'Compartir',
+      /** Tu equipo, for the owner, while somebody waits at the door. */
+      waiting: (n: number) => (n === 1 ? '1 persona espera entrar' : `${n} personas esperan entrar`),
+      see: 'Ver',
+    },
   },
 
   /**
@@ -757,6 +784,16 @@ export const ES = {
      * IS rather than reporting a count of zero, which is `members.alone`'s rule.
      */
     empty: 'Nadie está esperando entrar.',
+    /**
+     * ⚠️ `8g` (2026-10-19): THE EMPTY SCREEN SAYS HOW SOMEBODY GETS HERE, and
+     * offers the code to send — an empty queue is the day nobody has typed it.
+     */
+    emptyTitle: 'Nadie está esperando entrar',
+    emptyHint: 'Cuando alguien escriba el código de tu tienda en Wera, aparece aquí para que lo dejes entrar.',
+    codeLabel: 'Código de tu tienda',
+    shareCode: 'Compartir código',
+    /** Above the cards, in amber: how many are at the door. */
+    waiting: (n: number) => (n === 1 ? '1 persona quiere entrar' : `${n} personas quieren entrar`),
     /** The role she asked for. ⚠️ The grammar is here; the label comes off `members.roles`. */
     askedFor: (role: string) => `Quiere entrar como ${role}`,
     /**
