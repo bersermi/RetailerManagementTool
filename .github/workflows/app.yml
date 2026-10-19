@@ -111,7 +111,12 @@ jobs:
   vitest:
     name: app (node 22)
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    # ⚠️ 20, NOT 10, SINCE 2026-10-18: the conventions falsifier alone took 9 of the
+    # job's 10 minutes, and the job ran 7m22s to 10m16s over eight runs — two of
+    # them CANCELLED at the cap with every step green (pull request 343, and `main`
+    # after 342). A cancelled job is not a pass, so a cap the job outgrows blocks
+    # every merge at random ([[a-cancelled-ci-job-is-not-a-failed-assertion]]).
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
