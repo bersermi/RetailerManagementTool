@@ -1,8 +1,8 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { useEffect, useState, type ReactNode } from 'react';
+import { BackHandler, Image, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -11,6 +11,7 @@ import {
   useLocations,
   useMyDisplayName,
   useMyRole,
+  usePendingRequests,
   useRoster,
   useSetMainGiro,
   useSetStoreAddress,
@@ -18,7 +19,7 @@ import {
   useSetMyDisplayName,
   useWorkspace,
 } from '@/api/hooks';
-import { GIROS } from '@/api/emblema';
+import { GIROS, emblemaDe } from '@/api/emblema';
 import { addressComplete, addressForm, checkAddress, type AddressForm } from '@/api/collection';
 import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
@@ -41,6 +42,7 @@ import { formatExpiry } from '@/format/date';
 import { canRead } from '@/api/pilot';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { Lecturas } from '@/pilot/Lecturas';
+import { DIBUJOS } from '@/marca/dibujos';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
@@ -62,6 +64,12 @@ import { Direccion } from '@/ui/Direccion';
 // claim. ⚠️ THE ROUTE IS AT THE ROOT AND IN NO GROUP, so `groupOf()` calls it
 // `null` and `redirectFor` leaves a member exactly where they are — measured
 // against `guard.ts`, not assumed.
+//
+// ⚠️⚠️ `8g`, THE OWNER'S OPTION B OF 2026-10-19: THE SECTIONS BELOW ARE NOW
+// PAGES BEHIND A MENU OF SQUARES (`Menu`), each opened inside this sheet — the
+// shop, its team (the roster, the code and the invitation), your name, the text
+// size and your account; *Cerrar sesión* is a square of its own. What each page
+// does and who may see it is what the notes below say of its section.
 //
 // ⚠️⚠️ FIVE SECTIONS, AND TWO OF THEM ARE NOT ALWAYS THERE. ⚠️ IT SAID FOUR
 // UNTIL `5b.8-iii-b` ADDED `Tu nombre`, and the count is restated rather than
@@ -106,13 +114,34 @@ export default function Ajustes() {
   const role = useMyRole();
   const [readings, setReadings] = useState(false);
   const canOpen = PILOT_BUILD !== null && canRead(role);
+  // ⚠️ `8g`, THE OWNER'S OPTION B OF 2026-10-19: a menu of squares, and each
+  // opens its own page INSIDE this sheet — `null` is the menu. A page is state
+  // and not a route, so the sheet stays one modal: *Cerrar* still leaves it from
+  // anywhere, and *Volver* (or Android's back button) returns to the menu.
+  const [page, setPage] = useState<Apartado | null>(null);
+
+  useEffect(() => {
+    if (page === null) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      setPage(null);
+      return true;
+    });
+    return () => sub.remove();
+  }, [page]);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda onLongPress={canOpen ? () => setReadings(true) : undefined} />
+      <Banda
+        title={page === null ? ES.settings.title : ES.settings.menu[page]}
+        onBack={page === null ? null : () => setPage(null)}
+        onLongPress={canOpen ? () => setReadings(true) : undefined}
+      />
       {canOpen && <Lecturas open={readings} onClose={() => setReadings(false)} />}
 
       <ScrollView
+        // ⚠️ KEYED ON THE PAGE, so each one opens at its top, not where the
+        // last one was scrolled to.
+        key={page ?? 'menu'}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space * 1.5,
@@ -120,10 +149,13 @@ export default function Ajustes() {
           // home indicator on the iPhones the pilot uses (C1.1).
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
+        keyboardShouldPersistTaps="handled"
       >
-        {workspace !== null && (
-          <Section title={ES.settings.shopSection}>
-            <Text style={{ fontSize: scale.titleSize, fontWeight: '600', color: PALETTE.tinta }}>
+        {page === null && <Menu onOpen={setPage} />}
+
+        {page === 'tienda' && workspace !== null && (
+          <Section>
+            <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
               {workspace.displayName}
             </Text>
             {/* C1.7, read back in the words it was asked in. It is the one answer
@@ -141,76 +173,91 @@ export default function Ajustes() {
           </Section>
         )}
 
-        {workspace !== null && (
-          <Section title={ES.settings.codeSection}>
-            {/* ⚠️ AT `moneySize`, WHICH IS THE TOKEN FOR "THE NUMBER THIS MODE
-                EXISTS FOR". A join code is read aloud over WhatsApp by someone
-                holding a phone at arm's length — the same job a total does, and
-                the only token in the scale sized for it. */}
-            <Text
-              style={{
-                fontSize: scale.moneySize,
-                fontWeight: '700',
-                color: PALETTE.tinta,
-                letterSpacing: scale.space / 4,
-              }}
-            >
-              {groupedCode(workspace.code)}
-            </Text>
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.settings.codeHint}
-            </Text>
-            <Compartir shopName={workspace.displayName} code={workspace.code} />
-          </Section>
-        )}
-
-        <MiNombre />
-
-        {roster.visible && (
-          <Section title={ES.members.section}>
-            {roster.loading ? (
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                {ES.members.loading}
-              </Text>
-            ) : roster.entries.length <= 1 ? (
-              <>
-                {roster.entries.map((entry) => (
-                  <Miembro key={entry.userId} entry={entry} />
-                ))}
-                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                  {ES.members.alone}
-                </Text>
-              </>
-            ) : (
-              roster.entries.map((entry) => <Miembro key={entry.userId} entry={entry} />)
+        {page === 'equipo' && (
+          <>
+            <Esperando />
+            {roster.visible && (
+              <Section title={ES.members.section}>
+                {roster.loading ? (
+                  <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                    {ES.members.loading}
+                  </Text>
+                ) : roster.entries.length <= 1 ? (
+                  <>
+                    {roster.entries.map((entry) => (
+                      <Miembro key={entry.userId} entry={entry} />
+                    ))}
+                    <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                      {ES.members.alone}
+                    </Text>
+                  </>
+                ) : (
+                  roster.entries.map((entry) => <Miembro key={entry.userId} entry={entry} />)
+                )}
+              </Section>
             )}
+            {workspace !== null && (
+              <Section title={ES.settings.codeSection}>
+                {/* ⚠️ AT `moneySize`, WHICH IS THE TOKEN FOR "THE NUMBER THIS MODE
+                    EXISTS FOR". A join code is read aloud over WhatsApp by someone
+                    holding a phone at arm's length — the same job a total does, and
+                    the only token in the scale sized for it. */}
+                <Text
+                  style={{
+                    fontSize: scale.moneySize,
+                    fontWeight: '700',
+                    color: PALETTE.tinta,
+                    letterSpacing: scale.space / 4,
+                  }}
+                >
+                  {groupedCode(workspace.code)}
+                </Text>
+                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+                  {ES.settings.codeHint}
+                </Text>
+                <Compartir shopName={workspace.displayName} code={workspace.code} />
+              </Section>
+            )}
+            <Invitar />
+          </>
+        )}
+
+        {page === 'nombre' && <MiNombre />}
+
+        {page === 'letra' && (
+          <Section>
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.settings.densityHint}
+            </Text>
+            <Letra />
           </Section>
         )}
 
-        <Invitar />
-
-        <Section title={ES.settings.densitySection}>
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-            {ES.settings.densityHint}
-          </Text>
-          <Letra />
-        </Section>
-
-        <Cuenta />
-
-        <Salir />
+        {page === 'cuenta' && <Cuenta />}
       </ScrollView>
     </View>
   );
 }
 
+/** The pages the menu opens. ⚠️ Each name is also its key in `ES.settings.menu`. */
+type Apartado = 'tienda' | 'equipo' | 'nombre' | 'letra' | 'cuenta';
+
 /**
  * The header. ⚠️ THE ONE USE OF `banda` IN THIS APP, and the palette's own note
  * says why that matters: `banda` and `atencionSuave` are two channel steps
  * apart, so nothing needing attention may ever be placed inside this strip.
- * Nothing here does — it is a word and a way out.
+ * Nothing here does — it is a word and a way out. ⚠️ `8g`: on a page, the word
+ * is the page's and the way out is *Volver*, to the menu.
  */
-function Banda({ onLongPress }: { onLongPress: (() => void) | undefined }) {
+function Banda({
+  title,
+  onBack,
+  onLongPress,
+}: {
+  title: string;
+  onBack: (() => void) | null;
+  onLongPress: (() => void) | undefined;
+}) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   return (
@@ -229,14 +276,15 @@ function Banda({ onLongPress }: { onLongPress: (() => void) | undefined }) {
       }}
     >
       <Text
-        onLongPress={onLongPress}
-        style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
+        onLongPress={onBack === null ? onLongPress : undefined}
+        numberOfLines={1}
+        style={{ flex: 1, fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
       >
-        {ES.settings.title}
+        {title}
       </Text>
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.back()}
+        onPress={() => (onBack === null ? router.back() : onBack())}
         style={{
           minHeight: scale.tapTarget,
           minWidth: scale.tapTarget,
@@ -245,21 +293,27 @@ function Banda({ onLongPress }: { onLongPress: (() => void) | undefined }) {
         }}
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-          {ES.settings.close}
+          {onBack === null ? ES.settings.close : ES.settings.menu.back}
         </Text>
       </Pressable>
     </View>
   );
 }
 
-/** A titled card on `superficie`. The one shape this sheet repeats. */
-function Section({ title, children }: { title: string; children: ReactNode }) {
+/**
+ * A card on `superficie`, with a title above it when the page holds more than
+ * one. The one shape this sheet repeats. ⚠️ `8g`: no title where it would only
+ * repeat the page's own name in the band.
+ */
+function Section({ title, children }: { title?: string; children: ReactNode }) {
   const { scale } = useDensity();
   return (
     <View style={{ gap: scale.rowGap }}>
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
-        {title}
-      </Text>
+      {title === undefined ? null : (
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tintaApagada }}>
+          {title}
+        </Text>
+      )}
       <View
         style={{
           backgroundColor: PALETTE.superficie,
@@ -273,6 +327,263 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
         {children}
       </View>
     </View>
+  );
+}
+
+/**
+ * ⚠️ `8g`, OPTION B: THE MENU — the shop's card, then a square per page, two to
+ * a row, as Inicio's *Más* is. Under each square's name, what it holds today,
+ * so most visits end here without opening anything.
+ *
+ * ⚠️ WHO SEES WHICH SQUARE IS THE RULES THAT ALREADY HELD THE SECTIONS: *Tu
+ * equipo* only where the roster may be seen (`canSeeRoster`, manager and up —
+ * the owner's ruling of 2026-09-18); everything else for every member. Nothing
+ * here widens or narrows who may see or do what.
+ */
+function Menu({ onOpen }: { onOpen: (page: Apartado) => void }) {
+  const { scale, mode } = useDensity();
+  const workspace = useWorkspace();
+  const roster = useRoster();
+  const myName = useMyDisplayName();
+  const queue = usePendingRequests();
+  const address = useStoreAddress();
+  const { signOut } = useAuth();
+  if (workspace === null) return null;
+
+  const giro =
+    workspace.giroPrincipal === null || workspace.giroPrincipal === undefined
+      ? ES.settings.mainGiro.none
+      : ES.giros[workspace.giroPrincipal] ?? workspace.giroPrincipal;
+  const street =
+    address === null || !addressComplete(address) ? null : `${address.street} ${address.number}`;
+  const people = roster.loading
+    ? ''
+    : roster.entries.length <= 1
+      ? ES.settings.menu.alone
+      : ES.settings.menu.people(roster.entries.length);
+
+  const squares: readonly Cuadrado[] = [
+    { key: 'tienda', icon: 'storefront-outline', value: ES.settings.menu.tiendaValue(giro, street) },
+    ...(roster.visible
+      ? [
+          {
+            key: 'equipo' as const,
+            icon: 'account-group-outline' as const,
+            value: people,
+            badge: queue.visible && queue.count > 0 ? queue.count : 0,
+          },
+        ]
+      : []),
+    { key: 'nombre', icon: 'account-outline', value: myName ?? ES.myName.empty },
+    { key: 'letra', icon: 'format-size', value: ES.density[mode] },
+    { key: 'cuenta', icon: 'shield-account-outline', value: ES.settings.menu.cuentaValue },
+    { key: 'salir', icon: 'logout', value: ES.settings.menu.salirValue },
+  ];
+  const rows: (Cuadrado | null)[][] = [];
+  for (let i = 0; i < squares.length; i += 2) {
+    rows.push([squares[i] ?? null, squares[i + 1] ?? null]);
+  }
+
+  return (
+    <>
+      <Identidad />
+      <View style={{ gap: scale.rowGap }}>
+        {rows.map((row) => (
+          <View key={row[0]?.key ?? ''} style={{ flexDirection: 'row', gap: scale.rowGap }}>
+            {row.map((square, i) =>
+              square === null ? (
+                <View key={`hueco-${i}`} style={{ flex: 1 }} />
+              ) : (
+                <Cuadro
+                  key={square.key}
+                  square={square}
+                  onPress={() => (square.key === 'salir' ? void signOut() : onOpen(square.key))}
+                />
+              ),
+            )}
+          </View>
+        ))}
+      </View>
+    </>
+  );
+}
+
+interface Cuadrado {
+  readonly key: Apartado | 'salir';
+  readonly icon: 'storefront-outline' | 'account-group-outline' | 'account-outline' | 'format-size' | 'shield-account-outline' | 'logout';
+  readonly value: string;
+  readonly badge?: number;
+}
+
+/**
+ * One square. ⚠️ *Cerrar sesión* is a square too and does what it says on the
+ * tap, as the old line did — it deletes nothing, so it is drawn in `tinta` and
+ * not `error`; the account's deletion lives inside *Tu cuenta*, behind its own
+ * questions.
+ */
+function Cuadro({ square, onPress }: { square: Cuadrado; onPress: () => void }) {
+  const { scale } = useDensity();
+  const title = ES.settings.menu[square.key];
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={[title, square.value].filter((part) => part !== '').join('. ')}
+      onPress={onPress}
+      style={{
+        flex: 1,
+        minHeight: scale.rowHeight * 1.9,
+        gap: scale.rowGap / 2,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <MaterialCommunityIcons
+        name={square.icon}
+        size={scale.iconSize}
+        color={square.key === 'salir' ? PALETTE.tintaApagada : PALETTE.accion}
+      />
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{title}</Text>
+      <Text numberOfLines={2} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {square.value}
+      </Text>
+      {square.badge !== undefined && square.badge > 0 ? (
+        <View
+          style={{
+            position: 'absolute',
+            top: scale.rowGap,
+            right: scale.rowGap,
+            minWidth: scale.iconSize,
+            height: scale.iconSize,
+            paddingHorizontal: scale.rowGap / 2,
+            borderRadius: scale.iconSize / 2,
+            backgroundColor: PALETTE.atencion,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.superficie }}>
+            {square.badge}
+          </Text>
+        </View>
+      ) : null}
+    </Pressable>
+  );
+}
+
+/**
+ * ⚠️ `8g`: THE SHOP ON TOP OF THE MENU — its name in the titles' face, who you
+ * are in it, and its code with *Compartir*, for every member as the code always
+ * was. The giro's drawing sits faint in the corner, as it does in the tabs'
+ * band; a shop with no main giro shows none.
+ */
+function Identidad() {
+  const { scale } = useDensity();
+  const workspace = useWorkspace();
+  const role = useMyRole();
+  const myName = useMyDisplayName();
+  if (workspace === null) return null;
+  const emblema = emblemaDe(workspace.giroPrincipal);
+  return (
+    <View
+      style={{
+        overflow: 'hidden',
+        gap: scale.rowGap / 2,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      {emblema === null ? null : (
+        <Image
+          source={DIBUJOS[emblema]}
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: 'absolute',
+            right: -scale.space,
+            top: -scale.rowGap,
+            width: scale.selloSize,
+            height: scale.selloSize,
+            opacity: 0.14,
+          }}
+          resizeMode="contain"
+        />
+      )}
+      <Text style={{ fontSize: scale.titleSize * 1.1, ...TITULO, color: PALETTE.tinta }}>
+        {workspace.displayName}
+      </Text>
+      {myName !== null && role !== null ? (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {ES.settings.menu.you(myName, ES.members.roles[role])}
+        </Text>
+      ) : null}
+      {/* ⚠️ THE LABEL ABOVE AND THE CODE ON ONE LINE: beside it, at *Letra
+          grande*, the code broke in two (seen on the emulator, 2026-10-19). */}
+      <Text style={{ marginTop: scale.rowGap / 2, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {ES.settings.menu.code}
+      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}>
+        <Text
+          numberOfLines={1}
+          adjustsFontSizeToFit
+          style={{ flex: 1, fontSize: scale.moneySize, fontWeight: '700', color: PALETTE.tinta, letterSpacing: scale.space / 4 }}
+        >
+          {groupedCode(workspace.code)}
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.settings.share}
+          onPress={() => {
+            void Share.share({ message: shareText(workspace.displayName, workspace.code) }).catch(() => {});
+          }}
+          style={{ minHeight: scale.tapTarget, flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}
+        >
+          <MaterialCommunityIcons name="share-variant" size={scale.iconSize * 0.85} color={PALETTE.accion} />
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
+            {ES.settings.menu.shareCode}
+          </Text>
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `8g`: ON *TU EQUIPO*, FOR THE OWNER, WHO IS AT THE DOOR — the same queue as
+ * the count on Inicio's *Solicitudes*, read by the same hook, and a tap opens
+ * that screen. Absent when nobody waits, and for anybody but the owner (`visible`).
+ */
+function Esperando() {
+  const { scale } = useDensity();
+  const queue = usePendingRequests();
+  if (!queue.visible || queue.count === 0) return null;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push('/solicitudes')}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        minHeight: scale.tapTarget,
+        paddingHorizontal: scale.space,
+        borderRadius: scale.space,
+        backgroundColor: PALETTE.atencionSuave,
+      }}
+    >
+      <MaterialCommunityIcons name="account-clock-outline" size={scale.iconSize} color={PALETTE.atencion} />
+      <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.atencion }}>
+        {ES.settings.menu.waiting(queue.count)}
+      </Text>
+      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.atencion }}>
+        {`${ES.settings.menu.see} ›`}
+      </Text>
+    </Pressable>
   );
 }
 
@@ -387,7 +698,7 @@ function MiNombre() {
   }
 
   return (
-    <Section title={ES.myName.section}>
+    <Section>
       {!editing && (
         <>
           {/* ⚠️ THE NAME AT `titleSize`, THE SHOP'S OWN TOKEN ONE SECTION UP.
@@ -528,43 +839,42 @@ function Compartir({ shopName, code }: { shopName: string; code: string }) {
 function Letra() {
   const { mode, scale, setMode } = useDensity();
   return (
-    <View style={{ gap: scale.rowGap }}>
+    <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
       {DENSITY_MODES.map((candidate) => {
         const chosen = candidate === mode;
         return (
           <Pressable
             key={candidate}
             accessibilityRole="button"
+            accessibilityState={{ selected: chosen }}
             onPress={() => setMode(candidate)}
             style={{
-              minHeight: scale.tapTarget,
-              flexDirection: 'row',
+              flex: 1,
+              minHeight: scale.rowHeight * 1.5,
               alignItems: 'center',
-              gap: scale.rowGap,
-              paddingHorizontal: scale.space,
-              borderRadius: scale.space / 2,
+              justifyContent: 'center',
+              gap: scale.rowGap / 2,
+              paddingVertical: scale.rowGap,
+              borderRadius: scale.space,
               borderWidth: chosen ? 2 : 1,
               borderColor: chosen ? PALETTE.accion : PALETTE.linea,
               backgroundColor: chosen ? PALETTE.accionSuave : PALETTE.superficie,
             }}
           >
-            <MaterialCommunityIcons
-              name={chosen ? 'check-circle' : 'circle-outline'}
-              size={scale.iconSize}
-              color={chosen ? PALETTE.accion : PALETTE.tintaApagada}
-            />
-            {/* ⚠️ EACH OPTION IS RENDERED AT ITS OWN MODE'S BODY SIZE, not at the
-                one in force. Choosing a text size from a list that is all one
-                size is choosing blind — the control shows what it is offering. */}
-            <Text
-              style={{
-                fontSize: DENSITIES[candidate].bodySize,
-                fontWeight: chosen ? '700' : '400',
-                color: PALETTE.tinta,
-              }}
-            >
-              {ES.density[candidate]}
+            {/* ⚠️ EACH OPTION IS DRAWN AT ITS OWN MODE'S SIZE, not at the one in
+                force — an *Aa* small and an *Aa* large. Choosing a text size from
+                two that look alike is choosing blind. */}
+            <Text style={{ fontSize: DENSITIES[candidate].bodySize * 1.5, fontWeight: '700', color: PALETTE.tinta }}>
+              Aa
             </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.rowGap / 2 }}>
+              {chosen ? (
+                <MaterialCommunityIcons name="check-circle" size={scale.iconSize * 0.8} color={PALETTE.accion} />
+              ) : null}
+              <Text style={{ fontSize: scale.bodySize, fontWeight: chosen ? '700' : '600', color: chosen ? PALETTE.accion : PALETTE.tintaApagada }}>
+                {ES.density[candidate]}
+              </Text>
+            </View>
           </Pressable>
         );
       })}
@@ -624,7 +934,7 @@ function Cuenta() {
   }
 
   return (
-    <Section title={ES.account.section}>
+    <Section>
       <Pressable
         accessibilityRole="link"
         onPress={() => void WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {})}
@@ -746,38 +1056,6 @@ function Cuenta() {
         </View>
       )}
     </Section>
-  );
-}
-
-/**
- * C1.4's explicit log-out, moved here from the placeholder Home that `5a-ii`
- * put it on. That block's own comment named this task: *"whoever builds Ajustes
- * deletes both blocks."*
- *
- * ⚠️ IT IS `error` AND IT IS NOT A BUTTON-SHAPED SLAB. The role's one job is
- * what DESTROYS, and ending a session is the only destructive act on this
- * sheet — but it is also the one thing on it nobody came here to do, so it sits
- * last, alone, outside every card, with the word carrying the meaning and the
- * colour agreeing with it.
- */
-function Salir() {
-  const { scale } = useDensity();
-  const { signOut } = useAuth();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      onPress={() => void signOut()}
-      style={{
-        minHeight: scale.tapTarget,
-        justifyContent: 'center',
-        alignItems: 'center',
-        marginTop: scale.space,
-      }}
-    >
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-        {ES.auth.signOut}
-      </Text>
-    </Pressable>
   );
 }
 
