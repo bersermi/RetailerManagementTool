@@ -1,11 +1,13 @@
 #!/usr/bin/env bash
 # 5h-ii-b-corrections-contract-falsify — can that check still fail?
 #
-# ⚠️ RULE 4 OF THIS REPOSITORY. `5h-ii-b-corrections-contract.sh` prints "all 21
+# ⚠️ RULE 4 OF THIS REPOSITORY. `5h-ii-b-corrections-contract.sh` prints "all N
 # assertion groups passed", and that sentence is ALSO what a check which stopped
-# reading anything prints. This is what distinguishes the two: NINE fixtures —
-# one control that must stay green, five that break the CONTRACT, and three that
-# break the DATABASE.
+# reading anything prints. This is what distinguishes the two: ELEVEN fixtures —
+# one control that must stay green, six that break the CONTRACT (the sixth, `F9`,
+# is `8p`'s: the key a correction is sent under), and four that break the
+# DATABASE (the fourth, `F10`, is `8p`'s too: `record_sale` that takes
+# `p_corrects` and never matches it, so only the DATE can show it).
 #
 # ⚠️⚠️ EACH FIXTURE MATCHES THE MESSAGE, NOT THE EXIT CODE. *A fixture that is red
 # for the wrong reason is not a falsification, it is a coincidence* — the rule
@@ -43,6 +45,7 @@ set -uo pipefail
 CHECK="docs/checks/5h-ii-b-corrections-contract.sh"
 SOURCE="app/src/api/corrections.ts"
 WORDS="app/src/strings.ts"
+CART="app/src/cart/cart.ts"
 [[ -r "$CHECK" && -r "$SOURCE" && -r "$WORDS" ]] || {
   echo "FAIL: run this from the repository root"; exit 1; }
 
@@ -106,6 +109,18 @@ SQL
   window_restored=yes
   echo "        (the pinning trigger dropped from workspace_setting)"
 }
+# ⚠️ `8p` — F10 replaces record_sale with a copy whose correction branch can never
+# match, and puts the applied text back from the catalog afterwards. The text is
+# moved through FILES and never through a heredoc: it is dollar-quoted, and an
+# unquoted heredoc expands `$function$` to `$` (a lesson this repo paid for).
+sale_restored=yes
+restore_sale() {
+  [[ "$sale_restored" == yes ]] && return 0
+  docker exec -i "$DB_CONTAINER" psql -U postgres -q -v ON_ERROR_STOP=1 < "$TMP/record_sale.sql" >/dev/null 2>&1
+  docker exec -i "$DB_CONTAINER" psql -U postgres -q -c "notify pgrst, 'reload schema'" >/dev/null 2>&1
+  sale_restored=yes
+  echo "        (record_sale put back as it was applied)"
+}
 grant_restored=yes
 restore_grant() {
   [[ "$grant_restored" == yes ]] && return 0
@@ -118,16 +133,16 @@ SQL
 # ⚠️ THE RESTORE IS IN A `trap` AND RUNS ON EVERY EXIT PATH, Ctrl-C included: a
 # harness that leaves the grant revoked makes the app look broken rather than
 # safe, which is the failure that gets a check deleted.
-trap 'restore_grant; restore_window; restore_accents; rm -rf "$TMP"' EXIT INT TERM
+trap 'restore_sale; restore_grant; restore_window; restore_accents; rm -rf "$TMP"' EXIT INT TERM
 
 fixtures=0
 bad=0
 
 # $1 label  $2 expectation: a grep -E pattern, or the word GREEN  $3 contract  $4 words
 expect() {
-  local label="$1" pattern="$2" contract="$3" words="${4:-$WORDS}" out rc
+  local label="$1" pattern="$2" contract="$3" words="${4:-$WORDS}" cart="${5:-$CART}" out rc
   fixtures=$((fixtures+1))
-  out="$(bash "$CHECK" "$contract" "$words" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$contract" "$words" "$cart" 2>&1)"; rc=$?
   if [[ "$pattern" == GREEN ]]; then
     if (( rc == 0 )) && grep -q 'assertion groups passed' <<< "$out"; then
       echo "  ok    $label — green, as it must be"
@@ -217,8 +232,15 @@ expect "F6  a fourth p_ argument added to VoidArgs" \
   "$(mutate F6 "$SOURCE" 's/  readonly p_reason: string;/  readonly p_reason: string;\
   readonly p_note: string;/')"
 
+# ⚠️ `8p`: the key a correction is sent under, renamed where the app writes it.
+# PostgREST matches by parameter name, so this is a 404 on every correction.
+expect "F9  the correction's payload key renamed in draftOf" \
+  'answered 404' \
+  "$SOURCE" "$WORDS" \
+  "$(mutate F9 "$CART" 's/{ corrects: corrects\.id, occurred_at: corrects\.at }/{ corrected: corrects.id, occurred_at: corrects.at }/')"
+
 echo
-echo "== the database, broken three ways =="
+echo "== the database, broken four ways =="
 
 # ⚠️⚠️ F4 — THE ACCENT, MANGLED IN THE DATABASE. The audit assertion reads the
 # reason out of `src/strings.ts`, SENDS it, and compares what comes back — so the
@@ -309,11 +331,31 @@ expect "F8  void_transaction's grant to authenticated revoked" \
   "$SOURCE"
 restore_grant
 
+# ⚠️ `8p`: the server still TAKES p_corrects but never matches it — every
+# correction lands now, which is the blind spot 0064 closed. Only the date can
+# show it; the call answers 200 either way.
+docker exec "$DB_CONTAINER" psql -U postgres -At -c \
+  "select pg_get_functiondef('public.record_sale(uuid,uuid,jsonb,timestamptz,boolean,uuid,uuid)'::regprocedure) || ';'" \
+  > "$TMP/record_sale.sql" 2>/dev/null
+sed 's/  elsif p_corrects is not null and exists (/  elsif p_corrects is not null and false and exists (/' \
+  "$TMP/record_sale.sql" > "$TMP/record_sale_blind.sql"
+if cmp -s "$TMP/record_sale.sql" "$TMP/record_sale_blind.sql"; then
+  echo "FAIL: fixture F10 edited nothing — record_sale's correction branch was not found"
+  bad=$((bad+1))
+else
+  docker exec -i "$DB_CONTAINER" psql -U postgres -q -v ON_ERROR_STOP=1 < "$TMP/record_sale_blind.sql" >/dev/null 2>&1
+  sale_restored=no
+  expect "F10 record_sale takes p_corrects and never matches it" \
+    'the corrected sale is dated' \
+    "$SOURCE"
+  restore_sale
+fi
+
 echo
 if [[ "$bad" -eq 0 ]]; then
   echo "all $fixtures fixtures behaved — 5h-ii-b-corrections-contract.sh is still"
   echo "measuring the RPC's three argument names, the audit trail, the two"
-  echo "vocabularies, the live window and the grant."
+  echo "vocabularies, the live window, the grant, and the day a correction counts on."
   exit 0
 fi
 echo "$bad of $fixtures fixtures did NOT behave."

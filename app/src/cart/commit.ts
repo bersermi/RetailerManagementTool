@@ -46,6 +46,7 @@ import {
   NO_TAX_RATES,
   type DraftRefusal,
   type Cart,
+  type Corrects,
   type Expiries,
   type Quotes,
   type Scope,
@@ -113,6 +114,11 @@ export interface Basketful {
    * `wasteOccurredAt` in `@/api/waste`. Waste only; `null` is the queue's stamp.
    */
   readonly occurredAt?: string | null;
+  /**
+   * ⚠️ `8p` — the document this basket re-keys (`Corrects` in `@/cart/cart`), or
+   * `null`/absent for a new one. Any side of the counter.
+   */
+  readonly corrects?: Corrects | null;
 }
 
 /** Why a basket could not become a queued write. Never shown to anybody. */
@@ -146,6 +152,7 @@ export function commitOf(b: Basketful, stamp: Stamp): Committed {
     b.reason ?? null,
     b.expiries,
     b.occurredAt ?? null,
+    b.corrects ?? null,
   );
   if (!drafted.ok) return { ok: false, why: drafted.why };
 

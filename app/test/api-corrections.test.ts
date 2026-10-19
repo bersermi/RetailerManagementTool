@@ -27,6 +27,7 @@ import {
   mayCorrect,
   prefillOf,
   staleAfterVoid,
+  unsentPrefillOf,
   voidArgs,
   voidedFrom,
 } from '@/api/corrections';
@@ -42,7 +43,7 @@ import { MAGNITUDE_KEY } from '@/api/magnitude';
 import { ROLES } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
-import { WASTE_REASONS, reasonLabel } from '@/api/waste';
+import { WASTE_REASONS, reasonLabel, wasteDayOf } from '@/api/waste';
 import { WRITE_KIND } from '@/cart/cart';
 import { ES } from '@/strings';
 
@@ -624,5 +625,41 @@ describe('what a void of a write-off makes stale', () => {
     const keys = staleAfterVoid(document({ kind: 'purchase' })).map((one) => JSON.stringify(one));
     expect(keys).toContain(JSON.stringify(MAGNITUDE_KEY));
     expect(keys.length).toBeGreaterThan(3);
+  });
+});
+
+// ============================================================================
+// `8p` (2026-10-19) — the cart a correction hands back names the document it
+// replaces, so the server can date it on that document's day (`0064`).
+// ============================================================================
+describe('8p — a correction names what it corrects, and when', () => {
+  it('carries the voided document’s id and its own occurred_at', () => {
+    expect(prefillOf(document({ id: 'doc-9', at: '2026-10-16T20:07:00+00:00' })).corrects).toEqual({
+      id: 'doc-9',
+      at: '2026-10-16T20:07:00+00:00',
+    });
+  });
+
+  it('a write-off arrives with its day already answered — Ayer, Antier', () => {
+    const waste = (day: string) =>
+      prefillOf(document({ kind: 'waste', providerId: null, day }), '2026-10-19').wasteDay;
+    expect(waste('2026-10-19')).toBe(0);
+    expect(waste('2026-10-18')).toBe(1);
+    expect(waste('2026-10-17')).toBe(2);
+  });
+
+  it('⚠️ older than Antier the chips cannot say it — Hoy is drawn, and the server still dates it right', () => {
+    expect(wasteDayOf('2026-10-10', '2026-10-19')).toBe(0);
+    expect(wasteDayOf('ayer', '2026-10-19')).toBe(0);
+    expect(wasteDayOf('2026-10-20', '2026-10-19')).toBe(0);
+  });
+
+  it('⚠️ an unsent note corrects nothing in the ledger, and keeps its day', () => {
+    const unsent = unsentPrefillOf(
+      document({ kind: 'waste', providerId: null, day: '2026-10-18' }),
+      '2026-10-19',
+    );
+    expect(unsent.corrects).toBeNull();
+    expect(unsent.wasteDay).toBe(1);
   });
 });

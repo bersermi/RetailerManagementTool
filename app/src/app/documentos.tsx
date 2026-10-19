@@ -9,7 +9,7 @@ import {
   CART_KIND,
   CORRECTION_ROUTE,
   mayCorrect,
-  prefillOf,
+  unsentPrefillOf,
   type Correction,
 } from '@/api/corrections';
 import { isoDay } from '@/api/catalog';
@@ -225,7 +225,9 @@ export default function Documentos() {
       }
       ask(null);
       if (target.how === 'eliminar') return;
-      load(prefillOf(target.document));
+      // ⚠️ `8p`: an unsent note was never in the ledger, so it corrects nothing
+      // there — `unsentPrefillOf`.
+      load(unsentPrefillOf(target.document));
       router.push(CORRECTION_ROUTE[target.document.kind]);
       return;
     }

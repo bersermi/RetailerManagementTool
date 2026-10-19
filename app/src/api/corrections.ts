@@ -134,12 +134,14 @@
 // ============================================================================
 
 
+import { isoDay } from '@/api/catalog';
 import { costsKey } from '@/api/costs';
 import { documentsKey, type DocumentKind, type ShopDocument } from '@/api/documents';
 import { MAGNITUDE_KEY } from '@/api/magnitude';
 import type { Role } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
+import { wasteDayOf } from '@/api/waste';
 import type { CartLine, Loaded, Quotes, Scope } from '@/cart/cart';
 import { ES } from '@/strings';
 
@@ -382,8 +384,15 @@ export interface Prefill extends Loaded {
  * ⚠️ NOTHING IN THIS APP CAN WRITE A MIXED DOCUMENT — Desperdicio sends one
  * cause per document — so this is the branch for what a future screen, an import
  * or another client could leave in the ledger.
+ *
+ * ⚠️⚠️ `8p` — AND IT NAMES THE DOCUMENT IT REPLACES. `corrects` carries the
+ * voided document's id and its own `at`, so what she re-keys is dated on the
+ * original's day (`0064`, the owner's ruling of 2026-10-19) — a Friday sale
+ * corrected on Monday stays Friday's. A write-off also arrives with its day
+ * already answered (`wasteDay`), so *¿Cuándo lo tiraste?* shows the day it will
+ * count on. `today` is a parameter so the suite can say which day it is.
  */
-export function prefillOf(document: ShopDocument): Prefill {
+export function prefillOf(document: ShopDocument, today: string = isoDay(new Date())): Prefill {
   const totals = new Map<string, number>();
   const quotes: Record<string, string> = {};
   let dropped = 0;
@@ -412,8 +421,20 @@ export function prefillOf(document: ShopDocument): Prefill {
     // ⚠️ THE DOCUMENT'S OWN CAUSE, AND `null` WHENEVER IT HAS NO SINGLE ONE —
     // see the paragraph in this function's doc comment.
     reason: document.causeValue,
+    corrects: { id: document.id, at: document.at },
+    wasteDay: wasteDayOf(document.day, today),
     dropped,
   };
+}
+
+/**
+ * ⚠️ `8p` — A NOTE THAT NEVER REACHED THE LEDGER CORRECTS NOTHING THERE. An
+ * unsent write is taken off this phone and re-keyed (`documentos.tsx`), so there
+ * is no voided document for the server to date it by: it goes as a new write,
+ * and a write-off keeps the day it carried through `wasteDay`.
+ */
+export function unsentPrefillOf(document: ShopDocument, today: string = isoDay(new Date())): Prefill {
+  return { ...prefillOf(document, today), corrects: null };
 }
 
 /**

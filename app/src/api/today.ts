@@ -62,6 +62,12 @@
 // made **2 ventas** on a morning when she rang one up and undid it. That is the
 // app doing bookkeeping at her, which is the one thing this product refuses.
 // `takingsFrom` below counts the documents that STAND.
+//
+// ⚠️⚠️ AND SINCE `8p` THE SUM HAS ONE SPECIAL CASE: a void of a sale from ANOTHER
+// day. It is stamped when it was made, so it falls in today's window while the
+// sale it undoes does not — and summed, it took Friday's sale off Monday. The
+// owner's ruling of 2026-10-19 is that a correction counts on the day of what it
+// corrects, so such a row is skipped here, as `0064` skips it in every daily view.
 // ============================================================================
 
 import { SCALE, parseDecimal } from '@tienda/money';
@@ -194,8 +200,18 @@ export function takingsFrom(rows: readonly SaleRow[] | null | undefined): Taking
     if (row.reversal_of === null && !reversed.has(row.id)) count += 1;
   }
 
+  // ⚠️⚠️ `8p` — A VOID OF A SALE FROM ANOTHER DAY IS NOT TODAY'S MONEY. A void is
+  // stamped when it is made, so deleting Friday's $45 sale on Monday put Monday
+  // at −$45 · 0 ventas — the blind spot `8g`'s audit measured, and the owner's
+  // ruling of 2026-10-19 is that a correction counts on the day of what it
+  // corrects. A reversal counts here only when the sale it undoes is in this
+  // same window; the daily views (`0064`) do the same on the server.
+  const inWindow = new Set<string>();
+  for (const row of all) inWindow.add(row.id);
+
   let gross = 0;
   for (const row of all) {
+    if (row.reversal_of !== null && !inWindow.has(row.reversal_of)) continue;
     const net = centavos(row.total_net);
     const tax = centavos(row.total_tax);
     if (net === null || tax === null) return { grossCentavos: null, count, complete: false };

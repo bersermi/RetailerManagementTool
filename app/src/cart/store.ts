@@ -103,6 +103,7 @@ import {
   step,
   withExpiry,
   type Cart,
+  type Corrects,
   type Expiries,
   type Loaded,
   type Quotes,
@@ -167,6 +168,30 @@ interface Typed {
 
 const NOTHING_TYPED: Typed = { sell: NO_QUOTES, buy: NO_QUOTES, waste: NO_QUOTES };
 
+/**
+ * ⚠️ `8p` — WHICH DOCUMENT EACH BASKET RE-KEYS, per side of the counter, because
+ * a correction belongs to ONE basket: a delivery being re-keyed in the back room
+ * says nothing about the sale at the till.
+ *
+ * ⚠️⚠️ IT LEAVES WITH ITS BASKET, AND EVERY WAY A BASKET CAN BE EMPTIED DROPS IT —
+ * `clear`, the last line removed, a commit, another shop, another `load`. A link
+ * that outlived its basket would date the NEXT thing rung up there at the time
+ * of a document nobody is correcting any more, and nothing on the screen would
+ * say so. On the waste side it also leaves when she answers *¿Cuándo lo tiraste?*
+ * differently from the original: her answer is the date, so it is no longer the
+ * same write-off put right.
+ */
+type Corrections = Readonly<Record<Scope, Corrects | null>>;
+
+const NO_CORRECTIONS: Corrections = { sell: null, buy: null, waste: null };
+
+/** The link, kept only while its basket still holds something. */
+function keptIf(corrections: Corrections, scope: Scope, cart: Cart): Corrections {
+  return cart.length > 0 || corrections[scope] === null
+    ? corrections
+    : { ...corrections, [scope]: null };
+}
+
 export interface CartState {
   readonly carts: Carts;
   /** Per-base figures a person entered, keyed by variant. `@/cart/cart`'s map. */
@@ -204,6 +229,8 @@ export interface CartState {
   readonly wasteDay: WasteDay;
   /** ⚠️ `8l`: each waste line's expiry — `Expiries` in `@/cart/cart`. */
   readonly expiries: Expiries;
+  /** ⚠️ `8p`: the document each basket re-keys, if it is a correction. */
+  readonly corrections: Corrections;
   /** Point the store at a shop, dropping baskets that belonged to another. */
   readonly openShop: (workspaceId: string | null) => void;
   /**
@@ -296,7 +323,33 @@ interface Persisted {
    */
   readonly wasteDay: WasteDay;
   readonly expiries: Expiries;
+  /**
+   * ⚠️ `8p`, ADDED WITHOUT BUMPING THE KEY by `8l`'s rule: a blob without it
+   * restores as *no correction*, which is what every basket before `8p` was.
+   */
+  readonly corrections: Corrections;
 }
+
+/**
+ * ⚠️ `8p` — a restored link, kept only when it is well formed. A malformed one
+ * would reach Postgres as `p_corrects` and fail the uuid cast — a dead letter
+ * over a sale she believes she recorded — so it is dropped instead, and the
+ * basket simply stops being a correction.
+ */
+function restoredCorrections(value: unknown): Corrections {
+  if (typeof value !== 'object' || value === null) return NO_CORRECTIONS;
+  const from = value as Record<string, unknown>;
+  const one = (raw: unknown): Corrects | null => {
+    if (typeof raw !== 'object' || raw === null) return null;
+    const { id, at } = raw as Record<string, unknown>;
+    return typeof id === 'string' && UUID_SHAPE.test(id) && typeof at === 'string' && at !== ''
+      ? { id, at }
+      : null;
+  };
+  return { sell: one(from.sell), buy: one(from.buy), waste: one(from.waste) };
+}
+
+const UUID_SHAPE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /** A restored map, keeping only well-formed dates. Anything else is *sin fecha*. */
 function restoredExpiries(value: unknown): Expiries {
@@ -346,6 +399,7 @@ export const useCartStore = create<CartState>()(
       reason: null,
       wasteDay: 0,
       expiries: NO_EXPIRIES,
+      corrections: NO_CORRECTIONS,
       openShop: (workspaceId) =>
         set((s) =>
           s.workspaceId === workspaceId
@@ -371,6 +425,7 @@ export const useCartStore = create<CartState>()(
                   reason: null,
                   wasteDay: 0,
                   expiries: NO_EXPIRIES,
+                  corrections: NO_CORRECTIONS,
                 },
         ),
       openProvider: (providerId) =>
@@ -384,7 +439,14 @@ export const useCartStore = create<CartState>()(
       // unchanged value for `openProvider`'s other reason: the screen calls it
       // from a handler today and an effect is one refactor away.
       openReason: (reason) => set((s) => (s.reason === reason ? s : { reason })),
-      setWasteDay: (wasteDay) => set((s) => (s.wasteDay === wasteDay ? s : { wasteDay })),
+      // ⚠️ `8p`: a different day is her answer, so a corrected write-off stops
+      // being dated at its original — `Corrections`.
+      setWasteDay: (wasteDay) =>
+        set((s) =>
+          s.wasteDay === wasteDay
+            ? s
+            : { wasteDay, corrections: { ...s.corrections, waste: null } },
+        ),
       setExpiry: (variantId, day) =>
         set((s) => ({ expiries: withExpiry(s.expiries, variantId, day) })),
       // ⚠️ `8l`: A WASTE LINE THAT LEAVES TAKES ITS DATE WITH IT — `expiriesIn`.
@@ -393,6 +455,7 @@ export const useCartStore = create<CartState>()(
           const cart = setQty(s.carts[scope], variantId, base);
           return {
             carts: { ...s.carts, [scope]: cart },
+            corrections: keptIf(s.corrections, scope, cart),
             ...(scope === 'waste' ? { expiries: expiriesIn(s.expiries, cart) } : {}),
           };
         }),
@@ -401,12 +464,14 @@ export const useCartStore = create<CartState>()(
           const cart = step(s.carts[scope], variantId, by, sign);
           return {
             carts: { ...s.carts, [scope]: cart },
+            corrections: keptIf(s.corrections, scope, cart),
             ...(scope === 'waste' ? { expiries: expiriesIn(s.expiries, cart) } : {}),
           };
         }),
       remove: (scope, variantId) =>
         set((s) => ({
           carts: { ...s.carts, [scope]: remove(s.carts[scope], variantId) },
+          corrections: keptIf(s.corrections, scope, remove(s.carts[scope], variantId)),
           ...(scope === 'waste' ? { expiries: withExpiry(s.expiries, variantId, null) } : {}),
           // ⚠️ A REMOVED LINE FORGETS ITS PRICE. Leaving it would make the same
           // product re-added later arrive carrying a figure nobody typed for it,
@@ -428,12 +493,15 @@ export const useCartStore = create<CartState>()(
         set((s) => ({
           carts: { ...s.carts, [scope]: EMPTY_CART },
           typed: { ...s.typed, [scope]: NO_QUOTES },
+          corrections: { ...s.corrections, [scope]: null },
           ...(scope === 'waste' ? { expiries: NO_EXPIRIES } : {}),
         })),
-      load: ({ scope, lines, quotes, providerId, reason }) =>
+      load: ({ scope, lines, quotes, providerId, reason, corrects, wasteDay }) =>
         set((s) => ({
           carts: { ...s.carts, [scope]: lines },
           typed: { ...s.typed, [scope]: quotes },
+          // ⚠️ `8p`: REPLACED, never kept from a basket this one overwrote.
+          corrections: { ...s.corrections, [scope]: lines.length > 0 ? corrects : null },
           // ⚠️ THE PROVIDER MOVES ONLY ON THE BUY SIDE. A sale has none, and
           // writing `null` over it on a sale correction would empty Comprar's
           // supplier the next time she opened it.
@@ -445,9 +513,10 @@ export const useCartStore = create<CartState>()(
           // from it, so the two are far more likely to overlap than a provider
           // and a sale ever were.
           ...(scope === 'waste' ? { reason } : {}),
-          // ⚠️ `8l`: A CORRECTED WRITE-OFF ARRIVES *SIN FECHA* AND DATED TODAY —
-          // `Lo último` reads neither column back yet, so there is nothing to load.
-          ...(scope === 'waste' ? { expiries: NO_EXPIRIES, wasteDay: 0 as WasteDay } : {}),
+          // ⚠️ `8l`: A CORRECTED WRITE-OFF ARRIVES *SIN FECHA* — `Lo último` does
+          // not read the expiry back. ⚠️ `8p`: AND ON ITS OWN DAY, so *¿Cuándo lo
+          // tiraste?* shows the day it will count on (`prefillOf`).
+          ...(scope === 'waste' ? { expiries: NO_EXPIRIES, wasteDay } : {}),
         })),
     }),
     {
@@ -461,6 +530,7 @@ export const useCartStore = create<CartState>()(
         reason: s.reason,
         wasteDay: s.wasteDay,
         expiries: s.expiries,
+        corrections: s.corrections,
       }),
       // ⚠️⚠️ THE RESTORED CAUSE IS **VALIDATED** AND THE RESTORED BASKET IS NOT,
       // AND THAT ASYMMETRY IS THE POINT. A restored LINE fails safe on its own:
@@ -479,6 +549,7 @@ export const useCartStore = create<CartState>()(
           reason: isWasteReason(from.reason) ? from.reason : null,
           wasteDay: isWasteDay(from.wasteDay) ? from.wasteDay : 0,
           expiries: restoredExpiries(from.expiries),
+          corrections: restoredCorrections(from.corrections),
         };
       },
     },
@@ -520,4 +591,9 @@ export function useWasteDay(): WasteDay {
 /** ⚠️ `8l`: each waste line's expiry. */
 export function useExpiries(): Expiries {
   return useCartStore((s) => s.expiries);
+}
+
+/** ⚠️ `8p`: the document this side's basket re-keys, or `null`. */
+export function useCorrects(scope: Scope): Corrects | null {
+  return useCartStore((s) => s.corrections[scope]);
 }

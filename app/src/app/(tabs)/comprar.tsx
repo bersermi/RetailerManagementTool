@@ -44,7 +44,7 @@ import { cardCost, cardNote, marginOf } from '@/cart/buying';
 import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { buyGate } from '@/cart/gate';
-import { useCart, useCartStore, useProviderId, useTyped } from '@/cart/store';
+import { useCart, useCartStore, useCorrects, useProviderId, useTyped } from '@/cart/store';
 import { formatLastBought } from '@/format/date';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
@@ -298,6 +298,8 @@ export default function Comprar() {
   }, [across]);
 
   const cart = useCart('buy');
+  // ⚠️ `8p`: the delivery this basket re-keys, so it counts on that day.
+  const corrects = useCorrects('buy');
   const quotes = useTyped('buy');
   const providerId = useProviderId();
   const openShop = useCartStore((state) => state.openShop);
@@ -505,6 +507,7 @@ export default function Comprar() {
           locationId,
           quotes,
           providerId,
+          corrects,
         };
 
   // ⚠️ `transform` AND `opacity` ONLY (§2.11), AND STARTED IN AN EFFECT rather

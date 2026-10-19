@@ -144,6 +144,9 @@ $$;
 -- default is that same string. So every bucket in a database that existed before
 -- this migration must be exactly where it was. Demonstrated by recomputing both
 -- views' day sets with the old literal and asserting they are identical.
+-- ⚠️ `0064` LATER MOVED A VOID TO ITS ORIGINAL'S DAY, on purpose (the owner's
+-- ruling of 2026-10-19). The recomputations apply that rule too, so what they
+-- still isolate is this file's claim — the zone — and not the void's day.
 
 create temp table _base_m as
 select workspace_id, location_id, variant_id, day, revenue_net, cogs_net, line_count
@@ -159,9 +162,10 @@ select chk('margin: every bucket is where the old hardcoded constant put it',
               select workspace_id, location_id, variant_id, day, revenue_net from _base_m
               except
               select sl.workspace_id, sl.location_id, sl.variant_id,
-                     (s.occurred_at at time zone 'America/Mexico_City')::date,
+                     (coalesce(o.occurred_at, s.occurred_at) at time zone 'America/Mexico_City')::date,
                      sum(sl.line_net)
                 from sale_line sl join sale s on s.id = sl.sale_id
+                left join sale o on o.id = s.reversal_of
                group by 1,2,3,4) d) = 0,
            (select count(*) || ' margin bucket(s) captured' from _base_m));
 
@@ -171,9 +175,10 @@ select chk('waste: every delivery bucket is where the old hardcoded constant put
                 from _base_w where purchase_line_count > 0
               except
               select pl.workspace_id, pl.location_id, pl.variant_id,
-                     (p.occurred_at at time zone 'America/Mexico_City')::date,
+                     (coalesce(o.occurred_at, p.occurred_at) at time zone 'America/Mexico_City')::date,
                      sum(pl.line_net)
                 from purchase_line pl join purchase p on p.id = pl.purchase_id
+                left join purchase o on o.id = p.reversal_of
                group by 1,2,3,4) d) = 0,
            (select count(*) || ' waste bucket(s) captured' from _base_w));
 

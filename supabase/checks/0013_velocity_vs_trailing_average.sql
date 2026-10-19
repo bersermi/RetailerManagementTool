@@ -154,8 +154,17 @@ select chk('the measure leg IS product_margin_daily''s revenue leg, both directi
                select workspace_id, location_id, variant_id, day, qty_base_sold, revenue_net, line_count
                  from product_velocity_daily where line_count > 0)) d) = 0);
 
-select chk('reversals need no exclusion here either — 0009''s finding, unchanged',
-           pg_get_viewdef('public.product_velocity_daily'::regclass) !~* 'reversal_of',
+-- ⚠️ `0064` made the view NAME `reversal_of` — once, to date a void on the day
+-- of the sale it undoes (the owner's ruling of 2026-10-19: a correction counts on
+-- the day of what it corrects). What this line guards is unchanged: nothing is
+-- EXCLUDED. The reconciliations above already count every line in exactly one
+-- bucket; this pins that the one mention is the join and never a filter.
+select chk('reversals need no exclusion here either — 0009''s finding; since 0064 '
+           'the view names reversal_of once, to date a void, and filters on it nowhere',
+           (select count(*) from regexp_matches(
+              pg_get_viewdef('public.product_velocity_daily'::regclass), 'reversal_of', 'g')) = 1
+       and pg_get_viewdef('public.product_velocity_daily'::regclass)
+           !~* 'reversal_of\s+is\s+(not\s+)?null',
            'a void is a negated document (0003) and every measure here is a sum');
 
 

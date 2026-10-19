@@ -199,8 +199,10 @@ select chk('velocity: not one peso — revenue_net 138 673.24, revenue_gross 147
        and (select sum(revenue_net)   from product_velocity_daily)
          = (select sum(line_net)      from sale_line));
 
-select chk('purchases: 4 columns added and not one row — still 1 048 rows, now 17 columns',
-           (select count(*) from product_purchases_daily) = 1048
+-- ⚠️ 1 048 UNTIL `0064`, which put each of the seed's 23 voided delivery lines in
+-- its delivery's bucket — a row count that moved on purpose, not a lost row.
+select chk('purchases: 4 columns added and not one row — 1 025 rows since 0064, now 17 columns',
+           (select count(*) from product_purchases_daily) = 1025
        and (select count(*) from information_schema.columns
              where table_schema='public' and table_name='product_purchases_daily') = 17);
 
@@ -258,16 +260,22 @@ select chk('and the spine''s quiet days have NO price rather than a price of zer
            'coalescing these to 0 would draw the price line through the floor on '
         || 'every closed day and report it as a 100% discount');
 
-select chk('⚠️ AND THE 0-OVER-0 IS NOT ONLY A DAILY PROBLEM: 10 variant-MONTHS of purchases also net to zero',
+-- ⚠️ 10 AND 0 UNTIL `0064`. A void now counts on its delivery's day, so the 23
+-- voided lines net their own days to zero (23 null daily prices, every one a
+-- cancelled delivery) and their months too.
+select chk('⚠️ AND THE 0-OVER-0 IS NOT ONLY A DAILY PROBLEM: 14 variant-MONTHS of purchases also net to zero',
            (select count(*) from (select variant_id, date_trunc('month', day) mo,
                                          sum(purchases_qty_base) q
                                     from product_purchases_daily group by 1,2) m
-             where q = 0) = 10
-       and (select count(*) from product_purchases_daily where purchase_price_net is null) = 0,
-           'the daily purchases view has no null price at all, and a caller rolling '
-        || 'up to a month hits the same division by zero the view protects it from '
-        || 'daily. The rollup instruction in the view comment carries nullif for '
-        || 'this reason, and it is not decoration');
+             where q = 0) = 14
+       and (select count(*) from product_purchases_daily where purchase_price_net is null) = 23
+       and (select count(*) from product_purchases_daily
+             where purchase_price_net is null and purchase_line_count = 2
+               and purchases_qty_base = 0) = 23,
+           'the daily view''s 23 null prices are the cancelled deliveries, and a '
+        || 'caller rolling up to a month hits the same division by zero the view '
+        || 'protects it from daily. The rollup instruction in the view comment '
+        || 'carries nullif for this reason, and it is not decoration');
 
 -- ⚠️ THE ROLLUP CLAIM, MEASURED RATHER THAN ASSERTED IN PROSE. A month price
 -- computed by summing the components equals the same month recomputed straight
@@ -278,10 +286,13 @@ with from_view as (
          avg(purchase_price_net)                                as averaged
     from product_purchases_daily group by 1,2),
 from_ledger as (
-  select pl.variant_id, date_trunc('month', (p.occurred_at at time zone l.timezone)::date)::date mo,
+  select pl.variant_id,
+         date_trunc('month', (coalesce(o.occurred_at, p.occurred_at) at time zone l.timezone)::date)::date mo,
          sum(pl.line_net) / nullif(sum(pl.qty_base),0) as straight_from_the_ledger
     from purchase_line pl
     join purchase p on p.id = pl.purchase_id
+    -- ⚠️ `0064`: a void is read in its delivery's month, as the view reads it.
+    left join purchase o on o.id = p.reversal_of
     join location l on l.id = pl.location_id
    group by 1,2)
 select chk('SUM THEN DIVIDE recomputes the month exactly; AVERAGING THE DAILY PRICES does not',
@@ -335,12 +346,14 @@ select chk('and it is the LAST line of the day, recomputed by a different implem
                select sl.unit_price_net_per_base p, sl.tax_rate r
                  from sale_line sl
                  join sale s on s.id = sl.sale_id
+                 -- ⚠️ `0064`: a void at the time of the sale it undoes.
+                 left join sale o on o.id = s.reversal_of
                  join location l on l.id = sl.location_id
                 where sl.workspace_id = d.workspace_id
                   and sl.location_id  = d.location_id
                   and sl.variant_id   = d.variant_id
-                  and (s.occurred_at at time zone l.timezone)::date = d.day
-                order by s.occurred_at desc, sl.created_at desc, sl.id desc
+                  and (coalesce(o.occurred_at, s.occurred_at) at time zone l.timezone)::date = d.day
+                order by coalesce(o.occurred_at, s.occurred_at) desc, sl.created_at desc, sl.id desc
                 limit 1) x
              where d.line_count > 0
                and (d.sale_price_last_net   is distinct from x.p
@@ -352,12 +365,13 @@ select chk('and the same, independently, on the purchases side',
                select pl.unit_price_net_per_base p, pl.tax_rate r
                  from purchase_line pl
                  join purchase pu on pu.id = pl.purchase_id
+                 left join purchase o on o.id = pu.reversal_of
                  join location l on l.id = pl.location_id
                 where pl.workspace_id = d.workspace_id
                   and pl.location_id  = d.location_id
                   and pl.variant_id   = d.variant_id
-                  and (pu.occurred_at at time zone l.timezone)::date = d.day
-                order by pu.occurred_at desc, pl.created_at desc, pl.id desc
+                  and (coalesce(o.occurred_at, pu.occurred_at) at time zone l.timezone)::date = d.day
+                order by coalesce(o.occurred_at, pu.occurred_at) desc, pl.created_at desc, pl.id desc
                 limit 1) x
              where d.purchase_price_last_net   is distinct from x.p
                 or d.purchase_price_last_gross is distinct from x.p * (1 + x.r)) = 0);
@@ -383,10 +397,12 @@ select chk('⚠️ the typed gross comes off the SAME line as the typed net, not
 -- view would report a price with somebody else's tax on it. Each side has two
 -- picks and both must carry the whole ordering.
 select chk('the ordering is TOTAL and BOTH picks carry it — three deep, ending on a unique id',
+           -- ⚠️ `0064`: the first term is the time of the document a line COUNTS
+           -- on — a void's original — so a void sits where the thing it undoes sat.
            regexp_count(pg_get_viewdef('public.product_velocity_daily'::regclass),
-                        'ORDER BY s\.occurred_at DESC, sl\.created_at DESC, sl\.id DESC') = 2
+                        'ORDER BY COALESCE\(o\.occurred_at, s\.occurred_at\) DESC, sl\.created_at DESC, sl\.id DESC') = 2
        and regexp_count(pg_get_viewdef('public.product_purchases_daily'::regclass),
-                        'ORDER BY p\.occurred_at DESC, pl\.created_at DESC, pl\.id DESC') = 2,
+                        'ORDER BY COALESCE\(o\.occurred_at, p\.occurred_at\) DESC, pl\.created_at DESC, pl\.id DESC') = 2,
            'without the last term "the last price" is whichever row the planner '
         || 'reached first, and the chart changes on a re-plan with nothing red. '
         || 'Without it on BOTH, the net and the gross describe different lines');
@@ -400,14 +416,19 @@ select chk('every bucket that traded has a typed price, and no bucket that did n
 
 -- ========== 6. THE TWO PRICES DISAGREE, AND IT IS ARITHMETIC ==
 -- ⚠️ THE STRONGEST FORM OF THIS CLAIM IS ON THE PURCHASES SIDE, WHERE EVERY
--- BUCKET HOLDS EXACTLY ONE LINE (0031's finding). Two prices off one line still
+-- BUCKET HOLDS EXACTLY ONE LINE (0031's finding) — or, since `0064`, one line and
+-- its void's, which has no price at all and is left out. Two prices off one line still
 -- differ, because line_net is already rounded to the centavo by §2.5's per-line
 -- rule and unit_price_net_per_base is not.
 
-select chk('⚠️ 736 of 1 048 SINGLE-LINE purchase buckets: the price CHARGED is not the price MEANT',
+select chk('⚠️ 706 of 1 002 SINGLE-LINE purchase buckets: the price CHARGED is not the price MEANT',
            (select count(*) from product_purchases_daily
-             where round(purchase_price_net,6) is distinct from round(purchase_price_last_net,6)) = 736
-       and (select count(*) from product_purchases_daily where purchase_line_count = 1) = 1048,
+             where purchase_line_count = 1
+               and round(purchase_price_net,6) is distinct from round(purchase_price_last_net,6)) = 706
+       and (select count(*) from product_purchases_daily where purchase_line_count = 1) = 1002
+       -- the other 23 are a line and its void's (0064): no effective price at all
+       and (select count(*) from product_purchases_daily
+             where purchase_line_count <> 1 and purchase_price_net is not null) = 0,
            (select 'largest gap: ' || max(abs(purchase_price_net - purchase_price_last_net))::text
               from product_purchases_daily));
 
@@ -415,7 +436,7 @@ select chk('and rounding either one would be the wrong fix — §2.5 governs the
            (select count(*) from product_purchases_daily
              where purchases_net <> round(purchases_net, 2)) = 0
        and (select count(*) from product_purchases_daily
-             where purchase_price_net = round(purchase_price_net, 2)) < 1048,
+             where purchase_price_net = round(purchase_price_net, 2)) < 1025,
            'the MONEY is already at the centavo because the line stored it that way; '
         || 'the PRICE is not rounded here, because rounding a derived aggregate at '
         || 'every grain makes two correct rollups disagree. Round once, at the edge');
@@ -429,14 +450,19 @@ select chk('on the sale side the same disagreement is rarer, and both are presen
 
 -- ========== 7. REVERSALS, WHICH BEHAVE WELL AND ARE WORTH ASSERTING ==
 
-select chk('⚠️ 23 purchase buckets are WHOLLY NEGATIVE, and every one reports a POSITIVE price',
-           (select count(*) from product_purchases_daily where purchases_qty_base < 0) = 23
+-- ⚠️ UNTIL `0064` THIS READ *23 purchase buckets are WHOLLY NEGATIVE, and every
+-- one reports a POSITIVE price* — a void alone on the day it was recorded. Since
+-- the owner's ruling of 2026-10-19 a void counts on its delivery's day, so those
+-- 23 buckets are gone and their lines sit beside the lines they cancel.
+select chk('⚠️ since 0064 NO purchase bucket is negative, and a cancelled one has NO price rather than a wrong one',
+           (select count(*) from product_purchases_daily where purchases_qty_base < 0) = 0
+       and (select count(*) from product_purchases_daily where purchase_price_net < 0) = 0
        and (select count(*) from product_purchases_daily
-             where purchases_qty_base < 0 and purchase_price_net <= 0) = 0
-       and (select count(*) from product_purchases_daily where purchase_price_net < 0) = 0,
-           'a reversal is a negated document dated when it was RECORDED (0031), so '
-        || 'the bar is negative and the price is not: negative money over negative '
-        || 'quantity is the price it always was');
+             where purchase_line_count = 2 and purchases_qty_base = 0
+               and purchase_price_net is null and purchase_price_last_net > 0) = 23,
+           'a delivery and its void net to zero quantity on one day, so the '
+        || 'effective price is 0 over 0 and the view says NULL — while the last '
+        || 'TYPED price is still the price of the thing being undone');
 
 select chk('and the typed price of a reversed line is the price of the thing being undone',
            (select count(*) from purchase_line where qty_base < 0 and unit_price_net_per_base <= 0) = 0
@@ -496,10 +522,10 @@ set local role authenticated;
 -- ✅ She now reads her own store's purchase view too, on the decision maker's
 -- instruction. ⚠️ **The location count is asserted alongside it**, because that is
 -- the fence that did NOT move and a `> 0` would not notice if it did.
-select chk('⚠️⚠️ a CASHIER reads 1 004 sale prices AND 468 purchase rows, all at her own store (0040)',
+select chk('⚠️⚠️ a CASHIER reads 1 004 sale prices AND 453 purchase rows, all at her own store (0040; 468 until 0064)',
            (select count(*) from product_velocity_daily) = 15099
        and (select count(*) from product_velocity_daily where sale_price_net is not null) = 1004
-       and (select count(*) from product_purchases_daily) = 468
+       and (select count(*) from product_purchases_daily) = 453
        and (select count(distinct location_id) from product_purchases_daily) = 1,
            (select 'velocity rows ' || (select count(*) from product_velocity_daily)
                 || ', priced ' || (select count(*) from product_velocity_daily where sale_price_net is not null)
@@ -525,9 +551,11 @@ select set_config('request.jwt.claims',
               (select id from auth.users where email = 'rosa.gerente@tienda.mx')), true);
 set local role authenticated;
 
-select chk('a MANAGER reads 863 purchase buckets and a price on every one of them',
-           (select count(*) from product_purchases_daily) = 863
-       and (select count(*) from product_purchases_daily where purchase_price_net is null) = 0,
+select chk('a MANAGER reads 848 purchase buckets and a price on every one but her 15 cancelled ones (0064)',
+           (select count(*) from product_purchases_daily) = 848
+       and (select count(*) from product_purchases_daily where purchase_price_net is null) = 15
+       and (select count(*) from product_purchases_daily
+             where purchase_price_net is null and purchases_qty_base <> 0) = 0,
            (select 'purchase buckets ' || (select count(*) from product_purchases_daily)
                 || ', priced ' || (select count(*) from product_purchases_daily
                                     where purchase_price_net is not null)));
@@ -650,8 +678,24 @@ select chk('and each view divides in EXACTLY TWO places, both by nullif() of its
 -- is here from the other direction. Both are stated so the day the seed changes,
 -- a check goes red and somebody reads this paragraph.
 
-select chk('⚠️ PINNED: every purchase variant-day holds exactly ONE line, so min, max, last and the mean coincide',
-           (select count(*) from product_purchases_daily where purchase_line_count <> 1) = 0,
+-- ⚠️ `0064` put each voided delivery line in its delivery's bucket, so 23 buckets
+-- now hold two lines — but a void is the same line negated, at the same typed
+-- price, so the PRICE pick still has only one value to choose from. The gap this
+-- pins is unchanged; its shape is restated.
+select chk('⚠️ PINNED: every purchase variant-day holds ONE typed price — one line, or since 0064 '
+           'one line and its void — so min, max, last and the mean coincide',
+           (select count(*) from product_purchases_daily where purchase_line_count > 2) = 0
+       and (select count(*) from product_purchases_daily
+             where purchase_line_count = 2 and purchases_qty_base <> 0) = 0
+       and (select count(*) from (
+              select pl.workspace_id, pl.location_id, pl.variant_id,
+                     (coalesce(o.occurred_at, p.occurred_at) at time zone l.timezone)::date d
+                from purchase_line pl
+                join purchase p on p.id = pl.purchase_id
+                left join purchase o on o.id = p.reversal_of
+                join location l on l.id = pl.location_id
+               group by 1,2,3,4
+              having count(distinct pl.unit_price_net_per_base) > 1) x) = 0,
            'mutating the purchases-side pick from last to first, max or min turns '
         || 'NOTHING red in this seed. The day a delivery splits a variant across two '
         || 'lines this check fails and section 5''s independent recomputation starts '
@@ -662,19 +706,34 @@ select chk('⚠️ PINNED: every purchase variant-day holds exactly ONE line, so
 select chk('and the SALE side proves the pick, which is what makes that gap survivable',
            (select count(*) from (
               select sl.workspace_id, sl.location_id, sl.variant_id,
-                     (s.occurred_at at time zone l.timezone)::date d
+                     (coalesce(o.occurred_at, s.occurred_at) at time zone l.timezone)::date d
                 from sale_line sl join sale s on s.id=sl.sale_id
+                left join sale o on o.id = s.reversal_of
                 join location l on l.id=sl.location_id
                group by 1,2,3,4 having count(distinct sl.unit_price_net_per_base) > 1) x) = 56);
 
-select chk('⚠️ PINNED: no two sale documents in one bucket share an occurred_at, so the TIEBREAK is untested',
+-- ⚠️ `0064` MADE THE TIEBREAK DECIDE SOMETHING — AND NOTHING YOU CAN SEE. A void
+-- is now ordered at the time of the sale it undoes, so in the 12 buckets where the
+-- seed voids a sale, the sale's line and the void's tie on the first term and
+-- created_at picks the void. Both carry the same typed price, so which line wins
+-- changes no number on any screen: the tiebreak is exercised and still cannot be
+-- FALSIFIED by this seed. Pinned at that shape.
+select chk('⚠️ PINNED: sale lines tie on the counted moment only as a sale and its void (12, one price '
+           'each, since 0064), so the TIEBREAK decides no visible price',
            (select count(*) from (
               select sl.workspace_id, sl.location_id, sl.variant_id,
-                     (s.occurred_at at time zone l.timezone)::date d,
-                     count(*) c, count(distinct s.occurred_at) dt
+                     coalesce(o.occurred_at, s.occurred_at) t,
+                     count(*) c, count(distinct sl.unit_price_net_per_base) dp,
+                     count(*) filter (where s.reversal_of is not null) v
                 from sale_line sl join sale s on s.id=sl.sale_id
-                join location l on l.id=sl.location_id
-               group by 1,2,3,4) x where c > dt) = 0,
+                left join sale o on o.id = s.reversal_of
+               group by 1,2,3,4) x where c > 1 and (dp > 1 or v <> c / 2)) = 0
+       and (select count(*) from (
+              select sl.workspace_id, sl.location_id, sl.variant_id,
+                     coalesce(o.occurred_at, s.occurred_at) t, count(*) c
+                from sale_line sl join sale s on s.id=sl.sale_id
+                left join sale o on o.id = s.reversal_of
+               group by 1,2,3,4) x where c > 1) = 12,
            'a real till writes several sales into one second, and an offline batch '
         || 'replays them together (§2.6). The created_at/id tiebreak is written '
         || 'because of that and NOTHING IN THIS SEED CAN FALSIFY IT — the day one '

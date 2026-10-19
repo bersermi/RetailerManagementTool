@@ -77,7 +77,7 @@ import { whatsappUrl } from '@/auth/support';
 import { qtySent, reviewOf, type Review, type ReviewRow } from '@/cart/cart';
 import { takePhoto } from '@/capture/photo';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
-import { useCart, useCartStore, useExpiries, useReason, useWasteDay } from '@/cart/store';
+import { useCart, useCartStore, useCorrects, useExpiries, useReason, useWasteDay } from '@/cart/store';
 import {
   addDays,
   calendarMonths,
@@ -486,6 +486,9 @@ function Tirar() {
   const reason = wasteReasonOf(chosen);
   const day = useWasteDay();
   const expiries = useExpiries();
+  // ⚠️ `8p`: the write-off this basket re-keys — dropped by the store the moment
+  // she picks another day, which is her answer.
+  const corrects = useCorrects('waste');
   const openShop = useCartStore((state) => state.openShop);
   const openReason = useCartStore((state) => state.openReason);
   const setWasteDay = useCartStore((state) => state.setWasteDay);
@@ -533,6 +536,7 @@ function Tirar() {
           locationId,
           reason,
           expiries,
+          corrects,
         };
 
   // ⚠️ THE EMPTYING ANIMATION — started in an effect, never in the handler that
