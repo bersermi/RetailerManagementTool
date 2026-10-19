@@ -49,13 +49,15 @@
 // ⚠️ WHAT A DAY WITH A VOID DOES, SAID ONCE
 // ----------------------------------------------------------------------------
 // A reversal carries the SAME positive price as the line it cancels (`0032`'s
-// own paragraph). The read keeps only days whose net quantity is positive, so a
-// day that holds nothing but a reversal — a delivery voided two days later — is
-// not a point. ⚠️ **A day with sales AND a late void of an older sale keeps the
-// last line's price**, which may be the voided sale's older price. The view
-// cannot tell us which line was the reversal; `Costos` can because it reads the
-// ledger lines, and that is `R9`-small here: a manager voiding an old sale on a
-// day the shelf price changed.
+// own paragraph). The read keeps only days whose net quantity is positive.
+// ⚠️⚠️ SINCE `0064` (`8p`, the owner's ruling of 2026-10-19: a correction counts on
+// the day of what it corrects) A VOID COUNTS ON ITS DOCUMENT'S DAY, so a delivery
+// cancelled two days later nets ITS OWN day to zero and is not a point at all —
+// it never happened, as far as the chart goes — and no later day holds a stray
+// reversal. A CORRECTED delivery's day keeps the re-keyed price: the view orders a
+// day's lines by the time they count at, and the re-keyed line was made last.
+// ~~A day with sales AND a late void of an older sale keeps the last line's
+// price~~ — the void no longer lands on that day.
 //
 // ----------------------------------------------------------------------------
 // ⚠️ EVERY ROLE, BY RLS
@@ -112,7 +114,7 @@ export const PURCHASE_PRICE_VIEW = 'product_purchases_daily';
 /** What the purchase read asks for — the same alias, so the same shape. */
 export const PURCHASE_PRICE_COLUMNS = 'day,price:purchase_price_last_gross::text';
 
-/** The purchase view has no spine; this drops a day that is only a reversal. */
+/** The purchase view has no spine; this drops the day of a cancelled delivery (`0064`). */
 export const PURCHASE_PRICE_TRADED_COLUMN = 'purchases_qty_base';
 
 /** The column one product is filtered on — the same name on both views. */

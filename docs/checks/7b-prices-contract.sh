@@ -25,10 +25,12 @@
 #
 #   4. ⚠️ **THE QUANTITY FILTER IS WHAT MAKES A LIST OF PRICES.** The sale view is
 #      a spine: a product bought and never sold has a row every day with a NULL
-#      price, and must NOT come back. And a day holding only a REVERSAL — a
-#      delivery voided two days later — nets negative and must not come back
-#      either; `line_count` (Números' filter) would keep it. Both are asserted
-#      unfiltered too, so *filtered out* is not vacuous.
+#      price, and must NOT come back. And a delivery voided two days later —
+#      ⚠️ since `0064` (`8p`) its void counts on the delivery's OWN day, which
+#      nets to zero, so the cancelled delivery is not a point at all and no
+#      reversal-only day exists; `line_count` (Números' filter) would keep the
+#      zero day (two lines). Both are asserted unfiltered too, so *filtered out*
+#      is not vacuous.
 #
 #   5. ⚠️⚠️ **EVERY ROLE READS BOTH SIDES — `0040` AND `0003` REST ON THIS.** A
 #      cashier reads exactly the owner's rows on both views. The purchase side
@@ -219,8 +221,8 @@ print(json.dumps({
 }
 # ⚠️ QUESO carries 16% IVA (claims 1 and 2); HUEVO none and is sold twice at two
 # prices (claim 3) and bought on two days (paging); CREMA is bought and never sold
-# (the spine); LECHE is bought and the delivery voided two days later (the
-# reversal-only day).
+# (the spine); LECHE is bought and the delivery voided two days later (since
+# `0064`, a cancelled delivery's own day, netted to zero).
 QUESO="$(variant 'Queso fresco' g kg 0.1600)"
 HUEVO="$(variant 'Huevo blanco' pza pza 0)"
 CREMA="$(variant 'Crema ácida' g kg 0)"
@@ -377,16 +379,21 @@ L_ALL="$(body "$(api GET "/rest/v1/$PURCHASE_PRICE_VIEW?select=day,purchases_qty
 cat > "$SCRATCH/void.py" <<'PY'
 import json, sys
 kept, whole, today, back = json.loads(sys.argv[1]), json.loads(sys.argv[2]), sys.argv[3], sys.argv[4]
-if [r['day'] for r in whole] != [back, today] or not whole[1]['purchases_qty_base'].startswith('-'):
-    print('the unfiltered view should carry the delivery on %s and a NEGATIVE reversal-only day '
-          'today; it carries %r — so the filtered half would measure nothing' % (back, whole)); raise SystemExit
-if kept != [{'day': back, 'price': '1.0000000000'}]:
-    print('A DAY HOLDING ONLY A REVERSAL CAME BACK AS A PRICE: %r. The delivery was voided today, '
-          'so today nets negative and must not be a point — line_count would have kept it.' % (kept,))
+# ⚠️ `0064`: the void counts on the delivery's day (a correction counts on the day of
+# what it corrects), so the unfiltered view holds ONE row — that day, at zero — and
+# nothing today. Until 0064 it held the delivery and a negative reversal-only today.
+if [r['day'] for r in whole] != [back] or whole[0]['purchases_qty_base'] != '0.000':
+    print('the unfiltered view should carry ONE day, %s, netted to 0.000 by the void '
+          '(0064), and nothing today; it carries %r — so the filtered half would measure '
+          'nothing' % (back, whole)); raise SystemExit
+if kept != []:
+    print('A DAY HOLDING ONLY A REVERSAL AND THE DELIVERY IT CANCELS CAME BACK AS A PRICE: %r. '
+          'The delivery was voided, so its day nets to zero and must not be a point — '
+          'line_count would have kept it.' % (kept,))
     raise SystemExit
 print('ok')
 PY
-verdict "a day holding only a voided delivery is not a price, and the delivery's own day still is" \
+verdict "a cancelled delivery is not a price — its day nets to zero (0064) and nothing lands today" \
   "$SCRATCH/void.py" "$L_BUY" "$L_ALL" "$TODAY" "$BACK_DAY"
 
 # --- 6b. one row at a time reassembles the same list ------------------------
