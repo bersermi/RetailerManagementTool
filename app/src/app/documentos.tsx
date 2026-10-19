@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
@@ -11,9 +12,14 @@ import {
   prefillOf,
   type Correction,
 } from '@/api/corrections';
+import { isoDay } from '@/api/catalog';
 import {
   DOCUMENT_KINDS,
+  byDay,
+  clockOf,
+  dayHeading,
   documentsLine,
+  rowTitle,
   type DocumentKind,
   type DocumentsLineInput,
   type ShopDocument,
@@ -22,7 +28,7 @@ import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
 import { useAuth } from '@/auth/AuthProvider';
 import type { Cart, Scope } from '@/cart/cart';
 import { useCart, useCartStore } from '@/cart/store';
-import { formatLedgerDay } from '@/format/date';
+import { formatMXN } from '@/format/mxn';
 import { correctionAsk } from '@/offline/unsent';
 import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
@@ -30,6 +36,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { Interruptor } from '@/ui/Interruptor';
 import { Separador } from '@/ui/Separador';
@@ -87,9 +94,11 @@ import { Velo } from '@/ui/Velo';
 // `sale`. `useDocuments` is called once per kind and the inactive one's answer
 // stays cached, so the switch is instant after the first look.
 //
-// ⚠️ THE ORDER OF THE TWO IS `DOCUMENT_KINDS`' AND NOT THE JSX'S (`R3`), and
-// purchases are first for the owner's own reason: *"Compras is completely
-// addressable due to the volume and criticality of it."*
+// ⚠️ THE ORDER IS `DOCUMENT_KINDS`' AND NOT THE JSX'S (`R3`). Purchases were
+// first for the owner's reason of September — *"Compras is completely
+// addressable due to the volume and criticality of it"* — and since `8g`
+// (2026-10-19) the order is Inicio's, *Ventas, Compras, Desperdicio*, his
+// option A: the list is by day, one line per document, opened by a tap (`Fila`).
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ WHAT NO CHECK IN THIS REPOSITORY CAN SEE — `R9`, §2.11
@@ -133,6 +142,12 @@ export default function Documentos() {
 
   // ⚠️ WHAT THE CONFIRMATION BOX IS ASKING ABOUT, or `null`. `5h-ii-b`.
   const [asking, setAsking] = useState<Asking | null>(null);
+
+  // ⚠️ `8g` (2026-10-19): THE ONE LINE THAT IS OPEN, or `null`. One at a time,
+  // so the screen is never a wall of open documents again; a second tap closes it.
+  const [openId, setOpenId] = useState<string | null>(null);
+  const toggle = (id: string) => setOpenId((now) => (now === id ? null : id));
+  const tone = KIND_TONE[kind];
 
   // ⚠️⚠️ THE ONE REFUSAL THE UNSENT PATH CAN PRODUCE, AND IT IS LOCAL STATE
   // RATHER THAN A MUTATION'S `error` BECAUSE THERE IS NO MUTATION. Dropping a
@@ -239,11 +254,18 @@ export default function Documentos() {
           paddingBottom: scale.space * 2 + insets.bottom,
         }}
       >
+        {/* ⚠️ `8g`: THE PICKED TAB IN ITS COUNTER'S COLOUR — Inicio's doors:
+            Vender green, Comprar blue, Desperdicio berenjena. */}
         <Interruptor
           options={DOCUMENT_KINDS}
           labels={ES.documents.tab}
           picked={kind}
-          onPick={setKind}
+          onPick={(next) => {
+            setOpenId(null);
+            setKind(next);
+          }}
+          ink={tone.ink}
+          soft={tone.soft}
         />
         {/* ⚠️⚠️ THE UNSENT GROUP IS ABOVE THE WINDOW'S SUBTITLE AND NOT INSIDE IT,
             because `ES.documents.subtitle` names the SEVEN-DAY WINDOW, which
@@ -258,32 +280,40 @@ export default function Documentos() {
             once she scrolls is a look-question and it is `R9`'s** — the owner's
             phone decides, and `5h.5` is where a per-row mark would land. */}
         {unsent.documents.length > 0 ? (
-          <View style={{ gap: scale.rowGap }}>
-            <Text
-              style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}
-            >
-              {ES.documents.unsent}
-            </Text>
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          // ⚠️ `8g`: ONE AMBER CARD — amber is Inicio's colour for something
+          // that waits, never an error's. The lines in it open like any other.
+          <View
+            style={{
+              gap: scale.rowGap,
+              padding: scale.space,
+              borderRadius: scale.space,
+              backgroundColor: PALETTE.atencionSuave,
+            }}
+          >
+            <Rotulo text={`${ES.documents.unsent} · ${unsent.documents.length}`} ink={PALETTE.atencion} />
+            <View style={{ borderRadius: scale.rowGap, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}>
+              {unsent.documents.map((one, i) => (
+                <Fila
+                  key={one.id}
+                  document={one}
+                  first={i === 0}
+                  open={openId === one.id}
+                  onToggle={() => toggle(one.id)}
+                  canCorrect={mayCorrect(one, role, userId)}
+                  onAsk={(document, how) => ask({ document, how, unsent: true })}
+                />
+              ))}
+            </View>
+            <Text style={{ fontSize: scale.smallSize, color: PALETTE.atencion }}>
               {ES.documents.unsentNote}
             </Text>
-            {unsent.documents.map((one) => (
-              <Documento
-                key={one.id}
-                document={one}
-                canCorrect={mayCorrect(one, role, userId)}
-                onAsk={(document, how) => ask({ document, how, unsent: true })}
-              />
-            ))}
-            <Separador />
           </View>
         ) : null}
-        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-          {ES.documents.subtitle}
-        </Text>
         <Cuerpo
           kind={kind}
           documents={shown}
+          openId={openId}
+          onToggle={toggle}
           canCorrect={(document) => mayCorrect(document, role, userId)}
           onAsk={(document, how) => ask({ document, how, unsent: false })}
         />
@@ -378,16 +408,21 @@ function Banda() {
 function Cuerpo({
   kind,
   documents,
+  openId,
+  onToggle,
   canCorrect,
   onAsk,
 }: {
   kind: DocumentKind;
   documents: DocumentsLineInput;
+  openId: string | null;
+  onToggle: (id: string) => void;
   canCorrect: (document: ShopDocument) => boolean;
   onAsk: (document: ShopDocument, how: Correction) => void;
 }) {
   const { scale } = useDensity();
   const line = documentsLine(kind, documents);
+  const today = isoDay(new Date());
 
   if (documents.state === 'unknown') {
     return (
@@ -402,200 +437,229 @@ function Cuerpo({
     );
   }
 
-  if (documents.state === 'nothing') return <Vacio line={line} />;
+  // ⚠️ `8g`: AN EMPTY WEEK SAID PLAINLY, with what will appear here — never a
+  // grey line that reads like something failed. A FAILED read keeps `Vacio`
+  // and its own sentence: *nothing* and *could not ask* are two facts.
+  if (documents.state === 'nothing') {
+    if (documents.failed === null) return <SemanaVacia kind={kind} />;
+    return <Vacio line={line} />;
+  }
 
+  const tone = KIND_TONE[kind];
   return (
-    <View style={{ gap: scale.rowGap }}>
-      {documents.documents.map((one) => (
-        <Documento key={one.id} document={one} canCorrect={canCorrect(one)} onAsk={onAsk} />
+    <View style={{ gap: scale.space }}>
+      {byDay(documents.documents).map((group) => (
+        <View key={group.day} style={{ gap: scale.rowGap }}>
+          {/* ⚠️ `8g`: THE DAY IN INICIO'S SMALL CAPITALS, how many, and what the
+              day's documents that still stand add up to. */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: scale.space, paddingHorizontal: scale.rowGap / 2 }}>
+            <Rotulo text={`${dayHeading(group.day, today)} · ${ES.documents.count[kind](group.documents.length)}`} />
+            {group.grossCentavos === null ? null : (
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: tone.ink }}>
+                {formatMXN(group.grossCentavos)}
+              </Text>
+            )}
+          </View>
+          <View
+            style={{
+              borderRadius: scale.space,
+              borderWidth: 1,
+              borderColor: PALETTE.linea,
+              backgroundColor: PALETTE.superficie,
+              overflow: 'hidden',
+            }}
+          >
+            {group.documents.map((one, i) => (
+              <Fila
+                key={one.id}
+                document={one}
+                first={i === 0}
+                open={openId === one.id}
+                onToggle={() => onToggle(one.id)}
+                canCorrect={canCorrect(one)}
+                onAsk={onAsk}
+              />
+            ))}
+          </View>
+        </View>
       ))}
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+        {ES.documents.subtitle}
+      </Text>
     </View>
   );
 }
 
 /**
- * One document — when, who, how much, and what was in it.
+ * One document as one line — the time, what it was, what it came to — opened
+ * by a tap to its lines and, where she may, *Corregir* and *Eliminar*. `8g`,
+ * the owner's option A of 2026-10-19.
  *
- * ⚠️⚠️ THE ROW IS STILL NOT PRESSABLE AND THE **BUTTONS** ARE — `5h-ii-b`, and
- * it is `5d-iii`'s ruling kept rather than dropped: *a control that looks live
- * and refuses silently is worse than one that is obviously not built.* A
- * whole-card tap would have to mean one of `Corregir` and `Eliminar`, and
- * guessing which is exactly that defect. Two labelled controls say what they do.
+ * ⚠️⚠️ THE LINE IS PRESSABLE AND IT MEANS ONE THING: OPEN. `5h-ii-b` kept the
+ * card unpressable because a whole-card tap would have had to mean *Corregir*
+ * or *Eliminar*; here it means neither — it shows the document, and the two
+ * labelled controls inside are still the only things that write.
  *
- * ⚠️⚠️ AND THEY ARE ABSENT RATHER THAN DISABLED WHERE `mayCorrect` SAYS NO. A
- * greyed button is a promise about a permission she does not have and cannot
- * get by tapping; the row simply reads, which is what it did before this task.
- * ⚠️ **It hides only the case that is CERTAIN** — she is a cashier and the
- * document is somebody else's. A document of her own that is too old still
- * carries both buttons and is refused by the database in words, because the
- * window is the database's to know (`@/api/corrections`).
- *
- * ⚠️ THE LINES ARE ALWAYS OPEN. A collapsed document would hide the row a
- * shopkeeper came here to check — the quantity or the amount that is wrong — and
- * make her tap every delivery to find it. **Whether that is right at scale is a
- * look-question and it is `R9`'s**: the owner's phone decides, and `5h.5` is
- * where a collapse would land.
+ * ⚠️ AND THE CONTROLS ARE STILL ABSENT RATHER THAN DISABLED where `mayCorrect`
+ * says no (`5h-ii-b`'s ruling): a cashier opening somebody else's sale reads it.
  */
-function Documento({
+function Fila({
   document,
+  first,
+  open,
+  onToggle,
   canCorrect,
   onAsk,
 }: {
   document: ShopDocument;
+  first: boolean;
+  open: boolean;
+  onToggle: () => void;
   canCorrect: boolean;
   onAsk: (document: ShopDocument, how: Correction) => void;
 }) {
   const { scale } = useDensity();
+  const { title, subtitle } = rowTitle(document);
+  const tone = KIND_TONE[document.kind];
   return (
-    <View
-      style={{
-        backgroundColor: PALETTE.superficie,
-        borderRadius: scale.rowGap,
-        borderWidth: 1,
-        borderColor: PALETTE.linea,
-        padding: scale.space,
-        gap: scale.rowGap,
-      }}
-    >
-      <View
+    <View style={{ borderTopWidth: first ? 0 : 1, borderTopColor: PALETTE.linea }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        accessibilityLabel={[clockOf(document.at), title, subtitle ?? '', document.amount ?? '']
+          .filter((part) => part !== '')
+          .join('. ')}
+        onPress={onToggle}
         style={{
           flexDirection: 'row',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: scale.space,
+          alignItems: 'center',
+          gap: scale.rowGap,
+          minHeight: scale.rowHeight,
+          paddingVertical: scale.rowGap,
+          paddingHorizontal: scale.space,
         }}
       >
-        <View style={{ flex: 1, gap: scale.rowGap / 2 }}>
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-            {dayWord(document.day)}
+        <Text style={{ width: scale.tapTarget, fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {clockOf(document.at)}
+        </Text>
+        <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+          <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {title}
           </Text>
-          {/* ⚠️ THE COUNTERPARTY IS OMITTED RATHER THAN BLANK ON A SALE: a sale
-              has no supplier, so an empty line under the date would read as a
-              name this phone failed to load. `@/api/documents` answers `null`
-              for both *a sale* and *a provider not yet resolved*, and neither
-              wants a row.
-              ⚠️⚠️ AND ON A WRITE-OFF THIS SLOT HOLDS THE CAUSE — `6a-ii-a`. They
-              are the same question asked of different documents: a delivery's
-              second line is WHO and a write-off's is WHY. They are two fields on
-              `ShopDocument` and one slot here, and they can never both be set.
-              ⚠️ `cause` is `null` on a document whose lines disagree, and THAT is
-              what makes the per-line cause below appear — one rule, not two. */}
-          {(document.counterparty ?? document.cause) === null ? null : (
-            <Text
-              numberOfLines={1}
-              style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}
-            >
-              {document.counterparty ?? document.cause}
+          {subtitle === null ? null : (
+            <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+              {subtitle}
             </Text>
           )}
         </View>
-        {/* ⚠️⚠️ A WRITE-OFF CARRIES NO PESO FIGURE AND THE SLOT IS ABSENT RATHER
-            THAN EMPTY — the area-9 ruling of 2026-09-14, reaching a third
-            screen. (⚠️ The accent is dropped from that word deliberately: R4
-            reads this FILE and not the AST, so an accented character beside an
-            apostrophe in a JSX comment is a Spanish literal to the gate —
-            [[jsx-comments-are-code-to-the-gate]], third instance.)
-            `@/api/documents` answers `null` for *this kind shows no money* and
-            `ES.documents.noFigure` for *this phone could not read it*; drawing
-            the first as a blank `Text` would leave a gap that reads like the
-            second. See `DOCUMENTS_WASTE_HEAD_COLUMNS`. */}
+        {/* ⚠️ A WRITE-OFF CARRIES NO PESO FIGURE (the area-9 ruling of
+            2026-09-14): the slot is absent, not empty. */}
         {document.amount === null ? null : (
           <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
             {document.amount}
           </Text>
         )}
-      </View>
+        <MaterialCommunityIcons
+          name={open ? 'chevron-up' : 'chevron-down'}
+          size={scale.iconSize}
+          color={PALETTE.tintaApagada}
+        />
+      </Pressable>
 
-      <Separador />
-
-      <View style={{ gap: scale.rowGap / 2 }}>
-        {document.lines.map((line) => (
-          <View
-            key={line.id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'baseline',
-              justifyContent: 'space-between',
-              gap: scale.space,
-            }}
-          >
-            <Text
-              numberOfLines={1}
-              style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}
-            >
-              {line.name}
-            </Text>
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {line.quantity}
-            </Text>
-            {/* ⚠️⚠️ THE CAUSE APPEARS ON A LINE ONLY WHEN THE DOCUMENT'S LINES
-                DISAGREE, which `@/api/documents` decides by answering `null` for
-                the document's own `cause`. `6a-i` writes one cause per document,
-                so the ordinary write-off says the word ONCE, up in the header
-                where the supplier goes — and repeating it on every line of a
-                five-line document is noise she has to read past. The mixed
-                document is reachable (the schema allows it, measured) and it is
-                the only one that needs the word twice. */}
-            {document.cause === null && line.reason !== null ? (
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                {line.reason}
-              </Text>
-            ) : null}
-            {line.amount === null ? null : (
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{line.amount}</Text>
-            )}
-          </View>
-        ))}
-      </View>
-
-      {/* ⚠️⚠️ `CORRECTABLE` IS *IS IT BUILT* AND `canCorrect` IS *MAY SHE* — two
-          different reasons a control is absent, and they are two conditions so a
-          reader can tell which one they are looking at. ⚠️ **Every kind is
-          correctable since `6a-ii-b`**, so the first condition is true for all
-          three today and stays because a fourth kind is listable before it is
-          correctable — see that constant. */}
-      {CORRECTABLE[document.kind] && canCorrect ? (
-        <>
+      {open ? (
+        <View
+          style={{
+            gap: scale.rowGap,
+            paddingBottom: scale.space,
+            paddingLeft: scale.space + scale.tapTarget + scale.rowGap,
+            paddingRight: scale.space,
+          }}
+        >
           <Separador />
-          <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
-            <Boton
-              inRow
-              label={ES.documents.correct}
-              tone={PALETTE.accion}
-              onPress={() => onAsk(document, 'corregir')}
-            />
-            <Boton
-              inRow
-              label={ES.documents.remove}
-              tone={PALETTE.error}
-              onPress={() => onAsk(document, 'eliminar')}
-            />
-          </View>
-        </>
+          {document.lines.map((line) => (
+            <View
+              key={line.id}
+              style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: scale.rowGap }}
+            >
+              <Text numberOfLines={1} style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>
+                {line.name}
+              </Text>
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{line.quantity}</Text>
+              {/* ⚠️ THE CAUSE ON A LINE ONLY WHEN THE DOCUMENT'S LINES DISAGREE
+                  (`@/api/documents` answers `null` for the document's own cause). */}
+              {document.cause === null && line.reason !== null ? (
+                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{line.reason}</Text>
+              ) : null}
+              {line.amount === null ? null : (
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{line.amount}</Text>
+              )}
+            </View>
+          ))}
+          {/* ⚠️⚠️ `CORRECTABLE` IS *IS IT BUILT* AND `canCorrect` IS *MAY SHE* —
+              two reasons a control is absent, kept as two conditions. */}
+          {CORRECTABLE[document.kind] && canCorrect ? (
+            <View style={{ flexDirection: 'row', gap: scale.rowGap, marginTop: scale.rowGap / 2 }}>
+              <Boton inRow label={ES.documents.correct} tone={tone.ink} onPress={() => onAsk(document, 'corregir')} />
+              <Boton inRow label={ES.documents.remove} tone={PALETTE.error} onPress={() => onAsk(document, 'eliminar')} />
+            </View>
+          ) : null}
+        </View>
       ) : null}
     </View>
   );
 }
 
-/**
- * The day, in words.
- *
- * ⚠️ `formatLedgerDay` IS THE APP'S ONE ANSWER TO *what is this day called*, and
- * it is handed the DEVICE's own `YYYY-MM-DD` — `@/api/documents`' `dayOf`
- * computed it, for `today.ts`'s reason: the phone is in the shop.
- *
- * ⚠️ THE YEAR IS DROPPED BECAUSE THE WINDOW IS SEVEN DAYS. *25 de septiembre de
- * 2026* on a list that cannot reach last year is furniture, and the one place it
- * would matter — a window that crosses a new year — reads correctly either way.
- *
- * ⚠️ THE RAW LABEL IS THE FALLBACK AND NEVER A RENDERED `NaN` — `formatExpiry`'s
- * rule, and `formatLedgerDay` answers `null` for anything it cannot read.
- */
-function dayWord(day: string): string {
-  const parts = formatLedgerDay(day);
-  if (parts === null) return day;
-  return ES.dates.dayOfMonth(Number(parts.day), parts.month);
+/** ⚠️ `8g`: the week with nothing on this tab, in its counter's colour. */
+function SemanaVacia({ kind }: { kind: DocumentKind }) {
+  const { scale } = useDensity();
+  const tone = KIND_TONE[kind];
+  const side = scale.tapTarget * 1.7;
+  const copy = ES.documents.emptyWeek[kind];
+  return (
+    <View style={{ alignItems: 'center', gap: scale.space, paddingTop: scale.space * 2, paddingHorizontal: scale.space }}>
+      <View
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        style={{ width: side, height: side, borderRadius: side / 2, backgroundColor: tone.soft, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <MaterialCommunityIcons name={KIND_ICON[kind]} size={scale.iconSize * 1.6} color={tone.ink} />
+      </View>
+      <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta, textAlign: 'center' }}>{copy.title}</Text>
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>{copy.hint}</Text>
+    </View>
+  );
 }
+
+/** Inicio's small capitals: a group's name. */
+function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
+  const { scale } = useDensity();
+  return (
+    <Text
+      style={{
+        fontSize: scale.smallSize,
+        fontWeight: '700',
+        color: ink,
+        textTransform: 'uppercase',
+        letterSpacing: scale.rowGap / 8,
+      }}
+    >
+      {text}
+    </Text>
+  );
+}
+
+/** ⚠️ `8g`: each kind in its counter's colour, as Inicio's three doors are. */
+const KIND_TONE: Readonly<Record<DocumentKind, { readonly ink: string; readonly soft: string }>> = {
+  sale: { ink: PALETTE.accion, soft: PALETTE.accionSuave },
+  purchase: { ink: PALETTE.compra, soft: PALETTE.compraSuave },
+  waste: { ink: PALETTE.desperdicio, soft: PALETTE.desperdicioSuave },
+};
+
+const KIND_ICON: Readonly<Record<DocumentKind, 'cash-register' | 'truck-delivery-outline' | 'delete-outline'>> = {
+  sale: 'cash-register',
+  purchase: 'truck-delivery-outline',
+  waste: 'delete-outline',
+};
 
 /**
  * The question, the wait and the refusal — one box, three states.
@@ -678,16 +742,16 @@ function Confirmacion({
                   `ES.documents.correctBusy`. An `Eliminar` touches no cart. */}
               {correcting && busy ? <Frase text={ES.documents.correctBusy} /> : null}
               <View style={{ gap: scale.rowGap }}>
+                {/* ⚠️ `8g`: THE OWNER'S BUTTONS RULING OF 2026-10-16 (option 2),
+                    as the emptying box draws it: the answer solid — red when it
+                    destroys — and the way back a quiet white button. */}
                 <Boton
                   label={correcting ? ES.documents.correctConfirm : ES.documents.removeConfirm}
                   tone={correcting ? PALETTE.accion : PALETTE.error}
                   onPress={onConfirm}
+                  lleno
                 />
-                <Boton
-                  label={ES.documents.cancel}
-                  tone={PALETTE.tintaApagada}
-                  onPress={onCancel}
-                />
+                <BotonLleno label={ES.documents.cancel} onPress={onCancel} variante="discreto" />
               </View>
             </>
           )}

@@ -224,8 +224,8 @@ function middayOf(day: string): string {
 
 // ----------------------------------------------------------------------------
 describe('the contract is written once, and two of the three kinds are the same shape', () => {
-  it('names all three kinds, purchases first and waste last', () => {
-    expect(DOCUMENT_KINDS).toEqual(['purchase', 'sale', 'waste']);
+  it("names all three kinds in Inicio's order — sales first, waste last (the owner, 2026-10-19)", () => {
+    expect(DOCUMENT_KINDS).toEqual(['sale', 'purchase', 'waste']);
   });
 
   it('gives every kind a table and a line table', () => {

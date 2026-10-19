@@ -40,7 +40,7 @@ import { describe, expect, it } from 'vitest';
 
 import { mayCorrect, prefillOf } from '@/api/corrections';
 import type { CatalogEntry } from '@/api/catalog';
-import { DOCUMENT_KINDS, type ShopDocument } from '@/api/documents';
+import { DOCUMENT_KINDS, type DocumentKind, type ShopDocument } from '@/api/documents';
 import { DROPPABLE_STATE, WRITE_KINDS, type OutboxState, type QueuedWrite, type WriteKind } from '@/api/outbox';
 import type { Provider } from '@/api/providers';
 import { NO_UNIT_FACTORS, type UnitFactors } from '@/offline/deadLetters';
@@ -186,7 +186,9 @@ function wasteWrite(over: Partial<QueuedWrite> = {}): QueuedWrite {
   };
 }
 
-function shown(queue: readonly QueuedWrite[], kind = DOCUMENT_KINDS[0], landed: readonly ShopDocument[] = []) {
+// ⚠️ PURCHASES BY DEFAULT, BY NAME: these cases were written when purchases were
+// the first tab, and `8g` moved sales first (2026-10-19) — the cases did not move.
+function shown(queue: readonly QueuedWrite[], kind: DocumentKind = 'purchase', landed: readonly ShopDocument[] = []) {
   return unsentDocuments({
     queue,
     kind,
