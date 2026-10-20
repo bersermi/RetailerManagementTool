@@ -229,7 +229,11 @@ export default function Documentos() {
       // ⚠️ `8p`: an unsent note was never in the ledger, so it corrects nothing
       // there — `unsentPrefillOf`.
       load(unsentPrefillOf(target.document));
-      router.push(CORRECTION_ROUTE[target.document.kind]);
+      // ⚠️ `8g`'s review (2026-10-20): `dismissTo` AND NOT `push`, here and below —
+      // a push stacked a second Inicio/Vender/Comprar/Desperdicio over this list,
+      // and back from the counter went to that copy's Inicio. This returns to the
+      // tabs already open, on the counter's tab.
+      router.dismissTo(CORRECTION_ROUTE[target.document.kind]);
       return;
     }
 
@@ -244,7 +248,7 @@ export default function Documentos() {
     // ⚠️ THE CART IS LOADED ONLY AFTER THE VOID SUCCEEDED — `useCorrectDocument`'s
     // ordering, and the reason a correction cannot become a duplicate.
     load(done.prefill);
-    router.push(CORRECTION_ROUTE[target.document.kind]);
+    router.dismissTo(CORRECTION_ROUTE[target.document.kind]);
   }
 
   return (

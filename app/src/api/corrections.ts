@@ -142,7 +142,7 @@ import type { Role } from '@/api/members';
 import { memoryKey } from '@/api/providers';
 import { TODAY_KEY } from '@/api/today';
 import { wasteDayOf } from '@/api/waste';
-import type { CartLine, Loaded, Quotes, Scope } from '@/cart/cart';
+import type { CartLine, Corrects, Loaded, Quotes, Scope } from '@/cart/cart';
 import { ES } from '@/strings';
 
 /**
@@ -392,7 +392,11 @@ export interface Prefill extends Loaded {
  * already answered (`wasteDay`), so *¿Cuándo lo tiraste?* shows the day it will
  * count on. `today` is a parameter so the suite can say which day it is.
  */
-export function prefillOf(document: ShopDocument, today: string = isoDay(new Date())): Prefill {
+export function prefillOf(
+  document: ShopDocument,
+  today: string = isoDay(new Date()),
+  pricesIncludeTax: boolean = true,
+): Prefill {
   const totals = new Map<string, number>();
   const quotes: Record<string, string> = {};
   let dropped = 0;
@@ -403,10 +407,19 @@ export function prefillOf(document: ShopDocument, today: string = isoDay(new Dat
       continue;
     }
     totals.set(line.variantId, (totals.get(line.variantId) ?? 0) + line.base);
-    // ⚠️ THE BUY SIDE ONLY — the header's paragraph carries the argument, and
-    // `quoteFor` is what fills a sale's price from the catalog instead.
+    // ⚠️ THE BUY SIDE keeps the invoice's net, the header's argument.
     if (document.kind === 'purchase' && line.perBase !== null) {
       quotes[line.variantId] = line.perBase;
+    }
+    // ⚠️⚠️ AND SINCE `8g` A SALE KEEPS THE PRICE IT WAS RUNG UP AT — the owner's
+    // ruling of 2026-10-20, *"Original prices"*: a correction fixes a mistake,
+    // it does not reprice. Measured before it: a $45 sale came back as $26 at
+    // today's shelf. Gross where the shop keys prices with IVA, net where not —
+    // what `quoted` reads a typed sale price as. ⚠️ A WRITE-OFF has no money a
+    // cashier may read (`0041`), so it is valued at today's price as before.
+    if (document.kind === 'sale') {
+      const typed = pricesIncludeTax ? line.grossPerBase : line.perBase;
+      if (typed !== null) quotes[line.variantId] = typed;
     }
   }
 
@@ -421,11 +434,30 @@ export function prefillOf(document: ShopDocument, today: string = isoDay(new Dat
     // ⚠️ THE DOCUMENT'S OWN CAUSE, AND `null` WHENEVER IT HAS NO SINGLE ONE —
     // see the paragraph in this function's doc comment.
     reason: document.causeValue,
-    corrects: { id: document.id, at: document.at },
+    corrects: { id: document.id, at: document.at, amount: document.amount },
     wasteDay: wasteDayOf(document.day, today),
     dropped,
   };
 }
+
+/**
+ * The counter's strip while it holds a correction (`8g`, 2026-10-20): *Corrigiendo
+ * la venta de ayer, 20:41 · $45*. ⚠️ THE DAY AND THE TIME ARE THE PHONE'S — the
+ * shop's (`today.ts`) — and `today` is a parameter so the suite can say which
+ * day it is.
+ */
+export function correctingLine(kind: DocumentKind, corrects: Corrects, today: string = isoDay(new Date())): string {
+  const at = new Date(corrects.at);
+  if (Number.isNaN(at.getTime())) return ES.correcting.bare;
+  const day = isoDay(at);
+  const ago = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${day}T00:00:00Z`)) / 86_400_000);
+  const month = ES.dates.months[at.getMonth()] ?? '';
+  const time = `${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}`;
+  return ES.correcting.line(kind, ES.correcting.day(kind, ago, at.getDate(), month), time, corrects.amount ?? null);
+}
+
+/** The kind of document a cart scope holds. */
+export const KIND_OF_SCOPE: Readonly<Record<Scope, DocumentKind>> = { sell: 'sale', buy: 'purchase', waste: 'waste' };
 
 /**
  * ⚠️ `8p` — A NOTE THAT NEVER REACHED THE LEDGER CORRECTS NOTHING THERE. An

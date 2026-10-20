@@ -2397,6 +2397,9 @@ export function useCorrectDocument(): {
   readonly forget: () => void;
 } {
   const queries = useQueryClient();
+  // ⚠️ `8g`: whether a typed sale price includes IVA, so a corrected sale comes
+  // back at its own price in the shop's own terms (`prefillOf`).
+  const workspace = useWorkspace();
   const mutation = useMutation({
     mutationFn: async ({
       document,
@@ -2409,7 +2412,9 @@ export function useCorrectDocument(): {
       await Promise.all(
         staleAfterVoid(document).map((queryKey) => queries.invalidateQueries({ queryKey })),
       );
-      return { prefill: how === 'corregir' ? prefillOf(document) : null };
+      return {
+        prefill: how === 'corregir' ? prefillOf(document, undefined, workspace?.pricesIncludeTax ?? true) : null,
+      };
     },
   });
 

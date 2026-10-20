@@ -34,11 +34,13 @@ import {
 } from '@/api/catalogWrite';
 import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
 import { newWriteId } from '@/lib/ids';
+import { useAskBeforeLeaving } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { bannerSequence } from '@/theme/pulse';
+import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CampoFoto } from '@/ui/CampoFoto';
 
@@ -143,6 +145,13 @@ export default function NuevoProducto() {
   // ⚠️ `8o`: THE PHOTO IS OPTIONAL AND GOES FIRST — the owner's canvas. It is
   // named once, when it is taken (`fileId`), so a retry uploads to the same path.
   const [taken, setTaken] = useState<{ readonly photo: ProductPhoto; readonly fileId: string } | null>(null);
+  // ⚠️ `8g`'s review (2026-10-20): leaving with something typed asks first —
+  // *¿Salir sin guardar?* — by *Volver*, Android's back or the iPhone's swipe.
+  // The name carried in from the search is not *typed*; the create leaves with a
+  // `dismissTo`, which the guard lets through.
+  const leave = useAskBeforeLeaving(
+    !busy && (name !== (nombre ?? '') || pricePesos !== '' || unitCode !== '' || taken !== null),
+  );
   const [photoNote, setPhotoNote] = useState<string | null>(null);
   // ⚠️ THE PRODUCT IS MADE AND ONLY ITS PHOTO FAILED: the form must not create
   // it a second time, so the button becomes the way to the list.
@@ -494,6 +503,15 @@ export default function NuevoProducto() {
           the bar disappearing while the catalog read is out, which is the one moment
           the price box cannot be reached anyway. */}
       <TecladoListo />
+      <Pregunta
+        shown={leave.asking}
+        title={ES.leave.unsaved.title}
+        body={ES.leave.unsaved.body}
+        keep={ES.leave.unsaved.keep}
+        go={ES.leave.unsaved.go}
+        onKeep={leave.keep}
+        onGo={leave.go}
+      />
     </View>
   );
 }

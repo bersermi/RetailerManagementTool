@@ -410,6 +410,9 @@ function lineOf(
       ? reasonLabel(fields[WASTE_REASON_KEY])
       : null,
     perBase: write.kind === 'purchase' ? nonEmpty(fields[PRICE_KEY.purchase]) : null,
+    // ⚠️ `8g`: a queued sale carries the price it was rung up at, as typed —
+    // what `prefillOf` hands back so a corrected note keeps it.
+    grossPerBase: write.kind === 'sale' ? nonEmpty(fields[PRICE_KEY.sale]) : null,
   };
 }
 

@@ -30,7 +30,9 @@ import { imagePatch } from '@/api/photos';
 import { aislesFor } from '@/api/productPage';
 import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
 import { newWriteId } from '@/lib/ids';
+import { useAskBeforeLeaving } from '@/navigation/salida';
 import { ES } from '@/strings';
+import { Pregunta } from '@/ui/Pregunta';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CampoFoto } from '@/ui/CampoFoto';
@@ -176,6 +178,12 @@ export default function EditarProducto() {
   // canvas's *Tomar otra foto* and *Quitar foto*. Nothing goes up until Guardar.
   const [taken, setTaken] = useState<{ readonly photo: ProductPhoto; readonly fileId: string } | null>(null);
   const [removed, setRemoved] = useState(false);
+  // ⚠️ `8g`'s review (2026-10-20): leaving with something changed asks first —
+  // *¿Salir sin guardar?* — by *Volver*, Android's back or the iPhone's swipe.
+  // A save that leaves calls `pass()` (`@/navigation/salida`).
+  const leave = useAskBeforeLeaving(
+    !saving && (typedName !== null || aisle !== null || taken !== null || removed),
+  );
   const [photoNote, setPhotoNote] = useState<string | null>(null);
   const photos = useProductPhotoSave();
 
@@ -242,6 +250,7 @@ export default function EditarProducto() {
     // tapped Guardar* is a legitimate way to close this screen, not an error.
     if (!editTouches(plan) && move === null && taken === null && !unphoto) {
       Keyboard.dismiss();
+      leave.pass();
       router.back();
       return;
     }
@@ -295,6 +304,7 @@ export default function EditarProducto() {
     // looking at, one screen back, with its new name and its new price on it.
     // ⚠️ `R9`: whether that is confirmation enough, or wants the blink `Agregar`
     // got, is a question for the owner's phone and is in this task's row.
+    leave.pass();
     router.back();
   }
 
@@ -332,6 +342,7 @@ export default function EditarProducto() {
     // `is_active` false, so the empty row he was looking at IS the confirmation.
     // That is `proveedor/[id]`'s argument and the same one an edit makes one
     // function up.
+    leave.pass();
     router.back();
   }
 
@@ -522,6 +533,15 @@ export default function EditarProducto() {
         onCancel={() => setAsking(false)}
       />
 
+      <Pregunta
+        shown={leave.asking}
+        title={ES.leave.unsaved.title}
+        body={ES.leave.unsaved.body}
+        keep={ES.leave.unsaved.keep}
+        go={ES.leave.unsaved.go}
+        onKeep={leave.keep}
+        onGo={leave.go}
+      />
     </View>
   );
 }

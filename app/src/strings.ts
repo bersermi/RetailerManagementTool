@@ -1072,6 +1072,17 @@ export const ES = {
       emptyConfirm: 'Sí, vaciar',
       emptyCancel: 'Cancelar',
       /**
+       * ⚠️ `8g` (2026-10-20), THE OWNER'S WORDING: emptying a CORRECTION is not
+       * emptying a cart — the original was voided before it was handed back, so
+       * an emptied correction is a document gone for good. The box says so.
+       */
+      correctionAsk: '¿Vaciar la corrección?',
+      correctionGone: (what: string) => `${what} ya se borró. Si vacías el carrito no se vuelve a registrar.`,
+      correctionConfirm: 'Vaciar',
+      correctionKeep: 'Seguir corrigiendo',
+      /** Which document the box is about: *Esta venta*. */
+      correctionWhat: { sale: 'Esta venta', purchase: 'Esta compra', waste: 'Este desperdicio' },
+      /**
        * ⚠️ THE WORD THE OWNER'S CONFIRMATION ANIMATION CARRIES — *"another one
        * if we empty the carrito"* (2026-09-21). The motion is `transform` and
        * `opacity` only (§2.11); the WORD is here because motion alone is a
@@ -1638,6 +1649,48 @@ export const ES = {
    * the person who may need to ring a supplier. `errors.notAllowed` is what a
    * manager demoted mid-shift sees on a form she had already opened.
    */
+  /**
+   * ⚠️ `8g` (2026-10-20) — THE TWO QUESTIONS ASKED BEFORE WORK IS THROWN AWAY,
+   * the owner's wording (*"wording is fine"*). Asked only when something was
+   * typed; with nothing typed the screen leaves without a word.
+   */
+  leave: {
+    request: {
+      title: '¿Salir sin enviar la solicitud?',
+      body: 'Se va a borrar lo que llevas capturado.',
+      keep: 'Seguir aquí',
+      go: 'Salir y borrar',
+    },
+    unsaved: {
+      title: '¿Salir sin guardar?',
+      body: 'Se van a perder los cambios.',
+      keep: 'Seguir editando',
+      go: 'Salir sin guardar',
+    },
+  },
+
+  /**
+   * ⚠️ `8g` — THE STRIP A COUNTER SHOWS WHILE IT HOLDS A CORRECTION, so a cart
+   * that came back from *Corregir* is never mistaken for a new one: *Corrigiendo
+   * la venta de ayer, 20:41 · $45*.
+   */
+  correcting: {
+    line: (kind: 'sale' | 'purchase' | 'waste', day: string, time: string, amount: string | null) => {
+      const what =
+        kind === 'sale' ? `la venta ${day}` : kind === 'purchase' ? `la compra ${day}` : `lo que se tiró ${day}`;
+      return `Corrigiendo ${what}, ${time}${amount === null ? '' : ` · ${amount}`}`;
+    },
+    /** *de hoy*, *de ayer*, *del 14 de octubre* — or, for a write-off, *hoy*, *ayer*, *el 14 de octubre*. */
+    day: (kind: 'sale' | 'purchase' | 'waste', ago: number, date: number, month: string) => {
+      const bare = ago === 0 ? 'hoy' : ago === 1 ? 'ayer' : `el ${date} de ${month}`;
+      if (kind === 'waste') return bare;
+      return ago === 0 ? 'de hoy' : ago === 1 ? 'de ayer' : `del ${date} de ${month}`;
+    },
+    cancel: 'Cancelar corrección',
+    /** When the original's time could not be read — still a correction, said plainly. */
+    bare: 'Corrigiendo una nota',
+  },
+
   providers: {
     title: 'Proveedores',
     /** ⚠️ *Volver* and not *Cerrar*: a pushed screen, `ES.catalog.back`'s word

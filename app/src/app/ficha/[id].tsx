@@ -189,7 +189,10 @@ export default function Ficha() {
               <Rotulo text={ES.products.page.moreOf(entry.familyName)} ink={PALETTE.tintaApagada} />
               <Pressable
                 accessibilityRole="button"
-                onPress={() => router.navigate({ pathname: '/productos', params: { pasillo: entry.familyId } })}
+                // ⚠️ `8g`'s review (2026-10-20): BACK TO THE PRODUCTOS ALREADY OPEN, on
+                // this aisle. `navigate` pushed a second Productos on top, and
+                // *Volver* from it returned to this page instead of the list.
+                onPress={() => router.dismissTo({ pathname: '/productos', params: { pasillo: entry.familyId } })}
                 style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
               >
                 <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.accion }}>
@@ -344,7 +347,11 @@ function Vecino({ entry }: { entry: CatalogEntry }) {
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={[entry.name, entry.price].filter((part) => part !== '').join('. ')}
-      onPress={() => router.push({ pathname: '/ficha/[id]', params: { id: entry.id } })}
+      // ⚠️ `8g`'s review (2026-10-20): A SIBLING REPLACES THIS PAGE. Pushed, three
+      // sizes took four *Volver* to reach Productos, and *‹ Refrescos* went to the
+      // previous size instead of the aisle. Now one *Volver* goes back to where
+      // this page was opened from.
+      onPress={() => router.replace({ pathname: '/ficha/[id]', params: { id: entry.id } })}
       style={{ width: side, borderRadius: scale.space, borderWidth: 1, borderColor: PALETTE.linea, backgroundColor: PALETTE.superficie, overflow: 'hidden' }}
     >
       <View style={{ height: side * 0.7, alignItems: 'center', justifyContent: 'center', backgroundColor: PALETTE.accionSuave }}>

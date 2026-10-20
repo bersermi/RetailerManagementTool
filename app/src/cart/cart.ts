@@ -595,6 +595,12 @@ export interface Loaded {
 export interface Corrects {
   readonly id: string;
   readonly at: string;
+  /**
+   * ⚠️ `8g` (2026-10-20): what the corrected document came to, as it was drawn
+   * (*$45*), for the counter's *Corrigiendo …* strip. Display only, never sent;
+   * absent on a cart persisted before it existed, and the strip then omits it.
+   */
+  readonly amount?: string | null;
 }
 
 export function quoteFor(entry: CatalogEntry, kind: Kind, quotes: Quotes): string | null {

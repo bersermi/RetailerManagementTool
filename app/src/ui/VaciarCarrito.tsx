@@ -36,6 +36,7 @@ export function VaciarCarrito({
   emptied,
   bloom,
   count,
+  correcting = null,
   onConfirm,
   onCancel,
 }: {
@@ -44,6 +45,12 @@ export function VaciarCarrito({
   bloom: Animated.Value;
   /** How many lines *Sí, vaciar* takes. */
   count: number;
+  /**
+   * ⚠️ `8g` (2026-10-20): when the cart is a CORRECTION, which document it is
+   * (*Esta venta*) — the box then says the original is already gone and asks in
+   * the owner's words (*¿Vaciar la corrección?*). `null` for an ordinary cart.
+   */
+  correcting?: string | null;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -83,15 +90,28 @@ export function VaciarCarrito({
             </View>
           ) : (
             <>
-              <Frase text={ES.counter.cart.emptyAsk} />
-              {count > 0 ? (
+              <Frase text={correcting === null ? ES.counter.cart.emptyAsk : ES.counter.cart.correctionAsk} />
+              {correcting !== null ? (
+                <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+                  {ES.counter.cart.correctionGone(correcting)}
+                </Text>
+              ) : count > 0 ? (
                 <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
                   {ES.counter.cart.emptyCount(count)}
                 </Text>
               ) : null}
               <View style={{ gap: scale.rowGap }}>
-                <Boton label={ES.counter.cart.emptyConfirm} tone={PALETTE.error} onPress={onConfirm} lleno />
-                <BotonLleno label={ES.counter.cart.emptyCancel} onPress={onCancel} variante="discreto" />
+                <Boton
+                  label={correcting === null ? ES.counter.cart.emptyConfirm : ES.counter.cart.correctionConfirm}
+                  tone={PALETTE.error}
+                  onPress={onConfirm}
+                  lleno
+                />
+                <BotonLleno
+                  label={correcting === null ? ES.counter.cart.emptyCancel : ES.counter.cart.correctionKeep}
+                  onPress={onCancel}
+                  variante="discreto"
+                />
               </View>
             </>
           )}

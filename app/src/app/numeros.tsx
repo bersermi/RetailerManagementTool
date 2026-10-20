@@ -3,7 +3,6 @@ import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  BackHandler,
   Pressable,
   ScrollView,
   Text,
@@ -61,6 +60,7 @@ import {
   type ReportRow,
 } from '@/api/sales';
 import { reasonLabel } from '@/api/waste';
+import { useBackStaysHere } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -129,16 +129,12 @@ export default function Numeros() {
   const [grouping, setGrouping] = useState<Grouping>('producto');
   const [picked, setPicked] = useState<string | null>(null);
 
-  // ⚠️ ANDROID'S BACK BUTTON LEAVES THE SALES PAGE FOR THE CENTRE, as the band's
-  // *Volver* does — Ajustes' arrangement for its pages.
-  useEffect(() => {
-    if (pagina === 'centro') return undefined;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setPagina('centro');
-      return true;
-    });
-    return () => sub.remove();
-  }, [pagina]);
+  // ⚠️ ANDROID'S BACK BUTTON (AND THE iPHONE'S SWIPE) LEAVE THE SALES PAGE FOR
+  // THE CENTRE, as the band's *Volver* does. ⚠️⚠️ `usePreventRemove` AND NOT A
+  // `BackHandler` since `8g`'s review (2026-10-20): a handler stayed armed while
+  // *Precios* sat on top, so back on *Precios* did nothing visible — it reset
+  // this page underneath. This only intercepts THIS screen being closed.
+  useBackStaysHere(pagina === 'ventas', () => setPagina('centro'));
 
   function openSales(): void {
     setPeriod('mes');

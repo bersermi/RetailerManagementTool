@@ -37,6 +37,7 @@ import {
   type ProviderDraft,
   type ProviderIssue,
 } from '@/api/providerDirectory';
+import { useBackStaysHere } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -45,6 +46,7 @@ import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { TecladoListo } from '@/ui/TecladoListo';
+import { Pregunta } from '@/ui/Pregunta';
 import { Velo } from '@/ui/Velo';
 
 // ============================================================================
@@ -131,6 +133,20 @@ export default function Proveedor() {
   // brings — and the form is behind *Editar*, the owner's *"make Editar more
   // accesible"*: one tap from the top of the page, beside *Llamar*.
   const [editing, setEditing] = useState(false);
+  // ⚠️ `8g`'s review (2026-10-20): back in *Editar* — Android's button, the
+  // iPhone's swipe or *Cancelar* — returns to her page, and asks first when
+  // something was typed. It used to close the supplier and drop the typing.
+  const [leaving, setLeaving] = useState(false);
+  const backToPage = () => {
+    Keyboard.dismiss();
+    setTyped(null);
+    setIssue(null);
+    setFailure(null);
+    setLeaving(false);
+    setEditing(false);
+  };
+  const askOrBack = () => (typed !== null ? setLeaving(true) : backToPage());
+  useBackStaysHere(editing, askOrBack);
   const { heads, reversals, today } = useSupplierHeads();
   const { lines } = useSupplierLines(id ?? null);
   const { entries } = useCatalog();
@@ -198,12 +214,6 @@ export default function Proveedor() {
     // mode of it, not a screen of its own. `useEditProvider` invalidated the read.
     setTyped(null);
     setEditing(false);
-    return;
-    // ⚠️ BACK TO THE DIRECTORY, WHERE THE NEW NAME IS ON THE ROW SHE TAPPED.
-    // `useEditProvider` invalidated `PROVIDERS_KEY`, so it is the new name and not
-    // a five-minute-stale one. ⚠️ `R9`: whether that is confirmation enough or
-    // wants the blink a CREATE gets is a question for the owner's phone.
-    router.back();
   }
 
   async function retire() {
@@ -220,10 +230,12 @@ export default function Proveedor() {
     setSaving(false);
     setAsking(false);
     Keyboard.dismiss();
-    // ⚠️ THE SUPPLIER IS GONE FROM THE LIST THIS POPS BACK TO, because
+    // ⚠️ THE SUPPLIER IS GONE FROM THE LIST THIS RETURNS TO, because
     // `providersFrom` drops `is_active` false — which is the confirmation, and it is
-    // the same one retiring a product gives.
-    router.back();
+    // the same one retiring a product gives. ⚠️ `dismissTo` AND NOT `back()`
+    // since `8g`'s review: *Quitar* is pressed inside *Editar*, where a back is
+    // held to return to her page (`useBackStaysHere`); a `POP_TO` passes.
+    router.dismissTo('/proveedores');
   }
 
   return (
@@ -232,18 +244,7 @@ export default function Proveedor() {
         title={editing ? ES.providers.edit.title : (provider?.name ?? '')}
         subtitle={editing ? (provider?.name ?? '') : ''}
         back={editing ? ES.providers.edit.cancel : ES.providers.back}
-        onBack={() => {
-          if (!editing) {
-            router.back();
-            return;
-          }
-          // ⚠️ *Cancelar* throws the typing away and returns to her page.
-          Keyboard.dismiss();
-          setTyped(null);
-          setIssue(null);
-          setFailure(null);
-          setEditing(false);
-        }}
+        onBack={editing ? askOrBack : () => router.back()}
       />
 
       <ScrollView
@@ -387,6 +388,16 @@ export default function Proveedor() {
           </>
         )}
       </ScrollView>
+
+      <Pregunta
+        shown={leaving}
+        title={ES.leave.unsaved.title}
+        body={ES.leave.unsaved.body}
+        keep={ES.leave.unsaved.keep}
+        go={ES.leave.unsaved.go}
+        onKeep={() => setLeaving(false)}
+        onGo={backToPage}
+      />
 
       <Confirmacion
         asking={asking}
