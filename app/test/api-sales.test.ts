@@ -173,19 +173,19 @@ describe('the calendar — 2026-09-28 is a Monday', () => {
 describe('the rows, parsed — and the states that replace them', () => {
   it('withholds everything while the read is out, and never says "no sales"', () => {
     expect(salesFrom(undefined, BASES).state).toBe('unknown');
-    expect(salesLine('unknown', null)).toBe('');
-    expect(salesLine('unknown', 'offline')).toBe(ES.api.errors.offline);
+    expect(salesLine('unknown', null, true)).toBe('');
+    expect(salesLine('unknown', 'offline', true)).toBe(ES.api.errors.offline);
   });
 
   it('says there is nothing only when the read came back empty', () => {
     expect(salesFrom([], BASES).state).toBe('nothing');
-    expect(salesLine('nothing', null)).toBe(ES.numbers.nothing);
+    expect(salesLine('nothing', null, true)).toBe(ES.numbers.nothing);
   });
 
   it('withholds the whole report when one figure does not parse', () => {
     const rows = [row('2026-09-28', 'a', '1000.000', '35.00'), row('2026-09-28', 'b', '2', '1.234')];
     expect(salesFrom(rows, BASES).state).toBe('unreadable');
-    expect(salesLine('unreadable', null)).toBe(ES.api.errors.unknown);
+    expect(salesLine('unreadable', null, true)).toBe(ES.api.errors.unknown);
   });
 
   it('counts in integer centavos and scale-3 base units', () => {

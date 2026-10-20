@@ -2017,11 +2017,14 @@ export function useMagnitude(): Typicals {
  * `standing` needs it to leave the voided document out.
  * ⚠️ NOT PERSISTED and fresh for a minute: a month is looked at with a signal,
  * and `Lo último` is where the offline record lives.
+ * ⚠️ EACH READ REPORTS ITS OWN FAILURE (`8g`, 2026-10-20, round 3): one failure
+ * for both put *Sin dato* over a block whose read had answered, or was still out.
  */
 export function useMonthReport(month: string): {
   readonly purchases: MonthPurchases | null;
   readonly waste: MonthWaste | null;
-  readonly failed: ApiMessageKey | null;
+  readonly purchasesFailed: ApiMessageKey | null;
+  readonly wasteFailed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
   const enabled = ready && session !== null;
@@ -2054,11 +2057,11 @@ export function useMonthReport(month: string): {
     return name === null || name === '' ? name : name.charAt(0).toUpperCase() + name.slice(1);
   };
   const baseOf = (id: string): string | null => entries.find((e) => e.id === id)?.baseUnit ?? null;
-  const error = bought.error ?? thrown.error;
   return {
     purchases: bought.data ? monthPurchases(bought.data.rows, bought.data.reversals, nameOf) : null,
     waste: thrown.data ? monthWaste(thrown.data.rows, thrown.data.reversals, baseOf) : null,
-    failed: error ? apiErrorKey(error) : null,
+    purchasesFailed: bought.error ? apiErrorKey(bought.error) : null,
+    wasteFailed: thrown.error ? apiErrorKey(thrown.error) : null,
   };
 }
 
@@ -2298,6 +2301,13 @@ export function useMonthExport(): {
           queryKey: exportKey(month),
           queryFn: () => monthRows(month),
           staleTime: 60_000,
+          // ⚠️⚠️ `always`, `8g`, 2026-10-20 (the offline report's round 3): since
+          // `QueryProvider` tells the library the signal, a `fetchQuery` offline
+          // is PAUSED — the button sat on *Preparando…* until the signal came back
+          // and then opened the share sheet by itself, minutes later. This is a
+          // tap, not a read on screen, so it is sent, fails, and says *Sin
+          // conexión* as it did before the signal was wired — the mutations' rule.
+          networkMode: 'always',
         });
         return { ...exportFrom(rows), failed: null };
       } catch (error) {
