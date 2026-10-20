@@ -43,6 +43,8 @@ import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
 import { Hecho } from '@/ui/Hecho';
+import { FIRST_SALE_KEY, firstTime } from '@/offline/ensenar';
+import { deviceStore } from '@/lib/store';
 import { HojaCarrito } from '@/ui/HojaCarrito';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { Retrato } from '@/ui/Retrato';
@@ -348,6 +350,7 @@ export default function Vender() {
   // queue. `5c`'s four children have been built entirely against fixtures.
   const clear = useCartStore((state) => state.clear);
   const [sold, setSold] = useState(false);
+  const [soldNote, setSoldNote] = useState<string | null>(null);
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
   // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
   const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);
@@ -421,6 +424,9 @@ export default function Vender() {
     commitToQueue(done.write);
     clear('sell');
     setCartOpen(false);
+    // ⚠️ `8g`, 2026-10-20: THE FIRST SALE ON THIS PHONE CARRIES ONE LINE — Wera
+    // works without internet — and no other sale ever does (`@/offline/ensenar`).
+    setSoldNote(firstTime(deviceStore(), FIRST_SALE_KEY) ? ES.offline.firstSale : null);
     setSold(true);
   }, [basketful, clear, pilot]);
 
@@ -565,7 +571,7 @@ export default function Vender() {
         />
       ) : null}
 
-      <Hecho shown={sold} word={ES.sell.sold} onDone={() => setSold(false)} />
+      <Hecho shown={sold} word={ES.sell.sold} note={soldNote} onDone={() => setSold(false)} />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the KEYBOARD rather than into the layout, so where it sits
