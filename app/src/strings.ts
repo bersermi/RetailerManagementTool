@@ -1663,6 +1663,40 @@ export const ES = {
      * supplier somebody named badly.
      */
     genericNote: 'Para lo que compras sin proveedor fijo',
+    /**
+     * ⚠️ `8g` (2026-10-20) — a supplier's page and the list's second line. No
+     * sentence explains either: the owner's ruling (*"better for things to be
+     * intuitive"*).
+     */
+    page: {
+      call: 'Llamar',
+      chat: 'WhatsApp',
+      edit: 'Editar',
+      month: 'ESTE MES',
+      monthLine: (deliveries: number, ago: string) =>
+        `${deliveries === 1 ? '1 entrega' : `${deliveries} entregas`} · la última ${ago}`,
+      monthNone: 'Nada este mes',
+      lastVisit: (ago: string) => `La última entrega: ${ago}`,
+      brought: 'LO QUE TE TRAE',
+      broughtLast: (amount: string, perUnit: string) => `La última vez: ${amount} ${perUnit}`,
+      /** ⚠️ The change against the delivery before, in pesos — never a percentage. */
+      change: (centavos: number, amount: string) => (centavos > 0 ? `+${amount}` : centavos < 0 ? `−${amount}` : '='),
+      ago: (days: number) =>
+        days <= 0
+          ? 'hoy'
+          : days === 1
+            ? 'ayer'
+            : days < 14
+              ? `hace ${days} días`
+              : days < 31
+                ? `hace ${Math.floor(days / 7)} semanas`
+                : 'hace más de un mes',
+      /** The list's line under a name: *Hace 3 días · $3,030 este mes*. */
+      rowLine: (ago: string, month: string | null) => {
+        const when = ago.charAt(0).toUpperCase() + ago.slice(1);
+        return month === null ? when : `${when} · ${month} este mes`;
+      },
+    },
 
     create: {
       /** ⚠️⚠️ THE LEGEND UNDER THE CREATE ROW — the only door into this form, and

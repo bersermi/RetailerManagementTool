@@ -5,7 +5,9 @@ import { FlatList, Keyboard, Pressable, Text, TextInput, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { initials } from '@/api/catalog';
-import { useMyRole, useProviders } from '@/api/hooks';
+import { shownAmount } from '@/api/documents';
+import { useMyRole, useProviders, useSupplierHeads } from '@/api/hooks';
+import { activityLine, activityOf, rankedProviders } from '@/api/providerPage';
 import {
   canWriteProviders,
   providerLine,
@@ -37,7 +39,10 @@ import { Vacio } from '@/ui/Vacio';
 // detail screen, because `PROVIDER_COLUMNS` deliberately does not ask for them and
 // `docs/checks/5g-i-purchase-contract.sh` asserts by name that they never reach a
 // phone through Comprar's read. Putting a number on the row means amending that
-// check. ✅ RULED 2026-09-28 by the owner: the row stays a name.
+// check. ✅ RULED 2026-09-28 by the owner: the row stays a name. ⚠️ AMENDED
+// 2026-10-20 (`8g`, his option A): under the name, WHEN SHE LAST CAME AND WHAT
+// WAS BOUGHT FROM HER THIS MONTH — off the delivery headers, never her number,
+// so that check still holds — and the one who sold the most this month first.
 //
 // ⚠️⚠️ THE SEARCH IS THE WAY A SUPPLIER GETS CREATED, AND THERE IS NO `Agregar`
 // BUTTON — the owner's ruling of 2026-09-23 about Productos, applied here rather
@@ -98,7 +103,12 @@ export default function Proveedores() {
   // here would be empty on the path where the form replaced it.
   const { nuevo } = useLocalSearchParams<{ nuevo?: string }>();
 
-  const rows = providerRows(providers, typed, mayCreate);
+  // ⚠️ `8g` (2026-10-20): each row says when she last came and what was bought
+  // from her this month, and the one who sold the most this month comes first
+  // after the generic row — `@/api/providerPage` decides both (`R3`).
+  const { heads, reversals, today } = useSupplierHeads();
+  const activity = activityOf(heads, reversals, today);
+  const rows = providerRows(rankedProviders(providers, activity), typed, mayCreate);
   const list = useRef<FlatList<ProviderRowView>>(null);
   const box = useRef<TextInput>(null);
 
@@ -157,6 +167,7 @@ export default function Proveedores() {
               id={item.provider.id}
               name={item.provider.name}
               generic={item.provider.isGeneric}
+              line={activityLine(activity.get(item.provider.id), today, shownAmount)}
               nuevo={item.provider.id === nuevo}
             />
           )
@@ -249,13 +260,18 @@ function Fila({
   id,
   name,
   generic,
+  line,
   nuevo,
 }: {
   id: string;
   name: string;
   generic: boolean;
+  line: string;
   nuevo: boolean;
 }) {
+  // ⚠️ THE GENERIC ROW'S NOTE STANDS ONLY WHERE THERE IS NO VISIT TO SAY: a row
+  // that says *Hace 3 días · $820 este mes* is already a supplier she buys from.
+  const second = line !== '' ? line : generic ? ES.providers.genericNote : '';
   const { scale } = useDensity();
   return (
     <Destello on={nuevo}>
@@ -287,19 +303,16 @@ function Fila({
           >
             {name}
           </Text>
-          {/* ⚠️⚠️ THE ONLY SECOND LINE ON THIS SCREEN, AND IT IS ON THE ONE ROW
-              WHOSE NAME DOES NOT EXPLAIN ITSELF. `0039` seeds the row as
-              *Genérico* and F6 makes it Comprar's default — so without this it
-              reads as a supplier somebody named badly, and a manager's first
-              instinct would be to rename it. */}
-          {generic ? (
+          {/* ⚠️ `8g`: when she last came and this month's purchases; for the
+              generic row with no visit yet, what it is for. */}
+          {second === '' ? null : (
             <Text
               numberOfLines={1}
               style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}
             >
-              {ES.providers.genericNote}
+              {second}
             </Text>
-          ) : null}
+          )}
         </View>
       </Pressable>
     </Destello>

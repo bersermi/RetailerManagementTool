@@ -90,6 +90,7 @@ import {
   type SaleHead,
   type WasteHead,
 } from '@/api/month';
+import { supplierHeadsKey, supplierLinesKey, supplierSince, type SupplierLine } from '@/api/providerPage';
 import { monthShift } from '@/api/monthExport';
 import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
 import { pricesFrom, pricesKey, type Prices } from '@/api/prices';
@@ -184,6 +185,7 @@ import {
   shopSales,
   documentsBetween,
   purchasePricesSince,
+  supplierLines,
   reversalsSince,
   monthRows,
   shopProviders,
@@ -2078,6 +2080,49 @@ export function useSaleHours(): {
     ticket: ticketOf(rows.data, today),
     failed: rows.error ? apiErrorKey(rows.error) : null,
   };
+}
+
+/**
+ * Every delivery header of the last `SUPPLIER_DAYS`, and every void since — the
+ * supplier list's line and her page's *Este mes* (`8g`). ⚠️ Spelled as Números'
+ * month is (`MONTH_PURCHASE_COLUMNS`), so the Números contract covers it; only
+ * the window differs.
+ */
+export function useSupplierHeads(): {
+  readonly heads: readonly PurchaseHead[] | null;
+  readonly reversals: readonly ReversalRow[] | null;
+  readonly today: string;
+} {
+  const { session, ready } = useAuth();
+  const today = isoDay(new Date());
+  const since = supplierSince(today);
+  const start = dayStartOf(since);
+  const read = useQuery({
+    queryKey: supplierHeadsKey(since),
+    queryFn: async () => ({
+      rows: await documentsBetween<PurchaseHead>(DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, start, null),
+      reversals: await reversalsSince(DOCUMENTS_TABLE.purchase, start),
+    }),
+    enabled: ready && session !== null,
+    staleTime: 60_000,
+  });
+  return { heads: read.data?.rows ?? null, reversals: read.data?.reversals ?? null, today };
+}
+
+/** One supplier's delivery lines of the last `SUPPLIER_DAYS` — her *Lo que te trae*. */
+export function useSupplierLines(providerId: string | null): {
+  readonly lines: readonly SupplierLine[] | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const since = dayStartOf(supplierSince(isoDay(new Date())));
+  const read = useQuery({
+    queryKey: supplierLinesKey(providerId, since),
+    queryFn: () => supplierLines(providerId ?? '', since),
+    enabled: ready && session !== null && providerId !== null,
+    staleTime: 60_000,
+  });
+  return { lines: read.data ?? null, failed: read.error ? apiErrorKey(read.error) : null };
 }
 
 /**

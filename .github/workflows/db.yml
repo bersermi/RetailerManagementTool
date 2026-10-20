@@ -456,6 +456,8 @@ on:
       - "docs/checks/7b-prices-contract-falsify.sh"
       - "docs/checks/8g-numeros-contract.sh"
       - "docs/checks/8g-numeros-contract-falsify.sh"
+      - "docs/checks/8g-proveedores-contract.sh"
+      - "docs/checks/8g-proveedores-contract-falsify.sh"
       # ⚠️ AND ONE RUNBOOK, as of plan task 5P-b. `docs/runbooks/engagement.sql` is
       # the read the owner runs against every shop at once, and
       # `supabase/tests/runbook_engagement.sql` reads that file client-side the way
@@ -2131,9 +2133,22 @@ jobs:
       - name: Contract — does app/src/api/month.ts still describe the schema (plan 8g)
         run: bash docs/checks/8g-numeros-contract.sh
 
-      # And its five fixtures, each red for its OWN reason.
+      # And its fixtures, each red for its OWN reason (seven since round 3).
       - name: Contract — can the Números check still fail (its own five fixtures)
         run: bash docs/checks/8g-numeros-contract-falsify.sh
+
+      # ⚠️⚠️ A SUPPLIER'S PAGE (`8g`, his option A of 2026-10-20). `app/src/api/
+      # providerPage.ts` reads one supplier's delivery LINES, filtered on the
+      # EMBEDDED document (`purchase!inner`) and ordered by its time. The only
+      # instrument for: only her lines coming back (without `!inner` every
+      # supplier's would, with a null document), newest first, a void with its
+      # cancellation, prices as strings, and a cashier reading the owner's lines.
+      - name: Contract — does app/src/api/providerPage.ts still describe the schema (plan 8g)
+        run: bash docs/checks/8g-proveedores-contract.sh
+
+      # And its four fixtures, each red for its OWN reason.
+      - name: Contract — can the supplier check still fail (its own four fixtures)
+        run: bash docs/checks/8g-proveedores-contract-falsify.sh
 
       - name: Stop
         if: always()
