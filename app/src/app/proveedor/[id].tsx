@@ -23,7 +23,16 @@ import {
   useSupplierLines,
   useUnitFactors,
 } from '@/api/hooks';
-import { activityOf, agoWords, broughtOf, callUrl, chatUrl, type Brought } from '@/api/providerPage';
+import {
+  activityOf,
+  agoWords,
+  broughtOf,
+  callUrl,
+  chatUrl,
+  monthFigure,
+  supplierPageLine,
+  type Brought,
+} from '@/api/providerPage';
 import {
   canRetire,
   canWriteProviders,
@@ -38,6 +47,7 @@ import {
   type ProviderIssue,
 } from '@/api/providerDirectory';
 import { useBackStaysHere } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -153,6 +163,11 @@ export default function Proveedor() {
   const factors = useUnitFactors();
   const activity = id === undefined ? undefined : activityOf(heads, reversals, today).get(id);
   const brought = broughtOf(lines, entries, factors);
+  // ⚠️ `8g`'s round 3: with no signal, a read that never arrived says *Se ve
+  // cuando haya señal* — never *Cargando proveedores…* for ever, nor *Nada este
+  // mes* about a supplier who came this week (`@/api/providerPage`).
+  const online = useOnline();
+  const month = monthFigure(heads !== null && reversals !== null, activity, online, shownAmount);
 
   // ⚠️⚠️ `null` MEANS *SHE HAS NOT TYPED*, AND IT IS WHAT LETS THE BOXES BE SEEDED
   // BY A READ THAT HAS NOT LANDED YET. `useState(draftOf(provider))` would stick at
@@ -256,27 +271,16 @@ export default function Proveedor() {
         keyboardShouldPersistTaps="handled"
       >
         {provider === null ? (
-          // ⚠️⚠️ THREE FACTS AND ONE LINE, AND THE ORDER MATTERS. A failed read goes
-          // first; *not back yet* is second; and *this supplier is gone* is last and
-          // is a legitimate state — she can be retired on another phone while this
-          // one holds the row. ⚠️ This screen is reached by TAPPING a supplier, so
-          // saying *ya no está* about a read still in flight would tell a shopkeeper
-          // the thing under her thumb had been deleted.
-          <Aviso
-            line={
-              failed !== null
-                ? ES.api.errors[failed]
-                : loading
-                  ? ES.providers.empty.loading
-                  : ES.providers.errors.missing
-            }
-          />
+          // ⚠️⚠️ THREE FACTS AND ONE LINE, AND THE ORDER MATTERS — and since `8g`'s
+          // round 3 a fourth ahead of them, no signal. `supplierPageLine` holds the
+          // order and says why.
+          <Aviso line={supplierPageLine(loading, failed, online)} />
         ) : !editing ? (
           <Ficha
             provider={provider}
             mayWrite={mayWrite}
             onEdit={() => setEditing(true)}
-            month={activity?.monthCentavos ?? 0}
+            month={month}
             deliveries={activity?.monthDeliveries ?? 0}
             lastDay={activity?.lastDay ?? null}
             today={today}
@@ -433,7 +437,8 @@ function Ficha({
   provider: ProviderDetail;
   mayWrite: boolean;
   onEdit: () => void;
-  month: number;
+  /** *Este mes*'s figure, already words — `monthFigure`'s answer. */
+  month: string;
   deliveries: number;
   lastDay: string | null;
   today: string;
@@ -477,7 +482,7 @@ function Ficha({
           {ES.providers.page.month}
         </Text>
         <Text style={{ fontSize: scale.titleSize * 1.2, ...TITULO, color: PALETTE.tinta }}>
-          {deliveries === 0 ? ES.providers.page.monthNone : shownAmount(month)}
+          {month}
         </Text>
         {lastDay === null ? null : (
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.compra }}>

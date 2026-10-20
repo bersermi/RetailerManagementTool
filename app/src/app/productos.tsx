@@ -10,6 +10,7 @@ import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrit
 import type { Picture } from '@/api/photos';
 import { aislesOf, inAisle, type Aisle } from '@/api/productPage';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -119,6 +120,9 @@ export default function Productos() {
   // keystroke and never an opinion about what it means.
   const [typed, setTyped] = useState('');
   const { loading, entries, failed } = useCatalog(typed);
+  // ⚠️ `8g`'s round 3: no catalog and no signal is *Se ve cuando haya señal*, never
+  // *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const mayCreate = canWriteCatalog(useMyRole());
 
   // ⚠️⚠️ `8g`, OPTION D — THE AISLES ACROSS THE TOP (the owner's ruling of
@@ -262,7 +266,7 @@ export default function Productos() {
         // rows, never a line under the last one. The mosaic's cards carry their own.
         ItemSeparatorComponent={mosaic ? null : Separador}
         columnWrapperStyle={mosaic ? { gap: scale.rowGap, paddingHorizontal: scale.space } : undefined}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, WHICH IS WHAT
         // MAKES `scrollToIndex` REACH A ROW IT HAS NOT DRAWN YET. Without it a
         // jump past the render window fails; `onScrollToIndexFailed` is the belt

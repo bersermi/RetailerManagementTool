@@ -35,6 +35,7 @@ import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -227,6 +228,9 @@ export default function Vender() {
   // empty string is `useCatalog`'s own default and is spelled out here because
   // the argument it is NOT being given is the point.
   const { loading, entries, failed, locationId } = useCatalog('');
+  // ⚠️ `8g`'s round 3: an empty list with no catalog and no signal says *Se ve
+  // cuando haya señal* rather than *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const factors = useUnitFactors();
   // ⚠️⚠️ ADR-035 §2.8's THIRD GUARD, AND IT IS ONE READ FOR THE WHOLE SCREEN —
   // never one per row. See `@/api/magnitude`'s header for why this hook takes no
@@ -470,7 +474,7 @@ export default function Vender() {
           />
         )}
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE ONLY WHEN THE
         // JUMP IS INSIDE THE RENDER WINDOW; past it `scrollToIndex` throws, and

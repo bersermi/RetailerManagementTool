@@ -751,6 +751,12 @@ export function usePendingRequests(): {
   readonly loading: boolean;
   readonly entries: readonly PendingRequest[];
   readonly count: number;
+  /**
+   * ⚠️ `8g`, 2026-10-20, the offline report's round 3: THE READ'S FAILURE, which
+   * this hook used to swallow — so a queue that never loaded said *Un momento…*
+   * for ever. `queueLine` (`@/api/approvals`) turns it into the sentence.
+   */
+  readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
   const workspace = useWorkspace();
@@ -776,6 +782,7 @@ export function usePendingRequests(): {
     // `pendingFrom` drops a row it cannot read, and a badge saying 3 over a list
     // of 2 is the app telling a shopkeeper she has missed somebody.
     count: entries.length,
+    failed: query.error ? apiErrorKey(query.error) : null,
   };
 }
 

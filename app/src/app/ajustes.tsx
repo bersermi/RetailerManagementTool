@@ -16,11 +16,12 @@ import {
   useSetMainGiro,
   useSetStoreAddress,
   useStoreAddress,
+  useStoreAddresses,
   useSetMyDisplayName,
   useWorkspace,
 } from '@/api/hooks';
 import { GIROS, emblemaDe } from '@/api/emblema';
-import { addressComplete, addressForm, checkAddress, type AddressForm } from '@/api/collection';
+import { addressComplete, addressForm, addressLine, checkAddress, type AddressForm } from '@/api/collection';
 import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
@@ -44,6 +45,7 @@ import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { Lecturas } from '@/pilot/Lecturas';
 import { DIBUJOS } from '@/marca/dibujos';
 import { useBackStaysHere } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
@@ -1430,16 +1432,19 @@ function GiroPrincipal({
 function Domicilio({ mayChange, onDirty }: { mayChange: boolean; onDirty: (dirty: boolean) => void }) {
   const { scale } = useDensity();
   const address = useStoreAddress();
+  // ⚠️ `8g`, 2026-10-20, the offline report's round 3: WHETHER THE READ ARRIVED,
+  // which `useStoreAddress`' `null` cannot say — it is also *no store*. The
+  // address is not kept on the phone, so an offline start read as *Sin
+  // dirección*; `addressLine` says *Se ve cuando haya señal* instead.
+  const known = useStoreAddresses().data !== undefined;
+  const online = useOnline();
   const { save, busy } = useSetStoreAddress();
   const [form, setForm] = useState<AddressForm | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
   // ⚠️ `8g`: an address form open is typing the sheet must ask about before a back.
   useEffect(() => onDirty(form !== null), [form, onDirty]);
 
-  const line =
-    address === null || !addressComplete(address)
-      ? ES.address.none
-      : ES.address.line(address.street, address.number, address.colonia, address.city, address.postalCode);
+  const line = addressLine(address, known, online);
 
   async function guardar() {
     if (busy || form === null || address === null) return;

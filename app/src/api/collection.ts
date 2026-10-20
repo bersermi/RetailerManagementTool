@@ -27,9 +27,11 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import type { Online } from '@/api/connectivity';
 import { apiErrorMessage } from '@/api/errors';
 import { isoDay } from '@/api/catalog';
 import { addDays, daysFrom, formatClock, formatPickupDay } from '@/format/date';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** `0058`'s five columns, and the row's id to write them back by. */
@@ -117,6 +119,23 @@ export function checkAddress(form: AddressForm): AddressIssue | null {
 export function addressComplete(address: StoreAddress | null): boolean {
   if (address === null) return false;
   return checkAddress(address) === null;
+}
+
+/**
+ * Ajustes' *Dirección* line, read back in one sentence — or *Sin dirección*.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*): `STORE_ADDRESS_KEY` is not kept on the phone, and `useStoreAddress`
+ * answers `null` both while the read is out and when there is no store — so an
+ * offline start told the owner his shop had no address. `known` is whether the
+ * read arrived (`useStoreAddresses().data !== undefined`); with nothing known and
+ * no signal the line is `ES.offline.whenSignal` (`@/offline/senal`), and it turns
+ * into the address by itself when the signal returns.
+ */
+export function addressLine(address: StoreAddress | null, known: boolean, online: Online): string {
+  if (waitsForSignal(online, known)) return ES.offline.whenSignal;
+  if (address === null || !addressComplete(address)) return ES.address.none;
+  return ES.address.line(address.street, address.number, address.colonia, address.city, address.postalCode);
 }
 
 /** The row's columns, trimmed; an empty colonia is `null`, which `0058` allows. */

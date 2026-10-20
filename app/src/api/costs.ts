@@ -93,8 +93,10 @@
 import { SCALE, lineAnchorCentavos, parseDecimal } from '@tienda/money';
 
 import { isoDay, priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** The table the series comes off. Spelled once (`R13`). */
@@ -506,11 +508,20 @@ export function costsFrom(
  * choosing its own sentence for a `42501`. The layer answers the question; the
  * screen renders the answer.
  *
- * ⚠️ A FAILED READ WINS OVER EVERY OTHER STATE, `familyLine`'s rule and for the
- * sharper version of its reason. This screen is reached by TAPPING a product, so
- * a failure that fell through to *todavía no has registrado compras* would tell a
+ * ⚠️ A FAILED READ WINS OVER *STILL OUT*, `familyLine`'s rule and for the sharper
+ * version of its reason. This screen is reached by TAPPING a product, so a failure
+ * that fell through to *todavía no has registrado compras* would tell a
  * shopkeeper she has never bought a product she buys every week — on a phone that
  * simply has no signal, which in the pilot store is half the day.
+ *
+ * ⚠️⚠️ BUT IT NO LONGER WINS OVER WHAT WAS READ — `8g`, 2026-10-20, the offline
+ * report's round 3 (the owner's *"Do all the fixes"*). That danger is `unknown`
+ * alone: `costsFrom` answers `nothing`, `single`, `unlinked` and `series` only
+ * once rows arrived, and TanStack KEEPS those rows when a refresh fails — so the
+ * failure used to replace a true note with *Sin conexión* the moment a re-read
+ * missed. And with nothing to draw and no signal it is `ES.offline.whenSignal`:
+ * the read is PAUSED and resumes by itself, so *Intenta de nuevo* asks her to do
+ * something that cannot help (`@/offline/senal`).
  *
  * ⚠️ `unknown` WITH NO FAILURE IS `''`, AND THE CALLER SHOWS A SPINNER. *Not back
  * yet* is not a sentence, and writing one would be the app narrating its own
@@ -518,12 +529,24 @@ export function costsFrom(
  */
 export type CostsLineInput = Costs & { readonly failed: ApiMessageKey | null };
 
-export function costsLine(state: CostsState, failed: ApiMessageKey | null): string {
-  if (failed !== null) return ES.api.errors[failed];
+export function costsLine(state: CostsState, failed: ApiMessageKey | null, online: Online): string {
   if (state === 'nothing') return ES.costs.nothing;
   if (state === 'single') return ES.costs.single;
   if (state === 'unlinked') return ES.costs.unlinked;
+  if (state === 'series') return '';
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (failed !== null) return ES.api.errors[failed];
   return '';
+}
+
+/**
+ * Does `Costos` turn its spinner? Only while the read is out WITH a signal to
+ * bring it — `pricesSpin`'s rule (`8g`'s round 3). Offline it draws `costsLine`'s
+ * sentence alone, because a spinner that cannot stop says *wait* to a phone that
+ * cannot get it.
+ */
+export function costsSpin(state: CostsState, online: Online): boolean {
+  return state === 'unknown' && !waitsForSignal(online, false);
 }
 
 /**

@@ -35,6 +35,7 @@ import {
   memoryFor,
   memoryState,
   providerById,
+  providerPickLine,
   sortedForBuying,
   typedPerBase,
   type MemoryRow,
@@ -51,6 +52,7 @@ import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -241,6 +243,10 @@ export default function Comprar() {
   // own measurement: pricing a basket against the MATCHING rows would make the
   // `Total` fall every time she typed a different product's name.
   const { loading, entries, failed, locationId } = useCatalog('');
+  // ⚠️ `8g`'s round 3: with no catalog or no suppliers in hand and no signal, the
+  // list, the blue card and the picker say *Se ve cuando haya señal* rather than
+  // *Cargando…* for ever (`catalogLine`, `providerPickLine`).
+  const online = useOnline();
   const factors = useUnitFactors();
   // ⚠️⚠️ ADR-035 §2.8's THIRD GUARD, AND COMPRAR IS THE SCREEN THAT GETS BOTH
   // HALVES OF IT — a delivery is the one place in this app where a person types
@@ -318,8 +324,9 @@ export default function Comprar() {
     if (workspace !== null) openShop(workspace.id);
   }, [workspace, openShop]);
 
-  const { loading: providersOut, providers, memory } = useProviders(providerId);
+  const { loading: providersOut, providers, memory, failed: providersFailed } = useProviders(providerId);
   const provider = providerById(providers, providerId);
+  const pickLine = providerPickLine(providersOut, providersFailed, online);
 
   // ⚠️⚠️ THE DEFAULT IS STILL CHOSEN, AND THE PICKER IS NOW WHAT CONFIRMS IT. F6
   // makes the generic row the opening answer — *"I bought this at the market this
@@ -578,6 +585,7 @@ export default function Comprar() {
       <Proveedor
         provider={provider}
         loading={providersOut}
+        waiting={pickLine}
         lookingUp={lookingUp}
         onSearch={toggleSearch}
         onChange={() => setPicking(true)}
@@ -614,7 +622,7 @@ export default function Comprar() {
           />
         )}
         columnWrapperStyle={across > 1 ? { gap: scale.rowGap } : undefined}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ padding: scale.space, gap: scale.rowGap }}
         onScrollToIndexFailed={({ index }) => {
           list.current?.scrollToOffset({ offset: index * scale.retratoSize * 3, animated: true });
@@ -686,6 +694,7 @@ export default function Comprar() {
       <Proveedores
         open={picking}
         providers={providers}
+        waiting={pickLine}
         chosen={providerId}
         // ⚠️ THE OPENING QUESTION HAS NO WAY OUT BUT AN ANSWER — see `Proveedores`.
         // An empty buy basket is what makes this the way IN rather than a change of
@@ -728,12 +737,15 @@ export default function Comprar() {
 function Proveedor({
   provider,
   loading,
+  waiting,
   lookingUp,
   onSearch,
   onChange,
 }: {
   provider: Provider | null;
   loading: boolean;
+  /** What the card says with no supplier to name — `providerPickLine`'s answer. */
+  waiting: string;
   lookingUp: boolean;
   onSearch: () => void;
   onChange: () => void;
@@ -791,7 +803,7 @@ function Proveedor({
             {ES.buy.supplier.label}
           </Text>
           <Text numberOfLines={1} style={{ fontSize: scale.titleSize * 0.9, ...TITULO, color: PALETTE.superficie }}>
-            {unknown ? ES.buy.loadingProviders : provider.name}
+            {unknown ? waiting : provider.name}
           </Text>
         </View>
       </View>
@@ -885,6 +897,7 @@ function Proveedor({
 function Proveedores({
   open,
   providers,
+  waiting,
   chosen,
   opening,
   onClose,
@@ -892,6 +905,8 @@ function Proveedores({
 }: {
   open: boolean;
   providers: readonly Provider[];
+  /** What the empty list says — `providerPickLine`'s answer, the blue card's own. */
+  waiting: string;
   chosen: string | null;
   /** Is this the question that opens the screen, or the drop-down reopened? */
   opening: boolean;
@@ -982,7 +997,7 @@ function Proveedores({
               data={providers}
               keyExtractor={(one) => one.id}
               ItemSeparatorComponent={Separador}
-              ListEmptyComponent={<Vacio line={ES.buy.loadingProviders} />}
+              ListEmptyComponent={<Vacio line={waiting} />}
               renderItem={({ item }) => {
                 const here = item.id === chosen;
                 return (

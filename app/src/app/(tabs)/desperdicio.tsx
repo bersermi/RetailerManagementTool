@@ -93,6 +93,7 @@ import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
 import { setTabGuard } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -515,6 +516,9 @@ function Tirar() {
   // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
   // sell-only subsets"*: anything the shop sells is something it can lose.
   const { loading, entries, failed, locationId } = useCatalog('');
+  // ⚠️ `8g`'s round 3: an empty list with no catalog and no signal says *Se ve
+  // cuando haya señal* rather than *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const factors = useUnitFactors();
   // ⚠️ §2.8's THIRD GUARD EARNS ITS PLACE HERE MORE THAN ANYWHERE: a write-off
   // has nobody on the other side of it, and `9999 kg` in the bin is queried by
@@ -679,7 +683,7 @@ function Tirar() {
           />
         )}
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
         onScrollToIndexFailed={({ index }) => {
           list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });

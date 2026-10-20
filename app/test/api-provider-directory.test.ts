@@ -277,25 +277,45 @@ describe('the rows the directory draws, and the door at the end of a fruitless s
 });
 
 describe('the one line an empty directory shows', () => {
-  it('puts a failed read ahead of everything, even while it retries', () => {
-    expect(providerLine(true, '', 'offline')).toBe(ES.api.errors.offline);
-    expect(providerLine(false, 'bodega', 'unknown')).toBe(ES.api.errors.unknown);
+  it('puts a failed read ahead of *still asking*, even while it retries', () => {
+    expect(providerLine(true, '', 'offline', true)).toBe(ES.api.errors.offline);
+    expect(providerLine(true, 'bodega', 'unknown', null)).toBe(ES.api.errors.unknown);
+  });
+
+  // ⚠️⚠️ `8g`, 2026-10-20, the offline report's round 3: the list is persisted and a
+  // failed refresh keeps it, so with rows in hand a search that found nothing said
+  // *Sin conexión* to a cashier who had mistyped a name.
+  it('lets the rows in hand answer a search, whatever a refresh said', () => {
+    expect(providerLine(false, 'bodega', 'unknown', true)).toBe(ES.providers.empty.noMatch);
+    expect(providerLine(false, 'bodega', 'offline', false)).toBe(ES.providers.empty.noMatch);
+  });
+
+  it('says *Se ve cuando haya señal* with no rows and no signal, never *Cargando* for ever', () => {
+    expect(providerLine(true, '', null, false)).toBe(ES.offline.whenSignal);
+    expect(providerLine(true, 'bodega', 'offline', false)).toBe(ES.offline.whenSignal);
   });
 
   it('says it is still asking while it is', () => {
-    expect(providerLine(true, '', null)).toBe(ES.providers.empty.loading);
+    expect(providerLine(true, '', null, true)).toBe(ES.providers.empty.loading);
+    expect(providerLine(true, '', null, null)).toBe(ES.providers.empty.loading);
   });
 
-  // ⚠️ IT NEVER SAYS *todavía no tienes proveedores* ON A FAILURE: she would go and
-  // add a supplier she already has, because the app told her the shop had none.
+  // ⚠️ IT NEVER SAYS *todavía no tienes proveedores* ON A FAILURE WITH NO ROWS: she
+  // would go and add a supplier she already has, because the app told her the shop
+  // had none.
+  it('never says the shop has none when it could not ask', () => {
+    expect(providerLine(true, '', 'unknown', true)).not.toBe(ES.providers.empty.none);
+    expect(providerLine(true, '', null, false)).not.toBe(ES.providers.empty.none);
+  });
+
   it('tells a search that found nothing apart from a shop that has nothing', () => {
-    expect(providerLine(false, 'bodega', null)).toBe(ES.providers.empty.noMatch);
-    expect(providerLine(false, '', null)).toBe(ES.providers.empty.none);
+    expect(providerLine(false, 'bodega', null, true)).toBe(ES.providers.empty.noMatch);
+    expect(providerLine(false, '', null, true)).toBe(ES.providers.empty.none);
     expect(ES.providers.empty.noMatch).not.toBe(ES.providers.empty.none);
   });
 
   it('treats a box of spaces as an empty box', () => {
-    expect(providerLine(false, '   ', null)).toBe(ES.providers.empty.none);
+    expect(providerLine(false, '   ', null, true)).toBe(ES.providers.empty.none);
   });
 });
 

@@ -14,6 +14,7 @@ import {
   providerRows,
   type ProviderRowView,
 } from '@/api/providerDirectory';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -96,6 +97,9 @@ export default function Proveedores() {
   // manager-only view it has no use for and would put every price this shop has
   // paid onto a screen that draws none of them.
   const { loading, providers, failed } = useProviders(null);
+  // ⚠️ `8g`'s round 3: no list and no signal is *Se ve cuando haya señal*, never
+  // *Cargando proveedores…* for ever (`providerLine`).
+  const online = useOnline();
   const mayCreate = canWriteProviders(useMyRole());
 
   // ⚠️ THE SUPPLIER JUST CREATED ARRIVES AS A ROUTE PARAMETER, not as state this
@@ -173,7 +177,7 @@ export default function Proveedores() {
           )
         }
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={providerLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={providerLine(loading, typed, failed, online)} />}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, which is what
         // lets `scrollToIndex` reach a row it has not drawn yet;
         // `onScrollToIndexFailed` is the belt to that braces.

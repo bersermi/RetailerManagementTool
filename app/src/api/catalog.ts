@@ -51,9 +51,11 @@ import {
   parseDecimal,
 } from '@tienda/money';
 
+import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
 import { pictureOf, type Picture } from '@/api/photos';
 import { formatMXN } from '@/format/mxn';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /**
@@ -785,14 +787,33 @@ export function familyLineKey(loading: boolean): 'loading' | 'missing' {
  * sentence a shopkeeper would act on: she would go and add products she already
  * has, because the app told her the shop was empty when the truth is that the
  * app could not ask.
+ *
+ * ⚠️⚠️ BUT FAILURE NO LONGER OUTRANKS WHAT WAS READ — `8g`, 2026-10-20, the offline
+ * report's round 3 (the owner's *"Do all the fixes"*). `loading` is *no rows in
+ * hand*, and that is the only state a failure can lie about. With rows in hand —
+ * the catalog is persisted, and TanStack KEEPS `data` when a refresh fails — an
+ * empty list is a search that matched nothing, and it said *Sin conexión a
+ * internet* to a shopkeeper who had mistyped a name in Vender, Comprar or Merma.
+ * Now the rows' own sentence wins: *Ningún producto coincide*, or *Todavía no hay
+ * productos* when that is what the last good read said.
+ *
+ * ⚠️ AND WITH NO ROWS AND NO SIGNAL IT IS `ES.offline.whenSignal` (`@/offline/senal`):
+ * the read is PAUSED and resumes by itself, so *Cargando productos…* would wait
+ * for ever and *Intenta de nuevo* asks for a tap that cannot help.
+ * ⚠️ `online` DEFAULTS TO `null` — unknown, never offline — for ONE caller: Te lo
+ * compro's product list, which another session of the same round owns. Every
+ * other caller passes `useOnline()`.
  */
 export function catalogLine(
   loading: boolean,
   typed: string,
   failed: ApiMessageKey | null,
+  online: Online = null,
 ): string {
+  if (!loading) return ES.catalog[emptyLineKey(false, typed)];
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
   if (failed !== null) return ES.api.errors[failed];
-  return ES.catalog[emptyLineKey(loading, typed)];
+  return ES.catalog.loading;
 }
 
 /**

@@ -7,9 +7,20 @@ import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { activePatch, catalogEditErrorMessage } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import { useCatalog, useCosts, useEditProduct, useMyRole, useSales, useWorkspace } from '@/api/hooks';
-import { bestWeekdayOf, boughtWhen, lastCostOf, perHundred, siblingsOf, weekOfProduct } from '@/api/productPage';
+import {
+  bestWeekdayOf,
+  boughtWhen,
+  costNoneLine,
+  lastCostOf,
+  perHundred,
+  siblingsOf,
+  weekDrawn,
+  weekNoneLine,
+  weekOfProduct,
+} from '@/api/productPage';
 import { marginOf } from '@/cart/buying';
 import { formatMXN } from '@/format/mxn';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -52,6 +63,10 @@ export default function Ficha() {
   const costs = useCosts(id ?? null);
   const { sales, today, factors } = useSales();
   const { edit, busy } = useEditProduct(mayWrite ? (id ?? null) : null);
+  // ⚠️ `8g`'s round 3: with no signal, a card whose read never arrived says *Se ve
+  // cuando haya señal* — never *Todavía no lo has comprado* or *No se ha vendido
+  // esta semana*, which is what an empty answer used to read as (`@/api/productPage`).
+  const online = useOnline();
 
   const [pricing, setPricing] = useState(false);
   const [asking, setAsking] = useState(false);
@@ -63,7 +78,7 @@ export default function Ficha() {
     return (
       <View style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingTop: insets.top }}>
         <Atras label={ES.catalog.back} />
-        <Vacio line={catalogLine(loading, '', failed)} />
+        <Vacio line={catalogLine(loading, '', failed, online)} />
       </View>
     );
   }
@@ -126,7 +141,7 @@ export default function Ficha() {
             title={ES.products.page.costTitle}
             ink={PALETTE.compra}
             ground={PALETTE.superficie}
-            figure={last === null ? ES.products.page.costNone : last.centavos === null ? '' : ES.products.page.perUnit(formatMXN(last.centavos), unit)}
+            figure={last === null ? costNoneLine(costs.state, online) : last.centavos === null ? '' : ES.products.page.perUnit(formatMXN(last.centavos), unit)}
             line={last === null ? null : ES.products.page.costWhen(last.provider, boughtWhen(last.day, today))}
           />
           {typeof margin === 'number' ? (
@@ -158,7 +173,7 @@ export default function Ficha() {
           <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
             <Rotulo text={ES.products.page.weekTitle} ink={PALETTE.tintaApagada} />
             <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
-              {week.quantity === null ? ES.products.page.weekNone : ES.products.page.week(week.quantity, formatMXN(week.centavos))}
+              {week.quantity === null ? weekNoneLine(sales.state, online) : ES.products.page.week(week.quantity, formatMXN(week.centavos))}
             </Text>
             {best === null ? null : (
               <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.marca }}>
@@ -166,21 +181,23 @@ export default function Ficha() {
               </Text>
             )}
           </View>
-          <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: scale.rowGap / 3 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            {week.bars.map((value, i) => (
-              <View key={i} style={{ alignItems: 'center', gap: scale.rowGap / 4 }}>
-                <View
-                  style={{
-                    width: scale.rowGap,
-                    height: Math.max(scale.rowGap / 3, (value / tallest) * scale.tapTarget),
-                    borderRadius: scale.rowGap / 3,
-                    backgroundColor: i === week.today ? PALETTE.marca : i > week.today ? PALETTE.linea : PALETTE.accion,
-                  }}
-                />
-                <Text style={{ fontSize: scale.smallSize * 0.75, color: PALETTE.tintaApagada }}>{ES.products.page.days[i]}</Text>
-              </View>
-            ))}
-          </View>
+          {!weekDrawn(sales.state, online) ? null : (
+            <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: scale.rowGap / 3 }} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+              {week.bars.map((value, i) => (
+                <View key={i} style={{ alignItems: 'center', gap: scale.rowGap / 4 }}>
+                  <View
+                    style={{
+                      width: scale.rowGap,
+                      height: Math.max(scale.rowGap / 3, (value / tallest) * scale.tapTarget),
+                      borderRadius: scale.rowGap / 3,
+                      backgroundColor: i === week.today ? PALETTE.marca : i > week.today ? PALETTE.linea : PALETTE.accion,
+                    }}
+                  />
+                  <Text style={{ fontSize: scale.smallSize * 0.75, color: PALETTE.tintaApagada }}>{ES.products.page.days[i]}</Text>
+                </View>
+              ))}
+            </View>
+          )}
         </View>
 
         {family.shown.length === 0 ? null : (

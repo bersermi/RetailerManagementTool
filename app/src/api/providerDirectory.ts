@@ -1,7 +1,9 @@
 import { ROLES, type Role } from '@/api/members';
 import { searchTerm } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import { apiErrorMessage, type ApiMessageKey } from '@/api/errors';
 import { type Provider } from '@/api/providers';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -325,16 +327,25 @@ export function providerRows(
  * ⚠️ IT RETURNS THE SENTENCE AND NOT A KEY because it chooses between TWO
  * namespaces — `ES.api.errors` and `ES.providers.empty` — and a key alone cannot
  * say which it belongs to. `catalogLine` carries the identical argument.
+ *
+ * ⚠️⚠️ BUT FAILURE NO LONGER OUTRANKS WHAT WAS READ — `8g`, 2026-10-20, the offline
+ * report's round 3 (the owner's *"Do all the fixes"*), `catalogLine`'s change made
+ * here too. The list is persisted and TanStack KEEPS `data` when a refresh fails,
+ * so with rows in hand an empty list is a search that matched nothing, and it
+ * said *Sin conexión a internet* to a cashier who had mistyped a name. And with
+ * no rows and no signal it is `ES.offline.whenSignal`: the read is paused and
+ * resumes by itself, so *Cargando proveedores…* would wait for ever.
  */
 export function providerLine(
   loading: boolean,
   typed: string,
   failed: ApiMessageKey | null,
+  online: Online,
 ): string {
+  if (!loading) return collapse(typed) !== '' ? ES.providers.empty.noMatch : ES.providers.empty.none;
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
   if (failed !== null) return ES.api.errors[failed];
-  if (loading) return ES.providers.empty.loading;
-  if (collapse(typed) !== '') return ES.providers.empty.noMatch;
-  return ES.providers.empty.none;
+  return ES.providers.empty.loading;
 }
 
 // ----------------------------------------------------------------------------
