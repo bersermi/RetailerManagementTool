@@ -16,6 +16,8 @@ import {
   useSales,
   useWeekSavings,
 } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import {
   bestSameWeekday,
   historyOf,
@@ -132,6 +134,7 @@ const RESCUED_SEEN_KEY = 'tienda.inicio.rescatado';
 
 export default function Inicio() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   // ⚠️ THE TOTAL ROLLS ONLY IF IT IS RE-READ WHEN A SALE LANDS — see the hook.
   useFreshAfterWrites();
   const focused = useFocused();
@@ -145,7 +148,12 @@ export default function Inicio() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+      <ScrollView
+        contentContainerStyle={{ padding: scale.space, gap: scale.space }}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
+      >
         {/* ⚠️ THE ORDER IS THE TABLE'S AND NOT THIS FILE'S — see the header. */}
         {INICIO_BLOCKS.map((block) => (
           <Bloque key={block} block={block} focused={focused} onCelebrate={celebrate} />

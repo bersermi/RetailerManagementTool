@@ -26,6 +26,8 @@ import {
   type ShopDocument,
 } from '@/api/documents';
 import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { useAuth } from '@/auth/AuthProvider';
 import type { Online } from '@/api/connectivity';
 import type { Cart, Scope } from '@/cart/cart';
@@ -132,6 +134,7 @@ import { Velo } from '@/ui/Velo';
 
 export default function Documentos() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   const insets = useSafeAreaInsets();
 
   // ⚠️ THE SWITCH IS THE ONLY STATE ON THIS SCREEN, and it holds a
@@ -266,6 +269,8 @@ export default function Documentos() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
       <ScrollView
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,

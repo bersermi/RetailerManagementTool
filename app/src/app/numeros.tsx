@@ -13,6 +13,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shownAmount } from '@/api/documents';
 import { useMonthExport, useMonthReport, usePurchasePrices, useSaleHours, useSales } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import type { Online } from '@/api/connectivity';
 import {
   FIRST_WEEK_DAYS,
@@ -128,6 +130,7 @@ type Pagina = 'centro' | 'ventas';
 
 export default function Numeros() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   const insets = useSafeAreaInsets();
   const { sales, failed, today, entries, factors } = useSales();
   const online = useOnline();
@@ -168,6 +171,8 @@ export default function Numeros() {
         onBack={pagina === 'ventas' ? () => setPagina('centro') : () => router.back()}
       />
       <ScrollView
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
