@@ -119,7 +119,7 @@ Adding a dependency moves the root lockfile, so it fires the first three.
 ## Domain vocabulary
 
 Spanish module names are the domain language, not a translation layer: Comprar (buy),
-Vender (sell), Productos (catalog), Proveedores (providers), Desperdicio (waste), Números
+Vender (sell), Productos (catalog), Proveedores (providers), Merma (write-offs — *Desperdicio* until the owner's ruling of 2026-10-20; the route and code keep `desperdicio`), Números
 (reports). `workspace` is the tenant; `location` is the store — they are not the same thing,
 and conflating them is a one-way door (ADR-035 §2.3).
 

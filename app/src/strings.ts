@@ -22,7 +22,7 @@ export const ES = {
     inicio: 'Inicio',
     vender: 'Vender',
     comprar: 'Comprar',
-    desperdicio: 'Desperdicio',
+    desperdicio: 'Merma',
   },
 
   /** C3.18's two modes, as a person picking one would read them. */
@@ -525,7 +525,7 @@ export const ES = {
     /** ⚠️ The shop's name is passed in, the grammar lives here (`members.shareMessage`'s rule). */
     shopWarning: (shop: string) =>
       `Eres la única persona dueña de ${shop}. Si eliminas tu cuenta, se borra la tienda ` +
-      'completa: productos, ventas, compras y desperdicio. No se puede deshacer.',
+      'completa: productos, ventas, compras y merma. No se puede deshacer.',
     losesAccess: 'Perderán el acceso:',
     nobodyElse: 'Nadie más tiene acceso a esta tienda.',
     /** Opens Números, where the month's file is made. */
@@ -1081,7 +1081,7 @@ export const ES = {
       correctionConfirm: 'Vaciar',
       correctionKeep: 'Seguir corrigiendo',
       /** Which document the box is about: *Esta venta*. */
-      correctionWhat: { sale: 'Esta venta', purchase: 'Esta compra', waste: 'Este desperdicio' },
+      correctionWhat: { sale: 'Esta venta', purchase: 'Esta compra', waste: 'Esta merma' },
       /**
        * ⚠️ THE WORD THE OWNER'S CONFIRMATION ANIMATION CARRIES — *"another one
        * if we empty the carrito"* (2026-09-21). The motion is `transform` and
@@ -2913,14 +2913,14 @@ export const ES = {
       /**
        * ⚠️⚠️ THE THIRD, AND IT IS THE ONE WORD THAT IS THE SAME AS ITS TAB.
        * *Comprar → Compras* and *Vender → Ventas* are a verb and its noun; the
-       * module above `desperdicio.tsx` is called **Desperdicio**, which is
-       * already a noun, so there is no second form to reach for. **Inventing
-       * one — *Mermas*, *Pérdidas* — would be this screen teaching a fourth
-       * word for a thing the shop already has a word for**, and `0003` chose
-       * `merma de preparación` as one CAUSE among five, so *Mermas* here would
-       * name the whole after a part.
+       * module above `desperdicio.tsx` is a noun already, so there is no second
+       * form to reach for. ⚠️ **Since the owner's ruling of 2026-10-20 that noun
+       * is *Merma*, everywhere** — *"the word is easier to promote since is not
+       * actual waste"* — and so is this tab. It was *Desperdicio*, and this
+       * comment had argued against *Mermas* because `0003` names `merma de
+       * preparación` as one CAUSE among five; the cause keeps its own wording.
        */
-      waste: 'Desperdicio',
+      waste: 'Merma',
     },
 
     /**
@@ -2962,7 +2962,7 @@ export const ES = {
        * no write-offs is a good week AND a week where nobody keyed one, and this
        * screen cannot tell which — so it states the fact and stops.
        */
-      waste: 'No hay desperdicio de los últimos siete días.',
+      waste: 'No hay merma de los últimos siete días.',
     },
 
     /**
@@ -3086,7 +3086,7 @@ export const ES = {
     emptyWeek: {
       sale: { title: 'Esta semana no hay ventas', hint: 'Lo que cobres en Vender aparece aquí durante siete días, para corregirlo si hace falta.' },
       purchase: { title: 'Esta semana no hay compras', hint: 'Lo que registres en Comprar aparece aquí durante siete días, para corregirlo si hace falta.' },
-      waste: { title: 'Esta semana no se tiró nada', hint: 'Lo que registres en Desperdicio aparece aquí durante siete días, para corregirlo si hace falta.' },
+      waste: { title: 'Esta semana no se tiró nada', hint: 'Lo que registres en Merma aparece aquí durante siete días, para corregirlo si hace falta.' },
     },
 
     /**
@@ -3345,7 +3345,7 @@ export const ES = {
   monthExport: {
     heading: 'Descargar un mes',
     /** Under the heading — what is in the file, said once so nobody has to guess. */
-    subtitle: 'Todas las ventas, compras y desperdicio del mes, línea por línea.',
+    subtitle: 'Todas las ventas, compras y merma del mes, línea por línea.',
     previous: 'Mes anterior',
     next: 'Mes siguiente',
     /** The two marks the picker draws; the words above are what a screen reader says. */
@@ -3366,12 +3366,12 @@ export const ES = {
     kind: {
       sale: 'Venta',
       purchase: 'Compra',
-      waste: 'Desperdicio',
+      waste: 'Merma',
     },
     section: {
       sale: 'Ventas',
       purchase: 'Compras',
-      waste: 'Desperdicio',
+      waste: 'Merma',
     },
     noneOfKind: {
       sale: 'No hubo ventas este mes.',
@@ -3425,7 +3425,7 @@ export const ES = {
     screen: {
       vender: 'Vender',
       comprar: 'Comprar',
-      desperdicio: 'Desperdicio',
+      desperdicio: 'Merma',
     } as Readonly<Record<'vender' | 'comprar' | 'desperdicio', string>>,
     measure: {
       commit_ms: 'Deslizar → confirmación',

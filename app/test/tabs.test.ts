@@ -90,7 +90,7 @@ describe('C12.1 — never an icon without its word', () => {
     // label comes from `ES.tabs` would pass an anglicised strings file — the
     // set would still agree with itself. An English build of this app would
     // still have a `Vender` screen, so these four words are load-bearing.
-    expect(TABS.map((t) => t.label)).toEqual(['Inicio', 'Vender', 'Comprar', 'Desperdicio']);
+    expect(TABS.map((t) => t.label)).toEqual(['Inicio', 'Vender', 'Comprar', 'Merma']);
   });
 
   it('gives every tab a distinct word and a distinct icon', () => {

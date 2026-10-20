@@ -139,7 +139,7 @@ Two consequences worth stating, because both are already load-bearing:
   shopkeeper can never reach it.
 
 ⚠️ **The module names are the domain vocabulary and are never translated.**
-Comprar, Vender, Productos, Proveedores, Desperdicio, Números. An English build
+Comprar, Vender, Productos, Proveedores, Merma (was *Desperdicio* until the owner's ruling of 2026-10-20), Números. An English build
 of this app still has a `Vender` screen.
 
 ⚠️ **What the check misses, stated rather than left to be found:** it recognises
