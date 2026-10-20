@@ -199,7 +199,10 @@ import {
   MONTH_TIEBREAK,
   MONTH_TIME_COLUMN,
   REVERSAL_COLUMN,
+  RISE_COLUMNS,
+  RISE_ORDER,
   type ReversalRow,
+  type RiseRow,
 } from '@/api/month';
 import {
   SALES_ACTIVE_COLUMN,
@@ -1382,6 +1385,29 @@ async function priceSide(
 }
 
 /** Both sides of one product's prices, read side by side. Plan task `7b`. */
+/**
+ * Every product's delivery price per day since `since` — Números' *lo que más
+ * subió* (`8g`, round 3). ⚠️ Pages over a TOTAL order and stops at the first
+ * short page, `documentsBetween`'s reason; ⚠️ drops a day that only cancelled a
+ * delivery, `priceSide`'s filter.
+ */
+export async function purchasePricesSince(since: string): Promise<RiseRow[]> {
+  const rows: RiseRow[] = [];
+  for (let at = 0; ; at += MONTH_PAGE) {
+    let query = supabase
+      .from(PURCHASE_PRICE_VIEW)
+      .select(RISE_COLUMNS)
+      .gt(PURCHASE_PRICE_TRADED_COLUMN, 0)
+      .gte(PRICE_DAY_COLUMN, since);
+    for (const column of RISE_ORDER.split(',')) query = query.order(column, { ascending: true });
+    const { data, error } = await query.range(at, at + MONTH_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as RiseRow[];
+    rows.push(...page);
+    if (page.length < MONTH_PAGE) return rows;
+  }
+}
+
 export async function variantPriceHistory(variantId: string): Promise<PriceRows> {
   const [venta, compra] = await Promise.all([
     priceSide(SALE_PRICE_VIEW, SALE_PRICE_COLUMNS, SALE_PRICE_TRADED_COLUMN, variantId),

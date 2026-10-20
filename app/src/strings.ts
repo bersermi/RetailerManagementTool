@@ -3176,6 +3176,24 @@ export const ES = {
       ticketDetail: (sales: number, biggest: string) =>
         `${sales} ventas en estas 2 semanas. La más grande: ${biggest}.`,
       ticketTip: 'Sube cuando, al cobrar, ofreces algo más: «¿le doy también su refresco?»',
+      /** *el 3 de junio* — the month passed in, the grammar here. */
+      dayWords: (date: number, month: string) => `el ${date} de ${month}`,
+      risesTitle: 'LO QUE MÁS SUBIÓ DE PRECIO',
+      /** ⚠️ Per the product's own price unit, and never a percentage. */
+      perUnit: (unit: string) =>
+        unit === 'kg' ? 'el kilo' : unit === 'pza' ? 'la pieza' : unit === 'l' ? 'el litro' : unit === 'manojo' ? 'el manojo' : `por ${unit}`,
+      risesBig: (name: string, amount: string, perUnit: string) => `${name}: +${amount} ${perUnit}`,
+      risesDetail: (from: string, to: string, since: string) => `Lo comprabas a ${from} ${since}; ahora, a ${to}.`,
+      risesMore: (amount: string, perUnit: string) => `+${amount} ${perUnit}`,
+      risesTip: 'Eso es la inflación: lo que compras sube. Si tu precio de venta no sube igual, cada venta te deja menos.',
+      risesNone: 'Nada te ha subido de precio',
+      risesNoneDetail: (since: string) => `Desde ${since}, lo que compras te cuesta igual o menos.`,
+      risesNoneTip: 'Cuando algo te suba, aquí lo vas a ver primero.',
+      risesOpen: 'Ver cómo ha cambiado',
+      yearTitle: 'TU AÑO EN CUADRITOS',
+      yearBig: 'Cada cuadrito es un día',
+      yearDetail: 'Entre más oscuro, más vendiste. Los blancos: días sin ventas.',
+      yearTip: 'Con el tiempo vas a ver tus temporadas: quincenas, regreso a clases, diciembre.',
     },
     /** ⚠️ `8g` — what opens as a shop builds its history, and how long until it does. */
     pronto: {
@@ -3189,6 +3207,10 @@ export const ES = {
       quincenaWhen: (date: number, month: string | null) => `Después del ${date}${month === null ? '' : ` de ${month}`}`,
       tomorrow: 'Mañana',
       ticket: 'Cuánto te deja cada cliente',
+      rises: 'Cómo cambian tus precios',
+      risesWhen: (left: number) =>
+        left === 1 ? 'Te falta 1 compra del mismo producto' : `Te faltan ${left} compras del mismo producto`,
+      year: 'Tu año en cuadritos',
     },
   },
 

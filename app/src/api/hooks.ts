@@ -71,6 +71,8 @@ import {
   dayStartOf,
   daysBefore,
   hoursOf,
+  risesKey,
+  risesSince,
   ticketOf,
   monthPurchases,
   monthPurchasesKey,
@@ -79,6 +81,7 @@ import {
   saleHoursKey,
   type Hours,
   type Locked,
+  type RiseRow,
   type Ticket,
   type MonthPurchases,
   type MonthWaste,
@@ -179,6 +182,7 @@ import {
   shopMagnitude,
   shopSales,
   documentsBetween,
+  purchasePricesSince,
   reversalsSince,
   monthRows,
   shopProviders,
@@ -2071,6 +2075,27 @@ export function useSaleHours(): {
     ticket: ticketOf(rows.data, today),
     failed: rows.error ? apiErrorKey(rows.error) : null,
   };
+}
+
+/**
+ * Every product's delivery prices, six months back — Números' *lo que más
+ * subió* (`8g`, round 3). ⚠️ The ROWS, not the card: the price unit and its
+ * factor are the catalog's and the units', which the screen already holds from
+ * `useSales`, so this costs one request and decides nothing.
+ */
+export function usePurchasePrices(): {
+  readonly rows: readonly RiseRow[] | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const since = risesSince(isoDay(new Date()));
+  const rows = useQuery({
+    queryKey: risesKey(since),
+    queryFn: () => purchasePricesSince(since),
+    enabled: ready && session !== null,
+    staleTime: 5 * 60_000,
+  });
+  return { rows: rows.data ?? null, failed: rows.error ? apiErrorKey(rows.error) : null };
 }
 
 /**

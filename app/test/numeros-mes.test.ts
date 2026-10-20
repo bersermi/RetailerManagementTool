@@ -18,6 +18,11 @@ import {
   shopAge,
   standing,
   ticketOf,
+  dayWords,
+  risesOf,
+  yearOf,
+  YEAR_MIN_DAYS,
+  type RiseRow,
   wasteAmount,
   type PurchaseHead,
   type SaleHead,
@@ -382,5 +387,82 @@ describe('descubre — what each customer leaves (round 2)', () => {
     if (t === null || t.locked) throw new Error('unlocked');
     expect(t.centavos).toBe(33_00);
     expect(t.before).toBeNull();
+  });
+});
+
+describe('descubre — what went up, with her own products (round 3)', () => {
+  const FACTORS = { kg: '1000.000000', g: '1.000000', pza: '1.000000' };
+  const HUEVO = { id: 'huevo', name: 'Huevo blanco', priceUnit: 'kg' };
+  const QUESO = { id: 'queso', name: 'Queso Oaxaca', priceUnit: 'kg' };
+  const COCA = { id: 'coca', name: 'Coca-Cola 600 ml', priceUnit: 'pza' };
+  const ENTRIES = [HUEVO, QUESO, COCA];
+  /** A delivery price per BASE unit, as the view sends it: a kilo of egg is grams. */
+  const row = (variant_id: string, day: string, perBase: string): RiseRow => ({ variant_id, day, price: perBase });
+
+  it('waits for one product bought on two days, and counts the purchases', () => {
+    expect(risesOf([], ENTRIES, FACTORS)).toEqual({ locked: true, have: 0, need: 2 });
+    expect(risesOf([row('huevo', '2026-10-01', '0.0330000000')], ENTRIES, FACTORS)).toEqual({ locked: true, have: 1, need: 2 });
+    expect(ES.numbers.pronto.risesWhen(1)).toBe('Te falta 1 compra del mismo producto');
+  });
+
+  it('per the product\'s own unit, the most against what it cost first, said in pesos', () => {
+    const rows = [
+      row('huevo', '2026-06-03', '0.0330000000'), // $33 a kilo
+      row('huevo', '2026-10-10', '0.0380000000'), // $38: +$5 on $33
+      row('queso', '2026-06-05', '0.3000000000'), // $300 a kilo
+      row('queso', '2026-10-11', '0.3080000000'), // $308: +$8 on $300
+      row('coca', '2026-07-01', '14.0000000000'),
+      row('coca', '2026-10-01', '13.5000000000'), // went DOWN: not named
+    ];
+    const r = risesOf(rows, ENTRIES, FACTORS);
+    if (r === null || r.locked) throw new Error('unlocked');
+    expect(r.top.map((one) => [one.name, one.from, one.to, one.since])).toEqual([
+      ['Huevo blanco', 33_00, 38_00, '2026-06-03'],
+      ['Queso Oaxaca', 300_00, 308_00, '2026-06-05'],
+    ]);
+    expect(r.since).toBe('2026-06-03');
+    expect(ES.numbers.descubre.risesBig('Huevo blanco', '$5', ES.numbers.descubre.perUnit('kg'))).toBe('Huevo blanco: +$5 el kilo');
+    expect(ES.numbers.descubre.risesDetail('$33', '$38', dayWords('2026-06-03'))).toBe('Lo comprabas a $33 el 3 de junio; ahora, a $38.');
+  });
+
+  it('nothing up is said as such, not hidden', () => {
+    const rows = [row('coca', '2026-07-01', '14.0000000000'), row('coca', '2026-10-01', '14.0000000000')];
+    expect(risesOf(rows, ENTRIES, FACTORS)).toEqual({ locked: false, top: [], since: '2026-07-01' });
+    expect(ES.numbers.descubre.risesNoneDetail(dayWords('2026-07-01'))).toBe('Desde el 1 de julio, lo que compras te cuesta igual o menos.');
+  });
+
+  it('a product this phone cannot price per its unit is left out, never read per gram', () => {
+    const rows = [row('caja', '2026-07-01', '1'), row('caja', '2026-10-01', '2')];
+    expect(risesOf(rows, [{ id: 'caja', name: 'Caja', priceUnit: 'caja' }], FACTORS)).toEqual({ locked: true, have: 0, need: 2 });
+  });
+});
+
+describe('descubre — the squares (round 3)', () => {
+  it('waits four weeks', () => {
+    expect(yearOf(everyDay('2026-10-01', TODAY, 100_00), TODAY)).toEqual({ locked: true, have: 20, need: YEAR_MIN_DAYS });
+  });
+
+  it('a column per week from the Monday before her first sale, four shades by her own quarters', () => {
+    // First sale Wednesday 2 September; Sundays shut; sales climb through the weeks.
+    const days = everyDay('2026-09-02', TODAY, 0).map((d, i) => ({
+      ...d,
+      centavos: new Date(`${d.day}T00:00:00Z`).getUTCDay() === 0 ? 0 : 100_00 + i * 10_00,
+    }));
+    const y = yearOf(days, TODAY);
+    if (y.locked) throw new Error('unlocked');
+    // 31 August (Monday) to Sunday 25 October: eight weeks.
+    expect(y.weeks).toHaveLength(8);
+    expect(y.weeks[0]!.slice(0, 2)).toEqual([null, null]);
+    expect(y.weeks[0]![6]).toBe(0);
+    expect(y.weeks[7]!.slice(2)).toEqual([null, null, null, null, null]);
+    const shades = new Set(y.weeks.flat().filter((c): c is number => c !== null && c > 0));
+    expect([...shades].sort()).toEqual([1, 2, 3, 4]);
+    expect(y.weeks[1]![2]! <= y.weeks[6]![2]!).toBe(true);
+    // The first column starts on 31 August: *Ago* would sit on top of *Sep*, so
+    // the first column names September, whose 1st it holds.
+    expect(y.months).toEqual([
+      { column: 0, name: 'Sep' },
+      { column: 4, name: 'Oct' },
+    ]);
   });
 });

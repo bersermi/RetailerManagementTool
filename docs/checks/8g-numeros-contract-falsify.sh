@@ -4,7 +4,8 @@
 # Rule 4 of this repository: `8g-numeros-contract.sh` prints *all N assertion
 # groups passed*, and that is also what a check which stopped reading anything
 # prints. Five broken copies of `app/src/api/month.ts`, each of which must turn
-# it red FOR ITS OWN REASON — the message, not the exit code.
+# it red FOR ITS OWN REASON — the message, not the exit code. Seven since
+# round 3 (2026-10-20) added every product's delivery prices.
 #
 #   F1 ⚠️⚠️ the write-off lines embedded from `waste_line` instead of
 #      `waste_reason_line`: the owner still reads them, and a cashier reads a
@@ -13,6 +14,8 @@
 #   F3 the reversal column misnamed — a 400 on every phone.
 #   F4 a page above `max_rows`.
 #   F5 the order's tiebreak misnamed — a 400 on every page.
+#   F6 (round 3) a delivery price without its `::text` cast arrives as a number.
+#   F7 (round 3) the delivery prices' order names a column the view lacks.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/8g-numeros-contract-falsify.sh
 
@@ -69,6 +72,12 @@ fixture F4 'IS NOT BELOW max_rows' \
 fixture F5 'THE READS ANSWERED' \
   "s/^export const MONTH_TIEBREAK = '[a-z_]*';/export const MONTH_TIEBREAK = 'document_id';/" \
   "the order's tiebreak misnamed — a 400 on every page"
+fixture F6 'rather than a string' \
+  "s/purchase_price_last_gross::text';\$/purchase_price_last_gross';/" \
+  "a delivery price without ::text arrives as a JSON number"
+fixture F7 'THE READS ANSWERED' \
+  "s/^export const RISE_ORDER = 'day,variant_id,location_id';/export const RISE_ORDER = 'day,product_id,location_id';/" \
+  "the delivery prices ordered on a column the view does not have — a 400 on every phone"
 
 echo
 if (( fails > 0 )); then
@@ -76,4 +85,4 @@ if (( fails > 0 )); then
   echo "what it claims to."
   exit 1
 fi
-echo "all five fixtures failed for their own reasons — the Números check can still fail."
+echo "all seven fixtures failed for their own reasons — the Números check can still fail."
