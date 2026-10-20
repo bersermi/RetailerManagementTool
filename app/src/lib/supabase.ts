@@ -36,6 +36,7 @@ import { createClient } from '@supabase/supabase-js';
 import { AppState } from 'react-native';
 
 import { readSupabaseEnv } from '@/lib/env';
+import { withLimit } from '@/lib/plazo';
 
 const env = readSupabaseEnv({
   EXPO_PUBLIC_SUPABASE_URL: process.env.EXPO_PUBLIC_SUPABASE_URL,
@@ -80,6 +81,14 @@ export const supabase = createClient(env.url, env.publishableKey, {
     // a named failure, which is what notices if this line is ever removed.
     flowType: 'pkce',
   },
+  // ⚠️⚠️ EVERY REQUEST OF THIS CLIENT HAS A TIME LIMIT (`8g`, 2026-10-20). React
+  // Native's Android client has none, so a request on a link that dies under it
+  // waited for ever — measured: a Te lo compro send that landed and a screen
+  // that never moved on. Over its limit a request fails as a lost link does, and
+  // every layer above already handles one (`@/lib/plazo`). It reaches the
+  // database, storage, the functions AND the sign-in's renewal: supabase-js
+  // hands this `fetch` to all four.
+  global: { fetch: withLimit(fetch) },
 });
 
 // ⚠️ THE REFRESH LOOP IS TIED TO THE FOREGROUND, AND WITHOUT IT C1.4 IS FALSE.
