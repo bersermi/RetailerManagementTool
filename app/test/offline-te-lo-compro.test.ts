@@ -273,4 +273,15 @@ describe('the hook is wired to those rules', () => {
     expect(fn.lastIndexOf('here.current')).toBeLessThan(fn.indexOf('requestCollection'));
     expect(fn.lastIndexOf('here.current')).toBeGreaterThan(fn.indexOf('uploadMermaPhoto'));
   });
+
+  it('does not make the saved screen wait for the list to be re-read', () => {
+    // ⚠️⚠️ MEASURED ON THE EMULATOR, 2026-10-20: a held send landed on the
+    // reconnect and the screen never reached *Solicitud guardada* — the list's
+    // read had hung on a dead link (Android has no request timeout), and an
+    // awaited `invalidateQueries` hands back that very fetch for a query with
+    // no data yet.
+    const done = body.slice(body.indexOf('onSuccess'), body.indexOf('useEffect'));
+    expect(done).toMatch(/void queries\.invalidateQueries\(\{ queryKey: COLLECTION_KEY \}\)/);
+    expect(done).not.toMatch(/await queries\.invalidateQueries/);
+  });
 });

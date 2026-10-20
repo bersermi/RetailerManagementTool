@@ -1422,8 +1422,17 @@ export function useRequestCollection() {
       if (!here.current) throw { code: SEND_ABANDONED };
       await requestCollection({ ...draft, photos: paths });
     },
-    onSuccess: async () => {
-      await queries.invalidateQueries({ queryKey: COLLECTION_KEY });
+    // ⚠️⚠️ THE LIST IS RE-READ AND NOT WAITED FOR — measured on the Android
+    // emulator, 2026-10-20. A send held for the signal landed on the reconnect
+    // (one row, `request_collection` 200) and the screen never reached
+    // *Solicitud guardada*: the list's own read had started on a link that died
+    // under it, Android's requests have no timeout, and for a query with no
+    // data yet `invalidateQueries` hands back THAT fetch rather than a new one —
+    // so awaiting it awaited a request that would never answer. The request is
+    // recorded the moment the call above returns; the list catches up when it
+    // can.
+    onSuccess: () => {
+      void queries.invalidateQueries({ queryKey: COLLECTION_KEY });
     },
   });
 
