@@ -205,6 +205,15 @@ import {
   type RiseRow,
 } from '@/api/month';
 import {
+  SUPPLIER_LINE_COLUMNS,
+  SUPPLIER_LINE_ORDER,
+  SUPPLIER_LINE_PROVIDER,
+  SUPPLIER_LINE_TABLE,
+  SUPPLIER_LINE_TIEBREAK,
+  SUPPLIER_LINE_TIME,
+  type SupplierLine,
+} from '@/api/providerPage';
+import {
   SALES_ACTIVE_COLUMN,
   SALES_COLUMNS,
   SALES_DAY_COLUMN,
@@ -1385,6 +1394,31 @@ async function priceSide(
 }
 
 /** Both sides of one product's prices, read side by side. Plan task `7b`. */
+/**
+ * One supplier's delivery lines since `since`, newest first — her page's *Lo que
+ * te trae* (`8g`). ⚠️ Pages over a TOTAL order (the parent's time, then the
+ * line's id) and stops at the first short page, `documentsBetween`'s reason.
+ * ⚠️ The filters are on the EMBEDDED document, which `!inner` turns into a
+ * filter on the line — a line of another supplier is never sent.
+ */
+export async function supplierLines(providerId: string, since: string): Promise<SupplierLine[]> {
+  const rows: SupplierLine[] = [];
+  for (let at = 0; ; at += MONTH_PAGE) {
+    const { data, error } = await supabase
+      .from(SUPPLIER_LINE_TABLE)
+      .select(SUPPLIER_LINE_COLUMNS)
+      .eq(SUPPLIER_LINE_PROVIDER, providerId)
+      .gte(SUPPLIER_LINE_TIME, since)
+      .order(SUPPLIER_LINE_ORDER, { ascending: false })
+      .order(SUPPLIER_LINE_TIEBREAK, { ascending: false })
+      .range(at, at + MONTH_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as SupplierLine[];
+    rows.push(...page);
+    if (page.length < MONTH_PAGE) return rows;
+  }
+}
+
 /**
  * Every product's delivery price per day since `since` — Números' *lo que más
  * subió* (`8g`, round 3). ⚠️ Pages over a TOTAL order and stops at the first

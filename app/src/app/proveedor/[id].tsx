@@ -3,6 +3,7 @@ import { useState, type ReactNode } from 'react';
 import {
   ActivityIndicator,
   Keyboard,
+  Linking,
   Pressable,
   ScrollView,
   Text,
@@ -11,7 +12,18 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useEditProvider, useMyRole, useProviderDetail, useProviders } from '@/api/hooks';
+import { shownAmount } from '@/api/documents';
+import {
+  useCatalog,
+  useEditProvider,
+  useMyRole,
+  useProviderDetail,
+  useProviders,
+  useSupplierHeads,
+  useSupplierLines,
+  useUnitFactors,
+} from '@/api/hooks';
+import { activityOf, agoWords, broughtOf, callUrl, chatUrl, type Brought } from '@/api/providerPage';
 import {
   canRetire,
   canWriteProviders,
@@ -21,6 +33,7 @@ import {
   providerPatch,
   providerWriteErrorMessage,
   retirePatch,
+  type ProviderDetail,
   type ProviderDraft,
   type ProviderIssue,
 } from '@/api/providerDirectory';
@@ -37,6 +50,12 @@ import { Velo } from '@/ui/Velo';
 // ============================================================================
 // ONE SUPPLIER — WHAT WE KNOW ABOUT HER, AND THE TWO THINGS THAT CHANGE IT.
 // Plan task `6b`, reached by tapping a row on Proveedores.
+//
+// ⚠️⚠️ SINCE `8g` (2026-10-20, his option A) IT OPENS ON HER PAGE (`Ficha`):
+// *Llamar*, *WhatsApp* and *Editar* in one row, this month's deliveries, and what
+// she brings with the last price and its move — figures from `@/api/providerPage`.
+// The form below is now a MODE behind *Editar*, not the screen; what follows
+// describes that form and still holds for it.
 //
 // ⚠️⚠️ THIS SCREEN EXISTS FOR A CASHIER TOO, WHICH IS WHERE IT PARTS COMPANY WITH
 // `producto/[id].tsx`. That one is a FORM and `canWriteCatalog` keeps her off it
@@ -108,6 +127,16 @@ export default function Proveedor() {
   // drew from, so arriving here costs nothing.
   const { providers } = useProviders(null);
   const { save, busy } = useEditProvider(id ?? null);
+  // ⚠️ `8g` (2026-10-20): the page opens on the supplier — her month, what she
+  // brings — and the form is behind *Editar*, the owner's *"make Editar more
+  // accesible"*: one tap from the top of the page, beside *Llamar*.
+  const [editing, setEditing] = useState(false);
+  const { heads, reversals, today } = useSupplierHeads();
+  const { lines } = useSupplierLines(id ?? null);
+  const { entries } = useCatalog();
+  const factors = useUnitFactors();
+  const activity = id === undefined ? undefined : activityOf(heads, reversals, today).get(id);
+  const brought = broughtOf(lines, entries, factors);
 
   // ⚠️⚠️ `null` MEANS *SHE HAS NOT TYPED*, AND IT IS WHAT LETS THE BOXES BE SEEDED
   // BY A READ THAT HAS NOT LANDED YET. `useState(draftOf(provider))` would stick at
@@ -165,6 +194,11 @@ export default function Proveedor() {
     // ⚠️ THE KEYBOARD GOES BEFORE THE SCREEN DOES — the ruling of 2026-09-23 and
     // its measured cause.
     Keyboard.dismiss();
+    // ⚠️ `8g`: BACK TO HER PAGE, which now shows what was saved — the form was a
+    // mode of it, not a screen of its own. `useEditProvider` invalidated the read.
+    setTyped(null);
+    setEditing(false);
+    return;
     // ⚠️ BACK TO THE DIRECTORY, WHERE THE NEW NAME IS ON THE ROW SHE TAPPED.
     // `useEditProvider` invalidated `PROVIDERS_KEY`, so it is the new name and not
     // a five-minute-stale one. ⚠️ `R9`: whether that is confirmation enough or
@@ -194,7 +228,23 @@ export default function Proveedor() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <Banda subtitle={provider?.name ?? ''} mayWrite={mayWrite} />
+      <Banda
+        title={editing ? ES.providers.edit.title : (provider?.name ?? '')}
+        subtitle={editing ? (provider?.name ?? '') : ''}
+        back={editing ? ES.providers.edit.cancel : ES.providers.back}
+        onBack={() => {
+          if (!editing) {
+            router.back();
+            return;
+          }
+          // ⚠️ *Cancelar* throws the typing away and returns to her page.
+          Keyboard.dismiss();
+          setTyped(null);
+          setIssue(null);
+          setFailure(null);
+          setEditing(false);
+        }}
+      />
 
       <ScrollView
         contentContainerStyle={{
@@ -219,6 +269,17 @@ export default function Proveedor() {
                   ? ES.providers.empty.loading
                   : ES.providers.errors.missing
             }
+          />
+        ) : !editing ? (
+          <Ficha
+            provider={provider}
+            mayWrite={mayWrite}
+            onEdit={() => setEditing(true)}
+            month={activity?.monthCentavos ?? 0}
+            deliveries={activity?.monthDeliveries ?? 0}
+            lastDay={activity?.lastDay ?? null}
+            today={today}
+            brought={brought}
           />
         ) : (
           <>
@@ -342,6 +403,128 @@ export default function Proveedor() {
   );
 }
 
+/**
+ * HER PAGE — who she is, the three things to do, this month, and what she brings.
+ * ⚠️ NO SENTENCE EXPLAINS ANY OF IT, the owner's ruling of 2026-10-20 (*"better
+ * for things to be intuitive"*). ⚠️ *Editar* is a button of the first row, and
+ * absent — never disabled — for a cashier, the form's own fence.
+ */
+function Ficha({
+  provider,
+  mayWrite,
+  onEdit,
+  month,
+  deliveries,
+  lastDay,
+  today,
+  brought,
+}: {
+  provider: ProviderDetail;
+  mayWrite: boolean;
+  onEdit: () => void;
+  month: number;
+  deliveries: number;
+  lastDay: string | null;
+  today: string;
+  brought: readonly Brought[] | null;
+}) {
+  const { scale } = useDensity();
+  const call = callUrl(provider.phone);
+  const chat = chatUrl(provider.phone);
+  const who = [provider.contact, provider.phone].filter((x) => x !== '').join(' · ');
+  return (
+    <>
+      {provider.isGeneric ? <Nota line={ES.providers.genericNote} /> : null}
+      {who === '' && provider.address === '' ? null : (
+        <View style={{ gap: scale.rowGap / 4 }}>
+          {who === '' ? null : <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{who}</Text>}
+          {provider.address === '' ? null : (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{provider.address}</Text>
+          )}
+        </View>
+      )}
+      {call === null && chat === null && !mayWrite ? null : (
+        <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
+          {call === null ? null : (
+            <Boton label={ES.providers.page.call} tone={PALETTE.accion} lleno inRow onPress={() => void Linking.openURL(call)} />
+          )}
+          {chat === null ? null : (
+            <Boton label={ES.providers.page.chat} tone={PALETTE.accion} inRow onPress={() => void Linking.openURL(chat)} />
+          )}
+          {mayWrite ? <Boton label={ES.providers.page.edit} tone={PALETTE.accion} inRow onPress={onEdit} /> : null}
+        </View>
+      )}
+      <View
+        style={{
+          backgroundColor: PALETTE.compraSuave,
+          borderRadius: scale.space * 0.875,
+          padding: scale.space,
+          gap: scale.rowGap / 2,
+        }}
+      >
+        <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.compra, textTransform: 'uppercase', letterSpacing: scale.rowGap / 8 }}>
+          {ES.providers.page.month}
+        </Text>
+        <Text style={{ fontSize: scale.titleSize * 1.2, ...TITULO, color: PALETTE.tinta }}>
+          {deliveries === 0 ? ES.providers.page.monthNone : shownAmount(month)}
+        </Text>
+        {lastDay === null ? null : (
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.compra }}>
+            {deliveries === 0
+              ? ES.providers.page.lastVisit(agoWords(lastDay, today))
+              : ES.providers.page.monthLine(deliveries, agoWords(lastDay, today))}
+          </Text>
+        )}
+      </View>
+      {brought === null || brought.length === 0 ? null : (
+        <View
+          style={{
+            backgroundColor: PALETTE.superficie,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            borderRadius: scale.space * 0.875,
+            paddingHorizontal: scale.space,
+            paddingTop: scale.space,
+          }}
+        >
+          <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.tintaApagada, textTransform: 'uppercase', letterSpacing: scale.rowGap / 8 }}>
+            {ES.providers.page.brought}
+          </Text>
+          {brought.map((one, i) => (
+            <Pressable
+              key={one.variantId}
+              accessibilityRole="button"
+              onPress={() => router.push({ pathname: '/costos/[id]', params: { id: one.variantId } })}
+              style={{
+                minHeight: scale.rowHeight,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: scale.rowGap,
+                borderTopWidth: i === 0 ? 0 : 1,
+                borderTopColor: PALETTE.linea,
+              }}
+            >
+              <View style={{ flex: 1, gap: scale.rowGap / 4 }}>
+                <Text numberOfLines={1} style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+                  {one.name}
+                </Text>
+                <Text numberOfLines={1} style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+                  {ES.providers.page.broughtLast(shownAmount(one.last), ES.numbers.descubre.perUnit(one.priceUnit))}
+                </Text>
+              </View>
+              {one.change === null ? null : (
+                <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                  {ES.providers.page.change(one.change, shownAmount(Math.abs(one.change)))}
+                </Text>
+              )}
+            </Pressable>
+          ))}
+        </View>
+      )}
+    </>
+  );
+}
+
 /** The id tying the phone pad to its accessory bar. ⚠️ Matched by STRING
  *  EQUALITY, so two spellings is a bar that renders and never appears. */
 const PAD_ID = 'wera.provider.edit.pad';
@@ -349,8 +532,12 @@ const PAD_ID = 'wera.provider.edit.pad';
 /**
  * The room's name, the supplier under it, and the way out.
  *
- * ⚠️⚠️ THE WORD ON THE WAY OUT DEPENDS ON THE ROLE, AND THAT IS THE ONE PLACE THE
- * FENCE CHANGES A WORD RATHER THAN HIDING A CONTROL. *Cancelar* is what you say to
+ * ⚠️ SINCE `8g` (2026-10-20) THE WORD FOLLOWS THE MODE, NOT THE ROLE: her page
+ * says *Volver* to everyone, and the form behind *Editar* says *Cancelar*, which
+ * returns to her page. What follows is the earlier argument, kept for its reason.
+ *
+ * ⚠️⚠️ THE WORD ON THE WAY OUT DEPENDED ON THE ROLE, AND THAT WAS THE ONE PLACE THE
+ * FENCE CHANGED A WORD RATHER THAN HIDING A CONTROL. *Cancelar* is what you say to
  * typing that will be thrown away; a cashier has nothing to throw away, so for her
  * it is *Volver* — the word the directory itself uses. A screen that told her to
  * cancel something she could not do would be describing a form she never had.
@@ -359,7 +546,17 @@ const PAD_ID = 'wera.provider.edit.pad';
  * separate *Proveedor* heading for her would be a second spelling of one room, and
  * the reason she is here at all is the same reason a manager is.
  */
-function Banda({ subtitle, mayWrite }: { subtitle: string; mayWrite: boolean }) {
+function Banda({
+  title,
+  subtitle,
+  back,
+  onBack,
+}: {
+  title: string;
+  subtitle: string;
+  back: string;
+  onBack: () => void;
+}) {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   return (
@@ -382,7 +579,7 @@ function Banda({ subtitle, mayWrite }: { subtitle: string; mayWrite: boolean }) 
           numberOfLines={1}
           style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}
         >
-          {ES.providers.edit.title}
+          {title}
         </Text>
         {subtitle === '' ? null : (
           <Text
@@ -395,7 +592,7 @@ function Banda({ subtitle, mayWrite }: { subtitle: string; mayWrite: boolean }) 
       </View>
       <Pressable
         accessibilityRole="button"
-        onPress={() => router.back()}
+        onPress={onBack}
         style={{
           minHeight: scale.tapTarget,
           minWidth: scale.tapTarget,
@@ -404,7 +601,7 @@ function Banda({ subtitle, mayWrite }: { subtitle: string; mayWrite: boolean }) 
         }}
       >
         <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-          {mayWrite ? ES.providers.edit.cancel : ES.providers.back}
+          {back}
         </Text>
       </Pressable>
     </View>
