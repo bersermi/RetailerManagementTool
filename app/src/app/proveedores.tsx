@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { initials } from '@/api/catalog';
 import { shownAmount } from '@/api/documents';
 import { useMyRole, useProviders, useSupplierHeads } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { activityLine, activityOf, rankedProviders } from '@/api/providerPage';
 import {
   canWriteProviders,
@@ -110,6 +112,7 @@ export default function Proveedores() {
   const activity = activityOf(heads, reversals, today);
   const rows = providerRows(rankedProviders(providers, activity), typed, mayCreate);
   const list = useRef<FlatList<ProviderRowView>>(null);
+  const refresh = useRefresh();
   const box = useRef<TextInput>(null);
 
   // ⚠️⚠️ THE SEARCH BOX IS CLEARED AND BLURRED FIRST, AND WITHOUT THIS THE BLINK
@@ -159,6 +162,9 @@ export default function Proveedores() {
         // the pilot seed, not about the component.
         data={rows}
         keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.provider.id)}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         renderItem={({ item }) =>
           item.kind === 'create' ? (
             <Crear name={item.name} />

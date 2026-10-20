@@ -5,6 +5,8 @@ import { FlatList, Keyboard, Pressable, ScrollView, Text, TextInput, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
 import type { Picture } from '@/api/photos';
@@ -165,6 +167,7 @@ export default function Productos() {
   // with one empty half — seen on the emulator, 2026-10-17.
   const cells: readonly Celda[] = mosaic && rows.length % 2 === 1 ? [...rows, HUECO] : rows;
   const list = useRef<FlatList<Celda>>(null);
+  const refresh = useRefresh();
   // ⚠️ THE SEARCH BOX ITSELF, because dismissing the keyboard is not the same as
   // giving up focus — see the effect below.
   const box = useRef<TextInput>(null);
@@ -245,6 +248,9 @@ export default function Productos() {
         // ⚠️ A NEW KEY PER SHAPE: `numColumns` cannot change on a mounted list.
         key={mosaic ? 'mosaico' : 'lista'}
         numColumns={mosaic ? 2 : 1}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         data={cells}
         keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.kind === 'hueco' ? 'hueco' : row.entry.id)}
         renderItem={({ item }) =>
