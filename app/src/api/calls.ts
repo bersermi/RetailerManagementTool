@@ -195,6 +195,13 @@ import {
   type PriceRows,
 } from '@/api/prices';
 import {
+  MONTH_PAGE,
+  MONTH_TIEBREAK,
+  MONTH_TIME_COLUMN,
+  REVERSAL_COLUMN,
+  type ReversalRow,
+} from '@/api/month';
+import {
   SALES_ACTIVE_COLUMN,
   SALES_COLUMNS,
   SALES_DAY_COLUMN,
@@ -1277,6 +1284,63 @@ export async function shopSales(since: string): Promise<SalesRow[]> {
     const page = (data ?? []) as unknown as SalesRow[];
     rows.push(...page);
     if (page.length < SALES_PAGE) return rows;
+  }
+}
+
+/**
+ * Every header of one kind of document whose `occurred_at` falls in a window,
+ * oldest first. Plan task `8g` — Números' *Tu mes* and *Descubre*.
+ *
+ * ⚠️ IT PAGES, `shopSales`' reason: a busy month of sales is more than
+ * `max_rows`, and PostgREST truncates without saying so. The order is total —
+ * the time, then the id.
+ * ⚠️ NO LOCATION FILTER AND NO ROLE: the three tables' own policies scope a
+ * cashier to her stores (`0003`), and purchase headers are hers since `0040`.
+ * ⚠️ `to` IS EXCLUSIVE, and `null` means *until now*.
+ */
+export async function documentsBetween<T>(
+  table: string,
+  columns: string,
+  from: string,
+  to: string | null,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let at = 0; ; at += MONTH_PAGE) {
+    let query = supabase.from(table).select(columns).gte(MONTH_TIME_COLUMN, from);
+    if (to !== null) query = query.lt(MONTH_TIME_COLUMN, to);
+    const { data, error } = await query
+      .order(MONTH_TIME_COLUMN, { ascending: true })
+      .order(MONTH_TIEBREAK, { ascending: true })
+      .range(at, at + MONTH_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as T[];
+    rows.push(...page);
+    if (page.length < MONTH_PAGE) return rows;
+  }
+}
+
+/**
+ * Every reversal of one kind made since `from` — which document each undoes.
+ *
+ * ⚠️ FROM THE WINDOW'S FIRST DAY TO NOW, NOT TO THE WINDOW'S END: a delivery of
+ * September voided in October is undone, and `standing` (`@/api/month`) has to
+ * see that void to leave it out of September (`8p`).
+ */
+export async function reversalsSince(table: string, from: string): Promise<ReversalRow[]> {
+  const rows: ReversalRow[] = [];
+  for (let at = 0; ; at += MONTH_PAGE) {
+    const { data, error } = await supabase
+      .from(table)
+      .select(REVERSAL_COLUMN)
+      .not(REVERSAL_COLUMN, 'is', null)
+      .gte(MONTH_TIME_COLUMN, from)
+      .order(MONTH_TIME_COLUMN, { ascending: true })
+      .order(MONTH_TIEBREAK, { ascending: true })
+      .range(at, at + MONTH_PAGE - 1);
+    if (error) throw reported(error);
+    const page = (data ?? []) as unknown as ReversalRow[];
+    rows.push(...page);
+    if (page.length < MONTH_PAGE) return rows;
   }
 }
 

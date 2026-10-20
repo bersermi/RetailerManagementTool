@@ -3086,6 +3086,82 @@ export const ES = {
      */
     opens: '›',
     opensHint: 'Ver cómo se han movido sus precios',
+    /** ⚠️ `8g` (2026-10-20): the sales page, opened from *Vendiste*. */
+    salesTitle: 'Ventas',
+    /**
+     * ⚠️ `8g` — TU MES, the owner's rulings of 2026-10-20: the month in the three
+     * counters' colours, and every comparison in PESOS AND WORDS, never a
+     * percentage. The grammar lives here (`members.shareMessage`'s rule).
+     */
+    mes: {
+      title: 'TU MES',
+      sold: 'VENDISTE',
+      bought: 'COMPRASTE',
+      thrown: 'SE TIRÓ',
+      previousMonth: 'Mes anterior',
+      nextMonth: 'Mes siguiente',
+      /**
+       * Against last month. ⚠️ The month under way is compared with the SAME DAYS
+       * of the last one (`monthSales`), and the sentence says so. A fall is said
+       * plainly and in ink, never in red: it is information, not an alarm.
+       */
+      compare: (delta: number, amount: string, month: string, sameDays: boolean) => {
+        const against = sameDays ? `en los mismos días de ${month}` : month;
+        if (delta === 0) return sameDays ? `Igual que en los mismos días de ${month}` : `Igual que ${month}`;
+        return delta > 0 ? `${amount} más que ${against}` : `${amount} menos que ${against}`;
+      },
+      purchases: (deliveries: number, top: string | null) => {
+        const count = deliveries === 1 ? '1 entrega' : `${deliveries} entregas`;
+        return top === null ? count : `${count} · ${top} el que más`;
+      },
+      noPurchases: 'Ninguna entrega este mes',
+      pieces: (n: string) => (n === '1' ? '1 pieza' : `${n} piezas`),
+      nothingThrown: 'Nada este mes',
+      topReason: (cause: string) => `${cause}, lo que más`,
+      download: 'Descargar el mes',
+      /** A figure that could not be read: a dash and this, never a smaller number. */
+      unreadable: 'No se pudo leer ahora',
+      opensHint: 'Ver tus ventas, día por día y producto por producto',
+    },
+    /** ⚠️ `8g`: a shop's first week — never an empty screen on day one. */
+    firstWeek: {
+      title: 'TU PRIMERA SEMANA',
+      days: (n: number) => (n === 1 ? 'Hoy empezaste con Wera' : `Llevas ${n} días con Wera`),
+      encourage: 'Cada venta que registras hace tus números más útiles.',
+    },
+    /**
+     * ⚠️ `8g` — DESCUBRE: what her own numbers say, each with one line of what it
+     * is FOR. ⚠️ A TIP IS ABOUT HER OWN PATTERN AND NEVER AN ORDER QUANTITY OR A
+     * SUPPLIER — the owner's ruling of 2026-10-20: a wrong tip costs trust.
+     */
+    descubre: {
+      title: 'DESCUBRE',
+      hoursTitle: '¿A QUÉ HORA VENDES MÁS?',
+      hoursWindow: (from: number, to: number) => {
+        const twelve = (h: number) => (h % 12 === 0 ? 12 : h % 12);
+        const part = (h: number) =>
+          h < 5 || h >= 24 ? 'de la madrugada' : h < 12 ? 'de la mañana' : h < 19 ? 'de la tarde' : 'de la noche';
+        return part(from) === part(to)
+          ? `De ${twelve(from)} a ${twelve(to)} ${part(to)}`
+          : `De ${twelve(from)} ${part(from)} a ${twelve(to)} ${part(to)}`;
+      },
+      hoursTip: (from: number) =>
+        `Ten la tienda lista antes de las ${from % 12 === 0 ? 12 : from % 12}: el refri lleno y cambio en la caja.`,
+      hoursBasis: 'Con tus ventas de las últimas cuatro semanas.',
+      dayTitle: 'TU MEJOR DÍA',
+      dayBig: (weekday: string) => `Los ${weekday.endsWith('s') ? weekday : `${weekday}s`}`,
+      dayDetail: (best: string, bestAmount: string, worst: string, worstAmount: string) =>
+        `Un ${best} vendes ${bestAmount}; un ${worst}, ${worstAmount}.`,
+      dayTip: (best: string) => `Que no te falte nada el ${best}: es el día que más vendes.`,
+    },
+    /** ⚠️ `8g` — what opens as a shop builds its history, and how long until it does. */
+    pronto: {
+      title: 'SE ABREN PRONTO',
+      hours: '¿A qué hora vendes más?',
+      hoursWhen: (left: number) => (left === 1 ? 'Te falta 1 venta' : `Te faltan ${left} ventas`),
+      day: 'Tu mejor día de la semana',
+      dayWhen: (left: number) => (left === 1 ? 'Mañana' : `En ${left} días`),
+    },
   },
 
   /**
