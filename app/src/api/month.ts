@@ -15,8 +15,9 @@
 // AWAY), a shop's first week, and the two discoveries that are true from the
 // first days — the strongest hours and the best day of the week. Round 2 (the
 // same night) adds the quincena and what each customer leaves, both off reads
-// round 1 already makes. Everything is read off what the ledger already holds;
-// nothing here writes.
+// round 1 already makes; round 3 what went up in price, with her own products,
+// and her days as squares. Everything is read off what the ledger already
+// holds; nothing here writes.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ A CORRECTION COUNTS ON THE DAY OF WHAT IT CORRECTS (`8p`, `0064`)
@@ -37,9 +38,10 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
-import { isoDay } from '@/api/catalog';
+import { isoDay, type UnitFactors } from '@/api/catalog';
 import { shownAmount } from '@/api/documents';
 import { monthShift } from '@/api/monthExport';
+import { pointsFrom } from '@/api/prices';
 import { dayTotals, type SoldDay } from '@/api/sales';
 import { isWasteReason, WASTE_REASONS, type WasteReason } from '@/api/waste';
 import { ES } from '@/strings';
@@ -638,4 +640,164 @@ export function ticketOf(rows: readonly SaleHead[] | null | undefined, today: st
     biggest: toPeso(Math.max(...recent)),
     before: earlier.length < HOURS_MIN_SALES ? null : averageOf(earlier),
   };
+}
+
+// ------------------------------------------------- descubre: what went up ----
+
+/**
+ * Every product's delivery price per day, con IVA — `Precios`' purchase side
+ * (the forty-first ruling: both of its lines with IVA), read for every product
+ * at once. ⚠️ Off `product_purchases_daily`, which a cashier reads since `0040`,
+ * so the card is the same in every hand.
+ */
+export const RISE_COLUMNS = 'variant_id,day,price:purchase_price_last_gross::text';
+
+/**
+ * The read's whole order. ⚠️ With every product read at once, `(day, variant,
+ * location)` is the view's grain, so the order is total and the pages reassemble.
+ */
+export const RISE_ORDER = 'day,variant_id,location_id';
+
+/** How many whole months back the deliveries are read, besides this one. */
+export const RISE_MONTHS = 6;
+
+export function risesKey(since: string): readonly unknown[] {
+  return ['month', 'rises', since];
+}
+
+/** The first day the read reaches. */
+export function risesSince(today: string): string {
+  return monthShift(`${today.slice(0, 7)}-01`, -RISE_MONTHS);
+}
+
+export interface RiseRow {
+  readonly variant_id: string;
+  readonly day: string;
+  readonly price: string | null;
+}
+
+export interface Rise {
+  readonly variantId: string;
+  readonly name: string;
+  readonly priceUnit: string;
+  /** Centavos per price unit, con IVA: the first delivery in the window, and the last. */
+  readonly from: number;
+  readonly to: number;
+  /** The day of `from`. */
+  readonly since: string;
+}
+
+export interface Rises {
+  readonly locked: false;
+  /** What went up, the most first — by how much against what it cost, said in pesos. Empty: nothing did. */
+  readonly top: readonly Rise[];
+  /** The first delivery the window holds. */
+  readonly since: string;
+}
+
+/** How many products the card names. */
+export const RISES_SHOWN = 4;
+
+/**
+ * What she buys that costs more now than at the first delivery the window holds.
+ *
+ * ⚠️ RANKED BY HOW MUCH AGAINST WHAT IT COST, SAID IN PESOS: $5 on a $33 kilo of
+ * egg is the news, $8 on a $300 kilo of cheese is not — but the card says *+$5
+ * el kilo*, never a percentage (the owner's ruling). ⚠️ The price is per the
+ * product's PRICE unit (`pointsFrom`, `Precios`' arithmetic), so a kilo bought
+ * as grams reads per kilo. ⚠️ It waits for one product bought on two days —
+ * there is no *up* before that.
+ */
+export function risesOf(
+  rows: readonly RiseRow[] | null | undefined,
+  entries: readonly { readonly id: string; readonly name: string; readonly priceUnit: string }[],
+  factors: UnitFactors,
+): Rises | Locked | null {
+  if (rows === null || rows === undefined) return null;
+  const byVariant = new Map<string, RiseRow[]>();
+  for (const row of rows) {
+    const list = byVariant.get(row.variant_id) ?? [];
+    list.push(row);
+    byVariant.set(row.variant_id, list);
+  }
+  let have = 0;
+  let since: string | null = null;
+  const up: Rise[] = [];
+  for (const entry of entries) {
+    const points = pointsFrom(byVariant.get(entry.id) ?? [], entry.priceUnit, factors);
+    if (points === null || points.length === 0) continue;
+    have = Math.max(have, Math.min(points.length, 2));
+    const first = points[0]!;
+    const last = points[points.length - 1]!;
+    if (since === null || first.day < since) since = first.day;
+    if (points.length < 2 || last.centavos <= first.centavos || first.centavos <= 0) continue;
+    up.push({ variantId: entry.id, name: entry.name, priceUnit: entry.priceUnit, from: first.centavos, to: last.centavos, since: first.day });
+  }
+  if (have < 2 || since === null) return { locked: true, have, need: 2 };
+  // ⚠️ CROSS-MULTIPLIED, never divided: integer centavos throughout (`R5`).
+  up.sort((a, b) => (b.to - b.from) * a.from - (a.to - a.from) * b.from || a.name.localeCompare(b.name));
+  return { locked: false, top: up.slice(0, RISES_SHOWN), since };
+}
+
+/** *el 3 de junio*. */
+export function dayWords(day: string): string {
+  return ES.numbers.descubre.dayWords(Number(day.slice(8, 10)), ES.dates.months[Number(day.slice(5, 7)) - 1] ?? '');
+}
+
+// ------------------------------------------------- descubre: the squares ----
+
+/** Days of history before the squares say anything — four columns. */
+export const YEAR_MIN_DAYS = 28;
+
+export interface Year {
+  readonly locked: false;
+  /**
+   * One column per week, Monday first. A cell is 0 (nothing sold) to 4 (her
+   * busiest quarter of days), or `null` before her first sale and after today.
+   */
+  readonly weeks: readonly (readonly (number | null)[])[];
+  /** A month's short name over the column its first day falls in. */
+  readonly months: readonly { readonly column: number; readonly name: string }[];
+}
+
+/**
+ * Every day since her first sale as a square, darker the more it sold — her
+ * seasons, without a word of explanation.
+ *
+ * ⚠️ SHADES BY HER OWN QUARTERS, never by fixed amounts: a shop that sells $800
+ * a day and one that sells $8,000 both get four shades. ⚠️ As far as the sales
+ * read reaches (six months), which is why the canvas drew six.
+ */
+export function yearOf(days: readonly SoldDay[], today: string): Year | Locked {
+  const age = shopAge(days, today);
+  if (age === null || age < YEAR_MIN_DAYS) return { locked: true, have: age ?? 0, need: YEAR_MIN_DAYS };
+  const totals = dayTotals(days);
+  let first = today;
+  for (const [day, c] of totals) if (c > 0 && day < first) first = day;
+  const sold = [...totals.values()].filter((c) => c > 0).sort((a, b) => a - b);
+  const cut = (q: number): number => sold[Math.min(sold.length - 1, Math.floor((sold.length * q) / 4))] ?? 0;
+  const q1 = cut(1);
+  const q2 = cut(2);
+  const q3 = cut(3);
+  const level = (c: number): number => (c <= 0 ? 0 : c <= q1 ? 1 : c <= q2 ? 2 : c <= q3 ? 3 : 4);
+  // Back to the Monday on or before her first sale.
+  const dow = (new Date(`${first}T00:00:00Z`).getUTCDay() + 6) % 7;
+  let day = daysBefore(first, dow);
+  const weeks: (number | null)[][] = [];
+  const months: { column: number; name: string }[] = [];
+  while (day <= today) {
+    const week: (number | null)[] = [];
+    for (let i = 0; i < 7; i += 1) {
+      if (day.endsWith('-01') || (weeks.length === 0 && i === 0)) {
+        const name = ES.dates.months[Number(day.slice(5, 7)) - 1] ?? '';
+        const short = name.charAt(0).toUpperCase() + name.slice(1, 3);
+        // The first column names its month only when the next name is far enough off.
+        if (weeks.length > 0 || Number(day.slice(8, 10)) <= 21) months.push({ column: weeks.length, name: short });
+      }
+      week.push(day < first || day > today ? null : level(totals.get(day) ?? 0));
+      day = daysBefore(day, -1);
+    }
+    weeks.push(week);
+  }
+  return { locked: false, weeks, months };
 }

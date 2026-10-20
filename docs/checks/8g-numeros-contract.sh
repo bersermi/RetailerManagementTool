@@ -20,6 +20,10 @@
 #      a 200 with `[]`, and *Se tiró* would read *Nada este mes* in her hand
 #      while the owner's said *8 piezas* ([[embed-on-a-fenced-table-is-a-200-with-an-empty-array]]).
 #   5. ANOTHER SHOP READS NONE OF THEM — 200 and `[]`.
+#   6. (round 3) EVERY PRODUCT'S DELIVERY PRICES, the read *lo que más subió*
+#      makes: 200, the price a string, and the same rows in a cashier's hand —
+#      `product_purchases_daily` is fenced by every table it joins, and `0040`
+#      widened both of the ones that carry a price.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/8g-numeros-contract.sh
 # Exit: 0 when every group holds; 1 otherwise.
@@ -28,7 +32,8 @@ set -uo pipefail
 
 CONTRACT="${1:-app/src/api/month.ts}"
 DOCS="${2:-app/src/api/documents.ts}"
-[[ -r "$CONTRACT" && -r "$DOCS" ]] || { echo "FAIL: cannot read $CONTRACT / $DOCS"; exit 1; }
+PRICES="${3:-app/src/api/prices.ts}"
+[[ -r "$CONTRACT" && -r "$DOCS" && -r "$PRICES" ]] || { echo "FAIL: cannot read $CONTRACT / $DOCS / $PRICES"; exit 1; }
 
 fails=0
 ran=0
@@ -54,10 +59,16 @@ PAGE="$(num MONTH_PAGE "$CONTRACT")"
 T_PURCHASE="$(record DOCUMENTS_TABLE "$DOCS" purchase)"
 T_WASTE="$(record DOCUMENTS_TABLE "$DOCS" waste)"
 T_SALE="$(record DOCUMENTS_TABLE "$DOCS" sale)"
+RISE_COLUMNS="$(str RISE_COLUMNS "$CONTRACT")"
+RISE_ORDER="$(str RISE_ORDER "$CONTRACT")"
+RISE_VIEW="$(str PURCHASE_PRICE_VIEW "$PRICES")"
+RISE_TRADED="$(str PURCHASE_PRICE_TRADED_COLUMN "$PRICES")"
+RISE_DAY="$(str PRICE_DAY_COLUMN "$PRICES")"
 
 note
 MISSING=""
-for name in PURCHASE_COLUMNS WASTE_COLUMNS SALE_COLUMNS REVERSAL TIME TIE PAGE T_PURCHASE T_WASTE T_SALE; do
+for name in PURCHASE_COLUMNS WASTE_COLUMNS SALE_COLUMNS REVERSAL TIME TIE PAGE T_PURCHASE T_WASTE T_SALE \
+            RISE_COLUMNS RISE_ORDER RISE_VIEW RISE_TRADED RISE_DAY; do
   eval "value=\$$name"
   [[ -n "$value" ]] || MISSING="$MISSING $name"
 done
@@ -219,6 +230,10 @@ nxt = datetime.datetime(now.year + (now.month == 12), now.month % 12 + 1, 1).ast
 print(start.strftime("%Y-%m-%dT%H:%M:%S.000Z"), nxt.strftime("%Y-%m-%dT%H:%M:%S.000Z"))')"
 ORDER="order=$TIME.asc,$TIE.asc&offset=0&limit=$PAGE"
 window() { api GET "/rest/v1/$1?select=$2&$TIME=gte.$FROM&$TIME=lt.$TO&$ORDER"; }
+# Round 3's read, spelled as `purchasePricesSince` spells it: every product, a
+# traded day, from a first day, in the module's whole order.
+SINCE="$(python3 -c 'import datetime;d=datetime.date.today();m=d.month-6;y=d.year+(m-1)//12;print("%04d-%02d-01"%(y,(m-1)%12+1))')"
+rises() { api GET "/rest/v1/$RISE_VIEW?select=$RISE_COLUMNS&$RISE_TRADED=gt.0&$RISE_DAY=gte.$SINCE&order=$(sed 's/,/.asc,/g' <<< "$RISE_ORDER").asc&offset=0&limit=$PAGE"; }
 reversals() { api GET "/rest/v1/$1?select=$REVERSAL&$REVERSAL=not.is.null&$TIME=gte.$FROM&$ORDER"; }
 
 # --- 2 and 3. the owner's reads ---------------------------------------------
@@ -226,13 +241,29 @@ TOKEN="$OWNER_TOKEN"
 O_BUY="$(window "$T_PURCHASE" "$PURCHASE_COLUMNS")"; O_BUY_R="$(reversals "$T_PURCHASE")"
 O_WASTE="$(window "$T_WASTE" "$WASTE_COLUMNS")";     O_WASTE_R="$(reversals "$T_WASTE")"
 O_SALE="$(window "$T_SALE" "$SALE_COLUMNS")"
+O_RISE="$(rises)"
 note
-if [[ "$(status "$O_BUY")$(status "$O_BUY_R")$(status "$O_WASTE")$(status "$O_WASTE_R")$(status "$O_SALE")" == "200200200200200" ]]; then
-  ok "all five reads Números makes answer 200 — the columns, the embed and the filters exist"
+if [[ "$(status "$O_BUY")$(status "$O_BUY_R")$(status "$O_WASTE")$(status "$O_WASTE_R")$(status "$O_SALE")$(status "$O_RISE")" == "200200200200200200" ]]; then
+  ok "all six reads Números makes answer 200 — the columns, the embed, the filters and the order exist"
 else
-  fail "THE READS ANSWERED: deliveries $(status "$O_BUY") $(body "$O_BUY" | head -c 200) / reversals $(status "$O_BUY_R") $(body "$O_BUY_R" | head -c 200) / write-offs $(status "$O_WASTE") $(body "$O_WASTE" | head -c 200) / their reversals $(status "$O_WASTE_R") / sales $(status "$O_SALE") $(body "$O_SALE" | head -c 200)"
+  fail "THE READS ANSWERED: deliveries $(status "$O_BUY") $(body "$O_BUY" | head -c 200) / reversals $(status "$O_BUY_R") $(body "$O_BUY_R" | head -c 200) / write-offs $(status "$O_WASTE") $(body "$O_WASTE" | head -c 200) / their reversals $(status "$O_WASTE_R") / sales $(status "$O_SALE") $(body "$O_SALE" | head -c 200) / delivery prices $(status "$O_RISE") $(body "$O_RISE" | head -c 200)"
   exit 1
 fi
+
+cat > "$SCRATCH/rise.py" <<'PY'
+import json, sys
+rows = json.load(open(sys.argv[1])); pan = sys.argv[2]
+if not isinstance(rows, list) or not rows:
+    print('THE DELIVERY PRICES CAME BACK EMPTY for a shop with a standing delivery: %r' % (rows,)); raise SystemExit
+for r in rows:
+    if not isinstance(r.get('price'), str):
+        print('a delivery price arrived as %s rather than a string — the ::text cast is gone, '
+              'and parseDecimal refuses a number' % type(r.get('price')).__name__); raise SystemExit
+if [r['variant_id'] for r in rows] != [pan]:
+    print('the delivery prices name %r — wanted only the bread Don Chuy brought' % ([r['variant_id'] for r in rows],)); raise SystemExit
+print('ok — the bread\'s delivery price, as a string, under the alias the app parses')
+PY
+verdict "every product's delivery prices, read the way the app reads them" "$SCRATCH/rise.py" "$(stash o_rise "$O_RISE")" "$PAN"
 
 cat > "$SCRATCH/owner.py" <<'PY'
 import json, sys
@@ -276,10 +307,11 @@ api POST /rest/v1/rpc/redeem_invite "{\"p_token\":\"$INVITE_TOKEN\"}" > /dev/nul
 TOKEN="$STAFF_TOKEN"
 H_BUY="$(window "$T_PURCHASE" "$PURCHASE_COLUMNS")"; H_WASTE="$(window "$T_WASTE" "$WASTE_COLUMNS")"
 H_SALE="$(window "$T_SALE" "$SALE_COLUMNS")"; H_WASTE_R="$(reversals "$T_WASTE")"
+H_RISE="$(rises)"
 cat > "$SCRATCH/same.py" <<'PY'
 import json, sys
-pairs = [(json.load(open(sys.argv[i])), json.load(open(sys.argv[i + 1]))) for i in (1, 3, 5, 7)]
-names = ('deliveries', 'write-offs', 'sales', 'write-off reversals')
+pairs = [(json.load(open(sys.argv[i])), json.load(open(sys.argv[i + 1]))) for i in (1, 3, 5, 7, 9)]
+names = ('deliveries', 'write-offs', 'sales', 'write-off reversals', 'delivery prices')
 for name, (owner, hers) in zip(names, pairs):
     if not isinstance(hers, list):
         print('THE CASHIER\'S %s READ CAME BACK AS AN ERROR: %r' % (name, hers)); raise SystemExit
@@ -289,28 +321,29 @@ for name, (owner, hers) in zip(names, pairs):
 lines = [l for r in pairs[1][1] for l in (r.get('waste_reason_line') or [])]
 if not lines:
     print('THE CASHIER READS NO WRITE-OFF LINES — Se tiró would say Nada este mes in her hand'); raise SystemExit
-print('ok — %d deliveries, %d write-off lines and %d sales, identical to the owner\'s' %
-      (len(pairs[0][1]), len(lines), len(pairs[2][1])))
+print('ok — %d deliveries, %d write-off lines, %d sales and %d delivery prices, identical to the owner\'s' %
+      (len(pairs[0][1]), len(lines), len(pairs[2][1]), len(pairs[4][1])))
 PY
-verdict "a cashier reads the same month as the owner, write-off lines included" "$SCRATCH/same.py" \
+verdict "a cashier reads the same month as the owner, write-off lines and delivery prices included" "$SCRATCH/same.py" \
   "$(stash o_buy2 "$O_BUY")" "$(stash h_buy "$H_BUY")" "$(stash o_waste2 "$O_WASTE")" "$(stash h_waste "$H_WASTE")" \
-  "$(stash o_sale2 "$O_SALE")" "$(stash h_sale "$H_SALE")" "$(stash o_waste_r2 "$O_WASTE_R")" "$(stash h_waste_r "$H_WASTE_R")"
+  "$(stash o_sale2 "$O_SALE")" "$(stash h_sale "$H_SALE")" "$(stash o_waste_r2 "$O_WASTE_R")" "$(stash h_waste_r "$H_WASTE_R")" \
+  "$(stash o_rise2 "$O_RISE")" "$(stash h_rise "$H_RISE")"
 
 # --- 5. and another shop reads none of them ---------------------------------
 signup "numeros-stranger-$STAMP@example.com"
 api POST /rest/v1/rpc/onboard_workspace '{"p_display_name":"Otra tienda 8g","p_prices_include_tax":true,"p_location_name":null}' > /dev/null
-THEIRS="$(body "$(window "$T_PURCHASE" "$PURCHASE_COLUMNS")")$(body "$(window "$T_WASTE" "$WASTE_COLUMNS")")$(body "$(window "$T_SALE" "$SALE_COLUMNS")")"
+THEIRS="$(body "$(window "$T_PURCHASE" "$PURCHASE_COLUMNS")")$(body "$(window "$T_WASTE" "$WASTE_COLUMNS")")$(body "$(window "$T_SALE" "$SALE_COLUMNS")")$(body "$(rises)")"
 note
-if [[ "$THEIRS" == "[][][]" ]]; then
-  ok "another shop's owner reads none of this month — 200 and [] on all three"
+if [[ "$THEIRS" == "[][][][]" ]]; then
+  ok "another shop's owner reads none of this month — 200 and [] on all four"
 else
   fail "ANOTHER SHOP READ THIS SHOP'S MONTH: $THEIRS"
 fi
 
 # --- the verdict -------------------------------------------------------------
 echo
-if (( ran < 7 )); then
-  echo "FAIL: only $ran assertion group(s) ran; this check has at least 7. Something"
+if (( ran < 8 )); then
+  echo "FAIL: only $ran assertion group(s) ran; this check has at least 8. Something"
   echo "      exited early and a green here would be vacuous."
   exit 1
 fi

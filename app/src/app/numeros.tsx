@@ -13,11 +13,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shownAmount } from '@/api/documents';
-import { useMonthExport, useMonthReport, useSaleHours, useSales } from '@/api/hooks';
+import { useMonthExport, useMonthReport, usePurchasePrices, useSaleHours, useSales } from '@/api/hooks';
 import {
   FIRST_WEEK_DAYS,
   bestDay,
   compareLine,
+  dayWords,
   hoursLine,
   monthSales,
   purchasesLine,
@@ -25,12 +26,16 @@ import {
   quincenaOf,
   quincenaWay,
   quincenaWhen,
+  risesOf,
   shopAge,
   wasteAmount,
+  yearOf,
   type BestDay,
   type Hours,
   type Quincena,
+  type Rises,
   type Ticket,
+  type Year,
 } from '@/api/month';
 import {
   exportFileName,
@@ -170,6 +175,8 @@ export default function Numeros() {
             ready={sales.state !== 'unknown' || failed !== null}
             line={line}
             days={sales.days}
+            entries={entries}
+            factors={factors}
             onSales={openSales}
           />
         ) : (
@@ -224,6 +231,8 @@ function Centro({
   ready,
   line,
   days,
+  entries,
+  factors,
   onSales,
 }: {
   month: string;
@@ -232,6 +241,8 @@ function Centro({
   ready: boolean;
   line: string;
   days: Parameters<typeof monthSales>[0];
+  entries: Parameters<typeof risesOf>[1];
+  factors: Parameters<typeof risesOf>[2];
   onSales: () => void;
 }) {
   const { scale } = useDensity();
@@ -240,6 +251,9 @@ function Centro({
   const { hours, ticket } = useSaleHours();
   const day = bestDay(days, today);
   const quincena = quincenaOf(days, today);
+  const { rows: bought } = usePurchasePrices();
+  const rises = risesOf(bought, entries, factors);
+  const year = yearOf(days, today);
   // ⚠️ ONE ORDER FOR BOTH LISTS — what opens first is drawn first, so a card
   // moves from *Se abren pronto* to *Descubre* without changing its place.
   const discoveries: React.ReactNode[] = [];
@@ -259,6 +273,14 @@ function Centro({
   if (!quincena.locked) discoveries.push(<EfectoQuincena key="quincena" quincena={quincena} />);
   else if (age !== null) {
     locked.push({ key: 'quincena', title: ES.numbers.pronto.quincena, when: quincenaWhen(quincena, today), ...quincena });
+  }
+  if (rises !== null && !rises.locked) discoveries.push(<Subio key="rises" rises={rises} />);
+  else if (rises !== null) {
+    locked.push({ key: 'rises', title: ES.numbers.pronto.rises, when: ES.numbers.pronto.risesWhen(rises.need - rises.have), ...rises });
+  }
+  if (!year.locked) discoveries.push(<Cuadritos key="year" year={year} />);
+  else if (age !== null) {
+    locked.push({ key: 'year', title: ES.numbers.pronto.year, when: ES.numbers.pronto.dayWhen(year.need - year.have), ...year });
   }
 
   return (
@@ -483,7 +505,9 @@ function Descubre({ children }: { children: React.ReactNode }) {
         snapToInterval={width + scale.rowGap}
         snapToAlignment="start"
         disableIntervalMomentum
-        contentContainerStyle={{ gap: scale.rowGap }}
+        // ⚠️ EACH CARD KEEPS ITS OWN HEIGHT: stretched to the tallest (round 3's
+        // list of what went up), the short ones read as half-empty.
+        contentContainerStyle={{ gap: scale.rowGap, alignItems: 'flex-start' }}
       >
         {children}
       </ScrollView>
@@ -612,6 +636,99 @@ function Cliente({ ticket }: { ticket: Ticket }) {
       <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
         {ES.numbers.descubre.ticketDetail(ticket.sales, shownAmount(ticket.biggest))}
       </Text>
+    </Hallazgo>
+  );
+}
+
+/** Lo que más subió de precio — her own deliveries, the most first, each opening its prices. */
+function Subio({ rises }: { rises: Rises }) {
+  const { scale } = useDensity();
+  const top = rises.top[0];
+  if (top === undefined) {
+    return (
+      <Hallazgo title={ES.numbers.descubre.risesTitle} big={ES.numbers.descubre.risesNone} tip={ES.numbers.descubre.risesNoneTip}>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {ES.numbers.descubre.risesNoneDetail(dayWords(rises.since))}
+        </Text>
+      </Hallazgo>
+    );
+  }
+  const per = (unit: string) => ES.numbers.descubre.perUnit(unit);
+  const open = (id: string) => router.push({ pathname: '/precios/[id]', params: { id } });
+  return (
+    <Hallazgo
+      title={ES.numbers.descubre.risesTitle}
+      big={ES.numbers.descubre.risesBig(top.name, shownAmount(top.to - top.from), per(top.priceUnit))}
+      tip={ES.numbers.descubre.risesTip}
+    >
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {ES.numbers.descubre.risesDetail(shownAmount(top.from), shownAmount(top.to), dayWords(top.since))}
+      </Text>
+      {rises.top.slice(1).map((rise) => (
+        <Pressable
+          key={rise.variantId}
+          accessibilityRole="button"
+          onPress={() => open(rise.variantId)}
+          style={{ minHeight: scale.tapTarget, flexDirection: 'row', alignItems: 'center', gap: scale.rowGap, borderTopWidth: 1, borderTopColor: PALETTE.linea }}
+        >
+          <Text numberOfLines={1} style={{ flex: 1, fontSize: scale.bodySize, color: PALETTE.tinta }}>{rise.name}</Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {ES.numbers.descubre.risesMore(shownAmount(rise.to - rise.from), per(rise.priceUnit))}
+          </Text>
+        </Pressable>
+      ))}
+      <Pressable accessibilityRole="button" onPress={() => open(top.variantId)} style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>
+          {`${ES.numbers.descubre.risesOpen} ›`}
+        </Text>
+      </Pressable>
+    </Hallazgo>
+  );
+}
+
+/**
+ * Tu año en cuadritos — a column per week, a square per day, darker the more it
+ * sold. ⚠️ THE SQUARE'S SIDE IS THE CARD'S WIDTH SHARED BY THE WEEKS, capped at
+ * a line's height so a young shop's few weeks are not drawn as tiles.
+ */
+function Cuadritos({ year }: { year: Year }) {
+  const { scale } = useDensity();
+  const width = useCardWidth() - scale.space * 2;
+  const gap = Math.max(1, Math.floor(scale.rowGap / 4));
+  const columns = year.weeks.length;
+  const side = Math.max(2, Math.min(scale.space, Math.floor((width - gap * (columns - 1)) / columns)));
+  const shade = [0, 0.3, 0.55, 0.8, 1];
+  return (
+    <Hallazgo title={ES.numbers.descubre.yearTitle} big={ES.numbers.descubre.yearBig} tip={ES.numbers.descubre.yearTip}>
+      <View style={{ height: scale.smallSize * 1.4 }}>
+        {year.months.map((m) => (
+          <Text
+            key={`${m.column}-${m.name}`}
+            style={{ position: 'absolute', left: m.column * (side + gap), fontSize: scale.tabLabelSize, color: PALETTE.tintaApagada }}
+          >
+            {m.name}
+          </Text>
+        ))}
+      </View>
+      <View style={{ flexDirection: 'row', gap }}>
+        {year.weeks.map((week, w) => (
+          <View key={w} style={{ gap }}>
+            {week.map((cell, d) => (
+              <View
+                key={d}
+                style={{
+                  width: side,
+                  height: side,
+                  borderRadius: side / 4,
+                  backgroundColor: cell === null ? 'transparent' : cell === 0 ? PALETTE.linea : PALETTE.accion,
+                  opacity: cell === null || cell === 0 ? 1 : shade[cell],
+                }}
+              />
+            ))}
+          </View>
+        ))}
+      </View>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.numbers.descubre.yearDetail}</Text>
     </Hallazgo>
   );
 }
