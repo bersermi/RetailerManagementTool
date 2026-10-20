@@ -20,7 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -274,8 +274,10 @@ import {
   type Picture,
   type PhotoSize,
 } from '@/api/photos';
+import { online } from '@/lib/connectivityMonitor';
 import { onLanded } from '@/lib/landedWrites';
 import { fetchPhoto, keepPhoto, keptPhoto, mayFetch } from '@/lib/photoStore';
+import { COLLECTION_SEND_KEY, SEND_ABANDONED, SEND_RETRY_MS, sendRetry } from '@/offline/teLoCompro';
 
 
 /**
@@ -751,6 +753,12 @@ export function usePendingRequests(): {
   readonly loading: boolean;
   readonly entries: readonly PendingRequest[];
   readonly count: number;
+  /**
+   * ⚠️ `8g`, 2026-10-20, the offline report's round 3: THE READ'S FAILURE, which
+   * this hook used to swallow — so a queue that never loaded said *Un momento…*
+   * for ever. `queueLine` (`@/api/approvals`) turns it into the sentence.
+   */
+  readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
   const workspace = useWorkspace();
@@ -776,6 +784,7 @@ export function usePendingRequests(): {
     // `pendingFrom` drops a row it cannot read, and a badge saying 3 over a list
     // of 2 is the app telling a shopkeeper she has missed somebody.
     count: entries.length,
+    failed: query.error ? apiErrorKey(query.error) : null,
   };
 }
 
@@ -1358,28 +1367,97 @@ export function useCollectionRequests() {
   });
 }
 
-/** Sending one. Returns a Spanish sentence, or `null` when it is recorded. */
+/**
+ * Sending one. Returns a Spanish sentence, or `null` when it is recorded.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*): WITH NO SIGNAL THE SEND WAITS INSTEAD OF FAILING, and goes by
+ * itself when the signal returns — `send` simply resolves later, and the screen
+ * goes on to *Solicitud guardada* as if it had been quick. Three settings do it,
+ * and every rule behind them is `@/offline/teLoCompro`'s:
+ *
+ *   * `networkMode: 'online'` — THE ONE WRITE THAT OVERRIDES `QueryProvider`'s
+ *     `always`. Tapped offline, the library holds the send (`paused`) before
+ *     anything leaves the phone, and starts it on the reconnect.
+ *   * `retry` — a send whose LINK was lost mid-way (a photo half up, the RPC in
+ *     the air) tries again; offline, the library holds that retry too. Only a
+ *     lost link: a refusal is said at once, as before (`afterSendFailure`).
+ *   * `retryDelay` — longer than the signal takes to believe a drop, so the
+ *     retry is held rather than spent on a dead link (`SEND_RETRY_MS`).
+ *
+ * ⚠️⚠️ A SEND THAT TRIES AGAIN CANNOT MAKE TWO REQUESTS: the photos go to paths
+ * named when they were taken, and `request_collection` answers a draft id it
+ * already holds with that request (`already_recorded`). And one send is one
+ * retryer — a reconnect and a return to the app both resuming it start it once.
+ *
+ * ⚠️⚠️ THE FORM GOING AWAY TAKES ITS SEND WITH IT. She is asked first
+ * (*¿Salir sin enviar la solicitud?*, the screen's leave-guard), so a send still
+ * waiting when the form unmounts is one she chose not to send: its next step
+ * throws `SEND_ABANDONED` instead of reaching the network, and it is dropped from
+ * the library's cache so no reconnect resumes it. ⚠️ CLOSING THE APP LOSES A
+ * WAITING REQUEST, as it already loses a draft: nothing here is the outbox.
+ * The library does write a held send to the phone with the cache, but a
+ * restored one has no `mutationFn` and is never sent (`COLLECTION_SEND_KEY`).
+ */
 export function useRequestCollection() {
   const queries = useQueryClient();
+  const here = useRef(true);
+  const strikes = useRef(0);
   const mutation = useMutation({
+    mutationKey: COLLECTION_SEND_KEY,
+    networkMode: 'online',
+    retry: sendRetry(strikes, online),
+    retryDelay: SEND_RETRY_MS,
     // ⚠️ `8m`: THE PHOTOS GO UP FIRST, under the request's own id, and the
     // request carries their paths — `0060` refuses any other shape. A photo that
     // fails stops the request: it is not sent without what she photographed.
     mutationFn: async ({ draft, photos, workspaceId }: CollectionSend) => {
       const paths: string[] = [];
       for (const photo of photos) {
+        if (!here.current) throw { code: SEND_ABANDONED };
         const path = photoPath(workspaceId, draft.id, photo.fileId);
         await uploadMermaPhoto(path, await photoBytes(photo));
         paths.push(path);
       }
+      if (!here.current) throw { code: SEND_ABANDONED };
       await requestCollection({ ...draft, photos: paths });
     },
-    onSuccess: async () => {
-      await queries.invalidateQueries({ queryKey: COLLECTION_KEY });
+    // ⚠️⚠️ THE LIST IS RE-READ AND NOT WAITED FOR — measured on the Android
+    // emulator, 2026-10-20. A send held for the signal landed on the reconnect
+    // (one row, `request_collection` 200) and the screen never reached
+    // *Solicitud guardada*: the list's own read had started on a link that died
+    // under it, Android's requests have no timeout, and for a query with no
+    // data yet `invalidateQueries` hands back THAT fetch rather than a new one —
+    // so awaiting it awaited a request that would never answer. The request is
+    // recorded the moment the call above returns; the list catches up when it
+    // can.
+    onSuccess: () => {
+      void queries.invalidateQueries({ queryKey: COLLECTION_KEY });
     },
   });
 
+  // ⚠️ A HELD SEND STARTS ITS COUNT OVER: the tries that remain are for the
+  // signal that comes back, not the one that went.
+  useEffect(() => {
+    if (mutation.isPaused) strikes.current = 0;
+  }, [mutation.isPaused]);
+
+  // ⚠️ `here` IS SET IN THE EFFECT AND NOT ONLY AT INIT, so the development
+  // build's mount–unmount–mount leaves it `true`. At most one form is mounted,
+  // so a pending send under this key on the way out is this form's.
+  useEffect(() => {
+    here.current = true;
+    return () => {
+      here.current = false;
+      const sends = queries.getMutationCache();
+      for (const m of sends.findAll({ mutationKey: COLLECTION_SEND_KEY })) {
+        if (m.state.status === 'pending') sends.remove(m);
+      }
+    };
+  }, [queries]);
+
   async function send(draft: CollectionDraft, photos: readonly LocalPhoto[], workspaceId: string): Promise<string | null> {
+    strikes.current = 0;
     try {
       await mutation.mutateAsync({ draft, photos, workspaceId });
       return null;
@@ -1388,7 +1466,7 @@ export function useRequestCollection() {
     }
   }
 
-  return { send, busy: mutation.isPending };
+  return { send, busy: mutation.isPending, paused: mutation.isPaused };
 }
 
 /** A photo on the phone, named once when it is taken (`photoPath`'s `<file>`). */
@@ -2017,11 +2095,14 @@ export function useMagnitude(): Typicals {
  * `standing` needs it to leave the voided document out.
  * ⚠️ NOT PERSISTED and fresh for a minute: a month is looked at with a signal,
  * and `Lo último` is where the offline record lives.
+ * ⚠️ EACH READ REPORTS ITS OWN FAILURE (`8g`, 2026-10-20, round 3): one failure
+ * for both put *Sin dato* over a block whose read had answered, or was still out.
  */
 export function useMonthReport(month: string): {
   readonly purchases: MonthPurchases | null;
   readonly waste: MonthWaste | null;
-  readonly failed: ApiMessageKey | null;
+  readonly purchasesFailed: ApiMessageKey | null;
+  readonly wasteFailed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
   const enabled = ready && session !== null;
@@ -2054,11 +2135,11 @@ export function useMonthReport(month: string): {
     return name === null || name === '' ? name : name.charAt(0).toUpperCase() + name.slice(1);
   };
   const baseOf = (id: string): string | null => entries.find((e) => e.id === id)?.baseUnit ?? null;
-  const error = bought.error ?? thrown.error;
   return {
     purchases: bought.data ? monthPurchases(bought.data.rows, bought.data.reversals, nameOf) : null,
     waste: thrown.data ? monthWaste(thrown.data.rows, thrown.data.reversals, baseOf) : null,
-    failed: error ? apiErrorKey(error) : null,
+    purchasesFailed: bought.error ? apiErrorKey(bought.error) : null,
+    wasteFailed: thrown.error ? apiErrorKey(thrown.error) : null,
   };
 }
 
@@ -2298,6 +2379,13 @@ export function useMonthExport(): {
           queryKey: exportKey(month),
           queryFn: () => monthRows(month),
           staleTime: 60_000,
+          // ⚠️⚠️ `always`, `8g`, 2026-10-20 (the offline report's round 3): since
+          // `QueryProvider` tells the library the signal, a `fetchQuery` offline
+          // is PAUSED — the button sat on *Preparando…* until the signal came back
+          // and then opened the share sheet by itself, minutes later. This is a
+          // tap, not a read on screen, so it is sent, fails, and says *Sin
+          // conexión* as it did before the signal was wired — the mutations' rule.
+          networkMode: 'always',
         });
         return { ...exportFrom(rows), failed: null };
       } catch (error) {

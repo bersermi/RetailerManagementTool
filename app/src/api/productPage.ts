@@ -17,11 +17,13 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
-import { bucketOf, reportOf, type SoldDay } from '@/api/sales';
+import { bucketOf, reportOf, type SalesState, type SoldDay } from '@/api/sales';
 import { daysFrom } from '@/format/date';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 import { searchTerm, type CatalogEntry, type UnitFactors, type UnitRow } from '@/api/catalog';
-import type { Costs } from '@/api/costs';
+import type { Online } from '@/api/connectivity';
+import type { Costs, CostsState } from '@/api/costs';
 import type { Picture } from '@/api/photos';
 
 /** One aisle — a family the shop sells something in. */
@@ -181,6 +183,36 @@ export function boughtWhen(day: string, today: string): string {
   if (ago === null || ago <= 0) return ES.products.page.when.today;
   if (ago === 1) return ES.products.page.when.yesterday;
   return ES.products.page.when.daysAgo(ago);
+}
+
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ WHAT THE PAGE SAYS WHEN A READ NEVER ARRIVED — `8g`, 2026-10-20, the
+// offline report's round 3 (the owner's *"Do all the fixes"*). Offline, the page
+// said *Todavía no lo has comprado* and *No se ha vendido esta semana* about a
+// product bought every week and sold every day: neither Costos' read nor the six
+// months of sales is kept on the phone, so with no signal neither had arrived,
+// and an empty answer read as *never*. A card whose read has nothing to draw and
+// no signal to fetch it says `ES.offline.whenSignal` and fills itself when the
+// signal returns (`@/offline/senal`); with a signal nothing here changes.
+// ----------------------------------------------------------------------------
+
+/** *Te cuesta* with no delivery to show: *never bought*, or waiting for a signal. */
+export function costNoneLine(state: CostsState, online: Online): string {
+  return waitsForSignal(online, state !== 'unknown') ? ES.offline.whenSignal : ES.products.page.costNone;
+}
+
+/** *Esta semana* with nothing to count: *not sold this week*, or waiting for a signal. */
+export function weekNoneLine(state: SalesState, online: Online): string {
+  return waitsForSignal(online, state !== 'unknown') ? ES.offline.whenSignal : ES.products.page.weekNone;
+}
+
+/**
+ * Are the week's seven bars drawn? ⚠️ NOT WHILE THE WEEK WAITS FOR A SIGNAL:
+ * seven flat stubs beside *Se ve cuando haya señal* are a picture of a week
+ * that sold nothing, which is the claim the sentence exists not to make.
+ */
+export function weekDrawn(state: SalesState, online: Online): boolean {
+  return !waitsForSignal(online, state !== 'unknown');
 }
 
 /**

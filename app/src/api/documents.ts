@@ -112,10 +112,12 @@
 import { SCALE, divRoundHalfUpAwayFromZero, formatDecimal, parseDecimal } from '@tienda/money';
 
 import { isoDay } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
 import type { Provider } from '@/api/providers';
 import { isWasteReason, reasonLabel, type WasteReason } from '@/api/waste';
 import { formatMXN } from '@/format/mxn';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /**
@@ -1188,10 +1190,17 @@ export type DocumentsLineInput = Documents & { readonly failed: ApiMessageKey | 
  * ⚠️ A FAILED READ SAYS SO AND NEVER SAYS *nothing here*. The two look identical
  * to a screen and are opposites to a shopkeeper — one means *you have no
  * deliveries this week*, the other means *this phone could not ask*.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*): THE ANSWER FIRST AND THE FAILURE LAST. A week already read — some
+ * documents or none — is what the phone holds, and a refresh that failed after
+ * it does not take it off the screen (`@/offline/senal`: the last good copy,
+ * whatever its last attempt said). ⚠️ So the failure sentence is now only for a
+ * read that never answered, online; offline that read is
+ * `ES.offline.whenSignal`, and the list arrives by itself.
  */
-export function documentsLine(kind: DocumentKind, input: DocumentsLineInput): string {
-  if (input.failed !== null) return ES.api.errors[input.failed];
-  if (input.state === 'unknown') return ES.documents.loading;
+export function documentsLine(kind: DocumentKind, input: DocumentsLineInput, online: Online): string {
+  if (input.state === 'some') return '';
   if (input.state === 'nothing') {
     // ⚠️ THREE SENTENCES AND NOT A TEMPLATE. `ES.documents`' own note says why
     // there are two rather than one, and the third arrives for the same reason:
@@ -1199,7 +1208,21 @@ export function documentsLine(kind: DocumentKind, input: DocumentsLineInput): st
     // write-off she keyed an hour ago.
     return ES.documents.nothing[kind];
   }
-  return '';
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (input.failed !== null) return ES.api.errors[input.failed];
+  return ES.documents.loading;
+}
+
+/**
+ * Does a spinner stand beside that sentence?
+ *
+ * ⚠️ `8g`, 2026-10-20, round 3: NOT WITHOUT A SIGNAL. Offline the library pauses
+ * the read, so the spinner beside *Sin conexión…* turned for as long as the shop
+ * had no signal. Online it is what it was: while the read is out, and — left as
+ * it stood, the brief keeping online unchanged — beside a failure too.
+ */
+export function documentsSpin(input: DocumentsLineInput, online: Online): boolean {
+  return input.state === 'unknown' && !waitsForSignal(online, false);
 }
 
 // ----------------------------------------------------------------------------
@@ -1213,6 +1236,25 @@ export interface FeedRow {
   /** The first product, and how many more — `Pechuga y 2 más`. */
   readonly title: string;
   readonly grossCentavos: number | null;
+}
+
+/**
+ * What the card says when it has no row to draw, or `''` when it has rows.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*). Measured on the emulator that day: offline, the card said *Todavía
+ * no hay ventas esta semana* in a shop that had them — the week's read had never
+ * arrived. With no signal and nothing read it is `ES.offline.whenSignal`
+ * (`@/offline/senal`). ⚠️ A sale still on the phone is a row, so with one the
+ * card draws it rather than either sentence. Online, nothing changed.
+ *
+ * @param rows  the rows the card would draw — the server's and the queue's.
+ * @param state the week's read: `unknown` is nothing read, which is not nothing sold.
+ */
+export function feedLine(rows: number, state: DocumentsState, online: Online): string {
+  if (rows > 0) return '';
+  if (waitsForSignal(online, state !== 'unknown')) return ES.offline.whenSignal;
+  return ES.home.feed.none;
 }
 
 /** The newest `n` sales, newest first. A voided one is already gone (`documentsFrom`). */

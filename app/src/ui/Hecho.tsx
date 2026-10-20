@@ -25,9 +25,23 @@ import { Animated, Easing, Text, View } from 'react-native';
 
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { DONE_HOLD_MS, DONE_IN_MS, DONE_OUT_MS } from '@/theme/pulse';
+import { DONE_HOLD_MS, DONE_IN_MS, DONE_NOTE_HOLD_MS, DONE_OUT_MS } from '@/theme/pulse';
 
-export function Hecho({ shown, word, onDone }: { shown: boolean; word: string; onDone: () => void }) {
+export function Hecho({
+  shown,
+  word,
+  onDone,
+  note = null,
+}: {
+  shown: boolean;
+  word: string;
+  onDone: () => void;
+  /**
+   * ⚠️ `8g`, 2026-10-20: a line under the word, and the confirmation stays long
+   * enough to read it — Vender's first sale on a phone (`@/offline/ensenar`).
+   */
+  note?: string | null;
+}) {
   const { scale } = useDensity();
   const bloom = useRef(new Animated.Value(0)).current;
 
@@ -41,7 +55,7 @@ export function Hecho({ shown, word, onDone }: { shown: boolean; word: string; o
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.delay(DONE_HOLD_MS),
+      Animated.delay(note === null ? DONE_HOLD_MS : DONE_NOTE_HOLD_MS),
       Animated.timing(bloom, {
         toValue: 0,
         duration: DONE_OUT_MS,
@@ -53,7 +67,7 @@ export function Hecho({ shown, word, onDone }: { shown: boolean; word: string; o
       if (finished) onDone();
     });
     return () => run.stop();
-  }, [shown, bloom, onDone]);
+  }, [shown, bloom, onDone, note]);
 
   if (!shown) return null;
 
@@ -84,6 +98,11 @@ export function Hecho({ shown, word, onDone }: { shown: boolean; word: string; o
       >
         <MaterialCommunityIcons name="check-circle-outline" size={scale.iconSize * 2} color={PALETTE.accion} />
         <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{word}</Text>
+        {note === null ? null : (
+          <Text style={{ maxWidth: scale.space * 18, fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+            {note}
+          </Text>
+        )}
       </Animated.View>
     </View>
   );

@@ -5,7 +5,7 @@ import { AccessibilityInfo, Animated, Easing, Pressable, ScrollView, Text, View 
 
 import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
 import { canWriteCatalog } from '@/api/catalogWrite';
-import { latestSales, type FeedRow } from '@/api/documents';
+import { feedLine, latestSales, type FeedRow } from '@/api/documents';
 import {
   useCollectionRequests,
   useDocuments,
@@ -16,8 +16,11 @@ import {
   useSales,
   useWeekSavings,
 } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import {
   bestSameWeekday,
+  historyOf,
   isStreakMilestone,
   lastSevenDays,
   salesStreak,
@@ -26,6 +29,7 @@ import { showsTakings, takingsLine } from '@/api/today';
 import { formatMXN } from '@/format/mxn';
 import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
+import { useOnline } from '@/offline/useOnline';
 import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
@@ -65,6 +69,16 @@ import { Rotulo } from '@/ui/Rotulo';
 //
 // ⚠️ MOTION IS `transform` AND `opacity` ONLY, ON THE NATIVE DRIVER (§2.11), and
 // none of it plays when the phone asks for reduced motion.
+//
+// ⚠️⚠️ WITH NO SIGNAL (`8g`, 2026-10-20, the offline report's round 3 — the
+// owner's *"Do all the fixes"*): *Hoy*'s line and *Lo último*'s card say *Se ve
+// cuando haya señal* when they hold nothing to draw, never *Cargando…* or
+// *Todavía no hay ventas*; what the phone holds is drawn. The words are
+// `takingsLine` and `feedLine`'s. ⚠️ *La racha* is ABSENT until the six months
+// are read: today's takings are kept on the phone and the six months are not,
+// so offline it counted a long streak as *1 día seguido* (`salesStreak`).
+// *Tu semana*'s door, the record bar and the savings band already were absent
+// until their reads answered, and say nothing false offline.
 // ============================================================================
 
 /** The device's `HH:MM` — the shop's own clock. */
@@ -120,6 +134,7 @@ const RESCUED_SEEN_KEY = 'tienda.inicio.rescatado';
 
 export default function Inicio() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   // ⚠️ THE TOTAL ROLLS ONLY IF IT IS RE-READ WHEN A SALE LANDS — see the hook.
   useFreshAfterWrites();
   const focused = useFocused();
@@ -133,7 +148,12 @@ export default function Inicio() {
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
-      <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
+      <ScrollView
+        contentContainerStyle={{ padding: scale.space, gap: scale.space }}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
+      >
         {/* ⚠️ THE ORDER IS THE TABLE'S AND NOT THIS FILE'S — see the header. */}
         {INICIO_BLOCKS.map((block) => (
           <Bloque key={block} block={block} focused={focused} onCelebrate={celebrate} />
@@ -188,6 +208,7 @@ function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: s
   // ⚠️ `8g`, 2026-10-20: WITH THE SALES STILL ON THE PHONE — the offline report's
   // C. A sale rung up offline used to leave this at $0.
   const takings = useTakingsWithUnsent();
+  const online = useOnline();
   const { sales, today } = useSales();
   const best = bestSameWeekday(sales.days, today);
   const shown = showsTakings(takings);
@@ -236,7 +257,7 @@ function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: s
         {gain === null || reduce ? null : <Flota key={gain.n} amount={gain.amount} />}
       </View>
       <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-        {takingsLine(takings.loading, takings.failed, takings)}
+        {takingsLine(takings.loading, takings.failed, takings, online)}
       </Text>
       {best === null || gross === null ? null : <Marca gross={gross} best={best} weekday={weekday} reduce={reduce} />}
     </Pressable>
@@ -460,18 +481,20 @@ function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
   const takings = useTakingsWithUnsent();
   const { sales, today } = useSales();
   const soldToday = takings.count > 0;
-  const streak = salesStreak(sales.days, today, soldToday);
+  // ⚠️ `8g`, round 3: `null` until the six months are read — never *1 día
+  // seguido* counted off today alone (`salesStreak`).
+  const streak = salesStreak(historyOf(sales), today, soldToday);
   const week = lastSevenDays(sales.days, today, soldToday);
 
   useEffect(() => {
-    if (!isStreakMilestone(streak)) return;
+    if (streak === null || !isStreakMilestone(streak)) return;
     const store = deviceStore();
     if (readKey(store, CELEBRATED_KEY) === String(streak)) return;
     writeKey(store, CELEBRATED_KEY, String(streak));
     onCelebrate(ES.home.streak.milestone(streak));
   }, [streak, onCelebrate]);
 
-  if (streak === 0) return null;
+  if (streak === null || streak === 0) return null;
   return (
     <View
       style={{
@@ -555,12 +578,16 @@ function Puertas() {
  */
 function Ultimo({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
-  const { documents } = useDocuments('sale');
+  const { documents, state } = useDocuments('sale');
+  const online = useOnline();
   // ⚠️ `8g`, 2026-10-20: AND THE SALES STILL ON THE PHONE, deduped by id against
   // what the server answered — the offline report's C. No mark: *Lo último*
   // itself is where *Sin enviar* is said.
   const unsent = useUnsent('sale', documents).documents;
   const rows = useHeldWhileHidden(latestSales([...unsent, ...documents]), focused);
+  // ⚠️ Round 3: with no row, the week's read never answered and no signal is
+  // *Se ve cuando haya señal* — never *no sales* (`feedLine`).
+  const empty = feedLine(rows.length, state, online);
   // ⚠️ WHAT WAS ON SCREEN WHEN IT OPENED DOES NOT SLIDE — only a sale that
   // arrives while she is looking.
   const seen = useRef<Set<string> | null>(null);
@@ -580,7 +607,7 @@ function Ultimo({ focused }: { focused: boolean }) {
         </View>
       </Pressable>
       {rows.length === 0 ? (
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.home.feed.none}</Text>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{empty}</Text>
       ) : (
         rows.map((row, i) => {
           const fresh = seen.current !== null && !seen.current.has(row.id);

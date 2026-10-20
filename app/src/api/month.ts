@@ -39,11 +39,14 @@
 import { SCALE, parseDecimal } from '@tienda/money';
 
 import { isoDay, type UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import { shownAmount } from '@/api/documents';
+import type { ApiMessageKey } from '@/api/errors';
 import { monthShift } from '@/api/monthExport';
 import { pointsFrom } from '@/api/prices';
-import { dayTotals, type SoldDay } from '@/api/sales';
-import { isWasteReason, WASTE_REASONS, type WasteReason } from '@/api/waste';
+import { dayTotals, type SalesState, type SoldDay } from '@/api/sales';
+import { isWasteReason, reasonLabel, WASTE_REASONS, type WasteReason } from '@/api/waste';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 // ---------------------------------------------------------------- the reads --
@@ -333,6 +336,81 @@ export function monthWaste(
   };
 }
 
+// ------------------------------------------------- tu mes: the three blocks --
+
+/**
+ * What one of *Tu mes*'s three blocks draws: the big figure — `null` is the
+ * spinner — the line under it, and which way the arrow points.
+ */
+export interface MonthBlock {
+  readonly amount: string | null;
+  readonly line: string;
+  /** Against last month, beside the comparison only; `null` draws no arrow. */
+  readonly trend: 'up' | 'down' | null;
+}
+
+/**
+ * A block whose read has nothing to draw yet.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*). Measured on the emulator that day: offline, the three blocks spun,
+ * then said *Sin dato · No se pudo leer ahora*. With no signal it is *Sin dato ·
+ * Se ve cuando haya señal* (`@/offline/senal`), which turns into the figure by
+ * itself; online, the spinner and the failure sentence are what they were.
+ */
+function waiting(failed: ApiMessageKey | null, online: Online, failedLine: string): MonthBlock {
+  if (waitsForSignal(online, false)) return { amount: ES.documents.noFigure, line: ES.offline.whenSignal, trend: null };
+  if (failed !== null) return { amount: ES.documents.noFigure, line: failedLine, trend: null };
+  return { amount: null, line: '', trend: null };
+}
+
+/**
+ * *VENDISTE* — the month's sales and the comparison under them.
+ *
+ * ⚠️⚠️ THE ROWS FIRST, THE FAILURE LAST (round 3): a refresh that failed over a
+ * month already read put *Sin dato* over the figure the phone was holding — and
+ * the arrow beside the failure sentence. `nothing` is a figure: *$0*.
+ */
+export function soldBlock(
+  state: SalesState,
+  failed: ApiMessageKey | null,
+  sold: MonthSales,
+  online: Online,
+): MonthBlock {
+  if (state === 'sales' || state === 'nothing') {
+    const delta = sold.compare?.centavos ?? 0;
+    return {
+      amount: shownAmount(sold.centavos),
+      line: compareLine(sold),
+      trend: sold.compare === null || delta === 0 ? null : delta < 0 ? 'down' : 'up',
+    };
+  }
+  if (state === 'unreadable') return { amount: ES.documents.noFigure, line: ES.api.errors.unknown, trend: null };
+  return waiting(failed, online, failed === null ? '' : ES.api.errors[failed]);
+}
+
+/** *COMPRASTE* — the month's deliveries; the read's own failure, never the other block's. */
+export function boughtBlock(
+  purchases: MonthPurchases | null,
+  failed: ApiMessageKey | null,
+  online: Online,
+): MonthBlock {
+  if (purchases !== null) return { amount: shownAmount(purchases.centavos), line: purchasesLine(purchases), trend: null };
+  return waiting(failed, online, ES.numbers.mes.unreadable);
+}
+
+/** *SE TIRÓ* — the month's write-offs and the cause most were filed under. */
+export function thrownBlock(waste: MonthWaste | null, failed: ApiMessageKey | null, online: Online): MonthBlock {
+  if (waste !== null) {
+    return {
+      amount: wasteAmount(waste),
+      line: waste.topReason === null ? '' : ES.numbers.mes.topReason(reasonLabel(waste.topReason)),
+      trend: null,
+    };
+  }
+  return waiting(failed, online, ES.numbers.mes.unreadable);
+}
+
 /** *31 piezas y 2.4 kg* — or *Nada este mes*. */
 export function wasteAmount(w: MonthWaste): string {
   const parts: string[] = [];
@@ -450,8 +528,13 @@ export interface BestDay {
  * ⚠️ AN AVERAGE OF THE DAYS THAT SOLD, NOT OF THE CALENDAR: a shop shut on
  * Sundays has no Sunday, rather than a Sunday of zero dragging it to the bottom.
  * ⚠️ TODAY IS LEFT OUT — it is half a day.
+ * ⚠️ `null` DAYS — the six months not read yet (`historyOf`) — IS `null`, NEVER
+ * LOCKED: `8g`, 2026-10-20, the offline report's round 3 (the owner's *"Do all
+ * the fixes"*). Locked with no days says *En 7 días*, which is a statement about
+ * her history that nothing has read; the card stays away until something has.
  */
-export function bestDay(days: readonly SoldDay[], today: string): BestDay | Locked | null {
+export function bestDay(days: readonly SoldDay[] | null, today: string): BestDay | Locked | null {
+  if (days === null) return null;
   const age = shopAge(days, today);
   if (age === null) return { locked: true, have: 0, need: WEEKDAY_MIN_DAYS };
   if (age <= WEEKDAY_MIN_DAYS) return { locked: true, have: age - 1, need: WEEKDAY_MIN_DAYS };

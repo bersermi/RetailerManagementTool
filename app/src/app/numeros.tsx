@@ -13,21 +13,24 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shownAmount } from '@/api/documents';
 import { useMonthExport, useMonthReport, usePurchasePrices, useSaleHours, useSales } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
+import type { Online } from '@/api/connectivity';
 import {
   FIRST_WEEK_DAYS,
   bestDay,
-  compareLine,
+  boughtBlock,
   dayWords,
   hoursLine,
   monthSales,
-  purchasesLine,
   quincenaLine,
   quincenaOf,
   quincenaWay,
   quincenaWhen,
   risesOf,
   shopAge,
-  wasteAmount,
+  soldBlock,
+  thrownBlock,
   yearOf,
   type BestDay,
   type Hours,
@@ -50,6 +53,7 @@ import {
   SALES_MONTHS,
   barsOf,
   bucketOf,
+  historyOf,
   periodTitle,
   reportOf,
   salesLine,
@@ -58,9 +62,10 @@ import {
   type Period,
   type Report,
   type ReportRow,
+  type Sales,
 } from '@/api/sales';
-import { reasonLabel } from '@/api/waste';
 import { useBackStaysHere } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -106,6 +111,13 @@ import { Vacio } from '@/ui/Vacio';
 // `app/test/numeros-mes.test.ts` reads every figure and every sentence, and
 // `docs/checks/8g-numeros-contract.sh` puts the new reads in front of a real
 // database.
+//
+// ⚠️⚠️ WITH NO SIGNAL (`8g`, 2026-10-20, the offline report's round 3 — the
+// owner's *"Do all the fixes"*): a read the phone holds is drawn, whatever its
+// last refresh said; a read it does not hold says *Se ve cuando haya señal* in
+// its block or in place of the chart, and the discoveries that count her history
+// stay away until the history has been read. Every word of it is chosen in
+// `@/api/month` and `@/api/sales`; `app/test/offline-lecturas.test.ts` reads it.
 // ============================================================================
 
 /** How tall the bars are, before density. ⚠️ `scale.space` multiples, never a literal (`R6`). */
@@ -118,8 +130,10 @@ type Pagina = 'centro' | 'ventas';
 
 export default function Numeros() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   const insets = useSafeAreaInsets();
   const { sales, failed, today, entries, factors } = useSales();
+  const online = useOnline();
 
   const [pagina, setPagina] = useState<Pagina>('centro');
   const [month, setMonth] = useState(() => monthOf(today));
@@ -148,7 +162,7 @@ export default function Numeros() {
   }
 
   const start = picked ?? bucketOf(today, period);
-  const line = salesLine(sales.state, failed);
+  const line = salesLine(sales.state, failed, online);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -157,6 +171,8 @@ export default function Numeros() {
         onBack={pagina === 'ventas' ? () => setPagina('centro') : () => router.back()}
       />
       <ScrollView
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -168,9 +184,9 @@ export default function Numeros() {
             month={month}
             onMonth={setMonth}
             today={today}
-            ready={sales.state !== 'unknown' || failed !== null}
-            line={line}
-            days={sales.days}
+            sales={sales}
+            failed={failed}
+            online={online}
             entries={entries}
             factors={factors}
             onSales={openSales}
@@ -186,12 +202,15 @@ export default function Numeros() {
               picked={period}
               onPick={pickPeriod}
             />
-            {sales.state === 'unknown' && failed === null ? (
+            {/* ⚠️ `8g`, round 3: the sentence first — with no signal and nothing
+                read it is the one the owner ruled, never a spinner the library
+                has paused; the spinner is only a read out with a signal. */}
+            {line !== '' ? (
+              <Vacio line={line} />
+            ) : sales.state === 'unknown' ? (
               <View style={{ padding: scale.space * 2, alignItems: 'center' }}>
                 <ActivityIndicator color={PALETTE.accion} />
               </View>
-            ) : line !== '' ? (
-              <Vacio line={line} />
             ) : (
               <>
                 <Barras
@@ -224,9 +243,9 @@ function Centro({
   month,
   onMonth,
   today,
-  ready,
-  line,
-  days,
+  sales,
+  failed,
+  online,
   entries,
   factors,
   onSales,
@@ -234,18 +253,21 @@ function Centro({
   month: string;
   onMonth: (month: string) => void;
   today: string;
-  ready: boolean;
-  line: string;
-  days: Parameters<typeof monthSales>[0];
+  sales: Sales;
+  failed: Parameters<typeof salesLine>[1];
+  online: Online;
   entries: Parameters<typeof risesOf>[1];
   factors: Parameters<typeof risesOf>[2];
   onSales: () => void;
 }) {
   const { scale } = useDensity();
+  const days = sales.days;
   const age = shopAge(days, today);
   const current = isLatestMonth(month, today);
   const { hours, ticket } = useSaleHours();
-  const day = bestDay(days, today);
+  // ⚠️ `8g`, round 3: HIDDEN UNTIL THE HISTORY IS READ, never locked at *En 7
+  // días* over months nobody has asked about (`historyOf`).
+  const day = bestDay(historyOf(sales), today);
   const quincena = quincenaOf(days, today);
   const { rows: bought } = usePurchasePrices();
   const rises = risesOf(bought, entries, factors);
@@ -283,7 +305,7 @@ function Centro({
     <View style={{ gap: scale.space }}>
       <MesNav month={month} today={today} onMonth={onMonth} />
       {current && age !== null && age <= FIRST_WEEK_DAYS ? <PrimeraSemana age={age} /> : null}
-      <TuMes month={month} today={today} ready={ready} line={line} days={days} onSales={onSales} />
+      <TuMes month={month} today={today} sales={sales} failed={failed} online={online} onSales={onSales} />
       {discoveries.length === 0 ? null : <Descubre>{discoveries}</Descubre>}
       {locked.length === 0 ? null : (
         <View style={{ gap: scale.rowGap }}>
@@ -362,27 +384,31 @@ function PrimeraSemana({ age }: { age: number }) {
  * ⚠️ ONLY *VENDISTE* IS A DOOR in round 1: it opens the sales page on this
  * month. A delivery list and a write-off list for a whole month are later rounds;
  * a chevron that opened a seven-day list would be a door to the wrong room.
+ *
+ * ⚠️ WHAT EACH BLOCK SAYS IS `@/api/month`'s (`soldBlock`, `boughtBlock`,
+ * `thrownBlock`) since `8g`'s round 3, 2026-10-20: the figure the phone holds
+ * first, *Se ve cuando haya señal* with no signal and nothing held, and only
+ * then the spinner or the failure.
  */
 function TuMes({
   month,
   today,
-  ready,
-  line,
-  days,
+  sales,
+  failed,
+  online,
   onSales,
 }: {
   month: string;
   today: string;
-  ready: boolean;
-  line: string;
-  days: Parameters<typeof monthSales>[0];
+  sales: Sales;
+  failed: Parameters<typeof salesLine>[1];
+  online: Online;
   onSales: () => void;
 }) {
-  const { scale } = useDensity();
-  const { purchases, waste, failed } = useMonthReport(month);
-  const sold = monthSales(days, month, today);
-  const compare = compareLine(sold);
-  const down = sold.compare !== null && sold.compare.centavos < 0;
+  const { purchases, waste, purchasesFailed, wasteFailed } = useMonthReport(month);
+  const sold = soldBlock(sales.state, failed, monthSales(sales.days, month, today), online);
+  const bought = boughtBlock(purchases, purchasesFailed, online);
+  const thrown = thrownBlock(waste, wasteFailed, online);
   return (
     <Tarjeta>
       <Rotulo text={ES.numbers.mes.title} />
@@ -390,32 +416,26 @@ function TuMes({
         label={ES.numbers.mes.sold}
         ink={PALETTE.accion}
         soft={PALETTE.accionSuave}
-        amount={!ready ? null : line !== '' && line !== ES.numbers.nothing ? ES.documents.noFigure : shownAmount(sold.centavos)}
-        line={line !== '' && line !== ES.numbers.nothing ? line : compare}
-        icon={compare === '' || sold.compare?.centavos === 0 ? null : down ? 'arrow-down' : 'arrow-up'}
-        lineInk={down ? PALETTE.tintaApagada : PALETTE.accion}
+        amount={sold.amount}
+        line={sold.line}
+        icon={sold.trend === null ? null : sold.trend === 'down' ? 'arrow-down' : 'arrow-up'}
+        lineInk={sold.trend === 'down' ? PALETTE.tintaApagada : PALETTE.accion}
         onPress={onSales}
       />
       <Bloque
         label={ES.numbers.mes.bought}
         ink={PALETTE.compra}
         soft={PALETTE.compraSuave}
-        amount={failed !== null ? ES.documents.noFigure : purchases === null ? null : shownAmount(purchases.centavos)}
-        line={failed !== null ? ES.numbers.mes.unreadable : purchases === null ? '' : purchasesLine(purchases)}
+        amount={bought.amount}
+        line={bought.line}
         lineInk={PALETTE.compra}
       />
       <Bloque
         label={ES.numbers.mes.thrown}
         ink={PALETTE.desperdicio}
         soft={PALETTE.desperdicioSuave}
-        amount={failed !== null ? ES.documents.noFigure : waste === null ? null : wasteAmount(waste)}
-        line={
-          failed !== null
-            ? ES.numbers.mes.unreadable
-            : waste === null || waste.topReason === null
-              ? ''
-              : ES.numbers.mes.topReason(reasonLabel(waste.topReason))
-        }
+        amount={thrown.amount}
+        line={thrown.line}
         lineInk={PALETTE.desperdicio}
       />
     </Tarjeta>

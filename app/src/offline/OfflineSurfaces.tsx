@@ -13,6 +13,8 @@ import {
 } from '@/offline/notice';
 import { ES } from '@/strings';
 import { online as linkNow, onDrain, subscribe } from '@/lib/connectivityMonitor';
+import { deviceStore } from '@/lib/store';
+import { FIRST_OUTAGE_KEY, firstTime } from '@/offline/ensenar';
 import { PALETTE } from '@/theme/palette';
 import { useDensity } from '@/theme/DensityProvider';
 
@@ -92,10 +94,25 @@ export function OfflineSurfaces() {
     return () => clearTimeout(timer);
   }, [state.toastUntil]);
 
+  // ⚠️ `8g`, 2026-10-20: THE FIRST OUTAGE ON THIS PHONE SAYS A LITTLE MORE —
+  // *puedes seguir vendiendo* — for as long as it lasts, and never again
+  // (`@/offline/ensenar`). Asked when the notice first appears, not at mount.
+  const noticeUp = showsNotice(state);
+  const [explaining, setExplaining] = useState(false);
+  useEffect(() => {
+    if (noticeUp && firstTime(deviceStore(), FIRST_OUTAGE_KEY)) setExplaining(true);
+  }, [noticeUp]);
+  useEffect(() => {
+    if (state.online === true) setExplaining(false);
+  }, [state.online]);
+
   return (
     <>
-      {showsNotice(state) ? (
-        <Notice onDismiss={() => setState((s) => surfaces(s, { kind: 'dismiss' }, Date.now()))} />
+      {noticeUp ? (
+        <Notice
+          words={explaining ? ES.offline.firstNotice : ES.offline.notice}
+          onDismiss={() => setState((s) => surfaces(s, { kind: 'dismiss' }, Date.now()))}
+        />
       ) : null}
       {showsToast(state, Date.now()) ? <Toast key={state.toastUntil ?? 0} /> : null}
     </>
@@ -119,7 +136,7 @@ export function OfflineSurfaces() {
  * doing nothing, which is the rule satisfied by construction rather than by
  * care.
  */
-function Notice({ onDismiss }: { onDismiss: () => void }) {
+function Notice({ words, onDismiss }: { words: string; onDismiss: () => void }) {
   const { scale } = useDensity();
   return (
     <View
@@ -138,7 +155,7 @@ function Notice({ onDismiss }: { onDismiss: () => void }) {
       <Pressable
         onPress={onDismiss}
         accessibilityRole="button"
-        accessibilityLabel={`${ES.offline.notice}. ${ES.offline.dismiss}`}
+        accessibilityLabel={`${words}. ${ES.offline.dismiss}`}
         // ⚠️ THE TAP TARGET IS THE DENSITY SCALE'S, NOT A LITERAL (`R6`). It is
         // the whole pill: "easily dismissed" means a thumb, not a close cross.
         style={{
@@ -151,9 +168,7 @@ function Notice({ onDismiss }: { onDismiss: () => void }) {
           borderColor: PALETTE.linea,
         }}
       >
-        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-          {ES.offline.notice}
-        </Text>
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{words}</Text>
       </Pressable>
     </View>
   );

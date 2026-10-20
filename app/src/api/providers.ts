@@ -83,8 +83,12 @@ import {
   type UnitFactors,
 } from '@/api/catalog';
 import { pricePerBase } from '@/api/catalogWrite';
+import type { Online } from '@/api/connectivity';
+import type { ApiMessageKey } from '@/api/errors';
 import { ROLES, type Role } from '@/api/members';
 import type { Quotes } from '@/cart/cart';
+import { waitsForSignal } from '@/offline/senal';
+import { ES } from '@/strings';
 
 /**
  * The columns a client may ask `provider` for.
@@ -245,6 +249,34 @@ export function providerById(
   if (id === null) return null;
   for (const provider of providers) if (provider.id === id) return provider;
   return null;
+}
+
+/**
+ * What Comprar says where a supplier's name would be — the blue card and the
+ * picker's empty list — while there is none to say. `8g`, 2026-10-20, the offline
+ * report's round 3 (the owner's *"Do all the fixes"*).
+ *
+ * ⚠️⚠️ IT WAS *Cargando proveedores…* WHATEVER HAPPENED, and that is
+ * `catalogLine`'s defect of 2026-09-22 again: `loading` is `data === undefined`,
+ * which is also what a failed read and a paused one look like. The picker OPENS
+ * Comprar when the basket is empty, so with no list and no signal it was a window
+ * promising a list that was not coming. Now: no list and no signal is
+ * `ES.offline.whenSignal` (the read is paused and fills the window by itself);
+ * no list and a failure is that failure's sentence; and only a read truly in
+ * flight is still *Cargando proveedores…*.
+ *
+ * ⚠️ `failed` IS `useProviders`' — the list's failure, or the memory's when the
+ * list has none — and it is read only while the list is out, so a memory that
+ * failed beside a list in hand never reaches this line.
+ */
+export function providerPickLine(
+  loading: boolean,
+  failed: ApiMessageKey | null,
+  online: Online,
+): string {
+  if (loading && waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (loading && failed !== null) return ES.api.errors[failed];
+  return ES.buy.loadingProviders;
 }
 
 /**

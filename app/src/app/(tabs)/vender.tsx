@@ -35,6 +35,7 @@ import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -43,6 +44,8 @@ import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
 import { Hecho } from '@/ui/Hecho';
+import { FIRST_SALE_KEY, firstTime } from '@/offline/ensenar';
+import { deviceStore } from '@/lib/store';
 import { HojaCarrito } from '@/ui/HojaCarrito';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { Retrato } from '@/ui/Retrato';
@@ -227,6 +230,9 @@ export default function Vender() {
   // empty string is `useCatalog`'s own default and is spelled out here because
   // the argument it is NOT being given is the point.
   const { loading, entries, failed, locationId } = useCatalog('');
+  // ⚠️ `8g`'s round 3: an empty list with no catalog and no signal says *Se ve
+  // cuando haya señal* rather than *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const factors = useUnitFactors();
   // ⚠️⚠️ ADR-035 §2.8's THIRD GUARD, AND IT IS ONE READ FOR THE WHOLE SCREEN —
   // never one per row. See `@/api/magnitude`'s header for why this hook takes no
@@ -348,6 +354,7 @@ export default function Vender() {
   // queue. `5c`'s four children have been built entirely against fixtures.
   const clear = useCartStore((state) => state.clear);
   const [sold, setSold] = useState(false);
+  const [soldNote, setSoldNote] = useState<string | null>(null);
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
   // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
   const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);
@@ -421,6 +428,9 @@ export default function Vender() {
     commitToQueue(done.write);
     clear('sell');
     setCartOpen(false);
+    // ⚠️ `8g`, 2026-10-20: THE FIRST SALE ON THIS PHONE CARRIES ONE LINE — Wera
+    // works without internet — and no other sale ever does (`@/offline/ensenar`).
+    setSoldNote(firstTime(deviceStore(), FIRST_SALE_KEY) ? ES.offline.firstSale : null);
     setSold(true);
   }, [basketful, clear, pilot]);
 
@@ -470,7 +480,7 @@ export default function Vender() {
           />
         )}
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE ONLY WHEN THE
         // JUMP IS INSIDE THE RENDER WINDOW; past it `scrollToIndex` throws, and
@@ -565,7 +575,7 @@ export default function Vender() {
         />
       ) : null}
 
-      <Hecho shown={sold} word={ES.sell.sold} onDone={() => setSold(false)} />
+      <Hecho shown={sold} word={ES.sell.sold} note={soldNote} onDone={() => setSold(false)} />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the KEYBOARD rather than into the layout, so where it sits

@@ -889,6 +889,27 @@ export const ES = {
     dismiss: 'Entendido',
 
     /**
+     * ⚠️ `8g`, 2026-10-20 — THE OFFLINE REPORT'S ROUND 3, ruled by the owner
+     * (*"Do all the fixes"*). What a card or page says IN PLACE of a spinner
+     * that would never stop, or of a *nothing* that is not true, when the read
+     * it waits for needs the server and there is no signal. It turns into the
+     * figure by itself when the signal returns — no button.
+     */
+    whenSignal: 'Se ve cuando haya señal',
+    /** Te lo compro's door, offline: it does not open a form she cannot send. */
+    collectNeedsSignal: 'Para pedir que pasemos necesitas internet',
+    /** *Guardar solicitud* while the signal is gone: the request waits, and goes by itself. */
+    sendsWithSignal: 'Se envía cuando haya señal',
+    /**
+     * The FIRST time the signal drops on this phone, the notice says a little
+     * more, once (the report's *"Teaching it, quietly"*). Every time after, it
+     * is `notice` above.
+     */
+    firstNotice: 'Sin internet: puedes seguir vendiendo',
+    /** Under the first sale's confirmation, once on this phone. */
+    firstSale: 'Wera funciona sin internet: si se va la señal, tus ventas se guardan en el teléfono y se envían solas.',
+
+    /**
      * C11.9 — THE DEAD-LETTER BANNER (5c-iv-b), AND IT IS THE ONE SURFACE IN
      * THIS APP THAT SAYS HOW MANY.
      *

@@ -207,7 +207,13 @@ export function QueryProvider({ children }: { children: ReactNode }) {
         persister,
         buster: CACHE_SHAPE,
         maxAge: CACHE_MAX_AGE,
-        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+        // ⚠️ `8g`, 2026-10-20: NO MUTATION IS WRITTEN TO THE PHONE. A send held
+        // for the signal (*Te lo compro*'s `networkMode: 'online'`) would be
+        // dehydrated by default — her draft, its photo paths and the shop's id
+        // on disk — and after a restart it has no function to run, so it could
+        // only fail silently. Closing the app loses a waiting request, as it
+        // loses a draft; that is said where the request is sent.
+        dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery, shouldDehydrateMutation: () => false },
       }}
     >
       {children}

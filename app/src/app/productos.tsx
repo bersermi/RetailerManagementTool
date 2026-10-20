@@ -5,11 +5,14 @@ import { FlatList, Keyboard, Pressable, ScrollView, Text, TextInput, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useMyRole } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { catalogLine, type CatalogEntry } from '@/api/catalog';
 import { canWriteCatalog, catalogRows, type CatalogRow } from '@/api/catalogWrite';
 import type { Picture } from '@/api/photos';
 import { aislesOf, inAisle, type Aisle } from '@/api/productPage';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -119,6 +122,9 @@ export default function Productos() {
   // keystroke and never an opinion about what it means.
   const [typed, setTyped] = useState('');
   const { loading, entries, failed } = useCatalog(typed);
+  // ⚠️ `8g`'s round 3: no catalog and no signal is *Se ve cuando haya señal*, never
+  // *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const mayCreate = canWriteCatalog(useMyRole());
 
   // ⚠️⚠️ `8g`, OPTION D — THE AISLES ACROSS THE TOP (the owner's ruling of
@@ -165,6 +171,7 @@ export default function Productos() {
   // with one empty half — seen on the emulator, 2026-10-17.
   const cells: readonly Celda[] = mosaic && rows.length % 2 === 1 ? [...rows, HUECO] : rows;
   const list = useRef<FlatList<Celda>>(null);
+  const refresh = useRefresh();
   // ⚠️ THE SEARCH BOX ITSELF, because dismissing the keyboard is not the same as
   // giving up focus — see the effect below.
   const box = useRef<TextInput>(null);
@@ -245,6 +252,9 @@ export default function Productos() {
         // ⚠️ A NEW KEY PER SHAPE: `numColumns` cannot change on a mounted list.
         key={mosaic ? 'mosaico' : 'lista'}
         numColumns={mosaic ? 2 : 1}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         data={cells}
         keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.kind === 'hueco' ? 'hueco' : row.entry.id)}
         renderItem={({ item }) =>
@@ -262,7 +272,7 @@ export default function Productos() {
         // rows, never a line under the last one. The mosaic's cards carry their own.
         ItemSeparatorComponent={mosaic ? null : Separador}
         columnWrapperStyle={mosaic ? { gap: scale.rowGap, paddingHorizontal: scale.space } : undefined}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, WHICH IS WHAT
         // MAKES `scrollToIndex` REACH A ROW IT HAS NOT DRAWN YET. Without it a
         // jump past the render window fails; `onScrollToIndexFailed` is the belt

@@ -19,17 +19,22 @@ import {
   clockOf,
   dayHeading,
   documentsLine,
+  documentsSpin,
   rowTitle,
   type DocumentKind,
   type DocumentsLineInput,
   type ShopDocument,
 } from '@/api/documents';
 import { useCorrectDocument, useDocuments, useMyRole } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { useAuth } from '@/auth/AuthProvider';
+import type { Online } from '@/api/connectivity';
 import type { Cart, Scope } from '@/cart/cart';
 import { useCart, useCartStore } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { correctionAsk } from '@/offline/unsent';
+import { useOnline } from '@/offline/useOnline';
 import { useUnsent } from '@/offline/useUnsent';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -75,6 +80,13 @@ import { Velo } from '@/ui/Velo';
 // below it is the server's seven days and says so when it could not be asked. A
 // shopkeeper offline now sees her own note AND an honest sentence where the
 // history would be, which is two facts rather than one failure.
+//
+// ⚠️⚠️ AND SINCE `8g`'s ROUND 3 (2026-10-20, the owner's *"Do all the fixes"*)
+// THAT SENTENCE IS *Se ve cuando haya señal* WITH NO SPINNER BESIDE IT: offline
+// the library pauses the read, so the spinner turned for as long as the shop had
+// no signal, beside *Sin conexión…*. A week already read is drawn whatever its
+// last refresh said — some documents or none (`documentsLine`, `documentsSpin`).
+// The unsent group is untouched: it is the phone's own queue.
 //
 // ⚠️ NOTHING ABOUT THE UNSENT PATH IS A WRITE TO POSTGRES, so there is no cache
 // to invalidate and no `staleAfterVoid` on it — see `@/offline/unsent`.
@@ -122,6 +134,7 @@ import { Velo } from '@/ui/Velo';
 
 export default function Documentos() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   const insets = useSafeAreaInsets();
 
   // ⚠️ THE SWITCH IS THE ONLY STATE ON THIS SCREEN, and it holds a
@@ -174,6 +187,7 @@ export default function Documentos() {
   // unsent group the moment the server list carries it, because the client uuid
   // IS the server row's id. See `@/offline/useUnsent`.
   const unsent = useUnsent(kind, shown.documents);
+  const online = useOnline();
 
   // ⚠️⚠️ OPENING OR CLOSING THE QUESTION FORGETS THE LAST REFUSAL, and it is one
   // function rather than two `setAsking` calls so neither path can be the one that
@@ -255,6 +269,8 @@ export default function Documentos() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
       <ScrollView
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -319,6 +335,7 @@ export default function Documentos() {
         <Cuerpo
           kind={kind}
           documents={shown}
+          online={online}
           openId={openId}
           onToggle={toggle}
           canCorrect={(document) => mayCorrect(document, role, userId)}
@@ -415,6 +432,7 @@ function Banda() {
 function Cuerpo({
   kind,
   documents,
+  online,
   openId,
   onToggle,
   canCorrect,
@@ -422,16 +440,19 @@ function Cuerpo({
 }: {
   kind: DocumentKind;
   documents: DocumentsLineInput;
+  online: Online;
   openId: string | null;
   onToggle: (id: string) => void;
   canCorrect: (document: ShopDocument) => boolean;
   onAsk: (document: ShopDocument, how: Correction) => void;
 }) {
   const { scale } = useDensity();
-  const line = documentsLine(kind, documents);
+  const line = documentsLine(kind, documents, online);
   const today = isoDay(new Date());
 
   if (documents.state === 'unknown') {
+    // ⚠️ `8g`, round 3: with no signal, the sentence alone — `documentsSpin`.
+    if (!documentsSpin(documents, online)) return <Vacio line={line} />;
     return (
       <View style={{ padding: scale.space * 2, alignItems: 'center', gap: scale.rowGap }}>
         <ActivityIndicator color={PALETTE.accion} />
@@ -445,12 +466,11 @@ function Cuerpo({
   }
 
   // ⚠️ `8g`: AN EMPTY WEEK SAID PLAINLY, with what will appear here — never a
-  // grey line that reads like something failed. A FAILED read keeps `Vacio`
-  // and its own sentence: *nothing* and *could not ask* are two facts.
-  if (documents.state === 'nothing') {
-    if (documents.failed === null) return <SemanaVacia kind={kind} />;
-    return <Vacio line={line} />;
-  }
+  // grey line that reads like something failed. ~~A FAILED read keeps `Vacio`~~
+  // — struck by round 3 (2026-10-20): a week that was READ and held nothing is
+  // the phone's last good copy, and a refresh that failed after it does not
+  // turn it into *could not ask*. A read that never answered is `unknown`, above.
+  if (documents.state === 'nothing') return <SemanaVacia kind={kind} />;
 
   const tone = KIND_TONE[kind];
   return (

@@ -659,32 +659,63 @@ describe('catalogLine — a failed read never wears a loading sentence', () => {
   // has failed can still be fetching, and preferring *loading* would put the
   // endless spinner back on every retry.
   it('keeps saying so while it retries', () => {
-    for (const loading of [true, false]) {
-      expect(catalogLine(loading, 'pechuga', 'offline')).toBe(ES.api.errors.offline);
-    }
+    expect(catalogLine(true, 'pechuga', 'offline', true)).toBe(ES.api.errors.offline);
+    expect(catalogLine(true, 'pechuga', 'offline', null)).toBe(ES.api.errors.offline);
   });
 
   // ⚠️⚠️ AND IT NEVER TELLS HER THE SHOP IS EMPTY WHEN THE APP COULD NOT ASK.
   // *Todavía no hay productos* is the one empty-state sentence a shopkeeper
   // would ACT on — by adding products she already has.
-  it('never says the catalog is empty on a failure', () => {
-    expect(catalogLine(false, '', 'sessionEnded')).not.toBe(ES.catalog.empty);
-    expect(catalogLine(false, '', 'sessionEnded')).toBe(ES.api.errors.sessionEnded);
+  it('never says the catalog is empty on a failure with no rows in hand', () => {
+    expect(catalogLine(true, '', 'sessionEnded', true)).not.toBe(ES.catalog.empty);
+    expect(catalogLine(true, '', 'sessionEnded', true)).toBe(ES.api.errors.sessionEnded);
   });
 
   it('is exactly the old three sentences when nothing failed', () => {
-    expect(catalogLine(true, '', null)).toBe(ES.catalog.loading);
-    expect(catalogLine(false, '', null)).toBe(ES.catalog.empty);
-    expect(catalogLine(false, 'tornillos', null)).toBe(ES.catalog.noMatches);
+    expect(catalogLine(true, '', null, true)).toBe(ES.catalog.loading);
+    expect(catalogLine(false, '', null, true)).toBe(ES.catalog.empty);
+    expect(catalogLine(false, 'tornillos', null, true)).toBe(ES.catalog.noMatches);
   });
 
   // ⚠️ EVERY KEY `apiErrorKey` CAN RETURN HAS A SENTENCE, which is what stops
   // this returning `undefined` on the one path nobody renders in a suite.
   it('resolves every api error key to a real sentence', () => {
     for (const key of Object.keys(ES.api.errors) as (keyof typeof ES.api.errors)[]) {
-      expect(catalogLine(false, '', key)).toBeTypeOf('string');
-      expect(catalogLine(false, '', key).length).toBeGreaterThan(0);
+      expect(catalogLine(true, '', key, true)).toBe(ES.api.errors[key]);
+      expect(catalogLine(true, '', key, true).length).toBeGreaterThan(0);
     }
+  });
+});
+
+// ============================================================================
+// ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+// fixes"*). The catalog is persisted and TanStack KEEPS `data` when a refresh
+// fails — so with rows in hand, a search that matched nothing in Vender, Comprar
+// or Merma said *Sin conexión a internet* instead of *Ningún producto coincide*.
+// And with no rows and no signal the read is paused, so *Cargando productos…*
+// waited for ever.
+// ============================================================================
+
+describe('catalogLine — rows in hand win, and no signal says so', () => {
+  it('answers a search out of the rows in hand, whatever a refresh said', () => {
+    for (const online of [true, false, null]) {
+      expect(catalogLine(false, 'tornillos', 'offline', online)).toBe(ES.catalog.noMatches);
+      expect(catalogLine(false, 'tornillos', 'unknown', online)).toBe(ES.catalog.noMatches);
+    }
+  });
+
+  it('says what the last good read said about an empty shop', () => {
+    expect(catalogLine(false, '', 'offline', false)).toBe(ES.catalog.empty);
+  });
+
+  it('says *Se ve cuando haya señal* with no rows and no signal, failed or not', () => {
+    expect(catalogLine(true, '', null, false)).toBe(ES.offline.whenSignal);
+    expect(catalogLine(true, 'pechuga', 'offline', false)).toBe(ES.offline.whenSignal);
+  });
+
+  it('never says it before anything has read the network — the default is unknown', () => {
+    expect(catalogLine(true, '', null)).toBe(ES.catalog.loading);
+    expect(catalogLine(true, '', null, null)).toBe(ES.catalog.loading);
   });
 });
 

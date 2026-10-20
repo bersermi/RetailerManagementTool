@@ -8,10 +8,12 @@ import {
   WINDOWS,
   plottedPrices,
   pricesLine,
+  pricesSpin,
   type Prices,
   type Side,
   type SidePrices,
 } from '@/api/prices';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
@@ -133,12 +135,21 @@ function colourOf(side: Side): string {
  *
  * ⚠️ `unknown` IS A SPINNER AND NOT AN EMPTY STATE — *not back yet* must never
  * read as *never sold*, on a phone that is offline half the day.
+ *
+ * ⚠️⚠️ AND THE CHART WINS OVER A FAILED REFRESH — `8g`, 2026-10-20, the offline
+ * report's round 3 (the owner's *"Do all the fixes"*). This branch used to open on
+ * `failed !== null` as well, so a chart already in memory was replaced by the
+ * spinner the moment a re-read missed. With nothing to draw and no signal it is
+ * *Se ve cuando haya señal* and no spinner (`pricesSpin`), and the chart arrives
+ * by itself when the signal does.
  */
 function Cuerpo({ prices }: { prices: ReturnType<typeof usePrices> }) {
   const { scale } = useDensity();
-  const line = pricesLine(prices.state, prices.failed);
+  const online = useOnline();
+  const line = pricesLine(prices.state, prices.failed, online);
 
-  if (prices.state === 'unknown' || prices.failed !== null) {
+  if (prices.state === 'unknown') {
+    if (!pricesSpin(prices.state, online)) return <Vacio line={line} />;
     return (
       <View style={{ padding: scale.space * 2, alignItems: 'center', gap: scale.rowGap }}>
         <ActivityIndicator color={PALETTE.accion} />

@@ -165,6 +165,13 @@ export const DONE_HOLD_MS = 520;
 export const DONE_OUT_MS = BANNER_FADE_MS;
 
 /**
+ * ⚠️ `8g`, 2026-10-20: how long the confirmation stays when it carries the first
+ * sale's line (*Wera funciona sin internet…*, `@/offline/ensenar`) — a sentence
+ * of twenty words, read once, so long enough to read it whole.
+ */
+export const DONE_NOTE_HOLD_MS = 4_500;
+
+/**
  * ⚠️ `8g`: how long a cashier's note about a product with no price stays up —
  * two sentences read by somebody with a customer waiting, so long enough to read
  * twice, and a tap sends it sooner.

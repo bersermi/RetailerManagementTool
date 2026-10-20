@@ -23,6 +23,7 @@ import {
   pricesFrom,
   pricesKey,
   pricesLine,
+  pricesSpin,
   type PricePoint,
   type PriceRow,
 } from '@/api/prices';
@@ -381,16 +382,52 @@ describe('plottedPrices — both lines in one box, origin bottom-left', () => {
 });
 
 describe('pricesLine — the one sentence instead of a chart', () => {
-  it('a failure wins over every state', () => {
-    expect(pricesLine('nothing', 'offline')).toBe(ES.api.errors.offline);
+  // ⚠️⚠️ `8g`, 2026-10-20, the offline report's round 3: it used to be *a failure
+  // wins over every state*, and TanStack keeps the rows when a refresh fails — so a
+  // chart in memory became a spinner and *Sin conexión* the moment a re-read missed.
+  it('lets what was read win over a failed refresh', () => {
+    expect(pricesLine('nothing', 'offline', true)).toBe(ES.prices.nothing);
+    expect(pricesLine('shown', 'offline', true)).toBe('');
+    expect(pricesLine('shown', 'offline', false)).toBe('');
+  });
+
+  it('says the failure while there is nothing read, with a signal', () => {
+    expect(pricesLine('unknown', 'unknown', true)).toBe(ES.api.errors.unknown);
+    expect(pricesLine('unknown', 'offline', null)).toBe(ES.api.errors.offline);
+  });
+
+  it('says *Se ve cuando haya señal* with nothing read and no signal, failed or not', () => {
+    expect(pricesLine('unknown', null, false)).toBe(ES.offline.whenSignal);
+    expect(pricesLine('unknown', 'offline', false)).toBe(ES.offline.whenSignal);
   });
 
   it('says what would fill the screen when nothing has traded', () => {
-    expect(pricesLine('nothing', null)).toBe(ES.prices.nothing);
+    expect(pricesLine('nothing', null, true)).toBe(ES.prices.nothing);
+    expect(pricesLine('nothing', null, false)).toBe(ES.prices.nothing);
   });
 
-  it('is empty while the read is out and when there is a chart', () => {
-    expect(pricesLine('unknown', null)).toBe('');
-    expect(pricesLine('shown', null)).toBe('');
+  it('is empty while the read is out with a signal and when there is a chart', () => {
+    expect(pricesLine('unknown', null, true)).toBe('');
+    expect(pricesLine('unknown', null, null)).toBe('');
+    expect(pricesLine('shown', null, true)).toBe('');
+  });
+});
+
+describe('pricesSpin — a spinner only where it can stop', () => {
+  it('spins while the read is out with a signal, or before anything has read the network', () => {
+    expect(pricesSpin('unknown', true)).toBe(true);
+    // ⚠️ `null` IS UNKNOWN, NOT OFFLINE — a launch must not accuse the shop's wifi.
+    expect(pricesSpin('unknown', null)).toBe(true);
+  });
+
+  it('never spins offline: the paused read cannot stop it', () => {
+    expect(pricesSpin('unknown', false)).toBe(false);
+  });
+
+  it('never spins over something to draw', () => {
+    for (const online of [true, false, null]) {
+      expect(pricesSpin('nothing', online)).toBe(false);
+      expect(pricesSpin('shown', online)).toBe(false);
+    }
   });
 });

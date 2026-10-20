@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { initials } from '@/api/catalog';
 import { shownAmount } from '@/api/documents';
 import { useMyRole, useProviders, useSupplierHeads } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import { activityLine, activityOf, rankedProviders } from '@/api/providerPage';
 import {
   canWriteProviders,
@@ -14,6 +16,7 @@ import {
   providerRows,
   type ProviderRowView,
 } from '@/api/providerDirectory';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -96,6 +99,9 @@ export default function Proveedores() {
   // manager-only view it has no use for and would put every price this shop has
   // paid onto a screen that draws none of them.
   const { loading, providers, failed } = useProviders(null);
+  // ⚠️ `8g`'s round 3: no list and no signal is *Se ve cuando haya señal*, never
+  // *Cargando proveedores…* for ever (`providerLine`).
+  const online = useOnline();
   const mayCreate = canWriteProviders(useMyRole());
 
   // ⚠️ THE SUPPLIER JUST CREATED ARRIVES AS A ROUTE PARAMETER, not as state this
@@ -110,6 +116,7 @@ export default function Proveedores() {
   const activity = activityOf(heads, reversals, today);
   const rows = providerRows(rankedProviders(providers, activity), typed, mayCreate);
   const list = useRef<FlatList<ProviderRowView>>(null);
+  const refresh = useRefresh();
   const box = useRef<TextInput>(null);
 
   // ⚠️⚠️ THE SEARCH BOX IS CLEARED AND BLURRED FIRST, AND WITHOUT THIS THE BLINK
@@ -159,6 +166,9 @@ export default function Proveedores() {
         // the pilot seed, not about the component.
         data={rows}
         keyExtractor={(row) => (row.kind === 'create' ? 'crear' : row.provider.id)}
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH — the quiet extra, no button
+        // (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         renderItem={({ item }) =>
           item.kind === 'create' ? (
             <Crear name={item.name} />
@@ -173,7 +183,7 @@ export default function Proveedores() {
           )
         }
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={providerLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={providerLine(loading, typed, failed, online)} />}
         // ⚠️ THE ROWS ARE A FIXED HEIGHT TO THE VIRTUALISER'S EYE, which is what
         // lets `scrollToIndex` reach a row it has not drawn yet;
         // `onScrollToIndexFailed` is the belt to that braces.

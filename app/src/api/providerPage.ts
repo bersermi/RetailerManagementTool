@@ -25,7 +25,10 @@
 import { SCALE, parseDecimal } from '@tienda/money';
 
 import { priceCentavos, type UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
+import type { ApiMessageKey } from '@/api/errors';
 import { daysBefore, standing, type PurchaseHead, type ReversalRow } from '@/api/month';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 // ---------------------------------------------------------------- the reads --
@@ -152,6 +155,48 @@ export function activityLine(activity: Activity | undefined, today: string, amou
   if (activity === undefined || activity.lastDay === null) return '';
   const ago = agoWords(activity.lastDay, today);
   return ES.providers.page.rowLine(ago, activity.monthCentavos > 0 ? amount(activity.monthCentavos) : null);
+}
+
+// ------------------------------------------- what the page says with no read --
+// ⚠️⚠️ `8g`, 2026-10-20, the offline report's round 3 (the owner's *"Do all the
+// fixes"*). Neither her row nor the window's deliveries is kept on the phone, so
+// after an offline start her page said *Cargando proveedores…* for ever, and
+// with her row in memory but not the deliveries, *Nada este mes* about a
+// supplier who came on Tuesday. A read with nothing to draw and no signal says
+// `ES.offline.whenSignal` and fills itself when the signal returns
+// (`@/offline/senal`); with a signal nothing here changes.
+
+/**
+ * Her page with no row to draw. ⚠️ THREE FACTS AND ONE LINE, AND THE ORDER
+ * MATTERS — moved here from the screen with this round so a suite reads it
+ * (`R3`): no signal first, then a failed read, then *not back yet*, and *this
+ * supplier is gone* last — a legitimate state, since she can be retired on
+ * another phone while this one holds the row. ⚠️ The page is reached by TAPPING
+ * her, so *ya no está* about a read still out would tell a shopkeeper the name
+ * under her thumb had been deleted.
+ */
+export function supplierPageLine(loading: boolean, failed: ApiMessageKey | null, online: Online): string {
+  if ((loading || failed !== null) && waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (failed !== null) return ES.api.errors[failed];
+  if (loading) return ES.providers.empty.loading;
+  return ES.providers.errors.missing;
+}
+
+/**
+ * *Este mes*'s figure: the month's money, *Nada este mes*, or — with the
+ * window's deliveries never read and no signal — `ES.offline.whenSignal`.
+ * ⚠️ `known` IS WHETHER THE DELIVERIES ARRIVED (`useSupplierHeads`' two lists),
+ * never whether she had any: an empty window is a true *Nada este mes*.
+ */
+export function monthFigure(
+  known: boolean,
+  activity: Activity | undefined,
+  online: Online,
+  amount: (c: number) => string,
+): string {
+  if (waitsForSignal(online, known)) return ES.offline.whenSignal;
+  const deliveries = activity?.monthDeliveries ?? 0;
+  return deliveries === 0 ? ES.providers.page.monthNone : amount(activity?.monthCentavos ?? 0);
 }
 
 // ------------------------------------------------------ what she brings you --

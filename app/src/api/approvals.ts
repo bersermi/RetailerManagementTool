@@ -28,7 +28,8 @@
 // repository can see. As a pure function it is one the suite reads.
 // ============================================================================
 
-import { apiErrorMessage } from '@/api/errors';
+import type { Online } from '@/api/connectivity';
+import { apiErrorMessage, type ApiMessageKey } from '@/api/errors';
 import {
   checkLocations,
   dedupe,
@@ -37,6 +38,7 @@ import {
 } from '@/api/invites';
 import { ROLES, nonBlank, type Role } from '@/api/members';
 import { isAppleRelay } from '@/auth/apple';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** The RPC's name, written once (`R13`). */
@@ -232,6 +234,25 @@ export function linesOf(entry: PendingRequest): {
       : { header: entry.name, subtitle: ES.approvals.hiddenEmail };
   }
   return { header: entry.email, subtitle: entry.name };
+}
+
+/**
+ * What Solicitudes says while it has no queue to draw — `8g`, 2026-10-20, the
+ * offline report's round 3 (the owner's *"Do all the fixes"*).
+ *
+ * ⚠️⚠️ IT SAID *Un momento…* FOR EVER WHEN THE QUEUE NEVER LOADED, because
+ * `usePendingRequests` reported no failure at all: `loading` is `data ===
+ * undefined`, which is also what a failed read and a paused one look like —
+ * `catalogLine`'s defect of 2026-09-22, on the owner's own door. Now no queue and
+ * no signal is `ES.offline.whenSignal` (the read is paused and resumes by itself),
+ * no queue and a failure is that failure's `ES.api` sentence, and only a read
+ * truly in flight is *Un momento…*. ⚠️ With a queue in hand the screen never asks:
+ * a list already read is drawn whatever a refresh said.
+ */
+export function queueLine(failed: ApiMessageKey | null, online: Online): string {
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (failed !== null) return ES.api.errors[failed];
+  return ES.approvals.loading;
 }
 
 // ============================================================================

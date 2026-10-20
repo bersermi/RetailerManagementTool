@@ -93,6 +93,8 @@ import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
 import { setTabGuard } from '@/navigation/salida';
+import { comproFace, sendButton, type ComproFace } from '@/offline/teLoCompro';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -166,6 +168,13 @@ import { Velo } from '@/ui/Velo';
 // ⚠️ THE DOOR OPENS ONLY FOR A STORE WITH AN ADDRESS INSIDE THE AREA (`0058`,
 // 06400 and 06470 today). Closed, it is drawn and says why — never hidden, so the
 // service is discoverable by the shop it does not reach yet.
+//
+// ⚠️⚠️ AND ONLY WITH A SIGNAL — `8g`, 2026-10-20, the offline report's round 3
+// (the owner's *"Do all the fixes"*). Offline the door is shut and says
+// `ES.offline.collectNeedsSignal`, and opens by itself when the signal returns;
+// a request already open stays open, and *Guardar solicitud* then WAITS for the
+// signal instead of failing (`useRequestCollection`). Every rule is
+// `@/offline/teLoCompro`'s; this file only draws them.
 //
 // ⚠️ THE PHOTOS ARE `8m`'s: up to three, taken with the camera on step one
 // (the owner's canvas: a thumbnail each, then *📷 Otra foto*), uploaded under
@@ -348,6 +357,7 @@ function Puertas({
 }) {
   const { scale } = useDensity();
   const { data } = useCollectionRequests();
+  const online = useOnline();
   const recent = newestFirst(data ?? []).slice(0, 3);
   return (
     <ScrollView contentContainerStyle={{ padding: scale.space, gap: scale.space }}>
@@ -363,24 +373,49 @@ function Puertas({
         onPress={onTirar}
       />
 
-      <PuertaCompro acceso={acceso} isOwner={isOwner} onOpen={onCompro} />
+      <PuertaCompro
+        acceso={acceso}
+        face={comproFace(acceso.kind, online)}
+        isOwner={isOwner}
+        onOpen={onCompro}
+      />
 
       {recent.length === 0 ? null : <Solicitudes requests={recent} mayCancel={false} />}
     </ScrollView>
   );
 }
 
-/** The Te lo compro door in whichever of its four faces the store is in. */
+/**
+ * The Te lo compro door in whichever face it is in — the store's four, or
+ * `needsSignal` (`comproFace`, `8g` round 3). `acceso` carries the address and
+ * the código postal the faces print; `face` is what is drawn.
+ */
 function PuertaCompro({
   acceso,
+  face,
   isOwner,
   onOpen,
 }: {
   acceso: Acceso;
+  face: ComproFace;
   isOwner: boolean;
   onOpen: () => void;
 }) {
-  if (acceso.kind === 'open') {
+  if (face === 'needsSignal') {
+    // ⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3: SHUT AND SAYING WHY, in
+    // the place `Revisando tu zona…` spun for ever. No tap, no button — it opens
+    // by itself when the signal returns, because `face` is re-read with it.
+    return (
+      <Puerta
+        icon="truck-outline"
+        title={ES.waste.doors.compro}
+        hint={ES.waste.doors.comproHint}
+        tag={ES.offline.collectNeedsSignal}
+        tone="cerrado"
+      />
+    );
+  }
+  if (face === 'open' && acceso.kind === 'open') {
     return (
       <Puerta
         icon="truck-outline"
@@ -392,7 +427,7 @@ function PuertaCompro({
       />
     );
   }
-  if (acceso.kind === 'noAddress') {
+  if (face === 'noAddress') {
     // ⚠️ THE OWNER'S DOOR LEADS TO THE ONE PLACE HE CAN FIX IT — Ajustes'
     // *Domicilio*, which is his alone; a manager is told who can.
     return (
@@ -515,6 +550,9 @@ function Tirar() {
   // ⚠️ THE SAME LIST AS PRODUCTOS AND VENDER — C3.1, *"there are no buy-only or
   // sell-only subsets"*: anything the shop sells is something it can lose.
   const { loading, entries, failed, locationId } = useCatalog('');
+  // ⚠️ `8g`'s round 3: an empty list with no catalog and no signal says *Se ve
+  // cuando haya señal* rather than *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const factors = useUnitFactors();
   // ⚠️ §2.8's THIRD GUARD EARNS ITS PLACE HERE MORE THAN ANYWHERE: a write-off
   // has nobody on the other side of it, and `9999 kg` in the bin is queried by
@@ -679,7 +717,7 @@ function Tirar() {
           />
         )}
         ItemSeparatorComponent={Separador}
-        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+        ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
         contentContainerStyle={{ paddingBottom: scale.space }}
         onScrollToIndexFailed={({ index }) => {
           list.current?.scrollToOffset({ offset: index * scale.rowHeight, animated: true });
@@ -1294,12 +1332,25 @@ function TeLoCompro({
   onDirty: (dirty: boolean) => void;
 }) {
   const { scale } = useDensity();
-  if (acceso.kind !== 'open') {
+  const online = useOnline();
+  // ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3: THE DOOR CLOSES TO
+  // ENTERING, NEVER ON HER. Once the form has been drawn in this visit, a signal
+  // that drops leaves it standing (`comproFace`'s `inside`) — swapping it for the
+  // shut card would unmount the request she is filling in. A new visit is a new
+  // mount (`requestKey`), so the latch starts over with it.
+  const [inside, setInside] = useState(false);
+  const face = comproFace(acceso.kind, online, inside);
+  useEffect(() => {
+    if (face === 'open') setInside(true);
+  }, [face]);
+  if (face !== 'open' || acceso.kind !== 'open') {
     // ⚠️ THE SWITCH CAN REACH THIS SIDE WHEN THE DOOR IS SHUT, so the side says
     // what the door says — the same card, the same reason, nothing to fill in.
+    // Offline that is `needsSignal`, and the form appears by itself on the
+    // reconnect.
     return (
       <ScrollView contentContainerStyle={{ padding: scale.space }}>
-        <PuertaCompro acceso={acceso} isOwner={isOwner} onOpen={() => {}} />
+        <PuertaCompro acceso={acceso} face={face} isOwner={isOwner} onOpen={() => {}} />
       </ScrollView>
     );
   }
@@ -1312,7 +1363,11 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
   const factors = useUnitFactors();
   const workspace = useWorkspace();
   const requests = useCollectionRequests();
-  const { send, busy } = useRequestCollection();
+  const { send, busy, paused } = useRequestCollection();
+  const online = useOnline();
+  // ⚠️ `8g` round 3: *Guardar solicitud*, spinning, or *Se envía cuando haya
+  // señal* — and while it waits, the form holds still (`sendButton`).
+  const button = sendButton(busy, paused, online);
 
   const today = isoDay(new Date());
 
@@ -1339,6 +1394,10 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
   // ⚠️ `8g`: SOMETHING SHE FILLED IN — a product, a quantity, a note, a photo, a
   // word in the search, or a step past the first. The answers carried over from
   // her last request are not hers to lose, and a request already sent is done.
+  // ⚠️ `8g` round 3: A SEND WAITING FOR THE SIGNAL IS NOT SENT, and it is still on
+  // `revisar`, so every way out still asks *¿Salir sin enviar la solicitud?* —
+  // and leaving drops the waiting send (`useRequestCollection`). ⚠️ Closing the
+  // app loses a waiting request, as it already loses a draft: no way out asks.
   const dirty =
     paso !== 'guardada' &&
     (paso !== 'que' || variantId !== null || base > 0 || note !== '' || photos.length > 0 || typed !== '');
@@ -1394,6 +1453,10 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
     if (condition === null || packaging === null || keeping === null || expiryDate === undefined) return;
     if (workspace === null) return;
     setError(null);
+    // ⚠️ `8g` round 3: WITH NO SIGNAL THIS AWAIT LASTS UNTIL THERE IS ONE — the
+    // send is held, not failed — and then carries on below exactly as a quick
+    // one does. What it sends is what is captured here, which is why the form
+    // holds still while it waits (`button.waiting`).
     const failure = await send({
       id,
       locationId: address.locationId,
@@ -1511,7 +1574,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
             data={search(entries, typed)}
             keyExtractor={(e) => e.id}
             ItemSeparatorComponent={Separador}
-            ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed)} />}
+            ListEmptyComponent={<Vacio line={catalogLine(loading, typed, failed, online)} />}
             keyboardShouldPersistTaps="handled"
             renderItem={({ item }) => (
               <Pressable
@@ -1678,6 +1741,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
               <TextInput
                 value={note}
                 onChangeText={setNote}
+                editable={!button.waiting}
                 placeholder={ES.collection.notePlaceholder}
                 placeholderTextColor={PALETTE.tintaApagada}
                 multiline
@@ -1713,7 +1777,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
             backgroundColor: PALETTE.banda,
           }}
         >
-          {paso === 'que' ? null : (
+          {paso === 'que' || button.waiting ? null : (
             <Pressable
               accessibilityRole="button"
               accessibilityLabel={ES.collection.back}
@@ -1737,9 +1801,9 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
               />
             ) : (
               <BotonLleno
-                label={ES.collection.next.guardar}
+                label={button.label}
                 variante="principal"
-                busy={busy}
+                busy={button.busy}
                 off={!slotOk || !ready}
                 onPress={() => void save()}
               />

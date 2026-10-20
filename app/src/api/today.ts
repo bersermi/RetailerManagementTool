@@ -73,7 +73,9 @@
 import { SCALE, parseDecimal } from '@tienda/money';
 
 import { isoDay } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import type { ApiMessageKey } from '@/api/errors';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /**
@@ -259,16 +261,27 @@ function centavos(text: string): number | null {
  * should be invites exactly one reading, *three sales that brought in nothing*,
  * which is a shopkeeper doing arithmetic about a wire format. One sentence
  * replaces both numbers, and `complete` is what chooses.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*) — TWO CHANGES:
+ *   * TODAY'S ROWS FIRST, THE FAILURE LAST, signal or not. The figure above was
+ *     drawn from the last good copy while this line said *Sin conexión…* under
+ *     it — the count hidden behind a sentence about a refresh. A read in hand
+ *     says its count, whatever its last attempt said (`@/offline/senal`).
+ *   * NOTHING READ AND NO SIGNAL IS `ES.offline.whenSignal`, never *Cargando…*:
+ *     offline the library PAUSES the read, so *Cargando…* never stopped. Online
+ *     with nothing read, the loading and failure lines are what they were.
  */
 export function takingsLine(
   loading: boolean,
   failed: ApiMessageKey | null,
   takings: Takings,
+  online: Online,
 ): string {
+  if (!loading) return takings.complete ? ES.home.sales(takings.count) : ES.home.partial;
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
   if (failed !== null) return ES.api.errors[failed];
-  if (loading) return ES.home.loading;
-  if (!takings.complete) return ES.home.partial;
-  return ES.home.sales(takings.count);
+  return ES.home.loading;
 }
 
 /**

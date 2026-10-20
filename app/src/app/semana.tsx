@@ -7,8 +7,18 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { isoDay } from '@/api/catalog';
 import { shownAmount } from '@/api/documents';
 import { useSaleHours, useSales, useWeekWaste } from '@/api/hooks';
-import { WEEK_SEEN_KEY, lastWeek, mondayOf, weekCompare, weekRange, weekStory } from '@/api/semana';
+import {
+  WEEK_SEEN_KEY,
+  lastWeek,
+  mondayOf,
+  thrownWords,
+  weekCompare,
+  weekRange,
+  weekStory,
+  weekWaits,
+} from '@/api/semana';
 import { deviceStore, writeKey } from '@/lib/store';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -27,6 +37,12 @@ import { Rotulo } from '@/ui/Rotulo';
 // ⚠️⚠️ WHAT NO CHECK CAN SEE — `R9`: whether a story that swipes reads as a
 // gift or as homework, and whether a thumb finds the next card. The instrument
 // is the owner's phone.
+//
+// ⚠️⚠️ WITH NO SIGNAL (`8g`, 2026-10-20, the offline report's round 3 — the
+// owner's *"Do all the fixes"*): the week's write-offs are a read of their own,
+// and offline the fourth card said *No se tiró nada* about a week nobody had
+// asked. It says *Se ve cuando haya señal* until the read answers, and so does
+// the story with no six months to tell (`thrownWords`, `weekWaits`).
 // ============================================================================
 
 const CARDS = 4;
@@ -41,6 +57,8 @@ export default function Semana() {
   const { rows } = useSaleHours();
   const waste = useWeekWaste(from, to);
   const story = weekStory(sales.days, rows, waste, entries, factors, today);
+  const online = useOnline();
+  const thrown = thrownWords(story?.thrown ?? null, waste !== null, online);
   const [page, setPage] = useState(0);
   const pager = useRef<ScrollView>(null);
 
@@ -78,7 +96,13 @@ export default function Semana() {
           <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.superficie} />
         </Pressable>
       </View>
-      {story === null ? null : (
+      {story === null ? (
+        weekWaits(sales.state, online) ? (
+          <View style={{ paddingHorizontal: scale.space * 1.5, paddingTop: scale.space * 2 }}>
+            <Grande>{ES.offline.whenSignal}</Grande>
+          </View>
+        ) : null
+      ) : (
         <ScrollView
           ref={pager}
           horizontal
@@ -118,14 +142,8 @@ export default function Semana() {
           </Pagina>
           <Pagina width={width} onBack={() => go(2)} onNext={() => go(3)}>
             <Rotulo text={ES.numbers.semana.thrownTitle} ink={PALETTE.superficie} />
-            <Grande>
-              {story.thrown === null
-                ? ES.numbers.semana.nothingThrown
-                : ES.numbers.semana.thrownBig(story.thrown.quantity, story.thrown.name)}
-            </Grande>
-            <Nota>
-              {story.thrown === null ? ES.numbers.semana.nothingTip : ES.numbers.semana.thrownTip(story.thrown.reason)}
-            </Nota>
+            <Grande>{thrown.big}</Grande>
+            {thrown.tip === '' ? null : <Nota>{thrown.tip}</Nota>}
             <View style={{ flex: 1 }} />
             <Pressable
               accessibilityRole="button"

@@ -57,9 +57,11 @@
 import { SCALE, parseDecimal } from '@tienda/money';
 
 import type { CatalogEntry, UnitBases, UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import { lineQuantity, shownAmount } from '@/api/documents';
 import type { ApiMessageKey } from '@/api/errors';
 import { qtyShown, shownUnitOf } from '@/cart/quantity';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** The view the rows come off. Spelled once (`R13`). */
@@ -238,12 +240,36 @@ export function salesFrom(
  * `costsLine`'s rule. A failure is the `ES.api` sentence, never *no sales*: a
  * shop told it sold nothing on a phone that simply had no signal is the exact
  * lie `takingsFrom` was written to refuse.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, the offline report's round 3 (the owner's *"Do all the
+ * fixes"*): THE ROWS ARE ASKED FIRST AND THE FAILURE LAST, signal or not. A
+ * refresh that failed over six months already on the phone used to put *Sin
+ * conexión…* where the chart was — the last good copy hidden behind a sentence
+ * about the attempt. And with nothing read and no signal it is
+ * `ES.offline.whenSignal`, never a spinner the library has paused
+ * (`@/offline/senal`): the chart arrives by itself when the signal does. Online
+ * with nothing read, the spinner and the failure are what they were.
  */
-export function salesLine(state: SalesState, failed: ApiMessageKey | null): string {
-  if (failed !== null) return ES.api.errors[failed];
-  if (state === 'unreadable') return ES.api.errors.unknown;
+export function salesLine(state: SalesState, failed: ApiMessageKey | null, online: Online): string {
+  if (state === 'sales') return '';
   if (state === 'nothing') return ES.numbers.nothing;
+  if (state === 'unreadable') return ES.api.errors.unknown;
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (failed !== null) return ES.api.errors[failed];
   return '';
+}
+
+/**
+ * The days, if the six months have been READ — `null` while they have not.
+ *
+ * ⚠️ `8g`, 2026-10-20, round 3: `days` is `[]` both for a shop that has sold
+ * nothing and for a read that never arrived, and a card that counts history off
+ * it cannot tell the two apart. Offline, Números said *Tu mejor día de la semana
+ * · En 7 días* in a shop with months of sales. `nothing` is an answer; `unknown`
+ * and `unreadable` are not, and a card handed `null` draws nothing until it is.
+ */
+export function historyOf(sales: Sales): readonly SoldDay[] | null {
+  return sales.state === 'sales' || sales.state === 'nothing' ? sales.days : null;
 }
 
 // ----------------------------------------------------------------------------
@@ -535,8 +561,15 @@ export function bestSameWeekday(days: readonly SoldDay[], today: string): number
  * WHEN TODAY HAS SOLD, AND YESTERDAY OTHERWISE: at eight in the morning a streak
  * is not broken because the first customer has not come yet. `soldToday` is
  * `useToday`'s count, the server's own answer for today.
+ *
+ * ⚠️⚠️ `null` DAYS IS A `null` STREAK — `8g`, 2026-10-20, the offline report's
+ * round 3 (the owner's *"Do all the fixes"*). Today's takings are kept on the
+ * phone and the six months are not, so offline after a restart a shop thirty
+ * days into a streak read *1 día seguido*: today, counted against a history
+ * nothing had read. Unread history (`historyOf`) is no streak to draw at all.
  */
-export function salesStreak(days: readonly SoldDay[], today: string, soldToday: boolean): number {
+export function salesStreak(days: readonly SoldDay[] | null, today: string, soldToday: boolean): number | null {
+  if (days === null) return null;
   const sold = new Set<string>();
   for (const [day, centavos] of dayTotals(days)) if (centavos > 0) sold.add(day);
   if (soldToday) sold.add(today);

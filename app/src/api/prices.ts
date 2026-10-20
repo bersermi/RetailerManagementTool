@@ -78,9 +78,11 @@ import {
 } from '@tienda/money';
 
 import { priceCentavos, priceLabel, type UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import type { Plot } from '@/api/costs';
 import type { ApiMessageKey } from '@/api/errors';
 import { formatLedgerDay } from '@/format/date';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** The two sides of the ledger a price comes off, in the order the legend draws them. */
@@ -502,11 +504,34 @@ export function plottedPrices(prices: Prices): Readonly<Record<Side, readonly Pl
 
 /**
  * The one line `Precios` shows when there is nothing to draw, chosen here so the
- * screen never imports `@/api/errors` (`R12`). A failure wins; *still out* is
- * `''` and the caller shows a spinner.
+ * screen never imports `@/api/errors` (`R12`). *Still out* is `''` and the caller
+ * shows a spinner.
+ *
+ * ⚠️⚠️ WHAT WAS READ WINS OVER HOW THE LAST ATTEMPT WENT — `8g`, 2026-10-20, the
+ * offline report's round 3 (the owner's *"Do all the fixes"*). Until then a
+ * failure won over every state, and TanStack KEEPS `data` when a refresh fails,
+ * so a chart already in memory was swapped for a spinner and *Sin conexión* the
+ * moment a re-read missed. `nothing` and `shown` exist only once rows arrived, so
+ * they are what the phone knows; a failure speaks only while it is `unknown`.
+ *
+ * ⚠️ AND WITH NOTHING TO DRAW AND NO SIGNAL IT IS `ES.offline.whenSignal`, never
+ * the failure: with no signal the read is PAUSED and resumes by itself, so a
+ * spinner would turn until she found a signal, and *Intenta de nuevo* asks her to
+ * do something that cannot help (`@/offline/senal`).
  */
-export function pricesLine(state: PricesState, failed: ApiMessageKey | null): string {
-  if (failed !== null) return ES.api.errors[failed];
+export function pricesLine(state: PricesState, failed: ApiMessageKey | null, online: Online): string {
   if (state === 'nothing') return ES.prices.nothing;
+  if (state === 'shown') return '';
+  if (waitsForSignal(online, false)) return ES.offline.whenSignal;
+  if (failed !== null) return ES.api.errors[failed];
   return '';
+}
+
+/**
+ * Does `Precios` turn its spinner? Only while the read is out WITH a signal to
+ * bring it — `8g`'s round 3. Offline it draws `pricesLine`'s sentence alone,
+ * because a spinner that cannot stop says *wait* to a phone that cannot get it.
+ */
+export function pricesSpin(state: PricesState, online: Online): boolean {
+  return state === 'unknown' && !waitsForSignal(online, false);
 }
