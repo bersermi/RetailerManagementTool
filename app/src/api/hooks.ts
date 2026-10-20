@@ -20,7 +20,7 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { apiErrorKey, apiErrorMessage, type ApiMessageKey } from '@/api/errors';
@@ -274,8 +274,10 @@ import {
   type Picture,
   type PhotoSize,
 } from '@/api/photos';
+import { online } from '@/lib/connectivityMonitor';
 import { onLanded } from '@/lib/landedWrites';
 import { fetchPhoto, keepPhoto, keptPhoto, mayFetch } from '@/lib/photoStore';
+import { COLLECTION_SEND_KEY, SEND_ABANDONED, SEND_RETRY_MS, sendRetry } from '@/offline/teLoCompro';
 
 
 /**
@@ -1365,20 +1367,59 @@ export function useCollectionRequests() {
   });
 }
 
-/** Sending one. Returns a Spanish sentence, or `null` when it is recorded. */
+/**
+ * Sending one. Returns a Spanish sentence, or `null` when it is recorded.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*): WITH NO SIGNAL THE SEND WAITS INSTEAD OF FAILING, and goes by
+ * itself when the signal returns — `send` simply resolves later, and the screen
+ * goes on to *Solicitud guardada* as if it had been quick. Three settings do it,
+ * and every rule behind them is `@/offline/teLoCompro`'s:
+ *
+ *   * `networkMode: 'online'` — THE ONE WRITE THAT OVERRIDES `QueryProvider`'s
+ *     `always`. Tapped offline, the library holds the send (`paused`) before
+ *     anything leaves the phone, and starts it on the reconnect.
+ *   * `retry` — a send whose LINK was lost mid-way (a photo half up, the RPC in
+ *     the air) tries again; offline, the library holds that retry too. Only a
+ *     lost link: a refusal is said at once, as before (`afterSendFailure`).
+ *   * `retryDelay` — longer than the signal takes to believe a drop, so the
+ *     retry is held rather than spent on a dead link (`SEND_RETRY_MS`).
+ *
+ * ⚠️⚠️ A SEND THAT TRIES AGAIN CANNOT MAKE TWO REQUESTS: the photos go to paths
+ * named when they were taken, and `request_collection` answers a draft id it
+ * already holds with that request (`already_recorded`). And one send is one
+ * retryer — a reconnect and a return to the app both resuming it start it once.
+ *
+ * ⚠️⚠️ THE FORM GOING AWAY TAKES ITS SEND WITH IT. She is asked first
+ * (*¿Salir sin enviar la solicitud?*, the screen's leave-guard), so a send still
+ * waiting when the form unmounts is one she chose not to send: its next step
+ * throws `SEND_ABANDONED` instead of reaching the network, and it is dropped from
+ * the library's cache so no reconnect resumes it. ⚠️ CLOSING THE APP LOSES A
+ * WAITING REQUEST, as it already loses a draft: nothing here is the outbox.
+ * The library does write a held send to the phone with the cache, but a
+ * restored one has no `mutationFn` and is never sent (`COLLECTION_SEND_KEY`).
+ */
 export function useRequestCollection() {
   const queries = useQueryClient();
+  const here = useRef(true);
+  const strikes = useRef(0);
   const mutation = useMutation({
+    mutationKey: COLLECTION_SEND_KEY,
+    networkMode: 'online',
+    retry: sendRetry(strikes, online),
+    retryDelay: SEND_RETRY_MS,
     // ⚠️ `8m`: THE PHOTOS GO UP FIRST, under the request's own id, and the
     // request carries their paths — `0060` refuses any other shape. A photo that
     // fails stops the request: it is not sent without what she photographed.
     mutationFn: async ({ draft, photos, workspaceId }: CollectionSend) => {
       const paths: string[] = [];
       for (const photo of photos) {
+        if (!here.current) throw { code: SEND_ABANDONED };
         const path = photoPath(workspaceId, draft.id, photo.fileId);
         await uploadMermaPhoto(path, await photoBytes(photo));
         paths.push(path);
       }
+      if (!here.current) throw { code: SEND_ABANDONED };
       await requestCollection({ ...draft, photos: paths });
     },
     onSuccess: async () => {
@@ -1386,7 +1427,28 @@ export function useRequestCollection() {
     },
   });
 
+  // ⚠️ A HELD SEND STARTS ITS COUNT OVER: the tries that remain are for the
+  // signal that comes back, not the one that went.
+  useEffect(() => {
+    if (mutation.isPaused) strikes.current = 0;
+  }, [mutation.isPaused]);
+
+  // ⚠️ `here` IS SET IN THE EFFECT AND NOT ONLY AT INIT, so the development
+  // build's mount–unmount–mount leaves it `true`. At most one form is mounted,
+  // so a pending send under this key on the way out is this form's.
+  useEffect(() => {
+    here.current = true;
+    return () => {
+      here.current = false;
+      const sends = queries.getMutationCache();
+      for (const m of sends.findAll({ mutationKey: COLLECTION_SEND_KEY })) {
+        if (m.state.status === 'pending') sends.remove(m);
+      }
+    };
+  }, [queries]);
+
   async function send(draft: CollectionDraft, photos: readonly LocalPhoto[], workspaceId: string): Promise<string | null> {
+    strikes.current = 0;
     try {
       await mutation.mutateAsync({ draft, photos, workspaceId });
       return null;
@@ -1395,7 +1457,7 @@ export function useRequestCollection() {
     }
   }
 
-  return { send, busy: mutation.isPending };
+  return { send, busy: mutation.isPending, paused: mutation.isPaused };
 }
 
 /** A photo on the phone, named once when it is taken (`photoPath`'s `<file>`). */
