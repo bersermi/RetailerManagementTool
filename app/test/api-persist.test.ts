@@ -40,8 +40,10 @@ import {
   CACHE_SHAPE,
   CACHE_THROTTLE_MS,
   PERSISTED_KEYS,
+  asLastGood,
   cacheMemory,
   forgetCache,
+  setMemoryForgetter,
   shouldPersistKey,
   shouldPersistQuery,
 } from '@/api/persist';
@@ -57,13 +59,14 @@ function resolved(queryKey: readonly unknown[]) {
 }
 
 describe('the allow-list is a decision, and its size is the part that is checked', () => {
-  it('is exactly six roots, because a seventh decides what a shopkeeper may be shown offline', () => {
+  it('is exactly seven roots, because an eighth decides what a shopkeeper may be shown offline', () => {
     // ⚠️ A COUNT AND NOT A SNAPSHOT, which would be this file asserting itself.
     // What is load-bearing is that the SIZE is fixed: every entry here is a row
     // written to a phone's disk and read back as fact when there is no signal,
-    // and `@/api/persist`'s header carries the one rule a seventh has to pass —
+    // and `@/api/persist`'s header carries the one rule an eighth has to pass —
     // a stale answer must beat no answer, and must not be a false statement.
-    expect(PERSISTED_KEYS).toHaveLength(6);
+    // ⚠️ Seven since 2026-10-20: her role.
+    expect(PERSISTED_KEYS).toHaveLength(7);
   });
 
   it('names no root twice, and no root is empty', () => {
@@ -106,6 +109,13 @@ describe('every persisted root still names a key this app queries', () => {
     expect(shouldPersistKey(memoryKey('a3f1'))).toBe(true);
     expect(shouldPersistKey(memoryKey(null))).toBe(true);
   });
+
+  it('persists her role, without which an owner is nobody after an offline restart', () => {
+    // ⚠️ RULED 2026-10-20 (*"Go ahead with A and B"*). `useMyRole` rides this
+    // read; refused, an owner's price changes, *Editar*, *Nuevo* and *Tu
+    // equipo* vanished offline with no word why. The fence is still RLS.
+    expect(shouldPersistKey(MEMBERS_KEY)).toBe(true);
+  });
 });
 
 describe('nothing derived from the ledger is written to disk', () => {
@@ -128,11 +138,9 @@ describe('nothing derived from the ledger is written to disk', () => {
     expect(shouldPersistKey(MAGNITUDE_KEY)).toBe(false);
   });
 
-  it('refuses everything that answers *who may do what*', () => {
-    // ⚠️ THE REAL FENCE IS RLS, ON A SERVER THIS PHONE CANNOT REACH. A restored
-    // roster is a stale answer about permission, which is the one kind of stale
-    // answer that is never better than none.
-    expect(shouldPersistKey(MEMBERS_KEY)).toBe(false);
+  it('refuses the invitations and requests, which nothing on a counter needs', () => {
+    // ⚠️ THE REAL FENCE IS RLS, ON A SERVER THIS PHONE CANNOT REACH. The roster
+    // left this list on 2026-10-20 for her role (above); these did not.
     expect(shouldPersistKey(INVITES_KEY)).toBe(false);
     expect(shouldPersistKey(PENDING_REQUESTS_KEY)).toBe(false);
     expect(shouldPersistKey(MY_REQUESTS_KEY)).toBe(false);
@@ -157,11 +165,12 @@ describe('nothing derived from the ledger is written to disk', () => {
   });
 });
 
-describe('a read that failed is never written to disk', () => {
-  // ⚠️⚠️ THE FAILURE THIS PREVENTS IS THE EXACT ONE `6d` EXISTS TO FIX, ARRIVING
-  // THROUGH THE FIX. A shop with no signal produces an `error` query on every
-  // read it makes; persisting one hydrates the failure on the next cold start,
-  // so the app would restore the empty screen from a cache that looks healthy.
+describe('a read is written when it holds data, whatever its last attempt said', () => {
+  // ⚠️⚠️ BOTH HALVES ARE THE SAME FAILURE, ARRIVING FROM OPPOSITE SIDES. Writing
+  // a read that NEVER resolved hydrates the empty screen `6d` exists to prevent.
+  // Leaving out a read whose REFRESH failed — the rule until 2026-10-20 — threw
+  // away the catalog it still held: measured on the Android emulator, the second
+  // offline restart opened Vender on *Cargando productos…*.
 
   it('writes a resolved catalog', () => {
     expect(shouldPersistQuery(resolved(CATALOG_KEY))).toBe(true);
@@ -171,12 +180,92 @@ describe('a read that failed is never written to disk', () => {
     expect(shouldPersistQuery({ queryKey: CATALOG_KEY, state: { status: 'pending' } })).toBe(false);
   });
 
-  it('refuses a catalog read that failed', () => {
+  it('refuses a catalog read that failed with nothing in it', () => {
     expect(shouldPersistQuery({ queryKey: CATALOG_KEY, state: { status: 'error' } })).toBe(false);
+    expect(
+      shouldPersistQuery({ queryKey: CATALOG_KEY, state: { status: 'error', data: undefined } }),
+    ).toBe(false);
+  });
+
+  it('writes a catalog whose refresh failed, with the rows it still holds', () => {
+    // ⚠️⚠️ THE MEASURED ONE. Offline, the restored catalog's refetch fails and
+    // the query turns `error` with its data intact; this is what keeps it.
+    expect(
+      shouldPersistQuery({ queryKey: CATALOG_KEY, state: { status: 'error', data: [{ id: 'v1' }] } }),
+    ).toBe(true);
+    // ⚠️ An EMPTY catalog is still a catalog — `[]` is data, `undefined` is not.
+    expect(shouldPersistQuery({ queryKey: CATALOG_KEY, state: { status: 'error', data: [] } })).toBe(
+      true,
+    );
+  });
+
+  it('still refuses a failed refresh of a read that is not on the list', () => {
+    expect(shouldPersistQuery({ queryKey: TODAY_KEY, state: { status: 'error', data: 1200 } })).toBe(
+      false,
+    );
   });
 
   it('refuses a resolved read that is not on the list', () => {
     expect(shouldPersistQuery(resolved(TODAY_KEY))).toBe(false);
+  });
+});
+
+describe('what is written is the last good copy', () => {
+  /** A dehydrated client holding the given query states, as the persister hands it over. */
+  function client(...states: { status: string; [field: string]: unknown }[]) {
+    return {
+      timestamp: 1,
+      buster: 'v2',
+      clientState: {
+        mutations: [],
+        queries: states.map((state, at) => ({ queryHash: `q${at}`, queryKey: ['q', at], state })),
+      },
+    };
+  }
+
+  it('writes a failed refresh as the success it last was', () => {
+    // ⚠️⚠️ BECAUSE `hydrate` KEEPS AN `error` STATUS VERBATIM: restored as it
+    // was, the catalog would come back `isError` with its rows in it.
+    const failed = {
+      status: 'error',
+      data: [{ id: 'v1' }],
+      dataUpdatedAt: 1_700_000_000_000,
+      error: new Error('Network request failed'),
+      errorUpdatedAt: 1_700_000_500_000,
+      fetchFailureCount: 3,
+      fetchFailureReason: new Error('Network request failed'),
+      fetchStatus: 'idle',
+    };
+    const [written] = asLastGood(client(failed)).clientState.queries;
+    expect(written.state).toMatchObject({
+      status: 'success',
+      data: [{ id: 'v1' }],
+      error: null,
+      fetchFailureCount: 0,
+      fetchFailureReason: null,
+    });
+  });
+
+  it('keeps how old the copy is, so the first read that can reach the server replaces it', () => {
+    const [written] = asLastGood(
+      client({ status: 'error', data: [], dataUpdatedAt: 1_700_000_000_000 }),
+    ).clientState.queries;
+    expect(written.state.dataUpdatedAt).toBe(1_700_000_000_000);
+  });
+
+  it('leaves a success, and a failure with nothing in it, exactly as they are', () => {
+    const ok = { status: 'success', data: [{ id: 'v1' }], dataUpdatedAt: 5 };
+    const empty = { status: 'error', error: new Error('x') };
+    const input = client(ok, empty);
+    const [first, second] = asLastGood(input).clientState.queries;
+    expect(first).toBe(input.clientState.queries[0]);
+    expect(second).toBe(input.clientState.queries[1]);
+  });
+
+  it('does not touch what it was handed — the live cache is the same objects', () => {
+    const input = client({ status: 'error', data: [{ id: 'v1' }] });
+    asLastGood(input);
+    expect(input.clientState.queries[0].state.status).toBe('error');
   });
 });
 
@@ -245,6 +334,31 @@ describe('the key it is stored under, and forgetting it', () => {
     ]);
   });
 
+  it('empties the live cache first, because removing the key alone never worked', () => {
+    // ⚠️⚠️ MEASURED 2026-10-20: after *Cerrar sesión* the store held the cache
+    // again within seconds — the next save wrote the whole shop back from
+    // memory, and the aviso's *"se borra la copia"* was false.
+    const order: string[] = [];
+    const store: DeviceStore = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: (key) => order.push(`removed ${key}`),
+    };
+    setMemoryForgetter(() => order.push('cleared'));
+    try {
+      forgetCache(store);
+    } finally {
+      setMemoryForgetter(null);
+    }
+    expect(order).toEqual(['cleared', 'removed wera.query-cache']);
+  });
+
+  it('still removes the key when no client is mounted to clear', () => {
+    const removed: string[] = [];
+    forgetCache({ getItem: () => null, setItem: () => {}, removeItem: (key) => removed.push(key) });
+    expect(removed).toEqual(['wera.query-cache']);
+  });
+
   it('survives a phone with no store at all', () => {
     // ⚠️ `undefined` IS A LEGITIMATE VALUE OF `cacheMemory()` — it is what node
     // sees, and it is what the first frames of a web build see. A log-out that
@@ -264,7 +378,7 @@ describe('the key it is stored under, and forgetting it', () => {
 // file imports `expo-sqlite` transitively and is a component, so `R2` and
 // `vitest.config.ts` both keep it out of this suite — and the failure mode is
 // the quiet one: reimplement the predicate inline, or drop the `gcTime` loop,
-// and all 23 assertions above stay green while nothing is written to the phone.
+// and every assertion above stays green while nothing is written to the phone.
 //
 // ⚠️ SO IT ASSERTS THE CONSEQUENCE IT CAN REACH — that the binding names the
 // policy rather than restating it — and leaves the behaviour to a phone in
@@ -307,6 +421,30 @@ describe('the binding names the policy rather than restating it', () => {
     expect(provider).toMatch(/shouldDehydrateQuery:\s*shouldPersistQuery/);
   });
 
+  it('writes the last good copy through this module’s rewrite', () => {
+    expect(provider).toMatch(/serialize:\s*\(client\)\s*=>\s*JSON\.stringify\(asLastGood\(client\)\)/);
+  });
+
+  it('tells the library the signal, from the app’s one signal and not a library', () => {
+    // ⚠️ WITHOUT IT AN OFFLINE READ FAILS INSTEAD OF WAITING, AND NOTHING READS
+    // AGAIN ON THE RECONNECT — measured 2026-10-20: Números kept *Sin dato*.
+    expect(provider).toMatch(/from '@\/lib\/connectivityMonitor'/);
+    expect(provider).toMatch(/subscribe\(\(next\)\s*=>\s*onlineManager\.setOnline\(next !== false\)\)/);
+    expect(provider).not.toMatch(/expo-network/);
+  });
+
+  it('refreshes on the return to the app, and on nothing an `inactive` glance does', () => {
+    expect(provider).toMatch(/refetchOnWindowFocus:\s*true/);
+    expect(provider).toMatch(/state === 'active'\) focusManager\.setFocused\(true\)/);
+    expect(provider).toMatch(/state === 'background'\) focusManager\.setFocused\(false\)/);
+  });
+
+  it('sends a write whatever the signal says, so none is held in memory and lost', () => {
+    // ⚠️⚠️ THE DEFAULT `online` MODE PAUSES A MUTATION THE MOMENT THE LIBRARY
+    // KNOWS THE PHONE IS OFFLINE — a *Guardar* that spins with no word.
+    expect(provider).toMatch(/mutations:\s*\{\s*retry:\s*0,\s*networkMode:\s*'always'\s*\}/);
+  });
+
   it('takes both durations from here, so neither can be inlined at the mount', () => {
     expect(provider).toMatch(/maxAge:\s*CACHE_MAX_AGE/);
     expect(provider).toMatch(/buster:\s*CACHE_SHAPE/);
@@ -333,5 +471,14 @@ describe('the binding names the policy rather than restating it', () => {
       .filter((rel) => rel !== 'api/persist.ts' && /forgetCache\s*\(/.test(code(rel)));
     expect(callers).toEqual(['auth/AuthProvider.tsx']);
     expect(auth).toMatch(/signOut\s*=\s*useCallback[\s\S]{0,900}forgetCache\(cacheMemory\(\)\)/);
+  });
+
+  it('forgets only after the session is gone, so no open screen reads the shop back in', () => {
+    expect(auth).toMatch(/await supabase\.auth\.signOut\(\);[\s\S]{0,300}forgetCache\(cacheMemory\(\)\)/);
+  });
+
+  it('hands `forgetCache` the live client to empty, and takes it back on unmount', () => {
+    expect(provider).toMatch(/setMemoryForgetter\(\(\) => client\.clear\(\)\)/);
+    expect(provider).toMatch(/return \(\) => setMemoryForgetter\(null\)/);
   });
 });

@@ -18,27 +18,41 @@
 // order matters in one direction: every query here is scoped to whoever holds
 // the session, so the provider that knows who that is has to be above it.
 //
-// ⚠️ WHAT THIS DELIBERATELY DOES NOT DO: `onlineManager`, and the
-// retry-when-the-signal-returns behaviour a shop with no connection needs. That
-// is `5c`, which owns the outbox and the "Sin conexion a internet" line, and
-// building half of it here would be a second queue for the one `5c` designs.
+// ~~WHAT THIS DELIBERATELY DOES NOT DO: `onlineManager`~~ — struck 2026-10-20
+// by the owner's *"Go ahead with A and B"*, over the offline report's
+// measurement: with nothing telling the library the phone was offline, every
+// read FAILED instead of waiting, and when the signal came back nothing read
+// again — Números kept *Sin dato* until she left and returned. ⚠️ The outbox is
+// still `5c`'s and is not touched: a sale is queued by `@/lib/commitRunner`,
+// never through a mutation here, and mutations are pinned to `always` below so
+// a write behaves exactly as it did before the library knew about the signal.
+//
+// ✅ What this file now does with the signal: it READS it, from
+// `@/lib/connectivityMonitor`'s `subscribe` — the app's one signal, never a
+// second library — and hands it to `onlineManager`, so an offline read is
+// PAUSED with its last copy on screen and resumes by itself on the reconnect.
+// And `AppState` drives `focusManager`, so a read older than its `staleTime`
+// refreshes when she comes back to the app. Between them, no screen needs a
+// refresh button.
 // ~~persistence~~ — struck by `6d`, 2026-09-27, and it had been true for
-// sixteen days: this file now persists six reads to the phone's disk.
+// sixteen days: this file now persists seven reads to the phone's disk (six
+// until 2026-10-20, when her role joined them).
 //
 // ⚠️⚠️ EVERY DECISION ABOUT THAT IS IN `@/api/persist` AND NONE OF IT IS HERE.
 // Which keys are written, what a stale answer is allowed to say, why the buster
 // is a shape version rather than the person signed in, and the `gcTime` trap
 // that would otherwise write an empty cache — all of it is argued and tested
 // there. What is left below is the BINDING: a persister over the store the
-// phone already has, and the defaults that keep the six from being collected
+// phone already has, and the defaults that keep the seven from being collected
 // before they can be saved.
 // ============================================================================
 
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
 import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
+import { AppState } from 'react-native';
 
 import {
   CACHE_GC_TIME,
@@ -47,9 +61,12 @@ import {
   CACHE_SHAPE,
   CACHE_THROTTLE_MS,
   PERSISTED_KEYS,
+  asLastGood,
   cacheMemory,
+  setMemoryForgetter,
   shouldPersistQuery,
 } from '@/api/persist';
+import { online, subscribe } from '@/lib/connectivityMonitor';
 
 /**
  * The client itself. ⚠️ A FUNCTION SO THAT `withPersistedDefaults` HAS SOMETHING
@@ -70,20 +87,31 @@ function buildClient(): QueryClient {
         // open. This is not a cache policy for the ledger — `5d` onwards
         // set their own, against screens that exist.
         staleTime: 60_000,
-        refetchOnWindowFocus: false,
+        // ⚠️ `true` SINCE 2026-10-20, AND BEFORE THAT `false` MEANT NOTHING:
+        // in React Native the library's focus is never told anything unless
+        // `AppState` drives it, which `QueryProvider` below now does. A read
+        // older than `staleTime` refreshes when she returns to the app.
+        refetchOnWindowFocus: true,
       },
       // ⚠️ WRITES ARE NOT RETRIED HERE AND THAT IS NOT AN OVERSIGHT. A
       // retried write is a second row unless something makes it idempotent,
       // and the thing that does — client-generated document uuids, §2.6 —
       // is `5c`'s. `onboard_workspace` has no such key: two calls create two
       // shops.
-      mutations: { retry: 0 },
+      //
+      // ⚠️⚠️ AND `networkMode: 'always'`, BECAUSE THE DEFAULT WOULD HOLD A
+      // WRITE IN MEMORY. Once `onlineManager` knows the phone is offline, a
+      // mutation in the default mode is PAUSED rather than sent — a *Guardar*
+      // that spins with no word and is lost when the app is closed. `always`
+      // sends it, it fails, and the screen says *Sin conexión a internet*
+      // exactly as it did before the signal was wired.
+      mutations: { retry: 0, networkMode: 'always' },
     },
   });
 }
 
 /**
- * The six persisted keys, kept in memory for as long as the app runs.
+ * The seven persisted keys, kept in memory for as long as the app runs.
  *
  * ⚠️⚠️ WITHOUT THIS THE PERSISTENCE BELOW IS A NO-OP AFTER FIVE MINUTES, and it
  * fails in the direction nobody tests. Dehydration walks the LIVE cache, and
@@ -137,8 +165,40 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       storage: cacheMemory(),
       key: CACHE_KEY,
       throttleTime: CACHE_THROTTLE_MS,
+      // ⚠️ A FAILED REFRESH IS WRITTEN AS THE SUCCESS IT LAST WAS — see
+      // `asLastGood`, and the measurement in `@/api/persist`'s header.
+      serialize: (client) => JSON.stringify(asLastGood(client)),
     }),
   );
+
+  // ⚠️ *Cerrar sesión* EMPTIES THIS CLIENT, through `forgetCache` — without it
+  // the next save wrote the shop back to the phone (`@/api/persist`'s header).
+  useEffect(() => {
+    setMemoryForgetter(() => client.clear());
+    return () => setMemoryForgetter(null);
+  }, [client]);
+
+  // ⚠️ THE SIGNAL, HANDED TO THE LIBRARY. `null` — nothing has read the network
+  // yet — is taken as online, which is the library's own default and the one
+  // that lets a launch read at once. ⚠️ Through `subscribe`, like
+  // `OfflineSurfaces`, so the notice and the reads can never disagree about
+  // whether the shop is online.
+  useEffect(() => {
+    onlineManager.setOnline(online() !== false);
+    return subscribe((next) => onlineManager.setOnline(next !== false));
+  }, []);
+
+  // ⚠️ THE APP COMING BACK TO THE FRONT. `inactive` — a notification pulled
+  // down, a call banner — is neither leaving nor returning, and the monitor
+  // reads it the same way: folding it into `background` would refresh every
+  // stale read each time she glanced at a notification.
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') focusManager.setFocused(true);
+      else if (state === 'background') focusManager.setFocused(false);
+    });
+    return () => sub.remove();
+  }, []);
 
   return (
     <PersistQueryClientProvider
