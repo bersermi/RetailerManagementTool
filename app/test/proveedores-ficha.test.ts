@@ -52,20 +52,23 @@ describe('the list: when she last came, and this month', () => {
     // 02:00 UTC on the 1st is 20:00 on 30 September in Mexico City: last month.
     head('e', 'sabritas', '2026-10-01T02:00:00Z', '300.00'),
   ];
-  const activity = activityOf(heads, [], TODAY);
+  // ⚠️ COMPUTED INSIDE EACH TEST AND NEVER AT `describe` SCOPE: collection runs
+  // BEFORE `beforeAll` pins the zone, so on CI (UTC) 8 at night on the 30th was
+  // read as the 1st — red there, green on the Mac ([[local-time-tests-need-a-pinned-tz]]).
+  const act = () => activityOf(heads, [], TODAY);
 
   it('a cancelled delivery is no visit and no money', () => {
-    expect(activity.get('bimbo')).toEqual({ lastDay: '2026-09-28', monthCentavos: 0, monthDeliveries: 0 });
+    expect(act().get('bimbo')).toEqual({ lastDay: '2026-09-28', monthCentavos: 0, monthDeliveries: 0 });
   });
 
   it('the month is the shop’s: 8 at night on the 30th is September', () => {
-    expect(activity.get('sabritas')).toEqual({ lastDay: '2026-09-30', monthCentavos: 0, monthDeliveries: 0 });
-    expect(activity.get('chuy')).toEqual({ lastDay: '2026-10-17', monthCentavos: 3030_00, monthDeliveries: 2 });
+    expect(act().get('sabritas')).toEqual({ lastDay: '2026-09-30', monthCentavos: 0, monthDeliveries: 0 });
+    expect(act().get('chuy')).toEqual({ lastDay: '2026-10-17', monthCentavos: 3030_00, monthDeliveries: 2 });
   });
 
   it('says it the way a person does, with nothing to explain', () => {
-    expect(activityLine(activity.get('chuy'), TODAY, money)).toBe('Hace 3 días · $3030 este mes');
-    expect(activityLine(activity.get('bimbo'), TODAY, money)).toBe('Hace 3 semanas');
+    expect(activityLine(act().get('chuy'), TODAY, money)).toBe('Hace 3 días · $3030 este mes');
+    expect(activityLine(act().get('bimbo'), TODAY, money)).toBe('Hace 3 semanas');
     expect(activityLine(undefined, TODAY, money)).toBe('');
     expect(ES.providers.page.ago(0)).toBe('hoy');
     expect(ES.providers.page.ago(1)).toBe('ayer');
@@ -76,7 +79,7 @@ describe('the list: when she last came, and this month', () => {
     const p = (id: string, name: string, isGeneric = false) => ({ id, name, isGeneric });
     const order = rankedProviders(
       [p('abarrotera', 'Abarrotera'), p('bimbo', 'Bimbo'), p('chuy', 'Don Chuy'), p('gen', 'Genérico', true), p('sabritas', 'Sabritas')],
-      activity,
+      act(),
     ).map((x) => x.id);
     expect(order).toEqual(['gen', 'chuy', 'sabritas', 'bimbo', 'abarrotera']);
   });
