@@ -50,6 +50,7 @@ import {
   type Costs,
 } from '@/api/costs';
 import {
+  DOCUMENTS_TABLE,
   documentsFrom,
   documentsKey,
   type DocumentKind,
@@ -62,6 +63,28 @@ import {
   typicalFrom,
   type Typicals,
 } from '@/api/magnitude';
+import {
+  HOURS_WINDOW_DAYS,
+  MONTH_PURCHASE_COLUMNS,
+  MONTH_WASTE_COLUMNS,
+  SALE_TIME_COLUMNS,
+  dayStartOf,
+  daysBefore,
+  hoursOf,
+  monthPurchases,
+  monthPurchasesKey,
+  monthWaste,
+  monthWasteKey,
+  saleHoursKey,
+  type Hours,
+  type Locked,
+  type MonthPurchases,
+  type MonthWaste,
+  type PurchaseHead,
+  type SaleHead,
+  type WasteHead,
+} from '@/api/month';
+import { monthShift } from '@/api/monthExport';
 import { salesFrom, salesKey, salesSince, type Sales } from '@/api/sales';
 import { pricesFrom, pricesKey, type Prices } from '@/api/prices';
 import { canRead, pilotKey, pilotSince, type PilotRow } from '@/api/pilot';
@@ -153,6 +176,8 @@ import {
   setMyDisplayName,
   shopMagnitude,
   shopSales,
+  documentsBetween,
+  reversalsSince,
   monthRows,
   shopProviders,
   todaySales,
@@ -1964,6 +1989,82 @@ export function useMagnitude(): Typicals {
 // ============================================================================
 // NÚMEROS — WHAT AM I SELLING, AND WHAT DID IT BRING IN. Plan task `7a`.
 // ============================================================================
+
+/**
+ * The month's purchases and write-offs, for Números' *Tu mes*. Plan task `8g`.
+ *
+ * ⚠️ TWO READS PER KIND — the month's headers and every reversal since its
+ * first day — because a void can land after the month it undoes (`8p`), and
+ * `standing` needs it to leave the voided document out.
+ * ⚠️ NOT PERSISTED and fresh for a minute: a month is looked at with a signal,
+ * and `Lo último` is where the offline record lives.
+ */
+export function useMonthReport(month: string): {
+  readonly purchases: MonthPurchases | null;
+  readonly waste: MonthWaste | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const enabled = ready && session !== null;
+  const { entries } = useCatalog();
+  const { providers } = useProviders();
+  const from = dayStartOf(month);
+  const to = dayStartOf(monthShift(month, 1));
+  const bought = useQuery({
+    queryKey: monthPurchasesKey(month),
+    queryFn: async () => ({
+      rows: await documentsBetween<PurchaseHead>(DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, from, to),
+      reversals: await reversalsSince(DOCUMENTS_TABLE.purchase, from),
+    }),
+    enabled,
+    staleTime: 60_000,
+  });
+  const thrown = useQuery({
+    queryKey: monthWasteKey(month),
+    queryFn: async () => ({
+      rows: await documentsBetween<WasteHead>(DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, from, to),
+      reversals: await reversalsSince(DOCUMENTS_TABLE.waste, from),
+    }),
+    enabled,
+    staleTime: 60_000,
+  });
+  // ⚠️ The generic supplier is stored lower-case (*compra directa*); it heads a
+  // line here, so it gets a capital — `rowTitle`'s rule in `@/api/documents`.
+  const nameOf = (id: string | null): string | null => {
+    const name = providers.find((p) => p.id === id)?.name ?? null;
+    return name === null || name === '' ? name : name.charAt(0).toUpperCase() + name.slice(1);
+  };
+  const baseOf = (id: string): string | null => entries.find((e) => e.id === id)?.baseUnit ?? null;
+  const error = bought.error ?? thrown.error;
+  return {
+    purchases: bought.data ? monthPurchases(bought.data.rows, bought.data.reversals, nameOf) : null,
+    waste: thrown.data ? monthWaste(thrown.data.rows, thrown.data.reversals, baseOf) : null,
+    failed: error ? apiErrorKey(error) : null,
+  };
+}
+
+/**
+ * The last four weeks of sales, by the hour — Números' first discovery. `8g`.
+ *
+ * ⚠️ HEADERS ONLY: the hour and the money, never the lines.
+ */
+export function useSaleHours(): {
+  readonly hours: Hours | Locked | null;
+  readonly failed: ApiMessageKey | null;
+} {
+  const { session, ready } = useAuth();
+  const since = dayStartOf(daysBefore(isoDay(new Date()), HOURS_WINDOW_DAYS));
+  const rows = useQuery({
+    queryKey: saleHoursKey(since),
+    queryFn: () => documentsBetween<SaleHead>(DOCUMENTS_TABLE.sale, SALE_TIME_COLUMNS, since, null),
+    enabled: ready && session !== null,
+    staleTime: 5 * 60_000,
+  });
+  return {
+    hours: hoursOf(rows.data),
+    failed: rows.error ? apiErrorKey(rows.error) : null,
+  };
+}
 
 /**
  * Six months of daily sales, parsed, with everything the screen needs to say

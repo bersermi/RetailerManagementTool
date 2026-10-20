@@ -454,6 +454,8 @@ on:
       - "docs/checks/7d-month-export-contract-falsify.sh"
       - "docs/checks/7b-prices-contract.sh"
       - "docs/checks/7b-prices-contract-falsify.sh"
+      - "docs/checks/8g-numeros-contract.sh"
+      - "docs/checks/8g-numeros-contract-falsify.sh"
       # ⚠️ AND ONE RUNBOOK, as of plan task 5P-b. `docs/runbooks/engagement.sql` is
       # the read the owner runs against every shop at once, and
       # `supabase/tests/runbook_engagement.sql` reads that file client-side the way
@@ -2116,6 +2118,22 @@ jobs:
       # And its six fixtures, each red for its OWN reason.
       - name: Contract — can the prices check still fail (its own six fixtures)
         run: bash docs/checks/7b-prices-contract-falsify.sh
+
+      # ⚠️⚠️ NÚMEROS' CENTRE (`8g`, the owner's rulings of 2026-10-20), APPENDED HERE
+      # with the other Números reads. `app/src/api/month.ts` reads a month of
+      # deliveries and of write-offs with their lines, four weeks of sales, and
+      # every reversal since a month opened. The only instrument for: the reads
+      # answering with the app's own columns and figures as strings; a void named
+      # so `standing` leaves it out of its month (`8p`); and ⚠️ a CASHIER reading
+      # the same month as the owner, write-off lines included — they come off
+      # `waste_reason_line` because `waste_line` is manager-only, and the wrong
+      # embed is a 200 with [] in her hand.
+      - name: Contract — does app/src/api/month.ts still describe the schema (plan 8g)
+        run: bash docs/checks/8g-numeros-contract.sh
+
+      # And its five fixtures, each red for its OWN reason.
+      - name: Contract — can the Números check still fail (its own five fixtures)
+        run: bash docs/checks/8g-numeros-contract-falsify.sh
 
       - name: Stop
         if: always()

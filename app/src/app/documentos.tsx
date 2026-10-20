@@ -39,6 +39,7 @@ import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Frase } from '@/ui/Frase';
 import { Interruptor } from '@/ui/Interruptor';
+import { Rotulo } from '@/ui/Rotulo';
 import { Separador } from '@/ui/Separador';
 import { Vacio } from '@/ui/Vacio';
 import { Velo } from '@/ui/Velo';
@@ -632,23 +633,6 @@ function SemanaVacia({ kind }: { kind: DocumentKind }) {
   );
 }
 
-/** Inicio's small capitals: a group's name. */
-function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
-  const { scale } = useDensity();
-  return (
-    <Text
-      style={{
-        fontSize: scale.smallSize,
-        fontWeight: '700',
-        color: ink,
-        textTransform: 'uppercase',
-        letterSpacing: scale.rowGap / 8,
-      }}
-    >
-      {text}
-    </Text>
-  );
-}
 
 /** ⚠️ `8g`: each kind in its counter's colour, as Inicio's three doors are. */
 const KIND_TONE: Readonly<Record<DocumentKind, { readonly ink: string; readonly soft: string }>> = {

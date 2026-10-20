@@ -33,6 +33,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { Hecho } from '@/ui/Hecho';
+import { Rotulo } from '@/ui/Rotulo';
 
 // ============================================================================
 // INICIO — §2.8's Home row, redrawn by `8g` from the owner's playable page of
@@ -828,15 +829,6 @@ function Insignia({ count }: { count: number }) {
   );
 }
 
-/** A small heading over a band — `HOY`, `LO ÚLTIMO`, `MÁS`. */
-function Rotulo({ text, ink = PALETTE.tintaApagada }: { text: string; ink?: string }) {
-  const { scale } = useDensity();
-  return (
-    <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: ink, textTransform: 'uppercase', letterSpacing: scale.rowGap / 8 }}>
-      {text}
-    </Text>
-  );
-}
 
 /**
  * ⚠️ THE CONFETTI — the record falling, a streak milestone. Pieces in the
