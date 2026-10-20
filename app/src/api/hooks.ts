@@ -81,6 +81,7 @@ import {
   saleHoursKey,
   type Hours,
   type Locked,
+  type ReversalRow,
   type RiseRow,
   type Ticket,
   type MonthPurchases,
@@ -2057,6 +2058,7 @@ export function useMonthReport(month: string): {
  * ⚠️ HEADERS ONLY: the hour and the money, never the lines.
  */
 export function useSaleHours(): {
+  readonly rows: readonly SaleHead[] | null;
   readonly hours: Hours | Locked | null;
   readonly ticket: Ticket | Locked | null;
   readonly failed: ApiMessageKey | null;
@@ -2071,10 +2073,35 @@ export function useSaleHours(): {
     staleTime: 5 * 60_000,
   });
   return {
+    rows: rows.data ?? null,
     hours: hoursOf(rows.data),
     ticket: ticketOf(rows.data, today),
     failed: rows.error ? apiErrorKey(rows.error) : null,
   };
+}
+
+/**
+ * Last week's write-offs, for *Tu semana*'s fourth card (`8g`, round 4) —
+ * spelled exactly as the month's, so the Números contract covers the read; only
+ * the window differs. `null` until both reads land.
+ */
+export function useWeekWaste(
+  from: string,
+  to: string,
+): { readonly rows: readonly WasteHead[]; readonly reversals: readonly ReversalRow[] } | null {
+  const { session, ready } = useAuth();
+  const start = dayStartOf(from);
+  const end = dayStartOf(daysBefore(to, -1));
+  const thrown = useQuery({
+    queryKey: ['month', 'waste-week', from],
+    queryFn: async () => ({
+      rows: await documentsBetween<WasteHead>(DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, start, end),
+      reversals: await reversalsSince(DOCUMENTS_TABLE.waste, start),
+    }),
+    enabled: ready && session !== null,
+    staleTime: 5 * 60_000,
+  });
+  return thrown.data ?? null;
 }
 
 /**

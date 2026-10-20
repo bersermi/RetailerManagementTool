@@ -3195,6 +3195,43 @@ export const ES = {
       yearDetail: 'Entre más oscuro, más vendiste. Los blancos: días sin ventas.',
       yearTip: 'Con el tiempo vas a ver tus temporadas: quincenas, regreso a clases, diciembre.',
     },
+    /**
+     * ⚠️ `8g`, round 4 — *Tu semana*, last week as four cards on Mondays. The
+     * fourth is not the canvas's: tips about a supplier or an order quantity were
+     * ruled out the same day (`@/api/semana`).
+     */
+    semana: {
+      range: (from: string, to: string) => `${from} al ${to}`,
+      title: (range: string) => `Tu semana · ${range}`,
+      sold: 'Vendiste',
+      compare: (centavos: number, amount: string) =>
+        centavos === 0
+          ? 'Lo mismo que la semana pasada'
+          : `${amount} ${centavos > 0 ? 'más' : 'menos'} que la semana pasada`,
+      bestTitle: 'TU DÍA MÁS FUERTE',
+      bestBig: (weekday: string) => `El ${weekday}`,
+      bestDetail: (amount: string, sales: number | null) =>
+        sales === null ? amount : `${amount} en ${sales} ${sales === 1 ? 'venta' : 'ventas'}`,
+      bestRecord: (weekday: string) => `Tu mejor ${weekday} desde que usas Wera.`,
+      starTitle: 'LA ESTRELLA DE LA SEMANA',
+      thrownTitle: 'PARA ESTA SEMANA',
+      thrownBig: (quantity: string, name: string) => `Se tiró ${quantity} de ${name}`,
+      /** ⚠️ About her own shop, never a supplier or how much to order. */
+      thrownTip: (reason: string | null) =>
+        reason === 'caducado'
+          ? 'Revisa las fechas al acomodar: lo más viejo, adelante.'
+          : reason === 'dañado'
+            ? 'Revisa cómo se guarda y cómo se acomoda.'
+            : 'Anotar lo que se tira es la mitad de cuidarlo.',
+      nothingThrown: 'No se tiró nada',
+      nothingTip: 'Lo que no se tira es dinero que se queda contigo.',
+      open: 'Ver mis números',
+      close: 'Cerrar',
+      ready: 'Tu semana está lista',
+      readyLine: (range: string) => `Lo que pasó del ${range}`,
+      someProduct: 'Un producto',
+      piece: (n: string) => (n === '1' ? '1 pieza' : `${n} piezas`),
+    },
     /** ⚠️ `8g` — what opens as a shop builds its history, and how long until it does. */
     pronto: {
       title: 'SE ABREN PRONTO',

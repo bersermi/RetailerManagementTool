@@ -28,6 +28,7 @@ import { formatMXN } from '@/format/mxn';
 import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
+import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -158,6 +159,8 @@ function Bloque({
       return <DeadLetterBanner />;
     case 'hoy':
       return <Hoy focused={focused} onCelebrate={onCelebrate} />;
+    case 'semana':
+      return <SemanaLista />;
     case 'racha':
       return <Racha onCelebrate={onCelebrate} />;
     case 'puertas':
@@ -401,6 +404,53 @@ function Marca({ gross, best, weekday, reduce }: { gross: number; best: number; 
  * celebration at 7, 30 and 100. ⚠️ A MILESTONE FIRES ONCE: the streak last
  * celebrated is kept on the phone, so reopening the app does not cheer again.
  */
+/**
+ * *Tu semana está lista* — Monday to Wednesday, until this phone opens it.
+ * ⚠️ THE SEEN KEY IS READ ON EVERY RENDER, never held from mount: a tab keeps
+ * its state, and coming back from the story must take the card away.
+ */
+function SemanaLista() {
+  const { scale } = useDensity();
+  const { sales, today } = useSales();
+  if (!offersWeek(sales.days, today, readKey(deviceStore(), WEEK_SEEN_KEY))) return null;
+  const { from, to } = lastWeek(today);
+  return (
+    <Pressable
+      accessibilityRole="button"
+      onPress={() => router.push('/semana')}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <View
+        style={{
+          width: scale.tapTarget,
+          height: scale.tapTarget,
+          borderRadius: scale.tapTarget / 2,
+          backgroundColor: PALETTE.accion,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <MaterialCommunityIcons name="play" size={scale.iconSize} color={PALETTE.superficie} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.numbers.semana.ready}</Text>
+        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+          {ES.numbers.semana.readyLine(weekRange(from, to))}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
   const { scale } = useDensity();
   const takings = useToday();

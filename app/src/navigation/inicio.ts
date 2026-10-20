@@ -45,10 +45,15 @@ import { ES } from '@/strings';
  * down instead of floating over a room reserved for it. Then `hoy`, the
  * takings: §2.8's *"state comes first"* still holds, nothing tappable precedes
  * the figure but the banner's own dismissal.
+ *
+ * ⚠️ `semana` (`8g`, round 4 of Números) sits right under the takings and draws
+ * only Monday to Wednesday, until this phone opens last week's story — *"the
+ * only part that adds something to Inicio"*, which is why it went last.
  */
 export type InicioBlock =
   | 'aviso'
   | 'hoy'
+  | 'semana'
   | 'racha'
   | 'puertas'
   | 'ultimo'
@@ -60,6 +65,7 @@ export type InicioBlock =
 export const INICIO_BLOCKS: readonly InicioBlock[] = [
   'aviso',
   'hoy',
+  'semana',
   'racha',
   'puertas',
   'ultimo',
