@@ -47,6 +47,7 @@ import {
   type Online,
   type Wake,
 } from '@/api/connectivity';
+import type { FlushStop } from '@/api/flush';
 import { flusher } from '@/lib/flushRunner';
 
 type Stop = () => void;
@@ -60,6 +61,14 @@ let retryTimer: ReturnType<typeof setTimeout> | null = null;
 let pollTimer: ReturnType<typeof setInterval> | null = null;
 
 const watchers = new Set<(online: Online) => void>();
+
+/** What a finished drain reports to the reconnect toast (`@/offline/notice`). */
+export interface Drained {
+  readonly stop: FlushStop;
+  readonly landed: number;
+}
+
+const drainWatchers = new Set<(drained: Drained) => void>();
 
 /**
  * What the app believes about the link. ⚠️ `null` until something has read the
@@ -78,6 +87,19 @@ export function subscribe(watcher: (online: Online) => void): Stop {
   watchers.add(watcher);
   return () => {
     watchers.delete(watcher);
+  };
+}
+
+/**
+ * Every finished drain: how it stopped and how many writes landed. ⚠️ It is what
+ * lets the reconnect toast say *ya se guardaron* once they have been (`8g`,
+ * 2026-10-20) rather than the moment the link returns. Returns its own
+ * unsubscribe.
+ */
+export function onDrain(watcher: (drained: Drained) => void): Stop {
+  drainWatchers.add(watcher);
+  return () => {
+    drainWatchers.delete(watcher);
   };
 }
 
@@ -140,11 +162,17 @@ export function start(): Stop {
   // that was killed holding a queue drains it on the way back in.
   void read();
 
+  // ⚠️⚠️ THE WATCHERS ARE NOT CLEARED HERE, AND UNTIL 2026-10-20 THEY WERE.
+  // `Drain` restarts this monitor whenever the session object changes — a token
+  // refresh, about once an hour — and every reader subscribes ONCE, at mount.
+  // Clearing them on the stop left the offline notice, the reconnect toast and
+  // the data library's `onlineManager` deaf for the rest of the app's life after
+  // its first hour. Each reader owns its own unsubscribe; `take` is a no-op while
+  // stopped, so nothing is told anything between a stop and the next start.
   return () => {
     netSub.remove();
     appSub.remove();
     disarm();
-    watchers.clear();
     running = false;
     conn = UNKNOWN;
   };
@@ -189,15 +217,19 @@ function take(wake: Wake): void {
  * decides either.
  */
 async function drain(): Promise<void> {
+  let drained: Drained;
   try {
     const report = await flusher().flush();
     take({ kind: 'flushed', stop: report.stop });
+    drained = { stop: report.stop, landed: report.landed };
   } catch {
     // ⚠️ `flush()` IS NOT SUPPOSED TO REJECT — every failure inside it is a
     // state change on a row. If it ever does, the queue still has to be tried
     // again, so it is treated as the transient failure it almost certainly is.
     take({ kind: 'flushed', stop: 'failed' });
+    drained = { stop: 'failed', landed: 0 };
   }
+  if (running) for (const watcher of drainWatchers) watcher(drained);
 }
 
 /** Every timer, set from the pure selectors and from nothing else. */

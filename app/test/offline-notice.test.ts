@@ -14,6 +14,9 @@
 // owner's phone, and nothing here pretends otherwise.
 // ============================================================================
 
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+
 import { describe, expect, it } from 'vitest';
 
 import {
@@ -37,6 +40,11 @@ const link = (online: boolean | null, at: number): readonly [Seen, number] => [
   { kind: 'link', online },
   at,
 ];
+const drain = (
+  stop: 'drained' | 'failed' | 'busy',
+  landed: number,
+  at: number,
+): readonly [Seen, number] => [{ kind: 'drain', stop, landed }, at];
 const screen = (at: string, when: number): readonly [Seen, number] => [
   { kind: 'screen', at: when === 0 ? at : at },
   when,
@@ -96,19 +104,54 @@ describe('the quiet notice — C10.1', () => {
 });
 
 describe('the fading toast — C10.2', () => {
-  it('fires on a reconnect and lasts exactly its own lifetime', () => {
+  it('fires when the queue has landed after a reconnect, and lasts exactly its own lifetime', () => {
+    const back = run(settled, [link(false, 1_000), link(true, 5_000), drain('drained', 2, 5_300)]);
+    expect(showsToast(back, 5_300)).toBe(true);
+    expect(showsToast(back, 5_300 + TOAST_MS - 1)).toBe(true);
+    expect(showsToast(back, 5_300 + TOAST_MS)).toBe(false);
+  });
+
+  it('does NOT fire on the reconnect itself — the operations are still on the phone', () => {
+    // ⚠️⚠️ THE DEFECT OF 2026-10-20: it said *ya se guardaron* before the drain
+    // had started, for up to 90 s if the auth layer was refusing from cache.
     const back = run(settled, [link(false, 1_000), link(true, 5_000)]);
-    expect(showsToast(back, 5_000)).toBe(true);
-    expect(showsToast(back, 5_000 + TOAST_MS - 1)).toBe(true);
-    expect(showsToast(back, 5_000 + TOAST_MS)).toBe(false);
+    expect(showsToast(back, 5_000)).toBe(false);
+    expect(back.awaiting).toBe(true);
+  });
+
+  it('stays silent after an outage in which nothing was written', () => {
+    const back = run(settled, [link(false, 1_000), link(true, 5_000), drain('drained', 0, 5_300)]);
+    expect(showsToast(back, 5_300)).toBe(false);
+    expect(back.awaiting).toBe(false);
+  });
+
+  it('waits through a refused drain and fires on the one that empties the queue', () => {
+    const refused = run(settled, [link(false, 1_000), link(true, 5_000), drain('failed', 0, 5_300)]);
+    expect(showsToast(refused, 5_300)).toBe(false);
+    const landed = run(refused, [drain('drained', 3, 95_000)]);
+    expect(showsToast(landed, 95_000)).toBe(true);
+  });
+
+  it('counts what landed before the queue stopped, so a partial drain still earns the toast', () => {
+    const back = run(settled, [
+      link(false, 1_000),
+      link(true, 5_000),
+      drain('failed', 2, 5_300),
+      drain('drained', 0, 25_000),
+    ]);
+    expect(showsToast(back, 25_000)).toBe(true);
+  });
+
+  it('never fires for a drain with no outage behind it — an ordinary online sale', () => {
+    expect(showsToast(run(settled, [drain('drained', 1, 9_000)]), 9_000)).toBe(false);
   });
 
   it('does NOT fire at launch, and that is the whole of `null` being a state', () => {
     // ⚠️⚠️ `UNKNOWN → true` is the first reading of a session, not a reconnect
     // somebody lived through. Toasting there says "your last operations are
     // saved" to a person who never saw them at risk — on every single launch.
-    const launched = run(NOTHING_YET, [screen('/inicio', 0), link(true, 0)]);
-    expect(showsToast(launched, 0)).toBe(false);
+    const launched = run(NOTHING_YET, [screen('/inicio', 0), link(true, 0), drain('drained', 4, 50)]);
+    expect(showsToast(launched, 50)).toBe(false);
     expect(launched.toastUntil).toBeNull();
   });
 
@@ -118,7 +161,12 @@ describe('the fading toast — C10.2', () => {
 
   it('is cancelled by an outage that arrives while it is up', () => {
     // ⚠️ The toast says the last operations are saved. The next one will not be.
-    const lying = run(settled, [link(false, 1_000), link(true, 5_000), link(false, 5_500)]);
+    const lying = run(settled, [
+      link(false, 1_000),
+      link(true, 5_000),
+      drain('drained', 1, 5_200),
+      link(false, 5_500),
+    ]);
     expect(showsToast(lying, 5_600)).toBe(false);
   });
 
@@ -126,14 +174,16 @@ describe('the fading toast — C10.2', () => {
     const twice = run(settled, [
       link(false, 1_000),
       link(true, 5_000),
+      drain('drained', 1, 5_200),
       link(false, 6_000),
       link(true, 7_000),
+      drain('drained', 1, 7_200),
     ]);
-    expect(twice.toastUntil).toBe(7_000 + TOAST_MS);
+    expect(twice.toastUntil).toBe(7_200 + TOAST_MS);
   });
 
   it('derives its fade from its deadline rather than storing a second copy', () => {
-    const back = run(settled, [link(false, 1_000), link(true, 5_000)]);
+    const back = run(settled, [link(false, 1_000), link(true, 5_000), drain('drained', 1, 5_200)]);
     expect(fadeBeginsAt(back)).toBe(back.toastUntil! - TOAST_FADE_MS);
     expect(fadeBeginsAt(settled)).toBeNull();
   });
@@ -153,12 +203,42 @@ describe('the two never contradict each other', () => {
     const moments: ReadonlyArray<readonly [Surfaces, number]> = [
       [settled, 0],
       [run(settled, [link(false, 1_000)]), 1_000],
-      [run(settled, [link(false, 1_000), link(true, 5_000)]), 5_000],
-      [run(settled, [link(false, 1_000), link(true, 5_000), link(false, 5_500)]), 5_600],
+      [run(settled, [link(false, 1_000), link(true, 5_000), drain('drained', 1, 5_200)]), 5_200],
+      [
+        run(settled, [link(false, 1_000), link(true, 5_000), drain('drained', 1, 5_200), link(false, 5_500)]),
+        5_600,
+      ],
+      [run(settled, [link(false, 1_000), drain('drained', 1, 1_500)]), 1_500],
       [NOTHING_YET, 0],
     ];
     for (const [state, now] of moments) {
       expect(showsNotice(state) && showsToast(state, now)).toBe(false);
     }
+  });
+});
+
+describe('the monitor keeps its readers for the whole life of the app', () => {
+  // ⚠️⚠️ MEASURED FROM THE CODE 2026-10-20: `Drain` restarts the monitor on
+  // every session change — a token refresh, hourly — and its stop used to clear
+  // every watcher. Each reader subscribes once, at mount, so the notice, the
+  // toast and the data library's `onlineManager` went deaf after the first hour.
+  const monitor = readFileSync(
+    fileURLToPath(new URL('../src/lib/connectivityMonitor.ts', import.meta.url)),
+    'utf8',
+  )
+    .replace(/\/\*[\s\S]*?\*\//g, ' ')
+    .replace(/(^|[^:])\/\/.*$/gm, '$1');
+
+  it('reads a real file', () => {
+    expect(monitor).toMatch(/export function start\(\)/);
+  });
+
+  it('never clears its watchers on a stop', () => {
+    expect(monitor).not.toMatch(/watchers\.clear\(\)/);
+    expect(monitor).not.toMatch(/drainWatchers\.clear\(\)/);
+  });
+
+  it('tells the drain watchers how every drain ended, while it is running', () => {
+    expect(monitor).toMatch(/if \(running\) for \(const watcher of drainWatchers\) watcher\(drained\)/);
   });
 });

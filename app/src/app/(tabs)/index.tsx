@@ -14,7 +14,6 @@ import {
   useMyRole,
   usePendingRequests,
   useSales,
-  useToday,
   useWeekSavings,
 } from '@/api/hooks';
 import {
@@ -27,6 +26,7 @@ import { showsTakings, takingsLine } from '@/api/today';
 import { formatMXN } from '@/format/mxn';
 import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
+import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
@@ -57,8 +57,9 @@ import { Rotulo } from '@/ui/Rotulo';
 // tappable — then the rest.
 //
 // ⚠️ EVERY NUMBER IS A READ THE APP ALREADY MAKES. The record and the streak are
-// Números' six months of days (`useSales`), the figure is `useToday`, the feed
-// is Lo último's documents, the pickup is Te lo compro's requests. What has a
+// Números' six months of days (`useSales`), the figure is `useToday` with the
+// sales still on the phone (`useTakingsWithUnsent`, since 2026-10-20), the feed
+// is Lo último's documents and the queue's, the pickup is Te lo compro's requests. What has a
 // right answer is a pure function in `@/api/sales`, `@/api/documents` and
 // `@/api/collection` (`R3`); this file draws and moves.
 //
@@ -184,7 +185,9 @@ function Bloque({
 function Hoy({ focused, onCelebrate }: { focused: boolean; onCelebrate: (word: string) => void }) {
   const { scale } = useDensity();
   const reduce = useReduceMotion();
-  const takings = useToday();
+  // ⚠️ `8g`, 2026-10-20: WITH THE SALES STILL ON THE PHONE — the offline report's
+  // C. A sale rung up offline used to leave this at $0.
+  const takings = useTakingsWithUnsent();
   const { sales, today } = useSales();
   const best = bestSameWeekday(sales.days, today);
   const shown = showsTakings(takings);
@@ -453,7 +456,8 @@ function SemanaLista() {
 
 function Racha({ onCelebrate }: { onCelebrate: (word: string) => void }) {
   const { scale } = useDensity();
-  const takings = useToday();
+  // ⚠️ A sale still on the phone keeps the streak too (`8g`, 2026-10-20).
+  const takings = useTakingsWithUnsent();
   const { sales, today } = useSales();
   const soldToday = takings.count > 0;
   const streak = salesStreak(sales.days, today, soldToday);
@@ -552,7 +556,11 @@ function Puertas() {
 function Ultimo({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
   const { documents } = useDocuments('sale');
-  const rows = useHeldWhileHidden(latestSales(documents), focused);
+  // ⚠️ `8g`, 2026-10-20: AND THE SALES STILL ON THE PHONE, deduped by id against
+  // what the server answered — the offline report's C. No mark: *Lo último*
+  // itself is where *Sin enviar* is said.
+  const unsent = useUnsent('sale', documents).documents;
+  const rows = useHeldWhileHidden(latestSales([...unsent, ...documents]), focused);
   // ⚠️ WHAT WAS ON SCREEN WHEN IT OPENED DOES NOT SLIDE — only a sale that
   // arrives while she is looking.
   const seen = useRef<Set<string> | null>(null);

@@ -34,9 +34,20 @@
 // reading of a session, not a reconnect a person lived through; toasting there
 // would say *"your last operations are saved"* to somebody who never saw them
 // at risk, on every single launch. Only `false → true` is a reconnect.
+//
+// ⚠️⚠️ AND SINCE 2026-10-20 THE TOAST WAITS FOR THE QUEUE, NOT THE LINK — the
+// offline report's F, ruled by the owner (*"Do all the fixes"*). It used to
+// fire the instant the link returned, before the drain had even started, so it
+// said *ya se guardaron* while they were still on the phone — for up to 90 s,
+// if the auth layer was still refusing from its cache — and it said it after an
+// outage in which nothing had been written at all. Now a reconnect only ARMS it
+// (`awaiting`); it fires when a drain reports the queue empty (`drained`)
+// having landed at least one write since. A reconnect with nothing waiting
+// stays silent.
 // ============================================================================
 
 import type { Online } from '@/api/connectivity';
+import type { FlushStop } from '@/api/flush';
 
 /**
  * How long the reconnect toast stays up, fade included.
@@ -70,6 +81,10 @@ export interface Surfaces {
   readonly dismissedOn: string | null;
   /** When the reconnect toast stops being shown, or `null` for no toast. */
   readonly toastUntil: number | null;
+  /** A reconnect was seen and the queue has not yet been reported empty. */
+  readonly awaiting: boolean;
+  /** Writes landed since that reconnect. ⚠️ The toast needs one, never says how many. */
+  readonly landedSince: number;
 }
 
 /** Before anything has been read or navigated to. */
@@ -78,6 +93,8 @@ export const NOTHING_YET: Surfaces = {
   screen: '',
   dismissedOn: null,
   toastUntil: null,
+  awaiting: false,
+  landedSince: 0,
 };
 
 export type Seen =
@@ -86,7 +103,12 @@ export type Seen =
   /** The person navigated. `at` is the route, and it re-arms the notice. */
   | { readonly kind: 'screen'; readonly at: string }
   /** The person brushed the notice away. */
-  | { readonly kind: 'dismiss' };
+  | { readonly kind: 'dismiss' }
+  /**
+   * A drain finished — `@/api/flush`'s own word for how it stopped, and how many
+   * writes the server accepted. ⚠️ From the monitor, like `link`.
+   */
+  | { readonly kind: 'drain'; readonly stop: FlushStop; readonly landed: number };
 
 /**
  * One event, one new state.
@@ -112,7 +134,10 @@ export function surfaces(state: Surfaces, seen: Seen, now: number): Surfaces {
           // the next one would silence the notice on the screen a shopkeeper
           // happens to be standing on, which is the screen she is working on.
           dismissedOn: null,
-          toastUntil: reconnected ? now + TOAST_MS : state.toastUntil,
+          // ⚠️ A RECONNECT ARMS THE TOAST AND DOES NOT SHOW IT — see the header.
+          // What landed before a second outage still counts after it.
+          awaiting: reconnected ? true : state.awaiting,
+          landedSince: reconnected && !state.awaiting ? 0 : state.landedSince,
         };
       }
 
@@ -136,6 +161,21 @@ export function surfaces(state: Surfaces, seen: Seen, now: number): Surfaces {
 
     case 'dismiss':
       return { ...state, dismissedOn: state.screen };
+
+    case 'drain': {
+      // ⚠️ A DRAIN WITH NO RECONNECT BEHIND IT IS AN ORDINARY ONLINE SALE, and
+      // a toast after every sale would be noise.
+      if (!state.awaiting) return state;
+      const landed = state.landedSince + seen.landed;
+      if (seen.stop !== 'drained') return { ...state, landedSince: landed };
+      return {
+        ...state,
+        awaiting: false,
+        landedSince: 0,
+        // ⚠️ ONLY WHILE ONLINE, so it can never sit beside the offline notice.
+        toastUntil: landed > 0 && state.online === true ? now + TOAST_MS : state.toastUntil,
+      };
+    }
   }
 }
 

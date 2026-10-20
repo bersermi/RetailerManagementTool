@@ -5,10 +5,13 @@ import {
   TODAY_COLUMN,
   TODAY_KEY,
   dayStartISO,
+  rowsOfToday,
   showsTakings,
   takingsFrom,
   takingsLine,
+  takingsWithUnsent,
   type SaleRow,
+  type UnsentSale,
 } from '@/api/today';
 import { ES } from '@/strings';
 
@@ -388,5 +391,81 @@ describe('whether the peso figure is drawn at all', () => {
 
   it('withholds it when a row would not parse', () => {
     expect(showsTakings(takingsFrom([sale({ total_tax: '16.005' })]))).toBe(false);
+  });
+});
+
+describe('only a read made today is today’s — `8g`, 2026-10-20', () => {
+  // ⚠️ PINNED, AND EVERY LOCAL INSTANT IS BUILT INSIDE A TEST: a value computed
+  // at describe scope runs before `beforeAll` pins the zone, which went red on
+  // CI once already that day.
+  const HOST_TZ = process.env.TZ;
+  beforeAll(() => {
+    process.env.TZ = 'America/Mexico_City';
+  });
+  afterAll(() => {
+    if (HOST_TZ === undefined) delete process.env.TZ;
+    else process.env.TZ = HOST_TZ;
+  });
+
+  it('keeps rows read earlier the same day', () => {
+    const rows = [sale()];
+    const readAt = new Date(2026, 9, 20, 8, 0).getTime();
+    expect(rowsOfToday(rows, readAt, new Date(2026, 9, 20, 23, 59))).toBe(rows);
+  });
+
+  it('withholds rows read yesterday — the figure that used to sit under Hoy past midnight', () => {
+    const readAt = new Date(2026, 9, 19, 23, 59).getTime();
+    expect(rowsOfToday([sale()], readAt, new Date(2026, 9, 20, 0, 1))).toBeUndefined();
+  });
+
+  it('withholds nothing read, and a read with no time', () => {
+    expect(rowsOfToday(undefined, Date.now(), new Date())).toBeUndefined();
+    expect(rowsOfToday([sale()], 0, new Date())).toBeUndefined();
+  });
+});
+
+describe('Hoy with the sales still on the phone — `8g`, 2026-10-20', () => {
+  const queued = (over: Partial<UnsentSale> = {}): UnsentSale => ({
+    id: 'q1',
+    day: '2026-10-20',
+    grossCentavos: 4_500,
+    ...over,
+  });
+
+  it('adds a queued sale to the server figure, and counts it — the $0 the emulator showed', () => {
+    const takings = takingsWithUnsent([sale()], [queued()], '2026-10-20');
+    expect(takings).toEqual({ grossCentavos: 11_600 + 4_500, count: 2, complete: true });
+  });
+
+  it('counts a sale once when it has landed and is still in the queue', () => {
+    // ⚠️⚠️ THE CLIENT UUID IS THE SERVER ROW'S ID — the row the refetch brings and
+    // the row the queue still holds are the same sale.
+    const takings = takingsWithUnsent([sale({ id: 'q1' })], [queued({ id: 'q1' })], '2026-10-20');
+    expect(takings).toEqual({ grossCentavos: 11_600, count: 1, complete: true });
+  });
+
+  it('adds to a day with no sales yet', () => {
+    expect(takingsWithUnsent([], [queued()], '2026-10-20')).toEqual({
+      grossCentavos: 4_500,
+      count: 1,
+      complete: true,
+    });
+  });
+
+  it('leaves out a sale queued on another day', () => {
+    const takings = takingsWithUnsent([], [queued({ day: '2026-10-19' })], '2026-10-20');
+    expect(takings.grossCentavos).toBe(0);
+    expect(takings.count).toBe(0);
+  });
+
+  it('keeps an unknown server figure unknown — the dash, never the queue alone', () => {
+    expect(takingsWithUnsent(undefined, [queued()], '2026-10-20').grossCentavos).toBeNull();
+  });
+
+  it('says the figure is not exact when a queued sale has no figure', () => {
+    const takings = takingsWithUnsent([sale()], [queued({ grossCentavos: null })], '2026-10-20');
+    expect(takings.complete).toBe(false);
+    expect(takings.count).toBe(2);
+    expect(takings.grossCentavos).toBe(11_600);
   });
 });

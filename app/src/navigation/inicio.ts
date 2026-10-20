@@ -168,7 +168,7 @@ export const INICIO_DOORS: readonly InicioDoor[] = [
     key: 'desperdicio',
     shape: 'tarjeta',
     label: ES.tabs.desperdicio,
-    icon: 'trash-can-outline',
+    icon: 'basket-minus-outline',
     route: '/desperdicio',
     why: 'Waste — the acquisition hook and the analytics asset (§2.9). The screen behind it is 6a.',
   },

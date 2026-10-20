@@ -80,7 +80,9 @@ export const TABS: readonly TabDefinition[] = [
   {
     route: 'desperdicio',
     label: ES.tabs.desperdicio,
-    icon: 'trash-can-outline',
-    why: 'Waste. Two doors since `8l`: Tirar, which feeds the analytics asset (§2.9), and Te lo compro.',
+    // ⚠️ A BASKET WITH A MINUS SINCE 2026-10-20: the section is *Merma* — stock
+    // that left the shelf unsold — and a trash can said *garbage*.
+    icon: 'basket-minus-outline',
+    why: 'Merma (write-offs). Two doors since `8l`: Tirar, which feeds the analytics asset (§2.9), and Te lo compro.',
   },
 ];

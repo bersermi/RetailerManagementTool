@@ -35,15 +35,15 @@
 // refreshes when she comes back to the app. Between them, no screen needs a
 // refresh button.
 // ~~persistence~~ — struck by `6d`, 2026-09-27, and it had been true for
-// sixteen days: this file now persists seven reads to the phone's disk (six
-// until 2026-10-20, when her role joined them).
+// sixteen days: this file now persists eight reads to the phone's disk (six
+// until 2026-10-20, when her role and today's takings joined them).
 //
 // ⚠️⚠️ EVERY DECISION ABOUT THAT IS IN `@/api/persist` AND NONE OF IT IS HERE.
 // Which keys are written, what a stale answer is allowed to say, why the buster
 // is a shape version rather than the person signed in, and the `gcTime` trap
 // that would otherwise write an empty cache — all of it is argued and tested
 // there. What is left below is the BINDING: a persister over the store the
-// phone already has, and the defaults that keep the seven from being collected
+// phone already has, and the defaults that keep the eight from being collected
 // before they can be saved.
 // ============================================================================
 
@@ -111,7 +111,7 @@ function buildClient(): QueryClient {
 }
 
 /**
- * The seven persisted keys, kept in memory for as long as the app runs.
+ * The eight persisted keys, kept in memory for as long as the app runs.
  *
  * ⚠️⚠️ WITHOUT THIS THE PERSISTENCE BELOW IS A NO-OP AFTER FIVE MINUTES, and it
  * fails in the direction nobody tests. Dehydration walks the LIVE cache, and
@@ -121,7 +121,7 @@ function buildClient(): QueryClient {
  * carries the argument in full.
  *
  * ⚠️ IT READS THE SAME LIST THE DEHYDRATE PREDICATE DOES, which is the only
- * reason the two cannot drift: a seventh key added to `PERSISTED_KEYS` is
+ * reason the two cannot drift: a ninth key added to `PERSISTED_KEYS` is
  * persisted AND kept, or neither.
  */
 function withPersistedDefaults(client: QueryClient): QueryClient {

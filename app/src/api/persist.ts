@@ -34,9 +34,9 @@
 // nothing in this repository could see it: no suite mounts a screen, and every
 // contract check has a database.
 //
-// ⚠️ THAT is why the list below is not just `['catalog', …]`. Four of the seven
+// ⚠️ THAT is why the list below is not just `['catalog', …]`. Four of the eight
 // entries are what the COMMIT needs; two are what the SCREEN needs; one is who
-// she is in the shop.
+// she is in the shop; one is today's takings.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THE ALLOW-LIST IS THE DELIVERABLE, AND THE RULE IT ENCODES IS ONE LINE:
@@ -46,8 +46,14 @@
 // Persisting the whole cache is the default shape of this library and it is
 // wrong here, because half of what this app reads is MONEY THAT MOVED TODAY:
 //
-//   * `['today', 'takings']` — a figure labelled *today* restored from
-//     yesterday's disk is not stale, it is false. Refused.
+//   * ~~`['today', 'takings']`~~ — *a figure labelled today restored from
+//     yesterday's disk is not stale, it is false.* Refused until 2026-10-20,
+//     then PERSISTED, because the sentence is now false by construction:
+//     `useToday` withholds rows read on any other device day (`rowsOfToday`),
+//     so yesterday's figure is never shown — restored or, as it used to be
+//     with the app open past midnight, held in memory. Kept, it is what lets
+//     *Hoy* add up the sales still on the phone after an offline restart (the
+//     offline report's C, *"Do all the fixes"*).
 //   * `['documents', 'recent', …]` — `Lo último` already has an offline answer
 //     that is TRUE, and it is `5h-ii-c`'s: `useUnsent` reads the queue itself.
 //     A restored server list beside a live queue is two sources disagreeing
@@ -71,8 +77,10 @@
 //     There is no outbox for a catalog write, so `Editar` cannot save offline
 //     anyway; persisting the form it would fill is cache for nothing. Refused.
 //
-// ⚠️ NOTHING DERIVED FROM THE LEDGER IS PERSISTED. That is the sentence to hold
-// when an eighth entry is proposed.
+// ⚠️ NOTHING DERIVED FROM THE LEDGER IS PERSISTED — except today's takings,
+// and only behind the day guard above. That is the sentence to hold when a
+// ninth entry is proposed: a ledger read joins only with a rule that keeps a
+// stale copy from saying something false.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ A REFRESH THAT FAILS KEEPS THE LAST GOOD COPY — MEASURED 2026-10-20, ON
@@ -102,7 +110,7 @@
 // catalog in it. **The failure is invisible in every way a person would test
 // it**: kill the app straight after browsing and it works; put the phone down
 // for ten minutes first and the catalog is gone. So `CACHE_GC_TIME` is set on
-// the same seven keys, from the same list, in `QueryProvider` — one list, two
+// the same eight keys, from the same list, in `QueryProvider` — one list, two
 // consumers, because two hand-maintained lists is how the next entry gets
 // added to one of them.
 //
@@ -209,7 +217,7 @@ export const CACHE_GC_TIME = Infinity;
  * fires on every cache event — an observer mounting as a tab is opened counts —
  * and each fire is a `JSON.stringify` plus a synchronous SQLite write on the JS
  * thread. C1.1 puts two low-end Androids in this pilot. The allow-list is the
- * other half of that budget: what is serialised is seven entries, not thirty.
+ * other half of that budget: what is serialised is eight entries, not thirty.
  */
 export const CACHE_THROTTLE_MS = 3_000;
 
@@ -226,7 +234,8 @@ export const CACHE_THROTTLE_MS = 3_000;
  * C3.13 blocks the commit on — so an offline delivery is as unrecordable as an
  * offline sale, for a different reason.
  *
- * ⚠️ THE SEVENTH IS HER ROLE (2026-10-20) — see the header's struck bullet.
+ * ⚠️ THE SEVENTH IS HER ROLE AND THE EIGHTH TODAY'S TAKINGS (both 2026-10-20) —
+ * see the header's two struck bullets.
  */
 export const PERSISTED_KEYS: readonly (readonly string[])[] = [
   ['workspace', 'mine'],
@@ -236,12 +245,13 @@ export const PERSISTED_KEYS: readonly (readonly string[])[] = [
   ['providers', 'list'],
   ['providers', 'memory'],
   ['workspace', 'members'],
+  ['today', 'takings'],
 ];
 
 /**
- * Is this key one of the seven?
+ * Is this key one of the eight?
  *
- * ⚠️ A PREFIX MATCH AND NOT AN EQUALITY, because two of the seven are families —
+ * ⚠️ A PREFIX MATCH AND NOT AN EQUALITY, because two of the eight are families —
  * `memoryKey(id)` appends the provider. ⚠️ And it is a prefix in one direction
  * only: a key SHORTER than a root does not match, so `['workspace']` — which
  * nothing queries, and which an invalidation sweep uses — is not persisted by
