@@ -13,8 +13,10 @@
 //
 // Round 1 is here: the month in three colours (what was SOLD, BOUGHT and THROWN
 // AWAY), a shop's first week, and the two discoveries that are true from the
-// first days — the strongest hours and the best day of the week. Everything is
-// read off what the ledger already holds; nothing here writes.
+// first days — the strongest hours and the best day of the week. Round 2 (the
+// same night) adds the quincena and what each customer leaves, both off reads
+// round 1 already makes. Everything is read off what the ledger already holds;
+// nothing here writes.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ A CORRECTION COUNTS ON THE DAY OF WHAT IT CORRECTS (`8p`, `0064`)
@@ -35,6 +37,7 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import { isoDay } from '@/api/catalog';
 import { shownAmount } from '@/api/documents';
 import { monthShift } from '@/api/monthExport';
 import { dayTotals, type SoldDay } from '@/api/sales';
@@ -348,6 +351,23 @@ function oneDecimal(value: number): string {
   return rest === 0 ? String(tenths / 10) : `${(tenths - rest) / 10}.${rest}`;
 }
 
+/**
+ * ⚠️ WHOLE PESOS: an average is a sense of a day, and *$190.71* reads as a
+ * receipt. Rounded to the peso by its remainder — integer centavos throughout,
+ * never a peso-valued float (`R5`).
+ */
+function toPeso(centavos: number): number {
+  const rest = centavos % 100;
+  return rest >= 50 ? centavos - rest + 100 : centavos - rest;
+}
+
+/** The mean of some centavos, to the whole peso. */
+function averageOf(values: readonly number[]): number {
+  let sum = 0;
+  for (const v of values) sum += v;
+  return toPeso(Math.round(sum / Math.max(1, values.length)));
+}
+
 // ---------------------------------------------------------- the first week --
 
 /** Days since the first sale, counting both ends — `null` before the first. */
@@ -442,13 +462,6 @@ export function bestDay(days: readonly SoldDay[], today: string): BestDay | Lock
     sums[dow] = (sums[dow] ?? 0) + centavos;
     counts[dow] = (counts[dow] ?? 0) + 1;
   }
-  // ⚠️ WHOLE PESOS: an average is a sense of a day, and *$190.71* reads as a
-  // receipt. Rounded to the peso by its remainder — integer centavos throughout,
-  // never a peso-valued float (`R5`).
-  const toPeso = (centavos: number): number => {
-    const rest = centavos % 100;
-    return rest >= 50 ? centavos - rest + 100 : centavos - rest;
-  };
   const averages = sums.map((s, i) =>
     (counts[i] ?? 0) === 0 ? null : toPeso(Math.round(s / (counts[i] ?? 1))),
   );
@@ -468,5 +481,161 @@ export function bestDay(days: readonly SoldDay[], today: string): BestDay | Lock
     worst,
     worstCentavos: averages[worst] ?? 0,
     averages,
+  };
+}
+
+// ----------------------------------------------------- descubre: quincena ----
+
+/** Quincena days that sold before the card compares anything — two of each payday. */
+export const QUINCENA_MIN_DAYS = 4;
+
+/**
+ * A quincena day: the 15th and 16th, and the 30th to the 1st — each payday and
+ * the day after it, when the money is spent.
+ *
+ * ⚠️ BY THE DATE, NOT BY WHEN A PAYDAY ON A SUNDAY WAS MOVED: a rule she can
+ * check on a calendar, said on the card (`quincenaBasis`), beats a better one
+ * she cannot. February's last day counts, since it has no 30th.
+ */
+export function isQuincena(day: string): boolean {
+  const dom = Number(day.slice(8, 10));
+  return dom === 1 || dom === 15 || dom === 16 || dom >= 30 || day === lastDayOf(`${day.slice(0, 7)}-01`);
+}
+
+function isMidMonth(day: string): boolean {
+  const dom = Number(day.slice(8, 10));
+  return dom === 15 || dom === 16;
+}
+
+export interface Quincena {
+  readonly locked: false;
+  /** A quincena day's average and every other day's, whole pesos. */
+  readonly quincenaCentavos: number;
+  readonly otherCentavos: number;
+  /** Each date's average, the 1st first; `null` for a date that never sold. */
+  readonly byDate: readonly (number | null)[];
+}
+
+/** Locked, and the day after which it opens if she sells every day until then. */
+export type QuincenaLocked = Locked & { readonly after: string };
+
+/**
+ * How much more a quincena day sells than any other, over everything the sales
+ * read holds (six months).
+ *
+ * ⚠️ IN PESOS PER DAY, NEVER A PERCENTAGE — the owner's ruling (*pesos and
+ * words*). ⚠️ THE DAYS THAT SOLD, as `bestDay` counts: a day she was shut is no
+ * day of zero. ⚠️ BOTH PAYDAYS BEFORE IT SPEAKS — a shop that opened on the 2nd
+ * has only seen the 15th, and one payday is an anecdote.
+ */
+export function quincenaOf(days: readonly SoldDay[], today: string): Quincena | QuincenaLocked {
+  const quincena: number[] = [];
+  const other: number[] = [];
+  const sums = new Array<number>(31).fill(0);
+  const counts = new Array<number>(31).fill(0);
+  let mid = 0;
+  let end = 0;
+  for (const [day, centavos] of dayTotals(days)) {
+    if (day >= today || centavos <= 0) continue;
+    const at = Number(day.slice(8, 10)) - 1;
+    sums[at] = (sums[at] ?? 0) + centavos;
+    counts[at] = (counts[at] ?? 0) + 1;
+    if (!isQuincena(day)) other.push(centavos);
+    else {
+      quincena.push(centavos);
+      if (isMidMonth(day)) mid += 1;
+      else end += 1;
+    }
+  }
+  if (quincena.length < QUINCENA_MIN_DAYS || mid === 0 || end === 0 || other.length === 0) {
+    // Walk forward until both paydays and enough days would be in: the card
+    // opens the day after that one.
+    let n = quincena.length;
+    let after = today;
+    for (let i = 0; i < 62; i += 1) {
+      after = daysBefore(today, -i);
+      if (isQuincena(after)) {
+        n += 1;
+        if (isMidMonth(after)) mid += 1;
+        else end += 1;
+      }
+      if (n >= QUINCENA_MIN_DAYS && mid > 0 && end > 0) break;
+    }
+    return { locked: true, have: Math.min(quincena.length, QUINCENA_MIN_DAYS - 1), need: QUINCENA_MIN_DAYS, after };
+  }
+  return {
+    locked: false,
+    quincenaCentavos: averageOf(quincena),
+    otherCentavos: averageOf(other),
+    byDate: sums.map((s, i) => ((counts[i] ?? 0) === 0 ? null : toPeso(Math.round(s / (counts[i] ?? 1))))),
+  };
+}
+
+/** Which way the quincena goes. Under a tenth of an ordinary day is *casi igual*. */
+export function quincenaWay(q: Quincena): 'mas' | 'igual' | 'menos' {
+  const diff = q.quincenaCentavos - q.otherCentavos;
+  if (Math.abs(diff) * 10 < q.otherCentavos) return 'igual';
+  return diff > 0 ? 'mas' : 'menos';
+}
+
+/** *En quincena vendes $400 más al día*. */
+export function quincenaLine(q: Quincena): string {
+  const way = quincenaWay(q);
+  return ES.numbers.descubre.quincenaBig(way, shownAmount(Math.abs(q.quincenaCentavos - q.otherCentavos)));
+}
+
+/** *Después del 31*, *Después del 15 de noviembre* — or *Mañana*. */
+export function quincenaWhen(state: QuincenaLocked, today: string): string {
+  if (state.after <= today) return ES.numbers.pronto.tomorrow;
+  const month = state.after.slice(0, 7) === today.slice(0, 7) ? null : (ES.dates.months[Number(state.after.slice(5, 7)) - 1] ?? null);
+  return ES.numbers.pronto.quincenaWhen(Number(state.after.slice(8, 10)), month);
+}
+
+// ------------------------------------------------------- descubre: ticket ----
+
+/** Days in each half the average ticket compares: two weeks, every weekday twice. */
+export const TICKET_DAYS = 14;
+
+export interface Ticket {
+  readonly locked: false;
+  /** What a sale left in the last two weeks, on average — whole pesos. */
+  readonly centavos: number;
+  readonly sales: number;
+  /** The biggest of those sales, whole pesos. */
+  readonly biggest: number;
+  /** The two weeks before, or `null` when they had too few sales to say. */
+  readonly before: number | null;
+}
+
+/**
+ * What each customer leaves — the average sale — over the last two weeks, and
+ * against the two before.
+ *
+ * ⚠️ OFF THE HOURS' READ (four weeks of sale headers), so the card costs no
+ * request: two halves of it, each with every weekday twice, so a comparison is
+ * never a week of Fridays against one without. ⚠️ A VOIDED SALE IS NO CUSTOMER
+ * (`standing`). ⚠️ The day of a sale is the PHONE'S day — the shop's.
+ */
+export function ticketOf(rows: readonly SaleHead[] | null | undefined, today: string): Ticket | Locked | null {
+  if (rows === null || rows === undefined) return null;
+  const recentFrom = daysBefore(today, TICKET_DAYS - 1);
+  const earlierFrom = daysBefore(today, TICKET_DAYS * 2 - 1);
+  const recent: number[] = [];
+  const earlier: number[] = [];
+  for (const sale of standing(rows, [])) {
+    const gross = grossOf(sale);
+    const at = new Date(sale.occurred_at);
+    if (gross === null || Number.isNaN(at.getTime())) continue;
+    const day = isoDay(at);
+    if (day >= recentFrom) recent.push(gross);
+    else if (day >= earlierFrom) earlier.push(gross);
+  }
+  if (recent.length < HOURS_MIN_SALES) return { locked: true, have: recent.length, need: HOURS_MIN_SALES };
+  return {
+    locked: false,
+    centavos: averageOf(recent),
+    sales: recent.length,
+    biggest: toPeso(Math.max(...recent)),
+    before: earlier.length < HOURS_MIN_SALES ? null : averageOf(earlier),
   };
 }

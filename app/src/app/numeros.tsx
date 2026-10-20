@@ -21,11 +21,16 @@ import {
   hoursLine,
   monthSales,
   purchasesLine,
+  quincenaLine,
+  quincenaOf,
+  quincenaWay,
+  quincenaWhen,
   shopAge,
   wasteAmount,
   type BestDay,
   type Hours,
-  type Locked,
+  type Quincena,
+  type Ticket,
 } from '@/api/month';
 import {
   exportFileName,
@@ -232,36 +237,41 @@ function Centro({
   const { scale } = useDensity();
   const age = shopAge(days, today);
   const current = isLatestMonth(month, today);
-  const { hours } = useSaleHours();
+  const { hours, ticket } = useSaleHours();
   const day = bestDay(days, today);
-  const discoveries: ('hours' | 'day')[] = [];
-  const locked: { kind: 'hours' | 'day'; state: Locked }[] = [];
-  if (hours !== null && !hours.locked) discoveries.push('hours');
-  else if (hours !== null && hours.locked) locked.push({ kind: 'hours', state: hours });
-  if (day !== null && !day.locked) discoveries.push('day');
-  else if (day !== null && day.locked) locked.push({ kind: 'day', state: day });
+  const quincena = quincenaOf(days, today);
+  // ⚠️ ONE ORDER FOR BOTH LISTS — what opens first is drawn first, so a card
+  // moves from *Se abren pronto* to *Descubre* without changing its place.
+  const discoveries: React.ReactNode[] = [];
+  const locked: { key: string; title: string; when: string; have: number; need: number }[] = [];
+  if (hours !== null && !hours.locked) discoveries.push(<Horas key="hours" hours={hours} />);
+  else if (hours !== null) {
+    locked.push({ key: 'hours', title: ES.numbers.pronto.hours, when: ES.numbers.pronto.hoursWhen(hours.need - hours.have), ...hours });
+  }
+  if (ticket !== null && !ticket.locked) discoveries.push(<Cliente key="ticket" ticket={ticket} />);
+  else if (ticket !== null) {
+    locked.push({ key: 'ticket', title: ES.numbers.pronto.ticket, when: ES.numbers.pronto.hoursWhen(ticket.need - ticket.have), ...ticket });
+  }
+  if (day !== null && !day.locked) discoveries.push(<MejorDia key="day" day={day} />);
+  else if (day !== null) {
+    locked.push({ key: 'day', title: ES.numbers.pronto.day, when: ES.numbers.pronto.dayWhen(day.need - day.have), ...day });
+  }
+  if (!quincena.locked) discoveries.push(<EfectoQuincena key="quincena" quincena={quincena} />);
+  else if (age !== null) {
+    locked.push({ key: 'quincena', title: ES.numbers.pronto.quincena, when: quincenaWhen(quincena, today), ...quincena });
+  }
 
   return (
     <View style={{ gap: scale.space }}>
       <MesNav month={month} today={today} onMonth={onMonth} />
       {current && age !== null && age <= FIRST_WEEK_DAYS ? <PrimeraSemana age={age} /> : null}
       <TuMes month={month} today={today} ready={ready} line={line} days={days} onSales={onSales} />
-      {discoveries.length === 0 ? null : (
-        <Descubre>
-          {discoveries.map((kind) =>
-            kind === 'hours' ? (
-              <Horas key="hours" hours={hours as Hours} />
-            ) : (
-              <MejorDia key="day" day={day as BestDay} />
-            ),
-          )}
-        </Descubre>
-      )}
+      {discoveries.length === 0 ? null : <Descubre>{discoveries}</Descubre>}
       {locked.length === 0 ? null : (
         <View style={{ gap: scale.rowGap }}>
           <Rotulo text={ES.numbers.pronto.title} ink={PALETTE.atencion} />
           {locked.map((one) => (
-            <Bloqueada key={one.kind} kind={one.kind} state={one.state} />
+            <Bloqueada key={one.key} title={one.title} when={one.when} have={one.have} need={one.need} />
           ))}
         </View>
       )}
@@ -563,8 +573,85 @@ function MejorDia({ day }: { day: BestDay }) {
   );
 }
 
-/** A row of bars that are only looked at — the sales page's `Barras` taps. */
-function Columnas({ values }: { values: readonly { key: string; share: number; on: boolean; label: string }[] }) {
+/** Cada cliente te deja — the last two weeks' average sale, against the two before. */
+function Cliente({ ticket }: { ticket: Ticket }) {
+  const { scale } = useDensity();
+  const most = Math.max(1, ticket.centavos, ticket.before ?? 0);
+  const rows: { label: string; centavos: number; on: boolean }[] = [
+    { label: ES.numbers.descubre.ticketNow, centavos: ticket.centavos, on: true },
+  ];
+  if (ticket.before !== null) rows.push({ label: ES.numbers.descubre.ticketBefore, centavos: ticket.before, on: false });
+  return (
+    <Hallazgo
+      title={ES.numbers.descubre.ticketTitle}
+      big={ES.numbers.descubre.ticketBig(shownAmount(ticket.centavos))}
+      tip={ES.numbers.descubre.ticketTip}
+    >
+      {rows.map((row) => (
+        <View key={row.label} style={{ gap: scale.rowGap / 4 }}>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: scale.rowGap }}>
+            <Text style={{ fontSize: scale.smallSize, color: row.on ? PALETTE.tinta : PALETTE.tintaApagada, fontWeight: row.on ? '700' : '400' }}>
+              {row.label}
+            </Text>
+            <Text style={{ fontSize: scale.smallSize, color: row.on ? PALETTE.tinta : PALETTE.tintaApagada, fontWeight: row.on ? '700' : '400' }}>
+              {shownAmount(row.centavos)}
+            </Text>
+          </View>
+          {/* ⚠️ NO TRACK BEHIND THE BAR: on the card's white, a pale bar over a
+              beige track read as one bar — measured on the emulator. */}
+          <View
+            style={{
+              width: `${Math.round((row.centavos / most) * 100)}%`,
+              height: scale.rowGap,
+              borderRadius: scale.rowGap / 2,
+              backgroundColor: row.on ? PALETTE.accion : PALETTE.accionSuave,
+            }}
+          />
+        </View>
+      ))}
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {ES.numbers.descubre.ticketDetail(ticket.sales, shownAmount(ticket.biggest))}
+      </Text>
+    </Hallazgo>
+  );
+}
+
+/** El efecto quincena — each date's average, the quincena's darker. */
+function EfectoQuincena({ quincena }: { quincena: Quincena }) {
+  const { scale } = useDensity();
+  const way = quincenaWay(quincena);
+  const most = Math.max(1, ...quincena.byDate.map((a) => a ?? 0));
+  return (
+    <Hallazgo title={ES.numbers.descubre.quincenaTitle} big={quincenaLine(quincena)} tip={ES.numbers.descubre.quincenaTip(way)}>
+      <Columnas
+        values={quincena.byDate.map((a, i) => ({
+          key: String(i + 1),
+          share: (a ?? 0) / most,
+          on: i === 0 || i === 14 || i === 15 || i >= 29,
+          label: '',
+        }))}
+        axis={ES.numbers.descubre.quincenaAxis}
+      />
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+        {ES.numbers.descubre.quincenaDetail(shownAmount(quincena.quincenaCentavos), shownAmount(quincena.otherCentavos))}
+      </Text>
+      <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.numbers.descubre.quincenaBasis}</Text>
+    </Hallazgo>
+  );
+}
+
+/**
+ * A row of bars that are only looked at — the sales page's `Barras` taps.
+ * ⚠️ `axis` replaces the per-bar labels where the bars are too narrow to hold
+ * one (the quincena's 31 dates): a few words spread under the whole row.
+ */
+function Columnas({
+  values,
+  axis,
+}: {
+  values: readonly { key: string; share: number; on: boolean; label: string }[];
+  axis?: readonly string[];
+}) {
   const { scale } = useDensity();
   const height = scale.space * CARD_PLOT_ROWS;
   return (
@@ -582,27 +669,34 @@ function Columnas({ values }: { values: readonly { key: string; share: number; o
           />
         ))}
       </View>
-      <View style={{ flexDirection: 'row', gap: scale.rowGap / 4 }}>
-        {values.map((v) => (
-          <Text
-            key={v.key}
-            numberOfLines={1}
-            style={{ flex: 1, textAlign: 'center', fontSize: scale.tabLabelSize, color: v.on ? PALETTE.accion : PALETTE.tintaApagada, fontWeight: v.on ? '700' : '400' }}
-          >
-            {v.label}
-          </Text>
-        ))}
-      </View>
+      {axis === undefined ? (
+        <View style={{ flexDirection: 'row', gap: scale.rowGap / 4 }}>
+          {values.map((v) => (
+            <Text
+              key={v.key}
+              numberOfLines={1}
+              style={{ flex: 1, textAlign: 'center', fontSize: scale.tabLabelSize, color: v.on ? PALETTE.accion : PALETTE.tintaApagada, fontWeight: v.on ? '700' : '400' }}
+            >
+              {v.label}
+            </Text>
+          ))}
+        </View>
+      ) : (
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          {axis.map((word) => (
+            <Text key={word} style={{ fontSize: scale.tabLabelSize, fontWeight: '700', color: PALETTE.accion }}>
+              {word}
+            </Text>
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 /** What opens as her history grows — in amber, with how far there is to go. */
-function Bloqueada({ kind, state }: { kind: 'hours' | 'day'; state: Locked }) {
+function Bloqueada({ title, when, have, need }: { title: string; when: string; have: number; need: number }) {
   const { scale } = useDensity();
-  const left = Math.max(0, state.need - state.have);
-  const title = kind === 'hours' ? ES.numbers.pronto.hours : ES.numbers.pronto.day;
-  const when = kind === 'hours' ? ES.numbers.pronto.hoursWhen(left) : ES.numbers.pronto.dayWhen(left);
   return (
     <View
       style={{
@@ -619,7 +713,7 @@ function Bloqueada({ kind, state }: { kind: 'hours' | 'day'; state: Locked }) {
       <View style={{ height: scale.rowGap, borderRadius: scale.rowGap / 2, backgroundColor: PALETTE.superficie }}>
         <View
           style={{
-            width: `${Math.round((Math.min(state.have, state.need) / state.need) * 100)}%`,
+            width: `${Math.round((Math.min(have, need) / need) * 100)}%`,
             height: scale.rowGap,
             borderRadius: scale.rowGap / 2,
             backgroundColor: PALETTE.atencion,

@@ -71,6 +71,7 @@ import {
   dayStartOf,
   daysBefore,
   hoursOf,
+  ticketOf,
   monthPurchases,
   monthPurchasesKey,
   monthWaste,
@@ -78,6 +79,7 @@ import {
   saleHoursKey,
   type Hours,
   type Locked,
+  type Ticket,
   type MonthPurchases,
   type MonthWaste,
   type PurchaseHead,
@@ -2045,15 +2047,19 @@ export function useMonthReport(month: string): {
 
 /**
  * The last four weeks of sales, by the hour — Números' first discovery. `8g`.
+ * Round 2 reads what each customer leaves off the same rows, so that card costs
+ * no request.
  *
  * ⚠️ HEADERS ONLY: the hour and the money, never the lines.
  */
 export function useSaleHours(): {
   readonly hours: Hours | Locked | null;
+  readonly ticket: Ticket | Locked | null;
   readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
-  const since = dayStartOf(daysBefore(isoDay(new Date()), HOURS_WINDOW_DAYS));
+  const today = isoDay(new Date());
+  const since = dayStartOf(daysBefore(today, HOURS_WINDOW_DAYS));
   const rows = useQuery({
     queryKey: saleHoursKey(since),
     queryFn: () => documentsBetween<SaleHead>(DOCUMENTS_TABLE.sale, SALE_TIME_COLUMNS, since, null),
@@ -2062,6 +2068,7 @@ export function useSaleHours(): {
   });
   return {
     hours: hoursOf(rows.data),
+    ticket: ticketOf(rows.data, today),
     failed: rows.error ? apiErrorKey(rows.error) : null,
   };
 }
