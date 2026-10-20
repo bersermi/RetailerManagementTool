@@ -39,7 +39,7 @@ Wera: tu tienda
 
 <!-- max:80 -->
 ```
-Registra las ventas, compras y desperdicio de tu tienda. Funciona sin señal.
+Registra las ventas, compras y merma de tu tienda. Funciona sin señal.
 ```
 
 **Full description**
@@ -56,8 +56,8 @@ Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin
 COMPRAR
 Registra lo que te entrega cada proveedor y cuánto te costó. En Costos ves cómo ha cambiado lo que pagas por cada producto, y lo puedes compartir en PDF.
 
-DESPERDICIO
-Anota lo que se tiró y por qué, para saber cuánto se pierde.
+MERMA
+Anota lo que ya no vas a vender y por qué, para saber cuánto se pierde.
 
 PRODUCTOS
 Tu catálogo con sus precios. Para empezar, Wera te pone los productos de tu giro y tú quitas los que no vendes.
@@ -66,10 +66,10 @@ NÚMEROS
 Lo que vendiste por día, por semana o por mes, con IVA. Compara el precio de compra y el de venta de cada producto, y descarga el mes en hoja de cálculo o en PDF.
 
 TU EQUIPO
-Invita con un código a quien trabaja contigo. Cada persona entra con su cuenta, y la tienda sabe quién registró cada venta, compra o desperdicio.
+Invita con un código a quien trabaja contigo. Cada persona entra con su cuenta, y la tienda sabe quién registró cada venta, compra o merma.
 
 SI TE EQUIVOCAS
-Corrige o elimina una venta, una compra o un desperdicio de los últimos siete días. El registro se conserva.
+Corrige o elimina una venta, una compra o una merma de los últimos siete días. El registro se conserva.
 
 TUS DATOS
 Sin anuncios. No vendemos tus datos. Puedes eliminar tu cuenta desde la app cuando quieras.

@@ -80,8 +80,8 @@ Busca el producto, pon la cantidad y registra la venta en segundos. Funciona sin
 COMPRAR
 Registra lo que te entrega cada proveedor y cuánto te costó. En Costos ves cómo ha cambiado lo que pagas por cada producto, y lo puedes compartir en PDF.
 
-DESPERDICIO
-Anota lo que se tiró y por qué, para saber cuánto se pierde.
+MERMA
+Anota lo que ya no vas a vender y por qué, para saber cuánto se pierde.
 
 PRODUCTOS
 Tu catálogo con sus precios. Para empezar, Wera te pone los productos de tu giro y tú quitas los que no vendes.
@@ -90,10 +90,10 @@ NÚMEROS
 Lo que vendiste por día, por semana o por mes, con IVA. Compara el precio de compra y el de venta de cada producto, y descarga el mes en hoja de cálculo o en PDF.
 
 TU EQUIPO
-Invita con un código a quien trabaja contigo. Cada persona entra con su cuenta, y la tienda sabe quién registró cada venta, compra o desperdicio.
+Invita con un código a quien trabaja contigo. Cada persona entra con su cuenta, y la tienda sabe quién registró cada venta, compra o merma.
 
 SI TE EQUIVOCAS
-Corrige o elimina una venta, una compra o un desperdicio de los últimos siete días. El registro se conserva.
+Corrige o elimina una venta, una compra o una merma de los últimos siete días. El registro se conserva.
 
 TUS DATOS
 Sin anuncios. No vendemos tus datos. Puedes eliminar tu cuenta desde la app cuando quieras.
@@ -177,7 +177,7 @@ when the shop is in one); both apply from the first build that carries the camer
 ```
 Wera is a point-of-sale and stock-record app for small shops in Mexico. The interface is in Spanish.
 
-The demo account owns a shop with products already loaded. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier and "Desperdicio" records a write-off. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
+The demo account owns a shop with products already loaded. To record a sale: tab "Vender", tap + on a product, open the basket ("Total") and confirm. "Comprar" records a delivery from a supplier and "Merma" records a write-off. "Inicio" has the catalog, the last seven days, suppliers, reports ("Números") and settings ("Ajustes").
 
 Wera processes no payments: it only records sales a shop made in cash. There are no in-app purchases and no ads.
 

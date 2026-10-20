@@ -61,7 +61,7 @@ export const TABS: readonly TabDefinition[] = [
       'The door back, and as of area 13 (2026-09-17) the way into every module. ' +
       'ADR-035 §2.8 used to say "no nav panel here" and was AMENDED: state still ' +
       'comes first — the day and the 48-hour expiries sit above anything tappable — ' +
-      'but Inicio now carries Vender, Comprar and Desperdicio as cards, plus rows to ' +
+      'but Inicio now carries Vender, Comprar and Merma as cards, plus rows to ' +
       'Productos and Proveedores. C12.1 caps this bar at four: five icon-plus-word ' +
       'tabs do not fit 390 px.',
   },
