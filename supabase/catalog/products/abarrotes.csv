@@ -10,7 +10,6 @@ haba-seca-a-granel,granel,Haba seca a granel,g,kg,kg,kg,,0,giro-abarrotes giro-m
 maiz-pozolero-a-granel,granel,Maíz pozolero a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
 avena-a-granel,granel,Avena a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
 azucar-estandar-a-granel,granel,Azúcar estándar a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-azucar
-azucar-refinada-a-granel,granel,Azúcar refinada a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-azucar
 cacahuate-a-granel,granel,Cacahuate a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
 pepita-a-granel,granel,Pepita a granel,g,kg,kg,kg,,0,giro-abarrotes giro-materias-primas cat-granos
 alpiste-a-granel,granel,Alpiste a granel,g,kg,kg,kg,,0,giro-abarrotes cat-granos
@@ -87,7 +86,6 @@ manzanita-sol-3-l,refrescos,Manzanita Sol 3 l,pza,pza,pza,pza,,0,giro-abarrotes 
 mirinda-naranja-600-ml,refrescos,Mirinda Naranja 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 mirinda-naranja-2-l,refrescos,Mirinda Naranja 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 mirinda-naranja-3-l,refrescos,Mirinda Naranja 3 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-mountain-dew-600-ml,refrescos,Mountain Dew 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 squirt-lata-355-ml,refrescos,Squirt lata 355 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 squirt-vidrio-355-ml,refrescos,Squirt vidrio 355 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 squirt-600-ml,refrescos,Squirt 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
@@ -96,30 +94,18 @@ squirt-3-l,refrescos,Squirt 3 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 canada-dry-ginger-ale-lata-355-ml,refrescos,Canada Dry Ginger Ale lata 355 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 canada-dry-ginger-ale-600-ml,refrescos,Canada Dry Ginger Ale 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 canada-dry-ginger-ale-2-l,refrescos,Canada Dry Ginger Ale 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-tamarindo-vidrio-370-ml,refrescos,Jarritos Tamarindo vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-tamarindo-600-ml,refrescos,Jarritos Tamarindo 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-tamarindo-2-l,refrescos,Jarritos Tamarindo 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-mandarina-vidrio-370-ml,refrescos,Jarritos Mandarina vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-mandarina-600-ml,refrescos,Jarritos Mandarina 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-mandarina-2-l,refrescos,Jarritos Mandarina 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-limon-vidrio-370-ml,refrescos,Jarritos Limón vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-limon-600-ml,refrescos,Jarritos Limón 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-limon-2-l,refrescos,Jarritos Limón 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-toronja-vidrio-370-ml,refrescos,Jarritos Toronja vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-toronja-600-ml,refrescos,Jarritos Toronja 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-toronja-2-l,refrescos,Jarritos Toronja 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-pina-vidrio-370-ml,refrescos,Jarritos Piña vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-pina-600-ml,refrescos,Jarritos Piña 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-pina-2-l,refrescos,Jarritos Piña 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-fresa-vidrio-370-ml,refrescos,Jarritos Fresa vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-fresa-600-ml,refrescos,Jarritos Fresa 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-fresa-2-l,refrescos,Jarritos Fresa 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-tutifruti-vidrio-370-ml,refrescos,Jarritos Tutifruti vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-tutifruti-600-ml,refrescos,Jarritos Tutifruti 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 jarritos-tutifruti-2-l,refrescos,Jarritos Tutifruti 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-jamaica-vidrio-370-ml,refrescos,Jarritos Jamaica vidrio 370 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-jamaica-600-ml,refrescos,Jarritos Jamaica 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-jarritos-jamaica-2-l,refrescos,Jarritos Jamaica 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 sangria-senorial-vidrio-355-ml,refrescos,Sangría Señorial vidrio 355 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 sangria-senorial-600-ml,refrescos,Sangría Señorial 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 sangria-senorial-2-l,refrescos,Sangría Señorial 2 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
@@ -132,16 +118,9 @@ penafiel-toronjada-2-l,refrescos,Peñafiel Toronjada 2 l,pza,pza,pza,pza,,0,giro
 penafiel-twist-limon-600-ml,refrescos,Peñafiel Twist Limón 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 penafiel-twist-naranja-600-ml,refrescos,Peñafiel Twist Naranja 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 penafiel-twist-toronja-600-ml,refrescos,Peñafiel Twist Toronja 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-big-cola-400-ml,refrescos,Big Cola 400 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-big-cola-600-ml,refrescos,Big Cola 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-big-cola-1-8-l,refrescos,Big Cola 1.8 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 big-cola-3-3-l,refrescos,Big Cola 3.3 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-big-citrus-3-3-l,refrescos,Big Citrus 3.3 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 red-cola-600-ml,refrescos,Red Cola 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 red-cola-3-l,refrescos,Red Cola 3 l,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-lulu-fresa-600-ml,refrescos,Lulú Fresa 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-lulu-pina-600-ml,refrescos,Lulú Piña 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
-lulu-mandarina-600-ml,refrescos,Lulú Mandarina 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-refrescos
 agua-bonafont-600-ml,bebidas,Agua Bonafont 600 ml,pza,pza,pza,pza,,0,giro-abarrotes cat-aguas
 agua-bonafont-1-l,bebidas,Agua Bonafont 1 l,pza,pza,pza,pza,,0,giro-abarrotes cat-aguas
 agua-bonafont-1-5-l,bebidas,Agua Bonafont 1.5 l,pza,pza,pza,pza,,0,giro-abarrotes cat-aguas
@@ -224,8 +203,6 @@ leche-lala-saborizada-vainilla-250-ml,lacteos,Leche Lala saborizada Vainilla 250
 hershey-s-leche-sabor-chocolate-236-ml,lacteos,Hershey's leche sabor chocolate 236 ml,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 yakult-paquete-5,lacteos,Yakult paquete 5,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 danonino-fresa,lacteos,Danonino Fresa,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
-danonino-platano,lacteos,Danonino Plátano,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
-danonino-durazno,lacteos,Danonino Durazno,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 activia-bebible-fresa,lacteos,Activia bebible Fresa,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 activia-bebible-natural,lacteos,Activia bebible Natural,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
 activia-bebible-ciruela-pasa,lacteos,Activia bebible Ciruela-pasa,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-lacteos
@@ -255,11 +232,9 @@ salchicha-viena-san-rafael,carnes-frias,Salchicha Viena San Rafael,pza,pza,pza,p
 salchicha-de-pavo-zwan,carnes-frias,Salchicha de pavo Zwan,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-embutidos
 salchicha-para-asar-bafar,carnes-frias,Salchicha para asar Bafar,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-embutidos
 tocino-fud,carnes-frias,Tocino FUD,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-embutidos
-mortadela-zwan,carnes-frias,Mortadela Zwan,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-embutidos
 chorizo-de-pavo-fud,carnes-frias,Chorizo de pavo FUD,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria cat-embutidos
 pan-blanco-bimbo-chico,pan,Pan Blanco Bimbo chico,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-blanco-bimbo-grande,pan,Pan Blanco Bimbo grande,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-pan-blanco-bimbo-jumbo,pan,Pan Blanco Bimbo jumbo,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-integral-bimbo-chico,pan,Pan Integral Bimbo chico,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-integral-bimbo-grande,pan,Pan Integral Bimbo grande,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-multigrano-bimbo,pan,Pan Multigrano Bimbo,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
@@ -269,7 +244,6 @@ pan-tostado-bimbo-clasico,pan,Pan Tostado Bimbo Clásico,pza,pza,pza,pza,,0,giro
 pan-tostado-bimbo-integral,pan,Pan Tostado Bimbo Integral,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 medias-noches-bimbo,pan,Medias Noches Bimbo,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 bimbollos,pan,Bimbollos,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-bimbollos-integrales,pan,Bimbollos Integrales,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 mantecadas-bimbo-clasicas,pan,Mantecadas Bimbo Clásicas,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 mantecadas-bimbo-chocolate,pan,Mantecadas Bimbo Chocolate,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 mantecadas-bimbo-nuez,pan,Mantecadas Bimbo Nuez,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
@@ -285,12 +259,8 @@ barras-de-trigo-integral-bimbo,pan,Barras de trigo integral Bimbo,pza,pza,pza,pz
 oroweat-doce-granos,pan,Oroweat Doce Granos,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 oroweat-integral,pan,Oroweat Integral,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 oroweat-linaza,pan,Oroweat Linaza,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-oroweat-avena,pan,Oroweat Avena,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 oroweat-multigrano,pan,Oroweat Multigrano,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 oroweat-centeno,pan,Oroweat Centeno,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-bagels-oroweat,pan,Bagels Oroweat,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-pan-para-hamburguesa-oroweat,pan,Pan para hamburguesa Oroweat,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-pan-blanco-wonder-chico,pan,Pan Blanco Wonder chico,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-blanco-wonder-grande,pan,Pan Blanco Wonder grande,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 pan-integral-wonder,pan,Pan Integral Wonder,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tortillinas-tia-rosa,pan,Tortillinas Tía Rosa,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
@@ -309,17 +279,13 @@ chocorroles-marinela-pina,pan,Chocorroles Marinela Piña,pza,pza,pza,pza,,0,giro
 tuinky-marinela-fresa,pan,Tuinky Marinela Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tuinky-marinela-vainilla,pan,Tuinky Marinela Vainilla,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 rocko-marinela,pan,Rocko Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-choco-roles-marinela,pan,Choco Roles Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 mini-mantecadas-marinela,pan,Mini Mantecadas Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tortillas-de-harina-milpa-real,pan,Tortillas de harina Milpa Real,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tostadas-milpa-real,pan,Tostadas Milpa Real,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 totopos-milpa-real,pan,Totopos Milpa Real,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-bolillo,pan,Bolillo,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-telera,pan,Telera,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tostadas-charras,pan,Tostadas Charras,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tostadas-sanissimo,pan,Tostadas Sanissimo,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 totopos,pan,Totopos,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
-tortillas-de-harina-tia-rosa,pan,Tortillas de harina Tía Rosa,pza,pza,pza,pza,,0,giro-abarrotes cat-pan
 tortilla-de-maiz,tortillas,Tortilla de maíz,g,kg,kg,kg,,0,giro-abarrotes cat-pan
 marias-gamesa-tubo,galletas,Marías Gamesa tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 marias-gamesa-paquete-familiar,galletas,Marías Gamesa paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
@@ -332,19 +298,16 @@ emperador-gamesa-combinado-paquete-familiar,galletas,Emperador Gamesa Combinado 
 emperador-gamesa-limon-paquete-individual,galletas,Emperador Gamesa Limón paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 emperador-gamesa-limon-paquete-familiar,galletas,Emperador Gamesa Limón paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 emperador-gamesa-nuez-paquete-individual,galletas,Emperador Gamesa Nuez paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-emperador-gamesa-nuez-paquete-familiar,galletas,Emperador Gamesa Nuez paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 emperador-senzo-gamesa,galletas,Emperador Senzo Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 chokis-gamesa-paquete-individual,galletas,Chokis Gamesa paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 chokis-gamesa-paquete-familiar,galletas,Chokis Gamesa paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 chokis-chokomax-gamesa,galletas,Chokis Chokomax Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 chokis-brownie-gamesa,galletas,Chokis Brownie Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 arcoiris-gamesa-paquete-individual,galletas,Arcoíris Gamesa paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-arcoiris-gamesa-paquete-familiar,galletas,Arcoíris Gamesa paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 florentinas-gamesa-fresa,galletas,Florentinas Gamesa Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 florentinas-gamesa-cajeta,galletas,Florentinas Gamesa Cajeta,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 florentinas-gamesa-pina,galletas,Florentinas Gamesa Piña,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 mamut-gamesa-individual,galletas,Mamut Gamesa individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-mamut-gamesa-paquete-familiar,galletas,Mamut Gamesa paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 mamut-mini-gamesa,galletas,Mamut Mini Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 saladitas-gamesa-tubo,galletas,Saladitas Gamesa tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 saladitas-gamesa-caja,galletas,Saladitas Gamesa caja,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
@@ -353,13 +316,10 @@ crackets-gamesa-caja,galletas,Crackets Gamesa caja,pza,pza,pza,pza,,0,giro-abarr
 habaneras-gamesa-tubo,galletas,Habaneras Gamesa tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 habaneras-gamesa-caja,galletas,Habaneras Gamesa caja,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 ricanelas-gamesa,galletas,Ricanelas Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-populares-gamesa,galletas,Populares Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-animalitos-gamesa,galletas,Animalitos Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 cremax-gamesa-vainilla,galletas,Cremax Gamesa Vainilla,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 cremax-gamesa-chocolate,galletas,Cremax Gamesa Chocolate,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 cremax-gamesa-fresa,galletas,Cremax Gamesa Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 bombitos-gamesa,galletas,Bombitos Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-hojaldras-gamesa,galletas,Hojaldras Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 maravillas-gamesa,galletas,Maravillas Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 mini-chokis-gamesa,galletas,Mini Chokis Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 sponch-marinela,galletas,Sponch Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
@@ -368,35 +328,20 @@ barritas-marinela-pina,galletas,Barritas Marinela Piña,pza,pza,pza,pza,,0,giro-
 barritas-marinela-zarzamora,galletas,Barritas Marinela Zarzamora,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 principe-marinela-chocolate-individual,galletas,Principe Marinela Chocolate individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 principe-marinela-chocolate-paquete-familiar,galletas,Principe Marinela Chocolate paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-principe-marinela-vainilla-individual,galletas,Principe Marinela Vainilla individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-principe-marinela-vainilla-paquete-familiar,galletas,Principe Marinela Vainilla paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 canelitas-marinela-individual,galletas,Canelitas Marinela individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 canelitas-marinela-paquete-familiar,galletas,Canelitas Marinela paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 polvorones-marinela-naranja,galletas,Polvorones Marinela Naranja,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-polvorones-marinela-chocolate,galletas,Polvorones Marinela Chocolate,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 triki-trakes-marinela,galletas,Triki Trakes Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 bran-frut-marinela-fresa,galletas,Bran Frut Marinela Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 bran-frut-marinela-pina,galletas,Bran Frut Marinela Piña,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-bran-frut-marinela-manzana,galletas,Bran Frut Marinela Manzana,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 lors-marinela,galletas,Lors Marinela,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 oreo-original-paquete-individual,galletas,Oreo Original paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 oreo-original-tubo,galletas,Oreo Original tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 oreo-original-paquete-familiar,galletas,Oreo Original paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-doble-relleno-paquete-individual,galletas,Oreo Doble relleno paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-doble-relleno-tubo,galletas,Oreo Doble relleno tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-doble-relleno-paquete-familiar,galletas,Oreo Doble relleno paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-fresa-paquete-individual,galletas,Oreo Fresa paquete individual,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-fresa-tubo,galletas,Oreo Fresa tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-oreo-fresa-paquete-familiar,galletas,Oreo Fresa paquete familiar,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 chips-ahoy,galletas,Chips Ahoy,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 ritz-tubo,galletas,Ritz tubo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 ritz-caja,galletas,Ritz caja,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-club-social,galletas,Club Social,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 galletas-salmas-sanissimo,galletas,Galletas Salmas Sanissimo,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-marias-cuetara,galletas,Marías Cuétara,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-galletas-donde-arcoiris,galletas,Galletas Dondé Arcoíris,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-galletas-donde-marias,galletas,Galletas Dondé Marías,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
-pancrema,galletas,Pancrema,pza,pza,pza,pza,,0,giro-abarrotes cat-galletas
 sabritas-original-individual,botanas,Sabritas Original individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-original-grande,botanas,Sabritas Original grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-limon-individual,botanas,Sabritas Limón individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -406,7 +351,6 @@ sabritas-adobadas-grande,botanas,Sabritas Adobadas grande,pza,pza,pza,pza,,0,gir
 sabritas-flamin-hot-individual,botanas,Sabritas Flamin Hot individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-flamin-hot-grande,botanas,Sabritas Flamin Hot grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-habanero-individual,botanas,Sabritas Habanero individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-sabritas-habanero-grande,botanas,Sabritas Habanero grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-crema-y-especias-individual,botanas,Sabritas Crema y especias individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-crema-y-especias-grande,botanas,Sabritas Crema y especias grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 sabritas-sal-y-vinagre-individual,botanas,Sabritas Sal y vinagre individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -419,8 +363,6 @@ ruffles-queso-individual,botanas,Ruffles Queso individual,pza,pza,pza,pza,,0,gir
 ruffles-queso-grande,botanas,Ruffles Queso grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 ruffles-flamin-hot-individual,botanas,Ruffles Flamin Hot individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 ruffles-flamin-hot-grande,botanas,Ruffles Flamin Hot grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-ruffles-mega-crunch-individual,botanas,Ruffles Mega Crunch individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-ruffles-mega-crunch-grande,botanas,Ruffles Mega Crunch grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 doritos-nacho-individual,botanas,Doritos Nacho individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 doritos-nacho-grande,botanas,Doritos Nacho grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 doritos-flamin-hot-individual,botanas,Doritos Flamin Hot individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -433,7 +375,6 @@ doritos-diablo-individual,botanas,Doritos Diablo individual,pza,pza,pza,pza,,0,g
 doritos-diablo-grande,botanas,Doritos Diablo grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 doritos-dinamita-flamin-hot,botanas,Doritos Dinamita Flamin Hot,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 doritos-dinamita-chile-limon,botanas,Doritos Dinamita Chile limón,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-doritos-dinamita-nacho,botanas,Doritos Dinamita Nacho,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 cheetos-torciditos-individual,botanas,Cheetos Torciditos individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 cheetos-torciditos-grande,botanas,Cheetos Torciditos grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 cheetos-flamin-hot-individual,botanas,Cheetos Flamin Hot individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -448,15 +389,12 @@ cheetos-xtra-flamin-hot-individual,botanas,Cheetos Xtra Flamin Hot individual,pz
 cheetos-xtra-flamin-hot-grande,botanas,Cheetos Xtra Flamin Hot grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 fritos-sal-y-limon,botanas,Fritos Sal y limón,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 fritos-chorizo-y-chipotle,botanas,Fritos Chorizo y chipotle,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-fritos-original,botanas,Fritos Original,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 rancheritos-individual,botanas,Rancheritos individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 rancheritos-grande,botanas,Rancheritos grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 tostitos-salsa-verde-individual,botanas,Tostitos Salsa verde individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 tostitos-salsa-verde-grande,botanas,Tostitos Salsa verde grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 tostitos-flamin-hot-individual,botanas,Tostitos Flamin Hot individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 tostitos-flamin-hot-grande,botanas,Tostitos Flamin Hot grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-tostitos-original-individual,botanas,Tostitos Original individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-tostitos-original-grande,botanas,Tostitos Original grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 crujitos,botanas,Crujitos,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 churrumais-original,botanas,Churrumais Original,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 churrumais-flamas,botanas,Churrumais Flamas,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -470,13 +408,11 @@ cacahuates-sabritas-salados,botanas,Cacahuates Sabritas Salados,pza,pza,pza,pza,
 cacahuates-sabritas-enchilados,botanas,Cacahuates Sabritas Enchilados,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 cacahuates-sabritas-japoneses,botanas,Cacahuates Sabritas Japoneses,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 cacahuates-sabritas-mixtos,botanas,Cacahuates Sabritas Mixtos,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-sabritas-mix,botanas,Sabritas Mix,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-fuego-individual,botanas,Takis Fuego individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-fuego-grande,botanas,Takis Fuego grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-original-individual,botanas,Takis Original individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-original-grande,botanas,Takis Original grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-xplosion-individual,botanas,Takis Xplosion individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-takis-xplosion-grande,botanas,Takis Xplosion grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-huakamoles-individual,botanas,Takis Huakamoles individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-huakamoles-grande,botanas,Takis Huakamoles grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 takis-blue-heat-individual,botanas,Takis Blue Heat individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -491,20 +427,15 @@ chips-barcel-adobadas-individual,botanas,Chips Barcel Adobadas individual,pza,pz
 chips-barcel-adobadas-grande,botanas,Chips Barcel Adobadas grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 chips-barcel-habanero-individual,botanas,Chips Barcel Habanero individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 chips-barcel-habanero-grande,botanas,Chips Barcel Habanero grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-chips-barcel-sal-de-mar-individual,botanas,Chips Barcel Sal de mar individual,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-chips-barcel-sal-de-mar-grande,botanas,Chips Barcel Sal de mar grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 runners-barcel-original,botanas,Runners Barcel Original,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-runners-barcel-flamin,botanas,Runners Barcel Flamin,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 hot-nuts-barcel-original,botanas,Hot Nuts Barcel Original,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 hot-nuts-barcel-fuego,botanas,Hot Nuts Barcel Fuego,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-hot-nuts-barcel-mix,botanas,Hot Nuts Barcel Mix,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 toreadas-barcel,botanas,Toreadas Barcel,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 wapas-barcel,botanas,Wapas Barcel,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 big-mix-barcel-queso,botanas,Big Mix Barcel Queso,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 big-mix-barcel-fuego,botanas,Big Mix Barcel Fuego,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 pop-karameladas-barcel,botanas,Pop Karameladas Barcel,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 golden-nuts-barcel,botanas,Golden Nuts Barcel,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
-tostachos-barcel,botanas,Tostachos Barcel,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 pringles-original-chica,botanas,Pringles Original chica,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 pringles-original-grande,botanas,Pringles Original grande,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
 pringles-crema-y-cebolla-chica,botanas,Pringles Crema y cebolla chica,pza,pza,pza,pza,,0,giro-abarrotes cat-botanas
@@ -554,10 +485,8 @@ lucas-gusano,dulces,Lucas Gusano,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 chupa-chups,dulces,Chupa Chups,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 paleta-vero-elotes,dulces,Paleta Vero Elotes,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 malvaviscos-bubulubu,dulces,Malvaviscos Bubulubu,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
-ricos-besos-ricolino,dulces,Ricos Besos Ricolino,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 obleas-de-cajeta,dulces,Obleas de cajeta,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 palanquetas,dulces,Palanquetas,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
-dulces-enchilados-surtidos,dulces,Dulces enchilados surtidos,pza,pza,pza,pza,,0,giro-abarrotes cat-dulces
 arroz-verde-valle-900-g,basicos,Arroz Verde Valle 900 g,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 arroz-sos,basicos,Arroz SOS,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 arroz-morelos,basicos,Arroz Morelos,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
@@ -565,10 +494,7 @@ frijol-negro-verde-valle-900-g,basicos,Frijol negro Verde Valle 900 g,pza,pza,pz
 frijol-pinto-verde-valle,basicos,Frijol pinto Verde Valle,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 lenteja-verde-valle,basicos,Lenteja Verde Valle,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 avena-quaker-400-g,basicos,Avena Quaker 400 g,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-avena-3-minutos,basicos,Avena 3 Minutos,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 harina-de-maiz-maseca-1-kg,basicos,Harina de maíz Maseca 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
-harina-de-maiz-minsa-1-kg,basicos,Harina de maíz Minsa 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
-harina-de-trigo-tres-estados-1-kg,basicos,Harina de trigo Tres Estados 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
 harina-de-trigo-selecta-1-kg,basicos,Harina de trigo Selecta 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-basicos
 harina-para-hot-cakes-gamesa,basicos,Harina para hot cakes Gamesa,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 harina-para-hot-cakes-pronto,basicos,Harina para hot cakes Pronto,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
@@ -597,12 +523,10 @@ maruchan-camaron-con-chile-vaso,basicos,Maruchan Camarón con chile vaso,pza,pza
 maruchan-habanero-vaso,basicos,Maruchan Habanero vaso,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 nissin-cup-noodles,basicos,Nissin Cup Noodles,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
 sopa-knorr-pasta,basicos,Sopa Knorr Pasta,pza,pza,pza,pza,,0,giro-abarrotes cat-basicos
-azucar-estandar-1-kg,azucar,Azúcar estándar 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
 azucar-refinada-zulka-1-kg,azucar,Azúcar refinada Zulka 1 kg,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
 azucar-mascabado-zulka,azucar,Azúcar mascabado Zulka,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
 piloncillo,azucar,Piloncillo,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-azucar
 splenda,azucar,Splenda,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
-canderel,azucar,Canderel,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 miel-carlota,azucar,Miel Carlota,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 mermelada-mccormick-fresa,azucar,Mermelada McCormick Fresa,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
 mermelada-mccormick-zarzamora,azucar,Mermelada McCormick Zarzamora,pza,pza,pza,pza,,0,giro-abarrotes cat-azucar
@@ -621,7 +545,6 @@ atun-dolores-en-agua-140-g,enlatados,Atún Dolores en agua 140 g,pza,pza,pza,pza
 atun-dolores-en-agua-295-g,enlatados,Atún Dolores en agua 295 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-dolores-en-aceite-140-g,enlatados,Atún Dolores en aceite 140 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-dolores-en-aceite-295-g,enlatados,Atún Dolores en aceite 295 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-atun-dolores-light-en-agua,enlatados,Atún Dolores Light en agua,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-dolores-con-verduras,enlatados,Atún Dolores con verduras,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-tuny-en-agua-140-g,enlatados,Atún Tuny en agua 140 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-tuny-en-agua-295-g,enlatados,Atún Tuny en agua 295 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -629,15 +552,12 @@ atun-tuny-en-aceite-140-g,enlatados,Atún Tuny en aceite 140 g,pza,pza,pza,pza,,
 atun-tuny-en-aceite-295-g,enlatados,Atún Tuny en aceite 295 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-tuny-ensalada,enlatados,Atún Tuny ensalada,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 atun-herdez,enlatados,Atún Herdez,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-atun-mazatun,enlatados,Atún Mazatún,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 sardinas-calmex-en-tomate-425-g,enlatados,Sardinas Calmex en tomate 425 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-sardinas-calmex-en-chile-425-g,enlatados,Sardinas Calmex en chile 425 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 sardinas-guaymex-en-tomate,enlatados,Sardinas Guaymex en tomate,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-jalapenos-en-rajas-lata-chica,enlatados,Chiles La Costeña Jalapeños en rajas lata chica,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-jalapenos-en-rajas-lata-mediana,enlatados,Chiles La Costeña Jalapeños en rajas lata mediana,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-jalapenos-en-rajas-lata-grande,enlatados,Chiles La Costeña Jalapeños en rajas lata grande,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-jalapenos-enteros-lata-chica,enlatados,Chiles La Costeña Jalapeños enteros lata chica,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-chiles-la-costena-jalapenos-enteros-lata-mediana,enlatados,Chiles La Costeña Jalapeños enteros lata mediana,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-jalapenos-enteros-lata-grande,enlatados,Chiles La Costeña Jalapeños enteros lata grande,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-serranos-en-escabeche-lata-chica,enlatados,Chiles La Costeña Serranos en escabeche lata chica,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-serranos-en-escabeche-lata-mediana,enlatados,Chiles La Costeña Serranos en escabeche lata mediana,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -646,7 +566,6 @@ chiles-la-costena-chipotles-adobados-lata-chica,enlatados,Chiles La Costeña Chi
 chiles-la-costena-chipotles-adobados-lata-mediana,enlatados,Chiles La Costeña Chipotles adobados lata mediana,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-chipotles-adobados-lata-grande,enlatados,Chiles La Costeña Chipotles adobados lata grande,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-nachos-lata-chica,enlatados,Chiles La Costeña Nachos lata chica,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-chiles-la-costena-nachos-lata-mediana,enlatados,Chiles La Costeña Nachos lata mediana,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-la-costena-nachos-lata-grande,enlatados,Chiles La Costeña Nachos lata grande,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-san-marcos-jalapenos-en-rajas,enlatados,Chiles San Marcos Jalapeños en rajas,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chiles-san-marcos-chipotles-adobados,enlatados,Chiles San Marcos Chipotles adobados,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -658,18 +577,14 @@ nopalitos-la-costena,enlatados,Nopalitos La Costeña,pza,pza,pza,pza,,0,giro-aba
 frijoles-refritos-la-costena-bayos-lata-430-g,enlatados,Frijoles refritos La Costeña Bayos lata 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-costena-bayos-lata-580-g,enlatados,Frijoles refritos La Costeña Bayos lata 580 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-costena-bayos-bolsa,enlatados,Frijoles refritos La Costeña Bayos bolsa,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-frijoles-refritos-la-costena-negros-lata-430-g,enlatados,Frijoles refritos La Costeña Negros lata 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-costena-negros-lata-580-g,enlatados,Frijoles refritos La Costeña Negros lata 580 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-costena-negros-bolsa,enlatados,Frijoles refritos La Costeña Negros bolsa,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-costena-peruanos-lata-430-g,enlatados,Frijoles refritos La Costeña Peruanos lata 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-frijoles-refritos-la-costena-peruanos-lata-580-g,enlatados,Frijoles refritos La Costeña Peruanos lata 580 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-frijoles-refritos-la-costena-peruanos-bolsa,enlatados,Frijoles refritos La Costeña Peruanos bolsa,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-enteros-la-costena-bayos,enlatados,Frijoles enteros La Costeña Bayos,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-enteros-la-costena-negros,enlatados,Frijoles enteros La Costeña Negros,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-isadora-negros-bolsa-430-g,enlatados,Frijoles refritos Isadora Negros bolsa 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-isadora-bayos-bolsa-430-g,enlatados,Frijoles refritos Isadora Bayos bolsa 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-isadora-peruanos-bolsa-430-g,enlatados,Frijoles refritos Isadora Peruanos bolsa 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-frijoles-refritos-isadora-charros-bolsa-430-g,enlatados,Frijoles refritos Isadora Charros bolsa 430 g,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-sierra-negros,enlatados,Frijoles refritos La Sierra Negros,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 frijoles-refritos-la-sierra-bayos,enlatados,Frijoles refritos La Sierra Bayos,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 elote-la-costena-chico,enlatados,Elote La Costeña chico,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -678,14 +593,12 @@ elote-herdez,enlatados,Elote Herdez,pza,pza,pza,pza,,0,giro-abarrotes cat-enlata
 elote-del-monte,enlatados,Elote Del Monte,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chicharos-la-costena,enlatados,Chícharos La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 chicharos-con-zanahoria-la-costena,enlatados,Chícharos con zanahoria La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-ensalada-de-legumbres-la-costena,enlatados,Ensalada de legumbres La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 ensalada-de-legumbres-herdez,enlatados,Ensalada de legumbres Herdez,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 verduras-mixtas-la-costena,enlatados,Verduras mixtas La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 champinones-herdez-rebanados,enlatados,Champiñones Herdez Rebanados,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 champinones-herdez-enteros,enlatados,Champiñones Herdez Enteros,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 champinones-monteblanco,enlatados,Champiñones Monteblanco,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 duraznos-en-almibar-del-monte,enlatados,Duraznos en almíbar Del Monte,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
-duraznos-en-almibar-herdez,enlatados,Duraznos en almíbar Herdez,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 duraznos-en-almibar-la-costena,enlatados,Duraznos en almíbar La Costeña,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 coctel-de-frutas-del-monte,enlatados,Coctel de frutas Del Monte,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
 pina-en-almibar-del-monte-rebanadas,enlatados,Piña en almíbar Del Monte Rebanadas,pza,pza,pza,pza,,0,giro-abarrotes cat-enlatados
@@ -713,11 +626,9 @@ sopa-campbell-s-pollo-con-fideo,enlatados,Sopa Campbell's Pollo con fideo,pza,pz
 salsa-valentina-etiqueta-amarilla,salsas,Salsa Valentina Etiqueta amarilla,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-valentina-etiqueta-negra,salsas,Salsa Valentina Etiqueta negra,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-bufalo-clasica,salsas,Salsa Búfalo clásica,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
-salsa-tapatio,salsas,Salsa Tapatío,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-cholula,salsas,Salsa Cholula,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-huichol,salsas,Salsa Huichol,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 salsa-maggi-jugo-sazonador,salsas,Salsa Maggi (jugo sazonador),pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-salsa-inglesa-lea-perrins,salsas,Salsa inglesa Lea & Perrins,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 salsa-de-soya-kikkoman,salsas,Salsa de soya Kikkoman,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 catsup-heinz,salsas,Catsup Heinz,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 catsup-del-monte,salsas,Catsup Del Monte,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
@@ -730,13 +641,11 @@ vinagre-blanco-clemente-jacques,salsas,Vinagre blanco Clemente Jacques,pza,pza,p
 knorr-suiza-caldo-de-pollo-cubos,salsas,Knorr Suiza caldo de pollo cubos,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 knorr-suiza-caldo-de-pollo-polvo,salsas,Knorr Suiza caldo de pollo polvo,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 knorr-caldo-de-tomate,salsas,Knorr caldo de tomate,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-consome-maggi,salsas,Consomé Maggi,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 sal-la-fina,salsas,Sal La Fina,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 sal-elefante,salsas,Sal Elefante,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 tajin,salsas,Tajín,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 chamoy-miguelito,salsas,Chamoy Miguelito,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
 chamoy-mega,salsas,Chamoy Mega,pza,pza,pza,pza,,0,giro-abarrotes cat-salsas
-salsa-lucas,salsas,Salsa Lucas,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
 pimienta-mccormick,salsas,Pimienta McCormick,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 especias-mccormick-comino,salsas,Especias McCormick Comino,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 especias-mccormick-oregano,salsas,Especias McCormick Orégano,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
@@ -744,23 +653,19 @@ especias-mccormick-laurel,salsas,Especias McCormick Laurel,pza,pza,pza,pza,,0,gi
 especias-mccormick-clavo,salsas,Especias McCormick Clavo,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 especias-mccormick-canela,salsas,Especias McCormick Canela,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-salsas
 achiote-la-anita,salsas,Achiote La Anita,pza,pza,pza,pza,,0,giro-abarrotes giro-cremeria giro-polleria giro-carniceria giro-materias-primas cat-salsas-moles
-nescafe-clasico-42-g,cafe,Nescafé Clásico 42 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-clasico-120-g,cafe,Nescafé Clásico 120 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-clasico-225-g,cafe,Nescafé Clásico 225 g,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-decaf,cafe,Nescafé Decaf,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nescafe-dolca,cafe,Nescafé Dolca,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 cafe-legal,cafe,Café Legal,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 cafe-oro,cafe,Café Oro,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-cafe-combate,cafe,Café Combate,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 coffee-mate,cafe,Coffee mate,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 chocolate-abuelita,cafe,Chocolate Abuelita,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-cafe
 chocolate-ibarra,cafe,Chocolate Ibarra,pza,pza,pza,pza,,0,giro-abarrotes giro-materias-primas cat-cafe
 choco-milk,cafe,Choco Milk,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nesquik,cafe,Nesquik,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-chocolate-express,cafe,Chocolate Express,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 te-mccormick-manzanilla,cafe,Té McCormick Manzanilla,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 te-mccormick-hierbabuena,cafe,Té McCormick Hierbabuena,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-te-mccormick-limon,cafe,Té McCormick Limón,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 te-mccormick-canela,cafe,Té McCormick Canela,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 te-lagg-s-manzanilla,cafe,Té Lagg's Manzanilla,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 zucaritas,cafe,Zucaritas,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
@@ -770,7 +675,6 @@ froot-loops,cafe,Froot Loops,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 special-k,cafe,Special K,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 all-bran,cafe,All-Bran,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 nesquik-cereal,cafe,Nesquik cereal,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
-chocapic,cafe,Chocapic,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 trix,cafe,Trix,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 cheerios,cafe,Cheerios,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
 barras-kellogg-s,cafe,Barras Kellogg's,pza,pza,pza,pza,,0,giro-abarrotes cat-cafe
@@ -841,12 +745,10 @@ clorox,limpieza,Clorox,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 fabuloso,limpieza,Fabuloso,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 pinol,limpieza,Pinol,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 maestro-limpio,limpieza,Maestro Limpio,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
-flash,limpieza,Flash,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 lavatrastes-axion-liquido,limpieza,Lavatrastes Axion líquido,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 lavatrastes-axion-en-pasta,limpieza,Lavatrastes Axion en pasta,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 lavatrastes-salvo,limpieza,Lavatrastes Salvo,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 fibra-scotch-brite,limpieza,Fibra Scotch-Brite,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
-esponja,limpieza,Esponja,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 raid,limpieza,Raid,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 baygon,limpieza,Baygon,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
 glade,limpieza,Glade,pza,pza,pza,pza,,0,giro-abarrotes cat-limpieza
