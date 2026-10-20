@@ -14,12 +14,22 @@ import {
 } from '@/auth/apple';
 import { authErrorKey, authErrorMessage } from '@/auth/errors';
 import { FULL_NAME_KEY, checkCredentials, checkSignUp } from '@/auth/credentials';
+import { sessionKeyOf, sessionToHold } from '@/auth/held';
 import { OAUTH_REDIRECT_URI, oauthOutcome } from '@/auth/oauth';
 import { cacheMemory, forgetCache } from '@/api/persist';
 import { forgetLastScreen, routeMemory } from '@/navigation/lastScreen';
 import { ES } from '@/strings';
 import { newNoncePair } from '@/lib/ids';
-import { supabase } from '@/lib/supabase';
+import { deviceStore, readKey, removeKey } from '@/lib/store';
+import { SUPABASE_URL, supabase } from '@/lib/supabase';
+
+/** Where `supabase-js` keeps the session on this phone. See `@/auth/held`. */
+const SESSION_KEY = sessionKeyOf(SUPABASE_URL);
+
+/** The session as the library last stored it, read now. */
+function storedSession(): string | null {
+  return readKey(deviceStore(), SESSION_KEY);
+}
 
 // ============================================================================
 // WHO IS HOLDING THE PHONE. Plan task 5a-iii-a.
@@ -123,10 +133,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // The stored session, read once. ⚠️ `ready` IS SET IN BOTH OUTCOMES,
     // including the failure: a storage read that throws must not leave the app
     // on the splash screen forever, which is a hang with no message.
+    //
+    // ⚠️⚠️ A `null` HERE IS CHECKED AGAINST THE STORE (`8g`, 2026-10-20). With
+    // no signal and a sign-in over an hour old, the library cannot renew it,
+    // answers `null` and keeps it stored — and the guard sent her to *Entrar*
+    // in her own shop. `sessionToHold` keeps what the library kept.
     void supabase.auth
       .getSession()
       .then(({ data }) => {
-        if (!cancelled) setSession(data.session);
+        if (!cancelled) setSession(sessionToHold('LOADED', data.session, storedSession()));
       })
       .finally(() => {
         if (!cancelled) setReady(true);
@@ -134,8 +149,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Everything after that: sign-in, sign-out, and the token refreshes the
     // `AppState` listener in `@/lib/supabase` drives.
-    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
-      setSession(next);
+    const { data: sub } = supabase.auth.onAuthStateChange((event, next) => {
+      setSession(sessionToHold(event, next, storedSession()));
       setReady(true);
     });
 
@@ -344,8 +359,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // as on a log-out, and a failed refresh is what a shop with no signal has
     // all day — clearing there would wipe the offline catalog at the one moment
     // it is the only catalog there is. `@/api/persist` carries the full note.
+    const { error } = await supabase.auth.signOut();
+    // ⚠️⚠️ OFFLINE, WITH A SIGN-IN THAT COULD NOT BE RENEWED, THE LIBRARY
+    // REFUSES TO SIGN OUT (`_signOut` returns the renewal's failure and removes
+    // nothing) — and since `@/auth/held` keeps that sign-in on screen, *Cerrar
+    // sesión* would do nothing at all. So the phone forgets it here: the same
+    // removal the library's local sign-out makes, and the server's copy lapses
+    // on its own.
+    if (error) {
+      removeKey(deviceStore(), SESSION_KEY);
+      setSession(null);
+    }
+    // ⚠️ AFTER THE SESSION IS GONE, SINCE 2026-10-20: `forgetCache` now empties
+    // the live cache as well, and done while a session was still held, every
+    // open screen would read its rows straight back in.
     forgetCache(cacheMemory());
-    await supabase.auth.signOut();
   }, []);
 
   const value = useMemo<Auth>(

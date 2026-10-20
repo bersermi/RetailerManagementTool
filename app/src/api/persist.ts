@@ -34,8 +34,9 @@
 // nothing in this repository could see it: no suite mounts a screen, and every
 // contract check has a database.
 //
-// ⚠️ THAT is why the list below is not just `['catalog', …]`. Four of the six
-// entries are what the COMMIT needs; two are what the SCREEN needs.
+// ⚠️ THAT is why the list below is not just `['catalog', …]`. Four of the seven
+// entries are what the COMMIT needs; two are what the SCREEN needs; one is who
+// she is in the shop.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THE ALLOW-LIST IS THE DELIVERABLE, AND THE RULE IT ENCODES IS ONE LINE:
@@ -54,16 +55,42 @@
 //   * `['costs', 'history', …]` and `['magnitude', 'typical']` — both are
 //     derived from the ledger, and a chart of prices is the shape `@/api/costs`
 //     already calls *"a lie that looks exactly like a fact"*. Refused.
-//   * `['workspace', 'members' | 'invites' | 'pending-requests']` and
-//     `['my-access-requests']` — these answer *who may do what*. A restored
-//     roster is a stale answer about permission, and the real fence is RLS on a
-//     server this phone cannot currently reach. Refused.
+//   * `['workspace', 'invites' | 'pending-requests']` and
+//     `['my-access-requests']` — these answer *who may do what*, and nothing
+//     on a counter needs them. Refused.
+//   * ~~`['workspace', 'members']`~~ — refused until 2026-10-20, then
+//     PERSISTED by the owner's ruling (*"Go ahead with A and B"*, the offline
+//     report's *keep her role on the phone*). Measured from the code that day:
+//     `useMyRole` rides this read, so after an offline restart an owner was
+//     nobody — her price changes, *Editar*, *Nuevo*, *Tu equipo* and the
+//     download vanished with no word why. ⚠️ THE FENCE IS STILL RLS: a restored
+//     role can draw a control the server then refuses, and every write behind
+//     an owner-only control needs a signal anyway, by which time this read has
+//     been refreshed.
 //   * `['catalog', 'prices' | 'settings']` — `Editar`'s per-variant reads.
 //     There is no outbox for a catalog write, so `Editar` cannot save offline
 //     anyway; persisting the form it would fill is cache for nothing. Refused.
 //
 // ⚠️ NOTHING DERIVED FROM THE LEDGER IS PERSISTED. That is the sentence to hold
-// when a seventh entry is proposed.
+// when an eighth entry is proposed.
+//
+// ----------------------------------------------------------------------------
+// ⚠️⚠️ A REFRESH THAT FAILS KEEPS THE LAST GOOD COPY — MEASURED 2026-10-20, ON
+// THE ANDROID EMULATOR, AFTER A MONTH OF THIS FILE SAYING THE OPPOSITE WAS SAFE
+// ----------------------------------------------------------------------------
+// Until then a query was written only while its status was `success`. A
+// restored catalog refetches on the first screen that reads it; offline, that
+// refetch fails, the query turns `error` WITH ITS DATA STILL IN IT, and the
+// next save — three seconds later — left it out. So the first offline restart
+// sold and the SECOND opened Vender on *Cargando productos…* with the shop's
+// name gone: a shop offline across two openings could not sell.
+//
+// ✅ So `shouldPersistQuery` writes a query that holds data, whatever its last
+// attempt said, and `asLastGood` writes it AS the success it last was — because
+// `hydrate` restores an `error` status verbatim, and a screen that checks
+// `isError` before `data` would draw the failure over the catalog it holds.
+// ⚠️ A query that never resolved still has nothing to write and is still
+// refused: that half of the old rule was right.
 //
 // ----------------------------------------------------------------------------
 // ⚠️⚠️ THE TRAP THAT WOULD HAVE SHIPPED SILENTLY: `gcTime` EVICTS A QUERY FROM
@@ -75,8 +102,8 @@
 // catalog in it. **The failure is invisible in every way a person would test
 // it**: kill the app straight after browsing and it works; put the phone down
 // for ten minutes first and the catalog is gone. So `CACHE_GC_TIME` is set on
-// the same six keys, from the same list, in `QueryProvider` — one list, two
-// consumers, because two hand-maintained lists is how the sixth entry gets
+// the same seven keys, from the same list, in `QueryProvider` — one list, two
+// consumers, because two hand-maintained lists is how the next entry gets
 // added to one of them.
 //
 // ----------------------------------------------------------------------------
@@ -101,12 +128,16 @@
 // ✅ So identity is handled where the app already handles it: `forgetCache` is
 // called from `AuthProvider.signOut`, beside `forgetLastScreen`, which is the
 // one deliberate "I am done" act in this app and is NOT reached by an expiry.
-// ⚠️ The in-memory half of that handover is older than this row and is not
-// widened by it: the `QueryClient` is mounted once for the app's life, so a
-// sign-out has never cleared it. Every query is `enabled: session !== null`, so
-// nothing refetches while signed out — the exposure is the frames between the
-// next sign-in and the first refetch, and it is recorded in `6d`'s plan row
-// rather than fixed here.
+// ⚠️⚠️ AND SINCE 2026-10-20 IT EMPTIES THE MEMORY TOO, BECAUSE REMOVING THE
+// KEY ALONE NEVER WORKED. Measured on the Android emulator: after *Cerrar
+// sesión* the store held `wera.query-cache` again within seconds — the
+// `QueryClient` is mounted once for the app's life, a sign-out never cleared
+// it, and the persister's next save wrote the whole shop back. The aviso
+// promises *"Al cerrar sesión se borra la copia del catálogo y de los
+// proveedores"*, so it was false on every phone. `QueryProvider` now registers
+// its client's `clear` here (`setMemoryForgetter`), and `forgetCache` runs it
+// first — still from the log-out alone, and AFTER the session is gone, so no
+// query is enabled to fill the cache again.
 //
 // ⚠️ WHAT THE BUSTER IS FOR INSTEAD is the thing `@/lib/outboxDb` already
 // solved with `PRAGMA user_version`: the app is installed on a phone, and the
@@ -149,6 +180,9 @@ export const CACHE_KEY = 'wera.query-cache';
 // that cannot sell until it finds signal. The new field is the band's drawing
 // and nothing else, every reader takes it with `?? null`, and a restored shop
 // without it draws the name alone until the first online read brings it.
+// ⚠️ AND STILL `v2` AFTER `['workspace', 'members']` JOINED THE LIST (2026-10-20):
+// a NEW key is not a new shape. An old blob simply lacks it, nothing reads a
+// field off a row that was never written, and the first online read fills it.
 export const CACHE_SHAPE = 'v2';
 
 /**
@@ -175,7 +209,7 @@ export const CACHE_GC_TIME = Infinity;
  * fires on every cache event — an observer mounting as a tab is opened counts —
  * and each fire is a `JSON.stringify` plus a synchronous SQLite write on the JS
  * thread. C1.1 puts two low-end Androids in this pilot. The allow-list is the
- * other half of that budget: what is serialised is six entries, not thirty.
+ * other half of that budget: what is serialised is seven entries, not thirty.
  */
 export const CACHE_THROTTLE_MS = 3_000;
 
@@ -191,6 +225,8 @@ export const CACHE_THROTTLE_MS = 3_000;
  * SEGMENT UNDER IT. Without it every row on Comprar is C3.12's dash, which
  * C3.13 blocks the commit on — so an offline delivery is as unrecordable as an
  * offline sale, for a different reason.
+ *
+ * ⚠️ THE SEVENTH IS HER ROLE (2026-10-20) — see the header's struck bullet.
  */
 export const PERSISTED_KEYS: readonly (readonly string[])[] = [
   ['workspace', 'mine'],
@@ -199,12 +235,13 @@ export const PERSISTED_KEYS: readonly (readonly string[])[] = [
   ['catalog', 'units'],
   ['providers', 'list'],
   ['providers', 'memory'],
+  ['workspace', 'members'],
 ];
 
 /**
- * Is this key one of the six?
+ * Is this key one of the seven?
  *
- * ⚠️ A PREFIX MATCH AND NOT AN EQUALITY, because two of the six are families —
+ * ⚠️ A PREFIX MATCH AND NOT AN EQUALITY, because two of the seven are families —
  * `memoryKey(id)` appends the provider. ⚠️ And it is a prefix in one direction
  * only: a key SHORTER than a root does not match, so `['workspace']` — which
  * nothing queries, and which an invalidation sweep uses — is not persisted by
@@ -223,22 +260,63 @@ export function shouldPersistKey(key: readonly unknown[]): boolean {
  */
 export interface PersistableQuery {
   readonly queryKey: readonly unknown[];
-  readonly state: { readonly status: string };
+  readonly state: { readonly status: string; readonly data?: unknown };
 }
 
 /**
  * Should this query be written to disk?
  *
- * ⚠️⚠️ `success` IS ASSERTED AS WELL AS THE KEY, AND IT IS THE HALF THAT IS
- * EASY TO MISS. A query that has never resolved is `pending` with `data`
- * `undefined`; an `error` query is the shape a shop with no signal produces on
- * every read it makes. Persisting either writes the FAILURE to disk, and the
- * next cold start hydrates it — so the app would restore, verbatim, the empty
- * screen this row exists to prevent, and it would do it from a cache that looks
- * like it is working.
+ * ⚠️⚠️ IT ASKS WHETHER THERE IS ANYTHING TO WRITE, NOT HOW THE LAST ATTEMPT
+ * WENT — the header's measurement of 2026-10-20. A query that never resolved is
+ * `pending` or `error` with `data` `undefined`, and writing that hydrates the
+ * empty screen this row exists to prevent: refused. A query that resolved and
+ * then failed to REFRESH still holds the catalog, and leaving it out of the next
+ * save is how a shop lost its products on the second offline restart: written.
  */
 export function shouldPersistQuery(query: PersistableQuery): boolean {
-  return query.state.status === 'success' && shouldPersistKey(query.queryKey);
+  const { status, data } = query.state;
+  const holdsData = status === 'success' || (status === 'error' && data !== undefined);
+  return holdsData && shouldPersistKey(query.queryKey);
+}
+
+/** As much of a dehydrated client as `asLastGood` rewrites. Structural, as above. */
+export interface PersistedShape {
+  readonly clientState: {
+    readonly queries: readonly { readonly state: { readonly status: string; readonly data?: unknown } }[];
+  };
+}
+
+/**
+ * The client as it is written to disk: every query that failed a refresh is
+ * written as the success it last was.
+ *
+ * ⚠️⚠️ BECAUSE `hydrate` KEEPS AN `error` STATUS VERBATIM. Restored as it was, a
+ * catalog that failed one refresh comes back `isError` with its rows in it, and
+ * any screen that checks the error first draws the failure over the products it
+ * holds. Its `dataUpdatedAt` is untouched, so the copy is exactly as old as it
+ * is and the first read that can reach the server replaces it.
+ */
+export function asLastGood<T extends PersistedShape>(client: T): T {
+  return {
+    ...client,
+    clientState: {
+      ...client.clientState,
+      queries: client.clientState.queries.map((query) =>
+        query.state.status === 'error' && query.state.data !== undefined
+          ? {
+              ...query,
+              state: {
+                ...query.state,
+                status: 'success',
+                error: null,
+                fetchFailureCount: 0,
+                fetchFailureReason: null,
+              },
+            }
+          : query,
+      ),
+    },
+  };
 }
 
 /** As much of `Storage` as this file uses. `undefined` is a legitimate value. */
@@ -266,5 +344,20 @@ export function cacheMemory(): CacheMemory | undefined {
  * it is.
  */
 export function forgetCache(memory: CacheMemory | undefined): void {
+  forgetMemory?.();
   removeKey(memory, CACHE_KEY);
+}
+
+/** The live cache's own `clear`, registered by `QueryProvider` while it is mounted. */
+let forgetMemory: (() => void) | null = null;
+
+/**
+ * Hand `forgetCache` the live cache's `clear`, or `null` on unmount.
+ *
+ * ⚠️ A REGISTRATION AND NOT AN IMPORT because `AuthProvider` sits ABOVE
+ * `QueryProvider` and cannot reach its client — the shape `setTabGuard` has in
+ * `@/navigation/volver` for the same reason.
+ */
+export function setMemoryForgetter(forget: (() => void) | null): void {
+  forgetMemory = forget;
 }

@@ -189,16 +189,22 @@ describe('the library has exactly one caller', () => {
     expect(drivers).toEqual(['lib/connectivityMonitor.ts']);
   });
 
-  // ⚠️ `AppState` HAS TWO LEGITIMATE OWNERS AND THAT IS NOT THE SAME CLAIM.
+  // ⚠️ `AppState` HAS THREE LEGITIMATE OWNERS AND THAT IS NOT THE SAME CLAIM.
   // `lib/supabase.ts` drives auth auto-refresh off it (5a-iii); the monitor
-  // drives the flush wake off it. They are different subjects over one core
-  // API, so this is pinned as an EQUALITY at two rather than argued down to
-  // one — a third entry is a screen that started its own lifecycle listener.
-  it('listens to AppState in the session store and the connectivity monitor only', () => {
+  // drives the flush wake off it; and since `8g` (2026-10-20) `QueryProvider`
+  // drives the data library's focus off it, so a stale read refreshes when she
+  // comes back to the app. Three subjects over one core API, so this is pinned
+  // as an EQUALITY — a fourth entry is a screen that started its own lifecycle
+  // listener.
+  it('listens to AppState in the session store, the monitor and the data library only', () => {
     const listeners = sources()
       .filter(([, text]) => /AppState\.addEventListener\(/.test(text))
       .map(([rel]) => rel);
-    expect(listeners).toEqual(['lib/connectivityMonitor.ts', 'lib/supabase.ts']);
+    expect(listeners).toEqual([
+      'api/QueryProvider.tsx',
+      'lib/connectivityMonitor.ts',
+      'lib/supabase.ts',
+    ]);
   });
 
   // ⚠️⚠️ AND THE QUEUE HAS EXACTLY FOUR MODULES, WHICH ARE FOUR VERBS —
