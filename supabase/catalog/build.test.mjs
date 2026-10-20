@@ -29,10 +29,10 @@ const MIGRATIONS = join(HERE, '..', 'migrations');
 
 const TAGS = 'code,kind,label\ngiro-polleria,giro,Pollería\ngiro-cremeria,giro,Cremería\ncat-huevo,categoria,Huevo\n';
 const FAMILIES = 'code,name,default_lifespan_days,track_expiry\npollo,Pollo,3,no\nhuevo,Huevo,,\n';
-const HEADER = 'code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags\n';
+const HEADER = 'code,family,name,base,purchase,sell,price,pack_size,tax_rate,suggested_price,tags\n';
 const GOOD = HEADER +
-  'pechuga,pollo,Pechuga,g,kg,g,kg,,0,giro-polleria\n' +
-  'huevo-blanco,huevo,Huevo blanco,pza,pza,pza,pza,360,0,giro-polleria giro-cremeria cat-huevo\n';
+  'pechuga,pollo,Pechuga,g,kg,g,kg,,0,,giro-polleria\n' +
+  'huevo-blanco,huevo,Huevo blanco,pza,pza,pza,pza,360,0,,giro-polleria giro-cremeria cat-huevo\n';
 
 function fixture({ tags = TAGS, families = FAMILIES, products = { 'polleria.csv': GOOD } } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'catalogo-'));
@@ -83,8 +83,8 @@ test('the SQL is a snapshot: stale products deleted first, families and tags las
   assert.ok(at('insert into catalogo.product (') < at('delete from catalogo.family where'));
   assert.ok(at('delete from catalogo.tag where') < at('insert into catalogo.product_tag'));
   assert.ok(!/image_path/.test(sql.replace(/^--.*$/gm, '')), 'image_path appears outside a comment');
-  assert.match(sql, /\('huevo-blanco', 'huevo', 'Huevo blanco', 'pza', 'pza', 'pza', 'pza', 360, 0, 2\)/);
-  assert.match(sql, /\('pechuga', 'pollo', 'Pechuga', 'g', 'kg', 'g', 'kg', 1, 0, 1\)/);
+  assert.match(sql, /\('huevo-blanco', 'huevo', 'Huevo blanco', 'pza', 'pza', 'pza', 'pza', 360, 0, null, 2\)/);
+  assert.match(sql, /\('pechuga', 'pollo', 'Pechuga', 'g', 'kg', 'g', 'kg', 1, 0, null, 1\)/);
   assert.match(sql, /count\(\*\) from catalogo\.product_tag\) <> 4 then/);
 });
 
@@ -93,7 +93,7 @@ test('the SQL is deterministic — the property --check rests on', () => {
 });
 
 test('a quote in a name is escaped, not executed', () => {
-  const c = load({ products: { 'p.csv': HEADER + "pollo-don,pollo,Pollo de Don Juan's,g,kg,g,kg,,0,giro-polleria\n" } });
+  const c = load({ products: { 'p.csv': HEADER + "pollo-don,pollo,Pollo de Don Juan's,g,kg,g,kg,,0,,giro-polleria\n" } });
   assert.deepEqual(c.problems, []);
   assert.match(renderSql(c), /'Pollo de Don Juan''s'/);
 });
@@ -101,25 +101,25 @@ test('a quote in a name is escaped, not executed', () => {
 // --- every refusal, by its reason -------------------------------------------
 
 test('refuses an unknown unit, and names the field', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,caja,g,kg,,0,giro-polleria\n' } }, /unknown unit/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,caja,g,kg,,0,,giro-polleria\n' } }, /unknown unit/);
   assert.equal(p.length, 1);
   assert.match(p[0], /p\.csv:2: unknown unit\(s\) purchase="caja"/);
 });
 
 test('refuses units spanning two dimensions in one product', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,pza,g,kg,,0,giro-polleria\n' } }, /span/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,pza,g,kg,,0,,giro-polleria\n' } }, /span/);
   assert.match(p[0], /units span mass and count/);
 });
 
 test('refuses a base unit that is not a base', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,kg,kg,kg,kg,,0,giro-polleria\n' } }, /not a base unit/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,kg,kg,kg,kg,,0,,giro-polleria\n' } }, /not a base unit/);
   assert.match(p[0], /base "kg" is not a base unit — use "g"/);
 });
 
 test('refuses a family holding two dimensions, across files (C8.5)', () => {
   const p = problemsWith({ products: {
-    'a.csv': HEADER + 'pechuga,pollo,Pechuga,g,kg,g,kg,,0,giro-polleria\n',
-    'b.csv': HEADER + 'pollo-pza,pollo,Pollo pieza,pza,pza,pza,pza,,0,giro-polleria\n',
+    'a.csv': HEADER + 'pechuga,pollo,Pechuga,g,kg,g,kg,,0,,giro-polleria\n',
+    'b.csv': HEADER + 'pollo-pza,pollo,Pollo pieza,pza,pza,pza,pza,,0,,giro-polleria\n',
   } }, /one family, one dimension/);
   assert.match(p[0], /b\.csv:2: family "pollo" is mass at a\.csv:2, and this product is count/);
 });
@@ -127,31 +127,31 @@ test('refuses a family holding two dimensions, across files (C8.5)', () => {
 test('refuses a code used twice, across files — the overlap is a tag, never a second row', () => {
   const p = problemsWith({ products: {
     'polleria.csv': GOOD,
-    'cremeria.csv': HEADER + 'huevo-blanco,huevo,Huevo blanco grande,pza,pza,pza,pza,,0,giro-cremeria\n',
+    'cremeria.csv': HEADER + 'huevo-blanco,huevo,Huevo blanco grande,pza,pza,pza,pza,,0,,giro-cremeria\n',
   } }, /already used/);
   // Files are read in name order, so cremeria.csv's row is first and polleria.csv's is the duplicate.
   assert.match(p[0], /polleria\.csv:3: product code "huevo-blanco" is already used at cremeria\.csv:2/);
 });
 
 test('refuses two products whose names normalize alike', () => {
-  const p = problemsWith({ products: { 'p.csv': GOOD + 'pechuga-2,pollo,  PECHUGA ,g,kg,g,kg,,0,giro-polleria\n' } }, /same name/);
+  const p = problemsWith({ products: { 'p.csv': GOOD + 'pechuga-2,pollo,  PECHUGA ,g,kg,g,kg,,0,,giro-polleria\n' } }, /same name/);
   assert.match(p[0], /p\.csv:4: product "PECHUGA" has the same name as p\.csv:2/);
 });
 
 test('refuses an undeclared tag, and a product no giro carries', () => {
-  const und = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,kg,g,kg,,0,giro-polleria giro-nada\n' } }, /not in tags\.csv/);
+  const und = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,kg,g,kg,,0,,giro-polleria giro-nada\n' } }, /not in tags\.csv/);
   assert.match(und[0], /tag\(s\) giro-nada are not in tags\.csv/);
-  const nogiro = problemsWith({ products: { 'p.csv': HEADER + 'x,huevo,X,pza,pza,pza,pza,,0,cat-huevo\n' } }, /no giro tag/);
+  const nogiro = problemsWith({ products: { 'p.csv': HEADER + 'x,huevo,X,pza,pza,pza,pza,,0,,cat-huevo\n' } }, /no giro tag/);
   assert.equal(nogiro.length, 1);
 });
 
 test('refuses IVA written as a percentage', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,kg,g,kg,,16,giro-polleria\n' } }, /tax_rate/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,pollo,X,g,kg,g,kg,,16,,giro-polleria\n' } }, /tax_rate/);
   assert.match(p[0], /tax_rate "16" must be a rate like 0 or 0\.16/);
 });
 
 test('refuses a family that families.csv does not declare', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,res,X,g,kg,g,kg,,0,giro-polleria\n' } }, /not in families\.csv/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'x,res,X,g,kg,g,kg,,0,,giro-polleria\n' } }, /not in families\.csv/);
   assert.match(p[0], /family "res" is not in families\.csv/);
 });
 
@@ -161,7 +161,7 @@ test('refuses a wrong header rather than reading columns out of place', () => {
 });
 
 test('refuses a code that is not lower-case-with-hyphens', () => {
-  const p = problemsWith({ products: { 'p.csv': HEADER + 'Pechuga_1,pollo,X,g,kg,g,kg,,0,giro-polleria\n' } }, /not lower-case/);
+  const p = problemsWith({ products: { 'p.csv': HEADER + 'Pechuga_1,pollo,X,g,kg,g,kg,,0,,giro-polleria\n' } }, /not lower-case/);
   assert.equal(p.length, 1);
 });
 
@@ -213,9 +213,24 @@ test('--check passes on a matching snapshot and fails, saying why, on a CSV edit
   assert.equal(drift.code, 1);
   assert.match(drift.out, /the CSVs changed since/);
 
-  writeFileSync(join(catalog, 'products', 'polleria.csv'), GOOD.replace(',0,giro-polleria\n', ',16,giro-polleria\n'));
+  writeFileSync(join(catalog, 'products', 'polleria.csv'), GOOD.replace(',0,,giro-polleria\n', ',16,,giro-polleria\n'));
   const bad = cli('--write', 'x');
   assert.equal(bad.code, 1);
   assert.match(bad.out, /REFUSED — 1 problem\(s\), nothing written/);
   assert.equal(newestCatalogMigration(migrations), file, 'a refused build wrote a file');
+});
+
+// --- the suggested price (`0067`, the owner's list of 2026-10-20) ----------
+
+test('a suggested price is pesos per the price unit, written as a number, and upserted', () => {
+  const sql = renderSql(load({ products: { 'p.csv': HEADER + 'pechuga,pollo,Pechuga,g,kg,g,kg,,0,129.50,giro-polleria\n' } }));
+  assert.match(sql, /\('pechuga', 'pollo', 'Pechuga', 'g', 'kg', 'g', 'kg', 1, 0, 129\.50, 1\)/);
+  assert.match(sql, /suggested_price = excluded\.suggested_price/);
+});
+
+test('a suggested price that is not plain pesos is refused by its reason', () => {
+  for (const bad of ['-1', '$18', '18.555', '18,50', 'diez']) {
+    const p = problemsWith({ products: { 'p.csv': HEADER + `x,pollo,X,g,kg,g,kg,,0,"${bad}",giro-polleria\n` } }, /suggested_price/);
+    assert.equal(p.length, 1, bad);
+  }
 });

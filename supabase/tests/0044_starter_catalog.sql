@@ -231,7 +231,7 @@ set local role authenticated;
 -- Pollería: Pechuga, Pierna, Huevo blanco. Pierna is HIS already → skipped.
 select public.import_catalog(:'ws', array['zz0044-giro-polleria']) as r1 \gset
 select public.chk('4.1 Pollería imports two and skips one — his own Pierna',
-  (:'r1')::jsonb = '{"imported": 2, "skipped": 1}'::jsonb, :'r1');
+  (:'r1')::jsonb = '{"imported": 2, "skipped": 1, "priced": 0}'::jsonb, :'r1');
 
 select public.chk('4.2 his Pierna is untouched — still his, still in his family, no template_code',
   (select not v.is_prebuilt and v.template_code is null and f.name = 'Mi pollo 0044'
@@ -249,20 +249,23 @@ select public.chk('4.4 under a NEW prebuilt family carrying the template''s life
 select public.chk('4.5 the case of 360 kept its pack size',
   (select pack_size = 360 from product_variant
     where workspace_id = :'ws' and template_code = 'zz0044-huevo-blanco'));
-select public.chk('4.6 no price was written — an imported product is sin precio',
+-- ⚠️ SINCE `0067` THE ANSWER CARRIES `priced`, and a template row WITH a
+-- suggested price is imported priced — `0067`'s own suite. These fixture rows
+-- carry none, so what is asserted here still holds for them.
+select public.chk('4.6 no price was written for a template row with no suggested price',
   (select count(*) from price_list pl join product_variant v on v.id = pl.variant_id
     where v.workspace_id = :'ws' and v.template_code like 'zz0044-%') = 0);
 
 -- Again: nothing new.
 select public.import_catalog(:'ws', array['zz0044-giro-polleria']) as r2 \gset
 select public.chk('4.7 a second Pollería import imports NOTHING',
-  (:'r2')::jsonb = '{"imported": 0, "skipped": 3}'::jsonb, :'r2');
+  (:'r2')::jsonb = '{"imported": 0, "skipped": 3, "priced": 0}'::jsonb, :'r2');
 
 -- Cremería: Huevo blanco (already in, the overlap) and Queso fresco, whose
 -- family name meets HIS Queso family of pieces → C8.5 → skipped.
 select public.import_catalog(:'ws', array['zz0044-giro-cremeria']) as r3 \gset
 select public.chk('4.8 Cremería imports nothing: the overlap is already in, the queso meets his piece family',
-  (:'r3')::jsonb = '{"imported": 0, "skipped": 2}'::jsonb, :'r3');
+  (:'r3')::jsonb = '{"imported": 0, "skipped": 2, "priced": 0}'::jsonb, :'r3');
 select public.chk('4.9 Huevo blanco is in the shop exactly ONCE',
   (select count(*) from product_variant
     where workspace_id = :'ws' and template_code = 'zz0044-huevo-blanco') = 1);
@@ -285,7 +288,7 @@ select set_config('request.jwt.claims',
 set local role authenticated;
 select public.import_catalog(:'ws_b', array['zz0044-giro-polleria'], array['zz0044-pierna']) as r4 \gset
 select public.chk('4.14 an exclusion is respected — B gets two, and no Pierna',
-  (:'r4')::jsonb = '{"imported": 2, "skipped": 0}'::jsonb
+  (:'r4')::jsonb = '{"imported": 2, "skipped": 0, "priced": 0}'::jsonb
   and not exists (select 1 from product_variant
                    where workspace_id = :'ws_b' and template_code = 'zz0044-pierna'), :'r4');
 commit;
