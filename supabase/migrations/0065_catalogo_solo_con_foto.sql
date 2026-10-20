@@ -8,16 +8,19 @@
 --   Give me the report of what will be removed … Let's do it."*
 --
 -- Measured against his folders (`~/RetailerToolDev/wera-fotos/<Giro>/<Pasillo>/
--- <codigo>.<ext>`, matched by `codigo` in any giro's folder): 1,158 of the 1,413
+-- <codigo>.<ext>`, matched by `codigo` in any giro's folder): 1,161 of the 1,413
 -- products have a photo; 137 more are pets, alcohol or tobacco — the three
 -- aisles he left for later (`cat-mascotas`, `cat-alcohol`, `cat-tabaco`) — and
--- STAY; the other 118 go. ⚠️ Two of the 137 sit under *A granel* in his folders
+-- STAY; the other 115 go. ⚠️ Two of the 137 sit under *A granel* in his folders
 -- (croquetas para perro and para gato, sold loose) but carry `cat-mascotas`; they
 -- are pet food, so they wait with Mascotas rather than go on a filing detail.
 -- One file named by a download (`f0bf5680-….avif` in Higiene personal) was
--- Papel higiénico Pétalo's photo — looked at, renamed to its code, and kept.
+-- Papel higiénico Pétalo's photo — looked at, renamed to its code, and kept;
+-- and three AVIF photos saved with no extension (Atún Dolores con verduras,
+-- Tostadas Charras, Jamón de pierna) were found by the upload, given `.avif`,
+-- uploaded, and kept.
 --
--- The 118, by giro and aisle:
+-- The 115, by giro and aisle:
 --   Abarrotes · A granel: 1
 --   Abarrotes · Azúcar y endulzantes: 2
 --   Abarrotes · Botanas: 14
@@ -25,14 +28,14 @@
 --   Abarrotes · Café, chocolate y cereales: 5
 --   Abarrotes · Carnes frías: 1
 --   Abarrotes · Dulces y chocolates: 2
---   Abarrotes · Enlatados y conservas: 12
+--   Abarrotes · Enlatados y conservas: 11
 --   Abarrotes · Galletas: 21
 --   Abarrotes · Limpieza: 2
 --   Abarrotes · Lácteos: 2
---   Abarrotes · Pan y pastelitos: 11
+--   Abarrotes · Pan y pastelitos: 10
 --   Abarrotes · Refrescos: 20
 --   Abarrotes · Salsas y condimentos: 4
---   Cremería · Carnes frías a granel: 2
+--   Cremería · Carnes frías a granel: 1
 --   Cremería · Cremas a granel: 1
 --   Cremería · Lácteos: 1
 --   Cremería · Salsas y condimentos: 11
@@ -48,7 +51,7 @@
 -- (measured). The rows themselves are recoverable from `0045`–`0052`, which
 -- inserted them.
 --
--- ⚠️ IT REFUSES TO REMOVE ANY OTHER NUMBER THAN 118, so a catalog that has moved
+-- ⚠️ IT REFUSES TO REMOVE ANY OTHER NUMBER THAN 115, so a catalog that has moved
 -- since the measurement stops the migration instead of deleting a guess — which
 -- is how this file's own first draft was caught: a comma lost between its last
 -- two codes joined them into one code that matched nothing.
@@ -94,9 +97,8 @@ begin
   -- Abarrotes · Dulces y chocolates (2)
   'dulces-enchilados-surtidos',
   'ricos-besos-ricolino',
-  -- Abarrotes · Enlatados y conservas (12)
+  -- Abarrotes · Enlatados y conservas (11)
   'atun-dolores-light-en-agua',
-  'atun-dolores-con-verduras',
   'atun-mazatun',
   'chiles-la-costena-jalapenos-enteros-lata-mediana',
   'chiles-la-costena-nachos-lata-mediana',
@@ -135,7 +137,7 @@ begin
   -- Abarrotes · Lácteos (2)
   'danonino-durazno',
   'danonino-platano',
-  -- Abarrotes · Pan y pastelitos (11)
+  -- Abarrotes · Pan y pastelitos (10)
   'bagels-oroweat',
   'bimbollos-integrales',
   'bolillo',
@@ -146,7 +148,6 @@ begin
   'pan-para-hamburguesa-oroweat',
   'telera',
   'tortillas-de-harina-tia-rosa',
-  'tostadas-charras',
   -- Abarrotes · Refrescos (20)
   'big-citrus-3-3-l',
   'big-cola-1-8-l',
@@ -173,8 +174,7 @@ begin
   'salsa-lucas',
   'salsa-tapatio',
   'salsa-inglesa-lea-perrins',
-  -- Cremería · Carnes frías a granel (2)
-  'jamon-de-pierna',
+  -- Cremería · Carnes frías a granel (1)
   'pastel-de-pollo',
   -- Cremería · Cremas a granel (1)
   'crema-acida',
@@ -199,7 +199,7 @@ begin
   'vasito-gelatinero-1-oz-paquete'
    );
   get diagnostics v_gone = row_count;
-  if v_gone <> 118 then
-    raise exception '0065: expected to remove 118 products without a photo, removed %', v_gone;
+  if v_gone <> 115 then
+    raise exception '0065: expected to remove 115 products without a photo, removed %', v_gone;
   end if;
 end $$;

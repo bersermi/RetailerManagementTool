@@ -2,11 +2,11 @@
 -- Behavioural verification for 0065 — the default catalog keeps what has a
 -- photo. The owner's ruling of 2026-10-20.
 --
---   1. the catalog is 1,413 less 118: 1,295 products
+--   1. the catalog is 1,413 less 115: 1,298 products
 --   2. products he gave no photo are gone — a sample from four aisles
 --   3. ⚠️ the three aisles he left for later keep every product: alcohol 120,
 --      tobacco 7, pets 10 — the two loose croquetas among them
---   4. Papel higiénico Pétalo, whose photo arrived under a downloaded name, stays
+--   4. Pétalo (a downloaded name) and three AVIF photos with no extension stay
 --   5. no family is left empty (a tag cannot outlive its product: `on delete cascade`)
 -- ============================================================================
 \set ON_ERROR_STOP on
@@ -20,8 +20,8 @@ returns void language sql as $$
   select null::void;
 $$;
 
-select public.chk('1.1 the catalog holds 1,295 products — 1,413 less the 118 with no photo',
-  (select count(*) from catalogo.product) = 1295,
+select public.chk('1.1 the catalog holds 1,298 products — 1,413 less the 115 with no photo',
+  (select count(*) from catalogo.product) = 1298,
   (select count(*)::text from catalogo.product));
 
 select public.chk('1.2 products he gave no photo are gone (Limpieza, Lácteos, Carnes frías, Desechables)',
@@ -41,8 +41,10 @@ select public.chk('1.3b …the loose croquetas among them, though his folders fi
   (select count(*) from catalogo.product
     where code in ('croquetas-para-perro-a-granel', 'croquetas-para-gato-a-granel')) = 2);
 
-select public.chk('1.4 Papel higiénico Pétalo stays — its photo came under a downloaded name',
-  exists (select 1 from catalogo.product where code = 'papel-higienico-petalo'));
+select public.chk('1.4 Pétalo and the three AVIF photos saved with no extension stay',
+  (select count(*) from catalogo.product
+    where code in ('papel-higienico-petalo', 'atun-dolores-con-verduras',
+                   'tostadas-charras', 'jamon-de-pierna')) = 4);
 
 select public.chk('1.5 no family is left empty',
   not exists (select 1 from catalogo.family f
