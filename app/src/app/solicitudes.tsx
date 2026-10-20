@@ -5,6 +5,8 @@ import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useApproveRequest, useLocations, usePendingRequests, useWorkspace } from '@/api/hooks';
+import { useRefresh } from '@/offline/useRefresh';
+import { Jalar } from '@/ui/Jalar';
 import {
   checkApproval,
   linesOf,
@@ -68,6 +70,7 @@ import { BotonLleno } from '@/ui/BotonLleno';
 
 export default function Solicitudes() {
   const { scale } = useDensity();
+  const refresh = useRefresh();
   const insets = useSafeAreaInsets();
   const queue = usePendingRequests();
   const online = useOnline();
@@ -129,6 +132,8 @@ export default function Solicitudes() {
       <Banda />
 
       <ScrollView
+        // ⚠️ `8g`, 2026-10-20: PULL DOWN TO REFRESH (`@/offline/jalar`).
+        refreshControl={<Jalar {...refresh} />}
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space * 1.5,

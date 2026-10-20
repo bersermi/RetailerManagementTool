@@ -424,6 +424,9 @@ describe('the binding names the policy rather than restating it', () => {
 
   it('hands the dehydrate step this module’s predicate, not one of its own', () => {
     expect(provider).toMatch(/shouldDehydrateQuery:\s*shouldPersistQuery/);
+    // ⚠️ `8g`, 2026-10-20: and no mutation — a held send is a draft on disk
+    // with no function to run after a restart.
+    expect(provider).toMatch(/shouldDehydrateMutation:\s*\(\)\s*=>\s*false/);
   });
 
   it('writes the last good copy through this module’s rewrite', () => {
