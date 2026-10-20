@@ -984,8 +984,8 @@ describe('a write-off, which is the third kind and the one that shows no money',
 
   it('says its own sentence when the week held no write-off', () => {
     const read = documentsFrom('waste', []);
-    expect(documentsLine('waste', { ...read, failed: null })).toBe(ES.documents.nothing.waste);
-    expect(documentsLine('waste', { ...read, failed: null })).not.toBe(
+    expect(documentsLine('waste', { ...read, failed: null }, true)).toBe(ES.documents.nothing.waste);
+    expect(documentsLine('waste', { ...read, failed: null }, true)).not.toBe(
       ES.documents.nothing.purchase,
     );
   });
@@ -1011,49 +1011,68 @@ describe('a write-off, which is the third kind and the one that shows no money',
 describe('documentsLine — the one sentence that replaces the list', () => {
   const empty = { state: 'nothing' as const, documents: [] };
 
+  // ⚠️ `online` IS `true` UNLESS AN ASSERTION SAYS OTHERWISE, so each one means
+  // what it meant before `8g`'s round 3 gave the line the signal; the offline
+  // half is `app/test/offline-lecturas.test.ts`'s.
   it('says which kind is empty, because the two are different facts', () => {
-    expect(documentsLine('purchase', { ...empty, failed: null })).toBe(ES.documents.nothing.purchase);
-    expect(documentsLine('sale', { ...empty, failed: null })).toBe(ES.documents.nothing.sale);
+    expect(documentsLine('purchase', { ...empty, failed: null }, true)).toBe(ES.documents.nothing.purchase);
+    expect(documentsLine('sale', { ...empty, failed: null }, true)).toBe(ES.documents.nothing.sale);
   });
 
   it('says it is still looking while the read is out', () => {
-    expect(documentsLine('purchase', { ...NOTHING_READ, failed: null })).toBe(
+    expect(documentsLine('purchase', { ...NOTHING_READ, failed: null }, true)).toBe(
       ES.documents.loading,
     );
   });
 
-  // ⚠️⚠️ A FAILED READ MUST NEVER SAY *no hay compras*. The two are identical to a
-  // screen and opposites to a shopkeeper — one means *you have no deliveries*,
-  // the other means *this phone could not ask*. The failure wins over BOTH other
-  // states, which is why it is tested against each.
-  it('reports a failure rather than an empty shop', () => {
-    const failed = documentsLine('purchase', { ...empty, failed: 'offline' });
+  // ⚠️⚠️ A READ THAT NEVER ANSWERED MUST NEVER SAY *no hay compras*. The two are
+  // identical to a screen and opposites to a shopkeeper — one means *you have no
+  // deliveries*, the other means *this phone could not ask*.
+  // ⚠️⚠️ AND SINCE `8g`'s ROUND 3 (2026-10-20, the owner's *"Do all the fixes"*)
+  // A WEEK THAT DID ANSWER IS NOT TURNED INTO *could not ask* BY A LATER FAILED
+  // REFRESH. This assertion said the failure won over an empty week too; an
+  // empty week READ is the phone's last good copy, and the last good copy wins
+  // whatever its last attempt said (`@/offline/senal`). The never-answered case
+  // keeps the failure, online.
+  it('reports a failure rather than an empty shop — when nothing was ever read', () => {
+    const failed = documentsLine('purchase', { ...NOTHING_READ, failed: 'offline' }, true);
     expect(failed).toBe(ES.api.errors.offline);
     expect(failed).not.toBe(ES.documents.nothing.purchase);
   });
 
+  it('keeps an empty week it read over a refresh that failed after it', () => {
+    expect(documentsLine('purchase', { ...empty, failed: 'offline' }, true)).toBe(
+      ES.documents.nothing.purchase,
+    );
+  });
+
   it('reports a failure rather than a spinner’s sentence', () => {
-    expect(documentsLine('sale', { ...NOTHING_READ, failed: 'offline' })).toBe(
+    expect(documentsLine('sale', { ...NOTHING_READ, failed: 'offline' }, true)).toBe(
       ES.api.errors.offline,
     );
   });
 
   it('is empty when the list itself is the answer', () => {
     const read = documentsFrom('purchase', [purchase('p1', middayOf('2026-09-25'), '10.00', [])]);
-    expect(documentsLine('purchase', { ...read, failed: null })).toBe('');
+    expect(documentsLine('purchase', { ...read, failed: null }, true)).toBe('');
+    // …and a list in hand stays the answer over a refresh that failed after it.
+    expect(documentsLine('purchase', { ...read, failed: 'offline' }, true)).toBe('');
   });
 
   it('never returns a word this app has not written down (R4)', () => {
     const words = new Set<string>([
       ES.documents.loading,
+      ES.offline.whenSignal,
       ...Object.values(ES.documents.nothing),
       ...Object.values(ES.api.errors),
       '',
     ]);
     for (const kind of DOCUMENT_KINDS) {
       for (const state of ['unknown', 'nothing', 'some'] as const) {
-        const line_ = documentsLine(kind, { state, documents: [], failed: null });
-        expect(words.has(line_), `"${line_}" is not in ES`).toBe(true);
+        for (const online of [true, false, null]) {
+          const line_ = documentsLine(kind, { state, documents: [], failed: null }, online);
+          expect(words.has(line_), `"${line_}" is not in ES`).toBe(true);
+        }
       }
     }
   });

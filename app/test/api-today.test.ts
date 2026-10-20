@@ -327,8 +327,11 @@ describe('the line under the figure', () => {
   const full = takingsFrom([sale({ total_net: '100.00', total_tax: '16.00' })]);
   const broken = takingsFrom([sale({ total_net: 'cien' })]);
 
+  // ⚠️ `online` IS `true` THROUGHOUT THIS BLOCK, so each assertion means what it
+  // meant before `8g`'s round 3 gave the line the signal; what changes without
+  // one is `app/test/offline-lecturas.test.ts`'s.
   it('counts the sales when the read landed and every row parsed', () => {
-    expect(takingsLine(false, null, full)).toBe(ES.home.sales(1));
+    expect(takingsLine(false, null, full, true)).toBe(ES.home.sales(1));
   });
 
   it('says one venta in the singular, and two in the plural', () => {
@@ -342,33 +345,39 @@ describe('the line under the figure', () => {
   // reads today — and whether it looks like a quiet morning or a broken app is
   // a question routed to `5f` rather than answered here.
   it('says 0 ventas for a shop that has genuinely sold nothing', () => {
-    expect(takingsLine(false, null, takingsFrom([]))).toBe(ES.home.sales(0));
+    expect(takingsLine(false, null, takingsFrom([]), true)).toBe(ES.home.sales(0));
   });
 
   it('says it is still loading while the read is in flight', () => {
-    expect(takingsLine(true, null, takingsFrom(undefined))).toBe(ES.home.loading);
+    expect(takingsLine(true, null, takingsFrom(undefined), true)).toBe(ES.home.loading);
   });
 
   // ⚠️⚠️ THE PAIR. Both have `data === undefined`, so a screen reading
   // `loading` alone cannot tell them apart — and the failed one must never wear
   // a loading sentence.
   it('says what went wrong when the read failed, and never that it is loading', () => {
-    const line = takingsLine(true, 'offline', takingsFrom(undefined));
+    const line = takingsLine(true, 'offline', takingsFrom(undefined), true);
     expect(line).toBe(ES.api.errors.offline);
     expect(line).not.toBe(ES.home.loading);
   });
 
-  it('prefers the failure over every other state', () => {
-    expect(takingsLine(false, 'sessionEnded', full)).toBe(ES.api.errors.sessionEnded);
-    expect(takingsLine(false, 'sessionEnded', broken)).toBe(ES.api.errors.sessionEnded);
+  // ⚠️⚠️ REVERSED BY `8g`'s ROUND 3 (2026-10-20, the owner's *"Do all the
+  // fixes"*). This said *prefers the failure over every other state*, and so the
+  // figure drawn from the rows in hand stood over *Sin conexión…* in place of
+  // their count. The rows win now, whatever the last refresh said
+  // (`@/offline/senal`); the failure is the line only when nothing was read.
+  it('prefers the rows in hand over a failed refresh', () => {
+    expect(takingsLine(false, 'sessionEnded', full, true)).toBe(ES.home.sales(1));
+    expect(takingsLine(false, 'offline', full, true)).toBe(ES.home.sales(1));
+    expect(takingsLine(false, 'sessionEnded', broken, true)).toBe(ES.home.partial);
   });
 
   // An unreadable row takes the count down with the figure: *3 ventas* above a
   // blank space reads as three sales that brought in nothing.
   it('replaces both numbers when a row would not parse', () => {
     expect(broken.count).toBe(1);
-    expect(takingsLine(false, null, broken)).toBe(ES.home.partial);
-    expect(takingsLine(false, null, broken)).not.toBe(ES.home.sales(1));
+    expect(takingsLine(false, null, broken, true)).toBe(ES.home.partial);
+    expect(takingsLine(false, null, broken, true)).not.toBe(ES.home.sales(1));
   });
 });
 

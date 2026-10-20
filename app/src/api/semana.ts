@@ -21,10 +21,12 @@
 import { SCALE, parseDecimal } from '@tienda/money';
 
 import { isoDay, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import type { Online } from '@/api/connectivity';
 import { shownAmount } from '@/api/documents';
 import { daysBefore, standing, type ReversalRow, type SaleHead, type WasteHead } from '@/api/month';
-import { bucketOf, dayTotals, reportOf, type SoldDay } from '@/api/sales';
+import { bucketOf, dayTotals, reportOf, type SalesState, type SoldDay } from '@/api/sales';
 import { isWasteReason, type WasteReason } from '@/api/waste';
+import { waitsForSignal } from '@/offline/senal';
 import { ES } from '@/strings';
 
 /** Which days of the week Inicio offers the story: Monday to Wednesday. */
@@ -131,6 +133,41 @@ export function weekStory(
     star: top === undefined ? null : { id: top.key, name: top.name, quantity: spoken(top.quantity) },
     thrown: thrownOf(waste, entries, factors),
   };
+}
+
+/**
+ * Whether the story waits for a signal before it has anything to show: the six
+ * months not read, and no signal to read them with. `8g`, 2026-10-20, round 3.
+ *
+ * ⚠️ `unknown` ONLY. `unreadable` is an answer that came back, and a story
+ * over `nothing` is `null` for a reason a signal would not change.
+ */
+export function weekWaits(state: SalesState, online: Online): boolean {
+  return waitsForSignal(online, state !== 'unknown');
+}
+
+/**
+ * The fourth card's two lines — what was thrown away and what to do, or that
+ * nothing was.
+ *
+ * ⚠️⚠️ `8g`, 2026-10-20, THE OFFLINE REPORT'S ROUND 3 (the owner's *"Do all the
+ * fixes"*). `thrown` is `null` both for a week with no write-off and for a
+ * week's write-offs that were never read, and offline the card said *No se tiró
+ * nada* about a week nobody had asked. `wasteKnown` is whether the read
+ * answered; with no answer and no signal it is `ES.offline.whenSignal` and no
+ * tip. ⚠️ ONLINE IT IS WHAT IT WAS, the brief's rule for this round: a read in
+ * flight or failed still says *No se tiró nada* — reported to the owner.
+ */
+export function thrownWords(
+  thrown: WeekStory['thrown'],
+  wasteKnown: boolean,
+  online: Online,
+): { readonly big: string; readonly tip: string } {
+  if (thrown !== null) {
+    return { big: ES.numbers.semana.thrownBig(thrown.quantity, thrown.name), tip: ES.numbers.semana.thrownTip(thrown.reason) };
+  }
+  if (waitsForSignal(online, wasteKnown)) return { big: ES.offline.whenSignal, tip: '' };
+  return { big: ES.numbers.semana.nothingThrown, tip: ES.numbers.semana.nothingTip };
 }
 
 /** The product written off most often last week, said in its own unit. */
