@@ -1,48 +1,48 @@
-code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
-platano-tabasco,frutas,Plátano tabasco,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-platano-macho,frutas,Plátano macho,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-platano-dominico,frutas,Plátano dominico,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-manzana-roja,frutas,Manzana roja,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-manzana-golden,frutas,Manzana golden,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-manzana-verde,frutas,Manzana verde,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-pera-bartlett,frutas,Pera Bartlett,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-pera-bosc,frutas,Pera Bosc,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-pera-roja,frutas,Pera roja,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-naranja,frutas,Naranja,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-naranja-para-jugo,frutas,Naranja para jugo,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-mandarina,frutas,Mandarina,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-toronja,frutas,Toronja,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-lima,frutas,Lima,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-mango-ataulfo,frutas,Mango ataulfo,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-mango-manila,frutas,Mango manila,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-mango-petacon,frutas,Mango petacón,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-higo,frutas,Higo,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-uva-verde,frutas,Uva verde,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-uva-roja,frutas,Uva roja,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-fresa,frutas,Fresa,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-durazno,frutas,Durazno,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-ciruela,frutas,Ciruela,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-chabacano,frutas,Chabacano,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-nectarina,frutas,Nectarina,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-kiwi,frutas,Kiwi,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-tuna,frutas,Tuna,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-granada,frutas,Granada,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-guayaba,frutas,Guayaba,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-mamey,frutas,Mamey,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-tejocote,frutas,Tejocote,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-tamarindo,frutas,Tamarindo,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-papaya-maradol,frutas,Papaya maradol,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-melon,frutas,Melón,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-sandia,frutas,Sandía,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-pina,frutas,Piña,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-pitaya,frutas,Pitaya,g,kg,kg,kg,,0,giro-fruteria cat-frutas
-melon-por-pieza,frutas-por-pieza,Melón por pieza,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-sandia-por-pieza,frutas-por-pieza,Sandía por pieza,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-papaya-maradol-por-pieza,frutas-por-pieza,Papaya maradol por pieza,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-pina-por-pieza,frutas-por-pieza,Piña por pieza,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-pitaya-por-pieza,frutas-por-pieza,Pitaya por pieza,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-coco,frutas-por-pieza,Coco,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-frambuesa,frutas-por-pieza,Frambuesa por charola,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-zarzamora,frutas-por-pieza,Zarzamora por charola,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-arandano,frutas-por-pieza,Arándano por charola,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
-fresa-por-charola,frutas-por-pieza,Fresa por charola,pza,pza,pza,pza,,0,giro-fruteria cat-frutas
+code,family,name,base,purchase,sell,price,pack_size,tax_rate,suggested_price,tags
+platano-tabasco,frutas,Plátano tabasco,g,kg,kg,kg,,0,16,giro-fruteria cat-frutas
+platano-macho,frutas,Plátano macho,g,kg,kg,kg,,0,24,giro-fruteria cat-frutas
+platano-dominico,frutas,Plátano dominico,g,kg,kg,kg,,0,24,giro-fruteria cat-frutas
+manzana-roja,frutas,Manzana roja,g,kg,kg,kg,,0,45,giro-fruteria cat-frutas
+manzana-golden,frutas,Manzana golden,g,kg,kg,kg,,0,49,giro-fruteria cat-frutas
+manzana-verde,frutas,Manzana verde,g,kg,kg,kg,,0,62,giro-fruteria cat-frutas
+pera-bartlett,frutas,Pera Bartlett,g,kg,kg,kg,,0,52,giro-fruteria cat-frutas
+pera-bosc,frutas,Pera Bosc,g,kg,kg,kg,,0,60,giro-fruteria cat-frutas
+pera-roja,frutas,Pera roja,g,kg,kg,kg,,0,65,giro-fruteria cat-frutas
+naranja,frutas,Naranja,g,kg,kg,kg,,0,18,giro-fruteria cat-frutas
+naranja-para-jugo,frutas,Naranja para jugo,g,kg,kg,kg,,0,12,giro-fruteria cat-frutas
+mandarina,frutas,Mandarina,g,kg,kg,kg,,0,42,giro-fruteria cat-frutas
+toronja,frutas,Toronja,g,kg,kg,kg,,0,22,giro-fruteria cat-frutas
+lima,frutas,Lima,g,kg,kg,kg,,0,28,giro-fruteria cat-frutas
+mango-ataulfo,frutas,Mango ataulfo,g,kg,kg,kg,,0,35,giro-fruteria cat-frutas
+mango-manila,frutas,Mango manila,g,kg,kg,kg,,0,35,giro-fruteria cat-frutas
+mango-petacon,frutas,Mango petacón,g,kg,kg,kg,,0,32,giro-fruteria cat-frutas
+higo,frutas,Higo,g,kg,kg,kg,,0,90,giro-fruteria cat-frutas
+uva-verde,frutas,Uva verde,g,kg,kg,kg,,0,99,giro-fruteria cat-frutas
+uva-roja,frutas,Uva roja,g,kg,kg,kg,,0,55,giro-fruteria cat-frutas
+fresa,frutas,Fresa,g,kg,kg,kg,,0,62,giro-fruteria cat-frutas
+durazno,frutas,Durazno,g,kg,kg,kg,,0,55,giro-fruteria cat-frutas
+ciruela,frutas,Ciruela,g,kg,kg,kg,,0,25,giro-fruteria cat-frutas
+chabacano,frutas,Chabacano,g,kg,kg,kg,,0,70,giro-fruteria cat-frutas
+nectarina,frutas,Nectarina,g,kg,kg,kg,,0,65,giro-fruteria cat-frutas
+kiwi,frutas,Kiwi,g,kg,kg,kg,,0,75,giro-fruteria cat-frutas
+tuna,frutas,Tuna,g,kg,kg,kg,,0,25,giro-fruteria cat-frutas
+granada,frutas,Granada,g,kg,kg,kg,,0,45,giro-fruteria cat-frutas
+guayaba,frutas,Guayaba,g,kg,kg,kg,,0,40,giro-fruteria cat-frutas
+mamey,frutas,Mamey,g,kg,kg,kg,,0,70,giro-fruteria cat-frutas
+tejocote,frutas,Tejocote,g,kg,kg,kg,,0,40,giro-fruteria cat-frutas
+tamarindo,frutas,Tamarindo,g,kg,kg,kg,,0,50,giro-fruteria cat-frutas
+papaya-maradol,frutas,Papaya maradol,g,kg,kg,kg,,0,33,giro-fruteria cat-frutas
+melon,frutas,Melón,g,kg,kg,kg,,0,30,giro-fruteria cat-frutas
+sandia,frutas,Sandía,g,kg,kg,kg,,0,19,giro-fruteria cat-frutas
+pina,frutas,Piña,g,kg,kg,kg,,0,28,giro-fruteria cat-frutas
+pitaya,frutas,Pitaya,g,kg,kg,kg,,0,70,giro-fruteria cat-frutas
+melon-por-pieza,frutas-por-pieza,Melón por pieza,pza,pza,pza,pza,,0,45,giro-fruteria cat-frutas
+sandia-por-pieza,frutas-por-pieza,Sandía por pieza,pza,pza,pza,pza,,0,110,giro-fruteria cat-frutas
+papaya-maradol-por-pieza,frutas-por-pieza,Papaya maradol por pieza,pza,pza,pza,pza,,0,60,giro-fruteria cat-frutas
+pina-por-pieza,frutas-por-pieza,Piña por pieza,pza,pza,pza,pza,,0,55,giro-fruteria cat-frutas
+pitaya-por-pieza,frutas-por-pieza,Pitaya por pieza,pza,pza,pza,pza,,0,25,giro-fruteria cat-frutas
+coco,frutas-por-pieza,Coco,pza,pza,pza,pza,,0,35,giro-fruteria cat-frutas
+frambuesa,frutas-por-pieza,Frambuesa por charola,pza,pza,pza,pza,,0,45,giro-fruteria cat-frutas
+zarzamora,frutas-por-pieza,Zarzamora por charola,pza,pza,pza,pza,,0,38,giro-fruteria cat-frutas
+arandano,frutas-por-pieza,Arándano por charola,pza,pza,pza,pza,,0,45,giro-fruteria cat-frutas
+fresa-por-charola,frutas-por-pieza,Fresa por charola,pza,pza,pza,pza,,0,35,giro-fruteria cat-frutas

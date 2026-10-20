@@ -1,54 +1,54 @@
-code,family,name,base,purchase,sell,price,pack_size,tax_rate,tags
-jitomate-saladet,verduras,Jitomate saladet,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-verduras
-jitomate-bola,verduras,Jitomate bola,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-tomate-verde,verduras,Tomate verde,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-cebolla-blanca,verduras,Cebolla blanca,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-verduras
-cebolla-morada,verduras,Cebolla morada,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-papa-blanca,verduras,Papa blanca,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-verduras
-papa-cambray,verduras,Papa cambray,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-zanahoria,verduras,Zanahoria,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-calabacita,verduras,Calabacita,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-chayote,verduras,Chayote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-pepino,verduras,Pepino,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
-ejote,verduras,Ejote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-chicharo,verduras,Chícharo,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-brocoli,verduras,Brócoli,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-coliflor,verduras,Coliflor,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-col-blanca,verduras,Col blanca,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-col-morada,verduras,Col morada,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-betabel,verduras,Betabel,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-camote,verduras,Camote,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-jicama,verduras,Jícama,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
-pimiento-morron,verduras,Pimiento morrón,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-berenjena,verduras,Berenjena,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-champinon,verduras,Champiñón,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-nopal,verduras,Nopal,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-limon-con-semilla,verduras,Limón con semilla,g,kg,kg,kg,,0,giro-verduleria giro-fruteria giro-abarrotes cat-verduras
-limon-sin-semilla,verduras,Limón sin semilla,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
-limon-amarillo,verduras,Limón amarillo,g,kg,kg,kg,,0,giro-verduleria giro-fruteria cat-verduras
-aguacate,verduras,Aguacate,g,kg,kg,kg,,0,giro-verduleria giro-fruteria giro-abarrotes cat-verduras
-verdolaga,verduras,Verdolaga,g,kg,kg,kg,,0,giro-verduleria cat-verduras
-chile-serrano,chiles,Chile serrano,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles
-chile-jalapeno,chiles,Chile jalapeño,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes cat-chiles
-chile-poblano,chiles,Chile poblano,g,kg,kg,kg,,0,giro-verduleria cat-chiles
-chile-habanero,chiles,Chile habanero,g,kg,kg,kg,,0,giro-verduleria cat-chiles
-chile-guero,chiles,Chile güero,g,kg,kg,kg,,0,giro-verduleria cat-chiles
-chile-ancho,chiles,Chile ancho,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
-chile-guajillo,chiles,Chile guajillo,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
-chile-pasilla,chiles,Chile pasilla,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
-chile-de-arbol,chiles,Chile de árbol,g,kg,kg,kg,,0,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
-ajo,verduras-por-pieza,Ajo,pza,pza,pza,pza,,0,giro-verduleria giro-abarrotes cat-verduras
-lechuga-romana,verduras-por-pieza,Lechuga romana,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
-lechuga-orejona,verduras-por-pieza,Lechuga orejona,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
-elote,verduras-por-pieza,Elote,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
-apio,verduras-por-pieza,Apio,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
-poro,verduras-por-pieza,Poro,pza,pza,pza,pza,,0,giro-verduleria cat-verduras
-cilantro,hierbas,Cilantro,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-perejil,hierbas,Perejil,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-epazote,hierbas,Epazote,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-hierbabuena,hierbas,Hierbabuena,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-cebollin,hierbas,Cebollín,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-rabano,hierbas,Rábano,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-espinaca,hierbas,Espinaca,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-acelga,hierbas,Acelga,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
-verdolaga-en-manojo,hierbas,Verdolaga en manojo,pza,manojo,manojo,manojo,,0,giro-verduleria cat-hierbas
+code,family,name,base,purchase,sell,price,pack_size,tax_rate,suggested_price,tags
+jitomate-saladet,verduras,Jitomate saladet,g,kg,kg,kg,,0,26,giro-verduleria giro-abarrotes cat-verduras
+jitomate-bola,verduras,Jitomate bola,g,kg,kg,kg,,0,69,giro-verduleria cat-verduras
+tomate-verde,verduras,Tomate verde,g,kg,kg,kg,,0,22,giro-verduleria cat-verduras
+cebolla-blanca,verduras,Cebolla blanca,g,kg,kg,kg,,0,48,giro-verduleria giro-abarrotes cat-verduras
+cebolla-morada,verduras,Cebolla morada,g,kg,kg,kg,,0,55,giro-verduleria cat-verduras
+papa-blanca,verduras,Papa blanca,g,kg,kg,kg,,0,24,giro-verduleria giro-abarrotes cat-verduras
+papa-cambray,verduras,Papa cambray,g,kg,kg,kg,,0,32,giro-verduleria cat-verduras
+zanahoria,verduras,Zanahoria,g,kg,kg,kg,,0,14,giro-verduleria cat-verduras
+calabacita,verduras,Calabacita,g,kg,kg,kg,,0,26,giro-verduleria cat-verduras
+chayote,verduras,Chayote,g,kg,kg,kg,,0,15,giro-verduleria cat-verduras
+pepino,verduras,Pepino,g,kg,kg,kg,,0,22,giro-verduleria giro-fruteria cat-verduras
+ejote,verduras,Ejote,g,kg,kg,kg,,0,35,giro-verduleria cat-verduras
+chicharo,verduras,Chícharo,g,kg,kg,kg,,0,55,giro-verduleria cat-verduras
+brocoli,verduras,Brócoli,g,kg,kg,kg,,0,28,giro-verduleria cat-verduras
+coliflor,verduras,Coliflor,g,kg,kg,kg,,0,35,giro-verduleria cat-verduras
+col-blanca,verduras,Col blanca,g,kg,kg,kg,,0,20,giro-verduleria cat-verduras
+col-morada,verduras,Col morada,g,kg,kg,kg,,0,30,giro-verduleria cat-verduras
+betabel,verduras,Betabel,g,kg,kg,kg,,0,22,giro-verduleria cat-verduras
+camote,verduras,Camote,g,kg,kg,kg,,0,25,giro-verduleria cat-verduras
+jicama,verduras,Jícama,g,kg,kg,kg,,0,26,giro-verduleria giro-fruteria cat-verduras
+pimiento-morron,verduras,Pimiento morrón,g,kg,kg,kg,,0,38,giro-verduleria cat-verduras
+berenjena,verduras,Berenjena,g,kg,kg,kg,,0,30,giro-verduleria cat-verduras
+champinon,verduras,Champiñón,g,kg,kg,kg,,0,75,giro-verduleria cat-verduras
+nopal,verduras,Nopal,g,kg,kg,kg,,0,22,giro-verduleria cat-verduras
+limon-con-semilla,verduras,Limón con semilla,g,kg,kg,kg,,0,22,giro-verduleria giro-fruteria giro-abarrotes cat-verduras
+limon-sin-semilla,verduras,Limón sin semilla,g,kg,kg,kg,,0,16,giro-verduleria giro-fruteria cat-verduras
+limon-amarillo,verduras,Limón amarillo,g,kg,kg,kg,,0,65,giro-verduleria giro-fruteria cat-verduras
+aguacate,verduras,Aguacate,g,kg,kg,kg,,0,45,giro-verduleria giro-fruteria giro-abarrotes cat-verduras
+verdolaga,verduras,Verdolaga,g,kg,kg,kg,,0,30,giro-verduleria cat-verduras
+chile-serrano,chiles,Chile serrano,g,kg,kg,kg,,0,25,giro-verduleria giro-abarrotes cat-chiles
+chile-jalapeno,chiles,Chile jalapeño,g,kg,kg,kg,,0,24,giro-verduleria giro-abarrotes cat-chiles
+chile-poblano,chiles,Chile poblano,g,kg,kg,kg,,0,29,giro-verduleria cat-chiles
+chile-habanero,chiles,Chile habanero,g,kg,kg,kg,,0,70,giro-verduleria cat-chiles
+chile-guero,chiles,Chile güero,g,kg,kg,kg,,0,40,giro-verduleria cat-chiles
+chile-ancho,chiles,Chile ancho,g,kg,kg,kg,,0,169,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-guajillo,chiles,Chile guajillo,g,kg,kg,kg,,0,159,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-pasilla,chiles,Chile pasilla,g,kg,kg,kg,,0,219,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+chile-de-arbol,chiles,Chile de árbol,g,kg,kg,kg,,0,209,giro-verduleria giro-abarrotes giro-materias-primas cat-chiles-secos
+ajo,verduras-por-pieza,Ajo,pza,pza,pza,pza,,0,7,giro-verduleria giro-abarrotes cat-verduras
+lechuga-romana,verduras-por-pieza,Lechuga romana,pza,pza,pza,pza,,0,15,giro-verduleria cat-verduras
+lechuga-orejona,verduras-por-pieza,Lechuga orejona,pza,pza,pza,pza,,0,15,giro-verduleria cat-verduras
+elote,verduras-por-pieza,Elote,pza,pza,pza,pza,,0,10,giro-verduleria cat-verduras
+apio,verduras-por-pieza,Apio,pza,pza,pza,pza,,0,18,giro-verduleria cat-verduras
+poro,verduras-por-pieza,Poro,pza,pza,pza,pza,,0,12,giro-verduleria cat-verduras
+cilantro,hierbas,Cilantro,pza,manojo,manojo,manojo,,0,8,giro-verduleria cat-hierbas
+perejil,hierbas,Perejil,pza,manojo,manojo,manojo,,0,8,giro-verduleria cat-hierbas
+epazote,hierbas,Epazote,pza,manojo,manojo,manojo,,0,8,giro-verduleria cat-hierbas
+hierbabuena,hierbas,Hierbabuena,pza,manojo,manojo,manojo,,0,10,giro-verduleria cat-hierbas
+cebollin,hierbas,Cebollín,pza,manojo,manojo,manojo,,0,12,giro-verduleria cat-hierbas
+rabano,hierbas,Rábano,pza,manojo,manojo,manojo,,0,10,giro-verduleria cat-hierbas
+espinaca,hierbas,Espinaca,pza,manojo,manojo,manojo,,0,14,giro-verduleria cat-hierbas
+acelga,hierbas,Acelga,pza,manojo,manojo,manojo,,0,10,giro-verduleria cat-hierbas
+verdolaga-en-manojo,hierbas,Verdolaga en manojo,pza,manojo,manojo,manojo,,0,12,giro-verduleria cat-hierbas

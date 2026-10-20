@@ -43,7 +43,10 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 export const HEADERS = {
   tags: ['code', 'kind', 'label'],
   families: ['code', 'name', 'default_lifespan_days', 'track_expiry'],
-  products: ['code', 'family', 'name', 'base', 'purchase', 'sell', 'price', 'pack_size', 'tax_rate', 'tags'],
+  // ⚠️ `price` is the PRICE UNIT (kg, pza…), `0044`'s column; `suggested_price` is
+  // the AMOUNT, in pesos with IVA per that unit — the owner's list of
+  // 2026-10-20, which the import writes as a new shop's starting price (`0067`).
+  products: ['code', 'family', 'name', 'base', 'purchase', 'sell', 'price', 'pack_size', 'tax_rate', 'suggested_price', 'tags'],
 };
 
 const CODE_RX = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -202,6 +205,9 @@ export function loadCatalog(catalogDir, migrationsDir) {
     if (!/^0(\.\d{1,4})?$/.test(p.tax_rate)) {
       problems.push(`${p.at}: tax_rate "${p.tax_rate}" must be a rate like 0 or 0.16 — not a percentage`);
     }
+    if (p.suggested_price !== '' && !/^\d{1,9}(\.\d{1,2})?$/.test(p.suggested_price)) {
+      problems.push(`${p.at}: suggested_price "${p.suggested_price}" must be blank or pesos like 18 or 22.50 — no sign, no symbol`);
+    }
 
     p.tagList = p.tags.split(/\s+/).filter((t) => t !== '');
     const undeclared = p.tagList.filter((t) => !tagByCode.has(t));
@@ -275,14 +281,15 @@ export function renderSql({ tags, families, products }) {
 
   if (products.length) {
     out.push('insert into catalogo.product (code, family_code, name, base_unit_code, purchase_unit_code,');
-    out.push('       sell_unit_code, price_unit_code, pack_size, tax_rate, display_order) values');
+    out.push('       sell_unit_code, price_unit_code, pack_size, tax_rate, suggested_price, display_order) values');
     out.push(products.map((p, i) =>
       `  (${lit(p.code)}, ${lit(p.family)}, ${lit(p.name)}, ${lit(p.base)}, ${lit(p.purchase)}, ` +
-      `${lit(p.sell)}, ${lit(p.price)}, ${p.pack_size || '1'}, ${p.tax_rate}, ${i + 1})`).join(',\n'));
+      `${lit(p.sell)}, ${lit(p.price)}, ${p.pack_size || '1'}, ${p.tax_rate}, ${p.suggested_price || 'null'}, ${i + 1})`).join(',\n'));
     out.push('on conflict (code) do update set family_code = excluded.family_code, name = excluded.name,');
     out.push('  base_unit_code = excluded.base_unit_code, purchase_unit_code = excluded.purchase_unit_code,');
     out.push('  sell_unit_code = excluded.sell_unit_code, price_unit_code = excluded.price_unit_code,');
-    out.push('  pack_size = excluded.pack_size, tax_rate = excluded.tax_rate, display_order = excluded.display_order;', '');
+    out.push('  pack_size = excluded.pack_size, tax_rate = excluded.tax_rate, suggested_price = excluded.suggested_price,');
+    out.push('  display_order = excluded.display_order;', '');
 
     out.push(...staleFamiliesAndTags(families, tags));
     const pairs = products.flatMap((p) => p.tagList.map((t) => `  (${lit(p.code)}, ${lit(t)})`));
