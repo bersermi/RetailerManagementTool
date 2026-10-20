@@ -59,14 +59,14 @@ function resolved(queryKey: readonly unknown[]) {
 }
 
 describe('the allow-list is a decision, and its size is the part that is checked', () => {
-  it('is exactly seven roots, because an eighth decides what a shopkeeper may be shown offline', () => {
+  it('is exactly eight roots, because a ninth decides what a shopkeeper may be shown offline', () => {
     // ⚠️ A COUNT AND NOT A SNAPSHOT, which would be this file asserting itself.
     // What is load-bearing is that the SIZE is fixed: every entry here is a row
     // written to a phone's disk and read back as fact when there is no signal,
-    // and `@/api/persist`'s header carries the one rule an eighth has to pass —
+    // and `@/api/persist`'s header carries the one rule a ninth has to pass —
     // a stale answer must beat no answer, and must not be a false statement.
-    // ⚠️ Seven since 2026-10-20: her role.
-    expect(PERSISTED_KEYS).toHaveLength(7);
+    // ⚠️ Eight since 2026-10-20: her role, and today's takings.
+    expect(PERSISTED_KEYS).toHaveLength(8);
   });
 
   it('names no root twice, and no root is empty', () => {
@@ -124,8 +124,13 @@ describe('nothing derived from the ledger is written to disk', () => {
   // `['catalog', …]` is two words away from most of these — would start writing
   // money to disk, and nothing else in this repository would notice.
 
-  it("refuses today's takings, because a figure labelled today is not merely stale", () => {
-    expect(shouldPersistKey(TODAY_KEY)).toBe(false);
+  it("keeps today's takings, because `useToday` shows them only on the day they were read", () => {
+    // ⚠️⚠️ REFUSED UNTIL 2026-10-20 — *a figure labelled today restored from
+    // yesterday's disk is false* — and that sentence is now false by
+    // construction: `rowsOfToday` withholds a read made on any other day
+    // (`app/test/api-today.test.ts`). Kept, *Hoy* still adds up after an offline
+    // restart.
+    expect(shouldPersistKey(TODAY_KEY)).toBe(true);
   });
 
   it('refuses `Lo último`, because `useUnsent` already answers it truthfully offline', () => {
@@ -200,13 +205,13 @@ describe('a read is written when it holds data, whatever its last attempt said',
   });
 
   it('still refuses a failed refresh of a read that is not on the list', () => {
-    expect(shouldPersistQuery({ queryKey: TODAY_KEY, state: { status: 'error', data: 1200 } })).toBe(
-      false,
-    );
+    expect(
+      shouldPersistQuery({ queryKey: documentsKey('sale'), state: { status: 'error', data: [] } }),
+    ).toBe(false);
   });
 
   it('refuses a resolved read that is not on the list', () => {
-    expect(shouldPersistQuery(resolved(TODAY_KEY))).toBe(false);
+    expect(shouldPersistQuery(resolved(MAGNITUDE_KEY))).toBe(false);
   });
 });
 

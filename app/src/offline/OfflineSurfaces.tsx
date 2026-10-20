@@ -12,7 +12,7 @@ import {
   type Surfaces,
 } from '@/offline/notice';
 import { ES } from '@/strings';
-import { online as linkNow, subscribe } from '@/lib/connectivityMonitor';
+import { online as linkNow, onDrain, subscribe } from '@/lib/connectivityMonitor';
 import { PALETTE } from '@/theme/palette';
 import { useDensity } from '@/theme/DensityProvider';
 
@@ -59,6 +59,16 @@ export function OfflineSurfaces() {
       setState((s) => surfaces(s, { kind: 'link', online: next }, Date.now()));
     });
   }, []);
+
+  // ⚠️ THE TOAST FIRES ON THE DRAIN, NOT THE LINK (`8g`, 2026-10-20) — see
+  // `@/offline/notice`'s header.
+  useEffect(
+    () =>
+      onDrain(({ stop, landed }) => {
+        setState((s) => surfaces(s, { kind: 'drain', stop, landed }, Date.now()));
+      }),
+    [],
+  );
 
   // C10.1's "surfacing on screen changes" — the event, not the rule. The rule
   // (a dismissal is worth one screen) is in `@/offline/notice`.

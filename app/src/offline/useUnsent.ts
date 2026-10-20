@@ -46,12 +46,14 @@
 import { usePathname } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 
+import { isoDay } from '@/api/catalog';
 import type { DocumentKind, ShopDocument } from '@/api/documents';
-import { useCatalog, useProviders, useUnitFactors } from '@/api/hooks';
+import { useCatalog, useProviders, useToday, useUnitFactors } from '@/api/hooks';
 import type { QueuedWrite } from '@/api/outbox';
 import { subscribe } from '@/lib/connectivityMonitor';
 import { drop, outboxDb, readQueue } from '@/lib/outboxDb';
-import { unsentDocuments } from '@/offline/unsent';
+import { takingsWithUnsent, type Takings } from '@/api/today';
+import { NOTHING_UNSENT, unsentDocuments } from '@/offline/unsent';
 
 /** Nothing read yet. Frozen — a shared mutable default is a shared bug. */
 const NO_WRITES: readonly QueuedWrite[] = Object.freeze([]) as readonly QueuedWrite[];
@@ -116,5 +118,27 @@ export function useUnsent(
       reread();
       return done;
     },
+  };
+}
+
+/**
+ * Today's takings, with the sales still on the phone — what *Hoy* and *la
+ * racha* read (`8g`, 2026-10-20, the offline report's C).
+ *
+ * ⚠️ HERE AND NOT IN `@/api/hooks`, because this module is the queue's one
+ * reader for a screen (`auth-errors.test.ts`'s four verbs: this one SHOWS it).
+ * The rule is `takingsWithUnsent`'s; the dedupe is against TODAY's own rows, so
+ * the server list is not needed.
+ */
+export function useTakingsWithUnsent(): Takings & {
+  readonly loading: boolean;
+  readonly failed: ReturnType<typeof useToday>['failed'];
+} {
+  const today = useToday();
+  const { documents } = useUnsent('sale', NOTHING_UNSENT);
+  return {
+    ...takingsWithUnsent(today.rows, documents, isoDay(new Date())),
+    loading: today.loading,
+    failed: today.failed,
   };
 }

@@ -263,7 +263,7 @@ import {
   type ShopHolding,
   type Template,
 } from '@/api/starterCatalog';
-import { TODAY_KEY, takingsFrom, type Takings } from '@/api/today';
+import { TODAY_KEY, rowsOfToday, takingsFrom, type SaleRow, type Takings } from '@/api/today';
 import { photoBytes, type ProductPhoto, type TakenPhoto } from '@/capture/photo';
 import {
   SHOP_PHOTO_BUCKET,
@@ -322,6 +322,11 @@ export function useFreshAfterWrites(): void {
         } else if (kind === 'purchase') {
           void queries.invalidateQueries({ queryKey: documentsKey('purchase') });
           void queries.invalidateQueries({ queryKey: ['costs', 'savings'] });
+        } else if (kind === 'waste') {
+          // ⚠️ `8g`, 2026-10-20 (the report's F): a landed write-off invalidated
+          // nothing, so *Lo último* kept it under *Sin enviar* — and its
+          // *Corregir* said *ya se envió* — until she navigated away.
+          void queries.invalidateQueries({ queryKey: documentsKey('waste') });
         }
       }),
     [queries],
@@ -363,6 +368,8 @@ export function useWeekSavings(): number | null {
 export function useToday(): Takings & {
   readonly loading: boolean;
   readonly failed: ApiMessageKey | null;
+  /** Today's rows, for `takingsWithUnsent` — `undefined` while unknown or not today's. */
+  readonly rows: readonly SaleRow[] | undefined;
 } {
   const { session, ready } = useAuth();
   const query = useQuery({
@@ -371,13 +378,16 @@ export function useToday(): Takings & {
     enabled: ready && session !== null,
     staleTime: 60_000,
   });
+  // ⚠️ `8g`, 2026-10-20: ONLY A READ MADE TODAY IS TODAY'S — see `rowsOfToday`.
+  const rows = rowsOfToday(query.data, query.dataUpdatedAt, new Date());
   return {
     // ⚠️ `takingsFrom` IS HANDED `undefined` UNCHANGED, and that is the point of
     // its first two lines: a read in flight and a read that failed both withhold
     // the figure rather than reporting a confident zero.
-    ...takingsFrom(query.data),
-    loading: query.data === undefined,
+    ...takingsFrom(rows),
+    loading: rows === undefined,
     failed: query.error ? apiErrorKey(query.error) : null,
+    rows,
   };
 }
 

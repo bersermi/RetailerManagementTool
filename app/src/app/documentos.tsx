@@ -645,10 +645,10 @@ const KIND_TONE: Readonly<Record<DocumentKind, { readonly ink: string; readonly 
   waste: { ink: PALETTE.desperdicio, soft: PALETTE.desperdicioSuave },
 };
 
-const KIND_ICON: Readonly<Record<DocumentKind, 'cash-register' | 'truck-delivery-outline' | 'delete-outline'>> = {
+const KIND_ICON: Readonly<Record<DocumentKind, 'cash-register' | 'truck-delivery-outline' | 'basket-minus-outline'>> = {
   sale: 'cash-register',
   purchase: 'truck-delivery-outline',
-  waste: 'delete-outline',
+  waste: 'basket-minus-outline',
 };
 
 /**

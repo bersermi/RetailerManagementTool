@@ -72,6 +72,7 @@
 
 import { SCALE, parseDecimal } from '@tienda/money';
 
+import { isoDay } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
 import { ES } from '@/strings';
 
@@ -290,4 +291,70 @@ export function showsTakings<T extends Takings>(
   takings: T,
 ): takings is T & { readonly grossCentavos: number } {
   return takings.grossCentavos !== null;
+}
+
+// ============================================================================
+// ⚠️⚠️ `8g`, 2026-10-20 — HOY COUNTS WHAT SHE SOLD, SENT OR NOT: the offline
+// report's C, ruled by the owner (*"Do all the fixes"*). Measured on the Android
+// emulator that morning: a sale rung up offline left *Hoy* at **$0 · 0 ventas**
+// — it lived in the queue, and this file read the server alone. The header's
+// old worry, *"a second answer to what did we take"*, is answered by keeping it
+// ONE answer: the server's rows, plus the queued sales the server does not hold
+// yet, matched by id — the client uuid IS the server row's id — so the sale
+// that lands is counted once, in the same render that brings it.
+// ============================================================================
+
+/** A queued sale as *Hoy* counts it — `@/offline/unsent`'s document, narrowed. */
+export interface UnsentSale {
+  readonly id: string;
+  /** The device's own calendar day, `YYYY-MM-DD`. */
+  readonly day: string;
+  readonly grossCentavos: number | null;
+}
+
+/**
+ * The server's rows, if they are TODAY's.
+ *
+ * ⚠️⚠️ A DAY GUARD, AND IT FIXES A FALSE STATEMENT AS WELL AS MAKING THE NEXT
+ * ONE SAFE. `todaySales` decides *today* when it runs, so a read made yesterday
+ * is yesterday's total — and with the app left open past midnight and no signal
+ * it stayed under *Hoy* (the report's notes, `api/today.ts:113`). Read on
+ * another device day, the rows are not today's and are withheld, which renders
+ * the dash rather than a confident wrong figure. It is also what lets
+ * `@/api/persist` keep this read on the phone at all.
+ */
+export function rowsOfToday(
+  rows: readonly SaleRow[] | undefined,
+  readAt: number,
+  now: Date,
+): readonly SaleRow[] | undefined {
+  if (rows === undefined || readAt <= 0) return undefined;
+  return isoDay(new Date(readAt)) === isoDay(now) ? rows : undefined;
+}
+
+/**
+ * Today's takings with the sales still on the phone.
+ *
+ * ⚠️ AN UNKNOWN SERVER FIGURE STAYS UNKNOWN. With no rows there is nothing to
+ * add to — the dash, not the queue alone: a total of what this phone has not
+ * sent, labelled *Hoy*, would leave out everything that already landed.
+ */
+export function takingsWithUnsent(
+  rows: readonly SaleRow[] | undefined,
+  unsent: readonly UnsentSale[],
+  today: string,
+): Takings {
+  const base = takingsFrom(rows);
+  if (rows === undefined || base.grossCentavos === null) return base;
+  const landed = new Set(rows.map((row) => row.id));
+  let gross = base.grossCentavos;
+  let count = base.count;
+  let complete = base.complete;
+  for (const sale of unsent) {
+    if (sale.day !== today || landed.has(sale.id)) continue;
+    count += 1;
+    if (sale.grossCentavos === null) complete = false;
+    else gross += sale.grossCentavos;
+  }
+  return { grossCentavos: gross, count, complete };
 }
