@@ -35,6 +35,7 @@ import {
 import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
 import { newWriteId } from '@/lib/ids';
 import { useAskBeforeLeaving } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -127,6 +128,7 @@ export default function NuevoProducto() {
   const role = useMyRole();
   const workspace = useWorkspace();
   const { loading, entries, failed } = useCatalog();
+  const online = useOnline();
   const { create, busy, factors, units } = useCreateProduct();
 
   // ⚠️ THE PREFILL IS THE INITIAL STATE AND NOT A SYNCED VALUE. He can edit the
@@ -320,13 +322,19 @@ export default function NuevoProducto() {
         }}
         keyboardShouldPersistTaps="handled"
       >
-        {loading || failed !== null ? (
+        {loading ? (
           // ⚠️⚠️ THE FORM WAITS FOR THE CATALOG RATHER THAN OPENING WITHOUT IT,
           // and that is correctness. The family search, the duplicate courtesy and
           // the unit preselect are all answered out of the rows `useCatalog`
           // holds. ⚠️ An EMPTY catalog is not this state and must not be — that is
           // C8.2's shop on its first morning.
-          <Aviso line={catalogLine(loading, '', failed)} />
+          // ⚠️⚠️ AND A FAILED REFRESH IS NOT THIS STATE EITHER — `8g`, 2026-10-20,
+          // the offline report's round 3 (the owner's *"Do all the fixes"*). It
+          // waited on `failed` too, so rows in hand were hidden behind *Sin
+          // conexión* whenever a re-read missed; now the rows win, as Editar's
+          // always did, and `catalogLine` says *Se ve cuando haya señal* when
+          // there are none and no signal.
+          <Aviso line={catalogLine(loading, '', failed, online)} />
         ) : (
           <>
             <Campo label={ES.products.photo.label}>

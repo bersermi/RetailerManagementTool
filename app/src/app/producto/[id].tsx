@@ -31,6 +31,7 @@ import { aislesFor } from '@/api/productPage';
 import { takeProductPhoto, type ProductPhoto } from '@/capture/photo';
 import { newWriteId } from '@/lib/ids';
 import { useAskBeforeLeaving } from '@/navigation/salida';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { Pregunta } from '@/ui/Pregunta';
 import { Boton } from '@/ui/Boton';
@@ -147,6 +148,9 @@ export default function EditarProducto() {
   const role = useMyRole();
   const workspace = useWorkspace();
   const { loading, entries, failed, locationId } = useCatalog();
+  // ⚠️ `8g`'s round 3: no catalog and no signal is *Se ve cuando haya señal*, never
+  // *Cargando productos…* for ever (`catalogLine`).
+  const online = useOnline();
   const { prices, settings, factors, units, edit, save, busy } = useEditProduct(id ?? null);
 
   const entry = entries.find((row) => row.id === id);
@@ -363,8 +367,10 @@ export default function EditarProducto() {
           // is `familyLineKey`'s argument one screen back and is sharper here:
           // this form is reached by tapping a product, so a cold open with the
           // link out must not tell a shopkeeper the thing in his hand was
-          // deleted. `catalogLine` puts a FAILED read ahead of both.
-          <Aviso line={catalogLine(loading, '', failed)} />
+          // deleted. `catalogLine` puts a FAILED read ahead of *not landed* —
+          // and, since `8g`'s round 3, *Se ve cuando haya señal* ahead of both
+          // when there is no signal. Rows in hand outrank a failure.
+          <Aviso line={catalogLine(loading, '', failed, online)} />
         ) : (
           <>
             {locked ? null : (

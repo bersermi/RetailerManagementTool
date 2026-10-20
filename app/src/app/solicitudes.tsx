@@ -8,6 +8,7 @@ import { useApproveRequest, useLocations, usePendingRequests, useWorkspace } fro
 import {
   checkApproval,
   linesOf,
+  queueLine,
   type ApprovalIssueKey,
   type PendingRequest,
 } from '@/api/approvals';
@@ -15,6 +16,7 @@ import { initials } from '@/api/catalog';
 import { locationsRequired, resolveLocations, type LocationOption } from '@/api/invites';
 import { groupedCode, shareText } from '@/api/members';
 import { formatWaiting } from '@/format/date';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -68,6 +70,7 @@ export default function Solicitudes() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   const queue = usePendingRequests();
+  const online = useOnline();
   const locations = useLocations();
   const { admit, busy } = useApproveRequest();
 
@@ -135,9 +138,12 @@ export default function Solicitudes() {
         }}
       >
         {queue.loading ? (
+          // ⚠️ `8g`, 2026-10-20, the offline report's round 3: *Un momento…* only
+          // while the read is truly out — no signal is *Se ve cuando haya señal*
+          // and a failure says so (`queueLine`). It was *Un momento…* for ever.
           <Tarjeta>
             <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.approvals.loading}
+              {queueLine(queue.failed, online)}
             </Text>
           </Tarjeta>
         ) : queue.entries.length === 0 ? (

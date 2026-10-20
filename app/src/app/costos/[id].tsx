@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
   costsLine,
+  costsSpin,
   matrixOf,
   plotted,
   type CostSeries,
@@ -14,6 +15,7 @@ import {
 import { useCatalog, useCosts } from '@/api/hooks';
 import { costsHtml } from '@/export/costsPdf';
 import { shareHtmlAsPdf, type ShareOutcome } from '@/export/share';
+import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE, serieColour } from '@/theme/palette';
@@ -215,6 +217,12 @@ function Banda({ title }: { title: string }) {
  * `ES.api`'s, not one invented here. `useCosts` reports the failure separately
  * for exactly that: `data === undefined` after a failure is indistinguishable
  * from one in flight, and a screen that could not tell would spin for ever.
+ *
+ * ⚠️⚠️ AND WITH NO SIGNAL THERE IS NO SPINNER AT ALL — `8g`, 2026-10-20, the
+ * offline report's round 3 (the owner's *"Do all the fixes"*). Offline the read is
+ * PAUSED, so the spinner turned until she found a signal and then said *Intenta
+ * de nuevo*; now it is *Se ve cuando haya señal* alone (`costsSpin`), and the
+ * chart arrives by itself. A chart already read is drawn whatever a refresh said.
  */
 function Cuerpo({
   costs,
@@ -224,15 +232,18 @@ function Cuerpo({
   title: string;
 }) {
   const { scale } = useDensity();
+  const online = useOnline();
+  const line = costsLine(costs.state, costs.failed, online);
 
   if (costs.state === 'unknown') {
+    if (!costsSpin(costs.state, online)) return <Vacio line={line} />;
     return (
       <View style={{ padding: scale.space * 2, alignItems: 'center', gap: scale.rowGap }}>
         <ActivityIndicator color={PALETTE.accion} />
         {/* ⚠️ THE SENTENCE IS CHOSEN IN `@/api/costs`, NOT HERE (`R12`) —
             `costsLine` answers `''` for a read that is merely still out, and this
             renders nothing for it. */}
-        {costsLine(costs.state, costs.failed) === '' ? null : (
+        {line === '' ? null : (
           <Text
             style={{
               fontSize: scale.bodySize,
@@ -240,14 +251,14 @@ function Cuerpo({
               textAlign: 'center',
             }}
           >
-            {costsLine(costs.state, costs.failed)}
+            {line}
           </Text>
         )}
       </View>
     );
   }
 
-  if (costs.state === 'nothing') return <Vacio line={costsLine(costs.state, costs.failed)} />;
+  if (costs.state === 'nothing') return <Vacio line={line} />;
 
   return (
     <View style={{ gap: scale.space }}>
@@ -261,9 +272,7 @@ function Cuerpo({
         lowLabel={costs.lowLabel}
       />
       <Leyenda series={costs.series} />
-      {costs.state === 'single' || costs.state === 'unlinked' ? (
-        <Nota line={costsLine(costs.state, costs.failed)} />
-      ) : null}
+      {costs.state === 'single' || costs.state === 'unlinked' ? <Nota line={line} /> : null}
       <Tabla costs={costs} />
       <Compartir costs={costs} title={title} />
     </View>
