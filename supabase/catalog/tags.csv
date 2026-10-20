@@ -21,7 +21,6 @@ cat-frutas,categoria,Frutas
 cat-granos,categoria,Granos y semillas
 cat-frutos-secos,categoria,Frutos secos
 cat-azucar,categoria,Azúcar y endulzantes
-cat-mascotas,categoria,Mascotas
 cat-refrescos,categoria,Refrescos
 cat-aguas,categoria,"Agua, jugos y bebidas"
 cat-lacteos,categoria,Lácteos
@@ -42,5 +41,3 @@ cat-bebe,categoria,Bebé
 cat-limpieza,categoria,Limpieza
 cat-desechables,categoria,Desechables
 cat-hogar,categoria,Hogar y varios
-cat-alcohol,categoria,Cerveza y licores
-cat-tabaco,categoria,Cigarros
