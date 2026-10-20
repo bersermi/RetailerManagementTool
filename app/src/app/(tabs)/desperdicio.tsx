@@ -1,8 +1,9 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import {
   Animated,
+  BackHandler,
   Easing,
   FlatList,
   Image,
@@ -90,6 +91,8 @@ import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
+import { correctingLine } from '@/api/corrections';
+import { setTabGuard } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -106,6 +109,8 @@ import { Retrato } from '@/ui/Retrato';
 import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Vacio } from '@/ui/Vacio';
+import { Corrigiendo } from '@/ui/Corrigiendo';
+import { Pregunta as Salir } from '@/ui/Pregunta';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
 
@@ -231,6 +236,44 @@ export default function Desperdicio() {
   // only an answer of `staff` sends her straight to Tirar.
   const shown: Modo = role === 'staff' ? 'tirar' : modo;
 
+  // ⚠️⚠️ `8g`'s review (2026-10-20), THE OWNER'S RULING: *"when someone closes a
+  // screen such as Desperdicio -> Te Lo Compro the Desperdicio screen should be
+  // reset, not just paused for it to be resumed"* — after asking, when something
+  // was filled in. A tab is never closed, so the request lived on: now every way
+  // out of it (another tab, this tab again, Android's back, the switch to Tirar)
+  // asks if it must, then clears the request and returns to the doors.
+  const [requestDirty, setRequestDirty] = useState(false);
+  const [requestKey, setRequestKey] = useState(0);
+  const [pending, setPending] = useState<{ go: () => void } | null>(null);
+  const resetRequest = useCallback(() => {
+    setRequestKey((k) => k + 1);
+    setRequestDirty(false);
+    setModo('puertas');
+  }, []);
+  const leaveRequest = useCallback(
+    (go: () => void) => {
+      if (shown !== 'compro') return go();
+      if (requestDirty) return setPending({ go });
+      resetRequest();
+      go();
+    },
+    [shown, requestDirty, resetRequest],
+  );
+  useFocusEffect(
+    useCallback(() => {
+      setTabGuard({ onLeave: leaveRequest });
+      const back = BackHandler.addEventListener('hardwareBackPress', () => {
+        if (shown !== 'compro') return false;
+        leaveRequest(() => router.navigate('/'));
+        return true;
+      });
+      return () => {
+        setTabGuard(null);
+        back.remove();
+      };
+    }, [leaveRequest, shown]),
+  );
+
   return (
     <KeyboardAvoidingView
       // ⚠️ NO `paddingTop: insets.top` — the tab navigator draws a header below
@@ -245,7 +288,8 @@ export default function Desperdicio() {
             options={MODOS}
             labels={{ tirar: ES.waste.doors.tirar, compro: ES.waste.doors.compro }}
             picked={shown}
-            onPick={setModo}
+            // ⚠️ `8g`: switching to Tirar leaves the request — asked like any way out.
+            onPick={(next) => (next === 'tirar' ? leaveRequest(() => setModo('tirar')) : setModo(next))}
             ink={PALETTE.desperdicio}
             soft={PALETTE.desperdicioSuave}
           />
@@ -262,12 +306,27 @@ export default function Desperdicio() {
       ) : shown === 'tirar' ? (
         <Tirar />
       ) : (
-        <TeLoCompro acceso={acceso} isOwner={role === 'owner'} />
+        <TeLoCompro key={requestKey} acceso={acceso} isOwner={role === 'owner'} onDirty={setRequestDirty} />
       )}
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the KEYBOARD rather than into the layout. */}
       <TecladoListo padId={PAD_ID} label={ES.counter.done} />
+
+      <Salir
+        shown={pending !== null}
+        title={ES.leave.request.title}
+        body={ES.leave.request.body}
+        keep={ES.leave.request.keep}
+        go={ES.leave.request.go}
+        onKeep={() => setPending(null)}
+        onGo={() => {
+          const next = pending;
+          setPending(null);
+          resetRequest();
+          next?.go();
+        }}
+      />
     </KeyboardAvoidingView>
   );
 }
@@ -489,6 +548,9 @@ function Tirar() {
   // ⚠️ `8p`: the write-off this basket re-keys — dropped by the store the moment
   // she picks another day, which is her answer.
   const corrects = useCorrects('waste');
+  // ⚠️ `8g`: while the cart is a correction, which document it is — the strip
+  // and the *Vaciar* box say so (`@/ui/Corrigiendo`).
+  const correcting = corrects === null ? null : ES.counter.cart.correctionWhat.waste;
   const openShop = useCartStore((state) => state.openShop);
   const openReason = useCartStore((state) => state.openReason);
   const setWasteDay = useCartStore((state) => state.setWasteDay);
@@ -592,6 +654,11 @@ function Tirar() {
 
   return (
     <View style={{ flex: 1 }} onTouchStart={pilot.onTouchStart}>
+      {corrects === null ? null : (
+        <View style={{ paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>
+          <Corrigiendo line={correctingLine('waste', corrects)} onCancel={() => setAsking(true)} />
+        </View>
+      )}
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       <FlatList
@@ -645,6 +712,7 @@ function Tirar() {
         onReason={openReason}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
+        correcting={correcting}
         canRecord={canRecord}
         asking={asking}
         emptied={emptied}
@@ -662,6 +730,7 @@ function Tirar() {
           emptied={emptied}
           bloom={bloom}
           count={cart.length}
+          correcting={correcting}
           onConfirm={emptyCart}
           onCancel={() => setAsking(false)}
         />
@@ -970,6 +1039,7 @@ function Carrito({
   onReason,
   onCommit,
   onEmpty,
+  correcting,
   canRecord,
   asking,
   emptied,
@@ -990,6 +1060,8 @@ function Carrito({
   onReason: (reason: WasteReason) => void;
   onCommit: () => void;
   onEmpty: () => void;
+  /** `8g`: the document a correction re-keys, or `null` — the *Vaciar* box's words. */
+  correcting: string | null;
   canRecord: boolean;
   asking: boolean;
   emptied: boolean;
@@ -1052,6 +1124,7 @@ function Carrito({
             emptied={emptied}
             bloom={bloom}
             count={rows.length}
+            correcting={correcting}
             onConfirm={onConfirmEmpty}
             onCancel={onCancelEmpty}
           />
@@ -1210,7 +1283,16 @@ function Renglon({
 
 type Paso = 'que' | 'cuando' | 'revisar' | 'guardada';
 
-function TeLoCompro({ acceso, isOwner }: { acceso: Acceso; isOwner: boolean }) {
+function TeLoCompro({
+  acceso,
+  isOwner,
+  onDirty,
+}: {
+  acceso: Acceso;
+  isOwner: boolean;
+  /** `8g`: whether the request holds anything she filled in — the screen's question. */
+  onDirty: (dirty: boolean) => void;
+}) {
   const { scale } = useDensity();
   if (acceso.kind !== 'open') {
     // ⚠️ THE SWITCH CAN REACH THIS SIDE WHEN THE DOOR IS SHUT, so the side says
@@ -1221,10 +1303,10 @@ function TeLoCompro({ acceso, isOwner }: { acceso: Acceso; isOwner: boolean }) {
       </ScrollView>
     );
   }
-  return <Solicitar address={acceso.address} />;
+  return <Solicitar address={acceso.address} onDirty={onDirty} />;
 }
 
-function Solicitar({ address }: { address: StoreAddress }) {
+function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirty: boolean) => void }) {
   const { scale } = useDensity();
   const { entries, loading, failed } = useCatalog('');
   const factors = useUnitFactors();
@@ -1253,6 +1335,17 @@ function Solicitar({ address }: { address: StoreAddress }) {
   const [typed, setTyped] = useState('');
   const [dating, setDating] = useState(false);
   const box = useRef<TextInput>(null);
+
+  // ⚠️ `8g`: SOMETHING SHE FILLED IN — a product, a quantity, a note, a photo, a
+  // word in the search, or a step past the first. The answers carried over from
+  // her last request are not hers to lose, and a request already sent is done.
+  const dirty =
+    paso !== 'guardada' &&
+    (paso !== 'que' || variantId !== null || base > 0 || note !== '' || photos.length > 0 || typed !== '');
+  useEffect(() => {
+    onDirty(dirty);
+    return () => onDirty(false);
+  }, [dirty, onDirty]);
 
   // ⚠️⚠️ THE PREVIOUS REQUEST'S ANSWERS, ONCE — the owner's *"prefill each entry
   // with the equivalent values of the previous one."* Seeded the first time the

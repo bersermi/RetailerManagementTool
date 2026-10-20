@@ -50,6 +50,7 @@ import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
+import { correctingLine } from '@/api/corrections';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { TITULO } from '@/theme/letra';
@@ -66,6 +67,7 @@ import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
+import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 import { Velo } from '@/ui/Velo';
 
@@ -300,6 +302,9 @@ export default function Comprar() {
   const cart = useCart('buy');
   // ⚠️ `8p`: the delivery this basket re-keys, so it counts on that day.
   const corrects = useCorrects('buy');
+  // ⚠️ `8g`: while the cart is a correction, which document it is — the strip
+  // and the *Vaciar* box say so (`@/ui/Corrigiendo`).
+  const correcting = corrects === null ? null : ES.counter.cart.correctionWhat.purchase;
   const quotes = useTyped('buy');
   const providerId = useProviderId();
   const openShop = useCartStore((state) => state.openShop);
@@ -565,6 +570,11 @@ export default function Comprar() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
     >
+      {corrects === null ? null : (
+        <View style={{ paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>
+          <Corrigiendo line={correctingLine('purchase', corrects)} onCancel={() => setAsking(true)} />
+        </View>
+      )}
       <Proveedor
         provider={provider}
         loading={providersOut}
@@ -636,6 +646,7 @@ export default function Comprar() {
         missing={missing}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
+        correcting={correcting}
         canBuy={basketful !== null && canCommit(basketful)}
         asking={asking}
         emptied={emptied}
@@ -655,6 +666,7 @@ export default function Comprar() {
           emptied={emptied}
           bloom={bloom}
           count={cart.length}
+          correcting={correcting}
           onConfirm={emptyCart}
           onCancel={() => setAsking(false)}
         />
@@ -1504,6 +1516,7 @@ function Carrito({
   missing,
   onCommit,
   onEmpty,
+  correcting,
   canBuy,
   asking,
   emptied,
@@ -1527,6 +1540,8 @@ function Carrito({
   missing: number;
   onCommit: () => void;
   onEmpty: () => void;
+  /** `8g`: the document a correction re-keys, or `null` — the *Vaciar* box's words. */
+  correcting: string | null;
   canBuy: boolean;
   asking: boolean;
   emptied: boolean;
@@ -1564,6 +1579,7 @@ function Carrito({
           emptied={emptied}
           bloom={bloom}
           count={rows.length}
+          correcting={correcting}
           onConfirm={onConfirmEmpty}
           onCancel={onCancelEmpty}
         />

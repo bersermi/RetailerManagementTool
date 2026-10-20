@@ -8,6 +8,7 @@ import { useWorkspace } from '@/api/hooks';
 import { DIBUJOS } from '@/marca/dibujos';
 
 import { TABS } from '@/navigation/tabs';
+import { currentTabGuard } from '@/navigation/salida';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
@@ -57,6 +58,17 @@ export default function TabsLayout() {
         <Tabs.Screen
           key={tab.route}
           name={tab.route}
+          // ⚠️ `8g`'s review (2026-10-20): A FOCUSED SCREEN WITH WORK IN IT IS ASKED
+          // FIRST — *Te lo compro* resets on leaving, after its question
+          // (`@/navigation/salida`). Without a guard the press switches as ever.
+          listeners={({ navigation, route }) => ({
+            tabPress: (event) => {
+              const guard = currentTabGuard();
+              if (guard === null) return;
+              event.preventDefault();
+              guard.onLeave(() => navigation.navigate(route.name));
+            },
+          })}
           options={{
             // The header title and the tab label are the same Spanish word on
             // purpose: the door and the room are called the same thing.

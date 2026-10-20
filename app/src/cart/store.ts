@@ -341,10 +341,10 @@ function restoredCorrections(value: unknown): Corrections {
   const from = value as Record<string, unknown>;
   const one = (raw: unknown): Corrects | null => {
     if (typeof raw !== 'object' || raw === null) return null;
-    const { id, at } = raw as Record<string, unknown>;
-    return typeof id === 'string' && UUID_SHAPE.test(id) && typeof at === 'string' && at !== ''
-      ? { id, at }
-      : null;
+    const { id, at, amount } = raw as Record<string, unknown>;
+    if (!(typeof id === 'string' && UUID_SHAPE.test(id) && typeof at === 'string' && at !== '')) return null;
+    // ⚠️ `8g`: the strip's *· $45* survives a restart; anything but a string is dropped.
+    return typeof amount === 'string' && amount !== '' ? { id, at, amount } : { id, at };
   };
   return { sell: one(from.sell), buy: one(from.buy), waste: one(from.waste) };
 }

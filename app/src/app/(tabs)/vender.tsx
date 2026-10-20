@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
+import { catalogLine, isoDay, priceCentavos, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
@@ -29,11 +29,12 @@ import { magnitudeNote, outsized, type Typical, type Typicals } from '@/api/magn
 import { reviewOf, stepOf, type Basket, type Review, type ReviewRow } from '@/cart/cart';
 import { canCommit, commitOf, type Basketful } from '@/cart/commit';
 import { sellGate } from '@/cart/gate';
-import { useCart, useCartStore, useCorrects } from '@/cart/store';
+import { useCart, useCartStore, useCorrects, useTyped } from '@/cart/store';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
+import { correctingLine } from '@/api/corrections';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -49,6 +50,7 @@ import { Separador } from '@/ui/Separador';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { TotalCarrito } from '@/ui/TotalCarrito';
 import { Vacio } from '@/ui/Vacio';
+import { Corrigiendo } from '@/ui/Corrigiendo';
 import { VaciarCarrito } from '@/ui/VaciarCarrito';
 
 // ============================================================================
@@ -256,6 +258,15 @@ export default function Vender() {
   const cart = useCart('sell');
   // ⚠️ `8p`: the sale this basket re-keys, so it counts on that sale's day.
   const corrects = useCorrects('sell');
+  // ⚠️ `8g`: while the cart is a correction, which document it is — the strip
+  // and the *Vaciar* box say so (`@/ui/Corrigiendo`).
+  const correcting = corrects === null ? null : ES.counter.cart.correctionWhat.sale;
+  // ⚠️⚠️ `8g` (2026-10-20), *"Original prices"*: A CORRECTED SALE KEEPS THE PRICE
+  // EACH LINE WAS RUNG UP AT. `Corregir` loads them as the cart's quotes
+  // (`prefillOf`), and until now Vender never read them — the total and the sale
+  // sent were today's shelf ($45 came back as $26). A product added to the
+  // correction, or any ordinary sale, has no quote and is priced at the shelf.
+  const quotes = useTyped('sell');
   const openShop = useCartStore((state) => state.openShop);
 
   // ⚠️⚠️ THE STORE IS POINTED AT A SHOP ONLY ONCE ONE IS KNOWN, AND THE GUARD IS
@@ -281,7 +292,7 @@ export default function Vender() {
   // sum to; a sheet that priced its own would be a second arithmetic over one
   // basket. See `@/cart/cart`, where `app/test/cart.test.ts` reads the identity.
   const review: Review | null =
-    workspace === null ? null : reviewOf(cart, entries, 'sell', workspace.pricesIncludeTax);
+    workspace === null ? null : reviewOf(cart, entries, 'sell', workspace.pricesIncludeTax, undefined, quotes);
   const basket: Basket | null = review === null ? null : review.basket;
 
   // ⚠️ THE SHEET'S OPEN STATE LIVES HERE AND NOT IN THE ROUTER, which is a
@@ -355,6 +366,7 @@ export default function Vender() {
           pricesIncludeTax: workspace.pricesIncludeTax,
           workspaceId: workspace.id,
           locationId,
+          quotes,
           corrects,
         };
 
@@ -428,6 +440,11 @@ export default function Vender() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
     >
+      {corrects === null ? null : (
+        <View style={{ paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>
+          <Corrigiendo line={correctingLine('sale', corrects)} onCancel={() => setAsking(true)} />
+        </View>
+      )}
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.catalog.search} />
 
       {/* ⚠️ A BOX AROUND THE LIST SO THE CASHIER'S NOTE SITS OVER ITS FOOT,
@@ -508,6 +525,7 @@ export default function Vender() {
         typicals={typicals}
         onCommit={commit}
         onEmpty={() => setAsking(true)}
+        correcting={correcting}
         canSell={basketful !== null && canCommit(basketful)}
         asking={asking}
         emptied={emptied}
@@ -541,6 +559,7 @@ export default function Vender() {
           emptied={emptied}
           bloom={bloom}
           count={basket?.lines ?? 0}
+          correcting={correcting}
           onConfirm={emptyCart}
           onCancel={() => setAsking(false)}
         />
@@ -980,6 +999,7 @@ function Carrito({
   typicals,
   onCommit,
   onEmpty,
+  correcting,
   canSell,
   asking,
   emptied,
@@ -1000,6 +1020,8 @@ function Carrito({
   typicals: Typicals;
   onCommit: () => void;
   onEmpty: () => void;
+  /** `8g`: the document a correction re-keys, or `null` — the *Vaciar* box's words. */
+  correcting: string | null;
   canSell: boolean;
   asking: boolean;
   emptied: boolean;
@@ -1030,6 +1052,7 @@ function Carrito({
             emptied={emptied}
             bloom={bloom}
             count={rows.length}
+            correcting={correcting}
             onConfirm={onConfirmEmpty}
             onCancel={onCancelEmpty}
           />
@@ -1099,6 +1122,14 @@ function Renglon({
   const { scale } = useDensity();
   const remove = useCartStore((state) => state.remove);
   const gone = entry === undefined;
+  // ⚠️ `8g`: A CORRECTED LINE KEEPS THE PRICE IT WAS SOLD AT, so its chip says
+  // that price and not the shelf's — and opens no price sheet, which would
+  // change the shelf and not this line.
+  const quote = useTyped('sell')[row.variantId];
+  const kept =
+    quote === undefined || entry === undefined
+      ? null
+      : priceCentavos(quote, factors[entry.priceUnit] ?? '');
 
   // ⚠️⚠️ THE WARNING IS ON THE SHEET **AS WELL AS** ON THE LIST, AND THAT IS NOT
   // A DUPLICATE. §2.8's three guards compound — review-before-commit is the
@@ -1145,7 +1176,7 @@ function Renglon({
             {ES.counter.cart.gone}
           </Text>
         ) : (
-          <Unitario entry={entry} onPrice={onPrice} />
+          <Unitario entry={entry} onPrice={kept === null ? onPrice : null} kept={kept} />
         )}
         {unpriced ? (
           <Text style={{ fontSize: scale.smallSize, fontWeight: '600', color: PALETTE.atencion }}>
@@ -1203,16 +1234,20 @@ function Renglon({
 function Unitario({
   entry,
   onPrice,
+  kept = null,
 }: {
   entry: CatalogEntry;
   onPrice: ((entry: CatalogEntry, adding: boolean) => void) | null;
+  /** `8g`: a corrected line's own price per unit, in place of the shelf's. */
+  kept?: number | null;
 }) {
   const { scale } = useDensity();
+  const shown = kept ?? entry.centavos;
   const words = (
     <Text style={{ fontSize: scale.smallSize, color: onPrice === null ? PALETTE.tintaApagada : PALETTE.tinta }}>
-      {entry.centavos === null
+      {shown === null
         ? ES.catalog.noPrice
-        : `${formatMXN(entry.centavos)} ${ES.sell.per(ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit)}`}
+        : `${formatMXN(shown)} ${ES.sell.per(ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit)}`}
     </Text>
   );
   if (onPrice === null) return words;

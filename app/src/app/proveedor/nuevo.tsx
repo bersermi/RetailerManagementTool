@@ -20,10 +20,12 @@ import {
   type ProviderDraft,
   type ProviderIssue,
 } from '@/api/providerDirectory';
+import { useAskBeforeLeaving } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
+import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { TecladoListo } from '@/ui/TecladoListo';
 
@@ -106,6 +108,10 @@ export default function NuevoProveedor() {
   const [issue, setIssue] = useState<ProviderIssue | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  // ⚠️ `8g`'s review (2026-10-20): leaving with something typed asks first —
+  // *¿Salir sin guardar?* — by *Volver*, Android's back or the iPhone's swipe.
+  // The create leaves with a `dismissTo`, which the guard lets through.
+  const leave = useAskBeforeLeaving(!saving && (draft.name !== (nombre ?? '') || draft.contact !== '' || draft.phone !== '' || draft.address !== ''));
 
   const working = saving || busy;
 
@@ -280,6 +286,15 @@ export default function NuevoProveedor() {
           layout, so where it sits in the tree does not matter. ONE box shares it
           here, the phone. */}
       <TecladoListo padId={PAD_ID} label={ES.providers.create.done} />
+      <Pregunta
+        shown={leave.asking}
+        title={ES.leave.unsaved.title}
+        body={ES.leave.unsaved.body}
+        keep={ES.leave.unsaved.keep}
+        go={ES.leave.unsaved.go}
+        onKeep={leave.keep}
+        onGo={leave.go}
+      />
     </View>
   );
 }

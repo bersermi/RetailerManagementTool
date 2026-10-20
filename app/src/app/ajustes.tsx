@@ -2,7 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
-import { BackHandler, Image, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -43,11 +43,13 @@ import { canRead } from '@/api/pilot';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { Lecturas } from '@/pilot/Lecturas';
 import { DIBUJOS } from '@/marca/dibujos';
+import { useBackStaysHere } from '@/navigation/salida';
 import { ES } from '@/strings';
 import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
+import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Direccion } from '@/ui/Direccion';
 
@@ -120,20 +122,29 @@ export default function Ajustes() {
   // anywhere, and *Volver* (or Android's back button) returns to the menu.
   const [page, setPage] = useState<Apartado | null>(null);
 
-  useEffect(() => {
-    if (page === null) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      setPage(null);
-      return true;
-    });
-    return () => sub.remove();
-  }, [page]);
+  // ⚠️ `usePreventRemove` AND NOT A `BackHandler` since `8g`'s review: a handler
+  // stayed armed while Números sat on top (*descarga tus movimientos*), and back
+  // there did nothing visible. This intercepts only this sheet being closed — by
+  // Android's back, the iPhone's swipe down, or *Cerrar* — and on a page it goes
+  // back to the menu instead.
+  // ⚠️ AND A PAGE HOLDING UNSAVED TYPING (*Tu nombre*, the shop's address) ASKS
+  // FIRST — *¿Salir sin guardar?* — `8g`'s review, problem 7. The page says so
+  // through `onDirty`.
+  const [unsaved, setUnsaved] = useState(false);
+  const [leaving, setLeaving] = useState(false);
+  const toMenu = () => {
+    setLeaving(false);
+    setUnsaved(false);
+    setPage(null);
+  };
+  const backFromPage = () => (unsaved ? setLeaving(true) : toMenu());
+  useBackStaysHere(page !== null, backFromPage);
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda
         title={page === null ? ES.settings.title : ES.settings.menu[page]}
-        onBack={page === null ? null : () => setPage(null)}
+        onBack={page === null ? null : backFromPage}
         onLongPress={canOpen ? () => setReadings(true) : undefined}
       />
       {canOpen && <Lecturas open={readings} onClose={() => setReadings(false)} />}
@@ -169,7 +180,7 @@ export default function Ajustes() {
               current={workspace.giroPrincipal ?? null}
               mayChange={role === 'owner'}
             />
-            <Domicilio mayChange={role === 'owner'} />
+            <Domicilio mayChange={role === 'owner'} onDirty={setUnsaved} />
           </Section>
         )}
 
@@ -222,7 +233,7 @@ export default function Ajustes() {
           </>
         )}
 
-        {page === 'nombre' && <MiNombre />}
+        {page === 'nombre' && <MiNombre onDirty={setUnsaved} />}
 
         {page === 'letra' && (
           <Section>
@@ -235,6 +246,15 @@ export default function Ajustes() {
 
         {page === 'cuenta' && <Cuenta />}
       </ScrollView>
+      <Pregunta
+        shown={leaving}
+        title={ES.leave.unsaved.title}
+        body={ES.leave.unsaved.body}
+        keep={ES.leave.unsaved.keep}
+        go={ES.leave.unsaved.go}
+        onKeep={() => setLeaving(false)}
+        onGo={toMenu}
+      />
     </View>
   );
 }
@@ -660,7 +680,7 @@ function Miembro({ entry }: { entry: RosterEntry }) {
 // on screen either way.
 // ============================================================================
 
-function MiNombre() {
+function MiNombre({ onDirty }: { onDirty: (dirty: boolean) => void }) {
   const { scale } = useDensity();
   const workspace = useWorkspace();
   const stored = useMyDisplayName();
@@ -671,6 +691,8 @@ function MiNombre() {
   const [issue, setIssue] = useState<NameIssueKey | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  // ⚠️ `8g`: a name being typed is typing the sheet must ask about before a back.
+  useEffect(() => onDirty(editing && typed.trim() !== ''), [editing, typed, onDirty]);
 
   // ⚠️ THE SECTION IS ABSENT UNTIL THE SHOP IS KNOWN, not disabled. `0035` takes
   // a workspace id and there is nothing to send without one — and a box that
@@ -1405,12 +1427,14 @@ function GiroPrincipal({
  * offered nothing to tap. ⚠️ The pilot's shops have one store each, so this is
  * the first store's; a second store's address waits for a second store.
  */
-function Domicilio({ mayChange }: { mayChange: boolean }) {
+function Domicilio({ mayChange, onDirty }: { mayChange: boolean; onDirty: (dirty: boolean) => void }) {
   const { scale } = useDensity();
   const address = useStoreAddress();
   const { save, busy } = useSetStoreAddress();
   const [form, setForm] = useState<AddressForm | null>(null);
   const [problem, setProblem] = useState<string | null>(null);
+  // ⚠️ `8g`: an address form open is typing the sheet must ask about before a back.
+  useEffect(() => onDirty(form !== null), [form, onDirty]);
 
   const line =
     address === null || !addressComplete(address)

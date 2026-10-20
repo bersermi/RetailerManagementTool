@@ -109,7 +109,7 @@
 // to import `@/format/mxn` at all.
 // ============================================================================
 
-import { SCALE, parseDecimal } from '@tienda/money';
+import { SCALE, divRoundHalfUpAwayFromZero, formatDecimal, parseDecimal } from '@tienda/money';
 
 import { isoDay } from '@/api/catalog';
 import type { ApiMessageKey } from '@/api/errors';
@@ -680,6 +680,14 @@ export interface DocumentLine {
    * at scale 6 and a round trip through a number would be a second rounding.
    */
   readonly perBase: string | null;
+  /**
+   * ⚠️ `8g` (2026-10-20): WHAT THE LINE WAS SOLD AT, WITH IVA, PER BASE UNIT — the
+   * owner's ruling *"Original prices"*: a corrected sale keeps the price it was
+   * rung up at instead of today's. The stored net when the line carried no tax
+   * (verbatim, no rounding); otherwise `(line_net + tax_amount) / qty_base` at
+   * scale 6. `null` on a waste line (no money) or an unreadable figure.
+   */
+  readonly grossPerBase: string | null;
 }
 
 /** One document, ready to draw. */
@@ -998,7 +1006,26 @@ function lineOf(row: DocumentLineRow): DocumentLine {
       typeof row.unit_price_net_per_base === 'string' && row.unit_price_net_per_base !== ''
         ? row.unit_price_net_per_base
         : null,
+    grossPerBase: grossPerBaseOf(row),
   };
+}
+
+/** See `DocumentLine.grossPerBase`. */
+function grossPerBaseOf(row: DocumentLineRow): string | null {
+  if (typeof row.line_net !== 'string' || typeof row.tax_amount !== 'string' || typeof row.qty_base !== 'string') return null;
+  try {
+    const tax = parseDecimal(row.tax_amount, SCALE.money);
+    if (tax === 0 && typeof row.unit_price_net_per_base === 'string' && row.unit_price_net_per_base !== '') {
+      return row.unit_price_net_per_base;
+    }
+    const cents = parseDecimal(row.line_net, SCALE.money) + tax;
+    const qty = parseDecimal(row.qty_base, SCALE.quantity);
+    if (qty <= 0) return null;
+    // centavos / 10^2 over thousandths / 10^3, at scale 6: centavos × 10^7 / qty.
+    return formatDecimal(divRoundHalfUpAwayFromZero(cents * 10 ** (SCALE.unitPrice - SCALE.money + SCALE.quantity), qty), SCALE.unitPrice);
+  } catch {
+    return null;
+  }
 }
 
 /**

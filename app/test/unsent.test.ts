@@ -410,13 +410,14 @@ describe('re-keying an unsent note', () => {
     expect(prefill.quotes[TOMATE]).toBe('0.020000');
   });
 
-  // ⚠️ THE SALE SIDE IS RE-PRICED AT THE SHELF, which is `5h-ii-b`'s reported
-  // decision and is unchanged here: the payload carries a GROSS per base and
-  // `sale_line` stores a NET, so this phone holds no figure `setPrice` could take.
-  it('hands a sale no price, so Vender quotes the shelf', () => {
+  // ⚠️⚠️ REVERSED BY THE OWNER, `8g` (2026-10-20): *"Original prices"*. `5h-ii-b`
+  // re-priced a corrected sale at the shelf; now it keeps what it was rung up at
+  // — on a queued note, the GROSS per base the payload carries, as typed.
+  it('hands a sale the price it was rung up at, not the shelf’s', () => {
     const [one] = shown([sale()], 'sale');
     expect(one.lines[0].perBase).toBeNull();
-    expect(prefillOf(one).quotes).toEqual({});
+    expect(one.lines[0].grossPerBase).toBe('0.035000');
+    expect(prefillOf(one).quotes).toEqual({ [CEBOLLA]: '0.035000' });
     expect(prefillOf(one).lines).toEqual([{ variantId: CEBOLLA, base: 2_000_000 }]);
   });
 

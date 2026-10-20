@@ -69,6 +69,7 @@ function line(overrides: Partial<DocumentLine> = {}): DocumentLine {
     reason: null,
     reasonValue: null,
     perBase: '0.030000',
+    grossPerBase: null,
     ...overrides,
   };
 }
@@ -633,10 +634,11 @@ describe('what a void of a write-off makes stale', () => {
 // replaces, so the server can date it on that document's day (`0064`).
 // ============================================================================
 describe('8p — a correction names what it corrects, and when', () => {
-  it('carries the voided document’s id and its own occurred_at', () => {
+  it('carries the voided document’s id, its own occurred_at, and — since `8g` — what it came to', () => {
     expect(prefillOf(document({ id: 'doc-9', at: '2026-10-16T20:07:00+00:00' })).corrects).toEqual({
       id: 'doc-9',
       at: '2026-10-16T20:07:00+00:00',
+      amount: '$60.00',
     });
   });
 
