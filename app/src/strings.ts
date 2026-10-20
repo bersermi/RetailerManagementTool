@@ -3153,6 +3153,29 @@ export const ES = {
       dayDetail: (best: string, bestAmount: string, worst: string, worstAmount: string) =>
         `Un ${best} vendes ${bestAmount}; un ${worst}, ${worstAmount}.`,
       dayTip: (best: string) => `Que no te falte nada el ${best}: es el día que más vendes.`,
+      quincenaTitle: 'EL EFECTO QUINCENA',
+      /** ⚠️ Pesos and words, never a percentage — the owner's ruling for Números. */
+      quincenaBig: (way: 'mas' | 'igual' | 'menos', amount: string) =>
+        way === 'igual'
+          ? 'En quincena vendes casi igual'
+          : `En quincena vendes ${amount} ${way === 'mas' ? 'más' : 'menos'} al día`,
+      quincenaDetail: (quincena: string, other: string) => `Un día de quincena: ${quincena}. Otro día: ${other}.`,
+      quincenaBasis: 'Cuenta como quincena el 15 y el 16, y del 30 al 1.',
+      quincenaTip: (way: 'mas' | 'igual' | 'menos') =>
+        way === 'mas'
+          ? 'La gente cobra el 15 y el 30. Ten más de lo que más vendes esos días.'
+          : way === 'igual'
+            ? 'En tu tienda la quincena casi no se nota: vendes parejo todo el mes.'
+            : 'Entre quincenas vendes más: que entonces no te falte nada.',
+      /** The date axis under the quincena's bars: the 1st, the middle, the end. */
+      quincenaAxis: ['1', '15', '30'],
+      ticketTitle: 'CADA CLIENTE TE DEJA',
+      ticketBig: (amount: string) => `${amount} en promedio`,
+      ticketNow: 'Estas 2 semanas',
+      ticketBefore: 'Las 2 anteriores',
+      ticketDetail: (sales: number, biggest: string) =>
+        `${sales} ventas en estas 2 semanas. La más grande: ${biggest}.`,
+      ticketTip: 'Sube cuando, al cobrar, ofreces algo más: «¿le doy también su refresco?»',
     },
     /** ⚠️ `8g` — what opens as a shop builds its history, and how long until it does. */
     pronto: {
@@ -3161,6 +3184,11 @@ export const ES = {
       hoursWhen: (left: number) => (left === 1 ? 'Te falta 1 venta' : `Te faltan ${left} ventas`),
       day: 'Tu mejor día de la semana',
       dayWhen: (left: number) => (left === 1 ? 'Mañana' : `En ${left} días`),
+      quincena: 'El efecto quincena',
+      /** ⚠️ The month is named once it is not this one — *después del 15* on the 20th is ambiguous. */
+      quincenaWhen: (date: number, month: string | null) => `Después del ${date}${month === null ? '' : ` de ${month}`}`,
+      tomorrow: 'Mañana',
+      ticket: 'Cuánto te deja cada cliente',
     },
   },
 

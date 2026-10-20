@@ -6,12 +6,18 @@ import {
   compareLine,
   hoursLine,
   hoursOf,
+  isQuincena,
   monthPurchases,
   monthSales,
   monthWaste,
   purchasesLine,
+  quincenaLine,
+  quincenaOf,
+  quincenaWay,
+  quincenaWhen,
   shopAge,
   standing,
+  ticketOf,
   wasteAmount,
   type PurchaseHead,
   type SaleHead,
@@ -268,5 +274,113 @@ describe('descubre — the best day', () => {
     expect(ES.numbers.descubre.dayBig('viernes')).toBe('Los viernes');
     expect(ES.numbers.descubre.dayBig('sábado')).toBe('Los sábados');
     expect(ES.numbers.descubre.dayBig('domingo')).toBe('Los domingos');
+  });
+});
+
+describe('descubre — the quincena (round 2)', () => {
+  /** Every day since 24 August: `q` on a quincena day, `o` on any other, and today absurd. */
+  const months = (q: number, o: number): SoldDay[] =>
+    everyDay('2026-08-24', TODAY, 0).map((d) => ({
+      ...d,
+      centavos: d.day === TODAY ? 99_999_00 : isQuincena(d.day) ? q : o,
+    }));
+
+  it('is the 15th and 16th, and the 30th to the 1st — February ends on its last day', () => {
+    for (const day of ['2026-10-15', '2026-10-16', '2026-10-30', '2026-10-31', '2026-11-01', '2026-02-28', '2028-02-29']) {
+      expect(isQuincena(day), day).toBe(true);
+    }
+    for (const day of ['2026-10-14', '2026-10-17', '2026-10-29', '2026-11-02', '2026-02-27', '2028-02-28']) {
+      expect(isQuincena(day), day).toBe(false);
+    }
+  });
+
+  it('waits for both paydays, and says the date it opens', () => {
+    // Open since the 2nd: the 15th and 16th are in, no month end yet. The 30th
+    // and 31st make four — so it opens after the 31st.
+    const q = quincenaOf(everyDay('2026-10-02', TODAY, 500_00), TODAY);
+    expect(q).toMatchObject({ locked: true, have: 2, need: 4, after: '2026-10-31' });
+    if (!q.locked) throw new Error('locked');
+    expect(quincenaWhen(q, TODAY)).toBe('Después del 31');
+    expect(quincenaWhen({ ...q, after: TODAY }, TODAY)).toBe('Mañana');
+  });
+
+  it('a shop that has sold nothing waits for the 15th of next month', () => {
+    // From the 20th: 30, 31 and 1 are three days of one payday; the 15th brings the other.
+    const q = quincenaOf([], TODAY);
+    expect(q).toMatchObject({ locked: true, have: 0, after: '2026-11-15' });
+    if (!q.locked) throw new Error('locked');
+    // On the 20th, *después del 15* would be ambiguous — the month is named.
+    expect(quincenaWhen(q, TODAY)).toBe('Después del 15 de noviembre');
+  });
+
+  it('in pesos a day, never a percentage', () => {
+    const q = quincenaOf(months(1500_00, 1000_00), TODAY);
+    if (q.locked) throw new Error('unlocked');
+    expect(q).toMatchObject({ quincenaCentavos: 1500_00, otherCentavos: 1000_00 });
+    expect(quincenaLine(q)).toBe('En quincena vendes $500 más al día');
+    expect(ES.numbers.descubre.quincenaDetail('$1,500', '$1,000')).toBe('Un día de quincena: $1,500. Otro día: $1,000.');
+    expect(q.byDate[14]).toBe(1500_00);
+    expect(q.byDate[1]).toBe(1000_00);
+    expect(q.byDate).toHaveLength(31);
+  });
+
+  it('under a tenth of an ordinary day is *casi igual*; below it says *menos*', () => {
+    const same = quincenaOf(months(1050_00, 1000_00), TODAY);
+    if (same.locked) throw new Error('unlocked');
+    expect(quincenaWay(same)).toBe('igual');
+    expect(quincenaLine(same)).toBe('En quincena vendes casi igual');
+    const less = quincenaOf(months(700_00, 1000_00), TODAY);
+    if (less.locked) throw new Error('unlocked');
+    expect(quincenaLine(less)).toBe('En quincena vendes $300 menos al día');
+    expect(ES.numbers.descubre.quincenaTip('menos')).not.toBe(ES.numbers.descubre.quincenaTip('mas'));
+  });
+
+  it('a day she was shut is no day of zero, and today is left out', () => {
+    const days = months(1500_00, 1000_00).map((d) =>
+      new Date(`${d.day}T00:00:00Z`).getUTCDay() === 0 ? { ...d, centavos: 0 } : d,
+    );
+    const q = quincenaOf(days, TODAY);
+    if (q.locked) throw new Error('unlocked');
+    expect(q).toMatchObject({ quincenaCentavos: 1500_00, otherCentavos: 1000_00 });
+    expect(q.byDate[19]).not.toBe(99_999_00);
+  });
+});
+
+describe('descubre — what each customer leaves (round 2)', () => {
+  const sale = (id: string, at: string, net: string, reversal_of: string | null = null): SaleHead => ({
+    id,
+    occurred_at: at,
+    reversal_of,
+    total_net: net,
+    total_tax: '0.00',
+  });
+  /** `n` sales of `net` at noon, Mexico City, on `day`. */
+  const many = (prefix: string, n: number, day: string, net: string): SaleHead[] =>
+    Array.from({ length: n }, (_, i) => sale(`${prefix}${i}`, `${day}T18:00:00Z`, net));
+
+  it('the last two weeks against the two before, in whole pesos', () => {
+    const t = ticketOf([...many('a', 20, '2026-10-15', '40.00'), ...many('b', 20, '2026-09-30', '30.00')], TODAY);
+    expect(t).toEqual({ locked: false, centavos: 40_00, sales: 20, biggest: 40_00, before: 30_00 });
+    expect(ES.numbers.descubre.ticketBig('$40')).toBe('$40 en promedio');
+    expect(ES.numbers.descubre.ticketDetail(20, '$40')).toBe('20 ventas en estas 2 semanas. La más grande: $40.');
+  });
+
+  it('the two weeks are the SHOP’S days: 9 at night on the 6th is not the 7th', () => {
+    // 03:00 UTC on the 7th is 21:00 on the 6th in Mexico City — the half before.
+    const rows = [...many('a', 20, '2026-10-15', '40.00'), sale('late', '2026-10-07T03:00:00Z', '1000.00')];
+    expect(ticketOf(rows, TODAY)).toMatchObject({ sales: 20, biggest: 40_00, before: null });
+  });
+
+  it('a voided sale is no customer', () => {
+    const rows = [...many('a', 20, '2026-10-15', '40.00'), sale('v', '2026-10-15T19:00:00Z', '-40.00', 'a0')];
+    expect(ticketOf(rows, TODAY)).toEqual({ locked: true, have: HOURS_MIN_SALES - 1, need: HOURS_MIN_SALES });
+  });
+
+  it('an average is whole pesos, and too few sales before says nothing about before', () => {
+    const rows = [...many('a', 10, '2026-10-15', '33.33'), ...many('b', 10, '2026-10-16', '33.34'), ...many('c', 5, '2026-09-30', '10.00')];
+    const t = ticketOf(rows, TODAY);
+    if (t === null || t.locked) throw new Error('unlocked');
+    expect(t.centavos).toBe(33_00);
+    expect(t.before).toBeNull();
   });
 });
