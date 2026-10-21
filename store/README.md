@@ -9,7 +9,7 @@ pictures Google asks for.
 | [`google-play.md`](google-play.md) | Every Play Console field in the order the console asks: the listing, the store settings, each *App content* form, the closed track and its release |
 | [`google-play/`](google-play/) | The 512 px icon, the feature graphic and its source, and six phone screenshots |
 | [`app-store.md`](app-store.md) | Every App Store Connect field: the record, the listing text, the age rating, the privacy labels, the review notes. **Nothing in it has been entered anywhere** |
-| [`app-store/`](app-store/) | The same six screenshots for the App Store at two iPhone sizes: `iphone-6.9/` 1320 × 2868 and `iphone-6.3/` 1206 × 2622 |
+| [`app-store/`](app-store/) | The same six screenshots for the App Store at three iPhone sizes: `iphone-6.9/` 1320 × 2868, `iphone-6.5/` 1284 × 2778 (the 6.9 set scaled, 6 px cut top and bottom) and `iphone-6.3/` 1206 × 2622 |
 | `limits.py` | Measures every pasted field against its store's limit |
 
 **Where each stands.** Google Play's closed test has its text, forms and pictures ready; its

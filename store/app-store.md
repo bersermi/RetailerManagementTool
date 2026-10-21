@@ -113,7 +113,7 @@ tienda,punto de venta,abarrotes,ventas,caja,tiendita,negocio,compras,merma,prove
 | Support URL | `https://tu-wera.com/` |
 | Marketing URL | leave empty |
 | Copyright | `2026` and your legal name, as the aviso prints it. **Not written in this repository** |
-| Screenshots | [`app-store/`](app-store/), six per size, in file order: `iphone-6.9/` (1320 × 2868) for the large iPhone, `iphone-6.3/` (1206 × 2622) for *iPhone with Dynamic Island (medium display)*. Taken 2026-10-21 on an invented shop; no real shop's data |
+| Screenshots | [`app-store/`](app-store/), six per size, in file order — the folder by the box's title: `iphone-6.9/` (1320 × 2868) for *iPhone with Dynamic Island (large display)*, `iphone-6.5/` (1284 × 2778) for *iPhone with Face ID (large display)*, the 6.5-inch box, which is the required one when no 6.9-inch set is given; `iphone-6.3/` (1206 × 2622) for *Dynamic Island (medium display)*. One large set is enough: Apple scales it down. Taken 2026-10-21 on an invented shop; no real shop's data. ⚠️ **The 6.5-inch box refuses 1320 × 2868 as *"File dimensions are invalid"*** (his upload, 2026-10-21), hence `iphone-6.5/`: the large set scaled to 1284 wide and 6 px cut from top and bottom |
 
 ## 5. Age rating
 
