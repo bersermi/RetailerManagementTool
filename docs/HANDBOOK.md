@@ -65,8 +65,9 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 ⏳ **21 October: a new install for both phones, with the first day.** It carries the camera's
 new sentence, and **after it every update needs it**: until a phone has it, nothing new reaches
 that phone. Your data stays.
-- **Your iPhone:** open https://expo.dev/accounts/wera-app/projects/wera/builds/3f12b2a9-dd33-4afe-880d-f9a34c22b3bb
-  on the phone and tap *Install*.
+- **Your iPhone:** ✅ **installed 21 October** (your word). If it ever needs it again: open
+  https://expo.dev/accounts/wera-app/projects/wera/builds/3f12b2a9-dd33-4afe-880d-f9a34c22b3bb on the phone and tap *Install*.
+  ⚠️ Don't try *Continuar con Apple* yet: the server still has no Apple key.
 - **The pilot Android:** open https://expo.dev/accounts/wera-app/projects/wera/builds/3fd48b8c-67a7-42ea-90ee-d164682f0190
   on it, download the file and open it.
 - Both files are also in `~/RetailerToolDev/wera-builds/`. EAS lists them until 4 November.
