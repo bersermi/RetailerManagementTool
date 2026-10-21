@@ -166,7 +166,7 @@ On the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large button
 | Delete account URL | `https://tu-wera.com/eliminar-cuenta/` |
 | Can users ask for some data to be deleted without deleting the account? | **No** — leave the optional link empty |
 
-**Data types** — tick exactly these seven:
+**Data types** — tick exactly these ten:
 
 | Section | Data type | What it is in Wera |
 |---|---|---|
@@ -179,8 +179,9 @@ On the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large button
 | Device or other IDs | **Device or other IDs** | The random id each install sends to Expo when it checks for an update |
 | Photos and videos | **Photos** | ⚠️ **Since `8m`:** the photos of a product a shop sends with *Te lo compro*; **since `8o`** also the photo a shop takes of a product it created, for its own list |
 | Personal info | **Address** | ⚠️ **Since `8k`:** the store's address, which is a home when the shop is in one; asked for *Te lo compro* |
+| Personal info | **Phone number** | ⚠️ **His ruling of 2026-10-21, declared ahead of use** (*"for future additions"*), as on the App Store. Today no account carries one; a supplier's phone is the shop's own record, above |
 
-**For every one of the nine** — ⚠️ the two `8m` rows apply from the first store build that carries the camera:
+**For every one of the ten** — ⚠️ the two `8m` rows apply from the first store build that carries the camera:
 
 | Question | Answer |
 |---|---|

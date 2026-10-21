@@ -156,6 +156,7 @@ messaging or chat, no advertising.
 | User Content → **Other User Content** | App Functionality | Yes | No |
 | User Content → **Photos or Videos** | App Functionality | Yes | No |
 | Contact Info → **Physical Address** | App Functionality | Yes | No |
+| Contact Info → **Phone Number** | App Functionality | Yes | No |
 
 What each one is in Wera is the same as Google's table ([`google-play.md`](google-play.md),
 *Data safety*). *Device ID* is the random id each install sends to Expo when it checks for an
@@ -164,6 +165,11 @@ per shop, which covers every version since the owner's ruling of 2026-10-14 (the
 finalidad 9). ⚠️ **`5R-k` changed nothing in this table**: Apple's identifier is a User ID and its relay
 address is an Email Address. The code Apple hands over at a deletion is spent in one request
 and never stored, so it is not *collected*.
+
+⚠️ ***Phone Number* is his ruling of 2026-10-21, against the session's advice:** ***"I kept the phone
+number, for future additions."*** Today the only phone Wera stores is a supplier's, typed by the
+shop (`provider.phone`, under *Other User Content*); accounts carry none. Declared ahead of use,
+it is harmless to review; Google's form declares it too, so the two stores agree.
 
 **Not declared, and why:** *Usage Data* and *Diagnostics* — the pilot's measurements are not
 in the store build and there is no crash library. *Contacts* means the phone's address book,
