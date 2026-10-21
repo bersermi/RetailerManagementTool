@@ -344,8 +344,25 @@ export const ES = {
       /** ⚠️ Takes the shop's name, for `4.6a-iii`'s reason: a code with no shop
        *  attached is eight characters she cannot place three days later. */
       title: (shop: string) => `Le pediste entrar a ${shop}.`,
-      body: 'Ya avisamos. Cuando te acepten, la tienda se abre sola aquí.',
+      /** ⚠️ `8g`, 2026-10-21: TRUE NOW — the screen asks again every few
+       *  seconds while she waits (`useWaitForApproval`). Before, it opened only
+       *  when she left Wera and came back (measured: 2½ minutes, unmoved). */
+      body: 'Cuando te acepten, tu tienda se abre aquí sola.',
+      /** Nothing reaches the owner outside Wera, so she can say it herself. */
+      tell: 'Avisar por WhatsApp',
+      tellMessage: (shop: string) =>
+        `Hola, te pedí entrar a ${shop} en Wera. Ábrela y entra a Solicitudes para dejarme entrar.`,
     },
+  },
+
+  /**
+   * ⚠️ `8g`, the owner's rulings of 2026-10-21: THE LINE SAID ONCE ON ARRIVAL,
+   * as Vender's confirmation (`@/auth/llegada`). The owner who has just opened
+   * her shop, and the Empleado who has just joined one.
+   */
+  arrival: {
+    opened: 'Tu tienda está lista',
+    joined: (shop: string) => `Ya estás en ${shop}`,
   },
 
   /**
@@ -806,7 +823,7 @@ export const ES = {
      * offers the code to send — an empty queue is the day nobody has typed it.
      */
     emptyTitle: 'Nadie está esperando entrar',
-    emptyHint: 'Cuando alguien escriba el código de tu tienda en Wera, aparece aquí para que lo dejes entrar.',
+    emptyHint: 'Cuando alguien escriba el código de tu tienda en Wera, aparece aquí y tú decides si entra.',
     codeLabel: 'Código de tu tienda',
     shareCode: 'Compartir código',
     /** Above the cards, in amber: how many are at the door. */
@@ -839,7 +856,9 @@ export const ES = {
      * button reads the same in both states is a row a shopkeeper cannot tell
      * the state of without remembering what she just did.
      */
-    confirm: 'Sí, dejarla entrar',
+    /** ⚠️ `8g`, the owner's ruling of 2026-10-21: no gender. The app does not
+     *  know whom it is letting in — Lalo was offered *dejarla*. */
+    confirm: 'Sí, dejar entrar',
     cancel: 'Cancelar',
     working: 'Dejando entrar…',
     /** ⚠️ Its own question, worded for a person already in the shop asking to

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteArgs } from '@/api/account';
@@ -11,6 +11,7 @@ import {
   useRedeemInvite,
   useRequestAccess,
   useStarterCatalog,
+  useWaitForApproval,
 } from '@/api/hooks';
 import { checkCredential, classifyCredential } from '@/api/redeem';
 import { principalDe, toggledInOrder } from '@/api/emblema';
@@ -18,7 +19,9 @@ import { choiceFrom } from '@/api/starterCatalog';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
 import { useAuth } from '@/auth/AuthProvider';
+import { whatsappChooseUrl } from '@/auth/support';
 import { ES } from '@/strings';
+import { BotonLleno } from '@/ui/BotonLleno';
 import { Direccion } from '@/ui/Direccion';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -110,6 +113,7 @@ export default function Bienvenida() {
   const { redeem, busy: redeeming } = useRedeemInvite();
   const { ask, busy: asking } = useRequestAccess();
   const { pending } = useMyAccessRequests();
+  useWaitForApproval(pending !== null);
 
   // ⚠️ ONE BUSY FLAG FOR ONE BOX. Two mutations sit behind it and a person can
   // only be running one of them, because the credential she typed picks which.
@@ -452,6 +456,17 @@ export default function Bienvenida() {
             {ES.join.pending.title(pending.workspaceName)}
           </Text>
           <Text style={{ fontSize: scale.bodySize }}>{ES.join.pending.body}</Text>
+          {/* `8g`, 2026-10-21: nothing reaches the owner outside Wera, so she
+              can say it herself; WhatsApp asks to whom. */}
+          <BotonLleno
+            label={ES.join.pending.tell}
+            icon="whatsapp"
+            onPress={() =>
+              void Linking.openURL(whatsappChooseUrl(ES.join.pending.tellMessage(pending.workspaceName))).catch(
+                () => {},
+              )
+            }
+          />
         </View>
       )}
 

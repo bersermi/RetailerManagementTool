@@ -1042,6 +1042,30 @@ export function useMyAccessRequests(): {
   };
 }
 
+/** How often the landing asks again while she waits to be let in. */
+export const APPROVAL_POLL_MS = 5_000;
+
+/**
+ * ⚠️ `8g`, 2026-10-21: WHILE SHE WAITS, ASK AGAIN — so *"Cuando te acepten, tu
+ * tienda se abre aquí sola"* is true. Nothing else re-read the membership while
+ * a request was pending: approved at 18:55:26, Pepe's screen had not moved 2½
+ * minutes later and opened 6 s after he left Wera and came back (the emulator).
+ * Re-reading the membership is what moves her (the guard does); her requests
+ * are re-read with it, so a refusal or an expiry shows too. It stops the moment
+ * she has nothing pending, and a re-read that fails is simply the next one.
+ */
+export function useWaitForApproval(waiting: boolean): void {
+  const queries = useQueryClient();
+  useEffect(() => {
+    if (!waiting) return;
+    const timer = setInterval(() => {
+      void queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY });
+      void queries.invalidateQueries({ queryKey: MY_REQUESTS_KEY });
+    }, APPROVAL_POLL_MS);
+    return () => clearInterval(timer);
+  }, [waiting, queries]);
+}
+
 /**
  * Asking to join.
  *
@@ -1257,10 +1281,17 @@ export function useStarterCatalog(): {
     enabled,
     staleTime: 60 * 60_000,
   });
+  // ⚠️⚠️ `8g`, 2026-10-21: THE SHOP'S CATALOG IS READ ONLY ONCE THERE IS A SHOP.
+  // On the landing she belongs to none, so the read answered `[]` — and that
+  // `[]` WAS the shop's catalog, cached five minutes under the key Vender reads.
+  // Measured on the emulator: Rosa and Pepe each joined a shop of 841 products
+  // and opened on *Todavía no hay productos.* until a return to the app past
+  // the five minutes. A shop being opened holds nothing yet either way.
+  const membership = useMembership();
   const variants = useQuery({
     queryKey: CATALOG_KEY,
     queryFn: catalogVariants,
-    enabled,
+    enabled: enabled && membership === 'member',
     staleTime: 5 * 60_000,
   });
   const holding = useMemo(

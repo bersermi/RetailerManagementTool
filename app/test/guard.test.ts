@@ -73,6 +73,12 @@ describe('once the session is known', () => {
       for (const hasSession of [true, false]) {
         for (const membership of MEMBERSHIPS) {
           for (const group of GROUPS) {
+            for (const role of ['owner', 'manager', 'staff', null] as const) {
+              const to = redirectFor({ ready, hasSession, membership, group, role });
+              if (to === '/entrar') expect(group).not.toBe('auth');
+              if (to === '/' || to === '/vender') expect(group).not.toBe('app');
+              if (to === '/bienvenida') expect(group).not.toBe('onboarding');
+            }
             const to = redirectFor({ ready, hasSession, membership, group });
             if (to === '/entrar') expect(group).not.toBe('auth');
             if (to === '/') expect(group).not.toBe('app');
@@ -117,10 +123,26 @@ describe('signed in, and the membership read', () => {
   // created, the membership read is invalidated, it comes back `member`, and
   // this is the line that takes them off the landing and on to Inicio. Nothing
   // in the screen navigates; this does.
-  it('takes a shopkeeper off the landing the moment they have a shop', () => {
-    expect(
-      redirectFor({ ready: true, hasSession: true, membership: 'member', group: 'onboarding' }),
-    ).toBe('/');
+  // ⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21: leaving the landing is arriving,
+  // and she goes where her first job is — Vender for the owner who has just
+  // opened her shop and for the Empleado who has just joined; Inicio for an
+  // Encargado. Until the roster says which, she stays.
+  it('takes a shopkeeper off the landing the moment they have a shop, to where her first job is', () => {
+    const at = (role: 'owner' | 'manager' | 'staff' | null) =>
+      redirectFor({ ready: true, hasSession: true, membership: 'member', group: 'onboarding', role });
+    expect(at('owner')).toBe('/vender');
+    expect(at('staff')).toBe('/vender');
+    expect(at('manager')).toBe('/');
+    expect(at(null)).toBeNull();
+    expect(redirectFor({ ready: true, hasSession: true, membership: 'member', group: 'onboarding' })).toBeNull();
+  });
+
+  it('reads the role only on the way out of the landing', () => {
+    for (const role of ['owner', 'manager', 'staff', null] as const) {
+      expect(redirectFor({ ready: true, hasSession: true, membership: 'member', group: 'auth', role })).toBe('/');
+      expect(redirectFor({ ready: true, hasSession: true, membership: 'member', group: 'app', role })).toBeNull();
+      expect(redirectFor({ ready: true, hasSession: true, membership: 'none', group: 'app', role })).toBe('/bienvenida');
+    }
   });
 
   // The tabs are a shop's screens. A person with no shop is sent out of them as
