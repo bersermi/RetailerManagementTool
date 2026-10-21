@@ -1,9 +1,8 @@
-import { useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useState, type ReactNode } from 'react';
+import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteArgs } from '@/api/account';
-import { EMPTY_ADDRESS, checkAddress, type AddressForm } from '@/api/collection';
 import {
   useDeleteMyAccount,
   useMyAccessRequests,
@@ -16,20 +15,35 @@ import {
 import { checkCredential, classifyCredential } from '@/api/redeem';
 import { principalDe, toggledInOrder } from '@/api/emblema';
 import { choiceFrom } from '@/api/starterCatalog';
-import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 import { checkShopName } from '@/api/workspace';
 import { useAuth } from '@/auth/AuthProvider';
+import { readPuerta, writePuerta, type Puerta } from '@/auth/puerta';
 import { whatsappChooseUrl } from '@/auth/support';
+import { deviceStore } from '@/lib/store';
 import { ES } from '@/strings';
-import { BotonLleno } from '@/ui/BotonLleno';
-import { Direccion } from '@/ui/Direccion';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
-import { TITULO } from '@/theme/letra';
+import { Banda } from '@/ui/Banda';
+import { BotonLleno } from '@/ui/BotonLleno';
+import { Campo } from '@/ui/Campo';
+import { Puertas } from '@/ui/Puertas';
+import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 
 const NOTHING_EXCLUDED: ReadonlySet<string> = new Set();
 
 // ============================================================================
+// ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21 — READ THIS BEFORE THE HISTORY
+// BELOW, WHICH IT SUPERSEDES WHERE THEY DISAGREE. The welcome (`(auth)/hola`)
+// now asks which person she is BEFORE her account, so this screen draws only
+// her half: the door she chose is on the phone (`@/auth/puerta`). *Tu tienda*
+// asks the shop's name and its giros, nothing else — **no IVA question** (every
+// shop starts at *Sí, ya lo incluyen*, changed in Ajustes; ADR-035 §2.5 says
+// his ruling now) and **no address** (asked when Merma opens, the one place it
+// is used; the columns were always nullable). *Entrar a la tienda* is the one
+// box for either code. An account that came by neither door (a second phone)
+// is shown the two doors again; one waiting on a request is shown her half
+// whatever the door. *Volver* goes back to the doors.
+//
 // THE NO-WORKSPACE LANDING. Plan task 5b-i.
 //
 // Where a signed-in person who belongs to no shop is sent, by `@/auth/guard`.
@@ -119,47 +133,39 @@ export default function Bienvenida() {
   // only be running one of them, because the credential she typed picks which.
   const joining = redeeming || asking;
 
+  // ⚠️ `8g`: HER DOOR, read once from the phone; the doors drawn here set it.
+  const [door, setDoor] = useState<Puerta | null>(() => readPuerta(deviceStore()));
+  const half: Puerta | null = pending !== null ? 'invitada' : door;
+  function choose(next: Puerta | null) {
+    writePuerta(deviceStore(), next);
+    setDoor(next);
+  }
+
   const [name, setName] = useState('');
-  const [pricesIncludeTax, setPricesIncludeTax] = useState(true);
-  // ⚠️ `8k` (`0058`): THE STORE'S ADDRESS, REQUIRED — the owner, 2026-10-16:
-  // *"at least Street, number, ciudad and Código Postal."* It is where Te lo
-  // compro goes, and its código postal decides whether it is offered at all.
-  const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
   const [problem, setProblem] = useState<string | null>(null);
 
-  // ⚠️⚠️ THE THIRD QUESTION, `9d`: WHAT THE SHOP SELLS. The owner's ruling of
-  // 2026-10-01 — choose giros, untick what you don't sell, and the rest arrives
-  // with the shop. Nothing chosen is *Omitir*: the shop is created empty and
-  // Productos' *Agregar del catálogo* is the same import later. ⚠️ Without
-  // signal the catalog cannot be read, and the shop can still be created — the
-  // section says so instead of spinning (`useStarterCatalog`).
+  // ⚠️⚠️ WHAT THE SHOP SELLS, `9d`: the giros, and since 2026-10-14 no list to
+  // untick (the owner: *"just let the user pick one giro or more"*) — a product
+  // a shop does not sell is retired from Productos afterwards (`0054`). ⚠️
+  // Without signal the catalog cannot be read, and the section says so instead
+  // of spinning (`useStarterCatalog`).
   const starter = useStarterCatalog();
-  // ⚠️ `8g` (`0056`): THE ORDER THE GIROS WERE PICKED IN, AND NOT JUST WHICH —
-  // the owner's ruling of 2026-10-16: *"the first giro a user picks is the 'Main'
-  // giro, marked with a star."* The first is stored on the shop; it picks the
-  // drawing in the tabs' band. `@/api/emblema` keeps the order.
+  // ⚠️ `8g` (`0056`): THE ORDER THE GIROS WERE PICKED IN — *"the first giro a
+  // user picks is the 'Main' giro, marked with a star."* `@/api/emblema`.
   const [orden, setOrden] = useState<readonly string[]>([]);
   const giros: ReadonlySet<string> = new Set(orden);
-  // ⚠️ NOTHING IS UNTICKED HERE SINCE 2026-10-14 (the owner: *"just let the user
-  // pick one giro or more"*): the list is `Agregar del catálogo`'s alone, and a
-  // product a shop does not sell is retired from Productos afterwards (`0054`).
   const excluded = NOTHING_EXCLUDED;
 
   const [credential, setCredential] = useState('');
   const [joinProblem, setJoinProblem] = useState<string | null>(null);
 
-  // ⚠️⚠️ THE WAY OUT, `5R-k`, the owner's ruling of 2026-10-13. Until it, this
-  // screen had none: *Cerrar sesión* and *Eliminar mi cuenta* live in Ajustes,
-  // and Ajustes needs a shop. Somebody who came in by the wrong door — a second
-  // Google account, or Apple with the address hidden, which makes a NEW login —
-  // was held here until they created a shop they did not want. And an account
-  // this app made could not be deleted inside it, which Apple's rule 5.1.1(v)
-  // requires of every one.
-  //
-  // ⚠️ NO NAME TO TYPE AND NO ROSTER TO WAIT FOR, unlike Ajustes' sheet. A
-  // login on this screen belongs to no shop, so `deleteArgs` sends `null` and
-  // `0053` has nothing to refuse it over. Apple's sheet still comes first for
-  // a login with an Apple link: that is `useDeleteMyAccount`'s, not this file's.
+  // ⚠️⚠️ THE WAY OUT, `5R-k`, the owner's ruling of 2026-10-13, kept quiet at
+  // the bottom (his ruling of 2026-10-21). *Cerrar sesión* and *Eliminar mi
+  // cuenta* otherwise live in Ajustes, which needs a shop; somebody who came in
+  // by the wrong door must not be held here, and Apple's rule 5.1.1(v) asks
+  // that an account this app made can be deleted inside it.
+  // ⚠️ NO NAME TO TYPE AND NO ROSTER TO WAIT FOR: a login here belongs to no
+  // shop, so `deleteArgs` sends `null` and `0053` has nothing to refuse.
   const { signOut } = useAuth();
   const { remove, busy: removing } = useDeleteMyAccount();
   const [leaving, setLeaving] = useState(false);
@@ -172,8 +178,7 @@ export default function Bienvenida() {
   }
 
   // The same discipline as the way in: the message is cleared when the next
-  // attempt starts, not when a field changes. A message that disappears on the
-  // first keystroke is one a slow reader never finishes.
+  // attempt starts, not when a field changes.
   async function submit() {
     if (busy) return;
     setProblem(null);
@@ -182,42 +187,21 @@ export default function Bienvenida() {
       setProblem(checked.message);
       return;
     }
-    const addressIssue = checkAddress(address);
-    if (addressIssue !== null) {
-      setProblem(ES.address.issues[addressIssue]);
-      return;
-    }
-    // ⚠️ IT NAVIGATES NOWHERE ON SUCCESS. The guard sends them to Inicio the
-    // moment the membership read comes back — see `@/api/hooks`.
+    // ⚠️ IT NAVIGATES NOWHERE ON SUCCESS. The guard sends her to Vender the
+    // moment the membership read comes back — see `@/auth/guard`. ⚠️ `8g`: the
+    // shop is born at *Sí, ya lo incluyen* and with no address (his rulings).
     const choice = choiceFrom(starter.template, giros, excluded, starter.holding);
     setProblem(
-      await create(
-        { displayName: checked.displayName, pricesIncludeTax },
-        choice,
-        principalDe(orden),
-        address,
-      ),
+      await create({ displayName: checked.displayName, pricesIncludeTax: true }, choice, principalDe(orden), null),
     );
   }
 
   // The joining half. ⚠️ IT NAVIGATES NOWHERE EITHER, and here that is the whole
-  // mechanism: `useRedeemInvite` invalidates the membership read, it comes back
-  // `member`, and `guard.ts` moves her to Inicio. A second opinion on this screen
-  // would race the first.
-  //
-  // ⚠️ AND A SECOND TAP IS NOT GUARDED AGAINST BEYOND `busy`, deliberately:
-  // `0028` answers the same caller's second redemption `already_redeemed` rather
-  // than an error, which is the ordinary case on a connection the pilot store
-  // loses routinely. The success path is identical.
-  // ⚠️⚠️ THE FORK IS HERE AND IT IS THE ONLY ONE ON THIS SCREEN. `checkCredential`
-  // says whether either door can be called at all; `classifyCredential` says
-  // which. Both come from `@/api/redeem`, which is where the lengths are
-  // measured against a live database by the contract checks.
-  //
-  // ⚠️ THE ASK'S SUCCESS IS NOT RENDERED AS A MESSAGE — it becomes the pending
-  // block below, off a read that has just been invalidated. A sentence here
-  // would be a second copy of the same fact, and the one this screen holds would
-  // be the one that could disagree with the database.
+  // mechanism: a success invalidates the membership read, it comes back
+  // `member`, and `@/auth/guard` moves her. ⚠️ THE FORK IS HERE AND IT IS THE
+  // ONLY ONE: `checkCredential` says whether either door can be called at all;
+  // `classifyCredential` says which — 8 characters is the shop's code (an ask
+  // the owner approves), 16 an invitation (`P2`, one box for both).
   async function join() {
     if (joining) return;
     setJoinProblem(null);
@@ -233,315 +217,206 @@ export default function Bienvenida() {
     setJoinProblem(await redeem(credential));
   }
 
-  const choice = (selected: boolean) =>
-    ({
-      minHeight: scale.tapTarget,
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingHorizontal: scale.space,
-      borderRadius: scale.space / 2,
-      borderWidth: selected ? 2 : 1,
-      opacity: busy ? 0.6 : 1,
-      flex: 1,
-    }) as const;
-
-  return (
-    <ScrollView
-      contentContainerStyle={{
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: scale.space * 2,
-        // ⚠️ `8g`: THE DEVICE'S OWN INSETS. With nothing setting them the title
-        // ran under the clock — invisible while the status bar's icons were white
-        // on white, plain once round 1 made them dark (emulator, 2026-10-16).
-        paddingTop: scale.space * 2 + insets.top,
-        paddingBottom: scale.space * 2 + insets.bottom,
-        gap: scale.rowGap,
-      }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={{ fontSize: scale.titleSize, ...TITULO, marginBottom: scale.space }}>
-        {ES.onboarding.title}
-      </Text>
-
-      <Text style={{ fontSize: scale.bodySize }}>{ES.onboarding.nameLabel}</Text>
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        autoCapitalize="words"
-        autoCorrect={false}
-        editable={!busy}
-        style={{
-          fontSize: scale.bodySize,
-          minHeight: scale.tapTarget,
-          borderWidth: 1,
-          borderRadius: scale.space / 2,
-          paddingHorizontal: scale.space,
-        }}
-      />
-
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', marginTop: scale.space }}>
-        {ES.onboarding.ivaQuestion}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize }}>{ES.onboarding.ivaHint}</Text>
-
-      <View style={{ flexDirection: 'row', gap: scale.rowGap }}>
-        <Pressable
-          accessibilityRole="radio"
-          accessibilityState={{ selected: pricesIncludeTax }}
-          disabled={busy}
-          onPress={() => setPricesIncludeTax(true)}
-          style={choice(pricesIncludeTax)}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: pricesIncludeTax ? '700' : '400' }}>
-            {ES.onboarding.ivaYes}
-          </Text>
-        </Pressable>
-
-        <Pressable
-          accessibilityRole="radio"
-          accessibilityState={{ selected: !pricesIncludeTax }}
-          disabled={busy}
-          onPress={() => setPricesIncludeTax(false)}
-          style={choice(!pricesIncludeTax)}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: !pricesIncludeTax ? '700' : '400' }}>
-            {ES.onboarding.ivaNo}
-          </Text>
-        </Pressable>
-      </View>
-
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', marginTop: scale.space }}>
-        {ES.onboarding.addressTitle}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize }}>{ES.onboarding.addressHint}</Text>
-      <Direccion value={address} onChange={setAddress} editable={!busy} />
-
-      <View style={{ marginTop: scale.space }}>
-        {starter.template !== null ? (
-          <SelectorCatalogo
-            template={starter.template}
-            holding={starter.holding}
-            chosen={giros}
-            excluded={excluded}
-            onToggleGiro={(code) => setOrden((now) => toggledInOrder(now, code))}
-            principal={principalDe(orden)}
-            onToggleProduct={() => {}}
-            products={false}
-          />
-        ) : (
-          <Text style={{ fontSize: scale.smallSize }}>
-            {starter.failed !== null ? ES.starter.needsSignal : ES.starter.loading}
-          </Text>
-        )}
-      </View>
-
-      {problem !== null && (
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{problem}</Text>
-      )}
-
+  const exits = (
+    // `5R-k`, kept quiet: neither is what anybody came here for.
+    <View style={{ marginTop: scale.space * 2, gap: scale.rowGap }}>
       <Pressable
         accessibilityRole="button"
-        disabled={busy}
-        onPress={() => void submit()}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: scale.space / 2,
-          borderWidth: 2,
-          marginTop: scale.space,
-          opacity: busy ? 0.6 : 1,
-        }}
+        disabled={removing}
+        onPress={() => void signOut()}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
       >
-        {busy ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>
-            {ES.onboarding.create}
-          </Text>
-        )}
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.auth.signOut}</Text>
       </Pressable>
 
-      {/* ⚠️ THE RULE IS THE ONLY THING SAYING THESE ARE TWO DIFFERENT ERRANDS.
-          Without it the code box reads as a third question about the shop being
-          created, which is the one reading that would make a joiner fill in the
-          name field first. */}
-      <View
-        style={{
-          // ⚠️ A BORDER AND NOT A `height: 1` BOX. `R6` refuses a literal size on
-          // anything a person LOOKS at — elder mode has to be able to change it —
-          // and a hairline is structure: the same shape the Ajustes header draws
-          // its rule with, and the one the gate reads as structure rather than as
-          // a size somebody hard-coded.
-          borderBottomWidth: 1,
-          borderBottomColor: PALETTE.linea,
-          marginTop: scale.space * 2,
-        }}
-      />
-
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '700', marginTop: scale.space }}>
-        {ES.join.section}
-      </Text>
-      <Text style={{ fontSize: scale.bodySize }}>{ES.join.hint}</Text>
-
-      <Text style={{ fontSize: scale.bodySize }}>{ES.join.label}</Text>
-      <TextInput
-        value={credential}
-        onChangeText={setCredential}
-        // ⚠️ `characters` AND `autoCorrect` OFF, because the alphabet is
-        // Crockford base32 and a keyboard that helpfully capitalises the first
-        // letter and lower-cases the rest is a keyboard fighting the normaliser.
-        // The normaliser would win — `normalizeCredential` upper-cases anyway —
-        // but she would be watching her own code change as she typed it.
-        autoCapitalize="characters"
-        autoCorrect={false}
-        autoComplete="off"
-        editable={!joining}
-        style={{
-          fontSize: scale.bodySize,
-          minHeight: scale.tapTarget,
-          borderWidth: 1,
-          borderRadius: scale.space / 2,
-          paddingHorizontal: scale.space,
-        }}
-      />
-
-      {joinProblem !== null && (
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{joinProblem}</Text>
-      )}
-
-      <Pressable
-        accessibilityRole="button"
-        disabled={joining}
-        onPress={() => void join()}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: scale.space / 2,
-          borderWidth: 2,
-          opacity: joining ? 0.6 : 1,
-        }}
-      >
-        {joining ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>{ES.join.submit}</Text>
-        )}
-      </Pressable>
-
-      {/* ⚠️⚠️ THE HALF LOOP, AND IT IS THE ONLY THING SHE GETS FOR ASKING.
-          `my_access_requests` is the ONLY way she can ever see this row — `S3`:
-          `workspace_invite_select` is manager-and-above and she has no role at
-          all — so without this block an ask is a button that appears to do
-          nothing, on the one screen she has no way around.
-
-          ⚠️ IT RENDERS NOTHING WHILE THE READ IS OUT AND NOTHING WHEN THERE IS
-          NO PENDING ROW, which is the same branch: `pending` is `null` for both.
-          A founding owner never sees it, and never sees a spinner where it
-          would be. */}
-      {pending !== null && (
-        <View
-          style={{
-            borderWidth: 1,
-            borderColor: PALETTE.linea,
-            borderRadius: scale.space / 2,
-            padding: scale.space,
-            gap: scale.rowGap,
-            marginTop: scale.space,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>
-            {ES.join.pending.title(pending.workspaceName)}
-          </Text>
-          <Text style={{ fontSize: scale.bodySize }}>{ES.join.pending.body}</Text>
-          {/* `8g`, 2026-10-21: nothing reaches the owner outside Wera, so she
-              can say it herself; WhatsApp asks to whom. */}
-          <BotonLleno
-            label={ES.join.pending.tell}
-            icon="whatsapp"
-            onPress={() =>
-              void Linking.openURL(whatsappChooseUrl(ES.join.pending.tellMessage(pending.workspaceName))).catch(
-                () => {},
-              )
-            }
-          />
-        </View>
-      )}
-
-      {/* 5R-k. Last on the screen and quiet: neither is what anybody came here
-          for, and this is the first screen a new shopkeeper reads. So both are
-          the muted ink, where Ajustes draws the same two acts in the error
-          colour; only the confirmation is. That difference is reported to the
-          owner (R16) and is his to settle at his review. */}
-      <View style={{ marginTop: scale.space * 2, gap: scale.rowGap }}>
+      {!leaving ? (
         <Pressable
           accessibilityRole="button"
-          disabled={removing}
-          onPress={() => void signOut()}
+          onPress={() => setLeaving(true)}
           style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
         >
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-            {ES.auth.signOut}
-          </Text>
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.account.open}</Text>
         </Pressable>
+      ) : (
+        <View style={{ gap: scale.rowGap }}>
+          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{ES.account.aloneWarning}</Text>
 
-        {!leaving ? (
+          {leaveProblem !== null && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{leaveProblem}</Text>
+          )}
+
           <Pressable
             accessibilityRole="button"
-            onPress={() => setLeaving(true)}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+            accessibilityState={{ disabled: removing }}
+            disabled={removing}
+            onPress={() => void confirmLeave()}
+            style={{
+              minHeight: scale.tapTarget,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 1,
+              borderColor: PALETTE.error,
+              borderRadius: scale.space / 2,
+            }}
           >
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.account.open}
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
+              {removing ? ES.account.working : ES.account.confirm}
             </Text>
           </Pressable>
-        ) : (
-          <View style={{ gap: scale.rowGap }}>
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
-              {ES.account.aloneWarning}
-            </Text>
 
-            {leaveProblem !== null && (
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{leaveProblem}</Text>
+          <Pressable
+            accessibilityRole="button"
+            disabled={removing}
+            onPress={() => {
+              setLeaving(false);
+              setLeaveProblem(null);
+            }}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.account.cancel}</Text>
+          </Pressable>
+        </View>
+      )}
+    </View>
+  );
+
+  const page = (children: ReactNode) => (
+    <ScrollView
+      keyboardShouldPersistTaps="handled"
+      contentContainerStyle={{
+        paddingHorizontal: scale.space * 2,
+        paddingTop: scale.space * 2,
+        paddingBottom: scale.space * 2 + insets.bottom,
+        gap: scale.space,
+      }}
+    >
+      {children}
+      {exits}
+    </ScrollView>
+  );
+
+  const back = pending === null ? { label: ES.cuenta.back, onPress: () => choose(null) } : null;
+
+  // An account that came by neither door: the doors again, signed in.
+  if (half === null) {
+    return (
+      <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+        <Banda titulo={ES.hola.choose} />
+        {page(<Puertas onAbrir={() => choose('abrir')} onInvitada={() => choose('invitada')} />)}
+      </View>
+    );
+  }
+
+  if (half === 'abrir') {
+    return (
+      <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+        <Banda titulo={ES.onboarding.title} antetitulo={ES.cuenta.door.abrir} volver={back} />
+        {page(
+          <>
+            <Campo
+              label={ES.onboarding.nameLabel}
+              value={name}
+              onChangeText={setName}
+              autoCapitalize="words"
+              autoCorrect={false}
+              returnKeyType="done"
+              editable={!busy}
+            />
+
+            <View style={{ marginTop: scale.rowGap }}>
+              {starter.template !== null ? (
+                <SelectorCatalogo
+                  template={starter.template}
+                  holding={starter.holding}
+                  chosen={giros}
+                  excluded={excluded}
+                  onToggleGiro={(code) => setOrden((now) => toggledInOrder(now, code))}
+                  principal={principalDe(orden)}
+                  onToggleProduct={() => {}}
+                  products={false}
+                />
+              ) : (
+                <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>
+                  {starter.failed !== null ? ES.starter.needsSignal : ES.starter.loading}
+                </Text>
+              )}
+            </View>
+
+            {problem !== null && (
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
             )}
 
-            <Pressable
-              accessibilityRole="button"
-              accessibilityState={{ disabled: removing }}
-              disabled={removing}
-              onPress={() => void confirmLeave()}
-              style={{
-                minHeight: scale.tapTarget,
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderWidth: 1,
-                borderColor: PALETTE.error,
-                borderRadius: scale.space / 2,
-              }}
-            >
-              <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-                {removing ? ES.account.working : ES.account.confirm}
-              </Text>
-            </Pressable>
-
-            <Pressable
-              accessibilityRole="button"
-              disabled={removing}
-              onPress={() => {
-                setLeaving(false);
-                setLeaveProblem(null);
-              }}
-              style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
-            >
-              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                {ES.account.cancel}
-              </Text>
-            </Pressable>
-          </View>
+            <BotonLleno variante="principal" label={ES.onboarding.create} busy={busy} onPress={() => void submit()} />
+          </>,
         )}
       </View>
-    </ScrollView>
+    );
+  }
+
+  return (
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Banda titulo={ES.join.title} antetitulo={ES.cuenta.door.invitada} volver={back} />
+      {page(
+        <>
+          {/* ⚠️ `characters` AND `autoCorrect` OFF, because the alphabet is
+              Crockford base32 and a keyboard that helpfully capitalises the
+              first letter and lower-cases the rest is a keyboard fighting the
+              normaliser. A pasted message's spaces are forgiven by it too. */}
+          <Campo
+            label={ES.join.label}
+            value={credential}
+            onChangeText={setCredential}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoComplete="off"
+            returnKeyType="go"
+            onSubmitEditing={() => void join()}
+            editable={!joining}
+          />
+
+          {joinProblem !== null && (
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{joinProblem}</Text>
+          )}
+
+          <BotonLleno variante="principal" label={ES.join.submit} busy={joining} onPress={() => void join()} />
+
+          {/* ⚠️⚠️ THE HALF LOOP, AND IT IS THE ONLY THING SHE GETS FOR ASKING.
+              `my_access_requests` is the ONLY way she can ever see this row
+              (`S3`), so without this block an ask is a button that appears to
+              do nothing. It renders nothing while the read is out and nothing
+              with no pending row — the same branch, `pending` is `null`. ⚠️
+              `8g`: and it now opens by itself (`useWaitForApproval`). */}
+          {pending !== null && (
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: PALETTE.linea,
+                borderRadius: scale.space,
+                backgroundColor: PALETTE.superficie,
+                padding: scale.space + scale.rowGap,
+                gap: scale.rowGap,
+                marginTop: scale.space,
+              }}
+            >
+              <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+                {ES.join.pending.title(pending.workspaceName)}
+              </Text>
+              <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.join.pending.body}</Text>
+              {/* Nothing reaches the owner outside Wera, so she can say it
+                  herself; WhatsApp asks to whom. */}
+              <BotonLleno
+                label={ES.join.pending.tell}
+                icon="whatsapp"
+                onPress={() =>
+                  void Linking.openURL(whatsappChooseUrl(ES.join.pending.tellMessage(pending.workspaceName))).catch(
+                    () => {},
+                  )
+                }
+              />
+            </View>
+          )}
+        </>,
+      )}
+    </View>
   );
 }

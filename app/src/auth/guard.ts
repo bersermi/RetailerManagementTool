@@ -33,7 +33,7 @@ import type { Membership } from '@/api/workspace';
 export type RouteGroup = 'auth' | 'app' | 'onboarding' | null;
 
 /** Where the app is told to go, or `null` for "stay where you are". */
-export type Redirect = '/entrar' | '/' | '/vender' | '/bienvenida' | null;
+export type Redirect = '/hola' | '/' | '/vender' | '/bienvenida' | null;
 
 export interface GuardState {
   /**
@@ -80,7 +80,9 @@ export interface GuardState {
  */
 export function redirectFor({ ready, hasSession, membership, group, role = null }: GuardState): Redirect {
   if (!ready) return null;
-  if (!hasSession) return group === 'auth' ? null : '/entrar';
+  // ⚠️ `8g`, 2026-10-21: A STRANGER IS SENT TO THE TWO DOORS (`(auth)/hola`),
+  // not to the sign-in form — *¿Ya tienes cuenta? Entrar* is one tap from them.
+  if (!hasSession) return group === 'auth' ? null : '/hola';
 
   // Signed in, and we do not yet know whether they have a shop. Moving them now
   // is guessing, and both guesses are wrong for half the people who launch.

@@ -160,6 +160,7 @@ import {
   approveRequest,
   catalogTemplate,
   setMainGiro,
+  setPricesIncludeTax,
   catalogUnits,
   catalogVariants,
   changePrice,
@@ -1339,6 +1340,32 @@ export function useSetMainGiro() {
   async function save(workspaceId: string, giro: string | null): Promise<string | null> {
     try {
       await mutation.mutateAsync({ workspaceId, giro });
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { save, busy: mutation.isPending };
+}
+
+/**
+ * `8g`, 2026-10-21: the IVA answer, changed in Ajustes — the owner's. It
+ * invalidates the shop read, which every counter takes the answer from.
+ */
+export function useSetPricesIncludeTax() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: ({ workspaceId, included }: { workspaceId: string; included: boolean }) =>
+      setPricesIncludeTax(workspaceId, included),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: MY_WORKSPACES_KEY });
+    },
+  });
+
+  async function save(workspaceId: string, included: boolean): Promise<string | null> {
+    try {
+      await mutation.mutateAsync({ workspaceId, included });
       return null;
     } catch (thrown) {
       return apiErrorMessage(thrown);

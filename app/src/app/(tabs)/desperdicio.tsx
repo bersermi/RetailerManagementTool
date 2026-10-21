@@ -23,10 +23,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { catalogLine, isoDay, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import {
   CONDITIONS,
+  EMPTY_ADDRESS,
   KEEPINGS,
   MAX_PHOTOS,
   PACKAGINGS,
   addressComplete,
+  checkAddress,
   dayBookable,
   draftReady,
   formatSlot,
@@ -40,6 +42,7 @@ import {
   slotValid,
   storeAddressLine,
   whatsappMessage,
+  type AddressForm,
   type CollectionPrefill,
   type CollectionRequest,
   type CollectionStatus,
@@ -57,6 +60,7 @@ import {
   useMagnitude,
   useMyRole,
   useRequestCollection,
+  useSetStoreAddress,
   useStoreAddresses,
   useUnitFactors,
   useWorkspace,
@@ -101,6 +105,7 @@ import { TITULO } from '@/theme/letra';
 import { PALETTE } from '@/theme/palette';
 import { EMPTIED_BLOOM_MS } from '@/theme/pulse';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Direccion } from '@/ui/Direccion';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
@@ -217,6 +222,55 @@ function useAcceso(): Acceso {
   return reaches ? { kind: 'open', address } : { kind: 'outside', postalCode: address.postalCode };
 }
 
+/**
+ * `8g`, 2026-10-21: THE STORE'S ADDRESS, BEFORE MERMA — the owner's four
+ * required fields and the optional colonia, saved to the shop's first store.
+ * No *Ahora no* (his ruling). When it is saved the read comes back complete
+ * and Merma draws itself.
+ */
+function PideDireccion() {
+  const { scale } = useDensity();
+  const insets = useSafeAreaInsets();
+  const store = useStoreAddresses().data?.[0] ?? null;
+  const { save, busy } = useSetStoreAddress();
+  const [form, setForm] = useState<AddressForm>(EMPTY_ADDRESS);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  async function guardar() {
+    if (busy || store === null) return;
+    setProblem(null);
+    const issue = checkAddress(form);
+    if (issue !== null) {
+      setProblem(ES.address.issues[issue]);
+      return;
+    }
+    setProblem(await save(store.locationId, form));
+  }
+
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+    >
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{ padding: scale.space * 2, gap: scale.space }}
+      >
+        <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
+          {ES.onboarding.addressTitle}
+        </Text>
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.onboarding.addressHint}</Text>
+        <Direccion value={form} onChange={setForm} editable={!busy} />
+        {problem !== null && (
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
+        )}
+        <BotonLleno variante="principal" label={ES.address.save} busy={busy} onPress={() => void guardar()} />
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
 /** The device's `HH:MM` — the shop's own clock, for which quarters have begun. */
 function nowClock(): string {
   const now = new Date();
@@ -282,6 +336,17 @@ export default function Desperdicio() {
       };
     }, [leaveRequest, shown]),
   );
+
+  // ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21: THE ADDRESS IS ASKED HERE,
+  // when Merma opens — not when the shop is made — and *"Don't make it
+  // dodgeable if a person wants to log Merma."* So an owner whose shop has no
+  // address gives it before anything else here. ⚠️ ONLY THE OWNER: the
+  // database lets nobody else write the store (`location_update`, `0001`), and
+  // who else is asked is a question still put to him — meanwhile the others
+  // pass, as before. ⚠️ ONLY WHEN THE READ SAYS SO: offline it is `checking`
+  // (the address is not kept on the phone) and Tirar goes on working; she is
+  // asked when the signal and the read return.
+  if (role === 'owner' && acceso.kind === 'noAddress') return <PideDireccion />;
 
   return (
     <KeyboardAvoidingView

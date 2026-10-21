@@ -14,6 +14,7 @@ import {
   usePendingRequests,
   useRoster,
   useSetMainGiro,
+  useSetPricesIncludeTax,
   useSetStoreAddress,
   useStoreAddress,
   useStoreAddresses,
@@ -171,12 +172,14 @@ export default function Ajustes() {
             <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
               {workspace.displayName}
             </Text>
-            {/* C1.7, read back in the words it was asked in. It is the one answer
-                at onboarding that is wrong for ever, so the sheet says which way
-                it was answered rather than leaving it to be remembered. */}
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {workspace.pricesIncludeTax ? ES.settings.ivaIncluded : ES.settings.ivaExcluded}
-            </Text>
+            {/* ⚠️ `8g`, the owner's ruling of 2026-10-21: no longer asked when
+                the shop is made — every shop starts at *Sí, ya lo incluyen* —
+                so this is where it is answered, and changed. The owner's. */}
+            <Iva
+              workspaceId={workspace.id}
+              included={workspace.pricesIncludeTax}
+              mayChange={role === 'owner'}
+            />
             <GiroPrincipal
               workspaceId={workspace.id}
               current={workspace.giroPrincipal ?? null}
@@ -1415,6 +1418,67 @@ function GiroPrincipal({
       {problem !== null ? (
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text>
       ) : null}
+    </View>
+  );
+}
+
+/**
+ * ⚠️ `8g`, the owner's ruling of 2026-10-21: WHETHER THE SHOP'S PRICES ALREADY
+ * INCLUDE IVA — *"we'll assume Sí, ya lo incluyen for everyone, changeable in
+ * the settings."* `GiroPrincipal`'s shape: the answer on one line, *Cambiar*,
+ * the two answers in the words the question was asked in, one tap saves.
+ *
+ * ⚠️ THE OWNER'S ALONE (`workspace_update`, `0001`). ⚠️ A CHANGE RE-READS EVERY
+ * STORED PRICE under the new answer (ADR-035 §2.5): at 0%, which is every
+ * starter-catalog product, nothing moves.
+ */
+function Iva({ workspaceId, included, mayChange }: { workspaceId: string; included: boolean; mayChange: boolean }) {
+  const { scale } = useDensity();
+  const { save, busy } = useSetPricesIncludeTax();
+  const [open, setOpen] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+
+  async function pick(next: boolean) {
+    if (busy) return;
+    setProblem(null);
+    if (next !== included) {
+      const failed = await save(workspaceId, next);
+      if (failed !== null) {
+        setProblem(failed);
+        return;
+      }
+    }
+    setOpen(false);
+  }
+
+  return (
+    <View style={{ gap: scale.rowGap }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: scale.space }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.onboarding.ivaQuestion}</Text>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {included ? ES.onboarding.ivaYes : ES.onboarding.ivaNo}
+          </Text>
+        </View>
+        {mayChange ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setOpen((now) => !now)}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+              {open ? ES.settings.mainGiro.done : ES.settings.mainGiro.change}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {open ? (
+        <>
+          <Opcion chosen={included} title={ES.onboarding.ivaYes} subtitle={ES.onboarding.ivaHint} onPress={() => void pick(true)} />
+          <Opcion chosen={!included} title={ES.onboarding.ivaNo} onPress={() => void pick(false)} />
+        </>
+      ) : null}
+      {problem !== null ? <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text> : null}
     </View>
   );
 }

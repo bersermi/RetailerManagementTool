@@ -23,6 +23,9 @@ export const FIRST_SALE_KEY = 'wera.taught.first-sale';
 /** The first outage's longer notice has been shown on this phone. */
 export const FIRST_OUTAGE_KEY = 'wera.taught.first-outage';
 
+/** `8g`, 2026-10-21: the opening — the cow turning into the logo — has played on this phone. */
+export const OPENING_KEY = 'wera.taught.opening';
+
 /**
  * Is this the first time — and if so, it no longer will be.
  *

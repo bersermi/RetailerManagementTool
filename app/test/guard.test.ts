@@ -45,9 +45,9 @@ describe('once the session is known', () => {
   // session to mean anything, so a stranger must never be left waiting on one.
   it('sends a signed-out person to the way in, from anywhere else', () => {
     for (const membership of MEMBERSHIPS) {
-      expect(redirectFor({ ready: true, hasSession: false, membership, group: 'app' })).toBe('/entrar');
-      expect(redirectFor({ ready: true, hasSession: false, membership, group: 'onboarding' })).toBe('/entrar');
-      expect(redirectFor({ ready: true, hasSession: false, membership, group: null })).toBe('/entrar');
+      expect(redirectFor({ ready: true, hasSession: false, membership, group: 'app' })).toBe('/hola');
+      expect(redirectFor({ ready: true, hasSession: false, membership, group: 'onboarding' })).toBe('/hola');
+      expect(redirectFor({ ready: true, hasSession: false, membership, group: null })).toBe('/hola');
     }
   });
 
@@ -75,12 +75,12 @@ describe('once the session is known', () => {
           for (const group of GROUPS) {
             for (const role of ['owner', 'manager', 'staff', null] as const) {
               const to = redirectFor({ ready, hasSession, membership, group, role });
-              if (to === '/entrar') expect(group).not.toBe('auth');
+              if (to === '/hola') expect(group).not.toBe('auth');
               if (to === '/' || to === '/vender') expect(group).not.toBe('app');
               if (to === '/bienvenida') expect(group).not.toBe('onboarding');
             }
             const to = redirectFor({ ready, hasSession, membership, group });
-            if (to === '/entrar') expect(group).not.toBe('auth');
+            if (to === '/hola') expect(group).not.toBe('auth');
             if (to === '/') expect(group).not.toBe('app');
             if (to === '/bienvenida') expect(group).not.toBe('onboarding');
           }
@@ -174,6 +174,6 @@ describe('the group is read from the first segment and nothing else', () => {
         membership: 'unknown',
         group: groupOf(['+not-found']),
       }),
-    ).toBe('/entrar');
+    ).toBe('/hola');
   });
 });

@@ -342,6 +342,22 @@ export async function setMainGiro(workspaceId: string, giro: string | null): Pro
 }
 
 /**
+ * Whether the shop's prices already include IVA — `8g`, the owner's ruling of
+ * 2026-10-21: *"we'll assume Sí, ya lo incluyen for everyone, changeable in
+ * the settings."* The same owner-only door as the main giro (`workspace_update`,
+ * `0001`); a refused update is a 200 with no row, which `.single()` surfaces.
+ */
+export async function setPricesIncludeTax(workspaceId: string, included: boolean): Promise<void> {
+  const { error } = await supabase
+    .from('workspace')
+    .update({ prices_include_tax: included })
+    .eq('id', workspaceId)
+    .select('id')
+    .single();
+  if (error) throw reported(error);
+}
+
+/**
  * The caller's stores with their addresses (`0058`, `8k`). One row per store she
  * may see — `location_select` is `my_locations()` — ordered so the first is the
  * shop's first store, which is the pilot's only one.

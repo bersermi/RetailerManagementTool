@@ -40,7 +40,14 @@ describe('onboarding asks for giros, and only Agregar del catálogo shows the li
 
   it('no screen promises any more that a catalog product cannot be removed', () => {
     expect(ES.starter.hint).not.toContain('no quitarlos');
-    expect(ES.starter.hintGiros).toContain('Productos');
+    expect(ES.starter.hintGiros).not.toContain('no quitarlos');
+  });
+
+  // ⚠️ `8g`, the owner's ruling of 2026-10-21: his two lines, word for word.
+  it('says under ¿Qué vendes? the two lines the owner wrote', () => {
+    expect(ES.starter.hintGiros).toBe(
+      'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.',
+    );
   });
 });
 

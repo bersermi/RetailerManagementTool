@@ -60,7 +60,8 @@ export const ES = {
     signUp: 'Crear cuenta',
     /** C1.4's other way in (5a-iii-b). The provider is named because the
      *  person has to recognise which account they are about to use. */
-    google: 'Entrar con Google',
+    /** ⚠️ `8g`, 2026-10-21: *Continuar*, Apple's own word beside it — the button makes the account or comes back to it. */
+    google: 'Continuar con Google',
     /**
      * ⚠️ THE SWITCH BETWEEN THE SCREEN'S TWO HALVES, AND UNTIL 5b.7 THESE WERE
      * DEAD COPY. They were written at 5a-iii-a for a shape that never shipped —
@@ -153,7 +154,8 @@ export const ES = {
     ivaHint: 'Es el precio de la etiqueta, el que paga el cliente.',
     ivaYes: 'Sí, ya lo incluyen',
     ivaNo: 'No, se agrega aparte',
-    create: 'Crear mi tienda',
+    /** ⚠️ `8g`, 2026-10-21: the door's own words, so the button is the door she chose. */
+    create: 'Abrir mi tienda',
     /** `8k`: the store's address, asked when the shop is made — the owner's four. */
     addressTitle: '¿Dónde está tu tienda?',
     addressHint: 'Así sabemos a dónde ir cuando nos pidas recoger algo.',
@@ -220,7 +222,8 @@ export const ES = {
     /** At onboarding, where there is no list since 2026-10-14 (the owner's ruling). */
     /** `8g`: under the first giro picked, beside its star (the owner's wording). */
     principal: 'Tu giro principal',
-    hintGiros: 'Te ponemos todos los productos de tu giro. Después puedes quitar los que no vendes desde Productos.',
+    /** ⚠️ `8g`: THE OWNER'S TWO LINES, 2026-10-21 (*"más"* given its accent). */
+    hintGiros: 'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.',
     count: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
     add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
     none: 'No elegiste ningún producto.',
@@ -269,7 +272,9 @@ export const ES = {
     /** ⚠️ A QUESTION, BECAUSE IT IS ALSO THE SIGN THAT THIS HALF IS FOR HER. */
     section: '¿Te invitaron a una tienda?',
     hint: 'Escribe el código que te mandaron.',
-    label: 'Código de invitación',
+    /** `8g`, 2026-10-21: her half's title, and its one box. */
+    title: 'Entrar a la tienda',
+    label: 'El código que te mandaron',
     submit: 'Entrar a la tienda',
     working: 'Entrando…',
 
@@ -363,6 +368,30 @@ export const ES = {
   arrival: {
     opened: 'Tu tienda está lista',
     joined: (shop: string) => `Ya estás en ${shop}`,
+  },
+
+  /**
+   * ⚠️ `8g`, the owner's ruling of 2026-10-21 — *"We will do the 2 door
+   * version"*: THE FIRST SCREEN. Two doors and a way back in, and no sentence
+   * under them; the icon and the words say it.
+   */
+  hola: {
+    name: 'Wera',
+    abrir: 'Abrir mi tienda',
+    invitada: 'Me invitaron a una tienda',
+    yaTengo: '¿Ya tienes cuenta?',
+    entrar: 'Entrar',
+    /** On the landing, for a signed-in account that came by neither door. */
+    choose: '¿Qué quieres hacer?',
+  },
+
+  /** The account, after a door: which door, in the band above the title. */
+  cuenta: {
+    title: 'Tu cuenta',
+    signInTitle: 'Entrar',
+    back: 'Volver',
+    door: { abrir: 'Abrir mi tienda', invitada: 'Te invitaron' } as Readonly<Record<'abrir' | 'invitada', string>>,
+    orEmail: 'o con tu correo',
   },
 
   /**
@@ -651,8 +680,9 @@ export const ES = {
      * later. Same shape and same argument as `members.shareMessage`; the
      * deviation from flat literals is that file's, argued there.
      */
+    /** ⚠️ `8g`, the owner's ruling of 2026-10-21: it names the door. */
     shareMessage: (shopName: string, token: string) =>
-      `Te invité a ${shopName} en Wera. Tu código es ${token}`,
+      `Te invité a ${shopName} en Wera. Abre Wera, toca «Me invitaron a una tienda» y escribe este código: ${token}`,
   },
 
   /**
@@ -776,8 +806,9 @@ export const ES = {
      * ⚠️ IT CARRIES THE SHOP'S NAME BECAUSE A CODE ALONE IS EIGHT CHARACTERS IN
      * A CHAT WINDOW THREE WEEKS LATER — `4.6a-iii`'s decision 3, one layer out.
      */
+    /** ⚠️ `8g`, the owner's ruling of 2026-10-21: the words he approved, naming the door. */
     shareMessage: (shopName: string, code: string) =>
-      `Entra a ${shopName} en Wera. Tu código es ${code}`,
+      `Te invité a ${shopName} en Wera. Abre Wera, toca «Me invitaron a una tienda» y escribe este código: ${code}`,
   },
 
   /**
