@@ -5,7 +5,9 @@ not the one section 1 describes:** `eas submit` of build 3 (`d0246560`) went to 
 `mx.wera.app`, Apple ID **`6818418895`**, named *Wera* — while the owner had filled in a second
 record, *Wera: tu tienda* (`6825377325`), under another bundle id. The build cannot move, so
 `6818418895` is kept (renamed, its primary language set to Spanish (Mexico), its pages filled
-again) and the other is removed; its SKU is whatever EAS gave it, not `wera-mx`.
+again) and the other is removed. Its SKU is **`WERA-IOS-001`**, not `wera-mx` (he read it
+2026-10-21) — typed by a person, so the record predates the upload; it cannot change and is
+never shown.
 ⚠️ **Not pinned in `app/eas.json`:** an `ascAppId` there CHANGES THE UPDATE RUNTIME (measured
 2026-10-21: iOS `d308ba9f…` → `0588fb66…`, Android `5a4a7a5d…` → `1d7f904c…`), and no update would
 reach a build already installed. Once the other record is removed, `eas submit` finds this one by
