@@ -202,6 +202,7 @@ On the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large button
 | Device or other IDs | App functionality |
 | Photos | App functionality |
 | Address | App functionality |
+| Phone number | App functionality |
 
 ⚠️ ***Analytics* on Purchase history is the daily count per shop** (`docs/runbooks/engagement.sql`),
 which counts every shop in the database. It stays: on 2026-10-14 the owner ruled that the count
@@ -212,7 +213,7 @@ Wera reads none of them and sends none off the phone. Photos are only the ones t
 camera, for *Te lo compro* or (since `8o`) of a product the shop created; the phone's gallery is
 never read. *App interactions*, *Crash logs* and
 *Diagnostics* — the pilot's measurements are not in the store build, and there is no crash or
-analytics library. *Phone number* — a supplier's phone is the shop's record, not the user's.
+analytics library. (*Phone number* was here until his ruling of 2026-10-21; it is ticked now.)
 
 ### Government apps
 
@@ -252,7 +253,7 @@ Upload the `.aab` (handbook, step 4). Accept Play App Signing when it offers.
 
 <!-- max:500 -->
 ```
-Primera versión de prueba de Wera: vender, comprar, registrar desperdicio, catálogo por giro y números de venta.
+Primera versión de prueba de Wera: vender, comprar, registrar merma, catálogo por giro y números de venta.
 ```
 
 Then *Next → Save → Send for review*.
