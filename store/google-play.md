@@ -123,7 +123,7 @@ https://tu-wera.com/privacidad/
 
 <!-- max:500 -->
 ```
-Sign in with email and password on the first screen (Entrar). No second factor. The account owns a demo shop with products already loaded. The app is in Spanish.
+On the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large buttons), then sign in with the email and password. No second factor. The account owns a demo shop with products already loaded. The app is in Spanish.
 ```
 
 ### Ads
@@ -141,7 +141,7 @@ Sign in with email and password on the first screen (Entrar). No second factor. 
 | Offensive language | **No** |
 | Gambling, real or simulated | **No** |
 | Illegal drugs | **No** |
-| Alcohol or tobacco | ⚠️ **If it asks about references to them: Yes.** The starter catalog for *Abarrotes* names cigarettes by brand and has a *Cerveza y licores* category. **If it asks about use, promotion or sale to the user: No.** Wera records what a shop sells; it sells nothing |
+| Alcohol or tobacco | **No.** Since `0066` (2026-10-20, the owner's correction) the starter catalog carries no beer, liquor, cigarettes or pet products (it named them before, and this answer was *Yes, references*). Wera records what a shop sells; it sells nothing |
 | Users interact or exchange content with other users | **No** — people in one shop share its records; there is no messaging and nothing public |
 | Shares the user's location with others | **No** |
 | Lets users buy digital goods | **No** |
