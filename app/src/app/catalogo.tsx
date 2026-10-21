@@ -4,7 +4,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useImportCatalog, useStarterCatalog } from '@/api/hooks';
-import { choiceFrom, importCount, offeredGroups, toggled } from '@/api/starterCatalog';
+import { choiceFrom, importCount, notAddedOf, offeredGroups, toggled } from '@/api/starterCatalog';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -38,6 +38,9 @@ export default function Catalogo() {
   const [giros, setGiros] = useState<ReadonlySet<string>>(new Set());
   const [excluded, setExcluded] = useState<ReadonlySet<string>>(new Set());
   const [problem, setProblem] = useState<string | null>(null);
+  // ⚠️ `8g`, 2026-10-21: what was sent and what the server created, kept so the
+  // line about what did not arrive is read off the shop AFTER the import.
+  const [report, setReport] = useState<{ sent: readonly string[]; imported: number } | null>(null);
 
   const groups =
     starter.template === null ? [] : offeredGroups(starter.template, giros, starter.holding);
@@ -51,13 +54,38 @@ export default function Catalogo() {
       setProblem(ES.starter.none);
       return;
     }
-    const { error } = await add(choice);
+    const sent = groups.flatMap((g) => g.products.map((p) => p.code)).filter((code) => !excluded.has(code));
+    const { result, error } = await add(choice);
     if (error !== null) {
       setProblem(error);
       return;
     }
-    router.back();
+    // ⚠️⚠️ `8g`, 2026-10-21: IT GOES BACK ONLY WHEN EVERYTHING ARRIVED. Until
+    // then it went back whatever the answer was, so 17 Pollo products that were
+    // never created looked added (`notAddedOf`).
+    if (result === null || result.imported >= sent.length) {
+      router.back();
+      return;
+    }
+    setReport({ sent, imported: result.imported });
   }
+
+  const notAdded =
+    report === null || starter.template === null
+      ? null
+      : notAddedOf(starter.template, report.sent, report.imported, starter.holding, starter.aisles);
+  const notAddedLines =
+    notAdded === null || notAdded.total === 0
+      ? []
+      : notAdded.aisles === null
+        ? [ES.starter.notAddedSome(notAdded.total)]
+        : notAdded.aisles.map((a) =>
+            ES.starter.notAdded(
+              a.count,
+              a.aisle,
+              a.held.map((m) => ES.starter.measure[m] ?? m),
+            ),
+          );
 
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
@@ -110,8 +138,14 @@ export default function Catalogo() {
             holding={starter.holding}
             chosen={giros}
             excluded={excluded}
-            onToggleGiro={(code) => setGiros((now) => toggled(now, code))}
-            onToggleProduct={(code) => setExcluded((now) => toggled(now, code))}
+            onToggleGiro={(code) => {
+              setReport(null);
+              setGiros((now) => toggled(now, code));
+            }}
+            onToggleProduct={(code) => {
+              setReport(null);
+              setExcluded((now) => toggled(now, code));
+            }}
             products
           />
         ) : (
@@ -125,6 +159,12 @@ export default function Catalogo() {
             {problem}
           </Text>
         )}
+
+        {notAddedLines.map((line) => (
+          <Text key={line} style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+            {line}
+          </Text>
+        ))}
 
         {giros.size > 0 && (
           <View style={{ marginTop: scale.space }}>

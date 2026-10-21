@@ -225,6 +225,23 @@ export const ES = {
     add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
     none: 'No elegiste ningún producto.',
     nothingLeft: 'Ya tienes todos los productos de nuestro catálogo.',
+    /**
+     * ⚠️ `8g`, 2026-10-21 — WHAT DID NOT ARRIVE, AND WHY, IN ONE LINE (the
+     * owner's ruling: *"Say so, in one line"*). Found on his iPhone: 17 Pollo
+     * products chosen, none added, and the screen went back as if they had —
+     * the shop's *Pollo* aisle held a product sold by the piece, and the import
+     * never puts a product of another measure in an aisle (C8.5).
+     */
+    notAdded: (n: number, aisle: string, held: readonly string[]) => {
+      const what = n === 1 ? '1 producto' : `${n} productos`;
+      if (held.length === 0) return `No agregamos ${what} de ${aisle}.`;
+      if (held.length === 1) return `No agregamos ${what} de ${aisle}: ese pasillo de tu tienda ya tiene productos ${held[0]}.`;
+      return `No agregamos ${what} de ${aisle}: ese pasillo de tu tienda mezcla productos ${held.join(' y ')}.`;
+    },
+    /** When the shop's own read cannot say which aisle: how many, at least. */
+    notAddedSome: (n: number) => (n === 1 ? 'No agregamos 1 producto.' : `No agregamos ${n} productos.`),
+    /** How a measure is said in that line, by `unit.dimension`. */
+    measure: { count: 'por pieza', mass: 'por peso', volume: 'por litro' } as Record<string, string>,
     needsSignal: 'Para traer productos del catálogo necesitas conexión.',
     loading: 'Cargando el catálogo…',
     added: (n: number) => (n === 1 ? 'Se agregó 1 producto.' : `Se agregaron ${n} productos.`),
