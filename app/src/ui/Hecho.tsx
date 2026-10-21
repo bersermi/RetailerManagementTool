@@ -32,6 +32,7 @@ export function Hecho({
   word,
   onDone,
   note = null,
+  lingers = false,
 }: {
   shown: boolean;
   word: string;
@@ -41,6 +42,11 @@ export function Hecho({
    * enough to read it — Vender's first sale on a phone (`@/offline/ensenar`).
    */
   note?: string | null;
+  /**
+   * ⚠️ `8g`, 2026-10-21: the word IS the message — *Ya estás en Abarrotes Ana*
+   * on arrival (`@/auth/llegada`) — so it stays as long as a note would.
+   */
+  lingers?: boolean;
 }) {
   const { scale } = useDensity();
   const bloom = useRef(new Animated.Value(0)).current;
@@ -55,7 +61,7 @@ export function Hecho({
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-      Animated.delay(note === null ? DONE_HOLD_MS : DONE_NOTE_HOLD_MS),
+      Animated.delay(note === null && !lingers ? DONE_HOLD_MS : DONE_NOTE_HOLD_MS),
       Animated.timing(bloom, {
         toValue: 0,
         duration: DONE_OUT_MS,
@@ -67,7 +73,7 @@ export function Hecho({
       if (finished) onDone();
     });
     return () => run.stop();
-  }, [shown, bloom, onDone, note]);
+  }, [shown, bloom, onDone, note, lingers]);
 
   if (!shown) return null;
 

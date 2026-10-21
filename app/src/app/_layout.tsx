@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { Stack, router, usePathname, useSegments } from 'expo-router';
 import { useFonts } from 'expo-font';
 import { StatusBar } from 'expo-status-bar';
@@ -5,9 +6,12 @@ import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 
 import { QueryProvider } from '@/api/QueryProvider';
-import { useMembership } from '@/api/hooks';
+import { useMembership, useWorkspace, useWorkspaceMembers } from '@/api/hooks';
+import { roleOf } from '@/api/members';
+import type { Membership } from '@/api/workspace';
 import { AuthProvider, useAuth } from '@/auth/AuthProvider';
 import { groupOf, redirectFor } from '@/auth/guard';
+import { announceArrival, arrivalFor } from '@/auth/llegada';
 import {
   readLastScreen,
   rememberLastScreen,
@@ -127,6 +131,23 @@ function Gate() {
   const membership = useMembership();
   const segments = useSegments();
   const pathname = usePathname();
+  const queries = useQueryClient();
+  const workspace = useWorkspace();
+  // ⚠️ `8g`, 2026-10-21: HER ROLE DECIDES WHERE SHE ARRIVES (`redirectFor`). A
+  // roster that cannot be read is not a reason to hold her on the landing:
+  // she goes to Vender, the cashier's door, which every role may use.
+  const members = useWorkspaceMembers();
+  const role = members.isError ? 'staff' : roleOf(members.data, session?.user.id ?? null);
+
+  // ⚠️⚠️ `8g`, 2026-10-21: THE MOMENT SHE BELONGS TO A SHOP, EVERYTHING IS READ
+  // AGAIN. Anything read while she had none was read for nobody — the landing's
+  // catalog read answered `[]`, and Vender opened empty in a shop of 841 —
+  // and a membership that arrives is the one change every read depends on.
+  const before = useRef<Membership>(membership);
+  useEffect(() => {
+    if (before.current === 'none' && membership === 'member') void queries.invalidateQueries();
+    before.current = membership;
+  }, [membership, queries]);
 
   // ⚠️ A REF AND NOT STATE, ON PURPOSE. Setting state here would re-render the
   // tree to record a fact nothing draws; the ref is read and written inside the
@@ -137,11 +158,22 @@ function Gate() {
   useEffect(() => {
     const hasSession = session !== null;
 
-    const to = redirectFor({ ready, hasSession, membership, group: groupOf(segments) });
+    const group = groupOf(segments);
+    const to = redirectFor({ ready, hasSession, membership, group, role });
     if (to !== null) {
+      // ⚠️ `8g`: LEAVING THE LANDING IS ARRIVING. She goes where her first job
+      // is, told why once (`@/auth/llegada`), and no screen of an earlier
+      // session on this phone is restored over it.
+      if (group === 'onboarding' && membership === 'member') {
+        restored.current = true;
+        announceArrival(arrivalFor(role, workspace?.displayName ?? null));
+      }
       router.replace(to);
       return;
     }
+    // A member still on the landing is waiting for her role; nothing is
+    // restored or recorded from here.
+    if (group === 'onboarding') return;
 
     if (!ready || !hasSession || membership !== 'member') return;
 
@@ -162,7 +194,7 @@ function Gate() {
     }
 
     rememberLastScreen(routeMemory(), pathname);
-  }, [ready, session, membership, segments, pathname]);
+  }, [ready, session, membership, segments, pathname, role, workspace]);
 
   return null;
 }

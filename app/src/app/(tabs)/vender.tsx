@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from 'expo-router';
 
 import { catalogLine, isoDay, priceCentavos, search, type CatalogEntry, type UnitFactors } from '@/api/catalog';
 import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
@@ -35,6 +36,7 @@ import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
+import { takeArrival } from '@/auth/llegada';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -355,6 +357,16 @@ export default function Vender() {
   const clear = useCartStore((state) => state.clear);
   const [sold, setSold] = useState(false);
   const [soldNote, setSoldNote] = useState<string | null>(null);
+  // ⚠️ `8g`, 2026-10-21: SHE HAS JUST ARRIVED — opened her shop, or joined one
+  // as an Empleado — and is told so once, as the confirmation a sale gets
+  // (`@/auth/llegada`). Taken on focus, not on mount: a tab stays mounted.
+  const [arrived, setArrived] = useState<string | null>(null);
+  useFocusEffect(
+    useCallback(() => {
+      const arrival = takeArrival();
+      if (arrival !== null) setArrived(arrival.word);
+    }, []),
+  );
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
   // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
   const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);
@@ -576,6 +588,7 @@ export default function Vender() {
       ) : null}
 
       <Hecho shown={sold} word={ES.sell.sold} note={soldNote} onDone={() => setSold(false)} />
+      <Hecho shown={arrived !== null} word={arrived ?? ''} lingers onDone={() => setArrived(null)} />
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE EVERY CONDITIONAL. `InputAccessoryView`
           renders into the KEYBOARD rather than into the layout, so where it sits

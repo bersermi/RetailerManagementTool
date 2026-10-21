@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { forgotPasswordUrl, supportNumberOf } from '@/auth/support';
+import { forgotPasswordUrl, supportNumberOf, whatsappChooseUrl } from '@/auth/support';
 import { ES } from '@/strings';
 
 // ============================================================================
@@ -60,5 +60,17 @@ describe('the chat the link opens', () => {
   it('survives the characters a URL would eat', () => {
     const text = new URL(forgotPasswordUrl(FAKE, 'a+b&c@ejemplo.mx')).searchParams.get('text');
     expect(text).toContain('a+b&c@ejemplo.mx');
+  });
+});
+
+// `8g`, 2026-10-21: the landing's *Avisar por WhatsApp* — no number, so
+// WhatsApp asks whom to send it to, and the shop's name survives the URL.
+describe('telling the owner, from the landing', () => {
+  it('opens WhatsApp with nobody chosen and the message typed in', () => {
+    const url = whatsappChooseUrl(ES.join.pending.tellMessage('Abarrotes & Café'));
+    expect(url).toMatch(/^https:\/\/wa\.me\/\?text=/);
+    expect(new URL(url).searchParams.get('text')).toBe(
+      'Hola, te pedí entrar a Abarrotes & Café en Wera. Ábrela y entra a Solicitudes para dejarme entrar.',
+    );
   });
 });

@@ -26,13 +26,14 @@
 // `unknown` case is the whole of what that costs.
 // ============================================================================
 
+import type { Role } from '@/api/members';
 import type { Membership } from '@/api/workspace';
 
 /** The route group a screen lives in. `null` is anything outside all three. */
 export type RouteGroup = 'auth' | 'app' | 'onboarding' | null;
 
 /** Where the app is told to go, or `null` for "stay where you are". */
-export type Redirect = '/entrar' | '/' | '/bienvenida' | null;
+export type Redirect = '/entrar' | '/' | '/vender' | '/bienvenida' | null;
 
 export interface GuardState {
   /**
@@ -55,6 +56,12 @@ export interface GuardState {
    */
   readonly membership: Membership;
   readonly group: RouteGroup;
+  /**
+   * Her role in the shop, or `null` while the roster has not said. ⚠️ `8g`,
+   * 2026-10-21: READ ONLY AT THE MOMENT SHE LEAVES THE LANDING, the one place
+   * the role decides where she goes — see `redirectFor`.
+   */
+  readonly role?: Role | null;
 }
 
 /**
@@ -71,7 +78,7 @@ export interface GuardState {
  * after one is known to exist — which is also why a signed-out person is never
  * waiting on it.
  */
-export function redirectFor({ ready, hasSession, membership, group }: GuardState): Redirect {
+export function redirectFor({ ready, hasSession, membership, group, role = null }: GuardState): Redirect {
   if (!ready) return null;
   if (!hasSession) return group === 'auth' ? null : '/entrar';
 
@@ -86,8 +93,18 @@ export function redirectFor({ ready, hasSession, membership, group }: GuardState
   // Vender that cannot sell and a Numeros with nothing in it.
   if (membership === 'none') return group === 'onboarding' ? null : '/bienvenida';
 
-  // They have a shop. The way in and the landing are both behind them now.
-  return group === 'auth' || group === 'onboarding' ? '/' : null;
+  // ⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21: LEAVING THE LANDING IS ARRIVING,
+  // and an arrival goes where her first job is. Someone who has just opened a
+  // shop, or joined one as an Empleado, lands on Vender — the first sale is the
+  // next thing she does; an Encargado lands on Inicio, the shop's day, which is
+  // hers to run. Until the roster says which she is, she stays one moment more.
+  if (group === 'onboarding') {
+    if (role === null) return null;
+    return role === 'manager' ? '/' : '/vender';
+  }
+
+  // They have a shop. The way in is behind them now.
+  return group === 'auth' ? '/' : null;
 }
 
 /**

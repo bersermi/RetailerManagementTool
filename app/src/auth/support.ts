@@ -50,3 +50,12 @@ export function forgotPasswordUrl(number: string, email: string): string {
 export function whatsappUrl(number: string, text: string): string {
   return `https://wa.me/${number}?text=${encodeURIComponent(text)}`;
 }
+
+/**
+ * `text` typed in, and WhatsApp asks whom to send it to. ⚠️ `8g`, 2026-10-21:
+ * the landing's *Avisar por WhatsApp* — she knows who invited her and Wera
+ * does not (the shop's people are not hers to read before she is let in).
+ */
+export function whatsappChooseUrl(text: string): string {
+  return `https://wa.me/?text=${encodeURIComponent(text)}`;
+}
