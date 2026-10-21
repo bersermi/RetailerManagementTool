@@ -39,7 +39,8 @@ import {
   COLLECTION_REACHES,
   REQUEST_COLLECTION,
   STORE_ADDRESS_COLUMNS,
-  addressPatch,
+  SET_STORE_ADDRESS,
+  setStoreAddressArgs,
   cancelCollectionArgs,
   reachesArgs,
   requestCollectionArgs,
@@ -91,6 +92,8 @@ import type { Reading } from '@/pilot/readings';
 import { type WriteKind } from '@/api/outbox';
 import {
   APPROVE_REQUEST,
+  MEMBER_ROLE_COLUMN,
+  MEMBER_TABLE,
   PENDING_ACCESS_REQUESTS,
   approveArgs,
   approvedFrom,
@@ -381,12 +384,9 @@ export async function storeAddresses(): Promise<StoreAddress[]> {
  * with zero rows, so a manager's attempt would otherwise come back looking saved.
  */
 export async function setStoreAddress(locationId: string, form: AddressForm): Promise<void> {
-  const { error } = await supabase
-    .from('location')
-    .update(addressPatch(form))
-    .eq('id', locationId)
-    .select('id')
-    .single();
+  // ⚠️ `8q` (`0069`): through the function, for every role — the table's own
+  // update is still the owner's alone, and a cashier now gives the address too.
+  const { error } = await supabase.rpc(SET_STORE_ADDRESS, setStoreAddressArgs(locationId, form));
   if (error) throw reported(error);
 }
 
@@ -710,6 +710,35 @@ export async function pendingAccessRequests(workspaceId: string): Promise<Pendin
  * her time in the shop; `checkApproval` is what stops this being called with an
  * empty one, and `0029:407` raises `22023` if it ever is.
  */
+/**
+ * ⚠️ `8q`, the owner's ruling of 2026-10-21: *"the owner can always change the
+ * role of someone."* Her membership row's role, by the owner (a refused update
+ * is a 200 with no row, which `.single()` surfaces). An Empleado sees only the
+ * stores she is given, so one made Empleado is given the shop's stores she
+ * does not hold yet — an Encargado invited by email held none, and would
+ * otherwise be inside the shop reading nothing.
+ */
+export async function setMemberRole(
+  workspaceId: string,
+  who: { readonly memberId: string } | { readonly userId: string },
+  role: 'manager' | 'staff',
+  storeIds: readonly string[],
+): Promise<void> {
+  // Solicitudes knows her membership; Tu equipo's roster knows the person.
+  const base = supabase.from(MEMBER_TABLE).update({ [MEMBER_ROLE_COLUMN]: role }).eq('workspace_id', workspaceId);
+  const { data, error } = await ('memberId' in who ? base.eq('id', who.memberId) : base.eq('user_id', who.userId))
+    .select('id')
+    .single();
+  if (error) throw reported(error);
+  if (role !== 'staff' || storeIds.length === 0) return;
+  const memberId = (data as { id: string }).id;
+  const { error: stores } = await supabase.from('member_location').upsert(
+    storeIds.map((locationId) => ({ workspace_id: workspaceId, member_id: memberId, location_id: locationId })),
+    { onConflict: 'member_id,location_id', ignoreDuplicates: true },
+  );
+  if (stores) throw reported(stores);
+}
+
 export async function approveRequest(draft: ApprovalDraft): Promise<Approved> {
   const { data, error } = await supabase.rpc(APPROVE_REQUEST, approveArgs(draft));
   if (error) throw reported(error);

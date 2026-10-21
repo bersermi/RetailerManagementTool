@@ -44,6 +44,9 @@ REACHES="$(str COLLECTION_REACHES "$CONTRACT")"
 REQUEST="$(str REQUEST_COLLECTION "$CONTRACT")"
 CANCEL="$(str CANCEL_COLLECTION "$CONTRACT")"
 ADDRESS_COLUMNS="$(str STORE_ADDRESS_COLUMNS "$CONTRACT")"
+# `8q` (`0069`): every role writes the address through one function.
+SET_ADDRESS="$(str SET_STORE_ADDRESS "$CONTRACT")"
+SET_ADDRESS_ARGS="$(args_of SetStoreAddressArgs)"
 NO_ADDRESS="$(str NO_ADDRESS_CODE "$CONTRACT")"
 OUTSIDE="$(str OUTSIDE_AREA_CODE "$CONTRACT")"
 TOO_LATE="$(str TOO_LATE_TO_CANCEL_CODE "$CONTRACT")"
@@ -58,7 +61,7 @@ COLLECTION_COLUMNS="$(awk '/^export const COLLECTION_COLUMNS =/{f=1} f{print} f&
   | tr -d '\n' | sed -n "s/.*'\([^']*\)';.*/\1/p")"
 
 note
-for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS NO_ADDRESS OUTSIDE TOO_LATE TOO_SOON MERMA PHOTO_TYPE \
+for name in REACHES REQUEST CANCEL ADDRESS_COLUMNS SET_ADDRESS SET_ADDRESS_ARGS NO_ADDRESS OUTSIDE TOO_LATE TOO_SOON MERMA PHOTO_TYPE \
             REACHES_ARGS REQUEST_ARGS CANCEL_ARGS COLLECTION_COLUMNS; do
   if [[ -z "${!name}" ]]; then
     fail "could not read $name out of the app — this check would assert nothing"
@@ -164,15 +167,15 @@ else
 fi
 
 note
-PATCH="$(python3 -c '
-import json
-print(json.dumps({"street":"Sabino","street_number":"120","colonia":None,
-                  "city":"Ciudad de México","postal_code":"06500"}))')"
-SAVED="$(api PATCH "/rest/v1/location?id=eq.$LOC&select=id" "$PATCH" 'Prefer: return=representation')"
+# ⚠️ `8q` (`0069`): THE APP WRITES THE ADDRESS THROUGH `set_store_address` NOW,
+# for every role, so this is that call by the app's own names — a renamed
+# argument is a 404 here, exactly as on her phone. Who may call it is the
+# suite's (`supabase/tests/0069_store_address_by_anyone.sql`, every role).
+SAVED="$(api POST "/rest/v1/rpc/$SET_ADDRESS" "$(by_names "$SET_ADDRESS_ARGS" "\"$LOC\"" '"Sabino"' '"120"' 'null' '"Ciudad de México"' '"06500"')")"
 READ="$(api GET "/rest/v1/location?select=$ADDRESS_COLUMNS&id=eq.$LOC")"
-if [[ "$(status "$SAVED")" == "200" && "$(count "$(body "$SAVED")")" == "1" \
+if [[ "$(status "$SAVED")" =~ ^20[04]$ \
       && "$(status "$READ")" == "200" && "$(first postal_code "$(body "$READ")")" == "06500" ]]; then
-  ok "the owner writes the store's address, and the app's column list reads it back"
+  ok "the owner writes the store's address through $SET_ADDRESS($SET_ADDRESS_ARGS), and the app's column list reads it back"
 else
   fail "address write $(status "$SAVED") $(body "$SAVED"); read $(status "$READ") $(body "$READ")"
 fi

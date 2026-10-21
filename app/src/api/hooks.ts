@@ -161,6 +161,7 @@ import {
   catalogTemplate,
   setMainGiro,
   setPricesIncludeTax,
+  setMemberRole,
   catalogUnits,
   catalogVariants,
   changePrice,
@@ -824,6 +825,41 @@ export function usePendingRequests(): {
  * called by the screens that own them. A key that has to become a sentence is
  * rendered where the sentences are.
  */
+/**
+ * `8q`: a member's role, changed by the owner — in Solicitudes as she is let
+ * in, and in Tu equipo afterwards. Returns a Spanish sentence, or `null`.
+ */
+export function useSetMemberRole() {
+  const queries = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (input: {
+      workspaceId: string;
+      who: { readonly memberId: string } | { readonly userId: string };
+      role: 'manager' | 'staff';
+      storeIds: readonly string[];
+    }) => setMemberRole(input.workspaceId, input.who, input.role, input.storeIds),
+    onSuccess: async () => {
+      await queries.invalidateQueries({ queryKey: MEMBERS_KEY });
+    },
+  });
+
+  async function change(input: {
+    workspaceId: string;
+    who: { readonly memberId: string } | { readonly userId: string };
+    role: 'manager' | 'staff';
+    storeIds: readonly string[];
+  }): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(input);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { change, busy: mutation.isPending };
+}
+
 export function useApproveRequest() {
   const queries = useQueryClient();
   const mutation = useMutation({

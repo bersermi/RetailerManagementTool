@@ -431,6 +431,8 @@ export const ES = {
        * does not read the setting — see `@/api/corrections`.
        */
       notAllowed: 'Esta nota ya no la puedes corregir tú. Pídele a un gerente.',
+      /** ⚠️ `8q` (`0069`): somebody filled the address first, and changing it is the owner's. */
+      addressOwnerOnly: 'La tienda ya tiene dirección. Solo el dueño puede cambiarla.',
       unknown: 'Algo salió mal. Intenta de nuevo.',
     },
   },

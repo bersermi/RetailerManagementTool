@@ -195,7 +195,7 @@ fixture "W7  the contract is unreadable" red "could not read the approval contra
 # and `fails == 0` is what it prints. `5b-split-coverage.sh` ended on exactly
 # that for 24 days over the largest split in the plan.
 fresh
-mutate "EXPECTED_GROUPS=14" "EXPECTED_GROUPS=99" check.sh; guard
+mutate "EXPECTED_GROUPS=16" "EXPECTED_GROUPS=99" check.sh; guard
 fixture "W8  fewer groups ran than the check promises" red "asserted nothing"
 
 # ===========================================================================
@@ -271,7 +271,22 @@ fixture "W16 the foreign-store fixture uses a store of this shop" red "approving
 # ---------------------------------------------------------------------------
 # ⚠️ THE FLOOR, FOR THE HARNESS ITSELF. A fixture deleted with the assertion it
 # covered is how this file quietly stops being evidence.
-EXPECTED_FIXTURES=17
+# `8q`: the role write names a column the membership row does not have.
+fresh
+mutate "export const MEMBER_ROLE_COLUMN = 'role';" "export const MEMBER_ROLE_COLUMN = 'rol';"; guard
+fixture "W17 the role change names a column that is not there" red "role change answered"
+
+# `8q`: the refusal is read back by the manager who tried it, who reads her row as before.
+fresh
+mutate 'TOKEN="$OWNER_TOKEN"
+STILL_ROLE=' 'TOKEN="$MANAGER_TOKEN"
+api PATCH "/rest/v1/$MEMBER_TABLE?id=eq.$MEMBER_ID" "{\"$ROLE_COLUMN\":\"staff\"}" > /dev/null
+TOKEN="$OWNER_TOKEN"
+api PATCH "/rest/v1/$MEMBER_TABLE?id=eq.$MEMBER_ID" "{\"$ROLE_COLUMN\":\"staff\"}" > /dev/null
+STILL_ROLE=' check.sh; guard
+fixture "W18 a role the owner moved is mistaken for a manager's refusal" red "expected manager, unchanged"
+
+EXPECTED_FIXTURES=19
 echo
 if (( ran < EXPECTED_FIXTURES )); then
   echo "FAILED: only $ran of $EXPECTED_FIXTURES fixtures ran"

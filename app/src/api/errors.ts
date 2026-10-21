@@ -53,6 +53,8 @@ const BY_CODE: Readonly<Record<string, ApiMessageKey>> = {
   // is told *algo salió mal* taps again. One who is told to ask a manager stops.
   // `5h-ii-b`; the sentence is in `ES.api.errors.notAllowed`.
   TD003: 'notAllowed',
+  // `8q` (`0069`): a complete address is the owner's to change.
+  TD012: 'addressOwnerOnly',
   PGRST301: 'sessionEnded',
 };
 

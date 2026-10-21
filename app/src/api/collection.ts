@@ -147,6 +147,37 @@ export interface AddressPatch {
   readonly postal_code: string;
 }
 
+/**
+ * ⚠️ `8q` (`0069`): THE ONE DOOR EVERY ROLE WRITES THE ADDRESS THROUGH — the
+ * owner's ruling of 2026-10-21: *"No one can log Merma until they provide the
+ * address with CP, they can also set it in the Configuracion."* Anyone the
+ * store is visible to fills an address that is not complete; changing a
+ * complete one is the owner's (`TD012` otherwise). Names and arguments once
+ * (`R13`); `docs/checks/8k-collection-contract.sh` reads them from here.
+ */
+export const SET_STORE_ADDRESS = 'set_store_address';
+
+export interface SetStoreAddressArgs {
+  readonly p_location_id: string;
+  readonly p_street: string;
+  readonly p_street_number: string;
+  readonly p_colonia: string | null;
+  readonly p_city: string;
+  readonly p_postal_code: string;
+}
+
+export function setStoreAddressArgs(locationId: string, form: AddressForm): SetStoreAddressArgs {
+  const patch = addressPatch(form);
+  return {
+    p_location_id: locationId,
+    p_street: patch.street,
+    p_street_number: patch.street_number,
+    p_colonia: patch.colonia,
+    p_city: patch.city,
+    p_postal_code: patch.postal_code,
+  };
+}
+
 export function addressPatch(form: AddressForm): AddressPatch {
   const colonia = form.colonia.trim();
   return {

@@ -14,6 +14,7 @@ import {
   usePendingRequests,
   useRoster,
   useSetMainGiro,
+  useSetMemberRole,
   useSetPricesIncludeTax,
   useSetStoreAddress,
   useStoreAddress,
@@ -201,14 +202,16 @@ export default function Ajustes() {
                 ) : roster.entries.length <= 1 ? (
                   <>
                     {roster.entries.map((entry) => (
-                      <Miembro key={entry.userId} entry={entry} />
+                      <Miembro key={entry.userId} entry={entry} mayChange={role === 'owner'} />
                     ))}
                     <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
                       {ES.members.alone}
                     </Text>
                   </>
                 ) : (
-                  roster.entries.map((entry) => <Miembro key={entry.userId} entry={entry} />)
+                  roster.entries.map((entry) => (
+                    <Miembro key={entry.userId} entry={entry} mayChange={role === 'owner'} />
+                  ))
                 )}
               </Section>
             )}
@@ -234,7 +237,9 @@ export default function Ajustes() {
                 <Compartir shopName={workspace.displayName} code={workspace.code} />
               </Section>
             )}
-            <Invitar />
+            {/* ⚠️ `8q`, the owner's ruling of 2026-10-21: everyone joins with the
+                shop's code, and the role is chosen as she is let in — the email
+                invitation (`Invitar`) is no longer offered here. */}
           </>
         )}
 
@@ -628,18 +633,77 @@ function Esperando() {
  * NOT being rewritten. A fifth kind would be right by default here too, which is
  * the point of stating the exception rather than the rule.
  */
-function Miembro({ entry }: { entry: RosterEntry }) {
+function Miembro({ entry, mayChange = false }: { entry: RosterEntry; mayChange?: boolean }) {
   const { scale } = useDensity();
+  const workspace = useWorkspace();
+  const locations = useLocations();
+  const { change, busy } = useSetMemberRole();
+  const [open, setOpen] = useState(false);
+  const [problem, setProblem] = useState<string | null>(null);
+  // ⚠️ `8q`, the owner's ruling of 2026-10-21: *"the owner can always change the
+  // role of someone."* Empleado or Encargado, on anybody but herself and an owner.
+  const changeable = mayChange && !entry.isSelf && entry.role !== 'owner' && workspace !== null;
+
+  async function pick(next: 'staff' | 'manager') {
+    if (busy || workspace === null) return;
+    setProblem(null);
+    if (next !== entry.role) {
+      const failed = await change({
+        workspaceId: workspace.id,
+        who: { userId: entry.userId },
+        role: next,
+        storeIds: locations.options.map((option) => option.id),
+      });
+      if (failed !== null) {
+        setProblem(failed);
+        return;
+      }
+    }
+    setOpen(false);
+  }
+
   return (
-    <View style={{ minHeight: scale.rowHeight, justifyContent: 'center' }}>
-      <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-        {entry.identity.text}
-      </Text>
-      {entry.identity.kind !== 'role' && (
-        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-          {ES.members.roles[entry.role]}
-        </Text>
-      )}
+    <View style={{ gap: scale.rowGap }}>
+      <View style={{ minHeight: scale.rowHeight, flexDirection: 'row', alignItems: 'center', gap: scale.space }}>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {entry.identity.text}
+          </Text>
+          {entry.identity.kind !== 'role' && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+              {ES.members.roles[entry.role]}
+            </Text>
+          )}
+        </View>
+        {changeable ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setOpen((now) => !now)}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', paddingHorizontal: scale.rowGap }}
+          >
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+              {open ? ES.settings.mainGiro.done : ES.settings.mainGiro.change}
+            </Text>
+          </Pressable>
+        ) : null}
+      </View>
+      {open ? (
+        <>
+          <Opcion
+            chosen={entry.role === 'staff'}
+            title={ES.members.roles.staff}
+            subtitle={ES.invite.roleHelp.staff}
+            onPress={() => void pick('staff')}
+          />
+          <Opcion
+            chosen={entry.role === 'manager'}
+            title={ES.members.roles.manager}
+            subtitle={ES.invite.roleHelp.manager}
+            onPress={() => void pick('manager')}
+          />
+        </>
+      ) : null}
+      {problem !== null ? <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{problem}</Text> : null}
     </View>
   );
 }
@@ -1086,195 +1150,6 @@ function Cuenta() {
   );
 }
 
-// ============================================================================
-// INVITING SOMEBODY. Plan task 5b-ii-b-1, and the first membership WRITE on this
-// sheet — `5b-ii-a` shipped none, which was the seam the split was made on.
-//
-// ⚠️⚠️ THE SECTION IS MANAGER-AND-ABOVE, AND IT IS NOT THE ROSTER'S FENCE WEARING
-// A SECOND HAT. `canInvite` is `0028`'s own body predicate — what the RPC will
-// accept — and `canSeeRoster` is about whether the rows above would be
-// identifiable at all. They agree today and are argued separately in
-// `@/api/invites`, because a migration that loosened either would move one.
-//
-// ⚠️ THREE STATES AND THEY ARE ONE VARIABLE. Closed is a button; `form` is the
-// questions; `issued` is the code. A boolean pair would admit a fourth state
-// that means nothing, and the one that means nothing here is "showing a code
-// and a form at once" — two codes on screen, one of them dead.
-// ============================================================================
-
-function Invitar() {
-  const { scale } = useDensity();
-  const workspace = useWorkspace();
-  const role = useMyRole();
-  const locations = useLocations();
-  const { issue, busy } = useCreateInvite();
-
-  const [step, setStep] = useState<'closed' | 'form' | 'issued'>('closed');
-  const [email, setEmail] = useState('');
-  const [chosenRole, setChosenRole] = useState<Role>('staff');
-  const [locationIds, setLocationIds] = useState<readonly string[]>([]);
-  const [issue_, setIssue] = useState<InviteIssueKey | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
-  const [issued, setIssued] = useState<InviteIssued | null>(null);
-
-  if (!canInvite(role) || workspace === null) return null;
-
-  function reset() {
-    setEmail('');
-    setChosenRole('staff');
-    setLocationIds([]);
-    setIssue(null);
-    setFailure(null);
-  }
-
-  async function submit() {
-    if (workspace === null) return;
-    const draft = {
-      email,
-      role: chosenRole,
-      // ⚠️ THE EMAIL IS NOT PASSED BECAUSE `resolveLocations` NEVER READ IT.
-      // `5b-iii-d-2` widened it to a `LocationChoice` so the approval screen
-      // could ask the same question without inventing an address it does not
-      // have — one home for `D8`, two callers.
-      locationIds: resolveLocations({ role: chosenRole, locationIds }, locations.options),
-    };
-    const problem = checkInvite(draft, { locationCount: locations.options.length });
-    setIssue(problem);
-    setFailure(null);
-    if (problem !== null) return;
-
-    const result = await issue(workspace.id, draft);
-    if (result.issued === null) {
-      setFailure(result.error);
-      return;
-    }
-    setIssued(result.issued);
-    setStep('issued');
-    reset();
-  }
-
-  return (
-    <Section title={ES.invite.section}>
-      {step === 'closed' && (
-        <Boton
-          icon="account-plus"
-          label={ES.invite.open}
-          onPress={() => {
-            setIssued(null);
-            setStep('form');
-          }}
-        />
-      )}
-
-      {step === 'form' && (
-        <View style={{ gap: scale.rowGap }}>
-          <Campo label={ES.invite.emailLabel}>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder={ES.invite.emailPlaceholder}
-              placeholderTextColor={PALETTE.tintaApagada}
-              autoCapitalize="none"
-              autoCorrect={false}
-              keyboardType="email-address"
-              editable={!busy}
-              style={{
-                fontSize: scale.bodySize,
-                minHeight: scale.tapTarget,
-                color: PALETTE.tinta,
-                backgroundColor: PALETTE.fondo,
-                borderWidth: 1,
-                borderColor: PALETTE.linea,
-                borderRadius: scale.space / 2,
-                paddingHorizontal: scale.space,
-              }}
-            />
-          </Campo>
-
-          <Campo label={ES.invite.roleLabel}>
-            {INVITABLE_ROLES.map((candidate) => (
-              <Opcion
-                key={candidate}
-                chosen={candidate === chosenRole}
-                title={ES.members.roles[candidate]}
-                subtitle={ES.invite.roleHelp[candidate as 'manager' | 'staff']}
-                onPress={() => setChosenRole(candidate)}
-              />
-            ))}
-          </Campo>
-
-          {/* ⚠️ THE PICKER APPEARS ONLY ABOVE ONE STORE, which is the decision of
-              the 5b-ii sizing and C1.5's consequence: both pilot shops have
-              exactly one location, so nothing is asked and `resolveLocations`
-              fills it in. Asking a one-store shopkeeper which store is the
-              question with no right answer `5b-i` already refused about its
-              NAME. ⚠️ And it is only asked for `staff` at all — `0028` stores
-              '{}' for a manager whatever was passed. */}
-          {locationsRequired(chosenRole) && locations.options.length > 1 && (
-            <Campo label={ES.invite.locationLabel}>
-              {locations.options.map((option) => (
-                <Sucursal
-                  key={option.id}
-                  option={option}
-                  chosen={locationIds.includes(option.id)}
-                  onPress={() =>
-                    setLocationIds((current) =>
-                      current.includes(option.id)
-                        ? current.filter((id) => id !== option.id)
-                        : [...current, option.id],
-                    )
-                  }
-                />
-              ))}
-            </Campo>
-          )}
-
-          {/* ⚠️ ONE PLACE FOR BOTH KINDS OF REFUSAL — the form's own and the
-              database's. Two slots would mean a screen that can show two
-              contradictory reasons at once, and the second one is always the
-              one that is out of date. */}
-          {(issue_ !== null || failure !== null) && (
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>
-              {issue_ !== null ? ES.invite.issues[issue_] : failure}
-            </Text>
-          )}
-
-          <Boton
-            icon="check"
-            label={busy ? ES.invite.working : ES.invite.submit}
-            busy={busy}
-            onPress={() => void submit()}
-          />
-          <Pressable
-            accessibilityRole="button"
-            disabled={busy}
-            onPress={() => {
-              reset();
-              setStep('closed');
-            }}
-            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
-          >
-            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-              {ES.invite.cancel}
-            </Text>
-          </Pressable>
-        </View>
-      )}
-
-      {step === 'issued' && issued !== null && (
-        <Emitido
-          issued={issued}
-          shopName={workspace.displayName}
-          onDone={() => {
-            setIssued(null);
-            setStep('closed');
-          }}
-        />
-      )}
-    </Section>
-  );
-}
-
 /** A label above its control. The one shape the form repeats. */
 function Campo({ label, children }: { label: string; children: ReactNode }) {
   const { scale } = useDensity();
@@ -1493,6 +1368,10 @@ function Iva({ workspaceId, included, mayChange }: { workspaceId: string; includ
  * offered nothing to tap. ⚠️ The pilot's shops have one store each, so this is
  * the first store's; a second store's address waits for a second store.
  */
+// ⚠️ `8q`, the owner's ruling of 2026-10-21: *"they can also set it in the
+// Configuracion without opening Merma"* — so while the store has NO complete
+// address anyone here may give it (`set_store_address`, `0069`); once it has
+// one, changing it is the owner's, as before.
 function Domicilio({ mayChange, onDirty }: { mayChange: boolean; onDirty: (dirty: boolean) => void }) {
   const { scale } = useDensity();
   const address = useStoreAddress();
@@ -1533,7 +1412,7 @@ function Domicilio({ mayChange, onDirty }: { mayChange: boolean; onDirty: (dirty
           <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.address.label}</Text>
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{line}</Text>
         </View>
-        {mayChange && address !== null && form === null ? (
+        {(mayChange || (known && !addressComplete(address))) && address !== null && form === null ? (
           <Pressable
             accessibilityRole="button"
             onPress={() => {
