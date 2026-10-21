@@ -1,7 +1,15 @@
 # App Store — every field, in the order App Store Connect asks
 
-Written by plan task `5R-d-iv-a` (2026-10-13). **Nothing here has been entered anywhere**: no
-app record exists yet. The record, the screenshots and the submission are `5R-d-iv-c` and
+Written by plan task `5R-d-iv-a` (2026-10-13). ⚠️ **Since 2026-10-21 the record exists, and it is
+not the one section 1 describes:** `eas submit` of build 3 (`d0246560`) went to the record holding
+`mx.wera.app`, Apple ID **`6818418895`**, named *Wera* — while the owner had filled in a second
+record, *Wera: tu tienda* (`6825377325`), under another bundle id. The build cannot move, so
+`6818418895` is kept (renamed, its primary language set to Spanish (Mexico), its pages filled
+again) and the other is removed; its SKU is whatever EAS gave it, not `wera-mx`.
+⚠️ **Not pinned in `app/eas.json`:** an `ascAppId` there CHANGES THE UPDATE RUNTIME (measured
+2026-10-21: iOS `d308ba9f…` → `0588fb66…`, Android `5a4a7a5d…` → `1d7f904c…`), and no update would
+reach a build already installed. Once the other record is removed, `eas submit` finds this one by
+its bundle id. The record, the screenshots and the submission are `5R-d-iv-c` and
 `5R-e`, after your review (`8g`) and the site (`5R-m`). Sign in with Apple (`5R-k`) is built;
 it works on a phone once the steps in the handbook's *Turning on Entrar con Apple* are done. Why
 each answer is what it is: [`README.md`](README.md), *What each answer stands on*.
