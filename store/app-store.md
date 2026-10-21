@@ -126,7 +126,7 @@ messaging or chat, no advertising.
 
 | Line | Answer |
 |---|---|
-| Alcohol, Tobacco, or Drug Use or References | ⚠️ **Infrequent** — the starter catalog for *Abarrotes* names cigarettes by brand and has a *Cerveza y licores* category. Names in a list; no pictures, no use, nothing sold to the user |
+| Alcohol, Tobacco, or Drug Use or References | **None** — since `0066` (2026-10-20, the owner's correction) the starter catalog carries no beer, liquor, cigarettes or pet products. Was *Infrequent* while it named cigarettes and *Cerveza y licores* |
 | Everything else (profanity, horror, medical, sexuality, violence, weapons, gambling, contests, loot boxes) | **None** |
 
 **Step 3, age categories and override — Not Applicable.**
@@ -181,9 +181,11 @@ The demo account owns a shop with products already loaded. To record a sale: tab
 
 Wera processes no payments: it only records sales a shop made in cash. There are no in-app purchases and no ads.
 
-Account deletion is in the app: Inicio > Ajustes > Tu cuenta > Eliminar mi cuenta. Please do not delete the demo account; create a new one with "Crear una" on the sign-in screen to test deletion.
+To sign in to the demo account: on the first screen tap "¿Ya tienes cuenta? Entrar" (under the two large buttons), then type the email and password.
 
-"Entrar con Google" opens Google's sign-in in the system browser sheet. Sign in with Apple is the system button directly under it.
+Account deletion is in the app: Inicio > Ajustes > Tu cuenta > Eliminar mi cuenta. Please do not delete the demo account; to test deletion, make a new account: tap "Abrir mi tienda" on the first screen, create the account, then delete it from the screen that follows ("Eliminar mi cuenta", at its foot) or after creating the shop.
+
+"Continuar con Google" opens Google's sign-in in the system browser sheet. Sign in with Apple is the system button directly under it, on the account screen after either of the first screen's two buttons.
 
 Deleting an account that was made with Sign in with Apple shows Apple's sheet once more, so the app can revoke its Sign in with Apple tokens through Apple's REST API before the account is deleted.
 ```
