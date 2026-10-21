@@ -85,7 +85,7 @@ Aviso de privacidad: https://tu-wera.com/privacidad/
 |---|---|---|
 | App icon, 512 × 512 PNG | `icono-512.png` | The app's icon since 2026-10-13: a cream cow on a rust square, drawn by `brand/render-icons.sh` |
 | Feature graphic, 1024 × 500 | `grafico-1024x500.jpg` | The mark and the word *Wera*, in rust on cream. Its source is `grafico.html` |
-| Phone screenshots (2 to 8) | `captura-1-inicio.jpg` … `captura-5-productos.jpg`, in that order | 1080 × 1920, from an Android emulator on the invented seed shop *Tienda Doña Lupe*. No real shop's data |
+| Phone screenshots (2 to 8) | `captura-1-bienvenida.jpg` … `captura-6-productos.jpg`, in that order: the welcome, Inicio, Vender, Números, Lo último, Productos | 1080 × 1920, taken 2026-10-21 after `8g`'s first day, from an Android emulator on an invented shop, *Abarrotes Lupita* (Abarrotes and Cremería, three days of invented sales). No real shop's data |
 
 Leave the tablet, Chromebook and video fields empty.
 

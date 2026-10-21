@@ -103,9 +103,22 @@ To take them again (`5R-d-iv-c`):
    `adb shell input`, move with `am start -d mx.wera.app://<route>`, `adb exec-out screencap`.
    Convert to JPEG (`sips`): Play wants no alpha channel.
 
+⚠️ **Retaken 2026-10-21 (`5R-d-iv-c`, after `8g`'s first day), a shorter way that held:** the
+emulator's own debug app (JavaScript bundled without dev mode, against the local shop through
+the HTTPS proxy) instead of a throwaway release build; an invented shop made through the app's
+own functions as its owner (`onboard_workspace`, `import_catalog`, `set_store_address`, then
+three days of `record_sale` back-dated through the offline path — the 72-hour clamp — and two
+`record_purchase` and one `record_waste`); and **the emulator's clock set to 20:45 of the last
+day** (`adb root`, `auto_time 0`, `date`), so *Hoy* shows a working day rather than a midnight.
+⚠️ Three traps it found: `adb root` drops the `adb reverse` tunnels (re-add them); a price
+written today is not yet valid on a phone set to yesterday (backdate the shop's `price_list`);
+and `adb shell input text` into the password box drops characters now and then (type it in two
+pieces, or give the account a plain password). Restore `auto_time 1` and `wm size reset` after.
+
 ⚠️ **The seed shop has two stores, and its owner sees both — so on Vender she gets no *Cobrar*
-slide** (`useCatalog` picks a store only when exactly one is visible). `captura-2-vender.jpg`
-was taken as the seed's cashier of one store. A shop made in the app has one store.
+slide** (`useCatalog` picks a store only when exactly one is visible). The 2026-10-13 set took
+Vender as the seed's cashier of one store; the 2026-10-21 set used a shop made the app's way,
+which has one store, so its owner sees *Cobrar*.
 
 ## When something changes
 
