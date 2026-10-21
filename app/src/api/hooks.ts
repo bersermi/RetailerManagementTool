@@ -255,6 +255,8 @@ import {
 } from '@/api/workspace';
 import {
   NOTHING_HELD,
+  aislesFrom,
+  type ShopAisles,
   TEMPLATE_KEY,
   holdingFrom,
   importArgs,
@@ -1245,6 +1247,7 @@ export function useStarterCatalog(): {
   readonly failed: ApiMessageKey | null;
   readonly template: Template | null;
   readonly holding: ShopHolding;
+  readonly aisles: ShopAisles;
 } {
   const { session, ready } = useAuth();
   const enabled = ready && session !== null;
@@ -1264,11 +1267,25 @@ export function useStarterCatalog(): {
     () => (variants.data === undefined ? NOTHING_HELD : holdingFrom(variants.data)),
     [variants.data],
   );
+  // ⚠️ `8g`, 2026-10-21: WHAT EACH OF THE SHOP'S AISLES HOLDS, so *Agregar del
+  // catálogo* can say why a product did not arrive (`notAddedOf`). The units are
+  // the read the app already keeps (`UNITS_KEY`, on the phone for ever).
+  const units = useQuery({
+    queryKey: UNITS_KEY,
+    queryFn: catalogUnits,
+    enabled,
+    staleTime: Infinity,
+  });
+  const aisles = useMemo(
+    () => aislesFrom(variants.data, new Map((units.data ?? []).map((u) => [u.code, u.dimension]))),
+    [variants.data, units.data],
+  );
   return {
     loading: template.data === undefined && template.error === null,
     failed: template.error ? apiErrorKey(template.error) : null,
     template: template.data ?? null,
     holding,
+    aisles,
   };
 }
 

@@ -300,3 +300,99 @@ export function importResultFrom(data: unknown): ImportResult {
   }
   throw new Error(`${IMPORT_CATALOG} returned ${JSON.stringify(data)}, expected {imported, skipped}`);
 }
+
+// ============================================================================
+// ⚠️ `8g`, 2026-10-21 — WHAT AN IMPORT DID NOT BRING, AND WHY (the owner's
+// ruling: *"Say so, in one line"*). Found on his iPhone, in his live shop: 17
+// Pollo products offered and sent, none created, and the screen went back as if
+// they had arrived. `import_catalog` skips a product whose aisle in the shop
+// already holds another measure (C8.5: one dimension per family), and the
+// screen never read the answer.
+//
+// ⚠️⚠️ THE COUNT IS THE SERVER'S AND THE AISLES ARE THE SHOP'S. `skipped` cannot
+// be used: the import is sent the whole giro, so it counts every product the
+// shop already holds too. What did not arrive is exact as *offered minus
+// imported* — `imported` only ever counts products this call created, all of
+// them offered. Which aisles, and what each holds, is read off the shop's own
+// catalog AFTER the import; if that read does not account for exactly the
+// count, the line names no aisle rather than a wrong one.
+// ============================================================================
+
+/** The measures each of the shop's aisles holds, by the aisle's folded name. */
+export type ShopAisles = ReadonlyMap<string, ReadonlySet<string>>;
+
+/** Out of the shop's catalog read and the units' dimensions. */
+export function aislesFrom(
+  rows:
+    | readonly { readonly base_unit_code: string; readonly product_family: { readonly name: string } | null }[]
+    | undefined,
+  dimensionOf: ReadonlyMap<string, string>,
+): ShopAisles {
+  const aisles = new Map<string, Set<string>>();
+  for (const row of rows ?? []) {
+    if (row.product_family === null) continue;
+    const dimension = dimensionOf.get(row.base_unit_code);
+    if (dimension === undefined) continue;
+    const key = searchKey(row.product_family.name);
+    const held = aisles.get(key) ?? new Set<string>();
+    held.add(dimension);
+    aisles.set(key, held);
+  }
+  return aisles;
+}
+
+/** One aisle's share of what did not arrive. */
+export interface NotAddedAisle {
+  readonly aisle: string;
+  readonly count: number;
+  /** The measures the shop's aisle holds, in a fixed order — piece, weight, volume. */
+  readonly held: readonly string[];
+}
+
+export interface NotAdded {
+  /** Exact: offered minus imported. */
+  readonly total: number;
+  /** By aisle — or `null` when the shop's read does not account for `total`. */
+  readonly aisles: readonly NotAddedAisle[] | null;
+}
+
+const MEASURE_ORDER = ['count', 'mass', 'volume'];
+
+/**
+ * What an import did not bring.
+ *
+ * @param sent     the codes offered and not unticked — what the button counted.
+ * @param imported the server's own count of what it created.
+ * @param holding  the shop's holding AFTER the import.
+ */
+export function notAddedOf(
+  template: Template,
+  sent: readonly string[],
+  imported: number,
+  holding: ShopHolding,
+  aisles: ShopAisles,
+): NotAdded {
+  const total = Math.max(0, sent.length - imported);
+  if (total === 0) return { total, aisles: [] };
+  const familyNames = new Map(template.families.map((f) => [f.code, f.name]));
+  const byCode = new Map(template.products.map((p) => [p.code, p]));
+  const counts = new Map<string, number>();
+  for (const code of sent) {
+    if (holding.templateCodes.has(code)) continue;
+    const product = byCode.get(code);
+    if (product === undefined) continue;
+    const aisle = familyNames.get(product.family) ?? product.family;
+    counts.set(aisle, (counts.get(aisle) ?? 0) + 1);
+  }
+  let accounted = 0;
+  for (const n of counts.values()) accounted += n;
+  if (accounted !== total) return { total, aisles: null };
+  return {
+    total,
+    aisles: [...counts.entries()].map(([aisle, count]) => ({
+      aisle,
+      count,
+      held: MEASURE_ORDER.filter((m) => aisles.get(searchKey(aisle))?.has(m) ?? false),
+    })),
+  };
+}
