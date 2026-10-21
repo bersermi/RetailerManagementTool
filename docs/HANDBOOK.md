@@ -968,8 +968,10 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
 3. **The pages**, sections 2 to 8 of `store/app-store.md`: app information, price (free, Mexico
    only), the version page, age rating, app privacy, and review information with the demo
    account's email and password (the same account Google's reviewers get). Pictures, in file
-   order: `store/app-store/iphone-6.9/` (1320 × 2868) where it asks for the large iPhone, and
-   `iphone-6.3/` (1206 × 2622) if it asks for a smaller one too.
+   order, from the folder that matches the box's title: a **6.5-inch** box takes
+   `store/app-store/iphone-6.5/`, a 6.9-inch one `iphone-6.9/`, a 6.3-inch one `iphone-6.3/`.
+   One large box filled is enough; Apple scales it for the smaller phones. The wrong size is
+   refused as *"File dimensions are invalid"*.
 4. **The version page → *Build* → choose 3 → *Add for Review* → *Submit for Review*.** Apple
    answers by email. If it refuses something, give a session its words.
 
