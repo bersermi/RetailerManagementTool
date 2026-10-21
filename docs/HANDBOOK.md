@@ -62,6 +62,17 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **21 October: a new install for both phones, with the first day.** It carries the camera's
+new sentence, and **after it every update needs it**: until a phone has it, nothing new reaches
+that phone. Your data stays.
+- **Your iPhone:** open https://expo.dev/accounts/wera-app/projects/wera/builds/3f12b2a9-dd33-4afe-880d-f9a34c22b3bb
+  on the phone and tap *Install*.
+- **The pilot Android:** open https://expo.dev/accounts/wera-app/projects/wera/builds/3fd48b8c-67a7-42ea-90ee-d164682f0190
+  on it, download the file and open it.
+- Both files are also in `~/RetailerToolDev/wera-builds/`. EAS lists them until 4 November.
+- **What to look at:** close Wera and open it — the welcome only if you sign out first (the cow
+  plays once per phone). Then rounds 1 to 3 of the first day (`8g`, the status log).
+
 ✅ **18 October, evening: photos in Productos, over the air** (*Fotos en Productos: las de Wera y
 las tuyas*). In *Tienda Demo*: Inicio → Más → Productos → the aisle *A granel* or *Refrescos* —
 your 25 photos, in the list, the mosaic, the aisle's own picture and each product's page, and in
@@ -909,10 +920,11 @@ days start the day they join.
    The demo account's email and password go in *App access*. The icon and the wide picture
    in `store/google-play/` are the cow's since 13 October.
 4. **Closed testing → Create new release.** Upload
-   `~/Downloads/wera-tienda-1.0.0-5-giros.aab`, the newest store build (it is also on
-   expo.dev under *Builds*, the newest Android one marked `production`, until 13
-   November). ⚠️ Not the `-3-` or `-4-` files beside it, which are older builds; if you
-   already uploaded one of them, make a new release with this one. Accept
+   `~/Downloads/wera-tienda-1.0.0-7-primer-dia.aab`, the newest store build, made on 21
+   October with the first day (it is also on expo.dev under *Builds*, the newest Android one
+   marked `production`, until 20 November). ⚠️ Not the `-3-`, `-4-` or `-5-` files beside it,
+   which are older builds that today's updates can no longer reach; if you already uploaded
+   one of them, make a new release with this one. Accept
    *Play App Signing*. Countries: **Mexico** only. Testers: a list with the Gmail addresses.
 5. **Send for review.** When Google approves it, *Closed testing → Testers* shows a link:
    *Copy link*, and send it to each tester. They open it signed in to the Gmail on your list,

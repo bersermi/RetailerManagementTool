@@ -57,29 +57,30 @@ against the code: this table is the only link, as `site/README.md` is for the av
 
 ## The store build — the one that goes to Play
 
-EAS build `8e4c7544` — Android, profile `production`, from commit `e13212e` (the fixes of
-2026-10-14: giros only at onboarding, the family buttons, prices from Vender), finished
-2026-10-14 18:37 UTC. Each line below was read off the bundle itself (`aapt2 dump xmltree` on
-its manifest, its `assets/`), not off `app.json`.
+EAS build `89de4383` — Android, profile `production`, from commit `204385c` (the first day's
+three rounds, `8g`/`8q`, and the camera's new sentence), finished 2026-10-21. Each line below
+was read off the bundle itself (`aapt2 dump xmltree` on its manifest, its `assets/`), not off
+`app.json`.
 
 | | |
 |---|---|
-| Package, version | `mx.wera.app`, 1.0.0, version code 5 |
-| Target / minimum Android | API 36 / API 24. Play asks new apps for 36 since 31 August 2026 |
-| Permissions | Five in the manifest: the app's own internal receiver permission, and `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE` and `VIBRATE`. No location, camera, microphone, contacts, storage or `AD_ID`. `app.json` blocks `SYSTEM_ALERT_WINDOW` and the two external-storage permissions since `5R-k-a` |
-| Cleartext traffic | Not allowed: the manifest sets neither `usesCleartextTraffic` nor a network security config, and Android's default for this target is off |
+| Package, version | `mx.wera.app`, 1.0.0, version code 7 |
+| Target / minimum Android | API 36 / API 24 |
+| Permissions | Six requested: the app's own internal receiver permission, `INTERNET`, `ACCESS_NETWORK_STATE`, `ACCESS_WIFI_STATE`, `VIBRATE` and, since `8m`, **`CAMERA`**. No location, microphone, contacts, storage or `AD_ID`. ⚠️ The manifest also names `android.permission.DUMP` — **not requested**: it is the guard on `androidx.profileinstaller.ProfileInstallReceiver`, a library's receiver only callers holding it may reach |
 | Update channel | `production`, checked on every launch |
-| Runtime | `4cb086fe…`, the same as the `preview` Android build made with it (`f3fa55be`) and as the bundle before it (`1d8b5921`) — an over-the-air fix can reach all three |
+| Runtime | `5a4a7a5d…` (`base/assets/fingerprint`), the same as `main`'s and as the `preview` Android build made with it (`3fd48b8c`) — an over-the-air fix reaches both |
 | Pilot's measurements | Off: the bundle holds no `piloto-1` |
-| The 14 October fixes | In its JavaScript: *Te ponemos todos los productos de tu giro* and *Poner precio* each once, so a tester's first launch already has them |
-| 16 KB pages | Not re-read on this bundle: the native libraries are unchanged from `1d8b5921`, where all 50 were aligned |
-| Icon | The cow, unchanged since `018e0e33`, where it was pulled out and looked at |
+| The first day | In its JavaScript: the two doors, Tu tienda with the name and the giros, `set_store_address` |
+| Server | The hosted project's address once; the local test proxy's not at all |
+| Icon | The cow, unchanged since `018e0e33` |
 | Sign in with Apple | Not on Android: the button is drawn on an iPhone only |
 
-It is in the owner's `~/Downloads/wera-tienda-1.0.0-5-giros.aab`, with a copy in
-`~/RetailerToolDev/wera-builds/`; EAS keeps the original until 2026-11-13. ⚠️ **It replaces
-`1d8b5921`** (version code 4) and `018e0e33` (version code 3), whose files are still beside it
-in Downloads; if one of them was uploaded, this is a new release on the same closed track.
+It is in the owner's `~/Downloads/wera-tienda-1.0.0-7-primer-dia.aab`, with a copy in
+`~/RetailerToolDev/wera-builds/android-89de4383/`; EAS keeps the original until 2026-11-20.
+⚠️ **It replaces** `8e4c7544` (version code 5), `1d8b5921` (4) and `018e0e33` (3), whose files
+are still in Downloads; if one of them was uploaded, this is a new release on the same closed
+track. ⚠️ Not yet re-read: 16 KB page alignment (the native libraries changed with the camera
+module of `8m`).
 
 ## The pictures
 
