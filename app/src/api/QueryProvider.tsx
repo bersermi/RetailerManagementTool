@@ -67,6 +67,7 @@ import {
   shouldPersistQuery,
 } from '@/api/persist';
 import { online, subscribe } from '@/lib/connectivityMonitor';
+import { isTimedOut } from '@/lib/plazo';
 
 /**
  * The client itself. ⚠️ A FUNCTION SO THAT `withPersistedDefaults` HAS SOMETHING
@@ -82,7 +83,11 @@ function buildClient(): QueryClient {
         // more often a dead connection than a dead server. Two retries cost
         // a few seconds; zero retries put "algo salio mal" on the screen of
         // a shop whose signal came back one second later.
-        retry: 2,
+        // ⚠️⚠️ EXCEPT A READ THAT RAN OUT OF TIME (`8g`, 2026-10-20): each
+        // attempt already waited its whole limit (`@/lib/plazo`), so two more
+        // made a hung read take a minute and a half to say so. It is read again
+        // by itself on the reconnect, the return to the app and the pull.
+        retry: (failures, error) => failures < 2 && !isTimedOut(error),
         // A shop's own name and IVA flag do not change while the app is
         // open. This is not a cache policy for the ledger — `5d` onwards
         // set their own, against screens that exist.
