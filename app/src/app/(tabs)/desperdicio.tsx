@@ -223,10 +223,10 @@ function useAcceso(): Acceso {
 }
 
 /**
- * `8g`, 2026-10-21: THE STORE'S ADDRESS, BEFORE MERMA — the owner's four
- * required fields and the optional colonia, saved to the shop's first store.
- * No *Ahora no* (his ruling). When it is saved the read comes back complete
- * and Merma draws itself.
+ * `8g`/`8q`, 2026-10-21: THE STORE'S ADDRESS, BEFORE MERMA — the four required
+ * fields and the optional colonia, saved to the shop's first store by whoever
+ * opened Merma (`set_store_address`, `0069`). No *Ahora no* (his ruling). When
+ * it is saved the read comes back complete and Merma draws itself.
  */
 function PideDireccion() {
   const { scale } = useDensity();
@@ -337,16 +337,15 @@ export default function Desperdicio() {
     }, [leaveRequest, shown]),
   );
 
-  // ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21: THE ADDRESS IS ASKED HERE,
-  // when Merma opens — not when the shop is made — and *"Don't make it
-  // dodgeable if a person wants to log Merma."* So an owner whose shop has no
-  // address gives it before anything else here. ⚠️ ONLY THE OWNER: the
-  // database lets nobody else write the store (`location_update`, `0001`), and
-  // who else is asked is a question still put to him — meanwhile the others
-  // pass, as before. ⚠️ ONLY WHEN THE READ SAYS SO: offline it is `checking`
-  // (the address is not kept on the phone) and Tirar goes on working; she is
-  // asked when the signal and the read return.
-  if (role === 'owner' && acceso.kind === 'noAddress') return <PideDireccion />;
+  // ⚠️⚠️ `8g`/`8q`, THE OWNER'S RULINGS OF 2026-10-21: THE ADDRESS IS ASKED
+  // HERE, when Merma opens — not when the shop is made — *"Don't make it
+  // dodgeable if a person wants to log Merma"*, and *"No one can log Merma
+  // until they provide the address with CP."* So whoever opens Merma in a store
+  // with no address gives it before anything else here, whatever her role:
+  // `set_store_address` (`0069`) lets anyone the store is visible to fill an
+  // empty one. ⚠️ ONLY WHEN THE READ SAYS SO: offline with no read it is
+  // `checking`, and she is asked when the signal and the read return.
+  if (acceso.kind === 'noAddress') return <PideDireccion />;
 
   return (
     <KeyboardAvoidingView

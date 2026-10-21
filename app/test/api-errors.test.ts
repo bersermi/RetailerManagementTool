@@ -97,7 +97,14 @@ describe('the codes that were measured', () => {
   });
 
   it('knows exactly the codes it claims to know', () => {
-    expect([...KNOWN_API_CODES].sort()).toEqual(['23514', '42501', 'PGRST301', 'TD003']);
+    expect([...KNOWN_API_CODES].sort()).toEqual(['23514', '42501', 'PGRST301', 'TD003', 'TD012']);
+  });
+
+  // ⚠️ `8q` (`0069`, its suite 3.1 and 3.2): somebody filled the store's address
+  // first, and changing a complete one is the owner's — said, not *algo salió mal*.
+  it('says a complete address is the owner\'s to change', () => {
+    expect(apiErrorKey({ code: 'TD012', message: 'set_store_address: …' })).toBe('addressOwnerOnly');
+    expect(ES.api.errors.addressOwnerOnly).toBe('La tienda ya tiene dirección. Solo el dueño puede cambiarla.');
   });
 });
 

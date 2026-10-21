@@ -48,7 +48,12 @@ fixture wrong-refusal-code \
 # A column the store row does not have.
 fixture wrong-address-column \
   "s/^export const STORE_ADDRESS_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code';/export const STORE_ADDRESS_COLUMNS = 'id,name,street,street_number,colonia,city,codigo_postal';/" \
-  'address write 200 .*read 400'
+  'address write 20[04] .*read 400'
+
+# `8q` (`0069`): the address function's argument, renamed — PostgREST matches by name.
+fixture renamed-address-argument \
+  's/^  readonly p_street_number: string;/  readonly p_number: string;/' \
+  'address write 404'
 
 # A column the request does not have.
 fixture wrong-request-column \
@@ -66,8 +71,8 @@ fixture wrong-bucket \
   'the photo upload answered 400'
 
 echo
-if (( failed == 0 && passed == 6 )); then
-  echo "all 6 fixtures behaved as recorded — the contract check goes red on every defect it names."
+if (( failed == 0 && passed == 7 )); then
+  echo "all 7 fixtures behaved as recorded — the contract check goes red on every defect it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."

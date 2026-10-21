@@ -4,7 +4,7 @@ import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useApproveRequest, useLocations, usePendingRequests, useWorkspace } from '@/api/hooks';
+import { useApproveRequest, useLocations, usePendingRequests, useSetMemberRole, useWorkspace } from '@/api/hooks';
 import { useRefresh } from '@/offline/useRefresh';
 import { Jalar } from '@/ui/Jalar';
 import {
@@ -76,6 +76,11 @@ export default function Solicitudes() {
   const online = useOnline();
   const locations = useLocations();
   const { admit, busy } = useApproveRequest();
+  // ⚠️ `8q`, the owner's ruling of 2026-10-21: THE ROLE IS CHOSEN AS SHE IS LET
+  // IN — everyone asks with the shop's code, as an Empleado; Encargado is the
+  // owner's word here, and a role she can change again in Tu equipo.
+  const { change, busy: changing } = useSetMemberRole();
+  const shop = useWorkspace();
 
   // ⚠️⚠️ ONE ROW IS OPEN AT A TIME, AND THE STATE LIVES HERE RATHER THAN IN THE
   // ROW FOR THAT REASON. Two half-filled pickers on one screen is two answers to
@@ -86,10 +91,12 @@ export default function Solicitudes() {
   const [locationIds, setLocationIds] = useState<readonly string[]>([]);
   const [issue, setIssue] = useState<ApprovalIssueKey | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
+  const [role, setRole] = useState<'staff' | 'manager'>('staff');
 
   function close() {
     setOpenId(null);
     setLocationIds([]);
+    setRole('staff');
     setIssue(null);
     setFailure(null);
   }
@@ -118,6 +125,20 @@ export default function Solicitudes() {
     if (result.approved === null) {
       setFailure(result.error);
       return;
+    }
+    // ⚠️ `8q`: LET IN AS SHE ASKED, THEN MADE ENCARGADO — two writes, and if the
+    // second fails she is an Empleado, which the owner can change in Tu equipo.
+    if (role === 'manager' && result.approved.memberId !== null && shop !== null) {
+      const failed = await change({
+        who: { memberId: result.approved.memberId },
+        workspaceId: shop.id,
+        role: 'manager',
+        storeIds: [],
+      });
+      if (failed !== null) {
+        setFailure(failed);
+        return;
+      }
     }
     // ⚠️ NO SUCCESS SENTENCE, AND THE REASON IS THAT THE SCREEN ANSWERS ITSELF.
     // `useApproveRequest` invalidates the queue, so the row she just approved
@@ -175,7 +196,9 @@ export default function Solicitudes() {
                 options={locations.options}
                 chosen={locationIds}
                 open={openId === entry.requestId}
-                busy={busy}
+                busy={busy || changing}
+                role={role}
+                onRole={setRole}
                 issue={openId === entry.requestId ? issue : null}
                 failure={openId === entry.requestId ? failure : null}
                 onOpen={() => open(entry)}
@@ -288,6 +311,8 @@ function Solicitud({
   chosen,
   open,
   busy,
+  role,
+  onRole,
   issue,
   failure,
   onOpen,
@@ -300,6 +325,9 @@ function Solicitud({
   chosen: readonly string[];
   open: boolean;
   busy: boolean;
+  /** `8q`: what she will be able to do — Empleado as she asked, or Encargado. */
+  role: 'staff' | 'manager';
+  onRole: (role: 'staff' | 'manager') => void;
   issue: ApprovalIssueKey | null;
   failure: string | null;
   onOpen: () => void;
@@ -407,6 +435,14 @@ function Solicitud({
         <BotonLleno icon="account-check" label={ES.approvals.approve} onPress={onOpen} variante="principal" />
       ) : (
         <View style={{ gap: scale.rowGap }}>
+          {/* ⚠️ `8q`, the owner's ruling of 2026-10-21: the role, chosen here. */}
+          <View style={{ gap: scale.rowGap / 2 }}>
+            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+              {ES.invite.roleLabel}
+            </Text>
+            <Opcion chosen={role === 'staff'} title={ES.members.roles.staff} onPress={() => onRole('staff')} />
+            <Opcion chosen={role === 'manager'} title={ES.members.roles.manager} onPress={() => onRole('manager')} />
+          </View>
           {asking && (
             <View style={{ gap: scale.rowGap / 2 }}>
               <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>

@@ -281,6 +281,16 @@ export function queueLine(failed: ApiMessageKey | null, online: Online): string 
 /** The RPC's name, written once (`R13`). */
 export const APPROVE_REQUEST = 'approve_request';
 
+/**
+ * ⚠️ `8q`, the owner's ruling of 2026-10-21: *"the owner can always change the
+ * role of someone."* The role she is let in with (chosen in Solicitudes) and a
+ * role changed in Tu equipo are the same write: the owner's update of her
+ * membership row (`workspace_member_update`, owner-only since `0001`). Named
+ * once here; `docs/checks/5b-iii-d-2-approve-contract.sh` reads them.
+ */
+export const MEMBER_TABLE = 'workspace_member';
+export const MEMBER_ROLE_COLUMN = 'role';
+
 /** The two `p_` names `0029` declared, and the only place they are written (`R13`). */
 export interface ApproveRequestArgs {
   readonly p_request_id: string;

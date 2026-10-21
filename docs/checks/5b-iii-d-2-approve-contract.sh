@@ -121,6 +121,10 @@ APPROVE="$(sed -n "s/^export const APPROVE_REQUEST = '\([^']*\)';.*/\1/p" "$CONT
 PENDING="$(sed -n "s/^export const PENDING_ACCESS_REQUESTS = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 GONE="$(sed -n "s/^export const REQUEST_GONE = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 BAD_LOCATION="$(sed -n "s/^export const BAD_LOCATION = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+# `8q`: the role, chosen when she is let in and changed afterwards — the owner's
+# write on her membership row, by the table and column the app names.
+MEMBER_TABLE="$(sed -n "s/^export const MEMBER_TABLE = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+ROLE_COLUMN="$(sed -n "s/^export const MEMBER_ROLE_COLUMN = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 ONBOARD="$(sed -n "s/^export const ONBOARD_WORKSPACE = '\([^']*\)';.*/\1/p" "$WORKSPACE_CONTRACT" | head -1)"
 WORKSPACE_COLUMNS="$(sed -n "s/^export const WORKSPACE_COLUMNS = '\([^']*\)';.*/\1/p" "$WORKSPACE_CONTRACT" | head -1)"
 REQUEST_ACCESS="$(sed -n "s/^export const REQUEST_ACCESS = '\([^']*\)';.*/\1/p" "$REQUEST_CONTRACT" | head -1)"
@@ -176,7 +180,8 @@ note
 if [[ -z "$APPROVE" || -z "$PENDING" || -z "$GONE" || -z "$BAD_LOCATION" || -z "$ONBOARD" \
       || -z "$WORKSPACE_COLUMNS" || -z "$REQUEST_ACCESS" || -z "$CREATE_INVITE" \
       || -z "$REDEEM_INVITE" || -z "$ASK_ARG" || -z "$REDEEM_ARG" || -z "$QUEUE_ARG" \
-      || -z "$FULL_NAME_KEY" || -z "$ID_ARG" || -z "$LOC_ARG" ]] \
+      || -z "$FULL_NAME_KEY" || -z "$ID_ARG" || -z "$LOC_ARG" \
+      || -z "$MEMBER_TABLE" || -z "$ROLE_COLUMN" ]] \
    || (( APPROVE_ARG_N != 2 )) || (( RESULT_FIELD_N < 4 )) \
    || ! in_args "$ID_ARG" || ! in_args "$LOC_ARG"; then
   fail "could not read the approval contract out of $CONTRACT"
@@ -456,6 +461,38 @@ else
   echo "      bundler — the shape 5b-iii-d-1's fixture V4 was written for."
 fi
 
+# --- 5b. `8q`: the owner makes her Encargado, by the app's names -------------
+# His ruling of 2026-10-21: the role is chosen when she is let in, and *"the
+# owner can always change the role of someone."* Admitted as Empleado above,
+# she is made Encargado by the owner's update of her membership row — and an
+# Encargado reads every store, which is the change she would feel.
+note
+MEMBER_ID="$(jfield "$SCRATCH/approve-staff.json" member_id)"
+TOKEN="$OWNER_TOKEN"
+PROMOTE="$(api PATCH "/rest/v1/$MEMBER_TABLE?id=eq.$MEMBER_ID" "{\"$ROLE_COLUMN\":\"manager\"}")"
+PROMOTED="$(stash promoted "$(api GET "/rest/v1/$MEMBER_TABLE?select=$ROLE_COLUMN&id=eq.$MEMBER_ID")")"
+TOKEN="$JOINER_TOKEN"
+AS_MANAGER="$(stash her-locations-manager "$(api GET "/rest/v1/location?select=id")")"
+if [[ -n "$MEMBER_ID" && "$(status "$PROMOTE")" =~ ^20[04]$ && "$(row "$PROMOTED" 0 "$ROLE_COLUMN")" == "manager" \
+      && "$(rows "$AS_MANAGER")" == "2" ]]; then
+  ok "the owner makes her Encargado through $MEMBER_TABLE.$ROLE_COLUMN, and she then reads both stores"
+else
+  fail "role change answered HTTP $(status "$PROMOTE"); her role reads '$(row "$PROMOTED" 0 "$ROLE_COLUMN")', she reads $(rows "$AS_MANAGER") store(s)"
+fi
+
+# --- 5c. and nobody else changes a role ---------------------------------------
+note
+TOKEN="$MANAGER_TOKEN"
+TRIED="$(api PATCH "/rest/v1/$MEMBER_TABLE?id=eq.$MEMBER_ID" "{\"$ROLE_COLUMN\":\"owner\"}")"
+TOKEN="$OWNER_TOKEN"
+STILL_ROLE="$(stash still-role "$(api GET "/rest/v1/$MEMBER_TABLE?select=$ROLE_COLUMN&id=eq.$MEMBER_ID")")"
+api PATCH "/rest/v1/$MEMBER_TABLE?id=eq.$MEMBER_ID" "{\"$ROLE_COLUMN\":\"staff\"}" > /dev/null
+if [[ "$(row "$STILL_ROLE" 0 "$ROLE_COLUMN")" == "manager" ]]; then
+  ok "an Encargado's update of someone's role changes nothing (HTTP $(status "$TRIED"), zero rows) — the owner's alone"
+else
+  fail "after a manager's update her role reads '$(row "$STILL_ROLE" 0 "$ROLE_COLUMN")' — expected manager, unchanged"
+fi
+
 # --- 6. ⚠️ the approved request LEAVES the queue ---------------------------
 # ⚠️ THE GAP `5b-iii-d-1-approvals-contract.sh` NAMES IN ITS OWN HEADER, closed
 # here because the module it needed now exists.
@@ -603,7 +640,7 @@ fi
 # ⚠️ THE NUMBER LIVES IN THIS FILE AND IN NO OTHER. `5b.5` found a count stale in
 # three places at once, so the CI step's name does not repeat it and neither does
 # the harness: raising an assertion group raises this line and nothing else.
-EXPECTED_GROUPS=14
+EXPECTED_GROUPS=16
 echo
 if (( ran < EXPECTED_GROUPS )); then
   echo "FAILED: only $ran of $EXPECTED_GROUPS assertion groups ran — the rest asserted nothing"
