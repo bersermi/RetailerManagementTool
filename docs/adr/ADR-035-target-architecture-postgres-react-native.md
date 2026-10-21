@@ -1028,9 +1028,14 @@ invisibly — and the error varies by product, since most unprocessed food is
 zero-rated while general goods sit at 16%. That corrupts the ranking in the one
 report the business case rests on.
 
-The fix costs nothing at the counter: **one question at workspace setup**
-(*¿Tus precios ya incluyen IVA?*) and **one optional field per product**
-(`tax_rate`, default 0). The RPC splits net and tax on write.
+The fix costs nothing at the counter: ~~**one question at workspace setup**
+(*¿Tus precios ya incluyen IVA?*)~~ **the shop's own setting, `prices_include_tax`** — since
+2026-10-21 not asked at setup (the owner, `8g`: *"we'll assume Sí, ya lo incluyen for everyone,
+changeable in the settings"*): every shop starts at the column's default, `true`, and its owner
+changes it in Ajustes — and **one optional field per product** (`tax_rate`, default 0). The RPC
+splits net and tax on write. ⚠️ A change re-reads every stored price under the new answer (a
+price row is kept gross while the setting is true, net while false); at 0%, which is every
+starter-catalog product, the two are the same number.
 
 **Rounding** (settled 2026-08-14 — this is the content of `cases.json`, §2.10):
 
