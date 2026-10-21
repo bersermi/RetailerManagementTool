@@ -49,10 +49,16 @@ import { ES } from '@/strings';
  * ⚠️ `semana` (`8g`, round 4 of Números) sits right under the takings and draws
  * only Monday to Wednesday, until this phone opens last week's story — *"the
  * only part that adds something to Inicio"*, which is why it went last.
+ *
+ * ⚠️ `recorrido` (`8g`, 2026-10-21, the tutorial) sits between the two: *Conoce
+ * Wera · 1 minuto* for a phone that has not opened the story, until it does or
+ * its card is closed. A shop in its first days never sees it — the story opens
+ * by itself there (`@/navigation/recorrido`).
  */
 export type InicioBlock =
   | 'aviso'
   | 'hoy'
+  | 'recorrido'
   | 'semana'
   | 'racha'
   | 'puertas'
@@ -65,6 +71,7 @@ export type InicioBlock =
 export const INICIO_BLOCKS: readonly InicioBlock[] = [
   'aviso',
   'hoy',
+  'recorrido',
   'semana',
   'racha',
   'puertas',

@@ -37,6 +37,7 @@ import { newWriteId, nowIso } from '@/lib/ids';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
 import { takeArrival } from '@/auth/llegada';
+import { useRecorridoPorSiSolo } from '@/navigation/useRecorrido';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -367,6 +368,9 @@ export default function Vender() {
       if (arrival !== null) setArrived(arrival.word);
     }, []),
   );
+  // ⚠️ `8g`, 2026-10-21: and once that line has been read, *Conoce Wera* — the
+  // owner's eight cards, an Empleado's four — opens by itself, once per phone.
+  useRecorridoPorSiSolo(arrived !== null);
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
   // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
   const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);

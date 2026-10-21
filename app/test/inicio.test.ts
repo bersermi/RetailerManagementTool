@@ -74,7 +74,18 @@ describe('§2.8 — state comes first, and the checks below are not vacuous', ()
   it('carries the owner\'s bands of 2026-10-16, in his order', () => {
     // ⚠️ RULE 4. An empty array passes every `for` below having asserted
     // nothing — the misleading green this repository has hit five times.
-    expect(INICIO_BLOCKS).toEqual(['aviso', 'hoy', 'semana', 'racha', 'puertas', 'ultimo', 'ahorros', 'recoleccion', 'mas']);
+    expect(INICIO_BLOCKS).toEqual([
+      'aviso',
+      'hoy',
+      'recorrido',
+      'semana',
+      'racha',
+      'puertas',
+      'ultimo',
+      'ahorros',
+      'recoleccion',
+      'mas',
+    ]);
   });
 
   // ⚠️⚠️ THE ASSERTION THIS FILE IS FOR, KEPT THROUGH `8g`. The takings sit above

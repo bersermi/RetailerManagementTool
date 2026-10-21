@@ -25,6 +25,13 @@ export const FIRST_OUTAGE_KEY = 'wera.taught.first-outage';
 
 /** `8g`, 2026-10-21: the opening — the cow turning into the logo — has played on this phone. */
 export const OPENING_KEY = 'wera.taught.opening';
+/**
+ * `8g`, 2026-10-21: *Conoce Wera*, the tutorial, has been opened — or its card
+ * on Inicio closed — on this phone. ⚠️ A TUTORIAL AFTER ALL, AT HIS ASK OF THE
+ * SAME DAY, and it does not reverse the line above this file's header: working
+ * without signal is still taught at its two moments, and the story only names it.
+ */
+export const RECORRIDO_KEY = 'wera.taught.recorrido';
 
 /**
  * Is this the first time — and if so, it no longer will be.

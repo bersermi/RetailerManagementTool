@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
 import { canWriteCatalog } from '@/api/catalogWrite';
@@ -31,6 +31,9 @@ import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { useOnline } from '@/offline/useOnline';
 import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
+import { useReduceMotion } from '@/lib/movimiento';
+import { useRecorridoPorSiSolo } from '@/navigation/useRecorrido';
+import { RECORRIDO_KEY } from '@/offline/ensenar';
 import { deviceStore, readKey, writeKey } from '@/lib/store';
 import { WEEK_SEEN_KEY, lastWeek, offersWeek, weekRange } from '@/api/semana';
 import { ES } from '@/strings';
@@ -87,23 +90,6 @@ function clockNow(): string {
   return `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 }
 
-/** The phone's own *reduce motion*, read once and followed. */
-function useReduceMotion(): boolean {
-  const [reduce, setReduce] = useState(false);
-  useEffect(() => {
-    let live = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((on) => {
-      if (live) setReduce(on);
-    });
-    const sub = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduce);
-    return () => {
-      live = false;
-      sub.remove();
-    };
-  }, []);
-  return reduce;
-}
-
 /** Is Inicio the screen in front of her? A tab stays mounted behind the others. */
 function useFocused(): boolean {
   const [focused, setFocused] = useState(true);
@@ -139,6 +125,8 @@ export default function Inicio() {
   useFreshAfterWrites();
   const focused = useFocused();
   useFreshPickupsWhenShown(focused);
+  // ⚠️ `8g`, 2026-10-21: a shop in its first days gets *Conoce Wera* by itself, once.
+  useRecorridoPorSiSolo(false);
   const [burst, setBurst] = useState(0);
   const [cheer, setCheer] = useState<string | null>(null);
   const celebrate = useCallback((word: string) => {
@@ -180,6 +168,8 @@ function Bloque({
       return <DeadLetterBanner />;
     case 'hoy':
       return <Hoy focused={focused} onCelebrate={onCelebrate} />;
+    case 'recorrido':
+      return <ConoceWera />;
     case 'semana':
       return <SemanaLista />;
     case 'racha':
@@ -428,6 +418,65 @@ function Marca({ gross, best, weekday, reduce }: { gross: number; best: number; 
  * celebration at 7, 30 and 100. ⚠️ A MILESTONE FIRES ONCE: the streak last
  * celebrated is kept on the phone, so reopening the app does not cheer again.
  */
+/**
+ * *Conoce Wera · 1 minuto* — the tutorial, until this phone opens it or closes
+ * this card (`8g`, 2026-10-21). ⚠️ THE KEY IS READ ON EVERY RENDER, as
+ * *Tu semana*'s is: coming back from the story must take the card away.
+ */
+function ConoceWera() {
+  const { scale } = useDensity();
+  const [, closed] = useState(0);
+  if (readKey(deviceStore(), RECORRIDO_KEY) !== null) return null;
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: scale.rowGap,
+        padding: scale.space,
+        borderRadius: scale.space,
+        borderWidth: 1,
+        borderColor: PALETTE.linea,
+        backgroundColor: PALETTE.superficie,
+      }}
+    >
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/recorrido')}
+        style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: scale.rowGap }}
+      >
+        <View
+          style={{
+            width: scale.tapTarget,
+            height: scale.tapTarget,
+            borderRadius: scale.tapTarget / 2,
+            backgroundColor: PALETTE.marca,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MaterialCommunityIcons name="play" size={scale.iconSize} color={PALETTE.superficie} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.recorrido.inicio.title}</Text>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.recorrido.inicio.line}</Text>
+        </View>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={ES.recorrido.inicio.close}
+        onPress={() => {
+          writeKey(deviceStore(), RECORRIDO_KEY, '1');
+          closed((n) => n + 1);
+        }}
+        style={{ minHeight: scale.tapTarget, minWidth: scale.tapTarget, alignItems: 'center', justifyContent: 'center' }}
+      >
+        <MaterialCommunityIcons name="close" size={scale.iconSize} color={PALETTE.tintaApagada} />
+      </Pressable>
+    </View>
+  );
+}
+
 /**
  * *Tu semana está lista* — Monday to Wednesday, until this phone opens it.
  * ⚠️ THE SEEN KEY IS READ ON EVERY RENDER, never held from mount: a tab keeps

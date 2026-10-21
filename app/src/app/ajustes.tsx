@@ -407,6 +407,8 @@ function Menu({ onOpen }: { onOpen: (page: Apartado) => void }) {
     { key: 'nombre', icon: 'account-outline', value: myName ?? ES.myName.empty },
     { key: 'letra', icon: 'format-size', value: ES.density[mode] },
     { key: 'cuenta', icon: 'shield-account-outline', value: ES.settings.menu.cuentaValue },
+    // ⚠️ `8g`, 2026-10-21: the tutorial, for whoever wants it again.
+    { key: 'recorrido', icon: 'play-circle-outline', value: ES.settings.menu.recorridoValue },
     { key: 'salir', icon: 'logout', value: ES.settings.menu.salirValue },
   ];
   const rows: (Cuadrado | null)[][] = [];
@@ -427,7 +429,13 @@ function Menu({ onOpen }: { onOpen: (page: Apartado) => void }) {
                 <Cuadro
                   key={square.key}
                   square={square}
-                  onPress={() => (square.key === 'salir' ? void signOut() : onOpen(square.key))}
+                  onPress={() =>
+                    square.key === 'salir'
+                      ? void signOut()
+                      : square.key === 'recorrido'
+                        ? router.push('/recorrido')
+                        : onOpen(square.key)
+                  }
                 />
               ),
             )}
@@ -439,8 +447,15 @@ function Menu({ onOpen }: { onOpen: (page: Apartado) => void }) {
 }
 
 interface Cuadrado {
-  readonly key: Apartado | 'salir';
-  readonly icon: 'storefront-outline' | 'account-group-outline' | 'account-outline' | 'format-size' | 'shield-account-outline' | 'logout';
+  readonly key: Apartado | 'salir' | 'recorrido';
+  readonly icon:
+    | 'storefront-outline'
+    | 'account-group-outline'
+    | 'account-outline'
+    | 'format-size'
+    | 'shield-account-outline'
+    | 'play-circle-outline'
+    | 'logout';
   readonly value: string;
   readonly badge?: number;
 }

@@ -395,6 +395,65 @@ export const ES = {
   },
 
   /**
+   * ⚠️ `8g`, 2026-10-21 — *CONOCE WERA*, THE TUTORIAL: the owner's ruling *"Go
+   * with A and D1, your recommendations"*, with his two edits (*"Wera te ayuda a
+   * ajustar tus precios"*, *"¿Sabes cuánto te deja cada producto?"*) and his two
+   * lines (*"Conoce tus costos y que no te coman"*, *"Ten tus cuentas en orden y
+   * tus números a la mano"*). One promise and one line of how per card.
+   */
+  recorrido: {
+    label: (n: number, total: number) => `Conoce Wera · ${n} de ${total}`,
+    skip: 'Saltar',
+    goSell: 'Ir a Vender',
+    /** What a screen reader says for the real screen inside a card. */
+    screen: 'Así se ve en Wera',
+    cards: {
+      hola: { title: 'Tu tienda, en tu mano', line: 'En un minuto te enseñamos lo que Wera hace por ti.' },
+      vender: {
+        title: 'Vende en segundos, aunque se vaya la señal',
+        line: 'Toca + en cada producto y desliza Cobrar. Sin internet, la venta se guarda y se envía sola.',
+      },
+      comprar: {
+        title: 'Conoce tus costos y que no te coman',
+        line: 'Anota lo que te entrega cada proveedor. Wera te ayuda a ajustar tus precios.',
+      },
+      productos: {
+        title: '¿Sabes cuánto te deja cada producto?',
+        line: 'Te ponemos los productos de tu giro con precio recomendado. Cambia un precio y ve lo que ganas.',
+      },
+      merma: { title: 'Lo que se echa a perder, que no se pierda', line: 'Anota la merma para saber cuánto se va.' },
+      numeros: {
+        title: 'Ten tus cuentas en orden y tus números a la mano',
+        line: 'Hoy, la semana o el mes. Descarga el mes para tu contador.',
+      },
+      descubre: {
+        title: 'Tus números te cuentan secretos',
+        line: 'A qué hora vendes más, tu mejor día, y cada lunes tu semana en cuatro tarjetas.',
+      },
+      listo: { title: 'Listo. Haz tu primera venta', line: 'Lo vuelves a ver cuando quieras en Ajustes.' },
+      venderEmpleado: { title: 'Vende en segundos', line: 'Toca + en cada producto y desliza Cobrar.' },
+      sinSenal: {
+        title: 'Sin señal, sigues vendiendo',
+        line: 'La venta se guarda en el teléfono y se envía sola cuando vuelve el internet.',
+      },
+      corrige: {
+        title: '¿Te equivocaste? Se corrige',
+        line: 'En Lo último corriges o eliminas tus ventas de los últimos siete días.',
+      },
+      mermaEmpleado: {
+        title: 'Lo que se tira, se anota',
+        line: 'En Merma anotas lo que ya no se vende y por qué. Listo: a vender.',
+      },
+    },
+    /** Merma's second sentence — only where Wera does not already say it cannot reach. */
+    teLoCompro: 'Si algo está por caducar, Wera te lo compra y pasa por él.',
+    /** The last card's title for a shop that has sold before: no *primera venta* to make. */
+    listoVendiendo: 'Ya sabes lo que Wera hace por ti',
+    /** Inicio's card, for a phone that has not opened the story. */
+    inicio: { title: 'Conoce Wera · 1 minuto', line: 'Lo que Wera hace por ti', close: 'Quitar' },
+  },
+
+  /**
    * WHAT THE SHOPKEEPER IS TOLD WHEN A CALL TO THE SERVER FAILS (5b-i).
    *
    * ⚠️ THE SAME RULE AS `auth.errors` AND FOR THE SAME REASON: nothing
@@ -485,6 +544,9 @@ export const ES = {
       letra: 'Tamaño de la letra',
       cuenta: 'Tu cuenta',
       salir: 'Cerrar sesión',
+      /** `8g`, 2026-10-21: the tutorial, again. */
+      recorrido: 'Ver el recorrido',
+      recorridoValue: 'Lo que Wera hace, en un minuto',
       /** From a page back to the menu — `Cerrar` stays the way out of Ajustes. */
       back: 'Volver',
       tiendaValue: (giro: string, street: string | null) => (street === null ? giro : `${giro} · ${street}`),
