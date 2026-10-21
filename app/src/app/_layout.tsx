@@ -19,11 +19,15 @@ import {
   routeMemory,
 } from '@/navigation/lastScreen';
 import { start as startConnectivity } from '@/lib/connectivityMonitor';
+import { holdSplash, releaseSplash } from '@/lib/splash';
 import { PILOT_BUILD } from '@/lib/pilotFlag';
 import { OfflineSurfaces } from '@/offline/OfflineSurfaces';
 import { send as sendReadings, touchedApp } from '@/pilot/recorder';
 import { DensityProvider } from '@/theme/DensityProvider';
 import { FUENTES } from '@/theme/letra';
+
+// ⚠️ `8g`: the splash waits for the screen she will see (`@/lib/splash`).
+holdSplash();
 
 // The root, and it now does four things: it puts C3.18's density scale in reach
 // of every screen, it puts the session there too, it puts TanStack Query — the
@@ -171,6 +175,10 @@ function Gate() {
       router.replace(to);
       return;
     }
+    // ⚠️ `8g`: NOWHERE TO SEND HER, so the screen behind the splash is hers —
+    // except the welcome, which lets go once the cow's pictures are in.
+    if (ready && pathname !== '/hola') releaseSplash();
+
     // A member still on the landing is waiting for her role; nothing is
     // restored or recorded from here.
     if (group === 'onboarding') return;

@@ -3,25 +3,24 @@ import {
   AppleAuthenticationButtonStyle,
   AppleAuthenticationButtonType,
 } from 'expo-apple-authentication';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
-import { useState } from 'react';
-import {
-  ActivityIndicator,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { useRef, useState } from 'react';
+import { Keyboard, Linking, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
+import { puertaOf } from '@/auth/puerta';
 import { forgotPasswordUrl } from '@/auth/support';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
+import { PALETTE } from '@/theme/palette';
+import { Banda } from '@/ui/Banda';
+import { BotonLleno } from '@/ui/BotonLleno';
+import { Campo } from '@/ui/Campo';
 import { Casilla } from '@/ui/Casilla';
 
 // ============================================================================
@@ -92,6 +91,17 @@ import { Casilla } from '@/ui/Casilla';
 // ⚠️ `keyboardShouldPersistTaps="handled"` is what keeps one tap on the button
 // one tap: without it, a tap with the keyboard up only closes the keyboard.
 //
+// ⚠️⚠️ `8g`, THE OWNER'S RULINGS OF 2026-10-21: THE SCREEN AFTER A DOOR. The
+// welcome (`(auth)/hola`) asks first whether she opens a shop or was invited,
+// and sends her here with that door (`?puerta=`): the band says which, and the
+// screen opens on the sign-up half, because a door is somebody new. Without a
+// door — *¿Ya tienes cuenta? Entrar* — it opens on the sign-in half. Google and
+// Apple come FIRST now, over the 5a-iii-b order (email first, as the path that
+// works on the weakest signal): they are one tap and no typing, which is the
+// drawing he approved. Regular sizes and Wera's styling (his note): the band,
+// soft boxes, the filled button, and each box's own key leads to the next —
+// the walk counted seven keyboard closes on the way to a first sale.
+//
 // ⚠️⚠️ `5R-k`: APPLE'S BUTTON, ON AN iPHONE ONLY, AND IT IS THE ONE CONTROL ON
 // THIS SCREEN THIS APP DOES NOT DRAW. Apple's guideline 4.8 asks for it beside
 // Google (the owner, 2026-10-10). It is the system's own button, so its words
@@ -109,6 +119,7 @@ export default function Entrar() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
   const { signIn, signUp, signInWithGoogle, appleAvailable, signInWithApple } = useAuth();
+  const puerta = puertaOf(useLocalSearchParams<{ puerta?: string }>().puerta);
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -116,13 +127,19 @@ export default function Entrar() {
   // FORTH — a person who taps the wrong link and returns has not lost typing.
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [creating, setCreating] = useState(false);
+  // ⚠️ `8g`: A DOOR IS SOMEBODY NEW, so it opens on the sign-up half; with no
+  // door it is *Entrar*, the frequency argument above.
+  const [creating, setCreating] = useState(puerta !== null);
   // `5R-d-iii`. ⚠️ IT STARTS UNTICKED AND ONLY THE PERSON TICKS IT — a box that
   // arrived ticked would be the app agreeing on their behalf. It survives a
   // switch to the other half and back, like the names, because they ticked it.
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+
+  const surnameBox = useRef<TextInput>(null);
+  const emailBox = useRef<TextInput>(null);
+  const passwordBox = useRef<TextInput>(null);
 
   // ⚠️ THE MESSAGE IS CLEARED WHEN THE NEXT ATTEMPT STARTS, NOT WHEN A FIELD
   // CHANGES. A message that disappears on the first keystroke is a message a
@@ -149,7 +166,7 @@ export default function Entrar() {
     await attempt(() => signUp(email, password, firstName, lastName, accepted));
   }
 
-  // The same discipline, for the button that belongs to neither half.
+  // The same discipline, for the buttons that belong to neither half.
   async function attemptGoogle() {
     await attempt(() => signInWithGoogle());
   }
@@ -175,103 +192,186 @@ export default function Entrar() {
     WebBrowser.openBrowserAsync(AVISO_URL).catch(() => {});
   }
 
+  // Back to the doors — the welcome, or the screen that sent her here.
+  function back() {
+    if (busy) return;
+    if (router.canGoBack()) router.back();
+    else router.replace('/hola');
+  }
+
+  // ⚠️ THE PASSWORD'S OWN KEY: on *Entrar* it is the button; on the sign-up half
+  // it closes the keyboard, because the aviso's box still waits under it.
+  function passwordDone() {
+    if (creating) Keyboard.dismiss();
+    else void attemptSignIn();
+  }
+
   const supportNumber = SUPPORT_WHATSAPP;
 
-  const field = {
-    fontSize: scale.bodySize,
-    minHeight: scale.tapTarget,
-    borderWidth: 1,
-    borderRadius: scale.space / 2,
-    paddingHorizontal: scale.space,
-  } as const;
+  const link = (label: string, onPress: () => void, strong: string | null = null) => (
+    <Pressable
+      accessibilityRole="button"
+      disabled={busy}
+      onPress={onPress}
+      style={{ minHeight: scale.tapTarget, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}
+    >
+      <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+        {label}
+        {strong !== null && <Text style={{ fontWeight: '700', color: PALETTE.accion }}>{strong}</Text>}
+      </Text>
+    </Pressable>
+  );
 
   return (
-    <ScrollView
-      keyboardShouldPersistTaps="handled"
-      contentContainerStyle={{
-        flexGrow: 1,
-        justifyContent: 'center',
-        paddingHorizontal: scale.space * 2,
-        paddingTop: scale.space * 2 + insets.top,
-        paddingBottom: scale.space * 2 + insets.bottom,
-        gap: scale.rowGap,
-      }}
-    >
-      <Text style={{ fontSize: scale.moneySize, fontWeight: '700', marginBottom: scale.space }}>
-        {ES.auth.title}
-      </Text>
-
-      <Text style={{ fontSize: scale.bodySize }}>{ES.auth.emailLabel}</Text>
-      <TextInput
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoComplete="email"
-        keyboardType="email-address"
-        editable={!busy}
-        style={field}
+    <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
+      <Banda
+        titulo={creating ? ES.cuenta.title : ES.cuenta.signInTitle}
+        antetitulo={puerta === null ? null : ES.cuenta.door[puerta]}
+        volver={{ label: ES.cuenta.back, onPress: back }}
       />
+      {/* ⚠️ `keyboardShouldPersistTaps="handled"` is what keeps one tap on the
+          button one tap: without it, a tap with the keyboard up only closes the
+          keyboard. The padding is the device's own inset at the bottom, so the
+          last line ends above the home indicator. */}
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        contentContainerStyle={{
+          paddingHorizontal: scale.space * 2,
+          paddingTop: scale.space * 2,
+          paddingBottom: scale.space * 2 + insets.bottom,
+          gap: scale.space,
+        }}
+      >
+        {/* C1.4's second provider, and Apple's beside it: the account without
+            typing. */}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={ES.auth.google}
+          disabled={busy}
+          onPress={() => void attemptGoogle()}
+          style={{
+            minHeight: scale.tapTarget,
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: scale.rowGap,
+            borderRadius: scale.space * 0.75,
+            borderWidth: 1,
+            borderColor: PALETTE.linea,
+            backgroundColor: PALETTE.superficie,
+            opacity: busy ? 0.6 : 1,
+          }}
+        >
+          <MaterialCommunityIcons name="google" size={scale.iconSize} color={PALETTE.tinta} />
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{ES.auth.google}</Text>
+        </Pressable>
 
-      <Text style={{ fontSize: scale.bodySize }}>{ES.auth.passwordLabel}</Text>
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        autoCapitalize="none"
-        autoCorrect={false}
-        autoComplete={creating ? 'new-password' : 'current-password'}
-        secureTextEntry
-        editable={!busy}
-        style={field}
-      />
+        {/* 5R-k. Under the other provider and as tall as it, on a phone that
+            has the sheet. The header says why its words and colours are not ours. */}
+        {appleAvailable && (
+          <View pointerEvents={busy ? 'none' : 'auto'} style={{ opacity: busy ? 0.6 : 1 }}>
+            <AppleAuthenticationButton
+              buttonType={AppleAuthenticationButtonType.CONTINUE}
+              buttonStyle={AppleAuthenticationButtonStyle.BLACK}
+              cornerRadius={scale.space * 0.75}
+              onPress={() => void attemptApple()}
+              style={{ width: '100%', height: scale.tapTarget }}
+            />
+          </View>
+        )}
 
-      {/* ⚠️ 5b.7's TWO BOXES, AND THEY ARE RENDERED ONLY ON THE SIGN-UP HALF.
-          Both are required — the owner ruled it the day he asked for them — and
-          the requirement is TWO FIELDS rather than a rule about spaces in one.
-          The reason, and the name that breaks every split anyone would write,
-          is in `@/auth/credentials`. ⚠️ It is NOT restated here, because R4's
-          comment-stripper does not read JSX comments and would report this file
-          for the sentence explaining what it gets right — see R4's stated
-          misses in docs/CONVENTIONS.md.
+        {/* 5R-d-iii, the owner's ruling of 2026-10-12. Directly under the buttons
+            it speaks for: a provider makes an account without the box below. */}
+        <Pressable accessibilityRole="link" disabled={busy} onPress={openAviso} style={{ alignItems: 'center' }}>
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+            {ES.auth.avisoGoogleLead}
+            <Text style={{ textDecorationLine: 'underline', fontWeight: '600', color: PALETTE.tinta }}>
+              {ES.auth.aviso}
+            </Text>
+          </Text>
+        </Pressable>
 
-          ⚠️ THEY SIT BELOW THE SHARED FIELDS ON PURPOSE. The address and the
-          password stay exactly where a returning person's eye already expects
-          them, and `checkSignUp` refuses in this same top-to-bottom order, so
-          the first message a person reads names the topmost empty box. */}
-      {creating && (
-        <>
-          <Text style={{ fontSize: scale.bodySize }}>{ES.auth.nameLabel}</Text>
-          <TextInput
-            value={firstName}
-            onChangeText={setFirstName}
-            autoCapitalize="words"
-            autoCorrect={false}
-            autoComplete="given-name"
-            editable={!busy}
-            style={field}
-          />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: scale.space, marginTop: scale.rowGap }}>
+          <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
+          <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{ES.cuenta.orEmail}</Text>
+          <View style={{ flex: 1, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
+        </View>
 
-          <Text style={{ fontSize: scale.bodySize }}>{ES.auth.surnameLabel}</Text>
-          <TextInput
-            value={lastName}
-            onChangeText={setLastName}
-            autoCapitalize="words"
-            autoCorrect={false}
-            autoComplete="family-name"
-            editable={!busy}
-            style={field}
-          />
+        {/* ⚠️ 5b.7's TWO BOXES, ONLY ON THE SIGN-UP HALF, side by side. Both are
+            required (the owner, the day he asked for them); the reason it is
+            two boxes and not one is in `@/auth/credentials`. */}
+        {creating && (
+          <View style={{ flexDirection: 'row', gap: scale.space }}>
+            <Campo
+              grows
+              label={ES.auth.nameLabel}
+              value={firstName}
+              onChangeText={setFirstName}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="given-name"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => surnameBox.current?.focus()}
+              editable={!busy}
+            />
+            <Campo
+              grows
+              ref={surnameBox}
+              label={ES.auth.surnameLabel}
+              value={lastName}
+              onChangeText={setLastName}
+              autoCapitalize="words"
+              autoCorrect={false}
+              autoComplete="family-name"
+              returnKeyType="next"
+              submitBehavior="submit"
+              onSubmitEditing={() => emailBox.current?.focus()}
+              editable={!busy}
+            />
+          </View>
+        )}
 
-          {/* 5R-d-iii. The last thing before the button, so a refusal for it
-              is the last one `checkSignUp` gives. The words inside open the
-              page; a tap anywhere else on the row ticks the box. */}
+        <Campo
+          ref={emailBox}
+          label={ES.auth.emailLabel}
+          value={email}
+          onChangeText={setEmail}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          keyboardType="email-address"
+          returnKeyType="next"
+          submitBehavior="submit"
+          onSubmitEditing={() => passwordBox.current?.focus()}
+          editable={!busy}
+        />
+
+        <Campo
+          ref={passwordBox}
+          label={ES.auth.passwordLabel}
+          value={password}
+          onChangeText={setPassword}
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete={creating ? 'new-password' : 'current-password'}
+          secureTextEntry
+          returnKeyType={creating ? 'done' : 'go'}
+          onSubmitEditing={passwordDone}
+          editable={!busy}
+        />
+
+        {/* 5R-d-iii. The last thing before the button, so a refusal for it is
+            the last one `checkSignUp` gives. The words inside open the page; a
+            tap anywhere else on the row ticks the box. */}
+        {creating && (
           <Casilla
             ticked={accepted}
             onToggle={() => setAccepted(!accepted)}
             label={`${ES.auth.avisoAcceptLead}${ES.auth.aviso}`}
             disabled={busy}
           >
-            <Text style={{ fontSize: scale.bodySize, flexShrink: 1 }}>
+            <Text style={{ fontSize: scale.bodySize, flexShrink: 1, color: PALETTE.tinta }}>
               {ES.auth.avisoAcceptLead}
               <Text
                 accessibilityRole="link"
@@ -282,130 +382,30 @@ export default function Entrar() {
               </Text>
             </Text>
           </Casilla>
-        </>
-      )}
-
-      {problem !== null && (
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{problem}</Text>
-      )}
-
-      {/* The half in force, as one button. */}
-      <Pressable
-        accessibilityRole="button"
-        disabled={busy}
-        onPress={() => void (creating ? attemptSignUp() : attemptSignIn())}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: scale.space / 2,
-          borderWidth: 2,
-          marginTop: scale.space,
-          opacity: busy ? 0.6 : 1,
-        }}
-      >
-        {busy ? (
-          <ActivityIndicator />
-        ) : (
-          <Text style={{ fontSize: scale.bodySize, fontWeight: '700' }}>
-            {creating ? ES.auth.signUp : ES.auth.signIn}
-          </Text>
         )}
-      </Pressable>
 
-      {/* 5R-h. Under the button it rescues, and only where there is a
-          password to have forgotten. */}
-      {!creating && supportNumber !== null && (
-        <Pressable
-          accessibilityRole="link"
-          disabled={busy}
-          onPress={() => void Linking.openURL(forgotPasswordUrl(supportNumber, email))}
-          style={{
-            minHeight: scale.tapTarget,
-            alignItems: 'center',
-            justifyContent: 'center',
-            opacity: busy ? 0.6 : 1,
-          }}
-        >
-          <Text style={{ fontSize: scale.bodySize, textDecorationLine: 'underline' }}>
-            {ES.auth.forgotPassword}
-          </Text>
-        </Pressable>
-      )}
+        {problem !== null && (
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
+        )}
 
-      {/* And the way to the other half. */}
-      <Pressable
-        accessibilityRole="button"
-        disabled={busy}
-        onPress={switchHalf}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: busy ? 0.6 : 1,
-        }}
-      >
-        <Text style={{ fontSize: scale.bodySize }}>
-          {creating ? ES.auth.toSignIn : ES.auth.toSignUp}
-        </Text>
-      </Pressable>
+        <BotonLleno
+          variante="principal"
+          label={creating ? ES.auth.signUp : ES.auth.signIn}
+          busy={busy}
+          onPress={() => void (creating ? attemptSignUp() : attemptSignIn())}
+        />
 
-      {/* C1.4's second provider. Below the email path because the email path is
-          the one that works with no signal worth the name, and the pilot store
-          loses its connection routinely. */}
-      <Pressable
-        accessibilityRole="button"
-        disabled={busy}
-        onPress={() => void attemptGoogle()}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          borderRadius: scale.space / 2,
-          borderWidth: 1,
-          marginTop: scale.space,
-          opacity: busy ? 0.6 : 1,
-        }}
-      >
-        <Text style={{ fontSize: scale.bodySize, fontWeight: '600' }}>{ES.auth.google}</Text>
-      </Pressable>
+        {/* 5R-h. Under the button it rescues, and only where there is a
+            password to have forgotten. */}
+        {!creating &&
+          supportNumber !== null &&
+          link(ES.auth.forgotPassword, () => void Linking.openURL(forgotPasswordUrl(supportNumber, email)))}
 
-      {/* 5R-k. Under the other provider and as tall as it, on a phone that
-          has the sheet. The header says why its words and colours are not ours. */}
-      {appleAvailable && (
-        <View pointerEvents={busy ? 'none' : 'auto'} style={{ opacity: busy ? 0.6 : 1 }}>
-          <AppleAuthenticationButton
-            buttonType={AppleAuthenticationButtonType.CONTINUE}
-            buttonStyle={AppleAuthenticationButtonStyle.WHITE_OUTLINE}
-            cornerRadius={scale.space / 2}
-            onPress={() => void attemptApple()}
-            style={{ width: '100%', height: scale.tapTarget }}
-          />
-        </View>
-      )}
-
-      {/* 5R-d-iii, the owner's ruling of 2026-10-12. Directly under the buttons
-          it speaks for, on both halves, because a provider makes an account
-          from either. The whole line is the target; the underline says where
-          the link is. */}
-      <Pressable
-        accessibilityRole="link"
-        disabled={busy}
-        onPress={openAviso}
-        style={{
-          minHeight: scale.tapTarget,
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: busy ? 0.6 : 1,
-        }}
-      >
-        <Text style={{ fontSize: scale.bodySize, textAlign: 'center' }}>
-          {ES.auth.avisoGoogleLead}
-          <Text style={{ textDecorationLine: 'underline', fontWeight: '600' }}>
-            {ES.auth.aviso}
-          </Text>
-        </Text>
-      </Pressable>
-    </ScrollView>
+        {/* And the way to the other half. */}
+        {creating
+          ? link(`${ES.hola.yaTengo} `, switchHalf, ES.hola.entrar)
+          : link(ES.auth.toSignUp, switchHalf)}
+      </ScrollView>
+    </View>
   );
 }

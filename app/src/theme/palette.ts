@@ -371,3 +371,16 @@ export function serieColour(hue: number): string {
   const at = ((hue % ring.length) + ring.length) % ring.length;
   return ring[at] as string;
 }
+
+// ============================================================================
+// THE ICON'S RUST — `8g`, 2026-10-21, for the opening: the cow turns into the
+// logo, so the square that grows behind her is the icon's own square.
+//
+// ⚠️ NOT A ROLE, `SERIE`'s reasoning: it is the colour of a PICTURE — the
+// mark's, ruled 2026-10-13 (*"We will go with the rust color"*, `brand/
+// render-icons.sh`) — and nothing is ever written on it, so it has no place in
+// the ink-by-ground matrix. The cream cow on it is baked into its PNG
+// (`brand/render-vaca.sh`), the icon's 4.6 to 1. ⚠️ It is not `marca`, the
+// shop name's ink, which is a darker rust chosen to be read as text.
+// ============================================================================
+export const OXIDO_DE_LA_VACA = '#B5561F';
