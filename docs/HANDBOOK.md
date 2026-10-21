@@ -962,8 +962,9 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
    cd ~/RetailerToolDev/RetailerManagementTool/app && npx eas-cli submit --platform ios --id d0246560-c3ae-4bcc-b3ad-4d364e01dc29
    ```
 
-   Apple processes it for 5 to 30 minutes. From then it is also in *TestFlight*, where you can
-   install the store version on your iPhone without waiting for review.
+   Apple processes it for 5 to 30 minutes, then emails you. ⚠️ **Do not install it on your own
+   iPhone through *TestFlight*:** your iPhone is a pilot phone, and like the Play version on a
+   pilot Android, the store version replaces the build that takes the pilot's measurements.
 3. **The pages**, sections 2 to 8 of `store/app-store.md`: app information, price (free, Mexico
    only), the version page, age rating, app privacy, and review information with the demo
    account's email and password (the same account Google's reviewers get). Pictures, in file
