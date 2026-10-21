@@ -940,6 +940,40 @@ who leaves and comes back starts their own 14 days again.
 
 ---
 
+## Putting Wera on the App Store
+
+Apple reviews each version before anybody can download it, usually within a day or two.
+Everything you paste is in [`store/app-store.md`](../store/app-store.md), in the order App
+Store Connect asks, and the pictures are in `store/app-store/`. **The store build is made:**
+build 3 (EAS `d0246560`, 21 October, from your Terminal), with Sign in with Apple and the
+same update runtime as your iPhone's, so a fix sent over the air reaches both.
+
+⚠️ **Apple will refuse Wera until steps 1 to 4 of *Turning on Entrar con Apple* are done.**
+The account screen shows *Continuar con Apple* (Apple requires it next to Google's), and until
+the key is in, it signs nobody in. Do those first and tell a session; it checks them.
+
+1. **The record.** appstoreconnect.apple.com → *Apps* → **+** → *New App*: iOS, name
+   `Wera: tu tienda`, Spanish (Mexico), bundle ID `mx.wera.app`, SKU `wera-mx` (it can never be
+   changed), full access. Make it before step 2, or EAS makes one with its own name and SKU.
+2. **Upload the build**, in Terminal.app. It asks for your Apple ID and a code, and offers to
+   make an App Store Connect key: say yes.
+
+   ```
+   cd ~/RetailerToolDev/RetailerManagementTool/app && npx eas-cli submit --platform ios --id d0246560-c3ae-4bcc-b3ad-4d364e01dc29
+   ```
+
+   Apple processes it for 5 to 30 minutes. From then it is also in *TestFlight*, where you can
+   install the store version on your iPhone without waiting for review.
+3. **The pages**, sections 2 to 8 of `store/app-store.md`: app information, price (free, Mexico
+   only), the version page, age rating, app privacy, and review information with the demo
+   account's email and password (the same account Google's reviewers get). Pictures, in file
+   order: `store/app-store/iphone-6.9/` (1320 × 2868) where it asks for the large iPhone, and
+   `iphone-6.3/` (1206 × 2622) if it asks for a smaller one too.
+4. **The version page → *Build* → choose 3 → *Add for Review* → *Submit for Review*.** Apple
+   answers by email. If it refuses something, give a session its words.
+
+---
+
 ## What only you can decide
 
 - **Anything a shopkeeper sees or types** — wording, taps, what a cashier may change.

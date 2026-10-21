@@ -113,7 +113,7 @@ tienda,punto de venta,abarrotes,ventas,caja,tiendita,negocio,compras,merma,prove
 | Support URL | `https://tu-wera.com/` |
 | Marketing URL | leave empty |
 | Copyright | `2026` and your legal name, as the aviso prints it. **Not written in this repository** |
-| Screenshots | `5R-d-iv-c`. Required: at least one for *iPhone with Dynamic Island (medium display)*, 1179 × 2556 or 1206 × 2622. Add the large set too (1290 × 2796 or 1320 × 2868): Apple's page still calls it required in one row |
+| Screenshots | [`app-store/`](app-store/), six per size, in file order: `iphone-6.9/` (1320 × 2868) for the large iPhone, `iphone-6.3/` (1206 × 2622) for *iPhone with Dynamic Island (medium display)*. Taken 2026-10-21 on an invented shop; no real shop's data |
 
 ## 5. Age rating
 

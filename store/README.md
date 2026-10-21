@@ -7,8 +7,9 @@ pictures Google asks for.
 | File | What it is |
 |---|---|
 | [`google-play.md`](google-play.md) | Every Play Console field in the order the console asks: the listing, the store settings, each *App content* form, the closed track and its release |
-| [`google-play/`](google-play/) | The 512 px icon, the feature graphic and its source, and five phone screenshots |
+| [`google-play/`](google-play/) | The 512 px icon, the feature graphic and its source, and six phone screenshots |
 | [`app-store.md`](app-store.md) | Every App Store Connect field: the record, the listing text, the age rating, the privacy labels, the review notes. **Nothing in it has been entered anywhere** |
+| [`app-store/`](app-store/) | The same six screenshots for the App Store at two iPhone sizes: `iphone-6.9/` 1320 × 2868 and `iphone-6.3/` 1206 × 2622 |
 | `limits.py` | Measures every pasted field against its store's limit |
 
 **Where each stands.** Google Play's closed test has its text, forms and pictures ready; its
@@ -115,6 +116,27 @@ day** (`adb root`, `auto_time 0`, `date`), so *Hoy* shows a working day rather t
 written today is not yet valid on a phone set to yesterday (backdate the shop's `price_list`);
 and `adb shell input text` into the password box drops characters now and then (type it in two
 pieces, or give the account a plain password). Restore `auto_time 1` and `wm size reset` after.
+
+⚠️ **The App Store's twelve, 2026-10-21 (`5R-d-iv-c`), on the iPhone simulator** — the same six
+screens at 1206 × 2622 (iPhone 17) and 1320 × 2868 (iPhone 17 Pro Max), from a simulator Release
+build of `0246ae6` against the local shop through the same HTTPS proxy (the recipe's iOS half is
+the session's memory *screenshot every screen against a local shop*: certificate trusted with
+`simctl keychain … add-root-cert`, session written into the app's `ExpoSQLiteStorage` AS TEXT).
+What differed, and why:
+- **The simulator keeps the Mac's clock**, and at 2 a.m. *Hoy* is empty. So a second invented
+  *Abarrotes Lupita* was made whose day is **Pago Pago's (UTC−11)**: sales between 7:30 and 21:30
+  of that zone's last three days, the store's own `location.timezone` set to it so the server's
+  daily views agree, and the app started in that zone with `simctl spawn <udid> launchctl setenv
+  TZ Pacific/Pago_Pago` (the app's *today* is the device's midnight). Status bar: `simctl
+  status_bar … override --time 20:45`.
+- **No taps.** A tab is reached through the app's own last-screen key (`wera.lastScreen`); any
+  other route by a **cold** `simctl openurl` with that key deleted — with the key present the
+  restore wins and the link is dropped. The basket on Vender is written into `tienda.cart.v3`.
+- ⚠️ **iOS asks *Open in "Wera"?* before a link opens a newly installed app**, and nothing here
+  can tap it. The approval lives in the simulator's `com.apple.launchservices.schemeapproval`
+  defaults (`com.apple.CoreSimulator.CoreSimulatorBridge-->mx.wera.app` = `mx.wera.app`);
+  `simctl spawn <udid> defaults write …` sets it. An alert already on screen stays until the
+  simulator restarts.
 
 ⚠️ **The seed shop has two stores, and its owner sees both — so on Vender she gets no *Cobrar*
 slide** (`useCatalog` picks a store only when exactly one is visible). The 2026-10-13 set took
