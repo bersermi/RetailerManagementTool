@@ -978,6 +978,29 @@ the key is in, it signs nobody in. Do those first and tell a session; it checks 
 
 ---
 
+## When the stores approve Wera
+
+Both were sent for review on 21 October: Apple usually answers in a day or two, Google in a few
+hours to seven days. Each writes to your email. **Tell a session the words *"Apple approved"* or
+*"Google approved"*** — it knows the rest, from the plan's `5R-e` row:
+
+1. ***Conoce Wera*, the one-minute tutorial, goes to the store versions** — one command, once both
+   have approved (your ruling). It is on your iPhone already, through the pilot version.
+2. **Google:** *Closed testing → Testers → Copy link*, and send it to your testers. **Tell a session
+   the day the twelfth one joins**: the 14 days start then.
+3. **If Apple refuses something**, paste its words to a session.
+
+**Still yours from 21 October, none of them blocking the review:**
+
+- **Sign in with Apple, for real** — the five minutes in *Turning on Entrar con Apple*, step 6.
+  Apple's reviewer will try it; better that you see it work first.
+- **The notice email** of that section's step 4, to every account that is not yours.
+- **Google sign-in for everybody** — *Putting tu-wera.com up*, step 7, if you have not.
+- **The pilot Android's new install** (*What is on your phone*).
+- **Supabase Pro** — the day before a shop that is not yours starts keeping its real records.
+
+---
+
 ## What only you can decide
 
 - **Anything a shopkeeper sees or types** — wording, taps, what a cashier may change.
