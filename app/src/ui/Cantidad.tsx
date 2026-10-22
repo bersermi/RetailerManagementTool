@@ -192,7 +192,13 @@ export function Cantidad({
       {/* ⚠️ THE UNIT IS RENDERED INSIDE THE BOX AND ALWAYS — the half of §2.8's
           *Unit-aware input* row that was never in question. It moved inside on
           `8g` (*2 pza*, *750 gr*), which is a sentence and saves the line under
-          the box. ⚠️ A tap anywhere on the box reaches the field. */}
+          the box. ⚠️ A tap anywhere on the box reaches the field.
+          ⚠️⚠️ UNDER THE NUMBER, NOT BESIDE IT — the owner's option A of
+          2026-10-22, after a tester could not see what he typed beside *manojo*.
+          Side by side, a long unit squeezed the number and the field cut it from
+          the left: on the emulator *1.250 kg* read *.250 kg* and *12 manojo* read
+          *2 manojo*. Stacked, the number has the box's whole width at either
+          density and the box keeps its size (https://claude.ai/artifact/ENjdbaom7uL85KzHRwPuwG). */}
       <Pressable
         accessibilityRole={refusal === null ? undefined : 'button'}
         accessibilityLabel={refusal === null ? undefined : `${ES.counter.qty} ${word}`}
@@ -201,10 +207,9 @@ export function Cantidad({
           width: fill ? undefined : scale.tapTarget * 1.5,
           flex: fill ? 1 : undefined,
           minHeight: scale.tapTarget,
-          flexDirection: 'row',
-          alignItems: 'center',
+          flexDirection: 'column',
+          alignItems: 'stretch',
           justifyContent: 'center',
-          gap: scale.rowGap / 2,
           paddingHorizontal: scale.rowGap / 2,
           borderRadius: scale.space,
           borderWidth: counted ? 2 : 1,
@@ -239,17 +244,18 @@ export function Cantidad({
             onSubmitEditing={() => Keyboard.dismiss()}
             inputAccessoryViewID={padId}
             accessibilityLabel={`${ES.counter.qty} ${word}`}
-            textAlign="right"
+            textAlign="center"
             style={{
-              flexShrink: 1,
-              minWidth: scale.space,
+              paddingVertical: scale.rowGap / 8,
               fontSize: scale.bodySize,
               fontWeight: '700',
               color: PALETTE.tinta,
             }}
           />
         ) : null}
-        <Text style={{ fontSize: scale.smallSize, color: PALETTE.tintaApagada }}>{word}</Text>
+        <Text numberOfLines={1} style={{ fontSize: scale.smallSize, lineHeight: scale.smallSize * 1.1, textAlign: 'center', color: PALETTE.tintaApagada }}>
+          {word}
+        </Text>
       </Pressable>
 
       <Paso
