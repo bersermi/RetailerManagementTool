@@ -50,6 +50,8 @@ import { formatLastBought } from '@/format/date';
 import { formatMXN } from '@/format/mxn';
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
+import { comportamientoTeclado } from '@/lib/teclado';
+import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
 import { useOnline } from '@/offline/useOnline';
@@ -237,6 +239,8 @@ const PAD_ID = 'wera.buy.pad';
 export default function Comprar() {
   const { scale, mode } = useDensity();
   const insets = useSafeAreaInsets();
+  // ⚠️ `8g`, 2026-10-22: on Android 15+ the keyboard's room counts from where this counter starts (`@/lib/useDesfaseTeclado`).
+  const desfase = useDesfaseTeclado(scale.tabBarHeight + insets.bottom);
   const { width } = useWindowDimensions();
 
   // ⚠️ THE CATALOG IS READ UNFILTERED AND NARROWED FOR THE LIST ONLY — Vender's
@@ -574,8 +578,9 @@ export default function Comprar() {
       // below the notch, and counting the inset again is the dead space the owner
       // reported on Vender on 2026-09-24.
       style={{ flex: 1, backgroundColor: PALETTE.compraFondo }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+      behavior={comportamientoTeclado(Platform.OS, Platform.Version)}
+      onLayout={desfase.onLayout}
+      keyboardVerticalOffset={desfase.offset}
     >
       {corrects === null ? null : (
         <View style={{ paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>
@@ -1291,6 +1296,7 @@ function CajaCosto({
         // `numeric` carries a minus sign on some Android keyboards. `parsePesos`
         // is still what READS it — a pad is a convenience, never a validator.
         keyboardType="decimal-pad"
+        returnKeyType="done"
         inputAccessoryViewID={PAD_ID}
         accessibilityLabel={`${ES.buy.cost} ${entry.name}`}
         style={{

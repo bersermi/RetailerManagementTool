@@ -12,21 +12,18 @@
 // signal, correcting her own sales, Merma — because a card promising what she
 // cannot open is the app talking past her. A role not yet read is the short one.
 //
-// ⚠️⚠️ WHEN IT OPENS BY ITSELF — ONCE PER PHONE, AND ONLY IN THE FIRST DAYS.
-// An update reaches a phone in the background and shows from the NEXT open, so a
-// tester who installs after it is published creates her shop on the build's
-// own version and never meets an "after the shop is created" moment. Hence two
-// doors, either enough: she has just arrived (opened her shop, or been let into
-// one) on this version; or the shop is in its first `NEW_SHOP_DAYS` days of
-// selling, counted as Números' *Llevas N días con Wera* counts them, from the
-// first sale (`shopAge`). A shop with no sales yet is new. A shop whose sales
-// have not been read says nothing yet: the decision waits, rather than opening
-// a tutorial over someone who has sold for months because her history was slow.
-// Everyone else gets the card on Inicio, and Ajustes keeps it.
+// ⚠️⚠️ WHEN IT OPENS BY ITSELF — ONCE ON EVERY PHONE. The owner's ruling of
+// 2026-10-22, after his first user: *"Make the Recorrido display regardless if
+// the device had already downloaded the app before."* Until then it opened by
+// itself only for a shop in its first three days of selling, and a phone that
+// had Wera before the update got the card on Inicio instead. Now any phone that
+// has not seen it gets it, once, on the next Vender or Inicio — after an
+// arrival's line has been read — and never over a basket she is ringing up:
+// then it waits for the next time the screen comes up. The card on Inicio stays
+// for a phone where it was closed before it opened, and Ajustes keeps it.
 // ============================================================================
 
 import type { Role } from '@/api/members';
-import type { SalesState } from '@/api/sales';
 
 /** One card of the story, in the order a person meets it. */
 export type Tarjeta =
@@ -57,9 +54,6 @@ export const RECORRIDO_DUENO: readonly Tarjeta[] = [
 
 /** The Empleado's. Its last card is its Merma card, which says *a vender*. */
 export const RECORRIDO_EMPLEADO: readonly Tarjeta[] = ['venderEmpleado', 'sinSenal', 'corrige', 'mermaEmpleado'];
-
-/** How many days of selling a shop is "new" for: three, the owner's ruling. */
-export const NEW_SHOP_DAYS = 3;
 
 /**
  * HOW LONG A CARD STAYS — ⚠️ THE OWNER'S CORRECTION OF 2026-10-22: six and a
@@ -95,21 +89,13 @@ export function recorridoDe(role: Role | null): readonly Tarjeta[] {
 export interface Momento {
   /** This phone has opened the story, or closed its card on Inicio. */
   readonly seen: boolean;
-  /** She has just opened her shop or been let into one, on this version. */
-  readonly arrived: boolean;
-  /** Whether the shop's sales have been read, and found. */
-  readonly salesState: SalesState;
-  /** Days since the first sale, the first counted as 1 — `shopAge`. */
-  readonly shopAge: number | null;
+  /** Vender's basket has lines: she is in the middle of a sale. */
+  readonly selling: boolean;
 }
 
-/** Does the story open by itself now? */
+/** Does the story open by itself now? Once on every phone, never over a sale. */
 export function abrePorSiSolo(m: Momento): boolean {
-  if (m.seen) return false;
-  if (m.arrived) return true;
-  if (m.salesState === 'nothing') return true;
-  if (m.salesState !== 'sales' || m.shopAge === null) return false;
-  return m.shopAge <= NEW_SHOP_DAYS;
+  return !m.seen && !m.selling;
 }
 
 /** The card a story closes on is never left by itself: it holds the way out. */

@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Linking, Pressable, ScrollView, Text, View } from 'react-native';
+import { Linking, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { deleteArgs } from '@/api/account';
@@ -26,6 +26,7 @@ import { PALETTE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
+import { Formulario } from '@/ui/Formulario';
 import { Puertas } from '@/ui/Puertas';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 
@@ -281,7 +282,7 @@ export default function Bienvenida() {
   );
 
   const page = (children: ReactNode) => (
-    <ScrollView
+    <Formulario
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{
         paddingHorizontal: scale.space * 2,
@@ -292,7 +293,7 @@ export default function Bienvenida() {
     >
       {children}
       {exits}
-    </ScrollView>
+    </Formulario>
   );
 
   const back = pending === null ? { label: ES.cuenta.back, onPress: () => choose(null) } : null;

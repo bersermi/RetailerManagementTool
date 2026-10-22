@@ -1,14 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import {
-  Keyboard,
-  Platform,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, Platform, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useEditProduct, useMyRole, useProductPhotoSave, useWorkspace } from '@/api/hooks';
@@ -33,6 +25,7 @@ import { newWriteId } from '@/lib/ids';
 import { useAskBeforeLeaving } from '@/navigation/salida';
 import { useOnline } from '@/offline/useOnline';
 import { ES } from '@/strings';
+import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
@@ -354,7 +347,7 @@ export default function EditarProducto() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda subtitle={entry?.name ?? ''} />
 
-      <ScrollView
+      <Formulario
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -529,7 +522,7 @@ export default function EditarProducto() {
             ) : null}
           </>
         )}
-      </ScrollView>
+      </Formulario>
 
       <RetiroProducto
         asking={asking}

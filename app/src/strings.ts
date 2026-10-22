@@ -46,6 +46,9 @@ export const ES = {
     title: 'Wera',
     emailLabel: 'Correo',
     passwordLabel: 'Contraseña',
+    /** `8g`, 2026-10-22: the switch beside the password box, to a screen reader. */
+    showPassword: 'Mostrar contraseña',
+    hidePassword: 'Ocultar contraseña',
     /**
      * ⚠️ THE TWO FIELDS THAT ONLY EXIST ON THE SIGN-UP HALF (5b.7). The owner
      * asked for them by name on 2026-09-18 — *"Nombre y Apellido"* — and ruled
@@ -173,6 +176,8 @@ export const ES = {
     colonia: 'Colonia (opcional)',
     city: 'Ciudad o alcaldía',
     postalCode: 'Código postal',
+    /** `8g`, 2026-10-22: the bar above the postal code's number pad on an iPhone. */
+    done: 'Listo',
     label: 'Dirección',
     none: 'Sin dirección',
     change: 'Cambiar',
@@ -222,8 +227,13 @@ export const ES = {
     /** At onboarding, where there is no list since 2026-10-14 (the owner's ruling). */
     /** `8g`: under the first giro picked, beside its star (the owner's wording). */
     principal: 'Tu giro principal',
-    /** ⚠️ `8g`: THE OWNER'S TWO LINES, 2026-10-21 (*"más"* given its accent). */
-    hintGiros: 'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.',
+    /**
+     * ⚠️ `8g`: THE OWNER'S TWO LINES, 2026-10-21 (*"más"* given its accent) —
+     * and a third at his ask of 2026-10-22, after his first user: *"let people
+     * know they'll be able to add new products in the future if needed"*.
+     */
+    hintGiros:
+      'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.\nDespués puedes agregar los productos que te falten, desde Productos.',
     count: (n: number) => (n === 1 ? '1 producto' : `${n} productos`),
     add: (n: number) => (n === 1 ? 'Agregar 1 producto' : `Agregar ${n} productos`),
     none: 'No elegiste ningún producto.',

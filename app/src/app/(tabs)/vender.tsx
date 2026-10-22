@@ -49,6 +49,8 @@ import { CierreCarrito } from '@/ui/CierreCarrito';
 import { Hecho } from '@/ui/Hecho';
 import { FIRST_SALE_KEY, firstTime } from '@/offline/ensenar';
 import { deviceStore } from '@/lib/store';
+import { comportamientoTeclado } from '@/lib/teclado';
+import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { HojaCarrito } from '@/ui/HojaCarrito';
 import { PrecioRapido } from '@/ui/PrecioRapido';
 import { Retrato } from '@/ui/Retrato';
@@ -167,10 +169,14 @@ import { VaciarCarrito } from '@/ui/VaciarCarrito';
 // window has to fall back to an offset, the arrangement `productos.tsx` already
 // uses for the same reason.
 //
-// ⚠️ `behavior` IS `padding` ON iOS AND NOTHING ON ANDROID, which is not a
-// hedge: Expo sets `softwareKeyboardLayoutMode: "resize"`, so Android's window
-// is already shortened by the system and a second adjustment double-counts it.
-// C1.1 puts two Androids among the pilot's four phones.
+// ⚠️ `behavior` IS `padding` ON iOS AND NOTHING ON ANDROID 14 OR OLDER, which is
+// not a hedge: Expo sets `softwareKeyboardLayoutMode: "resize"`, so an older
+// Android's window is already shortened by the system and a second adjustment
+// double-counts it. C1.1 puts two Androids among the pilot's four phones.
+// ⚠️⚠️ CORRECTED 2026-10-22 (`8g`, the owner's first user): ON ANDROID 15 AND
+// NEWER IT IS `padding` TOO. Measured on the emulator, Android 16: the window
+// stayed the full screen with the keyboard up — an app targeting API 35+ is
+// drawn edge to edge and the system resizes nothing. `@/lib/teclado` decides.
 //
 // ⚠️ THE OFFSET IS THE TAB BAR'S OWN HEIGHT PLUS THE DEVICE INSET, because this
 // screen is inside the tab navigator: without it the avoidance is short by
@@ -228,6 +234,8 @@ const PAD_ID = 'wera.sell.pad';
 export default function Vender() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
+  // ⚠️ `8g`, 2026-10-22: on Android 15+ the keyboard's room counts from where this counter starts (`@/lib/useDesfaseTeclado`).
+  const desfase = useDesfaseTeclado(scale.tabBarHeight + insets.bottom);
 
   // ⚠️ THE CATALOG IS READ UNFILTERED AND NARROWED BELOW — see the header. The
   // empty string is `useCatalog`'s own default and is spelled out here because
@@ -370,7 +378,7 @@ export default function Vender() {
   );
   // ⚠️ `8g`, 2026-10-21: and once that line has been read, *Conoce Wera* — the
   // owner's eight cards, an Empleado's four — opens by itself, once per phone.
-  useRecorridoPorSiSolo(arrived !== null);
+  useRecorridoPorSiSolo(arrived !== null, cart.length > 0);
   // ⚠️ §5's readings (plan `5P-a`) — a no-op on any build made without
   // `EXPO_PUBLIC_PILOT`. Nothing on this screen is drawn differently for it.
   const pilot = usePilotVisit('vender', workspace?.id ?? null, locationId, !loading && entries.length > 0);
@@ -463,8 +471,9 @@ export default function Vender() {
       style={{ flex: 1, backgroundColor: PALETTE.fondo }}
       // See this file's header: `padding` on iOS, nothing on Android, where the
       // system has already resized the window.
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+      behavior={comportamientoTeclado(Platform.OS, Platform.Version)}
+      onLayout={desfase.onLayout}
+      keyboardVerticalOffset={desfase.offset}
     >
       {corrects === null ? null : (
         <View style={{ paddingHorizontal: scale.space, paddingTop: scale.rowGap }}>

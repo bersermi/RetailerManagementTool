@@ -134,6 +134,7 @@ export function HojaPrecio({
             <TextInput
               value={value}
               onChangeText={onChange}
+              returnKeyType="done"
               keyboardType="decimal-pad"
               autoFocus
               editable={!busy}

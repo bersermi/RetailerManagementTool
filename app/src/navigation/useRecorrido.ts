@@ -17,8 +17,6 @@
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useRef } from 'react';
 
-import { useSales } from '@/api/hooks';
-import { shopAge } from '@/api/month';
 import { deviceStore, readKey } from '@/lib/store';
 import { abrePorSiSolo } from '@/navigation/recorrido';
 import { RECORRIDO_KEY } from '@/offline/ensenar';
@@ -29,10 +27,11 @@ const AFTER_ARRIVAL_MS = DONE_NOTE_HOLD_MS + 1_200;
 /** Long enough for the screen to be seen first, short enough to read as one moment. */
 const SETTLE_MS = 900;
 
-/** Opens the story once, when `abrePorSiSolo` says so, while this screen is in front. */
-export function useRecorridoPorSiSolo(arrived: boolean): void {
-  const { sales, today } = useSales();
-  const age = shopAge(sales.days, today);
+/**
+ * Opens the story once, when `abrePorSiSolo` says so, while this screen is in
+ * front. `selling` is Vender's basket having lines; Inicio has none.
+ */
+export function useRecorridoPorSiSolo(arrived: boolean, selling = false): void {
   const latched = useRef(false);
   if (arrived) latched.current = true;
   const justArrived = latched.current;
@@ -40,7 +39,7 @@ export function useRecorridoPorSiSolo(arrived: boolean): void {
   useFocusEffect(
     useCallback(() => {
       const seen = readKey(deviceStore(), RECORRIDO_KEY) !== null;
-      if (!abrePorSiSolo({ seen, arrived: justArrived, salesState: sales.state, shopAge: age })) return undefined;
+      if (!abrePorSiSolo({ seen, selling })) return undefined;
       const timer = setTimeout(
         () => {
           if (readKey(deviceStore(), RECORRIDO_KEY) !== null) return;
@@ -49,6 +48,6 @@ export function useRecorridoPorSiSolo(arrived: boolean): void {
         justArrived ? AFTER_ARRIVAL_MS : SETTLE_MS,
       );
       return () => clearTimeout(timer);
-    }, [justArrived, sales.state, age]),
+    }, [justArrived, selling]),
   );
 }
