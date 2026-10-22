@@ -17,7 +17,7 @@ import { addressComplete } from '@/api/collection';
 import { useCollectionReaches, useMyRole, useSales, useStoreAddresses, useWorkspaceMembers } from '@/api/hooks';
 import { useReduceMotion } from '@/lib/movimiento';
 import { deviceStore, writeKey } from '@/lib/store';
-import { CARD_MS, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
+import { cardMs, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
 import { RECORRIDO_KEY } from '@/offline/ensenar';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
@@ -115,6 +115,16 @@ export default function Recorrido() {
 
   const card = cards[Math.min(index, cards.length - 1)] ?? 'hola';
   const last = esUltima(cards, index);
+  const hasSales = sales.state === 'sales';
+  // ⚠️ READ WHEN A CARD STARTS, NOT WATCHED: the store's address answers late,
+  // and a card whose length changed under it would start again from nothing.
+  const words = textoDe(card, teLoCompro, hasSales);
+  const ms = cardMs(`${words.title} ${words.line}`, PICTURE[card] !== undefined);
+  const duration = useRef(ms);
+  // ⚠️ DECLARED BEFORE THE TIMER'S EFFECT, so a new card's timer reads its own length.
+  useEffect(() => {
+    duration.current = ms;
+  }, [ms]);
 
   const run = useCallback(
     (from: number) => {
@@ -125,7 +135,7 @@ export default function Recorrido() {
       }
       Animated.timing(progress, {
         toValue: 1,
-        duration: Math.max(0, (1 - from) * CARD_MS),
+        duration: Math.max(0, (1 - from) * duration.current),
         easing: Easing.linear,
         useNativeDriver: false,
       }).start(({ finished }) => {
@@ -161,18 +171,28 @@ export default function Recorrido() {
         <>
           <View style={{ flexDirection: 'row', gap: scale.rowGap / 2, paddingHorizontal: scale.space }}>
             {cards.map((c, i) => (
+              // ⚠️ THE DIM TRACK IS ITS OWN LAYER, BEHIND A FULL-WHITE FILL. Until
+              // 2026-10-22 the whole bar was dimmed and its fill sat inside the
+              // dimming, the same white as the track — so it filled unseen, and
+              // the owner read *"the time bar at the top is not moving"*.
               <View
                 key={c}
-                style={{
-                  flex: 1,
-                  height: scale.rowGap / 3,
-                  borderRadius: scale.rowGap,
-                  backgroundColor: PALETTE.superficie,
-                  opacity: i < index ? 1 : 0.35,
-                  overflow: 'hidden',
-                }}
+                style={{ flex: 1, height: scale.rowGap / 2, borderRadius: scale.rowGap, overflow: 'hidden' }}
               >
-                {i === index ? (
+                <View
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    backgroundColor: PALETTE.superficie,
+                    opacity: 0.35,
+                  }}
+                />
+                {i < index ? (
+                  <View style={{ height: '100%', width: '100%', backgroundColor: PALETTE.superficie }} />
+                ) : i === index ? (
                   <Animated.View
                     style={{
                       height: '100%',
@@ -219,7 +239,7 @@ export default function Recorrido() {
             onLongPress={() => undefined}
             style={{ flex: 1, paddingHorizontal: scale.space * 1.5, paddingTop: scale.space, gap: scale.space }}
           >
-            <Contenido card={card} last={last} teLoCompro={teLoCompro} hasSales={sales.state === 'sales'} />
+            <Contenido card={card} last={last} words={words} />
           </Pressable>
         </>
       ) : null}
@@ -236,19 +256,24 @@ function useTeLoComproLlega(): boolean {
   return !(complete && reaches === false);
 }
 
+/** A card's two lines as shown: Merma's *Te lo compro* where it reaches, the last title by history. */
+function textoDe(card: Tarjeta, teLoCompro: boolean, hasSales: boolean): { title: string; line: string } {
+  const words = ES.recorrido.cards[card];
+  if (card === 'listo') return { title: hasSales ? ES.recorrido.listoVendiendo : words.title, line: words.line };
+  if (card === 'merma' && teLoCompro) return { title: words.title, line: `${words.line} ${ES.recorrido.teLoCompro}` };
+  return { title: words.title, line: words.line };
+}
+
 function Contenido({
   card,
   last,
-  teLoCompro,
-  hasSales,
+  words,
 }: {
   card: Tarjeta;
   last: boolean;
-  teLoCompro: boolean;
-  hasSales: boolean;
+  words: { title: string; line: string };
 }) {
   const { scale } = useDensity();
-  const words = ES.recorrido.cards[card];
 
   if (card === 'hola') {
     return (
@@ -268,7 +293,7 @@ function Contenido({
   if (card === 'listo') {
     return (
       <View style={{ flex: 1, justifyContent: 'center', gap: scale.space }}>
-        <Titulo>{hasSales ? ES.recorrido.listoVendiendo : words.title}</Titulo>
+        <Titulo>{words.title}</Titulo>
         <Linea>{words.line}</Linea>
         <IrAVender />
       </View>
@@ -276,11 +301,10 @@ function Contenido({
   }
 
   const picture = PICTURE[card];
-  const line = card === 'merma' && teLoCompro ? `${words.line} ${ES.recorrido.teLoCompro}` : words.line;
   return (
     <>
       <Titulo>{words.title}</Titulo>
-      <Linea>{line}</Linea>
+      <Linea>{words.line}</Linea>
       {picture === undefined ? null : <Pantalla picture={picture} />}
       {/* ⚠️ The Empleado's story ends on its Merma card: the way out is on whichever card is last. */}
       {last ? <IrAVender /> : null}

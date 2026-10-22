@@ -7,7 +7,12 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  MAX_CARD_MS,
+  MIN_CARD_MS,
   NEW_SHOP_DAYS,
+  PICTURE_MS,
+  cardMs,
+  palabras,
   RECORRIDO_DUENO,
   RECORRIDO_EMPLEADO,
   abrePorSiSolo,
@@ -89,6 +94,36 @@ describe('when the story opens by itself', () => {
 
   it('leaves an older shop to the card on Inicio', () => {
     expect(abrePorSiSolo(fresh)).toBe(false);
+  });
+});
+
+describe('how long a card stays — his correction of 2026-10-22, "too little to … read"', () => {
+  it('counts the words a reader meets', () => {
+    expect(palabras('Vende en segundos, aunque se vaya la señal')).toBe(8);
+    expect(palabras('  dos   palabras ')).toBe(2);
+    expect(palabras('')).toBe(0);
+  });
+
+  it('gives longer words more time, and a real screen more time still', () => {
+    const short = cardMs('Una línea corta de prueba', true);
+    const long = cardMs('Una línea bastante más larga que la anterior y que tarda en leerse con calma', true);
+    expect(long).toBeGreaterThan(short);
+    expect(cardMs('Una línea corta de prueba', true) - cardMs('Una línea corta de prueba', false)).toBeLessThanOrEqual(PICTURE_MS);
+  });
+
+  it('never leaves a card for less than the floor or more than the ceiling', () => {
+    expect(cardMs('', false)).toBe(MIN_CARD_MS);
+    expect(cardMs('palabra '.repeat(200), true)).toBe(MAX_CARD_MS);
+  });
+
+  it('keeps every real card at least twice the old six and a half seconds where it shows a screen', () => {
+    for (const card of [...RECORRIDO_DUENO, ...RECORRIDO_EMPLEADO]) {
+      const words = ES.recorrido.cards[card];
+      const ms = cardMs(`${words.title} ${words.line}`, card !== 'hola' && card !== 'listo');
+      expect(ms).toBeGreaterThanOrEqual(MIN_CARD_MS);
+      expect(ms).toBeLessThanOrEqual(MAX_CARD_MS);
+      if (card !== 'hola' && card !== 'listo') expect(ms).toBeGreaterThanOrEqual(10_000);
+    }
   });
 });
 

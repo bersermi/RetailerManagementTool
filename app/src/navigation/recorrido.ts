@@ -61,8 +61,30 @@ export const RECORRIDO_EMPLEADO: readonly Tarjeta[] = ['venderEmpleado', 'sinSen
 /** How many days of selling a shop is "new" for: three, the owner's ruling. */
 export const NEW_SHOP_DAYS = 3;
 
-/** How long a card stays before the next, unless she taps. */
-export const CARD_MS = 6_500;
+/**
+ * HOW LONG A CARD STAYS — ⚠️ THE OWNER'S CORRECTION OF 2026-10-22: six and a
+ * half seconds a card was *"too little to understand what the screen is about
+ * and read"*. So a card now stays as long as its own words take to read slowly
+ * — about two and a half words a second, for the customers C3.18 says are
+ * often older — plus time to look at the real screen under them, between a
+ * floor and a ceiling. A tap still moves on at once, and a held finger holds it.
+ */
+export const START_MS = 2_000;
+export const MS_PER_WORD = 380;
+export const PICTURE_MS = 4_000;
+export const MIN_CARD_MS = 8_000;
+export const MAX_CARD_MS = 20_000;
+
+/** The words in a card's text, as a reader meets them. */
+export function palabras(text: string): number {
+  return text.split(/\s+/).filter((word) => word !== '').length;
+}
+
+/** How long this card stays: its words read slowly, then a look at its screen. */
+export function cardMs(text: string, withPicture: boolean): number {
+  const ms = START_MS + palabras(text) * MS_PER_WORD + (withPicture ? PICTURE_MS : 0);
+  return Math.min(MAX_CARD_MS, Math.max(MIN_CARD_MS, ms));
+}
 
 /** The story for her role in this shop. */
 export function recorridoDe(role: Role | null): readonly Tarjeta[] {
