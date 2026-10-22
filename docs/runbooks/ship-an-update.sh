@@ -7,6 +7,14 @@
 #
 #   bash docs/runbooks/ship-an-update.sh preview "Arregla el total del carrito"
 #   bash docs/runbooks/ship-an-update.sh preview "…" --check    # refuses or says what it would do
+#   bash docs/runbooks/ship-an-update.sh production "…" --only android   # one platform's phones only
+#
+# ⚠️ `--only ios|android` (2026-10-22, his ask: *"Can I rollout the version with
+# your fixes for the Android testers?"* — while the iOS build sat in Apple's
+# review). Without it an update goes to every platform that has a build on the
+# channel, and a reviewer who opens the app twice would meet a different app
+# from the one submitted. The other platform is left out and named, the way a
+# platform with no matching build already is.
 #
 # Run it on `main`, after the fix has merged green. The phone downloads the
 # update the next time Wera opens and RUNS it the time after that: close Wera
@@ -57,15 +65,25 @@ set -euo pipefail
 
 channel="${1:-}"
 message="${2:-}"
-mode="${3:-}"
+mode=""
+only=""
 
 usage() {
-  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check]" >&2
+  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check] [--only ios|android]" >&2
   exit 2
 }
 [[ "$channel" == "preview" || "$channel" == "production" ]] || usage
 [[ -n "$message" && "$message" != -* ]] || usage
-[[ -z "$mode" || "$mode" == "--check" ]] || usage
+shift 2
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --check) mode="--check" ;;
+    --only) only="${2:-}"; shift ;;
+    *) usage ;;
+  esac
+  shift
+done
+[[ -z "$only" || "$only" == "ios" || "$only" == "android" ]] || usage
 
 root="$(git rev-parse --show-toplevel)"
 cd "$root/app"
@@ -121,6 +139,10 @@ fi
 # --- 3. a phone on this channel can run it ---------------------------------
 platforms=()
 for platform in ios android; do
+  if [[ -n "$only" && "$platform" != "$only" ]]; then
+    echo "  $platform: left out — --only $only"
+    continue
+  fi
   if ! runtime="$(npx expo-updates fingerprint:generate --platform "$platform" 2>/dev/null \
       | node -e 'let s="";process.stdin.on("data",c=>s+=c).on("end",()=>console.log(JSON.parse(s).hash))')"; then
     echo "REFUSED: could not compute the $platform runtime (npx expo-updates fingerprint:generate)." >&2

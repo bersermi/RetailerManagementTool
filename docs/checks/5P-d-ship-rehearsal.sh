@@ -87,7 +87,11 @@ one() {
   local out
   local code
   if [[ -n "$flag" ]]; then
-    out="$(cd "$dir" && STUB_DIR="$scratch" PATH="$scratch/bin:$PATH" bash docs/runbooks/ship-an-update.sh "$channel" mensaje "$flag" 2>&1)"
+    # ⚠️ A FLAG MAY BE SEVERAL WORDS (`--check --only android`), split here on
+    # purpose — and never an empty array, which bash 3.2's `set -u` refuses.
+    local -a flags
+    read -r -a flags <<<"$flag"
+    out="$(cd "$dir" && STUB_DIR="$scratch" PATH="$scratch/bin:$PATH" bash docs/runbooks/ship-an-update.sh "$channel" mensaje "${flags[@]}" 2>&1)"
     code=$?
   else
     out="$(cd "$dir" && STUB_DIR="$scratch" PATH="$scratch/bin:$PATH" bash docs/runbooks/ship-an-update.sh "$channel" mensaje 2>&1)"
@@ -110,6 +114,9 @@ N_LOOKALIKE="a name that merely contains it is not it"
 N_FIRST="a missing Supabase value is still refused"
 N_CLEAR="a preview publish clears the bundler cache"
 N_PROD_SENT="a clean production publish goes out, cache cleared"
+N_ONLY_SENT="--only android publishes to Android alone"
+N_ONLY_CHECK="--check with --only names the one platform it would reach"
+N_ONLY_BAD="--only with a platform that is not one is refused"
 
 cases() {
   local dir="$1"
@@ -123,6 +130,9 @@ cases() {
   one "$dir" "$N_FIRST"        preview    --check $'EXPO_PUBLIC_SUPABASE_URL=u\nEXPO_PUBLIC_PILOT=piloto-1' 1 "has no EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
   one "$dir" "$N_CLEAR"        preview    ""      "$with_pilot" 0 "--clear-cache"
   one "$dir" "$N_PROD_SENT"    production ""      "$three"      0 "$publish_line"
+  one "$dir" "$N_ONLY_SENT"    production "--only android" "$three" 0 "--platform android --message mensaje"
+  one "$dir" "$N_ONLY_CHECK"   production "--check --only android" "$three" 0 "for android"
+  one "$dir" "$N_ONLY_BAD"     production "--only windows" "$three" 2 "usage:"
 }
 
 if [[ -z "$mode" ]]; then
@@ -179,9 +189,12 @@ broken "the name matched loosely" \
 broken "the listing read with its colours on" \
   'env_names="$(sed -E '"'"'s/\x1b\[[0-9;]*m//g'"'"' <<<"$env_out" | cut -d= -f1)"' 'env_names="$(cut -d= -f1 <<<"$env_out")"' "$N_COLOUR"
 
+broken "--only that leaves nothing out" \
+  'if [[ -n "$only" && "$platform" != "$only" ]]; then' 'if [[ -n "$only" && "$platform" == "nowhere" ]]; then' "$N_ONLY_SENT"
+
 echo
 if [[ "$bad" -ne 0 ]]; then
   echo "$bad broken copy(ies) were not caught — the rehearsal cannot fail where it should."
   exit 1
 fi
-echo "all 4 broken copies turned their case red — the rehearsal can still fail."
+echo "all 5 broken copies turned their case red — the rehearsal can still fail."
