@@ -22,6 +22,7 @@ import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Casilla } from '@/ui/Casilla';
+import { Formulario } from '@/ui/Formulario';
 
 // ============================================================================
 // THE WAY IN THAT NEEDS NO DEEP LINK (C1.4). Plan task 5a-iii-a, and the screen
@@ -232,8 +233,10 @@ export default function Entrar() {
       {/* ⚠️ `keyboardShouldPersistTaps="handled"` is what keeps one tap on the
           button one tap: without it, a tap with the keyboard up only closes the
           keyboard. The padding is the device's own inset at the bottom, so the
-          last line ends above the home indicator. */}
-      <ScrollView
+          last line ends above the home indicator. ⚠️ `8g`, 2026-10-22: a
+          `Formulario`, so the password and the button can be scrolled above the
+          keyboard — his first user could not see the password he was typing. */}
+      <Formulario
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{
           paddingHorizontal: scale.space * 2,
@@ -356,6 +359,7 @@ export default function Entrar() {
           autoCorrect={false}
           autoComplete={creating ? 'new-password' : 'current-password'}
           secureTextEntry
+          mostrable
           returnKeyType={creating ? 'done' : 'go'}
           onSubmitEditing={passwordDone}
           editable={!busy}
@@ -405,7 +409,7 @@ export default function Entrar() {
         {creating
           ? link(`${ES.hola.yaTengo} `, switchHalf, ES.hola.entrar)
           : link(ES.auth.toSignUp, switchHalf)}
-      </ScrollView>
+      </Formulario>
     </View>
   );
 }

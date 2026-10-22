@@ -1,13 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import {
-  Keyboard,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCreateProvider, useMyRole, useProviders, useWorkspace } from '@/api/hooks';
@@ -25,6 +18,7 @@ import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
+import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { TecladoListo } from '@/ui/TecladoListo';
@@ -150,7 +144,7 @@ export default function NuevoProveedor() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
 
-      <ScrollView
+      <Formulario
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -279,7 +273,7 @@ export default function NuevoProveedor() {
           busy={working}
           onPress={() => void submit()}
         />
-      </ScrollView>
+      </Formulario>
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE THE SCROLL VIEW — `producto/nuevo.tsx`'s call:
           `InputAccessoryView` renders into the keyboard rather than into the

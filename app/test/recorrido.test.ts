@@ -9,7 +9,6 @@ import { describe, expect, it } from 'vitest';
 import {
   MAX_CARD_MS,
   MIN_CARD_MS,
-  NEW_SHOP_DAYS,
   PICTURE_MS,
   cardMs,
   palabras,
@@ -23,7 +22,6 @@ import {
 import { FIRST_OUTAGE_KEY, FIRST_SALE_KEY, OPENING_KEY, RECORRIDO_KEY } from '@/offline/ensenar';
 import { ES } from '@/strings';
 
-const fresh: Momento = { seen: false, arrived: false, salesState: 'sales', shopAge: 30 };
 
 describe('who gets which story', () => {
   it('gives an owner and an Encargado the eight cards, with deliveries, costs and Te lo compro', () => {
@@ -67,33 +65,19 @@ describe('who gets which story', () => {
   });
 });
 
-describe('when the story opens by itself', () => {
-  it('never once this phone has opened it, whatever else is true', () => {
-    expect(abrePorSiSolo({ seen: true, arrived: true, salesState: 'nothing', shopAge: null })).toBe(false);
+describe('when the story opens by itself — once on every phone (his ruling of 2026-10-22)', () => {
+  const unseen: Momento = { seen: false, selling: false };
+
+  it('opens on a phone that has not seen it, whether it had Wera before or not', () => {
+    expect(abrePorSiSolo(unseen)).toBe(true);
   });
 
-  it('opens for someone who has just opened her shop or been let into one', () => {
-    expect(abrePorSiSolo({ ...fresh, arrived: true })).toBe(true);
+  it('never again once this phone has opened it, or closed its card', () => {
+    expect(abrePorSiSolo({ ...unseen, seen: true })).toBe(false);
   });
 
-  it('opens for a shop with no sales yet', () => {
-    expect(abrePorSiSolo({ ...fresh, salesState: 'nothing', shopAge: null })).toBe(true);
-  });
-
-  it('opens in a shop’s first three days of selling — a tester who made her shop before the update', () => {
-    expect(NEW_SHOP_DAYS).toBe(3);
-    expect(abrePorSiSolo({ ...fresh, shopAge: 1 })).toBe(true);
-    expect(abrePorSiSolo({ ...fresh, shopAge: NEW_SHOP_DAYS })).toBe(true);
-    expect(abrePorSiSolo({ ...fresh, shopAge: NEW_SHOP_DAYS + 1 })).toBe(false);
-  });
-
-  it('waits while the sales are unread, rather than opening over a shop that has sold for months', () => {
-    expect(abrePorSiSolo({ ...fresh, salesState: 'unknown', shopAge: null })).toBe(false);
-    expect(abrePorSiSolo({ ...fresh, salesState: 'unreadable', shopAge: null })).toBe(false);
-  });
-
-  it('leaves an older shop to the card on Inicio', () => {
-    expect(abrePorSiSolo(fresh)).toBe(false);
+  it('never over a basket she is ringing up — it waits for the next time', () => {
+    expect(abrePorSiSolo({ ...unseen, selling: true })).toBe(false);
   });
 });
 

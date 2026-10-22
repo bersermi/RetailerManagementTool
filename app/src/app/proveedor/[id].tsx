@@ -1,15 +1,6 @@
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import {
-  ActivityIndicator,
-  Keyboard,
-  Linking,
-  Pressable,
-  ScrollView,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { ActivityIndicator, Keyboard, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { shownAmount } from '@/api/documents';
@@ -54,6 +45,7 @@ import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { Boton } from '@/ui/Boton';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Formulario } from '@/ui/Formulario';
 import { Frase } from '@/ui/Frase';
 import { TecladoListo } from '@/ui/TecladoListo';
 import { Pregunta } from '@/ui/Pregunta';
@@ -262,7 +254,7 @@ export default function Proveedor() {
         onBack={editing ? askOrBack : () => router.back()}
       />
 
-      <ScrollView
+      <Formulario
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -391,7 +383,7 @@ export default function Proveedor() {
             ) : null}
           </>
         )}
-      </ScrollView>
+      </Formulario>
 
       <Pregunta
         shown={leaving}

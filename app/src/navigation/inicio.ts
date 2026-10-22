@@ -52,8 +52,9 @@ import { ES } from '@/strings';
  *
  * ⚠️ `recorrido` (`8g`, 2026-10-21, the tutorial) sits between the two: *Conoce
  * Wera · 1 minuto* for a phone that has not opened the story, until it does or
- * its card is closed. A shop in its first days never sees it — the story opens
- * by itself there (`@/navigation/recorrido`).
+ * its card is closed. Since the owner's ruling of 2026-10-22 the story opens by
+ * itself on every phone that has not seen it (`@/navigation/recorrido`), so the
+ * card is mostly the moment before it does — or a sale in progress it waits on.
  */
 export type InicioBlock =
   | 'aviso'

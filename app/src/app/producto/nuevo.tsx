@@ -41,6 +41,7 @@ import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
 import { bannerSequence } from '@/theme/pulse';
+import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { CampoFoto } from '@/ui/CampoFoto';
@@ -314,7 +315,7 @@ export default function NuevoProducto() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
 
-      <ScrollView
+      <Formulario
         contentContainerStyle={{
           padding: scale.space,
           gap: scale.space,
@@ -503,7 +504,7 @@ export default function NuevoProducto() {
             />
           </>
         )}
-      </ScrollView>
+      </Formulario>
 
       {/* ⚠️ MOUNTED ONCE AND OUTSIDE THE SCROLL VIEW. `InputAccessoryView` renders
           into the keyboard rather than into the layout, so where it sits in the tree

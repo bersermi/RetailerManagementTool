@@ -43,10 +43,11 @@ describe('onboarding asks for giros, and only Agregar del catálogo shows the li
     expect(ES.starter.hintGiros).not.toContain('no quitarlos');
   });
 
-  // ⚠️ `8g`, the owner's ruling of 2026-10-21: his two lines, word for word.
-  it('says under ¿Qué vendes? the two lines the owner wrote', () => {
+  // ⚠️ `8g`, the owner's ruling of 2026-10-21: his two lines, word for word —
+  // and since 2026-10-22, at his ask, a third: products can be added later.
+  it('says under ¿Qué vendes? the owner’s two lines, and that products can be added later', () => {
     expect(ES.starter.hintGiros).toBe(
-      'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.',
+      'Puedes escoger más de un giro, el primero que escojas es tu giro principal.\nTe ponemos sus productos, con precio recomendado.\nDespués puedes agregar los productos que te falten, desde Productos.',
     );
   });
 });

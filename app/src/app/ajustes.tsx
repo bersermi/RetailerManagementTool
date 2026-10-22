@@ -2,7 +2,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { useEffect, useState, type ReactNode } from 'react';
-import { Image, Pressable, ScrollView, Share, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -53,6 +53,7 @@ import { DENSITIES, DENSITY_MODES } from '@/theme/density';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
 import { TITULO } from '@/theme/letra';
+import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Direccion } from '@/ui/Direccion';
@@ -153,7 +154,7 @@ export default function Ajustes() {
       />
       {canOpen && <Lecturas open={readings} onClose={() => setReadings(false)} />}
 
-      <ScrollView
+      <Formulario
         // ⚠️ KEYED ON THE PAGE, so each one opens at its top, not where the
         // last one was scrolled to.
         key={page ?? 'menu'}
@@ -255,7 +256,7 @@ export default function Ajustes() {
         )}
 
         {page === 'cuenta' && <Cuenta />}
-      </ScrollView>
+      </Formulario>
       <Pregunta
         shown={leaving}
         title={ES.leave.unsaved.title}
@@ -851,6 +852,7 @@ function MiNombre({ onDirty }: { onDirty: (dirty: boolean) => void }) {
               // `5b.7`'s Nombre and Apellido. The address field one section down
               // is `none` for the opposite reason.
               autoCapitalize="words"
+              returnKeyType="done"
               autoCorrect={false}
               editable={!busy}
               style={{
@@ -1103,6 +1105,7 @@ function Cuenta() {
                   value={typed}
                   onChangeText={setTyped}
                   autoCapitalize="none"
+                  returnKeyType="done"
                   autoCorrect={false}
                   editable={!busy}
                   style={{

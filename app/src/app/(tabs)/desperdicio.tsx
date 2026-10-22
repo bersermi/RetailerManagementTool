@@ -94,6 +94,8 @@ import {
 import { commitToQueue } from '@/lib/commitRunner';
 import { newWriteId, nowIso } from '@/lib/ids';
 import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
+import { comportamientoTeclado } from '@/lib/teclado';
+import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
 import { setTabGuard } from '@/navigation/salida';
@@ -109,6 +111,7 @@ import { Direccion } from '@/ui/Direccion';
 import { Buscador } from '@/ui/Buscador';
 import { Cantidad } from '@/ui/Cantidad';
 import { CierreCarrito } from '@/ui/CierreCarrito';
+import { Formulario } from '@/ui/Formulario';
 import { Hecho } from '@/ui/Hecho';
 import { HojaCarrito } from '@/ui/HojaCarrito';
 import { Interruptor } from '@/ui/Interruptor';
@@ -247,16 +250,11 @@ function PideDireccion() {
     setProblem(await save(store.locationId, form));
   }
 
+  // ⚠️ `8g`, 2026-10-22: a `Formulario`, not a `KeyboardAvoidingView` that did
+  // nothing on Android 15+ (`@/lib/teclado`) — the código postal is the last box.
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
-    >
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={{ padding: scale.space * 2, gap: scale.space }}
-      >
+    <View style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}>
+      <Formulario contentContainerStyle={{ padding: scale.space * 2, gap: scale.space }}>
         <Text style={{ fontSize: scale.titleSize, ...TITULO, color: PALETTE.tinta }}>
           {ES.onboarding.addressTitle}
         </Text>
@@ -266,8 +264,8 @@ function PideDireccion() {
           <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>{problem}</Text>
         )}
         <BotonLleno variante="principal" label={ES.address.save} busy={busy} onPress={() => void guardar()} />
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </Formulario>
+    </View>
   );
 }
 
@@ -280,6 +278,8 @@ function nowClock(): string {
 export default function Desperdicio() {
   const { scale } = useDensity();
   const insets = useSafeAreaInsets();
+  // ⚠️ `8g`, 2026-10-22: on Android 15+ the keyboard's room counts from where this counter starts (`@/lib/useDesfaseTeclado`).
+  const desfase = useDesfaseTeclado(scale.tabBarHeight + insets.bottom);
   const role = useMyRole();
   const mayCollect = canWriteCatalog(role);
   const acceso = useAcceso();
@@ -352,8 +352,9 @@ export default function Desperdicio() {
       // ⚠️ NO `paddingTop: insets.top` — the tab navigator draws a header below
       // the notch already (the owner's report on Vender, 2026-09-24).
       style={{ flex: 1, backgroundColor: PALETTE.desperdicioFondo }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={scale.tabBarHeight + insets.bottom}
+      behavior={comportamientoTeclado(Platform.OS, Platform.Version)}
+      onLayout={desfase.onLayout}
+      keyboardVerticalOffset={desfase.offset}
     >
       {shown === 'puertas' || !mayCollect ? null : (
         <View style={{ paddingHorizontal: scale.space, paddingTop: scale.space }}>
@@ -1676,7 +1677,9 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
           />
         </View>
       ) : (
-        <ScrollView
+        // ⚠️ `8g`, 2026-10-22: a `Formulario`, so the quantity and the note are
+        // scrolled above the keyboard on an iPhone and an Android 15+ alike.
+        <Formulario
           style={{ flex: 1 }}
           contentContainerStyle={{ padding: scale.space, gap: scale.space }}
           keyboardShouldPersistTaps="handled"
@@ -1809,6 +1812,10 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
                 placeholder={ES.collection.notePlaceholder}
                 placeholderTextColor={PALETTE.tintaApagada}
                 multiline
+                // ⚠️ `8g`, 2026-10-22: a note needs no new line, and a key that
+                // only made one left her no way to close the keyboard — ✓ does.
+                returnKeyType="done"
+                submitBehavior="blurAndSubmit"
                 style={{
                   minHeight: scale.tapTarget,
                   paddingHorizontal: scale.space,
@@ -1826,7 +1833,7 @@ function Solicitar({ address, onDirty }: { address: StoreAddress; onDirty: (dirt
               )}
             </>
           ) : null}
-        </ScrollView>
+        </Formulario>
       )}
 
       {choosing ? null : (
