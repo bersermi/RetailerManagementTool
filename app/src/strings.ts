@@ -1927,6 +1927,16 @@ export const ES = {
       working: 'Guardando…',
       /** The way off the keyboard. `ES.catalog.create.done`'s word. */
       done: 'Listo',
+      /**
+       * ⚠️ `8g`, 2026-10-23 — the button under the search box, the owner's ask:
+       * *"We will need a Crear Nuevo Proveedor option in that screen."* His
+       * spelling, the create row's words.
+       */
+      button: 'Crear Nuevo Proveedor',
+      /** Under the name box, while it looks like suppliers she already has. */
+      similar: '¿Es alguno de estos? Ya los tienes:',
+      /** To a screen reader, each of them: open that supplier instead. */
+      openSimilar: (name: string) => `Abrir ${name}`,
     },
 
     edit: {

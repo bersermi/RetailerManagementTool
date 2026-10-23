@@ -268,6 +268,45 @@ export function matchesProvider(provider: Provider, typed: string): boolean {
   return searchTerm(provider.name).includes(term);
 }
 
+/**
+ * ⚠️ `8g`, 2026-10-23 — THE SUPPLIERS A NEW NAME LOOKS LIKE, shown under the
+ * name box of *Nuevo proveedor* while it is typed. The owner's ruling: a
+ * *Crear Nuevo Proveedor* button on Proveedores, no longer only the search
+ * (*"for Proveedores is confusing"*). A form reached without searching first
+ * loses the list that used to stop a near-duplicate, so the form shows it.
+ *
+ * ⚠️ BY SHARED WORDS, NOT `matchesProvider`'s WHOLE PHRASE: *Bodega Centro*
+ * must find *Bodega del Centro* — the very pair `providerRows` warns about — and
+ * the phrase `bodega centro` is not inside `bodega del centro`. A word counts at
+ * three letters or more and when it is not one of Spanish's little linking
+ * words; the generic supplier is never offered. A hint only, never a refusal:
+ * `checkProvider` still refuses the exact name, and *proposal must not look
+ * decided* — nothing is picked for her.
+ */
+const LINKING_WORDS: ReadonlySet<string> = new Set(['del', 'las', 'los', 'una', 'uno', 'por', 'para', 'con', 'sin']);
+
+function significantWords(name: string): readonly string[] {
+  return searchTerm(name)
+    .split(' ')
+    .filter((word) => word.length >= 3 && !LINKING_WORDS.has(word));
+}
+
+/** Up to `limit` existing suppliers sharing a significant word with `typed`. */
+export function similarProviders(providers: readonly Provider[], typed: string, limit = 3): readonly Provider[] {
+  const wanted = significantWords(typed);
+  if (wanted.length === 0) return [];
+  const found: Provider[] = [];
+  for (const provider of providers) {
+    if (provider.isGeneric) continue;
+    const words = significantWords(provider.name);
+    if (wanted.some((word) => words.some((theirs) => theirs.startsWith(word) || word.startsWith(theirs)))) {
+      found.push(provider);
+      if (found.length >= limit) break;
+    }
+  }
+  return found;
+}
+
 /** One row of Proveedores: a supplier, or the door to making one. */
 export type ProviderRowView =
   | { readonly kind: 'provider'; readonly provider: Provider }
