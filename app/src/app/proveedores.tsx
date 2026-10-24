@@ -156,6 +156,11 @@ export default function Proveedores() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda />
       <Buscador value={typed} onChange={setTyped} box={box} placeholder={ES.providers.search} />
+      {/* ⚠️ `8g`, 2026-10-23, the owner: *"We will need a Crear Nuevo Proveedor
+          option in that screen."* Under the search, for whoever may create, and
+          only while the box is empty — once something is typed, the list and its
+          own create row answer (`providerRows`). The form shows the look-alikes. */}
+      {mayCreate && typed === '' ? <NuevoProveedor /> : null}
 
       <FlatList
         ref={list}
@@ -345,6 +350,38 @@ function Fila({
  * ⚠️ NO ICON WITHOUT A WORD (C12.1). The plus glyph sits beside *Crear Nuevo
  * Proveedor*, never alone.
  */
+/** *Crear Nuevo Proveedor*, under the search box: the form, empty. */
+function NuevoProveedor() {
+  const { scale } = useDensity();
+  return (
+    <View style={{ paddingHorizontal: scale.space, paddingBottom: scale.rowGap }}>
+      <Pressable
+        accessibilityRole="button"
+        // ⚠️ ITS OWN LABEL, or a screen reader says the + icon's glyph first.
+        accessibilityLabel={ES.providers.create.button}
+        onPress={() => {
+          Keyboard.dismiss();
+          router.push('/proveedor/nuevo');
+        }}
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: scale.rowGap,
+          minHeight: scale.tapTarget,
+          borderRadius: scale.space * 0.75,
+          borderWidth: 1,
+          borderColor: PALETTE.accion,
+          backgroundColor: PALETTE.accionSuave,
+        }}
+      >
+        <MaterialCommunityIcons name="plus" size={scale.iconSize} color={PALETTE.accion} />
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '700', color: PALETTE.accion }}>{ES.providers.create.button}</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 function Crear({ name }: { name: string }) {
   const { scale } = useDensity();
   return (

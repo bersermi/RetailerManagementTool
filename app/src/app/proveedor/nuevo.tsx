@@ -1,3 +1,4 @@
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
@@ -10,6 +11,7 @@ import {
   issueLine,
   providerInsert,
   providerWriteErrorMessage,
+  similarProviders,
   type ProviderDraft,
   type ProviderIssue,
 } from '@/api/providerDirectory';
@@ -108,6 +110,9 @@ export default function NuevoProveedor() {
   const leave = useAskBeforeLeaving(!saving && (draft.name !== (nombre ?? '') || draft.contact !== '' || draft.phone !== '' || draft.address !== ''));
 
   const working = saving || busy;
+  // ⚠️ `8g`, 2026-10-23: the suppliers this name looks like, while it is typed —
+  // the list the search used to show before the door opened (`similarProviders`).
+  const similar = similarProviders(providers, draft.name);
 
   if (!canWriteProviders(role) || workspace === null) return null;
 
@@ -176,6 +181,34 @@ export default function NuevoProveedor() {
             />
           </Caja>
         </Campo>
+
+        {similar.length > 0 ? (
+          <View
+            style={{
+              gap: scale.rowGap / 2,
+              paddingHorizontal: scale.space,
+              paddingVertical: scale.rowGap,
+              borderRadius: scale.space * 0.75,
+              backgroundColor: PALETTE.atencionSuave,
+            }}
+          >
+            <Text style={{ fontSize: scale.smallSize, fontWeight: '700', color: PALETTE.atencion }}>
+              {ES.providers.create.similar}
+            </Text>
+            {similar.map((provider) => (
+              <Pressable
+                key={provider.id}
+                accessibilityRole="button"
+                accessibilityLabel={ES.providers.create.openSimilar(provider.name)}
+                onPress={() => router.replace({ pathname: '/proveedor/[id]', params: { id: provider.id } })}
+                style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: scale.tapTarget }}
+              >
+                <Text style={{ flex: 1, fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>{provider.name}</Text>
+                <MaterialCommunityIcons name="chevron-right" size={scale.iconSize} color={PALETTE.tintaApagada} />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         <Campo label={ES.providers.fields.contactLabel}>
           <Caja>
