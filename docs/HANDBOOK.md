@@ -316,6 +316,7 @@ starter catalog, the release path, the aviso and the site, and on 13 October the
 | **5P-d** | **The pilot's measurements, switched on** for the phones on the test channel — one update, no reinstall | ✅ **Done 13 October** — the switch is a setting on EAS (`piloto-1`) and one fix shipped over the air to both phones. The Android build was made again that day, so a new pilot member's first sign-up has the aviso's box. The store builds never carry the switch, and the shipping command now refuses if they would |
 | **5P-b** | **How much each pilot shop uses Wera** — sales, purchases and waste per shop per day, counted from the server. Nothing added to the app | ✅ **Done 13 October** — one command prints it, one row per shop per day for two weeks, with the days nothing was recorded shown as zeros. See *Seeing how much each shop uses Wera*, below. It was checked against your own shop: 3 sales and 2 purchases in the last 14 days |
 | **5P-e** | **The pilot's start list** — what has to be true before a shop that is not yours signs up: backups, the two security fixes, a health check you can run, and getting the app onto each phone | ✅ **Your three answers are built (15 October)**: the two doors are closed; an invitation lets someone in straight away only if they signed in with Google or Apple; a copy of the live database is taken on this Mac every night at 03:30 (*The nightly copy*, below). Your phone is measuring. Left: a health check you can run, the Samsung install note, one page of what to do once a shop is live |
+| **5P-f** | **Wera tells you on Discord** — a line in your channel when somebody makes an account or opens a shop | ✅ **Done 22 October** — your channel got a test line that day. The lines name nobody, on purpose. See *Wera's alerts on Discord* below |
 | **5R-l** | **A lawyer reads the aviso** | ⏸️ Parked by you on 12 October — after the pilot, when it is a business |
 | **8n** | **Rescatado on Inicio** — what Wera paid the shop, beside *Ahorro en compras* | ✅ **Done 17 October, your answer: what Wera paid.** When you mark a pickup *recogida* in the dashboard, type what you paid in the new `wera_paid` cell — see *Handling a Te lo compro request*, below. The shop's owner and manager see it add up, and a coin drops into the jar |
 
@@ -670,6 +671,29 @@ same database upgraded, not moved, and the app does not change.
 - **One now, by hand:** `bash docs/runbooks/nightly-copy.sh` from the repository folder.
 - ⚠️ **It is a copy of the shops' records, not of the logins.** If it is ever needed, a
   session puts the rows back by hand and everybody signs in again.
+
+---
+
+## Wera's alerts on Discord
+
+Your Discord server gets one line each time:
+
+- somebody makes an account — *👤 Nueva cuenta en Wera (con Google). Ya son 15 cuentas.*
+  (*con correo*, *con Google* or *con Apple*: how they signed up);
+- somebody opens a shop — *🏪 Nueva tienda en Wera. Ya son 4 tiendas.*
+
+**The lines never name the person or the shop.** Your privacy notice does not list Discord as
+receiving anyone's data, so a name in a line would mean changing the notice first. To see who it
+was, open the Supabase dashboard → *Authentication* → *Users* (newest first), or run
+*Seeing how much each shop uses Wera*. Your own test accounts and the store reviewers' count too.
+
+- **Move the alerts to another channel, or after deleting the webhook:** in Discord, the
+  channel's ⚙️ → *Integrations* → *Webhooks* → *New Webhook* → *Copy Webhook URL*. Then, from the
+  repository folder: `bash docs/runbooks/set-discord-webhook.sh` and paste it. It sends a test
+  line and tells you whether Discord took it.
+- **Stop them:** delete the webhook in Discord. Nothing in Wera notices.
+- **A line never holds up a signup.** If Discord is down or the webhook is gone, the account
+  is made anyway; you only miss the line.
 
 ---
 

@@ -56,6 +56,15 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-22 — **§2.2 gains an *Outbound messages* row: Wera tells its owner on
+  Discord** (plan `5P-f`, `0070`). His request: *"notify me on events … Such things as new people
+  registering"*, and his choice of Discord the same day, over WhatsApp (a template Meta approves
+  for every wording, and a second phone number) and Telegram. A new account and a new shop each
+  post one line to his channel, naming nobody. ⚠️ **What this document now permits and did
+  not: Postgres sending a message out**, through `pg_net`, which queues the request and sends it
+  after the commit — so it holds to §6's *"never HTTP inside a transaction"*. **No second Edge
+  Function**: a Discord webhook needs no signing, and a function would need a secret from the
+  database to trust its caller. §8's nightly-report line is annotated, not rewritten.
 - **Revised:** 2026-10-18 — **§2.9: a product's photo** (plan `8o`, `0063`), on the decision maker's
   rulings of 2026-10-17 and his approval of the change: Wera's photo of a catalog product reaches
   every shop's copy through `template_code` by a THIRD door into `catalogo`, the computed column
@@ -702,6 +711,7 @@ understanding.
 | Client detail | See §2.11 | Router, data layer, state, components, release path |
 | Schema changes | Reviewed migration files only | No change reaches production by hand |
 | Server code outside Postgres | **One Edge Function, `apple-revoke` — ADDED 2026-10-13** (plan task `5R-k`, the decision maker's ruling of that day) | ⚠️⚠️ **The only code in this system that runs on a server and is not SQL, and it exists for one reason: Apple's revoke call is signed with a private key, and a key cannot ship inside an app.** When a person who signed in with Apple deletes their account, the phone asks Apple's sheet for a fresh code and hands it to the function, which trades it and revokes, then the app calls `delete_my_account` as before. **It stores nothing and holds no database credential**: it asks the auth server who the caller is, with the caller's own token. A deletion never waits on it: unreachable, unconfigured or refused, the account is still deleted. ⚠️ **It is a second deploy surface.** `supabase db push` does not carry it; `supabase functions deploy apple-revoke` does, and `docs/checks/5R-k-function-deployed.sh` reads the hosted project for the build and for whether the three secrets are set. Its evidence under §9 is `db.yml`'s job that serves it in the real edge runtime against a stand-in for Apple. **A second function needs a ruling**, as a second `security definer` view does (§2.7). To undo this one: delete the function and the key; no data is held anywhere |
+| Outbound messages | **Postgres posts to the owner's Discord — ADDED 2026-10-22** (plan task `5P-f`, `0070`, his request and his choice of channel that day) | `servicio.avisar_a_wera(text)` queues one message through **`pg_net`**, which sends it **after the commit** — a rolled-back write sends nothing and a slow Discord holds no lock. Two triggers call it: a new row in `auth.users` and in `public.workspace`. **The message names nobody** (how the account was made, and a count): the *aviso* lists who receives a person's data, and Discord is not on it, so a name in a message is an aviso change first. **The webhook is a secret held only in the hosted project's Vault** (`discord_avisos_webhook`, set by `docs/runbooks/set-discord-webhook.sh`) — with none, nothing is sent, which is what CI and every local database are. Every function swallows its own error into a warning: **a lost alert is a missed message; a lost signup is a lost customer.** Evidence under §9: `supabase/tests/0070_wera_avisa_en_discord.sql`, and every contract check that signs up through the real auth server, which fires the trigger as `supabase_auth_admin`. To undo: drop the two triggers; the webhook can be deleted in Discord at any time |
 
 **Why native rather than a web app.** The pilot runs on one fixed counter with
 measured, stable wifi, and v1 ships no scanner (§6) — so nothing about the *screens*
@@ -2369,7 +2379,7 @@ match the independent tally within 5%, with no intervention.
 - [ ] Manager-only views for cost and margin; revoke staff `select` on the base tables that carry cost
 - [ ] `workspace_invite` + `create_invite` + `redeem_invite` — ⚠️ **still unbuilt; they were assigned to `0005` and never written.** Plus, from the 2026-09-13 amendment: `workspace.code`, the request path, and its approval RPC (plan `4.6a`, split three ways 2026-09-13: `4.6a-i` / `0027`, `4.6a-ii` / `0028`, `4.6a-iii` / `0029`)
 - [ ] `payload_hash` on every transaction header
-- [ ] Nightly report pipe: `pg_cron` → Edge Function → WhatsApp/Telegram, sending **daily including green**
+- [ ] Nightly report pipe: `pg_cron` → Edge Function → WhatsApp/Telegram, sending **daily including green** — ⚠️ **2026-10-22: the sender exists and needs no Edge Function** (§2.2's *Outbound messages* row, `0070`); what is missing is `pg_cron` and the report. His alert channel is Discord
 - [ ] Record the 20-minute walkthrough of `0001`–`0004`
 - [ ] Android emulator smoke test at the end of step 5a
 

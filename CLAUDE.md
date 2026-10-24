@@ -96,6 +96,11 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   ```
 
   Its three secrets are the owner's (`supabase/README.md`). **A second function needs a ruling.**
+- **The owner's Discord alerts need their webhook set by hand** (`0070`: a line when somebody
+  makes an account or opens a shop). It lives only in the hosted Vault as
+  `discord_avisos_webhook`; `db push` does not carry it, and nothing fails without it:
+  `bash docs/runbooks/set-discord-webhook.sh`. **A message names nobody** — a name is an aviso
+  change first.
 - **The site deploys itself on merge** (`site.yml`). `bash docs/checks/5R-d-ii-site-live.sh`
   proves what tu-wera.com is serving; nothing runs it but a person.
 - **`store/` and `brand/` are read by no workflow**: the text a person pastes into the two
