@@ -75,6 +75,14 @@ that phone. Your data stays.
 - **What to look at:** close Wera and open it — the welcome only if you sign out first (the cow
   plays once per phone). Then rounds 1 to 3 of the first day (`8g`, the status log).
 
+✅ **27 October: *Te lo compro* paused, over the air** (*Te lo compro en pausa: Merma es Tirar para
+todos*). Merma opens straight on *Tirar* for everyone and no longer asks for the store's address;
+Inicio shows no *Próxima recolección* and no *Rescatado*; the tutorial's Merma card is a new picture
+of *Tirar*. Open Wera, close it completely, open it again — twice. It went to your pilot phones and to
+Android's store version; the iPhone's store version gets it when Apple approves. ⚠️ A phone that
+installs Wera fresh from a store still shows the old Merma on its very first launch, and the update
+from the second.
+
 ✅ **18 October, evening: photos in Productos, over the air** (*Fotos en Productos: las de Wera y
 las tuyas*). In *Tienda Demo*: Inicio → Más → Productos → the aisle *A granel* or *Refrescos* —
 your 25 photos, in the list, the mosaic, the aisle's own picture and each product's page, and in
