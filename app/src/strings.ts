@@ -159,7 +159,11 @@ export const ES = {
     ivaNo: 'No, se agrega aparte',
     /** ⚠️ `8g`, 2026-10-21: the door's own words, so the button is the door she chose. */
     create: 'Abrir mi tienda',
-    /** `8k`: the store's address, asked when the shop is made — the owner's four. */
+    /**
+     * `8k`: the store's address — the owner's four. Asked when Merma opened
+     * (`8q`), and ⚠️ drawn by no screen while Te lo compro is paused (`10.0a`,
+     * `@/navigation/pausa`): the hint promises a pickup, which is true only then.
+     */
     addressTitle: '¿Dónde está tu tienda?',
     addressHint: 'Así sabemos a dónde ir cuando nos pidas recoger algo.',
   },
