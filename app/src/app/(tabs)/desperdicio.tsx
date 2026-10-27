@@ -51,7 +51,6 @@ import {
   type Packaging,
   type StoreAddress,
 } from '@/api/collection';
-import { canWriteCatalog } from '@/api/catalogWrite';
 import {
   useCancelCollection,
   useCatalog,
@@ -98,6 +97,7 @@ import { comportamientoTeclado } from '@/lib/teclado';
 import { useDesfaseTeclado } from '@/lib/useDesfaseTeclado';
 import { usePilotVisit } from '@/pilot/usePilotVisit';
 import { correctingLine } from '@/api/corrections';
+import { TE_LO_COMPRO, mermaConPuertas, mermaPideDireccion, veTeLoCompro } from '@/navigation/pausa';
 import { setTabGuard } from '@/navigation/salida';
 import { comproFace, sendButton, type ComproFace } from '@/offline/teLoCompro';
 import { useOnline } from '@/offline/useOnline';
@@ -127,6 +127,11 @@ import { Velo } from '@/ui/Velo';
 // ============================================================================
 // DESPERDICIO — what the shop lost, and what it asks Wera to collect. Plan task
 // `6a-i`, redrawn by `8l` from the owner's brief and rulings of 2026-10-16.
+//
+// ⚠️⚠️ SINCE `10.0a` (2026-10-27) TE LO COMPRO IS PAUSED, AND THIS SCREEN IS TIRAR
+// FOR EVERY ROLE: no doors, no switch, no request list, and no address asked
+// first. Everything below about Te lo compro is still here and still right —
+// it is not drawn while `@/navigation/pausa` says so.
 //
 // ⚠️⚠️ TWO DOORS, THE OWNER'S: *"There are essentially 2 versions of waste"* —
 // **Tirar**, what the shop throws away, *"for his benefit, for analytics and to
@@ -281,7 +286,11 @@ export default function Desperdicio() {
   // ⚠️ `8g`, 2026-10-22: on Android 15+ the keyboard's room counts from where this counter starts (`@/lib/useDesfaseTeclado`).
   const desfase = useDesfaseTeclado(scale.tabBarHeight + insets.bottom);
   const role = useMyRole();
-  const mayCollect = canWriteCatalog(role);
+  // ⚠️⚠️ `10.0a`, THE OWNER'S RULING OF 2026-10-27: TE LO COMPRO IS PAUSED, so
+  // these three answers are `@/navigation/pausa`'s — while paused there is no
+  // switch, no doors and no address asked first, and Merma is Tirar for every
+  // role. Open, each answers exactly as it did before.
+  const mayCollect = veTeLoCompro(TE_LO_COMPRO, role);
   const acceso = useAcceso();
 
   // ⚠️ A RESTORED BIN ROUND OPENS ON TIRAR, and so does a write-off handed back
@@ -296,8 +305,8 @@ export default function Desperdicio() {
   }, [cart.length]);
 
   // ⚠️ `role === null` IS *NOT KNOWN YET*, and the doors are drawn meanwhile:
-  // only an answer of `staff` sends her straight to Tirar.
-  const shown: Modo = role === 'staff' ? 'tirar' : modo;
+  // only an answer of `staff` sends her straight to Tirar — or the pause.
+  const shown: Modo = mermaConPuertas(TE_LO_COMPRO, role) ? modo : 'tirar';
 
   // ⚠️⚠️ `8g`'s review (2026-10-20), THE OWNER'S RULING: *"when someone closes a
   // screen such as Desperdicio -> Te Lo Compro the Desperdicio screen should be
@@ -345,7 +354,10 @@ export default function Desperdicio() {
   // `set_store_address` (`0069`) lets anyone the store is visible to fill an
   // empty one. ⚠️ ONLY WHEN THE READ SAYS SO: offline with no read it is
   // `checking`, and she is asked when the signal and the read return.
-  if (acceso.kind === 'noAddress') return <PideDireccion />;
+  // ⚠️⚠️ LIFTED WHILE TE LO COMPRO IS PAUSED (`10.0a`, his ruling of 2026-10-27,
+  // reversing the two above until *Ofrecer* exists): the address told Wera
+  // where to collect, and Tirar is the pilot's measuring instrument.
+  if (mermaPideDireccion(TE_LO_COMPRO, acceso.kind === 'noAddress')) return <PideDireccion />;
 
   return (
     <KeyboardAvoidingView

@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, ScrollView, Text, View } from 'react-native';
 
 import { formatSlot, nextPickup, minutesUntil, rescued, untilLabel } from '@/api/collection';
-import { canWriteCatalog } from '@/api/catalogWrite';
 import { feedLine, latestSales, type FeedRow } from '@/api/documents';
 import {
   useCollectionRequests,
@@ -28,6 +27,7 @@ import {
 import { showsTakings, takingsLine } from '@/api/today';
 import { formatMXN } from '@/format/mxn';
 import { INICIO_BLOCKS, doorsOfShape, type InicioBlock, type InicioDoor } from '@/navigation/inicio';
+import { TE_LO_COMPRO, veTeLoCompro } from '@/navigation/pausa';
 import { DeadLetterBanner } from '@/offline/DeadLetterBanner';
 import { useOnline } from '@/offline/useOnline';
 import { useTakingsWithUnsent, useUnsent } from '@/offline/useUnsent';
@@ -710,14 +710,15 @@ function Renglon({ row, first, fresh }: { row: FeedRow; first: boolean; fresh: b
  * drawn only when it has something to say. ⚠️ NEITHER IS DRAWN AT ZERO: a card
  * reading *$0* every Monday morning is noise, and both are there to report
  * something that went well. *Rescatado* is the owner's and the manager's (Te
- * lo compro is theirs; `collection_request` is fenced to them).
+ * lo compro is theirs; `collection_request` is fenced to them) — ⚠️ and nobody's
+ * while Te lo compro is paused (`10.0a`, `@/navigation/pausa`).
  */
 function Ahorros({ focused }: { focused: boolean }) {
   const { scale } = useDensity();
   const saved = useWeekSavings();
   const role = useMyRole();
   const { data } = useCollectionRequests();
-  const paid = canWriteCatalog(role) && data !== undefined ? rescued(data) : 0;
+  const paid = veTeLoCompro(TE_LO_COMPRO, role) && data !== undefined ? rescued(data) : 0;
   const showSaved = saved !== null && saved > 0;
   if (!showSaved && paid <= 0) return null;
   return (
@@ -838,13 +839,14 @@ function Moneda({ size, drop }: { size: number; drop: number }) {
 /**
  * *Próxima recolección* — only while a Te lo compro pickup is still to come,
  * and only for an owner or a manager (Te lo compro is theirs; `collection_request`
- * answers a cashier with nothing). Tapping it opens Desperdicio.
+ * answers a cashier with nothing). Tapping it opens Desperdicio. ⚠️ Drawn for
+ * nobody while Te lo compro is paused (`10.0a`, `@/navigation/pausa`).
  */
 function Recoleccion() {
   const { scale } = useDensity();
   const role = useMyRole();
   const { data } = useCollectionRequests();
-  if (!canWriteCatalog(role) || data === undefined) return null;
+  if (!veTeLoCompro(TE_LO_COMPRO, role) || data === undefined) return null;
   const today = isoToday();
   const clock = clockNow();
   const next = nextPickup(data, today, clock);

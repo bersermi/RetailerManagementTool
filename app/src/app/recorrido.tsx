@@ -17,6 +17,7 @@ import { addressComplete } from '@/api/collection';
 import { useCollectionReaches, useMyRole, useSales, useStoreAddresses, useWorkspaceMembers } from '@/api/hooks';
 import { useReduceMotion } from '@/lib/movimiento';
 import { deviceStore, writeKey } from '@/lib/store';
+import { TE_LO_COMPRO, recorridoPrometeTeLoCompro } from '@/navigation/pausa';
 import { cardMs, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
 import { RECORRIDO_KEY } from '@/offline/ensenar';
 import { ES } from '@/strings';
@@ -247,13 +248,16 @@ export default function Recorrido() {
   );
 }
 
-/** *Te lo compro* is promised unless Wera already knows it cannot reach this store. */
+/**
+ * *Te lo compro* is promised unless Wera already knows it cannot reach this
+ * store — ⚠️ and never while it is paused (`10.0a`, `@/navigation/pausa`).
+ */
 function useTeLoComproLlega(): boolean {
   const { data } = useStoreAddresses();
   const address = data === undefined || data.length === 0 ? null : data[0] ?? null;
   const complete = addressComplete(address);
   const reaches = useCollectionReaches(complete && address !== null ? address.postalCode : '');
-  return !(complete && reaches === false);
+  return recorridoPrometeTeLoCompro(TE_LO_COMPRO, complete && reaches === false);
 }
 
 /** A card's two lines as shown: Merma's *Te lo compro* where it reaches, the last title by history. */
