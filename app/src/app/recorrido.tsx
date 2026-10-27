@@ -17,6 +17,7 @@ import { addressComplete } from '@/api/collection';
 import { useCollectionReaches, useMyRole, useSales, useStoreAddresses, useWorkspaceMembers } from '@/api/hooks';
 import { useReduceMotion } from '@/lib/movimiento';
 import { deviceStore, writeKey } from '@/lib/store';
+import { TE_LO_COMPRO, recorridoPrometeTeLoCompro } from '@/navigation/pausa';
 import { cardMs, esUltima, recorridoDe, type Tarjeta } from '@/navigation/recorrido';
 import { RECORRIDO_KEY } from '@/offline/ensenar';
 import { ES } from '@/strings';
@@ -32,6 +33,9 @@ import { PALETTE } from '@/theme/palette';
 // ⚠️ THE PICTURES ARE THE APP'S REAL SCREENS, taken on the iPhone simulator from
 // an invented local shop (*Verdulería Lupita*) with his catalog photos — no real
 // shop's data. A screen that changes makes its picture stale; nothing checks it.
+// ⚠️ `merma.jpg` WAS RETAKEN AT `10.0a` (2026-10-27): the doors, Te lo compro's
+// among them, became Tirar — what Merma is for every role while it is paused.
+// Both Merma cards, the owner's and the Empleado's, show it.
 //
 // ⚠️⚠️ WHAT NO CHECK CAN SEE — `R9`: whether six seconds a card is enough for her
 // to read, whether the finger on the Vender card reads as a hand, and whether a
@@ -247,13 +251,16 @@ export default function Recorrido() {
   );
 }
 
-/** *Te lo compro* is promised unless Wera already knows it cannot reach this store. */
+/**
+ * *Te lo compro* is promised unless Wera already knows it cannot reach this
+ * store — ⚠️ and never while it is paused (`10.0a`, `@/navigation/pausa`).
+ */
 function useTeLoComproLlega(): boolean {
   const { data } = useStoreAddresses();
   const address = data === undefined || data.length === 0 ? null : data[0] ?? null;
   const complete = addressComplete(address);
   const reaches = useCollectionReaches(complete && address !== null ? address.postalCode : '');
-  return !(complete && reaches === false);
+  return recorridoPrometeTeLoCompro(TE_LO_COMPRO, complete && reaches === false);
 }
 
 /** A card's two lines as shown: Merma's *Te lo compro* where it reaches, the last title by history. */

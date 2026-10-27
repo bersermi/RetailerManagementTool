@@ -42,10 +42,11 @@ real database; none runs on sample data.
   that supplier charged last time and the margin it leaves, and a product with no cost
   asks its cost first. And **Costos**: what you have paid for a product over time, as a
   chart and a PDF.
-- **Merma** (called *Desperdicio* until 20 October) — two doors, in its own berenjena. **Tirar**: what was thrown away, with
-  *Hoy* and *Caducado* already chosen and changeable, and each product's expiry; Rosa never sees
-  what it cost. **Te lo compro**: one product at a time for Wera to collect at the store, in a
-  quarter of an hour she picks, for you and a manager, and only inside 06400 and 06470.
+- **Merma** (called *Desperdicio* until 20 October) — in its own berenjena, and since 27 October it
+  is **Tirar** for everyone: what was thrown away, with *Hoy* and *Caducado* already chosen and
+  changeable, and each product's expiry; Rosa never sees what it cost. It no longer asks for the
+  store's address. **Te lo compro** — one product at a time for Wera to collect at the store — is
+  **paused** at your word of 27 October: hidden, not deleted, and the requests already made stay.
 - **Proveedores** — the supplier directory: add, rename, look up, remove.
 - **Lo último** — the last seven days of purchases, sales and write-offs, each with
   **Corregir** and **Eliminar**. Stock is a **ledger**, like a bank statement:
@@ -233,7 +234,7 @@ file above, section 2 of its catch-up.
 | **Inicio → *Conoce Wera · 1 minuto*** | New on 21 October, once the update reaches your iPhone: the card under *Hoy*. Tap it: eight cards, about a minute and a half, the Vender one moving. Since 22 October each card stays as long as its words take to read slowly, plus a look at its screen (12 to 17 seconds; the hello card 8), and the bar on top fills while it does. Is that enough now? Does the finger read as a hand? Does *Saltar* find your thumb? *Ajustes → Ver el recorrido* opens it again. Since your word of 22 October it opens by itself once on every phone that has not seen it — yours had already, so for you it stays in Ajustes |
 | **The keyboard, anywhere you type** | New on 22 October, after your first user. On a box low on the screen, does the box rise above the keyboard as you tap it? With the keyboard still up, can you scroll to the button under it? Does every keyboard have its ✓ (on the iPhone's number pads, *Listo*)? On *Entrar*, does the eye beside *Contraseña* show what you typed? Try *Ajustes → Tu tienda → Dirección → Cambiar*, and *Proveedores → Nuevo* down to *Teléfono* |
 | **Merma → Tirar** | New on 16 October. Add two products: under each, *Sin fecha*. The bar says *Hoy* and *Caducado*; tap either and the Carrito opens with *Caducidad* per product, *¿Cuándo lo tiraste?* and *Motivo*. Is the default visible enough to count as chosen? Is the Carrito's foot too tall at *Letra grande*? |
-| **Merma → Te lo compro** | New on 16 October, **once your store has its address** (Ajustes). Pick a product, answer the four questions, **then *📷 Tomar foto* (after the new install: up to three; a tap on one removes it)**, a day and a quarter of an hour, *Guardar solicitud*. Then *Otro producto, con los mismos datos*: the band says the answers came from the last one. *Avisar a Wera por WhatsApp* should open a chat with you with today's list written. ⚠️ On Android the keyboard covers *Guardar* while you type the note |
+| **Merma** | New on 27 October, once the update reaches your phone (close Wera completely and open it again, twice): Merma opens straight on *Tirar* — no doors, no *Te lo compro*, and no address question, even in a shop with no address. Inicio has no *Próxima recolección*. In *Ajustes → Ver el recorrido*, the Merma card shows *Tirar* and says nothing about Wera buying. Does *Tirar* on its own read as Merma? |
 | **Proveedores** | Does a list of bare names read as a directory or as unfinished? |
 | **Productos → a product → Editar** | Make one first: in Productos, type a name nothing matches and tap *Crear Nuevo Producto* (yours are all protected, and so is anything from *Agregar del catálogo*). Does the red *Retirar del catálogo* read as dangerous enough? |
 | **Inicio — *Una operación no se guardó*** | Found 13 October: one delivery you recorded on the night of 24 September never reached the database. It hit a unit problem that was fixed the next day, and it is still listed as not saved. Does Inicio tell you so? Did you record that delivery again? Tell a session either way |
@@ -275,7 +276,8 @@ Itacate and the shared backend. Its strategy stays in your private notes, outsid
 
 | Job | What | State |
 |---|---|---|
-| **10.0a** | **The ecosystem's first step: Wera's pilot version, part 1** — *Te lo compro* hidden with one update over the air, and Merma no longer asks for the address while it is paused (your ruling of 27 October, reversing 21 October's). Step 10 in the plan holds the rest, in order: *Ofrecer* in Merma, Wera Cocina, Itacate and the shared backend | ⚠️ **This is where the next piece of work is** — clear the conversation and paste your main prompt. **Nothing is waiting on YOU** |
+| **10.1** | **The architecture written down for the new apps** — ADR-035 amended as you ruled on 27 October: a fonda is a business account like a shop; a buyer signs in and reads through one door; no browsing without an account; notifications sent from the database; and a migration never breaks a build already in someone's hand | ⚠️ **This is where the next piece of work is** — clear the conversation and paste your main prompt. **Nothing is waiting on YOU**. (*Ofrecer* in Merma, `10.0b`, waits for Google's production approval) |
+| **10.0a** | **The ecosystem's first step: Wera's pilot version, part 1** — *Te lo compro* hidden with one update over the air, and Merma no longer asks for the address while it is paused (your ruling of 27 October, reversing 21 October's). Step 10 in the plan holds the rest, in order: *Ofrecer* in Merma, Wera Cocina, Itacate and the shared backend | ✅ **Done 27 October** — Merma is *Tirar* for everyone and asks no address; Inicio shows no pickup and no *Rescatado*; the tutorial's Merma card is a new picture of *Tirar*, with no promise. Nothing was deleted: one switch in the code brings it all back. It goes to your phones and Android's store version over the air; the iPhone's store version gets it when Apple approves. **Measured that day:** 12 of 16 stores had no address, so Merma stopped them before *Tirar* — and those 12 had never recorded a write-off |
 | **8a** | **The handbook, rewritten short** — this file | ✅ **Done 29 September** — 1,229 lines down to this; the rest moved to the archive |
 | **8b** | **The live plan, cut to what is live** | ✅ **Done 29 September** — 5,573 lines to 420 |
 | **8c** | **`CLAUDE.md` and `app/CLAUDE.md`, rules only** | ✅ **Done 29 September** — 57 KB to 14 KB |
@@ -343,9 +345,10 @@ Program and Play Console — both opened 1 October), `5R-b` (cloud builds and fi
 | Date | What | If it is missed |
 |---|---|---|
 | **13 October** | ✅ **Done 13 October** — you booted the sealed emulator; Wera opened **still signed in** after about 21½ days untouched. No further reading is scheduled; that emulator is free to use or delete | — |
+| **7 November** | **Apply for production on Google Play** — *Dashboard → Apply for production*; twelve testers have been in since 24 October. The form asks how the test went (`store/google-play.md`, section 7); Google answers in about a week | Production waits; the closed test simply runs on |
 | **30 April 2027** | **Delete the pilot's measurements** on the live database — the aviso promises it. If the pilot runs longer, change the date on the pages and tell the users first | The aviso says something false about people's data |
 
-Both are in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
+All three are in the plan's ⏳ DATES OWED block, which turns the checks red once one passes unticked. The 4 October rebuild is gone: your paid account signed the 9 October build for a year.
 
 ---
 
@@ -731,6 +734,10 @@ ask for another.
 
 ## Handling a Te lo compro request
 
+⚠️ **Paused since 27 October** (`10.0a`): no shop can make a request or see its own. The seven
+already made stay in the table — six still *enviada*, the newest from 26 October — and the steps
+below still work on them.
+
 A request arrives as *enviada*, usually with a WhatsApp from the shop. Everything after that is
 yours, in the Supabase dashboard: *supabase.com/dashboard → your project → Table Editor →
 `collection_request`*, then the request's row.
@@ -969,7 +976,8 @@ days start the day they join.
 6. **Tell a session the day the twelfth tester joins.** The 14 days end two weeks after that,
    and the date goes into the plan so nobody has to remember it. Then *Dashboard → Apply for
    production* opens, and Google asks how the test went: section 7 of the same file lists the
-   questions, so keep a note of what the testers tell you.
+   questions, so keep a note of what the testers tell you. ✅ **Twelve on 24 October: it opens
+   7 November.**
 
 Add a tester later in *Closed testing → Testers*; nothing restarts for the others. A tester
 who leaves and comes back starts their own 14 days again.
@@ -1019,10 +1027,11 @@ Both were sent for review on 21 October: Apple usually answers in a day or two, 
 hours to seven days. Each writes to your email. **Tell a session the words *"Apple approved"* or
 *"Google approved"*** — it knows the rest, from the plan's `5R-e` row:
 
-1. ***Conoce Wera*, the one-minute tutorial, goes to the store versions** — one command, once both
-   have approved (your ruling). It is on your iPhone already, through the pilot version.
-2. **Google:** *Closed testing → Testers → Copy link*, and send it to your testers. **Tell a session
-   the day the twelfth one joins**: the 14 days start then.
+1. **Apple: what is waiting goes to the iPhone store version** — one command: *Conoce Wera*,
+   *Crear Nuevo Proveedor* and the pause of *Te lo compro*. Android's store version got each as it
+   went out — *Conoce Wera* on 22 October, because an update carries everything before it.
+2. **Google:** the twelfth tester joined on 24 October, so *Apply for production* opens on
+   **7 November** (*The dates*, above).
 3. **If Apple refuses something**, paste its words to a session.
 
 **Still yours from 21 October, none of them blocking the review:**
