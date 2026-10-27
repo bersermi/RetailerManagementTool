@@ -33,6 +33,9 @@ import { PALETTE } from '@/theme/palette';
 // ⚠️ THE PICTURES ARE THE APP'S REAL SCREENS, taken on the iPhone simulator from
 // an invented local shop (*Verdulería Lupita*) with his catalog photos — no real
 // shop's data. A screen that changes makes its picture stale; nothing checks it.
+// ⚠️ `merma.jpg` WAS RETAKEN AT `10.0a` (2026-10-27): the doors, Te lo compro's
+// among them, became Tirar — what Merma is for every role while it is paused.
+// Both Merma cards, the owner's and the Empleado's, show it.
 //
 // ⚠️⚠️ WHAT NO CHECK CAN SEE — `R9`: whether six seconds a card is enough for her
 // to read, whether the finger on the Vender card reads as a hand, and whether a
