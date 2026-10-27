@@ -4,6 +4,11 @@ Multi-tenant retail operations for small Mexican retailers. Postgres (Supabase) 
 React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope. The app is
 named **Wera**; the repo and `@tienda/*` packages stay Tienda.
 
+**Step 10 of the plan is the ecosystem** — Wera's pilot version, two new sibling apps (Wera Cocina for
+fondas, Itacate for neighbours) and the backend they share. **A task there reads
+`~/RetailerToolDev/wera-vision/CLAUDE.md` first** — the owner's private notes, outside this repo — and copies
+nothing from them here: no strategy, fees, prices or research, only what the code needs.
+
 **Read these before anything else:**
 
 | File | Authority |
