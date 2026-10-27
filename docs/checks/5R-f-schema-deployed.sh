@@ -14,7 +14,7 @@
 # `supabase/README.md` calls a green CI run the evidence for a schema claim; this
 # script is the half of that sentence CI cannot reach.
 #
-# WHAT IT ASSERTS. Six groups, and every one of them is about the REAL remote:
+# WHAT IT ASSERTS. Seven groups, and every one of them is about the REAL remote:
 #
 #   1. The `supabase` CLI is on PATH — the instrument exists.
 #   2. The repository NAMES a deploy target and the CLI is linked to THAT project.
@@ -29,6 +29,11 @@
 #      defect and the reason the file exists.
 #   6. Every remote migration has a local file. A remote-only migration means SQL
 #      reached the database by hand, which `supabase/README.md` forbids outright.
+#   7. ⚠️⚠️ The hosted project KEEPS THE WALLS (plan `10.1b`) — the only group that
+#      reads what the database lets a caller DO rather than which files it
+#      applied. On 2026-10-27 groups 1–6 were green and `anon` could execute 50
+#      functions there, because the hosted defaults are not CI's. It runs
+#      `supabase/pgtap/_walls.sql`, the same query CI asserts as F12.
 #
 # ⚠️⚠️ IT IS DELIBERATELY NOT IN ANY WORKFLOW, AND THAT WAS THE FIRST DECISION THIS
 # TASK MADE. `supabase migration list --linked` needs a Supabase ACCESS TOKEN, and
@@ -103,6 +108,7 @@ ok "the supabase CLI is on PATH ($(supabase --version 2>/dev/null | head -1))"
 # name (`RetailerManagementTool`), not the hosted ref, and reading it here would
 # compare a string to itself.
 note
+link_ok=0
 EXPECTED_REF="$(grep -oE '^\*\*Deploy target — project ref:\*\* `[a-z0-9]+`' "$README" \
                 | head -1 | grep -oE '`[a-z0-9]+`' | tr -d '`')"
 if [[ -z "$EXPECTED_REF" ]]; then
@@ -126,6 +132,7 @@ else
     echo "      REMEDY: supabase link --project-ref $EXPECTED_REF"
   else
     ok "linked to the project $README names as the deploy target ($EXPECTED_REF)"
+    link_ok=1
   fi
 fi
 
@@ -264,10 +271,59 @@ $PAIRS
 EOF
 (( handmade == 0 )) && ok "every migration on the hosted project has a file in this repository"
 
+# --- 7. the hosted project keeps the walls (plan 10.1b) ----------------------
+# ⚠️⚠️ VERSION NUMBERS CANNOT SEE THIS. Every migration was applied on 2026-10-27
+# and the hosted project still let a signed-out caller execute 50 functions: its
+# DEFAULT PRIVILEGES grant `anon` and `authenticated` what CI's never do, and a
+# migration revoking `from public` removed neither. So this group asks the
+# database itself, with the one query CI also runs (F12 of
+# `supabase/pgtap/01_rls_coverage.sql`). One CSV row per breach; a header alone
+# is green.
+#
+# ⚠️ It reads only through a link group 2 accepted — a green about somebody
+# else's project is the vacuous pass group 2 exists to refuse — and an error or
+# an unexpected header is RED, never "no breaches".
+note
+WALLS="$ROOT/supabase/pgtap/_walls.sql"
+if (( link_ok == 0 )); then
+  fail "the walls were not read: group 2 did not accept the link, so a reading"
+  echo "      here would be about the wrong database, or none."
+elif [[ ! -s "$WALLS" ]]; then
+  fail "cannot read $WALLS — the query this group runs against the hosted"
+  echo "      project, and CI runs as F12. Without it nothing reads who may call what."
+else
+  WALLS_ERR="$(mktemp)"
+  WALLS_OUT="$(supabase db query --linked -o csv -f "$WALLS" --workdir "$ROOT" 2>"$WALLS_ERR")"
+  WALLS_RC=$?
+  WALLS_HEAD="$(printf '%s\n' "$WALLS_OUT" | head -1 | tr -d '\r')"
+  if (( WALLS_RC != 0 )) || [[ "$WALLS_HEAD" != "wall,object" ]]; then
+    fail "the walls query did not come back from the hosted project in a shape"
+    echo "      this check can read (exit $WALLS_RC). ⚠️ This is RED rather than skipped:"
+    echo "      who may call what is unanswered. If it mentions a login: supabase login"
+    echo "      What it said:"
+    { printf '%s\n' "$WALLS_OUT"; cat "$WALLS_ERR"; } | grep -v '^Initialising\|^Connecting' \
+      | sed 's/^/        /' | head -8
+  else
+    BREACHES="$(printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep -c .)"
+    if (( BREACHES > 0 )); then
+      fail "the hosted project breaks $BREACHES wall(s) — one per row, from"
+      echo "      supabase/pgtap/_walls.sql (wall, object):"
+      printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep . | sed 's/^/        /' | head -30
+      (( BREACHES > 30 )) && echo "        … and $((BREACHES - 30)) more"
+      echo "      REMEDY: a migration that takes them back (0071 is the pattern), then"
+      echo "      supabase db push. Never a grant or a revoke typed by hand."
+    else
+      ok "the hosted project keeps the walls (supabase/pgtap/_walls.sql: no breach)"
+    fi
+  fi
+  rm -f "$WALLS_ERR"
+fi
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran assertion groups passed — the hosted project $EXPECTED_REF is"
-  echo "carrying exactly the migrations this repository has merged."
+  echo "carrying exactly the migrations this repository has merged, and keeps"
+  echo "the walls."
   exit 0
 fi
 echo "$ran assertion groups ran, $fails failed — the deployed schema and this"

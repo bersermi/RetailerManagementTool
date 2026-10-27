@@ -92,7 +92,7 @@ Adding a dependency moves the root lockfile, so it fires the first three.
 
   ```
   supabase db push                            # applies what the remote is missing
-  bash docs/checks/5R-f-schema-deployed.sh    # proves it landed — compares version numbers, not schema
+  bash docs/checks/5R-f-schema-deployed.sh    # proves it landed: version numbers, and the walls (grants) — not the rest of the schema
   ```
 - **The one Edge Function deploys separately** — `supabase/functions/apple-revoke` (ADR-035
   §2.2: it tells Apple when an account made with Apple is deleted, and stores nothing).
@@ -127,9 +127,11 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   outbox call this one database. A signature changes by drop and re-create with the new
   argument defaulted (`0064`), never by an overload. Nothing checks it but the session.
 - **A new function revokes `from public, anon`, never `from public` alone**, and grants
-  `authenticated` only what a client calls. The hosted project grants `anon` and
-  `authenticated` EXECUTE on every new function by default and CI's database does not, so CI
-  cannot see a missing revoke (ADR-035, its revision of 2026-10-27).
+  `authenticated` only what a client calls — **and names that function in
+  `supabase/pgtap/_walls.sql`'s list in the same PR.** That file is the walls as one query, run
+  by CI (F12 of `01_rls_coverage.sql`) and on the hosted project (`5R-f`, group 7): until `0071`
+  the hosted defaults granted the client roles everything and CI's nothing, so only reading the
+  shop shows the shop (ADR-035, its revisions of 2026-10-27).
 - **A person with no membership — Itacate's buyer — is denied by every policy**, and none is
   ever written that names her; what she reads of other businesses goes through one
   `security definer` function, and nothing is readable without an account (ADR-035 §2.7).
