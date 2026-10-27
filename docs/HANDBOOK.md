@@ -743,8 +743,8 @@ ask for another.
 ## Handling a Te lo compro request
 
 ⚠️ **Paused since 27 October** (`10.0a`): no shop can make a request or see its own. The seven
-already made stay in the table — six still *enviada*, the newest from 26 October — and the steps
-below still work on them.
+already made stay in the table — all yours, from testing (your word, 27 October), so nothing waits
+on them — and the steps below still work.
 
 A request arrives as *enviada*, usually with a WhatsApp from the shop. Everything after that is
 yours, in the Supabase dashboard: *supabase.com/dashboard → your project → Table Editor →
