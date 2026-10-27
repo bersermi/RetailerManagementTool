@@ -85,7 +85,10 @@ Adding a dependency moves the root lockfile, so it fires the first three.
 - **A green CI run is not a deploy.** Each check builds and deletes its own Postgres; the
   database a phone talks to is reached only by hand. **Say which you have evidence about: the
   schema, the code, or the shop.**
-- **Deploying the database** — in no workflow on purpose, because the only token is account-wide:
+- **Deploying the database** — in no workflow on purpose: a deploy from CI would hold the
+  database password, which no token scope limits, and the deploy check's answer depends on the
+  world rather than the diff (`supabase/README.md`). Supabase tokens can now be scoped to
+  one project (its docs, read 2026-10-27), so the old premise is gone; the decision is not:
 
   ```
   supabase db push                            # applies what the remote is missing
@@ -100,7 +103,9 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   bash docs/checks/5R-k-function-deployed.sh    # the hosted build is the merged one, and it holds its key
   ```
 
-  Its three secrets are the owner's (`supabase/README.md`). **A second function needs a ruling.**
+  Its three secrets are the owner's (`supabase/README.md`). **A second function needs a ruling** —
+  and push is not a reason for one: a push to a phone is sent from Postgres through `pg_net`, as
+  the Discord line is (ADR-035 §2.2, ruled 2026-10-27).
 - **The owner's Discord alerts need their webhook set by hand** (`0070`: a line when somebody
   makes an account or opens a shop). It lives only in the hosted Vault as
   `discord_avisos_webhook`; `db push` does not carry it, and nothing fails without it:
@@ -116,6 +121,18 @@ Adding a dependency moves the root lockfile, so it fires the first three.
   infer the count from the highest number. Every migration has a row in that README's table
   (nothing checks it) — match the backticked filename anywhere in the line, because two rows
   are wrapped in links.
+- **A migration keeps every build in the field working** (ADR-035 §2.2, ruled 2026-10-27): it
+  adds — a table, a defaulted column, a function, an argument with a default — and never drops
+  or renames what a build still in use calls, because every app's builds and every offline
+  outbox call this one database. A signature changes by drop and re-create with the new
+  argument defaulted (`0064`), never by an overload. Nothing checks it but the session.
+- **A new function revokes `from public, anon`, never `from public` alone**, and grants
+  `authenticated` only what a client calls. The hosted project grants `anon` and
+  `authenticated` EXECUTE on every new function by default and CI's database does not, so CI
+  cannot see a missing revoke (ADR-035, its revision of 2026-10-27).
+- **A person with no membership — Itacate's buyer — is denied by every policy**, and none is
+  ever written that names her; what she reads of other businesses goes through one
+  `security definer` function, and nothing is readable without an account (ADR-035 §2.7).
 - **RLS is bypassed by the `postgres` superuser.** An isolation check run as superuser passes
   vacuously — test under `set role authenticated`.
 - **A view is invisible to the RLS guard** (`01_rls_coverage.sql` joins `relkind = 'r'`).
@@ -131,7 +148,8 @@ Adding a dependency moves the root lockfile, so it fires the first three.
 Spanish module names are the domain language, not a translation layer: Comprar (buy),
 Vender (sell), Productos (catalog), Proveedores (providers), Merma (write-offs — *Desperdicio* until the owner's ruling of 2026-10-20; the route and code keep `desperdicio`), Números
 (reports). `workspace` is the tenant; `location` is the store — they are not the same thing,
-and conflating them is a one-way door (ADR-035 §2.3).
+and conflating them is a one-way door (ADR-035 §2.3). A fonda (Wera Cocina) is a workspace
+too; a buyer (Itacate) is no workspace's member (§2.7).
 
 ## Working agreement
 

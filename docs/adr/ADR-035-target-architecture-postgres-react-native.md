@@ -56,6 +56,34 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-27, evening — **§2.2, §2.3, §2.7, §2.11, §3, §4 and §6: THE NEW USERS** (plan
+  `10.1`), on the decision maker's rulings of that day — his *"Yes"* to amending this document for
+  Wera Cocina and Itacate, and to one repository under one rule for migrations. Four walls and two
+  rules, each written into its section:
+  (1) **a fonda is a workspace** — a business account like a shop, so §2.3 and §2.7 apply to it
+  unchanged (§2.3);
+  (2) **a buyer is a signed-in person who belongs to no workspace** — the first person this
+  document admits who holds no membership (§2.7, its last block);
+  (3) **she reads other businesses through ONE `security definer` door, and nothing is readable
+  without an account** (§2.7);
+  (4) **a push to a phone is sent from Postgres through `pg_net`, so there is no second Edge
+  Function** (§2.2);
+  (5) **a migration keeps every build in the field working** (§2.2's last paragraph, and §4);
+  (6) **one repository, one plan in lanes, one Expo SDK for the three apps** (§2.11, §3).
+  ⚠️⚠️ **MEASURED THE SAME DAY, AND IT IS WHY (3) IS A RULING AND NOT YET A FACT OF THE SHOP: on the
+  hosted project `anon` may execute 27 of the 35 `security definer` functions in `public`, and
+  select all seven views** (read 2026-10-27 22:02 UTC). Its default privileges grant `anon` and
+  `authenticated` EXECUTE on every function a migration creates, and most migrations revoke only
+  `from public`, which removes neither; **CI's database starts with other defaults, so every
+  *"anon cannot call this"* assertion here is green in CI and false in the shop.** The base tables
+  hold there (F9 and F10 are true on the hosted project: each migration revokes them by name).
+  What a signed-out caller reaches today is small — every write checks the caller's membership
+  (§2.6), and she has none; six of the views refuse at their base tables while the seventh filters
+  by the caller's shop —
+  but `catalog_template()` answers the whole starter catalog, and `auth_full_name(uuid)`, which
+  §2.7 says is *granted to nobody*, answers a name to anyone holding a uuid. **Plan `10.1b` makes
+  the shop obey (3), with a check that reads the hosted project.** No schema is applied by this
+  revision; the walls bind plan rows `10.1b` to `10.8`.
 - **Revised:** 2026-10-27 — **§2.8's Desperdicio and Home rows: *Te lo compro* is PAUSED** (plan
   `10.0a`), on the decision maker's ruling of that day, *"Yes to both"*: hide it with one update
   over the air, and lift Merma's address gate until *Ofrecer* exists — reversing his ruling of
@@ -716,9 +744,9 @@ understanding.
 | Residency | Cross-border permitted under LFPDPPP | Disclosed in the *aviso de privacidad* |
 | Client | React Native (Expo) | iOS first — the pilot store's device. Android follows |
 | Client detail | See §2.11 | Router, data layer, state, components, release path |
-| Schema changes | Reviewed migration files only | No change reaches production by hand |
-| Server code outside Postgres | **One Edge Function, `apple-revoke` — ADDED 2026-10-13** (plan task `5R-k`, the decision maker's ruling of that day) | ⚠️⚠️ **The only code in this system that runs on a server and is not SQL, and it exists for one reason: Apple's revoke call is signed with a private key, and a key cannot ship inside an app.** When a person who signed in with Apple deletes their account, the phone asks Apple's sheet for a fresh code and hands it to the function, which trades it and revokes, then the app calls `delete_my_account` as before. **It stores nothing and holds no database credential**: it asks the auth server who the caller is, with the caller's own token. A deletion never waits on it: unreachable, unconfigured or refused, the account is still deleted. ⚠️ **It is a second deploy surface.** `supabase db push` does not carry it; `supabase functions deploy apple-revoke` does, and `docs/checks/5R-k-function-deployed.sh` reads the hosted project for the build and for whether the three secrets are set. Its evidence under §9 is `db.yml`'s job that serves it in the real edge runtime against a stand-in for Apple. **A second function needs a ruling**, as a second `security definer` view does (§2.7). To undo this one: delete the function and the key; no data is held anywhere |
-| Outbound messages | **Postgres posts to the owner's Discord — ADDED 2026-10-22** (plan task `5P-f`, `0070`, his request and his choice of channel that day) | `servicio.avisar_a_wera(text)` queues one message through **`pg_net`**, which sends it **after the commit** — a rolled-back write sends nothing and a slow Discord holds no lock. Two triggers call it: a new row in `auth.users` and in `public.workspace`. **The message names nobody** (how the account was made, and a count): the *aviso* lists who receives a person's data, and Discord is not on it, so a name in a message is an aviso change first. **The webhook is a secret held only in the hosted project's Vault** (`discord_avisos_webhook`, set by `docs/runbooks/set-discord-webhook.sh`) — with none, nothing is sent, which is what CI and every local database are. Every function swallows its own error into a warning: **a lost alert is a missed message; a lost signup is a lost customer.** Evidence under §9: `supabase/tests/0070_wera_avisa_en_discord.sql`, and every contract check that signs up through the real auth server, which fires the trigger as `supabase_auth_admin`. To undo: drop the two triggers; the webhook can be deleted in Discord at any time |
+| Schema changes | Reviewed migration files only | No change reaches production by hand. ⚠️ **And none breaks a build in the field** — ruled 2026-10-27 (`10.1`); see the last paragraph of this section |
+| Server code outside Postgres | **One Edge Function, `apple-revoke` — ADDED 2026-10-13** (plan task `5R-k`, the decision maker's ruling of that day) | ⚠️⚠️ **The only code in this system that runs on a server and is not SQL, and it exists for one reason: Apple's revoke call is signed with a private key, and a key cannot ship inside an app.** When a person who signed in with Apple deletes their account, the phone asks Apple's sheet for a fresh code and hands it to the function, which trades it and revokes, then the app calls `delete_my_account` as before. **It stores nothing and holds no database credential**: it asks the auth server who the caller is, with the caller's own token. A deletion never waits on it: unreachable, unconfigured or refused, the account is still deleted. ⚠️ **It is a second deploy surface.** `supabase db push` does not carry it; `supabase functions deploy apple-revoke` does, and `docs/checks/5R-k-function-deployed.sh` reads the hosted project for the build and for whether the three secrets are set. Its evidence under §9 is `db.yml`'s job that serves it in the real edge runtime against a stand-in for Apple. **A second function needs a ruling**, as a second `security definer` view does (§2.7). To undo this one: delete the function and the key; no data is held anywhere. ⚠️ **AMENDED 2026-10-27 (`10.1`): push is not a reason for a second one** — the decision maker ruled that a push is sent from Postgres (*Outbound messages*, below). ⚠️ **And this function holds ONE app**: `APPLE_CLIENT_ID`, defaulting to `mx.wera.app`, is the client every revoke is signed for. When a second app offers Sign in with Apple (Itacate, `10.5`), this function learns that app's client id — a `BUILD` bump and its deploy — rather than a second function being written |
+| Outbound messages | **Postgres posts to the owner's Discord — ADDED 2026-10-22** (plan task `5P-f`, `0070`, his request and his choice of channel that day) | `servicio.avisar_a_wera(text)` queues one message through **`pg_net`**, which sends it **after the commit** — a rolled-back write sends nothing and a slow Discord holds no lock. Two triggers call it: a new row in `auth.users` and in `public.workspace`. **The message names nobody** (how the account was made, and a count): the *aviso* lists who receives a person's data, and Discord is not on it, so a name in a message is an aviso change first. **The webhook is a secret held only in the hosted project's Vault** (`discord_avisos_webhook`, set by `docs/runbooks/set-discord-webhook.sh`) — with none, nothing is sent, which is what CI and every local database are. Every function swallows its own error into a warning: **a lost alert is a missed message; a lost signup is a lost customer.** Evidence under §9: `supabase/tests/0070_wera_avisa_en_discord.sql`, and every contract check that signs up through the real auth server, which fires the trigger as `supabase_auth_admin`. To undo: drop the two triggers; the webhook can be deleted in Discord at any time. ⚠️ **AMENDED 2026-10-27 (`10.1`) — A PUSH TO A PHONE GOES THE SAME WAY**, on the decision maker's ruling of that day: Postgres posts to Expo's push service through `pg_net`, after the commit, and **no Edge Function sends it**. It is built by the first row that sends one; Cocina and Itacate carry `expo-notifications` from their first builds (`10.2`), and Wera waits for its native update (`10.8`). Three bounds for that row: **a push token identifies a device, and the message passes through Expo and then Apple or Google**, so each app's section of the aviso (`10.4`, `10.5`) names them before its first push; a token secret, if Expo's push security is switched on, lives in the Vault as the webhook does; and **`pg_net` sends without reading the answer**, so retiring a token Expo reports dead is that row's to design. ⚠️ **These two lines will mislabel the new users**: a buyer's sign-up posts *Nueva cuenta en Wera*, and a fonda's account *Nueva tienda en Wera*. The rows that first create them (`10.4`, `10.5`) change the wording — still naming nobody |
 
 **Why native rather than a web app.** The pilot runs on one fixed counter with
 measured, stable wifi, and v1 ships no scanner (§6) — so nothing about the *screens*
@@ -728,6 +756,21 @@ sleeps between customers, that is the queue failing precisely when §2.6 needs i
 `expo-sqlite` on disk has neither constraint. The pilot store is iOS, so this is
 decisive rather than theoretical — on an Android-only pilot the argument would not
 have held, and a PWA would have been the cheaper answer (§7).
+
+**A migration keeps every build in the field working** — ruled 2026-10-27 (plan `10.1`), as
+one database begins to serve three apps. A phone can run one build for a long time: a store
+install runs the bundle it shipped with until it has fetched an update with signal and been
+opened again (§2.11), a phone that never updates runs it for good, and a phone offline for days
+flushes its outbox with the calls it made then (§2.6). So a migration **adds** — a table, a
+nullable or defaulted column, a function, an argument with a default — and **never drops or
+renames what a build still in use calls or reads, nor makes a call that used to succeed fail.**
+A signature changes by drop and re-create with the new argument defaulted, never by an overload
+beside the old one, which PostgREST can find ambiguous: `0064`'s shape for `record_sale`,
+`record_purchase` and `record_waste`. Something leaves only once no build in use calls it.
+⚠️ **No check holds this rule yet.** The contract checks prove today's app against today's
+schema, never an older build, so the session writing a migration holds it, as it holds the
+append-only rule. The check that would — each app's calls at its oldest build in use, run
+against the newest schema — is plan `10.3`'s first piece.
 
 ### 2.3 Data model
 
@@ -752,6 +795,17 @@ months (confirmed 2026-08-14) and `location_id` on the ledger is a one-way door
 
 Membership resolves on `auth.uid()`. The prior design matched on user display name
 (`prov-V1-BUILD-LOG.md` D-06), which is neither unique nor immutable.
+
+⚠️ **AMENDED 2026-10-27 (plan `10.1`) — A FONDA IS A WORKSPACE TOO**, on the decision maker's
+ruling of that day. Wera Cocina's business is a `workspace` exactly as a shop is: its kitchen a
+`location`, its people members in the same three roles, under the same two policy shapes and
+fences (§2.7). **No new kind of tenant and no new principal**: this section and §2.7 apply to it
+unchanged, and a person who runs a shop and a fonda holds two memberships, which §2.7 has
+supported from day one. ⚠️ **What the ruling leaves open — a one-way door for plan `10.3`:
+nothing in the schema tells a fonda's account from a shop's.** `giro_principal` (`0056`) is not
+that: it is nullable, the owner changes it in Ajustes, and it picks a drawing. The question is
+in the plan's ⛔ DECISIONS OWED. ⚠️ **A buyer is no workspace's member**, so she is not in this
+section at all — §2.7, its last block.
 
 ⚠️ **AMENDED 2026-09-18 — `workspace_member` CARRIES A PERSON'S NAME (`0034`, plan
 task `5b.8-i`).** `display_name` is **not** how membership resolves and never will
@@ -1630,6 +1684,16 @@ written here rather than inferred from the struck sentence: *a client may never 
 `auth.users`; a person's chosen name reaches other members of their own shop, and
 nothing else about their account does.*
 
+⚠️⚠️ **AMENDED 2026-10-27 (plan `10.1`) — *GRANTED TO NOBODY* IS TRUE IN CI AND FALSE ON THE
+HOSTED PROJECT.** There, default privileges grant `anon` and `authenticated` EXECUTE on every
+function a migration creates, and `0034`'s `revoke all … from public` removes neither: read
+that day, the hosted `auth_full_name(uuid)` may be executed by both, and its body answers the
+name of any login whose uuid the caller holds. **CI cannot see this** — its database starts
+with other defaults, so `supabase/tests/0034` and `docs/checks/5b-iii-d-1-approvals-contract.sh`
+are green over a guarantee the shop does not keep. Today a uuid rarely leaves its own shop; a
+reservation will put a buyer's in front of a fonda. **Plan `10.1b` revokes it in the shop**, with
+the rest of what the hosted defaults granted (the revision entry of this date).
+
 ✅✅ **AND THAT NARROWER GUARANTEE IS RULED, NOT INHERITED — 2026-09-18.** The name is
 **member-level**, deliberately. ⚠️ **The screen and the policy are fenced differently, and
 they always were**: `workspace_member_select` (`0001:532`) admits **any active member**,
@@ -1698,6 +1762,21 @@ is the only one who reliably knows the right number, and knows it now. Voiding m
 be fast and blameless: friction here converts into staff quietly not recording
 things, which is the failure mode that destroys the dataset. Reversed lines are
 excluded from derived prices and from reports, and remain visible in the audit view.
+
+**A person who belongs to no workspace — the buyer** (ruled 2026-10-27, plan `10.1`; built from
+`10.3`). Itacate's neighbour signs in and is a member of nothing. Until this ruling a login with
+no membership could only make a shop or ask to join one; she is the first person this document
+lets in to stay that way. Each row is the decision maker's ruling or follows from it and from the
+sections above; where this revision chose, the row says so.
+
+| | Ruled |
+|---|---|
+| **Who she is** | A row in `auth.users` and nothing more — Apple, Google or email (plan `10.5`). With no membership, `my_workspaces()` and `my_locations()` return nothing for her, so **every policy in this schema already denies her**, and none is ever written that names her: the two shapes at the top of this section stay the only two |
+| **Nothing without an account** | Every door below is granted to `authenticated` and revoked from `public` **and** `anon` — both, because the hosted project hands `anon` EXECUTE by default (the revision entry of this date). Itacate shows nothing before sign-in. In CI this sits beside F9 (no base table) and F11 (no policy to `PUBLIC`); in the shop, plan `10.1b`'s check will hold it |
+| **The one door** | What she reads of any business — what is on offer — reaches her through **one `security definer` function** stating its own predicate: only what is on offer now, only what a buyer is shown, **a pin approximate until she reserves and the exact spot only after** (the ruling on maps, 2026-10-26) — a shop's only on its opt-in (ruled for *Ofrecer*, 2026-10-27) — and never a cost, a member or a ledger row. ⚠️ **A function, not a view — chosen here**: it takes her place as arguments, and `0041`'s *only one definer view* stays true. A second read across businesses needs a ruling, as a second definer view does; whether a fonda reads shops' offers through this door is one of the doors plan `10.6` waits on |
+| **What is hers** | A reservation she made, and its code, reach her through functions keyed on her own `auth.uid()` — the shape `my_access_requests()` (`0029`) already has, *"so the joiner can see a row no policy can ever show them"* — which is no door into anyone else's data. ⚠️ **Chosen here:** a table that belongs to a person and to no workspace (a phone's push token) is not a business table; it sits outside `public` in a closed schema, as `catalogo` and `servicio` do, read and written only through such functions — so `01_rls_coverage.sql` needs no third policy shape |
+| **What she writes** | Reserving, cancelling, *Recogí*, a rating: `security definer` RPCs that check the caller, as `request_access` does for a joiner. The seller's side of a reservation belongs to the seller's workspace, under its ordinary policies |
+| **One login, three apps** | Supabase links one email to one `auth.users` row, so a shopkeeper who reserves an itacate is one login, not two. **Deleting it in any app deletes it in all** — and a sole owner's shop or fonda with it, which `delete_my_account` refuses without that business's typed name (`TD007`, `0053`). What Itacate's *Eliminar mi cuenta* shows such a person is the decision maker's, when plan `10.5` builds it |
 
 ### 2.8 Screens
 
@@ -2102,6 +2181,16 @@ decision maker's iPhone took a test update and its rollback. The pilot's iPhones
 App Store record that fixes the bundle id. ⚠️ **The first iOS signing setup needs an interactive
 terminal**, so it is the one step the decision maker runs by hand.
 
+⚠️ **AMENDED 2026-10-27 (plan `10.1`) — THREE APPS IN ONE REPOSITORY**, on the decision maker's
+ruling of that day. Wera Cocina and Itacate are sibling folders of `app/`, each its own Expo app
+with its own `CLAUDE.md`, store records and EAS project (plan `10.2`). **`app/` does not move**:
+moving it changes Wera's runtime fingerprint, which only a new store build could carry (measured
+on SDK 57). **One React Native per workspace means one Expo SDK for all three**, and it stays SDK
+57 through the pilot: features ship over the air, and anything native waits for one major update
+of the three apps together (`10.8`). So each new app's first build carries every native module it
+will need — maps and notifications, and location for Itacate. They start from this section's
+table; a row that differs for them is an amendment here, as it would be for Wera.
+
 ---
 
 ## 3. Build order
@@ -2184,6 +2273,12 @@ Steps 0–4.5 are the whole system; 5–7 are windows onto it.
 Seeding two locations from day one is deliberate: with one, every location bug is
 invisible until the second store opens, which is the week it is most expensive.
 
+⚠️ **AMENDED 2026-10-27 (plan `10.1`) — FROM STEP 10 THE BUILD RUNS IN LANES.** `docs/PLAN.md`'s
+Step 10 adds Wera Cocina and Itacate beside Wera in four lanes — Wera, Backend, Cocina, Itacate —
+under the one plan and its one next task. The sentence above still holds: the two apps are two
+more windows, and what they add to the system is the Backend lane's — the marketplace tables and
+the one door (§2.7).
+
 ---
 
 ## 4. Risk register
@@ -2214,6 +2309,7 @@ expensive enough after trading starts to belong here:
 | `adjust_stock_delta` as a relative operation | Its callers assume they never read a balance first. Converting to absolute later means auditing every call site for a race |
 | **`stock_movement.failed_write_id`** — the downgrade link (amended 2026-09-05; was `failed_write.adjustment_movement_id`) | The link is what makes a downgrade reversible. Movements written without it can never be replayed, because nothing records what to compensate — and a movement is append-only, so a link omitted at insert can never be added |
 | `record_failed_write` validating workspace but not location | The exception is the point (§2.6). Tightening it later silently drops the failures it exists to catch |
+| **What a build in the field calls** — added 2026-10-27 (`10.1`) | Under §2.2's field rule, a function, argument or column a shipped build calls can be dropped or renamed only once no build in use calls it. So every door the new apps call — the buyers' door above all (§2.7) — hardens with its app's first store build |
 
 **Reversible:** FEFO vs FIFO ordering, enforcement default, the 15-minute void
 window, magnitude thresholds, the analytics layer (views), every screen decision, and
@@ -2318,7 +2414,7 @@ match the independent tally within 5%, with no intervention.
 | Customer entity | Follows payment methods | Low |
 | Strict-mode UI and toggle | Enforcement path exists dormant; demand unproven | Low |
 | Cross-workspace analytics schema | No customers to anonymise yet; terms clause written now | Medium |
-| Collection-partner notifications | When built: `outbox` + Edge Function drain, no external auth, never HTTP inside a transaction | Low |
+| Collection-partner notifications | When built: ~~`outbox` + Edge Function drain~~ **sent from Postgres through `pg_net` after the commit — ruled 2026-10-27 (`10.1`, §2.2), no Edge Function**; no external auth, never HTTP inside a transaction | Low |
 | Price-list management UI | Seed by SQL until someone asks | Low |
 | Transfer screen | `record_transfer` and its movement shape ship in `0004`; the UI waits for the second store | Low — the irreversible half is already built |
 | Location picker in the UI | One location until the second store opens; zero taps until then | Low |
