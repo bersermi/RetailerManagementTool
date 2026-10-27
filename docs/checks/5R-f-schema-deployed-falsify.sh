@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
-# 5R-f-schema-deployed-falsify — the ten fixtures the deploy guard was checked
-# against, kept as a script rather than as a paragraph claiming it was.
+# 5R-f-schema-deployed-falsify — the fifteen fixtures the deploy guard was checked
+# against, kept as a script rather than as a paragraph claiming it was. D1–D10
+# are the migration list (`5R-f`); W1–W5 are the walls group (`10.1b`).
 #
 # ⚠️⚠️ THIS HARNESS IS NOT AN EXTRA HERE — IT IS THE ONLY EVIDENCE THE GUARD WORKS.
 # The hosted project is currently IN SYNC, and it should stay that way, so the real
@@ -31,7 +32,7 @@
 # this fixture goes green.
 #
 # Run:  bash docs/checks/5R-f-schema-deployed-falsify.sh
-# Exit: 0 when all ten fixtures behave as recorded; 1 otherwise.
+# Exit: 0 when all fifteen fixtures behave as recorded; 1 otherwise.
 
 set -uo pipefail
 
@@ -48,15 +49,22 @@ ran=0
 REF="hweutzjhzvioswnjzqki"
 
 # --- the stub -----------------------------------------------------------------
-# It answers `--version` for assertion 1 and prints $STUB_BODY for everything else,
-# exiting with $STUB_RC. ⚠️ It writes the body verbatim, so a fixture can hand back
-# malformed output as easily as valid JSON.
+# It answers `--version` for assertion 1, prints $STUB_WALLS for `db query` (group
+# 7) exiting with $STUB_WALLS_RC, and prints $STUB_BODY for everything else,
+# exiting with $STUB_RC. ⚠️ It writes each body verbatim, so a fixture can hand
+# back malformed output as easily as valid JSON or CSV. The walls default is the
+# measured shape of "no breach" — the header line alone (2026-10-27, CLI 2.114.0).
 mkdir -p "$WORK/bin"
 cat > "$WORK/bin/supabase" <<'STUB'
 #!/usr/bin/env bash
 for a in "$@"; do
   if [ "$a" = "--version" ]; then echo "0.0.0-stub"; exit 0; fi
 done
+case " $* " in
+  *" db query "*)
+    [ -n "${STUB_WALLS:-}" ] && printf '%s\n' "$STUB_WALLS"
+    exit "${STUB_WALLS_RC:-0}" ;;
+esac
 [ -n "${STUB_BODY:-}" ] && printf '%s\n' "$STUB_BODY"
 exit "${STUB_RC:-0}"
 STUB
@@ -69,10 +77,11 @@ build_tree() {
   name="$1"; versions="$2"
   root="$WORK/$name"
   rm -rf "$root"
-  mkdir -p "$root/supabase/migrations" "$root/supabase/.temp"
+  mkdir -p "$root/supabase/migrations" "$root/supabase/.temp" "$root/supabase/pgtap"
   for v in $versions; do
     printf -- '-- fixture\nselect 1;\n' > "$root/supabase/migrations/${v}_fixture.sql"
   done
+  printf -- '-- fixture: the stub answers for it\nselect 1\n' > "$root/supabase/pgtap/_walls.sql"
   printf '# Database\n\n**Deploy target — project ref:** `%s`\n' "$REF" \
     > "$root/supabase/README.md"
   printf '%s' "$REF" > "$root/supabase/.temp/project-ref"
@@ -98,6 +107,7 @@ expect() {
   id="$1"; want="$2"; desc="$3"; root="$4"; body="$5"; rc="$6"; phrase="${7:-}"
   ran=$((ran+1))
   out="$(cd "$root" && PATH="$WORK/bin:$PATH" STUB_BODY="$body" STUB_RC="$rc" \
+         STUB_WALLS="$WALLS_BODY" STUB_WALLS_RC="$WALLS_RC" \
          bash "$CHECK_ABS" . 2>&1)"
   got_rc=$?
   if [ "$want" = "red" ]; then got="$( [ $got_rc -ne 0 ] && echo red || echo green )";
@@ -122,13 +132,19 @@ expect() {
 
 ALL_OK="0001:0001 0002:0002 0003:0003"
 
+# The walls group's answer for every D fixture: no breach. W fixtures override it.
+CLEAN_WALLS="wall,object"
+WALLS_BODY="$CLEAN_WALLS"
+WALLS_RC=0
+
 # --- D3 first: the control ----------------------------------------------------
 # ⚠️ IT RUNS FIRST ON PURPOSE. If the harness itself were broken — a bad stub, a
 # tree the check cannot read — every fixture below would be red and the run would
-# look like ten successful falsifications. This one proves a correct tree is green.
+# look like fifteen successful falsifications. This one proves a correct tree is
+# green — the walls group included.
 build_tree d3 "0001 0002 0003"
-expect "D3" green "a tree that agrees with its remote is GREEN — the control" \
-  "$WORK/d3" "$(json_rows "$ALL_OK")" 0 "all 6 assertion groups passed"
+expect "D3" green "a tree that agrees with its remote, and keeps the walls, is GREEN — the control" \
+  "$WORK/d3" "$(json_rows "$ALL_OK")" 0 "all 7 assertion groups passed"
 
 # --- D1: the 2026-09-22 defect ------------------------------------------------
 build_tree d1 "0001 0002 0003"
@@ -186,11 +202,53 @@ build_tree d10 "0001 0002 0003"
 expect "D10" red "output the guard cannot parse is red, not an empty comparison" \
   "$WORK/d10" '{"migrations":"this is not an array"}' 0 "cannot read"
 
+# --- W1–W5: the walls group (plan 10.1b) ---------------------------------------
+# Every W tree agrees with its remote, so group 7 is the only thing that can turn
+# it red — and each must be red for ITS reason, named by the phrase.
+
+# W1 — ⚠️⚠️ THE ONE THE GROUP EXISTS FOR: every migration applied, a wall open.
+# 2026-10-27 exactly: groups 1–6 green while anon could execute 50 functions.
+build_tree w1 "0001 0002 0003"
+WALLS_BODY="$CLEAN_WALLS
+anon may execute,auth_full_name(p_user_id uuid)"
+expect "W1" red "a breach on a fully deployed remote is caught — 2026-10-27 itself" \
+  "$WORK/w1" "$(json_rows "$ALL_OK")" 0 "breaks 1 wall(s)"
+
+# W2 — the query failed. An expired login must never read as "no breach".
+build_tree w2 "0001 0002 0003"
+WALLS_BODY="Access token not provided. Supply an access token by running supabase login"
+WALLS_RC=1
+expect "W2" red "a failing walls query is RED, never a silent green" \
+  "$WORK/w2" "$(json_rows "$ALL_OK")" 0 "did not come back"
+WALLS_RC=0
+
+# W3 — exit 0 and an answer that is not the CSV the query returns: the CLI's
+# format moved, and "no rows I can parse" is not "no breach".
+build_tree w3 "0001 0002 0003"
+WALLS_BODY='{"rows":[]}'
+expect "W3" red "an answer in another shape is red, not an empty list of breaches" \
+  "$WORK/w3" "$(json_rows "$ALL_OK")" 0 "did not come back"
+
+# W4 — the query file is gone: nothing reads who may call what.
+build_tree w4 "0001 0002 0003"
+rm -f "$WORK/w4/supabase/pgtap/_walls.sql"
+WALLS_BODY="$CLEAN_WALLS"
+expect "W4" red "a tree without the walls query is red, not a pass over nothing" \
+  "$WORK/w4" "$(json_rows "$ALL_OK")" 0 "cannot read"
+
+# W5 — a wrong link: the walls must not be read — or reported green — about
+# somebody else's project. D6 shows group 2 red; this shows group 7 refuses too.
+build_tree w5 "0001 0002 0003"
+printf 'someotherproject' > "$WORK/w5/supabase/.temp/project-ref"
+expect "W5" red "the walls are not read through a link group 2 refused" \
+  "$WORK/w5" "$(json_rows "$ALL_OK")" 0 "the walls were not read"
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran fixtures behaved as recorded — the deploy guard goes red on a"
   echo "remote that is behind, a remote that is ahead, a partial listing, a"
-  echo "failed command, a wrong link and an undocumented target."
+  echo "failed command, a wrong link, an undocumented target, an open wall, a"
+  echo "walls query that failed or came back in another shape, and a missing one."
   exit 0
 fi
 echo "$ran fixtures ran, $fails did not behave as recorded."

@@ -56,6 +56,22 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-27, night — **§2.7: THE WALLS MADE TO HOLD IN THE SHOP** (plan `10.1b`,
+  `0071`), enforcing two walls already ruled: *nothing readable without an account*, and
+  `auth_full_name` *granted to nobody*. Read first on the hosted project (catalog only): **96
+  breaches** — `anon` could execute 50 of the 60 functions in `public` outside extensions and
+  held every privilege on all seven views; a signed-in person could execute 18 functions CI
+  never grants her and write through every view; 14 default grants opened every new function,
+  table and sequence. `0071` makes what `anon` and `authenticated` hold there what they hold in
+  CI, the defaults included; `service_role` and base tables are untouched. **`supabase/pgtap/
+  _walls.sql` is the walls as one query** — CI asserts it (F12 of `01_rls_coverage.sql`) and
+  `docs/checks/5R-f-schema-deployed.sh` runs it on the hosted project after every deploy — and
+  it holds the list of functions a signed-in person may execute, so a door a client calls joins
+  the list with its grant. ⚠️ **Email sign-up confirms itself, so a signed-in person is anyone
+  with an email address**: that list is the surface a stranger reaches, which is why it is a
+  list and not a rule. Supabase applies its new table and sequence defaults to every existing
+  project on 2026-10-30; existing objects keep their grants, so the platform would have closed
+  nothing that was open.
 - **Revised:** 2026-10-27, evening — **§2.2, §2.3, §2.7, §2.11, §3, §4 and §6: THE NEW USERS** (plan
   `10.1`), on the decision maker's rulings of that day — his *"Yes"* to amending this document for
   Wera Cocina and Itacate, and to one repository under one rule for migrations. Four walls and two
@@ -769,7 +785,8 @@ beside the old one, which PostgREST can find ambiguous: `0064`'s shape for `reco
 `record_purchase` and `record_waste`. Something leaves only once no build in use calls it.
 ⚠️ **No check holds this rule yet.** The contract checks prove today's app against today's
 schema, never an older build, so the session writing a migration holds it, as it holds the
-append-only rule. The check that would — each app's calls at its oldest build in use, run
+append-only rule. (Two corners are held since `10.1b` by `supabase/pgtap/_walls.sql`: no
+overload, and no function on its signed-in list dropped or ungranted unseen.) The check that would — each app's calls at its oldest build in use, run
 against the newest schema — is plan `10.3`'s first piece.
 
 ### 2.3 Data model
@@ -1692,7 +1709,10 @@ name of any login whose uuid the caller holds. **CI cannot see this** — its da
 with other defaults, so `supabase/tests/0034` and `docs/checks/5b-iii-d-1-approvals-contract.sh`
 are green over a guarantee the shop does not keep. Today a uuid rarely leaves its own shop; a
 reservation will put a buyer's in front of a fonda. **Plan `10.1b` revokes it in the shop**, with
-the rest of what the hosted defaults granted (the revision entry of this date).
+the rest of what the hosted defaults granted (the revision entry of this date). ✅ **Done the
+same night by `0071`**: `auth_full_name` is granted to nobody there too, and `_walls.sql` —
+asserted in CI, run on the hosted project by `5R-f` — goes red if a signed-in person can
+execute it again.
 
 ✅✅ **AND THAT NARROWER GUARANTEE IS RULED, NOT INHERITED — 2026-09-18.** The name is
 **member-level**, deliberately. ⚠️ **The screen and the policy are fenced differently, and
@@ -1772,7 +1792,7 @@ sections above; where this revision chose, the row says so.
 | | Ruled |
 |---|---|
 | **Who she is** | A row in `auth.users` and nothing more — Apple, Google or email (plan `10.5`). With no membership, `my_workspaces()` and `my_locations()` return nothing for her, so **every policy in this schema already denies her**, and none is ever written that names her: the two shapes at the top of this section stay the only two |
-| **Nothing without an account** | Every door below is granted to `authenticated` and revoked from `public` **and** `anon` — both, because the hosted project hands `anon` EXECUTE by default (the revision entry of this date). Itacate shows nothing before sign-in. In CI this sits beside F9 (no base table) and F11 (no policy to `PUBLIC`); in the shop, plan `10.1b`'s check will hold it |
+| **Nothing without an account** | Every door below is granted to `authenticated` and revoked from `public` **and** `anon` — both, because the hosted project hands `anon` EXECUTE by default (the revision entry of this date). Itacate shows nothing before sign-in. In CI this sits beside F9 (no base table) and F11 (no policy to `PUBLIC`) as F12; in the shop, `5R-f`'s seventh group holds it — both run `supabase/pgtap/_walls.sql` (`0071`, plan `10.1b`), whose list names every function a signed-in person may execute, the buyers' door included when it is built |
 | **The one door** | What she reads of any business — what is on offer — reaches her through **one `security definer` function** stating its own predicate: only what is on offer now, only what a buyer is shown, **a pin approximate until she reserves and the exact spot only after** (the ruling on maps, 2026-10-26) — a shop's only on its opt-in (ruled for *Ofrecer*, 2026-10-27) — and never a cost, a member or a ledger row. ⚠️ **A function, not a view — chosen here**: it takes her place as arguments, and `0041`'s *only one definer view* stays true. A second read across businesses needs a ruling, as a second definer view does; whether a fonda reads shops' offers through this door is one of the doors plan `10.6` waits on |
 | **What is hers** | A reservation she made, and its code, reach her through functions keyed on her own `auth.uid()` — the shape `my_access_requests()` (`0029`) already has, *"so the joiner can see a row no policy can ever show them"* — which is no door into anyone else's data. ⚠️ **Chosen here:** a table that belongs to a person and to no workspace (a phone's push token) is not a business table; it sits outside `public` in a closed schema, as `catalogo` and `servicio` do, read and written only through such functions — so `01_rls_coverage.sql` needs no third policy shape |
 | **What she writes** | Reserving, cancelling, *Recogí*, a rating: `security definer` RPCs that check the caller, as `request_access` does for a joiner. The seller's side of a reservation belongs to the seller's workspace, under its ordinary policies |

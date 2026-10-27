@@ -40,19 +40,40 @@
 -- and no policies, and this suite would report five failures that are not
 -- defects. Test F2 asserts that scaffolding is absent, so this file goes red
 -- rather than lying if it is ever moved down the workflow.
+--
+-- F12 IS NOT WRITTEN HERE: it is `_walls.sql`, ONE query that
+-- `docs/checks/5R-f-schema-deployed.sh` also runs against the HOSTED project,
+-- because the two databases start from different default privileges and on
+-- 2026-10-27 the walls held in CI and not in the shop (plan `10.1b`). psql reads
+-- it CLIENT-SIDE, relative to the working directory — the repo root in CI —
+-- as 07 reads cases.json. Without a client-side filesystem (docker exec):
+--   docker exec -i supabase_db_<project> psql -U postgres \
+--     -v walls_sql="$(cat supabase/pgtap/_walls.sql)" -f - < <this file>
 -- ============================================================================
 \set ON_ERROR_STOP on
 \timing off
+\if :{?walls_sql}
+  \echo '# the walls were supplied by the caller as -v walls_sql='
+\else
+  \echo '# reading the walls from supabase/pgtap/_walls.sql'
+  \set walls_sql `cat supabase/pgtap/_walls.sql`
+\endif
+select length(:'walls_sql') = 0 as walls_missing \gset
+\if :walls_missing
+  \warn 'supabase/pgtap/_walls.sql is empty or could not be read. Run from the'
+  \warn 'repository root, or pass it: psql -v walls_sql="$(cat supabase/pgtap/_walls.sql)" -f ...'
+  do $$ begin raise exception '_walls.sql could not be read — see the guidance above'; end $$;
+\endif
 set search_path = tap, public, pg_catalog;
 set client_min_messages = warning;
 
--- The plan is COMPUTED, not hardcoded: 11 fixed tests, 2 per base table in
+-- The plan is COMPUTED, not hardcoded: 12 fixed tests, 2 per base table in
 -- `public`, 1 per policy. A table added by a future migration is covered the
 -- day it lands, with nobody having to remember this file exists — which is the
 -- entire point of a structural suite. Non-vacuity is bought separately, by F1
 -- and F2 below, and not by a magic number here.
 select plan(
-  11
+  12
   + 2 * (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
           where n.nspname = 'public' and c.relkind = 'r')
   + (select count(*)::int from pg_policy p join pg_class c on c.oid = p.polrelid
@@ -61,10 +82,10 @@ select plan(
 );
 
 -- ---------------------------------------------------------------------------
--- Fixed tests F1–F11
+-- Fixed tests F1–F12
 -- ---------------------------------------------------------------------------
 
--- F1. THE FLOOR. A computed plan over an empty schema is `plan(11)` and eleven
+-- F1. THE FLOOR. A computed plan over an empty schema is `plan(12)` and twelve
 -- passing tests — a green from a suite that measured nothing, which is the
 -- vacuous pass ADR-035 §9 exists to refuse. Twenty is what 0001–0004 applied;
 -- the assertion is `>=` so a new migration never has to edit this line, and the
@@ -191,6 +212,18 @@ select is_empty(
                          where pg_get_userbyid(r) <> 'authenticated')) $$,
   'F11 every policy in public targets authenticated and not PUBLIC'
 );
+
+-- F12. THE WALLS, IN THE QUERY THE SHOP IS READ WITH TOO (plan `10.1b`). One row
+-- per breach of `_walls.sql`: anon executes or reads something in public; a
+-- signed-in person may execute a function its list does not name, or may not
+-- execute one it does; someone writes through a view; two functions share a
+-- name; new objects are born granting the client roles anything. ⚠️ In this
+-- database the defaults already grant nothing, so what F12 catches here is a
+-- migration's own grant — including the one it forgets: a function never
+-- revoked `from public` is executable by anon, which is how three stood open
+-- until `0071`. The defaults row bites on the hosted project, through `5R-f`.
+select is_empty(:'walls_sql',
+  'F12 every wall in _walls.sql holds — the same query 5R-f runs against the hosted project');
 
 -- ---------------------------------------------------------------------------
 -- Per-table: two tests each, one row per table, so a failure names the table
