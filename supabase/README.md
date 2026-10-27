@@ -75,10 +75,14 @@ hweutzjhzvioswnjzqki` once, and `supabase login` once per machine.
 merged and nobody can say for certain that it was deployed. It needs **no password
 and no service key** — `--linked` authenticates with the stored access token.
 
-⚠️⚠️ **IT IS NOT IN ANY WORKFLOW, AND THAT IS DELIBERATE — `5R-f` DECIDED IT.** A
+⚠️⚠️ **IT IS NOT IN ANY WORKFLOW, AND THAT IS DELIBERATE — `5R-f` DECIDED IT.** ~~A
 Supabase access token is **account-wide**; there is no project-scoped one, so a
 repository secret would hand every workflow run the whole Supabase account in order
-to guard against a forgotten `db push`. And the check's answer depends on the
+to guard against a forgotten `db push`.~~ ⚠️ **No longer true, read in Supabase's
+documentation on 2026-10-27: a token can be scoped to one project and to read access,
+and tokens made in the dashboard are scoped by default** — so a secret need not hand a
+workflow the whole account. What still holds is that `db push` with the database password
+is limited by no token, and the reason below, which decides it. The check's answer depends on the
 **world rather than on the diff**: once a migration merges it is red until a person
 deploys, so in CI it would redden pull requests that neither caused it nor can fix
 it. A red that is not yours is how people stop reading CI, which is the one habit
@@ -96,7 +100,10 @@ deploy it** (plan task `5R-k`; ADR-035 §2.2, *Server code outside Postgres*, th
 owner's ruling of 2026-10-13). When a person who signed in with Apple deletes their
 account, the app hands this function the code Apple's sheet just gave; it trades the
 code, checks it belongs to that login's Apple account, and revokes. **It stores
-nothing and has no database credential.** A second function needs a ruling.
+nothing and has no database credential.** A second function needs a ruling — and push is
+not a reason for one: the owner ruled on 2026-10-27 that a push is sent from Postgres through
+`pg_net` (ADR-035 §2.2). ⚠️ It signs for one app, `APPLE_CLIENT_ID` (default `mx.wera.app`);
+when Itacate offers Apple sign-in (plan `10.5`) this function learns its client id instead.
 
 **How a merged change to it gets there, and how to know it did:**
 
@@ -129,6 +136,21 @@ the instrument; the plan's row for it says what to look at.
 
 
 ## Migrations
+
+**A migration keeps every build in the field working** (ADR-035 §2.2, the owner's ruling of
+2026-10-27). Three apps will call this one database, and a phone may run an old build for a
+long time — offline for days, it flushes its outbox with the calls it made then. So a migration
+adds (a table, a nullable or defaulted column, a function, an argument with a default) and never
+drops or renames what a build still in use calls or reads. A signature changes by drop and
+re-create with the new argument defaulted, never by an overload — `0064` is the pattern. No check
+holds this yet; plan `10.3` builds one.
+
+**And a new function revokes `from public, anon`**, not `from public` alone. The hosted
+project's default privileges grant `anon` and `authenticated` EXECUTE on every function a
+migration creates, and this directory's local stack and CI do not — so a suite asserting
+*"anon cannot call this"* is green here and can be false in the shop. Measured 2026-10-27: on the
+hosted project `anon` may execute 27 of the 35 `security definer` functions in `public`. Plan
+`10.1b` fixes the shop and adds the check that reads it.
 
 | File | Contents |
 |------|----------|
@@ -632,6 +654,12 @@ the shape safe to copy without thinking. Both are written `in (select fn())` rat
 than as a bare call so the planner evaluates them once per query, not once per row.
 
 There is no administrative exception and no cross-workspace read policy.
+
+**A person who belongs to no workspace** — Itacate's buyer, ruled 2026-10-27 — is denied by
+both shapes, and no third is ever written to admit her. What she reads of other businesses goes
+through one `security definer` function granted to `authenticated` only; what is hers, through
+functions keyed on her own `auth.uid()`, as `my_access_requests()` already is (ADR-035 §2.7, its
+last block).
 
 **One qualifier, added in `0003` and extended in `0004`.** Five tables carry cost —
 `purchase`, `purchase_line`, `waste_line`, and now `stock_batch` and
