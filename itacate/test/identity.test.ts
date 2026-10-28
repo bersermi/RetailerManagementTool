@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 // WHO THIS APP IS, TO THE STORES AND TO SIGN-IN. Plan task `10.2a`.
 //
 // ⚠️ THE ID BECOMES PERMANENT AT THE FIRST UPLOAD to Google Play or App Store
-// Connect, and it is the owner's to rule (plan, ⛔ DECISIONS OWED). It says
+// Connect — ruled by the owner on 2026-10-27 (plan `10.2a`). It says
 // `vecino`, not the app's name, on purpose: *Itacate* waits on the owner's IMPI
 // search, and a display name can change where an id cannot. It is also the
 // deep-link scheme, as in Wera (`app/src/auth/oauth.ts`): a sign-in that leaves

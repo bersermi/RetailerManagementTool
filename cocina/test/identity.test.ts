@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest';
 // WHO THIS APP IS, TO THE STORES AND TO SIGN-IN. Plan task `10.2a`.
 //
 // ⚠️ THE ID BECOMES PERMANENT AT THE FIRST UPLOAD to Google Play or App Store
-// Connect, and it is the owner's to rule (plan, ⛔ DECISIONS OWED). It is also
+// Connect — ruled by the owner on 2026-10-27 (plan `10.2a`). It is also
 // the deep-link scheme, as in Wera (`app/src/auth/oauth.ts`): a sign-in that
 // leaves for Google comes back to `<id>://auth/callback`, a string the Supabase
 // dashboard must also hold. Three copies of one string drifting apart is the
