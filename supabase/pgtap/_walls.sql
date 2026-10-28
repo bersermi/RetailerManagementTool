@@ -1,7 +1,12 @@
 -- ============================================================================
 -- _walls.sql — THE WALLS, AS ONE QUERY THAT TWO INSTRUMENTS RUN (plan `10.1b`)
 --
--- One row per breach; no rows means every wall holds. It is read by:
+-- One row per breach, plus ONE `examined` row saying how much it read: every
+-- wall holds when that row is the only one. ⚠️ The `examined` row is there
+-- because over the hosted path `supabase db query -o csv` prints a zero-row
+-- result as one blank line with no header (measured 2026-10-28, CLI 2.114.0;
+-- the local path prints the header) — and an empty answer must never read as a
+-- clean one. It is read by:
 --   * `01_rls_coverage.sql` (F12), in CI's database, after every migration; and
 --   * `docs/checks/5R-f-schema-deployed.sh` (group 7), on the HOSTED project,
 --     after every deploy.
@@ -33,8 +38,9 @@
 -- other than `public`, which the client roles cannot use (`catalogo`,
 -- `servicio`) or which are Supabase's (`storage`, `graphql_public`).
 --
--- ⚠️ ONE STATEMENT, NO TRAILING SEMICOLON: `supabase db query -f` runs exactly
--- one, and pgTAP's `is_empty()` EXECUTEs this text as it is.
+-- ⚠️ ONE STATEMENT, NO TRAILING SEMICOLON, AND IT NEVER ENDS WITH A COMMENT:
+-- `supabase db query -f` runs exactly one statement, and F12 wraps this text in
+-- `select * from ( … ) w`, where a last-line comment would swallow the `)`.
 -- ============================================================================
 with own_fn as (
   select p.oid, p.proname,
@@ -112,4 +118,9 @@ select 'new objects are born granting it',
    and (   (d.defaclobjtype = 'f' and a.privilege_type = 'EXECUTE')
         or (d.defaclobjtype = 'r' and a.privilege_type in ('SELECT', 'INSERT', 'UPDATE', 'DELETE'))
         or (d.defaclobjtype = 'S' and a.privilege_type in ('SELECT', 'USAGE')))
+union all
+select 'examined',
+       format('%s functions, %s tables and views, %s names on the list',
+              (select count(*) from own_fn), (select count(*) from rel),
+              (select count(*) from signed_in))
 order by 1, 2

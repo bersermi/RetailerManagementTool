@@ -222,7 +222,9 @@ select is_empty(
 -- migration's own grant — including the one it forgets: a function never
 -- revoked `from public` is executable by anon, which is how three stood open
 -- until `0071`. The defaults row bites on the hosted project, through `5R-f`.
-select is_empty(:'walls_sql',
+-- The one `examined` row the query always returns is a count, not a breach.
+select is_empty(
+  format($q$select * from (%s) w where w.wall <> 'examined'$q$, :'walls_sql'),
   'F12 every wall in _walls.sql holds — the same query 5R-f runs against the hosted project');
 
 -- ---------------------------------------------------------------------------
