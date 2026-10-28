@@ -113,7 +113,7 @@ screenshots are each app's `preview` build on the Android emulator, 2026-10-27, 
 with the real key — the city centre, then panned — cut to 1080 × 2160 (Play refuses a phone
 screenshot more than twice as tall as it is wide). Leave the tablet, Chromebook and video fields empty.
 
-## 3. Store settings
+## 3. Store settings — the app's category, and *Store listing contact details*
 
 | Field | Wera Cocina | Itacate |
 |---|---|---|
