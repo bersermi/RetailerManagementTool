@@ -997,7 +997,11 @@ projects are `@wera-app/cocina` and `@wera-app/itacate`.
    `mx.wera.vecino`, as you ruled. Accept *Play App Signing*; countries **Mexico**; testers the same
    list as Wera's; then *Send for review*.
 10. **App integrity → App signing**: copy the **SHA-1** shown there into the conversation. It is
-    not a secret; the session uses it to lock the map key to the two apps.
+    not a secret. Then lock the map key to the two apps: Google Cloud → *Credentials* → the key →
+    *Application restrictions* → **Android apps** → add four items, each app's package with two
+    fingerprints — the one Play just showed, and the one Expo signs the test builds with:
+    `mx.wera.cocina` with `4C:38:47:6F:5A:81:5C:5F:D5:7C:65:9F:17:B3:33:1E:CD:77:F1:D0`; `mx.wera.vecino` with `86:EC:1B:C6:D2:B2:69:83:F4:53:4D:F8:71:38:63:9A:A2:21:E2:2F`
+    (read off the test builds on 27 October). → *Save*. A session then checks the map still draws.
 11. **When Google approves each release**, send the twelve testers that app's link, as you did for
     Wera. If Play asks for twelve testers again for each app — Google does not say, and creating
     the first one shows it — the same people can join each, and each app's 14 days start when
