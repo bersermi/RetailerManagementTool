@@ -26,10 +26,15 @@ anyone.
 | Field | Wera Cocina | Itacate |
 |---|---|---|
 | App name | `Wera Cocina` | `Itacate` |
+| **Package name** | **`mx.wera.cocina`** | **`mx.wera.vecino`** |
 | Default language | **Spanish (Latin America) – es-419** | same |
 | App or game | **App** | same |
 | Free or paid | **Free** | same |
 | Declarations | tick both | same |
+
+If the form asks for the **package name**, type it exactly as above — lowercase, with the dots. If it does
+not, the first upload (section 6) fixes it from the `.aab`, which carries these same two (read with `aapt2`,
+2026-10-27). Either way it can never change afterwards.
 
 ## 2. Main store listing
 
