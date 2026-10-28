@@ -172,6 +172,7 @@ account for Google's reviewers, as Wera's is (`google-play.md`, *App access*).
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** |
 | Account creation | **My app does not allow users to create an account** |
+| *Can users login to your app with accounts created outside of the app?* | **No** — there is no login at all yet. ⚠️ **Yes** once a slice adds sign-in: one login serves all three apps (ADR-035 §2.7), so an account made in Wera or Wera Cocina opens Itacate too |
 
 **Data types** — tick exactly these four. None comes from something the person types: they are
 what the update check, Google's map and Firebase send on their own.
