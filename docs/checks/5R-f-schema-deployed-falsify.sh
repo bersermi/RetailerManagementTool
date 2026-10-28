@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# 5R-f-schema-deployed-falsify — the fifteen fixtures the deploy guard was checked
+# 5R-f-schema-deployed-falsify — the seventeen fixtures the deploy guard was checked
 # against, kept as a script rather than as a paragraph claiming it was. D1–D10
-# are the migration list (`5R-f`); W1–W5 are the walls group (`10.1b`).
+# are the migration list (`5R-f`); W1–W7 are the walls group (`10.1b`).
 #
 # ⚠️⚠️ THIS HARNESS IS NOT AN EXTRA HERE — IT IS THE ONLY EVIDENCE THE GUARD WORKS.
 # The hosted project is currently IN SYNC, and it should stay that way, so the real
@@ -32,7 +32,7 @@
 # this fixture goes green.
 #
 # Run:  bash docs/checks/5R-f-schema-deployed-falsify.sh
-# Exit: 0 when all fifteen fixtures behave as recorded; 1 otherwise.
+# Exit: 0 when all seventeen fixtures behave as recorded; 1 otherwise.
 
 set -uo pipefail
 
@@ -53,7 +53,8 @@ REF="hweutzjhzvioswnjzqki"
 # 7) exiting with $STUB_WALLS_RC, and prints $STUB_BODY for everything else,
 # exiting with $STUB_RC. ⚠️ It writes each body verbatim, so a fixture can hand
 # back malformed output as easily as valid JSON or CSV. The walls default is the
-# measured shape of "no breach" — the header line alone (2026-10-27, CLI 2.114.0).
+# measured shape of "no breach" on the hosted project — the header and the one
+# `examined` row (2026-10-28, CLI 2.114.0).
 mkdir -p "$WORK/bin"
 cat > "$WORK/bin/supabase" <<'STUB'
 #!/usr/bin/env bash
@@ -133,14 +134,15 @@ expect() {
 ALL_OK="0001:0001 0002:0002 0003:0003"
 
 # The walls group's answer for every D fixture: no breach. W fixtures override it.
-CLEAN_WALLS="wall,object"
+CLEAN_WALLS='wall,object
+examined,"60 functions, 30 tables and views, 35 names on the list"'
 WALLS_BODY="$CLEAN_WALLS"
 WALLS_RC=0
 
 # --- D3 first: the control ----------------------------------------------------
 # ⚠️ IT RUNS FIRST ON PURPOSE. If the harness itself were broken — a bad stub, a
 # tree the check cannot read — every fixture below would be red and the run would
-# look like fifteen successful falsifications. This one proves a correct tree is
+# look like seventeen successful falsifications. This one proves a correct tree is
 # green — the walls group included.
 build_tree d3 "0001 0002 0003"
 expect "D3" green "a tree that agrees with its remote, and keeps the walls, is GREEN — the control" \
@@ -202,7 +204,7 @@ build_tree d10 "0001 0002 0003"
 expect "D10" red "output the guard cannot parse is red, not an empty comparison" \
   "$WORK/d10" '{"migrations":"this is not an array"}' 0 "cannot read"
 
-# --- W1–W5: the walls group (plan 10.1b) ---------------------------------------
+# --- W1–W7: the walls group (plan 10.1b) ---------------------------------------
 # Every W tree agrees with its remote, so group 7 is the only thing that can turn
 # it red — and each must be red for ITS reason, named by the phrase.
 
@@ -243,12 +245,30 @@ printf 'someotherproject' > "$WORK/w5/supabase/.temp/project-ref"
 expect "W5" red "the walls are not read through a link group 2 refused" \
   "$WORK/w5" "$(json_rows "$ALL_OK")" 0 "the walls were not read"
 
+# W6 — ⚠️⚠️ THE FIRST REAL RUN'S LESSON (2026-10-28). Over the hosted path the CLI
+# prints a zero-row result as ONE BLANK LINE, no header, exit 0 — measured, and
+# also what a query that silently returned nothing would print. Never green: the
+# query always returns its `examined` row, so no row is no answer.
+build_tree w6 "0001 0002 0003"
+WALLS_BODY=""
+expect "W6" red "an empty answer is red — the hosted CLI's blank line is never 'no breach'" \
+  "$WORK/w6" "$(json_rows "$ALL_OK")" 0 "did not come back"
+
+# W7 — breaches with no `examined` row: a query that lost its count is not read,
+# and must not be reported as a number of breaches.
+build_tree w7 "0001 0002 0003"
+WALLS_BODY="wall,object
+anon may execute,auth_full_name(p_user_id uuid)"
+expect "W7" red "an answer without its examined row is unreadable, not a count of breaches" \
+  "$WORK/w7" "$(json_rows "$ALL_OK")" 0 "did not come back"
+WALLS_BODY="$CLEAN_WALLS"
+
 echo ""
 if (( fails == 0 )); then
   echo "all $ran fixtures behaved as recorded — the deploy guard goes red on a"
   echo "remote that is behind, a remote that is ahead, a partial listing, a"
   echo "failed command, a wrong link, an undocumented target, an open wall, a"
-  echo "walls query that failed or came back in another shape, and a missing one."
+  echo "walls query that failed, came back empty or in another shape, and a missing one."
   exit 0
 fi
 echo "$ran fixtures ran, $fails did not behave as recorded."

@@ -277,8 +277,16 @@ EOF
 # DEFAULT PRIVILEGES grant `anon` and `authenticated` what CI's never do, and a
 # migration revoking `from public` removed neither. So this group asks the
 # database itself, with the one query CI also runs (F12 of
-# `supabase/pgtap/01_rls_coverage.sql`). One CSV row per breach; a header alone
-# is green.
+# `supabase/pgtap/01_rls_coverage.sql`). One CSV row per breach, plus exactly one
+# `examined` row — green is that row alone.
+#
+# ⚠️⚠️ THE `examined` ROW IS WHAT MAKES AN EMPTY ANSWER RED, AND IT WAS LEARNED ON
+# THIS GROUP'S FIRST REAL RUN (2026-10-28, right after `0071` deployed): over the
+# hosted path the CLI prints a zero-row result as ONE BLANK LINE, no header —
+# the local path prints the header, which is what the first draft was measured
+# on. The walls were clean and the group read "no answer"; red, correctly, for
+# the wrong reason. A blank line is also what a broken query could print, so the
+# query always returns a row, and no row means no answer.
 #
 # ⚠️ It reads only through a link group 2 accepted — a green about somebody
 # else's project is the vacuous pass group 2 exists to refuse — and an error or
@@ -296,7 +304,8 @@ else
   WALLS_OUT="$(supabase db query --linked -o csv -f "$WALLS" --workdir "$ROOT" 2>"$WALLS_ERR")"
   WALLS_RC=$?
   WALLS_HEAD="$(printf '%s\n' "$WALLS_OUT" | head -1 | tr -d '\r')"
-  if (( WALLS_RC != 0 )) || [[ "$WALLS_HEAD" != "wall,object" ]]; then
+  WALLS_SEEN="$(printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep -c '^examined,')"
+  if (( WALLS_RC != 0 )) || [[ "$WALLS_HEAD" != "wall,object" ]] || (( WALLS_SEEN != 1 )); then
     fail "the walls query did not come back from the hosted project in a shape"
     echo "      this check can read (exit $WALLS_RC). ⚠️ This is RED rather than skipped:"
     echo "      who may call what is unanswered. If it mentions a login: supabase login"
@@ -304,16 +313,17 @@ else
     { printf '%s\n' "$WALLS_OUT"; cat "$WALLS_ERR"; } | grep -v '^Initialising\|^Connecting' \
       | sed 's/^/        /' | head -8
   else
-    BREACHES="$(printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep -c .)"
+    BREACHES="$(printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep . | grep -vc '^examined,')"
+    EXAMINED="$(printf '%s\n' "$WALLS_OUT" | grep '^examined,' | sed 's/^examined,//; s/^"//; s/"$//')"
     if (( BREACHES > 0 )); then
       fail "the hosted project breaks $BREACHES wall(s) — one per row, from"
-      echo "      supabase/pgtap/_walls.sql (wall, object):"
-      printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep . | sed 's/^/        /' | head -30
+      echo "      supabase/pgtap/_walls.sql (wall, object), having examined $EXAMINED:"
+      printf '%s\n' "$WALLS_OUT" | tail -n +2 | grep . | grep -v '^examined,' | sed 's/^/        /' | head -30
       (( BREACHES > 30 )) && echo "        … and $((BREACHES - 30)) more"
       echo "      REMEDY: a migration that takes them back (0071 is the pattern), then"
       echo "      supabase db push. Never a grant or a revoke typed by hand."
     else
-      ok "the hosted project keeps the walls (supabase/pgtap/_walls.sql: no breach)"
+      ok "the hosted project keeps the walls — no breach in $EXAMINED (supabase/pgtap/_walls.sql)"
     fi
   fi
   rm -f "$WALLS_ERR"
