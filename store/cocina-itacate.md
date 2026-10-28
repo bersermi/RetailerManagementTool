@@ -135,8 +135,10 @@ https://tu-wera.com/privacidad/cocina-e-itacate/
 
 ### App access
 
-**All functionality in my app is available without any access restrictions** — there is no
-sign-in yet.
+Play asks ***Is any part of your app restricted?*** → **No** — all functionality is available
+without special access: there is no sign-in, nothing to pay and nothing locked yet. ⚠️ When a slice
+adds an app's sign-up (`10.4` for Cocina, `10.5` for Itacate) this becomes **Yes**, with a demo
+account for Google's reviewers, as Wera's is (`google-play.md`, *App access*).
 
 ### Ads
 
