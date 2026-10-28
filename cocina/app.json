@@ -70,8 +70,14 @@
       "reactCompiler": true
     },
     "extra": {
-      "router": {}
+      "router": {},
+      "eas": {
+        "projectId": "8aca5e83-56a5-4b39-87b4-dd5312a54c76"
+      }
     },
-    "owner": "wera-app"
+    "owner": "wera-app",
+    "updates": {
+      "url": "https://u.expo.dev/8aca5e83-56a5-4b39-87b4-dd5312a54c76"
+    }
   }
 }

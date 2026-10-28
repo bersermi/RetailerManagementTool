@@ -10,6 +10,8 @@ pictures Google asks for.
 | [`google-play/`](google-play/) | The 512 px icon, the feature graphic and its source, and six phone screenshots |
 | [`app-store.md`](app-store.md) | Every App Store Connect field: the record, the listing text, the age rating, the privacy labels, the review notes. **Nothing in it has been entered anywhere** |
 | [`app-store/`](app-store/) | The same six screenshots for the App Store at three iPhone sizes: `iphone-6.9/` 1320 × 2868, `iphone-6.5/` 1284 × 2778 (the 6.9 set scaled, 6 px cut top and bottom) and `iphone-6.3/` 1206 × 2622 |
+| [`cocina-itacate.md`](cocina-itacate.md) | Play Console's fields for the **test versions of Wera Cocina and Itacate** (plan `10.2b`): the shared answers once, the two apps' differences side by side |
+| [`cocina-itacate/`](cocina-itacate/) | Their provisional 512 px icons and feature graphics, drawn by `render.sh` from Wera's mark; and their phone screenshots |
 | `limits.py` | Measures every pasted field against its store's limit |
 
 **Where each stands.** Google Play's closed test has its text, forms and pictures ready; its
