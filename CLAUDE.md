@@ -5,7 +5,8 @@ React Native (Expo). MXN, IVA, LFPDPPP — not GDPR, CFDI out of scope. The app 
 named **Wera**; the repo and `@tienda/*` packages stay Tienda.
 
 **Step 10 of the plan is the ecosystem** — Wera's pilot version, two new sibling apps (Wera Cocina for
-fondas, Itacate for neighbours) and the backend they share. **A task there reads
+fondas in `cocina/`, Itacate for neighbours in `itacate/`, beside Wera's `app/` since `10.2a`) and
+the backend they share. **A task there reads
 `~/RetailerToolDev/wera-vision/CLAUDE.md` first** — the owner's private notes, outside this repo — and copies
 nothing from them here: no strategy, fees, prices or research, only what the code needs.
 
@@ -17,6 +18,7 @@ nothing from them here: no strategy, fees, prices or research, only what the cod
 | [`docs/adr/ADR-035`](docs/adr/ADR-035-target-architecture-postgres-react-native.md) | The architecture. **If anything disagrees with the ADR, the ADR wins and the other file is the bug** |
 | [`docs/HANDBOOK.md`](docs/HANDBOOK.md) | **The file the owner reads** — a task that closes usually edits it too. `handbook-agreement.sh` holds it to the plan on done, split, next and whether anything waits on him |
 | [`app/CLAUDE.md`](app/CLAUDE.md) | Rules for `app/` — loads when a session touches it |
+| [`cocina/CLAUDE.md`](cocina/CLAUDE.md), [`itacate/CLAUDE.md`](itacate/CLAUDE.md) | Rules for the two sibling apps — each loads when a session touches its folder |
 
 **Orient in one command** — the next task, the plan's size, and every live obligation:
 
@@ -53,7 +55,7 @@ is given instead.
 
 ## CI, and what a green run means
 
-Four workflows. **List every job by name** (count `money.yml`'s twice — it is matrixed):
+**List every job by name** (`money.yml` and `cocina-itacate.yml` are matrixed — count each twice):
 
 ```
 ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["jobs"].each{|k,v| puts "#{File.basename f}  #{v["name"]||k}"}}'
@@ -61,22 +63,27 @@ ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["
 
 | Workflow | Fires on |
 |---|---|
-| `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the plan, handbook, conventions page, ADR-035 and their checks, and the update runbook with its rehearsal. Two jobs: the app (typecheck, Vitest, conventions gate, the runbook's rehearsal) and *the documents still agree* |
+| `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the two sibling apps' `package.json`, the plan, handbook, conventions page, ADR-035 and their checks, and the update runbook with its rehearsal. Two jobs: the app (**Wera's runtime against its builds in the field**, typecheck, Vitest, conventions gate, the runbook's rehearsal) and *the documents still agree* |
+| `cocina-itacate.yml` | `cocina/**`, `itacate/**` and root `package*.json`. One job per app: typecheck, and its suite — its id, what it may ask a person for, and a runtime the two secrets never touch |
 | `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `app/src/strings.ts`, `packages/money/cases.json`, `docs/runbooks/engagement.sql`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema, and so is that runbook |
 | `money.yml` | `packages/**` and root `package*.json` |
 | `site.yml` | `site/**` and its two build checks. On a pull request it only builds; on `main` it **publishes `site/` to tu-wera.com** (GitHub Pages). The aviso's name and address come from the repository secrets `RESPONSABLE` and `DOMICILIO`, never from a commit. The only workflow that deploys anything |
 
-Adding a dependency moves the root lockfile, so it fires the first three.
+Adding a dependency moves the root lockfile, so it fires every workflow but `site.yml`.
 
 - **The number to check a log against is the jobs that COULD fire for the paths changed** —
   each workflow has its own `paths:` filter, and an absent job is not a skipped one.
-- **Those filters are for pull requests.** Every push to `main` runs `app.yml`, `db.yml` and
-  `money.yml` in full, whatever changed; only `site.yml` filters its push.
+- **Those filters are for pull requests.** Every push to `main` runs every workflow but
+  `site.yml` in full, whatever changed; only `site.yml` filters its push.
+- ⚠️ **The three apps share one `node_modules`, so an install in `cocina/` or `itacate/` can move
+  Wera's runtime** — measured 2026-10-27, and then no update reaches a pilot phone until new
+  store builds. `docs/checks/wera-runtime.sh` (in `app.yml`) holds it to the runtime of Wera's
+  builds in the field; the siblings' `CLAUDE.md` say how to pin a dependency so it never moves.
 - A red `db.yml` whose steps read `skipped` after *Start Postgres* is a **registry throttle**,
   not a migration defect. **A cancelled job is not a failed assertion** — `gh pr checks`
   prints *fail* for both.
-- **No workflow compiles the native app.** A native dependency swap stays green until a Mac
-  builds it.
+- **No workflow compiles a native app** — Wera's or either sibling's. A native dependency swap
+  stays green until a Mac builds it.
 
 ## Rules that are not negotiable
 

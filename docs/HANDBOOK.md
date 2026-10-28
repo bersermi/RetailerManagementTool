@@ -284,7 +284,9 @@ Itacate and the shared backend. Its strategy stays in your private notes, outsid
 
 | Job | What | State |
 |---|---|---|
-| **10.2** | **The two new apps' skeletons** — Wera Cocina and Itacate as apps of their own in this repository, beside Wera: their store records, the parts each needs inside its first build (maps and notifications; location for Itacate), and Play's closed tests started early so their 14-day clocks run while the rest is built | ⚠️ **This is where the next piece of work is** — clear the conversation and paste your main prompt. ⚠️ It cannot finish without **your Google Cloud account with billing**, for the map keys, and each app's permanent id is a one-way door the session will ask you about first. **One thing is waiting on YOU** — and not for this task: whether a business account should say if it is a shop or a fonda. My recommendation is yes; the plan's ⛔ block has the reasons, and it waits for `10.3`. (*Ofrecer* in Merma, `10.0b`, waits for Google's production approval) |
+| **10.2b** | **The two new apps' keys, first builds and store records** — the half of the skeletons that needs your accounts: the map key and Firebase's file in Expo, each app's first store build, a new app in Play Console for each with its closed test started (12 testers each, so the 14-day clocks run while the rest is built), and the App Store records | ⚠️ **This is where the next piece of work is** — and it starts with **your part, about half an hour**, in *Before the two new apps' first builds*, below: billing on your Google Cloud project, one map key, Firebase, and the two values into Expo. Do that first, then clear the conversation and paste your main prompt; the session does the builds and walks you through Play Console. **One thing is waiting on YOU** — and not for this task: whether a business account should say if it is a shop or a fonda. My recommendation is yes; the plan's ⛔ block has the reasons, and it waits for `10.3`. (*Ofrecer* in Merma, `10.0b`, waits for Google's production approval) |
+| **10.2a** | **The two new apps, as code** — Wera Cocina (`cocina/`) and Itacate (`itacate/`) beside Wera, with every part each needs inside its first build: the map and notifications in both, the camera in Wera Cocina, the location — only while the app is open — in Itacate | ✅ **Done 27 October** — both apps exist and were built for Android and an iPhone on this Mac; each opens on one screen, its name, *Muy pronto* and a map. Nothing reached your phone and nothing changed in the database. **Found on the way:** installing the new apps' notifications quietly upgraded a part Wera shares with them — merged like that, no fix sent over the air would have reached a pilot phone until new store builds. It was put back, and every change is now checked for it. Their ids are the ones you said yes to on 27 October, `mx.wera.cocina` and `mx.wera.vecino` — permanent from the first upload; the icons are provisional (Wera's cow, green for Wera Cocina, blue for Itacate) |
+| **10.2** | **The two new apps' skeletons** — the whole job as first planned | **Split in two on 27 October**: the code, which needed nothing from you (`10.2a`, done), and the half that needs your accounts (`10.2b`, next) |
 | **10.1b** | **The live database made to keep those walls** — found by `10.1` on 27 October: on the live database, someone with **no account** can call 27 of the 35 protected functions. What they can actually get is small — the starter catalog, whether a postal code was in the old pickup area, and a person's name if they already hold that person's internal id — because every write checks who is calling. The cause: the live database and the test database hand out permissions differently, so no test could ever see it. One migration takes those permissions back, and a check reads the live database after every deploy | ✅ **Done 27 October** — one migration took back what the live database handed out by default: with no account, nothing can be called or read; a signed-in person can call the 35 functions the apps use and no other — a person's name by id is no longer one of them; and new tables and functions start closed. It also closed a door the measuring found: a cashier could have adjusted stock directly, past the manager-only rule, with a hand-made request (no screen ever did). One query now reads those walls in two places — the tests after every change, and the live database after every deploy. Nothing changes on your phone. **Deployed the same evening**, and the live database read afterwards: no wall open |
 | **10.1** | **The architecture written down for the new apps** — ADR-035 amended as you ruled on 27 October: a fonda is a business account like a shop; a buyer signs in and reads through one door; no browsing without an account; notifications sent from the database; and a migration never breaks a build already in someone's hand | ✅ **Done 27 October** — written into the architecture record and into the rules every session reads. Nothing changed on your phone or in the database. Two calls made for you: the buyers' one door is a database function, and what is a buyer's own (her reservations, her phone's notification token) is reached only through functions that check it is her. Measuring on the way found the live database letting people with no account call protected functions — that is `10.1b`, next |
 | **10.0a** | **The ecosystem's first step: Wera's pilot version, part 1** — *Te lo compro* hidden with one update over the air, and Merma no longer asks for the address while it is paused (your ruling of 27 October, reversing 21 October's). Step 10 in the plan holds the rest, in order: *Ofrecer* in Merma, Wera Cocina, Itacate and the shared backend | ✅ **Done 27 October** — Merma is *Tirar* for everyone and asks no address; Inicio shows no pickup and no *Rescatado*; the tutorial's Merma card is a new picture of *Tirar*, with no promise. Nothing was deleted: one switch in the code brings it all back. It goes to your phones and Android's store version over the air; the iPhone's store version gets it when Apple approves. **Measured that day:** 12 of 16 stores had no address, so Merma stopped them before *Tirar* — and those 12 had never recorded a write-off |
@@ -932,6 +934,55 @@ my email* only once:
 ⚠️ **What this does not cover:** somebody who makes their account with Apple and later moves
 to an Android phone cannot get in there. Apple's button is on iPhone only, as you ruled. It
 can be added later without touching anybody's account.
+
+---
+
+## Before the two new apps' first builds
+
+Wera Cocina and Itacate (`10.2b`) need two things only your accounts can make, and both go
+**inside each app's first store build**, so they come first: **a map key** — Google draws the map
+on an Android phone only with one (an iPhone uses Apple's map, which needs none) — and
+**Firebase's file**, without which an Android phone never receives a notification from the app.
+About half an hour, all in the browser. It should cost nothing: Google's maps inside a phone app
+are free and unlimited, but Google wants a card on file before it gives out the key.
+
+⚠️ I have not seen these consoles: the names below are from Google's and Expo's help pages, and a
+label may read a little differently.
+
+1. **Billing, in Google Cloud.** console.cloud.google.com → the project with Wera's sign-in (step 7
+   of *Putting tu-wera.com up*) → *Billing* → link a billing account, with your card.
+2. **The map, switched on.** Same project → *APIs & Services → Library* → **Maps SDK for
+   Android** → *Enable*.
+3. **The key.** *APIs & Services → Credentials → Create credentials → API key*. Open it, name it
+   `Mapa Android — Cocina e Itacate`, and under *API restrictions* choose *Restrict key* and tick
+   only **Maps SDK for Android** → *Save*. Leave *Application restrictions* alone: the session adds
+   the two apps once Google Play shows their signing fingerprints. One key serves both apps.
+4. **Firebase, on the same project.** console.firebase.google.com → *Add project* → choose **the
+   same Google Cloud project**, not a new one → Google Analytics **off**. Then *Add app → Android*
+   twice: package `mx.wera.cocina`, then `mx.wera.vecino` (skip every step about the SDK).
+   Download `google-services.json` **after adding the second** — that copy holds both apps. Keep
+   it outside the repository, for example in `~/RetailerToolDev/wera-keys/`; never paste it into a
+   chat or a commit.
+5. **Both values into Expo.** expo.dev → the organization **wera-app** → *Settings → Environment
+   variables* → *Add*, twice:
+   - `GOOGLE_MAPS_ANDROID_API_KEY` — the key; visibility *Sensitive*; environments *preview* and
+     *production*.
+   - `GOOGLE_SERVICES_JSON` — type *File*, upload `google-services.json`; visibility *Sensitive*;
+     environments *preview* and *production*.
+   Variables of the organization reach every project in it, so the two new apps get them the
+   moment they exist. Wera ignores them.
+6. **The two apps' projects in Expo.** The session was not allowed to create them in your account.
+   Paste these two lines into the conversation (each takes a few seconds):
+   ```
+   ! cd cocina && npx eas-cli init --account wera-app --non-interactive --force --no-icon
+   ! cd itacate && npx eas-cli init --account wera-app --non-interactive --force --no-icon
+   ```
+   Each creates the app's project under **wera-app** and writes its id into the app's settings,
+   which shows as a changed file; the session commits it.
+7. **Tell a session.** It checks each step, builds both apps, and walks you through Play Console:
+   a new app for each, its listing and forms, and its closed test. If Play asks for twelve
+   testers again for each app — Google does not say, and creating the first one shows it — the
+   same twelve people can join each one, and each app's 14 days start when they do.
 
 ---
 

@@ -102,6 +102,12 @@ on:
       # line no workflow read it: an edit that dropped a refusal merged green.
       - "docs/runbooks/ship-an-update.sh"
       - "docs/checks/5P-d-ship-rehearsal.sh"
+      # ⚠️ AND THE TWO SIBLING APPS' MANIFESTS, ADDED 2026-10-27 (`10.2a`). They share
+      # Wera's `node_modules`, so an install there can move Wera's runtime — the
+      # step below that reads it is why they are here.
+      - "cocina/package.json"
+      - "itacate/package.json"
+      - "docs/checks/wera-runtime.sh"
 
 concurrency:
   group: app-${{ github.ref }}
@@ -137,6 +143,18 @@ jobs:
       # same argument that pins the Supabase CLI version in db.yml.
       - name: Install
         run: npm ci
+
+      # ⚠️ WERA'S RUNTIME, ADDED 2026-10-27 (plan `10.2a`), AND NO OTHER CHECK SEES IT.
+      # An over-the-air fix reaches only a build whose runtime equals the tree's.
+      # Since `cocina/` and `itacate/` share Wera's `node_modules`, a sibling's
+      # install can upgrade a module Wera uses: measured that day, one did, and
+      # Wera's runtime moved on both platforms with every check here green. The
+      # script compares the tree's runtime with the one Wera's builds carry
+      # (read from EAS) and says what to do when they differ.
+      - name: Runtime — is Wera's still the one its builds in the field carry (plan 10.2a)
+        run: |
+          bash docs/checks/wera-runtime.sh
+          bash docs/checks/wera-runtime.sh --falsify
 
       # ⚠️ THIS STEP IS THE ONE THAT CAN FAIL ON A MISSING WORKSPACE ENTRY.
       # `--workspace @tienda/app` exits non-zero if the root manifest does not

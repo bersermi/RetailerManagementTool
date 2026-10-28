@@ -1,0 +1,80 @@
+name: cocina and itacate
+
+# THE TWO NEW APPS, WERA COCINA (`cocina/`) AND ITACATE (`itacate/`). Plan task `10.2a`.
+#
+# Neither `app.yml` nor any other workflow matched these folders, so the
+# repository's founding rule — a file is not evidence; a green CI run is —
+# stopped at their edge. Like `app.yml` on its first commit, this ships with the
+# skeletons rather than with the first interesting screen: a filter added later
+# is wrong for every commit that merged before it.
+#
+# What it asserts, per app: it compiles to the type checker, and its suite —
+# who the app is to the stores and to sign-in, what it may ask a person for,
+# and that the map key and the Firebase file never enter its runtime (the
+# suite computes the runtime both ways, with the command the update runbook
+# uses). ⚠️ No workflow compiles a native app (root `CLAUDE.md`): a device build
+# is the evidence for the native half.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    paths:
+      - "cocina/**"
+      - "itacate/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/cocina-itacate.yml"
+
+concurrency:
+  group: cocina-itacate-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  app:
+    name: ${{ matrix.app }} (node 22)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    strategy:
+      fail-fast: false
+      matrix:
+        app: [cocina, itacate]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      # Exits non-zero if the root manifest does not declare the workspace.
+      - name: Typecheck
+        run: npm run typecheck --workspace @tienda/${{ matrix.app }}
+
+      # The counter is read from the JSON reporter, as in `app.yml`: a green
+      # tick is also what a suite that ran nothing looks like.
+      - name: Vitest — identity, permissions, and a runtime the secrets never touch (plan 10.2a)
+        run: |
+          set -o pipefail
+          npm run test --workspace @tienda/${{ matrix.app }} -- \
+            --reporter=default --reporter=json --outputFile="$PWD/vitest-report.json"
+          node -e '
+            const r = require("./vitest-report.json");
+            if (!r.success) { console.error("suite reported failure"); process.exit(1); }
+            if (!r.numTotalTests || r.numTotalTests < 1) {
+              console.error("no tests ran — a green here would assert nothing");
+              process.exit(1);
+            }
+            if (r.numFailedTests > 0) {
+              console.error(`${r.numFailedTests} failing assertions`);
+              process.exit(1);
+            }
+            console.log(`${r.numPassedTests} assertions ran over ${process.env.APP}`);
+          '
+        env:
+          APP: ${{ matrix.app }}

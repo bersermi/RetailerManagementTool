@@ -2211,6 +2211,23 @@ of the three apps together (`10.8`). So each new app's first build carries every
 will need — maps and notifications, and location for Itacate. They start from this section's
 table; a row that differs for them is an amendment here, as it would be for Wera.
 
+⚠️ **AMENDED 2026-10-27 (plan `10.2a`) — WHAT THE TWO SKELETONS CARRY, AND THE CONSTRAINT ONE
+`node_modules` PUTS ON EVERY INSTALL.** `cocina/` and `itacate/` are npm workspaces beside `app/`.
+**The rows added for them:** *Maps* — `react-native-maps` in both: Apple's map on iOS with no key,
+Google's on Android with a key; *Push* — `expo-notifications` in both, and on Android Firebase's
+`google-services.json` inside the build; *Location* — `expo-location` in Itacate only, while the
+app is open, never in the background; *Camera* — Cocina only (a fonda's photos), as Wera's row
+above. Cocina blocks the location permissions; Itacate carries no camera. **The two secrets — the
+Android map key and `google-services.json` — come from EAS's environment and never enter the
+runtime** (each app's `fingerprint.config.js`), because they exist on EAS and not on the Mac that
+computes an update's runtime; each app's suite computes the runtime both ways. ⚠️⚠️ **Measured
+that day: a plain install of `expo-notifications` 57.0.24 upgraded `expo-constants`, a module Wera
+uses, and moved Wera's runtime on both platforms with every check green** — no update would have
+reached a pilot phone until new store builds. So **a sibling's dependency never moves a version
+Wera uses**: shared modules take Wera's exact range, a new native module is pinned to the newest
+patch Wera's installed tree already satisfies, and `docs/checks/wera-runtime.sh` (in `app.yml`)
+holds Wera's runtime to the one its builds in the field carry, read from EAS.
+
 ---
 
 ## 3. Build order
