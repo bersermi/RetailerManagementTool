@@ -26,10 +26,15 @@ anyone.
 | Field | Wera Cocina | Itacate |
 |---|---|---|
 | App name | `Wera Cocina` | `Itacate` |
+| **Package name** | **`mx.wera.cocina`** | **`mx.wera.vecino`** |
 | Default language | **Spanish (Latin America) – es-419** | same |
 | App or game | **App** | same |
 | Free or paid | **Free** | same |
 | Declarations | tick both | same |
+
+If the form asks for the **package name**, type it exactly as above — lowercase, with the dots. If it does
+not, the first upload (section 6) fixes it from the `.aab`, which carries these same two (read with `aapt2`,
+2026-10-27). Either way it can never change afterwards.
 
 ## 2. Main store listing
 
@@ -108,7 +113,7 @@ screenshots are each app's `preview` build on the Android emulator, 2026-10-27, 
 with the real key — the city centre, then panned — cut to 1080 × 2160 (Play refuses a phone
 screenshot more than twice as tall as it is wide). Leave the tablet, Chromebook and video fields empty.
 
-## 3. Store settings
+## 3. Store settings — the app's category, and *Store listing contact details*
 
 | Field | Wera Cocina | Itacate |
 |---|---|---|
@@ -130,8 +135,10 @@ https://tu-wera.com/privacidad/cocina-e-itacate/
 
 ### App access
 
-**All functionality in my app is available without any access restrictions** — there is no
-sign-in yet.
+Play asks ***Is any part of your app restricted?*** → **No** — all functionality is available
+without special access: there is no sign-in, nothing to pay and nothing locked yet. ⚠️ When a slice
+adds an app's sign-up (`10.4` for Cocina, `10.5` for Itacate) this becomes **Yes**, with a demo
+account for Google's reviewers, as Wera's is (`google-play.md`, *App access*).
 
 ### Ads
 
@@ -165,6 +172,7 @@ sign-in yet.
 | Does your app collect or share any of the required user data types? | **Yes** |
 | Is all of the user data collected by your app encrypted in transit? | **Yes** |
 | Account creation | **My app does not allow users to create an account** |
+| *Can users login to your app with accounts created outside of the app?* | **No** — there is no login at all yet. ⚠️ **Yes** once a slice adds sign-in: one login serves all three apps (ADR-035 §2.7), so an account made in Wera or Wera Cocina opens Itacate too |
 
 **Data types** — tick exactly these four. None comes from something the person types: they are
 what the update check, Google's map and Firebase send on their own.
