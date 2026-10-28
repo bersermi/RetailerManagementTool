@@ -284,7 +284,7 @@ Itacate and the shared backend. Its strategy stays in your private notes, outsid
 
 | Job | What | State |
 |---|---|---|
-| **10.2b** | **The two new apps' keys, first builds and store records** — the half of the skeletons that needs your accounts: the map key and Firebase's file in Expo, each app's first store build, a new app in Play Console for each with its closed test started (12 testers each, so the 14-day clocks run while the rest is built), and the App Store records | ⚠️ **This is where the next piece of work is** — and it starts with **your part, about half an hour**, in *Before the two new apps' first builds*, below: billing on your Google Cloud project, one map key, Firebase, and the two values into Expo. Do that first, then clear the conversation and paste your main prompt; the session does the builds and walks you through Play Console. **One thing is waiting on YOU** — and not for this task: whether a business account should say if it is a shop or a fonda. My recommendation is yes; the plan's ⛔ block has the reasons, and it waits for `10.3`. (*Ofrecer* in Merma, `10.0b`, waits for Google's production approval) |
+| **10.2b** | **The two new apps' keys, first builds and store records** — the half of the skeletons that needs your accounts: the map key and Firebase's file in Expo, each app's first store build, a new app in Play Console for each with its closed test started (12 testers each, so the 14-day clocks run while the rest is built), and the App Store records | ⚠️ **This is where the next piece of work is** — **started 27 October, with you**: your half hour in Google Cloud, Firebase and Expo is done and checked, both apps have their Expo projects, and their first builds were made that night. What is left is **Play Console** — a new app for each, its forms, its first upload and its closed test — in *Before the two new apps' first builds*, below, from step 8. **One thing is waiting on YOU** — and not for this task: whether a business account should say if it is a shop or a fonda. My recommendation is yes; the plan's ⛔ block has the reasons, and it waits for `10.3`. (*Ofrecer* in Merma, `10.0b`, waits for Google's production approval) |
 | **10.2a** | **The two new apps, as code** — Wera Cocina (`cocina/`) and Itacate (`itacate/`) beside Wera, with every part each needs inside its first build: the map and notifications in both, the camera in Wera Cocina, the location — only while the app is open — in Itacate | ✅ **Done 27 October** — both apps exist and were built for Android and an iPhone on this Mac; each opens on one screen, its name, *Muy pronto* and a map. Nothing reached your phone and nothing changed in the database. **Found on the way:** installing the new apps' notifications quietly upgraded a part Wera shares with them — merged like that, no fix sent over the air would have reached a pilot phone until new store builds. It was put back, and every change is now checked for it. Their ids are the ones you said yes to on 27 October, `mx.wera.cocina` and `mx.wera.vecino` — permanent from the first upload; the icons are provisional (Wera's cow, green for Wera Cocina, blue for Itacate) |
 | **10.2** | **The two new apps' skeletons** — the whole job as first planned | **Split in two on 27 October**: the code, which needed nothing from you (`10.2a`, done), and the half that needs your accounts (`10.2b`, next) |
 | **10.1b** | **The live database made to keep those walls** — found by `10.1` on 27 October: on the live database, someone with **no account** can call 27 of the 35 protected functions. What they can actually get is small — the starter catalog, whether a postal code was in the old pickup area, and a person's name if they already hold that person's internal id — because every write checks who is calling. The cause: the live database and the test database hand out permissions differently, so no test could ever see it. One migration takes those permissions back, and a check reads the live database after every deploy | ✅ **Done 27 October** — one migration took back what the live database handed out by default: with no account, nothing can be called or read; a signed-in person can call the 35 functions the apps use and no other — a person's name by id is no longer one of them; and new tables and functions start closed. It also closed a door the measuring found: a cashier could have adjusted stock directly, past the manager-only rule, with a hand-made request (no screen ever did). One query now reads those walls in two places — the tests after every change, and the live database after every deploy. Nothing changes on your phone. **Deployed the same evening**, and the live database read afterwards: no wall open |
@@ -979,10 +979,29 @@ label may read a little differently.
    ```
    Each creates the app's project under **wera-app** and writes its id into the app's settings,
    which shows as a changed file; the session commits it.
-7. **Tell a session.** It checks each step, builds both apps, and walks you through Play Console:
-   a new app for each, its listing and forms, and its closed test. If Play asks for twelve
-   testers again for each app — Google does not say, and creating the first one shows it — the
-   same twelve people can join each one, and each app's 14 days start when they do.
+7. **Tell a session.** It checks each step, builds both apps, and walks you through Play Console.
+
+✅ **Steps 1 to 6 were done on 27 October**, and checked that night: the Firebase file lists both
+apps, Expo holds both values in both environments (the Firebase one as a file), and the two
+projects are `@wera-app/cocina` and `@wera-app/itacate`.
+
+**Then Play Console, once per app** — everything to paste is in
+[`store/cocina-itacate.md`](../store/cocina-itacate.md), and the pictures beside it in
+`store/cocina-itacate/`:
+
+8. **Create app** (section 1), then *Dashboard → Set up your app*: the listing, the store settings
+   and every *App content* form (sections 2 to 4). The privacy link is
+   `https://tu-wera.com/privacidad/cocina-e-itacate/`, a page made for these two test versions.
+9. **Closed testing → Create new release** and upload that app's `.aab`, which the session puts in
+   `~/RetailerToolDev/wera-builds/`. ⚠️ **This makes its id permanent** — `mx.wera.cocina` or
+   `mx.wera.vecino`, as you ruled. Accept *Play App Signing*; countries **Mexico**; testers the same
+   list as Wera's; then *Send for review*.
+10. **App integrity → App signing**: copy the **SHA-1** shown there into the conversation. It is
+    not a secret; the session uses it to lock the map key to the two apps.
+11. **When Google approves each release**, send the twelve testers that app's link, as you did for
+    Wera. If Play asks for twelve testers again for each app — Google does not say, and creating
+    the first one shows it — the same people can join each, and each app's 14 days start when
+    they do. Tell a session the day the twelfth joins each one: that date goes into the plan.
 
 ---
 

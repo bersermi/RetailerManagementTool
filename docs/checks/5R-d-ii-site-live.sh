@@ -13,8 +13,9 @@
 #   1. tu-wera.com resolves to GitHub Pages' four addresses, and to nothing else
 #      (GoDaddy's parking answers 3.33.130.190 and 15.197.148.33).
 #   2. www.tu-wera.com is a CNAME to bersermi.github.io.
-#   3. /, /privacidad/, /eliminar-cuenta/ and /estilo.css answer 200 over HTTPS,
-#      served by GitHub.
+#   3. /, /privacidad/, /privacidad/cocina-e-itacate/ (the two new apps' test
+#      versions, plan `10.2b`), /eliminar-cuenta/ and /estilo.css answer 200 over
+#      HTTPS, served by GitHub.
 #   4. ⚠️ No response sets a cookie — the pages say *"Este sitio no usa cookies"*.
 #   5. ⚠️ No page holds `{{` — the aviso names its responsable.
 #   6. The aviso served is the one on this checkout (its date line matches).
@@ -75,7 +76,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /eliminar-cuenta/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
