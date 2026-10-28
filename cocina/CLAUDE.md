@@ -56,7 +56,7 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
 - **The icons are provisional**: Wera's mark files (`../app/assets/images/`) on this app's own
   Android ground. A real icon is the owner's call before the public release — an icon is native,
   so after that release it waits for `10.8`.
-- **Not created yet: its EAS project** (`npx eas-cli init --account wera-app` here — the owner's
-  account; plan `10.2b`). It writes `extra.eas.projectId` into `app.json` — measured with eas-cli
-  26: `app.config.ts` is a function that spreads `app.json`, so the write goes through and is read
-  back. `updates.url` (`https://u.expo.dev/<id>`) is the next line to add.
+- **Its EAS project is `@wera-app/cocina`** (`8aca5e83-56a5-4b39-87b4-dd5312a54c76`), made by the owner on 2026-10-27
+  (`eas init`, plan `10.2b`); its builds listen for updates at `updates.url` in `app.json`. The
+  map key and `google-services.json` are the organization's variables on expo.dev (*Sensitive*,
+  `preview` and `production`), read by every project in it.
