@@ -225,8 +225,13 @@ declares `AD_ID` (read with `aapt2`, 2026-10-27).
 
 ## 6. Closed testing — the release
 
-Upload the app's `.aab`. Accept Play App Signing when it offers. Then *Next → Save → Send for
-review*.
+Upload the app's `.aab` — `~/RetailerToolDev/wera-builds/cocina-1.0.0-3-produccion.aab` for Wera Cocina,
+`itacate-1.0.0-3-produccion.aab` for Itacate. Accept Play App Signing when it offers. Then *Next →
+Save → Send for review*.
+
+| Field | Answer |
+|---|---|
+| Release name | leave what Play fills in from the upload — **`3 (1.0.0)`**, the build's version code and version. Only you see it |
 
 **Release notes** (es-419):
 
