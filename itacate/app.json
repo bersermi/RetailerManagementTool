@@ -1,0 +1,80 @@
+{
+  "expo": {
+    "name": "Itacate",
+    "slug": "itacate",
+    "platforms": [
+      "ios",
+      "android"
+    ],
+    "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "orientation": "portrait",
+    "icon": "../app/assets/images/icon.png",
+    "scheme": "mx.wera.vecino",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "bundleIdentifier": "mx.wera.vecino",
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "mx.wera.vecino",
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.FOREGROUND_SERVICE_LOCATION"
+      ],
+      "adaptiveIcon": {
+        "backgroundColor": "#24476B",
+        "foregroundImage": "../app/assets/images/android-icon-foreground.png",
+        "monochromeImage": "../app/assets/images/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "plugins": [
+      "expo-router",
+      "expo-apple-authentication",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#FFFCF6",
+          "image": "../app/assets/images/splash-icon.png",
+          "imageWidth": 140
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Itacate usa tu ubicación solo mientras tienes la app abierta, para mostrarte lo que hay cerca de ti.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "../app/assets/images/android-icon-monochrome.png",
+          "color": "#24476B"
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    },
+    "extra": {
+      "router": {}
+    },
+    "owner": "wera-app"
+  }
+}

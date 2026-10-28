@@ -2,10 +2,12 @@
   "name": "tienda",
   "private": true,
   "version": "0.0.0",
-  "description": "Tienda — retail management tool. Root manifest for the app and the workspaces in packages/.",
+  "description": "Tienda — retail management tool. Root manifest for the three apps (Wera in app/, Wera Cocina in cocina/, Itacate in itacate/) and the workspaces in packages/.",
   "type": "module",
   "workspaces": [
     "app",
+    "cocina",
+    "itacate",
     "packages/*",
     "supabase/vitest"
   ],
