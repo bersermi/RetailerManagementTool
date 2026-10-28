@@ -11,14 +11,17 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
 //   GOOGLE_MAPS_ANDROID_API_KEY — the map on Android (Apple Maps needs no key)
 //   google-services.json        — push on Android (Firebase)
 //
-// Both live in EAS's environment for this project, set by the owner (`10.2b`).
+// Both live in EAS's environment (the wera-app organization's variables, set by
+// the owner: plan `10.2b`, the handbook's *Before the two new apps' first builds*).
 // `eas-pre-install.sh` copies the Firebase file here before anything installs,
 // so prebuild finds it, and REFUSES an Android store build that lacks either:
 // a key a store build was made without cannot be added over the air.
 //
-// ⚠️ WITHOUT THE KEY, A PLACEHOLDER — NOT NOTHING. Google's map SDK crashes the
-// app when the manifest has no key at all; with a wrong one it draws an empty
-// map. So a build made without the key (a local one) opens, and shows it.
+// ⚠️ WITHOUT THE KEY, A PLACEHOLDER — NOT NOTHING. Measured 2026-10-27 on the
+// emulator: with no key in the manifest the map throws *API key not found* as it
+// renders and React drops the whole screen — a blank white app. With a wrong key
+// it draws an empty map and the rest of the screen. So a build made without the
+// key (a local one) opens, and shows that its map has none.
 //
 // ⚠️ NEITHER IS PART OF THE RUNTIME. `fingerprint.config.js` drops both from the
 // hash, so this Mac, CI and EAS compute the same runtime with or without them.
