@@ -44,6 +44,12 @@ module.exports = {
   ignorePaths: [
     '**/.kotlin/**/*',
     '**/@react-native-masked-view/masked-view/android/src/main/AndroidManifest.xml',
+    // ⚠️ Measured 2026-10-27 (`10.2b`): a local `pod install` REWRITES this header inside
+    // node_modules (react-native-maps records whether Google's iOS map is in use). EAS
+    // computes the runtime before its pod install, so every EAS build made from this Mac
+    // failed on a runtime mismatch, Android's too. The header changes only with the
+    // package's version (its package.json is still hashed) or the config (hashed).
+    '**/react-native-maps/ios/AirMaps/RNMapsDefines.h',
     'google-services.json',
   ],
   fileHookTransform: withoutMapsKey,
