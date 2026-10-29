@@ -74,7 +74,7 @@ position-history archive.** A row leaves the table once its Done cell is written
 **His words:** *"Agree with your recommendation"* — to `10.4a`'s closing message, which recommended it.
 **Ruled:** when deleting an account would delete more than one business she is the only owner of, the screen names every one and she types each one's name — `5R-c`'s rule of 2026-10-09 (type the shop's name, because the shop goes with the account) kept true for each business. `delete_my_account` learns the names through ONE new optional argument, so every Wera build in the field keeps deleting a one-shop account exactly as today; Cocina's *Eliminar mi cuenta* and Wera's both list them (`10.4b`).
 **Changed:** the decisions block (the question out; questions 5–10 stay, for slices 2 and 3); the marker moves from `8i` back to `10.4b`, whose row carries the ruling; ADR-035 §2.7's one-login row and the day's revision entry; the handbook's `10.4b`, `10.3` and `8i` rows.
-**Merged:** pull request — documents only, so `app.yml`'s two jobs are the ones that could fire, read by name before merging. Nothing to deploy. Nothing reached a phone.
+**Merged:** pull request 427 — documents only, so `app.yml`'s two jobs are the ones that could fire, read by name before merging. Nothing to deploy. Nothing reached a phone.
 
 ▶️ **2026-10-29, afternoon — `10.4` SPLIT IN TWO, AND `10.4a` DONE: SLICE 1'S DATABASE — THE ACCOUNT'S KIND, THE KITCHENS' TRADES, THE PIN AND ITS LINE OF DIRECTIONS, PUBLICATIONS AND THEIR LINES — AND WERA OPENS SHOPS ONLY. `8i` IS THE NEXT TASK WHILE `10.4b` WAITS ON ONE ANSWER OF HIS.**
 **His words:** none new — the row is his answers to the drawing (questions 1–4, 2026-10-28 and 29).
