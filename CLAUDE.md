@@ -65,7 +65,7 @@ ruby -ryaml -e 'Dir[".github/workflows/*.yml"].sort.each{|f| YAML.load_file(f)["
 |---|---|
 | `app.yml` | `app/**`, `packages/money/**`, root `package*.json`, the two sibling apps' `package.json`, the plan, handbook, conventions page, ADR-035 and their checks, and the update runbook with its rehearsal. Two jobs: the app (**Wera's runtime against its builds in the field**, typecheck, Vitest, conventions gate, the runbook's rehearsal) and *the documents still agree* |
 | `cocina-itacate.yml` | `cocina/**`, `itacate/**` and root `package*.json`. One job per app: typecheck, and its suite — its id, what it may ask a person for, and a runtime the two secrets never touch |
-| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `app/src/strings.ts`, `packages/money/cases.json`, `docs/runbooks/engagement.sql`, root `package*.json`, and each contract check by name — a module in `app/src/api/` is a claim about the applied schema, and so is that runbook |
+| `db.yml` | `supabase/**`, **`app/src/api/`**, `app/src/auth/`, `app/src/lib/supabase.ts`, `app/src/cart/cart.ts`, `app/src/strings.ts`, `packages/money/cases.json`, `docs/runbooks/engagement.sql`, root `package*.json`, each contract check by name, and the field rule's check with its two helpers — a module in `app/src/api/` is a claim about the applied schema, and so is that runbook |
 | `money.yml` | `packages/**` and root `package*.json` |
 | `site.yml` | `site/**` and its two build checks. On a pull request it only builds; on `main` it **publishes `site/` to tu-wera.com** (GitHub Pages). The aviso's name and address come from the repository secrets `RESPONSABLE` and `DOMICILIO`, never from a commit. The only workflow that deploys anything |
 
@@ -132,7 +132,11 @@ Adding a dependency moves the root lockfile, so it fires every workflow but `sit
   adds — a table, a defaulted column, a function, an argument with a default — and never drops
   or renames what a build still in use calls, because every app's builds and every offline
   outbox call this one database. A signature changes by drop and re-create with the new
-  argument defaulted (`0064`), never by an overload. Nothing checks it but the session.
+  argument defaulted (`0064`), never by an overload. **`docs/checks/field-rule.sh` holds it in
+  CI** (`db.yml`): everything a signed-in phone could reach before the change must still answer
+  after it, and a migration that removes something says why on a line of its own —
+  `-- field-rule: breaks <kind> <key> — <why no build in use calls it>`. It proves a call is
+  still found, not what it does; that half is still the session's.
 - **A new function revokes `from public, anon`, never `from public` alone**, and grants
   `authenticated` only what a client calls — **and names that function in
   `supabase/pgtap/_walls.sql`'s list in the same PR.** That file is the walls as one query, run

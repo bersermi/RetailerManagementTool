@@ -56,6 +56,15 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-28 — **§2.2: THE FIELD RULE GAINS ITS CHECK** (plan `10.3`), and §4's row
+  on what a build in the field calls says so. `docs/checks/field-rule.sh`, in `db.yml`, holds
+  everything a signed-in phone could reach before a change — functions with their argument names
+  and defaults, tables and columns with their rights, the keys embeds and upserts lean on, enum
+  labels, buckets — against the schema after it; a migration that removes any of it says why on a
+  `-- field-rule: breaks` line. ⚠️ **Chosen here, against this document's first description of the
+  check** (*each app's calls at its oldest build in use*): the outbox's argument names are built at
+  run time and no record says which build each phone runs, so it holds the superset that needs
+  neither. It proves a call is found, not what it does.
 - **Revised:** 2026-10-27, night — **§2.7: THE WALLS MADE TO HOLD IN THE SHOP** (plan `10.1b`,
   `0071`), enforcing two walls already ruled: *nothing readable without an account*, and
   `auth_full_name` *granted to nobody*. Read first on the hosted project (catalog only): **96
@@ -783,11 +792,31 @@ renames what a build still in use calls or reads, nor makes a call that used to 
 A signature changes by drop and re-create with the new argument defaulted, never by an overload
 beside the old one, which PostgREST can find ambiguous: `0064`'s shape for `record_sale`,
 `record_purchase` and `record_waste`. Something leaves only once no build in use calls it.
-⚠️ **No check holds this rule yet.** The contract checks prove today's app against today's
-schema, never an older build, so the session writing a migration holds it, as it holds the
-append-only rule. (Two corners are held since `10.1b` by `supabase/pgtap/_walls.sql`: no
-overload, and no function on its signed-in list dropped or ungranted unseen.) The check that would — each app's calls at its oldest build in use, run
-against the newest schema — is plan `10.3`'s first piece.
+~~No check holds this rule yet.~~ ✅ **AMENDED 2026-10-28 (plan `10.3`) — THE RULE HAS A CHECK,
+AND IT HOLDS EVERYTHING A SIGNED-IN PHONE CAN REACH RATHER THAN EACH APP'S CALLS — chosen here.**
+This paragraph first named the check as *each app's calls at its oldest build in use, run against
+the newest schema*. Measured that day, neither half can be read from the repository: the outbox
+builds its argument names at run time (`p_` + the payload's own keys, `@/api/flush`), so no
+reading of the source finds them, and which build each phone still runs is written down nowhere.
+So **`docs/checks/field-rule.sh`** (its own job in `db.yml`) holds a superset that needs neither.
+It builds the schema before a change from the base commit's migrations, reads everything a
+signed-in phone could reach in it — each function with its argument names, types and defaults and
+what it returns; each table and view with its columns, types and rights; the foreign keys an embed
+follows, the keys an upsert names, the enum labels, the buckets (`docs/checks/lib/field-surface.sql`)
+— applies the change's new migrations on top as `supabase db push` would, reads again, and goes red
+when any of it is gone or changed (`docs/checks/lib/field-compare.py`, whose header lists every
+rule). **Something leaves only when the migration that removes it says why**, on a line of its own:
+`-- field-rule: breaks <kind> <key> — <why no build in use calls it>`. It also refuses an applied
+migration edited and a new one numbered out of order — the append-only rule, unchecked until then.
+Its falsifier breaks each rule with real DDL (32 fixtures). ⚠️ **Its bound: a call is still FOUND,
+with the same names and types, and the right to make it is still held — not what the call DOES.**
+A row policy, a CHECK, a trigger or a function body can still make an old call fail or answer
+less; that half stays the session's, and today's app's stays the contract checks'. ⚠️ **It reads
+CI's database**, whose grants the hosted project has matched only since `0071` (`_walls.sql` holds
+that in the shop). **Read once against the oldest build EAS holds** (2026-10-10, through `0053`):
+of everything a signed-in phone could reach then, what has left is sixteen rights no version of the
+app ever used — inserting and deleting invitations and deleting members directly, which `0055`
+closed on purpose.
 
 ### 2.3 Data model
 
@@ -2346,7 +2375,7 @@ expensive enough after trading starts to belong here:
 | `adjust_stock_delta` as a relative operation | Its callers assume they never read a balance first. Converting to absolute later means auditing every call site for a race |
 | **`stock_movement.failed_write_id`** — the downgrade link (amended 2026-09-05; was `failed_write.adjustment_movement_id`) | The link is what makes a downgrade reversible. Movements written without it can never be replayed, because nothing records what to compensate — and a movement is append-only, so a link omitted at insert can never be added |
 | `record_failed_write` validating workspace but not location | The exception is the point (§2.6). Tightening it later silently drops the failures it exists to catch |
-| **What a build in the field calls** — added 2026-10-27 (`10.1`) | Under §2.2's field rule, a function, argument or column a shipped build calls can be dropped or renamed only once no build in use calls it. So every door the new apps call — the buyers' door above all (§2.7) — hardens with its app's first store build |
+| **What a build in the field calls** — added 2026-10-27 (`10.1`) | Under §2.2's field rule, a function, argument or column a shipped build calls can be dropped or renamed only once no build in use calls it. So every door the new apps call — the buyers' door above all (§2.7) — hardens with its app's first store build. Held since `10.3` by `docs/checks/field-rule.sh` (§2.2): a removal needs its migration to say why |
 
 **Reversible:** FEFO vs FIFO ordering, enforcement default, the 15-minute void
 window, magnitude thresholds, the analytics layer (views), every screen decision, and
