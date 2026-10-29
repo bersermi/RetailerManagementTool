@@ -478,6 +478,13 @@ on:
       - "docs/checks/lib/5R-k-apple-stand-in.mjs"
       - "docs/checks/5R-k-function-deployed.sh"
       - "docs/checks/5R-k-function-deployed-falsify.sh"
+      # ⚠️ AND THE FIELD RULE, as of plan task `10.3` (ADR-035 §2.2): every call a
+      # build could make before a change still answers after it. Its query and its
+      # comparison live beside the check, and a change to either must run it.
+      - "docs/checks/field-rule.sh"
+      - "docs/checks/field-rule-falsify.sh"
+      - "docs/checks/lib/field-surface.sql"
+      - "docs/checks/lib/field-compare.py"
 
 # A later push to the same branch makes an in-flight run irrelevant.
 concurrency:
@@ -2196,6 +2203,63 @@ jobs:
 
       - name: Deployed check — can it still fail (five canned replies, no network)
         run: bash docs/checks/5R-k-function-deployed-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # THE FIELD RULE (plan `10.3`, ADR-035 §2.2): a migration keeps every build in
+  # the field working. One database serves Wera, Wera Cocina and Itacate, and a
+  # phone can run an old build for weeks — so this job builds the schema BEFORE
+  # this change (the base commit's migrations), reads everything a signed-in
+  # phone could reach in it, applies this change's new migrations on top as
+  # `supabase db push` would, reads it again, and goes red if a function, an
+  # argument name, a column, a right, a key, an enum label or a bucket a build
+  # could call is gone or changed — unless the migration that removes it says
+  # why no build in use calls it (`-- field-rule: breaks <kind> <key> — <why>`).
+  #
+  # ⚠️ IT NEEDS THE BASE COMMIT, which a shallow checkout does not have: a pull
+  # request is measured against its base, a push to main against the head it
+  # replaced. ⚠️ Its own job: it resets the database twice, and the falsifier
+  # three times more, which no other job here should inherit.
+  # ===========================================================================
+  field-rule:
+    name: every call a build could make still answers
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Fetch the commit this change is measured against
+        env:
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          PUSH_BEFORE: ${{ github.event.before }}
+        run: |
+          BASE="${PR_BASE:-$PUSH_BEFORE}"
+          if [ -z "$BASE" ] || [ "$BASE" = "0000000000000000000000000000000000000000" ]; then
+            echo "No base commit in this event; measuring against HEAD itself."
+            BASE="$(git rev-parse HEAD)"
+          else
+            git fetch --no-tags --depth=1 origin "$BASE"
+          fi
+          echo "FIELD_BASE=$BASE" >> "$GITHUB_ENV"
+          echo "Measured against $BASE"
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres and GoTrue
+        run: supabase start -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Field rule — does every call a build could make before this change still answer after it (plan 10.3)
+        run: bash docs/checks/field-rule.sh "$FIELD_BASE"
+
+      - name: Field rule — can it still see a broken call (its own 32 fixtures)
+        run: bash docs/checks/field-rule-falsify.sh
 
       - name: Stop
         if: always()

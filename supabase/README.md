@@ -146,9 +146,24 @@ the instrument; the plan's row for it says what to look at.
 long time — offline for days, it flushes its outbox with the calls it made then. So a migration
 adds (a table, a nullable or defaulted column, a function, an argument with a default) and never
 drops or renames what a build still in use calls or reads. A signature changes by drop and
-re-create with the new argument defaulted, never by an overload — `0064` is the pattern. No check
-holds this yet; plan `10.3` builds one. (Two corners of it are held since `10.1b` by
-`_walls.sql`, below: no overload, and no door on its list dropped or ungranted unseen.)
+re-create with the new argument defaulted, never by an overload — `0064` is the pattern.
+**`docs/checks/field-rule.sh` holds it** (plan `10.3`, its own job in `db.yml`): it builds the
+schema before your change, reads everything a signed-in phone could reach in it — each function's
+argument names, types and defaults and what it returns, each column and right, the foreign keys an
+embed follows and the keys an upsert names, enum labels, buckets — applies your new migrations on
+top, and goes red if any of it is gone or changed. It also refuses an applied migration edited, or
+a new one numbered at or below the newest. When something must go — once no build in use calls it
+— the migration that removes it says so on a line of its own, with the reason:
+
+```sql
+-- field-rule: breaks function old_door — no build in use calls it: <the evidence>
+```
+
+The kinds and keys are what the check prints (`function`, `argument f.p_x`, `column t.c`,
+`select t.c`, `enum t.label`, …); only the change's own migrations can declare. It proves a call is
+still FOUND, not what it does: a policy, a CHECK or a function body that makes an old call fail is
+still yours to see. (`_walls.sql`, below, holds two more corners: no overload, and no door on its
+list dropped or ungranted unseen.)
 
 **And a new function revokes `from public, anon`**, and grants `authenticated` only what a
 client calls — **naming each such function in `supabase/pgtap/_walls.sql`'s list in the same
