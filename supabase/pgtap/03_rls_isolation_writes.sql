@@ -331,6 +331,33 @@ select gen_random_uuid(),
        a.user_id
 from iso_actor a;
 
+-- ⚠️ AND `listing` WITH ITS `listing_line`, ADDED 2026-10-29 WITH `0072` (plan
+-- `10.4a`) — the FIFTH and SIXTH tenant tables the seed leaves empty, and the
+-- same answer: one publication with one line per workspace, written as
+-- postgres. Both are read at the member's own kitchens (`location_id in
+-- my_locations()`), which an owner reaches every one of. The seed's two
+-- businesses are shops; the TABLE does not ask the kind (only `publish_listing`
+-- does), so a shop's row tests the wall as well as a kitchen's would.
+create temp table iso_listing_before as
+select (select count(*)::int from public.listing)
+     + (select count(*)::int from public.listing_line) as n;
+
+insert into public.listing (id, workspace_id, location_id, pickup_start, pickup_end, created_by)
+select gen_random_uuid(),
+       a.ws_id,
+       (select l.id from public.location l
+         where l.workspace_id = a.ws_id order by l.created_at, l.id limit 1),
+       now() + interval '1 hour', now() + interval '2 hours',
+       a.user_id
+from iso_actor a;
+
+insert into public.listing_line
+  (id, listing_id, workspace_id, location_id, line_no, name, unit_price, quantity)
+select gen_random_uuid(), x.id, x.workspace_id, x.location_id, 1,
+       'Comida corrida pgtap-3.2b', 65, 4
+  from public.listing x
+ where x.workspace_id in (select ws_id from iso_actor);
+
 -- ---------------------------------------------------------------------------
 -- Classification — 02's, plus the two columns a WRITE suite needs
 --
@@ -686,7 +713,7 @@ $$;
 -- that arithmetic from being satisfied by measuring nothing.
 -- ---------------------------------------------------------------------------
 select plan(
-  22
+  23
   + (select count(*)::int from iso_grant)
   + (select count(*)::int from iso_cross)
   + (select count(*)::int from iso_own)
@@ -804,6 +831,10 @@ select is((select n from iso_pilot_reading_before), 0,
 -- F10d. THE SAME, FOR THE TABLE `0059` ADDED.
 select is((select n from iso_collection_request_before), 0,
   'F10d collection_request was empty in the seed; this suite supplied its own rows');
+
+-- F10e. THE SAME, FOR THE TWO TABLES `0072` ADDED.
+select is((select n from iso_listing_before), 0,
+  'F10e listing and listing_line were empty in the seed; this suite supplied their rows');
 
 -- F11. NO MEASUREMENT ANYWHERE CAME BACK `unclassified`. THIS IS THE ONE THAT
 -- GUARDS THE OTHER SIXTEEN. Two of the three refusals share sqlstate 42501 and

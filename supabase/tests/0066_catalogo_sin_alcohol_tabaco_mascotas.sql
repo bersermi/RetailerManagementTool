@@ -35,9 +35,11 @@ select public.chk('1.3 the three aisles and their three families are gone with t
   not exists (select 1 from catalogo.tag where code in ('cat-alcohol', 'cat-tabaco', 'cat-mascotas'))
   and not exists (select 1 from catalogo.family where code in ('alcohol', 'tabaco', 'mascotas')));
 
+-- ⚠️ THE SHOPS' seven: `0072` added the kitchens' trades as giros with
+-- `for_kind = 'cocina'`, which no shop is ever offered.
 select public.chk('1.4 the seven giros are untouched',
-  (select count(*) from catalogo.tag where kind = 'giro') = 7,
-  (select count(*)::text from catalogo.tag where kind = 'giro'));
+  (select count(*) from catalogo.tag where kind = 'giro' and for_kind = 'tienda') = 7,
+  (select count(*)::text from catalogo.tag where kind = 'giro' and for_kind = 'tienda'));
 
 select n, case when passed then 'PASS' else 'FAIL' end as result, label, detail
   from public._verify order by n;

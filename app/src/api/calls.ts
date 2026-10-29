@@ -297,7 +297,9 @@ import {
   type ProductDraft,
 } from '@/api/catalogWrite';
 import {
+  KIND_COLUMN,
   ONBOARD_WORKSPACE,
+  WERA_KIND,
   WORKSPACE_COLUMNS,
   onboardArgs,
   toWorkspace,
@@ -321,7 +323,11 @@ import {
  * `workspace_select` (0001) is what makes the empty array trustworthy.
  */
 export async function myWorkspaces(): Promise<Workspace[]> {
-  const { data, error } = await supabase.from('workspace').select(WORKSPACE_COLUMNS);
+  // ⚠️ Shops only (`0072`): a kitchen is Wera Cocina's. See `WERA_KIND`.
+  const { data, error } = await supabase
+    .from('workspace')
+    .select(WORKSPACE_COLUMNS)
+    .eq(KIND_COLUMN, WERA_KIND);
   if (error) throw reported(error);
   return ((data ?? []) as WorkspaceRow[]).map(toWorkspace);
 }

@@ -41,6 +41,9 @@
 #      `app/src/api/errors.ts` maps.
 #   7. The shop names its own first location when none is given — the measured
 #      fact `onboardArgs` sends `null` rather than `''` in order to rely on.
+#   8. `0072`: a person who owns a shop AND a kitchen reads the shop alone through
+#      Wera's filter (`KIND_COLUMN`, `WERA_KIND`), and both without it — so the
+#      filter is shown to be what keeps the kitchen out, not an empty table.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT. Anything about the SCREEN. §2.11 refuses suites
 # over rendering, so that this contract is the one `bienvenida.tsx` calls is the
@@ -71,6 +74,8 @@ fail() { echo "FAIL: $*"; fails=$((fails+1)); }
 # while the app disagreed with both.
 RPC="$(sed -n "s/^export const ONBOARD_WORKSPACE = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 COLUMNS="$(sed -n "s/^export const WORKSPACE_COLUMNS = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+KIND_COL="$(sed -n "s/^export const KIND_COLUMN = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
+KIND_VAL="$(sed -n "s/^export const WERA_KIND = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1)"
 # ⚠️⚠️ THE ARGUMENT NAMES ARE READ FROM THE `OnboardArgs` BLOCK, BOUNDED, AND
 # NOT BY MATCHING `p_`. The first spelling of this line was
 # `sed -n 's/^  readonly \(p_[a-z_]*\):.*/\1/p'` — it recognised an argument by
@@ -91,15 +96,15 @@ ARGS="$(awk '
 ARG_N="$(printf '%s\n' "$ARGS" | grep -c . )"
 
 note
-if [[ -z "$RPC" || -z "$COLUMNS" ]] || (( ARG_N < 3 )); then
+if [[ -z "$RPC" || -z "$COLUMNS" || -z "$KIND_COL" || -z "$KIND_VAL" ]] || (( ARG_N < 3 )); then
   fail "could not read the contract out of $CONTRACT"
-  echo "      rpc='$RPC' columns='$COLUMNS' args=$ARG_N"
+  echo "      rpc='$RPC' columns='$COLUMNS' kind='$KIND_COL=$KIND_VAL' args=$ARG_N"
   echo "      This check asserts the app's own strings against the database. If it"
   echo "      cannot find them it has nothing to assert, and a green here would be"
   echo "      the vacuous kind this repository has recorded five shapes of."
   exit 1
 fi
-ok "read from $CONTRACT: $RPC($(echo "$ARGS" | tr '\n' ' ' | sed 's/ $//')) over [$COLUMNS]"
+ok "read from $CONTRACT: $RPC($(echo "$ARGS" | tr '\n' ' ' | sed 's/ $//')) over [$COLUMNS] where $KIND_COL=$KIND_VAL"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -231,11 +236,47 @@ else
   fail "a blank name returned $(status "$BLANK") $(body "$BLANK"), not a 23514"
 fi
 
+# --- 8. a shop AND a kitchen: Wera reads the shop alone (`0072`) -----------
+# ⚠️ THE KITCHEN IS MADE THE WAY WERA COCINA MAKES ONE — its own `p_kind`, which
+# Wera never sends — because it is the setup here, not the claim. The claim is
+# the read: Wera's filter, as `workspace.ts` spells it, keeps the shop and drops
+# the kitchen; and the same read without it returns both, so a green is the
+# filter's work and not a table that held one row anyway.
+note
+KITCHEN="$(api POST "/rest/v1/rpc/$RPC" '{"p_display_name":"Cocina 5b-i","p_kind":"cocina"}')"
+BOTH="$(api GET "/rest/v1/workspace?select=$COLUMNS")"
+WERA="$(api GET "/rest/v1/workspace?select=$COLUMNS&$KIND_COL=eq.$KIND_VAL")"
+VERDICT="$(python3 - "$(status "$KITCHEN")" "$(status "$WERA")" "$(body "$BOTH")" "$(body "$WERA")" <<'PY'
+import json, sys
+kitchen_status, wera_status, both_body, wera_body = sys.argv[1:5]
+if kitchen_status != '200':
+    print('the kitchen could not be made: HTTP %s' % kitchen_status); raise SystemExit
+if wera_status != '200':
+    print("Wera's filtered read was HTTP %s — %s" % (wera_status, wera_body)); raise SystemExit
+try:
+    both = json.loads(both_body)
+    wera = json.loads(wera_body)
+except Exception as exc:
+    print('unreadable: %s' % exc); raise SystemExit
+if not isinstance(both, list) or len(both) != 2:
+    print('without the filter she should own two businesses, got %r' % (both,)); raise SystemExit
+names = [r.get('display_name') for r in wera] if isinstance(wera, list) else wera
+if names != ['Contrato 5b-i']:
+    print("Wera's read returned %r — not the shop alone: the kitchen leaked in, or the shop dropped out" % (names,)); raise SystemExit
+print('ok')
+PY
+)"
+if [[ "$VERDICT" == "ok" ]]; then
+  ok "with a shop and a kitchen, Wera's read holds the shop alone, and the unfiltered read both"
+else
+  fail "$VERDICT"
+fi
+
 echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything
 # looks like — which here is one unset variable away.
-EXPECTED=6
+EXPECTED=7
 if (( ran < EXPECTED )); then
   echo "FAIL: only $ran assertion groups ran, expected $EXPECTED — this check"
   echo "      asserted almost nothing and was about to report success."
