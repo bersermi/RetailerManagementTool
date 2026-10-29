@@ -76,13 +76,19 @@ run Z4 red "workspace read was 400" "s/id,display_name,prices_include_tax,code/i
 echo "Z5  the contract constants are gone — the check must refuse, not pass"
 run Z5 red "could not read the contract" '/^export const ONBOARD_WORKSPACE/d'
 
+echo "Z6  Wera reads kitchens instead of shops (0072)"
+run Z6 red "not the shop alone" "s/^export const WERA_KIND = 'tienda';/export const WERA_KIND = 'cocina';/"
+
+echo "Z7  the kind's column is misspelled — PostgREST refuses the read"
+run Z7 red "filtered read was HTTP 400" "s/^export const KIND_COLUMN = 'kind';/export const KIND_COLUMN = 'tipo';/"
+
 echo
 echo "$pass passed, $fail failed."
 # ⚠️ THE ANTI-VACUITY GUARD. A harness whose loop ran zero fixtures reports
 # "0 failed" and exits 0, which is the shape `conventions-gate-falsify.sh` spent
 # a day in.
-if (( pass + fail < 6 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 6."
+if (( pass + fail < 8 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 8."
   exit 1
 fi
 (( fail == 0 )) || exit 1

@@ -114,7 +114,7 @@ Adding a dependency moves the root lockfile, so it fires every workflow but `sit
   and push is not a reason for one: a push to a phone is sent from Postgres through `pg_net`, as
   the Discord line is (ADR-035 §2.2, ruled 2026-10-27).
 - **The owner's Discord alerts need their webhook set by hand** (`0070`: a line when somebody
-  makes an account or opens a shop). It lives only in the hosted Vault as
+  makes an account or opens a shop — or a kitchen, since `0072`). It lives only in the hosted Vault as
   `discord_avisos_webhook`; `db push` does not carry it, and nothing fails without it:
   `bash docs/runbooks/set-discord-webhook.sh`. **A message names nobody** — a name is an aviso
   change first.

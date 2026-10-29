@@ -541,7 +541,7 @@ select chk('9.4 and anon reaches none of the three either',
 -- The pair: a revoke that had swept too wide would show up here and nowhere else.
 select chk('9.5 onboard_workspace is STILL callable by authenticated',
            has_function_privilege('authenticated',
-             'public.onboard_workspace(text, boolean, text)', 'execute'));
+             'public.onboard_workspace(text, boolean, text, public.workspace_kind)', 'execute'));
 
 
 -- ============================================================================

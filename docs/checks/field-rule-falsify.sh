@@ -137,11 +137,12 @@ SQL
 expect "A5 a new argument WITH a default (0064's shape)" "hold"
 
 cat > "$WORK/f.sql" <<'SQL'
-drop function public.onboard_workspace(text, boolean, text);
+drop function public.onboard_workspace(text, boolean, text, public.workspace_kind);
 create function public.onboard_workspace(p_display_name text, p_location_name text,
-                                         p_prices_include_tax boolean default true) returns uuid
+                                         p_prices_include_tax boolean default true,
+                                         p_kind public.workspace_kind default 'tienda') returns uuid
   language sql as $f$ select null::uuid $f$;
-grant execute on function public.onboard_workspace(text, text, boolean) to authenticated
+grant execute on function public.onboard_workspace(text, text, boolean, public.workspace_kind) to authenticated
 SQL
 expect "A6 an argument loses its default" "FAIL: argument onboard_workspace.p_location_name"
 

@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  KIND_COLUMN,
   MY_WORKSPACES_KEY,
   ONBOARD_WORKSPACE,
+  WERA_KIND,
   WORKSPACE_COLUMNS,
   checkShopName,
   membershipFrom,
@@ -63,6 +65,13 @@ describe('the names PostgREST matches an RPC by', () => {
   // promises this app will keep parsing them.
   it('asks for named columns and never for everything', () => {
     expect(WORKSPACE_COLUMNS).not.toContain('*');
+  });
+
+  // `0072`: one kind per business account. A kitchen is Wera Cocina's, and Wera
+  // opens the first row it reads — so the read must hold shops alone.
+  it('reads shops only, by the column and the label 0072 declares', () => {
+    expect(KIND_COLUMN).toBe('kind');
+    expect(WERA_KIND).toBe('tienda');
   });
 });
 

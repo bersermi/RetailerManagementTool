@@ -243,11 +243,11 @@ select chk('1.8 all four survived the replacement as security definer with an em
                                'request_access', 'approve_request')
                and prosecdef
                and proconfig @> array['search_path=""'])
-       and has_function_privilege('authenticated', 'public.onboard_workspace(text, boolean, text)', 'execute')
+       and has_function_privilege('authenticated', 'public.onboard_workspace(text, boolean, text, public.workspace_kind)', 'execute')
        and has_function_privilege('authenticated', 'public.redeem_invite(text)', 'execute')
        and has_function_privilege('authenticated', 'public.request_access(text)', 'execute')
        and has_function_privilege('authenticated', 'public.approve_request(uuid, uuid[])', 'execute')
-       and not has_function_privilege('anon', 'public.onboard_workspace(text, boolean, text)', 'execute')
+       and not has_function_privilege('anon', 'public.onboard_workspace(text, boolean, text, public.workspace_kind)', 'execute')
        and not has_function_privilege('anon', 'public.redeem_invite(text)', 'execute')
        and not has_function_privilege('anon', 'public.request_access(text)', 'execute')
        and not has_function_privilege('anon', 'public.approve_request(uuid, uuid[])', 'execute'));

@@ -140,6 +140,22 @@ select (select ml.location_id from public.member_location ml
          where ml.member_id = (select member_id from loc_actor where tag = 'staff_mercado')
          limit 1) as mercado;
 
+-- ⚠️ `listing` AND `listing_line` (`0072`, plan `10.4a`) ARE BEHIND THE STORE WALL
+-- AND THE SEED HOLDS NONE, so F9 would go red naming them: one publication with
+-- one line at EACH store, written as postgres and rolled back with the rest.
+-- The workspace is a shop; the table does not ask the kind.
+insert into public.listing (id, workspace_id, location_id, pickup_start, pickup_end, created_by)
+select gen_random_uuid(), (select ws_id from loc_actor where tag = 'owner'), s.loc,
+       now() + interval '1 hour', now() + interval '2 hours',
+       (select user_id from loc_actor where tag = 'owner')
+  from (select centro as loc from loc_ref union all select mercado from loc_ref) s;
+
+insert into public.listing_line
+  (id, listing_id, workspace_id, location_id, line_no, name, unit_price, quantity)
+select gen_random_uuid(), x.id, x.workspace_id, x.location_id, 1, 'Comida corrida pgtap-3.3', 65, 4
+  from public.listing x
+ where x.workspace_id = (select ws_id from loc_actor where tag = 'owner');
+
 -- ---------------------------------------------------------------------------
 -- Which tables carry the store wall, asked of the catalog and never listed here
 --

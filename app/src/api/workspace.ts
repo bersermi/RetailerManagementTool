@@ -42,6 +42,21 @@ export const ONBOARD_WORKSPACE = 'onboard_workspace';
  */
 export const WORKSPACE_COLUMNS = 'id,display_name,prices_include_tax,code,giro_principal';
 
+/**
+ * ⚠️⚠️ WERA OPENS SHOPS AND ONLY SHOPS — `0072` (plan `10.4a`), the owner's
+ * answer of 2026-10-28 to the marketplace drawing: one kind per business
+ * account, `tienda` or `cocina`, and each app opens its own. `useWorkspace`
+ * takes the FIRST row this read returns, in whatever order Postgres hands them
+ * over, so without this filter a person who owns a shop and a kitchen could find
+ * Wera opening the kitchen. A person whose only business is a kitchen reads `[]`
+ * here, which is "belongs to no shop": Wera offers to make one.
+ *
+ * ⚠️ A column and a value, and `docs/checks/5b-i-api-contract.sh` reads both out
+ * of this file, so the check asks PostgREST the question the app asks.
+ */
+export const KIND_COLUMN = 'kind';
+export const WERA_KIND = 'tienda';
+
 /** The query key `useMyWorkspaces` caches under, and `onboard` invalidates. */
 export const MY_WORKSPACES_KEY = ['workspace', 'mine'] as const;
 
