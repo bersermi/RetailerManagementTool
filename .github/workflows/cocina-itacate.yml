@@ -22,6 +22,13 @@ on:
     paths:
       - "cocina/**"
       - "itacate/**"
+      # ⚠️ `10.4b-iii-a`: COCINA'S SUITE READS THREE FILES OUTSIDE ITS FOLDER — Wera's
+      # sign-in words and its name key (one login across the apps, so one spelling
+      # of each), and the privacy page its sign-in opens. A change to any of them
+      # runs the suite that holds Cocina to it.
+      - "app/src/strings.ts"
+      - "app/src/auth/credentials.ts"
+      - "site/privacidad/cocina-e-itacate/index.html"
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/cocina-itacate.yml"

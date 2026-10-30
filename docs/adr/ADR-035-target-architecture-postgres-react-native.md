@@ -879,7 +879,8 @@ in the plan's ⛔ DECISIONS OWED.~~ ✅ **CLOSED 2026-10-29 (`0072`, plan `10.4a
 maker's answer to the drawing's question 1: `workspace.kind`** — `tienda` or `cocina`, one per
 account, set by `onboard_workspace` (its `p_kind` defaults to `tienda`, so every Wera build makes
 a shop) and refused any change by a trigger. Wera reads only `tienda` accounts and Cocina only
-`cocina` ones. ⚠️ **Measured 2026-10-29 (`10.4b-i`): Wera's read of the business itself keeps this
+`cocina` ones — ✅ Cocina's read keeps it from its first (`cocina/src/api/kitchen.ts`, plan `10.4b-iii-a`,
+held by `docs/checks/10.4b-iii-a-cocina-contract.sh`: a shop's owner who signs in there reads no business). ⚠️ **Measured 2026-10-29 (`10.4b-i`): Wera's read of the business itself keeps this
 (`10.4a`); the reads beneath it — stores, providers, members, settings — rely on the walls, which let a
 login read every business it belongs to, so a login with a kitchen too sees the kitchen's rows in Wera.
 Plan `10.4b-ii` scopes them to the shop open in it.** ✅ **Scoped 2026-10-29 (`10.4b-ii`): every Wera read of a business's rows starts at one helper in `app/src/api/calls.ts` that filters on the shop open in it, and its cache is keyed on that shop; `app/test/api-shop-scope.test.ts` and `docs/checks/10.4b-ii-shop-scope-contract.sh` hold it. The rule this section states was right; those reads were the bug.** Three things are kept apart (proposal B, 2026-10-29): **the kind says which app,
@@ -2291,6 +2292,19 @@ reached a pilot phone until new store builds. So **a sibling's dependency never 
 Wera uses**: shared modules take Wera's exact range, a new native module is pinned to the newest
 patch Wera's installed tree already satisfies, and `docs/checks/wera-runtime.sh` (in `app.yml`)
 holds Wera's runtime to the one its builds in the field carry, read from EAS.
+
+⚠️ **AMENDED 2026-10-30 (plan `10.4b-iii-a`) — A SIBLING'S DATA LAYER IS ITS OWN COPY OF WERA'S.**
+Each app's `@/` resolves to its own `src/`, so Cocina cannot import Wera's modules: its client, its
+sign-in and its rules (`cocina/src/lib/`, `cocina/src/auth/`) are copies that name their twins, and
+what must not drift between them — the sign-in sentences and the key a name is stored under, one login
+being used in both apps — is read out of Wera's files by Cocina's suite. The same five client decisions
+hold: the session in `expo-sqlite`, PKCE, no session read from a URL, a time limit on every request, and
+the refresh loop only while the app is in front. **Cocina keeps no query cache on the phone yet** —
+nothing in it works offline — so a read's key carries the login instead. `supabase-js`, TanStack Query
+and the URL polyfill joined it over the air at Wera's versions, and neither app's runtime moved. Its
+`src/api/` is a claim about the schema as Wera's is: `db.yml` fires on it and asks a real PostgREST.
+A shared package for both copies stays possible, and is a refactor of Wera's sign-in that waits for a
+row of its own.
 
 ---
 

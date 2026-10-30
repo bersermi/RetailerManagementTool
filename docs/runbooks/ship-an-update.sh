@@ -8,6 +8,16 @@
 #   bash docs/runbooks/ship-an-update.sh preview "Arregla el total del carrito"
 #   bash docs/runbooks/ship-an-update.sh preview "…" --check    # refuses or says what it would do
 #   bash docs/runbooks/ship-an-update.sh production "…" --only android   # one platform's phones only
+#   bash docs/runbooks/ship-an-update.sh preview "…" --app cocina        # Wera Cocina's phones, not Wera's
+#
+# ⚠️ `--app cocina` (plan `10.4b-iii-a`, the first row that shipped Wera Cocina an
+# update — `cocina/CLAUDE.md` asked that row to write this). The same steps in
+# `cocina/`, against Wera Cocina's own EAS project, channels and builds: its
+# runtime is its own fingerprint (`cocina/fingerprint.config.js`), computed here
+# exactly as there. It needs the database's two values in EAS's environment and
+# not Wera's support number, which Wera Cocina does not read yet. Without the
+# flag it is Wera, as it always was. Itacate's first update adds one case below.
+# Its rollback is the command below, run from `cocina/` instead of `app/`.
 #
 # ⚠️ `--only ios|android` (2026-10-22, his ask: *"Can I rollout the version with
 # your fixes for the Android testers?"* — while the iOS build sat in Apple's
@@ -67,9 +77,10 @@ channel="${1:-}"
 message="${2:-}"
 mode=""
 only=""
+app="app"
 
 usage() {
-  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check] [--only ios|android]" >&2
+  echo "usage: bash docs/runbooks/ship-an-update.sh <preview|production> \"<message>\" [--check] [--only ios|android] [--app cocina]" >&2
   exit 2
 }
 [[ "$channel" == "preview" || "$channel" == "production" ]] || usage
@@ -79,14 +90,22 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --check) mode="--check" ;;
     --only) only="${2:-}"; shift ;;
+    --app) app="${2:-}"; shift ;;
     *) usage ;;
   esac
   shift
 done
 [[ -z "$only" || "$only" == "ios" || "$only" == "android" ]] || usage
 
+# Which app, the values its bundle cannot start without, and its name on a phone.
+case "$app" in
+  app)    label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
+  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ;;
+  *) usage ;;
+esac
+
 root="$(git rev-parse --show-toplevel)"
-cd "$root/app"
+cd "$root/$app"
 eas() { npx --yes eas-cli@24 "$@"; }
 
 # --- 1. what is being shipped has passed CI --------------------------------
@@ -115,10 +134,10 @@ if ! env_out="$(eas env:list --environment "$channel" --format short 2>&1)"; the
   exit 1
 fi
 env_names="$(sed -E 's/\x1b\[[0-9;]*m//g' <<<"$env_out" | cut -d= -f1)"
-for name in EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP; do
+for name in $needed; do
   if ! grep -qx "$name" <<<"$env_names"; then
     echo "REFUSED: EAS's '$channel' environment has no $name." >&2
-    echo "  (cd app && npx eas-cli env:set --environment $channel --name $name --value <value> --visibility plaintext)" >&2
+    echo "  (cd $app && npx eas-cli env:set --environment $channel --name $name --value <value> --visibility plaintext)" >&2
     exit 1
   fi
 done
@@ -128,7 +147,7 @@ pilot="$(sed -E 's/\x1b\[[0-9;]*m//g' <<<"$env_out" | sed -n 's/^EXPO_PUBLIC_PIL
 if grep -qx "EXPO_PUBLIC_PILOT" <<<"$env_names"; then
   if [[ "$channel" == "production" ]]; then
     echo "REFUSED: EAS's 'production' environment holds EXPO_PUBLIC_PILOT, so this update would take the pilot's readings in a store build." >&2
-    echo "  (cd app && npx eas-cli env:delete production --variable-name EXPO_PUBLIC_PILOT --non-interactive)" >&2
+    echo "  (cd $app && npx eas-cli env:delete production --variable-name EXPO_PUBLIC_PILOT --non-interactive)" >&2
     exit 1
   fi
   echo "  readings: ON — this update files the pilot's readings under \"$pilot\""
@@ -152,7 +171,7 @@ for platform in ios android; do
          --runtime-version "$runtime" --limit 1 --json --non-interactive)
   if ! builds="$(eas "${query[@]}" 2>/dev/null)" \
      || ! count="$(node -e 'const a=JSON.parse(process.argv[1]);console.log(Array.isArray(a)?a.length:0)' "$builds" 2>/dev/null)"; then
-    echo "REFUSED: could not list EAS builds. To see why: (cd app && npx eas-cli ${query[*]})" >&2
+    echo "REFUSED: could not list EAS builds. To see why: (cd $app && npx eas-cli ${query[*]})" >&2
     exit 1
   fi
   if [[ "$count" -gt 0 ]]; then
@@ -171,11 +190,11 @@ target="all"
 
 commit="$(git rev-parse --short HEAD)"
 if [[ "$mode" == "--check" ]]; then
-  echo "CHECK ONLY: would publish $commit to '$channel' for $target — \"$message\""
+  echo "CHECK ONLY: would publish $commit to $label's '$channel' for $target — \"$message\""
   exit 0
 fi
 
 eas update --channel "$channel" --environment "$channel" --platform "$target" \
   --message "$message" --clear-cache --non-interactive
 echo
-echo "Published $commit to '$channel' for $target. On the phone: open Wera, close it completely, open it again."
+echo "Published $commit to $label's '$channel' for $target. On the phone: open $label, close it completely, open it again."

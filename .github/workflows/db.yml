@@ -71,6 +71,14 @@ on:
       # kitchen whether the kitchen stays out.
       - "docs/checks/10.4b-ii-shop-scope-contract.sh"
       - "docs/checks/10.4b-ii-shop-scope-contract-falsify.sh"
+      # ⚠️ `10.4b-iii-a`: WERA COCINA'S DATA LAYER IS A CLAIM ABOUT THE SAME SCHEMA —
+      # the kitchen read (a table, three columns, the kind, the order) and the key a
+      # name is stored under at sign-up. Until this row no workflow read
+      # `cocina/src/api/`; its check asks as a fonda who also owns a shop.
+      - "cocina/src/api/**"
+      - "cocina/src/auth/credentials.ts"
+      - "docs/checks/10.4b-iii-a-cocina-contract.sh"
+      - "docs/checks/10.4b-iii-a-cocina-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -1701,7 +1709,10 @@ jobs:
   api-contracts:
     name: the app's data layer against a real database
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # ⚠️ 20, NOT 15, SINCE `10.4b-iii-a`: this job ran 11 min 51 s on `main` the day
+    # Wera Cocina's check and its seven fixtures joined it, and every sign-up past
+    # GoTrue's 30 per 5 minutes waits about 10 s for its turn.
+    timeout-minutes: 20
 
     steps:
       - uses: actions/checkout@v4
@@ -1749,6 +1760,10 @@ jobs:
         run: bash docs/checks/10.4b-ii-shop-scope-contract.sh
       - name: Contract — can the shop scope check still fail (its own nine fixtures)
         run: bash docs/checks/10.4b-ii-shop-scope-contract-falsify.sh
+      - name: Contract — does Wera Cocina open kitchens only, as the schema answers (plan 10.4b-iii-a)
+        run: bash docs/checks/10.4b-iii-a-cocina-contract.sh
+      - name: Contract — can the Cocina check still fail (its own seven fixtures)
+        run: bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 
       # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan
       # task 5b-ii-a). Three real people in three real roles: the founding owner,
