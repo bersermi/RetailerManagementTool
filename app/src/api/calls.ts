@@ -69,10 +69,14 @@ import {
   APPLE_REVOKE_REGION,
   APPLE_REVOKE_TIMEOUT_MS,
   DELETE_MY_ACCOUNT,
+  OWNER_COLUMNS,
+  OWNER_ROLE,
+  OWNERS_TABLE,
   deletedFrom,
   revokeBody,
   type DeleteArgs,
   type Deleted,
+  type OwnerRow,
 } from '@/api/account';
 import { RECORD_FAILED_WRITE } from '@/api/deadletter';
 import { isContractMismatch } from '@/api/errors';
@@ -780,8 +784,24 @@ export async function setMyDisplayName(workspaceId: string, typed: string): Prom
 }
 
 /**
- * Deletes the caller's account (`5R-c`, `0053`). ⚠️ The arguments arrive built
- * by `deleteArgs`, which decides whether the typed shop name travels.
+ * Every active owner of every business the caller belongs to (`10.4b-i`) — what
+ * `businessesThatGo` reads to say which businesses go with the account. ⚠️ Not
+ * filtered by kind: a kitchen goes too. Roles and activity filtered here, by
+ * the policy's own columns (`0001`).
+ */
+export async function accountOwners(): Promise<OwnerRow[]> {
+  const { data, error } = await supabase
+    .from(OWNERS_TABLE)
+    .select(OWNER_COLUMNS)
+    .eq('role', OWNER_ROLE)
+    .eq('is_active', true);
+  if (error) throw reported(error);
+  return (data ?? []) as unknown as OwnerRow[];
+}
+
+/**
+ * Deletes the caller's account (`5R-c`, `0053`, `0073`). ⚠️ The arguments arrive
+ * built by `deleteArgs`, which decides which typed names travel.
  */
 export async function deleteMyAccount(args: DeleteArgs): Promise<Deleted> {
   const { data, error } = await supabase.rpc(DELETE_MY_ACCOUNT, args);

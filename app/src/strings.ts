@@ -674,6 +674,24 @@ export const ES = {
     typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
     confirm: 'Eliminar mi cuenta',
     confirmShop: 'Eliminar mi cuenta y la tienda',
+    /**
+     * `10.4b-i` (`0073`), the owner's ruling of 2026-10-29: when more goes with
+     * the account than the shop open here — her kitchen in Wera Cocina, or a
+     * business that is not this shop — every one is named and each one's name
+     * typed. ⚠️ The count and the kind are passed in; the grammar lives here.
+     */
+    businessesWarning: (count: number) =>
+      count === 1
+        ? 'Eres la única persona dueña de este negocio. Si eliminas tu cuenta, se borra completo, ' +
+          'con todo lo que tiene. No se puede deshacer.'
+        : 'Eres la única persona dueña de estos negocios. Si eliminas tu cuenta, se borran ' +
+          'completos, con todo lo que tienen. No se puede deshacer.',
+    businessLine: (name: string, kind: 'tienda' | 'cocina') =>
+      kind === 'cocina' ? `${name}: tu cocina en Wera Cocina` : `${name}: tu tienda`,
+    typeKitchenName: (kitchen: string) => `Para confirmar, escribe el nombre de la cocina: ${kitchen}`,
+    losesAccessAt: (shop: string) => `Perderán el acceso a ${shop}:`,
+    confirmKitchen: 'Eliminar mi cuenta y la cocina',
+    confirmBusinesses: 'Eliminar mi cuenta y mis negocios',
     working: 'Eliminando…',
     cancel: 'Cancelar',
     /** How the shop's records name somebody who has left (`whoOf`). */
@@ -681,6 +699,8 @@ export const ES = {
     formerAlone: 'Ex-miembro',
     errors: {
       nameMismatch: 'El nombre no coincide con el de tu tienda.',
+      /** `0073`'s refusal when a name was asked for each business: the list moved. */
+      listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
     },
   },
 

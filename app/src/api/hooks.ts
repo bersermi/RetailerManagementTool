@@ -156,6 +156,7 @@ import {
   setStoreAddress,
   storeAddresses,
   deleteMyAccount,
+  accountOwners,
   revokeApple,
   approveRequest,
   catalogTemplate,
@@ -207,7 +208,13 @@ import {
   type Correction,
   type Prefill,
 } from '@/api/corrections';
-import { deleteErrorMessage, type DeleteArgs } from '@/api/account';
+import {
+  ACCOUNT_OWNERS_KEY,
+  businessesThatGo,
+  deleteErrorMessage,
+  type Business,
+  type DeleteArgs,
+} from '@/api/account';
 import { releaseStep } from '@/auth/apple';
 import { nameErrorMessage } from '@/api/displayName';
 import {
@@ -621,6 +628,26 @@ export function useSetMyDisplayName() {
 }
 
 /**
+ * Every business that goes with this account when it is deleted (`10.4b-i`,
+ * `0073`): those she is the only active owner of, shop or kitchen. `null` while
+ * the read is out, which the screen reads as *not known yet*.
+ *
+ * ⚠️ `staleTime: 0`: a kitchen made in Wera Cocina a minute ago must be on the
+ * list the moment the deletion opens, so the read is never served from a cache
+ * that predates it. Disabled without a session, `useWorkspaceMembers`' reason.
+ */
+export function useBusinessesThatGo(): readonly Business[] | null {
+  const { session, ready } = useAuth();
+  const { data } = useQuery({
+    queryKey: ACCOUNT_OWNERS_KEY,
+    queryFn: accountOwners,
+    enabled: ready && session !== null,
+    staleTime: 0,
+  });
+  return businessesThatGo(data, session?.user.id ?? null);
+}
+
+/**
  * Deleting one's own account (`5R-c`). On success the session is ended through
  * `useAuth().signOut`, the one log-out path — it also forgets the last screen
  * and the persisted cache, which is what this phone must not keep after the
@@ -644,6 +671,7 @@ export function useSetMyDisplayName() {
  */
 export function useDeleteMyAccount() {
   const { signOut, askAppleAgain } = useAuth();
+  const queries = useQueryClient();
   const [leaving, setLeaving] = useState(false);
   const mutation = useMutation({
     mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
@@ -662,7 +690,10 @@ export function useDeleteMyAccount() {
       try {
         await mutation.mutateAsync(args);
       } catch (thrown) {
-        return deleteErrorMessage(thrown);
+        // ⚠️ `10.4b-i`: a refusal can mean the list of what goes is stale —
+        // `deleteErrorMessage` says so — so it is read again.
+        void queries.invalidateQueries({ queryKey: ACCOUNT_OWNERS_KEY });
+        return deleteErrorMessage(thrown, args);
       }
       await signOut();
       return null;

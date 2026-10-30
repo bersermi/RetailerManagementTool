@@ -2,8 +2,9 @@ import { useState, type ReactNode } from 'react';
 import { Linking, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { deleteArgs } from '@/api/account';
+import { confirmWords, deleteArgs, deletionFrom, namesReady, type Typed } from '@/api/account';
 import {
+  useBusinessesThatGo,
   useDeleteMyAccount,
   useMyAccessRequests,
   useOnboardWorkspace,
@@ -27,6 +28,7 @@ import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Campo } from '@/ui/Campo';
 import { Formulario } from '@/ui/Formulario';
+import { NegociosQueSeBorran } from '@/ui/NegociosQueSeBorran';
 import { Puertas } from '@/ui/Puertas';
 import { SelectorCatalogo } from '@/ui/SelectorCatalogo';
 
@@ -165,17 +167,25 @@ export default function Bienvenida() {
   // cuenta* otherwise live in Ajustes, which needs a shop; somebody who came in
   // by the wrong door must not be held here, and Apple's rule 5.1.1(v) asks
   // that an account this app made can be deleted inside it.
-  // ⚠️ NO NAME TO TYPE AND NO ROSTER TO WAIT FOR: a login here belongs to no
-  // shop, so `deleteArgs` sends `null` and `0053` has nothing to refuse.
+  // ⚠️⚠️ `10.4b-i`: A LOGIN HERE BELONGS TO NO SHOP, BUT IT MAY OWN A KITCHEN.
+  // Wera opens shops only (`0072`), so a fonda who made her kitchen in Wera
+  // Cocina and opens Wera lands here — and the kitchen goes with her account.
+  // So what goes is read (`useBusinessesThatGo`), not assumed: nothing, and the
+  // deletion is the one it always was; a kitchen, and it is named and its name
+  // typed (`0073`, the owner's ruling of 2026-10-29). No roster: no shop is open.
   const { signOut } = useAuth();
+  const goes = useBusinessesThatGo();
   const { remove, busy: removing } = useDeleteMyAccount();
   const [leaving, setLeaving] = useState(false);
   const [leaveProblem, setLeaveProblem] = useState<string | null>(null);
+  const [typed, setTyped] = useState<Typed>({});
+  const deletion = deletionFrom({ goes, openShopId: null, roster: [], rosterLoading: false });
+  const leaveReady = namesReady(deletion, typed);
 
   async function confirmLeave() {
-    if (removing) return;
+    if (removing || !leaveReady) return;
     setLeaveProblem(null);
-    setLeaveProblem(await remove(deleteArgs({ kind: 'leaves' }, '')));
+    setLeaveProblem(await remove(deleteArgs(deletion, typed)));
   }
 
   // The same discipline as the way in: the message is cleared when the next
@@ -230,17 +240,29 @@ export default function Bienvenida() {
         <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.auth.signOut}</Text>
       </Pressable>
 
+      {/* ⚠️ Offered once what goes is known, as Ajustes does: the wrong warning is the one that matters. */}
       {!leaving ? (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => setLeaving(true)}
-          style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
-        >
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.account.open}</Text>
-        </Pressable>
+        deletion.kind !== 'unknown' && (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => setLeaving(true)}
+            style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
+          >
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>{ES.account.open}</Text>
+          </Pressable>
+        )
       ) : (
         <View style={{ gap: scale.rowGap }}>
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{ES.account.aloneWarning}</Text>
+          {deletion.kind === 'deletesBusinesses' ? (
+            <NegociosQueSeBorran
+              businesses={deletion.businesses}
+              typed={typed}
+              onType={(id, text) => setTyped((before) => ({ ...before, [id]: text }))}
+              editable={!removing}
+            />
+          ) : (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{ES.account.aloneWarning}</Text>
+          )}
 
           {leaveProblem !== null && (
             <Text style={{ fontSize: scale.bodySize, color: PALETTE.error }}>{leaveProblem}</Text>
@@ -248,20 +270,26 @@ export default function Bienvenida() {
 
           <Pressable
             accessibilityRole="button"
-            accessibilityState={{ disabled: removing }}
-            disabled={removing}
+            accessibilityState={{ disabled: removing || !leaveReady }}
+            disabled={removing || !leaveReady}
             onPress={() => void confirmLeave()}
             style={{
               minHeight: scale.tapTarget,
               justifyContent: 'center',
               alignItems: 'center',
               borderWidth: 1,
-              borderColor: PALETTE.error,
+              borderColor: leaveReady ? PALETTE.error : PALETTE.linea,
               borderRadius: scale.space / 2,
             }}
           >
-            <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.error }}>
-              {removing ? ES.account.working : ES.account.confirm}
+            <Text
+              style={{
+                fontSize: scale.bodySize,
+                fontWeight: '600',
+                color: leaveReady ? PALETTE.error : PALETTE.tintaApagada,
+              }}
+            >
+              {removing ? ES.account.working : confirmWords(deletion)}
             </Text>
           </Pressable>
 
@@ -271,6 +299,7 @@ export default function Bienvenida() {
             onPress={() => {
               setLeaving(false);
               setLeaveProblem(null);
+              setTyped({});
             }}
             style={{ minHeight: scale.tapTarget, justifyContent: 'center', alignItems: 'center' }}
           >
