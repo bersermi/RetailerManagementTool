@@ -6,6 +6,7 @@ import { Image, Pressable, Share, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
+  useBusinessesThatGo,
   useCreateInvite,
   useDeleteMyAccount,
   useLocations,
@@ -24,7 +25,7 @@ import {
 } from '@/api/hooks';
 import { GIROS, emblemaDe } from '@/api/emblema';
 import { addressComplete, addressForm, addressLine, checkAddress, type AddressForm } from '@/api/collection';
-import { deleteArgs, deletionFrom, shopNameMatches } from '@/api/account';
+import { confirmWords, deleteArgs, deletionFrom, namesReady, type Typed } from '@/api/account';
 import { checkDisplayName, type NameIssueKey } from '@/api/displayName';
 import {
   INVITABLE_ROLES,
@@ -57,6 +58,7 @@ import { Formulario } from '@/ui/Formulario';
 import { Pregunta } from '@/ui/Pregunta';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Direccion } from '@/ui/Direccion';
+import { NegociosQueSeBorran } from '@/ui/NegociosQueSeBorran';
 
 // ============================================================================
 // AJUSTES — THE APP'S FIRST NON-TAB SURFACE, AND ITS FIRST COLOURED SCREEN.
@@ -1008,6 +1010,14 @@ function Letra() {
  * ⚠️ `error` AND NOT A FILLED SLAB, `Salir`'s argument: it destroys, and it is
  * the last thing anybody came here to do.
  *
+ * ⚠️⚠️ `10.4b-i` (`0073`): WHAT GOES IS EVERY BUSINESS SHE ALONE OWNS, NOT THIS
+ * SHOP'S ROSTER. When that is this shop and nothing else, the screen below is
+ * the one it always was, and so is the call. When it is more — her kitchen in
+ * Wera Cocina too, or a kitchen while she co-owns this shop — every business is
+ * named and each one's name typed (`NegociosQueSeBorran`), the owner's ruling of
+ * 2026-10-29; who loses access and the export stay this shop's, shown when it
+ * goes.
+ *
  * ⚠️ `5R-d-iii`: THE SECTION ALSO HOLDS THE AVISO DE PRIVACIDAD, FIRST, AND THE
  * LINK DOES NOT WAIT FOR THE ROSTER. Reading the aviso decides nothing about
  * anybody's account, so it is drawn before the deletion knows which warning it
@@ -1018,16 +1028,26 @@ function Cuenta() {
   const { scale } = useDensity();
   const workspace = useWorkspace();
   const roster = useRoster();
+  const goes = useBusinessesThatGo();
   const { remove, busy } = useDeleteMyAccount();
   const [open, setOpen] = useState(false);
-  const [typed, setTyped] = useState('');
+  const [typed, setTyped] = useState<Typed>({});
   const [failure, setFailure] = useState<string | null>(null);
 
-  const deletion = deletionFrom(roster.entries, roster.loading);
+  const deletion = deletionFrom({
+    goes,
+    openShopId: workspace?.id ?? null,
+    roster: roster.entries,
+    rosterLoading: roster.loading,
+  });
   const known = workspace !== null && deletion.kind !== 'unknown';
 
   const takesShop = deletion.kind === 'deletesShop';
-  const ready = !takesShop || (workspace !== null && shopNameMatches(typed, workspace.displayName));
+  const ready = namesReady(deletion, typed);
+
+  function typeName(id: string, text: string) {
+    setTyped((before) => ({ ...before, [id]: text }));
+  }
 
   async function confirm() {
     setFailure(null);
@@ -1037,7 +1057,7 @@ function Cuenta() {
 
   function close() {
     setOpen(false);
-    setTyped('');
+    setTyped({});
     setFailure(null);
   }
 
@@ -1067,43 +1087,36 @@ function Cuenta() {
 
       {known && open && (
         <View style={{ gap: scale.rowGap }}>
-          <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
-            {takesShop ? ES.account.shopWarning(workspace.displayName) : ES.account.leavesWarning}
-          </Text>
+          {deletion.kind !== 'deletesBusinesses' && (
+            <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+              {takesShop ? ES.account.shopWarning(workspace.displayName) : ES.account.leavesWarning}
+            </Text>
+          )}
+
+          {deletion.kind === 'deletesBusinesses' && (
+            <>
+              {deletion.leavesHere && (
+                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>{ES.account.leavesWarning}</Text>
+              )}
+              <NegociosQueSeBorran businesses={deletion.businesses} typed={typed} onType={typeName} editable={!busy}>
+                {!deletion.leavesHere && (
+                  <QuienPierde
+                    heading={ES.account.losesAccessAt(workspace.displayName)}
+                    people={deletion.losesAccess}
+                  />
+                )}
+              </NegociosQueSeBorran>
+            </>
+          )}
 
           {deletion.kind === 'deletesShop' && (
             <>
-              {deletion.losesAccess.length === 0 ? (
-                <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
-                  {ES.account.nobodyElse}
-                </Text>
-              ) : (
-                <View>
-                  <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
-                    {ES.account.losesAccess}
-                  </Text>
-                  {deletion.losesAccess.map((who) => (
-                    <Text key={who} style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
-                      {`• ${who}`}
-                    </Text>
-                  ))}
-                </View>
-              )}
-
-              <Pressable
-                accessibilityRole="button"
-                onPress={() => router.push('/numeros')}
-                style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
-              >
-                <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
-                  {ES.account.exportOffer}
-                </Text>
-              </Pressable>
+              <QuienPierde heading={ES.account.losesAccess} people={deletion.losesAccess} />
 
               <Campo label={ES.account.typeShopName(workspace.displayName)}>
                 <TextInput
-                  value={typed}
-                  onChangeText={setTyped}
+                  value={typed[deletion.shop.id] ?? ''}
+                  onChangeText={(text) => typeName(deletion.shop.id, text)}
                   autoCapitalize="none"
                   returnKeyType="done"
                   autoCorrect={false}
@@ -1148,7 +1161,7 @@ function Cuenta() {
                 color: ready ? PALETTE.error : PALETTE.tintaApagada,
               }}
             >
-              {busy ? ES.account.working : takesShop ? ES.account.confirmShop : ES.account.confirm}
+              {busy ? ES.account.working : confirmWords(deletion)}
             </Text>
           </Pressable>
 
@@ -1165,6 +1178,45 @@ function Cuenta() {
         </View>
       )}
     </Section>
+  );
+}
+
+/**
+ * Who loses access to the shop open here, and the offer of its export — what
+ * `5R-c` shows the only owner before the shop goes. ⚠️ Drawn only by this
+ * file (twice: one shop, or this shop among others), so it stays here (`R14`).
+ */
+function QuienPierde({ heading, people }: { heading: string; people: readonly string[] }) {
+  const { scale } = useDensity();
+  return (
+    <>
+      {people.length === 0 ? (
+        <Text style={{ fontSize: scale.bodySize, color: PALETTE.tintaApagada }}>
+          {ES.account.nobodyElse}
+        </Text>
+      ) : (
+        <View>
+          <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
+            {heading}
+          </Text>
+          {people.map((who) => (
+            <Text key={who} style={{ fontSize: scale.bodySize, color: PALETTE.tinta }}>
+              {`• ${who}`}
+            </Text>
+          ))}
+        </View>
+      )}
+
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => router.push('/numeros')}
+        style={{ minHeight: scale.tapTarget, justifyContent: 'center' }}
+      >
+        <Text style={{ fontSize: scale.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+          {ES.account.exportOffer}
+        </Text>
+      </Pressable>
+    </>
   );
 }
 

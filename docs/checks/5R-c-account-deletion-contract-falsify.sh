@@ -47,10 +47,20 @@ fixture wrong-refusal-code "$CONTRACT" \
 fixture name-not-read "$MEMBERS" \
   "s/^export const MEMBER_COLUMNS = 'user_id,role,is_active,display_name';/export const MEMBER_COLUMNS = 'user_id,role,is_active';/" \
   'her membership read back'
+# `10.4b-i` (`0073`): the list argument, and the read that says what goes.
+fixture renamed-list-argument "$CONTRACT" \
+  's/^  readonly p_business_names?:/  readonly p_names?:/' \
+  'DeleteArgs names .*p_names'
+fixture owners-read-not-owners "$CONTRACT" \
+  "s/^export const OWNER_ROLE = 'owner';/export const OWNER_ROLE = 'manager';/" \
+  'the owners read is not what businessesThatGo needs'
+fixture owners-read-without-kind "$CONTRACT" \
+  "s/^export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name,kind)';/export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name)';/" \
+  'the owners read is not what businessesThatGo needs'
 
 echo
-if (( failed == 0 && passed == 3 )); then
-  echo "all 3 fixtures behaved as recorded — the contract check goes red on every defect it names."
+if (( failed == 0 && passed == 6 )); then
+  echo "all 6 fixtures behaved as recorded — the contract check goes red on every defect it names."
   exit 0
 fi
 echo "$failed of $((passed + failed)) fixtures misbehaved."

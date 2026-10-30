@@ -75,13 +75,15 @@ select public.chk('1.3 workspace_member.left_at exists and is nullable',
     where table_schema = 'public' and table_name = 'workspace_member'
       and column_name = 'left_at') = 'YES');
 
+-- ⚠️ `0073` (plan `10.4b-i`) gave it a second argument, `p_business_names`, by a
+-- drop and a create: the signature these two read is that one now.
 select public.chk('1.4 delete_my_account is security definer with an empty search_path',
   (select p.prosecdef and p.proconfig @> array['search_path=""']
-     from pg_proc p where p.oid = 'public.delete_my_account(text)'::regprocedure));
+     from pg_proc p where p.oid = 'public.delete_my_account(text, text[])'::regprocedure));
 
 select public.chk('1.5 authenticated may execute it and anon may not',
-  has_function_privilege('authenticated', 'public.delete_my_account(text)', 'execute')
-  and not has_function_privilege('anon', 'public.delete_my_account(text)', 'execute'));
+  has_function_privilege('authenticated', 'public.delete_my_account(text, text[])', 'execute')
+  and not has_function_privilege('anon', 'public.delete_my_account(text, text[])', 'execute'));
 
 select public.chk('1.6 the login-exists trigger function is executable by no client',
   not has_function_privilege('authenticated', 'public.workspace_member_login_exists()', 'execute')

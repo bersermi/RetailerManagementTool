@@ -267,8 +267,15 @@ describe('a login with no shop can leave', () => {
     expect(welcome).toMatch(/onPress=\{\(\) => void signOut\(\)\}/);
   });
 
-  it('can delete itself there, with no shop name to type', () => {
+  // ⚠️ `10.4b-i`: THIS SAID *"with no shop name to type"*, and since `0072` a
+  // login here can own a kitchen (Wera opens shops only), which goes with the
+  // account. So the screen reads what goes, with no shop open, and asks the
+  // kitchen's name when there is one — `app/test/api-account.test.ts` holds the
+  // decision; this holds that the screen is wired to it.
+  it('can delete itself there, naming whatever business goes with it', () => {
     expect(welcome).toMatch(/useDeleteMyAccount\(\)/);
-    expect(welcome).toMatch(/remove\(deleteArgs\(\{ kind: 'leaves' \}, ''\)\)/);
+    expect(welcome).toMatch(/const goes = useBusinessesThatGo\(\);/);
+    expect(welcome).toMatch(/deletionFrom\(\{ goes, openShopId: null, roster: \[\], rosterLoading: false \}\)/);
+    expect(welcome).toMatch(/remove\(deleteArgs\(deletion, typed\)\)/);
   });
 });

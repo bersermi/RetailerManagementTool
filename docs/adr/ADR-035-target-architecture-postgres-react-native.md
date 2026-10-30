@@ -56,6 +56,13 @@
   - **Internal:** §2.3 opens *"Nineteen tables"* (there are 22). §6 says `record_transfer`
     ships in `0004` (it is `0020`). §2.10 names `@rmt/money` (the package is `@tienda/money`).
     §8's checklist has every box unticked, among them the invites, built in `0027`–`0029`.
+- **Revised:** 2026-10-29, night — **§2.7's one-login row: the deletion that names every business is
+  built** (plan `10.4b-i`, `0073`): `delete_my_account` takes a typed name for each business the caller
+  is the only owner of, and each business takes one, so a build that sends one name deletes at most one
+  business. **And §2.3's *"Wera reads only `tienda` accounts"*, measured against the code the same
+  night:** true of Wera's read of the business itself (`10.4a`), not yet of the reads beneath it —
+  stores, providers, members — which rely on the walls and return a kitchen's rows to a login that
+  also has one. This section is right and those reads are the bug: plan `10.4b-ii`.
 - **Revised:** 2026-10-29 — **§2.3: AN ACCOUNT SAYS WHICH APP OPENS IT; §2.2 AND §2.7 FOLLOW**
   (plan `10.4a`, `0072`), on the owner's answers to the marketplace drawing's questions 1 and 2
   (2026-10-28 and 29). §2.3's open question is closed: `workspace.kind`, `tienda` or `cocina`,
@@ -872,7 +879,10 @@ in the plan's ⛔ DECISIONS OWED.~~ ✅ **CLOSED 2026-10-29 (`0072`, plan `10.4a
 maker's answer to the drawing's question 1: `workspace.kind`** — `tienda` or `cocina`, one per
 account, set by `onboard_workspace` (its `p_kind` defaults to `tienda`, so every Wera build makes
 a shop) and refused any change by a trigger. Wera reads only `tienda` accounts and Cocina only
-`cocina` ones. Three things are kept apart (proposal B, 2026-10-29): **the kind says which app,
+`cocina` ones. ⚠️ **Measured 2026-10-29 (`10.4b-i`): Wera's read of the business itself keeps this
+(`10.4a`); the reads beneath it — stores, providers, members, settings — rely on the walls, which let a
+login read every business it belongs to, so a login with a kitchen too sees the kitchen's rows in Wera.
+Plan `10.4b-ii` scopes them to the shop open in it.** Three things are kept apart (proposal B, 2026-10-29): **the kind says which app,
 the trade is the `giro_principal`** — a kitchen's from a list of the kitchens' own, which Wera's
 door never returns and a trigger refuses to a shop — **and the branches are `location`s**, so a
 restaurant or a chain is a `cocina` with its giro and its kitchens, not a new kind. ⚠️ **A buyer is no workspace's member**, so she is not in this
@@ -1850,7 +1860,7 @@ sections above; where this revision chose, the row says so.
 | **The one door** | What she reads of any business — what is on offer — reaches her through **one `security definer` function** stating its own predicate: only what is on offer now, only what a buyer is shown, ~~**a pin approximate until she reserves and the exact spot only after** (the ruling on maps, 2026-10-26)~~ ✅ **a kitchen's exact pin, before she reserves as after** (RULED 2026-10-28 by the owner, reversing 2026-10-26 — see the revision entry) — a shop's only on its opt-in (ruled for *Ofrecer*, 2026-10-27) — and never a cost, a member or a ledger row. ⚠️ **A function, not a view — chosen here**: it takes her place as arguments, and `0041`'s *only one definer view* stays true. A second read across businesses needs a ruling, as a second definer view does; whether a fonda reads shops' offers through this door is one of the doors plan `10.6` waits on |
 | **What is hers** | A reservation she made, and its code, reach her through functions keyed on her own `auth.uid()` — the shape `my_access_requests()` (`0029`) already has, *"so the joiner can see a row no policy can ever show them"* — which is no door into anyone else's data. ⚠️ **Chosen here:** a table that belongs to a person and to no workspace (a phone's push token) is not a business table; it sits outside `public` in a closed schema, as `catalogo` and `servicio` do, read and written only through such functions — so `01_rls_coverage.sql` needs no third policy shape |
 | **What she writes** | Reserving, cancelling, *Recogí*, a rating: `security definer` RPCs that check the caller, as `request_access` does for a joiner. The seller's side of a reservation belongs to the seller's workspace, under its ordinary policies |
-| **One login, three apps** | Supabase links one email to one `auth.users` row, so a shopkeeper who reserves an itacate is one login, not two. **Deleting it in any app deletes it in all** — and a sole owner's shop or fonda with it, which `delete_my_account` refuses without that business's typed name (`TD007`, `0053`). ⚠️ **Measured 2026-10-29 (`10.4a`): it checks every business she is the only owner of against ONE typed name, so with a shop and a kitchen no name matches both — `TD007` every way, and the login stays.** ✅ **RULED 2026-10-29 by the decision maker: the screen names every business that goes with the account, and she types each one's name** — `delete_my_account` learns them through one new optional argument, so a one-shop account is deleted as before (`10.4b` builds it). What Itacate's *Eliminar mi cuenta* shows such a person is the decision maker's, when plan `10.5` builds it |
+| **One login, three apps** | Supabase links one email to one `auth.users` row, so a shopkeeper who reserves an itacate is one login, not two. **Deleting it in any app deletes it in all** — and a sole owner's shop or fonda with it, which `delete_my_account` refuses without that business's typed name (`TD007`, `0053`). ⚠️ **Measured 2026-10-29 (`10.4a`): it checks every business she is the only owner of against ONE typed name, so with a shop and a kitchen no name matches both — `TD007` every way, and the login stays.** ✅ **RULED 2026-10-29 by the decision maker: the screen names every business that goes with the account, and she types each one's name** — ✅ **built by `0073` (plan `10.4b-i`)**: `delete_my_account(p_shop_name, p_business_names)`, and each business she is the only owner of takes one typed name, so a build that sends one name deletes at most one business and a one-shop account is deleted as before; Wera's Ajustes and welcome screen name every business that goes. What Itacate's *Eliminar mi cuenta* shows such a person is the decision maker's, when plan `10.5` builds it |
 
 ### 2.8 Screens
 
