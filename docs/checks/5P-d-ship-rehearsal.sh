@@ -3,8 +3,12 @@
 # DOES `docs/runbooks/ship-an-update.sh` STILL REFUSE WHAT IT MUST, AND STILL
 # CLEAR THE BUNDLER'S CACHE? Plan task `5P-d`.
 #
-#   bash docs/checks/5P-d-ship-rehearsal.sh             # the ten cases
-#   bash docs/checks/5P-d-ship-rehearsal.sh --falsify   # four broken copies, each red for its reason
+#   bash docs/checks/5P-d-ship-rehearsal.sh             # every case (it prints the count)
+#   bash docs/checks/5P-d-ship-rehearsal.sh --falsify   # broken copies, each red for its reason
+#
+# ⚠️ No count is written here: this header said "the ten cases" while the
+# script ran thirteen (found by `10.4b-iii-a`, which added Wera Cocina's
+# `--app cocina` cases). The runner's own line is the number.
 #
 # The runbook is the one command that puts JavaScript on a shop's phone, and it
 # is run by hand, months apart. Two of its lines guard things nothing else does:
@@ -47,7 +51,7 @@ case "$args" in
     cat "$STUB_DIR/env-$env"; exit 0 ;;
   *"expo-updates fingerprint:generate"*) echo '{"hash":"stubruntime"}'; exit 0 ;;
   *"eas-cli@24 build:list"*) echo '[{"id":"x"}]'; exit 0 ;;
-  *"eas-cli@24 update"*) echo "STUB-PUBLISH: $args"; exit 0 ;;
+  *"eas-cli@24 update"*) echo "STUB-PUBLISH: $args (in $(basename "$PWD"))"; exit 0 ;;
 esac
 echo "stub npx: unexpected: $args" >&2; exit 97
 STUB
@@ -58,7 +62,7 @@ repo_for() {
   local copy="$1"
   local dir="$2"
   rm -rf "$dir" "$dir.git"
-  mkdir -p "$dir/app" "$dir/docs/runbooks"
+  mkdir -p "$dir/app" "$dir/cocina" "$dir/docs/runbooks"
   cp "$copy" "$dir/docs/runbooks/ship-an-update.sh"
   ( cd "$dir" \
     && git init -q -b main \
@@ -72,7 +76,9 @@ repo_for() {
 three=$'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=k\nEXPO_PUBLIC_SUPABASE_URL=u\nEXPO_PUBLIC_SUPPORT_WHATSAPP=w'
 with_pilot="$three"$'\nEXPO_PUBLIC_PILOT=piloto-1'
 refused="REFUSED: EAS's 'production' environment holds EXPO_PUBLIC_PILOT"
-publish_line="STUB-PUBLISH: --yes eas-cli@24 update --channel production --environment production --platform all --message mensaje --clear-cache --non-interactive"
+publish_line="STUB-PUBLISH: --yes eas-cli@24 update --channel production --environment production --platform all --message mensaje --clear-cache --non-interactive (in app)"
+# ⚠️ `10.4b-iii-a`: Wera Cocina's values — the database's two, and no support number.
+two=$'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=k\nEXPO_PUBLIC_SUPABASE_URL=u'
 
 # One case: the runbook's exit code AND a sentence it printed. Prints `ok` or `FAIL`.
 one() {
@@ -117,6 +123,11 @@ N_PROD_SENT="a clean production publish goes out, cache cleared"
 N_ONLY_SENT="--only android publishes to Android alone"
 N_ONLY_CHECK="--check with --only names the one platform it would reach"
 N_ONLY_BAD="--only with a platform that is not one is refused"
+N_COCINA_SENT="--app cocina publishes from Wera Cocina's folder"
+N_COCINA_TWO="Wera Cocina needs the database's two values, not Wera's support number"
+N_WERA_THREE="Wera without its support number is still refused"
+N_COCINA_FIRST="Wera Cocina without the database's key is refused"
+N_APP_BAD="--app with an app this runbook does not ship is refused"
 
 cases() {
   local dir="$1"
@@ -133,6 +144,11 @@ cases() {
   one "$dir" "$N_ONLY_SENT"    production "--only android" "$three" 0 "--platform android --message mensaje"
   one "$dir" "$N_ONLY_CHECK"   production "--check --only android" "$three" 0 "for android"
   one "$dir" "$N_ONLY_BAD"     production "--only windows" "$three" 2 "usage:"
+  one "$dir" "$N_COCINA_SENT"  preview    "--app cocina" "$two" 0 "--clear-cache --non-interactive (in cocina)"
+  one "$dir" "$N_COCINA_TWO"   preview    "--check --app cocina" "$two" 0 "to Wera Cocina's 'preview'"
+  one "$dir" "$N_WERA_THREE"   preview    --check "$two" 1 "has no EXPO_PUBLIC_SUPPORT_WHATSAPP"
+  one "$dir" "$N_COCINA_FIRST" preview    "--check --app cocina" 'EXPO_PUBLIC_SUPABASE_URL=u' 1 "has no EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY"
+  one "$dir" "$N_APP_BAD"      preview    "--app itacate" "$two" 2 "usage:"
 }
 
 if [[ -z "$mode" ]]; then
@@ -191,10 +207,12 @@ broken "the listing read with its colours on" \
 
 broken "--only that leaves nothing out" \
   'if [[ -n "$only" && "$platform" != "$only" ]]; then' 'if [[ -n "$only" && "$platform" == "nowhere" ]]; then' "$N_ONLY_SENT"
+broken "--app that is read and then ignored" \
+  'cd "$root/$app"' 'cd "$root/app"' "$N_COCINA_SENT"
 
 echo
 if [[ "$bad" -ne 0 ]]; then
   echo "$bad broken copy(ies) were not caught — the rehearsal cannot fail where it should."
   exit 1
 fi
-echo "all 5 broken copies turned their case red — the rehearsal can still fail."
+echo "all 6 broken copies turned their case red — the rehearsal can still fail."
