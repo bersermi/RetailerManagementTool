@@ -40,7 +40,7 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
   `expo-notifications` 57.0.24 upgraded `expo-constants` and moved Wera's runtime on both
   platforms; 57.0.17 fits. After any install, the root lockfile's diff must only **add**
   entries, and `docs/checks/wera-runtime.sh` (in `app.yml`) must pass.
-- **Two values come from EAS's environment, never the repository:** the Android map key
+- **Two values come from EAS's environment into the config, never the repository:** the Android map key
   (`GOOGLE_MAPS_ANDROID_API_KEY`) and Firebase's `google-services.json` (file variable
   `GOOGLE_SERVICES_JSON`, copied in by `eas-pre-install.sh`, which refuses an Android store
   build without either). **Neither enters the runtime** — `fingerprint.config.js` drops both,
@@ -59,4 +59,9 @@ bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runti
 - **Its EAS project is `@wera-app/cocina`** (`8aca5e83-56a5-4b39-87b4-dd5312a54c76`), made by the owner on 2026-10-27
   (`eas init`, plan `10.2b`); its builds listen for updates at `updates.url` in `app.json`. The
   map key and `google-services.json` are the organization's variables on expo.dev (*Sensitive*,
-  `preview` and `production`), read by every project in it.
+  `preview` and `production`), read by every project in it. The database's address and
+  publishable key are this project's own (`EXPO_PUBLIC_SUPABASE_URL`,
+  `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `preview` and `production`, Wera's values, set
+  2026-10-29). No code reads them yet — `10.4b-iii`'s data layer will — and Metro writes such a
+  value into the JavaScript bundle, not the config, so the runtime does not move with them
+  (computed both ways, 2026-10-30).
