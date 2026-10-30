@@ -398,7 +398,7 @@ function restoredShop(queries: readonly RestoredQuery[]): string | null {
  * hash, not its key).
  *
  * ⚠️⚠️ MOVED WHOLE, AND THAT IS MEASURED RATHER THAN HOPED: an old entry holds
- * whatever every business she belonged to returned, and on 2026-10-30 the hosted
+ * whatever every business she belonged to returned, and on 2026-10-29 the hosted
  * project held 16 shops, 0 kitchens and 0 logins in more than one business — so
  * on every phone in use the old entry is that one shop's. The first read that
  * reaches the server replaces it either way.

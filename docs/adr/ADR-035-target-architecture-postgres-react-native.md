@@ -882,7 +882,7 @@ a shop) and refused any change by a trigger. Wera reads only `tienda` accounts a
 `cocina` ones. ⚠️ **Measured 2026-10-29 (`10.4b-i`): Wera's read of the business itself keeps this
 (`10.4a`); the reads beneath it — stores, providers, members, settings — rely on the walls, which let a
 login read every business it belongs to, so a login with a kitchen too sees the kitchen's rows in Wera.
-Plan `10.4b-ii` scopes them to the shop open in it.** Three things are kept apart (proposal B, 2026-10-29): **the kind says which app,
+Plan `10.4b-ii` scopes them to the shop open in it.** ✅ **Scoped 2026-10-29 (`10.4b-ii`): every Wera read of a business's rows starts at one helper in `app/src/api/calls.ts` that filters on the shop open in it, and its cache is keyed on that shop; `app/test/api-shop-scope.test.ts` and `docs/checks/10.4b-ii-shop-scope-contract.sh` hold it. The rule this section states was right; those reads were the bug.** Three things are kept apart (proposal B, 2026-10-29): **the kind says which app,
 the trade is the `giro_principal`** — a kitchen's from a list of the kitchens' own, which Wera's
 door never returns and a trigger refuses to a shop — **and the branches are `location`s**, so a
 restaurant or a chain is a `cocina` with its giro and its kitchens, not a new kind. ⚠️ **A buyer is no workspace's member**, so she is not in this

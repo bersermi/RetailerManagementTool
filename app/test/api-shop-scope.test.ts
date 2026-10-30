@@ -90,7 +90,7 @@ const SCOPED = [
  * ⚠️⚠️ EVERY OTHER READ IN THE FILE, AND WHY IT IS NOT A SHOP'S LIST. A read by a
  * product's or a supplier's id is one business's by construction: every foreign
  * key to `product_variant` and to `provider` carries `workspace_id` (read off the
- * database 2026-10-30), so no row of another business can reference it.
+ * database 2026-10-29), so no row of another business can reference it.
  */
 const UNSCOPED: Readonly<Record<string, string>> = {
   myWorkspaces: "the person's shops — the list the open shop is taken from (`kind=eq.tienda`)",

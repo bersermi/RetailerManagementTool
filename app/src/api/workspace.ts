@@ -69,7 +69,7 @@ export const WERA_KIND = 'tienda';
  *
  * ⚠️ ONE COLUMN, BECAUSE EVERY RELATION WERA READS A BUSINESS'S ROWS FROM CARRIES
  * IT — the tables since `0001`, the four views too (read off the database
- * 2026-10-30). `docs/checks/10.4b-ii-shop-scope-contract.sh` reads it out of this
+ * 2026-10-29). `docs/checks/10.4b-ii-shop-scope-contract.sh` reads it out of this
  * file and asks PostgREST, for every relation that helper names, whether the
  * filter keeps the kitchen out.
  */
