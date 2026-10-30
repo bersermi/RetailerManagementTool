@@ -1,14 +1,17 @@
+import { partialMatchKey } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 
 import {
   KIND_COLUMN,
   MY_WORKSPACES_KEY,
   ONBOARD_WORKSPACE,
+  SHOP_COLUMN,
   WERA_KIND,
   WORKSPACE_COLUMNS,
   checkShopName,
   membershipFrom,
   onboardArgs,
+  shopKey,
   toWorkspace,
   type Workspace,
   type WorkspaceRow,
@@ -185,5 +188,39 @@ describe('the name the screen refuses to send', () => {
       expect(onboardArgs({ displayName: checked.displayName, pricesIncludeTax: true }).p_display_name)
         .toBe('Doña Mary');
     }
+  });
+});
+
+// ============================================================================
+// ⚠️⚠️ `10.4b-ii`: EVERY READ BENEATH THE SHOP LIST IS THE OPEN SHOP'S. The
+// filter's column is one string the contract check reads out of the module
+// (`10.4b-ii-shop-scope-contract.sh`); the key is what keeps a cache from
+// answering one business with another's rows. What calls them is pinned in
+// `api-shop-scope.test.ts`.
+// ============================================================================
+
+describe("a business's rows are read for the open shop alone", () => {
+  it('filters on the column every relation Wera reads carries', () => {
+    expect(SHOP_COLUMN).toBe('workspace_id');
+  });
+
+  it('keys a read on the shop, after the read\'s own key', () => {
+    expect(shopKey(['catalog', 'variants'], 'shop-1')).toEqual(['catalog', 'variants', 'shop-1']);
+    expect(shopKey(['month', 'purchases', '2026-10'], 'shop-1')).toEqual(['month', 'purchases', '2026-10', 'shop-1']);
+  });
+
+  it('keys two shops apart, so neither cache can answer the other', () => {
+    expect(shopKey(['catalog', 'variants'], 'shop-1')).not.toEqual(shopKey(['catalog', 'variants'], 'shop-2'));
+  });
+
+  it("is still swept by the read's own key, as every invalidation in the app is written", () => {
+    // ⚠️⚠️ THE SHOP GOES LAST FOR THIS: `invalidateQueries({ queryKey: CATALOG_KEY })`
+    // matches by prefix, and the library's own matcher is what decides it.
+    expect(partialMatchKey(shopKey(['catalog', 'variants'], 'shop-1'), ['catalog', 'variants'])).toBe(true);
+    expect(partialMatchKey(shopKey(['documents', 'recent', 'sale'], 'shop-1'), ['documents', 'recent', 'sale'])).toBe(true);
+  });
+
+  it('holds an empty segment while the shop is not known, when the read is disabled', () => {
+    expect(shopKey(['today', 'takings'], null)).toEqual(['today', 'takings', '']);
   });
 });

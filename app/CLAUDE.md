@@ -43,6 +43,10 @@ npm --prefix app test                     # the test tally — the RUNNER's, nev
 
 Each was measured against a real PostgREST or device.
 
+- **A read of a business's rows starts at `shopRows` (`@/api/calls`) and keys on `shopKey`.** The
+  walls let a login read every business she belongs to — a shop and a kitchen since `0072` — so an
+  unscoped read returns both, and with two stores Vender draws no slider (`10.4b-ii`, measured on
+  the emulator). `app/test/api-shop-scope.test.ts` holds `calls.ts` and `hooks.ts` to it.
 - **Refusals differ by verb.** An RLS INSERT refusal is **403 `42501`**; an UPDATE refusal is
   **200 with `[]`** — `.select().single()` turns it into PGRST116. A custom SQLSTATE (e.g.
   `TD003`) and `restrict_violation` (`23001`) arrive as **HTTP 400**, not 403 or 409.

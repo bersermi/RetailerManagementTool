@@ -49,7 +49,7 @@
 
 import { createSyncStoragePersister } from '@tanstack/query-sync-storage-persister';
 import { QueryClient, focusManager, onlineManager } from '@tanstack/react-query';
-import { PersistQueryClientProvider } from '@tanstack/react-query-persist-client';
+import { PersistQueryClientProvider, type PersistedClient } from '@tanstack/react-query-persist-client';
 import { useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 import { AppState } from 'react-native';
@@ -63,6 +63,7 @@ import {
   PERSISTED_KEYS,
   asLastGood,
   cacheMemory,
+  keyedByShop,
   setMemoryForgetter,
   shouldPersistQuery,
 } from '@/api/persist';
@@ -173,6 +174,10 @@ export function QueryProvider({ children }: { children: ReactNode }) {
       // ⚠️ A FAILED REFRESH IS WRITTEN AS THE SUCCESS IT LAST WAS — see
       // `asLastGood`, and the measurement in `@/api/persist`'s header.
       serialize: (client) => JSON.stringify(asLastGood(client)),
+      // ⚠️ `10.4b-ii`: WHAT AN OLDER UPDATE WROTE IS MOVED UNDER THE SHOP AS IT IS
+      // READ BACK, or the first open with no signal after the update finds no
+      // catalog — see `keyedByShop`.
+      deserialize: (stored: string) => keyedByShop(JSON.parse(stored) as PersistedClient),
     }),
   );
 

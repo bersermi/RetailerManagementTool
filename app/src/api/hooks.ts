@@ -258,6 +258,7 @@ import {
 import {
   MY_WORKSPACES_KEY,
   membershipFrom,
+  shopKey,
   type Membership,
   type OnboardInput,
   type Workspace,
@@ -367,12 +368,13 @@ export function useFreshPickupsWhenShown(shown: boolean): void {
  */
 export function useWeekSavings(): number | null {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const weekStart = weekStartOf(new Date());
   const since = new Date(weekStart.getTime() - SAVINGS_WEEKS_BACK * 7 * 86_400_000).toISOString();
   const query = useQuery({
-    queryKey: savingsKey(since),
-    queryFn: () => purchaseLinesSince(since),
-    enabled: ready && session !== null,
+    queryKey: shopKey(savingsKey(since), shopId),
+    queryFn: () => purchaseLinesSince(shopId as string, since),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 60_000,
   });
   return query.data === undefined ? null : weekSavings(query.data, weekStart);
@@ -385,10 +387,11 @@ export function useToday(): Takings & {
   readonly rows: readonly SaleRow[] | undefined;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const query = useQuery({
-    queryKey: TODAY_KEY,
-    queryFn: todaySales,
-    enabled: ready && session !== null,
+    queryKey: shopKey(TODAY_KEY, shopId),
+    queryFn: () => todaySales(shopId as string),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 60_000,
   });
   // ⚠️ `8g`, 2026-10-20: ONLY A READ MADE TODAY IS TODAY'S — see `rowsOfToday`.
@@ -424,6 +427,19 @@ export function useMembership(): Membership {
 export function useWorkspace(): Workspace | null {
   const { data } = useMyWorkspaces();
   return data === undefined || data.length === 0 ? null : data[0];
+}
+
+/**
+ * The open shop's id, or `null` until it is known — the shop every read of a
+ * business's rows is scoped to and keyed on (`10.4b-ii`; `SHOP_COLUMN` and
+ * `shopKey` in `@/api/workspace` say why).
+ *
+ * ⚠️ SUCH A READ WAITS FOR IT, so at a first sign-in it starts one round trip
+ * after the shop list instead of beside it. On every later open the list is on
+ * the phone (`@/api/persist`), so the shop is known on the first frame.
+ */
+function useShopId(): string | null {
+  return useWorkspace()?.id ?? null;
 }
 
 /**
@@ -523,19 +539,25 @@ export function useOnboardWorkspace() {
 // ============================================================================
 
 /**
- * Every membership of every shop this person belongs to.
+ * Every membership of the open shop.
  *
  * ⚠️ DISABLED WITHOUT A SESSION FOR THE REASON `useMyWorkspaces` IS.
  * `workspace_member_select` reads `my_workspaces()`, which reads `auth.uid()`,
  * so an anonymous read SUCCEEDS AND RETURNS ZERO ROWS — and a cached empty
  * roster is a shop that looks like it has nobody in it.
+ *
+ * ⚠️⚠️ AND SCOPED TO THE OPEN SHOP (`10.4b-ii`): her role, her name and the
+ * roster all ride this read, and before it a login with a shop and a kitchen
+ * read both memberships — `roleOf` takes the first row that is hers, so the
+ * kitchen's role could have been drawn in the shop.
  */
 export function useWorkspaceMembers() {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   return useQuery({
-    queryKey: MEMBERS_KEY,
-    queryFn: workspaceMembers,
-    enabled: ready && session !== null,
+    queryKey: shopKey(MEMBERS_KEY, shopId),
+    queryFn: () => workspaceMembers(shopId as string),
+    enabled: ready && session !== null && shopId !== null,
   });
 }
 
@@ -726,14 +748,15 @@ export function useRoster(): {
   readonly entries: readonly RosterEntry[];
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const members = useWorkspaceMembers();
   const role = useMyRole();
   const visible = canSeeRoster(role);
 
   const invites = useQuery({
-    queryKey: INVITES_KEY,
-    queryFn: workspaceInvites,
-    enabled: ready && session !== null && visible,
+    queryKey: shopKey(INVITES_KEY, shopId),
+    queryFn: () => workspaceInvites(shopId as string),
+    enabled: ready && session !== null && visible && shopId !== null,
   });
 
   return {
@@ -942,11 +965,12 @@ export function useLocations(): {
   readonly options: readonly LocationOption[];
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const role = useMyRole();
   const query = useQuery({
-    queryKey: LOCATIONS_KEY,
-    queryFn: workspaceLocations,
-    enabled: ready && session !== null && canInvite(role),
+    queryKey: shopKey(LOCATIONS_KEY, shopId),
+    queryFn: () => workspaceLocations(shopId as string),
+    enabled: ready && session !== null && canInvite(role) && shopId !== null,
   });
   return { loading: query.data === undefined, options: locationsFrom(query.data) };
 }
@@ -1258,12 +1282,13 @@ export function useCatalog(typed: string = ''): {
   readonly locationId: string | null;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const enabled = ready && session !== null;
 
   const variants = useQuery({
-    queryKey: CATALOG_KEY,
-    queryFn: catalogVariants,
-    enabled,
+    queryKey: shopKey(CATALOG_KEY, shopId),
+    queryFn: () => catalogVariants(shopId as string),
+    enabled: enabled && shopId !== null,
     staleTime: 5 * 60_000,
   });
   const units = useQuery({
@@ -1273,11 +1298,14 @@ export function useCatalog(typed: string = ''): {
     staleTime: Infinity,
   });
   const locations = useQuery({
-    queryKey: LOCATIONS_KEY,
-    queryFn: workspaceLocations,
-    enabled,
+    queryKey: shopKey(LOCATIONS_KEY, shopId),
+    queryFn: () => workspaceLocations(shopId as string),
+    enabled: enabled && shopId !== null,
   });
 
+  // ⚠️⚠️ ONE STORE OR NONE, AND THE STORES ARE THE OPEN SHOP'S SINCE `10.4b-ii`:
+  // a kitchen's store in this list made two, `locationId` was `null`, and with
+  // it the slider on Vender, Comprar and Merma (`draftOf`'s `no-location`).
   const stores = locationsFrom(locations.data);
   const locationId = stores.length === 1 ? stores[0].id : null;
   // ⚠️ THE BASES MAP COMES FROM THE SAME READ AS THE FACTORS, AND IT IS WHY
@@ -1355,11 +1383,13 @@ export function useStarterCatalog(): {
   // Measured on the emulator: Rosa and Pepe each joined a shop of 841 products
   // and opened on *Todavía no hay productos.* until a return to the app past
   // the five minutes. A shop being opened holds nothing yet either way.
-  const membership = useMembership();
+  // ⚠️ Since `10.4b-ii` that is the open shop's id being known — the read is
+  // scoped to it, and keyed on it as `useCatalog` keys it, so both are one entry.
+  const shopId = useShopId();
   const variants = useQuery({
-    queryKey: CATALOG_KEY,
-    queryFn: catalogVariants,
-    enabled: enabled && membership === 'member',
+    queryKey: shopKey(CATALOG_KEY, shopId),
+    queryFn: () => catalogVariants(shopId as string),
+    enabled: enabled && shopId !== null,
     staleTime: 5 * 60_000,
   });
   const holding = useMemo(
@@ -1443,15 +1473,18 @@ export function useSetPricesIncludeTax() {
 }
 
 /**
- * `8k` (`0058`): the caller's stores and their addresses. The first is the
- * shop's first store — the pilot's only one.
+ * `8k` (`0058`): the open shop's stores and their addresses. The first is the
+ * shop's first store — the pilot's only one. ⚠️ Scoped since `10.4b-ii`: the
+ * first of every store she may see could be a kitchen's, and Ajustes would have
+ * shown — and saved — its address as the shop's.
  */
 export function useStoreAddresses() {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   return useQuery<StoreAddress[]>({
-    queryKey: STORE_ADDRESS_KEY,
-    queryFn: storeAddresses,
-    enabled: ready && session !== null,
+    queryKey: shopKey(STORE_ADDRESS_KEY, shopId),
+    queryFn: () => storeAddresses(shopId as string),
+    enabled: ready && session !== null && shopId !== null,
   });
 }
 
@@ -1502,10 +1535,11 @@ export function useCollectionReaches(postalCode: string): boolean | undefined {
 /** The shop's requests, newest first — owners and managers only, by `0059`'s RLS. */
 export function useCollectionRequests() {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   return useQuery<CollectionRequest[]>({
-    queryKey: COLLECTION_KEY,
-    queryFn: collectionRequests,
-    enabled: ready && session !== null,
+    queryKey: shopKey(COLLECTION_KEY, shopId),
+    queryFn: () => collectionRequests(shopId as string),
+    enabled: ready && session !== null && shopId !== null,
   });
 }
 
@@ -1710,12 +1744,13 @@ export function useProviders(providerId: string | null = null): {
   readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const enabled = ready && session !== null;
 
   const list = useQuery({
-    queryKey: PROVIDERS_KEY,
-    queryFn: shopProviders,
-    enabled,
+    queryKey: shopKey(PROVIDERS_KEY, shopId),
+    queryFn: () => shopProviders(shopId as string),
+    enabled: enabled && shopId !== null,
     staleTime: 5 * 60_000,
   });
   const memory = useQuery({
@@ -2216,10 +2251,11 @@ export function useCosts(variantId: string | null): Costs & {
  */
 export function useMagnitude(): Typicals {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const rows = useQuery({
-    queryKey: MAGNITUDE_KEY,
-    queryFn: shopMagnitude,
-    enabled: ready && session !== null,
+    queryKey: shopKey(MAGNITUDE_KEY, shopId),
+    queryFn: () => shopMagnitude(shopId as string),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 5 * 60_000,
   });
   return rows.data === undefined ? NOTHING_TYPICAL : typicalFrom(rows.data);
@@ -2247,25 +2283,27 @@ export function useMonthReport(month: string): {
   readonly wasteFailed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
-  const enabled = ready && session !== null;
+  const shopId = useShopId();
+  const enabled = ready && session !== null && shopId !== null;
+  const shop = shopId as string;
   const { entries } = useCatalog();
   const { providers } = useProviders();
   const from = dayStartOf(month);
   const to = dayStartOf(monthShift(month, 1));
   const bought = useQuery({
-    queryKey: monthPurchasesKey(month),
+    queryKey: shopKey(monthPurchasesKey(month), shopId),
     queryFn: async () => ({
-      rows: await documentsBetween<PurchaseHead>(DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, from, to),
-      reversals: await reversalsSince(DOCUMENTS_TABLE.purchase, from),
+      rows: await documentsBetween<PurchaseHead>(shop, DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, from, to),
+      reversals: await reversalsSince(shop, DOCUMENTS_TABLE.purchase, from),
     }),
     enabled,
     staleTime: 60_000,
   });
   const thrown = useQuery({
-    queryKey: monthWasteKey(month),
+    queryKey: shopKey(monthWasteKey(month), shopId),
     queryFn: async () => ({
-      rows: await documentsBetween<WasteHead>(DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, from, to),
-      reversals: await reversalsSince(DOCUMENTS_TABLE.waste, from),
+      rows: await documentsBetween<WasteHead>(shop, DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, from, to),
+      reversals: await reversalsSince(shop, DOCUMENTS_TABLE.waste, from),
     }),
     enabled,
     staleTime: 60_000,
@@ -2299,12 +2337,13 @@ export function useSaleHours(): {
   readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const today = isoDay(new Date());
   const since = dayStartOf(daysBefore(today, HOURS_WINDOW_DAYS));
   const rows = useQuery({
-    queryKey: saleHoursKey(since),
-    queryFn: () => documentsBetween<SaleHead>(DOCUMENTS_TABLE.sale, SALE_TIME_COLUMNS, since, null),
-    enabled: ready && session !== null,
+    queryKey: shopKey(saleHoursKey(since), shopId),
+    queryFn: () => documentsBetween<SaleHead>(shopId as string, DOCUMENTS_TABLE.sale, SALE_TIME_COLUMNS, since, null),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 5 * 60_000,
   });
   return {
@@ -2327,16 +2366,18 @@ export function useSupplierHeads(): {
   readonly today: string;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
+  const shop = shopId as string;
   const today = isoDay(new Date());
   const since = supplierSince(today);
   const start = dayStartOf(since);
   const read = useQuery({
-    queryKey: supplierHeadsKey(since),
+    queryKey: shopKey(supplierHeadsKey(since), shopId),
     queryFn: async () => ({
-      rows: await documentsBetween<PurchaseHead>(DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, start, null),
-      reversals: await reversalsSince(DOCUMENTS_TABLE.purchase, start),
+      rows: await documentsBetween<PurchaseHead>(shop, DOCUMENTS_TABLE.purchase, MONTH_PURCHASE_COLUMNS, start, null),
+      reversals: await reversalsSince(shop, DOCUMENTS_TABLE.purchase, start),
     }),
-    enabled: ready && session !== null,
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 60_000,
   });
   return { heads: read.data?.rows ?? null, reversals: read.data?.reversals ?? null, today };
@@ -2368,15 +2409,17 @@ export function useWeekWaste(
   to: string,
 ): { readonly rows: readonly WasteHead[]; readonly reversals: readonly ReversalRow[] } | null {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
+  const shop = shopId as string;
   const start = dayStartOf(from);
   const end = dayStartOf(daysBefore(to, -1));
   const thrown = useQuery({
-    queryKey: ['month', 'waste-week', from],
+    queryKey: shopKey(['month', 'waste-week', from], shopId),
     queryFn: async () => ({
-      rows: await documentsBetween<WasteHead>(DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, start, end),
-      reversals: await reversalsSince(DOCUMENTS_TABLE.waste, start),
+      rows: await documentsBetween<WasteHead>(shop, DOCUMENTS_TABLE.waste, MONTH_WASTE_COLUMNS, start, end),
+      reversals: await reversalsSince(shop, DOCUMENTS_TABLE.waste, start),
     }),
-    enabled: ready && session !== null,
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 5 * 60_000,
   });
   return thrown.data ?? null;
@@ -2393,11 +2436,12 @@ export function usePurchasePrices(): {
   readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const since = risesSince(isoDay(new Date()));
   const rows = useQuery({
-    queryKey: risesKey(since),
-    queryFn: () => purchasePricesSince(since),
-    enabled: ready && session !== null,
+    queryKey: shopKey(risesKey(since), shopId),
+    queryFn: () => purchasePricesSince(shopId as string, since),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 5 * 60_000,
   });
   return { rows: rows.data ?? null, failed: rows.error ? apiErrorKey(rows.error) : null };
@@ -2439,12 +2483,13 @@ export function useSales(): {
     enabled: ready && session !== null,
     staleTime: Infinity,
   });
+  const shopId = useShopId();
   const today = isoDay(new Date());
   const since = salesSince(today);
   const rows = useQuery({
-    queryKey: salesKey(since),
-    queryFn: () => shopSales(since),
-    enabled: ready && session !== null,
+    queryKey: shopKey(salesKey(since), shopId),
+    queryFn: () => shopSales(shopId as string, since),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 60_000,
   });
   return {
@@ -2510,6 +2555,7 @@ export function useMonthExport(): {
   readonly fetch: (month: string) => Promise<MonthExport & { readonly failed: ApiMessageKey | null }>;
 } {
   const queries = useQueryClient();
+  const shopId = useShopId();
   const role = useMyRole();
   const { data } = useWorkspaceMembers();
   return {
@@ -2518,8 +2564,11 @@ export function useMonthExport(): {
     fetch: async (month: string) => {
       try {
         const rows = await queries.fetchQuery({
-          queryKey: exportKey(month),
-          queryFn: () => monthRows(month),
+          queryKey: shopKey(exportKey(month), shopId),
+          // ⚠️ A TAP, SO NO `enabled` GUARDS IT: the button is drawn only once her
+          // role is known, which needs the shop — and if it ever were not, this
+          // fails and says so rather than asking for `workspace_id=eq.null`.
+          queryFn: () => (shopId === null ? Promise.reject(new Error('no shop open')) : monthRows(shopId, month)),
           staleTime: 60_000,
           // ⚠️⚠️ `always`, `8g`, 2026-10-20 (the offline report's round 3): since
           // `QueryProvider` tells the library the signal, a `fetchQuery` offline
@@ -2571,12 +2620,13 @@ export function useDocuments(kind: DocumentKind): Documents & {
   readonly failed: ApiMessageKey | null;
 } {
   const { session, ready } = useAuth();
+  const shopId = useShopId();
   const { providers } = useProviders(null);
 
   const rows = useQuery({
-    queryKey: documentsKey(kind),
-    queryFn: () => recentDocuments(kind),
-    enabled: ready && session !== null,
+    queryKey: shopKey(documentsKey(kind), shopId),
+    queryFn: () => recentDocuments(shopId as string, kind),
+    enabled: ready && session !== null && shopId !== null,
     staleTime: 60_000,
   });
 

@@ -189,14 +189,13 @@ export function roleOf(rows: readonly MemberRow[] | null | undefined, userId: st
  * so they agree about which row is mine, and a fifth column read off that row
  * later lands beside these two rather than inventing a third finder.
  *
- * ⚠️⚠️ AND IT INHERITS `roleOf`'S ONE LIMITATION, NAMED HERE RATHER THAN LEFT TO
- * BE FOUND. `MEMBER_COLUMNS` does not read `workspace_id`, so neither function
- * can tell one shop's membership from another's — in a person with two shops
- * this returns whichever row PostgREST listed first. That is pre-existing and
- * wider than this function: `rosterFrom` would already mix two shops' people
- * into one list. Every real user has exactly one shop (`0001:317`), and the
- * repair is one column added to `MEMBER_COLUMNS` plus a filter here, not a
- * migration.
+ * ⚠️⚠️ `MEMBER_COLUMNS` DOES NOT READ `workspace_id`, so neither function can
+ * tell one business's membership from another's — and since `0072` a person can
+ * own a shop and a kitchen, so "every real user has exactly one shop" stopped
+ * being the guard. ✅ The READ is the guard since `10.4b-ii`: `workspaceMembers`
+ * returns the open shop's memberships alone (`shopRows` in `@/api/calls`), so
+ * the first row that is hers is her row in that shop, and `rosterFrom` lists
+ * that shop's people.
  *
  * ⚠️ A BLANK IS NO NAME, which is `nonBlank`'s rule and not a second one.
  */

@@ -57,6 +57,38 @@ export const WORKSPACE_COLUMNS = 'id,display_name,prices_include_tax,code,giro_p
 export const KIND_COLUMN = 'kind';
 export const WERA_KIND = 'tienda';
 
+/**
+ * ⚠️⚠️ AND EVERY READ BENEATH THAT LIST IS THE OPEN SHOP'S — `10.4b-ii`. The walls
+ * let a login read every business she belongs to (`my_workspaces()`), so a person
+ * with a shop and a kitchen read the kitchen's rows in Wera too: measured on the
+ * local database 2026-10-29, two stores, two *Genérico*, both memberships. With
+ * two stores `useCatalog` resolves none, and Vender, Comprar and Merma draw no
+ * slider — she could not ring up a sale. So `@/api/calls` reads a business's
+ * rows through one helper that filters on this column, and the shop is the one
+ * `useWorkspace` opens.
+ *
+ * ⚠️ ONE COLUMN, BECAUSE EVERY RELATION WERA READS A BUSINESS'S ROWS FROM CARRIES
+ * IT — the tables since `0001`, the four views too (read off the database
+ * 2026-10-29). `docs/checks/10.4b-ii-shop-scope-contract.sh` reads it out of this
+ * file and asks PostgREST, for every relation that helper names, whether the
+ * filter keeps the kitchen out.
+ */
+export const SHOP_COLUMN = 'workspace_id';
+
+/**
+ * The key a read of one shop's rows caches under: the read's own key, then the
+ * shop.
+ *
+ * ⚠️ THE SHOP GOES LAST so every invalidation in this app — written as the
+ * read's own key, a PREFIX — still sweeps it. ⚠️ AND IT IS IN THE KEY AT ALL so
+ * a cache can never answer one business with another's rows: the open shop is
+ * part of what was asked. `''` while the shop is not known, when the read is
+ * disabled anyway — `costsKey`'s spelling for an id that is not there yet.
+ */
+export function shopKey(key: readonly unknown[], shopId: string | null): readonly unknown[] {
+  return [...key, shopId ?? ''];
+}
+
 /** The query key `useMyWorkspaces` caches under, and `onboard` invalidates. */
 export const MY_WORKSPACES_KEY = ['workspace', 'mine'] as const;
 
