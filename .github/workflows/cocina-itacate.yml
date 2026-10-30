@@ -65,7 +65,7 @@ jobs:
 
       # The counter is read from the JSON reporter, as in `app.yml`: a green
       # tick is also what a suite that ran nothing looks like.
-      - name: Vitest — identity, permissions, and a runtime the secrets never touch (plan 10.2a)
+      - name: Vitest — identity, permissions, a runtime the secrets never touch (plan 10.2a), and each app's own rules
         run: |
           set -o pipefail
           npm run test --workspace @tienda/${{ matrix.app }} -- \
