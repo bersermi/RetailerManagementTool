@@ -191,11 +191,9 @@ export type Deletion =
  * `businessesThatGo` across every business she belongs to. `openShopId` is the
  * shop open in Wera, or `null` on the welcome screen, which has no roster.
  *
- * ⚠️ WHO LOSES ACCESS IS STILL THE ROSTER'S ANSWER, and the roster reads every
- * membership she can see without telling one business from another
- * (`MEMBER_COLUMNS` has no `workspace_id` — `nameOf`'s note in `@/api/members`).
- * For a person whose only business is this shop it is the shop's people, as it
- * always was.
+ * ⚠️ WHO LOSES ACCESS IS THE ROSTER'S ANSWER, and since `10.4b-ii` the roster is
+ * the open shop's people alone (`workspaceMembers` reads that shop's memberships
+ * only) — so it is exactly who loses this shop, never a kitchen's cooks.
  */
 export function deletionFrom(input: {
   readonly goes: readonly Business[] | null;

@@ -303,6 +303,7 @@ import {
 import {
   KIND_COLUMN,
   ONBOARD_WORKSPACE,
+  SHOP_COLUMN,
   WERA_KIND,
   WORKSPACE_COLUMNS,
   onboardArgs,
@@ -320,6 +321,19 @@ import {
   type ImportResult,
   type Template,
 } from '@/api/starterCatalog';
+
+/**
+ * ⚠️⚠️ ONE SHOP'S ROWS OF ONE RELATION — `10.4b-ii`, AND EVERY READ IN THIS FILE
+ * OF A BUSINESS'S ROWS STARTS HERE. The walls let a login read every business she
+ * belongs to, so without the filter a person with a shop and a kitchen reads both
+ * in Wera — `SHOP_COLUMN`'s header has the measurement. Every other read in this
+ * file is by an id that is one business's already, by the person herself, or of
+ * reference data, and `app/test/api-shop-scope.test.ts` holds the file to that:
+ * a new read of a business's rows that does not start here is red there.
+ */
+function shopRows(relation: string, columns: string, shopId: string) {
+  return supabase.from(relation).select(columns).eq(SHOP_COLUMN, shopId);
+}
 
 /**
  * The shops the caller is an active member of. An empty array is the answer,
@@ -371,19 +385,17 @@ export async function setPricesIncludeTax(workspaceId: string, included: boolean
 }
 
 /**
- * The caller's stores with their addresses (`0058`, `8k`). One row per store she
- * may see — `location_select` is `my_locations()` — ordered so the first is the
- * shop's first store, which is the pilot's only one.
+ * The open shop's stores with their addresses (`0058`, `8k`). One row per store
+ * she may see there — `location_select` is `my_locations()` — ordered so the
+ * first is the shop's first store, which is the pilot's only one.
  */
-export async function storeAddresses(): Promise<StoreAddress[]> {
-  const { data, error } = await supabase
-    .from('location')
-    .select(STORE_ADDRESS_COLUMNS)
+export async function storeAddresses(shopId: string): Promise<StoreAddress[]> {
+  const { data, error } = await shopRows('location', STORE_ADDRESS_COLUMNS, shopId)
     .eq('is_active', true)
     .order('created_at')
     .order('id');
   if (error) throw reported(error);
-  return ((data ?? []) as StoreAddressRow[]).map(toStoreAddress);
+  return ((data ?? []) as unknown as StoreAddressRow[]).map(toStoreAddress);
 }
 
 /**
@@ -475,13 +487,11 @@ export function photoRequest(
 }
 
 /** The shop's requests, newest first — owners and managers only, by RLS. */
-export async function collectionRequests(): Promise<CollectionRequest[]> {
-  const { data, error } = await supabase
-    .from('collection_request')
-    .select(COLLECTION_COLUMNS)
+export async function collectionRequests(shopId: string): Promise<CollectionRequest[]> {
+  const { data, error } = await shopRows('collection_request', COLLECTION_COLUMNS, shopId)
     .order('created_at', { ascending: false });
   if (error) throw reported(error);
-  return ((data ?? []) as CollectionRow[]).map(toCollectionRequest);
+  return ((data ?? []) as unknown as CollectionRow[]).map(toCollectionRequest);
 }
 
 /** Calls one off while it is still `enviada` (`TD010` after). */
@@ -527,15 +537,15 @@ export async function importCatalog(args: ImportArgs): Promise<ImportResult> {
 }
 
 /**
- * Every active and inactive membership of every shop the caller belongs to
- * (5b-ii-a). `workspace_member_select` (`0001`) scopes it to their workspaces
- * and does NOT filter `is_active`, which is why the column is read and
+ * Every active and inactive membership of the open shop (5b-ii-a; the shop since
+ * `10.4b-ii` — before it, every business she belongs to). `workspace_member_select`
+ * (`0001`) does NOT filter `is_active`, which is why the column is read and
  * `rosterFrom` is what drops a membership that has ended.
  */
-export async function workspaceMembers(): Promise<MemberRow[]> {
-  const { data, error } = await supabase.from('workspace_member').select(MEMBER_COLUMNS);
+export async function workspaceMembers(shopId: string): Promise<MemberRow[]> {
+  const { data, error } = await shopRows('workspace_member', MEMBER_COLUMNS, shopId);
   if (error) throw reported(error);
-  return (data ?? []) as MemberRow[];
+  return (data ?? []) as unknown as MemberRow[];
 }
 
 /**
@@ -549,10 +559,10 @@ export async function workspaceMembers(): Promise<MemberRow[]> {
  * with no identity on any of them, so the decision is taken before the call —
  * see `@/api/members`, and the owner's ruling of 2026-09-18.
  */
-export async function workspaceInvites(): Promise<InviteRow[]> {
-  const { data, error } = await supabase.from('workspace_invite').select(INVITE_COLUMNS);
+export async function workspaceInvites(shopId: string): Promise<InviteRow[]> {
+  const { data, error } = await shopRows('workspace_invite', INVITE_COLUMNS, shopId);
   if (error) throw reported(error);
-  return (data ?? []) as InviteRow[];
+  return (data ?? []) as unknown as InviteRow[];
 }
 
 /**
@@ -570,11 +580,15 @@ export async function workspaceInvites(): Promise<InviteRow[]> {
  * ⚠️ AN EMPTY ARRAY IS AN ANSWER, NOT A FAILURE, exactly as it is for
  * `myWorkspaces` — and here it is the one `checkInvite` turns into `noLocations`
  * rather than a refusal from the wire.
+ *
+ * ⚠️⚠️ THE OPEN SHOP'S STORES ALONE (`10.4b-ii`): `my_locations()` covers every
+ * business she belongs to, and `useCatalog` resolves a store only when exactly one
+ * comes back — so a kitchen's store beside the shop's left Vender with none.
  */
-export async function workspaceLocations(): Promise<LocationRow[]> {
-  const { data, error } = await supabase.from('location').select(LOCATION_COLUMNS);
+export async function workspaceLocations(shopId: string): Promise<LocationRow[]> {
+  const { data, error } = await shopRows('location', LOCATION_COLUMNS, shopId);
   if (error) throw reported(error);
-  return (data ?? []) as LocationRow[];
+  return (data ?? []) as unknown as LocationRow[];
 }
 
 /**
@@ -899,11 +913,9 @@ export async function reportFailedWrite(
  * ⚠️ THE ORDER IS THE DATABASE'S (`order=name`), and nothing re-sorts it on the
  * phone — see `catalogFrom`.
  */
-export async function catalogVariants(): Promise<VariantRow[]> {
+export async function catalogVariants(shopId: string): Promise<VariantRow[]> {
   const today = isoDay(new Date());
-  const { data, error } = await supabase
-    .from('product_variant')
-    .select(CATALOG_SELECT)
+  const { data, error } = await shopRows('product_variant', CATALOG_SELECT, shopId)
     .lte(`${PRICE_TABLE}.${PRICE_STARTS_COLUMN}`, today)
     .or(priceEndsAfter(today), { referencedTable: PRICE_TABLE })
     .order(CATALOG_ORDER_COLUMN);
@@ -954,10 +966,8 @@ export async function catalogUnits(): Promise<UnitRow[]> {
  * C1.5 makes both pilot shops one location each, so today the two are the same
  * question.
  */
-export async function todaySales(): Promise<SaleRow[]> {
-  const { data, error } = await supabase
-    .from('sale')
-    .select(SALE_COLUMNS)
+export async function todaySales(shopId: string): Promise<SaleRow[]> {
+  const { data, error } = await shopRows('sale', SALE_COLUMNS, shopId)
     .gte(TODAY_COLUMN, dayStartISO(new Date()));
   if (error) throw reported(error);
   return (data ?? []) as unknown as SaleRow[];
@@ -1241,10 +1251,12 @@ export async function changePrice(plan: PriceChange): Promise<PriceChangeOutcome
  * gives: a second sort here is a second answer to *which comes first*, decided
  * by whatever collation Hermes has rather than the one Postgres applied.
  */
-export async function shopProviders(): Promise<ProviderRow[]> {
-  const { data, error } = await supabase
-    .from('provider')
-    .select(PROVIDER_COLUMNS)
+export async function shopProviders(shopId: string): Promise<ProviderRow[]> {
+  // ⚠️ `10.4b-ii`: THE OPEN SHOP'S ALONE. Every business has its own generic
+  // supplier under the same name, so `order=name` leaves two in no order, and
+  // `defaultProvider` — Comprar's default — takes the first: when it was the
+  // kitchen's, `record_purchase` refused the delivery.
+  const { data, error } = await shopRows('provider', PROVIDER_COLUMNS, shopId)
     .order(PROVIDER_ORDER_COLUMN);
   if (error) throw reported(error);
   return (data ?? []) as unknown as ProviderRow[];
@@ -1282,12 +1294,10 @@ export async function providerMemory(providerId: string): Promise<MemoryRow[]> {
  * is not a screenful and PostgREST truncates at `max_rows` without saying so.
  * RLS scopes it as it scopes Costos (`0040`).
  */
-export async function purchaseLinesSince(since: string): Promise<SavingsLineRow[]> {
+export async function purchaseLinesSince(shopId: string, since: string): Promise<SavingsLineRow[]> {
   const rows: SavingsLineRow[] = [];
   for (let from = 0; ; from += SAVINGS_PAGE) {
-    const { data, error } = await supabase
-      .from(COSTS_TABLE)
-      .select(SAVINGS_COLUMNS)
+    const { data, error } = await shopRows(COSTS_TABLE, SAVINGS_COLUMNS, shopId)
       .gte(SAVINGS_SINCE_COLUMN, since)
       .order(COSTS_ORDER, { ascending: COSTS_ORDER_ASCENDING })
       .order(SAVINGS_TIEBREAK)
@@ -1352,12 +1362,10 @@ export async function variantCosts(variantId: string): Promise<CostLineRow[]> {
  * keeps `my_locations()` and carries no `has_role` (`0003`), so a cashier reads
  * her own stores' sales by policy — which is what the owner ruled on 2026-09-28.
  */
-export async function shopSales(since: string): Promise<SalesRow[]> {
+export async function shopSales(shopId: string, since: string): Promise<SalesRow[]> {
   const rows: SalesRow[] = [];
   for (let from = 0; ; from += SALES_PAGE) {
-    let query = supabase
-      .from(SALES_VIEW)
-      .select(SALES_COLUMNS)
+    let query = shopRows(SALES_VIEW, SALES_COLUMNS, shopId)
       .gte(SALES_DAY_COLUMN, since)
       .gt(SALES_ACTIVE_COLUMN, 0)
       .order(SALES_DAY_COLUMN, { ascending: false });
@@ -1382,6 +1390,7 @@ export async function shopSales(since: string): Promise<SalesRow[]> {
  * ⚠️ `to` IS EXCLUSIVE, and `null` means *until now*.
  */
 export async function documentsBetween<T>(
+  shopId: string,
   table: string,
   columns: string,
   from: string,
@@ -1389,7 +1398,7 @@ export async function documentsBetween<T>(
 ): Promise<T[]> {
   const rows: T[] = [];
   for (let at = 0; ; at += MONTH_PAGE) {
-    let query = supabase.from(table).select(columns).gte(MONTH_TIME_COLUMN, from);
+    let query = shopRows(table, columns, shopId).gte(MONTH_TIME_COLUMN, from);
     if (to !== null) query = query.lt(MONTH_TIME_COLUMN, to);
     const { data, error } = await query
       .order(MONTH_TIME_COLUMN, { ascending: true })
@@ -1409,12 +1418,10 @@ export async function documentsBetween<T>(
  * September voided in October is undone, and `standing` (`@/api/month`) has to
  * see that void to leave it out of September (`8p`).
  */
-export async function reversalsSince(table: string, from: string): Promise<ReversalRow[]> {
+export async function reversalsSince(shopId: string, table: string, from: string): Promise<ReversalRow[]> {
   const rows: ReversalRow[] = [];
   for (let at = 0; ; at += MONTH_PAGE) {
-    const { data, error } = await supabase
-      .from(table)
-      .select(REVERSAL_COLUMN)
+    const { data, error } = await shopRows(table, REVERSAL_COLUMN, shopId)
       .not(REVERSAL_COLUMN, 'is', null)
       .gte(MONTH_TIME_COLUMN, from)
       .order(MONTH_TIME_COLUMN, { ascending: true })
@@ -1496,12 +1503,10 @@ export async function supplierLines(providerId: string, since: string): Promise<
  * short page, `documentsBetween`'s reason; ⚠️ drops a day that only cancelled a
  * delivery, `priceSide`'s filter.
  */
-export async function purchasePricesSince(since: string): Promise<RiseRow[]> {
+export async function purchasePricesSince(shopId: string, since: string): Promise<RiseRow[]> {
   const rows: RiseRow[] = [];
   for (let at = 0; ; at += MONTH_PAGE) {
-    let query = supabase
-      .from(PURCHASE_PRICE_VIEW)
-      .select(RISE_COLUMNS)
+    let query = shopRows(PURCHASE_PRICE_VIEW, RISE_COLUMNS, shopId)
       .gt(PURCHASE_PRICE_TRADED_COLUMN, 0)
       .gte(PRICE_DAY_COLUMN, since);
     for (const column of RISE_ORDER.split(',')) query = query.order(column, { ascending: true });
@@ -1533,13 +1538,11 @@ export async function variantPriceHistory(variantId: string): Promise<PriceRows>
  * never asks on her behalf (`canExport`), so an empty answer here means the month
  * really was empty.
  */
-export async function monthRows(month: string): Promise<ExportRow[]> {
+export async function monthRows(shopId: string, month: string): Promise<ExportRow[]> {
   const { from, to } = monthRange(month);
   const rows: ExportRow[] = [];
   for (let at = 0; ; at += EXPORT_PAGE) {
-    let query = supabase
-      .from(EXPORT_VIEW)
-      .select(EXPORT_COLUMNS)
+    let query = shopRows(EXPORT_VIEW, EXPORT_COLUMNS, shopId)
       .gte(EXPORT_DAY_COLUMN, from)
       .lt(EXPORT_DAY_COLUMN, to)
       .order(EXPORT_DAY_COLUMN, { ascending: true });
@@ -1574,10 +1577,8 @@ export async function monthRows(month: string): Promise<ExportRow[]> {
  * `my_locations()` on both purchase policies, so a cashier's typical figures are
  * her own store's by policy rather than by a setting anyone can get wrong.
  */
-export async function shopMagnitude(): Promise<MagnitudeRow[]> {
-  const { data, error } = await supabase
-    .from(MAGNITUDE_TABLE)
-    .select(MAGNITUDE_COLUMNS)
+export async function shopMagnitude(shopId: string): Promise<MagnitudeRow[]> {
+  const { data, error } = await shopRows(MAGNITUDE_TABLE, MAGNITUDE_COLUMNS, shopId)
     // ⚠️ THE COLUMN-EXPRESSION SPELLING AND NEVER `{ referencedTable }` — see
     // `MAGNITUDE_ORDER`, and `COSTS_ORDER` for the measurement behind it.
     .order(MAGNITUDE_ORDER, { ascending: MAGNITUDE_ORDER_ASCENDING })
@@ -1622,10 +1623,8 @@ export async function shopMagnitude(): Promise<MagnitudeRow[]> {
  * paragraph: `sinceISO` reads the clock, and a clock in a cache key re-fetches
  * this list on every render.
  */
-export async function recentDocuments(kind: DocumentKind): Promise<DocumentRow[]> {
-  let query = supabase
-    .from(DOCUMENTS_TABLE[kind])
-    .select(DOCUMENTS_COLUMNS[kind])
+export async function recentDocuments(shopId: string, kind: DocumentKind): Promise<DocumentRow[]> {
+  let query = shopRows(DOCUMENTS_TABLE[kind], DOCUMENTS_COLUMNS[kind], shopId)
     .gte(DOCUMENTS_SINCE_COLUMN, sinceISO(new Date(), DOCUMENTS_DAYS))
     // ⚠️ THE PARENT'S OWN COLUMN, so the plain spelling is the correct one here.
     .order(DOCUMENTS_ORDER, { ascending: DOCUMENTS_ORDER_ASCENDING })

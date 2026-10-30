@@ -101,6 +101,15 @@
 // refused: that half of the old rule was right.
 //
 // ----------------------------------------------------------------------------
+// ⚠️⚠️ FIVE OF THE EIGHT ARE ONE SHOP'S, AND SINCE `10.4b-ii` THE SHOP IS IN THEIR KEY
+// ----------------------------------------------------------------------------
+// The walls let a login read every business she belongs to, so the reads beneath
+// the shop list are scoped to the open shop and keyed on it (`shopKey`). The
+// allow-list's roots are unchanged — a prefix still matches — but a phone holds
+// what the update before wrote under the old keys, and `keyedByShop` moves it
+// as it is read back, so the first open after the update sells with no signal.
+//
+// ----------------------------------------------------------------------------
 // ⚠️⚠️ THE TRAP THAT WOULD HAVE SHIPPED SILENTLY: `gcTime` EVICTS A QUERY FROM
 // THE CACHE, AND ONLY WHAT IS IN THE CACHE IS EVER WRITTEN TO DISK
 // ----------------------------------------------------------------------------
@@ -162,6 +171,8 @@
 // which is the whole reason it may live beside something that matters more.
 // ============================================================================
 
+import { hashKey } from '@tanstack/react-query';
+
 import { deviceStore, removeKey, type DeviceStore } from '@/lib/store';
 
 /**
@@ -191,6 +202,10 @@ export const CACHE_KEY = 'wera.query-cache';
 // ⚠️ AND STILL `v2` AFTER `['workspace', 'members']` JOINED THE LIST (2026-10-20):
 // a NEW key is not a new shape. An old blob simply lacks it, nothing reads a
 // field off a row that was never written, and the first online read fills it.
+// ⚠️⚠️ AND STILL `v2` AFTER `10.4b-ii` GAVE FIVE OF THE EIGHT THE SHOP AS A LAST
+// SEGMENT — on purpose, and for `0056`'s reason: a bump would throw away the
+// catalog. The old entries are moved under the shop as they are restored
+// (`keyedByShop`), so no row changes and nothing is lost.
 export const CACHE_SHAPE = 'v2';
 
 /**
@@ -327,6 +342,83 @@ export function asLastGood<T extends PersistedShape>(client: T): T {
       ),
     },
   };
+}
+
+/**
+ * ⚠️⚠️ THE FIVE PERSISTED READS THAT ARE ONE SHOP'S SINCE `10.4b-ii`, AS THEIR KEYS
+ * WERE BEFORE IT. Each is now keyed `[...root, shopId]` (`shopKey`), and a phone
+ * that takes that update holds them under these old keys, which nothing reads
+ * any more — so with no signal on the first open after the update it would have
+ * no stores, no catalog and no slider: the sale this file exists for. The
+ * `['providers', 'memory']` family is keyed by the supplier, one business's
+ * already; the units are nobody's; the shop list is the person's.
+ */
+export const SHOP_KEYED: readonly (readonly string[])[] = [
+  ['workspace', 'locations'],
+  ['catalog', 'variants'],
+  ['providers', 'list'],
+  ['workspace', 'members'],
+  ['today', 'takings'],
+];
+
+/** The shop list's key — `MY_WORKSPACES_KEY`, spelled as the allow-list spells it. */
+const SHOPS_ROOT: readonly string[] = ['workspace', 'mine'];
+
+/** As much of a restored query as `keyedByShop` reads. Structural, as above. */
+export interface RestoredQuery {
+  readonly queryKey: readonly unknown[];
+  readonly queryHash: string;
+  readonly state: { readonly data?: unknown };
+}
+
+/** As much of a restored client as `keyedByShop` rewrites. */
+export interface RestoredShape {
+  readonly clientState: { readonly queries: readonly RestoredQuery[] };
+}
+
+function sameKey(key: unknown, root: readonly string[]): boolean {
+  return Array.isArray(key) && key.length === root.length && root.every((segment, at) => key[at] === segment);
+}
+
+/**
+ * The shop a restored cache opens on — `useWorkspace`'s rule, the first shop of
+ * the restored list — or `null` when it holds none.
+ */
+function restoredShop(queries: readonly RestoredQuery[]): string | null {
+  const shops = queries.find((query) => sameKey(query?.queryKey, SHOPS_ROOT))?.state?.data;
+  if (!Array.isArray(shops) || shops.length === 0) return null;
+  const id: unknown = (shops[0] as { id?: unknown } | null)?.id;
+  return typeof id === 'string' && id !== '' ? id : null;
+}
+
+/**
+ * The client as it is restored: every entry under one of `SHOP_KEYED`'s old keys
+ * moved under the shop the restored list opens on — its data, its age and its
+ * status untouched, its hash the library's own (`hydrate` finds a query by its
+ * hash, not its key).
+ *
+ * ⚠️⚠️ MOVED WHOLE, AND THAT IS MEASURED RATHER THAN HOPED: an old entry holds
+ * whatever every business she belonged to returned, and on 2026-10-30 the hosted
+ * project held 16 shops, 0 kitchens and 0 logins in more than one business — so
+ * on every phone in use the old entry is that one shop's. The first read that
+ * reaches the server replaces it either way.
+ *
+ * ⚠️ WITH NO SHOP RESTORED, THE OLD ENTRIES ARE DROPPED: they were read for a
+ * business Wera does not open (a kitchen), or for nobody. ⚠️ A blob written
+ * since the update holds no old key, so this changes nothing in it; and it
+ * never throws, because a throw while restoring discards the whole cache.
+ */
+export function keyedByShop<T extends RestoredShape>(client: T): T {
+  const queries = client?.clientState?.queries;
+  if (!Array.isArray(queries)) return client;
+  const shop = restoredShop(queries);
+  const moved = queries.flatMap((query) => {
+    if (!SHOP_KEYED.some((root) => sameKey(query?.queryKey, root))) return [query];
+    if (shop === null) return [];
+    const queryKey = [...query.queryKey, shop];
+    return [{ ...query, queryKey, queryHash: hashKey(queryKey) }];
+  });
+  return { ...client, clientState: { ...client.clientState, queries: moved } };
 }
 
 /** As much of `Storage` as this file uses. `undefined` is a legitimate value. */

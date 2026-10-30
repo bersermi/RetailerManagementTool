@@ -23,6 +23,7 @@
 
 import { globSync, readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { QueryClient, dehydrate, hashKey, hydrate } from '@tanstack/react-query';
 import { describe, expect, it } from 'vitest';
 
 import { CATALOG_KEY, UNITS_KEY } from '@/api/catalog';
@@ -40,9 +41,11 @@ import {
   CACHE_SHAPE,
   CACHE_THROTTLE_MS,
   PERSISTED_KEYS,
+  SHOP_KEYED,
   asLastGood,
   cacheMemory,
   forgetCache,
+  keyedByShop,
   setMemoryForgetter,
   shouldPersistKey,
   shouldPersistQuery,
@@ -50,7 +53,7 @@ import {
 import { PROVIDERS_KEY, memoryKey } from '@/api/providers';
 import { MY_REQUESTS_KEY } from '@/api/requests';
 import { TODAY_KEY } from '@/api/today';
-import { MY_WORKSPACES_KEY } from '@/api/workspace';
+import { MY_WORKSPACES_KEY, shopKey } from '@/api/workspace';
 import type { DeviceStore } from '@/lib/store';
 
 /** A `success` query on a given key — the shape `shouldDehydrateQuery` is handed. */
@@ -433,6 +436,13 @@ describe('the binding names the policy rather than restating it', () => {
     expect(provider).toMatch(/serialize:\s*\(client\)\s*=>\s*JSON\.stringify\(asLastGood\(client\)\)/);
   });
 
+  it('reads an older update’s blob back through this module’s re-key (`10.4b-ii`)', () => {
+    // ⚠️⚠️ WITHOUT IT THE FIRST OPEN WITH NO SIGNAL AFTER THE UPDATE FINDS NO
+    // CATALOG — the block above this one measures it with the library's own
+    // `hydrate`; this is the half that says the phone asks.
+    expect(provider).toMatch(/deserialize:\s*\(stored: string\)\s*=>\s*keyedByShop\(JSON\.parse\(stored\)/);
+  });
+
   it('tells the library the signal, from the app’s one signal and not a library', () => {
     // ⚠️ WITHOUT IT AN OFFLINE READ FAILS INSTEAD OF WAITING, AND NOTHING READS
     // AGAIN ON THE RECONNECT — measured 2026-10-20: Números kept *Sin dato*.
@@ -488,5 +498,111 @@ describe('the binding names the policy rather than restating it', () => {
   it('hands `forgetCache` the live client to empty, and takes it back on unmount', () => {
     expect(provider).toMatch(/setMemoryForgetter\(\(\) => client\.clear\(\)\)/);
     expect(provider).toMatch(/return \(\) => setMemoryForgetter\(null\)/);
+  });
+});
+
+// ============================================================================
+// ⚠️⚠️ `10.4b-ii`: WHAT AN OLDER UPDATE WROTE IS FOUND UNDER THE SHOP. Five of the
+// eight are keyed `[...root, shopId]` since that row, and a phone that takes the
+// update holds them under the old keys. This block builds that phone's blob with
+// the library's own `dehydrate`, passes it through `keyedByShop` and the
+// library's own `hydrate`, and reads it back by the key the hooks now ask — the
+// round trip a phone makes on its first open after the update. ⚠️ It cannot
+// prove the phone runs `deserialize`: the binding block pins that, and his open
+// in airplane mode is the rest.
+// ============================================================================
+
+describe('what an older update wrote is found under the shop', () => {
+  const SHOP = 'b7e5c1d0-0000-4000-8000-000000000001';
+  const OTHER = 'b7e5c1d0-0000-4000-8000-000000000002';
+  const MOVED: readonly (readonly string[])[] = [LOCATIONS_KEY, CATALOG_KEY, PROVIDERS_KEY, MEMBERS_KEY, TODAY_KEY];
+  const KEPT: readonly (readonly unknown[])[] = [MY_WORKSPACES_KEY, UNITS_KEY, memoryKey('p1')];
+
+  /** What each old entry held, and when it was read. */
+  const HELD: readonly { readonly key: readonly unknown[]; readonly data: unknown; readonly at: number }[] = [
+    { key: LOCATIONS_KEY, data: [{ id: 'l1', name: 'La tienda' }], at: 2_000 },
+    { key: CATALOG_KEY, data: [{ id: 'v1', name: 'Queso fresco' }], at: 3_000 },
+    { key: UNITS_KEY, data: [{ code: 'kg' }], at: 4_000 },
+    { key: PROVIDERS_KEY, data: [{ id: 'p1', name: 'compra directa' }], at: 5_000 },
+    { key: memoryKey('p1'), data: [{ variant_id: 'v1' }], at: 6_000 },
+    { key: MEMBERS_KEY, data: [{ user_id: 'u1', role: 'owner' }], at: 7_000 },
+    { key: TODAY_KEY, data: [{ id: 's1' }], at: 8_000 },
+  ];
+
+  /** A phone's store as the update before this one wrote it, through JSON as the store holds it. */
+  function oldBlob(shops: readonly { readonly id: string }[] = [{ id: SHOP }]) {
+    const client = new QueryClient();
+    client.setQueryData(MY_WORKSPACES_KEY, shops, { updatedAt: 1_000 });
+    for (const held of HELD) client.setQueryData(held.key, held.data, { updatedAt: held.at });
+    return JSON.parse(JSON.stringify({ timestamp: 9_000, buster: CACHE_SHAPE, clientState: dehydrate(client) }));
+  }
+
+  /** The blob restored into a fresh client by the library itself. */
+  function restored(blob: { clientState: Parameters<typeof hydrate>[1] }): QueryClient {
+    const client = new QueryClient();
+    hydrate(client, blob.clientState);
+    return client;
+  }
+
+  it('names the five old keys as the modules that own them spell them', () => {
+    expect(SHOP_KEYED.map((root) => [...root])).toEqual(MOVED.map((root) => [...root]));
+  });
+
+  it('keeps every one of the five on the phone under the shop', () => {
+    for (const root of SHOP_KEYED) expect(shouldPersistKey(shopKey(root, SHOP))).toBe(true);
+  });
+
+  it('measures what it prevents: restored as written, nothing is where the hooks now look', () => {
+    // ⚠️⚠️ THE FAILURE, ON THE LIBRARY'S OWN HYDRATE: no stores, so no slider.
+    const client = restored(oldBlob());
+    for (const root of SHOP_KEYED) expect(client.getQueryData(shopKey(root, SHOP))).toBeUndefined();
+  });
+
+  it('finds all five under the shop, their rows and their age untouched, and no copy left behind', () => {
+    const client = restored(keyedByShop(oldBlob()));
+    for (const held of HELD.filter((h) => MOVED.includes(h.key as readonly string[]))) {
+      expect(client.getQueryData(shopKey(held.key, SHOP))).toEqual(held.data);
+      expect(client.getQueryState(shopKey(held.key, SHOP))?.dataUpdatedAt).toBe(held.at);
+      expect(client.getQueryData(held.key)).toBeUndefined();
+    }
+  });
+
+  it('leaves the shop list, the units and each supplier’s memory where they were', () => {
+    const client = restored(keyedByShop(oldBlob()));
+    for (const key of KEPT) expect(client.getQueryData(key)).toBeDefined();
+    expect(client.getQueryCache().getAll()).toHaveLength(HELD.length + 1);
+  });
+
+  it('hashes every moved key as the library does, because `hydrate` finds a query by its hash', () => {
+    for (const query of keyedByShop(oldBlob()).clientState.queries) {
+      expect(query.queryHash).toBe(hashKey(query.queryKey));
+    }
+  });
+
+  it('opens the first shop of the restored list, as `useWorkspace` does', () => {
+    const client = restored(keyedByShop(oldBlob([{ id: SHOP }, { id: OTHER }])));
+    expect(client.getQueryData(shopKey(CATALOG_KEY, SHOP))).toBeDefined();
+    expect(client.getQueryData(shopKey(CATALOG_KEY, OTHER))).toBeUndefined();
+  });
+
+  it('drops the five when no shop was restored — they were read for a business Wera does not open', () => {
+    const blob = keyedByShop(oldBlob([]));
+    const keys = blob.clientState.queries.map((query: { queryKey: readonly unknown[] }) => query.queryKey);
+    for (const root of SHOP_KEYED) {
+      expect(keys.some((key: readonly unknown[]) => key[0] === root[0] && key[1] === root[1])).toBe(false);
+    }
+    expect(keys).toHaveLength(KEPT.length);
+  });
+
+  it('changes nothing in a blob written since the update', () => {
+    const once = keyedByShop(oldBlob());
+    expect(keyedByShop(JSON.parse(JSON.stringify(once)))).toEqual(once);
+  });
+
+  it('never throws, because a throw while restoring discards the whole cache', () => {
+    // ⚠️ `persistQueryClientRestore` answers a throw by removing the stored client.
+    const junk: unknown[] = [null, {}, { clientState: {} }, { clientState: { queries: 'x' } },
+      { clientState: { queries: [null, {}, { queryKey: 'x' }, { queryKey: ['workspace', 'mine'], state: null }] } }];
+    for (const blob of junk) expect(() => keyedByShop(blob as never)).not.toThrow();
   });
 });

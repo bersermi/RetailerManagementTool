@@ -65,6 +65,12 @@ on:
       - "app/src/api/**"
       - "docs/checks/5b-i-api-contract.sh"
       - "docs/checks/5b-i-api-contract-falsify.sh"
+      # ⚠️ `10.4b-ii`: EVERY READ OF A BUSINESS'S ROWS IS THE OPEN SHOP'S. The check
+      # reads the filter out of `workspace.ts` and the relations out of `calls.ts`,
+      # both under `app/src/api/**` above, and asks as a login with a shop and a
+      # kitchen whether the kitchen stays out.
+      - "docs/checks/10.4b-ii-shop-scope-contract.sh"
+      - "docs/checks/10.4b-ii-shop-scope-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -1739,6 +1745,10 @@ jobs:
       # written to match on rather than trusting an exit code.
       - name: Contract — can that check still fail (its own six fixtures)
         run: bash docs/checks/5b-i-api-contract-falsify.sh
+      - name: Contract — does every read of a business's rows keep a kitchen out (plan 10.4b-ii)
+        run: bash docs/checks/10.4b-ii-shop-scope-contract.sh
+      - name: Contract — can the shop scope check still fail (its own nine fixtures)
+        run: bash docs/checks/10.4b-ii-shop-scope-contract-falsify.sh
 
       # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan
       # task 5b-ii-a). Three real people in three real roles: the founding owner,
