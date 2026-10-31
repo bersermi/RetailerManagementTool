@@ -6,11 +6,13 @@ import {
 } from 'expo-apple-authentication';
 import * as WebBrowser from 'expo-web-browser';
 import { useRef, useState } from 'react';
-import { Keyboard, Pressable, Text, TextInput, View } from 'react-native';
+import { Keyboard, Linking, Pressable, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useAuth } from '@/auth/AuthProvider';
 import { AVISO_URL } from '@/auth/aviso';
+import { forgotPasswordUrl } from '@/auth/support';
+import { SUPPORT_WHATSAPP } from '@/lib/supportWhatsapp';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -41,8 +43,10 @@ import { Formulario } from '@/ui/Formulario';
 //
 // ⚠️ APPLE'S BUTTON IS APPLE'S: its words in the phone's language, its colours,
 // and on an iPhone only. It has no `disabled`, so `busy` stops touches around it.
-// ⚠️ NO *¿Olvidaste tu contraseña?* YET: Wera's opens WhatsApp to the owner, and
-// this project's environment has no number (plan `10.4b-iv-b`).
+// ⚠️ *¿OLVIDASTE TU CONTRASEÑA?* IS WERA'S `5R-h` (plan `10.4b-iv-b`): it opens
+// WhatsApp to the owner, who sets a new password by hand — not a reset. Under
+// *Entrar* only (a person creating an account has nothing to forget), and absent
+// on a build without his number (`@/lib/supportWhatsapp`).
 // ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): what it calls is pinned
 // behind it (`@/auth/credentials`, `@/auth/oauth`, `@/auth/apple`), and that it
 // looks right is the owner's phone.
@@ -61,6 +65,9 @@ export default function Entrar() {
   const [accepted, setAccepted] = useState(false);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState<string | null>(null);
+
+  // A local, so the null check below still holds inside the tap's callback.
+  const supportNumber = SUPPORT_WHATSAPP;
 
   const surnameBox = useRef<TextInput>(null);
   const emailBox = useRef<TextInput>(null);
@@ -250,6 +257,23 @@ export default function Entrar() {
             )
           }
         />
+
+        {/* Under the button it rescues, and only where there is a password to have
+            forgotten. A failure to open says nothing, as the aviso's link. */}
+        {!creating && supportNumber !== null && (
+          <Pressable
+            accessibilityRole="button"
+            disabled={busy}
+            onPress={() => {
+              Linking.openURL(forgotPasswordUrl(supportNumber, email)).catch(() => {});
+            }}
+            style={{ minHeight: SIZE.tapTarget, alignItems: 'center', justifyContent: 'center', opacity: busy ? 0.6 : 1 }}
+          >
+            <Text style={{ fontSize: SIZE.bodySize, color: PALETTE.tintaApagada, textAlign: 'center' }}>
+              {ES.auth.forgotPassword}
+            </Text>
+          </Pressable>
+        )}
 
         <Pressable
           accessibilityRole="button"
