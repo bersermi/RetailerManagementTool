@@ -99,23 +99,40 @@ export function Publicaciones({ kitchenId }: { kitchenId: string }) {
             ))}
 
             {asking === listing.id ? (
-              <View style={{ gap: SIZE.rowGap }}>
-                <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>
+              // ⚠️ WERA'S ROW, ITS LOOK TOO (`desperdicio.tsx`, *¿Cancelarla?*): the
+              // question, *No* in green and *Sí, retirar* in red — quiet words, never a
+              // filled green button inviting the tap that takes it down.
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: SIZE.space }}>
+                <Text style={{ flex: 1, fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.tinta }}>
                   {ES.publicaciones.retirarPregunta}
                 </Text>
-                <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
-                  <View style={{ flex: 1 }}>
-                    <BotonLleno
-                      variante="principal"
-                      label={ES.publicaciones.retirarSi}
-                      busy={busy}
-                      onPress={() => void retirar(listing.id)}
-                    />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <BotonLleno variante="discreto" label={ES.publicaciones.retirarNo} onPress={() => setAsking(null)} />
-                  </View>
-                </View>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={ES.publicaciones.retirarNo}
+                  disabled={busy}
+                  onPress={() => setAsking(null)}
+                  style={{ minHeight: SIZE.tapTarget, justifyContent: 'center', paddingHorizontal: SIZE.rowGap }}
+                >
+                  <Text style={{ fontSize: SIZE.bodySize, fontWeight: '600', color: PALETTE.accion }}>
+                    {ES.publicaciones.retirarNo}
+                  </Text>
+                </Pressable>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={ES.publicaciones.retirarSi}
+                  accessibilityState={{ disabled: busy }}
+                  disabled={busy}
+                  onPress={() => void retirar(listing.id)}
+                  style={{ minHeight: SIZE.tapTarget, justifyContent: 'center', paddingHorizontal: SIZE.rowGap, opacity: busy ? 0.6 : 1 }}
+                >
+                  {busy ? (
+                    <ActivityIndicator color={PALETTE.error} />
+                  ) : (
+                    <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.error }}>
+                      {ES.publicaciones.retirarSi}
+                    </Text>
+                  )}
+                </Pressable>
               </View>
             ) : (
               <View style={{ flexDirection: 'row', gap: SIZE.rowGap }}>
