@@ -143,6 +143,49 @@ export const ES = {
     cambiarDatos: 'Cambiar giro o dirección',
   },
 
+  /**
+   * ⚠️ HER WAY OUT, `10.4b-iii-c` — WERA'S WORDS (`app/src/strings.ts`,
+   * `ES.account`, plans `5R-c` and `10.4b-i`), held to Wera's file by
+   * `test/account.test.ts`: one login in both apps, so deleting it reads the same
+   * in each. Two are this app's own: where each business lives, said from here
+   * (`businessLine`), and where a shop's records can be downloaded first
+   * (`shopRecords`), since this app cannot make that file.
+   */
+  account: {
+    open: 'Eliminar mi cuenta',
+    /** Nothing goes but the login. ⚠️ It promises nothing about a name staying. */
+    aloneWarning:
+      'Se borra tu acceso: tu correo, tu contraseña y tu entrada con Google o con Apple. ' +
+      'No se puede deshacer.',
+    /** ⚠️ The count is passed in, the grammar lives here. */
+    businessesWarning: (count: number) =>
+      count === 1
+        ? 'Eres la única persona dueña de este negocio. Si eliminas tu cuenta, se borra completo, ' +
+          'con todo lo que tiene. No se puede deshacer.'
+        : 'Eres la única persona dueña de estos negocios. Si eliminas tu cuenta, se borran ' +
+          'completos, con todo lo que tienen. No se puede deshacer.',
+    /** This app's own: a kitchen is here; a shop is in Wera (Wera says the mirror). */
+    businessLine: (name: string, kind: 'tienda' | 'cocina') =>
+      kind === 'cocina' ? `${name}: tu cocina` : `${name}: tu tienda en Wera`,
+    /**
+     * This app's own: Wera's Ajustes offers a shop's month as a file before it
+     * goes (`5R-c`); Cocina cannot make that file, so it says where it is made.
+     */
+    shopRecords: 'Antes, puedes descargar las ventas, compras y merma de tu tienda en Wera: Números → Descargar un mes.',
+    typeShopName: (shop: string) => `Para confirmar, escribe el nombre de la tienda: ${shop}`,
+    typeKitchenName: (kitchen: string) => `Para confirmar, escribe el nombre de la cocina: ${kitchen}`,
+    confirm: 'Eliminar mi cuenta',
+    confirmShop: 'Eliminar mi cuenta y la tienda',
+    confirmKitchen: 'Eliminar mi cuenta y la cocina',
+    confirmBusinesses: 'Eliminar mi cuenta y mis negocios',
+    working: 'Eliminando…',
+    cancel: 'Cancelar',
+    errors: {
+      /** `0073`'s refusal: a business the screen did not show. */
+      listChanged: 'La lista de tus negocios cambió. Revísala y escribe otra vez cada nombre.',
+    },
+  },
+
   /** Her trade and her address, changed or completed from her kitchen's screen. */
   datos: {
     titulo: 'Giro y dirección',

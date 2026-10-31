@@ -1,6 +1,5 @@
 import { router } from 'expo-router';
-import { useState } from 'react';
-import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useKitchenGiros, useMyKitchens, usePlace } from '@/api/hooks';
@@ -11,7 +10,9 @@ import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
+import { Formulario } from '@/ui/Formulario';
 import { MapaFijo } from '@/ui/MapaFijo';
+import { Salidas } from '@/ui/Salidas';
 
 // ============================================================================
 // HER KITCHEN. Plan tasks `10.4b-iii-a` (the screen every launch opens on) and
@@ -31,25 +32,20 @@ import { MapaFijo } from '@/ui/MapaFijo';
 // Wera's onboarding has Ajustes for that; this screen is Cocina's. And the same
 // buttons change what she gave: *Cambiar el punto*, *Cambiar giro o dirección*.
 // `10.4b-iv` adds publishing above them.
+//
+// ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`, `10.4b-iii-c`): *Cerrar sesión*,
+// and *Eliminar mi cuenta*, which names this kitchen first and every other
+// business she alone owns — a shop of hers in Wera too — and asks each name.
+// The boxes are typed at the foot, so the screen is a `Formulario`: the box
+// being typed in stays above the keyboard.
 // ============================================================================
 export default function TuCocina() {
   const insets = useSafeAreaInsets();
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
   const kitchens = useMyKitchens();
   const kitchen = openKitchen(kitchens.data);
   const giros = useKitchenGiros();
   const place = usePlace(kitchen?.id ?? null);
-  const [leaving, setLeaving] = useState(false);
-
-  async function leave() {
-    if (leaving) return;
-    setLeaving(true);
-    try {
-      await signOut();
-    } finally {
-      setLeaving(false);
-    }
-  }
 
   const body = { paddingHorizontal: SIZE.space * 2, paddingTop: SIZE.space * 2, paddingBottom: SIZE.space * 2 + insets.bottom, gap: SIZE.space };
   const wheel = (words: string) => (
@@ -95,7 +91,7 @@ export default function TuCocina() {
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda titulo={kitchen.displayName} antetitulo={trade ?? ES.cocina.antetitulo} />
-      <ScrollView contentContainerStyle={body}>
+      <Formulario contentContainerStyle={body}>
         {missingGiro && <Text style={missing}>{ES.cocina.sinGiro}</Text>}
 
         <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.cocina.donde}</Text>
@@ -145,9 +141,9 @@ export default function TuCocina() {
 
         <View style={{ marginTop: SIZE.space, paddingTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea, gap: SIZE.space }}>
           <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.cocina.pronto}</Text>
-          <BotonLleno variante="discreto" label={ES.auth.signOut} busy={leaving} onPress={() => void leave()} />
+          <Salidas openKitchenId={kitchen.id} />
         </View>
-      </ScrollView>
+      </Formulario>
     </View>
   );
 }

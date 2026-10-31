@@ -1764,9 +1764,13 @@ jobs:
       # ⚠️ `10.4b-iii-b` ADDED FIVE GROUPS AND SEVEN FIXTURES: making her kitchen —
       # the trades, her trade, her place, her address, her pin — asked as a login
       # that also owns a shop, whose store must never receive the kitchen's.
-      - name: Contract — does Wera Cocina open kitchens only and make one on its own place (plans 10.4b-iii-a and -b)
+      # ⚠️ `10.4b-iii-c` ADDED FIVE GROUPS AND FOUR FIXTURES: her way out — what
+      # goes with her account and the deletion, by `cocina/src/api/account.ts`'s
+      # names, as that login and as a shop's owner who never makes a kitchen;
+      # whether a business is gone is asked of the database as the superuser.
+      - name: Contract — does Wera Cocina open kitchens only, make one on its own place, and delete an account with every business named (plans 10.4b-iii-a, -b and -c)
         run: bash docs/checks/10.4b-iii-a-cocina-contract.sh
-      - name: Contract — can the Cocina check still fail (its own fourteen fixtures)
+      - name: Contract — can the Cocina check still fail (its own eighteen fixtures)
         run: bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 
       # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan
@@ -2224,10 +2228,12 @@ jobs:
       - name: Apply migrations from scratch
         run: supabase db reset
 
-      - name: Contract — does the app's call reach the function, and does it sign and revoke as Apple asks (plan 5R-k)
+      # ⚠️ `10.4b-iii-c` (the function's build 2): Wera Cocina's call too — its
+      # body names its app, and the stand-in issues each code to one app.
+      - name: Contract — do both apps' calls reach the function, and does it sign and revoke as Apple asks, for the app the code came from (plans 5R-k and 10.4b-iii-c)
         run: bash docs/checks/5R-k-apple-revoke-contract.sh
 
-      - name: Contract — can the function check still fail (its own five fixtures)
+      - name: Contract — can the function check still fail (its own eight fixtures)
         run: bash docs/checks/5R-k-apple-revoke-contract-falsify.sh
 
       - name: Deployed check — can it still fail (five canned replies, no network)

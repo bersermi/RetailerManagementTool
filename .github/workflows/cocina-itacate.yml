@@ -26,11 +26,14 @@ on:
       # sign-in words and its name key (one login across the apps, so one spelling
       # of each), and the privacy page its sign-in opens; since `10.4b-iii-b` also
       # Wera's address rule (`collection.ts`'s postal code), whose boxes and words
-      # Cocina's kitchen form copies. A change to any of them runs the suite that
-      # holds Cocina to it.
+      # Cocina's kitchen form copies; and since `10.4b-iii-c` Wera's deletion
+      # (`account.ts`: the function's name and region, the read's columns — one
+      # function and one deletion for both apps). A change to any of them runs the
+      # suite that holds Cocina to it.
       - "app/src/strings.ts"
       - "app/src/auth/credentials.ts"
       - "app/src/api/collection.ts"
+      - "app/src/api/account.ts"
       - "site/privacidad/cocina-e-itacate/index.html"
       - "package.json"
       - "package-lock.json"
