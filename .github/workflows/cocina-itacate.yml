@@ -43,6 +43,11 @@ on:
       - "app/src/format/mxn.ts"
       - "app/src/api/catalogWrite.ts"
       - "supabase/migrations/0072_a_kitchen_publishes.sql"
+      # ⚠️ `10.4b-iv-b`, *¿OLVIDASTE TU CONTRASEÑA?*: Cocina's copy of Wera's
+      # support link is run beside Wera's file, and every `EXPO_PUBLIC_` value its
+      # source reads is held to the update runbook's list for `--app cocina`.
+      - "app/src/auth/support.ts"
+      - "docs/runbooks/ship-an-update.sh"
       - "site/privacidad/cocina-e-itacate/index.html"
       - "package.json"
       - "package-lock.json"

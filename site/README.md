@@ -6,15 +6,17 @@ through `.github/workflows/site.yml` (GitHub Pages), on every push to `main` tha
 
 | Page | URL once published | What it is for |
 |---|---|---|
-| `index.html` | `tu-wera.com/` | Where the *Wera* mark on every page points, and the **support page** the store listings ask for: what Wera is, the two in-app paths (forgotten password, deleting an account) and `ayuda@tu-wera.com` |
+| `index.html` | `tu-wera.com/` | Where the *Wera* mark on every page points, and the **support page** the store listings ask for: what Wera is, the two in-app paths (forgotten password, deleting an account) and `ayuda@tu-wera.com`; since `10.4b-iv-b` a paragraph for Wera Cocina, the *Website* its Play listing gives, with its aviso and deletion page |
 | `privacidad/index.html` | `tu-wera.com/privacidad/` | The *aviso de privacidad integral* (LFPDPPP 2025, Art. 15). Its top box, *En resumen*, is the **simplified aviso** of Art. 16.II: the responsable and domicilio, the data, the purposes, how to limit use, and where the integral is |
-| `privacidad/cocina-e-itacate/index.html` | `tu-wera.com/privacidad/cocina-e-itacate/` | The privacy notice of the **test versions** of Wera Cocina and Itacate (plan `10.2b`, the owner's yes of 2026-10-27): the link both Play listings require. They have no accounts and ask for nothing; it names what leaves the phone and says it changes before either app asks for anything. `10.4` and `10.5` replace it with each app's section of the aviso |
-| `eliminar-cuenta/index.html` | `tu-wera.com/eliminar-cuenta/` | Google Play's account-deletion web resource. It names the listing (*Wera: tu tienda*), the in-app path, the way out without the app, and what is erased and what is kept |
+| `privacidad/cocina-e-itacate/index.html` | `tu-wera.com/privacidad/cocina-e-itacate/` | The aviso of **Wera Cocina** and of **Itacate's test version** — the link both Play listings and Wera Cocina's sign-in give. Written for the skeletons by `10.2b` (no accounts); **rewritten by `10.4b-iv-b`** for Wera Cocina's account, kitchen and publications and who sees them, with its own *En resumen* (Art. 16.II) and Itacate's section unchanged in substance. `10.5` rewrites both apps' parts: what neighbours see, and Itacate's account |
+| `eliminar-cuenta/index.html` | `tu-wera.com/eliminar-cuenta/` | Google Play's account-deletion web resource. It names the listing (*Wera: tu tienda*), the in-app path, the way out without the app, and what is erased and what is kept — since `10.4b-iv-b` a kitchen of hers too, and a link to Wera Cocina's page |
+| `eliminar-cuenta/cocina/index.html` | `tu-wera.com/eliminar-cuenta/cocina/` | **Wera Cocina's** account-deletion web resource (`10.4b-iv-b`): the link its Play Data safety form gives, which Google requires to name the app as its listing does. The in-app path (the foot of her kitchen's screen, or of the one that registers it), the way out by email, and what is erased — every business she alone owns, her kitchen and a shop in Wera — and what is kept |
 | `estilo.css` | — | The app's palette (`app/src/theme/palette.ts`), light only, as the app is |
 
 ## ⚠️ Two placeholders, filled only when the page is published
 
-`{{RESPONSABLE}}` and `{{DOMICILIO}}`, twice each, both in `privacidad/index.html`.
+`{{RESPONSABLE}}` and `{{DOMICILIO}}`, in both avisos: `privacidad/index.html` and
+`privacidad/cocina-e-itacate/index.html` (the build prints how many times it filled each).
 The owner ruled that his full legal name and **home** address go in the aviso (2026-10-10).
 This repository is public, so they are not committed here. **They are the repository
 secrets `RESPONSABLE` and `DOMICILIO`**, set by the owner, and
@@ -59,7 +61,17 @@ first. Nothing checks these pages against the schema: this table is the only lin
 | Pilot readings: the five kinds, member, shop, store, random device id, build, time; pilot builds only; the shop's owner reads them | `pilot_reading` and its select policy (`0043`); `EXPO_PUBLIC_PILOT` (`app/src/lib/pilotFlag.ts`); rulings 42–45 (ADR-035 header) |
 | Counts of sales, purchases and waste per shop per day, **in every version** (finalidad 9) | `5P-b`, ruled 2026-10-12; `docs/runbooks/engagement.sql` counts every shop in the database. ⚠️ **Since 2026-10-14 the aviso says every version, store builds included** (the owner's ruling that day, which moved it out of the pilot's list): nothing records which version a shop installed, so this sentence is the one that matches the query |
 | Update checks send IP, platform, app version and a random install id to Expo | `expo-updates`' `FileDownloader` sends `EAS-Client-ID` |
-| **Cocina and Itacate's test versions** ask for nothing: no account, location, camera or notification | `cocina/src/app/index.tsx`, `itacate/src/app/index.tsx`: one screen, a map and three lines, no call to a permission (plan `10.2a`) |
+| **Wera Cocina's account** is Wera's: the same login, the same data (name, email, password, Google's or Apple's) | One `auth.users` for both apps (ADR-035 §2.7); Cocina's `AuthProvider.tsx` writes the name under Wera's key (`cocina/test/auth-rules.test.ts` reads `app/src/auth/credentials.ts`) |
+| **A kitchen holds** its name, giro, address (five boxes), exact pin and line of directions, and her name as its owner | `workspace` (`kind`, `giro_principal`), `location` (`0058`'s address, `0072`'s `pin_lat`/`pin_lng`/`directions`), `workspace_member`; written by `cocina/src/api/registro.ts` (`10.4b-iii-b`) |
+| **A publication holds** each line's name, description, tags, price, count and usual price, the window, who published it and when, and when it was withdrawn | `listing` and `listing_line` (`0072`); `cocina/src/api/listing.ts`, held by `10.4b-iv-a-listing-contract.sh` |
+| **Who sees a kitchen and what it publishes: its own people — today, her alone — and Wera.** No neighbour yet | `listing_select` and `listing_line_select` are `my_workspaces()` and `my_locations()` (`0072`), `location_select` is `my_locations()` (`0001`); Wera Cocina has no invitation, and Wera opens shops only (`10.4a`), so nobody else joins a kitchen. ⚠️ **`10.5`'s door changes this sentence**: the aviso promises to say what neighbours see, and an email to every account, before Itacate shows anything |
+| Neighbours will see a kitchen's **exact pin** | The owner's ruling 4 of 2026-10-28; Cocina's map says *Los vecinos verán este punto exacto en el mapa.* (`cocina/src/strings.ts`) |
+| Wera Cocina asks no location, contacts, camera, photos or microphone; the pin is tapped | `cocina/app.json` blocks the location permissions; no screen calls a permission (`expo-image-picker` is in the build, unused until `10.6`) |
+| Wera Cocina keeps only the session on the phone, and signing out deletes it | No persisted cache (`cocina/CLAUDE.md`); the session lives in `expo-sqlite` (`cocina/src/lib/supabase.ts`), and `signOut` in `AuthProvider.tsx` removes it, by hand when the library cannot |
+| *¿Olvidaste tu contraseña?* in Wera Cocina opens WhatsApp with the email | `cocina/src/auth/support.ts` (`10.4b-iv-b`), Wera's `5R-h` copied; the number is EAS's `EXPO_PUBLIC_SUPPORT_WHATSAPP` |
+| Deleting from Wera Cocina deletes the login and every business she alone owns, each name typed; by email, the same | `delete_my_account` (`0073`); `cocina/src/api/account.ts` (`10.4b-iii-c`); `docs/runbooks/delete-an-account.sh`, one `--shop` per business, rehearsed by `docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh` (CI: `db.yml`'s `delete-by-email`) |
+| The iPhone path *Configuración → tu nombre → Iniciar sesión con Apple → **Wera** → Eliminar* holds for Wera Cocina | ⚠️ **Not measured**: Wera Cocina is grouped under Wera's App ID (the owner, 2026-10-30), so Apple should list one entry, Wera's. No iPhone build of Wera Cocina exists yet to look |
+| **Itacate's test version** asks for nothing: no account, location, camera or notification | `itacate/src/app/index.tsx`: one screen, a map and three lines, no call to a permission (plan `10.2a`) |
 | Their map's tiles come from Google on Android and Apple on iPhone; on Android Google's map also sends the phone's model and version, its own random id, map gestures and crash reports | `react-native-maps` with no provider set: Google Maps SDK on Android, MapKit on iOS (`10.2a`); what the SDK collects is Google's *Prepare for Google Play's data disclosure requirements* for the Maps SDK for Android, read 2026-10-27 (page dated that day) — re-read it when the SDK is upgraded |
 | On Android they register with Firebase Cloud Messaging at launch | Firebase's own documentation: an FCM token is generated automatically at start-up and its identifier uploaded, unless `firebase_messaging_auto_init_enabled` is false; neither app sets it (`10.2a`). `google-services.json` reaches only EAS builds (`eas-pre-install.sh`) |
 | Signing out deletes the phone's copy of the catalog and suppliers | `signOut` in `AuthProvider.tsx` calls `forgetCache` (`6d`) |
@@ -74,6 +86,9 @@ first. Nothing checks these pages against the schema: this table is the only lin
 ## When something changes
 
 - **`5R-e` (the listings go live)** adds the App Store and Google Play links to `index.html`.
+- **`10.5` (Itacate shows kitchens)** rewrites Wera Cocina's section 4 — what neighbours see of a
+  kitchen and what it publishes — and Itacate's section, for its account. ⚠️ **The Cocina aviso
+  promises an email to every account before that applies** (its section 11), as Wera's does.
 
 - **Apple sign-in on Android**, if it is ever built, needs Apple's web flow: say so under
   *Con quién los compartimos*, where today's sentence describes the iPhone's sheet only.
