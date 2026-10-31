@@ -15,7 +15,9 @@
 # have her kitchen's address and pin written onto her shop (`10.4b-ii`'s defect,
 # one app over). And `cocina/src/auth/credentials.ts` names the key a person's
 # name is stored under at sign-up, which the database reads when she makes a
-# business (`auth_full_name`, `0034`).
+# business (`auth_full_name`, `0034`). And `cocina/src/api/account.ts`
+# (`10.4b-iii-c`) names her way out: the read that says what goes with her
+# account, and the deletion's function and argument.
 #
 # WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST, as ONE login
 # that owns a shop and then makes kitchens — so every group asks as the kitchen's
@@ -45,6 +47,20 @@
 #  12. Her pin and its line, likewise: six decimals as sent, the line as sent, a
 #      blank line none; her shop's store still has no pin.
 #  13. Signed out: no business, no place, no trades, and no pin set.
+#  14. What goes with her account, by the app's owners read: her shop and her two
+#      kitchens, each with her as its only owner and its kind.  (`10.4b-iii-c`, 14–18)
+#  15. The deletion as the app sends it, her shop's name missing: 400 `TD007`, and
+#      all three businesses still there.
+#  16. Every name, in any case and spacing: 200 {3 deleted, 0 left}, none of the
+#      three left in the database, and her login gone.
+#  17. A shop's owner who opens Cocina with no kitchen: the read names her shop as
+#      a shop; an empty list — a screen that thought nothing goes — is refused
+#      `TD007`, and her shop stays.
+#  18. Her shop's name: 200 {1 deleted, 0 left}, her shop gone, her login gone.
+#
+# ⚠️ WHETHER A BUSINESS IS GONE IS ASKED OF THE DATABASE ITSELF (`supabase db
+# query --local`, as the superuser, groups 15–18): read as her, a deleted login
+# sees nothing whether or not anything was deleted.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: Google's and Apple's sign-ins. Neither runs on this
 # stack (both providers are off in `supabase/config.toml`), Apple's needs a token
@@ -56,8 +72,8 @@
 # owner's Mac as well as in CI.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract.sh
-# With: $1 a copy of kitchen.ts, $2 of credentials.ts and $3 of place.ts — how the
-#       falsifier points it at a broken one.
+# With: $1 a copy of kitchen.ts, $2 of credentials.ts, $3 of place.ts and $4 of
+#       account.ts — how the falsifier points it at a broken one.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
@@ -65,7 +81,8 @@ set -uo pipefail
 KITCHEN_TS="${1:-cocina/src/api/kitchen.ts}"
 CREDENTIALS_TS="${2:-cocina/src/auth/credentials.ts}"
 PLACE_TS="${3:-cocina/src/api/place.ts}"
-for f in "$KITCHEN_TS" "$CREDENTIALS_TS" "$PLACE_TS"; do
+ACCOUNT_TS="${4:-cocina/src/api/account.ts}"
+for f in "$KITCHEN_TS" "$CREDENTIALS_TS" "$PLACE_TS" "$ACCOUNT_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f"; exit 1; }
 done
 
@@ -103,6 +120,15 @@ SET_ADDRESS="$(const SET_STORE_ADDRESS "$PLACE_TS")"
 SET_ADDRESS_ARGS="$(args_of "$PLACE_TS" SetStoreAddressArgs)"
 SET_PIN="$(const SET_STORE_PIN "$PLACE_TS")"
 SET_PIN_ARGS="$(args_of "$PLACE_TS" SetStorePinArgs)"
+# `10.4b-iii-c`: her way out — what goes with her account, and the deletion.
+OWNERS_TABLE="$(const OWNERS_TABLE "$ACCOUNT_TS")"
+OWNER_COLUMNS="$(const OWNER_COLUMNS "$ACCOUNT_TS")"
+OWNER_ROLE_COL="$(const OWNER_ROLE_COLUMN "$ACCOUNT_TS")"
+OWNER_ROLE="$(const OWNER_ROLE "$ACCOUNT_TS")"
+OWNER_ACTIVE_COL="$(const OWNER_ACTIVE_COLUMN "$ACCOUNT_TS")"
+DELETE_RPC="$(const DELETE_MY_ACCOUNT "$ACCOUNT_TS")"
+DELETE_ARGS="$(args_of "$ACCOUNT_TS" DeleteArgs)"
+MISMATCH="$(const NAME_MISMATCH_CODE "$ACCOUNT_TS")"
 
 for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KIND_COL" \
             "COCINA_KIND:$KIND" "KITCHEN_ORDER:$ORDER_COLS" "FULL_NAME_KEY:$NAME_KEY" \
@@ -110,7 +136,10 @@ for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KI
             "GIRO_COLUMN:$GIRO_COL" "PLACE_TABLE:$PLACE_TABLE" "PLACE_COLUMNS:$PLACE_COLUMNS" \
             "PLACE_OWNER_COLUMN:$PLACE_OWNER" "PLACE_ACTIVE_COLUMN:$PLACE_ACTIVE" "PLACE_ORDER:$PLACE_ORDER_COLS" \
             "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$SET_ADDRESS_ARGS" \
-            "SET_STORE_PIN:$SET_PIN" "SetStorePinArgs:$SET_PIN_ARGS"; do
+            "SET_STORE_PIN:$SET_PIN" "SetStorePinArgs:$SET_PIN_ARGS" \
+            "OWNERS_TABLE:$OWNERS_TABLE" "OWNER_COLUMNS:$OWNER_COLUMNS" "OWNER_ROLE_COLUMN:$OWNER_ROLE_COL" \
+            "OWNER_ROLE:$OWNER_ROLE" "OWNER_ACTIVE_COLUMN:$OWNER_ACTIVE_COL" "DELETE_MY_ACCOUNT:$DELETE_RPC" \
+            "DeleteArgs:$DELETE_ARGS" "NAME_MISMATCH_CODE:$MISMATCH"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the app's source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -126,6 +155,7 @@ PLACE_ORDER="$(tr ',' '\n' <<< "$PLACE_ORDER_COLS" | sed 's/$/.asc/' | paste -sd
 place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq.$1&$PLACE_ACTIVE=eq.true&order=$PLACE_ORDER&limit=1"; }
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
 ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS)"
+ok "and her way out: $OWNERS_TABLE?select=$OWNER_COLUMNS where $OWNER_ROLE_COL = $OWNER_ROLE and $OWNER_ACTIVE_COL; $DELETE_RPC($DELETE_ARGS), refused $MISMATCH"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -433,11 +463,126 @@ else
   ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out"))"
 fi
 
+# =============================================================================
+# `10.4b-iii-c` — HER WAY OUT. What goes with her account and the deletion, by the
+# app's names: first as this login — a shop and two kitchens, all hers alone —
+# then as a shop's owner who opens Cocina and never makes a kitchen.
+# =============================================================================
+OWNERS_READ="/rest/v1/$OWNERS_TABLE?select=$OWNER_COLUMNS&$OWNER_ROLE_COL=eq.$OWNER_ROLE&$OWNER_ACTIVE_COL=eq.true"
+# How many of these businesses the database still holds, asked as the superuser.
+exists() { # ids-csv -> a count
+  local list
+  list="$(tr ',' '\n' <<< "$1" | sed "s/.*/'&'/" | paste -sd, -)"
+  supabase db query --local -o csv "select count(*)::int from public.workspace where id in ($list)" 2>/dev/null | tail -1
+}
+cat > "$SCRATCH/owners.py" <<'OWNERS'
+import json, sys
+status, path, me, expected = sys.argv[1], sys.argv[2], sys.argv[3], json.loads(sys.argv[4])
+try:
+    rows = json.load(open(path))
+except Exception as exc:
+    print('unreadable: %s' % exc); raise SystemExit
+if status != '200' or not isinstance(rows, list):
+    print("the app's owners read answered %s %s" % (status, json.dumps(rows)[:200])); raise SystemExit
+by = {}
+for r in rows:
+    if not isinstance(r, dict) or set(r) != {'workspace_id', 'user_id', 'workspace'}:
+        print('an owner row came as %s' % json.dumps(r)[:160]); raise SystemExit
+    if not isinstance(r['workspace'], dict) or set(r['workspace']) != {'display_name', 'kind'}:
+        print('an owner row embedded %s, not {display_name, kind}' % json.dumps(r['workspace'])); raise SystemExit
+    by.setdefault(r['workspace_id'], []).append(r)
+if set(by) != set(expected):
+    print('the owners read named businesses %s, expected %s' % (sorted(by), sorted(expected))); raise SystemExit
+for wid, (name, kind) in expected.items():
+    owners = [g['user_id'] for g in by[wid]]
+    if owners != [me]:
+        print('business %s came back with owners %s, expected her alone' % (wid, owners)); raise SystemExit
+    ws = by[wid][0]['workspace']
+    if ws != {'display_name': name, 'kind': kind}:
+        print('business %s came back as %s, expected %s' % (wid, ws, {'display_name': name, 'kind': kind})); raise SystemExit
+print('OK')
+OWNERS
+owners_read() { # user-id expected-json -> "OK" or why not
+  local out; out="$(api GET "$OWNERS_READ")"
+  body "$out" > "$SCRATCH/owners.json"
+  python3 "$SCRATCH/owners.py" "$(status "$out")" "$SCRATCH/owners.json" "$1" "$2"
+}
+expect() { python3 -c 'import json,sys; a=sys.argv[1:]; print(json.dumps({a[i]: [a[i+1], a[i+2]] for i in range(0, len(a), 3)}))' "$@"; }
+
+# --- 14. what goes with her account, as the app reads it -------------------------
+v="$(owners_read "$UID_" "$(expect "$SHOP" "Tienda de la fonda" tienda "$KITCHEN" "Zona de la fonda" cocina "$SECOND" "Antojitos, segunda cocina" cocina)")"
+if [[ "$v" == OK ]]; then ok "the app's owners read names her shop and her two kitchens, each with her as its only owner and its kind — what goes with her account"
+else fail "what goes with her account: $v"; fi
+
+# --- 15. a name missing: refused, and nothing goes --------------------------------
+HELD="$(exists "$SHOP,$KITCHEN,$SECOND")"
+out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["Zona de la fonda", "Antojitos, segunda cocina"]')")"
+STILL="$(exists "$SHOP,$KITCHEN,$SECOND")"
+if [[ "$HELD" != 3 ]]; then
+  fail "before any deletion the database holds '$HELD' of her three businesses — the observer cannot see them"
+elif [[ "$(status "$out")" == 400 && "$(pick code "$(body "$out")")" == "$MISMATCH" && "$STILL" == 3 ]]; then
+  ok "$DELETE_RPC($DELETE_ARGS) with her shop's name missing: 400 $MISMATCH, and all three businesses are still there"
+else
+  fail "the deletion with a name missing answered $(status "$out") $(body "$out" | head -c 200); the database holds $STILL of 3"
+fi
+
+# --- 16. every name, as she might type them: all three go, and her login ----------
+out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["  zona de la FONDA", "antojitos,   segunda cocina", "TIENDA DE LA FONDA"]')")"
+LEFT="$(exists "$SHOP,$KITCHEN,$SECOND")"
+WHO="$(status "$(api GET /auth/v1/user)")"
+if [[ "$(status "$out")" == 200 && "$(pick shops_deleted "$(body "$out")")" == 3 && "$(pick shops_left "$(body "$out")")" == 0 \
+      && "$LEFT" == 0 && "$WHO" != 200 ]]; then
+  ok "every name, in any case and spacing: 200 {3 deleted, 0 left}; the database holds none of the three, and her login is gone ($WHO)"
+else
+  fail "the deletion with every name answered $(status "$out") $(body "$out" | head -c 200); the database holds $LEFT of 3; her login answers $WHO"
+fi
+
+# --- 17–18. a shop's owner who opens Cocina and never makes a kitchen --------------
+python3 -c 'import json,sys; print(json.dumps({"email": sys.argv[1], "password": "cocina-probe-123", "data": {sys.argv[2]: sys.argv[3]}}))' \
+  "cocina-tienda-$STAMP@example.com" "$NAME_KEY" "Dueña de Tienda" > "$SCRATCH/signup-shop.json"
+TOKEN=""
+for try in 1 2 3 4 5 6; do
+  out="$(TOKEN="" api POST /auth/v1/signup "$(cat "$SCRATCH/signup-shop.json")")"
+  TOKEN="$(pick access_token "$(body "$out")")"
+  [[ -n "$TOKEN" ]] && break
+  sleep 10
+done
+if [[ -z "$TOKEN" ]]; then
+  fail "a shop's owner's sign-up got no session — $(status "$out") $(body "$out" | head -c 200)"
+else
+  SHOP_UID="$(pick id "$(body "$(api GET /auth/v1/user)")")"
+  HER_SHOP="$(body "$(api POST /rest/v1/rpc/onboard_workspace \
+    '{"p_display_name":"Tienda de Lupe","p_prices_include_tax":true,"p_location_name":null}')" | tr -d '"')"
+  if [[ ! "$HER_SHOP" =~ ^[0-9a-f-]{36}$ ]]; then
+    fail "could not make the shop's owner's shop: $HER_SHOP"
+  else
+    v="$(owners_read "$SHOP_UID" "$(expect "$HER_SHOP" "Tienda de Lupe" tienda)")"
+    out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '[]')")"
+    if [[ "$v" != OK ]]; then fail "a shop's owner, what goes with her account: $v"
+    elif [[ "$(status "$out")" != 400 || "$(pick code "$(body "$out")")" != "$MISMATCH" || "$(exists "$HER_SHOP")" != 1 ]]; then
+      fail "an empty list from a shop's owner answered $(status "$out") $(body "$out" | head -c 160) — her shop must stay"
+    else
+      ok "a shop's owner with no kitchen: the read names her shop as a shop, and an empty list — a screen that thought nothing goes — is 400 $MISMATCH, her shop still there"
+    fi
+
+    out="$(api POST "/rest/v1/rpc/$DELETE_RPC" "$(by_names "$DELETE_ARGS" '["tienda de LUPE"]')")"
+    LEFT="$(exists "$HER_SHOP")"
+    WHO="$(status "$(api GET /auth/v1/user)")"
+    if [[ "$(status "$out")" == 200 && "$(pick shops_deleted "$(body "$out")")" == 1 && "$(pick shops_left "$(body "$out")")" == 0 \
+          && "$LEFT" == 0 && "$WHO" != 200 ]]; then
+      ok "her shop's name, typed in Cocina: 200 {1 deleted, 0 left}; her shop is gone, and her login ($WHO)"
+    else
+      fail "the shop's owner's deletion answered $(status "$out") $(body "$out" | head -c 200); the database holds $LEFT of 1; her login answers $WHO"
+    fi
+  fi
+fi
+
 echo
 if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 13 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
-echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, and her"
-echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop."
+echo "all 18 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
+echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, her"
+echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop —"
+echo "and her account goes only with every business she alone owns named, a shop of hers included."

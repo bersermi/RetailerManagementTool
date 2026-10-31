@@ -13,9 +13,10 @@
 // 2026-10-30), so a person who made her account in Wera with Apple is the same
 // login here.
 //
-// ⚠️ NOT HERE YET: the deletion half (`hasAppleIdentity`, `releaseStep` in Wera)
-// — telling Apple when an account goes is `10.4b-iii-c`'s, with `apple-revoke`
-// learning which app a code came from.
+// ⚠️ AND THE DELETION HALF, `10.4b-iii-c`: deleting the account tells Apple.
+// Apple is asked again at that moment for a fresh code, issued to THIS app, and
+// `apple-revoke` spends it — told it is Cocina's (`@/api/account`'s
+// `revokeBody`). `releaseStep` is every decision in that exchange, Wera's.
 // ============================================================================
 
 /** Supabase's name for the provider. */
@@ -97,4 +98,61 @@ export function appleThrown(thrown: unknown): AppleReturn {
     return { kind: 'failed', detail: typeof code === 'string' ? `${code}: ${text}` : text };
   }
   return { kind: 'failed', detail: String(thrown) };
+}
+
+/** As much of a signed-in user as `hasAppleIdentity` reads. */
+export interface IdentityHolder {
+  readonly identities?: ReadonlyArray<{ readonly provider?: string | null }> | null;
+  readonly app_metadata?: { readonly providers?: unknown } | null;
+}
+
+/**
+ * Does this login have an Apple link to let go of? ⚠️ BOTH PLACES ARE READ:
+ * `identities` is on the user a sign-in returns; `app_metadata.providers` is
+ * inside the token, so it is there on a session restored from the phone too.
+ * An account can hold Google AND Apple, so this asks about the link, not about
+ * how she came in today — and a link made in Wera counts here: one login.
+ */
+export function hasAppleIdentity(user: IdentityHolder | null | undefined): boolean {
+  if (user === null || user === undefined) return false;
+  if (user.identities?.some((identity) => identity.provider === APPLE_PROVIDER) === true) {
+    return true;
+  }
+  const providers = user.app_metadata?.providers;
+  return Array.isArray(providers) && providers.includes(APPLE_PROVIDER);
+}
+
+/**
+ * Whether a deletion has to stop at Apple's sheet first. ⚠️ `false` ON ANDROID
+ * EVEN FOR AN APPLE-LINKED ACCOUNT: there is no sheet to ask, so no code to
+ * spend, and the deletion goes ahead without telling Apple. The right to delete
+ * is not held up by a phone's maker.
+ */
+export function asksAppleFirst(user: IdentityHolder | null | undefined, available: boolean): boolean {
+  return available && hasAppleIdentity(user);
+}
+
+/** What the deletion does once Apple's sheet has answered, or was never shown. */
+export type ReleaseStep =
+  /** She backed out of Apple's sheet: nothing is deleted and nothing is said. */
+  | { readonly kind: 'stop' }
+  /** Hand the code to the function, then delete whatever it answers. */
+  | { readonly kind: 'revoke'; readonly code: string }
+  /** Delete without telling Apple: no link, no sheet, or the sheet failed. */
+  | { readonly kind: 'delete' };
+
+/**
+ * ⚠️⚠️ ONLY A CANCELLATION STOPS A DELETION. A sheet that failed, a credential
+ * with no code, and a function that cannot be reached all end in the account
+ * being deleted: what is lost is Apple's list still naming the app, which she
+ * can clear herself; what is kept is that nobody is refused a deletion because
+ * a third party was down.
+ */
+export function releaseStep(asked: AppleReturn | null): ReleaseStep {
+  if (asked === null) return { kind: 'delete' };
+  if (asked.kind === 'cancelled') return { kind: 'stop' };
+  if (asked.kind === 'token' && asked.authorizationCode !== null) {
+    return { kind: 'revoke', code: asked.authorizationCode };
+  }
+  return { kind: 'delete' };
 }

@@ -21,6 +21,18 @@
 //      happened to be signed in on the phone;
 //   5. revokes the refresh token (POST /auth/revoke).
 //
+// ⚠️⚠️ WHICH APP THE CODE CAME FROM, SINCE BUILD 2 (plan `10.4b-iii-c`). Apple
+// issues a code to the ONE app whose sheet asked for it — its bundle id — and
+// refuses a trade that names any other client. Wera and Wera Cocina both offer
+// Sign in with Apple, so the body says which: `client_id`, one of `APPS` below.
+// ⚠️ ABSENT IS WERA, because every Wera build in the field sends `{code}` alone
+// and must keep working (ADR-035 §2.2). ⚠️ ANY OTHER VALUE IS REFUSED, 400, and
+// Apple hears nothing: this function signs with the owner's key, and it signs
+// for the owner's apps and nobody else's. The one key covers both apps because
+// Cocina is grouped under Wera's App ID in Apple's portal (the owner, 2026-10-30)
+// — which only a real deletion from an iPhone can prove: Apple answers
+// `invalid_client` when the key does not cover the id.
+//
 // ⚠️ IT STORES NOTHING AND LOGS NO SECRET. No table, no file. The code, the
 // tokens Apple returns and the client secret live for the length of the
 // request; a log line names a step and a status and nothing else.
@@ -42,8 +54,10 @@
 //   APPLE_TEAM_ID       the developer team, ten characters
 //   APPLE_KEY_ID        the id of the Sign in with Apple key, ten characters
 //   APPLE_PRIVATE_KEY   the contents of that key's .p8 file
-// And two with defaults: APPLE_CLIENT_ID (the bundle id) and APPLE_BASE_URL,
-// which only `docs/checks/5R-k-apple-revoke-contract.sh` sets, to a stand-in.
+// And one with a default, APPLE_BASE_URL, which only
+// `docs/checks/5R-k-apple-revoke-contract.sh` sets, to a stand-in. (Build 1 also
+// read an APPLE_CLIENT_ID, which was never set anywhere — the hosted project's
+// secrets, read 2026-10-30 — and is replaced by the body's `client_id`.)
 // ============================================================================
 
 /**
@@ -51,9 +65,19 @@
  * `5R-k-function-deployed.sh` compares what is deployed with what is merged:
  * merging is not deploying, here as for a migration.
  */
-export const BUILD = 1;
+export const BUILD = 2;
 
 const APPLE = 'https://appleid.apple.com';
+
+/**
+ * ⚠️ THE APPS WHOSE CODES THIS FUNCTION TRADES — each one's bundle id, which is
+ * its client id at Apple. Wera, and Wera Cocina since build 2 (`10.4b-iii-c`).
+ * Itacate joins when it offers Sign in with Apple (plan `10.5`): its id here, a
+ * `BUILD` bump and the deploy, after it is grouped under Wera's App ID too.
+ */
+const APPS: readonly string[] = ['mx.wera.app', 'mx.wera.cocina'];
+
+/** What a body with no `client_id` means: every Wera build before build 2 sends `{code}` alone. */
 const DEFAULT_CLIENT_ID = 'mx.wera.app';
 /** Apple accepts a client secret for up to six months; this one lives five minutes. */
 const SECRET_SECONDS = 300;
@@ -189,12 +213,18 @@ export async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   let code: unknown;
+  let named: unknown;
   try {
-    code = ((await request.json()) as { code?: unknown } | null)?.code;
+    const sent = (await request.json()) as { code?: unknown; client_id?: unknown } | null;
+    code = sent?.code;
+    named = sent?.client_id;
   } catch {
     code = undefined;
   }
   if (typeof code !== 'string' || code.trim() === '') return json(400, { error: 'bad_request' });
+  // ⚠️ ABSENT IS WERA; PRESENT MUST BE ONE OF OURS — before anything reaches Apple.
+  const clientId = named === undefined ? DEFAULT_CLIENT_ID : named;
+  if (typeof clientId !== 'string' || !APPS.includes(clientId)) return json(400, { error: 'unknown_app' });
 
   // 2. The login's Apple link.
   const expected = appleSubjectOf(user);
@@ -206,7 +236,6 @@ export async function handle(request: Request, env: Env): Promise<Response> {
   }
 
   const base = (env('APPLE_BASE_URL') ?? APPLE).replace(/\/+$/, '');
-  const clientId = env('APPLE_CLIENT_ID') ?? DEFAULT_CLIENT_ID;
   let secret: string;
   try {
     secret = await clientSecret(env, clientId, Math.floor(Date.now() / 1000));

@@ -4,10 +4,12 @@
 #
 # A contract check that has never been seen red is a check nobody has shown can
 # fail. Each fixture below copies `cocina/src/api/kitchen.ts`,
-# `cocina/src/auth/credentials.ts` or `cocina/src/api/place.ts`, breaks ONE claim
-# in the copy, points the check at it, and requires red WITH THE SENTENCE that
-# names that claim — red for the wrong reason is a failure here too. The control,
-# unedited, must be green. C7–C13 are `10.4b-iii-b`'s: making her kitchen.
+# `cocina/src/auth/credentials.ts`, `cocina/src/api/place.ts` or
+# `cocina/src/api/account.ts`, breaks ONE claim in the copy, points the check at
+# it, and requires red WITH THE SENTENCE that names that claim — red for the
+# wrong reason is a failure here too. The control, unedited, must be green.
+# C7–C13 are `10.4b-iii-b`'s: making her kitchen. C14–C17 are `10.4b-iii-c`'s:
+# her way out.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -18,31 +20,34 @@ CHECK="docs/checks/10.4b-iii-a-cocina-contract.sh"
 KITCHEN="cocina/src/api/kitchen.ts"
 CREDENTIALS="cocina/src/auth/credentials.ts"
 PLACE="cocina/src/api/place.ts"
-[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" && -r "$PLACE" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+ACCOUNT="cocina/src/api/account.ts"
+[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" && -r "$PLACE" && -r "$ACCOUNT" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase target(kitchen|credentials|place) sed-program
+run() { # name want phrase target(kitchen|credentials|place|account) sed-program
   local name="$1" want="$2" phrase="$3" target="$4" program="$5"
   local real="$KITCHEN"
   [[ "$target" == credentials ]] && real="$CREDENTIALS"
   [[ "$target" == place ]] && real="$PLACE"
+  [[ "$target" == account ]] && real="$ACCOUNT"
   local copy="$TMP/$name.ts"
   sed "$program" "$real" > "$copy"
   if [[ "$program" != "" ]] && cmp -s "$copy" "$real"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
-  local out rc k="$KITCHEN" c="$CREDENTIALS" p="$PLACE"
+  local out rc k="$KITCHEN" c="$CREDENTIALS" p="$PLACE" a="$ACCOUNT"
   case "$target" in
     credentials) c="$copy" ;;
     place) p="$copy" ;;
+    account) a="$copy" ;;
     *) k="$copy" ;;
   esac
-  out="$(bash "$CHECK" "$k" "$c" "$p" 2>&1)"; rc=$?
+  out="$(bash "$CHECK" "$k" "$c" "$p" "$a" 2>&1)"; rc=$?
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -112,10 +117,26 @@ echo "C13 a place column is misspelt — PostgREST refuses the read"
 run C13 red "the app's place read answered 400" place \
   "s/^export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions';/export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,lat,pin_lng,directions';/"
 
+echo "C14 the owners read embeds a column the table has not — PostgREST refuses it, and nothing could be deleted"
+run C14 red "the app's owners read answered 400" account \
+  "s/^export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name,kind)';/export const OWNER_COLUMNS = 'workspace_id,user_id,workspace(display_name,tipo)';/"
+
+echo "C15 the read asks for managers, not owners — the screen would say nothing goes, and every deletion be refused"
+run C15 red "what goes with her account: the owners read named businesses" account \
+  "s/^export const OWNER_ROLE = 'owner';/export const OWNER_ROLE = 'manager';/"
+
+echo "C16 the names' argument is renamed — PostgREST finds no such function"
+run C16 red "the deletion with a name missing answered 404" account \
+  's/^  readonly p_business_names: readonly string\[\];/  readonly p_nombres: readonly string[];/'
+
+echo "C17 the deletion's function is misspelt — every deletion would be a 404"
+run C17 red "the deletion with a name missing answered 404" account \
+  "s/^export const DELETE_MY_ACCOUNT = 'delete_my_account';/export const DELETE_MY_ACCOUNT = 'delete_account';/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 14 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 14."
+if (( pass + fail < 18 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 18."
   exit 1
 fi
 (( fail == 0 )) || exit 1

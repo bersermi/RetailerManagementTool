@@ -16,6 +16,13 @@
 //   other-account   the same, for an Apple account that is not the login's
 //   refused         400, as Apple answers a spent or foreign code
 //
+// ⚠️ AND EACH CODE IS ISSUED TO ONE APP, as Apple issues it to the bundle id
+// whose sheet asked (plan `10.4b-iii-c`): a bare code is Wera's (`mx.wera.app`),
+// and `<code>@<client id>` is that app's — `good@mx.wera.cocina` is Wera
+// Cocina's. A trade naming any other client is refused 400 `invalid_grant`, so
+// a Cocina code sent without its app's name fails at the trade, as it would at
+// Apple.
+//
 //   GET  /__log     everything received so far, as JSON
 //   POST /__reset   forget it
 //
@@ -39,6 +46,13 @@ if (!port || !keyPath || !['honest', 'wrong-key', 'one-apple-account'].includes(
 }
 
 export const SUBJECT_A = 'apple-sub-contract-A';
+const WERA = 'mx.wera.app';
+
+/** The app a code was issued to, and the code without it. */
+function issued(code) {
+  const at = String(code ?? '').lastIndexOf('@');
+  return at < 0 ? { client: WERA, bare: String(code ?? '') } : { client: code.slice(at + 1), bare: code.slice(0, at) };
+}
 const SUBJECT_OTHER = 'apple-sub-somebody-else';
 
 const newPair = () =>
@@ -100,8 +114,9 @@ const server = createServer(async (request, response) => {
   if (request.method === 'POST' && request.url === '/auth/token') {
     const { client_secret: secret, ...rest } = fields;
     log.push({ path: '/auth/token', ...rest, secret: await readSecret(secret) });
-    if (fields.code === 'refused') return send(400, { error: 'invalid_grant' });
-    const other = fields.code === 'other-account' && mode !== 'one-apple-account';
+    const { client, bare } = issued(fields.code);
+    if (bare === 'refused' || fields.client_id !== client) return send(400, { error: 'invalid_grant' });
+    const other = bare === 'other-account' && mode !== 'one-apple-account';
     const subject = other ? SUBJECT_OTHER : SUBJECT_A;
     return send(200, {
       access_token: 'stand-in-access',

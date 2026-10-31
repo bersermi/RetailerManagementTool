@@ -1,6 +1,7 @@
 // ============================================================================
-// HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens) and
-// `10.4b-iii-b` (making one; her trade, her address and her pin).
+// HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens),
+// `10.4b-iii-b` (making one; her trade, her address and her pin) and
+// `10.4b-iii-c` (her way out).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -14,12 +15,24 @@
 // ============================================================================
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 import {
+  OWNERS_KEY,
+  businessesThatGo,
+  deleteErrorMessage,
+  ownersKey,
+  type Business,
+  type DeleteArgs,
+} from '@/api/account';
+import {
+  accountOwners,
+  deleteMyAccount,
   firstPlace,
   kitchenGiros,
   kitchenCalls,
   myKitchens,
+  revokeApple,
   setKitchenGiro,
   setPlaceAddress,
   setPlacePin,
@@ -37,6 +50,7 @@ import {
 import { PLACES_KEY, placeKey, setStoreAddressArgs, type AddressForm, type SetStorePinArgs } from '@/api/place';
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
+import { releaseStep } from '@/auth/apple';
 
 /** Her kitchens, keyed on the login (`kitchensKey`). */
 export function useMyKitchens() {
@@ -185,4 +199,77 @@ export function useSaveDatos() {
   }
 
   return { save, busy: mutation.isPending };
+}
+
+/**
+ * Every business that goes with her account when it is deleted (`10.4b-iii-c`,
+ * `0073`): those she is the only active owner of, kitchen or shop. `null` while
+ * the read is out, which the screen reads as *not known yet*.
+ *
+ * ⚠️ `staleTime: 0`: a kitchen made on another phone a minute ago must be on the
+ * list the moment the deletion opens. Keyed on the login, Cocina's rule.
+ */
+export function useBusinessesThatGo(): readonly Business[] | null {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  const { data } = useQuery({
+    queryKey: ownersKey(userId),
+    queryFn: accountOwners,
+    enabled: ready && userId !== null,
+    staleTime: 0,
+  });
+  return businessesThatGo(data, userId);
+}
+
+/**
+ * Deleting her own account — Wera's `useDeleteMyAccount` (`5R-c`, `5R-k`,
+ * `10.4b-i`). Returns a Spanish sentence or `null`. On success the session is
+ * ended through `useAuth().signOut`, the one log-out path, and the guard sends
+ * her to the way in; nothing of hers is kept on this phone (Cocina caches no
+ * read to disk, and every key carries the login).
+ *
+ * ⚠️⚠️ A LOGIN WITH AN APPLE LINK STOPS AT APPLE'S SHEET FIRST, and
+ * `releaseStep` (`@/auth/apple`) is every decision about what its answer means:
+ * closing it is backing out — nothing deleted, `null`, no message. Everything
+ * else ends in the deletion. ⚠️ APPLE IS TOLD BEFORE THE ACCOUNT GOES, because
+ * the function reads whose Apple link it is, and after the deletion there is no
+ * login to read it from.
+ *
+ * ⚠️ `busy` COVERS THE SHEET TOO: the mutation is not pending while Apple's
+ * sheet is up, and a second tap then would open a second one.
+ */
+export function useDeleteMyAccount() {
+  const { signOut, askAppleAgain } = useAuth();
+  const queries = useQueryClient();
+  const [leaving, setLeaving] = useState(false);
+  const mutation = useMutation({
+    mutationFn: (args: DeleteArgs) => deleteMyAccount(args),
+  });
+
+  async function remove(args: DeleteArgs): Promise<string | null> {
+    setLeaving(true);
+    try {
+      const step = releaseStep(await askAppleAgain());
+      if (step.kind === 'stop') return null;
+      if (step.kind === 'revoke') {
+        await revokeApple(step.code).catch((thrown: unknown) => {
+          console.warn(`[api] apple was not told about a deletion: ${String(thrown)}`);
+        });
+      }
+      try {
+        await mutation.mutateAsync(args);
+      } catch (thrown) {
+        // ⚠️ A refusal can mean the list of what goes is stale
+        // (`deleteErrorMessage` says so), so it is read again.
+        void queries.invalidateQueries({ queryKey: OWNERS_KEY });
+        return deleteErrorMessage(thrown);
+      }
+      await signOut();
+      return null;
+    } finally {
+      setLeaving(false);
+    }
+  }
+
+  return { remove, busy: mutation.isPending || leaving };
 }

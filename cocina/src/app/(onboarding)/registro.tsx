@@ -16,6 +16,7 @@ import { Campo } from '@/ui/Campo';
 import { Direccion } from '@/ui/Direccion';
 import { Formulario } from '@/ui/Formulario';
 import { Giros } from '@/ui/Giros';
+import { Salidas } from '@/ui/Salidas';
 
 // ============================================================================
 // WHERE A LOGIN WITH NO KITCHEN LANDS, AND MAKES ONE — the form. Plan tasks
@@ -31,18 +32,17 @@ import { Giros } from '@/ui/Giros';
 // boxes. *Siguiente* checks them in the screen's order and says the first one
 // missing; nothing is written until the map's *Registrar mi cocina*.
 //
-// ⚠️ *CERRAR SESIÓN* STAYS: a shop's owner who opened the wrong app, or anyone
-// who signed in with the wrong account, is never held on a form. *Eliminar mi
-// cuenta* joins it in `10.4b-iii-c`; until then an account made here is deleted
-// from Wera, whose welcome screen offers it to a login with no shop (`10.4b-i`).
+// ⚠️ THE WAY OUT STAYS AT THE FOOT (`@/ui/Salidas`): a shop's owner who opened
+// the wrong app, or anyone who signed in with the wrong account, is never held
+// on a form — *Cerrar sesión*, and since `10.4b-iii-c` *Eliminar mi cuenta*,
+// which names her shop when she alone owns one and asks its name (`0073`).
 // ============================================================================
 export default function Registro() {
   const insets = useSafeAreaInsets();
-  const { session, signOut } = useAuth();
+  const { session } = useAuth();
   const giros = useKitchenGiros();
   const { borrador, cambiar } = useBorrador();
   const [problem, setProblem] = useState<string | null>(null);
-  const [leaving, setLeaving] = useState(false);
   const quien = quienEntro(session?.user);
   const lista = giros.data ?? [];
 
@@ -54,16 +54,6 @@ export default function Registro() {
     else {
       setProblem(null);
       router.push('/punto');
-    }
-  }
-
-  async function leave() {
-    if (leaving) return;
-    setLeaving(true);
-    try {
-      await signOut();
-    } finally {
-      setLeaving(false);
     }
   }
 
@@ -118,7 +108,7 @@ export default function Registro() {
         <View style={{ marginTop: SIZE.space }}>
           <BotonLleno variante="principal" label={ES.registro.siguiente} onPress={next} />
         </View>
-        <BotonLleno variante="discreto" label={ES.auth.signOut} busy={leaving} onPress={() => void leave()} />
+        <Salidas openKitchenId={null} />
       </Formulario>
     </View>
   );

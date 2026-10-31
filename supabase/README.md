@@ -106,8 +106,9 @@ account, the app hands this function the code Apple's sheet just gave; it trades
 code, checks it belongs to that login's Apple account, and revokes. **It stores
 nothing and has no database credential.** A second function needs a ruling — and push is
 not a reason for one: the owner ruled on 2026-10-27 that a push is sent from Postgres through
-`pg_net` (ADR-035 §2.2). ⚠️ It signs for one app, `APPLE_CLIENT_ID` (default `mx.wera.app`);
-when Itacate offers Apple sign-in (plan `10.5`) this function learns its client id instead.
+`pg_net` (ADR-035 §2.2). ⚠️ It signs for the owner's apps, Wera and Wera Cocina since its build 2
+(plan `10.4b-iii-c`): the body's `client_id` says which app's sheet issued the code, a body without it
+is Wera's, and any other id is refused. Itacate's id joins when it offers Apple sign-in (plan `10.5`).
 
 **How a merged change to it gets there, and how to know it did:**
 
