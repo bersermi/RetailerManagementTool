@@ -73,8 +73,9 @@ on:
       - "docs/checks/10.4b-ii-shop-scope-contract-falsify.sh"
       # ⚠️ `10.4b-iii-a`: WERA COCINA'S DATA LAYER IS A CLAIM ABOUT THE SAME SCHEMA —
       # the kitchen read (a table, three columns, the kind, the order) and the key a
-      # name is stored under at sign-up. Until this row no workflow read
-      # `cocina/src/api/`; its check asks as a fonda who also owns a shop.
+      # name is stored under at sign-up; since `10.4b-iii-b` also the writes that
+      # make a kitchen and its place (`cocina/src/api/place.ts`). Until `10.4b-iii-a`
+      # no workflow read `cocina/src/api/`; its check asks as a fonda who also owns a shop.
       - "cocina/src/api/**"
       - "cocina/src/auth/credentials.ts"
       - "docs/checks/10.4b-iii-a-cocina-contract.sh"
@@ -1760,9 +1761,12 @@ jobs:
         run: bash docs/checks/10.4b-ii-shop-scope-contract.sh
       - name: Contract — can the shop scope check still fail (its own nine fixtures)
         run: bash docs/checks/10.4b-ii-shop-scope-contract-falsify.sh
-      - name: Contract — does Wera Cocina open kitchens only, as the schema answers (plan 10.4b-iii-a)
+      # ⚠️ `10.4b-iii-b` ADDED FIVE GROUPS AND SEVEN FIXTURES: making her kitchen —
+      # the trades, her trade, her place, her address, her pin — asked as a login
+      # that also owns a shop, whose store must never receive the kitchen's.
+      - name: Contract — does Wera Cocina open kitchens only and make one on its own place (plans 10.4b-iii-a and -b)
         run: bash docs/checks/10.4b-iii-a-cocina-contract.sh
-      - name: Contract — can the Cocina check still fail (its own seven fixtures)
+      - name: Contract — can the Cocina check still fail (its own fourteen fixtures)
         run: bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 
       # ⚠️⚠️ AJUSTES' ROSTER, ASKED OF THE DATABASE AND OF ITS POLICIES (plan

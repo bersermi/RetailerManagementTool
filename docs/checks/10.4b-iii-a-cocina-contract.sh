@@ -1,19 +1,26 @@
 #!/usr/bin/env bash
 # 10.4b-iii-a-cocina-contract — does Wera Cocina's data layer still describe the
-# schema, and does it open kitchens and nothing else?
+# schema, does it open kitchens and nothing else, and does making one land on the
+# kitchen and never on her shop?
 #
-# WHY THIS EXISTS. `cocina/src/api/kitchen.ts` is Cocina's first claim about the
-# applied schema: a table, three columns, a filter on the account's kind and an
-# order. A misspelt column or kind is a 400 on the phone that the typecheck, the
-# suite and the bundler all pass over, and a filter on the wrong kind opens a
-# shop's owner's SHOP in the kitchens' app — the walls let a login read every
-# business she belongs to (`my_workspaces()`), so only the filter keeps Wera's
-# shops out (`0072`, ADR-035 §2.3). And `cocina/src/auth/credentials.ts` names
-# the key a person's name is stored under at sign-up, which the database reads
-# when she makes a business (`auth_full_name`, `0034`).
+# WHY THIS EXISTS. `cocina/src/api/kitchen.ts` and `cocina/src/api/place.ts` are
+# Cocina's claims about the applied schema: tables, columns, filters, orders, and
+# the names of the functions and arguments a kitchen is made through. A misspelt
+# one is a 400 or a 404 on the phone that the typecheck, the suite and the
+# bundler all pass over. And two filters carry the walls' gap: the walls let a
+# login read every business she belongs to (`my_workspaces()`, `my_locations()`),
+# so only the filter on the kind keeps Wera's shops out of Cocina (`0072`,
+# ADR-035 §2.3), and only the filter on the kitchen keeps a shop's STORE out of
+# her kitchen's place — without it, a shop's owner who makes a kitchen here would
+# have her kitchen's address and pin written onto her shop (`10.4b-ii`'s defect,
+# one app over). And `cocina/src/auth/credentials.ts` names the key a person's
+# name is stored under at sign-up, which the database reads when she makes a
+# business (`auth_full_name`, `0034`).
 #
-# WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST:
-#   1. The claim is read OUT OF THOSE TWO FILES — nothing is retyped here.
+# WHAT IT ASSERTS, over HTTP against a real GoTrue and PostgREST, as ONE login
+# that owns a shop and then makes kitchens — so every group asks as the kitchen's
+# owner AND as a shop's:
+#   1. The claim is read OUT OF THOSE THREE FILES — nothing is retyped here.
 #   2. A fonda signs up by the email door as Cocina does, her name under that key,
 #      and gets a session at once (confirmations off, as on the hosted project).
 #   3. With no business, the app's read answers 200 and `[]` — the landing.
@@ -21,30 +28,44 @@
 #      (the walls' answer, so the next assertion is not vacuous) and the app's
 #      read is still `[]` — a shop's owner who opens Cocina lands where a kitchen
 #      is made, and never in her shop.
-#   5. She makes a kitchen as Cocina will (`p_kind => 'cocina'`): the app's read is
-#      that kitchen alone, with exactly the columns it asks for.
+#   5. She makes a kitchen as Cocina does — the app's function and argument names
+#      (`10.4b-iii-b`): the app's read is that kitchen alone, with exactly the
+#      columns it asks for.
 #   6. A second kitchen: both, the first-made first — the one the app opens.
 #   7. The name she typed is on her kitchen membership — the key, end to end.
-#   8. Signed out, the read returns no business at all.
+#   8. The kitchens' trades, through the app's door: codes and names, none of them
+#      a shop's giro.                                            (`10.4b-iii-b`, 8–12)
+#   9. Her trade, by the app's update on her kitchen: the row comes back, the trade
+#      reads back, her shop's is untouched — and a shop's giro is refused.
+#  10. Her kitchen's place, by the app's read: one row, the kitchen's own, with
+#      exactly its columns — where the unfiltered read's first row is her SHOP's
+#      store, so the filter is what keeps it out; the second kitchen has its own.
+#  11. Her address, through the app's door and names: reads back as sent, the
+#      empty colonia as none; her shop's store still has none.
+#  12. Her pin and its line, likewise: six decimals as sent, the line as sent, a
+#      blank line none; her shop's store still has no pin.
+#  13. Signed out: no business, no place, no trades, and no pin set.
 #
 # ⚠️ WHAT IT DOES NOT ASSERT: Google's and Apple's sign-ins. Neither runs on this
 # stack (both providers are off in `supabase/config.toml`), Apple's needs a token
 # Apple signed, and Google's needs the hosted redirect list — the owner's phones,
-# plan `10.4b-iii-a`'s look.
+# plan `10.4b-iii-a`'s look. Nor the map: where her tap lands is the phone's, and
+# `cocina/test/mapa.test.ts` pins the arithmetic.
 #
 # ⚠️ NO `mapfile`, NO `declare -A`: macOS ships bash 3.2 and this runs on the
 # owner's Mac as well as in CI.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract.sh
-# With: $1 a copy of kitchen.ts and $2 a copy of credentials.ts — how the falsifier
-#       points it at a broken one.
+# With: $1 a copy of kitchen.ts, $2 of credentials.ts and $3 of place.ts — how the
+#       falsifier points it at a broken one.
 # Exit: 0 every assertion holds; 1 otherwise.
 
 set -uo pipefail
 
 KITCHEN_TS="${1:-cocina/src/api/kitchen.ts}"
 CREDENTIALS_TS="${2:-cocina/src/auth/credentials.ts}"
-for f in "$KITCHEN_TS" "$CREDENTIALS_TS"; do
+PLACE_TS="${3:-cocina/src/api/place.ts}"
+for f in "$KITCHEN_TS" "$CREDENTIALS_TS" "$PLACE_TS"; do
   [[ -r "$f" ]] || { echo "FAIL: cannot read $f"; exit 1; }
 done
 
@@ -63,9 +84,33 @@ KIND_COL="$(const KIND_COLUMN "$KITCHEN_TS")"
 KIND="$(const COCINA_KIND "$KITCHEN_TS")"
 ORDER_COLS="$(const KITCHEN_ORDER "$KITCHEN_TS")"
 NAME_KEY="$(const FULL_NAME_KEY "$CREDENTIALS_TS")"
+# `10.4b-iii-b`: making her kitchen — the functions, their argument names (read out
+# of the app's interfaces, in declaration order), her trade's column, her place.
+args_of() { # file interface -> its p_ names, comma-joined, in declaration order
+  awk -v want="export interface $2 {" '$0==want{f=1;next} f&&/^}/{exit} f' "$1" \
+    | sed -n 's/^ *readonly \(p_[a-z_]*\):.*/\1/p' | paste -sd, -
+}
+ONBOARD="$(const ONBOARD_WORKSPACE "$KITCHEN_TS")"
+ONBOARD_ARGS="$(args_of "$KITCHEN_TS" OnboardArgs)"
+GIROS_RPC="$(const KITCHEN_GIROS "$KITCHEN_TS")"
+GIRO_COL="$(const GIRO_COLUMN "$KITCHEN_TS")"
+PLACE_TABLE="$(const PLACE_TABLE "$PLACE_TS")"
+PLACE_COLUMNS="$(const PLACE_COLUMNS "$PLACE_TS")"
+PLACE_OWNER="$(const PLACE_OWNER_COLUMN "$PLACE_TS")"
+PLACE_ACTIVE="$(const PLACE_ACTIVE_COLUMN "$PLACE_TS")"
+PLACE_ORDER_COLS="$(const PLACE_ORDER "$PLACE_TS")"
+SET_ADDRESS="$(const SET_STORE_ADDRESS "$PLACE_TS")"
+SET_ADDRESS_ARGS="$(args_of "$PLACE_TS" SetStoreAddressArgs)"
+SET_PIN="$(const SET_STORE_PIN "$PLACE_TS")"
+SET_PIN_ARGS="$(args_of "$PLACE_TS" SetStorePinArgs)"
 
 for pair in "WORKSPACE_TABLE:$TABLE" "KITCHEN_COLUMNS:$COLUMNS" "KIND_COLUMN:$KIND_COL" \
-            "COCINA_KIND:$KIND" "KITCHEN_ORDER:$ORDER_COLS" "FULL_NAME_KEY:$NAME_KEY"; do
+            "COCINA_KIND:$KIND" "KITCHEN_ORDER:$ORDER_COLS" "FULL_NAME_KEY:$NAME_KEY" \
+            "ONBOARD_WORKSPACE:$ONBOARD" "OnboardArgs:$ONBOARD_ARGS" "KITCHEN_GIROS:$GIROS_RPC" \
+            "GIRO_COLUMN:$GIRO_COL" "PLACE_TABLE:$PLACE_TABLE" "PLACE_COLUMNS:$PLACE_COLUMNS" \
+            "PLACE_OWNER_COLUMN:$PLACE_OWNER" "PLACE_ACTIVE_COLUMN:$PLACE_ACTIVE" "PLACE_ORDER:$PLACE_ORDER_COLS" \
+            "SET_STORE_ADDRESS:$SET_ADDRESS" "SetStoreAddressArgs:$SET_ADDRESS_ARGS" \
+            "SET_STORE_PIN:$SET_PIN" "SetStorePinArgs:$SET_PIN_ARGS"; do
   if [[ -z "${pair#*:}" ]]; then
     echo "FAIL: could not read ${pair%%:*} out of the app's source"
     echo "      This check asserts the app's own claim. Without it there is nothing to"
@@ -76,7 +121,11 @@ done
 # The order as supabase-js sends it: `.order(c)` once per column, each ascending.
 ORDER="$(tr ',' '\n' <<< "$ORDER_COLS" | sed 's/$/.asc/' | paste -sd, -)"
 APP_READ="/rest/v1/$TABLE?select=$COLUMNS&$KIND_COL=eq.$KIND&order=$ORDER"
+# Her kitchen's place, as `firstPlace` asks: filtered on the kitchen, active, ordered, one row.
+PLACE_ORDER="$(tr ',' '\n' <<< "$PLACE_ORDER_COLS" | sed 's/$/.asc/' | paste -sd, -)"
+place_read() { echo "/rest/v1/$PLACE_TABLE?select=$PLACE_COLUMNS&$PLACE_OWNER=eq.$1&$PLACE_ACTIVE=eq.true&order=$PLACE_ORDER&limit=1"; }
 ok "read from the app: $TABLE?select=$COLUMNS, $KIND_COL = $KIND, ordered by $ORDER_COLS; the name under $NAME_KEY"
+ok "and to make one: $ONBOARD($ONBOARD_ARGS), $GIROS_RPC(), $GIRO_COL; $PLACE_TABLE by $PLACE_OWNER; $SET_ADDRESS($SET_ADDRESS_ARGS); $SET_PIN($SET_PIN_ARGS)"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -92,15 +141,20 @@ fi
 case "$KEY" in sb_secret_*|eyJ*) echo "FAIL: that is not a publishable key"; exit 1 ;; esac
 
 TOKEN=""
-api() { # method path body -> body, with the HTTP status on the last line
+api() { # method path [body] [extra header] [extra header] -> body, with the HTTP status on the last line
   local method="$1" path="$2" body="${3:-}" auth="${TOKEN:-}"
+  local h1="${4:-X-Empty-1: 1}" h2="${5:-X-Empty-2: 1}"
   if [[ -n "$auth" ]]; then auth="Authorization: Bearer $auth"; else auth="X-Empty: 1"; fi
   if [[ -n "$body" ]]; then
     curl -s -w $'\n%{http_code}' -X "$method" "$API_URL$path" \
-      -H "apikey: $KEY" -H "$auth" -H 'Content-Type: application/json' -d "$body"
+      -H "apikey: $KEY" -H "$auth" -H 'Content-Type: application/json' -H "$h1" -H "$h2" -d "$body"
   else
-    curl -s -w $'\n%{http_code}' -X "$method" "$API_URL$path" -H "apikey: $KEY" -H "$auth"
+    curl -s -w $'\n%{http_code}' -X "$method" "$API_URL$path" -H "apikey: $KEY" -H "$auth" -H "$h1" -H "$h2"
   fi
+}
+# A body keyed by the APP's argument names, in their order — never typed here.
+by_names() { # names-csv json-value1 json-value2 ... -> a JSON object
+  python3 -c 'import json,sys; n=sys.argv[1].split(","); print(json.dumps(dict(zip(n,[json.loads(v) for v in sys.argv[2:]]))))' "$@"
 }
 body()   { sed '$d' <<< "$1"; }
 status() { tail -1 <<< "$1"; }
@@ -174,9 +228,10 @@ else
   fail "the unfiltered read does not show her shop ($EVERY), so the filter is not what keeps it out"
 fi
 
-# --- 5. her kitchen, as Cocina will make it ---------------------------------
-KITCHEN="$(body "$(api POST /rest/v1/rpc/onboard_workspace '{"p_display_name":"Zona de la fonda","p_kind":"cocina"}')" | tr -d '"')"
-[[ "$KITCHEN" =~ ^[0-9a-f-]{36}$ ]] || { fail "could not make the kitchen: $KITCHEN"; exit 1; }
+# --- 5. her kitchen, as Cocina makes it -------------------------------------
+# ⚠️ BY THE APP'S NAMES (`OnboardArgs`), in its order: the kitchen's name, then the kind.
+KITCHEN="$(body "$(api POST "/rest/v1/rpc/$ONBOARD" "$(by_names "$ONBOARD_ARGS" '"Zona de la fonda"' "\"$KIND\"")")" | tr -d '"')"
+[[ "$KITCHEN" =~ ^[0-9a-f-]{36}$ ]] || { fail "could not make the kitchen as the app does, $ONBOARD($ONBOARD_ARGS): $KITCHEN"; exit 1; }
 v="$(app_read "$KITCHEN")"
 if [[ "$v" == OK ]]; then ok "with a shop and a kitchen, the app's read is the kitchen alone, with exactly $COLUMNS"
 else fail "with a shop and a kitchen: $v"; fi
@@ -186,7 +241,7 @@ else fail "with a shop and a kitchen: $v"; fi
 # when the heap happens to agree with the alphabet — cannot pass for the order
 # by creation. A second apart, so the two times differ.
 sleep 1
-SECOND="$(body "$(api POST /rest/v1/rpc/onboard_workspace '{"p_display_name":"Antojitos, segunda cocina","p_kind":"cocina"}')" | tr -d '"')"
+SECOND="$(body "$(api POST "/rest/v1/rpc/$ONBOARD" "$(by_names "$ONBOARD_ARGS" '"Antojitos, segunda cocina"' "\"$KIND\"")")" | tr -d '"')"
 [[ "$SECOND" =~ ^[0-9a-f-]{36}$ ]] || { fail "could not make the second kitchen: $SECOND"; exit 1; }
 v="$(app_read "$KITCHEN,$SECOND")"
 if [[ "$v" == OK ]]; then ok "with two kitchens, both, the first-made first — the one the app opens"
@@ -199,12 +254,183 @@ python3 -c 'import json,sys; rows=json.loads(sys.argv[1]); raise SystemExit(0 if
 if [[ $? -eq 0 ]]; then ok "the name typed at Crear cuenta is on her kitchen membership — $NAME_KEY is the key the database reads"
 else fail "her kitchen membership carries $MEMBER, not \"$NAME\" — the name was stored under a key the database does not read"; fi
 
-# --- 8. signed out, nothing ---------------------------------------------------
+# =============================================================================
+# `10.4b-iii-b` — SHE MAKES HER KITCHEN. Every name below is the app's, and every
+# group also asks of her SHOP, which she owns too: nothing written here may land
+# on it.
+# =============================================================================
+
+# Verdicts are one python file, a function per question: `verdict <question> <args…>`.
+cat > "$SCRATCH/kitchen.py" <<'PY'
+import json, sys
+
+def load(path):
+    try:
+        return json.load(open(path))
+    except Exception as exc:
+        print('unreadable: %s' % exc); raise SystemExit
+
+def giros(status, path, template_path):
+    rows = load(path)
+    if status != '200' or not isinstance(rows, list):
+        print("the trades' door answered %s %s" % (status, json.dumps(rows)[:160])); return
+    if not rows:
+        print("the trades' door answered an empty list"); return
+    shops = {t.get('code') for t in load(template_path).get('tags', []) if t.get('kind') == 'giro'}
+    for r in rows:
+        if not isinstance(r, dict) or set(r) != {'code', 'label'}:
+            print('a trade came as %s, not {code, label}' % json.dumps(r)[:120]); return
+        if not str(r['code']).startswith('giro-') or not str(r['label']).strip():
+            print('a trade has no giro code or no name: %s' % json.dumps(r)); return
+        if r['code'] in shops:
+            print("a shop's giro is among the kitchens' trades: %s" % r['code']); return
+    if not shops:
+        print("Wera's template returned no giro, so 'none is a shop's' would be vacuous"); return
+    print('OK %d %s %s' % (len(rows), rows[0]['code'], sorted(shops)[0]))
+
+def place(status, path, columns, want_name, not_ids):
+    rows = load(path)
+    if status != '200' or not isinstance(rows, list):
+        print("the app's place read answered %s %s" % (status, json.dumps(rows)[:160])); return
+    if len(rows) != 1:
+        print("the app's place read for the kitchen returned %d rows, expected its one place" % len(rows)); return
+    r = rows[0]
+    if set(r) != set(columns.split(',')):
+        print('the place carried %s, the app asks for %s' % (sorted(r), sorted(columns.split(',')))); return
+    if r.get('id') in [i for i in not_ids.split(',') if i]:
+        print("the app's place read returned %s — her SHOP's store or another kitchen's place, not this kitchen's" % r.get('id')); return
+    if r.get('name') != want_name:
+        print("the place is named %r, not after the kitchen (%r)" % (r.get('name'), want_name)); return
+    print('OK %s' % r['id'])
+
+def fields(status, path, want_json):
+    rows = load(path)
+    if status != '200' or not isinstance(rows, list) or len(rows) != 1:
+        print('the read back answered %s %s' % (status, json.dumps(rows)[:160])); return
+    want, got = json.loads(want_json), rows[0]
+    for key, value in want.items():
+        have = got.get(key)
+        if isinstance(value, float) and isinstance(have, (int, float)):
+            same = round(have, 6) == round(value, 6)
+        else:
+            same = have == value
+        if not same:
+            print('%s reads back %r, sent %r' % (key, have, value)); return
+    print('OK')
+
+globals()[sys.argv[1]](*sys.argv[2:])
+PY
+verdict() { python3 "$SCRATCH/kitchen.py" "$@"; }
+read_back() { # path want-json -> "OK" or why not
+  local out; out="$(api GET "$1")"
+  body "$out" > "$SCRATCH/back.json"
+  verdict fields "$(status "$out")" "$SCRATCH/back.json" "$2"
+}
+
+# --- 8. the kitchens' trades, through the app's door --------------------------
+out="$(api POST "/rest/v1/rpc/$GIROS_RPC" '{}')"
+body "$out" > "$SCRATCH/giros.json"
+body "$(api POST /rest/v1/rpc/catalog_template '{}')" > "$SCRATCH/template.json"
+v="$(verdict giros "$(status "$out")" "$SCRATCH/giros.json" "$SCRATCH/template.json")"
+TRADE="" SHOP_GIRO=""
+if [[ "$v" == OK* ]]; then
+  read -r _ TRADES TRADE SHOP_GIRO <<< "$v"
+  ok "$GIROS_RPC() answers $TRADES trades as {code, label}, none of them a shop's giro"
+else
+  fail "the kitchens' trades: $v"
+fi
+
+# --- 9. her trade, by the app's update on her kitchen --------------------------
+# ⚠️ AS SUPABASE-JS SENDS `.update().eq('id').select('id').single()`: the row asked
+# back as one object, so a refusal is a 406, never a 200 that looks saved.
+if [[ -n "$TRADE" ]]; then
+  out="$(api PATCH "/rest/v1/$TABLE?id=eq.$KITCHEN&select=id" "$(by_names "$GIRO_COL" "\"$TRADE\"")" \
+    'Prefer: return=representation' 'Accept: application/vnd.pgrst.object+json')"
+  if [[ "$(status "$out")" != 200 ]] || ! grep -c "$KITCHEN" <<< "$(body "$out")" > /dev/null; then
+    fail "the app's trade update answered $(status "$out") $(body "$out" | head -c 200)"
+  else
+    v1="$(read_back "/rest/v1/$TABLE?select=$GIRO_COL&id=eq.$KITCHEN" "{\"$GIRO_COL\": \"$TRADE\"}")"
+    v2="$(read_back "/rest/v1/$TABLE?select=$GIRO_COL&id=eq.$SHOP" "{\"$GIRO_COL\": null}")"
+    out="$(api PATCH "/rest/v1/$TABLE?id=eq.$KITCHEN&select=id" "$(by_names "$GIRO_COL" "\"$SHOP_GIRO\"")" \
+      'Prefer: return=representation' 'Accept: application/vnd.pgrst.object+json')"
+    if [[ "$v1" != OK ]]; then fail "her kitchen's trade: $v1"
+    elif [[ "$v2" != OK ]]; then fail "her SHOP's trade changed when her kitchen's was written: $v2"
+    elif [[ "$(status "$out")" != 400 ]] || ! grep -c '23514' <<< "$(body "$out")" > /dev/null; then
+      fail "a shop's giro ($SHOP_GIRO) on her kitchen answered $(status "$out"), not 400 23514: $(body "$out" | head -c 160)"
+    else ok "her trade is written on her kitchen by $GIRO_COL and reads back; her shop's is untouched; a shop's giro is refused (23514)"; fi
+  fi
+else
+  fail "her trade: no trade to write — the trades' door gave none"
+fi
+
+# --- 10. her kitchen's place, by the app's read ---------------------------------
+# ⚠️ NOT VACUOUS: the same read WITHOUT the kitchen's filter starts with her SHOP's
+# store — made first — so a read that lost the filter would write her kitchen's
+# address and pin onto her shop.
+SHOP_STORE="$(body "$(api GET "/rest/v1/$PLACE_TABLE?select=id&$PLACE_OWNER=eq.$SHOP")" \
+  | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r[0]["id"] if isinstance(r,list) and r else "")' 2>/dev/null)"
+FIRST_SEEN="$(body "$(api GET "/rest/v1/$PLACE_TABLE?select=id&$PLACE_ACTIVE=eq.true&order=$PLACE_ORDER&limit=1")" \
+  | python3 -c 'import json,sys; r=json.load(sys.stdin); print(r[0]["id"] if isinstance(r,list) and r else "")' 2>/dev/null)"
+out="$(api GET "$(place_read "$KITCHEN")")"
+body "$out" > "$SCRATCH/place.json"
+v="$(verdict place "$(status "$out")" "$SCRATCH/place.json" "$PLACE_COLUMNS" "Zona de la fonda" "$SHOP_STORE")"
+PLACE_ID=""
+if [[ "$v" == OK* ]]; then
+  PLACE_ID="${v#OK }"
+  out="$(api GET "$(place_read "$SECOND")")"
+  body "$out" > "$SCRATCH/second.json"
+  v2="$(verdict place "$(status "$out")" "$SCRATCH/second.json" "$PLACE_COLUMNS" "Antojitos, segunda cocina" "$SHOP_STORE,$PLACE_ID")"
+  if [[ -z "$SHOP_STORE" || "$FIRST_SEEN" != "$SHOP_STORE" ]]; then
+    fail "the unfiltered read's first place is $FIRST_SEEN, not her shop's store ($SHOP_STORE) — the filter is not shown to be what keeps it out"
+  elif [[ "$v2" != OK* ]]; then fail "the second kitchen's place: $v2"
+  else ok "the app's place read is her kitchen's own place, with exactly $PLACE_COLUMNS — unfiltered, the first is her shop's store"; fi
+else
+  fail "her kitchen's place: $v"
+fi
+[[ -n "$PLACE_ID" ]] || { echo; echo "$((fails)) assertion group(s) failed — no place to write her address and pin to."; exit 1; }
+
+# --- 11. her address, through the app's door and names --------------------------
+out="$(api POST "/rest/v1/rpc/$SET_ADDRESS" \
+  "$(by_names "$SET_ADDRESS_ARGS" "\"$PLACE_ID\"" '"Fresno"' '"45"' 'null' '"Cuauhtémoc"' '"06400"')")"
+if [[ "$(status "$out")" != 200 && "$(status "$out")" != 204 ]]; then
+  fail "her address, $SET_ADDRESS($SET_ADDRESS_ARGS), answered $(status "$out") $(body "$out" | head -c 200)"
+else
+  v1="$(read_back "$(place_read "$KITCHEN")" '{"street":"Fresno","street_number":"45","colonia":null,"city":"Cuauhtémoc","postal_code":"06400"}')"
+  v2="$(read_back "/rest/v1/$PLACE_TABLE?select=street,city,postal_code&id=eq.$SHOP_STORE" '{"street":null,"city":null,"postal_code":null}')"
+  if [[ "$v1" != OK ]]; then fail "her address: $v1"
+  elif [[ "$v2" != OK ]]; then fail "her SHOP's store got an address when her kitchen's was written: $v2"
+  else ok "her address goes through $SET_ADDRESS and reads back as sent, the empty colonia as none; her shop's store has none"; fi
+fi
+
+# --- 12. her pin and its line, through the app's door and names -----------------
+out="$(api POST "/rest/v1/rpc/$SET_PIN" \
+  "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.451234' '-99.159876' '"Portón verde, junto a la farmacia"')")"
+if [[ "$(status "$out")" != 200 && "$(status "$out")" != 204 ]]; then
+  fail "her pin, $SET_PIN($SET_PIN_ARGS), answered $(status "$out") $(body "$out" | head -c 200)"
+else
+  v1="$(read_back "$(place_read "$KITCHEN")" '{"pin_lat":19.451234,"pin_lng":-99.159876,"directions":"Portón verde, junto a la farmacia"}')"
+  out="$(api POST "/rest/v1/rpc/$SET_PIN" "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.451234' '-99.159876' 'null')")"
+  v2="$(read_back "$(place_read "$KITCHEN")" '{"pin_lat":19.451234,"pin_lng":-99.159876,"directions":null}')"
+  v3="$(read_back "/rest/v1/$PLACE_TABLE?select=pin_lat,pin_lng,directions&id=eq.$SHOP_STORE" '{"pin_lat":null,"pin_lng":null,"directions":null}')"
+  if [[ "$v1" != OK ]]; then fail "her pin: $v1"
+  elif [[ "$v2" != OK ]]; then fail "her pin with no line of directions: $v2"
+  elif [[ "$v3" != OK ]]; then fail "her SHOP's store got a pin when her kitchen's was set: $v3"
+  else ok "her pin goes through $SET_PIN and reads back to six decimals with its line, a blank line as none; her shop's store has no pin"; fi
+fi
+
+# --- 13. signed out, nothing ----------------------------------------------------
 out="$(TOKEN="" api GET "$APP_READ")"
+place_out="$(TOKEN="" api GET "$(place_read "$KITCHEN")")"
+giros_out="$(TOKEN="" api POST "/rest/v1/rpc/$GIROS_RPC" '{}')"
+pin_out="$(TOKEN="" api POST "/rest/v1/rpc/$SET_PIN" "$(by_names "$SET_PIN_ARGS" "\"$PLACE_ID\"" '19.4' '-99.1' 'null')")"
 if grep -c '"id"' <<< "$(body "$out")" > /dev/null; then
   fail "signed out, the read returned businesses: $(body "$out" | head -c 200)"
+elif grep -c '"id"' <<< "$(body "$place_out")" > /dev/null; then
+  fail "signed out, the place read returned her place: $(body "$place_out" | head -c 200)"
+elif [[ "$(status "$giros_out")" == 2* || "$(status "$pin_out")" == 2* ]]; then
+  fail "signed out, the trades answered $(status "$giros_out") and the pin $(status "$pin_out") — nothing is reachable without an account"
 else
-  ok "signed out, the read returns no business ($(status "$out"))"
+  ok "signed out: no business ($(status "$out")), no place ($(status "$place_out")), no trades ($(status "$giros_out")), no pin set ($(status "$pin_out"))"
 fi
 
 echo
@@ -212,5 +438,6 @@ if (( fails > 0 )); then
   echo "$fails assertion group(s) failed."
   exit 1
 fi
-echo "all 8 assertion groups passed — Wera Cocina's kitchen read is one the database answers,"
-echo "it opens kitchens only and the first-made first, and the name typed at sign-up reaches her membership."
+echo "all 13 assertion groups passed — Wera Cocina's kitchen read is one the database answers, it opens"
+echo "kitchens only and the first-made first, the name typed at sign-up reaches her membership, and her"
+echo "kitchen is made, given its trade, its address and its pin on its own place — never on her shop."

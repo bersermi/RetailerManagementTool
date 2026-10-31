@@ -1,6 +1,6 @@
 // ============================================================================
 // EVERY WORD WERA COCINA SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
-// (the skeleton) and `10.4b-iii-a` (signing in).
+// (the skeleton), `10.4b-iii-a` (signing in) and `10.4b-iii-b` (her kitchen).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`). One person can use both apps with one
@@ -54,25 +54,112 @@ export const ES = {
   },
 
   /**
-   * ⚠️ `10.4b-iii-a`: WHERE A LOGIN WITH NO KITCHEN LANDS — every first sign-in,
-   * and a shop's owner who opens this app with her Wera login (her shop is
-   * Wera's, `0072`). Making the kitchen is `10.4b-iii-b`'s; until it ships the
-   * screen says it is coming, and nothing more.
+   * ⚠️ `10.4b-iii-b`: WHERE A LOGIN WITH NO KITCHEN LANDS, AND MAKES ONE — every
+   * first sign-in, and a shop's owner who opens this app with her Wera login (her
+   * shop is Wera's, `0072`). Two screens: this form, then the map.
    */
-  nueva: {
+  registro: {
     antetitulo: 'Wera Cocina',
-    titulo: 'Tu cocina',
-    lista: 'Ya tienes tu cuenta.',
+    titulo: 'Registra tu cocina',
     quien: (who: string) => `Entraste como ${who}.`,
-    pronto: 'Muy pronto podrás registrar aquí tu cocina: su nombre, su giro, su dirección y su lugar en el mapa.',
+    nombre: 'Nombre de tu cocina',
+    /** A hint in muted ink, never a value: she types her own. */
+    nombreEjemplo: 'Fonda Doña Lupe',
+    giro: '¿Qué es tu cocina?',
+    giroLeyendo: 'Buscando la lista…',
+    giroSinLeer: 'No pudimos leer la lista. Revisa tu conexión a internet.',
+    donde: '¿Dónde está tu cocina?',
+    siguiente: 'Siguiente: tu cocina en el mapa',
+    errores: {
+      nombre: 'Escribe el nombre de tu cocina.',
+      giro: 'Elige qué es tu cocina.',
+    },
   },
 
-  /** Her kitchen, once she has one. `10.4b-iii-b` and `10.4b-iv` fill it. */
+  /**
+   * ⚠️ WERA'S WORDS (`app/src/strings.ts`, `ES.address`, plan `8k`): the same five
+   * boxes, the same refusals, the same one line — `test/place.test.ts` holds
+   * them to Wera's file. One person may give an address in both apps.
+   */
+  address: {
+    street: 'Calle',
+    number: 'Número',
+    colonia: 'Colonia (opcional)',
+    city: 'Ciudad o alcaldía',
+    postalCode: 'Código postal',
+    /** The bar above the postal code's number pad on an iPhone. */
+    done: 'Listo',
+    line: (street: string, number: string, colonia: string, city: string, cp: string) =>
+      [`${street} ${number}`, colonia, city, `C.P. ${cp}`].filter((part) => part.trim() !== '').join(', '),
+    issues: {
+      street: 'Escribe la calle.',
+      number: 'Escribe el número.',
+      city: 'Escribe la ciudad o alcaldía.',
+      postalCode: 'El código postal son cinco números.',
+    },
+  },
+
+  /**
+   * ⚠️ HER PIN, ON THE SATELLITE VIEW (`0072`; the owner's *"as precise as
+   * possible"*, 2026-10-28). The hint changes with the map: too far, close
+   * enough, placed (`@/lib/mapa`).
+   */
+  mapa: {
+    titulo: '¿Dónde entregas la comida?',
+    volver: 'Volver',
+    lejos: 'Busca tu cocina en el mapa. Toca cerca de ella para acercarte.',
+    cerca: 'Ahora toca justo donde entregas la comida.',
+    puesto: 'Aquí está tu cocina. Si no es el lugar exacto, toca otra vez.',
+    indicaciones: 'Cómo encontrarte (opcional)',
+    /** A hint in muted ink, never a value. */
+    indicacionesEjemplo: 'Portón verde, junto a la farmacia',
+    /**
+     * ⚠️ SAID BEFORE SHE SAVES IT, BECAUSE IT IS TRUE: a kitchen's exact spot is
+     * shown to signed-in neighbours before they reserve (the owner's ruling 4,
+     * 2026-10-28), and nobody has asked whether a fonda is run from a home.
+     */
+    vecinos: 'Los vecinos verán este punto exacto en el mapa.',
+    falta: 'Toca el mapa justo donde entregas la comida.',
+    registrar: 'Registrar mi cocina',
+    guardar: 'Guardar',
+  },
+
+  /** Her kitchen, once she has one — and the second door for whatever is missing. `10.4b-iv` adds publishing. */
   cocina: {
     antetitulo: 'Tu cocina',
     pronto: 'Muy pronto podrás publicar desde aquí lo que te sobra del día.',
     leyendo: 'Buscando tu cocina…',
     sinLeer: 'No pudimos leer tu cocina. Revisa tu conexión a internet.',
     otraVez: 'Intentar de nuevo',
+    donde: 'Dónde entregas',
+    /** Her line of directions, read back under the map. */
+    indicaciones: (line: string) => `“${line}”`,
+    sinGiro: 'Falta qué es tu cocina.',
+    sinDireccion: 'Falta tu dirección.',
+    sinPunto: 'Falta tu cocina en el mapa.',
+    ponerPunto: 'Poner mi cocina en el mapa',
+    cambiarPunto: 'Cambiar el punto',
+    completarDatos: 'Completar',
+    cambiarDatos: 'Cambiar giro o dirección',
+  },
+
+  /** Her trade and her address, changed or completed from her kitchen's screen. */
+  datos: {
+    titulo: 'Giro y dirección',
+    volver: 'Volver',
+    guardar: 'Guardar',
+  },
+
+  /**
+   * What a failed call says (`@/api/errors`). ⚠️ `sessionEnded`, `offline` and
+   * `unknown` are Wera's sentences (`ES.api.errors`), held to Wera's file.
+   */
+  api: {
+    errors: {
+      sessionEnded: 'Tu sesión se cerró. Entra de nuevo.',
+      offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
+      ownerOnly: 'Solo el dueño de la cocina puede cambiarlo.',
+      unknown: 'Algo salió mal. Intenta de nuevo.',
+    },
   },
 } as const;
