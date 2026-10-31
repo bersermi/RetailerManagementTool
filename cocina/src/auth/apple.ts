@@ -4,7 +4,7 @@
 // ⚠️ WERA'S RULES, COPIED (`app/src/auth/apple.ts`, plan `5R-k`, whose header
 // carries the reasons) — the sign-in half. On an iPhone the system sheet hands
 // back a token Apple signed and `AuthProvider` gives it to Supabase; no browser,
-// no deep link. Nothing here imports the native module, so `test/apple.test.ts`
+// no deep link. Nothing here imports the native module, so `test/sign-in.test.ts`
 // can load it.
 //
 // ⚠️ ONE LOGIN ACROSS THE APPS (ADR-035 §2.7): Apple gives one person the same

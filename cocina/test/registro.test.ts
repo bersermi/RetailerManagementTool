@@ -232,7 +232,10 @@ describe('what she is told when a call fails', () => {
     expect(apiErrorKey({ code: '42501' })).toBe('sessionEnded');
     expect(apiErrorKey({ code: 'TD012' })).toBe('ownerOnly');
     expect(apiErrorKey({ code: 'PGRST116' })).toBe('ownerOnly');
-    expect(apiErrorKey({ code: '22023' })).toBe('unknown');
+    // ⚠️ `10.4b-iv-a`: a value the database would not take has its own sentence
+    // since publishing — a form left open past its window, or a clock that is off.
+    expect(apiErrorKey({ code: '22023' })).toBe('revisar');
+    expect(apiErrorKey({ code: '23505' })).toBe('unknown');
     expect(apiErrorKey('boom')).toBe('unknown');
     for (const known of KNOWN_API_CODES) expect(apiErrorKey({ code: known })).not.toBe('unknown');
   });

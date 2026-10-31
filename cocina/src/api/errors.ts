@@ -25,6 +25,11 @@ const BY_CODE: Readonly<Record<string, ApiMessageKey>> = {
   // mal*, she would tap again; told who may, she stops.
   TD012: 'ownerOnly',
   PGRST116: 'ownerOnly',
+  // ⚠️ `10.4b-iv-a`: A VALUE THE DATABASE WOULD NOT TAKE — `publish_listing`'s
+  // window or a line, the pin's numbers. The forms check what the database
+  // checks, so this is time passing while a form stayed open, or a phone's clock
+  // that is off; *algo salió mal* would have her tap again for the same refusal.
+  '22023': 'revisar',
 };
 
 /** The Spanish sentence for a failed call — always one of `ES.api.errors`. */

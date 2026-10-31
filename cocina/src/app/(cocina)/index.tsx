@@ -12,26 +12,31 @@ import { Banda } from '@/ui/Banda';
 import { BotonLleno } from '@/ui/BotonLleno';
 import { Formulario } from '@/ui/Formulario';
 import { MapaFijo } from '@/ui/MapaFijo';
+import { Publicaciones } from '@/ui/Publicaciones';
 import { Salidas } from '@/ui/Salidas';
 
 // ============================================================================
-// HER KITCHEN. Plan tasks `10.4b-iii-a` (the screen every launch opens on) and
-// `10.4b-iii-b` (what she gave, and the second door for what is missing).
+// HER KITCHEN. Plan tasks `10.4b-iii-a` (the screen every launch opens on),
+// `10.4b-iii-b` (what she gave, and the second door for what is missing) and
+// `10.4b-iv-a` (what she publishes, on top).
 //
 // ⚠️ THREE THINGS IT DRAWS, AND ONLY ONE IS HER KITCHEN:
 //   - nobody signed in yet, or her kitchens not read yet: the band and a wheel
 //     (the guard moves her the moment it knows — `@/auth/guard`);
 //   - the read FAILED (no signal at launch): a sentence and *Intentar de
 //     nuevo*, never *Registra tu cocina* — `unknown` is not `none`;
-//   - her kitchen: its name, what it is, where she hands food over — the
-//     address, the pin on the satellite view and her line of directions.
+//   - her kitchen: *Publicar lo que te sobra* and her list (`@/ui/Publicaciones`)
+//     first — what she opens the app for every day — then its name, what it is,
+//     where she hands food over: the address, the pin on the satellite view and
+//     her line of directions.
 //
 // ⚠️⚠️ THE SECOND DOOR. Making a kitchen is four writes and only the first can
 // fail the sign-up (`@/api/registro`): a trade, an address or a pin that did not
 // reach the database is said here — *Falta …* — with the button that gives it.
 // Wera's onboarding has Ajustes for that; this screen is Cocina's. And the same
 // buttons change what she gave: *Cambiar el punto*, *Cambiar giro o dirección*.
-// `10.4b-iv` adds publishing above them.
+// ⚠️ Publishing does not wait on them: nothing she publishes is shown to anyone
+// until slice 2's door, which will need her pin.
 //
 // ⚠️ HER WAY OUT AT THE FOOT (`@/ui/Salidas`, `10.4b-iii-c`): *Cerrar sesión*,
 // and *Eliminar mi cuenta*, which names this kitchen first and every other
@@ -92,6 +97,18 @@ export default function TuCocina() {
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo }}>
       <Banda titulo={kitchen.displayName} antetitulo={trade ?? ES.cocina.antetitulo} />
       <Formulario contentContainerStyle={body}>
+        <BotonLleno
+          variante="principal"
+          icon="silverware-fork-knife"
+          label={ES.publicar.abrir}
+          onPress={() => router.push('/publicar')}
+        />
+        <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta, marginTop: SIZE.rowGap }}>
+          {ES.publicaciones.titulo}
+        </Text>
+        <Publicaciones kitchenId={kitchen.id} />
+
+        <View style={{ marginTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea }} />
         {missingGiro && <Text style={missing}>{ES.cocina.sinGiro}</Text>}
 
         <Text style={{ fontSize: SIZE.bodySize, fontWeight: '700', color: PALETTE.tinta }}>{ES.cocina.donde}</Text>
@@ -140,7 +157,6 @@ export default function TuCocina() {
         )}
 
         <View style={{ marginTop: SIZE.space, paddingTop: SIZE.space, borderTopWidth: 1, borderTopColor: PALETTE.linea, gap: SIZE.space }}>
-          <Text style={{ fontSize: SIZE.bodySize, lineHeight: 22, color: PALETTE.tinta }}>{ES.cocina.pronto}</Text>
           <Salidas openKitchenId={kitchen.id} />
         </View>
       </Formulario>

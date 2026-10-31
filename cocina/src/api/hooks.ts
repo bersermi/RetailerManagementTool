@@ -1,7 +1,7 @@
 // ============================================================================
 // HOW A SCREEN REACHES THE DATABASE. Plan tasks `10.4b-iii-a` (her kitchens),
-// `10.4b-iii-b` (making one; her trade, her address and her pin) and
-// `10.4b-iii-c` (her way out).
+// `10.4b-iii-b` (making one; her trade, her address and her pin),
+// `10.4b-iii-c` (her way out) and `10.4b-iv-a` (what she publishes).
 //
 // ⚠️ A SCREEN NEVER CALLS `@/api/calls` ITSELF — Wera's R12: a hook here owns
 // the query key, when the read may run, and what it means. Every read waits for
@@ -32,10 +32,13 @@ import {
   kitchenGiros,
   kitchenCalls,
   myKitchens,
+  myListings,
+  publishListing,
   revokeApple,
   setKitchenGiro,
   setPlaceAddress,
   setPlacePin,
+  withdrawListing,
 } from '@/api/calls';
 import { apiErrorMessage } from '@/api/errors';
 import {
@@ -47,6 +50,15 @@ import {
   type Kitchen,
   type Membership,
 } from '@/api/kitchen';
+import {
+  LISTINGS_KEY,
+  listingFrom,
+  listingsKey,
+  withListing,
+  withWithdrawn,
+  type Listing,
+  type PublishArgs,
+} from '@/api/listing';
 import { PLACES_KEY, placeKey, setStoreAddressArgs, type AddressForm, type SetStorePinArgs } from '@/api/place';
 import { makeKitchen, withKitchen, type Draft } from '@/api/registro';
 import { useAuth } from '@/auth/AuthProvider';
@@ -199,6 +211,85 @@ export function useSaveDatos() {
   }
 
   return { save, busy: mutation.isPending };
+}
+
+/**
+ * Her publications at the open kitchen (`10.4b-iv-a`): her list, and what
+ * *Repetir* starts from. Keyed on the login and the kitchen, Cocina's rule.
+ */
+export function useListings(kitchenId: string | null) {
+  const { session, ready } = useAuth();
+  const userId = session?.user.id ?? null;
+  return useQuery({
+    queryKey: listingsKey(userId, kitchenId),
+    queryFn: () => myListings(kitchenId as string),
+    enabled: ready && userId !== null && kitchenId !== null,
+  });
+}
+
+/**
+ * Publishing (`publish_listing`). `publish` answers `null`, or the sentence to
+ * show. ⚠️ THE MADE ONE GOES INTO HER LIST AT ONCE (`withListing`), so her
+ * kitchen's screen shows it the moment she is back on it. ⚠️ ON SETTLED, NOT
+ * ONLY ON SUCCESS, HER LIST IS READ AGAIN: a reply lost after the database wrote
+ * it fails here while the publication exists, and the re-read shows it — and a
+ * retry under the same id (`attemptFor`) is that publication, never a second.
+ */
+export function usePublish(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (args: PublishArgs) => publishListing(args),
+    onSuccess: (_id, args) => {
+      queries.setQueryData<Listing[]>(listingsKey(userId, kitchenId), (listings) => withListing(listings, listingFrom(args)));
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: LISTINGS_KEY });
+    },
+  });
+
+  async function publish(args: PublishArgs): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(args);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { publish, busy: mutation.isPending };
+}
+
+/**
+ * Withdrawing one (`withdraw_listing`). `withdraw` answers `null`, or the
+ * sentence to show; `busyId` is the one being withdrawn. Drawn withdrawn at once
+ * on success (`withWithdrawn`), and the list read again either way.
+ */
+export function useWithdraw(kitchenId: string | null) {
+  const queries = useQueryClient();
+  const { session } = useAuth();
+  const userId = session?.user.id ?? null;
+  const mutation = useMutation({
+    mutationFn: (id: string) => withdrawListing({ p_id: id }),
+    onSuccess: (_none, id) => {
+      queries.setQueryData<Listing[]>(listingsKey(userId, kitchenId), (listings) => withWithdrawn(listings, id, new Date()));
+    },
+    onSettled: () => {
+      void queries.invalidateQueries({ queryKey: LISTINGS_KEY });
+    },
+  });
+
+  async function withdraw(id: string): Promise<string | null> {
+    try {
+      await mutation.mutateAsync(id);
+      return null;
+    } catch (thrown) {
+      return apiErrorMessage(thrown);
+    }
+  }
+
+  return { withdraw, busyId: mutation.isPending ? (mutation.variables ?? null) : null };
 }
 
 /**

@@ -20,7 +20,7 @@ import { ES } from '@/strings';
 // ⚠️ WERA'S PROVIDER, FOR THE THREE WAYS IN (`app/src/auth/AuthProvider.tsx`,
 // plans `5a-iii-a`, `5a-iii-b`, `5b.7`, `5R-d-iii`, `5R-k` and `8g`, whose notes
 // carry every measurement). One context over `supabase.auth` and the ONLY module
-// that calls it (`test/auth-wiring.test.ts`), so no screen can sign a person out
+// that calls it (`test/data-layer.test.ts`), so no screen can sign a person out
 // on a failed read. The sign-in methods return a Spanish sentence or `null` —
 // `null` is success, AND a closed browser or sheet, which owes no message.
 //

@@ -10,7 +10,7 @@
 // over, and says `SIGNED_OUT` when it does. The fence does not move — every
 // request still goes through supabase-js, which renews before it sends.
 //
-// ⚠️ PURE, so `test/auth-held.test.ts` reads it; the storage read is in `AuthProvider`.
+// ⚠️ PURE, so `test/sign-in.test.ts` reads it; the storage read is in `AuthProvider`.
 // ============================================================================
 
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';

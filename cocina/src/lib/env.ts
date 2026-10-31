@@ -3,7 +3,7 @@
 // Plan task `10.4b-iii-a`.
 //
 // ⚠️ WERA'S RULES, COPIED (`app/src/lib/env.ts`, plan `5a-iii-a`, whose header
-// carries the reasons in full): pure, so `test/env.test.ts` can read it, and it
+// carries the reasons in full): pure, so `test/data-layer.test.ts` can read it, and it
 // REFUSES TO START with a secret key — `sb_secret_…` or a `service_role` JWT
 // bypasses every wall in the database, and it works, better even. Both apps
 // talk to the one database, so both refuse it.

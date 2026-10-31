@@ -1,6 +1,7 @@
 // ============================================================================
 // EVERY WORD WERA COCINA SHOWS, IN ONE FILE (ADR-035 §2.11). Plan tasks `10.2a`
-// (the skeleton), `10.4b-iii-a` (signing in) and `10.4b-iii-b` (her kitchen).
+// (the skeleton), `10.4b-iii-a` (signing in), `10.4b-iii-b` (her kitchen),
+// `10.4b-iii-c` (her way out) and `10.4b-iv-a` (what she publishes).
 //
 // ⚠️ WHERE A SCREEN HERE DOES WHAT ONE OF WERA'S DOES, ITS WORDS ARE WERA'S
 // (`app/src/strings.ts`, `ES.auth`). One person can use both apps with one
@@ -124,10 +125,9 @@ export const ES = {
     guardar: 'Guardar',
   },
 
-  /** Her kitchen, once she has one — and the second door for whatever is missing. `10.4b-iv` adds publishing. */
+  /** Her kitchen, once she has one — and the second door for whatever is missing. Publishing is `publicar`'s. */
   cocina: {
     antetitulo: 'Tu cocina',
-    pronto: 'Muy pronto podrás publicar desde aquí lo que te sobra del día.',
     leyendo: 'Buscando tu cocina…',
     sinLeer: 'No pudimos leer tu cocina. Revisa tu conexión a internet.',
     otraVez: 'Intentar de nuevo',
@@ -186,6 +186,104 @@ export const ES = {
     },
   },
 
+  /**
+   * ⚠️ `10.4b-iv-a`: WHAT SHE PUBLISHES — proposal B, his choice of 2026-10-29: one
+   * or more lines, each a dish or, with one switch, a surprise bag, whose
+   * description asks *¿Qué suele llevar?* and which may say what it is usually
+   * worth; then when neighbours may come. Hints are muted ink, never values.
+   */
+  publicar: {
+    abrir: 'Publicar lo que te sobra',
+    titulo: 'Publicar lo que te sobra',
+    repetida: 'Repetir',
+    volver: 'Volver',
+    que: '¿Qué ofreces?',
+    platillo: 'Platillo',
+    bolsa: 'Bolsa sorpresa',
+    /** Each line's heading — `Platillo 2`, `Bolsa sorpresa 1` — which a problem names. */
+    renglon: (surprise: boolean, n: number) => `${surprise ? 'Bolsa sorpresa' : 'Platillo'} ${n}`,
+    nombre: 'Nombre',
+    nombreEjemplo: { platillo: 'Comida corrida', bolsa: 'Bolsa de pan' },
+    descripcion: { platillo: 'Descripción (opcional)', bolsa: '¿Qué suele llevar? (opcional)' },
+    descripcionEjemplo: { platillo: 'Sopa, arroz y guisado del día', bolsa: '6 piezas de pan dulce' },
+    precio: 'Precio de cada uno',
+    cuantos: 'Cuántos hay',
+    vale: 'Lo que vale normalmente (opcional)',
+    etiquetas: 'Avisa si pica o si lleva (opcional)',
+    etiqueta: {
+      pica: 'Pica',
+      cerdo: 'Cerdo',
+      mariscos: 'Mariscos',
+      cacahuate: 'Cacahuate',
+      lacteos: 'Lácteos',
+      gluten: 'Gluten',
+    },
+    quitar: 'Quitar',
+    otro: 'Otro platillo',
+    cuando: '¿Cuándo pueden pasar?',
+    desde: 'Desde',
+    hasta: 'Hasta',
+    /** The steppers' two buttons, for a screen reader: `Desde: más temprano`. */
+    mover: (cual: string, mas: boolean) => `${cual}: ${mas ? 'más tarde' : 'más temprano'}`,
+    publicar: 'Publicar',
+    /** The bar above the number pads on an iPhone. */
+    listo: 'Listo',
+    sinLugar: 'No encontramos dónde entregas. Vuelve a tu cocina e intenta de nuevo.',
+    errores: {
+      /** A problem said with its line's heading in front: `Platillo 2: escribe el precio.` */
+      enRenglon: (renglon: string, problema: string) => `${renglon}: ${problema}`,
+      linea: {
+        name: 'escribe su nombre.',
+        nameLong: 'el nombre es muy largo: hasta 80 letras.',
+        descriptionLong: 'la descripción es muy larga: hasta 200 letras.',
+        price: 'escribe el precio.',
+        priceShape: 'el precio no se ve bien. Escríbelo así: 65 o 65.50.',
+        count: 'escribe cuántos hay.',
+        countShape: 'cuántos hay es un número del 1 al 999.',
+        usualShape: 'lo que vale normalmente no se ve bien. Escríbelo así: 120.',
+        usualLow: 'lo que vale normalmente tiene que ser más que el precio.',
+      },
+      ventana: {
+        backwards: 'La hora de fin tiene que ser después de la de inicio.',
+        ended: 'Esa hora ya pasó. Cambia el horario.',
+        tooFar: 'Tiene que empezar en menos de 24 horas.',
+        tooLong: 'El horario puede durar hasta 12 horas.',
+      },
+      noLines: 'Agrega lo que ofreces.',
+      tooMany: 'Hasta 10 platillos por publicación.',
+    },
+  },
+
+  /** `10.4b-iv-a`: her list, on her kitchen's screen — what is on offer, then what came before. */
+  publicaciones: {
+    titulo: 'Lo que publicaste',
+    ninguna: 'Todavía no has publicado nada.',
+    leyendo: 'Buscando lo que publicaste…',
+    sinLeer: 'No pudimos leer lo que publicaste. Revisa tu conexión a internet.',
+    estado: { oferta: 'En oferta', terminada: 'Terminó', retirada: 'Retirada' },
+    /** One line's figures — `4 a $65` — and, for a bag, what it is usually worth. */
+    cantidad: (count: number, price: string) => `${count} a ${price}`,
+    vale: (price: string) => `vale ${price}`,
+    repetir: 'Repetir',
+    retirar: 'Retirar',
+    /** ⚠️ Wera's inline question (*¿Cancelarla?*, `8k`), not a dialog. */
+    retirarPregunta: '¿Retirarla?',
+    retirarSi: 'Sí, retirar',
+    retirarNo: 'No',
+  },
+
+  /** Days and times as she says them. ⚠️ Wera's shapes: `Mañana · 9:45 a 10:00` (`slotShort`), `Lun 13`. */
+  fechas: {
+    hoy: 'Hoy',
+    manana: 'Mañana',
+    ayer: 'Ayer',
+    /** The first three letters of each day, Sunday first — `Date.getDay()`'s order. */
+    dias: ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'],
+    dia: (abreviatura: string, numero: number) => `${abreviatura} ${numero}`,
+    momento: (dia: string, hora: string) => `${dia} ${hora}`,
+    horario: (dia: string, desde: string, hasta: string) => `${dia} · ${desde} a ${hasta}`,
+  },
+
   /** Her trade and her address, changed or completed from her kitchen's screen. */
   datos: {
     titulo: 'Giro y dirección',
@@ -202,6 +300,11 @@ export const ES = {
       sessionEnded: 'Tu sesión se cerró. Entra de nuevo.',
       offline: 'Sin conexión a internet. Intenta de nuevo en un momento.',
       ownerOnly: 'Solo el dueño de la cocina puede cambiarlo.',
+      /**
+       * `22023`, a value the database would not take (`10.4b-iv-a`). The forms check
+       * what the database checks, so this is time passing or a clock that is off.
+       */
+      revisar: 'Algo de lo que escribiste no se pudo guardar así. Revísalo e intenta de nuevo.',
       unknown: 'Algo salió mal. Intenta de nuevo.',
     },
   },

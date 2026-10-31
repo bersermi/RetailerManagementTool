@@ -2304,7 +2304,10 @@ nothing in it works offline — so a read's key carries the login instead. `supa
 and the URL polyfill joined it over the air at Wera's versions, and neither app's runtime moved. Its
 `src/api/` is a claim about the schema as Wera's is: `db.yml` fires on it and asks a real PostgREST.
 A shared package for both copies stays possible, and is a refactor of Wera's sign-in that waits for a
-row of its own.
+row of its own. ⚠️ **Money is never copied (2026-10-31, plan `10.4b-iv-a`):** the money row above holds for
+every app, so Cocina reads and writes a price through `packages/money` — its one workspace package, which
+moved neither app's runtime — and only the formatter that draws one is a copy, which its suite runs beside
+Wera's file.
 
 ---
 

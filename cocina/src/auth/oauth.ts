@@ -6,7 +6,7 @@
 // leaves the app is THE BROWSER OPENS AND NEVER COMES BACK, so every branch of
 // the return is named here as a value — a code, a cancellation (never a
 // message: she closed it, she knows), or a failure whose detail goes to the
-// console. Nothing here imports the browser or the client, so `test/oauth.test.ts`
+// console. Nothing here imports the browser or the client, so `test/sign-in.test.ts`
 // walks every branch; the four impure lines are in `AuthProvider`.
 //
 // ⚠️⚠️ THE REDIRECT HAS A COPY THIS REPOSITORY CANNOT READ: the hosted project's

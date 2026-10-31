@@ -80,6 +80,11 @@ on:
       - "cocina/src/auth/credentials.ts"
       - "docs/checks/10.4b-iii-a-cocina-contract.sh"
       - "docs/checks/10.4b-iii-a-cocina-contract-falsify.sh"
+      # ⚠️ `10.4b-iv-a`: WHAT A KITCHEN PUBLISHES — `cocina/src/api/listing.ts`, under
+      # `cocina/src/api/**` above: her list's read, `publish_listing` with each line's
+      # keys, `withdraw_listing`. Its own job, `cocina-listings`, below.
+      - "docs/checks/10.4b-iv-a-listing-contract.sh"
+      - "docs/checks/10.4b-iv-a-listing-contract-falsify.sh"
       # ⚠️⚠️ AND THE ROSTER'S, as of plan task 5b-ii-a. `app/src/api/members.ts`
       # is a second claim about the applied schema — two column lists — and it
       # carries something `workspace.ts` does not: a claim about a POLICY. The
@@ -2238,6 +2243,42 @@ jobs:
 
       - name: Deployed check — can it still fail (five canned replies, no network)
         run: bash docs/checks/5R-k-function-deployed-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ⚠️⚠️ WHAT A KITCHEN PUBLISHES (`10.4b-iv-a`), ITS OWN JOB AND NOT A STEP OF
+  # `api-contracts`: that job ran 13 min 41 s of its 20 the day `10.4b-iii-c`
+  # merged, and a falsifier re-runs its whole check per fixture — twelve runs
+  # here, each signing a fonda up, and every sign-up past GoTrue's limit waits
+  # its turn. Jobs run in parallel, so this costs no wall-clock, and its stack
+  # counts its own sign-ups. `cocina/src/api/listing.ts` is the claim: her list's
+  # read, `publish_listing` with each line's keys, and `withdraw_listing`.
+  cocina-listings:
+    name: what a kitchen publishes, against the app's own names
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres, GoTrue and PostgREST
+        run: supabase start -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Contract — does cocina/src/api/listing.ts still describe the schema, is a retry one publication, and is her list her kitchen's (plan 10.4b-iv-a)
+        run: bash docs/checks/10.4b-iv-a-listing-contract.sh
+
+      - name: Contract — can the publishing check still fail (its own eleven fixtures)
+        run: bash docs/checks/10.4b-iv-a-listing-contract-falsify.sh
 
       - name: Stop
         if: always()

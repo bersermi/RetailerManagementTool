@@ -6,7 +6,7 @@
 // an app is drawn edge to edge and the system no longer shortens the window for
 // the keyboard, so the app makes the room itself, as on iPhone. Wera's first user
 // could not see the password he was typing until it did. `@/ui/Formulario`
-// scrolls by this; pure, so `test/teclado.test.ts` reads it.
+// scrolls by this; pure, so `test/data-layer.test.ts` reads it.
 // ============================================================================
 
 /**
