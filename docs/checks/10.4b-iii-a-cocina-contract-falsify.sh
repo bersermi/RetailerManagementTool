@@ -3,10 +3,11 @@
 # still fail, and does it fail for the reason it states?
 #
 # A contract check that has never been seen red is a check nobody has shown can
-# fail. Each fixture below copies `cocina/src/api/kitchen.ts` or
-# `cocina/src/auth/credentials.ts`, breaks ONE claim in the copy, points the check
-# at it, and requires red WITH THE SENTENCE that names that claim — red for the
-# wrong reason is a failure here too. The control, unedited, must be green.
+# fail. Each fixture below copies `cocina/src/api/kitchen.ts`,
+# `cocina/src/auth/credentials.ts` or `cocina/src/api/place.ts`, breaks ONE claim
+# in the copy, points the check at it, and requires red WITH THE SENTENCE that
+# names that claim — red for the wrong reason is a failure here too. The control,
+# unedited, must be green. C7–C13 are `10.4b-iii-b`'s: making her kitchen.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/10.4b-iii-a-cocina-contract-falsify.sh
 # Exit: 0 every fixture behaved; 1 otherwise.
@@ -16,28 +17,32 @@ set -uo pipefail
 CHECK="docs/checks/10.4b-iii-a-cocina-contract.sh"
 KITCHEN="cocina/src/api/kitchen.ts"
 CREDENTIALS="cocina/src/auth/credentials.ts"
-[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
+PLACE="cocina/src/api/place.ts"
+[[ -r "$CHECK" && -r "$KITCHEN" && -r "$CREDENTIALS" && -r "$PLACE" ]] || { echo "FAIL: run this from the repository root"; exit 1; }
 
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 pass=0
 fail=0
 
-run() { # name want phrase target(kitchen|credentials) sed-program
+run() { # name want phrase target(kitchen|credentials|place) sed-program
   local name="$1" want="$2" phrase="$3" target="$4" program="$5"
-  local real="$KITCHEN"; [[ "$target" == credentials ]] && real="$CREDENTIALS"
+  local real="$KITCHEN"
+  [[ "$target" == credentials ]] && real="$CREDENTIALS"
+  [[ "$target" == place ]] && real="$PLACE"
   local copy="$TMP/$name.ts"
   sed "$program" "$real" > "$copy"
   if [[ "$program" != "" ]] && cmp -s "$copy" "$real"; then
     echo "  ✗ $name — THE MUTATION CHANGED NOTHING: a fixture that edits nothing tests the control twice."
     fail=$((fail+1)); return
   fi
-  local out rc
-  if [[ "$target" == credentials ]]; then
-    out="$(bash "$CHECK" "$KITCHEN" "$copy" 2>&1)"; rc=$?
-  else
-    out="$(bash "$CHECK" "$copy" "$CREDENTIALS" 2>&1)"; rc=$?
-  fi
+  local out rc k="$KITCHEN" c="$CREDENTIALS" p="$PLACE"
+  case "$target" in
+    credentials) c="$copy" ;;
+    place) p="$copy" ;;
+    *) k="$copy" ;;
+  esac
+  out="$(bash "$CHECK" "$k" "$c" "$p" 2>&1)"; rc=$?
   local got=red; (( rc == 0 )) && got=green
   if [[ "$got" != "$want" ]]; then
     echo "  ✗ $name — expected $want, got $got"
@@ -79,10 +84,38 @@ run C5 red "the name was stored under a key the database does not read" credenti
 echo "C6  a claim is gone from the file — the check must refuse, not pass"
 run C6 red "could not read KIND_COLUMN" kitchen '/^export const KIND_COLUMN = /d'
 
+echo "C7  her trade's column is misspelt — the update is refused, and she would never have one"
+run C7 red "the app's trade update answered 400" kitchen \
+  "s/^export const GIRO_COLUMN = 'giro_principal';/export const GIRO_COLUMN = 'giro';/"
+
+echo "C8  the trades' door is misspelt — the form would have no list to choose from"
+run C8 red "the trades' door answered 404" kitchen \
+  "s/^export const KITCHEN_GIROS = 'kitchen_giros';/export const KITCHEN_GIROS = 'giros_cocina';/"
+
+echo "C9  the kind's argument is renamed — no kitchen can be made"
+run C9 red "could not make the kitchen as the app does" kitchen \
+  's/^  readonly p_kind: typeof COCINA_KIND;/  readonly p_tipo: typeof COCINA_KIND;/'
+
+echo "C10 the place is read by the wrong column — her kitchen's place is not found"
+run C10 red "returned 0 rows, expected its one place" place \
+  "s/^export const PLACE_OWNER_COLUMN = 'workspace_id';/export const PLACE_OWNER_COLUMN = 'id';/"
+
+echo "C11 an address argument is renamed — her address is never written"
+run C11 red "her address, set_store_address(" place \
+  's/^  readonly p_street: string;/  readonly p_calle: string;/'
+
+echo "C12 a pin argument is renamed — her pin is never set"
+run C12 red "her pin, set_store_pin(" place \
+  's/^  readonly p_lat: number;/  readonly p_latitud: number;/'
+
+echo "C13 a place column is misspelt — PostgREST refuses the read"
+run C13 red "the app's place read answered 400" place \
+  "s/^export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,pin_lat,pin_lng,directions';/export const PLACE_COLUMNS = 'id,name,street,street_number,colonia,city,postal_code,lat,pin_lng,directions';/"
+
 echo
 echo "$pass passed, $fail failed."
-if (( pass + fail < 7 )); then
-  echo "FAIL: only $((pass + fail)) fixtures ran, expected 7."
+if (( pass + fail < 14 )); then
+  echo "FAIL: only $((pass + fail)) fixtures ran, expected 14."
   exit 1
 fi
 (( fail == 0 )) || exit 1

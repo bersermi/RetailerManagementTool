@@ -15,7 +15,7 @@ notes) and copies nothing from it here.
 npm --prefix cocina test                  # the runner's tally — identity, permissions, sign-in's rules, the runtime both ways
 npm run typecheck --workspace @tienda/cocina
 bash docs/checks/wera-runtime.sh          # after ANY install here: Wera's runtime must not move
-bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, as the schema answers
+bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase start`: the kitchen read, and making one, as the schema answers
 ```
 
 ## Rules
@@ -43,9 +43,22 @@ bash docs/checks/10.4b-iii-a-cocina-contract.sh   # against a local `supabase st
   **opens on *Crear cuenta***, because no doors come before it (`src/app/(auth)/entrar.tsx`).
 - **A module in `src/api/` is a claim about the applied schema**, as in Wera: `db.yml` fires on
   `cocina/src/api/**` and runs `docs/checks/10.4b-iii-a-cocina-contract.sh` and its falsifier, which
-  read the names out of `src/api/kitchen.ts`. ⚠️ **Cocina opens kitchens only**: its read filters on
-  `kind = 'cocina'`, so a shop's owner who signs in here lands where a kitchen is made, and her shop
-  stays Wera's.
+  read the names out of `src/api/kitchen.ts` and `src/api/place.ts`. ⚠️ **Cocina opens kitchens only**:
+  its read filters on `kind = 'cocina'`, so a shop's owner who signs in here lands where a kitchen is
+  made, and her shop stays Wera's. ⚠️ **And a kitchen's place is read by the kitchen's id**
+  (`firstPlace`): the walls show a shop's owner her shop's store too, and an unfiltered read's first
+  row is that store — her kitchen's address and pin would land on her shop (`10.4b-iii-b`).
+- **A kitchen is made whole at the end of the sign-up** (`src/api/registro.ts`, `10.4b-iii-b`): the
+  form, then the map, then one *Registrar* — `onboard_workspace`, her trade, her address, her pin —
+  before her kitchens are read again, because the guard moves her the moment that read has one. Only
+  the first write can fail the sign-up; **her kitchen's screen is the second door** for the rest, as
+  Wera's Ajustes is for a shop.
+- ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
+  to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
+  taps but **never moves its camera and draws no marker**, so the zoom, the satellite view and the pin
+  are seen only on the `preview` build (or Apple's map, which needs no key). Its rules are
+  `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up on the emulator,
+  open the map already close in a local edit, and revert it.
 - **Sign-in leans on settings outside this repository** (the plan's status log, 2026-10-30): the
   hosted project's redirect list holds `mx.wera.cocina://**` — without it Google's sign-in hangs, with
   no error — and its Apple client ids hold `mx.wera.cocina`. Android delivers Google's redirect to
