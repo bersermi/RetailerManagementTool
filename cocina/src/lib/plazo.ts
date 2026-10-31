@@ -10,9 +10,10 @@
 // (`@/auth/errors`'s `offline`).
 //
 // The limits are Wera's: 30 s for everything this app sends today, 90 s for a
-// photo going up (`10.4b-iv`'s, a fonda's dish). Wera's 60 s catalog read has no
-// twin here. ⚠️ PURE, so `test/plazo.test.ts` drives it with a fake `fetch` and
-// fake timers; `@/lib/supabase` is the one caller.
+// photo going up — none yet: a dish's photo waits on the owner's ruling about
+// photos (`10.6`), and publishing (`10.4b-iv-a`) sends none. Wera's 60 s catalog
+// read has no twin here. ⚠️ PURE, so `test/data-layer.test.ts` drives it with a
+// fake `fetch` and fake timers; `@/lib/supabase` is the one caller.
 // ============================================================================
 
 /** Writes, small reads, the sign-in's renewal. */

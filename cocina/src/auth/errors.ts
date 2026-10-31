@@ -5,7 +5,7 @@
 // answers with a machine code and an ENGLISH message, and neither is put on a
 // screen. The map's values are KEYS of `ES.auth.errors`, so a sentence cannot be
 // typed in place (TS2820). A dead connection — the common case — is read from
-// the error's shape, since it carries no code. `test/auth-errors.test.ts`.
+// the error's shape, since it carries no code. `test/auth-rules.test.ts`.
 // ============================================================================
 
 import { ES } from '@/strings';

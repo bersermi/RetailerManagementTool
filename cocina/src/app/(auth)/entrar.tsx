@@ -42,7 +42,7 @@ import { Formulario } from '@/ui/Formulario';
 // ⚠️ APPLE'S BUTTON IS APPLE'S: its words in the phone's language, its colours,
 // and on an iPhone only. It has no `disabled`, so `busy` stops touches around it.
 // ⚠️ NO *¿Olvidaste tu contraseña?* YET: Wera's opens WhatsApp to the owner, and
-// this project's environment has no number (plan `10.4b-iv`).
+// this project's environment has no number (plan `10.4b-iv-b`).
 // ⚠️ NO CHECK CAN SEE THIS SCREEN (ADR-035 §2.11): what it calls is pinned
 // behind it (`@/auth/credentials`, `@/auth/oauth`, `@/auth/apple`), and that it
 // looks right is the owner's phone.

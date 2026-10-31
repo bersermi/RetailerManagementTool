@@ -1,13 +1,14 @@
 // ============================================================================
 // EVERY ROUND TRIP THIS APP MAKES TO THE DATABASE. Plan tasks `10.4b-iii-a` (her
-// kitchens), `10.4b-iii-b` (making one: her trade, her address, her pin) and
-// `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple).
+// kitchens), `10.4b-iii-b` (making one: her trade, her address, her pin),
+// `10.4b-iii-c` (her way out: what goes with her account, the deletion, Apple)
+// and `10.4b-iv-a` (what she publishes: her list, publishing, withdrawing).
 //
 // ⚠️ THE IMPURE HALF OF `src/api/` (ADR-035 §2.11): the only module here that
 // imports the live client, so no node suite can load it; every name it sends is
 // a constant from a pure module beside it (`@/api/kitchen`, `@/api/place`,
-// `@/api/account`), which the suite and the contract checks read. Screens reach
-// these through `@/api/hooks`.
+// `@/api/account`, `@/api/listing`), which the suite and the contract checks
+// read. Screens reach these through `@/api/hooks`.
 // ============================================================================
 
 import type { FunctionRegion } from '@supabase/supabase-js';
@@ -44,6 +45,22 @@ import {
   type KitchenRow,
   type OnboardArgs,
 } from '@/api/kitchen';
+import {
+  LINES_TABLE,
+  LINE_ORDER,
+  LISTING_COLUMNS,
+  LISTING_LIMIT,
+  LISTING_ORDER,
+  LISTING_OWNER_COLUMN,
+  LISTING_TABLE,
+  PUBLISH_LISTING,
+  WITHDRAW_LISTING,
+  listingsFrom,
+  orderTerm,
+  type Listing,
+  type PublishArgs,
+  type WithdrawArgs,
+} from '@/api/listing';
 import {
   PLACE_ACTIVE_COLUMN,
   PLACE_COLUMNS,
@@ -131,6 +148,34 @@ export async function setPlaceAddress(args: SetStoreAddressArgs): Promise<void> 
 /** Her pin and its line of directions, through `set_store_pin` (`0072`). */
 export async function setPlacePin(args: SetStorePinArgs): Promise<void> {
   const { error } = await supabase.rpc(SET_STORE_PIN, args);
+  if (error) throw error;
+}
+
+/**
+ * Her last publications at this kitchen, the newest first, each with its lines
+ * in her order. ⚠️ FILTERED ON THE KITCHEN (`@/api/listing`'s header): the walls
+ * show a login every kitchen she belongs to. ⚠️ THE LINES' ORDER IS THE EMBED'S
+ * OWN (`referencedTable`) — to-many, so it sorts the lines inside each one.
+ */
+export async function myListings(kitchenId: string): Promise<Listing[]> {
+  let query = supabase.from(LISTING_TABLE).select(LISTING_COLUMNS).eq(LISTING_OWNER_COLUMN, kitchenId);
+  for (const { column, ascending } of LISTING_ORDER.split(',').map(orderTerm)) query = query.order(column, { ascending });
+  const { data, error } = await query.order(LINE_ORDER, { referencedTable: LINES_TABLE }).limit(LISTING_LIMIT);
+  if (error) throw error;
+  return listingsFrom(data);
+}
+
+/** Publishes the window and its lines in one call (`0072`). ⚠️ The id is the phone's; a retry returns it. */
+export async function publishListing(args: PublishArgs): Promise<string> {
+  const { data, error } = await supabase.rpc(PUBLISH_LISTING, args);
+  if (error) throw error;
+  if (typeof data !== 'string') throw new Error(`${PUBLISH_LISTING} returned ${typeof data}, expected the publication's id`);
+  return data;
+}
+
+/** Takes a publication down (`0072`); a second call keeps the first moment. */
+export async function withdrawListing(args: WithdrawArgs): Promise<void> {
+  const { error } = await supabase.rpc(WITHDRAW_LISTING, args);
   if (error) throw error;
 }
 

@@ -34,6 +34,15 @@ on:
       - "app/src/auth/credentials.ts"
       - "app/src/api/collection.ts"
       - "app/src/api/account.ts"
+      # ⚠️ `10.4b-iv-a`, PUBLISHING: Cocina reads money through `packages/money`
+      # (ADR-035 §2.11 — its first dependency on a workspace package), draws it with
+      # a copy of Wera's formatter that its suite runs beside Wera's file, cleans a
+      # typed price as Wera's `catalogWrite.ts` does, and holds the form's limits to
+      # the text of `0072`, where the database's own are written.
+      - "packages/money/**"
+      - "app/src/format/mxn.ts"
+      - "app/src/api/catalogWrite.ts"
+      - "supabase/migrations/0072_a_kitchen_publishes.sql"
       - "site/privacidad/cocina-e-itacate/index.html"
       - "package.json"
       - "package-lock.json"
