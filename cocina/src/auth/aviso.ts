@@ -8,12 +8,12 @@
 // of 2026-10-10 and -12): the box on *Crear cuenta*, and the line under the
 // providers' buttons, which make an account without passing that box.
 //
-// ⚠️⚠️ UNTIL `10.4b-iv-b` THAT PAGE SAYS THESE VERSIONS HAVE NO ACCOUNTS. It was
-// written for the skeleton (`10.2b`) and promises to say what an account holds
-// before the app asks for one; sign-in reaches only the `preview` builds, which
-// are his alone, and the page is rewritten before any update reaches anyone else
-// (the plan's `10.4b-iv-b`). `test/data-layer.test.ts` holds this address to a
-// page in `site/`, so a renamed folder fails here before it fails in a store.
+// ⚠️ THE PAGE SAYS WHAT THIS APP HOLDS SINCE `10.4b-iv-b` (2026-10-31): an account,
+// a kitchen and a publication, and who sees them — it was the skeleton's (`10.2b`),
+// which had no accounts. A change to what this app collects, or for what, changes
+// that page first, and the page promises an email to every account before it
+// applies. `test/data-layer.test.ts` holds this address to a page in `site/`, so a
+// renamed folder fails here before it fails in a store.
 // ============================================================================
 
 /** The page every link in this app opens. */

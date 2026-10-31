@@ -32,6 +32,17 @@ export const ES = {
     aviso: 'Aviso de privacidad',
     avisoAcceptLead: 'Acepto el ',
     avisoGoogleLead: 'Al continuar, aceptas el ',
+    /**
+     * ⚠️ `10.4b-iv-b`, WERA'S `5R-h`: THE LINK OPENS WHATSAPP TO THE OWNER, who
+     * resets the password by hand (his ruling of 2026-10-09). On *Entrar* only, and
+     * only on a build that carries his number (`@/auth/support`). The label is
+     * Wera's word for word; the two messages are what lands in his chat, and they
+     * name this app, so he knows a fonda is asking.
+     */
+    forgotPassword: '¿Olvidaste tu contraseña?',
+    forgotMessage: 'Hola, olvidé mi contraseña de Wera Cocina.',
+    forgotMessageWithEmail: (email: string) =>
+      `Hola, olvidé mi contraseña de Wera Cocina. Mi correo es ${email}`,
     signOut: 'Cerrar sesión',
     working: 'Un momento…',
     errors: {

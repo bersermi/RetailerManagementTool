@@ -464,6 +464,11 @@ on:
       - "docs/checks/9d-starter-catalog-contract-falsify.sh"
       - "docs/checks/5R-c-account-deletion-contract.sh"
       - "docs/checks/5R-c-account-deletion-contract-falsify.sh"
+      # ⚠️ AND THE DELETION ASKED FOR BY EMAIL, as of plan task `10.4b-iv-b`: the
+      # runbook the owner runs on the hosted project, rehearsed in its own job,
+      # `delete-by-email`, against `delete_my_account` as the migrations leave it.
+      - "docs/runbooks/delete-an-account.sh"
+      - "docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh"
       # ⚠️ AND THE PRODUCT PHOTOS, as of plan task `8o` (`0063`) — the two buckets,
       # the shop's own column and Wera's computed one, against the app's own names.
       - "docs/checks/8o-photos-contract.sh"
@@ -2279,6 +2284,53 @@ jobs:
 
       - name: Contract — can the publishing check still fail (its own eleven fixtures)
         run: bash docs/checks/10.4b-iv-a-listing-contract-falsify.sh
+
+      - name: Stop
+        if: always()
+        run: supabase stop --no-backup
+
+  # ===========================================================================
+  # THE DELETION ASKED FOR BY EMAIL (plan `10.4b-iv-b`): the runbook the owner
+  # runs on the hosted project when somebody without the app asks to be deleted.
+  # Google requires that way out, and the aviso and both deletion pages promise
+  # it; what it deletes cannot be put back. Rehearsed against this job's reset as
+  # the owner runs it, `--local` for `--linked`: one name for each business she
+  # alone owns, the command it prints run as printed, every answer read back from
+  # the database. ⚠️ Its own job for `cocina-listings`' reason: the falsifier makes
+  # the fixtures again for each broken copy, one `supabase db query` per
+  # statement, and `catalog-origin`, where the app's own deletion is checked,
+  # would end near its fifteen minutes. Only Postgres and GoTrue: the runbook and
+  # its fixtures speak SQL.
+  # ===========================================================================
+  delete-by-email:
+    name: the deletion asked for by email, as the owner runs it
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # The falsifier writes its broken copies with node.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: 2.114.0
+
+      - name: Start Postgres and GoTrue
+        run: supabase start -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Apply migrations from scratch
+        run: supabase db reset
+
+      - name: Rehearsal — does the deletion asked for by email delete what it names, and refuse what it must (plan 10.4b-iv-b)
+        run: bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh
+
+      - name: Rehearsal — can it still fail (broken copies of the runbook, each red for its reason)
+        run: bash docs/checks/10.4b-iv-b-delete-by-email-rehearsal.sh --falsify
 
       - name: Stop
         if: always()

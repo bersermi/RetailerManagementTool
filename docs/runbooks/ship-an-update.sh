@@ -14,8 +14,10 @@
 # update — `cocina/CLAUDE.md` asked that row to write this). The same steps in
 # `cocina/`, against Wera Cocina's own EAS project, channels and builds: its
 # runtime is its own fingerprint (`cocina/fingerprint.config.js`), computed here
-# exactly as there. It needs the database's two values in EAS's environment and
-# not Wera's support number, which Wera Cocina does not read yet. Without the
+# exactly as there. It needs the same three values in EAS's environment as Wera:
+# the database's two and, since `10.4b-iv-b`, the support number its
+# *¿Olvidaste tu contraseña?* opens — `cocina/test/support.test.ts` holds this
+# list to every `EXPO_PUBLIC_` value Wera Cocina's source reads. Without the
 # flag it is Wera, as it always was. Itacate's first update adds one case below.
 # Its rollback is the command below, run from `cocina/` instead of `app/`.
 #
@@ -100,7 +102,7 @@ done
 # Which app, the values its bundle cannot start without, and its name on a phone.
 case "$app" in
   app)    label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
-  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY" ;;
+  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
   *) usage ;;
 esac
 

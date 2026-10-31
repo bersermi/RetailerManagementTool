@@ -13,12 +13,13 @@
 #   1. tu-wera.com resolves to GitHub Pages' four addresses, and to nothing else
 #      (GoDaddy's parking answers 3.33.130.190 and 15.197.148.33).
 #   2. www.tu-wera.com is a CNAME to bersermi.github.io.
-#   3. /, /privacidad/, /privacidad/cocina-e-itacate/ (the two new apps' test
-#      versions, plan `10.2b`), /eliminar-cuenta/ and /estilo.css answer 200 over
-#      HTTPS, served by GitHub.
+#   3. /, /privacidad/, /privacidad/cocina-e-itacate/ (the two new apps, plans
+#      `10.2b` and `10.4b-iv-b`), /eliminar-cuenta/, /eliminar-cuenta/cocina/
+#      (Wera Cocina's, the link its Play Data safety form gives) and /estilo.css
+#      answer 200 over HTTPS, served by GitHub.
 #   4. ⚠️ No response sets a cookie — the pages say *"Este sitio no usa cookies"*.
 #   5. ⚠️ No page holds `{{` — the aviso names its responsable.
-#   6. The aviso served is the one on this checkout (its date line matches).
+#   6. Both avisos served are the ones on this checkout (their date lines match).
 #   7. http:// redirects to https://.
 #   8. tu-wera.com has MX records, so privacidad@ and ayuda@ can receive mail.
 #      ⚠️ It cannot prove the mail is FORWARDED — only a test email can.
@@ -76,7 +77,7 @@ else
 fi
 
 # 3, 4 and 5. Each page.
-for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /estilo.css; do
+for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /eliminar-cuenta/cocina/ /estilo.css; do
   name="$(echo "$path" | tr '/' '_')"
   code="$(curl -sS ${PIN[@]+"${PIN[@]}"} -o "$TMP/$name.body" -D "$TMP/$name.head" -w '%{http_code}' "$BASE$path" 2>"$TMP/$name.err")"
   if [[ "$code" != "200" ]]; then
@@ -91,12 +92,15 @@ for path in / /privacidad/ /privacidad/cocina-e-itacate/ /eliminar-cuenta/ /esti
   elif [[ "$path" != *.css ]]; then ok "$BASE$path holds no {{ }}"; fi
 done
 
-# 6. The aviso served is this checkout's.
-fecha="$(grep -o '<p class="fecha">[^<]*' site/privacidad/index.html | head -1)"
-if [[ -s "$TMP/_privacidad_.body" ]]; then
-  if grep -qF "$fecha" "$TMP/_privacidad_.body"; then ok "the aviso served carries this checkout's date line (${fecha#*>})"
-  else fail "the aviso served is not this checkout's — its date line differs from (${fecha#*>})"; fi
-fi
+# 6. Both avisos served are this checkout's.
+for page in privacidad privacidad/cocina-e-itacate; do
+  fecha="$(grep -o '<p class="fecha">[^<]*' "site/$page/index.html" | head -1)"
+  body="$TMP/_$(echo "$page" | tr '/' '_')_.body"
+  if [[ -s "$body" ]]; then
+    if grep -qF "$fecha" "$body"; then ok "/$page/ served carries this checkout's date line (${fecha#*>})"
+    else fail "/$page/ served is not this checkout's — its date line differs from (${fecha#*>})"; fi
+  fi
+done
 
 if [[ "$MODE" != "--before-dns" ]]; then
   # 7. http → https.
