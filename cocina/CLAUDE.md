@@ -136,7 +136,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   2026-10-29), read by `src/lib/supabase.ts` since `10.4b-iii-a`; and so is the support number,
   `EXPO_PUBLIC_SUPPORT_WHATSAPP` (*Sensitive*, `preview` and `production`, Wera's value, set
   2026-10-31), which *¿Olvidaste tu contraseña?* opens (`src/lib/supportWhatsapp.ts`, `10.4b-iv-b`) —
-  never written in this public repository. On this Mac they come from the shell or
+  never written in this public repository; and, set 2026-10-31 for `10.4c` and read by no code yet,
+  the address search's token, `EXPO_PUBLIC_LOCATIONIQ_TOKEN` (*Sensitive*, both environments, and
+  `cocina/.env.local` on this Mac). On this Mac they come from the shell or
   `cocina/.env.local`. Metro writes such a value into the JavaScript bundle, not the config, so the
   runtime does not move with them (computed both ways, 2026-10-30). ⚠️ **A new `EXPO_PUBLIC_` value
   joins the update runbook's list for `--app cocina`** — `test/support.test.ts` holds every one the
