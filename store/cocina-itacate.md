@@ -214,8 +214,8 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 | Personal info | **Name** | The name and surname typed at sign-up, or Google's; her name as her kitchen's owner |
 | Personal info | **Email address** | The account's email |
 | Personal info | **User IDs** | The account id, and Google's account id for a sign-in with Google |
-| Personal info | **Address** | Her kitchen's address — a home when the kitchen is in one |
-| Location | **Precise location** | Her kitchen's pin, tapped on the map and kept to six decimals. ⚠️ Not the phone's location — the app has no location permission — but Google's definition is the *"user or device physical location within an area less than 3 square kilometers"*, and the pin may be her home; Google's page says nothing of a place the user picks, so both this and *Address* are declared |
+| Personal info | **Address** | Her kitchen's address — a home when the kitchen is in one; and, since `10.4c`, what she types in the map's search box with the colonia she gave, sent to LocationIQ to bring the map to her street and kept by nobody here |
+| Location | **Precise location** | Her kitchen's pin, tapped on the map and kept to six decimals (since `10.4c` the phone's own geocoder is also asked what address it is, for *¿Es aquí?* — shown, never kept). ⚠️ Not the phone's location — the app has no location permission — but Google's definition is the *"user or device physical location within an area less than 3 square kilometers"*, and the pin may be her home; Google's page says nothing of a place the user picks, so both this and *Address* are declared |
 | App activity | **Other user-generated content** | What she publishes — each dish or surprise bag, its description, tags, price, count and usual price, and the pickup window — and her kitchen's name and line of directions |
 | Device or other IDs | **Device or other IDs** | The random install id sent to Expo with each update check; the Maps SDK's own pseudonymous id; Firebase's installation id and push token (Android) |
 | App activity | **App interactions** | The map's panning and zooming, which Google's Maps SDK reports |
@@ -226,7 +226,7 @@ the aviso (`site/privacidad/cocina-e-itacate/`, section 3) and `site/README.md`'
 
 | Question | Answer |
 |---|---|
-| Is this data collected, shared, or both? | **Collected** — Supabase, Expo and Google are the app's service providers, and nothing is shown to another user yet. ⚠️ `10.5` answers it again: neighbours see a kitchen's pin and publications, which Google may count as a transfer *"based on a specific user-initiated action, where the user reasonably expects the data to be shared"* (not sharing) |
+| Is this data collected, shared, or both? | **Collected** — Supabase, Expo, Google and, since `10.4c`, LocationIQ (the map's search) are the app's service providers, and nothing is shown to another user yet. ⚠️ `10.5` answers it again: neighbours see a kitchen's pin and publications, which Google may count as a transfer *"based on a specific user-initiated action, where the user reasonably expects the data to be shared"* (not sharing) |
 | Is this data processed ephemerally? | **No** |
 | Is this data required, or can users choose? | **Required** — a kitchen cannot be registered without its address and pin |
 

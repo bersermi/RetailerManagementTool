@@ -10,19 +10,21 @@ import {
   TAP_ZOOM,
   closeEnough,
   closerAt,
+  lineaDeLugar,
   metresAcross,
   openingRegion,
   regionAround,
   regionFromBounds,
   tapOn,
+  tipoDeMapa,
   type Region,
 } from '@/lib/mapa';
 
 // ============================================================================
-// THE MAP'S ARITHMETIC. Plan task `10.4b-iii-b`.
+// THE MAP'S ARITHMETIC. Plan tasks `10.4b-iii-b` and `10.4c`.
 //
 // ⚠️ THE MAP ITSELF IS NATIVE AND NO SUITE CAN LOAD IT (ADR-035 §2.11): whether
-// the satellite view draws, and whether a tap reaches `onPress`, is the phone's.
+// the flat map draws, and whether a tap reaches `onPress`, is the phone's.
 // What is pinned here is every number the phone would otherwise decide silently:
 // where it opens, when a tap places her pin, where a tap that is too far goes —
 // and that the taps from the city end in a pin, never in a loop.
@@ -144,13 +146,55 @@ describe('her kitchen’s screen shows the block around her pin', () => {
     expect(GLANCE_METRES).toBeGreaterThan(CLOSE_METRES);
     expect(code('ui/MapaFijo.tsx')).toMatch(/region=\{regionAround\(pin, GLANCE_METRES\)\}/);
   });
+
+  it('on the same flat map as the one she taps', () => {
+    expect(code('ui/MapaFijo.tsx')).toMatch(/mapType=\{tipoDeMapa\(Platform\.OS\)\}/);
+  });
+});
+
+// ⚠️ THE OWNER'S RULING OF 2026-10-31 (`10.4c`): the delivery apps use a standard
+// street map, never satellite.
+describe('which map she sees', () => {
+  it('Apple’s muted street map on an iPhone, Google’s standard one on Android', () => {
+    expect(tipoDeMapa('ios')).toBe('mutedStandard');
+    expect(tipoDeMapa('android')).toBe('standard');
+  });
+});
+
+// ⚠️ SHOWN AND NEVER KEPT: the line is Apple's or Google's (`addressForCoordinate`).
+describe('¿Es aquí? — what the phone’s own maps call the point she tapped', () => {
+  it('the street and number, then the colonia', () => {
+    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: '220', subLocality: 'Roma Norte' })).toBe(
+      'Calle Durango 220, Roma Norte',
+    );
+  });
+
+  // `react-native-maps` 1.27.2 formats each CLPlacemark field with `%@`, so an
+  // iPhone sends a missing one as the text "(null)"; Android sends JSON null.
+  it('reads an iPhone’s "(null)" and Android’s null as nothing', () => {
+    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: '(null)', subLocality: 'Roma Norte' })).toBe(
+      'Calle Durango, Roma Norte',
+    );
+    expect(lineaDeLugar({ thoroughfare: 'Calle Durango', subThoroughfare: null, subLocality: null })).toBe('Calle Durango');
+    expect(lineaDeLugar({ thoroughfare: ' Calle 6 ', subThoroughfare: ' 46 ', subLocality: '(null)' })).toBe('Calle 6 46');
+  });
+
+  it('says nothing when no street is named — no line is better than a wrong one', () => {
+    expect(lineaDeLugar({ thoroughfare: '(null)', subThoroughfare: '220', subLocality: 'Roma Norte' })).toBeNull();
+    expect(lineaDeLugar({ thoroughfare: 'Unnamed Road', subLocality: 'Ajusco' })).toBeNull();
+    expect(lineaDeLugar({ thoroughfare: '', subLocality: 'Roma Norte' })).toBeNull();
+    expect(lineaDeLugar(null)).toBeNull();
+    expect(lineaDeLugar(undefined)).toBeNull();
+    expect(lineaDeLugar({ thoroughfare: 42 })).toBeNull();
+  });
 });
 
 describe('the map she taps, as wired — decisions no suite can watch happen', () => {
   const map = code('ui/MapaPunto.tsx');
 
-  it('is the satellite view with the streets’ names, and every tap goes through the rules above', () => {
-    expect(map).toMatch(/mapType="hybrid"/);
+  it('is the flat street map, and every tap goes through the rules above', () => {
+    expect(map).toMatch(/mapType=\{tipoDeMapa\(Platform\.OS\)\}/);
+    expect(map).not.toMatch(/hybrid|satellite/);
     expect(map).toMatch(/initialRegion=\{first\}/);
     expect(map).toMatch(/onRegionChangeComplete=\{\(next\) => setRegion\(next\)\}/);
     expect(map).toMatch(/onPress=\{\(event\) => void tapped\(event\)\}/);

@@ -1,5 +1,6 @@
 // ============================================================================
-// THE SCREEN WHERE SHE PUTS HER KITCHEN ON THE MAP. Plan task `10.4b-iii-b`.
+// THE SCREEN WHERE SHE PUTS HER KITCHEN ON THE MAP. Plan tasks `10.4b-iii-b`
+// and `10.4c` (the search above the map, which only moves it).
 //
 // Two routes draw it and differ only in what the button does: the sign-up's
 // last step (`(onboarding)/punto`, *Registrar mi cocina* makes the kitchen) and
@@ -14,13 +15,18 @@
 // so while the keyboard is up the screen gives up its height and the map shrinks
 // — the box stays above the keys (Android draws edge to edge, so the window is
 // not resized for it).
+//
+// ⚠️ WHILE SHE SEARCHES, THE FOOT OF THE SCREEN STEPS ASIDE: with the keys up, a
+// small phone has no room for the box, the suggestions, the map and the line of
+// directions with its button. The foot comes back when she picks a suggestion
+// or taps the map (`@/ui/MapaPunto`'s `onBuscando`).
 // ============================================================================
 
 import { useEffect, useState } from 'react';
 import { Keyboard, Platform, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { DIRECTIONS_MAX, type Pin } from '@/api/place';
+import { DIRECTIONS_MAX, type AddressForm, type Pin } from '@/api/place';
 import { ES } from '@/strings';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { Banda } from '@/ui/Banda';
@@ -31,6 +37,7 @@ import { MapaPunto } from '@/ui/MapaPunto';
 export function PantallaPunto({
   antetitulo,
   pin: firstPin,
+  direccion,
   directions: firstDirections,
   accion,
   busy,
@@ -40,6 +47,8 @@ export function PantallaPunto({
 }: {
   antetitulo: string;
   pin: Pin | null;
+  /** The address she typed — searched as the map opens, while she has no pin. */
+  direccion: AddressForm | null;
   directions: string;
   /** The button's words. */
   accion: string;
@@ -55,6 +64,7 @@ export function PantallaPunto({
   const [pin, setPin] = useState<Pin | null>(firstPin);
   const [directions, setDirections] = useState(firstDirections);
   const [problem, setProblem] = useState<string | null>(null);
+  const [buscando, setBuscando] = useState(false);
 
   function placed(next: Pin) {
     setPin(next);
@@ -85,9 +95,10 @@ export function PantallaPunto({
   return (
     <View style={{ flex: 1, backgroundColor: PALETTE.fondo, paddingBottom: room }}>
       <Banda titulo={ES.mapa.titulo} antetitulo={antetitulo} volver={{ label: ES.mapa.volver, onPress: onVolver }} />
-      <MapaPunto pin={pin} onPin={placed} />
+      <MapaPunto pin={pin} direccion={direccion} onPin={placed} onBuscando={setBuscando} />
       <View
         style={{
+          display: buscando ? 'none' : 'flex',
           paddingHorizontal: SIZE.space * 2,
           paddingTop: SIZE.space,
           paddingBottom: SIZE.space + (teclado > 0 ? 0 : insets.bottom),

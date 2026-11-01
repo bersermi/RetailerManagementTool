@@ -1,6 +1,7 @@
 // ============================================================================
 // THE MAP'S ARITHMETIC — where it opens, when it is close enough for her pin,
-// and where a tap takes it. Plan task `10.4b-iii-b`.
+// where a tap takes it, which map it is, and what the phone says her pin is.
+// Plan tasks `10.4b-iii-b` and `10.4c`.
 //
 // ⚠️ PURE, so `test/mapa.test.ts` pins it: the map itself (`react-native-maps`)
 // is native and no suite can load it (ADR-035 §2.11), and every number here is a
@@ -8,7 +9,7 @@
 //
 // ⚠️⚠️ THE OWNER'S PRECISION IS IN HOW THE PIN IS SET, NOT IN THE COLUMN (`0072`):
 // *"as precise as possible"* (2026-10-28), and this app has no GPS until the
-// major update (`10.8`) — so a tap on the satellite view, close in. A pin is
+// major update (`10.8`) — so a tap on the map, close in. A pin is
 // placed only when the map shows at most `CLOSE_METRES` across its narrower
 // side; until then a tap brings the map closer to where she tapped, a few
 // streets at a time, so she can get there without pinching.
@@ -35,8 +36,10 @@ const METRES_PER_DEGREE = 111_320;
 /**
  * ⚠️ WHERE THE MAP OPENS WHEN SHE HAS NO PIN: MEXICO CITY, its centre, wide
  * enough to see the central alcaldías. This app asks for no location (its
- * `app.json` blocks the permission), and its build has no geocoder — so it
- * cannot open on the address she typed. The pilot is in this city.
+ * `app.json` blocks the permission). Since `10.4c` the address she typed is
+ * searched as the map opens and the map flies there (`@/lib/locationiq`'s
+ * `useApertura`); this is where it stays when the search finds nothing, has no
+ * signal, or the build has no token. The pilot is in this city.
  */
 export const CIUDAD: Region = { latitude: 19.4326, longitude: -99.1332, latitudeDelta: 0.18, longitudeDelta: 0.18 };
 
@@ -127,4 +130,51 @@ export type Tap = { readonly kind: 'place'; readonly pin: Pin } | { readonly kin
 
 export function tapOn(point: Pin, region: Region): Tap {
   return closeEnough(region) ? { kind: 'place', pin: point } : { kind: 'closer', region: closerAt(point, region) };
+}
+
+// ----------------------------------------------------------------------------
+// Which map, and what the phone's own maps say her pin is — `10.4c`
+// ----------------------------------------------------------------------------
+
+/**
+ * ⚠️ THE FLAT STREET MAP, THE OWNER'S RULING OF 2026-10-31: the delivery apps use
+ * a standard street map and never satellite. An iPhone draws Apple's muted
+ * version, which lets her pin stand out; Android draws Google's standard one —
+ * `mutedStandard` is Apple's alone. Businesses stay hidden on both
+ * (`@/ui/MapaPunto`'s `SIN_NEGOCIOS`, and `showsPointsOfInterests`).
+ */
+export function tipoDeMapa(os: string): 'mutedStandard' | 'standard' {
+  return os === 'ios' ? 'mutedStandard' : 'standard';
+}
+
+/** `react-native-maps`' `addressForCoordinate` answer, the fields read here. */
+export interface LugarDelTelefono {
+  readonly thoroughfare?: unknown;
+  readonly subThoroughfare?: unknown;
+  readonly subLocality?: unknown;
+}
+
+/**
+ * ⚠️ AN IPHONE SENDS A MISSING FIELD AS THE TEXT `(null)`: `react-native-maps`
+ * 1.27.2 formats each `CLPlacemark` field with `%@` (`RNMapsAirModule.mm`), so a
+ * pin with no house number arrives as `subThoroughfare: "(null)"`. Android sends
+ * a JSON null. Both are nothing here — and so is Google's `Unnamed Road`.
+ */
+function campo(value: unknown): string {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return /^(\(null\)|null|unnamed road|calle sin nombre)$/i.test(text) ? '' : text;
+}
+
+/**
+ * *¿Es aquí? …* — what the phone's own maps call the point she tapped, as one
+ * line: *Durango 220, Roma Norte*. `null` when they name no street, and then no
+ * line is shown. ⚠️ SHOWN AND NEVER KEPT: the answer is Apple's or Google's, whose
+ * terms forbid keeping it; what is saved is her tap and the address she typed.
+ */
+export function lineaDeLugar(lugar: LugarDelTelefono | null | undefined): string | null {
+  const calle = campo(lugar?.thoroughfare);
+  if (calle === '') return null;
+  const numero = campo(lugar?.subThoroughfare);
+  const colonia = campo(lugar?.subLocality);
+  return [numero === '' ? calle : `${calle} ${numero}`, colonia].filter((parte) => parte !== '').join(', ');
 }

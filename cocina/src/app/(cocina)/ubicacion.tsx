@@ -44,6 +44,7 @@ export default function Ubicacion() {
     <PantallaPunto
       antetitulo={kitchen.displayName}
       pin={here.pin}
+      direccion={here.address}
       directions={here.directions ?? ''}
       accion={ES.mapa.guardar}
       busy={busy}

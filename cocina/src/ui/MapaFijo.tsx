@@ -1,19 +1,19 @@
 // ============================================================================
 // HER PIN, SHOWN — a still picture of the map around it on her kitchen's screen.
-// Plan task `10.4b-iii-b`.
+// Plan tasks `10.4b-iii-b` and `10.4c`.
 //
 // ⚠️ IT TAKES NO TOUCH: moving the pin is *Cambiar el punto*'s screen, where the
 // rules are (`@/ui/MapaPunto`). On Android it is Google's lite mode — a picture,
 // not a live map, cheap on the screen she opens most; an iPhone draws a live map
-// with every gesture off. The same view as the map she tapped: satellite with
-// the streets' names, no businesses' labels.
+// with every gesture off. The same view as the map she tapped: the flat street
+// map (`tipoDeMapa`, the owner's ruling of 2026-10-31), no businesses' labels.
 // ============================================================================
 
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 import type { Pin } from '@/api/place';
-import { GLANCE_METRES, regionAround } from '@/lib/mapa';
+import { GLANCE_METRES, regionAround, tipoDeMapa } from '@/lib/mapa';
 import { PALETTE, SIZE } from '@/theme/palette';
 import { SIN_NEGOCIOS } from '@/ui/MapaPunto';
 
@@ -35,7 +35,7 @@ export function MapaFijo({ pin }: { pin: Pin }) {
       <MapView
         style={{ flex: 1 }}
         liteMode
-        mapType="hybrid"
+        mapType={tipoDeMapa(Platform.OS)}
         region={regionAround(pin, GLANCE_METRES)}
         customMapStyle={SIN_NEGOCIOS}
         showsPointsOfInterests={false}

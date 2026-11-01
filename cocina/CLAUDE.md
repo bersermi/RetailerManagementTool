@@ -84,10 +84,24 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   open kitchen's id, newest first; *Repetir* is that list.
 - ⚠️ **The map has no key in a build made on this Mac** (`MAPS_KEY_PLACEHOLDER`, and the key is locked
   to the store and `preview` signatures). Measured 2026-10-30 on the emulator: such a map delivers
-  taps but **never moves its camera and draws no marker**, so the zoom, the satellite view and the pin
-  are seen only on the `preview` build (or Apple's map, which needs no key). Its rules are
-  `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up on the emulator,
-  open the map already close in a local edit, and revert it.
+  taps but **never moves its camera and draws no marker**, so the zoom, the flights to a search's
+  answer, the flat map and the pin are seen only on the `preview` build (or Apple's map, which needs no
+  key). Its rules are `src/lib/mapa.ts`, pinned by `test/mapa.test.ts`; to walk the rest of the sign-up
+  on the emulator, open the map already close in a local edit (`CIUDAD`), and revert it — the search
+  box, its list and *¿Es aquí?* all work on such a map (`10.4c`, 2026-10-31).
+- **The map she taps is the flat street map, and the search above it only moves it** (`10.4c`, the
+  owner's ruling of 2026-10-31; `src/lib/buscar.ts`, `src/lib/locationiq.ts`, `@/ui/Buscador`).
+  ⚠️⚠️ **What is stored is what she typed and where she tapped — never a provider's point or text**
+  (Apple's licence and Google's terms forbid keeping theirs): `onPin` is called from her tap alone,
+  and `test/buscar.test.ts` reads `@/ui/MapaPunto` for it and refuses the search in `src/api/`.
+  LocationIQ's autocomplete is asked from the phone, kept to the Valle de México (`bounded`), with the
+  colonia she gave in the form when she types none, and once more without the house number when that
+  finds nothing — **measured first** (the plan's status log): it knows streets, almost never doors, so
+  an answer opens the map about five blocks wide and her taps come closer. The address she typed is
+  searched as the map opens and flies it there unless she has touched it. *¿Es aquí?* is
+  `addressForCoordinate` (the phone's own geocoder), on the card at the TOP of the map — the foot is
+  where Google's logo is, which the terms forbid covering. Its free plan requires the *Search by
+  LocationIQ.com* link under the box, with OpenStreetMap's credit. A build with no token draws no box.
 - **Sign-in leans on settings outside this repository** (the plan's status log, 2026-10-30): the
   hosted project's redirect list holds `mx.wera.cocina://**` — without it Google's sign-in hangs, with
   no error — and its Apple client ids hold `mx.wera.cocina`. Android delivers Google's redirect to
@@ -136,9 +150,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   2026-10-29), read by `src/lib/supabase.ts` since `10.4b-iii-a`; and so is the support number,
   `EXPO_PUBLIC_SUPPORT_WHATSAPP` (*Sensitive*, `preview` and `production`, Wera's value, set
   2026-10-31), which *¿Olvidaste tu contraseña?* opens (`src/lib/supportWhatsapp.ts`, `10.4b-iv-b`) —
-  never written in this public repository; and, set 2026-10-31 for `10.4c` and read by no code yet,
-  the address search's token, `EXPO_PUBLIC_LOCATIONIQ_TOKEN` (*Sensitive*, both environments, and
-  `cocina/.env.local` on this Mac). On this Mac they come from the shell or
+  never written in this public repository; and the address search's token,
+  `EXPO_PUBLIC_LOCATIONIQ_TOKEN` (*Sensitive*, both environments, set 2026-10-31, and
+  `cocina/.env.local` on this Mac), read by `src/lib/locationiq.ts` since `10.4c`. On this Mac they come from the shell or
   `cocina/.env.local`. Metro writes such a value into the JavaScript bundle, not the config, so the
   runtime does not move with them (computed both ways, 2026-10-30). ⚠️ **A new `EXPO_PUBLIC_` value
   joins the update runbook's list for `--app cocina`** — `test/support.test.ts` holds every one the

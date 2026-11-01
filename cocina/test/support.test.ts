@@ -108,7 +108,8 @@ describe('the link on the screen', () => {
 // LAUNCH. `eas update` builds the bundle from EAS's environment alone, and the
 // update runbook is the only thing that refuses to publish without a value — so
 // every `EXPO_PUBLIC_` value this app's source reads must be on the runbook's
-// list for `--app cocina`. This row added the third, the support number.
+// list for `--app cocina`. `10.4b-iv-b` added the third, the support number;
+// `10.4c` the fourth, the map search's LocationIQ token (`@/lib/locationiq`).
 describe('every value the bundle reads, the update runbook refuses to ship without', () => {
   function sources(dir = SRC): string[] {
     return readdirSync(dir).flatMap((name) => {
@@ -126,8 +127,13 @@ describe('every value the bundle reads, the update runbook refuses to ship witho
   const runbook = readFileSync(new URL('../../docs/runbooks/ship-an-update.sh', import.meta.url), 'utf8');
   const listed = /\n\s*cocina\)\s+label="Wera Cocina";\s+needed="([^"]*)"/.exec(runbook)?.[1].split(/\s+/).filter(Boolean).sort();
 
-  it('reads the three it should', () => {
-    expect(used).toEqual(['EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPPORT_WHATSAPP']);
+  it('reads the four it should', () => {
+    expect(used).toEqual([
+      'EXPO_PUBLIC_LOCATIONIQ_TOKEN',
+      'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+      'EXPO_PUBLIC_SUPABASE_URL',
+      'EXPO_PUBLIC_SUPPORT_WHATSAPP',
+    ]);
   });
 
   it('and the runbook names each of them for Wera Cocina', () => {
