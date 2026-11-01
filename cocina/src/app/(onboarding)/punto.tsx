@@ -45,6 +45,7 @@ export default function Punto() {
     <PantallaPunto
       antetitulo={ES.registro.titulo}
       pin={borrador.pin}
+      direccion={borrador.address}
       directions={borrador.directions}
       accion={ES.mapa.registrar}
       busy={busy || hecho}

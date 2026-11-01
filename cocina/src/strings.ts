@@ -112,16 +112,35 @@ export const ES = {
   },
 
   /**
-   * ⚠️ HER PIN, ON THE SATELLITE VIEW (`0072`; the owner's *"as precise as
-   * possible"*, 2026-10-28). The hint changes with the map: too far, close
-   * enough, placed (`@/lib/mapa`).
+   * ⚠️ HER PIN, TAPPED ON THE FLAT STREET MAP (`0072`; the owner's *"as precise
+   * as possible"*, 2026-10-28, and his ruling of 2026-10-31, `10.4c`). The hint
+   * under the map changes with it: too far, close enough, placed (`@/lib/mapa`).
+   * The search box only moves the map (`@/lib/buscar`).
    */
   mapa: {
     titulo: '¿Dónde entregas la comida?',
     volver: 'Volver',
-    lejos: 'Busca tu cocina en el mapa. Toca cerca de ella para acercarte.',
+    /** The search box's hint, in muted ink — the magnifier says what the box is for. */
+    buscar: 'Busca tu calle y número',
+    buscarEtiqueta: 'Buscar tu calle en el mapa',
+    borrarBusqueda: 'Borrar la búsqueda',
+    buscando: 'Buscando…',
+    ninguna: 'No encontramos esa calle. Escríbela de otra forma, o busca tu cocina en el mapa.',
+    sinSenal: 'Sin conexión. Busca tu cocina en el mapa.',
+    falla: 'Ahora no podemos buscar. Busca tu cocina en el mapa.',
+    /**
+     * ⚠️ LOCATIONIQ'S OWN WORDS, AS ITS FREE PLAN REQUIRES THEM (*"in this format"*,
+     * read 2026-10-31) — a link to its site — and OpenStreetMap's credit, whose
+     * data the answers are. Not translated on purpose.
+     */
+    creditoBusqueda: 'Search by LocationIQ.com',
+    creditoDatos: '© OpenStreetMap',
+    lejos: 'Toca el mapa cerca de tu cocina para acercarte, o busca tu calle arriba.',
     cerca: 'Ahora toca justo donde entregas la comida.',
     puesto: 'Aquí está tu cocina. Si no es el lugar exacto, toca otra vez.',
+    /** ⚠️ The phone's own maps name the point she tapped; shown, never kept (`@/lib/mapa`'s `lineaDeLugar`). */
+    esAqui: (lugar: string) => `¿Es aquí? ${lugar}`,
+    otraVez: 'Si no es el lugar exacto, toca otra vez.',
     indicaciones: 'Cómo encontrarte (opcional)',
     /** A hint in muted ink, never a value. */
     indicacionesEjemplo: 'Portón verde, junto a la farmacia',

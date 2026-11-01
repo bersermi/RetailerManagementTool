@@ -102,7 +102,7 @@ done
 # Which app, the values its bundle cannot start without, and its name on a phone.
 case "$app" in
   app)    label="Wera";        needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
-  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP" ;;
+  cocina) label="Wera Cocina"; needed="EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY EXPO_PUBLIC_SUPPORT_WHATSAPP EXPO_PUBLIC_LOCATIONIQ_TOKEN" ;;
   *) usage ;;
 esac
 
