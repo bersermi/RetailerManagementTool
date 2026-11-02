@@ -35,8 +35,10 @@
 // ============================================================================
 
 import type { QueuedWrite } from '@/api/outbox';
+import type { QueuedPrice } from '@/api/shelfPrice';
 import { queued } from '@/lib/connectivityMonitor';
-import { enqueue, outboxDb } from '@/lib/outboxDb';
+import { enqueue, enqueuePrice, outboxDb } from '@/lib/outboxDb';
+import { announcePricesChanged } from '@/lib/priceQueueEvents';
 
 /**
  * Put a committed write in the queue and tell the drain it is there.
@@ -47,5 +49,19 @@ import { enqueue, outboxDb } from '@/lib/outboxDb';
  */
 export function commitToQueue(write: QueuedWrite): void {
   enqueue(outboxDb(), write);
+  queued();
+}
+
+/**
+ * Put a price in its table, show it, and tell the drain. Plan task `8i`.
+ *
+ * ⚠️ THE SAME ORDER AS `commitToQueue`, and synchronous for the same reason: the
+ * product wears its new price in the frame the sheet closes — the line `+` adds
+ * next is priced — whether or not there is signal. `announcePricesChanged` is
+ * what makes the screens read the table again (`@/offline/waitingPrices`).
+ */
+export function commitPrice(price: QueuedPrice): void {
+  enqueuePrice(outboxDb(), price);
+  announcePricesChanged();
   queued();
 }

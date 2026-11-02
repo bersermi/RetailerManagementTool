@@ -1323,10 +1323,7 @@ export const ES = {
       save: 'Guardar precio',
       /** `8g`: opened by `+` on an unpriced product, saving also puts one in the basket. */
       saveAndAdd: 'Guardar y agregar al carrito',
-      saving: 'Guardando…',
       cancel: 'Cancelar',
-      loading: 'Un momento…',
-      needsSignal: 'Para cambiar el precio necesitas conexión.',
     },
     /**
      * ⚠️ `8g`, THE OWNER'S RULING OF 2026-10-15: a cashier's `+` on a product
@@ -2774,16 +2771,6 @@ export const ES = {
        */
       notAllowedEdit: 'Solo el dueño o un gerente puede cambiar un producto.',
       /**
-       * ⚠️⚠️ `23P01` — `price_list_no_overlap`, and it exists nowhere else in
-       * this app. A correctly planned change reaches it only from a read that
-       * went stale under the screen: another phone priced this product while it
-       * was open. ⚠️ IT SENDS HER BACK TO THE PRODUCT AND NOT TO THE PRICE BOX,
-       * because re-typing the same figure against the same stale rows is refused
-       * again — which is a loop, and the thing `redeemErrorMessage` recorded
-       * this project's refusal of.
-       */
-      overlap: 'Alguien más cambió este precio. Vuelve a abrir el producto.',
-      /**
        * ⚠️⚠️ `23001` — `0042`'s FENCE, AND IT IS THE ONE SENTENCE IN THIS BLOCK A
        * SHOPKEEPER SHOULD NEVER SEE. `canRetireProduct` keeps the control off a
        * product he did not create; this is what he gets if the read under the screen
@@ -2798,17 +2785,6 @@ export const ES = {
        * app"* is the shortest true thing a person recognises.
        */
       notYours: 'Este producto vino con la app, así que no se puede quitar. Sí puedes cambiarle el nombre y el precio.',
-      /**
-       * ⚠️⚠️ THE OLD PRICE WAS REMOVED AND THE NEW ONE NEVER LANDED, WHICH IS
-       * THE WORST PARTIAL STATE THIS APP HAS. `price_list` is a dated range
-       * table, the old row must be CLOSED before the new one is opened, and
-       * PostgREST has no transaction — so a failure between the two leaves the
-       * product priced yesterday and priceless today, wearing C3.12's dash.
-       * ⚠️ Saying *"no se pudo guardar"* here would send a shopkeeper away
-       * believing the old price still stands, and the next customer is charged
-       * nothing at all. Plan task `5e-iii-a`.
-       */
-      priceGone: 'Quitamos el precio anterior y no pudimos poner el nuevo. Ponle precio otra vez.',
     },
   },
 

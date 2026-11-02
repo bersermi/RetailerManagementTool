@@ -2,10 +2,13 @@
 // WHO MAY PUT A PRODUCT INTO A SALE — `8g`, the owner's ruling of 2026-10-15.
 //
 // *"Should we even allow them to add the product to the Carrito if it doesn't
-// have a price?"* Asked with the situation in front of him — a new shop imports
-// its giro's catalog with NO prices, so for its first weeks the unpriced product
-// is the ordinary one at the counter — he took the recommendation: **no; a
-// product gets its price the first time it is sold.**
+// have a price?"* Asked with the situation in front of him — a new shop imported
+// its giro's catalog with NO prices then, so for its first weeks the unpriced
+// product was the ordinary one at the counter — he took the recommendation:
+// **no; a product gets its price the first time it is sold.** ⚠️ Since `0067`
+// (2026-10-21) the catalog imports with Wera's suggested prices, so an unpriced
+// product is one the shop made itself without one; and since `8i` (2026-11-01)
+// the price sheet saves with or without signal (`@/api/shelfPrice`).
 //
 // ⚠️⚠️ WHY THE BASKET AND NOT THE COMMIT. Until this ruling an unpriced product
 // went in and `draftOf` then refused the whole basket (`line-cannot-be-priced`),

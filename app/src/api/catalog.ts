@@ -553,6 +553,13 @@ export interface CatalogEntry {
    * exactly the products quoted in packs.
    */
   readonly perBase: string | null;
+  /**
+   * The store whose own price `perBase` is, or `null` for the shop-wide one —
+   * and `null` too when there is no price. ⚠️ `8i`: a change is sent in THIS
+   * scope, so correcting a store's own price stays a store price and correcting
+   * the shop-wide one stays shop-wide (`priceFor` decided which row this is).
+   */
+  readonly priceScope: string | null;
   /** C3.10's sentence, ready to render. */
   readonly price: string;
   /** C8.14's two letters. */
@@ -604,6 +611,7 @@ export function catalogFrom(
       baseUnit: bases[row.price_unit_code] ?? row.base_unit_code,
       centavos,
       perBase: price?.price_per_base ?? null,
+      priceScope: price?.location_id ?? null,
       price: priceLabel(centavos, row.price_unit_code),
       initials: initials(row.name),
       term: `${searchTerm(row.name)} ${searchTerm(familyName)}`,

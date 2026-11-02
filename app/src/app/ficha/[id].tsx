@@ -59,10 +59,10 @@ export default function Ficha() {
   const role = useMyRole();
   const mayWrite = canWriteCatalog(role);
   const workspace = useWorkspace();
-  const { loading, entries, failed, locationId } = useCatalog();
+  const { loading, entries, failed } = useCatalog();
   const costs = useCosts(id ?? null);
   const { sales, today, factors } = useSales();
-  const { edit, busy } = useEditProduct(mayWrite ? (id ?? null) : null);
+  const { edit } = useEditProduct(mayWrite ? (id ?? null) : null);
   // ⚠️ `8g`'s round 3: with no signal, a card whose read never arrived says *Se ve
   // cuando haya señal* — never *Todavía no lo has comprado* or *No se ha vendido
   // esta semana*, which is what an empty answer used to read as (`@/api/productPage`).
@@ -253,9 +253,7 @@ export default function Ficha() {
         <PrecioRapido
           entry={entry}
           adding={false}
-          entries={entries}
           workspaceId={workspace.id}
-          locationId={locationId}
           onSaved={() => undefined}
           onClose={() => setPricing(false)}
           cost={last === null ? null : { centavos: last.centavos, label: last.centavos === null ? '' : formatMXN(last.centavos) }}
@@ -264,7 +262,7 @@ export default function Ficha() {
 
       <RetiroProducto
         asking={asking}
-        working={retiring || busy}
+        working={retiring}
         failed={failure}
         onConfirm={() => void retire()}
         onCancel={() => setAsking(false)}

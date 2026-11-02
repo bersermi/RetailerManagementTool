@@ -98,7 +98,6 @@ const UNSCOPED: Readonly<Record<string, string>> = {
   catalogUnits: 'the ten units — reference data with no business column',
   firstStoreOf: 'filtered on the business it is handed — the shop onboarding just made',
   pilotReadingsSince: 'filtered on the business it is handed (`PILOT_WORKSPACE_COLUMN`)',
-  variantPrices: "one product's prices, by its id",
   variantSettingsRow: "one product's row, by its id",
   variantCosts: "one product's deliveries, by its id",
   priceSide: "one product's price history, by its id",

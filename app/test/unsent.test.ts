@@ -84,6 +84,7 @@ function entry(id: string, name: string): CatalogEntry {
     baseUnit: 'g',
     centavos: 1000,
     perBase: '0.010000',
+    priceScope: null,
     price: '$10.00',
     initials: 'V',
     term: name.toLowerCase(),

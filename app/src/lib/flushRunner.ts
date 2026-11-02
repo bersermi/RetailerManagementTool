@@ -24,18 +24,32 @@
 // than a choice between two changelogs.
 // ============================================================================
 
-import { reportFailedWrite, sendQueuedWrite } from '@/api/calls';
+import { reportFailedWrite, sendQueuedWrite, sendShelfPrice } from '@/api/calls';
 import { createFlusher, type Flusher } from '@/api/flush';
+import { bothFlushers, createPriceFlusher } from '@/api/shelfPrice';
 import { announceLanded } from '@/lib/landedWrites';
-import { forget, outboxDb, readQueue, settle } from '@/lib/outboxDb';
+import {
+  forget,
+  forgetPrice,
+  outboxDb,
+  readPrices,
+  readQueue,
+  settle,
+  settlePrice,
+} from '@/lib/outboxDb';
+import { announcePricesChanged, announcePriceSettled } from '@/lib/priceQueueEvents';
 import { landed } from '@/pilot/recorder';
 
 let instance: Flusher | undefined;
 
-/** The app's one flusher over the app's one queue. */
+/**
+ * The app's one flusher: the ledger's queue, then the prices waiting for the
+ * signal (`8i`). ⚠️ One drain over both (`bothFlushers`), so the monitor still
+ * has exactly one thing to call.
+ */
 export function flusher(): Flusher {
   if (instance === undefined) {
-    instance = createFlusher({
+    const ledger = createFlusher({
       read: () => readQueue(outboxDb()),
       settle: (id, state, attempts) => settle(outboxDb(), id, state, attempts),
       forget: (id) => forget(outboxDb(), id),
@@ -52,6 +66,17 @@ export function flusher(): Flusher {
       },
       report: reportFailedWrite,
     });
+    const prices = createPriceFlusher({
+      read: () => readPrices(outboxDb()),
+      settle: (id, state, attempts) => settlePrice(outboxDb(), id, state, attempts),
+      forget: (id) => {
+        forgetPrice(outboxDb(), id);
+        announcePricesChanged();
+      },
+      send: sendShelfPrice,
+      settled: announcePriceSettled,
+    });
+    instance = bothFlushers(ledger, prices);
   }
   return instance;
 }

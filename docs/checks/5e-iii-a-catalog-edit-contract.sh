@@ -7,7 +7,7 @@
 # AT THE UPDATE SIDE. `app/test/api-catalog-edit.test.ts` proves the app is
 # consistent with itself over fifty assertions. Not one of them has read `0002`.
 #
-# ⚠️⚠️ AND FIVE THINGS HERE CANNOT BE ASSERTED ANYWHERE ELSE AT ALL:
+# ⚠️⚠️ AND THREE THINGS HERE CANNOT BE ASSERTED ANYWHERE ELSE AT ALL:
 #
 #   * ⚠️⚠️ THE FENCE ON AN UPDATE IS NOT THE FENCE ON AN INSERT, AND THAT IS THE
 #     FINDING THIS FILE EXISTS TO KEEP. `price_list_insert` is `with check`, so a
@@ -20,13 +20,6 @@
 #     application/vnd.pgrst.object+json` — is what turns it into a **406
 #     PGRST116**, and assertion 4 drives both shapes so the day one of them moves
 #     is the day this goes red.
-#   * THE ORDER. `CLOSE BEFORE YOU OPEN` is not a preference. Assertion 5 opens a
-#     row while the old one is still open and reads `23P01` back from
-#     `price_list_no_overlap` — the only way to say the sequence is forced.
-#   * THE SAME-DAY BRANCH. `priceChange`'s third branch exists because closing a
-#     row that started today is a zero-length range. Assertion 6 tries exactly
-#     that and reads `23514` / `price_list_range_ordered` back, then performs the
-#     reprice the app does instead and watches it succeed.
 #   * THE TWO FIGURES. `parseTaxRate` refuses 100% and `parsePackSize` refuses
 #     zero because `product_variant_tax_rate_sane` and
 #     `product_variant_pack_size_positive` do. Assertion 7 sends both past a real
@@ -39,24 +32,20 @@
 #   1. Every string is READ OUT OF `app/src/api/catalogEdit.ts` — not typed in
 #      here. A second copy of a contract is the defect this repository has
 #      recorded eleven times.
-#   2. The edit read asks for columns the database really has, for one variant,
-#      through the same dated window `5d-i` applies.
-#   3. The ordinary change — close at today, then open — is accepted, and the
-#      catalog read afterwards shows the NEW figure and only that one.
-#   4. ⚠️⚠️ A CASHIER IS REFUSED, on UPDATE and on INSERT, in the two different
-#      shapes those refusals really take.
-#   5. ⚠️ Open-before-close is `23P01`. The order is the constraint's, not ours.
-#   6. ⚠️ A same-day close is `23514` on `price_list_range_ordered`, and the
-#      reprice the app performs instead is accepted.
+#   4. ⚠️⚠️ A CASHIER IS REFUSED on UPDATE, in the two shapes that refusal
+#      really takes.
 #   7. ⚠️ The tax rate and the pack size are bounded by the columns' own checks.
 #   8. ⚠️ A product cannot be deleted, which is why it is retired instead — and
 #      the retirement itself is accepted.
 #   9. The shop next door cannot edit into this one.
+#  10. The form's own read of the two figures, and 11. the aisle move.
 #
-# ⚠️ WHAT IT DOES NOT ASSERT: the arithmetic. What `$35.00 / kg` comes to in
-# `price_per_base` is `@tienda/money`'s, and `app/test/api-catalog-edit.test.ts`
-# pins it against `pricePerBase` and `priceCentavos`. This file is about the WIRE
-# — the names, the order, the codes and the FENCES.
+# ⚠️ THE PRICE LEFT THIS FILE AT `8i` (2026-11-01). `Editar` has no price box since
+# the owner's ruling of 2026-10-17, and since `8i` the price sheet does not write
+# `price_list` itself: a price waits on the phone and `set_shelf_price` (`0074`)
+# closes the old row and opens the new one in one transaction. Its fence, its
+# same-day branch and its order are `supabase/tests/0074_…`, and the app's half
+# of the wire `docs/checks/8i-shelf-price-contract.sh`.
 #
 # Run:  supabase start && supabase db reset && bash docs/checks/5e-iii-a-catalog-edit-contract.sh
 # Exit: 0 when every group holds; 1 otherwise.
@@ -87,36 +76,25 @@ str() {
 }
 priv() { sed -n "s/^const $1 = '\([^']*\)';.*/\1/p" "$CONTRACT" | head -1; }
 
-PRICE_EDIT_COLUMNS="$(str PRICE_EDIT_COLUMNS)"
 VARIANT_EDIT_COLUMNS="$(str VARIANT_EDIT_COLUMNS)"
 NAME_PATCH_COLUMNS="$(str NAME_PATCH_COLUMNS)"
 SETTINGS_PATCH_COLUMNS="$(str SETTINGS_PATCH_COLUMNS)"
 ACTIVE_PATCH_COLUMNS="$(str ACTIVE_PATCH_COLUMNS)"
 FAMILY_PATCH_COLUMNS="$(str FAMILY_PATCH_COLUMNS)"
-PRICE_CLOSE_COLUMNS="$(str PRICE_CLOSE_COLUMNS)"
-PRICE_REPRICE_COLUMNS="$(str PRICE_REPRICE_COLUMNS)"
 UPDATE_RETURNING="$(str UPDATE_RETURNING)"
 VARIANT_TABLE="$(str VARIANT_TABLE)"
 FORBIDDEN_CODE="$(priv FORBIDDEN)"
-OVERLAP_CODE="$(priv OVERLAP)"
 NO_ROWS_CODE="$(priv NO_ROWS)"
 # ⚠️ REJECTED is an ARRAY of codes, so it is read as one and driven as one.
 REJECTED_CODES="$(sed -n "s/^const REJECTED: readonly string\[\] = \[\(.*\)\];.*/\1/p" "$CONTRACT" \
                   | tr -d "' " | tr ',' ' ')"
-# ⚠️ `PRICE_EDIT_TABLE` and `PRICE_INSERT_COLUMNS` are RE-EXPORTS, on purpose —
-# one answer to *which row is in force* and one insert body in this app. So they
-# are read out of the modules that own them, exactly as the app imports them.
-PRICE_TABLE="$(sed -n "/^export const PRICE_TABLE =/,/;\$/p" app/src/api/catalog.ts \
-               | sed -n "s/.*'\([a-z_]*\)'.*/\1/p" | head -1)"
-PRICE_INSERT_COLUMNS="$(sed -n "/^export const PRICE_INSERT_COLUMNS =/,/;\$/p" app/src/api/catalogWrite.ts \
-                        | sed -n "s/.*'\([a-z_,]*\)'.*/\1/p" | head -1)"
 
 note
 MISSING=""
-for name in PRICE_EDIT_COLUMNS VARIANT_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
-            ACTIVE_PATCH_COLUMNS FAMILY_PATCH_COLUMNS PRICE_CLOSE_COLUMNS PRICE_REPRICE_COLUMNS \
-            UPDATE_RETURNING VARIANT_TABLE FORBIDDEN_CODE OVERLAP_CODE \
-            NO_ROWS_CODE REJECTED_CODES PRICE_TABLE PRICE_INSERT_COLUMNS; do
+for name in VARIANT_EDIT_COLUMNS NAME_PATCH_COLUMNS SETTINGS_PATCH_COLUMNS \
+            ACTIVE_PATCH_COLUMNS FAMILY_PATCH_COLUMNS \
+            UPDATE_RETURNING VARIANT_TABLE FORBIDDEN_CODE \
+            NO_ROWS_CODE REJECTED_CODES; do
   eval "value=\$$name"
   [[ -n "$value" ]] || MISSING="$MISSING $name"
 done
@@ -127,7 +105,7 @@ if [[ -n "$MISSING" ]]; then
   echo "      the vacuous kind this repository has recorded five shapes of."
   exit 1
 fi
-ok "read from $CONTRACT: $VARIANT_TABLE and $PRICE_TABLE, five patch bodies"
+ok "read from $CONTRACT: $VARIANT_TABLE and its four patch bodies"
 
 # --- the local stack -------------------------------------------------------
 STATUS="$(supabase status -o env 2>/dev/null)"
@@ -194,13 +172,6 @@ signup() { # email -> sets TOKEN
 }
 
 STAMP="$$-$(date +%s)"
-# ⚠️ THE LOCAL DAY AND NOT `date -u`. `isoDay` computes the DEVICE's day
-# deliberately — a price window is a fact about a shop's morning — so a check that
-# used the UTC day would be testing a row the app never writes.
-# [[local-time-tests-need-a-pinned-tz]]: this machine is UTC-6 and CI is UTC, and
-# both sides of this file use the same clock, which is what makes them agree.
-TODAY="$(date +%F)"
-YESTERDAY="$(python3 -c 'import datetime; print(datetime.date.today() - datetime.timedelta(days=1))')"
 
 # --- the shop, its cashier, and the shop next door --------------------------
 signup "edit-owner-$STAMP@example.com"; OWNER_TOKEN="$TOKEN"
@@ -226,7 +197,7 @@ signup "edit-neighbour-$STAMP@example.com"; NEIGHBOUR_TOKEN="$TOKEN"
 api POST /rest/v1/rpc/onboard_workspace \
   '{"p_display_name":"La tienda de al lado","p_prices_include_tax":true,"p_location_name":null}' > /dev/null
 
-# --- a product priced YESTERDAY, so the ordinary branch is the live one ------
+# --- a product ----------------------------------------------------------------
 TOKEN="$OWNER_TOKEN"
 FAMILY_BODY="$(obj 'workspace_id,name' "$WORKSPACE_ID" 'Plátanos')"
 FAMILY_ID="$(first_id "$(body "$(api POST "/rest/v1/product_family?select=id" "$FAMILY_BODY")")")"
@@ -235,64 +206,19 @@ VARIANT_BODY="$(obj 'workspace_id,family_id,name,base_unit_code,purchase_unit_co
 VARIANT_ID="$(first_id "$(body "$(api POST "/rest/v1/$VARIANT_TABLE?select=id" "$VARIANT_BODY")")")"
 [[ -n "$FAMILY_ID" && -n "$VARIANT_ID" ]] || { echo "FAIL: could not seed the product"; exit 1; }
 
-# `app/test/api-catalog-write.test.ts` pins $35.00 / kg as this string.
-OLD_PRICE="0.035000"
-NEW_PRICE="0.040000"
-SEED_BODY="$(obj "$PRICE_INSERT_COLUMNS" "$WORKSPACE_ID" "$VARIANT_ID" "$NULL" "$OLD_PRICE" "$YESTERDAY" "$NULL")"
-SEED_OUT="$(api POST "/rest/v1/$PRICE_TABLE?select=id" "$SEED_BODY")"
-PRICE_ID="$(first_id "$(body "$SEED_OUT")")"
-[[ -n "$PRICE_ID" ]] || { echo "FAIL: could not seed yesterday's price — $(body "$SEED_OUT")"; exit 1; }
-
-# --- 2. the edit read asks for columns the database has ---------------------
-note
-READ_OUT="$(api GET "/rest/v1/$PRICE_TABLE?select=$PRICE_EDIT_COLUMNS&variant_id=eq.$VARIANT_ID&effective_from=lte.$TODAY&or=(effective_to.is.null,effective_to.gt.$TODAY)")"
-READ_ROWS="$(rows_in "$(body "$READ_OUT")")"
-if [[ "$(status "$READ_OUT")" == "200" && "$READ_ROWS" == "1" \
-      && "$(field id "$(body "$READ_OUT")")" == "$PRICE_ID" \
-      && "$(field effective_from "$(body "$READ_OUT")")" == "$YESTERDAY" ]]; then
-  ok "the edit read returns the row in force, with its id and its start date"
-else
-  fail "the edit read did not come back as one dated row:"
-  echo "        $(status "$READ_OUT") $(body "$READ_OUT")"
-  echo "      PRICE_EDIT_COLUMNS is read out of $CONTRACT; a column renamed on"
-  echo "      either side of the wire compiles, bundles and passes Vitest."
-fi
-
-# --- 3. the ordinary change: CLOSE, then OPEN -------------------------------
-note
-CLOSE_BODY="$(obj "$PRICE_CLOSE_COLUMNS" "$TODAY")"
-CLOSE_OUT="$(api PATCH "/rest/v1/$PRICE_TABLE?id=eq.$PRICE_ID&select=$UPDATE_RETURNING" "$CLOSE_BODY")"
-OPEN_BODY="$(obj "$PRICE_INSERT_COLUMNS" "$WORKSPACE_ID" "$VARIANT_ID" "$NULL" "$NEW_PRICE" "$TODAY" "$NULL")"
-OPEN_OUT="$(api POST "/rest/v1/$PRICE_TABLE?select=$UPDATE_RETURNING" "$OPEN_BODY")"
-NEW_ROW_ID="$(first_id "$(body "$OPEN_OUT")")"
-AFTER="$(api GET "/rest/v1/$PRICE_TABLE?select=$PRICE_EDIT_COLUMNS&variant_id=eq.$VARIANT_ID&effective_from=lte.$TODAY&or=(effective_to.is.null,effective_to.gt.$TODAY)")"
-if [[ "$(status "$CLOSE_OUT")" == "200" && "$(status "$OPEN_OUT")" == "201" \
-      && "$(rows_in "$(body "$AFTER")")" == "1" \
-      && "$(field price_per_base "$(body "$AFTER")")" == "$NEW_PRICE" ]]; then
-  ok "close-then-open is accepted, and the window afterwards holds ONE row: the new price"
-else
-  fail "the ordinary price change did not go through, or left two rows in force:"
-  echo "        close $(status "$CLOSE_OUT") $(body "$CLOSE_OUT")"
-  echo "        open  $(status "$OPEN_OUT") $(body "$OPEN_OUT")"
-  echo "        window afterwards: $(body "$AFTER")"
-fi
 
 # --- 4. ⚠️⚠️ THE FENCE, IN ITS TWO DIFFERENT SHAPES ------------------------
-# This is the assertion the task exists for. A cashier's INSERT is refused with a
-# code; a cashier's UPDATE is not refused at all unless the app asks for one row.
+# This is the assertion the task exists for. A cashier's UPDATE is not refused at
+# all unless the app asks for one row.
 note
 TOKEN="$STAFF_TOKEN"
 STAFF_RENAME_BODY="$(obj "$NAME_PATCH_COLUMNS" 'Plátano del turno')"
 STAFF_RENAME="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$STAFF_RENAME_BODY")"
-STAFF_REPRICE_BODY="$(obj "$PRICE_REPRICE_COLUMNS" '0.010000')"
-STAFF_REPRICE="$(api PATCH "/rest/v1/$PRICE_TABLE?id=eq.$NEW_ROW_ID&select=$UPDATE_RETURNING" "$STAFF_REPRICE_BODY")"
 STAFF_RETIRE_BODY="$(obj "$ACTIVE_PATCH_COLUMNS" false)"
 STAFF_RETIRE="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" "$STAFF_RETIRE_BODY")"
-STAFF_OPEN_BODY="$(obj "$PRICE_INSERT_COLUMNS" "$WORKSPACE_ID" "$VARIANT_ID" "$LOCATION_ID" '0.010000' "$TODAY" "$NULL")"
-STAFF_OPEN="$(api POST "/rest/v1/$PRICE_TABLE?select=$UPDATE_RETURNING" "$STAFF_OPEN_BODY")"
 
 SILENT=0
-for pair in "rename|$STAFF_RENAME" "reprice|$STAFF_REPRICE" "retire|$STAFF_RETIRE"; do
+for pair in "rename|$STAFF_RENAME" "retire|$STAFF_RETIRE"; do
   what="${pair%%|*}"; out="${pair#*|}"
   if [[ "$(status "$out")" != "200" || "$(rows_in "$(body "$out")")" != "0" ]]; then
     fail "a cashier's $what did not come back as the SILENT refusal this app is built"
@@ -310,56 +236,21 @@ UNCHANGED="$(api GET "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=name,is_a
 
 if (( SILENT == 0 )) \
    && [[ "$(code_of "$(body "$STAFF_ONE")")" == "$NO_ROWS_CODE" ]] \
-   && [[ "$(code_of "$(body "$STAFF_OPEN")")" == "$FORBIDDEN_CODE" ]] \
    && [[ "$(field name "$(body "$UNCHANGED")")" == 'Plátano macho' ]] \
    && [[ "$(field is_active "$(body "$UNCHANGED")")" == 'True' ]]; then
-  ok "A CASHIER IS REFUSED — silently on UPDATE, $NO_ROWS_CODE through .single(), $FORBIDDEN_CODE on INSERT, and the row is untouched"
+  ok "A CASHIER IS REFUSED — silently on UPDATE, $NO_ROWS_CODE through .single(), and the row is untouched"
 else
   fail "the manager fence did not hold, or did not hold in the shape the app maps:"
   echo "        rename via .single(): $(status "$STAFF_ONE") $(body "$STAFF_ONE")"
-  echo "        price insert:         $(status "$STAFF_OPEN") $(body "$STAFF_OPEN")"
   echo "        the row afterwards:   $(body "$UNCHANGED")"
   echo "      ⚠️ This is the only instrument in this repository that can see the"
   echo "      UPDATE fence. Nothing in TypeScript has ever read a policy, and RLS"
   echo "      is bypassed by \`postgres\`, so a superuser run would pass vacuously."
 fi
 
-# --- 5. ⚠️ OPEN BEFORE CLOSE IS REFUSED — the order is the constraint's ------
-note
-TOKEN="$OWNER_TOKEN"
-OVERLAP_BODY="$(obj "$PRICE_INSERT_COLUMNS" "$WORKSPACE_ID" "$VARIANT_ID" "$NULL" '0.050000' "$TODAY" "$NULL")"
-OVERLAP_OUT="$(api POST "/rest/v1/$PRICE_TABLE?select=$UPDATE_RETURNING" "$OVERLAP_BODY")"
-if [[ "$(code_of "$(body "$OVERLAP_OUT")")" == "$OVERLAP_CODE" ]] \
-   && grep -q 'price_list_no_overlap' <<< "$(msg_of "$(body "$OVERLAP_OUT")")"; then
-  ok "opening a second row over today is $OVERLAP_CODE on price_list_no_overlap — CLOSE BEFORE YOU OPEN"
-else
-  fail "a price posted over an open one was not refused as $OVERLAP_CODE:"
-  echo "        $(status "$OVERLAP_OUT") $(body "$OVERLAP_OUT")"
-  echo "      The order in catalogEdit is not a preference — it is this constraint."
-fi
-
-# --- 6. ⚠️ THE SAME-DAY BRANCH, AND WHY IT EXISTS --------------------------
-note
-ZERO_BODY="$(obj "$PRICE_CLOSE_COLUMNS" "$TODAY")"
-ZERO_OUT="$(api PATCH "/rest/v1/$PRICE_TABLE?id=eq.$NEW_ROW_ID&select=$UPDATE_RETURNING" "$ZERO_BODY")"
-REPRICE_BODY="$(obj "$PRICE_REPRICE_COLUMNS" '0.045000')"
-REPRICE_OUT="$(api PATCH "/rest/v1/$PRICE_TABLE?id=eq.$NEW_ROW_ID&select=$UPDATE_RETURNING" "$REPRICE_BODY")"
-REPRICED="$(api GET "/rest/v1/$PRICE_TABLE?select=$PRICE_EDIT_COLUMNS&id=eq.$NEW_ROW_ID")"
-ZERO_CODE="$(code_of "$(body "$ZERO_OUT")")"
-if grep -qw "$ZERO_CODE" <<< "$REJECTED_CODES" \
-   && grep -q 'price_list_range_ordered' <<< "$(msg_of "$(body "$ZERO_OUT")")" \
-   && [[ "$(status "$REPRICE_OUT")" == "200" ]] \
-   && [[ "$(field price_per_base "$(body "$REPRICED")")" == '0.045000' ]]; then
-  ok "closing a row that started today is $ZERO_CODE on price_list_range_ordered, and the reprice is accepted"
-else
-  fail "the same-day branch is not what the app is built around:"
-  echo "        zero-length close: $(status "$ZERO_OUT") $(body "$ZERO_OUT")"
-  echo "        reprice in place:  $(status "$REPRICE_OUT") $(body "$REPRICE_OUT")"
-  echo "      priceChange's third branch exists BECAUSE the first line above fails."
-fi
-
 # --- 7. ⚠️ THE TWO FIGURES ARE BOUNDED BY THE COLUMNS' OWN CHECKS -----------
 note
+TOKEN="$OWNER_TOKEN"
 TAX_OUT="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" \
   "$(obj 'tax_rate' '1.0000')")"
 PACK_OUT="$(api PATCH "/rest/v1/$VARIANT_TABLE?id=eq.$VARIANT_ID&select=$UPDATE_RETURNING" \
@@ -490,8 +381,8 @@ echo
 # ⚠️ THE ANTI-VACUITY GUARD, rule 4 of this repository. Every failure path above
 # is conditional, so "0 failures" is also what a run that skipped everything looks
 # like — and `5b-split-coverage.sh` shipped without one.
-if (( fails == 0 && ran < 10 )); then
-  echo "FAIL: only $ran assertion groups ran, expected 10 — this check asserted almost"
+if (( fails == 0 && ran < 7 )); then
+  echo "FAIL: only $ran assertion groups ran, expected 7 — this check asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

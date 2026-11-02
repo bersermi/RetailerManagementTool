@@ -305,12 +305,15 @@ on:
       # empty array. Measured 2026-09-23. So `catalogEdit.ts` sends `.single()` on
       # every patch to turn that into a `PGRST116`, and this check is the only
       # instrument that can say either shape is still what the database does.
-      # ⚠️ Its other two: the ORDER — close before you open, because
-      # `price_list_no_overlap` refuses two rows over one day — and the SAME-DAY
-      # branch, which exists because `price_list_range_ordered` refuses a
-      # zero-length range and nothing in TypeScript can discover that.
+      # ⚠️ Since `8i` it sends no price: the order and the same-day branch are
+      # `set_shelf_price`'s (`0074`), and the next check holds the app to it.
       - "docs/checks/5e-iii-a-catalog-edit-contract.sh"
       - "docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh"
+      # ⚠️ `8i`: a price set on the phone, sent as `app/src/api/shelfPrice.ts` sends
+      # it — the function's name, its arguments by name, the numbers as text — and
+      # what the shop holds afterwards, read off the database itself.
+      - "docs/checks/8i-shelf-price-contract.sh"
+      - "docs/checks/8i-shelf-price-contract-falsify.sh"
       # ⚠️⚠️ AND THE BUY SIDE, as of plan task `5g-i` — the FIRST thing in this
       # repository ever to send `record_purchase` anything. `0018` has been
       # applied since 2026-09-04 and `5f-i`'s row said out loud that nothing had
@@ -1261,10 +1264,21 @@ jobs:
       # contract module rather than an edit to the schema — which is what lets this
       # harness leave nothing behind. ⚠️ Two of them move the codes the manager
       # fence arrives as, and those are the ones worth reading: `A CASHIER IS
-      # REFUSED` is now a claim about a 403 AND about a silent 200, and a harness
-      # that could not break both would be watching half of it.
+      # REFUSED` is a claim about a silent 200, and a harness that could not break
+      # it would be watching nothing.
       - name: Contract — can the catalog edit check still fail (its own fixtures)
         run: bash docs/checks/5e-iii-a-catalog-edit-contract-falsify.sh
+
+      # ⚠️ `8i`: a price set with or without signal reaches the shop as the app
+      # sends it — first, retried, changed, the same day, stale, a cashier, signed
+      # out, a negative — each read back from the database as the superuser.
+      - name: Contract — does a price set on the phone reach the shop as the app sends it (plan 8i)
+        run: bash docs/checks/8i-shelf-price-contract.sh
+
+      # And its own seven fixtures: a green control and six broken copies of
+      # `shelfPrice.ts` and `catalog.ts`, each red for its own reason.
+      - name: Contract — can the price check still fail (its own seven fixtures)
+        run: bash docs/checks/8i-shelf-price-contract-falsify.sh
 
       # ⚠️⚠️ THE FIRST ROUND TRIP THIS REPOSITORY HAS EVER MADE AGAINST
       # `record_purchase`, and the only instrument that can see the cashier

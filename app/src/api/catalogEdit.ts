@@ -6,66 +6,21 @@
 //
 // ⚠️⚠️ IT SHIPS NO SCREEN AND NO COMPONENT. `5e-iii-b` draws `Editar` and
 // `5h.5` owns `src/ui/`; what is here is everything about that form which has a
-// RIGHT ANSWER — the patches, the price plan, the order the two price calls must
-// go in, the arithmetic and the refusals — so that
+// RIGHT ANSWER — the patches, the arithmetic of the two figures and the refusals —
+// so that
 // `app/test/api-catalog-edit.test.ts` and
 // `docs/checks/5e-iii-a-catalog-edit-contract.sh` can both read it. §2.11 keeps
 // rendering out of scope; this is the half of `5e-iii` that is not rendering.
 //
-// ⚠️⚠️ THE PRICE CHANGE IS THE SUBSTANCE AND IT IS THREE BRANCHES, NOT ONE.
-// `price_list` is a DATED RANGE table under an exclusion constraint, so *"change
-// the price"* is not one write and is not the same write twice:
-//
-//   * NO ROW IN FORCE  — insert `[today, ∞)`. The product was wearing C3.12's
-//                        dash, which `5e-i` made a legitimate state on the
-//                        owner's ruling of 2026-09-22. This is the branch that
-//                        finally prices one.
-//   * A ROW FROM AN EARLIER DAY — close it at today, then open a new one. Two
-//                        calls, and the order is forced; see below.
-//   * A ROW THAT STARTED TODAY — it CANNOT be closed. `effective_to` would equal
-//                        `effective_from` and `price_list_range_ordered` is
-//                        `effective_to is null or effective_to > effective_from`,
-//                        so Postgres refuses a zero-length range. Its
-//                        `price_per_base` is updated in place instead.
-//
-// ⚠️ A MODULE THAT KNEW ONLY THE SECOND BRANCH WOULD WORK ALL DAY AND FAIL THE
-// SECOND TIME A SHOPKEEPER CORRECTED A PRICE — which is precisely the moment he
-// is watching it, because the first correction is what made him look.
-//
-// ⚠️⚠️ CLOSE BEFORE YOU OPEN, AND IT IS A DELIVERABLE RATHER THAN AN
-// IMPLEMENTATION DETAIL — `WRITE_ORDER`'s argument one module over, with a
-// different constraint behind it. Opening `[today, ∞)` while the old row is
-// still open makes TWO rows cover today, and `price_list_no_overlap` — a GiST
-// exclusion over `(workspace_id, variant_id, coalesce(location_id, …),
-// valid_period)` — refuses the second with `23P01`. So the sequence is not a
-// preference and is not slower the other way round: it is the only order that
-// works.
-//
-// ⚠️⚠️ WHICH MEANS A PARTIAL FAILURE THIS APP HAS NEVER HAD, AND IT IS THE WORST
-// ONE SO FAR. PostgREST has no transaction to offer. If the close lands and the
-// open does not, the product is **priced yesterday and priceless today** — on
-// the shelf, mid-morning, wearing C3.12's dash, put there by a shopkeeper who was
-// CORRECTING a price rather than removing one. `5e-i`'s three partial states were
-// all invisible or harmless; this one is neither, so it is a named outcome
-// (`PriceChangeFailed.closed`) with a sentence of its own and a retry that
-// RE-OPENS rather than re-closing. Closing twice is not the danger — the second
-// close is a no-op patch — the danger is a session that treats the whole change
-// as untried and shows *"no se pudo guardar"* about a price it really did remove.
-//
-// ⚠️⚠️ AND THE CATALOG READ CANNOT PLAN THIS CHANGE, WHICH IS WHY THERE IS A
-// SECOND READ IN HERE. `PRICE_COLUMNS` in `@/api/catalog` is
-// `price_per_base::text,location_id` — no `id`, no `effective_from` — because the
-// list screen needs a figure and a scope and nothing else. Every branch above
-// turns on a row's `id` and on WHICH DAY it started, so `PRICE_EDIT_COLUMNS`
-// below asks for those two as well, for ONE variant, rather than widening a read
-// that runs over the whole shop on every load.
-//
-// ⚠️ THE SCOPE IS THE ONE THE READ RESOLVED AND IS NEVER INVENTED. `priceFor`
-// prefers a store's own row over the shop-wide one, so a change edits the row the
-// shopkeeper is LOOKING at; and a product with no price at all is priced
-// shop-wide, `location_id` null, which is `5e-i`'s decision A unchanged. Nothing
-// here ever creates a store-scoped price for a shop that did not have one —
-// that would be this module answering a question C8.9 never asked.
+// ⚠️⚠️ SINCE `8i` THE PRICE IS NOT WRITTEN HERE. Until 2026-11-01 this module
+// planned a price change as two PostgREST writes — close the row in force, then
+// open the new one, because `price_list_no_overlap` refuses two rows covering one
+// day — and named the state a failure between the two left behind: the product
+// priced yesterday and priceless today. The owner's ruling of that day moved the
+// price to one function that does both in one transaction (`set_shelf_price`,
+// `0074`), sent from a queue on the phone so it is set with or without signal
+// (`@/api/shelfPrice`). What is left here is the rest of `Editar`: the name, the
+// two figures, the aisle, the photo and retiring.
 //
 // ⚠️⚠️ SO WHAT NO CHECK IN THIS REPOSITORY CAN SEE except one, named here rather
 // than left to be discovered: the fence. `product_variant_update`,
@@ -113,22 +68,8 @@
 
 import { SCALE, formatDecimal, parseDecimal } from '@tienda/money';
 
-import {
-  PRICE_TABLE,
-  PRICE_STARTS_COLUMN,
-  priceEndsAfter,
-  priceFor,
-  searchKey,
-  type CatalogEntry,
-  type PriceRow,
-  type UnitFactors,
-} from '@/api/catalog';
-import {
-  CATALOG_WRITE_REFUSALS,
-  parsePesos,
-  priceOmitted,
-  pricePerBase,
-} from '@/api/catalogWrite';
+import { searchKey, type CatalogEntry } from '@/api/catalog';
+import { CATALOG_WRITE_REFUSALS } from '@/api/catalogWrite';
 import { apiErrorMessage } from '@/api/errors';
 import { ES } from '@/strings';
 
@@ -138,32 +79,6 @@ import { ES } from '@/strings';
 
 /** The table a rename, the two settings and a retirement all patch. */
 export const VARIANT_TABLE = 'product_variant';
-
-/**
- * ⚠️ THE PRICE TABLE IS IMPORTED AND NOT RESPELLED. `@/api/catalog` owns the
- * word; `catalogWrite` spells it again only because its `WRITE_ORDER` is a
- * SEQUENCE and half a sequence imported from elsewhere is a sequence nobody can
- * read in one place. Nothing here is a sequence of tables, so there is no reason
- * for a third copy.
- */
-export const PRICE_EDIT_TABLE = PRICE_TABLE;
-
-/**
- * What the price plan needs and the catalog read does not fetch.
- *
- * ⚠️⚠️ `id` AND `effective_from` ARE THE WHOLE POINT. Every branch of
- * `priceChange` turns on which row is in force and on whether it started TODAY,
- * and `PRICE_COLUMNS` in `@/api/catalog` carries neither — deliberately, because
- * the list screen reads this table for every variant in the shop and needs a
- * figure and a scope. This read is for ONE variant, on the screen that changes
- * it.
- *
- * ⚠️ `price_per_base::text` FOR THE HEADER'S REASON, the same one `PRICE_COLUMNS`
- * gives: `numeric(14,6)` arrives as a JSON number otherwise, and a double is not
- * what this app does arithmetic on. `effective_to` is a `date` and is text
- * already.
- */
-export const PRICE_EDIT_COLUMNS = 'id,price_per_base::text,location_id,effective_from,effective_to';
 
 /**
  * The two figures the form has to SHOW before it can let anybody change them —
@@ -274,23 +189,6 @@ export const SETTINGS_PATCH_COLUMNS = 'tax_rate,pack_size';
 export const ACTIVE_PATCH_COLUMNS = 'is_active';
 /** ⚠️ `8g`: the shop's own product moved to another aisle — `FamilyPatch`. */
 export const FAMILY_PATCH_COLUMNS = 'family_id';
-
-/** The two `price_list` patches: closing a row, and correcting one in place. */
-export const PRICE_CLOSE_COLUMNS = 'effective_to';
-export const PRICE_REPRICE_COLUMNS = 'price_per_base';
-
-/**
- * The columns a NEW price row is posted with — `catalogWrite`'s own constant,
- * re-exported rather than respelled.
- *
- * ⚠️ THE OPENING BRANCHES POST THE SAME ROW `5e-i` POSTS, so they must send the
- * same column list; a second spelling of it here is the copy that drifts, which
- * is the defect this repository has recorded eleven times. ⚠️ AND `effective_to`
- * IS STILL SENT AS `null` RATHER THAN OMITTED, for that constant's own recorded
- * reason: PostgREST refuses a bulk insert whose objects do not all carry the same
- * keys.
- */
-export { PRICE_INSERT_COLUMNS } from '@/api/catalogWrite';
 
 /** What every patch asks back. ⚠️ Never `*` (`R13`) — see `INSERT_RETURNING`. */
 export const UPDATE_RETURNING = 'id';
@@ -519,167 +417,6 @@ export function activePatch(active: boolean): ActivePatch {
   return { is_active: active };
 }
 
-// ----------------------------------------------------------------------------
-// THE PRICE CHANGE — THE DATED WINDOW, AND ITS THREE BRANCHES
-// ----------------------------------------------------------------------------
-
-/**
- * A `price_list` row as the EDIT reads it — `PRICE_EDIT_COLUMNS`.
- *
- * ⚠️ IT EXTENDS `PriceRow` RATHER THAN RESTATING IT, so `priceFor` can resolve
- * the scope over these rows without a second copy of *a store's own price beats
- * the shop-wide one*.
- */
-export interface PriceInForce extends PriceRow {
-  readonly id: string;
-  readonly effective_from: string;
-  readonly effective_to: string | null;
-}
-
-/** A `price_list` row as this module posts it — `PRICE_INSERT_COLUMNS`. */
-export interface PriceOpen {
-  readonly workspace_id: string;
-  readonly variant_id: string;
-  readonly location_id: string | null;
-  readonly price_per_base: string;
-  readonly effective_from: string;
-  readonly effective_to: string | null;
-}
-
-/**
- * What changing a price actually is, once the dated window has been read.
- *
- * ⚠️ `unchanged` IS A BRANCH AND NOT A SHORTCUT. Closing a row and opening an
- * identical one is two round trips on a link the pilot store loses half the day,
- * and it leaves the shop's price history claiming a change that never happened —
- * which is a lie `7`'s reports would eventually read.
- */
-export type PriceChange =
-  | { readonly kind: 'unchanged' }
-  | { readonly kind: 'open'; readonly open: PriceOpen }
-  | { readonly kind: 'reprice'; readonly rowId: string; readonly patch: { readonly price_per_base: string } }
-  | {
-      readonly kind: 'closeAndOpen';
-      readonly closeRowId: string;
-      readonly closePatch: { readonly effective_to: string };
-      readonly open: PriceOpen;
-    };
-
-/**
- * What a price change IS, for this variant, today — the one decision in this
- * module that would go in wrong silently.
- *
- * ⚠️⚠️ READ THE HEADER'S THREE BRANCHES FIRST; this is them, in the order a day
- * produces them. The `reprice` branch is the one a screen would never think to
- * write, because it only happens the SECOND time a price is corrected in one
- * day — and it is not an optimisation, it is the only thing Postgres will accept:
- * `price_list_range_ordered` refuses `effective_to = effective_from`.
- *
- * ⚠️ `today` IS THE DEVICE'S LOCAL DAY AND COMES IN AS AN ARGUMENT (`R3`), for
- * `priceRow`'s recorded reason: `isoDay` in `@/api/catalog` already owns *what
- * day is it where the shop stands*, and a second answer here would be `0018`'s
- * off-by-one in the other direction.
- *
- * ⚠️ THE SCOPE IS THE RESOLVED ROW'S, NOT THE PHONE'S. When a row is in force,
- * the new row inherits ITS `location_id` — so correcting a store's own price
- * stays a store price and correcting the shop-wide one stays shop-wide. Only a
- * product with NO price at all is priced shop-wide by default, which is `5e-i`'s
- * decision A and the only place this module picks a scope at all.
- */
-export function priceChange(
-  workspaceId: string,
-  variantId: string,
-  prices: readonly PriceInForce[] | null | undefined,
-  locationId: string | null,
-  today: string,
-  pricePerBaseText: string,
-): PriceChange {
-  const inForce = priceFor(prices, locationId) as PriceInForce | null;
-
-  if (inForce === null) {
-    return {
-      kind: 'open',
-      open: openRow(workspaceId, variantId, null, pricePerBaseText, today),
-    };
-  }
-
-  if (inForce.price_per_base === pricePerBaseText) return { kind: 'unchanged' };
-
-  if (inForce.effective_from === today) {
-    return {
-      kind: 'reprice',
-      rowId: inForce.id,
-      patch: { price_per_base: pricePerBaseText },
-    };
-  }
-
-  return {
-    kind: 'closeAndOpen',
-    closeRowId: inForce.id,
-    closePatch: { effective_to: today },
-    open: openRow(workspaceId, variantId, inForce.location_id, pricePerBaseText, today),
-  };
-}
-
-/** The row every opening branch posts. `PRICE_INSERT_COLUMNS`, in its order. */
-function openRow(
-  workspaceId: string,
-  variantId: string,
-  locationId: string | null,
-  pricePerBaseText: string,
-  today: string,
-): PriceOpen {
-  return {
-    workspace_id: workspaceId,
-    variant_id: variantId,
-    location_id: locationId,
-    price_per_base: pricePerBaseText,
-    effective_from: today,
-    effective_to: null,
-  };
-}
-
-/**
- * The typed peso figure as `price_per_base`, or `null` when it is not a price.
- *
- * ⚠️ IT IS `pricePerBase` FROM `@/api/catalogWrite` AND NOT A SECOND INVERSE OF
- * `priceCentavos`. That function is already the exact inverse of the catalog
- * read's arithmetic, walked over all ten seeded units by
- * `app/test/api-catalog-write.test.ts`; a second one here is the third copy of a
- * rule that must round the same way in all of them.
- *
- * ⚠️ AN EMPTY BOX ANSWERS `null`, AND THAT IS NOT *"remove the price"*. Nothing
- * in this module deletes a price row — `price_list_delete` exists in `0002` and
- * is deliberately unused here, because *this product has no price* and *this
- * product's price was withdrawn today* are two different facts and C3.12 draws
- * only the first. Un-pricing a product is not on `Editar` and is not `5e-iii`'s.
- */
-export function editPricePerBase(typed: string, factorText: string | undefined): string | null {
-  if (priceOmitted(typed)) return null;
-  const centavos = parsePesos(typed);
-  if (centavos === null) return null;
-  return pricePerBase(centavos, factorText ?? '');
-}
-
-// ----------------------------------------------------------------------------
-// THE WINDOW, AS THE EDIT READ ASKS FOR IT
-// ----------------------------------------------------------------------------
-
-/**
- * The half of the price window PostgREST cannot express as one filter, for the
- * edit's own read.
- *
- * ⚠️ IT IS `priceEndsAfter` AND `PRICE_STARTS_COLUMN` FROM `@/api/catalog`,
- * RE-EXPORTED RATHER THAN RESPELLED. That module's header already records why
- * the obvious `valid_period=cs.<date>` spelling answers `400 22P02`, and *which
- * row is in force* must be one predicate in this app: two answers to that is two
- * prices, and the second one is whichever the screen happened to ask.
- */
-export { priceEndsAfter, PRICE_STARTS_COLUMN } from '@/api/catalog';
-
-/** The query key one variant's dated price rows cache under. */
-export const PRICE_EDIT_KEY = ['catalog', 'prices'] as const;
-
 /**
  * The cache key of the two set-once figures. ⚠️ ITS OWN KEY AND NOT A BRANCH OF
  * `CATALOG_KEY`: it is read for ONE variant, on one screen, and invalidating the
@@ -703,7 +440,7 @@ export type EditIssue = keyof typeof ES.catalog.editIssues;
  * THE ONE LINE IN HERE THAT WOULD HAVE SHIPPED WRONG BY COPYING `checkProduct`.
  * That function refuses any name the catalog already holds, which is right when
  * the product does not exist yet; here the catalog holds THIS product, so the
- * same test refuses a shopkeeper who opened `Editar` and changed the price
+ * same test refuses a shopkeeper who opened `Editar` and changed the aisle
  * without touching the name.
  *
  * ⚠️ IT FOLDS WITH `searchKey` AND NOT `searchTerm`, for `checkProduct`'s
@@ -711,15 +448,13 @@ export type EditIssue = keyof typeof ES.catalog.editIssues;
  * check that folded accents would refuse `Plátano` in a shop that already has
  * `Platano` and the update would have succeeded.
  *
- * ⚠️ THE ORDER IS THE FORM'S READING ORDER — name, tax, pack, price.
+ * ⚠️ THE ORDER IS THE FORM'S READING ORDER — name, tax, pack. A price is not
+ * checked here since `8i`: the price sheet's `pricePlan` (`@/api/shelfPrice`).
  */
 export function checkEdit(
   variantId: string,
   edit: VariantEdit,
-  pricePesos: string,
   entries: readonly CatalogEntry[],
-  factors: UnitFactors,
-  unitCode: string,
 ): EditIssue | null {
   if (searchKey(edit.name) === '') return 'nameMissing';
   if (
@@ -735,66 +470,7 @@ export function checkEdit(
   if (edit.packSize.replace(/[\s,]/g, '') !== '' && parsePackSize(edit.packSize) === null) {
     return 'packUnreadable';
   }
-  if (priceOmitted(pricePesos)) return null;
-  if (editPricePerBase(pricePesos, factors[unitCode]) === null) return 'priceUnreadable';
   return null;
-}
-
-// ----------------------------------------------------------------------------
-// WHAT CAME BACK, AND WHAT IS LEFT BEHIND WHEN IT DIDN'T
-// ----------------------------------------------------------------------------
-
-/** Which call of a price change did not go through. */
-export type PriceStep = 'close' | 'open' | 'reprice';
-
-/** The change landed — or there was nothing to do, which is also a success. */
-export interface PriceChangeSucceeded {
-  readonly ok: true;
-  /** ⚠️ `false` for `unchanged`, so a confirmation cannot claim work nobody did. */
-  readonly changed: boolean;
-}
-
-/**
- * It did not — and `closed` is the field this whole module exists to carry.
- *
- * ⚠️⚠️ `closed: true` MEANS THE PRODUCT IS PRICELESS RIGHT NOW. The old row ended
- * at today and the new one never opened, so the window a catalog read applies
- * finds nothing and C3.12's dash is on the shelf. A screen that showed the
- * ordinary *"no se pudo guardar"* here would be telling a shopkeeper that nothing
- * happened, about the one failure where something did.
- */
-export interface PriceChangeFailed {
-  readonly ok: false;
-  readonly failed: PriceStep;
-  readonly closed: boolean;
-  readonly error: unknown;
-}
-
-/** What `changePrice` in `@/api/calls` answers with. */
-export type PriceChangeOutcome = PriceChangeSucceeded | PriceChangeFailed;
-
-/**
- * The change to try again with, after a half-done one.
- *
- * ⚠️⚠️ IT RE-OPENS RATHER THAN RE-CLOSING, AND WITHOUT THIS THE RETRY IS A
- * DIFFERENT WRITE FROM THE ONE THAT FAILED. A `closeAndOpen` whose second call
- * died has already closed the old row; re-running the same plan patches
- * `effective_to` to the value it already holds — harmless in itself — and then
- * posts the same insert, so it would work. What would NOT work is re-PLANNING
- * from a fresh read while the screen still holds the old rows: the row in force
- * is gone, and a plan built from stale rows would try to close a row that is
- * already closed and then insert against an overlap that is no longer there.
- * Returning the insert alone makes the retry say exactly what is left to do.
- *
- * ⚠️ EVERY OTHER FAILURE IS THE WHOLE PLAN AGAIN, because nothing landed: a
- * failed `close` changed nothing, and a failed `reprice` is one call that either
- * happened or did not.
- */
-export function retryChange(plan: PriceChange, outcome: PriceChangeFailed): PriceChange {
-  if (plan.kind === 'closeAndOpen' && outcome.closed) {
-    return { kind: 'open', open: plan.open };
-  }
-  return plan;
 }
 
 // ----------------------------------------------------------------------------
@@ -803,16 +479,8 @@ export function retryChange(plan: PriceChange, outcome: PriceChangeFailed): Pric
 
 /** `23505` — a unique constraint, and on this path only the variant's name. */
 const DUPLICATE = '23505';
-/** `42501` — the manager fence on `product_variant_update` and both price policies. */
+/** `42501` — the manager fence on `product_variant_update`. */
 const FORBIDDEN = '42501';
-/**
- * `23P01` — `price_list_no_overlap`, the GiST exclusion. ⚠️ REACHABLE ONLY FROM A
- * STALE READ: another phone priced this product since, or a future-dated row
- * exists that nothing in this app creates. It is the shopkeeper's to recover from
- * by re-opening the product, which is why it gets a sentence rather than the
- * catch-all.
- */
-const OVERLAP = '23P01';
 /** `23514`/`23503` — a row we should never have sent. `checkEdit` is what stops them. */
 const REJECTED: readonly string[] = ['23514', '23503'];
 /**
@@ -869,7 +537,7 @@ function messageOf(error: unknown): string {
  * An UPDATE a `using` clause excludes is not refused, it is INVISIBLE — 200 and
  * an empty array — so `42501` never fires on a rename, a retirement or a
  * reprice. Measured on both tables, 2026-09-23. A cashier who was told *"listo"*
- * about a price that did not move is worse off than one who was told no.
+ * about a change that did not happen is worse off than one who was told no.
  *
  * ⚠️⚠️ `23001` IS `6c`'s AND IT IS THE FIRST SQLSTATE IN THIS APP THAT MEANS *THIS
  * ROW IS NOT YOURS* RATHER THAN *YOU ARE NOT ALLOWED*. The distinction is the whole
@@ -877,19 +545,12 @@ function messageOf(error: unknown): string {
  * it, so `notAllowedEdit`'s sentence about permission would be false. `canRetireProduct`
  * is the fence and this is the belt to it.
  *
- * ⚠️ `23P01` IS NEW ON THIS PATH AND EXISTS NOWHERE ELSE IN THIS APP.
- * `price_list_no_overlap` is the constraint the whole table was designed around,
- * and the only way a correctly planned change reaches it is a read that went
- * stale under the screen. The sentence sends her back to the product rather than
- * to the price box, because re-typing the same figure would be refused again.
- *
  * ⚠️ EVERYTHING ELSE GOES DOWN `apiErrorMessage`, so *sin conexión* stays the one
  * sentence this app gives for a lost link.
  */
 export function catalogEditErrorMessage(error: unknown): string {
   const code = codeOf(error);
   if (code === FORBIDDEN || code === NO_ROWS) return ES.catalog.errors.notAllowedEdit;
-  if (code === OVERLAP) return ES.catalog.errors.overlap;
   if (code === NOT_HERS) return ES.catalog.errors.notYours;
   if (code === DUPLICATE) {
     const message = messageOf(error);
@@ -902,168 +563,92 @@ export function catalogEditErrorMessage(error: unknown): string {
   return apiErrorMessage(error);
 }
 
-/**
- * The one sentence the form shows after a failed price change — and the only
- * place the half-done state becomes visible.
- *
- * ⚠️⚠️ A FAILURE AFTER THE CLOSE IS NOT A FAILURE TO CHANGE THE PRICE, IT IS A
- * PRICE THAT IS GONE. `createLine` makes the same distinction one module over for
- * a product that saved without its price; this is the sharper version of it,
- * because here the shop HAD a price and now does not. Saying *"no se pudo
- * guardar"* would send a shopkeeper away believing the old price still stands,
- * and the next customer is charged nothing at all.
- */
-export function priceChangeLine(outcome: PriceChangeFailed): string {
-  if (outcome.closed) return ES.catalog.errors.priceGone;
-  return catalogEditErrorMessage(outcome.error);
-}
-
 // ----------------------------------------------------------------------------
-// THE WHOLE SAVE, AND THE ORDER ITS FOUR WRITES GO IN — `5e-iii-b`
+// THE WHOLE SAVE, AND THE ORDER ITS WRITES GO IN — `5e-iii-b`
 // ----------------------------------------------------------------------------
 //
-// ⚠️⚠️ THIS SECTION WAS NOT IN `5e-iii-a` AND ITS ABSENCE WAS THE ONE THING THAT
-// ROW GOT WRONG. It said every judgement left in the screen was rendering; it is
-// not. `Editar` is FOUR writes behind one button — a rename, the two settings and
-// the price — across two tables with no transaction between them, and *which goes
-// first* and *what a failure leaves* are questions with right answers. A form that
-// answered them in its own JSX would be the seam `5e-iii`'s split exists to keep,
-// broken from the other side.
+// ⚠️⚠️ `Editar` IS MORE THAN ONE WRITE BEHIND ONE BUTTON — a rename and the two
+// settings, across two calls with no transaction between them — and *which goes
+// first* and *what a failure leaves* are questions with right answers. A form
+// that answered them in its own JSX would be the seam `5e-iii`'s split exists to
+// keep, broken from the other side.
 //
-// ⚠️⚠️ THE ORDER IS name → settings → price, AND IT STOPS AT THE FIRST FAILURE.
-// Both arguments are about what is left behind rather than about speed:
+// ⚠️⚠️ THE ORDER IS name → settings, AND IT STOPS AT THE FIRST FAILURE. THE NAME
+// GOES FIRST BECAUSE IT IS THE ONE THAT CAN BE REFUSED `23505`:
+// `product_variant_name_unique` is shop-wide, so a rename onto a name another
+// product already holds is a real and ordinary refusal — and stopping there
+// leaves the IVA and the pack size exactly as they were. The other way round, a
+// shopkeeper whose rename was refused would still have had his tax rate changed
+// under a name he is about to abandon.
 //
-//   * THE NAME GOES FIRST BECAUSE IT IS THE ONE THAT CAN BE REFUSED `23505`.
-//     `product_variant_name_unique` is shop-wide, so a rename onto a name another
-//     product already holds is a real and ordinary refusal — and stopping there
-//     leaves the IVA and the pack size exactly as they were. The other way round,
-//     a shopkeeper whose rename was refused would still have had his tax rate
-//     changed under a name he is about to abandon.
-//   * THE PRICE GOES LAST BECAUSE IT IS THE ONLY STEP THAT CAN HALF-HAPPEN.
-//     `changePrice` closes before it opens, so a failure between the two leaves
-//     the product PRICELESS — and `priceChangeLine` is the sentence for it. Every
-//     step before it is one call that either landed or did not, so putting the
-//     sequence last means the worst state this app can reach is also the last
-//     thing it can reach, with nothing written after it.
+// ⚠️ THE PRICE WAS THE LAST STEP UNTIL `8i`, because it was the only one that
+// could half-happen. It is not a step at all now: it is queued on the phone by
+// the price sheet and lands whole or not at all (`@/api/shelfPrice`).
 //
-// ⚠️⚠️ AND THERE IS NO `retryPlan` HERE, WHICH IS A MEASURED ABSENCE RATHER THAN A
-// GAP — `retryDraft` one module over has one and this deliberately does not.
-// `useEditProduct` invalidates both reads on every path that touched the database,
-// so the NEXT tap of the same button re-plans from fresh rows: a name that landed
-// folds to `null` in `namePatch` because `current` is now that name, and a price
-// whose close landed reads back as *no row in force*, which is `priceChange`'s
-// `open` branch — exactly what `retryChange` answers. ⚠️ And when the refresh
-// itself failed, the stale plan is STILL right: re-closing an already-closed row
-// patches `effective_to` to the value it holds, and the insert that follows has
-// nothing left to overlap. Two paths, one correct answer, no third function.
+// ⚠️ AND THERE IS NO `retryPlan`. Every step that touched the database refreshes
+// the reads, so the next tap re-plans from fresh rows: a name that landed folds
+// to `null` in `namePatch` because `current` is now that name.
 // ----------------------------------------------------------------------------
 
-/** Which of the save's three steps is being talked about. */
-export type EditStep = 'name' | 'settings' | 'price';
+/** Which of the save's steps is being talked about. */
+export type EditStep = 'name' | 'settings';
 
 /** ⚠️ THE ORDER IS THE DELIVERABLE. See the section header. */
-export const EDIT_ORDER: readonly EditStep[] = ['name', 'settings', 'price'];
+export const EDIT_ORDER: readonly EditStep[] = ['name', 'settings'];
 
 /**
- * Everything one tap of *Guardar* has to do — and `null`/`unchanged` for every
- * part of the form that was left alone.
+ * Everything one tap of *Guardar* has to do — and `null` for every part of the
+ * form that was left alone.
  */
 export interface EditPlan {
   readonly name: NamePatch | null;
   readonly settings: SettingsPatch | null;
-  readonly price: PriceChange;
-}
-
-/** What `editPlan` needs that is not the form itself. */
-export interface EditSubject {
-  readonly workspaceId: string;
-  readonly variantId: string;
-  /** The name the catalog currently holds — what a rename is compared against. */
-  readonly name: string;
-  /** `product_variant.price_unit_code` — what the typed peso figure is PER. */
-  readonly priceUnit: string;
-  /** The store whose prices this phone resolved, or `null` for the shop-wide one. */
-  readonly locationId: string | null;
-  readonly factors: UnitFactors;
-  /** The device's local day (`R3`: `isoDay` owns it, this never recomputes it). */
-  readonly today: string;
 }
 
 /**
- * The four writes one tap owes, built out of the form and the rows behind it.
+ * The writes one tap owes, built out of the form and the name the catalog holds.
  *
  * ⚠️⚠️ AN UNTOUCHED BOX PRODUCES NOTHING, AND THAT IS THE WHOLE OF THIS
- * FUNCTION. `namePatch` answers `null` for a name that did not move,
- * `variantSettings` answers `null` when neither figure was typed, and an empty
- * price box is `unchanged` rather than *remove the price* — `editPricePerBase`'s
- * own recorded distinction. So a shopkeeper who opened `Editar`, read it and
- * tapped *Guardar* performs **zero round trips**, on a link this shop loses half
- * the day, and the shop's price history records no change that never happened.
- *
- * ⚠️ IT TAKES ONE OBJECT AND NOT TEN ARGUMENTS. Ten positional parameters of
- * which four are strings is a call site nobody can read and a swap no type can
- * catch — `priceChange`'s six is already the ceiling.
+ * FUNCTION. `namePatch` answers `null` for a name that did not move and
+ * `variantSettings` answers `null` when neither figure was typed, so a
+ * shopkeeper who opened `Editar`, read it and tapped *Guardar* performs **zero
+ * round trips**, on a link this shop loses half the day.
  */
-export function editPlan(
-  subject: EditSubject,
-  edit: VariantEdit,
-  pricePesos: string,
-  prices: readonly PriceInForce[] | null | undefined,
-): EditPlan {
-  const perBase = editPricePerBase(pricePesos, subject.factors[subject.priceUnit]);
+export function editPlan(currentName: string, edit: VariantEdit): EditPlan {
   return {
-    name: namePatch(subject.name, edit.name),
+    name: namePatch(currentName, edit.name),
     settings: variantSettings(edit),
-    price:
-      perBase === null
-        ? { kind: 'unchanged' }
-        : priceChange(
-            subject.workspaceId,
-            subject.variantId,
-            prices,
-            subject.locationId,
-            subject.today,
-            perBase,
-          ),
   };
 }
 
 /** Is there anything for Postgres to do at all? See `editPlan`. */
 export function editTouches(plan: EditPlan): boolean {
-  return plan.name !== null || plan.settings !== null || plan.price.kind !== 'unchanged';
+  return plan.name !== null || plan.settings !== null;
 }
 
 /** The save landed. ⚠️ `changed` is false when the plan touched nothing, so a
- *  confirmation cannot claim work nobody did — `PriceChangeSucceeded`'s rule. */
+ *  confirmation cannot claim work nobody did. */
 export interface EditDone {
   readonly ok: true;
   readonly changed: boolean;
 }
 
-/**
- * It did not — and the two shapes are different because the two failures are.
- *
- * ⚠️⚠️ A PATCH CARRIES AN ERROR AND THE PRICE CARRIES AN OUTCOME. `patchVariant`
- * throws, because one call either happened or did not; `changePrice` ANSWERS, and
- * its answer holds `closed` — the field that says the product is priceless right
- * now. Folding the two into one `error` would lose exactly that, which is the one
- * thing this whole module exists to carry.
- */
-export type EditFailed =
-  | { readonly ok: false; readonly failed: 'name' | 'settings'; readonly error: unknown }
-  | { readonly ok: false; readonly failed: 'price'; readonly price: PriceChangeFailed };
+/** It did not — the step that was refused, and why. */
+export interface EditFailed {
+  readonly ok: false;
+  readonly failed: EditStep;
+  readonly error: unknown;
+}
 
 export type EditOutcome = EditDone | EditFailed;
 
 /**
  * The one sentence a failed save shows.
  *
- * ⚠️ IT IS ONE SLOT AND NOT THREE, which is `Agregar`'s arrangement and its
- * reason: a screen with a line per step can show two contradictory refusals at
- * once, and the second one is always the stale one.
+ * ⚠️ IT IS ONE SLOT AND NOT ONE PER STEP, which is `Agregar`'s arrangement and
+ * its reason: a screen with a line per step can show two contradictory refusals
+ * at once, and the second one is always the stale one.
  */
 export function editLine(outcome: EditFailed): string {
-  return outcome.failed === 'price'
-    ? priceChangeLine(outcome.price)
-    : catalogEditErrorMessage(outcome.error);
+  return catalogEditErrorMessage(outcome.error);
 }

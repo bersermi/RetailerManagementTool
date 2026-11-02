@@ -43,6 +43,7 @@ function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
     baseUnit: 'pza',
     centavos: 2000,
     perBase: '20.000000',
+    priceScope: null,
     price: '$20.00 / pza',
     initials: 'CC',
     term: 'coca-cola 600 ml refrescos',

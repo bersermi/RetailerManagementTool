@@ -119,19 +119,16 @@ import {
 import type { Quotes } from '@/cart/cart';
 import {
   EDIT_ORDER,
-  PRICE_EDIT_KEY,
   VARIANT_EDIT_KEY,
   type ActivePatch,
   type FamilyPatch,
   type EditOutcome,
   type EditPlan,
   type NamePatch,
-  type PriceChange,
-  type PriceChangeOutcome,
-  type PriceInForce,
   type SettingsPatch,
   type VariantSettingsRow,
 } from '@/api/catalogEdit';
+import { withWaitingPrices } from '@/api/shelfPrice';
 import {
   COLLECTION_KEY,
   STORE_ADDRESS_KEY,
@@ -165,7 +162,6 @@ import {
   setMemberRole,
   catalogUnits,
   catalogVariants,
-  changePrice,
   createInvite,
   createProduct,
   createProvider,
@@ -195,7 +191,6 @@ import {
   todaySales,
   variantCosts,
   variantPriceHistory,
-  variantPrices,
   variantSettingsRow,
   workspaceInvites,
   workspaceLocations,
@@ -290,6 +285,7 @@ import { online } from '@/lib/connectivityMonitor';
 import { onLanded } from '@/lib/landedWrites';
 import { fetchPhoto, keepPhoto, keptPhoto, mayFetch } from '@/lib/photoStore';
 import { COLLECTION_SEND_KEY, SEND_ABANDONED, SEND_RETRY_MS, sendRetry } from '@/offline/teLoCompro';
+import { useWaitingPrices } from '@/offline/waitingPrices';
 
 
 /**
@@ -1308,13 +1304,18 @@ export function useCatalog(typed: string = ''): {
   // it the slider on Vender, Comprar and Merma (`draftOf`'s `no-location`).
   const stores = locationsFrom(locations.data);
   const locationId = stores.length === 1 ? stores[0].id : null;
+  // ⚠️ `8i`: A PRICE SHE SET IS THE PRICE ON SCREEN FROM THE MOMENT SHE TYPED IT,
+  // signal or not — the waiting ones are laid over the read (`withWaitingPrices`)
+  // until the shop has them. Every screen reads its prices from here, so Vender,
+  // the Carrito and Productos cannot disagree about one.
+  const waiting = useWaitingPrices();
   // ⚠️ THE BASES MAP COMES FROM THE SAME READ AS THE FACTORS, AND IT IS WHY
   // `UNIT_COLUMNS` GAINED `base_code` ON 2026-09-24. `product_variant.
   // base_unit_code` disagrees with the unit table on every product `Agregar`
   // has ever made, and the quantity box on Vender was counting `1, 2, 3` for a
   // product priced per 250 g because of it. See `catalogFrom`.
   const entries = catalogFrom(
-    variants.data,
+    withWaitingPrices(variants.data, waiting, shopId),
     unitFactorsFrom(units.data),
     locationId,
     unitBasesFrom(units.data),
@@ -1966,44 +1967,22 @@ export function useCreateProduct() {
  * `Editar`, as the one thing a screen is allowed to reach for (`R12`). Plan task
  * `5e-iii-a`; `5e-iii-b` is the screen that calls it.
  *
- * ⚠️⚠️ IT READS THIS VARIANT'S DATED PRICE ROWS, WHICH `useCatalog` DOES NOT
- * HOLD. The list read carries a figure and a scope per variant; every branch of
- * `priceChange` turns on a row's `id` and on which DAY it started. So the price
- * box cannot be planned off the catalog the phone already has, and a screen that
- * tried would take the `closeAndOpen` branch on the second correction of a day
- * and be refused a zero-length range.
+ * ⚠️ NO PRICE SINCE `8i`. A price is set on the price sheet and waits on the
+ * phone until the shop has it (`@/api/shelfPrice`), so this hook no longer reads
+ * a variant's dated price rows nor writes one.
  *
- * ⚠️⚠️ THE PRICE OUTCOME IS RETURNED RATHER THAN THROWN — `useCreateProduct`'s
- * argument, sharpened. That call can half-happen too, and here the half-done
- * state is a product with NO price on the shelf, so *"what actually happened"*
- * is the one thing this hook may not lose. `priceChangeLine` is what says which
- * of the two sentences to show, and `retryChange` is what the next attempt needs.
- *
- * ⚠️ THE THREE PATCHES THROW, BECAUSE A SINGLE CALL CANNOT HALF-HAPPEN. They are
+ * ⚠️ THE PATCHES THROW, BECAUSE A SINGLE CALL CANNOT HALF-HAPPEN. They are
  * separate calls and not one body for `catalogEdit`'s recorded reason: a `23505`
  * on the name must not be shown to somebody who changed the IVA.
  *
- * ⚠️⚠️ IT INVALIDATES `CATALOG_KEY` ON EVERY PATH THAT TOUCHED THE DATABASE,
- * SUCCESS OR NOT — `useCreateProduct`'s one easy-to-get-wrong line, and it is
- * worse here. A price change that failed AFTER the close really did remove a
- * price; leaving the cached list alone would show the shopkeeper the old figure,
- * on the screen she goes to next, for the five minutes of its `staleTime` — a
- * price the till would no longer charge.
- *
- * ⚠️ AND `PRICE_EDIT_KEY` IS INVALIDATED WITH IT, because the plan for the NEXT
- * change is built out of these rows: a second correction planned against the rows
- * from before the first one would try to close a row that is already closed.
+ * ⚠️⚠️ IT INVALIDATES `CATALOG_KEY` ON EVERY PATH THAT TOUCHED THE DATABASE —
+ * `useCreateProduct`'s one easy-to-get-wrong line: a rename the cached list did
+ * not hear about would show the old name on the screen she goes to next.
  */
 export function useEditProduct(variantId: string | null) {
   const queries = useQueryClient();
   const { session, ready } = useAuth();
   const enabled = ready && session !== null && variantId !== null;
-
-  const prices = useQuery({
-    queryKey: [...PRICE_EDIT_KEY, variantId],
-    queryFn: () => variantPrices(variantId as string),
-    enabled,
-  });
 
   // ⚠️⚠️ THE TWO SET-ONCE FIGURES, AND THEY ARE A READ RATHER THAN A DEFAULT.
   // `variantSettings` sends no column for a box nobody typed into, so the form
@@ -2016,21 +1995,15 @@ export function useEditProduct(variantId: string | null) {
   });
 
   // ⚠️ THE SAME `UNITS_KEY` READ `useCatalog` AND `useCreateProduct` USE, never a
-  // second one: the price box divides by what one price unit weighs, and two
-  // homes for *how many grams in a kilo* is one home too many.
+  // second one: two homes for *how many grams in a kilo* is one home too many.
   const units = useQuery({
     queryKey: UNITS_KEY,
     queryFn: catalogUnits,
     staleTime: Infinity,
   });
 
-  const mutation = useMutation({
-    mutationFn: (plan: PriceChange) => changePrice(plan),
-  });
-
   async function refresh(): Promise<void> {
     await queries.invalidateQueries({ queryKey: CATALOG_KEY });
-    await queries.invalidateQueries({ queryKey: PRICE_EDIT_KEY });
     await queries.invalidateQueries({ queryKey: VARIANT_EDIT_KEY });
   }
 
@@ -2040,53 +2013,16 @@ export function useEditProduct(variantId: string | null) {
     await refresh();
   }
 
-  async function reprice(plan: PriceChange): Promise<PriceChangeOutcome> {
-    let outcome: PriceChangeOutcome;
-    try {
-      outcome = await mutation.mutateAsync(plan);
-    } catch (thrown) {
-      // ⚠️ THE ONLY WAY HERE IS A THROW THAT IS NOT A REFUSAL — the fetch dying
-      // mid-flight. Nothing is known to have landed, so it is reported as a
-      // failure at the FIRST call of the plan with `closed` false, which is the
-      // state `retryChange` treats as "the whole plan again".
-      outcome = {
-        ok: false,
-        failed: plan.kind === 'reprice' ? 'reprice' : 'close',
-        closed: false,
-        error: thrown,
-      };
-    }
-    if (!outcome.ok ? outcome.closed : outcome.changed) await refresh();
-    return outcome;
-  }
-
   /**
    * One tap of *Guardar*, in `EDIT_ORDER` and stopping at the first failure.
    *
-   * ⚠️⚠️ THE ORDER AND THE STOP ARE `@/api/catalogEdit`'s AND NOT THIS
-   * FUNCTION'S (`R3`) — this walks the list that module exports and does not
-   * know why it reads the way it does. What IS here is the awaiting, which is
-   * the half no node suite can hold.
-   *
-   * ⚠️ IT STOPS RATHER THAN CARRYING ON, and that is the point of the order: a
-   * rename refused `23505` must not be followed by a tax rate written onto a
-   * name the shopkeeper is about to abandon.
-   *
-   * ⚠️⚠️ AND THERE IS NO RETRY STATE — `useCreateProduct` has `retryDraft` and
-   * this deliberately has nothing. Every step that touched the database refreshes
-   * both reads, so the next tap re-plans from fresh rows and asks only for what
-   * is left. `@/api/catalogEdit`'s own section header is where that is argued.
+   * ⚠️ THE ORDER AND THE STOP ARE `@/api/catalogEdit`'s AND NOT THIS
+   * FUNCTION'S (`R3`) — this walks the list that module exports. What IS here is
+   * the awaiting, which is the half no node suite can hold.
    */
   async function save(plan: EditPlan): Promise<EditOutcome> {
     let changed = false;
     for (const step of EDIT_ORDER) {
-      if (step === 'price') {
-        if (plan.price.kind === 'unchanged') continue;
-        const outcome = await reprice(plan.price);
-        if (!outcome.ok) return { ok: false, failed: 'price', price: outcome };
-        changed = changed || outcome.changed;
-        continue;
-      }
       const patch = step === 'name' ? plan.name : plan.settings;
       if (patch === null) continue;
       try {
@@ -2100,25 +2036,12 @@ export function useEditProduct(variantId: string | null) {
   }
 
   return {
-    // ⚠️ THE PRICE ROWS ARE WHAT THE FORM CANNOT OPEN WITHOUT — a plan built
-    // before they land would take the `open` branch on a priced product and be
-    // refused `23P01`. The two figures are not: they are printed beside their
-    // boxes, and a form that waited for them would be a form that will not open
-    // in the stockroom.
-    loading: prices.isPending && enabled,
-    /** The price rows could not be read — no signal, as a rule. A plan built
-     *  without them would take the `open` branch on a priced product (2026-10-14,
-     *  Vender's price sheet, which offers no Guardar then). */
-    pricesFailed: prices.isError,
-    prices: (prices.data ?? []) as readonly PriceInForce[],
     settings: (settings.data ?? null) as VariantSettingsRow | null,
     factors: unitFactorsFrom(units.data),
     /** ⚠️ `8g`: the rows too, for each unit's dimension — `aislesFor`'s C8.5 fence. */
     units: units.data ?? [],
     edit,
-    reprice,
     save,
-    busy: mutation.isPending,
   };
 }
 

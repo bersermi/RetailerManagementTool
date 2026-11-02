@@ -39,6 +39,7 @@ import {
   type OutboxState,
   type QueuedWrite,
 } from '@/api/outbox';
+import { isQueuedPrice, type PriceState, type QueuedPrice } from '@/api/shelfPrice';
 
 const DB_NAME = 'wera-outbox.db';
 
@@ -50,8 +51,13 @@ const DB_NAME = 'wera-outbox.db';
  * on the grounds that the app was already installed on a phone and inventing a
  * schema-change path against a device holding sales is the expensive version of
  * ten lines. That prediction came true one task later.
+ *
+ * ⚠️ VERSION 3 IS `8i`'s `queued_price`: a price set on the phone, waiting for
+ * the signal (`@/api/shelfPrice`). A table of its own and not a fifth kind in
+ * `queued_write` — that table's kinds are the ledger's, and an older build
+ * reading this file would skip a row it does not know rather than fail.
  */
-const SCHEMA_VERSION = 2;
+const SCHEMA_VERSION = 3;
 
 let handle: SQLite.SQLiteDatabase | undefined;
 
@@ -102,6 +108,23 @@ function migrate(db: SQLite.SQLiteDatabase): void {
     // EMPTY — nothing in this app enqueues yet (`5f`–`5h` are those screens) —
     // which is why the loss is bounded to nothing rather than merely small.
     db.execSync(`alter table queued_write add column workspace_id text`);
+  }
+  if (at < 3) {
+    db.execSync(`
+      create table if not exists queued_price (
+        id           text primary key not null,
+        workspace_id text not null,
+        variant_id   text not null,
+        location_id  text,
+        price        text not null,
+        day          text not null,
+        seen         text,
+        state        text not null,
+        attempts     integer not null default 0,
+        queued_at    text not null
+      );
+      create index if not exists queued_price_by_age on queued_price (queued_at);
+    `);
   }
   db.execSync(`pragma user_version = ${SCHEMA_VERSION}`);
 }
@@ -239,4 +262,81 @@ export function drop(db: SQLite.SQLiteDatabase, id: string): boolean {
     DROPPABLE_STATE,
   );
   return done.changes > 0;
+}
+
+// ----------------------------------------------------------------------------
+// THE PRICES WAITING FOR THE SIGNAL — plan task `8i`, `@/api/shelfPrice`
+// ----------------------------------------------------------------------------
+
+/** One price into its table. ⚠️ `insert or ignore`, `enqueue`'s argument: one id, one price. */
+export function enqueuePrice(db: SQLite.SQLiteDatabase, price: QueuedPrice): void {
+  db.runSync(
+    `insert or ignore into queued_price
+       (id, workspace_id, variant_id, location_id, price, day, seen, state, attempts, queued_at)
+     values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    price.id,
+    price.workspaceId,
+    price.variantId,
+    price.locationId,
+    price.pricePerBase,
+    price.day,
+    price.seen,
+    price.state,
+    price.attempts,
+    price.queuedAt,
+  );
+}
+
+/**
+ * Every waiting price, oldest first. ⚠️ A row it cannot read is skipped and
+ * left in the table, `readQueue`'s rule: one bad row must not stop the rest.
+ */
+export function readPrices(db: SQLite.SQLiteDatabase): readonly QueuedPrice[] {
+  const rows = db.getAllSync<{
+    id: string;
+    workspace_id: string;
+    variant_id: string;
+    location_id: string | null;
+    price: string;
+    day: string;
+    seen: string | null;
+    state: string;
+    attempts: number;
+    queued_at: string;
+  }>(
+    `select id, workspace_id, variant_id, location_id, price, day, seen, state, attempts, queued_at
+       from queued_price order by queued_at`,
+  );
+  const out: QueuedPrice[] = [];
+  for (const row of rows) {
+    const price = {
+      id: row.id,
+      workspaceId: row.workspace_id,
+      variantId: row.variant_id,
+      locationId: row.location_id,
+      pricePerBase: row.price,
+      day: row.day,
+      seen: row.seen,
+      state: row.state as PriceState,
+      attempts: row.attempts,
+      queuedAt: row.queued_at,
+    };
+    if (isQueuedPrice(price)) out.push(price);
+  }
+  return out;
+}
+
+/** A waiting price, in its new state. */
+export function settlePrice(
+  db: SQLite.SQLiteDatabase,
+  id: string,
+  state: PriceState,
+  attempts: number,
+): void {
+  db.runSync('update queued_price set state = ?, attempts = ? where id = ?', state, attempts, id);
+}
+
+/** A price that left the phone — the shop has it, kept another, or refused it. */
+export function forgetPrice(db: SQLite.SQLiteDatabase, id: string): void {
+  db.runSync('delete from queued_price where id = ?', id);
 }
