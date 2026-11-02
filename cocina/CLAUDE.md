@@ -148,8 +148,9 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `bash docs/runbooks/ship-an-update.sh preview "…" --app cocina`, run on `main` after a green merge
   (`10.4b-iii-a`); its rehearsal in `app.yml` holds the `--app cocina` cases. Never a bare
   `eas update`. ⚠️ **The `preview` builds are the owner's alone; a `production` update reaches his
-  closed testers — since `10.4d-i` only once they have the store build `10.4d-ii` makes, because the
-  module moved this app's runtime — and it is his command** (a session's is refused as *Production Deploy*). The aviso
+  closed testers — since `10.4d-i` only once they have the store build `10.4d-ii` made (Android
+  version code 4, uploaded to Play by his hand), because the module and then the pictures moved this
+  app's runtime — and it is his command** (a session's is refused as *Production Deploy*). The aviso
   says what an account, a kitchen and a publication hold since `10.4b-iv-b`; before the first such
   update, Play Console holds `store/cocina-itacate.md`'s Wera Cocina answers (*Data safety*, *Sign-in
   details*) and Wera's Android store version carries `10.4b-ii` — the handbook's *Before Wera Cocina
