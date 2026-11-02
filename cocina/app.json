@@ -11,7 +11,7 @@
       "policy": "fingerprint"
     },
     "orientation": "portrait",
-    "icon": "../app/assets/images/icon.png",
+    "icon": "./assets/images/icon.png",
     "scheme": "mx.wera.cocina",
     "userInterfaceStyle": "light",
     "ios": {
@@ -45,7 +45,7 @@
         "expo-splash-screen",
         {
           "backgroundColor": "#FFFCF6",
-          "image": "../app/assets/images/splash-icon.png",
+          "image": "./assets/images/splash-icon.png",
           "imageWidth": 140
         }
       ],
