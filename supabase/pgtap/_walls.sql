@@ -60,7 +60,8 @@ signed_in (proname) as (values
   ('record_pilot_readings'), ('record_purchase'), ('record_sale'),
   ('record_transfer'), ('record_waste'), ('redeem_invite'),
   ('replay_failed_write'), ('request_access'), ('request_collection'),
-  ('set_my_display_name'), ('set_store_address'), ('void_transaction'),
+  ('set_my_display_name'), ('set_shelf_price'), ('set_store_address'),
+  ('void_transaction'),
   -- a kitchen's (`0072`, plan `10.4a`): the trades she picks from before she
   -- belongs to anything, her pin, and publishing and withdrawing what she offers
   ('kitchen_giros'), ('publish_listing'), ('set_store_pin'), ('withdraw_listing'),

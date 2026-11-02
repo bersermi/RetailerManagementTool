@@ -1434,6 +1434,21 @@ minute figure is background flush cadence, not single-write latency**. That clos
 the question a sync engine would have answered — `expo-sqlite` plus an outbox table
 is sufficient, and §6's deferral of offline-first stands.
 
+⚠️ **AMENDED 2026-11-01 (plan `8i`, the decision maker's ruling that day): A SHELF PRICE
+IS A QUEUED WRITE TOO.** The owner or a manager sets or changes a price with or without
+signal: the phone keeps it in a table of its own beside the outbox (`queued_price`, in the
+same SQLite file), shows it at once on every screen, and sends it when it can — the
+outbox's shape, one path online and offline (C10.3). It is sent to **`set_shelf_price`**
+(`0074`), which closes the price in force on her day and opens hers in **one transaction**,
+so a change can no longer half-happen (two PostgREST writes left a product with no price
+when only the first landed). **A price is not a document**: the sale it was set for carries
+its own price (§2.5 rule 2; `record_sale` never reads `price_list`), so the queue holds no
+ledger kind. **Concurrency is compare-and-set:** the phone sends the price it showed, and
+the function applies hers only while the price in force on her day is that one and nothing
+changed after that day; otherwise it is *superseded* — the other price stays and hers is
+dropped, and nobody is told. Builds from before keep writing `price_list` directly, which
+its policies still allow (§2.2's field rule).
+
 The outbox has three states — `pending`, `flushing`, `dead` — and it is a named
 deliverable of build step **`5c`**, not something a screen acquires along the way.
 ⚠️ **This sentence said `5a` until 2026-09-20 and that was a stale copy, not a
@@ -1501,6 +1516,13 @@ kinds are not the same case:
 The rule is one sentence: **downgrade the kinds where the stock is gone and nobody
 will re-enter it.** Both other kinds still dead-letter in full, so §2.10's nightly
 check still sees them and `replay_failed_write` can still replay them.
+
+⚠️ **AMENDED 2026-11-01 (plan `8i`): A PRICE IS NEVER DEAD-LETTERED.** It is not one of
+`failed_write_kind_known`'s four, and nothing on a shelf moved: a price refused for good
+(the outbox's own list of permanent codes — she may no longer price, as a rule) **leaves
+the phone**, and the shop keeps the price it has. A refused report would stop the drain
+(above), which is why a price waits in its own table rather than as a fifth kind: a sale
+never waits behind a price.
 
 ⚠️ **AND `record_failed_write` NEVER RAISES FOR A BAD PAYLOAD** (`0024`). A
 malformed payload, a deleted variant, a line whose unit no longer resolves — every

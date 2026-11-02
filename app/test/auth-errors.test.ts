@@ -236,7 +236,14 @@ describe('the library has exactly one caller', () => {
   // given a hook. ⚠️ The DROP is why this matters more than it did: a screen that
   // opened the queue for itself could delete a `flushing` row, and the fence
   // against that is one SQL predicate in `lib/outboxDb.ts`.
-  it('reads the outbox from four modules, and not one of them is a screen', () => {
+  //
+  // ⚠️ `offline/waitingPrices.ts` IS THE FIFTH (`8i`), AND ITS VERB IS *SHOWS THE
+  // PRICES*: a price set on the phone waits in its own table in the same file
+  // (`queued_price`), and every screen with a product list draws it through
+  // `useCatalog` before the shop has it. A module and not a screen, for the same
+  // reason as the fourth. `commitRunner` fills that table and `flushRunner`
+  // drains it, so the list grew by the one reader alone.
+  it('reads the outbox from five modules, and not one of them is a screen', () => {
     const readers = sources()
       .filter(([, text]) => /from '@\/lib\/outboxDb'/.test(text))
       .map(([rel]) => rel);
@@ -245,6 +252,7 @@ describe('the library has exactly one caller', () => {
       'lib/flushRunner.ts',
       'offline/DeadLetterBanner.tsx',
       'offline/useUnsent.ts',
+      'offline/waitingPrices.ts',
     ]);
     for (const rel of readers) expect(rel.startsWith('app/')).toBe(false);
   });

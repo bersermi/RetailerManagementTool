@@ -67,8 +67,12 @@ import {
   setMemoryForgetter,
   shouldPersistQuery,
 } from '@/api/persist';
+import { CATALOG_KEY, type VariantRow } from '@/api/catalog';
+import { withLandedPrice } from '@/api/shelfPrice';
+import { shopKey } from '@/api/workspace';
 import { online, subscribe } from '@/lib/connectivityMonitor';
 import { isTimedOut } from '@/lib/plazo';
+import { onPriceSettled } from '@/lib/priceQueueEvents';
 
 /**
  * The client itself. ⚠️ A FUNCTION SO THAT `withPersistedDefaults` HAS SOMETHING
@@ -197,6 +201,23 @@ export function QueryProvider({ children }: { children: ReactNode }) {
     onlineManager.setOnline(online() !== false);
     return subscribe((next) => onlineManager.setOnline(next !== false));
   }, []);
+
+  // ⚠️ `8i`: A PRICE THE SHOP NOW HAS IS WRITTEN INTO THE CACHED CATALOG BEFORE
+  // IT LEAVES THE PHONE'S TABLE (`PriceFlushPorts.settled`), so the screen never
+  // shows the old figure while the catalog is read again — nor after, if that
+  // read fails. A price that lost to a newer one is only read again.
+  useEffect(
+    () =>
+      onPriceSettled((price, outcome) => {
+        if (outcome === 'applied') {
+          client.setQueryData<readonly VariantRow[]>(shopKey(CATALOG_KEY, price.workspaceId), (rows) =>
+            withLandedPrice(rows, price),
+          );
+        }
+        void client.invalidateQueries({ queryKey: CATALOG_KEY });
+      }),
+    [client],
+  );
 
   // ⚠️ THE APP COMING BACK TO THE FRONT. `inactive` — a notification pulled
   // down, a call banner — is neither leaving nor returning, and the monitor

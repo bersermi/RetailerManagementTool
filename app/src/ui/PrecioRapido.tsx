@@ -2,10 +2,12 @@ import { useState } from 'react';
 import { Keyboard, Text } from 'react-native';
 
 import { isoDay, type CatalogEntry } from '@/api/catalog';
-import { checkEdit, editLine, editPlan, editTouches, type EditIssue } from '@/api/catalogEdit';
-import { useEditProduct } from '@/api/hooks';
+import { useUnitFactors } from '@/api/hooks';
 import { earningsAt } from '@/api/productPage';
+import { pricePlan, queuePrice } from '@/api/shelfPrice';
 import { formatMXN } from '@/format/mxn';
+import { commitPrice } from '@/lib/commitRunner';
+import { newWriteId, nowIso } from '@/lib/ids';
 import { ES } from '@/strings';
 import { useDensity } from '@/theme/DensityProvider';
 import { PALETTE } from '@/theme/palette';
@@ -23,16 +25,15 @@ import { HojaPrecio } from '@/ui/HojaPrecio';
  * price, for the owner and a manager. Its frame is `src/ui/HojaPrecio` since
  * round 4 of `8g`, shared with Comprar's cost question.
  *
- * ⚠️⚠️ IT WRITES THROUGH THE EDIT SCREEN'S OWN PATH, NEVER A SECOND ONE.
- * `checkEdit`, `editPlan` and `save` are `producto/[id].tsx`'s, with the name
- * unchanged and the two figures left blank, so *close today's price and open a
- * new one* is decided in one place (`@/api/catalogEdit`) for both screens.
+ * ⚠️⚠️ `8i`, THE OWNER'S RULING OF 2026-11-01: IT SAVES WITH OR WITHOUT SIGNAL.
+ * *Guardar* puts the price on the phone (`commitPrice`) and closes at once; the
+ * product wears it from that frame on and the price goes to the shop when it can
+ * (`@/api/shelfPrice`). If somebody changed it in the meantime, theirs stays and
+ * hers is dropped, and nobody is told. So there is nothing to wait for and no
+ * failure to show: the one line it can say is that what she typed is not a price.
  *
- * ⚠️ IT OFFERS NO GUARDAR UNTIL THE PRICE ROWS HAVE LANDED, and none at all when
- * they could not be read. A plan built without them would open a second price on
- * a priced product, which the database refuses (`23P01`). A price is not one of
- * the writes Wera queues offline, so without signal the sheet says so and does
- * nothing.
+ * ⚠️ IT READS NOTHING BEFORE IT CAN SAVE. What it sends — the scope and the price
+ * she saw — is the catalog row's (`pricePlan`), which the phone already holds.
  *
  * ⚠️ R9: whether a tap on the price reads as an invitation at the counter, and
  * whether the keyboard covers the box on a small phone, are the owner's phone's.
@@ -40,9 +41,7 @@ import { HojaPrecio } from '@/ui/HojaPrecio';
 export function PrecioRapido({
   entry,
   adding,
-  entries,
   workspaceId,
-  locationId,
   onSaved,
   onClose,
   bare = false,
@@ -51,10 +50,8 @@ export function PrecioRapido({
   entry: CatalogEntry;
   /** `8g`: opened by `+` on a product with no price — saving also adds one. */
   adding: boolean;
-  entries: readonly CatalogEntry[];
   workspaceId: string;
-  locationId: string | null;
-  /** Called once the price has landed, before the sheet closes. */
+  /** Called once the price is set, before the sheet closes. */
   onSaved: () => void;
   onClose: () => void;
   /** Drawn inside the Carrito's `Modal` rather than as a `Modal` of its own. */
@@ -67,60 +64,39 @@ export function PrecioRapido({
   cost?: { readonly centavos: number | null; readonly label: string } | null;
 }) {
   const { scale } = useDensity();
-  const { prices, factors, save, loading, pricesFailed, busy } = useEditProduct(entry.id);
+  const factors = useUnitFactors();
 
   const [typed, setTyped] = useState('');
-  const [issue, setIssue] = useState<EditIssue | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
-  const [saving, setSaving] = useState(false);
-  const working = saving || busy;
-  const ready = !loading && !pricesFailed;
+  const [unreadable, setUnreadable] = useState(false);
 
-  async function guardar() {
-    if (!ready || working) return;
-    const form = { name: entry.name, taxPercent: '', packSize: '' };
-    const problem = checkEdit(entry.id, form, typed, entries, factors, entry.priceUnit);
-    setIssue(problem);
-    setFailure(null);
-    if (problem !== null) return;
-    const plan = editPlan(
-      {
-        workspaceId,
-        variantId: entry.id,
-        name: entry.name,
-        priceUnit: entry.priceUnit,
-        locationId,
-        factors,
-        today: isoDay(new Date()),
-      },
-      form,
-      typed,
-      prices,
-    );
-    if (!editTouches(plan)) {
+  function guardar() {
+    const plan = pricePlan({ workspaceId, entry, typed, factors, today: isoDay(new Date()) });
+    setUnreadable(false);
+    if (plan.kind === 'unreadable') {
+      setUnreadable(true);
+      return;
+    }
+    if (plan.kind === 'set') {
+      const price = queuePrice(plan.draft, { id: newWriteId(), now: nowIso() });
+      if (price === null) {
+        setUnreadable(true);
+        return;
+      }
+      commitPrice(price);
       Keyboard.dismiss();
+      // ⚠️ AFTER `commitPrice`, WHICH HAS ALREADY PUT THE PRICE ON SCREEN
+      // (`@/offline/waitingPrices`), so the line `onSaved` adds is priced the
+      // moment it lands — never an amber line for a frame.
+      onSaved();
       onClose();
       return;
     }
-    setSaving(true);
-    const outcome = await save(plan);
-    setSaving(false);
-    if (!outcome.ok) {
-      setFailure(editLine(outcome));
-      return;
-    }
+    // Nothing typed, or the price it already has: nothing to save.
     Keyboard.dismiss();
-    // ⚠️ AFTER THE SAVE, AND THE SAVE HAS ALREADY RE-READ THE CATALOG
-    // (`useEditProduct` awaits the invalidation), so the line `onSaved` adds is
-    // priced the moment it lands — never an amber line for a frame.
-    onSaved();
     onClose();
   }
 
-  const line =
-    issue !== null
-      ? ES.catalog.editIssues[issue]
-      : failure ?? (pricesFailed ? ES.sell.priceSheet.needsSignal : null);
+  const line = unreadable ? ES.catalog.editIssues.priceUnreadable : null;
   const unit = ES.units[entry.priceUnit as keyof typeof ES.units] ?? entry.priceUnit;
   const earned = cost === null ? null : earningsAt(typed, cost.centavos);
   const note =
@@ -145,17 +121,8 @@ export function PrecioRapido({
       inputLabel={ES.sell.priceSheet.title(entry.name)}
       line={line}
       note={note}
-      act={
-        working
-          ? ES.sell.priceSheet.saving
-          : ready
-            ? adding
-              ? ES.sell.priceSheet.saveAndAdd
-              : ES.sell.priceSheet.save
-            : ES.sell.priceSheet.loading
-      }
-      onAct={() => void guardar()}
-      busy={working}
+      act={adding ? ES.sell.priceSheet.saveAndAdd : ES.sell.priceSheet.save}
+      onAct={guardar}
       cancel={ES.sell.priceSheet.cancel}
       onClose={onClose}
     />

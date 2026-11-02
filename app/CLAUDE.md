@@ -74,6 +74,11 @@ Each was measured against a real PostgREST or device.
 - **A queued write has no row in Postgres**, so `Lo último` draws the outbox too
   (`@/offline/unsent`). Dropping a queued write is not a void; the delete's own `changes` count
   is the evidence. No screen reads the queue directly (`auth-errors.test.ts`).
+- **A price is a queued write too — beside the outbox, never in it** (`8i`): `queued_price` in the
+  same file, drained after the ledger (a fifth outbox kind would dead-letter into a table that
+  refuses it and stop every sale behind it). `useCatalog` lays the waiting prices over the read
+  (`withWaitingPrices`), so a screen that reads a price anywhere else shows the old one.
+  `set_shelf_price` is compare-and-set: send the price the phone SHOWED, or a stale change wins.
 - **A tab screen keeps stale mount state** — `useState(() => …)` never sees a store change made
   from another screen.
 - **Metro's cache keeps an `EXPO_PUBLIC_` value.** A file is cached with the value already

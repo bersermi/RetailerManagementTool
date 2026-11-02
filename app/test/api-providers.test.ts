@@ -471,6 +471,7 @@ function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
     baseUnit: 'g',
     centavos: 1800,
     perBase: '0.018000',
+    priceScope: null,
     price: '$18.00 / kg',
     initials: 'MA',
     term: 'manzana fruta',

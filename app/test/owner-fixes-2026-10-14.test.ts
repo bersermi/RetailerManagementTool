@@ -70,20 +70,26 @@ describe('a price set from Vender', () => {
     expect(vender).not.toMatch(/onPrice=\{openPricing\}/);
   });
 
-  it('writes through the edit screen’s own path, never a second one', () => {
-    expect(sheet).toMatch(/checkEdit\(entry\.id, form, typed, entries, factors, entry\.priceUnit\)/);
-    expect(sheet).toMatch(/editPlan\(/);
-    expect(sheet).toMatch(/await save\(plan\)/);
+  // ⚠️⚠️ `8i`, THE OWNER'S RULING OF 2026-11-01: the price is set with or
+  // without signal. The sheet plans it (`pricePlan`) and puts it on the phone
+  // (`commitPrice`), which is the one path — so it never waits on the network
+  // and has nothing to wait for before it can save.
+  it('writes through one path, the phone’s queue, signal or not', () => {
+    expect(sheet).toMatch(/pricePlan\(\{ workspaceId, entry, typed, factors, today: isoDay\(new Date\(\)\) \}\)/);
+    expect(sheet).toMatch(/commitPrice\(price\);/);
+    expect(sheet).not.toMatch(/\bawait\b/);
+    expect(sheet).not.toMatch(/useEditProduct|changePrice|supabase/);
   });
 
-  it('offers no Guardar until the price rows have landed, nor when they failed', () => {
-    expect(sheet).toMatch(/const ready = !loading && !pricesFailed;/);
-    expect(sheet).toMatch(/if \(!ready \|\| working\) return;/);
+  it('saves without waiting for any read — there is no price row to fetch first', () => {
+    expect(sheet).not.toMatch(/pricesFailed|loading|const ready/);
+    // Saving puts the product in the basket only after the price is on the
+    // phone, so the line `+` adds is priced the moment it lands.
+    expect(sheet.indexOf('commitPrice(price);')).toBeLessThan(sheet.indexOf('onSaved();'));
   });
 
   it('says what a cashier still reads, and what the owner reads instead', () => {
     expect(ES.sell.noPrice).toBe('Sin precio');
     expect(ES.sell.setPrice).toBe('Poner precio');
-    expect(ES.sell.priceSheet.needsSignal).toContain('conexión');
   });
 });

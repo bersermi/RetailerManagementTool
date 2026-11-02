@@ -4,7 +4,7 @@ import { Keyboard, Platform, Pressable, Text, TextInput, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useCatalog, useEditProduct, useMyRole, useProductPhotoSave, useWorkspace } from '@/api/hooks';
-import { catalogLine, isoDay } from '@/api/catalog';
+import { catalogLine } from '@/api/catalog';
 import { canWriteCatalog } from '@/api/catalogWrite';
 import {
   activePatch,
@@ -140,11 +140,11 @@ export default function EditarProducto() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const role = useMyRole();
   const workspace = useWorkspace();
-  const { loading, entries, failed, locationId } = useCatalog();
+  const { loading, entries, failed } = useCatalog();
   // ⚠️ `8g`'s round 3: no catalog and no signal is *Se ve cuando haya señal*, never
   // *Cargando productos…* for ever (`catalogLine`).
   const online = useOnline();
-  const { prices, settings, factors, units, edit, save, busy } = useEditProduct(id ?? null);
+  const { settings, units, edit, save } = useEditProduct(id ?? null);
 
   const entry = entries.find((row) => row.id === id);
 
@@ -184,7 +184,7 @@ export default function EditarProducto() {
   const [photoNote, setPhotoNote] = useState<string | null>(null);
   const photos = useProductPhotoSave();
 
-  const working = saving || busy || photos.busy;
+  const working = saving || photos.busy;
   // ⚠️ `8g`: A PRODUCT FROM WERA'S CATALOG KEEPS ITS NAME — *"users won't be able
   // to edit the name on default products"*. Its page offers no Editar at all; this
   // is the deep link's answer, read off the row itself as well as the list.
@@ -213,29 +213,12 @@ export default function EditarProducto() {
   async function submit() {
     if (workspace === null || entry === undefined) return;
     const form: VariantEdit = { name: locked ? entry.name : name, taxPercent: '', packSize: '' };
-    const problem = checkEdit(entry.id, form, '', entries, factors, entry.priceUnit);
+    const problem = checkEdit(entry.id, form, entries);
     setIssue(problem);
     setFailure(null);
     if (problem !== null) return;
 
-    const plan = editPlan(
-      {
-        workspaceId: workspace.id,
-        variantId: entry.id,
-        name: entry.name,
-        priceUnit: entry.priceUnit,
-        locationId,
-        factors,
-        // ⚠️ AT THE TAP AND NOT AT THE RENDER. A form left open across midnight
-        // would otherwise close a row at yesterday and open one starting
-        // yesterday, which `price_list_no_overlap` refuses against a row somebody
-        // else opened today.
-        today: isoDay(new Date()),
-      },
-      form,
-      '',
-      prices,
-    );
+    const plan = editPlan(entry.name, form);
     const move = familyPatch(entry.familyId, aisle);
 
     // ⚠️ `8o`: a photo taken, or one taken off. Only the shop's own product has

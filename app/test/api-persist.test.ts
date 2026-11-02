@@ -27,7 +27,7 @@ import { QueryClient, dehydrate, hashKey, hydrate } from '@tanstack/react-query'
 import { describe, expect, it } from 'vitest';
 
 import { CATALOG_KEY, UNITS_KEY } from '@/api/catalog';
-import { PRICE_EDIT_KEY, VARIANT_EDIT_KEY } from '@/api/catalogEdit';
+import { VARIANT_EDIT_KEY } from '@/api/catalogEdit';
 import { costsKey } from '@/api/costs';
 import { documentsKey } from '@/api/documents';
 import { LOCATIONS_KEY } from '@/api/invites';
@@ -155,10 +155,10 @@ describe('nothing derived from the ledger is written to disk', () => {
   });
 
   it("refuses `Editar`'s per-variant reads, which could not be saved offline anyway", () => {
-    // ⚠️ THESE TWO SHARE A NAMESPACE WITH THE CATALOG — `['catalog', 'prices']`
-    // beside `['catalog', 'variants']` — so they are the closest thing this app
-    // has to a key that a prefix match could swallow by mistake.
-    expect(shouldPersistKey([...PRICE_EDIT_KEY, 'a3f1'])).toBe(false);
+    // ⚠️ IT SHARES A NAMESPACE WITH THE CATALOG — `['catalog', 'settings']`
+    // beside `['catalog', 'variants']` — so it is the closest thing this app has
+    // to a key a prefix match could swallow by mistake. (`['catalog', 'prices']`
+    // was the other, until `8i` stopped reading a variant's dated price rows.)
     expect(shouldPersistKey([...VARIANT_EDIT_KEY, 'a3f1'])).toBe(false);
   });
 

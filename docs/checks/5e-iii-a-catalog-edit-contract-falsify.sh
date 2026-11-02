@@ -91,21 +91,6 @@ echo "═══ 5e-iii-a catalog edit contract"
 fresh
 fixture "F0 control, the app unedited" green ""
 
-# --- F1. the edit read stops asking for the day a row started --------------
-# ⚠️ WITHOUT `effective_from` THERE IS NO SAME-DAY BRANCH AT ALL: every change
-# would take the close-and-open path and the second correction of a morning would
-# be refused a zero-length range.
-fresh
-edit "'id,price_per_base::text,location_id,effective_from,effective_to'" \
-     "'id,price_per_base::text,location_id,effective_to'"
-mutated && fixture "F1 the edit read forgets effective_from" red "the edit read did not come back as one dated row"
-
-# --- F2. the close patches a column the database does not have -------------
-fresh
-edit "export const PRICE_CLOSE_COLUMNS = 'effective_to';" \
-     "export const PRICE_CLOSE_COLUMNS = 'ends_on';"
-mutated && fixture "F2 the close names a column that is not there" red "the ordinary price change did not go through"
-
 # --- F3. ⚠️⚠️ the silent-refusal code moves --------------------------------
 # The whole finding of this task: a cashier's UPDATE is not refused, it is
 # invisible, and `PGRST116` through `.single()` is the only thing that says so.
@@ -113,21 +98,18 @@ fresh
 edit "const NO_ROWS = 'PGRST116';" "const NO_ROWS = 'PGRST404';"
 mutated && fixture "F3 the app stops recognising a zero-row update" red "the manager fence did not hold"
 
-# --- F4. the insert refusal moves ------------------------------------------
+# --- F4. the permission refusal moves -------------------------------------
+# ⚠️ Since `8i` the check sends no price, so `42501` is read where a delete is
+# refused — the reason retirement is `is_active`.
 fresh
 edit "const FORBIDDEN = '42501';" "const FORBIDDEN = '42999';"
-mutated && fixture "F4 the app stops recognising the insert refusal" red "the manager fence did not hold"
-
-# --- F5. the overlap code moves --------------------------------------------
-fresh
-edit "const OVERLAP = '23P01';" "const OVERLAP = '23P99';"
-mutated && fixture "F5 the app stops recognising price_list_no_overlap" red "was not refused as"
+mutated && fixture "F4 the app stops recognising the permission refusal" red "deletion and retirement are not what the app is built around"
 
 # --- F6. the honest catch-all stops covering a check violation -------------
 fresh
 edit "const REJECTED: readonly string[] = ['23514', '23503'];" \
      "const REJECTED: readonly string[] = ['23503'];"
-mutated && fixture "F6 23514 falls out of the catch-all" red "the same-day branch is not what the app is built around"
+mutated && fixture "F6 23514 falls out of the catch-all" red "the tax rate and the pack size are not bounded where the app thinks"
 
 # --- F7. retirement becomes a column that does not exist -------------------
 fresh
@@ -182,8 +164,8 @@ PY
 mutated && fixture "F9 a contract with no constants in it" red "could not read the catalog edit's contract"
 
 echo
-if (( fails == 0 && ran < 13 )); then
-  echo "FAIL: only $ran fixtures ran, expected 13 — this harness asserted almost"
+if (( fails == 0 && ran < 10 )); then
+  echo "FAIL: only $ran fixtures ran, expected 10 — this harness asserted almost"
   echo "      nothing and was about to report success."
   exit 1
 fi

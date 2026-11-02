@@ -27,6 +27,7 @@ function entry(over: Partial<CatalogEntry> = {}): CatalogEntry {
     baseUnit: 'g',
     centavos: 13500,
     perBase: '0.135000',
+    priceScope: null,
     price: '$135 / kg',
     initials: 'PS',
     term: 'pechuga sin hueso pollo',

@@ -543,9 +543,7 @@ export default function Vender() {
         <PrecioRapido
           entry={pricing.entry}
           adding={pricing.adding}
-          entries={entries}
           workspaceId={workspace.id}
-          locationId={locationId}
           onSaved={priced}
           onClose={() => setPricing(null)}
         />
@@ -574,9 +572,7 @@ export default function Vender() {
               bare
               entry={pricing.entry}
               adding={pricing.adding}
-              entries={entries}
               workspaceId={workspace.id}
-              locationId={locationId}
               onSaved={priced}
               onClose={() => setPricing(null)}
             />
