@@ -82,8 +82,9 @@ Adding a dependency moves the root lockfile, so it fires every workflow but `sit
 - A red `db.yml` whose steps read `skipped` after *Start Postgres* is a **registry throttle**,
   not a migration defect. **A cancelled job is not a failed assertion** — `gh pr checks`
   prints *fail* for both.
-- **No workflow compiles a native app** — Wera's or either sibling's. A native dependency swap
-  stays green until a Mac builds it.
+- **No workflow compiles a native app** — Wera's or either sibling's, nor the repository's own
+  native code (Wera Cocina's `cocina/modules/geocodificador`, since `10.4d-i`). A native dependency
+  swap stays green until a Mac or EAS builds it.
 
 ## Rules that are not negotiable
 
