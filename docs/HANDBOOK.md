@@ -63,6 +63,8 @@ listings do not say *inventario*; the home page of tu-wera.com still does.
 
 ## What is on your phone
 
+⏳ **2 November: a new test build of Wera Cocina for your iPhone — the phone's own search.** An update cannot bring it: the search is a new piece inside the app, so **your iPhone's Wera Cocina takes no update from now on until you install this build** (Wera is not touched). On your iPhone open https://expo.dev/accounts/wera-app/projects/cocina/builds/c852aafc-2ff8-426b-9717-b8b3cf26f17e and tap *Install* — it goes over the one you have (31 October), and your session and kitchen stay; EAS keeps it until 16 November. Then: *What only you can judge* → *Wera Cocina → the phone's own search*, and **slice 1 once more** — with a test account, register a kitchen and publish a dish — and tell a session whether slice 1 works: that word opens slice 2 (`10.5`). ⚠️ Before this build goes to anyone but you, the privacy page's email to every Wera Cocina account (today only yours) — `10.4d-ii` in *Where we are*.
+
 ⚠️ **2 November, morning: your iPhone was running the store version — the test build is back on it.** Since some day between 24 and 29 October, your iPhone's Wera was the version Apple is reviewing, installed from *TestFlight* (build 3, read off the phone; every test build is build 1). On an iPhone that version takes no update until Apple approves it, so **none of the updates below from 27 October on reached your iPhone**, though each entry said it went there — Expo counts no iPhone that installed them, so your looks of 29 October were of the 21 October version. That old version is what showed *"Un momento…"* on the price sheet and no *Cobrar* slider: it counts your Wera Cocina kitchen as a second store, and sells only when it sees one. A session put the test build back over Wi‑Fi from this Mac's copy (`~/RetailerToolDev/wera-builds/ios-3f12b2a9/`, signed for your iPhone until October 2027) — your data kept, and nothing was waiting to send — and Wera downloaded the 1 November update below within seconds. **Close Wera completely and open it again:** from then on it runs everything below. **What to look at:** Vender with one product in the basket — the *Cobrar* slider, with signal and then in airplane mode (don't slide it; *Vaciar carrito* after); then *What only you can judge* → *Vender → a price with no signal*. ⚠️ **In TestFlight, never tap *Install* on Wera on this iPhone, and turn its *Automatic Updates* off** — it would replace the test build again. **The pilot Android:** Expo counts no Android that installed any of Wera's 20 newest test updates in the last 30 days, so none of the entries below reached it either. **Android's store testers:** none took the 27 or the 29 October update.
 
 ⏳ **1 November, late night: a price with or without signal, over the air** (*Un precio con o sin señal (8i)*) to Wera's test builds — **your iPhone downloaded it on 2 November** (the entry above); the pilot Android has not. Open Wera, wait ten seconds, close it completely and open it again: the update runs from the second open. The database change went first the same night, so a price you set reaches the shop. What to look at: *What only you can judge* → *Vender → a price with no signal*. ⚠️ It changes real prices in your shop — put them back the same way. The store versions get it with your next `production` command.
@@ -1077,7 +1079,7 @@ projects are `@wera-app/cocina` and `@wera-app/itacate`.
 
 Your twelve testers have Wera Cocina's first build from Play — the map and nothing else. The first
 update to Play's builds brings them everything since: signing in, the kitchen and publishing.
-**Four things are true before it, and two of them are yours** (plan `10.4b-iv-b`):
+**Five things are true before it, and three of them are yours** (plans `10.4b-iv-b` and `10.4d-i`):
 
 1. ✅ **The privacy page says what Wera Cocina holds** — published when `10.4b-iv-b` merged, with
    Wera Cocina's own deletion page.
@@ -1092,17 +1094,33 @@ update to Play's builds brings them everything since: signing in, the kitchen an
    *App content → App access* — Play may call it *Sign-in details* — with the demo account and the
    English line; and *Main store listing → Full description* (section 2: the old one says it shows
    only a map). Then send the changes for review (*Publishing overview*).
-4. **Your command for Android's store version of Wera** — it carries only the 29 October change,
+4. **The privacy page's email, since 2 November** (`10.4d-i`): its section 11 promises every Wera
+   Cocina account an email before a change about what is used applies — and the phone's search sends
+   what she types to Google or Apple. Today the only accounts are yours, so send it to them (or tell
+   a session it is enough that you read it here). The text, from the address you use for Wera:
+   > **Asunto:** Cambió el aviso de privacidad de Wera Cocina
+   >
+   > Hola: actualizamos el aviso de privacidad de Wera Cocina (tu-wera.com/privacidad/cocina-e-itacate).
+   > Desde la próxima versión de la app, cuando el mapa busca tu cocina, el teléfono le pregunta por la
+   > dirección que escribiste a Google, en Android, o a Apple, en iPhone; si no la encuentran, a
+   > LocationIQ, como hasta ahora. Lo que responden solo mueve el mapa: no lo guardamos. Google y Apple
+   > lo tratan según sus propios avisos. Si tienes dudas, escríbenos a privacidad@tu-wera.com. — Wera
+5. **Your command for Android's store version of Wera** — it carries only the 29 October change,
    Wera reading the shop open in it alone (a session's is refused):
    ```
    ! bash docs/runbooks/ship-an-update.sh production "Wera lee solo la tienda abierta: una cocina no se mezcla" --only android
    ```
 
-**Then Wera Cocina's first update to your testers — your command too, whenever you want them to
-have it.** My recommendation: after you have tried slice 1 yourself (*What only you can judge*,
-the *Wera Cocina* rows), so they never meet something you would have caught first.
+**Then Wera Cocina reaches your testers — since 2 November as a new store version, not an
+update.** Wera Cocina now carries a piece of its own inside the app (the phone's search, `10.4d-i`),
+so no update can reach the first version your testers have: the update command refuses (*this
+update would reach no phone*) until the new store version exists, and with it they get everything
+at once. That version is `10.4d-ii` — your word on the icon first, and the privacy page's email to
+every Wera Cocina account (today only yours). My recommendation stays: after you have tried slice 1
+yourself (*What only you can judge*, the *Wera Cocina* rows), so they never meet something you
+would have caught first. Once they have it, later updates go the usual way — your command:
 ```
-! bash docs/runbooks/ship-an-update.sh production "Wera Cocina: tu cuenta, tu cocina y lo que publicas" --app cocina --only android
+! bash docs/runbooks/ship-an-update.sh production "…" --app cocina --only android
 ```
 
 ---

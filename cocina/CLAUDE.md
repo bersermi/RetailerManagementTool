@@ -115,6 +115,10 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   suite reads them for what must hold (no permission, no position, one name in three files; a misspelt
   name is a build that silently never asks the phone). Any change under `modules/` is native: it moves
   this app's runtime, so it reaches nobody until new builds. Its rules stay in `@/lib/buscar`, pure.
+- ⚠️ **`cocina/.gitignore` is hashed into the runtime** — `@expo/fingerprint` lists it as a file source.
+  Measured 2026-11-02 (`10.4d-i`): three lines added to it moved both runtimes (iOS `03e08251` → `04ea3329`,
+  Android `1c9713fb` → `5bb2a913`) with no other change. An edit to it is a native change; compute the
+  runtime after it (`npx expo-updates fingerprint:generate --platform …`), never before.
 - **Sign-in leans on settings outside this repository** (the plan's status log, 2026-10-30): the
   hosted project's redirect list holds `mx.wera.cocina://**` — without it Google's sign-in hangs, with
   no error — and its Apple client ids hold `mx.wera.cocina`. Android delivers Google's redirect to
@@ -144,7 +148,8 @@ TZ=UTC npm --prefix cocina test           # CI's zone: the window's arithmetic i
   `bash docs/runbooks/ship-an-update.sh preview "…" --app cocina`, run on `main` after a green merge
   (`10.4b-iii-a`); its rehearsal in `app.yml` holds the `--app cocina` cases. Never a bare
   `eas update`. ⚠️ **The `preview` builds are the owner's alone; a `production` update reaches his
-  closed testers, and it is his command** (a session's is refused as *Production Deploy*). The aviso
+  closed testers — since `10.4d-i` only once they have the store build `10.4d-ii` makes, because the
+  module moved this app's runtime — and it is his command** (a session's is refused as *Production Deploy*). The aviso
   says what an account, a kitchen and a publication hold since `10.4b-iv-b`; before the first such
   update, Play Console holds `store/cocina-itacate.md`'s Wera Cocina answers (*Data safety*, *Sign-in
   details*) and Wera's Android store version carries `10.4b-ii` — the handbook's *Before Wera Cocina
