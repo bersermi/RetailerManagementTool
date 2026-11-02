@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# DRAW THE TWO NEW APPS' PLAY PICTURES. Plan task `10.2b`. Run by hand, on this Mac:
+# DRAW THE TWO NEW APPS' PLAY PICTURES, AND WERA COCINA'S OWN. Plan tasks `10.2b`
+# and `10.4d-ii`. Run by hand, on this Mac:
 #
 #   bash store/cocina-itacate/render.sh
 #
@@ -10,6 +11,17 @@
 # colours its Android icon already carries (`10.2a`). Wera Cocina's is RULED (the
 # owner, 2026-11-02: the cream cow on its green, on both platforms); Itacate's is
 # still provisional, its owner's call before production.
+#
+# And into `cocina/assets/images/`, the two pictures Wera Cocina's builds carry
+# (`10.4d-ii`): `icon.png`, the listing icon's drawing at 1024 with no alpha channel
+# (App Store Connect refuses an icon with one) — the iPhone's icon, and the old
+# Android phones' (Expo draws Android's pre-8 launcher icon from the same field);
+# and `splash-icon.png`, the cow in Cocina's green on nothing, as the app opens —
+# its cream is `cocina/app.json`'s `backgroundColor`, the app's own `fondo` (the
+# owner's ruling of the same evening). `cocina/test/icon.test.ts` holds both.
+#
+# ⚠️ THOSE TWO ARE PART OF THE NATIVE BUILD. Re-drawing either moves Wera Cocina's
+# runtime on both platforms: no update reaches a phone until it installs a new build.
 #
 # The screenshots are not drawn here: they are the apps themselves, taken on the
 # Android emulator from a `preview` build (`store/cocina-itacate.md`).
@@ -68,11 +80,32 @@ HTML
   shoot "$WORK/$1-grafico.html" "$1-grafico-1024x500.png" 1024 500
 }
 
+apppictures() { # apppictures <folder> <ground> — the drawings of `brand/render-icons.sh`'s icon and splash
+  mkdir -p "$1"
+  cat > "$WORK/app-icon.html" <<HTML
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;width:1024px;height:1024px;overflow:hidden;background:$2}svg{display:block;width:1024px;height:1024px;color:$CREAM}</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-70 -70 652 652">$INNER</svg>
+HTML
+  shoot "$WORK/app-icon.html" "$WORK/app-icon.png" 1024 1024
+  # through a format with no alpha channel, as Wera's icon goes
+  sips -s format bmp "$WORK/app-icon.png" --out "$WORK/app-icon.bmp" >/dev/null
+  sips -s format png "$WORK/app-icon.bmp" --out "$1/icon.png" >/dev/null
+  cat > "$WORK/app-splash.html" <<HTML
+<!doctype html><meta charset="utf-8"><style>html,body{margin:0;width:600px;height:574px;overflow:hidden;background:transparent}svg{display:block;width:600px;height:574px;color:$2}</style>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="30 40 452 432">$INNER</svg>
+HTML
+  shoot "$WORK/app-splash.html" "$1/splash-icon.png" 600 574
+  [[ "$(sips -g hasAlpha "$1/icon.png" | tail -1 | awk '{print $2}')" == "no" ]] \
+    || { echo "FAIL: $1/icon.png has an alpha channel; App Store Connect will refuse it"; exit 1; }
+}
+
 icon    cocina  "#1C6B4B"
 icon    itacate "#24476B"
 graphic cocina  "#1C6B4B" "Wera Cocina" 96  "Para fondas y cocinas"
 graphic itacate "#24476B" "Itacate"     124 "Para vecinos"
+apppictures "$REPO/cocina/assets/images" "#1C6B4B"
 
-for f in cocina-icono-512.png itacate-icono-512.png cocina-grafico-1024x500.png itacate-grafico-1024x500.png; do
-  printf '  %-28s %s\n' "$f" "$(sips -g pixelWidth -g pixelHeight "$f" | tail -2 | awk '{print $2}' | tr '\n' ' ')"
+for f in cocina-icono-512.png itacate-icono-512.png cocina-grafico-1024x500.png itacate-grafico-1024x500.png \
+         "$REPO/cocina/assets/images/icon.png" "$REPO/cocina/assets/images/splash-icon.png"; do
+  printf '  %-36s %s\n' "${f#"$REPO"/}" "$(sips -g pixelWidth -g pixelHeight -g hasAlpha "$f" | tail -3 | awk '{print $2}' | tr '\n' ' ')"
 done
